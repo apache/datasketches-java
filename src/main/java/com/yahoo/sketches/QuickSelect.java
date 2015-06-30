@@ -1,0 +1,224 @@
+/*
+ * Copyright 2015, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
+package com.yahoo.sketches;
+
+/**
+ * QuickSelect algorithm improved from Sedgewick. Gets the kth order value (1-based or 0-based) from
+ * the array. Warning! This changes the ordering of elements in the given array!<br>
+ * Also see:<br>
+ * blog.teamleadnet.com/2012/07/quick-select-algorithm-find-kth-element.html<br>
+ * See QuickSelectTest for examples and testNG tests.
+ * 
+ * @author Lee Rhodes
+ */
+public class QuickSelect {
+  
+  private QuickSelect() {}
+  
+  /**
+   * Gets the 0-based kth order statistic from the array. Warning! This changes the ordering of
+   * elements in the given array!
+   * 
+   * @param arr The array to be re-arranged.
+   * @param lo The lowest 0-based index to be considered.
+   * @param hi The highest 0-based index to be considered.
+   * @param pivot The 0-based index of the value to pivot on.
+   * @return The value of the smallest (n)th element where n is 0-based.
+   */
+  public static final long select(long[] arr, int lo, int hi, final int pivot) {
+    while (hi > lo) {
+      int j = partition(arr, lo, hi);
+      if (j == pivot) {
+        return arr[pivot];
+      }
+      if (j > pivot) {
+        hi = j - 1;
+      } 
+      else {
+        lo = j + 1;
+      }
+    }
+    return arr[pivot];
+  }
+
+  /**
+   * Gets the 1-based kth order statistic from the array including any zero values in the array.
+   * Warning! This changes the ordering of elements in the given array!
+   * 
+   * @param arr The hash array.
+   * @param pivot The 1-based index of the value that is chosen as the pivot for the array. After
+   * the operation all values below this 1-based index will be less than this value and all values
+   * above this index will be greater. The 0-based index of the pivot will be pivot-1.
+   * @return The value of the smallest (N)th element including zeros, where N is 1-based.
+   */
+  public static final long selectIncludingZeros(long[] arr, final int pivot) {
+    int arrSize = arr.length;
+    int adj = pivot - 1;
+    return select(arr, 0, arrSize - 1, adj);
+  }
+
+  /**
+   * Gets the 1-based kth order statistic from the array excluding any zero values in the array.
+   * Warning! This changes the ordering of elements in the given array!
+   * 
+   * @param arr The hash array.
+   * @param nonZeros The number of non-zero values in the array.
+   * @param pivot The 1-based index of the value that is chosen as the pivot for the array. After
+   * the operation all values below this 1-based index will be less than this value and all values
+   * above this index will be greater. The 0-based index of the pivot will be
+   * pivot+arr.length-nonZeros-1.
+   * @return The value of the smallest (N)th element excluding zeros, where N is 1-based.
+   */
+  public static final long selectExcludingZeros(long[] arr, final int nonZeros, final int pivot) {
+    if (pivot > nonZeros) {
+      return 0L;
+    }
+    int arrSize = arr.length;
+    int zeros = arrSize - nonZeros;
+    int adjK = (pivot + zeros) - 1;
+    return select(arr, 0, arrSize - 1, adjK);
+  }
+  
+  /**
+   * Partition arr[] into arr[lo .. i-1], arr[i], arr[i+1,hi]
+   * 
+   * @param arr The given array to partition
+   * @param lo  the low index
+   * @param hi  the high index
+   * @return the next partition value.  Ultimately, the desired pivot.
+   */
+  private static final int partition(long[] arr, final int lo, final int hi) {
+    int i = lo, j = hi + 1; //left and right scan indices
+    long v = arr[lo]; //partitioning item value
+    while (true) {
+      //Scan right, scan left, check for scan complete, and exchange
+      while (arr[ ++i] < v) {
+        if (i == hi) {
+          break;
+        }
+      }
+      while (v < arr[ --j]) {
+        if (j == lo) {
+          break;
+        }
+      }
+      if (i >= j) {
+        break;
+      }
+      long x = arr[i];
+      arr[i] = arr[j];
+      arr[j] = x;
+    }
+    //put v=arr[j] into position with a[lo .. j-1] <= a[j] <= a[j+1 .. hi]
+    long x = arr[lo];
+    arr[lo] = arr[j];
+    arr[j] = x;
+    return j;
+  }
+  
+  //For double arrays
+  
+  /**
+   * Gets the 0-based kth order statistic from the array. Warning! This changes the ordering of
+   * elements in the given array!
+   * 
+   * @param arr The array to be re-arranged.
+   * @param lo The lowest 0-based index to be considered.
+   * @param hi The highest 0-based index to be considered.
+   * @param pivot The 0-based smallest value to pivot on.
+   * @return The value of the smallest (n)th element where n is 0-based.
+   */
+  public static final double select(double[] arr, int lo, int hi, final int pivot) {
+    while (hi > lo) {
+      int j = partition(arr, lo, hi);
+      if (j == pivot) {
+        return arr[pivot];
+      }
+      if (j > pivot) {
+        hi = j - 1;
+      } 
+      else {
+        lo = j + 1;
+      }
+    }
+    return arr[pivot];
+  }
+
+  /**
+   * Gets the 1-based kth order statistic from the array including any zero values in the array.
+   * Warning! This changes the ordering of elements in the given array!
+   * 
+   * @param arr The hash array.
+   * @param pivot The 1-based index of the value that is chosen as the pivot for the array. After
+   * the operation all values below this 1-based index will be less than this value and all values
+   * above this index will be greater. The 0-based index of the pivot will be pivot-1.
+   * @return The value of the smallest (N)th element including zeros, where N is 1-based.
+   */
+  public static final double selectIncludingZeros(double[] arr, final int pivot) {
+    int arrSize = arr.length;
+    int adj = pivot - 1;
+    return select(arr, 0, arrSize - 1, adj);
+  }
+
+  /**
+   * Gets the 1-based kth order statistic from the array excluding any zero values in the array.
+   * Warning! This changes the ordering of elements in the given array!
+   * 
+   * @param arr The hash array.
+   * @param nonZeros The number of non-zero values in the array.
+   * @param pivot The 1-based index of the value that is chosen as the pivot for the array. After
+   * the operation all values below this 1-based index will be less than this value and all values
+   * above this index will be greater. The 0-based index of the pivot will be
+   * pivot+arr.length-nonZeros-1.
+   * @return The value of the smallest (N)th element excluding zeros, where N is 1-based.
+   */
+  public static final double selectExcludingZeros(double[] arr, final int nonZeros, final int pivot) {
+    if (pivot > nonZeros) {
+      return 0L;
+    }
+    int arrSize = arr.length;
+    int zeros = arrSize - nonZeros;
+    int adjK = (pivot + zeros) - 1;
+    return select(arr, 0, arrSize - 1, adjK);
+  }
+
+  /**
+   * Partition arr[] into arr[lo .. i-1], arr[i], arr[i+1,hi]
+   * 
+   * @param arr The given array to partition
+   * @param lo  the low index
+   * @param hi  the high index
+   * @return the next partition value.  Ultimately, the desired pivot.
+   */
+  private static int partition(double[] arr, final int lo, final int hi) {
+    int i = lo, j = hi + 1; //left and right scan indices
+    double v = arr[lo]; //partitioning item value
+    while (true) {
+      //Scan right, scan left, check for scan complete, and exchange
+      while (arr[ ++i] < v) {
+        if (i == hi) {
+          break;
+        }
+      }
+      while (v < arr[ --j]) {
+        if (j == lo) {
+          break;
+        }
+      }
+      if (i >= j) {
+        break;
+      }
+      double x = arr[i];
+      arr[i] = arr[j];
+      arr[j] = x;
+    }
+    //put v=arr[j] into position with a[lo .. j-1] <= a[j] <= a[j+1 .. hi]
+    double x = arr[lo];
+    arr[lo] = arr[j];
+    arr[j] = x;
+    return j;
+  }
+  
+}
