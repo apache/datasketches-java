@@ -1,0 +1,31 @@
+# Eclipse project files 
+.classpath
+.project
+.settings/
+.checkstyle
+
+#OSX files
+.DS_Store
+
+# Compiler output, class files
+bin/
+
+#Test output
+test-output/
+
+# Build artifacts
+target/
+out/
+build/
+jarsIn/
+.jar
+#build.xml
+.idea
+*.iml
+
+# Jekyll
+Gemfile
+Gemfile.lock
+_site/
+_*
+_*/
