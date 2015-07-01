@@ -36,7 +36,7 @@ import java.io.Serializable;
  * 
  * @author Lee Rhodes
  */
-public class MurmurHash3 implements Serializable {
+public final class MurmurHash3 implements Serializable {
   private static final long serialVersionUID = 0L;
   
   private MurmurHash3() {}
@@ -49,7 +49,7 @@ public class MurmurHash3 implements Serializable {
    * @param seed A long valued seed.
    * @return the hash.
    */
-  public static final long[] hash(long[] key, long seed) {
+  public static long[] hash(long[] key, long seed) {
     HashState hashState = new HashState(seed, seed);
     final int longs = key.length; //in longs
     
@@ -82,7 +82,7 @@ public class MurmurHash3 implements Serializable {
    * @param seed A long valued seed.
    * @return the hash.
    */
-  public static final long[] hash(int[] key, long seed) {
+  public static long[] hash(int[] key, long seed) {
     HashState hashState = new HashState(seed, seed);
     final int ints = key.length; //in ints
     
@@ -123,7 +123,7 @@ public class MurmurHash3 implements Serializable {
    * @param seed A long valued seed.
    * @return the hash.
    */
-  public static final long[] hash(byte[] key, long seed) {
+  public static long[] hash(byte[] key, long seed) {
     HashState hashState = new HashState(seed, seed);
     final int bytes = key.length; //in bytes
     
@@ -160,7 +160,7 @@ public class MurmurHash3 implements Serializable {
   /**
    * Common processing of the 128-bit hash state independent of input type.
    */
-  private static class HashState {
+  private static final class HashState {
     private static final long C1 = 0x87c37b91114253d5L;
     private static final long C2 = 0x4cf5ad432745937fL;
     private long h1;
@@ -209,7 +209,7 @@ public class MurmurHash3 implements Serializable {
      * @param h input to final mix
      * @return mix
      */
-    private static final long finalMix64(long h) {
+    private static long finalMix64(long h) {
       h ^= h >>> 33;
       h *= 0xff51afd7ed558ccdL;
       h ^= h >>> 33;
@@ -224,7 +224,7 @@ public class MurmurHash3 implements Serializable {
      * @param k1 input argument
      * @return mix
      */
-    private static final long mixK1(long k1) {
+    private static long mixK1(long k1) {
       k1 *= C1;
       k1 = Long.rotateLeft(k1, 31);
       k1 *= C2;
@@ -237,7 +237,7 @@ public class MurmurHash3 implements Serializable {
      * @param k2 input argument
      * @return mix
      */
-    private static final long mixK2(long k2) {
+    private static long mixK2(long k2) {
       k2 *= C2;
       k2 = Long.rotateLeft(k2, 33);
       k2 *= C1;
@@ -256,7 +256,7 @@ public class MurmurHash3 implements Serializable {
    * @param rem Remainder bytes. An integer in the range [1,8].
    * @return long
    */
-  private static final long getLong(byte[] bArr, int index, int rem) {
+  private static long getLong(byte[] bArr, int index, int rem) {
     long out = 0L;
     for (int i = rem; i-- > 0;) { //i= 7,6,5,4,3,2,1,0
       byte b = bArr[index + i];
@@ -275,7 +275,7 @@ public class MurmurHash3 implements Serializable {
    * @param rem Remainder integers. An integer in the range [1,2].
    * @return long
    */
-  private static final long getLong(int[] intArr, int index, int rem) {
+  private static long getLong(int[] intArr, int index, int rem) {
     long out = 0L;
     for (int i = rem; i-- > 0;) { //i= 1,0
       int v = intArr[index + i];

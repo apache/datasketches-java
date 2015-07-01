@@ -41,7 +41,7 @@ public final class MurmurHash3Adaptor {
     long[] data = { datum };
     return toByteArray(hash(data, seed));
   }
-
+  
   /**
    * Hash a long[] and long seed.
    * 
@@ -55,7 +55,7 @@ public final class MurmurHash3Adaptor {
     }
     return toByteArray(hash(data, seed));
   }
-
+  
   /**
    * Hash an int[] and long seed.
    * 
@@ -69,7 +69,7 @@ public final class MurmurHash3Adaptor {
     }
     return toByteArray(hash(data, seed));
   }
-
+  
   /**
    * Hash a byte[] and long seed.
    * 
@@ -83,7 +83,7 @@ public final class MurmurHash3Adaptor {
     }
     return toByteArray(hash(data, seed));
   }
-
+  
   /**
    * Hash a double and long seed.
    * 
@@ -96,7 +96,7 @@ public final class MurmurHash3Adaptor {
     long[] data = { Double.doubleToLongBits(d) }; //canonicalize all NaN forms
     return toByteArray(hash(data, seed));
   }
-
+  
   /**
    * Hash a String and long seed.
    * 
@@ -111,7 +111,7 @@ public final class MurmurHash3Adaptor {
     byte[] data = datum.getBytes(UTF_8);
     return toByteArray(hash(data, seed));
   }
-
+  
   /**
    * Hash a long and long seed.
    * 
@@ -123,7 +123,7 @@ public final class MurmurHash3Adaptor {
     long[] data = { datum };
     return hash(data, seed);
   }
-
+  
   /**
    * Hash a long[] and long seed.
    * 
@@ -137,7 +137,7 @@ public final class MurmurHash3Adaptor {
     }
     return hash(data, seed);
   }
-
+  
   /**
    * Hash a int[] and long seed.
    * 
@@ -151,7 +151,7 @@ public final class MurmurHash3Adaptor {
     }
     return hash(data, seed);
   }
-
+  
   /**
    * Hash a byte[] and long seed.
    * 
@@ -165,7 +165,7 @@ public final class MurmurHash3Adaptor {
     }
     return hash(data, seed);
   }
-
+  
   /**
    * Hash a double and long seed.
    * 
@@ -178,7 +178,7 @@ public final class MurmurHash3Adaptor {
     long[] data = { Double.doubleToLongBits(d) };//canonicalize all NaN forms
     return hash(data, seed);
   }
-
+  
   /**
    * Hash a String and long seed.
    * 
@@ -193,9 +193,9 @@ public final class MurmurHash3Adaptor {
     byte[] data = datum.getBytes(UTF_8);
     return hash(data, seed);
   }
-
+  
   //As Integer functions
-
+  
   /**
    * Returns a deterministic uniform random integer between zero (inclusive) and
    * n (exclusive) given the input data.
@@ -277,7 +277,7 @@ public final class MurmurHash3Adaptor {
     byte[] data = datum.getBytes(UTF_8);
     return asInteger(toLongArray(data), n); //data is byte[]
   }
-
+  
   /**
    * Returns a deterministic uniform random integer with a minimum inclusive value of zero and a 
    * maximum exclusive value of n given the input data.
@@ -377,7 +377,7 @@ public final class MurmurHash3Adaptor {
     long modTop = mulRule(mulRule(BIT62, 4L, d), modH1, d);
     return (int) addRule(modTop, modH0, d);
   }
-
+  
   /**
    * Returns the remainder from the modulo division of the 128-bit output of the murmurHash3 by the
    * divisor.
@@ -389,15 +389,15 @@ public final class MurmurHash3Adaptor {
   public static int modulo(long[] hash, int divisor) {
     return modulo(hash[0], hash[1], divisor);
   }
-
+  
   private static long addRule(long a, long b, long d) {
     return ((a % d) + (b % d)) % d;
   }
-
+  
   private static long mulRule(long a, long b, long d) {
     return ((a % d) * (b % d)) % d;
   }
-
+  
   private static byte[] toByteArray(long[] hash) { //Assumes Big Endian
     byte[] bArr = new byte[16];
     ByteBuffer bb = ByteBuffer.wrap(bArr);
@@ -405,8 +405,8 @@ public final class MurmurHash3Adaptor {
     bb.putLong(hash[1]);
     return bArr;
   }
-
-  static long[] toLongArray(byte[] data) {
+  
+  private static long[] toLongArray(byte[] data) {
     int dataLen = data.length;
     int longLen = (dataLen+7)/8;
     long[] longArr = new long[longLen];
@@ -416,8 +416,8 @@ public final class MurmurHash3Adaptor {
     }
     return longArr;
   }
-
-  static long[] toLongArray(int[] data) {
+  
+  private static long[] toLongArray(int[] data) {
     int dataLen = data.length;
     int longLen = (dataLen+1)/2;
     long[] longArr = new long[longLen];

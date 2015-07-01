@@ -48,7 +48,7 @@ public final class Util {
    * @param v The parameter to check
    * @param argName This name will be part of the error message if the check fails.
    */
-  public static final void checkIfMultipleOf8AndGT0(long v, String argName) {
+  public static void checkIfMultipleOf8AndGT0(long v, String argName) {
     if (((v & 0X7L) == 0L) && (v > 0L)) {
       return;
     }
@@ -61,7 +61,7 @@ public final class Util {
    * @param v The parameter to check
    * @return true if v is a multiple of 8 and greater than zero
    */
-  public static final boolean isMultipleOf8AndGT0(long v) {
+  public static boolean isMultipleOf8AndGT0(long v) {
     return (((v & 0X7L) == 0L) && (v > 0L));
   }
   
