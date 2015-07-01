@@ -19,7 +19,7 @@ out/
 build/
 jarsIn/
 .jar
-#build.xml
+build.xml
 .idea
 *.iml
 
