@@ -191,7 +191,8 @@ The UpdateReturnState is defined as follows:
 <li> InsertedCountNotIncremented: Inserted, not full, retained-entries-count not incremented 
 because a dirty value was overridden.</li>
 <li> RejectedDuplicate: Rejected as duplicate.</li>
-<li> RejectedFull: Update value is eligible for insertion but this sketch is full and cannot accept it.</li>
+<li> RejectedFull: Update value is eligible for insertion but this sketch is full and cannot accept it.
+This is the only return state that qualifies as an error condition and must be handled by the caller.</li>
 <li> RejectedNullOrEmpty: Rejected because input was null or empty. Only for update objects.</li>
 <li> RejectedOverTheta: Rejected because the computed hash was over the current value of thetaLong.</li>
 </ul>
