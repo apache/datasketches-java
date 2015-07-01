@@ -9,8 +9,10 @@ package com.yahoo.sketches.theta;
  * 
  * @author Kevin Lang
  */
-class EquivTables {
-
+final class EquivTables {
+  
+  private EquivTables() {}
+  
   /**
    * These equivTables contain modified values for numSDevs that if used 
    * WHEN THETA IS VERY SMALL will cause the continuity-corrected version

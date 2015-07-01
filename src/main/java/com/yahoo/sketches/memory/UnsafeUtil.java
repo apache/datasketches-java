@@ -93,7 +93,7 @@ final class UnsafeUtil {
    * @param len the required length
    * @param size the allocated size
    */
-  static final void assertBounds(final long off, final long len, final long size) {
+  static void assertBounds(final long off, final long len, final long size) {
     assert ((off | len | (off + len) | (size - (off + len))) >= 0) : 
       "offset: "+ off + ", length: "+ len + ", size: "+size;
   }
@@ -105,7 +105,7 @@ final class UnsafeUtil {
    * @param length the length of both regions
    * @return true if the two memory regions do not overlap
    */
-  static final boolean checkOverlap(final long srcOff, final long dstOff, final long length) {
+  static boolean checkOverlap(final long srcOff, final long dstOff, final long length) {
     long min = Math.min(srcOff, dstOff);
     long max = Math.max(srcOff, dstOff);
     return (min + length) <= max;

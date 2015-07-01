@@ -13,7 +13,7 @@ import static com.yahoo.sketches.memory.UnsafeUtil.unsafe;
  * 
  * @author Lee Rhodes
  */
-public class MemoryUtil {
+public final class MemoryUtil {
   
   private MemoryUtil() {}
   
@@ -59,7 +59,7 @@ public class MemoryUtil {
     }
   }
   
-  /**  //TODO consider moving
+  /**
    * Searches a range of the specified array of longs for the specified value using the binary 
    * search algorithm. The range must be sorted (as by the sort(long[], int, int) method) prior 
    * to making this call. If it is not sorted, the results are undefined. If the range contains 

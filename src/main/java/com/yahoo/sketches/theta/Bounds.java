@@ -9,7 +9,7 @@ package com.yahoo.sketches.theta;
  * @author Kevin Lang
  */
 @SuppressWarnings({"cast"})
-class Bounds {
+final class Bounds {
   
   private Bounds() {}
   
@@ -241,7 +241,7 @@ class Bounds {
     return (Math.max (est, ub));
   }
   
-  private static final void assertTrue(final boolean truth) {
+  private static void assertTrue(final boolean truth) {
     assert(truth);
   }
   
