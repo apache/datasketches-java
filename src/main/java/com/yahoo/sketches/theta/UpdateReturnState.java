@@ -13,10 +13,12 @@ public enum UpdateReturnState {
    * Indicates a normal sketch update response and the action that was taken by the sketch.
    */
   InsertedCountIncremented, //all UpdateSketches
+  
   /**
    * Indicates a normal sketch update response and the action that was taken by the sketch.
    */
   InsertedCountNotIncremented, //used by enhancedHashInsert for Alpha
+  
   /**
    * Used by Direct Update Sketches.
    * This indicates that the Sketch has run out of capacity in Direct Memory and must
@@ -24,14 +26,17 @@ public enum UpdateReturnState {
    * Direct Memory cases where the allocated memory has intentionally been undersized.
    */
   RejectedFull, //used by DQSS.hashUpdate(), DirectUnion.hashUpdate() (internal only)
+  
   /**
    * Indicates a normal sketch update response and the action that was taken by the sketch.
    */
   RejectedDuplicate, //all UpdateSketches hashUpdate(), enhancedHashInsert
+  
   /**
    * Indicates a normal sketch update response and the action that was taken by the sketch.
    */
   RejectedNullOrEmpty, //UpdateSketch.update(arr[])
+  
   /**
    * Indicates a normal sketch update response and the action that was taken by the sketch.
    */

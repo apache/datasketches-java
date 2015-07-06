@@ -5,7 +5,6 @@
 package com.yahoo.sketches.theta;
 
 import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.theta.SetOperation.SetReturnState;
 
 /**
  * The API for intersection operations
@@ -22,7 +21,7 @@ public interface Intersection {
    * @param sketchIn the given sketch
    * @return the return state of the intersection
    */
-  SetReturnState update(Sketch sketchIn);
+  SetOpReturnState update(Sketch sketchIn);
   
   /**
    * Returns the result as a new CompactSketch.

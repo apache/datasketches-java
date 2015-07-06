@@ -10,7 +10,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.UNION_THETA_LONG;
-import static com.yahoo.sketches.theta.SetOperation.SetReturnState.Success;
+import static com.yahoo.sketches.theta.SetOpReturnState.Success;
 import static java.lang.Math.min;
 
 import java.util.Arrays;
@@ -63,12 +63,12 @@ class HeapUnion extends SetOperation implements Union {
   }
   
   @Override
-  public SetReturnState update(Sketch sketchIn) { 
+  public SetOpReturnState update(Sketch sketchIn) { 
     //UNION Rule: AND the empty states
     
     if ((sketchIn == null)  || sketchIn.isEmpty()) {
       //null/empty is interpreted as (1.0, 0, T).  Nothing changes
-      return SetReturnState.Success;
+      return SetOpReturnState.Success;
     }
     unionEmpty_ = false; //Empty rule: AND the empty states
     

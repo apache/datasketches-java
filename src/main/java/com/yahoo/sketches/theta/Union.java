@@ -5,7 +5,6 @@
 package com.yahoo.sketches.theta;
 
 import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.theta.SetOperation.SetReturnState;
 
 /**
  * The API for Union operations
@@ -22,7 +21,7 @@ public interface Union {
    * @param sketchIn The incoming sketch.
    * @return the return state of the union
    */  
-  SetReturnState update(Sketch sketchIn);
+  SetOpReturnState update(Sketch sketchIn);
   
   /**
    * Get the result of the Union operations

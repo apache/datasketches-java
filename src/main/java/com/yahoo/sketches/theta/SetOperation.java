@@ -29,11 +29,6 @@ public class SetOperation {
   
   SetOperation() {}
   
-  public enum SetReturnState {
-    Success,
-    SetRejectedFull;
-  }
-  
   /**
    * Makes a new builder
    *

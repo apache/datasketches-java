@@ -8,7 +8,7 @@ import static com.yahoo.sketches.theta.CompactSketch.compactCache;
 import static com.yahoo.sketches.theta.HashOperations.hashArrayInsert;
 import static com.yahoo.sketches.theta.HashOperations.hashSearch;
 import static com.yahoo.sketches.theta.PreambleUtil.checkSeedHashes;
-import static com.yahoo.sketches.theta.SetOperation.SetReturnState.Success;
+import static com.yahoo.sketches.theta.SetOpReturnState.Success;
 import static java.lang.Math.min;
 
 import java.util.Arrays;
@@ -43,7 +43,7 @@ class HeapAnotB extends SetOperation implements AnotB {
   
   @Override
   @SuppressWarnings("null")
-  public SetReturnState update(Sketch a, Sketch b) { 
+  public SetOpReturnState update(Sketch a, Sketch b) { 
     a_ = a;
     b_ = b;
     thetaLong_ = Long.MAX_VALUE;
@@ -70,7 +70,7 @@ class HeapAnotB extends SetOperation implements AnotB {
   }
   
   @SuppressWarnings("null")
-  SetReturnState compute() {
+  SetOpReturnState compute() {
     int swA = (a_ == null)? 0 : (a_.isEmpty())? 1: (a_ instanceof UpdateSketch)? 4 : (a_.isOrdered())? 3 : 2;
     int swB = (b_ == null)? 0 : (b_.isEmpty())? 1: (b_ instanceof UpdateSketch)? 4 : (b_.isOrdered())? 3 : 2;
     int sw = (swA * 8) | swB;

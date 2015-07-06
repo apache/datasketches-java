@@ -5,7 +5,6 @@
 package com.yahoo.sketches.theta;
 
 import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.theta.SetOperation.SetReturnState;
 
 /**
  * The API for AnotB operations
@@ -22,7 +21,7 @@ public interface AnotB {
    * @param b The incoming sketch for the second argument
    * @return the return state of the AnotB
    */  
-  SetReturnState update(Sketch a, Sketch b);
+  SetOpReturnState update(Sketch a, Sketch b);
   
   /**
    * Returns the result as a new CompactSketch.

@@ -10,8 +10,8 @@ import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.UNION_THETA_LONG;
-import static com.yahoo.sketches.theta.SetOperation.SetReturnState.SetRejectedFull;
-import static com.yahoo.sketches.theta.SetOperation.SetReturnState.Success;
+import static com.yahoo.sketches.theta.SetOpReturnState.SetOpRejectedFull;
+import static com.yahoo.sketches.theta.SetOpReturnState.Success;
 import static java.lang.Math.min;
 
 import java.util.Arrays;
@@ -69,13 +69,13 @@ class DirectUnion extends SetOperation implements Union{
   }
   
   @Override
-  public SetReturnState update(Sketch sketchIn) { 
+  public SetOpReturnState update(Sketch sketchIn) { 
     //UNION Empty Rule: AND the empty states
     
     if ((sketchIn == null)  || sketchIn.isEmpty()) {
       //null/empty is interpreted as (1.0, 0, T).  Nothing changes
       mem_.putLong(UNION_THETA_LONG, unionThetaLong_);
-      return SetReturnState.Success;
+      return SetOpReturnState.Success;
     }
     //unionEmpty_ is merged with the gadget
     mem_.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); 
@@ -97,7 +97,7 @@ class DirectUnion extends SetOperation implements Union{
           gadget_.hashUpdate(cacheIn[i]); //backdoor update, hash function is bypassed
         if (urs == UpdateReturnState.RejectedFull) {
           mem_.putLong(UNION_THETA_LONG, unionThetaLong_);
-          return SetRejectedFull;
+          return SetOpRejectedFull;
         }
       }
     } 
