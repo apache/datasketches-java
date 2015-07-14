@@ -203,9 +203,9 @@ public class SetOperationTest {
     Memory resultMem = new MemoryRegion(heapMem, heapLayout[4], heapLayout[5]-heapLayout[4]);
     
     //Initialize the 3 sketches
-    UpdateSketch sk1 = UpdateSketch.builder().setMemory(sketch1mem).build(sketchNomEntries);
-    UpdateSketch sk2 = UpdateSketch.builder().setMemory(sketch2mem).build(sketchNomEntries);
-    UpdateSketch sk3 = UpdateSketch.builder().setMemory(sketch3mem).build(sketchNomEntries);
+    UpdateSketch sk1 = UpdateSketch.builder().initMemory(sketch1mem).build(sketchNomEntries);
+    UpdateSketch sk2 = UpdateSketch.builder().initMemory(sketch2mem).build(sketchNomEntries);
+    UpdateSketch sk3 = UpdateSketch.builder().initMemory(sketch3mem).build(sketchNomEntries);
     
     //This little trial has sk1 and sk2 distinct and sk2 overlap both.
     //Build the sketches. 

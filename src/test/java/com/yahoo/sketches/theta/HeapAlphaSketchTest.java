@@ -68,7 +68,7 @@ public class HeapAlphaSketchTest {
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkAlphaIncompatibleWithMem() {
     Memory mem = new NativeMemory(new byte[512*16+24]);
-    UpdateSketch.builder().setFamily(Family.ALPHA).setMemory(mem).build(512);
+    UpdateSketch.builder().setFamily(Family.ALPHA).initMemory(mem).build(512);
   }
   
   @Test(expectedExceptions = IllegalArgumentException.class)

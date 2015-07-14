@@ -30,7 +30,7 @@ public class PreambleUtilTest {
     byte[] byteArray = new byte[bytes];
     Memory mem = new NativeMemory(byteArray);
 
-    UpdateSketch quick1 = UpdateSketch.builder().setMemory(mem).build(k);
+    UpdateSketch quick1 = UpdateSketch.builder().initMemory(mem).build(k);
     println(PreambleUtil.toString(byteArray));
     
     Assert.assertTrue(quick1.isEmpty());

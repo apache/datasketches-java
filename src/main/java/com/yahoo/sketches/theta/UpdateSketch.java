@@ -105,11 +105,12 @@ public abstract class UpdateSketch extends Sketch {
     }
     
     /**
-     * Sets the backing Memory store.  This cannot be used with the Alpha Family of sketches.
+     * Initialize the specified backing Memory store.  
+     * Note: this cannot be used with the Alpha Family of sketches.
      * @param mem  <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
      * @return this Builder
      */
-    public Builder setMemory(Memory mem) {
+    public Builder initMemory(Memory mem) {
       bMem = mem;
       return this;
     }

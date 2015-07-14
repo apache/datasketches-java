@@ -38,7 +38,7 @@ public class DirectQuickSelectSketchTest {
     int k = 512;
     Memory mem = makeNativeMemory(k);
     
-    UpdateSketch usk = UpdateSketch.builder().setMemory(mem).build(k);
+    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
     DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
         
     assertTrue(usk.isEmpty());
@@ -60,7 +60,7 @@ public class DirectQuickSelectSketchTest {
     Memory mem = makeNativeMemory(k);
     
     @SuppressWarnings("unused")
-    UpdateSketch usk = UpdateSketch.builder().setMemory(mem).build(k);
+    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
   }
   
   @Test(expectedExceptions = IllegalArgumentException.class)
@@ -69,7 +69,7 @@ public class DirectQuickSelectSketchTest {
     Memory mem = makeNativeMemory(8);
     
     @SuppressWarnings("unused")
-    UpdateSketch usk = UpdateSketch.builder().setMemory(mem).build(k);
+    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
   }
   
   @Test(expectedExceptions = IllegalArgumentException.class)
@@ -79,7 +79,7 @@ public class DirectQuickSelectSketchTest {
     Memory mem = new NativeMemory(new byte[bytes]);
     
     @SuppressWarnings("unused")
-    UpdateSketch usk = UpdateSketch.builder().setMemory(mem).build(k);
+    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
     
     mem.putByte(FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte, catch in UpdateSketch
     
@@ -96,7 +96,7 @@ public class DirectQuickSelectSketchTest {
     boolean estimating = (u > k);
     
     Memory mem = new NativeMemory(new byte[maxBytes]);
-    UpdateSketch sk1 = UpdateSketch.builder().setMemory(mem).build(k);
+    UpdateSketch sk1 = UpdateSketch.builder().initMemory(mem).build(k);
     for (int i=0; i<u; i++) sk1.update(i);
     
     double sk1est = sk1.getEstimate();
@@ -133,7 +133,7 @@ public class DirectQuickSelectSketchTest {
     Memory mem = new NativeMemory(new byte[maxBytes]);
     
     @SuppressWarnings("unused")
-    UpdateSketch usk = UpdateSketch.builder().setMemory(mem).build(k);
+    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
     
     mem.putByte(FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte, catch in UpdateSketch
     
@@ -149,7 +149,7 @@ public class DirectQuickSelectSketchTest {
     long seed2 = DEFAULT_UPDATE_SEED;
     Memory mem = makeNativeMemory(k);
     
-    UpdateSketch usk = UpdateSketch.builder().setSeed(seed1).setMemory(mem).build(k);
+    UpdateSketch usk = UpdateSketch.builder().setSeed(seed1).initMemory(mem).build(k);
     byte[] byteArray = usk.toByteArray();
     Memory srcMem = new NativeMemory(byteArray);
     Sketch.heapify(srcMem, seed2);
@@ -160,7 +160,7 @@ public class DirectQuickSelectSketchTest {
     int k = 512;
     Memory mem = makeNativeMemory(k);
     
-    UpdateSketch usk = UpdateSketch.builder().setMemory(mem).build(k);
+    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
     
     for (int i=0; i< k; i++) usk.update(i);
     
@@ -188,7 +188,7 @@ public class DirectQuickSelectSketchTest {
     int k = 4096;
     int u = 2*k;
     Memory mem = makeNativeMemory(k);
-    UpdateSketch usk = UpdateSketch.builder().setMemory(mem).build(k);
+    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
     
     for (int i=0; i<u; i++) usk.update(i);
     
@@ -215,7 +215,7 @@ public class DirectQuickSelectSketchTest {
     boolean estimating = (u > k);
 
     Memory mem = makeNativeMemory(k);
-    UpdateSketch sk1 = UpdateSketch.builder().setMemory(mem).build(k);
+    UpdateSketch sk1 = UpdateSketch.builder().initMemory(mem).build(k);
     String nameS1 = sk1.getClass().getSimpleName();
     for (int i=0; i<u; i++) sk1.update(i);
     
@@ -241,7 +241,7 @@ public class DirectQuickSelectSketchTest {
     boolean estimating = (u > k);
     Memory mem = makeNativeMemory(k);
     
-    UpdateSketch usk = UpdateSketch.builder().setMemory(mem).build(k);
+    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
     DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
         
     assertEquals(usk.getClass().getSimpleName(), "DirectQuickSelectSketch");
@@ -306,7 +306,7 @@ public class DirectQuickSelectSketchTest {
     int k = 512;
     Memory mem = makeNativeMemory(k);
     
-    UpdateSketch usk = UpdateSketch.builder().setMemory(mem).build(k);
+    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
     
     //empty
     usk.toString(false, true, 0, false); //exercise toString
@@ -347,7 +347,7 @@ public class DirectQuickSelectSketchTest {
 
     Memory mem = makeNativeMemory(k);
     
-    UpdateSketch usk = UpdateSketch.builder().setMemory(mem).build(k);
+    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
     DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
 
     assertTrue(usk.isEmpty());
@@ -364,7 +364,7 @@ public class DirectQuickSelectSketchTest {
     
     Memory mem = makeNativeMemory(k);
     
-    UpdateSketch usk = UpdateSketch.builder().setP(p).setMemory(mem).build(k);
+    UpdateSketch usk = UpdateSketch.builder().setP(p).initMemory(mem).build(k);
     DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
     
     for (int i = 0; i < k; i++ ) usk.update(i);
@@ -386,7 +386,7 @@ public class DirectQuickSelectSketchTest {
     int k = 512;
     Memory mem = makeNativeMemory(k);
     
-    UpdateSketch usk = UpdateSketch.builder().setMemory(mem).build(k);
+    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
     
     //Exact mode
     for (int i = 0; i < k; i++ ) usk.update(i);
@@ -418,7 +418,7 @@ public class DirectQuickSelectSketchTest {
     float p = (float)1.0;
     Memory mem = makeNativeMemory(k);
     
-    UpdateSketch usk = UpdateSketch.builder().setP(p).setMemory(mem).build(k);
+    UpdateSketch usk = UpdateSketch.builder().setP(p).initMemory(mem).build(k);
     DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
 
     assertTrue(usk.isEmpty());
@@ -430,7 +430,7 @@ public class DirectQuickSelectSketchTest {
     p = (float)0.001;
     byte[] memArr2 = new byte[(int) mem.getCapacity()];
     Memory mem2 = new NativeMemory(memArr2);
-    UpdateSketch usk2 = UpdateSketch.builder().setP(p).setMemory(mem2).build(k);
+    UpdateSketch usk2 = UpdateSketch.builder().setP(p).initMemory(mem2).build(k);
     sk1 = (DirectQuickSelectSketch)usk2;
     
     assertTrue(usk2.isEmpty());
@@ -454,7 +454,7 @@ public class DirectQuickSelectSketchTest {
     int u = 2*k;
     Memory mem = makeNativeMemory(k);
     
-    UpdateSketch usk = UpdateSketch.builder().setMemory(mem).build(k);
+    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
     
     for (int i = 0; i < u; i++ ) usk.update(i);
     
@@ -471,7 +471,7 @@ public class DirectQuickSelectSketchTest {
     int u = 4*k;
     Memory mem = makeNativeMemory(k);
     
-    UpdateSketch usk = UpdateSketch.builder().setMemory(mem).build(k);
+    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
     DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
         
     assertTrue(usk.isEmpty());
@@ -496,7 +496,7 @@ public class DirectQuickSelectSketchTest {
     int u = 4*k;
     Memory mem = makeNativeMemory(k);
     
-    UpdateSketch usk = UpdateSketch.builder().setMemory(mem).build(k);
+    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
     DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
     
     assertTrue(usk.isEmpty());
@@ -523,7 +523,7 @@ public class DirectQuickSelectSketchTest {
     int u = 4096;
     Memory mem = makeNativeMemory(k);
 
-    UpdateSketch usk = UpdateSketch.builder().setMemory(mem).build(k);
+    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
     DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
     assertTrue(usk.isEmpty());
 
@@ -539,7 +539,7 @@ public class DirectQuickSelectSketchTest {
     int u = 2*k;
     Memory mem = makeNativeMemory(k);
     
-    UpdateSketch usk = UpdateSketch.builder().setMemory(mem).build(k);
+    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
     DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
     assertTrue(usk.isEmpty());
 
@@ -557,7 +557,7 @@ public class DirectQuickSelectSketchTest {
     
     NativeMemory mem = new AllocMemory(memCapacity);
     
-    UpdateSketch usk = UpdateSketch.builder().setMemory(mem).build(k);
+    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
     DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
     assertTrue(usk.isEmpty());
 
@@ -575,7 +575,7 @@ public class DirectQuickSelectSketchTest {
     int u = 2*k;
     NativeMemory natMem1 = makeNativeMemory(k);
 
-    UpdateSketch usk = UpdateSketch.builder().setMemory(natMem1).build(k);
+    UpdateSketch usk = UpdateSketch.builder().initMemory(natMem1).build(k);
     DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
     assertTrue(usk.isEmpty());
 
@@ -613,7 +613,7 @@ public class DirectQuickSelectSketchTest {
     NativeMemory mem2 = makeNativeMemory(k / 2); //move to 1/2 the bytes
     NativeMemory mem3 = makeNativeMemory(k);     //then move it to full size
 
-    UpdateSketch usk1 = UpdateSketch.builder().setMemory(mem1).build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().initMemory(mem1).build(k);
     assertTrue(usk1.isEmpty());
     
     UpdateReturnState ret;
@@ -673,7 +673,7 @@ public class DirectQuickSelectSketchTest {
     byte[] shortArr = new byte[shortBytes];
     NativeMemory mem3 = new NativeMemory(shortArr);
 
-    UpdateSketch usk1 = UpdateSketch.builder().setMemory(mem1).build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().initMemory(mem1).build(k);
     assertTrue(usk1.isEmpty());
     
     UpdateReturnState ret;
