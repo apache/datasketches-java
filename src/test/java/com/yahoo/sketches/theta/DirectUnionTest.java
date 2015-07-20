@@ -370,7 +370,8 @@ public class DirectUnionTest {
     union.update(compOrdered);
     UpdateSketch emptySketch = UpdateSketch.builder().build(k);
     union.update(emptySketch);
-    union.update(null);
+    emptySketch = null;
+    union.update(emptySketch);
     
     double exactUnionAnswer = u;
     
@@ -405,6 +406,72 @@ public class DirectUnionTest {
     union2.reset();
     assertEquals(union2.getResult(true, null).getEstimate(), 0.0, 0.0);
   }
+  
+  @Test
+  public void checkWrapEstNoOverlapOrderedMemIn() {
+    int lgK = 12; //4096
+    int k = 1 << lgK;
+    int u = 4*k;
+
+    UpdateSketch usk1 = UpdateSketch.builder().build(k);
+    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    
+    
+    for (int i=0; i<u/2; i++) usk1.update(i); //2*k
+    for (int i=u/2; i<u; i++) usk2.update(i); //2*k no overlap
+    
+    int capBytes = usk2.getCurrentBytes(true);
+    byte[] arr = new byte[capBytes];
+    NativeMemory skMem2 = new NativeMemory(arr);
+    usk2.compact(true, skMem2); //ordered, creates the skMem
+    
+    int memBytes = (k << 4) + (Family.UNION.getMinPreLongs() << 3);
+    byte[] memByteArr = new byte[memBytes];
+    Memory uMem = new NativeMemory(memByteArr);
+    
+    Union union = (Union)SetOperation.builder().setMemory(uMem).build(k, Family.UNION);
+    
+    union.update(usk1);
+    union.update(skMem2);
+    UpdateSketch emptySketch = UpdateSketch.builder().build(k);
+    union.update(emptySketch);
+    emptySketch = null;
+    union.update(emptySketch);
+    
+    double exactUnionAnswer = u;
+    
+    byte[] byteArr1 = union.toByteArray();
+    Memory uMem2 = new NativeMemory(byteArr1);
+    Union union2 = (Union)SetOperation.wrap(uMem2);
+    
+    CompactSketch comp1, comp2, comp3, comp4;
+    double compEst;
+    
+  //test all the compacts
+    comp1 = union2.getResult(false, null); //ordered: false
+    compEst = comp1.getEstimate();
+    assertEquals(compEst, exactUnionAnswer, 0.05*u);
+
+    comp2 = union2.getResult(true, null); //ordered: true
+    compEst = comp2.getEstimate();
+    assertEquals(compEst, exactUnionAnswer, 0.05*u);
+    
+    int bytes = comp2.getCurrentBytes(false);
+    byte[] byteArr2 = new byte[bytes];
+    Memory mem = new NativeMemory(byteArr2);
+    
+    comp3 = union2.getResult(false, mem);
+    compEst = comp3.getEstimate();
+    assertEquals(compEst, exactUnionAnswer, 0.05*u);
+    
+    comp4 = union2.getResult(true, mem);
+    compEst = comp4.getEstimate();
+    assertEquals(compEst, exactUnionAnswer, 0.05*u);
+    
+    union2.reset();
+    assertEquals(union2.getResult(true, null).getEstimate(), 0.0, 0.0);
+  }
+  
   
   @Test //Himanshu's issue
   public void checkDirectWrap() {

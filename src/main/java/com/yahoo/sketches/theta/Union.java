@@ -24,6 +24,15 @@ public interface Union {
   SetOpReturnState update(Sketch sketchIn);
   
   /**
+   * Union the given sketch with the internal state.
+   * This method can be repeatedly called.
+   * If the given sketch is null it is interpreted as an empty sketch.
+   * @param mem Memory location of sketch to be merged.
+   * @return the return state of the union
+   */
+  SetOpReturnState update(Memory mem);
+  
+  /**
    * Get the result of the Union operations
    * @param dstOrdered true if output array must be sorted
    * @param dstMem the destination Memory
