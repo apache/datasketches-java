@@ -202,6 +202,14 @@ public abstract class UpdateSketch extends Sketch {
   }
   
   /**
+   * Rebuilds the hash table to remove dirty values or to reduce the size
+   * to nominal entries.
+   * @return this sketch
+   */
+  public abstract UpdateSketch rebuild();
+  
+  
+  /**
    * Present this sketch with a long.
    * 
    * @param datum The given long datum.
@@ -348,12 +356,6 @@ public abstract class UpdateSketch extends Sketch {
    * @return true if the internal cache is dirty.
    */
   abstract boolean isDirty();
-  
-  /**
-   * Rebuilds the hash table to remove dirty values or to reduce the size
-   * to nominal entries.
-   */
-  abstract void rebuild();
   
   //SetArgument
   

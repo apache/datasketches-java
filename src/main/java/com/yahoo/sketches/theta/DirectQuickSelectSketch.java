@@ -229,6 +229,14 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
   //UpdateSketch
   
   @Override
+  public UpdateSketch rebuild() {
+    if (getRetainedEntries(true) > (1 << getLgNomLongs())) {
+      quickSelectAndRebuild();
+    }
+    return this;
+  }
+  
+  @Override
   public final void reset() {
     //clear hash table
     //hash table size and threshold stays the same
@@ -283,13 +291,6 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
   @Override
   int getLgArrLongs() {
     return lgArrLongs_;
-  }
-  
-  @Override
-  void rebuild() {
-    if (getRetainedEntries(true) > (1 << getLgNomLongs())) {
-      quickSelectAndRebuild();
-    }
   }
   
   /**

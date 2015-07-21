@@ -190,6 +190,14 @@ class HeapAlphaSketch extends HeapUpdateSketch {
   //UpdateSketch
   
   @Override
+  public UpdateSketch rebuild() {
+    if (isDirty()) {
+      rebuildDirty();
+    }
+    return this;
+  }
+  
+  @Override
   public final void reset() {
     int lgArrLongs = startingSubMultiple(lgNomLongs_+1, rf_, ALPHA_MIN_LG_ARR_LONGS);
     if (lgArrLongs == lgArrLongs_) {
@@ -237,13 +245,6 @@ class HeapAlphaSketch extends HeapUpdateSketch {
   @Override
   int getLgArrLongs() {
     return lgArrLongs_;
-  }
-  
-  @Override
-  public void rebuild() {
-    if (isDirty()) {
-      rebuildDirty();
-    }
   }
   
   @Override

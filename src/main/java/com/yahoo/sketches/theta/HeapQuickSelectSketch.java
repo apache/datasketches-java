@@ -146,6 +146,14 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
   //UpdateSketch
   
   @Override
+  public UpdateSketch rebuild() {
+    if (getRetainedEntries(true) > (1 << getLgNomLongs())) {
+      quickSelectAndRebuild();
+    }
+    return this;
+  }
+  
+  @Override
   public final void reset() {
     int lgArrLongsSM = startingSubMultiple(lgNomLongs_+1, rf_, HQS_MIN_LG_ARR_LONGS);
     if (lgArrLongsSM == lgArrLongs_) {
@@ -193,14 +201,6 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
   int getLgArrLongs() {
     return lgArrLongs_;
   }
-  
-  @Override
-  public void rebuild() {
-    if (getRetainedEntries(true) > (1 << getLgNomLongs())) {
-      quickSelectAndRebuild();
-    }
-  }
-  
   
   /**
    * All potential updates converge here.
