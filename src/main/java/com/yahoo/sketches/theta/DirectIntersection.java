@@ -65,14 +65,14 @@ class DirectIntersection extends SetOperation implements Intersection {
     mem_ = dstMem;
 
     long memCapacityBytes = mem_.getCapacity();
-    int reqCapacityBytes = (16 << lgNomLongs_) + (PREAMBLE_LONGS << 3);
+    int reqCapacityBytes = (16 << lgNomLongs_) + (CONST_PREAMBLE_LONGS << 3);
     if (memCapacityBytes < reqCapacityBytes) throw new IllegalArgumentException(
         "Not sufficient Memory capacity for targeted intersection.");
     
     mem_.clear(0, reqCapacityBytes); 
     
     //load preamble into mem
-    mem_.putByte(PREAMBLE_LONGS_BYTE, (byte) PREAMBLE_LONGS); //RF not used = 0
+    mem_.putByte(PREAMBLE_LONGS_BYTE, (byte) CONST_PREAMBLE_LONGS); //RF not used = 0
     mem_.putByte(SER_VER_BYTE, (byte) SER_VER);
     mem_.putByte(FAMILY_BYTE, (byte) stringToFamily("Intersection").getID());
     mem_.putByte(LG_NOM_LONGS_BYTE, (byte) lgNomLongs_);
@@ -105,7 +105,7 @@ class DirectIntersection extends SetOperation implements Intersection {
     checkSeedHashes(seedHashMem, seedHash_); //check for seed hash conflict
     
     int preambleLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    if (preambleLongs != PREAMBLE_LONGS) {
+    if (preambleLongs != CONST_PREAMBLE_LONGS) {
       throw new IllegalArgumentException("PreambleLongs must = 3.");
     }
     
@@ -211,7 +211,7 @@ class DirectIntersection extends SetOperation implements Intersection {
         //No need for HT. Reduce effective array size to minimum
         lgArrLongs_ = setLgArrLongs(computeMinLgArrLongsFromCount(curCount_, lgArrLongs_));
         hashTableThreshold_ = setHashTableThreshold(lgArrLongs_);
-        mem_.fill(PREAMBLE_LONGS<<3, 8 << lgArrLongs_, (byte) 0); //clears garbage in low array
+        mem_.fill(CONST_PREAMBLE_LONGS<<3, 8 << lgArrLongs_, (byte) 0); //clears garbage in low array
         break;
       }
       case 7: {
@@ -245,7 +245,7 @@ class DirectIntersection extends SetOperation implements Intersection {
     //else curCount > 0
     int htLen = 1 << lgArrLongs_;
     long[] hashTable = new long[htLen];
-    mem_.getLongArray(PREAMBLE_LONGS << 3, hashTable, 0, htLen);
+    mem_.getLongArray(CONST_PREAMBLE_LONGS << 3, hashTable, 0, htLen);
     compactCacheR = compactCachePart(hashTable, lgArrLongs_, curCount_, thetaLong_, dstOrdered);
     
     //Create the CompactSketch
@@ -260,13 +260,13 @@ class DirectIntersection extends SetOperation implements Intersection {
   
   @Override
   public byte[] toByteArray() {
-    int preBytes = PREAMBLE_LONGS << 3;
+    int preBytes = CONST_PREAMBLE_LONGS << 3;
     int dataBytes = 8 << lgArrLongs_;
     byte[] byteArrOut = new byte[preBytes + dataBytes];
     NativeMemory memOut = new NativeMemory(byteArrOut);
     
     //preamble
-    memOut.putByte(PREAMBLE_LONGS_BYTE, (byte) PREAMBLE_LONGS); //RF not used = 0
+    memOut.putByte(PREAMBLE_LONGS_BYTE, (byte) CONST_PREAMBLE_LONGS); //RF not used = 0
     memOut.putByte(SER_VER_BYTE, (byte) SER_VER);
     memOut.putByte(FAMILY_BYTE, (byte) objectToFamily(this).getID());
     memOut.putByte(LG_NOM_LONGS_BYTE, (byte) lgNomLongs_);
@@ -299,7 +299,7 @@ class DirectIntersection extends SetOperation implements Intersection {
     mem_.putLong(THETA_LONG, Long.MAX_VALUE);
     empty_ = false;
     mem_.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
-    mem_.clear(PREAMBLE_LONGS << 3, 8 << lgArrLongs_);
+    mem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_);
   }
   
   private void performIntersection(Sketch sketchIn) {
@@ -308,7 +308,7 @@ class DirectIntersection extends SetOperation implements Intersection {
     long[] cacheIn = sketchIn.getCache();
     int htLen = 1 << lgArrLongs_;
     long[] hashTable = new long[htLen];
-    mem_.getLongArray(PREAMBLE_LONGS << 3, hashTable, 0, htLen);
+    mem_.getLongArray(CONST_PREAMBLE_LONGS << 3, hashTable, 0, htLen);
     int arrLongsIn = cacheIn.length;
     //allocate space for matching
     long[] matchSet = new long[ min(curCount_, sketchIn.getRetainedEntries(true)) ];
@@ -341,7 +341,7 @@ class DirectIntersection extends SetOperation implements Intersection {
     //reduce effective array size to minimum
     lgArrLongs_ = setLgArrLongs(computeMinLgArrLongsFromCount(curCount_, lgArrLongs_));
     curCount_ = setCurCount(matchSetCount);
-    mem_.fill(PREAMBLE_LONGS << 3, 8 << lgArrLongs_, (byte) 0); //clear for rebuild
+    mem_.fill(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_, (byte) 0); //clear for rebuild
     //move matchSet to hash table
     moveToHT(matchSet, matchSetCount);
   }
@@ -366,7 +366,7 @@ class DirectIntersection extends SetOperation implements Intersection {
     for (int i = 0; i < arrLongsIn; i++ ) {
       long hashIn = arr[i];
       if ((hashIn <= 0L) || (hashIn >= thetaLong_)) continue;
-      tmpCnt += hashInsert(mem_, lgArrLongs_, hashIn, PREAMBLE_LONGS << 3)? 1 : 0;
+      tmpCnt += hashInsert(mem_, lgArrLongs_, hashIn, CONST_PREAMBLE_LONGS << 3)? 1 : 0;
       
     }
     assert (tmpCnt == count) : "tmp: "+tmpCnt+", count: "+count;

@@ -77,7 +77,7 @@ class HeapUnion extends SetOperation implements Union {
       
       if(sketchIn.isDirect()) {
         Memory skMem = sketchIn.getMemory();
-        int preLongs = skMem.getByte(PREAMBLE_LONGS) & 0X3F;
+        int preLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
         for (int i = 0; i < curCount; i++ ) {
           int offsetBytes = (preLongs +i) << 3;
           long hashIn = skMem.getLong(offsetBytes);
@@ -155,6 +155,9 @@ class HeapUnion extends SetOperation implements Union {
     int preLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
     int curCount = skMem.getInt(RETAINED_ENTRIES_INT);
     long thetaLongIn;
+    if (preLongs == 1) {
+      return Success;
+    }
     if (preLongs == 2) {
       if (curCount > 0) {
         unionEmpty_ = false; //Empty rule: AND the empty states
@@ -181,6 +184,9 @@ class HeapUnion extends SetOperation implements Union {
     int preLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
     int curCount = skMem.getInt(RETAINED_ENTRIES_INT);
     long thetaLongIn;
+    if (preLongs == 1) {
+      return Success;
+    }
     if (preLongs == 2) {
       if (curCount > 0) {
         unionEmpty_ = false; //Empty rule: AND the empty states

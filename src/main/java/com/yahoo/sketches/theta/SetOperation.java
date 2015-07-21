@@ -25,7 +25,7 @@ public class SetOperation {
   static final int MIN_LG_ARR_LONGS = 5;
   public static final int MIN_LG_NOM_LONGS = 4;
   static final double RESIZE_THRESHOLD = 15.0/16.0;
-  static final int PREAMBLE_LONGS = 3;
+  static final int CONST_PREAMBLE_LONGS = 3;
   
   SetOperation() {}
   
