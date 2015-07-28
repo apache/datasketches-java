@@ -385,6 +385,42 @@ public class HeapUnionTest {
   }
   
   @Test
+  public void checkMultiUnion() {
+    int lgK = 13; //8192
+    int k = 1 << lgK;
+    
+    UpdateSketch usk1 = UpdateSketch.builder().build(k);
+    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk3 = UpdateSketch.builder().build(k);
+    UpdateSketch usk4 = UpdateSketch.builder().build(k);
+    
+    int v=0;
+    int u = 1000000;
+    for (int i=0; i<u; i++) usk1.update(i+v);
+    v += u;
+    println(""+v);
+    u = 26797;
+    for (int i=0; i<u; i++) usk2.update(i+v);
+    v += u;
+    println(""+v);
+    for (int i=0; i<u; i++) usk3.update(i+v);
+    v += u;
+    println(""+v);
+    for (int i=0; i<u; i++) usk4.update(i+v);
+    v += u;
+    println(""+v);
+    Union union = (Union)SetOperation.builder().build(k, Family.UNION);
+    union.update(usk1);
+    union.update(usk2);
+    union.update(usk3);
+    union.update(usk4);
+    CompactSketch csk = union.getResult(true, null);
+    double est = csk.getEstimate();
+    println("CskEst: "+est);
+    
+  }
+  
+  @Test
   public void printlnTest() {
     println("Test");
   }
@@ -393,7 +429,7 @@ public class HeapUnionTest {
    * @param s value to print
    */
   static void println(String s) {
-    //System.out.println(s); //Disable here
+    System.out.println(s); //Disable here
   }
   
 //  public static void main(String[] args) {

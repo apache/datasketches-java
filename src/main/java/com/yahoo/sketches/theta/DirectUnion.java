@@ -43,14 +43,14 @@ class DirectUnion extends SetOperation implements Union{
    * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLogs">See lgNomLongs</a>.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
-   * @param dstMem the given Memory object destination.
+   * @param dstMem the given Memory object destination. It will be cleared prior to use.
    *  <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
   DirectUnion(int lgNomLongs, long seed, float p, Memory dstMem) {
     mem_ = dstMem;
     seedHash_ = computeSeedHash(seed);
     
-    gadget_ = new DirectQuickSelectSketch(lgNomLongs, seed, p, dstMem, true);
+    gadget_ = new DirectQuickSelectSketch(lgNomLongs, seed, p, dstMem, true); //clears mem
     dstMem.putByte(FAMILY_BYTE, (byte) Family.UNION.getID());
     unionThetaLong_ = gadget_.getThetaLong();
     dstMem.putLong(UNION_THETA_LONG, unionThetaLong_);
