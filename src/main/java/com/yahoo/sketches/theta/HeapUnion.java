@@ -6,14 +6,9 @@ package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.theta.CompactSketch.compactCache;
 import static com.yahoo.sketches.theta.CompactSketch.createCompactSketch;
-import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.UNION_THETA_LONG;
+import static com.yahoo.sketches.theta.PreambleUtil.*;
 import static com.yahoo.sketches.theta.SetOpReturnState.Success;
 import static java.lang.Math.min;
-
-import java.util.Arrays;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
@@ -63,7 +58,7 @@ class HeapUnion extends SetOperation implements Union {
   }
   
   @Override
-  public SetOpReturnState update(Sketch sketchIn) { 
+  public SetOpReturnState update(Sketch sketchIn) {
     //UNION Rule: AND the empty states
     
     if ((sketchIn == null)  || sketchIn.isEmpty()) {
@@ -77,22 +72,143 @@ class HeapUnion extends SetOperation implements Union {
     
     unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule
     
-    long[] cacheIn = sketchIn.getCache(); //TODO consider optimizing sketchIn with mem
-    int finalIndex = cacheIn.length;
-    
-    if(sketchIn.isOrdered()) {
-      //Assume CompactOrdered, use early stop.  no zeros.
-      finalIndex = Arrays.binarySearch(cacheIn, unionThetaLong_);
-      finalIndex = finalIndex < 0 ? (-finalIndex) - 1 : finalIndex;
-      for (int i = 0; i < finalIndex; i++ ) { //This is an "early" stop loop
-        gadget_.hashUpdate(cacheIn[i]); //backdoor update, hash function is bypassed
+    if(sketchIn.isOrdered()) { //Use early stop
+      int curCount = sketchIn.getRetainedEntries(false);
+      
+      if(sketchIn.isDirect()) {
+        Memory skMem = sketchIn.getMemory();
+        int preLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+        for (int i = 0; i < curCount; i++ ) {
+          int offsetBytes = (preLongs +i) << 3;
+          long hashIn = skMem.getLong(offsetBytes);
+          if (hashIn >= unionThetaLong_) break; // "early stop"
+          gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
+        }
+      } 
+      else { //on Heap
+        long[] cacheIn = sketchIn.getCache(); //not a copy!
+        for (int i = 0; i < curCount; i++ ) {
+          long hashIn = cacheIn[i];
+          if (hashIn >= unionThetaLong_) break; // "early stop"
+          gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
+        }
       }
     } 
     else {
       //either not-ordered compact or Hash Table.
+      long[] cacheIn = sketchIn.getCache(); //if off-heap this will be a copy
       int arrLongs = cacheIn.length;
       for (int i = 0; i < arrLongs; i++ ) {
         long hashIn = cacheIn[i];
+        if ((hashIn <= 0L) || (hashIn >= unionThetaLong_)) continue;
+        gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
+      }
+    }
+    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
+    return Success;
+  }
+  
+  @Override
+  public SetOpReturnState update(Memory skMem) {
+    //UNION Rule: AND the empty states
+    if (skMem == null) return Success;
+    int cap = (int)skMem.getCapacity();
+    int f;
+    assert ((f=skMem.getByte(FAMILY_BYTE)) == 3) : "Illegal Family/SketchType byte: "+f;
+    int serVer = skMem.getByte(SER_VER_BYTE);
+    if (serVer == 1) {
+      if (cap <= 24) return Success; //empty
+      return processVer1(skMem);
+    }
+    else if (serVer == 2) {
+      if (cap <= 8) return Success; //empty
+      return processVer2(skMem);
+    }
+    else if (serVer == 3) {
+      if (cap <= 8) return Success; //empty
+      return processVer3(skMem);
+    }
+    else throw new IllegalArgumentException("SerVer is unknown: "+serVer);
+  }
+  
+  //must trust seed, no seedhash. No p, can't be empty, can only be compact, ordered, size > 24
+  private SetOpReturnState processVer1(Memory skMem) {
+    unionEmpty_ = false; //Empty rule: AND the empty states
+    long thetaLongIn = skMem.getLong(THETA_LONG);
+    unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule
+    int curCount = skMem.getInt(RETAINED_ENTRIES_INT);
+    int preLongs = 3;
+    for (int i = 0; i < curCount; i++ ) {
+      int offsetBytes = (preLongs +i) << 3;
+      long hashIn = skMem.getLong(offsetBytes);
+      if (hashIn >= unionThetaLong_) break; // "early stop"
+      gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
+    }
+    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
+    return Success;
+  }
+  
+  //has seedhash, p, could have 0 entries & theta, can only be compact, ordered, size >= 24
+  private SetOpReturnState processVer2(Memory skMem) {
+    PreambleUtil.checkSeedHashes(seedHash_, skMem.getShort(SEED_HASH_SHORT));
+    
+    int preLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+    int curCount = skMem.getInt(RETAINED_ENTRIES_INT);
+    long thetaLongIn;
+    if (preLongs == 1) {
+      return Success;
+    }
+    if (preLongs == 2) {
+      if (curCount > 0) {
+        unionEmpty_ = false; //Empty rule: AND the empty states
+      }
+      thetaLongIn = Long.MAX_VALUE;
+    } else {
+      thetaLongIn = skMem.getLong(THETA_LONG);
+    }
+    unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule
+    for (int i = 0; i < curCount; i++ ) {
+      int offsetBytes = (preLongs +i) << 3;
+      long hashIn = skMem.getLong(offsetBytes);
+      if (hashIn >= unionThetaLong_) break; // "early stop"
+      gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
+    }
+    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
+    return Success;
+  }
+  
+  //has seedhash, p, could have 0 entries & theta, could be unorderd, compact, size >= 24
+  private SetOpReturnState processVer3(Memory skMem) {
+    PreambleUtil.checkSeedHashes(seedHash_, skMem.getShort(SEED_HASH_SHORT));
+    unionEmpty_ = false; //Empty rule: AND the empty states
+    int preLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+    int curCount = skMem.getInt(RETAINED_ENTRIES_INT);
+    long thetaLongIn;
+    if (preLongs == 1) {
+      return Success;
+    }
+    if (preLongs == 2) {
+      if (curCount > 0) {
+        unionEmpty_ = false; //Empty rule: AND the empty states
+      }
+      thetaLongIn = Long.MAX_VALUE;
+    } else {
+      thetaLongIn = skMem.getLong(THETA_LONG);
+    }
+    unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule
+    boolean ordered = skMem.isAnyBitsSet(FLAGS_BYTE, (byte) ORDERED_FLAG_MASK);
+    if (ordered) {
+      for (int i = 0; i < curCount; i++ ) {
+        int offsetBytes = (preLongs +i) << 3;
+        long hashIn = skMem.getLong(offsetBytes);
+        if (hashIn >= unionThetaLong_) break; // "early stop"
+        gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
+      }
+    }
+    else { //unordered
+      for (int i = 0; i < curCount; i++ ) {
+        int offsetBytes = (preLongs +i) << 3;
+        long hashIn = skMem.getLong(offsetBytes);
         if ((hashIn <= 0L) || (hashIn >= unionThetaLong_)) continue;
         gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
       }

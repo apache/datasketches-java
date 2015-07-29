@@ -283,7 +283,8 @@ public class HeapUnionTest {
     union.update(compOrdered);
     UpdateSketch emptySketch = UpdateSketch.builder().build(k);
     union.update(emptySketch);
-    union.update(null);
+    emptySketch = null;
+    union.update(emptySketch);
     
     double exactUnionAnswer = u;
     
@@ -320,6 +321,106 @@ public class HeapUnionTest {
   }
   
   @Test
+  public void checkHeapifyEstNoOverlapOrderedMemIn() {
+    int lgK = 14; //4096
+    int k = 1 << lgK;
+    int u = 4*k;
+    
+    UpdateSketch usk1 = UpdateSketch.builder().build(k);
+    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    
+    for (int i=0; i<u/2; i++) usk1.update(i); //2*k
+    for (int i=u/2; i<u; i++) usk2.update(i); //2*k no overlap
+    
+    CompactSketch usk1c = usk1.compact(true, null);
+    CompactSketch usk2c = usk2.compact(true, null);
+    NativeMemory skMem1 = new NativeMemory(usk1c.toByteArray());
+    NativeMemory skMem2 = new NativeMemory(usk2c.toByteArray());
+    
+    Union union = (Union)SetOperation.builder().build(k, Family.UNION);
+    
+    union.update(skMem1);
+    union.update(skMem2);
+    UpdateSketch emptySketch = UpdateSketch.builder().build(k);
+    union.update(emptySketch);
+    emptySketch = null;
+    union.update(emptySketch);
+    
+    double exactUnionAnswer = u;
+    
+    byte[] byteArr1 = union.toByteArray();
+    Memory uMem = new NativeMemory(byteArr1);
+    Union union2 = (Union)SetOperation.heapify(uMem);
+    
+    CompactSketch comp1, comp2, comp3, comp4;
+    double compEst;
+    
+    //test all the compacts
+    comp1 = union2.getResult(false, null); //ordered: false
+    compEst = comp1.getEstimate();
+    assertEquals(compEst, exactUnionAnswer, 0.05*u);
+    println(""+(compEst/exactUnionAnswer -1));
+    
+    comp2 = union2.getResult(true, null); //ordered: true
+    compEst = comp2.getEstimate();
+    assertEquals(compEst, exactUnionAnswer, 0.05*u);
+    println(""+(compEst/exactUnionAnswer -1));
+    
+    int bytes = comp2.getCurrentBytes(false);
+    byte[] byteArr2 = new byte[bytes];
+    Memory mem = new NativeMemory(byteArr2);
+    
+    comp3 = union2.getResult(false, mem);
+    compEst = comp3.getEstimate();
+    assertEquals(compEst, exactUnionAnswer, 0.05*u);
+    println(""+(compEst/exactUnionAnswer -1));
+    
+    comp4 = union2.getResult(true, mem);
+    compEst = comp4.getEstimate();
+    assertEquals(compEst, exactUnionAnswer, 0.05*u);
+    println(""+(compEst/exactUnionAnswer -1));
+    
+    union2.reset();
+    assertEquals(union2.getResult(true, null).getEstimate(), 0.0, 0.0);
+  }
+  
+  @Test
+  public void checkMultiUnion() {
+    int lgK = 13; //8192
+    int k = 1 << lgK;
+    
+    UpdateSketch usk1 = UpdateSketch.builder().build(k);
+    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk3 = UpdateSketch.builder().build(k);
+    UpdateSketch usk4 = UpdateSketch.builder().build(k);
+    
+    int v=0;
+    int u = 1000000;
+    for (int i=0; i<u; i++) usk1.update(i+v);
+    v += u;
+    println(""+v);
+    u = 26797;
+    for (int i=0; i<u; i++) usk2.update(i+v);
+    v += u;
+    println(""+v);
+    for (int i=0; i<u; i++) usk3.update(i+v);
+    v += u;
+    println(""+v);
+    for (int i=0; i<u; i++) usk4.update(i+v);
+    v += u;
+    println(""+v);
+    Union union = (Union)SetOperation.builder().build(k, Family.UNION);
+    union.update(usk1);
+    union.update(usk2);
+    union.update(usk3);
+    union.update(usk4);
+    CompactSketch csk = union.getResult(true, null);
+    double est = csk.getEstimate();
+    println("CskEst: "+est);
+    
+  }
+  
+  @Test
   public void printlnTest() {
     println("Test");
   }
@@ -328,7 +429,12 @@ public class HeapUnionTest {
    * @param s value to print
    */
   static void println(String s) {
-    //System.out.println(s); //Disable here
+    System.out.println(s); //Disable here
   }
+  
+//  public static void main(String[] args) {
+//    HeapUnionTest hut = new HeapUnionTest();
+//    hut.checkHeapifyEstNoOverlapOrderedMemIn();
+//  }
   
 }

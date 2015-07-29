@@ -54,7 +54,13 @@ public class MemoryRegion implements Memory {
     memOffsetBytes_ = memOffsetBytes;
     capacityBytes_ = capacityBytes;
   }
-
+  
+  public void reassign(long memOffsetBytes, long capacityBytes) {
+    assertBounds(memOffsetBytes, capacityBytes, mem_.getCapacity());
+    memOffsetBytes_ = memOffsetBytes;
+    capacityBytes_ = capacityBytes;
+  }
+  
   @Override
   public void clear() {
     fill(0, capacityBytes_, (byte) 0);

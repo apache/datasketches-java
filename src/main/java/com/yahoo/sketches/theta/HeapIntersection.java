@@ -80,7 +80,7 @@ class HeapIntersection extends SetOperation implements Intersection{
     thetaLong_ = srcMem.getLong(THETA_LONG);
     
     int preambleLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    if (preambleLongs != PREAMBLE_LONGS) throw new IllegalArgumentException(
+    if (preambleLongs != CONST_PREAMBLE_LONGS) throw new IllegalArgumentException(
         "PreambleLongs must = 3.");
     
     int serVer = srcMem.getByte(SER_VER_BYTE);
@@ -101,7 +101,7 @@ class HeapIntersection extends SetOperation implements Intersection{
     } 
     else { //can't be virgin, empty, or curCount == 0
       hashTable_ = new long[1 << lgArrLongs_];
-      srcMem.getLongArray(PREAMBLE_LONGS << 3, hashTable_, 0, 1 << lgArrLongs_);
+      srcMem.getLongArray(CONST_PREAMBLE_LONGS << 3, hashTable_, 0, 1 << lgArrLongs_);
     }
   }
   
@@ -230,13 +230,13 @@ class HeapIntersection extends SetOperation implements Intersection{
   
   @Override
   public byte[] toByteArray() {
-    int preBytes = PREAMBLE_LONGS << 3;
+    int preBytes = CONST_PREAMBLE_LONGS << 3;
     int dataBytes = (hashTable_ != null)? 8 << lgArrLongs_ : 0;
     byte[] byteArrOut = new byte[preBytes + dataBytes];
     NativeMemory memOut = new NativeMemory(byteArrOut);
     
     //preamble
-    memOut.putByte(PREAMBLE_LONGS_BYTE, (byte) PREAMBLE_LONGS); //RF not used = 0
+    memOut.putByte(PREAMBLE_LONGS_BYTE, (byte) CONST_PREAMBLE_LONGS); //RF not used = 0
     memOut.putByte(SER_VER_BYTE, (byte) SER_VER);
     memOut.putByte(FAMILY_BYTE, (byte) objectToFamily(this).getID());
     memOut.putByte(LG_NOM_LONGS_BYTE, (byte) lgNomLongs_);

@@ -28,8 +28,8 @@ import com.yahoo.sketches.memory.Memory;
  */
 public abstract class CompactSketch extends Sketch {
   final short seedHash_;
-  final boolean empty_; 
-  final int curCount_;  
+  final boolean empty_;
+  final int curCount_;
   final long thetaLong_;
   
   CompactSketch(boolean empty, short seedHash, int curCount, long thetaLong) {
