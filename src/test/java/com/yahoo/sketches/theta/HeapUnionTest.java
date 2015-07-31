@@ -429,12 +429,7 @@ public class HeapUnionTest {
    * @param s value to print
    */
   static void println(String s) {
-    System.out.println(s); //Disable here
+    //System.out.println(s); //Disable here
   }
-  
-//  public static void main(String[] args) {
-//    HeapUnionTest hut = new HeapUnionTest();
-//    hut.checkHeapifyEstNoOverlapOrderedMemIn();
-//  }
   
 }
