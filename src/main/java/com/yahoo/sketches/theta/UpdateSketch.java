@@ -175,9 +175,9 @@ public abstract class UpdateSketch extends Sketch {
    * a simple list of the valid hash values from the hash table.  Any hash values equal to or
    * greater than theta will be discarded.  The number of valid values remaining in the
    * Compact Sketch depends on a number of factors, but may be larger or smaller than 
-   * <i>Nominal Entries</i> (or <i>k</i>).  It will never exceed 2</i>k</i>.  If it is critical
+   * <i>Nominal Entries</i> (or <i>k</i>).  It will never exceed 2<i>k</i>.  If it is critical
    * to always limit the size to no more than <i>k</i>, then <i>rebuild()</i> should be called
-   * on the UpdateSketch prior to this.</p>
+   * on the UpdateSketch prior to this.
    * 
    * @param dstOrdered if true, the destination cache should be ordered
    * @param dstMem if valid, and large enough the returned sketch will be backed by this Memory.
