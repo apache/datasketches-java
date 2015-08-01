@@ -18,6 +18,7 @@ target/
 out/
 build/
 jarsIn/
+target/
 .jar
 build.xml
 .idea

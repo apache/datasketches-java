@@ -201,7 +201,7 @@ public class SetOperation {
   /**
    * Wrap takes the SetOperation image in Memory and refers to it directly. 
    * There is no data copying onto the java heap.  
-   * Only "Direct" SetOperations that have been explicity stored as direct objects can be wrapped.  
+   * Only "Direct" SetOperations that have been explicity stored as direct can be wrapped.  
    * This method assumes the 
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
    * @param srcMem an image of a SetOperation
@@ -209,14 +209,14 @@ public class SetOperation {
    * @throws IllegalArgumentException if given image does not match a known
    * SetOperation implementation, or if the assumed default seed does not match the image seed hash.
    */
-  public static Object wrap(Memory srcMem) {
+  public static SetOperation wrap(Memory srcMem) {
     return wrap(srcMem, DEFAULT_UPDATE_SEED);
   }
 
   /**
    * Wrap takes the SetOperation image in Memory and refers to it directly. 
    * There is no data copying onto the java heap.  
-   * Only "Direct" SetOperations that have been explicity stored as direct objects can be wrapped.
+   * Only "Direct" SetOperations that have been explicity stored as direct can be wrapped.
    * @param srcMem an image of a SetOperation.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a SetOperation backed by the given Memory
