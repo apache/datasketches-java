@@ -47,11 +47,18 @@ A retained hash value is considered <i>dirty</i> if it is &ge; <a href="#thetaLo
 See <a href="#validHash">Valid Hash</a>.
 
 <h3><a name="empty">Empty</a></h3>
-The state <i>Empty</i> means that the sketch cache has zero hash values and that none of the
-update methods have been called with valid data. Empty does not mean that theta is 1.0 because
-if <i>p</i> &lt; 1.0, theta will be set equal to <i>p</i> during construction. 
-A cache of zero values does not mean that the sketch is empty since set intersection or difference 
+The state <i>Empty</i> for a sketch means that the sketch cache has zero hash values and that none of the
+update methods have been called with valid data.  The internal <i>empty flag</i> is one of the state variables
+within the sketch and is accessed with the <i>isEmpty()</i> method, which is useful for rejecting empty 
+sketches from a set operation.
+
+<p>Note that <i>Empty</i> does not mean that theta is 1.0 because if <i>p</i> &lt; 1.0, theta will be set 
+equal to <i>p</i> during construction. 
+Also, a cache of zero values does not mean that the sketch is <i>Empty</i> since set intersection or difference 
 operations can result in a sketch with zero values but with a valid theta and upper and lower bounds. 
+
+<p>These are subtle distinctions and exist for mathematical correctness. Excluding sketches that are <i>not Empty</i>
+from set operations that would otherwise include them could result in impacting the accuracy of results.
 
 <h3><a name="estMode">Estimation Mode</a></h3>
 Once a sketch exceeds the configured <a href="#nomEntries">Nominal Entries</a> number of retained hash values,
@@ -75,19 +82,28 @@ Acceptable values for constructing new sketches are positive integers that are p
 This parameter specifies the target nominal number of entries (a.k.a. <i>k</i>) that will be retained in the internal cache 
 and ultimately determines the accuracy of the sketch (see <a href="#accuracy">Sketch Accuracy</a>).
 Internally each entry is retained as a long of 8 bytes.
+
 <p>The reason it is called "nominal" is that depending on the specific algorithm of the sketch, the actual
 number of entries retained by the sketch after the sketch goes into <i>estimation mode</i> 
 may differ from the configured value. For the <i>AlphaSketch</i> the number of retained entries statistically varies
 but has a mean of <i>k</i>.  For the <i>QuickSelect</i> sketches, the number of retained entries will statistically 
 vary from <i>k</i> to almost <i>2*k</i>.
 
+<p>Each sketch type also has a minimum acceptable value for this value.  For QuickSelect Sketches this value is 16 and for 
+Alpha Sketches this value is 512.  Specifying a value less than this minimum value just results in the minimum value being used.
+
 <h3><a name="numStdDev">Number of Standard Deviations</a></h3>
 This is a positive integer (1, 2, or 3) used in the getUpperBounds(int numStdDev) and 
-getLowerBounds(int numStdDev) methods and represents the +/- deviation from the center of the 
-Standard Normal Gaussian Distribution.  
-A value of 1 will produce 68.3% confidence bounds.
-A value of 2 will produce 95.4% confidence bounds.
-A value of 3 will produce 99.7% confidence bounds.
+getLowerBounds(int numStdDev) methods and usually represents the +/- deviation from the center of the 
+Standard Normal Gaussian Distribution.<br>
+A value of 1 will produce 68.3% confidence bounds.<br>
+A value of 2 will produce 95.4% confidence bounds.<br>
+A value of 3 will produce 99.7% confidence bounds.<br>
+
+<p>However, for sketches with very small counts (&lt; 100) and (theta &lt; 1.0) the error distribution of the sketch is no longer Gaussian
+and becomes quite asymmetric as the counts approach one.  Nonetheless, special mathematical approximation methods are used to
+estimate the value of the upper and lower bounds such that they are accurate to within one percent of the estimation of the mean.
+See <a href="#accuracy">Sketch Accuracy</a>.
 
 <h3><a name="p">Sampling Probability <i>p</i></a></h3>
 The uniform random pre-sketching sampling probability.
