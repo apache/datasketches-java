@@ -222,7 +222,7 @@ class DirectIntersection extends SetOperation implements Intersection {
         
         //Must perform full intersection
         // sets resulting hashTable, curCount and adjusts lgArrLongs
-        performIntersection(sketchIn);
+        performIntersect(sketchIn);
         break;
       }
     }
@@ -302,7 +302,7 @@ class DirectIntersection extends SetOperation implements Intersection {
     mem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_);
   }
   
-  private void performIntersection(Sketch sketchIn) {
+  private void performIntersect(Sketch sketchIn) {
     // HT and input data are nonzero, match against HT
     assert ((curCount_ > 0) && (!empty_));
     long[] cacheIn = sketchIn.getCache();
@@ -357,7 +357,7 @@ class DirectIntersection extends SetOperation implements Intersection {
     return (int) Math.floor(fraction * (1 << lgArrLongs));
   }
   
-  private void moveToHT(long[] arr, int count) { //TODO could use hashArrayInsert
+  private void moveToHT(long[] arr, int count) { //could use hashArrayInsert
     int arrLongsIn = arr.length;
     if (count > hashTableThreshold_) {
       throw new IllegalArgumentException("Intersection was not sized large enough: "+count);

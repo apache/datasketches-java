@@ -313,7 +313,7 @@ class HeapIntersection extends SetOperation implements Intersection{
   }
   
   //Assumes HT exists and is large enough
-  private void moveToHT(long[] arr, int count) { //TODO could use hashArrayInsert
+  private void moveToHT(long[] arr, int count) { //could use hashArrayInsert
     int arrLongsIn = arr.length;
     if (count > hashTableThreshold_) {
       throw new IllegalArgumentException("Intersection was not sized large enough: "+count);

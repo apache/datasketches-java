@@ -262,7 +262,7 @@ public class SetOperation {
     return (nomEntries << 4) + (Family.INTERSECTION.getMaxPreLongs() << 3);
   }
   
-  public static short computeSeedHash(long seed) {
+  static short computeSeedHash(long seed) {
     return PreambleUtil.computeSeedHash(seed);
   }
   

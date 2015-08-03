@@ -7,8 +7,8 @@ package com.yahoo.sketches.theta;
 import com.yahoo.sketches.memory.Memory;
 
 /**
- * This class brings together the common sketch and set operation creation methods 
- * into one place.  
+ * This class brings together the common sketch and set operation creation methods and
+ * the public static methods into one place.
  */
 public class Sketches {
   
@@ -16,7 +16,7 @@ public class Sketches {
    * Ref: {@link UpdateSketch#builder() UpdateSketch.builder()}
    * @return {@link UpdateSketch.Builder UpdateSketch.Builder}
    */
-  public static UpdateSketch.Builder getUpdateSketchBuilder() {
+  public static UpdateSketch.Builder updateSketchBuilder() {
     return UpdateSketch.builder();
   }
   
@@ -62,7 +62,7 @@ public class Sketches {
    * Ref: {@link SetOperation#builder() SetOperation.builder()}
    * @return {@link SetOperation.Builder SetOperation.Builder}
    */
-  public static SetOperation.Builder getSetOpBuilder() {
+  public static SetOperation.Builder setOpBuilder() {
     return SetOperation.builder();
   }
   
@@ -102,6 +102,50 @@ public class Sketches {
    */
   public static SetOperation wrapSetOperation(Memory srcMem, long seed) {
     return SetOperation.wrap(srcMem, seed);
+  }
+  
+  /**
+   * Ref: {@link Sketch#getMaxCompactSketchBytes(int)}
+   * @param numberOfEntries  {@link Sketch#getMaxCompactSketchBytes(int)}
+   * @return {@link Sketch#getMaxCompactSketchBytes(int)}
+   */
+  public static int getMaxCompactSketchBytes(int numberOfEntries) {
+    return Sketch.getMaxCompactSketchBytes(numberOfEntries);
+  }
+  
+  /**
+   * Ref: {@link Sketch#getMaxUpdateSketchBytes(int)}
+   * @param nomEntries {@link Sketch#getMaxUpdateSketchBytes(int)}
+   * @return {@link Sketch#getMaxUpdateSketchBytes(int)}
+   */
+  public static int getMaxUpdateSketchBytes(int nomEntries) {
+    return Sketch.getMaxUpdateSketchBytes(nomEntries);
+  }
+  
+  /**
+   * Ref: {@link Sketch#getSerializationVersion(Memory)}
+   * @param mem {@link Sketch#getSerializationVersion(Memory)}
+   * @return {@link Sketch#getSerializationVersion(Memory)}
+   */
+  public static int getSerializationVersion(Memory mem) {
+    return Sketch.getSerializationVersion(mem);
+  }
+  /**
+   * Ref: {@link SetOperation#getMaxUnionBytes(int)}
+   * @param nomEntries {@link SetOperation#getMaxUnionBytes(int)}
+   * @return {@link SetOperation#getMaxUnionBytes(int)}
+   */
+  public static int getMaxUnionBytes(int nomEntries) {
+    return SetOperation.getMaxUnionBytes(nomEntries);
+  }
+  
+  /**
+   * Ref: {@link SetOperation#getMaxIntersectionBytes(int)}
+   * @param nomEntries {@link SetOperation#getMaxIntersectionBytes(int)}
+   * @return {@link SetOperation#getMaxIntersectionBytes(int)}
+   */
+  public static int getMaxIntersectionBytes(int nomEntries) {
+    return SetOperation.getMaxIntersectionBytes(nomEntries);
   }
   
 }
