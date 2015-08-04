@@ -23,6 +23,7 @@ target/
 build.xml
 .idea
 *.iml
+*.properties
 
 # Jekyll
 Gemfile
