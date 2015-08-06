@@ -23,9 +23,9 @@ public class ThetaMemoryBenchmark implements SketchBenchmark
 
   private List<Memory> memories;
 
-  public ThetaMemoryBenchmark(int K) {
-    this.nominalEntries = 1 << K;
-    this.rand = new Random(K);
+  public ThetaMemoryBenchmark(int logK) {
+    this.nominalEntries = 1 << logK;
+    this.rand = new Random(logK);
     this.bytes = new byte[Sketch.getMaxUpdateSketchBytes(nominalEntries) + 8];
   }
 

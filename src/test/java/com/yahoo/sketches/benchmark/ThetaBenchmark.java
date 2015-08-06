@@ -21,9 +21,9 @@ public class ThetaBenchmark implements SketchBenchmark
 
   private List<CompactSketch> sketches;
 
-  public ThetaBenchmark(int K) {
-    this.nominalEntries = 1 << K;
-    this.rand = new Random(K);
+  public ThetaBenchmark(int logK) {
+    this.nominalEntries = 1 << logK;
+    this.rand = new Random(logK);
   }
 
   @Override

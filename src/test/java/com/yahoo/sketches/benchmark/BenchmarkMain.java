@@ -9,9 +9,12 @@ public class BenchmarkMain
 {
   public static void main(String[] args)
   {
+    final int logK = 12;
+
     List<SketchBenchmark> benchmarks = new ArrayList<SketchBenchmark>(){{
-      this.add(new ThetaBenchmark(13));
-      this.add(new ThetaMemoryBenchmark(13));
+      this.add(new ThetaBenchmark(logK));
+      this.add(new ThetaMemoryBenchmark(logK));
+      this.add(new HllSketchBenchmark(logK));
     }};
 
     runBenchmarks(benchmarks, 20, 300, powerLawDistribution);
