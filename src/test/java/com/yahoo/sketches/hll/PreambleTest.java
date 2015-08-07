@@ -43,8 +43,8 @@ public class PreambleTest
     Assert.assertEquals(preamble16.getMaxAuxSize(), 256 * intByteSize);
 
     Preamble preamble26 = new Preamble.Builder()
-        .setLogConfigK((byte) 26).build();
-    Assert.assertEquals(preamble26.getMaxAuxSize(), 262144 * intByteSize);
+        .setLogConfigK((byte) 21).build();
+    Assert.assertEquals(preamble26.getMaxAuxSize(), 8192 * intByteSize);
 
   }
 }

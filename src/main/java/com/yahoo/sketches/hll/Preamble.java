@@ -15,8 +15,11 @@ public class Preamble
   public static final byte DEFAULT_PREAMBLE_FAMILY_ID = 6;
   public static final byte PERAMBLE_SIZE_BYTES = 8;
 
-  public static final int[] AUX_SIZE = new int[] { 1, 4, 4, 4, 4, 4, 4, 8, 8, 8, 16, 16, 32, 32, 64, 128, 256,
-      512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144 };
+  public static final int[] AUX_SIZE = new int[] {
+      1, 4, 4, 4, 4, 4, 4, 8, 8, 8,
+      16, 16, 32, 32, 64, 128, 256, 512, 1024, 2048,
+      4096, 8192, 16384, 32768, 65536, 131072, 262144
+  };
 
 
   private byte preambleSize;
@@ -33,6 +36,15 @@ public class Preamble
     this.logConfigK = logConfigK;
     this.flags = flags;
     this.seedHash = seedHash;
+
+    if (logConfigK < Interpolation.INTERPOLATION_MIN_LOG_K || logConfigK > Interpolation.INTERPOLATION_MAX_LOG_K) {
+      throw new IllegalArgumentException(
+          String.format(
+              "logConfigK[%s] is out of bounds, should be between [%s] and [%s]",
+              logConfigK, Interpolation.INTERPOLATION_MIN_LOG_K, Interpolation.INTERPOLATION_MAX_LOG_K
+          )
+      );
+    }
   }
 
   public static Preamble fromMemory(Memory memory) {

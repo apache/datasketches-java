@@ -4,7 +4,7 @@ package com.yahoo.sketches.hll;
  */
 public class HllUtils
 {
-  protected static double[] invPow2Table = new double[256];
+  static double[] invPow2Table = new double[256];
   static {
     for (int i = 0; i < 256; i++) invPow2Table[i] = Math.pow(2.0, -1.0 * i);
   }

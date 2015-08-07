@@ -4,6 +4,16 @@ public class HllSketchBuilder
 {
   private Preamble preamble;
   private boolean dense = false;
+  private boolean hipEstimation = false;
+
+  public HllSketchBuilder copy() {
+    HllSketchBuilder retVal = new HllSketchBuilder();
+
+    retVal.preamble = preamble;
+    retVal.dense = dense;
+
+    return retVal;
+  }
 
   public HllSketchBuilder setLogBuckets(int k) {
     this.preamble = Preamble.createSharedPreamble((byte) k);
@@ -20,10 +30,23 @@ public class HllSketchBuilder
     return this;
   }
 
+  public HllSketchBuilder usingHipEstimator() {
+    this.hipEstimation = true;
+    return this;
+  }
+
   public HllSketch build() {
+    final Fields fields;
     if (dense) {
-      return new HllSketch(new OnHeapFields(preamble));
+      fields = new OnHeapFields(preamble);
+    } else {
+      fields = new OnHeapHashFields(preamble);
     }
-    return new HllSketch(new OnHeapHashFields(preamble));
+
+    if (hipEstimation) {
+      return new HipHllSketch(fields);
+    } else {
+      return new HllSketch(fields);
+    }
   }
 }
