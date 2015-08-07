@@ -37,8 +37,7 @@ public class HllSketch
 
   public double getEstimate() {
     double rawEst = getRawEstimate();
-    int configK = preamble.getConfigK();
-    int logK = Util.simpleIntlog2(configK);
+    int logK = preamble.getLogConfigK();
 
     double[] x_arr = Interpolation.interpolation_x_arrs[logK - Interpolation.INTERPOLATION_MIN_LOG_K];
     double[] y_arr = Interpolation.interpolation_y_arrs[logK - Interpolation.INTERPOLATION_MIN_LOG_K];
@@ -51,6 +50,7 @@ public class HllSketch
     }
 
     double adjEst = Interpolation.cubicInterpolateUsingTable(x_arr, y_arr, rawEst);
+    int configK = preamble.getConfigK();
 
     if (adjEst > 3.0 * configK) {
       return adjEst;

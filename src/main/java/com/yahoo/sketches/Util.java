@@ -199,16 +199,4 @@ public final class Util {
     }
     return s;
   }
-
-  /**
-   * Gives the log2 of an integer that is know to be a power of 2
-   * zero.
-   *
-   * @param x number
-   */
-  public static int simpleIntlog2(int x) {
-    int e = Integer.numberOfTrailingZeros(x);
-    assert (x == (1 << e));
-    return e;
-  }
 }
