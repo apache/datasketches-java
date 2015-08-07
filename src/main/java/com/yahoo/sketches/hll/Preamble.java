@@ -4,6 +4,8 @@ package com.yahoo.sketches.hll;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.hash.MurmurHash3;
 import com.yahoo.sketches.memory.Memory;
+import com.yahoo.sketches.memory.MemoryRegion;
+import com.yahoo.sketches.memory.NativeMemory;
 
 public class Preamble
 {
@@ -34,20 +36,17 @@ public class Preamble
   }
 
   public static Preamble fromMemory(Memory memory) {
-    int offset = 0;
     Builder builder = new Builder()
-        .setPreambleSize(memory.getByte(offset++))
-        .setVersion(memory.getByte(offset++))
-        .setFamilyId(memory.getByte(offset++))
-        .setLogConfigK(memory.getByte(offset++))
+        .setPreambleSize(memory.getByte(0))
+        .setVersion(memory.getByte(1))
+        .setFamilyId(memory.getByte(2))
+        .setLogConfigK(memory.getByte(3))
         // Invert the ++ in order to skip over the unused byte.  A bunch of bits are wasted
         // instead of packing the preamble so that the semantics of the various parts of the
         // preamble can be aligned across different sketches.
-        .setFlags(memory.getByte(++offset));
+        .setFlags(memory.getByte(5));
 
-    short leftSide = (short) (memory.getByte(offset++) << 8);
-    short rightSide = memory.getByte(offset++);
-    short seedHash = (short) (leftSide | rightSide);
+    short seedHash = memory.getShort(6);
     return builder.setSeedHash(seedHash).build();
   }
 
@@ -103,17 +102,18 @@ public class Preamble
   }
 
   public int intoByteArray(byte[] bytes, int offset) {
-    bytes[offset++] = getPreambleSize();
-    bytes[offset++] = getVersion();
-    bytes[offset++] = getFamilyId();
-    bytes[offset++] = getLogConfigK();
-    bytes[offset++] = 0; // unused
-    bytes[offset++] = getFlags();
+    if (bytes.length - offset < 8) {
+      throw new IllegalArgumentException("bytes too small");
+    }
 
-    short seedHash = getSeedHash();
-    bytes[offset++] = (byte) (seedHash >>> 8);
-    bytes[offset++] = (byte) (seedHash & Byte.MIN_VALUE);
-    return offset;
+    Memory mem = new MemoryRegion(new NativeMemory(bytes), offset, 8);
+    mem.putByte(0, getPreambleSize());
+    mem.putByte(1, getVersion());
+    mem.putByte(2, getFamilyId());
+    mem.putByte(3, getLogConfigK());
+    mem.putByte(5, getFlags());
+    mem.putShort(6, getSeedHash());
+    return offset + 8;
   }
 
   public byte getPreambleSize() {

@@ -48,7 +48,7 @@ public class OnHeapImmutableCompactFields implements Fields
   }
 
   @Override
-  public Fields updateBucket(int i, byte val)
+  public Fields updateBucket(int i, byte val, UpdateCallback cb)
   {
     throw new UnsupportedOperationException("Cannot update a compact sketch");
   }

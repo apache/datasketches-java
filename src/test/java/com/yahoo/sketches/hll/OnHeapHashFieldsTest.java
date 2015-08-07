@@ -13,6 +13,7 @@ import java.util.Set;
  */
 public class OnHeapHashFieldsTest
 {
+  private static final Fields.UpdateCallback cb = new NoopUpdateCallback();
 
   OnHeapHashFields fields;
   private Preamble preamble;
@@ -35,7 +36,7 @@ public class OnHeapHashFieldsTest
   {
     Set<Integer> expectedKeys = new LinkedHashSet<>();
     for (int i = 0; i < 10; ++i) {
-      fields.updateBucket(i, (byte) (i+1));
+      fields.updateBucket(i, (byte) (i+1), cb);
       expectedKeys.add(i);
     }
 
@@ -45,6 +46,27 @@ public class OnHeapHashFieldsTest
       Assert.assertEquals(bucketIter.getValue(), bucketIter.getKey() + 1);
     }
     Assert.assertTrue(expectedKeys.isEmpty(), "expectedKeys wasn't empty, all keys should have been removed.");
+  }
+
+  @Test
+  public void testUpdateBucketCallsCallback() throws Exception
+  {
+    TestUpdateCallback cb = new TestUpdateCallback();
+    cb.setExpectedBucket(2);
+
+    TestUpdateCallback.assertVals(cb, 0, 0, 0);
+
+    fields.updateBucket(2, (byte) 2, cb);
+    TestUpdateCallback.assertVals(cb, 1, 2, 0);
+
+    fields.updateBucket(2, (byte) 4, cb);
+    TestUpdateCallback.assertVals(cb, 2, 4, 2);
+
+    fields.updateBucket(2, (byte) 1, cb);
+    TestUpdateCallback.assertVals(cb, 2, 4, 2);
+
+    fields.updateBucket(2, (byte) 9, cb);
+    TestUpdateCallback.assertVals(cb, 3, 9, 4);
   }
 
   @Test
@@ -61,7 +83,7 @@ public class OnHeapHashFieldsTest
     fields.intoByteArray(stored, 0);
     Assert.assertEquals(stored, expected);
 
-    fields.updateBucket(2, (byte) 27);
+    fields.updateBucket(2, (byte) 27, cb);
     // 9 is a magic number based on the hashing.  If the hashing were to change,
     // then it should also be expected to change
     expectedMem.putInt(9, HashUtils.pairOfKeyAndVal(2, (byte) 27));
@@ -69,7 +91,7 @@ public class OnHeapHashFieldsTest
     fields.intoByteArray(stored, 0);
     Assert.assertEquals(stored, expected);
 
-    fields.updateBucket(892, (byte) 10);
+    fields.updateBucket(892, (byte) 10, cb);
     // 49 is a magic number based on the hashing.  If the hashing were to change,
     // then it should also be expected to change.
     expectedMem.putInt(49, HashUtils.pairOfKeyAndVal(892, (byte) 10));
@@ -85,11 +107,11 @@ public class OnHeapHashFieldsTest
 
 
     for (int i = 0; i < 11; ++i) {
-      fields.updateBucket(i, (byte) 1);
+      fields.updateBucket(i, (byte) 1, cb);
       Assert.assertEquals(fields.numBytesToSerialize(), 1 + (16 * 4), String.valueOf(i));
     }
 
-    fields.updateBucket(1023, (byte) 98);
+    fields.updateBucket(1023, (byte) 98, cb);
     Assert.assertEquals(fields.numBytesToSerialize(), 1 + (32 * 4));
   }
 

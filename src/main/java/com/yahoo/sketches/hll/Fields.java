@@ -17,7 +17,20 @@ public interface Fields
 
   Preamble getPreamble();
 
-  Fields updateBucket(int i, byte val);
+  /**
+   * Potentially updates a bucket in the underlying storage.  The Fields implementation
+   * is expected to maintain the MAX val for each bucket.  If the val passed in is less
+   * than the currently stored val, this method should do nothing.
+   *
+   * A callback *must* be provided which will be called whenever the provided val is
+   * greater than the currently stored value.
+   *
+   * @param bucket the bucket to update
+   * @param val the val to update to
+   * @param callback the callback to be called if the provided val is greater than the current
+   * @return the Fields object that should be used from this point forward
+   */
+  Fields updateBucket(int bucket, byte val, UpdateCallback callback);
 
   /**
    * Fills the array starting from offset with the byte array representation of the fields
@@ -39,4 +52,8 @@ public interface Fields
   Fields toCompact();
 
   BucketIterator getBucketIterator();
+
+  public static interface UpdateCallback {
+    void bucketUpdated(int bucket, byte oldVal, byte newVal);
+  }
 }

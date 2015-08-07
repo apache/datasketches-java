@@ -12,6 +12,7 @@ import java.util.Set;
  */
 public class OnHeapFieldsTest
 {
+  private static final NoopUpdateCallback cb = new NoopUpdateCallback();
 
   OnHeapFields fields;
   private Preamble preamble;
@@ -34,7 +35,7 @@ public class OnHeapFieldsTest
   {
     Set<Integer> expectedKeys = new LinkedHashSet<>();
     for (int i = 0; i < 10; ++i) {
-      fields.updateBucket(i, (byte) (i+1));
+      fields.updateBucket(i, (byte) (i+1), cb);
       expectedKeys.add(i);
     }
 
@@ -47,6 +48,27 @@ public class OnHeapFieldsTest
   }
 
   @Test
+  public void testUpdateBucketCallsCallback() throws Exception
+  {
+    TestUpdateCallback cb = new TestUpdateCallback();
+    cb.setExpectedBucket(2);
+
+    TestUpdateCallback.assertVals(cb, 0, 0, 0);
+
+    fields.updateBucket(2, (byte) 2, cb);
+    TestUpdateCallback.assertVals(cb, 1, 2, 0);
+
+    fields.updateBucket(2, (byte) 4, cb);
+    TestUpdateCallback.assertVals(cb, 2, 4, 2);
+
+    fields.updateBucket(2, (byte) 1, cb);
+    TestUpdateCallback.assertVals(cb, 2, 4, 2);
+
+    fields.updateBucket(2, (byte) 9, cb);
+    TestUpdateCallback.assertVals(cb, 3, 9, 4);
+  }
+
+  @Test
   public void testIntoByteArray() throws Exception
   {
     byte[] stored = new byte[fields.numBytesToSerialize()];
@@ -56,13 +78,13 @@ public class OnHeapFieldsTest
     fields.intoByteArray(stored, 0);
     Assert.assertEquals(stored, expected);
 
-    fields.updateBucket(2, (byte) 27);
+    fields.updateBucket(2, (byte) 27, cb);
     expected[3] = 27;
 
     fields.intoByteArray(stored, 0);
     Assert.assertEquals(stored, expected);
 
-    fields.updateBucket(892, (byte) 10);
+    fields.updateBucket(892, (byte) 10, cb);
     expected[893] = 10;
 
     fields.intoByteArray(stored, 0);

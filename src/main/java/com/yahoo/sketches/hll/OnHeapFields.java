@@ -16,9 +16,10 @@ public class OnHeapFields implements Fields
   }
 
   @Override
-  public Fields updateBucket(int index, byte val)
+  public Fields updateBucket(int index, byte val, UpdateCallback callback)
   {
     if (val > buckets[index]) {
+      callback.bucketUpdated(index, buckets[index], val);
       buckets[index] = val;
     }
     return this;

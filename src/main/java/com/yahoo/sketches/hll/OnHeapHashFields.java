@@ -38,37 +38,45 @@ public class OnHeapHashFields implements Fields
   }
 
   @Override
-  public Fields updateBucket(int key, byte val) {
-    return updateBucket(HashUtils.pairOfKeyAndVal(key, val));
+  public Fields updateBucket(int key, byte val, UpdateCallback callback) {
+    return updateBucket(key, val, HashUtils.pairOfKeyAndVal(key, val), callback);
   }
 
-  private Fields updateBucket(int newField) {
-    int key = HashUtils.keyOfPair(newField);
+  private Fields updateBucket(int key, byte val, int newField, UpdateCallback callback) {
     int probe = key & mask;
     int field = fields[probe];
     while (field != HashUtils.NOT_A_PAIR && key != HashUtils.keyOfPair(field)) {
       probe = (probe + 1) & mask;
       field = fields[probe];
     }
-    fields[probe] = newField;
 
     if (field == HashUtils.NOT_A_PAIR) {
+      fields[probe] = newField;
+      callback.bucketUpdated(key, (byte) 0, val);
+      ++numElements;
+    }
+
+    byte oldVal = HashUtils.valOfPair(field);
+    if (oldVal < val) {
+      fields[probe] = newField;
+      callback.bucketUpdated(key, oldVal, val);
       ++numElements;
     }
 
     if (numElements >= growthBound) {
+      UpdateCallback noopCB = new NoopUpdateCallback();
       int[] oldFields = fields;
       if (oldFields.length == switchToDenseSize) {
         Fields retVal = new OnHeapFields(preamble);
         BucketIterator iter = getBucketIterator();
         while (iter.next()) {
-          retVal.updateBucket(iter.getKey(), iter.getValue());
+          retVal.updateBucket(iter.getKey(), iter.getValue(), noopCB);
         }
         return retVal;
       } else {
         resetFields(oldFields.length << 1);
         for (int oldField : oldFields) {
-          updateBucket(oldField);
+          updateBucket(HashUtils.keyOfPair(oldField), HashUtils.valOfPair(oldField), oldField, noopCB);
         }
       }
     }

@@ -12,15 +12,20 @@ public class HllSketch
     return new HllSketchBuilder();
   }
 
-  private Fields fields;
-  private Preamble preamble;
+  private final Fields.UpdateCallback updateCallback;
+  private final Preamble preamble;
 
+  private Fields fields;
 
   public HllSketch(Fields fields) {
-    this.fields = fields;
-    this.preamble = fields.getPreamble();
+    this(fields, new NoopUpdateCallback());
   }
 
+  public HllSketch(Fields fields, Fields.UpdateCallback updateCallback) {
+    this.fields = fields;
+    this.updateCallback = updateCallback;
+    this.preamble = fields.getPreamble();
+  }
 
   public void update(byte[] key) {
     updateWithHash(MurmurHash3.hash(key, Util.DEFAULT_UPDATE_SEED));
@@ -101,7 +106,7 @@ public class HllSketch
   public HllSketch union(HllSketch that) {
     BucketIterator iter = that.fields.getBucketIterator();
     while (iter.next()) {
-      fields = fields.updateBucket(iter.getKey(), iter.getValue());
+      fields = fields.updateBucket(iter.getKey(), iter.getValue(), updateCallback);
     }
     return this;
   }
@@ -109,7 +114,7 @@ public class HllSketch
   private void updateWithHash(long[] hash) {
     byte newValue = (byte) (Long.numberOfLeadingZeros(hash[1]) + 1);
     int slotno = (int) hash[0] & (preamble.getConfigK() - 1);
-    fields = fields.updateBucket(slotno, newValue);
+    fields = fields.updateBucket(slotno, newValue, updateCallback);
   }
 
   private double eps(double numStdDevs) {

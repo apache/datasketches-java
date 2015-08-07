@@ -36,7 +36,7 @@ public class OnHeapImmutableCompactFieldsTest
   @Test(expectedExceptions = {UnsupportedOperationException.class})
   public void testUpdateBucket() throws Exception
   {
-    fields.updateBucket(1, (byte) 29);
+    fields.updateBucket(1, (byte) 29, new NoopUpdateCallback());
   }
 
   @Test
@@ -85,7 +85,7 @@ public class OnHeapImmutableCompactFieldsTest
   {
     OnHeapHashFields hashFields = new OnHeapHashFields(preamble);
     for (int val : vals) {
-      hashFields.updateBucket(HashUtils.keyOfPair(val), HashUtils.valOfPair(val));
+      hashFields.updateBucket(HashUtils.keyOfPair(val), HashUtils.valOfPair(val), new NoopUpdateCallback());
     }
 
     // We ensure that the values in the hashFields are not sorted because one of the
