@@ -25,7 +25,8 @@ public class Preamble {
   private byte flags;
   private short seedHash;
 
-  private Preamble(byte preambleSize, byte version, byte familyId, byte logConfigK, byte flags, short seedHash) {
+  private Preamble(byte preambleSize, byte version, byte familyId, byte logConfigK, byte flags, short seedHash)
+  {
     this.preambleSize = preambleSize;
     this.version = version;
     this.familyId = familyId;
@@ -80,9 +81,9 @@ public class Preamble {
   }
 
 
-  public static Preamble createSharedPreamble(int logConfigK) {
-    if (logConfigK > 255) {
-      throw new IllegalArgumentException("logConfigK is greater than a byte, make it smaller");
+  public static Preamble fromLogK(int logK) {
+    if (logK > 255) {
+      throw new IllegalArgumentException("logK is greater than a byte, make it smaller");
     }
 
     byte flags = new PreambleFlags.Builder()
@@ -96,9 +97,8 @@ public class Preamble {
         .build();
 
     short seedHash = computeSeedHash(Util.DEFAULT_UPDATE_SEED);
-
     return new Builder()
-        .setLogConfigK((byte) logConfigK)
+        .setLogConfigK((byte) logK)
         .setFlags(flags)
         .setSeedHash(seedHash)
         .build();
@@ -168,26 +168,12 @@ public class Preamble {
 
     Preamble preamble = (Preamble) o;
 
-    if (familyId != preamble.familyId) {
-      return false;
-    }
-    if (flags != preamble.flags) {
-      return false;
-    }
-    if (logConfigK != preamble.logConfigK) {
-      return false;
-    }
-    if (preambleSize != preamble.preambleSize) {
-      return false;
-    }
-    if (seedHash != preamble.seedHash) {
-      return false;
-    }
-    if (version != preamble.version) {
-      return false;
-    }
-
-    return true;
+    return familyId == preamble.familyId &&
+           flags == preamble.flags &&
+           logConfigK == preamble.logConfigK &&
+           preambleSize == preamble.preambleSize &&
+           seedHash == preamble.seedHash &&
+           version == preamble.version;
   }
 
   @SuppressWarnings("cast")

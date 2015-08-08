@@ -12,35 +12,33 @@ import static com.yahoo.sketches.Util.TAB;
  * 
  */
 public class HllSketchBuilder { //TODO will need to add seed and Memory, etc.
-  private int logBuckets;
-  private Preamble preamble;
+  private Preamble preamble = null;
+  private boolean compressedDense = false;
   private boolean denseMode = false;
   private boolean hipEstimator = false;
   
   public HllSketchBuilder() {
-    logBuckets = Integer.numberOfTrailingZeros(DEFAULT_NOMINAL_ENTRIES);
-    preamble = Preamble.createSharedPreamble((byte) logBuckets);
-    denseMode = false;
-    hipEstimator = false;
+    preamble = Preamble.fromLogK(Integer.numberOfTrailingZeros(DEFAULT_NOMINAL_ENTRIES));
   }
   
   public HllSketchBuilder copy() {  //not used.  Do we need this?
     HllSketchBuilder retVal = new HllSketchBuilder();
-    retVal.logBuckets = logBuckets;
+
     retVal.preamble = preamble;
+    retVal.compressedDense = compressedDense;
     retVal.denseMode = denseMode;
     retVal.hipEstimator = hipEstimator;
+
     return retVal;
   }
   
   public HllSketchBuilder setLogBuckets(int logBuckets) {
-    this.logBuckets = logBuckets;
-    this.preamble = Preamble.createSharedPreamble((byte) logBuckets);
+    this.preamble = Preamble.fromLogK((byte) logBuckets);
     return this;
   }
   
   public int getLogBuckets() {
-    return logBuckets;
+    return preamble.getLogConfigK();
   }
   
   public HllSketchBuilder setPreamble(Preamble preamble) {
@@ -56,12 +54,23 @@ public class HllSketchBuilder { //TODO will need to add seed and Memory, etc.
     this.denseMode = denseMode;
     return this;
   }
-  
+
   public boolean isDenseMode() {
     return denseMode;
   }
-  
-  public HllSketchBuilder setHipEstimator(boolean hipEstimator) {
+
+  public HllSketchBuilder setCompressedDense(boolean compressedDense) {
+    this.compressedDense = compressedDense;
+    return this;
+  }
+
+  public boolean isCompressedDense()
+  {
+    return compressedDense;
+  }
+
+  public HllSketchBuilder setHipEstimator(boolean hipEstimator)
+  {
     this.hipEstimator = hipEstimator;
     return this;
   }
@@ -71,11 +80,18 @@ public class HllSketchBuilder { //TODO will need to add seed and Memory, etc.
   }
   
   public HllSketch build() {
+    final FieldsFactory denseFactory;
+    if (compressedDense) {
+      denseFactory = new DenseCompressedFieldsFactory();
+    } else {
+      denseFactory = new DenseFieldsFactory();
+    }
+
     final Fields fields;
     if (denseMode) {
-      fields = new OnHeapFields(preamble);
+      fields = denseFactory.make(preamble);
     } else {
-      fields = new OnHeapHashFields(preamble);
+      fields = new OnHeapHashFields(preamble, 16, HashUtils.MAX_HASH_SIZE[preamble.getLogConfigK()], denseFactory);
     }
     
     if (hipEstimator) {
@@ -89,8 +105,8 @@ public class HllSketchBuilder { //TODO will need to add seed and Memory, etc.
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("HllSketchBuilder configuration:").append(LS).
-       append("LgK:").append(TAB).append(logBuckets).append(LS).
-       append("K:").append(TAB).append(1 << logBuckets).append(LS).
+       append("LgK:").append(TAB).append(preamble.getLogConfigK()).append(LS).
+       append("K:").append(TAB).append(preamble.getConfigK()).append(LS).
        append("DenseMode:").append(TAB).append(denseMode).append(LS).
        append("HIP Estimator:").append(TAB).append(hipEstimator).append(LS);
     return sb.toString();

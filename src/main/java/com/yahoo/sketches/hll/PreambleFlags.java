@@ -22,68 +22,6 @@ public class PreambleFlags
     return flagsByte;
   }
 
-  public static boolean isUnionMode(byte flagsByte) {
-    return isFlagSet(flagsByte, UNION_MODE_FLAG_MASK);
-  }
-
-  public static byte setUnionMode(byte flagsByte, boolean isUnionMode) {
-    return initFlag(flagsByte, isUnionMode, UNION_MODE_FLAG_MASK);
-  }
-
-  public static boolean isBigEndian(byte flagsByte) {
-    return isFlagSet(flagsByte, BIG_ENDIAN_FLAG_MASK);
-  }
-
-  public static byte setBigEndian(byte flagsByte, boolean isBigEndian) {
-    return initFlag(flagsByte, isBigEndian, BIG_ENDIAN_FLAG_MASK);
-  }
-
-  public static boolean isReadOnly(byte flagsByte) {
-    return isFlagSet(flagsByte, READ_ONLY_FLAG_MASK);
-  }
-
-  public static byte setReadOnly(byte flagsByte, boolean isReadOnly) {
-    return initFlag(flagsByte, isReadOnly, READ_ONLY_FLAG_MASK);
-  }
-
-  public static boolean isSharedPreambleMode(byte flagsByte) {
-    return isFlagSet(flagsByte, SHARED_PREAMBLE_FLAG_MASK);
-  }
-
-  public static byte setSharedPreambleMode(byte flagsByte, boolean isSharedPreambleMode) {
-    return initFlag(flagsByte, isSharedPreambleMode, SHARED_PREAMBLE_FLAG_MASK);
-  }
-
-  public static boolean isEmpty(byte flagsByte) {
-    return isFlagSet(flagsByte, EMPTY_FLAG_MASK);
-  }
-
-  public static byte setEmpty(byte flagsByte, boolean isEmpty) {
-    return initFlag(flagsByte, isEmpty, EMPTY_FLAG_MASK);
-  }
-
-  public static byte setEightBytePadding(byte flagsByte, boolean hasEightBytePadding) {
-    return initFlag(flagsByte, hasEightBytePadding, EIGHT_BYTE_PADDING_FLAG_MASK);
-  }
-
-  public static boolean isEightBytePadding(byte flagsByte) {
-    return isFlagSet(flagsByte, EIGHT_BYTE_PADDING_FLAG_MASK);
-  }
-
-  public static boolean isSparseMode(byte flagsByte) {
-
-    return isFlagSet(flagsByte, SPARSE_MODE_FLAG_MASK);
-  }
-
-  public static byte setSparseMode(byte flagsByte, boolean isSparseMode) {
-    return initFlag(flagsByte, isSparseMode, SPARSE_MODE_FLAG_MASK);
-  }
-
-  private static boolean isFlagSet(byte flagsByte, int mask) {
-
-    return (mask & flagsByte) != 0;
-  }
-
   private static byte initFlag(byte flagsByte, boolean isSet, int mask) {
     if (isSet) {
       return (byte) (flagsByte | mask);

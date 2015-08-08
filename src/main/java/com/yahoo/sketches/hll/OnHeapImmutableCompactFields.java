@@ -57,7 +57,7 @@ public class OnHeapImmutableCompactFields implements Fields
   @Override
   public Fields updateBucket(int i, byte val, UpdateCallback cb)
   {
-    throw new UnsupportedOperationException("Cannot update a compact sketch");
+    throw new UnsupportedOperationException("Cannot mutate a compact sketch");
   }
 
   @Override
@@ -117,5 +117,23 @@ public class OnHeapImmutableCompactFields implements Fields
         return HashUtils.valOfPair(fields[i]);
       }
     };
+  }
+
+  @Override
+  public Fields unionInto(Fields recipient, UpdateCallback cb)
+  {
+    return recipient.unionBucketIterator(getBucketIterator(), cb);
+  }
+
+  @Override
+  public Fields unionBucketIterator(BucketIterator iter, UpdateCallback cb)
+  {
+    throw new UnsupportedOperationException("Cannot mutate a compact sketch");
+  }
+
+  @Override
+  public Fields unionCompressedAndExceptions(byte[] compressed, int minVal, OnHeapHash exceptions, UpdateCallback cb)
+  {
+    throw new UnsupportedOperationException("Cannot mutate a compact sketch");
   }
 }

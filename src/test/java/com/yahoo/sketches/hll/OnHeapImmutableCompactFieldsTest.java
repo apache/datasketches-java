@@ -6,8 +6,6 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-//import static org.testng.Assert.*;
-
 /**
  */
 public class OnHeapImmutableCompactFieldsTest
@@ -19,7 +17,7 @@ public class OnHeapImmutableCompactFieldsTest
   @BeforeMethod
   public void setUp() throws Exception
   {
-    preamble = Preamble.createSharedPreamble(10);
+    preamble = Preamble.fromLogK(10);
     vals = new int[] {
         HashUtils.pairOfKeyAndVal(10, (byte) 27),
         HashUtils.pairOfKeyAndVal(486, (byte) 1)
@@ -36,7 +34,16 @@ public class OnHeapImmutableCompactFieldsTest
   @Test(expectedExceptions = {UnsupportedOperationException.class})
   public void testUpdateBucket() throws Exception
   {
-    fields.updateBucket(1, (byte) 29, new NoopUpdateCallback());
+    fields.updateBucket(
+        1, (byte) 29, new Fields.UpdateCallback()
+        {
+          @Override
+          public void bucketUpdated(int bucket, byte oldVal, byte newVal)
+          {
+
+          }
+        }
+    );
   }
 
   @Test
@@ -52,6 +59,15 @@ public class OnHeapImmutableCompactFieldsTest
 
     fields.intoByteArray(stored, 0);
     Assert.assertEquals(stored, expected);
+
+
+    boolean exceptionThrown = false;
+    try {
+      fields.intoByteArray(new byte[stored.length - 1], 0);
+    } catch (IllegalArgumentException e) {
+      exceptionThrown = true;
+    }
+    Assert.assertTrue(exceptionThrown, "Expected exception about length of array to be thrown.");
   }
 
   @Test
@@ -83,9 +99,9 @@ public class OnHeapImmutableCompactFieldsTest
   @Test
   public void testFromFields() throws Exception
   {
-    OnHeapHashFields hashFields = new OnHeapHashFields(preamble);
+    OnHeapHashFields hashFields = new OnHeapHashFields(preamble, 16, 256, new DenseFieldsFactory());
     for (int val : vals) {
-      hashFields.updateBucket(HashUtils.keyOfPair(val), HashUtils.valOfPair(val), new NoopUpdateCallback());
+      hashFields.updateBucket(HashUtils.keyOfPair(val), HashUtils.valOfPair(val), Fields.NOOP_CB);
     }
 
     // We ensure that the values in the hashFields are not sorted because one of the
@@ -108,5 +124,17 @@ public class OnHeapImmutableCompactFieldsTest
     testIntoByteArray();
     testNumBytesToSerialize();
     testGetBucketIterator();
+  }
+
+  @Test(expectedExceptions = UnsupportedOperationException.class)
+  public void testNoUnionBucket()
+  {
+    fields.unionBucketIterator(null, null);
+  }
+
+  @Test(expectedExceptions = UnsupportedOperationException.class)
+  public void testNoUnionCompressedAndExceptions()
+  {
+    fields.unionCompressedAndExceptions(null, 0, null, null);
   }
 }

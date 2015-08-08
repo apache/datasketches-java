@@ -1,7 +1,12 @@
 package com.yahoo.sketches.benchmark;
 
+import com.yahoo.sketches.hll.HllSketch;
+import com.yahoo.sketches.hll.HllSketchBuilder;
+import com.yahoo.sketches.hll.Preamble;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  */
@@ -13,12 +18,33 @@ public class BenchmarkMain
     final int lgK = 12;
 
     List<SketchBenchmark> benchmarks = new ArrayList<SketchBenchmark>(){{
-      this.add(new ThetaBenchmark(lgK));
       this.add(new ThetaMemoryBenchmark(lgK));
-      this.add(new HllSketchBenchmark(lgK));
+      this.add(new ThetaBenchmark(lgK));
+
+      HllSketchBuilder sparseBob = HllSketch.builder().setPreamble(Preamble.fromLogK(lgK));
+      HllSketchBuilder denseBob = sparseBob.copy().setDenseMode(true);
+      this.add(new HllSketchBenchmark("HLL Sketch", new Random(lgK), sparseBob, denseBob));
+      this.add(
+          new HllSketchBenchmark(
+              "HLL Non-Compressed to Compressed",
+              new Random(lgK), sparseBob, denseBob.copy().setCompressedDense(true)
+          )
+      );
+      this.add(
+          new HllSketchBenchmark(
+              "HLL Compressed to Non-Compressed",
+              new Random(lgK), sparseBob.copy().setCompressedDense(true), denseBob
+          )
+      );
+      this.add(
+          new HllSketchBenchmark(
+              "HLL All Compressed",
+              new Random(lgK), denseBob.copy().setCompressedDense(true), denseBob.copy().setCompressedDense(true)
+          )
+      );
     }};
 
-    runBenchmarks(benchmarks, 20, 300, powerLawDistribution);
+    runBenchmarks(benchmarks, 20, 100, powerLawDistribution);
   }
 
   private static void runBenchmarks(

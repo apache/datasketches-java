@@ -1,34 +1,24 @@
 package com.yahoo.sketches.hll;
 
-import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.memory.NativeMemory;
-
-import java.util.Arrays;
-
 /**
  */
 public class OnHeapHashFields implements Fields
 {
   private final Preamble preamble;
+  private final FieldsFactory denseFactory;
   private final int switchToDenseSize;
 
-  private int[] fields;
-  private int mask;
-  private int numElements;
+  private final OnHeapHash hasher;
+
   private int growthBound;
 
-  public OnHeapHashFields(Preamble preamble) {
+  public OnHeapHashFields(Preamble preamble, int startSize, int switchToDenseSize, FieldsFactory denseFactory) {
     this.preamble = preamble;
-    this.switchToDenseSize = HashUtils.MAX_HASH_SIZE[preamble.getLogConfigK()];
-    resetFields(16);
-  }
+    this.denseFactory = denseFactory;
+    this.hasher = new OnHeapHash(startSize);
+    this.switchToDenseSize = switchToDenseSize;
 
-  private void resetFields(int size) {
-    this.fields = new int[size];
-    Arrays.fill(this.fields, -1);
-    this.mask = fields.length - 1;
-    this.numElements = 0;
-    this.growthBound = 3 * (fields.length >>> 2);
+    this.growthBound = 3 * (startSize >>> 2);
   }
 
   @Override
@@ -39,45 +29,21 @@ public class OnHeapHashFields implements Fields
 
   @Override
   public Fields updateBucket(int key, byte val, UpdateCallback callback) {
-    return updateBucket(key, val, HashUtils.pairOfKeyAndVal(key, val), callback);
-  }
+    hasher.updateBucket(key, val, callback);
 
-  private Fields updateBucket(int key, byte val, int newField, UpdateCallback callback) {
-    int probe = key & mask;
-    int field = fields[probe];
-    while (field != HashUtils.NOT_A_PAIR && key != HashUtils.keyOfPair(field)) {
-      probe = (probe + 1) & mask;
-      field = fields[probe];
-    }
-
-    if (field == HashUtils.NOT_A_PAIR) {
-      fields[probe] = newField;
-      callback.bucketUpdated(key, (byte) 0, val);
-      ++numElements;
-    }
-
-    byte oldVal = HashUtils.valOfPair(field);
-    if (oldVal < val) {
-      fields[probe] = newField;
-      callback.bucketUpdated(key, oldVal, val);
-      ++numElements;
-    }
-
-    if (numElements >= growthBound) {
-      UpdateCallback noopCB = new NoopUpdateCallback();
-      int[] oldFields = fields;
-      if (oldFields.length == switchToDenseSize) {
-        Fields retVal = new OnHeapFields(preamble);
+    if (hasher.getNumElements() >= growthBound) {
+      int[] fields = hasher.getFields();
+      this.growthBound = 3 * (fields.length >>> 2);
+      if (fields.length == switchToDenseSize) {
+        Fields retVal = denseFactory.make(preamble);
         BucketIterator iter = getBucketIterator();
         while (iter.next()) {
-          retVal.updateBucket(iter.getKey(), iter.getValue(), noopCB);
+          retVal.updateBucket(iter.getKey(), iter.getValue(), NOOP_CB);
         }
         return retVal;
       } else {
-        resetFields(oldFields.length << 1);
-        for (int oldField : oldFields) {
-          updateBucket(HashUtils.keyOfPair(oldField), HashUtils.valOfPair(oldField), oldField, noopCB);
-        }
+        hasher.resetFields(fields.length << 1);
+        hasher.boostrap(fields);
       }
     }
 
@@ -94,21 +60,14 @@ public class OnHeapHashFields implements Fields
       );
     }
 
-    Memory mem = new NativeMemory(array);
-    mem.putByte(offset++, Fields.HASH_SPARSE_VERSION);
-
-    for (int field : fields) {
-      mem.putInt(offset, field);
-      offset += 4;
-    }
-
-    return offset;
+    array[offset] = Fields.HASH_SPARSE_VERSION;
+    return hasher.intoByteArray(array, offset + 1);
   }
 
   @Override
   public int numBytesToSerialize()
   {
-    return 1 + (fields.length << 2);
+    return 1 + hasher.numBytesToSerialize();
   }
 
   @Override
@@ -120,31 +79,24 @@ public class OnHeapHashFields implements Fields
   @Override
   public BucketIterator getBucketIterator()
   {
-    return new BucketIterator()
-    {
-      private int i = -1;
+    return hasher.getBucketIterator();
+  }
 
-      @Override
-      public boolean next()
-      {
-        ++i;
-        while (i < fields.length && fields[i] == HashUtils.NOT_A_PAIR) {
-          ++i;
-        }
-        return i < fields.length;
-      }
+  @Override
+  public Fields unionInto(Fields recipient, UpdateCallback cb)
+  {
+    return recipient.unionBucketIterator(getBucketIterator(), cb);
+  }
 
-      @Override
-      public int getKey()
-      {
-        return HashUtils.keyOfPair(fields[i]);
-      }
+  @Override
+  public Fields unionBucketIterator(BucketIterator iter, UpdateCallback callback)
+  {
+    return HllUtils.unionBucketIterator(this, iter, callback);
+  }
 
-      @Override
-      public byte getValue()
-      {
-        return HashUtils.valOfPair(fields[i]);
-      }
-    };
+  @Override
+  public Fields unionCompressedAndExceptions(byte[] compressed, int minVal, OnHeapHash exceptions, UpdateCallback cb)
+  {
+    return unionBucketIterator(CompressedBucketUtils.getBucketIterator(compressed, minVal, exceptions), cb);
   }
 }

@@ -6,7 +6,7 @@ import org.testng.Assert;
  */
 public class TestUpdateCallback implements Fields.UpdateCallback
 {
-  public static void assertVals(TestUpdateCallback cb, int count, int newVal, int oldVal) {
+  public static void assertVals(TestUpdateCallback cb, int count, int oldVal, int newVal) {
     Assert.assertEquals(cb.getCount(), count, "count is off");
     Assert.assertEquals(cb.getOldVal(), (byte) oldVal, "oldVal_ is off");
     Assert.assertEquals(cb.getNewVal(), (byte) newVal, "newVal_ is off");

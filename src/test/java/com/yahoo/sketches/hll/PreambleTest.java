@@ -48,4 +48,24 @@ public class PreambleTest
     Assert.assertEquals(preamble26.getMaxAuxSize(), 8192 * intByteSize);
 
   }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void testSharedPreambleTooLarge() {
+    Preamble.fromLogK(256);
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void testSharedPreambleTooLarge2() {
+    Preamble.fromLogK(50);
+  }
+
+  @Test
+  public void testHashCodeAndEquals() {
+    Preamble preamble = Preamble.fromLogK(13);
+    Assert.assertEquals(preamble.hashCode(), Preamble.fromLogK(13).hashCode());
+    Assert.assertEquals(preamble, preamble);
+
+    Assert.assertTrue(preamble.equals(Preamble.fromLogK(13)));
+    Assert.assertFalse(preamble.equals(null));
+  }
 }
