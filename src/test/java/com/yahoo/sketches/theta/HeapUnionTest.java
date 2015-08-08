@@ -4,6 +4,7 @@
  */
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.theta.ForwardCompatibilityTest.*;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
@@ -224,9 +225,6 @@ public class HeapUnionTest {
     for (int i=0; i<u/2; i++) usk1.update(i); //2*k
     for (int i=u/2; i<u; i++) usk2.update(i); //2*k no overlap
     
-//    double usk1est = usk1.getEstimate();
-//    double usk2est = usk2.getEstimate();
-    
     Union union = (Union)SetOperation.builder().build(k, Family.UNION);
     
     union.update(usk1);
@@ -322,7 +320,7 @@ public class HeapUnionTest {
   
   @Test
   public void checkHeapifyEstNoOverlapOrderedMemIn() {
-    int lgK = 14; //4096
+    int lgK = 12; //4096
     int k = 1 << lgK;
     int u = 4*k;
     
@@ -416,8 +414,71 @@ public class HeapUnionTest {
     union.update(usk4);
     CompactSketch csk = union.getResult(true, null);
     double est = csk.getEstimate();
+    assertEquals(est, v, .01*v);
     println("CskEst: "+est);
     
+  }
+  
+  @Test
+  public void checkDirectMemory() {
+    int lgK = 12; //4096
+    int k = 1 << lgK;
+    int u1 = 2*k;
+    int u2 = 1024; //smaller exact sketch forces early stop 
+    int totU = u1+u2;
+    
+    UpdateSketch usk1 = UpdateSketch.builder().build(k);
+    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    
+    for (int i=0; i<u1; i++) usk1.update(i); //2*k
+    for (int i=u1; i<totU; i++) usk2.update(i); //2*k + 1024 no overlap
+    
+    CompactSketch usk1c = usk1.compact(false, null);
+    CompactSketch usk2c = usk2.compact(true, null);
+    NativeMemory skMem1 = new NativeMemory(usk1c.toByteArray());
+    NativeMemory skMem2 = new NativeMemory(usk2c.toByteArray());
+    
+    CompactSketch csk1 = (CompactSketch)Sketch.wrap(skMem1);
+    CompactSketch csk2 = (CompactSketch)Sketch.wrap(skMem2);
+    
+    Union union = (Union)SetOperation.builder().build(k, Family.UNION);
+    
+    union.update(csk1);
+    union.update(csk2);
+    
+    CompactSketch cOut = union.getResult(true, null);
+    assertEquals(cOut.getEstimate(), totU, .05*k);
+  }
+  
+  @Test
+  public void checkSerVer1Handling() {
+    int lgK = 12; //4096
+    int k = 1 << lgK;
+    int u1 = 2*k;
+    int u2 = 1024; //smaller exact sketch forces early stop 
+    int totU = u1+u2;
+    
+    UpdateSketch usk1 = UpdateSketch.builder().build(k);
+    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    
+    for (int i=0; i<u1; i++) usk1.update(i); //2*k
+    for (int i=u1; i<totU; i++) usk2.update(i); //2*k + 1024 no overlap
+    
+    CompactSketch usk1c = usk1.compact(true, null);
+    CompactSketch usk2c = usk2.compact(true, null);
+    NativeMemory skMem1 = new NativeMemory(usk1c.toByteArray());
+    NativeMemory skMem2 = new NativeMemory(usk2c.toByteArray());
+    
+    Memory v1mem1 = convertSerV3toSerV1(skMem1);
+    Memory v1mem2 = convertSerV3toSerV1(skMem2);
+    
+    Union union = (Union)SetOperation.builder().build(k, Family.UNION);
+    
+    union.update(v1mem1);
+    union.update(v1mem2);
+    
+    CompactSketch cOut = union.getResult(true, null);
+    assertEquals(cOut.getEstimate(), totU, .05*k);
   }
   
   @Test
@@ -429,7 +490,7 @@ public class HeapUnionTest {
    * @param s value to print
    */
   static void println(String s) {
-    //System.out.println(s); //Disable here
+    System.out.println(s); //Disable here
   }
   
 }

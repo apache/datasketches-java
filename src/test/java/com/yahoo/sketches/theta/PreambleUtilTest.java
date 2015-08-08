@@ -48,9 +48,7 @@ public class PreambleUtilTest {
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkBadSeedHashFromSeed() {
     //In the first 64K values 50541 produces a seedHash of 0, 
-    for (int i=0; i < (1<<16); i++) { 
-      PreambleUtil.computeSeedHash(i);
-    }
+    PreambleUtil.computeSeedHash(50541);
   }
   
   @Test

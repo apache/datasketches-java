@@ -65,8 +65,20 @@ public class SetOperationTest {
   }
   
   @Test(expectedExceptions = IllegalArgumentException.class)
-  public void checkBuilderIllegalP() {
+  public void checkBuilderIllegalPhi() {
     float p = (float)1.5;
+    SetOperation.builder().setP(p).build(Family.UNION);
+  }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkBuilderIllegalPlo() {
+    float p = 0;
+    SetOperation.builder().setP(p).build(Family.UNION);
+  }
+  
+  @Test
+  public void checkBuilderValidP() {
+    float p = (float).5;
     SetOperation.builder().setP(p).build(Family.UNION);
   }
   
