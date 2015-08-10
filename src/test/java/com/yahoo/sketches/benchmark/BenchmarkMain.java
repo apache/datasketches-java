@@ -10,9 +10,12 @@ public class BenchmarkMain
   @SuppressWarnings("serial")
   public static void main(String[] args)
   {
+    final int lgK = 12;
+
     List<SketchBenchmark> benchmarks = new ArrayList<SketchBenchmark>(){{
-      this.add(new ThetaBenchmark(13));
-      this.add(new ThetaMemoryBenchmark(13));
+      this.add(new ThetaBenchmark(lgK));
+      this.add(new ThetaMemoryBenchmark(lgK));
+      this.add(new HllSketchBenchmark(lgK));
     }};
 
     runBenchmarks(benchmarks, 20, 300, powerLawDistribution);
