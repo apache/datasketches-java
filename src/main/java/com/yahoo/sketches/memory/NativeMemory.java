@@ -4,6 +4,8 @@
  */
 package com.yahoo.sketches.memory;
 
+import java.nio.ByteBuffer;
+
 import static com.yahoo.sketches.memory.UnsafeUtil.BOOLEAN_ARRAY_BASE_OFFSET;
 import static com.yahoo.sketches.memory.UnsafeUtil.BOOLEAN_SHIFT;
 import static com.yahoo.sketches.memory.UnsafeUtil.BOOLEAN_SIZE;
@@ -31,9 +33,8 @@ import static com.yahoo.sketches.memory.UnsafeUtil.SHORT_SIZE;
 import static com.yahoo.sketches.memory.UnsafeUtil.UNSAFE_COPY_THRESHOLD;
 import static com.yahoo.sketches.memory.UnsafeUtil.assertBounds;
 import static com.yahoo.sketches.memory.UnsafeUtil.checkOverlap;
+import static com.yahoo.sketches.memory.UnsafeUtil.compatibilityMethods;
 import static com.yahoo.sketches.memory.UnsafeUtil.unsafe;
-
-import java.nio.ByteBuffer;
 
 /**
  * This class is used to access heap byte arrays, long arrays and ByteBuffers using the Memory 
@@ -152,28 +153,28 @@ public class NativeMemory implements Memory {
   public int getAndAddInt(long offsetBytes, int delta) {
     assertBounds(offsetBytes, INT_SIZE, capacityBytes_);
     long unsafeRawAddress = getAddress(offsetBytes);
-    return unsafe.getAndAddInt(memArray_, unsafeRawAddress, delta);
+    return compatibilityMethods.getAndAddInt(memArray_, unsafeRawAddress, delta);
   }
   
   @Override
   public long getAndAddLong(long offsetBytes, long increment) {
     assertBounds(offsetBytes, LONG_SIZE, capacityBytes_);
     long unsafeRawAddress = getAddress(offsetBytes);
-    return unsafe.getAndAddLong(memArray_, unsafeRawAddress, increment);
+    return compatibilityMethods.getAndAddLong(memArray_, unsafeRawAddress, increment);
   }
   
   @Override
   public int getAndSetInt(long offsetBytes, int newValue) {
     assertBounds(offsetBytes, INT_SIZE, capacityBytes_);
     long unsafeRawAddress = getAddress(offsetBytes);
-    return unsafe.getAndSetInt(memArray_, unsafeRawAddress, newValue);
+    return compatibilityMethods.getAndSetInt(memArray_, unsafeRawAddress, newValue);
   }
   
   @Override
   public long getAndSetLong(long offsetBytes, long newValue) {
     assertBounds(offsetBytes, LONG_SIZE, capacityBytes_);
     long unsafeRawAddress = getAddress(offsetBytes);
-    return unsafe.getAndSetLong(memArray_, unsafeRawAddress, newValue);
+    return compatibilityMethods.getAndSetLong(memArray_, unsafeRawAddress, newValue);
   }
   
   @Override
