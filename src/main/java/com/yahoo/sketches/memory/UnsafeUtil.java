@@ -7,10 +7,14 @@ package com.yahoo.sketches.memory;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 
 /**
  * Provides package private reference to the sun.misc.Unsafe class and its key static fields.
+ * The internal static initializer also detects whether the methods unique to the Unsafe class in
+ * JDK8 are present; if not, methods that are compatible with JDK7 are substituted using an internal
+ * interface.  In order for this to work, this library still needs to be compiled using jdk8 
+ * but it should be done with both source and target versions of jdk7 specified in pom.xml. 
+ * The resultant jar will work on jdk7 and jdk8.
  * 
  * <p><b>NOTE:</b> Native/Direct memory acquired using Unsafe may have garbage in it. 
  * It is the responsibility of the using class to clear this memory, if required, 
@@ -21,7 +25,7 @@ import java.lang.reflect.Method;
 
 @SuppressWarnings("restriction")
 final class UnsafeUtil {
-  static final sun.misc.Unsafe unsafe;
+  static final Unsafe unsafe;
   static final JDKCompatibility compatibilityMethods;
   static final int ADDRESS_BYTES;
   static final int BOOLEAN_ARRAY_BASE_OFFSET;
@@ -61,7 +65,7 @@ final class UnsafeUtil {
   static {
     try {
       //should work across JVMs, e.g., with Android:
-      Constructor<sun.misc.Unsafe> unsafeConstructor = sun.misc.Unsafe.class.getDeclaredConstructor();
+      Constructor<Unsafe> unsafeConstructor = Unsafe.class.getDeclaredConstructor();
       unsafeConstructor.setAccessible(true);
       unsafe = unsafeConstructor.newInstance();
       
@@ -81,22 +85,22 @@ final class UnsafeUtil {
       INT_ARRAY_BASE_OFFSET = unsafe.arrayBaseOffset(int[].class);
       LONG_ARRAY_BASE_OFFSET = unsafe.arrayBaseOffset(long[].class);
       SHORT_ARRAY_BASE_OFFSET = unsafe.arrayBaseOffset(short[].class);
-
+      
       boolean onJDK8 = true;
       try {
-        Method jdk8Method = unsafe.getClass().getMethod("getAndSetInt", Object.class, long.class, int.class);
+        unsafe.getClass().getMethod("getAndSetInt", Object.class, long.class, int.class);
       } catch (NoSuchMethodException e) {
         // We must not be on jdk8
         onJDK8 = false;
       }
-
+      
       if (onJDK8) {
         compatibilityMethods = new JDK8Compatible(unsafe);
       } else {
         compatibilityMethods = new JDK7Compatible(unsafe);
       }
-
-    } 
+      
+    }
     catch (Exception e) {
       throw new RuntimeException("Unable to acquire Unsafe. ", e);
     }
@@ -115,7 +119,7 @@ final class UnsafeUtil {
     assert ((off | len | (off + len) | (size - (off + len))) >= 0) : 
       "offset: "+ off + ", length: "+ len + ", size: "+size;
   }
-
+  
   /**
    * Return true if the two memory regions do not overlap
    * @param srcOff the start of the source region
@@ -128,95 +132,86 @@ final class UnsafeUtil {
     long max = Math.max(srcOff, dstOff);
     return (min + length) <= max;
   }
-
+  
   interface JDKCompatibility {
     int getAndAddInt(Object obj, long address, int increment);
     int getAndSetInt(Object obj, long address, int value);
     long getAndAddLong(Object obj, long address, long increment);
     long getAndSetLong(Object obj, long address, long value);
   }
-
+  
   private static class JDK8Compatible implements JDKCompatibility {
-
-    private final Unsafe unsafe;
-
+    private final Unsafe myUnsafe;
+    
     JDK8Compatible(Unsafe unsafe) {
-      this.unsafe = unsafe;
+      this.myUnsafe = unsafe;
     }
-
+    
     @Override
-    public int getAndAddInt(Object obj, long address, int increment)
-    {
-      return unsafe.getAndAddInt(obj, address, increment);
+    public int getAndAddInt(Object obj, long address, int increment) {
+      return myUnsafe.getAndAddInt(obj, address, increment);
     }
-
+    
     @Override
-    public int getAndSetInt(Object obj, long address, int value)
-    {
-      return unsafe.getAndSetInt(obj, address, value);
+    public int getAndSetInt(Object obj, long address, int value) {
+      return myUnsafe.getAndSetInt(obj, address, value);
     }
-
+    
     @Override
-    public long getAndAddLong(Object obj, long address, long increment)
-    {
-      return unsafe.getAndAddLong(obj, address, increment);
+    public long getAndAddLong(Object obj, long address, long increment) {
+      return myUnsafe.getAndAddLong(obj, address, increment);
     }
-
+    
     @Override
-    public long getAndSetLong(Object obj, long address, long value)
-    {
-      return unsafe.getAndSetLong(obj, address, value);
+    public long getAndSetLong(Object obj, long address, long value) {
+      return myUnsafe.getAndSetLong(obj, address, value);
     }
   }
-
+  
   private static class JDK7Compatible implements JDKCompatibility {
-    private final Unsafe unsafe;
-
+    private final Unsafe myUnsafe;
+    
     JDK7Compatible(Unsafe unsafe) {
-      this.unsafe = unsafe;
+      this.myUnsafe = unsafe;
     }
-
+    
     @Override
-    public int getAndAddInt(Object obj, long address, int increment)
-    {
+    public int getAndAddInt(Object obj, long address, int increment) {
       int retVal;
       do {
-        retVal = unsafe.getIntVolatile(obj, address);
-      } while(!unsafe.compareAndSwapInt(obj, address, retVal, retVal + increment));
-
+        retVal = myUnsafe.getIntVolatile(obj, address);
+      } while(!myUnsafe.compareAndSwapInt(obj, address, retVal, retVal + increment));
+      
       return retVal;
     }
-
+    
     @Override
-    public int getAndSetInt(Object obj, long address, int value)
-    {
+    public int getAndSetInt(Object obj, long address, int value) {
       int retVal;
       do {
-        retVal = unsafe.getIntVolatile(obj, address);
-      } while(!unsafe.compareAndSwapInt(obj, address, retVal, value));
-
+        retVal = myUnsafe.getIntVolatile(obj, address);
+      } while(!myUnsafe.compareAndSwapInt(obj, address, retVal, value));
+      
       return retVal;
     }
-
+    
     @Override
-    public long getAndAddLong(Object obj, long address, long increment)
-    {
+    public long getAndAddLong(Object obj, long address, long increment) {
       long retVal;
       do {
-        retVal = unsafe.getLongVolatile(obj, address);
-      } while(!unsafe.compareAndSwapLong(obj, address, retVal, retVal + increment));
-
+        retVal = myUnsafe.getLongVolatile(obj, address);
+      } while(!myUnsafe.compareAndSwapLong(obj, address, retVal, retVal + increment));
+      
       return retVal;
     }
-
+    
     @Override
-    public long getAndSetLong(Object obj, long address, long value)
-    {
+    public long getAndSetLong(Object obj, long address, long value) {
       long retVal;
       do {
-        retVal = unsafe.getLongVolatile(obj, address);
-      } while(!unsafe.compareAndSwapLong(obj, address, retVal, value));
-
+        retVal = myUnsafe.getLongVolatile(obj, address);
+      } while(!myUnsafe.compareAndSwapLong(obj, address, retVal, value));
+      
       return retVal;
     }
   }

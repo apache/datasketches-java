@@ -7,6 +7,7 @@ import java.util.List;
  */
 public class BenchmarkMain
 {
+  @SuppressWarnings("serial")
   public static void main(String[] args)
   {
     List<SketchBenchmark> benchmarks = new ArrayList<SketchBenchmark>(){{
@@ -66,6 +67,7 @@ public class BenchmarkMain
   }
 
 
+  @SuppressWarnings("serial")
   public static List<SketchBenchmark.Spec> powerLawDistribution = new ArrayList<SketchBenchmark.Spec>(){{
       this.add(new SketchBenchmark.Spec(0,	44129));
       this.add(new SketchBenchmark.Spec(1,	431561));

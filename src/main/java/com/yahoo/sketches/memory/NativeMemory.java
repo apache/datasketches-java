@@ -663,5 +663,5 @@ public class NativeMemory implements Memory {
   protected boolean requiresFree() {
     return nativeRawStartAddress_ != 0L && (byteBuf_ == null);
   }
-
+  
 }

@@ -7,7 +7,7 @@
   <version>0.1.1-SNAPSHOT</version>
 
   <name>${project.groupId}:${project.artifactId}</name>
-  <description>Data Sketches</description>
+  <description>Data Sketches Core</description>
   <url>http://datasketches.github.io/</url>
 
   <licenses>
