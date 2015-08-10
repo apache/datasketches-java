@@ -71,7 +71,7 @@ public class Sketches {
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return {@link SetOperation SetOperation}
    */
-  public static SetOperation heapifySetOp(Memory srcMem) {
+  public static SetOperation heapifySetOperation(Memory srcMem) {
     return SetOperation.heapify(srcMem);
   }
   
@@ -81,7 +81,7 @@ public class Sketches {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Seed</a>
    * @return {@link SetOperation SetOperation}
    */
-  public static SetOperation heapifySetOp(Memory srcMem, long seed) {
+  public static SetOperation heapifySetOperation(Memory srcMem, long seed) {
     return SetOperation.heapify(srcMem, seed);
   }
   

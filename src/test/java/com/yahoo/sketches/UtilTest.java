@@ -7,6 +7,7 @@ package com.yahoo.sketches;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.Util.checkIfMultipleOf8AndGT0;
 import static com.yahoo.sketches.Util.checkIfPowerOf2;
+import static com.yahoo.sketches.Util.checkProbability;
 import static com.yahoo.sketches.Util.floorPowerOf2;
 import static com.yahoo.sketches.Util.isMultipleOf8AndGT0;
 import static com.yahoo.sketches.Util.isPowerOf2;
@@ -122,6 +123,21 @@ public class UtilTest {
     String vHex = Long.toHexString(v);
     String out = zeroPad(vHex, 16);
     println(out);
+  }
+  
+  @Test
+  public void checkProbabilityFn1() {
+    checkProbability(.5, "Good");
+  }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkProbabilityFn2() {
+    checkProbability(-.5, "Too Low");
+  }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkProbabilityFn3() {
+    checkProbability(1.5, "Too High");
   }
   
   /**

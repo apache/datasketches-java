@@ -25,9 +25,10 @@ public interface Union {
   
   /**
    * Union the given sketch with the internal state.
-   * This method can be repeatedly called.
+   * This method can be repeatedly called. This method only works with Memory sketch objects
+   * that are in Compact and Ordered form.
    * If the given sketch is null it is interpreted as an empty sketch.
-   * @param mem Memory location of sketch to be merged.
+   * @param mem Memory image of sketch to be merged.
    * @return the return state of the union
    */
   SetOpReturnState update(Memory mem);

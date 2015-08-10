@@ -12,6 +12,7 @@ bin/
 
 #Test output
 test-output/
+/.clover/
 
 # Build artifacts
 target/
@@ -31,4 +32,4 @@ Gemfile.lock
 _site/
 _*
 _*/
-/.clover/
+
