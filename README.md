@@ -56,3 +56,10 @@ If a release fails to prepare or crashs, it can leave various files behind. Thes
 
     mvn release:clean
 
+## JDK7 vs JDK8
+The internal Memory package detects whether the methods unique to the Unsafe class in JDK8 are present; 
+if not, methods that are compatible with JDK7 are substituted using an internal
+interface.  In order for this to work, this library still needs to be compiled using jdk8 
+but it should be done with both source and target versions of jdk7 specified in pom.xml. 
+The resultant jar will work on jdk7 and jdk8.
+
