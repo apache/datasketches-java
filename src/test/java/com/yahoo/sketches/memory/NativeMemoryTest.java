@@ -516,6 +516,14 @@ public class NativeMemoryTest {
       int idx = MemoryUtil.binarySearchLongs(mem, 0, arr.length, i);
       assertEquals(mem.getLong(idx<<3), i);
     }
+    
+    int idx = MemoryUtil.binarySearchLongs(mem, 0, arr.length, -10);
+    assertEquals(idx, -1);
+  }
+  
+  @Test
+  public void printlnTest() {
+    println("Test");
   }
   
   /**

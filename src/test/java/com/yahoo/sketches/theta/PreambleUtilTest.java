@@ -4,6 +4,7 @@
  */
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.theta.SetOperation.getMaxUnionBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -38,11 +39,18 @@ public class PreambleUtilTest {
     for (int i = 0; i< u; i++) {
       quick1.update(i);
     }
-
-    assertEquals(quick1.getEstimate(), u, 1000.0);
+    println("U: "+quick1.getEstimate());
+    
+    assertEquals(quick1.getEstimate(), u, .05*u);
     assertTrue(quick1.getRetainedEntries(false) > k);
     println(quick1.toString());
     println(PreambleUtil.toString(mem));
+    
+    Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]);
+    Union union = (Union)SetOperation.builder().setMemory(uMem).build(k, Family.UNION);
+    union.update(quick1);
+    println(PreambleUtil.toString(uMem));
+    
   }
   
   @Test(expectedExceptions = IllegalArgumentException.class)
@@ -67,6 +75,11 @@ public class PreambleUtilTest {
     comp = sketch.compact(false, null);
     byteArr = comp.toByteArray();
     println(PreambleUtil.toString(byteArr)); //PreLongs = 3
+  }
+  
+  @Test
+  public void printlnTest() {
+    println("Test");
   }
   
   /**

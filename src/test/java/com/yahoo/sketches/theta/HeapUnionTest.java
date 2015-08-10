@@ -207,7 +207,6 @@ public class HeapUnionTest {
     assertEquals(union2.getResult(true, null).getEstimate(), 0.0, 0.0);
   }
   
-  
   @Test
   public void checkHeapifyEstNoOverlapOrderedMemIn() {
     int lgK = 12; //4096
@@ -222,6 +221,41 @@ public class HeapUnionTest {
     
     NativeMemory cskMem2 = new NativeMemory(new byte[usk2.getCurrentBytes(true)]);
     usk2.compact(true, cskMem2); //ordered, loads the cskMem2 as ordered
+    
+    Union union = (Union)SetOperation.builder().build(k, Family.UNION);
+    
+    union.update(usk1);        //updates with heap UpdateSketch
+    union.update(cskMem2);     //updates with direct CompactSketch, ordered, use early stop
+    
+    UpdateSketch emptySketch = UpdateSketch.builder().build(k);
+    union.update(emptySketch); //updates with empty sketch
+    emptySketch = null;
+    union.update(emptySketch); //updates with null sketch
+    
+    testAllCompactForms(union, u, 0.05);
+    
+    Union union2 = (Union)SetOperation.heapify(new NativeMemory(union.toByteArray()));
+    
+    testAllCompactForms(union2, u, 0.05);
+    
+    union2.reset();
+    assertEquals(union2.getResult(true, null).getEstimate(), 0.0, 0.0);
+  }
+  
+  @Test
+  public void checkHeapifyEstNoOverlapUnorderedMemIn() {
+    int lgK = 12; //4096
+    int k = 1 << lgK;
+    int u = 4*k;
+    
+    UpdateSketch usk1 = UpdateSketch.builder().build(k);   //2k estimating
+    UpdateSketch usk2 = UpdateSketch.builder().build(2*k); //2k exact for early stop test
+    
+    for (int i=0; i<u/2; i++) usk1.update(i);  //2k estimating
+    for (int i=u/2; i<u; i++) usk2.update(i);  //2k no overlap, exact, will force early stop
+    
+    NativeMemory cskMem2 = new NativeMemory(new byte[usk2.getCurrentBytes(true)]);
+    usk2.compact(false, cskMem2); //unordered, loads the cskMem2 as unordered
     
     Union union = (Union)SetOperation.builder().build(k, Family.UNION);
     
@@ -427,6 +461,6 @@ public class HeapUnionTest {
    * @param s value to print
    */
   static void println(String s) {
-    System.out.println(s); //Disable here
+    //System.out.println(s); //Disable here
   }
 }
