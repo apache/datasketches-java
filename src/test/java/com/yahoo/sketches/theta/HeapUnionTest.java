@@ -5,8 +5,6 @@
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.theta.ForwardCompatibilityTest.*;
-import static com.yahoo.sketches.theta.HeapUnionTest.testAllCompactForms;
-import static com.yahoo.sketches.theta.SetOperation.getMaxUnionBytes;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
