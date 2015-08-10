@@ -8,22 +8,23 @@ import java.io.Serializable;
 
 /**
  * <p>
- * The MurmurHash3_x64_128(...) is a fast, non-cryptographic, 128-bit hash function that has
+ * The MurmurHash3 is a fast, non-cryptographic, 128-bit hash function that has
  * excellent avalanche and 2-way bit independence properties.
  * </p>
  * 
  * <p>
- * The C++ version, revision 150, of the MurmurHash3, written by Austin Appleby, and which is in the
- * Public Domain, was the inspiration for this implementation in Java. The C++ version can be found
- * at <a href= "http://code.google.com/p/smhasher/source/browse/trunk/MurmurHash3.cpp"> SMHasher &amp;
+ * The C++ MurmurHash3_x64_128(...), revision 150, of the MurmurHash3, written by Austin Appleby, 
+ * which is in the Public Domain, was the inspiration for this implementation in Java. 
+ * The C++ version can be found at 
+ * <a href= "http://code.google.com/p/smhasher/source/browse/trunk/MurmurHash3.cpp"> SMHasher &amp;
  * MurmurHash</a>.
  * </p>
  * 
  * <p>
- * This java implementation pays close attention to the C++ mathematical algorithms in order to
+ * This java implementation pays close attention to the C++ algorithms in order to
  * maintain bit-wise compatibility, but the design is quite different. This implementation has also
  * been extended to include processing of arrays of longs or ints, which was not part of the
- * original C++ implementation. This implementation will produce the same exact output hash bits as
+ * original C++ implementation. This implementation produces the same exact output hash bits as
  * the above C++ method given the same input. Byte arrays that are a multiple of 8 bytes in length
  * will produce the same output hash as the equivalent long array in little-endian byte order.
  * </p>

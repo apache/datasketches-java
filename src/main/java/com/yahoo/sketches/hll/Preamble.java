@@ -177,6 +177,7 @@ public class Preamble
     return true;
   }
 
+  @SuppressWarnings("cast")
   @Override
   public int hashCode() {
     int result = (int) preambleSize;

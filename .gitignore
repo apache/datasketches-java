@@ -23,6 +23,7 @@ target/
 build.xml
 .idea
 *.iml
+*.properties
 
 # Jekyll
 Gemfile
@@ -30,3 +31,4 @@ Gemfile.lock
 _site/
 _*
 _*/
+/.clover/

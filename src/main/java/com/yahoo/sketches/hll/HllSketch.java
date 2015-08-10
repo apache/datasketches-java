@@ -3,6 +3,7 @@ package com.yahoo.sketches.hll;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.hash.MurmurHash3;
 
+@SuppressWarnings("cast")
 public class HllSketch
 {
   // derived using some formulas in Ting's paper (link?)

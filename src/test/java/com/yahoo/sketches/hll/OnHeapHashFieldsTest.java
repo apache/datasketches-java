@@ -51,22 +51,22 @@ public class OnHeapHashFieldsTest
   @Test
   public void testUpdateBucketCallsCallback() throws Exception
   {
-    TestUpdateCallback cb = new TestUpdateCallback();
-    cb.setExpectedBucket(2);
+    TestUpdateCallback cb1 = new TestUpdateCallback();
+    cb1.setExpectedBucket(2);
 
-    TestUpdateCallback.assertVals(cb, 0, 0, 0);
+    TestUpdateCallback.assertVals(cb1, 0, 0, 0);
 
-    fields.updateBucket(2, (byte) 2, cb);
-    TestUpdateCallback.assertVals(cb, 1, 2, 0);
+    fields.updateBucket(2, (byte) 2, cb1);
+    TestUpdateCallback.assertVals(cb1, 1, 2, 0);
 
-    fields.updateBucket(2, (byte) 4, cb);
-    TestUpdateCallback.assertVals(cb, 2, 4, 2);
+    fields.updateBucket(2, (byte) 4, cb1);
+    TestUpdateCallback.assertVals(cb1, 2, 4, 2);
 
-    fields.updateBucket(2, (byte) 1, cb);
-    TestUpdateCallback.assertVals(cb, 2, 4, 2);
+    fields.updateBucket(2, (byte) 1, cb1);
+    TestUpdateCallback.assertVals(cb1, 2, 4, 2);
 
-    fields.updateBucket(2, (byte) 9, cb);
-    TestUpdateCallback.assertVals(cb, 3, 9, 4);
+    fields.updateBucket(2, (byte) 9, cb1);
+    TestUpdateCallback.assertVals(cb1, 3, 9, 4);
   }
 
   @Test

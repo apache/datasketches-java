@@ -35,6 +35,7 @@ public class HarmonicNumbers
 
   private static final double EULER_MASCHERONI_CONSTANT = 0.577215664901532860606512090082;
 
+  @SuppressWarnings("cast")
   public static double harmonicNumber(long x_i) {
     if (x_i < NUM_EXACT_HARMONIC_NUMBERS) {
       return tableOfExactHarmonicNumbers[(int) x_i];

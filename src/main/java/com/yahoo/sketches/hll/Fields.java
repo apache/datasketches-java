@@ -36,7 +36,8 @@ public interface Fields
    * Fills the array starting from offset with the byte array representation of the fields
    *
    * This should *not* include the preamble
-   *
+   * @param array given array to fill
+   * @param offset starting with this offset
    * @return the last offset written +1
    */
   int intoByteArray(byte[] array, int offset);

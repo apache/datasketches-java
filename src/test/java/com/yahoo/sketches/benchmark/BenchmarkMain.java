@@ -7,14 +7,15 @@ import java.util.List;
  */
 public class BenchmarkMain
 {
+  @SuppressWarnings("serial")
   public static void main(String[] args)
   {
-    final int logK = 12;
+    final int lgK = 12;
 
     List<SketchBenchmark> benchmarks = new ArrayList<SketchBenchmark>(){{
-      this.add(new ThetaBenchmark(logK));
-      this.add(new ThetaMemoryBenchmark(logK));
-      this.add(new HllSketchBenchmark(logK));
+      this.add(new ThetaBenchmark(lgK));
+      this.add(new ThetaMemoryBenchmark(lgK));
+      this.add(new HllSketchBenchmark(lgK));
     }};
 
     runBenchmarks(benchmarks, 20, 300, powerLawDistribution);
@@ -69,6 +70,7 @@ public class BenchmarkMain
   }
 
 
+  @SuppressWarnings("serial")
   public static List<SketchBenchmark.Spec> powerLawDistribution = new ArrayList<SketchBenchmark.Spec>(){{
       this.add(new SketchBenchmark.Spec(0,	44129));
       this.add(new SketchBenchmark.Spec(1,	431561));

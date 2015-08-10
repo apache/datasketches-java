@@ -2,7 +2,6 @@ package com.yahoo.sketches.benchmark;
 
 import com.yahoo.sketches.hll.HllSketch;
 import com.yahoo.sketches.hll.OnHeapFields;
-import com.yahoo.sketches.hll.OnHeapHashFields;
 import com.yahoo.sketches.hll.Preamble;
 
 import java.util.ArrayList;

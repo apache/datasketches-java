@@ -37,8 +37,8 @@ public class MemoryRegion implements Memory {
    * ensure that its memory isn't freed before we are done with it.
    */
   private final Memory mem_;
-  private long memOffsetBytes_;
-  private long capacityBytes_;
+  private volatile long memOffsetBytes_;
+  private volatile long capacityBytes_;
   
   /**
    * Defines a region of the given parent Memory by defining an offset and capacity that are 
