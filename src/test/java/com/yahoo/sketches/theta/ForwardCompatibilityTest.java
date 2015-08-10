@@ -226,6 +226,8 @@ public class ForwardCompatibilityTest {
     //create new mem and do complete copy
     Memory v2mem = new NativeMemory(new byte[v2bytes]);
     MemoryUtil.copy(v3mem, 0, v2mem, 0, v2bytes);
+    //set serVer2
+    v2mem.putByte(SER_VER_BYTE, (byte) 2);
     //adjust the flags
     byte v2flags = (byte)(2 | ((preLongs == 1)? 4: 0));
     v2mem.putByte(FLAGS_BYTE, v2flags);
