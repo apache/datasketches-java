@@ -5,6 +5,7 @@ import com.yahoo.sketches.memory.NativeMemory;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -20,7 +21,14 @@ public class OnHeapImmutableCompactFields implements Fields
     }
     Collections.sort(
         vals,
-        (o1, o2) -> HashUtils.valOfPair(o2) - HashUtils.valOfPair(o1)
+        new Comparator<Integer>()
+        {
+          @Override
+          public int compare(Integer o1, Integer o2)
+          {
+            return HashUtils.valOfPair(o2) - HashUtils.valOfPair(o1);
+          }
+        }
     );
 
     int[] theFields = new int[vals.size()];
