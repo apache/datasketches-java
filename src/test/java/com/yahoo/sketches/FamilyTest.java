@@ -60,13 +60,13 @@ public class FamilyTest {
   @SuppressWarnings("unused")
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkBadFamilyName() {
-    Family fam = stringToFamily("Test");
+    stringToFamily("Test");
   }
   
   @SuppressWarnings("unused")
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkBadObject() {
-    Family fam = objectToFamily("Test");
+    objectToFamily("Test");
   }
   
   @Test(expectedExceptions = IllegalArgumentException.class)

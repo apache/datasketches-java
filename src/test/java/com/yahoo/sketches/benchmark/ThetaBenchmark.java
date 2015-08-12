@@ -1,6 +1,5 @@
 package com.yahoo.sketches.benchmark;
 
-import com.yahoo.sketches.Family;
 import com.yahoo.sketches.theta.CompactSketch;
 import com.yahoo.sketches.theta.SetOperation;
 import com.yahoo.sketches.theta.Sketch;

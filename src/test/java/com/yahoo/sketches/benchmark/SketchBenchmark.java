@@ -6,11 +6,11 @@ import java.util.List;
  */
 public interface SketchBenchmark
 {
-  public void setup(int numSketches, List<Spec> specs);
-  public void runNTimes(int n);
-  public void reset();
+  void setup(int numSketches, List<Spec> specs);
+  void runNTimes(int n);
+  void reset();
 
-  public class Spec {
+  class Spec {
     private final int numSketches;
     private final long numEntries;
 

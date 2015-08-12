@@ -4,20 +4,13 @@
  */
 package com.yahoo.sketches.theta;
 
+import com.yahoo.sketches.memory.Memory;
+import com.yahoo.sketches.memory.NativeMemory;
+import org.testng.annotations.Test;
+
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
-
-import org.testng.annotations.Test;
-
-import com.yahoo.sketches.Family;
-import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.memory.NativeMemory;
-import com.yahoo.sketches.theta.AnotB;
-import com.yahoo.sketches.theta.CompactSketch;
-import com.yahoo.sketches.theta.SetOperation;
-import com.yahoo.sketches.theta.Sketch;
-import com.yahoo.sketches.theta.UpdateSketch;
 
 /**
  * @author Lee Rhodes

@@ -4,18 +4,16 @@
  */
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV1;
-import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV2;
-import static com.yahoo.sketches.theta.HeapUnionTest.*;
-import static com.yahoo.sketches.theta.SetOperation.*;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-
-import org.testng.annotations.Test;
-
-import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
+import org.testng.annotations.Test;
+
+import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV1;
+import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV2;
+import static com.yahoo.sketches.theta.HeapUnionTest.testAllCompactForms;
+import static com.yahoo.sketches.theta.SetOperation.getMaxUnionBytes;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 /**
  * @author Lee Rhodes
@@ -37,7 +35,7 @@ public class DirectUnionTest {
     assertEquals(u, usk1.getEstimate() + usk2.getEstimate(), 0.0); //exact, no overlap
     
     Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]);
-    Union union = (Union)SetOperation.builder().setMemory(uMem).buildUnion(k);
+    Union union = SetOperation.builder().setMemory(uMem).buildUnion(k);
     
     union.update(usk1); //update with heap UpdateSketch
     union.update(usk2); //update with heap UpdateSketch
@@ -58,7 +56,7 @@ public class DirectUnionTest {
     for (int i=u/2; i<u; i++) usk2.update(i); //2*k no overlap
     
     Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]);
-    Union union = (Union)SetOperation.builder().setMemory(uMem).buildUnion(k);
+    Union union = SetOperation.builder().setMemory(uMem).buildUnion(k);
     
     union.update(usk1); //update with heap UpdateSketch
     union.update(usk2); //update with heap UpdateSketch
@@ -81,7 +79,7 @@ public class DirectUnionTest {
     assertEquals(u, usk1.getEstimate() + usk2.getEstimate()/2, 0.0); //exact, overlapped
     
     Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]);
-    Union union = (Union)SetOperation.builder().setMemory(uMem).buildUnion(k);
+    Union union = SetOperation.builder().setMemory(uMem).buildUnion(k);
     
     union.update(usk1); //update with heap UpdateSketch
     union.update(usk2); //update with heap UpdateSketch
@@ -104,7 +102,7 @@ public class DirectUnionTest {
     assertEquals(u, usk1.getEstimate() + usk2.getEstimate(), 0.0); //exact, no overlap
     
     Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]);
-    Union union = (Union)SetOperation.builder().setMemory(uMem).buildUnion(k);
+    Union union = SetOperation.builder().setMemory(uMem).buildUnion(k);
     
     union.update(usk1); //update with heap UpdateSketch
     union.update(usk2); //update with heap UpdateSketch
@@ -132,7 +130,7 @@ public class DirectUnionTest {
     assertEquals(u, usk1.getEstimate() + usk2.getEstimate(), 0.0); //exact, no overlap
     
     Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]);
-    Union union = (Union)SetOperation.builder().setMemory(uMem).buildUnion(k);
+    Union union = SetOperation.builder().setMemory(uMem).buildUnion(k);
     
     union.update(usk1); //update with heap UpdateSketch
     union.update(usk2); //update with heap UpdateSketch
@@ -157,7 +155,7 @@ public class DirectUnionTest {
     for (int i=u/2; i<u; i++) usk2.update(i); //2k no overlap, exact
     
     Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]);
-    Union union = (Union)SetOperation.builder().setMemory(uMem).buildUnion(k);
+    Union union = SetOperation.builder().setMemory(uMem).buildUnion(k);
     
     union.update(usk1); //update with heap UpdateSketch
     union.update(usk2); //update with heap UpdateSketch, early stop not possible
@@ -184,7 +182,7 @@ public class DirectUnionTest {
     CompactSketch cosk2 = usk2.compact(true, null);
     
     Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]);
-    Union union = (Union)SetOperation.builder().setMemory(uMem).buildUnion(k);
+    Union union = SetOperation.builder().setMemory(uMem).buildUnion(k);
     
     union.update(usk1);  //update with heap UpdateSketch
     union.update(cosk2); //update with heap Compact, Ordered input, early stop
@@ -220,7 +218,7 @@ public class DirectUnionTest {
     CompactSketch cosk2 = usk2.compact(true, cskMem2); //ordered, loads the cskMem2 as ordered
     
     Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]); //union memory
-    Union union = (Union)SetOperation.builder().setMemory(uMem).buildUnion(k);
+    Union union = SetOperation.builder().setMemory(uMem).buildUnion(k);
     
     union.update(usk1);      //updates with heap UpdateSketch
     union.update(cosk2);     //updates with direct CompactSketch, ordered, use early stop
@@ -256,7 +254,7 @@ public class DirectUnionTest {
     usk2.compact(true, cskMem2); //ordered, loads the cskMem2 as ordered
     
     Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]); //union memory
-    Union union = (Union)SetOperation.builder().setMemory(uMem).buildUnion(k);
+    Union union = SetOperation.builder().setMemory(uMem).buildUnion(k);
     
     union.update(usk1);        //updates with heap UpdateSketch
     union.update(cskMem2);     //updates with direct CompactSketch, ordered, use early stop
@@ -292,7 +290,7 @@ public class DirectUnionTest {
     usk2.compact(false, cskMem2); //unordered, loads the cskMem2 as unordered
     
     Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]); //union memory
-    Union union = (Union)SetOperation.builder().setMemory(uMem).buildUnion(k);
+    Union union = SetOperation.builder().setMemory(uMem).buildUnion(k);
     
     union.update(usk1);        //updates with heap UpdateSketch
     union.update(cskMem2);     //updates with direct CompactSketch, ordered, use early stop
@@ -335,7 +333,7 @@ public class DirectUnionTest {
     v += u;
     
     Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]); //union memory
-    Union union = (Union)SetOperation.builder().setMemory(uMem).buildUnion(k);
+    Union union = SetOperation.builder().setMemory(uMem).buildUnion(k);
     
     union.update(usk1); //updates with heap UpdateSketch
     union.update(usk2); //updates with heap UpdateSketch
@@ -368,7 +366,7 @@ public class DirectUnionTest {
     CompactSketch csk2 = (CompactSketch)Sketch.wrap(skMem2);
     
     Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]); //union memory
-    Union union = (Union)SetOperation.builder().setMemory(uMem).buildUnion(k);
+    Union union = SetOperation.builder().setMemory(uMem).buildUnion(k);
     
     union.update(csk1);
     union.update(csk2);
@@ -398,7 +396,7 @@ public class DirectUnionTest {
     Memory v1mem2 = convertSerV3toSerV1(skMem2);
     
     Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]); //union memory
-    Union union = (Union)SetOperation.builder().setMemory(uMem).buildUnion(k);
+    Union union = SetOperation.builder().setMemory(uMem).buildUnion(k);
     
     union.update(v1mem1);
     union.update(v1mem2);
@@ -428,7 +426,7 @@ public class DirectUnionTest {
     Memory v2mem2 = convertSerV3toSerV2(skMem2);
     
     Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]); //union memory
-    Union union = (Union)SetOperation.builder().setMemory(uMem).buildUnion(k);
+    Union union = SetOperation.builder().setMemory(uMem).buildUnion(k);
     
     union.update(v2mem1);
     union.update(v2mem2);
@@ -449,7 +447,7 @@ public class DirectUnionTest {
     Memory v1mem1 = convertSerV3toSerV1(v3mem1);
     
     Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]); //union memory
-    Union union = (Union)SetOperation.builder().setMemory(uMem).buildUnion(k);
+    Union union = SetOperation.builder().setMemory(uMem).buildUnion(k);
     union.update(v1mem1);
     CompactSketch cOut = union.getResult(true, null);
     assertEquals(cOut.getEstimate(), 0.0, 0.0);
@@ -457,19 +455,19 @@ public class DirectUnionTest {
     Memory v2mem1 = convertSerV3toSerV2(v3mem1);
     
     uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]); //union memory
-    union = (Union)SetOperation.builder().setMemory(uMem).buildUnion(k);
+    union = SetOperation.builder().setMemory(uMem).buildUnion(k);
     union.update(v2mem1);
     cOut = union.getResult(true, null);
     assertEquals(cOut.getEstimate(), 0.0, 0.0);
     
     uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]); //union memory
-    union = (Union)SetOperation.builder().setMemory(uMem).buildUnion(k);
+    union = SetOperation.builder().setMemory(uMem).buildUnion(k);
     union.update(v3mem1);
     cOut = union.getResult(true, null);
     assertEquals(cOut.getEstimate(), 0.0, 0.0);
     
     uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]); //union memory
-    union = (Union)SetOperation.builder().setMemory(uMem).buildUnion(k);
+    union = SetOperation.builder().setMemory(uMem).buildUnion(k);
     v3mem1 = null;
     union.update(v3mem1);
     cOut = union.getResult(true, null);
@@ -506,7 +504,7 @@ public class DirectUnionTest {
     int k = 64;
     
     Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]); //union memory
-    Union union = (Union)SetOperation.builder().setMemory(uMem).buildUnion(k);
+    Union union = SetOperation.builder().setMemory(uMem).buildUnion(k);
     
     Memory mem = new NativeMemory(new byte[Sketch.getMaxCompactSketchBytes(0)]);
     CompactSketch csk = union.getResult(false, mem); //DirectCompactSketch
@@ -518,7 +516,7 @@ public class DirectUnionTest {
     int k = 64;
     
     Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]); //union memory
-    Union union = (Union)SetOperation.builder().setMemory(uMem).buildUnion(k);
+    Union union = SetOperation.builder().setMemory(uMem).buildUnion(k);
     
     Memory mem = new NativeMemory(new byte[Sketch.getMaxCompactSketchBytes(0)]);
     CompactSketch csk = union.getResult(true, mem); //DirectCompactSketch
