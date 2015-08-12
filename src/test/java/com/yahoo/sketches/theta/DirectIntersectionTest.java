@@ -16,12 +16,6 @@ import org.testng.annotations.Test;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
-import com.yahoo.sketches.theta.CompactSketch;
-import com.yahoo.sketches.theta.DirectIntersection;
-import com.yahoo.sketches.theta.Intersection;
-import com.yahoo.sketches.theta.SetOperation;
-import com.yahoo.sketches.theta.Union;
-import com.yahoo.sketches.theta.UpdateSketch;
 
 /**
  * @author Lee Rhodes
@@ -44,7 +38,7 @@ public class DirectIntersectionTest {
     byte[] memArr = new byte[memBytes];
     Memory iMem = new NativeMemory(memArr);
     
-    inter = (Intersection)SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().setMemory(iMem).buildIntersection(k);
 
     inter.update(usk1);
     inter.update(usk2);
@@ -87,7 +81,7 @@ public class DirectIntersectionTest {
     byte[] memArr = new byte[memBytes];
     Memory iMem = new NativeMemory(memArr);
     
-    inter = (Intersection)SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().setMemory(iMem).buildIntersection(k);
     inter.update(usk1);
     inter.update(usk2);
     
@@ -132,8 +126,8 @@ public class DirectIntersectionTest {
     CompactSketch csk1 = usk1.compact(true, null);
     CompactSketch csk2 = usk2.compact(true, null);
     
-    Intersection inter = 
-        (Intersection)SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION);
+    Intersection inter =
+        SetOperation.builder().setMemory(iMem).buildIntersection(k);
     inter.update(csk1);
     inter.update(csk2);
     
@@ -153,7 +147,7 @@ public class DirectIntersectionTest {
     byte[] memArr = new byte[memBytes];
     Memory iMem = new NativeMemory(memArr);
     
-    inter = (Intersection)SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().setMemory(iMem).buildIntersection(k);
     assertFalse(inter.hasResult());
     CompactSketch rsk1 = inter.getResult(false, null);
   }
@@ -172,7 +166,7 @@ public class DirectIntersectionTest {
     Memory iMem = new NativeMemory(memArr);
     
     //1st call = null
-    inter = (Intersection)SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().setMemory(iMem).buildIntersection(k);
     inter.update(null);  
     rsk1 = inter.getResult(false, null);
     est = rsk1.getEstimate();
@@ -181,7 +175,7 @@ public class DirectIntersectionTest {
     
     //1st call = empty
     sk = UpdateSketch.builder().build(k); //empty
-    inter = (Intersection)SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().setMemory(iMem).buildIntersection(k);
     inter.update(sk);
     rsk1 = inter.getResult(false, null);
     est = rsk1.getEstimate();
@@ -191,7 +185,7 @@ public class DirectIntersectionTest {
     //1st call = valid and not empty
     sk = UpdateSketch.builder().build(k);
     sk.update(1);
-    inter = (Intersection)SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().setMemory(iMem).buildIntersection(k);
     inter.update(sk);
     rsk1 = inter.getResult(false, null);
     est = rsk1.getEstimate();
@@ -213,7 +207,7 @@ public class DirectIntersectionTest {
     Memory iMem = new NativeMemory(memArr);
     
     //1st call = null
-    inter = (Intersection)SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().setMemory(iMem).buildIntersection(k);
     inter.update(null);
     //2nd call = null
     inter.update(null);
@@ -223,7 +217,7 @@ public class DirectIntersectionTest {
     println("Est: "+est);
     
     //1st call = null
-    inter = (Intersection)SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().setMemory(iMem).buildIntersection(k);
     inter.update(null);
     //2nd call = empty
     sk = UpdateSketch.builder().build(); //empty
@@ -234,7 +228,7 @@ public class DirectIntersectionTest {
     println("Est: "+est);
     
     //1st call = null
-    inter = (Intersection)SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().setMemory(iMem).buildIntersection(k);
     inter.update(null);
     //2nd call = valid & not empty
     sk = UpdateSketch.builder().build(); 
@@ -261,7 +255,7 @@ public class DirectIntersectionTest {
     
     //1st call = empty
     sk1 = UpdateSketch.builder().build(); //empty
-    inter = (Intersection)SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().setMemory(iMem).buildIntersection(k);
     inter.update(sk1);
     //2nd call = null
     inter.update(null);
@@ -272,7 +266,7 @@ public class DirectIntersectionTest {
     
     //1st call = empty
     sk1 = UpdateSketch.builder().build(); //empty
-    inter = (Intersection)SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().setMemory(iMem).buildIntersection(k);
     inter.update(sk1);
     //2nd call = empty
     sk2 = UpdateSketch.builder().build(); //empty
@@ -284,7 +278,7 @@ public class DirectIntersectionTest {
     
     //1st call = empty
     sk1 = UpdateSketch.builder().build(); //empty
-    inter = (Intersection)SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().setMemory(iMem).buildIntersection(k);
     inter.update(sk1);
     //2nd call = valid and not empty
     sk2 = UpdateSketch.builder().build();
@@ -312,7 +306,7 @@ public class DirectIntersectionTest {
     //1st call = valid
     sk1 = UpdateSketch.builder().build();
     sk1.update(1);
-    inter = (Intersection)SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().setMemory(iMem).buildIntersection(k);
     inter.update(sk1);
     //2nd call = null
     inter.update(null);
@@ -324,7 +318,7 @@ public class DirectIntersectionTest {
     //1st call = valid
     sk1 = UpdateSketch.builder().build();
     sk1.update(1);
-    inter = (Intersection)SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().setMemory(iMem).buildIntersection(k);
     inter.update(sk1);
     //2nd call = empty
     sk2 = UpdateSketch.builder().build(); //empty
@@ -337,7 +331,7 @@ public class DirectIntersectionTest {
     //1st call = valid
     sk1 = UpdateSketch.builder().build();
     sk1.update(1);
-    inter = (Intersection)SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().setMemory(iMem).buildIntersection(k);
     inter.update(sk1);
     //2nd call = valid intersecting
     sk2 = UpdateSketch.builder().build(); //empty
@@ -351,7 +345,7 @@ public class DirectIntersectionTest {
     //1st call = valid
     sk1 = UpdateSketch.builder().build();
     sk1.update(1);
-    inter = (Intersection)SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().setMemory(iMem).buildIntersection(k);
     inter.update(sk1);
     //2nd call = valid not intersecting
     sk2 = UpdateSketch.builder().build(); //empty
@@ -381,7 +375,7 @@ public class DirectIntersectionTest {
     for (int i=0; i<2*k; i++) sk1.update(i);  //est mode
     println("sk1: "+sk1.getEstimate());
     
-    inter = (Intersection)SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().setMemory(iMem).buildIntersection(k);
     inter.update(sk1);
     
     //2nd call = valid intersecting
@@ -416,7 +410,7 @@ public class DirectIntersectionTest {
     println("sk1est: "+sk1.getEstimate());
     println("sk1cnt: "+sk1.getRetainedEntries(true));
     
-    inter = (Intersection)SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().setMemory(iMem).buildIntersection(k);
     inter.update(sk1);
   }
   
@@ -438,7 +432,7 @@ public class DirectIntersectionTest {
     for (int i=0; i<2*k; i++) sk1.update(i);  //est mode
     println("sk1: "+sk1.getEstimate());
     
-    inter = (Intersection)SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().setMemory(iMem).buildIntersection(k);
     inter.update(sk1);
     
     //2nd call = valid intersecting
@@ -470,14 +464,14 @@ public class DirectIntersectionTest {
     byte[] memArr = new byte[memBytes];
     Memory iMem = new NativeMemory(memArr);
     
-    inter1 = (Intersection) SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION); //virgin
-    inter2 = (Intersection) SetOperation.wrap(iMem);
+    inter1 = SetOperation.builder().setMemory(iMem).buildIntersection(k); //virgin
+    inter2 = Sketches.wrapIntersection(iMem);
     //both in virgin state, empty = false
     assertFalse(inter1.hasResult());
     assertFalse(inter2.hasResult());
     
     inter1.update(null);  //A virgin intersection intersected with null => empty = true;
-    inter2 = (Intersection) SetOperation.wrap(iMem);
+    inter2 = Sketches.wrapIntersection(iMem);
     assertTrue(inter1.hasResult());
     assertTrue(inter2.hasResult());
     CompactSketch comp = inter2.getResult(true, null);
@@ -496,8 +490,8 @@ public class DirectIntersectionTest {
     byte[] memArr = new byte[memBytes];
     Memory iMem = new NativeMemory(memArr);
     
-    inter1 = (Intersection) SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION); //virgin
-    inter2 = (Intersection) SetOperation.wrap(iMem);
+    inter1 = SetOperation.builder().setMemory(iMem).buildIntersection(k); //virgin
+    inter2 = Sketches.wrapIntersection(iMem);
     //both in virgin state, empty = false
     assertFalse(inter1.hasResult());
     assertFalse(inter2.hasResult());
@@ -508,7 +502,7 @@ public class DirectIntersectionTest {
     //remains empty = false.
     
     inter1.update(sk1);
-    inter2 = (Intersection) SetOperation.wrap(iMem);
+    inter2 = Sketches.wrapIntersection(iMem);
     assertTrue(inter1.hasResult());
     assertTrue(inter2.hasResult());
     CompactSketch comp = inter2.getResult(true, null);
@@ -525,7 +519,7 @@ public class DirectIntersectionTest {
     byte[] memArr = new byte[memBytes];
     Memory iMem = new NativeMemory(memArr);
     
-    Intersection inter = (Intersection) SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION);
+    Intersection inter = SetOperation.builder().setMemory(iMem).buildIntersection(k);
   }
   
   @Test(expectedExceptions = IllegalArgumentException.class)
@@ -547,7 +541,7 @@ public class DirectIntersectionTest {
     CompactSketch csk1 = usk1.compact(true, null);
     CompactSketch csk2 = usk2.compact(true, null);
     
-    Intersection inter = (Intersection)SetOperation.builder().setMemory(iMem).build(k/2, Family.INTERSECTION);
+    Intersection inter = SetOperation.builder().setMemory(iMem).buildIntersection(k / 2);
     inter.update(csk1);
     inter.update(csk2);
   }
@@ -562,12 +556,12 @@ public class DirectIntersectionTest {
     byte[] memArr = new byte[memBytes];
     Memory iMem = new NativeMemory(memArr);
     
-    inter1 = (Intersection) SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION); //virgin
+    inter1 = SetOperation.builder().setMemory(iMem).buildIntersection(k); //virgin
     byte[] byteArray = inter1.toByteArray();
     Memory mem = new NativeMemory(byteArray);
     //corrupt:
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 2);//RF not used = 0
-    inter2 = (Intersection) SetOperation.wrap(mem);
+    inter2 = Sketches.wrapIntersection(mem);
   }
   
   @SuppressWarnings("unused")
@@ -580,12 +574,12 @@ public class DirectIntersectionTest {
     byte[] memArr = new byte[memBytes];
     Memory iMem = new NativeMemory(memArr);
     
-    inter1 = (Intersection) SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION); //virgin
+    inter1 = SetOperation.builder().setMemory(iMem).buildIntersection(k); //virgin
     byte[] byteArray = inter1.toByteArray();
     Memory mem = new NativeMemory(byteArray);
     //corrupt:
     mem.putByte(SER_VER_BYTE, (byte) 2);
-    inter2 = (Intersection) SetOperation.wrap(mem); //throws in SetOperations
+    inter2 = Sketches.wrapIntersection(mem); //throws in SetOperations
   }
   
   @SuppressWarnings("unused")
@@ -595,10 +589,10 @@ public class DirectIntersectionTest {
     Union union;
     Intersection inter1;
     
-    union = (Union) SetOperation.builder().build(k, Family.UNION);
+    union = SetOperation.builder().buildUnion(k);
     byte[] byteArray = union.toByteArray();
     Memory mem = new NativeMemory(byteArray);
-    inter1 = (Intersection) SetOperation.wrap(mem);
+    inter1 = Sketches.wrapIntersection(mem);
   }
   
   @Test
@@ -620,12 +614,12 @@ public class DirectIntersectionTest {
     CompactSketch compSkIn1 = sk1.compact(true, null);
     println("compSkIn1: "+compSkIn1.getEstimate());
     
-    inter = (Intersection)SetOperation.builder().setMemory(iMem).build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().setMemory(iMem).buildIntersection(k);
     inter.update(compSkIn1);
     
     byte[] memArr2 = inter.toByteArray();
     Memory srcMem = new NativeMemory(memArr2);
-    inter2 = (Intersection) SetOperation.wrap(srcMem);
+    inter2 = Sketches.wrapIntersection(srcMem);
     
     //2nd call = valid intersecting
     sk2 = UpdateSketch.builder().build(k);
@@ -641,7 +635,7 @@ public class DirectIntersectionTest {
     
     byte[] memArr3 = inter2.toByteArray();
     Memory srcMem2 = new NativeMemory(memArr3);
-    inter3 = (Intersection) SetOperation.wrap(srcMem2);
+    inter3 = Sketches.wrapIntersection(srcMem2);
     resultComp2 = inter3.getResult(false, null);
     est2 = resultComp2.getEstimate();
     println("Est2: "+est2);

@@ -34,7 +34,7 @@ public class HeapAnotBTest {
     for (int i=0; i<k/2; i++) usk1.update(i);
     for (int i=k/2; i<k; i++) usk2.update(i);
     
-    AnotB aNb = (AnotB)SetOperation.builder().build(Family.A_NOT_B);
+    AnotB aNb = SetOperation.builder().buildANotB();
     aNb.update(usk1, usk2);
     
     CompactSketch rsk1;
@@ -82,7 +82,7 @@ public class HeapAnotBTest {
     AnotB aNb;
     boolean ordered = true;
     
-    aNb = (AnotB)SetOperation.builder().build(Family.A_NOT_B);
+    aNb = SetOperation.builder().buildANotB();
 
     aNb.update(aNull, bNull);
     res = aNb.getResult(!ordered, null);
@@ -261,7 +261,7 @@ public class HeapAnotBTest {
     Memory mem1 = new NativeMemory(memArr1);
     Memory mem2 = new NativeMemory(memArr2);
     
-    AnotB aNb = (AnotB) SetOperation.builder().build(Family.A_NOT_B);
+    AnotB aNb = SetOperation.builder().buildANotB();
     aNb.update(aU, bU);
     r1 = aNb.getResult(ordered, mem1);
     
@@ -292,7 +292,7 @@ public class HeapAnotBTest {
     Memory mem = new NativeMemory(memArr);
     
     CompactSketch r;
-    AnotB aNb = (AnotB) SetOperation.builder().build(Family.A_NOT_B);
+    AnotB aNb = SetOperation.builder().buildANotB();
     
     //Iterative loop: {
     aNb.update(a, b);

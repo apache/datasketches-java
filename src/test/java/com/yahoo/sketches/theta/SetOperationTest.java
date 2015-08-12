@@ -16,11 +16,6 @@ import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;
 import com.yahoo.sketches.memory.NativeMemory;
-import com.yahoo.sketches.theta.CompactSketch;
-import com.yahoo.sketches.theta.SetOperation;
-import com.yahoo.sketches.theta.Sketch;
-import com.yahoo.sketches.theta.Union;
-import com.yahoo.sketches.theta.UpdateSketch;
 
 /**
  * @author Lee Rhodes
@@ -40,7 +35,7 @@ public class SetOperationTest {
     
     ResizeFactor rf = X4;
     //use default size
-    Union union = (Union)SetOperation.builder().setSeed(seed).setResizeFactor(rf).build(Family.UNION);
+    Union union = SetOperation.builder().setSeed(seed).setResizeFactor(rf).buildUnion();
     
     union.update(usk1);
     union.update(usk2);
@@ -55,37 +50,37 @@ public class SetOperationTest {
   @SuppressWarnings("unused")
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkBuilderBadK() {
-    Union union = (Union)SetOperation.builder().build(1000, Family.UNION);
+    Union union = SetOperation.builder().buildUnion(1000);
   }
   
   @SuppressWarnings("unused")
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkBuilderBadFamily() {
-    Union union = (Union)SetOperation.builder().build(Family.ALPHA);
+    SetOperation.builder().build(Family.ALPHA);
   }
   
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkBuilderIllegalPhi() {
     float p = (float)1.5;
-    SetOperation.builder().setP(p).build(Family.UNION);
+    SetOperation.builder().setP(p).buildUnion();
   }
   
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkBuilderIllegalPlo() {
     float p = 0;
-    SetOperation.builder().setP(p).build(Family.UNION);
+    SetOperation.builder().setP(p).buildUnion();
   }
   
   @Test
   public void checkBuilderValidP() {
     float p = (float).5;
-    SetOperation.builder().setP(p).build(Family.UNION);
+    SetOperation.builder().setP(p).buildUnion();
   }
   
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkBuilderAnotB_noMem() {
     Memory mem = new NativeMemory(new byte[64]);
-    SetOperation.builder().setMemory(mem).build(Family.A_NOT_B);
+    SetOperation.builder().setMemory(mem).buildANotB();
   }
   
   @Test(expectedExceptions = IllegalArgumentException.class)
@@ -101,7 +96,7 @@ public class SetOperationTest {
     
     ResizeFactor rf = X4;
     
-    Union union = (Union)SetOperation.builder().setSeed(seed).setResizeFactor(rf).build(k, Family.UNION);
+    Union union = SetOperation.builder().setSeed(seed).setResizeFactor(rf).buildUnion(k);
     
     union.update(usk1);
     union.update(usk2); //throws seed exception here
@@ -206,8 +201,7 @@ public class SetOperationTest {
     int bytes = heapLayout[1] - offset;
     Memory unionMem = new MemoryRegion(heapMem, offset, bytes);
 
-    Union union = (Union) 
-        SetOperation.builder().setMemory(unionMem).build(unionNomEntries, Family.UNION);
+    Union union = SetOperation.builder().setMemory(unionMem).buildUnion(unionNomEntries);
 
     Memory sketch1mem = new MemoryRegion(heapMem, heapLayout[1], heapLayout[2]-heapLayout[1]);
     Memory sketch2mem = new MemoryRegion(heapMem, heapLayout[2], heapLayout[3]-heapLayout[2]);
@@ -237,7 +231,7 @@ public class SetOperationTest {
     union.update(sk2);
     
     //Let's recover the union and the 3rd sketch
-    union = (Union) SetOperation.wrap(unionMem);
+    union = Sketches.wrapUnion(unionMem);
     sk3 = (UpdateSketch) Sketch.wrap(sketch3mem);
     union.update(sk3);
     
@@ -268,8 +262,7 @@ public class SetOperationTest {
 
     //Create a new union in the same space with a smaller size.
     unionMem.clear();
-    Union union = (Union) 
-        SetOperation.builder().setMemory(unionMem).build(unionNomEntries, Family.UNION);
+    Union union = SetOperation.builder().setMemory(unionMem).buildUnion(unionNomEntries);
     union.update(sk1);
     union.update(sk2);
     union.update(sk3);

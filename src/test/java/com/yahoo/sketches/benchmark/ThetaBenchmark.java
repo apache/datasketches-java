@@ -61,7 +61,7 @@ public class ThetaBenchmark implements SketchBenchmark
   public void runNTimes(int n)
   {
     for (int i = 0; i < n; ++i) {
-      Union combined = (Union) SetOperation.builder().build(nominalEntries, Family.UNION);
+      Union combined = SetOperation.builder().buildUnion(nominalEntries);
       for (Object toUnion : sketches) {
         combined.update((Sketch) toUnion);
       }

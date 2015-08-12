@@ -43,7 +43,7 @@ public class HeapIntersectionTest {
     for (int i=0; i<k/2; i++) usk1.update(i);
     for (int i=k/2; i<k; i++) usk2.update(i);
     
-    Intersection inter = (Intersection)SetOperation.builder().build(k, Family.INTERSECTION);
+    Intersection inter = SetOperation.builder().buildIntersection(k);
 
     inter.update(usk1);
     inter.update(usk2);
@@ -81,7 +81,7 @@ public class HeapIntersectionTest {
     for (int i=0; i<k; i++) usk1.update(i);
     for (int i=0; i<k; i++) usk2.update(i);
     
-    Intersection inter = (Intersection)SetOperation.builder().build(k, Family.INTERSECTION);
+    Intersection inter = SetOperation.builder().buildIntersection(k);
     inter.update(usk1);
     inter.update(usk2);
     
@@ -121,7 +121,7 @@ public class HeapIntersectionTest {
     CompactSketch csk1 = usk1.compact(true, null);
     CompactSketch csk2 = usk2.compact(true, null);
     
-    Intersection inter = (Intersection)SetOperation.builder().build(k, Family.INTERSECTION);
+    Intersection inter = SetOperation.builder().buildIntersection(k);
     inter.update(csk1);
     inter.update(csk2);
     
@@ -135,7 +135,7 @@ public class HeapIntersectionTest {
   public void checkNoCall() {
     int lgK = 9;
     int k = 1<<lgK;
-    Intersection inter = (Intersection)SetOperation.builder().build(k, Family.INTERSECTION);
+    Intersection inter = SetOperation.builder().buildIntersection(k);
     assertFalse(inter.hasResult());
     CompactSketch rsk1 = inter.getResult(false, null);
   }
@@ -150,7 +150,7 @@ public class HeapIntersectionTest {
     double est;
     
     //1st call = null
-    inter = (Intersection)SetOperation.builder().build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().buildIntersection(k);
     inter.update(null);  
     rsk1 = inter.getResult(false, null);
     est = rsk1.getEstimate();
@@ -159,7 +159,7 @@ public class HeapIntersectionTest {
     
     //1st call = empty
     sk = UpdateSketch.builder().build(k); //empty
-    inter = (Intersection)SetOperation.builder().build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().buildIntersection(k);
     inter.update(sk);
     rsk1 = inter.getResult(false, null);
     est = rsk1.getEstimate();
@@ -169,7 +169,7 @@ public class HeapIntersectionTest {
     //1st call = valid and not empty
     sk = UpdateSketch.builder().build(k);
     sk.update(1);
-    inter = (Intersection)SetOperation.builder().build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().buildIntersection(k);
     inter.update(sk);
     rsk1 = inter.getResult(false, null);
     est = rsk1.getEstimate();
@@ -187,7 +187,7 @@ public class HeapIntersectionTest {
     double est;
     
     //1st call = null
-    inter = (Intersection)SetOperation.builder().build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().buildIntersection(k);
     inter.update(null);
     //2nd call = null
     inter.update(null);
@@ -197,7 +197,7 @@ public class HeapIntersectionTest {
     println("Est: "+est);
     
     //1st call = null
-    inter = (Intersection)SetOperation.builder().build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().buildIntersection(k);
     inter.update(null);
     //2nd call = empty
     sk = UpdateSketch.builder().build(); //empty
@@ -208,7 +208,7 @@ public class HeapIntersectionTest {
     println("Est: "+est);
     
     //1st call = null
-    inter = (Intersection)SetOperation.builder().build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().buildIntersection(k);
     inter.update(null);
     //2nd call = valid & not empty
     sk = UpdateSketch.builder().build(); 
@@ -231,7 +231,7 @@ public class HeapIntersectionTest {
     
     //1st call = empty
     sk1 = UpdateSketch.builder().build(); //empty
-    inter = (Intersection)SetOperation.builder().build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().buildIntersection(k);
     inter.update(sk1);
     //2nd call = null
     inter.update(null);
@@ -242,7 +242,7 @@ public class HeapIntersectionTest {
     
     //1st call = empty
     sk1 = UpdateSketch.builder().build(); //empty
-    inter = (Intersection)SetOperation.builder().build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().buildIntersection(k);
     inter.update(sk1);
     //2nd call = empty
     sk2 = UpdateSketch.builder().build(); //empty
@@ -254,7 +254,7 @@ public class HeapIntersectionTest {
     
     //1st call = empty
     sk1 = UpdateSketch.builder().build(); //empty
-    inter = (Intersection)SetOperation.builder().build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().buildIntersection(k);
     inter.update(sk1);
     //2nd call = valid and not empty
     sk2 = UpdateSketch.builder().build();
@@ -278,7 +278,7 @@ public class HeapIntersectionTest {
     //1st call = valid
     sk1 = UpdateSketch.builder().build();
     sk1.update(1);
-    inter = (Intersection)SetOperation.builder().build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().buildIntersection(k);
     inter.update(sk1);
     //2nd call = null
     inter.update(null);
@@ -290,7 +290,7 @@ public class HeapIntersectionTest {
     //1st call = valid
     sk1 = UpdateSketch.builder().build();
     sk1.update(1);
-    inter = (Intersection)SetOperation.builder().build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().buildIntersection(k);
     inter.update(sk1);
     //2nd call = empty
     sk2 = UpdateSketch.builder().build(); //empty
@@ -303,7 +303,7 @@ public class HeapIntersectionTest {
     //1st call = valid
     sk1 = UpdateSketch.builder().build();
     sk1.update(1);
-    inter = (Intersection)SetOperation.builder().build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().buildIntersection(k);
     inter.update(sk1);
     //2nd call = valid intersecting
     sk2 = UpdateSketch.builder().build(); //empty
@@ -317,7 +317,7 @@ public class HeapIntersectionTest {
     //1st call = valid
     sk1 = UpdateSketch.builder().build();
     sk1.update(1);
-    inter = (Intersection)SetOperation.builder().build(k, Family.INTERSECTION); 
+    inter = SetOperation.builder().buildIntersection(k);
     inter.update(sk1);
     //2nd call = valid not intersecting
     sk2 = UpdateSketch.builder().build(); //empty
@@ -343,7 +343,7 @@ public class HeapIntersectionTest {
     for (int i=0; i<2*k; i++) sk1.update(i);  //est mode
     println("sk1: "+sk1.getEstimate());
     
-    inter = (Intersection)SetOperation.builder().build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().buildIntersection(k);
     inter.update(sk1);
     
     //2nd call = valid intersecting
@@ -374,7 +374,7 @@ public class HeapIntersectionTest {
     println("sk1est: "+sk1.getEstimate());
     println("sk1cnt: "+sk1.getRetainedEntries(true));
     
-    inter = (Intersection)SetOperation.builder().build(k, Family.INTERSECTION); //Too small
+    inter = SetOperation.builder().buildIntersection(k); //Too small
     inter.update(sk1);
   }
   
@@ -393,7 +393,7 @@ public class HeapIntersectionTest {
     println("compSkIn1: "+compSkIn1.getEstimate());
     
     //1st call = valid
-    inter = (Intersection) SetOperation.builder().build(k, Family.INTERSECTION);
+    inter = SetOperation.builder().buildIntersection(k);
     inter.update(compSkIn1);
     
     //2nd call = valid intersecting
@@ -426,7 +426,7 @@ public class HeapIntersectionTest {
     int k = 1<<lgK;
     Intersection inter1, inter2;
     
-    inter1 = (Intersection) SetOperation.builder().build(k, Family.INTERSECTION); //virgin
+    inter1 = SetOperation.builder().buildIntersection(k); //virgin
     byte[] byteArray = inter1.toByteArray();
     Memory srcMem = new NativeMemory(byteArray);
     inter2 = (Intersection) SetOperation.heapify(srcMem);
@@ -449,7 +449,7 @@ public class HeapIntersectionTest {
     Intersection inter1, inter2;
     UpdateSketch sk1;
     
-    inter1 = (Intersection) SetOperation.builder().build(k, Family.INTERSECTION); //virgin
+    inter1 = SetOperation.builder().buildIntersection(k); //virgin
     byte[] byteArray = inter1.toByteArray();
     Memory srcMem = new NativeMemory(byteArray);
     inter2 = (Intersection) SetOperation.heapify(srcMem);
@@ -473,7 +473,7 @@ public class HeapIntersectionTest {
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkSizeLowerLimit() {
     int k = 8;
-    Intersection inter = (Intersection) SetOperation.builder().build(k, Family.INTERSECTION);
+    Intersection inter = SetOperation.builder().buildIntersection(k);
   }
   
   @SuppressWarnings("unused")
@@ -492,7 +492,7 @@ public class HeapIntersectionTest {
     CompactSketch csk1 = usk1.compact(true, null);
     CompactSketch csk2 = usk2.compact(true, null);
     
-    Intersection inter = (Intersection)SetOperation.builder().build(k/2, Family.INTERSECTION);
+    Intersection inter = SetOperation.builder().buildIntersection(k / 2);
     inter.update(csk1);
     inter.update(csk2);
   }
@@ -503,7 +503,7 @@ public class HeapIntersectionTest {
     int k = 32;
     Intersection inter1, inter2;
     
-    inter1 = (Intersection) SetOperation.builder().build(k, Family.INTERSECTION); //virgin
+    inter1 = SetOperation.builder().buildIntersection(k); //virgin
     byte[] byteArray = inter1.toByteArray();
     Memory mem = new NativeMemory(byteArray);
     //corrupt:
@@ -517,7 +517,7 @@ public class HeapIntersectionTest {
     int k = 32;
     Intersection inter1, inter2;
     
-    inter1 = (Intersection) SetOperation.builder().build(k, Family.INTERSECTION); //virgin
+    inter1 = SetOperation.builder().buildIntersection(k); //virgin
     byte[] byteArray = inter1.toByteArray();
     Memory mem = new NativeMemory(byteArray);
     //corrupt:
@@ -532,7 +532,7 @@ public class HeapIntersectionTest {
     Union union;
     Intersection inter1;
     
-    union = (Union) SetOperation.builder().build(k, Family.UNION);
+    union = SetOperation.builder().buildUnion(k);
     byte[] byteArray = union.toByteArray();
     Memory mem = new NativeMemory(byteArray);
     inter1 = (Intersection) SetOperation.heapify(mem);

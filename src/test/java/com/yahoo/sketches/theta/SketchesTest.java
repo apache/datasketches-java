@@ -51,8 +51,7 @@ public class SketchesTest {
     Memory mem2 = getCompactSketch(k, k/2, 3*k/2);
     
     SetOperation.Builder bldr = setOpBuilder();
-    SetOperation setOp1 = bldr.build(2*k, Family.UNION);
-    Union union = (Union)setOp1;
+    Union union = bldr.buildUnion(2*k);
     
     union.update(mem1);
     CompactSketch cSk = union.getResult(true, null);

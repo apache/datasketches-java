@@ -238,7 +238,7 @@ public class SketchTest {
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkHeapifyFamilyExcep() {
     int k = 512;
-    Union union = (Union) SetOperation.builder().build(k, UNION);
+    Union union = SetOperation.builder().buildUnion(k);
     byte[] byteArray = union.toByteArray();
     Memory mem = new NativeMemory(byteArray);
     //Improper use
