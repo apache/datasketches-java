@@ -62,7 +62,7 @@ public class Sketches {
    * Ref: {@link SetOperation#builder() SetOperation.builder()}
    * @return {@link SetOperation.Builder SetOperation.Builder}
    */
-  public static SetOperation.Builder setOpBuilder() {
+  public static SetOperation.Builder setOperationBuilder() {
     return SetOperation.builder();
   }
   

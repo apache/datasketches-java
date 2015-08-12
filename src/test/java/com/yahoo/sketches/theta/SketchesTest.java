@@ -16,7 +16,7 @@ import static com.yahoo.sketches.theta.Sketches.getMaxUpdateSketchBytes;
 import static com.yahoo.sketches.theta.Sketches.getSerializationVersion;
 import static com.yahoo.sketches.theta.Sketches.heapifySetOperation;
 import static com.yahoo.sketches.theta.Sketches.heapifySketch;
-import static com.yahoo.sketches.theta.Sketches.setOpBuilder;
+import static com.yahoo.sketches.theta.Sketches.setOperationBuilder;
 import static com.yahoo.sketches.theta.Sketches.updateSketchBuilder;
 import static com.yahoo.sketches.theta.Sketches.wrapSetOperation;
 import static com.yahoo.sketches.theta.Sketches.wrapSketch;
@@ -58,7 +58,7 @@ public class SketchesTest {
     Memory mem1 = getCompactSketch(k, 0, k);
     Memory mem2 = getCompactSketch(k, k/2, 3*k/2);
     
-    SetOperation.Builder bldr = setOpBuilder();
+    SetOperation.Builder bldr = setOperationBuilder();
     Union union = bldr.buildUnion(2*k);
     
     union.update(mem1);
