@@ -11,9 +11,9 @@ package com.yahoo.sketches.hll;
  */
 public interface Fields
 {
-  public static byte NAIVE_DENSE_VERSION = 0x0;
-  public static byte HASH_SPARSE_VERSION = 0x1;
-  public static byte SORTED_SPARSE_VERSION = 0x2;
+  byte NAIVE_DENSE_VERSION = 0x0;
+  byte HASH_SPARSE_VERSION = 0x1;
+  byte SORTED_SPARSE_VERSION = 0x2;
 
   Preamble getPreamble();
 
@@ -54,7 +54,7 @@ public interface Fields
 
   BucketIterator getBucketIterator();
 
-  public static interface UpdateCallback {
+  interface UpdateCallback {
     void bucketUpdated(int bucket, byte oldVal, byte newVal);
   }
 }

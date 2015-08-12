@@ -4,18 +4,13 @@
  */
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.theta.ForwardCompatibilityTest.*;
-import static org.testng.Assert.assertEquals;
-
-import org.testng.annotations.Test;
-
-import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
-import com.yahoo.sketches.theta.CompactSketch;
-import com.yahoo.sketches.theta.SetOperation;
-import com.yahoo.sketches.theta.Union;
-import com.yahoo.sketches.theta.UpdateSketch;
+import org.testng.annotations.Test;
+
+import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV1;
+import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV2;
+import static org.testng.Assert.assertEquals;
 
 /**
  * @author Lee Rhodes
@@ -36,7 +31,7 @@ public class HeapUnionTest {
     
     assertEquals(u, usk1.getEstimate() + usk2.getEstimate(), 0.0); //exact, no overlap
     
-    Union union = (Union)SetOperation.builder().build(k, Family.UNION);
+    Union union = SetOperation.builder().buildUnion(k);
     
     union.update(usk1); //update with heap UpdateSketch
     union.update(usk2); //update with heap UpdateSketch
@@ -56,7 +51,7 @@ public class HeapUnionTest {
     for (int i=0; i<u/2; i++) usk1.update(i); //2*k
     for (int i=u/2; i<u; i++) usk2.update(i); //2*k no overlap
     
-    Union union = (Union)SetOperation.builder().build(k, Family.UNION);
+    Union union = SetOperation.builder().buildUnion(k);
     
     union.update(usk1); //update with heap UpdateSketch
     union.update(usk2); //update with heap UpdateSketch
@@ -78,7 +73,7 @@ public class HeapUnionTest {
     
     assertEquals(u, usk1.getEstimate() + usk2.getEstimate()/2, 0.0); //exact, overlapped
     
-    Union union = (Union)SetOperation.builder().build(k, Family.UNION);
+    Union union = SetOperation.builder().buildUnion(k);
     
     union.update(usk1); //update with heap UpdateSketch
     union.update(usk2); //update with heap UpdateSketch
@@ -100,7 +95,7 @@ public class HeapUnionTest {
     
     assertEquals(u, usk1.getEstimate() + usk2.getEstimate(), 0.0); //exact, no overlap
     
-    Union union = (Union)SetOperation.builder().build(k, Family.UNION);
+    Union union = SetOperation.builder().buildUnion(k);
     
     union.update(usk1); //update with heap UpdateSketch
     union.update(usk2); //update with heap UpdateSketch
@@ -124,7 +119,7 @@ public class HeapUnionTest {
     for (int i=0; i<u/2; i++) usk1.update(i); //2k
     for (int i=u/2; i<u; i++) usk2.update(i); //2k no overlap, exact
     
-    Union union = (Union)SetOperation.builder().build(k, Family.UNION);
+    Union union = SetOperation.builder().buildUnion(k);
     
     union.update(usk1); //update with heap UpdateSketch
     union.update(usk2); //update with heap UpdateSketch, early stop not possible
@@ -150,7 +145,7 @@ public class HeapUnionTest {
     
     CompactSketch cosk2 = usk2.compact(true, null);
     
-    Union union = (Union)SetOperation.builder().build(k, Family.UNION);
+    Union union = SetOperation.builder().buildUnion(k);
     
     union.update(usk1);  //update with heap UpdateSketch
     union.update(cosk2); //update with heap Compact, Ordered input, early stop
@@ -185,7 +180,7 @@ public class HeapUnionTest {
     NativeMemory cskMem2 = new NativeMemory(new byte[usk2.getCurrentBytes(true)]);
     CompactSketch cosk2 = usk2.compact(true, cskMem2); //ordered, loads the cskMem2 as ordered
     
-    Union union = (Union)SetOperation.builder().build(k, Family.UNION);
+    Union union = SetOperation.builder().buildUnion(k);
     
     union.update(usk1);        //updates with heap UpdateSketch
     union.update(cosk2);       //updates with direct CompactSketch, ordered, use early stop
@@ -220,7 +215,7 @@ public class HeapUnionTest {
     NativeMemory cskMem2 = new NativeMemory(new byte[usk2.getCurrentBytes(true)]);
     usk2.compact(true, cskMem2); //ordered, loads the cskMem2 as ordered
     
-    Union union = (Union)SetOperation.builder().build(k, Family.UNION);
+    Union union = SetOperation.builder().buildUnion(k);
     
     union.update(usk1);        //updates with heap UpdateSketch
     union.update(cskMem2);     //updates with direct CompactSketch, ordered, use early stop
@@ -255,7 +250,7 @@ public class HeapUnionTest {
     NativeMemory cskMem2 = new NativeMemory(new byte[usk2.getCurrentBytes(true)]);
     usk2.compact(false, cskMem2); //unordered, loads the cskMem2 as unordered
     
-    Union union = (Union)SetOperation.builder().build(k, Family.UNION);
+    Union union = SetOperation.builder().buildUnion(k);
     
     union.update(usk1);        //updates with heap UpdateSketch
     union.update(cskMem2);     //updates with direct CompactSketch, ordered, use early stop
@@ -297,7 +292,7 @@ public class HeapUnionTest {
     for (int i=0; i<u; i++) usk4.update(i+v);
     v += u;
     
-    Union union = (Union)SetOperation.builder().build(k, Family.UNION);
+    Union union = SetOperation.builder().buildUnion(k);
     
     union.update(usk1); //updates with heap UpdateSketch
     union.update(usk2); //updates with heap UpdateSketch
@@ -329,7 +324,7 @@ public class HeapUnionTest {
     CompactSketch csk1 = (CompactSketch)Sketch.wrap(skMem1);
     CompactSketch csk2 = (CompactSketch)Sketch.wrap(skMem2);
     
-    Union union = (Union)SetOperation.builder().build(k, Family.UNION);
+    Union union = SetOperation.builder().buildUnion(k);
     
     union.update(csk1);
     union.update(csk2);
@@ -358,7 +353,7 @@ public class HeapUnionTest {
     Memory v1mem1 = convertSerV3toSerV1(skMem1);
     Memory v1mem2 = convertSerV3toSerV1(skMem2);
     
-    Union union = (Union)SetOperation.builder().build(k, Family.UNION);
+    Union union = SetOperation.builder().buildUnion(k);
     
     union.update(v1mem1);
     union.update(v1mem2);
@@ -387,7 +382,7 @@ public class HeapUnionTest {
     Memory v2mem1 = convertSerV3toSerV2(skMem1);
     Memory v2mem2 = convertSerV3toSerV2(skMem2);
     
-    Union union = (Union)SetOperation.builder().build(k, Family.UNION);
+    Union union = SetOperation.builder().buildUnion(k);
     
     union.update(v2mem1);
     union.update(v2mem2);
@@ -407,24 +402,24 @@ public class HeapUnionTest {
     
     Memory v1mem1 = convertSerV3toSerV1(v3mem1);
     
-    Union union = (Union)SetOperation.builder().build(k, Family.UNION);
+    Union union = SetOperation.builder().buildUnion(k);
     union.update(v1mem1);
     CompactSketch cOut = union.getResult(true, null);
     assertEquals(cOut.getEstimate(), 0.0, 0.0);
     
     Memory v2mem1 = convertSerV3toSerV2(v3mem1);
     
-    union = (Union)SetOperation.builder().build(k, Family.UNION);
+    union = SetOperation.builder().buildUnion(k);
     union.update(v2mem1);
     cOut = union.getResult(true, null);
     assertEquals(cOut.getEstimate(), 0.0, 0.0);
     
-    union = (Union)SetOperation.builder().build(k, Family.UNION);
+    union = SetOperation.builder().buildUnion(k);
     union.update(v3mem1);
     cOut = union.getResult(true, null);
     assertEquals(cOut.getEstimate(), 0.0, 0.0);
     
-    union = (Union)SetOperation.builder().build(k, Family.UNION);
+    union = SetOperation.builder().buildUnion(k);
     v3mem1 = null;
     union.update(v3mem1);
     cOut = union.getResult(true, null);

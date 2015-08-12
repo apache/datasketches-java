@@ -4,30 +4,23 @@
  */
 package com.yahoo.sketches.theta;
 
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.memory.Memory;
+import com.yahoo.sketches.memory.NativeMemory;
+import org.testng.annotations.Test;
+
 import static com.yahoo.sketches.Family.ALPHA;
 import static com.yahoo.sketches.Family.QUICKSELECT;
-import static com.yahoo.sketches.Family.UNION;
 import static com.yahoo.sketches.Util.DEFAULT_NOMINAL_ENTRIES;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
-import static com.yahoo.sketches.theta.Sketch.getMaxCompactSketchBytes;
 import static com.yahoo.sketches.theta.ResizeFactor.X1;
 import static com.yahoo.sketches.theta.ResizeFactor.X2;
 import static com.yahoo.sketches.theta.ResizeFactor.X4;
 import static com.yahoo.sketches.theta.ResizeFactor.X8;
+import static com.yahoo.sketches.theta.Sketch.getMaxCompactSketchBytes;
 import static org.testng.Assert.assertEquals;
-
-import org.testng.annotations.Test;
-
-import com.yahoo.sketches.Family;
-import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.memory.NativeMemory;
-import com.yahoo.sketches.theta.CompactSketch;
-import com.yahoo.sketches.theta.SetOperation;
-import com.yahoo.sketches.theta.Sketch;
-import com.yahoo.sketches.theta.Union;
-import com.yahoo.sketches.theta.UpdateSketch;
 
 /**
  * @author Lee Rhodes
@@ -238,7 +231,7 @@ public class SketchTest {
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkHeapifyFamilyExcep() {
     int k = 512;
-    Union union = (Union) SetOperation.builder().build(k, UNION);
+    Union union = SetOperation.builder().buildUnion(k);
     byte[] byteArray = union.toByteArray();
     Memory mem = new NativeMemory(byteArray);
     //Improper use

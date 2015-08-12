@@ -47,7 +47,7 @@ public class PreambleUtilTest {
     println(PreambleUtil.toString(mem));
     
     Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]);
-    Union union = (Union)SetOperation.builder().setMemory(uMem).build(k, Family.UNION);
+    Union union = SetOperation.builder().setMemory(uMem).buildUnion(k);
     union.update(quick1);
     println(PreambleUtil.toString(uMem));
     

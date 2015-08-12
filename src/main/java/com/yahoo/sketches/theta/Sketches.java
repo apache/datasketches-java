@@ -93,7 +93,29 @@ public class Sketches {
   public static SetOperation wrapSetOperation(Memory srcMem) {
     return SetOperation.wrap(srcMem);
   }
-  
+
+  /**
+   * Convenience method, calls {@link SetOperation#wrap(Memory)} and casts the result to a Union
+   * @param srcMem an image of a Union
+   * @return a Union backed by the given Memory
+   * @throws IllegalArgumentException if given image does not match a known
+   * SetOperation implementation, or if the assumed default seed does not match the image seed hash.
+   */
+  public static Union wrapUnion(Memory srcMem) {
+    return (Union) SetOperation.wrap(srcMem);
+  }
+
+  /**
+   * Convenience method, calls {@link SetOperation#wrap(Memory)} and casts the result to a Intersection
+   * @param srcMem an image of a Intersection
+   * @return a Intersection backed by the given Memory
+   * @throws IllegalArgumentException if given image does not match a known
+   * SetOperation implementation, or if the assumed default seed does not match the image seed hash.
+   */
+  public static Intersection wrapIntersection(Memory srcMem) {
+    return (Intersection) SetOperation.wrap(srcMem);
+  }
+
   /**
    * Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)}
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
@@ -147,5 +169,4 @@ public class Sketches {
   public static int getMaxIntersectionBytes(int nomEntries) {
     return SetOperation.getMaxIntersectionBytes(nomEntries);
   }
-  
 }

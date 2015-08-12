@@ -4,15 +4,23 @@
  */
 package com.yahoo.sketches.theta;
 
-import static org.testng.Assert.assertEquals;
-
-import static com.yahoo.sketches.theta.Sketches.*;
-import org.testng.annotations.Test;
-
-import com.yahoo.sketches.Family;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
+import org.testng.annotations.Test;
+
+import static com.yahoo.sketches.theta.Sketches.getMaxCompactSketchBytes;
+import static com.yahoo.sketches.theta.Sketches.getMaxIntersectionBytes;
+import static com.yahoo.sketches.theta.Sketches.getMaxUnionBytes;
+import static com.yahoo.sketches.theta.Sketches.getMaxUpdateSketchBytes;
+import static com.yahoo.sketches.theta.Sketches.getSerializationVersion;
+import static com.yahoo.sketches.theta.Sketches.heapifySetOperation;
+import static com.yahoo.sketches.theta.Sketches.heapifySketch;
+import static com.yahoo.sketches.theta.Sketches.setOpBuilder;
+import static com.yahoo.sketches.theta.Sketches.updateSketchBuilder;
+import static com.yahoo.sketches.theta.Sketches.wrapSetOperation;
+import static com.yahoo.sketches.theta.Sketches.wrapSketch;
+import static org.testng.Assert.assertEquals;
 
 public class SketchesTest {
   
@@ -51,8 +59,7 @@ public class SketchesTest {
     Memory mem2 = getCompactSketch(k, k/2, 3*k/2);
     
     SetOperation.Builder bldr = setOpBuilder();
-    SetOperation setOp1 = bldr.build(2*k, Family.UNION);
-    Union union = (Union)setOp1;
+    Union union = bldr.buildUnion(2*k);
     
     union.update(mem1);
     CompactSketch cSk = union.getResult(true, null);

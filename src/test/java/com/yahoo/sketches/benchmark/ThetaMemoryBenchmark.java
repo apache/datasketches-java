@@ -1,6 +1,5 @@
 package com.yahoo.sketches.benchmark;
 
-import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.theta.SetOperation;
@@ -64,10 +63,7 @@ public class ThetaMemoryBenchmark implements SketchBenchmark
   public void runNTimes(int n)
   {
     for (int i = 0; i < n; ++i) {
-      Union combined = (Union) SetOperation
-          .builder()
-          .setMemory(new NativeMemory(bytes))
-          .build(nominalEntries, Family.UNION);
+      Union combined = SetOperation.builder().setMemory(new NativeMemory(bytes)).buildUnion(nominalEntries);
       for (Memory toUnion : memories) {
         combined.update(toUnion);
       }

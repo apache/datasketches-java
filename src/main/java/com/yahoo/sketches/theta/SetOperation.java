@@ -105,7 +105,7 @@ public class SetOperation {
      * Returns a configured SetOperation with the given
      * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">Default Nominal Entries</a>
      * @param family the chosen SetOperation family
-     * @return an UpdateSketch
+     * @return an SetOperation
      */
     public SetOperation build(Family family) {
       return build(DEFAULT_NOMINAL_ENTRIES, family);
@@ -154,6 +154,63 @@ public class SetOperation {
               "Given Family cannot be built as a SetOperation: "+family.toString());
       }
       return setOp;
+    }
+
+    /**
+     * Convenience method, returns a configured SetOperation Union with
+     * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">Default Nominal Entries</a>
+     * @return a Union object
+     */
+    public Union buildUnion() {
+      return (Union) build(Family.UNION);
+    }
+
+    /**
+     * Convenience method, returns a configured SetOperation Union with the given
+     * <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>.
+     * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
+     * @return a Union object
+     */
+    public Union buildUnion(int nomEntries) {
+      return (Union) build(nomEntries, Family.UNION);
+    }
+
+    /**
+     * Convenience method, returns a configured SetOperation Intersection with
+     * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">Default Nominal Entries</a>
+     * @return a Intersection object
+     */
+    public Intersection buildIntersection() {
+      return (Intersection) build(Family.INTERSECTION);
+    }
+
+    /**
+     * Convenience method, returns a configured SetOperation Intersection with the given
+     * <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>.
+     * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
+     * @return a Intersection object
+     */
+    public Intersection buildIntersection(int nomEntries) {
+      return (Intersection) build(nomEntries, Family.INTERSECTION);
+    }
+
+    /**
+     * Convenience method, returns a configured SetOperation ANotB with
+     * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">Default Nominal Entries</a>
+     * @return a ANotB object
+     */
+    public AnotB buildANotB() {
+      return (AnotB) build(Family.A_NOT_B);
+    }
+
+    /**
+     * Convenience method, returns a configured SetOperation ANotB with the given
+     * <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>.
+     * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
+     * @return a ANotB object
+     */
+    public AnotB buildANotB(int nomEntries) {
+      return (AnotB) build(nomEntries, Family.A_NOT_B);
     }
   }
   

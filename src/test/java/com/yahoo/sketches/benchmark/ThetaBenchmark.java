@@ -1,6 +1,5 @@
 package com.yahoo.sketches.benchmark;
 
-import com.yahoo.sketches.Family;
 import com.yahoo.sketches.theta.CompactSketch;
 import com.yahoo.sketches.theta.SetOperation;
 import com.yahoo.sketches.theta.Sketch;
@@ -61,7 +60,7 @@ public class ThetaBenchmark implements SketchBenchmark
   public void runNTimes(int n)
   {
     for (int i = 0; i < n; ++i) {
-      Union combined = (Union) SetOperation.builder().build(nominalEntries, Family.UNION);
+      Union combined = SetOperation.builder().buildUnion(nominalEntries);
       for (Object toUnion : sketches) {
         combined.update((Sketch) toUnion);
       }
