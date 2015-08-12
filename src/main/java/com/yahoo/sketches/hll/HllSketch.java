@@ -163,9 +163,13 @@ public class HllSketch
   {
     this.updateCallback = updateCallback;
   }
-
-  /** Helper methods that are potential extension points for children **/
-
+  
+  //Helper methods that are potential extension points for children
+  
+  /**  
+   * The sum of the inverse powers of 2
+   * @return the sum of the inverse powers of 2
+   */
   protected double inversePowerOf2Sum() {
     return HllUtils.computeInvPow2Sum(numBuckets(), fields.getBucketIterator());
   }
