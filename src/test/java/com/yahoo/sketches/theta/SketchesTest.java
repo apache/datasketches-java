@@ -9,6 +9,7 @@ import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 import org.testng.annotations.Test;
 
+import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV1;
 import static com.yahoo.sketches.theta.Sketches.getMaxCompactSketchBytes;
 import static com.yahoo.sketches.theta.Sketches.getMaxIntersectionBytes;
 import static com.yahoo.sketches.theta.Sketches.getMaxUnionBytes;
@@ -20,7 +21,7 @@ import static com.yahoo.sketches.theta.Sketches.setOperationBuilder;
 import static com.yahoo.sketches.theta.Sketches.updateSketchBuilder;
 import static com.yahoo.sketches.theta.Sketches.wrapSetOperation;
 import static com.yahoo.sketches.theta.Sketches.wrapSketch;
-import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.*;
 
 public class SketchesTest {
   
@@ -108,6 +109,25 @@ public class SketchesTest {
     assertEquals(24+2*k*8, maxSkBytes);
   }
   
+  @Test
+  public void checkStaticEstimators() {
+    int k = 4096;
+    int u = 4*k;
+    Memory srcMem = getCompactSketch(k, 0, u);
+    double est = Sketches.getEstimate(srcMem);
+    assertEquals(est, u, 0.05*u);
+    double rse = 1.0/Math.sqrt(k);
+    double ub = Sketches.getUpperBound(1, srcMem);
+    assertEquals(ub, est+rse, 0.05*u);
+    double lb = Sketches.getLowerBound(1, srcMem);
+    assertEquals(lb, est-rse, 0.05*u);
+    Memory memV1 = convertSerV3toSerV1(srcMem);
+    boolean empty = Sketches.getEmpty(memV1);
+    assertFalse(empty);
+    memV1 = convertSerV3toSerV1(getCompactSketch(k, 0, 0));
+    empty = Sketches.getEmpty(memV1);
+    assertTrue(empty);
+  }
   
   @Test
   public void printlnTest() {
