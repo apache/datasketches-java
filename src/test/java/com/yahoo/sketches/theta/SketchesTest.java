@@ -124,8 +124,11 @@ public class SketchesTest {
     Memory memV1 = convertSerV3toSerV1(srcMem);
     boolean empty = Sketches.getEmpty(memV1);
     assertFalse(empty);
-    memV1 = convertSerV3toSerV1(getCompactSketch(k, 0, 0));
-    empty = Sketches.getEmpty(memV1);
+    Memory emptyMemV3 = getCompactSketch(k, 0, 0);
+    assertEquals(Sketches.getRetainedEntries(emptyMemV3), 0);
+    assertEquals(Sketches.getThetaLong(emptyMemV3), Long.MAX_VALUE);
+    Memory emptyMemV1 = convertSerV3toSerV1(emptyMemV3);
+    empty = Sketches.getEmpty(emptyMemV1);
     assertTrue(empty);
   }
   
