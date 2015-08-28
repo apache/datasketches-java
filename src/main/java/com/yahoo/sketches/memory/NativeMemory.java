@@ -589,7 +589,6 @@ public class NativeMemory implements Memory {
     if (requiresFree()) {
         unsafe.freeMemory(nativeRawStartAddress_); 
         nativeRawStartAddress_ = 0L;
-        
     }
     capacityBytes_ = 0L;
   }
@@ -611,14 +610,14 @@ public class NativeMemory implements Memory {
   }
   
   /**
-   * Returns true if the underlying memory of this Memory has been allocated
-   * @return true if the underlying memory of this Memory has been allocated
+   * Returns true if the underlying memory of this Memory has a capacity greater than zero
+   * @return true if the underlying memory of this Memory has a capacity greater than zero
    */
   public boolean isAllocated() {
     return (capacityBytes_ > 0L);
   }
   
-  //Private methods
+  //Restricted methods
   
   /**
    * Returns a formatted hex string of an area of this Memory. 

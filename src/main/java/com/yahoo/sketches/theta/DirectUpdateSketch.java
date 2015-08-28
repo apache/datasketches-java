@@ -22,18 +22,11 @@ abstract class DirectUpdateSketch extends UpdateSketch {
     p_ = p;
     rf_ = rf;
   }
-
+  
   //Sketch
   
   @Override
   public abstract byte[] toByteArray();
-//  public byte[] toByteArray() { // even if noRebuild it will still be valid
-//    int curBytes = getCurrentBytes(false);
-//    byte[] byteArrOut = new byte[curBytes];
-//    Memory mem = getMemory();
-//    mem.getByteArray(0, byteArrOut, 0, curBytes);
-//    return byteArrOut;
-//  }
   
   //restricted methods
   
@@ -49,7 +42,6 @@ abstract class DirectUpdateSketch extends UpdateSketch {
   
   @Override
   abstract int getPreambleLongs();
-  
   
   //Update Internals
 
@@ -87,14 +79,5 @@ abstract class DirectUpdateSketch extends UpdateSketch {
   
   @Override
   abstract long[] getCache();
-//  long[] getCache() {
-//    int arrLongs = 1 << getLgArrLongs();
-//    long[] cache = new long[arrLongs];
-//    Memory mem = getMemory();
-//    int preLongs = mem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-//    checkQSPreLongsAndFamily(preLongs);
-//    mem.getLongArray(preLongs << 3, cache, 0, arrLongs);
-//    return cache;
-//  }
   
 }
