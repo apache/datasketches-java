@@ -14,7 +14,9 @@ import com.yahoo.sketches.memory.Memory;
  * This class brings together the common sketch and set operation creation methods and
  * the public static methods into one place.
  */
-public class Sketches {
+public final class Sketches {
+  
+  private Sketches() {}
   
   /**
    * Ref: {@link UpdateSketch#builder() UpdateSketch.builder()}
