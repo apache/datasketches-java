@@ -521,6 +521,14 @@ public class NativeMemoryTest {
     assertEquals(idx, -1);
   }
   
+  @SuppressWarnings("unused")
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkLongArrExcep() {
+    long[] arr = new long[0];
+    new NativeMemory(arr);
+  }
+  
+  
   @Test
   public void printlnTest() {
     println("Test");

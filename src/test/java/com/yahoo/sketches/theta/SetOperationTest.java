@@ -7,6 +7,7 @@ package com.yahoo.sketches.theta;
 import static com.yahoo.sketches.theta.Sketch.getMaxUpdateSketchBytes;
 import static com.yahoo.sketches.theta.ResizeFactor.X4;
 import static org.testng.Assert.assertEquals;
+//import static org.testng.Assert.assertTrue;
 
 import java.nio.ByteBuffer;
 
@@ -120,6 +121,15 @@ public class SetOperationTest {
     byte[] byteArray = usk1.toByteArray();
     Memory mem = new NativeMemory(byteArray);
     SetOperation.wrap(mem);
+  }
+  
+  @Test
+  public void checkBuildSetOps() {
+    SetOperation.Builder bldr = Sketches.setOperationBuilder();
+    bldr.buildUnion();
+    bldr.buildIntersection();
+    bldr.buildANotB();
+    bldr.buildANotB(1024);
   }
   
   /**
@@ -272,11 +282,6 @@ public class SetOperationTest {
         
     return est;
   }
-  
-//  public static void main(String[] args) {
-//    SetOperationTest sot = new SetOperationTest();
-//    sot.checkDirectUnionExample();
-//  }
   
   @Test
   public void printlnTest() {

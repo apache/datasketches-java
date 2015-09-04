@@ -175,4 +175,25 @@ public enum Family {
     throw new IllegalArgumentException("Unknown object");
   }
   
+  /**
+   * Returns true if given Family id is one of the theta sketches
+   * @param id the given Family id
+   * @return true if given Family id is one of the theta sketches
+   */
+  public static boolean isValidSketchID(int id) {
+    int loID = ALPHA.id_;
+    int hiID = COMPACT.id_;
+    return ((hiID - id) | (id - loID)) >= 0;
+  }
+  
+  /**
+   * Returns true if given Family id is one of the set operations
+   * @param id the given Family id
+   * @return true if given Family id is one of the set operations
+   */
+  public static boolean isValidSetOpID(int id) {
+    int loID = UNION.id_;
+    int hiID = A_NOT_B.id_;
+    return ((hiID - id) | (id - loID)) >= 0;
+  }
 }

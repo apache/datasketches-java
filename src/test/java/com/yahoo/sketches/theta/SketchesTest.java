@@ -132,6 +132,14 @@ public class SketchesTest {
     assertTrue(empty);
   }
   
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkBadSketchFamily() {
+    Union union = setOperationBuilder().buildUnion();
+    byte[] byteArr = union.toByteArray();
+    Memory srcMem = new NativeMemory(byteArr);
+    Sketches.getEstimate(srcMem);
+  }
+  
   @Test
   public void printlnTest() {
     println("Test");

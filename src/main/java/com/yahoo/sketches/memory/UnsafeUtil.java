@@ -109,15 +109,15 @@ final class UnsafeUtil {
   private UnsafeUtil() {}
   
   /**
-   * Perform bounds checking using java assert (if enabled) checking the offset and length 
-   * against the allocated size and zero.
-   * @param off the offset
-   * @param len the required length
-   * @param size the allocated size
+   * Perform bounds checking using java assert (if enabled) checking the requested offset and length 
+   * against the allocated size. If any of the parameters are negative the assert will be thrown. 
+   * @param reqOff the requested offset
+   * @param reqLen the requested length
+   * @param allocSize the allocated size. 
    */
-  static void assertBounds(final long off, final long len, final long size) {
-    assert ((off | len | (off + len) | (size - (off + len))) >= 0) : 
-      "offset: "+ off + ", length: "+ len + ", size: "+size;
+  static void assertBounds(final long reqOff, final long reqLen, final long allocSize) {
+    assert ((reqOff | reqLen | (reqOff + reqLen) | (allocSize - (reqOff + reqLen))) >= 0) : 
+      "offset: "+ reqOff + ", reqLength: "+ reqLen+ ", size: "+allocSize;
   }
   
   /**

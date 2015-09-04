@@ -178,7 +178,7 @@ public class SetOperation {
     /**
      * Convenience method, returns a configured SetOperation Intersection with
      * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">Default Nominal Entries</a>
-     * @return a Intersection object
+     * @return an Intersection object
      */
     public Intersection buildIntersection() {
       return (Intersection) build(Family.INTERSECTION);
@@ -188,7 +188,7 @@ public class SetOperation {
      * Convenience method, returns a configured SetOperation Intersection with the given
      * <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>.
      * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
-     * @return a Intersection object
+     * @return an Intersection object
      */
     public Intersection buildIntersection(int nomEntries) {
       return (Intersection) build(nomEntries, Family.INTERSECTION);
@@ -197,7 +197,7 @@ public class SetOperation {
     /**
      * Convenience method, returns a configured SetOperation ANotB with
      * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">Default Nominal Entries</a>
-     * @return a ANotB object
+     * @return an ANotB object
      */
     public AnotB buildANotB() {
       return (AnotB) build(Family.A_NOT_B);
@@ -207,7 +207,7 @@ public class SetOperation {
      * Convenience method, returns a configured SetOperation ANotB with the given
      * <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>.
      * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
-     * @return a ANotB object
+     * @return an ANotB object
      */
     public AnotB buildANotB(int nomEntries) {
       return (AnotB) build(nomEntries, Family.A_NOT_B);

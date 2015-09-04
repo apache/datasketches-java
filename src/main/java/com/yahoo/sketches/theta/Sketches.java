@@ -6,6 +6,7 @@ package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.theta.PreambleUtil.*;
 
+import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 
 
@@ -181,8 +182,10 @@ public class Sketches {
    * Gets the unique count estimate.
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return the sketch's best estimate of the cardinality of the input stream.
+   * @throws IllegalArgumentException if given memory is not from a valid ThetaSketch.
    */
   public static double getEstimate(Memory srcMem) {
+    checkIfValidThetaSketch(srcMem);
     return Sketch.estimate(getThetaLong(srcMem), getRetainedEntries(srcMem), getEmpty(srcMem));
   }
   
@@ -234,5 +237,13 @@ public class Sketches {
       return ((getThetaLong(srcMem) == Long.MAX_VALUE) && (getRetainedEntries(srcMem) == 0));
     }
     return srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); //for SerVer 2 & 3
+  }
+  
+  static void checkIfValidThetaSketch(Memory srcMem) {
+    int fam = srcMem.getByte(FAMILY_BYTE);
+    if (!Family.isValidSketchID(fam)) {
+     throw new IllegalArgumentException("Source Memory not a valid Sketch. Family: "+
+       Family.idToFamily(fam).toString()); 
+    }
   }
 }

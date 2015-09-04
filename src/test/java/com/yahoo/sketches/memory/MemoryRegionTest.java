@@ -259,6 +259,24 @@ public class MemoryRegionTest {
     mem.freeMemory();
   }
   
+  @Test
+  public void checkReassign() {
+     long[] arr = new long[2];
+     Memory mem = new NativeMemory(arr);
+     mem.putLong(0, 1L);
+     mem.putLong(8, -2);
+     MemoryRegion reg = new MemoryRegion(mem, 0, 8);
+     assertEquals(reg.getLong(0), 1L);
+     reg.reassign(8, 8);
+     assertEquals(reg.getLong(0), -2L);
+  }
+  
+  
+  @Test
+  public void printlnTest() {
+    println("Test");
+  }
+  
   /**
    * @param s value to print 
    */
