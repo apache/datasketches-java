@@ -48,6 +48,32 @@ public class SetOperationTest {
     assertEquals(compEst, exactUnionAnswer, 0.0);
   }
   
+  @Test
+  public void checkBuilderGets() {
+    SetOperation.Builder bldr = SetOperation.builder();
+    
+    long seed = 12345L;
+    bldr.setSeed(seed);
+    assertEquals(seed, bldr.getSeed());
+    
+    float p = (float)0.5;
+    bldr.setP(p);
+    assertEquals(p, bldr.getP());
+    
+    ResizeFactor rf = ResizeFactor.X4;
+    bldr.setResizeFactor(rf);
+    assertEquals(rf, bldr.getResizeFactor());
+    
+    Memory mem = new NativeMemory(new byte[16]);
+    bldr.setMemory(mem);
+    assertEquals(mem, bldr.getMemory());
+    
+    int lgK = 10;
+    int k = 1 << lgK;
+    bldr.setNominalEntries(k);
+    assertEquals(lgK, bldr.getLgNominalEntries());
+  }
+  
   @SuppressWarnings("unused")
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkBuilderBadK() {

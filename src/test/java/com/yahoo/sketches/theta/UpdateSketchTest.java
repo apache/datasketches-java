@@ -8,6 +8,9 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.memory.Memory;
+import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.theta.UpdateSketch;
 
 /** 
@@ -64,6 +67,36 @@ public class UpdateSketchTest {
     assertEquals(lgSubMul, 7);
     lgSubMul = UpdateSketch.startingSubMultiple(4, ResizeFactor.X1, 5);
     assertEquals(lgSubMul, 5);
+  }
+  
+  @Test
+  public void checkBuilderGets() {
+    UpdateSketch.Builder bldr = UpdateSketch.builder();
+    
+    long seed = 12345L;
+    bldr.setSeed(seed);
+    assertEquals(seed, bldr.getSeed());
+    
+    float p = (float)0.5;
+    bldr.setP(p);
+    assertEquals(p, bldr.getP());
+    
+    ResizeFactor rf = ResizeFactor.X4;
+    bldr.setResizeFactor(rf);
+    assertEquals(rf, bldr.getResizeFactor());
+    
+    Family fam = Family.ALPHA;
+    bldr.setFamily(fam);
+    assertEquals(fam, bldr.getFamily());
+    
+    Memory mem = new NativeMemory(new byte[16]);
+    bldr.initMemory(mem);
+    assertEquals(mem, bldr.getMemory());
+    
+    int lgK = 10;
+    int k = 1 << lgK;
+    bldr.setNominalEntries(k);
+    assertEquals(lgK, bldr.getLgNominalEntries());
   }
   
   @Test

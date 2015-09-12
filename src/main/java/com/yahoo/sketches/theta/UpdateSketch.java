@@ -12,6 +12,7 @@ import static com.yahoo.sketches.theta.UpdateReturnState.RejectedNullOrEmpty;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 
 /**
@@ -62,13 +63,40 @@ public abstract class UpdateSketch extends Sketch {
     }
     
     /**
-     * Sets the long seed value that is require by the hashing function.
+     * Sets the Nominal Entries for this sketch.
+     * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
+     * @return this Builder
+     */
+    public Builder setNominalEntries(int nomEntries) {
+      Util.checkIfPowerOf2(nomEntries, "nomEntries");
+      bLgNomLongs = Integer.numberOfTrailingZeros(nomEntries);
+      return this;
+    }
+    
+    /**
+     * Returns Log-base 2 Nominal Entries
+     * @return Log-base 2 Nominal Entries
+     */
+    public int getLgNominalEntries() {
+      return bLgNomLongs;
+    }
+    
+    /**
+     * Sets the long seed value that is required by the hashing function.
      * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
      * @return this Builder
      */
     public Builder setSeed(long seed) {
       bSeed = seed;
       return this;
+    }
+    
+    /**
+     * Returns the seed
+     * @return the seed
+     */
+    public long getSeed() {
+      return bSeed;
     }
     
     /**
@@ -85,6 +113,14 @@ public abstract class UpdateSketch extends Sketch {
     }
     
     /**
+     * Returns the pre-sampling probability <i>p</i>
+     * @return the pre-sampling probability <i>p</i>
+     */
+    public float getP() {
+      return bP;
+    }
+    
+    /**
      * Sets the cache Resize Factor
      * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
      * @return this Builder
@@ -92,6 +128,14 @@ public abstract class UpdateSketch extends Sketch {
     public Builder setResizeFactor(ResizeFactor rf) {
       bRF = rf;
       return this;
+    }
+    
+    /**
+     * Returns the Resize Factor 
+     * @return the Resize Factor
+     */
+    public ResizeFactor getResizeFactor() {
+      return bRF;
     }
     
     /**
@@ -105,6 +149,14 @@ public abstract class UpdateSketch extends Sketch {
     }
     
     /**
+     * Returns the Family
+     * @return the Family
+     */
+    public Family getFamily() {
+      return bFam;
+    }
+    
+    /**
      * Initialize the specified backing Memory store.  
      * Note: this cannot be used with the Alpha Family of sketches.
      * @param mem  <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
@@ -113,6 +165,14 @@ public abstract class UpdateSketch extends Sketch {
     public Builder initMemory(Memory mem) {
       bMem = mem;
       return this;
+    }
+    
+    /**
+     * Returns the Memory
+     * @return the Memory
+     */
+    public Memory getMemory() {
+      return bMem;
     }
     
     /**
