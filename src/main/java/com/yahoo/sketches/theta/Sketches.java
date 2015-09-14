@@ -13,6 +13,8 @@ import com.yahoo.sketches.memory.Memory;
 /**
  * This class brings together the common sketch and set operation creation methods and
  * the public static methods into one place.
+ * 
+ * @author Lee Rhodes
  */
 public final class Sketches {
   

@@ -15,7 +15,9 @@ import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 
 /**
- * For building a new SetOperation.  
+ * For building a new SetOperation.
+ * 
+ * @author Lee Rhodes
  */
 public class SetOperationBuilder {
   private int bLgNomLongs;

@@ -15,6 +15,8 @@ import com.yahoo.sketches.PowerLawGenerator.Pair;
  * other analytic computations. The first column is just the point number. The second column is
  * the generating index for the coordinate pair.  The third column represents the "X-axis" and the
  * last column represents the "Y-axis".  The first two columns are informational only.
+ * 
+ * @author Lee Rhodes
  */
 public class PowerLawGeneratorTest {
   

@@ -8,6 +8,8 @@ package com.yahoo.sketches.theta;
  * For the Families that accept this configuration parameter, it controls the size multiple that
  * affects how fast the internal cache grows, when more space is required.
  * <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
+ * 
+ * @author Lee Rhodes
  */
 public enum ResizeFactor {
   X1(0), X2(1), X4(2), X8(3);

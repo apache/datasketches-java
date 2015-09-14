@@ -6,6 +6,8 @@ package com.yahoo.sketches.theta;
 
 /**
  * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
+ * 
+ * @author Lee Rhodes
  */
 public enum UpdateReturnState {
   

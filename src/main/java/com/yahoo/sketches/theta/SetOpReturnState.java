@@ -4,6 +4,10 @@
  */
 package com.yahoo.sketches.theta;
 
+/**
+ * 
+ * @author Lee Rhodes
+ */
 public enum SetOpReturnState {
   
   /**

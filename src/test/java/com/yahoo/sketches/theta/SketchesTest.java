@@ -23,6 +23,9 @@ import static com.yahoo.sketches.theta.Sketches.wrapSetOperation;
 import static com.yahoo.sketches.theta.Sketches.wrapSketch;
 import static org.testng.Assert.*;
 
+/**
+ * @author Lee Rhodes
+ */
 public class SketchesTest {
   
   private static Memory getCompactSketch(int k, int from, int to) {
