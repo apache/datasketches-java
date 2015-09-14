@@ -7,7 +7,7 @@ import com.yahoo.sketches.hash.MurmurHash3;
 public class HllSketch
 {
   // derived using some formulas in Ting's paper (link?)
-  private static final double HIP_REL_ERROR_NUMER = 0.836083874576235;
+  private static final double HLL_REL_ERROR_NUMER = 1.04;
 
   public static HllSketchBuilder builder() {
     return new HllSketchBuilder();
@@ -114,7 +114,7 @@ public class HllSketch
   }
 
   private double eps(double numStdDevs) {
-    return numStdDevs * HIP_REL_ERROR_NUMER / Math.sqrt(preamble.getConfigK());
+    return numStdDevs * HLL_REL_ERROR_NUMER / Math.sqrt(preamble.getConfigK());
   }
 
   public byte[] toByteArray() {
