@@ -70,8 +70,8 @@ public class UpdateSketchTest {
   }
   
   @Test
-  public void checkBuilderGets() {
-    UpdateSketch.Builder bldr = UpdateSketch.builder();
+  public void checkBuilder() {
+    UpdateSketchBuilder bldr = UpdateSketch.builder();
     
     long seed = 12345L;
     bldr.setSeed(seed);
@@ -97,6 +97,8 @@ public class UpdateSketchTest {
     int k = 1 << lgK;
     bldr.setNominalEntries(k);
     assertEquals(lgK, bldr.getLgNominalEntries());
+    
+    println(bldr.toString());
   }
   
   @Test

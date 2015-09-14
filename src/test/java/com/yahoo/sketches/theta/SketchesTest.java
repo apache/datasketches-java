@@ -26,8 +26,7 @@ import static org.testng.Assert.*;
 public class SketchesTest {
   
   private static Memory getCompactSketch(int k, int from, int to) {
-    UpdateSketch.Builder bldr = updateSketchBuilder();
-    UpdateSketch sk1 = bldr.build(k);
+    UpdateSketch sk1 = updateSketchBuilder().build(k);
     for (int i=from; i<to; i++) sk1.update(i);
     CompactSketch csk = sk1.compact(true, null);
     byte[] sk1bytes = csk.toByteArray();
@@ -59,7 +58,7 @@ public class SketchesTest {
     Memory mem1 = getCompactSketch(k, 0, k);
     Memory mem2 = getCompactSketch(k, k/2, 3*k/2);
     
-    SetOperation.Builder bldr = setOperationBuilder();
+    SetOperationBuilder bldr = setOperationBuilder();
     Union union = bldr.buildUnion(2*k);
     
     union.update(mem1);

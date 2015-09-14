@@ -49,8 +49,8 @@ public class SetOperationTest {
   }
   
   @Test
-  public void checkBuilderGets() {
-    SetOperation.Builder bldr = SetOperation.builder();
+  public void checkBuilder2() {
+    SetOperationBuilder bldr = SetOperation.builder();
     
     long seed = 12345L;
     bldr.setSeed(seed);
@@ -72,6 +72,8 @@ public class SetOperationTest {
     int k = 1 << lgK;
     bldr.setNominalEntries(k);
     assertEquals(lgK, bldr.getLgNominalEntries());
+    
+    println(bldr.toString());
   }
   
   @SuppressWarnings("unused")
@@ -151,7 +153,7 @@ public class SetOperationTest {
   
   @Test
   public void checkBuildSetOps() {
-    SetOperation.Builder bldr = Sketches.setOperationBuilder();
+    SetOperationBuilder bldr = Sketches.setOperationBuilder();
     bldr.buildUnion();
     bldr.buildIntersection();
     bldr.buildANotB();

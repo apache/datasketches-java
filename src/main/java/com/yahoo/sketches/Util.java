@@ -39,10 +39,14 @@ public final class Util {
   public static final long DEFAULT_UPDATE_SEED = 9001L;
   
   /**
-   * The java line separator character.
+   * The java line separator character as a String.
    */
   public static final String LS = System.getProperty("line.separator");
   
+  /**
+   * The tab character
+   */
+  public static final char TAB = '\t';
   /**
    * Checks if parameter v is a multiple of 8 and greater than zero.
    * @param v The parameter to check

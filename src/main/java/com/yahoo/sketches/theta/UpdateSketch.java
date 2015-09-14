@@ -4,21 +4,16 @@
  */
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.Util.DEFAULT_NOMINAL_ENTRIES;
-import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
-import static com.yahoo.sketches.Util.checkIfPowerOf2;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedNullOrEmpty;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.yahoo.sketches.Family;
-import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 
 /**
- * The parent class for all Update Sketches, such as QuickSelect and Alpha.  The primary task of an
- * Upeate Sketch is to consider datums presented via the update() methods for inclusion in its
- * internal cache. This is the sketch building process. 
+ * The parent class for the  Update Sketch families, such as QuickSelect and Alpha.  
+ * The primary task of an Upeate Sketch is to consider datums presented via the update() methods 
+ * for inclusion in its internal cache. This is the sketch building process. 
  * 
  * @author Lee Rhodes 
  */
@@ -31,203 +26,26 @@ public abstract class UpdateSketch extends Sketch {
   @Override
   public abstract boolean isEmpty();
   
+  @Override
+  public boolean isOrdered() {
+    return false;
+  }
+  
   //UpdateSketch
   
   /**
-   * Makes a new builder
+   * Returns a new builder
    *
    * @return a new builder
    */
-  public static final Builder builder() {
-    return new Builder();
-  }
-  
-  /**
-   * For building a new UpdateSketch.
-   */
-  public static class Builder {
-    private int bLgNomLongs;
-    private long bSeed;
-    private float bP;
-    private ResizeFactor bRF;
-    private Family bFam;
-    private Memory bMem;
-    
-    Builder() {
-      bLgNomLongs = Integer.numberOfTrailingZeros(DEFAULT_NOMINAL_ENTRIES);
-      bSeed = DEFAULT_UPDATE_SEED;
-      bP = (float) 1.0;
-      bRF = ResizeFactor.X8;
-      bFam = Family.QUICKSELECT;
-      bMem = null;
-    }
-    
-    /**
-     * Sets the Nominal Entries for this sketch.
-     * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
-     * @return this Builder
-     */
-    public Builder setNominalEntries(int nomEntries) {
-      Util.checkIfPowerOf2(nomEntries, "nomEntries");
-      bLgNomLongs = Integer.numberOfTrailingZeros(nomEntries);
-      return this;
-    }
-    
-    /**
-     * Returns Log-base 2 Nominal Entries
-     * @return Log-base 2 Nominal Entries
-     */
-    public int getLgNominalEntries() {
-      return bLgNomLongs;
-    }
-    
-    /**
-     * Sets the long seed value that is required by the hashing function.
-     * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
-     * @return this Builder
-     */
-    public Builder setSeed(long seed) {
-      bSeed = seed;
-      return this;
-    }
-    
-    /**
-     * Returns the seed
-     * @return the seed
-     */
-    public long getSeed() {
-      return bSeed;
-    }
-    
-    /**
-     * Sets the upfront uniform sampling probability, <i>p</i>
-     * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
-     * @return this Builder
-     */
-    public Builder setP(float p) {
-      if ((p <= 0.0) || (p > 1.0)) {
-        throw new IllegalArgumentException("p must be > 0 and <= 1.0: "+p);
-      }
-      bP = p;
-      return this;
-    }
-    
-    /**
-     * Returns the pre-sampling probability <i>p</i>
-     * @return the pre-sampling probability <i>p</i>
-     */
-    public float getP() {
-      return bP;
-    }
-    
-    /**
-     * Sets the cache Resize Factor
-     * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
-     * @return this Builder
-     */
-    public Builder setResizeFactor(ResizeFactor rf) {
-      bRF = rf;
-      return this;
-    }
-    
-    /**
-     * Returns the Resize Factor 
-     * @return the Resize Factor
-     */
-    public ResizeFactor getResizeFactor() {
-      return bRF;
-    }
-    
-    /**
-     * Set the Family.  
-     * @param family the family for this builder
-     * @return this Builder
-     */
-    public Builder setFamily(Family family) {
-      this.bFam = family;
-      return this;
-    }
-    
-    /**
-     * Returns the Family
-     * @return the Family
-     */
-    public Family getFamily() {
-      return bFam;
-    }
-    
-    /**
-     * Initialize the specified backing Memory store.  
-     * Note: this cannot be used with the Alpha Family of sketches.
-     * @param mem  <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-     * @return this Builder
-     */
-    public Builder initMemory(Memory mem) {
-      bMem = mem;
-      return this;
-    }
-    
-    /**
-     * Returns the Memory
-     * @return the Memory
-     */
-    public Memory getMemory() {
-      return bMem;
-    }
-    
-    /**
-     * Returns a configured UpdateSketch with the
-     * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">Default Nominal Entres</a>
-     * @return an UpdateSketch
-     */
-    public UpdateSketch build() {
-      return build(DEFAULT_NOMINAL_ENTRIES);
-    }
-    
-    /**
-     * Returns a configured UpdateSketch with the given
-     * <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
-     * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
-     * @return an UpdateSketch
-     */
-    public UpdateSketch build(int nomEntries) {
-      checkIfPowerOf2(nomEntries, "nomEntries");
-      bLgNomLongs = Integer.numberOfTrailingZeros(nomEntries);
-      UpdateSketch sketch = null;
-      switch (bFam) {
-        case ALPHA: {
-          if (bMem == null) {
-            sketch = new HeapAlphaSketch(bLgNomLongs, bSeed, bP, bRF);
-          } 
-          else {
-            throw new IllegalArgumentException("AlphaSketch cannot be made Direct to Memory.");
-          }
-          break;
-        }
-        case QUICKSELECT: {
-          if (bMem == null) {
-            sketch = new HeapQuickSelectSketch(bLgNomLongs, bSeed, bP, bRF, false);
-          } 
-          else {
-            sketch = 
-              new DirectQuickSelectSketch(bLgNomLongs, bSeed, bP, bMem, false);
-          }
-          break;
-        }
-        default: throw new IllegalArgumentException(
-            "Given Family cannot be built as a Sketch: "+bFam.toString());
-        
-      }
-      return sketch;
-    }
+  public static final UpdateSketchBuilder builder() {
+    return new UpdateSketchBuilder();
   }
   
   /**
    * Resets this sketch back to a virgin empty state.
    */
   public abstract void reset();
-  
-  //Updatable
   
   /**
    * Convert this UpdateSketch to a CompactSketch in the chosen form.
@@ -275,7 +93,6 @@ public abstract class UpdateSketch extends Sketch {
    * @return this sketch
    */
   public abstract UpdateSketch rebuild();
-  
   
   /**
    * Present this sketch with a long.
@@ -370,8 +187,6 @@ public abstract class UpdateSketch extends Sketch {
   
   //restricted methods
   
-  //UpdateInternal Defined here with Javadocs
-  
   /**
    * All potential updates converge here.
    * <p>Don't ever call this unless you really know what you are doing!</p>
@@ -424,13 +239,6 @@ public abstract class UpdateSketch extends Sketch {
    * @return true if the internal cache is dirty.
    */
   abstract boolean isDirty();
-  
-  //SetArgument
-  
-  @Override
-  public boolean isOrdered() {
-    return false;
-  }
   
   //static methods
   

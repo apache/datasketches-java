@@ -19,11 +19,11 @@ public final class Sketches {
   private Sketches() {}
   
   /**
-   * Ref: {@link UpdateSketch#builder() UpdateSketch.builder()}
-   * @return {@link UpdateSketch.Builder UpdateSketch.Builder}
+   * Ref: {@link UpdateSketchBuilder UpdateSketchBuilder}
+   * @return {@link UpdateSketchBuilder UpdateSketchBuilder}
    */
-  public static UpdateSketch.Builder updateSketchBuilder() {
-    return UpdateSketch.builder();
+  public static UpdateSketchBuilder updateSketchBuilder() {
+    return new UpdateSketchBuilder();
   }
   
   /**
@@ -65,11 +65,11 @@ public final class Sketches {
   }
   
   /**
-   * Ref: {@link SetOperation#builder() SetOperation.builder()}
-   * @return {@link SetOperation.Builder SetOperation.Builder}
+   * Ref: {@link SetOperationBuilder SetOperationBuilder}
+   * @return {@link SetOperationBuilder SetOperationBuilder}
    */
-  public static SetOperation.Builder setOperationBuilder() {
-    return SetOperation.builder();
+  public static SetOperationBuilder setOperationBuilder() {
+    return new SetOperationBuilder();
   }
   
   /**
