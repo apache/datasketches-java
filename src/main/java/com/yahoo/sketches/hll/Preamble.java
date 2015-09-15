@@ -29,7 +29,7 @@ public class Preamble
   private byte flags;
   private short seedHash;
 
-  public Preamble(byte preambleSize, byte version, byte familyId, byte logConfigK, byte flags, short seedHash)
+  private Preamble(byte preambleSize, byte version, byte familyId, byte logConfigK, byte flags, short seedHash)
   {
     this.preambleSize = preambleSize;
     this.version = version;
@@ -229,7 +229,7 @@ public class Preamble
     private byte familyId = Preamble.DEFAULT_PREAMBLE_FAMILY_ID;
     private byte logConfigK;
     private byte flags;
-    private short seedHash;
+    private short seedHash = computeSeedHash(Util.DEFAULT_UPDATE_SEED);
 
     public Builder setPreambleSize(byte preambleSize)
     {
@@ -261,8 +261,12 @@ public class Preamble
       return this;
     }
 
-    public Builder setSeedHash(short seedHash)
+    public Builder setSeed(long seed)
     {
+      return setSeedHash(computeSeedHash(seed));
+    }
+
+    Builder setSeedHash(short seedHash) {
       this.seedHash = seedHash;
       return this;
     }
