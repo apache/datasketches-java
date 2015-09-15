@@ -4,9 +4,7 @@ import com.yahoo.sketches.Util;
 import com.yahoo.sketches.hash.MurmurHash3;
 
 @SuppressWarnings("cast")
-public class HllSketch
-{
-  // derived using some formulas in Ting's paper (link?)
+public class HllSketch {
   private static final double HLL_REL_ERROR_NUMER = 1.04;
 
   public static HllSketchBuilder builder() {
