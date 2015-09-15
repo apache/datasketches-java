@@ -12,7 +12,7 @@ public class PreambleTest
   public void testSerDe() {
     Preamble preamble = new Preamble.Builder()
         .setLogConfigK((byte) 10)
-        .setSeedHash(Short.MIN_VALUE)
+        .setSeed(Short.MIN_VALUE)
         .setFlags((byte) 12).build();
 
     byte[] bytes = new byte[10];
