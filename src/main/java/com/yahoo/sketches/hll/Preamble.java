@@ -1,26 +1,22 @@
 package com.yahoo.sketches.hll;
 
-
+import com.yahoo.sketches.Family;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.hash.MurmurHash3;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;
 import com.yahoo.sketches.memory.NativeMemory;
 
-public class Preamble
-{
+public class Preamble {
+  public static final byte PREAMBLE_LONGS = 1;
+  public static final byte PREAMBLE_VERSION = 8;
+  public static final byte HLL_PREAMBLE_FAMILY_ID = (byte) Family.HLL.getID();
 
-  public static final byte DEFAULT_PREAMBLE_SIZE = 1;
-  public static final byte DEFAULT_PREAMBLE_VERSION = 8;
-  public static final byte DEFAULT_PREAMBLE_FAMILY_ID = 6;
-  public static final byte PERAMBLE_SIZE_BYTES = 8;
-
-  public static final int[] AUX_SIZE = new int[]{
+  public static final int[] AUX_SIZE = new int[] {
       1, 4, 4, 4, 4, 4, 4, 8, 8, 8,
       16, 16, 32, 32, 64, 128, 256, 512, 1024, 2048,
       4096, 8192, 16384, 32768, 65536, 131072, 262144
   };
-
 
   private byte preambleSize;
   private byte version;
@@ -29,8 +25,7 @@ public class Preamble
   private byte flags;
   private short seedHash;
 
-  public Preamble(byte preambleSize, byte version, byte familyId, byte logConfigK, byte flags, short seedHash)
-  {
+  private Preamble(byte preambleSize, byte version, byte familyId, byte logConfigK, byte flags, short seedHash) {
     this.preambleSize = preambleSize;
     this.version = version;
     this.familyId = familyId;
@@ -48,8 +43,7 @@ public class Preamble
     }
   }
 
-  public static Preamble fromMemory(Memory memory)
-  {
+  public static Preamble fromMemory(Memory memory) {
     Builder builder = new Builder()
         .setPreambleSize(memory.getByte(0))
         .setVersion(memory.getByte(1))
@@ -73,8 +67,7 @@ public class Preamble
    *
    * @return the seed hash.
    */
-  private static short computeSeedHash(long seed)
-  {
+  private static short computeSeedHash(long seed) {
     long[] seedArr = {seed};
     short seedHash = (short) ((MurmurHash3.hash(seedArr, 0L)[0]) & 0xFFFFL);
     if (seedHash == 0) {
@@ -87,8 +80,7 @@ public class Preamble
   }
 
 
-  public static Preamble createSharedPreamble(int logConfigK)
-  {
+  public static Preamble createSharedPreamble(int logConfigK) {
     if (logConfigK > 255) {
       throw new IllegalArgumentException("logConfigK is greater than a byte, make it smaller");
     }
@@ -112,15 +104,13 @@ public class Preamble
         .build();
   }
 
-  public byte[] toByteArray()
-  {
+  public byte[] toByteArray() {
     byte[] retVal = new byte[getPreambleSize() << 3];
     intoByteArray(retVal, 0);
     return retVal;
   }
 
-  public int intoByteArray(byte[] bytes, int offset)
-  {
+  public int intoByteArray(byte[] bytes, int offset) {
     if (bytes.length - offset < 8) {
       throw new IllegalArgumentException("bytes too small");
     }
@@ -135,49 +125,40 @@ public class Preamble
     return offset + 8;
   }
 
-  public byte getPreambleSize()
-  {
+  public byte getPreambleSize() {
     return preambleSize;
   }
 
-  public byte getVersion()
-  {
+  public byte getVersion() {
     return version;
   }
 
-  public byte getFamilyId()
-  {
+  public byte getFamilyId() {
     return familyId;
   }
 
-  public byte getLogConfigK()
-  {
+  public byte getLogConfigK() {
     return logConfigK;
   }
 
-  public int getConfigK()
-  {
+  public int getConfigK() {
     return 1 << logConfigK;
   }
 
-  public int getMaxAuxSize()
-  {
+  public int getMaxAuxSize() {
     return AUX_SIZE[logConfigK] << 2;
   }
 
-  public byte getFlags()
-  {
+  public byte getFlags() {
     return flags;
   }
 
-  public short getSeedHash()
-  {
+  public short getSeedHash() {
     return seedHash;
   }
 
   @Override
-  public boolean equals(Object o)
-  {
+  public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
@@ -211,8 +192,7 @@ public class Preamble
 
   @SuppressWarnings("cast")
   @Override
-  public int hashCode()
-  {
+  public int hashCode() {
     int result = (int) preambleSize;
     result = 31 * result + (int) version;
     result = 31 * result + (int) familyId;
@@ -222,53 +202,49 @@ public class Preamble
     return result;
   }
 
-  public static class Builder
-  {
-    private byte preambleSize = Preamble.DEFAULT_PREAMBLE_SIZE;
-    private byte version = Preamble.DEFAULT_PREAMBLE_VERSION;
-    private byte familyId = Preamble.DEFAULT_PREAMBLE_FAMILY_ID;
-    private byte logConfigK;
-    private byte flags;
-    private short seedHash;
+  public static class Builder {
+    private byte preambleSize = Preamble.PREAMBLE_LONGS;
+    private byte version = Preamble.PREAMBLE_VERSION;
+    private byte familyId = Preamble.HLL_PREAMBLE_FAMILY_ID;
+    private byte logConfigK = (byte) Integer.numberOfTrailingZeros(Util.DEFAULT_NOMINAL_ENTRIES);
+    private byte flags; //TODO needs defaults
+    private short seedHash = computeSeedHash(Util.DEFAULT_UPDATE_SEED);
 
-    public Builder setPreambleSize(byte preambleSize)
-    {
+    public Builder setPreambleSize(byte preambleSize) {
       this.preambleSize = preambleSize;
       return this;
     }
 
-    public Builder setVersion(byte version)
-    {
+    public Builder setVersion(byte version) {
       this.version = version;
       return this;
     }
 
-    public Builder setFamilyId(byte familyId)
-    {
+    public Builder setFamilyId(byte familyId) {
       this.familyId = familyId;
       return this;
     }
 
-    public Builder setLogConfigK(byte logConfigK)
-    {
+    public Builder setLogConfigK(byte logConfigK) {
       this.logConfigK = logConfigK;
       return this;
     }
 
-    public Builder setFlags(byte flags)
-    {
+    public Builder setFlags(byte flags) {
       this.flags = flags;
       return this;
     }
 
-    public Builder setSeedHash(short seedHash)
-    {
+    public Builder setSeed(long seed) {
+      return setSeedHash(computeSeedHash(seed));
+    }
+
+    public Builder setSeedHash(short seedHash) {
       this.seedHash = seedHash;
       return this;
     }
 
-    public Preamble build()
-    {
+    public Preamble build() {
       return new Preamble(preambleSize, version, familyId, logConfigK, flags, seedHash);
     }
 

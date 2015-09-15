@@ -1,5 +1,6 @@
 package com.yahoo.sketches.hll;
 
+import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -12,13 +13,13 @@ public class PreambleTest
   public void testSerDe() {
     Preamble preamble = new Preamble.Builder()
         .setLogConfigK((byte) 10)
-        .setSeedHash(Short.MIN_VALUE)
+        .setSeed(Util.DEFAULT_UPDATE_SEED)
         .setFlags((byte) 12).build();
 
     byte[] bytes = new byte[10];
     int initOffset = 1;
     int newOffset = preamble.intoByteArray(bytes, initOffset);
-    Assert.assertEquals(newOffset, initOffset + Preamble.PERAMBLE_SIZE_BYTES);
+    Assert.assertEquals(newOffset, initOffset + (Preamble.PREAMBLE_LONGS << 3));
 
     Memory mem = new MemoryRegion(new NativeMemory(bytes), 1, bytes.length - 1);
     Preamble serdePreamble = Preamble.fromMemory(mem);

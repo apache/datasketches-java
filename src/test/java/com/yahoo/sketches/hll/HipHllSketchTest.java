@@ -4,14 +4,12 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-public class HipHllSketchTest
-{
+public class HipHllSketchTest {
   @Test(dataProvider = "sketches")
   public void testEstimation(HllSketch sketch) {
     int numEntries = sketch.numBuckets();
     for (int i = 0; i < numEntries * 3; ++i) {
       sketch.update(new int[]{i});
-
 
       double estimate = sketch.getEstimate();
       Assert.assertEquals(estimate, estimatesAtLog10Buckets[i]);
@@ -21,17 +19,15 @@ public class HipHllSketchTest
   }
 
   @DataProvider(name = "sketches")
-  public static Object[][] getSketches()
-  {
-    HllSketchBuilder bob = HllSketch.builder().setLogBuckets(10).usingHipEstimator();
+  public static Object[][] getSketches() {
+    HllSketchBuilder bob = HllSketch.builder().setLogBuckets(10).setHipEstimator(true);
     return new Object[][]{
         {bob.build()},
-        {bob.asDense().build()},
+        {bob.setDenseMode(true).build()},
     };
   }
 
-  public static void main(String[] args)
-  {
+  public static void main(String[] args) {
     HllSketch sketch = (HllSketch) getSketches()[0][0];
 
     int numEntries = sketch.numBuckets();

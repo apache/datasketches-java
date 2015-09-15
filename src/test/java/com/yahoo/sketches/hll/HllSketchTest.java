@@ -26,7 +26,7 @@ public class HllSketchTest
     HllSketchBuilder bob = HllSketch.builder().setLogBuckets(10);
     return new Object[][]{
         {bob.build()},
-        {bob.asDense().build()}
+        {bob.setDenseMode(true).build()}
     };
   }
 

@@ -70,7 +70,7 @@ public enum Family {
   /**
    * The HLL family of sketches.
    */
-  HLL(7, "HLL", 4, 4);
+  HLL(7, "HLL", 1, 1);
   
   private static final Map<Integer, Family> lookupID = new HashMap<Integer, Family>();
   private static final Map<String, Family> lookupFamName = new HashMap<String, Family>();
