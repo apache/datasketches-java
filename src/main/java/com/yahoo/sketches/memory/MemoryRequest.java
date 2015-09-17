@@ -28,7 +28,7 @@ public interface MemoryRequest {
   /**
    * This enables linking of the Memory to be freed to the new Memory that was allocated to
    * replace it. 
-   * @param freeAndLink instance of the MemoryFreeAndLink class.
+   * @param memLink instance of the MemoryLink class.
    */
-  void free(MemoryFreeAndLink freeAndLink);
+  void free(MemoryLink memLink);
 }

@@ -32,8 +32,8 @@ public class UpdateSketchBuilder {
    * <ul>
    * <li>Nominal Entries: {@value com.yahoo.sketches.Util#DEFAULT_NOMINAL_ENTRIES}</li>
    * <li>Seed: {@value com.yahoo.sketches.Util#DEFAULT_UPDATE_SEED}</li>
-   * <li>Resize Factor: {@value com.yahoo.sketches.theta.ResizeFactor#X8}</li>
-   * <li>Family: {@value com.yahoo.sketches.Family#QUICKSELECT}</li>
+   * <li>{@link com.yahoo.sketches.theta.ResizeFactor#X8}</li>
+   * <li>{@link com.yahoo.sketches.Family#QUICKSELECT}</li>
    * <li>Input Sampling Probability: 1.0</li>
    * <li>Memory: null</li>
    * </ul>

@@ -10,7 +10,7 @@ package com.yahoo.sketches.memory;
  * 
  * @author Lee Rhodes
  */
-public class MemoryFreeAndLink {
+public class MemoryLink {
   public Memory oldMemory;
   public Memory newMemory;
 }
