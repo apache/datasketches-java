@@ -51,8 +51,8 @@ class HeapCompactSketch extends CompactSketch {
   HeapCompactSketch(UpdateSketch sketch) {
     super(sketch.isEmpty(),
         sketch.getSeedHash(),
-        sketch.getRetainedEntries(true),
-        sketch.getThetaLong()
+        sketch.getRetainedEntries(true), //curCount_  set here
+        sketch.getThetaLong()            //thetaLong_ set here
         );
     boolean ordered = false;
     cache_ = CompactSketch.compactCache(sketch.getCache(), curCount_, thetaLong_, ordered);

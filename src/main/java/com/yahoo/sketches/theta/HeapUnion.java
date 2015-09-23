@@ -228,11 +228,12 @@ class HeapUnion extends SetOperation implements Union {
     //curCount <= k; gadget theta could be p < 1.0, but cannot do a quick select
     long thetaLongR = min(gadget_.getThetaLong(), unionThetaLong_);
     long[] gadgetCache = gadget_.getCache();
+    //CurCount must be recounted with a scan using the new theta
     int curCountR = HashOperations.count(gadgetCache, thetaLongR);
-    long[] compactCacheR = compactCache(gadgetCache, curCountR, thetaLongR, dstOrdered);    
+    long[] compactCacheR = compactCache(gadgetCache, curCountR, thetaLongR, dstOrdered);
     return createCompactSketch(compactCacheR, unionEmpty_, seedHash_, curCountR, thetaLongR, 
         dstOrdered, dstMem);
-  } //TODO auto reset?
+  }
   
   @Override
   public byte[] toByteArray() {

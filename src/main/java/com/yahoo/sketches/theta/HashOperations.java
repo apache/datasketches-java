@@ -48,7 +48,7 @@ final class HashOperations {
     int len = srcArr.length;
     for (int i = len; i-- > 0;) {
       long h = srcArr[i];
-      if ((h <= 0) || (h >= thetaLong)) {
+      if ((h <= 0L) || (h >= thetaLong)) {
         continue;
       }
       cnt++ ;

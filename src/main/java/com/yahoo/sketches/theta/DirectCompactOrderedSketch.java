@@ -47,8 +47,8 @@ class DirectCompactOrderedSketch extends CompactSketch {
   DirectCompactOrderedSketch(UpdateSketch sketch, Memory dstMem) {
     super(sketch.isEmpty(), 
         sketch.getSeedHash(), 
-        sketch.getRetainedEntries(true), 
-        sketch.getThetaLong()
+        sketch.getRetainedEntries(true), //curCount_  set here 
+        sketch.getThetaLong()            //thetaLong_ set here
         );
     int emptyBit = empty_? (byte) EMPTY_FLAG_MASK : 0;
     byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK);
