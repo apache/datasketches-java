@@ -11,7 +11,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.LG_RESIZE_FACTOR_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG;
+import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.P_FLOAT;
 import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
@@ -78,10 +78,10 @@ class HeapAlphaSketch extends HeapUpdateSketch {
     
     empty_ = true; //other flags: bigEndian = readOnly = compact = ordered = false; 
     curCount_ = 0;
-    thetaLong_ = (long)(p * MAX_THETA_LONG);
+    thetaLong_ = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
     double nomLongs = (1L << lgNomLongs_);
     alpha_ = nomLongs / (nomLongs + 1.0);
-    split1_ = (long) ((p * (alpha_ + 1.0)/2.0) * MAX_THETA_LONG);
+    split1_ = (long) ((p * (alpha_ + 1.0)/2.0) * MAX_THETA_LONG_AS_DOUBLE);
   }
   
   /**
@@ -117,7 +117,7 @@ class HeapAlphaSketch extends HeapUpdateSketch {
     
     double nomLongs = (1L << lgNomLongs_);
     alpha_ = nomLongs / (nomLongs + 1);
-    split1_ = (long) ((p_ * (alpha_ + 1.0)/2.0) * MAX_THETA_LONG);
+    split1_ = (long) ((p_ * (alpha_ + 1.0)/2.0) * MAX_THETA_LONG_AS_DOUBLE);
   }
   
   //Sketch
@@ -212,7 +212,7 @@ class HeapAlphaSketch extends HeapUpdateSketch {
     hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
     empty_ = true;
     curCount_ = 0;
-    thetaLong_ =  (long)(p_ * MAX_THETA_LONG);
+    thetaLong_ =  (long)(p_ * MAX_THETA_LONG_AS_DOUBLE);
     dirty_ = false;
   }  
   

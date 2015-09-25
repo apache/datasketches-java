@@ -12,7 +12,7 @@ import static com.yahoo.sketches.Util.zeroPad;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG;
+import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 
@@ -51,6 +51,24 @@ public abstract class Sketch {
    */
   public double getLowerBound(int numStdDev) {
     return Sketch.lowerBound(numStdDev, getThetaLong(), getRetainedEntries(true), isEmpty());
+  }
+  
+  /**
+   * Returns the number of entries that have been retained by the sketch.
+   * @param valid if true, returns the number of valid entries, which are less than theta and used
+   * for estimation.
+   * Otherwise, return the number of all entries, valid or not, that are currently in the internal 
+   * sketch cache.
+   * @return the number of valid retained entries
+   */
+  public abstract int getRetainedEntries(boolean valid);
+  
+  /**
+   * Gets the value of theta as a double with a value between zero and one
+   * @return the value of theta as a double
+   */
+  public double getTheta() {
+    return getThetaLong() / MAX_THETA_LONG_AS_DOUBLE;
   }
   
   /**
@@ -159,7 +177,7 @@ public abstract class Sketch {
     }
     
     if (sketchSummary) {
-      double thetaDbl = thetaLong / MAX_THETA_LONG;
+      double thetaDbl = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
       String thetaHex = zeroPad(Long.toHexString(thetaLong), 16);
       String thisSimpleName = this.getClass().getSimpleName();
       short seedHash = this.getSeedHash();
@@ -362,16 +380,6 @@ public abstract class Sketch {
   abstract int getPreambleLongs();
   
   /**
-   * Returns the number of entries that have been retained by the sketch.
-   * @param valid if true, returns the number of valid entries, which are less than theta and used
-   * for estimation.
-   * Otherwise, return the number of all entries, valid or not, that are currently in the internal 
-   * sketch cache.
-   * @return the number of valid retained entries
-   */
-  public abstract int getRetainedEntries(boolean valid);
-  
-  /**
    * Gets the 16-bit seed hash
    * @return the seed hash
    */
@@ -403,7 +411,7 @@ public abstract class Sketch {
   
   static final double estimate(long thetaLong, int curCount, boolean empty) {
     if (estMode(thetaLong, empty)) {
-      double theta = thetaLong / MAX_THETA_LONG;
+      double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
       return curCount / theta;
     } 
     return curCount;
@@ -413,7 +421,7 @@ public abstract class Sketch {
     if ((numStdDev < 1) || (numStdDev > 3)) {
       throw new IllegalArgumentException("numStdDev can only be the values 1, 2 or 3: "+numStdDev);
     }
-    double theta = thetaLong / MAX_THETA_LONG;
+    double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
     return Bounds.approxLBforUsers(curCount, theta, numStdDev, empty);
   }
   
@@ -421,7 +429,7 @@ public abstract class Sketch {
     if  ((numStdDev < 1) || (numStdDev > 3))  {
       throw new IllegalArgumentException("numStdDev can only be the values 1, 2 or 3:"+numStdDev);
     }
-    double theta = thetaLong / MAX_THETA_LONG;
+    double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
     return Bounds.approxUBforUsers(curCount, theta, numStdDev, empty);
   }
   

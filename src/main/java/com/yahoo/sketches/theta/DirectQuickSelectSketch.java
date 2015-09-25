@@ -12,7 +12,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG;
+import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.P_FLOAT;
 import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
@@ -134,7 +134,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     setCurCount(0);
     
     mem_.putFloat(P_FLOAT, p);
-    setThetaLong((long)(p * MAX_THETA_LONG));
+    setThetaLong((long)(p * MAX_THETA_LONG_AS_DOUBLE));
   }
   
   /**
@@ -251,7 +251,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     empty_ = true;
     setCurCount(0);
     float p = mem.getFloat(P_FLOAT);
-    setThetaLong((long)(p * MAX_THETA_LONG));
+    setThetaLong((long)(p * MAX_THETA_LONG_AS_DOUBLE));
   }
   
   //restricted methods

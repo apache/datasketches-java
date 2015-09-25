@@ -4,7 +4,6 @@
  */
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG;
 import static com.yahoo.sketches.theta.PreambleUtil.computeSeedHash;
 
 /**
@@ -65,10 +64,6 @@ abstract class DirectUpdateSketch extends UpdateSketch {
     return p_;
   }
 
-  @Override
-  double getTheta() {
-    return getThetaLong()/MAX_THETA_LONG;
-  }
   
   //Set Arguments
   

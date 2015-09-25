@@ -86,7 +86,7 @@ final class PreambleUtil {
   static final boolean NATIVE_ORDER_IS_BIG_ENDIAN  = 
       (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
   
-  static final double MAX_THETA_LONG = Long.MAX_VALUE;  //Replaces TWO_TO_63
+  static final double MAX_THETA_LONG_AS_DOUBLE = Long.MAX_VALUE;
 
   /**
    * Computes and checks the 16-bit seed hash from the given long seed.
@@ -153,12 +153,12 @@ final class PreambleUtil {
     short seedHash = mem.getShort(SEED_HASH_SHORT);
     int curCount = 0;
     float p = (float)1.0;
-    long thetaLong = (long)(p * MAX_THETA_LONG);
+    long thetaLong = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
     long thetaULong = thetaLong;
     if (preLongs == 2) {
       curCount = mem.getInt(RETAINED_ENTRIES_INT);
       p = mem.getFloat(P_FLOAT);
-      thetaLong = (long)(p * MAX_THETA_LONG);
+      thetaLong = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
       thetaULong = thetaLong;
     } 
     else if (preLongs == 3){
@@ -173,9 +173,9 @@ final class PreambleUtil {
       thetaLong = mem.getLong(THETA_LONG);
       thetaULong = mem.getLong(UNION_THETA_LONG);
     } //else: the same as preLongs == 1
-    double thetaDbl = thetaLong / MAX_THETA_LONG;
+    double thetaDbl = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
     String thetaHex = zeroPad(Long.toHexString(thetaLong), 16);
-    double thetaUDbl = thetaULong / MAX_THETA_LONG;
+    double thetaUDbl = thetaULong / MAX_THETA_LONG_AS_DOUBLE;
     String thetaUHex = zeroPad(Long.toHexString(thetaULong), 16);
     
     StringBuilder sb = new StringBuilder();

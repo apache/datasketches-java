@@ -9,7 +9,6 @@ import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.P_FLOAT;
 import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
@@ -110,11 +109,6 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   @Override
   float getP() {
     return p_;
-  }
-
-  @Override
-  double getTheta() {
-    return getThetaLong()/MAX_THETA_LONG;
   }
 
   //Set Arguments

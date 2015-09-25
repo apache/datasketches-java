@@ -228,12 +228,6 @@ public abstract class UpdateSketch extends Sketch {
   abstract long getSeed();
   
   /**
-   * Gets the value of theta as a double with a value between zero and one
-   * @return the value of theta as a double
-   */
-  abstract double getTheta();
-  
-  /**
    * Returns true if the internal cache contains "dirty" values that are greater than or equal
    * to thetaLong.
    * @return true if the internal cache is dirty.
