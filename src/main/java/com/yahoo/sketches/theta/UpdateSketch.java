@@ -61,7 +61,6 @@ public abstract class UpdateSketch extends Sketch {
    * @param dstMem if valid, and large enough the returned sketch will be backed by this Memory.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>.
    * @return this sketch as a compact sketch
-   * @throws IllegalArgumentException if destination Memory is not large enough.
    */
   public CompactSketch compact(boolean dstOrdered, Memory dstMem) {
     CompactSketch sketchOut = null;

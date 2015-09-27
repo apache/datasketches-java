@@ -44,10 +44,9 @@ public class SetOperation {
    * SetOperation using the
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
    * The resulting SetOperation will not retain any link to the source Memory. 
-   * @param srcMem an image of a SetOperation.
-   * @return a Heap-based Sketch from the given Memory
-   * @throws IllegalArgumentException if given image does not match a known
-   * Sketch implementation, or if the assumed default seed does not match the image seed hash.
+   * @param srcMem an image of a SetOperation where the image seed hash matches the default seed hash.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @return a Heap-based SetOperation from the given Memory
    */
   public static SetOperation heapify(Memory srcMem) {
     return heapify(srcMem, DEFAULT_UPDATE_SEED);
@@ -55,14 +54,12 @@ public class SetOperation {
 
   /**
    * Heapify takes the SetOperation image in Memory and instantiates an on-heap 
-   * SetOperation using the 
-   * given seed.
+   * SetOperation using the given seed.
    * The resulting SetOperation will not retain any link to the source Memory.
-   * @param srcMem an image of a SetOperation.
+   * @param srcMem an image of a SetOperation where the hash of the given seed matches the image seed hash.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a Heap-based SetOperation from the given Memory
-   * @throws IllegalArgumentException if given image does not match a known
-   * SetOperation implementation, or if the assumed default seed does not match the image seed hash.
    */
   public static SetOperation heapify(Memory srcMem, long seed) {
     byte famID = srcMem.getByte(FAMILY_BYTE);
@@ -86,10 +83,9 @@ public class SetOperation {
    * Only "Direct" SetOperations that have been explicity stored as direct can be wrapped.  
    * This method assumes the 
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
-   * @param srcMem an image of a SetOperation
+   * @param srcMem an image of a SetOperation where the image seed hash matches the default seed hash.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a SetOperation backed by the given Memory
-   * @throws IllegalArgumentException if given image does not match a known
-   * SetOperation implementation, or if the assumed default seed does not match the image seed hash.
    */
   public static SetOperation wrap(Memory srcMem) {
     return wrap(srcMem, DEFAULT_UPDATE_SEED);
@@ -99,11 +95,10 @@ public class SetOperation {
    * Wrap takes the SetOperation image in Memory and refers to it directly. 
    * There is no data copying onto the java heap.  
    * Only "Direct" SetOperations that have been explicity stored as direct can be wrapped.
-   * @param srcMem an image of a SetOperation.
+   * @param srcMem an image of a SetOperation where the hash of the given seed matches the image seed hash.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a SetOperation backed by the given Memory
-   * @throws IllegalArgumentException if given image does not match a known
-   * SetOperation implementation, or if the assumed default seed does not match the image seed hash.
    */
   public static SetOperation wrap(Memory srcMem, long seed) {
     byte famID = srcMem.getByte(FAMILY_BYTE);

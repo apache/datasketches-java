@@ -24,11 +24,10 @@ public interface Intersection {
   SetOpReturnState update(Sketch sketchIn);
   
   /**
-   * Returns the result as a new CompactSketch.
+   * Returns the result of a call to update(Sketch) as a new CompactSketch.
    * @param dstOrdered if true, the result of a SetOperation will be in ordered, compact form
    * @param dstMem the destination Memory
    * @return the result CompactSketch.
-   * @throws IllegalStateException if this is called without an intervening call to intersect(Sketch).
    */
   CompactSketch getResult(boolean dstOrdered, Memory dstMem);
   

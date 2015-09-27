@@ -186,11 +186,10 @@ public class QuickSelectTest {
   
   
   /**
-   * Returns an integer uniformly between 0 (inclusive) and n (exclusive).
+   * Returns an integer uniformly between 0 (inclusive) and n (exclusive) where {@code n > 0}
    * 
    * @param n the upper exclusive bound
    * @return random integer
-   * @throws IllegalArgumentException if <tt>n <= 0</tt>
    */
   public static int uniform(int n) {
     if (n <= 0) {

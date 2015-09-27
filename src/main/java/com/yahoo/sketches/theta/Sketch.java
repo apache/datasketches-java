@@ -212,10 +212,9 @@ public abstract class Sketch {
    * Sketch using the
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
    * The resulting sketch will not retain any link to the source Memory. 
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param srcMem an image of a Sketch where the image seed hash matches the default seed hash.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a Heap-based Sketch from the given Memory
-   * @throws IllegalArgumentException if given image does not match a known
-   * Sketch implementation, or if the assumed default seed does not match the image seed hash.
    */
   public static Sketch heapify(Memory srcMem) {
     return heapify(srcMem, DEFAULT_UPDATE_SEED);
@@ -225,12 +224,11 @@ public abstract class Sketch {
    * Heapify takes the sketch image in Memory and instantiates an on-heap 
    * Sketch using the given seed.
    * The resulting sketch will not retain any link to the source Memory.
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param srcMem an image of a Sketch where the image seed hash matches the given seed hash.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * Compact sketches do not use the seed parameter.
    * @return a Heap-based Sketch from the given Memory
-   * @throws IllegalArgumentException if given image does not match a known
-   * Sketch implementation, or if the given seed does not match the image seed hash.
    */
   public static Sketch heapify(Memory srcMem, long seed) {
     int serVer = srcMem.getByte(SER_VER_BYTE);
@@ -253,10 +251,9 @@ public abstract class Sketch {
    * the java heap.  Only "Direct" sketches that have been explicity stored as direct objects can
    * be wrapped.  This method assumes the 
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param srcMem an image of a Sketch where the image seed hash matches the default seed hash.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a Sketch backed by the given Memory
-   * @throws IllegalArgumentException if given image does not match a known
-   * Sketch implementation, or if the assumed default seed does not match the image seed hash.
    */
   public static Sketch wrap(Memory srcMem) {
     return wrap(srcMem, DEFAULT_UPDATE_SEED);
@@ -266,12 +263,11 @@ public abstract class Sketch {
    * Wrap takes the sketch image in Memory and refers to it directly. There is no data copying onto
    * the java heap.  Only "Direct" sketches that have been explicity stored as direct objects can
    * be wrapped.
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param srcMem an image of a Sketch where the image seed hash matches the given seed hash.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * Compact sketches do not use the seed parameter.
    * @return a UpdateSketch backed by the given Memory
-   * @throws IllegalArgumentException if given image does not match a known
-   * Sketch implementation, or if the assumed default seed does not match the image seed hash.
    */
   public static Sketch wrap(Memory srcMem, long seed) { 
     int serVer = srcMem.getByte(SER_VER_BYTE);

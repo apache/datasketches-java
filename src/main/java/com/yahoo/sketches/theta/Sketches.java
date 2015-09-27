@@ -30,7 +30,7 @@ public final class Sketches {
   
   /**
    * Ref: {@link Sketch#heapify(Memory) Sketch.heapify(Memory)}
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param srcMem Ref: {@link Sketch#heapify(Memory) Sketch.heapify(Memory)} {@code srcMem}
    * @return {@link Sketch Sketch}
    */
   public static Sketch heapifySketch(Memory srcMem) {
@@ -39,8 +39,8 @@ public final class Sketches {
   
   /**
    * Ref: {@link Sketch#heapify(Memory, long) Sketch.heapify(Memory, long)}
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Seed</a>
+   * @param srcMem Ref: {@link Sketch#heapify(Memory, long) Sketch.heapify(Memory, long)} {@code srcMem}
+   * @param seed Ref: {@link Sketch#heapify(Memory, long) Sketch.heapify(Memory, long)} {@code seed}
    * @return {@link Sketch Sketch}
    */
   public static Sketch heapifySketch(Memory srcMem, long seed) {
@@ -49,7 +49,7 @@ public final class Sketches {
   
   /**
    * Ref: {@link Sketch#wrap(Memory) Sketch.heapify(Memory)}
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param srcMem Ref: {@link Sketch#wrap(Memory) Sketch.heapify(Memory)} {@code srcMem}
    * @return {@link Sketch Sketch}
    */
   public static Sketch wrapSketch(Memory srcMem) {
@@ -58,8 +58,8 @@ public final class Sketches {
   
   /**
    * Ref: {@link Sketch#wrap(Memory, long) Sketch.wrap(Memory, long)}
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Seed</a>
+   * @param srcMem Ref: {@link Sketch#wrap(Memory, long) Sketch.wrap(Memory, long)} {@code srcMem}
+   * @param seed Ref: {@link Sketch#wrap(Memory, long) Sketch.wrap(Memory, long)} {@code seed}
    * @return {@link Sketch Sketch}
    */
   public static Sketch wrapSketch(Memory srcMem, long seed) {
@@ -76,7 +76,7 @@ public final class Sketches {
   
   /**
    * Ref: {@link SetOperation#heapify(Memory) SetOperation.heapify(Memory)}
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param srcMem Ref: {@link SetOperation#heapify(Memory) SetOperation.heapify(Memory)} {@code srcMem}
    * @return {@link SetOperation SetOperation}
    */
   public static SetOperation heapifySetOperation(Memory srcMem) {
@@ -85,8 +85,10 @@ public final class Sketches {
   
   /**
    * Ref: {@link SetOperation#heapify(Memory, long) SetOperation.heapify(Memory, long)}
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Seed</a>
+   * @param srcMem Ref: {@link SetOperation#heapify(Memory, long) SetOperation.heapify(Memory, long)}
+   * {@code srcMem} 
+   * @param seed Ref: {@link SetOperation#heapify(Memory, long) SetOperation.heapify(Memory, long)}
+   * {@code seed}
    * @return {@link SetOperation SetOperation}
    */
   public static SetOperation heapifySetOperation(Memory srcMem, long seed) {
@@ -95,7 +97,7 @@ public final class Sketches {
   
   /**
    * Ref: {@link SetOperation#wrap(Memory) SetOperation.wrap(Memory)}
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param srcMem Ref: {@link SetOperation#wrap(Memory) SetOperation.wrap(Memory)} {@code srcMem}
    * @return {@link SetOperation SetOperation}
    */
   public static SetOperation wrapSetOperation(Memory srcMem) {
@@ -104,10 +106,8 @@ public final class Sketches {
 
   /**
    * Convenience method, calls {@link SetOperation#wrap(Memory)} and casts the result to a Union
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param srcMem Ref: {@link SetOperation#wrap(Memory)} {@code srcMem}
    * @return a Union backed by the given Memory
-   * @throws IllegalArgumentException if given image does not match a known
-   * SetOperation implementation, or if the assumed default seed does not match the image seed hash.
    */
   public static Union wrapUnion(Memory srcMem) {
     return (Union) SetOperation.wrap(srcMem);
@@ -115,10 +115,8 @@ public final class Sketches {
 
   /**
    * Convenience method, calls {@link SetOperation#wrap(Memory)} and casts the result to a Intersection
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param srcMem Ref: {@link SetOperation#wrap(Memory)} {@code srcMem}
    * @return a Intersection backed by the given Memory
-   * @throws IllegalArgumentException if given image does not match a known
-   * SetOperation implementation, or if the assumed default seed does not match the image seed hash.
    */
   public static Intersection wrapIntersection(Memory srcMem) {
     return (Intersection) SetOperation.wrap(srcMem);
@@ -126,8 +124,10 @@ public final class Sketches {
 
   /**
    * Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)}
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Seed</a>
+   * @param srcMem Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)}
+   * {@code srcMem}
+   * @param seed Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)}
+   * {@code seed}
    * @return {@link SetOperation SetOperation}
    */
   public static SetOperation wrapSetOperation(Memory srcMem, long seed) {
@@ -138,8 +138,9 @@ public final class Sketches {
   
   /**
    * Ref: {@link Sketch#getMaxCompactSketchBytes(int)}
-   * @param numberOfEntries  {@link Sketch#getMaxCompactSketchBytes(int)}
-   * @return {@link Sketch#getMaxCompactSketchBytes(int)}
+   * @param numberOfEntries  Ref: {@link Sketch#getMaxCompactSketchBytes(int)} 
+   * {@code numberOfEntries}
+   * @return Ref: {@link Sketch#getMaxCompactSketchBytes(int)}
    */
   public static int getMaxCompactSketchBytes(int numberOfEntries) {
     return Sketch.getMaxCompactSketchBytes(numberOfEntries);
@@ -147,8 +148,8 @@ public final class Sketches {
   
   /**
    * Ref: {@link Sketch#getMaxUpdateSketchBytes(int)}
-   * @param nomEntries {@link Sketch#getMaxUpdateSketchBytes(int)}
-   * @return {@link Sketch#getMaxUpdateSketchBytes(int)}
+   * @param nomEntries Ref: {@link Sketch#getMaxUpdateSketchBytes(int)} {@code nomEntries}
+   * @return Ref: {@link Sketch#getMaxUpdateSketchBytes(int)}
    */
   public static int getMaxUpdateSketchBytes(int nomEntries) {
     return Sketch.getMaxUpdateSketchBytes(nomEntries);
@@ -156,16 +157,16 @@ public final class Sketches {
   
   /**
    * Ref: {@link Sketch#getSerializationVersion(Memory)}
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @return {@link Sketch#getSerializationVersion(Memory)}
+   * @param srcMem Ref: {@link Sketch#getSerializationVersion(Memory)} {@code srcMem}
+   * @return Ref: {@link Sketch#getSerializationVersion(Memory)}
    */
   public static int getSerializationVersion(Memory srcMem) {
     return Sketch.getSerializationVersion(srcMem);
   }
   /**
    * Ref: {@link SetOperation#getMaxUnionBytes(int)}
-   * @param nomEntries {@link SetOperation#getMaxUnionBytes(int)}
-   * @return {@link SetOperation#getMaxUnionBytes(int)}
+   * @param nomEntries Ref: {@link SetOperation#getMaxUnionBytes(int)} {@code nomEntries}
+   * @return Ref: {@link SetOperation#getMaxUnionBytes(int)}
    */
   public static int getMaxUnionBytes(int nomEntries) {
     return SetOperation.getMaxUnionBytes(nomEntries);
@@ -173,8 +174,8 @@ public final class Sketches {
   
   /**
    * Ref: {@link SetOperation#getMaxIntersectionBytes(int)}
-   * @param nomEntries {@link SetOperation#getMaxIntersectionBytes(int)}
-   * @return {@link SetOperation#getMaxIntersectionBytes(int)}
+   * @param nomEntries Ref: {@link SetOperation#getMaxIntersectionBytes(int)} {@code nomEntries}
+   * @return Ref: {@link SetOperation#getMaxIntersectionBytes(int)}
    */
   public static int getMaxIntersectionBytes(int nomEntries) {
     return SetOperation.getMaxIntersectionBytes(nomEntries);
@@ -183,10 +184,9 @@ public final class Sketches {
   //Get estimates and bounds from Memory
   
   /**
-   * Gets the unique count estimate.
+   * Gets the unique count estimate from a valid memory image of a Sketch
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return the sketch's best estimate of the cardinality of the input stream.
-   * @throws IllegalArgumentException if given memory is not from a valid ThetaSketch.
    */
   public static double getEstimate(Memory srcMem) {
     checkIfValidThetaSketch(srcMem);
@@ -194,12 +194,14 @@ public final class Sketches {
   }
   
   /**
-   * Gets the approximate upper error bound given the specified number of Standard Deviations. 
+   * Gets the approximate upper error bound from a valid memory image of a Sketch 
+   * given the specified number of Standard Deviations. 
    * This will return getEstimate() if isEmpty() is true.
    * 
    * @param numStdDev
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param srcMem 
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return the upper bound.
    */
   public static double getUpperBound(int numStdDev, Memory srcMem) {
@@ -207,7 +209,8 @@ public final class Sketches {
   }
   
   /**
-   * Gets the approximate lower error bound given the specified number of Standard Deviations. 
+   * Gets the approximate lower error bound from a valid memory image of a Sketch
+   * given the specified number of Standard Deviations. 
    * This will return getEstimate() if isEmpty() is true.
    * 
    * @param numStdDev
