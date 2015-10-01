@@ -8,6 +8,8 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import org.testng.annotations.Test;
+
 import com.yahoo.sketches.memory.Memory;
 
 /**
@@ -310,10 +312,15 @@ public class CommonTests {
     println(mem.toHexString("Check toHexString(8, 40)", 8, 40));
   }
 
+  @Test
+  public void printlnTest() {
+    println(this.getClass().getSimpleName());
+  }
+  
   /**
    * @param s value to print 
    */
-  static void println(String s) { 
+  static void println(String s) {
     //System.out.println(s); //disable here
   }
 }

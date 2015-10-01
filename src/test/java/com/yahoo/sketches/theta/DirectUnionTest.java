@@ -5,15 +5,19 @@
 package com.yahoo.sketches.theta;
 
 import com.yahoo.sketches.memory.Memory;
+import com.yahoo.sketches.memory.MemoryUtil;
 import com.yahoo.sketches.memory.NativeMemory;
 import org.testng.annotations.Test;
 
 import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV1;
 import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV2;
 import static com.yahoo.sketches.theta.HeapUnionTest.testAllCompactForms;
+import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.theta.SetOperation.getMaxUnionBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+
+import java.util.Arrays;
 
 /**
  * @author Lee Rhodes
@@ -474,6 +478,63 @@ public class DirectUnionTest {
     assertEquals(cOut.getEstimate(), 0.0, 0.0);
   }
   
+  @Test
+  public void checkUpdateMemorySpecialCases2() {
+    int lgK = 12; //4096
+    int k = 1 << lgK;
+    int u = 2*k;
+    
+    UpdateSketch usk1 = UpdateSketch.builder().build(k);
+    for (int i=0; i<u; i++) usk1.update(i); //force prelongs to 3
+    CompactSketch usk1c = usk1.compact(true, null);
+    NativeMemory v3mem1 = new NativeMemory(usk1c.toByteArray());
+    
+    Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]); //union memory
+    Union union = SetOperation.builder().setMemory(uMem).buildUnion(k);
+    union.update(v3mem1);
+  }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkMemBadSerVer() {
+    int lgK = 12; //4096
+    int k = 1 << lgK;
+    
+    UpdateSketch usk1 = UpdateSketch.builder().build(k);
+    CompactSketch usk1c = usk1.compact(true, null);
+    NativeMemory v3mem1 = new NativeMemory(usk1c.toByteArray());
+    //corrupt SerVer
+    v3mem1.putByte(SER_VER_BYTE, (byte)0);
+    
+    Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]); //union memory
+    Union union = SetOperation.builder().setMemory(uMem).buildUnion(k);
+    
+    union.update(v3mem1);
+  }
+  
+  @Test
+  //where the granted mem is larger than required
+  public void checkEmptySerVer2and3() {
+    int lgK = 12; //4096
+    int k = 1 << lgK;
+    UpdateSketch usk1 = UpdateSketch.builder().build(k);
+    CompactSketch usk1c = usk1.compact(true, null);
+    byte[] skArr = usk1c.toByteArray();
+    byte[] skArr2 = Arrays.copyOf(skArr, skArr.length * 2);
+    NativeMemory v3mem1 = new NativeMemory(skArr2);
+    
+    Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]); //union memory
+    Union union = SetOperation.builder().setMemory(uMem).buildUnion(k);
+    union.update(v3mem1);
+    
+    Memory v2mem1 = convertSerV3toSerV2(v3mem1);
+    Memory v2mem2 = new NativeMemory(new byte[16]);
+    MemoryUtil.copy(v2mem1, 0, v2mem2, 0, 8);
+    
+    uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]); //union memory
+    union = SetOperation.builder().setMemory(uMem).buildUnion(k);
+    union.update(v2mem2);
+  }
+  
   //Special DirectUnion cases
   @Test //Himanshu's issue
   public void checkDirectWrap() {
@@ -529,13 +590,11 @@ public class DirectUnionTest {
     
     Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]); //union memory
     SetOperation.builder().setMemory(uMem).buildUnion(k);
-
-    //println(PreambleUtil.toString(uMem));
   }
   
   @Test
   public void printlnTest() {
-    println("Test");
+    println(this.getClass().getSimpleName());
   }
   
   /**

@@ -27,7 +27,6 @@ import static com.yahoo.sketches.theta.UpdateReturnState.RejectedOverTheta;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.memory.MemoryLink;
 import com.yahoo.sketches.memory.MemoryRequest;
 import com.yahoo.sketches.memory.MemoryUtil;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -332,7 +331,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
             }
             Memory oldMem = mem_;
             moveAndResizeMe(newMem, newLgArrLongs);
-            memReq_.free(new MemoryLink(oldMem, newMem));
+            memReq_.free(oldMem, newMem);
           } //end of expand in current mem or not
         } //end of curBytes vs fullBytes
       } //else curCount >= hashTableThreshold

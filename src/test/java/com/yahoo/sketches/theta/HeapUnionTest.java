@@ -430,6 +430,21 @@ public class HeapUnionTest {
     assertEquals(cOut.getEstimate(), 0.0, 0.0);
   }
   
+  @Test
+  public void checkUpdateMemorySpecialCases2() {
+    int lgK = 12; //4096
+    int k = 1 << lgK;
+    int u = 2*k;
+    
+    UpdateSketch usk1 = UpdateSketch.builder().build(k);
+    for (int i=0; i<u; i++) usk1.update(i); //force prelongs to 3
+    CompactSketch usk1c = usk1.compact(true, null);
+    NativeMemory v3mem1 = new NativeMemory(usk1c.toByteArray());
+    //println(PreambleUtil.toString(v3mem1));
+    Union union = SetOperation.builder().buildUnion(k);
+    union.update(v3mem1);
+  }
+  
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkMemBadSerVer() {
     int lgK = 12; //4096
@@ -446,6 +461,7 @@ public class HeapUnionTest {
   }
   
   @Test
+  //where the granted mem is larger than required
   public void checkEmptySerVer2and3() {
     UpdateSketch usk1 = UpdateSketch.builder().build();
     CompactSketch usk1c = usk1.compact(true, null);
@@ -459,7 +475,7 @@ public class HeapUnionTest {
     Memory v2mem1 = convertSerV3toSerV2(v3mem1);
     Memory v2mem2 = new NativeMemory(new byte[16]);
     MemoryUtil.copy(v2mem1, 0, v2mem2, 0, 8);
-    println(PreambleUtil.toString(v2mem1));
+    
     union = SetOperation.builder().buildUnion();
     union.update(v2mem2);
   }
@@ -486,13 +502,13 @@ public class HeapUnionTest {
   
   @Test
   public void printlnTest() {
-    println("Test");
+    println(this.getClass().getSimpleName());
   }
   
   /**
    * @param s value to print
    */
   static void println(String s) {
-    System.out.println(s); //Disable here
+    //System.out.println(s); //Disable here
   }
 }

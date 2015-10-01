@@ -314,9 +314,16 @@ public class MurmurHash3AdaptorTest {
     asInt(s, 1);
   }
   
-//  public static void main(String[] args) {
-//    MurmurHash3AdaptorTest mh3at = new MurmurHash3AdaptorTest();
-//    mh3at.checkAsInt();
-//  }
+  @Test
+  public void printlnTest() {
+    println(this.getClass().getSimpleName());
+  }
+  
+  /**
+   * @param s value to print 
+   */
+  static void println(String s) {
+    //System.out.println(s); //disable here
+  }
 
 }

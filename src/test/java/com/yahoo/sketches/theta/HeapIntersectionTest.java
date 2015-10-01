@@ -538,14 +538,9 @@ public class HeapIntersectionTest {
     inter1 = (Intersection) SetOperation.heapify(mem);
   }
   
-//  public static void main(String[] args) {
-//    HeapIntersectionTest hit = new HeapIntersectionTest();
-//    hit.checkIntersectionEarlyStop();
-//  }
-  
   @Test
   public void printlnTest() {
-    println("Test");
+    println(this.getClass().getSimpleName());
   }
   
   /**

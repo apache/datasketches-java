@@ -528,10 +528,9 @@ public class NativeMemoryTest {
     new NativeMemory(arr);
   }
   
-  
   @Test
   public void printlnTest() {
-    println("Test");
+    println(this.getClass().getSimpleName());
   }
   
   /**
@@ -540,5 +539,5 @@ public class NativeMemoryTest {
   static void println(String s) {
     //System.out.println(s); //disable here
   }
-   
+  
 }

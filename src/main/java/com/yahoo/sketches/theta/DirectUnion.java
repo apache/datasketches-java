@@ -174,12 +174,11 @@ class DirectUnion extends SetOperation implements Union{
       return;
     }
     if (preLongs == 2) {
-      if (curCount > 0) {
-        //unionEmpty_ flag is merged with the gadget
-        mem_.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); //set NOT empty
-      }
+      assert curCount > 0;
+      //unionEmpty_ flag is merged with the gadget
+      mem_.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); //set NOT empty
       thetaLongIn = Long.MAX_VALUE;
-    } else {
+    } else { //prelongs == 3, curCount may be 0 (e.g., from intersection)
       thetaLongIn = skMem.getLong(THETA_LONG);
     }
     unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule
@@ -202,12 +201,11 @@ class DirectUnion extends SetOperation implements Union{
       return;
     }
     if (preLongs == 2) {
-      if (curCount > 0) {
-        //unionEmpty_ flag is merged with the gadget
-        mem_.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); //set NOT empty
-      }
+      assert curCount > 0;
+      //unionEmpty_ flag is merged with the gadget
+      mem_.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); //set NOT empty
       thetaLongIn = Long.MAX_VALUE;
-    } else {
+    } else { //prelongs == 3, curCount may be 0 (e.g., from intersection)
       thetaLongIn = skMem.getLong(THETA_LONG);
     }
     unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule

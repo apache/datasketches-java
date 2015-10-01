@@ -114,13 +114,11 @@ class HeapUnion extends SetOperation implements Union {
     int f;
     assert ((f=skMem.getByte(FAMILY_BYTE)) == 3) : "Illegal Family/SketchType byte: "+f;
     int serVer = skMem.getByte(SER_VER_BYTE);
-    System.out.println("1 SerVer "+serVer);
     if (serVer == 1) {
       if (cap <= 24) return; //empty
       processVer1(skMem);
     }
     else if (serVer == 2) { 
-      System.out.println("2 SerVer "+serVer+", cap: "+cap);
       if (cap <= 8) return; //empty
       processVer2(skMem);
     }
@@ -159,11 +157,10 @@ class HeapUnion extends SetOperation implements Union {
       return;
     }
     if (preLongs == 2) {
-      if (curCount > 0) {
-        unionEmpty_ = false; //Empty rule: AND the empty states
-      }
+      assert curCount > 0;
+      unionEmpty_ = false; //Empty rule: AND the empty states
       thetaLongIn = Long.MAX_VALUE;
-    } else {
+    } else { //prelongs == 3, curCount may be 0 (e.g., from intersection)
       thetaLongIn = skMem.getLong(THETA_LONG);
     }
     unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule
@@ -186,12 +183,11 @@ class HeapUnion extends SetOperation implements Union {
     if (preLongs == 1) {
       return;
     }
-    if (preLongs == 2) {
-      if (curCount > 0) {
-        unionEmpty_ = false; //Empty rule: AND the empty states
-      }
+    if (preLongs == 2) { //curCount has to be > 0 and exact
+      assert curCount > 0;
+      unionEmpty_ = false; //Empty rule: AND the empty states
       thetaLongIn = Long.MAX_VALUE;
-    } else {
+    } else { //prelongs == 3, curCount may be 0 (e.g., from intersection)
       thetaLongIn = skMem.getLong(THETA_LONG);
     }
     unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule

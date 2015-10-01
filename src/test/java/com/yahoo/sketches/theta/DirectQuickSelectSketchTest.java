@@ -19,7 +19,6 @@ import org.testng.annotations.Test;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.AllocMemory;
 import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.memory.MemoryLink;
 import com.yahoo.sketches.memory.MemoryRequest;
 import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.theta.CompactSketch;
@@ -624,10 +623,9 @@ public class DirectQuickSelectSketchTest {
     }
 
     @Override
-    public void free(MemoryLink memLink) {
-      Memory oldMem = memLink.oldMemory;
-      if (oldMem instanceof NativeMemory) {
-        NativeMemory nMem = (NativeMemory)oldMem;
+    public void free(Memory memToFree, Memory newMem) {
+      if (memToFree instanceof NativeMemory) {
+        NativeMemory nMem = (NativeMemory)memToFree;
         println("Freed : " + nMem.getCapacity());
         nMem.freeMemory();
       } // else reassign the old MemoryRegion
@@ -672,10 +670,9 @@ public class DirectQuickSelectSketchTest {
     }
 
     @Override
-    public void free(MemoryLink memLink) {
-      Memory oldMem = memLink.oldMemory;
-      if (oldMem instanceof NativeMemory) {
-        NativeMemory nMem = (NativeMemory)oldMem;
+    public void free(Memory memToFree, Memory newMem) {
+      if (memToFree instanceof NativeMemory) {
+        NativeMemory nMem = (NativeMemory)memToFree;
         println("Freed : " + nMem.getCapacity());
         nMem.freeMemory();
       } // else reassign the old MemoryRegion
@@ -720,10 +717,9 @@ public class DirectQuickSelectSketchTest {
     }
 
     @Override
-    public void free(MemoryLink memLink) {
-      Memory oldMem = memLink.oldMemory;
-      if (oldMem instanceof NativeMemory) {
-        NativeMemory nMem = (NativeMemory)oldMem;
+    public void free(Memory memToFree, Memory newMem) {
+      if (memToFree instanceof NativeMemory) {
+        NativeMemory nMem = (NativeMemory)memToFree;
         println("Freed : " + nMem.getCapacity());
         nMem.freeMemory();
       } // else reassign the old MemoryRegion
@@ -770,10 +766,9 @@ public class DirectQuickSelectSketchTest {
     }
 
     @Override
-    public void free(MemoryLink memLink) {
-      Memory oldMem = memLink.oldMemory;
-      if (oldMem instanceof NativeMemory) {
-        NativeMemory nMem = (NativeMemory)oldMem;
+    public void free(Memory memToFree, Memory newMem) {
+      if (memToFree instanceof NativeMemory) {
+        NativeMemory nMem = (NativeMemory)memToFree;
         println("Freed : " + nMem.getCapacity());
         nMem.freeMemory();
       } // else reassign the old MemoryRegion
@@ -843,6 +838,11 @@ public class DirectQuickSelectSketchTest {
     mem1.putByte(LG_ARR_LONGS_BYTE, (byte) 10); //corrupt lgArrLongs
     @SuppressWarnings("unused")
     UpdateSketch usk2 = (UpdateSketch) Sketches.wrapSketch(mem1);
+  }
+  
+  @Test
+  public void printlnTest() {
+    println(this.getClass().getSimpleName());
   }
   
   /**
