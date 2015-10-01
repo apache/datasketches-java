@@ -156,7 +156,7 @@ public class SetOperationBuilder {
           setOp = new HeapUnion(bLgNomLongs, bSeed, bP, bRF);
         } 
         else {
-          setOp = new DirectUnion(bLgNomLongs, bSeed, bP, bDstMem);
+          setOp = new DirectUnion(bLgNomLongs, bSeed, bP, bRF, bDstMem);
         }
         break;
       }

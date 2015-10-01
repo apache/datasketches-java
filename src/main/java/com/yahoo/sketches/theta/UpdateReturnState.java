@@ -22,14 +22,6 @@ public enum UpdateReturnState {
   InsertedCountNotIncremented, //used by enhancedHashInsert for Alpha
   
   /**
-   * Used by Direct Update Sketches.
-   * This indicates that the Sketch has run out of capacity in Direct Memory and must
-   * be moved and reallocated larger memory before continuing. This should only occur in 
-   * Direct Memory cases where the allocated memory has intentionally been undersized.
-   */
-  RejectedFull, //used by DQSS.hashUpdate(), DirectUnion.hashUpdate() (internal only)
-  
-  /**
    * Indicates a normal sketch update response and the action that was taken by the sketch.
    */
   RejectedDuplicate, //all UpdateSketches hashUpdate(), enhancedHashInsert

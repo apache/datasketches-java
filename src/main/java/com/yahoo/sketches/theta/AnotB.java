@@ -19,9 +19,8 @@ public interface AnotB {
    * 
    * @param a The incoming sketch for the first argument
    * @param b The incoming sketch for the second argument
-   * @return the return state of the AnotB
    */  
-  SetOpReturnState update(Sketch a, Sketch b);
+  void update(Sketch a, Sketch b);
   
   /**
    * Returns the result as a new CompactSketch.

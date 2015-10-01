@@ -19,9 +19,8 @@ public interface Union {
    * If the given sketch is null it is interpreted as an empty sketch.
    * 
    * @param sketchIn The incoming sketch.
-   * @return the return state of the union
    */  
-  SetOpReturnState update(Sketch sketchIn);
+  void update(Sketch sketchIn);
   
   /**
    * Union the given sketch with the internal state.
@@ -29,9 +28,8 @@ public interface Union {
    * that are in Compact and Ordered form.
    * If the given sketch is null it is interpreted as an empty sketch.
    * @param mem Memory image of sketch to be merged.
-   * @return the return state of the union
    */
-  SetOpReturnState update(Memory mem);
+  void update(Memory mem);
   
   /**
    * Get the result of the Union operations

@@ -19,9 +19,8 @@ public interface Intersection {
    * If the given sketch is null the internal state becomes the empty sketch.  
    * Theta will become the minimum of thetas seen so far.
    * @param sketchIn the given sketch
-   * @return the return state of the intersection
    */
-  SetOpReturnState update(Sketch sketchIn);
+  void update(Sketch sketchIn);
   
   /**
    * Returns the result of a call to update(Sketch) as a new CompactSketch.

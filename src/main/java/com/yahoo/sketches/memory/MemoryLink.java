@@ -13,4 +13,9 @@ package com.yahoo.sketches.memory;
 public class MemoryLink {
   public Memory oldMemory;
   public Memory newMemory;
+  
+  public MemoryLink(Memory oldMem, Memory newMem) {
+    oldMemory = oldMem;
+    newMemory = newMem;
+  }
 }

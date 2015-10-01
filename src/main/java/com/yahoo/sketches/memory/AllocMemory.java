@@ -21,11 +21,23 @@ public class AllocMemory extends NativeMemory {
   
   /**
    * Allocates and provides access to capacityBytes directly in native (off-heap) memory leveraging
-   * the Memory interface
+   * the Memory interface.  The MemoryRequest callback is set to null.
    * @param capacityBytes the size in bytes of the native memory
    */
   public AllocMemory(final long capacityBytes) {
     super(0L, null, null, unsafe.allocateMemory(capacityBytes), capacityBytes);
+    super.memReq_ = null;
+  }
+  
+  /**
+   * Allocates and provides access to capacityBytes directly in native (off-heap) memory leveraging
+   * the Memory interface.  
+   * @param capacityBytes the size in bytes of the native memory
+   * @param memReq The MemoryRequest callback
+   */
+  public AllocMemory(final long capacityBytes, MemoryRequest memReq) {
+    super(0L, null, null, unsafe.allocateMemory(capacityBytes), capacityBytes);
+    super.memReq_ = memReq;
   }
   
   @Override

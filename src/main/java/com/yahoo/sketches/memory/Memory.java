@@ -416,8 +416,8 @@ public interface Memory {
    */
   void setBits(long offsetBytes, byte bitMask);
   
-  //Non-primitive methods
-
+  //Non-data methods
+  
   /**
    * Returns the start address of this Memory plus the offset.
    * @param offset the given offset from the start address of this Memory
@@ -430,6 +430,12 @@ public interface Memory {
    * @return the capacity of this Memory in bytes
    */
   long getCapacity();
+  
+  /**
+   * Returns a MemoryRequest or null
+   * @return a MemoryRequest or null
+   */
+  MemoryRequest getMemoryRequest();
   
   /**
    * Gets the parent Memory or backing array. Used internally.

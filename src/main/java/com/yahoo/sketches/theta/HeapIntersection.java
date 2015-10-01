@@ -21,7 +21,6 @@ import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
 import static com.yahoo.sketches.theta.PreambleUtil.checkSeedHashes;
-import static com.yahoo.sketches.theta.SetOpReturnState.Success;
 import static java.lang.Math.min;
 
 import java.util.Arrays;
@@ -107,7 +106,7 @@ class HeapIntersection extends SetOperation implements Intersection{
   
   @Override
   @SuppressWarnings("null") //due to the state machine construction
-  public SetOpReturnState update(Sketch sketchIn) {
+  public void update(Sketch sketchIn) {
     
     //The Intersection State Machine
     int skInState = ((sketchIn != null) && (sketchIn.getRetainedEntries(true) > 0))? 1 : 0;
@@ -198,8 +197,6 @@ class HeapIntersection extends SetOperation implements Intersection{
         break;
       }
     }
-    
-    return Success;
   }
 
   @Override

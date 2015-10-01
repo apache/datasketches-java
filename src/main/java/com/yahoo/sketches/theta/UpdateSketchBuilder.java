@@ -183,7 +183,7 @@ public class UpdateSketchBuilder {
         } 
         else {
           sketch = 
-            new DirectQuickSelectSketch(bLgNomLongs, bSeed, bP, bDstMem, false);
+            new DirectQuickSelectSketch(bLgNomLongs, bSeed, bP, bRF, bDstMem, false);
         }
         break;
       }

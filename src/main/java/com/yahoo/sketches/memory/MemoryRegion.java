@@ -39,6 +39,7 @@ public class MemoryRegion implements Memory {
   private final Memory mem_;
   private volatile long memOffsetBytes_;
   private volatile long capacityBytes_;
+  private MemoryRequest memReq_ = null;
   
   /**
    * Defines a region of the given parent Memory by defining an offset and capacity that are 
@@ -53,6 +54,23 @@ public class MemoryRegion implements Memory {
     mem_ = memory;
     memOffsetBytes_ = memOffsetBytes;
     capacityBytes_ = capacityBytes;
+  }
+  
+  /**
+   * Defines a region of the given parent Memory by defining an offset and capacity that are 
+   * within the boundaries of the parent.
+   * @param memory the parent Memory
+   * @param memOffsetBytes the starting offset in bytes of this region with respect to the 
+   * start of the parent memory.
+   * @param capacityBytes the capacity in bytes of this region.
+   * @param memReq a MemoryRequest object
+   */
+  public MemoryRegion(Memory memory, long memOffsetBytes, long capacityBytes, MemoryRequest memReq) {
+    assertBounds(memOffsetBytes, capacityBytes, memory.getCapacity());
+    mem_ = memory;
+    memOffsetBytes_ = memOffsetBytes;
+    capacityBytes_ = capacityBytes;
+    memReq_ = memReq;
   }
   
   public void reassign(long memOffsetBytes, long capacityBytes) {
@@ -392,7 +410,7 @@ public class MemoryRegion implements Memory {
     mem_.putByte(address, (byte)(value | bitMask));
   }
 
-  //Class level methods
+  //Non-data Memory interface methods
 
   @Override
   public final long getAddress(final long offsetBytes) {
@@ -402,6 +420,11 @@ public class MemoryRegion implements Memory {
   @Override
   public long getCapacity() {
     return capacityBytes_;
+  }
+  
+  @Override
+  public MemoryRequest getMemoryRequest() {
+    return memReq_;
   }
   
   @Override

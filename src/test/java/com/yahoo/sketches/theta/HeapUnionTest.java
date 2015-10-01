@@ -4,13 +4,17 @@
  */
 package com.yahoo.sketches.theta;
 
-import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.memory.NativeMemory;
-import org.testng.annotations.Test;
-
 import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV1;
 import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV2;
+import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.testng.Assert.assertEquals;
+
+import java.util.Arrays;
+
+import com.yahoo.sketches.memory.Memory;
+import com.yahoo.sketches.memory.MemoryUtil;
+import com.yahoo.sketches.memory.NativeMemory;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -426,6 +430,41 @@ public class HeapUnionTest {
     assertEquals(cOut.getEstimate(), 0.0, 0.0);
   }
   
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkMemBadSerVer() {
+    int lgK = 12; //4096
+    int k = 1 << lgK;
+    
+    UpdateSketch usk1 = UpdateSketch.builder().build(k);
+    CompactSketch usk1c = usk1.compact(true, null);
+    NativeMemory v3mem1 = new NativeMemory(usk1c.toByteArray());
+    //corrupt SerVer
+    v3mem1.putByte(SER_VER_BYTE, (byte)0);
+    
+    Union union = SetOperation.builder().buildUnion(k);
+    union.update(v3mem1);
+  }
+  
+  @Test
+  public void checkEmptySerVer2and3() {
+    UpdateSketch usk1 = UpdateSketch.builder().build();
+    CompactSketch usk1c = usk1.compact(true, null);
+    byte[] skArr = usk1c.toByteArray();
+    byte[] skArr2 = Arrays.copyOf(skArr, skArr.length * 2);
+    NativeMemory v3mem1 = new NativeMemory(skArr2);
+    
+    Union union = SetOperation.builder().buildUnion();
+    union.update(v3mem1);
+    
+    Memory v2mem1 = convertSerV3toSerV2(v3mem1);
+    Memory v2mem2 = new NativeMemory(new byte[16]);
+    MemoryUtil.copy(v2mem1, 0, v2mem2, 0, 8);
+    println(PreambleUtil.toString(v2mem1));
+    union = SetOperation.builder().buildUnion();
+    union.update(v2mem2);
+  }
+  
+  
   //used by DirectUnionTest as well
   public static void testAllCompactForms(Union union, double expected, double toll) {
     double compEst1, compEst2;
@@ -454,6 +493,6 @@ public class HeapUnionTest {
    * @param s value to print
    */
   static void println(String s) {
-    //System.out.println(s); //Disable here
+    System.out.println(s); //Disable here
   }
 }

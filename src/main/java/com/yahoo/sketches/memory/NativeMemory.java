@@ -50,6 +50,7 @@ import static com.yahoo.sketches.memory.UnsafeUtil.unsafe;
 public class NativeMemory implements Memory {
   protected final long objectBaseOffset_; //only non-zero for on-heap objects
   protected final Object memArray_; //null for off-heap, valid for on-heap. freeMemory sets to null.
+  protected MemoryRequest memReq_ = null;
   //holding on to this to make sure that it is not garbage collected before we are done with it.
   protected final ByteBuffer byteBuf_;
   
@@ -534,7 +535,7 @@ public class NativeMemory implements Memory {
     unsafe.putByte(memArray_, unsafeRawAddress, (byte)(value | bitMask));
   }
   
-  //Non-primitive Memory interface methods
+  //Non-data Memory interface methods
   
   @Override
   public final long getAddress(final long offsetBytes) {
@@ -546,6 +547,11 @@ public class NativeMemory implements Memory {
   @Override
   public long getCapacity() {
     return capacityBytes_;
+  }
+  
+  @Override
+  public MemoryRequest getMemoryRequest() {
+    return memReq_;
   }
   
   @Override
