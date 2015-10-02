@@ -125,12 +125,12 @@ public class SetOperationBuilder {
   }
   
   /**
-   * Sets the backing Memory store. 
+   * Initializes the backing Memory store. 
    * @param dstMem  The destination Memory. 
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>
    * @return this SetOperationBuilder
    */
-  public SetOperationBuilder setMemory(Memory dstMem) {
+  public SetOperationBuilder initMemory(Memory dstMem) {
     bDstMem = dstMem;
     return this;
   }

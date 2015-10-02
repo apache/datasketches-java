@@ -229,7 +229,6 @@ class DirectUnion extends SetOperation implements Union{
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
   }
   
-  
   @Override
   public CompactSketch getResult(boolean dstOrdered, Memory dstMem) {
     int gadgetCurCount = gadget_.getRetainedEntries(true);
@@ -247,6 +246,11 @@ class DirectUnion extends SetOperation implements Union{
     boolean emptyR = mem_.isAnyBitsSet(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
     return createCompactSketch(compactCacheR, emptyR, seedHash_, curCountR, thetaLongR, 
         dstOrdered, dstMem);
+  }
+  
+  @Override
+  public CompactSketch getResult() {
+    return getResult(true, null);
   }
   
   @Override

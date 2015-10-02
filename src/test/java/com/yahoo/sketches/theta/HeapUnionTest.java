@@ -480,6 +480,16 @@ public class HeapUnionTest {
     union.update(v2mem2);
   }
   
+  @Test
+  public void checkGetResult() {
+    int k = 1024;
+    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+  
+    Union union = Sketches.setOperationBuilder().buildUnion(k);
+    union.update(sk);
+    CompactSketch csk = union.getResult();
+    assertEquals(csk.getCurrentBytes(true), 8);
+  }
   
   //used by DirectUnionTest as well
   public static void testAllCompactForms(Union union, double expected, double toll) {

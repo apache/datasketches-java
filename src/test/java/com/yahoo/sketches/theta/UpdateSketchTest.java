@@ -102,6 +102,14 @@ public class UpdateSketchTest {
   }
   
   @Test
+  public void checkCompact() {
+    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    CompactSketch csk = sk.compact();
+    assertEquals(csk.getCurrentBytes(true), 8);
+  }
+  
+  
+  @Test
   public void printlnTest() {
     println(this.getClass().getSimpleName());
   }

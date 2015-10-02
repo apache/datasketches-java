@@ -539,6 +539,17 @@ public class HeapIntersectionTest {
   }
   
   @Test
+  public void checkGetResult() {
+    int k = 1024;
+    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+  
+    Intersection inter = Sketches.setOperationBuilder().buildIntersection(k);
+    inter.update(sk);
+    CompactSketch csk = inter.getResult();
+    assertEquals(csk.getCurrentBytes(true), 8);
+  }
+  
+  @Test
   public void printlnTest() {
     println(this.getClass().getSimpleName());
   }

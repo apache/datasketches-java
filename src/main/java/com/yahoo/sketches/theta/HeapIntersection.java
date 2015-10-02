@@ -198,7 +198,7 @@ class HeapIntersection extends SetOperation implements Intersection{
       }
     }
   }
-
+  
   @Override
   public CompactSketch getResult(boolean dstOrdered, Memory dstMem) { 
     if (curCount_ < 0) {
@@ -218,6 +218,11 @@ class HeapIntersection extends SetOperation implements Intersection{
     //Create the CompactSketch
     return CompactSketch.createCompactSketch(
         compactCacheR, empty_, seedHash_, curCount_, thetaLong_, dstOrdered, dstMem);
+  }
+  
+  @Override
+  public CompactSketch getResult() {
+    return getResult(true, null);
   }
   
   @Override

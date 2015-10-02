@@ -230,6 +230,11 @@ class HeapUnion extends SetOperation implements Union {
   }
   
   @Override
+  public CompactSketch getResult() {
+    return getResult(true, null);
+  }
+  
+  @Override
   public byte[] toByteArray() {
     byte[] gadgetByteArr = gadget_.toByteArray();
     Memory mem = new NativeMemory(gadgetByteArr);

@@ -63,7 +63,7 @@ public class ThetaMemoryBenchmark implements SketchBenchmark
   public void runNTimes(int n)
   {
     for (int i = 0; i < n; ++i) {
-      Union combined = SetOperation.builder().setMemory(new NativeMemory(bytes)).buildUnion(nominalEntries);
+      Union combined = SetOperation.builder().initMemory(new NativeMemory(bytes)).buildUnion(nominalEntries);
       for (Memory toUnion : memories) {
         combined.update(toUnion);
       }

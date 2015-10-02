@@ -53,14 +53,17 @@ public abstract class UpdateSketch extends Sketch {
    * a simple list of the valid hash values from the hash table.  Any hash values equal to or
    * greater than theta will be discarded.  The number of valid values remaining in the
    * Compact Sketch depends on a number of factors, but may be larger or smaller than 
-   * <i>Nominal Entries</i> (or <i>k</i>).  It will never exceed 2<i>k</i>.  If it is critical
+   * <i>Nominal Entries</i> (or <i>k</i>). It will never exceed 2<i>k</i>.  If it is critical
    * to always limit the size to no more than <i>k</i>, then <i>rebuild()</i> should be called
    * on the UpdateSketch prior to this.
    * 
-   * @param dstOrdered if true, the destination cache should be ordered
-   * @param dstMem if valid, and large enough the returned sketch will be backed by this Memory.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>.
-   * @return this sketch as a compact sketch
+   * @param dstOrdered 
+   * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
+   * 
+   * @param dstMem 
+   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
+   * 
+   * @return this sketch as a CompactSketch
    */
   public CompactSketch compact(boolean dstOrdered, Memory dstMem) {
     CompactSketch sketchOut = null;
@@ -84,6 +87,14 @@ public abstract class UpdateSketch extends Sketch {
       }
     }
     return sketchOut;
+  }
+  
+  /**
+   * Returns this UpdateSketch to an ordered CompactSketch on the Java heap.
+   * @return this UpdateSketch to an ordered CompactSketch on the Java heap.
+   */
+  public CompactSketch compact() {
+    return compact(true, null);
   }
   
   /**

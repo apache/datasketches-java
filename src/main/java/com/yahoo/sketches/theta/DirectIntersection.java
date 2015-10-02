@@ -250,7 +250,12 @@ class DirectIntersection extends SetOperation implements Intersection {
     return CompactSketch.createCompactSketch(
         compactCacheR, empty_, seedHash_, curCount_, thetaLong_, dstOrdered, dstMem);
   }
-
+  
+  @Override
+  public CompactSketch getResult() {
+    return getResult(true, null);
+  }
+  
   @Override
   public boolean hasResult() {
     return mem_.getInt(RETAINED_ENTRIES_INT) >= 0;

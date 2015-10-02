@@ -68,6 +68,11 @@ class HeapAnotB extends SetOperation implements AnotB {
     return comp;
   }
   
+  @Override
+  public CompactSketch getResult() {
+    return getResult(true, null);
+  }
+  
   @SuppressWarnings("null")
   void compute() {
     int swA = (a_ == null)? 0 : (a_.isEmpty())? 1: (a_ instanceof UpdateSketch)? 4 : (a_.isOrdered())? 3 : 2;
