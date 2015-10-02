@@ -19,18 +19,26 @@ public interface Intersection {
    * If the given sketch is null the internal state becomes the empty sketch.  
    * Theta will become the minimum of thetas seen so far.
    * @param sketchIn the given sketch
-   * @return the return state of the intersection
    */
-  SetOpReturnState update(Sketch sketchIn);
+  void update(Sketch sketchIn);
   
   /**
    * Returns the result of a call to update(Sketch) as a new CompactSketch.
-   * @param dstOrdered if true, the result of a SetOperation will be in ordered, compact form
-   * @param dstMem the destination Memory
+   * @param dstOrdered 
+   * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
+   * 
+   * @param dstMem 
+   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
+   * 
    * @return the result CompactSketch.
    */
   CompactSketch getResult(boolean dstOrdered, Memory dstMem);
   
+  /**
+   * Gets the result of this operation as an ordered CompactSketch on the Java heap
+   * @return the result of this operation as an ordered CompactSketch on the Java heap
+   */
+  CompactSketch getResult();
   
   /**
    * Returns true if there is an intersection result available

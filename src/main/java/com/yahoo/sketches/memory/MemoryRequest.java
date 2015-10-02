@@ -13,22 +13,25 @@ package com.yahoo.sketches.memory;
 public interface MemoryRequest {
   
   /**
-   * Request new Memory with the given capacity
+   * Request new Memory with the given capacity.
    * @param capacityBytes The capacity being requested
-   * @return new Memory with the given capacity
+   * @return new Memory with the given capacity. It may be null.
    */
   Memory request(long capacityBytes);
   
   /**
-   * This memory with its capacity is no longer needed
-   * @param mem The memory to be freed
+   * The given Memory with its capacity is to be freed
+   * @param mem The Memory to be freed
    */
   void free(Memory mem);
   
   /**
-   * This enables linking of the Memory to be freed to the new Memory that was allocated to
-   * replace it. 
-   * @param memLink instance of the MemoryLink class.
+   * The given memToFree with its capacity is to be freed.  Providing a reference to the 
+   * newly granted Memory enables the receiver of the callback to link the Memory to be
+   * freed with this new Memory.
+   * @param memToFree the Memory to be freed.
+   * @param newMem this reference enables the receiver of the callback to link the Memory to be
+   * freed with this new Memory.
    */
-  void free(MemoryLink memLink);
+  void free(Memory memToFree, Memory newMem);
 }

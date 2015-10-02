@@ -65,7 +65,7 @@ public class SetOperationTest {
     assertEquals(rf, bldr.getResizeFactor());
     
     Memory mem = new NativeMemory(new byte[16]);
-    bldr.setMemory(mem);
+    bldr.initMemory(mem);
     assertEquals(mem, bldr.getMemory());
     
     int lgK = 10;
@@ -109,7 +109,7 @@ public class SetOperationTest {
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkBuilderAnotB_noMem() {
     Memory mem = new NativeMemory(new byte[64]);
-    SetOperation.builder().setMemory(mem).buildANotB();
+    SetOperation.builder().initMemory(mem).buildANotB();
   }
   
   @Test(expectedExceptions = IllegalArgumentException.class)
@@ -239,7 +239,7 @@ public class SetOperationTest {
     int bytes = heapLayout[1] - offset;
     Memory unionMem = new MemoryRegion(heapMem, offset, bytes);
 
-    Union union = SetOperation.builder().setMemory(unionMem).buildUnion(unionNomEntries);
+    Union union = SetOperation.builder().initMemory(unionMem).buildUnion(unionNomEntries);
 
     Memory sketch1mem = new MemoryRegion(heapMem, heapLayout[1], heapLayout[2]-heapLayout[1]);
     Memory sketch2mem = new MemoryRegion(heapMem, heapLayout[2], heapLayout[3]-heapLayout[2]);
@@ -300,7 +300,7 @@ public class SetOperationTest {
 
     //Create a new union in the same space with a smaller size.
     unionMem.clear();
-    Union union = SetOperation.builder().setMemory(unionMem).buildUnion(unionNomEntries);
+    Union union = SetOperation.builder().initMemory(unionMem).buildUnion(unionNomEntries);
     union.update(sk1);
     union.update(sk2);
     union.update(sk3);
@@ -313,7 +313,7 @@ public class SetOperationTest {
   
   @Test
   public void printlnTest() {
-    println("Test");
+    println(this.getClass().getSimpleName());
   }
   
   /**

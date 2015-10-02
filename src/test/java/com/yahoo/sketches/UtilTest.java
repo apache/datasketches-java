@@ -140,6 +140,11 @@ public class UtilTest {
     checkProbability(1.5, "Too High");
   }
   
+  @Test
+  public void printlnTest() {
+    println(this.getClass().getSimpleName());
+  }
+  
   /**
    * @param s value to print 
    */

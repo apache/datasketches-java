@@ -22,7 +22,6 @@ import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
 import static com.yahoo.sketches.theta.PreambleUtil.checkSeedHashes;
-import static com.yahoo.sketches.theta.SetOpReturnState.Success;
 import static java.lang.Math.min;
 
 import com.yahoo.sketches.Family;
@@ -126,7 +125,7 @@ class DirectIntersection extends SetOperation implements Intersection {
   
   @Override
   @SuppressWarnings("null")
-  public SetOpReturnState update(Sketch sketchIn) {
+  public void update(Sketch sketchIn) {
     
     //The Intersection State Machine
     curCount_ = mem_.getInt(RETAINED_ENTRIES_INT);
@@ -226,7 +225,6 @@ class DirectIntersection extends SetOperation implements Intersection {
         break;
       }
     }
-    return Success;
   }
 
   @Override
@@ -252,7 +250,12 @@ class DirectIntersection extends SetOperation implements Intersection {
     return CompactSketch.createCompactSketch(
         compactCacheR, empty_, seedHash_, curCount_, thetaLong_, dstOrdered, dstMem);
   }
-
+  
+  @Override
+  public CompactSketch getResult() {
+    return getResult(true, null);
+  }
+  
   @Override
   public boolean hasResult() {
     return mem_.getInt(RETAINED_ENTRIES_INT) >= 0;

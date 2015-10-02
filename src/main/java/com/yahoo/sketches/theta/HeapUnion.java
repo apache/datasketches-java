@@ -7,7 +7,6 @@ package com.yahoo.sketches.theta;
 import static com.yahoo.sketches.theta.CompactSketch.compactCache;
 import static com.yahoo.sketches.theta.CompactSketch.createCompactSketch;
 import static com.yahoo.sketches.theta.PreambleUtil.*;
-import static com.yahoo.sketches.theta.SetOpReturnState.Success;
 import static java.lang.Math.min;
 
 import com.yahoo.sketches.Family;
@@ -58,12 +57,12 @@ class HeapUnion extends SetOperation implements Union {
   }
   
   @Override
-  public SetOpReturnState update(Sketch sketchIn) {
+  public void update(Sketch sketchIn) {
     //UNION Rule: AND the empty states
     
     if ((sketchIn == null)  || sketchIn.isEmpty()) {
       //null/empty is interpreted as (1.0, 0, T).  Nothing changes
-      return SetOpReturnState.Success;
+      return;
     }
     unionEmpty_ = false; //Empty rule: AND the empty states
     
@@ -105,34 +104,33 @@ class HeapUnion extends SetOperation implements Union {
       }
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
-    return Success;
   }
   
   @Override
-  public SetOpReturnState update(Memory skMem) {
+  public void update(Memory skMem) {
     //UNION Rule: AND the empty states
-    if (skMem == null) return Success;
+    if (skMem == null) return;
     int cap = (int)skMem.getCapacity();
     int f;
     assert ((f=skMem.getByte(FAMILY_BYTE)) == 3) : "Illegal Family/SketchType byte: "+f;
     int serVer = skMem.getByte(SER_VER_BYTE);
     if (serVer == 1) {
-      if (cap <= 24) return Success; //empty
-      return processVer1(skMem);
+      if (cap <= 24) return; //empty
+      processVer1(skMem);
     }
-    else if (serVer == 2) {
-      if (cap <= 8) return Success; //empty
-      return processVer2(skMem);
+    else if (serVer == 2) { 
+      if (cap <= 8) return; //empty
+      processVer2(skMem);
     }
     else if (serVer == 3) {
-      if (cap <= 8) return Success; //empty
-      return processVer3(skMem);
+      if (cap <= 8) return; //empty
+      processVer3(skMem);
     }
     else throw new IllegalArgumentException("SerVer is unknown: "+serVer);
   }
   
   //must trust seed, no seedhash. No p, can't be empty, can only be compact, ordered, size > 24
-  private SetOpReturnState processVer1(Memory skMem) {
+  private void processVer1(Memory skMem) {
     unionEmpty_ = false; //Empty rule: AND the empty states
     long thetaLongIn = skMem.getLong(THETA_LONG);
     unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule
@@ -145,25 +143,24 @@ class HeapUnion extends SetOperation implements Union {
       gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
-    return Success;
   }
   
   //has seedhash, p, could have 0 entries & theta, can only be compact, ordered, size >= 24
-  private SetOpReturnState processVer2(Memory skMem) {
+  private void processVer2(Memory skMem) {
     PreambleUtil.checkSeedHashes(seedHash_, skMem.getShort(SEED_HASH_SHORT));
     
     int preLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
     int curCount = skMem.getInt(RETAINED_ENTRIES_INT);
     long thetaLongIn;
+    
     if (preLongs == 1) {
-      return Success;
+      return;
     }
     if (preLongs == 2) {
-      if (curCount > 0) {
-        unionEmpty_ = false; //Empty rule: AND the empty states
-      }
+      assert curCount > 0;
+      unionEmpty_ = false; //Empty rule: AND the empty states
       thetaLongIn = Long.MAX_VALUE;
-    } else {
+    } else { //prelongs == 3, curCount may be 0 (e.g., from intersection)
       thetaLongIn = skMem.getLong(THETA_LONG);
     }
     unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule
@@ -174,25 +171,23 @@ class HeapUnion extends SetOperation implements Union {
       gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
-    return Success;
   }
   
   //has seedhash, p, could have 0 entries & theta, could be unorderd, compact, size >= 24
-  private SetOpReturnState processVer3(Memory skMem) {
+  private void processVer3(Memory skMem) {
     PreambleUtil.checkSeedHashes(seedHash_, skMem.getShort(SEED_HASH_SHORT));
     unionEmpty_ = false; //Empty rule: AND the empty states
     int preLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
     int curCount = skMem.getInt(RETAINED_ENTRIES_INT);
     long thetaLongIn;
     if (preLongs == 1) {
-      return Success;
+      return;
     }
-    if (preLongs == 2) {
-      if (curCount > 0) {
-        unionEmpty_ = false; //Empty rule: AND the empty states
-      }
+    if (preLongs == 2) { //curCount has to be > 0 and exact
+      assert curCount > 0;
+      unionEmpty_ = false; //Empty rule: AND the empty states
       thetaLongIn = Long.MAX_VALUE;
-    } else {
+    } else { //prelongs == 3, curCount may be 0 (e.g., from intersection)
       thetaLongIn = skMem.getLong(THETA_LONG);
     }
     unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule
@@ -214,7 +209,6 @@ class HeapUnion extends SetOperation implements Union {
       }
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
-    return Success;
   }
   
   @Override
@@ -233,6 +227,11 @@ class HeapUnion extends SetOperation implements Union {
     long[] compactCacheR = compactCache(gadgetCache, curCountR, thetaLongR, dstOrdered);
     return createCompactSketch(compactCacheR, unionEmpty_, seedHash_, curCountR, thetaLongR, 
         dstOrdered, dstMem);
+  }
+  
+  @Override
+  public CompactSketch getResult() {
+    return getResult(true, null);
   }
   
   @Override

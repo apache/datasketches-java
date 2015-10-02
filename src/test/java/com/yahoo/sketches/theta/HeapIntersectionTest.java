@@ -538,14 +538,20 @@ public class HeapIntersectionTest {
     inter1 = (Intersection) SetOperation.heapify(mem);
   }
   
-//  public static void main(String[] args) {
-//    HeapIntersectionTest hit = new HeapIntersectionTest();
-//    hit.checkIntersectionEarlyStop();
-//  }
+  @Test
+  public void checkGetResult() {
+    int k = 1024;
+    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+  
+    Intersection inter = Sketches.setOperationBuilder().buildIntersection(k);
+    inter.update(sk);
+    CompactSketch csk = inter.getResult();
+    assertEquals(csk.getCurrentBytes(true), 8);
+  }
   
   @Test
   public void printlnTest() {
-    println("Test");
+    println(this.getClass().getSimpleName());
   }
   
   /**

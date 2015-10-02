@@ -300,14 +300,21 @@ public class HeapAnotBTest {
     assertEquals(est, k/4, 0.0);
   }
   
-//  public static void main(String[] args) {
-//    HeapAnotBTest anbt = new HeapAnotBTest();
-//    anbt.checkUpdateCompactOrderedCombinations();
-//  }
+  @Test
+  public void checkGetResult() {
+    int k = 1024;
+    UpdateSketch skA = Sketches.updateSketchBuilder().build();
+    UpdateSketch skB = Sketches.updateSketchBuilder().build();
+  
+    AnotB aNotB = Sketches.setOperationBuilder().buildANotB(k);
+    aNotB.update(skA, skB);
+    CompactSketch csk = aNotB.getResult();
+    assertEquals(csk.getCurrentBytes(true), 8);
+  }
   
   @Test
   public void printlnTest() {
-    println("Test");
+    println(this.getClass().getSimpleName());
   }
   
   /**

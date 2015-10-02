@@ -145,6 +145,11 @@ public class PowerLawGeneratorTest {
     println(row+"\t"+gi+"\t"+((int)x));
   }
   
+  @Test
+  public void printlnTest() {
+    println(this.getClass().getSimpleName());
+  }
+  
   /**
    * @param s value to print 
    */

@@ -19,28 +19,35 @@ public interface Union {
    * If the given sketch is null it is interpreted as an empty sketch.
    * 
    * @param sketchIn The incoming sketch.
-   * @return the return state of the union
    */  
-  SetOpReturnState update(Sketch sketchIn);
+  void update(Sketch sketchIn);
   
   /**
    * Union the given sketch with the internal state.
    * This method can be repeatedly called. This method only works with Memory sketch objects
    * that are in Compact and Ordered form.
    * If the given sketch is null it is interpreted as an empty sketch.
-   * @param mem Memory image of sketch to be merged.
-   * @return the return state of the union
+   * @param mem Memory image of sketch to be merged
    */
-  SetOpReturnState update(Memory mem);
+  void update(Memory mem);
   
   /**
-   * Get the result of the Union operations
-   * @param dstOrdered true if output array must be sorted
-   * @param dstMem the destination Memory
-   * @return the Union result
+   * Gets the result of this operation as a CompactSketch
+   * @param dstOrdered 
+   * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
+   * 
+   * @param dstMem 
+   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
+   * 
+   * @return the result as a CompactSketch
    */
   CompactSketch getResult(boolean dstOrdered, Memory dstMem);
   
+  /**
+   * Gets the result of this operation as an ordered CompactSketch on the Java heap
+   * @return the result of this operation as an ordered CompactSketch on the Java heap
+   */
+  CompactSketch getResult();
   /**
    * Returns a byte array image of this Union object
    * @return a byte array image of this Union object

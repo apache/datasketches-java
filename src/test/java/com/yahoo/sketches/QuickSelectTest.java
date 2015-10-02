@@ -415,7 +415,12 @@ public class QuickSelectTest {
 //    qst.checkQuickSelectDbl1BasedIncludingZeros();
 //
 //  }
-
+  
+  @Test
+  public void printlnTest() {
+    println(this.getClass().getSimpleName());
+  }
+  
   /**
    * @param s value to print 
    */

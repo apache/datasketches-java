@@ -125,19 +125,20 @@ public class SetOperationBuilder {
   }
   
   /**
-   * Sets the backing Memory store. 
+   * Initializes the backing Memory store. 
    * @param dstMem  The destination Memory. 
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>
    * @return this SetOperationBuilder
    */
-  public SetOperationBuilder setMemory(Memory dstMem) {
+  public SetOperationBuilder initMemory(Memory dstMem) {
     bDstMem = dstMem;
     return this;
   }
   
   /**
-   * Returns the Memory
-   * @return the Memory
+   * Returns the Destination Memory
+   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
+   * @return the Destination Memory
    */
   public Memory getMemory() {
     return bDstMem;
@@ -156,7 +157,7 @@ public class SetOperationBuilder {
           setOp = new HeapUnion(bLgNomLongs, bSeed, bP, bRF);
         } 
         else {
-          setOp = new DirectUnion(bLgNomLongs, bSeed, bP, bDstMem);
+          setOp = new DirectUnion(bLgNomLongs, bSeed, bP, bRF, bDstMem);
         }
         break;
       }

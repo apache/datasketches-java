@@ -42,6 +42,17 @@ A sketch is considered <i>degenerate</i> if it has never reached reached
 exact and less than <a href="#nomEntries">Nominal Entries</a> 
 and no estimation is needed.  This is also referred to as <i>Exact Mode</i>.
 
+<h3><a name="dstMem">Destination Memory</a></h3>
+The destination Memory for this object.  If not required it may be null. If not null and large 
+enough the returned object will be backed by this Memory. 
+If null, the returned object will be on the Java heap.
+
+<h3><a name="dstOrdered">Destination Ordered</a></h3>
+Refers to the ordering of hash values in a returned CompactSketch. 
+If true, the internal hash values will be ordered. This will enable much higher 
+performance during union (merge) operations but at the cost of a sort, which may not be 
+desirable in some applications, especially real-time.
+
 <h3><a name="dirtyHash">Dirty Hash</a></h3>
 A retained hash value is considered <i>dirty</i> if it is &ge; <a href="#thetaLong">Theta Long</a> or &lt; 0.  
 See <a href="#validHash">Valid Hash</a>.
@@ -201,17 +212,18 @@ The Theta Sketch Framework, Theta Choosing Functions and the theory behind them 
 in this <a href="ThetaSketchFramework.pdf">paper</a>.
 
 <h3><a name="updateReturnState">Update Return State</a></h3>
+Provides useful detail for sketch characterization and debugging.  It is not required that any of
+these values be monitored during normal operation.
 The UpdateReturnState is defined as follows:
 <ul>
 <li> InsertedCountIncremented: Inserted, not full, retained_entries_count incremented.</li>
 <li> InsertedCountNotIncremented: Inserted, not full, retained-entries-count not incremented 
 because a dirty value was overridden.</li>
 <li> RejectedDuplicate: Rejected as duplicate.</li>
-<li> RejectedFull: Update value is eligible for insertion but this sketch is full and cannot accept it.
-This is the only return state that qualifies as an error condition and must be handled by the caller.</li>
 <li> RejectedNullOrEmpty: Rejected because input was null or empty. Only for update objects.</li>
 <li> RejectedOverTheta: Rejected because the computed hash was over the current value of thetaLong.</li>
 </ul>
+
 
 <h3><a name="validHash">Valid Hash</a></h3>
 A retained hash value is considered <i>valid</i> if it is greater than zero and less than 

@@ -20,9 +20,15 @@ import java.util.Arrays;
 import com.yahoo.sketches.memory.Memory;
 
 /**
- * The parent class of all the CompactSketches. CompactSketches are never created 
- * directly. They are created as a result of the compact() 
- * method of an UpdateSketch or as a result of a getResult() to a SetOperation.
+ * The parent class of all the CompactSketches. CompactSketches are never created directly. 
+ * They are created as a result of the compact() method of an UpdateSketch or as a result of a 
+ * getResult() of a SetOperation.
+ * 
+ * <p>A CompactSketch is the simplist form of a Theta Sketch. It consists of a compact list 
+ * (i.e., no intervening spaces) of hash values, which may be ordered or not, a value for theta 
+ * and a seed hash.  A CompactSketch is read-only,
+ * and the space required when stored is only the space required for the hash values and 8 to 24
+ * bytes of preamble. An empty CompactSketch consumes only 8 bytes.</p>
  * 
  * @author Lee Rhodes
  */
@@ -81,14 +87,14 @@ public abstract class CompactSketch extends Sketch {
   }
   
   /**
-   * Compact all of given array
+   * Compact the given array.
    * @param srcCache anything
    * @param curCount must be correct
    * @param thetaLong The correct <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
-   * @param ordered true if output array must be sorted
+   * @param dstOrdered true if output array must be sorted
    * @return the compacted array
    */
-  static final long[] compactCache(final long[] srcCache, int curCount, long thetaLong, boolean ordered) {
+  static final long[] compactCache(final long[] srcCache, int curCount, long thetaLong, boolean dstOrdered) {
     if (curCount == 0) {
       return new long[0];
     }
@@ -101,7 +107,7 @@ public abstract class CompactSketch extends Sketch {
       cacheOut[j++] = v;
     }
     assert curCount == j;
-    if (ordered) {
+    if (dstOrdered) {
       Arrays.sort(cacheOut);
     }
     return cacheOut;
@@ -113,11 +119,11 @@ public abstract class CompactSketch extends Sketch {
    * @param lgArrLongs The correct <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">lgArrLongs</a>.
    * @param curCount must be correct
    * @param thetaLong The correct <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
-   * @param ordered true if output array must be sorted
+   * @param dstOrdered true if output array must be sorted
    * @return the compacted array
    */
   static final long[] compactCachePart(final long[] srcCache, int lgArrLongs, int curCount, 
-      long thetaLong, boolean ordered) {
+      long thetaLong, boolean dstOrdered) {
     if (curCount == 0) {
       return new long[0];
     }
@@ -130,7 +136,7 @@ public abstract class CompactSketch extends Sketch {
       cacheOut[j++] = v;
     }
     assert curCount == j;
-    if (ordered) {
+    if (dstOrdered) {
       Arrays.sort(cacheOut);
     }
     return cacheOut;

@@ -43,8 +43,10 @@ public class ExamplesTest {
 ### END SKETCH SUMMARY
   */
   
-  
-  
+  @Test
+  public void printlnTest() {
+    println(this.getClass().getSimpleName());
+  }
   
   /**
    * @param s value to print 
