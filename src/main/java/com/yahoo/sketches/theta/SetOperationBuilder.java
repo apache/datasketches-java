@@ -136,8 +136,9 @@ public class SetOperationBuilder {
   }
   
   /**
-   * Returns the Memory
-   * @return the Memory
+   * Returns the Destination Memory
+   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
+   * @return the Destination Memory
    */
   public Memory getMemory() {
     return bDstMem;

@@ -142,10 +142,10 @@ public class UpdateSketchBuilder {
   }
   
   /**
-   * Initialize the specified backing Memory store.  
+   * Initialize the specified backing destination Memory store.  
    * Note: this cannot be used with the Alpha Family of sketches.
    * @param dstMem  The destination Memory. 
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
    * @return this UpdateSketchBuilder
    */
   public UpdateSketchBuilder initMemory(Memory dstMem) {
@@ -154,8 +154,9 @@ public class UpdateSketchBuilder {
   }
   
   /**
-   * Returns the Memory
-   * @return the Memory
+   * Returns the Destination Memory
+   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
+   * @return the Destination Memory
    */
   public Memory getMemory() {
     return bDstMem;
