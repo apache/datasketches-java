@@ -63,7 +63,7 @@ public abstract class UpdateSketch extends Sketch {
    * @param dstMem 
    * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
    * 
-   * @return this sketch as a CompactSketch
+   * @return this sketch as a CompactSketch in the chosen form
    */
   public CompactSketch compact(boolean dstOrdered, Memory dstMem) {
     CompactSketch sketchOut = null;
@@ -90,8 +90,8 @@ public abstract class UpdateSketch extends Sketch {
   }
   
   /**
-   * Returns this UpdateSketch to an ordered CompactSketch on the Java heap.
-   * @return this UpdateSketch to an ordered CompactSketch on the Java heap.
+   * Converts this UpdateSketch to an ordered CompactSketch on the Java heap.
+   * @return this sketch as an ordered CompactSketch on the Java heap.
    */
   public CompactSketch compact() {
     return compact(true, null);

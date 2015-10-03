@@ -32,14 +32,14 @@ public interface Union {
   void update(Memory mem);
   
   /**
-   * Gets the result of this operation as a CompactSketch
+   * Gets the result of this operation as a CompactSketch of the chosen form
    * @param dstOrdered 
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
    * 
    * @param dstMem 
    * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
    * 
-   * @return the result as a CompactSketch
+   * @return the result of this operation as a CompactSketch of the chosen form
    */
   CompactSketch getResult(boolean dstOrdered, Memory dstMem);
   

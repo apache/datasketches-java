@@ -23,19 +23,21 @@ public interface Intersection {
   void update(Sketch sketchIn);
   
   /**
-   * Returns the result of a call to update(Sketch) as a new CompactSketch.
+   * Gets the result of this operation as a CompactSketch of the chosen form. 
+   * The update method must have been called at least once. 
    * @param dstOrdered 
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
    * 
    * @param dstMem 
    * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
    * 
-   * @return the result CompactSketch.
+   * @return the result of this operation as a CompactSketch of the chosen form
    */
   CompactSketch getResult(boolean dstOrdered, Memory dstMem);
   
   /**
-   * Gets the result of this operation as an ordered CompactSketch on the Java heap
+   * Gets the result of this operation as an ordered CompactSketch on the Java heap.
+   * The update method must have been called at least once.
    * @return the result of this operation as an ordered CompactSketch on the Java heap
    */
   CompactSketch getResult();
