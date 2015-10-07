@@ -187,26 +187,12 @@ public class Preamble
 
     Preamble preamble = (Preamble) o;
 
-    if (familyId != preamble.familyId) {
-      return false;
-    }
-    if (flags != preamble.flags) {
-      return false;
-    }
-    if (logConfigK != preamble.logConfigK) {
-      return false;
-    }
-    if (preambleSize != preamble.preambleSize) {
-      return false;
-    }
-    if (seedHash != preamble.seedHash) {
-      return false;
-    }
-    if (version != preamble.version) {
-      return false;
-    }
-
-    return true;
+    return familyId == preamble.familyId &&
+           flags == preamble.flags &&
+           logConfigK == preamble.logConfigK &&
+           preambleSize == preamble.preambleSize &&
+           seedHash == preamble.seedHash &&
+           version == preamble.version;
   }
 
   @SuppressWarnings("cast")

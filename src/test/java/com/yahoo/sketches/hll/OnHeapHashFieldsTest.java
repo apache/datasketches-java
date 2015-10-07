@@ -98,6 +98,15 @@ public class OnHeapHashFieldsTest
 
     fields.intoByteArray(stored, 0);
     Assert.assertEquals(stored, expected);
+
+
+    boolean exceptionThrown = false;
+    try {
+      fields.intoByteArray(new byte[stored.length - 1], 0);
+    } catch (IllegalArgumentException e) {
+      exceptionThrown = true;
+    }
+    Assert.assertTrue(exceptionThrown, "Expected exception about length of array to be thrown.");
   }
 
   @Test

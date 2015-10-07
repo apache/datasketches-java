@@ -11,6 +11,7 @@ public class HllSketchBuilder
 
     retVal.preamble = preamble;
     retVal.dense = dense;
+    retVal.hipEstimation = hipEstimation;
 
     return retVal;
   }

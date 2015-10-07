@@ -28,6 +28,13 @@ public class OnHeapFields implements Fields
   @Override
   public int intoByteArray(byte[] array, int offset)
   {
+    int numBytesNeeded = numBytesToSerialize();
+    if (array.length - offset < numBytesNeeded) {
+      throw new IllegalArgumentException(
+          String.format("array too small[%,d] < [%,d]", array.length - offset, numBytesNeeded)
+      );
+    }
+
     array[offset++] = Fields.NAIVE_DENSE_VERSION;
     for (byte bucket : buckets) {
       array[offset++] = bucket;
