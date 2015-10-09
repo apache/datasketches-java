@@ -176,29 +176,29 @@ public class MemoryRegionTest {
   
   @Test
   public void checkToHexStringAllMem() {
-    int memCapacity = 48;
+    int memCapacity = 48; //must be 48
     NativeMemory mem = new AllocMemory(memCapacity);
     Memory region = new MemoryRegion(mem, 0, memCapacity);
     
-    toHexStringAllMemTests(region);
+    toHexStringAllMemTests(region); //requires println enabled to visually check
     
     mem.freeMemory();
   }
   
   @Test
   public void checkSetClearMemoryRegions() {
-    int memCapacity = 64;
+    int memCapacity = 64; //must be 64
     NativeMemory mem = new AllocMemory(memCapacity);
     Memory region = new MemoryRegion(mem, 0, memCapacity);
     
-    setClearMemoryRegionsTests(region);
+    setClearMemoryRegionsTests(region); //requires println enabled to visually check
     
     mem.freeMemory();
   }
   
   @Test
   public void checkSetGet() {
-    int memCapacity = 16;
+    int memCapacity = 16; //must be 16
     NativeMemory mem = new AllocMemory(memCapacity);
     Memory region = new MemoryRegion(mem, 0, memCapacity);
     assertEquals(region.getCapacity(), memCapacity);

@@ -379,31 +379,31 @@ public class NativeMemoryTest {
   
   @Test
   public void checkToHexStringAllMem() {
-    int memCapacity = 48;
+    int memCapacity = 48; //must be 48
     NativeMemory mem = new AllocMemory(memCapacity);
     
-    toHexStringAllMemTests(mem); //TODO upgrade after ByteBuffer done
+    toHexStringAllMemTests(mem); //requires println enabled to visually check
     
     mem.freeMemory();
   }
   
   @Test
   public void checkSetClearMemoryRegions() {
-    int memCapacity = 64;
+    int memCapacity = 64; //must be 64
     NativeMemory mem = new AllocMemory(memCapacity);
     
-    setClearMemoryRegionsTests(mem); //TODO upgrade after ByteBuffer done
+    setClearMemoryRegionsTests(mem); //requires println enabled to visually check
     
     mem.freeMemory();
   }
   
   @Test
   public void checkSetGet() {
-    int memCapacity = 16;
+    int memCapacity = 16; //must be 16
     NativeMemory mem = new AllocMemory(memCapacity);
     assertEquals(mem.getCapacity(), memCapacity);
     
-    setGetTests(mem); //TODO upgrade after ByteBuffer done
+    setGetTests(mem);
 
     mem.freeMemory();
   }
@@ -414,7 +414,7 @@ public class NativeMemoryTest {
     NativeMemory mem = new AllocMemory(memCapacity);
     assertEquals(memCapacity, mem.getCapacity());
     
-    setGetArraysTests(mem); //TODO upgrade after ByteBuffer done
+    setGetArraysTests(mem);
     
     mem.freeMemory();
   }
@@ -425,7 +425,7 @@ public class NativeMemoryTest {
     NativeMemory mem = new AllocMemory(memCapacity);
     assertEquals(memCapacity, mem.getCapacity());
     
-    setGetPartialArraysWithOffsetTests(mem); //TODO upgrade after ByteBuffer done
+    setGetPartialArraysWithOffsetTests(mem);
     
     mem.freeMemory();
   }
@@ -438,7 +438,7 @@ public class NativeMemoryTest {
     assertEquals(memCapacity, mem.getCapacity());
     mem.clear();
     
-    setClearIsBitsTests(mem); //TODO upgrade after ByteBuffer done
+    setClearIsBitsTests(mem);
     
     mem.freeMemory();
   }
@@ -450,7 +450,7 @@ public class NativeMemoryTest {
 
     assertEquals(mem.getCapacity(), memCapacity);
     
-    getAndAddSetTests(mem); //TODO upgrade after ByteBuffer done
+    getAndAddSetTests(mem);
     
     mem.freeMemory();
   }

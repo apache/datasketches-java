@@ -268,7 +268,7 @@ public class HeapQuickSelectSketchTest {
     double uskLB  = usk.getLowerBound(2);
     double uskUB  = usk.getUpperBound(2);
     int currentUSBytes = usk.getCurrentBytes(false);
-    assertEquals(currentUSBytes, 32*8 + 24);  //TODO clumsey, but a function of RF and TCF
+    assertEquals(currentUSBytes, 32*8 + 24);  // clumsy, but a function of RF and TCF
     int compBytes = usk.getCurrentBytes(true); //compact form
     assertEquals(compBytes, 8);
     assertEquals(usk.isEstimationMode(), estimating);
