@@ -10,6 +10,15 @@ Use Apache Maven 3.0 to build this project
 ### Build including source and javadoc jars
     mvn -P release-profile clean install
 
+#### Mac install
+To install you will need GnuPG which is not configured by default on Macs.
+   brew install gnupg
+   gpg --gen-key
+Then, follow instructions to create keys.
+
+To install Homebrew
+   ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+
 ### Release build, incrementing the version number and publising to maven central repository
 
 #### Prepare a release
