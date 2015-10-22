@@ -3,15 +3,14 @@ package com.yahoo.sketches.counting;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 import org.testng.Assert;
-import org.testng.annotations.Test;
 import java.lang.Math;
 import java.util.HashMap;
 
 /**
+ * Tests FrequentItems class
  * @author edo
  *
  */
-
 public class FrequentItemsTest {
 
 	@Test
@@ -97,11 +96,11 @@ public class FrequentItemsTest {
     int n = 8713;
     int maxSize = 50;
     int key;
-    double p = .04;
+    double prob = .04;
     FrequentItems frequentItems = new FrequentItems(maxSize);
     for (int i=0; i<n; i++){
     	// Draws a number from a skewed distribution (geometric)
-    	key = (int) -(Math.log(Math.random()) / p);
+    	key = randomGeometricDist(prob);
     	frequentItems.update(key);
     	AssertJUnit.assertTrue(frequentItems.getUpperBound(key) - frequentItems.getEstimate(key) <= i/maxSize);	
     }
@@ -119,9 +118,9 @@ public class FrequentItemsTest {
     FrequentItems frequentItems1 = new FrequentItems(maxSize1);
     FrequentItems frequentItems2 = new FrequentItems(maxSize2);
     for (int i=0; i<n; i++){
-    	int key1 =randomGeometricDist(prob1);
+    	int key1 = randomGeometricDist(prob1);
     	frequentItems1.update(key1);
-    	int key2 =randomGeometricDist(prob2);
+    	int key2 = randomGeometricDist(prob2);
     	frequentItems1.update(key2);
     	
     	// Updating the real counters
@@ -136,9 +135,7 @@ public class FrequentItemsTest {
     for ( Integer key : realCounts.keySet()){
     	AssertJUnit.assertTrue(realCounts.get(key) >= frequentItems.getEstimate(key));
     	AssertJUnit.assertTrue(realCounts.get(key) <= frequentItems.getUpperBound(key));
-    }
-  	 	
+    }	 	
   }
-  
   
 }
