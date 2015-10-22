@@ -2,15 +2,23 @@ package com.yahoo.sketches.counting;
 
 import java.util.HashMap;
 import java.util.ArrayList;
-//import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map.Entry;
-//import java.util.List;
+
 
 import com.yahoo.sketches.Util;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 
 
+
+
+/**
+ * This class implements a simple frequent direction algorithm.
+ * It is not intended to be very fast but rather to provide a 
+ * correctness baseline for faster versions 
+ * @author edo
+ *
+ */
 @SuppressWarnings("cast")
 public class FrequentItems {
   
@@ -26,22 +34,50 @@ public class FrequentItems {
 	  this.maxDeletesPerKey = 0;
   }
 	
-  
-  
   public void update(int key) {
     updateWithHash(hash(new int[] {key}, Util.DEFAULT_UPDATE_SEED));
   }
-  
-  
+   
   public Integer getEstimate(long[] key) {
   	return getEstimateWithHash(hash(key, Util.DEFAULT_UPDATE_SEED));
   }
   
-
   public Integer getUpperBound(int key) {
   	return getUpperBoundWithHash(hash(new int[] {key}, Util.DEFAULT_UPDATE_SEED));
   }
-
+  
+  public void update(long[] key) {
+    updateWithHash(hash(key, Util.DEFAULT_UPDATE_SEED));
+  }
+  
+  public void update(int[] key) {
+    updateWithHash(hash(key, Util.DEFAULT_UPDATE_SEED));
+  }
+  
+  public Integer getEstimate(int key) {
+  	return getEstimateWithHash(hash(new int[] {key}, Util.DEFAULT_UPDATE_SEED));
+  }
+  
+  public Integer getEstimate(int[] key) {
+  	return getEstimateWithHash(hash(key, Util.DEFAULT_UPDATE_SEED));
+  }
+  
+  public Integer getUpperBound(long[] key) {
+  	return getUpperBoundWithHash(hash(key, Util.DEFAULT_UPDATE_SEED));
+  }
+  
+  public Integer getUpperBound(int[] key) {
+  	return getUpperBoundWithHash(hash(key, Util.DEFAULT_UPDATE_SEED));
+  }
+  
+  public int getSize() {
+	  return counts.size();
+  }
+  
+  public int getDeletePhases() {
+  	return maxDeletesPerKey;
+  }
+  
   public FrequentItems union(FrequentItems that) {
   	// Summing up the counts
   	for (Entry<Long, Integer> entry : that.counts.entrySet()) {
@@ -77,39 +113,6 @@ public class FrequentItems {
 	  }
 		// returning a pointer to self
   	return this;
-  }
-  
-  
-  public void update(long[] key) {
-    updateWithHash(hash(key, Util.DEFAULT_UPDATE_SEED));
-  }
-  
-  public void update(int[] key) {
-    updateWithHash(hash(key, Util.DEFAULT_UPDATE_SEED));
-  }
-  
-  public Integer getEstimate(int key) {
-  	return getEstimateWithHash(hash(new int[] {key}, Util.DEFAULT_UPDATE_SEED));
-  }
-  
-  public Integer getEstimate(int[] key) {
-  	return getEstimateWithHash(hash(key, Util.DEFAULT_UPDATE_SEED));
-  }
-  
-  public Integer getUpperBound(long[] key) {
-  	return getUpperBoundWithHash(hash(key, Util.DEFAULT_UPDATE_SEED));
-  }
-  
-  public Integer getUpperBound(int[] key) {
-  	return getUpperBoundWithHash(hash(key, Util.DEFAULT_UPDATE_SEED));
-  }
-  
-  public int getSize() {
-	  return counts.size();
-  }
-  
-  public int getDeletePhases() {
-  	return maxDeletesPerKey;
   }
   
   private void updateWithHash(long[] hash) {
@@ -148,6 +151,5 @@ public class FrequentItems {
   	int lowerBound = getEstimateWithHash(hash) + maxDeletesPerKey;
   	return (lowerBound > 0) ? lowerBound : 0;
   }
-  
   
 }
