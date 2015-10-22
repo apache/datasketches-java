@@ -142,7 +142,7 @@ public class UtilTest {
   
   @Test
   public void printlnTest() {
-    println(this.getClass().getSimpleName());
+    println("PRINTING: "+this.getClass().getName());
   }
   
   /**

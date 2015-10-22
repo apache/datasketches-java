@@ -314,13 +314,13 @@ public class CommonTests {
 
   @Test
   public void printlnTest() {
-    println(this.getClass().getSimpleName());
+    println("PRINTING: "+this.getClass().getName());
   }
   
   /**
    * @param s value to print 
    */
   static void println(String s) {
-    System.out.println(s); //disable here
+    //System.out.println(s); //disable here
   }
 }

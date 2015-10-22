@@ -316,7 +316,7 @@ public class MurmurHash3AdaptorTest {
   
   @Test
   public void printlnTest() {
-    println(this.getClass().getSimpleName());
+    println("PRINTING: "+this.getClass().getName());
   }
   
   /**
