@@ -24,22 +24,22 @@ public class SpaceSaving {
 	
   public void update(long key, int increment) {
 	  //if key is already assigned a counter
-	if(counts.containsKey(key)){
-		int old_count = counts.get(key);
-		int new_count = old_count + increment;
-		//update count of key in hash table
-		counts.put(key, new_count);
-
-		//update count of key in min-heap by 
-		//removing it and adding it back in with new count
-		queue.remove(new Pair(key, 0));
-		queue.add(new Pair(key, new_count));
-	}
-	else{//if key not already assigned a counter, 
-		//and not all counters are used, assign it one
-		if(counts.size() < size){
-			counts.put(key, 1);
-			queue.add(new Pair(key, increment));
+		if(counts.containsKey(key)){
+			int old_count = counts.get(key);
+			int new_count = old_count + increment;
+			//update count of key in hash table
+			counts.put(key, new_count);
+	
+			//update count of key in min-heap by 
+			//removing it and adding it back in with new count
+			queue.remove(new Pair(key, 0));
+			queue.add(new Pair(key, new_count));
+		}
+		else{//if key not already assigned a counter, 
+			//and not all counters are used, assign it one
+			if(counts.size() < size){
+				counts.put(key, 1);
+				queue.add(new Pair(key, increment));
 		}
 		else{
 			//if all counters are used, assign the smallest counter to the key
@@ -53,7 +53,7 @@ public class SpaceSaving {
 	}
 	//register the updated stream length
 	this.updates = this.updates + increment;
-	System.out.printf("At end of update, queue.size() is: %d and counts.size() is: %d%n", queue.size(), counts.size());
+	//System.out.printf("At end of update, queue.size() is: %d and counts.size() is: %d%n", queue.size(), counts.size());
   }
   
   public double getEstimate(long key) { 
@@ -81,13 +81,12 @@ public class SpaceSaving {
   }
 
   public double getLowerBound(long key) {
-	// return upper bound on key's freq, minus upper bound on error
-	if(this.updates < this.size){
-		return getEstimate(key);
-	}
-	else{
-		return getEstimate(key) - 1.0 * this.updates/this.size;
-	}
+		// return upper bound on key's freq, minus upper bound on error
+		if(this.updates < this.size){
+			return getEstimate(key);
+		}
+		else{
+			return getEstimate(key) - 1.0 * this.updates/this.size;
+		}
   }
 }
-
