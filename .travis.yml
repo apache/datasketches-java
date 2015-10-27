@@ -3,8 +3,11 @@ language: java
 jdk:
  - oraclejdk8
 
+install:
+ - mvn install -Dmaven.javadoc.skip=true -Dsource.skip=true -DskipTests=true
+
 script:
- - mvn clean compile test
+ - mvn clean compile test -Dgpg.skip=true
 
 notifications:
   email: false
