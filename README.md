@@ -1,3 +1,5 @@
+Sketches Core [![Build Status](https://travis-ci.org/DataSketches/sketches-core.svg?branch=master)](https://travis-ci.org/DataSketches/sketches-core)
+=================
 # sketches-core
 Core Sketch Library
 
