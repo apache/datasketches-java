@@ -47,7 +47,7 @@ public class FrequentItemsTest {
       Assert.assertTrue(frequentItems.getMaxError() == 0);
     }
   }
-  
+
   /**
    * @param prob
    * @return a number from a geometric distribution
