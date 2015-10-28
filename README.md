@@ -23,7 +23,7 @@ To install Homebrew
     
     ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 
-### Release build, incrementing the version number and publising to maven central repository
+### Release build, incrementing the version number and publishing to maven central repository
 
 #### Prepare a release
 First, "prepare" a release. Preparing a release ensures you have no checked out file and no SNAPSHOT dependencies.
