@@ -1,3 +1,5 @@
+# http://docs.travis-ci.com/user/customizing-the-build/
+
 language: java
 
 jdk:
@@ -8,6 +10,9 @@ install:
 
 script:
  - mvn clean compile test -Dgpg.skip=true
+
+after_success: 
+  - mvn coveralls:report
 
 notifications:
   email: false
