@@ -1,155 +1,107 @@
 package com.yahoo.sketches.counting;
 
-import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Map.Entry;
-
-
-import com.yahoo.sketches.Util;
-import static com.yahoo.sketches.hash.MurmurHash3.hash;
-
-
-
 
 /**
  * This class implements a simple frequent direction algorithm.
  * It is not intended to be very fast but rather to provide a 
  * correctness baseline for faster versions 
+ * 
+ * The algorithm is most commonly known as the "Misra-Gries algorithm", 
+ * "frequent items" or "space-saving". It was discovered and rediscovered and redesigned several times over the years.
+ * "Finding repeated elements", Misra, Gries, 1982 
+ * "Frequency estimation of internet packet streams with limited space" Demaine, Lopez-Ortiz, Munro, 2002
+ * "A simple algorithm for finding frequent elements in streams and bags" Karp, Shenker, Papadimitriou, 2003
+ * "Efficient Computation of Frequent and Top-k Elements in Data Streams" Metwally, Agrawal, Abbadi, 2006
+ * 
  * @author edo
- *
  */
-@SuppressWarnings("cast")
 public class FrequentItems {
-  
-  private HashMap<Long,Integer> counts;
+
+  private PositiveCountersMap counters;
   private int maxSize;
-  private ArrayList<Long> keysToDelete;
-  private int maxDeletesPerKey;
+  private int maxError;
   
+  /**
+   * @param maxSize (must be positive)
+   * Gives the maximal number of positive counters the sketch is allowed to keep.
+   * This should be thought of as the limit on its space usage. The size is dynamic.
+   * If fewer than maxSize different keys are inserted the size will be smaller 
+   * that maxSize and the counts will be exact.  
+   */
   public FrequentItems(int maxSize) {
-	  this.maxSize = maxSize;
-	  this.counts = new HashMap<Long,Integer>(maxSize);
-	  this.keysToDelete = new ArrayList<Long>();
-	  this.maxDeletesPerKey = 0;
-  }
-	
-  public void update(int key) {
-    updateWithHash(hash(new int[] {key}, Util.DEFAULT_UPDATE_SEED));
-  }
-   
-  public Integer getEstimate(long[] key) {
-  	return getEstimateWithHash(hash(key, Util.DEFAULT_UPDATE_SEED));
+    assert(maxSize > 0);
+    this.maxSize = maxSize;
+    counters = new PositiveCountersMap();
+    this.maxError = 0;
   }
   
-  public Integer getUpperBound(int key) {
-  	return getUpperBoundWithHash(hash(new int[] {key}, Util.DEFAULT_UPDATE_SEED));
+  /**
+   * @return the number of positive counters in the sketch.
+   */
+  public long nnz() {
+    return counters.nnz();
   }
   
-  public void update(long[] key) {
-    updateWithHash(hash(key, Util.DEFAULT_UPDATE_SEED));
-  }
-  
-  public void update(int[] key) {
-    updateWithHash(hash(key, Util.DEFAULT_UPDATE_SEED));
-  }
-  
-  public Integer getEstimate(int key) {
-  	return getEstimateWithHash(hash(new int[] {key}, Util.DEFAULT_UPDATE_SEED));
-  }
-  
-  public Integer getEstimate(int[] key) {
-  	return getEstimateWithHash(hash(key, Util.DEFAULT_UPDATE_SEED));
-  }
-  
-  public Integer getUpperBound(long[] key) {
-  	return getUpperBoundWithHash(hash(key, Util.DEFAULT_UPDATE_SEED));
-  }
-  
-  public Integer getUpperBound(int[] key) {
-  	return getUpperBoundWithHash(hash(key, Util.DEFAULT_UPDATE_SEED));
-  }
-  
-  public int getSize() {
-	  return counts.size();
-  }
-  
-  public int getDeletePhases() {
-  	return maxDeletesPerKey;
-  }
-  
-  public FrequentItems union(FrequentItems that) {
-  	// Summing up the counts
-  	for (Entry<Long, Integer> entry : that.counts.entrySet()) {
-  		Long key = entry.getKey();
-  		int estimate = (Integer) this.counts.get(key);
-  		this.counts.put(key, estimate + entry.getValue());
-  	}
-  	// The count for a specific key could have been
-  	// deleted the maximal number of times in both sketches
-  	this.maxDeletesPerKey += that.maxDeletesPerKey;
-  	
-  	if (counts.size() >= maxSize){ 
-	  	// Crude way to find mind the value of the maxSize'th element in the array
-	  	ArrayList<Integer> valuesArray = new ArrayList<Integer>(that.counts.values());
-	  	Collections.sort(valuesArray);
-	  	int theresholdValue = valuesArray.get(maxSize-1);
-	  	
-	  	// Decrementing all counts by theresholdValue  
-	  	for (Entry<Long, Integer> entry : counts.entrySet()) {
-		    if (entry.getValue() <= theresholdValue){
-		    	keysToDelete.add(entry.getKey());
-		    } else {
-		    	counts.put(entry.getKey(), entry.getValue() - theresholdValue);
-		    }  
-			}
-	  	maxDeletesPerKey += theresholdValue;
-	  	
-	  	// Deleting counts that are below the threshold 
-			for (Long tempHash : keysToDelete) {
-				counts.remove(tempHash);
-			}
-			keysToDelete.clear();
-	  }
-		// returning a pointer to self
-  	return this;
-  }
-  
-  private void updateWithHash(long[] hash) {
-  	Long half = hash[0];
-  	if(counts.containsKey(half)){
-			counts.put(half, counts.get(half)+1);
-		} else {
-			counts.put(half,1);
-		}
-			
-		// In case the hash map is full we delete a few entries. 
-  	// It is guaranteed that at least one entry will be deleted.
-		if (counts.size() >= maxSize) {
-			for (Entry<Long, Integer> entry : counts.entrySet()) {
-		    if (entry.getValue() <= 1){
-		    	keysToDelete.add(entry.getKey());
-		    } else {
-		    	counts.put(entry.getKey(), entry.getValue()-1);
-		    }  
-			}
-			
-			maxDeletesPerKey += 1; 
-			for (Long tempHash : keysToDelete) {
-				counts.remove(tempHash);
-			}
-			keysToDelete.clear();
-		}
-  }
-  
-  private Integer getEstimateWithHash(long[] hash) {
-  	Long half = hash[0];
-  	return (counts.containsKey(half)) ? counts.get(half) : 0;
+  /**
+   * @param key (should be "null") whose frequency (number of insertions) is needed.
+   * @return the approximate count for the number of times the 
+   * key was inserted into the sketch (using update(key))
+   * 
+   */
+  public long get(Long key) {
+    assert(key != null);
+    return counters.get(key);
   }
 
-  private Integer getUpperBoundWithHash(long[] hash) {
-  	int lowerBound = getEstimateWithHash(hash) + maxDeletesPerKey;
-  	return (lowerBound > 0) ? lowerBound : 0;
+  /**
+   * @return the maximal error of the estimate one gets from get(key).
+   * Note that the error is one sided. if the real count is realCount(key) then
+   * get(key) <= realCount(key) <= get(key) + getMaxError() 
+   */
+  public int getMaxError() {
+    return maxError;
   }
+
   
+  /**
+   * @param key 
+   * A key (as long) to be added to the sketch. The key cannot be null.
+   */
+  public void update(Long key) {
+    assert(key != null);
+    counters.increment(key);  
+    if (counters.nnz() > maxSize){ 
+      counters.decerementAll();
+      maxError++;
+    }
+  }
+
+  /**
+   * @param that
+   * Another FrequentItems sketch. Potentially of different size. 
+   * @return pointer to the sketch resulting in adding the approximate counts of another sketch. 
+   * This method does not create a new sketch. The sketch whose function is executed is changed.
+   */
+  public FrequentItems union(FrequentItems that) {
+    // Summing up the counts
+    counters.increment(that.counters);
+    
+    // The count for a specific key could have been
+    // deleted the maximal number of times in both sketches
+    this.maxError += that.maxError;
+    
+    if (counters.nnz() > maxSize){ 
+      // Crude way to find mind the value of the 
+      // maxSize'th largest element in the array  
+      ArrayList<Long> valuesArray = new ArrayList<Long>(counters.values());
+      Collections.sort(valuesArray);
+      long delta = valuesArray.get(maxSize);
+      counters.decerementAll(delta);
+      maxError += delta;
+    }
+    return this;
+  }
+
 }
