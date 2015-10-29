@@ -19,7 +19,6 @@ public class FrequentItemsTest {
     Assert.assertNotNull(frequentItems);
     // Should throw exception
     frequentItems = new FrequentItems(-134);
-
   }
 
   @Test
@@ -146,7 +145,7 @@ public class FrequentItemsTest {
     int n = 1000000;
     int maxSize = 1000;  
     FrequentItems frequentItems = new FrequentItems(maxSize);
-    double prob = 1.0/((double) n);
+    double prob = 1.0/n;
     final long startTime = System.currentTimeMillis();
     for (int i=0; i<n; i++){
       long key = randomGeometricDist(prob);
