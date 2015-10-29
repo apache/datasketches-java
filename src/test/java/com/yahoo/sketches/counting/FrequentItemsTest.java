@@ -56,7 +56,7 @@ public class FrequentItemsTest {
    * @return a random number generated from the geometric distribution.
    */
   static private long randomGeometricDist(double prob){
-  	assert(prob > 0.0 && prob < 1.0);
+    assert(prob > 0.0 && prob < 1.0);
     return (long) (Math.log(Math.random()) / Math.log(1.0 - prob));
   }
   

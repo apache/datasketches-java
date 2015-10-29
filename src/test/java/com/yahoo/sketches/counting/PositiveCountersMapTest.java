@@ -10,7 +10,7 @@ import org.testng.Assert;
 
 public class PositiveCountersMapTest {
 
-	@Test
+  @Test
   public void construct() {
     PositiveCountersMap cs = new PositiveCountersMap(); 
     Assert.assertNotNull(cs);
@@ -138,14 +138,14 @@ public class PositiveCountersMapTest {
     ArrayList<Long> realKeys = new ArrayList<Long>();
     Random random = new Random(); 
     for (int i=0; i<n; i++){
-    	long key = random.nextLong();
-    	long value = random.nextInt(1000);
-    	if (!counters.containsKey(key)){
-    		cs.put(key, value);
-    		counters.put(key, value);
-    		realKeys.add(key);
-    		realValues.add(value);
-    	}
+      long key = random.nextLong();
+      long value = random.nextInt(1000);
+      if (!counters.containsKey(key)){
+        cs.put(key, value);
+        counters.put(key, value);
+        realKeys.add(key);
+        realValues.add(value);
+      }
     }
     Collections.sort(realKeys);
     ArrayList<Long> testKeys = new ArrayList<Long>(cs.keys());
@@ -167,27 +167,27 @@ public class PositiveCountersMapTest {
     PositiveCountersMap cs1 = new PositiveCountersMap();
     PositiveCountersMap cs2 = new PositiveCountersMap();
     for (int i=0; i<n; i++){
-    	long key = random.nextLong();
-    	long value = random.nextInt(1000)+1;
-    	if (!counters.containsKey(key)){
-    		if (i % 3 == 0) {
-    			cs1.put(key, value);
-      		counters.put(key, value);
-    		}
-    		if (i % 3 == 1) {
-    			cs2.put(key, value);
-      		counters.put(key, value);
-    		}
-    		if (i % 3 == 2) {
-    		cs1.put(key, value);
-    		cs2.put(key, value);
-    		counters.put(key, 2*value);
-    		}
-    	}
+      long key = random.nextLong();
+      long value = random.nextInt(1000)+1;
+      if (!counters.containsKey(key)){
+        if (i % 3 == 0) {
+          cs1.put(key, value);
+          counters.put(key, value);
+        }
+        if (i % 3 == 1) {
+          cs2.put(key, value);
+          counters.put(key, value);
+        }
+        if (i % 3 == 2) {
+        cs1.put(key, value);
+        cs2.put(key, value);
+        counters.put(key, 2*value);
+        }
+      }
     }
     cs1.increment(cs2);
     for (Long testkey: counters.keySet()) {
-    	Assert.assertEquals(cs1.get(testkey), (long) counters.get(testkey));
+      Assert.assertEquals(cs1.get(testkey), (long) counters.get(testkey));
     }
   }
   

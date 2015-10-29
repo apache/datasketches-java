@@ -38,7 +38,7 @@ public class FrequentItems {
    * that maxSize and the counts will be exact.  
    */
   public FrequentItems(int maxSize) {
-  	if (maxSize <= 0) throw new IllegalArgumentException("Received negative or zero value for maxSize.");
+    if (maxSize <= 0) throw new IllegalArgumentException("Received negative or zero value for maxSize.");
     this.maxSize = maxSize;
     counters = new PositiveCountersMap();
     this.maxError = 0;

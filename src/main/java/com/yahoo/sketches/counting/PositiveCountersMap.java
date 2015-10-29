@@ -67,8 +67,8 @@ public class PositiveCountersMap{
    * @param value of new count for the key and cannot be negative.
    */
   public void put(long key, long value){
-  	if (value < 0) throw new IllegalArgumentException("Received negative value.");
-  	if (value == 0) counters.remove(key);
+    if (value < 0) throw new IllegalArgumentException("Received negative value.");
+    if (value == 0) counters.remove(key);
     counters.put(key, get(key) + value + offset); 
   }
   
@@ -79,7 +79,7 @@ public class PositiveCountersMap{
    * The variable delta cannot be negative.
    */
   public void increment(long key, long delta){
-  	if (delta < 0) throw new IllegalArgumentException("Received negative value for delta.");
+    if (delta < 0) throw new IllegalArgumentException("Received negative value for delta.");
     if (delta == 0) return;
     long value =  get(key);
     if (value == 0) nnz++;
@@ -112,7 +112,7 @@ public class PositiveCountersMap{
    * The value of delta cannot be negative.
    */
   public void decerementAll(long delta){
-  	if (delta < 0) throw new IllegalArgumentException("Received negative value for delta.");
+    if (delta < 0) throw new IllegalArgumentException("Received negative value for delta.");
     if (delta == 0) return;
     offset += delta;
     removeNegativeCounters();
