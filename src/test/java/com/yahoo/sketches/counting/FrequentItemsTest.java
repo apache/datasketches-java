@@ -12,11 +12,14 @@ import java.lang.Math;
  */
 public class FrequentItemsTest {
 
-  @Test
+  @Test(expectedExceptions = IllegalArgumentException.class)
   public void construct() {
     int size = 100;
     FrequentItems frequentItems = new FrequentItems(size);
     Assert.assertNotNull(frequentItems);
+    // Should throw exception
+    frequentItems = new FrequentItems(-134);
+
   }
 
   @Test
@@ -49,10 +52,11 @@ public class FrequentItemsTest {
   }
 
   /**
-   * @param prob
-   * @return a number from a geometric distribution
+   * @param prob the probability of success for the geometric distribution. 
+   * @return a random number generated from the geometric distribution.
    */
-  private long randomGeometricDist(double prob){
+  static private long randomGeometricDist(double prob){
+  	assert(prob > 0.0 && prob < 1.0);
     return (long) (Math.log(Math.random()) / Math.log(1.0 - prob));
   }
   
@@ -61,11 +65,11 @@ public class FrequentItemsTest {
     long maxKey = 0L;
     double prob = .1;
     for (int i=0; i<100; i++){
-      // Draws a number from a skewed distribution (geometric)
       long key = randomGeometricDist(prob) ;
       if (key > maxKey) maxKey = key;
-      //System.out.println(key);
-      Assert.assertTrue((double)maxKey < 20.0/prob);
+      // If you succeed with probability p the probability 
+      // of failing 20/p times is smaller than 1/2^20.
+      Assert.assertTrue(maxKey < 20.0/prob);
     }
   }
    
@@ -140,7 +144,7 @@ public class FrequentItemsTest {
   @Test
   public void stressTestUpdateTime() {
     int n = 1000000;
-    int maxSize = 10000;  
+    int maxSize = 1000;  
     FrequentItems frequentItems = new FrequentItems(maxSize);
     double prob = 1.0/((double) n);
     final long startTime = System.currentTimeMillis();
@@ -150,7 +154,7 @@ public class FrequentItemsTest {
     }
     final long endTime = System.currentTimeMillis();
     double timePerUpdate = (double)(endTime-startTime)/(double)n;
-    System.out.println("Amortized time per update: " + (double)(endTime-startTime)/(double)n);
+    System.out.println("Amortized time per update: " + timePerUpdate);
     Assert.assertTrue(timePerUpdate < 10E-3);
   }
 

@@ -4,12 +4,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 /**
- * This class implements a simple frequent direction algorithm.
- * It is not intended to be very fast but rather to provide a 
- * correctness baseline for faster versions 
+ * The frequent-items sketch is useful for keeping approximate counters for keys (map from key (long) to value (long)).  
+ * The sketch is initialized with a maximal size parameter. The sketch will keep at most that number of positive counters at any given time.
+ * When the sketch is updated with a key, the corresponding counter is incremented by 1 or, if there is no counter for that key, a new counter is created. 
+ * If the sketch reaches its maximal allowed size, it removes some counter and decrements other.
+ * The logic of the frequent-items sketch is such that the stored counts and real counts are never too different.
+ * More explicitly 
+ * 1) The estimate from the sketch is never larger than the real count
+ * 2) The estimate from the sketch is never smaller than the real count minus the guaranteed error
+ * 3) The guaranteed error is at most the number of updates to sketch divided by its maximal size.
  * 
- * The algorithm is most commonly known as the "Misra-Gries algorithm", 
- * "frequent items" or "space-saving". It was discovered and rediscovered and redesigned several times over the years.
+ * Background:
+ * The algorithm is most commonly known as the "Misra-Gries algorithm", "frequent items" or "space-saving". 
+ * It was discovered and rediscovered and redesigned several times over the years.
  * "Finding repeated elements", Misra, Gries, 1982 
  * "Frequency estimation of internet packet streams with limited space" Demaine, Lopez-Ortiz, Munro, 2002
  * "A simple algorithm for finding frequent elements in streams and bags" Karp, Shenker, Papadimitriou, 2003
@@ -31,7 +38,7 @@ public class FrequentItems {
    * that maxSize and the counts will be exact.  
    */
   public FrequentItems(int maxSize) {
-    assert(maxSize > 0);
+  	if (maxSize <= 0) throw new IllegalArgumentException("Received negative or zero value for maxSize.");
     this.maxSize = maxSize;
     counters = new PositiveCountersMap();
     this.maxError = 0;
@@ -45,13 +52,13 @@ public class FrequentItems {
   }
   
   /**
-   * @param key (should be "null") whose frequency (number of insertions) is needed.
-   * @return the approximate count for the number of times the 
-   * key was inserted into the sketch (using update(key))
-   * 
+   * @param key whose count estimate is returned.
+   * @return the approximate count for the key.
+   * It is guaranteed that
+   * 1) get(key) <= real count
+   * 2) get(key) >= real count - getMaxError() 
    */
-  public long get(Long key) {
-    assert(key != null);
+  public long get(long key) {
     return counters.get(key);
   }
 
@@ -69,8 +76,7 @@ public class FrequentItems {
    * @param key 
    * A key (as long) to be added to the sketch. The key cannot be null.
    */
-  public void update(Long key) {
-    assert(key != null);
+  public void update(long key) {
     counters.increment(key);  
     if (counters.nnz() > maxSize){ 
       counters.decerementAll();

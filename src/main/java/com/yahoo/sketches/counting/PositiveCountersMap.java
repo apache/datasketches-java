@@ -22,7 +22,7 @@ public class PositiveCountersMap{
   ArrayList<Long> keysToRemove;
   private long offset;
   private long nnz;
-
+ 
   /**
    * Creates empty mappings and default offset = 0.
    */
@@ -54,35 +54,33 @@ public class PositiveCountersMap{
   }
   
   /**
-   * @param key, should not be null.
+   * @param key should not be null.
    * @return the exact count for that key.
    */
-  public Long get(Long key){
-    assert(key != null);
+  public long get(long key){
     Long value = counters.get(key);
     return (value != null) ? value - offset: 0L;
   }
   
   /**
-   * @param key whose count needs to be set to a differnt value
-   * @param value of new count for the key
+   * @param key whose count needs to be set to a different value
+   * @param value of new count for the key and cannot be negative.
    */
-  public void put(Long key, Long value){
-    assert(key != null);
-    assert(value != null);
-    assert(value > 0);
+  public void put(long key, long value){
+  	if (value < 0) throw new IllegalArgumentException("Received negative value.");
+  	if (value == 0) counters.remove(key);
     counters.put(key, get(key) + value + offset); 
   }
   
   /**
    * @param key whose count should be incremented. If a counter
    * does not exist for key it is created.
-   * @param delta, the amount by which the value should be increased.
-   * The variable delta must be positive.
+   * @param delta the amount by which the value should be increased.
+   * The variable delta cannot be negative.
    */
-  public void increment(Long key, long delta){
-    assert(delta > 0);
-    if (delta <= 0) return;
+  public void increment(long key, long delta){
+  	if (delta < 0) throw new IllegalArgumentException("Received negative value for delta.");
+    if (delta == 0) return;
     long value =  get(key);
     if (value == 0) nnz++;
     counters.put(key, value + delta + offset);
@@ -92,17 +90,17 @@ public class PositiveCountersMap{
    * @param key whose count should be incremented by 1. 
    * If a counter does not exist for key it is created.
    */
-  public void increment(Long key){
+  public void increment(long key){
     increment(key, 1L);
   }
   
   /**
-   * @param that, another PositiveCountersMap
+   * @param other another PositiveCountersMap
    * All counters of shared keys are summed up.
    * Keys only in the other PositiveCountersMap receive new counts. 
    */
-  public void increment(PositiveCountersMap that){
-    for (Entry<Long, Long> entry : that.counters.entrySet()) {
+  public void increment(PositiveCountersMap other){
+    for (Entry<Long, Long> entry : other.counters.entrySet()) {
       increment(entry.getKey(), entry.getValue());
     }
     removeNegativeCounters();
@@ -110,12 +108,12 @@ public class PositiveCountersMap{
   }
   
   /**
-   * @param delta, the value by which all counts should be decremented.
-   * delta must be positive.
+   * @param delta the value by which all counts should be decremented.
+   * The value of delta cannot be negative.
    */
-  public void decerementAll(Long delta){
-    assert(delta > 0);
-    if (delta <= 0) return;
+  public void decerementAll(long delta){
+  	if (delta < 0) throw new IllegalArgumentException("Received negative value for delta.");
+    if (delta == 0) return;
     offset += delta;
     removeNegativeCounters();
     nnz = counters.size();
@@ -137,7 +135,7 @@ public class PositiveCountersMap{
         keysToRemove.add(entry.getKey());
       }
     }
-    for (Long key : keysToRemove) {
+    for (long key : keysToRemove) {
       counters.remove(key);
     }
     keysToRemove.clear();

@@ -4,7 +4,6 @@ import java.util.Random;
 import java.util.HashMap;
 import java.util.Collections;
 import java.util.ArrayList;
-import java.util.Collection;
 
 import org.testng.annotations.Test;
 import org.testng.Assert;
@@ -17,6 +16,23 @@ public class PositiveCountersMapTest {
     Assert.assertNotNull(cs);
   }
 
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void putTest() {
+    PositiveCountersMap cs = new PositiveCountersMap();  
+    long key = 4L;
+    long value = 5232;
+    cs.put(key,value);
+    Assert.assertTrue(cs.get(key) == value);
+    
+    cs.put(key,0);
+    Assert.assertTrue(cs.get(key) == 0);
+    
+    // Throws exception
+    cs.put(key,-2342);
+  }
+ 
+  
   @Test
   public void incrementTest() {
     PositiveCountersMap cs = new PositiveCountersMap();  
@@ -25,13 +41,19 @@ public class PositiveCountersMapTest {
     Assert.assertTrue(cs.get(key) == 1);
   }
 
-  @Test
+  @Test(expectedExceptions = IllegalArgumentException.class)
   public void incrementWithValueTest() {
     PositiveCountersMap cs = new PositiveCountersMap();  
     long key = 4L;
     long delta = 24;
     cs.increment(key,delta);
     Assert.assertTrue(cs.get(key) == delta);
+    
+    cs.increment(key,0);
+    Assert.assertTrue(cs.get(key) == delta);
+    
+    // Should throw exception
+    cs.increment(key,-234);
   }
    
   @Test
@@ -44,7 +66,7 @@ public class PositiveCountersMapTest {
     Assert.assertTrue(cs.get(key) == value - 1);
   }
   
-  @Test
+  @Test(expectedExceptions = IllegalArgumentException.class)
   public void decrementAllWithValueTest() {
     PositiveCountersMap cs = new PositiveCountersMap();  
     long key = 4L;
@@ -53,6 +75,12 @@ public class PositiveCountersMapTest {
     cs.put(key,value);
     cs.decerementAll(delta);
     Assert.assertTrue(cs.get(key) == value - delta);
+    
+    cs.decerementAll(0);
+    Assert.assertTrue(cs.get(key) == value - delta);
+    
+    // Should throw exception
+    cs.decerementAll(-234); 
   }
 
   @Test
@@ -111,7 +139,7 @@ public class PositiveCountersMapTest {
     Random random = new Random(); 
     for (int i=0; i<n; i++){
     	long key = random.nextLong();
-    	long value = (long) (random.nextInt(1000));
+    	long value = random.nextInt(1000);
     	if (!counters.containsKey(key)){
     		cs.put(key, value);
     		counters.put(key, value);
@@ -140,7 +168,7 @@ public class PositiveCountersMapTest {
     PositiveCountersMap cs2 = new PositiveCountersMap();
     for (int i=0; i<n; i++){
     	long key = random.nextLong();
-    	long value = (long) (random.nextInt(1000)+1);
+    	long value = random.nextInt(1000)+1;
     	if (!counters.containsKey(key)){
     		if (i % 3 == 0) {
     			cs1.put(key, value);
@@ -159,7 +187,7 @@ public class PositiveCountersMapTest {
     }
     cs1.increment(cs2);
     for (Long testkey: counters.keySet()) {
-    	Assert.assertEquals(cs1.get(testkey), counters.get(testkey));
+    	Assert.assertEquals(cs1.get(testkey), (long) counters.get(testkey));
     }
   }
   
