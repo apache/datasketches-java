@@ -1,6 +1,5 @@
 package com.yahoo.sketches.hll;
 
-import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -11,25 +10,16 @@ import java.util.Set;
 
 /**
  */
-public class OnHeapHashFieldsTest
+public class OnHeapCompressedFieldsTest
 {
-  private static final Fields.UpdateCallback cb = new Fields.UpdateCallback()
-  {
-    @Override
-    public void bucketUpdated(int bucket, byte oldVal, byte newVal)
-    {
-
-    }
-  };
-
-  OnHeapHashFields fields;
+  OnHeapCompressedFields fields;
   private Preamble preamble;
 
   @BeforeMethod
   public void setUp() throws Exception
   {
     preamble = Preamble.fromLogK(10);
-    fields = new OnHeapHashFields(preamble, 16, 0x2<<preamble.getLogConfigK(), new DenseFieldsFactory());
+    fields = new OnHeapCompressedFields(preamble);
   }
 
   @Test
@@ -42,8 +32,8 @@ public class OnHeapHashFieldsTest
   public void testUpdateBucket() throws Exception
   {
     Set<Integer> expectedKeys = new LinkedHashSet<>();
-    for (int i = 0; i < 10; ++i) {
-      fields.updateBucket(i, (byte) (i+1), cb);
+    for (int i = 0; i < 20; ++i) {
+      fields.updateBucket(i, (byte) (i+1), Fields.NOOP_CB);
       expectedKeys.add(i);
     }
 
@@ -72,8 +62,8 @@ public class OnHeapHashFieldsTest
     fields.updateBucket(2, (byte) 1, cb);
     TestUpdateCallback.assertVals(cb, 2, 2, 4);
 
-    fields.updateBucket(2, (byte) 9, cb);
-    TestUpdateCallback.assertVals(cb, 3, 4, 9);
+    fields.updateBucket(2, (byte) 27, cb);
+    TestUpdateCallback.assertVals(cb, 3, 4, 27);
   }
 
   @Test
@@ -81,31 +71,48 @@ public class OnHeapHashFieldsTest
   {
     byte[] stored = new byte[fields.numBytesToSerialize()];
     byte[] expected = new byte[stored.length];
-    Memory expectedMem = new NativeMemory(expected);
-    expectedMem.putByte(0, (byte) 0x1);
-    for (int i = 1; i < 65; i+=4) {
-      expectedMem.putInt(i, -1);
+    expected[0] = 0x3;
+    NativeMemory expectedMem = new NativeMemory(expected);
+    expectedMem.putInt(2, fields.getPreamble().getConfigK());
+    for(int i = 518; i < expected.length; ++i) {
+      expected[i] = -1;
     }
 
     fields.intoByteArray(stored, 0);
     Assert.assertEquals(stored, expected);
 
-    fields.updateBucket(2, (byte) 27, cb);
-    // 9 is a magic number based on the hashing.  If the hashing were to change,
-    // then it should also be expected to change
-    expectedMem.putInt(9, HashUtils.pairOfKeyAndVal(2, (byte) 27));
+    fields.updateBucket(2, (byte) 27, Fields.NOOP_CB);
+    expectedMem.putInt(2, expectedMem.getInt(2) - 1);
+    expected[7] = (byte) 0xf0;
+    expectedMem.putInt(
+        1 + 5 + (preamble.getConfigK() >>> 1) + 8,
+        HashUtils.pairOfKeyAndVal(2, (byte) 27)
+    );
 
     fields.intoByteArray(stored, 0);
     Assert.assertEquals(stored, expected);
 
-    fields.updateBucket(892, (byte) 10, cb);
-    // 49 is a magic number based on the hashing.  If the hashing were to change,
-    // then it should also be expected to change.
-    expectedMem.putInt(49, HashUtils.pairOfKeyAndVal(892, (byte) 10));
-
+    fields.updateBucket(892, (byte) 0xa, Fields.NOOP_CB);
+    expectedMem.putInt(2, expectedMem.getInt(2) - 1);
+    expected[452] = (byte) 0xa0;
     fields.intoByteArray(stored, 0);
     Assert.assertEquals(stored, expected);
 
+    fields.updateBucket(892, (byte) 0x7, Fields.NOOP_CB);
+    expected[452] = (byte) 0xa0;
+    fields.intoByteArray(stored, 0);
+    Assert.assertEquals(stored, expected);
+
+    fields.updateBucket(892, (byte) 0xb, Fields.NOOP_CB);
+    expected[452] = (byte) 0xb0;
+    fields.intoByteArray(stored, 0);
+    Assert.assertEquals(stored, expected);
+
+    fields.updateBucket(893, (byte) 0xa, Fields.NOOP_CB);
+    expectedMem.putInt(2, expectedMem.getInt(2) - 1);
+    expected[452] = (byte) 0xba;
+    fields.intoByteArray(stored, 0);
+    Assert.assertEquals(stored, expected);
 
     boolean exceptionThrown = false;
     try {
@@ -119,21 +126,12 @@ public class OnHeapHashFieldsTest
   @Test
   public void testNumBytesToSerialize() throws Exception
   {
-    Assert.assertEquals(fields.numBytesToSerialize(), 1 + (16 * 4));
-
-
-    for (int i = 0; i < 11; ++i) {
-      fields.updateBucket(i, (byte) 1, cb);
-      Assert.assertEquals(fields.numBytesToSerialize(), 1 + (16 * 4), String.valueOf(i));
-    }
-
-    fields.updateBucket(1023, (byte) 98, cb);
-    Assert.assertEquals(fields.numBytesToSerialize(), 1 + (32 * 4));
+    Assert.assertEquals(fields.numBytesToSerialize(), 1 + 5 + 512 + 64);
   }
 
   @Test
   public void testToCompact() throws Exception
   {
-    Assert.assertSame(fields.toCompact().getClass(), OnHeapImmutableCompactFields.class);
+    Assert.assertSame(fields.toCompact(), fields);
   }
 }

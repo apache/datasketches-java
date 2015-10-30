@@ -14,6 +14,7 @@ public interface Fields
   byte NAIVE_DENSE_VERSION = 0x0;
   byte HASH_SPARSE_VERSION = 0x1;
   byte SORTED_SPARSE_VERSION = 0x2;
+  byte COMPRESSED_DENSE_VERSION = 0x3;
 
   Preamble getPreamble();
 
@@ -50,11 +51,80 @@ public interface Fields
    */
   int numBytesToSerialize();
 
+  /**
+   * Return the compact form of this fields object.  The compact form is intended as the most compact representation
+   * of the same data.  Generally, the compact form is not updatable and it is acceptable for it to throw
+   * UnsupportedOperationException's out of the update calls.
+   *
+   * @return  The compact representation of these fields.
+   */
   Fields toCompact();
 
+  /**
+   * Returns a BucketIterator over the buckets in this Fields object.
+   *
+   * @return a Bucket iterator that walks the buckets of this Fields object.
+   */
   BucketIterator getBucketIterator();
 
+  /**
+   * Unions the current Fields into the Fields presented as an argument.  This exists to allow for polymorphic dispatch
+   * to enable optimized unioning when available.  That is, most implementations will end up delegating to
+   *
+   * recipient.unionBucketIterator(getBucketIterator());
+   *
+   * But, if there is a method that is more specific to the implementation, it can choose to delegate to, e.g.
+   *
+   * unionCompressedAndExceptions()
+   *
+   * @param recipient The fields to be unioned *into*
+   * @param cb The callback to be called whenever a bucket value is updated
+   * @return The new fields object to use to represent the unioned buckets
+   */
+  Fields unionInto(Fields recipient, UpdateCallback cb);
+
+  /**
+   * Unions the provided BucketIterator into the current Fields object.
+   *
+   * @param iter the BucketIterator to union into the current Fields object
+   * @param cb The callback to be called whenever a bucket value is updated
+   * @return The new fields object to use to represent the unioned buckets
+   */
+  Fields unionBucketIterator(BucketIterator iter, UpdateCallback cb);
+
+  /**
+   * Unions the provided compressed byte[] and exceptions hash into the current Fields object.
+   *
+   * @param compressed a byte array of compressed, 4-bit values as used by OnHeapCompressedFields
+   * @param minVal the minimum value (or "offset").  I.e. a 0 in a nibble from compressed represent this actual value
+   * @param exceptions the exceptions hash
+   * @param cb The callback to be called whenever a bucket value is updated
+   * @return The new fields object to use to represent the unioned buckets
+   */
+  Fields unionCompressedAndExceptions(byte[] compressed, int minVal, OnHeapHash exceptions, UpdateCallback cb);
+
+  /**
+   * An UpdateCallback is a callback provided to calls that potentially update buckets.  It is a single method
+   * interface that can provide feedback to the caller about when a bucket was updated.  This enables the HipHllSketch
+   * to get the information it needs to use the HipEstimation algorithm instead of the built-in one.
+   */
   interface UpdateCallback {
+    /**
+     * Called when a bucket value is updated.
+     *
+     * @param bucket the index of the bucket that was updated
+     * @param oldVal the old value of the bucket
+     * @param newVal the new value of the bucket
+     */
     void bucketUpdated(int bucket, byte oldVal, byte newVal);
   }
+
+  UpdateCallback NOOP_CB = new UpdateCallback()
+  {
+    @Override
+    public void bucketUpdated(int bucket, byte oldVal, byte newVal)
+    {
+
+    }
+  };
 }

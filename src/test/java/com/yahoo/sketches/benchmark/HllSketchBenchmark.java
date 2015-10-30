@@ -1,8 +1,7 @@
 package com.yahoo.sketches.benchmark;
 
 import com.yahoo.sketches.hll.HllSketch;
-import com.yahoo.sketches.hll.OnHeapFields;
-import com.yahoo.sketches.hll.Preamble;
+import com.yahoo.sketches.hll.HllSketchBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,15 +12,19 @@ import java.util.Random;
  */
 public class HllSketchBenchmark implements SketchBenchmark
 {
+  private final String name;
   private final Random rand;
-  private final Preamble preamble;
+  private final HllSketchBuilder inputBob;
+  private final HllSketchBuilder unionBob;
 
   private List<HllSketch> sketches;
 
-  public HllSketchBenchmark(int logK)
+  public HllSketchBenchmark(String name, Random rand, HllSketchBuilder inputBob, HllSketchBuilder unionBob)
   {
-    this.rand = new Random(logK);
-    this.preamble = Preamble.createSharedPreamble(logK);
+    this.name = name;
+    this.rand = rand;
+    this.inputBob = inputBob;
+    this.unionBob = unionBob;
   }
 
   @Override
@@ -31,7 +34,7 @@ public class HllSketchBenchmark implements SketchBenchmark
 
     for (Spec spec : specs) {
       for (int i = 0; i < spec.getNumSketches(); ++i) {
-        HllSketch sketch = HllSketch.builder().setPreamble(preamble).build();
+        HllSketch sketch = inputBob.build();
         for (int j = 0; j < spec.getNumEntries(); ++j) {
           sketch.update(new long[]{rand.nextLong()});
         }
@@ -45,7 +48,7 @@ public class HllSketchBenchmark implements SketchBenchmark
   public void runNTimes(int n)
   {
     for (int i = 0; i < n; ++i) {
-      HllSketch combined = new HllSketch(new OnHeapFields(preamble));
+      HllSketch combined = unionBob.build();
       for (HllSketch toUnion : sketches) {
         combined.union(toUnion);
       }
@@ -61,6 +64,6 @@ public class HllSketchBenchmark implements SketchBenchmark
   @Override
   public String toString()
   {
-    return "HLL Benchmark";
+    return name;
   }
 }

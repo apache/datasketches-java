@@ -13,15 +13,23 @@ import java.util.Random;
  */
 public class FieldsTest
 {
-  private static final Fields.UpdateCallback cb = new NoopUpdateCallback();
+  private static final Fields.UpdateCallback cb = new Fields.UpdateCallback()
+  {
+    @Override
+    public void bucketUpdated(int bucket, byte oldVal, byte newVal)
+    {
+
+    }
+  };
 
   @DataProvider(name = "updatableFields")
   public Object[][] getFields() {
-    Preamble preamble = Preamble.createSharedPreamble(10);
+    Preamble preamble = Preamble.fromLogK(10);
 
     return new Object[][] {
         { new OnHeapFields(preamble) },
-        { new OnHeapHashFields(preamble) }
+        { new OnHeapHashFields(preamble, 16, 0x2<<preamble.getLogConfigK(), new DenseFieldsFactory()) },
+        { new OnHeapCompressedFields(preamble) }
     };
   }
 
@@ -45,8 +53,9 @@ public class FieldsTest
 
         BucketIterator iter = fields.getBucketIterator();
         while (iter.next()) {
-          if (iter.getValue() != vals[iter.getKey()]) {
-            Assert.fail(String.format("%d x %d", val, i));
+          int bucketId = iter.getKey();
+          if (iter.getValue() != vals[bucketId]) {
+            Assert.fail(String.format("bucket[%s]: %d != %d", bucketId, iter.getValue(), vals[bucketId]));
           }
         }
       }

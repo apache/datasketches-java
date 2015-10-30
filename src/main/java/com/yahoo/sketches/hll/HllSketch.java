@@ -7,7 +7,8 @@ import com.yahoo.sketches.hash.MurmurHash3;
 public class HllSketch {
   private static final double HLL_REL_ERROR_NUMER = 1.04;
 
-  public static HllSketchBuilder builder() {
+  public static HllSketchBuilder builder()
+  {
     return new HllSketchBuilder();
   }
 
@@ -16,25 +17,37 @@ public class HllSketch {
 
   private Fields fields;
 
-  public HllSketch(Fields fields) {
+  public HllSketch(Fields fields)
+  {
     this.fields = fields;
-    this.updateCallback = new NoopUpdateCallback();
+    this.updateCallback = new Fields.UpdateCallback()
+    {
+      @Override
+      public void bucketUpdated(int bucket, byte oldVal, byte newVal)
+      {
+
+      }
+    };
     this.preamble = fields.getPreamble();
   }
 
-  public void update(byte[] key) {
+  public void update(byte[] key)
+  {
     updateWithHash(MurmurHash3.hash(key, Util.DEFAULT_UPDATE_SEED));
   }
 
-  public void update(int[] key) {
+  public void update(int[] key)
+  {
     updateWithHash(MurmurHash3.hash(key, Util.DEFAULT_UPDATE_SEED));
   }
 
-  public void update(long[] key) {
+  public void update(long[] key)
+  {
     updateWithHash(MurmurHash3.hash(key, Util.DEFAULT_UPDATE_SEED));
   }
 
-  public double getEstimate() {
+  public double getEstimate()
+  {
     double rawEst = getRawEstimate();
     int logK = preamble.getLogConfigK();
 
@@ -66,11 +79,13 @@ public class HllSketch {
     return linEst;
   }
 
-  public double getUpperBound(double numStdDevs) {
+  public double getUpperBound(double numStdDevs)
+  {
     return getEstimate() / (1.0 - eps(numStdDevs));
   }
 
-  public double getLowerBound(double numStdDevs) {
+  public double getLowerBound(double numStdDevs)
+  {
     double lowerBound = getEstimate() / (1.0 + eps(numStdDevs));
     double numNonZeros = (double) preamble.getConfigK();
     numNonZeros -= numBucketsAtZero();
@@ -80,7 +95,8 @@ public class HllSketch {
     return lowerBound;
   }
 
-  private double getRawEstimate() {
+  private double getRawEstimate()
+  {
     int numBuckets = preamble.getConfigK();
     double correctionFactor = 0.7213 / (1.0 + 1.079 / (double) numBuckets);
     correctionFactor *= numBuckets * numBuckets;
@@ -88,7 +104,8 @@ public class HllSketch {
     return correctionFactor;
   }
 
-  private double getLinearEstimate() {
+  private double getLinearEstimate()
+  {
     int configK = preamble.getConfigK();
     long longV = numBucketsAtZero();
     if (longV == 0) {
@@ -98,24 +115,24 @@ public class HllSketch {
   }
 
   public HllSketch union(HllSketch that) {
-    BucketIterator iter = that.fields.getBucketIterator();
-    while (iter.next()) {
-      fields = fields.updateBucket(iter.getKey(), iter.getValue(), updateCallback);
-    }
+    fields = that.fields.unionInto(fields, updateCallback);
     return this;
   }
 
-  private void updateWithHash(long[] hash) {
+  private void updateWithHash(long[] hash)
+  {
     byte newValue = (byte) (Long.numberOfLeadingZeros(hash[1]) + 1);
     int slotno = (int) hash[0] & (preamble.getConfigK() - 1);
     fields = fields.updateBucket(slotno, newValue, updateCallback);
   }
 
-  private double eps(double numStdDevs) {
+  private double eps(double numStdDevs)
+  {
     return numStdDevs * HLL_REL_ERROR_NUMER / Math.sqrt(preamble.getConfigK());
   }
 
-  public byte[] toByteArray() {
+  public byte[] toByteArray()
+  {
     int numBytes = (preamble.getPreambleSize() << 3) + fields.numBytesToSerialize();
     byte[] retVal = new byte[numBytes];
 
@@ -124,30 +141,26 @@ public class HllSketch {
     return retVal;
   }
 
-  public byte[] toByteArrayNoPreamble() {
+  public byte[] toByteArrayNoPreamble()
+  {
     byte[] retVal = new byte[fields.numBytesToSerialize()];
     fields.intoByteArray(retVal, 0);
     return retVal;
   }
 
-  public HllSketch asCompact() {
+  public HllSketch asCompact()
+  {
     return new HllSketch(fields.toCompact());
   }
 
-  public int numBuckets() {
+  public int numBuckets()
+  {
     return preamble.getConfigK();
   }
 
-  /**
-   * Get the update Callback.  This is protected because it is intended that only children might *call*
-   * the method.  It is not expected that this would be overridden by a child class.  If someone overrides
-   * it and weird things happen, the bug lies in the fact that it was overridden.
-   *
-   * @return The updateCallback registered with the HllSketch
-   */
-  protected Fields.UpdateCallback getUpdateCallback()
+  public Preamble getPreamble()
   {
-    return updateCallback;
+    return preamble;
   }
 
   /**
@@ -161,18 +174,21 @@ public class HllSketch {
   {
     this.updateCallback = updateCallback;
   }
-  
+
   //Helper methods that are potential extension points for children
-  
-  /**  
+
+  /**
    * The sum of the inverse powers of 2
+   *
    * @return the sum of the inverse powers of 2
    */
-  protected double inversePowerOf2Sum() {
+  protected double inversePowerOf2Sum()
+  {
     return HllUtils.computeInvPow2Sum(numBuckets(), fields.getBucketIterator());
   }
 
-  protected int numBucketsAtZero() {
+  protected int numBucketsAtZero()
+  {
     int retVal = 0;
     int count = 0;
 

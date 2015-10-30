@@ -28,6 +28,13 @@ public class OnHeapFields implements Fields
   @Override
   public int intoByteArray(byte[] array, int offset)
   {
+    int numBytesNeeded = numBytesToSerialize();
+    if (array.length - offset < numBytesNeeded) {
+      throw new IllegalArgumentException(
+          String.format("array too small[%,d] < [%,d]", array.length - offset, numBytesNeeded)
+      );
+    }
+
     array[offset++] = Fields.NAIVE_DENSE_VERSION;
     for (byte bucket : buckets) {
       array[offset++] = bucket;
@@ -76,5 +83,23 @@ public class OnHeapFields implements Fields
         return buckets[i];
       }
     };
+  }
+
+  @Override
+  public Fields unionInto(Fields recipient, UpdateCallback cb)
+  {
+    return recipient.unionBucketIterator(getBucketIterator(), cb);
+  }
+
+  @Override
+  public Fields unionBucketIterator(BucketIterator iter, UpdateCallback callback)
+  {
+    return HllUtils.unionBucketIterator(this, iter, callback);
+  }
+
+  @Override
+  public Fields unionCompressedAndExceptions(byte[] compressed, int minVal, OnHeapHash exceptions, UpdateCallback cb)
+  {
+    return unionBucketIterator(CompressedBucketUtils.getBucketIterator(compressed, minVal, exceptions), cb);
   }
 }
