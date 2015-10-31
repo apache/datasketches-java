@@ -1,6 +1,5 @@
 package com.yahoo.sketches.hll;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
@@ -15,7 +14,7 @@ public class DenseCompressedFieldsFactoryTest
   {
     Preamble pre = Preamble.fromLogK(13);
     Fields fields = new DenseCompressedFieldsFactory().make(pre);
-    Assert.assertEquals(fields.getPreamble(), pre);
-    Assert.assertEquals(fields.getClass(), OnHeapCompressedFields.class);
+    assertEquals(fields.getPreamble(), pre);
+    assertEquals(fields.getClass(), OnHeapCompressedFields.class);
   }
 }

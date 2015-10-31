@@ -48,7 +48,6 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.build.resourceEncoding>UTF-8</project.build.resourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
   </properties>
@@ -58,7 +57,7 @@
     <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
-      <version>6.8.8</version>
+      <version>6.9.9</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -132,9 +131,8 @@
         <artifactId>jacoco-maven-plugin</artifactId>
         <version>0.7.5.201505241946</version>
         <executions>
-          <!--
-          Prepares the property pointing to the JaCoCo runtime agent which
-          is passed as VM argument when Maven the Surefire plugin is executed. -->
+          <!-- Prepares the property pointing to the JaCoCo runtime agent which
+               is passed as VM argument when Maven the Surefire plugin is executed. -->
           <execution>
             <id>pre-unit-test</id>
             <goals>
@@ -143,11 +141,9 @@
             <configuration>
               <!-- Sets the path to the file which contains the execution data. -->
               <destFile>${jacoco.ut.execution.data.file}</destFile>
-              <!--
-              Sets the name of the property containing the settings
-              for JaCoCo runtime agent.
-              -->
-              <propertyName>surefireArgLine</propertyName>
+              <!-- Sets the name of the property containing the settings for JaCoCo runtime agent. 
+                   Used by the surefire plugin -->
+              <propertyName>JaCoCoArgLine</propertyName>
             </configuration>
           </execution>
           <!-- Ensures that the code coverage report for unit tests is created after
@@ -192,31 +188,35 @@
 
       <!-- Coveralls is a online code coverage reporting tool that leverages JaCoCo -->
       <plugin>
-          <groupId>org.eluder.coveralls</groupId>
-          <artifactId>coveralls-maven-plugin</artifactId>
-          <version>4.0.0</version>
-          <configuration>
-              <repoToken></repoToken>
-          </configuration>
+        <groupId>org.eluder.coveralls</groupId>
+        <artifactId>coveralls-maven-plugin</artifactId>
+        <version>4.0.0</version>
+        <configuration>
+          <repoToken></repoToken>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.18.1</version>
+        <configuration>
+          <!-- locale settings must be set on the command line before startup -->
+          <!-- set heap size to work around https://github.com/travis-ci/travis-ci/issues/3396 -->
+          <!-- Eclipse runtime config for TestNG will only look at the first argLine definition.
+               When running Maven test, the second one will override the first and pull in the 
+               JaCoCo arguments. This is a hack to fix a nasty Eclipse bug. -->
+          <argLine> -Xmx1024m -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8 </argLine> 
+          <argLine> -Xmx1024m -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8 ${JaCoCoArgLine} </argLine>
+          <useFile>false</useFile>
+          <redirectTestOutputToFile>false</redirectTestOutputToFile>
+        </configuration>
       </plugin>
 
     </plugins>
 
     <pluginManagement>
       <plugins>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.18.1</version>
-          <configuration>
-            <!-- locale settings must be set on the command line before startup -->
-            <!-- set heap size to work around https://github.com/travis-ci/travis-ci/issues/3396 -->
-            <argLine> -Xmx1024m -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8 ${surefireArgLine} </argLine>
-            <useFile>false</useFile>
-            <redirectTestOutputToFile>false</redirectTestOutputToFile>
-          </configuration>
-        </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -283,6 +283,7 @@
   </build>
 
   <profiles>
+
     <profile>
       <id>strict</id>
       <build>
