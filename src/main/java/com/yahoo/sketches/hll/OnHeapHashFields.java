@@ -2,7 +2,7 @@ package com.yahoo.sketches.hll;
 
 /**
  */
-public class OnHeapHashFields implements Fields
+class OnHeapHashFields implements Fields
 {
   private final Preamble preamble;
   private final FieldsFactory denseFactory;

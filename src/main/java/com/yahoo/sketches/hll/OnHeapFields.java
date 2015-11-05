@@ -1,6 +1,6 @@
 package com.yahoo.sketches.hll;
 
-public class OnHeapFields implements Fields
+class OnHeapFields implements Fields
 {
   private final Preamble preamble;
   private final byte[] buckets;

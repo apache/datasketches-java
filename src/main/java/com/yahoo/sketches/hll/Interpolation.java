@@ -1,6 +1,6 @@
 package com.yahoo.sketches.hll;
 
-public class Interpolation
+class Interpolation
 {
   public static final int INTERPOLATION_MIN_LOG_K = 7;
   public static final int INTERPOLATION_MAX_LOG_K = 21;

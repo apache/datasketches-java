@@ -2,7 +2,7 @@ package com.yahoo.sketches.hll;
 
 /**
  */
-public class HashUtils
+class HashUtils
 {
   public static int NOT_A_PAIR = -1;
 

@@ -2,7 +2,7 @@ package com.yahoo.sketches.hll;
 
 import com.yahoo.sketches.memory.NativeMemory;
 
-public class OnHeapCompressedFields implements Fields
+class OnHeapCompressedFields implements Fields
 {
   private static final int LO_NIBBLE_MASK = 0x0f;
   private static final int HI_NIBBLE_MASK = 0xf0;

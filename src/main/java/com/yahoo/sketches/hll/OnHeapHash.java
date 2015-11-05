@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 /**
  */
-public class OnHeapHash
+class OnHeapHash
 {
   private int[] fields_;
   private int mask;

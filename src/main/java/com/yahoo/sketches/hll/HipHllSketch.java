@@ -2,7 +2,7 @@ package com.yahoo.sketches.hll;
 
 /**
  */
-public class HipHllSketch extends HllSketch
+class HipHllSketch extends HllSketch
 {
   // derived using some formulas in Ting's paper
   private static final double HIP_REL_ERROR_NUMER = 0.836083874576235;

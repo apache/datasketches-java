@@ -10,7 +10,7 @@ import java.util.List;
 
 /**
  */
-public class OnHeapImmutableCompactFields implements Fields
+class OnHeapImmutableCompactFields implements Fields
 {
   public static OnHeapImmutableCompactFields fromFields(Fields fields) {
     List<Integer> vals = new ArrayList<>();

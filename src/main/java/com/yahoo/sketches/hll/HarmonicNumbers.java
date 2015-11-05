@@ -1,6 +1,6 @@
 package com.yahoo.sketches.hll;
 
-public class HarmonicNumbers
+class HarmonicNumbers
 {
   private static final int NUM_EXACT_HARMONIC_NUMBERS = 25;
 
