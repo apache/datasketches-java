@@ -25,7 +25,6 @@ class HeapUnion extends SetOperation implements Union {
   private long unionThetaLong_;
   private boolean unionEmpty_;
   
-  
   /**
    * Construct a new Union SetOperation on the java heap.  Called by SetOperation.Builder.
    * 
@@ -127,6 +126,36 @@ class HeapUnion extends SetOperation implements Union {
       processVer3(skMem);
     }
     else throw new IllegalArgumentException("SerVer is unknown: "+serVer);
+  }
+  
+  @Override
+  public void update(long datum) {
+    gadget_.update(datum);
+  }
+  
+  @Override
+  public void update(double datum) {
+    gadget_.update(datum);
+  }
+  
+  @Override
+  public void update(String datum) {
+    gadget_.update(datum);
+  }
+  
+  @Override
+  public void update(byte[] data) {
+    gadget_.update(data);
+  }
+  
+  @Override
+  public void update(int[] data) {
+    gadget_.update(data);
+  }
+  
+  @Override
+  public void update(long[] data) {
+    gadget_.update(data);
   }
   
   //must trust seed, no seedhash. No p, can't be empty, can only be compact, ordered, size > 24
