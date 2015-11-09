@@ -32,6 +32,9 @@ import java.util.HashMap;
  * "Methods for Finding Frequent Items in Data Streams" by Cormode and Hadjieleftheriou performed an 
  * experimental comparison of frequent items algorithm, and found Space Saving to perform well.  
  * 
+ * "Mergeable Summaries" by Agarwal, Cormode, Huang, Phillips, Wei, and Yi showed that FrequentItems aka Misra-Gries
+ * is equivalent to Space Saving in a formal sense.
+ * 
  * @author Justin8712
  */
 
@@ -47,7 +50,8 @@ public class SpaceSaving {
   private PriorityQueue<Pair> queue; 
   private HashMap<Long,Long> counts;
   private int maxSize;
-  private int maxError;
+  private long mergeError;
+  private long lastSmallestIncrement;
   
   /**
    * @param maxSize (must be positive)
@@ -61,7 +65,7 @@ public class SpaceSaving {
     this.queue = new PriorityQueue<Pair>(maxSize);
     this.counts = new HashMap<Long,Long>(maxSize);
     this.maxSize = maxSize;
-    this.maxError = 0;
+    this.mergeError = 0;
   }
   
   /**
@@ -106,7 +110,6 @@ public class SpaceSaving {
         counts.put(key, new_count);
         queue.remove(lowest);
         queue.add(new Pair(key, new_count));
-        this.maxError += increment;
       }
     }
   }
@@ -142,7 +145,10 @@ public class SpaceSaving {
    * get(key) <= realCount(key) <= get(key) + getMaxError() 
    */
   public long getMaxError() {
-    return this.maxError;
+  	if(counts.size() < maxSize)
+      return 0;
+  	else
+      return queue.peek().getvalue() + mergeError;
   }
   
   /**
@@ -159,10 +165,10 @@ public class SpaceSaving {
    * This method does not create a new sketch. The sketch whose function is executed is changed.
    */
   public SpaceSaving union(SpaceSaving that) {
-	this.maxError += that.maxError;
     for (HashMap.Entry<Long,Long> entry : that.counts.entrySet()) {
       this.update(entry.getKey(), entry.getValue());
     }
+    this.mergeError += that.getMaxError();
     return this;
   }
 }

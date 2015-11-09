@@ -97,6 +97,7 @@ public class SpaceSavingTestFinal {
     int maxSize = 20;
     long key;
     double prob = .1;
+
     SpaceSaving spacesaving = new SpaceSaving(maxSize);
     for (int i=0; i<n; i++){
       key = randomGeometricDist(prob);
@@ -104,6 +105,12 @@ public class SpaceSavingTestFinal {
       long upperBound = spacesaving.get(key);
       long lowerBound = spacesaving.get(key) - spacesaving.getMaxError();
       Assert.assertTrue(upperBound - lowerBound <= i/maxSize);  
+      
+      key = randomGeometricDist(prob);
+      upperBound = spacesaving.get(key);
+      lowerBound = spacesaving.get(key) - spacesaving.getMaxError();
+      Assert.assertTrue(upperBound - lowerBound <= i/maxSize);  
+      
     }
   } 
     
@@ -136,14 +143,7 @@ public class SpaceSavingTestFinal {
       long realCount = realCounts.get(key);
       long upperBound = spacesaving.get(key);
       long lowerBound = spacesaving.get(key) - spacesaving.getMaxError();
-      if(upperBound <  realCount || realCount < lowerBound){
-          System.out.println("print the longs in error: ");
-          System.out.print(upperBound);
-          System.out.print(" ");
-          System.out.print(lowerBound);
-          System.out.print(" ");
-          System.out.println(realCount);
-      }
+
       Assert.assertTrue(upperBound >=  realCount && realCount >= lowerBound);
     }
   }
