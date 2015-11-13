@@ -147,6 +147,37 @@ class DirectUnion extends SetOperation implements Union{
     }
     else throw new IllegalArgumentException("SerVer is unknown: "+serVer);
   }
+  
+  @Override
+  public void update(long datum) {
+    gadget_.update(datum);
+  }
+  
+  @Override
+  public void update(double datum) {
+    gadget_.update(datum);
+  }
+  
+  @Override
+  public void update(String datum) {
+    gadget_.update(datum);
+  }
+  
+  @Override
+  public void update(byte[] data) {
+    gadget_.update(data);
+  }
+  
+  @Override
+  public void update(int[] data) {
+    gadget_.update(data);
+  }
+  
+  @Override
+  public void update(long[] data) {
+    gadget_.update(data);
+  }
+  
   //must trust seed, no seedhash. No p, can't be empty, can only be compact, ordered, size > 24
   private void processVer1(Memory skMem) {
     //unionEmpty_ flag is merged with the gadget
