@@ -612,6 +612,45 @@ public class DirectUnionTest {
     println("PRINTING: "+this.getClass().getName());
   }
   
+  @Test
+  public void checkPrimitiveUpdates() {
+    int k = 32;
+    Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]);
+    Union union = SetOperation.builder().initMemory(uMem).buildUnion(k);
+    
+    union.update(1L);
+    union.update(1.5); //#1 double
+    union.update(0.0);
+    union.update(-0.0);
+    String s = null;
+    union.update(s); //null string
+    s = "";
+    union.update(s); //empty string
+    s = "String";
+    union.update(s); //#2 actual string
+    byte[] byteArr = null;
+    union.update(byteArr); //null byte[]
+    byteArr = new byte[0];
+    union.update(byteArr); //empty byte[]
+    byteArr = "Byte Array".getBytes();
+    union.update(byteArr); //#3 actual byte[]
+    int[] intArr = null;
+    union.update(intArr); //null int[]
+    intArr = new int[0];
+    union.update(intArr); //empty int[]
+    int[] intArr2 = { 1, 2, 3, 4, 5 };
+    union.update(intArr2); //#4 actual int[]
+    long[] longArr = null;
+    union.update(longArr); //null long[]
+    longArr = new long[0];
+    union.update(longArr); //empty long[]
+    long[] longArr2 = { 6, 7, 8, 9 };
+    union.update(longArr2); //#5 actual long[]
+    CompactSketch comp = union.getResult();
+    double est = comp.getEstimate();
+    assertEquals(est, 7.0, 0.0);
+  }
+  
   /**
    * @param s value to print
    */
