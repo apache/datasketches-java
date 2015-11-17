@@ -6,9 +6,9 @@ package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.theta.CompactSketch.compactCache;
 import static com.yahoo.sketches.theta.CompactSketch.createCompactSketch;
-import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
@@ -29,28 +29,22 @@ import com.yahoo.sketches.memory.NativeMemory;
 class DirectUnion extends SetOperation implements Union{
   private static final Family MY_FAMILY = Family.UNION;
   private final short seedHash_;
-  private final DirectQuickSelectSketch gadget_;
-  private final Memory mem_;
+  private final UpdateSketch gadget_;
   private long unionThetaLong_;
-  //unionEmpty_ flag is merged with the gadget's direct Memory
+  private final Memory unionMem_;
   
   /**
-   * Construct a new Union SetOperation in off-heap Memory. 
-   * Called by SetOperation.Builder.
+   * Construct a new Union SetOperation in off-heap Memory. Called by SetOperation.Builder.
    * 
    * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLogs">See lgNomLongs</a>.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @param dstMem the given Memory object destination. It will be cleared prior to use.
-   * @param memReq the callback function
-   * 
-   *  <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
   DirectUnion(int lgNomLongs, long seed, float p, ResizeFactor rf, Memory dstMem) {
-    mem_ = dstMem;
+    unionMem_ = dstMem;
     seedHash_ = computeSeedHash(seed);
-    
     gadget_ = new DirectQuickSelectSketch(lgNomLongs, seed, p, rf, dstMem, true); //clears mem
     dstMem.putByte(FAMILY_BYTE, (byte) Family.UNION.getID());
     unionThetaLong_ = gadget_.getThetaLong();
@@ -58,32 +52,28 @@ class DirectUnion extends SetOperation implements Union{
   }
   
   /**
-   * Wrap a Union around the given source Memory containing union data. 
-   * @param srcMem The source Memory image.
+   * Wrap a Union around a Memory object containing data. 
+   * @param srcMem The source Memory object.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a> 
    */
   DirectUnion(Memory srcMem, long seed) {
-    mem_ = srcMem;
+    unionMem_ = srcMem;
     seedHash_ = computeSeedHash(seed);
-    
     MY_FAMILY.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
-    
     gadget_ = new DirectQuickSelectSketch(srcMem, seed);
     unionThetaLong_ = srcMem.getLong(UNION_THETA_LONG);
   }
   
   @Override
-  public void update(Sketch sketchIn) { 
+  public void update(Sketch sketchIn) {
     //UNION Empty Rule: AND the empty states
     
     if ((sketchIn == null)  || sketchIn.isEmpty()) {
       //null/empty is interpreted as (1.0, 0, T).  Nothing changes
-      mem_.putLong(UNION_THETA_LONG, unionThetaLong_);
+      unionMem_.putLong(UNION_THETA_LONG, unionThetaLong_);
       return;
     }
-    //unionEmpty_ flag is merged with the gadget
-    mem_.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
     
     PreambleUtil.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
     long thetaLongIn = sketchIn.getThetaLong();
@@ -91,12 +81,12 @@ class DirectUnion extends SetOperation implements Union{
     unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule
     
     if(sketchIn.isOrdered()) { //Use early stop
-      int finalIndex = sketchIn.getRetainedEntries(false);
+      int curCount = sketchIn.getRetainedEntries(false);
       
-      if (sketchIn.isDirect()) {
+      if(sketchIn.isDirect()) {
         Memory skMem = sketchIn.getMemory();
         int preambleLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-        for (int i = 0; i < finalIndex; i++ ) {
+        for (int i = 0; i < curCount; i++ ) {
           int offsetBytes = (preambleLongs +i) << 3;
           long hashIn = skMem.getLong(offsetBytes);
           if (hashIn >= unionThetaLong_) break; // "early stop"
@@ -105,7 +95,7 @@ class DirectUnion extends SetOperation implements Union{
       } 
       else { //on Heap
         long[] cacheIn = sketchIn.getCache(); //not a copy!
-        for (int i = 0; i < finalIndex; i++ ) {
+        for (int i = 0; i < curCount; i++ ) {
           long hashIn = cacheIn[i];
           if (hashIn >= unionThetaLong_) break; // "early stop"
           gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
@@ -113,7 +103,7 @@ class DirectUnion extends SetOperation implements Union{
       }
     } 
     else { //either not-ordered compact or Hash Table.
-      long[] cacheIn = sketchIn.getCache();
+      long[] cacheIn = sketchIn.getCache(); //if off-heap this will be a copy
       int arrLongs = cacheIn.length;
       for (int i = 0; i < arrLongs; i++ ) {
         long hashIn = cacheIn[i];
@@ -122,7 +112,7 @@ class DirectUnion extends SetOperation implements Union{
       }
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
-    mem_.putLong(UNION_THETA_LONG, unionThetaLong_);
+    unionMem_.putLong(UNION_THETA_LONG, unionThetaLong_);
   }
   
   @Override
@@ -178,10 +168,8 @@ class DirectUnion extends SetOperation implements Union{
     gadget_.update(data);
   }
   
-  //must trust seed, no seedhash. No p, can't be empty, can only be compact, ordered, size > 24
+  //must trust seed, no seedhash. No p, can't be empty, can only be compact, ordered, cap > 24
   private void processVer1(Memory skMem) {
-    //unionEmpty_ flag is merged with the gadget
-    mem_.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); //set NOT empty
     long thetaLongIn = skMem.getLong(THETA_LONG);
     unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule
     int curCount = skMem.getInt(RETAINED_ENTRIES_INT);
@@ -195,7 +183,7 @@ class DirectUnion extends SetOperation implements Union{
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
   }
   
-  //has seedhash, p, could have 0 entries & theta, can only be compact, ordered, size >= 24
+  //has seedhash, p, could have 0 entries & theta, can only be compact, ordered, cap >= 8
   private void processVer2(Memory skMem) {
     PreambleUtil.checkSeedHashes(seedHash_, skMem.getShort(SEED_HASH_SHORT));
     int preLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
@@ -206,8 +194,6 @@ class DirectUnion extends SetOperation implements Union{
     }
     if (preLongs == 2) {
       assert curCount > 0;
-      //unionEmpty_ flag is merged with the gadget
-      mem_.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); //set NOT empty
       thetaLongIn = Long.MAX_VALUE;
     } else { //prelongs == 3, curCount may be 0 (e.g., from intersection)
       thetaLongIn = skMem.getLong(THETA_LONG);
@@ -222,7 +208,7 @@ class DirectUnion extends SetOperation implements Union{
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
   }
   
-  //has seedhash, p, could have 0 entries & theta, could be unorderd, compact, size >= 24
+  //has seedhash, p, could have 0 entries & theta, could be unordered, compact, cap >= 8
   private void processVer3(Memory skMem) {
     PreambleUtil.checkSeedHashes(seedHash_, skMem.getShort(SEED_HASH_SHORT));
     int preLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
@@ -231,10 +217,8 @@ class DirectUnion extends SetOperation implements Union{
     if (preLongs == 1) {
       return;
     }
-    if (preLongs == 2) {
+    if (preLongs == 2) { //curCount has to be > 0 and exact
       assert curCount > 0;
-      //unionEmpty_ flag is merged with the gadget
-      mem_.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); //set NOT empty
       thetaLongIn = Long.MAX_VALUE;
     } else { //prelongs == 3, curCount may be 0 (e.g., from intersection)
       thetaLongIn = skMem.getLong(THETA_LONG);
@@ -263,18 +247,20 @@ class DirectUnion extends SetOperation implements Union{
   @Override
   public CompactSketch getResult(boolean dstOrdered, Memory dstMem) {
     int gadgetCurCount = gadget_.getRetainedEntries(true);
-    int k = 1 << gadget_.lgNomLongs_;
+    int k = 1 << gadget_.getLgNomLongs();
     
     if (gadgetCurCount > k) {
       gadget_.rebuild();
     } 
     //curCount <= k; gadget theta could be p < 1.0, but cannot do a quick select
     long thetaLongR = min(gadget_.getThetaLong(), unionThetaLong_);
-    long[] gadgetCache = gadget_.getCache(); //this is a copy
+    double p = gadget_.getP();
+    double thetaR = thetaLongR/MAX_THETA_LONG_AS_DOUBLE;
+    long[] gadgetCache = gadget_.getCache(); //if Direct, always a copy
     //CurCount must be recounted with a scan using the new theta
     int curCountR = HashOperations.count(gadgetCache, thetaLongR);
     long[] compactCacheR = compactCache(gadgetCache, curCountR, thetaLongR, dstOrdered);
-    boolean emptyR = mem_.isAnyBitsSet(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
+    boolean emptyR = (gadget_.isEmpty() && (p >= thetaR) && (curCountR == 0));
     return createCompactSketch(compactCacheR, emptyR, seedHash_, curCountR, thetaLongR, 
         dstOrdered, dstMem);
   }
@@ -289,7 +275,6 @@ class DirectUnion extends SetOperation implements Union{
     byte[] gadgetByteArr = gadget_.toByteArray();
     Memory mem = new NativeMemory(gadgetByteArr);
     mem.putLong(UNION_THETA_LONG, unionThetaLong_); // union theta
-    //empty flag is already merged
     return gadgetByteArr;
   }
   
