@@ -175,6 +175,10 @@ final class HashOperations {
     return true;
   }
   
+  /**
+   * @param thetaLong must be greater than zero otherwise throws an exception.
+   * <a href="{@docRoot}/resources/dictionary.html#thetaLong">See Theta Long</a>
+   */
   static void checkThetaCorruption(final long thetaLong) {
     //if any one of the groups go negative it fails.
     if (( thetaLong | (thetaLong-1) ) < 0L ) {
@@ -183,6 +187,10 @@ final class HashOperations {
     }
   }
   
+  /**
+   * @param hash must be greater than -1 otherwise throws an exception.
+   * Note a hash of zero is normally ignored, but a negative hash is never allowed.
+   */
   static void checkHashCorruption(final long hash) {
     //if any one of the groups go negative it fails.
     if ( hash < 0L ) {
@@ -191,11 +199,22 @@ final class HashOperations {
     }
   }
   
+  /**
+   * Return true if thetaLong is greater than hash, or if hash == 0
+   * @param thetaLong thetaLong must be greater than the hash value
+   * <a href="{@docRoot}/resources/dictionary.html#thetaLong">See Theta Long</a>
+   * @param hash must be less than thetaLong and not zero
+   * @return true if thetaLong is greater than hash, or if hash == 0
+   */
   static boolean continueCondition(final long thetaLong, final long hash) {
     //if any one of the groups go negative it returns true
     return (( (hash-1) | (thetaLong - hash -1)) < 0L );
   }
   
+  /**
+   * @param thetaLong cannot be negative or zero, otherwise it throws an exception
+   * @param hash cannot be negative, otherwise it throws an exception
+   */
   static void checkHashAndThetaCorruption(final long thetaLong, final long hash) {
     //if any one of the groups go negative it fails.
     if (( hash | thetaLong | (thetaLong-1) ) < 0L ) {
