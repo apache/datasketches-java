@@ -799,7 +799,7 @@ public class DirectQuickSelectSketchTest {
     }
   }
   
-  @Test(expectedExceptions = AssertionError.class)
+  @Test(expectedExceptions = IllegalStateException.class)
   public void checkNegativeHashes() {
     int k = 512;
     UpdateSketch qs = UpdateSketch.builder().setFamily(QUICKSELECT).build(k);

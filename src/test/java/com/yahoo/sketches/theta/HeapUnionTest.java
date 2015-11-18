@@ -8,6 +8,7 @@ import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSe
 import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV2;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 
 import java.util.Arrays;
 
@@ -526,7 +527,9 @@ public class HeapUnionTest {
     union.update(longArr2); //#5 actual long[]
     CompactSketch comp = union.getResult();
     double est = comp.getEstimate();
+    boolean empty = comp.isEmpty();
     assertEquals(est, 7.0, 0.0);
+    assertFalse(empty);
   }
   
   //used by DirectUnionTest as well

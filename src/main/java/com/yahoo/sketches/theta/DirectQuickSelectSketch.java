@@ -275,7 +275,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
    */
   @Override
   UpdateReturnState hashUpdate(long hash) {
-    assert (hash > 0L): "Corruption: negative hashes should not happen. ";
+    HashOperations.checkHashCorruption(hash);
     
     if (empty_) {
       mem_.clearBits(FLAGS_BYTE, (byte)EMPTY_FLAG_MASK);
@@ -283,7 +283,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     }
     
     //The over-theta test
-    if (hash >= thetaLong_) {
+    if (HashOperations.continueCondition(thetaLong_, hash)) {
       return RejectedOverTheta; //signal that hash was rejected due to theta.
     }
     

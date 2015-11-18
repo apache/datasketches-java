@@ -252,8 +252,8 @@ class HeapAlphaSketch extends HeapUpdateSketch {
     assert (hash > 0L): "Corruption: negative hashes should not happen. ";
     empty_ = false;
     
-    //The over-theta test
-    if (hash >= thetaLong_) { 
+    //The over-theta test, continue condition
+    if (HashOperations.continueCondition(thetaLong_, hash)) { 
       // very very unlikely that hash == Long.MAX_VALUE. It is ignored just as zero is ignored.
       return RejectedOverTheta; //signal that hash was rejected due to theta. 
     }

@@ -368,7 +368,7 @@ class DirectIntersection extends SetOperation implements Intersection {
     int tmpCnt = 0;
     for (int i = 0; i < arrLongsIn; i++ ) {
       long hashIn = arr[i];
-      if ((hashIn <= 0L) || (hashIn >= thetaLong_)) continue;
+      if (HashOperations.continueCondition(thetaLong_, hashIn)) continue;
       tmpCnt += hashInsert(mem_, lgArrLongs_, hashIn, CONST_PREAMBLE_LONGS << 3)? 1 : 0;
       
     }

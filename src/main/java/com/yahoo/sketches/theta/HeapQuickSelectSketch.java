@@ -211,12 +211,12 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
    */
   @Override
   UpdateReturnState hashUpdate(long hash) {
-    assert (hash > 0L): "Corruption: negative hashes should not happen. ";
+    HashOperations.checkHashCorruption(hash);
     empty_ = false;
     
     //The over-theta test
-    if (hash >= thetaLong_) {
-    // very very unlikely that hash == Long.MAX_VALUE. It is ignored just as zero is ignored.
+    if (HashOperations.continueCondition(thetaLong_, hash)) {
+      // very unlikely that hash == Long.MAX_VALUE. It is ignored just as zero is ignored.
       return RejectedOverTheta; //signal that hash was rejected due to theta.
     }
     
