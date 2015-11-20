@@ -6,7 +6,9 @@ class HllUtils
 {
   static double[] invPow2Table = new double[256];
   static {
-    for (int i = 0; i < 256; i++) invPow2Table[i] = Math.pow(2.0, -1.0 * i);
+    for (int i = 0; i < 256; i++) {
+      invPow2Table[i] = Math.scalb(1d, -i);
+    }
   }
 
   static double computeInvPow2Sum(int numBuckets, BucketIterator iter) {
@@ -25,5 +27,4 @@ class HllUtils
     }
     return fields;
   }
-
 }
