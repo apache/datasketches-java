@@ -4,18 +4,13 @@ package com.yahoo.sketches.hll;
  */
 class HllUtils
 {
-  static double[] invPow2Table = new double[256];
-  static {
-    for (int i = 0; i < 256; i++) invPow2Table[i] = Math.pow(2.0, -1.0 * i);
-  }
-
   static double computeInvPow2Sum(int numBuckets, BucketIterator iter) {
     double retVal = 0;
     while (iter.next()) {
-      retVal += invPow2Table[iter.getValue()];
+      retVal += invPow2(iter.getValue());
       --numBuckets;
     }
-    retVal += numBuckets * invPow2Table[0];
+    retVal += numBuckets;
     return retVal;
   }
 
@@ -24,6 +19,10 @@ class HllUtils
       fields = fields.updateBucket(iter.getKey(), iter.getValue(), updateCallback);
     }
     return fields;
+  }
+
+  static double invPow2(int e) {
+      return Double.longBitsToDouble((0x3ffL - e) << 52);
   }
 
 }
