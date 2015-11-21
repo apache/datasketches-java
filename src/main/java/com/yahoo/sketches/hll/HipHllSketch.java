@@ -28,8 +28,8 @@ class HipHllSketch extends HllSketch
             double oneOverQ = oneOverQ();
             hipEstAccum += oneOverQ;
             // subtraction before addition is intentional, in order to avoid overflow (?)
-            invPow2Sum -= HllUtils.invPow2Table[oldVal];
-            invPow2Sum += HllUtils.invPow2Table[newVal];
+            invPow2Sum -= HllUtils.invPow2(oldVal);
+            invPow2Sum += HllUtils.invPow2(newVal);
           }
 
           private double oneOverQ()
