@@ -1,9 +1,14 @@
+/*
+ * Copyright 2015, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
 package com.yahoo.sketches.hll;
 
 /**
+ * @author Eric Tschetter
+ * @author Kevin Lang
  */
-class OnHeapHashFields implements Fields
-{
+class OnHeapHashFields implements Fields {
   private final Preamble preamble;
   private final FieldsFactory denseFactory;
   private final int switchToDenseSize;
@@ -22,8 +27,7 @@ class OnHeapHashFields implements Fields
   }
 
   @Override
-  public Preamble getPreamble()
-  {
+  public Preamble getPreamble() {
     return preamble;
   }
 
@@ -51,8 +55,7 @@ class OnHeapHashFields implements Fields
   }
 
   @Override
-  public int intoByteArray(byte[] array, int offset)
-  {
+  public int intoByteArray(byte[] array, int offset) {
     int numBytesNeeded = numBytesToSerialize();
     if (array.length - offset < numBytesNeeded) {
       throw new IllegalArgumentException(
@@ -65,38 +68,34 @@ class OnHeapHashFields implements Fields
   }
 
   @Override
-  public int numBytesToSerialize()
-  {
+  public int numBytesToSerialize() {
     return 1 + hasher.numBytesToSerialize();
   }
 
   @Override
-  public Fields toCompact()
-  {
+  public Fields toCompact() {
     return OnHeapImmutableCompactFields.fromFields(this);
   }
 
   @Override
-  public BucketIterator getBucketIterator()
-  {
+  public BucketIterator getBucketIterator() {
     return hasher.getBucketIterator();
   }
 
   @Override
-  public Fields unionInto(Fields recipient, UpdateCallback cb)
-  {
+  public Fields unionInto(Fields recipient, UpdateCallback cb) {
     return recipient.unionBucketIterator(getBucketIterator(), cb);
   }
 
   @Override
-  public Fields unionBucketIterator(BucketIterator iter, UpdateCallback callback)
-  {
+  public Fields unionBucketIterator(BucketIterator iter, UpdateCallback callback) {
     return HllUtils.unionBucketIterator(this, iter, callback);
   }
 
   @Override
-  public Fields unionCompressedAndExceptions(byte[] compressed, int minVal, OnHeapHash exceptions, UpdateCallback cb)
-  {
-    return unionBucketIterator(CompressedBucketUtils.getBucketIterator(compressed, minVal, exceptions), cb);
+  public Fields unionCompressedAndExceptions(
+      byte[] compressed, int minVal, OnHeapHash exceptions, UpdateCallback cb) {
+    return unionBucketIterator(
+        CompressedBucketUtils.getBucketIterator(compressed, minVal, exceptions), cb);
   }
 }

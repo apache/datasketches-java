@@ -1,7 +1,14 @@
+/*
+ * Copyright 2015, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
 package com.yahoo.sketches.hll;
 
-class HarmonicNumbers
-{
+/**
+ * @author Eric Tschetter
+ * @author Kevin Lang
+ */
+class HarmonicNumbers {
   private static final int NUM_EXACT_HARMONIC_NUMBERS = 25;
 
   private static double[] tableOfExactHarmonicNumbers = {

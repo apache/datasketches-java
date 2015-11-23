@@ -13,8 +13,6 @@ final class Bounds {
   
   private Bounds() {}
   
-  ///////////////////////////////////////////////////////////////
-  
   private static double[] deltaOfNumSDev = 
   {
     0.5000000000000000000, // not actually using this value
@@ -23,11 +21,9 @@ final class Bounds {
     0.0013498126861731796
   };
   
-  ///////////////////////////////////////////////////////////////
   // our "classic" bounds, but now with continuity correction
   
-  private static double contClassicLB (double numSamplesF, double theta, double numSDev) 
-  {
+  private static double contClassicLB(double numSamplesF, double theta, double numSDev) {
     double nHat = (numSamplesF - 0.5) / theta;
     double b = numSDev * Math.sqrt ((1.0 - theta) / theta);
     double d  = 0.5 * b * Math.sqrt (b * b + 4.0 * nHat);
@@ -35,17 +31,14 @@ final class Bounds {
     return (center - d);
   }
   
-  private static double contClassicUB (double numSamplesF, double theta, double numSDev) 
-  {
+  private static double contClassicUB(double numSamplesF, double theta, double numSDev) {
     double nHat = (numSamplesF + 0.5) / theta;
     double b   = numSDev * Math.sqrt ((1.0 - theta) / theta);
     double d  = 0.5 * b * Math.sqrt (b * b + 4.0 * nHat);
     double center = nHat + 0.5 * (b * b);
     return (center + d);
   }
-  
-  ///////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////
+
   // This is a special purpose calculator for n_star, using a computational
   // strategy inspired by its Bayesian definition. It is only appropriate 
   // for a very limited set of inputs. However, the procedure computeApproxBinoLB ()
@@ -58,9 +51,7 @@ final class Bounds {
       
   // BTW, these names "n_star", "n_prime_b", and "n_prime_f" correspond to symbols
   // that are defined and discussed in the technical writeup of this scheme.
-  
-  private static long specialNStar (long numSamplesI, double p, double delta) 
-  {
+  private static long specialNStar(long numSamplesI, double p, double delta) {
     double q, tot, numSamplesF, curTerm;
     long m;
     assertTrue (numSamplesI >= 1);
@@ -83,12 +74,9 @@ final class Bounds {
     return (m-1);
   }
   
-  ///////////////////////////////////////////////////////////////
   //  The following procedure has very limited applicability. 
   //  The above remarks about specialNStar() also apply here.
-  
-  private static long specialNPrimeB (long numSamplesI, double p, double delta) 
-  {
+  private static long specialNPrimeB(long numSamplesI, double p, double delta) {
     double q, tot, numSamplesF, curTerm, oneMinusDelta;
     long m;
     assertTrue (numSamplesI >= 1);
@@ -109,19 +97,15 @@ final class Bounds {
     return (m); // don't need to back up
   }
   
-  private static long specialNPrimeF (long numSamplesI, double p, double delta) {
+  private static long specialNPrimeF(long numSamplesI, double p, double delta) {
     /* Use a different algorithm if the following isn't true; this one will be too slow, or worse. */
     assertTrue ((((double) numSamplesI) / p) < 500.0);    /* A super-small delta could also make it slow. */
     return (specialNPrimeB (numSamplesI+1, p, delta));
   }
   
-  ///////////////////////////////////////////////////////////////
   // The following computes an approximation to the lower bound of 
-  // a Frequentist confidence interval based on the tails of the
-  // Binomial distribtuion.
-  
-  private static double computeApproxBinoLB (long numSamplesI, double theta, int numSDev) 
-  {
+  // a Frequentist confidence interval based on the tails of the Binomial distribtuion.
+  private static double computeApproxBinoLB(long numSamplesI, double theta, int numSDev) {
     assertTrue (numSDev >= 1 && numSDev <= 3);
     assertTrue (numSamplesI >= 0);
     assertTrue (0.0 < theta && theta <= 1.0);
@@ -169,13 +153,9 @@ final class Bounds {
     }
   }
   
-  //////////////////////////////////////////////////////////////////
   // The following computes an approximation to the upper bound of
-  // a Frequentist confidence interval based on the tails of the
-  // Binomial distribution.
-  
-  private static double computeApproxBinoUB (long numSamplesI, double theta, int numSDev)
-  {
+  // a Frequentist confidence interval based on the tails of the Binomial distribution.
+  private static double computeApproxBinoUB(long numSamplesI, double theta, int numSDev) {
     assertTrue (numSDev >= 1 && numSDev <= 3);
     assertTrue (numSamplesI >= 0);
     assertTrue (0.0 < theta && theta <= 1.0);
@@ -219,12 +199,10 @@ final class Bounds {
     }
   }
 
-  ////////////////////////////////////////////////////////////////////
   // The following two procedures enforce some extra rules that help
   // to prevent the return of bounds that might be confusing to users.
-
-  public static double approxLBforUsers (long numSamplesI, double theta, int numSDev, boolean noDataSeen)
-  {
+  static double approxLBforUsers(
+      long numSamplesI, double theta, int numSDev, boolean noDataSeen) {
     if (noDataSeen) return 0.0;
     double lb = computeApproxBinoLB (numSamplesI, theta, numSDev);
     double numSamplesF = (double) numSamplesI;
@@ -232,8 +210,8 @@ final class Bounds {
     return (Math.min (est, Math.max (numSamplesF, lb)));
   }
   
-  public static double approxUBforUsers (long numSamplesI, double theta, int numSDev, boolean noDataSeen)
-  {
+  static double approxUBforUsers(
+      long numSamplesI, double theta, int numSDev, boolean noDataSeen) {
     if (noDataSeen) return 0.0;
     double ub = computeApproxBinoUB (numSamplesI, theta, numSDev);
     double numSamplesF = (double) numSamplesI;

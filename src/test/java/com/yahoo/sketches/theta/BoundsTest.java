@@ -15,8 +15,7 @@ import com.yahoo.sketches.theta.Bounds;
  */
 public class BoundsTest {
 
-  public static double[] runTestAux (long max_numSamplesI, int ci, double min_p)
-  {
+  public static double[] runTestAux (long max_numSamplesI, int ci, double min_p) {
     long numSamplesI = 0;
     double p, lb, ub;
     double sum1 = 0.0;

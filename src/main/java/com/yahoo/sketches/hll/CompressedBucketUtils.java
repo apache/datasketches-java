@@ -1,9 +1,14 @@
+/*
+ * Copyright 2015, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
 package com.yahoo.sketches.hll;
 
 /**
+ * @author Eric Tschetter
+ * @author Kevin Lang
  */
-class CompressedBucketUtils
-{
+class CompressedBucketUtils {
   private static final int LO_NIBBLE_MASK = 0x0f;
   private static final int HI_NIBBLE_MASK = 0xf0;
 
@@ -17,7 +22,8 @@ class CompressedBucketUtils
     byte oldValue = buckets[byteno];
     if ((index & 1) == 0) {
       buckets[byteno] = (byte) (((newValue << 4) & HI_NIBBLE_MASK) | (oldValue & LO_NIBBLE_MASK));
-    } else {
+    } 
+    else {
       buckets[byteno] = (byte) ((oldValue & HI_NIBBLE_MASK) | (newValue & LO_NIBBLE_MASK));
     }
   }
@@ -39,7 +45,8 @@ class CompressedBucketUtils
         int oldNib = oldHighNibble >> 4;
         callback.bucketUpdated(index, (byte) oldNib, newNibble);
       }
-    } else {
+    } 
+    else {
       int newLoNibble = newNibble & LO_NIBBLE_MASK;
       if (oldLowNibble < newLoNibble) {
         buckets[byteno] = (byte) (oldHighNibble | newLoNibble);
@@ -48,19 +55,16 @@ class CompressedBucketUtils
     }
   }
 
-  static BucketIterator getBucketIterator(final byte[] buckets, final int currMin, OnHeapHash exceptions)
-  {
+  static BucketIterator getBucketIterator(final byte[] buckets, final int currMin, OnHeapHash exceptions) {
     BucketIterator exceptionsIter = exceptions.getBucketIterator();
-    BucketIterator nibblesIter = new BucketIterator()
-    {
+    BucketIterator nibblesIter = new BucketIterator() {
       private int i = -1;
       private int size = buckets.length << 1;
 
       private byte nibble;
 
       @Override
-      public boolean next()
-      {
+      public boolean next() {
         ++i;
         while (i < size) {
           nibble = CompressedBucketUtils.getNibble(buckets, i);
@@ -73,14 +77,12 @@ class CompressedBucketUtils
       }
 
       @Override
-      public int getKey()
-      {
+      public int getKey() {
         return i;
       }
 
       @Override
-      public byte getValue()
-      {
+      public byte getValue() {
         return (byte) (currMin + nibble);
       }
     };

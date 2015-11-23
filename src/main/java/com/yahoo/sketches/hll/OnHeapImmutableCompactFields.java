@@ -1,3 +1,7 @@
+/*
+ * Copyright 2015, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
 package com.yahoo.sketches.hll;
 
 import com.yahoo.sketches.memory.Memory;
@@ -9,9 +13,10 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
+ * @author Eric Tschetter
+ * @author Kevin Lang
  */
-class OnHeapImmutableCompactFields implements Fields
-{
+class OnHeapImmutableCompactFields implements Fields {
   public static OnHeapImmutableCompactFields fromFields(Fields fields) {
     List<Integer> vals = new ArrayList<>();
 
@@ -21,11 +26,9 @@ class OnHeapImmutableCompactFields implements Fields
     }
     Collections.sort(
         vals,
-        new Comparator<Integer>()
-        {
+        new Comparator<Integer>() {
           @Override
-          public int compare(Integer o1, Integer o2)
-          {
+          public int compare(Integer o1, Integer o2) {
             return HashUtils.valOfPair(o2) - HashUtils.valOfPair(o1);
           }
         }
@@ -49,20 +52,17 @@ class OnHeapImmutableCompactFields implements Fields
   }
 
   @Override
-  public Preamble getPreamble()
-  {
+  public Preamble getPreamble() {
     return preamble;
   }
 
   @Override
-  public Fields updateBucket(int i, byte val, UpdateCallback cb)
-  {
+  public Fields updateBucket(int i, byte val, UpdateCallback cb) {
     throw new UnsupportedOperationException("Cannot mutate a compact sketch");
   }
 
   @Override
-  public int intoByteArray(byte[] array, int offset)
-  {
+  public int intoByteArray(byte[] array, int offset) {
     int numBytesNeeded = numBytesToSerialize();
     if (array.length - offset < numBytesNeeded) {
       throw new IllegalArgumentException(
@@ -81,59 +81,50 @@ class OnHeapImmutableCompactFields implements Fields
   }
 
   @Override
-  public int numBytesToSerialize()
-  {
+  public int numBytesToSerialize() {
     return 1 + (fields.length << 2);
   }
 
   @Override
-  public Fields toCompact()
-  {
+  public Fields toCompact() {
     return this;
   }
 
   @Override
-  public BucketIterator getBucketIterator()
-  {
-    return new BucketIterator()
-    {
+  public BucketIterator getBucketIterator() {
+    return new BucketIterator() {
       int i = -1;
 
       @Override
-      public boolean next()
-      {
+      public boolean next() {
         return ++i < fields.length;
       }
 
       @Override
-      public int getKey()
-      {
+      public int getKey() {
         return HashUtils.keyOfPair(fields[i]);
       }
 
       @Override
-      public byte getValue()
-      {
+      public byte getValue() {
         return HashUtils.valOfPair(fields[i]);
       }
     };
   }
 
   @Override
-  public Fields unionInto(Fields recipient, UpdateCallback cb)
-  {
+  public Fields unionInto(Fields recipient, UpdateCallback cb) {
     return recipient.unionBucketIterator(getBucketIterator(), cb);
   }
 
   @Override
-  public Fields unionBucketIterator(BucketIterator iter, UpdateCallback cb)
-  {
+  public Fields unionBucketIterator(BucketIterator iter, UpdateCallback cb) {
     throw new UnsupportedOperationException("Cannot mutate a compact sketch");
   }
 
   @Override
-  public Fields unionCompressedAndExceptions(byte[] compressed, int minVal, OnHeapHash exceptions, UpdateCallback cb)
-  {
+  public Fields unionCompressedAndExceptions(
+      byte[] compressed, int minVal, OnHeapHash exceptions, UpdateCallback cb) {
     throw new UnsupportedOperationException("Cannot mutate a compact sketch");
   }
 }

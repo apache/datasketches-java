@@ -1,3 +1,7 @@
+/*
+ * Copyright 2015, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
 package com.yahoo.sketches.hll;
 
 /**
@@ -8,9 +12,11 @@ package com.yahoo.sketches.hll;
  * right to make backwards incompatible changes without pushing up the library's version.
  *
  * Implement at your own risk.
+ * 
+ * @author Eric Tschetter
+ * @author Kevin Lang
  */
-public interface Fields
-{
+public interface Fields {
   byte NAIVE_DENSE_VERSION = 0x0;
   byte HASH_SPARSE_VERSION = 0x1;
   byte SORTED_SPARSE_VERSION = 0x2;
@@ -119,12 +125,11 @@ public interface Fields
     void bucketUpdated(int bucket, byte oldVal, byte newVal);
   }
 
-  UpdateCallback NOOP_CB = new UpdateCallback()
-  {
+  UpdateCallback NOOP_CB = new UpdateCallback() {
+    
     @Override
-    public void bucketUpdated(int bucket, byte oldVal, byte newVal)
-    {
-
+    public void bucketUpdated(int bucket, byte oldVal, byte newVal) {
+      //intentionally empty
     }
   };
 }

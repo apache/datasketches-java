@@ -1,3 +1,7 @@
+/*
+ * Copyright 2015, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
 package com.yahoo.sketches.hll;
 
 import com.yahoo.sketches.memory.Memory;
@@ -6,9 +10,10 @@ import com.yahoo.sketches.memory.NativeMemory;
 import java.util.Arrays;
 
 /**
+ * @author Eric Tschetter
+ * @author Kevin Lang
  */
-class OnHeapHash
-{
+class OnHeapHash {
   private int[] fields_;
   private int mask;
   private int numElements;
@@ -24,13 +29,11 @@ class OnHeapHash
     this.numElements = 0;
   }
 
-  int[] getFields()
-  {
+  int[] getFields() {
     return fields_;
   }
 
-  public int getNumElements()
-  {
+  public int getNumElements() {
     return numElements;
   }
 
@@ -62,8 +65,7 @@ class OnHeapHash
     return numElements;
   }
 
-  int intoByteArray(byte[] array, int offset)
-  {
+  int intoByteArray(byte[] array, int offset) {
     int numBytesNeeded = numBytesToSerialize();
     if (array.length - offset < numBytesNeeded) {
       throw new IllegalArgumentException(
@@ -81,20 +83,16 @@ class OnHeapHash
     return offset;
   }
 
-  int numBytesToSerialize()
-  {
+  int numBytesToSerialize() {
     return (fields_.length << 2);
   }
 
-  BucketIterator getBucketIterator()
-  {
-    return new BucketIterator()
-    {
+  BucketIterator getBucketIterator() {
+    return new BucketIterator() {
       private int i = -1;
 
       @Override
-      public boolean next()
-      {
+      public boolean next() {
         ++i;
         while (i < fields_.length && fields_[i] == HashUtils.NOT_A_PAIR) {
           ++i;
@@ -103,14 +101,12 @@ class OnHeapHash
       }
 
       @Override
-      public int getKey()
-      {
+      public int getKey() {
         return HashUtils.keyOfPair(fields_[i]);
       }
 
       @Override
-      public byte getValue()
-      {
+      public byte getValue() {
         return HashUtils.valOfPair(fields_[i]);
       }
     };

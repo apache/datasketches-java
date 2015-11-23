@@ -1,7 +1,14 @@
+/*
+ * Copyright 2015, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
 package com.yahoo.sketches.hll;
 
-public class PreambleFlags
-{
+/**
+ * @author Eric Tschetter
+ * @author Kevin Lang
+ */
+public class PreambleFlags {
   static final int EMPTY_FLAG_MASK = 2;
   static final int UNION_MODE_FLAG_MASK = 4;
   static final int EIGHT_BYTE_PADDING_FLAG_MASK = 8;
@@ -10,7 +17,9 @@ public class PreambleFlags
   static final int SHARED_PREAMBLE_FLAG_MASK = 64;
   static final int SPARSE_MODE_FLAG_MASK = 1;
 
-  public static byte setAllFlags(byte flagsByte, boolean isSparseMode, boolean isUnionMode, boolean isEmpty, boolean isEightBytePadding, boolean isBigEndian, boolean isReadOnly, boolean isSharedPreambleMode) {
+  public static byte setAllFlags(byte flagsByte, boolean isSparseMode, boolean isUnionMode, 
+      boolean isEmpty, boolean isEightBytePadding, boolean isBigEndian, boolean isReadOnly, 
+      boolean isSharedPreambleMode) {
 
     flagsByte = initFlag(flagsByte, isSparseMode, SPARSE_MODE_FLAG_MASK);
     flagsByte = initFlag(flagsByte, isEmpty, EMPTY_FLAG_MASK);
@@ -77,10 +86,11 @@ public class PreambleFlags
 
     public byte build() {
       byte flags = 0;
-      flags = PreambleFlags.setAllFlags(flags, isSparseMode, isUnionMode, isEmpty, isEightBytePadding, isBigEndian, isReadOnly, isSharedPreambleMode);
+      flags = PreambleFlags.setAllFlags(flags, isSparseMode, isUnionMode, isEmpty, 
+          isEightBytePadding, isBigEndian, isReadOnly, isSharedPreambleMode);
       return flags;
     }
 
-  }
+  } //End builder
 
 }

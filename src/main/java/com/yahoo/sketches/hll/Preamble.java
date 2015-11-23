@@ -1,3 +1,7 @@
+/*
+ * Copyright 2015, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
 package com.yahoo.sketches.hll;
 
 import com.yahoo.sketches.Family;
@@ -7,6 +11,10 @@ import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;
 import com.yahoo.sketches.memory.NativeMemory;
 
+/**
+ * @author Eric Tschetter
+ * @author Kevin Lang
+ */
 public class Preamble {
   public static final byte PREAMBLE_LONGS = 1;
   public static final byte PREAMBLE_VERSION = 8;
@@ -25,8 +33,8 @@ public class Preamble {
   private byte flags;
   private short seedHash;
 
-  private Preamble(byte preambleSize, byte version, byte familyId, byte logConfigK, byte flags, short seedHash)
-  {
+  private Preamble(
+      byte preambleSize, byte version, byte familyId, byte logConfigK, byte flags, short seedHash) {
     this.preambleSize = preambleSize;
     this.version = version;
     this.familyId = familyId;
@@ -34,7 +42,8 @@ public class Preamble {
     this.flags = flags;
     this.seedHash = seedHash;
 
-    if (logConfigK < Interpolation.INTERPOLATION_MIN_LOG_K || logConfigK > Interpolation.INTERPOLATION_MAX_LOG_K) {
+    if ((logConfigK < Interpolation.INTERPOLATION_MIN_LOG_K) || 
+        (logConfigK > Interpolation.INTERPOLATION_MAX_LOG_K)) {
       throw new IllegalArgumentException(
           String.format(
               "logConfigK[%s] is out of bounds, should be between [%s] and [%s]",
@@ -234,6 +243,6 @@ public class Preamble {
       return new Preamble(preambleSize, version, familyId, logConfigK, flags, seedHash);
     }
 
-  }
+  } //End Builder
 
 }

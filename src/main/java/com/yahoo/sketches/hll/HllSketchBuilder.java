@@ -9,7 +9,8 @@ import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.TAB;
 
 /**
- * 
+ * @author Eric Tschetter
+ * @author Kevin Lang
  */
 public class HllSketchBuilder { //TODO will need to add seed and Memory, etc.
   private Preamble preamble = null;
@@ -64,13 +65,11 @@ public class HllSketchBuilder { //TODO will need to add seed and Memory, etc.
     return this;
   }
 
-  public boolean isCompressedDense()
-  {
+  public boolean isCompressedDense() {
     return compressedDense;
   }
 
-  public HllSketchBuilder setHipEstimator(boolean hipEstimator)
-  {
+  public HllSketchBuilder setHipEstimator(boolean hipEstimator) {
     this.hipEstimator = hipEstimator;
     return this;
   }
