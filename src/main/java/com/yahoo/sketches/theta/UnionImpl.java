@@ -71,7 +71,7 @@ abstract class UnionImpl extends SetOperation implements Union {
     PreambleUtil.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
     long thetaLongIn = sketchIn.getThetaLong();
     
-    unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule
+    unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule with incoming
     
     if(sketchIn.isOrdered()) { //Use early stop
       int curCount = sketchIn.getRetainedEntries(false);
@@ -104,7 +104,7 @@ abstract class UnionImpl extends SetOperation implements Union {
         gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
       }
     }
-    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
+    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //Theta rule with gadget
   }
   
   @Override

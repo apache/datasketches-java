@@ -1,9 +1,14 @@
+/*
+ * Copyright 2015, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
 package com.yahoo.sketches.hll;
 
 /**
+ * @author Eric Tschetter
+ * @author Kevin Lang
  */
-public class CompositeBucketIterator implements BucketIterator
-{
+public class CompositeBucketIterator implements BucketIterator {
   private final BucketIterator[] iters;
 
   private int index = 0;
@@ -13,8 +18,7 @@ public class CompositeBucketIterator implements BucketIterator
   }
 
   @Override
-  public boolean next()
-  {
+  public boolean next() {
     while (index < iters.length && !iters[index].next()) {
       iters[index] = null; // give up the reference
       ++index;
@@ -23,14 +27,12 @@ public class CompositeBucketIterator implements BucketIterator
   }
 
   @Override
-  public int getKey()
-  {
+  public int getKey() {
     return iters[index].getKey();
   }
 
   @Override
-  public byte getValue()
-  {
+  public byte getValue() {
     return iters[index].getValue();
   }
 }

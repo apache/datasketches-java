@@ -1,11 +1,18 @@
+/*
+ * Copyright 2015, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
 package com.yahoo.sketches.hll;
 
-class Interpolation
-{
-  public static final int INTERPOLATION_MIN_LOG_K = 7;
-  public static final int INTERPOLATION_MAX_LOG_K = 21;
+/**
+ * @author Eric Tschetter
+ * @author Kevin Lang
+ */
+class Interpolation {
+  static final int INTERPOLATION_MIN_LOG_K = 7;
+  static final int INTERPOLATION_MAX_LOG_K = 21;
 
-  public static final double interpolation_x_arrs[][] = {
+  static final double interpolation_x_arrs[][] = {
     // log K = 7
     {91.554623, 93.970317, 96.431113, 98.937264, 101.488909, 104.086010, 106.728780, 109.417062,
     112.150914, 114.930279, 117.755065, 120.625143, 123.540431, 126.500927, 129.506371, 132.556551,
@@ -518,7 +525,7 @@ class Interpolation
     20970344.006053}
   };
 
-  public static final double interpolation_y_arrs[][] = {
+  static final double interpolation_y_arrs[][] = {
     // log K = 7
     {0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0,
     40.0, 45.0, 50.0, 55.0, 60.0, 65.0, 70.0, 75.0,
@@ -1031,7 +1038,7 @@ class Interpolation
     20971520.0}
   };
 
-  public static double cubicInterpolateUsingTable(double[] xArr, double[] yArr, double x) {
+  static double cubicInterpolateUsingTable(double[] xArr, double[] yArr, double x) {
     assert (xArr.length >= 4 && xArr.length == yArr.length && x >= xArr[0] && x<= xArr[xArr.length - 1]);
     if (x == xArr[xArr.length - 1]) return yArr[yArr.length - 1]; // corner case
     int offset = findStraddle(xArr, x);
@@ -1052,7 +1059,8 @@ class Interpolation
   }
 
   // interpolate using the cubic curve that passes through the four given points, using the Lagrange interpolation formula
-  private static double cubicInterpolateAuxAux(double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, double x) {
+  private static double cubicInterpolateAuxAux(double x0, double y0, double x1, double y1, 
+      double x2, double y2, double x3, double y3, double x) {
     double l0Numer = (x - x1) * (x - x2) * (x - x3);
     double l1Numer = (x - x0) * (x - x2) * (x - x3);
     double l2Numer = (x - x0) * (x - x1) * (x - x3);
@@ -1071,14 +1079,12 @@ class Interpolation
     return term0 + term1 + term2 + term3;
   }
 
-  private static int findStraddle(double[] xArr, double x)
-  {
+  private static int findStraddle(double[] xArr, double x) {
     assert (xArr.length >= 2 && x >= xArr[0] && x <= xArr[xArr.length - 1]);
     return (findStraddleAux(xArr, 0, xArr.length - 1, x));
   }
 
-  private static int findStraddleAux(double[] xArr, int left, int right, double x)
-  {
+  private static int findStraddleAux(double[] xArr, int left, int right, double x) {
     int middle;
     assert (left < right);
     assert (xArr[left] <= x && x < xArr[right]); /* the invariant */

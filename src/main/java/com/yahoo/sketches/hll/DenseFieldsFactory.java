@@ -1,12 +1,17 @@
+/*
+ * Copyright 2015, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
 package com.yahoo.sketches.hll;
 
 /**
+ * @author Eric Tschetter
+ * @author Kevin Lang
  */
-class DenseFieldsFactory implements FieldsFactory
-{
+class DenseFieldsFactory implements FieldsFactory {
+  
   @Override
-  public Fields make(Preamble preamble)
-  {
+  public Fields make(Preamble preamble) {
     return new OnHeapFields(preamble);
   }
 }

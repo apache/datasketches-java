@@ -1,14 +1,21 @@
+/*
+ * Copyright 2015, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
 package com.yahoo.sketches.hll;
 
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.hash.MurmurHash3;
 
+/**
+ * @author Eric Tschetter
+ * @author Kevin Lang
+ */
 @SuppressWarnings("cast")
 public class HllSketch {
   private static final double HLL_REL_ERROR_NUMER = 1.04;
 
-  public static HllSketchBuilder builder()
-  {
+  public static HllSketchBuilder builder() {
     return new HllSketchBuilder();
   }
 
@@ -17,37 +24,30 @@ public class HllSketch {
 
   private Fields fields;
 
-  public HllSketch(Fields fields)
-  {
+  public HllSketch(Fields fields) {
     this.fields = fields;
-    this.updateCallback = new Fields.UpdateCallback()
-    {
+    this.updateCallback = new Fields.UpdateCallback() {
       @Override
-      public void bucketUpdated(int bucket, byte oldVal, byte newVal)
-      {
-
+      public void bucketUpdated(int bucket, byte oldVal, byte newVal) {
+        //intentionally empty
       }
     };
     this.preamble = fields.getPreamble();
   }
 
-  public void update(byte[] key)
-  {
+  public void update(byte[] key) {
     updateWithHash(MurmurHash3.hash(key, Util.DEFAULT_UPDATE_SEED));
   }
 
-  public void update(int[] key)
-  {
+  public void update(int[] key) {
     updateWithHash(MurmurHash3.hash(key, Util.DEFAULT_UPDATE_SEED));
   }
 
-  public void update(long[] key)
-  {
+  public void update(long[] key) {
     updateWithHash(MurmurHash3.hash(key, Util.DEFAULT_UPDATE_SEED));
   }
 
-  public double getEstimate()
-  {
+  public double getEstimate() {
     double rawEst = getRawEstimate();
     int logK = preamble.getLogConfigK();
 
@@ -71,21 +71,19 @@ public class HllSketch {
     double linEst = getLinearEstimate();
     double avgEst = (adjEst + linEst) / 2.0;
 
-    /* the following constant 0.64 comes from empirical measurements (see below) of the
-       crossover point between the average error of the linear estimator and the adjusted hll estimator */
+    // The following constant 0.64 comes from empirical measurements (see below) of the crossover
+    //   point between the average error of the linear estimator and the adjusted hll estimator
     if (avgEst > 0.64 * configK) {
       return adjEst;
     }
     return linEst;
   }
 
-  public double getUpperBound(double numStdDevs)
-  {
+  public double getUpperBound(double numStdDevs) {
     return getEstimate() / (1.0 - eps(numStdDevs));
   }
 
-  public double getLowerBound(double numStdDevs)
-  {
+  public double getLowerBound(double numStdDevs) {
     double lowerBound = getEstimate() / (1.0 + eps(numStdDevs));
     double numNonZeros = (double) preamble.getConfigK();
     numNonZeros -= numBucketsAtZero();
@@ -95,8 +93,7 @@ public class HllSketch {
     return lowerBound;
   }
 
-  private double getRawEstimate()
-  {
+  private double getRawEstimate() {
     int numBuckets = preamble.getConfigK();
     double correctionFactor = 0.7213 / (1.0 + 1.079 / (double) numBuckets);
     correctionFactor *= numBuckets * numBuckets;
@@ -104,8 +101,7 @@ public class HllSketch {
     return correctionFactor;
   }
 
-  private double getLinearEstimate()
-  {
+  private double getLinearEstimate() {
     int configK = preamble.getConfigK();
     long longV = numBucketsAtZero();
     if (longV == 0) {
@@ -119,20 +115,17 @@ public class HllSketch {
     return this;
   }
 
-  private void updateWithHash(long[] hash)
-  {
+  private void updateWithHash(long[] hash) {
     byte newValue = (byte) (Long.numberOfLeadingZeros(hash[1]) + 1);
     int slotno = (int) hash[0] & (preamble.getConfigK() - 1);
     fields = fields.updateBucket(slotno, newValue, updateCallback);
   }
 
-  private double eps(double numStdDevs)
-  {
+  private double eps(double numStdDevs) {
     return numStdDevs * HLL_REL_ERROR_NUMER / Math.sqrt(preamble.getConfigK());
   }
 
-  public byte[] toByteArray()
-  {
+  public byte[] toByteArray() {
     int numBytes = (preamble.getPreambleSize() << 3) + fields.numBytesToSerialize();
     byte[] retVal = new byte[numBytes];
 
@@ -141,25 +134,21 @@ public class HllSketch {
     return retVal;
   }
 
-  public byte[] toByteArrayNoPreamble()
-  {
+  public byte[] toByteArrayNoPreamble() {
     byte[] retVal = new byte[fields.numBytesToSerialize()];
     fields.intoByteArray(retVal, 0);
     return retVal;
   }
 
-  public HllSketch asCompact()
-  {
+  public HllSketch asCompact() {
     return new HllSketch(fields.toCompact());
   }
 
-  public int numBuckets()
-  {
+  public int numBuckets() {
     return preamble.getConfigK();
   }
 
-  public Preamble getPreamble()
-  {
+  public Preamble getPreamble() {
     return preamble;
   }
 
@@ -170,8 +159,7 @@ public class HllSketch {
    *
    * @param updateCallback the update callback for the HllSketch to use when talking with its Fields
    */
-  protected void setUpdateCallback(Fields.UpdateCallback updateCallback)
-  {
+  protected void setUpdateCallback(Fields.UpdateCallback updateCallback) {
     this.updateCallback = updateCallback;
   }
 
@@ -182,13 +170,11 @@ public class HllSketch {
    *
    * @return the sum of the inverse powers of 2
    */
-  protected double inversePowerOf2Sum()
-  {
+  protected double inversePowerOf2Sum() {
     return HllUtils.computeInvPow2Sum(numBuckets(), fields.getBucketIterator());
   }
 
-  protected int numBucketsAtZero()
-  {
+  protected int numBucketsAtZero() {
     int retVal = 0;
     int count = 0;
 

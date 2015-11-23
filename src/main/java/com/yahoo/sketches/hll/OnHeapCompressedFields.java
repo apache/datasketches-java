@@ -1,9 +1,16 @@
+/*
+ * Copyright 2015, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
 package com.yahoo.sketches.hll;
 
 import com.yahoo.sketches.memory.NativeMemory;
 
-class OnHeapCompressedFields implements Fields
-{
+/**
+ * @author Eric Tschetter
+ * @author Kevin Lang
+ */
+class OnHeapCompressedFields implements Fields {
   private static final int LO_NIBBLE_MASK = 0x0f;
   private static final int HI_NIBBLE_MASK = 0xf0;
 
@@ -31,17 +38,14 @@ class OnHeapCompressedFields implements Fields
   }
 
   @Override
-  public Fields updateBucket(int index, byte val, final UpdateCallback callback)
-  {
+  public Fields updateBucket(int index, byte val, final UpdateCallback callback) {
     if (val > currMax) {
       final byte theOldVal = CompressedBucketUtils.getNibble(buckets, index);
       CompressedBucketUtils.setNibble(buckets, index, (byte) 0xf);
       exceptions_.updateBucket(
-          index, val, new UpdateCallback()
-          {
+          index, val, new UpdateCallback() {
             @Override
-            public void bucketUpdated(int bucket, byte oldVal, byte newVal)
-            {
+            public void bucketUpdated(int bucket, byte oldVal, byte newVal) {
               callback.bucketUpdated(bucket, theOldVal, newVal);
             }
           }
@@ -57,11 +61,9 @@ class OnHeapCompressedFields implements Fields
       }
     } else {
       CompressedBucketUtils.updateNibble(
-          buckets, index, (byte) (val - currMin), new UpdateCallback()
-          {
+          buckets, index, (byte) (val - currMin), new UpdateCallback() {
             @Override
-            public void bucketUpdated(int bucket, byte oldVal, byte newVal)
-            {
+            public void bucketUpdated(int bucket, byte oldVal, byte newVal) {
               oldVal = (byte) (oldVal + currMin);
               adjustNumAtCurrMin(oldVal);
               callback.bucketUpdated(bucket, oldVal, newVal);
@@ -72,8 +74,7 @@ class OnHeapCompressedFields implements Fields
     return this;
   }
 
-  private void adjustNumAtCurrMin(byte oldVal)
-  {
+  private void adjustNumAtCurrMin(byte oldVal) {
     if (oldVal == 0) {
       --numAtCurrMin;
 
@@ -109,8 +110,7 @@ class OnHeapCompressedFields implements Fields
   }
 
   @Override
-  public int intoByteArray(byte[] array, int offset)
-  {
+  public int intoByteArray(byte[] array, int offset) {
     if (array.length - offset < 6) {
       throw new IllegalArgumentException(
           String.format("array too small[%,d][%,d], need at least 6 bytes", array.length, offset)
@@ -128,38 +128,34 @@ class OnHeapCompressedFields implements Fields
   }
 
   @Override
-  public int numBytesToSerialize()
-  {
+  public int numBytesToSerialize() {
     return 1 + 5 + buckets.length + exceptions_.numBytesToSerialize();
   }
 
   @Override
-  public Fields toCompact()
-  {
+  public Fields toCompact() {
     return this;
   }
 
   @Override
-  public BucketIterator getBucketIterator()
-  {
+  public BucketIterator getBucketIterator() {
     return CompressedBucketUtils.getBucketIterator(buckets, currMin, exceptions_);
   }
 
   @Override
-  public Fields unionInto(Fields recipient, UpdateCallback cb)
-  {
+  public Fields unionInto(Fields recipient, UpdateCallback cb) {
     return recipient.unionCompressedAndExceptions(buckets, currMin, exceptions_, cb);
   }
 
   @Override
-  public Fields unionBucketIterator(BucketIterator iter, UpdateCallback callback)
-  {
+  public Fields unionBucketIterator(BucketIterator iter, UpdateCallback callback) {
     return HllUtils.unionBucketIterator(this, iter, callback);
   }
 
   @Override
-  public Fields unionCompressedAndExceptions(byte[] compressed, int minVal, OnHeapHash exceptions, UpdateCallback cb)
-  {
-    return unionBucketIterator(CompressedBucketUtils.getBucketIterator(compressed, minVal, exceptions), cb);
+  public Fields unionCompressedAndExceptions(
+      byte[] compressed, int minVal, OnHeapHash exceptions, UpdateCallback cb) {
+    return unionBucketIterator(
+        CompressedBucketUtils.getBucketIterator(compressed, minVal, exceptions), cb);
   }
 }
