@@ -5,7 +5,6 @@
 package com.yahoo.sketches.hll;
 
 /**
- * @author Eric Tschetter
  * @author Kevin Lang
  */
 class DenseFieldsFactory implements FieldsFactory {

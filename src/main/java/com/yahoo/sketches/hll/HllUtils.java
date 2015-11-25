@@ -7,7 +7,6 @@ package com.yahoo.sketches.hll;
 /**
  * Utility functions for the HLL package
  * 
- * @author Eric Tschetter
  * @author Kevin Lang
  */
 class HllUtils {

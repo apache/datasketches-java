@@ -5,7 +5,6 @@
 package com.yahoo.sketches.hll;
 
 /**
- * @author Eric Tschetter
  * @author Kevin Lang
  */
 public class PreambleFlags {

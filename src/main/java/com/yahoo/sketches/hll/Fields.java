@@ -13,7 +13,6 @@ package com.yahoo.sketches.hll;
  *
  * Implement at your own risk.
  * 
- * @author Eric Tschetter
  * @author Kevin Lang
  */
 public interface Fields {

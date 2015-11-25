@@ -12,7 +12,6 @@ import com.yahoo.sketches.memory.MemoryRegion;
 import com.yahoo.sketches.memory.NativeMemory;
 
 /**
- * @author Eric Tschetter
  * @author Kevin Lang
  */
 public class Preamble {

@@ -7,7 +7,6 @@ package com.yahoo.sketches.hll;
 import com.yahoo.sketches.memory.NativeMemory;
 
 /**
- * @author Eric Tschetter
  * @author Kevin Lang
  */
 class OnHeapCompressedFields implements Fields {

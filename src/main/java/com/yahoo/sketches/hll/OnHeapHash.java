@@ -10,7 +10,6 @@ import com.yahoo.sketches.memory.NativeMemory;
 import java.util.Arrays;
 
 /**
- * @author Eric Tschetter
  * @author Kevin Lang
  */
 class OnHeapHash {
