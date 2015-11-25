@@ -63,7 +63,6 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
    * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @param dstMem the given Memory object destination. Required. It will be cleared prior to use.
-   * @param memReq the callback function
    * @param unionGadget true if this sketch is implementing the Union gadget function. 
    * Otherwise, it is behaving as a normal QuickSelectSketch.
    */
