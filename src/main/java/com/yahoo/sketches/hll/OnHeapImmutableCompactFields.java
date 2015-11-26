@@ -13,7 +13,6 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * @author Eric Tschetter
  * @author Kevin Lang
  */
 class OnHeapImmutableCompactFields implements Fields {

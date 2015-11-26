@@ -11,7 +11,6 @@ package com.yahoo.sketches.hll;
  * getKey() and getValue().  If next() returned false, that means that iteration is complete; 
  * getKey() and getValue() become undefined.
  * 
- * @author Eric Tschetter
  * @author Kevin Lang
  */
 public interface BucketIterator {

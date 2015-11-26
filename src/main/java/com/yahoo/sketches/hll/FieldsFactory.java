@@ -9,7 +9,6 @@ package com.yahoo.sketches.hll;
  * They can just depend on this object to make the next Fields that they return when the sparse representation is no
  * longer considered good enough.
  *
- * @author Eric Tschetter
  * @author Kevin Lang
  */
 interface FieldsFactory {

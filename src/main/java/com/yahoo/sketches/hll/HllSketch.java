@@ -8,7 +8,6 @@ import com.yahoo.sketches.Util;
 import com.yahoo.sketches.hash.MurmurHash3;
 
 /**
- * @author Eric Tschetter
  * @author Kevin Lang
  */
 @SuppressWarnings("cast")
