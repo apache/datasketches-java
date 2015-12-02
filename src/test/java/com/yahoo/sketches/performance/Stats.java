@@ -15,10 +15,10 @@ import com.yahoo.sketches.theta.UpdateSketch;
 public class Stats implements Comparable<Stats> {
   double estimate; //The estimate from the sketch
   double re = 0;   //Relative Error. Will sort by this
-  double lb2del;   //LowerBound delta at -2 StdDev
-  double lb1del;   //LowerBound delta at -1 StdDev
-  double ub1del;   //UpperBound delta at +1 StdDev
-  double ub2del;   //UpperBound delta at +2 StdDev
+  double lb2est;   //LowerBound estimate at -2 StdDev
+  double lb1est;   //LowerBound estimate at -1 StdDev
+  double ub1est;   //UpperBound estimate at +1 StdDev
+  double ub2est;   //UpperBound estimate at +2 StdDev
   double updateTimePerU_nS;
   
   /**
@@ -30,10 +30,10 @@ public class Stats implements Comparable<Stats> {
   public void update(UpdateSketch sketch, int uPerTrial, long updateTime_nS) {
     estimate = sketch.getEstimate();
     re = estimate/uPerTrial - 1.0;
-    lb2del = sketch.getLowerBound(2) - estimate;
-    lb1del = sketch.getLowerBound(1) - estimate;
-    ub1del = sketch.getUpperBound(1) - estimate;
-    ub2del = sketch.getUpperBound(2) - estimate;
+    lb2est = sketch.getLowerBound(2);
+    lb1est = sketch.getLowerBound(1);
+    ub1est = sketch.getUpperBound(1);
+    ub2est = sketch.getUpperBound(2);
     updateTimePerU_nS = (double)updateTime_nS / uPerTrial;
   }
   
@@ -46,10 +46,10 @@ public class Stats implements Comparable<Stats> {
   public void update(HllSketch sketch, int uPerTrial, long updateTime_nS) {
     estimate = sketch.getEstimate();
     re = estimate/uPerTrial - 1.0;
-    lb2del = sketch.getLowerBound(2) - estimate;
-    lb1del = sketch.getLowerBound(1) - estimate;
-    ub1del = sketch.getUpperBound(1) - estimate;
-    ub2del = sketch.getUpperBound(2) - estimate;
+    lb2est = sketch.getLowerBound(2);
+    lb1est = sketch.getLowerBound(1);
+    ub1est = sketch.getUpperBound(1);
+    ub2est = sketch.getUpperBound(2);
     updateTimePerU_nS = (double)updateTime_nS / uPerTrial;
   }
   

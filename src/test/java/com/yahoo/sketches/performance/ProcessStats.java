@@ -27,13 +27,16 @@ public class ProcessStats {
    * Process the Stats[] array and place the output row into the dataStr.
    * @param statsArr the input Stats array
    * @param uPerTrial the number of uniques per trial for this trial set.
+   * @param lgK log base 2 of configured nominal entries, or k.
+   * @param p the probability sampling rate. 0 &lt; p &le; 1.0.
    * @param dataStr The StringBuilder object that is reused for each row of output
    */
-  public static void process(Stats[] statsArr, int uPerTrial, StringBuilder dataStr) {
+  public static void process(Stats[] statsArr, int uPerTrial, int lgK, double p, StringBuilder dataStr) {
+    int k = 1 << lgK;
     int trials = statsArr.length;
     Arrays.sort(statsArr, 0, trials);
     
-    //Measuring the actual quantiles from the sorted array. 
+    //Computing the quantiles from the sorted array. 
     double min = statsArr[0].re;
     double qM2SD = statsArr[quantileIndex(M2SD,trials)].re;
     double qM1SD = statsArr[quantileIndex(M1SD,trials)].re;
@@ -42,17 +45,22 @@ public class ProcessStats {
     double qP2SD = statsArr[quantileIndex(P2SD,trials)].re;
     double max = statsArr[trials-1].re;
     
-    double sumLB2 = 0, sumLB1 = 0, sumUB1 = 0, sumUB2 = 0;
+    int cntLB2 = 0, cntLB1 = 0, cntUB1 = 0, cntUB2 = 0;
+//    double sumLB2 = 0, sumLB1 = 0, sumUB1 = 0, sumUB2 = 0;
     double sumEst = 0, sumEstErr = 0, sumSqEstErr = 0;
     double sumUpdateTimePerU_nS = 0;
-    //Scan the sorted statsArr 
+    //Scan the sorted statsArr
     for (int i=0; i<trials; i++) {
+      Stats stats = statsArr[i];
+      if (uPerTrial > stats.ub2est) cntUB2++; //should be <  2.275%; under estimate
+      if (uPerTrial > stats.ub1est) cntUB1++; //should be < 15.866%; under estimate
+      if (uPerTrial < stats.lb1est) cntLB1++; //should be < 15.866%;  over estimate
+      if (uPerTrial < stats.lb2est) cntLB2++; //should be <  2.275%;  over estimate
+//      sumLB2 += stats.lb2est;
+//      sumLB1 += stats.lb1est;
+//      sumUB1 += stats.ub1est;
+//      sumUB2 += stats.ub2est;
       //divide by uPerTrial to normalize betweeen 0 and 1.0, sum over all trials
-      sumLB2 += statsArr[i].lb2del/uPerTrial; 
-      sumLB1 += statsArr[i].lb1del/uPerTrial;
-      sumUB1 += statsArr[i].ub1del/uPerTrial;
-      sumUB2 += statsArr[i].ub2del/uPerTrial;
-      
       //Components for the mean and variance of the estimate error
       sumEst += statsArr[i].estimate;
       double estErr = statsArr[i].re;
@@ -61,6 +69,11 @@ public class ProcessStats {
       
       sumUpdateTimePerU_nS += statsArr[i].updateTimePerU_nS;
     }
+    //normalize counts
+    double fracTgtUB2 = (double)cntUB2/trials;
+    double fracTgtUB1 = (double)cntUB1/trials;
+    double fracTltLB1  = (double)cntLB1/trials;
+    double fracTltLB2  = (double)cntLB2/trials;
     
     //Compute the average results over the trial set
     double meanEst = sumEst/trials;
@@ -68,12 +81,20 @@ public class ProcessStats {
     double deltaSqEstErr = abs(sumSqEstErr - (sumEstErr*sumEstErr)/trials);
     double varEstErr = (trials == 1)? deltaSqEstErr/trials : deltaSqEstErr/(trials-1);
     double rse = sqrt(varEstErr);
+    //compute theoretical sketch RSE
+    double invKm1 = 1.0/(k-1);
+    double oneMinusKoverN = 1.0 - (double)k/uPerTrial;
+    double thrse = (uPerTrial<=k)? 0.0 : sqrt(invKm1 * oneMinusKoverN);
+    //compute Bernoulli RSE
+    double invUperTrial = 1.0/uPerTrial;
+    double varOverN = 1.0/p - 1.0;
+    double prse = (p == 1.0)? 0.0 : sqrt(invUperTrial * varOverN);
     
     //Compute average of each of the bounds estimates
-    double meanLB2est = sumLB2/trials;
-    double meanLB1est = sumLB1/trials;
-    double meanUB1est = sumUB1/trials;
-    double meanUB2est = sumUB2/trials;
+//    double meanLB2est = sumLB2/(uPerTrial*trials) -1;
+//    double meanLB1est = sumLB1/(uPerTrial*trials) -1;
+//    double meanUB1est = sumUB1/(uPerTrial*trials) -1;
+//    double meanUB2est = sumUB2/(uPerTrial*trials) -1;
     
     //Speed
     double meanUpdateTimePerU_nS = sumUpdateTimePerU_nS/trials;
@@ -86,6 +107,8 @@ public class ProcessStats {
     append(meanEst).append(TAB).
     append(meanEstErr).append(TAB).
     append(rse).append(TAB).
+    append(thrse).append(TAB).
+    append(prse).append(TAB).
     
     //Quantiles measured from the actual distribution of values from all trials.
     //Because of quantization effects these values will be noisier than the values
@@ -98,15 +121,20 @@ public class ProcessStats {
     append(qP2SD).append(TAB).
     append(max).append(TAB).
     
-    //Bounds estimates
+    //Fractional Bounds measurements
+    append(fracTltLB2).append(TAB).
+    append(fracTltLB1).append(TAB).
+    append(fracTgtUB1).append(TAB).
+    append(fracTgtUB2).append(TAB).
+    
     //The bounds estimates are computed mathematically based on the sketch
     // estimate, the number of valid values in the cache and the value of theta. 
     // Because of this thes values will be relatively smooth from point to point along the
     // unique value axis.
-    append(meanLB2est).append(TAB).
-    append(meanLB1est).append(TAB).
-    append(meanUB1est).append(TAB).
-    append(meanUB2est).append(TAB).
+//    append(meanLB2est).append(TAB).
+//    append(meanLB1est).append(TAB).
+//    append(meanUB1est).append(TAB).
+//    append(meanUB2est).append(TAB).
     //Trials
     append(trials).append(TAB).
     //Speed
@@ -123,7 +151,9 @@ public class ProcessStats {
     //Estimates
     append("MeanEst").append(TAB).
     append("MeanErr").append(TAB).
-    append("RSE").append(TAB). 
+    append("RSE").append(TAB).
+    append("thRSE").append(TAB).
+    append("pRSE").append(TAB).
     //Quantiles
     append("Min").append(TAB).
     append("QM2SD").append(TAB).
@@ -132,11 +162,12 @@ public class ProcessStats {
     append("QP1SD").append(TAB).
     append("QP2SD").append(TAB).
     append("Max").append(TAB).
-    //Bounds measurements
-    append("MeanLB2").append(TAB).
-    append("MeanLB1").append(TAB).
-    append("MeanUB1").append(TAB).
-    append("MeanUB2").append(TAB).
+    //Fractional Bounds measurements
+    append("FracTltLB2").append(TAB).
+    append("FracTltLB1").append(TAB).
+    append("FracTgtUB1").append(TAB).
+    append("FracTgtUB2").append(TAB).
+    
     //Trials
     append("Trials").append(TAB).
     //Speed

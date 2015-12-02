@@ -53,8 +53,10 @@ public class SketchPerformance {
       if (u == lastU) continue; //at the low end skips over duplicate values of u
       lastU = u;
       int trials = trialMgr.getTrials(u);
+      int lgK = trialMgr.getLgK();
+      double p = trialMgr.getP();
       Stats[] statsArr = processTrialSet(trialMgr, u, trials);
-      ProcessStats.process(statsArr, u, dataStr);
+      ProcessStats.process(statsArr, u, lgK, p, dataStr);
       println(dataStr.toString());
     }
     int testTime_S = (int)((System.currentTimeMillis() - testStartTime_mS)/1000.0);
@@ -64,6 +66,7 @@ public class SketchPerformance {
   }
   
   /**
+   * A Trial Set is a number of trials at number of uniques per trial, uPerTrial. 
    * This is set up so that the number of trials may vary based on the number of uniques for the
    * trial set.
    * @param trialMgr manages the sketch and updating of a stats object
@@ -87,46 +90,52 @@ public class SketchPerformance {
   /**
    * This main method sets the configuration of the sketches, the TrialManager profile, and 
    * runs the test.
-   * @param args  not used.
+   * @param args not used.
    */
   public static void main(String[] args) {
+    //Common parameters
+    int lgK = 12; //4K
+    boolean udSketch = true;  //set true if you want to use a theta UpdateSketch, false for HLL
+    
+    //Theta UpdateSketch parameters
+    Family family = Family.QUICKSELECT;
+    ResizeFactor rf = ResizeFactor.X1;// See javadocs.
+    boolean direct = false; //See javadocs and the setSketchProfile code
+    float p = 1.0F;
+    boolean rebuild = false;  //set true if rebuild is desired to reduce size down to k.
+    
+    //HLL Parameters
+    boolean hip = true;
+    boolean dense = false;
+    
+    //Trials Profile Parameters
+    //  For speed trials use min=4,5, max= 13,14,15,16
+    //  For accuracy trials use min=max= 10 or more
+    int lgMinTrials = 12;
+    int lgMaxTrials = 12;
+    int lgMaxU = 20;
+    int ppo = 16;
+    
+    //INITIALIZE
     TrialManager trialMgr = new TrialManager();
+    trialMgr.setTrialsProfile(lgMinTrials, lgMaxTrials, lgMaxU, ppo);
     UpdateSketchBuilder udBldr = null;
     HllSketchBuilder hllBldr = null;
     
-    //Common parameters
-    int lgK = 12; //4096
-    boolean udSketch = false;  //set true if you want to use a theta UpdateSketch, false for HLL
-    
     if (udSketch) { //UpdateSketch Builder
-      
-      //Update Sketch Parameters
-      Family family = Family.QUICKSELECT;
-      ResizeFactor rf = ResizeFactor.X1;// See javadocs.
-      boolean direct = false; //See javadocs and the setSketchProfile code
-      
-      udBldr = UpdateSketch.builder().setNominalEntries(1 << lgK).setFamily(family).setResizeFactor(rf);
-      trialMgr.setUpdateSketchBuilder(udBldr, direct);
+      udBldr = UpdateSketch.builder().setNominalEntries(1 << lgK).setFamily(family).setP(p).
+          setResizeFactor(rf);
+      trialMgr.setUpdateSketchBuilder(udBldr, direct, rebuild);
     }
     else { //HLL Builder
-      
-      //HLL Parameters
-      boolean hip = false;
-      boolean dense = false;
-      
       hllBldr = HllSketch.builder().setLogBuckets(lgK).setHipEstimator(hip).setDenseMode(dense);
       trialMgr.setHllSketchBuilder(hllBldr);
     }
-    //For speed trials use min=4, max= 13
-    //For accuracy trials use min=max= 10
-    int lgMinTrials = 10;
-    int lgMaxTrials = 10;
-    int lgMaxU = 18;
-    int ppo = 1;
-    trialMgr.setTrialsProfile(lgMinTrials, lgMaxTrials, lgMaxU, ppo);
-
+    
+    //START THE TESTS
     SketchPerformance.start(trialMgr);
     
+    //PRINT SUMMARY
     if (udBldr != null) println(udBldr.toString());
     if (hllBldr != null) println(hllBldr.toString());
     println(trialMgr.toString());

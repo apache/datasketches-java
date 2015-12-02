@@ -24,6 +24,8 @@ public class TrialManager {
   private static final double LN2 = log(2.0);
   private UpdateSketch udSketch_ = null;
   private HllSketchBuilder hllBuilder_ = null;
+  private int lgK_;
+  private double p_;
   //Global counter that increments for every new unique value. 
   //Assures that all sketches are virtually independent.
   private long vIn_;
@@ -33,6 +35,7 @@ public class TrialManager {
   private int lgMaxU_;
   private int ppo_;
   private double slope_;
+  private boolean rebuild_ = false;
   
   /**
    * Sets the theta UpdateSketch builder used to create the theta UpdateSketches.
@@ -41,18 +44,22 @@ public class TrialManager {
    * this will emulate that behavior by using an on-heap byte array accessed by the Memory package.
    * Performance-wise it is the same except for issues of garbage collection, which is not the
    * purpose of this test.
+   * @param rebuild set true if rebuild is desired
    */
-  public void setUpdateSketchBuilder(UpdateSketchBuilder udBldr,  boolean direct) {
-    int lgK = udBldr.getLgNominalEntries();
-    lgBP_ = lgK + 1; //set the break point where the #trials starts to decrease.
+  public void setUpdateSketchBuilder(UpdateSketchBuilder udBldr,  boolean direct, boolean rebuild) {
+    lgK_ = udBldr.getLgNominalEntries();
+    p_ = udBldr.getP();
+    int k = 1 << lgK_;
+    lgBP_ = lgK_ + 1; //set the break point where the #trials starts to decrease.
     Memory mem = null;
     if (direct) {
-      int bytes = Sketch.getMaxUpdateSketchBytes(1 << lgK);
+      int bytes = Sketch.getMaxUpdateSketchBytes(k);
       byte[] memArr = new byte[bytes];
       mem = new NativeMemory(memArr);
       udBldr.initMemory(mem);
     }
-    udSketch_ = udBldr.initMemory(mem).build(1 << lgK);
+    udSketch_ = udBldr.initMemory(mem).build(k);
+    rebuild_ = rebuild;
   }
   
   /**
@@ -60,6 +67,8 @@ public class TrialManager {
    * @param hllBldr the HllSketchBuilder
    */
   public void setHllSketchBuilder(HllSketchBuilder hllBldr) {
+    lgK_ = hllBldr.getLogBuckets();
+    p_ = 1.0;
     udSketch_ = null;
     hllBuilder_ = hllBldr;
   }
@@ -96,9 +105,9 @@ public class TrialManager {
     if (udSketch_ != null) { //UpdateSketch
       udSketch_.reset(); //reuse the same sketch
       long startUpdateTime_nS = System.nanoTime();
-      for (int u=uPerTrial; u--> 0; ) udSketch_.update(vIn_++);
-      //udSketch_.rebuild(); //Optional. Resizes down to k. Only useful with QuickSelectSketch 
+      for (int u=uPerTrial; u--> 0; ) { udSketch_.update(vIn_++); }
       long updateTime_nS = System.nanoTime() - startUpdateTime_nS;
+      if (rebuild_) { udSketch_.rebuild(); } //Resizes down to k. Only useful with QuickSelectSketch 
       stats.update(udSketch_, uPerTrial, updateTime_nS);
     }
     else { //HllSketch
@@ -125,11 +134,36 @@ public class TrialManager {
   }
   
   /**
+   * Return the Log-base 2 of the configured nominal entries or k
+   * @return the Log-base 2 of the configured nominal entries or k
+   */
+  public int getLgK() {
+    return lgK_;
+  }
+  
+  /**
+   * Return the probability sampling rate, <i>p</i>.
+   * @return the probability sampling rate, <i>p</i>.
+   */
+  public double getP() {
+    return p_;
+  }
+  
+  /**
    * Return the configured Points-Per-Octave.
    * @return the configured Points-Per-Octave.
    */
   public int getPPO() {
     return ppo_;
+  }
+  
+  /**
+   * Return true if sketch rebuild is requested to bring sketch size down to k, if necessary.
+   * Only relevant for QuickSelectSketch.
+   * @return true if sketch rebuild is requested to bring sketch size down to k, if necessary.
+   */
+  public boolean getRebuild() {
+    return rebuild_;
   }
   
   /**
@@ -144,7 +178,7 @@ public class TrialManager {
   @Override
   public String toString() {
     return "Trials Profile: LgMinTrials: "+lgMinTrials_+", LgMaxTrials: "+lgMaxTrials_+
-        ", lgMaxU: "+lgMaxU_+", PPO: "+ppo_;
+        ", lgMaxU: "+lgMaxU_+", PPO: "+ppo_+", Rebuild: "+rebuild_;
   }
 
 }
