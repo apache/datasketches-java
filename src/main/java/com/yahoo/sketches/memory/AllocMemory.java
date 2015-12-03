@@ -9,10 +9,10 @@ import static com.yahoo.sketches.memory.UnsafeUtil.unsafe;
 import java.util.Arrays;
 
 /**
- * This class is used to allocate memory directly off-heap. It is the responsibility of the 
- * calling class to free this memory using NativeMemory.freeMemory() when done.  
+ * The AllocMemory class is a subclass of NativeMemory and is used to allocate direct, off-heap 
+ * native memory, which is then accessed by the NativeMemory methods. 
+ * It is the responsibility of the calling class to free this memory using freeMemory() when done. 
  * <p>The task of direct allocation was moved to this sub-class for performance reasons. 
- * (Thanks to Himanshu Gupta for pointing this out.).
  *
  * @author Lee Rhodes
  */

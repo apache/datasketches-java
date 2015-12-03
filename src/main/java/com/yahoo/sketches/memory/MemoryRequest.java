@@ -5,8 +5,9 @@
 package com.yahoo.sketches.memory;
 
 /**
- * This is used as a callback interface to request additional memory and to free memory that is
- * no longer needed.
+ * The MemoryRequest is a callback interface that is accessible from the Memory interface and 
+ * provides a means for a Memory object to request more memory from the calling class and to 
+ * free Memory that is no longer needed.
  * 
  * @author Lee Rhodes
  */

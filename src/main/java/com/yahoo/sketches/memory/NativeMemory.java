@@ -37,12 +37,10 @@ import static com.yahoo.sketches.memory.UnsafeUtil.compatibilityMethods;
 import static com.yahoo.sketches.memory.UnsafeUtil.unsafe;
 
 /**
- * This class is used to access heap byte arrays, long arrays and ByteBuffers using the Memory 
- * interface by presenting them as arguments to the constructors of this class. 
- * The sub-class AllocMemory is used to allocate direct, off-heap native memory, which is then
- * accessed by this class using the Memory interface. 
- * The Memory interface allows a uniform way of manipulating data structures presented in any of 
- * these forms.
+ * The NativeMemory class implements the Memory interface and is used to access Java byte arrays, 
+ * long arrays and ByteBuffers by presenting them as arguments to the constructors of this class.
+ * <p>The sub-class AllocMemory is used to allocate direct, off-heap native memory, which is then 
+ * accessed by the NativeMemory methods. 
  * 
  * @author Lee Rhodes
  */

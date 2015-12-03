@@ -40,24 +40,9 @@ public class NativeMemoryTest {
     
     mem.freeMemory(); //intentional
     assertFalse(mem.isAllocated());
-
-    //System.out.print("Expected System.err message: ");
+    
     mem.freeMemory(); //intentional, nothing to free
   }
-
-//  @SuppressWarnings("unused")
-//  @Test(expectedExceptions = IllegalArgumentException.class)
-//  public void checkNativeZeroLength() {
-//    NativeMemory mem = new NativeMemory(0);
-//    //freeMemory not needed, mem never allocated
-//  }
-//  
-//  @SuppressWarnings("unused")
-//  @Test(expectedExceptions = IllegalArgumentException.class)
-//  public void checkNativeNonAlignedLength() {
-//    NativeMemory mem = new NativeMemory(100);
-//    //freeMemory not needed, mem never allocated
-//  }
   
   @Test
   public void checkNativeNotAllocatedMemory() {
@@ -70,20 +55,6 @@ public class NativeMemoryTest {
   }
   
   //Simple Native array
-  
-//  @SuppressWarnings("unused")
-//  @Test(expectedExceptions = IllegalArgumentException.class)
-//  public void checkByteArrayZeroLength() {
-//    NativeMemory mem = new NativeMemory(new byte[0]);
-//    //freeMemory not needed, mem never allocated
-//  }
-//  
-//  @SuppressWarnings("unused")
-//  @Test(expectedExceptions = IllegalArgumentException.class)
-//  public void checkLongArrayZeroLength() {
-//    NativeMemory mem = new NativeMemory(new long[0]);
-//    //freeMemory not needed, mem never allocated
-//  }
 
   @Test
   public void checkByteArray() {
@@ -118,7 +89,6 @@ public class NativeMemoryTest {
     try {
       mem.toHexString("Force Assertion Error", memCapacity, 8);
       println("Did Not Catch Assertion Error: Memory bound");
-      //throw new IllegalArgumentException("Did Not Catch Assertion Error 2");
     } 
     catch (AssertionError e) {
       println("Caught Assertion Error: Memory bound");
@@ -138,7 +108,6 @@ public class NativeMemoryTest {
       byte[] srcArray = { 1, -2, 3, -4 };
       mem.putByteArray(0L, srcArray, 0, 5);
       println("Did Not Catch Assertion Error: array bound");
-      //throw new IllegalArgumentException("Did Not Catch Assertion Error");
     } 
     catch (AssertionError e) {
       println("Caught Assertion Error: array bound");
@@ -226,7 +195,6 @@ public class NativeMemoryTest {
     try {
       mem.copy(32, 32, 33);  //hit source bound check
       println("Did Not Catch Assertion Error: source bound");
-      //throw new IllegalArgumentException("Did Not Catch Assertion Error");
     } 
     catch (AssertionError e) {
       println("Caught Assertion Error: source bound");

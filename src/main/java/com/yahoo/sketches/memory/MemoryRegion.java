@@ -23,10 +23,9 @@ import static com.yahoo.sketches.memory.UnsafeUtil.SHORT_SIZE;
 import static com.yahoo.sketches.memory.UnsafeUtil.assertBounds;
 
 /**
- * This class provides a means of hierarchically partitioning a large block of native memory into 
+ * The MemoryRegion class implements the Memory interface and provides a means of 
+ * hierarchically partitioning a large block of native memory into 
  * smaller regions of memory, each with their own "capacity" and offsets. 
- * This provides much more flexibility in accessing and managing complex hierarchical 
- * data structures off-heap.
  * 
  * @author Lee Rhodes
  */

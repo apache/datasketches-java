@@ -6,24 +6,15 @@ package com.yahoo.sketches.memory;
 
 
 /**
- * This API defines primitive memory access methods that leverage much of the capabilities of
- * the sun.misc.Unsafe class.
+ * The Memory interface defines <i>get</i> and <i>put</i> methods for all Java primitive and 
+ * primitive array types to/from a byte offset that is relative to the base address of some 
+ * object or region of native memory defined by the implementing class. 
+ * The methods of this interface leverage the capabilities of the sun.misc.Unsafe class.
  * 
- * <p> This API is primarily designed to provide flexible and direct manipulation of in-memory 
- * primitive and primitive array data structures.
- * 
- * In contrast to the <i>java.nio.ByteBuffer</i> classes, which were designed for native I/O and 
- * includes concepts such as <i>position, limit, mark, flip,</i> and <i>rewind</i>, this interface
- * specifically bypasses these concepts and instead provides a much richer collection of primitive,
- * bit, array and copy methods that access the data directly from a single byte offset.  
- * In addition, the MemoryRegion class provides a means of hierarchically partitioning a 
- * large block of native memory into smaller regions of memory, each with their own "capacity" 
- * and offsets.  This provides much more flexibility in accessing and managing complex data 
- * structures off-heap.</p>
- * 
- * <p> This API provides a rich selection of access methods including partial array copies to/from
- * the heap, bit manipulation and incrementing methods. The MemoryUtil class provides 
- * a powerful native memory to native memory copy method and other useful functions. </p>
+ * In contrast to the <i>java.nio.ByteBuffer</i> classes, which were designed for native 
+ * streaming I/O and include concepts such as <i>position, limit, mark, flip,</i> and <i>rewind</i>, 
+ * this interface specifically bypasses these concepts and instead provides a rich collection of 
+ * primitive, bit, array and copy methods that access the data directly from a single byte offset.
  * 
  * @author Lee Rhodes
  */
