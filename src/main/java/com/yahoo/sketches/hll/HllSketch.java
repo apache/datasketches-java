@@ -4,13 +4,16 @@
  */
 package com.yahoo.sketches.hll;
 
-import com.yahoo.sketches.Util;
-import com.yahoo.sketches.hash.MurmurHash3;
+import static com.yahoo.sketches.hash.MurmurHash3.hash;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static com.yahoo.sketches.Util.*;
 
 /**
+ * Top-level class for the HLL family of sketches. This class should not be constructed directly.
+ * Use the HllSketchBuilder instead.
+ * 
  * @author Kevin Lang
  */
-@SuppressWarnings("cast")
 public class HllSketch {
   private static final double HLL_REL_ERROR_NUMER = 1.04;
 
@@ -34,18 +37,89 @@ public class HllSketch {
     this.preamble = fields.getPreamble();
   }
 
-  public void update(byte[] key) {
-    updateWithHash(MurmurHash3.hash(key, Util.DEFAULT_UPDATE_SEED));
+  /**
+   * Present this sketch with a long.
+   * 
+   * @param datum The given long datum.
+   */
+  public void update(long datum) {
+    long[] data = { datum };
+    updateWithHash(hash(data, DEFAULT_UPDATE_SEED));
   }
-
-  public void update(int[] key) {
-    updateWithHash(MurmurHash3.hash(key, Util.DEFAULT_UPDATE_SEED));
+  
+  /**
+   * Present this sketch with the given double (or float) datum. 
+   * The double will be converted to a long using Double.doubleToLongBits(datum), 
+   * which normalizes all NaN values to a single NaN representation. 
+   * Plus and minus zero will be normalized to plus zero. 
+   * The special floating-point values NaN and +/- Infinity are treated as distinct.
+   * 
+   * @param datum The given double datum.
+   */
+  public void update(double datum) {
+    double d = (datum == 0.0) ? 0.0 : datum; // canonicalize -0.0, 0.0
+    long[] data = { Double.doubleToLongBits(d) };// canonicalize all NaN forms
+    updateWithHash(hash(data, DEFAULT_UPDATE_SEED));
   }
-
-  public void update(long[] key) {
-    updateWithHash(MurmurHash3.hash(key, Util.DEFAULT_UPDATE_SEED));
+  
+  /**
+   * Present this sketch with the given String. 
+   * The string is converted to a byte array using UTF8 encoding. 
+   * If the string is null or empty no update attempt is made and the method returns.
+   * 
+   * @param datum The given String.
+   */
+  public void update(String datum) {
+    if (datum == null || datum.isEmpty()) {
+      return; 
+    }
+    byte[] data = datum.getBytes(UTF_8);
+    updateWithHash(hash(data, DEFAULT_UPDATE_SEED));
   }
-
+  
+  /**
+   * Present this sketch with the given byte array. 
+   * If the byte array is null or empty no update attempt is made and the method returns.
+   * 
+   * @param data The given byte array.
+   */
+  public void update(byte[] data) {
+    if ((data == null) || (data.length == 0)) {
+      return;
+    }
+    updateWithHash(hash(data, DEFAULT_UPDATE_SEED));
+  }
+  
+  /**
+   * Present this sketch with the given integer array. 
+   * If the integer array is null or empty no update attempt is made and the method returns.
+   * 
+   * @param data The given int array.
+   */
+  public void update(int[] data) {
+    if ((data == null) || (data.length == 0)) {
+      return;
+    }
+    updateWithHash(hash(data, DEFAULT_UPDATE_SEED));
+  }
+  
+  /**
+   * Present this sketch with the given long array. 
+   * If the long array is null or empty no update attempt is made and the method returns.
+   * 
+   * @param data The given long array.
+   */
+  public void update(long[] data) {
+    if ((data == null) || (data.length == 0)) {
+      return;
+    }
+    updateWithHash(hash(data, DEFAULT_UPDATE_SEED));
+  }
+  
+  /**
+   * Gets the unique count estimate.
+   * @return the sketch's best estimate of the cardinality of the input stream.
+   */
   public double getEstimate() {
     double rawEst = getRawEstimate();
     int logK = preamble.getLogConfigK();
@@ -84,7 +158,7 @@ public class HllSketch {
 
   public double getLowerBound(double numStdDevs) {
     double lowerBound = getEstimate() / (1.0 + eps(numStdDevs));
-    double numNonZeros = (double) preamble.getConfigK();
+    double numNonZeros = preamble.getConfigK();
     numNonZeros -= numBucketsAtZero();
     if (lowerBound < numNonZeros) {
       return numNonZeros;
@@ -94,7 +168,7 @@ public class HllSketch {
 
   private double getRawEstimate() {
     int numBuckets = preamble.getConfigK();
-    double correctionFactor = 0.7213 / (1.0 + 1.079 / (double) numBuckets);
+    double correctionFactor = 0.7213 / (1.0 + 1.079 / numBuckets);
     correctionFactor *= numBuckets * numBuckets;
     correctionFactor /= inversePowerOf2Sum();
     return correctionFactor;
