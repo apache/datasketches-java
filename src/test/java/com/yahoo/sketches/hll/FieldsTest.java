@@ -105,7 +105,7 @@ public class FieldsTest
 
       for (Byte val : valsToInsert) {
         if (bucket == 351 && val == 25) {
-          System.out.println(bucket);
+          println(""+bucket);
         }
         fields = fields.updateBucket(bucket, val, cb);
         int oldVal = actualVals[bucket];
@@ -131,7 +131,7 @@ public class FieldsTest
     }
   }
 
-  private void ensureEquals(Integer[] callbackArgs, Integer[] expected)
+  private static void ensureEquals(Integer[] callbackArgs, Integer[] expected)
   {
     if (!Arrays.equals(expected, callbackArgs)) {
       Assert.fail(
@@ -141,4 +141,17 @@ public class FieldsTest
       );
     }
   }
+
+  @Test
+  public void printlnTest() {
+    println("PRINTING: "+this.getClass().getName());
+  }
+
+  /**
+   * @param s value to print 
+   */
+  static void println(String s) {
+    //System.out.println(s); //disable here
+  }
+
 }

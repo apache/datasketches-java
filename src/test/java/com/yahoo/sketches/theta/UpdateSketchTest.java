@@ -108,7 +108,6 @@ public class UpdateSketchTest {
     assertEquals(csk.getCurrentBytes(true), 8);
   }
   
-  
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());

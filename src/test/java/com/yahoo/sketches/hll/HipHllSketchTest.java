@@ -28,7 +28,7 @@ public class HipHllSketchTest
     for (int i = 0; i < numberOfUniques; i++) {
       sketch.update(new int[]{i});
     }
-    Assert.assertEquals(sketch.getEstimate(), (double) numberOfUniques, numberOfUniques * 0.01);
+    Assert.assertEquals(sketch.getEstimate(), numberOfUniques, numberOfUniques * 0.01);
   }
 
   @Test
