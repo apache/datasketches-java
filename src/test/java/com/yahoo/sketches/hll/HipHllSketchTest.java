@@ -4,7 +4,8 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-public class HipHllSketchTest {
+public class HipHllSketchTest
+{
   @Test(dataProvider = "sketches")
   public void testEstimation(HllSketch sketch)
   {
@@ -18,6 +19,16 @@ public class HipHllSketchTest {
       Assert.assertTrue(sketch.getLowerBound(4.0) - 0.0001 < estimate);
       Assert.assertEquals(sketch.inversePowerOf2Sum(), inversePow2Vals[i], 0.0000001);
     }
+  }
+
+  @Test(dataProvider = "sketches")
+  public void testEstimationSanity(HllSketch sketch)
+  {
+    int numberOfUniques = 1000000;
+    for (int i = 0; i < numberOfUniques; i++) {
+      sketch.update(new int[]{i});
+    }
+    Assert.assertEquals(sketch.getEstimate(), (double) numberOfUniques, numberOfUniques * 0.01);
   }
 
   @Test
@@ -40,37 +51,39 @@ public class HipHllSketchTest {
     Assert.assertTrue(exceptionCaught, "Expected exception to be thrown");
   }
 
-    @Test
-    public void testNoUnionByte()
-    {
-        HllSketchBuilder bob = HllSketch.builder().setLogBuckets(10).setHipEstimator(true);
+  @Test
+  public void testNoUnionByte()
+  {
+    HllSketchBuilder bob = HllSketch.builder().setLogBuckets(10).setHipEstimator(true);
 
-        HllSketch sketch = bob.build();
-        sketch.update(new byte[]{18, 27, 48, 91, 27, 41, 92, 8});
+    HllSketch sketch = bob.build();
+    sketch.update(new byte[]{18, 27, 48, 91, 27, 41, 92, 8});
 
-        boolean exceptionCaught = false;
-        HllSketch unionInto = bob.build();
-        try {
-            unionInto.union(sketch);
-        }
-        catch (UnsupportedOperationException e) {
-            exceptionCaught = true;
-        }
-
-        Assert.assertTrue(exceptionCaught, "Expected exception to be thrown");
+    boolean exceptionCaught = false;
+    HllSketch unionInto = bob.build();
+    try {
+      unionInto.union(sketch);
+    }
+    catch (UnsupportedOperationException e) {
+      exceptionCaught = true;
     }
 
-    @DataProvider(name = "sketches")
+    Assert.assertTrue(exceptionCaught, "Expected exception to be thrown");
+  }
+
+  @DataProvider(name = "sketches")
   public static Object[][] getSketches()
   {
     HllSketchBuilder bob = HllSketch.builder().setLogBuckets(10).setHipEstimator(true);
     return new Object[][]{
         {bob.build()},
         {bob.copy().setDenseMode(true).build()},
+        {bob.copy().setCompressedDense(true).build()}
     };
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args)
+  {
     HllSketch sketch = (HllSketch) getSketches()[0][0];
 
     int numEntries = sketch.numBuckets();
