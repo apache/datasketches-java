@@ -24,7 +24,10 @@ public interface Intersection {
   
   /**
    * Gets the result of this operation as a CompactSketch of the chosen form. 
-   * The update method must have been called at least once. 
+   * The update method must have been called at least once, otherwise an exception will be
+   * thrown. This is because a virgin Intersection object represents the Universal Set, 
+   * which would have an infinite number of values.
+   * 
    * @param dstOrdered 
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
    * 
