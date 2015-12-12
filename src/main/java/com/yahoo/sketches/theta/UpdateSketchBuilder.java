@@ -32,7 +32,10 @@ public class UpdateSketchBuilder {
    * <ul>
    * <li>Nominal Entries: {@value com.yahoo.sketches.Util#DEFAULT_NOMINAL_ENTRIES}</li>
    * <li>Seed: {@value com.yahoo.sketches.Util#DEFAULT_UPDATE_SEED}</li>
-   * <li>{@link com.yahoo.sketches.theta.ResizeFactor#X8}</li>
+   * <li>Resize Factor: The default for sketches on the Java heap is 
+   * {@link com.yahoo.sketches.theta.ResizeFactor#X8}.
+   * For direct sketches, which are targeted for native memory off the Java heap, this value is
+   * fixed at {@link com.yahoo.sketches.theta.ResizeFactor#X2}.</li>
    * <li>{@link com.yahoo.sketches.Family#QUICKSELECT}</li>
    * <li>Input Sampling Probability: 1.0</li>
    * <li>Memory: null</li>
@@ -106,7 +109,7 @@ public class UpdateSketchBuilder {
   }
   
   /**
-   * Sets the cache Resize Factor
+   * Sets the cache Resize Factor.
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @return this UpdateSketchBuilder
    */
