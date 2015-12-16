@@ -13,6 +13,7 @@ bin/
 #Test output
 test-output/
 /.clover/
+tmp/
 
 # Build artifacts
 target/
