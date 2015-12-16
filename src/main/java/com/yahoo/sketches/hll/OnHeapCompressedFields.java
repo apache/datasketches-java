@@ -59,6 +59,7 @@ class OnHeapCompressedFields implements Fields {
         exceptions_.boostrap(fields);
       }
     } else {
+      if (val <= currMin) return this;
       CompressedBucketUtils.updateNibble(
           buckets, index, (byte) (val - currMin), new UpdateCallback() {
             @Override
