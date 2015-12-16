@@ -51,8 +51,8 @@ public class DemoImpl {
   
   //Stream Configuration
   private int byteBufCap_ = 1000000; //ByteBuffer capacity
-  private final int threshold_; //equivalent uniquesFraction on integer scale
   private long n_ = (long)1E8; //stream length
+  private final int threshold_; //equivalent uniquesFraction on integer scale
   
   //Sketch configuration
   private int lgK_ = 14; //16K
