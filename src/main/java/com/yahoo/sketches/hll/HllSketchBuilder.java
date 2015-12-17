@@ -106,7 +106,9 @@ public class HllSketchBuilder { //TODO will need to add seed and Memory, etc.
        append("LgK:").append(TAB).append(preamble.getLogConfigK()).append(LS).
        append("K:").append(TAB).append(preamble.getConfigK()).append(LS).
        append("DenseMode:").append(TAB).append(denseMode).append(LS).
-       append("HIP Estimator:").append(TAB).append(hipEstimator).append(LS);
+       append("HIP Estimator:").append(TAB).append(hipEstimator).append(LS).
+       append("Compressed Dense:").append(TAB).append(compressedDense).append(LS);
+    
     return sb.toString();
   }
   
