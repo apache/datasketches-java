@@ -1,6 +1,8 @@
 Sketches Core Library [![Build Status](https://travis-ci.org/DataSketches/sketches-core.svg?branch=master)](https://travis-ci.org/DataSketches/sketches-core) [![Coverage Status](https://coveralls.io/repos/DataSketches/sketches-core/badge.svg?branch=master)](https://coveralls.io/r/DataSketches/sketches-core?branch=master)
 =================
 
+## [Documentation](https://datasketches.github.io)
+
 ## Building
 Use Apache Maven 3.0 to build this project
 
