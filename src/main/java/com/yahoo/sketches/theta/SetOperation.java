@@ -37,8 +37,6 @@ public class SetOperation {
     return new SetOperationBuilder();
   }
   
-
-  
   /**
    * Heapify takes the SetOperations image in Memory and instantiates an on-heap 
    * SetOperation using the
@@ -117,7 +115,7 @@ public class SetOperation {
     }
   }
 
-  //Sizing methods
+  //Other methods
   /**
    * Returns the maximum required storage bytes given a nomEntries parameter for Union operations
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
@@ -159,4 +157,14 @@ public class SetOperation {
     return newLgArrLongs;
   }
   
+  /**
+   * Returns true if given Family id is one of the set operations
+   * @param id the given Family id
+   * @return true if given Family id is one of the set operations
+   */
+  static boolean isValidSetOpID(int id) {
+    int loID = Family.UNION.getID();
+    int hiID = Family.A_NOT_B.getID();
+    return ((hiID - id) | (id - loID)) >= 0;
+  }
 }

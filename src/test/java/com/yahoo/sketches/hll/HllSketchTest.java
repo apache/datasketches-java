@@ -1,5 +1,6 @@
 package com.yahoo.sketches.hll;
 
+import static org.testng.Assert.*;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -9,8 +10,7 @@ import java.util.Arrays;
 public class HllSketchTest
 {
   @Test(dataProvider = "sketches")
-  public void testEstimation(HllSketch sketch)
-  {
+  public void testEstimation(HllSketch sketch) {
     int numEntries = sketch.numBuckets();
     HllSketch unioned = HllSketch.builder().setPreamble(sketch.getPreamble()).build();
 
@@ -34,8 +34,7 @@ public class HllSketchTest
   }
 
   @Test
-  public void testEmptyToByteArray()
-  {
+  public void testEmptyToByteArray() {
     HllSketch sketch = HllSketch.builder().setLogBuckets(10).setDenseMode(true).build();
 
     byte[] sketchBytes = sketch.toByteArray();
@@ -59,8 +58,7 @@ public class HllSketchTest
   }
 
   @DataProvider(name = "sketches")
-  public static Object[][] getSketches()
-  {
+  public static Object[][] getSketches() {
     Preamble preamble = Preamble.fromLogK(10);
     HllSketchBuilder bob = HllSketch.builder().setPreamble(preamble);
     return new Object[][]{
@@ -71,20 +69,100 @@ public class HllSketchTest
         {new HllSketch(new OnHeapCompressedFields(preamble))}
     };
   }
-
-  public static void main(String[] args)
-  {
+  
+  @Test
+  public void checkNullEmptyArrays() {
+    byte[] barr = null;
+    int[] iarr = null;
+    long[] larr = null;
+    int lgK = 12;
+    HllSketch hll = HllSketch.builder().setLogBuckets(lgK).build();
+    hll.update(barr);
+    hll.update(iarr);
+    hll.update(larr);
+    barr = new byte[0];
+    iarr = new int[0];
+    larr = new long[0];
+    hll.update(barr);
+    hll.update(iarr);
+    hll.update(larr);
+    assertEquals(hll.getEstimate(), 0, 0.0);
+  }
+  
+  @Test
+  public void checkLongUpdate() {
+    int lgK = 12;
+    int k = 1 << lgK;
+    HllSketch hll = HllSketch.builder().setLogBuckets(12).build();
+    for (long i = 0; i<k; i++) { hll.update(i); }
+    assertEquals(hll.getEstimate(), k, k*.05);
+  }
+  
+  @Test
+  public void checkDoubleUpdate() {
+    int lgK = 12;
+    int k = 1 << lgK;
+    HllSketch hll = HllSketch.builder().setLogBuckets(12).build();
+    for (double i = 0; i<k; i++) { hll.update(i); }
+    assertEquals(hll.getEstimate(), k, k*.05);
+  }
+  
+  @Test
+  public void checkStringUpdate() {
+    int lgK = 12;
+    char[] cArr = new char[2];
+    int n = 0; //#strings
+    HllSketch hll = HllSketch.builder().setLogBuckets(lgK).build();
+    String s = null;
+    hll.update(s);
+    s = "";
+    hll.update(s);
+    assertEquals(hll.getEstimate(), 0.0, 0.0);
+    
+    for (int i = 32; i<127; i++) { //95 chars
+      for (int j = 32; j<127; j++) {
+        cArr[0] = (char) i;
+        cArr[1] = (char) j;
+        hll.update(String.valueOf(cArr));
+        n++;
+      }
+    }
+    double est = hll.getEstimate();
+    assertEquals(hll.getEstimate(), n, n*.05);
+    println("n: "+n+", estL "+est);
+  }
+  
+  @Test
+  public void printlnTest() {
+    println("PRINTING: "+this.getClass().getName());
+  }
+  
+  /**
+   * @param s value to print 
+   */
+  static void println(String s) {
+    //System.out.println(s); //disable here
+  }
+  
+  //@Test
+  public void simpleTest() {
     HllSketch sketch = (HllSketch) getSketches()[0][0];
 
     int numEntries = sketch.numBuckets();
     for (int i = 0; i < numEntries * 3; ++i) {
       if (i % 4 == 0) {
-        System.out.println();
+        println("");
       }
 
       sketch.update(new int[]{i});
-      System.out.printf("%.20fd, ", sketch.inversePowerOf2Sum());
+      String s = String.format("%.20fd, ", sketch.inversePowerOf2Sum());
+      println(s);
     }
+  }
+  
+  public static void main(String[] args) {
+    HllSketchTest test = new HllSketchTest();
+    test.simpleTest();
   }
 
   private static final double[] estimatesAtLog10Buckets = new double[]{

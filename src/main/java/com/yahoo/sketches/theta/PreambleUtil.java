@@ -8,9 +8,6 @@ import static com.yahoo.sketches.Family.idToFamily;
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.zeroPad;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
-//import static com.yahoo.sketches.Util.TWO_TO_63;
-//import static com.yahoo.sketches.Util.checkIfPowerOf2;
-
 
 import java.nio.ByteOrder;
 
@@ -38,7 +35,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * Long || Start Byte Adr:
  * Adr: 
  *      ||  7 |   6   |     5    |   4   |   3   |    2   |    1   |     0              |
- *  0   || Seed Hash  |  Flags   | LgArr | lgNom | FamID  | SerVer | RR, Preamble_Longs |
+ *  0   || Seed Hash  |  Flags   | LgArr | lgNom | FamID  | SerVer | RF, Preamble_Longs |
  *  
  *      || 15 |  14   |    13    |  12   |  11   |   10   |    9   |     8              |
  *  1   || --------------p-------------- | ---------Retained Entries Count------------- |

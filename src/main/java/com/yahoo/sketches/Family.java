@@ -70,7 +70,12 @@ public enum Family {
   /**
    * The HLL family of sketches.
    */
-  HLL(7, "HLL", 1, 1);
+  HLL(7, "HLL", 1, 1),
+  
+  /**
+   * The Quantiles family of sketches
+   */
+  QUANTILES(8, "QUANTILES", 1, 5);
   
   private static final Map<Integer, Family> lookupID = new HashMap<Integer, Family>();
   private static final Map<String, Family> lookupFamName = new HashMap<String, Family>();
@@ -82,13 +87,13 @@ public enum Family {
   static {
     for (Family f : values()) {
       lookupID.put(f.getID(), f);
-      lookupFamName.put(f.getFamName(), f);
+      lookupFamName.put(f.getFamilyName().toUpperCase(), f);
     }
   }
 
   private Family (int id, String famName, int minPreLongs, int maxPreLongs) {
     id_ = id;
-    famName_ = famName;
+    famName_ = famName.toUpperCase();
     minPreLongs_ = minPreLongs;
     maxPreLongs_ = maxPreLongs;
   }
@@ -113,7 +118,7 @@ public enum Family {
    * Returns the name for this family
    * @return the name for this family
    */
-  public String getFamName() {
+  public String getFamilyName() {
     return famName_;
   }
   
@@ -155,7 +160,7 @@ public enum Family {
    * @return the Family given the family name
    */
   public static Family stringToFamily(String famName) {
-    Family f = lookupFamName.get(famName);
+    Family f = lookupFamName.get(famName.toUpperCase());
     if (f == null) throw new IllegalArgumentException("Illegal Family Name: "+famName);
     return f;
   }
@@ -166,34 +171,12 @@ public enum Family {
    * @return the Family given one of the recognized class objects on one of the Families
    */
   public static Family objectToFamily(Object obj) {
-    String sname = obj.getClass().getSimpleName();
+    String sname = obj.getClass().getSimpleName().toUpperCase();
     for (Family f : values()) {
       if (sname.contains(f.toString())) {
         return f;
       }
     }
     throw new IllegalArgumentException("Unknown object");
-  }
-  
-  /**
-   * Returns true if given Family id is one of the theta sketches
-   * @param id the given Family id
-   * @return true if given Family id is one of the theta sketches
-   */
-  public static boolean isValidSketchID(int id) {
-    int loID = ALPHA.id_;
-    int hiID = COMPACT.id_;
-    return ((hiID - id) | (id - loID)) >= 0;
-  }
-  
-  /**
-   * Returns true if given Family id is one of the set operations
-   * @param id the given Family id
-   * @return true if given Family id is one of the set operations
-   */
-  public static boolean isValidSetOpID(int id) {
-    int loID = UNION.id_;
-    int hiID = A_NOT_B.id_;
-    return ((hiID - id) | (id - loID)) >= 0;
   }
 }

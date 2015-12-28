@@ -5,15 +5,21 @@
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.theta.Sketch.getMaxUpdateSketchBytes;
+import static com.yahoo.sketches.Family.A_NOT_B;
+import static com.yahoo.sketches.Family.INTERSECTION;
+import static com.yahoo.sketches.Family.UNION;
 import static com.yahoo.sketches.theta.ResizeFactor.X4;
 import static org.testng.Assert.assertEquals;
 //import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 import java.nio.ByteBuffer;
 
 import org.testng.annotations.Test;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.theta.Sketch;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -309,6 +315,15 @@ public class SetOperationTest {
     double est = resSk.getEstimate();
         
     return est;
+  }
+  
+  @Test
+  public void checkValidSetOpID() {
+    assertFalse(SetOperation.isValidSetOpID(0));
+    assertTrue(SetOperation.isValidSetOpID(UNION.getID()));
+    assertTrue(SetOperation.isValidSetOpID(INTERSECTION.getID()));
+    assertTrue(SetOperation.isValidSetOpID(A_NOT_B.getID()));
+
   }
   
   @Test

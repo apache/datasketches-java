@@ -248,7 +248,7 @@ public final class Sketches {
   
   static void checkIfValidThetaSketch(Memory srcMem) {
     int fam = srcMem.getByte(FAMILY_BYTE);
-    if (!Family.isValidSketchID(fam)) {
+    if (!Sketch.isValidSketchID(fam)) {
      throw new IllegalArgumentException("Source Memory not a valid Sketch. Family: "+
        Family.idToFamily(fam).toString()); 
     }

@@ -10,7 +10,9 @@ import com.yahoo.sketches.memory.NativeMemory;
 import org.testng.annotations.Test;
 
 import static com.yahoo.sketches.Family.ALPHA;
+import static com.yahoo.sketches.Family.COMPACT;
 import static com.yahoo.sketches.Family.QUICKSELECT;
+import static com.yahoo.sketches.Family.objectToFamily;
 import static com.yahoo.sketches.Util.DEFAULT_NOMINAL_ENTRIES;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
@@ -21,6 +23,8 @@ import static com.yahoo.sketches.theta.ResizeFactor.X4;
 import static com.yahoo.sketches.theta.ResizeFactor.X8;
 import static com.yahoo.sketches.theta.Sketch.getMaxCompactSketchBytes;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 /**
  * @author Lee Rhodes
@@ -275,6 +279,20 @@ public class SketchTest {
     //corrupt:
     mem.clearBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
     Sketch sketch2 = Sketch.wrap(mem);
+  }
+  
+  @Test
+  public void checkValidSketchID() {
+    assertFalse(Sketch.isValidSketchID(0));
+    assertTrue(Sketch.isValidSketchID(ALPHA.getID()));
+    assertTrue(Sketch.isValidSketchID(QUICKSELECT.getID()));
+    assertTrue(Sketch.isValidSketchID(COMPACT.getID()));
+  }
+  
+  @Test
+  public void checkObjectToFamily() {
+    Sketch sk1 = UpdateSketch.builder().setFamily(ALPHA).build(512);
+    println(objectToFamily(sk1).toString());
   }
   
   @Test

@@ -1,9 +1,11 @@
 package com.yahoo.sketches.hll;
 
+import com.yahoo.sketches.hll.Preamble.Builder;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;
 import com.yahoo.sketches.memory.NativeMemory;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -68,4 +70,35 @@ public class PreambleTest
     Assert.assertTrue(preamble.equals(Preamble.fromLogK(13)));
     Assert.assertFalse(preamble.equals(null));
   }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkIntoByteArray() {
+    Preamble preamble = new Preamble.Builder()
+        .setLogConfigK((byte) 10)
+        .setSeed(Util.DEFAULT_UPDATE_SEED)
+        .setFlags((byte) 12).build();
+    byte[] bytes = new byte[10];
+    int initOffset = 3;
+    preamble.intoByteArray(bytes, initOffset);
+  }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkBadSeedHashFromSeed() {
+    Builder bldr = new Preamble.Builder();
+    //In the first 64K values 50541 produces a seedHash of 0, 
+    bldr.setSeed(50541L);
+  }
+  
+  @Test
+  public void printlnTest() {
+    println("PRINTING: "+this.getClass().getName());
+  }
+  
+  /**
+   * @param s value to print 
+   */
+  static void println(String s) {
+    //System.out.println(s); //disable here
+  }
+  
 }

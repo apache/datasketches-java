@@ -121,7 +121,7 @@ public abstract class Sketch {
    * may be values in the dataDetail view that are &ge; theta.
    * 
    * @param sketchSummary If true the sketch summary will be output at the end.
-   * @param dataDetail If true, print all valid hash values in the sketch.
+   * @param dataDetail If true, includes all valid hash values in the sketch.
    * @param width The number of columns of hash values. Default is 8.
    * @param hexMode If true, hashes will be output in hex.
    * @return The result string, which can be very long.
@@ -401,6 +401,17 @@ public abstract class Sketch {
   abstract Memory getMemory();
 
   
+  /**
+   * Returns true if given Family id is one of the theta sketches
+   * @param id the given Family id
+   * @return true if given Family id is one of the theta sketches
+   */
+  static boolean isValidSketchID(int id) {
+    int loID = Family.ALPHA.getID();
+    int hiID = Family.COMPACT.getID();
+    return ((hiID - id) | (id - loID)) >= 0;
+  }
+
   static final boolean estMode(long thetaLong, boolean empty) {
     return (thetaLong < Long.MAX_VALUE) && !empty;
   }

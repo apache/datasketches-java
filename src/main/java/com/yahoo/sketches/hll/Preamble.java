@@ -58,9 +58,9 @@ public class Preamble {
         .setVersion(memory.getByte(1))
         .setFamilyId(memory.getByte(2))
         .setLogConfigK(memory.getByte(3))
-            // Invert the ++ in order to skip over the unused byte.  A bunch of bits are wasted
+            // Invert the ++ in order to skip over the unused byte.  Some bits are wasted
             // instead of packing the preamble so that the semantics of the various parts of the
-            // preamble can be aligned across different sketches.
+            // preamble can be aligned across different types of sketches.
         .setFlags(memory.getByte(5));
 
     short seedHash = memory.getShort(6);
@@ -119,7 +119,7 @@ public class Preamble {
   }
 
   public int intoByteArray(byte[] bytes, int offset) {
-    if (bytes.length - offset < 8) {
+    if ((bytes.length - offset) < 8) {
       throw new IllegalArgumentException("bytes too small");
     }
 

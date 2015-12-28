@@ -10,7 +10,7 @@ import static org.testng.Assert.*;
 import org.testng.annotations.Test;
 
 import com.yahoo.sketches.Family;
-import com.yahoo.sketches.theta.Sketch;
+//import com.yahoo.sketches.theta.Sketch;
 import com.yahoo.sketches.theta.UpdateSketch;
 
 /**
@@ -20,38 +20,45 @@ public class FamilyTest {
   
   @Test
   public void checkFamilyEnum() {
-    println("ID to Family:");
-    for (int i=1; i<=6; i++) {
-      Family fam = idToFamily(i);
-      println(fam.toString());
+    Family[] families = Family.values();
+    int numFam = families.length;
+    
+    for (int i=0; i<numFam; i++) {
+      Family f = families[i];
+      int fid = f.getID();
+      f.checkFamilyID(fid);
+      
+      Family f2 = idToFamily(fid);
+      assertTrue(f.equals(f2));
+      assertEquals(f.getFamilyName(), f2.getFamilyName());
+      int id2 = f2.getID();
+      assertEquals(fid, id2);
     }
-    println("\nString to Family:");
     checkStringToFamily("Alpha");
     checkStringToFamily("QuickSelect");
     checkStringToFamily("Union");
     checkStringToFamily("Intersection");
     checkStringToFamily("AnotB");
-    
-    println("\nObject to Family:");
-    Sketch sk1 = UpdateSketch.builder().setFamily(ALPHA).build(512);
-    println(objectToFamily(sk1).toString());
+    checkStringToFamily("HLL");
+    checkStringToFamily("Quantiles");
   }
   
   private static void checkStringToFamily(String inStr) {
     String fName = stringToFamily(inStr).toString();
-    assertEquals(fName, inStr);
+    assertEquals(fName, inStr.toUpperCase());
   }
   
   @Test
   public void checkFamily() {
     UpdateSketch sk = UpdateSketch.builder().build();
-    println(sk.getClass().getSimpleName());
-    println(Family.objectToFamily(sk).toString());
+    String sname = sk.getClass().getSimpleName();
+    String fname = Family.objectToFamily(sk).toString();
+    assertTrue(sname.toUpperCase().contains(fname));
     
-    for (Family f : Family.values()) {
-      String fstr = f.toString();
-      println("Name: "+fstr + ": ID: "+f.getID());
-    }
+//    for (Family f : Family.values()) {
+//      String fstr = f.toString();
+//      println("Name: "+fstr + ": ID: "+f.getID());
+//    }
   }
   
   @SuppressWarnings("unused")
@@ -71,30 +78,6 @@ public class FamilyTest {
     Family famAlpha = Family.ALPHA;
     Family famQS = Family.QUICKSELECT;
     famAlpha.checkFamilyID(famQS.getID());
-  }
-  
-  @Test
-  public void checkValidSketchID() {
-    assertFalse(isValidSketchID(0));
-    assertTrue(isValidSketchID(ALPHA.getID()));
-    assertTrue(isValidSketchID(QUICKSELECT.getID()));
-    assertTrue(isValidSketchID(COMPACT.getID()));
-    assertFalse(isValidSketchID(UNION.getID()));
-    assertFalse(isValidSketchID(INTERSECTION.getID()));
-    assertFalse(isValidSketchID(A_NOT_B.getID()));
-    assertFalse(isValidSketchID(HLL.getID()));
-  }
-  
-  @Test
-  public void checkValidSetOpID() {
-    assertFalse(isValidSetOpID(0));
-    assertFalse(isValidSetOpID(ALPHA.getID()));
-    assertFalse(isValidSetOpID(QUICKSELECT.getID()));
-    assertFalse(isValidSetOpID(COMPACT.getID()));
-    assertTrue(isValidSetOpID(UNION.getID()));
-    assertTrue(isValidSetOpID(INTERSECTION.getID()));
-    assertTrue(isValidSetOpID(A_NOT_B.getID()));
-    assertFalse(isValidSetOpID(HLL.getID()));
   }
   
   @Test
