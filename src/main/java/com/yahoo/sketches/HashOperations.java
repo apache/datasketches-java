@@ -56,7 +56,12 @@ public final class HashOperations {
     }
     return cnt;
   }
-  
+
+  // make odd and independent of index assuming lgArrLongs lowest bits of the hash were used for index
+  private static int getStride(long hash, int lgArrLongs) {
+    return (2 * (int) ((hash >> (lgArrLongs)) & STRIDE_MASK)) + 1;
+  }
+
   /**
    * This is a classical Knuth-style Open Addressing, Double Hash search scheme.
    * 
@@ -68,17 +73,14 @@ public final class HashOperations {
   public static int hashSearch(long[] hashTable, int lgArrLongs, long hash) {
     if (hash == 0) throw new IllegalArgumentException("Given hash cannot be zero: "+hash);
     int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
-    // make odd and independent of curProbe:
-    int stride = (2 * (int) ((hash >> (lgArrLongs)) & STRIDE_MASK)) + 1;
+    int stride = getStride(hash, lgArrLongs);
     int curProbe = (int) (hash & arrayMask);
-    long curArrayHash = hashTable[curProbe];
     // search for duplicate or zero
-    while ((curArrayHash != hash) && (curArrayHash != 0)) {
+    while (hashTable[curProbe] != 0) {
+      if (hashTable[curProbe] == hash) return curProbe; // a duplicate
       curProbe = (curProbe + stride) & arrayMask;
-      curArrayHash = hashTable[curProbe];
     }
-    // curArrayHash is a duplicate or zero
-    return (curArrayHash == hash) ? curProbe : -1;
+    return -1;
   }
   
   /**
@@ -104,7 +106,7 @@ public final class HashOperations {
       if (continueCondition(thetaLong, hash) ) { 
         continue; 
       }
-      if (hashInsert(hashTable, lgArrLongs, hash)) {
+      if (hashSearchOrInsert(hashTable, lgArrLongs, hash) < 0) {
         count++ ;
       }
     }
@@ -118,27 +120,42 @@ public final class HashOperations {
    * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>
    * @param hash hash value that must not be zero and if not a duplicate will be inserted into the
    * array into an empty slot
-   * @return True if hash was inserted and count must be incremented.
+   * @return index if found, -(index + 1) if inserted
    */
-  public static boolean hashInsert(long[] hashTable, int lgArrLongs, long hash) {
+  public static int hashSearchOrInsert(long[] hashTable, int lgArrLongs, long hash) {
     int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
-    // make odd and independent of curProbe:
-    int stride = (2 * (int) ((hash >> (lgArrLongs)) & STRIDE_MASK)) + 1;
+    int stride = getStride(hash, lgArrLongs);
     int curProbe = (int) (hash & arrayMask);
-    long curArrayHash = hashTable[curProbe];
     // search for duplicate or zero
-    while ((curArrayHash != hash) && (curArrayHash != 0)) {
-      // curArrayHash is not a duplicate and not zero, continue searching
+    while (hashTable[curProbe] != 0) {
+      if (hashTable[curProbe] == hash) return curProbe; // a duplicate
+      // not a duplicate and not zero, continue searching
       curProbe = (curProbe + stride) & arrayMask;
-      curArrayHash = hashTable[curProbe];
-    }
-    // curArrayHash is a duplicate or zero
-    if (curArrayHash == hash) {
-      return false; // duplicate
     }
     // must be zero, so insert
     hashTable[curProbe] = hash;
-    return true;
+    return ~curProbe;
+  }
+
+  /**
+   * This is a classical Knuth-style Open Addressing, Double Hash insert scheme.
+   * This method assumes that the input hash is not a duplicate.
+   * Useful for rebuilding tables to avoid unnecessary comparisons.
+   *
+   * @param hashTable the hash table to insert into.
+   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>
+   * @param hash value that must not be zero and will be inserted into the array into an empty slot.
+   * @return index of insertion.
+   */
+  public static int hashInsertOnly(long[] hashTable, int lgArrLongs, long hash) {
+    int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
+    int stride = getStride(hash, lgArrLongs);
+    int curProbe = (int) (hash & arrayMask);
+    while (hashTable[curProbe] != 0) {
+      curProbe = (curProbe + stride) & arrayMask;
+    }
+    hashTable[curProbe] = hash;
+    return curProbe;
   }
 
   /**
@@ -150,29 +167,53 @@ public final class HashOperations {
    * @param hash A hash value that must not be zero and if not a duplicate will be inserted into the
    * array into an empty slot.
    * @param memOffsetBytes offset in the memory where the hash array starts
-   * @return True if hash was inserted and count must be incremented.
+   * @return index if found, -(index + 1) if inserted
    */
-  public static boolean hashInsert(Memory mem, int lgArrLongs, long hash, int memOffsetBytes) {
+  public static int hashSearchOrInsert(Memory mem, int lgArrLongs, long hash, int memOffsetBytes) {
     int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
-    // make stride odd and independent of curProbe:
-    int stride = (2 * (int) ((hash >> lgArrLongs) & STRIDE_MASK)) + 1;
+    int stride = getStride(hash, lgArrLongs);
     int curProbe = (int) (hash & arrayMask);
     int curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes; 
     long curArrayHash = mem.getLong(curProbeOffsetBytes);
     // search for duplicate or zero
-    while ((curArrayHash != hash) && (curArrayHash != 0)) {
+    while (curArrayHash != 0) {
+      if (curArrayHash == hash) return curProbe; // curArrayHash is a duplicate
       // curArrayHash is not a duplicate and not zero, continue searching
       curProbe = (curProbe + stride) & arrayMask;
       curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes;
       curArrayHash = mem.getLong(curProbeOffsetBytes);
     }
-    // curArrayHash is a duplicate or zero
-    if (curArrayHash == hash) {
-      return false; // duplicate
-    }
     // must be zero, so insert
     mem.putLong(curProbeOffsetBytes, hash);
-    return true;
+    return ~curProbe;
+  }
+  
+  /**
+   * This is a classical Knuth-style Open Addressing, Double Hash insert scheme, but inserts
+   * values directly into a Memory.
+   * This method assumes that the input hash is not a duplicate.
+   * Useful for rebuilding tables to avoid unnecessary comparisons.
+   *
+   * @param mem The Memory hash table to insert into.
+   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>
+   * @param hash value that must not be zero and will be inserted into the array into an empty slot.
+   * @param memOffsetBytes offset in the memory where the hash array starts
+   * @return index of insertion.
+   */
+  public static int hashInsertOnly(Memory mem, int lgArrLongs, long hash, int memOffsetBytes) {
+    int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
+    int stride = getStride(hash, lgArrLongs);
+    int curProbe = (int) (hash & arrayMask);
+    int curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes; 
+    long curArrayHash = mem.getLong(curProbeOffsetBytes);
+    // search for duplicate or zero
+    while (curArrayHash != 0) {
+      curProbe = (curProbe + stride) & arrayMask;
+      curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes;
+      curArrayHash = mem.getLong(curProbeOffsetBytes);
+    }
+    mem.putLong(curProbeOffsetBytes, hash);
+    return curProbe;
   }
   
   /**
