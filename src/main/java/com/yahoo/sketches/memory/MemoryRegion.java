@@ -439,7 +439,7 @@ public class MemoryRegion implements Memory {
     String s1 = String.format("(%d, %d)", offsetBytes, lengthBytes);
     sb.append(this.getClass().getName());
     sb.append(".toHexString").append(s1).append(", hash: ").append(this.hashCode()).append(":");
-    return mem_.toHexString(sb.toString() , getAddress(offsetBytes), lengthBytes);
+    return mem_.toHexString(sb.toString(), getAddress(offsetBytes), lengthBytes);
   }
 
 }

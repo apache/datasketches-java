@@ -46,9 +46,9 @@ import static com.yahoo.sketches.memory.UnsafeUtil.unsafe;
  */
 @SuppressWarnings("restriction")
 public class NativeMemory implements Memory {
-  protected final long objectBaseOffset_; //only non-zero for on-heap objects
-  protected final Object memArray_; //null for off-heap, valid for on-heap. freeMemory sets to null.
-  protected MemoryRequest memReq_ = null;
+  protected final long objectBaseOffset_; //only non-zero for on-heap objects. freeMemory sets to 0.
+  protected final Object memArray_; //null for off-heap, valid for on-heap.
+  protected MemoryRequest memReq_ = null; //set via AllocMemory
   //holding on to this to make sure that it is not garbage collected before we are done with it.
   protected final ByteBuffer byteBuf_;
   

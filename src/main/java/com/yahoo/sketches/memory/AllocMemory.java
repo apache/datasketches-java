@@ -20,24 +20,71 @@ import java.util.Arrays;
 public class AllocMemory extends NativeMemory {
   
   /**
-   * Allocates and provides access to capacityBytes directly in native (off-heap) memory leveraging
-   * the Memory interface.  The MemoryRequest callback is set to null.
+   * Constructor for allocate native memory. 
+   * <p>Allocates and provides access to capacityBytes directly in native (off-heap) memory 
+   * leveraging the Memory interface.  The MemoryRequest callback is set to null.
    * @param capacityBytes the size in bytes of the native memory
    */
-  public AllocMemory(final long capacityBytes) {
+  public AllocMemory(long capacityBytes) {
     super(0L, null, null, unsafe.allocateMemory(capacityBytes), capacityBytes);
     super.memReq_ = null;
   }
   
   /**
-   * Allocates and provides access to capacityBytes directly in native (off-heap) memory leveraging
-   * the Memory interface.  
+   * Constructor for allocate native memory with MemoryRequest.
+   * <p>Allocates and provides access to capacityBytes directly in native (off-heap) memory leveraging
+   * the Memory interface. 
    * @param capacityBytes the size in bytes of the native memory
    * @param memReq The MemoryRequest callback
    */
-  public AllocMemory(final long capacityBytes, MemoryRequest memReq) {
+  public AllocMemory(long capacityBytes, MemoryRequest memReq) {
     super(0L, null, null, unsafe.allocateMemory(capacityBytes), capacityBytes);
     super.memReq_ = memReq;
+  }
+  
+  /**
+   * Constructor for reallocate native memory.
+   * <p>Reallocates the given off-heap NativeMemory to a new a new native (off-heap) memory location; 
+   * copies the contents of the original given NativeMemory to the new location. 
+   * Any memory beyond the capacity of the original given NativeMemory will be uninitialized. 
+   * Dispose of this new memory by calling {@link NativeMemory#freeMemory()}. 
+   * @param origMem The original NativeMemory that needs to be reallocated and must not be null. 
+   * The OS is free to just expand the capacity of the current allocation at the same native 
+   * address, or reassign a completely different native address in which case the origMem will be 
+   * freed by the OS. 
+   * The origMem internals will be reset to zero or nulls and must not be used again.
+   * 
+   * @param newCapacityBytes the desired new capacity of the newly allocated memory in bytes
+   * @param memReq The MemoryRequest callback, which may be null.
+   */
+  public AllocMemory(NativeMemory origMem, long newCapacityBytes, MemoryRequest memReq) {
+    super(0L, null, null, 
+        unsafe.reallocateMemory(origMem.nativeRawStartAddress_, newCapacityBytes), newCapacityBytes);
+    this.memReq_ = memReq;
+    origMem.nativeRawStartAddress_ = 0; //does not require freeMem
+    origMem.capacityBytes_ = 0; //Cannot be used again
+  }
+  
+  /**
+   * Constructor for allocate native memory, copy and clear.
+   * <p>Allocate a new native (off-heap) memory with capacityBytes; copy the contents of origMem from
+   * zero to copyToBytes; clear the new memory from copyToBytes to capacityBytes.
+   * @param origMem The original NativeMemory, a portion of which will be copied to the 
+   * newly allocated Memory. 
+   * The reference must not be null. 
+   * This origMem is not modified in any way, may be reused and must be freed appropriately.
+   * @param copyToBytes the upper limit of the region to be copied from origMem to the newly 
+   * allocated memory. 
+   * @param capacityBytes the desired new capacity of the newly allocated memory in bytes and the 
+   * upper limit of the region to be cleared. 
+   * @param memReq The MemoryRequest callback, which may be null.
+   */
+  public AllocMemory(NativeMemory origMem, long copyToBytes, long capacityBytes, 
+      MemoryRequest memReq) {
+    super(0L, null, null, unsafe.allocateMemory(capacityBytes), capacityBytes);
+    this.memReq_ = memReq;
+    MemoryUtil.copy(origMem, 0, this, 0, copyToBytes);
+    this.clear(copyToBytes, capacityBytes-copyToBytes);
   }
   
   @Override

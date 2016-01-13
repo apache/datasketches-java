@@ -21,6 +21,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.computeSeedHash;
 import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountIncremented;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedDuplicate;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedOverTheta;
+import static com.yahoo.sketches.Util.*;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
@@ -33,11 +34,6 @@ import com.yahoo.sketches.memory.Memory;
  */
 class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements UpdateInternal, SetArgument {
 
-  static final int HQS_MIN_LG_ARR_LONGS = 5; //The smallest Log2 cache size allowed; => 32.
-  static final int HQS_MIN_LG_NOM_LONGS = 4; //The smallest Log2 nom entries allowed; => 16.
-  static final double HQS_REBUILD_THRESHOLD = 15.0 / 16.0;
-  static final double HQS_RESIZE_THRESHOLD = .5; //tuned for speed
-  
   private final Family MY_FAMILY;
   private final int preambleLongs_;
   
@@ -66,8 +62,8 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
         seed, 
         p, 
         rf);
-    if (lgNomLongs_ < HQS_MIN_LG_NOM_LONGS) throw new IllegalArgumentException(
-        "This sketch requires a minimum nominal entries of "+(1 << HQS_MIN_LG_NOM_LONGS));
+    if (lgNomLongs_ < MIN_LG_NOM_LONGS) throw new IllegalArgumentException(
+        "This sketch requires a minimum nominal entries of "+(1 << MIN_LG_NOM_LONGS));
     
     if (unionGadget) {
       preambleLongs_ = Family.UNION.getMinPreLongs();
@@ -78,7 +74,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
       MY_FAMILY = Family.QUICKSELECT;
     }
     
-    lgArrLongs_ = startingSubMultiple(lgNomLongs_+1, rf, HQS_MIN_LG_ARR_LONGS);
+    lgArrLongs_ = startingSubMultiple(lgNomLongs_+1, rf, MIN_LG_ARR_LONGS);
     cache_ = new long[1 << lgArrLongs_];
     hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
     empty_ = true; //other flags: bigEndian = readOnly = compact = ordered = false; 
@@ -155,7 +151,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
   
   @Override
   public final void reset() {
-    int lgArrLongsSM = startingSubMultiple(lgNomLongs_+1, rf_, HQS_MIN_LG_ARR_LONGS);
+    int lgArrLongsSM = startingSubMultiple(lgNomLongs_+1, rf_, MIN_LG_ARR_LONGS);
     if (lgArrLongsSM == lgArrLongs_) {
       int arrLongs = cache_.length;
       assert (1 << lgArrLongs_) == arrLongs; 
@@ -283,7 +279,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
    * @return the hash table threshold
    */
   static final int setHashTableThreshold(final int lgNomLongs, final int lgArrLongs) {
-    double fraction = (lgArrLongs <= lgNomLongs) ? HQS_RESIZE_THRESHOLD : HQS_REBUILD_THRESHOLD;
+    double fraction = (lgArrLongs <= lgNomLongs) ? RESIZE_THRESHOLD : REBUILD_THRESHOLD;
     return (int) Math.floor(fraction * (1 << lgArrLongs));
   }
   

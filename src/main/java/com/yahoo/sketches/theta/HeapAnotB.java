@@ -28,8 +28,8 @@ class HeapAnotB extends SetOperation implements AnotB {
   private long[] cache_; // no match set
   private int curCount_ = 0; // this will catch an attempt to get result before call to aNOTb.
   
-  private int lgArrLongsHT_; //for Hash Table only
-  private long[] bHashTable_; 
+  private int lgArrLongsHT_; //for Hash Table only. may not need to be member after refactoring
+  private long[] bHashTable_; //may not need to be member after refactoring.
   
   /**
    * Construct a new Union SetOperation on the java heap.  Called by SetOperation.Builder.
@@ -230,7 +230,7 @@ class HeapAnotB extends SetOperation implements AnotB {
   
   private void convertBtoHT() {
     int curCountB = b_.getRetainedEntries(true);
-    lgArrLongsHT_ = computeLgArrLongsFromCount(curCountB);
+    lgArrLongsHT_ = computeMinLgArrLongsFromCount(curCountB);
     bHashTable_ = new long[1 << lgArrLongsHT_];
     int count = hashArrayInsert(b_.getCache(), bHashTable_, lgArrLongsHT_, thetaLong_);
     assert (count == curCountB);
@@ -254,7 +254,7 @@ class HeapAnotB extends SetOperation implements AnotB {
   private void scanEarlyStopAsearchB() {
     long[] scanAArr = a_.getCache();
     int arrLongsIn = scanAArr.length;
-    cache_ = new long[arrLongsIn];
+    cache_ = new long[arrLongsIn]; //maybe 2x what is needed, but getRetainedEntries can be slow.
     for (int i = 0; i < arrLongsIn; i++ ) {
       long hashIn = scanAArr[i];
       if (hashIn <= 0L) continue;

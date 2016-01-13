@@ -5,6 +5,7 @@
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.theta.Sketch.getMaxUpdateSketchBytes;
+import static com.yahoo.sketches.theta.SetOperation.*;
 import static com.yahoo.sketches.Family.A_NOT_B;
 import static com.yahoo.sketches.Family.INTERSECTION;
 import static com.yahoo.sketches.Family.UNION;
@@ -163,7 +164,12 @@ public class SetOperationTest {
     bldr.buildUnion();
     bldr.buildIntersection();
     bldr.buildANotB();
-    bldr.buildANotB(1024);
+  }
+  
+  @Test
+  public void checkComputeLgArrLongs() {
+    assertEquals(computeMinLgArrLongsFromCount(30), 5);
+    assertEquals(computeMinLgArrLongsFromCount(31), 6);
   }
   
   /**

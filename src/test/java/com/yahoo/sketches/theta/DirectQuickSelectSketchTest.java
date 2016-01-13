@@ -545,7 +545,7 @@ public class DirectQuickSelectSketchTest {
 
     for (int i = 0; i< u; i++) usk.update(i);
     
-    assertEquals(usk.getEstimate(), u, 1000.0);
+    assertEquals(usk.getEstimate(), u, u*.05);
     assertTrue(sk1.getRetainedEntries(false) > k);
   }
   
@@ -562,8 +562,9 @@ public class DirectQuickSelectSketchTest {
     assertTrue(usk.isEmpty());
 
     for (int i = 0; i< u; i++) usk.update(i);
-
-    assertEquals(usk.getEstimate(), u, 1000.0);
+    double est = usk.getEstimate();
+    println(""+est);
+    assertEquals(usk.getEstimate(), u, u*.05);
     assertTrue(sk1.getRetainedEntries(false) > k);
     
     mem.freeMemory();
@@ -579,7 +580,7 @@ public class DirectQuickSelectSketchTest {
     DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
     assertTrue(usk.isEmpty());
 
-    for (int i = 0; i< u; i++) usk.update(i);
+    for (int i = 0; i< u; i++) usk.update(i); //force estimation
     
     double est1 = usk.getEstimate();
     int count1 = sk1.getRetainedEntries(false);
@@ -606,29 +607,51 @@ public class DirectQuickSelectSketchTest {
   }
   
   //////////////////////////////////////////////////////
-  //this one allocates what was asked
+  //this one allocates what was asked from NativeMemory
   private class MemoryManager implements MemoryRequest {
     
     @Override
     public Memory request(long capacityBytes) {
-      long newCap = capacityBytes;
-      println("ReqCap: "+capacityBytes + ", Granted: "+newCap);
-      return new AllocMemory(newCap, this);
+      Memory newMem = new AllocMemory(capacityBytes, this);
+      println("ReqCap: "+capacityBytes + ", Granted: "+newMem.getCapacity());
+      return newMem;
+    }
+
+    @Override
+    public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
+      Memory newMem;
+      long origCap = origMem.getCapacity();
+      if (origMem instanceof NativeMemory) {
+        NativeMemory nMem = (NativeMemory)origMem;
+        newMem = new AllocMemory(nMem, capacityBytes, this);
+        println("OldCap: "+origCap+", ReqCap: "+capacityBytes + ", Granted: "+ newMem.getCapacity());
+        nMem.freeMemory(); //free origMem, just to be sure
+        return newMem;
+      }
+      //MemoryRegion. Get a new NativeMemory anyway.
+      newMem = request(capacityBytes);
+      println("OldCap: "+origCap+", ReqCap: "+capacityBytes + ", Granted: "+ newMem.getCapacity());
+      //nothing to free
+      return newMem;
     }
 
     @Override
     public void free(Memory mem) {
-      println("Freed : " + mem.getCapacity());
-      ((NativeMemory)mem).freeMemory();
+      if (mem instanceof NativeMemory) {
+        long origCap = mem.getCapacity();
+        ((NativeMemory)mem).freeMemory();
+        println("NativeMemory Freed : " + origCap);
+      } else println("The original MemoryRegion can be reassigned.");
+      
     }
 
     @Override
     public void free(Memory memToFree, Memory newMem) {
+      long origCap = memToFree.getCapacity();
       if (memToFree instanceof NativeMemory) {
-        NativeMemory nMem = (NativeMemory)memToFree;
-        println("Freed : " + nMem.getCapacity());
-        nMem.freeMemory();
-      } // else reassign the old MemoryRegion
+        ((NativeMemory)memToFree).freeMemory();
+        println("NativeMemory Freed : " + origCap);
+      } else println("The original MemoryRegion can be reassigned.");
     }
   }
 //////////////////////////////////////////////////////
@@ -677,6 +700,12 @@ public class DirectQuickSelectSketchTest {
         nMem.freeMemory();
       } // else reassign the old MemoryRegion
     }
+
+    @Override
+    public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
+      // TODO Auto-generated method stub
+      return null;
+    }
   }
 //////////////////////////////////////////////////////
   @Test
@@ -723,6 +752,12 @@ public class DirectQuickSelectSketchTest {
         println("Freed : " + nMem.getCapacity());
         nMem.freeMemory();
       } // else reassign the old MemoryRegion
+    }
+
+    @Override
+    public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
+      // TODO Auto-generated method stub
+      return null;
     }
   }
   //////////////////////////////////////////////////////
@@ -772,6 +807,12 @@ public class DirectQuickSelectSketchTest {
         println("Freed : " + nMem.getCapacity());
         nMem.freeMemory();
       } // else reassign the old MemoryRegion
+    }
+
+    @Override
+    public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
+      // TODO Auto-generated method stub
+      return null;
     }
   }
   //////////////////////////////////////////////////////

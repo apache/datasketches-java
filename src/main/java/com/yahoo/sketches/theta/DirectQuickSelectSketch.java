@@ -24,6 +24,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.computeSeedHash;
 import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountIncremented;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedDuplicate;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedOverTheta;
+import static com.yahoo.sketches.Util.*;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
@@ -36,10 +37,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * @author Kevin Lang
  */
 class DirectQuickSelectSketch extends DirectUpdateSketch {
-  static final int DQS_MIN_LG_ARR_LONGS = 5; //The smallest Log2 cache size allowed; => 32.
-  static final int DQS_MIN_LG_NOM_LONGS = 4; //The smallest Log2 nom entries allowed; => 16.
-  static final double DQS_REBUILD_THRESHOLD = 15.0 / 16.0;
-  static final double DQS_RESIZE_THRESHOLD  = 15.0 / 16.0; //tuned for space
+  private static final double DQS_RESIZE_THRESHOLD  = 15.0 / 16.0; //tuned for space
   
   private final Family MY_FAMILY;
   private final int preambleLongs_;
@@ -73,10 +71,10 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
         p, 
         rf 
     );
-    if (lgNomLongs_ < DQS_MIN_LG_NOM_LONGS) {
+    if (lgNomLongs_ < MIN_LG_NOM_LONGS) {
       freeMem(dstMem);
       throw new IllegalArgumentException(
-        "This sketch requires a minimum nominal entries of "+(1 << DQS_MIN_LG_NOM_LONGS));
+        "This sketch requires a minimum nominal entries of "+(1 << MIN_LG_NOM_LONGS));
     }
     
     mem_ = dstMem; //cannot be null via builder
@@ -92,7 +90,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     }
     
     memReq_ = dstMem.getMemoryRequest();
-    int myLgArrLongs = startingSubMultiple(lgNomLongs_ + 1, rf, DQS_MIN_LG_ARR_LONGS);
+    int myLgArrLongs = startingSubMultiple(lgNomLongs_ + 1, rf, MIN_LG_ARR_LONGS);
     long curCapBytes = dstMem.getCapacity();
     int minReqBytes = (memReq_ == null)? getFullCapBytes(lgNomLongs_, myPreambleLongs) 
         : getRequiredBytes(myLgArrLongs, myPreambleLongs);
@@ -110,17 +108,17 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     mem_.putByte(SER_VER_BYTE, (byte) SER_VER);             //byte 1
     mem_.putByte(FAMILY_BYTE, (byte) MY_FAMILY.getID());    //byte 2 local already set
     mem_.putByte(LG_NOM_LONGS_BYTE, (byte) lgNomLongs_);    //byte 3 local already set
-    setLgArrLongs(myLgArrLongs);                            //byte 4
+    lgArrLongs_ = setLgArrLongs(mem_, myLgArrLongs);        //byte 4
     
     //flags: bigEndian = readOnly = compact = ordered = false; empty = true.
     empty_ = true;
     mem_.putByte(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);       //byte 5
     
     mem_.putShort(SEED_HASH_SHORT, computeSeedHash(seed));  //bytes 6,7
-    setCurCount(0);                                         //bytes 8-11
+    curCount_ = setCurCount(mem_, 0);                       //bytes 8-11
     
     mem_.putFloat(P_FLOAT, p);                              //byte 12-15
-    setThetaLong((long)(p * MAX_THETA_LONG_AS_DOUBLE));     //bytes 16-23
+    thetaLong_ = setThetaLong(mem_, (long)(p * MAX_THETA_LONG_AS_DOUBLE));     //bytes 16-23
     
     hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
     mem_.clear(preambleLongs_ << 3, 8 << lgArrLongs_);      //clear data area only
@@ -148,7 +146,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
       preambleLongs_ = Family.UNION.getMinPreLongs() & 0X3F;
       MY_FAMILY = Family.UNION;
     } 
-    else { //QS via builder
+    else { //QS via Sketch.wrap(Memory, seed)
       preambleLongs_ = Family.QUICKSELECT.getMinPreLongs() & 0X3F;
       MY_FAMILY = Family.QUICKSELECT;
     } //
@@ -215,15 +213,14 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     //hash table size and threshold stays the same
     //lgArrLongs stays the same
     int arrLongs = 1 << getLgArrLongs();
-    Memory mem = getMemory();
     int preBytes = preambleLongs_ << 3;
-    mem.clear(preBytes, arrLongs*8); //clear data array
+    mem_.clear(preBytes, arrLongs*8); //clear data array
     //flags: bigEndian = readOnly = compact = ordered = false; empty = true.
     mem_.putByte(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);       //byte 5
     empty_ = true; 
-    setCurCount(0);
-    float p = mem.getFloat(P_FLOAT);
-    setThetaLong((long)(p * MAX_THETA_LONG_AS_DOUBLE));
+    curCount_ = setCurCount(mem_, 0);
+    float p = mem_.getFloat(P_FLOAT);
+    thetaLong_ = setThetaLong(mem_, (long)(p * MAX_THETA_LONG_AS_DOUBLE));
   }
   
   //restricted methods
@@ -318,7 +315,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
           if (reqBytes <= curCapBytes) { //yes
             resizeMe(newLgArrLongs);
           }
-          else { //no, request more a bigger space
+          else { //no, request a bigger space
             Memory newMem = memReq_.request(reqBytes);
             if (newMem == null) {
               throw new IllegalArgumentException("Requested memory cannot be null.");
@@ -356,29 +353,17 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     int pivot = (1 << getLgNomLongs()) + 1; // pivot for QS
     long[] tmpArr = new long[arrLongs];
     int preBytes = preambleLongs_ << 3;
-    Memory mem = getMemory();
-    mem.getLongArray(preBytes, tmpArr, 0, arrLongs); //copy mem data to tmpArr
+    mem_.getLongArray(preBytes, tmpArr, 0, arrLongs); //copy mem data to tmpArr
     
     //do the QuickSelect on tmp arr
-    setThetaLong(selectExcludingZeros(tmpArr, getRetainedEntries(true), pivot)); //changes tmpArr 
+    long newThetaLong = selectExcludingZeros(tmpArr, getRetainedEntries(true), pivot);
+    thetaLong_ = setThetaLong(mem_, newThetaLong); //changes tmpArr 
     
     // now we rebuild to clean up dirty data, update count
     long[] tgtArr = new long[arrLongs];
-    setCurCount(HashOperations.hashArrayInsert(tmpArr, tgtArr, lgArrLongs, getThetaLong()));
-    mem.putLongArray(preBytes, tgtArr, 0, arrLongs); //put data back to mem
-  }
-  
-  /**
-   * Returns the cardinality limit given the current size of the hash table array.
-   * 
-   * @param noRebuild if true the sketch cannot perform any rebuild or resizing operations. 
-   * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLongs">See lgNomLongs</a>.
-   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
-   * @return the hash table threshold
-   */
-  private static final int setHashTableThreshold(final int lgNomLongs, final int lgArrLongs) {
-    double fraction = (lgArrLongs <= lgNomLongs) ? DQS_RESIZE_THRESHOLD : DQS_REBUILD_THRESHOLD;
-    return (int) Math.floor(fraction * (1 << lgArrLongs));
+    int newCurCount = HashOperations.hashArrayInsert(tmpArr, tgtArr, lgArrLongs, getThetaLong());
+    curCount_ = setCurCount(mem_, newCurCount);
+    mem_.putLongArray(preBytes, tgtArr, 0, arrLongs); //put data back to mem
   }
   
   private final void moveAndResizeMe(Memory dstMem, int dstLgArrLongs) {
@@ -393,7 +378,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     dstMem.putLongArray(preBytes, dstHTArr, 0, dstHTLen);
     
     mem_ = dstMem;
-    setLgArrLongs(dstLgArrLongs);  //update lgArrLongs & hashTableThreshold
+    lgArrLongs_ = setLgArrLongs(mem_, dstLgArrLongs);
     hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
   }
   
@@ -408,28 +393,42 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     HashOperations.hashArrayInsert(srcHTArr, dstHTArr, newLgArrLongs, thetaLong_);
     mem_.putLongArray(preBytes, dstHTArr, 0, dstHTLen);
     
-    setLgArrLongs(newLgArrLongs); //updates
+    lgArrLongs_ = setLgArrLongs(mem_, newLgArrLongs);
     hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
   }
   
   //special set methods
   
-  private final void setLgArrLongs(int lgArrLongs) {
-    lgArrLongs_ = lgArrLongs;
-    mem_.putByte(LG_ARR_LONGS_BYTE, (byte) lgArrLongs);
+  /**
+   * Returns the cardinality limit given the current size of the hash table array.
+   * 
+   * @param noRebuild if true the sketch cannot perform any rebuild or resizing operations. 
+   * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLongs">See lgNomLongs</a>.
+   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * @return the hash table threshold
+   */
+  private static final int setHashTableThreshold(final int lgNomLongs, final int lgArrLongs) {
+    double fraction = (lgArrLongs <= lgNomLongs) ? DQS_RESIZE_THRESHOLD : REBUILD_THRESHOLD;
+    return (int) Math.floor(fraction * (1 << lgArrLongs));
   }
   
-  private final void setThetaLong(long thetaLong) {
-    thetaLong_ = thetaLong;
-    mem_.putLong(THETA_LONG, thetaLong);
+  private static final int setLgArrLongs(Memory mem, int newLgArrLongs) {
+    mem.putByte(LG_ARR_LONGS_BYTE, (byte) newLgArrLongs);
+    return newLgArrLongs;
   }
   
-  private final void setCurCount(int curCount) {
-    curCount_ = curCount;
-    mem_.putInt(RETAINED_ENTRIES_INT, curCount);
+  private static final long setThetaLong(Memory mem, long newThetaLong) {
+    mem.putLong(THETA_LONG, newThetaLong);
+    return newThetaLong;
   }
   
-  private static final void freeMem(Memory mem) {
+  private static final int setCurCount(Memory mem, int newCurCount) {
+    mem.putInt(RETAINED_ENTRIES_INT, newCurCount);
+    return newCurCount;
+  }
+  
+  //Only used when MemoryRequest is not available
+  private static final void freeMem(Memory mem) { 
     MemoryRequest memReq = mem.getMemoryRequest();
     if (memReq != null) {
       memReq.free(mem);

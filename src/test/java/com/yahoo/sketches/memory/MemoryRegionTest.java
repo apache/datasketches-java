@@ -180,7 +180,7 @@ public class MemoryRegionTest {
     NativeMemory mem = new AllocMemory(memCapacity);
     Memory region = new MemoryRegion(mem, 0, memCapacity);
     
-    toHexStringAllMemTests(region); //requires println enabled to visually check
+    toHexStringAllMemTests(region); //requires println enabled in CommonTests to visually check
     
     mem.freeMemory();
   }

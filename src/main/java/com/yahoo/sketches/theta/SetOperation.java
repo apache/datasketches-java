@@ -10,6 +10,7 @@ import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.Util.checkIfPowerOf2;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
+import static com.yahoo.sketches.Util.*;
 import static java.lang.Math.max;
 
 import com.yahoo.sketches.Family;
@@ -21,9 +22,6 @@ import com.yahoo.sketches.memory.Memory;
  * @author Lee Rhodes
  */
 public class SetOperation {
-  static final int MIN_LG_ARR_LONGS = 5;
-  public static final int MIN_LG_NOM_LONGS = 4;
-  static final double RESIZE_THRESHOLD = 15.0/16.0;
   static final int CONST_PREAMBLE_LONGS = 3;
   
   SetOperation() {}
@@ -121,7 +119,7 @@ public class SetOperation {
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
    * @return the maximum required storage bytes given a nomEntries parameter
    */
-  public static int getMaxUnionBytes (int nomEntries) {
+  public static int getMaxUnionBytes(int nomEntries) {
     checkIfPowerOf2(nomEntries, "Nominal Entries");
     return (nomEntries << 4) + (Family.UNION.getMaxPreLongs() << 3);
   }
@@ -132,28 +130,21 @@ public class SetOperation {
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
    * @return the maximum required storage bytes given a nomEntries parameter
    */
-  public static int getMaxIntersectionBytes (int nomEntries) {
+  public static int getMaxIntersectionBytes(int nomEntries) {
     checkIfPowerOf2(nomEntries, "Nominal Entries");
-    return (nomEntries << 4) + (Family.INTERSECTION.getMaxPreLongs() << 3);
+    int bytes = (nomEntries << 4) + (Family.INTERSECTION.getMaxPreLongs() << 3);
+    return bytes;
   }
   
   static short computeSeedHash(long seed) {
     return PreambleUtil.computeSeedHash(seed);
   }
   
-  static final int computeLgArrLongsFromCount(final int count) {
-    int upperCount = (int) Math.ceil(count / RESIZE_THRESHOLD);
+  //Used by intersection and AnotB
+  static final int computeMinLgArrLongsFromCount(final int count) {
+    int upperCount = (int) Math.ceil(count / REBUILD_THRESHOLD);
     int arrLongs = max(ceilingPowerOf2(upperCount), 1 << MIN_LG_ARR_LONGS);
     int newLgArrLongs = Integer.numberOfTrailingZeros(arrLongs);
-    return newLgArrLongs;
-  }
-  
-  static final int computeMinLgArrLongsFromCount(final int count, int curLgArrLongs) {
-    int upperCount = (int) Math.ceil(count / RESIZE_THRESHOLD);
-    int arrLongs = max(ceilingPowerOf2(upperCount), 1 << MIN_LG_ARR_LONGS);
-    int newLgArrLongs = Integer.numberOfTrailingZeros(arrLongs);
-    if (newLgArrLongs > curLgArrLongs) throw new IllegalArgumentException(
-        "Input sketch too large for allocated memory.");
     return newLgArrLongs;
   }
   

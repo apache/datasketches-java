@@ -36,7 +36,7 @@ public interface Union {
    * 
    * @param datum The given long datum.
    */
-  public void update(long datum);
+  void update(long datum);
   
   /**
    * Present this union with the given double (or float) datum. 
@@ -47,7 +47,7 @@ public interface Union {
    * 
    * @param datum The given double datum.
    */
-  public void update(double datum);
+  void update(double datum);
   
   /**
    * Present this union with the given String. 
@@ -56,7 +56,7 @@ public interface Union {
    * 
    * @param datum The given String.
    */
-  public void update(String datum);
+  void update(String datum);
   
   /**
    * Present this union with the given byte array. 
@@ -64,7 +64,7 @@ public interface Union {
    * 
    * @param data The given byte array.
    */
-  public void update(byte[] data);
+  void update(byte[] data);
   
   /**
    * Present this union with the given integer array. 
@@ -72,7 +72,7 @@ public interface Union {
    * 
    * @param data The given int array.
    */
-  public void update(int[] data);
+  void update(int[] data);
   
   /**
    * Present this union with the given long array. 
@@ -104,6 +104,13 @@ public interface Union {
    * @return a byte array image of this Union object
    */
   byte[] toByteArray();
+  
+  /**
+   * Rebuilds the hash table to remove dirty values or to reduce the size
+   * to nominal entries.
+   * @return this union
+   */
+  public Union rebuild();
   
   /**
    * Resets this Union. The seed remains intact, otherwise reverts back to its virgin state.

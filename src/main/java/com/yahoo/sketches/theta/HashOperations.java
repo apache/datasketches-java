@@ -61,7 +61,8 @@ final class HashOperations {
    * This is a classical Knuth-style Open Addressing, Double Hash search scheme.
    * 
    * @param hashTable The hash table to search. Must be a power of 2 in size.
-   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>
+   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * lgArrLongs &le; log2(hashTable.length).  
    * @param hash A hash value to search for. Must not be zero.
    * @return Current probe index if found, -1 if not found.
    */
@@ -69,7 +70,7 @@ final class HashOperations {
     if (hash == 0) throw new IllegalArgumentException("Given hash cannot be zero: "+hash);
     int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
     // make odd and independent of curProbe:
-    int stride = (2 * (int) ((hash >> (lgArrLongs)) & STRIDE_MASK)) + 1;
+    int stride = (2 * (int) ((hash >> lgArrLongs) & STRIDE_MASK)) + 1;
     int curProbe = (int) (hash & arrayMask);
     long curArrayHash = hashTable[curProbe];
     // search for duplicate or zero
@@ -89,7 +90,8 @@ final class HashOperations {
    * 
    * @param srcArr the source hash array to be potentially inserted
    * @param hashTable The correctly sized target hash table that must be a power of two. 
-   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>
+   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * lgArrLongs &le; log2(hashTable.length).
    * @param thetaLong must greater than zero 
    * <a href="{@docRoot}/resources/dictionary.html#thetaLong">See Theta Long</a>
    * @return the count of values actually inserted
@@ -115,7 +117,8 @@ final class HashOperations {
    * This is a classical Knuth-style Open Addressing, Double Hash insert scheme.
    * 
    * @param hashTable the hash table to insert into.
-   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>
+   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * lgArrLongs &le; log2(hashTable.length).
    * @param hash hash value that must not be zero and if not a duplicate will be inserted into the
    * array into an empty slot
    * @return True if hash was inserted and count must be incremented.
@@ -123,7 +126,7 @@ final class HashOperations {
   static boolean hashInsert(long[] hashTable, int lgArrLongs, long hash) {
     int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
     // make odd and independent of curProbe:
-    int stride = (2 * (int) ((hash >> (lgArrLongs)) & STRIDE_MASK)) + 1;
+    int stride = (2 * (int) ((hash >> lgArrLongs) & STRIDE_MASK)) + 1;
     int curProbe = (int) (hash & arrayMask);
     long curArrayHash = hashTable[curProbe];
     // search for duplicate or zero
@@ -146,7 +149,8 @@ final class HashOperations {
    * values directly into a Memory.
    * 
    * @param mem The Memory hash table to insert into.
-   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>
+   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * lgArrLongs &le; log2(internal Memory hashTable length).
    * @param hash A hash value that must not be zero and if not a duplicate will be inserted into the
    * array into an empty slot.
    * @param memOffsetBytes offset in the memory where the hash array starts
@@ -157,7 +161,7 @@ final class HashOperations {
     // make stride odd and independent of curProbe:
     int stride = (2 * (int) ((hash >> lgArrLongs) & STRIDE_MASK)) + 1;
     int curProbe = (int) (hash & arrayMask);
-    int curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes; 
+    int curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes;
     long curArrayHash = mem.getLong(curProbeOffsetBytes);
     // search for duplicate or zero
     while ((curArrayHash != hash) && (curArrayHash != 0)) {

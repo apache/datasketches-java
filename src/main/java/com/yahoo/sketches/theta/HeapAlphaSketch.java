@@ -23,6 +23,7 @@ import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountIncremente
 import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountNotIncremented;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedDuplicate;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedOverTheta;
+import static com.yahoo.sketches.Util.*;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.sqrt;
@@ -42,10 +43,7 @@ import com.yahoo.sketches.memory.Memory;
  */
 class HeapAlphaSketch extends HeapUpdateSketch {
   private static final Family MY_FAMILY = Family.ALPHA;
-  private static final int ALPHA_MIN_LG_ARR_LONGS = 5; //The smallest Log2 cache size allowed  => 32.
   private static final int ALPHA_MIN_LG_NOM_LONGS = 9; //The smallest Log2 nom entries allowed => 512.
-  private static final double ALPHA_REBUILD_THRESHOLD = 15.0 / 16.0;
-  private static final double ALPHA_RESIZE_THRESHOLD = .5; //tuned for speed
   private final double alpha_;        // computed from lgNomLongs
   private final long split1_;         // computed from alpha and p
   
@@ -72,7 +70,7 @@ class HeapAlphaSketch extends HeapUpdateSketch {
     super(lgNomLongs, seed, p, rf);
     if (lgNomLongs_ < ALPHA_MIN_LG_NOM_LONGS) throw new IllegalArgumentException(
         "This sketch requires a minimum nominal entries of "+(1 << ALPHA_MIN_LG_NOM_LONGS));
-    lgArrLongs_ = startingSubMultiple(lgNomLongs_+1, rf, ALPHA_MIN_LG_ARR_LONGS);
+    lgArrLongs_ = startingSubMultiple(lgNomLongs_+1, rf, MIN_LG_ARR_LONGS);
     cache_ = new long[1 << lgArrLongs_];
     hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
     
@@ -158,9 +156,11 @@ class HeapAlphaSketch extends HeapUpdateSketch {
   
   @Override
   public int getRetainedEntries(boolean valid) {
-    if (valid && isDirty()) {
-      int curCount = HashOperations.countPart(getCache(), getLgArrLongs(), getThetaLong());
-      return curCount;
+    if (curCount_ > 0) {
+      if (valid && isDirty()) {
+        int curCount = HashOperations.countPart(getCache(), getLgArrLongs(), getThetaLong());
+        return curCount;
+      }
     }
     return curCount_;
   }
@@ -199,7 +199,7 @@ class HeapAlphaSketch extends HeapUpdateSketch {
   
   @Override
   public final void reset() {
-    int lgArrLongs = startingSubMultiple(lgNomLongs_+1, rf_, ALPHA_MIN_LG_ARR_LONGS);
+    int lgArrLongs = startingSubMultiple(lgNomLongs_+1, rf_, MIN_LG_ARR_LONGS);
     if (lgArrLongs == lgArrLongs_) {
       int arrLongs = cache_.length;
       assert (1 << lgArrLongs_) == arrLongs; 
@@ -494,7 +494,7 @@ class HeapAlphaSketch extends HeapUpdateSketch {
    * @return the hash table threshold
    */
   private static final int setHashTableThreshold(final int lgNomLongs, final int lgArrLongs) {
-    double fraction = (lgArrLongs <= lgNomLongs) ? ALPHA_RESIZE_THRESHOLD : ALPHA_REBUILD_THRESHOLD;    
+    double fraction = (lgArrLongs <= lgNomLongs) ? RESIZE_THRESHOLD : REBUILD_THRESHOLD;    
     return (int) Math.floor(fraction * (1 << lgArrLongs));
   }
 

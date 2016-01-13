@@ -7,7 +7,16 @@ package com.yahoo.sketches.theta;
 import com.yahoo.sketches.memory.Memory;
 
 /**
- * The API for AnotB operations
+ * The API for AnotB operations. This is essentially a stateless operation. However to make the API
+ * more consistent with the other set operations the intended use is:
+ * <pre><code>
+ * AnotB aNotB = SetOperationBuilder.buildAnotB();
+ * aNotB.update(SketchA, SketchB); //Called only once.
+ * CompactSketch result = aNotB.getResult();
+ * </code></pre>
+ * 
+ * Calling the update function a second time essentially clears the internal state and updates with
+ * the new pair of sketches.
  * 
  * @author Lee Rhodes
  */

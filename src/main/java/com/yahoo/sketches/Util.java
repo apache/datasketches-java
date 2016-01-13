@@ -11,6 +11,13 @@ package com.yahoo.sketches;
  */
 public final class Util {
   
+  public static final int MIN_LG_ARR_LONGS = 5; //The smallest Log2 cache size allowed; => 32.
+
+  public static final int MIN_LG_NOM_LONGS = 4; //The smallest Log2 nom entries allowed; => 16.
+
+  public static final double REBUILD_THRESHOLD = 15.0 / 16.0;
+
+  public static final double RESIZE_THRESHOLD = 0.5; //tuned for speed
   private Util() {}
   
   /**
@@ -110,12 +117,11 @@ public final class Util {
   }
   
   private static final int IntTopPwrOf2 = 1 << 30; //= #Bits -2
-  private static final int MaxIntShifts = 16; //= #Bits / 2
+  //private static final int MaxIntShifts = 16; //= #Bits / 2
 
   /**
    * Computes the ceiling power of 2 within the range [1, 2^30]. This is the smallest positive power
-   * of 2 that equal to or greater than the given n. This algorithm finds the ceiling in a maximum
-   * of lg(32)=5 iterations. <br>
+   * of 2 that equal to or greater than the given n. <br>
    * For:
    * <ul>
    * <li>n &le; 1: returns 1</li>
@@ -128,27 +134,16 @@ public final class Util {
    * @return the ceiling power of 2.
    */
   public static int ceilingPowerOf2(int n) {
-    if (n <= 1) {
-      return 1;
-    }
-    if (n >= IntTopPwrOf2) {
-      return IntTopPwrOf2;
-    }
-    n-- ;
-    for (int i = 1; i <= MaxIntShifts; i <<= 1) {
-      int m = (n | (n >> i));
-      if (n == m) {
-        break;
-      }
-      n = m;
-    }
-    return ++n;
+    if (n <= 1) { return 1; }
+    if (n >= IntTopPwrOf2) { return IntTopPwrOf2; }
+    int floor = floorPowerOf2(n);
+    if (n == floor) return n;
+    return floor << 1;
   }
 
   /**
    * Computes the floor power of 2 within the range [1, 2^30]. This is the largest positive power of
-   * 2 that equal to or less than the given n. This algorithm finds the floor in a maximum of
-   * lg(32)=5 iterations. <br>
+   * 2 that equal to or less than the given n. <br>
    * For:
    * <ul>
    * <li>n &le; 1: returns 1</li>
@@ -161,14 +156,10 @@ public final class Util {
    * @return the floor power of 2.
    */
   public static int floorPowerOf2(int n) {
-    if (n <= 1) {
+    if (n <= 0) {
       return 1;
     }
-    int f = ceilingPowerOf2(n);
-    if (f <= n) {
-      return f;
-    }
-    return f >> 1;
+    return Integer.highestOneBit(n);
   }
   
   /**

@@ -163,10 +163,10 @@ public class SetOperationBuilder {
       }
       case INTERSECTION: {
         if (bDstMem == null) {
-          setOp = new HeapIntersection(bLgNomLongs, bSeed);
+          setOp = new HeapIntersection(bSeed);
         } 
         else {
-          setOp = new DirectIntersection(bLgNomLongs, bSeed, bDstMem);
+          setOp = new DirectIntersection(bSeed, bDstMem);
         }
         break;
       }
@@ -227,16 +227,6 @@ public class SetOperationBuilder {
   }
 
   /**
-   * Convenience method, returns a configured SetOperation Intersection with the given
-   * <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>.
-   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
-   * @return an Intersection object
-   */
-  public Intersection buildIntersection(int nomEntries) {
-    return (Intersection) build(nomEntries, Family.INTERSECTION);
-  }
-
-  /**
    * Convenience method, returns a configured SetOperation ANotB with
    * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">Default Nominal Entries</a>
    * @return an ANotB object
@@ -245,15 +235,6 @@ public class SetOperationBuilder {
     return (AnotB) build(Family.A_NOT_B);
   }
 
-  /**
-   * Convenience method, returns a configured SetOperation ANotB with the given
-   * <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>.
-   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
-   * @return an ANotB object
-   */
-  public AnotB buildANotB(int nomEntries) {
-    return (AnotB) build(nomEntries, Family.A_NOT_B);
-  }
   
   @Override
   public String toString() {

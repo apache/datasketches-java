@@ -302,11 +302,10 @@ public class HeapAnotBTest {
   
   @Test
   public void checkGetResult() {
-    int k = 1024;
     UpdateSketch skA = Sketches.updateSketchBuilder().build();
     UpdateSketch skB = Sketches.updateSketchBuilder().build();
   
-    AnotB aNotB = Sketches.setOperationBuilder().buildANotB(k);
+    AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
     aNotB.update(skA, skB);
     CompactSketch csk = aNotB.getResult();
     assertEquals(csk.getCurrentBytes(true), 8);
