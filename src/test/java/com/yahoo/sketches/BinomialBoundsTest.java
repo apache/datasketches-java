@@ -2,19 +2,19 @@
  * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
-package com.yahoo.sketches.theta;
+package com.yahoo.sketches;
 
+import static com.yahoo.sketches.BinomialBounds.*;
 import static org.testng.Assert.assertTrue;
-import static com.yahoo.sketches.theta.Bounds.*;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.sketches.theta.Bounds;
+import com.yahoo.sketches.BinomialBounds;
 
 /**
  * @author Kevin Lang
  */
-public class BoundsTest {
+public class BinomialBoundsTest {
 
   public static double[] runTestAux (long max_numSamplesI, int ci, double min_p) {
     long numSamplesI = 0;
@@ -29,8 +29,8 @@ public class BoundsTest {
       p = 1.0;
       
       while (p >= min_p) {
-        lb = Bounds.getLowerBound (numSamplesI, p, ci, false);
-        ub = Bounds.getUpperBound (numSamplesI, p, ci, false);
+        lb = BinomialBounds.getLowerBound (numSamplesI, p, ci, false);
+        ub = BinomialBounds.getUpperBound (numSamplesI, p, ci, false);
         
         // if (numSamplesI == 300 && p > 0.365 && p < 0.367) { ub += 0.01; }  // artificial discrepancy
         
@@ -40,8 +40,8 @@ public class BoundsTest {
         count += 2;
         
         if (p < 1.0) {
-          lb = Bounds.getLowerBound (numSamplesI, 1.0 - p, ci, false);
-          ub = Bounds.getUpperBound (numSamplesI, 1.0 - p, ci, false);
+          lb = BinomialBounds.getLowerBound (numSamplesI, 1.0 - p, ci, false);
+          ub = BinomialBounds.getUpperBound (numSamplesI, 1.0 - p, ci, false);
           sum3 += Math.log (lb + 1.0);
           sum4 += Math.log (ub + 1.0);
           count += 2;

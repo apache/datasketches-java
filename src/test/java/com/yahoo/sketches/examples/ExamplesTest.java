@@ -6,15 +6,15 @@ package com.yahoo.sketches.examples;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.sketches.BinomialBounds;
 import com.yahoo.sketches.theta.AnotB;
-import com.yahoo.sketches.theta.Bounds;
 import com.yahoo.sketches.theta.CompactSketch;
 import com.yahoo.sketches.theta.Intersection;
 import com.yahoo.sketches.theta.Sketches;
 import com.yahoo.sketches.theta.Union;
 import com.yahoo.sketches.theta.UpdateSketch;
 
-public class Examples {
+public class ExamplesTest {
   
   @Test
   public void setOpsExample() {
@@ -57,13 +57,13 @@ public class Examples {
   
   @Test
   public void boundsExample() {
-    println("Bounds Example:");
+    println("BinomialBounds Example:");
     int k = 500;
     double theta = 0.001;
     int stdDev = 2;
-    double ub = Bounds.getUpperBound(k, theta, stdDev, false);
+    double ub = BinomialBounds.getUpperBound(k, theta, stdDev, false);
     double est = k/theta;
-    double lb = Bounds.getLowerBound(k, theta, stdDev, false);
+    double lb = BinomialBounds.getLowerBound(k, theta, stdDev, false);
     println("K="+k+", Theta="+theta+", SD="+stdDev);
     println("UB:  "+ub);
     println("Est: "+est);
@@ -71,12 +71,22 @@ public class Examples {
     println("");
   }
   
-  static void println(String s) { System.out.println(s); }
+  @Test
+  public void printlnTest() {
+    println("PRINTING: "+this.getClass().getName());
+  }
+  
+  /**
+   * @param s value to print 
+   */
+  static void println(String s) {
+    //System.out.println(s); //disable here
+  }
   
   public static void main(String[] args) {
-    Examples ex = new Examples();
-    ex.setOpsExample();
-    ex.boundsExample();
+    ExamplesTest ext = new ExamplesTest();
+    ext.setOpsExample();
+    ext.boundsExample();
 
   }
 }

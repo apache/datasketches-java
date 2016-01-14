@@ -308,26 +308,30 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
         }
         else { //not at full size
           //Can we expand in current mem?
-          int newLgArrLongs = lgArrLongs_ + 1;
-          int reqBytes = getRequiredBytes(newLgArrLongs, preambleLongs_);
+          int dstLgArrLongs = lgArrLongs_ + 1;
+          int reqBytes = getRequiredBytes(dstLgArrLongs, preambleLongs_);
           long curCapBytes = mem_.getCapacity();
           
           if (reqBytes <= curCapBytes) { //yes
-            resizeMe(newLgArrLongs);
+            resizeMe(dstLgArrLongs);
           }
           else { //no, request a bigger space
-            Memory newMem = memReq_.request(reqBytes);
-            if (newMem == null) {
+            Memory dstMem = memReq_.request(reqBytes);
+            if (dstMem == null) {
               throw new IllegalArgumentException("Requested memory cannot be null.");
             }
-            long newCap = newMem.getCapacity();
+            long newCap = dstMem.getCapacity();
             if (newCap < reqBytes) {
-              freeMem(newMem);
+              freeMem(dstMem);
               throw new IllegalArgumentException("Requested memory not granted: "+newCap+" < "+reqBytes);
             }
-            Memory oldMem = mem_;
-            moveAndResizeMe(newMem, newLgArrLongs);
-            memReq_.free(oldMem, newMem);
+            Memory srcMem = mem_; //keep link to me
+            moveAndResizeMe(srcMem, dstMem, dstLgArrLongs);
+            //Reset local variables
+            mem_ = dstMem; //the new me
+            lgArrLongs_ = setLgArrLongs(mem_, dstLgArrLongs);
+            hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
+            memReq_.free(srcMem, dstMem);
           } //end of expand in current mem or not
         } //end of curBytes vs fullBytes
       } //else curCount >= hashTableThreshold
@@ -366,33 +370,50 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     mem_.putLongArray(preBytes, tgtArr, 0, arrLongs); //put data back to mem
   }
   
-  private final void moveAndResizeMe(Memory dstMem, int dstLgArrLongs) {
-    int preBytes = preambleLongs_ << 3;
-    MemoryUtil.copy(mem_, 0, dstMem, 0, preBytes); //move preamble
-    int srcHTLen = 1 << lgArrLongs_;
+  /**
+   * Moves me (the entire sketch) to a new larger Memory location and rebuilds the hash table.
+   * Caller must update necessary local class members afterwards.
+   * @param srcMem the source Memory
+   * @param dstMem the destination Memory
+   * @param dstLgArrLongs the destination hash table target size
+   */
+  private static final void moveAndResizeMe(Memory srcMem, Memory dstMem, int dstLgArrLongs) {
+    //Move Preamble to destination memory
+    int preBytes = (srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0x3F) << 3;
+    MemoryUtil.copy(srcMem, 0, dstMem, 0, preBytes);
+    //Bulk copy source to on-heap buffer
+    int srcHTLen = 1 << srcMem.getByte(LG_ARR_LONGS_BYTE);
     long[] srcHTArr = new long[srcHTLen];
-    mem_.getLongArray(preambleLongs_ << 3, srcHTArr, 0, srcHTLen);
+    srcMem.getLongArray(preBytes, srcHTArr, 0, srcHTLen);
+    //Create destination buffer
     int dstHTLen = 1 << dstLgArrLongs;
     long[] dstHTArr = new long[dstHTLen];
-    HashOperations.hashArrayInsert(srcHTArr, dstHTArr, dstLgArrLongs, thetaLong_);
+    //Rebuild hash table in destination buffer
+    long thetaLong = srcMem.getLong(THETA_LONG);
+    HashOperations.hashArrayInsert(srcHTArr, dstHTArr, dstLgArrLongs, thetaLong);
+    //Bulk copy to destination memory
     dstMem.putLongArray(preBytes, dstHTArr, 0, dstHTLen);
-    
-    mem_ = dstMem;
-    lgArrLongs_ = setLgArrLongs(mem_, dstLgArrLongs);
-    hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
   }
   
-  //Resizes existing hash array into a larger one within a single Memory assuming enough space.
+  /**
+   * Resizes existing hash array into a larger one within a single Memory assuming enough space.
+   * @param newLgArrLongs the LgArrLongs value for the new hash table
+   */
   private final void resizeMe(int newLgArrLongs) {
+    //Preamble stays in place
     int preBytes = preambleLongs_ << 3;
+    //Bulk copy source to on-heap buffer
     int srcHTLen = 1 << lgArrLongs_; //current value
-    long[] srcHTArr = new long[srcHTLen];
+    long[] srcHTArr = new long[srcHTLen]; //on-heap src buffer
     mem_.getLongArray(preBytes, srcHTArr, 0, srcHTLen);
+    //Create destination on-heap buffer
     int dstHTLen = 1 << newLgArrLongs;
-    long[] dstHTArr = new long[dstHTLen];
+    long[] dstHTArr = new long[dstHTLen]; //on-heap dst buffer
+    //Rebuild hash table in destination buffer
     HashOperations.hashArrayInsert(srcHTArr, dstHTArr, newLgArrLongs, thetaLong_);
-    mem_.putLongArray(preBytes, dstHTArr, 0, dstHTLen);
-    
+    //Bulk copy to destination memory
+    mem_.putLongArray(preBytes, dstHTArr, 0, dstHTLen); //put it back, no need to clear
+    //Reset local variables
     lgArrLongs_ = setLgArrLongs(mem_, newLgArrLongs);
     hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
   }

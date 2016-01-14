@@ -16,6 +16,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 
+import com.yahoo.sketches.BinomialBounds;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 
@@ -429,7 +430,7 @@ public abstract class Sketch {
       throw new IllegalArgumentException("numStdDev can only be the values 1, 2 or 3: "+numStdDev);
     }
     double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
-    return Bounds.getLowerBound(curCount, theta, numStdDev, empty);
+    return BinomialBounds.getLowerBound(curCount, theta, numStdDev, empty);
   }
   
   static final double upperBound(int numStdDev, long thetaLong, int curCount, boolean empty) {
@@ -437,7 +438,7 @@ public abstract class Sketch {
       throw new IllegalArgumentException("numStdDev can only be the values 1, 2 or 3:"+numStdDev);
     }
     double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
-    return Bounds.getUpperBound(curCount, theta, numStdDev, empty);
+    return BinomialBounds.getUpperBound(curCount, theta, numStdDev, empty);
   }
   
   /**

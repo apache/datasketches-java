@@ -4,7 +4,7 @@
  * The basic sketching functionality in this package is also 
  * accessible from Pig UDFs found in the <i>sketches-pig</i> repository.
  * </p>
- * <h3>Simple Java Examples</h3>
+ * <h3>Simple Java ExamplesTest</h3>
  * Note: The complete example code can be found in the parallel package under src/test/java and 
  * with the class name "ExamplesTest.java".
 <pre>

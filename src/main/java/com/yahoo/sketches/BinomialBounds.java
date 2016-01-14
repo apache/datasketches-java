@@ -2,9 +2,9 @@
  * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
-package com.yahoo.sketches.theta;
+package com.yahoo.sketches;
 
-import static com.yahoo.sketches.theta.EquivTables.*;
+import static com.yahoo.sketches.EquivTables.*;
 
 /**
  * This class enables the estimation of error bounds given a sample set size, the sampling 
@@ -15,9 +15,9 @@ import static com.yahoo.sketches.theta.EquivTables.*;
  * @author Kevin Lang
  */
 @SuppressWarnings({"cast"})
-public final class Bounds {
+public final class BinomialBounds {
   
-  private Bounds() {}
+  private BinomialBounds() {}
   
   private static double[] deltaOfNumSDev = 
   {
@@ -259,4 +259,4 @@ public final class Bounds {
     assert(truth);
   }
   
-} // end of class "Bounds"
+} // end of class "BinomialBounds"
