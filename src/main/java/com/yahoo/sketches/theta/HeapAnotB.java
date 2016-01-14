@@ -5,8 +5,8 @@
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.theta.CompactSketch.compactCache;
-import static com.yahoo.sketches.theta.HashOperations.hashArrayInsert;
-import static com.yahoo.sketches.theta.HashOperations.hashSearch;
+import static com.yahoo.sketches.HashOperations.hashArrayInsert;
+import static com.yahoo.sketches.HashOperations.hashSearch;
 import static com.yahoo.sketches.theta.PreambleUtil.checkSeedHashes;
 import static java.lang.Math.min;
 

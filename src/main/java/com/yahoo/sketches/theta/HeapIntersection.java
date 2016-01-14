@@ -6,8 +6,6 @@ package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.Family.objectToFamily;
 import static com.yahoo.sketches.theta.CompactSketch.compactCachePart;
-import static com.yahoo.sketches.theta.HashOperations.hashInsert;
-import static com.yahoo.sketches.theta.HashOperations.hashSearch;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
@@ -28,6 +26,7 @@ import java.util.Arrays;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
+import com.yahoo.sketches.HashOperations;
 
 /**
  * @author Lee Rhodes
@@ -239,7 +238,7 @@ class HeapIntersection extends SetOperation implements Intersection{
         if (hashIn >= thetaLong_) {
           break; //early stop assumes that hashes in input sketch are ordered!
         }
-        int foundIdx = hashSearch(hashTable_, lgArrLongs_, hashIn);
+        int foundIdx = HashOperations.hashSearch(hashTable_, lgArrLongs_, hashIn);
         if (foundIdx == -1) continue;
         matchSet[matchSetCount++] = hashIn;
       }
@@ -250,7 +249,7 @@ class HeapIntersection extends SetOperation implements Intersection{
       for (int i = 0; i < arrLongsIn; i++ ) {
         long hashIn = cacheIn[i];
         if ((hashIn <= 0L) || (hashIn >= thetaLong_)) continue;
-        int foundIdx = hashSearch(hashTable_, lgArrLongs_, hashIn);
+        int foundIdx = HashOperations.hashSearch(hashTable_, lgArrLongs_, hashIn);
         if (foundIdx == -1) continue;
         matchSet[matchSetCount++] = hashIn;
       }
@@ -264,13 +263,14 @@ class HeapIntersection extends SetOperation implements Intersection{
   }
   
   //Assumes HT exists and is large enough
-  private void moveDataToHT(long[] arr, int count) { //could use hashArrayInsert
+  private void moveDataToHT(long[] arr, int count) {
     int arrLongsIn = arr.length;
     int tmpCnt = 0;
     for (int i = 0; i < arrLongsIn; i++ ) {
       long hashIn = arr[i];
       if (HashOperations.continueCondition(thetaLong_, hashIn)) continue;
-      tmpCnt += hashInsert(hashTable_, lgArrLongs_, hashIn)? 1 : 0;
+      // opportunity to use faster unconditional insert
+      tmpCnt += HashOperations.hashSearchOrInsert(hashTable_, lgArrLongs_, hashIn) < 0 ? 1 : 0;
     }
     assert (tmpCnt == count);
   }

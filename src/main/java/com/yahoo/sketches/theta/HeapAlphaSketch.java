@@ -4,7 +4,7 @@
  */
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.theta.HashOperations.STRIDE_MASK;
+import static com.yahoo.sketches.HashOperations.STRIDE_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
@@ -30,6 +30,7 @@ import static java.lang.Math.sqrt;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
+import com.yahoo.sketches.HashOperations;
 
 /**
  * This sketch uses the 
@@ -264,7 +265,7 @@ class HeapAlphaSketch extends HeapUpdateSketch {
     } 
     
     //NOT dirty 
-    if ( !HashOperations.hashInsert(cache_, lgArrLongs_, hash)) {//FALSE
+    if (HashOperations.hashSearchOrInsert(cache_, lgArrLongs_, hash) >= 0) {
       return UpdateReturnState.RejectedDuplicate;
     }
     //true: simple insertion occurred, must increment
