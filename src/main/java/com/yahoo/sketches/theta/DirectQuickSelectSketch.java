@@ -313,7 +313,10 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
           long curCapBytes = mem_.getCapacity();
           
           if (reqBytes <= curCapBytes) { //yes
-            resizeMe(dstLgArrLongs);
+            resizeMe(mem_, dstLgArrLongs);
+            //Reset local variables
+            lgArrLongs_ = setLgArrLongs(mem_, dstLgArrLongs);
+            hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
           }
           else { //no, request a bigger space
             Memory dstMem = memReq_.request(reqBytes);
@@ -373,6 +376,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
   /**
    * Moves me (the entire sketch) to a new larger Memory location and rebuilds the hash table.
    * Caller must update necessary local class members afterwards.
+   * 
    * @param srcMem the source Memory
    * @param dstMem the destination Memory
    * @param dstLgArrLongs the destination hash table target size
@@ -397,25 +401,26 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
   
   /**
    * Resizes existing hash array into a larger one within a single Memory assuming enough space.
-   * @param newLgArrLongs the LgArrLongs value for the new hash table
+   * Caller must update necessary local class members afterwards.
+   * 
+   * @param mem the memory
+   * @param dstLgArrLongs the LgArrLongs value for the new hash table
    */
-  private final void resizeMe(int newLgArrLongs) {
+  private static final void resizeMe(Memory mem, int dstLgArrLongs) {
     //Preamble stays in place
-    int preBytes = preambleLongs_ << 3;
+    int preBytes = (mem.getByte(PREAMBLE_LONGS_BYTE) & 0x3F) << 3;
     //Bulk copy source to on-heap buffer
-    int srcHTLen = 1 << lgArrLongs_; //current value
+    int srcHTLen = 1 << mem.getByte(LG_ARR_LONGS_BYTE); //current value
     long[] srcHTArr = new long[srcHTLen]; //on-heap src buffer
-    mem_.getLongArray(preBytes, srcHTArr, 0, srcHTLen);
+    mem.getLongArray(preBytes, srcHTArr, 0, srcHTLen);
     //Create destination on-heap buffer
-    int dstHTLen = 1 << newLgArrLongs;
+    int dstHTLen = 1 << dstLgArrLongs;
     long[] dstHTArr = new long[dstHTLen]; //on-heap dst buffer
     //Rebuild hash table in destination buffer
-    HashOperations.hashArrayInsert(srcHTArr, dstHTArr, newLgArrLongs, thetaLong_);
+    long thetaLong = mem.getLong(THETA_LONG);
+    HashOperations.hashArrayInsert(srcHTArr, dstHTArr, dstLgArrLongs, thetaLong);
     //Bulk copy to destination memory
-    mem_.putLongArray(preBytes, dstHTArr, 0, dstHTLen); //put it back, no need to clear
-    //Reset local variables
-    lgArrLongs_ = setLgArrLongs(mem_, newLgArrLongs);
-    hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
+    mem.putLongArray(preBytes, dstHTArr, 0, dstHTLen); //put it back, no need to clear
   }
   
   //special set methods
