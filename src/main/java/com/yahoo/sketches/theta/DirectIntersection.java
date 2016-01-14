@@ -7,8 +7,6 @@ package com.yahoo.sketches.theta;
 import static com.yahoo.sketches.Family.objectToFamily;
 import static com.yahoo.sketches.Family.stringToFamily;
 import static com.yahoo.sketches.theta.CompactSketch.compactCachePart;
-import static com.yahoo.sketches.theta.HashOperations.hashInsert;
-import static com.yahoo.sketches.theta.HashOperations.hashSearch;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
@@ -29,6 +27,7 @@ import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryUtil;
 import com.yahoo.sketches.memory.NativeMemory;
+import com.yahoo.sketches.HashOperations;
 
 /**
  * @author Lee Rhodes
@@ -282,7 +281,7 @@ class DirectIntersection extends SetOperation implements Intersection {
         if (hashIn >= thetaLong_) {
           break; //early stop assumes that hashes in input sketch are ordered!
         }
-        int foundIdx = hashSearch(hashTable, lgArrLongs_, hashIn);
+        int foundIdx = HashOperations.hashSearch(hashTable, lgArrLongs_, hashIn);
         if (foundIdx == -1) continue;
         matchSet[matchSetCount++] = hashIn;
       }
@@ -293,7 +292,7 @@ class DirectIntersection extends SetOperation implements Intersection {
       for (int i = 0; i < arrLongsIn; i++ ) {
         long hashIn = cacheIn[i];
         if ((hashIn <= 0L) || (hashIn >= thetaLong_)) continue;
-        int foundIdx = hashSearch(hashTable, lgArrLongs_, hashIn);
+        int foundIdx = HashOperations.hashSearch(hashTable, lgArrLongs_, hashIn);
         if (foundIdx == -1) continue;
         matchSet[matchSetCount++] = hashIn;
       }
@@ -306,14 +305,15 @@ class DirectIntersection extends SetOperation implements Intersection {
     moveDataToHT(matchSet, matchSetCount);
   }
   
-  private void moveDataToHT(long[] arr, int count) { //could use hashArrayInsert
+  private void moveDataToHT(long[] arr, int count) {
     int arrLongsIn = arr.length;
     int tmpCnt = 0;
     int preBytes = CONST_PREAMBLE_LONGS << 3;
     for (int i = 0; i < arrLongsIn; i++ ) {
       long hashIn = arr[i];
       if (HashOperations.continueCondition(thetaLong_, hashIn)) continue;
-      tmpCnt += hashInsert(mem_, lgArrLongs_, hashIn, preBytes)? 1 : 0;
+      // opportunity to use faster unconditional insert
+      tmpCnt += HashOperations.hashSearchOrInsert(mem_, lgArrLongs_, hashIn, preBytes) < 0 ? 1 : 0;
     }
     if (tmpCnt != count) {
       throw new IllegalArgumentException("Count Check Exception: got: "+tmpCnt+", expected: "+count);
