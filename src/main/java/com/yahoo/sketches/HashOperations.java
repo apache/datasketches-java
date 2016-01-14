@@ -66,7 +66,8 @@ public final class HashOperations {
    * This is a classical Knuth-style Open Addressing, Double Hash search scheme.
    * 
    * @param hashTable The hash table to search. Must be a power of 2 in size.
-   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>
+   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * lgArrLongs &le; log2(hashTable.length).
    * @param hash A hash value to search for. Must not be zero.
    * @return Current probe index if found, -1 if not found.
    */
@@ -91,7 +92,8 @@ public final class HashOperations {
    * 
    * @param srcArr the source hash array to be potentially inserted
    * @param hashTable The correctly sized target hash table that must be a power of two. 
-   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>
+   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * lgArrLongs &le; log2(hashTable.length).
    * @param thetaLong must greater than zero 
    * <a href="{@docRoot}/resources/dictionary.html#thetaLong">See Theta Long</a>
    * @return the count of values actually inserted
@@ -117,7 +119,8 @@ public final class HashOperations {
    * This is a classical Knuth-style Open Addressing, Double Hash insert scheme.
    * 
    * @param hashTable the hash table to insert into.
-   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>
+   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * lgArrLongs &le; log2(hashTable.length).
    * @param hash hash value that must not be zero and if not a duplicate will be inserted into the
    * array into an empty slot
    * @return index if found, -(index + 1) if inserted
@@ -143,7 +146,8 @@ public final class HashOperations {
    * Useful for rebuilding tables to avoid unnecessary comparisons.
    *
    * @param hashTable the hash table to insert into.
-   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>
+   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * lgArrLongs &le; log2(hashTable.length).
    * @param hash value that must not be zero and will be inserted into the array into an empty slot.
    * @return index of insertion.
    */
@@ -163,7 +167,8 @@ public final class HashOperations {
    * values directly into a Memory.
    * 
    * @param mem The Memory hash table to insert into.
-   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>
+   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * lgArrLongs &le; log2(hashTable.length).
    * @param hash A hash value that must not be zero and if not a duplicate will be inserted into the
    * array into an empty slot.
    * @param memOffsetBytes offset in the memory where the hash array starts
@@ -195,7 +200,8 @@ public final class HashOperations {
    * Useful for rebuilding tables to avoid unnecessary comparisons.
    *
    * @param mem The Memory hash table to insert into.
-   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>
+   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * lgArrLongs &le; log2(hashTable.length).
    * @param hash value that must not be zero and will be inserted into the array into an empty slot.
    * @param memOffsetBytes offset in the memory where the hash array starts
    * @return index of insertion.

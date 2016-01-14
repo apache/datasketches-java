@@ -5,6 +5,7 @@
 package com.yahoo.sketches.theta;
 
 import static org.testng.Assert.assertTrue;
+import static com.yahoo.sketches.theta.Bounds.*;
 
 import org.testng.annotations.Test;
 
@@ -28,8 +29,8 @@ public class BoundsTest {
       p = 1.0;
       
       while (p >= min_p) {
-        lb = Bounds.approxLBforUsers (numSamplesI, p, ci, false);
-        ub = Bounds.approxUBforUsers (numSamplesI, p, ci, false);
+        lb = Bounds.getUpperBound (numSamplesI, p, ci, false);
+        ub = Bounds.getLowerBound (numSamplesI, p, ci, false);
         
         // if (numSamplesI == 300 && p > 0.365 && p < 0.367) { ub += 0.01; }  // artificial discrepancy
         
@@ -39,8 +40,8 @@ public class BoundsTest {
         count += 2;
         
         if (p < 1.0) {
-          lb = Bounds.approxLBforUsers (numSamplesI, 1.0 - p, ci, false);
-          ub = Bounds.approxUBforUsers (numSamplesI, 1.0 - p, ci, false);
+          lb = Bounds.getUpperBound (numSamplesI, 1.0 - p, ci, false);
+          ub = Bounds.getLowerBound (numSamplesI, 1.0 - p, ci, false);
           sum3 += Math.log (lb + 1.0);
           sum4 += Math.log (ub + 1.0);
           count += 2;
@@ -96,6 +97,20 @@ public class BoundsTest {
     {4.674205938540214e+07, 4.731333757486791e+07, 2.146902141966406e+07, 2.154916650733873e+07, 12834414},
     {4.659896614422579e+07, 4.744404182094614e+07, 2.145525391547799e+07, 2.156815612325058e+07, 12834414}
   };
+  
+  @Test
+  public void checkCheckArgs() {
+    try {
+      checkArgs(-1L, 1.0, 1);
+      checkArgs(10L, 0.0, 1);
+      checkArgs(10L, 1.01, 1);
+      checkArgs(10L, 1.0, 3);
+      checkArgs(10L, 1.0, 0);
+      checkArgs(10L, 1.0, 4);
+    } catch (IllegalArgumentException e) {
+      //pass
+    }
+  }
   
   @Test
   public void printlnTest() {

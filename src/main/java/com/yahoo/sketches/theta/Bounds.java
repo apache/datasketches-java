@@ -4,12 +4,18 @@
  */
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.theta.EquivTables.*;
 
 /**
+ * This class enables the estimation of error bounds given a sample set size, the sampling 
+ * probability theta, the number of standard deviations and a simple noDataSeen flag.  This can 
+ * be used to estimate error bounds for fixed threshold sampling as well as the error bounds
+ * calculations for sketches.
+ * 
  * @author Kevin Lang
  */
 @SuppressWarnings({"cast"})
-final class Bounds {
+public final class Bounds {
   
   private Bounds() {}
   
@@ -106,10 +112,6 @@ final class Bounds {
   // The following computes an approximation to the lower bound of 
   // a Frequentist confidence interval based on the tails of the Binomial distribtuion.
   private static double computeApproxBinoLB(long numSamplesI, double theta, int numSDev) {
-    assertTrue (numSDev >= 1 && numSDev <= 3);
-    assertTrue (numSamplesI >= 0);
-    assertTrue (0.0 < theta && theta <= 1.0);
-
     if (theta == 1.0) {
       return ((double) numSamplesI);
     }
@@ -141,7 +143,7 @@ final class Bounds {
       int index;
       double rawLB;
       index = 3 * ((int) numSamplesI) + (numSDev - 1);
-      rawLB = contClassicLB ((double) numSamplesI, theta, EquivTables.lbEquivTable[index]);
+      rawLB = contClassicLB ((double) numSamplesI, theta, lbEquivTable[index]);
       return (rawLB - 0.5); // fake round down 
     }
 
@@ -156,10 +158,6 @@ final class Bounds {
   // The following computes an approximation to the upper bound of
   // a Frequentist confidence interval based on the tails of the Binomial distribution.
   private static double computeApproxBinoUB(long numSamplesI, double theta, int numSDev) {
-    assertTrue (numSDev >= 1 && numSDev <= 3);
-    assertTrue (numSamplesI >= 0);
-    assertTrue (0.0 < theta && theta <= 1.0);
-
     if (theta == 1.0) {
       return ((double) numSamplesI);
     }
@@ -187,7 +185,7 @@ final class Bounds {
       int index; 
       double rawUB;
       index = 3 * ((int) numSamplesI) + (numSDev - 1);
-      rawUB = contClassicUB ((double) numSamplesI, theta, EquivTables.ubEquivTable[index]);
+      rawUB = contClassicUB ((double) numSamplesI, theta, ubEquivTable[index]);
       return (rawUB + 0.5); // fake round up 
     }
 
@@ -201,22 +199,68 @@ final class Bounds {
 
   // The following two procedures enforce some extra rules that help
   // to prevent the return of bounds that might be confusing to users.
-  static double approxLBforUsers(
-      long numSamplesI, double theta, int numSDev, boolean noDataSeen) {
+  /**
+   * Returns the approximate upper bound value
+   * @param numSamples the number of samples in the sample set
+   * @param theta the sampling probability
+   * @param numSDev the number of "standard deviations" from the mean for the tail bounds.  This
+   * must be an integer value of 1, 2 or 3.
+   * @param noDataSeen this is normally false. However, in the case where you have zero samples and
+   * a a theta &lt; 1.0, this flag enables the distinction between a virgin case when no actual 
+   * data has been seen and the case where the estimate may be zero but an upper error bound may 
+   * still exist.
+   * @return the approximate upper bound value
+   */
+  public static double getUpperBound(long numSamples, double theta, int numSDev, boolean noDataSeen) {
+    //in Kevin's code numSamples was called numSamplesI
     if (noDataSeen) return 0.0;
-    double lb = computeApproxBinoLB (numSamplesI, theta, numSDev);
-    double numSamplesF = (double) numSamplesI;
+    checkArgs(numSamples, theta, numSDev);
+    if ((numSDev | (numSDev -1) | (3-numSDev) | numSamples) < 0) {
+      throw new IllegalArgumentException(
+          "numSDev must only be 1,2, or 3 and numSamples must >= 0: numSDev="
+              +numSDev+", numSamples="+numSamples); 
+    }
+    if ((theta < 0.0) || (theta > 1.0)) {
+      throw new IllegalArgumentException("0.0 < theta <= 1.0: "+ theta);
+    }
+    double lb = computeApproxBinoLB (numSamples, theta, numSDev);
+    double numSamplesF = (double) numSamples;
     double est = numSamplesF / theta;
     return (Math.min (est, Math.max (numSamplesF, lb)));
   }
   
-  static double approxUBforUsers(
-      long numSamplesI, double theta, int numSDev, boolean noDataSeen) {
+  /**
+   * Returns the approximate lower bound value
+   * @param numSamples the number of samples in the sample set
+   * @param theta the sampling probability
+   * @param numSDev the number of "standard deviations" from the mean used to compute thetail 
+   * bounds. This must be an integer value of 1, 2 or 3.
+   * @param noDataSeen this is normally false. However, in the case where you have zero samples and
+   * a a theta &lt; 1.0, this flag enables the distinction between a virgin case when no actual 
+   * data has been seen and the case where the estimate may be zero but an upper error bound may 
+   * still exist.
+   * @return the approximate upper bound value
+   */
+  public static double getLowerBound(long numSamples, double theta, int numSDev, boolean noDataSeen) {
+    //in Kevin's code numSamples was called numSamplesI
     if (noDataSeen) return 0.0;
-    double ub = computeApproxBinoUB (numSamplesI, theta, numSDev);
-    double numSamplesF = (double) numSamplesI;
+    checkArgs(numSamples, theta, numSDev);
+    double ub = computeApproxBinoUB (numSamples, theta, numSDev);
+    double numSamplesF = (double) numSamples;
     double est = numSamplesF / theta;
     return (Math.max (est, ub));
+  }
+  
+  //exposed only for test
+  static final void checkArgs(long numSamples, double theta, int numSDev) {
+    if ((numSDev | (numSDev -1) | (3-numSDev) | numSamples) < 0) {
+      throw new IllegalArgumentException(
+          "numSDev must only be 1,2, or 3 and numSamples must >= 0: numSDev="
+              +numSDev+", numSamples="+numSamples); 
+    }
+    if ((theta < 0.0) || (theta > 1.0)) {
+      throw new IllegalArgumentException("0.0 < theta <= 1.0: "+ theta);
+    }
   }
   
   private static void assertTrue(final boolean truth) {
