@@ -29,8 +29,8 @@ public class BoundsTest {
       p = 1.0;
       
       while (p >= min_p) {
-        lb = Bounds.getUpperBound (numSamplesI, p, ci, false);
-        ub = Bounds.getLowerBound (numSamplesI, p, ci, false);
+        lb = Bounds.getLowerBound (numSamplesI, p, ci, false);
+        ub = Bounds.getUpperBound (numSamplesI, p, ci, false);
         
         // if (numSamplesI == 300 && p > 0.365 && p < 0.367) { ub += 0.01; }  // artificial discrepancy
         
@@ -40,8 +40,8 @@ public class BoundsTest {
         count += 2;
         
         if (p < 1.0) {
-          lb = Bounds.getUpperBound (numSamplesI, 1.0 - p, ci, false);
-          ub = Bounds.getLowerBound (numSamplesI, 1.0 - p, ci, false);
+          lb = Bounds.getLowerBound (numSamplesI, 1.0 - p, ci, false);
+          ub = Bounds.getUpperBound (numSamplesI, 1.0 - p, ci, false);
           sum3 += Math.log (lb + 1.0);
           sum4 += Math.log (ub + 1.0);
           count += 2;

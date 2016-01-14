@@ -211,18 +211,10 @@ public final class Bounds {
    * still exist.
    * @return the approximate upper bound value
    */
-  public static double getUpperBound(long numSamples, double theta, int numSDev, boolean noDataSeen) {
+  public static double getLowerBound(long numSamples, double theta, int numSDev, boolean noDataSeen) {
     //in Kevin's code numSamples was called numSamplesI
     if (noDataSeen) return 0.0;
     checkArgs(numSamples, theta, numSDev);
-    if ((numSDev | (numSDev -1) | (3-numSDev) | numSamples) < 0) {
-      throw new IllegalArgumentException(
-          "numSDev must only be 1,2, or 3 and numSamples must >= 0: numSDev="
-              +numSDev+", numSamples="+numSamples); 
-    }
-    if ((theta < 0.0) || (theta > 1.0)) {
-      throw new IllegalArgumentException("0.0 < theta <= 1.0: "+ theta);
-    }
     double lb = computeApproxBinoLB (numSamples, theta, numSDev);
     double numSamplesF = (double) numSamples;
     double est = numSamplesF / theta;
@@ -241,7 +233,7 @@ public final class Bounds {
    * still exist.
    * @return the approximate upper bound value
    */
-  public static double getLowerBound(long numSamples, double theta, int numSDev, boolean noDataSeen) {
+  public static double getUpperBound(long numSamples, double theta, int numSDev, boolean noDataSeen) {
     //in Kevin's code numSamples was called numSamplesI
     if (noDataSeen) return 0.0;
     checkArgs(numSamples, theta, numSDev);

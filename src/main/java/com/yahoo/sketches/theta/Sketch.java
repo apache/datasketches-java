@@ -429,7 +429,7 @@ public abstract class Sketch {
       throw new IllegalArgumentException("numStdDev can only be the values 1, 2 or 3: "+numStdDev);
     }
     double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
-    return Bounds.getUpperBound(curCount, theta, numStdDev, empty);
+    return Bounds.getLowerBound(curCount, theta, numStdDev, empty);
   }
   
   static final double upperBound(int numStdDev, long thetaLong, int curCount, boolean empty) {
@@ -437,7 +437,7 @@ public abstract class Sketch {
       throw new IllegalArgumentException("numStdDev can only be the values 1, 2 or 3:"+numStdDev);
     }
     double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
-    return Bounds.getLowerBound(curCount, theta, numStdDev, empty);
+    return Bounds.getUpperBound(curCount, theta, numStdDev, empty);
   }
   
   /**
