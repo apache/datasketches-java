@@ -14,7 +14,7 @@ import com.yahoo.sketches.memory.Memory;
  */
 public final class HashOperations {
   private static final int STRIDE_HASH_BITS = 7; 
-  static final int STRIDE_MASK = (1 << STRIDE_HASH_BITS) - 1;
+  public static final int STRIDE_MASK = (1 << STRIDE_HASH_BITS) - 1;
 
   private HashOperations() {}
 
@@ -87,7 +87,8 @@ public final class HashOperations {
    * Inserts the given long array into the given hash table array of the target size,
    * removes any negative input values, ignores duplicates and counts the values inserted. 
    * The given hash table may have values, but they must have been inserted by this method or one 
-   * of the other OADH insert methods in this class and they may not be dirty.
+   * of the other OADH insert methods in this class and they may not be dirty. 
+   * This method performs additional checks against potentially invalid hash values or theta values.
    * 
    * @param srcArr the source hash array to be potentially inserted
    * @param hashTable The correctly sized target hash table that must be a power of two. 

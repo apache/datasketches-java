@@ -21,6 +21,7 @@ import static java.lang.Math.min;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
+import com.yahoo.sketches.HashOperations;
 
 /**
  * @author Lee Rhodes

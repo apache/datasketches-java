@@ -21,11 +21,7 @@ import com.yahoo.sketches.memory.AllocMemory;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRequest;
 import com.yahoo.sketches.memory.NativeMemory;
-import com.yahoo.sketches.theta.CompactSketch;
-import com.yahoo.sketches.theta.DirectQuickSelectSketch;
-import com.yahoo.sketches.theta.HashOperations;
-import com.yahoo.sketches.theta.Sketch;
-import com.yahoo.sketches.theta.UpdateSketch;
+import com.yahoo.sketches.HashOperations;
 
 /** 
  * @author Lee Rhodes

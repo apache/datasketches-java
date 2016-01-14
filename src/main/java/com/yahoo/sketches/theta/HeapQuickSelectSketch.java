@@ -27,6 +27,7 @@ import static java.lang.Math.min;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
+import com.yahoo.sketches.HashOperations;
 
 /**
  * @author Lee Rhodes
@@ -217,8 +218,8 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
     }
     
     //The duplicate/inserted tests
-    boolean inserted = HashOperations.hashInsert(cache_, lgArrLongs_, hash);
-    if (inserted) {
+    int index = HashOperations.hashSearchOrInsert(cache_, lgArrLongs_, hash);
+    if (index < 0) {
       curCount_++;
       if (curCount_ > hashTableThreshold_) {
         //must rebuild or resize

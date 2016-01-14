@@ -5,7 +5,6 @@
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.QuickSelect.selectExcludingZeros;
-import static com.yahoo.sketches.theta.HashOperations.hashInsert;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
@@ -31,6 +30,7 @@ import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRequest;
 import com.yahoo.sketches.memory.MemoryUtil;
 import com.yahoo.sketches.memory.NativeMemory;
+import com.yahoo.sketches.HashOperations;
 
 /**
  * @author Lee Rhodes
@@ -287,8 +287,8 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     
     int lgArrLongs = getLgArrLongs();
     int preBytes = preambleLongs_ << 3;
-    boolean inserted = hashInsert(mem_, lgArrLongs, hash, preBytes);
-    if (inserted) {
+    int index = HashOperations.hashSearchOrInsert(mem_, lgArrLongs, hash, preBytes);
+    if (index < 0) {
       mem_.putInt(RETAINED_ENTRIES_INT, ++curCount_);
       
       if (curCount_ > hashTableThreshold_) {
