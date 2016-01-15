@@ -603,6 +603,7 @@ public class DirectQuickSelectSketchTest {
   }
   
   //////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////
   //this one allocates what was asked from NativeMemory
   private class MemoryManager implements MemoryRequest {
     
@@ -672,6 +673,7 @@ public class DirectQuickSelectSketchTest {
   }
   
   //////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////
   //this one allocates twice what was asked
   private class MemoryManager2 implements MemoryRequest {
     
@@ -699,8 +701,8 @@ public class DirectQuickSelectSketchTest {
 
     @Override
     public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
-      // TODO Auto-generated method stub
-      return null;
+      throw new IllegalStateException("SHOULD NOT BE HERE");
+  
     }
   }
 //////////////////////////////////////////////////////
@@ -709,7 +711,7 @@ public class DirectQuickSelectSketchTest {
     int k = 4096; 
     int u = 2*k;
     
-    MemoryManager2 memMgr = new MemoryManager2();
+    MemoryManager2 memMgr = new MemoryManager2(); //allocates 2x what was requested
     
     Memory mem1 = new AllocMemory(k / 8, memMgr); //allocate 1/8 size off-heap
 
@@ -725,6 +727,7 @@ public class DirectQuickSelectSketchTest {
     nMem.freeMemory();
   }
   
+  //////////////////////////////////////////////////////
   //////////////////////////////////////////////////////
   private class BadMemoryManager implements MemoryRequest {
     
@@ -752,8 +755,7 @@ public class DirectQuickSelectSketchTest {
 
     @Override
     public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
-      // TODO Auto-generated method stub
-      return null;
+      throw new IllegalStateException("SHOULD NOT BE HERE");
     }
   }
   //////////////////////////////////////////////////////
@@ -782,6 +784,7 @@ public class DirectQuickSelectSketchTest {
   }
   
   //////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////
   private class BadMemoryManager2 implements MemoryRequest {
     
     @Override
@@ -807,8 +810,7 @@ public class DirectQuickSelectSketchTest {
 
     @Override
     public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
-      // TODO Auto-generated method stub
-      return null;
+      throw new IllegalStateException("SHOULD NOT BE HERE");
     }
   }
   //////////////////////////////////////////////////////
@@ -893,4 +895,5 @@ public class DirectQuickSelectSketchTest {
     int bytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs()<< 3);
     return new NativeMemory(new byte[bytes]);
   }
+  
 }

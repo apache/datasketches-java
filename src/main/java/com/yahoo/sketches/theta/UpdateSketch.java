@@ -21,17 +21,22 @@ public abstract class UpdateSketch extends Sketch {
   
   UpdateSketch() {}
   
-  //Sketch
+  //Sketch interface
   
   @Override
   public abstract boolean isEmpty();
+  
+  @Override
+  public boolean isCompact() {
+    return false;
+  }
   
   @Override
   public boolean isOrdered() {
     return false;
   }
   
-  //UpdateSketch
+  //UpdateSketch interface
   
   /**
    * Returns a new builder

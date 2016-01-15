@@ -175,8 +175,6 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
     return preambleLongs_;
   }
   
-  //Set Arguments 
-  
   @Override
   long[] getCache() {
     return cache_;
@@ -191,8 +189,6 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
   boolean isDirty() {
     return dirty_;
   }
-  
-  //Update Internals
   
   @Override
   int getLgArrLongs() {
@@ -236,8 +232,6 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
     } 
     return RejectedDuplicate;
   }
-  
-  //Private
   
   //Must resize. Changes lgArrLongs_ only. theta doesn't change, count doesn't change.
   // Used by hashUpdate()

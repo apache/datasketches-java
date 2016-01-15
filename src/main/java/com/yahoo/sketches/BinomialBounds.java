@@ -14,6 +14,8 @@ import static com.yahoo.sketches.EquivTables.*;
  * 
  * @author Kevin Lang
  */
+// BTW, the suffixes "NStar", "NPrimeB", and "NPrimeF" correspond to variables in the formal
+// writeup of this scheme.
 @SuppressWarnings({"cast"})
 public final class BinomialBounds {
   
@@ -45,7 +47,7 @@ public final class BinomialBounds {
     return (center + d);
   }
 
-  // This is a special purpose calculator for n_star, using a computational
+  // This is a special purpose calculator for NStar, using a computational
   // strategy inspired by its Bayesian definition. It is only appropriate 
   // for a very limited set of inputs. However, the procedure computeApproxBinoLB ()
   // below does in fact only call it for suitably limited inputs.
@@ -54,9 +56,7 @@ public final class BinomialBounds {
   // quantities will exceed the dynamic range of doubles. Second, even if that
   // problem were fixed, the running time of this procedure is essentially linear
   // in est = (numSamples / p), and that can be Very, Very Big.
-      
-  // BTW, these names "n_star", "n_prime_b", and "n_prime_f" correspond to symbols
-  // that are defined and discussed in the technical writeup of this scheme.
+
   private static long specialNStar(long numSamplesI, double p, double delta) {
     double q, tot, numSamplesF, curTerm;
     long m;
@@ -200,7 +200,7 @@ public final class BinomialBounds {
   // The following two procedures enforce some extra rules that help
   // to prevent the return of bounds that might be confusing to users.
   /**
-   * Returns the approximate upper bound value
+   * Returns the approximate lower bound value
    * @param numSamples the number of samples in the sample set
    * @param theta the sampling probability
    * @param numSDev the number of "standard deviations" from the mean for the tail bounds.  This
@@ -222,7 +222,7 @@ public final class BinomialBounds {
   }
   
   /**
-   * Returns the approximate lower bound value
+   * Returns the approximate upper bound value
    * @param numSamples the number of samples in the sample set
    * @param theta the sampling probability
    * @param numSDev the number of "standard deviations" from the mean used to compute thetail 

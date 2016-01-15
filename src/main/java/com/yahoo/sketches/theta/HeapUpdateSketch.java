@@ -40,7 +40,41 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   //Sketch
   
   @Override
-  public abstract byte[] toByteArray();
+  public boolean isDirect() {
+    return false; 
+  }
+  
+  //restricted methods
+  
+  @Override
+  int getLgNomLongs() {
+    return lgNomLongs_;
+  }
+
+  @Override
+  int getLgResizeFactor() {
+    return rf_.lg();
+  }
+
+  @Override
+  long getSeed() {
+    return seed_;
+  }
+  
+  @Override
+  float getP() {
+    return p_;
+  }
+
+  @Override
+  short getSeedHash() {
+    return computeSeedHash(getSeed());
+  }
+
+  @Override
+  Memory getMemory() {
+    return null;
+  }
   
   byte[] toByteArray(int preLongs, byte family) {
     if (isDirty()) rebuild();
@@ -74,53 +108,4 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     return byteArrOut;
   }
   
-  //restricted methods
-  
-  @Override
-  public boolean isCompact() {
-    return false;
-  }
-  
-  @Override
-  public boolean isDirect() {
-    return false; 
-  }
-  
-  @Override
-  abstract int getPreambleLongs();
-  
-  //Update Internals 
-  
-  @Override
-  int getLgNomLongs() {
-    return lgNomLongs_;
-  }
-
-  @Override
-  int getLgResizeFactor() {
-    return rf_.lg();
-  }
-
-  @Override
-  long getSeed() {
-    return seed_;
-  }
-  
-  @Override
-  float getP() {
-    return p_;
-  }
-
-  //Set Arguments
-
-  @Override
-  short getSeedHash() {
-    return computeSeedHash(getSeed());
-  }
-
-  @Override
-  Memory getMemory() {
-    return null;
-  }
-
 }

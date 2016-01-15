@@ -21,28 +21,13 @@ abstract class DirectUpdateSketch extends UpdateSketch {
     p_ = p;
     rf_ = rf;
   }
-  
-  //Sketch
-  
-  @Override
-  public abstract byte[] toByteArray();
-  
-  //restricted methods
-  
-  @Override
-  public boolean isCompact() {
-    return false;
-  }
-  
+
   @Override
   public boolean isDirect() {
     return true; 
   }
-  
-  @Override
-  abstract int getPreambleLongs();
-  
-  //Update Internals
+
+  //restricted methods
 
   @Override
   int getLgNomLongs() {
@@ -58,21 +43,15 @@ abstract class DirectUpdateSketch extends UpdateSketch {
   long getSeed() {
     return seed_;
   }
-  
+
   @Override
   float getP() {
     return p_;
   }
 
-  
-  //Set Arguments
-  
   @Override
   short getSeedHash() {
     return computeSeedHash(getSeed());
   }
-  
-  @Override
-  abstract long[] getCache();
-  
+
 }
