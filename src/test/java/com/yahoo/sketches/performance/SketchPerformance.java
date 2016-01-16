@@ -100,7 +100,7 @@ public class SketchPerformance {
     //Theta UpdateSketch parameters
     Family family = Family.QUICKSELECT;
     ResizeFactor rf = ResizeFactor.X1;// See javadocs.
-    boolean direct = false; //See javadocs and the setSketchProfile code
+    boolean direct = true; //See javadocs and the setSketchProfile code
     float p = 1.0F;
     boolean rebuild = false;  //set true if rebuild is desired to reduce size down to k.
     
@@ -111,8 +111,8 @@ public class SketchPerformance {
     //Trials Profile Parameters
     //  For speed trials use min=4,5, max= 13,14,15,16
     //  For accuracy trials use min=max= 10 or more
-    int lgMinTrials = 12;
-    int lgMaxTrials = 12;
+    int lgMinTrials = 5;
+    int lgMaxTrials = 14;
     int lgMaxU = 20;
     int ppo = 16;
     

@@ -55,7 +55,9 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
    * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLongs">See lgNomLongs</a>.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
-   * @param rf Currently internallyfixed at 2.
+   * @param rf Currently internally fixed at 2. Unless dstMem is not configured with a valid 
+   * MemoryRequest, in which case the rf is effectively 1, which is no resizing at all and the 
+   * dstMem must be large enough for the full sketch.
    * <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @param dstMem the given Memory object destination. Required. It will be cleared prior to use.
    * @param unionGadget true if this sketch is implementing the Union gadget function. 
@@ -66,7 +68,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     super(lgNomLongs,
         seed, 
         p, 
-        (rf = ResizeFactor.X2)
+        (rf = (dstMem.getMemoryRequest() == null)? ResizeFactor.X1 :  ResizeFactor.X2)
     );
     mem_ = dstMem; //cannot be null via builder
     
@@ -86,7 +88,8 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     }
     
     int minReqBytes;
-    //If memReq is null require full memory, otherwise start small
+    //If memReq is null require full memory, RF = X1, no resizing; 
+    // otherwise start small with RF = X2. 
     MemoryRequest memReq = mem_.getMemoryRequest();
     if (memReq == null) {
       lgArrLongs_ = setLgArrLongs(mem_, lgNomLongs_ +1);
@@ -214,7 +217,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
   @Override
   public final void reset() {
     //clear hash table
-    //hash table size and threshold stays the same
+    //hash table size and hashTableThreshold stays the same
     //lgArrLongs stays the same
     int arrLongs = 1 << getLgArrLongs();
     int preBytes = preambleLongs_ << 3;

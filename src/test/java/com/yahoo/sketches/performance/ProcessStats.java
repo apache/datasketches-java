@@ -84,10 +84,10 @@ public class ProcessStats {
     //compute theoretical sketch RSE
     double invKm1 = 1.0/(k-1);
     double oneMinusKoverN = 1.0 - (double)k/uPerTrial;
-    double thrse = (uPerTrial<=k)? 0.0 : sqrt(invKm1 * oneMinusKoverN);
+    double thrse = (sumEstErr == 0.0)? 0.0 : sqrt(invKm1 * oneMinusKoverN);
     //compute Bernoulli RSE
     double invUperTrial = 1.0/uPerTrial;
-    double varOverN = 1.0/p - 1.0;
+    double varOverN = (p == 1.0)? 0.0 : 1.0/p - 1.0;
     double prse = (p == 1.0)? 0.0 : sqrt(invUperTrial * varOverN);
     
     //Compute average of each of the bounds estimates
