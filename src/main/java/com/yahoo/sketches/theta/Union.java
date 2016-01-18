@@ -14,7 +14,8 @@ import com.yahoo.sketches.memory.Memory;
 public interface Union {
 
   /**
-   * Union the given sketch with the internal state.
+   * Union the given on-heap sketch. 
+   * Only valid for the all the Open Source, theta sketches.
    * This method can be repeatedly called.
    * If the given sketch is null it is interpreted as an empty sketch.
    * 
@@ -23,9 +24,11 @@ public interface Union {
   void update(Sketch sketchIn);
   
   /**
-   * Union the given sketch with the internal state.
-   * This method can be repeatedly called. This method only works with Memory sketch objects
-   * that are in Compact and Ordered form.
+   * Union the given Memory image of the OpenSource, CompactSketch, 
+   * which may be ordered or unordered, or the earlier versions of SetSketch, 
+   * which is always compact and ordered.
+   * 
+   * This method can be repeatedly called. 
    * If the given sketch is null it is interpreted as an empty sketch.
    * @param mem Memory image of sketch to be merged
    */

@@ -102,7 +102,7 @@ public final class HashOperations {
   public static int hashArrayInsert(long[] srcArr, long[] hashTable, int lgArrLongs, long thetaLong) {
     int count = 0;
     int arrLen = srcArr.length;
-    checkThetaCorruption(thetaLong); 
+    checkThetaCorruption(thetaLong); //TODO only place used
     for (int i = 0; i < arrLen; i++ ) { // scan source array, build target array
       long hash = srcArr[i];
       checkHashCorruption(hash);
@@ -214,7 +214,7 @@ public final class HashOperations {
     int curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes; 
     long curArrayHash = mem.getLong(curProbeOffsetBytes);
     // search for duplicate or zero
-    while (curArrayHash != 0) {
+    while (curArrayHash != 0L) {
       curProbe = (curProbe + stride) & arrayMask;
       curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes;
       curArrayHash = mem.getLong(curProbeOffsetBytes);
@@ -242,30 +242,33 @@ public final class HashOperations {
   public static void checkHashCorruption(final long hash) {
     //if any one of the groups go negative it fails.
     if ( hash < 0L ) {
-      throw new IllegalStateException(
+      throw new IllegalArgumentException(
           "Data Corruption: hash was negative: "+ "Hash: "+hash);
     }
   }
   
   /**
-   * Return true if thetaLong is greater than hash, or if hash == 0
-   * @param thetaLong thetaLong must be greater than the hash value
+   * Return true (continue) if hash is greater than or equal to thetaLong, or if hash == 0, 
+   * or if hash == Long.MAX_VALUE.
+   * @param thetaLong must be greater than the hash value
    * <a href="{@docRoot}/resources/dictionary.html#thetaLong">See Theta Long</a>
-   * @param hash must be less than thetaLong and not zero
-   * @return true if thetaLong is greater than hash, or if hash == 0
+   * @param hash must be less than thetaLong and not less than or equal to zero.
+   * @return true (continue) if hash is greater than or equal to thetaLong, or if hash == 0, 
+   * or if hash == Long.MAX_VALUE.
    */
   public static boolean continueCondition(final long thetaLong, final long hash) {
     //if any one of the groups go negative it returns true
-    return (( (hash-1) | (thetaLong - hash -1)) < 0L );
+    return (( (hash-1L) | (thetaLong - hash -1L)) < 0L );
   }
   
   /**
+   * Checks for invalid values of both a hash value and of a theta value.
    * @param thetaLong cannot be negative or zero, otherwise it throws an exception
    * @param hash cannot be negative, otherwise it throws an exception
    */
   public static void checkHashAndThetaCorruption(final long thetaLong, final long hash) {
     //if any one of the groups go negative it fails.
-    if (( hash | thetaLong | (thetaLong-1) ) < 0L ) {
+    if (( hash | thetaLong | (thetaLong-1L) ) < 0L ) {
       throw new IllegalStateException(
           "Data Corruption: Either hash was negative or thetaLong was negative or zero: "+
           "Hash: "+hash+", ThetaLong: "+thetaLong);

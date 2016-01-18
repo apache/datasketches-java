@@ -250,10 +250,10 @@ class HeapAlphaSketch extends HeapUpdateSketch {
   
   @Override
   UpdateReturnState hashUpdate(long hash) {
-    assert (hash > 0L): "Corruption: negative hashes should not happen. ";
+    HashOperations.checkHashCorruption(hash);
     empty_ = false;
     
-    //The over-theta test, continue condition
+    //The over-theta test
     if (HashOperations.continueCondition(thetaLong_, hash)) { 
       // very very unlikely that hash == Long.MAX_VALUE. It is ignored just as zero is ignored.
       return RejectedOverTheta; //signal that hash was rejected due to theta. 
@@ -264,11 +264,11 @@ class HeapAlphaSketch extends HeapUpdateSketch {
       return enhancedHashInsert(cache_, hash);
     } 
     
-    //NOT dirty 
+    //NOT dirty, the other duplicate or inserted test
     if (HashOperations.hashSearchOrInsert(cache_, lgArrLongs_, hash) >= 0) {
       return UpdateReturnState.RejectedDuplicate;
     }
-    //true: simple insertion occurred, must increment
+    //insertion occurred, must increment
     curCount_++;
     int r = (thetaLong_ > split1_)? 0 : 1;  //are we in sketch mode? (i.e., seen k+1 inserts?)
     if (r == 0) { //not yet sketch mode (has not seen k+1 inserts), but could be sampling
@@ -410,7 +410,7 @@ class HeapAlphaSketch extends HeapUpdateSketch {
     hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
   }
   
-  //Cache stays the same size. Must be dirty. Does not change theta.
+  //Cache stays the same size. Must be dirty. Theta doesn't change, count will change.
   // Used by rebuildDirtyAtTgtSize()
   private final void forceRebuildDirtyCache() {
     long[] tgtArr = new long[1 << lgArrLongs_];

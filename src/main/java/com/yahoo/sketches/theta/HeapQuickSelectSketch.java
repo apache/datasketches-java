@@ -36,17 +36,15 @@ import com.yahoo.sketches.HashOperations;
 class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements UpdateInternal, SetArgument {
 
   private final Family MY_FAMILY;
+  
   private final int preambleLongs_;
-  
-  private long[] cache_;
-  
   private int lgArrLongs_;
   private int hashTableThreshold_;  //never serialized
-  
   private int curCount_;
   private long thetaLong_;
   private boolean empty_;
-  private boolean dirty_;
+  
+  private long[] cache_;
   
   /**
    * Construct a new sketch on the java heap. 
@@ -81,7 +79,6 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
     empty_ = true; //other flags: bigEndian = readOnly = compact = ordered = false; 
     curCount_ = 0;
     thetaLong_ = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
-    dirty_ = false;
   }
   
   /**
@@ -107,17 +104,21 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
       preambleLongs_ = Family.UNION.getMinPreLongs() & 0X3F;
       MY_FAMILY = Family.UNION;
     } 
-    else {
+    else if (familyID == Family.QUICKSELECT.getID()) {
       preambleLongs_ = Family.QUICKSELECT.getMinPreLongs() & 0X3F;
       MY_FAMILY = Family.QUICKSELECT;
     }
+    else {
+      throw new IllegalArgumentException(
+          "Memory may be corrupt. FamilyID must be either UNION or QUICKSELECT: " + familyID);
+    }
     
+    thetaLong_ = srcMem.getLong(THETA_LONG);
     lgArrLongs_ = srcMem.getByte(LG_ARR_LONGS_BYTE);
+    
     hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
     curCount_ = srcMem.getInt(RETAINED_ENTRIES_INT);
-    thetaLong_ = srcMem.getLong(THETA_LONG);
     empty_ = srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
-    dirty_ = false;
     
     cache_ = new long[1 << lgArrLongs_];
     srcMem.getLongArray(preambleLongs_ << 3, cache_, 0, 1 << lgArrLongs_);  //read in as hash table
@@ -187,7 +188,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
   
   @Override
   boolean isDirty() {
-    return dirty_;
+    return false;
   }
   
   @Override
@@ -195,13 +196,6 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
     return lgArrLongs_;
   }
   
-  /**
-   * All potential updates converge here.
-   * <p>Don't ever call this unless you really know what you are doing!</p>
-   * 
-   * @param hash the given input hash value. It should never be zero.
-   * @return <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
-   */
   @Override
   UpdateReturnState hashUpdate(long hash) {
     HashOperations.checkHashCorruption(hash);
@@ -209,31 +203,31 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
     
     //The over-theta test
     if (HashOperations.continueCondition(thetaLong_, hash)) {
-      // very unlikely that hash == Long.MAX_VALUE. It is ignored just as zero is ignored.
       return RejectedOverTheta; //signal that hash was rejected due to theta.
     }
     
-    //The duplicate/inserted tests
-    int index = HashOperations.hashSearchOrInsert(cache_, lgArrLongs_, hash);
-    if (index < 0) {
-      curCount_++;
-      if (curCount_ > hashTableThreshold_) {
-        //must rebuild or resize
-        if (lgArrLongs_ <= lgNomLongs_) { //resize
-          resizeCache();
-        } 
-        else { //rebuild
-          //Already at tgt size, must rebuild
-          assert (lgArrLongs_ == lgNomLongs_ + 1) : "lgArr: " + lgArrLongs_ + ", lgNom: " + lgNomLongs_;
-          quickSelectAndRebuild(); //Changes thetaLong_, curCount_
-        }
+    //The duplicate test
+    if (HashOperations.hashSearchOrInsert(cache_, lgArrLongs_, hash) >= 0) {
+      return RejectedDuplicate;
+    }
+    //insertion occurred, must increment curCount
+    curCount_++;
+    
+    if (curCount_ > hashTableThreshold_) { //we need to do something, we are out of space
+      //must rebuild or resize
+      if (lgArrLongs_ <= lgNomLongs_) { //resize
+        resizeCache();
+      } 
+      else { //Already at tgt size, must rebuild
+        assert (lgArrLongs_ == lgNomLongs_ + 1) : "lgArr: " + lgArrLongs_ + ", lgNom: " + lgNomLongs_;
+        quickSelectAndRebuild(); //Changes thetaLong_, curCount_, reassigns cache
       }
-      return InsertedCountIncremented;
-    } 
-    return RejectedDuplicate;
+    }
+    return InsertedCountIncremented;
+
   }
   
-  //Must resize. Changes lgArrLongs_ only. theta doesn't change, count doesn't change.
+  //Must resize. Changes lgArrLongs_ and cache_. theta and count don't change.
   // Used by hashUpdate()
   private final void resizeCache() {
     int lgTgtLongs = lgNomLongs_ + 1;
@@ -257,9 +251,9 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
     
     int pivot = (1 << lgNomLongs_) + 1; // pivot for QS
 
-    thetaLong_ = selectExcludingZeros(cache_, curCount_, pivot); //changes cache_ 
+    thetaLong_ = selectExcludingZeros(cache_, curCount_, pivot); //messes up the cache_ 
     
-    // now we rebuild to clean up dirty data, update count
+    // now we rebuild to clean up dirty data, update count, reconfigure as a hash table
     long[] tgtArr = new long[arrLongs];
     curCount_ = HashOperations.hashArrayInsert(cache_, tgtArr, lgArrLongs_, thetaLong_);
     cache_ = tgtArr;

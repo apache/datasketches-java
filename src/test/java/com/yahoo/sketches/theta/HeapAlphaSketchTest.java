@@ -530,7 +530,7 @@ public class HeapAlphaSketchTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = AssertionError.class)
+  @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkNegativeHashes() {
     int k = 512;
     UpdateSketch alpha = UpdateSketch.builder().setFamily(ALPHA).build(k);

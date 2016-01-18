@@ -6,9 +6,11 @@ package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.theta.CompactSketch.compactCache;
 import static com.yahoo.sketches.theta.CompactSketch.createCompactSketch;
+import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
+import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
@@ -24,6 +26,8 @@ import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.HashOperations;
 
 /**
+ * Shared code for the HeapUnion and DirectUnion implementations.
+ * 
  * @author Lee Rhodes
  * @author Kevin Lang
  */
@@ -122,7 +126,7 @@ abstract class UnionImpl extends SetOperation implements Union {
     
     if(sketchIn.isOrdered()) { //Only true if Compact. Use early stop
       
-      if(sketchIn.isDirect()) {
+      if(sketchIn.isDirect()) { //ordered, direct thus compact
         Memory skMem = sketchIn.getMemory();
         int preambleLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
         for (int i = 0; i < curCountIn; i++ ) {
@@ -132,7 +136,7 @@ abstract class UnionImpl extends SetOperation implements Union {
           gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
         }
       } 
-      else { //on Java Heap, 
+      else { //on Java Heap, ordered, thus compact
         long[] cacheIn = sketchIn.getCache(); //not a copy!
         for (int i = 0; i < curCountIn; i++ ) {
           long hashIn = cacheIn[i];
@@ -140,7 +144,7 @@ abstract class UnionImpl extends SetOperation implements Union {
           gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
         }
       }
-    } 
+    } //End ordered, compact
     else { //either not-ordered compact or Hash Table form. A HT may have dirty values.
       long[] cacheIn = sketchIn.getCache(); //if off-heap this will be a copy
       int arrLongs = cacheIn.length;
@@ -165,15 +169,15 @@ abstract class UnionImpl extends SetOperation implements Union {
       throw new IllegalArgumentException("Family must be COMPACT or SET_SKETCH (old): "+f);
     }
     int serVer = skMem.getByte(SER_VER_BYTE);
-    if (serVer == 1) {
+    if (serVer == 1) { //older SetSketch, which is compact and ordered
       if (cap <= 24) return; //empty
       processVer1(skMem);
     }
-    else if (serVer == 2) {
+    else if (serVer == 2) {//older SetSketch, which is compact and ordered
       if (cap <= 8) return; //empty
       processVer2(skMem);
     }
-    else if (serVer == 3) {
+    else if (serVer == 3) { //Only the OpenSource sketches
       if (cap <= 8) return; //empty
       processVer3(skMem);
     }
@@ -210,7 +214,8 @@ abstract class UnionImpl extends SetOperation implements Union {
     gadget_.update(data);
   }
   
-  //no seedhash, must trust seed. No p, no empty flag, can only be compact, ordered, size > 24
+  //no seedhash, must trust seed. No p, no empty flag, 
+  // can only be compact, ordered, size > 24
   private void processVer1(Memory skMem) {
     long thetaLongIn = skMem.getLong(THETA_LONG);
     unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule
@@ -225,7 +230,8 @@ abstract class UnionImpl extends SetOperation implements Union {
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
   }
   
-  //has seedhash and p, could have 0 entries & theta, can only be compact, ordered, size >= 8
+  //has seedhash and p, could have 0 entries & theta, 
+  // can only be compact, ordered, size >= 8
   private void processVer2(Memory skMem) {
     PreambleUtil.checkSeedHashes(seedHash_, skMem.getShort(SEED_HASH_SHORT));
     int preLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
@@ -250,7 +256,8 @@ abstract class UnionImpl extends SetOperation implements Union {
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
   }
   
-  //has seedhash, p, could have 0 entries & theta, could be unordered, compact, size >= 8
+  //has seedhash, p, could have 0 entries & theta, 
+  // could be unordered, ordered, compact, or not, size >= 8
   private void processVer3(Memory skMem) {
     PreambleUtil.checkSeedHashes(seedHash_, skMem.getShort(SEED_HASH_SHORT));
     int preLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
@@ -276,8 +283,10 @@ abstract class UnionImpl extends SetOperation implements Union {
         gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
       }
     }
-    else { //not-ordered compact.
-      for (int i = 0; i < curCount; i++ ) {
+    else { //not-ordered, could be compact or hash-table form
+      boolean compact = skMem.isAnyBitsSet(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
+      int size = (compact)? curCount : 1 << skMem.getByte(LG_ARR_LONGS_BYTE);
+      for (int i = 0; i < size; i++ ) {
         int offsetBytes = (preLongs +i) << 3;
         long hashIn = skMem.getLong(offsetBytes);
         if ((hashIn <= 0L) || (hashIn >= unionThetaLong_)) continue;

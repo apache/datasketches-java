@@ -4,7 +4,7 @@
  */
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.theta.MemoryImpl.*;
+import static com.yahoo.sketches.theta.Rebuilder.*;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
@@ -149,12 +149,14 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     int familyID = srcMem.getByte(FAMILY_BYTE);
     if (familyID == Family.UNION.getID()) {
       preambleLongs_ = Family.UNION.getMinPreLongs() & 0X3F;
-      //MY_FAMILY = Family.UNION;
     } 
-    else { //QS via Sketch.wrap(Memory, seed)
+    else if (familyID == Family.QUICKSELECT.getID()){ //QS via Sketch.wrap(Memory, seed)
       preambleLongs_ = Family.QUICKSELECT.getMinPreLongs() & 0X3F;
-      //MY_FAMILY = Family.QUICKSELECT;
-    } //
+    }
+    else {
+      throw new IllegalArgumentException(
+          "Memory may be corrupt. FamilyID must be either UNION or QUICKSELECT: " + familyID);
+    }
     
     thetaLong_ = srcMem.getLong(THETA_LONG);
     lgArrLongs_ = srcMem.getByte(LG_ARR_LONGS_BYTE);
@@ -177,6 +179,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
     curCount_ = srcMem.getInt(RETAINED_ENTRIES_INT);
     empty_ = srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
+    
     mem_ = srcMem;
   }
   
@@ -193,7 +196,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
   }
   
   @Override
-  public byte[] toByteArray() {
+  public byte[] toByteArray() { //MY_FAMILY is stored in mem_
     int lengthBytes = (preambleLongs_ + (1 << lgArrLongs_)) << 3;
     byte[] byteArray = new byte[lengthBytes];
     Memory mem = new NativeMemory(byteArray);
@@ -206,7 +209,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
   @Override
   public UpdateSketch rebuild() {
     if (getRetainedEntries(true) > (1 << getLgNomLongs())) {
-      quickSelectAndRebuild(mem_, preambleLongs_, lgNomLongs_, lgArrLongs_);
+      quickSelectAndRebuild(mem_, preambleLongs_, lgNomLongs_, lgArrLongs_, curCount_);
       //Reset local variables
       curCount_ = mem_.getInt(RETAINED_ENTRIES_INT);
       thetaLong_ = mem_.getLong(THETA_LONG);
@@ -265,13 +268,6 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     return lgArrLongs_;
   }
   
-  /**
-   * All potential updates converge here.
-   * <p>Don't ever call this unless you really know what you are doing!</p>
-   * 
-   * @param hash the given input hash value.  It should never be zero.
-   * @return <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
-   */
   @Override
   UpdateReturnState hashUpdate(long hash) {
     HashOperations.checkHashCorruption(hash);
@@ -287,24 +283,20 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     }
     
     //The duplicate test
-    int preBytes = preambleLongs_ << 3;
-    
-    int index = HashOperations.hashSearchOrInsert(mem_, lgArrLongs_, hash, preBytes);
-    if (index >= 0) return RejectedDuplicate; //not inserted
-    
-    //negative index means hash was inserted
+    if (HashOperations.hashSearchOrInsert(mem_, lgArrLongs_, hash, preambleLongs_ << 3) >= 0) {
+      return RejectedDuplicate; //Duplicate, not inserted
+    }
+    //insertion occurred, must increment curCount
     mem_.putInt(RETAINED_ENTRIES_INT, ++curCount_); //update curCount
     
     if (curCount_ > hashTableThreshold_) { //we need to do something, we are out of space
-      mem_ = resizeMoveOrRebuild(mem_, preambleLongs_, lgNomLongs_, lgArrLongs_);
+      mem_ = resizeMoveOrRebuild(mem_, preambleLongs_, lgNomLongs_, lgArrLongs_, curCount_, thetaLong_);
       curCount_ = mem_.getInt(RETAINED_ENTRIES_INT); 
       thetaLong_ = mem_.getLong(THETA_LONG);
       lgArrLongs_ = mem_.getByte(LG_ARR_LONGS_BYTE);
       hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
-      
-    } //else curCount <= hashTableThreshold
+    }
     return InsertedCountIncremented;
-    
   }
   
   //special set methods

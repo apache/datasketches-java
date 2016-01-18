@@ -206,7 +206,8 @@ public abstract class UpdateSketch extends Sketch {
    * All potential updates converge here.
    * <p>Don't ever call this unless you really know what you are doing!</p>
    * 
-   * @param hash the given input hash value
+   * @param hash the given input hash value.  A hash of zero or Long.MAX_VALUE is ignored. 
+   * A negative hash value will throw an exception.
    * @return <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   abstract UpdateReturnState hashUpdate(long hash);

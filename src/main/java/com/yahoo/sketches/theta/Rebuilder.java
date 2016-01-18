@@ -15,7 +15,13 @@ import com.yahoo.sketches.memory.MemoryRequest;
 import com.yahoo.sketches.memory.MemoryUtil;
 import com.yahoo.sketches.memory.NativeMemory;
 
-final class MemoryImpl {
+/**
+ * Handles common resize, rebuild and move operations. 
+ * The Memory based operations assume a specific data structure that is unique to the theta sketches.
+ */
+final class Rebuilder {
+  
+  private Rebuilder() {}
   
   static final int getMemBytes(int lgArrLongs, int preambleLongs) {
     return (8 << lgArrLongs) + (preambleLongs << 3);
@@ -49,10 +55,11 @@ final class MemoryImpl {
    * @param preambleLongs this is basically the offset prior to the start of the hash table.
    * @param lgNomLongs the inherent <i>k</i> value of the sketch required for rebuilding.
    * @param lgArrLongs the current size of the hash table.
+   * @param curCount the current hash count
    * @return the original srcMem or a new destination Memory if required.
    */
   static final Memory resizeMoveOrRebuild(Memory srcMem, final int preambleLongs, 
-      final int lgNomLongs, final int lgArrLongs) {
+      final int lgNomLongs, final int lgArrLongs, final int curCount, long thetaLong) {
     // curMemBytes < reqMemBytes <= reqMemBytesFull
     // curMemBytes <= curCapBytes
     int curMemBytes = getMemBytes(lgArrLongs, preambleLongs);
@@ -64,7 +71,7 @@ final class MemoryImpl {
       //Already at tgt full size, must quickselect and rebuild 
       //Assumes no dirty values, changes thetaLong_, curCount_
       assert (lgArrLongs == lgNomLongs + 1) : "lgArr: " + lgArrLongs + ", lgNom: " + lgNomLongs;
-      quickSelectAndRebuild(srcMem, preambleLongs, lgNomLongs, lgArrLongs);  //rebuild
+      quickSelectAndRebuild(srcMem, preambleLongs, lgNomLongs, lgArrLongs, curCount);  //rebuild
       //Remember to reset local variables curCount and thetaLong
     }
     else { //Not at full size
@@ -72,7 +79,7 @@ final class MemoryImpl {
       int reqBytes = getMemBytes(dstLgArrLongs, preambleLongs);
       long curCapBytes = srcMem.getCapacity();
       
-      //Expand in current Memory or not
+      //Expand in current Memory?
       if (reqBytes <= curCapBytes) { //yes
         resize(srcMem, preambleLongs, lgArrLongs, dstLgArrLongs);
         //Remember to reset local variables lgArrLongs and hashTableThreshold
@@ -88,11 +95,11 @@ final class MemoryImpl {
           freeMem(dstMem);
           throw new IllegalArgumentException("Requested memory not granted: "+newCap+" < "+reqBytes);
         }
-        moveAndResize(srcMem, preambleLongs, lgArrLongs, dstMem, dstLgArrLongs);
+        moveAndResize(srcMem, preambleLongs, lgArrLongs, dstMem, dstLgArrLongs, thetaLong);
         //Reset local variables and free the srcMem
         
         memReq.free(srcMem, dstMem);
-      } //end of expand in current mem or not
+      } //end of expand in current mem?
       
     } //end of At Full Size or not
     return dstMem;
@@ -107,7 +114,7 @@ final class MemoryImpl {
    * @param mem the Memory
    */
   static final void quickSelectAndRebuild(final Memory mem, final int preambleLongs, 
-      final int lgNomLongs, final int lgArrLongs) {
+      final int lgNomLongs, final int lgArrLongs, int curCount) {
     //Pull data into tmp arr for QS algo
     int arrLongs = 1 << lgArrLongs;
     long[] tmpArr = new long[arrLongs];
@@ -115,8 +122,6 @@ final class MemoryImpl {
     mem.getLongArray(preBytes, tmpArr, 0, arrLongs); //copy mem data to tmpArr
     
     //Do the QuickSelect on a tmp arr to create new thetaLong
-    int curCount = mem.getInt(RETAINED_ENTRIES_INT);
-    
     int pivot = (1 << lgNomLongs) + 1; // (K+1) pivot for QS
     long newThetaLong = selectExcludingZeros(tmpArr, curCount, pivot);
     mem.putLong(THETA_LONG, newThetaLong); //UPDATE thetalong
@@ -141,7 +146,7 @@ final class MemoryImpl {
    * @param dstLgArrLongs the destination hash table target size
    */
   private static final void moveAndResize(final Memory srcMem, final int preambleLongs, 
-      final int srcLgArrLongs, final Memory dstMem, final int dstLgArrLongs) {
+      final int srcLgArrLongs, final Memory dstMem, final int dstLgArrLongs, final long thetaLong) {
     //Move Preamble to destination memory
     int preBytes = preambleLongs << 3;
     MemoryUtil.copy(srcMem, 0, dstMem, 0, preBytes); //copy the preamble
@@ -153,7 +158,6 @@ final class MemoryImpl {
     int dstHTLen = 1 << dstLgArrLongs;
     long[] dstHTArr = new long[dstHTLen];
     //Rebuild hash table in destination buffer
-    long thetaLong = srcMem.getLong(THETA_LONG);
     HashOperations.hashArrayInsert(srcHTArr, dstHTArr, dstLgArrLongs, thetaLong);
     //Bulk copy to destination memory
     dstMem.putLongArray(preBytes, dstHTArr, 0, dstHTLen);

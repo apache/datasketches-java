@@ -28,7 +28,7 @@ public class HashOperationsTest {
     checkThetaCorruption(-1);
   }
   
-  @Test(expectedExceptions = IllegalStateException.class)
+  @Test(expectedExceptions = IllegalArgumentException.class)
   public void testHashCorruption() {
     checkHashCorruption(-1);
   }
