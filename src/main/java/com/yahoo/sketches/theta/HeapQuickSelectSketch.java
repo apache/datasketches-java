@@ -5,19 +5,26 @@
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.QuickSelect.selectExcludingZeros;
+import static com.yahoo.sketches.theta.PreambleUtil.BIG_ENDIAN_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.LG_RESIZE_FACTOR_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
-import static com.yahoo.sketches.theta.PreambleUtil.P_FLOAT;
-import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
-import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
-import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
+import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.theta.PreambleUtil.checkSeedHashes;
 import static com.yahoo.sketches.theta.PreambleUtil.computeSeedHash;
+import static com.yahoo.sketches.theta.PreambleUtil.extractCurCount;
+import static com.yahoo.sketches.theta.PreambleUtil.extractFamilyID;
+import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
+import static com.yahoo.sketches.theta.PreambleUtil.extractLgArrLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractLgNomLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractP;
+import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractResizeFactor;
+import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
+import static com.yahoo.sketches.theta.PreambleUtil.extractSerVer;
+import static com.yahoo.sketches.theta.Rebuilder.getMemBytes;
 import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountIncremented;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedDuplicate;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedOverTheta;
@@ -46,8 +53,18 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
   
   private long[] cache_;
   
+  private HeapQuickSelectSketch(int lgNomLongs, long seed, float p, ResizeFactor rf, 
+      int preambleLongs, Family family) {
+    super(lgNomLongs, 
+    seed, 
+    p, 
+    rf);
+    preambleLongs_ = preambleLongs;
+    MY_FAMILY = family;
+  }
+  
   /**
-   * Construct a new sketch on the java heap. 
+   * Get a new sketch instance on the java heap.
    * 
    * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLogs">See lgNomLongs</a>.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
@@ -56,29 +73,37 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
    * @param unionGadget true if this sketch is implementing the Union gadget function. 
    * Otherwise, it is behaving as a normal QuickSelectSketch.
    */
-  HeapQuickSelectSketch(int lgNomLongs, long seed, float p, ResizeFactor rf, boolean unionGadget) {
-    super(lgNomLongs, 
-        seed, 
-        p, 
-        rf);
-    if (lgNomLongs_ < MIN_LG_NOM_LONGS) throw new IllegalArgumentException(
+  static HeapQuickSelectSketch getInstance(int lgNomLongs, long seed, float p, ResizeFactor rf, 
+      boolean unionGadget) {
+
+    //Check min k
+    if (lgNomLongs < MIN_LG_NOM_LONGS) {
+      throw new IllegalArgumentException(
         "This sketch requires a minimum nominal entries of "+(1 << MIN_LG_NOM_LONGS));
-    
-    if (unionGadget) {
-      preambleLongs_ = Family.UNION.getMinPreLongs();
-      MY_FAMILY = Family.UNION;
-    } 
-    else {
-      preambleLongs_ = Family.QUICKSELECT.getMinPreLongs();
-      MY_FAMILY = Family.QUICKSELECT;
     }
     
-    lgArrLongs_ = startingSubMultiple(lgNomLongs_+1, rf, MIN_LG_ARR_LONGS);
-    cache_ = new long[1 << lgArrLongs_];
-    hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
-    empty_ = true; //other flags: bigEndian = readOnly = compact = ordered = false; 
-    curCount_ = 0;
-    thetaLong_ = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
+    //Choose family, preambleLongs
+    Family family;
+    int preambleLongs;
+    if (unionGadget) {
+      preambleLongs = Family.UNION.getMinPreLongs();
+      family = Family.UNION;
+    } 
+    else {
+      preambleLongs = Family.QUICKSELECT.getMinPreLongs();
+      family = Family.QUICKSELECT;
+    }
+    
+    HeapQuickSelectSketch hqss = new HeapQuickSelectSketch(lgNomLongs, seed, p, rf, 
+        preambleLongs, family);
+    int lgArrLongs = startingSubMultiple(lgNomLongs+1, rf, MIN_LG_ARR_LONGS);
+    hqss.lgArrLongs_ = lgArrLongs;
+    hqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
+    hqss.curCount_ = 0;
+    hqss.thetaLong_ = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
+    hqss.empty_ = true; //other flags: bigEndian = readOnly = compact = ordered = false; 
+    hqss.cache_ = new long[1 << lgArrLongs];
+    return hqss;
   }
   
   /**
@@ -88,40 +113,78 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a> 
    */
-  HeapQuickSelectSketch(Memory srcMem, long seed) {
-    super(
-        srcMem.getByte(LG_NOM_LONGS_BYTE), 
-        seed, 
-        srcMem.getFloat(P_FLOAT),
-        ResizeFactor.getRF(srcMem.getByte(LG_RESIZE_FACTOR_BYTE) >>> 6)
-    );
-    short seedHashMem = srcMem.getShort(SEED_HASH_SHORT); //check for seed conflict
-    short seedHashArg = computeSeedHash(seed);
-    checkSeedHashes(seedHashMem, seedHashArg);
+  static HeapQuickSelectSketch getInstance(Memory srcMem, long seed) {
+    long[] preArr = new long[3];
+    srcMem.getLongArray(0, preArr, 0, 3); //extract the preamble
+    long long0 = preArr[0];
+    int preambleLongs = extractPreLongs(long0);                           //byte 0
+    ResizeFactor myRF = ResizeFactor.getRF(extractResizeFactor(long0));   //byte 0
+    int serVer = extractSerVer(long0);                                    //byte 1
+    int familyID = extractFamilyID(long0);                                //byte 2
+    int lgNomLongs = extractLgNomLongs(long0);                            //byte 3
+    int lgArrLongs = extractLgArrLongs(long0);                            //byte 4
+    int flags = extractFlags(long0);                                      //byte 5
+    short seedHash = (short)extractSeedHash(long0);                       //byte 6,7
+    long long1 = preArr[1];
+    int curCount = extractCurCount(long1);                                //bytes 8-11
+    float p = extractP(long1);                                            //bytes 12-15
+    long thetaLong = preArr[2];                                           //bytes 16-23
     
-    int familyID = srcMem.getByte(FAMILY_BYTE);
-    if (familyID == Family.UNION.getID()) {
-      preambleLongs_ = Family.UNION.getMinPreLongs() & 0X3F;
-      MY_FAMILY = Family.UNION;
-    } 
-    else if (familyID == Family.QUICKSELECT.getID()) {
-      preambleLongs_ = Family.QUICKSELECT.getMinPreLongs() & 0X3F;
-      MY_FAMILY = Family.QUICKSELECT;
+    Family family = Family.idToFamily(familyID);
+    if (family.equals(Family.UNION)) {
+      if (preambleLongs != Family.UNION.getMinPreLongs()) {
+        throw new IllegalArgumentException(
+            "Possible corruption: Invalid PreambleLongs value: " +preambleLongs);
+      }
     }
-    else {
+    else if (family.equals(Family.QUICKSELECT)) {
+      if (preambleLongs != Family.QUICKSELECT.getMinPreLongs()) {
+        throw new IllegalArgumentException(
+            "Possible corruption: Invalid PreambleLongs value: " +preambleLongs);
+      }
+    } else {
       throw new IllegalArgumentException(
-          "Memory may be corrupt. FamilyID must be either UNION or QUICKSELECT: " + familyID);
+          "Possible corruption: Invalid Family: " + family.toString());
     }
     
-    thetaLong_ = srcMem.getLong(THETA_LONG);
-    lgArrLongs_ = srcMem.getByte(LG_ARR_LONGS_BYTE);
+    if (serVer != SER_VER) {
+      throw new IllegalArgumentException(
+          "Possible corruption: Invalid Serialization Version: "+serVer);
+    }
     
-    hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
-    curCount_ = srcMem.getInt(RETAINED_ENTRIES_INT);
-    empty_ = srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
+    int flagsMask = ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
+    if ((flags & flagsMask) > 0) {
+      throw new IllegalArgumentException(
+          "Possible corruption: Input srcMem cannot be: big-endian, compact, ordered, or read-only");
+    }
     
-    cache_ = new long[1 << lgArrLongs_];
-    srcMem.getLongArray(preambleLongs_ << 3, cache_, 0, 1 << lgArrLongs_);  //read in as hash table
+    checkSeedHashes(seedHash, computeSeedHash(seed));
+    
+    long curCapBytes = srcMem.getCapacity();
+    int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
+    if (curCapBytes < minReqBytes) {
+      throw new IllegalArgumentException(
+          "Possible corruption: Current Memory size < min required size: " + 
+              curCapBytes + " < " + minReqBytes);
+    }
+    
+    double theta = thetaLong/MAX_THETA_LONG_AS_DOUBLE;
+    if ((lgArrLongs <= lgNomLongs) && (theta < p) ) {
+      throw new IllegalArgumentException(
+        "Possible corruption: Theta cannot be < p and lgArrLongs <= lgNomLongs. "+
+            lgArrLongs + " <= " + lgNomLongs + ", Theta: "+theta + ", p: " + p);
+    }
+    
+    HeapQuickSelectSketch hqss = new HeapQuickSelectSketch(lgNomLongs, seed, p, myRF, preambleLongs, 
+        family);
+    hqss.lgArrLongs_ = lgArrLongs;
+    hqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
+    hqss.curCount_ = curCount;
+    hqss.thetaLong_ = thetaLong;
+    hqss.empty_ = (flags & EMPTY_FLAG_MASK) > 0;
+    hqss.cache_ = new long[1 << lgArrLongs];
+    srcMem.getLongArray(preambleLongs << 3, hqss.cache_, 0, 1 << lgArrLongs);  //read in as hash table
+    return hqss;
   }
   
   //Sketch

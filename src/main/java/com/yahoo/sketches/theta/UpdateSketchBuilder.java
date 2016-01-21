@@ -183,7 +183,7 @@ public class UpdateSketchBuilder {
       }
       case QUICKSELECT: {
         if (bDstMem == null) {
-          sketch = new HeapQuickSelectSketch(bLgNomLongs, bSeed, bP, bRF, false);
+          sketch = HeapQuickSelectSketch.getInstance(bLgNomLongs, bSeed, bP, bRF, false);
         } 
         else {
           sketch = DirectQuickSelectSketch.getInstance(bLgNomLongs, bSeed, bP, bRF, bDstMem, false);

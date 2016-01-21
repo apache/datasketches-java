@@ -21,7 +21,7 @@ class HeapUnion extends UnionImpl {
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    */
   HeapUnion(int lgNomLongs, long seed, float p, ResizeFactor rf) {
-    super(new HeapQuickSelectSketch(lgNomLongs, seed, p, rf, true));
+    super(HeapQuickSelectSketch.getInstance(lgNomLongs, seed, p, rf, true));
   }
   
   /**
@@ -31,7 +31,7 @@ class HeapUnion extends UnionImpl {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a> 
    */
   HeapUnion(Memory srcMem, long seed) {
-    super(new HeapQuickSelectSketch(srcMem, seed), srcMem, seed);
+    super(HeapQuickSelectSketch.getInstance(srcMem, seed), srcMem, seed);
   }
   
 }

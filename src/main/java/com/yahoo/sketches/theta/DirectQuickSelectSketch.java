@@ -49,7 +49,8 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
   
   private Memory mem_;
   
-  private DirectQuickSelectSketch(int lgNomLongs, long seed, float p, ResizeFactor rf, int preambleLongs) {
+  private DirectQuickSelectSketch(int lgNomLongs, long seed, float p, ResizeFactor rf, 
+      int preambleLongs) {
     super(lgNomLongs,
         seed, 
         p, 
@@ -172,22 +173,26 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     float p = extractP(long1);                                            //bytes 12-15
     long thetaLong = preArr[2];                                           //bytes 16-23
     
-    //check preambleLongs
-    int maxPreLongs = Family.UNION.getMinPreLongs() & 0X3F;
-    int minPreLongs = Family.QUICKSELECT.getMinPreLongs() & 0X3F;
-    if ( ( (preambleLongs - minPreLongs) | (maxPreLongs - preambleLongs) ) < 0 ) {
-      throw new IllegalArgumentException(
-          "Possible corruption: Invalid PreambleLongs value: " +preambleLongs);
+    Family family = Family.idToFamily(familyID);
+    if (family.equals(Family.UNION)) {
+      if (preambleLongs != Family.UNION.getMinPreLongs()) {
+        throw new IllegalArgumentException(
+            "Possible corruption: Invalid PreambleLongs value: " +preambleLongs);
+      }
     }
-
+    else if (family.equals(Family.QUICKSELECT)) {
+      if (preambleLongs != Family.QUICKSELECT.getMinPreLongs()) {
+        throw new IllegalArgumentException(
+            "Possible corruption: Invalid PreambleLongs value: " +preambleLongs);
+      }
+    } else {
+      throw new IllegalArgumentException(
+          "Possible corruption: Invalid Family: " + family.toString());
+    }
+    
     if (serVer != SER_VER) {
       throw new IllegalArgumentException(
           "Possible corruption: Invalid Serialization Version: "+serVer);
-    }
-    
-    if ((familyID != Family.UNION.getID()) && (familyID != Family.QUICKSELECT.getID())) {
-      throw new IllegalArgumentException(
-          "Possible corruption: FamilyID must be either UNION or QUICKSELECT: " + familyID);
     }
     
     int flagsMask = ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
