@@ -27,7 +27,7 @@ class DirectUnion extends UnionImpl {
    * @param dstMem the given Memory object destination. It will be cleared prior to use.
    */
   DirectUnion(int lgNomLongs, long seed, float p, ResizeFactor rf, Memory dstMem) {
-    super(new DirectQuickSelectSketch(lgNomLongs, seed, p, rf, dstMem, true));
+    super(DirectQuickSelectSketch.getInstance(lgNomLongs, seed, p, rf, dstMem, true));
     unionMem_ = dstMem;
     unionMem_.putByte(FAMILY_BYTE, (byte) Family.UNION.getID());
     unionMem_.putLong(UNION_THETA_LONG, unionThetaLong_);
@@ -40,7 +40,7 @@ class DirectUnion extends UnionImpl {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a> 
    */
   DirectUnion(Memory srcMem, long seed) {
-    super(new DirectQuickSelectSketch(srcMem, seed), srcMem, seed);
+    super(DirectQuickSelectSketch.getInstance(srcMem, seed), srcMem, seed);
     unionMem_ = srcMem;
   }
   

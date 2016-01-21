@@ -43,8 +43,8 @@ import com.yahoo.sketches.HashOperations;
  * @author Kevin Lang
  */
 class HeapAlphaSketch extends HeapUpdateSketch {
-  private static final Family MY_FAMILY = Family.ALPHA;
   private static final int ALPHA_MIN_LG_NOM_LONGS = 9; //The smallest Log2 nom entries allowed => 512.
+  private static final Family MY_FAMILY = Family.ALPHA;
   private final double alpha_;        // computed from lgNomLongs
   private final long split1_;         // computed from alpha and p
   

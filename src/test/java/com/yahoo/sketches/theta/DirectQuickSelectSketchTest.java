@@ -22,6 +22,7 @@ import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRequest;
 import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.HashOperations;
+import com.yahoo.sketches.theta.DirectQuickSelectSketch;
 
 /** 
  * @author Lee Rhodes
@@ -69,19 +70,19 @@ public class DirectQuickSelectSketchTest {
   }
   
   @Test(expectedExceptions = IllegalArgumentException.class)
-  public void checkHeapifyIllegalSketchID_UpdateSketch() {
+  public void checkHeapifyIllegalFamilyID_heapify() {
     int k = 512;
     int bytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
     Memory mem = new NativeMemory(new byte[bytes]);
     
     @SuppressWarnings("unused")
     UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
-    
-    mem.putByte(FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte, catch in UpdateSketch
+
+    mem.putByte(FAMILY_BYTE, (byte) 0); //corrupt the Family ID byte
     
     //try to heapify the corrupted mem
     @SuppressWarnings("unused")
-    UpdateSketch usk2 = (UpdateSketch)Sketch.heapify(mem);
+    UpdateSketch usk2 = (UpdateSketch)Sketch.heapify(mem); //catch in Sketch.constructHeapSketch
   }
   
   @Test
@@ -123,7 +124,7 @@ public class DirectQuickSelectSketchTest {
   }
   
   @Test(expectedExceptions = IllegalArgumentException.class)
-  public void checkWrapIllegalSketchID_UpdateSketch() {
+  public void checkWrapIllegalFamilyID_wrap() {
     int k = 512;
     int maxBytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
     Memory mem = new NativeMemory(new byte[maxBytes]);
@@ -131,13 +132,30 @@ public class DirectQuickSelectSketchTest {
     @SuppressWarnings("unused")
     UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
     
-    mem.putByte(FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte, catch in UpdateSketch
+    mem.putByte(FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
     
     //try to wrap the corrupted mem
     @SuppressWarnings("unused")
-    UpdateSketch usk2 = (UpdateSketch)Sketch.wrap(mem);
+    UpdateSketch usk2 = (UpdateSketch)Sketch.wrap(mem); //catch in Sketch.constructDirectSketch
   }
 
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkWrapIllegalFamilyID_direct() {
+    int k = 512;
+    int maxBytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
+    Memory mem = new NativeMemory(new byte[maxBytes]);
+    
+    @SuppressWarnings("unused")
+    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
+    
+    mem.putByte(FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
+    
+    //try to wrap the corrupted mem
+    @SuppressWarnings("unused")
+    UpdateSketch usk2 = DirectQuickSelectSketch.getInstance(mem, DEFAULT_UPDATE_SEED);
+  }
+  
+  
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkHeapifySeedConflict() {
     int k = 512;
@@ -573,14 +591,13 @@ public class DirectQuickSelectSketchTest {
     NativeMemory natMem1 = makeNativeMemory(k);
 
     UpdateSketch usk = UpdateSketch.builder().initMemory(natMem1).build(k);
-    DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
     assertTrue(usk.isEmpty());
 
     for (int i = 0; i< u; i++) usk.update(i); //force estimation
     
     double est1 = usk.getEstimate();
-    int count1 = sk1.getRetainedEntries(false);
-    assertEquals(est1, u, 1000.0);
+    int count1 = usk.getRetainedEntries(false);
+    assertEquals(est1, u, u*.05);
     assertTrue(count1 >= k);
     
     byte[] serArr;
@@ -593,14 +610,21 @@ public class DirectQuickSelectSketchTest {
 
     //reconstruct to Native/Direct
     UpdateSketch usk2 = (UpdateSketch)Sketch.wrap(mem2);
-    DirectQuickSelectSketch sk2 = (DirectQuickSelectSketch)usk2; //for internal checks
+    
     est2 = usk2.getEstimate();
-    count2 = sk2.getRetainedEntries(false);
-    assertEquals(est2, est1, 0.0);
+    count2 = usk2.getRetainedEntries(false);
+    
     assertEquals(count2, count1);
-
+    assertEquals(est2, est1, 0.0);
+    
     natMem1.freeMemory(); //mem2 is on heap.
   }
+  
+  public static void main(String[] args) {
+    DirectQuickSelectSketchTest test = new DirectQuickSelectSketchTest();
+    test.checkConstructReconstructFromMemory();
+  }
+  
   
   //////////////////////////////////////////////////////
   //////////////////////////////////////////////////////
@@ -667,6 +691,33 @@ public class DirectQuickSelectSketchTest {
       usk1.update(i);
     }
     assertEquals(usk1.getEstimate(), u, 0.05*u);
+    NativeMemory nMem = (NativeMemory) usk1.getMemory();
+    println("Freed: " + nMem.getCapacity());
+    nMem.freeMemory();
+  }
+  
+  @Test
+  public void checkLimitedMemoryWithP() {
+    int k = 4096; 
+    int u = 2048; //est mode
+    float p = (float)0.5;
+    MemoryManager memMgr = new MemoryManager();
+    
+    Memory mem1 = memMgr.request(k / 4); //allocate 1/4 size off-heap
+
+    UpdateSketch usk1 = UpdateSketch.builder().initMemory(mem1).setResizeFactor(ResizeFactor.X2).setP(p).build(k);
+    assertTrue(usk1.isEmpty());
+    
+    for (int i=0; i<u; i++) {
+      usk1.update(i);
+    }
+    assertEquals(usk1.getEstimate(), u, 0.1*u);
+    
+    NativeMemory mem2 = new NativeMemory(usk1.toByteArray());
+    
+    @SuppressWarnings("unused")
+    UpdateSketch usk2 = (UpdateSketch) Sketches.wrapSketch(mem2);
+    
     NativeMemory nMem = (NativeMemory) usk1.getMemory();
     println("Freed: " + nMem.getCapacity());
     nMem.freeMemory();
@@ -845,38 +896,54 @@ public class DirectQuickSelectSketchTest {
     qs.hashUpdate(-1L);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  public void checkSrcMemCorrupted1() {
-    int k = 1024;
-    int u = 2*k; //est mode
+  @Test
+  public void checkConstructorSrcMemCorruptions() {
+    int k = 1024; //lgNomLongs = 10
+    int u = k; //exact mode, lgArrLongs = 11
     
     int bytes = Sketches.getMaxUpdateSketchBytes(k);
     byte[] arr1 = new byte[bytes];
     Memory mem1 = new NativeMemory(arr1);
-    ResizeFactor rf = ResizeFactor.X1;
+    ResizeFactor rf = ResizeFactor.X1; //0
     UpdateSketch usk1 = UpdateSketch.builder().initMemory(mem1).setResizeFactor(rf).build(k);
     for (int i=0; i<u; i++) usk1.update(i);
-    byte[] arr2 = Arrays.copyOfRange(arr1, 0, bytes-1);
-    Memory mem2 = new NativeMemory(arr2);
+    //println(PreambleUtil.toString(mem1));
     @SuppressWarnings("unused")
-    UpdateSketch usk2 = (UpdateSketch) Sketches.wrapSketch(mem2);
-  }
-  
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  public void checkSrcMemCorrupted2() {
-    int k = 1024;
-    int u = k/2; //exact mode
+    UpdateSketch usk2;
+    mem1.putByte(FAMILY_BYTE, (byte) 3); //corrupt Family by setting to Compact
+    try {
+      usk2 = DirectQuickSelectSketch.getInstance(mem1, DEFAULT_UPDATE_SEED);
+    } catch (IllegalArgumentException e) {}
+    mem1.putByte(FAMILY_BYTE, (byte) 2); //fix Family
+    mem1.putByte(PREAMBLE_LONGS_BYTE, (byte) 1); //corrupt preLongs
+    try {
+      usk2 = DirectQuickSelectSketch.getInstance(mem1, DEFAULT_UPDATE_SEED);
+    } catch (IllegalArgumentException e) {}
+    mem1.putByte(PREAMBLE_LONGS_BYTE, (byte) 3); //fix preLongs
+    mem1.putByte(SER_VER_BYTE, (byte) 2); //corrupt serVer
+    try {
+      usk2 = DirectQuickSelectSketch.getInstance(mem1, DEFAULT_UPDATE_SEED);
+    } catch (IllegalArgumentException e) {}
+    mem1.putByte(SER_VER_BYTE, (byte) 3); //fix serVer
     
-    int bytes = Sketches.getMaxUpdateSketchBytes(k);
-    byte[] arr1 = new byte[bytes];
-    Memory mem1 = new NativeMemory(arr1);
-    ResizeFactor rf = ResizeFactor.X2;
-    UpdateSketch usk1 = UpdateSketch.builder().initMemory(mem1).setResizeFactor(rf).build(k);
-    for (int i=0; i<u; i++) usk1.update(i);
-    mem1.putLong(THETA_LONG, Long.MAX_VALUE >>> 1); //corrupt theta
+    mem1.putLong(THETA_LONG, Long.MAX_VALUE >>> 1); //corrupt theta and
     mem1.putByte(LG_ARR_LONGS_BYTE, (byte) 10); //corrupt lgArrLongs
-    @SuppressWarnings("unused")
-    UpdateSketch usk2 = (UpdateSketch) Sketches.wrapSketch(mem1);
+    try {
+      usk2 = DirectQuickSelectSketch.getInstance(mem1, DEFAULT_UPDATE_SEED);
+    } catch (IllegalArgumentException e) {}
+    mem1.putLong(THETA_LONG, Long.MAX_VALUE); //fix theta and
+    mem1.putByte(LG_ARR_LONGS_BYTE, (byte) 11); //fix lgArrLongs
+    byte badFlags = (byte) (BIG_ENDIAN_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | ORDERED_FLAG_MASK);
+    mem1.putByte(FLAGS_BYTE, badFlags);
+    try {
+      usk2 = DirectQuickSelectSketch.getInstance(mem1, DEFAULT_UPDATE_SEED);
+    } catch (IllegalArgumentException e) {}
+    
+    byte[] arr2 = Arrays.copyOfRange(arr1, 0, bytes-1); //corrupt length
+    Memory mem2 = new NativeMemory(arr2);
+    try {
+      usk2 = DirectQuickSelectSketch.getInstance(mem2, DEFAULT_UPDATE_SEED);
+    } catch (IllegalArgumentException e) {}
   }
   
   @Test

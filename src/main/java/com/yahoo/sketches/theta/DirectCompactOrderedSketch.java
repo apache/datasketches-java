@@ -13,7 +13,6 @@ import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
 
-import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 
 /**
@@ -22,7 +21,6 @@ import com.yahoo.sketches.memory.Memory;
  * @author Lee Rhodes
  */
 class DirectCompactOrderedSketch extends CompactSketch {
-  private static final Family MY_FAMILY = Family.COMPACT;
   private Memory mem_;
   
   /**

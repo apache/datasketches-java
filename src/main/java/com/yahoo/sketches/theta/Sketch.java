@@ -408,9 +408,9 @@ public abstract class Sketch {
    * @return true if given Family id is one of the theta sketches
    */
   static boolean isValidSketchID(int id) {
-    int loID = Family.ALPHA.getID();
-    int hiID = Family.COMPACT.getID();
-    return ((hiID - id) | (id - loID)) >= 0;
+  return (id == Family.ALPHA.getID())       ||
+         (id == Family.QUICKSELECT.getID()) ||
+         (id == Family.COMPACT.getID());
   }
 
   static final boolean estMode(long thetaLong, boolean empty) {
@@ -455,10 +455,7 @@ public abstract class Sketch {
     Family family = idToFamily(famID);
     switch(family) {
       case QUICKSELECT: {
-        if (compact) {
-          throw new IllegalArgumentException("Corrupted " + family + " image: cannot be compact");
-        }
-        return new DirectQuickSelectSketch(srcMem, seed);
+        return DirectQuickSelectSketch.getInstance(srcMem, seed);
       }
       case COMPACT: {
         if(!compact) {

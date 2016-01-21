@@ -17,6 +17,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
 
 import java.util.Arrays;
 
+import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 
 /**
@@ -33,6 +34,7 @@ import com.yahoo.sketches.memory.Memory;
  * @author Lee Rhodes
  */
 public abstract class CompactSketch extends Sketch {
+  static final Family MY_FAMILY = Family.COMPACT;
   final short seedHash_;
   final boolean empty_;
   final int curCount_;

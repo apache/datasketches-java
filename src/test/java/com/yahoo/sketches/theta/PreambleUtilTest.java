@@ -5,6 +5,7 @@
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.theta.SetOperation.getMaxUnionBytes;
+import static com.yahoo.sketches.theta.PreambleUtil.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -75,6 +76,75 @@ public class PreambleUtilTest {
     comp = sketch.compact(false, null);
     byteArr = comp.toByteArray();
     println(PreambleUtil.toString(byteArr)); //PreLongs = 3
+  }
+  
+  @Test
+  public void checkExtracts() {
+    long long0 = 0X3FL;
+    assertEquals(extractPreLongs(long0), (int) long0);
+    
+    long0 = 3L << 6;
+    assertEquals(extractResizeFactor(long0), 3);
+    
+    long0 = 3L << 8;
+    assertEquals(extractSerVer(long0), 3);
+    
+    long0 = 7L << 16;
+    assertEquals(extractFamilyID(long0), 7);
+    
+    long0 = 10L << 24;
+    assertEquals(extractLgNomLongs(long0), 10);
+    
+    long0 = 11L << 32;
+    assertEquals(extractLgArrLongs(long0), 11);
+    
+    long0 = 0XFFL << 40;
+    assertEquals(extractFlags(long0), 0XFF);
+    
+    long0 = 0XF0F0L << 48;
+    assertEquals(extractSeedHash(long0), 0XF0F0);
+    
+    long0 = 0XFEFEFEFEL;
+    assertEquals(extractCurCount(long0), (int) long0); 
+  }
+  
+  @Test
+  public void checkInserts() {
+    long v, shift; 
+    v = 0X3FL; shift = 0;
+    assertEquals(insertPreLongs((int)v, ~(v<<shift)), -1L);
+    assertEquals(insertPreLongs((int)v, 0), v<<shift);
+    v = 3L;    shift = 6;
+    assertEquals(insertResizeFactor((int)v, ~(v<<shift)), -1L);
+    assertEquals(insertResizeFactor((int)v, 0), v<<shift);
+    v = 0XFFL; shift = 8; 
+    assertEquals(insertSerVer((int)v, ~(v<<shift)), -1L);
+    assertEquals(insertSerVer((int)v, 0), v<<shift);
+    v = 0XFFL; shift = 16;
+    assertEquals(insertFamilyID((int)v, ~(v<<shift)), -1L);
+    assertEquals(insertFamilyID((int)v, 0), v<<shift);
+    v = 0XFFL; shift = 24;
+    assertEquals(insertLgNomLongs((int)v, ~(v<<shift)), -1L);
+    assertEquals(insertLgNomLongs((int)v, 0), v<<shift);
+    v = 0XFFL; shift = 32;
+    assertEquals(insertLgArrLongs((int)v, ~(v<<shift)), -1L);
+    assertEquals(insertLgArrLongs((int)v, 0), v<<shift);
+    v = 0XFFL; shift = 40;
+    assertEquals(insertFlags((int)v, ~(v<<shift)), -1L);
+    assertEquals(insertFlags((int)v, 0), v<<shift);
+    v = 0XFFFFL; shift = 48;
+    assertEquals(insertSeedHash((int)v, ~(v<<shift)), -1L);
+    assertEquals(insertSeedHash((int)v, 0), v<<shift);
+    v = 0XFFFFFFFFL; shift = 0;
+    assertEquals(insertCurCount((int)v, ~(v<<shift)), -1L);
+    assertEquals(insertCurCount((int)v, 0), v<<shift);
+
+    float f = (float) 1.0; shift = 32;
+    long res = insertP(f, -1L);
+    int hi = (int) (res >>> shift);
+    int lo = (int) res;
+    assertEquals(lo, -1);
+    assertEquals(Float.intBitsToFloat(hi), f);
   }
   
   @Test

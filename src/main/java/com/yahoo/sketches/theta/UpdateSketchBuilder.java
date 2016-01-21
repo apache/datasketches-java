@@ -186,8 +186,7 @@ public class UpdateSketchBuilder {
           sketch = new HeapQuickSelectSketch(bLgNomLongs, bSeed, bP, bRF, false);
         } 
         else {
-          sketch = 
-            new DirectQuickSelectSketch(bLgNomLongs, bSeed, bP, bRF, bDstMem, false);
+          sketch = DirectQuickSelectSketch.getInstance(bLgNomLongs, bSeed, bP, bRF, bDstMem, false);
         }
         break;
       }

@@ -108,6 +108,123 @@ final class PreambleUtil {
       IllegalArgumentException("Incompatible Seed Hashes. "+ seedHashA + ", "+ seedHashB);
   }
   
+  //Extract from long and insert into long  methods
+  
+  static int extractPreLongs(final long long0) {
+    long mask = 0X3FL;
+    return (int) (long0 & mask);
+  }
+  
+  static int extractResizeFactor(final long long0) {
+    int shift = 6;
+    long mask = 0X3L;
+    return (int) ((long0 >>> shift) & mask);
+  }
+  
+  static int extractSerVer(final long long0) {
+    int shift = SER_VER_BYTE << 3;
+    long mask = 0XFFL;
+    return (int) ((long0 >>> shift) & mask);
+  }
+  
+  static int extractFamilyID(final long long0) {
+    int shift = FAMILY_BYTE << 3;
+    long mask = 0XFFL;
+    return (int) ((long0 >>> shift) & mask);
+  }
+  
+  static int extractLgNomLongs(final long long0) {
+    int shift = LG_NOM_LONGS_BYTE << 3;
+    long mask = 0XFFL;
+    return (int) ((long0 >>> shift) & mask);
+  }
+  
+  static int extractLgArrLongs(final long long0) {
+    int shift = LG_ARR_LONGS_BYTE << 3;
+    long mask = 0XFFL;
+    return (int) ((long0 >>> shift) & mask);
+  }
+  
+  static int extractFlags(final long long0) {
+    int shift = FLAGS_BYTE << 3;
+    long mask = 0XFFL;
+    return (int) ((long0 >>> shift) & mask);
+  }
+  
+  static int extractSeedHash(final long long0) {
+    int shift = SEED_HASH_SHORT << 3;
+    long mask = 0XFFFFL;
+    return (int) ((long0 >>> shift) & mask);
+  }
+  
+  static int extractCurCount(final long long1) {
+    long mask = 0XFFFFFFFFL;
+    return (int) (long1 & mask);
+  }
+  
+  static float extractP(final long long1) {
+    int shift = 32;
+    return Float.intBitsToFloat((int)(long1 >>> shift));
+  }
+  
+  static long insertPreLongs(final int preLongs, final long long0) {
+    long mask = 0X3FL;
+    return (preLongs & mask) | (~mask & long0);
+  }
+  
+  static long insertResizeFactor(final int rf, final long long0) {
+    int shift = 6;
+    long mask = 3L;
+    return ((rf & mask) << shift) | (~(mask << shift) & long0);
+  }
+  
+  static long insertSerVer(final int serVer, final long long0) {
+    int shift = SER_VER_BYTE << 3;
+    long mask = 0XFFL;
+    return ((serVer & mask) << shift) | (~(mask << shift) & long0);
+  }
+  
+  static long insertFamilyID(final int familyID, final long long0) {
+    int shift = FAMILY_BYTE << 3;
+    long mask = 0XFFL;
+    return ((familyID & mask) << shift) | (~(mask << shift) & long0);
+  }
+  
+  static long insertLgNomLongs(final int lgNomLongs, final long long0) {
+    int shift = LG_NOM_LONGS_BYTE << 3;
+    long mask = 0XFFL;
+    return ((lgNomLongs & mask) << shift) | (~(mask << shift) & long0);
+  }
+  
+  static long insertLgArrLongs(final int lgArrLongs, final long long0) {
+    int shift = LG_ARR_LONGS_BYTE << 3;
+    long mask = 0XFFL;
+    return ((lgArrLongs & mask) << shift) | (~(mask << shift) & long0);
+  }
+  
+  static long insertFlags(final int flags, final long long0) {
+    int shift = FLAGS_BYTE << 3;
+    long mask = 0XFFL;
+    return ((flags & mask) << shift) | (~(mask << shift) & long0);
+  }
+  
+  static long insertSeedHash(final int seedHash, final long long0) {
+    int shift = SEED_HASH_SHORT << 3;
+    long mask = 0XFFFFL;
+    return ((seedHash & mask) << shift) | (~(mask << shift) & long0);
+  }
+  
+  static long insertCurCount(final int curCount, final long long1) {
+    long mask = 0XFFFFFFFFL;
+    return (curCount & mask) | (~mask & long1);
+  }
+  
+  static long insertP(final float p, final long long1) {
+    int shift = 32;
+    long mask = 0XFFFFFFFFL;
+    return ((Float.floatToRawIntBits(p) & mask) << shift) | (~(mask << shift) & long1);
+  }
+  
   // STRINGS
   /**
    * Returns a human readable string summary of the internal state of the given byte array. Used
