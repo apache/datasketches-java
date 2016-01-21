@@ -85,6 +85,14 @@ final class PreambleUtil {
   
   static final double MAX_THETA_LONG_AS_DOUBLE = Long.MAX_VALUE;
 
+  static final int getReqMemBytesFull(int lgNomLongs, int preambleLongs) {
+    return (16 << lgNomLongs) + (preambleLongs << 3);
+  }
+
+  static final int getMemBytes(int lgArrLongs, int preambleLongs) {
+    return (8 << lgArrLongs) + (preambleLongs << 3);
+  }
+
   /**
    * Computes and checks the 16-bit seed hash from the given long seed.
    * The seed hash may not be zero in order to maintain compatibility with older serialized

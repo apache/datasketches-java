@@ -13,7 +13,6 @@ import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRequest;
 import com.yahoo.sketches.memory.MemoryUtil;
-import com.yahoo.sketches.memory.NativeMemory;
 
 /**
  * Handles common resize, rebuild and move operations. 
@@ -22,25 +21,6 @@ import com.yahoo.sketches.memory.NativeMemory;
 final class Rebuilder {
   
   private Rebuilder() {}
-  
-  static final int getMemBytes(int lgArrLongs, int preambleLongs) {
-    return (8 << lgArrLongs) + (preambleLongs << 3);
-  }
-  
-  static final int getReqMemBytesFull(int lgNomLongs, int preambleLongs) {
-    return (16 << lgNomLongs) + (preambleLongs << 3);
-  }
-  
-  //Only used when MemoryRequest is not available
-  static final void freeMem(Memory mem) { 
-    MemoryRequest memReq = mem.getMemoryRequest();
-    if (memReq != null) {
-      memReq.free(mem);
-    }
-    else if (mem instanceof NativeMemory) {
-      ((NativeMemory)mem).freeMemory();
-    }
-  }
   
   //Might change in Memory: thetaLong, curCount, mem_, lgArrLongs, hashTableThreshold
   /**
@@ -62,8 +42,8 @@ final class Rebuilder {
       final int lgNomLongs, final int lgArrLongs, final int curCount, long thetaLong) {
     // curMemBytes < reqMemBytes <= reqMemBytesFull
     // curMemBytes <= curCapBytes
-    int curMemBytes = getMemBytes(lgArrLongs, preambleLongs);
-    int reqMemBytesFull = getReqMemBytesFull(lgNomLongs, preambleLongs);
+    int curMemBytes = PreambleUtil.getMemBytes(lgArrLongs, preambleLongs);
+    int reqMemBytesFull = PreambleUtil.getReqMemBytesFull(lgNomLongs, preambleLongs);
     Memory dstMem = srcMem; //initially assume we stay put
     
     //At Full Size or Not
@@ -76,7 +56,7 @@ final class Rebuilder {
     }
     else { //Not at full size
       int dstLgArrLongs = lgArrLongs + 1; //assume RF = 2
-      int reqBytes = getMemBytes(dstLgArrLongs, preambleLongs);
+      int reqBytes = PreambleUtil.getMemBytes(dstLgArrLongs, preambleLongs);
       long curCapBytes = srcMem.getCapacity();
       
       //Expand in current Memory?
@@ -87,18 +67,18 @@ final class Rebuilder {
       else { //no, request a bigger space
         MemoryRequest memReq = srcMem.getMemoryRequest();
         dstMem = memReq.request(reqBytes);
-        if (dstMem == null) {
+        if (dstMem == null) { //returned a null
           throw new IllegalArgumentException("Requested memory cannot be null.");
         }
         long newCap = dstMem.getCapacity();
         if (newCap < reqBytes) {
-          freeMem(dstMem);
+          memReq.free(dstMem);
           throw new IllegalArgumentException("Requested memory not granted: "+newCap+" < "+reqBytes);
         }
         moveAndResize(srcMem, preambleLongs, lgArrLongs, dstMem, dstLgArrLongs, thetaLong);
         //Reset local variables and free the srcMem
         
-        memReq.free(srcMem, dstMem);
+        memReq.free(srcMem, dstMem); //normal free mechanism via MemoryRequest
       } //end of expand in current mem?
       
     } //end of At Full Size or not

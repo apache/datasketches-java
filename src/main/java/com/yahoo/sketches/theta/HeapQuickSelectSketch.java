@@ -24,7 +24,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.theta.PreambleUtil.extractResizeFactor;
 import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
 import static com.yahoo.sketches.theta.PreambleUtil.extractSerVer;
-import static com.yahoo.sketches.theta.Rebuilder.getMemBytes;
+import static com.yahoo.sketches.theta.PreambleUtil.getMemBytes;
 import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountIncremented;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedDuplicate;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedOverTheta;
@@ -72,6 +72,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @param unionGadget true if this sketch is implementing the Union gadget function. 
    * Otherwise, it is behaving as a normal QuickSelectSketch.
+   * @return instance of this sketch
    */
   static HeapQuickSelectSketch getInstance(int lgNomLongs, long seed, float p, ResizeFactor rf, 
       boolean unionGadget) {
@@ -111,7 +112,8 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
    * containing sketch data. 
    * @param srcMem The source Memory object.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a> 
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @return instance of this sketch
    */
   static HeapQuickSelectSketch getInstance(Memory srcMem, long seed) {
     long[] preArr = new long[3];
@@ -134,15 +136,16 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
     if (family.equals(Family.UNION)) {
       if (preambleLongs != Family.UNION.getMinPreLongs()) {
         throw new IllegalArgumentException(
-            "Possible corruption: Invalid PreambleLongs value: " +preambleLongs);
+            "Possible corruption: Invalid PreambleLongs value for UNION: " +preambleLongs);
       }
     }
     else if (family.equals(Family.QUICKSELECT)) {
       if (preambleLongs != Family.QUICKSELECT.getMinPreLongs()) {
         throw new IllegalArgumentException(
-            "Possible corruption: Invalid PreambleLongs value: " +preambleLongs);
+            "Possible corruption: Invalid PreambleLongs value for QUICKSELECT: " +preambleLongs);
       }
-    } else {
+    } 
+    else {
       throw new IllegalArgumentException(
           "Possible corruption: Invalid Family: " + family.toString());
     }

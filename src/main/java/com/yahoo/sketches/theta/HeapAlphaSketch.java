@@ -5,20 +5,26 @@
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.HashOperations.STRIDE_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.BIG_ENDIAN_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.LG_RESIZE_FACTOR_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
-import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.P_FLOAT;
-import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
-import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
-import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
+import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.theta.PreambleUtil.checkSeedHashes;
 import static com.yahoo.sketches.theta.PreambleUtil.computeSeedHash;
+import static com.yahoo.sketches.theta.PreambleUtil.extractCurCount;
+import static com.yahoo.sketches.theta.PreambleUtil.extractFamilyID;
+import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
+import static com.yahoo.sketches.theta.PreambleUtil.extractLgArrLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractLgNomLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractP;
+import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractResizeFactor;
+import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
+import static com.yahoo.sketches.theta.PreambleUtil.extractSerVer;
+import static com.yahoo.sketches.theta.PreambleUtil.getMemBytes;
 import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountIncremented;
 import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountNotIncremented;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedDuplicate;
@@ -45,78 +51,133 @@ import com.yahoo.sketches.HashOperations;
 class HeapAlphaSketch extends HeapUpdateSketch {
   private static final int ALPHA_MIN_LG_NOM_LONGS = 9; //The smallest Log2 nom entries allowed => 512.
   private static final Family MY_FAMILY = Family.ALPHA;
-  private final double alpha_;        // computed from lgNomLongs
-  private final long split1_;         // computed from alpha and p
+  private final double alpha_;  // computed from lgNomLongs
+  private final long split1_;   // computed from alpha and p
   
   private int lgArrLongs_;
   private int hashTableThreshold_;  //never serialized
-  private long[] cache_;
-  
   private int curCount_ = 0;
   private long thetaLong_;
   private boolean empty_ = true;
+  
+  private long[] cache_;
   private boolean dirty_ = false;
   
+  private HeapAlphaSketch(int lgNomLongs, long seed, float p, ResizeFactor rf, 
+      double alpha, long split1) {
+    super(lgNomLongs, seed, p, rf);
+    alpha_ = alpha;
+    split1_ = split1;
+  }
+  
   /**
-   * Construct a new sketch internally using the java heap. 
-   * The sketch will be instantiated with a minimum sized data cache that will automatically 
-   * resize and grow up to the maximum size corresponding to the given <i>nomEntries</i> argument.
+   * Get a new sketch instance on the java heap. 
    * 
    * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLongs">See lgNomLongs</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
    * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
+   * @return instance of this sketch
    */
-  HeapAlphaSketch(int lgNomLongs, long seed, float p, ResizeFactor rf) {
-    super(lgNomLongs, seed, p, rf);
-    if (lgNomLongs_ < ALPHA_MIN_LG_NOM_LONGS) throw new IllegalArgumentException(
-        "This sketch requires a minimum nominal entries of "+(1 << ALPHA_MIN_LG_NOM_LONGS));
-    lgArrLongs_ = startingSubMultiple(lgNomLongs_+1, rf, MIN_LG_ARR_LONGS);
-    cache_ = new long[1 << lgArrLongs_];
-    hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
+  static HeapAlphaSketch getInstance(int lgNomLongs, long seed, float p, ResizeFactor rf) {
     
-    empty_ = true; //other flags: bigEndian = readOnly = compact = ordered = false; 
-    curCount_ = 0;
-    thetaLong_ = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
-    double nomLongs = (1L << lgNomLongs_);
-    alpha_ = nomLongs / (nomLongs + 1.0);
-    split1_ = (long) ((p * (alpha_ + 1.0)/2.0) * MAX_THETA_LONG_AS_DOUBLE);
+    if (lgNomLongs < ALPHA_MIN_LG_NOM_LONGS) throw new IllegalArgumentException(
+        "This sketch requires a minimum nominal entries of "+(1 << ALPHA_MIN_LG_NOM_LONGS));
+    
+    double nomLongs = (1L << lgNomLongs);
+    double alpha = nomLongs / (nomLongs + 1.0);
+    long split1 = (long) ((p * (alpha + 1.0)/2.0) * MAX_THETA_LONG_AS_DOUBLE);
+    
+    HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, seed, p, rf, alpha, split1);
+    
+    int lgArrLongs = startingSubMultiple(lgNomLongs+1, rf, MIN_LG_ARR_LONGS);
+    has.lgArrLongs_ = lgArrLongs;
+    has.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
+    has.curCount_ = 0; 
+    has.thetaLong_ = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
+    has.empty_ = true; //other flags: bigEndian = readOnly = compact = ordered = false; 
+    has.cache_ = new long[1 << lgArrLongs];
+    return has;
   }
   
   /**
    * Heapify a sketch from a Memory object containing sketch data. 
    * @param srcMem The source Memory object.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a> 
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @return instance of this sketch
    */
-  HeapAlphaSketch(Memory srcMem, long seed) {
-    super(
-        srcMem.getByte(LG_NOM_LONGS_BYTE), 
-        seed, 
-        srcMem.getFloat(P_FLOAT),
-        ResizeFactor.getRF(srcMem.getByte(LG_RESIZE_FACTOR_BYTE) >>> 6)
-    );
-    short seedHashMem = srcMem.getShort(SEED_HASH_SHORT); //check seed
-    short seedHashArg = computeSeedHash(seed);
-    checkSeedHashes(seedHashMem, seedHashArg);
-    MY_FAMILY.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
+  static HeapAlphaSketch getInstance(Memory srcMem, long seed) {
     
-    lgArrLongs_ = srcMem.getByte(LG_ARR_LONGS_BYTE);
-    hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
-    curCount_ = srcMem.getInt(RETAINED_ENTRIES_INT);
-    thetaLong_ = srcMem.getLong(THETA_LONG);
-    empty_ = srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
+    long[] preArr = new long[3];
+    srcMem.getLongArray(0, preArr, 0, 3); //extract the preamble
+    long long0 = preArr[0];
+    int preambleLongs = extractPreLongs(long0);                           //byte 0
+    ResizeFactor myRF = ResizeFactor.getRF(extractResizeFactor(long0));   //byte 0
+    int serVer = extractSerVer(long0);                                    //byte 1
+    int familyID = extractFamilyID(long0);                                //byte 2
+    int lgNomLongs = extractLgNomLongs(long0);                            //byte 3
+    int lgArrLongs = extractLgArrLongs(long0);                            //byte 4
+    int flags = extractFlags(long0);                                      //byte 5
+    short seedHash = (short)extractSeedHash(long0);                       //byte 6,7
+    long long1 = preArr[1];
+    int curCount = extractCurCount(long1);                                //bytes 8-11
+    float p = extractP(long1);                                            //bytes 12-15
+    long thetaLong = preArr[2];                                           //bytes 16-23
     
-    cache_ = new long[1 << lgArrLongs_];
-    int preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    if (preLongs != Family.ALPHA.getMinPreLongs()) {
-      throw new IllegalArgumentException("Corrupt PreambleLongs value: "+ preLongs);
+    Family family = Family.idToFamily(familyID);
+    if (family.equals(Family.ALPHA)) {
+      if (preambleLongs != Family.ALPHA.getMinPreLongs()) {
+        throw new IllegalArgumentException(
+            "Possible corruption: Invalid PreambleLongs value for ALPHA: " +preambleLongs);
+      }
     }
-    srcMem.getLongArray(preLongs << 3, cache_, 0, 1 << lgArrLongs_);  //read in as hash table
+    else {
+      throw new IllegalArgumentException(
+          "Possible corruption: Invalid Family: " + family.toString());
+    }
     
-    double nomLongs = (1L << lgNomLongs_);
-    alpha_ = nomLongs / (nomLongs + 1);
-    split1_ = (long) ((p_ * (alpha_ + 1.0)/2.0) * MAX_THETA_LONG_AS_DOUBLE);
+    if (serVer != SER_VER) {
+      throw new IllegalArgumentException(
+          "Possible corruption: Invalid Serialization Version: "+serVer);
+    }
+    
+    int flagsMask = ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
+    if ((flags & flagsMask) > 0) {
+      throw new IllegalArgumentException(
+          "Possible corruption: Input srcMem cannot be: big-endian, compact, ordered, or read-only");
+    }
+    
+    checkSeedHashes(seedHash, computeSeedHash(seed));
+    
+    long curCapBytes = srcMem.getCapacity();
+    int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
+    if (curCapBytes < minReqBytes) {
+      throw new IllegalArgumentException(
+          "Possible corruption: Current Memory size < min required size: " + 
+              curCapBytes + " < " + minReqBytes);
+    }
+    
+    double theta = thetaLong/MAX_THETA_LONG_AS_DOUBLE;
+    if ((lgArrLongs <= lgNomLongs) && (theta < p) ) {
+      throw new IllegalArgumentException(
+        "Possible corruption: Theta cannot be < p and lgArrLongs <= lgNomLongs. "+
+            lgArrLongs + " <= " + lgNomLongs + ", Theta: "+theta + ", p: " + p);
+    }
+    
+    double nomLongs = (1L << lgNomLongs);
+    double alpha = nomLongs / (nomLongs + 1.0);
+    long split1 = (long) ((p * (alpha + 1.0)/2.0) * MAX_THETA_LONG_AS_DOUBLE);
+    
+    HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, seed, p, myRF, alpha, split1);
+    has.lgArrLongs_ = lgArrLongs;
+    has.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
+    has.curCount_ = curCount;
+    has.thetaLong_ = thetaLong;
+    has.empty_ = (flags & EMPTY_FLAG_MASK) > 0;
+    has.cache_ = new long[1 << lgArrLongs];
+    srcMem.getLongArray(preambleLongs << 3, has.cache_, 0, 1 << lgArrLongs);  //read in as hash table
+    return has;
   }
   
   //Sketch

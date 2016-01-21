@@ -174,7 +174,7 @@ public class UpdateSketchBuilder {
     switch (bFam) {
       case ALPHA: {
         if (bDstMem == null) {
-          sketch = new HeapAlphaSketch(bLgNomLongs, bSeed, bP, bRF);
+          sketch = HeapAlphaSketch.getInstance(bLgNomLongs, bSeed, bP, bRF);
         } 
         else {
           throw new IllegalArgumentException("AlphaSketch cannot be made Direct to Memory.");

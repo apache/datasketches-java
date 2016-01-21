@@ -784,7 +784,7 @@ public class DirectQuickSelectSketchTest {
     
     @Override
     public Memory request(long capacityBytes) {
-      long newCap = capacityBytes-1;
+      long newCap = capacityBytes-1; //Too small
       println("ReqCap: "+capacityBytes + ", Granted: "+newCap);
       return new AllocMemory(newCap, this);
     }

@@ -486,7 +486,7 @@ public abstract class Sketch {
         if (compact) {
           throw new IllegalArgumentException("Corrupted " + family + " image: cannot be compact");
         }
-        return new HeapAlphaSketch(srcMem, seed);
+        return HeapAlphaSketch.getInstance(srcMem, seed);
       }
       case QUICKSELECT: {
         return HeapQuickSelectSketch.getInstance(srcMem, seed);

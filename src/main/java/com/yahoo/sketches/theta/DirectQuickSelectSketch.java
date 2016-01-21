@@ -72,6 +72,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
    * @param dstMem the given Memory object destination. It cannot be null. It will be cleared prior to use.
    * @param unionGadget true if this sketch is implementing the Union gadget function. 
    * Otherwise, it is behaving as a normal QuickSelectSketch.
+   * @return instance of this sketch
    */
   static DirectQuickSelectSketch getInstance(int lgNomLongs, long seed, float p, ResizeFactor rf, 
       Memory dstMem, boolean unionGadget) {
@@ -102,11 +103,11 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     if (memReq == null) { //If memReq is null require full memory, RF = X1, no resizing; 
       lgArrLongs = lgNomLongs +1;
       myRF = ResizeFactor.X1;
-      minReqBytes = getReqMemBytesFull(lgNomLongs, preambleLongs);
+      minReqBytes = PreambleUtil.getReqMemBytesFull(lgNomLongs, preambleLongs);
     } else { //otherwise start small with RF = X2.
       lgArrLongs = MIN_LG_ARR_LONGS;
       myRF = ResizeFactor.X2;
-      minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
+      minReqBytes = PreambleUtil.getMemBytes(lgArrLongs, preambleLongs);
     }
     
     //Make sure Memory is large enough
@@ -154,7 +155,8 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
    * this sketch.
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * The given Memory object must be in hash table form and not read only.
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a> 
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
+   * @return instance of this sketch
    */
   static DirectQuickSelectSketch getInstance(Memory srcMem, long seed) {
     long[] preArr = new long[3];
@@ -177,13 +179,13 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     if (family.equals(Family.UNION)) {
       if (preambleLongs != Family.UNION.getMinPreLongs()) {
         throw new IllegalArgumentException(
-            "Possible corruption: Invalid PreambleLongs value: " +preambleLongs);
+            "Possible corruption: Invalid PreambleLongs value for UNION: " +preambleLongs);
       }
     }
     else if (family.equals(Family.QUICKSELECT)) {
       if (preambleLongs != Family.QUICKSELECT.getMinPreLongs()) {
         throw new IllegalArgumentException(
-            "Possible corruption: Invalid PreambleLongs value: " +preambleLongs);
+            "Possible corruption: Invalid PreambleLongs value for QUICKSELECT: " +preambleLongs);
       }
     } else {
       throw new IllegalArgumentException(
@@ -204,7 +206,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     checkSeedHashes(seedHash, computeSeedHash(seed));
     
     long curCapBytes = srcMem.getCapacity();
-    int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
+    int minReqBytes = PreambleUtil.getMemBytes(lgArrLongs, preambleLongs);
     if (curCapBytes < minReqBytes) {
       throw new IllegalArgumentException(
           "Possible corruption: Current Memory size < min required size: " + 
