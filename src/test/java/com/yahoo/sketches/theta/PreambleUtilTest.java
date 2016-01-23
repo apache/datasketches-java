@@ -80,32 +80,42 @@ public class PreambleUtilTest {
   
   @Test
   public void checkExtracts() {
-    long v = 0X3FL; int shift = PREAMBLE_LONGS_BYTE << 3;
+    long v; int shift;
+    v = 0X3FL;          shift = PREAMBLE_LONGS_BYTE << 3;
     assertEquals(extractPreLongs(v<<shift), (int) v);
+    assertEquals(extractPreLongs(~(v<<shift)), 0);
     
     v = 3L;             shift = (PREAMBLE_LONGS_BYTE << 3) + 6;
     assertEquals(extractResizeFactor(v<<shift), (int) v);
+    assertEquals(extractResizeFactor(~(v<<shift)), 0);
     
-    v = 3L;             shift = SER_VER_BYTE << 3;
+    v = 0XFFL;          shift = SER_VER_BYTE << 3;
     assertEquals(extractSerVer(v<<shift), (int) v);
+    assertEquals(extractSerVer(~(v<<shift)), 0);
     
-    v = 7L;             shift = FAMILY_BYTE << 3;
+    v = 0XFFL;          shift = FAMILY_BYTE << 3;
     assertEquals(extractFamilyID(v<<shift), (int) v);
+    assertEquals(extractFamilyID(~(v<<shift)), 0);
     
-    v = 10L;            shift = LG_NOM_LONGS_BYTE << 3;
+    v = 0XFFL;          shift = LG_NOM_LONGS_BYTE << 3;
     assertEquals(extractLgNomLongs(v<<shift), (int) v);
+    assertEquals(extractLgNomLongs(~(v<<shift)), 0);
     
-    v = 11L;            shift = LG_ARR_LONGS_BYTE << 3;
+    v = 0XFFL;          shift = LG_ARR_LONGS_BYTE << 3;
     assertEquals(extractLgArrLongs(v<<shift), (int) v);
+    assertEquals(extractLgArrLongs(~(v<<shift)), 0);
     
     v = 0XFFL;          shift = FLAGS_BYTE << 3;
     assertEquals(extractFlags(v<<shift), (int) v);
+    assertEquals(extractFlags(~(v<<shift)), 0);
     
     v = 0XFFFFL;        shift = SEED_HASH_SHORT << 3;
     assertEquals(extractSeedHash(v<<shift), (int) v);
+    assertEquals(extractSeedHash(~(v<<shift)), 0);
     
     v = 0XFFFFFFFFL;    shift = 0;
-    assertEquals(extractCurCount(v<<shift), (int) v); 
+    assertEquals(extractCurCount(v<<shift), (int) v);
+    assertEquals(extractCurCount(~(v<<shift)), 0);
   }
   
   @Test
