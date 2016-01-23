@@ -75,7 +75,12 @@ public enum Family {
   /**
    * The Quantiles family of sketches
    */
-  QUANTILES(8, "QUANTILES", 1, 5);
+  QUANTILES(8, "QUANTILES", 1, 5),
+  
+  /**
+   * The Tuple family of sketches
+   */
+  TUPLE(9, "TUPLE", 1, 1);
   
   private static final Map<Integer, Family> lookupID = new HashMap<Integer, Family>();
   private static final Map<String, Family> lookupFamName = new HashMap<String, Family>();

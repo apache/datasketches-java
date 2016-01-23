@@ -110,31 +110,39 @@ public class PreambleUtilTest {
   
   @Test
   public void checkInserts() {
-    long v, shift; 
+    long v; int shift; 
     v = 0X3FL; shift = 0;
     assertEquals(insertPreLongs((int)v, ~(v<<shift)), -1L);
     assertEquals(insertPreLongs((int)v, 0), v<<shift);
+    
     v = 3L;    shift = 6;
     assertEquals(insertResizeFactor((int)v, ~(v<<shift)), -1L);
     assertEquals(insertResizeFactor((int)v, 0), v<<shift);
+    
     v = 0XFFL; shift = 8; 
     assertEquals(insertSerVer((int)v, ~(v<<shift)), -1L);
     assertEquals(insertSerVer((int)v, 0), v<<shift);
+    
     v = 0XFFL; shift = 16;
     assertEquals(insertFamilyID((int)v, ~(v<<shift)), -1L);
     assertEquals(insertFamilyID((int)v, 0), v<<shift);
+    
     v = 0XFFL; shift = 24;
     assertEquals(insertLgNomLongs((int)v, ~(v<<shift)), -1L);
     assertEquals(insertLgNomLongs((int)v, 0), v<<shift);
+    
     v = 0XFFL; shift = 32;
     assertEquals(insertLgArrLongs((int)v, ~(v<<shift)), -1L);
     assertEquals(insertLgArrLongs((int)v, 0), v<<shift);
+    
     v = 0XFFL; shift = 40;
     assertEquals(insertFlags((int)v, ~(v<<shift)), -1L);
     assertEquals(insertFlags((int)v, 0), v<<shift);
+    
     v = 0XFFFFL; shift = 48;
     assertEquals(insertSeedHash((int)v, ~(v<<shift)), -1L);
     assertEquals(insertSeedHash((int)v, 0), v<<shift);
+    
     v = 0XFFFFFFFFL; shift = 0;
     assertEquals(insertCurCount((int)v, ~(v<<shift)), -1L);
     assertEquals(insertCurCount((int)v, 0), v<<shift);

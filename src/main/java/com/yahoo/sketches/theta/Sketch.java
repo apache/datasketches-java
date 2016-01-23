@@ -339,8 +339,8 @@ public abstract class Sketch {
   public abstract boolean isOrdered();
   
   /**
-   * Returns true if this sketch is Direct to Memory
-   * @return true if this sektch is Direct to Memory
+   * Returns true if this sketch accesses its internal data using the Memory package
+   * @return true if this sektch accesses its internal data using the Memory package
    */
   public abstract boolean isDirect();
   
