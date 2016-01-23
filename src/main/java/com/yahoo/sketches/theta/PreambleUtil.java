@@ -28,23 +28,24 @@ import com.yahoo.sketches.memory.NativeMemory;
  * multi-byte integers (<i>int</i> and <i>long</i>) are stored in native byte order. The
  * <i>byte</i> values are treated as unsigned.</p>
  * 
- * <p>An Empty virgin sketch may only have the first 8 bytes.  A non-sketch-estimating sampling
- * sketch may only have the first 16 bytes. All others will have all 24 bytes.</p> 
+ * <p>An empty CompactSketch only requires 8 bytes. An exact (non-estimating) compact 
+ * sketch requres 16 bytes of preamble. UpdateSketches require 24 bytes of preamble. Union objects
+ * require 32 bytes of preamble.</p>
  * 
  * <pre>
  * Long || Start Byte Adr:
  * Adr: 
- *      ||  7 |   6   |     5    |   4   |   3   |    2   |    1   |     0              |
- *  0   || Seed Hash  |  Flags   | LgArr | lgNom | FamID  | SerVer | RF, Preamble_Longs |
+ *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
+ *  0   ||    Seed Hash    | Flags  |  LgArr |  lgNom | FamID  | SerVer | RF, Preamble_Longs |
  *  
- *      || 15 |  14   |    13    |  12   |  11   |   10   |    9   |     8              |
- *  1   || --------------p-------------- | ---------Retained Entries Count------------- |
+ *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
+ *  1   ||-----------------p-----------------|----------Retained Entries Count---------------|
  *  
- *      || 23 |  22   |    21    |  20   |  19   |   18   |   17   |    16              |
- *  2   || --------------------------THETA_LONG---------------------------------------- |
+ *      ||   23   |   22   |   21    |  20   |   19   |   18   |   17   |    16              |
+ *  2   ||------------------------------THETA_LONG-------------------------------------------|
  *
- *      ||                                                         |    24              |
- *  3   || ----------Start of Long Array ---------------------------------------------  |
+ *      ||   31   |   30   |   29   |   28   |   27   |   26   |   25   |    24              |
+ *  3   ||---------------------------Start of Long Array-------------------------------------|
  *  </pre>
  *  
  *  @author Lee Rhodes

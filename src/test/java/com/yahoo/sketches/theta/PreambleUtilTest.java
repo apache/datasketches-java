@@ -80,70 +80,70 @@ public class PreambleUtilTest {
   
   @Test
   public void checkExtracts() {
-    long long0 = 0X3FL;
-    assertEquals(extractPreLongs(long0), (int) long0);
+    long v = 0X3FL; int shift = PREAMBLE_LONGS_BYTE << 3;
+    assertEquals(extractPreLongs(v<<shift), (int) v);
     
-    long0 = 3L << 6;
-    assertEquals(extractResizeFactor(long0), 3);
+    v = 3L;             shift = (PREAMBLE_LONGS_BYTE << 3) + 6;
+    assertEquals(extractResizeFactor(v<<shift), (int) v);
     
-    long0 = 3L << 8;
-    assertEquals(extractSerVer(long0), 3);
+    v = 3L;             shift = SER_VER_BYTE << 3;
+    assertEquals(extractSerVer(v<<shift), (int) v);
     
-    long0 = 7L << 16;
-    assertEquals(extractFamilyID(long0), 7);
+    v = 7L;             shift = FAMILY_BYTE << 3;
+    assertEquals(extractFamilyID(v<<shift), (int) v);
     
-    long0 = 10L << 24;
-    assertEquals(extractLgNomLongs(long0), 10);
+    v = 10L;            shift = LG_NOM_LONGS_BYTE << 3;
+    assertEquals(extractLgNomLongs(v<<shift), (int) v);
     
-    long0 = 11L << 32;
-    assertEquals(extractLgArrLongs(long0), 11);
+    v = 11L;            shift = LG_ARR_LONGS_BYTE << 3;
+    assertEquals(extractLgArrLongs(v<<shift), (int) v);
     
-    long0 = 0XFFL << 40;
-    assertEquals(extractFlags(long0), 0XFF);
+    v = 0XFFL;          shift = FLAGS_BYTE << 3;
+    assertEquals(extractFlags(v<<shift), (int) v);
     
-    long0 = 0XF0F0L << 48;
-    assertEquals(extractSeedHash(long0), 0XF0F0);
+    v = 0XFFFFL;        shift = SEED_HASH_SHORT << 3;
+    assertEquals(extractSeedHash(v<<shift), (int) v);
     
-    long0 = 0XFEFEFEFEL;
-    assertEquals(extractCurCount(long0), (int) long0); 
+    v = 0XFFFFFFFFL;    shift = 0;
+    assertEquals(extractCurCount(v<<shift), (int) v); 
   }
   
   @Test
   public void checkInserts() {
     long v; int shift; 
-    v = 0X3FL; shift = 0;
+    v = 0X3FL;          shift = PREAMBLE_LONGS_BYTE << 3;
     assertEquals(insertPreLongs((int)v, ~(v<<shift)), -1L);
     assertEquals(insertPreLongs((int)v, 0), v<<shift);
     
-    v = 3L;    shift = 6;
+    v = 3L;             shift = (PREAMBLE_LONGS_BYTE << 3) + 6;
     assertEquals(insertResizeFactor((int)v, ~(v<<shift)), -1L);
     assertEquals(insertResizeFactor((int)v, 0), v<<shift);
     
-    v = 0XFFL; shift = 8; 
+    v = 0XFFL;          shift = SER_VER_BYTE << 3; 
     assertEquals(insertSerVer((int)v, ~(v<<shift)), -1L);
     assertEquals(insertSerVer((int)v, 0), v<<shift);
     
-    v = 0XFFL; shift = 16;
+    v = 0XFFL;          shift = FAMILY_BYTE << 3;
     assertEquals(insertFamilyID((int)v, ~(v<<shift)), -1L);
     assertEquals(insertFamilyID((int)v, 0), v<<shift);
     
-    v = 0XFFL; shift = 24;
+    v = 0XFFL;          shift = LG_NOM_LONGS_BYTE << 3;
     assertEquals(insertLgNomLongs((int)v, ~(v<<shift)), -1L);
     assertEquals(insertLgNomLongs((int)v, 0), v<<shift);
     
-    v = 0XFFL; shift = 32;
+    v = 0XFFL;          shift = LG_ARR_LONGS_BYTE << 3;
     assertEquals(insertLgArrLongs((int)v, ~(v<<shift)), -1L);
     assertEquals(insertLgArrLongs((int)v, 0), v<<shift);
     
-    v = 0XFFL; shift = 40;
+    v = 0XFFL;          shift = FLAGS_BYTE << 3;
     assertEquals(insertFlags((int)v, ~(v<<shift)), -1L);
     assertEquals(insertFlags((int)v, 0), v<<shift);
     
-    v = 0XFFFFL; shift = 48;
+    v = 0XFFFFL;        shift = SEED_HASH_SHORT << 3;
     assertEquals(insertSeedHash((int)v, ~(v<<shift)), -1L);
     assertEquals(insertSeedHash((int)v, 0), v<<shift);
     
-    v = 0XFFFFFFFFL; shift = 0;
+    v = 0XFFFFFFFFL;    shift = 0;
     assertEquals(insertCurCount((int)v, ~(v<<shift)), -1L);
     assertEquals(insertCurCount((int)v, 0), v<<shift);
 
