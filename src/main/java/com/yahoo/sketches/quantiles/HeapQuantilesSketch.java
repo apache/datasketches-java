@@ -260,11 +260,6 @@ class HeapQuantilesSketch extends QuantilesSketch {
   }
 
   @Override
-  public double getNormalizedRankError() {
-    return Util.EpsilonFromK.getAdjustedEpsilon(k_);
-  }
-
-  @Override
   public int getK() { 
     return k_; 
   }

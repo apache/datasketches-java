@@ -23,21 +23,26 @@ public final class Space {
    */
   public static String spaceTableGuide(int elementSizeBytes) {
     StringBuilder sb = new StringBuilder();
-    sb.append("Table Guide for Quantiles Size, Bytes:").append(LS);
+    sb.append("Table Guide for QuantilesSketch Size in Bytes and Approximate Error:").append(LS);
     sb.append("      N : K => |");
-    for (int kpow = 4; kpow <= 10; kpow++) {
+    for (int kpow = 4; kpow <= 10; kpow++) { //the header row of k values
       int k = 1 << kpow;
       sb.append(String.format("%,8d", k));
     }
-    sb.append(LS);
-    sb.append("-------------------------------------------------------------------------\n");
-    for (int npow = 2; npow <= 32; npow++) {
+    sb.append("\n    ~ Error => |");
+    for (int kpow = 4; kpow <= 10; kpow++) { //the header row of k values
+      int k = 1 << kpow;
+      sb.append(String.format("%7.3f%%", 100*Util.EpsilonFromK.getAdjustedEpsilon(k)));
+    }
+    
+    sb.append("\n-------------------------------------------------------------------------\n");
+    for (int npow = 0; npow <= 32; npow++) {
       long n = (1L << npow) -1L;
       sb.append(String.format("%,14d |", n));
       for (int kpow = 4; kpow <= 10; kpow++) {
         int k = 1 << kpow;
-        int ubSpace = Util.bufferElementCapacity(k, n);
-        int ubBytes = ubSpace * elementSizeBytes;
+        int elCap = (n == 0)? 1 : (Util.bufferElementCapacity(k, n)) + 5;
+        int ubBytes = elCap * elementSizeBytes;
         sb.append(String.format("%,8d", ubBytes));
       }
       sb.append(LS);
@@ -55,15 +60,5 @@ public final class Space {
    */
   public static void main(String[] args) {
     println(spaceTableGuide(8));
-    long n = (1L << 19) ;
-    int k = 1024;
-    int maxLevels = Util.computeNumLevelsNeeded(k, n);
-    int bbCnt = (maxLevels > 0)? 2*k : Util.computeBaseBufferCount(k, n);
-    int bytes = bbCnt*8 + maxLevels*k*8;
-    println("K: "+k);
-    println("N: "+n);
-    println("bbCnt: "+bbCnt);
-    println("maxLvs: "+maxLevels);
-    println("bytes: "+bytes);
   }
 }

@@ -34,8 +34,9 @@ public class UpdateSketchBuilder {
    * <li>Seed: {@value com.yahoo.sketches.Util#DEFAULT_UPDATE_SEED}</li>
    * <li>Resize Factor: The default for sketches on the Java heap is 
    * {@link com.yahoo.sketches.theta.ResizeFactor#X8}.
-   * For direct sketches, which are targeted for native memory off the Java heap, this value is
-   * fixed at {@link com.yahoo.sketches.theta.ResizeFactor#X2}.</li>
+   * For direct sketches, which are targeted for native memory off the Java heap, this value will
+   * be fixed at either {@link com.yahoo.sketches.theta.ResizeFactor#X1} or 
+   * {@link com.yahoo.sketches.theta.ResizeFactor#X2}.</li>
    * <li>{@link com.yahoo.sketches.Family#QUICKSELECT}</li>
    * <li>Input Sampling Probability: 1.0</li>
    * <li>Memory: null</li>

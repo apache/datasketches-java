@@ -286,21 +286,6 @@ public class HeapQuantilesSketchTest {
   }
   
   //@Test  //visual only
-  public void quantilesCheckViaMemory() {
-    int k = 256;
-    long n = 1000000;
-    QuantilesSketch qs = buildQS(k, n, 0, (short)0);
-    double[] ranks = {0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
-    println(getRanksTable(qs, ranks));
-    println("");
-    
-    NativeMemory srcMem = new NativeMemory(qs.toByteArray());
-    
-    HeapQuantilesSketch qs2 = HeapQuantilesSketch.getInstance(srcMem);
-    println(getRanksTable(qs2, ranks));
-  }
-  
-  //@Test  //visual only
   public void summaryCheckViaMemory() {
     QuantilesSketch qs = buildQS(256, 1000000, 0, (short)0);
     println(qs.toString());
@@ -487,12 +472,33 @@ public class HeapQuantilesSketchTest {
     QuantilesSketch.checkFlags(flags);
   }
   
-  static QuantilesSketch buildQS(int k, long n, int startV, short seed) { //TODO
-    QuantilesSketch qs = QuantilesSketch.builder().setSeed(seed).build(k);
-    for (int i=0; i<n; i++) {
-      qs.update(startV + i);
+  @Test
+  public void checkStorageSize() {
+    int k = 227;
+    long v = 1;
+    QuantilesSketch qs = QuantilesSketch.builder().setSeed(SEED).build(k);
+    for (int i = 0; i< 1000; i++) {
+      for (int j = 0; j < 1000; j++) {
+        qs.update(v++);
+      }
+      byte[] byteArr = qs.toByteArray();
+      assertEquals(qs.getStorageBytes(), byteArr.length);
     }
-    return qs;
+  }
+  
+  //@Test  //visual only
+  public void quantilesCheckViaMemory() {
+    int k = 256;
+    long n = 1000000;
+    QuantilesSketch qs = buildQS(k, n, 0, (short)0);
+    double[] ranks = {0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
+    println(getRanksTable(qs, ranks));
+    println("");
+    
+    NativeMemory srcMem = new NativeMemory(qs.toByteArray());
+    
+    HeapQuantilesSketch qs2 = HeapQuantilesSketch.getInstance(srcMem);
+    println(getRanksTable(qs2, ranks));
   }
   
   static String getRanksTable(QuantilesSketch qs, double[] ranks) {
@@ -532,6 +538,14 @@ public class HeapQuantilesSketchTest {
       }
     }
     return sb.toString();
+  }
+  
+  static QuantilesSketch buildQS(int k, long n, int startV, short seed) { //TODO
+    QuantilesSketch qs = QuantilesSketch.builder().setSeed(seed).build(k);
+    for (int i=0; i<n; i++) {
+      qs.update(startV + i);
+    }
+    return qs;
   }
   
   @Test

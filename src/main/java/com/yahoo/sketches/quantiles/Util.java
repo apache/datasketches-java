@@ -28,6 +28,8 @@ final class Util {
    */
   public static final char TAB = '\t';
   
+  public static final int DEFAULT_K = 227; //default for about 1% normalized rank accuracy
+  
   static Random rand = new Random();
   
   /**
