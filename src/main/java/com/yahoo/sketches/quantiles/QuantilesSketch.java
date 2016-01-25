@@ -20,15 +20,14 @@ import com.yahoo.sketches.memory.Memory;
  * This is a stochastic streaming sketch that enables near-real time analysis of the 
  * approximate distribution of real values from a very large stream in a single pass. 
  * The analysis is obtained using a getQuantiles(*) function or its inverse functions the 
- * Probability Mass Function from getPMF(*) and the Cumulative Distribution Function from the 
- * getCDF(*).</p>
+ * Probability Mass Function from getPMF(*) and the Cumulative Distribution Function from getCDF(*).
  * 
  * <p>Consider a large stream of one million values such as packet sizes coming into a network node.
  * The absolute rank of any specific size value is simply its index in the hypothetical sorted 
  * array of values.
  * The normalized rank is the absolute rank divided by the stream size, in this case one million. 
  * The value corresponding to the normalized rank of 0.5 represents the 50th percentile or median
- * value of the distribution, or median value = getQuantile(0.5).  Similarly, the 95th percentile =
+ * value of the distribution, or getQuantile(0.5).  Similarly, the 95th percentile is obtained from 
  * getQuantile(0.95).</p>
  * 
  * <p>If you have prior knowledge of the approximate range of values, for example, 1 to 1000 bytes,
@@ -38,7 +37,7 @@ import com.yahoo.sketches.memory.Memory;
  * 30% of the values were &ge; 100 and &lt; 500,
  * 20% of the values were &ge; 500 and &lt; 900, and
  * 10% of the values were &ge; 900.
- * A frequency histogram is obtained by simply multiplying these fraction by getN(), which is the 
+ * A frequency histogram can be obtained by simply multiplying these fraction by getN(), which is the 
  * total count of values received. The getCDF(*) works similarly, but produces the cumulative 
  * distribution.</p>
  * 
@@ -50,7 +49,7 @@ import com.yahoo.sketches.memory.Memory;
  * a confidence of about 99%.</p>
  * 
  * <p>There is more documentation available on 
- * <a href="http://datasketches.github.io">DataSketches.GitHub.io</a>}.</p>
+ * <a href="http://datasketches.github.io">DataSketches.GitHub.io</a>.</p>
  * 
  * <p>This is an implementation of the Low Discrepancy Mergeable Quantiles Sketch, using double 
  * values, described in section 3.2 of the journal version of the paper "Mergeable Summaries" 
@@ -58,12 +57,12 @@ import com.yahoo.sketches.memory.Memory;
  * <a href="http://dblp.org/rec/html/journals/tods/AgarwalCHPWY13"></a></p>
  * 
  * <p>This algorithm is independent of the distribution of values, which can be anywhere in the
- * range of the IEEE-754 64-bit double values. 
+ * range of the IEEE-754 64-bit doubles. 
  * 
  * <p>This algorithm intentionally inserts randomness into the sampling process for values that
  * ultimately get retained in the sketch. The result is that this algorithm is not 
- * deterministic. I.e., if the same stream is inserted into two different instances of this sketch, 
- * the answers obtained from the two sketches may not be be identical.</p>
+ * deterministic. For example, if the same stream is inserted into two different instances of this 
+ * sketch, the answers obtained from the two sketches may not be be identical.</p>
  * 
  * <p>Similarly, there may be directional inconsistencies. For example, the resulting array of 
  * values obtained from getQuantiles(fractions[]) input into the reverse directional query 
@@ -72,6 +71,8 @@ import com.yahoo.sketches.memory.Memory;
  */
 public abstract class QuantilesSketch {
   static final int MIN_BASE_BUF_SIZE = 4; //This is somewhat arbitrary
+  
+  QuantilesSketch() {}
   
   /**
    * Returns a new builder
@@ -209,7 +210,8 @@ public abstract class QuantilesSketch {
   }
   
   /**
-   * Returns true if this sketch accesses its internal data using the Memory package
+   * Returns true if this sketch accesses its internal data using the Memory package.
+   * (The Direct version of this sketch is not yet implemented.) 
    * @return true if this sektch accesses its internal data using the Memory package
    */
   public abstract boolean isDirect();
@@ -256,7 +258,7 @@ public abstract class QuantilesSketch {
    public abstract void mergeInto(QuantilesSketch qsSource, QuantilesSketch qsTarget);
    
    /**
-    * Heapify takes the sketch image in Memory and instantiates an on-heap Sketch, 
+    * Heapify takes the sketch image in Memory and instantiates an on-heap Sketch. 
     * The resulting sketch will not retain any link to the source Memory.
     * @param srcMem an image of a Sketch.
     * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
@@ -279,6 +281,10 @@ public abstract class QuantilesSketch {
      return bbCnt + validLevels*k; 
    }
    
+   /**
+    * Returns the number of bytes required to store this sketch as an array of bytes.
+    * @return the number of bytes required to store this sketch as an array of bytes.
+    */
    public int getStorageBytes() {
      if (isEmpty()) return 8;
      return 40 + 8*Util.bufferElementCapacity(getK(), getN());
