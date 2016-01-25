@@ -8,7 +8,7 @@
 
   <groupId>com.yahoo.datasketches</groupId>
   <artifactId>sketches-core</artifactId>
-  <version>0.2.3-SNAPSHOT</version>
+  <version>0.3.0</version>
 
   <name>${project.groupId}:${project.artifactId}</name>
   <description>Data Sketches Core</description>
@@ -39,7 +39,7 @@
     <connection>scm:git:ssh://git@github.com/DataSketches/sketches-core.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/DataSketches/sketches-core.git</developerConnection>
     <url>https://github.com/DataSketches/sketches-core.git</url>
-    <tag>HEAD</tag>
+    <tag>sketches-core-0.3.0</tag>
   </scm>
 
   <properties>
