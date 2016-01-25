@@ -49,7 +49,8 @@ import com.yahoo.sketches.memory.Memory;
  * from the hypothetically sorted array of input values at normalized rank of 0.49 and 0.51, with 
  * a confidence of about 99%.</p>
  * 
- * <p>There is more documentation available on {@link datasketches.github.io}.</p>
+ * <p>There is more documentation available on 
+ * <a href="http://datasketches.github.io">DataSketches.GitHub.io</a>}.</p>
  * 
  * <p>This is an implementation of the Low Discrepancy Mergeable Quantiles Sketch, using double 
  * values, described in section 3.2 of the journal version of the paper "Mergeable Summaries" 
