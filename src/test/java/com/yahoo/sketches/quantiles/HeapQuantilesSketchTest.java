@@ -20,7 +20,7 @@ import org.testng.annotations.Test;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
-public class HeapQuantilesSketchTest { 
+public class HeapQuantilesSketchTest {
   private static final short SEED = 32749; // > 0 means sketch is deterministic for testing
   
   @Test
@@ -323,20 +323,41 @@ public class HeapQuantilesSketchTest {
   }
   
   @Test
-  public void checkStorageBytes() {
+  public void checkGetStorageBytes() {
     int k = DEFAULT_K;
-    QuantilesSketch qs = buildQS(k, 0, 0, (short) 0);
+    QuantilesSketch qs = buildQS(k, 0, 0, DEFAULT_SEED); //k, n, start, seed
     int stor = qs.getStorageBytes();
     assertEquals(stor, 8);
-    qs = buildQS(k, 2*(k), 0, (short) 0);
+    
+    qs = buildQS(k, 2*(k), 0, DEFAULT_SEED); //forces one level
     stor = qs.getStorageBytes();
-    println("BufLen      : "+qs.getCombinedBuffer().length);
+    int bbLen = qs.getCombinedBuffer().length << 3;
+    println("BufLen      : "+bbLen);
     println("getStorBytes: "+stor);
-    qs = buildQS(k, 2*(k-1), 0, (short) 0);
+    assertEquals(stor, 40 + bbLen);
+    
+    qs = buildQS(k, 2*k-1, 0, DEFAULT_SEED); //just Base Buffer
     stor = qs.getStorageBytes();
-    println("BufLen      : "+qs.getCombinedBuffer().length);
+    bbLen = qs.getCombinedBuffer().length << 3;
+    println("BufLen      : "+bbLen);
     println("getStorBytes: "+stor);
+    assertEquals(stor, 40 + bbLen);
   }
+  
+  @Test
+  public void checkGetStorageBytes2() {
+    int k = DEFAULT_K;
+    long v = 1;
+    QuantilesSketch qs = QuantilesSketch.builder().setSeed(SEED).build(k);
+    for (int i = 0; i< 1000; i++) {
+      for (int j = 0; j < 1000; j++) {
+        qs.update(v++);
+      }
+      byte[] byteArr = qs.toByteArray();
+      assertEquals(qs.getStorageBytes(), byteArr.length);
+    }
+  }
+  
   
   @Test
   public void checkMerge() {
@@ -472,21 +493,7 @@ public class HeapQuantilesSketchTest {
     int flags = 1;
     QuantilesSketch.checkFlags(flags);
   }
-  
-  @Test
-  public void checkStorageSize() {
-    int k = DEFAULT_K;
-    long v = 1;
-    QuantilesSketch qs = QuantilesSketch.builder().setSeed(SEED).build(k);
-    for (int i = 0; i< 1000; i++) {
-      for (int j = 0; j < 1000; j++) {
-        qs.update(v++);
-      }
-      byte[] byteArr = qs.toByteArray();
-      assertEquals(qs.getStorageBytes(), byteArr.length);
-    }
-  }
-  
+
   @Test
   public void checkImproperKvalues() {
     checksForK(1);
@@ -586,7 +593,7 @@ public class HeapQuantilesSketchTest {
    * @param s value to print 
    */
   static void println(String s) {
-    //System.out.println(s); //disable here
+    System.out.println(s); //disable here //TODO
   }
   
 }
