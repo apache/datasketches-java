@@ -540,7 +540,7 @@ public class HeapQuantilesSketchTest {
     return sb.toString();
   }
   
-  static QuantilesSketch buildQS(int k, long n, int startV, short seed) { //TODO
+  static QuantilesSketch buildQS(int k, long n, int startV, short seed) {
     QuantilesSketch qs = QuantilesSketch.builder().setSeed(seed).build(k);
     for (int i=0; i<n; i++) {
       qs.update(startV + i);
