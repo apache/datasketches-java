@@ -10,7 +10,6 @@ import java.util.Arrays;
  * Auxiliary data structure for answering quantile queries
  */
 class Auxiliary {
-  int auxK_; // doesn't seem to be used anywhere, could maybe delete
   long auxN_;
   double[] auxSamplesArr_; //array of size samples
   long[] auxCumWtsArr_;
@@ -37,7 +36,6 @@ class Auxiliary {
 
     // Sort the first "numSamples" slots of the two arrays in tandem, 
     //  taking advantage of the already sorted blocks of length k
-
     Util.blockyTandemMergeSort(itemsArr, cumWtsArr, numSamples, k);
 
     // convert the item weights into totals of the weights preceding each item
@@ -50,11 +48,23 @@ class Auxiliary {
 
     assert subtot == n;
     
-    auxK_ = k;
     auxN_ = n;
     auxSamplesArr_ = itemsArr;
     auxCumWtsArr_ = cumWtsArr;
   }
+  
+  /**
+   * Get the estimated value given phi
+   * @param phi the fractional position where: 0 &le; &#966; &le; 1.0.
+   * @return the estimated value given phi
+   */
+  double getQuantile(double phi) {
+    assert 0.0 <= phi;
+    assert phi <= 1.0;
+    long pos = posOfPhi(phi, this.auxN_);
+    return (approximatelyAnswerPositionalQuery(pos));
+  }
+
   
   /**
    * Populate the arrays and registers from a HeapQuantilesSketch
@@ -103,9 +113,8 @@ class Auxiliary {
     cumWtsArr[numSamples] = 0;
   }
 
-  /* let m_i denote the minimum position of the length=n 
-     "full" sorted sequence that is represented in 
-     slot i of the length = n "chunked" sorted sequence.
+  /* Let m_i denote the minimum position of the length=n "full" sorted sequence 
+     that is represented in slot i of the length = n "chunked" sorted sequence.
   
      Note that m_i is the same thing as auxCumWtsArr_[i]
   
@@ -116,8 +125,7 @@ class Auxiliary {
      C)   l+1 = r
   
      A) and B) provide the invariants for our binary search.
-     Observe that they are satisfied by the initial conditions
-     l = 0 and r = len.
+     Observe that they are satisfied by the initial conditions:  l = 0 and r = len.
   */
   private static int searchForChunkContainingPos(long[] arr, long q, int l, int r) {
     /* the following three asserts can probably go away eventually, since it is fairly clear
@@ -155,7 +163,7 @@ class Auxiliary {
     assert q < arr[r];
     return (searchForChunkContainingPos(arr, q, l, r));
   }
-
+  
   /* Assuming that there are n items in the true stream, this asks what
      item would appear in position 0 <= pos < n of a hypothetical sorted
      version of that stream.  
@@ -171,19 +179,16 @@ class Auxiliary {
     return (this.auxSamplesArr_[index]);
   }
 
+  /**
+   * Returns the zero-based index (position) of a value in the hypothetical sorted stream of 
+   * values of size n. 
+   * @param phi the fractional position where: 0 &le; &#966; &le; 1.0.
+   * @param n the size of the stream
+   * @return the index, a value between 0 and n-1.
+   */
   private static long posOfPhi(double phi, long n) { // don't tinker with this definition
-    long pos = (long) Math.floor(phi * n);
-    if (pos == n) {
-      pos = n - 1; /* special rule */
-    }
-    return (pos);
-  }
-  
-  double getQuantile(double phi) {
-    assert 0.0 <= phi;
-    assert phi <= 1.0;
-    long pos = posOfPhi(phi, this.auxN_);
-    return (approximatelyAnswerPositionalQuery(pos));
+    long pos = (long) Math.floor(phi * n); 
+    return (pos == n)? n-1 : pos;
   }
 
 } /* end of class Auxiliary */

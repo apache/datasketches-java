@@ -112,6 +112,8 @@ class HeapQuantilesSketch extends QuantilesSketch {
    * 
    * @param k Parameter that controls space usage of sketch and accuracy of estimates. 
    * Must be greater than one.
+   * It is recommended that <i>k</i> be a power of 2 to enable merging of sketches with
+   * different values of <i>k</i>.
    */
   static HeapQuantilesSketch getInstance(int k, short seed) {
     HeapQuantilesSketch hqs = new HeapQuantilesSketch(k, seed);

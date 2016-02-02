@@ -24,18 +24,21 @@ public final class Space {
   public static String spaceTableGuide(int elementSizeBytes) {
     StringBuilder sb = new StringBuilder();
     sb.append("Table Guide for QuantilesSketch Size in Bytes and Approximate Error:").append(LS);
-    sb.append("      N : K => |");
+    sb.append("          K => |");
     for (int kpow = 4; kpow <= 10; kpow++) { //the header row of k values
       int k = 1 << kpow;
       sb.append(String.format("%,8d", k));
     }
-    sb.append("\n    ~ Error => |");
+    sb.append(LS);
+    sb.append("    ~ Error => |");
     for (int kpow = 4; kpow <= 10; kpow++) { //the header row of k values
       int k = 1 << kpow;
       sb.append(String.format("%7.3f%%", 100*Util.EpsilonFromK.getAdjustedEpsilon(k)));
     }
+    sb.append(LS);
+    sb.append("             N | Size in Bytes ->").append(LS);
     
-    sb.append("\n-------------------------------------------------------------------------\n");
+    sb.append("------------------------------------------------------------------------").append(LS);
     for (int npow = 0; npow <= 32; npow++) {
       long n = (1L << npow) -1L;
       sb.append(String.format("%,14d |", n));

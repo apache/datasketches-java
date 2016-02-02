@@ -20,12 +20,11 @@ public class QuantilesSketchBuilder {
   private Memory bDstMem;
   private short bSeed;
   
-  
   /**
    * Constructor for building a new QuantilesSketch. The default configuration is 
    * <ul>
    * <li>k: {@value com.yahoo.sketches.quantiles.Util#DEFAULT_K} 
-   * This produces a normalized rank error of about 1%</li>
+   * This produces a normalized rank error of about 1.7%</li>
    * <li>Seed: 0</li>
    * <li>Memory: null</li>
    * </ul>
@@ -39,6 +38,8 @@ public class QuantilesSketchBuilder {
   /**
    * Sets the parameter <i>k</i> that determines the accuracy and size of the sketch
    * @param k determines the accuracy and size of the sketch.  Must be greater than 1.
+   * It is recommended that <i>k</i> be a power of 2 to enable merging of sketches with
+   * different values of <i>k</i>.
    * @return this builder
    */
   public QuantilesSketchBuilder setK(int k) {

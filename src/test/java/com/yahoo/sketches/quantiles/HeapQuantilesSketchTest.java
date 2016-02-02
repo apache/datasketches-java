@@ -8,6 +8,7 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.Util.LS;
 import static com.yahoo.sketches.quantiles.Util.bufferElementCapacity;
 import static com.yahoo.sketches.quantiles.Util.computeNumLevelsNeeded;
+import static com.yahoo.sketches.quantiles.Util.DEFAULT_K;
 import static com.yahoo.sketches.quantiles.Util.lg;
 import static java.lang.Math.floor;
 import static org.testng.Assert.assertEquals;
@@ -107,7 +108,7 @@ public class HeapQuantilesSketchTest {
 
   @Test
   public void checkConstructAuxiliary() {
-    for (int k = 2; k <= 32; k+= 31) {
+    for (int k = 2; k <= 32; k *= 2) {
       HeapQuantilesSketch qs = HeapQuantilesSketch.getInstance(k, SEED);
       for (int numItemsSoFar = 0; numItemsSoFar < 1000; numItemsSoFar++) {
         Auxiliary aux = qs.constructAuxiliary();
@@ -115,7 +116,6 @@ public class HeapQuantilesSketchTest {
         double[] auxItems = aux.auxSamplesArr_;
         long[] auxAccum = aux.auxCumWtsArr_;
 
-        assert qs.getK() == aux.auxK_;
         assert qs.getN() == aux.auxN_;
         assert numItemsSoFar == aux.auxN_;
 
@@ -230,7 +230,7 @@ public class HeapQuantilesSketchTest {
   
   @Test
   public void checkMisc() {
-    int k = 227;
+    int k = DEFAULT_K;
     int n = 1000000;
     QuantilesSketch qs = buildQS(k, n, 0, (short)0);
 
@@ -244,7 +244,7 @@ public class HeapQuantilesSketchTest {
   @SuppressWarnings("unused")
   @Test
   public void checkToStringDetail() {
-    int k = 227;
+    int k = DEFAULT_K;
     int n = 1000000;
     QuantilesSketch qs = buildQS(k, 0, 0, (short)0);
     String s = qs.toString();
@@ -269,7 +269,7 @@ public class HeapQuantilesSketchTest {
   
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkGetQuantiles() {
-    int k = 227;
+    int k = DEFAULT_K;
     int n = 1000000;
     QuantilesSketch qs = buildQS(k, n, 0, (short)0);
     double[] frac = {-0.5}; //an array
@@ -278,7 +278,7 @@ public class HeapQuantilesSketchTest {
   
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkGetQuantile() {
-    int k = 227;
+    int k = DEFAULT_K;
     int n = 1000000;
     QuantilesSketch qs = buildQS(k, n, 0, (short)0);
     double frac = -0.5; //negative not allowed
@@ -301,7 +301,7 @@ public class HeapQuantilesSketchTest {
   @Test
   public void checkComputeNumLevelsNeeded() {
     int n = 1 << 20;
-    int k = 227;
+    int k = DEFAULT_K;
     int lvls1 = computeNumLevelsNeeded(k, n);
     int lvls2 = (int)Math.max(floor(lg((double)n/k)),0);
     assertEquals(lvls1, lvls2);
@@ -310,7 +310,7 @@ public class HeapQuantilesSketchTest {
   @Test
   public void checkComputeBitPattern() {
     int n = 1 << 20;
-    int k = 227;
+    int k = DEFAULT_K;
     long bitP = Util.computeBitPattern(k, n);
     assertEquals(bitP, n/(2L*k));
   }
@@ -323,7 +323,7 @@ public class HeapQuantilesSketchTest {
   
   @Test
   public void checkStorageBytes() {
-    int k = 227;
+    int k = DEFAULT_K;
     QuantilesSketch qs = buildQS(k, 0, 0, (short) 0);
     int stor = qs.getStorageBytes();
     assertEquals(stor, 8);
@@ -339,7 +339,7 @@ public class HeapQuantilesSketchTest {
   
   @Test
   public void checkMerge() {
-    int k = 227;
+    int k = DEFAULT_K;
     int n = 1000000;
     QuantilesSketch qs1 = buildQS(k,n,0, (short)0);
     QuantilesSketch qs2 = buildQS(k,0,0, (short)0);
@@ -352,7 +352,7 @@ public class HeapQuantilesSketchTest {
   
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkMergeException() {
-    int k = 227;
+    int k = DEFAULT_K;
     QuantilesSketch qs1 = buildQS(k,0,0, (short)0);
     QuantilesSketch qs2 = buildQS(2*k,0,0, (short)0);
     qs2.merge(qs1);
@@ -360,7 +360,7 @@ public class HeapQuantilesSketchTest {
   
   @Test
   public void checkInternalBuildHistogram() {
-    int k = 227;
+    int k = DEFAULT_K;
     int n = 1000000;
     QuantilesSketch qs = buildQS(k,n,0, (short)0);
     double eps = qs.getNormalizedRankError();
@@ -380,14 +380,14 @@ public class HeapQuantilesSketchTest {
   @Test
   public void checkComputeBaseBufferCount() {
     int n = 1 << 20;
-    int k = 227;
+    int k = DEFAULT_K;
     long bbCnt = Util.computeBaseBufferCount(k, n);
     assertEquals(bbCnt, n % (2L*k));
   }
   
   @Test
   public void checkToFromByteArray() {
-    int k = 227;
+    int k = DEFAULT_K;
     int n = 1000000;
     QuantilesSketch qs = buildQS(k,n, 0, (short)0);
     
@@ -402,7 +402,7 @@ public class HeapQuantilesSketchTest {
   
   @Test
   public void checkEmpty() {
-    int k = 227;
+    int k = DEFAULT_K;
     QuantilesSketch qs1 = buildQS(k, 0, 0, (short)0);
     byte[] byteArr = qs1.toByteArray();
     Memory mem = new NativeMemory(byteArr);
@@ -432,7 +432,7 @@ public class HeapQuantilesSketchTest {
   
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkBufAllocAndCap() {
-    int k = 227;
+    int k = DEFAULT_K;
     long n = 1000;
     int computedBufAlloc = bufferElementCapacity(k, n);
     int memAlloc = computedBufAlloc -1; //corrupt
@@ -442,7 +442,7 @@ public class HeapQuantilesSketchTest {
   
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkBufAllocAndCap2() {
-    int k = 227;
+    int k = DEFAULT_K;
     long n = 1000;
     int computedBufAlloc = bufferElementCapacity(k, n);
     int memAlloc = computedBufAlloc; //corrupt
@@ -474,7 +474,7 @@ public class HeapQuantilesSketchTest {
   
   @Test
   public void checkStorageSize() {
-    int k = 227;
+    int k = DEFAULT_K;
     long v = 1;
     QuantilesSketch qs = QuantilesSketch.builder().setSeed(SEED).build(k);
     for (int i = 0; i< 1000; i++) {

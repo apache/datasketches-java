@@ -4,6 +4,7 @@
  */
 package com.yahoo.sketches.quantiles;
 
+import static com.yahoo.sketches.quantiles.Util.DEFAULT_K;
 import static com.yahoo.sketches.quantiles.PreambleUtil.BUFFER_DOUBLES_ALLOC_INT;
 import static com.yahoo.sketches.quantiles.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.quantiles.PreambleUtil.FLAGS_BYTE;
@@ -97,7 +98,7 @@ public class PreambleUtilTest {
   
   @Test
   public void checkToString() {
-    int k = 227;
+    int k = DEFAULT_K;
     int n = 1000000;
     QuantilesSketch qs = QuantilesSketch.builder().build(k);
     for (int i=0; i<n; i++) qs.update(i);
@@ -107,7 +108,7 @@ public class PreambleUtilTest {
   
   @Test
   public void checkToStringEmpty() {
-    int k = 227;
+    int k = DEFAULT_K;
     QuantilesSketch qs = QuantilesSketch.builder().build(k);
     byte[] byteArr = qs.toByteArray();
     println(PreambleUtil.toString(byteArr));

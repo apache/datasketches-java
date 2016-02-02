@@ -43,16 +43,17 @@ import com.yahoo.sketches.memory.Memory;
  * 
  * <p>The accuracy of this sketch is a function of the configured value <i>k</i>, which also affects
  * the overall size of the sketch. Accuracy of this quantile sketch is always with respect to
- * the normalized rank.  A <i>k</i> of 227 produces a normalized, rank error of about 1%. 
+ * the normalized rank.  A <i>k</i> of 128 produces a normalized, rank error of about 1.7%. 
  * For example, the median value returned from getQuantile(0.5) will be between the actual values 
- * from the hypothetically sorted array of input values at normalized ranks of 0.49 and 0.51, with 
+ * from the hypothetically sorted array of input values at normalized ranks of 0.483 and 0.517, with 
  * a confidence of about 99%.</p>
  * 
  * <pre>
 Table Guide for QuantilesSketch Size in Bytes and Approximate Error:
-      N : K =&gt; |      16      32      64     128     256     512   1,024
+          K =&gt; |      16      32      64     128     256     512   1,024
     ~ Error =&gt; | 12.145%  6.359%  3.317%  1.725%  0.894%  0.463%  0.239%
--------------------------------------------------------------------------
+             N | Size in Bytes ->
+------------------------------------------------------------------------
              0 |       8       8       8       8       8       8       8
              1 |      72      72      72      72      72      72      72
              3 |      72      72      72      72      72      72      72
@@ -86,6 +87,7 @@ Table Guide for QuantilesSketch Size in Bytes and Approximate Error:
  1,073,741,823 |   3,496   6,696  12,840  24,616  47,144  90,152 172,072
  2,147,483,647 |   3,624   6,952  13,352  25,640  49,192  94,248 180,264
  4,294,967,295 |   3,752   7,208  13,864  26,664  51,240  98,344 188,456
+
  * </pre>
 
  * <p>There is more documentation available on 

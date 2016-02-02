@@ -4,6 +4,7 @@
  */
 package com.yahoo.sketches.quantiles;
 
+import static com.yahoo.sketches.quantiles.Util.DEFAULT_K;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
@@ -15,7 +16,7 @@ public class QuantilesSketchBuilderTest {
 
   @Test
   public void checkBuilder() {
-    int k = 100;
+    int k = DEFAULT_K;
     byte[] byteArr = new byte[k];
     Memory mem = new NativeMemory(byteArr);
     QuantilesSketchBuilder bldr = QuantilesSketch.builder();
