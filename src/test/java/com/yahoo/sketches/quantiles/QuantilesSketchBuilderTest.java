@@ -5,7 +5,9 @@
 package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.Util.DEFAULT_K;
+import static com.yahoo.sketches.quantiles.Util.DEFAULT_SEED;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 import org.testng.annotations.Test;
 
@@ -16,14 +18,28 @@ public class QuantilesSketchBuilderTest {
 
   @Test
   public void checkBuilder() {
-    int k = DEFAULT_K;
-    byte[] byteArr = new byte[k];
+    int k = 256;
+    short seed = 32749;
+    byte[] byteArr = new byte[k]; //dummy value
     Memory mem = new NativeMemory(byteArr);
+    
     QuantilesSketchBuilder bldr = QuantilesSketch.builder();
-    bldr.setK(k).initMemory(mem);
+    
+    bldr.setK(k);
     assertEquals(bldr.getK(), k);
+    
+    bldr.initMemory(mem);
     assertEquals(bldr.getMemory(), mem);
+    
+    bldr.setSeed(seed);
+    assertEquals(bldr.getSeed(), seed);
+    
     println(bldr.toString());
+    
+    bldr = QuantilesSketch.builder();
+    assertEquals(bldr.getK(), DEFAULT_K);
+    assertEquals(bldr.getSeed(), DEFAULT_SEED);
+    assertNull(bldr.getMemory());
   }
   
   @Test

@@ -37,7 +37,8 @@ public class QuantilesSketchBuilder {
   
   /**
    * Sets the parameter <i>k</i> that determines the accuracy and size of the sketch
-   * @param k determines the accuracy and size of the sketch.  Must be greater than 1.
+   * @param k determines the accuracy and size of the sketch.  <i>k</i> must be greater than 1 and
+   * less than 65536.
    * It is recommended that <i>k</i> be a power of 2 to enable merging of sketches with
    * different values of <i>k</i>.
    * @return this builder
@@ -113,11 +114,12 @@ public class QuantilesSketchBuilder {
   /**
    * Returns a QuantilesSketch with the current configuration of this Builder and the
    * given parameter <i>k</i>.
-   * @param k determines the accuracy and size of the sketch.  Must be greater than 1.
+   * @param k determines the accuracy and size of the sketch.  
+   * Must be greater than 1 and less than 65536.
    * @return a QuantilesSketch
    */
   public QuantilesSketch build(int k) {
-    bK = k;
+    setK(k);
     return build();
   }
   

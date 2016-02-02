@@ -356,11 +356,12 @@ public abstract class QuantilesSketch {
    
   /**
    * Checks the validity of the given value k
-   * @param k must be greater than or equal to 2.
+   * @param k must be greater than or equal to 2 and less than 65536.
    */
   static void checkK(int k) {
-    if (k < MIN_BASE_BUF_SIZE/2) {
-      throw new IllegalArgumentException("K must be >= "+(MIN_BASE_BUF_SIZE/2));
+    if ((k < MIN_BASE_BUF_SIZE/2) || (k > ((1 << 16)-1))) {
+      throw new IllegalArgumentException(
+          "K must be >= "+(MIN_BASE_BUF_SIZE/2+" and < 65536"));
     }
   }
 

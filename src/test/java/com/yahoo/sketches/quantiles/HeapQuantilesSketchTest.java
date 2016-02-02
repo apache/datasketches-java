@@ -9,6 +9,7 @@ import static com.yahoo.sketches.quantiles.Util.LS;
 import static com.yahoo.sketches.quantiles.Util.bufferElementCapacity;
 import static com.yahoo.sketches.quantiles.Util.computeNumLevelsNeeded;
 import static com.yahoo.sketches.quantiles.Util.DEFAULT_K;
+import static com.yahoo.sketches.quantiles.Util.DEFAULT_SEED;
 import static com.yahoo.sketches.quantiles.Util.lg;
 import static java.lang.Math.floor;
 import static org.testng.Assert.assertEquals;
@@ -20,7 +21,7 @@ import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
 public class HeapQuantilesSketchTest { 
-  private static final short SEED = 32749; //prime
+  private static final short SEED = 32749; // > 0 means sketch is deterministic for testing
   
   @Test
     public void checkGetAdjustedEpsilon() {
@@ -413,7 +414,7 @@ public class HeapQuantilesSketchTest {
   }
   
   @Test(expectedExceptions = IllegalArgumentException.class)
-  public void checkTooSmall1() {
+  public void checkMemTooSmall1() {
     Memory mem = new NativeMemory(new byte[7]);
     @SuppressWarnings("unused")
     HeapQuantilesSketch qs2 = HeapQuantilesSketch.getInstance(mem);
@@ -484,6 +485,34 @@ public class HeapQuantilesSketchTest {
       byte[] byteArr = qs.toByteArray();
       assertEquals(qs.getStorageBytes(), byteArr.length);
     }
+  }
+  
+  @Test
+  public void checkImproperKvalues() {
+    checksForK(1);
+    checksForK(1<<16);
+  }
+  
+  private static void checksForK(int k) {
+    String s = "Did not catch improper k: "+k;
+    try {
+      QuantilesSketch.builder().setK(k);
+      checkForKfailed(s);
+    } catch (IllegalArgumentException e) {}
+    try {
+      QuantilesSketch.builder().build(k);
+      checkForKfailed(s);
+    } catch (IllegalArgumentException e) {}
+    try {
+      HeapQuantilesSketch.getInstance(k, DEFAULT_SEED);
+      checkForKfailed(s);
+    } catch (IllegalArgumentException e) {}
+  }
+  
+  private static void checkForKfailed(String s) {
+    boolean print = false; //useful for debugging
+    if (print) { System.err.println(s); }
+    else { throw new IllegalStateException(s); }
   }
   
   //@Test  //visual only

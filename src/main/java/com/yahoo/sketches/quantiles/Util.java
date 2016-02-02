@@ -30,6 +30,8 @@ final class Util {
   
   public static final int DEFAULT_K = 128; //default for about 1.7% normalized rank accuracy
   
+  public static final short DEFAULT_SEED = 0; //default of zero means sketch is stochastic.
+  
   static Random rand = new Random();
   
   /**
