@@ -117,7 +117,7 @@ class HeapQuantilesSketch extends QuantilesSketch {
    */
   static HeapQuantilesSketch getInstance(int k, short seed) {
     HeapQuantilesSketch hqs = new HeapQuantilesSketch(k, seed);
-    int bufAlloc = MIN_BASE_BUF_SIZE;
+    int bufAlloc = Math.min(MIN_BASE_BUF_SIZE,2*k); //the min is important
     hqs.n_ = 0;
     hqs.combinedBufferAllocatedCount_ = bufAlloc;
     hqs.combinedBuffer_ = new double[bufAlloc];

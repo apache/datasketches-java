@@ -350,9 +350,10 @@ public class HeapQuantilesSketchTest {
     long v = 1;
     QuantilesSketch qs = QuantilesSketch.builder().setSeed(SEED).build(k);
     for (int i = 0; i< 1000; i++) {
-      for (int j = 0; j < 1000; j++) {
-        qs.update(v++);
-      }
+      qs.update(v++);
+//      for (int j = 0; j < 1000; j++) {
+//        qs.update(v++);
+//      }
       byte[] byteArr = qs.toByteArray();
       assertEquals(qs.getStorageBytes(), byteArr.length);
     }
@@ -496,7 +497,7 @@ public class HeapQuantilesSketchTest {
 
   @Test
   public void checkImproperKvalues() {
-    checksForK(1);
+    checksForK(0);
     checksForK(1<<16);
   }
   
@@ -593,7 +594,7 @@ public class HeapQuantilesSketchTest {
    * @param s value to print 
    */
   static void println(String s) {
-    System.out.println(s); //disable here //TODO
+    //System.out.println(s); //disable here //TODO
   }
   
 }

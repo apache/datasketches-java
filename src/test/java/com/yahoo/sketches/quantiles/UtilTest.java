@@ -30,7 +30,7 @@ public class UtilTest {
   
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkGetAdjustedEpsilonException() {
-    EpsilonFromK.getAdjustedEpsilon(1);
+    EpsilonFromK.getAdjustedEpsilon(0);
   }
   
   @Test

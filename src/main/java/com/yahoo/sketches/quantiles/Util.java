@@ -6,6 +6,7 @@ package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static java.lang.System.arraycopy;
+import static com.yahoo.sketches.quantiles.QuantilesSketch.*;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -45,16 +46,23 @@ final class Util {
    */
   static int bufferElementCapacity(int k, long n) {
     int maxLevels = computeNumLevelsNeeded(k, n);
-    int minBB = QuantilesSketch.MIN_BASE_BUF_SIZE;
-    if (n <= minBB) return minBB;
-    int minBBCnt = Math.max(computeBaseBufferCount(k, n), minBB);
-    int maxBBcap = 2*k;
-    int bbCap = (maxLevels > 0)? maxBBcap : Math.min(maxBBcap, ceilingPowerOf2(minBBCnt));
-
-  
-    return bbCap + maxLevels*k;
+    if (maxLevels > 0) return (2+maxLevels) * k;
+    assert n < 2*k;
+    int m = Math.min(MIN_BASE_BUF_SIZE,2*k);
+    if (n <= m) return m;
+    int q = intDivideRoundUp(n, m);
+    assert q >= 1;
+    int q2 = ceilingPowerOf2(q);
+    int x = m*q2;
+    return Math.min(x, 2*k);
   }
 
+  private static int intDivideRoundUp(long n, int m) {
+    int q = (int)n/m;
+    if (q*m == n) return q;
+    else return q+1;
+  }
+  
   /**
    * Computes the number of valid levels above the base buffer
    * @return the number of valid levels above the base buffer
@@ -383,6 +391,7 @@ final class Util {
      * @return the resulting epsilon
      */ //used by HeapQS, so far
     static double getAdjustedEpsilon(int k) {
+      if (k == 1) return 1.0; //TODO IS THIS THE RIGHT VALUE?
       return getTheoreticalEpsilon(k, adjustKForEps);
     }
     
@@ -396,6 +405,7 @@ final class Util {
      * @return the resulting epsilon
      */ //used only by getAdjustedEpsilon()
     private static double getTheoreticalEpsilon(int k, double ff) {
+      //TODO return something if k == 1 !!
       if (k < 2) throw new IllegalArgumentException("K must be greater than one.");
       // don't need to check in the other direction because an int is very small
       double kf = k*ff;
