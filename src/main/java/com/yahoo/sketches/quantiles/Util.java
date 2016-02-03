@@ -231,11 +231,6 @@ final class Util {
                                    keyArr, valArr,
                                    0, numblks,
                                    blkSize, arrLen);
-
-    /* verify sorted order */
-    for (int i = 0; i < arrLen-1; i++) {
-      assert keyArr[i] <= keyArr[i+1];
-    }
   }
 
   /**

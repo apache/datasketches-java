@@ -186,8 +186,8 @@ public class UtilTest {
  }
 
 
- private static double [] makeMergeTestInput (int arrLen, int blkSize) {
-   double [] arr = new double [arrLen]; 
+ private static double[] makeMergeTestInput(int arrLen, int blkSize) {
+   double[] arr = new double[arrLen]; 
 
    double pick = Math.random ();
 
@@ -236,18 +236,25 @@ public class UtilTest {
   * @param numTries number of tries
   * @param maxArrLen maximum length of array size
   */
- private static void testBlockyTandemMergeSort (int numTries, int maxArrLen) {
-   for (int arrLen = 0; arrLen <= maxArrLen; arrLen++) {
+ private static void testBlockyTandemMergeSort(int numTries, int maxArrLen) {
+   int arrLen = 0;
+   double[] arr = null;
+   for (arrLen = 0; arrLen <= maxArrLen; arrLen++) {
      for (int blkSize = 1; blkSize <= arrLen + 100; blkSize++) {
        for (int tryno = 1; tryno <= numTries; tryno++) {  
-         double [] arr = makeMergeTestInput (arrLen, blkSize);
-         long [] brr = makeTheTandemArray (arr);
-         assertMergeTestPrecondition (arr, brr, arrLen, blkSize);
-         Util.blockyTandemMergeSort (arr, brr, arrLen, blkSize);
-         assertMergeTestPostcondition (arr, brr, arrLen);
+         arr = makeMergeTestInput(arrLen, blkSize);
+         long [] brr = makeTheTandemArray(arr);
+         assertMergeTestPrecondition(arr, brr, arrLen, blkSize);
+         Util.blockyTandemMergeSort(arr, brr, arrLen, blkSize);
+         /* verify sorted order */
+         for (int i = 0; i < arrLen-1; i++) {
+           assert arr[i] <= arr[i+1];
+         }
+         assertMergeTestPostcondition(arr, brr, arrLen);
        }
      }
    }
+   
    //System.out.printf ("Passed: testBlockyTandemMergeSort\n");
  } 
 
