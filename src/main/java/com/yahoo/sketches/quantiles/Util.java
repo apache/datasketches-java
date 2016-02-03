@@ -405,7 +405,6 @@ final class Util {
      * @return the resulting epsilon
      */ //used only by getAdjustedEpsilon()
     private static double getTheoreticalEpsilon(int k, double ff) {
-      //TODO return something if k == 1 !!
       if (k < 2) throw new IllegalArgumentException("K must be greater than one.");
       // don't need to check in the other direction because an int is very small
       double kf = k*ff;

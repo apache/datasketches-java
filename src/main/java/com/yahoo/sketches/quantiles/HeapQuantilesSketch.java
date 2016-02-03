@@ -111,7 +111,7 @@ class HeapQuantilesSketch extends QuantilesSketch {
    * Obtains an instance of a QuantileSketch of double elements.
    * 
    * @param k Parameter that controls space usage of sketch and accuracy of estimates. 
-   * Must be greater than one and less than 65536.
+   * Must be greater than 0 and less than 65536.
    * It is recommended that <i>k</i> be a power of 2 to enable merging of sketches with
    * different values of <i>k</i>.
    */
