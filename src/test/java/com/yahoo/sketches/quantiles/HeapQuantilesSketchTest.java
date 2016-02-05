@@ -702,6 +702,14 @@ public class HeapQuantilesSketchTest {
     assertEquals(qs1.getSeed(), 0);
   }
   
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkImproperBuild() {
+    Memory mem = new NativeMemory(new byte[1024]);
+    @SuppressWarnings("unused")
+    QuantilesSketch qs1 = QuantilesSketch.builder().initMemory(mem).build(4);
+
+  }
+  
   @Test
   public void checkKisOne() {
     QuantilesSketch qs1 = QuantilesSketch.builder().build(1);
