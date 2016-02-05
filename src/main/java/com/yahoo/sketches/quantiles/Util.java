@@ -9,7 +9,6 @@ import static java.lang.System.arraycopy;
 import static com.yahoo.sketches.quantiles.QuantilesSketch.*;
 
 import java.util.Arrays;
-import java.util.Random;
 
 /**
  * Utility class for quantiles sketches.
@@ -28,12 +27,6 @@ final class Util {
    * The tab character
    */
   public static final char TAB = '\t';
-  
-  public static final int DEFAULT_K = 128; //default for about 1.7% normalized rank accuracy
-  
-  public static final short DEFAULT_SEED = 0; //default of zero means sketch is stochastic.
-  
-  static Random rand = new Random();
   
   /**
    * Returns the current element capacity of the combined data buffer given <i>k</i> and <i>n</i>.

@@ -4,8 +4,6 @@
  */
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.quantiles.Util.DEFAULT_K;
-import static com.yahoo.sketches.quantiles.Util.DEFAULT_SEED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
@@ -13,6 +11,7 @@ import org.testng.annotations.Test;
 
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
+
 
 public class QuantilesSketchBuilderTest {
 
@@ -37,8 +36,8 @@ public class QuantilesSketchBuilderTest {
     println(bldr.toString());
     
     bldr = QuantilesSketch.builder();
-    assertEquals(bldr.getK(), DEFAULT_K);
-    assertEquals(bldr.getSeed(), DEFAULT_SEED);
+    assertEquals(bldr.getK(), QuantilesSketch.DEFAULT_K);
+    assertEquals(bldr.getSeed(), QuantilesSketch.DEFAULT_SEED);
     assertNull(bldr.getMemory());
   }
   

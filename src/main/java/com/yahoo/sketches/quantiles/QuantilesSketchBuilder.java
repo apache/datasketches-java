@@ -6,9 +6,9 @@ package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.Util.LS;
 import static com.yahoo.sketches.quantiles.Util.TAB;
-import static com.yahoo.sketches.quantiles.Util.DEFAULT_K;
 
 import com.yahoo.sketches.memory.Memory;
+
 
 /**
  * For building a new QuantilesSketch.
@@ -23,14 +23,14 @@ public class QuantilesSketchBuilder {
   /**
    * Constructor for building a new QuantilesSketch. The default configuration is 
    * <ul>
-   * <li>k: {@value com.yahoo.sketches.quantiles.Util#DEFAULT_K} 
+   * <li>k: {@value com.yahoo.sketches.quantiles.QuantilesSketch#DEFAULT_K} 
    * This produces a normalized rank error of about 1.7%</li>
    * <li>Seed: 0</li>
    * <li>Memory: null</li>
    * </ul>
    */
   public QuantilesSketchBuilder() {
-    bK = DEFAULT_K;
+    bK = QuantilesSketch.DEFAULT_K;
     bDstMem = null;
     bSeed = 0;
   }

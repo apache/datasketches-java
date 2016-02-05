@@ -27,7 +27,6 @@ import static com.yahoo.sketches.quantiles.Util.positionOfLowestZeroBitStartingA
 import static com.yahoo.sketches.Util.checkIfPowerOf2;
 
 import java.util.Arrays;
-import java.util.Random;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
@@ -105,7 +104,7 @@ class HeapQuantilesSketch extends QuantilesSketch {
     QuantilesSketch.checkK(k); //
     k_ = k;
     seed_ = seed;
-    if (seed_ != 0) Util.rand = new Random(seed_);
+    if (seed != 0) QuantilesSketch.rand.setSeed(seed);
   }
   
   /**
@@ -115,6 +114,9 @@ class HeapQuantilesSketch extends QuantilesSketch {
    * Must be greater than 0 and less than 65536.
    * It is recommended that <i>k</i> be a power of 2 to enable merging of sketches with
    * different values of <i>k</i>.
+   * @param seed if zero, it is ignored and the random generator is not changed,
+   * otherwise it will be used to set the seed of the random generator.
+   * @return a HeapQuantileSketch
    */
   static HeapQuantilesSketch getInstance(int k, short seed) {
     HeapQuantilesSketch hqs = new HeapQuantilesSketch(k, seed);
@@ -490,7 +492,7 @@ class HeapQuantilesSketch extends QuantilesSketch {
   @Override
   public QuantilesSketch downSample(int newK) {
     HeapQuantilesSketch oldSketch = this;
-    HeapQuantilesSketch newSketch = HeapQuantilesSketch.getInstance(newK, Util.DEFAULT_SEED);
+    HeapQuantilesSketch newSketch = HeapQuantilesSketch.getInstance(newK, QuantilesSketch.DEFAULT_SEED);
     downSamplingMergeInto(oldSketch, newSketch); 
     return newSketch;
   }
@@ -630,7 +632,7 @@ class HeapQuantilesSketch extends QuantilesSketch {
     //    assert startA == 0; // just for now
 
     //    int randomOffset = (int) (2.0 * Math.random());
-    int randomOffset = (Util.rand.nextBoolean())? 1 : 0;
+    int randomOffset = (QuantilesSketch.rand.nextBoolean())? 1 : 0;
     //    assert randomOffset == 0 || randomOffset == 1;
 
     //    int limA = startA + 2*k;
@@ -645,7 +647,7 @@ class HeapQuantilesSketch extends QuantilesSketch {
       double[] bufC, int startC, // output
       int kC, // number of items that should be in the output
       int stride) {
-    int randomOffset = (Util.rand.nextInt(stride));
+    int randomOffset = (QuantilesSketch.rand.nextInt(stride));
     int limC = startC + kC;
 
     for (int a = startA + randomOffset, c = startC; c < limC; a += stride, c++ ) {

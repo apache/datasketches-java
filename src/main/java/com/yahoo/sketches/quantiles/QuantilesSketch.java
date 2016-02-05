@@ -12,6 +12,8 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.quantiles.Util.bufferElementCapacity;
 
+import java.util.Random;
+
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 
@@ -113,6 +115,12 @@ Table Guide for QuantilesSketch Size in Bytes and Approximate Error:
  */
 public abstract class QuantilesSketch {
   static final int MIN_BASE_BUF_SIZE = 4; //This is somewhat arbitrary
+  protected static final Random rand = new Random();
+  /*
+   * A default seed of zero means that the seed of the random generator will not be set. 
+   */
+  static final short DEFAULT_SEED = 0;  
+  static final int DEFAULT_K = 128; //default for about 1.7% normalized rank accuracy
   
   QuantilesSketch() {}
   
