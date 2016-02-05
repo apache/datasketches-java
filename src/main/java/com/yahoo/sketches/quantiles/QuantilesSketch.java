@@ -52,7 +52,7 @@ import com.yahoo.sketches.memory.Memory;
 Table Guide for QuantilesSketch Size in Bytes and Approximate Error:
           K =&gt; |      16      32      64     128     256     512   1,024
     ~ Error =&gt; | 12.145%  6.359%  3.317%  1.725%  0.894%  0.463%  0.239%
-             N | Size in Bytes ->
+             N | Size in Bytes -&gt;
 ------------------------------------------------------------------------
              0 |       8       8       8       8       8       8       8
              1 |      72      72      72      72      72      72      72
