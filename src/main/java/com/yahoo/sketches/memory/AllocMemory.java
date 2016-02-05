@@ -6,8 +6,6 @@ package com.yahoo.sketches.memory;
 
 import static com.yahoo.sketches.memory.UnsafeUtil.unsafe;
 
-import java.util.Arrays;
-
 /**
  * The AllocMemory class is a subclass of NativeMemory and is used to allocate direct, off-heap 
  * native memory, which is then accessed by the NativeMemory methods. 
@@ -26,7 +24,9 @@ public class AllocMemory extends NativeMemory {
    * @param capacityBytes the size in bytes of the native memory
    */
   public AllocMemory(long capacityBytes) {
-    super(0L, null, null, unsafe.allocateMemory(capacityBytes), capacityBytes);
+    super(0L, null, null);
+    super.nativeRawStartAddress_ = unsafe.allocateMemory(capacityBytes);
+    super.capacityBytes_ = capacityBytes;
     super.memReq_ = null;
   }
   
@@ -38,7 +38,9 @@ public class AllocMemory extends NativeMemory {
    * @param memReq The MemoryRequest callback
    */
   public AllocMemory(long capacityBytes, MemoryRequest memReq) {
-    super(0L, null, null, unsafe.allocateMemory(capacityBytes), capacityBytes);
+    super(0L, null, null);
+    super.nativeRawStartAddress_ = unsafe.allocateMemory(capacityBytes);
+    super.capacityBytes_ = capacityBytes;
     super.memReq_ = memReq;
   }
   
@@ -52,14 +54,15 @@ public class AllocMemory extends NativeMemory {
    * The OS is free to just expand the capacity of the current allocation at the same native 
    * address, or reassign a completely different native address in which case the origMem will be 
    * freed by the OS. 
-   * The origMem internals will be reset to zero or nulls and must not be used again.
+   * The origMem capacity will be set to zero and must not be used again.
    * 
    * @param newCapacityBytes the desired new capacity of the newly allocated memory in bytes
    * @param memReq The MemoryRequest callback, which may be null.
    */
   public AllocMemory(NativeMemory origMem, long newCapacityBytes, MemoryRequest memReq) {
-    super(0L, null, null, 
-        unsafe.reallocateMemory(origMem.nativeRawStartAddress_, newCapacityBytes), newCapacityBytes);
+    super(0L, null, null);
+    super.nativeRawStartAddress_ = unsafe.reallocateMemory(origMem.nativeRawStartAddress_, newCapacityBytes);
+    super.capacityBytes_ = newCapacityBytes;
     this.memReq_ = memReq;
     origMem.nativeRawStartAddress_ = 0; //does not require freeMem
     origMem.capacityBytes_ = 0; //Cannot be used again
@@ -71,7 +74,7 @@ public class AllocMemory extends NativeMemory {
    * zero to copyToBytes; clear the new memory from copyToBytes to capacityBytes.
    * @param origMem The original NativeMemory, a portion of which will be copied to the 
    * newly allocated Memory. 
-   * The reference must not be null. 
+   * The reference must not be null.
    * This origMem is not modified in any way, may be reused and must be freed appropriately.
    * @param copyToBytes the upper limit of the region to be copied from origMem to the newly 
    * allocated memory. 
@@ -79,9 +82,10 @@ public class AllocMemory extends NativeMemory {
    * upper limit of the region to be cleared. 
    * @param memReq The MemoryRequest callback, which may be null.
    */
-  public AllocMemory(NativeMemory origMem, long copyToBytes, long capacityBytes, 
-      MemoryRequest memReq) {
-    super(0L, null, null, unsafe.allocateMemory(capacityBytes), capacityBytes);
+  public AllocMemory(NativeMemory origMem, long copyToBytes, long capacityBytes, MemoryRequest memReq) {
+    super(0L, null, null);
+    super.nativeRawStartAddress_ = unsafe.allocateMemory(capacityBytes);
+    super.capacityBytes_ = capacityBytes;
     this.memReq_ = memReq;
     MemoryUtil.copy(origMem, 0, this, 0, copyToBytes);
     this.clear(copyToBytes, capacityBytes-copyToBytes);
@@ -102,7 +106,10 @@ public class AllocMemory extends NativeMemory {
       System.err.println(
           "ERROR: freeMemory() has not been called: Address: "+ nativeRawStartAddress_ +
           ", capacity: " + capacityBytes_);
-      System.err.println(Arrays.toString(Thread.currentThread().getStackTrace()));
+      java.lang.StackTraceElement[] arr = Thread.currentThread().getStackTrace();
+      for (int i=0; i<arr.length; i++) { 
+        System.err.println(arr[i].toString()); 
+      }
     }
   }
   

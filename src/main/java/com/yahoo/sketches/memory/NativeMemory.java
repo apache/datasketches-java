@@ -46,22 +46,27 @@ import static com.yahoo.sketches.memory.UnsafeUtil.unsafe;
  */
 @SuppressWarnings("restriction")
 public class NativeMemory implements Memory {
-  protected final long objectBaseOffset_; //only non-zero for on-heap objects. freeMemory sets to 0.
-  protected final Object memArray_; //null for off-heap, valid for on-heap.
-  protected MemoryRequest memReq_ = null; //set via AllocMemory
+  /* 
+  Class        Case                 ObjBaseOff MemArr byteBuf rawAdd CapacityBytes  ReqFree Direct
+  NativeMemory byteArr                      >0  valid    null      0            >0    FALSE  FALSE
+  NativeMemory longArr                      >0  valid    null      0            >0    FALSE  FALSE
+  NativeMemory ByteBuffer Direct             0   null   valid     >0            >0    FALSE   TRUE
+  NativeMemory ByteBuffer not Direct        >0  valid   valid      0            >0    FALSE  FALSE
+  AllocMemory  All cases                     0   null    null     >0            >0     TRUE   TRUE
+  */
+  protected final long objectBaseOffset_;
+  protected final Object memArray_;
   //holding on to this to make sure that it is not garbage collected before we are done with it.
   protected final ByteBuffer byteBuf_;
+  protected volatile long nativeRawStartAddress_;
+  protected volatile long capacityBytes_;
+  protected volatile MemoryRequest memReq_ = null; //set via AllocMemory
   
-  protected long nativeRawStartAddress_; //only non-zero for native
-  protected long capacityBytes_; //only non-zero if allocated and class still valid
-  
-  protected NativeMemory(long objectBaseOffset, Object memArray, ByteBuffer byteBuf,
-      long nativeRawStartAddress, long capacityBytes) {
-    this.objectBaseOffset_ = objectBaseOffset;
-    this.memArray_ = memArray;
-    this.byteBuf_ = byteBuf;
-    this.nativeRawStartAddress_ = nativeRawStartAddress;
-    this.capacityBytes_ = capacityBytes;
+  //only sets the finals
+  protected NativeMemory(long objectBaseOffset, Object memArray, ByteBuffer byteBuf) {
+    objectBaseOffset_ = objectBaseOffset;
+    memArray_ = memArray;
+    byteBuf_ = byteBuf;
   }
   
   /**
@@ -69,12 +74,14 @@ public class NativeMemory implements Memory {
    * @param byteArray an on-heap byte array
    */
   public NativeMemory(byte[] byteArray) {
-    int arrLen = byteArray.length;
-    memArray_ = byteArray;
-    objectBaseOffset_ = BYTE_ARRAY_BASE_OFFSET;
+    this(BYTE_ARRAY_BASE_OFFSET, byteArray, null);
+    if ((byteArray == null) || (byteArray.length == 0)) {
+      throw new IllegalArgumentException(
+          "Array must must not be null and have a length greater than zero.");
+    }
     nativeRawStartAddress_ = 0L;
-    capacityBytes_ = arrLen;
-    byteBuf_ = null;
+    capacityBytes_ = byteArray.length;
+    
   }
   
   /**
@@ -82,16 +89,13 @@ public class NativeMemory implements Memory {
    * @param longArray an on-heap long array
    */
   public NativeMemory(long[] longArray) {
-    int arrLen = longArray.length;
-    if (arrLen <= 0) {
+    this(LONG_ARRAY_BASE_OFFSET, longArray, null); 
+    if ((longArray == null) || (longArray.length == 0)) {
       throw new IllegalArgumentException(
-          "longArray must have a length greater than zero.");
+          "Array must must not be null and have a length greater than zero.");
     }
-    memArray_ = longArray;
-    objectBaseOffset_ = LONG_ARRAY_BASE_OFFSET;
     nativeRawStartAddress_ = 0L;
-    capacityBytes_ = arrLen << LONG_SHIFT;
-    byteBuf_ = null;
+    capacityBytes_ = longArray.length << LONG_SHIFT;
   }
   
   /**
@@ -99,18 +103,20 @@ public class NativeMemory implements Memory {
    * @param byteBuf the given ByteBuffer
    */
   public NativeMemory(ByteBuffer byteBuf) {
-    capacityBytes_ = byteBuf.capacity();
-    byteBuf_ = byteBuf;
-    if (byteBuf_.isDirect()) {
-      memArray_ = null;
+    if (byteBuf.isDirect()) {
       objectBaseOffset_ = 0L;
+      memArray_ = null;
+      byteBuf_ = byteBuf;
       nativeRawStartAddress_ = ((sun.nio.ch.DirectBuffer)byteBuf).address();
     } 
     else { //must have array
-      memArray_ = byteBuf_.array();
       objectBaseOffset_ = BYTE_ARRAY_BASE_OFFSET;
+      memArray_ = byteBuf.array();
+      byteBuf_ = byteBuf;
       nativeRawStartAddress_ = 0L;
     }
+    capacityBytes_ = byteBuf.capacity();
+    
   }
   
   @Override
@@ -558,12 +564,21 @@ public class NativeMemory implements Memory {
   }
   
   @Override
+  public void setMemoryRequest(MemoryRequest memReq) {
+    memReq_ = memReq;
+  }
+  
+  @Override
   public String toHexString(String header, long offsetBytes, int lengthBytes) {
     StringBuilder sb = new StringBuilder();
     sb.append(header).append("\n");
-    String s1 = String.format("(%d, %d)", offsetBytes, lengthBytes);
-    sb.append(this.getClass().getName());
-    sb.append(".toHexString").append(s1).append(", hash: ").append(this.hashCode()).append(":");
+    String s1 = String.format("(..., %d, %d)", offsetBytes, lengthBytes);
+    sb.append(this.getClass().getSimpleName()).append(".toHexString").
+       append(s1).append(", hash: ").append(this.hashCode()).append("\n");
+    sb.append("  MemoryRequest: ");
+    if (memReq_ != null) {
+      sb.append(memReq_.getClass().getSimpleName()).append(", hash: ").append(memReq_.hashCode());
+    } else sb.append("null");
     return toHex(sb.toString(), offsetBytes, lengthBytes);
   }
   
@@ -586,8 +601,20 @@ public class NativeMemory implements Memory {
   }
   
   /**
-   * Frees this Memory. If direct, off-heap native memory is allocated via the AllocMemory
-   * sub-class this method must be called in either the NativeMemory class or the AllocMemory class.
+   * Returns true if this NativeMemory is accessing native (off-heap) memory directly. 
+   * This includes the case of a Direct ByteBuffer.
+   * @return true if this NativeMemory is accessing native (off-heap) memory directly.
+   */
+  public boolean isDirect() {
+    return nativeRawStartAddress_ > 0;
+  }
+  
+  /**
+   * This frees this Memory only if it is required. This always sets the capacity to zero
+   * and the reference to MemoryRequest to null, which effectively disables this class. 
+   * However, 
+   * 
+   * It is always safe to call this method when you are done with this class.
    */
   public void freeMemory() {
     if (requiresFree()) {
@@ -595,6 +622,7 @@ public class NativeMemory implements Memory {
         nativeRawStartAddress_ = 0L;
     }
     capacityBytes_ = 0L;
+    memReq_ = null;
   }
   
   /**
@@ -664,7 +692,7 @@ public class NativeMemory implements Memory {
    * @return true if the object should be freed when it is no longer needed
    */
   protected boolean requiresFree() {
-    return nativeRawStartAddress_ != 0L && (byteBuf_ == null);
+    return (nativeRawStartAddress_ != 0L) && (byteBuf_ == null);
   }
   
 }

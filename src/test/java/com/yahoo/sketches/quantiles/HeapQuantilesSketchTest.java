@@ -319,7 +319,7 @@ public class HeapQuantilesSketchTest {
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkValidateSplitPoints() {
     double[] arr = {2, 1};
-    QuantilesSketch.validateSplitPoints(arr);
+    QuantilesSketch.validateSequential(arr);
   }
   
   @Test
@@ -501,6 +501,117 @@ public class HeapQuantilesSketchTest {
     checksForK(1<<16);
   }
   
+  //Visual only tests
+  static void testDownSampling(int bigK, int smallK) {  
+    HeapQuantilesSketch origSketch = HeapQuantilesSketch.getInstance(bigK, Util.DEFAULT_SEED);
+    HeapQuantilesSketch directSketch = HeapQuantilesSketch.getInstance(smallK, Util.DEFAULT_SEED);
+    for (int i = 127; i >= 1; i--) {
+      origSketch.update (i);
+      directSketch.update (i);
+    }
+    HeapQuantilesSketch downSketch = (HeapQuantilesSketch)origSketch.downSample(smallK);
+    println ("\nOrig\n");
+    println(origSketch.toString(true, true));
+    println ("\nDown\n");
+    println(downSketch.toString(true, true));
+    println("\nDirect\n");
+    println(directSketch.toString(true, true));
+  }
+  
+  @Test
+  public void checkDownSampling() {
+    testDownSampling(4,4);
+    testDownSampling(16,4);
+    testDownSampling(12,3);
+  }
+  
+  @Test
+  public void testDownSampling2 () {
+    HeapQuantilesSketch origSketch = HeapQuantilesSketch.getInstance(8, Util.DEFAULT_SEED);
+    HeapQuantilesSketch directSketch = HeapQuantilesSketch.getInstance(2, Util.DEFAULT_SEED);
+    HeapQuantilesSketch downSketch;
+    downSketch = (HeapQuantilesSketch)origSketch.downSample(2);
+    assertTrue(HeapQuantilesSketch.sameStructurePredicate (directSketch, downSketch));
+    for (int i = 0; i < 50; i++) {
+      origSketch.update (i);
+      directSketch.update (i);
+      downSketch = (HeapQuantilesSketch)origSketch.downSample(2);
+      assertTrue (HeapQuantilesSketch.sameStructurePredicate (directSketch, downSketch));
+    }
+    
+  }
+
+  @Test
+  public void testDownSampling3() {
+    for (int n1 = 0; n1 < 50; n1++ ) {
+      HeapQuantilesSketch bigSketch = HeapQuantilesSketch.getInstance(8, Util.DEFAULT_SEED);
+      for (int i1 = 1; i1 <= n1; i1++ ) {
+        bigSketch.update(i1);
+      }
+      for (int n2 = 0; n2 < 50; n2++ ) {
+        HeapQuantilesSketch directSketch = HeapQuantilesSketch.getInstance(2, Util.DEFAULT_SEED);
+        for (int i1 = 1; i1 <= n1; i1++ ) {
+          directSketch.update(i1);
+        }
+        for (int i2 = 1; i2 <= n2; i2++ ) {
+          directSketch.update(i2);
+        }
+        HeapQuantilesSketch smlSketch = HeapQuantilesSketch.getInstance(2, Util.DEFAULT_SEED);
+        for (int i2 = 1; i2 <= n2; i2++ ) {
+          smlSketch.update(i2);
+        }
+        HeapQuantilesSketch.downSamplingMergeInto(bigSketch, smlSketch);
+        assertTrue (HeapQuantilesSketch.sameStructurePredicate(directSketch, smlSketch));
+      }
+    }
+  }
+
+  @Test
+  public void testDownSampling4() {
+    for (int n1 = 0; n1 < 50; n1++ ) {
+      HeapQuantilesSketch bigSketch = HeapQuantilesSketch.getInstance(8, Util.DEFAULT_SEED);
+      for (int i1 = 1; i1 <= n1; i1++ ) {
+        bigSketch.update(i1);
+      }
+      for (int n2 = 0; n2 < 50; n2++ ) {
+        HeapQuantilesSketch directSketch = HeapQuantilesSketch.getInstance(2, Util.DEFAULT_SEED);
+        for (int i1 = 1; i1 <= n1; i1++ ) {
+          directSketch.update(i1);
+        }
+        for (int i2 = 1; i2 <= n2; i2++ ) {
+          directSketch.update(i2);
+        }
+        HeapQuantilesSketch smlSketch = HeapQuantilesSketch.getInstance(2, Util.DEFAULT_SEED);
+        for (int i2 = 1; i2 <= n2; i2++ ) {
+          smlSketch.update(i2);
+        }
+        smlSketch.merge(bigSketch);
+        assertTrue (HeapQuantilesSketch.sameStructurePredicate(directSketch, smlSketch));
+      }
+    }
+  }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void testDownSamplingExceptions1() {
+    QuantilesSketch qs1 = QuantilesSketch.builder().build(4); // not smaller
+    QuantilesSketch qs2 = QuantilesSketch.builder().build(3);
+    qs1.merge(qs2);
+  }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void testDownSamplingExceptions2() {
+    QuantilesSketch qs1 = QuantilesSketch.builder().build(4);
+    QuantilesSketch qs2 = QuantilesSketch.builder().build(7); // 7/4 not pwr of 2
+    qs1.merge(qs2);
+  }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void testDownSamplingExceptions3() {
+    QuantilesSketch qs1 = QuantilesSketch.builder().build(4);
+    QuantilesSketch qs2 = QuantilesSketch.builder().build(12); // 12/4 not pwr of 2
+    qs1.merge(qs2);
+  }
+  
   private static void checksForK(int k) {
     String s = "Did not catch improper k: "+k;
     try {
@@ -583,6 +694,19 @@ public class HeapQuantilesSketchTest {
       qs.update(startV + i);
     }
     return qs;
+  }
+  
+  @Test
+  public void checkGetSeed() {
+    QuantilesSketch qs1 = QuantilesSketch.builder().build(4);
+    assertEquals(qs1.getSeed(), 0);
+  }
+  
+  @Test
+  public void checkKisOne() {
+    QuantilesSketch qs1 = QuantilesSketch.builder().build(1);
+    double err = qs1.getNormalizedRankError();
+    assertEquals(err, 1.0, 0.0);
   }
   
   @Test

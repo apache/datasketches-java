@@ -435,6 +435,12 @@ public interface Memory {
   Object getParent();
   
   /**
+   * Sets a MemoryRequest
+   * @param memReq the MemoryRequest
+   */
+  void setMemoryRequest(MemoryRequest memReq);
+  
+  /**
    * Returns a formatted hex string of an area of this Memory. 
    * Used primarily for testing.
    * @param header decriptive header

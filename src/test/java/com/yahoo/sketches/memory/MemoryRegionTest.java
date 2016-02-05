@@ -12,6 +12,7 @@ import static com.yahoo.sketches.memory.CommonTests.setGetPartialArraysWithOffse
 import static com.yahoo.sketches.memory.CommonTests.setGetTests;
 import static com.yahoo.sketches.memory.CommonTests.toHexStringAllMemTests;
 import static org.testng.Assert.assertEquals;
+import static java.lang.Math.*;
 
 import org.testng.annotations.Test;
 
@@ -271,6 +272,78 @@ public class MemoryRegionTest {
      assertEquals(reg.getLong(0), -2L);
   }
   
+  //////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////
+  //this one allocates what was asked from MemoryRegion
+  private class MemoryRegionManager implements MemoryRequest {
+    private Memory parent_ = null;
+    private long capUsed_ = 0;  //a very simple memory management scheme!
+    
+    MemoryRegionManager(Memory parent) {
+      parent_ = parent;
+    }
+    
+    @Override
+    public Memory request(long capacityBytes) {
+      if (capacityBytes <= (parent_.getCapacity() - capUsed_)) {
+        Memory newMem = new MemoryRegion(parent_, capUsed_, capacityBytes, this);
+        capUsed_ += capacityBytes;
+        return newMem;
+      }
+      return null; //could not satisfy the request
+    }
+
+    @Override
+    public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
+      if (capacityBytes <= (parent_.getCapacity() - capUsed_)) {
+        MemoryRegion newMem = new MemoryRegion(parent_, capUsed_, capacityBytes);
+        capUsed_ += capacityBytes;
+        long minCopyToBytes = min(min(origMem.getCapacity(), copyToBytes), capacityBytes);
+        MemoryUtil.copy(origMem, 0, newMem, 0, minCopyToBytes);
+        if (minCopyToBytes < capacityBytes) {
+          newMem.clear(minCopyToBytes, capacityBytes - minCopyToBytes);
+        }
+        return newMem;
+      }
+      return null; //could not satisfy the request
+    }
+
+    @Override
+    public void free(Memory mem) {
+      //In a more sophisticated memory management scheme this would allow reallocation of 
+      // memory regions. 
+    }
+
+    @Override
+    public void free(Memory memToFree, Memory newMem) {
+      //In a more sophisticated memory management scheme this would allow reallocation of 
+      // memory regions.
+    }
+  }
+  //////////////////////////////////////////////////////
+  
+  @Test
+  public void checkMemoryRegionRequest() {
+    int parentCap = 256;
+    byte[] memArr = new byte[parentCap];
+    NativeMemory parent = new NativeMemory(memArr);
+    MemoryRequest mr = new MemoryRegionManager(parent);
+    //mark the memory so we can see it
+    for (int i=0; i<parentCap; i++) memArr[i] = (byte) i;
+    println(parent.toHexString("Parent", 0, 256));
+    
+    Memory reg1 = mr.request(128); //1st request
+    reg1.setMemoryRequest(mr);
+    println(reg1.toHexString("Region1", 0, (int)reg1.getCapacity()));
+    
+    Memory reg2 = reg1.getMemoryRequest().request(64); //2nd request via region1
+    reg2.setMemoryRequest(mr);
+    println(reg2.toHexString("Region2", 0, (int)reg2.getCapacity()));
+    
+    Memory reg3 = reg2.getMemoryRequest().request(64); //3rd request via region2 
+    println(reg3.toHexString("Region3", 0, (int)reg3.getCapacity()));
+    
+  }
   
   @Test
   public void printlnTest() {

@@ -732,7 +732,9 @@ public class DirectQuickSelectSketchTest {
     public Memory request(long capacityBytes) {
       long newCap = capacityBytes*2;
       println("ReqCap: "+capacityBytes + ", Granted: "+newCap);
-      return new AllocMemory(newCap, this);
+      Memory newMem = new AllocMemory(newCap);
+      newMem.setMemoryRequest(this);
+      return newMem;
     }
 
     @Override
@@ -774,6 +776,8 @@ public class DirectQuickSelectSketchTest {
     }
     assertEquals(usk1.getEstimate(), u, 0.05*u);
     NativeMemory nMem = (NativeMemory) usk1.getMemory();
+    println(nMem.toHexString("TestMemory", 0, 128));
+    
     println("Freed: " + nMem.getCapacity());
     nMem.freeMemory();
   }

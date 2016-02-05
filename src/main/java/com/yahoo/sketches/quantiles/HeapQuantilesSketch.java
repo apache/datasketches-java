@@ -24,6 +24,7 @@ import static com.yahoo.sketches.quantiles.Util.computeBitPattern;
 import static com.yahoo.sketches.quantiles.Util.computeNumLevelsNeeded;
 import static com.yahoo.sketches.quantiles.Util.linearTimeIncrementHistogramCounters;
 import static com.yahoo.sketches.quantiles.Util.positionOfLowestZeroBitStartingAt;
+import static com.yahoo.sketches.Util.checkIfPowerOf2;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -212,6 +213,7 @@ class HeapQuantilesSketch extends QuantilesSketch {
 
   @Override
   public double[] getQuantiles(double[] fractions) {
+    QuantilesSketch.validateSequential(fractions);
     Auxiliary aux = null; //
     double[] answers = new double[fractions.length];
     for (int i = 0; i < fractions.length; i++) {
@@ -275,7 +277,17 @@ class HeapQuantilesSketch extends QuantilesSketch {
   public double getMaxValue() {
     return maxValue_;
   }
-
+  
+  @Override
+  public long getN() { 
+    return n_; 
+  }
+  
+  @Override
+  public short getSeed() {
+    return seed_;
+  }
+  
   @Override
   public boolean isDirect() {
     return false;
@@ -291,7 +303,7 @@ class HeapQuantilesSketch extends QuantilesSketch {
     minValue_ = java.lang.Double.POSITIVE_INFINITY;
     maxValue_ = java.lang.Double.NEGATIVE_INFINITY;
   }
-  
+
   @Override
   public byte[] toByteArray() {
     int preLongs, arrLongs, flags;
@@ -387,6 +399,7 @@ class HeapQuantilesSketch extends QuantilesSketch {
       sb.append(LS).append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
       sb.append("   K                            : ").append(getK()).append(LS);
       sb.append("   N                            : ").append(nStr).append(LS);
+      sb.append("   Seed                         : ").append(seed_).append(LS);
       sb.append("   BaseBufferCount              : ").append(getBaseBufferCount()).append(LS);
       sb.append("   CombinedBufferAllocatedCount : ").append(bufCntStr).append(LS);
       sb.append("   Total Levels                 : ").append(numLevels).append(LS);
@@ -401,11 +414,6 @@ class HeapQuantilesSketch extends QuantilesSketch {
       sb.append("### END SKETCH SUMMARY").append(LS);
     }
     return sb.toString();
-  }
-
-  @Override
-  public void merge(QuantilesSketch qsSource) {
-    mergeInto(qsSource, this);
   }
 
   // It is easy to prove that the following simplified code which launches 
@@ -427,17 +435,19 @@ class HeapQuantilesSketch extends QuantilesSketch {
 
   
   @Override
-  public void mergeInto(QuantilesSketch srcQS, QuantilesSketch tgtQS) {
-    if (srcQS.isDirect() || tgtQS.isDirect()) {
+  public void mergeInto(QuantilesSketch source, QuantilesSketch target) {
+    if (source.isDirect() || target.isDirect()) {
       throw new IllegalArgumentException("DirectQuantilesSketch not implemented.");
     }
     
-    HeapQuantilesSketch src = (HeapQuantilesSketch)srcQS;
-    HeapQuantilesSketch tgt = (HeapQuantilesSketch)tgtQS;
-
-    if ( tgt.getK() != src.getK()) 
-      throw new IllegalArgumentException("Given sketches must have the same value of k.");
-
+    HeapQuantilesSketch src = (HeapQuantilesSketch)source;
+    HeapQuantilesSketch tgt = (HeapQuantilesSketch)target;
+    
+    if (src.getK() != tgt.getK()) {
+      downSamplingMergeInto(src, tgt);
+      return;
+    }
+    
     double[] srcLevels     = src.getCombinedBuffer(); // aliasing is a bit dangerous
     double[] srcBaseBuffer = src.getCombinedBuffer(); // aliasing is a bit dangerous
 
@@ -476,21 +486,20 @@ class HeapQuantilesSketch extends QuantilesSketch {
     if (srcMin < tgtMin) { tgt.minValue_ = srcMin; }
   }
   
+
   @Override
-  public long getN() { 
-    return n_; 
+  public QuantilesSketch downSample(int newK) {
+    HeapQuantilesSketch oldSketch = this;
+    HeapQuantilesSketch newSketch = HeapQuantilesSketch.getInstance(newK, Util.DEFAULT_SEED);
+    downSamplingMergeInto(oldSketch, newSketch); 
+    return newSketch;
   }
   
-  //Restricted
-
-  /**
-   * Returns the Auxiliary data structure which is only used for getQuantile() and getQuantiles() 
-   * queries.
-   * @return the Auxiliary data structure
-   */
-  Auxiliary constructAuxiliary() {
-    return new Auxiliary( this );
-        //k_, n_, bitPattern_, combinedBuffer_, baseBufferCount_, numSamplesInSketch());
+  //Restricted overrides
+  
+  @Override
+  int getBaseBufferCount() {
+    return baseBufferCount_;
   }
   
   @Override
@@ -502,26 +511,82 @@ class HeapQuantilesSketch extends QuantilesSketch {
   double[] getCombinedBuffer() {
     return combinedBuffer_;
   }
+  
+  //Other restricted
+  
+  /**
+   * Merges the source sketch into the target sketch that can have a smaller value of K.
+   * However, it is required that the ratio of the two K values be a power of 2.
+   * I.e., source.getK() = target.getK() * 2^(nonnegative integer).
+   * The source is not modified.
+   * 
+   * @param src The source sketch
+   * @param tgt The target sketch
+   */
+  static void downSamplingMergeInto(HeapQuantilesSketch src, HeapQuantilesSketch tgt) {
+    
+    int targetK = tgt.getK();
+    int sourceK = src.getK();
+    
+    if ((sourceK % targetK) != 0) {
+      throw new IllegalArgumentException("source.getK() must equal target.getK() * 2^(nonnegative integer).");
+    }
+    
+    int downFactor = sourceK / targetK;
+    checkIfPowerOf2(downFactor, "source.getK()/target.getK() ratio");
+    int lgDownFactor = Integer.numberOfTrailingZeros(downFactor);
+    
+    double [] sourceLevels     = src.getCombinedBuffer(); // aliasing is a bit dangerous
+    double [] sourceBaseBuffer = src.getCombinedBuffer(); // aliasing is a bit dangerous
 
-  @Override
-  int getBaseBufferCount() {
-    return baseBufferCount_;
+    long nFinal = tgt.getN() + src.getN();
+    
+    for (int i = 0; i < src.getBaseBufferCount(); i++) {
+      tgt.update (sourceBaseBuffer[i]);
+    }
+
+    tgt.maybeGrowLevels (nFinal); 
+
+    double [] scratchBuf = new double [2*targetK];
+    double [] downBuf    = new double [targetK];
+
+    long srcBitPattern = src.getBitPattern();
+    for (int srcLvl = 0; srcBitPattern != 0L; srcLvl++, srcBitPattern >>>= 1) {
+      if ((srcBitPattern & 1L) > 0L) {
+        justZipWithStride (sourceLevels, ((2+srcLvl) * sourceK),
+                           downBuf, 0,
+                           targetK,
+                           downFactor);
+        tgt.inPlacePropagateCarry (srcLvl+lgDownFactor,
+                                   downBuf, 0,
+                                   scratchBuf, 0,
+                                   false);
+        // won't update target.n_ until the very end
+      }
+    }
+
+    tgt.n_ = nFinal; 
+    
+    assert tgt.getN() / (2*targetK) == tgt.bitPattern_; // internal consistency check
+
+    double srcMax = src.getMaxValue();
+    double srcMin = src.getMinValue();
+    double tgtMax = tgt.getMaxValue();
+    double tgtMin = tgt.getMinValue();
+    
+    if (srcMax > tgtMax) { tgt.maxValue_ = srcMax; }
+    if (srcMin < tgtMin) { tgt.minValue_ = srcMin; }
+    
   }
   
   /**
-   * Computes a checksum of all the samples in the sketch. Used in testing the Auxiliary
-   * @return a checksum of all the samples in the sketch
-   */ //Used by test
-  final double sumOfSamplesInSketch() {
-    double total = Util.sumOfDoublesInSubArray(combinedBuffer_, 0, baseBufferCount_);
-    long bits = bitPattern_;
-    assert bits == n_ / (2L * k_); // internal consistency check
-    for (int lvl = 0; bits != 0L; lvl++, bits >>>= 1) {
-      if ((bits & 1L) > 0L) {
-        total += Util.sumOfDoublesInSubArray(combinedBuffer_, ((2+lvl) * k_), k_);
-      }
-    }
-    return total;
+   * Returns the Auxiliary data structure which is only used for getQuantile() and getQuantiles() 
+   * queries.
+   * @return the Auxiliary data structure
+   */
+  Auxiliary constructAuxiliary() {
+    return new Auxiliary( this );
+        //k_, n_, bitPattern_, combinedBuffer_, baseBufferCount_, numSamplesInSketch());
   }
 
   private void growBaseBuffer() {
@@ -576,6 +641,18 @@ class HeapQuantilesSketch extends QuantilesSketch {
     }
   }
 
+  private static void justZipWithStride(double[] bufA, int startA, // input
+      double[] bufC, int startC, // output
+      int kC, // number of items that should be in the output
+      int stride) {
+    int randomOffset = (Util.rand.nextInt(stride));
+    int limC = startC + kC;
+
+    for (int a = startA + randomOffset, c = startC; c < limC; a += stride, c++ ) {
+      bufC[c] = bufA[a];
+    }
+  }
+  
   private static void mergeTwoSizeKBuffers(double[] keySrc1, int arrStart1,
                                            double[] keySrc2, int arrStart2,
                                            double[] keyDst,  int arrStart3,
@@ -643,7 +720,7 @@ class HeapQuantilesSketch extends QuantilesSketch {
     // update bit pattern with binary-arithmetic ripple carry
     bitPattern_ = bitPattern_ + (((long) 1) << startingLevel);
   }
-
+  
   /**
    * Called when the base buffer has just acquired 2*k elements.
    */
@@ -666,7 +743,7 @@ class HeapQuantilesSketch extends QuantilesSketch {
     //Arrays.fill(baseBuffer, 0, 2*k_, DUMMY_VALUE);
     assert n_ / (2*k_) == bitPattern_;  // internal consistency check
   }
-
+  
   /**
    * Shared algorithm for both PMF and CDF functions. The splitPoints must be unique, monotonically
    * increasing values.
@@ -678,7 +755,7 @@ class HeapQuantilesSketch extends QuantilesSketch {
     double[] levelsArr  = combinedBuffer_; // aliasing is a bit dangerous
     double[] baseBuffer = combinedBuffer_; // aliasing is a bit dangerous
 
-    QuantilesSketch.validateSplitPoints(splitPoints);
+    QuantilesSketch.validateSequential(splitPoints);
 
     int numSplitPoints = splitPoints.length;
     int numCounters = numSplitPoints + 1;
@@ -712,5 +789,35 @@ class HeapQuantilesSketch extends QuantilesSketch {
     }
     return counters;
   }
-
+  
+  //Used for test
+  
+  /**
+   * Computes a checksum of all the samples in the sketch. Used in testing the Auxiliary
+   * @return a checksum of all the samples in the sketch
+   */ //Used by test
+  final double sumOfSamplesInSketch() {
+    double total = Util.sumOfDoublesInSubArray(combinedBuffer_, 0, baseBufferCount_);
+    long bits = bitPattern_;
+    assert bits == n_ / (2L * k_); // internal consistency check
+    for (int lvl = 0; bits != 0L; lvl++, bits >>>= 1) {
+      if ((bits & 1L) > 0L) {
+        total += Util.sumOfDoublesInSubArray(combinedBuffer_, ((2+lvl) * k_), k_);
+      }
+    }
+    return total;
+  }
+  
+  static boolean sameStructurePredicate( HeapQuantilesSketch mq1, HeapQuantilesSketch mq2) {
+    return (
+            (mq1.k_ == mq2.k_) &&
+            (mq1.n_ == mq2.n_) &&
+            (mq1.combinedBufferAllocatedCount_ == mq2.combinedBufferAllocatedCount_) &&
+            (mq1.baseBufferCount_ == mq2.baseBufferCount_) &&
+            (mq1.bitPattern_ == mq2.bitPattern_) &&
+            (mq1.minValue_ == mq2.minValue_) &&
+            (mq1.maxValue_ == mq2.maxValue_)
+           );
+  }
+  
 } // End of class HeapQuantilesSketch

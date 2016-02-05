@@ -38,7 +38,7 @@ public class MemoryRegion implements Memory {
   private final Memory mem_;
   private volatile long memOffsetBytes_;
   private volatile long capacityBytes_;
-  private MemoryRequest memReq_ = null;
+  private volatile MemoryRequest memReq_ = null;
   
   /**
    * Defines a region of the given parent Memory by defining an offset and capacity that are 
@@ -432,13 +432,22 @@ public class MemoryRegion implements Memory {
   }
   
   @Override
+  public void setMemoryRequest(MemoryRequest memReq) {
+    memReq_ = memReq;
+  }
+  
+  @Override
   public String toHexString(String header, long offsetBytes, int lengthBytes) {
     assertBounds(offsetBytes, lengthBytes, capacityBytes_);
     StringBuilder sb = new StringBuilder();
     sb.append(header).append("\n");
-    String s1 = String.format("(%d, %d)", offsetBytes, lengthBytes);
-    sb.append(this.getClass().getName());
-    sb.append(".toHexString").append(s1).append(", hash: ").append(this.hashCode()).append(":");
+    String s1 = String.format("(..., %d, %d)", offsetBytes, lengthBytes);
+    sb.append(this.getClass().getSimpleName()).append(".toHexString").
+       append(s1).append(", hash: ").append(this.hashCode()).append("\n");
+    sb.append("  MemoryRequest: ");
+    if (memReq_ != null) {
+      sb.append(memReq_.getClass().getSimpleName()).append(", hash: ").append(memReq_.hashCode());
+    } else sb.append("null");
     return mem_.toHexString(sb.toString(), getAddress(offsetBytes), lengthBytes);
   }
 

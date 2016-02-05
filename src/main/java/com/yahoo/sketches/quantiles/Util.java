@@ -386,7 +386,7 @@ final class Util {
      * @return the resulting epsilon
      */ //used by HeapQS, so far
     static double getAdjustedEpsilon(int k) {
-      if (k == 1) return 1.0; //TODO IS THIS THE RIGHT VALUE?
+      if (k == 1) return 1.0; 
       return getTheoreticalEpsilon(k, adjustKForEps);
     }
     

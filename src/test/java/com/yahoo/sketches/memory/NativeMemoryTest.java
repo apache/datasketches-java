@@ -497,6 +497,23 @@ public class NativeMemoryTest {
   }
   
   @Test
+  public void checkIsDirect() {
+    byte[] byteArr = new byte[64];
+    NativeMemory mem = new NativeMemory(byteArr);
+    assertFalse(mem.isDirect());
+    mem = new AllocMemory(64);
+    assertTrue(mem.isDirect());
+    mem.freeMemory();
+  }
+  
+  @SuppressWarnings("unused")
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkNullByteArray() {
+    byte[] byteArr = null;
+    NativeMemory mem = new NativeMemory(byteArr);
+  }
+  
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
