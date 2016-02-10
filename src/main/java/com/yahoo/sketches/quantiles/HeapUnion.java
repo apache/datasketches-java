@@ -100,7 +100,7 @@ class HeapUnion extends Union {
       return qs1;
     }
     
-    //myK > thatK
+    //qs1K > qs2K
     HeapQuantilesSketch copyQS2 = HeapQuantilesSketch.copy(qs2);
     HeapUnion.mergeInto(qs1, copyQS2);
     return copyQS2;

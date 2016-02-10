@@ -315,31 +315,6 @@ public abstract class QuantilesSketch {
    */
   public abstract String toString(boolean sketchSummary, boolean dataDetail);
   
-  //Merging etc
-  
-//  /**
-//   * Merges the given sketch into this one.
-//   * Merges the source sketch into this sketch that can have a smaller value of K.
-//   * However, it is required that the ratio of the two K values be a power of 2.
-//   * I.e., source.getK() = this.getK() * 2^(nonnegative integer). 
-//   * The source is not modified.
-//   *
-//   * @param source the given source sketch
-//   */
-//  public void merge(QuantilesSketch source) {
-//    mergeInto(source, this);
-//  }
-//  
-//  /**
-//   * Merges the source sketch into the target sketch that can have a smaller value of K.
-//   * However, it is required that the ratio of the two K values be a power of 2.
-//   * I.e., source.getK() = target.getK() * 2^(nonnegative integer).
-//   * The source is not modified.
-//   * 
-//   * @param source The source sketch
-//   * @param target The target sketch
-//   */
-//   public abstract void mergeInto(QuantilesSketch source, QuantilesSketch target);
    
    /**
     * From an existing sketch, this creates a new sketch that can have a smaller value of K.

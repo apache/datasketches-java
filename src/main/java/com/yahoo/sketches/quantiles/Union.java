@@ -65,12 +65,22 @@ public abstract class Union {
   public abstract QuantilesSketch getResult();
   
   /**
-   * Resets this Union to its virgin state.
+   * Resets this Union to a virgin state.
    */
   public abstract void reset();
   
+  /**
+   * Returns summary information about the backing sketch.
+   */
   @Override
   public abstract String toString();
   
+  
+  /**
+   * Returns summary information about the backing sketch. Used for debugging.
+   * @param sketchSummary if true includes sketch summary
+   * @param dataDetail if true includes data detail
+   * @return summary information about the sketch.
+   */
   public abstract String toString(boolean sketchSummary, boolean dataDetail);
 }
