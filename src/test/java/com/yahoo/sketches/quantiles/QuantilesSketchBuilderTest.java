@@ -5,12 +5,12 @@
 package com.yahoo.sketches.quantiles;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
+//import static org.testng.Assert.assertNull;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.memory.NativeMemory;
+//import com.yahoo.sketches.memory.Memory;
+//import com.yahoo.sketches.memory.NativeMemory;
 
 
 public class QuantilesSketchBuilderTest {
@@ -19,16 +19,16 @@ public class QuantilesSketchBuilderTest {
   public void checkBuilder() {
     int k = 256;
     short seed = 32749;
-    byte[] byteArr = new byte[k]; //dummy value
-    Memory mem = new NativeMemory(byteArr);
+//    byte[] byteArr = new byte[k]; //dummy value
+//    Memory mem = new NativeMemory(byteArr);
     
     QuantilesSketchBuilder bldr = QuantilesSketch.builder();
     
     bldr.setK(k);
     assertEquals(bldr.getK(), k);
     
-    bldr.initMemory(mem);
-    assertEquals(bldr.getMemory(), mem);
+//    bldr.initMemory(mem);
+//    assertEquals(bldr.getMemory(), mem);
     
     bldr.setSeed(seed);
     assertEquals(bldr.getSeed(), seed);
@@ -38,7 +38,7 @@ public class QuantilesSketchBuilderTest {
     bldr = QuantilesSketch.builder();
     assertEquals(bldr.getK(), QuantilesSketch.DEFAULT_K);
     assertEquals(bldr.getSeed(), QuantilesSketch.DEFAULT_SEED);
-    assertNull(bldr.getMemory());
+//    assertNull(bldr.getMemory());
   }
   
   @Test

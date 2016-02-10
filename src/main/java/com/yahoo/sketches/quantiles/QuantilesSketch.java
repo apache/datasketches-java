@@ -4,17 +4,8 @@
  */
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.quantiles.PreambleUtil.BIG_ENDIAN_FLAG_MASK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.READ_ONLY_FLAG_MASK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.SER_VER;
-import static com.yahoo.sketches.quantiles.Util.bufferElementCapacity;
-
 import java.util.Random;
 
-import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 
 
@@ -115,14 +106,35 @@ Table Guide for QuantilesSketch Size in Bytes and Approximate Error:
  */
 public abstract class QuantilesSketch {
   static final int MIN_BASE_BUF_SIZE = 4; //This is somewhat arbitrary
-  protected static final Random rand = new Random();
-  /*
-   * A default seed of zero means that the seed of the random generator will not be set. 
-   */
-  static final short DEFAULT_SEED = 0;  
-  static final int DEFAULT_K = 128; //default for about 1.7% normalized rank accuracy
   
-  QuantilesSketch() {}
+  /**
+   * Parameter that controls space usage of sketch and accuracy of estimates.
+   */
+  protected final int k_;
+
+  /**
+   * Used to make results of QuantilesSketch deterministic given a stream in the same order. 
+   * Not recommended for general usage. Ignored if zero.
+   */
+  protected final short seed_;
+  
+  protected static final Random rand = new Random();
+  
+  /**
+   * A seed of zero means that the seed of the random generator will not be set. 
+   */
+  static final short DEFAULT_SEED = 0;
+  
+  /**
+   * Default value for about 1.7% normalized rank accuracy
+   */
+  static final int DEFAULT_K = 128;
+  
+  QuantilesSketch(int k, short seed) {
+    Util.checkK(k);
+    k_ = k;
+    seed_ = seed;
+  }
   
   /**
    * Returns a new builder
@@ -268,13 +280,6 @@ public abstract class QuantilesSketch {
   public abstract short getSeed();
   
   /**
-   * Returns true if this sketch accesses its internal data using the Memory package.
-   * (The Direct version of this sketch is not yet implemented.) 
-   * @return true if this sektch accesses its internal data using the Memory package
-   */
-  public abstract boolean isDirect();
-  
-  /**
    * Returns true if this sketch is empty
    * @return true if this sketch is empty
    */
@@ -312,29 +317,29 @@ public abstract class QuantilesSketch {
   
   //Merging etc
   
-  /**
-   * Merges the given sketch into this one.
-   * Merges the source sketch into this sketch that can have a smaller value of K.
-   * However, it is required that the ratio of the two K values be a power of 2.
-   * I.e., source.getK() = this.getK() * 2^(nonnegative integer). 
-   * The source is not modified.
-   *
-   * @param source the given source sketch
-   */
-  public void merge(QuantilesSketch source) {
-    mergeInto(source, this);
-  }
-  
-  /**
-   * Merges the source sketch into the target sketch that can have a smaller value of K.
-   * However, it is required that the ratio of the two K values be a power of 2.
-   * I.e., source.getK() = target.getK() * 2^(nonnegative integer).
-   * The source is not modified.
-   * 
-   * @param source The source sketch
-   * @param target The target sketch
-   */
-   public abstract void mergeInto(QuantilesSketch source, QuantilesSketch target);
+//  /**
+//   * Merges the given sketch into this one.
+//   * Merges the source sketch into this sketch that can have a smaller value of K.
+//   * However, it is required that the ratio of the two K values be a power of 2.
+//   * I.e., source.getK() = this.getK() * 2^(nonnegative integer). 
+//   * The source is not modified.
+//   *
+//   * @param source the given source sketch
+//   */
+//  public void merge(QuantilesSketch source) {
+//    mergeInto(source, this);
+//  }
+//  
+//  /**
+//   * Merges the source sketch into the target sketch that can have a smaller value of K.
+//   * However, it is required that the ratio of the two K values be a power of 2.
+//   * I.e., source.getK() = target.getK() * 2^(nonnegative integer).
+//   * The source is not modified.
+//   * 
+//   * @param source The source sketch
+//   * @param target The target sketch
+//   */
+//   public abstract void mergeInto(QuantilesSketch source, QuantilesSketch target);
    
    /**
     * From an existing sketch, this creates a new sketch that can have a smaller value of K.
@@ -349,7 +354,7 @@ public abstract class QuantilesSketch {
    /**
     * Heapify takes the sketch image in Memory and instantiates an on-heap Sketch. 
     * The resulting sketch will not retain any link to the source Memory.
-    * @param srcMem an image of a Sketch.
+    * @param srcMem a Memory image of a Sketch.
     * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
     * @return a heap-based Sketch based on the given Memory
     */
@@ -379,6 +384,14 @@ public abstract class QuantilesSketch {
      return 40 + 8*Util.bufferElementCapacity(getK(), getN());
    }
    
+   /**
+    * Puts the current sketch into the given Memory if there is sufficient space.
+    * Otherwise, throws an error.
+    * 
+    * @param dstMem the given memory.
+    */
+   public abstract void putMemory(Memory dstMem);
+   
    //Restricted abstract
 
    /**
@@ -386,6 +399,9 @@ public abstract class QuantilesSketch {
     * @return the base buffer count
     */
    abstract int getBaseBufferCount();
+   
+   
+   abstract int getCombinedBufferAllocatedCount();
    
    /**
     * Returns the bit pattern for valid log levels
@@ -399,112 +415,4 @@ public abstract class QuantilesSketch {
     */
    abstract double[] getCombinedBuffer();
    
-   //Other restricted
-   
-   
-  /**
-   * Checks the validity of the given value k
-   * @param k must be greater than or equal to 2 and less than 65536.
-   */
-  static void checkK(int k) {
-    if ((k < 1) || (k > ((1 << 16)-1))) {
-      throw new IllegalArgumentException("K must be >= 1 and < 65536");
-    }
-  }
-
-  /**
-   * Check the validity of the given serialization version
-   * @param serVer the given serialization version
-   */
-  static void checkSerVer(int serVer) {
-    if (serVer != SER_VER) {
-      throw new IllegalArgumentException(
-          "Possible corruption: Invalid Serialization Version: "+serVer);
-    }
-  }
-  
-  /**
-   * Checks the validity of the given family ID
-   * @param familyID the given family ID
-   */
-  static void checkFamilyID(int familyID) {
-    Family family = Family.idToFamily(familyID);
-    if (!family.equals(Family.QUANTILES)) {
-      throw new IllegalArgumentException(
-          "Possible corruption: Invalid Family: " + family.toString());
-    }
-  }
-  
-  /**
-   * Checks the validity of the memory buffer allocation and the memory capacity assuming
-   * n and k.
-   * @param k the given value of k
-   * @param n the given value of n
-   * @param memBufAlloc the memory buffer allocation
-   * @param memCapBytes the memory capacity
-   */
-  static void checkBufAllocAndCap(int k, long n, int memBufAlloc, long memCapBytes) {
-    int computedBufAlloc = bufferElementCapacity(k, n);
-    if (memBufAlloc != computedBufAlloc) {
-      throw new IllegalArgumentException("Possible corruption: Invalid Buffer Allocated Count: "
-          + memBufAlloc +" != " +computedBufAlloc);
-    }
-    int maxPre = Family.QUANTILES.getMaxPreLongs();
-    int reqBufBytes = (maxPre + memBufAlloc) << 3;
-    if (memCapBytes < reqBufBytes) {
-      throw new IllegalArgumentException("Possible corruption: Memory capacity too small: "+ 
-          memCapBytes + " < "+ reqBufBytes);
-    }
-  }
-  
-  /**
-   * Checks the consistency of the flag bits and the state of preambleLong and the memory
-   * capacity and returns the empty state.
-   * @param preambleLongs the size of preamble in longs 
-   * @param flags the flags field
-   * @param memCapBytes the memory capacity
-   * @return the value of the empty state
-   */
-  static boolean checkPreLongsFlagsCap(int preambleLongs, int flags, long memCapBytes) {
-    boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
-    int minPre = Family.QUANTILES.getMinPreLongs();
-    int maxPre = Family.QUANTILES.getMaxPreLongs();
-    boolean valid = ((preambleLongs == minPre) && empty) || ((preambleLongs == maxPre) && !empty);
-    if (!valid) {
-      throw new IllegalArgumentException(
-          "Possible corruption: PreambleLongs inconsistent with empty state: " +preambleLongs);
-    }
-    checkFlags(flags);
-    if (!empty && (memCapBytes < (maxPre<<3))) {
-      throw new IllegalArgumentException(
-          "Possible corruption: Insufficient capacity for preamble: " +memCapBytes);
-    }
-    return empty;
-  }
-  
-  /**
-   * Checks just the flags field of the preamble
-   * @param flags the flags field
-   */
-  static void checkFlags(int flags) {
-    int flagsMask = ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
-    if ((flags & flagsMask) > 0) {
-      throw new IllegalArgumentException(
-          "Possible corruption: Input srcMem cannot be: big-endian, compact, ordered, or read-only");
-    }
-  }
-  
-  /**
-   * Checks the sequential validity of the given array of values. 
-   * They must be unique, monotonically increasing and not NaN.
-   * @param values array
-   */
-  static final void validateSequential(double[] values) {
-    for (int j = 0; j < values.length - 1; j++) {
-      if (values[j] < values[j+1]) { continue; }
-      throw new IllegalArgumentException(
-          "Values must be unique, monotonically increasing and not NaN.");
-    }
-  }
-
 }

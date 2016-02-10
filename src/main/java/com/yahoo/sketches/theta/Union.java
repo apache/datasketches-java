@@ -24,7 +24,7 @@ public interface Union {
   void update(Sketch sketchIn);
   
   /**
-   * Union the given Memory image of the OpenSource, CompactSketch, 
+   * Union the given Memory image of the OpenSource CompactSketch, 
    * which may be ordered or unordered, or the earlier versions of SetSketch, 
    * which is always compact and ordered.
    * 

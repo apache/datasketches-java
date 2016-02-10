@@ -7,9 +7,6 @@ package com.yahoo.sketches.quantiles;
 import static com.yahoo.sketches.quantiles.Util.LS;
 import static com.yahoo.sketches.quantiles.Util.TAB;
 
-import com.yahoo.sketches.memory.Memory;
-
-
 /**
  * For building a new QuantilesSketch.
  * 
@@ -17,7 +14,6 @@ import com.yahoo.sketches.memory.Memory;
  */
 public class QuantilesSketchBuilder {
   private int bK;
-  private Memory bDstMem;
   private short bSeed;
   
   /**
@@ -31,7 +27,6 @@ public class QuantilesSketchBuilder {
    */
   public QuantilesSketchBuilder() {
     bK = QuantilesSketch.DEFAULT_K;
-    bDstMem = null;
     bSeed = 0;
   }
   
@@ -45,7 +40,7 @@ public class QuantilesSketchBuilder {
    * @return this builder
    */
   public QuantilesSketchBuilder setK(int k) {
-    QuantilesSketch.checkK(k);
+    Util.checkK(k);
     bK = k;
     return this;
   }
@@ -80,35 +75,10 @@ public class QuantilesSketchBuilder {
   }
   
   /**
-   * Initialize the specified backing destination Memory store for use as the destination of
-   * the sketch data structure.
-   * @param dstMem The destination Memory.
-   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
-   * @return this builder
-   */
-  public QuantilesSketchBuilder initMemory(Memory dstMem) {
-    bDstMem = dstMem;
-    return this;
-  }
-  
-  /**
-   * Returns the current configured Destination Memory.
-   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
-   * @return the current configured Destination Memory
-   */
-  public Memory getMemory() {
-    return bDstMem;
-  }
-  
-  /**
    * Returns a QuantilesSketch with the current configuration of this Builder.
    * @return a QuantilesSketch
    */
   public QuantilesSketch build() {
-    if (bDstMem != null) {
-      throw new IllegalArgumentException("DirectQuantilesSketch not implemented.");
-      //sketch = DirectQuantilesSketch.getInstance(bK, bDstMem);
-    } 
     return HeapQuantilesSketch.getInstance(bK, bSeed);
   }
   
@@ -134,7 +104,7 @@ public class QuantilesSketchBuilder {
     sb.append("QuantileSketchBuilder configuration:").append(LS);
     sb.append("K:").append(TAB).append(bK).append(LS);
     sb.append("Seed:").append(TAB).append(bSeed).append(LS);
-    sb.append("DstMemory:").append(TAB).append(bDstMem != null).append(LS);
+    //sb.append("DstMemory:").append(TAB).append(bDstMem != null).append(LS);
     return sb.toString();
   }
 }

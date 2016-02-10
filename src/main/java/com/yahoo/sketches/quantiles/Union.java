@@ -1,0 +1,76 @@
+/*
+ * Copyright 2015, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
+package com.yahoo.sketches.quantiles;
+
+import com.yahoo.sketches.memory.Memory;
+
+/**
+ * The API for Union operations for QuantilesSketches
+ * 
+ * @author Lee Rhodes
+ */
+public abstract class Union {
+
+  /**
+   * Returns a new UnionBuilder
+   * @return a new UnionBuilder
+   */
+  public static final UnionBuilder builder() {
+    return new UnionBuilder();
+  }
+  
+  /**
+   * Iterative union operation, which means this method can be repeatedly called.
+   * Merges the given sketch into this union object. 
+   * The given sketch is not modified.
+   * It is required that the ratio of the two K values be a power of 2.
+   * This is easily satified if each of the K values is already a power of 2.
+   * If the given sketch is null or empty it is ignored.
+   * 
+   * <p>It is required that the results of the union operation, which can be obtained at any time, 
+   * is obtained from {@link #getResult() }.
+   * 
+   * @param sketchIn the sketch to be merged into this one.
+   */
+  public abstract void update(QuantilesSketch sketchIn);
+  
+  /**
+   * Iterative union operation, which means this method can be repeatedly called.
+   * Merges the given Memory image of a QuantilesSketch into this union object.
+   * The given Memory object is not modified and a link to it is not retained.
+   * It is required that the ratio of the two K values be a power of 2.
+   * This is easily satified if each of the K values is already a power of 2.
+   * If the given sketch is null or empty it is ignored.
+   * 
+   * <p>It is required that the results of the union operation, which can be obtained at any time, 
+   * is obtained from {@link #getResult() }.
+   * 
+   * @param mem Memory image of sketch to be merged
+   */
+  public abstract void update(Memory mem);
+  
+  /**
+   * Update this union with the given double (or float) data Item. 
+   * 
+   * @param dataItem The given double datum.
+   */
+  public abstract void update(double dataItem);
+  
+  /**
+   * Gets the result of this operation as a QuantilesSketch on the Java heap
+   * @return the result of this operation as a QuantilesSketch on the Java heap
+   */
+  public abstract QuantilesSketch getResult();
+  
+  /**
+   * Resets this Union to its virgin state.
+   */
+  public abstract void reset();
+  
+  @Override
+  public abstract String toString();
+  
+  public abstract String toString(boolean sketchSummary, boolean dataDetail);
+}

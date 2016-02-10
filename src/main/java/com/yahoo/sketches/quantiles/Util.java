@@ -5,10 +5,19 @@
 package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
+import static com.yahoo.sketches.Util.checkIfPowerOf2;
 import static java.lang.System.arraycopy;
+import static com.yahoo.sketches.quantiles.PreambleUtil.BIG_ENDIAN_FLAG_MASK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.READ_ONLY_FLAG_MASK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.quantiles.QuantilesSketch.*;
 
 import java.util.Arrays;
+
+import com.yahoo.sketches.Family;
 
 /**
  * Utility class for quantiles sketches.
@@ -28,6 +37,497 @@ final class Util {
    */
   public static final char TAB = '\t';
   
+  /**
+   * Checks the validity of the given value k
+   * @param k must be greater than or equal to 2 and less than 65536.
+   */
+  static void checkK(int k) {
+    if ((k < 1) || (k > ((1 << 16)-1))) {
+      throw new IllegalArgumentException("K must be >= 1 and < 65536");
+    }
+  }
+
+  /**
+   * Check the validity of the given serialization version
+   * @param serVer the given serialization version
+   */
+  static void checkSerVer(int serVer) {
+    if (serVer != SER_VER) {
+      throw new IllegalArgumentException(
+          "Possible corruption: Invalid Serialization Version: "+serVer);
+    }
+  }
+
+  /**
+   * Checks the validity of the given family ID
+   * @param familyID the given family ID
+   */
+  static void checkFamilyID(int familyID) {
+    Family family = Family.idToFamily(familyID);
+    if (!family.equals(Family.QUANTILES)) {
+      throw new IllegalArgumentException(
+          "Possible corruption: Invalid Family: " + family.toString());
+    }
+  }
+
+  /**
+   * Checks the validity of the memory buffer allocation and the memory capacity assuming
+   * n and k.
+   * @param k the given value of k
+   * @param n the given value of n
+   * @param memBufAlloc the memory buffer allocation
+   * @param memCapBytes the memory capacity
+   */
+  static void checkBufAllocAndCap(int k, long n, int memBufAlloc, long memCapBytes) {
+    int computedBufAlloc = bufferElementCapacity(k, n);
+    if (memBufAlloc != computedBufAlloc) {
+      throw new IllegalArgumentException("Possible corruption: Invalid Buffer Allocated Count: "
+          + memBufAlloc +" != " +computedBufAlloc);
+    }
+    int maxPre = Family.QUANTILES.getMaxPreLongs();
+    int reqBufBytes = (maxPre + memBufAlloc) << 3;
+    if (memCapBytes < reqBufBytes) {
+      throw new IllegalArgumentException("Possible corruption: Memory capacity too small: "+ 
+          memCapBytes + " < "+ reqBufBytes);
+    }
+  }
+
+  /**
+   * Checks the consistency of the flag bits and the state of preambleLong and the memory
+   * capacity and returns the empty state.
+   * @param preambleLongs the size of preamble in longs 
+   * @param flags the flags field
+   * @param memCapBytes the memory capacity
+   * @return the value of the empty state
+   */
+  static boolean checkPreLongsFlagsCap(int preambleLongs, int flags, long memCapBytes) {
+    boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
+    int minPre = Family.QUANTILES.getMinPreLongs();
+    int maxPre = Family.QUANTILES.getMaxPreLongs();
+    boolean valid = ((preambleLongs == minPre) && empty) || ((preambleLongs == maxPre) && !empty);
+    if (!valid) {
+      throw new IllegalArgumentException(
+          "Possible corruption: PreambleLongs inconsistent with empty state: " +preambleLongs);
+    }
+    checkFlags(flags);
+    if (!empty && (memCapBytes < (maxPre<<3))) {
+      throw new IllegalArgumentException(
+          "Possible corruption: Insufficient capacity for preamble: " +memCapBytes);
+    }
+    return empty;
+  }
+
+  /**
+   * Checks just the flags field of the preamble
+   * @param flags the flags field
+   */ //only used by checkPreLongsFlagsCap and test
+  static void checkFlags(int flags) {
+    int flagsMask = ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
+    if ((flags & flagsMask) > 0) {
+      throw new IllegalArgumentException(
+          "Possible corruption: Input srcMem cannot be: big-endian, compact, ordered, or read-only");
+    }
+  }
+
+  /**
+   * Checks the sequential validity of the given array of values. 
+   * They must be unique, monotonically increasing and not NaN.
+   * @param values array
+   */
+  static final void validateSequential(double[] values) {
+    for (int j = 0; j < values.length - 1; j++) {
+      if (values[j] < values[j+1]) { continue; }
+      throw new IllegalArgumentException(
+          "Values must be unique, monotonically increasing and not NaN.");
+    }
+  }
+
+  /**
+   * Computes a checksum of all the samples in the sketch. Used in testing the Auxiliary
+   * @return a checksum of all the samples in the sketch
+   */ //Used by test
+  static double sumOfSamplesInSketch(HeapQuantilesSketch sketch) {
+    double[] combinedBuffer = sketch.getCombinedBuffer();
+    int bbCount = sketch.getBaseBufferCount();
+    double total = sumOfDoublesInSubArray(combinedBuffer, 0, bbCount);
+    long bits = sketch.getBitPattern();
+    int k = sketch.getK();
+    assert bits == sketch.getN() / (2L * k); // internal consistency check
+    for (int lvl = 0; bits != 0L; lvl++, bits >>>= 1) {
+      if ((bits & 1L) > 0L) {
+        total += sumOfDoublesInSubArray(combinedBuffer, ((2+lvl) * k), k);
+      }
+    }
+    return total;
+  }
+
+  /**
+   * Shared algorithm for both PMF and CDF functions. The splitPoints must be unique, monotonically
+   * increasing values.
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing doubles
+   * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
+   * @return the unnormalized, accumulated counts of <i>m + 1</i> intervals.
+   */
+  static long[] internalBuildHistogram(double[] splitPoints, HeapQuantilesSketch sketch) {
+    double[] levelsArr  = sketch.getCombinedBuffer(); // aliasing is a bit dangerous
+    double[] baseBuffer = levelsArr;                  // aliasing is a bit dangerous
+    int bbCount = sketch.getBaseBufferCount();
+    Util.validateSequential(splitPoints);
+  
+    int numSplitPoints = splitPoints.length;
+    int numCounters = numSplitPoints + 1;
+    long[] counters = new long[numCounters];
+  
+    //may need this off-heap
+    //for (int j = 0; j < numCounters; j++) { counters[j] = 0; } 
+  
+    long weight = 1;
+    if (numSplitPoints < 50) { // empirically determined crossover
+      // sort not worth it when few split points
+      bilinearTimeIncrementHistogramCounters(
+          baseBuffer, 0, bbCount, weight, splitPoints, counters);
+    }
+    else {
+      Arrays.sort(baseBuffer, 0, bbCount);
+      // sort is worth it when many split points
+      linearTimeIncrementHistogramCounters(
+          baseBuffer, 0, bbCount, weight, splitPoints, counters);
+    }
+  
+    long myBitPattern = sketch.getBitPattern();
+    int k = sketch.getK();
+    assert myBitPattern == sketch.getN() / (2L * k); // internal consistency check
+    for (int lvl = 0; myBitPattern != 0L; lvl++, myBitPattern >>>= 1) {
+      weight += weight; // *= 2
+      if ((myBitPattern & 1L) > 0L) { //valid level exists
+        // the levels are already sorted so we can use the fast version
+        linearTimeIncrementHistogramCounters(
+            levelsArr, (2+lvl)*k, k, weight, splitPoints, counters);
+      }
+    }
+    return counters;
+  }
+
+  /**
+   * Called when the base buffer has just acquired 2*k elements.
+   */
+  static void processFullBaseBuffer(HeapQuantilesSketch sketch) {
+    int bbCount = sketch.getBaseBufferCount();
+    long n = sketch.getN();
+    assert bbCount == 2 * sketch.getK();  // internal consistency check
+  
+    // make sure there will be enough levels for the propagation
+    maybeGrowLevels(n, sketch); // important: n_ was incremented by update before we got here
+  
+    // this aliasing is a bit dangerous; notice that we did it after the possible resizing
+    double[] baseBuffer = sketch.getCombinedBuffer(); 
+  
+    Arrays.sort(baseBuffer, 0, bbCount);
+    inPlacePropagateCarry(
+        0,
+        null, 0,  // this null is okay
+        baseBuffer, 0,
+        true, sketch);
+    sketch.baseBufferCount_ = 0;
+    // just while debugging
+    //Arrays.fill(baseBuffer, 0, 2*k_, DUMMY_VALUE);
+    assert n / (2*sketch.getK()) == sketch.getBitPattern();  // internal consistency check
+  }
+
+  static void inPlacePropagateCarry(
+      int startingLevel,
+      double[] sizeKBuf, int sizeKStart,
+      double[] size2KBuf, int size2KStart,
+      boolean doUpdateVersion, HeapQuantilesSketch sketch) { // else doMergeIntoVersion
+    double[] levelsArr = sketch.getCombinedBuffer();
+    long bitPattern = sketch.getBitPattern();
+    int k = sketch.getK();
+  
+    int endingLevel = positionOfLowestZeroBitStartingAt(bitPattern, startingLevel);
+    //    assert endingLevel < levelsAllocated(); // was an internal consistency check
+  
+    if (doUpdateVersion) { // update version of computation
+      // its is okay for sizeKbuf to be null in this case
+      zipSize2KBuffer(
+          size2KBuf, size2KStart,
+          levelsArr, ((2+endingLevel) * k),
+          k);
+    }
+    else { // mergeInto version of computation
+      System.arraycopy(
+          sizeKBuf, sizeKStart,
+          levelsArr, ((2+endingLevel) * k),
+          k);
+    }
+  
+    for (int lvl = startingLevel; lvl < endingLevel; lvl++) {
+      assert (bitPattern & (1L << lvl)) > 0;  // internal consistency check
+      mergeTwoSizeKBuffers(
+          levelsArr, ((2+lvl) * k),
+          levelsArr, ((2+endingLevel) * k),
+          size2KBuf, size2KStart,
+          k);
+      zipSize2KBuffer(
+          size2KBuf, size2KStart,
+          levelsArr, ((2+endingLevel) * k),
+          k);
+      // just while debugging
+      //Arrays.fill(levelsArr, ((2+lvl) * k_), ((2+lvl+1) * k_), DUMMY_VALUE);
+    } // end of loop over lower levels
+  
+    // update bit pattern with binary-arithmetic ripple carry
+    sketch.bitPattern_ = bitPattern + (((long) 1) << startingLevel);
+  }
+
+  static void maybeGrowLevels(long newN, HeapQuantilesSketch sketch) { // important: newN might not equal n_
+    int k = sketch.getK();
+    int numLevelsNeeded = computeNumLevelsNeeded(k, newN);
+    if (numLevelsNeeded == 0) {
+      return; // don't need any levels yet, and might have small base buffer; this can happen during a merge
+    }
+    // from here on we need a full-size base buffer and at least one level
+    assert newN >= 2L * k;
+    assert numLevelsNeeded > 0; 
+    int spaceNeeded = (2 + numLevelsNeeded) * k;
+    if (spaceNeeded <= sketch.getCombinedBufferAllocatedCount()) {
+      return;
+    }
+    // copies base buffer plus old levels
+    double[] newCombinedBuffer = Arrays.copyOf(sketch.getCombinedBuffer(), spaceNeeded); 
+    //    just while debugging
+    //for (int i = combinedBufferAllocatedCount_; i < spaceNeeded; i++) {
+    //  newCombinedBuffer[i] = DUMMY_VALUE;
+    //}
+  
+    sketch.combinedBufferAllocatedCount_ = spaceNeeded;
+    sketch.combinedBuffer_ = newCombinedBuffer;
+  }
+
+  static void growBaseBuffer(HeapQuantilesSketch sketch) {
+    double[] baseBuffer = sketch.getCombinedBuffer();
+    int oldSize = sketch.getCombinedBufferAllocatedCount();
+    int k = sketch.getK();
+    assert oldSize < 2 * k;
+    int newSize = Math.max(Math.min(2*k, 2*oldSize), 1);
+    sketch.combinedBufferAllocatedCount_ = newSize;
+    double[] newBuf = Arrays.copyOf(baseBuffer, newSize);
+    // just while debugging
+    //for (int i = oldSize; i < newSize; i++) {newBuf[i] = DUMMY_VALUE;}
+    sketch.combinedBuffer_ = newBuf;
+  }
+
+  /**
+   * Merges the source sketch into the target sketch that can have a smaller value of K.
+   * However, it is required that the ratio of the two K values be a power of 2.
+   * I.e., source.getK() = target.getK() * 2^(nonnegative integer).
+   * The source is not modified.
+   * 
+   * @param src The source sketch
+   * @param tgt The target sketch
+   */
+  static void downSamplingMergeInto(HeapQuantilesSketch src, HeapQuantilesSketch tgt) {
+    int targetK = tgt.getK();
+    int sourceK = src.getK();
+    
+    if ((sourceK % targetK) != 0) {
+      throw new IllegalArgumentException("source.getK() must equal target.getK() * 2^(nonnegative integer).");
+    }
+    
+    int downFactor = sourceK / targetK;
+    checkIfPowerOf2(downFactor, "source.getK()/target.getK() ratio");
+    int lgDownFactor = Integer.numberOfTrailingZeros(downFactor);
+    
+    double [] sourceLevels     = src.getCombinedBuffer(); // aliasing is a bit dangerous
+    double [] sourceBaseBuffer = src.getCombinedBuffer(); // aliasing is a bit dangerous
+  
+    long nFinal = tgt.getN() + src.getN();
+    
+    for (int i = 0; i < src.getBaseBufferCount(); i++) {
+      tgt.update (sourceBaseBuffer[i]);
+    }
+  
+    Util.maybeGrowLevels (nFinal, tgt); 
+  
+    double [] scratchBuf = new double [2*targetK];
+    double [] downBuf    = new double [targetK];
+  
+    long srcBitPattern = src.getBitPattern();
+    for (int srcLvl = 0; srcBitPattern != 0L; srcLvl++, srcBitPattern >>>= 1) {
+      if ((srcBitPattern & 1L) > 0L) {
+        justZipWithStride (
+            sourceLevels, ((2+srcLvl) * sourceK),
+            downBuf, 0,
+            targetK,
+            downFactor);
+        Util.inPlacePropagateCarry (
+            srcLvl+lgDownFactor,
+            downBuf, 0,
+            scratchBuf, 0,
+            false, tgt);
+        // won't update target.n_ until the very end
+      }
+    }
+    tgt.n_ = nFinal; 
+    
+    assert tgt.getN() / (2*targetK) == tgt.getBitPattern(); // internal consistency check
+  
+    double srcMax = src.getMaxValue();
+    double srcMin = src.getMinValue();
+    double tgtMax = tgt.getMaxValue();
+    double tgtMin = tgt.getMinValue();
+    
+    if (srcMax > tgtMax) { tgt.maxValue_ = srcMax; }
+    if (srcMin < tgtMin) { tgt.minValue_ = srcMin; }
+    
+  }
+
+  static String toString(boolean sketchSummary, boolean dataDetail, HeapQuantilesSketch sketch) {
+    StringBuilder sb = new StringBuilder();
+    String thisSimpleName = sketch.getClass().getSimpleName();
+    int bbCount = sketch.getBaseBufferCount();
+    int combAllocCount = sketch.getCombinedBufferAllocatedCount();
+    int k = sketch.getK();
+    long bitPattern = sketch.getBitPattern();
+    
+    if (dataDetail) {
+      sb.append(LS).append("### ").append(thisSimpleName).append(" DATA DETAIL: ").append(LS);
+      double[] levelsArr  = sketch.getCombinedBuffer();
+      double[] baseBuffer = sketch.getCombinedBuffer();
+      
+      //output the base buffer
+      
+      sb.append("   BaseBuffer   : ");
+      if (bbCount > 0) {
+        for (int i = 0; i < bbCount; i++) { 
+          sb.append(String.format("%10.1f", baseBuffer[i]));
+        }
+      }
+      sb.append(LS);
+      //output all the levels
+      
+      int items = combAllocCount;
+      if (items > 2*k) {
+        sb.append("   Valid | Level");
+        for (int j = 2*k; j < items; j++) { //output level data starting at 2K
+          if (j % k == 0) { //start output of new level
+            int levelNum = (j > 2*k)? ((j-2*k)/k): 0;
+            String validLvl = (((1L << levelNum) & bitPattern) > 0L)? "    T  " : "    F  "; 
+            String lvl = String.format("%5d",levelNum);
+            sb.append(LS).append("   ").append(validLvl).append(" ").append(lvl).append(": ");
+          }
+          sb.append(String.format("%10.1f", levelsArr[j]));
+        }
+        sb.append(LS);
+      }
+      sb.append("### END DATA DETAIL").append(LS);
+    }
+    
+    if (sketchSummary) {
+      long n = sketch.getN();
+      String nStr = String.format("%,d", n);
+      int numLevels = computeNumLevelsNeeded(k, n);
+      int bufBytes = combAllocCount * 8;
+      String bufCntStr = String.format("%,d", combAllocCount);
+      //includes k, n, min, max, preamble of 8.
+      int preBytes = 4 + 8 + 8 + 8 + 8;
+      double eps = EpsilonFromK.getAdjustedEpsilon(k);
+      String epsPct = String.format("%.3f%%", eps * 100.0);
+      int numSamples = sketch.getRetainedEntries();
+      String numSampStr = String.format("%,d", numSamples);
+      sb.append(LS).append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
+      sb.append("   K                            : ").append(k).append(LS);
+      sb.append("   N                            : ").append(nStr).append(LS);
+      sb.append("   Seed                         : ").append(sketch.getSeed()).append(LS);
+      sb.append("   BaseBufferCount              : ").append(bbCount).append(LS);
+      sb.append("   CombinedBufferAllocatedCount : ").append(bufCntStr).append(LS);
+      sb.append("   Total Levels                 : ").append(numLevels).append(LS);
+      sb.append("   Valid Levels                 : ").append(numValidLevels(bitPattern)).append(LS);
+      sb.append("   Level Bit Pattern            : ").append(Long.toBinaryString(bitPattern)).append(LS);
+      sb.append("   Valid Samples                : ").append(numSampStr).append(LS);
+      sb.append("   Buffer Storage Bytes         : ").append(String.format("%,d", bufBytes)).append(LS);
+      sb.append("   Preamble Bytes               : ").append(preBytes).append(LS);
+      sb.append("   Normalized Rank Error        : ").append(epsPct).append(LS);
+      sb.append("   Min Value                    : ").append(String.format("%,.3f", sketch.getMinValue())).append(LS);
+      sb.append("   Max Value                    : ").append(String.format("%,.3f", sketch.getMaxValue())).append(LS);
+      sb.append("### END SKETCH SUMMARY").append(LS);
+    }
+    return sb.toString();
+  }
+
+  static void zipSize2KBuffer(
+      double[] bufA, int startA, // input
+      double[] bufC, int startC, // output
+      int k) {
+    //    assert bufA.length >= 2*k; // just for now    
+    //    assert startA == 0; // just for now
+  
+    //    int randomOffset = (int) (2.0 * Math.random());
+    int randomOffset = (QuantilesSketch.rand.nextBoolean())? 1 : 0;
+    //    assert randomOffset == 0 || randomOffset == 1;
+  
+    //    int limA = startA + 2*k;
+    int limC = startC + k;
+  
+    for (int a = startA + randomOffset, c = startC; c < limC; a += 2, c++) {
+      bufC[c] = bufA[a];
+    }
+  }
+
+  static void justZipWithStride(
+      double[] bufA, int startA, // input
+      double[] bufC, int startC, // output
+      int kC, // number of items that should be in the output
+      int stride) {
+    int randomOffset = (QuantilesSketch.rand.nextInt(stride));
+    int limC = startC + kC;
+  
+    for (int a = startA + randomOffset, c = startC; c < limC; a += stride, c++ ) {
+      bufC[c] = bufA[a];
+    }
+  }
+
+  static void mergeTwoSizeKBuffers(
+      double[] keySrc1, int arrStart1,
+      double[] keySrc2, int arrStart2,
+      double[] keyDst,  int arrStart3,
+      int k) {
+    int arrStop1 = arrStart1 + k;
+    int arrStop2 = arrStart2 + k;
+  
+    int i1 = arrStart1;
+    int i2 = arrStart2;
+    int i3 = arrStart3;
+  
+    while (i1 < arrStop1 && i2 < arrStop2) {
+      if (keySrc2[i2] < keySrc1[i1]) { 
+        keyDst[i3++] = keySrc2[i2++];
+      }     
+      else { 
+        keyDst[i3++] = keySrc1[i1++];
+      } 
+    }
+  
+    if (i1 < arrStop1) {
+      System.arraycopy(keySrc1, i1, keyDst, i3, arrStop1 - i1);
+    }
+    else {
+      assert i2 < arrStop2;
+      System.arraycopy(keySrc1, i2, keyDst, i3, arrStop2 - i2);
+    }
+  }
+
+  static boolean sameStructurePredicate( HeapQuantilesSketch mq1, HeapQuantilesSketch mq2) {
+    return (
+            (mq1.getK() == mq2.getK()) &&
+            (mq1.getN() == mq2.getN()) &&
+            (mq1.getCombinedBufferAllocatedCount() == mq2.getCombinedBufferAllocatedCount()) &&
+            (mq1.getBaseBufferCount() == mq2.getBaseBufferCount()) &&
+            (mq1.getBitPattern() == mq2.getBitPattern()) &&
+            (mq1.getMinValue() == mq2.getMinValue()) &&
+            (mq1.getMaxValue() == mq2.getMaxValue())
+           );
+  }
+
   /**
    * Returns the current element capacity of the combined data buffer given <i>k</i> and <i>n</i>.
    * 
@@ -144,7 +644,7 @@ final class Util {
   static void bilinearTimeIncrementHistogramCounters(double[] samples, int offset, int numSamples, 
       long weight, double[] splitPoints, long[] counters) {
     assert (splitPoints.length + 1 == counters.length);
-    for (int i = 0; i < numSamples; i++) {
+    for (int i = 0; i < numSamples; i++) { 
       double sample = samples[i+offset];
       int j = 0;
 
