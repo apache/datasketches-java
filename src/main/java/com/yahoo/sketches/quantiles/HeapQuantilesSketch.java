@@ -85,7 +85,6 @@ class HeapQuantilesSketch extends QuantilesSketch {
   //**CONSTRUCTORS**********************************************************
   private HeapQuantilesSketch(int k, short seed) {
     super(k, seed);
-
     if (seed != 0) QuantilesSketch.rand.setSeed(seed);
   }
   

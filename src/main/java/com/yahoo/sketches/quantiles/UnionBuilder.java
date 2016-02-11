@@ -22,11 +22,11 @@ public class UnionBuilder {
   }
   
   /**
-   * Returns a Union object that has been initilized with the given sketch that may (or may not)
-   * be used as a union target.
+   * Returns a Union object that has been initilized with the given sketch to be used as a union 
+   * target and will be modified. If you do not want the given sketch to be modified use the 
+   * {@link #copyBuild(QuantilesSketch)}.
    * 
-   * @param sketch a QuantilesSketch that may (or may not be) used as a target of subsequent
-   * union operations. 
+   * @param sketch a QuantilesSketch that will be used as a target of subsequent union operations. 
    * @return a Union object
    */
   public Union build(QuantilesSketch sketch) {
@@ -35,7 +35,7 @@ public class UnionBuilder {
   
   /**
    * Returns a Union object that has been initialized with the data from the given Memory image
-   * of a QuantilesSketch. 
+   * of a QuantilesSketch. A reference to this Memory image is not retained.
    * 
    * @param srcMem a Memory image of a QuantilesSketch
    * @return a Union object

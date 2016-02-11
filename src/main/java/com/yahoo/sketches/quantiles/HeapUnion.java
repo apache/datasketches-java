@@ -20,7 +20,7 @@ class HeapUnion extends Union {
   HeapUnion() {} //creates a virgin Union object
   
   HeapUnion(QuantilesSketch sketch) {
-    gadget_ = HeapQuantilesSketch.copy(sketch);
+    gadget_ = (HeapQuantilesSketch) sketch;
   }
   
   /**
