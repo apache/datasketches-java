@@ -106,7 +106,6 @@ public class DirectIntersectionTest {
     assertEquals(rsk1.getEstimate(), (double)k);
   }
   
-  @SuppressWarnings("unused")
   @Test
   public void checkIntersectionEarlyStop() {
     int lgK = 10;

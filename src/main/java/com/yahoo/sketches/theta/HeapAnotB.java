@@ -41,7 +41,6 @@ class HeapAnotB extends SetOperation implements AnotB {
   }
   
   @Override
-  @SuppressWarnings("null")
   public void update(Sketch a, Sketch b) { 
     a_ = a;
     b_ = b;
@@ -55,7 +54,6 @@ class HeapAnotB extends SetOperation implements AnotB {
   }
   
   @Override
-  @SuppressWarnings("null")
   public CompactSketch getResult(boolean dstOrdered, Memory dstMem) {
     long[] compactCache = (curCount_ <= 0)? new long[0] : Arrays.copyOfRange(cache_, 0, curCount_);
     if (dstOrdered && (curCount_ > 1)) {
@@ -73,7 +71,6 @@ class HeapAnotB extends SetOperation implements AnotB {
     return getResult(true, null);
   }
   
-  @SuppressWarnings("null")
   void compute() {
     int swA = (a_ == null)? 0 : (a_.isEmpty())? 1: (a_ instanceof UpdateSketch)? 4 : (a_.isOrdered())? 3 : 2;
     int swB = (b_ == null)? 0 : (b_.isEmpty())? 1: (b_ instanceof UpdateSketch)? 4 : (b_.isOrdered())? 3 : 2;

@@ -315,7 +315,6 @@ public class HeapAlphaSketchTest {
     assertEquals(sk1.getRetainedEntries(false), u);
   }
   
-  @SuppressWarnings("unused")
   @Test
   public void checkEstMode() {
     int k = 4096;
@@ -529,7 +528,6 @@ public class HeapAlphaSketchTest {
     Sketch alpha2 = Sketch.heapify(mem);
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkNegativeHashes() {
     int k = 512;

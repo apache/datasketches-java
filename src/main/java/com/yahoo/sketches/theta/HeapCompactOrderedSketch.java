@@ -73,7 +73,6 @@ class HeapCompactOrderedSketch extends CompactSketch {
   
   //Sketch interface
    
-  @SuppressWarnings("unused")
   @Override
   public byte[] toByteArray() {
     byte[] byteArray = new byte[getCurrentBytes(true)];

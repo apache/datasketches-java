@@ -311,7 +311,6 @@ public class HeapQuickSelectSketchTest {
     assertEquals(sk1.getRetainedEntries(false), u);
   }
   
-  @SuppressWarnings("unused")
   @Test
   public void checkEstMode() {
     int k = 4096;
@@ -483,7 +482,6 @@ public class HeapQuickSelectSketchTest {
     assertFalse(sk1.isOrdered());
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkNegativeHashes() {
     int k = 512;

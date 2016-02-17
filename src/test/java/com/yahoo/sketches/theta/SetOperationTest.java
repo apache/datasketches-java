@@ -83,13 +83,11 @@ public class SetOperationTest {
     println(bldr.toString());
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkBuilderBadK() {
-    Union union = SetOperation.builder().buildUnion(1000);
+    SetOperation.builder().buildUnion(1000);
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkBuilderBadFamily() {
     SetOperation.builder().build(Family.ALPHA);

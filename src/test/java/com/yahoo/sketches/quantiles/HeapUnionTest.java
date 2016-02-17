@@ -80,7 +80,6 @@ public class HeapUnionTest {
     assertNull(qs2);
   }
   
-  @SuppressWarnings("unused")
   @Test
   public void checkUnionUpdateLogic() {
     HeapQuantilesSketch qs1 = null;

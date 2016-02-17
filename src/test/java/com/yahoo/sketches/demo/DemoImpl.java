@@ -127,7 +127,6 @@ public class DemoImpl {
     
   }
   
-  @SuppressWarnings("unused")
   /**
    * @return total test time in milliseconds
    */

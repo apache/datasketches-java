@@ -29,7 +29,6 @@ import com.yahoo.sketches.theta.DirectQuickSelectSketch;
  */
 public class DirectQuickSelectSketchTest {
 
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkBadSerVer() {
     int k = 512;
