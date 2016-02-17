@@ -36,7 +36,7 @@ public abstract class UpdatableArrayOfDoublesSketch extends ArrayOfDoublesSketch
    * The values will be stored or added to the ones associated with the key 
    * 
    * @param key The given double key
-   * @param value The given values
+   * @param values The given values
    */
   public void update(double key, double[] values) {
     update(Util.doubleToLongArray(key), values);
@@ -47,7 +47,7 @@ public abstract class UpdatableArrayOfDoublesSketch extends ArrayOfDoublesSketch
    * The values will be stored or added to the ones associated with the key 
    * 
    * @param key The given String key
-   * @param value The given values
+   * @param values The given values
    */
   public void update(String key, double[] values) {
     update(Util.stringToByteArray(key), values);
@@ -58,7 +58,7 @@ public abstract class UpdatableArrayOfDoublesSketch extends ArrayOfDoublesSketch
    * The values will be stored or added to the ones associated with the key 
    * 
    * @param key The given byte[] key
-   * @param value The given values
+   * @param values The given values
    */
   public void update(byte[] key, double[] values) {
     if (key == null || key.length == 0) return;
@@ -70,7 +70,7 @@ public abstract class UpdatableArrayOfDoublesSketch extends ArrayOfDoublesSketch
    * The values will be stored or added to the ones associated with the key 
    * 
    * @param key The given int[] key
-   * @param value The given values
+   * @param values The given values
    */
   public void update(int[] key, double[] values) {
     if (key == null || key.length == 0) return;
@@ -82,7 +82,7 @@ public abstract class UpdatableArrayOfDoublesSketch extends ArrayOfDoublesSketch
    * The values will be stored or added to the ones associated with the key 
    * 
    * @param key The given long[] key
-   * @param value The given values
+   * @param values The given values
    */
   public void update(long[] key, double[] values) {
     if (key == null || key.length == 0) return;

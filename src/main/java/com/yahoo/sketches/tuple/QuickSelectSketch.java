@@ -216,6 +216,7 @@ public class QuickSelectSketch<S extends Summary> extends Sketch<S> {
 
   private enum Flags { IS_BIG_ENDIAN, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
 
+  @SuppressWarnings("null")
   @Override
   public byte[] toByteArray() {
     byte[] summaryFactoryBytes = SerializerDeserializer.toByteArray(summaryFactory_);

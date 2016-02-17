@@ -6,6 +6,7 @@ package com.yahoo.sketches.tuple;
 
 /**
  * This is to return an object and its size in bytes as a result of a deserialize operation
+ * @param <T> Type of object
  */
 public class DeserializeResult<T> {
   private final T object;

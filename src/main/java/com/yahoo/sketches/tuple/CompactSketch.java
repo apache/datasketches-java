@@ -103,6 +103,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     return keys_ == null ? 0 : keys_.length;
   }
 
+  @SuppressWarnings("null")
   @Override
   public byte[] toByteArray() {
     int summariesBytesLength = 0;

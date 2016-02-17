@@ -90,10 +90,10 @@ public abstract class ArrayOfDoublesIntersection {
    * @param dstMem Memory for the compact sketch (can be null).
    * @return Result of the intersections so far as a compact sketch.
    */
-  public ArrayOfDoublesCompactSketch getResult(Memory mem) {
+  public ArrayOfDoublesCompactSketch getResult(Memory dstMem) {
     if (isFirstCall_) throw new IllegalStateException("getResult() with no intervening intersections is not a legal result.");
     if (sketch_ == null) return new HeapArrayOfDoublesCompactSketch(numValues_);
-    return sketch_.compact(mem);
+    return sketch_.compact(dstMem);
   }
 
   /**

@@ -8,6 +8,7 @@ package com.yahoo.sketches.tuple;
  * This is an equivalent to com.yahoo.sketches.theta.Sketch with
  * addition of a user-defined Summary object associated with every unique entry
  * in the sketch.
+ * @param <S> Type of Summary
  */
 public abstract class Sketch<S extends Summary> {
 

@@ -2,6 +2,7 @@ package com.yahoo.sketches.tuple;
 
 /**
  * Iterator over a Sketch
+ * @param <S> Type of Summary
  */
 public class SketchIterator<S extends Summary> {
 

@@ -20,7 +20,8 @@ import com.yahoo.sketches.memory.Memory;
  * how to copy themselves. Also union and intersection of summaries can be
  * implemented in a sub-class of SummarySetOperations, which will be used in
  * case Union or Intersection of two instances of Tuple Sketch is needed
- * @param U type of the value, which is passed to update method of a Summary
+ * @param <U> Type of the value, which is passed to update method of a Summary
+ * @param <S> Type of the UpdatableSummary<U>
  */
 public class UpdatableQuickSelectSketch<U, S extends UpdatableSummary<U>> extends QuickSelectSketch<S> {
 
@@ -50,7 +51,7 @@ public class UpdatableQuickSelectSketch<U, S extends UpdatableSummary<U>> extend
    * 0 - no resizing (max size allocated),
    * 1 - double internal hash table each time it reaches a threshold
    * 2 - grow four times
-   * 3 - grow eight times (default) 
+   * 3 - grow eight times (default)
    * @param summaryFactory An instance of a SummaryFactory.
    */
   public UpdatableQuickSelectSketch(int nomEntries, int lgResizeRatio, SummaryFactory<S> summaryFactory) {
@@ -60,6 +61,11 @@ public class UpdatableQuickSelectSketch<U, S extends UpdatableSummary<U>> extend
   /**
    * This is to create an instance of an UpdatableQuickSelectSketch with default resize factor and a given sampling probability.
    * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
+   * @param lgResizeRatio log2(resizeRatio) - value from 0 to 3:
+   * 0 - no resizing (max size allocated),
+   * 1 - double internal hash table each time it reaches a threshold
+   * 2 - grow four times
+   * 3 - grow eight times (default)
    * @param samplingProbability <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
    * @param summaryFactory An instance of a SummaryFactory.
    */

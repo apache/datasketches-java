@@ -11,13 +11,14 @@ import java.util.Arrays;
 
 /**
  * This is to compute a set difference of two tuple sketches
+ * @param <S> Type of Summary
  */
 public class AnotB<S extends Summary> {
   private boolean isEmpty_ = true;
   private long theta_ = Long.MAX_VALUE;
   private long[] keys_;
   private S[] summaries_;
-  private int count;
+  private int count_;
 
   /**
    * Perform A-and-not-B set operation on the two given sketches.
@@ -52,9 +53,9 @@ public class AnotB<S extends Summary> {
         if (a.keys_[i] != 0) {
           int index = HashOperations.hashSearch(hashTable, lgHashTableSize, a.keys_[i]);
           if (index == -1) {
-            keys_[count] = a.keys_[i];
-            summaries_[count] = a.summaries_[i];
-            count++;
+            keys_[count_] = a.keys_[i];
+            summaries_[count_] = a.summaries_[i];
+            count_++;
           }
         }
       }
@@ -66,8 +67,8 @@ public class AnotB<S extends Summary> {
    * @return the result of this operation as a CompactSketch
    */
   public CompactSketch<S> getResult() {
-    if (count == 0) return new CompactSketch<S>(null, null, theta_, isEmpty_);
-    CompactSketch<S> result = new CompactSketch<S>(Arrays.copyOfRange(keys_, 0, count), Arrays.copyOfRange(summaries_, 0, count), theta_, isEmpty_);
+    if (count_ == 0) return new CompactSketch<S>(null, null, theta_, isEmpty_);
+    CompactSketch<S> result = new CompactSketch<S>(Arrays.copyOfRange(keys_, 0, count_), Arrays.copyOfRange(summaries_, 0, count_), theta_, isEmpty_);
     reset();
     return result;
   }
@@ -87,7 +88,7 @@ public class AnotB<S extends Summary> {
     theta_ = Long.MAX_VALUE;
     keys_ = null;
     summaries_ = null;
-    count = 0;
+    count_ = 0;
   }
 
   private void getNoMatchSetFromSketch(Sketch<S> sketch) {
@@ -99,6 +100,6 @@ public class AnotB<S extends Summary> {
       keys_ = compact.keys_;
       summaries_ = compact.summaries_;
     }
-    count = sketch.getRetainedEntries();
+    count_ = sketch.getRetainedEntries();
   }
 }
