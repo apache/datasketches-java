@@ -21,7 +21,7 @@ import com.yahoo.sketches.memory.Memory;
  * implemented in a sub-class of SummarySetOperations, which will be used in
  * case Union or Intersection of two instances of Tuple Sketch is needed
  * @param <U> Type of the value, which is passed to update method of a Summary
- * @param <S> Type of the UpdatableSummary<U>
+ * @param <S> Type of the UpdatableSummary&lt;U&gt;
  */
 public class UpdatableQuickSelectSketch<U, S extends UpdatableSummary<U>> extends QuickSelectSketch<S> {
 

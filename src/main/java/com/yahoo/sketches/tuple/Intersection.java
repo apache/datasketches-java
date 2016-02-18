@@ -25,7 +25,7 @@ public class Intersection<S extends Summary> {
 
   /**
    * Creates new instance
-   * @param summaryFactory
+   * @param summaryFactory the summary factory
    */
   public Intersection(SummaryFactory<S> summaryFactory) {
     summaryFactory_ = summaryFactory;

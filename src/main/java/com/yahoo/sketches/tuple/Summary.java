@@ -11,13 +11,14 @@ public interface Summary {
 
   /**
    * @return copy of the Summary
+   * @param <S> type of summary
    */
   public <S extends Summary> S copy();
 
   /**
    * This is to serialize an instance to a byte array.
-   * For deserialization there must be a static method
-   * DeserializeResult<T> fromMemory(Memory mem)
+   * For deserialization there must be a static method 
+   * DeserializeResult&lt;T&gt; fromMemory(Memory mem)
    * @return serialized representation of the Summary
    */
   public byte[] toByteArray();

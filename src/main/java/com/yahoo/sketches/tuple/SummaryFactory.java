@@ -33,7 +33,7 @@ public interface SummaryFactory<S extends Summary> {
   /**
    * This is to serialize an instance to a byte array.
    * For deserialization there must be a static method
-   * DeserializeResult<T> fromMemory(Memory mem)
+   * DeserializeResult&lt;T&gt; fromMemory(Memory mem)
    * @return serialized representation of the SummaryFactory
    */
   public byte[] toByteArray();
