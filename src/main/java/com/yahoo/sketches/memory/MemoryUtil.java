@@ -30,7 +30,7 @@ public final class MemoryUtil {
    * @param dstOffsetBytes the destination offset
    * @param lengthBytes the number of bytes to copy
    */
-  @SuppressWarnings("restriction")
+  //@SuppressWarnings("restriction")
   public static void copy(Memory source, long srcOffsetBytes, Memory destination, long dstOffsetBytes, 
       long lengthBytes) {
     assertBounds(srcOffsetBytes, lengthBytes, source.getCapacity());

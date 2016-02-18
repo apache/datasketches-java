@@ -23,7 +23,7 @@ import java.lang.reflect.Constructor;
  * @author Lee Rhodes
  */
 
-@SuppressWarnings("restriction")
+//@SuppressWarnings("restriction")
 final class UnsafeUtil {
   static final Unsafe unsafe;
   static final JDKCompatibility compatibilityMethods;

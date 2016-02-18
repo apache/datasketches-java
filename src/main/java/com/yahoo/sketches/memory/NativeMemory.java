@@ -44,7 +44,7 @@ import static com.yahoo.sketches.memory.UnsafeUtil.unsafe;
  * 
  * @author Lee Rhodes
  */
-@SuppressWarnings("restriction")
+//@SuppressWarnings("restriction")
 public class NativeMemory implements Memory {
   /* 
   Class        Case                 ObjBaseOff MemArr byteBuf rawAdd CapacityBytes  ReqFree Direct
