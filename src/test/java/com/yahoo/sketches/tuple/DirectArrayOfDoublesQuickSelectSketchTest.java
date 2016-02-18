@@ -163,7 +163,9 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
       for (int i = 0; i < 8192; i++) sketch1.update(i, new double[] {1.0});
     }
     byte[] byteArray = sketch1.toByteArray();
-    TestUtil.writeBytesToFile(byteArray, "ArrayOfDoublesQuickSelectSketch4K.data");
+    
+    //for visual testing
+    //TestUtil.writeBytesToFile(byteArray, "ArrayOfDoublesQuickSelectSketch4K.data");
 
     UpdatableArrayOfDoublesSketch sketch2 = new DirectArrayOfDoublesQuickSelectSketch(new NativeMemory(byteArray));
     Assert.assertTrue(sketch2.isEstimationMode());

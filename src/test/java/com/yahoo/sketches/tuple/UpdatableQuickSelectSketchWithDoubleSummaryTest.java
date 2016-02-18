@@ -192,7 +192,9 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
     }
     sketch1.trim();
     byte[] bytes = sketch1.toByteArray();
-    TestUtil.writeBytesToFile(bytes, "TupleSketchWithDoubleSummary4K.data");
+    
+    //for visual testing
+    //TestUtil.writeBytesToFile(bytes, "TupleSketchWithDoubleSummary4K.data");
 
     UpdatableQuickSelectSketch<Double, DoubleSummary> sketch2 = new UpdatableQuickSelectSketch<Double, DoubleSummary>(new NativeMemory(bytes));
     Assert.assertTrue(sketch2.isEstimationMode());
