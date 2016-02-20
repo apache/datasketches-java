@@ -59,6 +59,39 @@ public class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSket
   }
 
   /**
+   * Creates an instance from components
+   */
+  DirectArrayOfDoublesCompactSketch(long[] keys, double[][] values, long theta, boolean isEmpty, int numValues, short seedHash, Memory dstMem) {
+    super(numValues);
+    mem_ = dstMem;
+    mem_.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
+    mem_.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
+    mem_.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
+    mem_.putByte(SKETCH_TYPE_BYTE, (byte) SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch.ordinal());
+    boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
+    isEmpty_ = isEmpty;
+    int count = keys.length;
+    mem_.putByte(FLAGS_BYTE, (byte) (
+      (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0) |
+      (isEmpty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0) |
+      (count > 0 ? 1 << Flags.HAS_ENTRIES.ordinal(): 0)
+    ));
+    mem_.putByte(NUM_VALUES_BYTE, (byte) numValues_);
+    mem_.putShort(SEED_HASH_SHORT, seedHash);
+    theta_ = theta;
+    mem_.putLong(THETA_LONG, theta_);
+    if (count > 0) {
+      mem_.putInt(RETAINED_ENTRIES_INT, count);
+      mem_.putLongArray(ENTRIES_START, keys, 0, count);
+      int valuesOffset = ENTRIES_START + SIZE_OF_KEY_BYTES * count;
+      for (int i = 0; i < count; i++) {
+        mem_.putDoubleArray(valuesOffset, values[i], 0, numValues_);
+        valuesOffset += SIZE_OF_VALUE_BYTES * numValues_;
+      }
+    }
+  }
+
+  /**
    * Wraps the given Memory.
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */

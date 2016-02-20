@@ -26,9 +26,18 @@ public class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch
    * @param numValues number of double values associated with a key (not really needed except for consistency) 
    */
   public HeapArrayOfDoublesCompactSketch(int numValues) {
+    this(numValues, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * This is to create an instance of empty compact sketch given a custom seed
+   * @param numValues number of double values associated with a key (not really needed except for consistency) 
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   */
+  public HeapArrayOfDoublesCompactSketch(int numValues, long seed) {
     super(numValues);
     theta_ = Long.MAX_VALUE;
-    seedHash_ = Util.computeSeedHash(DEFAULT_UPDATE_SEED);
+    seedHash_ = Util.computeSeedHash(seed);
   }
 
   /**
@@ -52,6 +61,18 @@ public class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch
         i++;
       }
     }
+  }
+
+  /**
+   * Creates an instance from components
+   */
+  HeapArrayOfDoublesCompactSketch(long[] keys, double[][] values, long theta, boolean isEmpty, int numValues, short seedHash) {
+    super(numValues);
+    keys_ = keys;
+    values_ = values;
+    theta_ = theta;
+    isEmpty_ = isEmpty;
+    seedHash_ = seedHash;
   }
 
   /**
