@@ -107,7 +107,7 @@ public class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
     return result;
   }
 
-  private long[] convertToHashTable(ArrayOfDoublesSketch sketch) {
+  private static long[] convertToHashTable(ArrayOfDoublesSketch sketch) {
     int size = Math.max(
       ceilingPowerOf2((int) Math.ceil(sketch.getRetainedEntries() / REBUILD_THRESHOLD)),
       ArrayOfDoublesQuickSelectSketch.MIN_NOM_ENTRIES
