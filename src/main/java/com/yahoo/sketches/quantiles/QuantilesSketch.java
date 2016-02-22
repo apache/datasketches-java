@@ -315,79 +315,82 @@ public abstract class QuantilesSketch {
    */
   public abstract String toString(boolean sketchSummary, boolean dataDetail);
   
-   
-   /**
-    * From an existing sketch, this creates a new sketch that can have a smaller value of K.
-    * The original sketch is not modified.
-    * 
-    * @param smallerK the new sketch's value of K that must be smaller than this value of K.
-    * It is required that this.getK() = smallerK * 2^(nonnegative integer).
-    * @return the new sketch.
-    */
-   public abstract QuantilesSketch downSample(int smallerK);
-   
-   /**
-    * Heapify takes the sketch image in Memory and instantiates an on-heap Sketch. 
-    * The resulting sketch will not retain any link to the source Memory.
-    * @param srcMem a Memory image of a Sketch.
-    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-    * @return a heap-based Sketch based on the given Memory
-    */
-   public static QuantilesSketch heapify(Memory srcMem) {
-     return HeapQuantilesSketch.getInstance(srcMem);
-   }
-   
-   /**
-    * Computes the number of retained entries (samples) in the sketch
-    * @return the number of retained entries (samples) in the sketch
-    */
-   public int getRetainedEntries() {
-     int k =  getK();
-     long n = getN();
-     int bbCnt = Util.computeBaseBufferCount(k, n);
-     long bitPattern = Util.computeBitPattern(k, n);
-     int validLevels = Long.bitCount(bitPattern);
-     return bbCnt + validLevels*k; 
-   }
-   
-   /**
-    * Returns the number of bytes required to store this sketch as an array of bytes.
-    * @return the number of bytes required to store this sketch as an array of bytes.
-    */
-   public int getStorageBytes() {
-     if (isEmpty()) return 8;
-     return 40 + 8*Util.bufferElementCapacity(getK(), getN());
-   }
-   
-   /**
-    * Puts the current sketch into the given Memory if there is sufficient space.
-    * Otherwise, throws an error.
-    * 
-    * @param dstMem the given memory.
-    */
-   public abstract void putMemory(Memory dstMem);
-   
-   //Restricted abstract
 
-   /**
-    * Returns the base buffer count
-    * @return the base buffer count
-    */
-   abstract int getBaseBufferCount();
-   
-   
-   abstract int getCombinedBufferAllocatedCount();
-   
-   /**
-    * Returns the bit pattern for valid log levels
-    * @return the bit pattern for valid log levels
-    */
-   abstract long getBitPattern();
-   
-   /**
-    * Returns the combined buffer reference
-    * @return the commbined buffer reference
-    */
-   abstract double[] getCombinedBuffer();
-   
+  /**
+   * From an existing sketch, this creates a new sketch that can have a smaller value of K.
+   * The original sketch is not modified.
+   * 
+   * @param smallerK the new sketch's value of K that must be smaller than this value of K.
+   * It is required that this.getK() = smallerK * 2^(nonnegative integer).
+   * @return the new sketch.
+   */
+  public abstract QuantilesSketch downSample(int smallerK);
+
+  /**
+   * Heapify takes the sketch image in Memory and instantiates an on-heap Sketch. 
+   * The resulting sketch will not retain any link to the source Memory.
+   * @param srcMem a Memory image of a Sketch.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @return a heap-based Sketch based on the given Memory
+   */
+  public static QuantilesSketch heapify(Memory srcMem) {
+    return HeapQuantilesSketch.getInstance(srcMem);
+  }
+
+  /**
+   * Computes the number of retained entries (samples) in the sketch
+   * @return the number of retained entries (samples) in the sketch
+   */
+  public int getRetainedEntries() {
+    int k =  getK();
+    long n = getN();
+    int bbCnt = Util.computeBaseBufferCount(k, n);
+    long bitPattern = Util.computeBitPattern(k, n);
+    int validLevels = Long.bitCount(bitPattern);
+    return bbCnt + validLevels*k; 
+  }
+
+  /**
+   * Returns the number of bytes required to store this sketch as an array of bytes.
+   * @return the number of bytes required to store this sketch as an array of bytes.
+   */
+  public int getStorageBytes() {
+    if (isEmpty()) return 8;
+    return 40 + 8*Util.bufferElementCapacity(getK(), getN());
+  }
+
+  /**
+   * Puts the current sketch into the given Memory if there is sufficient space.
+   * Otherwise, throws an error.
+   * 
+   * @param dstMem the given memory.
+   */
+  public abstract void putMemory(Memory dstMem);
+
+  //Restricted abstract
+
+  /**
+   * Returns the base buffer count
+   * @return the base buffer count
+   */
+  abstract int getBaseBufferCount();
+
+  /**
+   * Returns the allocated count for the combined base buffer
+   * @return the allocated count for the combined base buffer
+   */
+  abstract int getCombinedBufferAllocatedCount();
+
+  /**
+   * Returns the bit pattern for valid log levels
+   * @return the bit pattern for valid log levels
+   */
+  abstract long getBitPattern();
+
+  /**
+   * Returns the combined buffer reference
+   * @return the commbined buffer reference
+   */
+  abstract double[] getCombinedBuffer();
+
 }
