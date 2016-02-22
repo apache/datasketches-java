@@ -9,6 +9,7 @@ import static org.testng.Assert.assertEquals;
 import org.testng.annotations.Test;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.theta.UpdateSketch;

@@ -4,6 +4,7 @@
  */
 package com.yahoo.sketches.theta;
 
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.memory.Memory;
 
 /**

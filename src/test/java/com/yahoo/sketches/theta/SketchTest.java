@@ -5,6 +5,7 @@
 package com.yahoo.sketches.theta;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 import org.testng.annotations.Test;
@@ -13,14 +14,14 @@ import static com.yahoo.sketches.Family.ALPHA;
 import static com.yahoo.sketches.Family.COMPACT;
 import static com.yahoo.sketches.Family.QUICKSELECT;
 import static com.yahoo.sketches.Family.objectToFamily;
+import static com.yahoo.sketches.ResizeFactor.X1;
+import static com.yahoo.sketches.ResizeFactor.X2;
+import static com.yahoo.sketches.ResizeFactor.X4;
+import static com.yahoo.sketches.ResizeFactor.X8;
 import static com.yahoo.sketches.Util.DEFAULT_NOMINAL_ENTRIES;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
-import static com.yahoo.sketches.theta.ResizeFactor.X1;
-import static com.yahoo.sketches.theta.ResizeFactor.X2;
-import static com.yahoo.sketches.theta.ResizeFactor.X4;
-import static com.yahoo.sketches.theta.ResizeFactor.X8;
 import static com.yahoo.sketches.theta.Sketch.getMaxCompactSketchBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;

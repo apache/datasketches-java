@@ -31,6 +31,7 @@ import com.yahoo.sketches.memory.MemoryRequest;
 import com.yahoo.sketches.memory.MemoryUtil;
 import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.HashOperations;
+import com.yahoo.sketches.ResizeFactor;
 
 /**
  * @author Lee Rhodes

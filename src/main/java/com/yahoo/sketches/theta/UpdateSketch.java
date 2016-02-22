@@ -8,6 +8,7 @@ import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedNullOrEmpty;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.memory.Memory;
 
 /**

@@ -2,7 +2,7 @@
  * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
-package com.yahoo.sketches.theta;
+package com.yahoo.sketches;
 
 /**
  * For the Families that accept this configuration parameter, it controls the size multiple that

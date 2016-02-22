@@ -18,6 +18,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
 import static com.yahoo.sketches.theta.PreambleUtil.computeSeedHash;
 
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 

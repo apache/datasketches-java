@@ -8,9 +8,9 @@ import static java.lang.Math.floor;
 import static java.lang.Math.pow;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.hll.HllSketch;
 import com.yahoo.sketches.hll.HllSketchBuilder;
-import com.yahoo.sketches.theta.ResizeFactor;
 import com.yahoo.sketches.theta.UpdateSketch;
 import com.yahoo.sketches.theta.UpdateSketchBuilder;
 

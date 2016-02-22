@@ -6,6 +6,8 @@ package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.theta.PreambleUtil.computeSeedHash;
 
+import com.yahoo.sketches.ResizeFactor;
+
 /**
  * @author Lee Rhodes
  */

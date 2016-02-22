@@ -5,12 +5,12 @@
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.Family.QUICKSELECT;
+import static com.yahoo.sketches.ResizeFactor.X1;
+import static com.yahoo.sketches.ResizeFactor.X2;
+import static com.yahoo.sketches.ResizeFactor.X8;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
-import static com.yahoo.sketches.theta.ResizeFactor.X1;
-import static com.yahoo.sketches.theta.ResizeFactor.X2;
-import static com.yahoo.sketches.theta.ResizeFactor.X8;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
@@ -19,6 +19,7 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.Test;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.theta.CompactSketch;

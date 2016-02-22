@@ -8,8 +8,8 @@ import static java.lang.Math.sqrt;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.hll.HllSketch;
-import com.yahoo.sketches.theta.ResizeFactor;
 import com.yahoo.sketches.theta.Sketches;
 import com.yahoo.sketches.theta.UpdateSketch;
 

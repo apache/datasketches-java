@@ -9,7 +9,7 @@ import static com.yahoo.sketches.theta.SetOperation.*;
 import static com.yahoo.sketches.Family.A_NOT_B;
 import static com.yahoo.sketches.Family.INTERSECTION;
 import static com.yahoo.sketches.Family.UNION;
-import static com.yahoo.sketches.theta.ResizeFactor.X4;
+import static com.yahoo.sketches.ResizeFactor.X4;
 import static org.testng.Assert.assertEquals;
 //import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import org.testng.annotations.Test;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.theta.Sketch;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;

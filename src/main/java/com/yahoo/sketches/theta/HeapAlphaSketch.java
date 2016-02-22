@@ -37,6 +37,7 @@ import static java.lang.Math.sqrt;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.HashOperations;
+import com.yahoo.sketches.ResizeFactor;
 
 /**
  * This sketch uses the 

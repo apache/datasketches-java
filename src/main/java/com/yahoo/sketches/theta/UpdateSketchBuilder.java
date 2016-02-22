@@ -11,6 +11,7 @@ import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.TAB;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 
@@ -33,10 +34,10 @@ public class UpdateSketchBuilder {
    * <li>Nominal Entries: {@value com.yahoo.sketches.Util#DEFAULT_NOMINAL_ENTRIES}</li>
    * <li>Seed: {@value com.yahoo.sketches.Util#DEFAULT_UPDATE_SEED}</li>
    * <li>Resize Factor: The default for sketches on the Java heap is 
-   * {@link com.yahoo.sketches.theta.ResizeFactor#X8}.
+   * {@link com.yahoo.sketches.ResizeFactor#X8}.
    * For direct sketches, which are targeted for native memory off the Java heap, this value will
-   * be fixed at either {@link com.yahoo.sketches.theta.ResizeFactor#X1} or 
-   * {@link com.yahoo.sketches.theta.ResizeFactor#X2}.</li>
+   * be fixed at either {@link com.yahoo.sketches.ResizeFactor#X1} or 
+   * {@link com.yahoo.sketches.ResizeFactor#X2}.</li>
    * <li>{@link com.yahoo.sketches.Family#QUICKSELECT}</li>
    * <li>Input Sampling Probability: 1.0</li>
    * <li>Memory: null</li>

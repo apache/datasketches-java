@@ -11,6 +11,7 @@ import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.TAB;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 
@@ -31,7 +32,7 @@ public class SetOperationBuilder {
    * <ul>
    * <li>Nominal Entries: {@value com.yahoo.sketches.Util#DEFAULT_NOMINAL_ENTRIES}</li>
    * <li>Seed: {@value com.yahoo.sketches.Util#DEFAULT_UPDATE_SEED}</li>
-   * <li>{@link com.yahoo.sketches.theta.ResizeFactor#X8}</li>
+   * <li>{@link com.yahoo.sketches.ResizeFactor#X8}</li>
    * <li>Input Sampling Probability: 1.0</li>
    * <li>Memory: null</li>
    * </ul>
