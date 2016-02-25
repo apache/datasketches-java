@@ -14,7 +14,7 @@ import static com.yahoo.sketches.Util.ceilingPowerOf2;
  * Top level class for hash table based implementation, which uses quick select algorithm
  * when the time comes to rebuild the hash table and throw away some entries.
  */
-public abstract class ArrayOfDoublesQuickSelectSketch extends UpdatableArrayOfDoublesSketch {
+public abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSketch {
 
   public static final byte serialVersionUID = 1;
 

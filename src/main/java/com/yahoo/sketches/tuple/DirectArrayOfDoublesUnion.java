@@ -58,7 +58,7 @@ public class DirectArrayOfDoublesUnion extends ArrayOfDoublesUnion {
 
   @Override
   public void reset() {
-    sketch_ = new DirectArrayOfDoublesQuickSelectSketch(nomEntries_, numValues_, mem_);
+    sketch_ = new DirectArrayOfDoublesQuickSelectSketch(nomEntries_, 3, 1f, numValues_, seed_, mem_);
     theta_ = sketch_.getThetaLong();
   }
 

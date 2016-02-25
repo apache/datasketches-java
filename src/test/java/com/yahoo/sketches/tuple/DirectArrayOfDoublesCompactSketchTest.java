@@ -13,8 +13,8 @@ public class DirectArrayOfDoublesCompactSketchTest {
 
   @Test
   public void emptyFromQuickSelectSketch() {
-    UpdatableArrayOfDoublesSketch qss = new DirectArrayOfDoublesQuickSelectSketch(32, 1, new NativeMemory(new byte[1000000]));
-    ArrayOfDoublesCompactSketch sketch = qss.compact(new NativeMemory(new byte[1000000]));
+    ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().setMemory(new NativeMemory(new byte[1000000])).build();
+    ArrayOfDoublesCompactSketch sketch = us.compact(new NativeMemory(new byte[1000000]));
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 0.0);
@@ -29,14 +29,14 @@ public class DirectArrayOfDoublesCompactSketchTest {
 
   @Test
   public void exactModeFromQuickSelectSketch() {
-    UpdatableArrayOfDoublesSketch qss = new DirectArrayOfDoublesQuickSelectSketch(32, 1, new NativeMemory(new byte[1000000]));
-    qss.update(1, new double[] {1.0});
-    qss.update(2, new double[] {1.0});
-    qss.update(3, new double[] {1.0});
-    qss.update(1, new double[] {1.0});
-    qss.update(2, new double[] {1.0});
-    qss.update(3, new double[] {1.0});
-    ArrayOfDoublesCompactSketch sketch = qss.compact(new NativeMemory(new byte[1000000]));
+    ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().setMemory(new NativeMemory(new byte[1000000])).build();
+    us.update(1, new double[] {1.0});
+    us.update(2, new double[] {1.0});
+    us.update(3, new double[] {1.0});
+    us.update(1, new double[] {1.0});
+    us.update(2, new double[] {1.0});
+    us.update(3, new double[] {1.0});
+    ArrayOfDoublesCompactSketch sketch = us.compact(new NativeMemory(new byte[1000000]));
     Assert.assertFalse(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 3.0);
@@ -52,11 +52,11 @@ public class DirectArrayOfDoublesCompactSketchTest {
 
   @Test
   public void serializeDeserializeSmallExact() {
-    UpdatableArrayOfDoublesSketch qss = new DirectArrayOfDoublesQuickSelectSketch(32, 1, new NativeMemory(new byte[1000000]));
-    qss.update("a", new double[] {1.0});
-    qss.update("b", new double[] {1.0});
-    qss.update("c", new double[] {1.0});
-    ArrayOfDoublesCompactSketch sketch1 = qss.compact(new NativeMemory(new byte[1000000]));
+    ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().setMemory(new NativeMemory(new byte[1000000])).build();
+    us.update("a", new double[] {1.0});
+    us.update("b", new double[] {1.0});
+    us.update("c", new double[] {1.0});
+    ArrayOfDoublesCompactSketch sketch1 = us.compact(new NativeMemory(new byte[1000000]));
     ArrayOfDoublesCompactSketch sketch2 = new DirectArrayOfDoublesCompactSketch(new NativeMemory(sketch1.toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertFalse(sketch2.isEstimationMode());
@@ -73,9 +73,9 @@ public class DirectArrayOfDoublesCompactSketchTest {
 
   @Test
   public void serializeDeserializeEstimation() {
-    UpdatableArrayOfDoublesSketch qss = new DirectArrayOfDoublesQuickSelectSketch(4096, 1, new NativeMemory(new byte[1000000]));
-    for (int i = 0; i < 8192; i++) qss.update(i, new double[] {1.0});
-    ArrayOfDoublesCompactSketch sketch1 = qss.compact(new NativeMemory(new byte[1000000]));
+    ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().setMemory(new NativeMemory(new byte[1000000])).build();
+    for (int i = 0; i < 8192; i++) us.update(i, new double[] {1.0});
+    ArrayOfDoublesCompactSketch sketch1 = us.compact(new NativeMemory(new byte[1000000]));
     ArrayOfDoublesCompactSketch sketch2 = new DirectArrayOfDoublesCompactSketch(new NativeMemory(sketch1.toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertTrue(sketch2.isEstimationMode());

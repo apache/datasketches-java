@@ -33,7 +33,7 @@ public class ArrayOfDoublesIntersectionTest {
 
   @Test
   public void empty() {
-    UpdatableArrayOfDoublesSketch sketch1 = new HeapArrayOfDoublesQuickSelectSketch(32, 1);
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     ArrayOfDoublesIntersection intersection = new HeapArrayOfDoublesIntersection(1);
     intersection.update(sketch1, null);
     ArrayOfDoublesCompactSketch result = intersection.getResult();
@@ -47,7 +47,7 @@ public class ArrayOfDoublesIntersectionTest {
 
   @Test
   public void notEmptyNoEntries() {
-    UpdatableArrayOfDoublesSketch sketch1 = new HeapArrayOfDoublesQuickSelectSketch(32, 0.01f, 1);
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setSamplingProbability(0.01f).build();
     sketch1.update("a", new double[] {1}); // this happens to get rejected because of sampling with low probability
     ArrayOfDoublesIntersection intersection = new HeapArrayOfDoublesIntersection(1);
     intersection.update(sketch1, null);
@@ -62,12 +62,12 @@ public class ArrayOfDoublesIntersectionTest {
 
   @Test
   public void exactWithEmpty() {
-    UpdatableArrayOfDoublesSketch sketch1 = new HeapArrayOfDoublesQuickSelectSketch(32, 1);
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch1.update(1, new double[] {1});
     sketch1.update(2, new double[] {1});
     sketch1.update(3, new double[] {1});
 
-    UpdatableArrayOfDoublesSketch sketch2 = new HeapArrayOfDoublesQuickSelectSketch(32, 1);
+    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
 
     ArrayOfDoublesIntersection intersection = new HeapArrayOfDoublesIntersection(1);
     intersection.update(sketch1, null);
@@ -82,13 +82,13 @@ public class ArrayOfDoublesIntersectionTest {
 
   @Test
   public void heapExact() {
-    UpdatableArrayOfDoublesSketch sketch1 = new HeapArrayOfDoublesQuickSelectSketch(32, 1);
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch1.update(1, new double[] {1});
     sketch1.update(1, new double[] {1});
     sketch1.update(2, new double[] {1});
     sketch1.update(2, new double[] {1});
 
-    UpdatableArrayOfDoublesSketch sketch2 = new HeapArrayOfDoublesQuickSelectSketch(32, 1);
+    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch2.update(2, new double[] {1});
     sketch2.update(2, new double[] {1});
     sketch2.update(3, new double[] {1});
@@ -119,10 +119,10 @@ public class ArrayOfDoublesIntersectionTest {
   @Test
   public void disjointEstimationMode() {
     int key = 0;
-    UpdatableArrayOfDoublesSketch sketch1 = new HeapArrayOfDoublesQuickSelectSketch(4096, 1);
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) sketch1.update(key++, new double[] {1.0});
 
-    UpdatableArrayOfDoublesSketch sketch2 = new HeapArrayOfDoublesQuickSelectSketch(4096, 1);
+    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) sketch2.update(key++, new double[] {1.0});
 
     ArrayOfDoublesIntersection intersection = new HeapArrayOfDoublesIntersection(1);
@@ -140,11 +140,11 @@ public class ArrayOfDoublesIntersectionTest {
   @Test
   public void heapEstimationMode() {
     int key = 0;
-    UpdatableArrayOfDoublesSketch sketch1 = new HeapArrayOfDoublesQuickSelectSketch(4096, 1);
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) sketch1.update(key++, new double[] {1.0});
 
     key -= 4096; // overlap half of the entries
-    UpdatableArrayOfDoublesSketch sketch2 = new HeapArrayOfDoublesQuickSelectSketch(4096, 1);
+    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) sketch2.update(key++, new double[] {1.0});
 
     ArrayOfDoublesIntersection intersection = new HeapArrayOfDoublesIntersection(1);
@@ -162,11 +162,11 @@ public class ArrayOfDoublesIntersectionTest {
   @Test
   public void directEstimationMode() {
     int key = 0;
-    UpdatableArrayOfDoublesSketch sketch1 = new DirectArrayOfDoublesQuickSelectSketch(4096, 1, new NativeMemory(new byte[1000000]));
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setMemory(new NativeMemory(new byte[1000000])).build();
     for (int i = 0; i < 8192; i++) sketch1.update(key++, new double[] {1.0});
 
     key -= 4096; // overlap half of the entries
-    UpdatableArrayOfDoublesSketch sketch2 = new DirectArrayOfDoublesQuickSelectSketch(4096, 1, new NativeMemory(new byte[1000000]));
+    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().setMemory(new NativeMemory(new byte[1000000])).build();
     for (int i = 0; i < 8192; i++) sketch2.update(key++, new double[] {1.0});
 
     ArrayOfDoublesIntersection intersection = new DirectArrayOfDoublesIntersection(1, new NativeMemory(new byte[1000000]));

@@ -128,6 +128,6 @@ public abstract class ArrayOfDoublesSketch {
   /**
    * @return iterator over the sketch
    */
-  abstract ArrayOfDoublesSketchIterator iterator();
+  public abstract ArrayOfDoublesSketchIterator iterator();
 
 }

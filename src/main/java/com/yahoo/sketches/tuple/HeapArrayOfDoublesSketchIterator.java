@@ -7,7 +7,7 @@ package com.yahoo.sketches.tuple;
 /**
  * Iterator over the on-heap ArrayOfDoublesSketch (compact or hash table)
  */
-public class HeapArrayOfDoublesSketchIterator implements ArrayOfDoublesSketchIterator {
+class HeapArrayOfDoublesSketchIterator implements ArrayOfDoublesSketchIterator {
 
   private long[] keys_;
   private double[][] values_;

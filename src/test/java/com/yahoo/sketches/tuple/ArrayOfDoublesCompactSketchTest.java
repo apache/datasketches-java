@@ -12,7 +12,7 @@ import com.yahoo.sketches.memory.NativeMemory;
 public class ArrayOfDoublesCompactSketchTest {
   @Test
   public void heapToDirectExactTwoDoubles() {
-    UpdatableArrayOfDoublesSketch sketch1 = new HeapArrayOfDoublesQuickSelectSketch(32, 2);
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).build();
     sketch1.update("a", new double[] {1, 2});
     sketch1.update("b", new double[] {1, 2});
     sketch1.update("c", new double[] {1, 2});
@@ -40,7 +40,7 @@ public class ArrayOfDoublesCompactSketchTest {
 
   @Test
   public void directToHeapExactTwoDoubles() {
-    UpdatableArrayOfDoublesSketch sketch1 = new DirectArrayOfDoublesQuickSelectSketch(32, 2, new NativeMemory(new byte[1000000]));
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).setMemory(new NativeMemory(new byte[1000000])).build();
     sketch1.update("a", new double[] {1, 2});
     sketch1.update("b", new double[] {1, 2});
     sketch1.update("c", new double[] {1, 2});

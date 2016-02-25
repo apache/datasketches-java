@@ -4,6 +4,7 @@ import org.testng.annotations.Test;
 import org.testng.Assert;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.memory.NativeMemory;
 
 public class SerializerDeserializerTest {
 
@@ -11,14 +12,14 @@ public class SerializerDeserializerTest {
   public void validSketchType() {
     byte[] bytes = new byte[4];
     bytes[SerializerDeserializer.TYPE_BYTE_OFFSET] = (byte) SerializerDeserializer.SketchType.CompactSketch.ordinal();
-    Assert.assertEquals(SerializerDeserializer.getSketchTypeAbsolute(bytes), SerializerDeserializer.SketchType.CompactSketch);
+    Assert.assertEquals(SerializerDeserializer.getSketchType(new NativeMemory(bytes)), SerializerDeserializer.SketchType.CompactSketch);
   }
 
   @Test(expectedExceptions = RuntimeException.class)
   public void invalidSketchType() {
     byte[] bytes = new byte[4];
     bytes[SerializerDeserializer.TYPE_BYTE_OFFSET] = 33;
-    SerializerDeserializer.getSketchTypeAbsolute(bytes);
+    SerializerDeserializer.getSketchType(new NativeMemory(bytes));
   }
 
   @Test(expectedExceptions = RuntimeException.class)

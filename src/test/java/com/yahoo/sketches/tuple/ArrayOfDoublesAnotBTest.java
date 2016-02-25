@@ -28,7 +28,7 @@ public class ArrayOfDoublesAnotBTest {
     Assert.assertEquals(result.getLowerBound(1), 0.0);
     Assert.assertEquals(result.getUpperBound(1), 0.0);
 
-    ArrayOfDoublesSketch sketch = new HeapArrayOfDoublesCompactSketch(1);
+    ArrayOfDoublesSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().build();
     aNotB.update(sketch, null);
     result = aNotB.getResult();
     Assert.assertTrue(result.isEmpty());
@@ -56,7 +56,7 @@ public class ArrayOfDoublesAnotBTest {
 
   @Test
   public void aSameAsB() {
-    UpdatableArrayOfDoublesSketch sketch = new HeapArrayOfDoublesQuickSelectSketch(32, 1);
+    ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch.update(1, new double[] {1.0});
     sketch.update(2, new double[] {1.0});
     sketch.update(3, new double[] {1.0});
@@ -74,14 +74,14 @@ public class ArrayOfDoublesAnotBTest {
 
   @Test
   public void exactMode() {
-    UpdatableArrayOfDoublesSketch sketchA = new HeapArrayOfDoublesQuickSelectSketch(32, 1);
+    ArrayOfDoublesUpdatableSketch sketchA = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketchA.update(1, new double[] {1});
     sketchA.update(2, new double[] {1});
     sketchA.update(3, new double[] {1});
     sketchA.update(4, new double[] {1});
     sketchA.update(5, new double[] {1});
 
-    UpdatableArrayOfDoublesSketch sketchB = new HeapArrayOfDoublesQuickSelectSketch(32, 1);
+    ArrayOfDoublesUpdatableSketch sketchB = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketchB.update(3, new double[] {1});
     sketchB.update(4, new double[] {1});
     sketchB.update(5, new double[] {1});
@@ -105,11 +105,11 @@ public class ArrayOfDoublesAnotBTest {
   @Test
   public void estimationMode() {
     int key = 0;
-    UpdatableArrayOfDoublesSketch sketchA = new HeapArrayOfDoublesQuickSelectSketch(4096, 1);
+    ArrayOfDoublesUpdatableSketch sketchA = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) sketchA.update(key++, new double[] {1});
 
     key -= 4096; // overlap half of the entries
-    UpdatableArrayOfDoublesSketch sketchB = new HeapArrayOfDoublesQuickSelectSketch(4096, 1);
+    ArrayOfDoublesUpdatableSketch sketchB = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) sketchB.update(key++, new double[] {1});
 
     ArrayOfDoublesAnotB aNotB = new HeapArrayOfDoublesAnotB(1);

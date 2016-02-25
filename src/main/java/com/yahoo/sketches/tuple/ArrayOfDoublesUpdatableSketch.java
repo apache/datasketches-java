@@ -11,11 +11,11 @@ package com.yahoo.sketches.tuple;
 import com.yahoo.sketches.hash.MurmurHash3;
 import com.yahoo.sketches.memory.Memory;
 
-public abstract class UpdatableArrayOfDoublesSketch extends ArrayOfDoublesSketch {
+public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch {
 
   protected final long seed_;
 
-  protected UpdatableArrayOfDoublesSketch(int numValues, long seed) {
+  protected ArrayOfDoublesUpdatableSketch(int numValues, long seed) {
     super(numValues);
     seed_ = seed;
   }

@@ -12,7 +12,7 @@ import com.yahoo.sketches.memory.NativeMemory;
 public class HeapArrayOfDoublesQuickSelectSketchTest {
   @Test
   public void isEmpty() {
-    UpdatableArrayOfDoublesSketch sketch = new HeapArrayOfDoublesQuickSelectSketch(4, 1);
+    ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().build();
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 0.0);
@@ -25,7 +25,7 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
   @Test
   public void isEmptyWithSampling() {
     float samplingProbability = 0.1f;
-    UpdatableArrayOfDoublesSketch sketch = new HeapArrayOfDoublesQuickSelectSketch(4, samplingProbability, 1);
+    ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setSamplingProbability(samplingProbability).build();
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 0.0);
@@ -38,7 +38,7 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
   @Test
   public void sampling() {
     float samplingProbability = 0.001f;
-    UpdatableArrayOfDoublesSketch sketch = new HeapArrayOfDoublesQuickSelectSketch(4, samplingProbability, 1);
+    ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setSamplingProbability(samplingProbability).build();
     sketch.update("a", new double[] {1.0});
     Assert.assertFalse(sketch.isEmpty());
     Assert.assertTrue(sketch.isEstimationMode());
@@ -51,7 +51,7 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
 
   @Test
   public void exactMode() {
-    UpdatableArrayOfDoublesSketch sketch = new HeapArrayOfDoublesQuickSelectSketch(4096, 1);
+    ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().build();
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertEquals(sketch.getEstimate(), 0.0);
     for (int i = 1; i <= 4096; i++) sketch.update(i, new double[] {1.0});
@@ -75,7 +75,7 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
   // The moment of going into the estimation mode is, to some extent, an implementation detail
   // Here we assume that presenting as many unique values as twice the nominal size of the sketch will result in estimation mode
   public void estimationMode() {
-    UpdatableArrayOfDoublesSketch sketch = new HeapArrayOfDoublesQuickSelectSketch(4096, 1);
+    ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().build();
     Assert.assertEquals(sketch.getEstimate(), 0.0);
     for (int i = 1; i <= 8192; i++) sketch.update(i, new double[] {1.0});
     Assert.assertTrue(sketch.isEstimationMode());
@@ -102,7 +102,7 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
 
   @Test
   public void updatesOfAllKeyTypes() {
-    UpdatableArrayOfDoublesSketch sketch = new HeapArrayOfDoublesQuickSelectSketch(4096, 1);
+    ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch.update(1L, new double[] {1.0});
     sketch.update(2.0, new double[] {1.0});
     sketch.update(new byte[] {3}, new double[] {1.0});
@@ -114,7 +114,7 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
 
   @Test
   public void doubleSum() {
-    UpdatableArrayOfDoublesSketch sketch = new HeapArrayOfDoublesQuickSelectSketch(4, 1);
+    ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch.update(1, new double[] {1.0});
     Assert.assertEquals(sketch.getRetainedEntries(), 1);
     Assert.assertEquals(sketch.getValues()[0][0], 1.0);
@@ -128,10 +128,10 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
 
   @Test
   public void serializeDeserializeExact() {
-    UpdatableArrayOfDoublesSketch sketch1 = new HeapArrayOfDoublesQuickSelectSketch(32, 1);
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch1.update(1, new double[] {1.0});
 
-    UpdatableArrayOfDoublesSketch sketch2 = new HeapArrayOfDoublesQuickSelectSketch(new NativeMemory(sketch1.toByteArray()));
+    ArrayOfDoublesUpdatableSketch sketch2 = new HeapArrayOfDoublesQuickSelectSketch(new NativeMemory(sketch1.toByteArray()));
 
     Assert.assertEquals(sketch2.getEstimate(), 1.0);
     double[][] values = sketch2.getValues();
@@ -148,7 +148,7 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
 
   @Test
   public void serializeDeserializeEstimation() throws Exception {
-    UpdatableArrayOfDoublesSketch sketch1 = new HeapArrayOfDoublesQuickSelectSketch(4096, 1);
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int j = 0; j < 10; j++) {
       for (int i = 0; i < 8192; i++) sketch1.update(i, new double[] {1.0});
     }
@@ -157,7 +157,7 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
     //for visual testing
     //TestUtil.writeBytesToFile(byteArray, "ArrayOfDoublesQuickSelectSketch4K.data");
 
-    UpdatableArrayOfDoublesSketch sketch2 = new HeapArrayOfDoublesQuickSelectSketch(new NativeMemory(byteArray));
+    ArrayOfDoublesUpdatableSketch sketch2 = new HeapArrayOfDoublesQuickSelectSketch(new NativeMemory(byteArray));
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 8192, 8192 * 0.99);
     Assert.assertEquals(sketch1.getTheta(), sketch2.getTheta());
@@ -170,9 +170,9 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
   public void serializeDeserializeSampling() {
     int sketchSize = 16384;
     int numberOfUniques = sketchSize;
-    UpdatableArrayOfDoublesSketch sketch1 = new HeapArrayOfDoublesQuickSelectSketch(sketchSize, 0.5f, 1);
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setNominalEntries(sketchSize).setSamplingProbability(0.5f).build();
     for (int i = 0; i < numberOfUniques; i++) sketch1.update(i, new double[] {1.0});
-    UpdatableArrayOfDoublesSketch sketch2 = new HeapArrayOfDoublesQuickSelectSketch(new NativeMemory(sketch1.toByteArray()));
+    ArrayOfDoublesUpdatableSketch sketch2 = new HeapArrayOfDoublesQuickSelectSketch(new NativeMemory(sketch1.toByteArray()));
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate() / numberOfUniques, 1.0, 0.01);
     Assert.assertEquals(sketch2.getRetainedEntries() / (double) numberOfUniques, 0.5, 0.01);

@@ -7,12 +7,13 @@ package com.yahoo.sketches.tuple;
 import org.testng.annotations.Test;
 import org.testng.Assert;
 
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.memory.NativeMemory;
 
-public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
+public class UpdatableSketchWithDoubleSummaryTest {
   @Test
   public void isEmpty() {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch = new UpdatableQuickSelectSketch<Double, DoubleSummary>(4, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 0.0);
@@ -25,7 +26,7 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
   @Test
   public void isEmptyWithSampling() {
     float samplingProbability = 0.1f;
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch = new UpdatableQuickSelectSketch<Double, DoubleSummary>(4, samplingProbability, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).setSamplingProbability(samplingProbability).build();
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 0.0);
@@ -38,7 +39,7 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
   @Test
   public void sampling() {
     float samplingProbability = 0.001f;
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch = new UpdatableQuickSelectSketch<Double, DoubleSummary>(4, samplingProbability, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).setSamplingProbability(samplingProbability).build();
     sketch.update("a", 1.0);
     Assert.assertFalse(sketch.isEmpty());
     Assert.assertTrue(sketch.isEstimationMode());
@@ -51,7 +52,7 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
 
   @Test
   public void exactMode() {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch = new UpdatableQuickSelectSketch<Double, DoubleSummary>(4096, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertEquals(sketch.getEstimate(), 0.0);
     for (int i = 1; i <= 4096; i++) sketch.update(i, 1.0);
@@ -75,7 +76,7 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
   // The moment of going into the estimation mode is, to some extent, an implementation detail
   // Here we assume that presenting as many unique values as twice the nominal size of the sketch will result in estimation mode
   public void estimationMode() {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch = new UpdatableQuickSelectSketch<Double, DoubleSummary>(4096, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     Assert.assertEquals(sketch.getEstimate(), 0.0);
     for (int i = 1; i <= 8192; i++) sketch.update(i, 1.0);
     Assert.assertTrue(sketch.isEstimationMode());
@@ -99,7 +100,7 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
 
   @Test
   public void estimationModeWithSamplingNoResizing() {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch = new UpdatableQuickSelectSketch<Double, DoubleSummary>(4096, 0, 0.5f, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).setSamplingProbability(0.5f).setResizeFactor(ResizeFactor.X1).build();
     for (int i = 0; i < 16384; i++) sketch.update(i, 1.0);
     Assert.assertTrue(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 16384, 16384 * 0.01);
@@ -109,7 +110,7 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
 
   @Test
   public void updatesOfAllKeyTypes() {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch = new UpdatableQuickSelectSketch<Double, DoubleSummary>(4096, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     sketch.update(1L, 1.0);
     sketch.update(2.0, 1.0);
     byte[] bytes = { 3 };
@@ -124,7 +125,7 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
 
   @Test
   public void doubleSummaryDefaultSumMode() {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch = new UpdatableQuickSelectSketch<Double, DoubleSummary>(8, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     sketch.update(1, 1.0);
     Assert.assertEquals(sketch.getRetainedEntries(), 1);
     Assert.assertEquals(sketch.getSummaries()[0].getValue(), 1.0);
@@ -138,7 +139,7 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
 
   @Test
   public void doubleSummaryMinMode() {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch = new UpdatableQuickSelectSketch<Double, DoubleSummary>(8, new DoubleSummaryFactory(DoubleSummary.Mode.Min));
+    UpdatableSketch<Double, DoubleSummary> sketch = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory(DoubleSummary.Mode.Min)).build();
     sketch.update(1, 1.0);
     Assert.assertEquals(sketch.getRetainedEntries(), 1);
     Assert.assertEquals(sketch.getSummaries()[0].getValue(), 1.0);
@@ -152,7 +153,7 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
   @Test
 
   public void doubleSummaryMaxMode() {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch = new UpdatableQuickSelectSketch<Double, DoubleSummary>(8, new DoubleSummaryFactory(DoubleSummary.Mode.Max));
+    UpdatableSketch<Double, DoubleSummary> sketch = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory(DoubleSummary.Mode.Max)).build();
     sketch.update(1, 1.0);
     Assert.assertEquals(sketch.getRetainedEntries(), 1);
     Assert.assertEquals(sketch.getSummaries()[0].getValue(), 1.0);
@@ -166,10 +167,10 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
 
   @Test
   public void serializeDeserializeExact() throws Exception {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch1 = new UpdatableQuickSelectSketch<Double, DoubleSummary>(32, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     sketch1.update(1, 1.0);
 
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch2 = new UpdatableQuickSelectSketch<Double, DoubleSummary>(new NativeMemory(sketch1.toByteArray()));
+    UpdatableSketch<Double, DoubleSummary> sketch2 = new UpdatableSketch<Double, DoubleSummary>(new NativeMemory(sketch1.toByteArray()));
 
     Assert.assertEquals(sketch2.getEstimate(), 1.0);
     DoubleSummary[] summaries = sketch2.getSummaries();
@@ -186,7 +187,7 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
 
   @Test
   public void serializeDeserializeEstimationNoResizing() throws Exception {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch1 = new UpdatableQuickSelectSketch<Double, DoubleSummary>(4096, 0, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).setResizeFactor(ResizeFactor.X1).build();
     for (int j = 0; j < 10; j++) {
       for (int i = 0; i < 8192; i++) sketch1.update(i, 1.0);
     }
@@ -196,7 +197,7 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
     //for visual testing
     //TestUtil.writeBytesToFile(bytes, "TupleSketchWithDoubleSummary4K.data");
 
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch2 = new UpdatableQuickSelectSketch<Double, DoubleSummary>(new NativeMemory(bytes));
+    UpdatableSketch<Double, DoubleSummary> sketch2 = new UpdatableSketch<Double, DoubleSummary>(new NativeMemory(bytes));
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 8192, 8192 * 0.99);
     Assert.assertEquals(sketch1.getTheta(), sketch2.getTheta());
@@ -209,9 +210,9 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
   public void serializeDeserializeSampling() throws Exception {
     int sketchSize = 16384;
     int numberOfUniques = sketchSize;
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch1 = new UpdatableQuickSelectSketch<Double, DoubleSummary>(sketchSize, 0.5f, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).setNominalEntries(sketchSize).setSamplingProbability(0.5f).build();
     for (int i = 0; i < numberOfUniques; i++) sketch1.update(i, 1.0);
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch2 = new UpdatableQuickSelectSketch<Double, DoubleSummary>(new NativeMemory(sketch1.toByteArray()));
+    UpdatableSketch<Double, DoubleSummary> sketch2 = new UpdatableSketch<Double, DoubleSummary>(new NativeMemory(sketch1.toByteArray()));
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate() / numberOfUniques, 1.0, 0.01);
     Assert.assertEquals(sketch2.getRetainedEntries() / (double) numberOfUniques, 0.5, 0.01);
@@ -220,13 +221,13 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
 
   @Test
   public void unionExactMode() {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch1 = new UpdatableQuickSelectSketch<Double, DoubleSummary>(8, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     sketch1.update(1, 1.0);
     sketch1.update(1, 1.0);
     sketch1.update(1, 1.0);
     sketch1.update(2, 1.0);
 
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch2 = new UpdatableQuickSelectSketch<Double, DoubleSummary>(8, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch2 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     sketch2.update(2, 1.0);
     sketch2.update(2, 1.0);
     sketch2.update(3, 1.0);
@@ -257,11 +258,11 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
   @Test
   public void unionEstimationMode() {
     int key = 0;
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch1 = new UpdatableQuickSelectSketch<Double, DoubleSummary>(4096, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     for (int i = 0; i < 8192; i++) sketch1.update(key++, 1.0);
 
     key -= 4096; // overlap half of the entries
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch2 = new UpdatableQuickSelectSketch<Double, DoubleSummary>(4096, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch2 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     for (int i = 0; i < 8192; i++) sketch2.update(key++, 1.0);
 
     Union<DoubleSummary> union = new Union<DoubleSummary>(4096, new DoubleSummaryFactory());
@@ -275,9 +276,9 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
 
   @Test
   public void intersectionEmpty() {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch1 = new UpdatableQuickSelectSketch<Double, DoubleSummary>(8, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     Intersection<DoubleSummary> intersection = new Intersection<DoubleSummary>(new DoubleSummaryFactory());
-    intersection.update(sketch1);
+    intersection.update(sketch);
     CompactSketch<DoubleSummary> result = intersection.getResult();
     Assert.assertEquals(result.getRetainedEntries(), 0);
     Assert.assertTrue(result.isEmpty());
@@ -289,7 +290,7 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
 
   @Test
   public void intersectionNotEmptyNoEntries() {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch1 = new UpdatableQuickSelectSketch<Double, DoubleSummary>(8, 0.01f, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).setSamplingProbability(0.01f).build();
     sketch1.update("a", 1.0); // this happens to get rejected because of sampling with low probability
     Intersection<DoubleSummary> intersection = new Intersection<DoubleSummary>(new DoubleSummaryFactory());
     intersection.update(sketch1);
@@ -304,7 +305,7 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
 
   @Test
   public void intersectionExactWithNull() {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch1 = new UpdatableQuickSelectSketch<Double, DoubleSummary>(8, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     sketch1.update(1, 1.0);
     sketch1.update(2, 1.0);
     sketch1.update(3, 1.0);
@@ -322,12 +323,12 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
 
   @Test
   public void intersectionExactWithEmpty() {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch1 = new UpdatableQuickSelectSketch<Double, DoubleSummary>(8, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     sketch1.update(1, 1.0);
     sketch1.update(2, 1.0);
     sketch1.update(3, 1.0);
 
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch2 = new UpdatableQuickSelectSketch<Double, DoubleSummary>(8, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch2 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
 
     Intersection<DoubleSummary> intersection = new Intersection<DoubleSummary>(new DoubleSummaryFactory());
     intersection.update(sketch1);
@@ -342,13 +343,13 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
 
   @Test
   public void intersectionExactMode() {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch1 = new UpdatableQuickSelectSketch<Double, DoubleSummary>(8, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     sketch1.update(1, 1.0);
     sketch1.update(1, 1.0);
     sketch1.update(2, 1.0);
     sketch1.update(2, 1.0);
 
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch2 = new UpdatableQuickSelectSketch<Double, DoubleSummary>(8, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch2 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     sketch2.update(2, 1.0);
     sketch2.update(2, 1.0);
     sketch2.update(3, 1.0);
@@ -380,10 +381,10 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
   @Test
   public void intersectionDisjointEstimationMode() {
     int key = 0;
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch1 = new UpdatableQuickSelectSketch<Double, DoubleSummary>(4096, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     for (int i = 0; i < 8192; i++) sketch1.update(key++, 1.0);
 
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch2 = new UpdatableQuickSelectSketch<Double, DoubleSummary>(4096, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch2 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     for (int i = 0; i < 8192; i++) sketch2.update(key++, 1.0);
 
     Intersection<DoubleSummary> intersection = new Intersection<DoubleSummary>(new DoubleSummaryFactory());
@@ -401,11 +402,11 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
   @Test
   public void intersectionEstimationMode() {
     int key = 0;
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch1 = new UpdatableQuickSelectSketch<Double, DoubleSummary>(4096, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     for (int i = 0; i < 8192; i++) sketch1.update(key++, 1.0);
 
     key -= 4096; // overlap half of the entries
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch2 = new UpdatableQuickSelectSketch<Double, DoubleSummary>(4096, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch2 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     for (int i = 0; i < 8192; i++) sketch2.update(key++, 1.0);
 
     Intersection<DoubleSummary> intersection = new Intersection<DoubleSummary>(new DoubleSummaryFactory());
@@ -441,7 +442,7 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
     Assert.assertEquals(result.getUpperBound(1), 0.0);
     Assert.assertNull(result.getSummaries());
 
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketch = new UpdatableQuickSelectSketch<Double, DoubleSummary>(8, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketch = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     aNotB.update(sketch, sketch);
     result = aNotB.getResult();
     Assert.assertEquals(result.getRetainedEntries(), 0);
@@ -454,9 +455,9 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
 
   @Test
   public void aNotBEmptyA() {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketchA = new UpdatableQuickSelectSketch<Double, DoubleSummary>(8, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketchA = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
 
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketchB = new UpdatableQuickSelectSketch<Double, DoubleSummary>(8, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketchB = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     sketchB.update(1, 1.0);
     sketchB.update(2, 1.0);
 
@@ -473,11 +474,11 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
 
   @Test
   public void aNotBEmptyB() {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketchA = new UpdatableQuickSelectSketch<Double, DoubleSummary>(8, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketchA = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     sketchA.update(1, 1.0);
     sketchA.update(2, 1.0);
 
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketchB = new UpdatableQuickSelectSketch<Double, DoubleSummary>(8, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketchB = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
 
     AnotB<DoubleSummary> aNotB = new AnotB<DoubleSummary>();
     aNotB.update(sketchA, sketchB);
@@ -491,13 +492,13 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
 
   @Test
   public void aNotBExactMode() {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketchA = new UpdatableQuickSelectSketch<Double, DoubleSummary>(8, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketchA = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     sketchA.update(1, 1.0);
     sketchA.update(1, 1.0);
     sketchA.update(2, 1.0);
     sketchA.update(2, 1.0);
 
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketchB = new UpdatableQuickSelectSketch<Double, DoubleSummary>(8, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketchB = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     sketchB.update(2, 1.0);
     sketchB.update(2, 1.0);
     sketchB.update(3, 1.0);
@@ -518,11 +519,11 @@ public class UpdatableQuickSelectSketchWithDoubleSummaryTest {
   @Test
   public void aNotBEstimationMode() {
     int key = 0;
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketchA = new UpdatableQuickSelectSketch<Double, DoubleSummary>(4096, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketchA = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     for (int i = 0; i < 8192; i++) sketchA.update(key++, 1.0);
 
     key -= 4096; // overlap half of the entries
-    UpdatableQuickSelectSketch<Double, DoubleSummary> sketchB = new UpdatableQuickSelectSketch<Double, DoubleSummary>(4096, new DoubleSummaryFactory());
+    UpdatableSketch<Double, DoubleSummary> sketchB = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     for (int i = 0; i < 8192; i++) sketchB.update(key++, 1.0);
 
     AnotB<DoubleSummary> aNotB = new AnotB<DoubleSummary>();

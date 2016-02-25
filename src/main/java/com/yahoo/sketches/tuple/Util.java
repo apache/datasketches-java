@@ -7,7 +7,7 @@ package com.yahoo.sketches.tuple;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class Util {
+class Util {
   /**
   * Gets the starting power of 2 so that it is a proper sub-multiple of the target by resize ratio.
   * This version uses an integer to specify the lgResizeRatio.
@@ -17,7 +17,7 @@ public class Util {
   * @param lgMin Minimum starting power of 2
   * @return The returning log2 size will be a proper sub-multiple of the final lgTarget by the lgResizeRatio
   */
-  public static final int startingSubMultiple(int lgTarget, int lgResizeRatio, int lgMin) {
+  static final int startingSubMultiple(int lgTarget, int lgResizeRatio, int lgMin) {
     int lgStart;
     if (lgResizeRatio > 0) {
       lgStart = (Math.abs(lgTarget - lgMin) % lgResizeRatio) + lgMin;
@@ -27,28 +27,28 @@ public class Util {
     return lgStart;
   }
 
-  public static final double upperBound(double estimate, double theta, double numStdDev) {
+  static final double upperBound(double estimate, double theta, double numStdDev) {
     double dsq = numStdDev * numStdDev * ((1.0 / theta) - 1.0);
     return estimate + (dsq / 2.0) + ((Math.sqrt(dsq) / 2.0) * Math.sqrt((4.0 * estimate) + dsq));
   }
 
-  public static final double lowerBound(double estimate, double theta, double numStdDev) {
+  static final double lowerBound(double estimate, double theta, double numStdDev) {
     double dsq = numStdDev * numStdDev * ((1.0 / theta) - 1.0);
     return estimate + (dsq / 2.0) - ((Math.sqrt(dsq) / 2.0) * Math.sqrt((4.0 * estimate) + dsq));
   }
 
-  public static final long[] longToLongArray(long value) {
+  static final long[] longToLongArray(long value) {
     long[] array = { value };
     return array;
   }
 
-  public static final long[] doubleToLongArray(double value) {
+  static final long[] doubleToLongArray(double value) {
     double d = (value == 0.0) ? 0.0 : value; // canonicalize -0.0, 0.0
     long[] array = { Double.doubleToLongBits(d) }; // canonicalize all NaN forms
     return array;
   }
 
-  public static final byte[] stringToByteArray(String value) {
+  static final byte[] stringToByteArray(String value) {
     if (value == null || value.isEmpty()) return null;
     return value.getBytes(UTF_8);
   }
@@ -60,7 +60,7 @@ public class Util {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
    * @return the seed hash.
    */
-  public static short computeSeedHash(long seed) {
+  static short computeSeedHash(long seed) {
     long[] seedArr = {seed};
     short seedHash = (short)((hash(seedArr, 0L)[0]) & 0xFFFFL);
     if (seedHash == 0) {
@@ -71,7 +71,7 @@ public class Util {
     return seedHash; 
   }
   
-  public static final void checkSeedHashes(short seedHashA, short seedHashB) {
+  static final void checkSeedHashes(short seedHashA, short seedHashB) {
     if (seedHashA != seedHashB) throw new IllegalArgumentException("Incompatible Seed Hashes. "+ seedHashA + ", " + seedHashB);
   }
 

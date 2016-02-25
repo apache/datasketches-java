@@ -20,12 +20,12 @@ import com.yahoo.sketches.memory.NativeMemory;
  *
  * @param <S> type of Summary
  */
-public class QuickSelectSketch<S extends Summary> extends Sketch<S> {
+class QuickSelectSketch<S extends Summary> extends Sketch<S> {
 
   public static final byte serialVersionUID = 1;
 
   static final int MIN_NOM_ENTRIES = 32;
-  private static final int DEFAULT_LG_RESIZE_FACTOR = 3;
+  static final int DEFAULT_LG_RESIZE_FACTOR = 3;
   private static final double REBUILD_RATIO_AT_RESIZE = 0.5;
   static final double REBUILD_RATIO_AT_TARGET_SIZE = 15.0 / 16.0;
   private int nomEntries_;
@@ -112,7 +112,7 @@ public class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * @param mem Memory object with serialized QukckSelectSketch
    */
   @SuppressWarnings("unchecked")
-  public QuickSelectSketch(Memory mem) {
+  QuickSelectSketch(Memory mem) {
     int offset = 0;
     byte preambleLongs = mem.getByte(offset++);
     byte version = mem.getByte(offset++);

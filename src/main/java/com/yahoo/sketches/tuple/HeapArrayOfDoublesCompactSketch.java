@@ -15,36 +15,17 @@ import com.yahoo.sketches.memory.NativeMemory;
 /**
  * This is on-heap implementation.
  */
-public class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
+class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
 
   private final short seedHash_;
   private long[] keys_;
   private double[][] values_;
 
   /**
-   * This is to create an instance of empty compact sketch 
-   * @param numValues number of double values associated with a key (not really needed except for consistency) 
-   */
-  public HeapArrayOfDoublesCompactSketch(int numValues) {
-    this(numValues, DEFAULT_UPDATE_SEED);
-  }
-
-  /**
-   * This is to create an instance of empty compact sketch given a custom seed
-   * @param numValues number of double values associated with a key (not really needed except for consistency) 
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
-   */
-  public HeapArrayOfDoublesCompactSketch(int numValues, long seed) {
-    super(numValues);
-    theta_ = Long.MAX_VALUE;
-    seedHash_ = Util.computeSeedHash(seed);
-  }
-
-  /**
    * Converts the given UpdatableArrayOfDoublesSketch to this compact form.
    * @param sketch the given UpdatableArrayOfDoublesSketch
    */
-  HeapArrayOfDoublesCompactSketch(UpdatableArrayOfDoublesSketch sketch) {
+  HeapArrayOfDoublesCompactSketch(ArrayOfDoublesUpdatableSketch sketch) {
     super(sketch.getNumValues());
     isEmpty_ = sketch.isEmpty();
     theta_ = sketch.getThetaLong();
@@ -79,7 +60,16 @@ public class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch
    * This is to create an instance given a serialized form
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
-  public HeapArrayOfDoublesCompactSketch(Memory mem) {
+  HeapArrayOfDoublesCompactSketch(Memory mem) {
+    this(mem, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * This is to create an instance given a serialized form
+   * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   */
+  HeapArrayOfDoublesCompactSketch(Memory mem, long seed) {
     super(mem.getByte(NUM_VALUES_BYTE));
     seedHash_ = mem.getShort(SEED_HASH_SHORT);
     SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE), mem.getByte(PREAMBLE_LONGS_BYTE));
@@ -88,6 +78,7 @@ public class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch
     if (version != serialVersionUID) throw new RuntimeException("Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
     boolean isBigEndian = mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_BIG_ENDIAN.ordinal()));
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) throw new RuntimeException("Byte order mismatch");
+    Util.checkSeedHashes(seedHash_, Util.computeSeedHash(seed));
     isEmpty_ = mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_EMPTY.ordinal()));
     theta_ = mem.getLong(THETA_LONG);
     boolean hasEntries = mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.HAS_ENTRIES.ordinal()));
@@ -157,7 +148,7 @@ public class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch
   }
 
   @Override
-  ArrayOfDoublesSketchIterator iterator() {
+  public ArrayOfDoublesSketchIterator iterator() {
     return new HeapArrayOfDoublesSketchIterator(keys_, values_);
   }
 

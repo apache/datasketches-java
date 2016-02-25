@@ -12,8 +12,8 @@ import com.yahoo.sketches.memory.NativeMemory;
 public class HeapArrayOfDoublesCompactSketchTest {
   @Test
   public void emptyFromQuickSelectSketch() {
-    UpdatableArrayOfDoublesSketch qss = new HeapArrayOfDoublesQuickSelectSketch(8, 1);
-    ArrayOfDoublesCompactSketch sketch = qss.compact();
+    ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    ArrayOfDoublesCompactSketch sketch = us.compact();
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 0.0);
@@ -28,14 +28,14 @@ public class HeapArrayOfDoublesCompactSketchTest {
 
   @Test
   public void exactModeFromQuickSelectSketch() {
-    UpdatableArrayOfDoublesSketch qss = new HeapArrayOfDoublesQuickSelectSketch(8, 1);
-    qss.update(1, new double[] {1.0});
-    qss.update(2, new double[] {1.0});
-    qss.update(3, new double[] {1.0});
-    qss.update(1, new double[] {1.0});
-    qss.update(2, new double[] {1.0});
-    qss.update(3, new double[] {1.0});
-    ArrayOfDoublesCompactSketch sketch = qss.compact();
+    ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    us.update(1, new double[] {1.0});
+    us.update(2, new double[] {1.0});
+    us.update(3, new double[] {1.0});
+    us.update(1, new double[] {1.0});
+    us.update(2, new double[] {1.0});
+    us.update(3, new double[] {1.0});
+    ArrayOfDoublesCompactSketch sketch = us.compact();
     Assert.assertFalse(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 3.0);
@@ -51,11 +51,11 @@ public class HeapArrayOfDoublesCompactSketchTest {
 
   @Test
   public void serializeDeserializeSmallExact() {
-    UpdatableArrayOfDoublesSketch qss = new HeapArrayOfDoublesQuickSelectSketch(32, 1);
-    qss.update("a", new double[] {1.0});
-    qss.update("b", new double[] {1.0});
-    qss.update("c", new double[] {1.0});
-    ArrayOfDoublesCompactSketch sketch1 = qss.compact();
+    ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    us.update("a", new double[] {1.0});
+    us.update("b", new double[] {1.0});
+    us.update("c", new double[] {1.0});
+    ArrayOfDoublesCompactSketch sketch1 = us.compact();
     ArrayOfDoublesCompactSketch sketch2 = new HeapArrayOfDoublesCompactSketch(new NativeMemory(sketch1.toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertFalse(sketch2.isEstimationMode());
@@ -72,9 +72,9 @@ public class HeapArrayOfDoublesCompactSketchTest {
 
   @Test
   public void serializeDeserializeEstimation() {
-    UpdatableArrayOfDoublesSketch qss = new HeapArrayOfDoublesQuickSelectSketch(4096, 1);
-    for (int i = 0; i < 8192; i++) qss.update(i, new double[] {1.0});
-    ArrayOfDoublesCompactSketch sketch1 = qss.compact();
+    ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    for (int i = 0; i < 8192; i++) us.update(i, new double[] {1.0});
+    ArrayOfDoublesCompactSketch sketch1 = us.compact();
     ArrayOfDoublesCompactSketch sketch2 = new HeapArrayOfDoublesCompactSketch(new NativeMemory(sketch1.toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertTrue(sketch2.isEstimationMode());

@@ -1,0 +1,118 @@
+/*
+ * Copyright 2015, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
+package com.yahoo.sketches.tuple;
+
+import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.memory.Memory;
+
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+
+/**
+ * For building a new ArrayOfDoublesUpdatableSketch
+ */
+public class ArrayOfDoublesUpdatableSketchBuilder {
+
+  private int nomEntries_;
+  private ResizeFactor resizeFactor_;
+  private int numValues_;
+  private float samplingProbability_;
+  private long seed_;
+  private Memory dstMem_;
+
+  private static final int DEFAULT_NOMINAL_ENTRIES = 4096;
+  private static final int DEFAULT_NUMBER_OF_VALUES = 1;
+  private static final float DEFAULT_SAMPLING_PROBABILITY = 1;
+  private static final ResizeFactor DEFAULT_RESIZE_FACTOR = ResizeFactor.X1;
+
+  /**
+   * Creates an instance of builder with default parameters
+   */
+  public ArrayOfDoublesUpdatableSketchBuilder() {
+    nomEntries_ = DEFAULT_NOMINAL_ENTRIES;
+    resizeFactor_ = DEFAULT_RESIZE_FACTOR;
+    numValues_ = DEFAULT_NUMBER_OF_VALUES;
+    samplingProbability_ = DEFAULT_SAMPLING_PROBABILITY;
+    seed_ = DEFAULT_UPDATE_SEED;
+  }
+
+  /**
+   * This is to set the nominal number of entries.
+   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
+   * @return this builder
+   */
+  public ArrayOfDoublesUpdatableSketchBuilder setNominalEntries(int nomEntries) {
+    nomEntries_ = nomEntries;
+    return this;
+  }
+
+  /**
+   * This is to set the resize factor.
+   * Value of X1 means that the maximum capacity is allocated from the start.
+   * Default resize factor is X8.
+   * @param resizeFactor value of X1, X2, X4 or X8
+   * @return this UpdatableSketchBuilder
+   */
+  public ArrayOfDoublesUpdatableSketchBuilder setResizeFactor(ResizeFactor resizeFactor) {
+    resizeFactor_ = resizeFactor;
+    return this;
+  }
+
+  /**
+   * This is to set sampling probability.
+   * Default probability is 1.
+   * @param samplingProbability sampling probability from 0 to 1
+   * @return this builder
+   */
+  public ArrayOfDoublesUpdatableSketchBuilder setSamplingProbability(float samplingProbability) {
+    if (samplingProbability < 0 || samplingProbability > 1f) {
+      throw new IllegalArgumentException("sampling probability must be between 0 and 1");
+    }
+    samplingProbability_ = samplingProbability;
+    return this;
+  }
+
+  /**
+   * This is to set the number of double values associated with each key
+   * @param numValues number of double values
+   * @return this builder
+   */
+  public ArrayOfDoublesUpdatableSketchBuilder setNumberOfValues(int numValues) {
+    numValues_ = numValues;
+    return this;
+  }
+
+  /**
+   * Sets the long seed value that is required by the hashing function.
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @return this builder
+   */
+  public ArrayOfDoublesUpdatableSketchBuilder setSeed(long seed) {
+    seed_ = seed;
+    return this;
+  }
+
+  /**
+   * This is to set destination memory to be used by the sketch
+   * @param dstMem instance of Memory
+   * @return this builder
+   */
+  public ArrayOfDoublesUpdatableSketchBuilder setMemory(Memory dstMem) {
+    dstMem_ = dstMem;
+    return this;
+  }
+
+  /**
+   * Returns an ArrayOfDoublesUpdatableSketch with the current configuration of this Builder.
+   * @return an ArrayOfDoublesUpdatableSketch
+   */
+  public ArrayOfDoublesUpdatableSketch build() {
+    if (dstMem_ == null) {
+      return new HeapArrayOfDoublesQuickSelectSketch(nomEntries_, resizeFactor_.lg(), samplingProbability_, numValues_, seed_);
+    } else {
+      return  new DirectArrayOfDoublesQuickSelectSketch(nomEntries_, resizeFactor_.lg(), samplingProbability_, numValues_, seed_, dstMem_);
+    }
+  }
+
+}

@@ -19,7 +19,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * This implementation keeps the data in a given memory.
  * It is generally slower than on-heap implementation, but allows to avoid garbage collection
  */
-public class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketch {
+class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketch {
 
   // these values exist only on heap, never serialized
   private Memory mem_;
@@ -27,45 +27,6 @@ public class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSe
   private int keysOffset_;
   private int valuesOffset_;
   
-  /**
-   * Construct a new sketch using the given Memory as its backing store.
-   * 
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
-   * @param numValues Number of double values to keep for each key.
-   * @param dstMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   */
-  public DirectArrayOfDoublesQuickSelectSketch(int nomEntries, int numValues, Memory dstMem) {
-    this(nomEntries, DEFAULT_LG_RESIZE_FACTOR, 1f, numValues, DEFAULT_UPDATE_SEED, dstMem);
-  }
-
-  /**
-   * Construct a new sketch using the given Memory as its backing store.
-   * 
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
-   * @param samplingProbability <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
-   * @param numValues Number of double values to keep for each key.
-   * @param dstMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   */
-  public DirectArrayOfDoublesQuickSelectSketch(int nomEntries, float samplingProbability, int numValues, Memory dstMem) {
-    this(nomEntries, DEFAULT_LG_RESIZE_FACTOR, samplingProbability, numValues, DEFAULT_UPDATE_SEED, dstMem);
-  }
-
-  /**
-   * Construct a new sketch using the given Memory as its backing store.
-   * 
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
-   * @param lgResizeFactor log2(resize factor) - value from 0 to 3:
-   * 0 - no resizing (max size allocated),
-   * 1 - double internal hash table each time it reaches a threshold
-   * 2 - grow four times
-   * 3 - grow eight times (default)
-   * @param numValues Number of double values to keep for each key.
-   * @param dstMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   */
-  public DirectArrayOfDoublesQuickSelectSketch(int nomEntries, int lgResizeFactor, int numValues, Memory dstMem) {
-    this(nomEntries, lgResizeFactor, 1f, numValues, DEFAULT_UPDATE_SEED, dstMem);
-  }
-
   /**
    * Construct a new sketch using the given Memory as its backing store.
    * 
@@ -80,7 +41,7 @@ public class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSe
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @param dstMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
-  public DirectArrayOfDoublesQuickSelectSketch(int nomEntries, int lgResizeFactor, float samplingProbability, int numValues, long seed, Memory dstMem) {
+  DirectArrayOfDoublesQuickSelectSketch(int nomEntries, int lgResizeFactor, float samplingProbability, int numValues, long seed, Memory dstMem) {
     super(numValues, seed);
     mem_ = dstMem;
     int startingCapacity = 1 << Util.startingSubMultiple(
@@ -119,7 +80,7 @@ public class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSe
    * Wraps the given Memory assuming the default update seed
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
-  public DirectArrayOfDoublesQuickSelectSketch(Memory mem) {
+  DirectArrayOfDoublesQuickSelectSketch(Memory mem) {
     this(mem, DEFAULT_UPDATE_SEED);
   }
 
@@ -128,7 +89,7 @@ public class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSe
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed update seed
    */
-  public DirectArrayOfDoublesQuickSelectSketch(Memory mem, long seed) {
+  DirectArrayOfDoublesQuickSelectSketch(Memory mem, long seed) {
     super(mem.getByte(NUM_VALUES_BYTE), seed);
     mem_ = mem;
     SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE), mem.getByte(PREAMBLE_LONGS_BYTE));
@@ -307,7 +268,7 @@ public class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSe
   }
 
   @Override
-  ArrayOfDoublesSketchIterator iterator() {
+  public ArrayOfDoublesSketchIterator iterator() {
     return new DirectArrayOfDoublesSketchIterator(mem_, keysOffset_, getCurrentCapacity(), numValues_);
   }
 

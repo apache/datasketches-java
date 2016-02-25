@@ -22,7 +22,6 @@ public class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
   private long[] keys_;
   private double[][] values_;
   private int count_;
-  private final long seed_;
   private final short seedHash_;
   private final int numValues_;
 
@@ -41,7 +40,6 @@ public class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
    */
   public HeapArrayOfDoublesAnotB(int numValues, long seed) {
     numValues_ = numValues;
-    seed_ = seed;
     seedHash_ = Util.computeSeedHash(seed);
   }
 
@@ -77,7 +75,7 @@ public class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
 
   @Override
   public ArrayOfDoublesCompactSketch getResult() {
-    if (count_ == 0) return new HeapArrayOfDoublesCompactSketch(numValues_, seed_);
+    if (count_ == 0) return new HeapArrayOfDoublesCompactSketch(null, null, Long.MAX_VALUE, true, numValues_, seedHash_);
     ArrayOfDoublesCompactSketch result = new HeapArrayOfDoublesCompactSketch(
       Arrays.copyOfRange(keys_, 0, count_),
       Arrays.copyOfRange(values_, 0, count_),
@@ -92,8 +90,7 @@ public class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
 
   @Override
   public ArrayOfDoublesCompactSketch getResult(Memory mem) {
-    if (mem == null) return getResult();
-    if (count_ == 0) return new HeapArrayOfDoublesCompactSketch(numValues_, seed_);
+    if (mem == null || count_ == 0) return getResult();
     ArrayOfDoublesCompactSketch result = new DirectArrayOfDoublesCompactSketch(
       Arrays.copyOfRange(keys_, 0, count_),
       Arrays.copyOfRange(values_, 0, count_),
@@ -137,7 +134,7 @@ public class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
     int i = 0;
     while (it.next()) {
       keys_[i] = it.getKey();
-      if (sketch instanceof UpdatableArrayOfDoublesSketch) {
+      if (sketch instanceof ArrayOfDoublesUpdatableSketch) {
         values_[i] = it.getValues().clone();
       } else {
         values_[i] = it.getValues();

@@ -42,8 +42,8 @@ public class CompactSketchWithDoubleSummaryTest {
 
   @Test
   public void emptyFromQuickSelectSketch() {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> qss = new UpdatableQuickSelectSketch<Double, DoubleSummary>(8, new DoubleSummaryFactory());
-    CompactSketch<DoubleSummary> sketch = qss.compact();
+    UpdatableSketch<Double, DoubleSummary> us = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
+    CompactSketch<DoubleSummary> sketch = us.compact();
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 0.0);
@@ -57,14 +57,14 @@ public class CompactSketchWithDoubleSummaryTest {
 
   @Test
   public void exactModeFromQuickSelectSketch() {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> qss = new UpdatableQuickSelectSketch<Double, DoubleSummary>(8, new DoubleSummaryFactory());
-    qss.update(1, 1.0);
-    qss.update(2, 1.0);
-    qss.update(3, 1.0);
-    qss.update(1, 1.0);
-    qss.update(2, 1.0);
-    qss.update(3, 1.0);
-    CompactSketch<DoubleSummary> sketch = qss.compact();
+    UpdatableSketch<Double, DoubleSummary> us = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
+    us.update(1, 1.0);
+    us.update(2, 1.0);
+    us.update(3, 1.0);
+    us.update(1, 1.0);
+    us.update(2, 1.0);
+    us.update(3, 1.0);
+    CompactSketch<DoubleSummary> sketch = us.compact();
     Assert.assertFalse(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 3.0);
@@ -80,11 +80,11 @@ public class CompactSketchWithDoubleSummaryTest {
 
   @Test
   public void serializeDeserializeSmallExact() {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> qss = new UpdatableQuickSelectSketch<Double, DoubleSummary>(32, new DoubleSummaryFactory());
-    qss.update("a", 1.0);
-    qss.update("b", 1.0);
-    qss.update("c", 1.0);
-    CompactSketch<DoubleSummary> sketch1 = qss.compact();
+    UpdatableSketch<Double, DoubleSummary> us = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
+    us.update("a", 1.0);
+    us.update("b", 1.0);
+    us.update("c", 1.0);
+    CompactSketch<DoubleSummary> sketch1 = us.compact();
     CompactSketch<DoubleSummary> sketch2 = new CompactSketch<DoubleSummary>(new NativeMemory(sketch1.toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertFalse(sketch2.isEstimationMode());
@@ -101,9 +101,9 @@ public class CompactSketchWithDoubleSummaryTest {
 
   @Test
   public void serializeDeserializeEstimation() {
-    UpdatableQuickSelectSketch<Double, DoubleSummary> qss = new UpdatableQuickSelectSketch<Double, DoubleSummary>(4096, new DoubleSummaryFactory());
-    for (int i = 0; i < 8192; i++) qss.update(i, 1.0);
-    CompactSketch<DoubleSummary> sketch1 = qss.compact();
+    UpdatableSketch<Double, DoubleSummary> us = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
+    for (int i = 0; i < 8192; i++) us.update(i, 1.0);
+    CompactSketch<DoubleSummary> sketch1 = us.compact();
     CompactSketch<DoubleSummary> sketch2 = new CompactSketch<DoubleSummary>(new NativeMemory(sketch1.toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertTrue(sketch2.isEstimationMode());
