@@ -131,7 +131,7 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
     ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setMemory(new NativeMemory(new byte[1000000])).build();
     sketch1.update(1, new double[] {1.0});
 
-    ArrayOfDoublesUpdatableSketch sketch2 = new DirectArrayOfDoublesQuickSelectSketch(new NativeMemory(sketch1.toByteArray()));
+    ArrayOfDoublesUpdatableSketch sketch2 = (ArrayOfDoublesUpdatableSketch) ArrayOfDoublesSketches.wrapSketch(new NativeMemory(sketch1.toByteArray()));
 
     Assert.assertEquals(sketch2.getEstimate(), 1.0);
     double[][] values = sketch2.getValues();
@@ -157,7 +157,7 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
     //for visual testing
     //TestUtil.writeBytesToFile(byteArray, "ArrayOfDoublesQuickSelectSketch4K.data");
 
-    ArrayOfDoublesUpdatableSketch sketch2 = new DirectArrayOfDoublesQuickSelectSketch(new NativeMemory(byteArray));
+    ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketches.wrapSketch(new NativeMemory(byteArray));
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 8192, 8192 * 0.99);
     Assert.assertEquals(sketch1.getTheta(), sketch2.getTheta());
@@ -172,7 +172,7 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
     int numberOfUniques = sketchSize;
     ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setNominalEntries(sketchSize).setSamplingProbability(0.5f).setMemory(new NativeMemory(new byte[1000000])).build();
     for (int i = 0; i < numberOfUniques; i++) sketch1.update(i, new double[] {1.0});
-    ArrayOfDoublesUpdatableSketch sketch2 = new DirectArrayOfDoublesQuickSelectSketch(new NativeMemory(sketch1.toByteArray()));
+    ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketches.wrapSketch(new NativeMemory(sketch1.toByteArray()));
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate() / numberOfUniques, 1.0, 0.01);
     Assert.assertEquals(sketch2.getRetainedEntries() / (double) numberOfUniques, 0.5, 0.01);

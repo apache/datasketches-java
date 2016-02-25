@@ -12,7 +12,7 @@ public class ArrayOfDoublesAnotBTest {
   @Test
   public void nullOrEmptyInput() {
     // calling getResult() before calling update() should yield an empty set
-    ArrayOfDoublesAnotB aNotB = new HeapArrayOfDoublesAnotB(1);
+    ArrayOfDoublesAnotB aNotB = new ArrayOfDoublesSetOperationBuilder().buildAnotB();
     ArrayOfDoublesCompactSketch result = aNotB.getResult();
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getRetainedEntries(), 0);
@@ -62,7 +62,7 @@ public class ArrayOfDoublesAnotBTest {
     sketch.update(3, new double[] {1.0});
     sketch.update(4, new double[] {1.0});
     sketch.update(5, new double[] {1.0});
-    ArrayOfDoublesAnotB aNotB = new HeapArrayOfDoublesAnotB(1);
+    ArrayOfDoublesAnotB aNotB = new ArrayOfDoublesSetOperationBuilder().buildAnotB();
     aNotB.update(sketch, sketch);
     ArrayOfDoublesCompactSketch result = aNotB.getResult();
     Assert.assertTrue(result.isEmpty());
@@ -88,7 +88,7 @@ public class ArrayOfDoublesAnotBTest {
     sketchB.update(6, new double[] {1});
     sketchB.update(7, new double[] {1});
 
-    ArrayOfDoublesAnotB aNotB = new HeapArrayOfDoublesAnotB(1);
+    ArrayOfDoublesAnotB aNotB = new ArrayOfDoublesSetOperationBuilder().buildAnotB();
     aNotB.update(sketchA, sketchB);
     ArrayOfDoublesCompactSketch result = aNotB.getResult();
     Assert.assertFalse(result.isEmpty());
@@ -112,7 +112,7 @@ public class ArrayOfDoublesAnotBTest {
     ArrayOfDoublesUpdatableSketch sketchB = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) sketchB.update(key++, new double[] {1});
 
-    ArrayOfDoublesAnotB aNotB = new HeapArrayOfDoublesAnotB(1);
+    ArrayOfDoublesAnotB aNotB = new ArrayOfDoublesSetOperationBuilder().buildAnotB();
     aNotB.update(sketchA, sketchB);
     ArrayOfDoublesCompactSketch result = aNotB.getResult();
     Assert.assertFalse(result.isEmpty());

@@ -26,7 +26,7 @@ public class ArrayOfDoublesUnionTest {
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
 
-    ArrayOfDoublesUnion union = new HeapArrayOfDoublesUnion(8, 1);
+    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion();
     union.update(sketch1);
     union.update(sketch2);
     ArrayOfDoublesCompactSketch result = union.getResult();
@@ -56,7 +56,7 @@ public class ArrayOfDoublesUnionTest {
     ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) sketch2.update(key++, new double[] {1.0});
 
-    ArrayOfDoublesUnion union = new HeapArrayOfDoublesUnion(4096, 1);
+    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion();
     union.update(sketch1);
     union.update(sketch2);
     ArrayOfDoublesCompactSketch result = union.getResult();
@@ -84,7 +84,7 @@ public class ArrayOfDoublesUnionTest {
     ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) sketch2.update(key++, new double[] {1.0});
 
-    ArrayOfDoublesUnion union1 = new HeapArrayOfDoublesUnion(4096, 1);
+    ArrayOfDoublesUnion union1 = new ArrayOfDoublesSetOperationBuilder().buildUnion();
     union1.update(sketch1);
     union1.update(sketch2);
 
@@ -119,7 +119,7 @@ public class ArrayOfDoublesUnionTest {
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
 
-    ArrayOfDoublesUnion union = new DirectArrayOfDoublesUnion(8, 1, new NativeMemory(new byte[1000000]));
+    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().setMemory(new NativeMemory(new byte[1000000])).buildUnion();
     union.update(sketch1);
     union.update(sketch2);
     ArrayOfDoublesCompactSketch result = union.getResult(new NativeMemory(new byte[1000000]));
@@ -149,7 +149,7 @@ public class ArrayOfDoublesUnionTest {
     ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().setMemory(new NativeMemory(new byte[1000000])).build();
     for (int i = 0; i < 8192; i++) sketch2.update(key++, new double[] {1.0});
 
-    ArrayOfDoublesUnion union = new DirectArrayOfDoublesUnion(4096, 1, new NativeMemory(new byte[1000000]));
+    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().setMemory(new NativeMemory(new byte[1000000])).buildUnion();
     union.update(sketch1);
     union.update(sketch2);
     ArrayOfDoublesCompactSketch result = union.getResult(new NativeMemory(new byte[1000000]));
@@ -180,7 +180,7 @@ public class ArrayOfDoublesUnionTest {
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
 
-    ArrayOfDoublesUnion union1 = new HeapArrayOfDoublesUnion(32, 1);
+    ArrayOfDoublesUnion union1 = new ArrayOfDoublesSetOperationBuilder().buildUnion();
     union1.update(sketch1);
 
     ArrayOfDoublesUnion union2 = new DirectArrayOfDoublesUnion(new NativeMemory(union1.toByteArray()));
@@ -211,7 +211,7 @@ public class ArrayOfDoublesUnionTest {
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
 
-    ArrayOfDoublesUnion union1 = new DirectArrayOfDoublesUnion(32, 1, new NativeMemory(new byte[1000000]));
+    ArrayOfDoublesUnion union1 = new ArrayOfDoublesSetOperationBuilder().setMemory(new NativeMemory(new byte[1000000])).buildUnion();
     union1.update(sketch1);
 
     ArrayOfDoublesUnion union2 = new HeapArrayOfDoublesUnion(new NativeMemory(union1.toByteArray()));

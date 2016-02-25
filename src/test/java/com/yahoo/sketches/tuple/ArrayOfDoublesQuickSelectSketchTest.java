@@ -18,7 +18,7 @@ public class ArrayOfDoublesQuickSelectSketchTest {
     sketch1.update("c", new double[] {1, 2});
     sketch1.update("d", new double[] {1, 2});
     sketch1.update("a", new double[] {1, 2});
-    ArrayOfDoublesUpdatableSketch sketch2 = new DirectArrayOfDoublesQuickSelectSketch(new NativeMemory(sketch1.toByteArray()));
+    ArrayOfDoublesUpdatableSketch sketch2 = (ArrayOfDoublesUpdatableSketch) ArrayOfDoublesSketches.wrapSketch(new NativeMemory(sketch1.toByteArray()));
     sketch2.update("b", new double[] {1, 2});
     sketch2.update("c", new double[] {1, 2});
     sketch2.update("d", new double[] {1, 2});
@@ -46,7 +46,7 @@ public class ArrayOfDoublesQuickSelectSketchTest {
     sketch1.update("c", new double[] {1, 2});
     sketch1.update("d", new double[] {1, 2});
     sketch1.update("a", new double[] {1, 2});
-    ArrayOfDoublesUpdatableSketch sketch2 = new HeapArrayOfDoublesQuickSelectSketch(new NativeMemory(sketch1.toByteArray()));
+    ArrayOfDoublesUpdatableSketch sketch2 = (ArrayOfDoublesUpdatableSketch) ArrayOfDoublesSketches.heapifySketch(new NativeMemory(sketch1.toByteArray()));
     sketch2.update("b", new double[] {1, 2});
     sketch2.update("c", new double[] {1, 2});
     sketch2.update("d", new double[] {1, 2});

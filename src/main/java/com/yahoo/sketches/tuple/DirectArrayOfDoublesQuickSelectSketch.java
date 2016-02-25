@@ -5,7 +5,6 @@
 package com.yahoo.sketches.tuple;
 
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
-import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -74,14 +73,6 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     mask_ = startingCapacity - 1;
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(startingCapacity);
     setRebuildThreshold();
-  }
-
-  /**
-   * Wraps the given Memory assuming the default update seed
-   * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   */
-  DirectArrayOfDoublesQuickSelectSketch(Memory mem) {
-    this(mem, DEFAULT_UPDATE_SEED);
   }
 
   /**

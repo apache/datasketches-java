@@ -20,7 +20,7 @@ public class ArrayOfDoublesIntersectionTest {
 
   @Test
   public void nullInput() {
-    ArrayOfDoublesIntersection intersection = new HeapArrayOfDoublesIntersection(1);
+    ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().buildIntersection();
     intersection.update(null, null);
     ArrayOfDoublesCompactSketch result = intersection.getResult();
     Assert.assertTrue(result.isEmpty());
@@ -34,7 +34,7 @@ public class ArrayOfDoublesIntersectionTest {
   @Test
   public void empty() {
     ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
-    ArrayOfDoublesIntersection intersection = new HeapArrayOfDoublesIntersection(1);
+    ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().buildIntersection();
     intersection.update(sketch1, null);
     ArrayOfDoublesCompactSketch result = intersection.getResult();
     Assert.assertTrue(result.isEmpty());
@@ -49,7 +49,7 @@ public class ArrayOfDoublesIntersectionTest {
   public void notEmptyNoEntries() {
     ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setSamplingProbability(0.01f).build();
     sketch1.update("a", new double[] {1}); // this happens to get rejected because of sampling with low probability
-    ArrayOfDoublesIntersection intersection = new HeapArrayOfDoublesIntersection(1);
+    ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().buildIntersection();
     intersection.update(sketch1, null);
     ArrayOfDoublesCompactSketch result = intersection.getResult();
     Assert.assertTrue(result.isEmpty());
@@ -69,7 +69,7 @@ public class ArrayOfDoublesIntersectionTest {
 
     ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
 
-    ArrayOfDoublesIntersection intersection = new HeapArrayOfDoublesIntersection(1);
+    ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().buildIntersection();
     intersection.update(sketch1, null);
     intersection.update(sketch2, null);
     ArrayOfDoublesCompactSketch result = intersection.getResult();
@@ -94,7 +94,7 @@ public class ArrayOfDoublesIntersectionTest {
     sketch2.update(3, new double[] {1});
     sketch2.update(3, new double[] {1});
 
-    ArrayOfDoublesIntersection intersection = new HeapArrayOfDoublesIntersection(1);
+    ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().buildIntersection();
     intersection.update(sketch1, combiner);
     intersection.update(sketch2, combiner);
     ArrayOfDoublesCompactSketch result = intersection.getResult();
@@ -125,7 +125,7 @@ public class ArrayOfDoublesIntersectionTest {
     ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) sketch2.update(key++, new double[] {1.0});
 
-    ArrayOfDoublesIntersection intersection = new HeapArrayOfDoublesIntersection(1);
+    ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().buildIntersection();
     intersection.update(sketch1, combiner);
     intersection.update(sketch2, combiner);
     ArrayOfDoublesCompactSketch result = intersection.getResult();
@@ -147,7 +147,7 @@ public class ArrayOfDoublesIntersectionTest {
     ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) sketch2.update(key++, new double[] {1.0});
 
-    ArrayOfDoublesIntersection intersection = new HeapArrayOfDoublesIntersection(1);
+    ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().buildIntersection();
     intersection.update(sketch1, combiner);
     intersection.update(sketch2, combiner);
     ArrayOfDoublesCompactSketch result = intersection.getResult();
@@ -169,7 +169,7 @@ public class ArrayOfDoublesIntersectionTest {
     ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().setMemory(new NativeMemory(new byte[1000000])).build();
     for (int i = 0; i < 8192; i++) sketch2.update(key++, new double[] {1.0});
 
-    ArrayOfDoublesIntersection intersection = new DirectArrayOfDoublesIntersection(1, new NativeMemory(new byte[1000000]));
+    ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().setMemory(new NativeMemory(new byte[1000000])).buildIntersection();
     intersection.update(sketch1, combiner);
     intersection.update(sketch2, combiner);
     ArrayOfDoublesCompactSketch result = intersection.getResult(new NativeMemory(new byte[1000000]));

@@ -10,11 +10,11 @@ import com.yahoo.sketches.memory.Memory;
 
 public final class ArrayOfDoublesSketches {
 
-  public static ArrayOfDoublesSketch heapify(Memory mem) {
-    return heapify(mem, DEFAULT_UPDATE_SEED);
+  public static ArrayOfDoublesSketch heapifySketch(Memory mem) {
+    return heapifySketch(mem, DEFAULT_UPDATE_SEED);
   }
 
-  public static ArrayOfDoublesSketch heapify(Memory mem, long seed) {
+  public static ArrayOfDoublesSketch heapifySketch(Memory mem, long seed) {
     SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(mem);
     if (sketchType == SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch) {
       return new HeapArrayOfDoublesQuickSelectSketch(mem, seed);
@@ -22,16 +22,32 @@ public final class ArrayOfDoublesSketches {
     return new HeapArrayOfDoublesCompactSketch(mem, seed);
   }
 
-  public static ArrayOfDoublesSketch wrap(Memory mem) {
-    return wrap(mem, DEFAULT_UPDATE_SEED);
+  public static ArrayOfDoublesSketch wrapSketch(Memory mem) {
+    return wrapSketch(mem, DEFAULT_UPDATE_SEED);
   }
 
-  public static ArrayOfDoublesSketch wrap(Memory mem, long seed) {
+  public static ArrayOfDoublesSketch wrapSketch(Memory mem, long seed) {
     SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(mem);
     if (sketchType == SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch) {
       return new DirectArrayOfDoublesQuickSelectSketch(mem, seed);
     }
     return new DirectArrayOfDoublesCompactSketch(mem, seed);
+  }
+
+  public static ArrayOfDoublesUnion heapifyUnion(Memory mem) {
+    return heapifyUnion(mem, DEFAULT_UPDATE_SEED);
+  }
+
+  public static ArrayOfDoublesUnion heapifyUnion(Memory mem, long seed) {
+    return new HeapArrayOfDoublesUnion(mem, seed);
+  }
+
+  public static ArrayOfDoublesUnion wrapUnion(Memory mem) {
+    return wrapUnion(mem, DEFAULT_UPDATE_SEED);
+  }
+
+  public static ArrayOfDoublesUnion wrapUnion(Memory mem, long seed) {
+    return new DirectArrayOfDoublesUnion(mem, seed);
   }
 
 }

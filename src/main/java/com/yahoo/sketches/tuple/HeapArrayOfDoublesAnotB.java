@@ -10,12 +10,11 @@ import com.yahoo.sketches.memory.Memory;
 
 import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
-import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 
 /**
  * This is an on-heap implementation
  */
-public class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
+class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
 
   private boolean isEmpty_ = true;
   private long theta_ = Long.MAX_VALUE;
@@ -24,21 +23,12 @@ public class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
   private int count_;
   private final short seedHash_;
   private final int numValues_;
-
-  /**
-   * Creates an instance of HeapArrayOfDoublesAnotB
-   * @param numValues Number of double values to keep for each key.
-   */
-  public HeapArrayOfDoublesAnotB(int numValues) {
-    this(numValues, DEFAULT_UPDATE_SEED);
-  }
-
   /**
    * Creates an instance of HeapArrayOfDoublesAnotB given a custom seed
    * @param numValues Number of double values to keep for each key.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
-  public HeapArrayOfDoublesAnotB(int numValues, long seed) {
+  HeapArrayOfDoublesAnotB(int numValues, long seed) {
     numValues_ = numValues;
     seedHash_ = Util.computeSeedHash(seed);
   }

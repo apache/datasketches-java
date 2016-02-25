@@ -110,9 +110,8 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
   public ArrayOfDoublesUpdatableSketch build() {
     if (dstMem_ == null) {
       return new HeapArrayOfDoublesQuickSelectSketch(nomEntries_, resizeFactor_.lg(), samplingProbability_, numValues_, seed_);
-    } else {
-      return  new DirectArrayOfDoublesQuickSelectSketch(nomEntries_, resizeFactor_.lg(), samplingProbability_, numValues_, seed_, dstMem_);
     }
+    return  new DirectArrayOfDoublesQuickSelectSketch(nomEntries_, resizeFactor_.lg(), samplingProbability_, numValues_, seed_, dstMem_);
   }
 
 }

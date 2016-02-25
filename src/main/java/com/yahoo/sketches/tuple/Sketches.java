@@ -14,7 +14,7 @@ public final class Sketches {
   /**
    * @return an empty instance of Sketch
    */
-  public static <S extends Summary> Sketch<S> createEmpty() {
+  public static <S extends Summary> Sketch<S> createEmptySketch() {
     return new CompactSketch<S>(null, null, Long.MAX_VALUE, true);
   }
 
@@ -23,7 +23,7 @@ public final class Sketches {
    * @param mem Memory object representing a Sketch
    * @return Sketch created from its Memory representation
    */
-  public static <S extends Summary> Sketch<S> heapify(Memory mem) {
+  public static <S extends Summary> Sketch<S> heapifySketch(Memory mem) {
     SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(mem);
     if (sketchType == SerializerDeserializer.SketchType.QuickSelectSketch) {
       return new QuickSelectSketch<S>(mem);

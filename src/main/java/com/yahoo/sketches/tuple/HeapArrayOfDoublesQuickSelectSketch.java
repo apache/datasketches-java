@@ -11,7 +11,6 @@ package com.yahoo.sketches.tuple;
 import java.nio.ByteOrder;
 
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
-import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
@@ -55,14 +54,6 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
     mask_ = startingCapacity - 1;
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(startingCapacity);
     setRebuildThreshold();
-  }
-
-  /**
-   * This is to create an instance with the default update seed given a serialized form
-   * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   */
-  HeapArrayOfDoublesQuickSelectSketch(Memory mem) {
-    this(mem, DEFAULT_UPDATE_SEED);
   }
 
   /**
