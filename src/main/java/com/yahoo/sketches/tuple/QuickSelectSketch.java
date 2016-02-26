@@ -46,16 +46,6 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   }
 
   /**
-   * This is to create an instance of a QuickSelectSketch with default resize factor and a given sampling probability.
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
-   * @param samplingProbability <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
-   * @param summaryFactory An instance of a SummaryFactory.
-   */
-  QuickSelectSketch(int nomEntries, float samplingProbability, SummaryFactory<S> summaryFactory) {
-    this(nomEntries, DEFAULT_LG_RESIZE_FACTOR, samplingProbability, summaryFactory);
-  }
-
-  /**
    * This is to create an instance of a QuickSelectSketch with custom resize factor
    * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
    * @param lgResizeFactor log2(resizeFactor) - value from 0 to 3:
