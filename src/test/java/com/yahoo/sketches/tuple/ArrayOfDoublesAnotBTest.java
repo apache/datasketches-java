@@ -7,6 +7,8 @@ package com.yahoo.sketches.tuple;
 import org.testng.annotations.Test;
 import org.testng.Assert;
 
+import com.yahoo.sketches.memory.NativeMemory;
+
 public class ArrayOfDoublesAnotBTest {
 
   @Test
@@ -124,9 +126,9 @@ public class ArrayOfDoublesAnotBTest {
       Assert.assertEquals(it.getValues(), new double[] {1});
     }
 
-    // same thing, but compact sketches
+    // same operation, but compact sketches and off-heap result
     aNotB.update(sketchA.compact(), sketchB.compact());
-    result = aNotB.getResult();
+    result = aNotB.getResult(new NativeMemory(new byte[1000000]));
     Assert.assertFalse(result.isEmpty());
     Assert.assertEquals(result.getEstimate(), 4096.0, 4096 * 0.03); // crude estimate of RSE(95%) = 2 / sqrt(result.getRetainedEntries())
     Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());
