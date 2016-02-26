@@ -4,6 +4,9 @@ import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 
 import com.yahoo.sketches.memory.Memory;
 
+/**
+ * For building set operations
+ */
 public class ArrayOfDoublesSetOperationBuilder {
 
   private int nomEntries_;
@@ -14,6 +17,9 @@ public class ArrayOfDoublesSetOperationBuilder {
   private static final int DEFAULT_NOMINAL_ENTRIES = 4096;
   private static final int DEFAULT_NUMBER_OF_VALUES = 1;
 
+  /**
+   * Creates an instance of the builder with default parameters
+   */
   public ArrayOfDoublesSetOperationBuilder() {
     nomEntries_ = DEFAULT_NOMINAL_ENTRIES;
     numValues_ = DEFAULT_NUMBER_OF_VALUES;
@@ -60,6 +66,11 @@ public class ArrayOfDoublesSetOperationBuilder {
     return this;
   }
 
+  /**
+   * Creates an instance of ArrayOfDoublesUnion based on the current configuration of the builder.
+   * The new instance is allocated on the heap if the memory is not provided.
+   * @return an instance of ArrayOfDoublesUnion
+   */
   public ArrayOfDoublesUnion buildUnion() {
     if (dstMem_ == null) {
       return new HeapArrayOfDoublesUnion(nomEntries_, numValues_, seed_);
@@ -67,6 +78,12 @@ public class ArrayOfDoublesSetOperationBuilder {
     return new DirectArrayOfDoublesUnion(nomEntries_, numValues_, seed_, dstMem_);
   }
 
+  /**
+   * Creates an instance of ArrayOfDoublesIntersection based on the current configuration of the builder.
+   * The new instance is allocated on the heap if the memory is not provided.
+   * The number of nominal entries is not relevant to this, so it is ignored.
+   * @return an instance of ArrayOfDoublesIntersection
+   */
   public ArrayOfDoublesIntersection buildIntersection() {
     if (dstMem_ == null) {
       return new HeapArrayOfDoublesIntersection(numValues_, seed_);
@@ -74,6 +91,12 @@ public class ArrayOfDoublesSetOperationBuilder {
     return new DirectArrayOfDoublesIntersection(numValues_, seed_, dstMem_);
   }
 
+  /**
+   * Creates an instance of ArrayOfDoublesAnotB based on the current configuration of the builder.
+   * The memory is not relevant to this, so it is ignored if set.
+   * The number of nominal entries is not relevant to this, so it is ignored.
+   * @return an instance of ArrayOfDoublesAnotB
+   */
   public ArrayOfDoublesAnotB buildAnotB() {
     return new HeapArrayOfDoublesAnotB(numValues_, seed_);
   }
