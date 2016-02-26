@@ -22,7 +22,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  */
 class QuickSelectSketch<S extends Summary> extends Sketch<S> {
 
-  public static final byte serialVersionUID = 1;
+  static final byte serialVersionUID = 1;
 
   static final int MIN_NOM_ENTRIES = 32;
   static final int DEFAULT_LG_RESIZE_FACTOR = 3;

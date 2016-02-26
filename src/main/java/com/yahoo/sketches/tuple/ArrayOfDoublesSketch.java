@@ -27,12 +27,12 @@ public abstract class ArrayOfDoublesSketch {
   static final int SEED_HASH_SHORT = 6;
   static final int THETA_LONG = 8;
 
-  protected final int numValues_;
+  final int numValues_;
 
-  protected long theta_;
-  protected boolean isEmpty_ = true;
+  long theta_;
+  boolean isEmpty_ = true;
 
-  protected ArrayOfDoublesSketch(int numValues) {
+  ArrayOfDoublesSketch(int numValues) {
     numValues_ = numValues;
   }
 

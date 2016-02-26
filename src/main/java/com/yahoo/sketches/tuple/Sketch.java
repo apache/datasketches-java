@@ -12,10 +12,12 @@ package com.yahoo.sketches.tuple;
  */
 public abstract class Sketch<S extends Summary> {
 
-  protected long[] keys_;
-  protected S[] summaries_;
-  protected long theta_;
-  protected boolean isEmpty_ = true;
+  long[] keys_;
+  S[] summaries_;
+  long theta_;
+  boolean isEmpty_ = true;
+
+  Sketch() {}
 
   /**
    * Estimates the cardinality of the set (number of unique values presented to the sketch)

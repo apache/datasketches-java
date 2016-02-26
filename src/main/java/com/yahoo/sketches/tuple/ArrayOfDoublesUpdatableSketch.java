@@ -13,9 +13,9 @@ import com.yahoo.sketches.memory.Memory;
 
 public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch {
 
-  protected final long seed_;
+  final long seed_;
 
-  protected ArrayOfDoublesUpdatableSketch(int numValues, long seed) {
+  ArrayOfDoublesUpdatableSketch(int numValues, long seed) {
     super(numValues);
     seed_ = seed;
   }
@@ -127,6 +127,6 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
     return Util.computeSeedHash(seed_);
   }
 
-  protected abstract void insertOrIgnore(long key, double[] values);
+  abstract void insertOrIgnore(long key, double[] values);
 
 }

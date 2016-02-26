@@ -12,6 +12,7 @@ import com.yahoo.sketches.memory.Memory;
 public final class Sketches {
 
   /**
+   * @param <S> Type of Summary
    * @return an empty instance of Sketch
    */
   public static <S extends Summary> Sketch<S> createEmptySketch() {
@@ -20,6 +21,7 @@ public final class Sketches {
 
   /**
    * Instantiate Sketch from a given Memory
+   * @param <S> Type of Summary
    * @param mem Memory object representing a Sketch
    * @return Sketch created from its Memory representation
    */

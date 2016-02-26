@@ -14,9 +14,9 @@ import static com.yahoo.sketches.Util.ceilingPowerOf2;
  * Top level class for hash table based implementation, which uses quick select algorithm
  * when the time comes to rebuild the hash table and throw away some entries.
  */
-public abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSketch {
+abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSketch {
 
-  public static final byte serialVersionUID = 1;
+  static final byte serialVersionUID = 1;
 
   static final int LG_NOM_ENTRIES_BYTE = 16;
   static final int LG_CUR_CAPACITY_BYTE = 17;
@@ -27,33 +27,33 @@ public abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpda
   // 4 bytes of padding for alignment
   static final int ENTRIES_START = 32;
 
-  protected static final int MIN_NOM_ENTRIES = 32;
-  protected static final int DEFAULT_LG_RESIZE_FACTOR = 3;
+  static final int MIN_NOM_ENTRIES = 32;
+  static final int DEFAULT_LG_RESIZE_FACTOR = 3;
 
   // these can be derived from other things, but are kept here for performance
-  protected int rebuildThreshold_;
-  protected int mask_;
-  protected int lgCurrentCapacity_;
+  int rebuildThreshold_;
+  int mask_;
+  int lgCurrentCapacity_;
 
-  protected ArrayOfDoublesQuickSelectSketch(int numValues, long seed) {
+  ArrayOfDoublesQuickSelectSketch(int numValues, long seed) {
     super(numValues, seed);
   }
 
-  protected abstract void updateValues(int index, double[] values);
-  protected abstract void setNotEmpty();
-  protected abstract void setIsEmpty(boolean isEmpty);
-  protected abstract boolean isInSamplingMode();
-  protected abstract int getResizeFactor();
-  protected abstract int getCurrentCapacity();
-  protected abstract void rebuild(int newCapacity);
-  protected abstract long getKey(int index);
-  protected abstract void setKey(int index, long key);
-  protected abstract void setValues(int index, double[] values, boolean isCopyRequired);
-  protected abstract void incrementCount();
-  protected abstract void setThetaLong(long theta);
-  protected abstract int insertKey(long key);
-  protected abstract int findOrInsertKey(long key);
-  protected abstract double[] find(long key);
+  abstract void updateValues(int index, double[] values);
+  abstract void setNotEmpty();
+  abstract void setIsEmpty(boolean isEmpty);
+  abstract boolean isInSamplingMode();
+  abstract int getResizeFactor();
+  abstract int getCurrentCapacity();
+  abstract void rebuild(int newCapacity);
+  abstract long getKey(int index);
+  abstract void setKey(int index, long key);
+  abstract void setValues(int index, double[] values, boolean isCopyRequired);
+  abstract void incrementCount();
+  abstract void setThetaLong(long theta);
+  abstract int insertKey(long key);
+  abstract int findOrInsertKey(long key);
+  abstract double[] find(long key);
 
   @Override
   public void trim() {
@@ -68,7 +68,7 @@ public abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpda
    * @param numValues Number of double values to keep for each key
    * @return maximum required storage bytes given nomEntries and numValues
    */
-  public static int getMaxBytes(int nomEntries, int numValues) {
+  static int getMaxBytes(int nomEntries, int numValues) {
     return ENTRIES_START + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues) * ceilingPowerOf2(nomEntries) * 2;
   }
 
@@ -90,7 +90,7 @@ public abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpda
     }
   }
 
-  protected void rebuildIfNeeded() {
+  void rebuildIfNeeded() {
     if (getRetainedEntries() < rebuildThreshold_) return;
     if (getCurrentCapacity() > getNominalEntries()) {
       updateTheta();
@@ -100,17 +100,17 @@ public abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpda
     }
   }
   
-  protected void rebuild() {
+  void rebuild() {
     rebuild(getCurrentCapacity());
   }
 
-  protected void insert(long key, double[] values) {
+  void insert(long key, double[] values) {
     int index = insertKey(key);
     setValues(index, values, false);
     incrementCount();
   }
 
-  protected void setRebuildThreshold() {
+  void setRebuildThreshold() {
     if (getCurrentCapacity() > getNominalEntries()) {
       rebuildThreshold_ = (int) (getCurrentCapacity() * REBUILD_THRESHOLD);
     } else {
@@ -119,7 +119,7 @@ public abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpda
   }
 
   @Override
-  protected void insertOrIgnore(long key, double[] values) {
+  void insertOrIgnore(long key, double[] values) {
     if (values.length != getNumValues()) throw new IllegalArgumentException("input array of values must have " + getNumValues() + " elements, but has " + values.length);
     setNotEmpty();
     if (key == 0 || key >= theta_) return;
@@ -133,7 +133,7 @@ public abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpda
     rebuildIfNeeded();
   }
 
-  protected void updateTheta() {
+  void updateTheta() {
     long[] keys = new long[getRetainedEntries()];
     int i = 0;
     for (int j = 0; j < getCurrentCapacity(); j++) {
