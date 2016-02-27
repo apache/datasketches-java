@@ -252,6 +252,17 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     return byteArray;
   }
   
+  @Override
+  public Family getFamily() {
+    int familyID = mem_.getByte(FAMILY_BYTE);
+    return Family.idToFamily(familyID);
+  }
+  
+  @Override
+  public ResizeFactor getResizeFactor() {
+    return (mem_.getMemoryRequest() == null)? ResizeFactor.getRF(0) : ResizeFactor.getRF(1);
+  }
+  
   //UpdateSketch
   
   @Override

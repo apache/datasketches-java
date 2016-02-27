@@ -33,7 +33,6 @@ import com.yahoo.sketches.HashOperations;
  * @author Kevin Lang
  */
 class HeapIntersection extends SetOperation implements Intersection{
-  private static final Family MY_FAMILY = Family.INTERSECTION;
   private final short seedHash_;
   private int lgArrLongs_ = 0;
   private int curCount_; //curCount of HT, if < 0 means Universal Set (US) is true
@@ -69,7 +68,7 @@ class HeapIntersection extends SetOperation implements Intersection{
     int serVer = srcMem.getByte(SER_VER_BYTE);
     if (serVer != 3) throw new IllegalArgumentException("Ser Version must = 3");
     
-    MY_FAMILY.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
+    Family.INTERSECTION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
     
     lgArrLongs_ = srcMem.getByte(LG_ARR_LONGS_BYTE);
     
@@ -220,6 +219,13 @@ class HeapIntersection extends SetOperation implements Intersection{
     thetaLong_ = Long.MAX_VALUE;
     empty_ = false;
   }
+  
+  @Override
+  public Family getFamily() {
+    return Family.INTERSECTION;
+  }
+  
+  //restricted
   
   private void performIntersect(Sketch sketchIn) {
     // curCount and input data are nonzero, match against HT

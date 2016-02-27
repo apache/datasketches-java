@@ -109,13 +109,6 @@ public interface Union {
   byte[] toByteArray();
   
   /**
-   * Rebuilds the hash table to remove dirty values or to reduce the size
-   * to nominal entries.
-   * @return this union
-   */
-  public Union rebuild();
-  
-  /**
    * Resets this Union. The seed remains intact, otherwise reverts back to its virgin state.
    */
   void reset();

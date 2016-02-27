@@ -42,7 +42,6 @@ import com.yahoo.sketches.ResizeFactor;
  * @author Kevin Lang
  */
 class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements UpdateInternal, SetArgument {
-
   private final Family MY_FAMILY;
   
   private final int preambleLongs_;
@@ -208,6 +207,11 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
     return toByteArray(preambleLongs_, (byte) MY_FAMILY.getID());
   }
   
+  @Override
+  public Family getFamily() {
+    return MY_FAMILY;
+  }
+  
   //UpdateSketch
   
   @Override
@@ -220,7 +224,8 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
   
   @Override
   public final void reset() {
-    int lgArrLongsSM = startingSubMultiple(lgNomLongs_+1, rf_, MIN_LG_ARR_LONGS);
+    ResizeFactor rf = getResizeFactor();
+    int lgArrLongsSM = startingSubMultiple(lgNomLongs_+1, rf, MIN_LG_ARR_LONGS);
     if (lgArrLongsSM == lgArrLongs_) {
       int arrLongs = cache_.length;
       assert (1 << lgArrLongs_) == arrLongs; 
@@ -233,7 +238,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
     hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
     empty_ = true;
     curCount_ = 0;
-    thetaLong_ =  (long)(p_ * MAX_THETA_LONG_AS_DOUBLE);
+    thetaLong_ =  (long)(getP() * MAX_THETA_LONG_AS_DOUBLE);
   }
   
   //restricted methods
@@ -297,9 +302,10 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
   //Must resize. Changes lgArrLongs_ and cache_. theta and count don't change.
   // Used by hashUpdate()
   private final void resizeCache() {
+    ResizeFactor rf = getResizeFactor();
     int lgTgtLongs = lgNomLongs_ + 1;
     int lgDeltaLongs = lgTgtLongs - lgArrLongs_;
-    int lgResizeFactor = max(min(rf_.lg(), lgDeltaLongs), 1); //rf_.lg() could be 0
+    int lgResizeFactor = max(min(rf.lg(), lgDeltaLongs), 1); //rf_.lg() could be 0
     lgArrLongs_ += lgResizeFactor; // new tgt size
     
     long[] tgtArr = new long[1 << lgArrLongs_];

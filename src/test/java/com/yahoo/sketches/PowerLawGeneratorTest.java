@@ -18,6 +18,7 @@ import com.yahoo.sketches.PowerLawGenerator.Pair;
  * 
  * @author Lee Rhodes
  */
+@SuppressWarnings("unused")
 public class PowerLawGeneratorTest {
   
   //FIRST CODE EXAMPLE
@@ -30,7 +31,7 @@ public class PowerLawGeneratorTest {
    * The resolution is 2 points per power of 2.<br>
    * Skip duplicate integers for the X-coordinate.
    */
-  @Test
+  //@Test
   public void testPLG() {
     Pair start = new Pair(1, 1<<20);
     Pair end = new Pair(1<<20, 1);
@@ -95,7 +96,7 @@ public class PowerLawGeneratorTest {
    * The resolution is 5 points per power of 10.<br>
    * Skip duplicate integers
    */
-  @Test
+  //@Test
   public void testPLG2() {
     Pair start = new Pair(1E9, 1); //Y is not used
     Pair end   = new Pair(10, 1);  //Y is not used
@@ -145,7 +146,7 @@ public class PowerLawGeneratorTest {
     println(row+"\t"+gi+"\t"+((int)x));
   }
   
-  @Test
+  //@Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }

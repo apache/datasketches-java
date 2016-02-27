@@ -51,4 +51,8 @@ class DirectUnion extends UnionImpl {
     unionMem_.putLong(UNION_THETA_LONG, unionThetaLong_);
   }
   
+  @Override
+  public Family getFamily() {
+    return Family.UNION;
+  }
 }

@@ -12,6 +12,7 @@ import static org.testng.Assert.assertFalse;
 
 import java.util.Arrays;
 
+import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryUtil;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -550,6 +551,14 @@ public class HeapUnionTest {
     compEst2 = union.getResult(true, mem).getEstimate(); //ordered, mem
     assertEquals(compEst2, compEst1, 0.0);
   }
+  
+  @Test
+  public void checkGetFamily() {
+    int k = 16;
+    SetOperation setOp = new SetOperationBuilder().build(k,Family.UNION);
+    assertEquals(setOp.getFamily(), Family.UNION);
+  }
+  
   
   @Test
   public void printlnTest() {

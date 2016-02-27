@@ -19,6 +19,7 @@ import org.testng.annotations.Test;
 
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.theta.CompactSketch;
@@ -410,7 +411,7 @@ public class HeapIntersectionTest {
     srcMem = new NativeMemory(byteArray);
     inter2 = (Intersection) SetOperation.heapify(srcMem);
     CompactSketch comp = inter2.getResult(true, null);
-    assertEquals(comp.curCount_, 0);
+    assertEquals(comp.getRetainedEntries(false), 0);
     assertTrue(comp.isEmpty());
   }
   
@@ -437,7 +438,7 @@ public class HeapIntersectionTest {
     srcMem = new NativeMemory(byteArray);
     inter2 = (Intersection) SetOperation.heapify(srcMem);
     CompactSketch comp = inter2.getResult(true, null);
-    assertEquals(comp.curCount_, 0);
+    assertEquals(comp.getRetainedEntries(false), 0);
     assertFalse(comp.isEmpty());
   }
   
@@ -490,6 +491,13 @@ public class HeapIntersectionTest {
     inter.update(sk);
     CompactSketch csk = inter.getResult();
     assertEquals(csk.getCurrentBytes(true), 8);
+  }
+  
+  @Test
+  public void checkFamily() {
+    //cheap trick
+    HeapIntersection heapI = new HeapIntersection(Util.DEFAULT_UPDATE_SEED);
+    assertEquals(heapI.getFamily(), Family.INTERSECTION);
   }
   
   @Test

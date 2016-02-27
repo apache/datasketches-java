@@ -111,6 +111,12 @@ public abstract class UpdateSketch extends Sketch {
   public abstract UpdateSketch rebuild();
   
   /**
+   * Returns the configured ResizeFactor
+   * @return the configured ResizeFactor
+   */
+  public abstract ResizeFactor getResizeFactor();
+  
+  /**
    * Present this sketch with a long.
    * 
    * @param datum The given long datum.

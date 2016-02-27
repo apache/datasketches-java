@@ -4,6 +4,7 @@
  */
 package com.yahoo.sketches.theta;
 
+import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.memory.Memory;
 
@@ -33,6 +34,11 @@ class HeapUnion extends UnionImpl {
    */
   HeapUnion(Memory srcMem, long seed) {
     super(HeapQuickSelectSketch.getInstance(srcMem, seed), srcMem, seed);
+  }
+  
+  @Override
+  public Family getFamily() {
+    return Family.UNION;
   }
   
 }

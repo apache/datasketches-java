@@ -14,6 +14,7 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.Test;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -474,7 +475,7 @@ public class DirectIntersectionTest {
     assertTrue(inter1.hasResult());
     assertTrue(inter2.hasResult());
     CompactSketch comp = inter2.getResult(true, null);
-    assertEquals(comp.curCount_, 0);
+    assertEquals(comp.getRetainedEntries(false), 0);
     assertTrue(comp.isEmpty());
   }
   
@@ -505,7 +506,7 @@ public class DirectIntersectionTest {
     assertTrue(inter1.hasResult());
     assertTrue(inter2.hasResult());
     CompactSketch comp = inter2.getResult(true, null);
-    assertEquals(comp.curCount_, 0);
+    assertEquals(comp.getRetainedEntries(false), 0);
     assertFalse(comp.isEmpty());
   }
   
@@ -665,6 +666,42 @@ public class DirectIntersectionTest {
     inter.update(sk);
     CompactSketch csk = inter.getResult();
     assertEquals(csk.getCurrentBytes(true), 8);
+  }
+  
+  @Test
+  public void checkFamily() {
+    //cheap trick
+    int k = 16;
+    Memory mem = new NativeMemory(new byte[k*16 + 24]);
+    DirectIntersection heapI = new DirectIntersection(Util.DEFAULT_UPDATE_SEED, mem);
+    assertEquals(heapI.getFamily(), Family.INTERSECTION);
+  }
+  
+  @SuppressWarnings("unused")
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkExceptions1() {
+    //cheap tricks
+    int k = 16;
+    Memory mem = new NativeMemory(new byte[k*16 + 24]);
+    DirectIntersection dirI = new DirectIntersection(Util.DEFAULT_UPDATE_SEED, mem);
+    //corrupt SerVer
+    mem.putByte(PreambleUtil.SER_VER_BYTE, (byte) 2);
+    DirectIntersection dirI2 = new DirectIntersection(mem, Util.DEFAULT_UPDATE_SEED);
+  }
+  
+  @SuppressWarnings("unused")
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkExceptions2() {
+    //cheap tricks
+    int k = 16;
+    Memory mem = new NativeMemory(new byte[k*16 + 24]);
+    DirectIntersection dirI = new DirectIntersection(Util.DEFAULT_UPDATE_SEED, mem);
+    //mem now has non-empty intersection
+    //corrupt empty and CurCount
+    mem.setBits(PreambleUtil.FLAGS_BYTE, (byte) PreambleUtil.EMPTY_FLAG_MASK);
+    
+    mem.putInt(PreambleUtil.RETAINED_ENTRIES_INT, 2);
+    DirectIntersection dirI2 = new DirectIntersection(mem, Util.DEFAULT_UPDATE_SEED);
   }
   
   @Test

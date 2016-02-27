@@ -4,13 +4,16 @@
  */
 package com.yahoo.sketches.theta;
 
-import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.memory.NativeMemory;
-import org.testng.annotations.Test;
-
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+
+import org.testng.annotations.Test;
+
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.Util;
+import com.yahoo.sketches.memory.Memory;
+import com.yahoo.sketches.memory.NativeMemory;
 
 /**
  * @author Lee Rhodes
@@ -309,6 +312,13 @@ public class HeapAnotBTest {
     aNotB.update(skA, skB);
     CompactSketch csk = aNotB.getResult();
     assertEquals(csk.getCurrentBytes(true), 8);
+  }
+  
+  @Test
+  public void checkGetFamily() {
+    //cheap trick
+    HeapAnotB anotb = new HeapAnotB(Util.DEFAULT_UPDATE_SEED);
+    assertEquals(anotb.getFamily(), Family.A_NOT_B);
   }
   
   @Test

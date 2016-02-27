@@ -21,7 +21,7 @@ import com.yahoo.sketches.memory.Memory;
  * 
  * @author Lee Rhodes
  */
-public class SetOperation {
+public abstract class SetOperation {
   static final int CONST_PREAMBLE_LONGS = 3;
   
   SetOperation() {}
@@ -113,7 +113,6 @@ public class SetOperation {
     }
   }
 
-  //Other methods
   /**
    * Returns the maximum required storage bytes given a nomEntries parameter for Union operations
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
@@ -135,6 +134,10 @@ public class SetOperation {
     int bytes = (nomEntries << 4) + (Family.INTERSECTION.getMaxPreLongs() << 3);
     return bytes;
   }
+  
+  public abstract Family getFamily();
+  
+  //restricted
   
   static short computeSeedHash(long seed) {
     return PreambleUtil.computeSeedHash(seed);

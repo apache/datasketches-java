@@ -951,6 +951,15 @@ public class DirectQuickSelectSketchTest {
   }
   
   @Test
+  public void checkFamilyAndRF() {
+    int k = 16;
+    Memory mem = new NativeMemory(new byte[k*16 +24]);
+    UpdateSketch sketch = Sketches.updateSketchBuilder().initMemory(mem).build(k);
+    assertEquals(sketch.getFamily(), Family.QUICKSELECT);
+    assertEquals(sketch.getResizeFactor(), ResizeFactor.X1);
+  }
+  
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }

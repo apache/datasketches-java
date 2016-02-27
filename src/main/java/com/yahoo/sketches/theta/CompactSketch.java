@@ -34,11 +34,10 @@ import com.yahoo.sketches.memory.Memory;
  * @author Lee Rhodes
  */
 public abstract class CompactSketch extends Sketch {
-  static final Family MY_FAMILY = Family.COMPACT;
-  final short seedHash_;
-  final boolean empty_;
-  final int curCount_;
-  final long thetaLong_;
+  private final short seedHash_;
+  private final boolean empty_;
+  private final int curCount_;
+  private final long thetaLong_;
   
   CompactSketch(boolean empty, short seedHash, int curCount, long thetaLong) {
     empty_ = empty;
@@ -62,6 +61,11 @@ public abstract class CompactSketch extends Sketch {
   @Override
   public boolean isEstimationMode() {
     return Sketch.estMode(getThetaLong(), isEmpty());
+  }
+  
+  @Override
+  public Family getFamily() {
+    return Family.COMPACT;
   }
   
   //SetArgument

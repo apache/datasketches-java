@@ -106,6 +106,12 @@ public abstract class Sketch {
   public abstract byte[] toByteArray();
   
   /**
+   * Returns the Family that this sketch belongs to
+   * @return the Family that this sketch belongs to
+   */
+  public abstract Family getFamily();
+  
+  /**
    * Returns a human readable summary of the sketch.  This method is equivalent to the parameterized
    * call:<br>
    * <i>Sketch.toString(sketch, true, false, 8, true);</i>

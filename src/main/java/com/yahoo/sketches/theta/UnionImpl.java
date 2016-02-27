@@ -32,7 +32,6 @@ import com.yahoo.sketches.HashOperations;
  * @author Kevin Lang
  */
 abstract class UnionImpl extends SetOperation implements Union {
-  protected static final Family MY_FAMILY = Family.UNION;
   protected final short seedHash_;
   protected final UpdateSketch gadget_;
   protected long unionThetaLong_;
@@ -60,7 +59,7 @@ abstract class UnionImpl extends SetOperation implements Union {
   UnionImpl(UpdateSketch gadget, Memory srcMem, long seed) {
     gadget_ = gadget;
     seedHash_ = computeSeedHash(gadget_.getSeed());
-    MY_FAMILY.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
+    Family.UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
     unionThetaLong_ = srcMem.getLong(UNION_THETA_LONG);
   }
   
@@ -88,12 +87,6 @@ abstract class UnionImpl extends SetOperation implements Union {
   @Override
   public CompactSketch getResult() {
     return getResult(true, null);
-  }
-  
-  @Override
-  public Union rebuild() {
-    gadget_.rebuild();
-    return this;
   }
   
   @Override
@@ -164,8 +157,8 @@ abstract class UnionImpl extends SetOperation implements Union {
     //UNION Empty Rule: AND the empty states
     if (skMem == null) return;
     int cap = (int)skMem.getCapacity();
-    int f;
-    if ((f=skMem.getByte(FAMILY_BYTE)) != 3) { //
+    int f = skMem.getByte(FAMILY_BYTE);
+    if (f != 3) { //
       throw new IllegalArgumentException("Family must be COMPACT or SET_SKETCH (old): "+f);
     }
     int serVer = skMem.getByte(SER_VER_BYTE);

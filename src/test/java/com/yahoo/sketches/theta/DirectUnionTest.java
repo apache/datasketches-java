@@ -4,6 +4,7 @@
  */
 package com.yahoo.sketches.theta;
 
+import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryUtil;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -609,11 +610,6 @@ public class DirectUnionTest {
   }
   
   @Test
-  public void printlnTest() {
-    println("PRINTING: "+this.getClass().getName());
-  }
-  
-  @Test
   public void checkPrimitiveUpdates() {
     int k = 32;
     Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]);
@@ -652,6 +648,20 @@ public class DirectUnionTest {
     boolean empty = comp.isEmpty();
     assertEquals(est, 7.0, 0.0);
     assertFalse(empty);
+  }
+  
+  @Test
+  public void checkGetFamily() {
+    int k = 16;
+    Memory mem = new NativeMemory(new byte[k*16 +32]);
+    SetOperation setOp = new SetOperationBuilder().initMemory(mem).build(k,Family.UNION);
+    assertEquals(setOp.getFamily(), Family.UNION);
+  }
+  
+  
+  @Test
+  public void printlnTest() {
+    println("PRINTING: "+this.getClass().getName());
   }
   
   /**

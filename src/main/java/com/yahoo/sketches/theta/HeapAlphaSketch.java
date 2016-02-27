@@ -51,7 +51,6 @@ import com.yahoo.sketches.ResizeFactor;
  */
 class HeapAlphaSketch extends HeapUpdateSketch {
   private static final int ALPHA_MIN_LG_NOM_LONGS = 9; //The smallest Log2 nom entries allowed => 512.
-  private static final Family MY_FAMILY = Family.ALPHA;
   private final double alpha_;  // computed from lgNomLongs
   private final long split1_;   // computed from alpha and p
   
@@ -203,7 +202,7 @@ class HeapAlphaSketch extends HeapUpdateSketch {
       int validCount = getRetainedEntries(true);
       if (validCount > 0) {
         double est = getEstimate();
-        double var = getVariance(1<<lgNomLongs_, p_, alpha_, getTheta(), validCount);
+        double var = getVariance(1<<lgNomLongs_, getP(), alpha_, getTheta(), validCount);
         lb = est - numStdDev * sqrt(var);
         lb = max(lb, 0.0);
       } 
@@ -234,7 +233,7 @@ class HeapAlphaSketch extends HeapUpdateSketch {
       throw new IllegalArgumentException("numStdDev can only be the values 1, 2 or 3.");
     }
     if (isEstimationMode()) {
-      double var = getVariance(1<<lgNomLongs_, p_, alpha_, getTheta(), getRetainedEntries(true));
+      double var = getVariance(1<<lgNomLongs_, getP(), alpha_, getTheta(), getRetainedEntries(true));
       return getEstimate() + numStdDev * sqrt(var);
     }
     return curCount_;
@@ -247,7 +246,12 @@ class HeapAlphaSketch extends HeapUpdateSketch {
   
   @Override
   public byte[] toByteArray() {
-    return toByteArray(MY_FAMILY.getMinPreLongs(), (byte) MY_FAMILY.getID());
+    return toByteArray(Family.ALPHA.getMinPreLongs(), (byte) Family.ALPHA.getID());
+  }
+  
+  @Override
+  public Family getFamily() {
+    return Family.ALPHA;
   }
   
   //UpdateSketch
@@ -262,7 +266,7 @@ class HeapAlphaSketch extends HeapUpdateSketch {
   
   @Override
   public final void reset() {
-    int lgArrLongs = startingSubMultiple(lgNomLongs_+1, rf_, MIN_LG_ARR_LONGS);
+    int lgArrLongs = startingSubMultiple(lgNomLongs_+1, getResizeFactor(), MIN_LG_ARR_LONGS);
     if (lgArrLongs == lgArrLongs_) {
       int arrLongs = cache_.length;
       assert (1 << lgArrLongs_) == arrLongs; 
@@ -275,7 +279,7 @@ class HeapAlphaSketch extends HeapUpdateSketch {
     hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
     empty_ = true;
     curCount_ = 0;
-    thetaLong_ =  (long)(p_ * MAX_THETA_LONG_AS_DOUBLE);
+    thetaLong_ =  (long)(getP() * MAX_THETA_LONG_AS_DOUBLE);
     dirty_ = false;
   }  
   
@@ -449,8 +453,9 @@ class HeapAlphaSketch extends HeapUpdateSketch {
     int lgTgtLongs = lgNomLongs_ + 1;
     if (lgTgtLongs > lgArrLongs_) {
       //not yet at tgt size
+      ResizeFactor rf = getResizeFactor();
       int lgDeltaLongs = lgTgtLongs - lgArrLongs_; //must be > 0
-      int lgResizeFactor = max(min(rf_.lg(), lgDeltaLongs), 1); //rf_.lg() could be 0
+      int lgResizeFactor = max(min(rf.lg(), lgDeltaLongs), 1); //rf_.lg() could be 0
       forceResizeCleanCache(lgResizeFactor); 
     } 
     else {

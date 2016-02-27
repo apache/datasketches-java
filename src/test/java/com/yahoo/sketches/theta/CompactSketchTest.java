@@ -194,6 +194,13 @@ public class CompactSketchTest {
   }
   
   @Test
+  public void checkCompactCachePart() {
+    //phony values except for curCount = 0.
+    long[] result = CompactSketch.compactCachePart(null, 4, 0, 0L, false);
+    assertEquals(result.length, 0);
+  }
+  
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }

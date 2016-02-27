@@ -12,10 +12,10 @@ import com.yahoo.sketches.ResizeFactor;
  * @author Lee Rhodes
  */
 abstract class DirectUpdateSketch extends UpdateSketch {
-  final long seed_;
+  private final long seed_;
   final int lgNomLongs_;
-  final float p_;
-  final ResizeFactor rf_;
+  private final float p_;
+  private final ResizeFactor rf_;
 
   DirectUpdateSketch(int lgNomLongs, long seed, float p, ResizeFactor rf) {
     seed_ = seed;

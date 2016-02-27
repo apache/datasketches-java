@@ -464,7 +464,7 @@ public class HeapQuickSelectSketchTest {
     
     assertEquals(1 << sk1.getLgArrLongs(), 2*k);
     sk1.reset();
-    ResizeFactor rf = sk1.rf_;
+    ResizeFactor rf = sk1.getResizeFactor();
     int subMul = UpdateSketch.startingSubMultiple(11, rf, 5); //messy
     assertEquals(sk1.getLgArrLongs(), subMul);
     
@@ -475,7 +475,7 @@ public class HeapQuickSelectSketchTest {
     
     assertEquals(1 << sk1.getLgArrLongs(), 2*k);
     sk1.reset();
-    rf = sk1.rf_;
+    rf = sk1.getResizeFactor();
     subMul = UpdateSketch.startingSubMultiple(11, rf, 5); //messy
     assertEquals(sk1.getLgArrLongs(), subMul);
     
@@ -490,7 +490,11 @@ public class HeapQuickSelectSketchTest {
     qs.hashUpdate(-1L);
   }
   
-  
+  @Test
+  public void checkFamily() {
+    UpdateSketch sketch = Sketches.updateSketchBuilder().build();
+    assertEquals(sketch.getFamily(), Family.QUICKSELECT);
+  }
   
   @Test
   public void printlnTest() {

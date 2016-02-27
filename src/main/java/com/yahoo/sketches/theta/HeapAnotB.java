@@ -12,6 +12,7 @@ import static java.lang.Math.min;
 
 import java.util.Arrays;
 
+import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 
 /**
@@ -70,6 +71,13 @@ class HeapAnotB extends SetOperation implements AnotB {
   public CompactSketch getResult() {
     return getResult(true, null);
   }
+  
+  @Override
+  public Family getFamily() {
+    return Family.A_NOT_B;
+  }
+  
+  //restricted
   
   void compute() {
     int swA = (a_ == null)? 0 : (a_.isEmpty())? 1: (a_ instanceof UpdateSketch)? 4 : (a_.isOrdered())? 3 : 2;

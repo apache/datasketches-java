@@ -34,12 +34,12 @@ class HeapCompactSketch extends CompactSketch {
         getCurCount(srcMem), 
         getThetaLong(srcMem)
         );
-    MY_FAMILY.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
-    cache_ = new long[curCount_];
+    getFamily().checkFamilyID(srcMem.getByte(FAMILY_BYTE));
+    cache_ = new long[getRetainedEntries(false)];
     int preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    int preBytes = compactPreambleLongs(thetaLong_, empty_) << 3;
+    int preBytes = compactPreambleLongs(getThetaLong(), isEmpty()) << 3;
     assert (preLongs << 3) == preBytes;
-    srcMem.getLongArray(preBytes, cache_, 0, curCount_);
+    srcMem.getLongArray(preBytes, cache_, 0, getRetainedEntries(false));
   }
   
   /**
@@ -53,7 +53,7 @@ class HeapCompactSketch extends CompactSketch {
         sketch.getThetaLong()            //thetaLong_ set here
         );
     boolean ordered = false;
-    cache_ = CompactSketch.compactCache(sketch.getCache(), curCount_, thetaLong_, ordered);
+    cache_ = CompactSketch.compactCache(sketch.getCache(), getRetainedEntries(false), getThetaLong(), ordered);
   }
   
   /**

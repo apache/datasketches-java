@@ -32,7 +32,7 @@ class DirectCompactSketch extends CompactSketch {
         getCurCount(srcMem), 
         getThetaLong(srcMem)
         );
-    MY_FAMILY.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
+    getFamily().checkFamilyID(srcMem.getByte(FAMILY_BYTE));
     mem_ = srcMem;
   }
   
@@ -47,12 +47,13 @@ class DirectCompactSketch extends CompactSketch {
         sketch.getRetainedEntries(true), //curCount_  set here
         sketch.getThetaLong()            //thetaLong_ set here
         );
-    int emptyBit = empty_? (byte) EMPTY_FLAG_MASK : 0;
+    int emptyBit = isEmpty()? (byte) EMPTY_FLAG_MASK : 0;
     byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK);
     boolean ordered = false;
     long[] compactCache = 
-        CompactSketch.compactCache(sketch.getCache(), curCount_, thetaLong_, ordered);
-    mem_ = loadCompactMemory(compactCache, empty_, seedHash_, curCount_, thetaLong_, dstMem, flags);
+        CompactSketch.compactCache(sketch.getCache(), getRetainedEntries(false), getThetaLong(), ordered);
+    mem_ = loadCompactMemory(compactCache, isEmpty(), getSeedHash(), getRetainedEntries(false), 
+        getThetaLong(), dstMem, flags);
   }
   
   /**
@@ -76,7 +77,7 @@ class DirectCompactSketch extends CompactSketch {
   
   @Override
   public byte[] toByteArray() {
-    return DirectCompactSketch.compactMemoryToByteArray(mem_, curCount_);
+    return DirectCompactSketch.compactMemoryToByteArray(mem_, getRetainedEntries(false));
   }
 
   //restricted methods
@@ -90,9 +91,9 @@ class DirectCompactSketch extends CompactSketch {
   
   @Override
   long[] getCache() {
-    long[] cache = new long[curCount_];
+    long[] cache = new long[getRetainedEntries(false)];
     int preLongs = mem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    mem_.getLongArray(preLongs << 3, cache, 0, curCount_);
+    mem_.getLongArray(preLongs << 3, cache, 0, getRetainedEntries(false));
     return cache;
   }
   

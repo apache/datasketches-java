@@ -26,10 +26,10 @@ import com.yahoo.sketches.memory.NativeMemory;
  * @author Lee Rhodes
  */
 abstract class HeapUpdateSketch extends UpdateSketch {
-  final long seed_;
+  private final long seed_;
   final int lgNomLongs_;
-  final float p_;
-  final ResizeFactor rf_;
+  private final float p_;
+  private final ResizeFactor rf_;
   
   HeapUpdateSketch(int lgNomLongs, long seed, float p, ResizeFactor rf) {
     seed_ = seed;
@@ -43,6 +43,11 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   @Override
   public boolean isDirect() {
     return false; 
+  }
+  
+  @Override
+  public ResizeFactor getResizeFactor() {
+    return rf_;
   }
   
   //restricted methods

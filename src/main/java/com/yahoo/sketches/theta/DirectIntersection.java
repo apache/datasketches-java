@@ -34,7 +34,6 @@ import com.yahoo.sketches.HashOperations;
  * @author Kevin Lang
  */
 class DirectIntersection extends SetOperation implements Intersection {
-  private static final Family MY_FAMILY = Family.INTERSECTION;
   private final short seedHash_;
   private int lgArrLongs_; //current size of hash table
   private int curCount_; //curCount of HT, if < 0 means Universal Set (US) is true
@@ -49,9 +48,6 @@ class DirectIntersection extends SetOperation implements Intersection {
    * Construct a new Intersection target direct to the given destination Memory.
    * Called by SetOperation.Builder.
    * 
-   * @param lgNomLongs this specifies the upper size limit (2K) and
-   * utimate accuracy as with normal union operations. It also must fit into given dstMem.
-   * <a href="{@docRoot}/resources/dictionary.html#lgNomLongs">See lgNomLongs</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Seed</a>
    * @param dstMem destination Memory.  
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
@@ -97,7 +93,7 @@ class DirectIntersection extends SetOperation implements Intersection {
     int serVer = srcMem.getByte(SER_VER_BYTE);
     if (serVer != 3) throw new IllegalArgumentException("Ser Version must = 3");
     
-    MY_FAMILY.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
+    Family.INTERSECTION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
     
     lgArrLongs_ = srcMem.getByte(LG_ARR_LONGS_BYTE); //current hash table size
     maxLgArrLongs_ = checkMaxLgArrLongs(srcMem);
@@ -259,6 +255,11 @@ class DirectIntersection extends SetOperation implements Intersection {
     empty_ = false;
     mem_.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
     mem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_);
+  }
+  
+  @Override
+  public Family getFamily() {
+    return Family.INTERSECTION;
   }
   
   private void performIntersect(Sketch sketchIn) {
