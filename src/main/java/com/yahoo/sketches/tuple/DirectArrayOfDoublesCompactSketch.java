@@ -6,6 +6,8 @@ package com.yahoo.sketches.tuple;
 
 import java.nio.ByteOrder;
 
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryUtil;
@@ -15,7 +17,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * This implementation keeps the data in a given memory, which is owned by the user.
  * The purpose is to avoid garbage collection.
  */
-public class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
+class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
 
   // this value exists only on heap, never serialized
   private Memory mem_;
@@ -25,7 +27,7 @@ public class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSket
    * @param sketch the given UpdatableArrayOfDoublesSketch
    * @param dstMem the given destination Memory.
    */
-  DirectArrayOfDoublesCompactSketch(final UpdatableArrayOfDoublesSketch sketch, Memory dstMem) {
+  DirectArrayOfDoublesCompactSketch(final ArrayOfDoublesUpdatableSketch sketch, Memory dstMem) {
     super(sketch.getNumValues());
     mem_ = dstMem;
     mem_.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
@@ -95,7 +97,16 @@ public class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSket
    * Wraps the given Memory.
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
-  public DirectArrayOfDoublesCompactSketch(Memory mem) {
+  DirectArrayOfDoublesCompactSketch(Memory mem) {
+    this(mem, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Wraps the given Memory.
+   * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   */
+  DirectArrayOfDoublesCompactSketch(Memory mem, long seed) {
     super(mem.getByte(NUM_VALUES_BYTE));
     mem_ = mem;
     SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE), mem.getByte(PREAMBLE_LONGS_BYTE));
@@ -104,6 +115,7 @@ public class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSket
     if (version != serialVersionUID) throw new RuntimeException("Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
     boolean isBigEndian = mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_BIG_ENDIAN.ordinal()));
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) throw new RuntimeException("Byte order mismatch");
+    Util.checkSeedHashes(mem.getShort(SEED_HASH_SHORT), Util.computeSeedHash(seed));
     isEmpty_ = mem_.isAnyBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_EMPTY.ordinal()));
     theta_ = mem_.getLong(THETA_LONG);
   }
@@ -144,7 +156,7 @@ public class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSket
   }
 
   @Override
-  ArrayOfDoublesSketchIterator iterator() {
+  public ArrayOfDoublesSketchIterator iterator() {
     return new DirectArrayOfDoublesSketchIterator(mem_, ENTRIES_START, getRetainedEntries(), numValues_);
   }
 

@@ -12,19 +12,9 @@ import com.yahoo.sketches.memory.Memory;
  * This implementation keeps data in a given memory.
  * The purpose is to avoid garbage collection.
  */
-public class DirectArrayOfDoublesUnion extends ArrayOfDoublesUnion {
+class DirectArrayOfDoublesUnion extends ArrayOfDoublesUnion {
 
   private Memory mem_;
-
-  /**
-   * Creates an instance of DirectArrayOfDoublesUnion
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
-   * @param numValues Number of double values to keep for each key.
-   * @param dstMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   */
-  public DirectArrayOfDoublesUnion(int nomEntries, int numValues, Memory dstMem) {
-    this(nomEntries, numValues, DEFAULT_UPDATE_SEED, dstMem);
-  }
 
   /**
    * Creates an instance of DirectArrayOfDoublesUnion
@@ -33,7 +23,7 @@ public class DirectArrayOfDoublesUnion extends ArrayOfDoublesUnion {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @param dstMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
-  public DirectArrayOfDoublesUnion(int nomEntries, int numValues, long seed, Memory dstMem) {
+  DirectArrayOfDoublesUnion(int nomEntries, int numValues, long seed, Memory dstMem) {
     super(new DirectArrayOfDoublesQuickSelectSketch(nomEntries, 3, 1f, numValues, seed, dstMem));
     mem_ = dstMem;
   }
@@ -58,7 +48,7 @@ public class DirectArrayOfDoublesUnion extends ArrayOfDoublesUnion {
 
   @Override
   public void reset() {
-    sketch_ = new DirectArrayOfDoublesQuickSelectSketch(nomEntries_, numValues_, mem_);
+    sketch_ = new DirectArrayOfDoublesQuickSelectSketch(nomEntries_, 3, 1f, numValues_, seed_, mem_);
     theta_ = sketch_.getThetaLong();
   }
 

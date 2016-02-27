@@ -16,15 +16,15 @@ import com.yahoo.sketches.memory.Memory;
  */
 public abstract class ArrayOfDoublesIntersection {
 
-  protected final int numValues_;
-  protected final long seed_;
-  protected final short seedHash_;
-  protected ArrayOfDoublesQuickSelectSketch sketch_;
-  protected boolean isEmpty_;
-  protected long theta_;
-  protected boolean isFirstCall_;
+  final int numValues_;
+  final long seed_;
+  final short seedHash_;
+  ArrayOfDoublesQuickSelectSketch sketch_;
+  boolean isEmpty_;
+  long theta_;
+  boolean isFirstCall_;
 
-  protected ArrayOfDoublesIntersection(int numValues, long seed) {
+  ArrayOfDoublesIntersection(int numValues, long seed) {
     numValues_ = numValues;
     seed_ = seed;
     seedHash_ = Util.computeSeedHash(seed);
@@ -92,7 +92,7 @@ public abstract class ArrayOfDoublesIntersection {
    */
   public ArrayOfDoublesCompactSketch getResult(Memory dstMem) {
     if (isFirstCall_) throw new IllegalStateException("getResult() with no intervening intersections is not a legal result.");
-    if (sketch_ == null) return new HeapArrayOfDoublesCompactSketch(numValues_);
+    if (sketch_ == null) return new HeapArrayOfDoublesCompactSketch(null, null, Long.MAX_VALUE, true, numValues_, seedHash_);
     return sketch_.compact(dstMem);
   }
 
@@ -114,6 +114,6 @@ public abstract class ArrayOfDoublesIntersection {
     isFirstCall_ = true;
   }
 
-  protected abstract ArrayOfDoublesQuickSelectSketch createSketch(int size, int numValues, long seed);
+  abstract ArrayOfDoublesQuickSelectSketch createSketch(int size, int numValues, long seed);
 
 }

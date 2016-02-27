@@ -11,16 +11,7 @@ import com.yahoo.sketches.memory.Memory;
 /**
  * This is on-heap implementation
  */
-public class HeapArrayOfDoublesUnion extends ArrayOfDoublesUnion {
-
-  /**
-   * Creates an instance of HeapArrayOfDoublesUnion
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
-   * @param numValues Number of double values to keep for each key.
-   */
-  public HeapArrayOfDoublesUnion(int nomEntries, int numValues) {
-    this(nomEntries, numValues, DEFAULT_UPDATE_SEED);
-  }
+class HeapArrayOfDoublesUnion extends ArrayOfDoublesUnion {
 
   /**
    * Creates an instance of HeapArrayOfDoublesUnion with a custom seed
@@ -28,7 +19,7 @@ public class HeapArrayOfDoublesUnion extends ArrayOfDoublesUnion {
    * @param numValues Number of double values to keep for each key.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
-  public HeapArrayOfDoublesUnion(int nomEntries, int numValues, long seed) {
+  HeapArrayOfDoublesUnion(int nomEntries, int numValues, long seed) {
     super(new HeapArrayOfDoublesQuickSelectSketch(nomEntries, 3, 1f, numValues, seed));
   }
 

@@ -14,14 +14,14 @@ package com.yahoo.sketches.tuple;
  */
 public abstract class ArrayOfDoublesCompactSketch extends ArrayOfDoublesSketch {
 
-  public static final byte serialVersionUID = 1;
+  static final byte serialVersionUID = 1;
 
   static final int EMPTY_SIZE = 16;
   static final int RETAINED_ENTRIES_INT = 16;
   // 4 bytes of padding for alignment
   static final int ENTRIES_START = 24;
 
-  protected ArrayOfDoublesCompactSketch(int numValues) {
+  ArrayOfDoublesCompactSketch(int numValues) {
     super(numValues);
   }
 }

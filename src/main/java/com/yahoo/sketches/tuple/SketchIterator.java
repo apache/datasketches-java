@@ -23,6 +23,7 @@ public class SketchIterator<S extends Summary> {
    * @return true if the next element exists
    */
   public boolean next() {
+    if (keys_ == null) return false;
     i_++;
     while (i_ < keys_.length) {
       if (keys_[i_] != 0) return true;

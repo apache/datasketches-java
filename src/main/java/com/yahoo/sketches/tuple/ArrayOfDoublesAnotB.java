@@ -7,6 +7,8 @@ import com.yahoo.sketches.memory.Memory;
  */
 public abstract class ArrayOfDoublesAnotB {
 
+  ArrayOfDoublesAnotB() {}
+
   /**
    * Perform A-and-not-B set operation on the two given sketches.
    * A null sketch is interpreted as an empty sketch.

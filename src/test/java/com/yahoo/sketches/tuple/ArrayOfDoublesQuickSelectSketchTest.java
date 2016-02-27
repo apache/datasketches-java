@@ -12,13 +12,13 @@ import com.yahoo.sketches.memory.NativeMemory;
 public class ArrayOfDoublesQuickSelectSketchTest {
   @Test
   public void heapToDirectExactTwoDoubles() {
-    UpdatableArrayOfDoublesSketch sketch1 = new HeapArrayOfDoublesQuickSelectSketch(32, 2);
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).build();
     sketch1.update("a", new double[] {1, 2});
     sketch1.update("b", new double[] {1, 2});
     sketch1.update("c", new double[] {1, 2});
     sketch1.update("d", new double[] {1, 2});
     sketch1.update("a", new double[] {1, 2});
-    UpdatableArrayOfDoublesSketch sketch2 = new DirectArrayOfDoublesQuickSelectSketch(new NativeMemory(sketch1.toByteArray()));
+    ArrayOfDoublesUpdatableSketch sketch2 = (ArrayOfDoublesUpdatableSketch) ArrayOfDoublesSketches.wrapSketch(new NativeMemory(sketch1.toByteArray()));
     sketch2.update("b", new double[] {1, 2});
     sketch2.update("c", new double[] {1, 2});
     sketch2.update("d", new double[] {1, 2});
@@ -40,13 +40,13 @@ public class ArrayOfDoublesQuickSelectSketchTest {
 
   @Test
   public void directToHeapExactTwoDoubles() {
-    UpdatableArrayOfDoublesSketch sketch1 = new DirectArrayOfDoublesQuickSelectSketch(32, 2, new NativeMemory(new byte[1000000]));
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).setMemory(new NativeMemory(new byte[1000000])).build();
     sketch1.update("a", new double[] {1, 2});
     sketch1.update("b", new double[] {1, 2});
     sketch1.update("c", new double[] {1, 2});
     sketch1.update("d", new double[] {1, 2});
     sketch1.update("a", new double[] {1, 2});
-    UpdatableArrayOfDoublesSketch sketch2 = new HeapArrayOfDoublesQuickSelectSketch(new NativeMemory(sketch1.toByteArray()));
+    ArrayOfDoublesUpdatableSketch sketch2 = (ArrayOfDoublesUpdatableSketch) ArrayOfDoublesSketches.heapifySketch(new NativeMemory(sketch1.toByteArray()));
     sketch2.update("b", new double[] {1, 2});
     sketch2.update("c", new double[] {1, 2});
     sketch2.update("d", new double[] {1, 2});

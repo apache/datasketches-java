@@ -11,13 +11,12 @@ package com.yahoo.sketches.tuple;
 import java.nio.ByteOrder;
 
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
-import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
-public class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketch {
+class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketch {
 
   private final int nomEntries_;
   private final int lgResizeFactor_;
@@ -26,39 +25,6 @@ public class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSele
   private int count_;
   protected long[] keys_;
   protected double[][] values_;
-
-  /**
-   * This is to create an instance of a QuickSelectSketch with default resize factor.
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
-   * @param numValues number of double values to keep for each key
-   */
-  public HeapArrayOfDoublesQuickSelectSketch(int nomEntries, int numValues) {
-    this(nomEntries, DEFAULT_LG_RESIZE_FACTOR, numValues);
-  }
-
-  /**
-   * This is to create an instance of a QuickSelectSketch with default resize factor and a given sampling probability.
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
-   * @param samplingProbability <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
-   * @param numValues number of double values to keep for each key
-   */
-  public HeapArrayOfDoublesQuickSelectSketch(int nomEntries, float samplingProbability, int numValues) {
-    this(nomEntries, DEFAULT_LG_RESIZE_FACTOR, samplingProbability, numValues, DEFAULT_UPDATE_SEED);
-  }
-
-  /**
-   * This is to create an instance of a QuickSelectSketch with custom resize factor
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
-   * @param lgResizeFactor log2(resize factor) - value from 0 to 3:
-   * 0 - no resizing (max size allocated),
-   * 1 - double internal hash table each time it reaches a threshold
-   * 2 - grow four times
-   * 3 - grow eight times (default)
-   * @param numValues number of double values to keep for each key
-   */
-  public HeapArrayOfDoublesQuickSelectSketch(int nomEntries, int lgResizeFactor, int numValues) {
-    this(nomEntries, lgResizeFactor, 1f, numValues, DEFAULT_UPDATE_SEED);
-  }
 
   /**
    * This is to create an instance of a QuickSelectSketch with custom resize factor and sampling probability
@@ -72,7 +38,7 @@ public class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSele
    * @param numValues number of double values to keep for each key
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
-  public HeapArrayOfDoublesQuickSelectSketch(int nomEntries, int lgResizeFactor, float samplingProbability, int numValues, long seed) {
+  HeapArrayOfDoublesQuickSelectSketch(int nomEntries, int lgResizeFactor, float samplingProbability, int numValues, long seed) {
     super(numValues, seed);
     nomEntries_ = ceilingPowerOf2(nomEntries);
     lgResizeFactor_ = lgResizeFactor;
@@ -91,19 +57,11 @@ public class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSele
   }
 
   /**
-   * This is to create an instance with the default update seed given a serialized form
-   * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   */
-  public HeapArrayOfDoublesQuickSelectSketch(Memory mem) {
-    this(mem, DEFAULT_UPDATE_SEED);
-  }
-
-  /**
    * This is to create an instance given a serialized form
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
-  public HeapArrayOfDoublesQuickSelectSketch(Memory mem, long seed) {
+  HeapArrayOfDoublesQuickSelectSketch(Memory mem, long seed) {
     super(mem.getByte(NUM_VALUES_BYTE), seed);
     SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE), mem.getByte(PREAMBLE_LONGS_BYTE));
     SerializerDeserializer.validateType(mem.getByte(SKETCH_TYPE_BYTE), SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch);
@@ -294,7 +252,7 @@ public class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSele
   }
 
   @Override
-  ArrayOfDoublesSketchIterator iterator() {
+  public ArrayOfDoublesSketchIterator iterator() {
     return new HeapArrayOfDoublesSketchIterator(keys_, values_);
   }
 

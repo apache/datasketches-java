@@ -23,61 +23,28 @@ import com.yahoo.sketches.memory.Memory;
  * @param <U> Type of the value, which is passed to update method of a Summary
  * @param <S> Type of the UpdatableSummary&lt;U&gt;
  */
-public class UpdatableQuickSelectSketch<U, S extends UpdatableSummary<U>> extends QuickSelectSketch<S> {
+public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSelectSketch<S> {
 
   /**
-   * This is to create an instance of an UpdatableQuickSelectSketch with default resize factor.
+   * This is to create an instance of an UpdatableQuickSelectSketch.
    * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
-   * @param summaryFactory An instance of a SummaryFactory.
-   */
-  public UpdatableQuickSelectSketch(int nomEntries, SummaryFactory<S> summaryFactory) {
-    super(nomEntries, summaryFactory);
-  }
-
-  /**
-   * This is to create an instance of an UpdatableQuickSelectSketch with default resize factor and a given sampling probability.
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
-   * @param samplingProbability <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
-   * @param summaryFactory An instance of a SummaryFactory.
-   */
-  public UpdatableQuickSelectSketch(int nomEntries, float samplingProbability, SummaryFactory<S> summaryFactory) {
-    super(nomEntries, samplingProbability, summaryFactory);
-  }
-
-  /**
-   * This is to create an instance of an UpdatableQuickSelectSketch with custom resize factor
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
-   * @param lgResizeRatio log2(resizeRatio) - value from 0 to 3:
+   * @param lgResizeFactor log2(resizeFactor) - value from 0 to 3:
    * 0 - no resizing (max size allocated),
    * 1 - double internal hash table each time it reaches a threshold
    * 2 - grow four times
    * 3 - grow eight times (default)
+   * @param samplingProbability <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
    * @param summaryFactory An instance of a SummaryFactory.
    */
-  public UpdatableQuickSelectSketch(int nomEntries, int lgResizeRatio, SummaryFactory<S> summaryFactory) {
-    super(nomEntries, lgResizeRatio, 1f, summaryFactory);
-  }
-
-  /**
-   * This is to create an instance of an UpdatableQuickSelectSketch with default resize factor and a given sampling probability.
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
-   * @param lgResizeRatio log2(resizeRatio) - value from 0 to 3:
-   * 0 - no resizing (max size allocated),
-   * 1 - double internal hash table each time it reaches a threshold
-   * 2 - grow four times
-   * 3 - grow eight times (default)
-   * @param samplingProbability <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
-   * @param summaryFactory An instance of a SummaryFactory.
-   */
-  public UpdatableQuickSelectSketch(int nomEntries, int lgResizeRatio, float samplingProbability, SummaryFactory<S> summaryFactory) {
-    super(nomEntries, lgResizeRatio, samplingProbability, summaryFactory);
+  UpdatableSketch(int nomEntries, int lgResizeFactor, float samplingProbability, SummaryFactory<S> summaryFactory) {
+    super(nomEntries, lgResizeFactor, samplingProbability, summaryFactory);
   }
 
   /**
    * This is to create an instance of a sketch given a serialized form
    * @param mem Memory object with serialized UpdatableQukckSelectSketch
    */
-  public UpdatableQuickSelectSketch(Memory mem) {
+  UpdatableSketch(Memory mem) {
     super(mem);
   }
 

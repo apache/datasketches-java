@@ -4,26 +4,15 @@
  */
 package com.yahoo.sketches.tuple;
 
-import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
-
 import com.yahoo.sketches.memory.Memory;
 
 /**
  * This implementation keeps data in a given memory.
  * The purpose is to avoid garbage collection.
  */
-public class DirectArrayOfDoublesIntersection extends ArrayOfDoublesIntersection {
+class DirectArrayOfDoublesIntersection extends ArrayOfDoublesIntersection {
 
   private Memory mem_;
-
-  /**
-   * Creates an instance of a DirectArrayOfDoublesIntersection
-   * @param numValues number of double values associated with each key
-   * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   */
-  public DirectArrayOfDoublesIntersection(int numValues, Memory mem) {
-    this(numValues, DEFAULT_UPDATE_SEED, mem);
-  }
 
   /**
    * Creates an instance of a DirectArrayOfDoublesIntersection with a custom update seed
@@ -31,7 +20,7 @@ public class DirectArrayOfDoublesIntersection extends ArrayOfDoublesIntersection
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
-  public DirectArrayOfDoublesIntersection(int numValues, long seed, Memory mem) {
+  DirectArrayOfDoublesIntersection(int numValues, long seed, Memory mem) {
     super(numValues, seed);
     mem_ = mem;
   }

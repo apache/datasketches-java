@@ -13,7 +13,7 @@ import com.yahoo.sketches.memory.NativeMemory;
 
 /**
  * CompactSketches are never created directly. They are created as a result of
- * the compact() method of a QuickSelectSketch or as a result of the getResult()
+ * the compact() method of an UpdatableSketch or as a result of the getResult()
  * method of a set operation like Union, Intersection or AnotB. CompactSketch
  * consists of a compact list (i.e. no intervening spaces) of hash values,
  * corresponding list of Summaries, and a value for theta. The lists may or may
@@ -23,16 +23,9 @@ import com.yahoo.sketches.memory.NativeMemory;
  */
 public class CompactSketch<S extends Summary> extends Sketch<S> {
 
-  public static final byte serialVersionUID = 1;
+  static final byte serialVersionUID = 1;
 
   private enum Flags { IS_BIG_ENDIAN, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
-
-  /**
-   * Creates an empty sketch
-   */
-  public CompactSketch() {
-    theta_ = Long.MAX_VALUE;
-  }
 
   CompactSketch(long[] keys, S[] summaries, long theta, boolean isEmpty) {
     keys_ = keys;
@@ -46,7 +39,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
    * @param mem Memory object with serialized CompactSketch
    */
   @SuppressWarnings({"unchecked"})
-  public CompactSketch(Memory mem) {
+  CompactSketch(Memory mem) {
     int offset = 0;
     byte preambleLongs = mem.getByte(offset++);
     byte version = mem.getByte(offset++);

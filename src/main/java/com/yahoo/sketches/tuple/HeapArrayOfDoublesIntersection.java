@@ -4,27 +4,17 @@
  */
 package com.yahoo.sketches.tuple;
 
-import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
-
 /**
  * On-heap implementation
  */
-public class HeapArrayOfDoublesIntersection extends ArrayOfDoublesIntersection {
-
-  /**
-   * Creates an instance of a HeapArrayOfDoublesIntersection
-   * @param numValues number of double values associated with each key
-   */
-  public HeapArrayOfDoublesIntersection(int numValues) {
-    this(numValues, DEFAULT_UPDATE_SEED);
-  }
+class HeapArrayOfDoublesIntersection extends ArrayOfDoublesIntersection {
 
   /**
    * Creates an instance of a HeapArrayOfDoublesIntersection with a custom update seed
    * @param numValues number of double values associated with each key
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
-  public HeapArrayOfDoublesIntersection(int numValues, long seed) {
+  HeapArrayOfDoublesIntersection(int numValues, long seed) {
     super(numValues, seed);
   }
 

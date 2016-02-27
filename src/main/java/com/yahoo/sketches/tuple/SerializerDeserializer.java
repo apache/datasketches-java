@@ -10,8 +10,8 @@ import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;
 import com.yahoo.sketches.memory.NativeMemory;
 
-public class SerializerDeserializer {
-  public static enum SketchType { QuickSelectSketch, CompactSketch, ArrayOfDoublesQuickSelectSketch, ArrayOfDoublesCompactSketch }
+class SerializerDeserializer {
+  static enum SketchType { QuickSelectSketch, CompactSketch, ArrayOfDoublesQuickSelectSketch, ArrayOfDoublesCompactSketch }
   static final int TYPE_BYTE_OFFSET = 3;
 
   private static final Map<String, Method> deserializeMethodCache = new HashMap<String, Method>();
@@ -32,8 +32,8 @@ public class SerializerDeserializer {
     if (!sketchType.equals(expectedType)) throw new RuntimeException("Sketch Type mismatch. Expected " + expectedType.name() + ", got " + sketchType.name());
   }
 
-  public static SketchType getSketchTypeAbsolute(byte[] buffer) {
-    byte sketchTypeByte = buffer[TYPE_BYTE_OFFSET];
+  static SketchType getSketchType(Memory mem) {
+    byte sketchTypeByte = mem.getByte(TYPE_BYTE_OFFSET);
     return getSketchType(sketchTypeByte);
   }
 
@@ -78,7 +78,7 @@ public class SerializerDeserializer {
   }
 
   private static SketchType getSketchType(byte sketchTypeByte) {
-    if (sketchTypeByte < 0 || sketchTypeByte >= SketchType.values().length) throw new RuntimeException("Invalid Sketch Type " + sketchTypeByte);
+    if (sketchTypeByte < 0 || sketchTypeByte >= SketchType.values().length) throw new IllegalArgumentException("Invalid Sketch Type " + sketchTypeByte);
     SketchType sketchType = SketchType.values()[sketchTypeByte];
     return sketchType;
   }

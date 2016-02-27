@@ -13,20 +13,20 @@ public class ArrayOfDoublesUnionTest {
 
   @Test
   public void heapExactMode() {
-    ArrayOfDoublesQuickSelectSketch sketch1 = new HeapArrayOfDoublesQuickSelectSketch(8, 1);
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch1.update(1, new double[] {1.0});
     sketch1.update(1, new double[] {1.0});
     sketch1.update(1, new double[] {1.0});
     sketch1.update(2, new double[] {1.0});
 
-    ArrayOfDoublesQuickSelectSketch sketch2 = new HeapArrayOfDoublesQuickSelectSketch(8, 1);
+    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch2.update(2, new double[] {1.0});
     sketch2.update(2, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
 
-    ArrayOfDoublesUnion union = new HeapArrayOfDoublesUnion(8, 1);
+    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion();
     union.update(sketch1);
     union.update(sketch2);
     ArrayOfDoublesCompactSketch result = union.getResult();
@@ -49,14 +49,14 @@ public class ArrayOfDoublesUnionTest {
   @Test
   public void heapEstimationMode() {
     int key = 0;
-    ArrayOfDoublesQuickSelectSketch sketch1 = new HeapArrayOfDoublesQuickSelectSketch(4096, 1);
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) sketch1.update(key++, new double[] {1.0});
 
     key -= 4096; // overlap half of the entries
-    ArrayOfDoublesQuickSelectSketch sketch2 = new HeapArrayOfDoublesQuickSelectSketch(4096, 1);
+    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) sketch2.update(key++, new double[] {1.0});
 
-    ArrayOfDoublesUnion union = new HeapArrayOfDoublesUnion(4096, 1);
+    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion();
     union.update(sketch1);
     union.update(sketch2);
     ArrayOfDoublesCompactSketch result = union.getResult();
@@ -77,14 +77,14 @@ public class ArrayOfDoublesUnionTest {
   @Test
   public void heapSerializeDeserialize() {
     int key = 0;
-    ArrayOfDoublesQuickSelectSketch sketch1 = new HeapArrayOfDoublesQuickSelectSketch(4096, 1);
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) sketch1.update(key++, new double[] {1.0});
 
     key -= 4096; // overlap half of the entries
-    ArrayOfDoublesQuickSelectSketch sketch2 = new HeapArrayOfDoublesQuickSelectSketch(4096, 1);
+    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) sketch2.update(key++, new double[] {1.0});
 
-    ArrayOfDoublesUnion union1 = new HeapArrayOfDoublesUnion(4096, 1);
+    ArrayOfDoublesUnion union1 = new ArrayOfDoublesSetOperationBuilder().buildUnion();
     union1.update(sketch1);
     union1.update(sketch2);
 
@@ -106,20 +106,20 @@ public class ArrayOfDoublesUnionTest {
 
   @Test
   public void directExactMode() {
-    ArrayOfDoublesQuickSelectSketch sketch1 = new DirectArrayOfDoublesQuickSelectSketch(8, 1, new NativeMemory(new byte[1000000]));
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setMemory(new NativeMemory(new byte[1000000])).build();
     sketch1.update(1, new double[] {1.0});
     sketch1.update(1, new double[] {1.0});
     sketch1.update(1, new double[] {1.0});
     sketch1.update(2, new double[] {1.0});
 
-    ArrayOfDoublesQuickSelectSketch sketch2 = new DirectArrayOfDoublesQuickSelectSketch(8, 1, new NativeMemory(new byte[1000000]));
+    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().setMemory(new NativeMemory(new byte[1000000])).build();
     sketch2.update(2, new double[] {1.0});
     sketch2.update(2, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
 
-    ArrayOfDoublesUnion union = new DirectArrayOfDoublesUnion(8, 1, new NativeMemory(new byte[1000000]));
+    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().setMemory(new NativeMemory(new byte[1000000])).buildUnion();
     union.update(sketch1);
     union.update(sketch2);
     ArrayOfDoublesCompactSketch result = union.getResult(new NativeMemory(new byte[1000000]));
@@ -142,14 +142,14 @@ public class ArrayOfDoublesUnionTest {
   @Test
   public void directEstimationMode() {
     int key = 0;
-    ArrayOfDoublesQuickSelectSketch sketch1 = new DirectArrayOfDoublesQuickSelectSketch(4096, 1, new NativeMemory(new byte[1000000]));
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setMemory(new NativeMemory(new byte[1000000])).build();
     for (int i = 0; i < 8192; i++) sketch1.update(key++, new double[] {1.0});
 
     key -= 4096; // overlap half of the entries
-    ArrayOfDoublesQuickSelectSketch sketch2 = new DirectArrayOfDoublesQuickSelectSketch(4096, 1, new NativeMemory(new byte[1000000]));
+    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().setMemory(new NativeMemory(new byte[1000000])).build();
     for (int i = 0; i < 8192; i++) sketch2.update(key++, new double[] {1.0});
 
-    ArrayOfDoublesUnion union = new DirectArrayOfDoublesUnion(4096, 1, new NativeMemory(new byte[1000000]));
+    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().setMemory(new NativeMemory(new byte[1000000])).buildUnion();
     union.update(sketch1);
     union.update(sketch2);
     ArrayOfDoublesCompactSketch result = union.getResult(new NativeMemory(new byte[1000000]));
@@ -167,20 +167,20 @@ public class ArrayOfDoublesUnionTest {
 
   @Test
   public void heapToDirect() {
-    ArrayOfDoublesQuickSelectSketch sketch1 = new HeapArrayOfDoublesQuickSelectSketch(32, 1);
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch1.update(1, new double[] {1.0});
     sketch1.update(1, new double[] {1.0});
     sketch1.update(1, new double[] {1.0});
     sketch1.update(2, new double[] {1.0});
 
-    ArrayOfDoublesQuickSelectSketch sketch2 = new HeapArrayOfDoublesQuickSelectSketch(32, 1);
+    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch2.update(2, new double[] {1.0});
     sketch2.update(2, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
 
-    ArrayOfDoublesUnion union1 = new HeapArrayOfDoublesUnion(32, 1);
+    ArrayOfDoublesUnion union1 = new ArrayOfDoublesSetOperationBuilder().buildUnion();
     union1.update(sketch1);
 
     ArrayOfDoublesUnion union2 = new DirectArrayOfDoublesUnion(new NativeMemory(union1.toByteArray()));
@@ -198,20 +198,20 @@ public class ArrayOfDoublesUnionTest {
 
   @Test
   public void directToHeap() {
-    ArrayOfDoublesQuickSelectSketch sketch1 = new HeapArrayOfDoublesQuickSelectSketch(32, 1);
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch1.update(1, new double[] {1.0});
     sketch1.update(1, new double[] {1.0});
     sketch1.update(1, new double[] {1.0});
     sketch1.update(2, new double[] {1.0});
 
-    ArrayOfDoublesQuickSelectSketch sketch2 = new HeapArrayOfDoublesQuickSelectSketch(32, 1);
+    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch2.update(2, new double[] {1.0});
     sketch2.update(2, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
 
-    ArrayOfDoublesUnion union1 = new DirectArrayOfDoublesUnion(32, 1, new NativeMemory(new byte[1000000]));
+    ArrayOfDoublesUnion union1 = new ArrayOfDoublesSetOperationBuilder().setMemory(new NativeMemory(new byte[1000000])).buildUnion();
     union1.update(sketch1);
 
     ArrayOfDoublesUnion union2 = new HeapArrayOfDoublesUnion(new NativeMemory(union1.toByteArray()));

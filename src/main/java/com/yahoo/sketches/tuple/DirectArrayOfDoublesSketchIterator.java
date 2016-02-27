@@ -9,7 +9,7 @@ import com.yahoo.sketches.memory.Memory;
 /**
  * Iterator over the off-heap ArrayOfDoublesSketch (compact or hash table)
  */
-public class DirectArrayOfDoublesSketchIterator implements ArrayOfDoublesSketchIterator {
+class DirectArrayOfDoublesSketchIterator implements ArrayOfDoublesSketchIterator {
 
   private Memory mem_;
   private int offset_;

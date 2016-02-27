@@ -15,14 +15,14 @@ import com.yahoo.sketches.memory.Memory;
  * inside the sketch without an expensive rebuild.
  */
 public abstract class ArrayOfDoublesUnion {
-  protected final int nomEntries_;
-  protected final int numValues_;
-  protected final long seed_;
-  protected final short seedHash_;
-  protected ArrayOfDoublesQuickSelectSketch sketch_;
-  protected long theta_;
+  final int nomEntries_;
+  final int numValues_;
+  final long seed_;
+  final short seedHash_;
+  ArrayOfDoublesQuickSelectSketch sketch_;
+  long theta_;
 
-  protected ArrayOfDoublesUnion(ArrayOfDoublesQuickSelectSketch sketch) {
+  ArrayOfDoublesUnion(ArrayOfDoublesQuickSelectSketch sketch) {
     nomEntries_ = sketch.getNominalEntries();
     numValues_ = sketch.getNumValues();
     seed_ = sketch.getSeed();
