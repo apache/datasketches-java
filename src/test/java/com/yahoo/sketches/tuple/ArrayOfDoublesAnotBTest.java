@@ -57,6 +57,70 @@ public class ArrayOfDoublesAnotBTest {
   }
 
   @Test
+  public void nullOrEmptyA() {
+    ArrayOfDoublesUpdatableSketch sketchB = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    sketchB.update(1, new double[] {1.0});
+    sketchB.update(2, new double[] {1.0});
+    sketchB.update(3, new double[] {1.0});
+    sketchB.update(4, new double[] {1.0});
+    sketchB.update(5, new double[] {1.0});
+    ArrayOfDoublesAnotB aNotB = new ArrayOfDoublesSetOperationBuilder().buildAnotB();
+
+    aNotB.update(null, sketchB);
+    ArrayOfDoublesCompactSketch result = aNotB.getResult();
+    Assert.assertTrue(result.isEmpty());
+    Assert.assertEquals(result.getRetainedEntries(), 0);
+    Assert.assertEquals(result.getEstimate(), 0.0);
+    Assert.assertEquals(result.getLowerBound(1), 0.0);
+    Assert.assertEquals(result.getUpperBound(1), 0.0);
+
+    ArrayOfDoublesSketch sketchA = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    aNotB.update(sketchA, sketchB);
+    result = aNotB.getResult();
+    Assert.assertTrue(result.isEmpty());
+    Assert.assertEquals(result.getRetainedEntries(), 0);
+    Assert.assertEquals(result.getEstimate(), 0.0);
+    Assert.assertEquals(result.getLowerBound(1), 0.0);
+    Assert.assertEquals(result.getUpperBound(1), 0.0);
+  }
+
+  @Test
+  public void nullOrEmptyB() {
+    ArrayOfDoublesUpdatableSketch sketchA = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    sketchA.update(1, new double[] {1.0});
+    sketchA.update(2, new double[] {1.0});
+    sketchA.update(3, new double[] {1.0});
+    sketchA.update(4, new double[] {1.0});
+    sketchA.update(5, new double[] {1.0});
+    ArrayOfDoublesAnotB aNotB = new ArrayOfDoublesSetOperationBuilder().buildAnotB();
+
+    aNotB.update(sketchA, null);
+    ArrayOfDoublesCompactSketch result = aNotB.getResult();
+    Assert.assertFalse(result.isEmpty());
+    Assert.assertEquals(result.getRetainedEntries(), 5);
+    Assert.assertEquals(result.getEstimate(), 5.0);
+    Assert.assertEquals(result.getLowerBound(1), 5.0);
+    Assert.assertEquals(result.getUpperBound(1), 5.0);
+    ArrayOfDoublesSketchIterator it = result.iterator();
+    while (it.next()) {
+      Assert.assertEquals(it.getValues(), new double[] {1});
+    }
+
+    ArrayOfDoublesSketch sketchB = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    aNotB.update(sketchA, sketchB);
+    result = aNotB.getResult();
+    Assert.assertFalse(result.isEmpty());
+    Assert.assertEquals(result.getRetainedEntries(), 5);
+    Assert.assertEquals(result.getEstimate(), 5.0);
+    Assert.assertEquals(result.getLowerBound(1), 5.0);
+    Assert.assertEquals(result.getUpperBound(1), 5.0);
+    it = result.iterator();
+    while (it.next()) {
+      Assert.assertEquals(it.getValues(), new double[] {1});
+    }
+  }
+
+  @Test
   public void aSameAsB() {
     ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch.update(1, new double[] {1.0});
@@ -105,6 +169,37 @@ public class ArrayOfDoublesAnotBTest {
   }
 
   @Test
+  public void exactModeCustomSeed() {
+    long seed = 1234567890;
+    ArrayOfDoublesUpdatableSketch sketchA = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed).build();
+    sketchA.update(1, new double[] {1});
+    sketchA.update(2, new double[] {1});
+    sketchA.update(3, new double[] {1});
+    sketchA.update(4, new double[] {1});
+    sketchA.update(5, new double[] {1});
+
+    ArrayOfDoublesUpdatableSketch sketchB = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed).build();
+    sketchB.update(3, new double[] {1});
+    sketchB.update(4, new double[] {1});
+    sketchB.update(5, new double[] {1});
+    sketchB.update(6, new double[] {1});
+    sketchB.update(7, new double[] {1});
+
+    ArrayOfDoublesAnotB aNotB = new ArrayOfDoublesSetOperationBuilder().setSeed(seed).buildAnotB();
+    aNotB.update(sketchA, sketchB);
+    ArrayOfDoublesCompactSketch result = aNotB.getResult();
+    Assert.assertFalse(result.isEmpty());
+    Assert.assertEquals(result.getRetainedEntries(), 2);
+    Assert.assertEquals(result.getEstimate(), 2.0);
+    Assert.assertEquals(result.getLowerBound(1), 2.0);
+    Assert.assertEquals(result.getUpperBound(1), 2.0);
+    ArrayOfDoublesSketchIterator it = result.iterator();
+    while (it.next()) {
+      Assert.assertEquals(it.getValues(), new double[] {1});
+    }
+  }
+
+  @Test
   public void estimationMode() {
     int key = 0;
     ArrayOfDoublesUpdatableSketch sketchA = new ArrayOfDoublesUpdatableSketchBuilder().build();
@@ -137,6 +232,28 @@ public class ArrayOfDoublesAnotBTest {
     while (it.next()) {
       Assert.assertEquals(it.getValues(), new double[] {1});
     }
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void incompatibleSeedA() {
+    ArrayOfDoublesSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(1).build();
+    ArrayOfDoublesAnotB aNotB = new ArrayOfDoublesSetOperationBuilder().buildAnotB();
+    aNotB.update(sketch, null);
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void incompatibleSeedB() {
+    ArrayOfDoublesSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(1).build();
+    ArrayOfDoublesAnotB aNotB = new ArrayOfDoublesSetOperationBuilder().buildAnotB();
+    aNotB.update(null, sketch);
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void incompatibleSeeds() {
+    ArrayOfDoublesSketch sketchA = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(1).build();
+    ArrayOfDoublesSketch sketchB = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(2).build();
+    ArrayOfDoublesAnotB aNotB = new ArrayOfDoublesSetOperationBuilder().setSeed(3).buildAnotB();
+    aNotB.update(sketchA, sketchB);
   }
 
 }

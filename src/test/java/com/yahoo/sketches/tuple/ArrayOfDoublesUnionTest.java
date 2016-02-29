@@ -227,4 +227,39 @@ public class ArrayOfDoublesUnionTest {
     Assert.assertEquals(values[2][0], 3.0);
   }
 
+  @Test
+  public void heapExactModeCustomSeed() {
+    long seed = 1234567890;
+
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed).build();
+    sketch1.update(1, new double[] {1.0});
+    sketch1.update(1, new double[] {1.0});
+    sketch1.update(1, new double[] {1.0});
+    sketch1.update(2, new double[] {1.0});
+
+    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed).build();
+    sketch2.update(2, new double[] {1.0});
+    sketch2.update(2, new double[] {1.0});
+    sketch2.update(3, new double[] {1.0});
+    sketch2.update(3, new double[] {1.0});
+    sketch2.update(3, new double[] {1.0});
+
+    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().setSeed(seed).buildUnion();
+    union.update(sketch1);
+    union.update(sketch2);
+    ArrayOfDoublesCompactSketch result = union.getResult();
+    Assert.assertEquals(result.getEstimate(), 3.0);
+    double[][] values = result.getValues();
+    Assert.assertEquals(values[0][0], 3.0);
+    Assert.assertEquals(values[1][0], 3.0);
+    Assert.assertEquals(values[2][0], 3.0);
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void incompatibleSeeds() {
+    ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(1).build();
+    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().setSeed(2).buildUnion();
+    union.update(sketch);
+  }
+
 }
