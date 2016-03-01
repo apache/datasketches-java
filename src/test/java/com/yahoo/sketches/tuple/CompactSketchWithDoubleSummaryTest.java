@@ -85,7 +85,7 @@ public class CompactSketchWithDoubleSummaryTest {
     us.update("b", 1.0);
     us.update("c", 1.0);
     CompactSketch<DoubleSummary> sketch1 = us.compact();
-    CompactSketch<DoubleSummary> sketch2 = new CompactSketch<DoubleSummary>(new NativeMemory(sketch1.toByteArray()));
+    Sketch<DoubleSummary> sketch2 = Sketches.heapifySketch(new NativeMemory(sketch1.toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertFalse(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 3.0);
@@ -104,7 +104,7 @@ public class CompactSketchWithDoubleSummaryTest {
     UpdatableSketch<Double, DoubleSummary> us = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     for (int i = 0; i < 8192; i++) us.update(i, 1.0);
     CompactSketch<DoubleSummary> sketch1 = us.compact();
-    CompactSketch<DoubleSummary> sketch2 = new CompactSketch<DoubleSummary>(new NativeMemory(sketch1.toByteArray()));
+    Sketch<DoubleSummary> sketch2 = Sketches.heapifySketch(new NativeMemory(sketch1.toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), sketch1.getEstimate());
@@ -113,5 +113,14 @@ public class CompactSketchWithDoubleSummaryTest {
     while (it.next()) {
       Assert.assertEquals(it.getSummary().getValue(), 1.0);
     }
+  }
+
+  @Test(expectedExceptions = RuntimeException.class)
+  public void deserializeWrongType() {
+    UpdatableSketch<Double, DoubleSummary> us = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
+    for (int i = 0; i < 8192; i++) us.update(i, 1.0);
+    CompactSketch<DoubleSummary> sketch1 = us.compact();
+    @SuppressWarnings("unused")
+    UpdatableSketch<Double, DoubleSummary> sketch2 = Sketches.heapifyUpdatableSketch(new NativeMemory(sketch1.toByteArray()));
   }
 }

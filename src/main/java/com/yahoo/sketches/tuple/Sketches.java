@@ -33,4 +33,15 @@ public final class Sketches {
     return new CompactSketch<S>(mem);
   }
 
+  /**
+   * Instantiate UpdatableSketch from a given Memory
+   * @param <U> Type of update value
+   * @param <S> Type of Summary
+   * @param mem Memory object representing a Sketch
+   * @return Sketch created from its Memory representation
+   */
+  public static <U, S extends UpdatableSummary<U>> UpdatableSketch<U, S> heapifyUpdatableSketch(Memory mem) {
+    return new UpdatableSketch<U, S>(mem);
+  }
+
 }
