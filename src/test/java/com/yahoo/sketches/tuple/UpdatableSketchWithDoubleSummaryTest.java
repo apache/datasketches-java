@@ -170,7 +170,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     sketch1.update(1, 1.0);
 
-    UpdatableSketch<Double, DoubleSummary> sketch2 = new UpdatableSketch<Double, DoubleSummary>(new NativeMemory(sketch1.toByteArray()));
+    UpdatableSketch<Double, DoubleSummary> sketch2 = Sketches.heapifyUpdatableSketch(new NativeMemory(sketch1.toByteArray()));
 
     Assert.assertEquals(sketch2.getEstimate(), 1.0);
     DoubleSummary[] summaries = sketch2.getSummaries();
@@ -197,7 +197,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     //for visual testing
     //TestUtil.writeBytesToFile(bytes, "TupleSketchWithDoubleSummary4K.data");
 
-    UpdatableSketch<Double, DoubleSummary> sketch2 = new UpdatableSketch<Double, DoubleSummary>(new NativeMemory(bytes));
+    Sketch<DoubleSummary> sketch2 = Sketches.heapifySketch(new NativeMemory(bytes));
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 8192, 8192 * 0.99);
     Assert.assertEquals(sketch1.getTheta(), sketch2.getTheta());
@@ -212,7 +212,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     int numberOfUniques = sketchSize;
     UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).setNominalEntries(sketchSize).setSamplingProbability(0.5f).build();
     for (int i = 0; i < numberOfUniques; i++) sketch1.update(i, 1.0);
-    UpdatableSketch<Double, DoubleSummary> sketch2 = new UpdatableSketch<Double, DoubleSummary>(new NativeMemory(sketch1.toByteArray()));
+    Sketch<DoubleSummary> sketch2 = Sketches.heapifySketch(new NativeMemory(sketch1.toByteArray()));
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate() / numberOfUniques, 1.0, 0.01);
     Assert.assertEquals(sketch2.getRetainedEntries() / (double) numberOfUniques, 0.5, 0.01);
@@ -328,7 +328,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     sketch1.update(2, 1.0);
     sketch1.update(3, 1.0);
 
-    UpdatableSketch<Double, DoubleSummary> sketch2 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
+    Sketch<DoubleSummary> sketch2 = Sketches.createEmptySketch();
 
     Intersection<DoubleSummary> intersection = new Intersection<DoubleSummary>(new DoubleSummaryFactory());
     intersection.update(sketch1);
