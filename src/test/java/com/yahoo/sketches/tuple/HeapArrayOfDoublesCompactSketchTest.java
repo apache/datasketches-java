@@ -56,7 +56,7 @@ public class HeapArrayOfDoublesCompactSketchTest {
     us.update("b", new double[] {1.0});
     us.update("c", new double[] {1.0});
     ArrayOfDoublesCompactSketch sketch1 = us.compact();
-    ArrayOfDoublesCompactSketch sketch2 = new HeapArrayOfDoublesCompactSketch(new NativeMemory(sketch1.toByteArray()));
+    ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketches.heapifySketch(new NativeMemory(sketch1.toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertFalse(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 3.0);
@@ -75,10 +75,19 @@ public class HeapArrayOfDoublesCompactSketchTest {
     ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) us.update(i, new double[] {1.0});
     ArrayOfDoublesCompactSketch sketch1 = us.compact();
-    ArrayOfDoublesCompactSketch sketch2 = new HeapArrayOfDoublesCompactSketch(new NativeMemory(sketch1.toByteArray()));
+    ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketches.heapifySketch(new NativeMemory(sketch1.toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), sketch1.getEstimate());
     Assert.assertEquals(sketch2.getThetaLong(), sketch1.getThetaLong());
+  }
+
+  @Test(expectedExceptions = RuntimeException.class)
+  public void deserializeWithWrongSeed() {
+    ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    for (int i = 0; i < 8192; i++) us.update(i, new double[] {1.0});
+    ArrayOfDoublesCompactSketch sketch1 = us.compact();
+    @SuppressWarnings("unused")
+    ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketches.heapifySketch(new NativeMemory(sketch1.toByteArray()), 123);
   }
 }
