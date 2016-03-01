@@ -81,7 +81,7 @@ public class ArrayOfDoublesIntersectionTest {
   }
 
   @Test
-  public void heapExact() {
+  public void heapExactMode() {
     ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch1.update(1, new double[] {1});
     sketch1.update(1, new double[] {1});
@@ -179,5 +179,41 @@ public class ArrayOfDoublesIntersectionTest {
     Assert.assertTrue(result.getUpperBound(1) > result.getEstimate());
     double[][] values = result.getValues();
     for (int i = 0; i < values.length; i++) Assert.assertEquals(values[i][0], 2.0);
+  }
+
+  @Test
+  public void heapExactModeCustomSeed() {
+    long seed = 1234567890;
+
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed).build();
+    sketch1.update(1, new double[] {1});
+    sketch1.update(1, new double[] {1});
+    sketch1.update(2, new double[] {1});
+    sketch1.update(2, new double[] {1});
+
+    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed).build();
+    sketch2.update(2, new double[] {1});
+    sketch2.update(2, new double[] {1});
+    sketch2.update(3, new double[] {1});
+    sketch2.update(3, new double[] {1});
+
+    ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().setSeed(seed).buildIntersection();
+    intersection.update(sketch1, combiner);
+    intersection.update(sketch2, combiner);
+    ArrayOfDoublesCompactSketch result = intersection.getResult();
+    Assert.assertFalse(result.isEmpty());
+    Assert.assertEquals(result.getRetainedEntries(), 1);
+    Assert.assertEquals(result.getEstimate(), 1.0);
+    Assert.assertEquals(result.getLowerBound(1), 1.0);
+    Assert.assertEquals(result.getUpperBound(1), 1.0);
+    double[][] values = result.getValues();
+    for (int i = 0; i < values.length; i++) Assert.assertEquals(values[i][0], 4.0);
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void incompatibleSeeds() {
+    ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(1).build();
+    ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().setSeed(2).buildIntersection();
+    intersection.update(sketch, combiner);
   }
 }

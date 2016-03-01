@@ -36,8 +36,9 @@ public abstract class ArrayOfDoublesUnion {
    * @param sketchIn sketch to add to the union
    */
   public void update(ArrayOfDoublesSketch sketchIn) {
-    if (sketchIn == null || sketchIn.isEmpty()) return;
+    if (sketchIn == null) return;
     Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
+    if (sketchIn.isEmpty()) return;
     if (sketchIn.getThetaLong() < theta_) theta_ = sketchIn.getThetaLong();
     ArrayOfDoublesSketchIterator it = sketchIn.iterator();
     while (it.next()) {
