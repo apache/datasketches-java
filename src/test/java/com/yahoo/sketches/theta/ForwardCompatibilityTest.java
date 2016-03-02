@@ -14,7 +14,6 @@ import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryUtil;
 import com.yahoo.sketches.memory.NativeMemory;
-import com.yahoo.sketches.theta.PreambleUtil;
 import com.yahoo.sketches.theta.Sketch;
 
 /**
@@ -121,7 +120,7 @@ public class ForwardCompatibilityTest {
     //byte 4 lgArrLongs not used w SetSketch
     //byte 5 Flags: b0: BigEnd, b1: ReadOnly, b2: Empty, b3: NoRebuild, b4, Unordered
     mem.putByte(5, (byte) 2); //Flags
-    short seedHash = PreambleUtil.computeSeedHash(Util.DEFAULT_UPDATE_SEED);
+    short seedHash = Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED);
     mem.putShort(6, seedHash);
     //mem.putInt(8, 0); //curCount = 0
     //mem.putLong(16, Long.MAX_VALUE);
@@ -148,7 +147,7 @@ public class ForwardCompatibilityTest {
     //byte 4 lgArrLongs not used w SetSketch
     //byte 5 Flags: b0: BigEnd, b1: ReadOnly, b2: Empty, b3: NoRebuild, b4, Unordered
     mem.putByte(5, (byte) 2); //Flags
-    short seedHash = PreambleUtil.computeSeedHash(Util.DEFAULT_UPDATE_SEED);
+    short seedHash = Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED);
     mem.putShort(6, seedHash);
     mem.putInt(8, 0); //curCount = 0
     //mem.putLong(16, Long.MAX_VALUE);

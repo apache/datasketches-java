@@ -5,21 +5,8 @@
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.Family.objectToFamily;
-import static com.yahoo.sketches.Family.stringToFamily;
 import static com.yahoo.sketches.theta.CompactSketch.compactCachePart;
-import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.P_FLOAT;
-import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
-import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
-import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
-import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
-import static com.yahoo.sketches.theta.PreambleUtil.checkSeedHashes;
+import static com.yahoo.sketches.theta.PreambleUtil.*;
 import static com.yahoo.sketches.Util.*;
 import static java.lang.Math.min;
 
@@ -28,6 +15,7 @@ import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryUtil;
 import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.HashOperations;
+import com.yahoo.sketches.Util;
 
 /**
  * @author Lee Rhodes
@@ -35,6 +23,7 @@ import com.yahoo.sketches.HashOperations;
  */
 class DirectIntersection extends SetOperation implements Intersection {
   private final short seedHash_;
+  //Note: Intersection does not use lgNomLongs or k, per se.
   private int lgArrLongs_; //current size of hash table
   private int curCount_; //curCount of HT, if < 0 means Universal Set (US) is true
   private long thetaLong_;
@@ -53,29 +42,36 @@ class DirectIntersection extends SetOperation implements Intersection {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
   DirectIntersection(long seed, Memory dstMem) {
-    int preBytes = CONST_PREAMBLE_LONGS << 3;
+    int preLongs = CONST_PREAMBLE_LONGS;
     maxLgArrLongs_ = checkMaxLgArrLongs(dstMem);
     
     //build preamble and cache together in single Memory
-    mem_ = dstMem;
-    mem_.clear(0, preBytes); //clear only the preamble
+    long[] preArr = new long[preLongs]; //becomes the preamble
     
-    //load preamble into mem
-    mem_.putByte(PREAMBLE_LONGS_BYTE, (byte) CONST_PREAMBLE_LONGS); //RF not used = 0
-    mem_.putByte(SER_VER_BYTE, (byte) SER_VER);
-    mem_.putByte(FAMILY_BYTE, (byte) stringToFamily("Intersection").getID());
-    lgArrLongs_ = setLgArrLongs(MIN_LG_ARR_LONGS); //set initially to minimum, but don't clear.
-    
+    long pre0 = 0;
+    pre0 = insertPreLongs(preLongs, pre0); //RF not used = 0
+    pre0 = insertSerVer(SER_VER, pre0);
+    pre0 = insertFamilyID(Family.INTERSECTION.getID(), pre0);
+    //Note: Intersection does not use lgNomLongs or k, per se.
+    lgArrLongs_ = MIN_LG_ARR_LONGS; //set initially to minimum, but don't clear cache in mem
+    pre0 = insertLgArrLongs(MIN_LG_ARR_LONGS, pre0);
     //flags: bigEndian = readOnly = compact = ordered = false;
-    empty_ = setEmpty(false);
-    
+    empty_ = false;
+    pre0 = insertFlags(0, pre0);
     seedHash_ = computeSeedHash(seed);
-    mem_.putShort(SEED_HASH_SHORT, seedHash_);
+    pre0 = insertSeedHash(seedHash_, pre0);
+    preArr[0] = pre0;
     
-    curCount_ = setCurCount(-1);
+    long pre1 = 0;
+    curCount_ = -1;
+    pre1 = insertCurCount(-1, pre1);
+    pre1 = insertP((float) 1.0, pre1);
+    preArr[1] = pre1;
     
-    mem_.putFloat(P_FLOAT, (float) 1.0);
-    thetaLong_ = setThetaLong(Long.MAX_VALUE);
+    thetaLong_ = Long.MAX_VALUE;
+    preArr[2] = thetaLong_;
+    dstMem.putLongArray(0, preArr, 0, preLongs);
+    mem_ = dstMem;
   }
   
   /**
@@ -85,24 +81,29 @@ class DirectIntersection extends SetOperation implements Intersection {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a> 
    */
   DirectIntersection(Memory srcMem, long seed) {
-    int preambleLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+    //int memCap = (int)srcMem.getCapacity();
+    int preLongs = CONST_PREAMBLE_LONGS;
+    long[] preArr = new long[preLongs];
+    srcMem.getLongArray(0, preArr, 0, preLongs);
+    
+    long pre0 = preArr[0];
+    int preambleLongs = extractPreLongs(pre0);
     if (preambleLongs != CONST_PREAMBLE_LONGS) {
       throw new IllegalArgumentException("PreambleLongs must = 3.");
     }
-    
-    int serVer = srcMem.getByte(SER_VER_BYTE);
+    int serVer = extractSerVer(pre0);
     if (serVer != 3) throw new IllegalArgumentException("Ser Version must = 3");
-    
-    Family.INTERSECTION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
-    
-    lgArrLongs_ = srcMem.getByte(LG_ARR_LONGS_BYTE); //current hash table size
+    int famID = extractFamilyID(pre0);
+    Family.INTERSECTION.checkFamilyID(famID);
+    //Note: Intersection does not use lgNomLongs or k, per se.
+    lgArrLongs_ = extractLgArrLongs(pre0); //current hash table size
     maxLgArrLongs_ = checkMaxLgArrLongs(srcMem);
-    
-    empty_ = srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
+    int flags = extractFlags(pre0);
+    empty_ = (flags & EMPTY_FLAG_MASK) > 0;
     
     seedHash_ = computeSeedHash(seed);
     short seedHashMem = srcMem.getShort(SEED_HASH_SHORT);
-    checkSeedHashes(seedHashMem, seedHash_); //check for seed hash conflict
+    Util.checkSeedHashes(seedHashMem, seedHash_); //check for seed hash conflict
     
     curCount_ = srcMem.getInt(RETAINED_ENTRIES_INT);
     thetaLong_ = srcMem.getLong(THETA_LONG);
@@ -132,7 +133,7 @@ class DirectIntersection extends SetOperation implements Intersection {
       //All future intersections result in zero data, but theta can still be reduced.
       //set curCount == 0
       if (sketchIn != null) {
-        checkSeedHashes(seedHash_, sketchIn.getSeedHash());
+        Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
         thetaLong_ = minThetaLong(sketchIn.getThetaLong());
         empty_ = setEmpty(empty_ | sketchIn.isEmpty());  //Empty rule
       } 
@@ -146,7 +147,7 @@ class DirectIntersection extends SetOperation implements Intersection {
     else if (curCount_ < 0) { //virgin
       //The 1st Call and sketchIn was a valid with cnt > 0.
       //Clone the incoming sketch
-      checkSeedHashes(seedHash_, sketchIn.getSeedHash());
+      Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
       thetaLong_ = minThetaLong(sketchIn.getThetaLong());
       empty_ = setEmpty(empty_ | sketchIn.isEmpty());  //Empty rule
       
@@ -169,7 +170,7 @@ class DirectIntersection extends SetOperation implements Intersection {
     else { //curCount > 0
       //Nth Call: and and sketchIn was valid with cnt > 0.
       //Perform full intersect
-      checkSeedHashes(seedHash_, sketchIn.getSeedHash());
+      Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
       thetaLong_ = minThetaLong(sketchIn.getThetaLong());
       empty_ = setEmpty(empty_ | sketchIn.isEmpty());
       
@@ -266,10 +267,12 @@ class DirectIntersection extends SetOperation implements Intersection {
     // HT and input data are nonzero, match against HT
     assert ((curCount_ > 0) && (!empty_));
     long[] cacheIn = sketchIn.getCache();
+    int arrLongsIn = cacheIn.length;
+    
     int htLen = 1 << lgArrLongs_;
     long[] hashTable = new long[htLen];
-    mem_.getLongArray(CONST_PREAMBLE_LONGS << 3, hashTable, 0, htLen);
-    int arrLongsIn = cacheIn.length;
+    mem_.getLongArray(CONST_PREAMBLE_LONGS << 3, hashTable, 0, htLen); //TODO
+    
     //allocate space for matching
     long[] matchSet = new long[ min(curCount_, sketchIn.getRetainedEntries(true)) ];
 
@@ -301,7 +304,7 @@ class DirectIntersection extends SetOperation implements Intersection {
     //reduce effective array size to minimum
     lgArrLongs_ = setLgArrLongs(computeMinLgArrLongsFromCount(curCount_));
     curCount_ = setCurCount(matchSetCount);
-    mem_.fill(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_, (byte) 0); //clear for rebuild
+    mem_.fill(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_, (byte) 0); //clear for rebuild //TODO
     //move matchSet to hash table
     moveDataToHT(matchSet, matchSetCount);
   }
@@ -314,7 +317,8 @@ class DirectIntersection extends SetOperation implements Intersection {
       long hashIn = arr[i];
       if (HashOperations.continueCondition(thetaLong_, hashIn)) continue;
       // opportunity to use faster unconditional insert
-      tmpCnt += HashOperations.hashSearchOrInsert(mem_, lgArrLongs_, hashIn, preBytes) < 0 ? 1 : 0;
+      tmpCnt += 
+          HashOperations.hashSearchOrInsert(mem_, lgArrLongs_, hashIn, preBytes) < 0 ? 1 : 0; //TODO
     }
     if (tmpCnt != count) {
       throw new IllegalArgumentException("Count Check Exception: got: "+tmpCnt+", expected: "+count);

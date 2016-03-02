@@ -155,10 +155,10 @@ public class SetOperationBuilder {
     switch (family) {
       case UNION: {
         if (bDstMem == null) {
-          setOp = new HeapUnion(bLgNomLongs, bSeed, bP, bRF);
+          setOp = UnionImpl.initNewHeapInstance(bLgNomLongs, bSeed, bP, bRF);
         } 
         else {
-          setOp = new DirectUnion(bLgNomLongs, bSeed, bP, bRF, bDstMem);
+          setOp = UnionImpl.initNewDirectInstance(bLgNomLongs, bSeed, bP, bRF, bDstMem);
         }
         break;
       }

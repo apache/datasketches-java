@@ -5,7 +5,7 @@
 package com.yahoo.sketches;
 
 /**
- * Tables for BinomialBounds calculations
+ * Tables for BinomialBoundsN calculations
  * 
  * @author Kevin Lang
  */

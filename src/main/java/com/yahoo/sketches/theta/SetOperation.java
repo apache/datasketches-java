@@ -14,6 +14,7 @@ import static com.yahoo.sketches.Util.*;
 import static java.lang.Math.max;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 
 /**
@@ -62,7 +63,7 @@ public abstract class SetOperation {
     Family family = idToFamily(famID);
     switch(family) {
       case UNION : {
-        return new HeapUnion(srcMem, seed);
+        return UnionImpl.heapifyInstance(srcMem, seed);
       }
       case INTERSECTION : {
         return new HeapIntersection(srcMem, seed);
@@ -103,7 +104,7 @@ public abstract class SetOperation {
     if (serVer != 3) throw new IllegalArgumentException("SerVer must be 3: "+serVer);
     switch(family) {
       case UNION : {
-        return new DirectUnion(srcMem, seed);
+        return UnionImpl.wrapInstance(srcMem, seed);
       }
       case INTERSECTION : {
         return new DirectIntersection(srcMem, seed);
@@ -140,7 +141,7 @@ public abstract class SetOperation {
   //restricted
   
   static short computeSeedHash(long seed) {
-    return PreambleUtil.computeSeedHash(seed);
+    return Util.computeSeedHash(seed);
   }
   
   //Used by intersection and AnotB

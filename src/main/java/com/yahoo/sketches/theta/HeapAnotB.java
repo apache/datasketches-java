@@ -7,12 +7,12 @@ package com.yahoo.sketches.theta;
 import static com.yahoo.sketches.theta.CompactSketch.compactCache;
 import static com.yahoo.sketches.HashOperations.hashArrayInsert;
 import static com.yahoo.sketches.HashOperations.hashSearch;
-import static com.yahoo.sketches.theta.PreambleUtil.checkSeedHashes;
 import static java.lang.Math.min;
 
 import java.util.Arrays;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 
 /**
@@ -140,13 +140,13 @@ class HeapAnotB extends SetOperation implements AnotB {
       case 2: 
       case 3: 
       case 4:  { //A is null, B is valid
-        checkSeedHashes(seedHash_, b_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, b_.getSeedHash());
         thetaLong_ = b_.getThetaLong();
         empty_ = true;
         break; //{ThB, 0, T}
       }
       case 8: { //A is empty, B is null
-        checkSeedHashes(seedHash_, a_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, a_.getSeedHash());
         thetaLong_ = a_.getThetaLong();
         empty_ = true;
         break; //{ThA, 0, T}
@@ -155,8 +155,8 @@ class HeapAnotB extends SetOperation implements AnotB {
       case 10: 
       case 11: 
       case 12: { //A empty, B valid
-        checkSeedHashes(seedHash_, a_.getSeedHash());
-        checkSeedHashes(seedHash_, b_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, a_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, b_.getSeedHash());
         thetaLong_ = min(a_.getThetaLong(), b_.getThetaLong());
         empty_ = true;
         break; //{min, 0, T}
@@ -164,7 +164,7 @@ class HeapAnotB extends SetOperation implements AnotB {
       case 16: 
       case 24: 
       case 32: { //A valid, B null
-        checkSeedHashes(seedHash_, a_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, a_.getSeedHash());
         thetaLong_ = a_.getThetaLong();
         empty_ = a_.isEmpty();
         //move A to cache
@@ -175,8 +175,8 @@ class HeapAnotB extends SetOperation implements AnotB {
       case 17: 
       case 25: 
       case 33: { //A valid, B empty
-        checkSeedHashes(seedHash_, a_.getSeedHash());
-        checkSeedHashes(seedHash_, b_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, a_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, b_.getSeedHash());
         thetaLong_ = min(a_.getThetaLong(), b_.getThetaLong());
         empty_ = a_.isEmpty();
         //move A to cache
@@ -188,8 +188,8 @@ class HeapAnotB extends SetOperation implements AnotB {
       case 19: 
       case 34: 
       case 35: {//A compact or HT, B compact or ordered 
-        checkSeedHashes(seedHash_, a_.getSeedHash());
-        checkSeedHashes(seedHash_, b_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, a_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, b_.getSeedHash());
         thetaLong_ = min(a_.getThetaLong(), b_.getThetaLong());
         empty_ = a_.isEmpty();
         //must convert B to HT
@@ -199,8 +199,8 @@ class HeapAnotB extends SetOperation implements AnotB {
       }
       case 26: 
       case 27: { //A ordered early stop, B compact or ordered 
-        checkSeedHashes(seedHash_, a_.getSeedHash());
-        checkSeedHashes(seedHash_, b_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, a_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, b_.getSeedHash());
         thetaLong_ = min(a_.getThetaLong(), b_.getThetaLong());
         empty_ = a_.isEmpty();
         convertBtoHT(); //builds HT from B
@@ -209,8 +209,8 @@ class HeapAnotB extends SetOperation implements AnotB {
       }
       case 20: 
       case 36: { //A compact or HT, B is already HT
-        checkSeedHashes(seedHash_, a_.getSeedHash());
-        checkSeedHashes(seedHash_, b_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, a_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, b_.getSeedHash());
         thetaLong_ = min(a_.getThetaLong(), b_.getThetaLong());
         empty_ = a_.isEmpty();
         //b is already HT
@@ -220,8 +220,8 @@ class HeapAnotB extends SetOperation implements AnotB {
         break; //(min, n, Ea)
       }
       case 28: { //A ordered early stop, B is already hashtable
-        checkSeedHashes(seedHash_, a_.getSeedHash());
-        checkSeedHashes(seedHash_, b_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, a_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, b_.getSeedHash());
         thetaLong_ = min(a_.getThetaLong(), b_.getThetaLong());
         empty_ = a_.isEmpty();
         //b is already HT

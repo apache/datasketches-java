@@ -4,12 +4,12 @@
  */
 package com.yahoo.sketches;
 
-import static com.yahoo.sketches.BinomialBounds.*;
+import static com.yahoo.sketches.BinomialBoundsN.*;
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.sketches.BinomialBounds;
+import com.yahoo.sketches.BinomialBoundsN;
 
 /**
  * @author Kevin Lang
@@ -29,8 +29,8 @@ public class BinomialBoundsTest {
       p = 1.0;
       
       while (p >= min_p) {
-        lb = BinomialBounds.getLowerBound (numSamplesI, p, ci, false);
-        ub = BinomialBounds.getUpperBound (numSamplesI, p, ci, false);
+        lb = BinomialBoundsN.getLowerBound (numSamplesI, p, ci, false);
+        ub = BinomialBoundsN.getUpperBound (numSamplesI, p, ci, false);
         
         // if (numSamplesI == 300 && p > 0.365 && p < 0.367) { ub += 0.01; }  // artificial discrepancy
         
@@ -40,8 +40,8 @@ public class BinomialBoundsTest {
         count += 2;
         
         if (p < 1.0) {
-          lb = BinomialBounds.getLowerBound (numSamplesI, 1.0 - p, ci, false);
-          ub = BinomialBounds.getUpperBound (numSamplesI, 1.0 - p, ci, false);
+          lb = BinomialBoundsN.getLowerBound (numSamplesI, 1.0 - p, ci, false);
+          ub = BinomialBoundsN.getUpperBound (numSamplesI, 1.0 - p, ci, false);
           sum3 += Math.log (lb + 1.0);
           sum4 += Math.log (ub + 1.0);
           count += 2;

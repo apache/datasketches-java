@@ -49,7 +49,7 @@ public class SketchesTest {
     assertEquals((int)csk2.getEstimate(), k);
     
     csk2 = (CompactSketch)wrapSketch(mem);
-    assertEquals((int)csk2.getEstimate(), k);
+    assertEquals((int)csk2.getEstimate(), k); //TODO fails
     
     csk2 = (CompactSketch)wrapSketch(mem, Util.DEFAULT_UPDATE_SEED);
     assertEquals((int)csk2.getEstimate(), k);
@@ -152,6 +152,11 @@ public class SketchesTest {
    */
   static void println(String s) {
     //System.out.println(s); //disable here
+  }
+  
+  public static void main(String[] args) {
+    SketchesTest test = new SketchesTest();
+    test.checkSketchMethods();
   }
   
 }

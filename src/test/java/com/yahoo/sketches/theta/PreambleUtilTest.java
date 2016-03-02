@@ -13,6 +13,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.theta.CompactSketch;
@@ -57,7 +58,7 @@ public class PreambleUtilTest {
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkBadSeedHashFromSeed() {
     //In the first 64K values 50541 produces a seedHash of 0, 
-    PreambleUtil.computeSeedHash(50541);
+    Util.computeSeedHash(50541);
   }
   
   @Test

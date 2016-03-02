@@ -5,15 +5,17 @@
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.Family.stringToFamily;
-import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.P_FLOAT;
 import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
-import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
-import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
+import static com.yahoo.sketches.theta.PreambleUtil.insertCurCount;
+import static com.yahoo.sketches.theta.PreambleUtil.insertFamilyID;
+import static com.yahoo.sketches.theta.PreambleUtil.insertFlags;
+import static com.yahoo.sketches.theta.PreambleUtil.insertP;
+import static com.yahoo.sketches.theta.PreambleUtil.insertPreLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.insertSeedHash;
+import static com.yahoo.sketches.theta.PreambleUtil.insertSerVer;
 
 import java.util.Arrays;
 
@@ -178,31 +180,37 @@ public abstract class CompactSketch extends Sketch {
       long[] compactCache, boolean empty, short seedHash, int curCount, 
       long thetaLong, Memory dstMem, byte flags) {
     int preLongs = compactPreambleLongs(thetaLong, empty);
-    int preBytes = preLongs << 3;
-    int outBytes = (curCount << 3) + preBytes;
+    int outLongs = preLongs + curCount;
+    int outBytes = outLongs << 3;
     int dstBytes = (int) dstMem.getCapacity();
     if (outBytes > dstBytes) {
       throw new IllegalArgumentException("Insufficient Memory: "+dstBytes+", Need: "+outBytes);
     }
-    byte fam = (byte) stringToFamily("Compact").getID();
+    byte famID = (byte) stringToFamily("Compact").getID();
     
-    dstMem.clear(0, outBytes);
-    dstMem.putByte(PREAMBLE_LONGS_BYTE, (byte) preLongs); //RF not used = 0
-    dstMem.putByte(SER_VER_BYTE, (byte) SER_VER);
-    dstMem.putByte(FAMILY_BYTE, fam);
+    long[] outArr = new long[outLongs];
+    long pre0 = 0;
+    pre0 = insertPreLongs(preLongs, pre0); //RF not used = 0
+    pre0 = insertSerVer(SER_VER, pre0);
+    pre0 = insertFamilyID(famID, pre0);
     //ignore lgNomLongs, lgArrLongs bytes for compact sketches
-    dstMem.putByte(FLAGS_BYTE, flags);
-    dstMem.putShort(SEED_HASH_SHORT, seedHash);
+    pre0 = insertFlags(flags, pre0);
+    pre0 = insertSeedHash(seedHash, pre0);
+    outArr[0] = pre0;
+    
     if (preLongs > 1) {
-      dstMem.putInt(RETAINED_ENTRIES_INT, curCount);
-      dstMem.putFloat(P_FLOAT, (float)1.0);
+      long pre1 = 0;
+      pre1 = insertCurCount(curCount, pre1);
+      pre1 = insertP((float) 1.0, pre1);
+      outArr[1] = pre1;
     }
     if (preLongs > 2) {
-      dstMem.putLong(THETA_LONG, thetaLong);
+      outArr[2] = thetaLong;
     }
     if ((compactCache != null) && (curCount > 0)) {
-      dstMem.putLongArray(preBytes, compactCache, 0, compactCache.length);
+      System.arraycopy(compactCache, 0, outArr, preLongs, curCount);
     }
+    dstMem.putLongArray(0, outArr, 0, outLongs);
     return dstMem;
   }
   

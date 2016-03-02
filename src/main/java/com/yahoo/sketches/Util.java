@@ -4,6 +4,8 @@
  */
 package com.yahoo.sketches;
 
+import static com.yahoo.sketches.hash.MurmurHash3.hash;
+
 /**
  * Common utility functions.
  * 
@@ -54,6 +56,35 @@ public final class Util {
    * The tab character
    */
   public static final char TAB = '\t';
+  
+  /**
+   * Check if the two seed hashes are equal. If not, throw an IllegalArgumentException.
+   * @param seedHashA the seedHash A
+   * @param seedHashB the seedHash B
+   */
+  public static final void checkSeedHashes(short seedHashA, short seedHashB) {
+    if (seedHashA != seedHashB) throw new 
+      IllegalArgumentException("Incompatible Seed Hashes. "+ seedHashA + ", "+ seedHashB);
+  }
+
+  /**
+   * Computes and checks the 16-bit seed hash from the given long seed.
+   * The seed hash may not be zero in order to maintain compatibility with older serialized
+   * versions that did not have this concept.
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
+   * @return the seed hash.
+   */
+  public static short computeSeedHash(long seed) {
+    long[] seedArr = {seed};
+    short seedHash = (short)((hash(seedArr, 0L)[0]) & 0xFFFFL);
+    if (seedHash == 0) {
+      throw new IllegalArgumentException(
+          "The given seed: " + seed + " produced a seedHash of zero. " + 
+          "You must choose a different seed.");
+    }
+    return seedHash; 
+  }
+
   /**
    * Checks if parameter v is a multiple of 8 and greater than zero.
    * @param v The parameter to check
