@@ -20,7 +20,7 @@ final class HashOperations {
   private HashOperations() {}
 
   // make odd and independent of index assuming lgArrLongs lowest bits of the hash were used for index
-  private static int getStride(long hash, int lgArrLongs) {
+  private static int getStride(final long hash, final int lgArrLongs) {
     return (2 * (int) ((hash >> (lgArrLongs)) & STRIDE_MASK)) + 1;
   }
 
@@ -33,10 +33,10 @@ final class HashOperations {
    * @param hash A hash value to search for. Must not be zero.
    * @return Current probe index if found, -1 if not found.
    */
-  static int hashSearch(long[] hashTable, int lgArrLongs, long hash) {
+  static int hashSearch(final long[] hashTable, final int lgArrLongs, final long hash) {
     if (hash == 0) throw new IllegalArgumentException("Given hash cannot be zero: "+hash);
-    int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
-    int stride = getStride(hash, lgArrLongs);
+    final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
+    final int stride = getStride(hash, lgArrLongs);
     int curProbe = (int) (hash & arrayMask);
     // search for duplicate or zero
     while (hashTable[curProbe] != 0) {
@@ -61,12 +61,12 @@ final class HashOperations {
    * <a href="{@docRoot}/resources/dictionary.html#thetaLong">See Theta Long</a>
    * @return the count of values actually inserted
    */
-  public static int hashArrayInsert(long[] srcArr, long[] hashTable, int lgArrLongs, long thetaLong) {
+  public static int hashArrayInsert(final long[] srcArr, final long[] hashTable, final int lgArrLongs, final long thetaLong) {
     int count = 0;
-    int arrLen = srcArr.length;
+    final int arrLen = srcArr.length;
     checkThetaCorruption(thetaLong); //TODO only place used
     for (int i = 0; i < arrLen; i++ ) { // scan source array, build target array
-      long hash = srcArr[i];
+      final long hash = srcArr[i];
       checkHashCorruption(hash);
       if (continueCondition(thetaLong, hash) ) { 
         continue; 
@@ -88,9 +88,9 @@ final class HashOperations {
    * array into an empty slot
    * @return index if found, -(index + 1) if inserted
    */
-  static int hashSearchOrInsert(long[] hashTable, int lgArrLongs, long hash) {
-    int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
-    int stride = getStride(hash, lgArrLongs);
+  static int hashSearchOrInsert(final long[] hashTable, final int lgArrLongs, final long hash) {
+    final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
+    final int stride = getStride(hash, lgArrLongs);
     int curProbe = (int) (hash & arrayMask);
     // search for duplicate or zero
     while (hashTable[curProbe] != 0) {
@@ -114,9 +114,9 @@ final class HashOperations {
    * @param hash value that must not be zero and will be inserted into the array into an empty slot.
    * @return index of insertion.
    */
-  static int hashInsertOnly(long[] hashTable, int lgArrLongs, long hash) {
-    int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
-    int stride = getStride(hash, lgArrLongs);
+  static int hashInsertOnly(final long[] hashTable, final int lgArrLongs, final long hash) {
+    final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
+    final int stride = getStride(hash, lgArrLongs);
     int curProbe = (int) (hash & arrayMask);
     while (hashTable[curProbe] != 0) {
       curProbe = (curProbe + stride) & arrayMask;
@@ -137,9 +137,9 @@ final class HashOperations {
    * @param memOffsetBytes offset in the memory where the hash array starts
    * @return index if found, -(index + 1) if inserted
    */
-  static int hashSearchOrInsert(Memory mem, int lgArrLongs, long hash, int memOffsetBytes) {
-    int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
-    int stride = getStride(hash, lgArrLongs);
+  static int hashSearchOrInsert(final Memory mem, final int lgArrLongs, final long hash, final int memOffsetBytes) {
+    final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
+    final int stride = getStride(hash, lgArrLongs);
     int curProbe = (int) (hash & arrayMask);
     int curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes; 
     long curArrayHash = mem.getLong(curProbeOffsetBytes);
@@ -166,9 +166,9 @@ final class HashOperations {
    * @param memOffsetBytes offset in the memory where the hash array starts
    * @return index if found, -1 if not found.
    */
-  static int hashSearch(Memory mem, int lgArrLongs, long hash, int memOffsetBytes) {
-    int arrayMask = (1 << lgArrLongs) - 1;
-    int stride = getStride(hash, lgArrLongs);
+  static int hashSearch(final Memory mem, final int lgArrLongs, final long hash, final int memOffsetBytes) {
+    final int arrayMask = (1 << lgArrLongs) - 1;
+    final int stride = getStride(hash, lgArrLongs);
     int curProbe = (int) (hash & arrayMask);
     int curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes; 
     long curArrayHash = mem.getLong(curProbeOffsetBytes);
@@ -194,9 +194,9 @@ final class HashOperations {
    * @param memOffsetBytes offset in the memory where the hash array starts
    * @return index of insertion.
    */
-  static int hashInsertOnly(Memory mem, int lgArrLongs, long hash, int memOffsetBytes) {
-    int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
-    int stride = getStride(hash, lgArrLongs);
+  static int hashInsertOnly(final Memory mem, final int lgArrLongs, final long hash, final int memOffsetBytes) {
+    final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
+    final int stride = getStride(hash, lgArrLongs);
     int curProbe = (int) (hash & arrayMask);
     int curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes; 
     long curArrayHash = mem.getLong(curProbeOffsetBytes);

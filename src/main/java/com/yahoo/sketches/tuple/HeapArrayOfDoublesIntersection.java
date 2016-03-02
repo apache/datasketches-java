@@ -14,12 +14,12 @@ class HeapArrayOfDoublesIntersection extends ArrayOfDoublesIntersection {
    * @param numValues number of double values associated with each key
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
-  HeapArrayOfDoublesIntersection(int numValues, long seed) {
+  HeapArrayOfDoublesIntersection(final int numValues, final long seed) {
     super(numValues, seed);
   }
 
   @Override
-  protected ArrayOfDoublesQuickSelectSketch createSketch(int size, int numValues, long seed) {
+  protected ArrayOfDoublesQuickSelectSketch createSketch(final int size, final int numValues, final long seed) {
     return new HeapArrayOfDoublesQuickSelectSketch(size, 0, 1f, numValues, seed);
   }
 

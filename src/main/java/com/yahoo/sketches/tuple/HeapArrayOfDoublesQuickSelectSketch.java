@@ -23,8 +23,8 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
   private final float samplingProbability_;
 
   private int count_;
-  protected long[] keys_;
-  protected double[][] values_;
+  private long[] keys_;
+  private double[][] values_;
 
   /**
    * This is to create an instance of a QuickSelectSketch with custom resize factor and sampling probability
@@ -38,13 +38,13 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
    * @param numValues number of double values to keep for each key
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
-  HeapArrayOfDoublesQuickSelectSketch(int nomEntries, int lgResizeFactor, float samplingProbability, int numValues, long seed) {
+  HeapArrayOfDoublesQuickSelectSketch(final int nomEntries, final int lgResizeFactor, final float samplingProbability, final int numValues, final long seed) {
     super(numValues, seed);
     nomEntries_ = ceilingPowerOf2(nomEntries);
     lgResizeFactor_ = lgResizeFactor;
     samplingProbability_ = samplingProbability;
     theta_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
-    int startingCapacity = 1 << Util.startingSubMultiple(
+    final int startingCapacity = 1 << Util.startingSubMultiple(
       Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries) * 2), // target table size is twice the number of nominal entries
       lgResizeFactor,
       Integer.numberOfTrailingZeros(MIN_NOM_ENTRIES)
@@ -61,31 +61,31 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
-  HeapArrayOfDoublesQuickSelectSketch(Memory mem, long seed) {
+  HeapArrayOfDoublesQuickSelectSketch(final Memory mem, final long seed) {
     super(mem.getByte(NUM_VALUES_BYTE), seed);
     SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE), mem.getByte(PREAMBLE_LONGS_BYTE));
     SerializerDeserializer.validateType(mem.getByte(SKETCH_TYPE_BYTE), SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch);
-    byte version = mem.getByte(SERIAL_VERSION_BYTE);
+    final byte version = mem.getByte(SERIAL_VERSION_BYTE);
     if (version != serialVersionUID) throw new RuntimeException("Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
-    byte flags = mem.getByte(FLAGS_BYTE);
-    boolean isBigEndian = (flags & (1 << Flags.IS_BIG_ENDIAN.ordinal())) > 0;
+    final byte flags = mem.getByte(FLAGS_BYTE);
+    final boolean isBigEndian = (flags & (1 << Flags.IS_BIG_ENDIAN.ordinal())) > 0;
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) throw new RuntimeException("Byte order mismatch");
     Util.checkSeedHashes(mem.getShort(SEED_HASH_SHORT), Util.computeSeedHash(seed));
     isEmpty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
     nomEntries_ = 1 << mem.getByte(LG_NOM_ENTRIES_BYTE);
     theta_ = mem.getLong(THETA_LONG);
-    int currentCapacity = 1 << mem.getByte(LG_CUR_CAPACITY_BYTE);
+    final int currentCapacity = 1 << mem.getByte(LG_CUR_CAPACITY_BYTE);
     lgResizeFactor_ = mem.getByte(LG_RESIZE_FACTOR_BYTE);
     samplingProbability_ = mem.getFloat(SAMPLING_P_FLOAT);
     keys_ = new long[currentCapacity];
     values_ = new double[currentCapacity][];
     mask_ = currentCapacity - 1;
-    boolean hasEntries = (flags & (1 << Flags.HAS_ENTRIES.ordinal())) > 0;
+    final boolean hasEntries = (flags & (1 << Flags.HAS_ENTRIES.ordinal())) > 0;
     count_ = hasEntries ? mem.getInt(RETAINED_ENTRIES_INT) : 0;
     if (count_ > 0) {
       mem.getLongArray(ENTRIES_START, keys_, 0, currentCapacity);
       int offset = ENTRIES_START + SIZE_OF_KEY_BYTES * currentCapacity;
-      int sizeOfValues = SIZE_OF_VALUE_BYTES * numValues_;
+      final int sizeOfValues = SIZE_OF_VALUE_BYTES * numValues_;
       for (int i = 0; i < currentCapacity; i++) {
         if (keys_[i] != 0) {
           double[] values = new double[numValues_];
@@ -101,8 +101,8 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
 
   @Override
   public double[][] getValues() {
-    int count = getRetainedEntries();
-    double[][] values = new double[count][];
+    final int count = getRetainedEntries();
+    final double[][] values = new double[count][];
     if (count > 0) {
       int i = 0;
       for (int j = 0; j < values_.length; j++) {
@@ -124,14 +124,14 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
 
   @Override
   public byte[] toByteArray() {
-    int sizeBytes = ENTRIES_START + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues_) * getCurrentCapacity();
-    byte[] byteArray = new byte[sizeBytes];
-    Memory mem = new NativeMemory(byteArray); // wrap the byte array to use the putX methods
+    final int sizeBytes = ENTRIES_START + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues_) * getCurrentCapacity();
+    final byte[] byteArray = new byte[sizeBytes];
+    final Memory mem = new NativeMemory(byteArray); // wrap the byte array to use the putX methods
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
     mem.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
     mem.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
     mem.putByte(SKETCH_TYPE_BYTE, (byte)SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch.ordinal());
-    boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
+    final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
     mem.putByte(FLAGS_BYTE, (byte)(
       (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0) |
       (isInSamplingMode() ? 1 << Flags.IS_IN_SAMPLING_MODE.ordinal() : 0) |
@@ -149,7 +149,7 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
     if (count_ > 0) {
       mem.putLongArray(ENTRIES_START, keys_, 0, keys_.length);
       int offset = ENTRIES_START + SIZE_OF_KEY_BYTES * keys_.length;
-      int sizeOfValues = SIZE_OF_VALUE_BYTES * numValues_;
+      final int sizeOfValues = SIZE_OF_VALUE_BYTES * numValues_;
       for (int i = 0; i < values_.length; i++) {
         if (values_[i] != null) {
           mem.putDoubleArray(offset, values_[i], 0, numValues_);
@@ -161,12 +161,12 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
   }
 
   @Override
-  protected long getKey(int index) {
+  protected long getKey(final int index) {
     return keys_[index];
   }
 
   @Override
-  protected void setKey(int index, long key) {
+  protected void setKey(final int index, final long key) {
     keys_[index] = key;
   }
 
@@ -176,7 +176,7 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
   }
 
   @Override
-  protected void setValues(int index, double[] values, boolean isCopyRequired) {
+  protected void setValues(final int index, final double[] values, final boolean isCopyRequired) {
     if (isCopyRequired) {
       values_[index] = values.clone();
     } else {
@@ -185,7 +185,7 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
   }
 
   @Override
-  protected void updateValues(int index, double[] values) {
+  protected void updateValues(final int index, final double[] values) {
     for (int i = 0; i < numValues_; i++) values_[index][i] += values[i];
   }
 
@@ -195,7 +195,7 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
   }
 
   @Override
-  protected void setIsEmpty(boolean isEmpty) {
+  protected void setIsEmpty(final boolean isEmpty) {
     isEmpty_ = isEmpty;
   }
 
@@ -205,7 +205,7 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
   }
 
   @Override
-  protected void setThetaLong(long theta) {
+  protected void setThetaLong(final long theta) {
     theta_ = theta;
   }
 
@@ -220,9 +220,9 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
   }
 
   @Override
-  protected void rebuild(int newCapacity) {
-    long[] oldKeys = keys_;
-    double[][] oldValues = values_;
+  protected void rebuild(final int newCapacity) {
+    final long[] oldKeys = keys_;
+    final double[][] oldValues = values_;
     keys_ = new long[newCapacity];
     values_ = new double[newCapacity][];
     count_ = 0;
@@ -235,18 +235,18 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
   }
 
   @Override
-  protected int insertKey(long key) {
+  protected int insertKey(final long key) {
     return HashOperations.hashInsertOnly(keys_, lgCurrentCapacity_, key);
   }
 
   @Override
-  protected int findOrInsertKey(long key) {
+  protected int findOrInsertKey(final long key) {
     return HashOperations.hashSearchOrInsert(keys_, lgCurrentCapacity_, key);
   }
 
   @Override
-  protected double[] find(long key) {
-    int index = HashOperations.hashSearch(keys_, lgCurrentCapacity_, key);
+  protected double[] find(final long key) {
+    final int index = HashOperations.hashSearch(keys_, lgCurrentCapacity_, key);
     if (index == -1) return null;
     return values_[index].clone();
   }

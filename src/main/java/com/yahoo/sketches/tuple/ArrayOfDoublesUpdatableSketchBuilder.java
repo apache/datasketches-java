@@ -24,7 +24,7 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
   private static final int DEFAULT_NOMINAL_ENTRIES = 4096;
   private static final int DEFAULT_NUMBER_OF_VALUES = 1;
   private static final float DEFAULT_SAMPLING_PROBABILITY = 1;
-  private static final ResizeFactor DEFAULT_RESIZE_FACTOR = ResizeFactor.X1;
+  private static final ResizeFactor DEFAULT_RESIZE_FACTOR = ResizeFactor.X8;
 
   /**
    * Creates an instance of builder with default parameters
@@ -42,7 +42,7 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
    * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
    * @return this builder
    */
-  public ArrayOfDoublesUpdatableSketchBuilder setNominalEntries(int nomEntries) {
+  public ArrayOfDoublesUpdatableSketchBuilder setNominalEntries(final int nomEntries) {
     nomEntries_ = nomEntries;
     return this;
   }
@@ -54,7 +54,7 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
    * @param resizeFactor value of X1, X2, X4 or X8
    * @return this UpdatableSketchBuilder
    */
-  public ArrayOfDoublesUpdatableSketchBuilder setResizeFactor(ResizeFactor resizeFactor) {
+  public ArrayOfDoublesUpdatableSketchBuilder setResizeFactor(final ResizeFactor resizeFactor) {
     resizeFactor_ = resizeFactor;
     return this;
   }
@@ -65,7 +65,7 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
    * @param samplingProbability sampling probability from 0 to 1
    * @return this builder
    */
-  public ArrayOfDoublesUpdatableSketchBuilder setSamplingProbability(float samplingProbability) {
+  public ArrayOfDoublesUpdatableSketchBuilder setSamplingProbability(final float samplingProbability) {
     if (samplingProbability < 0 || samplingProbability > 1f) {
       throw new IllegalArgumentException("sampling probability must be between 0 and 1");
     }
@@ -78,7 +78,7 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
    * @param numValues number of double values
    * @return this builder
    */
-  public ArrayOfDoublesUpdatableSketchBuilder setNumberOfValues(int numValues) {
+  public ArrayOfDoublesUpdatableSketchBuilder setNumberOfValues(final int numValues) {
     numValues_ = numValues;
     return this;
   }
@@ -88,7 +88,7 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return this builder
    */
-  public ArrayOfDoublesUpdatableSketchBuilder setSeed(long seed) {
+  public ArrayOfDoublesUpdatableSketchBuilder setSeed(final long seed) {
     seed_ = seed;
     return this;
   }
@@ -98,7 +98,7 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
    * @param dstMem instance of Memory
    * @return this builder
    */
-  public ArrayOfDoublesUpdatableSketchBuilder setMemory(Memory dstMem) {
+  public ArrayOfDoublesUpdatableSketchBuilder setMemory(final Memory dstMem) {
     dstMem_ = dstMem;
     return this;
   }
@@ -111,7 +111,7 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
     if (dstMem_ == null) {
       return new HeapArrayOfDoublesQuickSelectSketch(nomEntries_, resizeFactor_.lg(), samplingProbability_, numValues_, seed_);
     }
-    return  new DirectArrayOfDoublesQuickSelectSketch(nomEntries_, resizeFactor_.lg(), samplingProbability_, numValues_, seed_, dstMem_);
+    return new DirectArrayOfDoublesQuickSelectSketch(nomEntries_, resizeFactor_.lg(), samplingProbability_, numValues_, seed_, dstMem_);
   }
 
 }

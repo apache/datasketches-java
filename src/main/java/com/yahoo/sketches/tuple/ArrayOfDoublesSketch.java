@@ -32,7 +32,7 @@ public abstract class ArrayOfDoublesSketch {
   long theta_;
   boolean isEmpty_ = true;
 
-  ArrayOfDoublesSketch(int numValues) {
+  ArrayOfDoublesSketch(final int numValues) {
     numValues_ = numValues;
   }
 
@@ -52,7 +52,7 @@ public abstract class ArrayOfDoublesSketch {
    * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the upper bound.
    */
-  public double getUpperBound(int numStdDev) {
+  public double getUpperBound(final int numStdDev) {
     if (!isEstimationMode()) return getRetainedEntries();
     return Util.upperBound(getEstimate(), getTheta(), numStdDev);
   }
@@ -64,7 +64,7 @@ public abstract class ArrayOfDoublesSketch {
    * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the lower bound.
    */
-  public double getLowerBound(int numStdDev) {
+  public double getLowerBound(final int numStdDev) {
     if (!isEstimationMode()) return getRetainedEntries();
     return Util.lowerBound(getEstimate(), getTheta(), numStdDev);
   }

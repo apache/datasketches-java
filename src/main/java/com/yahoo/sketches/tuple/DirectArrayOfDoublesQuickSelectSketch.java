@@ -40,10 +40,10 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @param dstMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
-  DirectArrayOfDoublesQuickSelectSketch(int nomEntries, int lgResizeFactor, float samplingProbability, int numValues, long seed, Memory dstMem) {
+  DirectArrayOfDoublesQuickSelectSketch(final int nomEntries, final int lgResizeFactor, final float samplingProbability, final int numValues, final long seed, final Memory dstMem) {
     super(numValues, seed);
     mem_ = dstMem;
-    int startingCapacity = 1 << Util.startingSubMultiple(
+    final int startingCapacity = 1 << Util.startingSubMultiple(
       Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries) * 2), // target table size is twice the number of nominal entries
       lgResizeFactor,
       Integer.numberOfTrailingZeros(MIN_NOM_ENTRIES)
@@ -52,7 +52,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     mem_.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
     mem_.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
     mem_.putByte(SKETCH_TYPE_BYTE, (byte) SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch.ordinal());
-    boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
+    final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
     mem_.putByte(FLAGS_BYTE, (byte) (
       (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0) |
       (samplingProbability < 1f ? 1 << Flags.IS_IN_SAMPLING_MODE.ordinal() : 0) |
@@ -80,14 +80,14 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed update seed
    */
-  DirectArrayOfDoublesQuickSelectSketch(Memory mem, long seed) {
+  DirectArrayOfDoublesQuickSelectSketch(final Memory mem, final long seed) {
     super(mem.getByte(NUM_VALUES_BYTE), seed);
     mem_ = mem;
     SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE), mem.getByte(PREAMBLE_LONGS_BYTE));
     SerializerDeserializer.validateType(mem_.getByte(SKETCH_TYPE_BYTE), SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch);
-    byte version = mem_.getByte(SERIAL_VERSION_BYTE);
+    final byte version = mem_.getByte(SERIAL_VERSION_BYTE);
     if (version != serialVersionUID) throw new RuntimeException("Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
-    boolean isBigEndian = mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_BIG_ENDIAN.ordinal()));
+    final boolean isBigEndian = mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_BIG_ENDIAN.ordinal()));
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) throw new RuntimeException("Byte order mismatch");
     Util.checkSeedHashes(mem.getShort(SEED_HASH_SHORT), Util.computeSeedHash(seed));
     keysOffset_ = ENTRIES_START;
@@ -102,8 +102,8 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
 
   @Override
   public double[][] getValues() {
-    int count = getRetainedEntries();
-    double[][] values = new double[count][];
+    final int count = getRetainedEntries();
+    final double[][] values = new double[count][];
     if (count > 0) {
       long keyOffset = keysOffset_;
       long valuesOffset = valuesOffset_;
@@ -133,20 +133,20 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
 
   @Override
   public byte[] toByteArray() {
-    int sizeBytes = valuesOffset_ + SIZE_OF_VALUE_BYTES * numValues_ * getCurrentCapacity();
-    byte[] byteArray = new byte[sizeBytes];
-    Memory mem = new NativeMemory(byteArray);
+    final int sizeBytes = valuesOffset_ + SIZE_OF_VALUE_BYTES * numValues_ * getCurrentCapacity();
+    final byte[] byteArray = new byte[sizeBytes];
+    final Memory mem = new NativeMemory(byteArray);
     MemoryUtil.copy(mem_, 0, mem, 0, sizeBytes);
     return byteArray;
   }
 
   @Override
-  protected long getKey(int index) {
+  protected long getKey(final int index) {
     return mem_.getLong(keysOffset_ + SIZE_OF_KEY_BYTES * index);
   }
 
   @Override
-  protected void setKey(int index, long key) {
+  protected void setKey(final int index, final long key) {
     mem_.putLong(keysOffset_ + SIZE_OF_KEY_BYTES * index, key);
   }
 
@@ -163,7 +163,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   }
 
   @Override
-  protected void setThetaLong(long theta) {
+  protected void setThetaLong(final long theta) {
     theta_ = theta;
     mem_.putLong(THETA_LONG, theta_);
   }
@@ -175,7 +175,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
 
   @Override
   // this method copies values regardless of isCopyRequired
-  protected void setValues(int index, double[] values, boolean isCopyRequired) {
+  protected void setValues(final int index, final double[] values, final boolean isCopyRequired) {
     long offset = valuesOffset_ + SIZE_OF_VALUE_BYTES * numValues_ * index;
     for (int i = 0; i < numValues_; i++) {
       mem_.putDouble(offset, values[i]);
@@ -184,7 +184,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   }
 
   @Override
-  protected void updateValues(int index, double[] values) {
+  protected void updateValues(final int index, final double[] values) {
     long offset = valuesOffset_ + SIZE_OF_VALUE_BYTES * numValues_ * index;
     for (int i = 0; i < numValues_; i++) {
       mem_.putDouble(offset, mem_.getDouble(offset) + values[i]);
@@ -201,7 +201,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   }
 
   @Override
-  protected void setIsEmpty(boolean isEmpty) {
+  protected void setIsEmpty(final boolean isEmpty) {
     if (isEmpty_ && !isEmpty) {
       isEmpty_ = false;
       mem_.clearBits(FLAGS_BYTE, (byte) (1 << Flags.IS_EMPTY.ordinal()));
@@ -218,11 +218,11 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
 
   // rebuild in the same memory assuming enough space
   @Override
-  protected void rebuild(int newCapacity) {
-    int currCapacity = getCurrentCapacity();
-    int numValues = getNumValues();
-    long[] keys = new long[currCapacity];
-    double[] values = new double[currCapacity * numValues];
+  protected void rebuild(final int newCapacity) {
+    final int currCapacity = getCurrentCapacity();
+    final int numValues = getNumValues();
+    final long[] keys = new long[currCapacity];
+    final double[] values = new double[currCapacity * numValues];
     mem_.getLongArray(keysOffset_, keys, 0, currCapacity);
     mem_.getDoubleArray(valuesOffset_, values, 0, currCapacity * numValues);
     mem_.clear(keysOffset_, SIZE_OF_KEY_BYTES * newCapacity + SIZE_OF_VALUE_BYTES * newCapacity * numValues);
@@ -240,20 +240,20 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   }
 
   @Override
-  protected int insertKey(long key) {
+  protected int insertKey(final long key) {
     return HashOperations.hashInsertOnly(mem_, lgCurrentCapacity_, key, ENTRIES_START);
   }
 
   @Override
-  protected int findOrInsertKey(long key) {
+  protected int findOrInsertKey(final long key) {
     return HashOperations.hashSearchOrInsert(mem_, lgCurrentCapacity_, key, ENTRIES_START);
   }
 
   @Override
-  protected double[] find(long key) {
-    int index = HashOperations.hashSearch(mem_, lgCurrentCapacity_, key, ENTRIES_START);
+  protected double[] find(final long key) {
+    final int index = HashOperations.hashSearch(mem_, lgCurrentCapacity_, key, ENTRIES_START);
     if (index == -1) return null;
-    double[] array = new double[numValues_];
+    final double[] array = new double[numValues_];
     mem_.getDoubleArray(valuesOffset_ + SIZE_OF_VALUE_BYTES * numValues_ * index, array, 0, numValues_);
     return array;
   }

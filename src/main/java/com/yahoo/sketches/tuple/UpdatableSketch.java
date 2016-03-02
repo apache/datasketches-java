@@ -36,7 +36,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    * @param samplingProbability <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
    * @param summaryFactory An instance of a SummaryFactory.
    */
-  UpdatableSketch(int nomEntries, int lgResizeFactor, float samplingProbability, SummaryFactory<S> summaryFactory) {
+  UpdatableSketch(final int nomEntries, final int lgResizeFactor, final float samplingProbability, final SummaryFactory<S> summaryFactory) {
     super(nomEntries, lgResizeFactor, samplingProbability, summaryFactory);
   }
 
@@ -44,7 +44,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    * This is to create an instance of a sketch given a serialized form
    * @param mem Memory object with serialized UpdatableQukckSelectSketch
    */
-  UpdatableSketch(Memory mem) {
+  UpdatableSketch(final Memory mem) {
     super(mem);
   }
 
@@ -55,7 +55,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    * @param key The given long key
    * @param value The given U value
    */
-  public void update(long key, U value) {
+  public void update(final long key, final U value) {
     update(Util.longToLongArray(key), value);
   }
 
@@ -66,7 +66,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    * @param key The given double key
    * @param value The given U value
    */
-  public void update(double key, U value) {
+  public void update(final double key, final U value) {
     update(Util.doubleToLongArray(key), value);
   }
 
@@ -77,7 +77,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    * @param key The given String key
    * @param value The given U value
    */
-  public void update(String key, U value) {
+  public void update(final String key, final U value) {
     update(Util.stringToByteArray(key), value);
   }
 
@@ -88,7 +88,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    * @param key The given byte[] key
    * @param value The given U value
    */
-  public void update(byte[] key, U value) {
+  public void update(final byte[] key, final U value) {
     if (key == null || key.length == 0) return;
     insertOrIgnore(MurmurHash3.hash(key, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
   }
@@ -100,7 +100,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    * @param key The given int[] key
    * @param value The given U value
    */
-  public void update(int[] key, U value) {
+  public void update(final int[] key, final U value) {
     if (key == null || key.length == 0) return;
     insertOrIgnore(MurmurHash3.hash(key, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
   }
@@ -112,12 +112,12 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    * @param key The given long[] key
    * @param value The given U value
    */
-  public void update(long[] key, U value) {
+  public void update(final long[] key, final U value) {
     if (key == null || key.length == 0) return;
     insertOrIgnore(MurmurHash3.hash(key, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
   }
 
-  private void insertOrIgnore(long key, U value) {
+  private void insertOrIgnore(final long key, final U value) {
     setIsEmpty(false);
     if (key >= getThetaLong()) return;
     int index = findOrInsert(key);

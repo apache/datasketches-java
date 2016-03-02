@@ -24,7 +24,7 @@ public abstract class ArrayOfDoublesIntersection {
   long theta_;
   boolean isFirstCall_;
 
-  ArrayOfDoublesIntersection(int numValues, long seed) {
+  ArrayOfDoublesIntersection(final int numValues, final long seed) {
     numValues_ = numValues;
     seed_ = seed;
     seedHash_ = Util.computeSeedHash(seed);
@@ -38,7 +38,7 @@ public abstract class ArrayOfDoublesIntersection {
    * @param sketchIn Input sketch to intersect with the internal set.
    * @param combiner Method of combining two arrays of double values
    */
-  public void update(ArrayOfDoublesSketch sketchIn, ArrayOfDoublesCombiner combiner) {
+  public void update(final ArrayOfDoublesSketch sketchIn, final ArrayOfDoublesCombiner combiner) {
     boolean isFirstCall = isFirstCall_;
     isFirstCall_ = false;
     if (sketchIn == null) {
@@ -90,7 +90,7 @@ public abstract class ArrayOfDoublesIntersection {
    * @param dstMem Memory for the compact sketch (can be null).
    * @return Result of the intersections so far as a compact sketch.
    */
-  public ArrayOfDoublesCompactSketch getResult(Memory dstMem) {
+  public ArrayOfDoublesCompactSketch getResult(final Memory dstMem) {
     if (isFirstCall_) throw new IllegalStateException("getResult() with no intervening intersections is not a legal result.");
     if (sketch_ == null) return new HeapArrayOfDoublesCompactSketch(null, null, Long.MAX_VALUE, true, numValues_, seedHash_);
     return sketch_.compact(dstMem);

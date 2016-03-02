@@ -19,7 +19,7 @@ class HeapArrayOfDoublesUnion extends ArrayOfDoublesUnion {
    * @param numValues Number of double values to keep for each key.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
-  HeapArrayOfDoublesUnion(int nomEntries, int numValues, long seed) {
+  HeapArrayOfDoublesUnion(final int nomEntries, final int numValues, final long seed) {
     super(new HeapArrayOfDoublesQuickSelectSketch(nomEntries, 3, 1f, numValues, seed));
   }
 
@@ -27,7 +27,7 @@ class HeapArrayOfDoublesUnion extends ArrayOfDoublesUnion {
    * This is to create an instance given a serialized form
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
-  public HeapArrayOfDoublesUnion(Memory mem) {
+  public HeapArrayOfDoublesUnion(final Memory mem) {
     this(mem, DEFAULT_UPDATE_SEED);
   }
 
@@ -36,7 +36,7 @@ class HeapArrayOfDoublesUnion extends ArrayOfDoublesUnion {
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
-  public HeapArrayOfDoublesUnion(Memory mem, long seed) {
+  public HeapArrayOfDoublesUnion(final Memory mem, final long seed) {
     super(new HeapArrayOfDoublesQuickSelectSketch(mem, seed));
   }
 
