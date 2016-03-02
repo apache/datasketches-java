@@ -4,6 +4,8 @@
  */
 package com.yahoo.sketches.tuple;
 
+import com.yahoo.sketches.BinomialBounds;
+
 /**
  * This is a base class for a specialized version of a tuple sketch, where an array of double values is associated with each key.
  * A primitive array is used here, as opposed to a generic Summary object, for performance reasons.
@@ -54,7 +56,7 @@ public abstract class ArrayOfDoublesSketch {
    */
   public double getUpperBound(int numStdDev) {
     if (!isEstimationMode()) return getRetainedEntries();
-    return Util.upperBound(getEstimate(), getTheta(), numStdDev);
+    return BinomialBounds.getUpperBound(getRetainedEntries(), getTheta(), numStdDev, isEmpty_);
   }
 
   /**
@@ -66,7 +68,7 @@ public abstract class ArrayOfDoublesSketch {
    */
   public double getLowerBound(int numStdDev) {
     if (!isEstimationMode()) return getRetainedEntries();
-    return Util.lowerBound(getEstimate(), getTheta(), numStdDev);
+    return BinomialBounds.getLowerBound(getRetainedEntries(), getTheta(), numStdDev, isEmpty_);
   }
 
   /**

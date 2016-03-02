@@ -4,6 +4,8 @@
  */
 package com.yahoo.sketches.tuple;
 
+import com.yahoo.sketches.BinomialBounds;
+
 /**
  * This is an equivalent to com.yahoo.sketches.theta.Sketch with
  * addition of a user-defined Summary object associated with every unique entry
@@ -37,7 +39,7 @@ public abstract class Sketch<S extends Summary> {
    */
   public double getUpperBound(int numStdDev) {
     if (!isEstimationMode()) return getRetainedEntries();
-    return Util.upperBound(getEstimate(), getTheta(), numStdDev);
+    return BinomialBounds.getUpperBound(getRetainedEntries(), getTheta(), numStdDev, isEmpty_);
   }
 
   /**
@@ -49,7 +51,7 @@ public abstract class Sketch<S extends Summary> {
    */
   public double getLowerBound(int numStdDev) {
     if (!isEstimationMode()) return getRetainedEntries();
-    return Util.lowerBound(getEstimate(), getTheta(), numStdDev);
+    return BinomialBounds.getLowerBound(getRetainedEntries(), getTheta(), numStdDev, isEmpty_);
   }
 
   /**
