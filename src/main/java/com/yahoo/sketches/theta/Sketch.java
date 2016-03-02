@@ -43,7 +43,7 @@ public abstract class Sketch {
    * @return the sketch's best estimate of the cardinality of the input stream.
    */
   public double getEstimate() {
-    return Sketch.estimate(getThetaLong(), getRetainedEntries(true), isEmpty());
+    return estimate(getThetaLong(), getRetainedEntries(true), isEmpty());
   }
   
   /**
@@ -55,7 +55,9 @@ public abstract class Sketch {
    * @return the lower bound.
    */
   public double getLowerBound(int numStdDev) {
-    return Sketch.lowerBound(numStdDev, getThetaLong(), getRetainedEntries(true), isEmpty());
+    return (isEstimationMode())
+        ? lowerBound(numStdDev, getThetaLong(), getRetainedEntries(true), isEmpty())
+        : getRetainedEntries(true);
   }
   
   /**
@@ -85,7 +87,9 @@ public abstract class Sketch {
    * @return the upper bound.
    */
   public double getUpperBound(int numStdDev) {
-    return Sketch.upperBound(numStdDev, getThetaLong(), getRetainedEntries(true), isEmpty());
+    return (isEstimationMode())
+        ? upperBound(numStdDev, getThetaLong(), getRetainedEntries(true), isEmpty())
+        : getRetainedEntries(true);
   }
   
   /**
@@ -100,7 +104,7 @@ public abstract class Sketch {
    * @return true if the sketch is in estimation mode.
    */
   public boolean isEstimationMode() {
-    return Sketch.estMode(getThetaLong(), isEmpty());
+    return estMode(getThetaLong(), isEmpty());
   }
   
   /**
@@ -465,17 +469,11 @@ public abstract class Sketch {
   }
   
   static final double lowerBound(int numStdDev, long thetaLong, int curCount, boolean empty) {
-    if ((numStdDev < 1) || (numStdDev > 3)) {
-      throw new IllegalArgumentException("numStdDev can only be the values 1, 2 or 3: "+numStdDev);
-    }
     double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
     return BinomialBoundsN.getLowerBound(curCount, theta, numStdDev, empty);
   }
   
   static final double upperBound(int numStdDev, long thetaLong, int curCount, boolean empty) {
-    if  ((numStdDev < 1) || (numStdDev > 3))  {
-      throw new IllegalArgumentException("numStdDev can only be the values 1, 2 or 3:"+numStdDev);
-    }
     double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
     return BinomialBoundsN.getUpperBound(curCount, theta, numStdDev, empty);
   }

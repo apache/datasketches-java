@@ -45,7 +45,7 @@ class DirectIntersection extends SetOperation implements Intersection {
     int preLongs = CONST_PREAMBLE_LONGS;
     maxLgArrLongs_ = checkMaxLgArrLongs(dstMem);
     
-    //build preamble and cache together in single Memory
+    //build preamble and cache together in single Memory, insert fields into memory in one step
     long[] preArr = new long[preLongs]; //becomes the preamble
     
     long pre0 = 0;
@@ -63,7 +63,7 @@ class DirectIntersection extends SetOperation implements Intersection {
     preArr[0] = pre0;
     
     long pre1 = 0;
-    curCount_ = -1;
+    curCount_ = -1; //set in mem below
     pre1 = insertCurCount(-1, pre1);
     pre1 = insertP((float) 1.0, pre1);
     preArr[1] = pre1;
@@ -119,33 +119,27 @@ class DirectIntersection extends SetOperation implements Intersection {
   }
   
   @Override
-  @SuppressWarnings("null") //due to the state machine construction
   public void update(Sketch sketchIn) {
     
-    //The Intersection State Machine
-    boolean skInIsValidAndNonZero = ((sketchIn != null) && (sketchIn.getRetainedEntries(true) > 0));
+    if (sketchIn == null) return; //ignore. If getResult is called it will throw an exception
     
-    if ((curCount_ == 0) || !skInIsValidAndNonZero) {
-      //The 1st Call (curCount  < 0) and sketchIn was either null or had zero entries.
-      //The Nth Call (curCount == 0) and sketchIn was either null or had zero entries.
-      //The Nth Call (curCount == 0) and sketchIn was valid with cnt > 0.
-      //The Nth Call (curCount  > 0) and sketchIn was either null or had zero entries.
+    //The Intersection State Machine
+    int sketchInEntries = sketchIn.getRetainedEntries(true);
+    
+    if ((curCount_ == 0) || (sketchInEntries == 0)) {
+      //The 1st Call (curCount  < 0) and sketchInEntries == 0.
+      //The Nth Call (curCount == 0) and sketchInEntries == 0.
+      //The Nth Call (curCount == 0) and sketchInEntries  > 0.
+      //The Nth Call (curCount  > 0) and sketchInEntries == 0.
       //All future intersections result in zero data, but theta can still be reduced.
-      //set curCount == 0
-      if (sketchIn != null) {
-        Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
-        thetaLong_ = minThetaLong(sketchIn.getThetaLong());
-        empty_ = setEmpty(empty_ | sketchIn.isEmpty());  //Empty rule
-      } 
-      else {
-        //don't change theta
-        empty_ = setEmpty(true);
-      }
+      Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
+      thetaLong_ = minThetaLong(sketchIn.getThetaLong());
+      empty_ = setEmpty(empty_ | sketchIn.isEmpty());  //Empty rule
       curCount_ = setCurCount(0); //curCount was -1, must set to >= 0
       //No need for a HT.
     }
     else if (curCount_ < 0) { //virgin
-      //The 1st Call and sketchIn was a valid with cnt > 0.
+      //The 1st Call and sketchInEntries > 0.
       //Clone the incoming sketch
       Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
       thetaLong_ = minThetaLong(sketchIn.getThetaLong());
@@ -159,7 +153,6 @@ class DirectIntersection extends SetOperation implements Intersection {
         mem_.clear(preBytes, 8 << lgArrLongs_);
       }
       else { //not enough space in dstMem
-        
         throw new IllegalArgumentException(
             "Insufficient dstMem hash table space: "+(1<<newLgArrLongs)+" > "+(1<<lgArrLongs_));
       }
@@ -168,13 +161,12 @@ class DirectIntersection extends SetOperation implements Intersection {
       moveDataToHT(sketchIn.getCache(), curCount_);
     }
     else { //curCount > 0
-      //Nth Call: and and sketchIn was valid with cnt > 0.
-      //Perform full intersect
+      //Nth Call: and and sketchInEntries > 0.
+      //Must perform full intersect
       Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
       thetaLong_ = minThetaLong(sketchIn.getThetaLong());
       empty_ = setEmpty(empty_ | sketchIn.isEmpty());
       
-      //Must perform full intersection
       // sets resulting hashTable, curCount and adjusts lgArrLongs
       performIntersect(sketchIn);
     }
@@ -271,7 +263,7 @@ class DirectIntersection extends SetOperation implements Intersection {
     
     int htLen = 1 << lgArrLongs_;
     long[] hashTable = new long[htLen];
-    mem_.getLongArray(CONST_PREAMBLE_LONGS << 3, hashTable, 0, htLen); //TODO
+    mem_.getLongArray(CONST_PREAMBLE_LONGS << 3, hashTable, 0, htLen); 
     
     //allocate space for matching
     long[] matchSet = new long[ min(curCount_, sketchIn.getRetainedEntries(true)) ];
@@ -304,7 +296,7 @@ class DirectIntersection extends SetOperation implements Intersection {
     //reduce effective array size to minimum
     lgArrLongs_ = setLgArrLongs(computeMinLgArrLongsFromCount(curCount_));
     curCount_ = setCurCount(matchSetCount);
-    mem_.fill(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_, (byte) 0); //clear for rebuild //TODO
+    mem_.fill(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_, (byte) 0); //clear for rebuild
     //move matchSet to hash table
     moveDataToHT(matchSet, matchSetCount);
   }
@@ -318,7 +310,7 @@ class DirectIntersection extends SetOperation implements Intersection {
       if (HashOperations.continueCondition(thetaLong_, hashIn)) continue;
       // opportunity to use faster unconditional insert
       tmpCnt += 
-          HashOperations.hashSearchOrInsert(mem_, lgArrLongs_, hashIn, preBytes) < 0 ? 1 : 0; //TODO
+          HashOperations.hashSearchOrInsert(mem_, lgArrLongs_, hashIn, preBytes) < 0 ? 1 : 0;
     }
     if (tmpCnt != count) {
       throw new IllegalArgumentException("Count Check Exception: got: "+tmpCnt+", expected: "+count);
@@ -351,11 +343,6 @@ class DirectIntersection extends SetOperation implements Intersection {
   private final int setLgArrLongs(int lgArrLongs) {
     mem_.putByte(LG_ARR_LONGS_BYTE, (byte) lgArrLongs);
     return lgArrLongs;
-  }
-  
-  private final long setThetaLong(long thetaLong) {
-    mem_.putLong(THETA_LONG, thetaLong);
-    return thetaLong;
   }
   
   private final long minThetaLong(long skThetaLong) {
