@@ -14,7 +14,7 @@ import com.yahoo.sketches.BinomialBoundsN;
 /**
  * @author Kevin Lang
  */
-public class BinomialBoundsTest {
+public class BinomialBoundsNTest {
 
   public static double[] runTestAux (long max_numSamplesI, int ci, double min_p) {
     long numSamplesI = 0;

@@ -259,4 +259,8 @@ public final class BinomialBoundsN {
     assert(truth);
   }
   
+  public static void main(String[] args) {
+    checkArgs(0, 1.0, 0);
+  }
+  
 } // end of class "BinomialBoundsN"

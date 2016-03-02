@@ -205,7 +205,7 @@ public final class Sketches {
    * @return the upper bound.
    */
   public static double getUpperBound(int numStdDev, Memory srcMem) {
-    return Sketch.upperBound(numStdDev, getThetaLong(srcMem), getRetainedEntries(srcMem), getEmpty(srcMem));
+    return Sketch.upperBound(getRetainedEntries(srcMem), getThetaLong(srcMem), numStdDev, getEmpty(srcMem));
   }
   
   /**
@@ -219,7 +219,7 @@ public final class Sketches {
    * @return the lower bound.
    */
   public static double getLowerBound(int numStdDev, Memory srcMem) {
-    return Sketch.lowerBound(numStdDev, getThetaLong(srcMem), getRetainedEntries(srcMem), getEmpty(srcMem));
+    return Sketch.lowerBound(getRetainedEntries(srcMem), getThetaLong(srcMem), numStdDev, getEmpty(srcMem));
   }
   
   //Restricted static methods

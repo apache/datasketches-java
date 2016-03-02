@@ -174,26 +174,6 @@ public class SketchTest {
     assertEquals(serVer, 3);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  public void checkLBlimits0() {
-    Sketch.lowerBound(0, Long.MAX_VALUE, 0, true);
-  }
-  
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  public void checkUBlimits0() {
-    Sketch.upperBound(0, Long.MAX_VALUE, 0, true);
-  }
-  
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  public void checkLBlimits4() {
-    Sketch.lowerBound(4, Long.MAX_VALUE, 0, true);
-  }
-  
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  public void checkUBlimits4() {
-    Sketch.upperBound(4, Long.MAX_VALUE, 0, true);
-  }
-  
   @SuppressWarnings("unused")
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkHeapifyAlphaCompactExcep() {

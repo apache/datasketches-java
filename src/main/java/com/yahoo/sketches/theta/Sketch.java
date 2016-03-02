@@ -56,7 +56,7 @@ public abstract class Sketch {
    */
   public double getLowerBound(int numStdDev) {
     return (isEstimationMode())
-        ? lowerBound(numStdDev, getThetaLong(), getRetainedEntries(true), isEmpty())
+        ? lowerBound(getRetainedEntries(true), getThetaLong(), numStdDev, isEmpty())
         : getRetainedEntries(true);
   }
   
@@ -88,7 +88,7 @@ public abstract class Sketch {
    */
   public double getUpperBound(int numStdDev) {
     return (isEstimationMode())
-        ? upperBound(numStdDev, getThetaLong(), getRetainedEntries(true), isEmpty())
+        ? upperBound(getRetainedEntries(true), getThetaLong(), numStdDev, isEmpty())
         : getRetainedEntries(true);
   }
   
@@ -468,12 +468,12 @@ public abstract class Sketch {
     return curCount;
   }
   
-  static final double lowerBound(int numStdDev, long thetaLong, int curCount, boolean empty) {
+  static final double lowerBound(int curCount, long thetaLong, int numStdDev, boolean empty) {
     double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
     return BinomialBoundsN.getLowerBound(curCount, theta, numStdDev, empty);
   }
   
-  static final double upperBound(int numStdDev, long thetaLong, int curCount, boolean empty) {
+  static final double upperBound(int curCount, long thetaLong, int numStdDev, boolean empty) {
     double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
     return BinomialBoundsN.getUpperBound(curCount, theta, numStdDev, empty);
   }
