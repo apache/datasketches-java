@@ -154,9 +154,4 @@ public class SketchesTest {
     //System.out.println(s); //disable here
   }
   
-  public static void main(String[] args) {
-    SketchesTest test = new SketchesTest();
-    test.checkSketchMethods();
-  }
-  
 }

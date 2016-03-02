@@ -167,11 +167,12 @@ public class DirectIntersectionTest {
     
     //1st call = null
     inter = SetOperation.builder().initMemory(iMem).buildIntersection();
-    inter.update(null);  
-    rsk1 = inter.getResult(false, null);
-    est = rsk1.getEstimate();
-    assertEquals(est, 0.0, 0.0);
-    println("Est: "+est); // = 0
+    inter.update(null);
+    try {
+      rsk1 = inter.getResult(false, null);
+    } catch (IllegalStateException e) {
+      //success
+    }
     
     //1st call = empty
     sk = UpdateSketch.builder().build(k); //empty
@@ -211,10 +212,11 @@ public class DirectIntersectionTest {
     inter.update(null);
     //2nd call = null
     inter.update(null);
-    comp1 = inter.getResult(false, null);
-    est = comp1.getEstimate();
-    assertEquals(est, 0.0, 0.0);
-    println("Est: "+est);
+    try {
+      comp1 = inter.getResult(false, null);
+    } catch (IllegalStateException e) {
+      //success
+    }
     
     //1st call = null
     inter = SetOperation.builder().initMemory(iMem).buildIntersection();
@@ -229,14 +231,14 @@ public class DirectIntersectionTest {
     
     //1st call = null
     inter = SetOperation.builder().initMemory(iMem).buildIntersection();
-    inter.update(null);
+    inter.update(null); //ignored
     //2nd call = valid & not empty
     sk = UpdateSketch.builder().build(); 
     sk.update(1);
     inter.update(sk);
     comp1 = inter.getResult(false, null);
     est = comp1.getEstimate();
-    assertEquals(est, 0.0, 0.0);
+    assertEquals(est, 1.0, 0.0);
     println("Est: "+est);
   }
   
@@ -309,10 +311,10 @@ public class DirectIntersectionTest {
     inter = SetOperation.builder().initMemory(iMem).buildIntersection();
     inter.update(sk1);
     //2nd call = null
-    inter.update(null);
+    inter.update(null); //ignored
     comp1 = inter.getResult(false, null);
     est = comp1.getEstimate();
-    assertEquals(est, 0.0, 0.0);
+    assertEquals(est, 1.0, 0.0);
     println("Est: "+est);
     
     //1st call = valid
@@ -470,13 +472,10 @@ public class DirectIntersectionTest {
     assertFalse(inter1.hasResult());
     assertFalse(inter2.hasResult());
     
-    inter1.update(null);  //A virgin intersection intersected with null => empty = true;
+    inter1.update(null);  //ignored
     inter2 = Sketches.wrapIntersection(iMem);
-    assertTrue(inter1.hasResult());
-    assertTrue(inter2.hasResult());
-    CompactSketch comp = inter2.getResult(true, null);
-    assertEquals(comp.getRetainedEntries(false), 0);
-    assertTrue(comp.isEmpty());
+    assertFalse(inter1.hasResult());
+    assertFalse(inter2.hasResult());
   }
   
   @Test
@@ -716,8 +715,4 @@ public class DirectIntersectionTest {
     //System.out.println(s); //disable here
   }
   
-//  public static void main(String[] args) {
-//    DirectIntersectionTest dit = new DirectIntersectionTest();
-//    dit.check2ndCallAfterValid();
-//  }
 }
