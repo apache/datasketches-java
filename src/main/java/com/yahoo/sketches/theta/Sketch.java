@@ -242,7 +242,7 @@ public abstract class Sketch {
    * @param srcMem an image of a Sketch where the image seed hash matches the given seed hash.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * Compact sketches do not use the seed parameter.
+   * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
    * @return a Heap-based Sketch from the given Memory
    */
   public static Sketch heapify(Memory srcMem, long seed) {
@@ -283,7 +283,7 @@ public abstract class Sketch {
    * @param srcMem an image of a Sketch where the image seed hash matches the given seed hash.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * Compact sketches do not use the seed parameter.
+   * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
    * @return a UpdateSketch backed by the given Memory
    */
   public static Sketch wrap(Memory srcMem, long seed) { 
