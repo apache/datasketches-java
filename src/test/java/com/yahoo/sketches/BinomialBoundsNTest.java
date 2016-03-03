@@ -6,6 +6,7 @@ package com.yahoo.sketches;
 
 import static com.yahoo.sketches.BinomialBoundsN.*;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
@@ -107,6 +108,7 @@ public class BinomialBoundsNTest {
       checkArgs(10L, 1.0, 3);
       checkArgs(10L, 1.0, 0);
       checkArgs(10L, 1.0, 4);
+      fail("Expected IllegalArgumentException");
     } catch (IllegalArgumentException e) {
       //pass
     }

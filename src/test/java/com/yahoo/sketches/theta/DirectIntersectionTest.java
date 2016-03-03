@@ -10,6 +10,7 @@ import static com.yahoo.sketches.theta.SetOperation.getMaxIntersectionBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
@@ -170,8 +171,9 @@ public class DirectIntersectionTest {
     inter.update(null);
     try {
       rsk1 = inter.getResult(false, null);
+      fail("Expected IllegalStateException");
     } catch (IllegalStateException e) {
-      //success
+      //pass
     }
     
     //1st call = empty
@@ -214,8 +216,9 @@ public class DirectIntersectionTest {
     inter.update(null);
     try {
       comp1 = inter.getResult(false, null);
+      fail("Expected IllegalStateException");
     } catch (IllegalStateException e) {
-      //success
+      //pass
     }
     
     //1st call = null

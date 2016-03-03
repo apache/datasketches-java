@@ -12,6 +12,7 @@ import static com.yahoo.sketches.memory.CommonTests.setGetPartialArraysWithOffse
 import static com.yahoo.sketches.memory.CommonTests.setGetTests;
 import static com.yahoo.sketches.memory.CommonTests.toHexStringAllMemTests;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
 import static java.lang.Math.*;
 
 import org.testng.annotations.Test;
@@ -39,7 +40,7 @@ public class MemoryRegionTest {
     mem.freeMemory();
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test
   public void checkRegionBound() {
     int memCapacity = 64;
     NativeMemory mem = new AllocMemory(memCapacity);
@@ -47,19 +48,17 @@ public class MemoryRegionTest {
     
     try {
       region.toHexString("Force Assertion Error", memCapacity, 8);
-      println("Did Not Catch Assertion Error");
-      //throw new IllegalArgumentException("Did Not Catch Assertion Error 2");
+      fail("Did Not Catch Assertion Error");
     } 
     catch (AssertionError e) {
-      println("Caught Assertion Error");
-      throw new IllegalArgumentException("Cought Assertion Error");
+      //pass
     
     } finally {
       mem.freeMemory();
     }
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test
   public void checkRegionSrcArrayBound() {
     int memCapacity = 64;
     NativeMemory mem = new AllocMemory(memCapacity);
@@ -67,13 +66,10 @@ public class MemoryRegionTest {
     try {
       byte[] srcArray = { 1, -2, 3, -4 };
       region.putByteArray(0L, srcArray, 0, 5);
-      println("Did Not Catch Assertion Error");
-      //throw new IllegalArgumentException("Did Not Catch Assertion Error");
+      fail("Did Not Catch Assertion Error");
     } 
     catch (AssertionError e) {
-      println("Caught Assertion Error");
-      throw new IllegalArgumentException("Cought Assertion Error");
-      
+      //pass
     } finally {
       mem.freeMemory();
     }
@@ -146,7 +142,7 @@ public class MemoryRegionTest {
     mem2.freeMemory();
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test
   public void checkCopyWithinRegionOverlapAssert() {
     int memCapacity = 64;
     NativeMemory mem = new AllocMemory(memCapacity);
@@ -162,12 +158,10 @@ public class MemoryRegionTest {
     
     try {
       region.copy(0, memCapacity/4, memCapacity/2);
-      println("Did Not Catch Assertion Error");
+      fail("Did not catch assertion error");
     } 
     catch (AssertionError e) {
-      println("Caught Assertion Error");
-      throw new IllegalArgumentException("Cought Assertion Error");
-    
+      //pass
     } finally {
       mem.freeMemory();
     }
