@@ -26,7 +26,7 @@ class HeapAnotB extends SetOperation implements AnotB {
   private long thetaLong_;
   private boolean empty_; 
   private long[] cache_; // no match set
-  private int curCount_ = 0; // this will catch an attempt to get result before call to aNOTb.
+  private int curCount_ = 0;
   
   private int lgArrLongsHT_; //for Hash Table only. may not need to be member after refactoring
   private long[] bHashTable_; //may not need to be member after refactoring.
@@ -86,7 +86,7 @@ class HeapAnotB extends SetOperation implements AnotB {
     //  NOTES:
     //    In the table below, A and B refer to the two input sketches in the order A-not-B.
     //    The Theta rule: min( ThetaA, ThetaB)
-    //    The Empty rule: Whatever A is.
+    //    The Empty rule: Whatever A is: E(a)
     //    The Return triple is defined as: (Theta, Count, EmptyFlag).
     //    bHashTable temporarily stores the values of B.
     //    A sketch in stored form can be in one of 5 states
@@ -94,40 +94,38 @@ class HeapAnotB extends SetOperation implements AnotB {
     //    Null is interpreted as {Theta = 1.0, count = 0, empty = true}.
     //    The empty state may have Theta < 1.0, but count must be zero.
     //    State:
-    //      0 null
-    //      1 Empty
-    //      2 Compact, not ordered
-    //      3 Compact Ordered
-    //      4 Hash-Table
+    //      0 N null
+    //      1 E Empty
+    //      2 C Compact, not ordered
+    //      3 O Compact Ordered
+    //      4 H Hash-Table
     //
     //A    B    swA  swB  Case  Action
     //N    N    0    0    0     Return (1.0, 0, T)
-    //N    E    0    1    1     Return (ThB, 0, T)
-    //N    C    0    2    2     Return (ThB, 0, T)  ?
+    //N    E    0    1    1     Return B: (ThB, 0, T)
+    //N    C    0    2    2     Return (ThB, 0, T)
     //N    O    0    3    3     Return (ThB, 0, T)
     //N    H    0    4    4     Return (ThB, 0, T)
-    //E    N    1    0    8     Return (ThA, 0, T)
+    //E    N    1    0    8     Return A: (ThA, 0, T)
     //E    E    1    1    9     Return (min, 0, T)
-    //E    C    1    2    10    Return (min, 0, T)  ?
-    //E    O    1    3    11    Return (min, 0, T)  ?
+    //E    C    1    2    10    Return (min, 0, T)
+    //E    O    1    3    11    Return (min, 0, T)
     //E    H    1    4    12    Return (min, 0, T)
-    //C    N    2    0    16    Return (ThA, |A|, Ea)  ?
-    //C    E    2    1    17    Return (ThA, |A|, Ea)  ?
-    //C    C    2    2    18    B -> H; => CH
-    //C    O    2    3    19    B -> H; => CH
+    //C    N    2    0    16    Return A: (ThA, |A|, E(a))
+    //C    E    2    1    17    Return (min, |A|, E(a))
+    //C    C    2    2    18    B -> H; => C,H
+    //C    O    2    3    19    B -> H; => C,H
     //C    H    2    4    20    scan all A, search B, on nomatch -> list (same as HH)
-    //O    N    3    0    24    Return (ThA, |A|, Ea)
-    //O    E    3    1    25    Return (ThA, |A|, Ea)  ?
-    //O    C    3    2    26    B -> H; => OH
-    //O    O    3    3    27    B -> H; => OH
+    //O    N    3    0    24    Return A: (ThA, |A|, E(a))
+    //O    E    3    1    25    Return (min, |A|, E(a))
+    //O    C    3    2    26    B -> H; => O,H
+    //O    O    3    3    27    B -> H; => O,H
     //O    H    3    4    28    scan A early stop, search B, on nomatch -> list
-    //H    N    4    0    32    Return (ThA, |A|, Ea)
-    //H    E    4    1    33    Return (ThA, |A|, Ea)
-    //H    C    4    2    34    C -> H; => HH
-    //H    O    4    3    35    O -> H; => HH
+    //H    N    4    0    32    Return A: (ThA, |A|, E(a))
+    //H    E    4    1    33    Return (min, |A|, E(a))
+    //H    C    4    2    34    B -> H; => H,H
+    //H    O    4    3    35    B -> H; => H,H
     //H    H    4    4    36    scan all A, search B, on nomatch -> list
-    //Notes: Null is interpreted as {Theta = 1.0, count = 0, empty = true}.
-    // However, the empty state may have Theta < 1.0, but count must be zero.
     
     switch (sw) {
       case 0 : { //A and B are null.  
