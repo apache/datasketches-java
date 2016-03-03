@@ -4,7 +4,6 @@
  */
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.Util.isMultipleOf8AndGT0;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
@@ -40,7 +39,6 @@ class ForwardCompatibility {
    */
   static final CompactSketch heapify1to3(Memory srcMem, long seed) {
     int memCap = (int) srcMem.getCapacity();
-    assert(isMultipleOf8AndGT0(memCap));
     
     short seedHash = Util.computeSeedHash(seed);
     
@@ -73,7 +71,6 @@ class ForwardCompatibility {
    */
   static final CompactSketch heapify2to3(Memory srcMem, long seed) {
     int memCap = (int) srcMem.getCapacity();
-    assert(isMultipleOf8AndGT0(memCap));
     
     short seedHash = Util.computeSeedHash(seed);
     short memSeedHash = srcMem.getShort(SEED_HASH_SHORT);

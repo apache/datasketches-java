@@ -189,11 +189,6 @@ final class PreambleUtil {
       sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS)
         .append("             Theta (long)     : ").append(thetaLong).append(LS)
         .append("             Theta (long,hex) : ").append(thetaHex).append(LS);
-      if (family == Family.UNION) {
-      sb.append("Bytes 25-31: ThetaU (double)  : ").append(thetaUDbl).append(LS)
-        .append("             ThetaU (long)    : ").append(thetaULong).append(LS)
-        .append("             ThetaU (long,hex): ").append(thetaUHex).append(LS);
-      }
     }
     if (preLongs == 2) {
       sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS)
@@ -202,11 +197,6 @@ final class PreambleUtil {
       sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS)
         .append("             Theta (long)     : ").append(thetaLong).append(LS)
         .append("             Theta (long,hex) : ").append(thetaHex).append(LS);
-      if (family == Family.UNION) {
-      sb.append("Bytes 25-31: ThetaU (double)  : ").append(thetaUDbl).append(LS)
-        .append("             ThetaU (long)    : ").append(thetaULong).append(LS)
-        .append("             ThetaU (long,hex): ").append(thetaUHex).append(LS);
-      }
     }
     if (preLongs == 3) {
       sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS)
@@ -214,12 +204,6 @@ final class PreambleUtil {
       sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS)
         .append("             Theta (long)     : ").append(thetaLong).append(LS)
         .append("             Theta (long,hex) : ").append(thetaHex).append(LS);
-      if (family == Family.UNION) {
-      sb.append(" --ABSENT, ASSUMED:").append(LS);
-      sb.append("Bytes 25-31: ThetaU (double)  : ").append(thetaUDbl).append(LS)
-        .append("             ThetaU (long)    : ").append(thetaULong).append(LS)
-        .append("             ThetaU (long,hex): ").append(thetaUHex).append(LS);
-      }
     }
     if (preLongs == 4) {
       sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS)
