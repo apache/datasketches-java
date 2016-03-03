@@ -20,7 +20,6 @@ import com.yahoo.sketches.memory.Memory;
  * @author Kevin Lang
  */
 class HeapAnotB extends SetOperation implements AnotB {
-  //private static final Family MY_FAMILY = Family.A_NOT_B;
   private final short seedHash_;
   private Sketch a_;
   private Sketch b_;

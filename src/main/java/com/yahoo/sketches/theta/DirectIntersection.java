@@ -81,7 +81,6 @@ class DirectIntersection extends SetOperation implements Intersection {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a> 
    */
   DirectIntersection(Memory srcMem, long seed) {
-    //int memCap = (int)srcMem.getCapacity();
     int preLongs = CONST_PREAMBLE_LONGS;
     long[] preArr = new long[preLongs];
     srcMem.getLongArray(0, preArr, 0, preLongs);
@@ -121,7 +120,7 @@ class DirectIntersection extends SetOperation implements Intersection {
   @Override
   public void update(Sketch sketchIn) {
     
-    if (sketchIn == null) return; //ignore. If getResult is called it will throw an exception
+    if (sketchIn == null) return; //ignore.
     
     //The Intersection State Machine
     int sketchInEntries = sketchIn.getRetainedEntries(true);
@@ -146,6 +145,8 @@ class DirectIntersection extends SetOperation implements Intersection {
       empty_ = setEmpty(empty_ | sketchIn.isEmpty());  //Empty rule
       
       curCount_ = setCurCount(sketchIn.getRetainedEntries(true));
+      
+      //Allocate a HT, checks lgArrLongs, then moves data to HT
       int newLgArrLongs = setLgArrLongs(computeMinLgArrLongsFromCount(curCount_));
       int preBytes = CONST_PREAMBLE_LONGS << 3;
       if (newLgArrLongs <= maxLgArrLongs_) { //OK
@@ -156,8 +157,6 @@ class DirectIntersection extends SetOperation implements Intersection {
         throw new IllegalArgumentException(
             "Insufficient dstMem hash table space: "+(1<<newLgArrLongs)+" > "+(1<<lgArrLongs_));
       }
-      
-      //Then move data into HT
       moveDataToHT(sketchIn.getCache(), curCount_);
     }
     else { //curCount > 0

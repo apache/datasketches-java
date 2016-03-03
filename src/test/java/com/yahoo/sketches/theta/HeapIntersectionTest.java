@@ -153,10 +153,11 @@ public class HeapIntersectionTest {
     //1st call = null
     inter = SetOperation.builder().buildIntersection();
     inter.update(null);  
-    rsk1 = inter.getResult(false, null);
-    est = rsk1.getEstimate();
-    assertEquals(est, 0.0, 0.0);
-    println("Est: "+est); // = 0
+    try {
+      rsk1 = inter.getResult(false, null);
+    } catch (IllegalStateException e) {
+      //success
+    }
     
     //1st call = empty
     sk = UpdateSketch.builder().build(k); //empty
@@ -190,10 +191,11 @@ public class HeapIntersectionTest {
     inter.update(null);
     //2nd call = null
     inter.update(null);
-    comp1 = inter.getResult(false, null);
-    est = comp1.getEstimate();
-    assertEquals(est, 0.0, 0.0);
-    println("Est: "+est);
+    try {
+      comp1 = inter.getResult(false, null);
+    } catch (IllegalStateException e) {
+      //success
+    }
     
     //1st call = null
     inter = SetOperation.builder().buildIntersection();
@@ -215,7 +217,7 @@ public class HeapIntersectionTest {
     inter.update(sk);
     comp1 = inter.getResult(false, null);
     est = comp1.getEstimate();
-    assertEquals(est, 0.0, 0.0);
+    assertEquals(est, 1.0, 0.0);
     println("Est: "+est);
   }
   
@@ -276,10 +278,10 @@ public class HeapIntersectionTest {
     inter = SetOperation.builder().buildIntersection();
     inter.update(sk1);
     //2nd call = null
-    inter.update(null);
+    inter.update(null); //ignored
     comp1 = inter.getResult(false, null);
     est = comp1.getEstimate();
-    assertEquals(est, 0.0, 0.0);
+    assertEquals(est, 1.0, 0.0);
     println("Est: "+est);
     
     //1st call = valid
@@ -410,9 +412,8 @@ public class HeapIntersectionTest {
     
     srcMem = new NativeMemory(byteArray);
     inter2 = (Intersection) SetOperation.heapify(srcMem);
-    CompactSketch comp = inter2.getResult(true, null);
-    assertEquals(comp.getRetainedEntries(false), 0);
-    assertTrue(comp.isEmpty());
+    assertFalse(inter1.hasResult());
+    assertFalse(inter2.hasResult());
   }
   
   @Test
