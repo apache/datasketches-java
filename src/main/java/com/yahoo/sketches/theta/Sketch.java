@@ -15,8 +15,12 @@ import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.extractFamilyID;
+import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
+import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractSerVer;
 
-import com.yahoo.sketches.BinomialBounds;
+import com.yahoo.sketches.BinomialBoundsN;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 
@@ -39,7 +43,7 @@ public abstract class Sketch {
    * @return the sketch's best estimate of the cardinality of the input stream.
    */
   public double getEstimate() {
-    return Sketch.estimate(getThetaLong(), getRetainedEntries(true), isEmpty());
+    return estimate(getThetaLong(), getRetainedEntries(true), isEmpty());
   }
   
   /**
@@ -51,7 +55,9 @@ public abstract class Sketch {
    * @return the lower bound.
    */
   public double getLowerBound(int numStdDev) {
-    return Sketch.lowerBound(numStdDev, getThetaLong(), getRetainedEntries(true), isEmpty());
+    return (isEstimationMode())
+        ? lowerBound(getRetainedEntries(true), getThetaLong(), numStdDev, isEmpty())
+        : getRetainedEntries(true);
   }
   
   /**
@@ -81,7 +87,9 @@ public abstract class Sketch {
    * @return the upper bound.
    */
   public double getUpperBound(int numStdDev) {
-    return Sketch.upperBound(numStdDev, getThetaLong(), getRetainedEntries(true), isEmpty());
+    return (isEstimationMode())
+        ? upperBound(getRetainedEntries(true), getThetaLong(), numStdDev, isEmpty())
+        : getRetainedEntries(true);
   }
   
   /**
@@ -96,7 +104,7 @@ public abstract class Sketch {
    * @return true if the sketch is in estimation mode.
    */
   public boolean isEstimationMode() {
-    return Sketch.estMode(getThetaLong(), isEmpty());
+    return estMode(getThetaLong(), isEmpty());
   }
   
   /**
@@ -234,7 +242,7 @@ public abstract class Sketch {
    * @param srcMem an image of a Sketch where the image seed hash matches the given seed hash.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * Compact sketches do not use the seed parameter.
+   * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
    * @return a Heap-based Sketch from the given Memory
    */
   public static Sketch heapify(Memory srcMem, long seed) {
@@ -268,22 +276,51 @@ public abstract class Sketch {
 
   /**
    * Wrap takes the sketch image in Memory and refers to it directly. There is no data copying onto
-   * the java heap.  Only "Direct" sketches that have been explicity stored as direct objects can
-   * be wrapped.
+   * the java heap.  Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have 
+   * been explicity stored as direct objects can be wrapped. 
+   * An attempt to "wrap" earlier version sketches will result in a "heapified", normal 
+   * Java Heap version of the sketch where all data will be copied to the heap.
    * @param srcMem an image of a Sketch where the image seed hash matches the given seed hash.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * Compact sketches do not use the seed parameter.
+   * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
    * @return a UpdateSketch backed by the given Memory
    */
   public static Sketch wrap(Memory srcMem, long seed) { 
-    int serVer = srcMem.getByte(SER_VER_BYTE);
-    if (serVer < 3) {
-      throw new IllegalArgumentException("Sketch cannot wrap Serialization Versions 1 or 2.");
+    long pre0 = srcMem.getLong(0);
+    int preLongs = extractPreLongs(pre0);
+    int serVer = extractSerVer(pre0);
+    int famID = extractFamilyID(pre0);
+    Family family = Family.idToFamily(famID);
+    switch (family) {
+      case QUICKSELECT: { //Hash Table structure
+        if ((serVer == 3) && (preLongs == 3)) {
+          return DirectQuickSelectSketch.getInstance(srcMem, seed);
+        } else {
+          throw new IllegalArgumentException(
+              "Corrupted: " + family + " family image: must have SerVer = 3 and preLongs = 3");
+        }
+      }
+      case COMPACT: { //serVer 1, 2, or 3, preLongs = 1, 2, or 3
+        if (serVer == 1) {
+          return ForwardCompatibility.heapify1to3(srcMem, seed);
+        }
+        else if (serVer == 2) {
+          return ForwardCompatibility.heapify2to3(srcMem, seed);
+        }
+        int flags = extractFlags(pre0);
+        boolean compact = (flags & (byte)COMPACT_FLAG_MASK) > 0;
+        boolean ordered = (flags & (byte)ORDERED_FLAG_MASK) > 0;
+        if (compact) {
+            return ordered ? DirectCompactOrderedSketch.wrapInstance(srcMem, pre0) 
+                           : DirectCompactSketch.wrapInstance(srcMem, pre0);
+        }
+        throw new IllegalArgumentException(
+            "Corrupted: " + family + " family image must have compact flag set");
+      }
+      default: throw new IllegalArgumentException(
+          "Sketch cannot wrap family: " + family + " as a Sketch");
     }
-    byte famID = srcMem.getByte(FAMILY_BYTE);
-    boolean ordered = srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) ORDERED_FLAG_MASK);
-    return constructDirectSketch(famID, ordered, srcMem, seed);
   }
   
   //Sizing methods
@@ -431,48 +468,14 @@ public abstract class Sketch {
     return curCount;
   }
   
-  static final double lowerBound(int numStdDev, long thetaLong, int curCount, boolean empty) {
-    if ((numStdDev < 1) || (numStdDev > 3)) {
-      throw new IllegalArgumentException("numStdDev can only be the values 1, 2 or 3: "+numStdDev);
-    }
+  static final double lowerBound(int curCount, long thetaLong, int numStdDev, boolean empty) {
     double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
-    return BinomialBounds.getLowerBound(curCount, theta, numStdDev, empty);
+    return BinomialBoundsN.getLowerBound(curCount, theta, numStdDev, empty);
   }
   
-  static final double upperBound(int numStdDev, long thetaLong, int curCount, boolean empty) {
-    if  ((numStdDev < 1) || (numStdDev > 3))  {
-      throw new IllegalArgumentException("numStdDev can only be the values 1, 2 or 3:"+numStdDev);
-    }
+  static final double upperBound(int curCount, long thetaLong, int numStdDev, boolean empty) {
     double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
-    return BinomialBounds.getUpperBound(curCount, theta, numStdDev, empty);
-  }
-  
-  /**
-   * Instantiates a Direct Sketch that wraps Memory.
-   * @param famID the Family ID
-   * @param ordered true if the sketch is of the Compact family and ordered
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>. 
-   * The seed required to instantiate a non-compact sketch.
-   * @return a Sketch
-   */
-  private static final Sketch constructDirectSketch(byte famID, boolean ordered, Memory srcMem, long seed) {
-    boolean compact = srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
-    Family family = idToFamily(famID);
-    switch(family) {
-      case QUICKSELECT: {
-        return DirectQuickSelectSketch.getInstance(srcMem, seed);
-      }
-      case COMPACT: {
-        if(!compact) {
-          throw new IllegalArgumentException("Corrupted " + family + " image: must be compact");
-        }
-        return ordered ? new DirectCompactOrderedSketch(srcMem) : new DirectCompactSketch(srcMem);
-      }
-      default: {
-        throw new IllegalArgumentException("Sketch cannot wrap family: " + family + " as a Sketch");
-      }
-    }
+    return BinomialBoundsN.getUpperBound(curCount, theta, numStdDev, empty);
   }
   
   /**

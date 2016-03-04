@@ -18,7 +18,11 @@ import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
-import static com.yahoo.sketches.theta.PreambleUtil.checkSeedHashes;
+import static com.yahoo.sketches.theta.PreambleUtil.extractFamilyID;
+import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
+import static com.yahoo.sketches.theta.PreambleUtil.extractLgArrLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractSerVer;
 import static java.lang.Math.min;
 
 import java.util.Arrays;
@@ -27,6 +31,7 @@ import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.HashOperations;
+import com.yahoo.sketches.Util;
 
 /**
  * @author Lee Rhodes
@@ -34,12 +39,13 @@ import com.yahoo.sketches.HashOperations;
  */
 class HeapIntersection extends SetOperation implements Intersection{
   private final short seedHash_;
-  private int lgArrLongs_ = 0;
+  //Note: Intersection does not use lgNomLongs or k, per se.
+  private int lgArrLongs_;
   private int curCount_; //curCount of HT, if < 0 means Universal Set (US) is true
   private long thetaLong_;
   private boolean empty_;
   
-  private long[] hashTable_ = null;  //HT => Data
+  private long[] hashTable_;  //HT => Data
   
   /**
    * Construct a new Intersection target on the java heap.
@@ -51,6 +57,8 @@ class HeapIntersection extends SetOperation implements Intersection{
     empty_ = false;
     curCount_ = -1;  //Universal Set is true
     thetaLong_ = Long.MAX_VALUE;
+    lgArrLongs_ = 0;
+    hashTable_ = null;
   }
   
   /**
@@ -60,23 +68,28 @@ class HeapIntersection extends SetOperation implements Intersection{
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a> 
    */
   HeapIntersection(Memory srcMem, long seed) {
-    int preambleLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+    int preLongs = CONST_PREAMBLE_LONGS;
+    long[] preArr = new long[preLongs];
+    srcMem.getLongArray(0, preArr, 0, preLongs);
+    
+    long pre0 = preArr[0];
+    int preambleLongs = extractPreLongs(pre0);
     if (preambleLongs != CONST_PREAMBLE_LONGS) {
-        throw new IllegalArgumentException("PreambleLongs must = 3.");
+      throw new IllegalArgumentException("PreambleLongs must = 3.");
     }
-    
-    int serVer = srcMem.getByte(SER_VER_BYTE);
+    int serVer = extractSerVer(pre0);
     if (serVer != 3) throw new IllegalArgumentException("Ser Version must = 3");
+    int famID = extractFamilyID(pre0);
+    Family.INTERSECTION.checkFamilyID(famID);
+    //Note: Intersection does not use lgNomLongs or k, per se.
+    lgArrLongs_ = extractLgArrLongs(pre0); //current hash table size
     
-    Family.INTERSECTION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
-    
-    lgArrLongs_ = srcMem.getByte(LG_ARR_LONGS_BYTE);
-    
-    empty_ = srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
+    int flags = extractFlags(pre0);
+    empty_ = (flags & EMPTY_FLAG_MASK) > 0;
     
     seedHash_ = computeSeedHash(seed);
     short seedHashMem = srcMem.getShort(SEED_HASH_SHORT);
-    checkSeedHashes(seedHashMem, seedHash_); //check for seed hash conflict
+    Util.checkSeedHashes(seedHashMem, seedHash_); //check for seed hash conflict
     
     curCount_ = srcMem.getInt(RETAINED_ENTRIES_INT);
     thetaLong_ = srcMem.getLong(THETA_LONG);
@@ -97,54 +110,61 @@ class HeapIntersection extends SetOperation implements Intersection{
   }
   
   @Override
-  @SuppressWarnings("null") //due to the state machine construction
   public void update(Sketch sketchIn) {
     
-    //The Intersection State Machine
-    boolean skInIsValidAndNonZero = ((sketchIn != null) && (sketchIn.getRetainedEntries(true) > 0));
-    
-    if ((curCount_ == 0) || !skInIsValidAndNonZero) {
-      //The 1st Call (curCount  < 0) and sketchIn was either null or had zero entries.
-      //The Nth Call (curCount == 0) and sketchIn was either null or had zero entries.
-      //The Nth Call (curCount == 0) and sketchIn was valid with cnt > 0.
-      //The Nth Call (curCount  > 0) and sketchIn was either null or had zero entries.
-      //All future intersections result in zero data, but theta can still be reduced.
-      //set curCount == 0
-      if (sketchIn != null) {
-        checkSeedHashes(seedHash_, sketchIn.getSeedHash());
-        thetaLong_ = min(thetaLong_, sketchIn.getThetaLong());
-        empty_ |= sketchIn.isEmpty();  //Empty rule
-      } 
-      else { //null
-        //Don't change Theta
-        empty_ = true; //effectively the Empty rule
+    if (sketchIn == null) { //null := Th = 1.0, count = 0, empty = true
+      //Can't check the seedHash
+      if (curCount_ < 0) { //1st Call
+        curCount_ = 0;
+        empty_ |= true;
+        thetaLong_ = Long.MAX_VALUE;
+      } else { //Nth Call
+        curCount_ = 0;
+        empty_ |= true;
+        //theta stays the same
       }
+      return;
+    }
+    
+    //The Intersection State Machine
+    int sketchInEntries = sketchIn.getRetainedEntries(true);
+    
+    if ((curCount_ == 0) || (sketchInEntries == 0)) {
+      //The 1st Call (curCount  < 0) and sketchInEntries == 0.
+      //The Nth Call (curCount == 0) and sketchInEntries == 0.
+      //The Nth Call (curCount == 0) and sketchInEntries  > 0.
+      //The Nth Call (curCount  > 0) and sketchInEntries == 0.
+      //All future intersections result in zero data, but theta can still be reduced.
+
+      Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
+      thetaLong_ = min(thetaLong_, sketchIn.getThetaLong()); //Theta rule
+      empty_ |= sketchIn.isEmpty();  //Empty rule
       curCount_ = 0;
       hashTable_ = null; //No need for HT.
     }
-    else if (curCount_ < 0) {
-      //The 1st Call and sketchIn was a valid with cnt > 0.
+    else if (curCount_ < 0) { //virgin
+      //The 1st Call (curCount  < 0) and sketchInEntries  > 0.
       //Clone the incoming sketch
-      checkSeedHashes(seedHash_, sketchIn.getSeedHash());
+      Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
       thetaLong_ = min(thetaLong_, sketchIn.getThetaLong());
-      empty_ |= sketchIn.isEmpty();
+      empty_ |= sketchIn.isEmpty(); //Empty rule
       
       curCount_ = sketchIn.getRetainedEntries(true);
-      //Allocate a HT, checks lgArrLongs
+      
+      //Allocate a HT, checks lgArrLongs, then moves data to HT
       lgArrLongs_ = computeMinLgArrLongsFromCount(curCount_);
       hashTable_ = new long[1 << lgArrLongs_];
       //Then move data into HT
       moveDataToHT(sketchIn.getCache(), curCount_);
     }
     else { //curCount > 0
-      //Nth Call: and and sketchIn was valid with cnt > 0.
-      //Perform full intersect
-      checkSeedHashes(seedHash_, sketchIn.getSeedHash());
+      //The Nth Call (curCount  > 0) and sketchInEntries  > 0.
+      //Must perform full intersect
+      Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
       thetaLong_ = min(thetaLong_, sketchIn.getThetaLong());
       empty_ |= sketchIn.isEmpty();
       
-      //Must perform full intersection
-      // sets resulting hashTable, curCount and adjusts lgArrLongs
+      //Sets resulting hashTable, curCount and adjusts lgArrLongs
       performIntersect(sketchIn);
     }
   }
@@ -212,8 +232,8 @@ class HeapIntersection extends SetOperation implements Intersection{
   }
   
   @Override
-  public void reset() {
-    //lgArrLongs_ //based on whatever it was
+  public void reset() { //retains the hashSeed.
+    lgArrLongs_ = 0;
     hashTable_ = null;
     curCount_ = -1; //Universal Set is true
     thetaLong_ = Long.MAX_VALUE;
@@ -232,6 +252,7 @@ class HeapIntersection extends SetOperation implements Intersection{
     assert ((curCount_ > 0) && (!empty_));
     long[] cacheIn = sketchIn.getCache();
     int arrLongsIn = cacheIn.length;
+    
     //allocate space for matching
     long[] matchSet = new long[ min(curCount_, sketchIn.getRetainedEntries(true)) ];
 
@@ -263,7 +284,7 @@ class HeapIntersection extends SetOperation implements Intersection{
     //reduce effective array size to minimum
     lgArrLongs_ = computeMinLgArrLongsFromCount(matchSetCount);
     curCount_ = matchSetCount;
-    Arrays.fill(hashTable_, 0, 1 << lgArrLongs_, 0L); //clear for rebuild
+    Arrays.fill(hashTable_, 0, 1 << lgArrLongs_, 0L); //clear for rebuild //TODO
     //move matchSet to hash table
     moveDataToHT(matchSet, matchSetCount);
   }
@@ -276,9 +297,12 @@ class HeapIntersection extends SetOperation implements Intersection{
       long hashIn = arr[i];
       if (HashOperations.continueCondition(thetaLong_, hashIn)) continue;
       // opportunity to use faster unconditional insert
-      tmpCnt += HashOperations.hashSearchOrInsert(hashTable_, lgArrLongs_, hashIn) < 0 ? 1 : 0;
+      tmpCnt += 
+          HashOperations.hashSearchOrInsert(hashTable_, lgArrLongs_, hashIn) < 0 ? 1 : 0;
     }
-    assert (tmpCnt == count);
+    if (tmpCnt != count) {
+      throw new IllegalArgumentException("Count Check Exception: got: "+tmpCnt+", expected: "+count);
+    }
   }
   
 }

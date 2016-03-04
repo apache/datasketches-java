@@ -6,38 +6,49 @@ package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
+import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
+import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
+import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
+import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
 
 import com.yahoo.sketches.memory.Memory;
 
 /**
- * An off-heap (Direct), compact, ordered, read-only sketch
+ * An off-heap (Direct), compact, ordered, read-only sketch. This sketch may be associated
+ * with Serial Versions 1, 2, or 3.
  * 
  * @author Lee Rhodes
  */
 class DirectCompactOrderedSketch extends CompactSketch {
   private Memory mem_;
+  private int preLongs_; //1, 2, or 3.
   
-  /**
-   * Wraps the given Memory.
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   */
-  DirectCompactOrderedSketch(Memory srcMem) {
-    super(srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK), 
-        srcMem.getShort(SEED_HASH_SHORT),
-        getCurCount(srcMem), 
-        getThetaLong(srcMem)
-        );
-    getFamily().checkFamilyID(srcMem.getByte(FAMILY_BYTE));
-    mem_ = srcMem;
+  private DirectCompactOrderedSketch(boolean empty, short seedHash, int curCount, long thetaLong) {
+    super(empty, seedHash, curCount, thetaLong);
   }
   
   /**
+   * Wraps the given Memory, which may be a SerVer 1, 2, or 3 sketch.
+   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param pre0 the first 8 bytes of the preamble
+   */
+  static DirectCompactOrderedSketch wrapInstance(Memory srcMem, long pre0) {
+    int preLongs = extractPreLongs(pre0);
+    int flags = extractFlags(pre0);
+    boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
+    short seedHash = (short) extractSeedHash(pre0);
+    int curCount = (preLongs > 1) ? srcMem.getInt(RETAINED_ENTRIES_INT) : 0;
+    long thetaLong = (preLongs > 2) ? srcMem.getLong(THETA_LONG) : Long.MAX_VALUE;
+    DirectCompactOrderedSketch dcos = new DirectCompactOrderedSketch(empty, seedHash, curCount, thetaLong);
+    dcos.preLongs_ = preLongs;
+    dcos.mem_ = srcMem;
+    return dcos;
+  }
+  
+  /**   //TODO convert to factory
    * Converts the given UpdateSketch to this compact ordered form.
    * @param sketch the given UpdateSketch
    * @param dstMem the given destination Memory. This clears it before use.
@@ -59,7 +70,7 @@ class DirectCompactOrderedSketch extends CompactSketch {
   }
   
   
-  /**
+  /**  //TODO convert to factory
    * Constructs this sketch from correct, valid components.
    * @param compactOrderedCache in compact, ordered form
    * @param empty The correct <a href="{@docRoot}/resources/dictionary.html#empty">Empty</a>.
@@ -95,8 +106,7 @@ class DirectCompactOrderedSketch extends CompactSketch {
   @Override
   long[] getCache() {
     long[] cache = new long[getRetainedEntries(false)];
-    int preLongs = mem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    mem_.getLongArray(preLongs << 3, cache, 0, getRetainedEntries(false));
+    mem_.getLongArray(preLongs_ << 3, cache, 0, getRetainedEntries(false));
     return cache;
   }
   

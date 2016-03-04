@@ -49,7 +49,7 @@ public class SketchesTest {
     assertEquals((int)csk2.getEstimate(), k);
     
     csk2 = (CompactSketch)wrapSketch(mem);
-    assertEquals((int)csk2.getEstimate(), k);
+    assertEquals((int)csk2.getEstimate(), k); //TODO fails
     
     csk2 = (CompactSketch)wrapSketch(mem, Util.DEFAULT_UPDATE_SEED);
     assertEquals((int)csk2.getEstimate(), k);

@@ -14,6 +14,7 @@ import static com.yahoo.sketches.memory.CommonTests.toHexStringAllMemTests;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.nio.ByteBuffer;
 
@@ -82,37 +83,34 @@ public class NativeMemoryTest {
     //freeMemory not needed, array is on-heap
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test
   public void checkNativeBaseBound() {
     int memCapacity = 64;
     NativeMemory mem = new AllocMemory(memCapacity);
+    
     try {
       mem.toHexString("Force Assertion Error", memCapacity, 8);
-      println("Did Not Catch Assertion Error: Memory bound");
+      fail("Did Not Catch Assertion Error: Memory bound");
     } 
     catch (AssertionError e) {
-      println("Caught Assertion Error: Memory bound");
-      throw new IllegalArgumentException("Cought Assertion Error: Memory bound");
-    
+      //pass
     } finally {
       mem.freeMemory();
     }
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test
   public void checkNativeSrcArrayBound() {
     long memCapacity = 64;
     NativeMemory mem = new AllocMemory(memCapacity);
-
+    
     try {
       byte[] srcArray = { 1, -2, 3, -4 };
       mem.putByteArray(0L, srcArray, 0, 5);
-      println("Did Not Catch Assertion Error: array bound");
+      fail("Did Not Catch Assertion Error: array bound");
     } 
     catch (AssertionError e) {
-      println("Caught Assertion Error: array bound");
-      throw new IllegalArgumentException("Cought Assertion Error: array bound");
-      
+      //pass
     } finally {
       mem.freeMemory();
     }
@@ -162,7 +160,7 @@ public class NativeMemoryTest {
     mem.freeMemory();
   }
   
-  @Test (expectedExceptions = IllegalArgumentException.class)
+  @Test
   public void checkCopyWithinNativeOverlap() {
     int memCapacity = 64;
     NativeMemory mem = new AllocMemory(memCapacity);
@@ -176,49 +174,42 @@ public class NativeMemoryTest {
     
     try {
       mem.copy(0, memCapacity/4, memCapacity/2);
-      println("Did Not Catch Assertion Error: copy overlap");
+      fail("Did Not Catch Assertion Error: copy overlap");
     } 
     catch (AssertionError e) {
-      println("Caught Assertion Error: copy overlap");
-      throw new IllegalArgumentException("Cought Assertion Error: copy overlap");
-    
+      //pass
     } finally {
       mem.freeMemory();
     }
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test
   public void checkCopyWithinNativeSrcBound() {
     int memCapacity = 64;
     NativeMemory mem = new AllocMemory(memCapacity);
 
     try {
       mem.copy(32, 32, 33);  //hit source bound check
-      println("Did Not Catch Assertion Error: source bound");
+      fail("Did Not Catch Assertion Error: source bound");
     } 
     catch (AssertionError e) {
-      println("Caught Assertion Error: source bound");
-      throw new IllegalArgumentException("Cought Assertion Error: source bound");
-      
+      //pass
     } finally {
       mem.freeMemory();
     }
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test
   public void checkCopyWithinNativeDstBound() {
     int memCapacity = 64;
     NativeMemory mem = new AllocMemory(memCapacity);
 
     try {
       mem.copy(0, 32, 33);  //hit dst bound check
-      println("Did Not Catch Assertion Error: dst bound");
-      //throw new IllegalArgumentException("Did Not Catch Assertion Error");
+      fail("Did Not Catch Assertion Error: dst bound");
     } 
     catch (AssertionError e) {
-      println("Caught Assertion Error: dst bound");
-      throw new IllegalArgumentException("Cought Assertion Error: dst bound");
-      
+      //pass
     } finally {
       mem.freeMemory();
     }

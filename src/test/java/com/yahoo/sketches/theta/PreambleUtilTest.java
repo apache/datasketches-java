@@ -13,6 +13,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.theta.CompactSketch;
@@ -57,7 +58,7 @@ public class PreambleUtilTest {
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkBadSeedHashFromSeed() {
     //In the first 64K values 50541 produces a seedHash of 0, 
-    PreambleUtil.computeSeedHash(50541);
+    Util.computeSeedHash(50541);
   }
   
   @Test
@@ -109,6 +110,10 @@ public class PreambleUtilTest {
     assertEquals(extractFlags(v<<shift), (int) v);
     assertEquals(extractFlags(~(v<<shift)), 0);
     
+    v = 0XFFL;          shift = FLAGS_BYTE_V1 << 3;
+    assertEquals(extractFlagsV1(v<<shift), (int) v);
+    assertEquals(extractFlagsV1(~(v<<shift)), 0);
+    
     v = 0XFFFFL;        shift = SEED_HASH_SHORT << 3;
     assertEquals(extractSeedHash(v<<shift), (int) v);
     assertEquals(extractSeedHash(~(v<<shift)), 0);
@@ -116,6 +121,11 @@ public class PreambleUtilTest {
     v = 0XFFFFFFFFL;    shift = 0;
     assertEquals(extractCurCount(v<<shift), (int) v);
     assertEquals(extractCurCount(~(v<<shift)), 0);
+    
+    float f = (float) 1.0; shift = 32;
+    long res = insertP(f, -1L);
+    float fresult = extractP(res);
+    assertEquals(fresult, f);
   }
   
   @Test

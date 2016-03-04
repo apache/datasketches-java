@@ -6,7 +6,7 @@ package com.yahoo.sketches.examples;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.sketches.BinomialBounds;
+import com.yahoo.sketches.BinomialBoundsN;
 import com.yahoo.sketches.theta.AnotB;
 import com.yahoo.sketches.theta.CompactSketch;
 import com.yahoo.sketches.theta.Intersection;
@@ -57,13 +57,13 @@ public class ExamplesTest {
   
   @Test
   public void boundsExample() {
-    println("BinomialBounds Example:");
+    println("BinomialBoundsN Example:");
     int k = 500;
     double theta = 0.001;
     int stdDev = 2;
-    double ub = BinomialBounds.getUpperBound(k, theta, stdDev, false);
+    double ub = BinomialBoundsN.getUpperBound(k, theta, stdDev, false);
     double est = k/theta;
-    double lb = BinomialBounds.getLowerBound(k, theta, stdDev, false);
+    double lb = BinomialBoundsN.getLowerBound(k, theta, stdDev, false);
     println("K="+k+", Theta="+theta+", SD="+stdDev);
     println("UB:  "+ub);
     println("Est: "+est);

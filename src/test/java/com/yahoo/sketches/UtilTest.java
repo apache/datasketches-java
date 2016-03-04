@@ -46,7 +46,7 @@ public class UtilTest {
     checkIfPowerOf2(8, "Test 8");
     try {
       checkIfPowerOf2(7, "Test 7");
-      Assert.fail("Should have thrown IllegalArgumentException");
+      Assert.fail("Expected IllegalArgumentException");
     } 
     catch (IllegalArgumentException e) {
       //pass

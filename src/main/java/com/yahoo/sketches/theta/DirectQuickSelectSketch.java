@@ -17,8 +17,6 @@ import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
-import static com.yahoo.sketches.theta.PreambleUtil.checkSeedHashes;
-import static com.yahoo.sketches.theta.PreambleUtil.computeSeedHash;
 import static com.yahoo.sketches.theta.PreambleUtil.*;
 import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountIncremented;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedDuplicate;
@@ -32,6 +30,7 @@ import com.yahoo.sketches.memory.MemoryUtil;
 import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.Util;
 
 /**
  * @author Lee Rhodes
@@ -129,7 +128,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     pre0 = insertLgArrLongs(lgArrLongs, pre0);                  //byte 4
     //flags: bigEndian = readOnly = compact = ordered = false; empty = true.
     pre0 = insertFlags(EMPTY_FLAG_MASK, pre0);                  //byte 5
-    pre0 = insertSeedHash(computeSeedHash(seed), pre0);         //bytes 6,7
+    pre0 = insertSeedHash(Util.computeSeedHash(seed), pre0);         //bytes 6,7
     pre1 = curCount;                                            //bytes 8-11
     pre1 = insertP(p, pre1);                                    //bytes 12-15
     thetaLong = (long)(p * MAX_THETA_LONG_AS_DOUBLE);           //bytes 16-23
@@ -204,7 +203,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
           "Possible corruption: Input srcMem cannot be: big-endian, compact, ordered, or read-only");
     }
     
-    checkSeedHashes(seedHash, computeSeedHash(seed));
+    Util.checkSeedHashes(seedHash, Util.computeSeedHash(seed));
     
     long curCapBytes = srcMem.getCapacity();
     int minReqBytes = PreambleUtil.getMemBytes(lgArrLongs, preambleLongs);

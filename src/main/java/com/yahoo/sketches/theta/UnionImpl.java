@@ -24,6 +24,9 @@ import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.HashOperations;
+import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.Util;
+
 
 /**
  * Shared code for the HeapUnion and DirectUnion implementations.
@@ -31,36 +34,81 @@ import com.yahoo.sketches.HashOperations;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-abstract class UnionImpl extends SetOperation implements Union {
-  protected final short seedHash_;
-  protected final UpdateSketch gadget_;
-  protected long unionThetaLong_;
+class UnionImpl extends SetOperation implements Union {
+  private UpdateSketch gadget_;
+  private long unionThetaLong_;
+  private short seedHash_;
+  private Memory unionMem_;
   
-  /**
-   * Construct a new Union that can be on-heap or off-heap
-   * 
-   * @param gadget Configured instance of UpdateSketch.
-   */
-  UnionImpl(UpdateSketch gadget) {
+  
+  private UnionImpl(UpdateSketch gadget, long seed) {
     gadget_ = gadget;
-    seedHash_ = computeSeedHash(gadget_.getSeed());
-    unionThetaLong_ = gadget_.getThetaLong();
+    unionThetaLong_ = gadget.getThetaLong();
+    seedHash_ = computeSeedHash(seed);
   }
   
   /**
-   * Heapify or Wrap a Union that can be on-heap or off-heap 
-   * from a Memory object containing data. 
+   * Construct a new Union SetOperation on the java heap. 
+   * Called by SetOperation.Builder.
    * 
-   * @param gadget Configured instance of UpdateSketch.
+   * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLogs">See lgNomLongs</a>
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
+   * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
+   * @return instance of this sketch
+   */
+  static UnionImpl initNewHeapInstance(int lgNomLongs, long seed, float p, ResizeFactor rf) {
+    UpdateSketch gadget = HeapQuickSelectSketch.getInstance(lgNomLongs, seed, p, rf, true);
+    UnionImpl unionImpl = new UnionImpl(gadget, seed);
+    unionImpl.unionMem_ = null;
+    return unionImpl;
+  }
+  
+  /**
+   * Heapify a Union from a Memory object containing data. 
+   * Called by SetOperation.Builder.
    * @param srcMem The source Memory object.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a> 
    */
-  UnionImpl(UpdateSketch gadget, Memory srcMem, long seed) {
-    gadget_ = gadget;
-    seedHash_ = computeSeedHash(gadget_.getSeed());
+  static UnionImpl heapifyInstance(Memory srcMem, long seed) {
     Family.UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
-    unionThetaLong_ = srcMem.getLong(UNION_THETA_LONG);
+    UpdateSketch gadget = HeapQuickSelectSketch.getInstance(srcMem, seed);
+    UnionImpl unionImpl = new UnionImpl(gadget, seed);
+    unionImpl.unionMem_ = null;
+    return unionImpl;
+  }
+  
+  /**
+   * Construct a new Direct Union in the off-heap destination Memory. 
+   * Called by SetOperation.Builder.
+   * 
+   * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLogs">See lgNomLongs</a>.
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
+   * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
+   * @param dstMem the given Memory object destination. It will be cleared prior to use.
+   */
+  static UnionImpl 
+      initNewDirectInstance(int lgNomLongs, long seed, float p, ResizeFactor rf, Memory dstMem) {
+    UpdateSketch gadget = 
+        DirectQuickSelectSketch.getInstance(lgNomLongs, seed, p, rf, dstMem, true);
+    UnionImpl unionImpl = new UnionImpl(gadget, seed);
+    unionImpl.unionMem_ = dstMem;
+    return unionImpl;
+  }
+  /**
+   * Wrap a Union object around a Union Memory object containing data. 
+   * @param srcMem The source Memory object.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a> 
+   */
+  static UnionImpl wrapInstance(Memory srcMem, long seed) {
+    Family.UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
+    UpdateSketch gadget = DirectQuickSelectSketch.getInstance(srcMem, seed);
+    UnionImpl unionImpl = new UnionImpl(gadget, seed);
+    unionImpl.unionMem_ = srcMem;
+    return unionImpl;
   }
   
   @Override
@@ -104,6 +152,11 @@ abstract class UnionImpl extends SetOperation implements Union {
   }
   
   @Override
+  public Family getFamily() {
+    return Family.UNION;
+  }
+  
+  @Override
   public void update(Sketch sketchIn) { //Only valid for theta Sketches using SerVer = 3
     //UNION Empty Rule: AND the empty states
     
@@ -111,8 +164,7 @@ abstract class UnionImpl extends SetOperation implements Union {
       //null/empty is interpreted as (Theta = 1.0, count = 0, empty = T).  Nothing changes
       return;
     }
-    
-    PreambleUtil.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
+    Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
     long thetaLongIn = sketchIn.getThetaLong();
     unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule with incoming
     int curCountIn = sketchIn.getRetainedEntries(true);
@@ -129,7 +181,7 @@ abstract class UnionImpl extends SetOperation implements Union {
           gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
         }
       } 
-      else { //on Java Heap, ordered, thus compact
+      else { //sketchIn is on the Java Heap, ordered, thus compact
         long[] cacheIn = sketchIn.getCache(); //not a copy!
         for (int i = 0; i < curCountIn; i++ ) {
           long hashIn = cacheIn[i];
@@ -150,6 +202,7 @@ abstract class UnionImpl extends SetOperation implements Union {
       }
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //Theta rule with gadget
+    if (unionMem_ != null) unionMem_.putLong(UNION_THETA_LONG, unionThetaLong_);
   }
   
   @Override
@@ -157,9 +210,9 @@ abstract class UnionImpl extends SetOperation implements Union {
     //UNION Empty Rule: AND the empty states
     if (skMem == null) return;
     int cap = (int)skMem.getCapacity();
-    int f = skMem.getByte(FAMILY_BYTE);
-    if (f != 3) { //
-      throw new IllegalArgumentException("Family must be COMPACT or SET_SKETCH (old): "+f);
+    int fam = skMem.getByte(FAMILY_BYTE);
+    if (fam != 3) { //
+      throw new IllegalArgumentException("Family must be COMPACT or SET_SKETCH (old): " + fam);
     }
     int serVer = skMem.getByte(SER_VER_BYTE);
     if (serVer == 1) { //older SetSketch, which is compact and ordered
@@ -207,7 +260,7 @@ abstract class UnionImpl extends SetOperation implements Union {
     gadget_.update(data);
   }
   
-  //no seedhash, must trust seed. No p, no empty flag, 
+  //no seedhash, assumes given seed is correct. No p, no empty flag, 
   // can only be compact, ordered, size > 24
   private void processVer1(Memory skMem) {
     long thetaLongIn = skMem.getLong(THETA_LONG);
@@ -221,12 +274,13 @@ abstract class UnionImpl extends SetOperation implements Union {
       gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
+    if (unionMem_ != null) unionMem_.putLong(UNION_THETA_LONG, unionThetaLong_);
   }
   
   //has seedhash and p, could have 0 entries & theta, 
   // can only be compact, ordered, size >= 8
   private void processVer2(Memory skMem) {
-    PreambleUtil.checkSeedHashes(seedHash_, skMem.getShort(SEED_HASH_SHORT));
+    Util.checkSeedHashes(seedHash_, skMem.getShort(SEED_HASH_SHORT));
     int preLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
     int curCount = skMem.getInt(RETAINED_ENTRIES_INT);
     long thetaLongIn;
@@ -247,12 +301,13 @@ abstract class UnionImpl extends SetOperation implements Union {
       gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
+    if (unionMem_ != null) unionMem_.putLong(UNION_THETA_LONG, unionThetaLong_);
   }
   
   //has seedhash, p, could have 0 entries & theta, 
   // could be unordered, ordered, compact, or not, size >= 8
   private void processVer3(Memory skMem) {
-    PreambleUtil.checkSeedHashes(seedHash_, skMem.getShort(SEED_HASH_SHORT));
+    Util.checkSeedHashes(seedHash_, skMem.getShort(SEED_HASH_SHORT));
     int preLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
     int curCount = skMem.getInt(RETAINED_ENTRIES_INT);
     long thetaLongIn;
@@ -287,6 +342,7 @@ abstract class UnionImpl extends SetOperation implements Union {
       }
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
+    if (unionMem_ != null) unionMem_.putLong(UNION_THETA_LONG, unionThetaLong_);
   }
 
 }

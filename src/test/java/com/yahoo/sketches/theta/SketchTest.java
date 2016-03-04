@@ -174,26 +174,6 @@ public class SketchTest {
     assertEquals(serVer, 3);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  public void checkLBlimits0() {
-    Sketch.lowerBound(0, Long.MAX_VALUE, 0, true);
-  }
-  
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  public void checkUBlimits0() {
-    Sketch.upperBound(0, Long.MAX_VALUE, 0, true);
-  }
-  
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  public void checkLBlimits4() {
-    Sketch.lowerBound(4, Long.MAX_VALUE, 0, true);
-  }
-  
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  public void checkUBlimits4() {
-    Sketch.upperBound(4, Long.MAX_VALUE, 0, true);
-  }
-  
   @SuppressWarnings("unused")
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkHeapifyAlphaCompactExcep() {
@@ -294,6 +274,27 @@ public class SketchTest {
   public void checkObjectToFamily() {
     Sketch sk1 = UpdateSketch.builder().setFamily(ALPHA).build(512);
     println(objectToFamily(sk1).toString());
+  }
+  
+  @Test
+  public void checkWrapToHeapifyConversion1() {
+    int k = 512;
+    UpdateSketch sketch1 = UpdateSketch.builder().build(k);
+    for (int i=0; i<k; i++) sketch1.update(i);
+    double uest1 = sketch1.getEstimate();
+    int bytes = sketch1.getCurrentBytes(true);
+    Memory v3mem = new NativeMemory(new byte[bytes]);
+    sketch1.compact(true, v3mem);
+    
+    Memory v1mem = ForwardCompatibilityTest.convertSerV3toSerV1(v3mem);
+    Sketch csk2 = Sketch.wrap(v1mem);
+    assertFalse(csk2.isDirect());
+    assertEquals(uest1, csk2.getEstimate(), 0.0);
+    
+    Memory v2mem = ForwardCompatibilityTest.convertSerV3toSerV2(v3mem);
+    csk2 = Sketch.wrap(v2mem);
+    assertFalse(csk2.isDirect());
+    assertEquals(uest1, csk2.getEstimate(), 0.0);
   }
   
   @Test

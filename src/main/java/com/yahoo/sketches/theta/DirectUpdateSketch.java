@@ -4,9 +4,8 @@
  */
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.theta.PreambleUtil.computeSeedHash;
-
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.Util;
 
 /**
  * @author Lee Rhodes
@@ -53,7 +52,7 @@ abstract class DirectUpdateSketch extends UpdateSketch {
 
   @Override
   short getSeedHash() {
-    return computeSeedHash(getSeed());
+    return Util.computeSeedHash(getSeed());
   }
 
 }

@@ -17,9 +17,9 @@ import static com.yahoo.sketches.EquivTables.*;
 // BTW, the suffixes "NStar", "NPrimeB", and "NPrimeF" correspond to variables in the formal
 // writeup of this scheme.
 @SuppressWarnings({"cast"})
-public final class BinomialBounds {
+public final class BinomialBoundsN {
   
-  private BinomialBounds() {}
+  private BinomialBoundsN() {}
   
   private static double[] deltaOfNumSDev = 
   {
@@ -259,4 +259,4 @@ public final class BinomialBounds {
     assert(truth);
   }
   
-} // end of class "BinomialBounds"
+} // end of class "BinomialBoundsN"

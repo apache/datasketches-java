@@ -167,7 +167,7 @@ public class DirectIntersectionTest {
     
     //1st call = null
     inter = SetOperation.builder().initMemory(iMem).buildIntersection();
-    inter.update(null);  
+    inter.update(null);
     rsk1 = inter.getResult(false, null);
     est = rsk1.getEstimate();
     assertEquals(est, 0.0, 0.0);
@@ -716,8 +716,4 @@ public class DirectIntersectionTest {
     //System.out.println(s); //disable here
   }
   
-//  public static void main(String[] args) {
-//    DirectIntersectionTest dit = new DirectIntersectionTest();
-//    dit.check2ndCallAfterValid();
-//  }
 }
