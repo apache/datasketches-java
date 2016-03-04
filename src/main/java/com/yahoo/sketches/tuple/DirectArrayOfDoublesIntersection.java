@@ -20,13 +20,13 @@ class DirectArrayOfDoublesIntersection extends ArrayOfDoublesIntersection {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
-  DirectArrayOfDoublesIntersection(int numValues, long seed, Memory mem) {
+  DirectArrayOfDoublesIntersection(final int numValues, final long seed, final Memory mem) {
     super(numValues, seed);
     mem_ = mem;
   }
 
   @Override
-  protected ArrayOfDoublesQuickSelectSketch createSketch(int size, int numValues, long seed) {
+  protected ArrayOfDoublesQuickSelectSketch createSketch(final int size, final int numValues, final long seed) {
     return new DirectArrayOfDoublesQuickSelectSketch(size, 0, 1f, numValues, seed, mem_);
   }
 

@@ -22,7 +22,7 @@ public abstract class ArrayOfDoublesUnion {
   ArrayOfDoublesQuickSelectSketch sketch_;
   long theta_;
 
-  ArrayOfDoublesUnion(ArrayOfDoublesQuickSelectSketch sketch) {
+  ArrayOfDoublesUnion(final ArrayOfDoublesQuickSelectSketch sketch) {
     nomEntries_ = sketch.getNominalEntries();
     numValues_ = sketch.getNumValues();
     seed_ = sketch.getSeed();
@@ -35,7 +35,7 @@ public abstract class ArrayOfDoublesUnion {
    * Updates the union by adding a set of entries from a given sketch
    * @param sketchIn sketch to add to the union
    */
-  public void update(ArrayOfDoublesSketch sketchIn) {
+  public void update(final ArrayOfDoublesSketch sketchIn) {
     if (sketchIn == null) return;
     Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
     if (sketchIn.isEmpty()) return;
@@ -51,7 +51,7 @@ public abstract class ArrayOfDoublesUnion {
    * @param mem memory for the result (can be null)
    * @return compact sketch representing the union (off-heap if memory is provided)
    */
-  public ArrayOfDoublesCompactSketch getResult(Memory mem) {
+  public ArrayOfDoublesCompactSketch getResult(final Memory mem) {
     if (theta_ < sketch_.getThetaLong()) {
       sketch_.setThetaLong(theta_);
       sketch_.rebuild();
@@ -88,7 +88,7 @@ public abstract class ArrayOfDoublesUnion {
    * @param numValues Number of double values to keep for each key
    * @return maximum required storage bytes given nomEntries and numValues
    */
-  public static int getMaxBytes(int nomEntries, int numValues) {
+  public static int getMaxBytes(final int nomEntries, final int numValues) {
     return ArrayOfDoublesQuickSelectSketch.getMaxBytes(nomEntries, numValues);
   }
 

@@ -17,7 +17,7 @@ public class DeserializeResult<T> {
    * @param object Deserialized object.
    * @param size Deserialized size in bytes.
    */
-  public DeserializeResult(final T object, int size) {
+  public DeserializeResult(final T object, final int size) {
     this.object = object;
     this.size = size;
   }

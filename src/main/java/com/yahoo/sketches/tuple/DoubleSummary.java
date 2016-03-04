@@ -16,7 +16,7 @@ public class DoubleSummary implements UpdatableSummary<Double> {
   public static enum Mode { Sum, Min, Max }
 
   private double value_;
-  private Mode mode_;
+  private final Mode mode_;
 
   /**
    * Creates an instance of DoubleSummary with zero starting value and default mode (Sum)
@@ -29,7 +29,7 @@ public class DoubleSummary implements UpdatableSummary<Double> {
    * Creates an instance of DoubleSummary with zero starting value and a given mode (Sum)
    * @param mode update mode
    */
-  public DoubleSummary(Mode mode) {
+  public DoubleSummary(final Mode mode) {
     mode_ = mode;
     switch (mode) {
     case Sum:
@@ -49,13 +49,13 @@ public class DoubleSummary implements UpdatableSummary<Double> {
    * @param value starting value
    * @param mode update mode
    */
-  public DoubleSummary(double value, Mode mode) {
+  public DoubleSummary(final double value, final Mode mode) {
     value_ = value;
     mode_ = mode;
   }
 
   @Override
-  public void update(Double value) {
+  public void update(final Double value) {
     switch(mode_) {
     case Sum:
       value_ += value.doubleValue();
@@ -88,8 +88,8 @@ public class DoubleSummary implements UpdatableSummary<Double> {
 
   @Override
   public byte[] toByteArray() {
-    byte[] bytes = new byte[SERIALIZED_SIZE_BYTES];
-    Memory mem = new NativeMemory(bytes);
+    final byte[] bytes = new byte[SERIALIZED_SIZE_BYTES];
+    final Memory mem = new NativeMemory(bytes);
     mem.putDouble(VALUE_DOUBLE, value_);
     mem.putByte(MODE_BYTE, (byte) mode_.ordinal());
     return bytes;
@@ -100,7 +100,7 @@ public class DoubleSummary implements UpdatableSummary<Double> {
    * @param mem Memory object with serialized DoubleSummary
    * @return DeserializedResult object, which contains a DoubleSummary object and number of bytes read from the Memory
    */
-  public static DeserializeResult<DoubleSummary> fromMemory(Memory mem) {
+  public static DeserializeResult<DoubleSummary> fromMemory(final Memory mem) {
     return new DeserializeResult<DoubleSummary>(new DoubleSummary(mem.getDouble(VALUE_DOUBLE), Mode.values()[mem.getByte(MODE_BYTE)]), SERIALIZED_SIZE_BYTES);
   }
 

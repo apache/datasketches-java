@@ -17,7 +17,7 @@ import java.lang.reflect.Array;
  */
 public class Intersection<S extends Summary> {
 
-  private SummaryFactory<S> summaryFactory_;
+  private final SummaryFactory<S> summaryFactory_;
   private QuickSelectSketch<S> sketch_;
   private boolean isEmpty_;
   private long theta_;
@@ -27,7 +27,7 @@ public class Intersection<S extends Summary> {
    * Creates new instance
    * @param summaryFactory the summary factory
    */
-  public Intersection(SummaryFactory<S> summaryFactory) {
+  public Intersection(final SummaryFactory<S> summaryFactory) {
     summaryFactory_ = summaryFactory;
     isEmpty_ = false; // universal set at the start
     theta_ = Long.MAX_VALUE;
@@ -38,8 +38,8 @@ public class Intersection<S extends Summary> {
    * Updates the internal set by intersecting it with the given sketch
    * @param sketchIn input sketch to intersect with the internal set
    */
-  public void update(Sketch<S> sketchIn) {
-    boolean isFirstCall = isFirstCall_;
+  public void update(final Sketch<S> sketchIn) {
+    final boolean isFirstCall = isFirstCall_;
     isFirstCall_ = false;
     if (sketchIn == null) {
       isEmpty_ = true;
@@ -61,10 +61,10 @@ public class Intersection<S extends Summary> {
         sketch_.insert(it.getKey(), summary);
       }
     } else {
-      int matchSize = min(sketch_.getRetainedEntries(), sketchIn.getRetainedEntries());
-      long[] matchKeys = new long[matchSize];
+      final int matchSize = min(sketch_.getRetainedEntries(), sketchIn.getRetainedEntries());
+      final long[] matchKeys = new long[matchSize];
       @SuppressWarnings("unchecked")
-      S[] matchSummaries = (S[]) Array.newInstance(summaryFactory_.newSummary().getClass(), matchSize);
+      final S[] matchSummaries = (S[]) Array.newInstance(summaryFactory_.newSummary().getClass(), matchSize);
       int matchCount = 0;
       SketchIterator<S> it = sketchIn.iterator();
       while (it.next()) {

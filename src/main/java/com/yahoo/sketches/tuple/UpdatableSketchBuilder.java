@@ -26,7 +26,7 @@ public class UpdatableSketchBuilder<U, S extends UpdatableSummary<U>> {
    * Creates an instance of UpdatableSketchBuilder with default parameters
    * @param summaryFactory An instance of SummaryFactory.
    */
-  public UpdatableSketchBuilder(SummaryFactory<S> summaryFactory) {
+  public UpdatableSketchBuilder(final SummaryFactory<S> summaryFactory) {
     nomEntries_ = DEFAULT_NOMINAL_ENTRIES;
     resizeFactor_ = DEFAULT_RESIZE_FACTOR;
     samplingProbability_ = DEFAULT_SAMPLING_PROBABILITY;
@@ -38,7 +38,7 @@ public class UpdatableSketchBuilder<U, S extends UpdatableSummary<U>> {
    * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
    * @return this UpdatableSketchBuilder
    */
-  public UpdatableSketchBuilder<U, S> setNominalEntries(int nomEntries) {
+  public UpdatableSketchBuilder<U, S> setNominalEntries(final int nomEntries) {
     nomEntries_ = nomEntries;
     return this;
   }
@@ -50,7 +50,7 @@ public class UpdatableSketchBuilder<U, S extends UpdatableSummary<U>> {
    * @param resizeFactor value of X1, X2, X4 or X8
    * @return this UpdatableSketchBuilder
    */
-  public UpdatableSketchBuilder<U, S> setResizeFactor(ResizeFactor resizeFactor) {
+  public UpdatableSketchBuilder<U, S> setResizeFactor(final ResizeFactor resizeFactor) {
     resizeFactor_ = resizeFactor;
     return this;
   }
@@ -61,7 +61,7 @@ public class UpdatableSketchBuilder<U, S extends UpdatableSummary<U>> {
    * @param samplingProbability sampling probability from 0 to 1
    * @return this UpdatableSketchBuilder
    */
-  public UpdatableSketchBuilder<U, S> setSamplingProbability(float samplingProbability) {
+  public UpdatableSketchBuilder<U, S> setSamplingProbability(final float samplingProbability) {
     if (samplingProbability < 0 || samplingProbability > 1f) {
       throw new IllegalArgumentException("sampling probability must be between 0 and 1");
     }

@@ -30,7 +30,7 @@ public class AnotB<S extends Summary> {
    * @param b The incoming sketch for the second argument
    */  
   @SuppressWarnings("unchecked")
-  public void update(Sketch<S> a, Sketch<S> b) {
+  public void update(final Sketch<S> a, final Sketch<S> b) {
     if (a != null) isEmpty_ = a.isEmpty(); // stays this way even if we end up with no entries in the result
     long thetaA = a == null ? Long.MAX_VALUE : a.getThetaLong();
     long thetaB = b == null ? Long.MAX_VALUE : b.getThetaLong();
@@ -73,7 +73,7 @@ public class AnotB<S extends Summary> {
     return result;
   }
 
-  private long[] convertToHashTable(Sketch<S> sketch) {
+  private long[] convertToHashTable(final Sketch<S> sketch) {
     int size = Math.max(
       ceilingPowerOf2((int) Math.ceil(sketch.getRetainedEntries() / QuickSelectSketch.REBUILD_RATIO_AT_TARGET_SIZE)),
       QuickSelectSketch.MIN_NOM_ENTRIES
@@ -91,7 +91,7 @@ public class AnotB<S extends Summary> {
     count_ = 0;
   }
 
-  private void getNoMatchSetFromSketch(Sketch<S> sketch) {
+  private void getNoMatchSetFromSketch(final Sketch<S> sketch) {
     if (sketch instanceof CompactSketch) {
       keys_ = sketch.keys_.clone();
       summaries_ = sketch.summaries_.clone();

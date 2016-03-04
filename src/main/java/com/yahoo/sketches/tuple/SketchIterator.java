@@ -1,3 +1,7 @@
+/*
+ * Copyright 2015, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
 package com.yahoo.sketches.tuple;
 
 /**
@@ -10,7 +14,7 @@ public class SketchIterator<S extends Summary> {
   private S[] summaries_;
   private int i_;
 
-  SketchIterator(long[] keys, S[] summaries) {
+  SketchIterator(final long[] keys, final S[] summaries) {
     keys_ = keys;
     summaries_ =  summaries;
     i_ = -1;

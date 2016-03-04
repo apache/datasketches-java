@@ -13,7 +13,7 @@ class HeapArrayOfDoublesSketchIterator implements ArrayOfDoublesSketchIterator {
   private double[][] values_;
   private int i_;
 
-  HeapArrayOfDoublesSketchIterator(long[] keys, double[][] values) {
+  HeapArrayOfDoublesSketchIterator(final long[] keys, final double[][] values) {
     keys_ = keys;
     values_ = values;
     i_ = -1;
