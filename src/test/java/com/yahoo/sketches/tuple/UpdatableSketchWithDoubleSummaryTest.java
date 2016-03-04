@@ -81,8 +81,6 @@ public class UpdatableSketchWithDoubleSummaryTest {
     for (int i = 1; i <= 8192; i++) sketch.update(i, 1.0);
     Assert.assertTrue(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 8192, 8192 * 0.01);
-    Assert.assertEquals(sketch.getEstimate(), sketch.getLowerBound(0));
-    Assert.assertEquals(sketch.getEstimate(), sketch.getUpperBound(0));
     Assert.assertTrue(sketch.getEstimate() >= sketch.getLowerBound(1));
     Assert.assertTrue(sketch.getEstimate() < sketch.getUpperBound(1));
 

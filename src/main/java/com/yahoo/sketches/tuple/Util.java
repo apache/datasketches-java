@@ -27,21 +27,6 @@ class Util {
     return lgStart;
   }
 
-  static final double upperBound(final double estimate, final double theta, final double numStdDev) {
-    double dsq = numStdDev * numStdDev * ((1.0 / theta) - 1.0);
-    return estimate + (dsq / 2.0) + ((Math.sqrt(dsq) / 2.0) * Math.sqrt((4.0 * estimate) + dsq));
-  }
-
-  static final double lowerBound(final double estimate, final double theta, final double numStdDev) {
-    double dsq = numStdDev * numStdDev * ((1.0 / theta) - 1.0);
-    return estimate + (dsq / 2.0) - ((Math.sqrt(dsq) / 2.0) * Math.sqrt((4.0 * estimate) + dsq));
-  }
-
-  static final long[] longToLongArray(final long value) {
-    final long[] array = { value };
-    return array;
-  }
-
   static final long[] doubleToLongArray(final double value) {
     final double d = (value == 0.0) ? 0.0 : value; // canonicalize -0.0, 0.0
     final long[] array = { Double.doubleToLongBits(d) }; // canonicalize all NaN forms
