@@ -28,7 +28,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @param values The given values
    */
   public void update(final long key, final double[] values) {
-    update(Util.longToLongArray(key), values);
+    update(new long[] {key}, values);
   }
 
   /**
