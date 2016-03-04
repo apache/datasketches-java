@@ -39,6 +39,7 @@ import com.yahoo.sketches.Util;
  */
 class HeapIntersection extends SetOperation implements Intersection{
   private final short seedHash_;
+  //Note: Intersection does not use lgNomLongs or k, per se.
   private int lgArrLongs_;
   private int curCount_; //curCount of HT, if < 0 means Universal Set (US) is true
   private long thetaLong_;
@@ -141,7 +142,7 @@ class HeapIntersection extends SetOperation implements Intersection{
       curCount_ = 0;
       hashTable_ = null; //No need for HT.
     }
-    else if (curCount_ < 0) {
+    else if (curCount_ < 0) { //virgin
       //The 1st Call (curCount  < 0) and sketchInEntries  > 0.
       //Clone the incoming sketch
       Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
@@ -297,7 +298,7 @@ class HeapIntersection extends SetOperation implements Intersection{
       if (HashOperations.continueCondition(thetaLong_, hashIn)) continue;
       // opportunity to use faster unconditional insert
       tmpCnt += 
-          HashOperations.hashSearchOrInsert(hashTable_, lgArrLongs_, hashIn) < 0 ? 1 : 0; //TODO
+          HashOperations.hashSearchOrInsert(hashTable_, lgArrLongs_, hashIn) < 0 ? 1 : 0;
     }
     if (tmpCnt != count) {
       throw new IllegalArgumentException("Count Check Exception: got: "+tmpCnt+", expected: "+count);

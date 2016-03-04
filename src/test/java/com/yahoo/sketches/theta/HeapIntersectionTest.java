@@ -9,15 +9,8 @@ import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
-
-//import com.yahoo.sketches.theta.Sketch.Builder;
-//import com.yahoo.sketches.theta.Sketch.Builder.*;
-
-
-
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.Util;
@@ -154,12 +147,10 @@ public class HeapIntersectionTest {
     //1st call = null
     inter = SetOperation.builder().buildIntersection();
     inter.update(null);  
-    try {
-      rsk1 = inter.getResult(false, null);
-      fail("Expected IllegalStateException");
-    } catch (IllegalStateException e) {
-      //pass
-    }
+    rsk1 = inter.getResult(false, null);
+    est = rsk1.getEstimate();
+    assertEquals(est, 0.0, 0.0);
+    println("Est: "+est); // = 0
     
     //1st call = empty
     sk = UpdateSketch.builder().build(k); //empty
@@ -193,12 +184,10 @@ public class HeapIntersectionTest {
     inter.update(null);
     //2nd call = null
     inter.update(null);
-    try {
-      comp1 = inter.getResult(false, null);
-      fail("Expected IllegalStateException");
-    } catch (IllegalStateException e) {
-      //pass
-    }
+    comp1 = inter.getResult(false, null);
+    est = comp1.getEstimate();
+    assertEquals(est, 0.0, 0.0);
+    println("Est: "+est);
     
     //1st call = null
     inter = SetOperation.builder().buildIntersection();
@@ -220,7 +209,7 @@ public class HeapIntersectionTest {
     inter.update(sk);
     comp1 = inter.getResult(false, null);
     est = comp1.getEstimate();
-    assertEquals(est, 1.0, 0.0);
+    assertEquals(est, 0.0, 0.0);
     println("Est: "+est);
   }
   
@@ -281,10 +270,10 @@ public class HeapIntersectionTest {
     inter = SetOperation.builder().buildIntersection();
     inter.update(sk1);
     //2nd call = null
-    inter.update(null); //ignored
+    inter.update(null);
     comp1 = inter.getResult(false, null);
     est = comp1.getEstimate();
-    assertEquals(est, 1.0, 0.0);
+    assertEquals(est, 0.0, 0.0);
     println("Est: "+est);
     
     //1st call = valid
@@ -415,8 +404,9 @@ public class HeapIntersectionTest {
     
     srcMem = new NativeMemory(byteArray);
     inter2 = (Intersection) SetOperation.heapify(srcMem);
-    assertFalse(inter1.hasResult());
-    assertFalse(inter2.hasResult());
+    CompactSketch comp = inter2.getResult(true, null);
+    assertEquals(comp.getRetainedEntries(false), 0);
+    assertTrue(comp.isEmpty());
   }
   
   @Test
