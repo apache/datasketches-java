@@ -17,7 +17,7 @@ class Util {
   * @param lgMin Minimum starting power of 2
   * @return The returning log2 size will be a proper sub-multiple of the final lgTarget by the lgResizeRatio
   */
-  static final int startingSubMultiple(int lgTarget, int lgResizeRatio, int lgMin) {
+  static final int startingSubMultiple(final int lgTarget, final int lgResizeRatio, final int lgMin) {
     int lgStart;
     if (lgResizeRatio > 0) {
       lgStart = (Math.abs(lgTarget - lgMin) % lgResizeRatio) + lgMin;
@@ -27,13 +27,13 @@ class Util {
     return lgStart;
   }
 
-  static final long[] doubleToLongArray(double value) {
-    double d = (value == 0.0) ? 0.0 : value; // canonicalize -0.0, 0.0
-    long[] array = { Double.doubleToLongBits(d) }; // canonicalize all NaN forms
+  static final long[] doubleToLongArray(final double value) {
+    final double d = (value == 0.0) ? 0.0 : value; // canonicalize -0.0, 0.0
+    final long[] array = { Double.doubleToLongBits(d) }; // canonicalize all NaN forms
     return array;
   }
 
-  static final byte[] stringToByteArray(String value) {
+  static final byte[] stringToByteArray(final String value) {
     if (value == null || value.isEmpty()) return null;
     return value.getBytes(UTF_8);
   }
@@ -45,9 +45,9 @@ class Util {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
    * @return the seed hash.
    */
-  static short computeSeedHash(long seed) {
-    long[] seedArr = {seed};
-    short seedHash = (short)((hash(seedArr, 0L)[0]) & 0xFFFFL);
+  static short computeSeedHash(final long seed) {
+    final long[] seedArr = {seed};
+    final short seedHash = (short)((hash(seedArr, 0L)[0]) & 0xFFFFL);
     if (seedHash == 0) {
       throw new IllegalArgumentException(
           "The given seed: " + seed + " produced a seedHash of zero. " + 
@@ -56,7 +56,7 @@ class Util {
     return seedHash; 
   }
   
-  static final void checkSeedHashes(short seedHashA, short seedHashB) {
+  static final void checkSeedHashes(final short seedHashA, final short seedHashB) {
     if (seedHashA != seedHashB) throw new IllegalArgumentException("Incompatible Seed Hashes. "+ seedHashA + ", " + seedHashB);
   }
 

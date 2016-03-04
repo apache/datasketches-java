@@ -12,8 +12,6 @@ import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
-import static com.yahoo.sketches.theta.PreambleUtil.checkSeedHashes;
-import static com.yahoo.sketches.theta.PreambleUtil.computeSeedHash;
 import static com.yahoo.sketches.theta.PreambleUtil.extractCurCount;
 import static com.yahoo.sketches.theta.PreambleUtil.extractFamilyID;
 import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
@@ -36,6 +34,7 @@ import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.Util;
 
 /**
  * @author Lee Rhodes
@@ -161,7 +160,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
           "Possible corruption: Input srcMem cannot be: big-endian, compact, ordered, or read-only");
     }
     
-    checkSeedHashes(seedHash, computeSeedHash(seed));
+    Util.checkSeedHashes(seedHash, Util.computeSeedHash(seed));
     
     long curCapBytes = srcMem.getCapacity();
     int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);

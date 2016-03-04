@@ -27,7 +27,7 @@ class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
    * @param sketch the given UpdatableArrayOfDoublesSketch
    * @param dstMem the given destination Memory.
    */
-  DirectArrayOfDoublesCompactSketch(final ArrayOfDoublesUpdatableSketch sketch, Memory dstMem) {
+  DirectArrayOfDoublesCompactSketch(final ArrayOfDoublesUpdatableSketch sketch, final Memory dstMem) {
     super(sketch.getNumValues());
     mem_ = dstMem;
     mem_.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
@@ -63,7 +63,7 @@ class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
   /**
    * Creates an instance from components
    */
-  DirectArrayOfDoublesCompactSketch(long[] keys, double[][] values, long theta, boolean isEmpty, int numValues, short seedHash, Memory dstMem) {
+  DirectArrayOfDoublesCompactSketch(final long[] keys, final double[][] values, final long theta, final boolean isEmpty, final int numValues, final short seedHash, final Memory dstMem) {
     super(numValues);
     mem_ = dstMem;
     mem_.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
@@ -97,7 +97,7 @@ class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
    * Wraps the given Memory.
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
-  DirectArrayOfDoublesCompactSketch(Memory mem) {
+  DirectArrayOfDoublesCompactSketch(final Memory mem) {
     this(mem, DEFAULT_UPDATE_SEED);
   }
 
@@ -106,7 +106,7 @@ class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
-  DirectArrayOfDoublesCompactSketch(Memory mem, long seed) {
+  DirectArrayOfDoublesCompactSketch(final Memory mem, final long seed) {
     super(mem.getByte(NUM_VALUES_BYTE));
     mem_ = mem;
     SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE), mem.getByte(PREAMBLE_LONGS_BYTE));

@@ -15,7 +15,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
 
   final long seed_;
 
-  ArrayOfDoublesUpdatableSketch(int numValues, long seed) {
+  ArrayOfDoublesUpdatableSketch(final int numValues, final long seed) {
     super(numValues);
     seed_ = seed;
   }
@@ -27,7 +27,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @param key The given long key
    * @param values The given values
    */
-  public void update(long key, double[] values) {
+  public void update(final long key, final double[] values) {
     update(new long[] {key}, values);
   }
 
@@ -38,7 +38,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @param key The given double key
    * @param values The given values
    */
-  public void update(double key, double[] values) {
+  public void update(final double key, final double[] values) {
     update(Util.doubleToLongArray(key), values);
   }
 
@@ -49,7 +49,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @param key The given String key
    * @param values The given values
    */
-  public void update(String key, double[] values) {
+  public void update(final String key, final double[] values) {
     update(Util.stringToByteArray(key), values);
   }
 
@@ -60,7 +60,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @param key The given byte[] key
    * @param values The given values
    */
-  public void update(byte[] key, double[] values) {
+  public void update(final byte[] key, final double[] values) {
     if (key == null || key.length == 0) return;
     insertOrIgnore(MurmurHash3.hash(key, seed_)[0] >>> 1, values);
   }
@@ -72,7 +72,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @param key The given int[] key
    * @param values The given values
    */
-  public void update(int[] key, double[] values) {
+  public void update(final int[] key, final double[] values) {
     if (key == null || key.length == 0) return;
     insertOrIgnore(MurmurHash3.hash(key, seed_)[0] >>> 1, values);
   }
@@ -84,7 +84,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @param key The given long[] key
    * @param values The given values
    */
-  public void update(long[] key, double[] values) {
+  public void update(final long[] key, final double[] values) {
     if (key == null || key.length == 0) return;
     insertOrIgnore(MurmurHash3.hash(key, seed_)[0] >>> 1, values);
   }
@@ -113,7 +113,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @param dstMem memory for the compact sketch (can be null)
    * @return compact sketch (off-heap if memory is provided)
    */
-  public ArrayOfDoublesCompactSketch compact(Memory dstMem) {
+  public ArrayOfDoublesCompactSketch compact(final Memory dstMem) {
     if (dstMem == null) return new HeapArrayOfDoublesCompactSketch(this);
     return new DirectArrayOfDoublesCompactSketch(this, dstMem);
   }

@@ -14,7 +14,7 @@ import com.yahoo.sketches.memory.Memory;
  */
 class DirectArrayOfDoublesUnion extends ArrayOfDoublesUnion {
 
-  private Memory mem_;
+  private final Memory mem_;
 
   /**
    * Creates an instance of DirectArrayOfDoublesUnion
@@ -23,7 +23,7 @@ class DirectArrayOfDoublesUnion extends ArrayOfDoublesUnion {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @param dstMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
-  DirectArrayOfDoublesUnion(int nomEntries, int numValues, long seed, Memory dstMem) {
+  DirectArrayOfDoublesUnion(final int nomEntries, final int numValues, final long seed, final Memory dstMem) {
     super(new DirectArrayOfDoublesQuickSelectSketch(nomEntries, 3, 1f, numValues, seed, dstMem));
     mem_ = dstMem;
   }
@@ -32,7 +32,7 @@ class DirectArrayOfDoublesUnion extends ArrayOfDoublesUnion {
    * Wraps the given Memory.
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
-  public DirectArrayOfDoublesUnion(Memory mem) {
+  public DirectArrayOfDoublesUnion(final Memory mem) {
     this(mem, DEFAULT_UPDATE_SEED);
   }
 
@@ -41,7 +41,7 @@ class DirectArrayOfDoublesUnion extends ArrayOfDoublesUnion {
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
-  public DirectArrayOfDoublesUnion(Memory mem, long seed) {
+  public DirectArrayOfDoublesUnion(final Memory mem, final long seed) {
     super(new DirectArrayOfDoublesQuickSelectSketch(mem, seed));
     mem_ = mem;
   }

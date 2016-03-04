@@ -4,7 +4,7 @@
  */
 package com.yahoo.sketches.tuple;
 
-import com.yahoo.sketches.BinomialBounds;
+import com.yahoo.sketches.BinomialBoundsN;
 
 /**
  * This is a base class for a specialized version of a tuple sketch, where an array of double values is associated with each key.
@@ -34,7 +34,7 @@ public abstract class ArrayOfDoublesSketch {
   long theta_;
   boolean isEmpty_ = true;
 
-  ArrayOfDoublesSketch(int numValues) {
+  ArrayOfDoublesSketch(final int numValues) {
     numValues_ = numValues;
   }
 
@@ -54,9 +54,9 @@ public abstract class ArrayOfDoublesSketch {
    * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the upper bound.
    */
-  public double getUpperBound(int numStdDev) {
+  public double getUpperBound(final int numStdDev) {
     if (!isEstimationMode()) return getRetainedEntries();
-    return BinomialBounds.getUpperBound(getRetainedEntries(), getTheta(), numStdDev, isEmpty_);
+    return BinomialBoundsN.getUpperBound(getRetainedEntries(), getTheta(), numStdDev, isEmpty_);
   }
 
   /**
@@ -66,9 +66,9 @@ public abstract class ArrayOfDoublesSketch {
    * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the lower bound.
    */
-  public double getLowerBound(int numStdDev) {
+  public double getLowerBound(final int numStdDev) {
     if (!isEstimationMode()) return getRetainedEntries();
-    return BinomialBounds.getLowerBound(getRetainedEntries(), getTheta(), numStdDev, isEmpty_);
+    return BinomialBoundsN.getLowerBound(getRetainedEntries(), getTheta(), numStdDev, isEmpty_);
   }
 
   /**

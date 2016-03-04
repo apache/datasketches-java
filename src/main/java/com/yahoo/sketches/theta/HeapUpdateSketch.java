@@ -16,9 +16,9 @@ import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
-import static com.yahoo.sketches.theta.PreambleUtil.computeSeedHash;
 
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -74,7 +74,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
 
   @Override
   short getSeedHash() {
-    return computeSeedHash(getSeed());
+    return Util.computeSeedHash(getSeed());
   }
 
   @Override

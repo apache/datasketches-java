@@ -27,7 +27,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
 
   private enum Flags { IS_BIG_ENDIAN, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
 
-  CompactSketch(long[] keys, S[] summaries, long theta, boolean isEmpty) {
+  CompactSketch(final long[] keys, final S[] summaries, final long theta, final boolean isEmpty) {
     keys_ = keys;
     summaries_ = summaries;
     theta_ = theta;
@@ -39,7 +39,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
    * @param mem Memory object with serialized CompactSketch
    */
   @SuppressWarnings({"unchecked"})
-  CompactSketch(Memory mem) {
+  CompactSketch(final Memory mem) {
     int offset = 0;
     byte preambleLongs = mem.getByte(offset++);
     byte version = mem.getByte(offset++);

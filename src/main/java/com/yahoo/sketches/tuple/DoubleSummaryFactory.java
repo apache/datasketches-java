@@ -14,7 +14,7 @@ import com.yahoo.sketches.tuple.DoubleSummary.Mode;
  */
 public class DoubleSummaryFactory implements SummaryFactory<DoubleSummary> {
 
-  private DoubleSummary.Mode summaryMode_;
+  private final DoubleSummary.Mode summaryMode_;
 
   /**
    * Creates an instance of DoubleSummaryFactory with default mode
@@ -27,7 +27,7 @@ public class DoubleSummaryFactory implements SummaryFactory<DoubleSummary> {
    * Creates an instance of DoubleSummaryFactory with a given mode
    * @param summaryMode summary mode
    */
-  public DoubleSummaryFactory(DoubleSummary.Mode summaryMode) {
+  public DoubleSummaryFactory(final DoubleSummary.Mode summaryMode) {
     summaryMode_ = summaryMode;
   }
 
@@ -46,8 +46,8 @@ public class DoubleSummaryFactory implements SummaryFactory<DoubleSummary> {
 
   @Override
   public byte[] toByteArray() {
-    byte[] bytes = new byte[SERIALIZED_SIZE_BYTES];
-    Memory mem = new NativeMemory(bytes);
+    final byte[] bytes = new byte[SERIALIZED_SIZE_BYTES];
+    final Memory mem = new NativeMemory(bytes);
     mem.putByte(MODE_BYTE, (byte) summaryMode_.ordinal());
     return bytes;
   }
@@ -57,12 +57,12 @@ public class DoubleSummaryFactory implements SummaryFactory<DoubleSummary> {
    * @param mem Memory object with serialized DoubleSummaryFactory
    * @return DeserializedResult object, which contains a DoubleSummaryFactory object and number of bytes read from the Memory
    */
-  public static DeserializeResult<DoubleSummaryFactory> fromMemory(Memory mem) {
+  public static DeserializeResult<DoubleSummaryFactory> fromMemory(final Memory mem) {
     return new DeserializeResult<DoubleSummaryFactory>(new DoubleSummaryFactory(Mode.values()[mem.getByte(MODE_BYTE)]), SERIALIZED_SIZE_BYTES);
   }
 
   @Override
-  public DeserializeResult<DoubleSummary> summaryFromMemory(Memory mem) {
+  public DeserializeResult<DoubleSummary> summaryFromMemory(final Memory mem) {
     return DoubleSummary.fromMemory(mem);
   }
 

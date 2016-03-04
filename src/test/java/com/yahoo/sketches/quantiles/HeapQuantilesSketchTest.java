@@ -12,6 +12,7 @@ import static com.yahoo.sketches.quantiles.Util.lg;
 import static java.lang.Math.floor;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
@@ -512,8 +513,8 @@ public class HeapQuantilesSketchTest {
 
   @Test
   public void checkImproperKvalues() {
-    checksForK(0);
-    checksForK(1<<16);
+    checksForImproperK(0);
+    checksForImproperK(1<<16);
   }
   
   //Visual only tests
@@ -628,26 +629,26 @@ public class HeapQuantilesSketchTest {
     HeapUnion.mergeInto(qs2, qs1);
   }
   
-  private static void checksForK(int k) {
+  private static void checksForImproperK(int k) {
     String s = "Did not catch improper k: "+k;
     try {
       QuantilesSketch.builder().setK(k);
-      checkForKfailed(s);
-    } catch (IllegalArgumentException e) {}
+      fail(s);
+    } catch (IllegalArgumentException e) {
+      //pass
+    }
     try {
       QuantilesSketch.builder().build(k);
-      checkForKfailed(s);
-    } catch (IllegalArgumentException e) {}
+      fail(s);
+    } catch (IllegalArgumentException e) {
+      //pass
+    }
     try {
       HeapQuantilesSketch.getInstance(k, (short)0);
-      checkForKfailed(s);
-    } catch (IllegalArgumentException e) {}
-  }
-  
-  private static void checkForKfailed(String s) {
-    boolean print = false; //useful for debugging
-    if (print) { System.err.println(s); }
-    else { throw new IllegalStateException(s); }
+      fail(s);
+    } catch (IllegalArgumentException e) {
+      //pass
+    }
   }
   
   //@Test  //visual only

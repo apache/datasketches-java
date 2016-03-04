@@ -12,12 +12,6 @@ import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
-//import com.yahoo.sketches.theta.Sketch.Builder;
-//import com.yahoo.sketches.theta.Sketch.Builder.*;
-
-
-
-
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;

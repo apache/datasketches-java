@@ -27,9 +27,9 @@ public class CompactSketchTest {
   public void checkHeapifyWrap() {
     int k = 16;
     checkHeapifyWrap(k, k); //exact
-    //checkHeapifyWrap(k, 4*k); //estimating
   }
   
+  //test combinations of compact ordered/not ordered and heap/direct
   public void checkHeapifyWrap(int k, int u) {
     UpdateSketch usk = UpdateSketch.builder().build(k);
     for (int i=0; i<u; i++) usk.update(i);
@@ -45,7 +45,7 @@ public class CompactSketchTest {
     boolean compact = true;
     
     /****/
-    csk = usk.compact( !ordered, null);
+    csk = usk.compact( !ordered, null); //NOT ORDERED
     assertEquals(csk.getClass().getSimpleName(), "HeapCompactSketch");
     assertFalse(csk.isDirect());
     assertTrue(csk.isCompact());
@@ -53,25 +53,26 @@ public class CompactSketchTest {
     //println("Ord: "+(!ordered)+", Mem: "+"Null");
     //println(csk.toString(true, true, 8, true));
     //println(PreambleUtil.toString(byteArray));
+    
+    //put image in memory, check heapify
     Memory srcMem = new NativeMemory(csk.toByteArray());
     csk2 = (CompactSketch) Sketch.heapify(srcMem);
     //println(csk2.toString(true, true, 8, true));
     double csk2est = csk2.getEstimate();
     assertEquals(csk2est, uskEst, 0.0);
-
     assertEquals(csk2.getRetainedEntries(true), uskCount);
     assertEquals(csk2.getSeedHash(), uskSeedHash);
     assertEquals(csk2.getThetaLong(), uskThetaLong);
     assertNull(csk2.getMemory());
-    assertFalse(csk2.isOrdered());
+    assertFalse(csk2.isOrdered()); //CHECK NOT ORDERED
     assertNotNull(csk2.getCache());
     
     /****/
-    csk = usk.compact(  ordered, null);
+    csk = usk.compact(  ordered, null); //ORDERED
     assertEquals(csk.getClass().getSimpleName(), "HeapCompactOrderedSketch");
     assertFalse(csk.isDirect());
     assertTrue(csk.isCompact());
-    assertTrue(csk.isOrdered());
+    assertTrue(csk.isOrdered()); //CHECK ORDERED
     
     Memory srcMem2 = new NativeMemory(csk.toByteArray());
     csk3 = (CompactSketch)Sketch.heapify(srcMem2);
@@ -93,7 +94,7 @@ public class CompactSketchTest {
     Memory mem2;
     
     /**Via CompactSketch.compact**/
-    csk = usk.compact( !ordered, mem);
+    csk = usk.compact( !ordered, mem); //NOT ORDERED, DIRECT
     assertEquals(csk.getClass().getSimpleName(), "DirectCompactSketch");
     
     csk2 = (CompactSketch)Sketch.wrap(mem);

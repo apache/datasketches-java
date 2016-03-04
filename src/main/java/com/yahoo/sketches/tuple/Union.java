@@ -12,8 +12,8 @@ package com.yahoo.sketches.tuple;
  * @param <S> Type of Summary
  */
 public class Union<S extends Summary> {
-  private int nomEntries_;
-  private SummaryFactory<S> summaryFactory_;
+  private final int nomEntries_;
+  private final SummaryFactory<S> summaryFactory_;
   private QuickSelectSketch<S> sketch_;
   private long theta_; // need to maintain outside of the sketch
 
@@ -22,7 +22,7 @@ public class Union<S extends Summary> {
    * @param nomEntries nominal number of entries. Forced to the nearest power of 2 greater than given value.
    * @param summaryFactory the summary factory
    */
-  public Union(int nomEntries, SummaryFactory<S> summaryFactory) {
+  public Union(final int nomEntries, final SummaryFactory<S> summaryFactory) {
     nomEntries_ = nomEntries;
     summaryFactory_ = summaryFactory;
     sketch_ = new QuickSelectSketch<S>(nomEntries, summaryFactory);
@@ -33,10 +33,10 @@ public class Union<S extends Summary> {
    * Updates the internal set by adding entries from the given sketch
    * @param sketchIn input sketch to add to the internal set
    */
-  public void update(Sketch<S> sketchIn) {
+  public void update(final Sketch<S> sketchIn) {
     if (sketchIn == null || sketchIn.isEmpty()) return;
     if (sketchIn.theta_ < theta_) theta_ = sketchIn.theta_;
-    SketchIterator<S> it = sketchIn.iterator();
+    final SketchIterator<S> it = sketchIn.iterator();
     while (it.next()) sketch_.merge(it.getKey(), it.getSummary());
   }
 

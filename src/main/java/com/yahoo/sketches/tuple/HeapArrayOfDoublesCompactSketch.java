@@ -25,12 +25,12 @@ class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
    * Converts the given UpdatableArrayOfDoublesSketch to this compact form.
    * @param sketch the given UpdatableArrayOfDoublesSketch
    */
-  HeapArrayOfDoublesCompactSketch(ArrayOfDoublesUpdatableSketch sketch) {
+  HeapArrayOfDoublesCompactSketch(final ArrayOfDoublesUpdatableSketch sketch) {
     super(sketch.getNumValues());
     isEmpty_ = sketch.isEmpty();
     theta_ = sketch.getThetaLong();
     seedHash_ = Util.computeSeedHash(sketch.getSeed());
-    int count = sketch.getRetainedEntries();
+    final int count = sketch.getRetainedEntries();
     if (count > 0) {
       keys_ = new long[count];
       values_ = new double[count][];
@@ -47,7 +47,7 @@ class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
   /**
    * Creates an instance from components
    */
-  HeapArrayOfDoublesCompactSketch(long[] keys, double[][] values, long theta, boolean isEmpty, int numValues, short seedHash) {
+  HeapArrayOfDoublesCompactSketch(final long[] keys, final double[][] values, final long theta, final boolean isEmpty, final int numValues, final short seedHash) {
     super(numValues);
     keys_ = keys;
     values_ = values;
@@ -60,7 +60,7 @@ class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
    * This is to create an instance given a serialized form
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
-  HeapArrayOfDoublesCompactSketch(Memory mem) {
+  HeapArrayOfDoublesCompactSketch(final Memory mem) {
     this(mem, DEFAULT_UPDATE_SEED);
   }
 
@@ -69,21 +69,21 @@ class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
-  HeapArrayOfDoublesCompactSketch(Memory mem, long seed) {
+  HeapArrayOfDoublesCompactSketch(final Memory mem, final long seed) {
     super(mem.getByte(NUM_VALUES_BYTE));
     seedHash_ = mem.getShort(SEED_HASH_SHORT);
     SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE), mem.getByte(PREAMBLE_LONGS_BYTE));
     SerializerDeserializer.validateType(mem.getByte(SKETCH_TYPE_BYTE), SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch);
-    byte version = mem.getByte(SERIAL_VERSION_BYTE);
+    final byte version = mem.getByte(SERIAL_VERSION_BYTE);
     if (version != serialVersionUID) throw new RuntimeException("Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
-    boolean isBigEndian = mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_BIG_ENDIAN.ordinal()));
+    final boolean isBigEndian = mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_BIG_ENDIAN.ordinal()));
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) throw new RuntimeException("Byte order mismatch");
     Util.checkSeedHashes(seedHash_, Util.computeSeedHash(seed));
     isEmpty_ = mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_EMPTY.ordinal()));
     theta_ = mem.getLong(THETA_LONG);
-    boolean hasEntries = mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.HAS_ENTRIES.ordinal()));
+    final boolean hasEntries = mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.HAS_ENTRIES.ordinal()));
     if (hasEntries) {
-      int count = mem.getInt(RETAINED_ENTRIES_INT);
+      final int count = mem.getInt(RETAINED_ENTRIES_INT);
       keys_ = new long[count];
       values_ = new double[count][numValues_];
       mem.getLongArray(ENTRIES_START, keys_, 0, count);
@@ -102,18 +102,18 @@ class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
 
   @Override
   public byte[] toByteArray() {
-    int count = getRetainedEntries();
+    final int count = getRetainedEntries();
     int sizeBytes = EMPTY_SIZE;
     if (count > 0) {
       sizeBytes = ENTRIES_START + SIZE_OF_KEY_BYTES * count + SIZE_OF_VALUE_BYTES * numValues_ * count;
     }
-    byte[] bytes = new byte[sizeBytes];
-    Memory mem = new NativeMemory(bytes);
+    final byte[] bytes = new byte[sizeBytes];
+    final Memory mem = new NativeMemory(bytes);
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
     mem.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
     mem.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID()); 
     mem.putByte(SKETCH_TYPE_BYTE, (byte) SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch.ordinal());
-    boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
+    final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
     mem.putByte(FLAGS_BYTE, (byte) (
       ((isBigEndian ? 1 : 0) << Flags.IS_BIG_ENDIAN.ordinal()) |
       ((isEmpty() ? 1 : 0) << Flags.IS_EMPTY.ordinal()) |
@@ -136,8 +136,8 @@ class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
 
   @Override
   public double[][] getValues() {
-    int count = getRetainedEntries();
-    double[][] values = new double[count][];
+    final int count = getRetainedEntries();
+    final double[][] values = new double[count][];
     if (count > 0) {
       int i = 0;
       for (int j = 0; j < values_.length; j++) {

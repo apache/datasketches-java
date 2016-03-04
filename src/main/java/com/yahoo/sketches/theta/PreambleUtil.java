@@ -7,10 +7,10 @@ package com.yahoo.sketches.theta;
 import static com.yahoo.sketches.Family.idToFamily;
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.zeroPad;
-import static com.yahoo.sketches.hash.MurmurHash3.hash;
 
 import java.nio.ByteOrder;
 
+import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -59,27 +59,31 @@ final class PreambleUtil {
   static final int PREAMBLE_LONGS_BYTE        = 0; //low 6 bits
   static final int LG_RESIZE_FACTOR_BYTE      = 0; //upper 2 bits. Not used by compact or direct.
   static final int SER_VER_BYTE               = 1;
-  static final int FAMILY_BYTE                = 2;
+  static final int FAMILY_BYTE                = 2; //SerVer1,2 was SKETCH_TYPE_BYTE
   static final int LG_NOM_LONGS_BYTE          = 3; //not used by compact
   static final int LG_ARR_LONGS_BYTE          = 4; //not used by compact
-  static final int FLAGS_BYTE                 = 5;
+  static final int FLAGS_BYTE                 = 5; 
   static final int SEED_HASH_SHORT            = 6;  //byte 6,7
   static final int RETAINED_ENTRIES_INT       = 8;  //4 byte aligned
   static final int P_FLOAT                    = 12; //4 byte aligned, not used by compact
   static final int THETA_LONG                 = 16; //8-byte aligned
   static final int UNION_THETA_LONG           = 24; //8-byte aligned, only used by Union
-  //Backward compatibility
-  static final int FLAGS_BYTE_V1              = 6; //used by SerVer 1
-  static final int LG_RESIZE_RATIO_BYTE_V1    = 5; //used by SerVer 1
-
-  static final int SER_VER                    = 3;
   
   // flag bit masks
-  static final int BIG_ENDIAN_FLAG_MASK     = 1;
-  static final int READ_ONLY_FLAG_MASK      = 2;  // set but not read. Reserve for future
-  static final int EMPTY_FLAG_MASK          = 4;
-  static final int COMPACT_FLAG_MASK        = 8;  
-  static final int ORDERED_FLAG_MASK        = 16;
+  static final int BIG_ENDIAN_FLAG_MASK = 1; //SerVer 1, 2, 3
+  static final int READ_ONLY_FLAG_MASK  = 2; //Set but not read. Reserved. SerVer 1, 2, 3
+  static final int EMPTY_FLAG_MASK      = 4; //SerVer 2, 3
+  static final int COMPACT_FLAG_MASK    = 8; //SerVer 2 was NO_REBUILD_FLAG_MASK
+  static final int ORDERED_FLAG_MASK    = 16;//SerVer 2 was UNORDERED_FLAG_MASK
+  
+  //Backward compatibility: SerVer1 preamble always 3 longs, SerVer2 preamble: 1, 2, 3 longs 
+  //               SKETCH_TYPE_BYTE             2  //SerVer1, SerVer2
+  //  V1, V2 types:  Alpha = 1, QuickSelect = 2, SetSketch = 3; V3 only: Buffered QS = 4
+  static final int LG_RESIZE_RATIO_BYTE_V1    = 5; //used by SerVer 1
+  static final int FLAGS_BYTE_V1              = 6; //used by SerVer 1
+  
+  //Other constants
+  static final int SER_VER                    = 3;
   
   static final boolean NATIVE_ORDER_IS_BIG_ENDIAN  = 
       (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
@@ -94,31 +98,6 @@ final class PreambleUtil {
     return (8 << lgArrLongs) + (preambleLongs << 3);
   }
 
-  /**
-   * Computes and checks the 16-bit seed hash from the given long seed.
-   * The seed hash may not be zero in order to maintain compatibility with older serialized
-   * versions that did not have this concept.
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
-   * @return the seed hash.
-   */
-  public static short computeSeedHash(long seed) {
-    long[] seedArr = {seed};
-    short seedHash = (short)((hash(seedArr, 0L)[0]) & 0xFFFFL);
-    if (seedHash == 0) {
-      throw new IllegalArgumentException(
-          "The given seed: " + seed + " produced a seedHash of zero. " + 
-          "You must choose a different seed.");
-    }
-    return seedHash; 
-  }
-  
-  public static final void checkSeedHashes(short seedHashA, short seedHashB) {
-    if (seedHashA != seedHashB) throw new 
-      IllegalArgumentException("Incompatible Seed Hashes. "+ seedHashA + ", "+ seedHashB);
-  }
-  
-
-  
   // STRINGS
   /**
    * Returns a human readable string summary of the internal state of the given byte array. Used
@@ -147,10 +126,11 @@ final class PreambleUtil {
     int preLongs = (mem.getByte(PREAMBLE_LONGS_BYTE)) & 0X3F;
     int serVer = mem.getByte(SER_VER_BYTE);
     int familyID = mem.getByte(FAMILY_BYTE);
-    String famName = idToFamily(familyID).toString();
+    Family family = idToFamily(familyID);
     int lgNomLongs = mem.getByte(LG_NOM_LONGS_BYTE);
     int lgArrLongs = mem.getByte(LG_ARR_LONGS_BYTE);
     int flags = mem.getByte(FLAGS_BYTE);
+    String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
     boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
     String nativeOrder = ByteOrder.nativeOrder().toString();
     boolean compact = (flags & COMPACT_FLAG_MASK) > 0;
@@ -191,10 +171,10 @@ final class PreambleUtil {
       .append("### SKETCH PREAMBLE SUMMARY:").append(LS)
       .append("Byte  0: Preamble Longs       : ").append(preLongs).append(LS)
       .append("Byte  1: Serialization Version: ").append(serVer).append(LS)
-      .append("Byte  2: Family               : ").append(famName).append(LS)
+      .append("Byte  2: Family               : ").append(family.toString()).append(LS)
       .append("Byte  3: LgNomLongs           : ").append(lgNomLongs).append(LS)
       .append("Byte  4: LgArrLongs           : ").append(lgArrLongs).append(LS)
-      .append("Byte  5: Flags Field          : ").append(String.format("%02o", flags)).append(LS)
+      .append("Byte  5: Flags Field          : ").append(flagsStr).append(LS)
       .append("  BIG_ENDIAN_STORAGE          : ").append(bigEndian).append(LS)
       .append("  (Native Byte Order)         : ").append(nativeOrder).append(LS)
       .append("  READ_ONLY                   : ").append(readOnly).append(LS)
@@ -206,46 +186,38 @@ final class PreambleUtil {
       sb.append(" --ABSENT, ASSUMED:").append(LS);
       sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS)
         .append("Bytes 12-15: P                : ").append(p).append(LS);
-      sb.append("Bytes 16-24: Theta (double)   : ").append(thetaDbl).append(LS)
+      sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS)
         .append("             Theta (long)     : ").append(thetaLong).append(LS)
         .append("             Theta (long,hex) : ").append(thetaHex).append(LS);
-      sb.append("Bytes 25-32: ThetaU (double)  : ").append(thetaUDbl).append(LS)
-        .append("             ThetaU (long)    : ").append(thetaULong).append(LS)
-        .append("             ThetaU (long,hex): ").append(thetaUHex).append(LS);
     }
     if (preLongs == 2) {
       sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS)
         .append("Bytes 12-15: P                : ").append(p).append(LS);
       sb.append(" --ABSENT, ASSUMED:").append(LS);
-      sb.append("Bytes 16-24: Theta (double)   : ").append(thetaDbl).append(LS)
+      sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS)
         .append("             Theta (long)     : ").append(thetaLong).append(LS)
         .append("             Theta (long,hex) : ").append(thetaHex).append(LS);
-      sb.append("Bytes 25-32: ThetaU (double)  : ").append(thetaUDbl).append(LS)
-        .append("             ThetaU (long)    : ").append(thetaULong).append(LS)
-        .append("             ThetaU (long,hex): ").append(thetaUHex).append(LS);
     }
     if (preLongs == 3) {
       sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS)
         .append("Bytes 12-15: P                : ").append(p).append(LS);
-      sb.append("Bytes 16-24: Theta (double)   : ").append(thetaDbl).append(LS)
+      sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS)
         .append("             Theta (long)     : ").append(thetaLong).append(LS)
         .append("             Theta (long,hex) : ").append(thetaHex).append(LS);
-      sb.append(" --ABSENT, ASSUMED:").append(LS);
-      sb.append("Bytes 25-32: ThetaU (double)  : ").append(thetaUDbl).append(LS)
-        .append("             ThetaU (long)    : ").append(thetaULong).append(LS)
-        .append("             ThetaU (long,hex): ").append(thetaUHex).append(LS);
     }
     if (preLongs == 4) {
       sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS)
         .append("Bytes 12-15: P                : ").append(p).append(LS);
-      sb.append("Bytes 16-24: Theta (double)   : ").append(thetaDbl).append(LS)
+      sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS)
         .append("             Theta (long)     : ").append(thetaLong).append(LS)
         .append("             Theta (long,hex) : ").append(thetaHex).append(LS);
-      sb.append("Bytes 25-32: ThetaU (double)  : ").append(thetaUDbl).append(LS)
+      sb.append("Bytes 25-31: ThetaU (double)  : ").append(thetaUDbl).append(LS)
         .append("             ThetaU (long)    : ").append(thetaULong).append(LS)
         .append("             ThetaU (long,hex): ").append(thetaUHex).append(LS);
     }
-    sb.append("TOTAL Sketch Bytes            : ").append(mem.getCapacity()).append(LS)
+    sb.append(  "Preamble Bytes                : ").append(preLongs * 8).append(LS);
+    sb.append(  "Data Bytes                    : ").append(curCount * 8).append(LS);
+    sb.append(  "TOTAL Sketch Bytes            : ").append(mem.getCapacity()).append(LS)
       .append("### END SKETCH PREAMBLE SUMMARY").append(LS);
     return sb.toString();
   }
@@ -291,6 +263,12 @@ final class PreambleUtil {
   
   static int extractFlags(final long long0) {
     int shift = FLAGS_BYTE << 3;
+    long mask = 0XFFL;
+    return (int) ((long0 >>> shift) & mask);
+  }
+  
+  static int extractFlagsV1(final long long0) {
+    int shift = FLAGS_BYTE_V1 << 3;
     long mask = 0XFFL;
     return (int) ((long0 >>> shift) & mask);
   }

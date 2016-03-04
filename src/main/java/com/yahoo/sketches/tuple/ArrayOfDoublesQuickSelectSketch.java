@@ -35,7 +35,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   int mask_;
   int lgCurrentCapacity_;
 
-  ArrayOfDoublesQuickSelectSketch(int numValues, long seed) {
+  ArrayOfDoublesQuickSelectSketch(final int numValues, final long seed) {
     super(numValues, seed);
   }
 
@@ -68,7 +68,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
    * @param numValues Number of double values to keep for each key
    * @return maximum required storage bytes given nomEntries and numValues
    */
-  static int getMaxBytes(int nomEntries, int numValues) {
+  static int getMaxBytes(final int nomEntries, final int numValues) {
     return ENTRIES_START + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues) * ceilingPowerOf2(nomEntries) * 2;
   }
 
@@ -76,7 +76,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
 
   // this is a special back door insert for merging
   // not sufficient by itself without keeping track of theta of another sketch
-  void merge(long key, double[] values) {
+  void merge(final long key, final double[] values) {
     setNotEmpty();
     if (key < theta_) {
       int index = findOrInsertKey(key);
@@ -104,7 +104,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
     rebuild(getCurrentCapacity());
   }
 
-  void insert(long key, double[] values) {
+  void insert(final long key, final double[] values) {
     int index = insertKey(key);
     setValues(index, values, false);
     incrementCount();
@@ -119,7 +119,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   }
 
   @Override
-  void insertOrIgnore(long key, double[] values) {
+  void insertOrIgnore(final long key, final double[] values) {
     if (values.length != getNumValues()) throw new IllegalArgumentException("input array of values must have " + getNumValues() + " elements, but has " + values.length);
     setNotEmpty();
     if (key == 0 || key >= theta_) return;

@@ -31,7 +31,7 @@ public class ArrayOfDoublesSetOperationBuilder {
    * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
    * @return this builder
    */
-  public ArrayOfDoublesSetOperationBuilder setNominalEntries(int nomEntries) {
+  public ArrayOfDoublesSetOperationBuilder setNominalEntries(final int nomEntries) {
     nomEntries_ = nomEntries;
     return this;
   }
@@ -41,7 +41,7 @@ public class ArrayOfDoublesSetOperationBuilder {
    * @param numValues number of double values
    * @return this builder
    */
-  public ArrayOfDoublesSetOperationBuilder setNumberOfValues(int numValues) {
+  public ArrayOfDoublesSetOperationBuilder setNumberOfValues(final int numValues) {
     numValues_ = numValues;
     return this;
   }
@@ -51,7 +51,7 @@ public class ArrayOfDoublesSetOperationBuilder {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return this builder
    */
-  public ArrayOfDoublesSetOperationBuilder setSeed(long seed) {
+  public ArrayOfDoublesSetOperationBuilder setSeed(final long seed) {
     seed_ = seed;
     return this;
   }
@@ -61,7 +61,7 @@ public class ArrayOfDoublesSetOperationBuilder {
    * @param dstMem instance of Memory
    * @return this builder
    */
-  public ArrayOfDoublesSetOperationBuilder setMemory(Memory dstMem) {
+  public ArrayOfDoublesSetOperationBuilder setMemory(final Memory dstMem) {
     dstMem_ = dstMem;
     return this;
   }

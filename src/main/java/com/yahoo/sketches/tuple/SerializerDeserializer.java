@@ -16,8 +16,8 @@ class SerializerDeserializer {
 
   private static final Map<String, Method> deserializeMethodCache = new HashMap<String, Method>();
 
-  static void validateFamily(byte familyId, byte preambleLongs) {
-    Family family = Family.idToFamily(familyId);
+  static void validateFamily(final byte familyId, final byte preambleLongs) {
+    final Family family = Family.idToFamily(familyId);
     if (family.equals(Family.TUPLE)) {
       if (preambleLongs != Family.TUPLE.getMinPreLongs()) {
         throw new IllegalArgumentException("Possible corruption: Invalid PreambleLongs value for family TUPLE: " + preambleLongs);
@@ -27,22 +27,22 @@ class SerializerDeserializer {
     }
   }
 
-  static void validateType(byte sketchTypeByte, SketchType expectedType) {
+  static void validateType(final byte sketchTypeByte, final SketchType expectedType) {
     SketchType sketchType = getSketchType(sketchTypeByte);
     if (!sketchType.equals(expectedType)) throw new RuntimeException("Sketch Type mismatch. Expected " + expectedType.name() + ", got " + sketchType.name());
   }
 
-  static SketchType getSketchType(Memory mem) {
-    byte sketchTypeByte = mem.getByte(TYPE_BYTE_OFFSET);
+  static SketchType getSketchType(final Memory mem) {
+    final byte sketchTypeByte = mem.getByte(TYPE_BYTE_OFFSET);
     return getSketchType(sketchTypeByte);
   }
 
-  static byte[] toByteArray(Object object) {
+  static byte[] toByteArray(final Object object) {
     try {
-      String className = object.getClass().getName();
-      byte[] objectBytes = ((byte[]) object.getClass().getMethod("toByteArray", (Class<?>[])null).invoke(object));
-      byte[] bytes = new byte[1 + className.length() + objectBytes.length];
-      Memory mem = new NativeMemory(bytes);
+      final String className = object.getClass().getName();
+      final byte[] objectBytes = ((byte[]) object.getClass().getMethod("toByteArray", (Class<?>[])null).invoke(object));
+      final byte[] bytes = new byte[1 + className.length() + objectBytes.length];
+      final Memory mem = new NativeMemory(bytes);
       int offset = 0;
       mem.putByte(offset++, (byte)className.length());
       mem.putByteArray(offset, className.getBytes(), 0, className.length());
@@ -54,17 +54,17 @@ class SerializerDeserializer {
     }
   }
 
-  static <T> DeserializeResult<T> deserializeFromMemory(Memory mem, int offset) {
-    int classNameLength = mem.getByte(offset);
-    byte[] classNameBuffer = new byte[classNameLength];
+  static <T> DeserializeResult<T> deserializeFromMemory(final Memory mem, final int offset) {
+    final int classNameLength = mem.getByte(offset);
+    final byte[] classNameBuffer = new byte[classNameLength];
     mem.getByteArray(offset + 1, classNameBuffer, 0, classNameLength);
-    String className = new String(classNameBuffer);
-    DeserializeResult<T> result = deserializeFromMemory(mem, offset + classNameLength + 1, className);
+    final String className = new String(classNameBuffer);
+    final DeserializeResult<T> result = deserializeFromMemory(mem, offset + classNameLength + 1, className);
     return new DeserializeResult<T>(result.getObject(), result.getSize() + classNameLength + 1);
   }
 
   @SuppressWarnings("unchecked")
-  static <T> DeserializeResult<T> deserializeFromMemory(Memory mem, int offset, String className) {
+  static <T> DeserializeResult<T> deserializeFromMemory(final Memory mem, final int offset, final String className) {
     try {
       Method method = deserializeMethodCache.get(className);
       if (method == null) {
@@ -77,9 +77,8 @@ class SerializerDeserializer {
     }
   }
 
-  private static SketchType getSketchType(byte sketchTypeByte) {
+  private static SketchType getSketchType(final byte sketchTypeByte) {
     if (sketchTypeByte < 0 || sketchTypeByte >= SketchType.values().length) throw new IllegalArgumentException("Invalid Sketch Type " + sketchTypeByte);
-    SketchType sketchType = SketchType.values()[sketchTypeByte];
-    return sketchType;
+    return SketchType.values()[sketchTypeByte];
   }
 }

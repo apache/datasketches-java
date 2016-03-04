@@ -4,7 +4,7 @@
  */
 package com.yahoo.sketches.tuple;
 
-import com.yahoo.sketches.BinomialBounds;
+import com.yahoo.sketches.BinomialBoundsN;
 
 /**
  * This is an equivalent to com.yahoo.sketches.theta.Sketch with
@@ -37,9 +37,9 @@ public abstract class Sketch<S extends Summary> {
    * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the upper bound.
    */
-  public double getUpperBound(int numStdDev) {
+  public double getUpperBound(final int numStdDev) {
     if (!isEstimationMode()) return getRetainedEntries();
-    return BinomialBounds.getUpperBound(getRetainedEntries(), getTheta(), numStdDev, isEmpty_);
+    return BinomialBoundsN.getUpperBound(getRetainedEntries(), getTheta(), numStdDev, isEmpty_);
   }
 
   /**
@@ -49,9 +49,9 @@ public abstract class Sketch<S extends Summary> {
    * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the lower bound.
    */
-  public double getLowerBound(int numStdDev) {
+  public double getLowerBound(final int numStdDev) {
     if (!isEstimationMode()) return getRetainedEntries();
-    return BinomialBounds.getLowerBound(getRetainedEntries(), getTheta(), numStdDev, isEmpty_);
+    return BinomialBoundsN.getLowerBound(getRetainedEntries(), getTheta(), numStdDev, isEmpty_);
   }
 
   /**
