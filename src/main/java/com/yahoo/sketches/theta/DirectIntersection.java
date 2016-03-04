@@ -214,37 +214,6 @@ class DirectIntersection extends SetOperation implements Intersection {
     return mem_.getInt(RETAINED_ENTRIES_INT) >= 0;
   }
   
-//  @Override
-//  public byte[] toByteArray() {
-//    int preBytes = CONST_PREAMBLE_LONGS << 3;
-//    int dataBytes = (curCount_ > 0)? 8 << lgArrLongs_ : 0;
-//    byte[] byteArrOut = new byte[preBytes + dataBytes];
-//    NativeMemory memOut = new NativeMemory(byteArrOut);
-//    
-//    //preamble
-//    memOut.putByte(PREAMBLE_LONGS_BYTE, (byte) CONST_PREAMBLE_LONGS); //RF not used = 0
-//    memOut.putByte(SER_VER_BYTE, (byte) SER_VER);
-//    memOut.putByte(FAMILY_BYTE, (byte) objectToFamily(this).getID());
-//    memOut.putByte(LG_NOM_LONGS_BYTE, (byte) 0); //not used
-//    memOut.putByte(LG_ARR_LONGS_BYTE, (byte) lgArrLongs_);
-//    if (empty_) {
-//      memOut.setBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
-//    } 
-//    else {
-//      memOut.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
-//    }
-//    memOut.putShort(SEED_HASH_SHORT, seedHash_);
-//    memOut.putInt(RETAINED_ENTRIES_INT, curCount_);
-//    memOut.putFloat(P_FLOAT, (float) 1.0);
-//    memOut.putLong(THETA_LONG, thetaLong_);
-//    
-//    //data
-//    if (curCount_ > 0) {
-//      MemoryUtil.copy(mem_, preBytes, memOut, preBytes, dataBytes);
-//    }
-//    return byteArrOut;
-//  }
-  
   @Override
   public byte[] toByteArray() {
     int preBytes = CONST_PREAMBLE_LONGS << 3;
