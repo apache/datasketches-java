@@ -24,6 +24,10 @@ public class HeapArrayOfDoublesCompactSketchTest {
     Assert.assertEquals(sketch.getTheta(), 1.0);
     Assert.assertNotNull(sketch.getValues());
     Assert.assertEquals(sketch.getValues().length, 0);
+    ArrayOfDoublesSketchIterator it = sketch.iterator();
+    while (it.next()) {
+      Assert.fail("empty sketch expected");
+    }
   }
 
   @Test

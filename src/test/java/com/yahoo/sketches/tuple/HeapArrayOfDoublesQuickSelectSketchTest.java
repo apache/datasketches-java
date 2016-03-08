@@ -20,6 +20,10 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
     Assert.assertEquals(sketch.getLowerBound(1), 0.0);
     Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
     Assert.assertEquals(sketch.getTheta(), 1.0);
+    ArrayOfDoublesSketchIterator it = sketch.iterator();
+    while (it.next()) {
+      Assert.fail("empty sketch expected");
+    }
   }
 
   @Test
