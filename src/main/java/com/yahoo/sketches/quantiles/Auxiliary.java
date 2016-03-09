@@ -70,12 +70,12 @@ class Auxiliary {
    * Populate the arrays and registers from a HeapQuantilesSketch
    * @param k K value of sketch
    * @param n The current size of the stream
-   * @param bitPattern 
-   * @param combinedBuffer 
+   * @param bitPattern the bit pattern for valid log levels
+   * @param combinedBuffer the combined buffer reference
    * @param baseBufferCount the count of the base buffer
    * @param numSamples Total samples in the sketch
-   * @param itemsArr 
-   * @param cumWtsArr 
+   * @param itemsArr the consolidated array of all items from the sketch populated here
+   * @param cumWtsArr the cumulative weights for each item from the sketch populated here
    */
   private final static void populateFromQuantilesSketch(
       int k, long n, long bitPattern, double[] combinedBuffer, int baseBufferCount,

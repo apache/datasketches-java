@@ -26,6 +26,7 @@ class DirectCompactSketch extends CompactSketch {
    * Wraps the given Memory, which must be a SerVer 3, unordered, Compact Sketch
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param pre0 the first 8 bytes of the preamble
+   * @return this sketch
    */
   static DirectCompactSketch wrapInstance(Memory srcMem, long pre0) {
     int preLongs = extractPreLongs(pre0);

@@ -69,7 +69,8 @@ class UnionImpl extends SetOperation implements Union {
    * Called by SetOperation.Builder.
    * @param srcMem The source Memory object.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a> 
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @return this class
    */
   static UnionImpl heapifyInstance(Memory srcMem, long seed) {
     Family.UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
@@ -88,6 +89,7 @@ class UnionImpl extends SetOperation implements Union {
    * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @param dstMem the given Memory object destination. It will be cleared prior to use.
+   * @return this class
    */
   static UnionImpl 
       initNewDirectInstance(int lgNomLongs, long seed, float p, ResizeFactor rf, Memory dstMem) {
@@ -101,7 +103,8 @@ class UnionImpl extends SetOperation implements Union {
    * Wrap a Union object around a Union Memory object containing data. 
    * @param srcMem The source Memory object.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a> 
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @return this class
    */
   static UnionImpl wrapInstance(Memory srcMem, long seed) {
     Family.UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));

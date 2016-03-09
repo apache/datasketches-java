@@ -362,7 +362,6 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
   /**
    * Returns the cardinality limit given the current size of the hash table array.
    * 
-   * @param noRebuild if true the sketch cannot perform any rebuild or resizing operations. 
    * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLongs">See lgNomLongs</a>.
    * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
    * @return the hash table threshold

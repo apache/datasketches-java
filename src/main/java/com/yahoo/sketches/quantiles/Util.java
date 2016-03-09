@@ -144,6 +144,7 @@ final class Util {
 
   /**
    * Computes a checksum of all the samples in the sketch. Used in testing the Auxiliary
+   * @param sketch the given quantiles sketch
    * @return a checksum of all the samples in the sketch
    */ //Used by test
   static double sumOfSamplesInSketch(HeapQuantilesSketch sketch) {
@@ -166,6 +167,7 @@ final class Util {
    * increasing values.
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing doubles
    * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
+   * @param sketch the given quantiles sketch
    * @return the unnormalized, accumulated counts of <i>m + 1</i> intervals.
    */
   static long[] internalBuildHistogram(double[] splitPoints, HeapQuantilesSketch sketch) {
@@ -210,6 +212,7 @@ final class Util {
 
   /**
    * Called when the base buffer has just acquired 2*k elements.
+   * @param sketch the given quantiles sketch
    */
   static void processFullBaseBuffer(HeapQuantilesSketch sketch) {
     int bbCount = sketch.getBaseBufferCount();
@@ -558,6 +561,7 @@ final class Util {
   
   /**
    * Computes the number of valid levels above the base buffer
+   * @param bitPattern the bit pattern for valid log levels
    * @return the number of valid levels above the base buffer
    */
   static int numValidLevels(long bitPattern) {
@@ -706,8 +710,11 @@ final class Util {
    * for the case where the input contains successive equal-length blocks
    * that have already been sorted, so that only the top part of the
    * merge tree remains to be executed. Also, two arrays are sorted in tandem,
-   * as discussed above.
-   * Used by Aux constructors for both Heap QS and MQS
+   * as discussed above. Used by Aux constructors for both Heap QS and MQS.
+   * @param keyArr array of keys
+   * @param valArr array of values
+   * @param arrLen length of keyArr and valArr 
+   * @param blkSize size of internal sorted blocks
    */ //used by Auxiliary, so far
   static void blockyTandemMergeSort(double[] keyArr, long[] valArr, int arrLen, int blkSize) {
     assert blkSize >= 1;

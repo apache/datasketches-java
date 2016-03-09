@@ -91,7 +91,11 @@ final class Rebuilder {
    * ThetaLong and curCount will change.
    * Afterwards, caller must update local class members curCount and thetaLong from Memory.
    * 
-   * @param mem the Memory
+   * @param mem the Memory the given Memory
+   * @param preambleLongs size of preamble in longs
+   * @param lgNomLongs the log_base2 of k, the configuration parameter of the sketch
+   * @param lgArrLongs the log_base2 of the current size of the hash table
+   * @param curCount the number of valid entries
    */
   static final void quickSelectAndRebuild(final Memory mem, final int preambleLongs, 
       final int lgNomLongs, final int lgArrLongs, int curCount) {
@@ -122,8 +126,11 @@ final class Rebuilder {
    * from the dstMemory and free the source Memory.
    * 
    * @param srcMem the source Memory
+   * @param preambleLongs size of preamble in longs
+   * @param srcLgArrLongs size (log_base2) of source hash table
    * @param dstMem the destination Memory, which may be garbage
    * @param dstLgArrLongs the destination hash table target size
+   * @param thetaLong theta as a long
    */
   private static final void moveAndResize(final Memory srcMem, final int preambleLongs, 
       final int srcLgArrLongs, final Memory dstMem, final int dstLgArrLongs, final long thetaLong) {
@@ -152,6 +159,8 @@ final class Rebuilder {
    * Memory.
    * 
    * @param mem the Memory
+   * @param preambleLongs the size of the preamble in longs
+   * @param srcLgArrLongs the size of the source hash table
    * @param dstLgArrLongs the LgArrLongs value for the new hash table
    */
   private static final void resize(final Memory mem, final int preambleLongs, 
