@@ -21,6 +21,7 @@ class HeapArrayOfDoublesSketchIterator implements ArrayOfDoublesSketchIterator {
 
   @Override
   public boolean next() {
+    if (keys_ == null) return false;
     i_++;
     while (i_ < keys_.length) {
       if (keys_[i_] != 0) return true;
