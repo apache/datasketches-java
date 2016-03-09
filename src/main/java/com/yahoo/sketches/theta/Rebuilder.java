@@ -36,6 +36,7 @@ final class Rebuilder {
    * @param lgNomLongs the inherent <i>k</i> value of the sketch required for rebuilding.
    * @param lgArrLongs the current size of the hash table.
    * @param curCount the current hash count
+   * @param thetaLong theta as a long
    * @return the original srcMem or a new destination Memory if required.
    */
   static final Memory resizeMoveOrRebuild(Memory srcMem, final int preambleLongs, 
