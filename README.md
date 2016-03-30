@@ -1,4 +1,5 @@
 [![][travis img]][travis]
+[![]coveralls img][coveralls]
 [![Build Status](https://travis-ci.org/DataSketches/sketches-core.svg?branch=master)](https://travis-ci.org/DataSketches/sketches-core) [![Coverage Status](https://coveralls.io/repos/DataSketches/sketches-core/badge.svg?branch=master)](https://coveralls.io/r/DataSketches/sketches-core?branch=master)
 =================
 
@@ -82,3 +83,6 @@ The resultant jar will work on jdk7 and jdk8.
 
 [travis]:https://travis-ci.org//DataSketches/sketches-core/builds
 [travis img]:https://secure.travis-ci.org/DataSketches/sketches-core.png?branch=master
+
+[coveralls]:https://coveralls.io/github/DataSketches/sketches-core?branch=master
+[coveralls img]:https://coveralls.io/repos/DataSketches/sketches-core/badge.png?branch=master

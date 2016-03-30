@@ -697,7 +697,7 @@ public class DirectUnionTest {
    * @param s value to print
    */
   static void println(String s) {
-    System.out.println(s); //Disable here
+    //System.out.println(s); //Disable here
   }
 
 }
