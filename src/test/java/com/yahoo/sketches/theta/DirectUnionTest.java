@@ -5,6 +5,7 @@
 package com.yahoo.sketches.theta;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryUtil;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -658,6 +659,34 @@ public class DirectUnionTest {
     assertEquals(setOp.getFamily(), Family.UNION);
   }
   
+  @SuppressWarnings("unused")
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkPreambleLongsCorruption() {
+    int k = 16;
+    Memory mem = new NativeMemory(new byte[k*16 +32]);
+    SetOperation setOp = new SetOperationBuilder().initMemory(mem).build(k,Family.UNION);
+    long pre0 = mem.getLong(0);
+    int familyID = PreambleUtil.extractFamilyID(pre0);
+    int preLongs = PreambleUtil.extractPreLongs(pre0);
+    assertEquals(familyID, Family.UNION.getID());
+    assertEquals(preLongs, Family.UNION.getMaxPreLongs());
+    pre0 = PreambleUtil.insertPreLongs(3, pre0);
+    //println(PreambleUtil.toString(mem));
+    mem.putLong(0, pre0);
+    //println(PreambleUtil.toString(mem));
+    DirectQuickSelectSketch sketch = DirectQuickSelectSketch.getInstance(mem, Util.DEFAULT_UPDATE_SEED);
+  }
+  
+  @SuppressWarnings("unused")
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkSizeTooSmall() {
+    int k = 16;
+    Memory mem = new NativeMemory(new byte[k*16 +32]); //initialized
+    SetOperation setOp = new SetOperationBuilder().initMemory(mem).build(k,Family.UNION);
+    Memory mem2 = new NativeMemory(new byte[32]); //for just preamble
+    MemoryUtil.copy(mem, 0, mem2, 0, 32); //too small
+    DirectQuickSelectSketch sketch = DirectQuickSelectSketch.getInstance(mem2, Util.DEFAULT_UPDATE_SEED);
+  }
   
   @Test
   public void printlnTest() {
@@ -668,7 +697,7 @@ public class DirectUnionTest {
    * @param s value to print
    */
   static void println(String s) {
-    //System.out.println(s); //Disable here
+    System.out.println(s); //Disable here
   }
 
 }

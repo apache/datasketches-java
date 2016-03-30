@@ -90,10 +90,27 @@ final class PreambleUtil {
   
   static final double MAX_THETA_LONG_AS_DOUBLE = Long.MAX_VALUE;
 
-  static final int getReqMemBytesFull(int lgNomLongs, int preambleLongs) {
-    return (16 << lgNomLongs) + (preambleLongs << 3);
-  }
+//  /**
+//   * Computes the number of bytes required for a full sized sketch in hash-table form. 
+//   * This can be used to compute max storage size for heap sketches, or max off-heap memory 
+//   * required for off-heap (direct) sketches. This does not apply for compact sketches.
+//   * @param lgNomLongs this is constant (log2 of k) once a sketch has been constructed.
+//   * @param preambleLongs this is constant once a sketch is full size, but will vary by sketch 
+//   * family.
+//   * @return the size in bytes.
+//   */
+//  static final int getReqMemBytesFull(int lgNomLongs, int preambleLongs) {
+//    return (16 << lgNomLongs) + (preambleLongs << 3);
+//  }
 
+  /**
+   * Computes the number of bytes required for a non-full sized sketch in hash-table form.
+   * This can be used to compute current storage size for heap sketches, or current off-heap memory
+   * requred for off-heap (direct) sketches. This does not apply for compact sketches. 
+   * @param lgArrLongs log2(current hash-table size)
+   * @param preambleLongs current preamble size
+   * @return the size in bytes
+   */
   static final int getMemBytes(int lgArrLongs, int preambleLongs) {
     return (8 << lgArrLongs) + (preambleLongs << 3);
   }

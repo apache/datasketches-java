@@ -4,10 +4,13 @@
  */
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.theta.Rebuilder.*;
+import static com.yahoo.sketches.Util.MIN_LG_ARR_LONGS;
+import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
+import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
 import static com.yahoo.sketches.theta.PreambleUtil.BIG_ENDIAN_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
@@ -17,20 +20,41 @@ import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
-import static com.yahoo.sketches.theta.PreambleUtil.*;
+import static com.yahoo.sketches.theta.PreambleUtil.extractCurCount;
+import static com.yahoo.sketches.theta.PreambleUtil.extractFamilyID;
+import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
+import static com.yahoo.sketches.theta.PreambleUtil.extractLgArrLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractLgNomLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractP;
+import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractResizeFactor;
+import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
+import static com.yahoo.sketches.theta.PreambleUtil.extractSerVer;
+import static com.yahoo.sketches.theta.PreambleUtil.insertFamilyID;
+import static com.yahoo.sketches.theta.PreambleUtil.insertFlags;
+import static com.yahoo.sketches.theta.PreambleUtil.insertLgArrLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.insertLgNomLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.insertP;
+import static com.yahoo.sketches.theta.PreambleUtil.insertPreLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.insertResizeFactor;
+import static com.yahoo.sketches.theta.PreambleUtil.insertSeedHash;
+import static com.yahoo.sketches.theta.PreambleUtil.insertSerVer;
+import static com.yahoo.sketches.theta.Rebuilder.actLgResizeFactor;
+import static com.yahoo.sketches.theta.Rebuilder.moveAndResize;
+import static com.yahoo.sketches.theta.Rebuilder.quickSelectAndRebuild;
+import static com.yahoo.sketches.theta.Rebuilder.resize;
 import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountIncremented;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedDuplicate;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedOverTheta;
-import static com.yahoo.sketches.Util.*;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.HashOperations;
+import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRequest;
 import com.yahoo.sketches.memory.MemoryUtil;
 import com.yahoo.sketches.memory.NativeMemory;
-import com.yahoo.sketches.HashOperations;
-import com.yahoo.sketches.ResizeFactor;
-import com.yahoo.sketches.Util;
 
 /**
  * @author Lee Rhodes
@@ -69,7 +93,8 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
    * MemoryRequest, in which case the rf is effectively 1, which is no resizing at all and the 
    * dstMem must be large enough for a full sketch.
    * <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
-   * @param dstMem the given Memory object destination. It cannot be null. It will be cleared prior to use.
+   * @param dstMem the given Memory object destination. It cannot be null. 
+   * It will be cleared prior to use.
    * @param unionGadget true if this sketch is implementing the Union gadget function. 
    * Otherwise, it is behaving as a normal QuickSelectSketch.
    * @return instance of this sketch
@@ -96,19 +121,9 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     }
     
     //Choose RF, minReqBytes, lgArrLongs. 
-    ResizeFactor myRF;
-    int minReqBytes;
-    int lgArrLongs;
-    MemoryRequest memReq = dstMem.getMemoryRequest();
-    if (memReq == null) { //If memReq is null require full memory, RF = X1, no resizing; 
-      lgArrLongs = lgNomLongs +1;
-      myRF = ResizeFactor.X1;
-      minReqBytes = PreambleUtil.getReqMemBytesFull(lgNomLongs, preambleLongs);
-    } else { //otherwise start small with RF = X2.
-      lgArrLongs = MIN_LG_ARR_LONGS;
-      myRF = ResizeFactor.X2;
-      minReqBytes = PreambleUtil.getMemBytes(lgArrLongs, preambleLongs);
-    }
+    int lgRF = rf.lg();
+    int lgArrLongs = (lgRF == 0)? lgNomLongs +1 : MIN_LG_ARR_LONGS;
+    int minReqBytes = PreambleUtil.getMemBytes(lgArrLongs, preambleLongs);
     
     //Make sure Memory is large enough
     long curMemCapBytes = dstMem.getCapacity();
@@ -117,22 +132,22 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
         "Memory capacity is too small: "+curMemCapBytes+" < "+minReqBytes);
     }
     int curCount = 0;
-    
+//@formatter:off
     //Build preamble
     long pre0, pre1, thetaLong;
     pre0 = insertPreLongs(preambleLongs, 0L);                   //byte 0
-    pre0 = insertResizeFactor(myRF.lg(), pre0);                 //byte 0
+    pre0 = insertResizeFactor(lgRF, pre0);                      //byte 0
     pre0 = insertSerVer(SER_VER, pre0);                         //byte 1
     pre0 = insertFamilyID(family.getID(), pre0);                //byte 2
     pre0 = insertLgNomLongs(lgNomLongs, pre0);                  //byte 3
     pre0 = insertLgArrLongs(lgArrLongs, pre0);                  //byte 4
-    //flags: bigEndian = readOnly = compact = ordered = false; empty = true.
+    //flags: bigEndian = readOnly = compact = ordered = false; empty = true : 00100 = 4
     pre0 = insertFlags(EMPTY_FLAG_MASK, pre0);                  //byte 5
-    pre0 = insertSeedHash(Util.computeSeedHash(seed), pre0);         //bytes 6,7
+    pre0 = insertSeedHash(Util.computeSeedHash(seed), pre0);    //bytes 6,7
     pre1 = curCount;                                            //bytes 8-11
     pre1 = insertP(p, pre1);                                    //bytes 12-15
     thetaLong = (long)(p * MAX_THETA_LONG_AS_DOUBLE);           //bytes 16-23
-    
+//@formatter:on
     //Insert preamble into Memory, only responsible for first 3 longs
     long[] preArr = {pre0, pre1, thetaLong};
     dstMem.putLongArray(0, preArr, 0, 3);
@@ -140,7 +155,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     //clear hash table area
     dstMem.clear(preambleLongs << 3, 8 << lgArrLongs); 
     
-    DirectQuickSelectSketch dqss = new DirectQuickSelectSketch(lgNomLongs, seed, p, myRF, preambleLongs);
+    DirectQuickSelectSketch dqss = new DirectQuickSelectSketch(lgNomLongs, seed, p, rf, preambleLongs);
     dqss.lgArrLongs_ = lgArrLongs;
     dqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     dqss.curCount_ = curCount;
@@ -257,10 +272,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     return Family.idToFamily(familyID);
   }
   
-  @Override
-  public ResizeFactor getResizeFactor() {
-    return (mem_.getMemoryRequest() == null)? ResizeFactor.getRF(0) : ResizeFactor.getRF(1);
-  }
+
   
   //UpdateSketch
   
@@ -344,15 +356,61 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     if (HashOperations.hashSearchOrInsert(mem_, lgArrLongs_, hash, preambleLongs_ << 3) >= 0) {
       return RejectedDuplicate; //Duplicate, not inserted
     }
-    //insertion occurred, must increment curCount
+    //insertion occurred, increment curCount
     mem_.putInt(RETAINED_ENTRIES_INT, ++curCount_); //update curCount
     
     if (curCount_ > hashTableThreshold_) { //we need to do something, we are out of space
-      mem_ = resizeMoveOrRebuild(mem_, preambleLongs_, lgNomLongs_, lgArrLongs_, curCount_, thetaLong_);
-      curCount_ = mem_.getInt(RETAINED_ENTRIES_INT); 
-      thetaLong_ = mem_.getLong(THETA_LONG);
-      lgArrLongs_ = mem_.getByte(LG_ARR_LONGS_BYTE);
-      hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
+      
+      if (lgArrLongs_ > lgNomLongs_) { //at full size, rebuild
+        //Assumes no dirty values, changes thetaLong_, curCount_
+        assert (lgArrLongs_ == lgNomLongs_ + 1) : "lgArr: " + lgArrLongs_ + ", lgNom: " + lgNomLongs_;
+        quickSelectAndRebuild(mem_, preambleLongs_, lgNomLongs_, lgArrLongs_, curCount_);  //rebuild
+        curCount_ = mem_.getInt(RETAINED_ENTRIES_INT);
+        thetaLong_ = mem_.getLong(THETA_LONG);
+      } //end of rebuild
+      
+      else { //Not at full size, resize. Should not get here if lgRF = 0 and memCap is too small.
+        int lgRF = getLgResizeFactor();
+        int actLgRF = actLgResizeFactor(mem_.getCapacity(), lgArrLongs_, preambleLongs_, lgRF);
+        int tgtLgArrLongs = lgArrLongs_ + actLgRF;
+        
+        if (actLgRF > 0) { //Expand in current Memory
+//println("Before Loc Expand: memCapLongs: "+ (mem_.getCapacity()>>3) + ", lgArrLongs: "+lgArrLongs_);
+          resize(mem_, preambleLongs_, lgArrLongs_, tgtLgArrLongs);
+          //update locals
+          lgArrLongs_ = mem_.getByte(LG_ARR_LONGS_BYTE);
+          hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
+//println("After  Loc Expand: memCapLongs: "+ (mem_.getCapacity()>>3) + ", lgArrLongs: "+lgArrLongs_ +"\n");
+        } //end of Expand in current memory
+        
+        else { //Request more memory, then resize
+//println("Before New Memory: memCapLongs: "+ (mem_.getCapacity()>>3) + ", lgArrLongs: "+lgArrLongs_);
+          int preBytes = preambleLongs_ << 3;
+          tgtLgArrLongs = Math.min(lgArrLongs_ + lgRF, lgNomLongs_ + 1);
+          int tgtArrBytes = 8 << tgtLgArrLongs;
+          int reqBytes = tgtArrBytes + preBytes;
+          //if (tgtArrBytes < 2*(curMemCap));
+          
+          MemoryRequest memReq = mem_.getMemoryRequest();
+          Memory dstMem = memReq.request(reqBytes);
+          if (dstMem == null) { //returned a null
+            throw new IllegalArgumentException("MemoryRequest callback cannot be null.");
+          }
+          long newCap = dstMem.getCapacity();
+          if (newCap < reqBytes) {
+            memReq.free(dstMem);
+            throw new IllegalArgumentException("Requested memory not granted: "+newCap+" < "+reqBytes);
+          }
+//println("curLgArrLongs: "+lgArrLongs_+", tgtLgArrLongs: "+tgtLgArrLongs);
+          moveAndResize(mem_, preambleLongs_, lgArrLongs_, dstMem, tgtLgArrLongs, thetaLong_);
+          
+          memReq.free(mem_, dstMem); //normal free mechanism via MemoryRequest
+          mem_ = dstMem;
+          lgArrLongs_ = mem_.getByte(LG_ARR_LONGS_BYTE);
+          hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
+//println("After  New Memory: memCapLongs: "+ (mem_.getCapacity()>>3) + ", lgArrLongs: "+lgArrLongs_+"\n");
+        } //end of Request more memory to resize
+      } //end of resize
     }
     return InsertedCountIncremented;
   }
@@ -381,8 +439,8 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     return newCurCount;
   }
   
-  static void println(String s) {
-    System.out.println(s); //disable here
-  }
+//  static void println(String s) {
+//    System.out.println(s); //disable here
+//  }
   
 }

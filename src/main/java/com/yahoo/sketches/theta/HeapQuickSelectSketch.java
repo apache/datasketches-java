@@ -279,7 +279,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
     
     //The duplicate test
     if (HashOperations.hashSearchOrInsert(cache_, lgArrLongs_, hash) >= 0) {
-      return RejectedDuplicate;
+      return RejectedDuplicate; //Duplicate, not inserted
     }
     //insertion occurred, must increment curCount
     curCount_++;

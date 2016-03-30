@@ -28,6 +28,11 @@ abstract class DirectUpdateSketch extends UpdateSketch {
     return true; 
   }
 
+  @Override
+  public ResizeFactor getResizeFactor() {
+    return rf_;
+  }
+  
   //restricted methods
 
   @Override

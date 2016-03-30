@@ -621,12 +621,6 @@ public class DirectQuickSelectSketchTest {
     natMem1.freeMemory(); //mem2 is on heap.
   }
   
-  public static void main(String[] args) {
-    DirectQuickSelectSketchTest test = new DirectQuickSelectSketchTest();
-    test.checkConstructReconstructFromMemory();
-  }
-  
-  
   //////////////////////////////////////////////////////
   //////////////////////////////////////////////////////
   //this one allocates what was asked from NativeMemory
@@ -683,9 +677,10 @@ public class DirectQuickSelectSketchTest {
     int u = 2*k;
     MemoryManager memMgr = new MemoryManager();
     
-    Memory mem1 = memMgr.request(k / 4); //allocate 1/4 size off-heap
+    Memory mem1 = memMgr.request((k<<3) / 4); //allocate 1/4 size off-heap
 
-    UpdateSketch usk1 = UpdateSketch.builder().initMemory(mem1).setResizeFactor(ResizeFactor.X2).build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().initMemory(mem1)
+        .setResizeFactor(ResizeFactor.X8).build(k);
     assertTrue(usk1.isEmpty());
     
     for (int i=0; i<u; i++) {
@@ -697,6 +692,11 @@ public class DirectQuickSelectSketchTest {
     nMem.freeMemory();
   }
   
+  public static void main(String[] args) {
+    DirectQuickSelectSketchTest test = new DirectQuickSelectSketchTest();
+    test.checkLimitedMemoryScenarios();
+  }
+  
   @Test
   public void checkLimitedMemoryWithP() {
     int k = 4096; 
@@ -704,7 +704,7 @@ public class DirectQuickSelectSketchTest {
     float p = (float)0.5;
     MemoryManager memMgr = new MemoryManager();
     
-    Memory mem1 = memMgr.request(k / 4); //allocate 1/4 size off-heap
+    Memory mem1 = memMgr.request((k<<3) / 4); //allocate 1/4 size off-heap
 
     UpdateSketch usk1 = UpdateSketch.builder().initMemory(mem1).setResizeFactor(ResizeFactor.X2).setP(p).build(k);
     assertTrue(usk1.isEmpty());
@@ -767,7 +767,7 @@ public class DirectQuickSelectSketchTest {
     
     MemoryManager2 memMgr = new MemoryManager2(); //allocates 2x what was requested
     
-    Memory mem1 = new AllocMemory(k / 8, memMgr); //allocate 1/8 size off-heap
+    Memory mem1 = new AllocMemory((k<<3) / 8, memMgr); //allocate 1/8 size off-heap
 
     UpdateSketch usk1 = UpdateSketch.builder().initMemory(mem1).setResizeFactor(ResizeFactor.X2).build(k);
     assertTrue(usk1.isEmpty());
@@ -823,7 +823,7 @@ public class DirectQuickSelectSketchTest {
     
     BadMemoryManager memMgr = new BadMemoryManager();
     
-    NativeMemory mem1 = new AllocMemory(k / 4 + 24, memMgr); //allocate 1/4 size off-heap
+    NativeMemory mem1 = new AllocMemory((k<<3) / 4 + 24, memMgr); //allocate 1/4 size off-heap
 
     UpdateSketch usk1 = UpdateSketch.builder().initMemory(mem1).setResizeFactor(ResizeFactor.X2).build(k);
     assertTrue(usk1.isEmpty());
@@ -882,7 +882,7 @@ public class DirectQuickSelectSketchTest {
     
     BadMemoryManager2 memMgr = new BadMemoryManager2();
     
-    NativeMemory mem1 = new AllocMemory(k / 4 + 24, memMgr); //allocate 1/4 size off-heap
+    NativeMemory mem1 = new AllocMemory((k<<3) / 4 + 24, memMgr); //allocate 1/4 size off-heap
 
     UpdateSketch usk1 = UpdateSketch.builder().initMemory(mem1).setResizeFactor(ResizeFactor.X2).build(k);
     assertTrue(usk1.isEmpty());
@@ -981,7 +981,7 @@ public class DirectQuickSelectSketchTest {
     Memory mem = new NativeMemory(new byte[k*16 +24]);
     UpdateSketch sketch = Sketches.updateSketchBuilder().initMemory(mem).build(k);
     assertEquals(sketch.getFamily(), Family.QUICKSELECT);
-    assertEquals(sketch.getResizeFactor(), ResizeFactor.X1);
+    assertEquals(sketch.getResizeFactor(), ResizeFactor.X8);
   }
   
   @Test
