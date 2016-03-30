@@ -1,12 +1,12 @@
-[![][travis img]][travis]
-[![][coveralls img]][coveralls]
+[![][travis img]][travis] [![][coveralls img]][coveralls]
+
 =================
 
 # Sketches Core Library
 
 ## [Documentation](https://datasketches.github.io)
 
-## [Building](http://README_building.html)
+## [Building](https://github.com/DataSketches/sketches-core/blob/master/README_building.md)
 
 
 [travis]:https://travis-ci.org//DataSketches/sketches-core/builds?branch=master
