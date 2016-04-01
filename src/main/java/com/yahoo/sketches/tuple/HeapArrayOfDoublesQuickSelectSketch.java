@@ -172,7 +172,7 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
   @Override
   protected void updateValues(final int index, final double[] values) {
     if (numValues_ == 1) {
-      values_[index] = values[0];
+      values_[index] += values[0];
     } else {
       final int offset = index * numValues_;
       for (int i = 0; i < numValues_; i++) values_[offset + i] += values[i];
