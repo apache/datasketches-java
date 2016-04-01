@@ -174,8 +174,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   }
 
   @Override
-  // this method copies values regardless of isCopyRequired
-  protected void setValues(final int index, final double[] values, final boolean isCopyRequired) {
+  protected void setValues(final int index, final double[] values) {
     long offset = valuesOffset_ + SIZE_OF_VALUE_BYTES * numValues_ * index;
     for (int i = 0; i < numValues_; i++) {
       mem_.putDouble(offset, values[i]);

@@ -4,18 +4,22 @@
  */
 package com.yahoo.sketches.tuple;
 
+import java.util.Arrays;
+
 /**
  * Iterator over the on-heap ArrayOfDoublesSketch (compact or hash table)
  */
 class HeapArrayOfDoublesSketchIterator implements ArrayOfDoublesSketchIterator {
 
   private long[] keys_;
-  private double[][] values_;
+  private double[] values_;
+  private int numValues_;
   private int i_;
 
-  HeapArrayOfDoublesSketchIterator(final long[] keys, final double[][] values) {
+  HeapArrayOfDoublesSketchIterator(final long[] keys, final double[] values, final int numValues) {
     keys_ = keys;
     values_ = values;
+    numValues_ = numValues;
     i_ = -1;
   }
 
@@ -37,7 +41,7 @@ class HeapArrayOfDoublesSketchIterator implements ArrayOfDoublesSketchIterator {
 
   @Override
   public double[] getValues() {
-    return values_[i_];
+    return Arrays.copyOfRange(values_, i_ * numValues_, (i_ + 1) *  numValues_);
   }
 
 }
