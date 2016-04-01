@@ -5,6 +5,7 @@
 package com.yahoo.sketches.tuple;
 
 import java.nio.ByteOrder;
+import java.util.Arrays;
 
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 
@@ -19,7 +20,7 @@ class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
 
   private final short seedHash_;
   private long[] keys_;
-  private double[][] values_;
+  private double[] values_;
 
   /**
    * Converts the given UpdatableArrayOfDoublesSketch to this compact form.
@@ -33,12 +34,12 @@ class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
     final int count = sketch.getRetainedEntries();
     if (count > 0) {
       keys_ = new long[count];
-      values_ = new double[count][];
+      values_ = new double[count * numValues_];
       ArrayOfDoublesSketchIterator it = sketch.iterator();
       int i = 0;
       while (it.next()) {
         keys_[i] = it.getKey();
-        values_[i] = it.getValues();
+        System.arraycopy(it.getValues(), 0, values_, i * numValues_, numValues_);
         i++;
       }
     }
@@ -47,7 +48,7 @@ class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
   /**
    * Creates an instance from components
    */
-  HeapArrayOfDoublesCompactSketch(final long[] keys, final double[][] values, final long theta, final boolean isEmpty, final int numValues, final short seedHash) {
+  HeapArrayOfDoublesCompactSketch(final long[] keys, final double[] values, final long theta, final boolean isEmpty, final int numValues, final short seedHash) {
     super(numValues);
     keys_ = keys;
     values_ = values;
@@ -85,13 +86,9 @@ class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
     if (hasEntries) {
       final int count = mem.getInt(RETAINED_ENTRIES_INT);
       keys_ = new long[count];
-      values_ = new double[count][numValues_];
+      values_ = new double[count * numValues_];
       mem.getLongArray(ENTRIES_START, keys_, 0, count);
-      int offset = ENTRIES_START + SIZE_OF_KEY_BYTES * count;
-      for (int i = 0; i < count; i++) {
-        mem.getDoubleArray(offset, values_[i], 0, numValues_);
-        offset += SIZE_OF_VALUE_BYTES * numValues_;
-      }
+      mem.getDoubleArray(ENTRIES_START + SIZE_OF_KEY_BYTES * count, values_, 0, values_.length);
     }
   }
 
@@ -125,11 +122,7 @@ class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
     if (count > 0) {
       mem.putInt(RETAINED_ENTRIES_INT, count);
       mem.putLongArray(ENTRIES_START, keys_, 0, count);
-      int offset = ENTRIES_START + SIZE_OF_KEY_BYTES * count;
-      for (int i = 0; i < count; i++) {
-        mem.putDoubleArray(offset, values_[i], 0, numValues_);
-        offset += SIZE_OF_VALUE_BYTES * numValues_;
-      }
+      mem.putDoubleArray(ENTRIES_START + SIZE_OF_KEY_BYTES * count, values_, 0, values_.length);
     }
     return bytes;
   }
@@ -140,8 +133,8 @@ class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
     final double[][] values = new double[count][];
     if (count > 0) {
       int i = 0;
-      for (int j = 0; j < values_.length; j++) {
-        values[i++] = values_[j].clone();
+      for (int j = 0; j < count; j++) {
+        values[i++] = Arrays.copyOfRange(values_, j * numValues_, (j + 1) * numValues_);
       }
     }
     return values;
@@ -149,7 +142,7 @@ class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
 
   @Override
   public ArrayOfDoublesSketchIterator iterator() {
-    return new HeapArrayOfDoublesSketchIterator(keys_, values_);
+    return new HeapArrayOfDoublesSketchIterator(keys_, values_, numValues_);
   }
 
   @Override

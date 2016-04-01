@@ -48,7 +48,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   abstract void rebuild(int newCapacity);
   abstract long getKey(int index);
   abstract void setKey(int index, long key);
-  abstract void setValues(int index, double[] values, boolean isCopyRequired);
+  abstract void setValues(int index, double[] values);
   abstract void incrementCount();
   abstract void setThetaLong(long theta);
   abstract int insertKey(long key);
@@ -82,7 +82,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
       int index = findOrInsertKey(key);
       if (index < 0) {
         incrementCount();
-        setValues(~index, values, true);
+        setValues(~index, values);
       } else {
         updateValues(index, values);
       }
@@ -106,7 +106,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
 
   void insert(final long key, final double[] values) {
     int index = insertKey(key);
-    setValues(index, values, false);
+    setValues(index, values);
     incrementCount();
   }
 
@@ -126,7 +126,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
     int index = findOrInsertKey(key);
     if (index < 0) {
       incrementCount();
-      setValues(~index, values, true);
+      setValues(~index, values);
     } else {
       updateValues(index, values);
     }

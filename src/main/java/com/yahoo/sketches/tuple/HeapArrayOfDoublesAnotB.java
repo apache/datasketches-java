@@ -19,7 +19,7 @@ class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
   private boolean isEmpty_ = true;
   private long theta_ = Long.MAX_VALUE;
   private long[] keys_;
-  private double[][] values_;
+  private double[] values_;
   private int count_;
   private final short seedHash_;
   private final int numValues_;
@@ -50,13 +50,13 @@ class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
       final int lgHashTableSize = Integer.numberOfTrailingZeros(hashTable.length);
       final int noMatchSize = a.getRetainedEntries();
       keys_ = new long[noMatchSize];
-      values_ = new double[noMatchSize][];
+      values_ = new double[noMatchSize * numValues_];
       ArrayOfDoublesSketchIterator it = a.iterator();
       while (it.next()) {
         final int index = HashOperations.hashSearch(hashTable, lgHashTableSize, it.getKey());
         if (index == -1) {
           keys_[count_] = it.getKey();
-          values_[count_] = it.getValues().clone();
+          System.arraycopy(it.getValues(), 0, values_, count_ * numValues_, numValues_);
           count_++;
         }
       }
@@ -68,7 +68,7 @@ class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
     if (count_ == 0) return new HeapArrayOfDoublesCompactSketch(null, null, Long.MAX_VALUE, true, numValues_, seedHash_);
     ArrayOfDoublesCompactSketch result = new HeapArrayOfDoublesCompactSketch(
       Arrays.copyOfRange(keys_, 0, count_),
-      Arrays.copyOfRange(values_, 0, count_),
+      Arrays.copyOfRange(values_, 0, count_ * numValues_),
       theta_,
       isEmpty_,
       numValues_,
@@ -83,7 +83,7 @@ class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
     if (mem == null || count_ == 0) return getResult();
     ArrayOfDoublesCompactSketch result = new DirectArrayOfDoublesCompactSketch(
       Arrays.copyOfRange(keys_, 0, count_),
-      Arrays.copyOfRange(values_, 0, count_),
+      Arrays.copyOfRange(values_, 0, count_ * numValues_),
       theta_,
       isEmpty_,
       numValues_,
@@ -119,16 +119,12 @@ class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
   private void getNoMatchSetFromSketch(final ArrayOfDoublesSketch sketch) {
     count_ = sketch.getRetainedEntries();
     keys_ = new long[count_];
-    values_ = new double[count_][];
+    values_ = new double[count_ * numValues_];
     ArrayOfDoublesSketchIterator it = sketch.iterator();
     int i = 0;
     while (it.next()) {
       keys_[i] = it.getKey();
-      if (sketch instanceof ArrayOfDoublesUpdatableSketch) {
-        values_[i] = it.getValues().clone();
-      } else {
-        values_[i] = it.getValues();
-      }
+      System.arraycopy(it.getValues(), 0, values_, i * numValues_, numValues_);
       i++;
     }
   }

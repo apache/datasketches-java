@@ -9,6 +9,7 @@ package com.yahoo.sketches.tuple;
  */
 
 import java.nio.ByteOrder;
+import java.util.Arrays;
 
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
@@ -24,7 +25,7 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
 
   private int count_;
   private long[] keys_;
-  private double[][] values_;
+  private double[] values_;
 
   /**
    * This is to create an instance of a QuickSelectSketch with custom resize factor and sampling probability
@@ -50,7 +51,7 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
       Integer.numberOfTrailingZeros(MIN_NOM_ENTRIES)
     );
     keys_ = new long[startingCapacity];
-    values_ = new double[startingCapacity][];
+    values_ = new double[startingCapacity * numValues];
     mask_ = startingCapacity - 1;
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(startingCapacity);
     setRebuildThreshold();
@@ -78,22 +79,13 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
     lgResizeFactor_ = mem.getByte(LG_RESIZE_FACTOR_BYTE);
     samplingProbability_ = mem.getFloat(SAMPLING_P_FLOAT);
     keys_ = new long[currentCapacity];
-    values_ = new double[currentCapacity][];
+    values_ = new double[currentCapacity * numValues_];
     mask_ = currentCapacity - 1;
     final boolean hasEntries = (flags & (1 << Flags.HAS_ENTRIES.ordinal())) > 0;
     count_ = hasEntries ? mem.getInt(RETAINED_ENTRIES_INT) : 0;
     if (count_ > 0) {
       mem.getLongArray(ENTRIES_START, keys_, 0, currentCapacity);
-      int offset = ENTRIES_START + SIZE_OF_KEY_BYTES * currentCapacity;
-      final int sizeOfValues = SIZE_OF_VALUE_BYTES * numValues_;
-      for (int i = 0; i < currentCapacity; i++) {
-        if (keys_[i] != 0) {
-          double[] values = new double[numValues_];
-          mem.getDoubleArray(offset, values, 0, numValues_);
-          values_[i] = values;
-        }
-        offset += sizeOfValues;
-      }
+      mem.getDoubleArray(ENTRIES_START + SIZE_OF_KEY_BYTES * currentCapacity, values_, 0, currentCapacity * numValues_);
     }
     setRebuildThreshold();
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(currentCapacity);
@@ -105,8 +97,8 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
     final double[][] values = new double[count][];
     if (count > 0) {
       int i = 0;
-      for (int j = 0; j < values_.length; j++) {
-        if (values_[j] != null) values[i++] = values_[j].clone();
+      for (int j = 0; j < keys_.length; j++) {
+        if (keys_[j] != 0) values[i++] = Arrays.copyOfRange(values_, j * numValues_, (j + 1) * numValues_);
       }
     }
     return values;
@@ -148,14 +140,7 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
     mem.putInt(RETAINED_ENTRIES_INT, count_);
     if (count_ > 0) {
       mem.putLongArray(ENTRIES_START, keys_, 0, keys_.length);
-      int offset = ENTRIES_START + SIZE_OF_KEY_BYTES * keys_.length;
-      final int sizeOfValues = SIZE_OF_VALUE_BYTES * numValues_;
-      for (int i = 0; i < values_.length; i++) {
-        if (values_[i] != null) {
-          mem.putDoubleArray(offset, values_[i], 0, numValues_);
-        }
-        offset += sizeOfValues;
-      }
+      mem.putDoubleArray(ENTRIES_START + SIZE_OF_KEY_BYTES * keys_.length, values_, 0, values_.length);
     }
     return byteArray;
   }
@@ -176,17 +161,22 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
   }
 
   @Override
-  protected void setValues(final int index, final double[] values, final boolean isCopyRequired) {
-    if (isCopyRequired) {
-      values_[index] = values.clone();
+  protected void setValues(final int index, final double[] values) {
+    if (numValues_ == 1) {
+      values_[index] = values[0];
     } else {
-      values_[index] = values;
+      System.arraycopy(values, 0, values_, index * numValues_, numValues_);
     }
   }
 
   @Override
   protected void updateValues(final int index, final double[] values) {
-    for (int i = 0; i < numValues_; i++) values_[index][i] += values[i];
+    if (numValues_ == 1) {
+      values_[index] = values[0];
+    } else {
+      final int offset = index * numValues_;
+      for (int i = 0; i < numValues_; i++) values_[offset + i] += values[i];
+    }
   }
 
   @Override
@@ -222,14 +212,14 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
   @Override
   protected void rebuild(final int newCapacity) {
     final long[] oldKeys = keys_;
-    final double[][] oldValues = values_;
+    final double[] oldValues = values_;
     keys_ = new long[newCapacity];
-    values_ = new double[newCapacity][];
+    values_ = new double[newCapacity * numValues_];
     count_ = 0;
     mask_ = newCapacity - 1;
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(newCapacity);
     for (int i = 0; i < oldKeys.length; i++) {
-      if (oldKeys[i] != 0 && oldKeys[i] < theta_) insert(oldKeys[i], oldValues[i]);
+      if (oldKeys[i] != 0 && oldKeys[i] < theta_) insert(oldKeys[i], Arrays.copyOfRange(oldValues, i * numValues_, (i + 1) * numValues_));
     }
     setRebuildThreshold();
   }
@@ -248,12 +238,12 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
   protected double[] find(final long key) {
     final int index = HashOperations.hashSearch(keys_, lgCurrentCapacity_, key);
     if (index == -1) return null;
-    return values_[index].clone();
+    return Arrays.copyOfRange(values_, index * numValues_, (index + 1) * numValues_);
   }
 
   @Override
   public ArrayOfDoublesSketchIterator iterator() {
-    return new HeapArrayOfDoublesSketchIterator(keys_, values_);
+    return new HeapArrayOfDoublesSketchIterator(keys_, values_, numValues_);
   }
 
 }

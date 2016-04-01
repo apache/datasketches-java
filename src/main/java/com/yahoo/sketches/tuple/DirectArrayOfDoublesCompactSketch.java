@@ -63,7 +63,7 @@ class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
   /**
    * Creates an instance from components
    */
-  DirectArrayOfDoublesCompactSketch(final long[] keys, final double[][] values, final long theta, final boolean isEmpty, final int numValues, final short seedHash, final Memory dstMem) {
+  DirectArrayOfDoublesCompactSketch(final long[] keys, final double[] values, final long theta, final boolean isEmpty, final int numValues, final short seedHash, final Memory dstMem) {
     super(numValues);
     mem_ = dstMem;
     mem_.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
@@ -85,11 +85,7 @@ class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
     if (count > 0) {
       mem_.putInt(RETAINED_ENTRIES_INT, count);
       mem_.putLongArray(ENTRIES_START, keys, 0, count);
-      int valuesOffset = ENTRIES_START + SIZE_OF_KEY_BYTES * count;
-      for (int i = 0; i < count; i++) {
-        mem_.putDoubleArray(valuesOffset, values[i], 0, numValues_);
-        valuesOffset += SIZE_OF_VALUE_BYTES * numValues_;
-      }
+      mem_.putDoubleArray(ENTRIES_START + SIZE_OF_KEY_BYTES * count, values, 0, values.length);
     }
   }
 
