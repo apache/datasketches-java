@@ -5,7 +5,8 @@
 package com.yahoo.sketches.frequencies;
 
 /**
- * @author Edo Liberty, Justin Thaler
+ * @author Edo Liberty 
+ * @author Justin Thaler
  */
 
 /**
