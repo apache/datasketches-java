@@ -5,7 +5,7 @@
 
 package com.yahoo.sketches.frequencies;
 
-//import org.testng.annotations.Test;
+import org.testng.annotations.Test;
 import org.testng.Assert;
 import java.lang.Math;
 
@@ -17,7 +17,7 @@ import java.lang.Math;
  */
 public class CountMinFastTest {
 
-  //@Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = IllegalArgumentException.class)
   public void construct() {
     int size = 100;
     double eps = 1.0 / size;
@@ -28,7 +28,7 @@ public class CountMinFastTest {
     countmin = new CountMinFast(-134, delta);
   }
 
-  //@Test
+  @Test
   public void updateOneTime() {
     int size = 100;
     double eps = 1.0 / size;
@@ -38,7 +38,7 @@ public class CountMinFastTest {
     Assert.assertEquals(countmin.getEstimate(13L), 1);
   }
 
-  //@Test
+  @Test
   public void ErrorCorrect() {
     int size = 100;
     double eps = 1.0 / size;
@@ -60,7 +60,7 @@ public class CountMinFastTest {
     return (long) (Math.log(Math.random()) / Math.log(1.0 - prob));
   }
 
-  //@Test
+  @Test
   public void testRandomGeometricDist() {
     long maxKey = 0L;
     double prob = .1;
@@ -74,7 +74,7 @@ public class CountMinFastTest {
     }
   }
 
-  //@Test
+  @Test
   public void realCountsInBounds() {
     int n = 4213;
     int size = 50;
@@ -107,7 +107,7 @@ public class CountMinFastTest {
 
 
 
-  //@Test
+  @Test
   public void realCountsInBoundsCU() {
     int n = 4213;
     int size = 50;
@@ -139,7 +139,7 @@ public class CountMinFastTest {
   }
 
 
-  //@Test
+  @Test
   public void ConservativeBetterThanNon() {
     int n = 4213;
     int size = 50;
@@ -164,7 +164,7 @@ public class CountMinFastTest {
   }
 
 
-  //@Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = IllegalArgumentException.class)
   public void UnionErrorCheck() {
     int size1 = 100;
     int size2 = 400;
@@ -179,7 +179,7 @@ public class CountMinFastTest {
     countmin1.merge(countmin2);
   }
 
-  //@Test
+  @Test
   public void realCountsInBoundsAfterUnion() {
     int n = 1000;
     int size = 400;
@@ -223,7 +223,7 @@ public class CountMinFastTest {
     Assert.assertTrue(bad <= delta * i);
   }
 
-  //@Test
+  @Test
   public void realCountsInBoundsAfterUnionCU() {
     int n = 1000;
     int size = 400;
@@ -320,7 +320,7 @@ public class CountMinFastTest {
     Assert.assertTrue(total_updates_per_s / trials > 1000000);
   }
 
-  //@Test
+  @Test
   public void printlnTest() {
     println("PRINTING: " + this.getClass().getName());
   }
