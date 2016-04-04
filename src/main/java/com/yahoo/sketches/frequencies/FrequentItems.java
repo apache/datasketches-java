@@ -62,6 +62,8 @@ import static com.yahoo.sketches.frequencies.PreambleUtil.insertInitialSize;
  * Papadimitriou, 2003 d) "Efficient Computation of Frequent and Top-k Elements in Data Streams"
  * Metwally, Agrawal, Abbadi, 2006
  * 
+ * Uses HashMapReverseEfficient
+ * 
  * @author Justin Thaler
  */
 public class FrequentItems extends FrequencyEstimator {

@@ -13,6 +13,23 @@ public class StressTestHashMap {
     stress();
   }
 
+  static private HashMap newHashMap(int capacity, int i) {
+    HashMap hashMap = null;
+    switch (i) {
+      case 0: hashMap = new HashMapReverseEfficient(capacity); break;
+      case 1: //hashMap = new HashMapTrove(capacity); break;
+      case 2: //hashMap = new HashMapTroveRebuilds(capacity); break;
+      case 3: //hashMap = new HashMapLinearProbingWithRebuilds(capacity); break;
+      case 4: //hashMap = new HashMapDoubleHashingWithRebuilds(capacity); break;
+      case 5: //hashMap = new HashMapWithImplicitDeletes(capacity); break;
+      case 6: //hashMap = new HashMapWithEfficientDeletes(capacity); break;
+      case 7: //hashMap = new HashMapRobinHood(capacity); break;
+      case 8: //hashMap = new HashMapReverseEfficientOneArray(capacity); break;
+      default:
+    }
+    return hashMap;
+  }
+  
   private static void stress() {
     for (int capacity = 2 << 5; capacity < 2 << 24; capacity *= 2) {
       int n = 10000000;
@@ -38,43 +55,19 @@ public class StressTestHashMap {
     }
   }
 
-  private static long timeOneHashMap(HashMap hashmap, long[] keys, long[] values, int sizeToShift) {
+  private static long timeOneHashMap(HashMap hashMap, long[] keys, long[] values, int sizeToShift) {
     final long startTime = System.nanoTime();
     int n = keys.length;
     assert (n == values.length);
     for (int i = 0; i < n; i++) {
-      hashmap.adjust(keys[i], values[i]);
-      if (hashmap.getSize() == sizeToShift) {
-        hashmap.adjustAllValuesBy(-1);
-        hashmap.keepOnlyLargerThan(0);
+      hashMap.adjust(keys[i], values[i]);
+      if (hashMap.getSize() == sizeToShift) {
+        hashMap.adjustAllValuesBy(-1);
+        hashMap.keepOnlyLargerThan(0);
       }
     }
     final long endTime = System.nanoTime();
     return (endTime - startTime) / n;
-  }
-
-  static private HashMap newHashMap(int capacity, int i) {
-    switch (i) {
-      case 0:
-        return new HashMapTrove(capacity);
-      case 1:
-        return new HashMapTroveRebuilds(capacity);
-      case 2:
-        return new HashMapLinearProbingWithRebuilds(capacity);
-      case 3:
-        return new HashMapDoubleHashingWithRebuilds(capacity);
-      case 4:
-        return new HashMapWithImplicitDeletes(capacity);
-      case 5:
-        return new HashMapWithEfficientDeletes(capacity);
-      case 6:
-        return new HashMapRobinHood(capacity);
-      case 7:
-        return new HashMapReverseEfficient(capacity);
-      case 8:
-        return new HashMapReverseEfficientOneArray(capacity);
-    }
-    return null;
   }
 
   private static long murmur(long key) {
