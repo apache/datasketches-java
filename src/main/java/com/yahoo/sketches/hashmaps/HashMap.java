@@ -14,6 +14,7 @@ package com.yahoo.sketches.hashmaps;
  * Abstract class for a hashmap data structure, which stores (key, value) pairs, and supports the
  * following non-standard operations: decrement all values by a given amount, and purge all (key,
  * value) pairs whose key is below a specified threshold.
+ * 
  */
 public abstract class HashMap {
 

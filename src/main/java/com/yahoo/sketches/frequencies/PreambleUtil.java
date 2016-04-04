@@ -1,10 +1,9 @@
 /*
- * Copyright 2015, Yahoo! Inc. Licensed under the terms of the Apache License 2.0. See LICENSE file
+ * Copyright 2016, Yahoo! Inc. Licensed under the terms of the Apache License 2.0. See LICENSE file
  * at the project root for terms.
  */
 
 package com.yahoo.sketches.frequencies;
-
 
 // @formatter:off
 /**
@@ -69,8 +68,6 @@ final class PreambleUtil {
   static final int BUFFERLENGTH_START = 40; // to 43
   // Specific values for this implementation
   static final int SER_VER = 1;
-
-
 
   static int extractPreLongs(final long pre0) {
     long mask = 0XFFL;

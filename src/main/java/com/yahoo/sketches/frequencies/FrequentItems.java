@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo! Inc. Licensed under the terms of the Apache License 2.0. See LICENSE file
+ * Copyright 2016, Yahoo! Inc. Licensed under the terms of the Apache License 2.0. See LICENSE file
  * at the project root for terms.
  */
 
@@ -7,9 +7,9 @@ package com.yahoo.sketches.frequencies;
 
 import java.util.Arrays;
 
-import com.yahoo.sketches.hashmaps.HashMapReverseEfficient;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
+import com.yahoo.sketches.hashmaps.HashMapReverseEfficient;
 
 import static com.yahoo.sketches.frequencies.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractPreLongs;
@@ -412,7 +412,7 @@ public class FrequentItems extends FrequencyEstimator {
   /**
    * @return byte array that looks as follows:
    * 
-   *         <pre>
+   * <pre>
    *  
    *      ||    7     |    6   |    5   |    4   |    3   |    2   |    1   |     0          |
    *  0   |||--------k---------------------------|--flag--| FamID  | SerVer | PreambleLongs |  
@@ -428,7 +428,7 @@ public class FrequentItems extends FrequencyEstimator {
    *  5   ||------------(unused)-----------------|--------bufferlength-----------------------| 
    *      ||    55    |   54   |   53   |   52   |   51   |   50   |   49   |   48           |
    *  6   ||----------start of keys buffer, followed by values buffer------------------------|
-   *         </pre>
+   * </pre>
    **/
   // @formatter:on
   public byte[] toByteArray() {
