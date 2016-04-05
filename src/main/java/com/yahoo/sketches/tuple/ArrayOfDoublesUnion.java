@@ -52,10 +52,7 @@ public abstract class ArrayOfDoublesUnion {
    * @return compact sketch representing the union (off-heap if memory is provided)
    */
   public ArrayOfDoublesCompactSketch getResult(final Memory mem) {
-    if (theta_ < sketch_.getThetaLong()) {
-      sketch_.setThetaLong(theta_);
-      sketch_.rebuild();
-    }
+    trim();
     return sketch_.compact(mem);
   }
 
@@ -76,10 +73,7 @@ public abstract class ArrayOfDoublesUnion {
    * @return a byte array representation of this object
    */
   public byte[] toByteArray() {
-    if (theta_ < sketch_.getThetaLong()) {
-      sketch_.setThetaLong(theta_);
-      sketch_.rebuild();
-    }
+    trim();
     return sketch_.toByteArray();
   }
 
@@ -90,6 +84,14 @@ public abstract class ArrayOfDoublesUnion {
    */
   public static int getMaxBytes(final int nomEntries, final int numValues) {
     return ArrayOfDoublesQuickSelectSketch.getMaxBytes(nomEntries, numValues);
+  }
+
+  private void trim() {
+    sketch_.trim();
+    if (theta_ < sketch_.getThetaLong()) {
+      sketch_.setThetaLong(theta_);
+      sketch_.rebuild();
+    }
   }
 
 }

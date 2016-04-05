@@ -45,6 +45,7 @@ public class Union<S extends Summary> {
    * @return result of the unions so far
    */
   public CompactSketch<S> getResult() {
+    sketch_.trim();
     if (theta_ < sketch_.theta_) {
       sketch_.setThetaLong(theta_);
       sketch_.rebuild();

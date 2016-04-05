@@ -41,6 +41,7 @@ class HeapArrayOfDoublesSketchIterator implements ArrayOfDoublesSketchIterator {
 
   @Override
   public double[] getValues() {
+    if (numValues_ == 1) return new double[] { values_[i_] };
     return Arrays.copyOfRange(values_, i_ * numValues_, (i_ + 1) *  numValues_);
   }
 
