@@ -5,39 +5,32 @@
 
 package com.yahoo.sketches.hashmaps;
 
-/**
- * @author Edo Liberty
- * @author Justin Thaler
- */
+import static com.yahoo.sketches.Util.LS;
 
 /**
  * Abstract class for a hashmap data structure, which stores (key, value) pairs, and supports the
  * following non-standard operations: decrement all values by a given amount, and purge all (key,
  * value) pairs whose key is below a specified threshold.
  * 
+ * @author Edo Liberty
+ * @author Justin Thaler
  */
 public abstract class HashMap {
-
-  // The load factor is decided upon by the abstract class.
-  // This cannot be modified by inheriting classes!
-  final public double LOAD_FACTOR = 0.75;
-
-  protected int capacity;
-  protected int length;
-  protected int arrayMask;
+  public final double LOAD_FACTOR = 0.75;
+  protected final int capacity;
+  protected final int length;
+  protected final int arrayMask;
   protected int size = 0;
   protected long[] keys;
   protected long[] values;
   protected short[] states;
 
-  public HashMap() {}
-
   /**
    * @param capacity Determines the number of (key, value) pairs the hashmap is expected to store.
-   *        Constructor will create arrays of size capacity/LOAD_FACTOR, rounded up to a power of 2.
-   *        The size of the hash table is set to be a power of two for fast hashing. The protected
-   *        variable this.capacity is then set to the largest value that will not overload the hash
-   *        table.
+   * Constructor will create arrays of size capacity/LOAD_FACTOR, rounded up to a power of 2.
+   * The size of the hash table is set to be a power of two for fast hashing. The protected
+   * variable this.capacity is then set to the largest value that will not overload the hash
+   * table.
    */
   public HashMap(int capacity) {
     if (capacity <= 0)
@@ -59,8 +52,7 @@ public abstract class HashMap {
    * @param adjustAmount the amount by which to increment the value
    * @param putAmount the value put into the map if the key is not initial present
    */
-  abstract public void adjustOrPutValue(long key, long adjustAmount, long putAmount);
-
+  public abstract void adjustOrPutValue(long key, long adjustAmount, long putAmount);
 
   /**
    * Increments the primitive value mapped to the key if the key is present in the map. Otherwise,
@@ -78,7 +70,7 @@ public abstract class HashMap {
    * @return the positive value the key corresponds to or zero if if the key is not found in the
    *         hash map.
    */
-  abstract public long get(long key);
+  public abstract long get(long key);
 
   /**
    * @param adjustAmount value by which to shift all values. Only keys corresponding to positive
@@ -93,13 +85,13 @@ public abstract class HashMap {
    * @param thresholdValue value by which to shift all values. Only keys corresponding to positive
    *        values are retained.
    */
-  abstract public void keepOnlyLargerThan(long thresholdValue);
+  public abstract void keepOnlyLargerThan(long thresholdValue);
 
   /**
    * @param probe location in the hash table array
    * @return true if the cell in the array contains an active key
    */
-  abstract public boolean isActive(int probe);
+  public abstract boolean isActive(int probe);
 
   /**
    * @return an array containing the active keys in the hash map.
@@ -171,15 +163,19 @@ public abstract class HashMap {
   }
 
   /**
-   * prints the hash table
+   * Returns the hash table as a human readable string.
    */
-  public void print() {
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("HashMap").append(LS);
+    sb.append("Index: States,       Keys,     Values").append(LS);
     for (int i = 0; i < keys.length; i++) {
-      System.out.format("%3d: (%4d,%4d,%3d)\n", i, states[i], keys[i], values[i]);
+      sb.append(String.format("%5d: %6d, %10d, %10d\n", i, states[i], keys[i], values[i]));
     }
-    System.out.format("=====================\n");
+    sb.append(LS);
+    return sb.toString();
   }
-
 
   /**
    * @return the load factor of the hash table, i.e, the ratio between the capacity and the array
@@ -192,7 +188,7 @@ public abstract class HashMap {
   /**
    * @param key to be hashed
    * @return an index into the hash table This hash function is taken from the internals of the
-   *         Trove open source library.
+   * Trove open source library.
    */
   protected long hash(long key) {
     key ^= key >>> 33;

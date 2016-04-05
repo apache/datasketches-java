@@ -92,7 +92,7 @@ public class FrequentItems extends FrequencyEstimator {
    * The value of k passed to the constructor. Used to determine the maximum number of counters the
    * sketch can support, and remembered by the sketch for use in resetting to a virgin state.
    */
-  private int k;
+  private final int k;
 
   /**
    * Initial number of counters supported by the data structure
@@ -138,18 +138,20 @@ public class FrequentItems extends FrequencyEstimator {
    * @param k Determines the accuracy of the estimates returned by the sketch.
    * @param initialCapacity determines the initial size of the sketch.
    * 
-   *        The guarantee of the sketch is that with high probability, any returned estimate will
-   *        have error at most (4/3)*(n/k), where n is the true sum of frequencies in the stream. In
-   *        practice, the error is typically much smaller. The space usage of the sketch is
-   *        proportional to k. If fewer than ~k different keys are inserted then the counts will be
-   *        exact. More precisely, if k is a power of 2,then when the sketch reaches full size, the
-   *        data structure's HashMap will contain 2*k cells. Assuming that the LOAD_FACTOR of the
-   *        HashMap is set to 0.75, the number of cells of the hash table that are actually filled
-   *        should oscillate between roughly .75*k and 1.5 * k.
+   * The guarantee of the sketch is that with high probability, any returned estimate will
+   * have error at most (4/3)*(n/k), where n is the true sum of frequencies in the stream. In
+   * practice, the error is typically much smaller. The space usage of the sketch is
+   * proportional to k. If fewer than ~k different keys are inserted then the counts will be
+   * exact. More precisely, if k is a power of 2,then when the sketch reaches full size, the
+   * data structure's HashMap will contain 2*k cells. Assuming that the LOAD_FACTOR of the
+   * HashMap is set to 0.75, the number of cells of the hash table that are actually filled
+   * should oscillate between roughly .75*k and 1.5 * k.
    */
   public FrequentItems(int k, int initialCapacity) {
 
-    if (k <= 0) throw new IllegalArgumentException("Received negative or zero value for k.");
+    if (k <= 0) {
+      throw new IllegalArgumentException("k cannot be negative or zero: "+k);
+    }
     
     //set initial size of counters data structure so it can exactly store a stream with 
     //initialCapacity distinct elements

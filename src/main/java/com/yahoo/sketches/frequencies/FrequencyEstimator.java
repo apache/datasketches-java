@@ -5,7 +5,8 @@
 package com.yahoo.sketches.frequencies;
 
 /**
- * @author Edo Liberty, Justin Thaler
+ * @author Edo Liberty
+ * @author Justin Thaler
  */
 
 /**
@@ -26,20 +27,20 @@ public abstract class FrequencyEstimator {
 
   /**
    * @param key for which the frequency should be increased. The frequency of a key is equal to the
-   *        number of times the function increment(key) was called.
+   * number of times the function increment(key) was called.
    */
   abstract public void update(long key);
 
   /**
    * @param key for which the frequency should be increased.
-   * @param value by which the frequency of the key should be increased. The value must by
-   *        non-negative.
+   * @param value by which the frequency of the key should be increased. The value must be
+   * non-negative.
    */
   abstract public void update(long key, long value);
 
   /**
    * @param key for which an estimate of the frequency is required. The exact frequency of a key is
-   *        the number of times the function increment(key) was executed.
+   * the number of times the function increment(key) was executed.
    * @return an estimate of the frequency
    */
   abstract public long getEstimate(long key);
@@ -47,29 +48,29 @@ public abstract class FrequencyEstimator {
   /**
    * @param key the key for which the frequency lower bound is needed.
    * @return a lower bound on the frequency. That is, a number which is guaranteed to be no larger
-   *         than the real frequency.
+   * than the real frequency.
    */
   abstract public long getEstimateLowerBound(long key);
 
   /**
    * @param key the key for which the frequency upper bound is needed.
    * @return an upper bound on the frequency. That is, a number which is guaranteed to be no smaller
-   *         than the real frequency.
+   * than the real frequency.
    */
   abstract public long getEstimateUpperBound(long key);
 
   /**
    * @return An upper bound on the maximum error of getEstimate(key) for any key. This upper bound
-   *         may only hold for each key with probability failure_prob.
+   * may only hold for each key with probability failure_prob.
    */
   abstract public long getMaxError();
 
 
   /**
    * @param threshold This function is guaranteed to return an array that contains a superset of all
-   *        keys with frequency above the threshold.
+   * keys with frequency above the threshold.
    * @return an array of keys containing a superset of all keys whose frequencies are are least the
-   *         error tolerance.
+   * error tolerance.
    */
   abstract public long[] getFrequentKeys(long threshold);
 
@@ -78,9 +79,9 @@ public abstract class FrequencyEstimator {
    * 
    * @param other another FrequenciesEstimator of the same class
    * @return a pointer to a FrequencyEstimator whose estimates are within the guarantees of the
-   *         largest error tolerance of the two merged sketches. This method does not create a new
-   *         sketch. The sketch whose function is executed is changed and a reference to it is
-   *         returned.
+   * largest error tolerance of the two merged sketches. This method does not create a new
+   * sketch. The sketch whose function is executed is changed and a reference to it is
+   * returned.
    */
   abstract public FrequencyEstimator merge(FrequencyEstimator other);
 

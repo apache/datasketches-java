@@ -45,6 +45,7 @@ public class HashMapTest {
     int capacity = 127;
     HashMap hashMap = new HashMapReverseEfficient(capacity);
     testHashMapAgainstTrove(hashMap, capacity);
+    println(hashMap.toString());
   }
   
   private void testHashMapAgainstTrove(HashMap hashMap, int capacity){
@@ -63,7 +64,7 @@ public class HashMapTest {
       long key = random.nextInt(keyRange);
       long value = random.nextInt(valueRange);
       hashMap.adjustOrPutValue(key ,value, value);
-      trove.adjustOrPutValue(key, value ,value);
+      trove.adjustOrPutValue(key, value, value);
     }
     
     // remove a bunch of values
@@ -127,7 +128,7 @@ public class HashMapTest {
    * @param s value to print
    */
   static void println(String s) {
-    // System.out.println(s); //disable here
+    System.out.println(s); //disable here
   }
   
 }

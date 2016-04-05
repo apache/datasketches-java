@@ -3,7 +3,6 @@
  * at the project root for terms.
  */
 
-
 package com.yahoo.sketches.hashmaps;
 
 /**
@@ -12,7 +11,6 @@ package com.yahoo.sketches.hashmaps;
  * the ``back'' of the array and moving toward the front.
  */
 public class HashMapReverseEfficient extends HashMap {
-
 
   /**
    * Constructs a hash table
@@ -189,6 +187,5 @@ public class HashMapReverseEfficient extends HashMap {
     }
     return table;
   }
-
 
 }

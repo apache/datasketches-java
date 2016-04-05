@@ -50,6 +50,8 @@ public class MasterFETester {
     map.adjustOrPutValue(1, 1, 1);
     map.adjustOrPutValue(2, 3, 3);
     String string = map.hashMapReverseEfficientToString();
+    //println(string);
+    //println(map.toString());
     HashMapReverseEfficient new_map =
         HashMapReverseEfficient.StringToHashMapReverseEfficient(string);
     String new_string = new_map.hashMapReverseEfficientToString();
@@ -608,7 +610,7 @@ public class MasterFETester {
    * @param s value to print
    */
   static void println(String s) {
-    // System.out.println(s); //disable here
+    System.out.println(s); //disable here
   }
 
 }
