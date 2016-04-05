@@ -60,6 +60,8 @@ public class ArrayOfDoublesUnionTest {
     union.update(sketch1);
     union.update(sketch2);
     ArrayOfDoublesCompactSketch result = union.getResult();
+    Assert.assertFalse(result.isEmpty());
+    Assert.assertTrue(result.isEstimationMode());
     Assert.assertEquals(result.getEstimate(), 12288.0, 12288 * 0.01);
   
     union.reset();
@@ -70,8 +72,25 @@ public class ArrayOfDoublesUnionTest {
     Assert.assertEquals(result.getUpperBound(1), 0.0);
     Assert.assertEquals(result.getLowerBound(1), 0.0);
     Assert.assertEquals(result.getTheta(), 1.0);
-    double[][] values = result.getValues();
-    for (int i = 0; i < values.length; i++) Assert.assertEquals(values[i][0], 2.0);
+  }
+
+  @Test
+  public void heapMixedMode() {
+    int key = 0;
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    for (int i = 0; i < 1000; i++) sketch1.update(key++, new double[] {1.0});
+
+    key -= 500; // overlap half of the entries
+    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().setSamplingProbability(0.2f).build();
+    for (int i = 0; i < 20000; i++) sketch2.update(key++, new double[] {1.0});
+
+    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion();
+    union.update(sketch1);
+    union.update(sketch2);
+    ArrayOfDoublesCompactSketch result = union.getResult();
+    Assert.assertFalse(result.isEmpty());
+    Assert.assertTrue(result.isEstimationMode());
+    Assert.assertEquals(result.getEstimate(), 20500.0, 20500 * 0.01);
   }
 
   @Test
