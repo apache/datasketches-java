@@ -3,9 +3,9 @@
  * at the project root for terms.
  */
 
-package com.yahoo.sketches.hashmaps;
+package com.yahoo.sketches.frequencies;
 
-import static com.yahoo.sketches.Util.LS;
+import static com.yahoo.sketches.Util.*;
 
 /**
  * Abstract class for a hashmap data structure, which stores (key, value) pairs, and supports the
@@ -17,7 +17,7 @@ import static com.yahoo.sketches.Util.LS;
  */
 public abstract class HashMap {
   public final double LOAD_FACTOR = 0.75;
-  protected final int capacity;
+  protected final int loadThreshold;
   protected final int length;
   protected final int arrayMask;
   protected int size = 0;
@@ -26,18 +26,18 @@ public abstract class HashMap {
   protected short[] states;
 
   /**
-   * @param capacity Determines the number of (key, value) pairs the hashmap is expected to store.
    * Constructor will create arrays of size capacity/LOAD_FACTOR, rounded up to a power of 2.
    * The size of the hash table is set to be a power of two for fast hashing. The protected
    * variable this.capacity is then set to the largest value that will not overload the hash
    * table.
+   * @param capacity Determines the number of (key, value) pairs the hashmap is expected to store.
    */
   public HashMap(int capacity) {
     if (capacity <= 0)
       throw new IllegalArgumentException(
-          "Received negative or zero value for as initial capacity.");
-    length = Integer.highestOneBit(2 * (int) (capacity / LOAD_FACTOR) - 1);
-    this.capacity = (int) (length * LOAD_FACTOR);
+          "Initial capacity cannot be negative or zero: " + capacity);
+    length = ceilingPowerOf2((int) (capacity / LOAD_FACTOR));
+    this.loadThreshold = (int) (length * LOAD_FACTOR);
     arrayMask = length - 1;
     keys = new long[length];
     values = new long[length];
@@ -45,12 +45,12 @@ public abstract class HashMap {
   }
 
   /**
-   * Increments the primitive value mapped to the key if the key is present in the map. Otherwise,
+   * Increments the value mapped to the key if the key is present in the map. Otherwise,
    * the key is inserted with the putAmount.
    * 
    * @param key the key of the value to increment
    * @param adjustAmount the amount by which to increment the value
-   * @param putAmount the value put into the map if the key is not initial present
+   * @param putAmount the value put into the map if the key is not present
    */
   public abstract void adjustOrPutValue(long key, long adjustAmount, long putAmount);
 
@@ -66,15 +66,16 @@ public abstract class HashMap {
   }
 
   /**
-   * @param key the key to look for
+   * Gets the current value with the given key
+   * @param key the given key
    * @return the positive value the key corresponds to or zero if if the key is not found in the
-   *         hash map.
+   * hash map.
    */
   public abstract long get(long key);
 
   /**
    * @param adjustAmount value by which to shift all values. Only keys corresponding to positive
-   *        values are retained.
+   * values are retained.
    */
   public void adjustAllValuesBy(long adjustAmount) {
     for (int i = length; i-- > 0;)
@@ -83,7 +84,7 @@ public abstract class HashMap {
 
   /**
    * @param thresholdValue value by which to shift all values. Only keys corresponding to positive
-   *        values are retained.
+   * values are retained.
    */
   public abstract void keepOnlyLargerThan(long thresholdValue);
 
@@ -96,7 +97,7 @@ public abstract class HashMap {
   /**
    * @return an array containing the active keys in the hash map.
    */
-  public long[] getKeys() {
+  public long[] getActiveKeys() {
     if (size == 0)
       return null;
     long[] returnedKeys = new long[size];
@@ -113,7 +114,7 @@ public abstract class HashMap {
   /**
    * @return an array containing the values corresponding. to the active keys in the hash
    */
-  public long[] getValues() {
+  public long[] getActiveValues() {
     if (size == 0)
       return null;
     long[] returnedValues = new long[size];
@@ -130,14 +131,14 @@ public abstract class HashMap {
   /**
    * @return the raw array of keys. Do NOT modify this array!
    */
-  public long[] ProtectedGetKey() {
+  long[] getKeys() {
     return keys;
   }
 
   /**
    * @return the raw array of values. Do NOT modify this array!
    */
-  public long[] ProtectedGetValues() {
+  long[] getValues() {
     return values;
   }
 
@@ -152,7 +153,7 @@ public abstract class HashMap {
    * @return capacity of hash table internal arrays (i.e., max number of keys that can be stored)
    */
   public int getCapacity() {
-    return capacity;
+    return loadThreshold;
   }
 
   /**
@@ -179,7 +180,7 @@ public abstract class HashMap {
 
   /**
    * @return the load factor of the hash table, i.e, the ratio between the capacity and the array
-   *         length
+   * length
    */
   protected double getLoadFactor() {
     return LOAD_FACTOR;

@@ -3,8 +3,10 @@
  * at the project root for terms.
  */
 
-package com.yahoo.sketches.hashmaps;
+package com.yahoo.sketches.frequencies;
 
+import com.yahoo.sketches.frequencies.HashMap;
+import com.yahoo.sketches.frequencies.HashMapReverseEfficient;
 import com.yahoo.sketches.hash.MurmurHash3;
 
 public class StressTestHashMap {

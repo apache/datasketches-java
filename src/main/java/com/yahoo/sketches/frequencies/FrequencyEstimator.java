@@ -26,53 +26,63 @@ package com.yahoo.sketches.frequencies;
 public abstract class FrequencyEstimator {
 
   /**
-   * @param key for which the frequency should be increased. The frequency of a key is equal to the
-   * number of times the function increment(key) was called.
+   * Update this sketch with a key and a frequency count of one.
+   * @param key for which the frequency should be increased. 
    */
-  abstract public void update(long key);
+  public abstract void update(long key);
 
   /**
-   * @param key for which the frequency should be increased.
-   * @param value by which the frequency of the key should be increased. The value must be
-   * non-negative.
+   * Update this sketch with a key and a positive frequency count. 
+   * @param key for which the frequency should be increased. The key can be any long value and is 
+   * only used by the sketch to determine uniqueness.
+   * @param increment the amount by which the frequency of the key should be increased. 
+   * An increment of zero is a no-op, and a negative value will throw an exception.
    */
-  abstract public void update(long key, long value);
+  public abstract void update(long key, long increment);
 
   /**
-   * @param key for which an estimate of the frequency is required. The exact frequency of a key is
-   * the number of times the function increment(key) was executed.
-   * @return an estimate of the frequency
+   * Gets the estimate of the frequency of the given key. 
+   * Note: The true frequency of a key would be the sum of the counts as a result of the two 
+   * update functions.
+   * @param key the given key
+   * @return the estimate of the frequency of the given key
    */
-  abstract public long getEstimate(long key);
+  public abstract long getEstimate(long key);
 
   /**
-   * @param key the key for which the frequency lower bound is needed.
-   * @return a lower bound on the frequency. That is, a number which is guaranteed to be no larger
-   * than the real frequency.
+   * Gets the guaranteed lower bound frequency of the given key.
+   * @param key the given key.
+   * @return the guaranteed lower bound frequency of the given key. That is, a number which is 
+   * guaranteed to be no larger than the real frequency.
    */
-  abstract public long getEstimateLowerBound(long key);
+  public abstract long getLowerBound(long key);
 
   /**
-   * @param key the key for which the frequency upper bound is needed.
-   * @return an upper bound on the frequency. That is, a number which is guaranteed to be no smaller
-   * than the real frequency.
+   * Gets the guaranteed upper bound frequency of the given key.
+   * @param key the given key
+   * @return the guaranteed upper bound frequency of the given key. That is, a number which is 
+   * guaranteed to be no smaller than the real frequency.
    */
-  abstract public long getEstimateUpperBound(long key);
+  public abstract long getUpperBound(long key);
 
   /**
-   * @return An upper bound on the maximum error of getEstimate(key) for any key. This upper bound
-   * may only hold for each key with probability failure_prob.
+   * @return An upper bound on the maximum error of getEstimate(key) for any key. 
+   * This is equivalent to the maximum distance between the upper bound and the lower bound for 
+   * any key.
    */
-  abstract public long getMaxError();
+  public abstract long getMaxError();
 
 
   /**
-   * @param threshold This function is guaranteed to return an array that contains a superset of all
-   * keys with frequency above the threshold.
-   * @return an array of keys containing a superset of all keys whose frequencies are are least the
-   * error tolerance.
+   * Gets a superset of all keys with estimated frequency above the given threshold. 
+   * There may be keys in the set with true frequencies less than the threshold (false positives).
+   * There will not be any keys with true frequencies greater than the threshold that are not 
+   * members of the set (false positives).
+   * @param threshold the given frequency threshold
+   * @return an array of keys containing a superset of all keys whose true frequencies are are 
+   * least the error tolerance.
    */
-  abstract public long[] getFrequentKeys(long threshold);
+  public abstract long[] getFrequentKeys(long threshold);
 
   /**
    * This function merges two FrequencyEstimator sketches, potentially of different sizes.
@@ -83,35 +93,35 @@ public abstract class FrequencyEstimator {
    * sketch. The sketch whose function is executed is changed and a reference to it is
    * returned.
    */
-  abstract public FrequencyEstimator merge(FrequencyEstimator other);
+  public abstract FrequencyEstimator merge(FrequencyEstimator other);
 
   /**
    * Returns the current number of counters the sketch is configured to support.
    * 
    * @return the current number of counters the sketch is configured to support.
    */
-  abstract public int getK();
+  public abstract int getK();
 
   /**
    * Returns the maximum number of counters the sketch will ever be configured to support.
    * 
    * @return the maximum number of counters the sketch will ever be configured to support.
    */
-  abstract public int getMaxK();
+  public abstract int getMaxK();
 
   /**
    * Returns true if this sketch is empty
    * 
    * @return true if this sketch is empty
    */
-  abstract public boolean isEmpty();
+  public abstract boolean isEmpty();
 
   /**
    * Returns the sum of the frequencies in the stream seen so far by the sketch
    * 
    * @return the sum of the frequencies in the stream seen so far by the sketch
    */
-  abstract public long getStreamLength();
+  public abstract long getStreamLength();
 
   /**
    * Resets this sketch to a virgin state, but retains the original value of the error parameter

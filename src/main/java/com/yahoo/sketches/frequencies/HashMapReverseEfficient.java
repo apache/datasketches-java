@@ -3,7 +3,7 @@
  * at the project root for terms.
  */
 
-package com.yahoo.sketches.hashmaps;
+package com.yahoo.sketches.frequencies;
 
 /**
  * Implements a linear-probing based hash table. Supports a purge operation that removes all keys in
@@ -48,7 +48,7 @@ public class HashMapReverseEfficient extends HashMap {
 
     if (states[probe] == 0) {
       // adding the key to the table the value
-      assert (size <= capacity);
+      assert (size <= loadThreshold);
       keys[probe] = key;
       values[probe] = putAmount;
       states[probe] = (short) drift;
@@ -121,7 +121,7 @@ public class HashMapReverseEfficient extends HashMap {
    */
   public String hashMapReverseEfficientToString() {
     StringBuilder sb = new StringBuilder();
-    sb.append(String.format("%d,%d,", size, capacity));
+    sb.append(String.format("%d,%d,", size, loadThreshold));
 
     for (int i = 0; i < keys.length; i++) {
       if (states[i] != 0) {

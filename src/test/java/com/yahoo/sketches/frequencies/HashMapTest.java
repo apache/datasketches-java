@@ -1,9 +1,12 @@
-package com.yahoo.sketches.hashmaps;
+package com.yahoo.sketches.frequencies;
 
 import java.util.Random;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
+import com.yahoo.sketches.frequencies.HashMap;
+import com.yahoo.sketches.frequencies.HashMapReverseEfficient;
 
 import gnu.trove.function.TLongFunction;
 import gnu.trove.map.hash.TLongLongHashMap;
@@ -76,8 +79,8 @@ public class HashMapTest {
     trove.retainEntries(new GreaterThenThreshold(threshold));
     trove.transformValues(new decreaseByThreshold(threshold));
     
-    long[] keys = hashMap.getKeys();
-    long[] values = hashMap.getValues();
+    long[] keys = hashMap.getActiveKeys();
+    long[] values = hashMap.getActiveValues();
     int size = hashMap.getSize();
     
     // map is of the correct size

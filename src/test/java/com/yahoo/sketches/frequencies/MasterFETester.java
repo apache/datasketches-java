@@ -13,8 +13,6 @@ import com.yahoo.sketches.memory.NativeMemory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.sketches.hashmaps.HashMapReverseEfficient;
-
 public class MasterFETester {
 
   public static void main(String[] args) {
@@ -229,7 +227,7 @@ public class MasterFETester {
       long[] freq = estimators[h].getFrequentKeys(threshold);
 
       for (int i = 0; i < freq.length; i++)
-        Assert.assertTrue(estimators[h].getEstimateUpperBound(freq[i]) > threshold);
+        Assert.assertTrue(estimators[h].getUpperBound(freq[i]) > threshold);
     }
   }
 
@@ -267,8 +265,8 @@ public class MasterFETester {
         i = i + 1;
 
         long realCount = realCounts.get(key);
-        long upperBound = merged.getEstimateUpperBound(key);
-        long lowerBound = merged.getEstimateLowerBound(key);
+        long upperBound = merged.getUpperBound(key);
+        long lowerBound = merged.getLowerBound(key);
 
         if (upperBound < realCount || realCount < lowerBound) {
           bad = bad + 1;
@@ -318,8 +316,8 @@ public class MasterFETester {
         i = i + 1;
 
         long realCount = realCounts.get(key);
-        long upperBound = merged.getEstimateUpperBound(key);
-        long lowerBound = merged.getEstimateLowerBound(key);
+        long upperBound = merged.getUpperBound(key);
+        long lowerBound = merged.getLowerBound(key);
 
         if (upperBound < realCount || realCount < lowerBound) {
           bad = bad + 1;
@@ -337,8 +335,8 @@ public class MasterFETester {
     int numEstimators = 1;
     for (int h = 0; h < numEstimators; h++) {
       FrequencyEstimator estimator = newFrequencyEstimator(error_tolerance, delta, h);
-      Assert.assertEquals(estimator.getEstimateUpperBound(13L), 0);
-      Assert.assertEquals(estimator.getEstimateLowerBound(13L), 0);
+      Assert.assertEquals(estimator.getUpperBound(13L), 0);
+      Assert.assertEquals(estimator.getLowerBound(13L), 0);
       Assert.assertEquals(estimator.getMaxError(), 0);
       Assert.assertEquals(estimator.getEstimate(13L), 0);
       estimator.update(13L);
