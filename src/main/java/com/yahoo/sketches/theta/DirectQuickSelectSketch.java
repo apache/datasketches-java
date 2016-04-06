@@ -363,7 +363,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
       
       if (lgArrLongs_ > lgNomLongs_) { //at full size, rebuild
         //Assumes no dirty values, changes thetaLong_, curCount_
-        assert (lgArrLongs_ == lgNomLongs_ + 1) : "lgArr: " + lgArrLongs_ + ", lgNom: " + lgNomLongs_;
+        assert (lgArrLongs_ == lgNomLongs_ + 1) : "lgArr: " + lgArrLongs_ + ", lgNom: " + lgNomLongs_; //TODO
         quickSelectAndRebuild(mem_, preambleLongs_, lgNomLongs_, lgArrLongs_, curCount_);  //rebuild
         curCount_ = mem_.getInt(RETAINED_ENTRIES_INT);
         thetaLong_ = mem_.getLong(THETA_LONG);
@@ -372,19 +372,15 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
       else { //Not at full size, resize. Should not get here if lgRF = 0 and memCap is too small.
         int lgRF = getLgResizeFactor();
         int actLgRF = actLgResizeFactor(mem_.getCapacity(), lgArrLongs_, preambleLongs_, lgRF);
-        int tgtLgArrLongs = lgArrLongs_ + actLgRF;
-        
+        int tgtLgArrLongs = Math.min(lgArrLongs_ + actLgRF, lgNomLongs_+1);
         if (actLgRF > 0) { //Expand in current Memory
-//println("Before Loc Expand: memCapLongs: "+ (mem_.getCapacity()>>3) + ", lgArrLongs: "+lgArrLongs_);
           resize(mem_, preambleLongs_, lgArrLongs_, tgtLgArrLongs);
           //update locals
           lgArrLongs_ = mem_.getByte(LG_ARR_LONGS_BYTE);
           hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
-//println("After  Loc Expand: memCapLongs: "+ (mem_.getCapacity()>>3) + ", lgArrLongs: "+lgArrLongs_ +"\n");
         } //end of Expand in current memory
         
         else { //Request more memory, then resize
-//println("Before New Memory: memCapLongs: "+ (mem_.getCapacity()>>3) + ", lgArrLongs: "+lgArrLongs_);
           int preBytes = preambleLongs_ << 3;
           tgtLgArrLongs = Math.min(lgArrLongs_ + lgRF, lgNomLongs_ + 1);
           int tgtArrBytes = 8 << tgtLgArrLongs;
@@ -401,14 +397,12 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
             memReq.free(dstMem);
             throw new IllegalArgumentException("Requested memory not granted: "+newCap+" < "+reqBytes);
           }
-//println("curLgArrLongs: "+lgArrLongs_+", tgtLgArrLongs: "+tgtLgArrLongs);
           moveAndResize(mem_, preambleLongs_, lgArrLongs_, dstMem, tgtLgArrLongs, thetaLong_);
           
           memReq.free(mem_, dstMem); //normal free mechanism via MemoryRequest
           mem_ = dstMem;
           lgArrLongs_ = mem_.getByte(LG_ARR_LONGS_BYTE);
           hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
-//println("After  New Memory: memCapLongs: "+ (mem_.getCapacity()>>3) + ", lgArrLongs: "+lgArrLongs_+"\n");
         } //end of Request more memory to resize
       } //end of resize
     }
@@ -438,9 +432,5 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     mem.putInt(RETAINED_ENTRIES_INT, newCurCount);
     return newCurCount;
   }
-  
-//  static void println(String s) {
-//    System.out.println(s); //disable here
-//  }
   
 }
