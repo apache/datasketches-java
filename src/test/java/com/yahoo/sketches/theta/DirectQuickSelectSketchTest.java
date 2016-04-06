@@ -985,6 +985,16 @@ public class DirectQuickSelectSketchTest {
   }
   
   @Test
+  public void checkResizeInBigMem() {
+    int k = 1 << 14;
+    int u = 1 << 20;
+    Memory mem = new NativeMemory(new byte[8*k*16 +24]);
+    UpdateSketch sketch = Sketches.updateSketchBuilder().initMemory(mem).build(k);
+    for (int i=0; i<u; i++) sketch.update(i);
+  }
+  
+  
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }

@@ -273,6 +273,27 @@ public class UpdatableSketchWithDoubleSummaryTest {
   }
 
   @Test
+  public void unionMixedMode() {
+    int key = 0;
+    UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
+    for (int i = 0; i < 1000; i++) sketch1.update(key++, 1.0);
+    System.out.println("theta1=" + sketch1.getTheta() + " " + sketch1.getThetaLong());
+
+    key -= 500; // overlap half of the entries
+    UpdatableSketch<Double, DoubleSummary> sketch2 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).setSamplingProbability(0.2f).build();
+    for (int i = 0; i < 20000; i++) sketch2.update(key++, 1.0);
+    System.out.println("theta2=" + sketch2.getTheta() + " " + sketch2.getThetaLong());
+
+    Union<DoubleSummary> union = new Union<DoubleSummary>(4096, new DoubleSummaryFactory());
+    union.update(sketch1);
+    union.update(sketch2);
+    CompactSketch<DoubleSummary> result = union.getResult();
+    Assert.assertEquals(result.getEstimate(), 20500.0, 20500 * 0.01);
+    Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());
+    Assert.assertTrue(result.getUpperBound(1) > result.getEstimate());
+  }
+
+  @Test
   public void intersectionEmpty() {
     UpdatableSketch<Double, DoubleSummary> sketch = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     Intersection<DoubleSummary> intersection = new Intersection<DoubleSummary>(new DoubleSummaryFactory());
