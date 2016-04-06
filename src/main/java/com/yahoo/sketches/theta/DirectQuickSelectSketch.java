@@ -363,7 +363,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
       
       if (lgArrLongs_ > lgNomLongs_) { //at full size, rebuild
         //Assumes no dirty values, changes thetaLong_, curCount_
-        assert (lgArrLongs_ == lgNomLongs_ + 1) : "lgArr: " + lgArrLongs_ + ", lgNom: " + lgNomLongs_; //TODO
+        assert (lgArrLongs_ == lgNomLongs_ + 1) : "lgArr: " + lgArrLongs_ + ", lgNom: " + lgNomLongs_;
         quickSelectAndRebuild(mem_, preambleLongs_, lgNomLongs_, lgArrLongs_, curCount_);  //rebuild
         curCount_ = mem_.getInt(RETAINED_ENTRIES_INT);
         thetaLong_ = mem_.getLong(THETA_LONG);
