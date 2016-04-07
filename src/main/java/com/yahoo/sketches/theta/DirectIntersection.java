@@ -346,5 +346,4 @@ class DirectIntersection extends SetOperation implements Intersection {
     return curCount;
   }
   
-  private static void println(String s) { System.out.println(s); }
 }
