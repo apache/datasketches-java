@@ -7,6 +7,7 @@ package com.yahoo.sketches.theta;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
 import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
@@ -68,6 +69,7 @@ class DirectCompactOrderedSketch extends CompactSketch {
     
     mem_ = loadCompactMemory(compactOrderedCache, isEmpty(), getSeedHash(), 
         getRetainedEntries(false), getThetaLong(), dstMem, flags);
+    preLongs_ = mem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
   }
   
   

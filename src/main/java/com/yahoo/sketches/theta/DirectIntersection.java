@@ -345,4 +345,6 @@ class DirectIntersection extends SetOperation implements Intersection {
     mem_.putInt(RETAINED_ENTRIES_INT, curCount);
     return curCount;
   }
+  
+  private static void println(String s) { System.out.println(s); }
 }
