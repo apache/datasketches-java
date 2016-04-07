@@ -704,9 +704,38 @@ public class DirectIntersectionTest {
     DirectIntersection dirI2 = new DirectIntersection(mem, Util.DEFAULT_UPDATE_SEED);
   }
   
+  //Check Alex's bug intersecting 2 direct full sketches with only overlap of 2
+  // 
+  @Test
+  public void checkOverlappedDirect() {
+    int k = 1 << 4;
+    int memBytes = 2*k*16 +24; //plenty of room
+    UpdateSketch sk1 = Sketches.updateSketchBuilder().build(k);
+    UpdateSketch sk2 = Sketches.updateSketchBuilder().build(k);
+    for (int i=0; i<k; i++) {
+      sk1.update(i);
+      sk2.update(k-2 +i); //overlap by 2
+    }
+    Memory memIn1 = new NativeMemory(new byte[memBytes]);
+    Memory memIn2 = new NativeMemory(new byte[memBytes]);
+    Memory memOut = new NativeMemory(new byte[memBytes]);
+    CompactSketch csk1 = sk1.compact(true, memIn1);
+    CompactSketch csk2 = sk2.compact(true, memIn2);
+    Intersection inter = Sketches.setOperationBuilder().initMemory(memOut).buildIntersection();
+    inter.update(csk1);
+    inter.update(csk2);
+    CompactSketch cskOut = inter.getResult(true, memOut);
+    assertEquals(cskOut.getEstimate(), 2.0, 0.0);
+  }
+  
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
+  }
+  
+  public static void main(String[] args) {
+    DirectIntersectionTest test = new DirectIntersectionTest();
+    test.checkOverlappedDirect();
   }
   
   /**

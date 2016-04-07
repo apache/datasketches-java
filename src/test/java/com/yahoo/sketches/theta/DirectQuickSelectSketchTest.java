@@ -984,8 +984,9 @@ public class DirectQuickSelectSketchTest {
     assertEquals(sketch.getResizeFactor(), ResizeFactor.X8);
   }
   
+  //checks Alex's bug where lgArrLongs > lgNomLongs +1.
   @Test
-  public void checkResizeInBigMem() {
+  public void checkResizeInBigMem() { 
     int k = 1 << 14;
     int u = 1 << 20;
     Memory mem = new NativeMemory(new byte[8*k*16 +24]);
