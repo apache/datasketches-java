@@ -15,10 +15,10 @@ public class HashMapReverseEfficient extends HashMap {
   /**
    * Constructs a hash table
    * 
-   * @param capacity
+   * @param mapSize
    */
-  public HashMapReverseEfficient(int capacity) {
-    super(capacity);
+  public HashMapReverseEfficient(int mapSize) {
+    super(mapSize);
   }
 
   @Override
@@ -48,12 +48,12 @@ public class HashMapReverseEfficient extends HashMap {
 
     if (states[probe] == 0) {
       // adding the key to the table the value
-      assert (size <= loadThreshold);
+      assert (numActive <= loadThreshold);
       keys[probe] = key;
       values[probe] = putAmount;
       states[probe] = (short) drift;
-      size++;
-      assert (size <= .8 * length);
+      numActive++;
+      assert (numActive <= .8 * length);
     } else {
       // adjusting the value of an existing key
       assert (keys[probe] == key);
@@ -70,13 +70,13 @@ public class HashMapReverseEfficient extends HashMap {
     for (int probe = firstProbe; probe-- > 0;) {
       if (states[probe] > 0 && values[probe] <= thresholdValue) {
         hashDelete(probe);
-        size--;
+        numActive--;
       }
     }
     for (int probe = length; probe-- > firstProbe;) {
       if (states[probe] > 0 && values[probe] <= thresholdValue) {
         hashDelete(probe);
-        size--;
+        numActive--;
       }
     }
   }
@@ -121,7 +121,7 @@ public class HashMapReverseEfficient extends HashMap {
    */
   public String hashMapReverseEfficientToString() {
     StringBuilder sb = new StringBuilder();
-    sb.append(String.format("%d,%d,", size, loadThreshold));
+    sb.append(String.format("%d,%d,", numActive, length));
 
     for (int i = 0; i < keys.length; i++) {
       if (states[i] != 0) {
@@ -142,14 +142,14 @@ public class HashMapReverseEfficient extends HashMap {
     String[] tokens = string.split(",");
     if (tokens.length < 2) {
       throw new IllegalArgumentException(
-          "Tried to make HashMapReviseEfficient out of string not long enough to specify length and capacity.");
+          "Tried to make HashMapReverseEfficient out of string not long enough to specify length and capacity.");
     }
 
-    int size = Integer.parseInt(tokens[0]);
-    int capacity = Integer.parseInt(tokens[1]);
-    HashMapReverseEfficient table = new HashMapReverseEfficient(capacity);
+    int numActive = Integer.parseInt(tokens[0]);
+    int length = Integer.parseInt(tokens[1]);
+    HashMapReverseEfficient table = new HashMapReverseEfficient(length);
     int j = 2;
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < numActive; i++) {
       long key = Long.parseLong(tokens[j++]);
       long value = Long.parseLong(tokens[j++]);
       table.adjustOrPutValue(key, value, value);
@@ -176,11 +176,11 @@ public class HashMapReverseEfficient extends HashMap {
           "Tried to make HashMapReviseEfficient out of string not long enough to specify length and capacity.");
     }
 
-    int size = Integer.parseInt(tokens[ignore]);
-    int capacity = Integer.parseInt(tokens[ignore + 1]);
-    HashMapReverseEfficient table = new HashMapReverseEfficient(capacity);
+    int numActive = Integer.parseInt(tokens[ignore]);
+    int length = Integer.parseInt(tokens[ignore + 1]);
+    HashMapReverseEfficient table = new HashMapReverseEfficient(length);
     int j = 2 + ignore;
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < numActive; i++) {
       long key = Long.parseLong(tokens[j++]);
       long value = Long.parseLong(tokens[j++]);
       table.adjustOrPutValue(key, value, value);

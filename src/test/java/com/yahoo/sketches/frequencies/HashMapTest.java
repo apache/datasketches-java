@@ -81,7 +81,7 @@ public class HashMapTest {
     
     long[] keys = hashMap.getActiveKeys();
     long[] values = hashMap.getActiveValues();
-    int size = hashMap.getSize();
+    int size = hashMap.getNumActive();
     
     // map is of the correct size
     Assert.assertEquals(trove.size(), size);

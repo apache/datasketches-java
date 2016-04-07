@@ -7,27 +7,27 @@ package com.yahoo.sketches.frequencies;
 
 import java.util.Arrays;
 
+import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
 import static com.yahoo.sketches.frequencies.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractPreLongs;
-import static com.yahoo.sketches.frequencies.PreambleUtil.extractLowerK;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractMaxMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractFamilyID;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractEmptyFlag;
-import static com.yahoo.sketches.frequencies.PreambleUtil.extractUpperK;
-import static com.yahoo.sketches.frequencies.PreambleUtil.extractInitialSize;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractCurMapSize;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractInitialMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractBufferLength;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertFamilyID;
-import static com.yahoo.sketches.frequencies.PreambleUtil.insertLowerK;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertMaxMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertPreLongs;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertSerVer;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertEmptyFlag;
-import static com.yahoo.sketches.frequencies.PreambleUtil.insertUpperK;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertCurMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertBufferLength;
-
-import static com.yahoo.sketches.frequencies.PreambleUtil.insertInitialSize;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertInitialMapSize;
 //import static com.yahoo.sketches.Util.*;
 
 /**
@@ -35,16 +35,24 @@ import static com.yahoo.sketches.frequencies.PreambleUtil.insertInitialSize;
  * 
  * <p>The frequent-items sketch is useful for keeping approximate counters for keys that is 
  * implemented as a map (<i>long</i> key, <i>long</i> count).
- * The sketch is initialized with a value k. The sketch will keep roughly k
- * counters when it is full size. More specifically, when k is a power of 2, a HashMap will be
- * created with 2*k cells, and the number of counters will typically oscillate between roughly .75*k
- * and 1.5*k. The space usage of the sketch is therefore proportional to k when it reaches full
- * size.
+ * 
+ * The sketch is initialized with a value maxMapSize, which must be a power of 2. When at full
+ * size, the sketch will maintain the counters in hash table, which is internally represented
+ * with arrays of length maxMapSize. The total space usage of the sketch, at full size,
+ * is 18*maxMapSize bytes, plus a small (constant) number of additional bytes.
+ * 
+ * At full size, hash table will keep at most k=maxMapSize * LOAD_FACTOR  counters, where 
+ * LOAD_FACTOR is the maximum load that the hash table is configured to support.
+ * Currently, LOAD_FACTOR is set to 3/4. If fewer than k different keys are inserted 
+ * then the counts computed by the sketch will be exact.
  * 
  * When the sketch is updated with a key and increment, the corresponding counter is incremented or,
- * if there is no counter for that key, a new counter is created. If the sketch reaches its maximal
- * allowed size, it decrements all of the counters (by an approximately computed median), and
+ * if there is no counter for that key, a new counter is created. If the hash table reaches capacity,
+ * it decrements all of the counters (by an approximately computed median), and
  * removes any non-positive counters.
+ * 
+ * Hence, when the sketch is at full size, the number of counters maintained by the sketch will 
+ * typically oscillate between roughly k and k/2. 
  * 
  * The logic of the frequent-items sketch is such that the stored counts and true counts are never
  * too different. More specifically, for any key KEY, the sketch can return an estimate of the true
@@ -53,21 +61,9 @@ import static com.yahoo.sketches.frequencies.PreambleUtil.insertInitialSize;
  * 
  * For this implementation, it is guaranteed that, with high probability over the
  * randomness of the implementation, the difference between the upper bound and the estimate is at
- * most (4/3)*(n/k), where n denotes the stream length (i.e, sum of all the item frequencies), and
- * similarly for the lower bound and the estimate. In practice, the difference is usually much
- * smaller.
- * 
- * If user specifies mapLength = j (is power of 2) then error is at most (8/3)*(n/j)
- * # counters = 3/4 j.  Size of sketch in memory bytes = j*18 bytes + primitives
- * 
- * The guarantee of the sketch is that with high probability, any returned estimate will
- * have error at most (4/3)*(n/k), where n is the true sum of frequencies in the stream. In
- * practice, the error is typically much smaller. The space usage of the sketch is
- * proportional to k. If fewer than ~k different keys are inserted then the counts will be
- * exact. More precisely, if k is a power of 2,then when the sketch reaches full size, the
- * data structure's HashMap will contain 2*k cells. Assuming that the LOAD_FACTOR of the
- * HashMap is set to 0.75, the number of cells of the hash table that are actually filled
- * should oscillate between roughly .75*k and 1.5 * k.
+ * most 2n/k=(8/3)*(n/maxMapSize), where n denotes the stream length (i.e, sum of all the item frequencies), and
+ * similarly for the lower bound and the estimate. In practice, the difference is usually much smaller.
+ *
  * 
  * Background: This code implements a variant of what is commonly known as the "Misra-Gries
  * algorithm" or "Frequent Items". Variants of it were discovered and rediscovered and redesigned
@@ -86,43 +82,42 @@ public class FrequentItems extends FrequencyEstimator {
   /**
    * We start by allocating a small data structure capable of explicitly storing very small streams
    * in full, and growing it as the stream grows. The following constant controls the size of the
-   * initial data structure
+   * initial data structure.
    */
-  static final int MIN_FREQUENT_ITEMS_SIZE = 4; // This is somewhat arbitrary
+  static final int MIN_HASHMAP_SIZE = 4; // This is somewhat arbitrary
   
   /**
    * This is a constant large enough that computing the median of SAMPLE_SIZE
    * randomly selected entries from a list of numbers and outputting
-   * the empirical median will give a constant-factor approximaion to the 
+   * the empirical median will give a constant-factor approximation to the 
    * true median with high probability
    */
   static final int SAMPLE_SIZE = 256;
 
   /**
-   * The current size of the hashMap. This is always a power of 2.
+   * The current number of counters supported by the data structure.
    */
   private int curMapCap;
+  
+  /**
+   * The number of counters to be supported when sketch is full size
+   */
+  private int maxMapCap;
 
   /**
-   * The value of k passed to the constructor. Used to determine the maximum number of counters the
-   * sketch can support, and remembered by the sketch for use in resetting to a virgin state.
+   * Initial length of the arrays internal to the hash map supported by the data structure
    */
-  private final int k; //max capacity of the map in counters
-
+  private int initialMapSize;
+  
   /**
-   * Initial number of counters supported by the data structure
+   * Maximum length of the arrays internal to the hash map supported by the data structure.
    */
-  private int initialCap;
+  private int maxMapSize;
 
   /**
    * Hash map mapping stored keys to approximate counts
    */
   private HashMapReverseEfficient hashMap;
-
-  /**
-   * The number of counters to be supported when sketch is full size
-   */
-  private int maxMapCap;
 
 
   /**
@@ -150,50 +145,56 @@ public class FrequentItems extends FrequencyEstimator {
 
   // **CONSTRUCTORS**********************************************************
   /**
-   * Construct this sketch with parameter k and initialCapacity
-   * @param k Determines the maximum size of the sketch and the accuracy of the estimates returned 
+   * Construct this sketch with parameter mapMapSize and initialMapSize
+   * @param maxMapSize Determines the maximum length of the arrays internal to
+   * the hash table maintained by the sketch. The larger maxMapSize, 
+   * the more space the sketch uses, and the better the accuracy of the estimates returned 
    * by the sketch.
-   * @param initialCapacity determines the initial size of the sketch.
+   * @param initialMapSize determines the initial length of the arrays internal to the hash table
    */
-  FrequentItems(int k, int initialCapacity) { //instead specify maxMapSize (before load calculation).
-    //if (!isPowerOf2(1024) throw ...
+  FrequentItems(int maxMapSize, int initialMapSize) { 
     
-    if (k <= 0) {
-      throw new IllegalArgumentException("k cannot be negative or zero: "+k);
+    if (maxMapSize <= 0) {
+      throw new IllegalArgumentException("maxMapSize cannot be negative or zero: "+maxMapSize);
     }
+    if (initialMapSize <= 0) {
+      throw new IllegalArgumentException("initialMapSize cannot be negative or zero: "+initialMapSize);
+    }
+    if (maxMapSize < initialMapSize) {
+      throw new IllegalArgumentException("maxMapSize cannot be less than initialMapSize: "+maxMapSize);
+    }
+    if (!Util.isPowerOf2(maxMapSize))
+      throw new IllegalArgumentException(
+          "maxMapSize must be power of two: " + maxMapSize);
+    if (!Util.isPowerOf2(initialMapSize))
+      throw new IllegalArgumentException(
+          "initialMapSize must be power of two: " + initialMapSize);
     
-    //set initial size of counters data structure so it can exactly store a stream with 
-    //initialCapacity distinct elements
-    this.curMapCap = Math.max(initialCapacity, MIN_FREQUENT_ITEMS_SIZE); //was K
-    hashMap = new HashMapReverseEfficient(this.curMapCap);
-
-    this.k = k;
-    this.initialCap = initialCapacity;
-
-    // set maxK to be the maximum number of counters that can be supported
-    // by a HashMap with the appropriate number of cells (specifically,
-    // 2*k cells if k is a power of 2) and a load that does not exceed
-    // the designated load factor
-    int maxHashMapLength = Integer.highestOneBit(4 * k - 1); //=2*floorPowerOf2(k)
-    maxMapCap = (int) (maxHashMapLength * hashMap.LOAD_FACTOR); //was maxK effective k
+    //set initial size of counters data structure
+    this.initialMapSize = Math.max(initialMapSize, MIN_HASHMAP_SIZE);
+    hashMap = new HashMapReverseEfficient(initialMapSize);
+    this.curMapCap = hashMap.getCapacity();
+    
+    this.maxMapSize = maxMapSize;
+    this.maxMapCap = (int) (maxMapSize*hashMap.getLoadFactor());
 
     offset = 0;
     sampleSize = Math.min(SAMPLE_SIZE, maxMapCap);
   }
   
   /**
-   * Construct this sketch with the parameter k and the default initial capacity of 4.
-   * @param k 
+   * Construct this sketch with the parameter maxMapSize and the default initialMapSize
+   * @param maxMapSize 
    */
-  public FrequentItems(int k) {
-    this(k, MIN_FREQUENT_ITEMS_SIZE);
+  public FrequentItems(int maxMapSize) {
+    this(maxMapSize, MIN_HASHMAP_SIZE);
   }
 
   /**
    * @return the number of active (positive) counters in the sketch.
    */
   public int getActiveCounters() {
-    return hashMap.getSize();
+    return hashMap.getNumActive();
   }
 
   @Override
@@ -238,25 +239,29 @@ public class FrequentItems extends FrequencyEstimator {
     if (increment < 0) throw new IllegalArgumentException("Increment may not be negative");
     this.streamLength += increment;
     hashMap.adjust(key, increment);
-    int size = this.getActiveCounters();
+    int numActive = this.getActiveCounters();
 
     // if the data structure needs to be grown
-    if ((size >= this.curMapCap) && (this.curMapCap < this.maxMapCap)) {
+    if ((numActive >= this.curMapCap) && (this.curMapCap < this.maxMapCap)) {
       // grow the size of the data structure
-      int newSize = Math.max(Math.min(this.maxMapCap, 2 * this.curMapCap), 1);
-      this.curMapCap = newSize;
+      int newSize = 2*hashMap.getLength();
       HashMapReverseEfficient newTable = new HashMapReverseEfficient(newSize);
+      this.curMapCap = newTable.getCapacity();
       long[] keys = this.hashMap.getActiveKeys();
       long[] values = this.hashMap.getActiveValues();
       
-      assert(keys.length == size);
-      for (int i = 0; i < size; i++) {
+      assert(keys.length == numActive);
+      for (int i = 0; i < numActive; i++) {
         newTable.adjust(keys[i], values[i]);
       }
       this.hashMap = newTable;
     }
 
-    if (size > this.maxMapCap) {
+    //the +1 here is because, if we do not purge now, we might
+    //wind up inserting a new item on the next update, and we 
+    //don't want this to put us over capacity. (Going over capacity
+    //by 1 is not a big deal, but we may as well be precise).
+    if (numActive+1 > this.maxMapCap) {
       purge();
       assert (this.getActiveCounters() <= this.maxMapCap);
     }
@@ -336,7 +341,7 @@ public class FrequentItems extends FrequencyEstimator {
 
   
   @Override
-  public int getK() {
+  public int getCurMapCap() {
     return this.curMapCap;
   }
 
@@ -346,7 +351,7 @@ public class FrequentItems extends FrequencyEstimator {
   }
 
   @Override
-  public int getMaxK() {
+  public int getMaxMapCap() {
     return this.maxMapCap;
   }
 
@@ -357,8 +362,8 @@ public class FrequentItems extends FrequencyEstimator {
 
   @Override
   public void reset() {
-    this.curMapCap = this.initialCap;
-    hashMap = new HashMapReverseEfficient(this.curMapCap);
+    hashMap = new HashMapReverseEfficient(this.initialMapSize);
+    this.curMapCap = hashMap.getCapacity();
     this.offset = 0;
     this.mergeError = 0;
     this.streamLength = 0;
@@ -374,6 +379,7 @@ public class FrequentItems extends FrequencyEstimator {
       return 20;
     return 48 + 16 * getActiveCounters();
   }
+  
 
   /**
    * Returns summary information about this sketch.
@@ -384,8 +390,8 @@ public class FrequentItems extends FrequencyEstimator {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append(
-        String.format("%d,%d,%d,%d,%d,%d,", k, mergeError, offset, streamLength, curMapCap, initialCap));
-    // maxK, samplesize are deterministic functions of k, so we don't need them in the serialization
+        String.format("%d,%d,%d,%d,%d,%d,", maxMapSize, mergeError, offset, streamLength, hashMap.getLength(), initialMapSize));
+    // maxMapCap, samplesize are deterministic functions of maxMapSize, so we don't need them in the serialization
     sb.append(hashMap.hashMapReverseEfficientToString());
     return sb.toString();
   }
@@ -403,46 +409,23 @@ public class FrequentItems extends FrequencyEstimator {
           "Tried to make FrequentItems out of string not long enough to specify relevant parameters.");
     }
 
-    int k = Integer.parseInt(tokens[0]);
+    int maxMapSize = Integer.parseInt(tokens[0]);
     long mergeError = Long.parseLong(tokens[1]);
     long offset = Long.parseLong(tokens[2]);
     long streamLength = Long.parseLong(tokens[3]);
-    int K = Integer.parseInt(tokens[4]);
-    int initialSize = Integer.parseInt(tokens[5]);
-
-    FrequentItems sketch = new FrequentItems(k, K);
+    int curMapSize = Integer.parseInt(tokens[4]);
+    int initialMapSize = Integer.parseInt(tokens[5]);
+    
+    FrequentItems sketch = new FrequentItems(maxMapSize, curMapSize);
     sketch.mergeError = mergeError;
     sketch.offset = offset;
     sketch.streamLength = streamLength;
-    sketch.initialCap = initialSize;
+    sketch.initialMapSize = initialMapSize;
 
     sketch.hashMap = HashMapReverseEfficient.StringArrayToHashMapReverseEfficient(tokens, 6);
     return sketch;
   }
 
-  // @formatter:off
-  /**
-   * @return byte array that looks as follows:
-   * 
-   * <pre>
-   *  
-   *      ||    7     |    6   |    5   |    4   |    3   |    2   |    1   |     0          |
-   *  0   |||--------k---------------------------|--flag--| FamID  | SerVer | PreambleLongs  |
-   *      ||    15    |   14   |   13   |   12   |   11   |   10   |    9   |     8          |
-   *  1   ||---------------------------------mergeError--------------------------------------|
-   *      ||    23    |   22   |   21   |   20   |   19   |   18   |   17   |    16          |
-   *  2   ||---------------------------------offset------------------------------------------|
-   *      ||    31    |   30   |   29   |   28   |   27   |   26   |   25   |    24          |
-   *  3   ||-----------------------------------streamLength----------------------------------|
-   *      ||    39    |   38   |   37   |   36   |   35   |   34   |   33   |    32          |
-   *  4   ||------initialSize--------------------|-------------------K-----------------------|
-   *      ||    47    |   46   |   45   |   44   |   43   |   42   |   41   |   40           |
-   *  5   ||------------(unused)-----------------|--------bufferlength-----------------------|
-   *      ||    55    |   54   |   53   |   52   |   51   |   50   |   49   |   48           |
-   *  6   ||----------start of keys buffer, followed by values buffer------------------------|
-   * </pre>
-   **/
-  // @formatter:on
   public byte[] toByteArray() {
     int preLongs, arrLongs;
     boolean empty = isEmpty();
@@ -466,7 +449,7 @@ public class FrequentItems extends FrequencyEstimator {
       pre0 = insertEmptyFlag(1, pre0);
     else
       pre0 = insertEmptyFlag(0, pre0);
-    pre0 = insertLowerK(this.k, pre0);
+    pre0 = insertMaxMapSize(this.maxMapSize, pre0);
 
     if (empty) {
       mem.putLong(0, pre0);
@@ -478,8 +461,8 @@ public class FrequentItems extends FrequencyEstimator {
       preArr[3] = this.streamLength;
 
       long pre1 = 0L;
-      pre1 = insertUpperK(this.curMapCap, pre1);
-      pre1 = insertInitialSize(this.initialCap, pre1);
+      pre1 = insertCurMapSize(this.hashMap.getLength(), pre1);
+      pre1 = insertInitialMapSize(this.initialMapSize, pre1);
       preArr[4] = pre1;
 
       long pre2 = 0L;
@@ -526,10 +509,10 @@ public class FrequentItems extends FrequencyEstimator {
     int familyID = extractFamilyID(pre0);
     assert (familyID == 10);
     int emptyFlag = extractEmptyFlag(pre0);
-    int k = extractLowerK(pre0);
+    int maxMapSize = extractMaxMapSize(pre0);
 
     if (emptyFlag == 1)
-      return new FrequentItems(k);
+      return new FrequentItems(maxMapSize);
 
     // Not empty, must have valid preamble
     long[] remainderPreArr = new long[5];
@@ -541,12 +524,12 @@ public class FrequentItems extends FrequencyEstimator {
     long pre1 = remainderPreArr[3];
     long pre2 = remainderPreArr[4];
 
-    int K = extractUpperK(pre1);
-    int initialSize = extractInitialSize(pre1);
+    int curMapSize = extractCurMapSize(pre1);
+    int initialMapSize = extractInitialMapSize(pre1);
     int bufferLength = extractBufferLength(pre2);
 
-    FrequentItems hfi = new FrequentItems(k, K);
-    hfi.initialCap = initialSize;
+    FrequentItems hfi = new FrequentItems(maxMapSize, curMapSize);
+    hfi.initialMapSize = initialMapSize;
     hfi.offset = offset;
     hfi.mergeError = mergeError;
 

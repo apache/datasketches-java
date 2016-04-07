@@ -30,7 +30,7 @@ package com.yahoo.sketches.frequencies;
  * Long || Start Byte Adr:
  * Adr: 
  *      ||    7     |    6   |    5   |    4   |    3   |    2   |    1   |     0          |
- *  0   |||--------k---------------------------|--flag--| FamID  | SerVer | Preamble_Longs |
+ *  0   |||--------maxMapSize---------------------------|--flag--| FamID  | SerVer | PreambleLongs  |
  *      ||    15    |   14   |   13   |   12   |   11   |   10   |    9   |     8          |
  *  1   ||---------------------------------mergeError--------------------------------------|
  *      ||    23    |   22   |   21   |   20   |   19   |   18   |   17   |    16          |
@@ -38,7 +38,7 @@ package com.yahoo.sketches.frequencies;
  *      ||    31    |   30   |   29   |   28   |   27   |   26   |   25   |    24          |
  *  3   ||-----------------------------------streamLength----------------------------------|
  *      ||    39    |   38   |   37   |   36   |   35   |   34   |   33   |    32          |
- *  4   ||------initialSize--------------------|-------------------K-----------------------|
+ *  4   ||------initialMapSize-----------------|------------curMapSize---------------------|
  *      ||    47    |   46   |   45   |   44   |   43   |   42   |   41   |   40           |
  *  5   ||------------(unused)-----------------|--------bufferlength-----------------------|
  *      ||    55    |   54   |   53   |   52   |   51   |   50   |   49   |   48           |
@@ -59,12 +59,12 @@ final class PreambleUtil {
   static final int SER_VER_BYTE = 1;
   static final int FAMILY_BYTE = 2;
   static final int FLAG_START = 3;
-  static final int LOWER_K_START = 4; // to 7
+  static final int MAX_MAP_SIZE_START = 4; // to 7
   static final int MERGE_ERROR_START = 8; // to 15
   static final int OFFSET_START = 16; // to 23
   static final int STREAMLENGTH_START = 24; // to 31
-  static final int UPPER_K_START = 32; // to 35
-  static final int INITIALSIZE_START = 36; // to 39
+  static final int CUR_MAP_SIZE_START = 32; // to 35
+  static final int INITIAL_MAP_SIZE_START = 36; // to 39
   static final int BUFFERLENGTH_START = 40; // to 43
   // Specific values for this implementation
   static final int SER_VER = 1;
@@ -93,13 +93,13 @@ final class PreambleUtil {
   }
 
 
-  static int extractLowerK(final long pre1) {
-    int shift = LOWER_K_START << 3;
+  static int extractMaxMapSize(final long pre1) {
+    int shift = MAX_MAP_SIZE_START << 3;
     long mask = 0XFFFFFFFFL;
     return (int) ((pre1 >>> shift) & mask);
   }
 
-  static int extractUpperK(final long pre1) {
+  static int extractCurMapSize(final long pre1) {
     long mask = 0XFFFFFFFFL;
     return (int) (pre1 & mask);
   }
@@ -109,9 +109,9 @@ final class PreambleUtil {
     return (int) (pre2 & mask);
   }
 
-  static int extractInitialSize(final long pre1) {
+  static int extractInitialMapSize(final long pre1) {
     long mask = 0XFFFFFFFFL;
-    int shift = (INITIALSIZE_START - UPPER_K_START) << 3;
+    int shift = (INITIAL_MAP_SIZE_START - CUR_MAP_SIZE_START) << 3;
     return (int) ((pre1 >>> shift) & mask);
   }
 
@@ -138,21 +138,21 @@ final class PreambleUtil {
     return ((flag & mask) << shift) | (~(mask << shift) & pre0);
   }
 
-  static long insertLowerK(final int k, final long pre0) {
-    int shift = LOWER_K_START << 3;
+  static long insertMaxMapSize(final int maxMapSize, final long pre0) {
+    int shift = MAX_MAP_SIZE_START << 3;
     long mask = 0XFFFFFFFFL;
-    return ((k & mask) << shift) | (~(mask << shift) & pre0);
+    return ((maxMapSize & mask) << shift) | (~(mask << shift) & pre0);
   }
 
-  static long insertUpperK(final int K, final long pre1) {
+  static long insertCurMapSize(final int curMapSize, final long pre1) {
     long mask = 0XFFFFFFFFL;
-    return (K & mask) | (~mask & pre1);
+    return (curMapSize & mask) | (~mask & pre1);
   }
 
-  static long insertInitialSize(final int initialSize, final long pre1) {
+  static long insertInitialMapSize(final int initialMapSize, final long pre1) {
     long mask = 0XFFFFFFFFL;
-    int shift = (INITIALSIZE_START - UPPER_K_START) << 3;
-    return ((initialSize & mask) << shift) | (~(mask << shift) & pre1);
+    int shift = (INITIAL_MAP_SIZE_START - CUR_MAP_SIZE_START) << 3;
+    return ((initialMapSize & mask) << shift) | (~(mask << shift) & pre1);
   }
 
   static long insertBufferLength(final int bufferLength, final long pre2) {

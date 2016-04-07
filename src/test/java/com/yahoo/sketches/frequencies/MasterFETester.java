@@ -1,12 +1,14 @@
+package com.yahoo.sketches.frequencies;
+
 /*
  * Copyright 2016, Yahoo! Inc. Licensed under the terms of the Apache License 2.0. See LICENSE file
  * at the project root for terms.
  */
 
-package com.yahoo.sketches.frequencies;
-
 import java.util.Collection;
 
+import com.yahoo.sketches.Util;
+import com.yahoo.sketches.frequencies.HashMapReverseEfficient;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -42,7 +44,7 @@ public class MasterFETester {
 
   @Test
   private static void HashMapRESerialTest() {
-    HashMapReverseEfficient map = new HashMapReverseEfficient(10);
+    HashMapReverseEfficient map = new HashMapReverseEfficient(8);
     map.adjustOrPutValue(10, 15, 15);
     map.adjustOrPutValue(10, 5, 5);
     map.adjustOrPutValue(1, 1, 1);
@@ -58,8 +60,8 @@ public class MasterFETester {
 
   @Test
   private static void FrequentItemsStringSerialTest() {
-    FrequentItems sketch = new FrequentItems(10);
-    FrequentItems sketch2 = new FrequentItems(100);
+    FrequentItems sketch = new FrequentItems(8);
+    FrequentItems sketch2 = new FrequentItems(128);
     sketch.update(10, 100);
     sketch.update(10, 100);
     sketch.update(15, 3443);
@@ -70,8 +72,8 @@ public class MasterFETester {
     FrequentItems new_sketch0 = FrequentItems.StringToFrequentItems(string0);
     String new_string0 = new_sketch0.toString();
     Assert.assertTrue(string0.equals(new_string0));
-    Assert.assertTrue(new_sketch0.getMaxK() == sketch.getMaxK());
-    Assert.assertTrue(new_sketch0.getK() == sketch.getK());
+    Assert.assertTrue(new_sketch0.getMaxMapCap() == sketch.getMaxMapCap());
+    Assert.assertTrue(new_sketch0.getCurMapCap() == sketch.getCurMapCap());
 
     sketch2.update(190, 12902390);
     sketch2.update(191, 12902390);
@@ -97,8 +99,8 @@ public class MasterFETester {
     FrequentItems new_sketch2 = FrequentItems.StringToFrequentItems(string2);
     String new_string2 = new_sketch2.toString();
     Assert.assertTrue(string2.equals(new_string2));
-    Assert.assertTrue(new_sketch2.getMaxK() == sketch2.getMaxK());
-    Assert.assertTrue(new_sketch2.getK() == sketch2.getK());
+    Assert.assertTrue(new_sketch2.getMaxMapCap() == sketch2.getMaxMapCap());
+    Assert.assertTrue(new_sketch2.getCurMapCap() == sketch2.getCurMapCap());
     Assert.assertTrue(new_sketch2.getStreamLength() == sketch2.getStreamLength());
 
     FrequentItems merged_sketch = (FrequentItems) sketch.merge(sketch2);
@@ -107,15 +109,15 @@ public class MasterFETester {
     FrequentItems new_sketch = FrequentItems.StringToFrequentItems(string);
     String new_string = new_sketch.toString();
     Assert.assertTrue(string.equals(new_string));
-    Assert.assertTrue(new_sketch.getMaxK() == merged_sketch.getMaxK());
-    Assert.assertTrue(new_sketch.getK() == merged_sketch.getK());
+    Assert.assertTrue(new_sketch.getMaxMapCap() == merged_sketch.getMaxMapCap());
+    Assert.assertTrue(new_sketch.getCurMapCap() == merged_sketch.getCurMapCap());
     Assert.assertTrue(new_sketch.getStreamLength() == merged_sketch.getStreamLength());
   }
 
   @Test
   private static void FrequentItemsByteSerialTest() {
-    FrequentItems sketch = new FrequentItems(10, 8);
-    FrequentItems sketch2 = new FrequentItems(100);
+    FrequentItems sketch = new FrequentItems(16, 8);
+    FrequentItems sketch2 = new FrequentItems(128);
     sketch.update(10, 100);
     sketch.update(10, 100);
     sketch.update(15, 3443);
@@ -129,8 +131,8 @@ public class MasterFETester {
     String string0 = sketch.toString();
     String new_string0 = new_sketch0.toString();
     Assert.assertTrue(string0.equals(new_string0));
-    Assert.assertTrue(new_sketch0.getMaxK() == sketch.getMaxK());
-    Assert.assertTrue(new_sketch0.getK() == sketch.getK());
+    Assert.assertTrue(new_sketch0.getMaxMapCap() == sketch.getMaxMapCap());
+    Assert.assertTrue(new_sketch0.getCurMapCap() == sketch.getCurMapCap());
 
     sketch2.update(190, 12902390);
     sketch2.update(191, 12902390);
@@ -160,8 +162,8 @@ public class MasterFETester {
     String new_string2 = new_sketch2.toString();
 
     Assert.assertTrue(string2.equals(new_string2));
-    Assert.assertTrue(new_sketch2.getMaxK() == sketch2.getMaxK());
-    Assert.assertTrue(new_sketch2.getK() == sketch2.getK());
+    Assert.assertTrue(new_sketch2.getMaxMapCap() == sketch2.getMaxMapCap());
+    Assert.assertTrue(new_sketch2.getCurMapCap() == sketch2.getCurMapCap());
     Assert.assertTrue(new_sketch2.getStreamLength() == sketch2.getStreamLength());
 
     FrequentItems merged_sketch = (FrequentItems) sketch.merge(sketch2);
@@ -174,14 +176,14 @@ public class MasterFETester {
     String new_string = new_sketch.toString();
 
     Assert.assertTrue(string.equals(new_string));
-    Assert.assertTrue(new_sketch.getMaxK() == merged_sketch.getMaxK());
-    Assert.assertTrue(new_sketch.getK() == merged_sketch.getK());
+    Assert.assertTrue(new_sketch.getMaxMapCap() == merged_sketch.getMaxMapCap());
+    Assert.assertTrue(new_sketch.getCurMapCap() == merged_sketch.getCurMapCap());
     Assert.assertTrue(new_sketch.getStreamLength() == merged_sketch.getStreamLength());
   }
 
   @Test
   private static void FrequentItemsByteResetandEmptySerialTest() {
-    FrequentItems sketch = new FrequentItems(10);
+    FrequentItems sketch = new FrequentItems(16);
     sketch.update(10, 100);
     sketch.update(10, 100);
     sketch.update(15, 3443);
@@ -196,8 +198,8 @@ public class MasterFETester {
     String string0 = sketch.toString();
     String new_string0 = new_sketch0.toString();
     Assert.assertTrue(string0.equals(new_string0));
-    Assert.assertTrue(new_sketch0.getMaxK() == sketch.getMaxK());
-    Assert.assertTrue(new_sketch0.getK() == sketch.getK());
+    Assert.assertTrue(new_sketch0.getMaxMapCap() == sketch.getMaxMapCap());
+    Assert.assertTrue(new_sketch0.getCurMapCap() == sketch.getCurMapCap());
   }
 
   @Test
@@ -596,7 +598,7 @@ public class MasterFETester {
 //    }
 //    return null;
     //above can be simplified to this:
-    return (i == 0)? new FrequentItems((int) (1.0 / error_parameter)) : null;
+    return (i == 0)? new FrequentItems(Util.ceilingPowerOf2((int) (1.0 /(error_parameter*HashMap.LOAD_FACTOR)))) : null;
   }
 
   @Test

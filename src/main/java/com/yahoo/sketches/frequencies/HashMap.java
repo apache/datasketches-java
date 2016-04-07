@@ -7,6 +7,8 @@ package com.yahoo.sketches.frequencies;
 
 import static com.yahoo.sketches.Util.*;
 
+import com.yahoo.sketches.Util;
+
 /**
  * Abstract class for a hashmap data structure, which stores (key, value) pairs, and supports the
  * following non-standard operations: decrement all values by a given amount, and purge all (key,
@@ -16,32 +18,37 @@ import static com.yahoo.sketches.Util.*;
  * @author Justin Thaler
  */
 public abstract class HashMap {
-  public final double LOAD_FACTOR = 0.75;
+  public final static double LOAD_FACTOR = 0.75;
   protected final int loadThreshold;
   protected final int length;
   protected final int arrayMask;
-  protected int size = 0;
+  protected int numActive = 0;
   protected long[] keys;
   protected long[] values;
   protected short[] states;
 
   /**
-   * Constructor will create arrays of size capacity/LOAD_FACTOR, rounded up to a power of 2.
-   * The size of the hash table is set to be a power of two for fast hashing. The protected
-   * variable this.capacity is then set to the largest value that will not overload the hash
-   * table.
-   * @param capacity Determines the number of (key, value) pairs the hashmap is expected to store.
+   * Constructor will create arrays of length mapSize, which must be a power of two.
+   * This restriction was made to ensure fast hashing.
+   * The protected variable this.loadThreshold is then set to the largest value that 
+   * will not overload the hash table.
+   * @param mapSize determines the number of cells in the arrays underlying the HashMap implementation.
+   * Must be a power of 2. The hash table will be expected to store LOAD_FACT * mapSize (key, value) pairs.
+   * 
    */
-  public HashMap(int capacity) {
-    if (capacity <= 0)
+  public HashMap(int mapSize) {
+    if (mapSize <= 0)
       throw new IllegalArgumentException(
-          "Initial capacity cannot be negative or zero: " + capacity);
-    length = ceilingPowerOf2((int) (capacity / LOAD_FACTOR));
+          "Initial mapSize cannot be negative or zero: " + mapSize);
+    if (!Util.isPowerOf2(mapSize))
+      throw new IllegalArgumentException(
+          "Initial mapSize must be power of two: " + mapSize);
+    this.length = mapSize;
     this.loadThreshold = (int) (length * LOAD_FACTOR);
-    arrayMask = length - 1;
-    keys = new long[length];
-    values = new long[length];
-    states = new short[length];
+    this.arrayMask = length - 1;
+    this.keys = new long[length];
+    this.values = new long[length];
+    this.states = new short[length];
   }
 
   /**
@@ -98,16 +105,16 @@ public abstract class HashMap {
    * @return an array containing the active keys in the hash map.
    */
   public long[] getActiveKeys() {
-    if (size == 0)
+    if (numActive == 0)
       return null;
-    long[] returnedKeys = new long[size];
+    long[] returnedKeys = new long[numActive];
     int j = 0;
     for (int i = 0; i < length; i++)
       if (isActive(i)) {
         returnedKeys[j] = keys[i];
         j++;
       }
-    assert (j == size);
+    assert (j == numActive);
     return returnedKeys;
   }
 
@@ -115,16 +122,16 @@ public abstract class HashMap {
    * @return an array containing the values corresponding. to the active keys in the hash
    */
   public long[] getActiveValues() {
-    if (size == 0)
+    if (numActive == 0)
       return null;
-    long[] returnedValues = new long[size];
+    long[] returnedValues = new long[numActive];
     int j = 0;
     for (int i = 0; i < length; i++)
       if (isActive(i)) {
         returnedValues[j] = values[i];
         j++;
       }
-    assert (j == size);
+    assert (j == numActive);
     return returnedValues;
   }
 
@@ -159,8 +166,8 @@ public abstract class HashMap {
   /**
    * @return number of populated keys
    */
-  public int getSize() {
-    return size;
+  public int getNumActive() {
+    return numActive;
   }
 
   /**

@@ -100,14 +100,14 @@ public abstract class FrequencyEstimator {
    * 
    * @return the current number of counters the sketch is configured to support.
    */
-  public abstract int getK();
+  public abstract int getCurMapCap();
 
   /**
    * Returns the maximum number of counters the sketch will ever be configured to support.
    * 
    * @return the maximum number of counters the sketch will ever be configured to support.
    */
-  public abstract int getMaxK();
+  public abstract int getMaxMapCap();
 
   /**
    * Returns true if this sketch is empty
