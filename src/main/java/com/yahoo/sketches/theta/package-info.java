@@ -5,7 +5,7 @@
  * accessible from Hadoop Pig UDFs found in the <i>sketches-pig</i> repository, 
  * and from Hadoop Hive UADFs and UDFs found in the <i>sketches-hive</i> repository.
  * </p>
- * <h3>Simple Java ExamplesTest</h3>
+ * <h3>Simple Java Example</h3>
  * Note: The complete example code can be found in the parallel package under src/test/java and 
  * with the class name "ExamplesTest.java".
 <pre>
