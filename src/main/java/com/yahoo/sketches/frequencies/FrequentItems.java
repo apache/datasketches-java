@@ -470,8 +470,8 @@ public class FrequentItems extends FrequencyEstimator {
       preArr[5] = pre2;
 
       mem.putLongArray(0, preArr, 0, 6);
-      mem.putLongArray(48, hashMap.getActiveKeys(), 0, this.getActiveCounters());
-      mem.putLongArray(48 + (this.getActiveCounters() << 3), hashMap.getActiveValues(), 0, this.getActiveCounters());
+      mem.putLongArray(48, hashMap.getActiveValues(), 0, this.getActiveCounters());
+      mem.putLongArray(48 + (this.getActiveCounters() << 3), hashMap.getActiveKeys(), 0, this.getActiveCounters());
     }
     return outArr;
   }
@@ -536,9 +536,9 @@ public class FrequentItems extends FrequencyEstimator {
     long[] keyArray = new long[bufferLength];
     long[] valueArray = new long[bufferLength];
 
-    srcMem.getLongArray(48, keyArray, 0, bufferLength);
-    srcMem.getLongArray(48 + 8 * bufferLength, valueArray, 0, bufferLength);
-
+    srcMem.getLongArray(48, valueArray, 0, bufferLength);
+    srcMem.getLongArray(48 + 8 * bufferLength, keyArray, 0, bufferLength);
+    
     for (int i = 0; i < bufferLength; i++) {
       hfi.update(keyArray[i], valueArray[i]);
     }
