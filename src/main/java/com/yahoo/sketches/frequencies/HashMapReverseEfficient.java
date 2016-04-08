@@ -15,7 +15,7 @@ public class HashMapReverseEfficient extends HashMap {
   /**
    * Constructs a hash table
    * 
-   * @param mapSize
+   * @param mapSize The size of this hash map that must be a power of 2.
    */
   public HashMapReverseEfficient(int mapSize) {
     super(mapSize);

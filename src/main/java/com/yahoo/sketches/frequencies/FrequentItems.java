@@ -184,7 +184,7 @@ public class FrequentItems extends FrequencyEstimator {
   
   /**
    * Construct this sketch with the parameter maxMapSize and the default initialMapSize
-   * @param maxMapSize 
+   * @param maxMapSize the given maxMapSize in entries
    */
   public FrequentItems(int maxMapSize) {
     this(maxMapSize, MIN_HASHMAP_SIZE);

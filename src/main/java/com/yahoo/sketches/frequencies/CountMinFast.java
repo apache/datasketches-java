@@ -113,17 +113,18 @@ public class CountMinFast {
 
   /**
    * @param key Process a key (specified as a long) update and treat the increment as 1, using the
-   *        conservative_update function that increments each counter to the smallest value still
-   *        guaranteed to not underestimate any item's frequency.
+   * conservative_update function that increments each counter to the smallest value still
+   * guaranteed to not underestimate any item's frequency.
    */
   public void conservative_update(long key) {
     conservative_update(key, 1);
   }
 
   /**
-   * @param key
+   * Update this sketch with a key and an increment
+   * @param key the given key
    * @param increment Process a key (specified as a long) and an increment (also specified as a
-   *        long). Increment can be negative
+   * long). Increment can be negative
    */
   public void update(long key, long increment) {
     // add increment update_sum
@@ -146,7 +147,10 @@ public class CountMinFast {
   }
 
   /**
-   * @param key
+   * Update this sketch with a key and an increment using the conservative_update function that 
+   * increments each counter to the smallest value still guaranteed to not underestimate any item's
+   * frequency.
+   * @param key the given key
    * @param increment Process a key (specified as a long) and an increment (also specified as a
    *        long). Increment can be negative
    */
@@ -195,7 +199,10 @@ public class CountMinFast {
   /**
    * @param key whose count estimate is returned.
    * @return the approximate count for the key. It is guaranteed that with probability at least
-   *         1-delta 1) get(key) >= real count 2) get(key) <= real count + getMaxError()
+   * 1-delta: 
+   * <ol><li>get(key) &gt;= real count</li>
+   * <li>get(key) &lt;= real count + getMaxError()</li>
+   * </ol>
    */
   public long getEstimate(long key) {
     keyArr[0] = key;
@@ -230,7 +237,7 @@ public class CountMinFast {
   /**
    * @param key whose count estimate is returned.
    * @return a lower bound on the count for the key (lower bound holds with probability at least
-   *         1-delta)
+   * 1-delta)
    */
   public long getEstimateLowerBound(long key) {
     return getEstimate(key) - getMaxError();
@@ -238,9 +245,9 @@ public class CountMinFast {
 
   /**
    * @return a bound on the error of the estimate one gets from get(key). Note that the error is one
-   *         sided. if the real count is realCount(key) then get(key) >= realCount(key). The
-   *         guarantee of the sketch is that, for any fixed key, with probability at least 1-delta,
-   *         realCount(key) is also at most get(key) + getMaxError()
+   * sided. if the real count is realCount(key) then get(key) &gt;= realCount(key). The
+   * guarantee of the sketch is that, for any fixed key, with probability at least 1-delta,
+   * realCount(key) is also at most get(key) + getMaxError()
    */
   public long getMaxError() {
     return (long) (Math.ceil(this.eps * this.update_sum));
