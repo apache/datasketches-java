@@ -14,18 +14,18 @@ import gnu.trove.procedure.TLongLongProcedure;
 
 public class HashMapTest {
   
-//  private static HashMap newHashMap(int capacity, int i){
+//  private static HashMap newHashMap(int mapLength, int i){
 //    HashMap hashMap = null;
 //    switch (i){
-//      case 0: hashMap = new HashMapReverseEfficient(capacity); break;
-//      case 1: //hashMap = new HashMapTrove(capacity); break;
-//      case 2: //hashMap = new HashMapTroveRebuilds(capacity); break;
-//      case 3: //hashMap = new HashMapLinearProbingWithRebuilds(capacity); break;
-//      case 4: //hashMap = new HashMapDoubleHashingWithRebuilds(capacity); break;
-//      case 5: //hashMap = new HashMapWithImplicitDeletes(capacity); break;
-//      case 6: //hashMap = new HashMapWithEfficientDeletes(capacity); break;
-//      case 7: //hashMap = new HashMapRobinHood(capacity); break; 
-//      case 8: //hashMap = new HashMapReverseEfficientOneArray(capacity); break;
+//      case 0: hashMap = new HashMapReverseEfficient(mapLength); break;
+//      case 1: //hashMap = new HashMapTrove(mapLength); break;
+//      case 2: //hashMap = new HashMapTroveRebuilds(mapLength); break;
+//      case 3: //hashMap = new HashMapLinearProbingWithRebuilds(mapLength); break;
+//      case 4: //hashMap = new HashMapDoubleHashingWithRebuilds(mapLength); break;
+//      case 5: //hashMap = new HashMapWithImplicitDeletes(mapLength); break;
+//      case 6: //hashMap = new HashMapWithEfficientDeletes(mapLength); break;
+//      case 7: //hashMap = new HashMapRobinHood(mapLength); break; 
+//      case 8: //hashMap = new HashMapReverseEfficientOneArray(mapLength); break;
 //      default:
 //    } 
 //    return hashMap;
@@ -33,25 +33,25 @@ public class HashMapTest {
 //  
 //  @Test
 //  public void testHashMaps() {
-//    int capacity = 127;
+//    int mapLength = 127;
 //    // Looping over all hashMap types
 //    HashMap hashMap = null;
 //    for (int h=0; h<10; h++) {
-//      hashMap = newHashMap(capacity, h);
+//      hashMap = newHashMap(mapLength, h);
 //      if (hashMap == null) continue;
-//      testHashMapAgainstTrove(hashMap, capacity);
+//      testHashMapAgainstTrove(hashMap, mapLength);
 //    }
 //  }
   
   @Test //test only what we use
   public void testHashMap() {
-    int capacity = 128;
-    HashMap hashMap = new HashMapReverseEfficient(capacity);
-    testHashMapAgainstTrove(hashMap, capacity);
+    int mapLength = 128;
+    HashMap hashMap = new HashMapReverseEfficient(mapLength);
+    testHashMapAgainstTrove(hashMap, mapLength);
     println(hashMap.toString());
   }
   
-  private void testHashMapAgainstTrove(HashMap hashMap, int capacity){
+  private void testHashMapAgainstTrove(HashMap hashMap, int mapLength){
     Random random = new Random(); 
     random.setSeed(422);
     int valueRange = 35219;
@@ -61,9 +61,9 @@ public class HashMapTest {
     println(s);
     
     // Trove is a the gold standard
-    TLongLongHashMap trove = new TLongLongHashMap(capacity);
+    TLongLongHashMap trove = new TLongLongHashMap(mapLength);
     // Insert random keys and values
-    for (int i=0; i<.75*capacity;i++) {
+    for (int i=0; i<.75*mapLength;i++) {
       long key = random.nextInt(keyRange);
       long value = random.nextInt(valueRange);
       hashMap.adjustOrPutValue(key ,value, value);
