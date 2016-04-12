@@ -45,7 +45,7 @@ public class HashMapTest {
   
   @Test //test only what we use
   public void testHashMap() {
-    int capacity = 127;
+    int capacity = 128;
     HashMap hashMap = new HashMapReverseEfficient(capacity);
     testHashMapAgainstTrove(hashMap, capacity);
     println(hashMap.toString());
@@ -63,7 +63,7 @@ public class HashMapTest {
     // Trove is a the gold standard
     TLongLongHashMap trove = new TLongLongHashMap(capacity);
     // Insert random keys and values
-    for (int i=0; i<capacity;i++) {
+    for (int i=0; i<.75*capacity;i++) {
       long key = random.nextInt(keyRange);
       long value = random.nextInt(valueRange);
       hashMap.adjustOrPutValue(key ,value, value);

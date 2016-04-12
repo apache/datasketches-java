@@ -49,7 +49,7 @@ public class StressTestHashMap {
         if (hashmap == null)
           continue;
 
-        long timePerAdjust = timeOneHashMap(hashmap, keys, values, capacity);
+        long timePerAdjust = timeOneHashMap(hashmap, keys, values, (int) (.75 * capacity));
 
         System.out.format("%s\t%d\t%d\n", hashmap.getClass().getSimpleName(), capacity,
             timePerAdjust);
