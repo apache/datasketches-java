@@ -28,7 +28,6 @@ import static com.yahoo.sketches.frequencies.PreambleUtil.insertEmptyFlag;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertCurMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertBufferLength;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertInitialMapSize;
-//import static com.yahoo.sketches.Util.*;
 
 /**
  * Implements frequent items sketch on the Java heap.
@@ -41,7 +40,7 @@ import static com.yahoo.sketches.frequencies.PreambleUtil.insertInitialMapSize;
  * with arrays of length maxMapSize. The total space usage of the sketch, at full size,
  * is 18*maxMapSize bytes, plus a small (constant) number of additional bytes.
  * 
- * At full size, hash table will keep at most k=maxMapSize * LOAD_FACTOR  counters, where 
+ * At full size, the hash table will keep at most k=maxMapSize * LOAD_FACTOR  counters, where 
  * LOAD_FACTOR is the maximum load that the hash table is configured to support.
  * Currently, LOAD_FACTOR is set to 3/4. If fewer than k different keys are inserted 
  * then the counts computed by the sketch will be exact.
@@ -59,10 +58,13 @@ import static com.yahoo.sketches.frequencies.PreambleUtil.insertInitialMapSize;
  * frequency of KEY, along with upper and lower bounds on the frequency (that hold
  * deterministically). 
  * 
- * For this implementation, it is guaranteed that, with high probability over the
- * randomness of the implementation, the difference between the upper bound and the estimate is at
- * most 2n/k=(8/3)*(n/maxMapSize), where n denotes the stream length (i.e, sum of all the item frequencies), and
- * similarly for the lower bound and the estimate. In practice, the difference is usually much smaller.
+ * If the internal hash fuction had infinite precision and was perfectly uniform: Then,
+ * for this implementation and for a specific active key, it is guaranteed that the difference 
+ * between the upper bound and the estimate is max(UB- Est) ~ 2n/k = (8/3)*(n/maxMapSize). However,
+ * this implementation uses a deterministic hash function for performnace that performs well on 
+ * real data.  </i>n</i> denotes the stream length (i.e, sum of all the item 
+ * frequencies), and similarly for the lower bound and the estimate. In practice, the difference 
+ * is usually much smaller.
  *
  * 
  * Background: This code implements a variant of what is commonly known as the "Misra-Gries
@@ -315,30 +317,36 @@ public class FrequentItems extends FrequencyEstimator {
   }
 
   @Override
-  public long[] getFrequentKeys(long threshold) {
+  public long[] getFrequentKeys(long threshold, ErrorCondition errorCondition) { 
     int count = 0;
-    long[] keys = hashMap.getKeys();
-
-    // first, count the number of candidate frequent keys
-    for (int i = hashMap.getLength(); i-- > 0;) {
-      if (hashMap.isActive(i) && (getEstimate(keys[i]) >= threshold)) {
-        count++;
-      }
-    }
-
-    // allocate an array to store the candidate frequent keys, and then compute them
-    long[] freqKeys = new long[count];
+    long[] keys = hashMap.getKeys(); //ref to raw keys array
+    int rawLen = keys.length;
+    int numActive = hashMap.getNumActive();
+    
+    // allocate an initial array to store the candidate frequent keys
+    long[] freqKeys = new long[numActive];
+    
     count = 0;
-    for (int i = hashMap.getLength(); i-- > 0;) {
-      if (hashMap.isActive(i) && (getUpperBound(keys[i]) >= threshold)) {
-        freqKeys[count] = keys[i];
-        count++;
+    if (errorCondition == ErrorCondition.NO_FALSE_NEGATIVES) {
+      for (int i = rawLen; i-- > 0;) {
+        if (hashMap.isActive(i) && (getUpperBound(keys[i]) >= threshold)) {
+          freqKeys[count] = keys[i];
+          count++;
+        }
+      }
+    } else { //NO_FALSE_POSITIVES
+      for (int i = rawLen; i-- > 0;) {
+        if (hashMap.isActive(i) && (getLowerBound(keys[i]) >= threshold)) {
+          freqKeys[count] = keys[i];
+          count++;
+        }
       }
     }
-    return freqKeys;
+    
+    long[] outArr = new long[count];
+    System.arraycopy(freqKeys, 0, outArr, 0, count);
+    return outArr;
   }
-
-
   
   @Override
   public int getCurMapCap() {

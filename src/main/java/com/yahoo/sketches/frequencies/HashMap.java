@@ -40,9 +40,9 @@ public abstract class HashMap {
     if (mapSize <= 0)
       throw new IllegalArgumentException(
           "Initial mapSize cannot be negative or zero: " + mapSize);
-    if (!Util.isPowerOf2(mapSize))
-      throw new IllegalArgumentException(
-          "Initial mapSize must be power of two: " + mapSize);
+//    if (!Util.isPowerOf2(mapSize))
+//      throw new IllegalArgumentException(
+//          "Initial mapSize must be power of two: " + mapSize);
     this.length = mapSize;
     this.loadThreshold = (int) (length * LOAD_FACTOR);
     this.arrayMask = length - 1;

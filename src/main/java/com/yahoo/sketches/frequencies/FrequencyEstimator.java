@@ -5,11 +5,6 @@
 package com.yahoo.sketches.frequencies;
 
 /**
- * @author Edo Liberty
- * @author Justin Thaler
- */
-
-/**
  * Abstract class for a FrequencyEstimator algorithm. Supports the ability to process a data stream
  * of (item, increment) pairs, where item is an identifier, specified as a long, and increment is a
  * non-negative integer that is also specified as a long. The frequency of an identifier is defined
@@ -22,8 +17,11 @@ package com.yahoo.sketches.frequencies;
  * 1/errorTolerance + 1) 5) merge itself with another FrequencyEstimator algorithm from the same
  * instantiation of the abstract class.
  * 
+ * @author Edo Liberty
+ * @author Justin Thaler
  */
 public abstract class FrequencyEstimator {
+  public enum ErrorCondition {NO_FALSE_POSITIVES, NO_FALSE_NEGATIVES};
 
   /**
    * Update this sketch with a key and a frequency count of one.
@@ -72,17 +70,29 @@ public abstract class FrequencyEstimator {
    */
   public abstract long getMaxError();
 
-
   /**
-   * Gets a superset of all keys with estimated frequency above the given threshold. 
-   * There may be keys in the set with true frequencies less than the threshold (false positives).
-   * There will not be any keys with true frequencies greater than the threshold that are not 
-   * members of the set (false positives).
-   * @param threshold the given frequency threshold
-   * @return an array of keys containing a superset of all keys whose true frequencies are are 
-   * least the error tolerance.
+   * Returns an array of frequent keys given a threshold frequency count and an ErrorCondition. 
+   * Note: if the given threshold is less than getMaxError() the keys that are returned have no
+   * guarantees.
+   * 
+   * The method first examines all active keys in the sketch (keys that have a counter).
+   *  
+   * <p>If <i>errorCondition = NO_FALSE_NEGATIVES</i>, this will include a key in the result list 
+   * if getUpperBound(key) > threshold. 
+   * There will be no false negatives, i.e., no Type II error.
+   * There may be keys in the set with true frequencies less than the threshold (false positives).</p>
+   * 
+   * <p>If <i>errorCondition = NO_FALSE_POSITIVES</i>, this will include a key in the result list 
+   * if getLowerBound(key) > threshold. 
+   * There will be no false positives, i.e., no Type I error.
+   * There may be keys ommitted from the set with true frequencies greater than the threshold 
+   * (false negatives).</p>
+   * 
+   * @param threshold the given frequency threshold that should be greater than getMaxError().
+   * @param errorCondition determines whether no false positives or no false negatives are desired.
+   * @return an array of frequent keys
    */
-  public abstract long[] getFrequentKeys(long threshold);
+  public abstract long[] getFrequentKeys(long threshold, ErrorCondition errorCondition);
 
   /**
    * This function merges two FrequencyEstimator sketches, potentially of different sizes.

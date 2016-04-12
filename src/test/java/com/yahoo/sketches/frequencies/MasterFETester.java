@@ -8,6 +8,7 @@ package com.yahoo.sketches.frequencies;
 import java.util.Collection;
 
 import com.yahoo.sketches.Util;
+import com.yahoo.sketches.frequencies.FrequencyEstimator.ErrorCondition;
 import com.yahoo.sketches.frequencies.HashMapReverseEfficient;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -225,8 +226,7 @@ public class MasterFETester {
     
     long threshold = 10;
     for(int h=0; h<numEstimators; h++) {
-
-      long[] freq = estimators[h].getFrequentKeys(threshold);
+      long[] freq = estimators[h].getFrequentKeys(threshold, ErrorCondition.NO_FALSE_NEGATIVES);
 
       for (int i = 0; i < freq.length; i++)
         Assert.assertTrue(estimators[h].getUpperBound(freq[i]) > threshold);

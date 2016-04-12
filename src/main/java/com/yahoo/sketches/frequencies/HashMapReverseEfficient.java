@@ -43,12 +43,12 @@ public class HashMapReverseEfficient extends HashMap {
     while (states[probe] != 0 && keys[probe] != key) {
       probe = (probe + 1) & arrayMask;
       drift++;
-      assert (drift < 512);
+      assert (drift < 512) : "drift: " + drift + " >= 512";
     }
 
     if (states[probe] == 0) {
       // adding the key to the table the value
-      assert (numActive <= loadThreshold);
+      assert (numActive <= loadThreshold): "numActive: "+numActive+" > loadThreshold: "+loadThreshold;
       keys[probe] = key;
       values[probe] = putAmount;
       states[probe] = (short) drift;
