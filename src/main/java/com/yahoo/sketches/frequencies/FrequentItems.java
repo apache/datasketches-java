@@ -294,7 +294,7 @@ public class FrequentItems extends FrequencyEstimator {
     Arrays.sort(samples, 0, numSamples);
     long val = samples[limit / 2];
     hashMap.adjustAllValuesBy(-1 * val);
-    hashMap.keepOnlyLargerThan(0);
+    hashMap.keepOnlyPositiveCounts();
     this.offset += val;
   }
 
@@ -397,9 +397,11 @@ public class FrequentItems extends FrequencyEstimator {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
+    //start the string with 6 key parameters of the sketch
     sb.append(
         String.format("%d,%d,%d,%d,%d,%d,", maxMapSize, mergeError, offset, streamLength, hashMap.getLength(), initialMapSize));
     // maxMapCap, samplesize are deterministic functions of maxMapSize, so we don't need them in the serialization
+    //output the hashMap
     sb.append(hashMap.hashMapReverseEfficientToString());
     return sb.toString();
   }
@@ -414,9 +416,9 @@ public class FrequentItems extends FrequencyEstimator {
     String[] tokens = string.split(",");
     if (tokens.length < 6) {
       throw new IllegalArgumentException(
-          "Tried to make FrequentItems out of string not long enough to specify relevant parameters.");
+          "String not long enough to specify relevant parameters.");
     }
-
+    
     int maxMapSize = Integer.parseInt(tokens[0]);
     long mergeError = Long.parseLong(tokens[1]);
     long offset = Long.parseLong(tokens[2]);
@@ -429,7 +431,7 @@ public class FrequentItems extends FrequencyEstimator {
     sketch.offset = offset;
     sketch.streamLength = streamLength;
     sketch.initialMapSize = initialMapSize;
-
+    
     sketch.hashMap = HashMapReverseEfficient.StringArrayToHashMapReverseEfficient(tokens, 6);
     return sketch;
   }

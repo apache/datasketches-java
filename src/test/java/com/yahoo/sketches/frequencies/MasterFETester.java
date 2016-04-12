@@ -598,7 +598,7 @@ public class MasterFETester {
 //    }
 //    return null;
     //above can be simplified to this:
-    return (i == 0)? new FrequentItems(Util.ceilingPowerOf2((int) (1.0 /(error_parameter*HashMap.LOAD_FACTOR)))) : null;
+    return (i == 0)? new FrequentItems(Util.ceilingPowerOf2((int) (1.0 /(error_parameter*LongLongHashMap.LOAD_FACTOR)))) : null;
   }
 
   @Test

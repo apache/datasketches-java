@@ -5,12 +5,14 @@
 
 package com.yahoo.sketches.frequencies;
 
+import com.yahoo.sketches.Util;
+
 /**
  * Implements a linear-probing based hash table. Supports a purge operation that removes all keys in
  * the table whose associated values are below a threshold. This purge operation is done starting at
  * the ``back'' of the array and moving toward the front.
  */
-public class HashMapReverseEfficient extends HashMap {
+public class HashMapReverseEfficient extends LongLongHashMap {
 
   /**
    * Constructs a hash table
@@ -19,6 +21,9 @@ public class HashMapReverseEfficient extends HashMap {
    */
   public HashMapReverseEfficient(int mapSize) {
     super(mapSize);
+    if (!Util.isPowerOf2(mapSize))
+      throw new IllegalArgumentException(
+          "Initial mapSize must be power of two: " + mapSize);
   }
 
   @Override
@@ -62,19 +67,25 @@ public class HashMapReverseEfficient extends HashMap {
   }
 
   @Override
-  public void keepOnlyLargerThan(long thresholdValue) {
+  public void keepOnlyPositiveCounts() {
+    // Starting from the back, find the first empty cell, 
+    //  which establishes the high end of a cluster.
     int firstProbe = length - 1;
-    while (states[firstProbe] > 0)
+    while (states[firstProbe] > 0) { 
       firstProbe--;
-
+    }
+    // firstProbe keeps track of this point.
+    // When we find the next non-empty cell, we know we are at the high end of a cluster
+    // Work towards the front; delete any non-positive entries.
     for (int probe = firstProbe; probe-- > 0;) {
-      if (states[probe] > 0 && values[probe] <= thresholdValue) {
-        hashDelete(probe);
+      if (states[probe] > 0 && values[probe] <= 0) {
+        hashDelete(probe); //does the work of deletion and moving higher items towards the front.
         numActive--;
       }
     }
+    //now work on the first cluster that was skipped.
     for (int probe = length; probe-- > firstProbe;) {
-      if (states[probe] > 0 && values[probe] <= thresholdValue) {
+      if (states[probe] > 0 && values[probe] <= 0) {
         hashDelete(probe);
         numActive--;
       }
@@ -92,16 +103,16 @@ public class HashMapReverseEfficient extends HashMap {
     // Looks ahead in the table to search for another
     // item to move to this location
     // if none are found, the status is changed
-    states[deleteProbe] = 0;
-    int drift = 1;
-    int probe = (deleteProbe + drift) & arrayMask;
+    states[deleteProbe] = 0; //mark as empty
+    int drift = 1; 
+    int probe = (deleteProbe + drift) & arrayMask; //len must be a power of 2
     // advance until you find a free location replacing locations as needed
     while (states[probe] != 0) {
       if (states[probe] > drift) {
         // move current element
         keys[deleteProbe] = keys[probe];
         values[deleteProbe] = values[probe];
-        states[deleteProbe] = (byte) (states[probe] - drift);
+        states[deleteProbe] = (short) (states[probe] - drift);
         // marking this location as deleted
         states[probe] = 0;
         drift = 0;
@@ -142,7 +153,7 @@ public class HashMapReverseEfficient extends HashMap {
     String[] tokens = string.split(",");
     if (tokens.length < 2) {
       throw new IllegalArgumentException(
-          "Tried to make HashMapReverseEfficient out of string not long enough to specify length and capacity.");
+          "String not long enough to specify length and capacity.");
     }
 
     int numActive = Integer.parseInt(tokens[0]);

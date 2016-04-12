@@ -5,7 +5,7 @@ import java.util.Random;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.sketches.frequencies.HashMap;
+import com.yahoo.sketches.frequencies.LongLongHashMap;
 import com.yahoo.sketches.frequencies.HashMapReverseEfficient;
 
 import gnu.trove.function.TLongFunction;
@@ -14,44 +14,15 @@ import gnu.trove.procedure.TLongLongProcedure;
 
 public class HashMapTest {
   
-//  private static HashMap newHashMap(int mapLength, int i){
-//    HashMap hashMap = null;
-//    switch (i){
-//      case 0: hashMap = new HashMapReverseEfficient(mapLength); break;
-//      case 1: //hashMap = new HashMapTrove(mapLength); break;
-//      case 2: //hashMap = new HashMapTroveRebuilds(mapLength); break;
-//      case 3: //hashMap = new HashMapLinearProbingWithRebuilds(mapLength); break;
-//      case 4: //hashMap = new HashMapDoubleHashingWithRebuilds(mapLength); break;
-//      case 5: //hashMap = new HashMapWithImplicitDeletes(mapLength); break;
-//      case 6: //hashMap = new HashMapWithEfficientDeletes(mapLength); break;
-//      case 7: //hashMap = new HashMapRobinHood(mapLength); break; 
-//      case 8: //hashMap = new HashMapReverseEfficientOneArray(mapLength); break;
-//      default:
-//    } 
-//    return hashMap;
-//  }
-//  
-//  @Test
-//  public void testHashMaps() {
-//    int mapLength = 127;
-//    // Looping over all hashMap types
-//    HashMap hashMap = null;
-//    for (int h=0; h<10; h++) {
-//      hashMap = newHashMap(mapLength, h);
-//      if (hashMap == null) continue;
-//      testHashMapAgainstTrove(hashMap, mapLength);
-//    }
-//  }
-  
   @Test //test only what we use
   public void testHashMap() {
     int mapLength = 128;
-    HashMap hashMap = new HashMapReverseEfficient(mapLength);
+    LongLongHashMap hashMap = new HashMapReverseEfficient(mapLength);
     testHashMapAgainstTrove(hashMap, mapLength);
     println(hashMap.toString());
   }
   
-  private void testHashMapAgainstTrove(HashMap hashMap, int mapLength){
+  private void testHashMapAgainstTrove(LongLongHashMap hashMap, int mapLength){
     Random random = new Random(); 
     random.setSeed(422);
     int valueRange = 35219;
@@ -74,7 +45,7 @@ public class HashMapTest {
     long threshold = valueRange/2;
     
     hashMap.adjustAllValuesBy(-threshold);
-    hashMap.keepOnlyLargerThan(0);
+    hashMap.keepOnlyPositiveCounts();
     
     trove.retainEntries(new GreaterThenThreshold(threshold));
     trove.transformValues(new decreaseByThreshold(threshold));

@@ -15,7 +15,7 @@ import static com.yahoo.sketches.Util.*;
  * @author Edo Liberty
  * @author Justin Thaler
  */
-public abstract class HashMap {
+public abstract class LongLongHashMap {
   public final static double LOAD_FACTOR = 0.75;
   protected final int loadThreshold;
   protected final int length;
@@ -34,13 +34,10 @@ public abstract class HashMap {
    * Must be a power of 2. The hash table will be expected to store LOAD_FACT * mapSize (key, value) pairs.
    * 
    */
-  public HashMap(int mapSize) {
+  public LongLongHashMap(int mapSize) {
     if (mapSize <= 0)
       throw new IllegalArgumentException(
-          "Initial mapSize cannot be negative or zero: " + mapSize);
-//    if (!Util.isPowerOf2(mapSize))
-//      throw new IllegalArgumentException(
-//          "Initial mapSize must be power of two: " + mapSize);
+          "Initial mapSize cannot be negative or zero: " + mapSize); //TODO fix here??
     this.length = mapSize;
     this.loadThreshold = (int) (length * LOAD_FACTOR);
     this.arrayMask = length - 1;
@@ -88,10 +85,9 @@ public abstract class HashMap {
   }
 
   /**
-   * @param thresholdValue value by which to shift all values. Only keys corresponding to positive
-   * values are retained.
+   * Processes the map arrays and retains only keys with positive counts.
    */
-  public abstract void keepOnlyLargerThan(long thresholdValue);
+  public abstract void keepOnlyPositiveCounts();
 
   /**
    * @param probe location in the hash table array
@@ -112,7 +108,7 @@ public abstract class HashMap {
         returnedKeys[j] = keys[i];
         j++;
       }
-    assert (j == numActive);
+    assert (j == numActive) : "j: "+j+" != numActive: "+numActive;
     return returnedKeys;
   }
 
