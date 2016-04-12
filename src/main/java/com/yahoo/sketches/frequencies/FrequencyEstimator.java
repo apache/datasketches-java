@@ -21,7 +21,7 @@ package com.yahoo.sketches.frequencies;
  * @author Justin Thaler
  */
 public abstract class FrequencyEstimator {
-  public enum ErrorCondition {NO_FALSE_POSITIVES, NO_FALSE_NEGATIVES};
+  public enum ErrorCondition {NO_FALSE_POSITIVES, NO_FALSE_NEGATIVES}
 
   /**
    * Update this sketch with a key and a frequency count of one.

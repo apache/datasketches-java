@@ -7,8 +7,6 @@ package com.yahoo.sketches.frequencies;
 
 import static com.yahoo.sketches.Util.*;
 
-import com.yahoo.sketches.Util;
-
 /**
  * Abstract class for a hashmap data structure, which stores (key, value) pairs, and supports the
  * following non-standard operations: decrement all values by a given amount, and purge all (key,
