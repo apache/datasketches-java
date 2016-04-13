@@ -15,7 +15,7 @@ import com.yahoo.sketches.Util;
  * and is done in reverse, starting at the "back" of the array and moving toward the front.
  */
 public class ReversePurgeHashMap extends LongLongHashMap {
-
+  private static final int DRIFT_LIMIT = 1024;
   /**
    * Constructs a hash table
    * 
@@ -92,7 +92,7 @@ public class ReversePurgeHashMap extends LongLongHashMap {
     while (states[probe] != 0 && keys[probe] != key) {
       probe = (probe + 1) & arrayMask;
       drift++;
-      assert (drift < 512) : "drift: " + drift + " >= 512";
+      assert (drift < DRIFT_LIMIT) : "drift: " + drift + " >= DRIFT_LIMIT";
     }
 
     if (states[probe] == 0) {
