@@ -7,8 +7,6 @@ package com.yahoo.sketches.frequencies;
 
 import static com.yahoo.sketches.Util.*;
 
-import com.yahoo.sketches.Util;
-
 /**
  * Abstract class for a hashmap data structure, which stores (key, value) pairs, and supports the
  * following non-standard operations: decrement all values by a given amount, and purge all (key,
@@ -17,7 +15,7 @@ import com.yahoo.sketches.Util;
  * @author Edo Liberty
  * @author Justin Thaler
  */
-public abstract class HashMap {
+public abstract class LongLongHashMap {
   public final static double LOAD_FACTOR = 0.75;
   protected final int loadThreshold;
   protected final int length;
@@ -36,13 +34,10 @@ public abstract class HashMap {
    * Must be a power of 2. The hash table will be expected to store LOAD_FACT * mapSize (key, value) pairs.
    * 
    */
-  public HashMap(int mapSize) {
+  public LongLongHashMap(int mapSize) {
     if (mapSize <= 0)
       throw new IllegalArgumentException(
-          "Initial mapSize cannot be negative or zero: " + mapSize);
-    if (!Util.isPowerOf2(mapSize))
-      throw new IllegalArgumentException(
-          "Initial mapSize must be power of two: " + mapSize);
+          "Initial mapSize cannot be negative or zero: " + mapSize); //TODO fix here??
     this.length = mapSize;
     this.loadThreshold = (int) (length * LOAD_FACTOR);
     this.arrayMask = length - 1;
@@ -62,6 +57,25 @@ public abstract class HashMap {
   public abstract void adjustOrPutValue(long key, long adjustAmount, long putAmount);
 
   /**
+   * Gets the current value with the given key
+   * @param key the given key
+   * @return the positive value the key corresponds to or zero if if the key is not found in the
+   * hash map.
+   */
+  public abstract long get(long key);
+  
+  /**
+   * Processes the map arrays and retains only keys with positive counts.
+   */
+  public abstract void keepOnlyPositiveCounts();
+
+  /**
+   * @param probe location in the hash table array
+   * @return true if the cell in the array contains an active key
+   */
+  public abstract boolean isActive(int probe);
+  
+  /**
    * Increments the primitive value mapped to the key if the key is present in the map. Otherwise,
    * the key is inserted with the value.
    * 
@@ -73,14 +87,6 @@ public abstract class HashMap {
   }
 
   /**
-   * Gets the current value with the given key
-   * @param key the given key
-   * @return the positive value the key corresponds to or zero if if the key is not found in the
-   * hash map.
-   */
-  public abstract long get(long key);
-
-  /**
    * @param adjustAmount value by which to shift all values. Only keys corresponding to positive
    * values are retained.
    */
@@ -89,17 +95,7 @@ public abstract class HashMap {
       values[i] += adjustAmount;
   }
 
-  /**
-   * @param thresholdValue value by which to shift all values. Only keys corresponding to positive
-   * values are retained.
-   */
-  public abstract void keepOnlyLargerThan(long thresholdValue);
 
-  /**
-   * @param probe location in the hash table array
-   * @return true if the cell in the array contains an active key
-   */
-  public abstract boolean isActive(int probe);
 
   /**
    * @return an array containing the active keys in the hash map.
@@ -114,7 +110,7 @@ public abstract class HashMap {
         returnedKeys[j] = keys[i];
         j++;
       }
-    assert (j == numActive);
+    assert (j == numActive) : "j: "+j+" != numActive: "+numActive;
     return returnedKeys;
   }
 
@@ -184,7 +180,9 @@ public abstract class HashMap {
     sb.append(LS);
     return sb.toString();
   }
-
+  
+  
+  
   /**
    * @return the load factor of the hash table, i.e, the ratio between the capacity and the array
    * length

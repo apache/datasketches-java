@@ -8,7 +8,8 @@ package com.yahoo.sketches.frequencies;
 import java.util.Collection;
 
 import com.yahoo.sketches.Util;
-import com.yahoo.sketches.frequencies.HashMapReverseEfficient;
+import com.yahoo.sketches.frequencies.FrequencyEstimator.ErrorSpecification;
+import com.yahoo.sketches.frequencies.ReversePurgeHashMap;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -44,17 +45,17 @@ public class MasterFETester {
 
   @Test
   private static void HashMapRESerialTest() {
-    HashMapReverseEfficient map = new HashMapReverseEfficient(8);
+    ReversePurgeHashMap map = new ReversePurgeHashMap(8);
     map.adjustOrPutValue(10, 15, 15);
     map.adjustOrPutValue(10, 5, 5);
     map.adjustOrPutValue(1, 1, 1);
     map.adjustOrPutValue(2, 3, 3);
-    String string = map.hashMapReverseEfficientToString();
+    String string = map.serializeToString();
     //println(string);
     //println(map.toString());
-    HashMapReverseEfficient new_map =
-        HashMapReverseEfficient.StringToHashMapReverseEfficient(string);
-    String new_string = new_map.hashMapReverseEfficientToString();
+    ReversePurgeHashMap new_map =
+        ReversePurgeHashMap.deserializeFromString(string);
+    String new_string = new_map.serializeToString();
     Assert.assertTrue(string.equals(new_string));
   }
 
@@ -68,12 +69,12 @@ public class MasterFETester {
     sketch.update(1000001, 1010230);
     sketch.update(1000002, 1010230);
 
-    String string0 = sketch.toString();
-    FrequentItems new_sketch0 = FrequentItems.StringToFrequentItems(string0);
-    String new_string0 = new_sketch0.toString();
+    String string0 = sketch.serializeToString();
+    FrequentItems new_sketch0 = FrequentItems.deserializeFromString(string0);
+    String new_string0 = new_sketch0.serializeToString();
     Assert.assertTrue(string0.equals(new_string0));
-    Assert.assertTrue(new_sketch0.getMaxMapCap() == sketch.getMaxMapCap());
-    Assert.assertTrue(new_sketch0.getCurMapCap() == sketch.getCurMapCap());
+    Assert.assertTrue(new_sketch0.getMaximumMapCapacity() == sketch.getMaximumMapCapacity());
+    Assert.assertTrue(new_sketch0.getCurrentMapCapacity() == sketch.getCurrentMapCapacity());
 
     sketch2.update(190, 12902390);
     sketch2.update(191, 12902390);
@@ -95,22 +96,22 @@ public class MasterFETester {
     sketch2.update(207, 12902390);
     sketch2.update(208, 12902390);
 
-    String string2 = sketch2.toString();
-    FrequentItems new_sketch2 = FrequentItems.StringToFrequentItems(string2);
-    String new_string2 = new_sketch2.toString();
+    String string2 = sketch2.serializeToString();
+    FrequentItems new_sketch2 = FrequentItems.deserializeFromString(string2);
+    String new_string2 = new_sketch2.serializeToString();
     Assert.assertTrue(string2.equals(new_string2));
-    Assert.assertTrue(new_sketch2.getMaxMapCap() == sketch2.getMaxMapCap());
-    Assert.assertTrue(new_sketch2.getCurMapCap() == sketch2.getCurMapCap());
+    Assert.assertTrue(new_sketch2.getMaximumMapCapacity() == sketch2.getMaximumMapCapacity());
+    Assert.assertTrue(new_sketch2.getCurrentMapCapacity() == sketch2.getCurrentMapCapacity());
     Assert.assertTrue(new_sketch2.getStreamLength() == sketch2.getStreamLength());
 
     FrequentItems merged_sketch = (FrequentItems) sketch.merge(sketch2);
 
-    String string = merged_sketch.toString();
-    FrequentItems new_sketch = FrequentItems.StringToFrequentItems(string);
-    String new_string = new_sketch.toString();
+    String string = merged_sketch.serializeToString();
+    FrequentItems new_sketch = FrequentItems.deserializeFromString(string);
+    String new_string = new_sketch.serializeToString();
     Assert.assertTrue(string.equals(new_string));
-    Assert.assertTrue(new_sketch.getMaxMapCap() == merged_sketch.getMaxMapCap());
-    Assert.assertTrue(new_sketch.getCurMapCap() == merged_sketch.getCurMapCap());
+    Assert.assertTrue(new_sketch.getMaximumMapCapacity() == merged_sketch.getMaximumMapCapacity());
+    Assert.assertTrue(new_sketch.getCurrentMapCapacity() == merged_sketch.getCurrentMapCapacity());
     Assert.assertTrue(new_sketch.getStreamLength() == merged_sketch.getStreamLength());
   }
 
@@ -128,11 +129,11 @@ public class MasterFETester {
     Memory mem0 = new NativeMemory(bytearray0);
     FrequentItems new_sketch0 = FrequentItems.getInstance(mem0);
 
-    String string0 = sketch.toString();
-    String new_string0 = new_sketch0.toString();
+    String string0 = sketch.serializeToString();
+    String new_string0 = new_sketch0.serializeToString();
     Assert.assertTrue(string0.equals(new_string0));
-    Assert.assertTrue(new_sketch0.getMaxMapCap() == sketch.getMaxMapCap());
-    Assert.assertTrue(new_sketch0.getCurMapCap() == sketch.getCurMapCap());
+    Assert.assertTrue(new_sketch0.getMaximumMapCapacity() == sketch.getMaximumMapCapacity());
+    Assert.assertTrue(new_sketch0.getCurrentMapCapacity() == sketch.getCurrentMapCapacity());
 
     sketch2.update(190, 12902390);
     sketch2.update(191, 12902390);
@@ -158,12 +159,12 @@ public class MasterFETester {
     Memory mem2 = new NativeMemory(bytearray2);
     FrequentItems new_sketch2 = FrequentItems.getInstance(mem2);
 
-    String string2 = sketch2.toString();
-    String new_string2 = new_sketch2.toString();
+    String string2 = sketch2.serializeToString();
+    String new_string2 = new_sketch2.serializeToString();
 
     Assert.assertTrue(string2.equals(new_string2));
-    Assert.assertTrue(new_sketch2.getMaxMapCap() == sketch2.getMaxMapCap());
-    Assert.assertTrue(new_sketch2.getCurMapCap() == sketch2.getCurMapCap());
+    Assert.assertTrue(new_sketch2.getMaximumMapCapacity() == sketch2.getMaximumMapCapacity());
+    Assert.assertTrue(new_sketch2.getCurrentMapCapacity() == sketch2.getCurrentMapCapacity());
     Assert.assertTrue(new_sketch2.getStreamLength() == sketch2.getStreamLength());
 
     FrequentItems merged_sketch = (FrequentItems) sketch.merge(sketch2);
@@ -172,12 +173,12 @@ public class MasterFETester {
     Memory mem = new NativeMemory(bytearray);
     FrequentItems new_sketch = FrequentItems.getInstance(mem);
 
-    String string = sketch.toString();
-    String new_string = new_sketch.toString();
+    String string = sketch.serializeToString();
+    String new_string = new_sketch.serializeToString();
 
     Assert.assertTrue(string.equals(new_string));
-    Assert.assertTrue(new_sketch.getMaxMapCap() == merged_sketch.getMaxMapCap());
-    Assert.assertTrue(new_sketch.getCurMapCap() == merged_sketch.getCurMapCap());
+    Assert.assertTrue(new_sketch.getMaximumMapCapacity() == merged_sketch.getMaximumMapCapacity());
+    Assert.assertTrue(new_sketch.getCurrentMapCapacity() == merged_sketch.getCurrentMapCapacity());
     Assert.assertTrue(new_sketch.getStreamLength() == merged_sketch.getStreamLength());
   }
 
@@ -195,11 +196,11 @@ public class MasterFETester {
     Memory mem0 = new NativeMemory(bytearray0);
     FrequentItems new_sketch0 = FrequentItems.getInstance(mem0);
 
-    String string0 = sketch.toString();
-    String new_string0 = new_sketch0.toString();
+    String string0 = sketch.serializeToString();
+    String new_string0 = new_sketch0.serializeToString();
     Assert.assertTrue(string0.equals(new_string0));
-    Assert.assertTrue(new_sketch0.getMaxMapCap() == sketch.getMaxMapCap());
-    Assert.assertTrue(new_sketch0.getCurMapCap() == sketch.getCurMapCap());
+    Assert.assertTrue(new_sketch0.getMaximumMapCapacity() == sketch.getMaximumMapCapacity());
+    Assert.assertTrue(new_sketch0.getCurrentMapCapacity() == sketch.getCurrentMapCapacity());
   }
 
   @Test
@@ -225,8 +226,7 @@ public class MasterFETester {
     
     long threshold = 10;
     for(int h=0; h<numEstimators; h++) {
-
-      long[] freq = estimators[h].getFrequentKeys(threshold);
+      long[] freq = estimators[h].getFrequentKeys(threshold, ErrorSpecification.NO_FALSE_NEGATIVES);
 
       for (int i = 0; i < freq.length; i++)
         Assert.assertTrue(estimators[h].getUpperBound(freq[i]) > threshold);
@@ -339,7 +339,7 @@ public class MasterFETester {
       FrequencyEstimator estimator = newFrequencyEstimator(error_tolerance, delta, h);
       Assert.assertEquals(estimator.getUpperBound(13L), 0);
       Assert.assertEquals(estimator.getLowerBound(13L), 0);
-      Assert.assertEquals(estimator.getMaxError(), 0);
+      Assert.assertEquals(estimator.getMaximumError(), 0);
       Assert.assertEquals(estimator.getEstimate(13L), 0);
       estimator.update(13L);
       // Assert.assertEquals(estimator.getEstimate(13L), 1);
@@ -598,7 +598,7 @@ public class MasterFETester {
 //    }
 //    return null;
     //above can be simplified to this:
-    return (i == 0)? new FrequentItems(Util.ceilingPowerOf2((int) (1.0 /(error_parameter*HashMap.LOAD_FACTOR)))) : null;
+    return (i == 0)? new FrequentItems(Util.ceilingPowerOf2((int) (1.0 /(error_parameter*LongLongHashMap.LOAD_FACTOR)))) : null;
   }
 
   @Test
@@ -610,7 +610,7 @@ public class MasterFETester {
    * @param s value to print
    */
   static void println(String s) {
-    System.out.println(s); //disable here
+    //System.out.println(s); //disable here
   }
 
 }
