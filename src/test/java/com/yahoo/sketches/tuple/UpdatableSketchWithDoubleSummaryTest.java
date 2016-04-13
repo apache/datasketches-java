@@ -277,12 +277,12 @@ public class UpdatableSketchWithDoubleSummaryTest {
     int key = 0;
     UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     for (int i = 0; i < 1000; i++) sketch1.update(key++, 1.0);
-    System.out.println("theta1=" + sketch1.getTheta() + " " + sketch1.getThetaLong());
+    //System.out.println("theta1=" + sketch1.getTheta() + " " + sketch1.getThetaLong());
 
     key -= 500; // overlap half of the entries
     UpdatableSketch<Double, DoubleSummary> sketch2 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).setSamplingProbability(0.2f).build();
     for (int i = 0; i < 20000; i++) sketch2.update(key++, 1.0);
-    System.out.println("theta2=" + sketch2.getTheta() + " " + sketch2.getThetaLong());
+    //System.out.println("theta2=" + sketch2.getTheta() + " " + sketch2.getThetaLong());
 
     Union<DoubleSummary> union = new Union<DoubleSummary>(4096, new DoubleSummaryFactory());
     union.update(sketch1);
