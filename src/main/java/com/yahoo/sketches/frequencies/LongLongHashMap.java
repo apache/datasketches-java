@@ -57,6 +57,25 @@ public abstract class LongLongHashMap {
   public abstract void adjustOrPutValue(long key, long adjustAmount, long putAmount);
 
   /**
+   * Gets the current value with the given key
+   * @param key the given key
+   * @return the positive value the key corresponds to or zero if if the key is not found in the
+   * hash map.
+   */
+  public abstract long get(long key);
+  
+  /**
+   * Processes the map arrays and retains only keys with positive counts.
+   */
+  public abstract void keepOnlyPositiveCounts();
+
+  /**
+   * @param probe location in the hash table array
+   * @return true if the cell in the array contains an active key
+   */
+  public abstract boolean isActive(int probe);
+  
+  /**
    * Increments the primitive value mapped to the key if the key is present in the map. Otherwise,
    * the key is inserted with the value.
    * 
@@ -68,14 +87,6 @@ public abstract class LongLongHashMap {
   }
 
   /**
-   * Gets the current value with the given key
-   * @param key the given key
-   * @return the positive value the key corresponds to or zero if if the key is not found in the
-   * hash map.
-   */
-  public abstract long get(long key);
-
-  /**
    * @param adjustAmount value by which to shift all values. Only keys corresponding to positive
    * values are retained.
    */
@@ -84,16 +95,7 @@ public abstract class LongLongHashMap {
       values[i] += adjustAmount;
   }
 
-  /**
-   * Processes the map arrays and retains only keys with positive counts.
-   */
-  public abstract void keepOnlyPositiveCounts();
 
-  /**
-   * @param probe location in the hash table array
-   * @return true if the cell in the array contains an active key
-   */
-  public abstract boolean isActive(int probe);
 
   /**
    * @return an array containing the active keys in the hash map.
@@ -178,7 +180,9 @@ public abstract class LongLongHashMap {
     sb.append(LS);
     return sb.toString();
   }
-
+  
+  
+  
   /**
    * @return the load factor of the hash table, i.e, the ratio between the capacity and the array
    * length

@@ -22,7 +22,7 @@ package com.yahoo.sketches.frequencies;
  * @author Justin Thaler
  */
 public abstract class FrequencyEstimator {
-  public enum ErrorCondition {NO_FALSE_POSITIVES, NO_FALSE_NEGATIVES}
+  public enum ErrorSpecification {NO_FALSE_POSITIVES, NO_FALSE_NEGATIVES}
 
   /**
    * Update this sketch with a key and a frequency count of one.
@@ -69,7 +69,7 @@ public abstract class FrequencyEstimator {
    * This is equivalent to the maximum distance between the upper bound and the lower bound for 
    * any key.
    */
-  public abstract long getMaxError();
+  public abstract long getMaximumError();
 
   /**
    * Returns an array of frequent keys given a threshold frequency count and an ErrorCondition. 
@@ -78,22 +78,22 @@ public abstract class FrequencyEstimator {
    * 
    * The method first examines all active keys in the sketch (keys that have a counter).
    *  
-   * <p>If <i>errorCondition = NO_FALSE_NEGATIVES</i>, this will include a key in the result list 
+   * <p>If <i>errorSpec = NO_FALSE_NEGATIVES</i>, this will include a key in the result list 
    * if getUpperBound(key) > threshold. 
    * There will be no false negatives, i.e., no Type II error.
    * There may be keys in the set with true frequencies less than the threshold (false positives).</p>
    * 
-   * <p>If <i>errorCondition = NO_FALSE_POSITIVES</i>, this will include a key in the result list 
+   * <p>If <i>errorSpec = NO_FALSE_POSITIVES</i>, this will include a key in the result list 
    * if getLowerBound(key) > threshold. 
    * There will be no false positives, i.e., no Type I error.
    * There may be keys ommitted from the set with true frequencies greater than the threshold 
    * (false negatives).</p>
    * 
    * @param threshold the given frequency threshold that should be greater than getMaxError().
-   * @param errorCondition determines whether no false positives or no false negatives are desired.
+   * @param errorSpec determines whether no false positives or no false negatives are desired.
    * @return an array of frequent keys
    */
-  public abstract long[] getFrequentKeys(long threshold, ErrorCondition errorCondition);
+  public abstract long[] getFrequentKeys(long threshold, ErrorSpecification errorSpec);
 
   /**
    * This function merges two FrequencyEstimator sketches, potentially of different sizes.
@@ -111,14 +111,14 @@ public abstract class FrequencyEstimator {
    * 
    * @return the current number of counters the sketch is configured to support.
    */
-  public abstract int getCurMapCap();
+  public abstract int getCurrentMapCapacity();
 
   /**
-   * Returns the maximum number of counters the sketch will ever be configured to support.
+   * Returns the maximum number of counters the sketch is configured to support.
    * 
-   * @return the maximum number of counters the sketch will ever be configured to support.
+   * @return the maximum number of counters the sketch is configured to support.
    */
-  public abstract int getMaxMapCap();
+  public abstract int getMaximumMapCapacity();
 
   /**
    * Returns true if this sketch is empty

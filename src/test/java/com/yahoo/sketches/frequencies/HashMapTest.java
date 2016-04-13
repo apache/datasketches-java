@@ -6,7 +6,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.yahoo.sketches.frequencies.LongLongHashMap;
-import com.yahoo.sketches.frequencies.HashMapReverseEfficient;
+import com.yahoo.sketches.frequencies.ReversePurgeHashMap;
 
 import gnu.trove.function.TLongFunction;
 import gnu.trove.map.hash.TLongLongHashMap;
@@ -17,7 +17,7 @@ public class HashMapTest {
   @Test //test only what we use
   public void testHashMap() {
     int mapLength = 128;
-    LongLongHashMap hashMap = new HashMapReverseEfficient(mapLength);
+    LongLongHashMap hashMap = new ReversePurgeHashMap(mapLength);
     testHashMapAgainstTrove(hashMap, mapLength);
     println(hashMap.toString());
   }

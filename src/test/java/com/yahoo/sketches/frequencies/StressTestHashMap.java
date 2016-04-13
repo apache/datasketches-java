@@ -6,7 +6,7 @@
 package com.yahoo.sketches.frequencies;
 
 import com.yahoo.sketches.frequencies.LongLongHashMap;
-import com.yahoo.sketches.frequencies.HashMapReverseEfficient;
+import com.yahoo.sketches.frequencies.ReversePurgeHashMap;
 import com.yahoo.sketches.hash.MurmurHash3;
 
 public class StressTestHashMap {
@@ -27,7 +27,7 @@ public class StressTestHashMap {
         values[i] = (i < capacity / 2) ? n : 1;
       }
 
-      LongLongHashMap hashmap = new HashMapReverseEfficient(capacity);
+      LongLongHashMap hashmap = new ReversePurgeHashMap(capacity);
       long timePerAdjust = timeOneHashMap(hashmap, keys, values, (int) (.75 * capacity));
       System.out.format("%s\t%d\t%d\n", hashmap.getClass().getSimpleName(), capacity, timePerAdjust);
     }
