@@ -5,7 +5,7 @@
 
 package com.yahoo.sketches.frequencies;
 
-import com.yahoo.sketches.Util;
+import static com.yahoo.sketches.Util.*;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -142,60 +142,54 @@ public class FrequentItems extends FrequencyEstimator {
   private int sampleSize;
 
 
-  // **CONSTRUCTORS**********************************************************
+  // Constructors
   /**
-   * Construct this sketch with parameter mapMapSize and initialMapSize
-   * @param maxMapSize Determines the maximum length of the arrays internal to
-   * the hash table maintained by the sketch. The larger maxMapSize, 
-   * the more space the sketch uses, and the better the accuracy of the estimates returned 
-   * by the sketch.
-   * @param initialMapSize determines the initial length of the arrays internal to the hash table
+   * Construct this sketch with the parameter maxMapSize and the default initialMapSize (4).
+   * 
+   * @param maxMapSize Determines the physical size of the internal hash map managed by this sketch.
+   * This value must be a power of 2.  The maximum capacity of this internal hash map is 0.75 times 
+   * this value. Both the ultimate accuracy and size of this sketch are a function of this value.
+   */
+  public FrequentItems(int maxMapSize) {
+    this(maxMapSize, MIN_HASHMAP_SIZE);
+  }
+  
+  /**
+   * Construct this sketch with parameter mapMapSize and initialMapSize.
+   * 
+   * @param maxMapSize Determines the physical size of the internal hash map managed by this sketch.
+   * This value must be a power of 2. The maximum capacity of this hash map is 0.75 times 
+   * this value. Both the ultimate accuracy and size of this sketch are a function of this value.
+   * 
+   * @param initialMapSize Determines the initial physical size of the internal hash map managed 
+   * by this sketch. This value must be a power of 2.
    */
   FrequentItems(int maxMapSize, int initialMapSize) { 
     
-    if (maxMapSize <= 0) {
-      throw new IllegalArgumentException("maxMapSize cannot be negative or zero: "+maxMapSize);
-    }
-    if (initialMapSize <= 0) {
-      throw new IllegalArgumentException("initialMapSize cannot be negative or zero: "+initialMapSize);
-    }
-    if (maxMapSize < initialMapSize) {
-      throw new IllegalArgumentException("maxMapSize cannot be less than initialMapSize: "+maxMapSize);
-    }
-    if (!Util.isPowerOf2(maxMapSize))
-      throw new IllegalArgumentException(
-          "maxMapSize must be power of two: " + maxMapSize);
-    
-    if (!Util.isPowerOf2(initialMapSize))
-      throw new IllegalArgumentException(
-          "initialMapSize must be power of two: " + initialMapSize);
+    checkIfPowerOf2(maxMapSize, "maxMapSize");
+    checkIfPowerOf2(initialMapSize, "initialMapSize");
     
     //set initial size of counters data structure
     this.initialMapSize = Math.max(initialMapSize, MIN_HASHMAP_SIZE);
-    hashMap = new ReversePurgeHashMap(initialMapSize);
+    hashMap = new ReversePurgeHashMap(this.initialMapSize);
     this.curMapCap = hashMap.getCapacity();
     
     this.maxMapSize = maxMapSize;
-    this.maxMapCap = (int) (maxMapSize*hashMap.getLoadFactor());
+    this.maxMapCap = (int) (maxMapSize*ReversePurgeHashMap.getLoadFactor());
 
     offset = 0;
     sampleSize = Math.min(SAMPLE_SIZE, maxMapCap);
   }
   
+  //Factories
+  
   /**
-   * Construct this sketch with the parameter maxMapSize and the default initialMapSize
-   * @param maxMapSize the given maxMapSize in entries
-   */
-  public FrequentItems(int maxMapSize) {
-    this(maxMapSize, MIN_HASHMAP_SIZE);
-  }
-
-  /**
-   * Heapifies the given srcMem, which must be a Memory image of this sketch class
+   * Returns a sketch instance of this class from the given srcMem, 
+   * which must be a Memory representation of this sketch class.
    * 
-   * @param srcMem a Memory image of a sketch. 
+   * @param srcMem a Memory representation of a sketch of this class. 
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @return a sketch object of this class on the Java heap.
+   * @return a sketch instance of this class..
    */
   public static FrequentItems getInstance(Memory srcMem) {
     long memCapBytes = srcMem.getCapacity();
@@ -250,12 +244,13 @@ public class FrequentItems extends FrequencyEstimator {
   }
   
   /**
-   * Deserializes a String into a sketch object of this class.
+   * Returns a sketch instance of this class from the given String, 
+   * which must be a String representation of this sketch class.
    * 
-   * @param string the given String representing an sketch object of this class.
-   * @return a sketch object of this class.
+   * @param string a String representation of a sketch of this class.
+   * @return a sketch instance of this class.
    */
-  public static FrequentItems deserializeFromString(String string) {
+  public static FrequentItems getInstance(String string) {
     String[] tokens = string.split(",");
     if (tokens.length < 6) {
       throw new IllegalArgumentException(
@@ -279,6 +274,8 @@ public class FrequentItems extends FrequencyEstimator {
     return sketch;
   }
   
+  //Serialization
+  
   /**
    * Returns a String representation of this sketch
    * 
@@ -294,6 +291,77 @@ public class FrequentItems extends FrequencyEstimator {
     sb.append(hashMap.serializeToString());
     return sb.toString();
   }
+  
+  /**
+   * Returns a byte array representation of this sketch
+   * @return a byte array representation of this sketch
+   */
+  public byte[] serializeToByteArray() {
+    int preLongs, arrLongs;
+    boolean empty = isEmpty();
+
+    if (empty) {
+      preLongs = 1;
+      arrLongs = 1;
+    } else {
+      preLongs = 6;
+      arrLongs = preLongs + 2 * getActiveCounters();
+    }
+    byte[] outArr = new byte[arrLongs << 3];
+    NativeMemory mem = new NativeMemory(outArr);
+
+    // build first prelong
+    long pre0 = 0L;
+    pre0 = insertPreLongs(preLongs, pre0);
+    pre0 = insertSerVer(SER_VER, pre0);
+    pre0 = insertFamilyID(10, pre0);
+    if (empty)
+      pre0 = insertEmptyFlag(1, pre0);
+    else
+      pre0 = insertEmptyFlag(0, pre0);
+    pre0 = insertMaxMapSize(this.maxMapSize, pre0);
+
+    if (empty) {
+      mem.putLong(0, pre0);
+    } else {
+      long[] preArr = new long[6];
+      preArr[0] = pre0;
+      preArr[1] = this.mergeError;
+      preArr[2] = this.offset;
+      preArr[3] = this.streamLength;
+
+      long pre1 = 0L;
+      pre1 = insertCurMapSize(this.hashMap.getLength(), pre1);
+      pre1 = insertInitialMapSize(this.initialMapSize, pre1);
+      preArr[4] = pre1;
+
+      long pre2 = 0L;
+      pre2 = insertBufferLength(getActiveCounters(), pre2);
+      preArr[5] = pre2;
+
+      mem.putLongArray(0, preArr, 0, 6);
+      mem.putLongArray(48, hashMap.getActiveValues(), 0, this.getActiveCounters());
+      mem.putLongArray(48 + (this.getActiveCounters() << 3), hashMap.getActiveKeys(), 0, this.getActiveCounters());
+    }
+    return outArr;
+  }
+  
+  /**
+   * Puts this sketch into the given Memory as a byte array
+   * @param dstMem the given destination Memory
+   */
+  public void serializeToMemory(Memory dstMem) {
+    byte[] byteArr = serializeToByteArray();
+    int arrLen = byteArr.length;
+    long memCap = dstMem.getCapacity();
+    if (memCap < arrLen) {
+      throw new IllegalArgumentException(
+          "Destination Memory not large enough: " + memCap + " < " + arrLen);
+    }
+    dstMem.putByteArray(0, byteArr, 0, arrLen);
+  }
+  
+  //Override FrequencyEstimator
   
   @Override
   public void update(long key) {
@@ -353,6 +421,27 @@ public class FrequentItems extends FrequencyEstimator {
   }
 
   @Override
+  public long getEstimate(long key) {
+    // If key is tracked:
+    // Estimate = keyCount + offset; Otherwise it is 0.
+    long keyCount = hashMap.get(key);
+    return (keyCount > 0)? keyCount + offset : 0;
+  }
+
+  @Override
+  public long getUpperBound(long key) {
+    // UB = keyCount + offset + mergeError
+    return hashMap.get(key) + getMaximumError();
+  }
+
+  @Override
+  public long getLowerBound(long key) {
+    //LB = max(keyCount - mergeError, 0)
+    long returnVal = hashMap.get(key) - mergeError;
+    return Math.max(returnVal, 0);
+  }
+  
+  @Override
   public long[] getFrequentKeys(long threshold, ErrorSpecification errorSpec) { 
     int count = 0;
     long[] keys = hashMap.getKeys(); //ref to raw keys array
@@ -383,38 +472,10 @@ public class FrequentItems extends FrequencyEstimator {
     System.arraycopy(freqKeys, 0, outArr, 0, count);
     return outArr;
   }
-  
-  /**
-   * @return the number of active (positive) counters in the sketch.
-   */
-  public int getActiveCounters() {
-    return hashMap.getNumActive();
-  }
 
   @Override
-  public long getEstimate(long key) {
-    // If the key is tracked Estimate = curCount + offset; Otherwise it is 0.
-    long curCount = hashMap.get(key);
-    return (curCount > 0)? curCount + offset : 0;
-  }
-
-  @Override
-  public long getUpperBound(long key) {
-    // If key is tracked UB = curCount + offset + mergeError; Otherwise, it is 0.
-    // If tracked:
-    // If (mergeError == 0) UB = estimate = curCount + offset
-    // If (mergeError >  0) UB = estimate + mergeError
-    return hashMap.get(key) + getMaximumError();
-  }
-
-  @Override
-  public long getLowerBound(long key) {
-    //The LB can never be negative.
-    //If tracked:
-    //If (mergeError == 0) LB = curCount.
-    //If (mergeError >  0) LB = max(curCount - mergeError, 0)
-    long returnVal = hashMap.get(key) - mergeError;
-    return ((returnVal > 0)? returnVal : 0);
+  public int getCurrentMapCapacity() {
+    return this.curMapCap;
   }
 
   @Override
@@ -423,25 +484,32 @@ public class FrequentItems extends FrequencyEstimator {
   }
   
   @Override
-  public int getCurrentMapCapacity() {
-    return this.curMapCap;
+  public boolean isEmpty() {
+    return getActiveCounters() == 0;
   }
-
+  
   @Override
   public long getStreamLength() {
     return this.streamLength;
   }
-
+  
   @Override
   public int getMaximumMapCapacity() {
     return this.maxMapCap;
   }
-
+  
   @Override
-  public boolean isEmpty() {
-    return getActiveCounters() == 0;
+  public int getActiveCounters() {
+    return hashMap.getNumActive();
   }
 
+  @Override
+  public int getStorageBytes() {
+    if (isEmpty())
+      return 20;
+    return 48 + 16 * getActiveCounters();
+  }
+  
   @Override
   public void reset() {
     hashMap = new ReversePurgeHashMap(this.initialMapSize);
@@ -449,17 +517,6 @@ public class FrequentItems extends FrequencyEstimator {
     this.offset = 0;
     this.mergeError = 0;
     this.streamLength = 0;
-  }
-
-  /**
-   * Returns the number of bytes required to store this sketch as an array of bytes.
-   * 
-   * @return the number of bytes required to store this sketch as an array of bytes.
-   */
-  public int getStorageBytes() {
-    if (isEmpty())
-      return 20;
-    return 48 + 16 * getActiveCounters();
   }
   
   /**
@@ -489,75 +546,6 @@ public class FrequentItems extends FrequencyEstimator {
       hashMap.adjustOrPutValue(key, value, value);
     }
     return hashMap;
-  }
-  
-  /**
-   * Returns a byte array representation of this sketch
-   * @return a byte array representation of this sketch
-   */
-  public byte[] toByteArray() {
-    int preLongs, arrLongs;
-    boolean empty = isEmpty();
-
-    if (empty) {
-      preLongs = 1;
-      arrLongs = 1;
-    } else {
-      preLongs = 6;
-      arrLongs = preLongs + 2 * getActiveCounters();
-    }
-    byte[] outArr = new byte[arrLongs << 3];
-    NativeMemory mem = new NativeMemory(outArr);
-
-    // build first prelong
-    long pre0 = 0L;
-    pre0 = insertPreLongs(preLongs, pre0);
-    pre0 = insertSerVer(SER_VER, pre0);
-    pre0 = insertFamilyID(10, pre0);
-    if (empty)
-      pre0 = insertEmptyFlag(1, pre0);
-    else
-      pre0 = insertEmptyFlag(0, pre0);
-    pre0 = insertMaxMapSize(this.maxMapSize, pre0);
-
-    if (empty) {
-      mem.putLong(0, pre0);
-    } else {
-      long[] preArr = new long[6];
-      preArr[0] = pre0;
-      preArr[1] = this.mergeError;
-      preArr[2] = this.offset;
-      preArr[3] = this.streamLength;
-
-      long pre1 = 0L;
-      pre1 = insertCurMapSize(this.hashMap.getLength(), pre1);
-      pre1 = insertInitialMapSize(this.initialMapSize, pre1);
-      preArr[4] = pre1;
-
-      long pre2 = 0L;
-      pre2 = insertBufferLength(getActiveCounters(), pre2);
-      preArr[5] = pre2;
-
-      mem.putLongArray(0, preArr, 0, 6);
-      mem.putLongArray(48, hashMap.getActiveValues(), 0, this.getActiveCounters());
-      mem.putLongArray(48 + (this.getActiveCounters() << 3), hashMap.getActiveKeys(), 0, this.getActiveCounters());
-    }
-    return outArr;
-  }
-  
-  /**
-   * Puts this sketch into the given memory as a byte array
-   * @param dstMem the given destination Memory
-   */
-  public void putMemory(Memory dstMem) {
-    byte[] byteArr = toByteArray();
-    int arrLen = byteArr.length;
-    long memCap = dstMem.getCapacity();
-    if (memCap < arrLen) {
-      throw new IllegalArgumentException(
-          "Destination Memory not large enough: " + memCap + " < " + arrLen);
-    }
-    dstMem.putByteArray(0, byteArr, 0, arrLen);
   }
 
 }

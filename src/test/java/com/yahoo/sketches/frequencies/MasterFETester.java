@@ -54,7 +54,7 @@ public class MasterFETester {
     //println(string);
     //println(map.toString());
     ReversePurgeHashMap new_map =
-        ReversePurgeHashMap.deserializeFromString(string);
+        ReversePurgeHashMap.getInstance(string);
     String new_string = new_map.serializeToString();
     Assert.assertTrue(string.equals(new_string));
   }
@@ -70,7 +70,7 @@ public class MasterFETester {
     sketch.update(1000002, 1010230);
 
     String string0 = sketch.serializeToString();
-    FrequentItems new_sketch0 = FrequentItems.deserializeFromString(string0);
+    FrequentItems new_sketch0 = FrequentItems.getInstance(string0);
     String new_string0 = new_sketch0.serializeToString();
     Assert.assertTrue(string0.equals(new_string0));
     Assert.assertTrue(new_sketch0.getMaximumMapCapacity() == sketch.getMaximumMapCapacity());
@@ -97,7 +97,7 @@ public class MasterFETester {
     sketch2.update(208, 12902390);
 
     String string2 = sketch2.serializeToString();
-    FrequentItems new_sketch2 = FrequentItems.deserializeFromString(string2);
+    FrequentItems new_sketch2 = FrequentItems.getInstance(string2);
     String new_string2 = new_sketch2.serializeToString();
     Assert.assertTrue(string2.equals(new_string2));
     Assert.assertTrue(new_sketch2.getMaximumMapCapacity() == sketch2.getMaximumMapCapacity());
@@ -107,7 +107,7 @@ public class MasterFETester {
     FrequentItems merged_sketch = (FrequentItems) sketch.merge(sketch2);
 
     String string = merged_sketch.serializeToString();
-    FrequentItems new_sketch = FrequentItems.deserializeFromString(string);
+    FrequentItems new_sketch = FrequentItems.getInstance(string);
     String new_string = new_sketch.serializeToString();
     Assert.assertTrue(string.equals(new_string));
     Assert.assertTrue(new_sketch.getMaximumMapCapacity() == merged_sketch.getMaximumMapCapacity());
@@ -125,7 +125,7 @@ public class MasterFETester {
     sketch.update(1000001, 1010230);
     sketch.update(1000002, 1010230);
 
-    byte[] bytearray0 = sketch.toByteArray();
+    byte[] bytearray0 = sketch.serializeToByteArray();
     Memory mem0 = new NativeMemory(bytearray0);
     FrequentItems new_sketch0 = FrequentItems.getInstance(mem0);
 
@@ -155,7 +155,7 @@ public class MasterFETester {
     sketch2.update(207, 12902390);
     sketch2.update(208, 12902390);
 
-    byte[] bytearray2 = sketch2.toByteArray();
+    byte[] bytearray2 = sketch2.serializeToByteArray();
     Memory mem2 = new NativeMemory(bytearray2);
     FrequentItems new_sketch2 = FrequentItems.getInstance(mem2);
 
@@ -169,7 +169,7 @@ public class MasterFETester {
 
     FrequentItems merged_sketch = (FrequentItems) sketch.merge(sketch2);
 
-    byte[] bytearray = sketch.toByteArray();
+    byte[] bytearray = sketch.serializeToByteArray();
     Memory mem = new NativeMemory(bytearray);
     FrequentItems new_sketch = FrequentItems.getInstance(mem);
 
@@ -192,7 +192,7 @@ public class MasterFETester {
     sketch.update(1000002, 1010230);
     sketch.reset();
 
-    byte[] bytearray0 = sketch.toByteArray();
+    byte[] bytearray0 = sketch.serializeToByteArray();
     Memory mem0 = new NativeMemory(bytearray0);
     FrequentItems new_sketch0 = FrequentItems.getInstance(mem0);
 
@@ -211,7 +211,7 @@ public class MasterFETester {
     
     FrequencyEstimator[] estimators = new FrequencyEstimator[numEstimators];
     for (int h = 0; h < numEstimators; h++) {
-      estimators[h] = newFrequencyEstimator(error_tolerance, .1, h);
+      estimators[h] = newFrequencyEstimator(error_tolerance);
     }
 
     PositiveCountersMap realCounts = new PositiveCountersMap();
@@ -245,8 +245,8 @@ public class MasterFETester {
     int numEstimators = 1;
 
     for (int h = 0; h < numEstimators; h++) {
-      FrequencyEstimator estimator1 = newFrequencyEstimator(error_tolerance, delta, h);
-      FrequencyEstimator estimator2 = newFrequencyEstimator(error_tolerance, delta, h);
+      FrequencyEstimator estimator1 = newFrequencyEstimator(error_tolerance);
+      FrequencyEstimator estimator2 = newFrequencyEstimator(error_tolerance);
       PositiveCountersMap realCounts = new PositiveCountersMap();
       for (int i = 0; i < n; i++) {
         long key1 = randomGeometricDist(prob1) + 1;
@@ -292,7 +292,7 @@ public class MasterFETester {
 
     for (int h = 0; h < numEstimators; h++) {
       for (int z = 0; z < num_to_merge; z++)
-        estimators[z] = newFrequencyEstimator(error_tolerance, delta, h);
+        estimators[z] = newFrequencyEstimator(error_tolerance);
 
       PositiveCountersMap realCounts = new PositiveCountersMap();
       for (int i = 0; i < n; i++) {
@@ -333,10 +333,10 @@ public class MasterFETester {
   private static void updateOneTime() {
     int size = 100;
     double error_tolerance = 1.0 / size;
-    double delta = .01;
+    //double delta = .01;
     int numEstimators = 1;
     for (int h = 0; h < numEstimators; h++) {
-      FrequencyEstimator estimator = newFrequencyEstimator(error_tolerance, delta, h);
+      FrequencyEstimator estimator = newFrequencyEstimator(error_tolerance);
       Assert.assertEquals(estimator.getUpperBound(13L), 0);
       Assert.assertEquals(estimator.getLowerBound(13L), 0);
       Assert.assertEquals(estimator.getMaximumError(), 0);
@@ -350,7 +350,7 @@ public class MasterFETester {
   private static void ErrorTestZipfBigParam() {
     int size = 512;
     int n = 200 * size;
-    double delta = .1;
+    //double delta = .1;
     double error_tolerance = 1.0 / size;
     int trials = 1;
     long stream[] = new long[n];
@@ -366,10 +366,10 @@ public class MasterFETester {
     int numEstimators = 1;
 
     for (int h = 0; h < numEstimators; h++) {
-      FrequencyEstimator estimator = newFrequencyEstimator(error_tolerance, .1, h);
+      FrequencyEstimator estimator = newFrequencyEstimator(error_tolerance);
 
       for (int trial = 0; trial < trials; trial++) {
-        estimator = newFrequencyEstimator(error_tolerance, delta, h);
+        estimator = newFrequencyEstimator(error_tolerance);
         for (int i = 0; i < n; i++) {
           // long key = randomGeometricDist(prob);
           estimator.update(stream[i]);
@@ -406,7 +406,7 @@ public class MasterFETester {
   private static void ErrorTestZipfSmallParam() {
     int size = 512;
     int n = 200 * size;
-    double delta = .1;
+    //double delta = .1;
     double error_tolerance = 1.0 / size;
     int trials = 1;
     long stream[] = new long[n];
@@ -422,10 +422,10 @@ public class MasterFETester {
     int numEstimators = 1;
 
     for (int h = 0; h < numEstimators; h++) {
-      FrequencyEstimator estimator = newFrequencyEstimator(error_tolerance, .1, h);
+      FrequencyEstimator estimator = newFrequencyEstimator(error_tolerance);
 
       for (int trial = 0; trial < trials; trial++) {
-        estimator = newFrequencyEstimator(error_tolerance, delta, h);
+        estimator = newFrequencyEstimator(error_tolerance);
         for (int i = 0; i < n; i++) {
           // long key = randomGeometricDist(prob);
           estimator.update(stream[i]);
@@ -464,7 +464,7 @@ public class MasterFETester {
   private static void ErrorTestZipfBigParamSmallSketch() {
     int size = 64;
     int n = 200 * size;
-    double delta = .1;
+    //double delta = .1;
     double error_tolerance = 1.0 / size;
     int trials = 1;
     long stream[] = new long[n];
@@ -480,10 +480,10 @@ public class MasterFETester {
     int numEstimators = 1;
 
     for (int h = 0; h < numEstimators; h++) {
-      FrequencyEstimator estimator = newFrequencyEstimator(error_tolerance, .1, h);
+      FrequencyEstimator estimator = newFrequencyEstimator(error_tolerance);
 
       for (int trial = 0; trial < trials; trial++) {
-        estimator = newFrequencyEstimator(error_tolerance, delta, h);
+        estimator = newFrequencyEstimator(error_tolerance);
         for (int i = 0; i < n; i++) {
           // long key = randomGeometricDist(prob);
           estimator.update(stream[i]);
@@ -587,18 +587,10 @@ public class MasterFETester {
     }
   }
 
-  //If failure_prob is not used, why pass it in??
-  //You return a null if i == 0, but isn't this an error condition? Why not throw an exception?
-  @SuppressWarnings("unused")
-  private static FrequencyEstimator newFrequencyEstimator(double error_parameter,
-      double failure_prob, int i) {
-//    switch (i) {
-//      case 0:
-//        return new FrequentItems((int) (1.0 / error_parameter));
-//    }
-//    return null;
-    //above can be simplified to this:
-    return (i == 0)? new FrequentItems(Util.ceilingPowerOf2((int) (1.0 /(error_parameter*LongLongHashMap.LOAD_FACTOR)))) : null;
+
+  private static FrequencyEstimator newFrequencyEstimator(double error_parameter) {
+    return new FrequentItems(
+        Util.ceilingPowerOf2((int) (1.0 /(error_parameter*ReversePurgeHashMap.getLoadFactor()))));
   }
 
   @Test

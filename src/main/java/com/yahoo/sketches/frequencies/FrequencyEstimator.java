@@ -40,36 +40,43 @@ public abstract class FrequencyEstimator {
   public abstract void update(long key, long increment);
 
   /**
+   * This function merges two FrequencyEstimator sketches, potentially of different sizes.
+   * 
+   * @param other another FrequenciesEstimator of the same class
+   * @return a pointer to a FrequencyEstimator whose estimates are within the guarantees of the
+   * largest error tolerance of the two merged sketches. This method does not create a new
+   * sketch. The sketch whose function is executed is changed and a reference to it is
+   * returned.
+   */
+  public abstract FrequencyEstimator merge(FrequencyEstimator other);
+  
+  /**
    * Gets the estimate of the frequency of the given key. 
    * Note: The true frequency of a key would be the sum of the counts as a result of the two 
    * update functions.
+   * 
    * @param key the given key
    * @return the estimate of the frequency of the given key
    */
   public abstract long getEstimate(long key);
 
   /**
-   * Gets the guaranteed lower bound frequency of the given key.
-   * @param key the given key.
-   * @return the guaranteed lower bound frequency of the given key. That is, a number which is 
-   * guaranteed to be no larger than the real frequency.
-   */
-  public abstract long getLowerBound(long key);
-
-  /**
    * Gets the guaranteed upper bound frequency of the given key.
+   * 
    * @param key the given key
    * @return the guaranteed upper bound frequency of the given key. That is, a number which is 
    * guaranteed to be no smaller than the real frequency.
    */
   public abstract long getUpperBound(long key);
-
+  
   /**
-   * @return An upper bound on the maximum error of getEstimate(key) for any key. 
-   * This is equivalent to the maximum distance between the upper bound and the lower bound for 
-   * any key.
+   * Gets the guaranteed lower bound frequency of the given key, which can never be negative.
+   * 
+   * @param key the given key.
+   * @return the guaranteed lower bound frequency of the given key. That is, a number which is 
+   * guaranteed to be no larger than the real frequency.
    */
-  public abstract long getMaximumError();
+  public abstract long getLowerBound(long key);
 
   /**
    * Returns an array of frequent keys given a threshold frequency count and an ErrorCondition. 
@@ -96,29 +103,11 @@ public abstract class FrequencyEstimator {
   public abstract long[] getFrequentKeys(long threshold, ErrorSpecification errorSpec);
 
   /**
-   * This function merges two FrequencyEstimator sketches, potentially of different sizes.
-   * 
-   * @param other another FrequenciesEstimator of the same class
-   * @return a pointer to a FrequencyEstimator whose estimates are within the guarantees of the
-   * largest error tolerance of the two merged sketches. This method does not create a new
-   * sketch. The sketch whose function is executed is changed and a reference to it is
-   * returned.
+   * @return An upper bound on the maximum error of getEstimate(key) for any key. 
+   * This is equivalent to the maximum distance between the upper bound and the lower bound for 
+   * any key.
    */
-  public abstract FrequencyEstimator merge(FrequencyEstimator other);
-
-  /**
-   * Returns the current number of counters the sketch is configured to support.
-   * 
-   * @return the current number of counters the sketch is configured to support.
-   */
-  public abstract int getCurrentMapCapacity();
-
-  /**
-   * Returns the maximum number of counters the sketch is configured to support.
-   * 
-   * @return the maximum number of counters the sketch is configured to support.
-   */
-  public abstract int getMaximumMapCapacity();
+  public abstract long getMaximumError();
 
   /**
    * Returns true if this sketch is empty
@@ -133,7 +122,33 @@ public abstract class FrequencyEstimator {
    * @return the sum of the frequencies in the stream seen so far by the sketch
    */
   public abstract long getStreamLength();
+  
+  /**
+   * Returns the current number of counters the sketch is configured to support.
+   * 
+   * @return the current number of counters the sketch is configured to support.
+   */
+  public abstract int getCurrentMapCapacity();
 
+  /**
+   * Returns the maximum number of counters the sketch is configured to support.
+   * 
+   * @return the maximum number of counters the sketch is configured to support.
+   */
+  public abstract int getMaximumMapCapacity();
+  
+  /**
+   * @return the number of active (positive) counters in the sketch.
+   */
+  public abstract int getActiveCounters();
+  
+  /**
+   * Returns the number of bytes required to store this sketch as an array of bytes.
+   * 
+   * @return the number of bytes required to store this sketch as an array of bytes.
+   */
+  public abstract int getStorageBytes();
+  
   /**
    * Resets this sketch to a virgin state, but retains the original value of the error parameter
    */
