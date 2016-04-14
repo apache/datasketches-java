@@ -6,17 +6,22 @@
 package com.yahoo.sketches.frequencies;
 
 /**
- * Abstract class for a FrequencyEstimator algorithm. Supports the ability to process a data stream
- * of (item, increment) pairs, where item is an identifier, specified as a long, and increment is a
- * non-negative integer that is also specified as a long. The frequency of an identifier is defined
- * to be the sum of associated the increments. Any FrequencyEstimator algorithm must be able to: 1)
- * estimate the frequency of an identifier, 2) return upper and lower bounds on the frequency
- * (depending on the implementation, these bounds may hold deterministically, or with high
- * probability), 3) return an upper bound on the maximum error in any estimate (which also might
- * hold deterministically or with high probability, depending on implementation) 4) Return an array
- * of keys whose frequencies might be above a certain threshold (specifically, the threshold is
- * 1/errorTolerance + 1) 5) merge itself with another FrequencyEstimator algorithm from the same
- * instantiation of the abstract class.
+ * Abstract base class for FrequencyEstimator algorithms. All classes that extend this class 
+ * support the ability to process a data stream of (<i>long</i> item, <i>long</i> count) pairs, 
+ * where item is an identifier that must identify some item uniquely and count 
+ * is a non-negative integer. 
+ * The frequency of an identifier is defined to be the sum of associated increments.
+ * <p>Any FrequencyEstimator algorithm must be able to: 
+ * <ol>
+ * <li>Estimate the frequency of an identifier.</li> 
+ * <li>Return upper and lower bounds on the estimate. Depending on the implementation, 
+ * these bounds may hold deterministically, or with high probability.</li>
+ * <li>Return an upper bound on the maximum error in any estimate, which also might
+ * hold deterministically or with high probability, depending on the implementation.</li>
+ * <li>Return an array of items whose frequencies might be above a certain threshold, specifically, 
+ * the threshold is 1/errorTolerance + 1.</li>
+ * <li>Merge itself with another FrequencyEstimator object created from this class.</li>
+ * </ol>
  * 
  * @author Edo Liberty
  * @author Justin Thaler
@@ -25,19 +30,19 @@ public abstract class FrequencyEstimator {
   public enum ErrorSpecification {NO_FALSE_POSITIVES, NO_FALSE_NEGATIVES}
 
   /**
-   * Update this sketch with a key and a frequency count of one.
-   * @param key for which the frequency should be increased. 
+   * Update this sketch with an item and a frequency count of one.
+   * @param item for which the frequency should be increased. 
    */
-  public abstract void update(long key);
+  public abstract void update(long item);
 
   /**
-   * Update this sketch with a key and a positive frequency count. 
-   * @param key for which the frequency should be increased. The key can be any long value and is 
+   * Update this sketch with a item and a positive frequency count. 
+   * @param item for which the frequency should be increased. The item can be any long value and is 
    * only used by the sketch to determine uniqueness.
-   * @param increment the amount by which the frequency of the key should be increased. 
+   * @param increment the amount by which the frequency of the item should be increased. 
    * An increment of zero is a no-op, and a negative value will throw an exception.
    */
-  public abstract void update(long key, long increment);
+  public abstract void update(long item, long increment);
 
   /**
    * This function merges two FrequencyEstimator sketches, potentially of different sizes.
@@ -51,61 +56,68 @@ public abstract class FrequencyEstimator {
   public abstract FrequencyEstimator merge(FrequencyEstimator other);
   
   /**
-   * Gets the estimate of the frequency of the given key. 
-   * Note: The true frequency of a key would be the sum of the counts as a result of the two 
+   * Gets the estimate of the frequency of the given item. 
+   * Note: The true frequency of a item would be the sum of the counts as a result of the two 
    * update functions.
    * 
-   * @param key the given key
-   * @return the estimate of the frequency of the given key
+   * @param item the given item
+   * @return the estimate of the frequency of the given item
    */
-  public abstract long getEstimate(long key);
+  public abstract long getEstimate(long item);
 
   /**
-   * Gets the guaranteed upper bound frequency of the given key.
+   * Gets the guaranteed upper bound frequency of the given item.
    * 
-   * @param key the given key
-   * @return the guaranteed upper bound frequency of the given key. That is, a number which is 
+   * @param item the given item
+   * @return the guaranteed upper bound frequency of the given item. That is, a number which is 
    * guaranteed to be no smaller than the real frequency.
    */
-  public abstract long getUpperBound(long key);
+  public abstract long getUpperBound(long item);
   
   /**
-   * Gets the guaranteed lower bound frequency of the given key, which can never be negative.
+   * Gets the guaranteed lower bound frequency of the given item, which can never be negative.
    * 
-   * @param key the given key.
-   * @return the guaranteed lower bound frequency of the given key. That is, a number which is 
+   * @param item the given item.
+   * @return the guaranteed lower bound frequency of the given item. That is, a number which is 
    * guaranteed to be no larger than the real frequency.
    */
-  public abstract long getLowerBound(long key);
+  public abstract long getLowerBound(long item);
 
   /**
-   * Returns an array of frequent keys given a threshold frequency count and an ErrorCondition. 
-   * Note: if the given threshold is less than getMaxError() the keys that are returned have no
+   * Returns an array of frequent items given a threshold frequency count and an ErrorCondition. 
+   * Note: if the given threshold is less than getMaxError() the items that are returned have no
    * guarantees.
    * 
-   * The method first examines all active keys in the sketch (keys that have a counter).
+   * The method first examines all active items in the sketch (items that have a counter).
    *  
-   * <p>If <i>errorSpec = NO_FALSE_NEGATIVES</i>, this will include a key in the result list 
-   * if getUpperBound(key) > threshold. 
+   * <p>If <i>errorSpec = NO_FALSE_NEGATIVES</i>, this will include a item in the result list 
+   * if getUpperBound(item) > threshold. 
    * There will be no false negatives, i.e., no Type II error.
-   * There may be keys in the set with true frequencies less than the threshold (false positives).</p>
+   * There may be items in the set with true frequencies less than the threshold (false positives).</p>
    * 
-   * <p>If <i>errorSpec = NO_FALSE_POSITIVES</i>, this will include a key in the result list 
-   * if getLowerBound(key) > threshold. 
+   * <p>If <i>errorSpec = NO_FALSE_POSITIVES</i>, this will include a item in the result list 
+   * if getLowerBound(item) > threshold. 
    * There will be no false positives, i.e., no Type I error.
-   * There may be keys ommitted from the set with true frequencies greater than the threshold 
+   * There may be items ommitted from the set with true frequencies greater than the threshold 
    * (false negatives).</p>
    * 
    * @param threshold the given frequency threshold that should be greater than getMaxError().
    * @param errorSpec determines whether no false positives or no false negatives are desired.
-   * @return an array of frequent keys
+   * @return an array of frequent items
    */
-  public abstract long[] getFrequentKeys(long threshold, ErrorSpecification errorSpec);
+  public abstract long[] getFrequentItems(long threshold, ErrorSpecification errorSpec);
 
   /**
-   * @return An upper bound on the maximum error of getEstimate(key) for any key. 
+   * Returns the current number of counters the sketch is configured to support.
+   * 
+   * @return the current number of counters the sketch is configured to support.
+   */
+  public abstract int getCurrentMapCapacity();
+  
+  /**
+   * @return An upper bound on the maximum error of getEstimate(item) for any item. 
    * This is equivalent to the maximum distance between the upper bound and the lower bound for 
-   * any key.
+   * any item.
    */
   public abstract long getMaximumError();
 
@@ -124,13 +136,6 @@ public abstract class FrequencyEstimator {
   public abstract long getStreamLength();
   
   /**
-   * Returns the current number of counters the sketch is configured to support.
-   * 
-   * @return the current number of counters the sketch is configured to support.
-   */
-  public abstract int getCurrentMapCapacity();
-
-  /**
    * Returns the maximum number of counters the sketch is configured to support.
    * 
    * @return the maximum number of counters the sketch is configured to support.
@@ -138,9 +143,9 @@ public abstract class FrequencyEstimator {
   public abstract int getMaximumMapCapacity();
   
   /**
-   * @return the number of active (positive) counters in the sketch.
+   * @return the number of active items in the sketch.
    */
-  public abstract int getActiveCounters();
+  public abstract int getActiveItems();
   
   /**
    * Returns the number of bytes required to store this sketch as an array of bytes.

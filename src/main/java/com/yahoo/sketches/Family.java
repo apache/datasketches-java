@@ -80,7 +80,12 @@ public enum Family {
   /**
    * The Tuple family of sketches
    */
-  TUPLE(9, "TUPLE", 1, 1);
+  TUPLE(9, "TUPLE", 1, 1),
+  
+  /**
+   * The Frequency family of sketches
+   */
+  FREQUENCY(10, "FREQUENCY", 1, 6);
   
   private static final Map<Integer, Family> lookupID = new HashMap<Integer, Family>();
   private static final Map<String, Family> lookupFamName = new HashMap<String, Family>();

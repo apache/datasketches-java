@@ -28,7 +28,7 @@ public class ReversePurgeHashMap {
   protected long[] keys;
   protected long[] values;
   protected short[] states;
-  static final int DRIFT_LIMIT = 1024;
+  static final int DRIFT_LIMIT = 1024; //used only in stress testing
   
   /**
    * Constructor will create arrays of length mapSize, which must be a power of two.

@@ -61,8 +61,8 @@ public class MasterFETester {
 
   @Test
   private static void FrequentItemsStringSerialTest() {
-    FrequentItems sketch = new FrequentItems(8);
-    FrequentItems sketch2 = new FrequentItems(128);
+    FrequentLongsSketch sketch = new FrequentLongsSketch(8);
+    FrequentLongsSketch sketch2 = new FrequentLongsSketch(128);
     sketch.update(10, 100);
     sketch.update(10, 100);
     sketch.update(15, 3443);
@@ -70,7 +70,7 @@ public class MasterFETester {
     sketch.update(1000002, 1010230);
 
     String string0 = sketch.serializeToString();
-    FrequentItems new_sketch0 = FrequentItems.getInstance(string0);
+    FrequentLongsSketch new_sketch0 = FrequentLongsSketch.getInstance(string0);
     String new_string0 = new_sketch0.serializeToString();
     Assert.assertTrue(string0.equals(new_string0));
     Assert.assertTrue(new_sketch0.getMaximumMapCapacity() == sketch.getMaximumMapCapacity());
@@ -97,17 +97,17 @@ public class MasterFETester {
     sketch2.update(208, 12902390);
 
     String string2 = sketch2.serializeToString();
-    FrequentItems new_sketch2 = FrequentItems.getInstance(string2);
+    FrequentLongsSketch new_sketch2 = FrequentLongsSketch.getInstance(string2);
     String new_string2 = new_sketch2.serializeToString();
     Assert.assertTrue(string2.equals(new_string2));
     Assert.assertTrue(new_sketch2.getMaximumMapCapacity() == sketch2.getMaximumMapCapacity());
     Assert.assertTrue(new_sketch2.getCurrentMapCapacity() == sketch2.getCurrentMapCapacity());
     Assert.assertTrue(new_sketch2.getStreamLength() == sketch2.getStreamLength());
 
-    FrequentItems merged_sketch = (FrequentItems) sketch.merge(sketch2);
+    FrequentLongsSketch merged_sketch = (FrequentLongsSketch) sketch.merge(sketch2);
 
     String string = merged_sketch.serializeToString();
-    FrequentItems new_sketch = FrequentItems.getInstance(string);
+    FrequentLongsSketch new_sketch = FrequentLongsSketch.getInstance(string);
     String new_string = new_sketch.serializeToString();
     Assert.assertTrue(string.equals(new_string));
     Assert.assertTrue(new_sketch.getMaximumMapCapacity() == merged_sketch.getMaximumMapCapacity());
@@ -117,8 +117,8 @@ public class MasterFETester {
 
   @Test
   private static void FrequentItemsByteSerialTest() {
-    FrequentItems sketch = new FrequentItems(16, 8);
-    FrequentItems sketch2 = new FrequentItems(128);
+    FrequentLongsSketch sketch = new FrequentLongsSketch(16, 8);
+    FrequentLongsSketch sketch2 = new FrequentLongsSketch(128);
     sketch.update(10, 100);
     sketch.update(10, 100);
     sketch.update(15, 3443);
@@ -127,7 +127,7 @@ public class MasterFETester {
 
     byte[] bytearray0 = sketch.serializeToByteArray();
     Memory mem0 = new NativeMemory(bytearray0);
-    FrequentItems new_sketch0 = FrequentItems.getInstance(mem0);
+    FrequentLongsSketch new_sketch0 = FrequentLongsSketch.getInstance(mem0);
 
     String string0 = sketch.serializeToString();
     String new_string0 = new_sketch0.serializeToString();
@@ -157,7 +157,7 @@ public class MasterFETester {
 
     byte[] bytearray2 = sketch2.serializeToByteArray();
     Memory mem2 = new NativeMemory(bytearray2);
-    FrequentItems new_sketch2 = FrequentItems.getInstance(mem2);
+    FrequentLongsSketch new_sketch2 = FrequentLongsSketch.getInstance(mem2);
 
     String string2 = sketch2.serializeToString();
     String new_string2 = new_sketch2.serializeToString();
@@ -167,11 +167,11 @@ public class MasterFETester {
     Assert.assertTrue(new_sketch2.getCurrentMapCapacity() == sketch2.getCurrentMapCapacity());
     Assert.assertTrue(new_sketch2.getStreamLength() == sketch2.getStreamLength());
 
-    FrequentItems merged_sketch = (FrequentItems) sketch.merge(sketch2);
+    FrequentLongsSketch merged_sketch = (FrequentLongsSketch) sketch.merge(sketch2);
 
     byte[] bytearray = sketch.serializeToByteArray();
     Memory mem = new NativeMemory(bytearray);
-    FrequentItems new_sketch = FrequentItems.getInstance(mem);
+    FrequentLongsSketch new_sketch = FrequentLongsSketch.getInstance(mem);
 
     String string = sketch.serializeToString();
     String new_string = new_sketch.serializeToString();
@@ -184,7 +184,7 @@ public class MasterFETester {
 
   @Test
   private static void FrequentItemsByteResetandEmptySerialTest() {
-    FrequentItems sketch = new FrequentItems(16);
+    FrequentLongsSketch sketch = new FrequentLongsSketch(16);
     sketch.update(10, 100);
     sketch.update(10, 100);
     sketch.update(15, 3443);
@@ -194,7 +194,7 @@ public class MasterFETester {
 
     byte[] bytearray0 = sketch.serializeToByteArray();
     Memory mem0 = new NativeMemory(bytearray0);
-    FrequentItems new_sketch0 = FrequentItems.getInstance(mem0);
+    FrequentLongsSketch new_sketch0 = FrequentLongsSketch.getInstance(mem0);
 
     String string0 = sketch.serializeToString();
     String new_string0 = new_sketch0.serializeToString();
@@ -226,7 +226,7 @@ public class MasterFETester {
     
     long threshold = 10;
     for(int h=0; h<numEstimators; h++) {
-      long[] freq = estimators[h].getFrequentKeys(threshold, ErrorSpecification.NO_FALSE_NEGATIVES);
+      long[] freq = estimators[h].getFrequentItems(threshold, ErrorSpecification.NO_FALSE_NEGATIVES);
 
       for (int i = 0; i < freq.length; i++)
         Assert.assertTrue(estimators[h].getUpperBound(freq[i]) > threshold);
@@ -516,6 +516,15 @@ public class MasterFETester {
     }
   }
 
+  //@Test
+  public void freqItemsStressTest() {
+    FrequentLongsSketch fi = new FrequentLongsSketch(512);
+    int u = 1 << 20;
+    for (int i = 0; i< u; i++) {
+      fi.update(randomGeometricDist(0.002));
+    }
+  }
+  
   
   ////////////////////////////////////////
 
@@ -589,7 +598,7 @@ public class MasterFETester {
 
 
   private static FrequencyEstimator newFrequencyEstimator(double error_parameter) {
-    return new FrequentItems(
+    return new FrequentLongsSketch(
         Util.ceilingPowerOf2((int) (1.0 /(error_parameter*ReversePurgeHashMap.getLoadFactor()))));
   }
 
