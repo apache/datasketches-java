@@ -19,7 +19,7 @@ import com.yahoo.sketches.Util;
  * @author Edo Liberty
  * @author Justin Thaler
  */
-public class ReversePurgeHashMap {
+public class ReversePurgeLongHashMap {
   private final static double LOAD_FACTOR = 0.75;
   protected final int loadThreshold;
   protected final int length;
@@ -40,7 +40,7 @@ public class ReversePurgeHashMap {
    * HashMap implementation and must be a power of 2. 
    * The hash table will be expected to store LOAD_FACTOR * mapSize (key, value) pairs.
    */
-  public ReversePurgeHashMap(int mapSize) {
+  public ReversePurgeLongHashMap(int mapSize) {
     Util.checkIfPowerOf2(mapSize, "mapSize");
     this.length = mapSize;
     this.loadThreshold = (int) (length * LOAD_FACTOR);
@@ -57,7 +57,7 @@ public class ReversePurgeHashMap {
    * @param string a String representation of this class.
    * @return an instance of this class.
    */
-  public static ReversePurgeHashMap getInstance(String string) {
+  public static ReversePurgeLongHashMap getInstance(String string) {
     String[] tokens = string.split(",");
     if (tokens.length < 2) {
       throw new IllegalArgumentException(
@@ -65,7 +65,7 @@ public class ReversePurgeHashMap {
     }
     int numActive = Integer.parseInt(tokens[0]);
     int length = Integer.parseInt(tokens[1]);
-    ReversePurgeHashMap table = new ReversePurgeHashMap(length);
+    ReversePurgeLongHashMap table = new ReversePurgeLongHashMap(length);
     int j = 2;
     for (int i = 0; i < numActive; i++) {
       long key = Long.parseLong(tokens[j++]);

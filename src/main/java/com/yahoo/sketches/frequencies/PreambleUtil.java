@@ -55,7 +55,7 @@ final class PreambleUtil {
 
   // ###### DO NOT MESS WITH THIS FROM HERE ...
   // Preamble byte Addresses
-  static final int PREAMBLE_LONGS_BYTE = 0; // either 1 or 5
+  static final int PREAMBLE_LONGS_BYTE = 0; // either 1 or 6
   static final int SER_VER_BYTE = 1;
   static final int FAMILY_BYTE = 2;
   static final int FLAG_START = 3;
@@ -91,7 +91,6 @@ final class PreambleUtil {
     long mask = 0XFFL;
     return (int) ((pre0 >>> shift) & mask);
   }
-
 
   static int extractMaxMapSize(final long pre1) {
     int shift = MAX_MAP_SIZE_START << 3;

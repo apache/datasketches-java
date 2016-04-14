@@ -9,7 +9,7 @@ import java.util.Collection;
 
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.frequencies.FrequentLongsEstimator.ErrorSpecification;
-import com.yahoo.sketches.frequencies.ReversePurgeHashMap;
+import com.yahoo.sketches.frequencies.ReversePurgeLongHashMap;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -45,7 +45,7 @@ public class MasterFETester {
 
   @Test
   private static void HashMapRESerialTest() {
-    ReversePurgeHashMap map = new ReversePurgeHashMap(8);
+    ReversePurgeLongHashMap map = new ReversePurgeLongHashMap(8);
     map.adjustOrPutValue(10, 15, 15);
     map.adjustOrPutValue(10, 5, 5);
     map.adjustOrPutValue(1, 1, 1);
@@ -53,8 +53,8 @@ public class MasterFETester {
     String string = map.serializeToString();
     //println(string);
     //println(map.toString());
-    ReversePurgeHashMap new_map =
-        ReversePurgeHashMap.getInstance(string);
+    ReversePurgeLongHashMap new_map =
+        ReversePurgeLongHashMap.getInstance(string);
     String new_string = new_map.serializeToString();
     Assert.assertTrue(string.equals(new_string));
   }
@@ -599,7 +599,7 @@ public class MasterFETester {
 
   private static FrequentLongsEstimator newFrequencyEstimator(double error_parameter) {
     return new FrequentLongsSketch(
-        Util.ceilingPowerOf2((int) (1.0 /(error_parameter*ReversePurgeHashMap.getLoadFactor()))));
+        Util.ceilingPowerOf2((int) (1.0 /(error_parameter*ReversePurgeLongHashMap.getLoadFactor()))));
   }
 
   @Test

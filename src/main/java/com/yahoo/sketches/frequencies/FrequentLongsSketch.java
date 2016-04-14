@@ -137,7 +137,7 @@ public class FrequentLongsSketch extends FrequentLongsEstimator {
   /**
    * Hash map mapping stored items to approximate counts
    */
-  private ReversePurgeHashMap hashMap;
+  private ReversePurgeLongHashMap hashMap;
 
   /**
    * Tracks the total of decremented counts performed.
@@ -191,11 +191,11 @@ public class FrequentLongsSketch extends FrequentLongsEstimator {
     
     //set initial size of counters data structure
     this.initialMapSize = Math.max(initialMapSize, MIN_HASHMAP_SIZE);
-    hashMap = new ReversePurgeHashMap(this.initialMapSize);
+    hashMap = new ReversePurgeLongHashMap(this.initialMapSize);
     this.curMapCap = hashMap.getCapacity();
     
     this.maxMapSize = maxMapSize;
-    this.maxMapCap = (int) (maxMapSize*ReversePurgeHashMap.getLoadFactor());
+    this.maxMapCap = (int) (maxMapSize*ReversePurgeLongHashMap.getLoadFactor());
 
     offset = 0;
     sampleSize = Math.min(SAMPLE_SIZE, maxMapCap);
@@ -399,7 +399,7 @@ public class FrequentLongsSketch extends FrequentLongsEstimator {
     if ((numActive >= this.curMapCap) && (this.curMapCap < this.maxMapCap)) {
       // grow the size of the data structure
       int newSize = 2*hashMap.getLength();
-      ReversePurgeHashMap newTable = new ReversePurgeHashMap(newSize);
+      ReversePurgeLongHashMap newTable = new ReversePurgeLongHashMap(newSize);
       this.curMapCap = newTable.getCapacity();
       long[] items = this.hashMap.getActiveKeys();
       long[] counters = this.hashMap.getActiveValues();
@@ -532,7 +532,7 @@ public class FrequentLongsSketch extends FrequentLongsEstimator {
   
   @Override
   public void reset() {
-    hashMap = new ReversePurgeHashMap(this.initialMapSize);
+    hashMap = new ReversePurgeLongHashMap(this.initialMapSize);
     this.curMapCap = hashMap.getCapacity();
     this.offset = 0;
     this.mergeError = 0;
@@ -546,7 +546,7 @@ public class FrequentLongsSketch extends FrequentLongsEstimator {
    * @param ignore specifies how many of the initial tokens to ignore. 
    * @return a hash map object of this class
    */
-  private static ReversePurgeHashMap deserializeFromStringArray(String[] tokens, int ignore) {
+  private static ReversePurgeLongHashMap deserializeFromStringArray(String[] tokens, int ignore) {
     if (ignore < 0) {
       throw new IllegalArgumentException(
           "ignore parameter cannot be negative.");
@@ -557,7 +557,7 @@ public class FrequentLongsSketch extends FrequentLongsEstimator {
     }
     int numActive = Integer.parseInt(tokens[ignore]); 
     int length = Integer.parseInt(tokens[ignore + 1]);
-    ReversePurgeHashMap hashMap = new ReversePurgeHashMap(length);
+    ReversePurgeLongHashMap hashMap = new ReversePurgeLongHashMap(length);
     int j = 2 + ignore;
     for (int i = 0; i < numActive; i++) {
       long key = Long.parseLong(tokens[j++]);

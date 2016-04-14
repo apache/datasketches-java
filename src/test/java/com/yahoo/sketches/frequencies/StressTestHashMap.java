@@ -5,7 +5,7 @@
 
 package com.yahoo.sketches.frequencies;
 
-import com.yahoo.sketches.frequencies.ReversePurgeHashMap;
+import com.yahoo.sketches.frequencies.ReversePurgeLongHashMap;
 import com.yahoo.sketches.hash.MurmurHash3;
 
 public class StressTestHashMap {
@@ -26,13 +26,13 @@ public class StressTestHashMap {
         values[i] = (i < capacity / 2) ? n : 1;
       }
 
-      ReversePurgeHashMap hashmap = new ReversePurgeHashMap(capacity);
+      ReversePurgeLongHashMap hashmap = new ReversePurgeLongHashMap(capacity);
       long timePerAdjust = timeOneHashMap(hashmap, keys, values, (int) (.75 * capacity));
       System.out.format("%s\t%d\t%d\n", hashmap.getClass().getSimpleName(), capacity, timePerAdjust);
     }
   }
 
-  private static long timeOneHashMap(ReversePurgeHashMap hashMap, long[] keys, long[] values, int sizeToShift) {
+  private static long timeOneHashMap(ReversePurgeLongHashMap hashMap, long[] keys, long[] values, int sizeToShift) {
     final long startTime = System.nanoTime();
     int n = keys.length;
     assert (n == values.length);

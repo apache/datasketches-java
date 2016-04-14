@@ -5,7 +5,7 @@ import java.util.Random;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.sketches.frequencies.ReversePurgeHashMap;
+import com.yahoo.sketches.frequencies.ReversePurgeLongHashMap;
 
 import gnu.trove.function.TLongFunction;
 import gnu.trove.map.hash.TLongLongHashMap;
@@ -16,12 +16,12 @@ public class HashMapTest {
   @Test //test only what we use
   public void testHashMap() {
     int mapLength = 128;
-    ReversePurgeHashMap hashMap = new ReversePurgeHashMap(mapLength);
+    ReversePurgeLongHashMap hashMap = new ReversePurgeLongHashMap(mapLength);
     testHashMapAgainstTrove(hashMap, mapLength);
     println(hashMap.toString());
   }
   
-  private void testHashMapAgainstTrove(ReversePurgeHashMap hashMap, int mapLength){
+  private void testHashMapAgainstTrove(ReversePurgeLongHashMap hashMap, int mapLength){
     Random random = new Random(); 
     random.setSeed(422);
     int valueRange = 35219;

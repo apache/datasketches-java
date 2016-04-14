@@ -10,10 +10,7 @@ package com.yahoo.sketches.frequencies;
  */
 public interface Item {
   
-  @Override
-  int hashCode();
-  
-  boolean equals(Item that);
+  long getID();
   
   byte[] toByteArray();
   
