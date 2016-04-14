@@ -6,11 +6,12 @@
 package com.yahoo.sketches.frequencies;
 
 /**
- * Abstract base class for FrequencyEstimator algorithms. All classes that extend this class 
- * support the ability to process a data stream of (<i>long</i> item, <i>long</i> count) pairs, 
- * where item is an identifier that must identify some item uniquely and count 
+ * Abstract base class for algorithms that estimate frequency of long items. 
+ * All classes that extend this class support the ability to process a data stream of 
+ * (<i>long</i> item, <i>long</i> count) pairs, 
+ * where item is an identifier that must identify some long item uniquely and count 
  * is a non-negative integer. 
- * The frequency of an identifier is defined to be the sum of associated increments.
+ * The frequency of an identifier is defined to be the sum of associated counts.
  * <p>Any FrequencyEstimator algorithm must be able to: 
  * <ol>
  * <li>Estimate the frequency of an identifier.</li> 
@@ -26,7 +27,7 @@ package com.yahoo.sketches.frequencies;
  * @author Edo Liberty
  * @author Justin Thaler
  */
-public abstract class FrequencyEstimator {
+public abstract class FrequentLongsEstimator {
   public enum ErrorSpecification {NO_FALSE_POSITIVES, NO_FALSE_NEGATIVES}
 
   /**
@@ -39,10 +40,10 @@ public abstract class FrequencyEstimator {
    * Update this sketch with a item and a positive frequency count. 
    * @param item for which the frequency should be increased. The item can be any long value and is 
    * only used by the sketch to determine uniqueness.
-   * @param increment the amount by which the frequency of the item should be increased. 
-   * An increment of zero is a no-op, and a negative value will throw an exception.
+   * @param count the amount by which the frequency of the item should be increased. 
+   * An count of zero is a no-op, and a negative count will throw an exception.
    */
-  public abstract void update(long item, long increment);
+  public abstract void update(long item, long count);
 
   /**
    * This function merges two FrequencyEstimator sketches, potentially of different sizes.
@@ -53,7 +54,7 @@ public abstract class FrequencyEstimator {
    * sketch. The sketch whose function is executed is changed and a reference to it is
    * returned.
    */
-  public abstract FrequencyEstimator merge(FrequencyEstimator other);
+  public abstract FrequentLongsEstimator merge(FrequentLongsEstimator other);
   
   /**
    * Gets the estimate of the frequency of the given item. 

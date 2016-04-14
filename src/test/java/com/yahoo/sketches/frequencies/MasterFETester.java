@@ -8,7 +8,7 @@ package com.yahoo.sketches.frequencies;
 import java.util.Collection;
 
 import com.yahoo.sketches.Util;
-import com.yahoo.sketches.frequencies.FrequencyEstimator.ErrorSpecification;
+import com.yahoo.sketches.frequencies.FrequentLongsEstimator.ErrorSpecification;
 import com.yahoo.sketches.frequencies.ReversePurgeHashMap;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -209,7 +209,7 @@ public class MasterFETester {
     int n = 2222;
     double error_tolerance = 1.0/100;
     
-    FrequencyEstimator[] estimators = new FrequencyEstimator[numEstimators];
+    FrequentLongsEstimator[] estimators = new FrequentLongsEstimator[numEstimators];
     for (int h = 0; h < numEstimators; h++) {
       estimators[h] = newFrequencyEstimator(error_tolerance);
     }
@@ -245,8 +245,8 @@ public class MasterFETester {
     int numEstimators = 1;
 
     for (int h = 0; h < numEstimators; h++) {
-      FrequencyEstimator estimator1 = newFrequencyEstimator(error_tolerance);
-      FrequencyEstimator estimator2 = newFrequencyEstimator(error_tolerance);
+      FrequentLongsEstimator estimator1 = newFrequencyEstimator(error_tolerance);
+      FrequentLongsEstimator estimator2 = newFrequencyEstimator(error_tolerance);
       PositiveCountersMap realCounts = new PositiveCountersMap();
       for (int i = 0; i < n; i++) {
         long key1 = randomGeometricDist(prob1) + 1;
@@ -259,7 +259,7 @@ public class MasterFETester {
         realCounts.increment(key1);
         realCounts.increment(key2);
       }
-      FrequencyEstimator merged = estimator1.merge(estimator2);
+      FrequentLongsEstimator merged = estimator1.merge(estimator2);
 
       int bad = 0;
       int i = 0;
@@ -285,7 +285,7 @@ public class MasterFETester {
     double delta = .1;
     double error_tolerance = 1.0 / size;
     int num_to_merge = 10;
-    FrequencyEstimator[] estimators = new FrequencyEstimator[num_to_merge];
+    FrequentLongsEstimator[] estimators = new FrequentLongsEstimator[num_to_merge];
 
     double prob = .01;
     int numEstimators = 1;
@@ -305,7 +305,7 @@ public class MasterFETester {
         }
       }
 
-      FrequencyEstimator merged = estimators[0];
+      FrequentLongsEstimator merged = estimators[0];
       for (int z = 0; z < num_to_merge; z++) {
         if (z == 0)
           continue;
@@ -336,7 +336,7 @@ public class MasterFETester {
     //double delta = .01;
     int numEstimators = 1;
     for (int h = 0; h < numEstimators; h++) {
-      FrequencyEstimator estimator = newFrequencyEstimator(error_tolerance);
+      FrequentLongsEstimator estimator = newFrequencyEstimator(error_tolerance);
       Assert.assertEquals(estimator.getUpperBound(13L), 0);
       Assert.assertEquals(estimator.getLowerBound(13L), 0);
       Assert.assertEquals(estimator.getMaximumError(), 0);
@@ -366,7 +366,7 @@ public class MasterFETester {
     int numEstimators = 1;
 
     for (int h = 0; h < numEstimators; h++) {
-      FrequencyEstimator estimator = newFrequencyEstimator(error_tolerance);
+      FrequentLongsEstimator estimator = newFrequencyEstimator(error_tolerance);
 
       for (int trial = 0; trial < trials; trial++) {
         estimator = newFrequencyEstimator(error_tolerance);
@@ -422,7 +422,7 @@ public class MasterFETester {
     int numEstimators = 1;
 
     for (int h = 0; h < numEstimators; h++) {
-      FrequencyEstimator estimator = newFrequencyEstimator(error_tolerance);
+      FrequentLongsEstimator estimator = newFrequencyEstimator(error_tolerance);
 
       for (int trial = 0; trial < trials; trial++) {
         estimator = newFrequencyEstimator(error_tolerance);
@@ -480,7 +480,7 @@ public class MasterFETester {
     int numEstimators = 1;
 
     for (int h = 0; h < numEstimators; h++) {
-      FrequencyEstimator estimator = newFrequencyEstimator(error_tolerance);
+      FrequentLongsEstimator estimator = newFrequencyEstimator(error_tolerance);
 
       for (int trial = 0; trial < trials; trial++) {
         estimator = newFrequencyEstimator(error_tolerance);
@@ -597,7 +597,7 @@ public class MasterFETester {
   }
 
 
-  private static FrequencyEstimator newFrequencyEstimator(double error_parameter) {
+  private static FrequentLongsEstimator newFrequencyEstimator(double error_parameter) {
     return new FrequentLongsSketch(
         Util.ceilingPowerOf2((int) (1.0 /(error_parameter*ReversePurgeHashMap.getLoadFactor()))));
   }

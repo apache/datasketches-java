@@ -28,7 +28,7 @@ import static com.yahoo.sketches.frequencies.PreambleUtil.insertBufferLength;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertInitialMapSize;
 
 /**
- * This FrequentLongsSketch implements {@link FrequencyEstimator} with a specific algorithm.
+ * This FrequentLongsSketch implements {@link FrequentLongsEstimator} with a specific algorithm.
  * 
  * <p>This sketch is useful for tracking approximate frequencies of items that are 
  * internally implemented as a hash map (<i>long</i> item, <i>long</i> count).</p>
@@ -83,9 +83,9 @@ import static com.yahoo.sketches.frequencies.PreambleUtil.insertInitialMapSize;
  * 
  * 
  * @author Justin Thaler
- * @see FrequencyEstimator
+ * @see FrequentLongsEstimator
  */
-public class FrequentLongsSketch extends FrequencyEstimator {
+public class FrequentLongsSketch extends FrequentLongsEstimator {
 
   /**
    * We start by allocating a small data structure capable of explicitly storing very small streams
@@ -409,7 +409,7 @@ public class FrequentLongsSketch extends FrequencyEstimator {
   }
 
   @Override
-  public FrequencyEstimator merge(FrequencyEstimator other) {
+  public FrequentLongsEstimator merge(FrequentLongsEstimator other) {
     if (!(other instanceof FrequentLongsSketch)) {
       String s = this.getClass().getSimpleName();
       throw new IllegalArgumentException(s + " can only merge with other " + s);
