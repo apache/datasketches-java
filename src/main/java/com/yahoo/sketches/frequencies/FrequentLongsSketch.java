@@ -34,53 +34,65 @@ import static com.yahoo.sketches.frequencies.PreambleUtil.insertInitialMapSize;
  * internally implemented as a hash map (<i>long</i> item, <i>long</i> count).</p>
  * 
  * <p><b>Space Usage</b></p>
+ * 
  * <p>The sketch is initialized with a maxMapSize that specifies the maximum length of the 
  * internal arrays used by the hash map. The maxMapSize must be a power of 2. </p>
  * 
  * <p>The hash map starts with a very small size (4), and grows as needed up to the 
  * specified maxMapSize. The LOAD_FACTOR for the hash map is internally set at 75%, 
- * which means at any time the capacity of (item, count) pairs is 75% * mapSize.  
+ * which means at any time the capacity of (item, count) pairs is 75% * mapSize. 
  * The space usage of the sketch is 18 * mapSize bytes, plus a small constant
  * number of additional bytes. The space usage of this sketch will never exceed 18 * maxMapSize
  * bytes, plus a small constant number of additional bytes.</p>
  * 
+ * <p><b>Maximum Capacity of the Sketch</b></p>
+ * 
+ * <p>The maximum capacity of (item, count) pairs of the sketch is maxMapCap = LOAD_FACTOR * maxMapSize.
+ * Papers that describe the mathematical error properties of this type of algorithm often refer to 
+ * this with the symbol <i>k</i>.</p>
+ * 
  * <p><b>Updating the sketch with (item, count) pairs</b></p>
  * 
- * If the item is found in the hash map, the mapped count field (the "counter") is incremented by
+ * <p>If the item is found in the hash map, the mapped count field (the "counter") is incremented by
  * the incoming count, otherwise, a new counter "(item, count) pair" is created. 
  * If the number of tracked counters reaches the maximum capacity of the hash map the sketch 
  * decrements all of the counters (by an approximately computed median), and removes any 
- * non-positive counters.
+ * non-positive counters.</p>
  * 
- * Hence, when the sketch is at full size, the number of counters maintained by the sketch will 
- * typically oscillate between roughly k and k/2. 
+ * <p>Hence, when the sketch is at full size, the number of counters maintained by the sketch will 
+ * typically oscillate between roughly maximum hash map capacity (maxMapCap) and maxMapCap/2, or
+ * equivalently, k and k/2.</p>
  * 
  * <p><b>Accuracy</b></p>
  * 
- * If fewer than LOAD_FACTOR * maxMapSize different items are inserted into the sketch the 
+ * <p>If fewer than LOAD_FACTOR * maxMapSize different items are inserted into the sketch the 
  * estimated frequencies returned by the sketch will be exact.
  * The logic of the frequent items sketch is such that the stored counts and true counts are never
- * too different. More specifically, for any <i>item</i>, the sketch can return an estimate of the true
- * frequency of <i>item</i>, along with upper and lower bounds on the frequency (that hold
- * deterministically). 
+ * too different. More specifically, for any <i>item</i>, the sketch can return an estimate of the 
+ * true frequency of <i>item</i>, along with upper and lower bounds on the frequency (that hold
+ * deterministically).</p>
  * 
- * If the internal hash fuction had infinite precision and was perfectly uniform: Then,
+ * <p>If the internal hash fuction had infinite precision and was perfectly uniform: Then,
  * for this implementation and for a specific active <i>item</i>, it is guaranteed that the difference 
- * between the upper bound and the estimate is max(UB- Est) ~ 2n/k = (8/3)*(n/maxMapSize). However,
- * this implementation uses a deterministic hash function for performnace that performs well on 
- * real data.  </i>n</i> denotes the stream length (i.e, sum of all the item 
- * frequencies), and similarly for the lower bound and the estimate. In practice, the difference 
- * is usually much smaller.
- *
+ * between the Upper Bound and the Estimate is max(UB- Est) ~ 2n/k = (8/3)*(n/maxMapSize), where 
+ * </i>n</i> denotes the stream length (i.e, sum of all the item counts). The behavior is similar
+ * for the Lower Bound and the Estimate.
+ * However, this implementation uses a deterministic hash function for performnace that performs 
+ * well on real data, and in practice, the difference is usually much smaller.</p>
  * 
- * Background: This code implements a variant of what is commonly known as the "Misra-Gries
- * algorithm" or "Frequent Items". Variants of it were discovered and rediscovered and redesigned
- * several times over the years. a) "Finding repeated elements", Misra, Gries, 1982 b)
- * "Frequency estimation of internet packet streams with limited space" Demaine, Lopez-Ortiz, Munro,
- * 2002 c) "A simple algorithm for finding frequent elements in streams and bags" Karp, Shenker,
- * Papadimitriou, 2003 d) "Efficient Computation of Frequent and Top-k Elements in Data Streams"
- * Metwally, Agrawal, Abbadi, 2006
+ * <p><b>Background</b></p>
  * 
+ * <p>This code implements a variant of what is commonly known as the "Misra-Gries
+ * algorithm". Variants of it were discovered and rediscovered and redesigned several times over 
+ * the years:</p>
+ * <ul><li>"Finding repeated elements", Misra, Gries, 1982</li>
+ * <li>"Frequency estimation of internet packet streams with limited space" Demaine, Lopez-Ortiz, Munro,
+ * 2002</li>
+ * <li>"A simple algorithm for finding frequent elements in streams and bags" Karp, Shenker,
+ * Papadimitriou, 2003</li>
+ * <li>"Efficient Computation of Frequent and Top-k Elements in Data Streams" Metwally, Agrawal, 
+ * Abbadi, 2006</li>
+ * </ul>
  * 
  * @author Justin Thaler
  * @see FrequentLongsEstimator
@@ -543,7 +555,6 @@ public class FrequentLongsSketch extends FrequentLongsEstimator {
       throw new IllegalArgumentException(
           "Number of tokens < 2. Not long enough to specify length and capacity. "+tokens.length);
     }
-
     int numActive = Integer.parseInt(tokens[ignore]); 
     int length = Integer.parseInt(tokens[ignore + 1]);
     ReversePurgeHashMap hashMap = new ReversePurgeHashMap(length);
