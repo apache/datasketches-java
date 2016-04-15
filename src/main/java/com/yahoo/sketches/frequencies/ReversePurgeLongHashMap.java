@@ -19,7 +19,7 @@ import com.yahoo.sketches.Util;
  * @author Edo Liberty
  * @author Justin Thaler
  */
-public class ReversePurgeLongHashMap {
+class ReversePurgeLongHashMap {
   private final static double LOAD_FACTOR = 0.75;
   protected final int loadThreshold;
   protected final int length;
@@ -40,7 +40,7 @@ public class ReversePurgeLongHashMap {
    * HashMap implementation and must be a power of 2. 
    * The hash table will be expected to store LOAD_FACTOR * mapSize (key, value) pairs.
    */
-  public ReversePurgeLongHashMap(int mapSize) {
+  ReversePurgeLongHashMap(int mapSize) {
     Util.checkIfPowerOf2(mapSize, "mapSize");
     this.length = mapSize;
     this.loadThreshold = (int) (length * LOAD_FACTOR);
@@ -57,7 +57,7 @@ public class ReversePurgeLongHashMap {
    * @param string a String representation of this class.
    * @return an instance of this class.
    */
-  public static ReversePurgeLongHashMap getInstance(String string) {
+  static ReversePurgeLongHashMap getInstance(String string) {
     String[] tokens = string.split(",");
     if (tokens.length < 2) {
       throw new IllegalArgumentException(
@@ -82,7 +82,7 @@ public class ReversePurgeLongHashMap {
    * 
    * @return a String representation of this hash map.
    */
-  public String serializeToString() {
+  String serializeToString() {
     StringBuilder sb = new StringBuilder();
     sb.append(String.format("%d,%d,", numActive, length));
 
@@ -98,7 +98,7 @@ public class ReversePurgeLongHashMap {
    * @param probe location in the hash table array
    * @return true if the cell in the array contains an active key
    */
-  public boolean isActive(int probe) {
+  boolean isActive(int probe) {
     return (states[probe] > 0);
   }
   
@@ -108,7 +108,7 @@ public class ReversePurgeLongHashMap {
    * @return the positive value the key corresponds to or zero if if the key is not found in the
    * hash map.
    */
-  public long get(long key) {
+  long get(long key) {
     int probe = hashProbe(key);
     if (states[probe] > 0) {
       assert (keys[probe] == key);
@@ -125,7 +125,7 @@ public class ReversePurgeLongHashMap {
    * @param adjustAmount the amount by which to increment the value
    * @param putAmount the value put into the map if the key is not present
    */
-  public void adjustOrPutValue(long key, long adjustAmount, long putAmount) {
+  void adjustOrPutValue(long key, long adjustAmount, long putAmount) {
     int probe = (int) hash(key) & arrayMask;
     int drift = 1;
     while (states[probe] != 0 && keys[probe] != key) {
@@ -153,7 +153,7 @@ public class ReversePurgeLongHashMap {
   /**
    * Processes the map arrays and retains only keys with positive counts.
    */
-  public void keepOnlyPositiveCounts() {
+  void keepOnlyPositiveCounts() {
     // Starting from the back, find the first empty cell, 
     //  which establishes the high end of a cluster.
     int firstProbe = length - 1;
@@ -185,7 +185,7 @@ public class ReversePurgeLongHashMap {
    * @param key the key of the value to increment
    * @param value the value increment by, or to put into the map if the key is not initial present
    */
-  public void adjust(long key, long value) {
+  void adjust(long key, long value) {
     adjustOrPutValue(key, value, value);
   }
 
@@ -193,7 +193,7 @@ public class ReversePurgeLongHashMap {
    * @param adjustAmount value by which to shift all values. Only keys corresponding to positive
    * values are retained.
    */
-  public void adjustAllValuesBy(long adjustAmount) {
+  void adjustAllValuesBy(long adjustAmount) {
     for (int i = length; i-- > 0;)
       values[i] += adjustAmount;
   }
@@ -201,7 +201,7 @@ public class ReversePurgeLongHashMap {
   /**
    * @return an array containing the active keys in the hash map.
    */
-  public long[] getActiveKeys() {
+  long[] getActiveKeys() {
     if (numActive == 0)
       return null;
     long[] returnedKeys = new long[numActive];
@@ -218,7 +218,7 @@ public class ReversePurgeLongHashMap {
   /**
    * @return an array containing the values corresponding. to the active keys in the hash
    */
-  public long[] getActiveValues() {
+  long[] getActiveValues() {
     if (numActive == 0)
       return null;
     long[] returnedValues = new long[numActive];
@@ -249,21 +249,21 @@ public class ReversePurgeLongHashMap {
   /**
    * @return length of hash table internal arrays
    */
-  public int getLength() {
+  int getLength() {
     return length;
   }
 
   /**
    * @return capacity of hash table internal arrays (i.e., max number of keys that can be stored)
    */
-  public int getCapacity() {
+  int getCapacity() {
     return loadThreshold;
   }
 
   /**
    * @return number of populated keys
    */
-  public int getNumActive() {
+  int getNumActive() {
     return numActive;
   }
 
@@ -286,7 +286,7 @@ public class ReversePurgeLongHashMap {
    * @return the load factor of the hash table, i.e, the ratio between the capacity and the array
    * length
    */
-  public static double getLoadFactor() {
+  static double getLoadFactor() {
     return LOAD_FACTOR;
   }
 

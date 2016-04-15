@@ -114,6 +114,8 @@ public class FrequentLongsSketch extends FrequentLongsEstimator {
    */
   private static final int SAMPLE_SIZE = 256;
   
+  private static final int IGNORE_TOKENS = 6;
+  
   /**
    * The number of counters to be supported when sketch is full size
    */
@@ -289,7 +291,7 @@ public class FrequentLongsSketch extends FrequentLongsEstimator {
     sketch.streamLength = streamLength;
     sketch.initialMapSize = initialMapSize;
     
-    sketch.hashMap = deserializeFromStringArray(tokens, 6);
+    sketch.hashMap = deserializeFromStringArray(tokens);
     return sketch;
   }
   
@@ -422,12 +424,14 @@ public class FrequentLongsSketch extends FrequentLongsEstimator {
 
   @Override
   public FrequentLongsEstimator merge(FrequentLongsEstimator other) {
+    if (other == null) return this;
     if (!(other instanceof FrequentLongsSketch)) {
       String s = this.getClass().getSimpleName();
       throw new IllegalArgumentException(s + " can only merge with other " + s);
     }
     FrequentLongsSketch otherCasted = (FrequentLongsSketch) other;
-
+    if (otherCasted.isEmpty()) return this;
+    
     this.streamLength += otherCasted.streamLength;
     this.mergeError += otherCasted.getMaximumError();
 
@@ -526,8 +530,8 @@ public class FrequentLongsSketch extends FrequentLongsEstimator {
   @Override
   public int getStorageBytes() {
     if (isEmpty())
-      return 20;
-    return 48 + 16 * getActiveItems();
+      return 8;
+    return 6 * 8 + 16 * getActiveItems();
   }
   
   @Override
@@ -546,15 +550,8 @@ public class FrequentLongsSketch extends FrequentLongsEstimator {
    * @param ignore specifies how many of the initial tokens to ignore. 
    * @return a hash map object of this class
    */
-  private static ReversePurgeLongHashMap deserializeFromStringArray(String[] tokens, int ignore) {
-    if (ignore < 0) {
-      throw new IllegalArgumentException(
-          "ignore parameter cannot be negative.");
-    }
-    if (tokens.length < 2) {
-      throw new IllegalArgumentException(
-          "Number of tokens < 2. Not long enough to specify length and capacity. "+tokens.length);
-    }
+  static ReversePurgeLongHashMap deserializeFromStringArray(String[] tokens) {
+    int ignore = IGNORE_TOKENS;
     int numActive = Integer.parseInt(tokens[ignore]); 
     int length = Integer.parseInt(tokens[ignore + 1]);
     ReversePurgeLongHashMap hashMap = new ReversePurgeLongHashMap(length);

@@ -13,10 +13,11 @@ import com.yahoo.sketches.frequencies.ReversePurgeLongHashMap;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
+import static org.testng.Assert.*;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class MasterFETester {
+public class FrequentLongsSketchTest {
 
   public static void main(String[] args) {
     HashMapRESerialTest();
@@ -518,16 +519,120 @@ public class MasterFETester {
 
   //@Test
   public void freqItemsStressTest() {
-    FrequentLongsSketch fi = new FrequentLongsSketch(512);
+    FrequentLongsSketch fls = new FrequentLongsSketch(512);
     int u = 1 << 20;
     for (int i = 0; i< u; i++) {
-      fi.update(randomGeometricDist(0.002));
+      fls.update(randomGeometricDist(0.002));
     }
   }
   
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkGetInstanceMemory() {
+    NativeMemory mem = new NativeMemory(new byte[4]);
+    FrequentLongsSketch.getInstance(mem);
+  }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkGetInstanceString() {
+    String s = "";
+    FrequentLongsSketch.getInstance(s);
+  }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkUpdateNegative() {
+    FrequentLongsSketch fls = new FrequentLongsSketch(4);
+    fls.update(1, 0);
+    fls.update(1, -1);
+  }
+  
+  @Test
+  public void checkSerToMem() {
+    FrequentLongsSketch fls = new FrequentLongsSketch(4);
+    byte[] byteArr = fls.serializeToByteArray();
+    assertEquals(byteArr.length, 8);
+    
+    NativeMemory mem = new NativeMemory(new byte[8]);
+    fls.serializeToMemory(mem);
+    assertEquals(mem.getCapacity(), 8);
+  }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkSerToMemException() {
+    FrequentLongsSketch fls = new FrequentLongsSketch(4);
+    NativeMemory mem = new NativeMemory(new byte[4]);
+    fls.serializeToMemory(mem);
+  }
+  
+  @Test
+  public void checkGetFrequentItems1() {
+    FrequentLongsSketch fls = new FrequentLongsSketch(4);
+    fls.update(1);
+    long[] itemArr = fls.getFrequentItems(0, ErrorSpecification.NO_FALSE_POSITIVES);
+    assertEquals(itemArr[0], 1);
+  }
+  
+  @Test
+  public void checkGetStorageBytes() {
+    FrequentLongsSketch fls = new FrequentLongsSketch(4);
+    int bytes = fls.getStorageBytes();
+    assertEquals(bytes, 8);
+    fls.update(1);
+    bytes = fls.getStorageBytes();
+    assertEquals(bytes, 64);
+  }
+  
+  @Test
+  public void checkDeSerFromStringArray() {
+    FrequentLongsSketch fls = new FrequentLongsSketch(4);
+    String ser = fls.serializeToString();
+    println(ser);
+    fls.update(1);
+    ser = fls.serializeToString();
+    println(ser);
+  }
+  
+  
+  @Test
+  public void checkMerge() {
+    FrequentLongsSketch fls1 = new FrequentLongsSketch(4);
+    FrequentLongsSketch fls2 = null;
+    FrequentLongsEstimator fle = fls1.merge(fls2);
+    assertTrue(fle.isEmpty());
+    
+    fls2 = new FrequentLongsSketch(4);
+    fle = fls1.merge(fls2);
+    assertTrue(fle.isEmpty());
+  }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkMergeException() {
+    FrequentLongsSketch fls1 = new FrequentLongsSketch(4);
+    Dummy dummy = new Dummy(4);
+    fls1.merge(dummy);
+  }
   
   ////////////////////////////////////////
 
+  private class Dummy extends FrequentLongsEstimator {
+    @SuppressWarnings("unused")
+    Dummy(int size) {}
+    @Override public void update(long item) {}
+    @Override public void update(long item, long count) {}
+    @Override public FrequentLongsEstimator merge(FrequentLongsEstimator other) { return this; }
+    @Override public long getEstimate(long item) { return 0; }
+    @Override public long getUpperBound(long item) { return 0; }
+    @Override public long getLowerBound(long item) { return 0; }
+    @Override public long[] getFrequentItems(long threshold, ErrorSpecification errorSpec) { return null; }
+    @Override public int getCurrentMapCapacity() { return 0; }
+    @Override public long getMaximumError() { return 0; }
+    @Override public boolean isEmpty() { return true;}
+    @Override public long getStreamLength() { return 0; }
+    @Override public int getMaximumMapCapacity() { return 3;}
+    @Override public int getActiveItems() { return 0; }
+    @Override public int getStorageBytes() { return 8; }
+    @Override public void reset() {}
+  }
+  
   /**
    * @param prob the probability of success for the geometric distribution.
    * @return a random number generated from the geometric distribution.
@@ -538,11 +643,9 @@ public class MasterFETester {
   }
 
   static double zeta(long n, double theta) {
-
     // the zeta function, used by the below zipf function
     // (this is not often called from outside this library)
     // ... but have made it public now to speed things up
-
     int i;
     double ans = 0.0;
 
@@ -551,8 +654,7 @@ public class MasterFETester {
     return (ans);
   }
 
-
-  // this draws values from the zipf distribution
+  // This draws values from the zipf distribution
   // n is range, theta is skewness parameter
   // theta = 0 gives uniform dbn,
   // theta > 1 gives highly skewed dbn.
@@ -595,7 +697,6 @@ public class MasterFETester {
       Assert.assertTrue(maxKey < 20.0 / prob);
     }
   }
-
 
   private static FrequentLongsEstimator newFrequencyEstimator(double error_parameter) {
     return new FrequentLongsSketch(
