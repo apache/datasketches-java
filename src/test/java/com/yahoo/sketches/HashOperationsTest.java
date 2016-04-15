@@ -47,7 +47,12 @@ public class HashOperationsTest {
   public void testHashAndThetaCorruption3() {
     checkHashAndThetaCorruption(1, -1); //hash = -1 fails
   }
-  
+
+  @Test
+  public void testHashAndThetaCorruption4() {
+    checkHashAndThetaCorruption(1, 1); // 1 | 1 | 0 = 1, hash = 1 pass
+  }
+
   @Test
   public void testContinueCondtion() {
     long thetaLong = Long.MAX_VALUE/2;

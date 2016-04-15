@@ -4,6 +4,8 @@
  */
 package com.yahoo.sketches.memory;
 
+import java.lang.StackTraceElement;
+
 import static com.yahoo.sketches.memory.UnsafeUtil.unsafe;
 
 /**
@@ -91,11 +93,6 @@ public class AllocMemory extends NativeMemory {
     this.clear(copyToBytes, capacityBytes-copyToBytes);
   }
   
-  @Override
-  public void freeMemory() {
-    super.freeMemory();
-  }
-  
   /**
    * If the JVM calls this method and a "freeMemory() has not been called" a <i>System.err</i>
    * message will be logged.
@@ -106,9 +103,9 @@ public class AllocMemory extends NativeMemory {
       System.err.println(
           "ERROR: freeMemory() has not been called: Address: "+ nativeRawStartAddress_ +
           ", capacity: " + capacityBytes_);
-      java.lang.StackTraceElement[] arr = Thread.currentThread().getStackTrace();
-      for (int i=0; i<arr.length; i++) { 
-        System.err.println(arr[i].toString()); 
+      final StackTraceElement[] arr = Thread.currentThread().getStackTrace();
+      for (final StackTraceElement anArr : arr) {
+        System.err.println(anArr.toString());
       }
     }
   }
