@@ -9,7 +9,7 @@ package com.yahoo.sketches.frequencies;
  * Abstract base class for algorithms that estimate frequency of long items. 
  * All classes that extend this class support the ability to process a data stream of 
  * (<i>long</i> item, <i>long</i> count) pairs, 
- * where item is an identifier that must identify some long item uniquely and count 
+ * where item is an identifier that must identify some long item uniquely, and count 
  * is a non-negative integer. 
  * The frequency of an identifier is defined to be the sum of associated counts.
  * <p>Any FrequencyEstimator algorithm must be able to: 

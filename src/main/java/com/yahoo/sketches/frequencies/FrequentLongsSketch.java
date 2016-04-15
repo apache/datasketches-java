@@ -30,13 +30,14 @@ import static com.yahoo.sketches.frequencies.PreambleUtil.insertInitialMapSize;
 /**
  * This FrequentLongsSketch implements {@link FrequentLongsEstimator} with a specific algorithm.
  * 
- * <p>This sketch is useful for tracking approximate frequencies of items that are 
- * internally implemented as a hash map (<i>long</i> item, <i>long</i> count).</p>
+ * <p>This sketch is useful for tracking approximate frequencies of long items that are members
+ * of a multiset of such items. 
  * 
  * <p><b>Space Usage</b></p>
  * 
- * <p>The sketch is initialized with a maxMapSize that specifies the maximum length of the 
- * internal arrays used by the hash map. The maxMapSize must be a power of 2. </p>
+ * <p>The sketch is initialized with a maxMapSize that specifies the maximum physical length of the 
+ * internal hash map of the form  (<i>long</i> item, <i>long</i> count). 
+ * The maxMapSize must be a power of 2. </p>
  * 
  * <p>The hash map starts with a very small size (4), and grows as needed up to the 
  * specified maxMapSize. The LOAD_FACTOR for the hash map is internally set at 75%, 
