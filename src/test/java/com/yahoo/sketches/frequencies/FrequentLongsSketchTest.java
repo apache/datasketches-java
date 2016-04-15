@@ -8,7 +8,7 @@ package com.yahoo.sketches.frequencies;
 import java.util.Collection;
 
 import com.yahoo.sketches.Util;
-import com.yahoo.sketches.frequencies.FrequentLongsEstimator.ErrorSpecification;
+import com.yahoo.sketches.frequencies.FrequentLongsSketch.ErrorType;
 import com.yahoo.sketches.frequencies.ReversePurgeLongHashMap;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -105,7 +105,7 @@ public class FrequentLongsSketchTest {
     Assert.assertTrue(new_sketch2.getCurrentMapCapacity() == sketch2.getCurrentMapCapacity());
     Assert.assertTrue(new_sketch2.getStreamLength() == sketch2.getStreamLength());
 
-    FrequentLongsSketch merged_sketch = (FrequentLongsSketch) sketch.merge(sketch2);
+    FrequentLongsSketch merged_sketch = sketch.merge(sketch2);
 
     String string = merged_sketch.serializeToString();
     FrequentLongsSketch new_sketch = FrequentLongsSketch.getInstance(string);
@@ -168,7 +168,7 @@ public class FrequentLongsSketchTest {
     Assert.assertTrue(new_sketch2.getCurrentMapCapacity() == sketch2.getCurrentMapCapacity());
     Assert.assertTrue(new_sketch2.getStreamLength() == sketch2.getStreamLength());
 
-    FrequentLongsSketch merged_sketch = (FrequentLongsSketch) sketch.merge(sketch2);
+    FrequentLongsSketch merged_sketch = sketch.merge(sketch2);
 
     byte[] bytearray = sketch.serializeToByteArray();
     Memory mem = new NativeMemory(bytearray);
@@ -210,9 +210,9 @@ public class FrequentLongsSketchTest {
     int n = 2222;
     double error_tolerance = 1.0/100;
     
-    FrequentLongsEstimator[] estimators = new FrequentLongsEstimator[numEstimators];
+    FrequentLongsSketch[] estimators = new FrequentLongsSketch[numEstimators];
     for (int h = 0; h < numEstimators; h++) {
-      estimators[h] = newFrequencyEstimator(error_tolerance);
+      estimators[h] = newFrequencySketch(error_tolerance);
     }
 
     PositiveCountersMap realCounts = new PositiveCountersMap();
@@ -227,7 +227,7 @@ public class FrequentLongsSketchTest {
     
     long threshold = 10;
     for(int h=0; h<numEstimators; h++) {
-      long[] freq = estimators[h].getFrequentItems(threshold, ErrorSpecification.NO_FALSE_NEGATIVES);
+      long[] freq = estimators[h].getFrequentItems(threshold, ErrorType.NO_FALSE_NEGATIVES);
 
       for (int i = 0; i < freq.length; i++)
         Assert.assertTrue(estimators[h].getUpperBound(freq[i]) > threshold);
@@ -246,8 +246,8 @@ public class FrequentLongsSketchTest {
     int numEstimators = 1;
 
     for (int h = 0; h < numEstimators; h++) {
-      FrequentLongsEstimator estimator1 = newFrequencyEstimator(error_tolerance);
-      FrequentLongsEstimator estimator2 = newFrequencyEstimator(error_tolerance);
+      FrequentLongsSketch estimator1 = newFrequencySketch(error_tolerance);
+      FrequentLongsSketch estimator2 = newFrequencySketch(error_tolerance);
       PositiveCountersMap realCounts = new PositiveCountersMap();
       for (int i = 0; i < n; i++) {
         long key1 = randomGeometricDist(prob1) + 1;
@@ -260,7 +260,7 @@ public class FrequentLongsSketchTest {
         realCounts.increment(key1);
         realCounts.increment(key2);
       }
-      FrequentLongsEstimator merged = estimator1.merge(estimator2);
+      FrequentLongsSketch merged = estimator1.merge(estimator2);
 
       int bad = 0;
       int i = 0;
@@ -286,14 +286,14 @@ public class FrequentLongsSketchTest {
     double delta = .1;
     double error_tolerance = 1.0 / size;
     int num_to_merge = 10;
-    FrequentLongsEstimator[] estimators = new FrequentLongsEstimator[num_to_merge];
+    FrequentLongsSketch[] estimators = new FrequentLongsSketch[num_to_merge];
 
     double prob = .01;
     int numEstimators = 1;
 
     for (int h = 0; h < numEstimators; h++) {
       for (int z = 0; z < num_to_merge; z++)
-        estimators[z] = newFrequencyEstimator(error_tolerance);
+        estimators[z] = newFrequencySketch(error_tolerance);
 
       PositiveCountersMap realCounts = new PositiveCountersMap();
       for (int i = 0; i < n; i++) {
@@ -306,7 +306,7 @@ public class FrequentLongsSketchTest {
         }
       }
 
-      FrequentLongsEstimator merged = estimators[0];
+      FrequentLongsSketch merged = estimators[0];
       for (int z = 0; z < num_to_merge; z++) {
         if (z == 0)
           continue;
@@ -337,7 +337,7 @@ public class FrequentLongsSketchTest {
     //double delta = .01;
     int numEstimators = 1;
     for (int h = 0; h < numEstimators; h++) {
-      FrequentLongsEstimator estimator = newFrequencyEstimator(error_tolerance);
+      FrequentLongsSketch estimator = newFrequencySketch(error_tolerance);
       Assert.assertEquals(estimator.getUpperBound(13L), 0);
       Assert.assertEquals(estimator.getLowerBound(13L), 0);
       Assert.assertEquals(estimator.getMaximumError(), 0);
@@ -367,10 +367,10 @@ public class FrequentLongsSketchTest {
     int numEstimators = 1;
 
     for (int h = 0; h < numEstimators; h++) {
-      FrequentLongsEstimator estimator = newFrequencyEstimator(error_tolerance);
+      FrequentLongsSketch estimator = newFrequencySketch(error_tolerance);
 
       for (int trial = 0; trial < trials; trial++) {
-        estimator = newFrequencyEstimator(error_tolerance);
+        estimator = newFrequencySketch(error_tolerance);
         for (int i = 0; i < n; i++) {
           // long key = randomGeometricDist(prob);
           estimator.update(stream[i]);
@@ -423,10 +423,10 @@ public class FrequentLongsSketchTest {
     int numEstimators = 1;
 
     for (int h = 0; h < numEstimators; h++) {
-      FrequentLongsEstimator estimator = newFrequencyEstimator(error_tolerance);
+      FrequentLongsSketch estimator = newFrequencySketch(error_tolerance);
 
       for (int trial = 0; trial < trials; trial++) {
-        estimator = newFrequencyEstimator(error_tolerance);
+        estimator = newFrequencySketch(error_tolerance);
         for (int i = 0; i < n; i++) {
           // long key = randomGeometricDist(prob);
           estimator.update(stream[i]);
@@ -481,10 +481,10 @@ public class FrequentLongsSketchTest {
     int numEstimators = 1;
 
     for (int h = 0; h < numEstimators; h++) {
-      FrequentLongsEstimator estimator = newFrequencyEstimator(error_tolerance);
+      FrequentLongsSketch estimator = newFrequencySketch(error_tolerance);
 
       for (int trial = 0; trial < trials; trial++) {
-        estimator = newFrequencyEstimator(error_tolerance);
+        estimator = newFrequencySketch(error_tolerance);
         for (int i = 0; i < n; i++) {
           // long key = randomGeometricDist(prob);
           estimator.update(stream[i]);
@@ -567,7 +567,7 @@ public class FrequentLongsSketchTest {
   public void checkGetFrequentItems1() {
     FrequentLongsSketch fls = new FrequentLongsSketch(4);
     fls.update(1);
-    long[] itemArr = fls.getFrequentItems(0, ErrorSpecification.NO_FALSE_POSITIVES);
+    long[] itemArr = fls.getFrequentItems(0, ErrorType.NO_FALSE_POSITIVES);
     assertEquals(itemArr[0], 1);
   }
   
@@ -596,7 +596,7 @@ public class FrequentLongsSketchTest {
   public void checkMerge() {
     FrequentLongsSketch fls1 = new FrequentLongsSketch(4);
     FrequentLongsSketch fls2 = null;
-    FrequentLongsEstimator fle = fls1.merge(fls2);
+    FrequentLongsSketch fle = fls1.merge(fls2);
     assertTrue(fle.isEmpty());
     
     fls2 = new FrequentLongsSketch(4);
@@ -604,34 +604,8 @@ public class FrequentLongsSketchTest {
     assertTrue(fle.isEmpty());
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  public void checkMergeException() {
-    FrequentLongsSketch fls1 = new FrequentLongsSketch(4);
-    Dummy dummy = new Dummy(4);
-    fls1.merge(dummy);
-  }
   
-  ////////////////////////////////////////
-
-  private class Dummy extends FrequentLongsEstimator {
-    @SuppressWarnings("unused")
-    Dummy(int size) {}
-    @Override public void update(long item) {}
-    @Override public void update(long item, long count) {}
-    @Override public FrequentLongsEstimator merge(FrequentLongsEstimator other) { return this; }
-    @Override public long getEstimate(long item) { return 0; }
-    @Override public long getUpperBound(long item) { return 0; }
-    @Override public long getLowerBound(long item) { return 0; }
-    @Override public long[] getFrequentItems(long threshold, ErrorSpecification errorSpec) { return null; }
-    @Override public int getCurrentMapCapacity() { return 0; }
-    @Override public long getMaximumError() { return 0; }
-    @Override public boolean isEmpty() { return true;}
-    @Override public long getStreamLength() { return 0; }
-    @Override public int getMaximumMapCapacity() { return 3;}
-    @Override public int getActiveItems() { return 0; }
-    @Override public int getStorageBytes() { return 8; }
-    @Override public void reset() {}
-  }
+  //Restricted methods
   
   /**
    * @param prob the probability of success for the geometric distribution.
@@ -698,7 +672,7 @@ public class FrequentLongsSketchTest {
     }
   }
 
-  private static FrequentLongsEstimator newFrequencyEstimator(double error_parameter) {
+  private static FrequentLongsSketch newFrequencySketch(double error_parameter) {
     return new FrequentLongsSketch(
         Util.ceilingPowerOf2((int) (1.0 /(error_parameter*ReversePurgeLongHashMap.getLoadFactor()))));
   }

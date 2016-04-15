@@ -28,16 +28,27 @@ import static com.yahoo.sketches.frequencies.PreambleUtil.insertBufferLength;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertInitialMapSize;
 
 /**
- * This FrequentLongsSketch implements {@link FrequentLongsEstimator} with a specific algorithm.
+ * <p>This sketch is useful for tracking approximate frequencies of long items with optional
+ * associated counts (<i>long</i> item, <i>long</i> count) that are members of a multiset of 
+ * such items. The frequency of an item is defined to be the sum of associated counts.</p>
  * 
- * <p>This sketch is useful for tracking approximate frequencies of long items that are members
- * of a multiset of such items. 
+ * <p>This implementation provides the following capabilities:</p>
+ * <ol>
+ * <li>Estimate the frequency of an item.</li>
+ * <li>Return upper and lower bounds of any item, such that the true frequency is always between
+ * the upper and lower bounds. </li>
+ * <li>Return a global maximum error that holds for all items in the stream.</li>
+ * <li>Return an array of items whose frequencies might be above a user specified threshold.</li>
+ * <li>Return an array of items whose frequencies are definitely above a user specified threshold.</li>
+ * <li>Merge itself with another sketch object created from this class.</li>
+ * <li>Serialize and Deserialize to String or byte array.
+ * </ol>
  * 
  * <p><b>Space Usage</b></p>
  * 
  * <p>The sketch is initialized with a maxMapSize that specifies the maximum physical length of the 
- * internal hash map of the form  (<i>long</i> item, <i>long</i> count). 
- * The maxMapSize must be a power of 2. </p>
+ * internal hash map of the form (<i>long</i> item, <i>long</i> count).
+ * The maxMapSize must be a power of 2.</p>
  * 
  * <p>The hash map starts with a very small size (4), and grows as needed up to the 
  * specified maxMapSize. The LOAD_FACTOR for the hash map is internally set at 75%, 
@@ -96,10 +107,11 @@ import static com.yahoo.sketches.frequencies.PreambleUtil.insertInitialMapSize;
  * </ul>
  * 
  * @author Justin Thaler
- * @see FrequentLongsEstimator
  */
-public class FrequentLongsSketch extends FrequentLongsEstimator {
+public class FrequentLongsSketch {
 
+  public enum ErrorType {NO_FALSE_POSITIVES, NO_FALSE_NEGATIVES}
+  
   /**
    * We start by allocating a small data structure capable of explicitly storing very small streams
    * and then growing it as the stream grows. The following constant controls the size of the
@@ -327,7 +339,7 @@ public class FrequentLongsSketch extends FrequentLongsEstimator {
       arrLongs = 1;
     } else {
       preLongs = 6;
-      arrLongs = preLongs + 2 * getActiveItems();
+      arrLongs = preLongs + 2 * getNumActiveItems();
     }
     byte[] outArr = new byte[arrLongs << 3];
     NativeMemory mem = new NativeMemory(outArr);
@@ -358,12 +370,12 @@ public class FrequentLongsSketch extends FrequentLongsEstimator {
       preArr[4] = pre1;
 
       long pre2 = 0L;
-      pre2 = insertBufferLength(getActiveItems(), pre2);
+      pre2 = insertBufferLength(getNumActiveItems(), pre2);
       preArr[5] = pre2;
 
       mem.putLongArray(0, preArr, 0, 6);
-      mem.putLongArray(48, hashMap.getActiveValues(), 0, this.getActiveItems());
-      mem.putLongArray(48 + (this.getActiveItems() << 3), hashMap.getActiveKeys(), 0, this.getActiveItems());
+      mem.putLongArray(48, hashMap.getActiveValues(), 0, this.getNumActiveItems());
+      mem.putLongArray(48 + (this.getNumActiveItems() << 3), hashMap.getActiveKeys(), 0, this.getNumActiveItems());
     }
     return outArr;
   }
@@ -385,18 +397,27 @@ public class FrequentLongsSketch extends FrequentLongsEstimator {
   
   //Override FrequencyEstimator
   
-  @Override
+  /**
+   * Update this sketch with an item and a frequency count of one.
+   * @param item for which the frequency should be increased. 
+   */
   public void update(long item) {
     update(item, 1);
   }
 
-  @Override
+  /**
+   * Update this sketch with a item and a positive frequency count. 
+   * @param item for which the frequency should be increased. The item can be any long value and is 
+   * only used by the sketch to determine uniqueness.
+   * @param count the amount by which the frequency of the item should be increased. 
+   * An count of zero is a no-op, and a negative count will throw an exception.
+   */
   public void update(long item, long count) {
     if (count == 0) return;
     if (count < 0) throw new IllegalArgumentException("Count may not be negative");
     this.streamLength += count;
     hashMap.adjust(item, count);
-    int numActive = this.getActiveItems();
+    int numActive = this.getNumActiveItems();
 
     // if the data structure needs to be grown
     if ((numActive >= this.curMapCap) && (this.curMapCap < this.maxMapCap)) {
@@ -419,25 +440,28 @@ public class FrequentLongsSketch extends FrequentLongsEstimator {
     //(Going over capacity by 1 is not a big deal, but we may as well be precise).
     if (numActive+1 > this.maxMapCap) {
       offset += hashMap.purge(sampleSize);
-      assert (this.getActiveItems() <= this.maxMapCap);
+      assert (this.getNumActiveItems() <= this.maxMapCap);
     }
   }
 
-  @Override
-  public FrequentLongsEstimator merge(FrequentLongsEstimator other) {
+  /**
+   * This function merges the other sketch into this one. 
+   * The other sketch may be of a different size.
+   * 
+   * @param other sketch of this class 
+   * @return a sketch whose estimates are within the guarantees of the
+   * largest error tolerance of the two merged sketches.
+   */
+  public FrequentLongsSketch merge(FrequentLongsSketch other) {
     if (other == null) return this;
-    if (!(other instanceof FrequentLongsSketch)) {
-      String s = this.getClass().getSimpleName();
-      throw new IllegalArgumentException(s + " can only merge with other " + s);
-    }
-    FrequentLongsSketch otherCasted = (FrequentLongsSketch) other;
-    if (otherCasted.isEmpty()) return this;
-    
-    this.streamLength += otherCasted.streamLength;
-    this.mergeError += otherCasted.getMaximumError();
 
-    long[] otherItems = otherCasted.hashMap.getActiveKeys();
-    long[] otherCounters = otherCasted.hashMap.getActiveValues();
+    if (other.isEmpty()) return this;
+    
+    this.streamLength += other.streamLength;
+    this.mergeError += other.getMaximumError();
+
+    long[] otherItems = other.hashMap.getActiveKeys();
+    long[] otherCounters = other.hashMap.getActiveValues();
 
     for (int i = otherItems.length; i-- > 0;) {
       this.update(otherItems[i], otherCounters[i]);
@@ -445,7 +469,14 @@ public class FrequentLongsSketch extends FrequentLongsEstimator {
     return this;
   }
 
-  @Override
+  /**
+   * Gets the estimate of the frequency of the given item. 
+   * Note: The true frequency of a item would be the sum of the counts as a result of the two 
+   * update functions.
+   * 
+   * @param item the given item
+   * @return the estimate of the frequency of the given item
+   */
   public long getEstimate(long item) {
     // If item is tracked:
     // Estimate = itemCount + offset; Otherwise it is 0.
@@ -453,21 +484,54 @@ public class FrequentLongsSketch extends FrequentLongsEstimator {
     return (itemCount > 0)? itemCount + offset : 0;
   }
 
-  @Override
+  /**
+   * Gets the guaranteed upper bound frequency of the given item.
+   * 
+   * @param item the given item
+   * @return the guaranteed upper bound frequency of the given item. That is, a number which is 
+   * guaranteed to be no smaller than the real frequency.
+   */
   public long getUpperBound(long item) {
     // UB = itemCount + offset + mergeError
     return hashMap.get(item) + getMaximumError();
   }
 
-  @Override
+  /**
+   * Gets the guaranteed lower bound frequency of the given item, which can never be negative.
+   * 
+   * @param item the given item.
+   * @return the guaranteed lower bound frequency of the given item. That is, a number which is 
+   * guaranteed to be no larger than the real frequency.
+   */
   public long getLowerBound(long item) {
     //LB = max(itemCount - mergeError, 0)
     long returnVal = hashMap.get(item) - mergeError;
     return Math.max(returnVal, 0);
   }
   
-  @Override
-  public long[] getFrequentItems(long threshold, ErrorSpecification errorSpec) { 
+  /**
+   * Returns an array of frequent items given a threshold frequency count and an ErrorCondition. 
+   * Note: if the given threshold is less than getMaxError() the items that are returned have no
+   * guarantees.
+   * 
+   * The method first examines all active items in the sketch (items that have a counter).
+   *  
+   * <p>If <i>ErrorType = NO_FALSE_NEGATIVES</i>, this will include a item in the result list 
+   * if getUpperBound(item) > threshold. 
+   * There will be no false negatives, i.e., no Type II error.
+   * There may be items in the set with true frequencies less than the threshold (false positives).</p>
+   * 
+   * <p>If <i>ErrorType = NO_FALSE_POSITIVES</i>, this will include a item in the result list 
+   * if getLowerBound(item) > threshold. 
+   * There will be no false positives, i.e., no Type I error.
+   * There may be items ommitted from the set with true frequencies greater than the threshold 
+   * (false negatives).</p>
+   * 
+   * @param threshold the given frequency threshold that should be greater than getMaxError().
+   * @param errorType determines whether no false positives or no false negatives are desired.
+   * @return an array of frequent items
+   */
+  public long[] getFrequentItems(long threshold, ErrorType errorType) { 
     int count = 0;
     long[] items = hashMap.getKeys(); //ref to raw keys array
     int rawLen = items.length;
@@ -477,7 +541,7 @@ public class FrequentLongsSketch extends FrequentLongsEstimator {
     long[] freqItems = new long[numActive];
     
     count = 0;
-    if (errorSpec == ErrorSpecification.NO_FALSE_NEGATIVES) {
+    if (errorType == ErrorType.NO_FALSE_NEGATIVES) {
       for (int i = rawLen; i-- > 0;) {
         if (hashMap.isActive(i) && (getUpperBound(items[i]) >= threshold)) {
           freqItems[count] = items[i];
@@ -498,44 +562,72 @@ public class FrequentLongsSketch extends FrequentLongsEstimator {
     return outArr;
   }
 
-  @Override
+  /**
+   * Returns the current number of counters the sketch is configured to support.
+   * 
+   * @return the current number of counters the sketch is configured to support.
+   */
   public int getCurrentMapCapacity() {
     return this.curMapCap;
   }
 
-  @Override
+  /**
+   * @return An upper bound on the maximum error of getEstimate(item) for any item. 
+   * This is equivalent to the maximum distance between the upper bound and the lower bound for 
+   * any item.
+   */
   public long getMaximumError() {
     return offset + mergeError;
   }
   
-  @Override
+  /**
+   * Returns true if this sketch is empty
+   * 
+   * @return true if this sketch is empty
+   */
   public boolean isEmpty() {
-    return getActiveItems() == 0;
+    return getNumActiveItems() == 0;
   }
   
-  @Override
+  /**
+   * Returns the sum of the frequencies in the stream seen so far by the sketch
+   * 
+   * @return the sum of the frequencies in the stream seen so far by the sketch
+   */
   public long getStreamLength() {
     return this.streamLength;
   }
   
-  @Override
+  /**
+   * Returns the maximum number of counters the sketch is configured to support.
+   * 
+   * @return the maximum number of counters the sketch is configured to support.
+   */
   public int getMaximumMapCapacity() {
     return this.maxMapCap;
   }
   
-  @Override
-  public int getActiveItems() {
+  /**
+   * @return the number of active items in the sketch.
+   */
+  public int getNumActiveItems() {
     return hashMap.getNumActive();
   }
 
-  @Override
+  /**
+   * Returns the number of bytes required to store this sketch as an array of bytes.
+   * 
+   * @return the number of bytes required to store this sketch as an array of bytes.
+   */
   public int getStorageBytes() {
     if (isEmpty())
       return 8;
-    return 6 * 8 + 16 * getActiveItems();
+    return 6 * 8 + 16 * getNumActiveItems();
   }
   
-  @Override
+  /**
+   * Resets this sketch to a virgin state, but retains the original value of the error parameter
+   */
   public void reset() {
     hashMap = new ReversePurgeLongHashMap(this.initialMapSize);
     this.curMapCap = hashMap.getCapacity();
