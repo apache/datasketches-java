@@ -289,7 +289,6 @@ class ReversePurgeLongHashMap {
   static double getLoadFactor() {
     return LOAD_FACTOR;
   }
-
   
   /**
    * This function is called when a key is processed that is not currently assigned a counter, and

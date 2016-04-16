@@ -22,6 +22,12 @@ import static com.yahoo.sketches.frequencies.PreambleUtil.insertFamilyID;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertMaxMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertPreLongs;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertSerVer;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+
+import com.yahoo.sketches.frequencies.FrequentLongsSketch.ErrorType;
+
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertEmptyFlag;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertCurMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertBufferLength;
@@ -533,35 +539,91 @@ public class FrequentLongsSketch {
    */
   public long[] getFrequentItems(long threshold, ErrorType errorType) { 
     int count = 0;
-    long[] items = hashMap.getKeys(); //ref to raw keys array
-    int rawLen = items.length;
+    long[] items = hashMap.getKeys();    //ref to raw keys array
+    //long[] counts = hashMap.getValues(); //ref to raw keys array
+    int arrLen = items.length;
     int numActive = hashMap.getNumActive();
     
     // allocate an initial array to store the candidate frequent items
     long[] freqItems = new long[numActive];
-    
     count = 0;
     if (errorType == ErrorType.NO_FALSE_NEGATIVES) {
-      for (int i = rawLen; i-- > 0;) {
+      for (int i = arrLen; i-- > 0;) {
         if (hashMap.isActive(i) && (getUpperBound(items[i]) >= threshold)) {
           freqItems[count] = items[i];
           count++;
         }
       }
     } else { //NO_FALSE_POSITIVES
-      for (int i = rawLen; i-- > 0;) {
+      for (int i = arrLen; i-- > 0;) {
         if (hashMap.isActive(i) && (getLowerBound(items[i]) >= threshold)) {
           freqItems[count] = items[i];
           count++;
         }
       }
     }
-    
     long[] outArr = new long[count];
     System.arraycopy(freqItems, 0, outArr, 0, count);
     return outArr;
   }
 
+  class Row implements Comparator<Row>{
+    long item;
+    long count;
+    long ub;
+    long lb;
+    
+    Row() {} //for comparator
+    
+    Row(long item, long count, long ub, long lb) {
+      this.item = item;
+      this.count = count;
+      this.ub = ub;
+      this.lb = lb;
+    }
+    
+    @Override
+    public String toString() {
+      return String.format("%d,%d,%d,%d", item, count, ub, lb);
+    }
+    
+    @Override
+    public int compare(Row r1, Row r2) {
+      return (r1.count < r2.count)? -1 : (r1.count > r2.count)? 1 : 0;
+    }
+  }
+  
+  Row[] sortItems(long maxError, ErrorType errorType) {
+    long[] counts = hashMap.getValues();
+    long[] items = hashMap.getKeys();
+    int arrLen = items.length;
+    ArrayList<Row> rowList = new ArrayList<Row>();
+    if (errorType == ErrorType.NO_FALSE_NEGATIVES) {
+      for (int i=0; i<arrLen; i++) {
+        long ub = getUpperBound(items[i]);
+        long lb = getLowerBound(items[i]);
+        if (hashMap.isActive(i) && (ub >= maxError)) {
+          Row row = new Row(items[i], counts[i], ub, lb);
+          rowList.add(row);
+        }
+      }
+    } else { //NO_FALSE_POSITIVES
+      for (int i=0; i<arrLen; i++) {
+        long ub = getUpperBound(items[i]);
+        long lb = getLowerBound(items[i]);
+        if (hashMap.isActive(i) && (lb >= maxError)) {
+          Row row = new Row(items[i], counts[i], ub, lb);
+          rowList.add(row);
+        }
+      }
+    }
+    
+    rowList.sort(new Row());
+    Row[] rowsArr = rowList.toArray(new Row[0]);
+    
+    return rowsArr;
+  }
+  
   /**
    * Returns the current number of counters the sketch is configured to support.
    * 

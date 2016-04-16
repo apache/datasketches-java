@@ -5,13 +5,12 @@ package com.yahoo.sketches.frequencies;
  * at the project root for terms.
  */
 
-import java.util.Collection;
-
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.frequencies.FrequentLongsSketch.ErrorType;
 import com.yahoo.sketches.frequencies.ReversePurgeLongHashMap;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
+import gnu.trove.map.hash.TLongLongHashMap;
 
 import static org.testng.Assert.*;
 import org.testng.Assert;
@@ -20,32 +19,32 @@ import org.testng.annotations.Test;
 public class FrequentLongsSketchTest {
 
   public static void main(String[] args) {
-    HashMapRESerialTest();
-    System.out.println("Done HashMap Serialization Test");
-    FrequentItemsStringSerialTest();
-    System.out.println("Done FrequentItems String Serialization Test");
-    FrequentItemsByteSerialTest();
-    System.out.println("Done FrequentItems Byte Serialization Test");
-    FrequentItemsByteResetandEmptySerialTest();
-    System.out.println("Done FrequentItems Byte Empty Serialization Test");
-    FETest();
+    hashMapSerialTest();
+    System.out.println("Done hashMapSerialTest");
+    frequentItemsStringSerialTest();
+    System.out.println("Done frequentItemsStringSerialTest");
+    frequentItemsByteSerialTest();
+    System.out.println("Done frequentItemsByteSerialTest");
+    frequentItemsByteResetAndEmptySerialTest();
+    System.out.println("Done frequentItemsByteResetAndEmptySerialTest");
+    checkFreqLongs();
     System.out.println("Done FE Test");
     realCountsInBoundsAfterMerge();
-    System.out.println("Done realCountsoinBoundsAFterMerge Test");
+    System.out.println("Done realCountsoInBoundsAFterMerge Test");
     strongMergeTest();
-    System.out.println("Done StrongMerge Test");
+    System.out.println("Done strongMergeTest");
     updateOneTime();
-    System.out.println("Done UpdateOneTime Test");
-    ErrorTestZipfBigParam();
-    System.out.println("Done Error Test Big Param");
-    ErrorTestZipfSmallParam();
-    System.out.println("Done Error Test Small Param");
-    ErrorTestZipfBigParamSmallSketch();
-    System.out.println("Done Error Test BigParamSmallSketch");
+    System.out.println("Done updateOneTime Test");
+    errorTestZipfBigParam();
+    System.out.println("Done errorTestZipfBigParam");
+    errorTestZipfSmallParam();
+    System.out.println("Done errorTestZipfSmallParam");
+    errorTestZipfBigParamSmallSketch();
+    System.out.println("Done errorTestZipfBigParamSmallSketch");
   }
 
   @Test
-  private static void HashMapRESerialTest() {
+  private static void hashMapSerialTest() {
     ReversePurgeLongHashMap map = new ReversePurgeLongHashMap(8);
     map.adjustOrPutValue(10, 15, 15);
     map.adjustOrPutValue(10, 5, 5);
@@ -61,7 +60,7 @@ public class FrequentLongsSketchTest {
   }
 
   @Test
-  private static void FrequentItemsStringSerialTest() {
+  private static void frequentItemsStringSerialTest() {
     FrequentLongsSketch sketch = new FrequentLongsSketch(8);
     FrequentLongsSketch sketch2 = new FrequentLongsSketch(128);
     sketch.update(10, 100);
@@ -117,7 +116,7 @@ public class FrequentLongsSketchTest {
   }
 
   @Test
-  private static void FrequentItemsByteSerialTest() {
+  private static void frequentItemsByteSerialTest() {
     FrequentLongsSketch sketch = new FrequentLongsSketch(16, 8);
     FrequentLongsSketch sketch2 = new FrequentLongsSketch(128);
     sketch.update(10, 100);
@@ -184,7 +183,7 @@ public class FrequentLongsSketchTest {
   }
 
   @Test
-  private static void FrequentItemsByteResetandEmptySerialTest() {
+  private static void frequentItemsByteResetAndEmptySerialTest() {
     FrequentLongsSketch sketch = new FrequentLongsSketch(16);
     sketch.update(10, 100);
     sketch.update(10, 100);
@@ -205,32 +204,30 @@ public class FrequentLongsSketchTest {
   }
 
   @Test
-  private static void FETest(){
-    int numEstimators = 1; 
+  private static void checkFreqLongs(){
+    int numSketches = 1; 
     int n = 2222;
     double error_tolerance = 1.0/100;
     
-    FrequentLongsSketch[] estimators = new FrequentLongsSketch[numEstimators];
-    for (int h = 0; h < numEstimators; h++) {
-      estimators[h] = newFrequencySketch(error_tolerance);
+    FrequentLongsSketch[] sketches = new FrequentLongsSketch[numSketches];
+    for (int h = 0; h < numSketches; h++) {
+      sketches[h] = newFrequencySketch(error_tolerance);
     }
 
-    PositiveCountersMap realCounts = new PositiveCountersMap();
-    long key;
+    long item;
     double prob = .001;
     for (int i = 0; i < n; i++) {
-      key = randomGeometricDist(prob) + 1;
-      realCounts.increment(key);
-      for (int h = 0; h < numEstimators; h++)
-        estimators[h].update(key);
+      item = randomGeometricDist(prob) + 1;
+      for (int h = 0; h < numSketches; h++)
+        sketches[h].update(item);
     }
     
     long threshold = 10;
-    for(int h=0; h<numEstimators; h++) {
-      long[] freq = estimators[h].getFrequentItems(threshold, ErrorType.NO_FALSE_NEGATIVES);
+    for(int h=0; h<numSketches; h++) {
+      long[] freq = sketches[h].getFrequentItems(threshold, ErrorType.NO_FALSE_NEGATIVES);
 
       for (int i = 0; i < freq.length; i++)
-        Assert.assertTrue(estimators[h].getUpperBound(freq[i]) > threshold);
+        Assert.assertTrue(sketches[h].getUpperBound(freq[i]) > threshold);
     }
   }
 
@@ -243,38 +240,43 @@ public class FrequentLongsSketchTest {
 
     double prob1 = .01;
     double prob2 = .005;
-    int numEstimators = 1;
+    int numSketches = 1;
 
-    for (int h = 0; h < numEstimators; h++) {
-      FrequentLongsSketch estimator1 = newFrequencySketch(error_tolerance);
-      FrequentLongsSketch estimator2 = newFrequencySketch(error_tolerance);
-      PositiveCountersMap realCounts = new PositiveCountersMap();
+    for (int h = 0; h < numSketches; h++) {
+      FrequentLongsSketch sketch1 = newFrequencySketch(error_tolerance);
+      FrequentLongsSketch sketch2 = newFrequencySketch(error_tolerance);
+      TLongLongHashMap realCounts = new TLongLongHashMap();
+      
       for (int i = 0; i < n; i++) {
-        long key1 = randomGeometricDist(prob1) + 1;
-        long key2 = randomGeometricDist(prob2) + 1;
+        long item1 = randomGeometricDist(prob1) + 1;
+        long item2 = randomGeometricDist(prob2) + 1;
 
-        estimator1.update(key1);
-        estimator2.update(key2);
+        sketch1.update(item1);
+        sketch2.update(item2);
 
         // Updating the real counters
-        realCounts.increment(key1);
-        realCounts.increment(key2);
+        realCounts.adjustOrPutValue(item1, 1, 1);
+        realCounts.adjustOrPutValue(item2, 1, 1);
+        
       }
-      FrequentLongsSketch merged = estimator1.merge(estimator2);
-
+      FrequentLongsSketch merged = sketch1.merge(sketch2);
+      
       int bad = 0;
       int i = 0;
-      for (long key : realCounts.keys()) {
+      long[] keys = realCounts.keys();
+      //println("size: "+keys.length);
+      for (long item : keys) {
         i = i + 1;
 
-        long realCount = realCounts.get(key);
-        long upperBound = merged.getUpperBound(key);
-        long lowerBound = merged.getLowerBound(key);
+        long realCount = realCounts.get(item);
+        long upperBound = merged.getUpperBound(item);
+        long lowerBound = merged.getLowerBound(item);
 
         if (upperBound < realCount || realCount < lowerBound) {
           bad = bad + 1;
         }
       }
+      //println("bad: "+bad+", delta*i: "+(delta*i));
       Assert.assertTrue(bad <= delta * i);
     }
   }
@@ -286,46 +288,49 @@ public class FrequentLongsSketchTest {
     double delta = .1;
     double error_tolerance = 1.0 / size;
     int num_to_merge = 10;
-    FrequentLongsSketch[] estimators = new FrequentLongsSketch[num_to_merge];
+    FrequentLongsSketch[] sketches = new FrequentLongsSketch[num_to_merge];
 
     double prob = .01;
-    int numEstimators = 1;
+    int numSketches = 1;
 
-    for (int h = 0; h < numEstimators; h++) {
-      for (int z = 0; z < num_to_merge; z++)
-        estimators[z] = newFrequencySketch(error_tolerance);
-
-      PositiveCountersMap realCounts = new PositiveCountersMap();
+    for (int h = 0; h < numSketches; h++) {
+      for (int z = 0; z < num_to_merge; z++) {
+        sketches[z] = newFrequencySketch(error_tolerance);
+      }
+      TLongLongHashMap realCounts = new TLongLongHashMap();
       for (int i = 0; i < n; i++) {
         for (int z = 0; z < num_to_merge; z++) {
-          long key = randomGeometricDist(prob) + 1;
+          long item = randomGeometricDist(prob) + 1;
 
-          estimators[z].update(key);
+          sketches[z].update(item);
           // Updating the real counters
-          realCounts.increment(key);
+          realCounts.adjustOrPutValue(item, 1, 1);
         }
       }
 
-      FrequentLongsSketch merged = estimators[0];
+      FrequentLongsSketch merged = sketches[0];
       for (int z = 0; z < num_to_merge; z++) {
         if (z == 0)
           continue;
-        merged = merged.merge(estimators[z]);
+        merged = merged.merge(sketches[z]);
       }
 
       int bad = 0;
       int i = 0;
-      for (long key : realCounts.keys()) {
+      long[] keys = realCounts.keys();
+      //println("size: "+keys.length);
+      for (long item : keys) {
         i = i + 1;
 
-        long realCount = realCounts.get(key);
-        long upperBound = merged.getUpperBound(key);
-        long lowerBound = merged.getLowerBound(key);
+        long realCount = realCounts.get(item);
+        long upperBound = merged.getUpperBound(item);
+        long lowerBound = merged.getLowerBound(item);
 
         if (upperBound < realCount || realCount < lowerBound) {
           bad = bad + 1;
         }
       }
+      //println("bad: "+bad+", delta*i: "+(delta*i));
       Assert.assertTrue(bad <= delta * i);
     }
   }
@@ -335,20 +340,20 @@ public class FrequentLongsSketchTest {
     int size = 100;
     double error_tolerance = 1.0 / size;
     //double delta = .01;
-    int numEstimators = 1;
-    for (int h = 0; h < numEstimators; h++) {
-      FrequentLongsSketch estimator = newFrequencySketch(error_tolerance);
-      Assert.assertEquals(estimator.getUpperBound(13L), 0);
-      Assert.assertEquals(estimator.getLowerBound(13L), 0);
-      Assert.assertEquals(estimator.getMaximumError(), 0);
-      Assert.assertEquals(estimator.getEstimate(13L), 0);
-      estimator.update(13L);
-      // Assert.assertEquals(estimator.getEstimate(13L), 1);
+    int numSketches = 1;
+    for (int h = 0; h < numSketches; h++) {
+      FrequentLongsSketch sketch = newFrequencySketch(error_tolerance);
+      Assert.assertEquals(sketch.getUpperBound(13L), 0);
+      Assert.assertEquals(sketch.getLowerBound(13L), 0);
+      Assert.assertEquals(sketch.getMaximumError(), 0);
+      Assert.assertEquals(sketch.getEstimate(13L), 0);
+      sketch.update(13L);
+      // Assert.assertEquals(sketch.getEstimate(13L), 1);
     }
   }
   
   @Test
-  private static void ErrorTestZipfBigParam() {
+  private static void errorTestZipfBigParam() {
     int size = 512;
     int n = 200 * size;
     //double delta = .1;
@@ -357,54 +362,56 @@ public class FrequentLongsSketchTest {
     long stream[] = new long[n];
 
     double zet = zeta(n, 1.1);
-    PositiveCountersMap realCounts = new PositiveCountersMap();
+    TLongLongHashMap realCounts = new TLongLongHashMap();
 
     for (int i = 0; i < n; i++) {
       stream[i] = zipf(1.1, n, zet);
-      realCounts.increment(stream[i]);
+      realCounts.adjustOrPutValue(stream[i], 1, 1);
     }
 
-    int numEstimators = 1;
+    int numSketches = 1;
 
-    for (int h = 0; h < numEstimators; h++) {
-      FrequentLongsSketch estimator = newFrequencySketch(error_tolerance);
+    for (int h = 0; h < numSketches; h++) {
+      FrequentLongsSketch sketch = newFrequencySketch(error_tolerance);
 
       for (int trial = 0; trial < trials; trial++) {
-        estimator = newFrequencySketch(error_tolerance);
+        sketch = newFrequencySketch(error_tolerance);
         for (int i = 0; i < n; i++) {
-          // long key = randomGeometricDist(prob);
-          estimator.update(stream[i]);
+          // long item = randomGeometricDist(prob);
+          sketch.update(stream[i]);
         }
         long sum = 0;
         long max_error = 0;
         long error;
         long max_freq = 0;
 
-        Collection<Long> keysCollection = realCounts.keys();
-
-        for (long the_key : keysCollection) {
-          if (realCounts.get(the_key) > max_freq) {
-            max_freq = realCounts.get(the_key);
+        long[] keys = realCounts.keys();
+        //println("size: "+keys.length);
+        for (long the_item : keys) {
+          if (realCounts.get(the_item) > max_freq) {
+            max_freq = realCounts.get(the_item);
           }
-          if (realCounts.get(the_key) > estimator.getEstimate(the_key)) {
-            error = (realCounts.get(the_key) - estimator.getEstimate(the_key));
+          if (realCounts.get(the_item) > sketch.getEstimate(the_item)) {
+            error = (realCounts.get(the_item) - sketch.getEstimate(the_item));
             if (error > max_error)
               max_error = error;
             sum = sum + error;
           } else {
-            error = (estimator.getEstimate(the_key) - realCounts.get(the_key));
+            error = (sketch.getEstimate(the_item) - realCounts.get(the_item));
             if (error > max_error)
               max_error = error;
             sum = sum + error;
           }
         }
-        Assert.assertTrue(max_error <= 2 * n * error_tolerance);
+        double v = 2 * n * error_tolerance;
+        //println("max_error: "+max_error+" <= : "+v);
+        Assert.assertTrue(max_error <= v);
       }
     }
   }
 
   @Test
-  private static void ErrorTestZipfSmallParam() {
+  private static void errorTestZipfSmallParam() {
     int size = 512;
     int n = 200 * size;
     //double delta = .1;
@@ -413,56 +420,57 @@ public class FrequentLongsSketchTest {
     long stream[] = new long[n];
 
     double zet = zeta(n, 0.7);
-    PositiveCountersMap realCounts = new PositiveCountersMap();
+    TLongLongHashMap realCounts = new TLongLongHashMap();
 
     for (int i = 0; i < n; i++) {
       stream[i] = zipf(0.7, n, zet);
-      realCounts.increment(stream[i]);
+      realCounts.adjustOrPutValue(stream[i], 1, 1);
     }
 
-    int numEstimators = 1;
+    int numSketches = 1;
 
-    for (int h = 0; h < numEstimators; h++) {
-      FrequentLongsSketch estimator = newFrequencySketch(error_tolerance);
+    for (int h = 0; h < numSketches; h++) {
+      FrequentLongsSketch sketch = newFrequencySketch(error_tolerance);
 
       for (int trial = 0; trial < trials; trial++) {
-        estimator = newFrequencySketch(error_tolerance);
+        sketch = newFrequencySketch(error_tolerance);
         for (int i = 0; i < n; i++) {
-          // long key = randomGeometricDist(prob);
-          estimator.update(stream[i]);
+          // long item = randomGeometricDist(prob);
+          sketch.update(stream[i]);
         }
         long sum = 0;
         long max_error = 0;
         long error;
         long max_freq = 0;
 
-        Collection<Long> keysCollection = realCounts.keys();
-
-        for (long the_key : keysCollection) {
-          if (realCounts.get(the_key) > max_freq) {
-            max_freq = realCounts.get(the_key);
+        long[] keys = realCounts.keys();
+        for (long the_item : keys) {
+          if (realCounts.get(the_item) > max_freq) {
+            max_freq = realCounts.get(the_item);
           }
-          if (realCounts.get(the_key) > estimator.getEstimate(the_key)) {
-            error = (realCounts.get(the_key) - estimator.getEstimate(the_key));
+          if (realCounts.get(the_item) > sketch.getEstimate(the_item)) {
+            error = (realCounts.get(the_item) - sketch.getEstimate(the_item));
             if (error > max_error) {
               max_error = error;
             }
             sum = sum + error;
           } else {
-            error = (estimator.getEstimate(the_key) - realCounts.get(the_key));
+            error = (sketch.getEstimate(the_item) - realCounts.get(the_item));
             if (error > max_error) {
               max_error = error;
             }
             sum = sum + error;
           }
         }
-        Assert.assertTrue(max_error <= 2 * n * error_tolerance);
+        double v = 2 * n * error_tolerance;
+        //println("max_error: "+max_error+" <= : "+v);
+        Assert.assertTrue(max_error <= v);
       }
     }
   }
 
   @Test
-  private static void ErrorTestZipfBigParamSmallSketch() {
+  private static void errorTestZipfBigParamSmallSketch() {
     int size = 64;
     int n = 200 * size;
     //double delta = .1;
@@ -471,48 +479,49 @@ public class FrequentLongsSketchTest {
     long stream[] = new long[n];
 
     double zet = zeta(n, 1.1);
-    PositiveCountersMap realCounts = new PositiveCountersMap();
+    TLongLongHashMap realCounts = new TLongLongHashMap();
 
     for (int i = 0; i < n; i++) {
       stream[i] = zipf(1.1, n, zet);
-      realCounts.increment(stream[i]);
+      realCounts.adjustOrPutValue(stream[i], 1, 1);
     }
 
-    int numEstimators = 1;
+    int numSketches = 1;
 
-    for (int h = 0; h < numEstimators; h++) {
-      FrequentLongsSketch estimator = newFrequencySketch(error_tolerance);
+    for (int h = 0; h < numSketches; h++) {
+      FrequentLongsSketch sketch = newFrequencySketch(error_tolerance);
 
       for (int trial = 0; trial < trials; trial++) {
-        estimator = newFrequencySketch(error_tolerance);
+        sketch = newFrequencySketch(error_tolerance);
         for (int i = 0; i < n; i++) {
-          // long key = randomGeometricDist(prob);
-          estimator.update(stream[i]);
+          // long item = randomGeometricDist(prob);
+          sketch.update(stream[i]);
         }
         long sum = 0;
         long max_error = 0;
         long error;
         long max_freq = 0;
 
-        Collection<Long> keysCollection = realCounts.keys();
-
-        for (long the_key : keysCollection) {
-          if (realCounts.get(the_key) > max_freq) {
-            max_freq = realCounts.get(the_key);
+        long[] keys = realCounts.keys();
+        for (long the_item : keys) {
+          if (realCounts.get(the_item) > max_freq) {
+            max_freq = realCounts.get(the_item);
           }
-          if (realCounts.get(the_key) > estimator.getEstimate(the_key)) {
-            error = (realCounts.get(the_key) - estimator.getEstimate(the_key));
+          if (realCounts.get(the_item) > sketch.getEstimate(the_item)) {
+            error = (realCounts.get(the_item) - sketch.getEstimate(the_item));
             if (error > max_error)
               max_error = error;
             sum = sum + error;
           } else {
-            error = (estimator.getEstimate(the_key) - realCounts.get(the_key));
+            error = (sketch.getEstimate(the_item) - realCounts.get(the_item));
             if (error > max_error)
               max_error = error;
             sum = sum + error;
           }
         }
-        Assert.assertTrue(max_error <= 2 * n * error_tolerance);
+        double v = 2 * n * error_tolerance;
+        //println("max_error: "+max_error+" <= : "+v);
+        Assert.assertTrue(max_error <= v);
       }
     }
   }
@@ -585,12 +594,11 @@ public class FrequentLongsSketchTest {
   public void checkDeSerFromStringArray() {
     FrequentLongsSketch fls = new FrequentLongsSketch(4);
     String ser = fls.serializeToString();
-    println(ser);
+    //println(ser);
     fls.update(1);
     ser = fls.serializeToString();
-    println(ser);
+    //println(ser);
   }
-  
   
   @Test
   public void checkMerge() {
@@ -604,6 +612,35 @@ public class FrequentLongsSketchTest {
     assertTrue(fle.isEmpty());
   }
   
+  @Test
+  public void checkSortItems() {
+    int numSketches = 1; 
+    int n = 2222;
+    double error_tolerance = 1.0/100;
+    int sketchSize = Util.ceilingPowerOf2((int) (1.0 /(error_tolerance*ReversePurgeLongHashMap.getLoadFactor())));
+    println("sketchSize: "+sketchSize);
+    
+    FrequentLongsSketch[] sketches = new FrequentLongsSketch[numSketches];
+    for (int h = 0; h < numSketches; h++) {
+      sketches[h] = new FrequentLongsSketch(sketchSize);
+    }
+
+    long item;
+    double prob = .001;
+    for (int i = 0; i < n; i++) {
+      item = randomGeometricDist(prob) + 1;
+      for (int h = 0; h < numSketches; h++)
+        sketches[h].update(item);
+    }
+    
+    long threshold = 10;
+    for(int h=0; h<numSketches; h++) {
+      long[] freq = sketches[h].getFrequentItems(threshold, ErrorType.NO_FALSE_NEGATIVES);
+
+      for (int i = 0; i < freq.length; i++)
+        Assert.assertTrue(sketches[h].getUpperBound(freq[i]) > threshold);
+    }
+  }
   
   //Restricted methods
   
@@ -630,8 +667,8 @@ public class FrequentLongsSketchTest {
 
   // This draws values from the zipf distribution
   // n is range, theta is skewness parameter
-  // theta = 0 gives uniform dbn,
-  // theta > 1 gives highly skewed dbn.
+  // theta = 0 gives uniform distribution,
+  // theta > 1 gives highly skewed distribution.
   private static long zipf(double theta, long n, double zetan) {
     double alpha;
     double eta;
@@ -660,15 +697,15 @@ public class FrequentLongsSketchTest {
   }
 
   public void testRandomGeometricDist() {
-    long maxKey = 0L;
+    long maxItem = 0L;
     double prob = .1;
     for (int i = 0; i < 100; i++) {
-      long key = randomGeometricDist(prob);
-      if (key > maxKey)
-        maxKey = key;
+      long item = randomGeometricDist(prob);
+      if (item > maxItem)
+        maxItem = item;
       // If you succeed with probability p the probability
       // of failing 20/p times is smaller than 1/2^20.
-      Assert.assertTrue(maxKey < 20.0 / prob);
+      Assert.assertTrue(maxItem < 20.0 / prob);
     }
   }
 
@@ -686,7 +723,7 @@ public class FrequentLongsSketchTest {
    * @param s value to print
    */
   static void println(String s) {
-    //System.out.println(s); //disable here
+    System.out.println(s); //disable here
   }
 
 }

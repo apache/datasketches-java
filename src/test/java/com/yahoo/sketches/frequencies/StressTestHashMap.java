@@ -48,8 +48,7 @@ public class StressTestHashMap {
   }
 
   private static long murmur(long key) {
-    long[] keyArr = new long[1];
-    keyArr[0] = key;
+    long[] keyArr = { key };
     return MurmurHash3.hash(keyArr, 0)[0];
   }
 }
