@@ -5,33 +5,31 @@
 
 package com.yahoo.sketches.frequencies;
 
-import static com.yahoo.sketches.Util.*;
-import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.memory.NativeMemory;
-
+import static com.yahoo.sketches.Util.checkIfPowerOf2;
+import static com.yahoo.sketches.frequencies.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.frequencies.PreambleUtil.SER_VER;
-import static com.yahoo.sketches.frequencies.PreambleUtil.extractPreLongs;
-import static com.yahoo.sketches.frequencies.PreambleUtil.extractMaxMapSize;
-import static com.yahoo.sketches.frequencies.PreambleUtil.extractSerVer;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractActiveItems;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractLgCurMapSize;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractFamilyID;
-import static com.yahoo.sketches.frequencies.PreambleUtil.extractEmptyFlag;
-import static com.yahoo.sketches.frequencies.PreambleUtil.extractCurMapSize;
-import static com.yahoo.sketches.frequencies.PreambleUtil.extractInitialMapSize;
-import static com.yahoo.sketches.frequencies.PreambleUtil.extractBufferLength;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractLgInitialMapSize;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractLgMaxMapSize;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractPreLongs;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractSerVer;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertActiveItems;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertLgCurMapSize;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertFlags;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertFamilyID;
-import static com.yahoo.sketches.frequencies.PreambleUtil.insertMaxMapSize;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertLgInitialMapSize;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertLgMaxMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertPreLongs;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertSerVer;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 
-import com.yahoo.sketches.frequencies.FrequentLongsSketch.ErrorType;
-
-import static com.yahoo.sketches.frequencies.PreambleUtil.insertEmptyFlag;
-import static com.yahoo.sketches.frequencies.PreambleUtil.insertCurMapSize;
-import static com.yahoo.sketches.frequencies.PreambleUtil.insertBufferLength;
-import static com.yahoo.sketches.frequencies.PreambleUtil.insertInitialMapSize;
+import com.yahoo.sketches.memory.Memory;
+import com.yahoo.sketches.memory.NativeMemory;
 
 /**
  * <p>This sketch is useful for tracking approximate frequencies of long items with optional
@@ -93,7 +91,7 @@ import static com.yahoo.sketches.frequencies.PreambleUtil.insertInitialMapSize;
  * <p>If the internal hash fuction had infinite precision and was perfectly uniform: Then,
  * for this implementation and for a specific active <i>item</i>, it is guaranteed that the difference 
  * between the Upper Bound and the Estimate is max(UB- Est) ~ 2n/k = (8/3)*(n/maxMapSize), where 
- * </i>n</i> denotes the stream length (i.e, sum of all the item counts). The behavior is similar
+ * <i>n</i> denotes the stream length (i.e, sum of all the item counts). The behavior is similar
  * for the Lower Bound and the Estimate.
  * However, this implementation uses a deterministic hash function for performnace that performs 
  * well on real data, and in practice, the difference is usually much smaller.</p>
@@ -123,7 +121,7 @@ public class FrequentLongsSketch {
    * and then growing it as the stream grows. The following constant controls the size of the
    * initial data structure.
    */
-  private static final int MIN_HASHMAP_SIZE = 4; // This is somewhat arbitrary
+  private static final int LG_MIN_HASHMAP_SIZE = 2; // This is somewhat arbitrary
   
   /**
    * This is a constant large enough that computing the median of SAMPLE_SIZE
@@ -136,40 +134,41 @@ public class FrequentLongsSketch {
   private static final int IGNORE_TOKENS = 6;
   
   /**
-   * The number of counters to be supported when sketch is full size
-   */
-  private final int maxMapCap;
-  
-  /**
-   * The current number of counters supported by the data structure.
-   */
-  private int curMapCap;
-  
-  /**
-   * Initial length of the arrays internal to the hash map supported by the data structure
-   */
-  private int initialMapSize;
-  
-  /**
    * Maximum length of the arrays internal to the hash map supported by the data structure.
    */
   private int maxMapSize;
-
+  
+  /**
+   * The number of counters to be supported when sketch is full size
+   */
+  private final int maxMapCap; //TODO do we need this?
+  
+  /**
+   * The current number of counters supported by the hash map.
+   */
+  private int curMapCap; //the threshold to purge
+  
+  /**
+   * Log_base 2 of the initial length of the arrays internal to the hash map supported by the 
+   * data structure
+   */
+  private int lgInitialMapSize; //TODO do we need this?
+  
   /**
    * Hash map mapping stored items to approximate counts
    */
   private ReversePurgeLongHashMap hashMap;
 
   /**
-   * Tracks the total of decremented counts performed.
-   */
-  private long offset;
-
-  /**
    * An upper bound on the error in any estimated count due to merging with other 
    * FrequentLongsSketches.
    */
   private long mergeError;
+  
+  /**
+   * Tracks the total of decremented counts performed.
+   */
+  private long offset;
 
   /**
    * The sum of all frequencies of the stream so far.
@@ -192,27 +191,27 @@ public class FrequentLongsSketch {
    * maxMapSize. Both the ultimate accuracy and size of this sketch are a function of maxMapSize.
    */
   public FrequentLongsSketch(int maxMapSize) {
-    this(maxMapSize, MIN_HASHMAP_SIZE);
+    this(maxMapSize, LG_MIN_HASHMAP_SIZE);
   }
   
   /**
-   * Construct this sketch with parameter mapMapSize and initialMapSize.
+   * Construct this sketch with parameter mapMapSize and initialMapSize. This constructor is
+   * used when deserializing the sketch.
    * 
    * @param maxMapSize Determines the physical size of the internal hash map managed by this sketch
    * and must be a power of 2.  The maximum capacity of this internal hash map is 0.75 times 
    * maxMapSize. Both the ultimate accuracy and size of this sketch are a function of maxMapSize.
    * 
-   * @param initialMapSize Determines the initial physical size of the internal hash map managed 
-   * by this sketch and must be a power of 2.
+   * @param lgInitialMapSize Log_base 2 of the initial physical size of the internal hash map managed 
+   * by this sketch.
    */
-  FrequentLongsSketch(int maxMapSize, int initialMapSize) { 
+  FrequentLongsSketch(int maxMapSize, int lgInitialMapSize) { 
     
     checkIfPowerOf2(maxMapSize, "maxMapSize");
-    checkIfPowerOf2(initialMapSize, "initialMapSize");
     
-    //set initial size of counters data structure
-    this.initialMapSize = Math.max(initialMapSize, MIN_HASHMAP_SIZE);
-    hashMap = new ReversePurgeLongHashMap(this.initialMapSize);
+    //set initial size of hash map
+    this.lgInitialMapSize = Math.max(lgInitialMapSize, LG_MIN_HASHMAP_SIZE);
+    hashMap = new ReversePurgeLongHashMap(1 << this.lgInitialMapSize);
     this.curMapCap = hashMap.getCapacity();
     
     this.maxMapSize = maxMapSize;
@@ -233,55 +232,61 @@ public class FrequentLongsSketch {
    * @return a sketch instance of this class..
    */
   public static FrequentLongsSketch getInstance(Memory srcMem) {
-    long memCapBytes = srcMem.getCapacity();
-    if (memCapBytes < 8) {
-      throw new IllegalArgumentException("Memory too small: " + memCapBytes);
-    }
-
-    long pre0 = srcMem.getLong(0);
-    int preambleLongs = extractPreLongs(pre0);
-
-    assert ((preambleLongs == 1) || (preambleLongs == 6));
-    int serVer = extractSerVer(pre0);
-    assert (serVer == 1);
-    int familyID = extractFamilyID(pre0);
-    assert (familyID == 10);
-    int emptyFlag = extractEmptyFlag(pre0);
-    int maxMapSize = extractMaxMapSize(pre0);
-
-    if (emptyFlag == 1)
-      return new FrequentLongsSketch(maxMapSize);
-
-    // Not empty, must have valid preamble
-    long[] remainderPreArr = new long[5];
-    srcMem.getLongArray(8, remainderPreArr, 0, 5);
-
-    long mergeError = remainderPreArr[0];
-    long offset = remainderPreArr[1];
-    long streamLength = remainderPreArr[2];
-    long pre1 = remainderPreArr[3];
-    long pre2 = remainderPreArr[4];
-
-    int curMapSize = extractCurMapSize(pre1);
-    int initialMapSize = extractInitialMapSize(pre1);
-    int bufferLength = extractBufferLength(pre2);
-
-    FrequentLongsSketch fi = new FrequentLongsSketch(maxMapSize, curMapSize);
-    fi.initialMapSize = initialMapSize;
-    fi.offset = offset;
-    fi.mergeError = mergeError;
-
-    long[] itemArray = new long[bufferLength];
-    long[] countArray = new long[bufferLength];
-
-    srcMem.getLongArray(48, countArray, 0, bufferLength);
-    srcMem.getLongArray(48 + 8 * bufferLength, itemArray, 0, bufferLength);
+    long pre0 = PreambleUtil.getAndCheckPreLongs(srcMem);  //make sure we can get the assumed preamble
     
-    for (int i = 0; i < bufferLength; i++) {
-      fi.update(itemArray[i], countArray[i]);
+    int preLongs = extractPreLongs(pre0);
+    boolean preLongsEq1 = (preLongs == 1);
+    boolean preLongsEq5 = (preLongs == 5);
+    if (!preLongsEq1 && !preLongsEq5) {
+      throw new IllegalArgumentException("Possible Corruption: PreLongs must be 1 or 5: " + preLongs);
     }
-    fi.streamLength = streamLength;
-    return fi;
+
+    int serVer = extractSerVer(pre0);
+    if (serVer != 1) {
+      throw new IllegalArgumentException("Possible Corruption: Ser Ver must be 1: " + serVer);
+    }
+    
+    int familyID = extractFamilyID(pre0);
+    if (familyID != 10) {
+      throw new IllegalArgumentException("Possible Corruption: FamilyID must be 10: " + familyID);
+    }
+    
+    int maxMapSize = 1 << extractLgMaxMapSize(pre0);
+
+    
+    boolean empty = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0;
+    if (empty ^ preLongsEq1) {
+      throw new IllegalArgumentException("Possible Corruption: PreLongs == 1 and Empty == False.");
+    }
+    if (empty) {
+      return new FrequentLongsSketch(maxMapSize);
+    }
+    
+    // Not empty
+    int curMapSize = 1 << extractLgCurMapSize(pre0);
+    int initialMapSize = 1 << extractLgInitialMapSize(pre0);
+    
+    //get full preamble
+    long[] preArr = new long[5];
+    srcMem.getLongArray(0, preArr, 0, 5);
+
+    FrequentLongsSketch fls = new FrequentLongsSketch(maxMapSize, curMapSize);
+    fls.lgInitialMapSize = initialMapSize;
+    fls.mergeError = preArr[1];
+    fls.offset = preArr[2];
+    
+    int activeItems = extractActiveItems(preArr[4]);
+    long[] itemArray = new long[activeItems];
+    long[] countArray = new long[activeItems];
+
+    srcMem.getLongArray(40, countArray, 0, activeItems);
+    srcMem.getLongArray(40 + 8*activeItems, itemArray, 0, activeItems);
+    
+    for (int i = 0; i < activeItems; i++) {
+      fls.update(itemArray[i], countArray[i]);
+    }
+    fls.streamLength = preArr[3]; //override count due to updating
+    return fls;
   }
   
   /**
@@ -308,7 +313,7 @@ public class FrequentLongsSketch {
     sketch.mergeError = mergeError;
     sketch.offset = offset;
     sketch.streamLength = streamLength;
-    sketch.initialMapSize = initialMapSize;
+    sketch.lgInitialMapSize = initialMapSize;
     
     sketch.hashMap = deserializeFromStringArray(tokens);
     return sketch;
@@ -325,7 +330,7 @@ public class FrequentLongsSketch {
     StringBuilder sb = new StringBuilder();
     //start the string with 6 parameters of the sketch
     sb.append(
-        String.format("%d,%d,%d,%d,%d,%d,", maxMapSize, mergeError, offset, streamLength, hashMap.getLength(), initialMapSize));
+        String.format("%d,%d,%d,%d,%d,%d,", maxMapSize, mergeError, offset, streamLength, hashMap.getLength(), lgInitialMapSize));
     // maxMapCap, samplesize are deterministic functions of maxMapSize, so we don't need them in the serialization
     //output the hashMap
     sb.append(hashMap.serializeToString());
@@ -344,22 +349,19 @@ public class FrequentLongsSketch {
       preLongs = 1;
       arrLongs = 1;
     } else {
-      preLongs = 6;
+      preLongs = 5;
       arrLongs = preLongs + 2 * getNumActiveItems();
     }
     byte[] outArr = new byte[arrLongs << 3];
     NativeMemory mem = new NativeMemory(outArr);
 
-    // build first prelong
+    // build first preLong
     long pre0 = 0L;
     pre0 = insertPreLongs(preLongs, pre0);
     pre0 = insertSerVer(SER_VER, pre0);
     pre0 = insertFamilyID(10, pre0);
-    if (empty)
-      pre0 = insertEmptyFlag(1, pre0);
-    else
-      pre0 = insertEmptyFlag(0, pre0);
-    pre0 = insertMaxMapSize(this.maxMapSize, pre0);
+    pre0 = (empty)? insertFlags(EMPTY_FLAG_MASK, pre0) : insertFlags(0, pre0);
+    pre0 = insertLgMaxMapSize(this.maxMapSize, pre0);
 
     if (empty) {
       mem.putLong(0, pre0);
@@ -371,12 +373,12 @@ public class FrequentLongsSketch {
       preArr[3] = this.streamLength;
 
       long pre1 = 0L;
-      pre1 = insertCurMapSize(this.hashMap.getLength(), pre1);
-      pre1 = insertInitialMapSize(this.initialMapSize, pre1);
+      pre1 = insertLgCurMapSize(this.hashMap.getLength(), pre1); //current
+      pre1 = insertLgInitialMapSize(this.lgInitialMapSize, pre1); //initial
       preArr[4] = pre1;
 
       long pre2 = 0L;
-      pre2 = insertBufferLength(getNumActiveItems(), pre2);
+      pre2 = insertActiveItems(getNumActiveItems(), pre2);
       preArr[5] = pre2;
 
       mem.putLongArray(0, preArr, 0, 6);
@@ -523,12 +525,12 @@ public class FrequentLongsSketch {
    * The method first examines all active items in the sketch (items that have a counter).
    *  
    * <p>If <i>ErrorType = NO_FALSE_NEGATIVES</i>, this will include a item in the result list 
-   * if getUpperBound(item) > threshold. 
+   * if getUpperBound(item) &gt; threshold. 
    * There will be no false negatives, i.e., no Type II error.
    * There may be items in the set with true frequencies less than the threshold (false positives).</p>
    * 
    * <p>If <i>ErrorType = NO_FALSE_POSITIVES</i>, this will include a item in the result list 
-   * if getLowerBound(item) > threshold. 
+   * if getLowerBound(item) &gt; threshold. 
    * There will be no false positives, i.e., no Type I error.
    * There may be items ommitted from the set with true frequencies greater than the threshold 
    * (false negatives).</p>
@@ -691,7 +693,7 @@ public class FrequentLongsSketch {
    * Resets this sketch to a virgin state, but retains the original value of the error parameter
    */
   public void reset() {
-    hashMap = new ReversePurgeLongHashMap(this.initialMapSize);
+    hashMap = new ReversePurgeLongHashMap(this.lgInitialMapSize);
     this.curMapCap = hashMap.getCapacity();
     this.offset = 0;
     this.mergeError = 0;

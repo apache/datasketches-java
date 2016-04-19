@@ -2,15 +2,16 @@
  * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.Family.idToFamily;
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.zeroPad;
 
 import java.nio.ByteOrder;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -116,37 +117,39 @@ final class PreambleUtil {
   }
 
   // STRINGS
-  /**
-   * Returns a human readable string summary of the internal state of the given byte array. Used
-   * primarily in testing.
-   * 
-   * @param byteArr the given byte array.
-   * @return the summary string.
-   */
-  public static String toString(byte[] byteArr) {
-    Memory mem = new NativeMemory(byteArr);
-    return toString(mem);
-  }
 
   /**
-   * Returns a human readable string summary of the internal state of the given Memory. 
+   * Returns a human readable string summary of the preamble state of the given byte array. 
    * Used primarily in testing.
    * 
-   * @param mem the given Memory
-   * @return the summary string.
+   * @param byteArr the given byte array.
+   * @return the summary preamble string.
    */
-  public static String toString(Memory mem) {
-    return memoryToString(mem);
+  public static String preambleToString(byte[] byteArr) {
+    Memory mem = new NativeMemory(byteArr);
+    return preambleToString(mem);
   }
 
-  private static String memoryToString(Memory mem) {
-    int preLongs = (mem.getByte(PREAMBLE_LONGS_BYTE)) & 0X3F;
-    int serVer = mem.getByte(SER_VER_BYTE);
-    int familyID = mem.getByte(FAMILY_BYTE);
-    Family family = idToFamily(familyID);
-    int lgNomLongs = mem.getByte(LG_NOM_LONGS_BYTE);
-    int lgArrLongs = mem.getByte(LG_ARR_LONGS_BYTE);
-    int flags = mem.getByte(FLAGS_BYTE);
+  /**
+   * Returns a human readable string summary of the preamble state of the given Memory. 
+   * Note: other than making sure that the given Memory size is large
+   * enough for just the preamble, this does not do much value checking of the contents of the 
+   * preamble as this is primarily a tool for debugging the preamble visually.
+   * 
+   * @param mem the given Memory.
+   * @return the summary preamble string.
+   */
+  public static String preambleToString(Memory mem) {
+    int preLongs = getAndCheckPreLongs(mem);  //make sure we can get the assumed preamble
+    long pre0 = mem.getLong(0);
+    ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(pre0));
+    int serVer = extractSerVer(pre0);
+    Family family = Family.idToFamily(extractFamilyID(pre0));
+    int lgNomLongs = extractLgNomLongs(pre0);
+    int lgArrLongs = extractLgArrLongs(pre0);
+    
+    //Flags
+    int flags = extractFlags(pre0);
     String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
     boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
     String nativeOrder = ByteOrder.nativeOrder().toString();
@@ -155,26 +158,34 @@ final class PreambleUtil {
     boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
     boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
     
-    short seedHash = mem.getShort(SEED_HASH_SHORT);
+    int seedHash = extractSeedHash(pre0);
+    
+    //Assumed if preLongs == 1
     int curCount = 0;
     float p = (float)1.0;
+    //Assumed if preLongs == 1 or 2
     long thetaLong = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
+    //Assumed if preLongs == 1 or 2 or 3
     long thetaULong = thetaLong;
+    
     if (preLongs == 2) {
-      curCount = mem.getInt(RETAINED_ENTRIES_INT);
-      p = mem.getFloat(P_FLOAT);
+      long pre1 = mem.getLong(1);
+      curCount = extractCurCount(pre1);
+      p = extractP(pre1);
       thetaLong = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
       thetaULong = thetaLong;
     } 
     else if (preLongs == 3){
-      curCount = mem.getInt(RETAINED_ENTRIES_INT);
-      p = mem.getFloat(P_FLOAT);
+      long pre1 = mem.getLong(1);
+      curCount = extractCurCount(pre1);
+      p = extractP(pre1);
       thetaLong = mem.getLong(THETA_LONG);
       thetaULong = thetaLong;
     } 
     else if (preLongs == 4) {
-      curCount = mem.getInt(RETAINED_ENTRIES_INT);
-      p = mem.getFloat(P_FLOAT);
+      long pre1 = mem.getLong(1);
+      curCount = extractCurCount(pre1);
+      p = extractP(pre1);
       thetaLong = mem.getLong(THETA_LONG);
       thetaULong = mem.getLong(UNION_THETA_LONG);
     } //else: the same as preLongs == 1
@@ -187,6 +198,7 @@ final class PreambleUtil {
     sb.append(LS)
       .append("### SKETCH PREAMBLE SUMMARY:").append(LS)
       .append("Byte  0: Preamble Longs       : ").append(preLongs).append(LS)
+      .append("Byte  0: ResizeFactor         : ").append(rf.toString()).append(LS)
       .append("Byte  1: Serialization Version: ").append(serVer).append(LS)
       .append("Byte  2: Family               : ").append(family.toString()).append(LS)
       .append("Byte  3: LgNomLongs           : ").append(lgNomLongs).append(LS)
@@ -353,7 +365,7 @@ final class PreambleUtil {
     return ((seedHash & mask) << shift) | (~(mask << shift) & long0);
   }
   
-  static long insertCurCount(final int curCount, final long long1) {
+  static long insertCurCount(final int curCount, final long long1) { //Retained Entries
     long mask = 0XFFFFFFFFL;
     return (curCount & mask) | (~mask & long1);
   }
@@ -364,4 +376,26 @@ final class PreambleUtil {
     return ((Float.floatToRawIntBits(p) & mask) << shift) | (~(mask << shift) & long1);
   }
   
+  /**
+   * Checks Memory for capacity to hold the preamble and returns the extracted preLongs.
+   * @param mem the given Memory
+   * @param max the max value for preLongs
+   * @return the extracted prelongs value.
+   */
+  static int getAndCheckPreLongs(Memory mem) {
+    long cap = mem.getCapacity();
+    if (cap < 8) { throwNotBigEnough(cap, 8); }
+    long pre0 = mem.getLong(0);
+    int preLongs = extractPreLongs(pre0);
+    int required = Math.max(preLongs << 3, 8);
+    if (cap < required) { throwNotBigEnough(cap, required); }
+    return preLongs;
+  }
+  
+  private static void throwNotBigEnough(long cap, int required) {
+    throw new IllegalArgumentException(
+        "Possible Corruption: Size of byte array or Memory not large enough: Size: " + cap 
+        + ", Required: " + required);
+  }
+
 }

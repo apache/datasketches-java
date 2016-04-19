@@ -59,7 +59,7 @@ public class FrequentLongsSketchTest {
     Assert.assertTrue(string.equals(new_string));
   }
 
-  @Test
+  //@Test
   private static void frequentItemsStringSerialTest() {
     FrequentLongsSketch sketch = new FrequentLongsSketch(8);
     FrequentLongsSketch sketch2 = new FrequentLongsSketch(128);
@@ -115,7 +115,7 @@ public class FrequentLongsSketchTest {
     Assert.assertTrue(new_sketch.getStreamLength() == merged_sketch.getStreamLength());
   }
 
-  @Test
+ // @Test
   private static void frequentItemsByteSerialTest() {
     FrequentLongsSketch sketch = new FrequentLongsSketch(16, 8);
     FrequentLongsSketch sketch2 = new FrequentLongsSketch(128);
@@ -182,7 +182,7 @@ public class FrequentLongsSketchTest {
     Assert.assertTrue(new_sketch.getStreamLength() == merged_sketch.getStreamLength());
   }
 
-  @Test
+ // @Test
   private static void frequentItemsByteResetAndEmptySerialTest() {
     FrequentLongsSketch sketch = new FrequentLongsSketch(16);
     sketch.update(10, 100);
@@ -723,7 +723,7 @@ public class FrequentLongsSketchTest {
    * @param s value to print
    */
   static void println(String s) {
-    System.out.println(s); //disable here
+    //System.out.println(s); //disable here
   }
 
 }
