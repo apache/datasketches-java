@@ -356,7 +356,7 @@ public class FrequentItemsSketch<T> {
   }
 
   public FrequentItemsSketch<T> merge(final FrequentItemsSketch<T> other) {
-    this.streamLength += other.streamLength;
+    long streamLength = this.streamLength;
     this.mergeError += other.getMaximumError();
 
     final T[] otherItems = other.hashMap.getActiveKeys();
@@ -365,6 +365,7 @@ public class FrequentItemsSketch<T> {
     for (int i = otherItems.length; i-- > 0;) {
       this.update(otherItems[i], otherCounters[i]);
     }
+    this.streamLength = streamLength + other.getStreamLength();
     return this;
   }
 
@@ -414,7 +415,7 @@ public class FrequentItemsSketch<T> {
       }
     }
 
-    final T[] outArr = (T[]) Array.newInstance(items.getClass().getComponentType(), count);
+    final T[] outArr = (T[]) Array.newInstance(freqItems.getClass().getComponentType(), count);
     System.arraycopy(freqItems, 0, outArr, 0, count);
     return outArr;
   }
