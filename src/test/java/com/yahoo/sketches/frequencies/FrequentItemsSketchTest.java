@@ -97,8 +97,8 @@ public class FrequentItemsSketchTest {
     sketch1.update("c");
     sketch1.update("d");
 
-    byte[] bytes = sketch1.serializeToByteArray(new StringArraySerDe());
-    FrequentItemsSketch<String> sketch2 = FrequentItemsSketch.getInstance(new NativeMemory(bytes), new StringArraySerDe());
+    byte[] bytes = sketch1.serializeToByteArray(new ArrayOfStringsSerDe());
+    FrequentItemsSketch<String> sketch2 = FrequentItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfStringsSerDe());
     sketch2.update("b");
     sketch2.update("c");
     sketch2.update("b");

@@ -3,7 +3,7 @@ package com.yahoo.sketches.frequencies;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
-public class StringArraySerDe implements ArrayOfItemsSerDe<String> {
+public class ArrayOfStringsSerDe implements ArrayOfItemsSerDe<String> {
 
   @Override
   public byte[] serializeToByteArray(String[] items) {
