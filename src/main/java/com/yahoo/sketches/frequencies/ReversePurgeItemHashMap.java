@@ -10,6 +10,7 @@ import static com.yahoo.sketches.Util.*;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
+import com.yahoo.sketches.QuickSelect;
 import com.yahoo.sketches.Util;
 
 /**
@@ -20,10 +21,10 @@ import com.yahoo.sketches.Util;
  * @author Edo Liberty
  * @author Justin Thaler
  */
-public class ReversePurgeItemHashMap<T> {
+class ReversePurgeItemHashMap<T> {
   private final static double LOAD_FACTOR = 0.75;
-  protected final int loadThreshold;
-  protected final int arrayMask;
+  protected int loadThreshold;
+  protected int arrayMask;
   protected int numActive = 0;
   protected Object[] keys;
   protected long[] values;
@@ -40,7 +41,7 @@ public class ReversePurgeItemHashMap<T> {
    * HashMap implementation and must be a power of 2. 
    * The hash table will be expected to store LOAD_FACTOR * mapSize (key, value) pairs.
    */
-  public ReversePurgeItemHashMap(int mapSize) {
+  ReversePurgeItemHashMap(final int mapSize) {
     Util.checkIfPowerOf2(mapSize, "mapSize");
     this.loadThreshold = (int) (mapSize * LOAD_FACTOR);
     this.arrayMask = mapSize - 1;
@@ -53,7 +54,7 @@ public class ReversePurgeItemHashMap<T> {
    * @param probe location in the hash table array
    * @return true if the cell in the array contains an active key
    */
-  public boolean isActive(int probe) {
+  boolean isActive(final int probe) {
     return (states[probe] > 0);
   }
   
@@ -63,9 +64,9 @@ public class ReversePurgeItemHashMap<T> {
    * @return the positive value the key corresponds to or zero if if the key is not found in the
    * hash map.
    */
-  public long get(T key) {
+  long get(final T key) {
     if (key == null) return 0;
-    int probe = hashProbe(key);
+    final int probe = hashProbe(key);
     if (states[probe] > 0) {
       assert (keys[probe]).equals(key);
       return values[probe];
@@ -81,7 +82,7 @@ public class ReversePurgeItemHashMap<T> {
    * @param adjustAmount the amount by which to increment the value
    * @param putAmount the value put into the map if the key is not present
    */
-  public void adjustOrPutValue(T key, long adjustAmount, long putAmount) {
+  void adjustOrPutValue(final T key, final long adjustAmount, final long putAmount) {
     int probe = (int) hash(key.hashCode()) & arrayMask;
     int drift = 1;
     while (states[probe] != 0 && !keys[probe].equals(key)) {
@@ -109,7 +110,7 @@ public class ReversePurgeItemHashMap<T> {
   /**
    * Processes the map arrays and retains only keys with positive counts.
    */
-  public void keepOnlyPositiveCounts() {
+  void keepOnlyPositiveCounts() {
     // Starting from the back, find the first empty cell, 
     //  which establishes the high end of a cluster.
     int firstProbe = states.length - 1;
@@ -141,7 +142,7 @@ public class ReversePurgeItemHashMap<T> {
    * @param key the key of the value to increment
    * @param value the value increment by, or to put into the map if the key is not initial present
    */
-  public void adjust(T key, long value) {
+  void adjust(final T key, final long value) {
     adjustOrPutValue(key, value, value);
   }
 
@@ -149,7 +150,7 @@ public class ReversePurgeItemHashMap<T> {
    * @param adjustAmount value by which to shift all values. Only keys corresponding to positive
    * values are retained.
    */
-  public void adjustAllValuesBy(long adjustAmount) {
+  void adjustAllValuesBy(final long adjustAmount) {
     for (int i = values.length; i-- > 0;)
       values[i] += adjustAmount;
   }
@@ -158,9 +159,7 @@ public class ReversePurgeItemHashMap<T> {
    * @return an array containing the active keys in the hash map.
    */
   @SuppressWarnings("unchecked")
-  public T[] getActiveKeys() {
-    if (numActive == 0)
-      return null;
+  T[] getActiveKeys() {
     T[] returnedKeys = null;
     int j = 0;
     for (int i = 0; i < keys.length; i++)
@@ -176,10 +175,8 @@ public class ReversePurgeItemHashMap<T> {
   /**
    * @return an array containing the values corresponding. to the active keys in the hash
    */
-  public long[] getActiveValues() {
-    if (numActive == 0)
-      return null;
-    long[] returnedValues = new long[numActive];
+  long[] getActiveValues() {
+    final long[] returnedValues = new long[numActive];
     int j = 0;
     for (int i = 0; i < values.length; i++)
       if (isActive(i)) {
@@ -190,38 +187,43 @@ public class ReversePurgeItemHashMap<T> {
     return returnedValues;
   }
 
-  /**
-   * @return the raw array of keys. Do NOT modify this array!
-   */
-  Object[] getKeys() {
-    return keys;
-  }
-
-  /**
-   * @return the raw array of values. Do NOT modify this array!
-   */
-  long[] getValues() {
-    return values;
+  // assume newSize is power of 2
+  @SuppressWarnings("unchecked")
+  void resize(final int newSize) {
+    final Object[] oldKeys = keys;
+    final long[] oldValues = values;
+    final short[] oldStates = states;
+    keys = new Object[newSize];
+    values = new long[newSize];
+    states = new short[newSize];
+    loadThreshold = (int) (newSize * LOAD_FACTOR);
+    arrayMask = newSize - 1;
+    numActive = 0;
+    for (int i = 0; i < oldKeys.length; i++) {
+      if (oldStates[i] > 0) {
+        adjust((T) oldKeys[i], oldValues[i]);
+      }
+    }
   }
 
   /**
    * @return length of hash table internal arrays
    */
-  public int getLength() {
+  int getLength() {
     return keys.length;
   }
 
   /**
    * @return capacity of hash table internal arrays (i.e., max number of keys that can be stored)
    */
-  public int getCapacity() {
+  int getCapacity() {
     return loadThreshold;
   }
 
   /**
    * @return number of populated keys
    */
-  public int getNumActive() {
+  int getNumActive() {
     return numActive;
   }
 
@@ -230,7 +232,7 @@ public class ReversePurgeItemHashMap<T> {
    */
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
     sb.append("HashMap").append(LS);
     sb.append("Index: States,       Keys,     Values").append(LS);
     for (int i = 0; i < keys.length; i++) {
@@ -244,7 +246,7 @@ public class ReversePurgeItemHashMap<T> {
    * @return the load factor of the hash table, i.e, the ratio between the capacity and the array
    * length
    */
-  public static double getLoadFactor() {
+  static double getLoadFactor() {
     return LOAD_FACTOR;
   }
 
@@ -255,29 +257,27 @@ public class ReversePurgeItemHashMap<T> {
    * via sampling, decrements all counts by this estimate, throws out all counters that are no
    * longer positive, and increments offset accordingly.
    */
-  long purge(int sampleSize) {
+  long purge(final int sampleSize) {
     int limit = Math.min(sampleSize, getNumActive());
 
-    long[] myValues = getValues();
     int numSamples = 0;
     int i = 0;
-    long[] samples = new long[limit];
+    final long[] samples = new long[limit];
 
     while (numSamples < limit) {
       if (isActive(i)) {
-        samples[numSamples] = myValues[i];
+        samples[numSamples] = values[i];
         numSamples++;
       }
       i++;
     }
 
-    Arrays.sort(samples, 0, numSamples);
-    long val = samples[limit / 2];
+    final long val = QuickSelect.select(samples, 0, numSamples - 1, limit / 2);
     adjustAllValuesBy(-1 * val);
     keepOnlyPositiveCounts();
     return val;
   }
-  
+
   private void hashDelete(int deleteProbe) {
     // Looks ahead in the table to search for another
     // item to move to this location
@@ -306,7 +306,7 @@ public class ReversePurgeItemHashMap<T> {
     }
   }
   
-  private int hashProbe(T key) {
+  private int hashProbe(final T key) {
     int probe = (int) hash(key.hashCode()) & arrayMask;
     while (states[probe] > 0 && !keys[probe].equals(key))
       probe = (probe + 1) & arrayMask;
@@ -327,4 +327,39 @@ public class ReversePurgeItemHashMap<T> {
     return key;
   }
 
+  Iterator iterator() {
+    return new Iterator(keys, values, states);
+  }
+
+  class Iterator {
+    private final Object[] keys;
+    private final long[] values;
+    private final short[] states;
+    private int i;
+
+    Iterator(final Object[] keys, final long[] values, final short[] states) {
+      this.keys = keys;
+      this.values = values;
+      this.states = states;
+      i = -1;
+    }
+
+    boolean next() {
+      i++;
+      while (i < keys.length) {
+        if (states[i] > 0) return true;
+        i++;
+      }
+      return false;
+    }
+
+    @SuppressWarnings("unchecked")
+    T getKey() {
+      return (T) keys[i];
+    }
+
+    long getValue() {
+      return values[i];
+    }
+  }
 }

@@ -25,6 +25,7 @@ import static com.yahoo.sketches.frequencies.PreambleUtil.insertPreLongs;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertSerVer;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
 
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertEmptyFlag;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertCurMapSize;
@@ -333,17 +334,9 @@ public class FrequentItemsSketch<T> {
     // if the data structure needs to be grown
     if ((numActive >= this.curMapCap) && (this.curMapCap < this.maxMapCap)) {
       // grow the size of the data structure
-      final int newSize = 2*hashMap.getLength();
-      final ReversePurgeItemHashMap<T> newTable = new ReversePurgeItemHashMap<T>(newSize);
-      this.curMapCap = newTable.getCapacity();
-      final T[] items = this.hashMap.getActiveKeys();
-      final long[] counters = this.hashMap.getActiveValues();
-      
-      assert(items.length == numActive);
-      for (int i = 0; i < numActive; i++) {
-        newTable.adjust(items[i], counters[i]);
-      }
-      this.hashMap = newTable;
+      final int newSize = 2 * hashMap.getLength();
+      hashMap.resize(newSize);
+      this.curMapCap = hashMap.getCapacity();
     }
 
     //The reason for the +1 here is: If we do not purge now, we might wind up inserting a new 
@@ -359,12 +352,11 @@ public class FrequentItemsSketch<T> {
     long streamLength = this.streamLength;
     this.mergeError += other.getMaximumError();
 
-    final T[] otherItems = other.hashMap.getActiveKeys();
-    final long[] otherCounters = other.hashMap.getActiveValues();
-
-    for (int i = otherItems.length; i-- > 0;) {
-      this.update(otherItems[i], otherCounters[i]);
+    ReversePurgeItemHashMap<T>.Iterator iter = other.hashMap.iterator();
+    while (iter.next()) {
+      this.update(iter.getKey(), iter.getValue());
     }
+
     this.streamLength = streamLength + other.getStreamLength();
     return this;
   }
@@ -389,35 +381,29 @@ public class FrequentItemsSketch<T> {
 
   @SuppressWarnings("unchecked")
   public T[] getFrequentItems(final long threshold, final ErrorSpecification errorSpec) { 
-    final Object[] items = hashMap.getKeys(); //ref to raw keys array
-    final int rawLen = items.length;
     int numActive = hashMap.getNumActive();
-
-    // initial array to store the candidate frequent items
+    // array to store the candidate frequent items
     T[] freqItems = null;
-
     int count = 0;
+    ReversePurgeItemHashMap<T>.Iterator iter = hashMap.iterator();
     if (errorSpec == ErrorSpecification.NO_FALSE_NEGATIVES) {
-      for (int i = rawLen; i-- > 0;) {
-        if (hashMap.isActive(i) && (getUpperBound((T) items[i]) >= threshold)) {
-          if (freqItems == null) freqItems = (T[]) Array.newInstance(items[i].getClass(), numActive); 
-          freqItems[count] = (T) items[i];
+      while (iter.next()) {
+        if (getUpperBound(iter.getKey()) >= threshold) {
+          if (freqItems == null) freqItems = (T[]) Array.newInstance(iter.getKey().getClass(), numActive); 
+          freqItems[count] = iter.getKey();
           count++;
         }
       }
     } else { //NO_FALSE_POSITIVES
-      for (int i = rawLen; i-- > 0;) {
-        if (hashMap.isActive(i) && (getLowerBound((T) items[i]) >= threshold)) {
-          if (freqItems == null) freqItems = (T[]) Array.newInstance(items[i].getClass(), numActive); 
-          freqItems[count] = (T) items[i];
+      while (iter.next()) {
+        if (getLowerBound(iter.getKey()) >= threshold) {
+          if (freqItems == null) freqItems = (T[]) Array.newInstance(iter.getKey().getClass(), numActive); 
+          freqItems[count] = iter.getKey();
           count++;
         }
       }
     }
-
-    final T[] outArr = (T[]) Array.newInstance(freqItems.getClass().getComponentType(), count);
-    System.arraycopy(freqItems, 0, outArr, 0, count);
-    return outArr;
+    return Arrays.copyOfRange(freqItems, 0, count);
   }
 
   public int getCurrentMapCapacity() {
