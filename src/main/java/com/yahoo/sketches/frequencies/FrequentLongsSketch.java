@@ -499,6 +499,7 @@ public class FrequentLongsSketch {
 
     for (int i = otherItems.length; i-- > 0;) {
       this.update(otherItems[i], otherCounters[i]);
+      this.streamLength -= otherCounters[i];
     }
     
     this.streamLength = streamLen;

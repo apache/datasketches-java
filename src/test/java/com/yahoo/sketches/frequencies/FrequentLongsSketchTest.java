@@ -233,9 +233,8 @@ public class FrequentLongsSketchTest {
 
   @Test
   private static void realCountsInBoundsAfterMerge() {
-    int n = 1000;
+    int n = 10000;
     int size = 150;
-    double delta = .1;
     double error_tolerance = 1.0 / size;
 
     double prob1 = .01;
@@ -265,6 +264,9 @@ public class FrequentLongsSketchTest {
       int i = 0;
       long[] keys = realCounts.keys();
       //println("size: "+keys.length);
+      
+      int maxMapCap=merged.getMaximumMapCapacity();
+      double delta=2.0/maxMapCap;
       for (long item : keys) {
         i = i + 1;
 
@@ -283,20 +285,25 @@ public class FrequentLongsSketchTest {
 
   @Test
   private static void strongMergeTest() {
-    int n = 100;
+    int n = 10000;
     int size = 150;
-    double delta = .1;
     double error_tolerance = 1.0 / size;
     int num_to_merge = 10;
     FrequentLongsSketch[] sketches = new FrequentLongsSketch[num_to_merge];
-
+    
     double prob = .01;
     int numSketches = 1;
+    
+    long totalstreamlength = 0;
+    
+    int maxMapCap = 0;
 
     for (int h = 0; h < numSketches; h++) {
       for (int z = 0; z < num_to_merge; z++) {
         sketches[z] = newFrequencySketch(error_tolerance);
       }
+      
+      
       TLongLongHashMap realCounts = new TLongLongHashMap();
       for (int i = 0; i < n; i++) {
         for (int z = 0; z < num_to_merge; z++) {
@@ -305,6 +312,7 @@ public class FrequentLongsSketchTest {
           sketches[z].update(item);
           // Updating the real counters
           realCounts.adjustOrPutValue(item, 1, 1);
+          totalstreamlength++;
         }
       }
 
@@ -314,6 +322,9 @@ public class FrequentLongsSketchTest {
           continue;
         merged = merged.merge(sketches[z]);
       }
+      
+      maxMapCap=merged.getMaximumMapCapacity();
+      double delta=2.0/maxMapCap;
 
       int bad = 0;
       int i = 0;
@@ -332,6 +343,7 @@ public class FrequentLongsSketchTest {
       }
       //println("bad: "+bad+", delta*i: "+(delta*i));
       Assert.assertTrue(bad <= delta * i);
+      Assert.assertTrue(totalstreamlength == merged.getStreamLength());
     }
   }
 
