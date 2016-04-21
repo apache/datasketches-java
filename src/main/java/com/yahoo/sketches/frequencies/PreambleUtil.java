@@ -5,15 +5,15 @@
 
 package com.yahoo.sketches.frequencies;
 
-import static com.yahoo.sketches.Util.LS;
-import static com.yahoo.sketches.Util.zeroPad;
-
-import java.nio.ByteOrder;
-
-import com.yahoo.sketches.Family;
-import com.yahoo.sketches.ResizeFactor;
+//import static com.yahoo.sketches.Util.LS;
+//import static com.yahoo.sketches.Util.zeroPad;
+//
+//import java.nio.ByteOrder;
+//
+//import com.yahoo.sketches.Family;
+//import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.memory.NativeMemory;
+//import com.yahoo.sketches.memory.NativeMemory;
 
 // @formatter:off
 /**
@@ -40,38 +40,17 @@ import com.yahoo.sketches.memory.NativeMemory;
  *  * Long || Start Byte Adr:
  * Adr: 
  *      ||    7     |    6   |    5   |    4   |    3   |    2   |    1   |     0          |
- *  0   ||----------|-LgInit-|-Flags--|-LgCur--| LgMax  | FamID  | SerVer | PreambleLongs  |
+ *  0   ||----------|--Type--|-Flags--|-LgCur--| LgMax  | FamID  | SerVer | PreambleLongs  |
  *      ||    15    |   14   |   13   |   12   |   11   |   10   |    9   |     8          |
- *  1   ||---------------------------------mergeError--------------------------------------|
+ *  1   ||------------(unused)-----------------|--------ActiveItems------------------------|
  *      ||    23    |   22   |   21   |   20   |   19   |   18   |   17   |    16          |
- *  2   ||---------------------------------offset------------------------------------------|
+ *  2   ||-----------------------------------streamLength----------------------------------|
  *      ||    31    |   30   |   29   |   28   |   27   |   26   |   25   |    24          |
- *  3   ||-----------------------------------streamLength----------------------------------|
+ *  3   ||---------------------------------offset------------------------------------------|
  *      ||    39    |   38   |   37   |   36   |   35   |   34   |   33   |    32          |
- *  4   ||------------(unused)-----------------|--------ActiveItems------------------------|
- *      ||    47    |   46   |   45   |   44   |   43   |   42   |   41   |   40           |
+ *  4   ||---------------------------------mergeError--------------------------------------|
+ *      ||    47    |   46   |   45   |   44   |   43   |   42   |   41   |    40          |
  *  5   ||----------start of values buffer, followed by keys buffer------------------------|
- * 
- * 
- * 
- * OLD
- * Long || Start Byte Adr:
- * Adr: 
- *      ||    7     |    6   |    5   |    4   |    3   |    2   |    1   |     0          |
- *  0   |||--------maxMapSize*-----------------|--flags-| FamID  | SerVer | PreambleLongs  |
- *      ||    15    |   14   |   13   |   12   |   11   |   10   |    9   |     8          |
- *  1   ||---------------------------------mergeError--------------------------------------|
- *      ||    23    |   22   |   21   |   20   |   19   |   18   |   17   |    16          |
- *  2   ||---------------------------------offset------------------------------------------|
- *      ||    31    |   30   |   29   |   28   |   27   |   26   |   25   |    24          |
- *  3   ||-----------------------------------streamLength----------------------------------|
- *      ||    39    |   38   |   37   |   36   |   35   |   34   |   33   |    32          |
- *  4   ||------initialMapSize*----------------|------------curMapSize*--------------------|
- *      ||    47    |   46   |   45   |   44   |   43   |   42   |   41   |   40           |
- *  5   ||------------(unused)-----------------|--------bufferlength (active items)--------|
- *      ||    55    |   54   |   53   |   52   |   51   |   50   |   49   |   48           |
- *  6   ||----------start of values buffer, followed by keys buffer------------------------|
- * 
  * </pre>
  * 
  * @author Justin Thaler
@@ -82,17 +61,18 @@ final class PreambleUtil {
 
   // ###### DO NOT MESS WITH THIS FROM HERE ...
   // Preamble byte Addresses
-  static final int PREAMBLE_LONGS_BYTE = 0; // either 1 or 6
-  static final int SER_VER_BYTE = 1;
-  static final int FAMILY_BYTE = 2;
-  static final int LG_MAX_MAP_SIZE_BYTE = 3;
-  static final int LG_CUR_MAP_SIZE_BYTE = 4;
-  static final int FLAGS_BYTE = 5;
-  static final int LG_INITIAL_MAP_SIZE_BYTE = 6;
-  static final int MERGE_ERROR_LONG = 8; // to 15
-  static final int OFFSET_LONG = 16; // to 23
-  static final int STREAMLENGTH_LONG = 24; // to 31
-  static final int ACTIVE_ITEMS_INT = 32; // to 25
+  static final int PREAMBLE_LONGS_BYTE       = 0; // either 1 or 6
+  static final int SER_VER_BYTE              = 1;
+  static final int FAMILY_BYTE               = 2;
+  static final int LG_MAX_MAP_SIZE_BYTE      = 3;
+  static final int LG_CUR_MAP_SIZE_BYTE      = 4;
+  static final int FLAGS_BYTE                = 5;
+  static final int FREQ_SKETCH_TYPE_BYTE     = 6;
+  static final int ACTIVE_ITEMS_INT          = 8;  // to 11 : 0 to 4 in pre1
+  static final int STREAMLENGTH_LONG         = 16; // to 23 : pre2
+  static final int OFFSET_LONG               = 24; // to 31 : pre3
+  static final int MERGE_ERROR_LONG          = 32; // to 39 : pre4
+  
   
   // flag bit masks
   static final int EMPTY_FLAG_MASK      = 4;
@@ -100,6 +80,7 @@ final class PreambleUtil {
   
   // Specific values for this implementation
   static final int SER_VER = 1;
+  static final int FREQ_SKETCH_TYPE = 1;
 
   
   /**
@@ -219,103 +200,103 @@ final class PreambleUtil {
 
 // @formatter:on
   
-  static int extractPreLongs(final long pre0) {
+  static int extractPreLongs(final long pre0) { //Byte 0
     long mask = 0XFFL;
     return (int) (pre0 & mask);
   }
 
-  static int extractSerVer(final long pre0) {
+  static int extractSerVer(final long pre0) { //Byte 1
     int shift = SER_VER_BYTE << 3;
     long mask = 0XFFL;
     return (int) ((pre0 >>> shift) & mask);
   }
 
-  static int extractFamilyID(final long pre0) {
+  static int extractFamilyID(final long pre0) { //Byte 2
     int shift = FAMILY_BYTE << 3;
     long mask = 0XFFL;
     return (int) ((pre0 >>> shift) & mask);
   }
 
-  static int extractLgMaxMapSize(final long pre0) {
+  static int extractLgMaxMapSize(final long pre0) { //Byte 3
     int shift = LG_MAX_MAP_SIZE_BYTE << 3;
     long mask = 0XFFL;
     return (int) ((pre0 >>> shift) & mask);
   }
   
-  static int extractLgCurMapSize(final long pre0) {
+  static int extractLgCurMapSize(final long pre0) { //Byte 4
     int shift = LG_CUR_MAP_SIZE_BYTE << 3;
     long mask = 0XFFL;
     return (int) ((pre0 >>> shift) & mask);
   }
   
-  static int extractFlags(final long pre0) {
+  static int extractFlags(final long pre0) { //Byte 5
     int shift = FLAGS_BYTE << 3;
     long mask = 0XFFL;
     return (int) ((pre0 >>> shift) & mask);
   }
-
-  static int extractLgInitialMapSize(final long pre0) {
-    int shift = LG_INITIAL_MAP_SIZE_BYTE << 3;
+  
+  static int extractFreqSketchType(final long pre0) { //Byte 7
+    int shift = FREQ_SKETCH_TYPE_BYTE << 3;
     long mask = 0XFFL;
     return (int) ((pre0 >>> shift) & mask);
   }
   
-  static int extractActiveItems(final long pre4) {
+  static int extractActiveItems(final long pre1) { //Bytes 8 to 11
     long mask = 0XFFFFFFFFL;
-    return (int) (pre4 & mask) ;
+    return (int) (pre1 & mask) ;
   }
 
-  static long insertPreLongs(final int preLongs, final long pre0) {
+  static long insertPreLongs(final int preLongs, final long pre0) { //Byte 0
     long mask = 0XFFL;
     return (preLongs & mask) | (~mask & pre0);
   }
 
-  static long insertSerVer(final int serVer, final long pre0) {
+  static long insertSerVer(final int serVer, final long pre0) { //Byte 1
     int shift = SER_VER_BYTE << 3;
     long mask = 0XFFL;
-    return ((serVer & mask) << shift) | (~(mask << shift) & pre0);
+    return ((serVer & mask) << shift) | (~(mask << shift) & pre0); 
   }
 
-  static long insertFamilyID(final int familyID, final long pre0) {
+  static long insertFamilyID(final int familyID, final long pre0) { //Byte 2
     int shift = FAMILY_BYTE << 3;
     long mask = 0XFFL;
     return ((familyID & mask) << shift) | (~(mask << shift) & pre0);
   }
 
-  static long insertLgMaxMapSize(final int lgMaxMapSize, final long pre0) {
+  static long insertLgMaxMapSize(final int lgMaxMapSize, final long pre0) { //Byte 3
     int shift = LG_MAX_MAP_SIZE_BYTE << 3;
     long mask = 0XFFL;
     return ((lgMaxMapSize & mask) << shift) | (~(mask << shift) & pre0);
   }
 
-  static long insertLgCurMapSize(final int lgCurMapSize, final long pre0) {
+  static long insertLgCurMapSize(final int lgCurMapSize, final long pre0) { //Byte 4
     int shift = LG_CUR_MAP_SIZE_BYTE << 3;
     long mask = 0XFFL;
     return ((lgCurMapSize & mask) << shift) | (~(mask << shift) & pre0);
   }
 
-  static long insertFlags(final int flags, final long pre0) {
+  static long insertFlags(final int flags, final long pre0) { //Byte 5
     int shift = FLAGS_BYTE << 3;
     long mask = 0XFFL;
     return ((flags & mask) << shift) | (~(mask << shift) & pre0);
   }
-  
-  static long insertLgInitialMapSize(final int lgInitialMapSize, final long pre0) {
-    int shift = LG_INITIAL_MAP_SIZE_BYTE << 3;
-    long mask = 0XFFL;
-    return ((lgInitialMapSize & mask) << shift) | (~(mask << shift) & pre0);
-  }
 
-  static long insertActiveItems(final int activeItems, final long pre4) {
+  static long insertFreqSketchType(final int freqSketchType, final long pre0) { //Byte 7
+    int shift = FREQ_SKETCH_TYPE_BYTE << 3;
+    long mask = 0XFFL;
+    return ((freqSketchType & mask) << shift) | (~(mask << shift) & pre0);
+  }
+  
+  static long insertActiveItems(final int activeItems, final long pre1) { //Bytes 8 to 11
     long mask = 0XFFFFFFFFL;
-    return (activeItems & mask) | (~mask & pre4);
+    return (activeItems & mask) | (~mask & pre1);
   }
 
   /**
    * Checks Memory for capacity to hold the preamble and returns the first 8 bytes.
    * @param mem the given Memory
    * @param max the max value for preLongs
-   * @return the first 8 bytes of preamble.
+   * @return the first 8 bytes of preamble as a long.
    */
   static long getAndCheckPreLongs(Memory mem) {
     long cap = mem.getCapacity();

@@ -115,9 +115,9 @@ public class FrequentLongsSketchTest {
     Assert.assertTrue(new_sketch.getStreamLength() == merged_sketch.getStreamLength());
   }
 
- // @Test
+  @Test
   private static void frequentItemsByteSerialTest() {
-    FrequentLongsSketch sketch = new FrequentLongsSketch(16, 8);
+    FrequentLongsSketch sketch = new FrequentLongsSketch(16);
     FrequentLongsSketch sketch2 = new FrequentLongsSketch(128);
     sketch.update(10, 100);
     sketch.update(10, 100);
@@ -182,7 +182,7 @@ public class FrequentLongsSketchTest {
     Assert.assertTrue(new_sketch.getStreamLength() == merged_sketch.getStreamLength());
   }
 
- // @Test
+  @Test
   private static void frequentItemsByteResetAndEmptySerialTest() {
     FrequentLongsSketch sketch = new FrequentLongsSketch(16);
     sketch.update(10, 100);
@@ -590,6 +590,7 @@ public class FrequentLongsSketchTest {
     assertEquals(bytes, 64);
   }
   
+  @SuppressWarnings("unused")
   @Test
   public void checkDeSerFromStringArray() {
     FrequentLongsSketch fls = new FrequentLongsSketch(4);

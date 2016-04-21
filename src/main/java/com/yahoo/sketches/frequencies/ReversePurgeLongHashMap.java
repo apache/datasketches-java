@@ -5,11 +5,10 @@
 
 package com.yahoo.sketches.frequencies;
 
-import static com.yahoo.sketches.Util.*;
+import static com.yahoo.sketches.Util.LS;
+import static com.yahoo.sketches.Util.toLog2;
 
 import java.util.Arrays;
-
-import com.yahoo.sketches.Util;
 
 /**
  * Implements a linear-probing based hash map of (key, value) pairs and is distinguished by a 
@@ -21,14 +20,16 @@ import com.yahoo.sketches.Util;
  */
 class ReversePurgeLongHashMap {
   private final static double LOAD_FACTOR = 0.75;
-  protected final int loadThreshold;
-  protected final int length;
-  protected final int arrayMask;
-  protected int numActive = 0;
-  protected long[] keys;
-  protected long[] values;
-  protected short[] states;
-  static final int DRIFT_LIMIT = 1024; //used only in stress testing
+  private static final int DRIFT_LIMIT = 1024; //used only in stress testing
+  private int lgLength;
+  private int loadThreshold;
+  private int arrayMask;
+  private long[] keys;
+  private long[] values;
+  private short[] states;
+  private int numActive = 0;
+
+  
   
   /**
    * Constructor will create arrays of length mapSize, which must be a power of two.
@@ -40,14 +41,13 @@ class ReversePurgeLongHashMap {
    * HashMap implementation and must be a power of 2. 
    * The hash table will be expected to store LOAD_FACTOR * mapSize (key, value) pairs.
    */
-  ReversePurgeLongHashMap(int mapSize) {
-    Util.checkIfPowerOf2(mapSize, "mapSize");
-    this.length = mapSize;
-    this.loadThreshold = (int) (length * LOAD_FACTOR);
-    this.arrayMask = length - 1;
-    this.keys = new long[length];
-    this.values = new long[length];
-    this.states = new short[length];
+  ReversePurgeLongHashMap(final int mapSize) {
+    lgLength = toLog2(mapSize, "mapSize");
+    this.loadThreshold = (int) (mapSize * LOAD_FACTOR);
+    this.arrayMask = mapSize - 1;
+    this.keys = new long[mapSize];
+    this.values = new long[mapSize];
+    this.states = new short[mapSize];
   }
 
   /**
@@ -84,7 +84,7 @@ class ReversePurgeLongHashMap {
    */
   String serializeToString() {
     StringBuilder sb = new StringBuilder();
-    sb.append(String.format("%d,%d,", numActive, length));
+    sb.append(String.format("%d,%d,", numActive, keys.length));
 
     for (int i = 0; i < keys.length; i++) {
       if (states[i] != 0) {
@@ -142,7 +142,7 @@ class ReversePurgeLongHashMap {
       values[probe] = putAmount;
       states[probe] = (short) drift;
       numActive++;
-      assert (numActive <= .8 * length);
+      assert (numActive <= .8 * keys.length);
     } else {
       // adjusting the value of an existing key
       assert (keys[probe] == key);
@@ -156,7 +156,7 @@ class ReversePurgeLongHashMap {
   void keepOnlyPositiveCounts() {
     // Starting from the back, find the first empty cell, 
     //  which establishes the high end of a cluster.
-    int firstProbe = length - 1;
+    int firstProbe = keys.length - 1;
     while (states[firstProbe] > 0) { 
       firstProbe--;
     }
@@ -170,7 +170,7 @@ class ReversePurgeLongHashMap {
       }
     }
     //now work on the first cluster that was skipped.
-    for (int probe = length; probe-- > firstProbe;) {
+    for (int probe = keys.length; probe-- > firstProbe;) {
       if (states[probe] > 0 && values[probe] <= 0) {
         hashDelete(probe);
         numActive--;
@@ -194,7 +194,7 @@ class ReversePurgeLongHashMap {
    * values are retained.
    */
   void adjustAllValuesBy(long adjustAmount) {
-    for (int i = length; i-- > 0;)
+    for (int i = keys.length; i-- > 0;)
       values[i] += adjustAmount;
   }
 
@@ -206,7 +206,7 @@ class ReversePurgeLongHashMap {
       return null;
     long[] returnedKeys = new long[numActive];
     int j = 0;
-    for (int i = 0; i < length; i++)
+    for (int i = 0; i < keys.length; i++)
       if (isActive(i)) {
         returnedKeys[j] = keys[i];
         j++;
@@ -223,7 +223,7 @@ class ReversePurgeLongHashMap {
       return null;
     long[] returnedValues = new long[numActive];
     int j = 0;
-    for (int i = 0; i < length; i++)
+    for (int i = 0; i < keys.length; i++)
       if (isActive(i)) {
         returnedValues[j] = values[i];
         j++;
@@ -250,9 +250,13 @@ class ReversePurgeLongHashMap {
    * @return length of hash table internal arrays
    */
   int getLength() {
-    return length;
+    return keys.length;
   }
 
+  int getLgLength() {
+    return lgLength;
+  }
+  
   /**
    * @return capacity of hash table internal arrays (i.e., max number of keys that can be stored)
    */
