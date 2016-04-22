@@ -8,6 +8,7 @@ import static com.yahoo.sketches.theta.SetOperation.getMaxUnionBytes;
 import static com.yahoo.sketches.theta.PreambleUtil.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -34,7 +35,7 @@ public class PreambleUtilTest {
     Memory mem = new NativeMemory(byteArray);
 
     UpdateSketch quick1 = UpdateSketch.builder().initMemory(mem).build(k);
-    println(PreambleUtil.toString(byteArray));
+    println(PreambleUtil.preambleToString(byteArray));
     
     Assert.assertTrue(quick1.isEmpty());
 
@@ -46,13 +47,32 @@ public class PreambleUtilTest {
     assertEquals(quick1.getEstimate(), u, .05*u);
     assertTrue(quick1.getRetainedEntries(false) > k);
     println(quick1.toString());
-    println(PreambleUtil.toString(mem));
+    println(PreambleUtil.preambleToString(mem));
     
     Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]);
     Union union = SetOperation.builder().initMemory(uMem).buildUnion(k);
     union.update(quick1);
-    println(PreambleUtil.toString(uMem));
+    println(PreambleUtil.preambleToString(uMem));
     
+  }
+  
+  @Test
+  public void checkPreambleToStringExceptions() {
+    byte[] byteArr = new byte[7];
+    try { //check preLongs < 8 fails
+      PreambleUtil.preambleToString(byteArr);
+      fail("Did not throw IllegalArgumentException.");
+    } catch (IllegalArgumentException e) {
+      //expected
+    }
+    byteArr = new byte[8];
+    byteArr[0] = (byte) 2; //needs min capacity of 16
+    try { //check preLongs == 2 fails
+      PreambleUtil.preambleToString(byteArr);
+      fail("Did not throw IllegalArgumentException.");
+    } catch (IllegalArgumentException e) {
+      //expected
+    }
   }
   
   @Test(expectedExceptions = IllegalArgumentException.class)
@@ -66,17 +86,17 @@ public class PreambleUtilTest {
     UpdateSketch sketch = UpdateSketch.builder().build(16);
     CompactSketch comp = sketch.compact(false, null);
     byte[] byteArr = comp.toByteArray();
-    println(PreambleUtil.toString(byteArr)); //PreLongs = 1
+    println(PreambleUtil.preambleToString(byteArr)); //PreLongs = 1
     
     sketch.update(1);
     comp = sketch.compact(false, null);
     byteArr = comp.toByteArray();
-    println(PreambleUtil.toString(byteArr)); //PreLongs = 2
+    println(PreambleUtil.preambleToString(byteArr)); //PreLongs = 2
     
     for (int i=2; i<=32; i++) sketch.update(i);
     comp = sketch.compact(false, null);
     byteArr = comp.toByteArray();
-    println(PreambleUtil.toString(byteArr)); //PreLongs = 3
+    println(PreambleUtil.preambleToString(byteArr)); //PreLongs = 3
   }
   
   @Test

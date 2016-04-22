@@ -2,6 +2,7 @@
  * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.theta.CompactSketch.compactCachePart;
@@ -28,7 +29,6 @@ class DirectIntersection extends SetOperation implements Intersection {
   
   private final int maxLgArrLongs_; //max size of hash table
   private final Memory mem_;
-
   
   /**
    * Construct a new Intersection target direct to the given destination Memory.

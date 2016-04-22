@@ -14,6 +14,8 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.reflect.Method;
+
 import org.testng.annotations.Test;
 
 import com.yahoo.sketches.memory.Memory;
@@ -752,6 +754,16 @@ public class HeapQuantilesSketchTest {
     int bytes = qs1.getStorageBytes();
     Memory dstMem = new NativeMemory(new byte[bytes-1]); //too small
     qs1.putMemory(dstMem);
+  }
+  
+  @Test
+  public void checkAuxPosOfPhi() throws Exception {
+    long n = 10;
+    Method privateMethod = Auxiliary.class.getDeclaredMethod("posOfPhi", double.class, long.class );
+    privateMethod.setAccessible(true);
+    long returnValue = (long) privateMethod.invoke(null, new Double(1.0), new Long(10));
+    println("" + returnValue);
+    assertEquals(returnValue, n-1);
   }
   
   @Test
