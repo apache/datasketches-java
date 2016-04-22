@@ -217,7 +217,7 @@ public class FrequentLongsSketch {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a sketch instance of this class..
    */
-  public static FrequentLongsSketch getInstance(Memory srcMem) {
+  public static FrequentLongsSketch getInstance(final Memory srcMem) {
     long pre0 = PreambleUtil.getAndCheckPreLongs(srcMem);  //make sure we can get the preamble
     int maxPreLongs = Family.FREQUENCY.getMaxPreLongs();
     
@@ -230,24 +230,26 @@ public class FrequentLongsSketch {
     int type = extractFreqSketchType(pre0);       //Byte 6
     
     // Checks
-    boolean preLongsEq1 = (preLongs == 1);
+    boolean preLongsEq1 = (preLongs == 1);        //Byte 0
     boolean preLongsEqMax = (preLongs == maxPreLongs);
     if (!preLongsEq1 && !preLongsEqMax) {
       throw new IllegalArgumentException(
           "Possible Corruption: PreLongs must be 1 or "+maxPreLongs+": " + preLongs);
     }
-    if (serVer != SER_VER) {
-      throw new IllegalArgumentException("Possible Corruption: Ser Ver must be "+SER_VER+": " + serVer);
+    if (serVer != SER_VER) {                      //Byte 1
+      throw new IllegalArgumentException(
+          "Possible Corruption: Ser Ver must be "+SER_VER+": " + serVer);
     }
-    int actFamID = Family.FREQUENCY.getID();
+    int actFamID = Family.FREQUENCY.getID();      //Byte 2
     if (familyID != actFamID) {
-      throw new IllegalArgumentException("Possible Corruption: FamilyID must be "+actFamID+": " + familyID);
+      throw new IllegalArgumentException(
+          "Possible Corruption: FamilyID must be "+actFamID+": " + familyID);
     }
-    if (empty ^ preLongsEq1) {
+    if (empty ^ preLongsEq1) {                    //Byte 5 and Byte 0
       throw new IllegalArgumentException(
           "Possible Corruption: (PreLongs == 1) ^ Empty == True.");
     }
-    if (type != FREQ_SKETCH_TYPE) {
+    if (type != FREQ_SKETCH_TYPE) {               //Byte 6
       throw new IllegalArgumentException(
           "Possible Corruption: Freq Sketch Type != 1: "+type);
     }
@@ -264,13 +266,16 @@ public class FrequentLongsSketch {
     fls.offset = preArr[3];
     fls.mergeError = preArr[4];
 
-    int activeItems = extractActiveItems(preArr[1]);
-    long[] countArray = new long[activeItems];
-    long[] itemArray = new long[activeItems];
     int preBytes = preLongs << 3;
+    int activeItems = extractActiveItems(preArr[1]);
+    //Get countArray
+    long[] countArray = new long[activeItems];
     srcMem.getLongArray(preBytes, countArray, 0, activeItems);
-    srcMem.getLongArray(preBytes + 8*activeItems, itemArray, 0, activeItems);
-    
+    //Get itemArray
+    long[] itemArray = new long[activeItems];
+    int itemsOffset = preBytes + 8 * activeItems;
+    srcMem.getLongArray(itemsOffset, itemArray, 0, activeItems);
+    //update the sketch
     for (int i = 0; i < activeItems; i++) {
       fls.update(itemArray[i], countArray[i]);
     }
