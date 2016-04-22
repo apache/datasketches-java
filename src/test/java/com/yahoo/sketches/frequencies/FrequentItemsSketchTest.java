@@ -56,8 +56,8 @@ public class FrequentItemsSketchTest {
     Assert.assertEquals(sketch.getEstimate("c"), 2);
     Assert.assertEquals(sketch.getEstimate("d"), 1);
 
-    String[] items = sketch.getFrequentItems(2, FrequentItemsSketch.ErrorSpecification.NO_FALSE_POSITIVES);
-    Assert.assertEquals(items.length, 2);
+    FrequentItemsSketch<String>.Row[] items = sketch.getFrequentItems(FrequentItemsSketch.ErrorType.NO_FALSE_POSITIVES);
+    Assert.assertEquals(items.length, 4);
   }
 
   @Test
@@ -85,8 +85,14 @@ public class FrequentItemsSketchTest {
     Assert.assertFalse(sketch.isEmpty());
     Assert.assertEquals(sketch.getStreamLength(), 18);
 
-    Integer[] items = sketch.getFrequentItems(2, FrequentItemsSketch.ErrorSpecification.NO_FALSE_POSITIVES);
-    Assert.assertEquals(items.length, 2);
+    FrequentItemsSketch<Integer>.Row[] items = sketch.getFrequentItems(FrequentItemsSketch.ErrorType.NO_FALSE_POSITIVES);
+    Assert.assertEquals(items.length, 12);
+    // only 2 items (1 and 7) should have counts more than 2
+    int count = 0;
+    for (FrequentItemsSketch<Integer>.Row item: items) {
+      if (item.lb > 2) count++;
+    }
+    Assert.assertEquals(count, 2);
   }
 
   @Test

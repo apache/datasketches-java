@@ -8,4 +8,5 @@ public interface ArrayOfItemsSerDe<T> {
 
   T[] deserializeFromMemory(Memory mem, int numItems);
 
+  byte getType();
 }

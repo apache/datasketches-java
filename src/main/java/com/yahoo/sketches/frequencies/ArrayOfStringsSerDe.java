@@ -5,6 +5,8 @@ import com.yahoo.sketches.memory.NativeMemory;
 
 public class ArrayOfStringsSerDe implements ArrayOfItemsSerDe<String> {
 
+  private static final byte TYPE = 2;
+
   @Override
   public byte[] serializeToByteArray(String[] items) {
     int length = 0;
@@ -34,6 +36,11 @@ public class ArrayOfStringsSerDe implements ArrayOfItemsSerDe<String> {
       array[i] = new String(bytes);
     }
     return array;
+  }
+
+  @Override
+  public byte getType() {
+    return TYPE;
   }
 
 }

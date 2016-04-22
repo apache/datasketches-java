@@ -90,12 +90,12 @@ import com.yahoo.sketches.memory.NativeMemory;
  * true frequency of <i>item</i>, along with upper and lower bounds on the frequency (that hold
  * deterministically).</p>
  * 
- * <p>If the internal hash fuction had infinite precision and was perfectly uniform: Then,
+ * <p>If the internal hash function had infinite precision and was perfectly uniform: Then,
  * for this implementation and for a specific active <i>item</i>, it is guaranteed that the 
  * difference between the Upper Bound and the Estimate is 
  * max(UB- Est) ~ 2n/k = (8/3)*(n/maxMapSize), where <i>n</i> denotes the stream length 
  * (i.e, sum of all the item counts). The behavior is similar for the Lower Bound and the Estimate.
- * However, this implementation uses a deterministic hash function for performnace that performs 
+ * However, this implementation uses a deterministic hash function for performance that performs 
  * well on real data, and in practice, the difference is usually much smaller.</p>
  * 
  * <p><b>Background</b></p>
@@ -104,7 +104,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * algorithm". Variants of it were discovered and rediscovered and redesigned several times over 
  * the years:</p>
  * <ul><li>"Finding repeated elements", Misra, Gries, 1982</li>
- * <li>"Frequency estimation of internet packet streams with limited space" Demaine, Lopez-Ortiz, 
+ * <li>"Frequency estimation of Internet packet streams with limited space" Demaine, Lopez-Ortiz, 
  * Munro, 2002</li>
  * <li>"A simple algorithm for finding frequent elements in streams and bags" Karp, Shenker,
  * Papadimitriou, 2003</li>
@@ -172,7 +172,6 @@ public class FrequentLongsSketch {
    */
   private ReversePurgeLongHashMap hashMap;
 
-  // Constructors
   /**
    * Construct this sketch with the parameter maxMapSize and the default initialMapSize (4).
    * 
@@ -180,7 +179,7 @@ public class FrequentLongsSketch {
    * and must be a power of 2.  The maximum capacity of this internal hash map is 0.75 times 
    * maxMapSize. Both the ultimate accuracy and size of this sketch are a function of maxMapSize.
    */
-  public FrequentLongsSketch(int maxMapSize) {
+  public FrequentLongsSketch(final int maxMapSize) {
     this(toLog2(maxMapSize, "maxMapSize"), LG_MIN_MAP_SIZE);
   }
   
@@ -195,14 +194,13 @@ public class FrequentLongsSketch {
    * @param lgCurMapSize Log_base 2 of the starting (current) physical size of the internal hash map 
    * managed by this sketch.
    */
-  FrequentLongsSketch(int lgMaxMapSize, int lgCurMapSize) {
+  FrequentLongsSketch(final int lgMaxMapSize, final int lgCurMapSize) {
     //set initial size of hash map
     this.lgMaxMapSize = lgMaxMapSize;
-    int lgCurMapSz = Math.max(lgCurMapSize, LG_MIN_MAP_SIZE);
+    final int lgCurMapSz = Math.max(lgCurMapSize, LG_MIN_MAP_SIZE);
     hashMap = new ReversePurgeLongHashMap(1 << lgCurMapSz);
     this.curMapCap = hashMap.getCapacity(); 
-    int maxMapCap = (int) ((1 << lgMaxMapSize)*ReversePurgeLongHashMap.getLoadFactor());
-
+    final int maxMapCap = (int) ((1 << lgMaxMapSize)*ReversePurgeLongHashMap.getLoadFactor());
     offset = 0;
     sampleSize = Math.min(SAMPLE_SIZE, maxMapCap); 
   }
@@ -218,20 +216,20 @@ public class FrequentLongsSketch {
    * @return a sketch instance of this class..
    */
   public static FrequentLongsSketch getInstance(final Memory srcMem) {
-    long pre0 = PreambleUtil.getAndCheckPreLongs(srcMem);  //make sure we can get the preamble
-    int maxPreLongs = Family.FREQUENCY.getMaxPreLongs();
-    
-    int preLongs = extractPreLongs(pre0);         //Byte 0
-    int serVer = extractSerVer(pre0);             //Byte 1
-    int familyID = extractFamilyID(pre0);         //Byte 2
-    int lgMaxMapSize = extractLgMaxMapSize(pre0); //Byte 3
-    int lgCurMapSize = extractLgCurMapSize(pre0); //Byte 4
-    boolean empty = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0; //Byte 5
-    int type = extractFreqSketchType(pre0);       //Byte 6
-    
+    final long pre0 = PreambleUtil.getAndCheckPreLongs(srcMem);  //make sure we can get the preamble
+    final int maxPreLongs = Family.FREQUENCY.getMaxPreLongs();
+
+    final int preLongs = extractPreLongs(pre0);         //Byte 0
+    final int serVer = extractSerVer(pre0);             //Byte 1
+    final int familyID = extractFamilyID(pre0);         //Byte 2
+    final int lgMaxMapSize = extractLgMaxMapSize(pre0); //Byte 3
+    final int lgCurMapSize = extractLgCurMapSize(pre0); //Byte 4
+    final boolean empty = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0; //Byte 5
+    final int type = extractFreqSketchType(pre0);       //Byte 6
+
     // Checks
-    boolean preLongsEq1 = (preLongs == 1);        //Byte 0
-    boolean preLongsEqMax = (preLongs == maxPreLongs);
+    final boolean preLongsEq1 = (preLongs == 1);        //Byte 0
+    final boolean preLongsEqMax = (preLongs == maxPreLongs);
     if (!preLongsEq1 && !preLongsEqMax) {
       throw new IllegalArgumentException(
           "Possible Corruption: PreLongs must be 1 or "+maxPreLongs+": " + preLongs);
@@ -240,7 +238,7 @@ public class FrequentLongsSketch {
       throw new IllegalArgumentException(
           "Possible Corruption: Ser Ver must be "+SER_VER+": " + serVer);
     }
-    int actFamID = Family.FREQUENCY.getID();      //Byte 2
+    final int actFamID = Family.FREQUENCY.getID();      //Byte 2
     if (familyID != actFamID) {
       throw new IllegalArgumentException(
           "Possible Corruption: FamilyID must be "+actFamID+": " + familyID);
@@ -253,27 +251,27 @@ public class FrequentLongsSketch {
       throw new IllegalArgumentException(
           "Possible Corruption: Freq Sketch Type != 1: "+type);
     }
- 
+
     if (empty) {
       return new FrequentLongsSketch(lgMaxMapSize, LG_MIN_MAP_SIZE);
     }
     //get full preamble
-    long[] preArr = new long[preLongs];
+    final long[] preArr = new long[preLongs];
     srcMem.getLongArray(0, preArr, 0, preLongs);
 
-    FrequentLongsSketch fls = new FrequentLongsSketch(lgMaxMapSize, lgCurMapSize);
+    final FrequentLongsSketch fls = new FrequentLongsSketch(lgMaxMapSize, lgCurMapSize);
     fls.streamLength = 0; //update after
     fls.offset = preArr[3];
     fls.mergeError = preArr[4];
 
-    int preBytes = preLongs << 3;
-    int activeItems = extractActiveItems(preArr[1]);
+    final int preBytes = preLongs << 3;
+    final int activeItems = extractActiveItems(preArr[1]);
     //Get countArray
-    long[] countArray = new long[activeItems];
+    final long[] countArray = new long[activeItems];
     srcMem.getLongArray(preBytes, countArray, 0, activeItems);
     //Get itemArray
-    long[] itemArray = new long[activeItems];
-    int itemsOffset = preBytes + 8 * activeItems;
+    final long[] itemArray = new long[activeItems];
+    final int itemsOffset = preBytes + 8 * activeItems;
     srcMem.getLongArray(itemsOffset, itemArray, 0, activeItems);
     //update the sketch
     for (int i = 0; i < activeItems; i++) {
@@ -282,7 +280,7 @@ public class FrequentLongsSketch {
     fls.streamLength = preArr[2]; //override count due to updating
     return fls;
   }
-  
+
   /**
    * Returns a sketch instance of this class from the given String, 
    * which must be a String representation of this sketch class.
@@ -290,31 +288,31 @@ public class FrequentLongsSketch {
    * @param string a String representation of a sketch of this class.
    * @return a sketch instance of this class.
    */
-  public static FrequentLongsSketch getInstance(String string) {
-    String[] tokens = string.split(",");
+  public static FrequentLongsSketch getInstance(final String string) {
+    final String[] tokens = string.split(",");
     if (tokens.length < STR_PREAMBLE_TOKENS) {
       throw new IllegalArgumentException(
           "String not long enough to specify preamble.");
     }
-    int serVer  = Integer.parseInt(tokens[0]);
-    int famID   = Integer.parseInt(tokens[1]);
-    int lgMax   = Integer.parseInt(tokens[2]);
-    int flags   = Integer.parseInt(tokens[3]);
-    int type    = Integer.parseInt(tokens[4]);
-    long streamLength = Long.parseLong(tokens[5]);
-    long offset       = Long.parseLong(tokens[6]);
-    long mergeError   = Long.parseLong(tokens[7]);
+    final int serVer  = Integer.parseInt(tokens[0]);
+    final int famID   = Integer.parseInt(tokens[1]);
+    final int lgMax   = Integer.parseInt(tokens[2]);
+    final int flags   = Integer.parseInt(tokens[3]);
+    final int type    = Integer.parseInt(tokens[4]);
+    final long streamLength = Long.parseLong(tokens[5]);
+    final long offset       = Long.parseLong(tokens[6]);
+    final long mergeError   = Long.parseLong(tokens[7]);
     //should always get at least the next 2 from the map
-    int numActive = Integer.parseInt(tokens[8]);
-    int lgCur = Integer.numberOfTrailingZeros(Integer.parseInt(tokens[9]));
-    
+    final int numActive = Integer.parseInt(tokens[8]);
+    final int lgCur = Integer.numberOfTrailingZeros(Integer.parseInt(tokens[9]));
+
     //checks
     if (serVer != SER_VER) {
       throw new IllegalArgumentException("Possible Corruption: Bad SerVer: "+serVer);
     }
     Family.FREQUENCY.checkFamilyID(famID);
-    boolean empty = flags > 0;
-    boolean zeroStream = (streamLength == 0);
+    final boolean empty = flags > 0;
+    final boolean zeroStream = (streamLength == 0);
     if (empty ^ zeroStream) {
       throw new IllegalArgumentException(
           "Possible Corruption: (Empty ^ StreamLength=0) = true : Empty: "+empty + 
@@ -324,53 +322,52 @@ public class FrequentLongsSketch {
       throw new IllegalArgumentException(
           "Possible Corruption: Sketch TYPE incorrect: "+type);
     }
-    int numTokens = tokens.length;
+    final int numTokens = tokens.length;
     if (numActive != (numTokens - STR_PREAMBLE_TOKENS -2)/2) {
       throw new IllegalArgumentException("Possible Corruption: Incorrect # of tokens: "+numTokens+
           ", numActive: "+numActive);
     }
-    
-    
-    FrequentLongsSketch sketch = new FrequentLongsSketch(lgMax, lgCur);
+
+    final FrequentLongsSketch sketch = new FrequentLongsSketch(lgMax, lgCur);
     sketch.streamLength = streamLength;
     sketch.mergeError = mergeError;
     sketch.offset = offset;
     sketch.hashMap = deserializeFromStringArray(tokens);
     return sketch;
   }
-  
+
   //Serialization
-  
+
   /**
    * Returns a String representation of this sketch
    * 
    * @return a String representation of this sketch
    */
   public String serializeToString() {
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
     //start the string with parameters of the sketch
-    int serVer = SER_VER; //0
-    int famID = Family.FREQUENCY.getID(); //1
-    int lgMaxMapSz = lgMaxMapSize; //2
-    int flags = (hashMap.getNumActive() == 0)? EMPTY_FLAG_MASK : 0; //3
-    int type = FREQ_SKETCH_TYPE; //4
-    String fmt = "%d,%d,%d,%d,%d,%d,%d,%d,";
-    String s = String.format(fmt, serVer, famID, lgMaxMapSz, flags, type, streamLength, offset, mergeError);
+    final int serVer = SER_VER; //0
+    final int famID = Family.FREQUENCY.getID(); //1
+    final int lgMaxMapSz = lgMaxMapSize; //2
+    final int flags = (hashMap.getNumActive() == 0)? EMPTY_FLAG_MASK : 0; //3
+    final int type = FREQ_SKETCH_TYPE; //4
+    final String fmt = "%d,%d,%d,%d,%d,%d,%d,%d,";
+    final String s = String.format(fmt, serVer, famID, lgMaxMapSz, flags, type, streamLength, offset, mergeError);
     sb.append(s);
     sb.append(hashMap.serializeToString()); //numActive, curMaplen, key[i], value[i], ...
     // maxMapCap, samplesize are deterministic functions of maxMapSize, 
     //  so we don't need them in the serialization
     return sb.toString();
   }
-  
+
   /**
    * Returns a byte array representation of this sketch
    * @return a byte array representation of this sketch
    */
   public byte[] serializeToByteArray() {
-    int preLongs, outBytes;
-    boolean empty = isEmpty();
-    int activeItems = getNumActiveItems();
+    final int preLongs, outBytes;
+    final boolean empty = isEmpty();
+    final int activeItems = getNumActiveItems();
     if (empty) {
       preLongs = 1;
       outBytes = 8;
@@ -378,8 +375,8 @@ public class FrequentLongsSketch {
       preLongs = Family.FREQUENCY.getMaxPreLongs();
       outBytes = (preLongs + 2 * activeItems) << 3;
     }
-    byte[] outArr = new byte[outBytes];
-    NativeMemory mem = new NativeMemory(outArr);
+    final byte[] outArr = new byte[outBytes];
+    final NativeMemory mem = new NativeMemory(outArr);
 
     // build first preLong empty or not
     long pre0 = 0L;
@@ -394,44 +391,42 @@ public class FrequentLongsSketch {
     if (empty) {
       mem.putLong(0, pre0);
     } else {
-      long pre = 0;
-      long[] preArr = new long[preLongs];
+      final long pre = 0;
+      final long[] preArr = new long[preLongs];
       preArr[0] = pre0;
       preArr[1] = insertActiveItems(activeItems, pre);
       preArr[2] = this.streamLength;
       preArr[3] = this.offset;
       preArr[4] = this.mergeError;
       mem.putLongArray(0, preArr, 0, preLongs);
-      int preBytes = preLongs << 3;
+      final int preBytes = preLongs << 3;
       mem.putLongArray(preBytes, hashMap.getActiveValues(), 0, this.getNumActiveItems());
       mem.putLongArray(preBytes + (this.getNumActiveItems() << 3), hashMap.getActiveKeys(), 
           0, this.getNumActiveItems());
     }
     return outArr;
   }
-  
+
   /**
    * Puts this sketch into the given Memory as a byte array
    * @param dstMem the given destination Memory
    */
-  public void serializeToMemory(Memory dstMem) {
-    byte[] byteArr = serializeToByteArray();
-    int arrLen = byteArr.length;
-    long memCap = dstMem.getCapacity();
+  public void serializeToMemory(final Memory dstMem) {
+    final byte[] byteArr = serializeToByteArray();
+    final int arrLen = byteArr.length;
+    final long memCap = dstMem.getCapacity();
     if (memCap < arrLen) {
       throw new IllegalArgumentException(
           "Destination Memory not large enough: " + memCap + " < " + arrLen);
     }
     dstMem.putByteArray(0, byteArr, 0, arrLen);
   }
-  
-  //Override FrequencyEstimator
-  
+
   /**
    * Update this sketch with an item and a frequency count of one.
    * @param item for which the frequency should be increased. 
    */
-  public void update(long item) {
+  public void update(final long item) {
     update(item, 1);
   }
 
@@ -442,16 +437,17 @@ public class FrequentLongsSketch {
    * @param count the amount by which the frequency of the item should be increased. 
    * An count of zero is a no-op, and a negative count will throw an exception.
    */
-  public void update(long item, long count) {
+  public void update(final long item, final long count) {
     if (count == 0) return;
     if (count < 0) throw new IllegalArgumentException("Count may not be negative");
     this.streamLength += count;
     hashMap.adjust(item, count);
-    int numActive = getNumActiveItems();
-    
+    final int numActive = getNumActiveItems();
+
     if (hashMap.getLgLength() < lgMaxMapSize) { //below tgt size
       if (numActive >= curMapCap) {
-        resize(numActive);
+        hashMap.resize(2 * hashMap.getLength());
+        this.curMapCap = hashMap.getCapacity();
       }
     } else { //at tgt size
       //The reason for the +1 here is: If we do not purge now, we might wind up inserting a new 
@@ -467,22 +463,6 @@ public class FrequentLongsSketch {
     }
   }
 
-  private void resize(int numActive) {
-    //TODO have the hashMap do this work, much more efficient.
-    long[] items = this.hashMap.getActiveKeys();
-    long[] counters = this.hashMap.getActiveValues();
-    
-    int newSize = 2*hashMap.getLength();
-    ReversePurgeLongHashMap newHashMap = new ReversePurgeLongHashMap(newSize);
-    this.curMapCap = newHashMap.getCapacity();
-    
-    assert(items.length == numActive);
-    for (int i = 0; i < numActive; i++) { //put items, values into new map
-      newHashMap.adjust(items[i], counters[i]);
-    }
-    this.hashMap = newHashMap;
-  }
-  
   /**
    * This function merges the other sketch into this one. 
    * The other sketch may be of a different size.
@@ -491,24 +471,19 @@ public class FrequentLongsSketch {
    * @return a sketch whose estimates are within the guarantees of the
    * largest error tolerance of the two merged sketches.
    */
-  public FrequentLongsSketch merge(FrequentLongsSketch other) {
+  public FrequentLongsSketch merge(final FrequentLongsSketch other) {
     if (other == null) return this;
-
     if (other.isEmpty()) return this;
-    
-    long streamLen = this.streamLength + other.streamLength;
+
+    final long streamLen = this.streamLength + other.streamLength;
     this.mergeError += other.getMaximumError();
 
-    long[] otherItems = other.hashMap.getActiveKeys();
-    long[] otherCounters = other.hashMap.getActiveValues();
-
-    for (int i = otherItems.length; i-- > 0;) {
-      this.update(otherItems[i], otherCounters[i]);
-      this.streamLength -= otherCounters[i];
+    final ReversePurgeLongHashMap.Iterator iter = other.hashMap.iterator();
+    while (iter.next()) {
+      this.update(iter.getKey(), iter.getValue());
     }
-    
+
     this.streamLength = streamLen;
-    
     return this;
   }
 
@@ -520,10 +495,10 @@ public class FrequentLongsSketch {
    * @param item the given item
    * @return the estimate of the frequency of the given item
    */
-  public long getEstimate(long item) {
+  public long getEstimate(final long item) {
     // If item is tracked:
     // Estimate = itemCount + offset; Otherwise it is 0.
-    long itemCount = hashMap.get(item);
+    final long itemCount = hashMap.get(item);
     return (itemCount > 0)? itemCount + offset : 0;
   }
 
@@ -534,7 +509,7 @@ public class FrequentLongsSketch {
    * @return the guaranteed upper bound frequency of the given item. That is, a number which is 
    * guaranteed to be no smaller than the real frequency.
    */
-  public long getUpperBound(long item) {
+  public long getUpperBound(final long item) {
     // UB = itemCount + offset + mergeError
     return hashMap.get(item) + getMaximumError();
   }
@@ -546,12 +521,12 @@ public class FrequentLongsSketch {
    * @return the guaranteed lower bound frequency of the given item. That is, a number which is 
    * guaranteed to be no larger than the real frequency.
    */
-  public long getLowerBound(long item) {
+  public long getLowerBound(final long item) {
     //LB = max(itemCount - mergeError, 0)
-    long returnVal = hashMap.get(item) - mergeError;
+    final long returnVal = hashMap.get(item) - mergeError;
     return Math.max(returnVal, 0);
   }
-  
+
   /**
    * Returns an array of Rows that include frequent items, estimates, upper and lower bounds
    * given an ErrorCondition. 
@@ -566,72 +541,72 @@ public class FrequentLongsSketch {
    * <p>If <i>ErrorType = NO_FALSE_POSITIVES</i>, this will include an item in the result list 
    * if getLowerBound(item) &gt; maxError. 
    * There will be no false positives, i.e., no Type I error.
-   * There may be items ommitted from the set with true frequencies greater than the threshold 
+   * There may be items omitted from the set with true frequencies greater than the threshold 
    * (false negatives).</p>
    * 
    * @param errorType determines whether no false positives or no false negatives are desired.
    * @return an array of frequent items
    */
-  public Row[] getFrequentItems(ErrorType errorType) { 
+  public Row[] getFrequentItems(final ErrorType errorType) { 
     return sortItems(getMaximumError(), errorType);
   }
 
-  public class Row implements Comparator<Row>{
-    long item;
-    long est;
-    long ub;
-    long lb;
-    
-    Row() {} //for comparator
-    
-    Row(long item, long estimate, long ub, long lb) {
+  public class Row implements Comparable<Row> {
+    final long item;
+    final long est;
+    final long ub;
+    final long lb;
+
+    Row(final long item, final long estimate, final long ub, final long lb) {
       this.item = item;
       this.est = estimate;
       this.ub = ub;
       this.lb = lb;
     }
-    
+
     @Override
     public String toString() {
       return String.format("%d,%d,%d,%d", item, est, ub, lb);
     }
-    
+
     @Override
-    public int compare(Row r1, Row r2) {
-      return (r1.est < r2.est)? -1 : (r1.est > r2.est)? 1 : 0;
+    public int compareTo(final Row that) {
+      return (this.est < that.est) ? -1 : (this.est > that.est) ? 1 : 0;
     }
   }
-  
-  Row[] sortItems(long threshold, ErrorType errorType) {
-    long[] counts = hashMap.getValues();
-    long[] items = hashMap.getKeys();
-    int arrLen = items.length;
-    ArrayList<Row> rowList = new ArrayList<Row>();
+
+  Row[] sortItems(final long threshold, final ErrorType errorType) {
+    final ArrayList<Row> rowList = new ArrayList<Row>();
+    final ReversePurgeLongHashMap.Iterator iter = hashMap.iterator();
     if (errorType == ErrorType.NO_FALSE_NEGATIVES) {
-      for (int i=0; i<arrLen; i++) {
-        long ub = getUpperBound(items[i]);
-        long lb = getLowerBound(items[i]);
-        if (hashMap.isActive(i) && (ub >= threshold)) {
-          Row row = new Row(items[i], counts[i]+offset, ub, lb);
+      while (iter.next()) {
+        final long ub = getUpperBound(iter.getKey());
+        final long lb = getLowerBound(iter.getKey());
+        if (ub >= threshold) {
+          final Row row = new Row(iter.getKey(), iter.getValue(), ub, lb);
           rowList.add(row);
         }
       }
     } else { //NO_FALSE_POSITIVES
-      for (int i=0; i<arrLen; i++) {
-        long ub = getUpperBound(items[i]);
-        long lb = getLowerBound(items[i]);
-        if (hashMap.isActive(i) && (lb >= threshold)) {
-          Row row = new Row(items[i], counts[i]+offset, ub, lb);
+      while (iter.next()) {
+        final long ub = getUpperBound(iter.getKey());
+        final long lb = getLowerBound(iter.getKey());
+        if (lb >= threshold) {
+          final Row row = new Row(iter.getKey(), iter.getValue(), ub, lb);
           rowList.add(row);
         }
       }
     }
-    
-    rowList.sort(new Row());
-    Row[] rowsArr = rowList.toArray(new Row[0]);
-    return rowsArr;
+
+    rowList.sort(new Comparator<Row>() {
+      @Override
+      public int compare(final Row r1, final Row r2) {
+        return r1.compareTo(r2);
+      }
+    });
+    return rowList.toArray(new Row[rowList.size()]);
   }
-  
+
   /**
    * Returns the current number of counters the sketch is configured to support.
    * 
@@ -658,7 +633,7 @@ public class FrequentLongsSketch {
   public boolean isEmpty() {
     return getNumActiveItems() == 0;
   }
-  
+
   /**
    * Returns the sum of the frequencies in the stream seen so far by the sketch
    * 
@@ -667,7 +642,7 @@ public class FrequentLongsSketch {
   public long getStreamLength() {
     return this.streamLength;
   }
-  
+
   /**
    * Returns the maximum number of counters the sketch is configured to support.
    * 
@@ -676,7 +651,7 @@ public class FrequentLongsSketch {
   public int getMaximumMapCapacity() {
     return (int) ((1 << lgMaxMapSize)*ReversePurgeLongHashMap.getLoadFactor());
   }
-  
+
   /**
    * @return the number of active items in the sketch.
    */
@@ -694,7 +669,7 @@ public class FrequentLongsSketch {
       return 8;
     return 6 * 8 + 16 * getNumActiveItems();
   }
-  
+
   /**
    * Resets this sketch to a virgin state.
    */
@@ -705,7 +680,7 @@ public class FrequentLongsSketch {
     this.mergeError = 0;
     this.streamLength = 0;
   }
-  
+
   /**
    * Deserializes an array of String tokens into a hash map object of this class.
    * 
@@ -714,10 +689,10 @@ public class FrequentLongsSketch {
    * @return a hash map object of this class
    */
   static ReversePurgeLongHashMap deserializeFromStringArray(String[] tokens) {
-    int ignore = STR_PREAMBLE_TOKENS;
-    int numActive = Integer.parseInt(tokens[ignore]); 
-    int length = Integer.parseInt(tokens[ignore + 1]);
-    ReversePurgeLongHashMap hashMap = new ReversePurgeLongHashMap(length);
+    final int ignore = STR_PREAMBLE_TOKENS;
+    final int numActive = Integer.parseInt(tokens[ignore]); 
+    final int length = Integer.parseInt(tokens[ignore + 1]);
+    final ReversePurgeLongHashMap hashMap = new ReversePurgeLongHashMap(length);
     int j = 2 + ignore;
     for (int i = 0; i < numActive; i++) {
       long key = Long.parseLong(tokens[j++]);
