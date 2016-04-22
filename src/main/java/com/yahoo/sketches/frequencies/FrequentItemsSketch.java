@@ -35,13 +35,27 @@ import com.yahoo.sketches.memory.MemoryRegion;
 import com.yahoo.sketches.memory.NativeMemory;
 
 /**
- * <p>This sketch is useful for tracking approximate frequencies of items that are 
- * internally implemented as a hash map (<i>Object</i> item, <i>long</i> count).</p>
+ * <p>This sketch is useful for tracking approximate frequencies of long items with optional
+ * associated counts (<i>long</i> item, <i>long</i> count) that are members of a multiset of 
+ * such items. The frequency of an item is defined to be the sum of associated counts.</p>
+ * 
+ * <p>This implementation provides the following capabilities:</p>
+ * <ol>
+ * <li>Estimate the frequency of an item.</li>
+ * <li>Return upper and lower bounds of any item, such that the true frequency is always between
+ * the upper and lower bounds. </li>
+ * <li>Return a global maximum error that holds for all items in the stream.</li>
+ * <li>Return an array of frequent items that qualify either a NO_FALSE_POSITIVES or a 
+ * NO_FALSE_NEGATIVES error type.</li>
+ * <li>Merge itself with another sketch object created from this class.</li>
+ * <li>Serialize and Deserialize to String or byte array.
+ * </ol>
  * 
  * <p><b>Space Usage</b></p>
  * 
- * <p>The sketch is initialized with a maxMapSize that specifies the maximum length of the 
- * internal arrays used by the hash map. The maxMapSize must be a power of 2.</p>
+ * <p>The sketch is initialized with a maxMapSize that specifies the maximum physical length of the 
+ * internal hash map of the form (<i>&lt;T&gt;</i> item, <i>long</i> count).
+ * The maxMapSize must be a power of 2.</p>
  * 
  * <p>The hash map starts with a very small size (4), and grows as needed up to the 
  * specified maxMapSize. The LOAD_FACTOR for the hash map is internally set at 75%, 
@@ -78,10 +92,10 @@ import com.yahoo.sketches.memory.NativeMemory;
  * deterministically).</p>
  * 
  * <p>If the internal hash function had infinite precision and was perfectly uniform: Then,
- * for this implementation and for a specific active <i>item</i>, it is guaranteed that the difference 
- * between the Upper Bound and the Estimate is max(UB- Est) ~ 2n/k = (8/3)*(n/maxMapSize), where 
- * </i>n</i> denotes the stream length (i.e, sum of all the item counts). The behavior is similar
- * for the Lower Bound and the Estimate.
+ * for this implementation and for a specific active <i>item</i>, it is guaranteed that the 
+ * difference between the Upper Bound and the Estimate is 
+ * max(UB- Est) ~ 2n/k = (8/3)*(n/maxMapSize), where <i>n</i> denotes the stream length 
+ * (i.e, sum of all the item counts). The behavior is similar for the Lower Bound and the Estimate.
  * However, this implementation uses a deterministic hash function for performance that performs 
  * well on real data, and in practice, the difference is usually much smaller.</p>
  * 
@@ -91,13 +105,15 @@ import com.yahoo.sketches.memory.NativeMemory;
  * algorithm". Variants of it were discovered and rediscovered and redesigned several times over 
  * the years:</p>
  * <ul><li>"Finding repeated elements", Misra, Gries, 1982</li>
- * <li>"Frequency estimation of internet packet streams with limited space" Demaine, Lopez-Ortiz, Munro,
- * 2002</li>
+ * <li>"Frequency estimation of Internet packet streams with limited space" Demaine, Lopez-Ortiz, 
+ * Munro, 2002</li>
  * <li>"A simple algorithm for finding frequent elements in streams and bags" Karp, Shenker,
  * Papadimitriou, 2003</li>
  * <li>"Efficient Computation of Frequent and Top-k Elements in Data Streams" Metwally, Agrawal, 
  * Abbadi, 2006</li>
  * </ul>
+ * 
+ * @param <T> The type of item to be tracked by this sketch
  * 
  * @author Justin Thaler
  */
@@ -169,14 +185,14 @@ public class FrequentItemsSketch<T> {
   }
 
   /**
-   * Construct this sketch with parameter mapMapSize and initialMapSize. This constructor is
-   * used when deserializing the sketch. This is an internal method.
+   * Construct this sketch with parameter lgMapMapSize and lgCurMapSize. This internal constructor 
+   * is used when deserializing the sketch.
    * 
    * @param lgMaxMapSize Log2 of the physical size of the internal hash map managed by this sketch.
    * The maximum capacity of this internal hash map is 0.75 times 2^lgMaxMapSize.
    * Both the ultimate accuracy and size of this sketch are a function of lgMaxMapSize.
    * 
-   * @param lgCurMapSize Log_base 2 of the starting (current) physical size of the internal hash map 
+   * @param lgCurMapSize Log2 of the starting (current) physical size of the internal hash map 
    * managed by this sketch.
    */
   FrequentItemsSketch(final int lgMaxMapSize, final int lgCurMapSize) {
@@ -185,7 +201,7 @@ public class FrequentItemsSketch<T> {
     final int lgCurMapSz = Math.max(lgCurMapSize, LG_MIN_MAP_SIZE);
     hashMap = new ReversePurgeItemHashMap<T>(1 << lgCurMapSz);
     this.curMapCap = hashMap.getCapacity(); 
-    int maxMapCap = (int) ((1 << lgMaxMapSize) * ReversePurgeItemHashMap.getLoadFactor());
+    final int maxMapCap = (int) ((1 << lgMaxMapSize) * ReversePurgeItemHashMap.getLoadFactor());
     offset = 0;
     sampleSize = Math.min(SAMPLE_SIZE, maxMapCap); 
   }
@@ -215,20 +231,25 @@ public class FrequentItemsSketch<T> {
     final boolean preLongsEq1 = (preLongs == 1);        //Byte 0
     final boolean preLongsEqMax = (preLongs == maxPreLongs);
     if (!preLongsEq1 && !preLongsEqMax) {
-      throw new IllegalArgumentException("Possible Corruption: PreLongs must be 1 or " + maxPreLongs + ": " + preLongs);
+      throw new IllegalArgumentException(
+          "Possible Corruption: PreLongs must be 1 or " + maxPreLongs + ": " + preLongs);
     }
     if (serVer != SER_VER) {                      //Byte 1
-      throw new IllegalArgumentException("Possible Corruption: Ser Ver must be "+SER_VER+": " + serVer);
+      throw new IllegalArgumentException(
+          "Possible Corruption: Ser Ver must be "+SER_VER+": " + serVer);
     }
     final int actFamID = Family.FREQUENCY.getID();      //Byte 2
     if (familyID != actFamID) {
-      throw new IllegalArgumentException("Possible Corruption: FamilyID must be "+actFamID+": " + familyID);
+      throw new IllegalArgumentException(
+          "Possible Corruption: FamilyID must be "+actFamID+": " + familyID);
     }
     if (empty ^ preLongsEq1) {                    //Byte 5 and Byte 0
-      throw new IllegalArgumentException("Possible Corruption: (PreLongs == 1) ^ Empty == True.");
+      throw new IllegalArgumentException(
+          "Possible Corruption: (PreLongs == 1) ^ Empty == True.");
     }
     if (type != serDe.getType()) {               //Byte 6
-      throw new IllegalArgumentException("Possible Corruption: Freq Sketch Type != 1: " + type);
+      throw new IllegalArgumentException(
+          "Possible Corruption: Freq Sketch Type != 1: " + type);
     }
 
     if (empty) {
@@ -250,7 +271,8 @@ public class FrequentItemsSketch<T> {
     srcMem.getLongArray(preBytes, countArray, 0, activeItems);
     //Get itemArray
     final int itemsOffset = preBytes + 8 * activeItems;
-    final T[] itemArray = serDe.deserializeFromMemory(new MemoryRegion(srcMem, itemsOffset, srcMem.getCapacity() - itemsOffset), activeItems);
+    final T[] itemArray = serDe.deserializeFromMemory(
+        new MemoryRegion(srcMem, itemsOffset, srcMem.getCapacity() - itemsOffset), activeItems);
     //update the sketch
     for (int i = 0; i < activeItems; i++) {
       fis.update(itemArray[i], countArray[i]);
@@ -300,7 +322,7 @@ public class FrequentItemsSketch<T> {
       preArr[4] = this.mergeError;
       mem.putLongArray(0, preArr, 0, preLongs);
       final int preBytes = preLongs << 3;
-      mem.putLongArray(preBytes, hashMap.getActiveValues(), 0, this.getNumActiveItems());
+      mem.putLongArray(preBytes, hashMap.getActiveValues(), 0, activeItems);
       final byte[] bytes = serDe.serializeToByteArray(hashMap.getActiveKeys());
       mem.putByteArray(preBytes + (this.getNumActiveItems() << 3), bytes, 0, bytes.length);
     }
@@ -328,7 +350,7 @@ public class FrequentItemsSketch<T> {
     this.streamLength += count;
     hashMap.adjust(item, count);
     final int numActive = getNumActiveItems();
-    
+
     if (hashMap.getLgLength() < lgMaxMapSize) { //below tgt size
       if (numActive >= curMapCap) {
         hashMap.resize(2 * hashMap.getLength());
@@ -411,7 +433,7 @@ public class FrequentItemsSketch<T> {
     final long returnVal = hashMap.get(item) - mergeError;
     return Math.max(returnVal, 0);
   }
-  
+
   /**
    * Returns an array of Rows that include frequent items, estimates, upper and lower bounds
    * given an ErrorCondition. 
@@ -489,6 +511,7 @@ public class FrequentItemsSketch<T> {
         return r1.compareTo(r2);
       }
     });
+    
     @SuppressWarnings("unchecked")
     final Row[] rowsArr = rowList.toArray((Row[]) Array.newInstance(Row.class, rowList.size()));
     return rowsArr;

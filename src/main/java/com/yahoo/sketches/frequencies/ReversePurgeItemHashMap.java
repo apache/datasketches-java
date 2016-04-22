@@ -17,6 +17,8 @@ import com.yahoo.sketches.QuickSelect;
  * "reverse" purge operation that removes all keys in the map whose associated values are &le; 0 
  * and is performed in reverse, starting at the "back" of the array and moving toward the front.
  * 
+ * @param <T> The type of item to be tracked by this sketch
+ * 
  * @author Edo Liberty
  * @author Justin Thaler
  */
@@ -337,22 +339,22 @@ class ReversePurgeItemHashMap<T> {
   }
 
   class Iterator {
-    private final Object[] keys;
-    private final long[] values;
-    private final short[] states;
+    private final Object[] iKeys;
+    private final long[] iValues;
+    private final short[] iStates;
     private int i;
 
     Iterator(final Object[] keys, final long[] values, final short[] states) {
-      this.keys = keys;
-      this.values = values;
-      this.states = states;
+      iKeys = keys;
+      iValues = values;
+      iStates = states;
       i = -1;
     }
 
     boolean next() {
       i++;
-      while (i < keys.length) {
-        if (states[i] > 0) return true;
+      while (i < iKeys.length) {
+        if (iStates[i] > 0) return true;
         i++;
       }
       return false;
@@ -360,11 +362,11 @@ class ReversePurgeItemHashMap<T> {
 
     @SuppressWarnings("unchecked")
     T getKey() {
-      return (T) keys[i];
+      return (T) iKeys[i];
     }
 
     long getValue() {
-      return values[i];
+      return iValues[i];
     }
   }
 }

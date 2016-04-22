@@ -377,33 +377,33 @@ class ReversePurgeLongHashMap {
   }
 
   class Iterator {
-    private final long[] keys;
-    private final long[] values;
-    private final short[] states;
+    private final long[] iKeys;
+    private final long[] iValues;
+    private final short[] iStates;
     private int i;
 
     Iterator(final long[] keys, final long[] values, final short[] states) {
-      this.keys = keys;
-      this.values = values;
-      this.states = states;
+      this.iKeys = keys;
+      this.iValues = values;
+      this.iStates = states;
       i = -1;
     }
 
     boolean next() {
       i++;
-      while (i < keys.length) {
-        if (states[i] > 0) return true;
+      while (i < iKeys.length) {
+        if (iStates[i] > 0) return true;
         i++;
       }
       return false;
     }
 
     long getKey() {
-      return keys[i];
+      return iKeys[i];
     }
 
     long getValue() {
-      return values[i];
+      return iValues[i];
     }
   }
 }

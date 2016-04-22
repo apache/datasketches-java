@@ -44,8 +44,8 @@ import com.yahoo.sketches.memory.NativeMemory;
  * <li>Return upper and lower bounds of any item, such that the true frequency is always between
  * the upper and lower bounds. </li>
  * <li>Return a global maximum error that holds for all items in the stream.</li>
- * <li>Return an array of items whose frequencies might be above a user specified threshold.</li>
- * <li>Return an array of items whose frequencies are definitely above a user specified threshold.</li>
+ * <li>Return an array of frequent items that qualify either a NO_FALSE_POSITIVES or a 
+ * NO_FALSE_NEGATIVES error type.</li>
  * <li>Merge itself with another sketch object created from this class.</li>
  * <li>Serialize and Deserialize to String or byte array.
  * </ol>
@@ -117,14 +117,14 @@ import com.yahoo.sketches.memory.NativeMemory;
 public class FrequentLongsSketch {
 
   public enum ErrorType {NO_FALSE_POSITIVES, NO_FALSE_NEGATIVES}
-  
+
   /**
    * We start by allocating a small data structure capable of explicitly storing very small streams
    * and then growing it as the stream grows. The following constant controls the size of the
    * initial data structure.
    */
   private static final int LG_MIN_MAP_SIZE = 2; // This is somewhat arbitrary
-  
+
   /**
    * This is a constant large enough that computing the median of SAMPLE_SIZE
    * randomly selected entries from a list of numbers and outputting
@@ -132,25 +132,25 @@ public class FrequentLongsSketch {
    * true median with high probability
    */
   private static final int SAMPLE_SIZE = 256;
-  
+
   private static final int STR_PREAMBLE_TOKENS = 8;
-  
+
   /**
    * Log2 Maximum length of the arrays internal to the hash map supported by the data structure.
    */
   private int lgMaxMapSize;
-  
+
   /**
    * The current number of counters supported by the hash map.
    */
   private int curMapCap; //the threshold to purge
-  
+
   /**
    * An upper bound on the error in any estimated count due to merging with other 
    * FrequentLongsSketches.
    */
   private long mergeError;
-  
+
   /**
    * Tracks the total of decremented counts performed.
    */
@@ -182,16 +182,16 @@ public class FrequentLongsSketch {
   public FrequentLongsSketch(final int maxMapSize) {
     this(toLog2(maxMapSize, "maxMapSize"), LG_MIN_MAP_SIZE);
   }
-  
+
   /**
-   * Construct this sketch with parameter mapMapSize and initialMapSize. This constructor is
-   * used when deserializing the sketch. This is an internal method.
+   * Construct this sketch with parameter lgMapMapSize and lgCurMapSize. This internal constructor 
+   * is used when deserializing the sketch.
    * 
    * @param lgMaxMapSize Log2 of the physical size of the internal hash map managed by this sketch.
    * The maximum capacity of this internal hash map is 0.75 times 2^lgMaxMapSize.
    * Both the ultimate accuracy and size of this sketch are a function of lgMaxMapSize.
    * 
-   * @param lgCurMapSize Log_base 2 of the starting (current) physical size of the internal hash map 
+   * @param lgCurMapSize Log2 of the starting (current) physical size of the internal hash map 
    * managed by this sketch.
    */
   FrequentLongsSketch(final int lgMaxMapSize, final int lgCurMapSize) {
@@ -259,7 +259,7 @@ public class FrequentLongsSketch {
     final long[] preArr = new long[preLongs];
     srcMem.getLongArray(0, preArr, 0, preLongs);
 
-    final FrequentLongsSketch fls = new FrequentLongsSketch(lgMaxMapSize, lgCurMapSize);
+    FrequentLongsSketch fls = new FrequentLongsSketch(lgMaxMapSize, lgCurMapSize);
     fls.streamLength = 0; //update after
     fls.offset = preArr[3];
     fls.mergeError = preArr[4];
@@ -270,8 +270,8 @@ public class FrequentLongsSketch {
     final long[] countArray = new long[activeItems];
     srcMem.getLongArray(preBytes, countArray, 0, activeItems);
     //Get itemArray
-    final long[] itemArray = new long[activeItems];
     final int itemsOffset = preBytes + 8 * activeItems;
+    final long[] itemArray = new long[activeItems];
     srcMem.getLongArray(itemsOffset, itemArray, 0, activeItems);
     //update the sketch
     for (int i = 0; i < activeItems; i++) {
@@ -400,9 +400,9 @@ public class FrequentLongsSketch {
       preArr[4] = this.mergeError;
       mem.putLongArray(0, preArr, 0, preLongs);
       final int preBytes = preLongs << 3;
-      mem.putLongArray(preBytes, hashMap.getActiveValues(), 0, this.getNumActiveItems());
-      mem.putLongArray(preBytes + (this.getNumActiveItems() << 3), hashMap.getActiveKeys(), 
-          0, this.getNumActiveItems());
+      mem.putLongArray(preBytes, hashMap.getActiveValues(), 0, activeItems);
+   
+      mem.putLongArray(preBytes + (activeItems << 3), hashMap.getActiveKeys(), 0, activeItems);
     }
     return outArr;
   }
@@ -499,7 +499,7 @@ public class FrequentLongsSketch {
     // If item is tracked:
     // Estimate = itemCount + offset; Otherwise it is 0.
     final long itemCount = hashMap.get(item);
-    return (itemCount > 0)? itemCount + offset : 0;
+    return (itemCount > 0) ? itemCount + offset : 0;
   }
 
   /**
@@ -604,6 +604,7 @@ public class FrequentLongsSketch {
         return r1.compareTo(r2);
       }
     });
+    
     return rowList.toArray(new Row[rowList.size()]);
   }
 
@@ -624,7 +625,7 @@ public class FrequentLongsSketch {
   public long getMaximumError() {
     return offset + mergeError;
   }
-  
+
   /**
    * Returns true if this sketch is empty
    * 
