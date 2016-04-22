@@ -8,6 +8,7 @@ package com.yahoo.sketches.frequencies;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.frequencies.FrequentLongsSketch.ErrorType;
 import com.yahoo.sketches.frequencies.ReversePurgeLongHashMap;
+import com.yahoo.sketches.frequencies.FrequentLongsSketch.Row;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 import gnu.trove.map.hash.TLongLongHashMap;
@@ -59,7 +60,7 @@ public class FrequentLongsSketchTest {
     Assert.assertTrue(string.equals(new_string));
   }
 
-  //@Test
+  @Test
   private static void frequentItemsStringSerialTest() {
     FrequentLongsSketch sketch = new FrequentLongsSketch(8);
     FrequentLongsSketch sketch2 = new FrequentLongsSketch(128);
@@ -117,7 +118,17 @@ public class FrequentLongsSketchTest {
 
   @Test
   private static void frequentItemsByteSerialTest() {
+    //Empty Sketch
     FrequentLongsSketch sketch = new FrequentLongsSketch(16);
+    byte[] bytearray0 = sketch.serializeToByteArray();
+    Memory mem0 = new NativeMemory(bytearray0);
+    FrequentLongsSketch new_sketch0 = FrequentLongsSketch.getInstance(mem0);
+    String str0 = PreambleUtil.preambleToString(mem0);
+    println(str0);
+    String string0 = sketch.serializeToString();
+    String new_string0 = new_sketch0.serializeToString();
+    Assert.assertTrue(string0.equals(new_string0));
+    
     FrequentLongsSketch sketch2 = new FrequentLongsSketch(128);
     sketch.update(10, 100);
     sketch.update(10, 100);
@@ -125,15 +136,16 @@ public class FrequentLongsSketchTest {
     sketch.update(1000001, 1010230);
     sketch.update(1000002, 1010230);
 
-    byte[] bytearray0 = sketch.serializeToByteArray();
-    Memory mem0 = new NativeMemory(bytearray0);
-    FrequentLongsSketch new_sketch0 = FrequentLongsSketch.getInstance(mem0);
-
-    String string0 = sketch.serializeToString();
-    String new_string0 = new_sketch0.serializeToString();
-    Assert.assertTrue(string0.equals(new_string0));
-    Assert.assertTrue(new_sketch0.getMaximumMapCapacity() == sketch.getMaximumMapCapacity());
-    Assert.assertTrue(new_sketch0.getCurrentMapCapacity() == sketch.getCurrentMapCapacity());
+    byte[] bytearray1 = sketch.serializeToByteArray();
+    Memory mem1 = new NativeMemory(bytearray1);
+    FrequentLongsSketch new_sketch1 = FrequentLongsSketch.getInstance(mem1);
+    String str1 = PreambleUtil.preambleToString(mem1);
+    println(str1);
+    String string1 = sketch.serializeToString();
+    String new_string1 = new_sketch1.serializeToString();
+    Assert.assertTrue(string1.equals(new_string1));
+    Assert.assertTrue(new_sketch1.getMaximumMapCapacity() == sketch.getMaximumMapCapacity());
+    Assert.assertTrue(new_sketch1.getCurrentMapCapacity() == sketch.getCurrentMapCapacity());
 
     sketch2.update(190, 12902390);
     sketch2.update(191, 12902390);
@@ -222,12 +234,17 @@ public class FrequentLongsSketchTest {
         sketches[h].update(item);
     }
     
-    long threshold = 10;
     for(int h=0; h<numSketches; h++) {
-      long[] freq = sketches[h].getFrequentItems(threshold, ErrorType.NO_FALSE_NEGATIVES);
-
-      for (int i = 0; i < freq.length; i++)
-        Assert.assertTrue(sketches[h].getUpperBound(freq[i]) > threshold);
+      long threshold = sketches[h].getMaximumError();
+      Row[] rows = sketches[h].getFrequentItems(ErrorType.NO_FALSE_NEGATIVES);
+      for (int i = 0; i < rows.length; i++) {
+        Assert.assertTrue(rows[i].ub > threshold);
+      }
+      
+      rows = sketches[h].getFrequentItems(ErrorType.NO_FALSE_POSITIVES);
+      for (int i = 0; i < rows.length; i++) {
+        Assert.assertTrue(rows[i].lb > threshold);
+      }
     }
   }
 
@@ -588,8 +605,8 @@ public class FrequentLongsSketchTest {
   public void checkGetFrequentItems1() {
     FrequentLongsSketch fls = new FrequentLongsSketch(4);
     fls.update(1);
-    long[] itemArr = fls.getFrequentItems(0, ErrorType.NO_FALSE_POSITIVES);
-    assertEquals(itemArr[0], 1);
+    Row[] rowArr = fls.getFrequentItems(ErrorType.NO_FALSE_POSITIVES);
+    assertEquals(rowArr[0].est, 1);
   }
   
   @Test
@@ -646,14 +663,28 @@ public class FrequentLongsSketchTest {
         sketches[h].update(item);
     }
     
-    long threshold = 10;
     for(int h=0; h<numSketches; h++) {
-      long[] freq = sketches[h].getFrequentItems(threshold, ErrorType.NO_FALSE_NEGATIVES);
-
-      for (int i = 0; i < freq.length; i++)
-        Assert.assertTrue(sketches[h].getUpperBound(freq[i]) > threshold);
+      long threshold = sketches[h].getMaximumError();
+      Row[] rows = sketches[h].getFrequentItems(ErrorType.NO_FALSE_NEGATIVES);
+      println("ROWS: "+rows.length);
+      for (int i = 0; i < rows.length; i++) {
+        String s = rows[i].toString();
+        println(s);
+        Assert.assertTrue(rows[i].ub > threshold);
+      }
     }
   }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkGetAndCheckPreLongs() {
+    byte[] byteArr = new byte[8];
+    byteArr[0] = (byte) 2;
+    PreambleUtil.getAndCheckPreLongs(new NativeMemory(byteArr));
+  }
+  
+  
+  
+  
   
   //Restricted methods
   

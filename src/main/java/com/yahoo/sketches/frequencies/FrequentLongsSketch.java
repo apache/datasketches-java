@@ -233,7 +233,6 @@ public class FrequentLongsSketch {
     boolean preLongsEq1 = (preLongs == 1);
     boolean preLongsEqMax = (preLongs == maxPreLongs);
     if (!preLongsEq1 && !preLongsEqMax) {
-      
       throw new IllegalArgumentException(
           "Possible Corruption: PreLongs must be 1 or "+maxPreLongs+": " + preLongs);
     }
@@ -321,8 +320,9 @@ public class FrequentLongsSketch {
           "Possible Corruption: Sketch TYPE incorrect: "+type);
     }
     int numTokens = tokens.length;
-    if (numActive != (numTokens - 2)/2) {
-      throw new IllegalArgumentException("Possible Corruption: Incorrect # of tokens: "+numTokens);
+    if (numActive != (numTokens - STR_PREAMBLE_TOKENS -2)/2) {
+      throw new IllegalArgumentException("Possible Corruption: Incorrect # of tokens: "+numTokens+
+          ", numActive: "+numActive);
     }
     
     
@@ -548,84 +548,56 @@ public class FrequentLongsSketch {
   }
   
   /**
-   * Returns an array of frequent items given a threshold frequency count and an ErrorCondition. 
-   * Note: if the given threshold is less than getMaxError() the items that are returned have no
-   * guarantees.
+   * Returns an array of Rows that include frequent items, estimates, upper and lower bounds
+   * given an ErrorCondition. 
    * 
    * The method first examines all active items in the sketch (items that have a counter).
    *  
-   * <p>If <i>ErrorType = NO_FALSE_NEGATIVES</i>, this will include a item in the result list 
-   * if getUpperBound(item) &gt; threshold. 
+   * <p>If <i>ErrorType = NO_FALSE_NEGATIVES</i>, this will include an item in the result list 
+   * if getUpperBound(item) &gt; maxError. 
    * There will be no false negatives, i.e., no Type II error.
    * There may be items in the set with true frequencies less than the threshold (false positives).</p>
    * 
-   * <p>If <i>ErrorType = NO_FALSE_POSITIVES</i>, this will include a item in the result list 
-   * if getLowerBound(item) &gt; threshold. 
+   * <p>If <i>ErrorType = NO_FALSE_POSITIVES</i>, this will include an item in the result list 
+   * if getLowerBound(item) &gt; maxError. 
    * There will be no false positives, i.e., no Type I error.
    * There may be items ommitted from the set with true frequencies greater than the threshold 
    * (false negatives).</p>
    * 
-   * @param threshold the given frequency threshold that should be greater than getMaxError().
    * @param errorType determines whether no false positives or no false negatives are desired.
    * @return an array of frequent items
    */
-  public long[] getFrequentItems(long threshold, ErrorType errorType) { 
-    int count = 0;
-    long[] items = hashMap.getKeys();    //ref to raw keys array
-    //long[] counts = hashMap.getValues(); //ref to raw keys array
-    int arrLen = items.length;
-    int numActive = hashMap.getNumActive();
-    
-    // allocate an initial array to store the candidate frequent items
-    long[] freqItems = new long[numActive];
-    count = 0;
-    if (errorType == ErrorType.NO_FALSE_NEGATIVES) {
-      for (int i = arrLen; i-- > 0;) {
-        if (hashMap.isActive(i) && (getUpperBound(items[i]) >= threshold)) {
-          freqItems[count] = items[i];
-          count++;
-        }
-      }
-    } else { //NO_FALSE_POSITIVES
-      for (int i = arrLen; i-- > 0;) {
-        if (hashMap.isActive(i) && (getLowerBound(items[i]) >= threshold)) {
-          freqItems[count] = items[i];
-          count++;
-        }
-      }
-    }
-    long[] outArr = new long[count];
-    System.arraycopy(freqItems, 0, outArr, 0, count);
-    return outArr;
+  public Row[] getFrequentItems(ErrorType errorType) { 
+    return sortItems(getMaximumError(), errorType);
   }
 
-  class Row implements Comparator<Row>{
+  public class Row implements Comparator<Row>{
     long item;
-    long count;
+    long est;
     long ub;
     long lb;
     
     Row() {} //for comparator
     
-    Row(long item, long count, long ub, long lb) {
+    Row(long item, long estimate, long ub, long lb) {
       this.item = item;
-      this.count = count;
+      this.est = estimate;
       this.ub = ub;
       this.lb = lb;
     }
     
     @Override
     public String toString() {
-      return String.format("%d,%d,%d,%d", item, count, ub, lb);
+      return String.format("%d,%d,%d,%d", item, est, ub, lb);
     }
     
     @Override
     public int compare(Row r1, Row r2) {
-      return (r1.count < r2.count)? -1 : (r1.count > r2.count)? 1 : 0;
+      return (r1.est < r2.est)? -1 : (r1.est > r2.est)? 1 : 0;
     }
   }
   
-  Row[] sortItems(long maxError, ErrorType errorType) {
+  Row[] sortItems(long threshold, ErrorType errorType) {
     long[] counts = hashMap.getValues();
     long[] items = hashMap.getKeys();
     int arrLen = items.length;
@@ -634,8 +606,8 @@ public class FrequentLongsSketch {
       for (int i=0; i<arrLen; i++) {
         long ub = getUpperBound(items[i]);
         long lb = getLowerBound(items[i]);
-        if (hashMap.isActive(i) && (ub >= maxError)) {
-          Row row = new Row(items[i], counts[i], ub, lb);
+        if (hashMap.isActive(i) && (ub >= threshold)) {
+          Row row = new Row(items[i], counts[i]+offset, ub, lb);
           rowList.add(row);
         }
       }
@@ -643,8 +615,8 @@ public class FrequentLongsSketch {
       for (int i=0; i<arrLen; i++) {
         long ub = getUpperBound(items[i]);
         long lb = getLowerBound(items[i]);
-        if (hashMap.isActive(i) && (lb >= maxError)) {
-          Row row = new Row(items[i], counts[i], ub, lb);
+        if (hashMap.isActive(i) && (lb >= threshold)) {
+          Row row = new Row(items[i], counts[i]+offset, ub, lb);
           rowList.add(row);
         }
       }
@@ -652,7 +624,6 @@ public class FrequentLongsSketch {
     
     rowList.sort(new Row());
     Row[] rowsArr = rowList.toArray(new Row[0]);
-    
     return rowsArr;
   }
   

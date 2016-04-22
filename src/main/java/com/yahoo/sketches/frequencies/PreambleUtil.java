@@ -5,15 +5,11 @@
 
 package com.yahoo.sketches.frequencies;
 
-//import static com.yahoo.sketches.Util.LS;
-//import static com.yahoo.sketches.Util.zeroPad;
-//
-//import java.nio.ByteOrder;
-//
-//import com.yahoo.sketches.Family;
-//import com.yahoo.sketches.ResizeFactor;
+import static com.yahoo.sketches.Util.LS;
+import static com.yahoo.sketches.Util.zeroPad;
+
+import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
-//import com.yahoo.sketches.memory.NativeMemory;
 
 // @formatter:off
 /**
@@ -89,114 +85,69 @@ final class PreambleUtil {
    * enough for just the preamble, this does not do much value checking of the contents of the 
    * preamble as this is primarily a tool for debugging the preamble visually.
    * 
-   * @param mem the given Memory.
+   * @param srcMem the given Memory.
    * @return the summary preamble string.
    */
-//  public static String preambleToString(Memory mem) {
-//    int preLongs = getAndCheckPreLongs(mem);  //make sure we can get the assumed preamble
-//    long pre0 = mem.getLong(0);
-//    int serVer = extractSerVer(pre0);
-//    Family family = Family.idToFamily(extractFamilyID(pre0));
-//    
-//    //Flags
-//    int flags = extractFlags(pre0);
-//    String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
-//    boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
-//    
-//    int maxMapSize = extractMaxMapSize(pre0);
-//    
-//    //Assumed if preLongs == 1
-//    long mergeError = 0;
-//    long offset = 0;
-//    long streamLength = 0;
-//    int curMapSize = 
-//    //Assumed if preLongs == 1 or 2
-//    
-//    //Assumed if preLongs == 1 or 2 or 3
-//
-//    
-//    if (preLongs == 2) {
-//      long pre1 = mem.getLong(1);
-//      curCount = extractCurCount(pre1);
-//      p = extractP(pre1);
-//      thetaLong = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
-//      thetaULong = thetaLong;
-//    } 
-//    else if (preLongs == 3){
-//      long pre1 = mem.getLong(1);
-//      curCount = extractCurCount(pre1);
-//      p = extractP(pre1);
-//      thetaLong = mem.getLong(THETA_LONG);
-//      thetaULong = thetaLong;
-//    } 
-//    else if (preLongs == 4) {
-//      long pre1 = mem.getLong(1);
-//      curCount = extractCurCount(pre1);
-//      p = extractP(pre1);
-//      thetaLong = mem.getLong(THETA_LONG);
-//      thetaULong = mem.getLong(UNION_THETA_LONG);
-//    } //else: the same as preLongs == 1
-//    double thetaDbl = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
-//    String thetaHex = zeroPad(Long.toHexString(thetaLong), 16);
-//    double thetaUDbl = thetaULong / MAX_THETA_LONG_AS_DOUBLE;
-//    String thetaUHex = zeroPad(Long.toHexString(thetaULong), 16);
-//    
-//    StringBuilder sb = new StringBuilder();
-//    sb.append(LS)
-//      .append("### SKETCH PREAMBLE SUMMARY:").append(LS)
-//      .append("Byte  0: Preamble Longs       : ").append(preLongs).append(LS)
-//      .append("Byte  0: ResizeFactor         : ").append(rf.toString()).append(LS)
-//      .append("Byte  1: Serialization Version: ").append(serVer).append(LS)
-//      .append("Byte  2: Family               : ").append(family.toString()).append(LS)
-//      .append("Byte  3: LgNomLongs           : ").append(lgNomLongs).append(LS)
-//      .append("Byte  4: LgArrLongs           : ").append(lgArrLongs).append(LS)
-//      .append("Byte  5: Flags Field          : ").append(flagsStr).append(LS)
-//      .append("  BIG_ENDIAN_STORAGE          : ").append(bigEndian).append(LS)
-//      .append("  (Native Byte Order)         : ").append(nativeOrder).append(LS)
-//      .append("  READ_ONLY                   : ").append(readOnly).append(LS)
-//      .append("  EMPTY                       : ").append(empty).append(LS)
-//      .append("  COMPACT                     : ").append(compact).append(LS)
-//      .append("  ORDERED                     : ").append(ordered).append(LS)
-//      .append("Bytes 6-7  : Seed Hash        : ").append(Integer.toHexString(seedHash)).append(LS);
-//    if (preLongs == 1) {
-//      sb.append(" --ABSENT, ASSUMED:").append(LS);
-//      sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS)
-//        .append("Bytes 12-15: P                : ").append(p).append(LS);
-//      sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS)
-//        .append("             Theta (long)     : ").append(thetaLong).append(LS)
-//        .append("             Theta (long,hex) : ").append(thetaHex).append(LS);
-//    }
-//    if (preLongs == 2) {
-//      sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS)
-//        .append("Bytes 12-15: P                : ").append(p).append(LS);
-//      sb.append(" --ABSENT, ASSUMED:").append(LS);
-//      sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS)
-//        .append("             Theta (long)     : ").append(thetaLong).append(LS)
-//        .append("             Theta (long,hex) : ").append(thetaHex).append(LS);
-//    }
-//    if (preLongs == 3) {
-//      sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS)
-//        .append("Bytes 12-15: P                : ").append(p).append(LS);
-//      sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS)
-//        .append("             Theta (long)     : ").append(thetaLong).append(LS)
-//        .append("             Theta (long,hex) : ").append(thetaHex).append(LS);
-//    }
-//    if (preLongs == 4) {
-//      sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS)
-//        .append("Bytes 12-15: P                : ").append(p).append(LS);
-//      sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS)
-//        .append("             Theta (long)     : ").append(thetaLong).append(LS)
-//        .append("             Theta (long,hex) : ").append(thetaHex).append(LS);
-//      sb.append("Bytes 25-31: ThetaU (double)  : ").append(thetaUDbl).append(LS)
-//        .append("             ThetaU (long)    : ").append(thetaULong).append(LS)
-//        .append("             ThetaU (long,hex): ").append(thetaUHex).append(LS);
-//    }
-//    sb.append(  "Preamble Bytes                : ").append(preLongs * 8).append(LS);
-//    sb.append(  "Data Bytes                    : ").append(curCount * 8).append(LS);
-//    sb.append(  "TOTAL Sketch Bytes            : ").append(mem.getCapacity()).append(LS)
-//      .append("### END SKETCH PREAMBLE SUMMARY").append(LS);
-//    return sb.toString();
-//  }
+  public static String preambleToString(Memory srcMem) {
+    long pre0 = getAndCheckPreLongs(srcMem); //make sure we can get the assumed preamble
+    int preLongs = extractPreLongs(pre0);   //byte 0
+    int serVer = extractSerVer(pre0);       //byte 1
+    Family family = Family.idToFamily(extractFamilyID(pre0)); //byte 2
+    int lgMaxMapSize = extractLgMaxMapSize(pre0); //byte 3
+    int lgCurMapSize = extractLgCurMapSize(pre0); //byte 4
+    int flags = extractFlags(pre0);         //byte 5
+    int type = extractFreqSketchType(pre0); //byte 6
+    
+    String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
+    boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
+    int maxMapSize = 1 << lgMaxMapSize;
+    int curMapSize = 1 << lgCurMapSize;
+    int maxPreLongs = Family.FREQUENCY.getMaxPreLongs();
+    
+    //Assumed if preLongs == 1
+    int activeItems = 0;
+    long streamLength = 0;
+    long offset = 0;
+    long mergeError = 0;
+    
+    //Assumed if preLongs == maxPreLongs
+    
+    if (preLongs == maxPreLongs) {
+      //get full preamble
+      long[] preArr = new long[preLongs];
+      srcMem.getLongArray(0, preArr, 0, preLongs);
+      activeItems =  extractActiveItems(preArr[1]);
+      streamLength = preArr[2];
+      offset = preArr[3];
+      mergeError = preArr[4];
+    }
+    
+    StringBuilder sb = new StringBuilder();
+    sb.append(LS)
+      .append("### FREQUENCY SKETCH PREAMBLE SUMMARY:").append(LS)
+      .append("Byte  0: Preamble Longs       : ").append(preLongs).append(LS)
+      .append("Byte  1: Serialization Version: ").append(serVer).append(LS)
+      .append("Byte  2: Family               : ").append(family.toString()).append(LS)
+      .append("Byte  3: MaxMapSize           : ").append(maxMapSize).append(LS)
+      .append("Byte  4: CurMapSize           : ").append(curMapSize).append(LS)
+      .append("Byte  5: Flags Field          : ").append(flagsStr).append(LS)
+      .append("  EMPTY                       : ").append(empty).append(LS)
+      .append("Byte  6: Freq Sketch Type     : ").append(type).append(LS);
+      
+    if (preLongs == 1) {
+      sb.append(" --ABSENT, ASSUMED:").append(LS);
+    } else { //preLongs == maxPreLongs
+      sb.append("Bytes 8-11 : ActiveItems    : ").append(activeItems).append(LS);
+      sb.append("Bytes 16-23: StreamLength   : ").append(streamLength).append(LS)
+        .append("Bytes 24-31: Offset         : ").append(offset).append(LS)
+        .append("Bytes 32-40: MergeError     : ").append(mergeError).append(LS);
+    }
+    
+    sb.append(  "Preamble Bytes                : ").append(preLongs * 8).append(LS);
+    sb.append(  "TOTAL Sketch Bytes            : ").append((preLongs + activeItems*2) << 3).append(LS)
+      .append("### END FREQUENCY SKETCH PREAMBLE SUMMARY").append(LS);
+    return sb.toString();
+  }
 
 // @formatter:on
   
