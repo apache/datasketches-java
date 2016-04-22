@@ -8,7 +8,7 @@ package com.yahoo.sketches.frequencies;
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.toLog2;
 
-import java.util.Arrays;
+import com.yahoo.sketches.QuickSelect;
 
 /**
  * Implements a linear-probing based hash map of (key, value) pairs and is distinguished by a 
@@ -19,7 +19,7 @@ import java.util.Arrays;
  * @author Justin Thaler
  */
 class ReversePurgeLongHashMap {
-  private final static double LOAD_FACTOR = 0.75;
+  private static final double LOAD_FACTOR = 0.75;
   private static final int DRIFT_LIMIT = 1024; //used only in stress testing
   private int lgLength;
   private int loadThreshold;
@@ -29,8 +29,6 @@ class ReversePurgeLongHashMap {
   private short[] states;
   private int numActive = 0;
 
-  
-  
   /**
    * Constructor will create arrays of length mapSize, which must be a power of two.
    * This restriction was made to ensure fast hashing.
@@ -57,19 +55,19 @@ class ReversePurgeLongHashMap {
    * @param string a String representation of this class.
    * @return an instance of this class.
    */
-  static ReversePurgeLongHashMap getInstance(String string) {
+  static ReversePurgeLongHashMap getInstance(final String string) {
     String[] tokens = string.split(",");
     if (tokens.length < 2) {
       throw new IllegalArgumentException(
           "String not long enough to specify length and capacity.");
     }
-    int numActive = Integer.parseInt(tokens[0]);
-    int length = Integer.parseInt(tokens[1]);
-    ReversePurgeLongHashMap table = new ReversePurgeLongHashMap(length);
+    final int numActive = Integer.parseInt(tokens[0]);
+    final int length = Integer.parseInt(tokens[1]);
+    final ReversePurgeLongHashMap table = new ReversePurgeLongHashMap(length);
     int j = 2;
     for (int i = 0; i < numActive; i++) {
-      long key = Long.parseLong(tokens[j++]);
-      long value = Long.parseLong(tokens[j++]);
+      final long key = Long.parseLong(tokens[j++]);
+      final long value = Long.parseLong(tokens[j++]);
       table.adjustOrPutValue(key, value, value);
     }
     return table;
@@ -83,7 +81,7 @@ class ReversePurgeLongHashMap {
    * @return a String representation of this hash map.
    */
   String serializeToString() {
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
     sb.append(String.format("%d,%d,", numActive, keys.length));
 
     for (int i = 0; i < keys.length; i++) {
@@ -98,7 +96,7 @@ class ReversePurgeLongHashMap {
    * @param probe location in the hash table array
    * @return true if the cell in the array contains an active key
    */
-  boolean isActive(int probe) {
+  boolean isActive(final int probe) {
     return (states[probe] > 0);
   }
   
@@ -108,8 +106,8 @@ class ReversePurgeLongHashMap {
    * @return the positive value the key corresponds to or zero if if the key is not found in the
    * hash map.
    */
-  long get(long key) {
-    int probe = hashProbe(key);
+  long get(final long key) {
+    final int probe = hashProbe(key);
     if (states[probe] > 0) {
       assert (keys[probe] == key);
       return values[probe];
@@ -125,7 +123,7 @@ class ReversePurgeLongHashMap {
    * @param adjustAmount the amount by which to increment the value
    * @param putAmount the value put into the map if the key is not present
    */
-  void adjustOrPutValue(long key, long adjustAmount, long putAmount) {
+  void adjustOrPutValue(final long key, final long adjustAmount, final long putAmount) {
     int probe = (int) hash(key) & arrayMask;
     int drift = 1;
     while (states[probe] != 0 && keys[probe] != key) {
@@ -185,7 +183,7 @@ class ReversePurgeLongHashMap {
    * @param key the key of the value to increment
    * @param value the value increment by, or to put into the map if the key is not initial present
    */
-  void adjust(long key, long value) {
+  void adjust(final long key, final long value) {
     adjustOrPutValue(key, value, value);
   }
 
@@ -193,7 +191,7 @@ class ReversePurgeLongHashMap {
    * @param adjustAmount value by which to shift all values. Only keys corresponding to positive
    * values are retained.
    */
-  void adjustAllValuesBy(long adjustAmount) {
+  void adjustAllValuesBy(final long adjustAmount) {
     for (int i = keys.length; i-- > 0;)
       values[i] += adjustAmount;
   }
@@ -204,7 +202,7 @@ class ReversePurgeLongHashMap {
   long[] getActiveKeys() {
     if (numActive == 0)
       return null;
-    long[] returnedKeys = new long[numActive];
+    final long[] returnedKeys = new long[numActive];
     int j = 0;
     for (int i = 0; i < keys.length; i++)
       if (isActive(i)) {
@@ -221,7 +219,7 @@ class ReversePurgeLongHashMap {
   long[] getActiveValues() {
     if (numActive == 0)
       return null;
-    long[] returnedValues = new long[numActive];
+    final long[] returnedValues = new long[numActive];
     int j = 0;
     for (int i = 0; i < keys.length; i++)
       if (isActive(i)) {
@@ -232,18 +230,22 @@ class ReversePurgeLongHashMap {
     return returnedValues;
   }
 
-  /**
-   * @return the raw array of keys. Do NOT modify this array!
-   */
-  long[] getKeys() {
-    return keys;
-  }
-
-  /**
-   * @return the raw array of values. Do NOT modify this array!
-   */
-  long[] getValues() {
-    return values;
+  // assume newSize is power of 2
+  void resize(final int newSize) {
+    final long[] oldKeys = keys;
+    final long[] oldValues = values;
+    final short[] oldStates = states;
+    keys = new long[newSize];
+    values = new long[newSize];
+    states = new short[newSize];
+    loadThreshold = (int) (newSize * LOAD_FACTOR);
+    arrayMask = newSize - 1;
+    numActive = 0;
+    for (int i = 0; i < oldKeys.length; i++) {
+      if (oldStates[i] > 0) {
+        adjust(oldKeys[i], oldValues[i]);
+      }
+    }
   }
 
   /**
@@ -276,7 +278,7 @@ class ReversePurgeLongHashMap {
    */
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
     sb.append("HashMap").append(LS);
     sb.append("Index: States,       Keys,     Values").append(LS);
     for (int i = 0; i < keys.length; i++) {
@@ -300,24 +302,22 @@ class ReversePurgeLongHashMap {
    * via sampling, decrements all counts by this estimate, throws out all counters that are no
    * longer positive, and increments offset accordingly.
    */
-  long purge(int sampleSize) {
-    int limit = Math.min(sampleSize, getNumActive());
+  long purge(final int sampleSize) {
+    final int limit = Math.min(sampleSize, getNumActive());
 
-    long[] myValues = getValues();
     int numSamples = 0;
     int i = 0;
-    long[] samples = new long[limit];
+    final long[] samples = new long[limit];
 
     while (numSamples < limit) {
       if (isActive(i)) {
-        samples[numSamples] = myValues[i];
+        samples[numSamples] = values[i];
         numSamples++;
       }
       i++;
     }
 
-    Arrays.sort(samples, 0, numSamples);
-    long val = samples[limit / 2];
+    final long val = QuickSelect.select(samples, 0, numSamples - 1, limit / 2);
     adjustAllValuesBy(-1 * val);
     keepOnlyPositiveCounts();
     return val;
@@ -351,7 +351,7 @@ class ReversePurgeLongHashMap {
     }
   }
   
-  private int hashProbe(long key) {
+  private int hashProbe(final long key) {
     int probe = (int) hash(key) & arrayMask;
     while (states[probe] > 0 && keys[probe] != key)
       probe = (probe + 1) & arrayMask;
@@ -372,4 +372,38 @@ class ReversePurgeLongHashMap {
     return key;
   }
 
+  Iterator iterator() {
+    return new Iterator(keys, values, states);
+  }
+
+  class Iterator {
+    private final long[] keys;
+    private final long[] values;
+    private final short[] states;
+    private int i;
+
+    Iterator(final long[] keys, final long[] values, final short[] states) {
+      this.keys = keys;
+      this.values = values;
+      this.states = states;
+      i = -1;
+    }
+
+    boolean next() {
+      i++;
+      while (i < keys.length) {
+        if (states[i] > 0) return true;
+        i++;
+      }
+      return false;
+    }
+
+    long getKey() {
+      return keys[i];
+    }
+
+    long getValue() {
+      return values[i];
+    }
+  }
 }

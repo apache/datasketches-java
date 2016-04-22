@@ -5,13 +5,12 @@
 
 package com.yahoo.sketches.frequencies;
 
-import static com.yahoo.sketches.Util.*;
+import static com.yahoo.sketches.Util.LS;
+import static com.yahoo.sketches.Util.toLog2;
 
 import java.lang.reflect.Array;
-import java.util.Arrays;
 
 import com.yahoo.sketches.QuickSelect;
-import com.yahoo.sketches.Util;
 
 /**
  * Implements a linear-probing based hash map of (key, value) pairs and is distinguished by a 
@@ -22,15 +21,16 @@ import com.yahoo.sketches.Util;
  * @author Justin Thaler
  */
 class ReversePurgeItemHashMap<T> {
-  private final static double LOAD_FACTOR = 0.75;
+  private static final double LOAD_FACTOR = 0.75;
+  private static final int DRIFT_LIMIT = 1024; //used only in stress testing
+  private int lgLength;
   protected int loadThreshold;
   protected int arrayMask;
-  protected int numActive = 0;
   protected Object[] keys;
   protected long[] values;
   protected short[] states;
-  static final int DRIFT_LIMIT = 1024; //used only in stress testing
-  
+  protected int numActive = 0;
+
   /**
    * Constructor will create arrays of length mapSize, which must be a power of two.
    * This restriction was made to ensure fast hashing.
@@ -42,7 +42,7 @@ class ReversePurgeItemHashMap<T> {
    * The hash table will be expected to store LOAD_FACTOR * mapSize (key, value) pairs.
    */
   ReversePurgeItemHashMap(final int mapSize) {
-    Util.checkIfPowerOf2(mapSize, "mapSize");
+    lgLength = toLog2(mapSize, "mapSize");
     this.loadThreshold = (int) (mapSize * LOAD_FACTOR);
     this.arrayMask = mapSize - 1;
     this.keys = new Object[mapSize];
@@ -57,7 +57,7 @@ class ReversePurgeItemHashMap<T> {
   boolean isActive(final int probe) {
     return (states[probe] > 0);
   }
-  
+
   /**
    * Gets the current value with the given key
    * @param key the given key
@@ -160,6 +160,7 @@ class ReversePurgeItemHashMap<T> {
    */
   @SuppressWarnings("unchecked")
   T[] getActiveKeys() {
+    if (numActive == 0) return null;
     T[] returnedKeys = null;
     int j = 0;
     for (int i = 0; i < keys.length; i++)
@@ -176,6 +177,7 @@ class ReversePurgeItemHashMap<T> {
    * @return an array containing the values corresponding. to the active keys in the hash
    */
   long[] getActiveValues() {
+    if (numActive == 0) return null;
     final long[] returnedValues = new long[numActive];
     int j = 0;
     for (int i = 0; i < values.length; i++)
@@ -213,6 +215,10 @@ class ReversePurgeItemHashMap<T> {
     return keys.length;
   }
 
+  int getLgLength() {
+    return lgLength;
+  }
+
   /**
    * @return capacity of hash table internal arrays (i.e., max number of keys that can be stored)
    */
@@ -236,12 +242,12 @@ class ReversePurgeItemHashMap<T> {
     sb.append("HashMap").append(LS);
     sb.append("Index: States,       Keys,     Values").append(LS);
     for (int i = 0; i < keys.length; i++) {
-      sb.append(String.format("%5d: %6d, %10d, %10d\n", i, states[i], keys[i].toString(), values[i]));
+      sb.append(String.format("%5d: %6d, %s, %10d\n", i, states[i], keys[i].toString(), values[i]));
     }
     sb.append(LS);
     return sb.toString();
   }
-  
+
   /**
    * @return the load factor of the hash table, i.e, the ratio between the capacity and the array
    * length
@@ -250,7 +256,6 @@ class ReversePurgeItemHashMap<T> {
     return LOAD_FACTOR;
   }
 
-  
   /**
    * This function is called when a key is processed that is not currently assigned a counter, and
    * all the counters are in use. This function estimates the median of the counters in the sketch
@@ -258,7 +263,7 @@ class ReversePurgeItemHashMap<T> {
    * longer positive, and increments offset accordingly.
    */
   long purge(final int sampleSize) {
-    int limit = Math.min(sampleSize, getNumActive());
+    final int limit = Math.min(sampleSize, getNumActive());
 
     int numSamples = 0;
     int i = 0;
