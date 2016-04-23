@@ -68,17 +68,14 @@ final class PreambleUtil {
   static final int STREAMLENGTH_LONG         = 16; // to 23 : pre2
   static final int OFFSET_LONG               = 24; // to 31 : pre3
   static final int MERGE_ERROR_LONG          = 32; // to 39 : pre4
-  
-  
+
   // flag bit masks
   static final int EMPTY_FLAG_MASK      = 4;
-  
-  
+
   // Specific values for this implementation
   static final int SER_VER = 1;
   static final int FREQ_SKETCH_TYPE = 1;
 
-  
   /**
    * Returns a human readable string summary of the preamble state of the given Memory. 
    * Note: other than making sure that the given Memory size is large
@@ -88,33 +85,33 @@ final class PreambleUtil {
    * @param srcMem the given Memory.
    * @return the summary preamble string.
    */
-  public static String preambleToString(Memory srcMem) {
-    long pre0 = getAndCheckPreLongs(srcMem); //make sure we can get the assumed preamble
-    int preLongs = extractPreLongs(pre0);   //byte 0
-    int serVer = extractSerVer(pre0);       //byte 1
-    Family family = Family.idToFamily(extractFamilyID(pre0)); //byte 2
-    int lgMaxMapSize = extractLgMaxMapSize(pre0); //byte 3
-    int lgCurMapSize = extractLgCurMapSize(pre0); //byte 4
-    int flags = extractFlags(pre0);         //byte 5
-    int type = extractFreqSketchType(pre0); //byte 6
-    
-    String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
-    boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
-    int maxMapSize = 1 << lgMaxMapSize;
-    int curMapSize = 1 << lgCurMapSize;
-    int maxPreLongs = Family.FREQUENCY.getMaxPreLongs();
-    
+  public static String preambleToString(final Memory srcMem) {
+    final long pre0 = getAndCheckPreLongs(srcMem); //make sure we can get the assumed preamble
+    final int preLongs = extractPreLongs(pre0);   //byte 0
+    final int serVer = extractSerVer(pre0);       //byte 1
+    final Family family = Family.idToFamily(extractFamilyID(pre0)); //byte 2
+    final int lgMaxMapSize = extractLgMaxMapSize(pre0); //byte 3
+    final int lgCurMapSize = extractLgCurMapSize(pre0); //byte 4
+    final int flags = extractFlags(pre0);         //byte 5
+    final int type = extractFreqSketchType(pre0); //byte 6
+
+    final String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
+    final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
+    final int maxMapSize = 1 << lgMaxMapSize;
+    final int curMapSize = 1 << lgCurMapSize;
+    final int maxPreLongs = Family.FREQUENCY.getMaxPreLongs();
+
     //Assumed if preLongs == 1
     int activeItems = 0;
     long streamLength = 0;
     long offset = 0;
     long mergeError = 0;
-    
+
     //Assumed if preLongs == maxPreLongs
-    
+
     if (preLongs == maxPreLongs) {
       //get full preamble
-      long[] preArr = new long[preLongs];
+      final long[] preArr = new long[preLongs];
       srcMem.getLongArray(0, preArr, 0, preLongs);
       activeItems =  extractActiveItems(preArr[1]);
       streamLength = preArr[2];
@@ -122,7 +119,7 @@ final class PreambleUtil {
       mergeError = preArr[4];
     }
     
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
     sb.append(LS)
       .append("### FREQUENCY SKETCH PREAMBLE SUMMARY:").append(LS)
       .append("Byte  0: Preamble Longs       : ").append(preLongs).append(LS)
@@ -152,94 +149,94 @@ final class PreambleUtil {
 // @formatter:on
   
   static int extractPreLongs(final long pre0) { //Byte 0
-    long mask = 0XFFL;
+    final long mask = 0XFFL;
     return (int) (pre0 & mask);
   }
 
   static int extractSerVer(final long pre0) { //Byte 1
-    int shift = SER_VER_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = SER_VER_BYTE << 3;
+    final long mask = 0XFFL;
     return (int) ((pre0 >>> shift) & mask);
   }
 
   static int extractFamilyID(final long pre0) { //Byte 2
-    int shift = FAMILY_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = FAMILY_BYTE << 3;
+    final long mask = 0XFFL;
     return (int) ((pre0 >>> shift) & mask);
   }
 
   static int extractLgMaxMapSize(final long pre0) { //Byte 3
-    int shift = LG_MAX_MAP_SIZE_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = LG_MAX_MAP_SIZE_BYTE << 3;
+    final long mask = 0XFFL;
     return (int) ((pre0 >>> shift) & mask);
   }
   
   static int extractLgCurMapSize(final long pre0) { //Byte 4
-    int shift = LG_CUR_MAP_SIZE_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = LG_CUR_MAP_SIZE_BYTE << 3;
+    final long mask = 0XFFL;
     return (int) ((pre0 >>> shift) & mask);
   }
-  
+
   static int extractFlags(final long pre0) { //Byte 5
-    int shift = FLAGS_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = FLAGS_BYTE << 3;
+    final long mask = 0XFFL;
     return (int) ((pre0 >>> shift) & mask);
   }
-  
+
   static int extractFreqSketchType(final long pre0) { //Byte 7
-    int shift = FREQ_SKETCH_TYPE_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = FREQ_SKETCH_TYPE_BYTE << 3;
+    final long mask = 0XFFL;
     return (int) ((pre0 >>> shift) & mask);
   }
-  
+
   static int extractActiveItems(final long pre1) { //Bytes 8 to 11
-    long mask = 0XFFFFFFFFL;
+    final long mask = 0XFFFFFFFFL;
     return (int) (pre1 & mask) ;
   }
 
   static long insertPreLongs(final int preLongs, final long pre0) { //Byte 0
-    long mask = 0XFFL;
+    final long mask = 0XFFL;
     return (preLongs & mask) | (~mask & pre0);
   }
 
   static long insertSerVer(final int serVer, final long pre0) { //Byte 1
-    int shift = SER_VER_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = SER_VER_BYTE << 3;
+    final long mask = 0XFFL;
     return ((serVer & mask) << shift) | (~(mask << shift) & pre0); 
   }
 
   static long insertFamilyID(final int familyID, final long pre0) { //Byte 2
-    int shift = FAMILY_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = FAMILY_BYTE << 3;
+    final long mask = 0XFFL;
     return ((familyID & mask) << shift) | (~(mask << shift) & pre0);
   }
 
   static long insertLgMaxMapSize(final int lgMaxMapSize, final long pre0) { //Byte 3
-    int shift = LG_MAX_MAP_SIZE_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = LG_MAX_MAP_SIZE_BYTE << 3;
+    final long mask = 0XFFL;
     return ((lgMaxMapSize & mask) << shift) | (~(mask << shift) & pre0);
   }
 
   static long insertLgCurMapSize(final int lgCurMapSize, final long pre0) { //Byte 4
-    int shift = LG_CUR_MAP_SIZE_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = LG_CUR_MAP_SIZE_BYTE << 3;
+    final long mask = 0XFFL;
     return ((lgCurMapSize & mask) << shift) | (~(mask << shift) & pre0);
   }
 
   static long insertFlags(final int flags, final long pre0) { //Byte 5
-    int shift = FLAGS_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = FLAGS_BYTE << 3;
+    final long mask = 0XFFL;
     return ((flags & mask) << shift) | (~(mask << shift) & pre0);
   }
 
   static long insertFreqSketchType(final int freqSketchType, final long pre0) { //Byte 7
-    int shift = FREQ_SKETCH_TYPE_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = FREQ_SKETCH_TYPE_BYTE << 3;
+    final long mask = 0XFFL;
     return ((freqSketchType & mask) << shift) | (~(mask << shift) & pre0);
   }
-  
+
   static long insertActiveItems(final int activeItems, final long pre1) { //Bytes 8 to 11
-    long mask = 0XFFFFFFFFL;
+    final long mask = 0XFFFFFFFFL;
     return (activeItems & mask) | (~mask & pre1);
   }
 
@@ -250,19 +247,19 @@ final class PreambleUtil {
    * @return the first 8 bytes of preamble as a long.
    */
   static long getAndCheckPreLongs(Memory mem) {
-    long cap = mem.getCapacity();
+    final long cap = mem.getCapacity();
     if (cap < 8) { throwNotBigEnough(cap, 8); }
-    long pre0 = mem.getLong(0);
-    int preLongs = extractPreLongs(pre0);
-    int required = Math.max(preLongs << 3, 8);
+    final long pre0 = mem.getLong(0);
+    final int preLongs = extractPreLongs(pre0);
+    final int required = Math.max(preLongs << 3, 8);
     if (cap < required) { throwNotBigEnough(cap, required); }
     return pre0;
   }
-  
+
   private static void throwNotBigEnough(long cap, int required) {
     throw new IllegalArgumentException(
         "Possible Corruption: Size of byte array or Memory not large enough: Size: " + cap 
         + ", Required: " + required);
   }
-  
+
 }
