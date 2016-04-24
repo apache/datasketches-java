@@ -2,6 +2,8 @@
 
 =================
 
+[![Join the chat at https://gitter.im/DataSketches/sketches-core](https://badges.gitter.im/DataSketches/sketches-core.svg)](https://gitter.im/DataSketches/sketches-core?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 # Sketches Core Library
 
 ## [Documentation](https://datasketches.github.io)
