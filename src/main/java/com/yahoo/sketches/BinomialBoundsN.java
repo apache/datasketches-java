@@ -5,8 +5,6 @@
 
 package com.yahoo.sketches;
 
-import static com.yahoo.sketches.EquivTables.*;
-
 /**
  * This class enables the estimation of error bounds given a sample set size, the sampling 
  * probability theta, the number of standard deviations and a simple noDataSeen flag.  This can 
@@ -144,7 +142,7 @@ public final class BinomialBoundsN {
       int index;
       double rawLB;
       index = 3 * ((int) numSamplesI) + (numSDev - 1);
-      rawLB = contClassicLB ((double) numSamplesI, theta, lbEquivTable[index]);
+      rawLB = contClassicLB ((double) numSamplesI, theta, EquivTables.getLB(index));
       return (rawLB - 0.5); // fake round down 
     }
 
@@ -186,7 +184,7 @@ public final class BinomialBoundsN {
       int index; 
       double rawUB;
       index = 3 * ((int) numSamplesI) + (numSDev - 1);
-      rawUB = contClassicUB ((double) numSamplesI, theta, ubEquivTable[index]);
+      rawUB = contClassicUB ((double) numSamplesI, theta, EquivTables.getUB(index));
       return (rawUB + 0.5); // fake round up 
     }
 

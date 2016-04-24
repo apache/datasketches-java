@@ -5,21 +5,28 @@
 package com.yahoo.sketches;
 
 /**
- * Tables for BinomialBoundsN calculations
- * 
+ * Tables for BinomialBoundsN calculations.
+ *
+ * <p>These equivTables contain modified values for numSDevs that if used 
+ * WHEN THETA IS VERY SMALL will cause the continuity-corrected version
+ * of our "classic" confidence intervals to be very close to "exact" confidence
+ * intervals based on the tails of the actual binomial distirbution.</p>
+ *
  * @author Kevin Lang
  */
 final class EquivTables {
   
   private EquivTables() {}
   
-  /**
-   * These equivTables contain modified values for numSDevs that if used 
-   * WHEN THETA IS VERY SMALL will cause the continuity-corrected version
-   * of our "classic" confidence intervals to be very close to "exact" confidence
-   * intervals based on the tails of the actual binomial distirbution.
-   */
-  static double[] lbEquivTable = {
+  static double getLB(int index) {
+    return lbEquivTable[index];
+  }
+  
+  static double getUB(int index) {
+    return ubEquivTable[index];
+  }
+  
+  private static double[] lbEquivTable = {
     1.0, 2.0, 3.0, // fake values for k = 0 
     0.78733703534118149, 3.14426768537558132, 13.56789685109913535, // k = 1 
     0.94091379266077979, 2.64699271711145911, 6.29302733018320737, // k = 2 
@@ -143,7 +150,7 @@ final class EquivTables {
     0.99961218434327748, 2.04861238220240693, 3.13601075688413289  // k = 120 
   };
   
-  static double[] ubEquivTable = {
+  private static double[] ubEquivTable = {
     1.0, 2.0, 3.0, // fake values for k = 0 
     0.99067760836669549, 1.75460517119302040, 2.48055626001627161, // k = 1 
     0.99270518097577565, 1.78855957509907171, 2.53863835259832626, // k = 2 
