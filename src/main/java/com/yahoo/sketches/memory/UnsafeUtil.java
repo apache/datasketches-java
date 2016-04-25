@@ -176,42 +176,30 @@ final class UnsafeUtil {
     }
     
     @Override
-    public int getAndAddInt(Object obj, long address, int increment) {
-      int retVal;
-      do {
-        retVal = myUnsafe.getIntVolatile(obj, address);
-      } while(!myUnsafe.compareAndSwapInt(obj, address, retVal, retVal + increment));
-      
+    public synchronized int getAndAddInt(Object obj, long address, int increment) {
+      int retVal = myUnsafe.getInt(obj, address);
+      myUnsafe.putInt(obj, address, retVal + increment);
       return retVal;
     }
     
     @Override
-    public int getAndSetInt(Object obj, long address, int value) {
-      int retVal;
-      do {
-        retVal = myUnsafe.getIntVolatile(obj, address);
-      } while(!myUnsafe.compareAndSwapInt(obj, address, retVal, value));
-      
+    public synchronized int getAndSetInt(Object obj, long address, int value) {
+      int retVal = myUnsafe.getInt(obj, address);
+      myUnsafe.putInt(obj, address, value);
       return retVal;
     }
     
     @Override
-    public long getAndAddLong(Object obj, long address, long increment) {
-      long retVal;
-      do {
-        retVal = myUnsafe.getLongVolatile(obj, address);
-      } while(!myUnsafe.compareAndSwapLong(obj, address, retVal, retVal + increment));
-      
+    public synchronized long getAndAddLong(Object obj, long address, long increment) {
+      long retVal = myUnsafe.getLong(obj, address);
+      myUnsafe.putLong(obj, address, retVal + increment);
       return retVal;
     }
     
     @Override
-    public long getAndSetLong(Object obj, long address, long value) {
-      long retVal;
-      do {
-        retVal = myUnsafe.getLongVolatile(obj, address);
-      } while(!myUnsafe.compareAndSwapLong(obj, address, retVal, value));
-      
+    public synchronized long getAndSetLong(Object obj, long address, long value) {
+      long retVal = myUnsafe.getLong(obj, address);
+      myUnsafe.putLong(obj, address, value);
       return retVal;
     }
   }
