@@ -133,6 +133,18 @@ public final class Util {
   }
   
   /**
+   * Returns the log-base2 of the given value
+   * Checks the given value if it is a power of 2. If not, it throws an exception.
+   * @param value must be a power of 2 and greater than zero.
+   * @param argName the argument name used in the exception if thrown.
+   * @return the log-base2 of the given value
+   */
+  public static int toLog2(int value, String argName) {
+    checkIfPowerOf2(value, argName);
+    return Integer.numberOfTrailingZeros(value);
+  }
+  
+  /**
    * Checks the given parameter to make sure it is positive and between 0.0 inclusive and 1.0
    * inclusive.
    * 

@@ -2,9 +2,8 @@
  * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
-package com.yahoo.sketches;
 
-import static com.yahoo.sketches.EquivTables.*;
+package com.yahoo.sketches;
 
 /**
  * This class enables the estimation of error bounds given a sample set size, the sampling 
@@ -143,7 +142,7 @@ public final class BinomialBoundsN {
       int index;
       double rawLB;
       index = 3 * ((int) numSamplesI) + (numSDev - 1);
-      rawLB = contClassicLB ((double) numSamplesI, theta, lbEquivTable[index]);
+      rawLB = contClassicLB ((double) numSamplesI, theta, EquivTables.getLB(index));
       return (rawLB - 0.5); // fake round down 
     }
 
@@ -185,7 +184,7 @@ public final class BinomialBoundsN {
       int index; 
       double rawUB;
       index = 3 * ((int) numSamplesI) + (numSDev - 1);
-      rawUB = contClassicUB ((double) numSamplesI, theta, ubEquivTable[index]);
+      rawUB = contClassicUB ((double) numSamplesI, theta, EquivTables.getUB(index));
       return (rawUB + 0.5); // fake round up 
     }
 

@@ -2,13 +2,13 @@
  * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.theta.PreambleUtil.*;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
-
 
 /**
  * This class brings together the common sketch and set operation creation methods and

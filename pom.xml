@@ -58,6 +58,13 @@
       <version>6.9.10</version>
       <scope>test</scope>
     </dependency>
+    <!-- Trove For Java -->
+    <dependency>
+        <groupId>net.sf.trove4j</groupId>
+        <artifactId>trove4j</artifactId>
+        <version>3.0.3</version>
+        <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

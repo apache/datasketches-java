@@ -11,6 +11,8 @@ class Interpolation {
   static final int INTERPOLATION_MIN_LOG_K = 7;
   static final int INTERPOLATION_MAX_LOG_K = 21;
 
+  //TODO arrays should be made private and then accessed via getters.  But may impact performance.
+  
   static final double interpolation_x_arrs[][] = {
     // log K = 7
     {91.554623, 93.970317, 96.431113, 98.937264, 101.488909, 104.086010, 106.728780, 109.417062,

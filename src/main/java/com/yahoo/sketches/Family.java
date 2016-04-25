@@ -80,7 +80,12 @@ public enum Family {
   /**
    * The Tuple family of sketches
    */
-  TUPLE(9, "TUPLE", 1, 1);
+  TUPLE(9, "TUPLE", 1, 1),
+  
+  /**
+   * The Frequency family of sketches
+   */
+  FREQUENCY(10, "FREQUENCY", 1, 5);
   
   private static final Map<Integer, Family> lookupID = new HashMap<Integer, Family>();
   private static final Map<String, Family> lookupFamName = new HashMap<String, Family>();
@@ -114,7 +119,7 @@ public enum Family {
   public void checkFamilyID(int id) {
     if (id != id_) {
       throw new IllegalArgumentException(
-          "This Family "+this.toString() + 
+          "Possible Corruption: This Family "+this.toString() + 
           " does not match the ID of the given Family: "+ idToFamily(id).toString());
     }
   }
@@ -155,7 +160,8 @@ public enum Family {
    */
   public static Family idToFamily(int id) {
     Family f = lookupID.get(id);
-    if (f == null) throw new IllegalArgumentException("Illegal Family ID: "+ id);
+    if (f == null) throw new IllegalArgumentException(
+        "Possible Corruption: Illegal Family ID: "+ id);
     return f;
   }
   
@@ -166,7 +172,8 @@ public enum Family {
    */
   public static Family stringToFamily(String famName) {
     Family f = lookupFamName.get(famName.toUpperCase());
-    if (f == null) throw new IllegalArgumentException("Illegal Family Name: "+famName);
+    if (f == null) throw new IllegalArgumentException(
+        "Possible Corruption: Illegal Family Name: "+famName);
     return f;
   }
   
@@ -182,6 +189,6 @@ public enum Family {
         return f;
       }
     }
-    throw new IllegalArgumentException("Unknown object");
+    throw new IllegalArgumentException("Possible Corruption: Unknown object");
   }
 }

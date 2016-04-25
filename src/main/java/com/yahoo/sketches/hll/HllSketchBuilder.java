@@ -89,7 +89,7 @@ public class HllSketchBuilder { //TODO will need to add seed and Memory, etc.
     if (denseMode) {
       fields = denseFactory.make(preamble);
     } else {
-      fields = new OnHeapHashFields(preamble, 16, HashUtils.MAX_HASH_SIZE[preamble.getLogConfigK()], denseFactory);
+      fields = new OnHeapHashFields(preamble, 16, HashUtils.getMaxHashSize(preamble.getLogConfigK()), denseFactory);
     }
     
     if (hipEstimator) {
