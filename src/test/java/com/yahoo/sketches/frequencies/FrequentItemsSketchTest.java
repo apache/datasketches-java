@@ -90,7 +90,7 @@ public class FrequentItemsSketchTest {
     // only 2 items (1 and 7) should have counts more than 2
     int count = 0;
     for (FrequentItemsSketch<Integer>.Row item: items) {
-      if (item.lb > 2) count++;
+      if (item.getLowerBound() > 2) count++;
     }
     Assert.assertEquals(count, 2);
   }

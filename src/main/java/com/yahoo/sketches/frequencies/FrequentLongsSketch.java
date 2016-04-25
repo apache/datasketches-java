@@ -564,6 +564,11 @@ public class FrequentLongsSketch {
       this.lb = lb;
     }
 
+    public long getItem() { return item; }
+    public long getEstimate() { return est; }
+    public long getUpperBound() { return ub; }
+    public long getLowerBound() { return lb; }
+
     @Override
     public String toString() {
       return String.format("%d,%d,%d,%d", item, est, ub, lb);
