@@ -1,8 +1,6 @@
-[![][travis img]][travis] [![][coveralls img]][coveralls]  [![][mavenbadge img]][mavenbadge]
+[![][travis img]][travis] [![][coveralls img]][coveralls]  [![][mavenbadge img]][mavenbadge] [![][gitter img]][gitter]
 
 =================
-
-[![Join the chat at https://gitter.im/DataSketches/sketches-core](https://badges.gitter.im/DataSketches/sketches-core.svg)](https://gitter.im/DataSketches/sketches-core?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 # Sketches Core Library
 
@@ -19,3 +17,6 @@
 
 [mavenbadge]:http://search.maven.org/#search|gav|1|g%3A%22com.yahoo.datasketches%22%20AND%20a%3A%22sketches-core%22
 [mavenbadge img]:https://maven-badges.herokuapp.com/maven-central/com.yahoo.datasketches/sketches-core/badge.svg
+
+[gitter]:https://gitter.im/DataSketches/sketches-core
+[gitter img]:http://img.shields.io/badge/gitter-JOIN%20CHAT-blue.svg
