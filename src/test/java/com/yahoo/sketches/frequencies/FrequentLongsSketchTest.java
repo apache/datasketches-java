@@ -238,12 +238,12 @@ public class FrequentLongsSketchTest {
       long threshold = sketches[h].getMaximumError();
       Row[] rows = sketches[h].getFrequentItems(ErrorType.NO_FALSE_NEGATIVES);
       for (int i = 0; i < rows.length; i++) {
-        Assert.assertTrue(rows[i].ub > threshold);
+        Assert.assertTrue(rows[i].getUpperBound() > threshold);
       }
       
       rows = sketches[h].getFrequentItems(ErrorType.NO_FALSE_POSITIVES);
       for (int i = 0; i < rows.length; i++) {
-        Assert.assertTrue(rows[i].lb > threshold);
+        Assert.assertTrue(rows[i].getLowerBound() > threshold);
       }
     }
   }
