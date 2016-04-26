@@ -44,8 +44,6 @@ import com.yahoo.sketches.memory.Memory;
  *      ||    31    |   30   |   29   |   28   |   27   |   26   |   25   |    24          |
  *  3   ||---------------------------------offset------------------------------------------|
  *      ||    39    |   38   |   37   |   36   |   35   |   34   |   33   |    32          |
- *  4   ||---------------------------------mergeError--------------------------------------|
- *      ||    47    |   46   |   45   |   44   |   43   |   42   |   41   |    40          |
  *  5   ||----------start of values buffer, followed by keys buffer------------------------|
  * </pre>
  * 
@@ -67,7 +65,6 @@ final class PreambleUtil {
   static final int ACTIVE_ITEMS_INT          = 8;  // to 11 : 0 to 4 in pre1
   static final int STREAMLENGTH_LONG         = 16; // to 23 : pre2
   static final int OFFSET_LONG               = 24; // to 31 : pre3
-  static final int MERGE_ERROR_LONG          = 32; // to 39 : pre4
 
   // flag bit masks
   static final int EMPTY_FLAG_MASK      = 4;
@@ -105,7 +102,6 @@ final class PreambleUtil {
     int activeItems = 0;
     long streamLength = 0;
     long offset = 0;
-    long mergeError = 0;
 
     //Assumed if preLongs == maxPreLongs
 
@@ -116,7 +112,6 @@ final class PreambleUtil {
       activeItems =  extractActiveItems(preArr[1]);
       streamLength = preArr[2];
       offset = preArr[3];
-      mergeError = preArr[4];
     }
     
     final StringBuilder sb = new StringBuilder();
@@ -136,8 +131,7 @@ final class PreambleUtil {
     } else { //preLongs == maxPreLongs
       sb.append("Bytes 8-11 : ActiveItems    : ").append(activeItems).append(LS);
       sb.append("Bytes 16-23: StreamLength   : ").append(streamLength).append(LS)
-        .append("Bytes 24-31: Offset         : ").append(offset).append(LS)
-        .append("Bytes 32-40: MergeError     : ").append(mergeError).append(LS);
+        .append("Bytes 24-31: Offset         : ").append(offset).append(LS);
     }
     
     sb.append(  "Preamble Bytes                : ").append(preLongs * 8).append(LS);

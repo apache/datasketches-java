@@ -133,7 +133,7 @@ public class FrequentLongsSketch {
    */
   private static final int SAMPLE_SIZE = 256;
 
-  private static final int STR_PREAMBLE_TOKENS = 8;
+  private static final int STR_PREAMBLE_TOKENS = 7;
 
   /**
    * Log2 Maximum length of the arrays internal to the hash map supported by the data structure.
@@ -144,12 +144,6 @@ public class FrequentLongsSketch {
    * The current number of counters supported by the hash map.
    */
   private int curMapCap; //the threshold to purge
-
-  /**
-   * An upper bound on the error in any estimated count due to merging with other 
-   * FrequentLongsSketches.
-   */
-  private long mergeError;
 
   /**
    * Tracks the total of decremented counts performed.
@@ -262,7 +256,6 @@ public class FrequentLongsSketch {
     FrequentLongsSketch fls = new FrequentLongsSketch(lgMaxMapSize, lgCurMapSize);
     fls.streamLength = 0; //update after
     fls.offset = preArr[3];
-    fls.mergeError = preArr[4];
 
     final int preBytes = preLongs << 3;
     final int activeItems = extractActiveItems(preArr[1]);
@@ -301,10 +294,9 @@ public class FrequentLongsSketch {
     final int type    = Integer.parseInt(tokens[4]);
     final long streamLength = Long.parseLong(tokens[5]);
     final long offset       = Long.parseLong(tokens[6]);
-    final long mergeError   = Long.parseLong(tokens[7]);
     //should always get at least the next 2 from the map
-    final int numActive = Integer.parseInt(tokens[8]);
-    final int lgCur = Integer.numberOfTrailingZeros(Integer.parseInt(tokens[9]));
+    final int numActive = Integer.parseInt(tokens[7]);
+    final int lgCur = Integer.numberOfTrailingZeros(Integer.parseInt(tokens[8]));
 
     //checks
     if (serVer != SER_VER) {
@@ -330,7 +322,6 @@ public class FrequentLongsSketch {
 
     final FrequentLongsSketch sketch = new FrequentLongsSketch(lgMax, lgCur);
     sketch.streamLength = streamLength;
-    sketch.mergeError = mergeError;
     sketch.offset = offset;
     sketch.hashMap = deserializeFromStringArray(tokens);
     return sketch;
@@ -351,8 +342,8 @@ public class FrequentLongsSketch {
     final int lgMaxMapSz = lgMaxMapSize; //2
     final int flags = (hashMap.getNumActive() == 0)? EMPTY_FLAG_MASK : 0; //3
     final int type = FREQ_SKETCH_TYPE; //4
-    final String fmt = "%d,%d,%d,%d,%d,%d,%d,%d,";
-    final String s = String.format(fmt, serVer, famID, lgMaxMapSz, flags, type, streamLength, offset, mergeError);
+    final String fmt = "%d,%d,%d,%d,%d,%d,%d,";
+    final String s = String.format(fmt, serVer, famID, lgMaxMapSz, flags, type, streamLength, offset);
     sb.append(s);
     sb.append(hashMap.serializeToString()); //numActive, curMaplen, key[i], value[i], ...
     // maxMapCap, samplesize are deterministic functions of maxMapSize, 
@@ -397,7 +388,6 @@ public class FrequentLongsSketch {
       preArr[1] = insertActiveItems(activeItems, pre);
       preArr[2] = this.streamLength;
       preArr[3] = this.offset;
-      preArr[4] = this.mergeError;
       mem.putLongArray(0, preArr, 0, preLongs);
       final int preBytes = preLongs << 3;
       mem.putLongArray(preBytes, hashMap.getActiveValues(), 0, activeItems);
@@ -476,7 +466,7 @@ public class FrequentLongsSketch {
     if (other.isEmpty()) return this;
 
     final long streamLen = this.streamLength + other.streamLength;
-    this.mergeError += other.getMaximumError();
+    this.offset += other.offset;
 
     final ReversePurgeLongHashMap.Iterator iter = other.hashMap.iterator();
     while (iter.next()) {
@@ -510,7 +500,7 @@ public class FrequentLongsSketch {
    * guaranteed to be no smaller than the real frequency.
    */
   public long getUpperBound(final long item) {
-    // UB = itemCount + offset + mergeError
+    // UB = itemCount + offset
     return hashMap.get(item) + getMaximumError();
   }
 
@@ -522,9 +512,8 @@ public class FrequentLongsSketch {
    * guaranteed to be no larger than the real frequency.
    */
   public long getLowerBound(final long item) {
-    //LB = max(itemCount - mergeError, 0)
-    final long returnVal = hashMap.get(item) - mergeError;
-    return Math.max(returnVal, 0);
+    //LB = itemCount or 0
+    return hashMap.get(item);
   }
 
   /**
@@ -631,7 +620,7 @@ public class FrequentLongsSketch {
    * any item.
    */
   public long getMaximumError() {
-    return offset + mergeError;
+    return offset;
   }
 
   /**
@@ -686,7 +675,6 @@ public class FrequentLongsSketch {
     hashMap = new ReversePurgeLongHashMap(1 << LG_MIN_MAP_SIZE);
     this.curMapCap = hashMap.getCapacity();
     this.offset = 0;
-    this.mergeError = 0;
     this.streamLength = 0;
   }
 

@@ -262,7 +262,6 @@ public class FrequentItemsSketch<T> {
     FrequentItemsSketch<T> fis = new FrequentItemsSketch<T>(lgMaxMapSize, lgCurMapSize);
     fis.streamLength = 0; //update after
     fis.offset = preArr[3];
-    fis.mergeError = preArr[4];
 
     final int preBytes = preLongs << 3;
     final int activeItems = extractActiveItems(preArr[1]);
@@ -319,7 +318,6 @@ public class FrequentItemsSketch<T> {
       preArr[1] = insertActiveItems(activeItems, pre);
       preArr[2] = this.streamLength;
       preArr[3] = this.offset;
-      preArr[4] = this.mergeError;
       mem.putLongArray(0, preArr, 0, preLongs);
       final int preBytes = preLongs << 3;
       mem.putLongArray(preBytes, hashMap.getActiveValues(), 0, activeItems);

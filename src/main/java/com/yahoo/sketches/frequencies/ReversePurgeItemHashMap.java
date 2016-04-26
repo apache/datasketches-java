@@ -202,6 +202,7 @@ class ReversePurgeItemHashMap<T> {
     states = new short[newSize];
     loadThreshold = (int) (newSize * LOAD_FACTOR);
     arrayMask = newSize - 1;
+    lgLength = Integer.numberOfTrailingZeros(newSize);
     numActive = 0;
     for (int i = 0; i < oldKeys.length; i++) {
       if (oldStates[i] > 0) {

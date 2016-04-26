@@ -63,19 +63,13 @@ public class FrequentItemsSketchTest {
   @Test
   public void estimationMode() {
     FrequentItemsSketch<Integer> sketch = new FrequentItemsSketch<Integer>(8);
-    sketch.update(1);
-    sketch.update(1);
-    sketch.update(1);
-    sketch.update(1);
-    sketch.update(1);
+    sketch.update(1, 10);
     sketch.update(2);
     sketch.update(3);
     sketch.update(4);
     sketch.update(5);
     sketch.update(6);
-    sketch.update(7);
-    sketch.update(7);
-    sketch.update(7);
+    sketch.update(7, 15);
     sketch.update(8);
     sketch.update(9);
     sketch.update(10);
@@ -83,20 +77,21 @@ public class FrequentItemsSketchTest {
     sketch.update(12);
 
     Assert.assertFalse(sketch.isEmpty());
-    Assert.assertEquals(sketch.getStreamLength(), 18);
+    Assert.assertEquals(sketch.getStreamLength(), 35);
 
-    FrequentItemsSketch<Integer>.Row[] items = sketch.getFrequentItems(FrequentItemsSketch.ErrorType.NO_FALSE_POSITIVES);
-    Assert.assertEquals(items.length, 12);
-    // only 2 items (1 and 7) should have counts more than 2
+    FrequentItemsSketch<Integer>.Row[] items = 
+        sketch.getFrequentItems(FrequentItemsSketch.ErrorType.NO_FALSE_POSITIVES);
+    Assert.assertEquals(items.length, 2);
+    // only 2 items (1 and 7) should have counts more than 1
     int count = 0;
     for (FrequentItemsSketch<Integer>.Row item: items) {
-      if (item.getLowerBound() > 2) count++;
+      if (item.getLowerBound() > 1) count++;
     }
     Assert.assertEquals(count, 2);
   }
 
   @Test
-  public void serializeDeserialize() {
+  public void serializeStringDeserialize() {
     FrequentItemsSketch<String> sketch1 = new FrequentItemsSketch<String>(8);
     sketch1.update("a");
     sketch1.update("b");
@@ -104,7 +99,8 @@ public class FrequentItemsSketchTest {
     sketch1.update("d");
 
     byte[] bytes = sketch1.serializeToByteArray(new ArrayOfStringsSerDe());
-    FrequentItemsSketch<String> sketch2 = FrequentItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfStringsSerDe());
+    FrequentItemsSketch<String> sketch2 = 
+        FrequentItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfStringsSerDe());
     sketch2.update("b");
     sketch2.update("c");
     sketch2.update("b");
@@ -118,6 +114,30 @@ public class FrequentItemsSketchTest {
     Assert.assertEquals(sketch2.getEstimate("d"), 1);
   }
 
+  @Test
+  public void serializeLongDeserialize() {
+    FrequentItemsSketch<Long> sketch1 = new FrequentItemsSketch<Long>(8);
+    sketch1.update(1L);
+    sketch1.update(2L);
+    sketch1.update(3L);
+    sketch1.update(4L);
+
+    byte[] bytes = sketch1.serializeToByteArray(new ArrayOfLongsSerDe());
+    FrequentItemsSketch<Long> sketch2 = 
+        FrequentItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfLongsSerDe());
+    sketch2.update(2L);
+    sketch2.update(3L);
+    sketch2.update(2L);
+
+    Assert.assertFalse(sketch2.isEmpty());
+    Assert.assertEquals(sketch2.getNumActiveItems(), 4);
+    Assert.assertEquals(sketch2.getStreamLength(), 7);
+    Assert.assertEquals(sketch2.getEstimate(1L), 1);
+    Assert.assertEquals(sketch2.getEstimate(2L), 3);
+    Assert.assertEquals(sketch2.getEstimate(3L), 2);
+    Assert.assertEquals(sketch2.getEstimate(4L), 1);
+  }
+  
   @Test
   public void mergeExact() {
     FrequentItemsSketch<String> sketch1 = new FrequentItemsSketch<String>(8);
