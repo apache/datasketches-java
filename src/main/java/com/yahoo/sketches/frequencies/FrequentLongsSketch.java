@@ -585,28 +585,31 @@ public class FrequentLongsSketch {
     final ReversePurgeLongHashMap.Iterator iter = hashMap.iterator();
     if (errorType == ErrorType.NO_FALSE_NEGATIVES) {
       while (iter.next()) {
+        final long est = getEstimate(iter.getKey());
         final long ub = getUpperBound(iter.getKey());
         final long lb = getLowerBound(iter.getKey());
         if (ub >= threshold) {
-          final Row row = new Row(iter.getKey(), iter.getValue(), ub, lb);
+          final Row row = new Row(iter.getKey(), est, ub, lb);
           rowList.add(row);
         }
       }
     } else { //NO_FALSE_POSITIVES
       while (iter.next()) {
+        final long est = getEstimate(iter.getKey());
         final long ub = getUpperBound(iter.getKey());
         final long lb = getLowerBound(iter.getKey());
         if (lb >= threshold) {
-          final Row row = new Row(iter.getKey(), iter.getValue(), ub, lb);
+          final Row row = new Row(iter.getKey(), est, ub, lb);
           rowList.add(row);
         }
       }
     }
 
+    // descending order
     rowList.sort(new Comparator<Row>() {
       @Override
       public int compare(final Row r1, final Row r2) {
-        return r1.compareTo(r2);
+        return r2.compareTo(r1);
       }
     });
     
