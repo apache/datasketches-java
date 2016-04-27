@@ -83,9 +83,7 @@ public class BoundsOnBinomialProportions { // confidence intervals for binomial 
    * unknown success probability.
    */
   public static double approximateLowerBoundOnP (long n, long k, double numStdDevs) {
-    if (n < 0) throw new IllegalArgumentException("N must be non-negative");
-    if (k < 0) throw new IllegalArgumentException("K must be non-negative");
-    if (k > n) throw new IllegalArgumentException("K cannot exceed N");
+    checkInputs(n, k);
     if (n == 0) { return 0.0; } // the coin was never flipped, so we know nothing
     else if (k == 0) { return 0.0; }
     else if (k == 1) { return (exactLowerBoundOnPForKequalsOne(n, deltaOfNumStdevs(numStdDevs))); }
@@ -116,9 +114,7 @@ public class BoundsOnBinomialProportions { // confidence intervals for binomial 
    * unknown success probability.
    */
   public static double approximateUpperBoundOnP (long n, long k, double numStdDevs) {
-    if (n < 0) throw new IllegalArgumentException("N must be non-negative");
-    if (k < 0) throw new IllegalArgumentException("K must be non-negative");
-    if (k > n) throw new IllegalArgumentException("K cannot exceed N");
+    checkInputs(n, k);
     if (n == 0) { return 1.0; } // the coin was never flipped, so we know nothing
     else if (k == n) { return 1.0; }
     else if (k == n-1) { return (exactUpperBoundOnPForKequalsNminusOne(n, deltaOfNumStdevs(numStdDevs))); }
@@ -136,13 +132,17 @@ public class BoundsOnBinomialProportions { // confidence intervals for binomial 
    * @return the estimate of the unknown binomial proportion.
    */
   public static double estimateUnknownP (long n, long k) {
-    if (n < 0) throw new IllegalArgumentException("N must be non-negative");
-    if (k < 0) throw new IllegalArgumentException("K must be non-negative");
-    if (k > n) throw new IllegalArgumentException("K cannot exceed N");
+    checkInputs(n, k);
     if (n == 0) { return 0.5; } // the coin was never flipped, so we know nothing
     else { return ((double) k / (double) n); }
   }
 
+  private static void checkInputs(long n, long k) {
+    if (n < 0) throw new IllegalArgumentException("N must be non-negative");
+    if (k < 0) throw new IllegalArgumentException("K must be non-negative");
+    if (k > n) throw new IllegalArgumentException("K cannot exceed N");
+  }
+  
   /**
    * Computes an approximation to the erf() function.
    * @param x is the input to the erf function
