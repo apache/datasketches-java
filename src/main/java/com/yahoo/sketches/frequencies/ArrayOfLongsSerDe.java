@@ -3,6 +3,9 @@ package com.yahoo.sketches.frequencies;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
+/**
+ * Methods of serializing and deserializing arrays of Long for use in FrequentItemsSketch
+ */
 public class ArrayOfLongsSerDe implements ArrayOfItemsSerDe<Long> {
 
   private static final byte TYPE = 3;

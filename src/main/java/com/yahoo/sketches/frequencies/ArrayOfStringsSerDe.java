@@ -3,6 +3,9 @@ package com.yahoo.sketches.frequencies;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
+/**
+ * Methods of serializing and deserializing arrays of String for use in FrequentItemsSketch
+ */
 public class ArrayOfStringsSerDe implements ArrayOfItemsSerDe<String> {
 
   private static final byte TYPE = 2;
