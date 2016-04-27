@@ -1,5 +1,13 @@
 package com.yahoo.sketches.frequencies;
 
+import static com.yahoo.sketches.frequencies.PreambleUtil.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
+
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
 /*
  * Copyright 2016, Yahoo! Inc. Licensed under the terms of the Apache License 2.0. See LICENSE file
  * at the project root for terms.
@@ -7,45 +15,42 @@ package com.yahoo.sketches.frequencies;
 
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.frequencies.FrequentLongsSketch.ErrorType;
-import com.yahoo.sketches.frequencies.ReversePurgeLongHashMap;
 import com.yahoo.sketches.frequencies.FrequentLongsSketch.Row;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
-import gnu.trove.map.hash.TLongLongHashMap;
 
-import static org.testng.Assert.*;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import gnu.trove.map.hash.TLongLongHashMap;
 
 public class FrequentLongsSketchTest {
 
   public static void main(String[] args) {
-    hashMapSerialTest();
+    FrequentLongsSketchTest test = new FrequentLongsSketchTest();
+    test.hashMapSerialTest();
     System.out.println("Done hashMapSerialTest");
-    frequentItemsStringSerialTest();
+    test.frequentItemsStringSerialTest();
     System.out.println("Done frequentItemsStringSerialTest");
-    frequentItemsByteSerialTest();
+    test.frequentItemsByteSerialTest();
     System.out.println("Done frequentItemsByteSerialTest");
-    frequentItemsByteResetAndEmptySerialTest();
+    test.frequentItemsByteResetAndEmptySerialTest();
     System.out.println("Done frequentItemsByteResetAndEmptySerialTest");
-    checkFreqLongs();
+    test.checkFreqLongs();
     System.out.println("Done FE Test");
-    realCountsInBoundsAfterMerge();
+    test.realCountsInBoundsAfterMerge();
     System.out.println("Done realCountsoInBoundsAFterMerge Test");
-    strongMergeTest();
+    test.strongMergeTest();
     System.out.println("Done strongMergeTest");
-    updateOneTime();
+    test.updateOneTime();
     System.out.println("Done updateOneTime Test");
-    errorTestZipfBigParam();
+    test.errorTestZipfBigParam();
     System.out.println("Done errorTestZipfBigParam");
-    errorTestZipfSmallParam();
+    test.errorTestZipfSmallParam();
     System.out.println("Done errorTestZipfSmallParam");
-    errorTestZipfBigParamSmallSketch();
+    test.errorTestZipfBigParamSmallSketch();
     System.out.println("Done errorTestZipfBigParamSmallSketch");
   }
 
   @Test
-  private static void hashMapSerialTest() {
+  public void hashMapSerialTest() {
     ReversePurgeLongHashMap map = new ReversePurgeLongHashMap(8);
     map.adjustOrPutValue(10, 15, 15);
     map.adjustOrPutValue(10, 5, 5);
@@ -61,7 +66,7 @@ public class FrequentLongsSketchTest {
   }
 
   @Test
-  private static void frequentItemsStringSerialTest() {
+  public void frequentItemsStringSerialTest() {
     FrequentLongsSketch sketch = new FrequentLongsSketch(8);
     FrequentLongsSketch sketch2 = new FrequentLongsSketch(128);
     sketch.update(10, 100);
@@ -117,7 +122,7 @@ public class FrequentLongsSketchTest {
   }
 
   @Test
-  private static void frequentItemsByteSerialTest() {
+  public void frequentItemsByteSerialTest() {
     //Empty Sketch
     FrequentLongsSketch sketch = new FrequentLongsSketch(16);
     byte[] bytearray0 = sketch.serializeToByteArray();
@@ -195,7 +200,7 @@ public class FrequentLongsSketchTest {
   }
 
   @Test
-  private static void frequentItemsByteResetAndEmptySerialTest() {
+  public void frequentItemsByteResetAndEmptySerialTest() {
     FrequentLongsSketch sketch = new FrequentLongsSketch(16);
     sketch.update(10, 100);
     sketch.update(10, 100);
@@ -216,7 +221,122 @@ public class FrequentLongsSketchTest {
   }
 
   @Test
-  private static void checkFreqLongs(){
+  public void checkFreqLongsMemSerDe() {
+    FrequentLongsSketch sk1 = new FrequentLongsSketch(4);
+    sk1.update(10, 100);
+    sk1.update(10, 100);
+    sk1.update(15, 3443);
+    sk1.update(1000001, 1010230);
+    sk1.update(1000002, 1010230);
+    
+    byte[] bytearray0 = sk1.serializeToByteArray();
+    Memory mem0 = new NativeMemory(bytearray0);
+    FrequentLongsSketch sk2 = FrequentLongsSketch.getInstance(mem0);
+    
+    checkEquality(sk1, sk2);
+  }
+  
+  @Test
+  public void checkFreqLongsStringSerDe() {
+    FrequentLongsSketch sk1 = new FrequentLongsSketch(16);
+    sk1.update(10, 100);
+    sk1.update(10, 100);
+    sk1.update(15, 3443);
+    sk1.update(1000001, 1010230);
+    sk1.update(1000002, 1010230);
+    
+    String string1 = sk1.serializeToString();
+    FrequentLongsSketch sk2 = FrequentLongsSketch.getInstance(string1);
+    
+    checkEquality(sk1, sk2);
+  }
+  
+  private static void checkEquality(FrequentLongsSketch sk1, FrequentLongsSketch sk2) {
+    assertEquals(sk1.getNumActiveItems(), sk2.getNumActiveItems());
+    assertEquals(sk1.getCurrentMapCapacity(), sk2.getCurrentMapCapacity());
+    assertEquals(sk1.getMaximumError(), sk2.getMaximumError());
+    assertEquals(sk1.getMaximumMapCapacity(), sk2.getMaximumMapCapacity());
+    assertEquals(sk1.getStorageBytes(), sk2.getStorageBytes());
+    assertEquals(sk1.getStreamLength(), sk2.getStreamLength());
+    assertEquals(sk1.isEmpty(), sk2.isEmpty());
+    
+    ErrorType NFN = ErrorType.NO_FALSE_NEGATIVES;
+    ErrorType NFP = ErrorType.NO_FALSE_POSITIVES;
+    Row[] rowArr1 = sk1.getFrequentItems(NFN);
+    Row[] rowArr2 = sk2.getFrequentItems(NFN);
+    assertEquals(sk1.getFrequentItems(NFN).length, sk2.getFrequentItems(NFN).length);
+    for (int i=0; i<rowArr1.length; i++) {
+      String s1 = rowArr1[i].toString();
+      String s2 = rowArr2[i].toString();
+      assertEquals(s1, s2);
+    }
+    rowArr1 = sk1.getFrequentItems(NFP);
+    rowArr2 = sk2.getFrequentItems(NFP);
+    assertEquals(sk1.getFrequentItems(NFP).length, sk2.getFrequentItems(NFP).length);
+    for (int i=0; i<rowArr1.length; i++) {
+      String s1 = rowArr1[i].toString();
+      String s2 = rowArr2[i].toString();
+      assertEquals(s1, s2);
+    }
+  }
+  
+  @Test
+  public void checkFreqLongsMemDeSerExceptions() {
+    FrequentLongsSketch sk1 = new FrequentLongsSketch(4);
+    sk1.update(1L);
+    
+    byte[] bytearray0 = sk1.serializeToByteArray();
+    Memory mem = new NativeMemory(bytearray0);
+    long pre0 = mem.getLong(0);
+    
+    tryBadMem(mem, PREAMBLE_LONGS_BYTE, 2); //Corrupt
+    
+    mem.putLong(0, pre0); //restore
+    tryBadMem(mem, SER_VER_BYTE, 2); //Corrupt
+    
+    mem.putLong(0, pre0); //restore
+    tryBadMem(mem, FAMILY_BYTE, 2); //Corrupt
+    
+    mem.putLong(0, pre0); //restore
+    tryBadMem(mem, FLAGS_BYTE, 4); //Corrupt to true
+    
+    mem.putLong(0, pre0); //restore
+    tryBadMem(mem, FREQ_SKETCH_TYPE_BYTE, 2);
+  }
+  
+  private static void tryBadMem(Memory mem, int byteOffset, int byteValue) {
+    try {
+      mem.putByte(byteOffset, (byte) byteValue); //Corrupt
+      FrequentLongsSketch.getInstance(mem);
+      fail();
+    } catch (IllegalArgumentException e) {
+      //expected
+    }
+  }
+  
+  @Test
+  public void checkFreqLongsStringDeSerExceptions() {
+    //FrequentLongsSketch sk1 = new FrequentLongsSketch(4);
+    //String str1 = sk1.serializeToString();
+    //String correct   = "1,10,2,4,1,0,0,0,4,";
+    
+    tryBadString("2,10,2,4,1,0,0,0,4,"); //bad SerVer
+    tryBadString("1,10,2,0,1,0,0,0,4,"); //bad empty
+    tryBadString("1,10,2,4,2,0,0,0,4,"); //bad type
+    tryBadString("1,10,2,4,1,0,0,0,4,0,"); //one extra
+  }
+  
+  private static void tryBadString(String badString) {
+    try {
+      FrequentLongsSketch.getInstance(badString);
+      fail("Should have thrown IllegalArgumentException");
+    } catch (IllegalArgumentException e) {
+      //expected
+    }
+  }
+  
+  @Test
+  public void checkFreqLongs(){
     int numSketches = 1; 
     int n = 2222;
     double error_tolerance = 1.0/100;
@@ -249,7 +369,7 @@ public class FrequentLongsSketchTest {
   }
 
   @Test
-  private static void realCountsInBoundsAfterMerge() {
+  public void realCountsInBoundsAfterMerge() {
     int n = 10000;
     int size = 150;
     double error_tolerance = 1.0 / size;
@@ -301,7 +421,7 @@ public class FrequentLongsSketchTest {
   }
 
   @Test
-  private static void strongMergeTest() {
+  public void strongMergeTest() {
     int n = 10000;
     int size = 150;
     double error_tolerance = 1.0 / size;
@@ -365,7 +485,7 @@ public class FrequentLongsSketchTest {
   }
 
   @Test
-  private static void updateOneTime() {
+  public void updateOneTime() {
     int size = 100;
     double error_tolerance = 1.0 / size;
     //double delta = .01;
@@ -382,7 +502,7 @@ public class FrequentLongsSketchTest {
   }
   
   @Test
-  private static void errorTestZipfBigParam() {
+  public void errorTestZipfBigParam() {
     int size = 512;
     int n = 200 * size;
     //double delta = .1;
@@ -440,7 +560,7 @@ public class FrequentLongsSketchTest {
   }
 
   @Test
-  private static void errorTestZipfSmallParam() {
+  public void errorTestZipfSmallParam() {
     int size = 512;
     int n = 200 * size;
     //double delta = .1;
@@ -499,7 +619,7 @@ public class FrequentLongsSketchTest {
   }
 
   @Test
-  private static void errorTestZipfBigParamSmallSketch() {
+  public void errorTestZipfBigParamSmallSketch() {
     int size = 64;
     int n = 200 * size;
     //double delta = .1;
@@ -668,10 +788,17 @@ public class FrequentLongsSketchTest {
       Row[] rows = sketches[h].getFrequentItems(ErrorType.NO_FALSE_NEGATIVES);
       println("ROWS: "+rows.length);
       for (int i = 0; i < rows.length; i++) {
-        String s = rows[i].toString();
-        println(s);
         Assert.assertTrue(rows[i].ub > threshold);
       }
+      Row first = rows[0];
+      String s = first.toString();
+      long anItem = first.getItem();
+      long anEst  = first.getEstimate();
+      long aLB    = first.getLowerBound();
+      println(s);
+      assertTrue(anEst >= 0);
+      assertTrue(aLB >= 0);
+      assertEquals(anItem, anItem); //dummy test
     }
   }
   
@@ -767,7 +894,7 @@ public class FrequentLongsSketchTest {
    * @param s value to print
    */
   static void println(String s) {
-    //System.out.println(s); //disable here
+    //System.err.println(s); //disable here
   }
 
 }

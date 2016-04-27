@@ -380,15 +380,15 @@ public class FrequentItemsSketch<T> {
     if (other == null) return this;
     if (other.isEmpty()) return this;
 
-    final long streamLen = this.streamLength + other.streamLength;
-    this.mergeError += other.getMaximumError();
+    final long streamLen = this.streamLength + other.streamLength; //capture before merge
+    
 
     final ReversePurgeItemHashMap<T>.Iterator iter = other.hashMap.iterator();
-    while (iter.next()) {
+    while (iter.next()) { //this may add to offset during rebuilds
       this.update(iter.getKey(), iter.getValue());
     }
-
-    this.streamLength = streamLen;
+    this.mergeError += other.getMaximumError();
+    this.streamLength = streamLen; //corrected streamLength
     return this;
   }
 

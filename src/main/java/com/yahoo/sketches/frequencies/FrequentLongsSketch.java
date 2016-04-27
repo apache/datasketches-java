@@ -228,7 +228,7 @@ public class FrequentLongsSketch {
       throw new IllegalArgumentException(
           "Possible Corruption: PreLongs must be 1 or "+maxPreLongs+": " + preLongs);
     }
-    if (serVer != SER_VER) {                      //Byte 1
+    if (serVer != SER_VER) {                            //Byte 1
       throw new IllegalArgumentException(
           "Possible Corruption: Ser Ver must be "+SER_VER+": " + serVer);
     }
@@ -237,11 +237,11 @@ public class FrequentLongsSketch {
       throw new IllegalArgumentException(
           "Possible Corruption: FamilyID must be "+actFamID+": " + familyID);
     }
-    if (empty ^ preLongsEq1) {                    //Byte 5 and Byte 0
+    if (empty ^ preLongsEq1) {                          //Byte 5 and Byte 0
       throw new IllegalArgumentException(
           "Possible Corruption: (PreLongs == 1) ^ Empty == True.");
     }
-    if (type != FREQ_SKETCH_TYPE) {               //Byte 6
+    if (type != FREQ_SKETCH_TYPE) {                     //Byte 6
       throw new IllegalArgumentException(
           "Possible Corruption: Freq Sketch Type != 1: "+type);
     }
@@ -283,9 +283,9 @@ public class FrequentLongsSketch {
    */
   public static FrequentLongsSketch getInstance(final String string) {
     final String[] tokens = string.split(",");
-    if (tokens.length < STR_PREAMBLE_TOKENS) {
+    if (tokens.length < STR_PREAMBLE_TOKENS+2) {
       throw new IllegalArgumentException(
-          "String not long enough to specify preamble.");
+          "String not long enough: "+tokens.length);
     }
     final int serVer  = Integer.parseInt(tokens[0]);
     final int famID   = Integer.parseInt(tokens[1]);
@@ -315,7 +315,7 @@ public class FrequentLongsSketch {
           "Possible Corruption: Sketch TYPE incorrect: "+type);
     }
     final int numTokens = tokens.length;
-    if (numActive != (numTokens - STR_PREAMBLE_TOKENS -2)/2) {
+    if (2*numActive != (numTokens - STR_PREAMBLE_TOKENS -2)) {
       throw new IllegalArgumentException("Possible Corruption: Incorrect # of tokens: "+numTokens+
           ", numActive: "+numActive);
     }
@@ -465,15 +465,14 @@ public class FrequentLongsSketch {
     if (other == null) return this;
     if (other.isEmpty()) return this;
 
-    final long streamLen = this.streamLength + other.streamLength;
-    this.offset += other.offset;
-
+    final long streamLen = this.streamLength + other.streamLength; //capture before merge
+    
     final ReversePurgeLongHashMap.Iterator iter = other.hashMap.iterator();
-    while (iter.next()) {
+    while (iter.next()) { //this may add to offset during rebuilds
       this.update(iter.getKey(), iter.getValue());
     }
-
-    this.streamLength = streamLen;
+    this.offset += other.offset;
+    this.streamLength = streamLen; //corrected streamLength
     return this;
   }
 
