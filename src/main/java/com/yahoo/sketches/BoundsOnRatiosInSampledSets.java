@@ -35,16 +35,8 @@ public class BoundsOnRatiosInSampledSets {
    * @return the approximate upper bound
    */
   public static double getLowerBoundForBoverA(long a, long b, double numStdDevs, double f) {
-    if ( ( (a - b) | (a -1) | (b-1) ) < 0) {  //if any group goes negative
-      throw new IllegalArgumentException("a must be >= b and neither a nor b can be < 0");
-    }
+    checkInputs(a, b, numStdDevs, f);
     if ((f == 1.0) || (numStdDevs == 0)) return (double) b / a; 
-    if ((f > .5001) || (f <= 0.0)) {
-      throw new IllegalArgumentException("f must be > 0.0 and <= 0.5");
-    }
-    if ( (numStdDevs < 0) || (numStdDevs > 3.1)) {
-      throw new IllegalArgumentException("numStdDevs must be >= 0 and < 3");
-    }
     return approximateLowerBoundOnP(a, b, numStdDevs * Math.sqrt(1.0 - f));
   }
   
@@ -57,24 +49,26 @@ public class BoundsOnRatiosInSampledSets {
    * @return the approximate lower bound
    */
   public static double getUpperBoundForBoverA(long a, long b, double numStdDevs, double f) {
-    if ( ( (a - b) | (a -1) | (b-1) ) < 0) {  //if any group goes negative
-      throw new IllegalArgumentException("a must be >= b and neither a nor b can be < 0");
-    }
+    checkInputs(a, b, numStdDevs, f);
     if ((f == 1.0) || (numStdDevs == 0)) return (double) b / a; 
-    if ((f > .5001) || (f <= 0.0)) {
-      throw new IllegalArgumentException("f must be > 0.0 and <= 0.5");
-    }
-    if ( (numStdDevs < 0) || (numStdDevs > 3.1)) {
-      throw new IllegalArgumentException("numStdDevs must be >= 0 and < 3");
-    }
     return approximateUpperBoundOnP(a, b, numStdDevs * Math.sqrt(1.0 - f));
   }
   
   public static double getEstimateOfBoverA(long a, long b) {
+    checkInputs(a, b, 1.0, 0.3);
+    return (double) b / a; 
+  }
+  
+  static void checkInputs(long a, long b, double numStdDevs, double f) {
     if ( ( (a - b) | (a -1) | (b-1) ) < 0) {  //if any group goes negative
       throw new IllegalArgumentException("a must be >= b and neither a nor b can be < 0");
     }
-    return (double) b / a; 
+    if ((f != 1.0) && ((f > .5001) || (f <= 0.0))) {
+      throw new IllegalArgumentException("Required: ((f > 0.0) && (f <= 0.5)) || (f == 1.0)");
+    }
+    if ( (numStdDevs < 0) || (numStdDevs > 3.1)) {
+      throw new IllegalArgumentException("numStdDevs must be >= 0 and < 3");
+    }
   }
   
   /**
@@ -84,6 +78,7 @@ public class BoundsOnRatiosInSampledSets {
    * @return the approximate lower bound
    */
   public static double getEstimateOfA(long a, double f) {
+    checkInputs(a, 1, 1.0, f);
     return a / f;
   }
   
@@ -94,6 +89,7 @@ public class BoundsOnRatiosInSampledSets {
    * @return the approximate lower bound
    */
   public static double getEstimateOfB(long b, double f) {
+    checkInputs(b+1, b, 1.0, f);
     return b / f;
   }
 }

@@ -12,7 +12,7 @@ import org.testng.annotations.Test;
 /**
  * @author Kevin Lang
  */
-public class BinomialBoundsProportionsTest {
+public class BoundsOnBinomialProportionsTest {
 
   @Test
   public static void tinyLBTest () {
@@ -93,9 +93,37 @@ public class BinomialBoundsProportionsTest {
     println("UB: "+ub);
   }
   
-//     To check, run the following command:
-//     /usr/bin/java -ea BinomialBoundsProportions 100 | /Users/langk/Desktop/confidence/check-binoprop
-//     check-binoprop is an ocaml program
+  @Test
+  public void checkInputs() {
+    try {
+      estimateUnknownP(-1, 50);
+      fail("Should have thrown IllegalArgumentException.");
+    }
+    catch (IllegalArgumentException e) {
+      //expected
+    }
+    try {
+      estimateUnknownP(500, -50);
+      fail("Should have thrown IllegalArgumentException.");
+    }
+    catch (IllegalArgumentException e) {
+      //expected
+    }
+    try {
+      estimateUnknownP(500, 5000);
+      fail("Should have thrown IllegalArgumentException.");
+    }
+    catch (IllegalArgumentException e) {
+      //expected
+    }
+    assertEquals(estimateUnknownP(0, 0), 0.5, 0.0);
+  }
+  
+  @Test
+  public void checkErf() {
+    assertTrue(erf(-2.0) < 0.99);
+    assertTrue(erf(2.0)  > 0.99);
+  }
   
   @Test
   public void printlnTest() {
@@ -106,7 +134,7 @@ public class BinomialBoundsProportionsTest {
    * @param s value to print 
    */
   static void println(String s) {
-    //System.out.println(s); //disable here
+    System.out.println(s); //disable here
   }
   
   
