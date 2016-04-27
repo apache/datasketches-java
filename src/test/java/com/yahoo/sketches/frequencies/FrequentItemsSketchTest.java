@@ -1,8 +1,14 @@
 package com.yahoo.sketches.frequencies;
 
+import static com.yahoo.sketches.frequencies.PreambleUtil.*;
 import org.testng.annotations.Test;
 
+import com.yahoo.sketches.frequencies.FrequentItemsSketch.ErrorType;
+import com.yahoo.sketches.frequencies.FrequentItemsSketch.Row;
+import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
+
+import static org.testng.Assert.fail;
 
 import org.testng.Assert;
 
@@ -148,6 +154,7 @@ public class FrequentItemsSketchTest {
     Assert.assertEquals(sketch2.getEstimate("d"), 1);
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void serializeLongDeserialize() {
     FrequentItemsSketch<Long> sketch1 = new FrequentItemsSketch<Long>(8);
@@ -156,6 +163,9 @@ public class FrequentItemsSketchTest {
     sketch1.update(3L);
     sketch1.update(4L);
 
+    String s = sketch1.toString();
+    //println(s);
+    
     byte[] bytes = sketch1.serializeToByteArray(new ArrayOfLongsSerDe());
     FrequentItemsSketch<Long> sketch2 = 
         FrequentItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfLongsSerDe());
@@ -194,5 +204,85 @@ public class FrequentItemsSketchTest {
     Assert.assertEquals(sketch1.getEstimate("c"), 2);
     Assert.assertEquals(sketch1.getEstimate("d"), 1);
   }
+  
+  @Test
+  public void checkNullMapReturns() {
+    ReversePurgeItemHashMap<Long> map = new ReversePurgeItemHashMap<Long>(8);
+    Assert.assertNull(map.getActiveKeys());
+    Assert.assertNull(map.getActiveValues());
+  }
+  
+  @SuppressWarnings({ "rawtypes", "unused" })
+  @Test
+  public void checkMisc() {
+    FrequentItemsSketch<Long> sk1 = new FrequentItemsSketch<Long>(4);
+    Assert.assertEquals(sk1.getCurrentMapCapacity(), 3);
+    Assert.assertEquals(sk1.getEstimate(new Long(1)), 0);
+    FrequentItemsSketch<Long> sk2 = new FrequentItemsSketch<Long>(4);
+    Assert.assertEquals(sk1.merge(sk2), sk1 );
+    Assert.assertEquals(sk1.merge(null), sk1);
+    sk1.update(new Long(1));
+    Row[] rows = sk1.getFrequentItems(ErrorType.NO_FALSE_NEGATIVES);
+    Row row = rows[0];
+    Long item = (Long)row.getItem();
+    Assert.assertEquals(row.getEstimate(), 1);
+    Assert.assertEquals(row.getUpperBound(), 1);
+    String s = row.toString();
+    //println(s);
+  }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkUpdateException() {
+    FrequentItemsSketch<Long> sk1 = new FrequentItemsSketch<Long>(4);
+    sk1.update(new Long(1), -1);
+  }
+  
+  @Test
+  public void checkMemExceptions() {
+    FrequentItemsSketch<Long> sk1 = new FrequentItemsSketch<Long>(4);
+    sk1.update(new Long(1), 1);
+    ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
+    byte[] byteArr = sk1.serializeToByteArray(serDe);
+    Memory mem = new NativeMemory(byteArr);
+    //FrequentItemsSketch<Long> sk2 = FrequentItemsSketch.getInstance(mem, serDe);
+    //println(sk2.toString());
+    long pre0 = mem.getLong(0); //The correct first 8 bytes.
+    //Now start corrupting
+    tryBadMem(mem, PREAMBLE_LONGS_BYTE, 2); //Corrupt
+    mem.putLong(0, pre0); //restore
+    
+    tryBadMem(mem, SER_VER_BYTE, 2); //Corrupt
+    mem.putLong(0, pre0); //restore
+    
+    tryBadMem(mem, FAMILY_BYTE, 2); //Corrupt
+    mem.putLong(0, pre0); //restore
+    
+    tryBadMem(mem, FLAGS_BYTE, 4); //Corrupt to true
+    mem.putLong(0, pre0); //restore
+    
+    tryBadMem(mem, FREQ_SKETCH_TYPE_BYTE, 2);
+  }
+  
+  private static void tryBadMem(Memory mem, int byteOffset, int byteValue) {
+    ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
+    try {
+      mem.putByte(byteOffset, (byte) byteValue); //Corrupt
+      FrequentItemsSketch.getInstance(mem, serDe);
+      fail();
+    } catch (IllegalArgumentException e) {
+      //expected
+    }
+  }
+  
+  @Test
+  public void printlnTest() {
+    println("PRINTING: " + this.getClass().getName());
+  }
 
+  /**
+   * @param s value to print
+   */
+  static void println(String s) {
+    System.err.println(s); //disable here
+  }
 }

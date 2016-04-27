@@ -581,7 +581,7 @@ public class FrequentItemsSketch<T> {
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder();
-    sb.append("FrequentItemssSketch<T>:").append(LS);
+    sb.append("FrequentItemsSketch<T>:").append(LS);
     sb.append("  Stream Length    : " + streamLength).append(LS);
     sb.append("  Max Error Offset : " + offset).append(LS);
     sb.append(hashMap.toString());

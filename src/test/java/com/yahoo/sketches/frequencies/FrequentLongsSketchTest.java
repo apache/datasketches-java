@@ -1,5 +1,6 @@
 package com.yahoo.sketches.frequencies;
 
+import static com.yahoo.sketches.frequencies.DistTest.*;
 import static com.yahoo.sketches.frequencies.PreambleUtil.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -288,20 +289,20 @@ public class FrequentLongsSketchTest {
     
     byte[] bytearray0 = sk1.serializeToByteArray();
     Memory mem = new NativeMemory(bytearray0);
-    long pre0 = mem.getLong(0);
+    long pre0 = mem.getLong(0); 
     
     tryBadMem(mem, PREAMBLE_LONGS_BYTE, 2); //Corrupt
-    
     mem.putLong(0, pre0); //restore
+    
     tryBadMem(mem, SER_VER_BYTE, 2); //Corrupt
-    
     mem.putLong(0, pre0); //restore
+    
     tryBadMem(mem, FAMILY_BYTE, 2); //Corrupt
-    
     mem.putLong(0, pre0); //restore
+    
     tryBadMem(mem, FLAGS_BYTE, 4); //Corrupt to true
-    
     mem.putLong(0, pre0); //restore
+    
     tryBadMem(mem, FREQ_SKETCH_TYPE_BYTE, 2);
   }
   
@@ -804,77 +805,6 @@ public class FrequentLongsSketchTest {
     println(out);
   }
   
-  //Restricted methods
-  
-  /**
-   * @param prob the probability of success for the geometric distribution.
-   * @return a random number generated from the geometric distribution.
-   */
-  private static long randomGeometricDist(double prob) {
-    assert (prob > 0.0 && prob < 1.0);
-    return 1 + (long) (Math.log(Math.random()) / Math.log(1.0 - prob));
-  }
-
-  static double zeta(long n, double theta) {
-    // the zeta function, used by the below zipf function
-    // (this is not often called from outside this library)
-    // ... but have made it public now to speed things up
-    int i;
-    double ans = 0.0;
-
-    for (i = 1; i <= n; i++)
-      ans += Math.pow(1. / i, theta);
-    return (ans);
-  }
-
-  // This draws values from the zipf distribution
-  // n is range, theta is skewness parameter
-  // theta = 0 gives uniform distribution,
-  // theta > 1 gives highly skewed distribution.
-  private static long zipf(double theta, long n, double zetan) {
-    double alpha;
-    double eta;
-    double u;
-    double uz;
-    double val;
-
-    // randinit must be called before entering this procedure for
-    // the first time since it uses the random generators
-
-    alpha = 1. / (1. - theta);
-    eta = (1. - Math.pow(2. / n, 1. - theta)) / (1. - zeta(2, theta) / zetan);
-
-    u = 0.0;
-    while (u == 0.0)
-      u = Math.random();
-    uz = u * zetan;
-    if (uz < 1.)
-      val = 1;
-    else if (uz < (1. + Math.pow(0.5, theta)))
-      val = 2;
-    else
-      val = 1 + (n * Math.pow(eta * u - eta + 1., alpha));
-
-    return (long) val;
-  }
-
-  public void testRandomGeometricDist() {
-    long maxItem = 0L;
-    double prob = .1;
-    for (int i = 0; i < 100; i++) {
-      long item = randomGeometricDist(prob);
-      if (item > maxItem)
-        maxItem = item;
-      // If you succeed with probability p the probability
-      // of failing 20/p times is smaller than 1/2^20.
-      Assert.assertTrue(maxItem < 20.0 / prob);
-    }
-  }
-
-  private static FrequentLongsSketch newFrequencySketch(double error_parameter) {
-    return new FrequentLongsSketch(
-        Util.ceilingPowerOf2((int) (1.0 /(error_parameter*ReversePurgeLongHashMap.getLoadFactor()))));
-  }
 
   @Test
   public void printlnTest() {
@@ -886,6 +816,13 @@ public class FrequentLongsSketchTest {
    */
   static void println(String s) {
     //System.err.println(s); //disable here
+  }
+  
+  //Restricted methods
+  
+  private static FrequentLongsSketch newFrequencySketch(double error_parameter) {
+    return new FrequentLongsSketch(
+        Util.ceilingPowerOf2((int) (1.0 /(error_parameter*ReversePurgeLongHashMap.getLoadFactor()))));
   }
 
 }
