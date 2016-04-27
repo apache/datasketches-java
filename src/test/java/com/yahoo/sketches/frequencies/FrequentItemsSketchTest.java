@@ -13,6 +13,7 @@ public class FrequentItemsSketchTest {
     FrequentItemsSketch<String> sketch = new FrequentItemsSketch<String>(8);
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertEquals(sketch.getNumActiveItems(), 0);
+    Assert.assertEquals(sketch.getStreamLength(), 0);
     Assert.assertEquals(sketch.getLowerBound("a"), 0);
     Assert.assertEquals(sketch.getUpperBound("a"), 0);
   }
@@ -23,6 +24,7 @@ public class FrequentItemsSketchTest {
     sketch.update(null);
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertEquals(sketch.getNumActiveItems(), 0);
+    Assert.assertEquals(sketch.getStreamLength(), 0);
     Assert.assertEquals(sketch.getLowerBound(null), 0);
     Assert.assertEquals(sketch.getUpperBound(null), 0);
   }
@@ -58,6 +60,11 @@ public class FrequentItemsSketchTest {
 
     FrequentItemsSketch<String>.Row[] items = sketch.getFrequentItems(FrequentItemsSketch.ErrorType.NO_FALSE_POSITIVES);
     Assert.assertEquals(items.length, 4);
+
+    sketch.reset();
+    Assert.assertTrue(sketch.isEmpty());
+    Assert.assertEquals(sketch.getNumActiveItems(), 0);
+    Assert.assertEquals(sketch.getStreamLength(), 0);
   }
 
   @Test
@@ -79,15 +86,42 @@ public class FrequentItemsSketchTest {
     Assert.assertFalse(sketch.isEmpty());
     Assert.assertEquals(sketch.getStreamLength(), 35);
 
-    FrequentItemsSketch<Integer>.Row[] items = 
-        sketch.getFrequentItems(FrequentItemsSketch.ErrorType.NO_FALSE_POSITIVES);
-    Assert.assertEquals(items.length, 2);
-    // only 2 items (1 and 7) should have counts more than 1
-    int count = 0;
-    for (FrequentItemsSketch<Integer>.Row item: items) {
-      if (item.getLowerBound() > 1) count++;
+    {
+      FrequentItemsSketch<Integer>.Row[] items = 
+          sketch.getFrequentItems(FrequentItemsSketch.ErrorType.NO_FALSE_POSITIVES);
+      Assert.assertEquals(items.length, 2);
+      // only 2 items (1 and 7) should have counts more than 1
+      int count = 0;
+      for (FrequentItemsSketch<Integer>.Row item: items) {
+        if (item.getLowerBound() > 1) count++;
+      }
+      Assert.assertEquals(count, 2);
     }
-    Assert.assertEquals(count, 2);
+
+    {
+      FrequentItemsSketch<Integer>.Row[] items = 
+          sketch.getFrequentItems(FrequentItemsSketch.ErrorType.NO_FALSE_NEGATIVES);
+      Assert.assertTrue(items.length >= 2);
+      // only 2 items (1 and 7) should have counts more than 1
+      int count = 0;
+      for (FrequentItemsSketch<Integer>.Row item: items) {
+        if (item.getLowerBound() > 5) {
+          count++;
+        }
+      }
+      Assert.assertEquals(count, 2);
+    }
+}
+
+  @Test
+  public void serializeStringDeserializeEmpty() {
+    FrequentItemsSketch<String> sketch1 = new FrequentItemsSketch<String>(8);
+    byte[] bytes = sketch1.serializeToByteArray(new ArrayOfStringsSerDe());
+    FrequentItemsSketch<String> sketch2 = 
+        FrequentItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfStringsSerDe());
+    Assert.assertTrue(sketch2.isEmpty());
+    Assert.assertEquals(sketch2.getNumActiveItems(), 0);
+    Assert.assertEquals(sketch2.getStreamLength(), 0);
   }
 
   @Test
