@@ -5,7 +5,7 @@
 package com.yahoo.sketches;
 
 import static com.yahoo.sketches.BoundsOnRatiosInSampledSets.*;
-import static org.testng.Assert.*;
+//import static org.testng.Assert.*;
 
 import org.testng.annotations.Test;
 
