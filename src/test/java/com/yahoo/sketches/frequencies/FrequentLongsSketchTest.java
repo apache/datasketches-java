@@ -121,6 +121,7 @@ public class FrequentLongsSketchTest {
     Assert.assertTrue(new_sketch.getStreamLength() == merged_sketch.getStreamLength());
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void frequentItemsByteSerialTest() {
     //Empty Sketch
@@ -129,7 +130,7 @@ public class FrequentLongsSketchTest {
     Memory mem0 = new NativeMemory(bytearray0);
     FrequentLongsSketch new_sketch0 = FrequentLongsSketch.getInstance(mem0);
     String str0 = PreambleUtil.preambleToString(mem0);
-    println(str0);
+    //println(str0);
     String string0 = sketch.serializeToString();
     String new_string0 = new_sketch0.serializeToString();
     Assert.assertTrue(string0.equals(new_string0));
@@ -145,7 +146,7 @@ public class FrequentLongsSketchTest {
     Memory mem1 = new NativeMemory(bytearray1);
     FrequentLongsSketch new_sketch1 = FrequentLongsSketch.getInstance(mem1);
     String str1 = PreambleUtil.preambleToString(mem1);
-    println(str1);
+    //println(str1);
     String string1 = sketch.serializeToString();
     String new_string1 = new_sketch1.serializeToString();
     Assert.assertTrue(string1.equals(new_string1));
@@ -704,24 +705,6 @@ public class FrequentLongsSketchTest {
   }
   
   @Test
-  public void checkSerToMem() {
-    FrequentLongsSketch fls = new FrequentLongsSketch(4);
-    byte[] byteArr = fls.serializeToByteArray();
-    assertEquals(byteArr.length, 8);
-    
-    NativeMemory mem = new NativeMemory(new byte[8]);
-    fls.serializeToMemory(mem);
-    assertEquals(mem.getCapacity(), 8);
-  }
-  
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  public void checkSerToMemException() {
-    FrequentLongsSketch fls = new FrequentLongsSketch(4);
-    NativeMemory mem = new NativeMemory(new byte[4]);
-    fls.serializeToMemory(mem);
-  }
-  
-  @Test
   public void checkGetFrequentItems1() {
     FrequentLongsSketch fls = new FrequentLongsSketch(4);
     fls.update(1);
@@ -762,13 +745,14 @@ public class FrequentLongsSketchTest {
     assertTrue(fle.isEmpty());
   }
   
+  @SuppressWarnings("unused")
   @Test
   public void checkSortItems() {
     int numSketches = 1; 
     int n = 2222;
     double error_tolerance = 1.0/100;
     int sketchSize = Util.ceilingPowerOf2((int) (1.0 /(error_tolerance*ReversePurgeLongHashMap.getLoadFactor())));
-    println("sketchSize: "+sketchSize);
+    //println("sketchSize: "+sketchSize);
     
     FrequentLongsSketch[] sketches = new FrequentLongsSketch[numSketches];
     for (int h = 0; h < numSketches; h++) {
@@ -786,16 +770,16 @@ public class FrequentLongsSketchTest {
     for(int h=0; h<numSketches; h++) {
       long threshold = sketches[h].getMaximumError();
       Row[] rows = sketches[h].getFrequentItems(ErrorType.NO_FALSE_NEGATIVES);
-      println("ROWS: "+rows.length);
+      //println("ROWS: "+rows.length);
       for (int i = 0; i < rows.length; i++) {
         Assert.assertTrue(rows[i].ub > threshold);
       }
       Row first = rows[0];
-      String s = first.toString();
       long anItem = first.getItem();
       long anEst  = first.getEstimate();
       long aLB    = first.getLowerBound();
-      println(s);
+      String s = first.toString();
+      //println(s);
       assertTrue(anEst >= 0);
       assertTrue(aLB >= 0);
       assertEquals(anItem, anItem); //dummy test
@@ -806,12 +790,19 @@ public class FrequentLongsSketchTest {
   public void checkGetAndCheckPreLongs() {
     byte[] byteArr = new byte[8];
     byteArr[0] = (byte) 2;
-    PreambleUtil.getAndCheckPreLongs(new NativeMemory(byteArr));
+    PreambleUtil.checkPreambleSize(new NativeMemory(byteArr));
   }
   
-  
-  
-  
+  @Test
+  public void checkToString() {
+    FrequentLongsSketch fls = new FrequentLongsSketch(4);
+    fls.update(1, 1000);
+    fls.update(2, 100);
+    fls.update(3, 10);
+    fls.update(4, 1);
+    String out = fls.toString();
+    println(out);
+  }
   
   //Restricted methods
   

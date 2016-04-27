@@ -29,7 +29,7 @@ import com.yahoo.sketches.memory.Memory;
  * </p>
  * 
  * <p>
- * An empty FrequentItems only requires 8 bytes. All others require 40 bytes of preamble.
+ * An empty FrequentItems only requires 8 bytes. All others require 32 bytes of preamble.
  * </p>
  * 
  * <pre>
@@ -55,7 +55,7 @@ final class PreambleUtil {
 
   // ###### DO NOT MESS WITH THIS FROM HERE ...
   // Preamble byte Addresses
-  static final int PREAMBLE_LONGS_BYTE       = 0; // either 1 or 6
+  static final int PREAMBLE_LONGS_BYTE       = 0; // either 1 or 4
   static final int SER_VER_BYTE              = 1;
   static final int FAMILY_BYTE               = 2;
   static final int LG_MAX_MAP_SIZE_BYTE      = 3;
@@ -83,7 +83,7 @@ final class PreambleUtil {
    * @return the summary preamble string.
    */
   public static String preambleToString(final Memory srcMem) {
-    final long pre0 = getAndCheckPreLongs(srcMem); //make sure we can get the assumed preamble
+    final long pre0 = checkPreambleSize(srcMem); //make sure we can get the assumed preamble
     final int preLongs = extractPreLongs(pre0);   //byte 0
     final int serVer = extractSerVer(pre0);       //byte 1
     final Family family = Family.idToFamily(extractFamilyID(pre0)); //byte 2
@@ -143,7 +143,7 @@ final class PreambleUtil {
 // @formatter:on
   
   static int extractPreLongs(final long pre0) { //Byte 0
-    final long mask = 0XFFL;
+    final long mask = 0X3FL; //Lower 6 bits
     return (int) (pre0 & mask);
   }
 
@@ -177,7 +177,7 @@ final class PreambleUtil {
     return (int) ((pre0 >>> shift) & mask);
   }
 
-  static int extractFreqSketchType(final long pre0) { //Byte 7
+  static int extractFreqSketchType(final long pre0) { //Byte 6
     final int shift = FREQ_SKETCH_TYPE_BYTE << 3;
     final long mask = 0XFFL;
     return (int) ((pre0 >>> shift) & mask);
@@ -189,7 +189,7 @@ final class PreambleUtil {
   }
 
   static long insertPreLongs(final int preLongs, final long pre0) { //Byte 0
-    final long mask = 0XFFL;
+    final long mask = 0X3FL; //Lower 6 bits
     return (preLongs & mask) | (~mask & pre0);
   }
 
@@ -223,7 +223,7 @@ final class PreambleUtil {
     return ((flags & mask) << shift) | (~(mask << shift) & pre0);
   }
 
-  static long insertFreqSketchType(final int freqSketchType, final long pre0) { //Byte 7
+  static long insertFreqSketchType(final int freqSketchType, final long pre0) { //Byte 6
     final int shift = FREQ_SKETCH_TYPE_BYTE << 3;
     final long mask = 0XFFL;
     return ((freqSketchType & mask) << shift) | (~(mask << shift) & pre0);
@@ -240,11 +240,11 @@ final class PreambleUtil {
    * @param max the max value for preLongs
    * @return the first 8 bytes of preamble as a long.
    */
-  static long getAndCheckPreLongs(Memory mem) {
+  static long checkPreambleSize(Memory mem) {
     final long cap = mem.getCapacity();
     if (cap < 8) { throwNotBigEnough(cap, 8); }
     final long pre0 = mem.getLong(0);
-    final int preLongs = extractPreLongs(pre0);
+    final int preLongs = (int) (pre0 & 0X3FL); //lower 6 bits
     final int required = Math.max(preLongs << 3, 8);
     if (cap < required) { throwNotBigEnough(cap, required); }
     return pre0;
@@ -252,7 +252,8 @@ final class PreambleUtil {
 
   private static void throwNotBigEnough(long cap, int required) {
     throw new IllegalArgumentException(
-        "Possible Corruption: Size of byte array or Memory not large enough: Size: " + cap 
+        "Possible Corruption: "+
+    "Size of byte array or Memory not large enough for Preamble: Size: " + cap 
         + ", Required: " + required);
   }
 

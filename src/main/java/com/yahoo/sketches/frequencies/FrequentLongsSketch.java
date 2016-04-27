@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.frequencies;
 
+import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.toLog2;
 import static com.yahoo.sketches.frequencies.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.frequencies.PreambleUtil.FREQ_SKETCH_TYPE;
@@ -146,7 +147,7 @@ public class FrequentLongsSketch {
   private int curMapCap; //the threshold to purge
 
   /**
-   * Tracks the total of decremented counts performed.
+   * Tracks the total of decremented counts.
    */
   private long offset;
 
@@ -198,19 +199,17 @@ public class FrequentLongsSketch {
     offset = 0;
     sampleSize = Math.min(SAMPLE_SIZE, maxMapCap); 
   }
-  
-  //Factories
-  
+
   /**
    * Returns a sketch instance of this class from the given srcMem, 
    * which must be a Memory representation of this sketch class.
    * 
    * @param srcMem a Memory representation of a sketch of this class. 
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @return a sketch instance of this class..
+   * @return a sketch instance of this class.
    */
   public static FrequentLongsSketch getInstance(final Memory srcMem) {
-    final long pre0 = PreambleUtil.getAndCheckPreLongs(srcMem);  //make sure we can get the preamble
+    final long pre0 = PreambleUtil.checkPreambleSize(srcMem); //make sure we can get the preamble
     final int maxPreLongs = Family.FREQUENCY.getMaxPreLongs();
 
     final int preLongs = extractPreLongs(pre0);         //Byte 0
@@ -226,7 +225,7 @@ public class FrequentLongsSketch {
     final boolean preLongsEqMax = (preLongs == maxPreLongs);
     if (!preLongsEq1 && !preLongsEqMax) {
       throw new IllegalArgumentException(
-          "Possible Corruption: PreLongs must be 1 or "+maxPreLongs+": " + preLongs);
+          "Possible Corruption: PreLongs must be 1 or " + maxPreLongs + ": " + preLongs);
     }
     if (serVer != SER_VER) {                            //Byte 1
       throw new IllegalArgumentException(
@@ -243,7 +242,7 @@ public class FrequentLongsSketch {
     }
     if (type != FREQ_SKETCH_TYPE) {                     //Byte 6
       throw new IllegalArgumentException(
-          "Possible Corruption: Freq Sketch Type != 1: "+type);
+          "Possible Corruption: Freq Sketch Type incorrect: " + type + " != " + FREQ_SKETCH_TYPE);
     }
 
     if (empty) {
@@ -270,7 +269,7 @@ public class FrequentLongsSketch {
     for (int i = 0; i < activeItems; i++) {
       fls.update(itemArray[i], countArray[i]);
     }
-    fls.streamLength = preArr[2]; //override count due to updating
+    fls.streamLength = preArr[2]; //override streamLength due to updating
     return fls;
   }
 
@@ -371,13 +370,13 @@ public class FrequentLongsSketch {
 
     // build first preLong empty or not
     long pre0 = 0L;
-    pre0 = insertPreLongs(preLongs, pre0);         //Byte 0
-    pre0 = insertSerVer(SER_VER, pre0);            //Byte 1
-    pre0 = insertFamilyID(10, pre0);               //Byte 2
-    pre0 = insertLgMaxMapSize(lgMaxMapSize, pre0); //Byte 3
+    pre0 = insertPreLongs(preLongs, pre0);                  //Byte 0
+    pre0 = insertSerVer(SER_VER, pre0);                     //Byte 1
+    pre0 = insertFamilyID(10, pre0);                        //Byte 2
+    pre0 = insertLgMaxMapSize(lgMaxMapSize, pre0);          //Byte 3
     pre0 = insertLgCurMapSize(hashMap.getLgLength(), pre0); //Byte 4
     pre0 = (empty)? insertFlags(EMPTY_FLAG_MASK, pre0) : insertFlags(0, pre0); //Byte 5
-    pre0 = insertFreqSketchType(FREQ_SKETCH_TYPE, pre0); //Byte 6
+    pre0 = insertFreqSketchType(FREQ_SKETCH_TYPE, pre0);    //Byte 6
 
     if (empty) {
       mem.putLong(0, pre0);
@@ -391,25 +390,10 @@ public class FrequentLongsSketch {
       mem.putLongArray(0, preArr, 0, preLongs);
       final int preBytes = preLongs << 3;
       mem.putLongArray(preBytes, hashMap.getActiveValues(), 0, activeItems);
-   
+
       mem.putLongArray(preBytes + (activeItems << 3), hashMap.getActiveKeys(), 0, activeItems);
     }
     return outArr;
-  }
-
-  /**
-   * Puts this sketch into the given Memory as a byte array
-   * @param dstMem the given destination Memory
-   */
-  public void serializeToMemory(final Memory dstMem) {
-    final byte[] byteArr = serializeToByteArray();
-    final int arrLen = byteArr.length;
-    final long memCap = dstMem.getCapacity();
-    if (memCap < arrLen) {
-      throw new IllegalArgumentException(
-          "Destination Memory not large enough: " + memCap + " < " + arrLen);
-    }
-    dstMem.putByteArray(0, byteArr, 0, arrLen);
   }
 
   /**
@@ -443,7 +427,7 @@ public class FrequentLongsSketch {
       //The reason for the +1 here is: If we do not purge now, we might wind up inserting a new 
       //item on the next update, and we don't want this to put us over capacity. 
       //(Going over capacity by 1 is not a big deal, but we may as well be precise).
-      if (numActive+1 > curMapCap) {
+      if (numActive + 1 > curMapCap) {
         //need to purge and rebuild the map
         offset += hashMap.purge(sampleSize);
         if (getNumActiveItems() > getMaximumMapCapacity()) {
@@ -500,7 +484,7 @@ public class FrequentLongsSketch {
    */
   public long getUpperBound(final long item) {
     // UB = itemCount + offset
-    return hashMap.get(item) + getMaximumError();
+    return hashMap.get(item) + offset;
   }
 
   /**
@@ -646,7 +630,7 @@ public class FrequentLongsSketch {
    * @return the maximum number of counters the sketch is configured to support.
    */
   public int getMaximumMapCapacity() {
-    return (int) ((1 << lgMaxMapSize)*ReversePurgeLongHashMap.getLoadFactor());
+    return (int) ((1 << lgMaxMapSize) * ReversePurgeLongHashMap.getLoadFactor());
   }
 
   /**
@@ -677,6 +661,20 @@ public class FrequentLongsSketch {
     this.streamLength = 0;
   }
 
+  /**
+   * Returns a human readable summary of this sketch.
+   * @return a human readable summary of this sketch.
+   */
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("FrequentLongsSketch:").append(LS);
+    sb.append("  Stream Length    : " + streamLength).append(LS);
+    sb.append("  Max Error Offset : " + offset).append(LS);
+    sb.append(hashMap.toString());
+    return sb.toString();
+  }
+  
   /**
    * Deserializes an array of String tokens into a hash map object of this class.
    * 

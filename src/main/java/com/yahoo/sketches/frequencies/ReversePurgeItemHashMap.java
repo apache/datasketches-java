@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.frequencies;
 
+import static com.yahoo.sketches.frequencies.Util.hash;
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.toLog2;
 
@@ -27,7 +28,6 @@ class ReversePurgeItemHashMap<T> {
   private static final int DRIFT_LIMIT = 1024; //used only in stress testing
   private int lgLength;
   protected int loadThreshold;
-  protected int arrayMask;
   protected Object[] keys;
   protected long[] values;
   protected short[] states;
@@ -46,7 +46,6 @@ class ReversePurgeItemHashMap<T> {
   ReversePurgeItemHashMap(final int mapSize) {
     lgLength = toLog2(mapSize, "mapSize");
     this.loadThreshold = (int) (mapSize * LOAD_FACTOR);
-    this.arrayMask = mapSize - 1;
     this.keys = new Object[mapSize];
     this.values = new long[mapSize];
     this.states = new short[mapSize];
@@ -85,6 +84,7 @@ class ReversePurgeItemHashMap<T> {
    * @param putAmount the value put into the map if the key is not present
    */
   void adjustOrPutValue(final T key, final long adjustAmount, final long putAmount) {
+    final int arrayMask = keys.length - 1;
     int probe = (int) hash(key.hashCode()) & arrayMask;
     int drift = 1;
     while (states[probe] != 0 && !keys[probe].equals(key)) {
@@ -182,11 +182,12 @@ class ReversePurgeItemHashMap<T> {
     if (numActive == 0) return null;
     final long[] returnedValues = new long[numActive];
     int j = 0;
-    for (int i = 0; i < values.length; i++)
+    for (int i = 0; i < values.length; i++) {
       if (isActive(i)) {
         returnedValues[j] = values[i];
         j++;
       }
+    }
     assert (j == numActive);
     return returnedValues;
   }
@@ -201,7 +202,6 @@ class ReversePurgeItemHashMap<T> {
     values = new long[newSize];
     states = new short[newSize];
     loadThreshold = (int) (newSize * LOAD_FACTOR);
-    arrayMask = newSize - 1;
     lgLength = Integer.numberOfTrailingZeros(newSize);
     numActive = 0;
     for (int i = 0; i < oldKeys.length; i++) {
@@ -242,10 +242,11 @@ class ReversePurgeItemHashMap<T> {
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder();
-    sb.append("HashMap").append(LS);
-    sb.append("Index: States,       Keys,     Values").append(LS);
+    sb.append("ReversePurgeItemHashMap").append(LS);
+    sb.append("  Index: States,     Values,  Keys").append(LS);
     for (int i = 0; i < keys.length; i++) {
-      sb.append(String.format("%5d: %6d, %s, %10d\n", i, states[i], keys[i].toString(), values[i]));
+      if (states[i] <= 0) continue;
+      sb.append(String.format("  %5d: %6d, %10d,  %s\n", i, states[i], values[i], keys[i].toString()));
     }
     sb.append(LS);
     return sb.toString();
@@ -291,7 +292,8 @@ class ReversePurgeItemHashMap<T> {
     // item to move to this location
     // if none are found, the status is changed
     states[deleteProbe] = 0; //mark as empty
-    int drift = 1; 
+    int drift = 1;
+    final int arrayMask = keys.length - 1;
     int probe = (deleteProbe + drift) & arrayMask; //map length must be a power of 2
     // advance until you find a free location replacing locations as needed
     while (states[probe] != 0) {
@@ -302,8 +304,6 @@ class ReversePurgeItemHashMap<T> {
         states[deleteProbe] = (short) (states[probe] - drift);
         // marking this location as deleted
         states[probe] = 0;
-        values[probe] = 0;  //Simplifies queries
-        keys[probe] = null;
         drift = 0;
         deleteProbe = probe;
       }
@@ -315,24 +315,11 @@ class ReversePurgeItemHashMap<T> {
   }
   
   private int hashProbe(final T key) {
+    final int arrayMask = keys.length - 1;
     int probe = (int) hash(key.hashCode()) & arrayMask;
     while (states[probe] > 0 && !keys[probe].equals(key))
       probe = (probe + 1) & arrayMask;
     return probe;
-  }
-  
-  /**
-   * @param key to be hashed
-   * @return an index into the hash table This hash function is taken from the internals of the
-   * Trove open source library.
-   */
-  protected static long hash(long key) {
-    key ^= key >>> 33;
-    key *= 0xff51afd7ed558ccdL;
-    key ^= key >>> 33;
-    key *= 0xc4ceb9fe1a85ec53L;
-    key ^= key >>> 33;
-    return key;
   }
 
   Iterator iterator() {

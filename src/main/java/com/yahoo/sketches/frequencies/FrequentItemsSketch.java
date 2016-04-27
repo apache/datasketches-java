@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.frequencies;
 
+import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.toLog2;
 import static com.yahoo.sketches.frequencies.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.frequencies.PreambleUtil.SER_VER;
@@ -147,13 +148,7 @@ public class FrequentItemsSketch<T> {
   private int curMapCap; //the threshold to purge
 
   /**
-   * An upper bound on the error in any estimated count due to merging with other 
-   * FrequentLongsSketches.
-   */
-  private long mergeError;
-
-  /**
-   * Tracks the total of decremented counts performed.
+   * Tracks the total of decremented counts.
    */
   private long offset;
 
@@ -213,10 +208,10 @@ public class FrequentItemsSketch<T> {
    * @param srcMem a Memory representation of a sketch of this class. 
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param serDe an instance of ArrayOfItemsSerDe
-   * @return a sketch instance of this class..
+   * @return a sketch instance of this class.
    */
   public static <T> FrequentItemsSketch<T> getInstance(final Memory srcMem, final ArrayOfItemsSerDe<T> serDe) {
-    final long pre0 = PreambleUtil.getAndCheckPreLongs(srcMem);  //make sure we can get the preamble
+    final long pre0 = PreambleUtil.checkPreambleSize(srcMem);  //make sure we can get the preamble
     final int maxPreLongs = Family.FREQUENCY.getMaxPreLongs();
 
     final int preLongs = extractPreLongs(pre0);         //Byte 0
@@ -226,7 +221,7 @@ public class FrequentItemsSketch<T> {
     final int lgCurMapSize = extractLgCurMapSize(pre0); //Byte 4
     final boolean empty = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0; //Byte 5
     final int type = extractFreqSketchType(pre0);       //Byte 6
-    
+
     // Checks
     final boolean preLongsEq1 = (preLongs == 1);        //Byte 0
     final boolean preLongsEqMax = (preLongs == maxPreLongs);
@@ -234,7 +229,7 @@ public class FrequentItemsSketch<T> {
       throw new IllegalArgumentException(
           "Possible Corruption: PreLongs must be 1 or " + maxPreLongs + ": " + preLongs);
     }
-    if (serVer != SER_VER) {                      //Byte 1
+    if (serVer != SER_VER) {                            //Byte 1
       throw new IllegalArgumentException(
           "Possible Corruption: Ser Ver must be "+SER_VER+": " + serVer);
     }
@@ -243,13 +238,13 @@ public class FrequentItemsSketch<T> {
       throw new IllegalArgumentException(
           "Possible Corruption: FamilyID must be "+actFamID+": " + familyID);
     }
-    if (empty ^ preLongsEq1) {                    //Byte 5 and Byte 0
+    if (empty ^ preLongsEq1) {                          //Byte 5 and Byte 0
       throw new IllegalArgumentException(
           "Possible Corruption: (PreLongs == 1) ^ Empty == True.");
     }
-    if (type != serDe.getType()) {               //Byte 6
+    if (type != serDe.getType()) {                      //Byte 6
       throw new IllegalArgumentException(
-          "Possible Corruption: Freq Sketch Type != 1: " + type);
+          "Possible Corruption: Freq Sketch Type incorrect: " + type + " != " + serDe.getType());
     }
 
     if (empty) {
@@ -276,7 +271,7 @@ public class FrequentItemsSketch<T> {
     for (int i = 0; i < activeItems; i++) {
       fis.update(itemArray[i], countArray[i]);
     }
-    fis.streamLength = preArr[2]; //override count due to updating
+    fis.streamLength = preArr[2]; //override streamLength due to updating
     return fis;
   }
 
@@ -301,13 +296,13 @@ public class FrequentItemsSketch<T> {
 
     // build first preLong empty or not
     long pre0 = 0L;
-    pre0 = insertPreLongs(preLongs, pre0);         //Byte 0
-    pre0 = insertSerVer(SER_VER, pre0);            //Byte 1
-    pre0 = insertFamilyID(10, pre0);               //Byte 2
-    pre0 = insertLgMaxMapSize(lgMaxMapSize, pre0); //Byte 3
+    pre0 = insertPreLongs(preLongs, pre0);                  //Byte 0
+    pre0 = insertSerVer(SER_VER, pre0);                     //Byte 1
+    pre0 = insertFamilyID(10, pre0);                        //Byte 2
+    pre0 = insertLgMaxMapSize(lgMaxMapSize, pre0);          //Byte 3
     pre0 = insertLgCurMapSize(hashMap.getLgLength(), pre0); //Byte 4
     pre0 = (empty)? insertFlags(EMPTY_FLAG_MASK, pre0) : insertFlags(0, pre0); //Byte 5
-    pre0 = insertFreqSketchType(serDe.getType(), pre0); //Byte 6
+    pre0 = insertFreqSketchType(serDe.getType(), pre0);     //Byte 6
 
     if (empty) {
       mem.putLong(0, pre0);
@@ -382,12 +377,11 @@ public class FrequentItemsSketch<T> {
 
     final long streamLen = this.streamLength + other.streamLength; //capture before merge
     
-
     final ReversePurgeItemHashMap<T>.Iterator iter = other.hashMap.iterator();
     while (iter.next()) { //this may add to offset during rebuilds
       this.update(iter.getKey(), iter.getValue());
     }
-    this.mergeError += other.getMaximumError();
+    this.offset += other.offset;
     this.streamLength = streamLen; //corrected streamLength
     return this;
   }
@@ -415,8 +409,8 @@ public class FrequentItemsSketch<T> {
    * guaranteed to be no smaller than the real frequency.
    */
   public long getUpperBound(final T item) {
-    // UB = itemCount + offset + mergeError
-    return hashMap.get(item) + getMaximumError();
+    // UB = itemCount + offset
+    return hashMap.get(item) + offset;
   }
 
   /**
@@ -427,9 +421,8 @@ public class FrequentItemsSketch<T> {
    * guaranteed to be no larger than the real frequency.
    */
   public long getLowerBound(final T item) {
-    //LB = max(itemCount - mergeError, 0)
-    final long returnVal = hashMap.get(item) - mergeError;
-    return Math.max(returnVal, 0);
+    //LB = itemCount or 0
+    return hashMap.get(item);
   }
 
   /**
@@ -538,7 +531,7 @@ public class FrequentItemsSketch<T> {
    * any item.
    */
   public long getMaximumError() {
-    return offset + mergeError;
+    return offset;
   }
 
   /**
@@ -582,8 +575,17 @@ public class FrequentItemsSketch<T> {
     hashMap = new ReversePurgeItemHashMap<T>(1 << LG_MIN_MAP_SIZE);
     this.curMapCap = hashMap.getCapacity();
     this.offset = 0;
-    this.mergeError = 0;
     this.streamLength = 0;
   }
 
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("FrequentItemssSketch<T>:").append(LS);
+    sb.append("  Stream Length    : " + streamLength).append(LS);
+    sb.append("  Max Error Offset : " + offset).append(LS);
+    sb.append(hashMap.toString());
+    return sb.toString();
+  }
+  
 }

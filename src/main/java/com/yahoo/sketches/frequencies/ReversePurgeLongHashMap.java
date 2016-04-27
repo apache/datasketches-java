@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.frequencies;
 
+import static com.yahoo.sketches.frequencies.Util.hash;
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.toLog2;
 
@@ -23,7 +24,6 @@ class ReversePurgeLongHashMap {
   private static final int DRIFT_LIMIT = 1024; //used only in stress testing
   private int lgLength;
   private int loadThreshold;
-  private int arrayMask;
   private long[] keys;
   private long[] values;
   private short[] states;
@@ -42,7 +42,6 @@ class ReversePurgeLongHashMap {
   ReversePurgeLongHashMap(final int mapSize) {
     lgLength = toLog2(mapSize, "mapSize");
     this.loadThreshold = (int) (mapSize * LOAD_FACTOR);
-    this.arrayMask = mapSize - 1;
     this.keys = new long[mapSize];
     this.values = new long[mapSize];
     this.states = new short[mapSize];
@@ -99,7 +98,7 @@ class ReversePurgeLongHashMap {
   boolean isActive(final int probe) {
     return (states[probe] > 0);
   }
-  
+
   /**
    * Gets the current value with the given key
    * @param key the given key
@@ -124,6 +123,7 @@ class ReversePurgeLongHashMap {
    * @param putAmount the value put into the map if the key is not present
    */
   void adjustOrPutValue(final long key, final long adjustAmount, final long putAmount) {
+    final int arrayMask = keys.length - 1;
     int probe = (int) hash(key) & arrayMask;
     int drift = 1;
     while (states[probe] != 0 && keys[probe] != key) {
@@ -217,15 +217,15 @@ class ReversePurgeLongHashMap {
    * @return an array containing the values corresponding. to the active keys in the hash
    */
   long[] getActiveValues() {
-    if (numActive == 0)
-      return null;
+    if (numActive == 0) return null;
     final long[] returnedValues = new long[numActive];
     int j = 0;
-    for (int i = 0; i < keys.length; i++)
+    for (int i = 0; i < keys.length; i++) {
       if (isActive(i)) {
         returnedValues[j] = values[i];
         j++;
       }
+    }
     assert (j == numActive);
     return returnedValues;
   }
@@ -239,7 +239,6 @@ class ReversePurgeLongHashMap {
     values = new long[newSize];
     states = new short[newSize];
     loadThreshold = (int) (newSize * LOAD_FACTOR);
-    arrayMask = newSize - 1;
     lgLength = Integer.numberOfTrailingZeros(newSize);
     numActive = 0;
     for (int i = 0; i < oldKeys.length; i++) {
@@ -259,7 +258,7 @@ class ReversePurgeLongHashMap {
   int getLgLength() {
     return lgLength;
   }
-  
+
   /**
    * @return capacity of hash table internal arrays (i.e., max number of keys that can be stored)
    */
@@ -280,15 +279,16 @@ class ReversePurgeLongHashMap {
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder();
-    sb.append("HashMap").append(LS);
-    sb.append("Index: States,       Keys,     Values").append(LS);
+    sb.append("ReversePurgeLongHashMap:").append(LS);
+    sb.append("  Index: States,     Values,       Keys").append(LS);
     for (int i = 0; i < keys.length; i++) {
-      sb.append(String.format("%5d: %6d, %10d, %10d\n", i, states[i], keys[i], values[i]));
+      if (states[i] <= 0) continue;
+      sb.append(String.format("  %5d: %6d, %10d, %10d\n", i, states[i], values[i], keys[i]));
     }
     sb.append(LS);
     return sb.toString();
   }
-  
+
   /**
    * @return the load factor of the hash table, i.e, the ratio between the capacity and the array
    * length
@@ -296,7 +296,7 @@ class ReversePurgeLongHashMap {
   static double getLoadFactor() {
     return LOAD_FACTOR;
   }
-  
+
   /**
    * This function is called when a key is processed that is not currently assigned a counter, and
    * all the counters are in use. This function estimates the median of the counters in the sketch
@@ -323,13 +323,14 @@ class ReversePurgeLongHashMap {
     keepOnlyPositiveCounts();
     return val;
   }
-  
+
   private void hashDelete(int deleteProbe) {
     // Looks ahead in the table to search for another
     // item to move to this location
     // if none are found, the status is changed
     states[deleteProbe] = 0; //mark as empty
-    int drift = 1; 
+    int drift = 1;
+    final int arrayMask = keys.length - 1;
     int probe = (deleteProbe + drift) & arrayMask; //map length must be a power of 2
     // advance until you find a free location replacing locations as needed
     while (states[probe] != 0) {
@@ -340,8 +341,6 @@ class ReversePurgeLongHashMap {
         states[deleteProbe] = (short) (states[probe] - drift);
         // marking this location as deleted
         states[probe] = 0;
-        values[probe] = 0;  //Simplifies queries
-        keys[probe] = 0;
         drift = 0;
         deleteProbe = probe;
       }
@@ -353,24 +352,11 @@ class ReversePurgeLongHashMap {
   }
   
   private int hashProbe(final long key) {
+    final int arrayMask = keys.length - 1;
     int probe = (int) hash(key) & arrayMask;
     while (states[probe] > 0 && keys[probe] != key)
       probe = (probe + 1) & arrayMask;
     return probe;
-  }
-  
-  /**
-   * @param key to be hashed
-   * @return an index into the hash table This hash function is taken from the internals of the
-   * Trove open source library.
-   */
-  protected long hash(long key) {
-    key ^= key >>> 33;
-    key *= 0xff51afd7ed558ccdL;
-    key ^= key >>> 33;
-    key *= 0xc4ceb9fe1a85ec53L;
-    key ^= key >>> 33;
-    return key;
   }
 
   Iterator iterator() {
@@ -384,9 +370,9 @@ class ReversePurgeLongHashMap {
     private int i;
 
     Iterator(final long[] keys, final long[] values, final short[] states) {
-      this.iKeys = keys;
-      this.iValues = values;
-      this.iStates = states;
+      iKeys = keys;
+      iValues = values;
+      iStates = states;
       i = -1;
     }
 
