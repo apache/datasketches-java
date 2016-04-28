@@ -78,10 +78,6 @@ import com.yahoo.sketches.memory.NativeMemory;
  * decrements all of the counters (by an approximately computed median), and removes any 
  * non-positive counters.</p>
  * 
- * <p>Hence, when the sketch is at full size, the number of counters maintained by the sketch will 
- * typically oscillate between roughly maximum hash map capacity (maxMapCap) and maxMapCap/2, or
- * equivalently, k and k/2.</p>
- * 
  * <p><b>Accuracy</b></p>
  * 
  * <p>If fewer than LOAD_FACTOR * maxMapSize different items are inserted into the sketch the 

@@ -5,12 +5,14 @@
 
 package com.yahoo.sketches.frequencies;
 
-public final class Util {
+final class Util {
 
+  private Util() {}
+  
   /**
    * @param key to be hashed
    * @return an index into the hash table This hash function is taken from the internals of 
-   * Austin Appleby's MurmurHash3 algorithm.
+   * Austin Appleby's MurmurHash3 algorithm. It is also used by the Trove for Java libraries.
    */
    static long hash(long key) {
     key ^= key >>> 33;

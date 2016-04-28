@@ -79,10 +79,6 @@ import com.yahoo.sketches.memory.NativeMemory;
  * decrements all of the counters (by an approximately computed median), and removes any 
  * non-positive counters.</p>
  * 
- * <p>Hence, when the sketch is at full size, the number of counters maintained by the sketch will 
- * typically oscillate between roughly maximum hash map capacity (maxMapCap) and maxMapCap/2, or
- * equivalently, k and k/2.</p>
- * 
  * <p><b>Accuracy</b></p>
  * 
  * <p>If fewer than LOAD_FACTOR * maxMapSize different items are inserted into the sketch the 
@@ -205,6 +201,7 @@ public class FrequentItemsSketch<T> {
    * Returns a sketch instance of this class from the given srcMem, 
    * which must be a Memory representation of this sketch class.
    * 
+   * @param <T> The type of item that this sketch will track
    * @param srcMem a Memory representation of a sketch of this class. 
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param serDe an instance of ArrayOfItemsSerDe
