@@ -285,7 +285,6 @@ class ReversePurgeLongHashMap {
       if (states[i] <= 0) continue;
       sb.append(String.format("  %5d: %6d, %10d, %10d\n", i, states[i], values[i], keys[i]));
     }
-    sb.append(LS);
     return sb.toString();
   }
 

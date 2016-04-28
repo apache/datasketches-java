@@ -2,6 +2,7 @@ package com.yahoo.sketches.frequencies;
 
 import static com.yahoo.sketches.frequencies.DistTest.*;
 import static com.yahoo.sketches.frequencies.PreambleUtil.*;
+import static com.yahoo.sketches.Util.LS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -795,16 +796,38 @@ public class FrequentLongsSketchTest {
   }
   
   @Test
-  public void checkToString() {
-    FrequentLongsSketch fls = new FrequentLongsSketch(4);
-    fls.update(1, 1000);
-    fls.update(2, 100);
-    fls.update(3, 10);
-    fls.update(4, 1);
-    String out = fls.toString();
-    println(out);
+  public void checkToString1() {
+    int size = 4;
+    printSketch(size, new long[] {1,10,100, 1000});
+    printSketch(size, new long[] {1000,100,10, 1});
   }
+
   
+  public void printSketch(int size, long[] freqArr) {
+    FrequentLongsSketch fls = new FrequentLongsSketch(size);
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i<freqArr.length; i++) {
+      fls.update(i+1, freqArr[i]);
+    }
+    sb.append("Sketch Size: "+size).append(LS);
+    String s = fls.toString();
+    sb.append(s);
+    println(sb.toString());
+    printRows(fls, ErrorType.NO_FALSE_NEGATIVES);
+    println("");
+    printRows(fls, ErrorType.NO_FALSE_POSITIVES);
+    println("");
+  }
+
+  private static void printRows(FrequentLongsSketch fls, ErrorType eType) {
+    Row[] rows = fls.getFrequentItems(eType);
+    String s1 = eType.toString();
+    println(s1);
+    for (int i=0; i<rows.length; i++) {
+      String s2 = rows[i].toString();
+      println(s2);
+    }
+  }
 
   @Test
   public void printlnTest() {

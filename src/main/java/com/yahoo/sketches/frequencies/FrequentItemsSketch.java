@@ -81,20 +81,23 @@ import com.yahoo.sketches.memory.NativeMemory;
  * 
  * <p><b>Accuracy</b></p>
  * 
- * <p>If fewer than LOAD_FACTOR * maxMapSize different items are inserted into the sketch the 
+ * <p>If fewer than 3/4 * maxMapSize different items are inserted into the sketch the 
  * estimated frequencies returned by the sketch will be exact.
- * The logic of the frequent items sketch is such that the stored counts and true counts are never
- * too different. More specifically, for any <i>item</i>, the sketch can return an estimate of the 
- * true frequency of <i>item</i>, along with upper and lower bounds on the frequency (that hold
- * deterministically).</p>
+ * The logic of the frequent items sketch is such that the stored counts and true counts are 
+ * never too different. 
+ * More specifically, for any <i>item</i>, the sketch can return an estimate of the 
+ * true frequency of <i>item</i>, along with upper and lower bounds on the frequency 
+ * (that hold deterministically).</p>
  * 
- * <p>If the internal hash function had infinite precision and was perfectly uniform: Then,
- * for this implementation and for a specific active <i>item</i>, it is guaranteed that the 
- * difference between the Upper Bound and the Estimate is 
- * max(UB- Est) ~ 2n/k = (8/3)*(n/maxMapSize), where <i>n</i> denotes the stream length 
- * (i.e, sum of all the item counts). The behavior is similar for the Lower Bound and the Estimate.
- * However, this implementation uses a deterministic hash function for performance that performs 
- * well on real data, and in practice, the difference is usually much smaller.</p>
+ * <p>For this implementation and for a specific active <i>item</i>, it is guaranteed that
+ * the true frequency is between the Upper Bound (UB) and the Lower Bound (LB) for that item.
+ * And <i>UB- LB = W * (3M/8 - f(M))</i><sup>-1</sup>, where <i>W</i> denotes the sum of all
+ * item counts, <i>M</i> is the Maximum Map Size, and <i>f</i> is a complicated function of
+ * <i>M</i>. This is a worst case guarantee. 
+ * In practice on real data <i>UB-LB</i> is usually much smaller.
+ * There is an astronomically small probability that the error can exceed the above 
+ * "worst case".
+ * </p>
  * 
  * <p><b>Background</b></p>
  * 
