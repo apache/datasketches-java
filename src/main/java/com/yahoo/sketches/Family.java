@@ -85,7 +85,7 @@ public enum Family {
   /**
    * The Frequency family of sketches
    */
-  FREQUENCY(10, "FREQUENCY", 1, 5);
+  FREQUENCY(10, "FREQUENCY", 1, 4);
   
   private static final Map<Integer, Family> lookupID = new HashMap<Integer, Family>();
   private static final Map<String, Family> lookupFamName = new HashMap<String, Family>();
