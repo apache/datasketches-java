@@ -2,6 +2,7 @@
  * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.memory;
 
 
@@ -49,7 +50,7 @@ public interface Memory {
   void copy(long srcOffsetBytes, long dstOffsetBytes, long lengthBytes);
   
   /**
-   * Atomically adds the given value by the integer located at offsetBytes.
+   * Atomically adds the given value to the integer located at offsetBytes.
    * @param offsetBytes offset bytes relative to this Memory start
    * @param delta the amount to add
    * @return the modified value
@@ -411,10 +412,10 @@ public interface Memory {
   
   /**
    * Returns the start address of this Memory plus the offset.
-   * @param offset the given offset from the start address of this Memory
+   * @param offsetBytes the given offset in bytes from the start address of this Memory
    * @return the start address of this Memory plus the offset.
    */
-  long getAddress(final long offset);
+  long getAddress(final long offsetBytes);
   
   /**
    * Gets the capacity of this Memory in bytes

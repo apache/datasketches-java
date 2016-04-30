@@ -2,6 +2,7 @@
  * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.memory;
 
 import static com.yahoo.sketches.memory.UnsafeUtil.BOOLEAN_SHIFT;
@@ -25,8 +26,21 @@ import static com.yahoo.sketches.memory.UnsafeUtil.assertBounds;
 /**
  * The MemoryRegion class implements the Memory interface and provides a means of 
  * hierarchically partitioning a large block of native memory into 
- * smaller regions of memory, each with their own "capacity" and offsets. 
+ * smaller regions of memory, each with their own capacity and offsets. 
  * 
+ * <p>If asserts are enabled in the JVM, the methods in this class perform bounds checking against 
+ * the region's defined boundaries and then redirect the call to the parent Memory class. If the
+ * parent class is also a MemoryRegion it does a similar check and then calls its parent. 
+ * The root of this hierarchy will be a NativeMemory class that ultimately performs the desired
+ * task. If asserts are not enabled the JIT compiler will eliminate all the asserts and the 
+ * hierarchical calls should collapse to a call to the NativeMemory method.</p> 
+ * 
+ * <p>Because asserts must be specifically enabled in the JVM, it is incumbent on the user of this 
+ * class to make sure that their code is thoroughly tested.  
+ * Violating memory bounds can cause memory segment faults, which takes
+ * down the JVM and can be very difficult to debug.</p>
+ * 
+ * @see NativeMemory
  * @author Lee Rhodes
  */
 public class MemoryRegion implements Memory {
@@ -109,31 +123,31 @@ public class MemoryRegion implements Memory {
   @Override
   public int getAndAddInt(long offsetBytes, int delta) {
     assertBounds(offsetBytes, INT_SIZE, capacityBytes_);
-    long address = getAddress(offsetBytes);
-    return mem_.getAndAddInt(address, delta);
+    long unsafeRawAddress = getAddress(offsetBytes);
+    return mem_.getAndAddInt(unsafeRawAddress, delta);
   }
 
   @Override
   public long getAndAddLong(long offsetBytes, long delta) {
     assertBounds(offsetBytes, LONG_SIZE, capacityBytes_);
-    long address = getAddress(offsetBytes);
-    return mem_.getAndAddLong(address, delta);
+    long unsafeRawAddress = getAddress(offsetBytes);
+    return mem_.getAndAddLong(unsafeRawAddress, delta);
   }
-  
+
   @Override
   public int getAndSetInt(long offsetBytes, int newValue) {
     assertBounds(offsetBytes, INT_SIZE, capacityBytes_);
-    long address = getAddress(offsetBytes);
-    return mem_.getAndSetInt(address, newValue);
+    long unsafeRawAddress = getAddress(offsetBytes);
+    return mem_.getAndSetInt(unsafeRawAddress, newValue);
   }
-  
+
   @Override
   public long getAndSetLong(long offsetBytes, long newValue) {
     assertBounds(offsetBytes, LONG_SIZE, capacityBytes_);
-    long address = getAddress(offsetBytes);
-    return mem_.getAndSetLong(address, newValue);
+    long unsafeRawAddress = getAddress(offsetBytes);
+    return mem_.getAndSetLong(unsafeRawAddress, newValue);
   }
-  
+
   @Override
   public boolean getBoolean(long offsetBytes) {
     assertBounds(offsetBytes, BOOLEAN_SIZE, capacityBytes_);
@@ -249,32 +263,32 @@ public class MemoryRegion implements Memory {
   @Override
   public boolean isAllBitsClear(long offsetBytes, byte bitMask) {
     assertBounds(offsetBytes, BYTE_SIZE, capacityBytes_);
-    long address = getAddress(offsetBytes);
-    int value = ~mem_.getByte(address) & bitMask & 0XFF; 
+    long unsafeRawAddress = getAddress(offsetBytes);
+    int value = ~mem_.getByte(unsafeRawAddress) & bitMask & 0XFF; 
     return value == bitMask;
   }
-  
+
   @Override
   public boolean isAllBitsSet(long offsetBytes, byte bitMask) {
     assertBounds(offsetBytes, BYTE_SIZE, capacityBytes_);
-    long address = getAddress(offsetBytes);
-    int value = mem_.getByte(address) & bitMask & 0XFF;
+    long unsafeRawAddress = getAddress(offsetBytes);
+    int value = mem_.getByte(unsafeRawAddress) & bitMask & 0XFF;
     return value == bitMask;
   }
-  
+
   @Override
   public boolean isAnyBitsClear(long offsetBytes, byte bitMask) {
     assertBounds(offsetBytes, BYTE_SIZE, capacityBytes_);
-    long address = getAddress(offsetBytes);
-    int value = ~mem_.getByte(address) & bitMask & 0XFF; 
+    long unsafeRawAddress = getAddress(offsetBytes);
+    int value = ~mem_.getByte(unsafeRawAddress) & bitMask & 0XFF; 
     return value != 0;
   }
-  
+
   @Override
   public boolean isAnyBitsSet(long offsetBytes, byte bitMask) {
     assertBounds(offsetBytes, BYTE_SIZE, capacityBytes_);
-    long address = getAddress(offsetBytes);
-    int value = mem_.getByte(address) & bitMask & 0XFF;
+    long unsafeRawAddress = getAddress(offsetBytes);
+    int value = mem_.getByte(unsafeRawAddress) & bitMask & 0XFF;
     return value != 0;
   }
 
@@ -404,9 +418,9 @@ public class MemoryRegion implements Memory {
   @Override
   public void setBits(long offsetBytes, byte bitMask) {
     assertBounds(offsetBytes, BYTE_SIZE, capacityBytes_);
-    long address = getAddress(offsetBytes);
-    byte value = mem_.getByte(address);
-    mem_.putByte(address, (byte)(value | bitMask));
+    long unsafeRawAddress = getAddress(offsetBytes);
+    byte value = mem_.getByte(unsafeRawAddress);
+    mem_.putByte(unsafeRawAddress, (byte)(value | bitMask));
   }
 
   //Non-data Memory interface methods
@@ -415,27 +429,27 @@ public class MemoryRegion implements Memory {
   public final long getAddress(final long offsetBytes) {
     return memOffsetBytes_ + offsetBytes;
   }
-  
+
   @Override
   public long getCapacity() {
     return capacityBytes_;
   }
-  
+
   @Override
   public MemoryRequest getMemoryRequest() {
     return memReq_;
   }
-  
+
   @Override
   public Object getParent() {
     return mem_;
   }
-  
+
   @Override
   public void setMemoryRequest(MemoryRequest memReq) {
     memReq_ = memReq;
   }
-  
+
   @Override
   public String toHexString(String header, long offsetBytes, int lengthBytes) {
     assertBounds(offsetBytes, lengthBytes, capacityBytes_);
