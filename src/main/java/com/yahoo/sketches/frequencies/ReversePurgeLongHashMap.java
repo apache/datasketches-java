@@ -67,7 +67,7 @@ class ReversePurgeLongHashMap {
     for (int i = 0; i < numActive; i++) {
       final long key = Long.parseLong(tokens[j++]);
       final long value = Long.parseLong(tokens[j++]);
-      table.adjustOrPutValue(key, value, value);
+      table.adjustOrPutValue(key, value);
     }
     return table;
   }
@@ -120,9 +120,8 @@ class ReversePurgeLongHashMap {
    * 
    * @param key the key of the value to increment
    * @param adjustAmount the amount by which to increment the value
-   * @param putAmount the value put into the map if the key is not present
    */
-  void adjustOrPutValue(final long key, final long adjustAmount, final long putAmount) {
+  void adjustOrPutValue(final long key, final long adjustAmount) {
     final int arrayMask = keys.length - 1;
     int probe = (int) hash(key) & arrayMask;
     int drift = 1;
@@ -137,10 +136,9 @@ class ReversePurgeLongHashMap {
       // adding the key to the table the value
       assert (numActive <= loadThreshold): "numActive: "+numActive+" > loadThreshold: "+loadThreshold;
       keys[probe] = key;
-      values[probe] = putAmount;
+      values[probe] = adjustAmount;
       states[probe] = (short) drift;
       numActive++;
-      assert (numActive <= .8 * keys.length);
     } else {
       // adjusting the value of an existing key
       assert (keys[probe] == key);
@@ -175,17 +173,6 @@ class ReversePurgeLongHashMap {
       }
     }
   }
-  
-  /**
-   * Increments the primitive value mapped to the key if the key is present in the map. Otherwise,
-   * the key is inserted with the value.
-   * 
-   * @param key the key of the value to increment
-   * @param value the value increment by, or to put into the map if the key is not initial present
-   */
-  void adjust(final long key, final long value) {
-    adjustOrPutValue(key, value, value);
-  }
 
   /**
    * @param adjustAmount value by which to shift all values. Only keys corresponding to positive
@@ -200,8 +187,7 @@ class ReversePurgeLongHashMap {
    * @return an array containing the active keys in the hash map.
    */
   long[] getActiveKeys() {
-    if (numActive == 0)
-      return null;
+    if (numActive == 0) return null;
     final long[] returnedKeys = new long[numActive];
     int j = 0;
     for (int i = 0; i < keys.length; i++)
@@ -209,7 +195,7 @@ class ReversePurgeLongHashMap {
         returnedKeys[j] = keys[i];
         j++;
       }
-    assert (j == numActive) : "j: "+j+" != numActive: "+numActive;
+    assert (j == numActive) : "j: " + j + " != numActive: " + numActive;
     return returnedKeys;
   }
 
@@ -220,7 +206,7 @@ class ReversePurgeLongHashMap {
     if (numActive == 0) return null;
     final long[] returnedValues = new long[numActive];
     int j = 0;
-    for (int i = 0; i < keys.length; i++) {
+    for (int i = 0; i < values.length; i++) {
       if (isActive(i)) {
         returnedValues[j] = values[i];
         j++;
@@ -243,7 +229,7 @@ class ReversePurgeLongHashMap {
     numActive = 0;
     for (int i = 0; i < oldKeys.length; i++) {
       if (oldStates[i] > 0) {
-        adjust(oldKeys[i], oldValues[i]);
+        adjustOrPutValue(oldKeys[i], oldValues[i]);
       }
     }
   }
@@ -278,12 +264,15 @@ class ReversePurgeLongHashMap {
    */
   @Override
   public String toString() {
+    String fmt  = "  %12d:%11d%12d %d";
+    String hfmt = "  %12s:%11s%12s %s";
     final StringBuilder sb = new StringBuilder();
     sb.append("ReversePurgeLongHashMap:").append(LS);
-    sb.append("  Index: States,     Values,       Keys").append(LS);
+    sb.append(String.format(hfmt, "Index","States","Values","Keys")).append(LS);
+
     for (int i = 0; i < keys.length; i++) {
       if (states[i] <= 0) continue;
-      sb.append(String.format("  %5d: %6d, %10d, %10d\n", i, states[i], values[i], keys[i]));
+      sb.append(String.format(fmt, i, states[i], values[i], keys[i])).append(LS);
     }
     return sb.toString();
   }

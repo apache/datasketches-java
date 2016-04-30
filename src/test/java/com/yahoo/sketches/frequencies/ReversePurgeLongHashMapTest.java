@@ -52,7 +52,7 @@ public class ReversePurgeLongHashMapTest {
     for (int i=0; i<.75*mapLength;i++) {
       long key = random.nextInt(keyRange);
       long value = random.nextInt(valueRange);
-      hashMap.adjustOrPutValue(key ,value, value);
+      hashMap.adjustOrPutValue(key ,value);
       trove.adjustOrPutValue(key, value, value);
     }
     

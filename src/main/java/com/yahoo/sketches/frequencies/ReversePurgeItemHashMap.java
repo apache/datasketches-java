@@ -81,9 +81,8 @@ class ReversePurgeItemHashMap<T> {
    * 
    * @param key the key of the value to increment
    * @param adjustAmount the amount by which to increment the value
-   * @param putAmount the value put into the map if the key is not present
    */
-  void adjustOrPutValue(final T key, final long adjustAmount, final long putAmount) {
+  void adjustOrPutValue(final T key, final long adjustAmount) {
     final int arrayMask = keys.length - 1;
     int probe = (int) hash(key.hashCode()) & arrayMask;
     int drift = 1;
@@ -98,10 +97,9 @@ class ReversePurgeItemHashMap<T> {
       // adding the key to the table the value
       assert (numActive <= loadThreshold): "numActive: "+numActive+" > loadThreshold: "+loadThreshold;
       keys[probe] = key;
-      values[probe] = putAmount;
+      values[probe] = adjustAmount;
       states[probe] = (short) drift;
       numActive++;
-      assert (numActive <= .8 * keys.length);
     } else {
       // adjusting the value of an existing key
       assert (keys[probe].equals(key));
@@ -135,17 +133,6 @@ class ReversePurgeItemHashMap<T> {
         numActive--;
       }
     }
-  }
-  
-  /**
-   * Increments the primitive value mapped to the key if the key is present in the map. Otherwise,
-   * the key is inserted with the value.
-   * 
-   * @param key the key of the value to increment
-   * @param value the value increment by, or to put into the map if the key is not initial present
-   */
-  void adjust(final T key, final long value) {
-    adjustOrPutValue(key, value, value);
   }
 
   /**
@@ -206,7 +193,7 @@ class ReversePurgeItemHashMap<T> {
     numActive = 0;
     for (int i = 0; i < oldKeys.length; i++) {
       if (oldStates[i] > 0) {
-        adjust((T) oldKeys[i], oldValues[i]);
+        adjustOrPutValue((T) oldKeys[i], oldValues[i]);
       }
     }
   }
@@ -241,12 +228,15 @@ class ReversePurgeItemHashMap<T> {
    */
   @Override
   public String toString() {
+    String fmt  = "  %12d:%11d%12d %s";
+    String hfmt = "  %12s:%11s%12s %s";
     final StringBuilder sb = new StringBuilder();
     sb.append("ReversePurgeItemHashMap").append(LS);
-    sb.append("  Index: States,     Values,  Keys").append(LS);
+    sb.append(String.format(hfmt, "Index","States","Values","Keys")).append(LS);
+
     for (int i = 0; i < keys.length; i++) {
       if (states[i] <= 0) continue;
-      sb.append(String.format("  %5d: %6d, %10d,  %s\n", i, states[i], values[i], keys[i].toString()));
+      sb.append(String.format(fmt, i, states[i], values[i], keys[i].toString()));
     }
     sb.append(LS);
     return sb.toString();

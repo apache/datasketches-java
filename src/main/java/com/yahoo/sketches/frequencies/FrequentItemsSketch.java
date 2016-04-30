@@ -43,8 +43,8 @@ import com.yahoo.sketches.memory.NativeMemory;
  * <p>This implementation provides the following capabilities:</p>
  * <ol>
  * <li>Estimate the frequency of an item.</li>
- * <li>Return upper and lower bounds of any item, such that the true frequency is always between
- * the upper and lower bounds. </li>
+ * <li>Return upper and lower bounds of any item, such that the true frequency is always 
+ * between the upper and lower bounds. </li>
  * <li>Return a global maximum error that holds for all items in the stream.</li>
  * <li>Return an array of frequent items that qualify either a NO_FALSE_POSITIVES or a 
  * NO_FALSE_NEGATIVES error type.</li>
@@ -54,30 +54,31 @@ import com.yahoo.sketches.memory.NativeMemory;
  * 
  * <p><b>Space Usage</b></p>
  * 
- * <p>The sketch is initialized with a maxMapSize that specifies the maximum physical length of the 
- * internal hash map of the form (<i>&lt;T&gt;</i> item, <i>long</i> count).
+ * <p>The sketch is initialized with a maxMapSize that specifies the maximum physical 
+ * length of the internal hash map of the form (<i>&lt;T&gt;</i> item, <i>long</i> count).
  * The maxMapSize must be a power of 2.</p>
  * 
  * <p>The hash map starts with a very small size (4), and grows as needed up to the 
  * specified maxMapSize. The LOAD_FACTOR for the hash map is internally set at 75%, 
  * which means at any time the capacity of (item, count) pairs is 75% * mapSize. 
  * The space usage of the sketch is 18 * mapSize bytes, plus a small constant
- * number of additional bytes. The space usage of this sketch will never exceed 18 * maxMapSize
- * bytes, plus a small constant number of additional bytes.</p>
+ * number of additional bytes. The space usage of this sketch will never exceed 
+ * 18 * maxMapSize bytes, plus a small constant number of additional bytes.</p>
  * 
  * <p><b>Maximum Capacity of the Sketch</b></p>
  * 
- * <p>The maximum capacity of (item, count) pairs of the sketch is maxMapCap = LOAD_FACTOR * maxMapSize.
- * Papers that describe the mathematical error properties of this type of algorithm often refer to 
- * this with the symbol <i>k</i>.</p>
+ * <p>The maximum capacity of (item, count) pairs of the sketch is maxMapCap = 
+ * LOAD_FACTOR * maxMapSize.
+ * Papers that describe the mathematical error properties of this type of algorithm often 
+ * refer to this with the symbol <i>k</i>.</p>
  * 
  * <p><b>Updating the sketch with (item, count) pairs</b></p>
  * 
- * <p>If the item is found in the hash map, the mapped count field (the "counter") is incremented by
- * the incoming count, otherwise, a new counter "(item, count) pair" is created. 
- * If the number of tracked counters reaches the maximum capacity of the hash map the sketch 
- * decrements all of the counters (by an approximately computed median), and removes any 
- * non-positive counters.</p>
+ * <p>If the item is found in the hash map, the mapped count field (the "counter") is 
+ * incremented by the incoming count, otherwise, a new counter "(item, count) pair" is 
+ * created. If the number of tracked counters reaches the maximum capacity of the hash map 
+ * the sketch decrements all of the counters (by an approximately computed median), and 
+ * removes any non-positive counters.</p>
  * 
  * <p><b>Accuracy</b></p>
  * 
@@ -91,10 +92,9 @@ import com.yahoo.sketches.memory.NativeMemory;
  * 
  * <p>For this implementation and for a specific active <i>item</i>, it is guaranteed that
  * the true frequency is between the Upper Bound (UB) and the Lower Bound (LB) for that item.
- * And <i>UB- LB = W * (3M/8 - f(M))</i><sup>-1</sup>, where <i>W</i> denotes the sum of all
- * item counts, <i>M</i> is the Maximum Map Size, and <i>f</i> is a complicated function of
- * <i>M</i>. This is a worst case guarantee. 
- * In practice on real data <i>UB-LB</i> is usually much smaller.
+ * And <i>(UB- LB) &le; W * epsilon</i>, where <i>W</i> denotes the sum of all item counts, 
+ * and <i>epsilon = 4/M</i>, where <i>M</i> is the Maximum Map Size.
+ * This is a worst case guarantee.  In practice <i>(UB-LB)</i> is usually much smaller.
  * There is an astronomically small probability that the error can exceed the above 
  * "worst case".
  * </p>
@@ -102,15 +102,15 @@ import com.yahoo.sketches.memory.NativeMemory;
  * <p><b>Background</b></p>
  * 
  * <p>This code implements a variant of what is commonly known as the "Misra-Gries
- * algorithm". Variants of it were discovered and rediscovered and redesigned several times over 
- * the years:</p>
+ * algorithm". Variants of it were discovered and rediscovered and redesigned several times 
+ * over the years:</p>
  * <ul><li>"Finding repeated elements", Misra, Gries, 1982</li>
- * <li>"Frequency estimation of Internet packet streams with limited space" Demaine, Lopez-Ortiz, 
- * Munro, 2002</li>
+ * <li>"Frequency estimation of Internet packet streams with limited space" Demaine, 
+ * Lopez-Ortiz, Munro, 2002</li>
  * <li>"A simple algorithm for finding frequent elements in streams and bags" Karp, Shenker,
  * Papadimitriou, 2003</li>
- * <li>"Efficient Computation of Frequent and Top-k Elements in Data Streams" Metwally, Agrawal, 
- * Abbadi, 2006</li>
+ * <li>"Efficient Computation of Frequent and Top-k Elements in Data Streams" Metwally, 
+ * Agrawal, Abbadi, 2006</li>
  * </ul>
  * 
  * @param <T> The type of item to be tracked by this sketch
@@ -119,14 +119,12 @@ import com.yahoo.sketches.memory.NativeMemory;
  */
 public class FrequentItemsSketch<T> {
 
-  public enum ErrorType {NO_FALSE_POSITIVES, NO_FALSE_NEGATIVES}
-
   /**
-   * We start by allocating a small data structure capable of explicitly storing very small streams
-   * and then growing it as the stream grows. The following constant controls the size of the
-   * initial data structure.
+   * We start by allocating a small data structure capable of explicitly storing very small 
+   * streams and then growing it as the stream grows. The following constant controls the 
+   * size of the initial data structure.
    */
-  private static final int LG_MIN_MAP_SIZE = 2; // This is somewhat arbitrary
+  private static final int LG_MIN_MAP_SIZE = 3; // This is somewhat arbitrary
 
   /**
    * This is a constant large enough that computing the median of SAMPLE_SIZE
@@ -137,7 +135,8 @@ public class FrequentItemsSketch<T> {
   private static final int SAMPLE_SIZE = 256;
 
   /**
-   * Log2 Maximum length of the arrays internal to the hash map supported by the data structure.
+   * Log2 Maximum length of the arrays internal to the hash map supported by the data 
+   * structure.
    */
   private int lgMaxMapSize;
 
@@ -170,32 +169,34 @@ public class FrequentItemsSketch<T> {
   /**
    * Construct this sketch with the parameter maxMapSize and the default initialMapSize (4).
    * 
-   * @param maxMapSize Determines the physical size of the internal hash map managed by this sketch
-   * and must be a power of 2.  The maximum capacity of this internal hash map is 0.75 times 
-   * maxMapSize. Both the ultimate accuracy and size of this sketch are a function of maxMapSize.
+   * @param maxMapSize Determines the physical size of the internal hash map managed by this 
+   * sketch and must be a power of 2.  The maximum capacity of this internal hash map is 
+   * 0.75 times * maxMapSize. Both the ultimate accuracy and size of this sketch are a 
+   * function of maxMapSize.
    */
   public FrequentItemsSketch(final int maxMapSize) {
     this(toLog2(maxMapSize, "maxMapSize"), LG_MIN_MAP_SIZE);
   }
 
   /**
-   * Construct this sketch with parameter lgMapMapSize and lgCurMapSize. This internal constructor 
-   * is used when deserializing the sketch.
+   * Construct this sketch with parameter lgMapMapSize and lgCurMapSize. This internal 
+   * constructor is used when deserializing the sketch.
    * 
-   * @param lgMaxMapSize Log2 of the physical size of the internal hash map managed by this sketch.
-   * The maximum capacity of this internal hash map is 0.75 times 2^lgMaxMapSize.
+   * @param lgMaxMapSize Log2 of the physical size of the internal hash map managed by this 
+   * sketch. The maximum capacity of this internal hash map is 0.75 times 2^lgMaxMapSize.
    * Both the ultimate accuracy and size of this sketch are a function of lgMaxMapSize.
    * 
-   * @param lgCurMapSize Log2 of the starting (current) physical size of the internal hash map 
-   * managed by this sketch.
+   * @param lgCurMapSize Log2 of the starting (current) physical size of the internal hash 
+   * map managed by this sketch.
    */
   FrequentItemsSketch(final int lgMaxMapSize, final int lgCurMapSize) {
     //set initial size of hash map
-    this.lgMaxMapSize = lgMaxMapSize;
+    this.lgMaxMapSize = Math.max(lgMaxMapSize, LG_MIN_MAP_SIZE);
     final int lgCurMapSz = Math.max(lgCurMapSize, LG_MIN_MAP_SIZE);
     hashMap = new ReversePurgeItemHashMap<T>(1 << lgCurMapSz);
     this.curMapCap = hashMap.getCapacity(); 
-    final int maxMapCap = (int) ((1 << lgMaxMapSize) * ReversePurgeItemHashMap.getLoadFactor());
+    final int maxMapCap = 
+        (int) ((1 << lgMaxMapSize) * ReversePurgeItemHashMap.getLoadFactor());
     offset = 0;
     sampleSize = Math.min(SAMPLE_SIZE, maxMapCap); 
   }
@@ -211,7 +212,7 @@ public class FrequentItemsSketch<T> {
    * @return a sketch instance of this class.
    */
   public static <T> FrequentItemsSketch<T> getInstance(final Memory srcMem, final ArrayOfItemsSerDe<T> serDe) {
-    final long pre0 = PreambleUtil.checkPreambleSize(srcMem);  //make sure we can get the preamble
+    final long pre0 = PreambleUtil.checkPreambleSize(srcMem); //make sure preamble will fit
     final int maxPreLongs = Family.FREQUENCY.getMaxPreLongs();
 
     final int preLongs = extractPreLongs(pre0);         //Byte 0
@@ -244,7 +245,8 @@ public class FrequentItemsSketch<T> {
     }
     if (type != serDe.getType()) {                      //Byte 6
       throw new IllegalArgumentException(
-          "Possible Corruption: Freq Sketch Type incorrect: " + type + " != " + serDe.getType());
+          "Possible Corruption: Freq Sketch Type incorrect: " + type + " != " + 
+              serDe.getType());
     }
 
     if (empty) {
@@ -341,23 +343,16 @@ public class FrequentItemsSketch<T> {
     if (item == null || count == 0) return;
     if (count < 0) throw new IllegalArgumentException("Count may not be negative");
     this.streamLength += count;
-    hashMap.adjust(item, count);
-    final int numActive = getNumActiveItems();
+    hashMap.adjustOrPutValue(item, count);
 
-    if (hashMap.getLgLength() < lgMaxMapSize) { //below tgt size
-      if (numActive >= curMapCap) {
+    if (getNumActiveItems() > curMapCap) { //over the threshold, we need to do something
+      if (hashMap.getLgLength() < lgMaxMapSize) { //below tgt size, we can grow
         hashMap.resize(2 * hashMap.getLength());
-        this.curMapCap = hashMap.getCapacity();
-      }
-    } else { //at tgt size
-      //The reason for the +1 here is: If we do not purge now, we might wind up inserting a new 
-      //item on the next update, and we don't want this to put us over capacity. 
-      //(Going over capacity by 1 is not a big deal, but we may as well be precise).
-      if (numActive + 1 > curMapCap) {
-        //need to purge and rebuild the map
+        curMapCap = hashMap.getCapacity();
+      } else { //At tgt size, must purge
         offset += hashMap.purge(sampleSize);
         if (getNumActiveItems() > getMaximumMapCapacity()) {
-          throw new IllegalStateException("Map Purge did not reduce active items.");
+          throw new IllegalStateException("Purge did not reduce active items.");
         }
       }
     }
@@ -388,8 +383,8 @@ public class FrequentItemsSketch<T> {
 
   /**
    * Gets the estimate of the frequency of the given item. 
-   * Note: The true frequency of a item would be the sum of the counts as a result of the two 
-   * update functions.
+   * Note: The true frequency of a item would be the sum of the counts as a result of the 
+   * two update functions.
    * 
    * @param item the given item
    * @return the estimate of the frequency of the given item
@@ -405,8 +400,8 @@ public class FrequentItemsSketch<T> {
    * Gets the guaranteed upper bound frequency of the given item.
    * 
    * @param item the given item
-   * @return the guaranteed upper bound frequency of the given item. That is, a number which is 
-   * guaranteed to be no smaller than the real frequency.
+   * @return the guaranteed upper bound frequency of the given item. That is, a number which 
+   * is guaranteed to be no smaller than the real frequency.
    */
   public long getUpperBound(final T item) {
     // UB = itemCount + offset
@@ -414,11 +409,12 @@ public class FrequentItemsSketch<T> {
   }
 
   /**
-   * Gets the guaranteed lower bound frequency of the given item, which can never be negative.
+   * Gets the guaranteed lower bound frequency of the given item, which can never be 
+   * negative.
    * 
    * @param item the given item.
-   * @return the guaranteed lower bound frequency of the given item. That is, a number which is 
-   * guaranteed to be no larger than the real frequency.
+   * @return the guaranteed lower bound frequency of the given item. That is, a number which 
+   * is guaranteed to be no larger than the real frequency.
    */
   public long getLowerBound(final T item) {
     //LB = itemCount or 0
@@ -431,18 +427,20 @@ public class FrequentItemsSketch<T> {
    * 
    * The method first examines all active items in the sketch (items that have a counter).
    *  
-   * <p>If <i>ErrorType = NO_FALSE_NEGATIVES</i>, this will include an item in the result list 
-   * if getUpperBound(item) &gt; maxError. 
+   * <p>If <i>ErrorType = NO_FALSE_NEGATIVES</i>, this will include an item in the result 
+   * list if getUpperBound(item) &gt; maxError. 
    * There will be no false negatives, i.e., no Type II error.
-   * There may be items in the set with true frequencies less than the threshold (false positives).</p>
+   * There may be items in the set with true frequencies less than the threshold 
+   * (false positives).</p>
    * 
-   * <p>If <i>ErrorType = NO_FALSE_POSITIVES</i>, this will include an item in the result list 
-   * if getLowerBound(item) &gt; maxError. 
+   * <p>If <i>ErrorType = NO_FALSE_POSITIVES</i>, this will include an item in the result 
+   * list if getLowerBound(item) &gt; getMaximumError(). 
    * There will be no false positives, i.e., no Type I error.
-   * There may be items omitted from the set with true frequencies greater than the threshold 
-   * (false negatives).</p>
+   * There may be items omitted from the set with true frequencies greater than the 
+   * threshold (false negatives).</p>
    * 
-   * @param errorType determines whether no false positives or no false negatives are desired.
+   * @param errorType determines whether no false positives or no false negatives are 
+   * desired.
    * @return an array of frequent items
    */
   public Row[] getFrequentItems(final ErrorType errorType) { 
@@ -454,7 +452,9 @@ public class FrequentItemsSketch<T> {
     final long est;
     final long ub;
     final long lb;
-
+    private static final String fmt =  ("  %12d%12d%12d %s");
+    private static final String hfmt = ("  %12s%12s%12s %s");
+    
     Row(final T item, final long estimate, final long ub, final long lb) {
       this.item = item;
       this.est = estimate;
@@ -467,9 +467,13 @@ public class FrequentItemsSketch<T> {
     public long getUpperBound() { return ub; }
     public long getLowerBound() { return lb; }
 
+    public String getRowHeader() {
+      return String.format(hfmt,"Est", "UB", "LB", "Item");
+    }
+    
     @Override
     public String toString() {
-      return String.format("%s,%d,%d,%d", item.toString(), est, ub, lb);
+      return String.format(fmt,  est, ub, lb, item.toString());
     }
 
     @Override
@@ -527,8 +531,8 @@ public class FrequentItemsSketch<T> {
 
   /**
    * @return An upper bound on the maximum error of getEstimate(item) for any item. 
-   * This is equivalent to the maximum distance between the upper bound and the lower bound for 
-   * any item.
+   * This is equivalent to the maximum distance between the upper bound and the lower bound 
+   * for any item.
    */
   public long getMaximumError() {
     return offset;
@@ -578,6 +582,10 @@ public class FrequentItemsSketch<T> {
     this.streamLength = 0;
   }
 
+  /**
+   * Returns a human readable summary of this sketch.
+   * @return a human readable summary of this sketch.
+   */
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder();

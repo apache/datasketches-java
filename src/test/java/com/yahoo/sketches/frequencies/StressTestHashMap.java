@@ -37,7 +37,7 @@ public class StressTestHashMap {
     int n = keys.length;
     assert (n == values.length);
     for (int i = 0; i < n; i++) {
-      hashMap.adjust(keys[i], values[i]);
+      hashMap.adjustOrPutValue(keys[i], values[i]);
       if (hashMap.getNumActive() == sizeToShift) {
         hashMap.adjustAllValuesBy(-1);
         hashMap.keepOnlyPositiveCounts();
