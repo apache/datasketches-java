@@ -34,7 +34,6 @@ import static com.yahoo.sketches.memory.UnsafeUtil.SHORT_SIZE;
 import static com.yahoo.sketches.memory.UnsafeUtil.UNSAFE_COPY_THRESHOLD;
 import static com.yahoo.sketches.memory.UnsafeUtil.assertBounds;
 import static com.yahoo.sketches.memory.UnsafeUtil.checkOverlap;
-import static com.yahoo.sketches.memory.UnsafeUtil.compatibilityMethods;
 import static com.yahoo.sketches.memory.UnsafeUtil.unsafe;
 
 /**
@@ -57,7 +56,7 @@ import static com.yahoo.sketches.memory.UnsafeUtil.unsafe;
  */
 @SuppressWarnings("restriction")
 public class NativeMemory implements Memory {
-  /* 
+  /* Truth table that distinguishes between Requires Free and actual off-heap Direct mode.
   Class        Case                 ObjBaseOff MemArr byteBuf rawAdd CapacityBytes  ReqFree Direct
   NativeMemory byteArr                      >0  valid    null      0            >0    FALSE  FALSE
   NativeMemory longArr                      >0  valid    null      0            >0    FALSE  FALSE
@@ -169,28 +168,44 @@ public class NativeMemory implements Memory {
   public int getAndAddInt(long offsetBytes, int delta) {
     assertBounds(offsetBytes, INT_SIZE, capacityBytes_);
     long unsafeRawAddress = getAddress(offsetBytes);
-    return compatibilityMethods.getAndAddInt(memArray_, unsafeRawAddress, delta);
+    int v;
+    do {
+        v = unsafe.getIntVolatile(memArray_, unsafeRawAddress);
+    } while (!unsafe.compareAndSwapInt(memArray_, unsafeRawAddress, v, v + delta));
+    return v;
   }
 
   @Override
   public long getAndAddLong(long offsetBytes, long delta) {
     assertBounds(offsetBytes, LONG_SIZE, capacityBytes_);
     long unsafeRawAddress = getAddress(offsetBytes);
-    return compatibilityMethods.getAndAddLong(memArray_, unsafeRawAddress, delta);
+    long v;
+    do {
+        v = unsafe.getLongVolatile(memArray_, unsafeRawAddress);
+    } while (!unsafe.compareAndSwapLong(memArray_, unsafeRawAddress, v, v + delta));
+    return v;
   }
 
   @Override
   public int getAndSetInt(long offsetBytes, int newValue) {
     assertBounds(offsetBytes, INT_SIZE, capacityBytes_);
     long unsafeRawAddress = getAddress(offsetBytes);
-    return compatibilityMethods.getAndSetInt(memArray_, unsafeRawAddress, newValue);
+    int v;
+    do {
+        v = unsafe.getIntVolatile(memArray_, unsafeRawAddress);
+    } while (!unsafe.compareAndSwapInt(memArray_, unsafeRawAddress, v, newValue));
+    return v;
   }
 
   @Override
   public long getAndSetLong(long offsetBytes, long newValue) {
     assertBounds(offsetBytes, LONG_SIZE, capacityBytes_);
     long unsafeRawAddress = getAddress(offsetBytes);
-    return compatibilityMethods.getAndSetLong(memArray_, unsafeRawAddress, newValue);
+    long v;
+    do {
+        v = unsafe.getLongVolatile(memArray_, unsafeRawAddress);
+    } while (!unsafe.compareAndSwapLong(memArray_, unsafeRawAddress, v, newValue));
+    return v;
   }
 
   @Override

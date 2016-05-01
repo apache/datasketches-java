@@ -11,11 +11,6 @@ import java.lang.reflect.Constructor;
 
 /**
  * Provides package private reference to the sun.misc.Unsafe class and its key static fields.
- * The internal static initializer also detects whether the methods unique to the Unsafe class in
- * JDK8 are present; if not, methods that are compatible with JDK7 are substituted using an internal
- * interface.  In order for this to work, this library still needs to be compiled using jdk8 
- * but it should be done with both source and target versions of jdk7 specified in pom.xml. 
- * The resultant jar will work on jdk7 and jdk8.
  * 
  * <p><b>NOTE:</b> Native/Direct memory acquired using Unsafe may have garbage in it. 
  * It is the responsibility of the using class to clear this memory, if required, 
@@ -27,7 +22,6 @@ import java.lang.reflect.Constructor;
 @SuppressWarnings("restriction")
 final class UnsafeUtil {
   static final Unsafe unsafe;
-  static final JDKCompatibility compatibilityMethods;
   static final int ADDRESS_BYTES;
   static final int BOOLEAN_ARRAY_BASE_OFFSET;
   static final int BYTE_ARRAY_BASE_OFFSET;
@@ -86,21 +80,6 @@ final class UnsafeUtil {
       INT_ARRAY_BASE_OFFSET = unsafe.arrayBaseOffset(int[].class);
       LONG_ARRAY_BASE_OFFSET = unsafe.arrayBaseOffset(long[].class);
       SHORT_ARRAY_BASE_OFFSET = unsafe.arrayBaseOffset(short[].class);
-
-      boolean onJDK8 = true;
-      try {
-        unsafe.getClass().getMethod("getAndSetInt", Object.class, long.class, int.class);
-      } catch (NoSuchMethodException e) {
-        // We must not be on jdk8
-        onJDK8 = false;
-      }
-
-      if (onJDK8) {
-        compatibilityMethods = new JDK8Compatible(unsafe);
-      } else {
-        compatibilityMethods = new JDK7Compatible(unsafe);
-      }
-
     }
     catch (Exception e) {
       throw new RuntimeException("Unable to acquire Unsafe. ", e);
@@ -134,82 +113,4 @@ final class UnsafeUtil {
     return (min + length) <= max;
   }
 
-  interface JDKCompatibility {
-    int getAndAddInt(Object obj, long offsetBytes, int delta);
-    int getAndSetInt(Object obj, long offsetBytes, int newValue);
-    long getAndAddLong(Object obj, long offsetBytes, long delta);
-    long getAndSetLong(Object obj, long offsetBytes, long newValue);
-  }
-
-  private static class JDK8Compatible implements JDKCompatibility {
-    private final Unsafe myUnsafe;
-    
-    JDK8Compatible(Unsafe unsafe) {
-      this.myUnsafe = unsafe;
-    }
-
-    @Override
-    public int getAndAddInt(Object obj, long offsetBytes, int delta) {
-      return myUnsafe.getAndAddInt(obj, offsetBytes, delta);
-    }
-
-    @Override
-    public int getAndSetInt(Object obj, long offsetBytes, int newValue) {
-      return myUnsafe.getAndSetInt(obj, offsetBytes, newValue);
-    }
-
-    @Override
-    public long getAndAddLong(Object obj, long offsetBytes, long delta) {
-      return myUnsafe.getAndAddLong(obj, offsetBytes, delta);
-    }
-
-    @Override
-    public long getAndSetLong(Object obj, long offsetBytes, long newValue) {
-      return myUnsafe.getAndSetLong(obj, offsetBytes, newValue);
-    }
-  }
-
-  private static class JDK7Compatible implements JDKCompatibility {
-    private final Unsafe myUnsafe;
-    
-    JDK7Compatible(Unsafe unsafe) {
-      this.myUnsafe = unsafe;
-    }
-
-    @Override
-    public int getAndAddInt(Object obj, long offsetBytes, int delta) {
-      int v;
-      do {
-          v = myUnsafe.getIntVolatile(obj, offsetBytes);
-      } while (!myUnsafe.compareAndSwapInt(obj, offsetBytes, v, v + delta));
-      return v;
-    }
-
-    @Override
-    public int getAndSetInt(Object obj, long offsetBytes, int newValue) {
-      int v;
-      do {
-          v = myUnsafe.getIntVolatile(obj, offsetBytes);
-      } while (!myUnsafe.compareAndSwapInt(obj, offsetBytes, v, newValue));
-      return v;
-    }
-
-    @Override
-    public long getAndAddLong(Object obj, long offsetBytes, long delta) {
-      long v;
-      do {
-          v = myUnsafe.getLongVolatile(obj, offsetBytes);
-      } while (!myUnsafe.compareAndSwapLong(obj, offsetBytes, v, v + delta));
-      return v;
-    }
-
-    @Override
-    public long getAndSetLong(Object obj, long offsetBytes, long newValue) {
-      long v;
-      do {
-          v = myUnsafe.getLongVolatile(obj, offsetBytes);
-      } while (!myUnsafe.compareAndSwapLong(obj, offsetBytes, v, newValue));
-      return v;
-    }
-  }
 }

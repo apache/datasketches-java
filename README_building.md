@@ -3,20 +3,9 @@
 ## Building sketches-core
 Use Apache Maven 3.0 to build this project
 
-### Compiling and JDK7 vs JDK8
-The internal com.yahoo.sketches.memory (Memory) package leverages new API methods introduced with JDK8. 
-The Memory package detects whether these methods unique to JDK8 are present, and if not replaces these
-JDK8 methods with surrogates using JDK7, which will be slightly slower. 
- 
-In order for this to work, this library must be compiled using jdk8 
-but with both source and target versions of jdk7 specified in pom.xml. 
-The resultant jar will work on jdk7 and jdk8. 
-
-This also means, for the time being, that new JDK8 language capabilities (e.g., lamda functions) 
-cannot be used.  
-
-Note that at some point in the near future jdk7 will no longer be supported, 
-so you are advised to bring your execution environments up to jdk8 sooner rather than later.
+### Requires JDK8
+DataSketches sketches-core leverages new API methods introduced with JDK8. 
+JDK7 is no longer supported.
 
 
 ### Basic Build

@@ -31,25 +31,25 @@ public final class MemoryUtil {
    * @param lengthBytes the number of bytes to copy
    */
   @SuppressWarnings("restriction")
-  public static void copy(Memory source, long srcOffsetBytes, Memory destination, long dstOffsetBytes, 
-      long lengthBytes) {
+  public static void copy(Memory source, long srcOffsetBytes, Memory destination, 
+      long dstOffsetBytes, long lengthBytes) {
     assertBounds(srcOffsetBytes, lengthBytes, source.getCapacity());
     assertBounds(dstOffsetBytes, lengthBytes, destination.getCapacity());
     long srcAdd = srcOffsetBytes;
     long dstAdd = dstOffsetBytes;
     Object srcParent = source;
     Object dstParent = destination;
-    
+
     while ((srcParent != null) && (srcParent instanceof Memory))  {
       srcAdd = ((Memory) srcParent).getAddress(srcAdd);
       srcParent = ((Memory) srcParent).getParent();
     } 
-    
+
     while ((dstParent != null) && (dstParent instanceof Memory)) {
       dstAdd = ((Memory) dstParent).getAddress(dstAdd);
       dstParent = ((Memory) dstParent).getParent();
     }
-  
+
     while (lengthBytes > 0) {
       long size = (lengthBytes > UNSAFE_COPY_THRESHOLD)? UNSAFE_COPY_THRESHOLD : lengthBytes;
       unsafe.copyMemory(srcParent, srcAdd, dstParent, dstAdd, lengthBytes);
