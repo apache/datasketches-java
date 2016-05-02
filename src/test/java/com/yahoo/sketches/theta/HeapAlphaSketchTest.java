@@ -588,13 +588,11 @@ public class HeapAlphaSketchTest {
     }
   }
   
-  
   @Test
   public void checkFamily() {
     UpdateSketch sketch = Sketches.updateSketchBuilder().setFamily(ALPHA).build();
     assertEquals(sketch.getFamily(), Family.ALPHA);
   }
-  
   
   @Test
   public void printlnTest() {

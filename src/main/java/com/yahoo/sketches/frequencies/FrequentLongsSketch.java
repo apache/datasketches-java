@@ -514,7 +514,7 @@ public class FrequentLongsSketch {
    * list if getLowerBound(item) &gt; getMaximumError(). 
    * There will be no false positives, i.e., no Type I error.
    * There may be items omitted from the set with true frequencies greater than the 
-   * threshold (false negatives).</p>
+   * threshold (false negatives). This is a subset of the NO_FALSE_NEGATIVES case.</p>
    * 
    * @param errorType determines whether no false positives or no false negatives are 
    * desired.
