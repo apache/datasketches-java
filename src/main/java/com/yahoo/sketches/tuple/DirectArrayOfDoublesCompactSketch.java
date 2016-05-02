@@ -10,7 +10,6 @@ import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.memory.MemoryUtil;
 import com.yahoo.sketches.memory.NativeMemory;
 
 /**
@@ -147,7 +146,7 @@ class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
     }
     byte[] byteArray = new byte[sizeBytes];
     Memory mem = new NativeMemory(byteArray);
-    MemoryUtil.copy(mem_, 0, mem, 0, sizeBytes);
+    NativeMemory.copy(mem_, 0, mem, 0, sizeBytes);
     return byteArray;
   }
 

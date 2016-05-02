@@ -7,7 +7,6 @@ package com.yahoo.sketches.theta;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.memory.MemoryUtil;
 import com.yahoo.sketches.memory.NativeMemory;
 import org.testng.annotations.Test;
 
@@ -531,7 +530,7 @@ public class DirectUnionTest {
     
     Memory v2mem1 = convertSerV3toSerV2(v3mem1);
     Memory v2mem2 = new NativeMemory(new byte[16]);
-    MemoryUtil.copy(v2mem1, 0, v2mem2, 0, 8);
+    NativeMemory.copy(v2mem1, 0, v2mem2, 0, 8);
     
     uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]); //union memory
     union = SetOperation.builder().initMemory(uMem).buildUnion(k);
@@ -684,7 +683,7 @@ public class DirectUnionTest {
     Memory mem = new NativeMemory(new byte[k*16 +32]); //initialized
     SetOperation setOp = new SetOperationBuilder().initMemory(mem).build(k,Family.UNION);
     Memory mem2 = new NativeMemory(new byte[32]); //for just preamble
-    MemoryUtil.copy(mem, 0, mem2, 0, 32); //too small
+    NativeMemory.copy(mem, 0, mem2, 0, 32); //too small
     DirectQuickSelectSketch sketch = DirectQuickSelectSketch.getInstance(mem2, Util.DEFAULT_UPDATE_SEED);
   }
   

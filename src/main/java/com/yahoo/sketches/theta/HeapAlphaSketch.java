@@ -107,7 +107,6 @@ class HeapAlphaSketch extends HeapUpdateSketch {
    * @return instance of this sketch
    */
   static HeapAlphaSketch getInstance(Memory srcMem, long seed) {
-    
     long[] preArr = new long[3];
     srcMem.getLongArray(0, preArr, 0, 3); //extract the preamble
     long long0 = preArr[0];

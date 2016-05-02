@@ -96,6 +96,14 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     return keys_ == null ? 0 : keys_.length;
   }
 
+  /**
+   * Layout of first 8 bytes:
+   * <pre>
+   * Long || Start Byte Adr:
+   * Adr: 
+   *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
+   *  0   ||                          |  Flags | SkType | FamID  | SerVer |  Preamble_Longs    |
+   */
   @SuppressWarnings("null")
   @Override
   public byte[] toByteArray() {
@@ -141,7 +149,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
       (count > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0) |
       (isThetaIncluded ? 1 << Flags.IS_THETA_INCLUDED.ordinal() : 0)
     ));
-    if (isThetaIncluded) {
+    if (isThetaIncluded) { //TODO check byte allignment to 8 bytes.
       mem.putLong(offset, theta_);
       offset += 8;
     }

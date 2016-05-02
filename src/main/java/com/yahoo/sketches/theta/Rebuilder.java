@@ -12,7 +12,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.memory.MemoryUtil;
+import com.yahoo.sketches.memory.NativeMemory;
 
 /**
  * Handles common resize, rebuild and move operations. 
@@ -73,7 +73,7 @@ final class Rebuilder {
       final int srcLgArrLongs, final Memory dstMem, final int dstLgArrLongs, final long thetaLong) {
     //Move Preamble to destination memory
     int preBytes = preambleLongs << 3;
-    MemoryUtil.copy(srcMem, 0, dstMem, 0, preBytes); //copy the preamble
+    NativeMemory.copy(srcMem, 0, dstMem, 0, preBytes); //copy the preamble
     //Bulk copy source to on-heap buffer
     int srcHTLen = 1 << srcLgArrLongs;
     long[] srcHTArr = new long[srcHTLen];

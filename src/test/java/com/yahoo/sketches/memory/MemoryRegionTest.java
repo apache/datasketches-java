@@ -20,7 +20,6 @@ import org.testng.annotations.Test;
 import com.yahoo.sketches.memory.AllocMemory;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;
-import com.yahoo.sketches.memory.MemoryUtil;
 import com.yahoo.sketches.memory.NativeMemory;
 
 /**
@@ -132,7 +131,7 @@ public class MemoryRegionTest {
     }
     region2.clear();
     
-    MemoryUtil.copy(region1, 0, region2, 0, memCapacity);
+    NativeMemory.copy(region1, 0, region2, 0, memCapacity);
     
     for (int i=0; i<memCapacity; i++) {
       assertEquals(mem2.getByte(i), (byte) i);
@@ -293,7 +292,7 @@ public class MemoryRegionTest {
         MemoryRegion newMem = new MemoryRegion(parent_, capUsed_, capacityBytes);
         capUsed_ += capacityBytes;
         long minCopyToBytes = min(min(origMem.getCapacity(), copyToBytes), capacityBytes);
-        MemoryUtil.copy(origMem, 0, newMem, 0, minCopyToBytes);
+        NativeMemory.copy(origMem, 0, newMem, 0, minCopyToBytes);
         if (minCopyToBytes < capacityBytes) {
           newMem.clear(minCopyToBytes, capacityBytes - minCopyToBytes);
         }

@@ -10,11 +10,14 @@ import static com.yahoo.sketches.ResizeFactor.X2;
 import static com.yahoo.sketches.ResizeFactor.X8;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
@@ -495,6 +498,61 @@ public class HeapQuickSelectSketchTest {
     UpdateSketch sketch = Sketches.updateSketchBuilder().build();
     assertEquals(sketch.getFamily(), Family.QUICKSELECT);
   }
+  
+  @Test
+  public void checkMemDeSerExceptions() {
+    int k = 1024;
+    UpdateSketch sk1 = UpdateSketch.builder().setFamily(QUICKSELECT).build(k);
+    sk1.update(1L); //forces preLongs to 3
+    byte[] bytearray1 = sk1.toByteArray();
+    Memory mem = new NativeMemory(bytearray1);
+    long pre0 = mem.getLong(0); 
+    
+    tryBadMem(mem, PREAMBLE_LONGS_BYTE, 2); //Corrupt PreLongs
+    mem.putLong(0, pre0); //restore
+    
+    tryBadMem(mem, SER_VER_BYTE, 2); //Corrupt SerVer
+    mem.putLong(0, pre0); //restore
+    
+    tryBadMem(mem, FAMILY_BYTE, 1); //Corrupt Family
+    mem.putLong(0, pre0); //restore
+    
+    tryBadMem(mem, FLAGS_BYTE, 2); //Corrupt READ_ONLY to true
+    mem.putLong(0, pre0); //restore
+    
+    try {
+      mem.putDouble(16, 0.5); //Corrupt the theta value
+      HeapQuickSelectSketch.getInstance(mem, DEFAULT_UPDATE_SEED);
+      fail();
+    } catch (IllegalArgumentException e) {
+      //expected
+    }
+    mem.putDouble(16, 1.0); //restore theta
+    byte[] byteArray2 = new byte[bytearray1.length -1];
+    Memory mem2 = new NativeMemory(byteArray2);
+    NativeMemory.copy(mem, 0, mem2, 0, mem2.getCapacity());
+    try {
+      HeapQuickSelectSketch.getInstance(mem2, DEFAULT_UPDATE_SEED);
+      fail();
+    } catch (IllegalArgumentException e) {
+      //expected
+    }
+  }
+  
+  private static void tryBadMem(Memory mem, int byteOffset, int byteValue) {
+    try {
+      mem.putByte(byteOffset, (byte) byteValue); //Corrupt
+      HeapQuickSelectSketch.getInstance(mem, DEFAULT_UPDATE_SEED);
+      fail();
+    } catch (IllegalArgumentException e) {
+      //expected
+    }
+  }
+  
+  
+  
+  
+  
   
   @Test
   public void printlnTest() {

@@ -11,7 +11,6 @@ import java.util.Arrays;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.memory.MemoryUtil;
 import com.yahoo.sketches.memory.NativeMemory;
 
 /**
@@ -136,7 +135,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     final int sizeBytes = valuesOffset_ + SIZE_OF_VALUE_BYTES * numValues_ * getCurrentCapacity();
     final byte[] byteArray = new byte[sizeBytes];
     final Memory mem = new NativeMemory(byteArray);
-    MemoryUtil.copy(mem_, 0, mem, 0, sizeBytes);
+    NativeMemory.copy(mem_, 0, mem, 0, sizeBytes);
     return byteArray;
   }
 

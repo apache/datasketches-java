@@ -203,6 +203,14 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
 
   private enum Flags { IS_BIG_ENDIAN, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
 
+  /**
+   * Layout of first 8 bytes:
+   * <pre>
+   * Long || Start Byte Adr:
+   * Adr: 
+   *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
+   *  0   ||   RF   |  lgArr | lgNom  |  Flags | SkType | FamID  | SerVer |  Preamble_Longs    |
+   */
   @SuppressWarnings("null")
   @Override
   public byte[] toByteArray() {

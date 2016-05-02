@@ -12,7 +12,6 @@ import org.testng.annotations.Test;
 
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.memory.MemoryUtil;
 import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.theta.Sketch;
 
@@ -203,7 +202,7 @@ public class ForwardCompatibilityTest {
     v1mem.putInt(RETAINED_ENTRIES_INT, entries);
     v1mem.putLong(THETA_LONG, thetaLong);
     //copy data
-    MemoryUtil.copy(v3mem, v3preLongs<<3, v1mem, v1preLongs<<3, entries << 3);
+    NativeMemory.copy(v3mem, v3preLongs<<3, v1mem, v1preLongs<<3, entries << 3);
     return v1mem;
   }
   /**
@@ -224,7 +223,7 @@ public class ForwardCompatibilityTest {
     int v2bytes = (preLongs+entries) << 3;
     //create new mem and do complete copy
     Memory v2mem = new NativeMemory(new byte[v2bytes]);
-    MemoryUtil.copy(v3mem, 0, v2mem, 0, v2bytes);
+    NativeMemory.copy(v3mem, 0, v2mem, 0, v2bytes);
     //set serVer2
     v2mem.putByte(SER_VER_BYTE, (byte) 2);
     //adjust the flags

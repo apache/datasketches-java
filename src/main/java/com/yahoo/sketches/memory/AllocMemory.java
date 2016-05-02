@@ -87,7 +87,7 @@ public class AllocMemory extends NativeMemory {
     super.nativeRawStartAddress_ = unsafe.allocateMemory(capacityBytes);
     super.capacityBytes_ = capacityBytes;
     this.memReq_ = memReq;
-    MemoryUtil.copy(origMem, 0, this, 0, copyToBytes);
+    NativeMemory.copy(origMem, 0, this, 0, copyToBytes);
     this.clear(copyToBytes, capacityBytes-copyToBytes);
   }
   

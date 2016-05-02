@@ -19,7 +19,15 @@ public abstract class ArrayOfDoublesSketch {
   static final int SIZE_OF_KEY_BYTES = 8;
   static final int SIZE_OF_VALUE_BYTES = 8;
   
-  // common part of serialized layout
+  // Common Layout of first 16 bytes:
+  // <pre>
+  // Long || Start Byte Adr:
+  // Adr: 
+  //      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
+  //  0   ||    Seed Hash    | #Dbls  |  Flags | SkType | FamID  | SerVer |  Preamble_Longs    |
+  //      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
+  //  1   ||-------------------------Theta Long------------------------------------------------|
+  
   static final int PREAMBLE_LONGS_BYTE = 0; // not used, always 1
   static final int SERIAL_VERSION_BYTE = 1;
   static final int FAMILY_ID_BYTE = 2;

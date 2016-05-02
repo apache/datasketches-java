@@ -226,7 +226,7 @@ public class NativeMemoryTest {
     }
     mem2.clear();
     
-    MemoryUtil.copy(mem1, 0, mem2, 0, memCapacity);
+    NativeMemory.copy(mem1, 0, mem2, 0, memCapacity);
     
     for (int i=0; i<memCapacity; i++) {
       assertEquals(mem2.getByte(i), (byte) i);
@@ -248,7 +248,7 @@ public class NativeMemoryTest {
     }
     mem2.clear();
     
-    MemoryUtil.copy(mem1, 0, mem2, 0, memCapacity);
+    NativeMemory.copy(mem1, 0, mem2, 0, memCapacity);
     
     for (int i=0; i<memCapLongs; i++) {
       assertEquals(mem2.getLong(i*8), i);
@@ -268,7 +268,7 @@ public class NativeMemoryTest {
     byte[] byteArr = new byte[64];
     NativeMemory mem2 = new NativeMemory(byteArr);
     mem2.clear();
-    MemoryUtil.copy(mem1, 8, mem2, 16, 16);
+    NativeMemory.copy(mem1, 8, mem2, 16, 16);
     
     for (int i=0; i<16; i++) {
       assertEquals(mem1.getByte(8+i), mem2.getByte(16+i));
@@ -295,7 +295,7 @@ public class NativeMemoryTest {
     Memory reg2 = new MemoryRegion(mem1, 24, 16);
     println(reg2.toHexString("Reg2", 0, (int)reg2.getCapacity()));
     
-    MemoryUtil.copy(reg1, 0, reg2, 0, 16);
+    NativeMemory.copy(reg1, 0, reg2, 0, 16);
     
     for (int i=0; i<16; i++) {
       assertEquals(reg1.getByte(i), reg2.getByte(i));
@@ -325,7 +325,7 @@ public class NativeMemoryTest {
     println(reg1B.toHexString("Reg1B", 0, (int)reg1B.getCapacity()));
     
     Memory reg2 = new MemoryRegion(mem2, 32, 16);
-    MemoryUtil.copy(reg1B, 0, reg2, 0, 16);
+    NativeMemory.copy(reg1B, 0, reg2, 0, 16);
     println(reg2.toHexString("Reg2", 0, (int)reg2.getCapacity()));
 
     println(mem2.toHexString("Mem2", 0, (int)mem2.getCapacity()));

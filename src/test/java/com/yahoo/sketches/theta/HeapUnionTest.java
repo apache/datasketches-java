@@ -14,7 +14,6 @@ import java.util.Arrays;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.memory.MemoryUtil;
 import com.yahoo.sketches.memory.NativeMemory;
 import org.testng.annotations.Test;
 
@@ -476,7 +475,7 @@ public class HeapUnionTest {
     
     Memory v2mem1 = convertSerV3toSerV2(v3mem1);
     Memory v2mem2 = new NativeMemory(new byte[16]);
-    MemoryUtil.copy(v2mem1, 0, v2mem2, 0, 8);
+    NativeMemory.copy(v2mem1, 0, v2mem2, 0, 8);
     
     union = SetOperation.builder().buildUnion();
     union.update(v2mem2);

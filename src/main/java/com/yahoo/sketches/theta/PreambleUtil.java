@@ -169,21 +169,21 @@ final class PreambleUtil {
     long thetaULong = thetaLong;
     
     if (preLongs == 2) {
-      long pre1 = mem.getLong(1);
+      long pre1 = mem.getLong(8);
       curCount = extractCurCount(pre1);
       p = extractP(pre1);
       thetaLong = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
       thetaULong = thetaLong;
     } 
     else if (preLongs == 3){
-      long pre1 = mem.getLong(1);
+      long pre1 = mem.getLong(8);
       curCount = extractCurCount(pre1);
       p = extractP(pre1);
       thetaLong = mem.getLong(THETA_LONG);
       thetaULong = thetaLong;
     } 
     else if (preLongs == 4) {
-      long pre1 = mem.getLong(1);
+      long pre1 = mem.getLong(8);
       curCount = extractCurCount(pre1);
       p = extractP(pre1);
       thetaLong = mem.getLong(THETA_LONG);

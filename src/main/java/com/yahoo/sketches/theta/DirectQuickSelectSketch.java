@@ -53,7 +53,6 @@ import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRequest;
-import com.yahoo.sketches.memory.MemoryUtil;
 import com.yahoo.sketches.memory.NativeMemory;
 
 /**
@@ -262,7 +261,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     int lengthBytes = (preambleLongs_ + (1 << lgArrLongs_)) << 3;
     byte[] byteArray = new byte[lengthBytes];
     Memory mem = new NativeMemory(byteArray);
-    MemoryUtil.copy(mem_, 0, mem, 0, lengthBytes);
+    NativeMemory.copy(mem_, 0, mem, 0, lengthBytes);
     return byteArray;
   }
   
@@ -314,7 +313,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
   long[] getCache() {
     long[] cacheArr = new long[1 << lgArrLongs_];
     Memory mem = new NativeMemory(cacheArr);
-    MemoryUtil.copy(mem_, preambleLongs_ << 3, mem, 0, 8<< lgArrLongs_);
+    NativeMemory.copy(mem_, preambleLongs_ << 3, mem, 0, 8<< lgArrLongs_);
     return cacheArr;
   }
   

@@ -4,9 +4,7 @@
  */
 package com.yahoo.sketches.memory;
 
-import static com.yahoo.sketches.memory.UnsafeUtil.UNSAFE_COPY_THRESHOLD;
 import static com.yahoo.sketches.memory.UnsafeUtil.assertBounds;
-import static com.yahoo.sketches.memory.UnsafeUtil.unsafe;
 
 /**
  * Useful utilities that work with Memory.
@@ -18,45 +16,17 @@ public final class MemoryUtil {
   private MemoryUtil() {}
   
   /**
-   * Copies bytes from a source Memory to the destination Memory.  If the source and destination
-   * are the same Memory use the single Memory copy method.  Nonetheless, if the source and 
-   * destination Memories are derived from the same underlying base Memory, the source and the 
-   * destination regions should not overlap within the base Memory region. 
-   * This is difficult to check at run time, so be warned that this overlap could cause 
-   * unpredictable results.
+   * @deprecated this method was moved to 
+   * {@link NativeMemory#copy(Memory, long, Memory, long, long)}
    * @param source the source Memory
    * @param srcOffsetBytes the source offset
    * @param destination the destination Memory
    * @param dstOffsetBytes the destination offset
    * @param lengthBytes the number of bytes to copy
    */
-  @SuppressWarnings("restriction")
   public static void copy(Memory source, long srcOffsetBytes, Memory destination, 
       long dstOffsetBytes, long lengthBytes) {
-    assertBounds(srcOffsetBytes, lengthBytes, source.getCapacity());
-    assertBounds(dstOffsetBytes, lengthBytes, destination.getCapacity());
-    long srcAdd = srcOffsetBytes;
-    long dstAdd = dstOffsetBytes;
-    Object srcParent = source;
-    Object dstParent = destination;
-
-    while ((srcParent != null) && (srcParent instanceof Memory))  {
-      srcAdd = ((Memory) srcParent).getAddress(srcAdd);
-      srcParent = ((Memory) srcParent).getParent();
-    } 
-
-    while ((dstParent != null) && (dstParent instanceof Memory)) {
-      dstAdd = ((Memory) dstParent).getAddress(dstAdd);
-      dstParent = ((Memory) dstParent).getParent();
-    }
-
-    while (lengthBytes > 0) {
-      long size = (lengthBytes > UNSAFE_COPY_THRESHOLD)? UNSAFE_COPY_THRESHOLD : lengthBytes;
-      unsafe.copyMemory(srcParent, srcAdd, dstParent, dstAdd, lengthBytes);
-      lengthBytes -= size;
-      srcAdd += size;
-      dstAdd += size;
-    }
+    NativeMemory.copy(source, srcOffsetBytes, destination, dstOffsetBytes, lengthBytes);
   }
   
   /**
