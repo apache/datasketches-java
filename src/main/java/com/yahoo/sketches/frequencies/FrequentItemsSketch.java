@@ -289,12 +289,14 @@ public class FrequentItemsSketch<T> {
     final int preLongs, outBytes;
     final boolean empty = isEmpty();
     final int activeItems = getNumActiveItems();
+    byte[] bytes = null;
     if (empty) {
       preLongs = 1;
       outBytes = 8;
     } else {
       preLongs = Family.FREQUENCY.getMaxPreLongs();
-      outBytes = (preLongs + 2 * activeItems) << 3;
+      bytes = serDe.serializeToByteArray(hashMap.getActiveKeys());
+      outBytes = ((preLongs + activeItems) << 3) + bytes.length;
     }
     final byte[] outArr = new byte[outBytes];
     final NativeMemory mem = new NativeMemory(outArr);
@@ -321,7 +323,6 @@ public class FrequentItemsSketch<T> {
       mem.putLongArray(0, preArr, 0, preLongs);
       final int preBytes = preLongs << 3;
       mem.putLongArray(preBytes, hashMap.getActiveValues(), 0, activeItems);
-      final byte[] bytes = serDe.serializeToByteArray(hashMap.getActiveKeys());
       mem.putByteArray(preBytes + (this.getNumActiveItems() << 3), bytes, 0, bytes.length);
     }
     return outArr;
