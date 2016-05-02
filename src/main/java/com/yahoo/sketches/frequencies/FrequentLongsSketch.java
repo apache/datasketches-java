@@ -367,7 +367,7 @@ public class FrequentLongsSketch {
       outBytes = 8;
     } else {
       preLongs = Family.FREQUENCY.getMaxPreLongs();
-      outBytes = (preLongs + 2 * activeItems) << 3;
+      outBytes = (preLongs + 2 * activeItems) << 3; //2 because both keys and values are longs
     }
     final byte[] outArr = new byte[outBytes];
     final NativeMemory mem = new NativeMemory(outArr);
