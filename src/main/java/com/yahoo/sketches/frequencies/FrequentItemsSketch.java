@@ -135,7 +135,7 @@ public class FrequentItemsSketch<T> {
    * the empirical median will give a constant-factor approximation to the 
    * true median with high probability
    */
-  private static final int SAMPLE_SIZE = 256;
+  private static final int SAMPLE_SIZE = 512;
 
   /**
    * Log2 Maximum length of the arrays internal to the hash map supported by the data 
@@ -285,6 +285,7 @@ public class FrequentItemsSketch<T> {
    * @param serDe an instance of ArrayOfItemsSerDe
    * @return a byte array representation of this sketch
    */
+  @SuppressWarnings("null")
   public byte[] serializeToByteArray(final ArrayOfItemsSerDe<T> serDe) {
     final int preLongs, outBytes;
     final boolean empty = isEmpty();

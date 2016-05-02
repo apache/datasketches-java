@@ -130,7 +130,7 @@ public class FrequentLongsSketch {
    * the empirical median will give a constant-factor approximation to the 
    * true median with high probability
    */
-  private static final int SAMPLE_SIZE = 256;
+  private static final int SAMPLE_SIZE = 512;
 
   private static final int STR_PREAMBLE_TOKENS = 7;
 
