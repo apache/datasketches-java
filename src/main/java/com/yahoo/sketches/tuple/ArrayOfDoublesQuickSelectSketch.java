@@ -22,10 +22,10 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   // <pre>
   // Long || Start Byte Adr:
   // Adr: 
-  //      ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |    16              |
-  //  3   ||-----------P (float)---------------|--------|-lgRF---|--lgArr-|---lgNom------------|
-  //      ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |    16              |
-  //  4   ||-----------------------------------|-------Retained Entries------------------------|
+  //      ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |    16     |
+  //  3   ||-----------P (float)---------------|--------|--lgRF--|--lgArr-|---lgNom---|
+  //      ||   31   |   30   |   29   |   28   |   27   |   26   |   25   |    24     |
+  //  4   ||-----------------------------------|----------Retained Entries------------|
 
   static final int LG_NOM_ENTRIES_BYTE = 16;
   static final int LG_CUR_CAPACITY_BYTE = 17;

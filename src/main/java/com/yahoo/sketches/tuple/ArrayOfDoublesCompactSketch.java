@@ -16,6 +16,13 @@ public abstract class ArrayOfDoublesCompactSketch extends ArrayOfDoublesSketch {
 
   static final byte serialVersionUID = 1;
 
+  // Layout of next 8 bytes:
+  // <pre>
+  // Long || Start Byte Adr:
+  // Adr: 
+  //      ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |    16     |
+  //  3   ||-----------------------------------|----------Retained Entries------------|
+
   static final int EMPTY_SIZE = 16;
   static final int RETAINED_ENTRIES_INT = 16;
   // 4 bytes of padding for alignment
