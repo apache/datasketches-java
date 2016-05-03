@@ -95,8 +95,8 @@ import com.yahoo.sketches.memory.NativeMemory;
  * And <i>(UB- LB) &le; W * epsilon</i>, where <i>W</i> denotes the sum of all item counts, 
  * and <i>epsilon = 4/M</i>, where <i>M</i> is the maxMapSize.
  * This is a worst case guarantee.  In practice <i>(UB-LB)</i> is usually much smaller.
- * There is an astronomically small probability that the error can exceed the above 
- * "worst case".
+ * There is an astronomically small probability that the error can exceed the above "worst case".
+ * A slightly tighter bound using <i>epsilon = 8/(3*M)</i> could also be used for most situations.
  * </p>
  * 
  * <p><b>Background</b></p>
