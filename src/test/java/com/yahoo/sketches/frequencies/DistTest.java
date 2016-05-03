@@ -5,7 +5,7 @@
 package com.yahoo.sketches.frequencies;
 
 import org.testng.Assert;
-import org.testng.annotations.Test;
+//import org.testng.annotations.Test;
 
 public class DistTest {
 
@@ -61,7 +61,7 @@ public class DistTest {
     return (long) val;
   }
 
-  @Test
+  //@Test
   public static void testRandomGeometricDist() {
     long maxItem = 0L;
     double prob = .1;

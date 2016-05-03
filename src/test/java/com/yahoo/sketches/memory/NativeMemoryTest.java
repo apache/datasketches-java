@@ -4,13 +4,13 @@
  */
 package com.yahoo.sketches.memory;
 
-import static com.yahoo.sketches.memory.CommonTests.getAndAddSetTests;
-import static com.yahoo.sketches.memory.CommonTests.setClearIsBitsTests;
-import static com.yahoo.sketches.memory.CommonTests.setClearMemoryRegionsTests;
-import static com.yahoo.sketches.memory.CommonTests.setGetArraysTests;
-import static com.yahoo.sketches.memory.CommonTests.setGetPartialArraysWithOffsetTests;
-import static com.yahoo.sketches.memory.CommonTests.setGetTests;
-import static com.yahoo.sketches.memory.CommonTests.toHexStringAllMemTests;
+import static com.yahoo.sketches.memory.CommonTest.getAndAddSetTests;
+import static com.yahoo.sketches.memory.CommonTest.setClearIsBitsTests;
+import static com.yahoo.sketches.memory.CommonTest.setClearMemoryRegionsTests;
+import static com.yahoo.sketches.memory.CommonTest.setGetArraysTests;
+import static com.yahoo.sketches.memory.CommonTest.setGetPartialArraysWithOffsetTests;
+import static com.yahoo.sketches.memory.CommonTest.setGetTests;
+import static com.yahoo.sketches.memory.CommonTest.toHexStringAllMemTests;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;

@@ -4,7 +4,7 @@
  */
 package com.yahoo.sketches;
 
-import org.testng.annotations.Test;
+//import org.testng.annotations.Test;
 
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -35,7 +35,7 @@ public class TestingUtil {
     for (int i=0; i< arr.length; i++) println(i+"\t"+arr[i]);
   }
   
-  @Test
+  //@Test
   public void printlnTest() {
     println(this.getClass().getSimpleName());
   }

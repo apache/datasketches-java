@@ -341,7 +341,7 @@ public class FrequentLongsSketchTest {
     }
   }
   
-  @Test
+  @Test  //TODO
   public void checkFreqLongs(){
     int numSketches = 1; 
     int n = 2222;
@@ -374,7 +374,7 @@ public class FrequentLongsSketchTest {
     }
   }
 
-  @Test
+  @Test  //TODO
   public void realCountsInBoundsAfterMerge() {
     int n = 10000;
     int size = 150;
@@ -810,6 +810,12 @@ public class FrequentLongsSketchTest {
     printSketch(size, new long[] {5, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1});
   }
 
+  @Test
+  public void printlnTest() {
+    println("PRINTING: " + this.getClass().getName());
+  }
+  
+  //Restricted methods
   
   public void printSketch(int size, long[] freqArr) {
     FrequentLongsSketch fls = new FrequentLongsSketch(size);
@@ -839,11 +845,6 @@ public class FrequentLongsSketchTest {
     }
   }
 
-  @Test
-  public void printlnTest() {
-    println("PRINTING: " + this.getClass().getName());
-  }
-
   /**
    * @param s value to print
    */
@@ -851,11 +852,10 @@ public class FrequentLongsSketchTest {
     //System.err.println(s); //disable here
   }
   
-  //Restricted methods
-  
-  private static FrequentLongsSketch newFrequencySketch(double error_parameter) {
-    return new FrequentLongsSketch(
-        Util.ceilingPowerOf2((int) (1.0 /(error_parameter*ReversePurgeLongHashMap.getLoadFactor()))));
+  private static FrequentLongsSketch newFrequencySketch(double eps) {
+    double loadFactor = ReversePurgeLongHashMap.getLoadFactor();
+    int maxMapSize = Util.ceilingPowerOf2((int) (1.0 /(eps*loadFactor)));
+    return new FrequentLongsSketch(maxMapSize);
   }
 
 }

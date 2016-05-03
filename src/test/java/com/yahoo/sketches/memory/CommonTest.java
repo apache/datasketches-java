@@ -15,7 +15,7 @@ import com.yahoo.sketches.memory.Memory;
 /**
  * @author Lee Rhodes
  */
-public class CommonTests {
+public class CommonTest {
   
   public static void setGetTests(Memory mem) {    
     mem.putBoolean(0, true);
