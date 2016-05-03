@@ -96,14 +96,13 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     return keys_ == null ? 0 : keys_.length;
   }
 
-  /**
-   * Layout of first 8 bytes:
-   * <pre>
-   * Long || Start Byte Adr:
-   * Adr: 
-   *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
-   *  0   ||                          |  Flags | SkType | FamID  | SerVer |  Preamble_Longs    |
-   */
+  // Layout of first 8 bytes:
+  // <pre>
+  // Long || Start Byte Adr:
+  // Adr: 
+  //      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
+  //  0   ||                          |  Flags | SkType | FamID  | SerVer |  Preamble_Longs    |
+
   @SuppressWarnings("null")
   @Override
   public byte[] toByteArray() {
