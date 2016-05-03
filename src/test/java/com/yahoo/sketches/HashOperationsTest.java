@@ -11,6 +11,7 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
+import static com.yahoo.sketches.hash.MurmurHash3.*;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -35,6 +36,7 @@ public class HashOperationsTest {
   
   @Test(expectedExceptions = IllegalStateException.class)
   public void testHashAndThetaCorruption1() {
+    checkHashAndThetaCorruption(1, 1); //pass
     checkHashAndThetaCorruption(0, 0); //theta = 0 fails
   }
   
@@ -46,6 +48,25 @@ public class HashOperationsTest {
   @Test(expectedExceptions = IllegalStateException.class)
   public void testHashAndThetaCorruption3() {
     checkHashAndThetaCorruption(1, -1); //hash = -1 fails
+  }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkHashSearch() {
+    hashSearch(new long[4], 2, 0);
+  }
+  
+  @Test
+  public void checkHashArrayInsert() {
+    long[] hTable = new long[16];
+    long[] hashIn = new long[1];
+    for (int i=0; i<8; i++) {
+      hashIn[0] = i;
+      long h = hash(hashIn, 0)[0] >>> 1;
+      hashInsertOnly(hTable, 4, h);
+      int count = hashArrayInsert(hTable, hTable, 4, Long.MAX_VALUE);
+      assertEquals(count, 0);
+    }
+
   }
   
   @Test

@@ -6,6 +6,7 @@ package com.yahoo.sketches;
 
 import static com.yahoo.sketches.BinomialBoundsN.*;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
@@ -112,6 +113,25 @@ public class BinomialBoundsNTest {
     } catch (IllegalArgumentException e) {
       //pass
     }
+  }
+  
+  @Test
+  public void checkComputeApproxBino_LB_UB() {
+    long n = 100;
+    double theta = (2.0 - 1e-5)/2.0;
+    double result = getLowerBound(n, theta, 1, false);
+    assertEquals(result, n, 0.0);
+    result = getUpperBound(n, theta, 1, false);
+    assertEquals(result, n+1, 0.0);
+    result = getLowerBound(n, theta, 1, true);
+    assertEquals(result, 0.0, 0.0);
+    result = getUpperBound(n, theta, 1, true);
+    assertEquals(result, 0.0, 0.0);
+  }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkThetaLimits1() {
+    BinomialBoundsN.getUpperBound(100, 1.1, 1, false);
   }
   
   @Test
