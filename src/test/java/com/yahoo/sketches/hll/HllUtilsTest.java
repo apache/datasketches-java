@@ -25,6 +25,18 @@ public class HllUtilsTest
     );
   }
 
+  @Test(expectedExceptions = AssertionError.class,
+          expectedExceptionsMessageRegExp = "e cannot be negative or greater than 1023: " + -1)
+  public void testInvPow2InputShouldBeGreaterThan0() {
+    HllUtils.invPow2(-1);
+  }
+
+  @Test(expectedExceptions = AssertionError.class,
+          expectedExceptionsMessageRegExp = "e cannot be negative or greater than 1023: " + 1024)
+  public void testInvPow2InputShouldBeLessThan1023() {
+    HllUtils.invPow2(1024);
+  }
+
   private static class ArrayBucketIterator implements BucketIterator
   {
     private final int[] keys;
