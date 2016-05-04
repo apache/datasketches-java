@@ -83,7 +83,7 @@ class HeapQuantilesSketch extends QuantilesSketch {
   double[] combinedBuffer_;
 
   //**CONSTRUCTORS**********************************************************
-  private HeapQuantilesSketch(int k, short seed) {
+  private HeapQuantilesSketch(int k, short seed) { //Not fully initialized!
     super(k, seed);
     if (seed != 0) QuantilesSketch.rand.setSeed(seed);
   }
@@ -135,7 +135,7 @@ class HeapQuantilesSketch extends QuantilesSketch {
     Util.checkFamilyID(familyID);
     Util.checkSerVer(serVer);
     
-    HeapQuantilesSketch hqs = new HeapQuantilesSketch(k, seed);
+    HeapQuantilesSketch hqs = getInstance(k, seed);
     
     if (empty) return hqs;
     

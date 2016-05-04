@@ -766,6 +766,21 @@ public class HeapQuantilesSketchTest {
     assertEquals(returnValue, n-1);
   }
   
+  //Himanshu's case
+  @Test
+  public void testIt() {
+    java.nio.ByteBuffer bb = java.nio.ByteBuffer.allocate(1<<20);
+    NativeMemory mem = new NativeMemory(bb);
+
+    int k = 1024;
+    QuantilesSketch qsk = new QuantilesSketchBuilder().build(k);
+    Union u1 = Union.builder().build(qsk);
+    u1.getResult().putMemory(mem);
+    Union u2 = Union.builder().build(mem);
+    QuantilesSketch qsk2 = u2.getResult();
+    assertTrue(qsk2.isEmpty());
+  }
+  
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
@@ -775,7 +790,7 @@ public class HeapQuantilesSketchTest {
    * @param s value to print 
    */
   static void println(String s) {
-    //System.out.println(s); //disable here
+    //System.err.println(s); //disable here
   }
   
 }

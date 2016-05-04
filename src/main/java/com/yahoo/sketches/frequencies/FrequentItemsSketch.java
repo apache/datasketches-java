@@ -42,7 +42,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * counts.</p>
  * 
  * <p>This implementation provides the following capabilities:</p>
- * <ol>
+ * <ul>
  * <li>Estimate the frequency of an item.</li>
  * <li>Return upper and lower bounds of any item, such that the true frequency is always 
  * between the upper and lower bounds.</li>
@@ -50,8 +50,8 @@ import com.yahoo.sketches.memory.NativeMemory;
  * <li>Return an array of frequent items that qualify either a NO_FALSE_POSITIVES or a 
  * NO_FALSE_NEGATIVES error type.</li>
  * <li>Merge itself with another sketch object created from this class.</li>
- * <li>Serialize/Deserialize to/from a byte array.
- * </ol>
+ * <li>Serialize/Deserialize to/from a byte array.</li>
+ * </ul>
  * 
  * <p><b>Space Usage</b></p>
  * 
@@ -96,7 +96,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * <p>For this implementation and for a specific active <i>item</i>, it is guaranteed that
  * the true frequency is between the Upper Bound (UB) and the Lower Bound (LB) for that item.
  * And <i>(UB- LB) &le; W * epsilon</i>, where <i>W</i> denotes the sum of all item counts, 
- * and <i>epsilon = 4/M</i>, where <i>M</i> is the maxMapSize.
+ * and <i>epsilon = 3.5/M</i>, where <i>M</i> is the maxMapSize.
  * This is a worst case guarantee.  In practice <i>(UB-LB)</i> is usually much smaller.
  * There is an astronomically small probability that the error can exceed the above "worst case".
  * A slightly tighter bound using <i>epsilon = 8/(3*M)</i> could also be used for most situations.
@@ -135,7 +135,7 @@ public class FrequentItemsSketch<T> {
    * the empirical median will give a constant-factor approximation to the 
    * true median with high probability
    */
-  private static final int SAMPLE_SIZE = 512;
+  private static final int SAMPLE_SIZE = 1024;
 
   /**
    * Log2 Maximum length of the arrays internal to the hash map supported by the data 
