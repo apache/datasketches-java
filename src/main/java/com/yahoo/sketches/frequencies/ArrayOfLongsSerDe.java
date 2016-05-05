@@ -12,12 +12,12 @@ public class ArrayOfLongsSerDe implements ArrayOfItemsSerDe<Long> {
 
   @Override
   public byte[] serializeToByteArray(Long[] items) {
-    final byte[] bytes = new byte[8 * items.length];
+    final byte[] bytes = new byte[Long.BYTES * items.length];
     final Memory mem = new NativeMemory(bytes);
     long offsetBytes = 0;
     for (int i = 0; i < items.length; i++) {
       mem.putLong(offsetBytes, items[i]);
-      offsetBytes += 8;
+      offsetBytes += Long.BYTES;
     }
     return bytes;
   }
@@ -28,7 +28,7 @@ public class ArrayOfLongsSerDe implements ArrayOfItemsSerDe<Long> {
     long offsetBytes = 0;
     for (int i = 0; i < length; i++) {
       array[i] = mem.getLong(offsetBytes);
-      offsetBytes += 8;
+      offsetBytes += Long.BYTES;
     }
     return array;
   }
