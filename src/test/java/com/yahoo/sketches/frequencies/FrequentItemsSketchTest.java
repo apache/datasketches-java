@@ -283,6 +283,7 @@ public class FrequentItemsSketchTest {
     Assert.assertFalse(sketch1.isEmpty());
     Assert.assertEquals(sketch1.getNumActiveItems(), 1);
     Assert.assertEquals(sketch1.getStreamLength(), 1);
+    Assert.assertEquals(sketch1.getEstimate("\u5fb5"), 1);
 
     byte[] bytes = sketch1.serializeToByteArray(new ArrayOfStringsSerDe());
     FrequentItemsSketch<String> sketch2 = 
@@ -290,6 +291,7 @@ public class FrequentItemsSketchTest {
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertEquals(sketch2.getNumActiveItems(), 1);
     Assert.assertEquals(sketch2.getStreamLength(), 1);
+    Assert.assertEquals(sketch2.getEstimate("\u5fb5"), 1);
   }
 
   private static void tryBadMem(Memory mem, int byteOffset, int byteValue) {
