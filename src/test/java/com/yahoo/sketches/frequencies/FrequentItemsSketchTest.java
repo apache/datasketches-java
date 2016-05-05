@@ -275,7 +275,23 @@ public class FrequentItemsSketchTest {
     
     tryBadMem(mem, FREQ_SKETCH_TYPE_BYTE, 2);
   }
-  
+
+  @Test
+  public void oneItemUtf8() {
+    FrequentItemsSketch<String> sketch1 = new FrequentItemsSketch<String>(8);
+    sketch1.update("\u5fb5");
+    Assert.assertFalse(sketch1.isEmpty());
+    Assert.assertEquals(sketch1.getNumActiveItems(), 1);
+    Assert.assertEquals(sketch1.getStreamLength(), 1);
+
+    byte[] bytes = sketch1.serializeToByteArray(new ArrayOfStringsSerDe());
+    FrequentItemsSketch<String> sketch2 = 
+        FrequentItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfStringsSerDe());
+    Assert.assertFalse(sketch2.isEmpty());
+    Assert.assertEquals(sketch2.getNumActiveItems(), 1);
+    Assert.assertEquals(sketch2.getStreamLength(), 1);
+  }
+
   private static void tryBadMem(Memory mem, int byteOffset, int byteValue) {
     ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     try {
