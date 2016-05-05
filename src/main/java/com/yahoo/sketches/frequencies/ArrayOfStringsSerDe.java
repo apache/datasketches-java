@@ -1,5 +1,7 @@
 package com.yahoo.sketches.frequencies;
 
+import java.nio.charset.StandardCharsets;
+
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -13,15 +15,19 @@ public class ArrayOfStringsSerDe implements ArrayOfItemsSerDe<String> {
   @Override
   public byte[] serializeToByteArray(String[] items) {
     int length = 0;
-    for (int i = 0; i < items.length; i++) length += items[i].length() + 4;
+    byte[][] itemsBytes = new byte[items.length][];
+    for (int i = 0; i < items.length; i++) {
+      itemsBytes[i] = items[i].getBytes(StandardCharsets.UTF_8);
+      length += itemsBytes[i].length + Integer.BYTES;
+    }
     final byte[] bytes = new byte[length];
     final Memory mem = new NativeMemory(bytes);
     long offsetBytes = 0;
     for (int i = 0; i < items.length; i++) {
-      mem.putInt(offsetBytes, items[i].length());
-      offsetBytes += 4;
-      mem.putByteArray(offsetBytes, items[i].getBytes(), 0, items[i].length());
-      offsetBytes += items[i].length();
+      mem.putInt(offsetBytes, itemsBytes[i].length);
+      offsetBytes += Integer.BYTES;
+      mem.putByteArray(offsetBytes, itemsBytes[i], 0, itemsBytes[i].length);
+      offsetBytes += itemsBytes[i].length;
     }
     return bytes;
   }
@@ -32,11 +38,11 @@ public class ArrayOfStringsSerDe implements ArrayOfItemsSerDe<String> {
     long offsetBytes = 0;
     for (int i = 0; i < length; i++) {
       final int strLength = mem.getInt(offsetBytes);
-      offsetBytes += 4;
+      offsetBytes += Integer.BYTES;
       final byte[] bytes = new byte[strLength];
       mem.getByteArray(offsetBytes, bytes, 0, strLength);
       offsetBytes += strLength;
-      array[i] = new String(bytes);
+      array[i] = new String(bytes, StandardCharsets.UTF_8);
     }
     return array;
   }
