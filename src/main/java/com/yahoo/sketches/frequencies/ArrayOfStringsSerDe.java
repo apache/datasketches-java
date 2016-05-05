@@ -1,5 +1,7 @@
 package com.yahoo.sketches.frequencies;
 
+import java.nio.charset.StandardCharsets;
+
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -15,7 +17,7 @@ public class ArrayOfStringsSerDe implements ArrayOfItemsSerDe<String> {
     int length = 0;
     byte[][] itemsBytes = new byte[items.length][];
     for (int i = 0; i < items.length; i++) {
-      itemsBytes[i] = items[i].getBytes();
+      itemsBytes[i] = items[i].getBytes(StandardCharsets.UTF_8);
       length += itemsBytes[i].length + Integer.BYTES;
     }
     final byte[] bytes = new byte[length];
@@ -40,7 +42,7 @@ public class ArrayOfStringsSerDe implements ArrayOfItemsSerDe<String> {
       final byte[] bytes = new byte[strLength];
       mem.getByteArray(offsetBytes, bytes, 0, strLength);
       offsetBytes += strLength;
-      array[i] = new String(bytes);
+      array[i] = new String(bytes, StandardCharsets.UTF_8);
     }
     return array;
   }
