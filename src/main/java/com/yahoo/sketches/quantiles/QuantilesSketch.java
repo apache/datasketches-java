@@ -95,7 +95,7 @@ Table Guide for QuantilesSketch Size in Bytes and Approximate Error:
  * range of the IEEE-754 64-bit doubles. 
  * 
  * <p>This algorithm intentionally inserts randomness into the sampling process for values that
- * ultimately get retained in the sketch. The result is that this algorithm is not 
+ * ultimately get retained in the sketch. The results produced by this algorithm are not 
  * deterministic. For example, if the same stream is inserted into two different instances of this 
  * sketch, the answers obtained from the two sketches may not be be identical.</p>
  * 

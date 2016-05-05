@@ -55,23 +55,25 @@ import com.yahoo.sketches.memory.NativeMemory;
  * 
  * <p><b>Space Usage</b></p>
  * 
- * <p>The sketch is initialized with a maxMapSize that specifies the maximum physical 
+ * <p>The sketch is initialized with a <i>maxMapSize</i> that specifies the maximum physical 
  * length of the internal hash map of the form (<i>&lt;T&gt;</i> item, <i>long</i> count).
- * The maxMapSize must be a power of 2.</p>
+ * The <i>maxMapSize</i> must be a power of 2.</p>
  * 
  * <p>The hash map starts at a very small size (8 entries), and grows as needed up to the 
- * specified maxMapSize. The LOAD_FACTOR for the hash map is internally set at 75%, 
- * which means at any time the map capacity of (item, count) pairs is 75% * mapSize.</p>
+ * specified <i>maxMapSize</i>.</p>
  *  
  * <p>Excluding external space required for the item objects, the internal memory space usage of 
- * this sketch is 18 * mapSize bytes (assuming 8 bytes for each Java reference), plus a small 
+ * this sketch is 18 * <i>mapSize</i> bytes (assuming 8 bytes for each Java reference), plus a small 
  * constant number of additional bytes. The internal memory space usage of this sketch will never 
- * exceed 18 * maxMapSize bytes, plus a small constant number of additional bytes.</p>
+ * exceed 18 * <i>maxMapSize</i> bytes, plus a small constant number of additional bytes.</p>
  * 
  * <p><b>Maximum Capacity of the Sketch</b></p>
  * 
- * <p>The maximum capacity of (item, count) pairs of the sketch is maxMapCap = 
- * LOAD_FACTOR * maxMapSize.
+ * <p>The LOAD_FACTOR for the hash map is internally set at 75%, 
+ * which means at any time the map capacity of (item, count) pairs is <i>mapCap</i> = 
+ * 0.75 * <i><mapSize</i>.
+ * The maximum capacity of (item, count) pairs of the sketch is <i>maxMapCap</i> = 
+ * 0.75 * <i>maxMapSize</i>.
  * Papers that describe the mathematical error properties of this type of algorithm often 
  * refer to sketch capacity with the symbol <i>k</i>.</p>
  * 
@@ -85,7 +87,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * 
  * <p><b>Accuracy</b></p>
  * 
- * <p>If fewer than 0.75 * maxMapSize different items are inserted into the sketch the 
+ * <p>If fewer than 0.75 * <i>maxMapSize</i> different items are inserted into the sketch the 
  * estimated frequencies returned by the sketch will be exact.
  * The logic of the frequent items sketch is such that the stored counts and true counts are 
  * never too different. 
@@ -94,12 +96,11 @@ import com.yahoo.sketches.memory.NativeMemory;
  * (that hold deterministically).</p>
  * 
  * <p>For this implementation and for a specific active <i>item</i>, it is guaranteed that
- * the true frequency is between the Upper Bound (UB) and the Lower Bound (LB) for that item.
- * And <i>(UB- LB) &le; W * epsilon</i>, where <i>W</i> denotes the sum of all item counts, 
- * and <i>epsilon = 3.5/M</i>, where <i>M</i> is the maxMapSize.
+ * the true frequency will be between the Upper Bound (UB) and the Lower Bound (LB) computed for 
+ * that <i>item</i>.  Specifically, <i>(UB- LB) &le; W * epsilon</i>, where <i>W</i> denotes the sum of 
+ * all item counts, and <i>epsilon = 3.5/M</i>, where <i>M</i> is the <i>maxMapSize</i>.
  * This is a worst case guarantee.  In practice <i>(UB-LB)</i> is usually much smaller.
  * There is an astronomically small probability that the error can exceed the above "worst case".
- * A slightly tighter bound using <i>epsilon = 8/(3*M)</i> could also be used for most situations.
  * </p>
  * 
  * <p><b>Background</b></p>
