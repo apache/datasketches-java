@@ -20,13 +20,8 @@ public class HeapUnionTest {
     QuantilesSketch qs1 = null;
     Union union = Union.builder().build(); //virgin
     
-    //check null   me = null,  that = null
-    union.update(qs1);
-    result = union.getResult();
-    assertNull(result);
-    
     qs1 = buildQS(256, 1000); //first 1000
-    union.update(qs1); //copy   me = null,  that = valid
+    union.update(qs1); //copy   me = null,  that = valid, OK
     
     //check copy   me = null,  that = valid
     result = union.getResult();
@@ -39,6 +34,15 @@ public class HeapUnionTest {
     result = union.getResult();
     assertEquals(result.getN(), 2000);
     assertEquals(result.getK(), 256);
+  }
+  
+  @Test(expectedExceptions = IllegalStateException.class)
+  public void checkNullException() {
+    QuantilesSketch qs1 = null;
+    Union union = Union.builder().build(); //virgin union
+    
+    union.update(qs1); //ok
+    union.getResult(); //illegal state
   }
   
   @Test
@@ -75,22 +79,27 @@ public class HeapUnionTest {
     assertEquals(qs2.getMaxValue(), 1999, 0.0);
     
     println(union.toString()); //enable printing to see
-    union.reset();
-    qs2 = union.getResult();
-    assertNull(qs2);
+    union.reset(); //sets to null
   }
   
   @Test
   public void checkUnionUpdateLogic() {
     HeapQuantilesSketch qs1 = null;
     HeapQuantilesSketch qs2 = (HeapQuantilesSketch)buildQS(256, 0);
-    QuantilesSketch result = HeapUnion.unionUpdateLogic(qs1, qs2); //null, empty
-    result = HeapUnion.unionUpdateLogic(qs2, qs1); //empty, null
+    QuantilesSketch result = HeapUnion.updateLogic(qs1, qs2); //null, empty
+    result = HeapUnion.updateLogic(qs2, qs1); //empty, null
     qs2.update(1); //no longer empty
-    result = HeapUnion.unionUpdateLogic(qs2, qs1); //valid, null
+    result = HeapUnion.updateLogic(qs2, qs1); //valid, null
     assertEquals(result.getMaxValue(), result.getMinValue(), 0.0);
   }
   
+  @Test//(expectedExceptions = IllegalStateException.class)
+  public void checkResultAndReset() {
+    QuantilesSketch qs1 = buildQS(256, 0);
+    Union union = Union.builder().build(qs1);
+    QuantilesSketch qs2 = union.getResultAndReset();
+    assertEquals(qs2.getK(), 256);
+  }
   
   @Test
   public void printlnTest() {

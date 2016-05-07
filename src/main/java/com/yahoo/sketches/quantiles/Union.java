@@ -59,10 +59,19 @@ public abstract class Union {
   public abstract void update(double dataItem);
   
   /**
-   * Gets the result of this operation as a QuantilesSketch on the Java heap
-   * @return the result of this operation as a QuantilesSketch on the Java heap
+   * Gets the result of this Union operation as a copy of the internal state.
+   * This enables further union update operations on this state.
+   * @return the result of this Union operation
    */
   public abstract QuantilesSketch getResult();
+  
+  /**
+   * Gets the result of this Union operation (without a copy) and resets this Union to the 
+   * virgin state.
+   * 
+   * @return the result of this Union operation and reset.
+   */
+  public abstract QuantilesSketch getResultAndReset();
   
   /**
    * Resets this Union to a virgin state.

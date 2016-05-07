@@ -34,26 +34,35 @@ class HeapUnion extends Union {
   
   @Override
   public void update(QuantilesSketch sketchIn) {
-    gadget_ = unionUpdateLogic(gadget_, (HeapQuantilesSketch)sketchIn);
+    gadget_ = updateLogic(gadget_, (HeapQuantilesSketch)sketchIn);
   }
 
   @Override
   public void update(Memory srcMem) {
     HeapQuantilesSketch that = HeapQuantilesSketch.getInstance(srcMem);
-    gadget_ = unionUpdateLogic(gadget_, that);
+    gadget_ = updateLogic(gadget_, that);
   }
 
   @Override
   public void update(double dataItem) {
+    checkForNull(gadget_);
     gadget_.update(dataItem);
   }
 
   @Override
   public QuantilesSketch getResult() {
-    if (gadget_ == null) return null;
-    return HeapQuantilesSketch.copy(gadget_);
+    checkForNull(gadget_);
+    return HeapQuantilesSketch.copy(gadget_); //can't have any externally owned handles.
   }
-
+  
+  @Override
+  public QuantilesSketch getResultAndReset() {
+    checkForNull(gadget_);
+    QuantilesSketch hqs = getResult();
+    gadget_ = null;
+    return hqs;
+  }
+  
   @Override
   public void reset() {
     gadget_ = null;
@@ -66,44 +75,47 @@ class HeapUnion extends Union {
   
   @Override
   public String toString(boolean sketchSummary, boolean dataDetail) {
+    checkForNull(gadget_);
     return gadget_.toString(sketchSummary, dataDetail);
   }
   
 
 //@formatter:off
   @SuppressWarnings("null")
-  static HeapQuantilesSketch unionUpdateLogic(HeapQuantilesSketch qs1, HeapQuantilesSketch qs2) {
-    int sw1 = ((qs1   == null)? 0 :   qs1.isEmpty()? 4: 8);
-    sw1 |=    ((qs2 == null)? 0 : qs2.isEmpty()? 1: 2);
+  static HeapQuantilesSketch updateLogic(HeapQuantilesSketch myQS, HeapQuantilesSketch other) {
+    int sw1 = ((myQS   == null)? 0 :   myQS.isEmpty()? 4: 8);
+    sw1 |=    ((other  == null)? 0 :  other.isEmpty()? 1: 2);
     int outCase = 0; //0=null, 1=NOOP, 2=copy, 3=merge 
     switch (sw1) {
-      case 0:  outCase = 0; break; //null   qs1 = null,  qs2 = null
-      case 1:  outCase = 2; break; //copy   qs1 = null,  qs2 = empty
-      case 2:  outCase = 2; break; //copy   qs1 = null,  qs2 = valid
-      case 4:  outCase = 1; break; //noop   qs1 = empty, qs2 = null 
-      case 5:  outCase = 1; break; //noop   qs1 = empty, qs2 = empty
-      case 6:  outCase = 3; break; //merge  qs1 = empty, qs2 = valid
-      case 8:  outCase = 1; break; //noop   qs1 = valid, qs2 = null
-      case 9:  outCase = 1; break; //noop   qs1 = valid, qs2 = empty
-      case 10: outCase = 3; break; //merge  qs1 = valid, qs2 = valid
+      case 0:  outCase = 0; break; //null   myQS = null,  other = null
+      case 1:  outCase = 2; break; //copy   myQS = null,  other = empty
+      case 2:  outCase = 2; break; //copy   myQS = null,  other = valid
+      case 4:  outCase = 1; break; //noop   myQS = empty, other = null 
+      case 5:  outCase = 1; break; //noop   myQS = empty, other = empty
+      case 6:  outCase = 3; break; //merge  myQS = empty, other = valid
+      case 8:  outCase = 1; break; //noop   myQS = valid, other = null
+      case 9:  outCase = 1; break; //noop   myQS = valid, other = empty
+      case 10: outCase = 3; break; //merge  myQS = valid, other = valid
     }
     switch (outCase) {
       case 0: return null;
-      case 1: return qs1;
+      case 1: return myQS;
       case 2: {
-        return HeapQuantilesSketch.copy(qs2);
+        return HeapQuantilesSketch.copy(other); //required because caller has handle
       }
+      default:
     }
     //must merge
-    if (qs1.getK() <= qs2.getK()) {
-      HeapUnion.mergeInto(qs2, qs1);
-      return qs1;
+    if (myQS.getK() <= other.getK()) { //I am smaller or equal, thus the target
+      HeapUnion.mergeInto(other, myQS);
+      return myQS;
     }
     
-    //qs1K > qs2K
-    HeapQuantilesSketch copyQS2 = HeapQuantilesSketch.copy(qs2);
-    HeapUnion.mergeInto(qs1, copyQS2);
-    return copyQS2;
+    //myQS_K > other_K, must reverse roles
+    //must copy other as it will become mine and can't have any externally owned handles.
+    HeapQuantilesSketch myNewQS = HeapQuantilesSketch.copy(other);
+    HeapUnion.mergeInto(myQS, myNewQS);
+    return myNewQS;
   }
 //@formatter:on
   
@@ -183,4 +195,9 @@ class HeapUnion extends Union {
     if (srcMin < tgtMin) { tgt.minValue_ = srcMin; }
   }
 
+  private static void checkForNull(HeapQuantilesSketch hqs) {
+    if (hqs == null) {
+      throw new IllegalStateException("Union not initialized.");
+    }
+  }
 }
