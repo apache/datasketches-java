@@ -6,21 +6,21 @@
 package com.yahoo.sketches.memory;
 
 import static com.yahoo.sketches.memory.UnsafeUtil.BOOLEAN_SHIFT;
-import static com.yahoo.sketches.memory.UnsafeUtil.BOOLEAN_SIZE;
+import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_BOOLEAN_INDEX_SCALE;
 import static com.yahoo.sketches.memory.UnsafeUtil.BYTE_SHIFT;
-import static com.yahoo.sketches.memory.UnsafeUtil.BYTE_SIZE;
+import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_BYTE_INDEX_SCALE;
 import static com.yahoo.sketches.memory.UnsafeUtil.CHAR_SHIFT;
-import static com.yahoo.sketches.memory.UnsafeUtil.CHAR_SIZE;
+import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_CHAR_INDEX_SCALE;
 import static com.yahoo.sketches.memory.UnsafeUtil.DOUBLE_SHIFT;
-import static com.yahoo.sketches.memory.UnsafeUtil.DOUBLE_SIZE;
+import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_DOUBLE_INDEX_SCALE;
 import static com.yahoo.sketches.memory.UnsafeUtil.FLOAT_SHIFT;
-import static com.yahoo.sketches.memory.UnsafeUtil.FLOAT_SIZE;
+import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_FLOAT_INDEX_SCALE;
 import static com.yahoo.sketches.memory.UnsafeUtil.INT_SHIFT;
-import static com.yahoo.sketches.memory.UnsafeUtil.INT_SIZE;
+import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_INT_INDEX_SCALE;
 import static com.yahoo.sketches.memory.UnsafeUtil.LONG_SHIFT;
-import static com.yahoo.sketches.memory.UnsafeUtil.LONG_SIZE;
+import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_LONG_INDEX_SCALE;
 import static com.yahoo.sketches.memory.UnsafeUtil.SHORT_SHIFT;
-import static com.yahoo.sketches.memory.UnsafeUtil.SHORT_SIZE;
+import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_SHORT_INDEX_SCALE;
 import static com.yahoo.sketches.memory.UnsafeUtil.assertBounds;
 
 /**
@@ -104,7 +104,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public void clearBits(long offsetBytes, byte bitMask) {
-    assertBounds(offsetBytes, BYTE_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
     mem_.clearBits(getAddress(offsetBytes), bitMask);
   }
 
@@ -122,35 +122,35 @@ public class MemoryRegion implements Memory {
 
   @Override
   public int getAndAddInt(long offsetBytes, int delta) {
-    assertBounds(offsetBytes, INT_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
     long unsafeRawAddress = getAddress(offsetBytes);
     return mem_.getAndAddInt(unsafeRawAddress, delta);
   }
 
   @Override
   public long getAndAddLong(long offsetBytes, long delta) {
-    assertBounds(offsetBytes, LONG_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_LONG_INDEX_SCALE, capacityBytes_);
     long unsafeRawAddress = getAddress(offsetBytes);
     return mem_.getAndAddLong(unsafeRawAddress, delta);
   }
 
   @Override
   public int getAndSetInt(long offsetBytes, int newValue) {
-    assertBounds(offsetBytes, INT_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
     long unsafeRawAddress = getAddress(offsetBytes);
     return mem_.getAndSetInt(unsafeRawAddress, newValue);
   }
 
   @Override
   public long getAndSetLong(long offsetBytes, long newValue) {
-    assertBounds(offsetBytes, LONG_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_LONG_INDEX_SCALE, capacityBytes_);
     long unsafeRawAddress = getAddress(offsetBytes);
     return mem_.getAndSetLong(unsafeRawAddress, newValue);
   }
 
   @Override
   public boolean getBoolean(long offsetBytes) {
-    assertBounds(offsetBytes, BOOLEAN_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_BOOLEAN_INDEX_SCALE, capacityBytes_);
     return mem_.getBoolean(getAddress(offsetBytes));
   }
 
@@ -164,7 +164,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public byte getByte(long offsetBytes) {
-    assertBounds(offsetBytes, BYTE_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
     return mem_.getByte(getAddress(offsetBytes));
   }
 
@@ -178,7 +178,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public char getChar(long offsetBytes) {
-    assertBounds(offsetBytes, CHAR_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_CHAR_INDEX_SCALE, capacityBytes_);
     return mem_.getChar(getAddress(offsetBytes));
   }
 
@@ -192,7 +192,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public double getDouble(long offsetBytes) {
-    assertBounds(offsetBytes, DOUBLE_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_DOUBLE_INDEX_SCALE, capacityBytes_);
     return mem_.getDouble(getAddress(offsetBytes));
   }
 
@@ -206,7 +206,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public float getFloat(long offsetBytes) {
-    assertBounds(offsetBytes, FLOAT_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_FLOAT_INDEX_SCALE, capacityBytes_);
     return mem_.getFloat(getAddress(offsetBytes));
   }
 
@@ -220,7 +220,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public int getInt(long offsetBytes) {
-    assertBounds(offsetBytes, INT_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
     return mem_.getInt(getAddress(offsetBytes));
   }
 
@@ -234,7 +234,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public long getLong(long offsetBytes) {
-    assertBounds(offsetBytes, LONG_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_LONG_INDEX_SCALE, capacityBytes_);
     return mem_.getLong(getAddress(offsetBytes));
   }
 
@@ -248,7 +248,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public short getShort(long offsetBytes) {
-    assertBounds(offsetBytes, SHORT_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_SHORT_INDEX_SCALE, capacityBytes_);
     return mem_.getShort(getAddress(offsetBytes));
   }
 
@@ -262,7 +262,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public boolean isAllBitsClear(long offsetBytes, byte bitMask) {
-    assertBounds(offsetBytes, BYTE_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
     long unsafeRawAddress = getAddress(offsetBytes);
     int value = ~mem_.getByte(unsafeRawAddress) & bitMask & 0XFF; 
     return value == bitMask;
@@ -270,7 +270,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public boolean isAllBitsSet(long offsetBytes, byte bitMask) {
-    assertBounds(offsetBytes, BYTE_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
     long unsafeRawAddress = getAddress(offsetBytes);
     int value = mem_.getByte(unsafeRawAddress) & bitMask & 0XFF;
     return value == bitMask;
@@ -278,7 +278,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public boolean isAnyBitsClear(long offsetBytes, byte bitMask) {
-    assertBounds(offsetBytes, BYTE_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
     long unsafeRawAddress = getAddress(offsetBytes);
     int value = ~mem_.getByte(unsafeRawAddress) & bitMask & 0XFF; 
     return value != 0;
@@ -286,7 +286,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public boolean isAnyBitsSet(long offsetBytes, byte bitMask) {
-    assertBounds(offsetBytes, BYTE_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
     long unsafeRawAddress = getAddress(offsetBytes);
     int value = mem_.getByte(unsafeRawAddress) & bitMask & 0XFF;
     return value != 0;
@@ -294,7 +294,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public void putBoolean(long offsetBytes, boolean srcValue) {
-    assertBounds(offsetBytes, BOOLEAN_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_BOOLEAN_INDEX_SCALE, capacityBytes_);
     mem_.putBoolean(getAddress(offsetBytes), srcValue);
   }
 
@@ -308,7 +308,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public void putByte(long offsetBytes, byte srcValue) {
-    assertBounds(offsetBytes, BYTE_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
     mem_.putByte(getAddress(offsetBytes), srcValue);
   }
 
@@ -322,7 +322,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public void putChar(long offsetBytes, char srcValue) {
-    assertBounds(offsetBytes, CHAR_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_CHAR_INDEX_SCALE, capacityBytes_);
     mem_.putChar(getAddress(offsetBytes), srcValue);
   }
 
@@ -336,7 +336,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public void putDouble(long offsetBytes, double srcValue) {
-    assertBounds(offsetBytes, DOUBLE_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_DOUBLE_INDEX_SCALE, capacityBytes_);
     mem_.putDouble(getAddress(offsetBytes), srcValue);
   }
 
@@ -350,7 +350,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public void putFloat(long offsetBytes, float srcValue) {
-    assertBounds(offsetBytes, FLOAT_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_FLOAT_INDEX_SCALE, capacityBytes_);
     mem_.putFloat(getAddress(offsetBytes), srcValue);
   }
 
@@ -364,7 +364,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public void putInt(long offsetBytes, int srcValue) {
-    assertBounds(offsetBytes, INT_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
     mem_.putInt(getAddress(offsetBytes), srcValue);
   }
 
@@ -378,7 +378,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public void putLong(long offsetBytes, long srcValue) {
-    assertBounds(offsetBytes, LONG_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_LONG_INDEX_SCALE, capacityBytes_);
     mem_.putLong(getAddress(offsetBytes), srcValue);
   }
 
@@ -392,7 +392,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public void putShort(long offsetBytes, short srcValue) {
-    assertBounds(offsetBytes, SHORT_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_SHORT_INDEX_SCALE, capacityBytes_);
     mem_.putShort(getAddress(offsetBytes), srcValue);
   }
 
@@ -417,7 +417,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public void setBits(long offsetBytes, byte bitMask) {
-    assertBounds(offsetBytes, BYTE_SIZE, capacityBytes_);
+    assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
     long unsafeRawAddress = getAddress(offsetBytes);
     byte value = mem_.getByte(unsafeRawAddress);
     mem_.putByte(unsafeRawAddress, (byte)(value | bitMask));

@@ -7,8 +7,7 @@ package com.yahoo.sketches;
 
 import static com.yahoo.sketches.BoundsOnBinomialProportions.approximateLowerBoundOnP;
 import static com.yahoo.sketches.BoundsOnBinomialProportions.approximateUpperBoundOnP;
-//import static com.yahoo.sketches.BinomialBoundsN.getLowerBound;
-//import static com.yahoo.sketches.BinomialBoundsN.getUpperBound;
+
 /**
  * This class is used to compute the bounds on the estimate of the ratio <i>|B| / |A|</i>, where:
  * <ul>

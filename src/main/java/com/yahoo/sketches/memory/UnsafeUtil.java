@@ -22,33 +22,43 @@ import java.lang.reflect.Constructor;
 @SuppressWarnings("restriction")
 final class UnsafeUtil {
   static final Unsafe unsafe;
-  static final int ADDRESS_BYTES;
-  static final int BOOLEAN_ARRAY_BASE_OFFSET;
-  static final int BYTE_ARRAY_BASE_OFFSET;
-  static final int CHAR_ARRAY_BASE_OFFSET;
-  static final int DOUBLE_ARRAY_BASE_OFFSET;
-  static final int FLOAT_ARRAY_BASE_OFFSET;
-  static final int INT_ARRAY_BASE_OFFSET;
-  static final int LONG_ARRAY_BASE_OFFSET;
-  static final int SHORT_ARRAY_BASE_OFFSET;
-//@formatter:off
-  static final int BOOLEAN_SIZE    = 1;
-  static final int BYTE_SIZE       = 1;
-  static final int CHAR_SIZE       = 2;
-  static final int DOUBLE_SIZE     = 8;
-  static final int FLOAT_SIZE      = 4;
-  static final int INT_SIZE        = 4;
-  static final int LONG_SIZE       = 8;
-  static final int SHORT_SIZE      = 2;
   
+  static final int ADDRESS_SIZE; //not an indicator of whether compressed references are used.
+  
+  //varies depending on compressed ref, 16 or 24 for 64-bit systems
+  static final int ARRAY_BOOLEAN_BASE_OFFSET;
+  static final int ARRAY_BYTE_BASE_OFFSET;
+  static final int ARRAY_SHORT_BASE_OFFSET;
+  static final int ARRAY_CHAR_BASE_OFFSET;
+  static final int ARRAY_INT_BASE_OFFSET;
+  static final int ARRAY_LONG_BASE_OFFSET;
+  static final int ARRAY_FLOAT_BASE_OFFSET;
+  static final int ARRAY_DOUBLE_BASE_OFFSET;
+  static final int ARRAY_OBJECT_BASE_OFFSET;
+  
+//@formatter:off
+  static final int ARRAY_BOOLEAN_INDEX_SCALE; // 1
+  static final int ARRAY_BYTE_INDEX_SCALE;    // 1
+  static final int ARRAY_SHORT_INDEX_SCALE;   // 2
+  static final int ARRAY_CHAR_INDEX_SCALE;    // 2
+  static final int ARRAY_INT_INDEX_SCALE;     // 4
+  static final int ARRAY_LONG_INDEX_SCALE;    // 8
+  static final int ARRAY_FLOAT_INDEX_SCALE;   // 4
+  static final int ARRAY_DOUBLE_INDEX_SCALE;  // 8
+  static final int ARRAY_OBJECT_INDEX_SCALE;  // varies, 4 or 8 depending on compressed ref
+  
+  //Used to convert "type" to bytes:  bytes = longs << LONG_SHIFT
   static final int BOOLEAN_SHIFT   = 0;
   static final int BYTE_SHIFT      = 0;
+  static final int SHORT_SHIFT     = 1;
   static final int CHAR_SHIFT      = 1;
-  static final int DOUBLE_SHIFT    = 3;
-  static final int FLOAT_SHIFT     = 2;
   static final int INT_SHIFT       = 2;
   static final int LONG_SHIFT      = 3;
-  static final int SHORT_SHIFT     = 1;
+  static final int FLOAT_SHIFT     = 2;
+  static final int DOUBLE_SHIFT    = 3;
+  
+
+  
 //@formatter:on
 
   /** 
@@ -69,17 +79,29 @@ final class UnsafeUtil {
 //    field.setAccessible(true);
 //    unsafe = (Unsafe) field.get(null);
 
-      ADDRESS_BYTES = unsafe.addressSize(); //4 on 32-bits systems, 8 on 64-bit systems
+      //4 on 32-bits systems, 8 on 64-bit systems.  Not an indicator of compressed ref (Oop)
+      ADDRESS_SIZE = unsafe.addressSize(); 
 
-      //These are all 16 on 64-bit systems.
-      BOOLEAN_ARRAY_BASE_OFFSET = unsafe.arrayBaseOffset(boolean[].class);
-      BYTE_ARRAY_BASE_OFFSET = unsafe.arrayBaseOffset(byte[].class);
-      CHAR_ARRAY_BASE_OFFSET = unsafe.arrayBaseOffset(char[].class);
-      DOUBLE_ARRAY_BASE_OFFSET = unsafe.arrayBaseOffset(double[].class);
-      FLOAT_ARRAY_BASE_OFFSET = unsafe.arrayBaseOffset(float[].class);
-      INT_ARRAY_BASE_OFFSET = unsafe.arrayBaseOffset(int[].class);
-      LONG_ARRAY_BASE_OFFSET = unsafe.arrayBaseOffset(long[].class);
-      SHORT_ARRAY_BASE_OFFSET = unsafe.arrayBaseOffset(short[].class);
+      ARRAY_BOOLEAN_BASE_OFFSET = unsafe.arrayBaseOffset(boolean[].class);
+      ARRAY_BYTE_BASE_OFFSET = unsafe.arrayBaseOffset(byte[].class);
+      ARRAY_SHORT_BASE_OFFSET = unsafe.arrayBaseOffset(short[].class);
+      ARRAY_CHAR_BASE_OFFSET = unsafe.arrayBaseOffset(char[].class);
+      ARRAY_INT_BASE_OFFSET = unsafe.arrayBaseOffset(int[].class);
+      ARRAY_LONG_BASE_OFFSET = unsafe.arrayBaseOffset(long[].class);
+      ARRAY_FLOAT_BASE_OFFSET = unsafe.arrayBaseOffset(float[].class);
+      ARRAY_DOUBLE_BASE_OFFSET = unsafe.arrayBaseOffset(double[].class);
+      ARRAY_OBJECT_BASE_OFFSET = unsafe.arrayBaseOffset(Object[].class);
+      
+      ARRAY_BOOLEAN_INDEX_SCALE = unsafe.arrayIndexScale(boolean[].class);
+      ARRAY_BYTE_INDEX_SCALE = unsafe.arrayIndexScale(byte[].class);
+      ARRAY_SHORT_INDEX_SCALE = unsafe.arrayIndexScale(short[].class);
+      ARRAY_CHAR_INDEX_SCALE = unsafe.arrayIndexScale(char[].class);
+      ARRAY_INT_INDEX_SCALE = unsafe.arrayIndexScale(int[].class);
+      ARRAY_LONG_INDEX_SCALE = unsafe.arrayIndexScale(long[].class);
+      ARRAY_FLOAT_INDEX_SCALE = unsafe.arrayIndexScale(float[].class);
+      ARRAY_DOUBLE_INDEX_SCALE = unsafe.arrayIndexScale(double[].class);
+      ARRAY_OBJECT_INDEX_SCALE = unsafe.arrayIndexScale(Object[].class);
+      
     }
     catch (Exception e) {
       throw new RuntimeException("Unable to acquire Unsafe. ", e);

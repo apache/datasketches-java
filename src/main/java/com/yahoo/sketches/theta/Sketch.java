@@ -2,8 +2,10 @@
  * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.HashOperations.*;
 import static com.yahoo.sketches.Family.idToFamily;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.Util.LS;
@@ -76,6 +78,16 @@ public abstract class Sketch {
    */
   public double getTheta() {
     return getThetaLong() / MAX_THETA_LONG_AS_DOUBLE;
+  }
+  
+  /**
+   * Gets the number of hash values less than the given theta.
+   * @param theta the given theta as a double between zero and one.
+   * @return the number of hash values less than the given theta.
+   */
+  public int getCountLessThanTheta(double theta) {
+    long thetaLong = (long) (MAX_THETA_LONG_AS_DOUBLE * theta);
+    return count(getCache(), thetaLong);
   }
   
   /**
