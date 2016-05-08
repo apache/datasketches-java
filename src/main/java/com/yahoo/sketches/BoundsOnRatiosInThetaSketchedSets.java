@@ -82,7 +82,7 @@ public class BoundsOnRatiosInThetaSketchedSets {
     return (double) countB / (double) countA;
   }
   
-  private static void checkThetas(double thetaA, double thetaB) {
+  static void checkThetas(double thetaA, double thetaB) {
     if (thetaB > thetaA) {
       throw new IllegalArgumentException("ThetaB cannot be > ThetaA.");
     }

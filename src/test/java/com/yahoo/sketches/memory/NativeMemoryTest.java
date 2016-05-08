@@ -236,6 +236,28 @@ public class NativeMemoryTest {
     mem2.freeMemory();
   }
   
+  @SuppressWarnings("deprecation")
+  @Test
+  public void checkDeprecatedCopyCrossNativeSmall() {
+    int memCapacity = 64;
+    NativeMemory mem1 = new AllocMemory(memCapacity);
+    NativeMemory mem2 = new AllocMemory(memCapacity);
+    
+    for (int i=0; i<memCapacity; i++) {
+      mem1.putByte(i, (byte) i);
+    }
+    mem2.clear();
+    
+    MemoryUtil.copy(mem1, 0, mem2, 0, memCapacity);
+    
+    for (int i=0; i<memCapacity; i++) {
+      assertEquals(mem2.getByte(i), (byte) i);
+    }
+    
+    mem1.freeMemory();
+    mem2.freeMemory();
+  }
+  
   @Test
   public void checkCopyCrossNativeLarge() {
     int memCapacity = (2<<20) + 64;

@@ -60,13 +60,14 @@ public class BoundsOnRatiosInSampledSets {
   
   static void checkInputs(long a, long b, double numStdDevs, double f) {
     if ( ( (a - b) | (a -1) | (b-1) ) < 0) {  //if any group goes negative
-      throw new IllegalArgumentException("a must be >= b and neither a nor b can be < 0");
+      throw new IllegalArgumentException(
+          "a must be >= b and neither a nor b can be < 0: a = "+a+", b = "+b);
     }
     if ((f != 1.0) && ((f > .5001) || (f <= 0.0))) {
-      throw new IllegalArgumentException("Required: ((f > 0.0) && (f <= 0.5)) || (f == 1.0)");
+      throw new IllegalArgumentException("Required: ((f > 0.0) && (f <= 0.5)) || (f == 1.0): "+f);
     }
     if ( (numStdDevs < 0) || (numStdDevs > 3.1)) {
-      throw new IllegalArgumentException("numStdDevs must be >= 0 and < 3");
+      throw new IllegalArgumentException("numStdDevs must be >= 0 and < 3: "+numStdDevs);
     }
   }
   
