@@ -68,7 +68,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * 
  * <p>The LOAD_FACTOR for the hash map is internally set at 75%, 
  * which means at any time the map capacity of (item, count) pairs is <i>mapCap</i> = 
- * 0.75 * <i><mapSize</i>.
+ * 0.75 * <i>mapSize</i>.
  * The maximum capacity of (item, count) pairs of the sketch is <i>maxMapCap</i> = 
  * 0.75 * <i>maxMapSize</i>.
  * Papers that describe the mathematical error properties of this type of algorithm often 
