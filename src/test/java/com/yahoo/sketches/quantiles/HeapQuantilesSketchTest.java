@@ -830,11 +830,14 @@ public class HeapQuantilesSketchTest {
    * @param s value to print 
    */
   static void println(String s) {
-    System.err.println(s); //disable here
+    //System.err.println(s); //disable here
   }
   
+  /**
+   * @param s value to print 
+   */
   static void print(String s) {
-    System.err.print(s); //disable here
+    //System.err.print(s); //disable here
   }
   
 }
