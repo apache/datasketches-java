@@ -119,12 +119,12 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
 
     final boolean isInSamplingMode = (flags & (1 << Flags.IS_IN_SAMPLING_MODE.ordinal())) > 0;
     samplingProbability_ = isInSamplingMode ? mem.getFloat(offset) : 1f;
-    if (isInSamplingMode) offset += 4;
+    if (isInSamplingMode) offset += Float.BYTES;
 
     final boolean isThetaIncluded = (flags & (1 << Flags.IS_THETA_INCLUDED.ordinal())) > 0;
     if (isThetaIncluded) {
       theta_ = mem.getLong(offset);
-      offset += 8;
+      offset += Long.BYTES;
     } else {
       theta_ = (long) (Long.MAX_VALUE * (double) samplingProbability_);
     }
@@ -133,7 +133,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     final boolean hasEntries = (flags & (1 << Flags.HAS_ENTRIES.ordinal())) > 0;
     if (hasEntries) {
       count = mem.getInt(offset);
-      offset += 4;
+      offset += Integer.BYTES;
     }
     DeserializeResult<SummaryFactory<S>> factoryResult = SerializerDeserializer.deserializeFromMemory(mem, offset);
     summaryFactory_ = factoryResult.getObject();
@@ -145,7 +145,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     MemoryRegion memRegion = new MemoryRegion(mem, 0, mem.getCapacity());
     for (int i = 0; i < count; i++) {
       long key = mem.getLong(offset);
-      offset += 8;
+      offset += Long.BYTES;
       memRegion.reassign(offset, mem.getCapacity() - offset);
       DeserializeResult<S> summaryResult = summaryFactory_.summaryFromMemory(memRegion);
       S summary = summaryResult.getObject();
@@ -209,6 +209,9 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   // Adr: 
   //      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
   //  0   ||   RF   |  lgArr | lgNom  |  Flags | SkType | FamID  | SerVer |  Preamble_Longs    |
+
+  private static final byte PREAMBLE_LONGS = 1;
+
   @SuppressWarnings("null")
   @Override
   public byte[] toByteArray() {
@@ -227,23 +230,23 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       }
     }
     int sizeBytes = 
-        1 // preamble longs
-      + 1 // serial version
-      + 1 // family
-      + 1 // sketch type
-      + 1 // flags
-      + 1 // log2(nomEntries)
-      + 1 // log2(currentCapacity)
-      + 1; // log2(resizeFactor)
-    if (isInSamplingMode()) sizeBytes += 4; // samplingProbability
+        Byte.BYTES // preamble longs
+      + Byte.BYTES // serial version
+      + Byte.BYTES // family
+      + Byte.BYTES // sketch type
+      + Byte.BYTES // flags
+      + Byte.BYTES // log2(nomEntries)
+      + Byte.BYTES // log2(currentCapacity)
+      + Byte.BYTES; // log2(resizeFactor)
+    if (isInSamplingMode()) sizeBytes += Float.BYTES; // samplingProbability
     final boolean isThetaIncluded = isInSamplingMode() ? theta_ < samplingProbability_ : theta_ < Long.MAX_VALUE;
-    if (isThetaIncluded) sizeBytes += 8;
-    if (count_ > 0) sizeBytes += 4; // count
-    sizeBytes += 8 * count_ + summaryFactoryBytes.length + summariesBytesLength;
+    if (isThetaIncluded) sizeBytes += Long.BYTES;
+    if (count_ > 0) sizeBytes += Integer.BYTES; // count
+    sizeBytes += Long.BYTES * count_ + summaryFactoryBytes.length + summariesBytesLength;
     final byte[] bytes = new byte[sizeBytes];
     final Memory mem = new NativeMemory(bytes);
     int offset = 0;
-    mem.putByte(offset++, (byte) 1);
+    mem.putByte(offset++, (byte) PREAMBLE_LONGS);
     mem.putByte(offset++, serialVersionUID);
     mem.putByte(offset++, (byte) Family.TUPLE.getID());
     mem.putByte(offset++, (byte) SerializerDeserializer.SketchType.QuickSelectSketch.ordinal());
@@ -260,15 +263,15 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     mem.putByte(offset++, (byte) lgResizeFactor_);
     if (samplingProbability_ < 1f) {
       mem.putFloat(offset, samplingProbability_);
-      offset += 4;
+      offset += Float.BYTES;
     }
     if (isThetaIncluded) {
       mem.putLong(offset, theta_);
-      offset += 8;
+      offset += Long.BYTES;
     }
     if (count_ > 0) {
       mem.putInt(offset, count_);
-      offset += 4;
+      offset += Integer.BYTES;
     }
     mem.putByteArray(offset, summaryFactoryBytes, 0, summaryFactoryBytes.length);
     offset += summaryFactoryBytes.length;
@@ -277,7 +280,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       for (int j = 0; j < keys_.length; j++) {
         if (summaries_[j] != null) {
           mem.putLong(offset, keys_[j]);
-          offset += 8;
+          offset += Long.BYTES;
           mem.putByteArray(offset, summariesBytes[i], 0, summariesBytes[i].length);
           offset += summariesBytes[i].length;
           i++;
