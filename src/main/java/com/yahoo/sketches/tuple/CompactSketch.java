@@ -139,7 +139,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     byte[] bytes = new byte[sizeBytes];
     Memory mem = new NativeMemory(bytes);
     int offset = 0;
-    mem.putByte(offset++, (byte) PREAMBLE_LONGS);
+    mem.putByte(offset++, PREAMBLE_LONGS);
     mem.putByte(offset++, serialVersionUID);
     mem.putByte(offset++, (byte) Family.TUPLE.getID());
     mem.putByte(offset++, (byte) SerializerDeserializer.SketchType.CompactSketch.ordinal());
