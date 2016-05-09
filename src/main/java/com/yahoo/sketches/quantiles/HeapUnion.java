@@ -4,16 +4,13 @@
  */
 package com.yahoo.sketches.quantiles;
 
-import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.memory.MemoryRequest;
 
 /**
  * Union operation for on-heap.
  * 
  * @author Lee Rhodes
  */
-@SuppressWarnings("unused")
 class HeapUnion extends Union {
   private HeapQuantilesSketch gadget_ = null;
   
@@ -58,7 +55,7 @@ class HeapUnion extends Union {
   @Override
   public QuantilesSketch getResultAndReset() {
     checkForNull(gadget_);
-    QuantilesSketch hqs = getResult();
+    QuantilesSketch hqs = gadget_;
     gadget_ = null;
     return hqs;
   }
