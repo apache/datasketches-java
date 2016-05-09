@@ -54,7 +54,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     boolean isThetaIncluded = (flags & (1 << Flags.IS_THETA_INCLUDED.ordinal())) > 0;
     if (isThetaIncluded) {
       theta_ = mem.getLong(offset);
-      offset += 8;
+      offset += Long.BYTES;
     } else {
       theta_ = Long.MAX_VALUE;
     }
@@ -62,7 +62,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     if (hasEntries) {
       int classNameLength = mem.getByte(offset++);
       int count = mem.getInt(offset);
-      offset += 4;
+      offset += Integer.BYTES;
       byte[] classNameBuffer = new byte[classNameLength];
       mem.getByteArray(offset, classNameBuffer, 0, classNameLength);
       offset += classNameLength;
@@ -70,7 +70,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
       keys_ = new long[count];
       for (int i = 0; i < count; i++) {
         keys_[i] = mem.getLong(offset);
-        offset += 8;
+        offset += Long.BYTES;
       }
       for (int i = 0; i < count; i++) {
         DeserializeResult<S> result = SerializerDeserializer.deserializeFromMemory(mem, offset, className);
@@ -103,6 +103,8 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
   //      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
   //  0   ||                          |  Flags | SkType | FamID  | SerVer |  Preamble_Longs    |
 
+  private static final byte PREAMBLE_LONGS = 1;
+
   @SuppressWarnings("null")
   @Override
   public byte[] toByteArray() {
@@ -118,26 +120,26 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     }
 
     int sizeBytes =
-        1 // preamble longs
-      + 1 // serial version
-      + 1 // family id
-      + 1 // sketch type
-      + 1; // flags
+        Byte.BYTES // preamble longs
+      + Byte.BYTES // serial version
+      + Byte.BYTES // family id
+      + Byte.BYTES // sketch type
+      + Byte.BYTES; // flags
     boolean isThetaIncluded = theta_ < Long.MAX_VALUE;
-    if (isThetaIncluded) sizeBytes += 8; // theta
+    if (isThetaIncluded) sizeBytes += Long.BYTES; // theta
     String summaryClassName = null;
     if (count > 0) {
       summaryClassName = summaries_[0].getClass().getName();
       sizeBytes +=
-          1 // summary class name length
-        + 4 // count
+          Byte.BYTES // summary class name length
+        + Integer.BYTES // count
         + summaryClassName.length() 
-        + 8 * count + summariesBytesLength;
+        + Long.BYTES * count + summariesBytesLength;
     }
     byte[] bytes = new byte[sizeBytes];
     Memory mem = new NativeMemory(bytes);
     int offset = 0;
-    mem.putByte(offset++, (byte) 1);
+    mem.putByte(offset++, (byte) PREAMBLE_LONGS);
     mem.putByte(offset++, serialVersionUID);
     mem.putByte(offset++, (byte) Family.TUPLE.getID());
     mem.putByte(offset++, (byte) SerializerDeserializer.SketchType.CompactSketch.ordinal());
@@ -150,17 +152,17 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     ));
     if (isThetaIncluded) { //TODO check byte allignment to 8 bytes.
       mem.putLong(offset, theta_);
-      offset += 8;
+      offset += Long.BYTES;
     }
     if (count > 0) {
       mem.putByte(offset++, (byte) summaryClassName.length());
       mem.putInt(offset, getRetainedEntries());
-      offset += 4;
+      offset += Integer.BYTES;
       mem.putByteArray(offset, summaryClassName.getBytes(), 0, summaryClassName.length());
       offset += summaryClassName.length();
       for (int i = 0; i < count; i++) {
         mem.putLong(offset, keys_[i]);
-        offset += 8;
+        offset += Long.BYTES;
       }
       for (int i = 0; i < count; i++) {
         mem.putByteArray(offset, summariesBytes[i], 0, summariesBytes[i].length);
