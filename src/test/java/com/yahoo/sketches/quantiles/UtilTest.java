@@ -110,6 +110,11 @@ public class UtilTest {
     } 
   }
 
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkValidateFractionsException() {
+    Util.validateFractions(null);
+  }
+  
   @Test
   public void testLinearTimeIncrementHistogramCounters () {
     double [] samples = {0.1, 0.2, 0.3, 0.4, 0.5}; 
@@ -149,9 +154,6 @@ public class UtilTest {
       // System.out.printf ("\n");
     } 
   }
-
-  /* need to write tests where there are zero or one splitpoints, and zero samples */
-
 
 //The remainder of this file is a brute force test of corner cases
  // for blockyTandemMergeSort.

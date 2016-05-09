@@ -215,14 +215,11 @@ class HeapQuantilesSketch extends QuantilesSketch {
 
   @Override
   public double[] getQuantiles(double[] fractions) {
-    Util.validateSequential(fractions);
+    Util.validateFractions(fractions);
     Auxiliary aux = null; //
     double[] answers = new double[fractions.length];
     for (int i = 0; i < fractions.length; i++) {
       double fraction = fractions[i];
-      if ((fraction < 0.0) || (fraction > 1.0)) {
-        throw new IllegalArgumentException("Fraction cannot be less than zero or greater than 1.0");
-      }
       if      (fraction == 0.0) { answers[i] = minValue_; }
       else if (fraction == 1.0) { answers[i] = maxValue_; }
       else {

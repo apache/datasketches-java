@@ -11,6 +11,7 @@ import static com.yahoo.sketches.quantiles.Util.computeNumLevelsNeeded;
 import static com.yahoo.sketches.quantiles.Util.lg;
 import static java.lang.Math.floor;
 import static org.testng.Assert.assertEquals;
+//import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -264,8 +265,10 @@ public class HeapQuantilesSketchTest {
     QuantilesSketch qs = buildQS(k, 0);
     String s = qs.toString();
     s = qs.toString(false, true);
+    //println(s);
     qs = buildQS(k, n);
-    //println(qs.toString());
+    s = qs.toString();
+    //println(s);
     s = qs.toString(false, true);
     //println(qs.toString(false, true));
     
@@ -303,13 +306,15 @@ public class HeapQuantilesSketchTest {
   //@Test  //visual only
   public void summaryCheckViaMemory() {
     QuantilesSketch qs = buildQS(256, 1000000);
-    println(qs.toString());
+    String s = qs.toString();
+    println(s);
     println("");
     
     NativeMemory srcMem = new NativeMemory(qs.toByteArray());
     
     HeapQuantilesSketch qs2 = HeapQuantilesSketch.getInstance(srcMem);
-    println(qs2.toString());
+    s = qs2.toString();
+    println(s);
   }
   
   
@@ -333,7 +338,7 @@ public class HeapQuantilesSketchTest {
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkValidateSplitPoints() {
     double[] arr = {2, 1};
-    Util.validateSequential(arr);
+    Util.validateFractions(arr);
   }
   
   @Test
@@ -346,15 +351,15 @@ public class HeapQuantilesSketchTest {
     qs = buildQS(k, 2*k); //forces one level
     stor = qs.getStorageBytes();
     int bbLen = qs.getCombinedBuffer().length << 3;
-    println("BufLen      : "+bbLen);
-    println("getStorBytes: "+stor);
+    //println("BufLen      : "+bbLen);
+    //println("getStorBytes: "+stor);
     assertEquals(stor, 40 + bbLen);
     
     qs = buildQS(k, 2*k-1); //just Base Buffer
     stor = qs.getStorageBytes();
     bbLen = qs.getCombinedBuffer().length << 3;
-    println("BufLen      : "+bbLen);
-    println("getStorBytes: "+stor);
+    //println("BufLen      : "+bbLen);
+    //println("getStorBytes: "+stor);
     assertEquals(stor, 40 + bbLen);
   }
   
@@ -529,14 +534,17 @@ public class HeapQuantilesSketchTest {
     }
     HeapQuantilesSketch downSketch = (HeapQuantilesSketch)origSketch.downSample(smallK);
     println ("\nOrig\n");
-    println(origSketch.toString(true, true));
+    String s = origSketch.toString(true, true);
+    println(s);
     println ("\nDown\n");
-    println(downSketch.toString(true, true));
+    s = downSketch.toString(true, true);
+    println(s);
     println("\nDirect\n");
-    println(directSketch.toString(true, true));
+    s = directSketch.toString(true, true);
+    println(s);
   }
   
-  @Test
+  //@Test  //Visual only tests
   public void checkDownSampling() {
     testDownSampling(4,4);
     testDownSampling(16,4);
@@ -659,7 +667,8 @@ public class HeapQuantilesSketchTest {
     long n = 1000000;
     QuantilesSketch qs = buildQS(k, n);
     double[] ranks = {0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
-    println(getRanksTable(qs, ranks));
+    String s = getRanksTable(qs, ranks);
+    println(s);
     println("");
     
     NativeMemory srcMem = new NativeMemory(qs.toByteArray());
@@ -762,7 +771,7 @@ public class HeapQuantilesSketchTest {
     Method privateMethod = Auxiliary.class.getDeclaredMethod("posOfPhi", double.class, long.class );
     privateMethod.setAccessible(true);
     long returnValue = (long) privateMethod.invoke(null, new Double(1.0), new Long(10));
-    println("" + returnValue);
+    //println("" + returnValue);
     assertEquals(returnValue, n-1);
   }
   
@@ -782,6 +791,37 @@ public class HeapQuantilesSketchTest {
   }
   
   @Test
+  public void checkEvenlySpacedQuantiles() {
+    QuantilesSketch qsk = buildQS(32, 1001);
+    double[] values = qsk.getQuantiles(11);
+//    for (int i = 0; i<values.length; i++) {
+//      println(""+values[i]);
+//    }
+    assertEquals(values[0], 0.0, 0.0);
+    assertEquals(values[10], 1000.0, 0.0);
+  }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkEvenlySpacedQuantilesException() {
+    QuantilesSketch qsk = buildQS(32, 1001);
+    qsk.getQuantiles(1);
+    qsk.getQuantiles(0);
+  }
+  
+  @Test
+  public void checkEvenlySpaced() {
+    int n = 11;
+    double[] es = QuantilesSketch.getEvenlySpaced(n);
+    int len = es.length;
+    for (int j=0; j<len; j++) {
+      double f = es[j];
+      assertEquals(f, j/10.0, 0.0);
+      print(es[j]+", ");
+    }
+    println("");
+  }
+  
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
@@ -790,7 +830,11 @@ public class HeapQuantilesSketchTest {
    * @param s value to print 
    */
   static void println(String s) {
-    //System.err.println(s); //disable here
+    System.err.println(s); //disable here
+  }
+  
+  static void print(String s) {
+    System.err.print(s); //disable here
   }
   
 }

@@ -122,26 +122,46 @@ final class Util {
    * @param flags the flags field
    */ //only used by checkPreLongsFlagsCap and test
   static void checkFlags(int flags) {
-    int flagsMask = ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
+    int flagsMask = 
+        ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
     if ((flags & flagsMask) > 0) {
       throw new IllegalArgumentException(
-          "Possible corruption: Input srcMem cannot be: big-endian, compact, ordered, or read-only");
+         "Possible corruption: Input srcMem cannot be: big-endian, compact, ordered, or read-only");
     }
+  }
+
+  /**
+   * Checks the sequential validity of the given array of fractions. 
+   * They must be unique, monotonically increasing and not NaN, not &lt; 0 and not &gt; 1.0.
+   * @param fractions array
+   */
+  static final void validateFractions(double[] fractions) {
+    if (fractions == null) {
+      throw new IllegalArgumentException("Fractions array may not be null.");
+    }
+    double flo = fractions[0];
+    double fhi = fractions[fractions.length - 1];
+    if ((flo < 0.0) || (fhi > 1.0)) {
+      throw new IllegalArgumentException("A fraction cannot be less than zero or greater than 1.0");
+    }
+    validateValues(fractions);
   }
 
   /**
    * Checks the sequential validity of the given array of values. 
    * They must be unique, monotonically increasing and not NaN.
-   * @param values array
+   * @param fractions array
    */
-  static final void validateSequential(double[] values) {
-    for (int j = 0; j < values.length - 1; j++) {
+  static final void validateValues(double[] values) {
+    int lenM1 = values.length - 1;
+    for (int j = 0; j < lenM1; j++) {
       if (values[j] < values[j+1]) { continue; }
       throw new IllegalArgumentException(
           "Values must be unique, monotonically increasing and not NaN.");
     }
   }
-
+  
+  
   /**
    * Computes a checksum of all the samples in the sketch. Used in testing the Auxiliary
    * @param sketch the given quantiles sketch
@@ -174,7 +194,7 @@ final class Util {
     double[] levelsArr  = sketch.getCombinedBuffer(); // aliasing is a bit dangerous
     double[] baseBuffer = levelsArr;                  // aliasing is a bit dangerous
     int bbCount = sketch.getBaseBufferCount();
-    Util.validateSequential(splitPoints);
+    Util.validateValues(splitPoints);
   
     int numSplitPoints = splitPoints.length;
     int numCounters = numSplitPoints + 1;
@@ -333,7 +353,8 @@ final class Util {
     int sourceK = src.getK();
     
     if ((sourceK % targetK) != 0) {
-      throw new IllegalArgumentException("source.getK() must equal target.getK() * 2^(nonnegative integer).");
+      throw new IllegalArgumentException(
+          "source.getK() must equal target.getK() * 2^(nonnegative integer).");
     }
     
     int downFactor = sourceK / targetK;
