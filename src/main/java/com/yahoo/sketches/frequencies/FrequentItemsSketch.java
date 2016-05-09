@@ -73,9 +73,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * which means at any time the map capacity of (item, count) pairs is <i>mapCap</i> = 0.75 * 
  * <i>mapSize</i>.
  * The maximum capacity of (item, count) pairs of the sketch is <i>maxMapCap</i> = 0.75 * 
- * <i>maxMapSize</i>.
- * Papers that describe the mathematical error properties of this type of algorithm often 
- * refer to sketch capacity with the symbol <i>k</i>.</p>
+ * <i>maxMapSize</i>.</p>
  * 
  * <p><b>Updating the sketch with (item, count) pairs</b></p>
  * 
@@ -88,8 +86,9 @@ import com.yahoo.sketches.memory.NativeMemory;
  * <p><b>Accuracy</b></p>
  * 
  * <p>If fewer than 0.75 * <i>maxMapSize</i> different items are inserted into the sketch the 
- * estimated frequencies returned by the sketch will be exact.
- * The logic of the frequent items sketch is such that the stored counts and true counts are 
+ * estimated frequencies returned by the sketch will be exact.</p>
+ * 
+ * <p>The logic of the frequent items sketch is such that the stored counts and true counts are 
  * never too different. 
  * More specifically, for any <i>item</i>, the sketch can return an estimate of the 
  * true frequency of <i>item</i>, along with upper and lower bounds on the frequency 
@@ -97,10 +96,11 @@ import com.yahoo.sketches.memory.NativeMemory;
  * 
  * <p>For this implementation and for a specific active <i>item</i>, it is guaranteed that
  * the true frequency will be between the Upper Bound (UB) and the Lower Bound (LB) computed for 
- * that <i>item</i>.  Specifically, <i>(UB- LB) &le; W * epsilon</i>, where <i>W</i> denotes the sum of 
- * all item counts, and <i>epsilon = 3.5/M</i>, where <i>M</i> is the <i>maxMapSize</i>.
- * This is a worst case guarantee.  In practice <i>(UB-LB)</i> is usually much smaller.
- * There is an astronomically small probability that the error can exceed the above "worst case".
+ * that <i>item</i>.  Specifically, <i>(UB- LB) &le; W * epsilon</i>, where <i>W</i> denotes the 
+ * sum of all item counts, and <i>epsilon = 3.5/M</i>, where <i>M</i> is the <i>maxMapSize</i>.</p>
+ * 
+ * <p>This is a worst case guarantee that applies to arbitrary inputs.<sup>1</sup> 
+ * For inputs typically seen in practice <i>(UB-LB)</i> is usually much smaller.
  * </p>
  * 
  * <p><b>Background</b></p>
@@ -116,6 +116,12 @@ import com.yahoo.sketches.memory.NativeMemory;
  * <li>"Efficient Computation of Frequent and Top-k Elements in Data Streams" Metwally, 
  * Agrawal, Abbadi, 2006</li>
  * </ul>
+ * 
+ * <sup>1</sup> For speed we do employ some randomization that introduces a small probability that 
+ * our proof of the worst-case bound might not apply to a given run.  However, we have ensured 
+ * that this probability is extremely small. For example, if the stream causes one table purge 
+ * (rebuild), our proof of the worst case bound applies with probability at least 1 - 1E-14. 
+ * If the stream causes 1E9 purges, our proof applies with probability at least 1 - 1E-5.
  * 
  * @param <T> The type of item to be tracked by this sketch
  * 
