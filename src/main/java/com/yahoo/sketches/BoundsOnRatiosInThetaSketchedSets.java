@@ -21,13 +21,12 @@ import com.yahoo.sketches.theta.Sketch;
 public class BoundsOnRatiosInThetaSketchedSets {
   
   /**
-   * Gets the approximate lower bound for B over A
+   * Gets the approximate lower bound for B over A based on a 95% confidence interval
    * @param sketchA the sketch A
    * @param sketchB the sketch B
-   * @param numStdDev "number of standard deviations" that specifies the confidence interval
    * @return the approximate lower bound for B over A
    */
-  public static double getLowerBoundForBoverA(Sketch sketchA, Sketch sketchB, double numStdDev) {
+  public static double getLowerBoundForBoverA(Sketch sketchA, Sketch sketchB) {
     double thetaA = sketchA.getTheta();
     double thetaB = sketchB.getTheta();
     checkThetas(thetaA, thetaB);
@@ -38,17 +37,16 @@ public class BoundsOnRatiosInThetaSketchedSets {
     
     if (countA <= 0) return 0;
     
-    return BoundsOnRatiosInSampledSets.getLowerBoundForBoverA(countA, countB, numStdDev, thetaB);
+    return BoundsOnRatiosInSampledSets.getLowerBoundForBoverA(countA, countB, thetaB);
   }
   
   /**
-   * Gets the approximate upper bound for B over A
+   * Gets the approximate upper bound for B over A based on a 95% confidence interval
    * @param sketchA the sketch A
    * @param sketchB the sketch B
-   * @param numStdDev "number of standard deviations" that specifies the confidence interval
    * @return the approximate upper bound for B over A
    */
-  public static double getUpperBoundForBoverA(Sketch sketchA, Sketch sketchB, double numStdDev) {
+  public static double getUpperBoundForBoverA(Sketch sketchA, Sketch sketchB) {
     double thetaA = sketchA.getTheta();
     double thetaB = sketchB.getTheta();
     checkThetas(thetaA, thetaB);
@@ -59,7 +57,7 @@ public class BoundsOnRatiosInThetaSketchedSets {
     
     if (countA <= 0) return 1.0;
     
-    return BoundsOnRatiosInSampledSets.getUpperBoundForBoverA(countA, countB, numStdDev, thetaB);
+    return BoundsOnRatiosInSampledSets.getUpperBoundForBoverA(countA, countB, thetaB);
   }
   
   /**

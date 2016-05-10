@@ -22,52 +22,70 @@ import static com.yahoo.sketches.BoundsOnBinomialProportions.approximateUpperBou
  * @author Kevin Lang
  */
 public class BoundsOnRatiosInSampledSets {
+  private static final double NUM_STD_DEVS = 2.0; //made a constant to simplify interface.
   
   /**
-   * Return the approximate lower bound.
+   * Return the approximate lower bound based on a 95% confidence interval
    * @param a See class javadoc
    * @param b See class javadoc
-   * @param numStdDevs "number of standard deviations" that specifies the confidence interval
    * @param f the inclusion probability used to produce the set with size <i>a</i> and should
    * generally be less than 0.5. Above this value, the results not be reliable. 
    * When <i>f</i> = 1.0 this returns the estimate.
    * @return the approximate upper bound
    */
-  public static double getLowerBoundForBoverA(long a, long b, double numStdDevs, double f) {
-    checkInputs(a, b, numStdDevs, f);
-    if ((f == 1.0) || (numStdDevs == 0)) return (double) b / a; 
-    return approximateLowerBoundOnP(a, b, numStdDevs * Math.sqrt(1.0 - f));
+  public static double getLowerBoundForBoverA(long a, long b, double f) {
+    checkInputs(a, b, f);
+    if (a == 0) return 0.0;
+    if (f == 1.0) return (double) b / a; 
+    return approximateLowerBoundOnP(a, b, NUM_STD_DEVS * hackyAdjuster(f));
   }
   
   /**
-   * Return the approximate upper bound.
+   * Return the approximate upper bound based on a 95% confidence interval
    * @param a See class javadoc
    * @param b See class javadoc
-   * @param numStdDevs "number of standard deviations" that specifies the confidence interval
    * @param f the inclusion probability used to produce the set with size <i>a</i>.
    * @return the approximate lower bound
    */
-  public static double getUpperBoundForBoverA(long a, long b, double numStdDevs, double f) {
-    checkInputs(a, b, numStdDevs, f);
-    if ((f == 1.0) || (numStdDevs == 0)) return (double) b / a; 
-    return approximateUpperBoundOnP(a, b, numStdDevs * Math.sqrt(1.0 - f));
+  public static double getUpperBoundForBoverA(long a, long b, double f) {
+    checkInputs(a, b, f);
+    if (a == 0) return 1.0;
+    if (f == 1.0) return (double) b / a;
+    return approximateUpperBoundOnP(a, b, NUM_STD_DEVS * hackyAdjuster(f));
   }
   
+  /**
+   * Return the estimate of b over a
+   * @param a See class javadoc
+   * @param b See class javadoc
+   * @return the estimate of b over a
+   */
   public static double getEstimateOfBoverA(long a, long b) {
-    checkInputs(a, b, 1.0, 0.3);
+    checkInputs(a, b, 0.3);
+    if (a == 0) return 0.5;
     return (double) b / a; 
   }
   
-  static void checkInputs(long a, long b, double numStdDevs, double f) {
-    if ( ( (a - b) | (a -1) | (b-1) ) < 0) {  //if any group goes negative
+  /**
+   * This hackyAdjuster is tightly coupled with the width of the confidence interval normally 
+   * specified with number of standard deviations. To simplify this interface the number of 
+   * standard deviations has been fixed to 2.0, which corresponds to a confidence interval of
+   * 95%.
+   * @param f the inclusion probability used to produce the set with size <i>a</i>.
+   * @return the hacky Adjuster
+   */
+  private static double hackyAdjuster(double f) {
+    double tmp = Math.sqrt(1.0 - f);
+    return (f <= 0.5)? tmp : tmp + (0.01 * (f - 0.5));
+  }
+  
+  static void checkInputs(long a, long b, double f) {
+    if ( ( (a - b) | (a) | (b) ) < 0) {  //if any group goes negative
       throw new IllegalArgumentException(
           "a must be >= b and neither a nor b can be < 0: a = "+a+", b = "+b);
     }
-    if ((f != 1.0) && ((f > .5001) || (f <= 0.0))) {
-      throw new IllegalArgumentException("Required: ((f > 0.0) && (f <= 0.5)) || (f == 1.0): "+f);
-    }
-    if ( (numStdDevs < 0) || (numStdDevs > 3.1)) {
-      throw new IllegalArgumentException("numStdDevs must be >= 0 and < 3: "+numStdDevs);
+    if ((f > 1.0) || (f <= 0.0)) {
+      throw new IllegalArgumentException("Required: ((f <= 1.0) && (f > 0.0)): "+f);
     }
   }
   
@@ -78,7 +96,7 @@ public class BoundsOnRatiosInSampledSets {
    * @return the approximate lower bound
    */
   public static double getEstimateOfA(long a, double f) {
-    checkInputs(a, 1, 1.0, f);
+    checkInputs(a, 1, f);
     return a / f;
   }
   
@@ -89,7 +107,7 @@ public class BoundsOnRatiosInSampledSets {
    * @return the approximate lower bound
    */
   public static double getEstimateOfB(long b, double f) {
-    checkInputs(b+1, b, 1.0, f);
+    checkInputs(b+1, b, f);
     return b / f;
   }
 }
