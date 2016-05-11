@@ -6,7 +6,6 @@ package com.yahoo.sketches.demo;
 
 import com.yahoo.sketches.demo.DemoImpl;
 
-
 /**
  * <p>This demo computes a stream of values and feeds them first to
  * an exact sort-based method of computing the number of unique values
@@ -24,11 +23,13 @@ import com.yahoo.sketches.demo.DemoImpl;
  * <ul><li>Clone the lastest snapshot from https://github.com/DataSketches/sketches-core.</li>
  * <li>Change to the directory where you did the clone</li>
  * <li>Do a Maven Install: "mvn install"</li>
- * <li>In the following commands replace ??? with the actual jar version from the target directory:<br>
- * javac -cp target/sketches-core-???.jar  src/test/java/com/yahoo/sketches/demo/*.java<br>
- * java -cp target/sketches-core-???.jar:src/test/java com.yahoo.sketches.demo.ExactVsSketchDemo 1E6</li>
- * <li>The demo will output results to the console.  You can change the 1E6 (1 million) to even larger 
- * values (e.g., 1E8) but be patient.  The exact sort can take a long, long time!</li>
+ * <li>In the following commands replace X.Y.Z with the actual jar version from the target 
+ * directory:<br>
+ * javac -cp target/sketches-core-X.Y.Z.jar  src/test/java/com/yahoo/sketches/demo/*.java<br>
+ * java -cp target/sketches-core-X.Y.Z.jar:src/test/java com.yahoo.sketches.demo.ExactVsSketchDemo 
+ * 1E6</li>
+ * <li>The demo will output results to the console.  You can change the 1E6 (1 million) to even 
+ * larger values (e.g., 1E8) but be patient.  The exact sort can take a long, long time!</li>
  * </ul>
  * 
  */
@@ -40,8 +41,8 @@ public class ExactVsSketchDemo {
    * @param args 
    * <ul><li>arg[0]: (Optional) The stream length and can be expressed as a positive double value.
    * The default is 1E6.</li>
-   * <li>arg[1] (Optional) The fraction of the stream length that will be unique, the remainder will be 
-   * duplicates. The default is 1.0. Note that if this argument is less than 1.0, 
+   * <li>arg[1] (Optional) The fraction of the stream length that will be unique, the remainder 
+   * will be duplicates. The default is 1.0. Note that if this argument is less than 1.0, 
    * the actual number of exact uniques is statistically determined for each trial and then 
    * separately counted. That is, the number of exact uniques for the "sort" trial 
    * will be different from the exact uniques for each of the sketch trial. </li>
