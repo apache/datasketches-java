@@ -13,13 +13,25 @@ import static com.yahoo.sketches.hash.MurmurHash3.hash;
  */
 public final class Util {
   
-  public static final int MIN_LG_ARR_LONGS = 5; //The smallest Log2 cache size allowed; => 32.
+  /**
+   * The smallest Log2 cache size allowed: 32.
+   */
+  public static final int MIN_LG_ARR_LONGS = 5;
 
-  public static final int MIN_LG_NOM_LONGS = 4; //The smallest Log2 nom entries allowed; => 16.
+  /**
+   * The smallest Log2 nom entries allowed: 16.
+   */
+  public static final int MIN_LG_NOM_LONGS = 4; //
 
+  /**
+   * The hash table rebuild threshold = 15.0/16.0.
+   */
   public static final double REBUILD_THRESHOLD = 15.0 / 16.0;
 
-  public static final double RESIZE_THRESHOLD = 0.5; //tuned for speed
+  /**
+   * The resize threshold = 0.5; tuned for speed.
+   */
+  public static final double RESIZE_THRESHOLD = 0.5;
   private Util() {}
   
   /**
@@ -158,9 +170,6 @@ public final class Util {
     throw new IllegalArgumentException("The value of the parameter \"" + argName
         + "\" must be between 0.0 inclusive and 1.0 inclusive: " + p);
   }
-  
-  private static final int IntTopPwrOf2 = 1 << 30; //= #Bits -2
-  //private static final int MaxIntShifts = 16; //= #Bits / 2
 
   /**
    * Computes the ceiling power of 2 within the range [1, 2^30]. This is the smallest positive power
@@ -178,10 +187,8 @@ public final class Util {
    */
   public static int ceilingPowerOf2(int n) {
     if (n <= 1) { return 1; }
-    if (n >= IntTopPwrOf2) { return IntTopPwrOf2; }
-    int floor = floorPowerOf2(n);
-    if (n == floor) return n;
-    return floor << 1;
+    int topPwrOf2 = 1 << 30;
+    return (n >= topPwrOf2)? topPwrOf2 :Integer.highestOneBit((n-1) << 1);
   }
 
   /**
@@ -199,9 +206,7 @@ public final class Util {
    * @return the floor power of 2.
    */
   public static int floorPowerOf2(int n) {
-    if (n <= 0) {
-      return 1;
-    }
+    if (n <= 1) { return 1; }
     return Integer.highestOneBit(n);
   }
   

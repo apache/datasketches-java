@@ -116,6 +116,10 @@ public enum Family {
     return id_;
   }
   
+  /**
+   * 
+   * @param id the given id, a value &lt; 128.
+   */
   public void checkFamilyID(int id) {
     if (id != id_) {
       throw new IllegalArgumentException(

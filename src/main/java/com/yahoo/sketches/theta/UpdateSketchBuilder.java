@@ -6,13 +6,12 @@ package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.Util.DEFAULT_NOMINAL_ENTRIES;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
-import static com.yahoo.sketches.Util.checkIfPowerOf2;
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.TAB;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
-import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 
 /**
@@ -55,11 +54,11 @@ public class UpdateSketchBuilder {
   /**
    * Sets the Nominal Entries for this sketch.
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
+   * This will become the ceiling power of 2 if it is not.
    * @return this UpdateSketchBuilder
    */
   public UpdateSketchBuilder setNominalEntries(int nomEntries) {
-    Util.checkIfPowerOf2(nomEntries, "nomEntries");
-    bLgNomLongs = Integer.numberOfTrailingZeros(nomEntries);
+    bLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
     return this;
   }
   
@@ -194,7 +193,7 @@ public class UpdateSketchBuilder {
       }
       default: {
         throw new IllegalArgumentException(
-          "Given Family cannot be built as a Sketch: "+bFam.toString());
+          "Given Family cannot be built as a Theta Sketch: "+bFam.toString());
       }
     }
     return sketch;
@@ -204,11 +203,11 @@ public class UpdateSketchBuilder {
    * Returns an UpdateSketch with the current configuration of this Builder and the given
    * <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>.
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
+   * This will become the ceiling power of 2 if it is not.
    * @return an UpdateSketch
    */
   public UpdateSketch build(int nomEntries) {
-    checkIfPowerOf2(nomEntries, "nomEntries");
-    bLgNomLongs = Integer.numberOfTrailingZeros(nomEntries);
+    bLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
     return build();
   }  
   

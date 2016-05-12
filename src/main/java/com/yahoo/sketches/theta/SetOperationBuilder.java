@@ -6,13 +6,12 @@ package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.Util.DEFAULT_NOMINAL_ENTRIES;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
-import static com.yahoo.sketches.Util.checkIfPowerOf2;
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.TAB;
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
-import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 
 /**
@@ -48,11 +47,11 @@ public class SetOperationBuilder {
   /**
    * Sets the Nominal Entries for this set operation.
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
+   * This will become the ceiling power of 2 if it is not.
    * @return this SetOperationBuilder
    */
   public SetOperationBuilder setNominalEntries(int nomEntries) {
-    Util.checkIfPowerOf2(nomEntries, "nomEntries");
-    bLgNomLongs = Integer.numberOfTrailingZeros(nomEntries);
+    bLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
     return this;
   }
   
@@ -190,12 +189,12 @@ public class SetOperationBuilder {
    * Returns a SetOperation with the current configuration of this Builder and the given
    * <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a> and Family.
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
+   * This will become the ceiling power of 2 if it is not.
    * @param family build this SetOperation family
    * @return a SetOperation
    */
   public SetOperation build(int nomEntries, Family family) {
-    checkIfPowerOf2(nomEntries, "nomEntries");
-    bLgNomLongs = Integer.numberOfTrailingZeros(nomEntries);
+    bLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
     return build(family);
   }
 

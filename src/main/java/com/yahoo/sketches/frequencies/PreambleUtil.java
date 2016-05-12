@@ -237,7 +237,6 @@ final class PreambleUtil {
   /**
    * Checks Memory for capacity to hold the preamble and returns the first 8 bytes.
    * @param mem the given Memory
-   * @param max the max value for preLongs
    * @return the first 8 bytes of preamble as a long.
    */
   static long checkPreambleSize(Memory mem) {

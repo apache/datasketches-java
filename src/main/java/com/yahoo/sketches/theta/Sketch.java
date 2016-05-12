@@ -9,7 +9,7 @@ import static com.yahoo.sketches.HashOperations.*;
 import static com.yahoo.sketches.Family.idToFamily;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.Util.LS;
-import static com.yahoo.sketches.Util.checkIfPowerOf2;
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.Util.zeroPad;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
@@ -363,13 +363,14 @@ public abstract class Sketch {
   /**
    * Returns the maximum number of storage bytes required for an UpdateSketch with the given  
    * number of nominal entries (power of 2).
-   * @param nomEntries must be a power of 2 
+   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
+   * This will become the ceiling power of 2 if it is not.
    * @return the maximum number of storage bytes required for a UpdateSketch with the given 
    * nomEntries
    */
   public static int getMaxUpdateSketchBytes(int nomEntries) {
-    checkIfPowerOf2(nomEntries,"nomEntries");
-    return (nomEntries << 4) + (Family.QUICKSELECT.getMaxPreLongs() << 3);
+    int nomEnt = ceilingPowerOf2(nomEntries);
+    return (nomEnt << 4) + (Family.QUICKSELECT.getMaxPreLongs() << 3);
   }
   
   /**

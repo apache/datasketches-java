@@ -255,6 +255,8 @@ class ReversePurgeItemHashMap<T> {
    * all the counters are in use. This function estimates the median of the counters in the sketch
    * via sampling, decrements all counts by this estimate, throws out all counters that are no
    * longer positive, and increments offset accordingly.
+   * @param sampleSize number of samples
+   * @return the median value
    */
   long purge(final int sampleSize) {
     final int limit = Math.min(sampleSize, getNumActive());

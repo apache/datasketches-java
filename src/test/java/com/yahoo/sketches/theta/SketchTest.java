@@ -117,10 +117,11 @@ public class SketchTest {
     assertEquals(sk1.getLgResizeFactor(), ResizeFactor.X8.lg());
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  public void checkBuilderIllegalEntries() {
+  @Test
+  public void checkBuilderNonPowerOf2() {
     int k = 1000;
-    UpdateSketch.builder().build(k);
+    UpdateSketch sk = UpdateSketch.builder().build(k);
+    assertEquals(sk.getLgNomLongs(), 10);
   }
   
   @Test(expectedExceptions = IllegalArgumentException.class)

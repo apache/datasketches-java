@@ -14,6 +14,9 @@ import com.yahoo.sketches.memory.Memory;
  */
 public final class HashOperations {
   private static final int STRIDE_HASH_BITS = 7; 
+  /**
+   * The stride mask for the Open Address, Double Hashing (OADH) hash table algorithm.
+   */
   public static final int STRIDE_MASK = (1 << STRIDE_HASH_BITS) - 1;
 
   private HashOperations() {}

@@ -379,7 +379,6 @@ final class PreambleUtil {
   /**
    * Checks Memory for capacity to hold the preamble and returns the extracted preLongs.
    * @param mem the given Memory
-   * @param max the max value for preLongs
    * @return the extracted prelongs value.
    */
   static int getAndCheckPreLongs(Memory mem) {

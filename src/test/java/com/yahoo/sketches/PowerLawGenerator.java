@@ -196,7 +196,7 @@ public class PowerLawGenerator {
   
   /**
    * Returns the x-coordinate given the generating index.
-   * @param genIndex
+   * @param genIndex the generating index
    * @param xLogBase The logarithmic base for the x-coordinate
    * @param ptsPerXBase The desired resolution specified in number of equally spaced points per 
    * power of the x logarithmic base.  For example, if x is log-base2 specifying 4 would
@@ -210,7 +210,7 @@ public class PowerLawGenerator {
   /**
    * Returns the y-coordinate given the computed x-coordinate and slope.
    * @param start the desired starting (x,y) Pair
-   * @param slope
+   * @param slope the log-log slope
    * @param x the computed x-coordinate
    * @return the y-coordinate
    */

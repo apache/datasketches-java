@@ -84,8 +84,8 @@ public class SetOperationTest {
     println(bldr.toString());
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  public void checkBuilderBadK() {
+  @Test
+  public void checkBuilderNonPowerOf2() {
     SetOperation.builder().buildUnion(1000);
   }
   

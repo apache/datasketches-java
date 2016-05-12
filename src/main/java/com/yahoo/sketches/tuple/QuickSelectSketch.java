@@ -49,10 +49,12 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * This is to create an instance of a QuickSelectSketch with custom resize factor
    * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
    * @param lgResizeFactor log2(resizeFactor) - value from 0 to 3:
+   * <pre>
    * 0 - no resizing (max size allocated),
    * 1 - double internal hash table each time it reaches a threshold
    * 2 - grow four times
-   * 3 - grow eight times (default) 
+   * 3 - grow eight times (default)
+   * </pre>
    * @param summaryFactory An instance of a SummaryFactory.
    */
   QuickSelectSketch(final int nomEntries, final int lgResizeFactor, final SummaryFactory<S> summaryFactory) {
@@ -63,11 +65,13 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * This is to create an instance of a QuickSelectSketch with custom resize factor and sampling probability
    * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
    * @param lgResizeFactor log2(resizeFactor) - value from 0 to 3:
+   * <pre>
    * 0 - no resizing (max size allocated),
    * 1 - double internal hash table each time it reaches a threshold
    * 2 - grow four times
    * 3 - grow eight times (default)
-   * @param samplingProbability
+   * </pre>
+   * @param samplingProbability the given sampling probability
    * @param summaryFactory An instance of a SummaryFactory.
    */
   QuickSelectSketch(final int nomEntries, final int lgResizeFactor, final float samplingProbability, final SummaryFactory<S> summaryFactory) {

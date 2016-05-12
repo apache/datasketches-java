@@ -7,7 +7,6 @@ package com.yahoo.sketches.theta;
 import static com.yahoo.sketches.Family.idToFamily;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
-import static com.yahoo.sketches.Util.checkIfPowerOf2;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.Util.*;
@@ -117,22 +116,24 @@ public abstract class SetOperation {
   /**
    * Returns the maximum required storage bytes given a nomEntries parameter for Union operations
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
+   * This will become the ceiling power of 2 if it is not.
    * @return the maximum required storage bytes given a nomEntries parameter
    */
   public static int getMaxUnionBytes(int nomEntries) {
-    checkIfPowerOf2(nomEntries, "Nominal Entries");
-    return (nomEntries << 4) + (Family.UNION.getMaxPreLongs() << 3);
+    int nomEnt = ceilingPowerOf2(nomEntries);
+    return (nomEnt << 4) + (Family.UNION.getMaxPreLongs() << 3);
   }
   
   /**
    * Returns the maximum required storage bytes given a nomEntries parameter for Intersection 
    * operations
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
+   * This will become the ceiling power of 2 if it is not.
    * @return the maximum required storage bytes given a nomEntries parameter
    */
   public static int getMaxIntersectionBytes(int nomEntries) {
-    checkIfPowerOf2(nomEntries, "Nominal Entries");
-    int bytes = (nomEntries << 4) + (Family.INTERSECTION.getMaxPreLongs() << 3);
+    int nomEnt = ceilingPowerOf2(nomEntries);
+    int bytes = (nomEnt << 4) + (Family.INTERSECTION.getMaxPreLongs() << 3);
     return bytes;
   }
   

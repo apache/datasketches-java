@@ -531,6 +531,9 @@ public class FrequentLongsSketch {
     return sortItems(getMaximumError(), errorType);
   }
 
+  /**
+   * Row class that defines the return values from a getFrequentItems query.
+   */
   public static class Row implements Comparable<Row> {
     final long item;
     final long est;
@@ -545,12 +548,29 @@ public class FrequentLongsSketch {
       this.ub = ub;
       this.lb = lb;
     }
-
+    /**
+     * @return item of type T
+     */
     public long getItem() { return item; }
+    
+    /**
+     * @return the estimate
+     */
     public long getEstimate() { return est; }
+    
+    /**
+     * @return the upper bound
+     */
     public long getUpperBound() { return ub; }
+    
+    /**
+     * @return return the lower bound
+     */
     public long getLowerBound() { return lb; }
 
+    /**
+     * @return the descriptive row header
+     */
     public static String getRowHeader() {
       return String.format(hfmt,"Est", "UB", "LB", "Item");
     }
@@ -694,7 +714,6 @@ public class FrequentLongsSketch {
    * Deserializes an array of String tokens into a hash map object of this class.
    * 
    * @param tokens the given array of Strings tokens.
-   * @param ignore specifies how many of the initial tokens to ignore. 
    * @return a hash map object of this class
    */
   static ReversePurgeLongHashMap deserializeFromStringArray(String[] tokens) {

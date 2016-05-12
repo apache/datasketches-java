@@ -12,7 +12,22 @@ package com.yahoo.sketches;
  * @author Lee Rhodes
  */
 public enum ResizeFactor {
-  X1(0), X2(1), X4(2), X8(3);
+  /**
+   * Do not resize. Sketch will be configured to full size.
+   */
+  X1(0), 
+  /**
+   * Resize factor is 2.
+   */
+  X2(1), 
+  /**
+   * Resize factor is 4.
+   */
+  X4(2), 
+  /**
+   * Resize factor is 8.
+   */
+  X8(3);
   
   private int lg_;
   

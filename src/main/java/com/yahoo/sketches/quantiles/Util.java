@@ -150,7 +150,7 @@ final class Util {
   /**
    * Checks the sequential validity of the given array of values. 
    * They must be unique, monotonically increasing and not NaN.
-   * @param fractions array
+   * @param values given array of values
    */
   static final void validateValues(double[] values) {
     int lenM1 = values.length - 1;
@@ -863,7 +863,7 @@ final class Util {
   //************************************************************
   /**
    * Computes epsilon from K. The following table are examples.
-   * <code><pre>
+   * <code>
    *           eps      eps from inverted
    *     K   empirical  adjusted formula
    *  -------------------------------------
@@ -880,7 +880,7 @@ final class Util {
    *  16   0.12145410223356
    *  1024   0.00238930378957284
    *  1073741824   3.42875166500824e-09
-   * </pre></code>
+   * </code>
    */ //used by Heap QS
   static class EpsilonFromK {
     /**

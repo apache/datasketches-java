@@ -59,7 +59,7 @@ class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
     }
   }
 
-  /**
+  /*
    * Creates an instance from components
    */
   DirectArrayOfDoublesCompactSketch(final long[] keys, final double[] values, final long theta, final boolean isEmpty, final int numValues, final short seedHash, final Memory dstMem) {
