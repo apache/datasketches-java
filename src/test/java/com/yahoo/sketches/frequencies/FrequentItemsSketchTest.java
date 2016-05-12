@@ -130,7 +130,7 @@ public class FrequentItemsSketchTest {
   }
 
   @Test
-  public void serializeStringUft8Deserialize() {
+  public void serializeDeserializeUft8Strings() {
     FrequentItemsSketch<String> sketch1 = new FrequentItemsSketch<String>(8);
     sketch1.update("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     sketch1.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
@@ -154,7 +154,7 @@ public class FrequentItemsSketchTest {
   }
 
   @Test
-  public void serializeStringRawDeserialize() {
+  public void serializeDeserializeUtf16Strings() {
     FrequentItemsSketch<String> sketch1 = new FrequentItemsSketch<String>(8);
     sketch1.update("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     sketch1.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
