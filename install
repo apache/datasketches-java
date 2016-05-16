@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# 1) clone the latest DataSketches/sketches-core lib from github.com/datasketches/sketches-core
+# 2) run this from your install directory as 
+# $ ./install
+
+# This should install or refresh a snapshot jar into your .M2 repository. 
+# You should find the core jar at 
+# ~/.M2/repository/com/yahoo/datasketches/sketches-core/X.Y.Z-SNAPSHOT/sketches-core-X.Y.Z-SNAPSHOT.jar
+
+mvn install -DskipTests -Dgpg.skip
+
+# This will be used when referencing released version
+# VER="LATEST"
+# mvn org.apache.maven.plugins:maven-dependency-plugin:LATEST:get -Dartifact=com.yahoo.datasketches:sketches-core:$VER:jar
+
+# installs the executable in a common place, for unix-based systems anyway.
+cp sketch /usr/local/bin/sketch
+chmod +x /usr/local/bin/sketch

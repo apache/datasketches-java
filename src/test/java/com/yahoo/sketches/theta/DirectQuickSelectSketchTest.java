@@ -170,6 +170,15 @@ public class DirectQuickSelectSketchTest {
     Sketch.heapify(srcMem, seed2);
   }
   
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkCorruptLgNomLongs() {
+    int k = 16;
+    Memory mem = makeNativeMemory(k);
+    UpdateSketch.builder().initMemory(mem).build(k);
+    mem.putByte(LG_NOM_LONGS_BYTE, (byte)2); //corrupt
+    Sketch.heapify(mem, DEFAULT_UPDATE_SEED);
+  }
+  
   @Test
   public void checkHeapifyByteArrayExact() {
     int k = 512;

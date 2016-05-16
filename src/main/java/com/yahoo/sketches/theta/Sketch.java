@@ -207,7 +207,7 @@ public abstract class Sketch {
       double thetaDbl = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
       String thetaHex = zeroPad(Long.toHexString(thetaLong), 16);
       String thisSimpleName = this.getClass().getSimpleName();
-      short seedHash = this.getSeedHash();
+      int seedHash = this.getSeedHash() & 0XFFFF;
       
       sb.append(LS);
       sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);

@@ -11,6 +11,7 @@ import static com.yahoo.sketches.ResizeFactor.X8;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.testng.Assert.assertEquals;
@@ -60,14 +61,6 @@ public class HeapQuickSelectSketchTest {
   }
   
   @Test(expectedExceptions = IllegalArgumentException.class)
-  public void checkConstructorKtooSmall() {
-    int k = 8;
-    
-    @SuppressWarnings("unused")
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).build(k);
-  }
-  
-  @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkIllegalSketchID_UpdateSketch() {
     int k = 512;
     int u = k;
@@ -98,6 +91,14 @@ public class HeapQuickSelectSketchTest {
     byte[] byteArray = usk.toByteArray();
     Memory srcMem = new NativeMemory(byteArray);
     Sketch.heapify(srcMem, seed2);
+  }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkHeapifyCorruptLgNomLongs() {
+    UpdateSketch usk = UpdateSketch.builder().build(16);
+    Memory srcMem = new NativeMemory(usk.toByteArray());
+    srcMem.putByte(LG_NOM_LONGS_BYTE, (byte)2); //corrupt
+    Sketch.heapify(srcMem, DEFAULT_UPDATE_SEED);
   }
   
   @Test

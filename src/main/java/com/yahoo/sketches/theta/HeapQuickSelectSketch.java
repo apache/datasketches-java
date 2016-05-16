@@ -2,6 +2,7 @@
  * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.QuickSelect.selectExcludingZeros;
@@ -75,12 +76,6 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
    */
   static HeapQuickSelectSketch getInstance(int lgNomLongs, long seed, float p, ResizeFactor rf, 
       boolean unionGadget) {
-
-    //Check min k
-    if (lgNomLongs < MIN_LG_NOM_LONGS) {
-      throw new IllegalArgumentException(
-        "This sketch requires a minimum nominal entries of "+(1 << MIN_LG_NOM_LONGS));
-    }
     
     //Choose family, preambleLongs
     Family family;
@@ -131,6 +126,11 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
     float p = extractP(long1);                                            //bytes 12-15
     long thetaLong = preArr[2];                                           //bytes 16-23
     
+    if (serVer != SER_VER) {
+      throw new IllegalArgumentException(
+          "Possible corruption: Invalid Serialization Version: "+serVer);
+    }
+    
     Family family = Family.idToFamily(familyID);
     if (family.equals(Family.UNION)) {
       if (preambleLongs != Family.UNION.getMinPreLongs()) {
@@ -149,9 +149,10 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
           "Possible corruption: Invalid Family: " + family.toString());
     }
     
-    if (serVer != SER_VER) {
+    if (lgNomLongs < MIN_LG_NOM_LONGS) {
       throw new IllegalArgumentException(
-          "Possible corruption: Invalid Serialization Version: "+serVer);
+          "Possible corruption: Current Memory lgNomLongs < min required size: " + 
+              lgNomLongs + " < " + MIN_LG_NOM_LONGS);
     }
     
     int flagsMask = ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;

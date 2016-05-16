@@ -2,6 +2,7 @@
  * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
@@ -16,6 +17,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
+import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
 
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.Util;
@@ -26,14 +28,14 @@ import com.yahoo.sketches.memory.NativeMemory;
  * @author Lee Rhodes
  */
 abstract class HeapUpdateSketch extends UpdateSketch {
-  private final long seed_;
   final int lgNomLongs_;
+  private final long seed_;
   private final float p_;
   private final ResizeFactor rf_;
   
   HeapUpdateSketch(int lgNomLongs, long seed, float p, ResizeFactor rf) {
+    lgNomLongs_ = Math.max(lgNomLongs, MIN_LG_NOM_LONGS);
     seed_ = seed;
-    lgNomLongs_ = lgNomLongs;
     p_ = p;
     rf_ = rf;
   }
