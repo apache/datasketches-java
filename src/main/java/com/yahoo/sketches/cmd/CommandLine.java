@@ -52,7 +52,7 @@ public class CommandLine {
     }
   }
   
-  private static int parseArgsCase(String[] args) { //we already know type is valid
+  private static int parseArgsCase(String[] args) { //we already know type, args[0] is valid
     int len = args.length;
     int ret = 0;
     switch (len) {
