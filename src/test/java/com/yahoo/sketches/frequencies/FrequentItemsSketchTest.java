@@ -130,7 +130,7 @@ public class FrequentItemsSketchTest {
   }
 
   @Test
-  public void serializeStringDeserialize() {
+  public void serializeDeserializeUft8Strings() {
     FrequentItemsSketch<String> sketch1 = new FrequentItemsSketch<String>(8);
     sketch1.update("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     sketch1.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
@@ -140,6 +140,30 @@ public class FrequentItemsSketchTest {
     byte[] bytes = sketch1.serializeToByteArray(new ArrayOfStringsSerDe());
     FrequentItemsSketch<String> sketch2 = 
         FrequentItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfStringsSerDe());
+    sketch2.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    sketch2.update("ccccccccccccccccccccccccccccc");
+    sketch2.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+
+    Assert.assertFalse(sketch2.isEmpty());
+    Assert.assertEquals(sketch2.getNumActiveItems(), 4);
+    Assert.assertEquals(sketch2.getStreamLength(), 7);
+    Assert.assertEquals(sketch2.getEstimate("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa"), 1);
+    Assert.assertEquals(sketch2.getEstimate("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb"), 3);
+    Assert.assertEquals(sketch2.getEstimate("ccccccccccccccccccccccccccccc"), 2);
+    Assert.assertEquals(sketch2.getEstimate("ddddddddddddddddddddddddddddd"), 1);
+  }
+
+  @Test
+  public void serializeDeserializeUtf16Strings() {
+    FrequentItemsSketch<String> sketch1 = new FrequentItemsSketch<String>(8);
+    sketch1.update("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    sketch1.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    sketch1.update("ccccccccccccccccccccccccccccc");
+    sketch1.update("ddddddddddddddddddddddddddddd");
+
+    byte[] bytes = sketch1.serializeToByteArray(new ArrayOfUtf16StringsSerDe());
+    FrequentItemsSketch<String> sketch2 = 
+        FrequentItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfUtf16StringsSerDe());
     sketch2.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
     sketch2.update("ccccccccccccccccccccccccccccc");
     sketch2.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
@@ -164,7 +188,7 @@ public class FrequentItemsSketchTest {
   @Test
   public void getRowHeader() {
     FrequentItemsSketch<String> sketch1 = new FrequentItemsSketch<String>(16);
-    sketch1.new Row("a", 0,0,0).getRowHeader();
+    sketch1.new Row("a", 0, 0, 0).getRowHeader();
   }
   
   @SuppressWarnings("unused")
