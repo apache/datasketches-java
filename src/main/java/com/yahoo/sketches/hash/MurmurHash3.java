@@ -6,6 +6,7 @@ package com.yahoo.sketches.hash;
 
 import java.io.Serializable;
 
+
 /**
  * <p>
  * The MurmurHash3 is a fast, non-cryptographic, 128-bit hash function that has
@@ -23,11 +24,14 @@ import java.io.Serializable;
  * <p>
  * This java implementation pays close attention to the C++ algorithms in order to
  * maintain bit-wise compatibility, but the design is quite different. This implementation has also
- * been extended to include processing of arrays of longs or ints, which was not part of the
+ * been extended to include processing of arrays of longs, char or ints, which was not part of the
  * original C++ implementation. This implementation produces the same exact output hash bits as
- * the above C++ method given the same input. Byte arrays that are a multiple of 8 bytes in length
- * will produce the same output hash as the equivalent long array in little-endian byte order.
- * </p>
+ * the above C++ method given the same input.</p>
+ * 
+ * <p>In addition, with this implementation, the hash of byte[], char[], int[], or long[] will 
+ * produce the same hash result if, and only if, all the arrays have the same exact length in 
+ * bytes, and if the contents of the values in the arrays have the same byte endianness and 
+ * overall order. There is a unit test for this class that demonstrates this.</p>
  * 
  * <p>
  * The structure of this implementation also reflects a separation of code that is dependent on the
@@ -114,6 +118,47 @@ public final class MurmurHash3 implements Serializable {
     }
     // Mix the tail into the hash and return
     return hashState.finalMix128(k1, k2, ints * 4); //convert to bytes
+  }
+  
+  //--Hash of char[]----------------------------------------------------
+  /**
+   * Returns a long array of size 2, which is a 128-bit hash of the input.
+   * 
+   * @param key The input char[] array. Must be non-null and non-empty.
+   * @param seed A long valued seed.
+   * @return the hash.
+   */
+  public static long[] hash(char[] key, long seed) {
+    HashState hashState = new HashState(seed, seed);
+    final int chars = key.length; //in chars
+    
+    // Number of full 128-bit blocks of 8 chars.
+    // Possible exclusion of a remainder of up to 7 chars.
+    final int nblocks = chars >> 3; //chars / 8
+    
+    // Process the 128-bit blocks (the body) into the hash
+    for (int i = 0; i < nblocks; i++ ) { //8 chars per block
+      long k1 = getLong(key, 8 * i, 4); //0, 8, 16, ...
+      long k2 = getLong(key, (8 * i) + 4, 4); //4, 12, 20, ...
+      hashState.blockMix128(k1, k2);
+    }
+    
+    // Get the tail index, remainder length
+    int tail = nblocks * 8; // 8 chars per block 
+    int rem = chars - tail; // remainder chars: 0,1,2,3,4,5,6,7
+    
+    // Get the tail
+    long k1 = 0;
+    long k2 = 0;
+    if (rem > 4) { //k1 -> whole; k2 -> partial
+      k1 = getLong(key, tail, 4);
+      k2 = getLong(key, tail + 4, rem - 4);
+    } 
+    else { //k1 -> whole, partial or 0; k2 == 0
+      k1 = (rem == 0) ? 0 : getLong(key, tail, rem);
+    }
+    // Mix the tail into the hash and return
+    return hashState.finalMix128(k1, k2, chars * 2); //convert to bytes
   }
   
   //--Hash of byte[]----------------------------------------------------
@@ -267,6 +312,25 @@ public final class MurmurHash3 implements Serializable {
   }
   
   /**
+   * Gets a long from the given char array starting at the given char array index and continuing for
+   * remainder (rem) chars. The chars are extracted in little-endian order. There is no limit
+   * checking.
+   * 
+   * @param charArr The given input char array.
+   * @param index Zero-based index from the start of the char array.
+   * @param rem Remainder chars. An integer in the range [1,4].
+   * @return long
+   */
+  private static long getLong(char[] charArr, int index, int rem) {
+    long out = 0L;
+    for (int i = rem; i-- > 0;) { //i= 3,2,1,0
+      char c = charArr[index + i];
+      out ^= (c & 0xFFFFL) << (i * 16); //equivalent to |=
+    }
+    return out;
+  }
+  
+  /**
    * Gets a long from the given int array starting at the given int array index and continuing for
    * remainder (rem) integers. The integers are extracted in little-endian order. There is no limit
    * checking.
@@ -284,4 +348,5 @@ public final class MurmurHash3 implements Serializable {
     }
     return out;
   }
+
 }

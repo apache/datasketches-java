@@ -100,12 +100,25 @@ public class MurmurHash3Test {
     Assert.assertEquals(result[1], h2);
   }
 
+  @Test
+  public void checkIntArrRemainderEQ0() { //int[], test a remainder = 0
+    String keyStr = "The quick brown fox jumps over t"; //32B
+    int[] key = stringToInts(keyStr);
+    long[] result = hash(key, 0);
+    //Should be:
+    long h1 = 0xdf6af91bb29bdacfL;
+    long h2 = 0x91a341c58df1f3a6L;
+    Assert.assertEquals(result[0], h1);
+    Assert.assertEquals(result[1], h2);
+  }
+  
+  
   /**
    * Tests an odd remainder of int[].
    */
   @Test
   public void checkIntArrOddRemainder() { //int[], odd remainder
-    String keyStr = "The quick brown fox jumps over the lazy dog";
+    String keyStr = "The quick brown fox jumps over the lazy dog"; //43B
     int[] key = stringToInts(keyStr);
     long[] result = hash(key, 0);
     //Should be:
@@ -115,6 +128,37 @@ public class MurmurHash3Test {
     Assert.assertEquals(result[1], h2);
   }
 
+
+  /**
+   * Tests an odd remainder of int[].
+   */
+  @Test
+  public void checkCharArrOddRemainder() { //char[], odd remainder
+    String keyStr = "The quick brown fox jumps over the lazy dog.."; //45B
+    char[] key = keyStr.toCharArray();
+    long[] result = hash(key, 0);
+    //Should be:
+    long h1 = 0xca77b498ea9ed953L;
+    long h2 = 0x8b8f8ec3a8f4657eL;
+    Assert.assertEquals(result[0], h1);
+    Assert.assertEquals(result[1], h2);
+  }
+  
+  /**
+   * Tests an odd remainder of int[].
+   */
+  @Test
+  public void checkCharArrRemainderEQ0() { //char[], remainder of 0
+    String keyStr = "The quick brown fox jumps over the lazy "; //40B
+    char[] key = keyStr.toCharArray();
+    long[] result = hash(key, 0);
+    //Should be:
+    long h1 = 0x51b15e9d0887f9f1L;
+    long h2 = 0x8106d226786511ebL;
+    Assert.assertEquals(result[0], h1);
+    Assert.assertEquals(result[1], h2);
+  }
+  
   @Test
   public void checkByteArrAllOnesZeros() { //byte[], test a ones byte and a zeros byte
     byte[] key = { 
@@ -132,6 +176,44 @@ public class MurmurHash3Test {
     Assert.assertEquals(result[1], h2);
   }
 
+  /**
+   * This test demonstrates that the hash of byte[], char[], int[], or long[] will produce the
+   * same hash result if, and only if, all the arrays have the same exact length in bytes, and if
+   * the contents of the values in the arrays have the same byte endianness and overall order.
+   */
+  @Test
+  public void checkCrossTypeHashConsistency() {
+    long[] out;
+    println("Bytes");
+    byte[] bArr = {1,2,3,4,5,6,7,8,   9,10,11,12,13,14,15,16,  17,18,19,20,21,22,23,24};
+    long[] out1 = hash(bArr, 0L);
+    println(com.yahoo.sketches.TestingUtil.longToHexBytes(out1[0]));
+    println(com.yahoo.sketches.TestingUtil.longToHexBytes(out1[1]));
+    
+    println("Chars");
+    char[] cArr = {0X0201, 0X0403, 0X0605, 0X0807,   0X0a09, 0X0c0b, 0X0e0d, 0X100f, 
+        0X1211, 0X1413, 0X1615, 0X1817};
+    out = hash(cArr, 0L);
+    Assert.assertEquals(out, out1);
+    println(com.yahoo.sketches.TestingUtil.longToHexBytes(out[0]));
+    println(com.yahoo.sketches.TestingUtil.longToHexBytes(out[1]));
+    
+    println("Ints");
+    int[] iArr = {0X04030201, 0X08070605,   0X0c0b0a09, 0X100f0e0d,   0X14131211,   0X18171615};
+    out = hash(iArr, 0L);
+    Assert.assertEquals(out, out1);
+    println(com.yahoo.sketches.TestingUtil.longToHexBytes(out[0]));
+    println(com.yahoo.sketches.TestingUtil.longToHexBytes(out[1]));
+    
+    println("Longs");
+    long[] lArr = {0X0807060504030201L, 0X100f0e0d0c0b0a09L, 0X1817161514131211L};
+    out = hash(lArr, 0L);
+    Assert.assertEquals(out, out1);
+    println(com.yahoo.sketches.TestingUtil.longToHexBytes(out[0]));
+    println(com.yahoo.sketches.TestingUtil.longToHexBytes(out[1]));
+  }
+  
+  
   //Helper methods
   private static long[] stringToLongs(String in) {
     byte[] bArr = in.getBytes(UTF_8);

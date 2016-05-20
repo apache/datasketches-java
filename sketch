@@ -1,8 +1,0 @@
-#!/bin/bash
-# For now this needs to be kept in sync
-
-VER="0.5.2-SNAPSHOT"
-java -cp ~/.m2/repository/com/yahoo/datasketches/sketches-core/$VER/sketches-core-$VER.jar com.yahoo.sketches.cmd.CommandLine $@
-
-# used for testing
-# java -cp /Users/lrhodes/dev/git/sketches-core/target/classes com.yahoo.sketches.cmd.CommandLine $@

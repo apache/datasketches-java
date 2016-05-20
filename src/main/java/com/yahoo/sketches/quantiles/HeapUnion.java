@@ -68,7 +68,7 @@ class HeapUnion extends Union {
   
   @Override
   public QuantilesSketch getResultAndReset() {
-    if (gadget_ == null) return HeapQuantilesSketch.getInstance(k_, seed_);
+    if (gadget_ == null) return null; //Intentionally return null here for speed.
     QuantilesSketch hqs = gadget_;
     gadget_ = null;
     return hqs;

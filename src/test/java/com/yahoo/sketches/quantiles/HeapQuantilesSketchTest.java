@@ -455,6 +455,10 @@ public class HeapQuantilesSketchTest {
     QuantilesSketch qs2 = QuantilesSketch.heapify(mem);
     assertTrue(qs2.isEmpty());
     assertEquals(byteArr.length, 8);
+    assertEquals(qs2.getQuantile(0.0), Double.POSITIVE_INFINITY);
+    assertEquals(qs2.getQuantile(1.0), Double.NEGATIVE_INFINITY);
+    assertEquals(qs2.getQuantile(0.5), Double.NaN);
+    
     //println(qs1.toString(true, true));
   }
   

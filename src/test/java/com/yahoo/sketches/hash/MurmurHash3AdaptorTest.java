@@ -59,6 +59,22 @@ public class MurmurHash3AdaptorTest {
   }
 
   @Test
+  public void checkToBytesCharArr() {
+    char[] arr = { 1, 2 };
+    byte[] result = hashToBytes(arr, 0L);
+    for (int i = 8; i-- > 0;) {
+      Assert.assertNotEquals(result[i], 0);
+    }
+    arr = null;
+    result = hashToBytes(arr, 0L);
+    Assert.assertEquals(result, null);
+
+    arr = new char[0];
+    result = hashToBytes(arr, 0L);
+    Assert.assertEquals(result, null);
+  }
+  
+  @Test
   public void checkToBytesByteArr() {
     byte[] arr = { 1, 2 };
     byte[] result = hashToBytes(arr, 0L);
@@ -147,6 +163,22 @@ public class MurmurHash3AdaptorTest {
     Assert.assertEquals(result, null);
   }
 
+  @Test
+  public void checkToLongsCharArr() {
+    char[] arr = { 1, 2 };
+    long[] result = hashToLongs(arr, 0L);
+    for (int i = 2; i-- > 0;) {
+      Assert.assertNotEquals(result[i], 0);
+    }
+    arr = null;
+    result = hashToLongs(arr, 0L);
+    Assert.assertEquals(result, null);
+
+    arr = new char[0];
+    result = hashToLongs(arr, 0L);
+    Assert.assertEquals(result, null);
+  }
+  
   @Test
   public void checkToLongsByteArr() {
     byte[] arr = { 1, 2 };

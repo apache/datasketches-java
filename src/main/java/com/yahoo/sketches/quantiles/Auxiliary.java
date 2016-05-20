@@ -61,7 +61,9 @@ class Auxiliary {
   double getQuantile(double phi) {
     assert 0.0 <= phi;
     assert phi <= 1.0;
-    long pos = posOfPhi(phi, this.auxN_);
+    long n = this.auxN_;
+    if (n <= 0) return Double.NaN;
+    long pos = posOfPhi(phi, n);
     return (approximatelyAnswerPositionalQuery(pos));
   }
 

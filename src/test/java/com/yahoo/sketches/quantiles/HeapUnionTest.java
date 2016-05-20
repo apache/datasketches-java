@@ -68,8 +68,8 @@ public class HeapUnionTest {
     for (int i=1000; i<2000; i++) union.update(i);
     QuantilesSketch qs2 = union.getResult();
     assertEquals(qs2.getMaxValue(), 1999, 0.0);
-    
-    println(union.toString()); //enable printing to see
+    String s = union.toString();
+    println(s); //enable printing to see
     union.reset(); //sets to null
   }
   
@@ -98,6 +98,29 @@ public class HeapUnionTest {
     union.update(123.456);
     QuantilesSketch qs = union.getResultAndReset();
     assertEquals(qs.getN(), 1);
+  }
+  
+  @Test
+  public void checkEmptyUnion() {
+    HeapUnion union = new HeapUnion();
+    QuantilesSketch sk = union.getResult();
+    assertNotNull(sk);
+    String s = union.toString();
+    assertNotNull(s);
+    
+    
+  }
+  
+  @Test
+  public void checkUnionNulls() {
+    Union union = new HeapUnion();
+    QuantilesSketch sk1 = union.getResultAndReset();
+    QuantilesSketch sk2 = union.getResultAndReset();
+    assertNull(sk1);
+    assertNull(sk2);
+    union.update(sk2);
+    QuantilesSketch sk3 = union.getResultAndReset();
+    assertNull(sk3);
   }
   
   @Test

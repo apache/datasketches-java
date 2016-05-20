@@ -35,7 +35,7 @@ public final class MurmurHash3Adaptor {
    * 
    * @param datum the input long value
    * @param seed A long valued seed.
-   * @return The 128-bit hash as a byte[16] as 2 64-bit longs in Big Endian order.
+   * @return The 128-bit hash as a byte[16] in Big Endian order from 2 64-bit longs.
    */
   public static byte[] hashToBytes(long datum, long seed) {
     long[] data = { datum };
@@ -47,7 +47,7 @@ public final class MurmurHash3Adaptor {
    * 
    * @param data the input long array
    * @param seed A long valued seed.
-   * @return The 128-bit hash as a byte[16] as 2 64-bit longs in Big Endian order.
+   * @return The 128-bit hash as a byte[16] in Big Endian order from 2 64-bit longs.
    */
   public static byte[] hashToBytes(long[] data, long seed) {
     if ((data == null) || (data.length == 0)) {
@@ -61,9 +61,23 @@ public final class MurmurHash3Adaptor {
    * 
    * @param data the input int array
    * @param seed A long valued seed.
-   * @return The 128-bit hash as a byte[16] as 2 64-bit longs in Big Endian order.
+   * @return The 128-bit hash as a byte[16] in Big Endian order from 2 64-bit longs.
    */
   public static byte[] hashToBytes(int[] data, long seed) {
+    if ((data == null) || (data.length == 0)) {
+      return null;
+    }
+    return toByteArray(hash(data, seed));
+  }
+  
+  /**
+   * Hash a char[] and long seed.
+   * 
+   * @param data the input char array
+   * @param seed A long valued seed.
+   * @return The 128-bit hash as a byte[16] in Big Endian order from 2 64-bit longs.
+   */
+  public static byte[] hashToBytes(char[] data, long seed) {
     if ((data == null) || (data.length == 0)) {
       return null;
     }
@@ -75,7 +89,7 @@ public final class MurmurHash3Adaptor {
    * 
    * @param data the input byte array
    * @param seed A long valued seed.
-   * @return The 128-bit hash as a byte[16] as 2 64-bit longs in Big Endian order.
+   * @return The 128-bit hash as a byte[16] in Big Endian order from 2 64-bit longs.
    */
   public static byte[] hashToBytes(byte[] data, long seed) {
     if ((data == null) || (data.length == 0)) {
@@ -89,7 +103,7 @@ public final class MurmurHash3Adaptor {
    * 
    * @param datum the input double
    * @param seed A long valued seed.
-   * @return The 128-bit hash as a byte[16] as 2 64-bit longs in Big Endian order.
+   * @return The 128-bit hash as a byte[16] in Big Endian order from 2 64-bit longs.
    */
   public static byte[] hashToBytes(double datum, long seed) {
     double d = (datum == 0.0) ? 0.0 : datum; //canonicalize -0.0, 0.0
@@ -102,7 +116,7 @@ public final class MurmurHash3Adaptor {
    * 
    * @param datum the input String
    * @param seed A long valued seed.
-   * @return The 128-bit hash as a byte[16] as 2 64-bit longs in Big Endian order.
+   * @return The 128-bit hash as a byte[16] in Big Endian order from 2 64-bit longs.
    */
   public static byte[] hashToBytes(String datum, long seed) {
     if ((datum == null) || datum.isEmpty()) {
@@ -146,6 +160,20 @@ public final class MurmurHash3Adaptor {
    * @return The 128-bit hash as a long[2].
    */
   public static long[] hashToLongs(int[] data, long seed) {
+    if ((data == null) || (data.length == 0)) {
+      return null;
+    }
+    return hash(data, seed);
+  }
+  
+  /**
+   * Hash a char[] and long seed.
+   * 
+   * @param data the input char array.
+   * @param seed A long valued seed.
+   * @return The 128-bit hash as a long[2].
+   */
+  public static long[] hashToLongs(char[] data, long seed) {
     if ((data == null) || (data.length == 0)) {
       return null;
     }

@@ -22,12 +22,14 @@ public enum Family {
    * suited for real-time processes where both the updating of the sketch and getting the estimate 
    * is performed directly on the sketch.  In this situation the AlphaSketch has roughly a 
    * 30% improvement (~1/sqrt(2*k)) in its error distribution as compared to the QuickSelect 
-   * (or similar KMV-derived) sketches. 
-   * If the AlphaSketch is fed into any SetOperation, the error distribution reverts back to the
+   * (or similar KMV-derived) sketches.
+   * 
+   * <p>If the AlphaSketch is fed into any SetOperation, the error distribution reverts back to the
    * normal QuickSelect/KMV error distribution (~1/sqrt(k)).  For this reason, the AlphaSketch
    * does not have a sister class for off-heap operation. The Alpha Sketch has a roughly 30% faster 
-   * overall update time as compared to the QuickSelect sketch family.
-   * The Alpha Sketch is created using the UpdateSketch.builder().
+   * overall update time as compared to the QuickSelect sketch family.</p>
+   * 
+   * <p>The Alpha Sketch is created using the UpdateSketch.builder().
    * <a href="{@docRoot}/resources/dictionary.html#alphaTCF">See Alpha TCF</a> and 
    * <a href="{@docRoot}/resources/dictionary.html#thetaSketch">Theta Sketch Framework</a>
    */
@@ -35,8 +37,8 @@ public enum Family {
   
   /**
    * The QuickSelect Sketch algorithm is a member of the Theta Sketch Framework of sketches and 
-   * is the workhorse of this library and can be constructed for either on-heap or off-heap 
-   * operation. 
+   * is the workhorse of the Theta Sketch Families and can be constructed for either on-heap or 
+   * off-heap operation. 
    * The QuickSelect Sketch is created using the UpdateSketch.builder().
    * <a href="{@docRoot}/resources/dictionary.html#quickSelectTCF">See Quick Select TCF</a>
    */
@@ -45,7 +47,7 @@ public enum Family {
   /**
    * The compact family of sketches.  The compact sketches are never created 
    * directly with a constructor or Builder.  Instead they are created as a result of the compact() 
-   * method of an UpdateSketch or as a result of a getResult() to a SetOperation.
+   * method of an UpdateSketch or as a result of a getResult() of a SetOperation.
    */
   COMPACT(3, "Compact", 1, 3),
   
@@ -68,12 +70,12 @@ public enum Family {
   A_NOT_B(6, "AnotB", 3, 3),
   
   /**
-   * The HLL family of sketches.
+   * The HLL family of sketches, which is not part of the Theta Sketch Framework.
    */
   HLL(7, "HLL", 1, 1),
   
   /**
-   * The Quantiles family of sketches
+   * The Quantiles family of sketches.
    */
   QUANTILES(8, "QUANTILES", 1, 5),
   
