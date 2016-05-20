@@ -26,7 +26,7 @@ public abstract class Union {
    * Merges the given sketch into this union object. 
    * The given sketch is not modified.
    * It is required that the ratio of the two K values be a power of 2.
-   * This is easily satified if each of the K values is already a power of 2.
+   * This is easily satisfied if each of the K values is already a power of 2.
    * If the given sketch is null or empty it is ignored.
    * 
    * <p>It is required that the results of the union operation, which can be obtained at any time, 
