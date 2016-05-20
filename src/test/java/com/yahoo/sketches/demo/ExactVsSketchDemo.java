@@ -2,6 +2,7 @@
  * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.demo;
 
 import com.yahoo.sketches.demo.DemoImpl;
@@ -50,7 +51,7 @@ public class ExactVsSketchDemo {
    */
   public static void main(String[] args) {
     int argsLen = args.length;
-    long streamLen = (long)1E6;   //The default stream length
+    long streamLen = (long)1E8;   //The default stream length
     double uFrac = 1.0;          //The default fraction that are unique
     if (argsLen == 1) {
       streamLen = (long)(Double.parseDouble(args[0]));

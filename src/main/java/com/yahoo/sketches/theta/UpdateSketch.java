@@ -178,6 +178,21 @@ public abstract class UpdateSketch extends Sketch {
   }
   
   /**
+   * Present this sketch with the given char array. 
+   * If the char array is null or empty no update attempt is made and the method returns.
+   * 
+   * @param data The given char array.
+   * @return 
+   * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
+   */
+  public UpdateReturnState update(char[] data) {
+    if ((data == null) || (data.length == 0)) {
+      return RejectedNullOrEmpty;
+    }
+    return hashUpdate(hash(data, getSeed())[0] >>> 1);
+  }
+  
+  /**
    * Present this sketch with the given integer array. 
    * If the integer array is null or empty no update attempt is made and the method returns.
    * 

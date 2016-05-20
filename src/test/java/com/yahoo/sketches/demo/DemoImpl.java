@@ -359,6 +359,8 @@ public class DemoImpl {
   }
   
   private void printSketchResults(long u, int maxMemSkBytes, double rse2) {
+    String sk = (tSketch_ != null)? "THETA" : "HLL";
+    println("## USING "+sk+" SKETCH");
     double rounded = Math.round((tSketch_ != null)? tSketch_.getEstimate() : hllSketch_.getEstimate());
     println("Sketch Estimate of Uniques: "+ String.format("%,d", (long)rounded));
     double err = (u == 0)? 0 : (rounded/u - 1.0);

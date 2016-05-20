@@ -18,18 +18,21 @@ import com.yahoo.sketches.memory.Memory;
  * <p>Consider a large stream of one million values such as packet sizes coming into a network node.
  * The absolute rank of any specific size value is simply its index in the hypothetical sorted 
  * array of values.
- * The normalized rank is the absolute rank divided by the stream size, in this case one million. 
+ * The normalized rank (or fractional rank) is the absolute rank divided by the stream size, 
+ * in this case one million. 
  * The value corresponding to the normalized rank of 0.5 represents the 50th percentile or median
  * value of the distribution, or getQuantile(0.5).  Similarly, the 95th percentile is obtained from 
  * getQuantile(0.95).</p>
  * 
  * <p>If you have prior knowledge of the approximate range of values, for example, 1 to 1000 bytes,
  * you can obtain the PMF from getPMF(100, 500, 900) that will result in an array of 
- * 4 fractional values such as {.4, .3, .2, .1}, which means that 
- * 40% of the values were &lt; 100, 
- * 30% of the values were &ge; 100 and &lt; 500,
- * 20% of the values were &ge; 500 and &lt; 900, and
- * 10% of the values were &ge; 900.
+ * 4 fractional values such as {.4, .3, .2, .1}, which means that
+ * <ul>
+ * <li>40% of the values were &lt; 100,</li> 
+ * <li>30% of the values were &ge; 100 and &lt; 500,</li>
+ * <li>20% of the values were &ge; 500 and &lt; 900, and</li>
+ * <li>10% of the values were &ge; 900.</li>
+ * </ul>
  * A frequency histogram can be obtained by simply multiplying these fractions by getN(), 
  * which is the total count of values received. 
  * The getCDF(*) works similarly, but produces the cumulative distribution instead.</p>
@@ -162,6 +165,7 @@ public abstract class QuantilesSketch {
    * sketch. Instead use getQuantiles(). which pays the overhead only once.
    * 
    * @param fraction the specified fractional position in the hypothetical sorted stream.
+   * These are also called normalized ranks or fractional ranks.
    * If fraction = 0.0, the true minimum value of the stream is returned. 
    * If fraction = 1.0, the true maximum value of the stream is returned. 
    * 
@@ -178,7 +182,8 @@ public abstract class QuantilesSketch {
    * a single query.  It is strongly recommend that this method be used instead of multiple calls 
    * to getQuantile().
    * 
-   * @param fractions given array of fractional positions in the hypothetical sorted stream. 
+   * @param fractions given array of fractional positions in the hypothetical sorted stream.
+   * These are also called normalized ranks or fractional ranks.
    * These fractions must be monotonic, in increasing order and in the interval 
    * [0.0, 1.0] inclusive.
    * 

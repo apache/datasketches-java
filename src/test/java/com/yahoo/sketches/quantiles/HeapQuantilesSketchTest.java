@@ -826,6 +826,19 @@ public class HeapQuantilesSketchTest {
   }
   
   @Test
+  public void checkPMFonEmpty() {
+    QuantilesSketch qsk = buildQS(32, 1001);
+    double[] array = new double[0];
+    double[] qOut = qsk.getQuantiles(array); //check empty array
+    println("qOut: "+qOut.length);
+    double[] cdfOut = qsk.getCDF(array);
+    println("cdfOut: "+cdfOut.length);
+    assertEquals(cdfOut[0], 1.0, 0.0);
+    
+  }
+  
+  
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
@@ -834,7 +847,7 @@ public class HeapQuantilesSketchTest {
    * @param s value to print 
    */
   static void println(String s) {
-    //System.err.println(s); //disable here
+    print(s+LS);
   }
   
   /**

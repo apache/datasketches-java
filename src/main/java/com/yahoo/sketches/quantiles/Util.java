@@ -139,6 +139,7 @@ final class Util {
     if (fractions == null) {
       throw new IllegalArgumentException("Fractions array may not be null.");
     }
+    if (fractions.length == 0) return;
     double flo = fractions[0];
     double fhi = fractions[fractions.length - 1];
     if ((flo < 0.0) || (fhi > 1.0)) {
