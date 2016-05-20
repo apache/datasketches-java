@@ -36,15 +36,6 @@ public class HeapUnionTest {
     assertEquals(result.getK(), 256);
   }
   
-  @Test(expectedExceptions = IllegalStateException.class)
-  public void checkNullException() {
-    QuantilesSketch qs1 = null;
-    Union union = Union.builder().build(); //virgin union
-    
-    union.update(qs1); //ok
-    union.getResult(); //illegal state
-  }
-  
   @Test
   public void checkUnion2() {
     QuantilesSketch qs1 = buildQS(256, 1000);
@@ -99,6 +90,14 @@ public class HeapUnionTest {
     Union union = Union.builder().build(qs1);
     QuantilesSketch qs2 = union.getResultAndReset();
     assertEquals(qs2.getK(), 256);
+  }
+
+  @Test
+  public void updateWithDoubleValueOnly() {
+    Union union = Union.builder().setK(128).setSeed((short) 1).build();
+    union.update(123.456);
+    QuantilesSketch qs = union.getResultAndReset();
+    assertEquals(qs.getN(), 1);
   }
   
   @Test

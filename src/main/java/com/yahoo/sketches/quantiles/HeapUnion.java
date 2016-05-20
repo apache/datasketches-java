@@ -12,11 +12,23 @@ import com.yahoo.sketches.memory.Memory;
  * @author Lee Rhodes
  */
 class HeapUnion extends Union {
-  private HeapQuantilesSketch gadget_ = null;
+  private final int k_;
+  private final short seed_;
+  private HeapQuantilesSketch gadget_;
+
+  HeapUnion() {
+    k_ = QuantilesSketch.DEFAULT_K;
+    seed_ = 0;
+  }
+
+  HeapUnion(final int k, final short seed) {
+    k_ = k;
+    seed_ = seed;
+  }
   
-  HeapUnion() {} //creates a virgin Union object
-  
-  HeapUnion(QuantilesSketch sketch) {
+  HeapUnion(final QuantilesSketch sketch) {
+    k_ = sketch.getK();
+    seed_ = sketch.getSeed();
     gadget_ = (HeapQuantilesSketch) sketch;
   }
   
@@ -25,8 +37,10 @@ class HeapUnion extends Union {
    * @param srcMem the given srcMem. 
    * A reference to srcMem will not be maintained internally.
    */
-  HeapUnion(Memory srcMem) {
+  HeapUnion(final Memory srcMem) {
     gadget_ = HeapQuantilesSketch.getInstance(srcMem);
+    k_ = gadget_.getK();
+    seed_ = gadget_.getSeed();
   }
   
   @Override
@@ -42,19 +56,19 @@ class HeapUnion extends Union {
 
   @Override
   public void update(double dataItem) {
-    checkForNull(gadget_);
+    if (gadget_ == null) gadget_ = HeapQuantilesSketch.getInstance(k_, seed_);
     gadget_.update(dataItem);
   }
 
   @Override
   public QuantilesSketch getResult() {
-    checkForNull(gadget_);
+    if (gadget_ == null) return HeapQuantilesSketch.getInstance(k_, seed_);
     return HeapQuantilesSketch.copy(gadget_); //can't have any externally owned handles.
   }
   
   @Override
   public QuantilesSketch getResultAndReset() {
-    checkForNull(gadget_);
+    if (gadget_ == null) return HeapQuantilesSketch.getInstance(k_, seed_);
     QuantilesSketch hqs = gadget_;
     gadget_ = null;
     return hqs;
@@ -72,7 +86,7 @@ class HeapUnion extends Union {
   
   @Override
   public String toString(boolean sketchSummary, boolean dataDetail) {
-    checkForNull(gadget_);
+    if (gadget_ == null) return HeapQuantilesSketch.getInstance(k_, seed_).toString();
     return gadget_.toString(sketchSummary, dataDetail);
   }
   
@@ -192,9 +206,4 @@ class HeapUnion extends Union {
     if (srcMin < tgtMin) { tgt.minValue_ = srcMin; }
   }
 
-  private static void checkForNull(HeapQuantilesSketch hqs) {
-    if (hqs == null) {
-      throw new IllegalStateException("Union not initialized.");
-    }
-  }
 }

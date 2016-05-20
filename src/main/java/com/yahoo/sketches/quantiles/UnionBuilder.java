@@ -12,17 +12,57 @@ import com.yahoo.sketches.memory.Memory;
  * @author Lee Rhodes 
  */
 public class UnionBuilder {
-  
+
+  private int k_;
+  private short seed_;
+
+  /**
+   * Constructor for building a new UnionBuilder. The default configuration is 
+   * <ul>
+   * <li>k: {@value com.yahoo.sketches.quantiles.QuantilesSketch#DEFAULT_K} 
+   * This produces a normalized rank error of about 1.7%</li>
+   * <li>Seed: 0</li>
+   * </ul>
+   */
+  public UnionBuilder() {
+    k_ = QuantilesSketch.DEFAULT_K;
+    seed_ = 0;
+  }
+
+  /**
+   * Sets the parameter <i>k</i> that determines the accuracy and size of the sketch
+   * @param k determines the accuracy and size of the sketch.  
+   * @return this builder
+   */
+  public UnionBuilder setK(final int k) {
+    Util.checkK(k);
+    k_ = k;
+    return this;
+  }
+
+  /**
+   * Setting the seed makes the results of the sketch deterministic if the input values are
+   * received in exactly the same order. This is only useful when performing test comparisons,
+   * otherwise is not recommended.
+   * @param seed Any value other than zero will be used as the seed in the internal random number 
+   * generator.
+   * @return this builder
+   */
+  public UnionBuilder setSeed(final short seed) {
+    seed_ = seed;
+    return this;
+  }
+
   /**
    * Returns a virgin Union object
    * @return a virgin Union object
    */
   public Union build() {
-    return new HeapUnion();
+    return new HeapUnion(k_, seed_);
   }
-  
+
   /**
-   * Returns a Union object that has been initilized with the given sketch to be used as a union 
+   * Returns a Union object that has been initialized with the given sketch to be used as a union 
    * target and will be modified. If you do not want the given sketch to be modified use the 
    * {@link #copyBuild(QuantilesSketch)}.
    * 
@@ -45,7 +85,7 @@ public class UnionBuilder {
   }
   
   /**
-   * Returns a Union object that has been initilized with the data from the given sketch.
+   * Returns a Union object that has been initialized with the data from the given sketch.
    * 
    * @param sketch A QuantilesSketch to be used as a source of data, but will not be modified.
    * @return a Union object
