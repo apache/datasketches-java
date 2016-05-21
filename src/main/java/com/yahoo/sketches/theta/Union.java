@@ -57,6 +57,10 @@ public interface Union {
    * The string is converted to a byte array using UTF8 encoding. 
    * If the string is null or empty no update attempt is made and the method returns.
    * 
+   * <p>Note: this will not produce the same output hash values as the {@link #update(char[])} 
+   * method and will generally be a little slower depending on the complexity of the UTF8 encoding.
+   * </p>
+   * 
    * @param datum The given String.
    */
   void update(String datum);
@@ -76,6 +80,17 @@ public interface Union {
    * @param data The given int array.
    */
   void update(int[] data);
+  
+  /**
+   * Present this union with the given char array. 
+   * If the char array is null or empty no update attempt is made and the method returns.
+   * 
+   * <p>Note: this will not produce the same output hash values as the {@link #update(String)} 
+   * method but will be a little faster as it avoids the complexity of the UTF8 encoding.</p>
+   * 
+   * @param data The given char array.
+   */
+  void update(char[] data);
   
   /**
    * Present this union with the given long array. 

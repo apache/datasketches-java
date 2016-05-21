@@ -23,36 +23,47 @@ public class UpdateSketchTest {
   public void checkOtherUpdates() {
     int k = 512;
     UpdateSketch sk1 = UpdateSketch.builder().build(k);
-    sk1.update(1.5); //#1 double
+    sk1.update(1L);   //#1 long
+    sk1.update(1.5);  //#2 double
     sk1.update(0.0);
-    sk1.update(-0.0);
+    sk1.update(-0.0); //#3 double 
     String s = null;
-    sk1.update(s); //null string
+    sk1.update(s);    //null string
     s = "";
-    sk1.update(s); //empty string
+    sk1.update(s);    //empty string
     s = "String";
-    sk1.update(s); //#2 actual string
+    sk1.update(s);    //#4 actual string
+    
     byte[] byteArr = null;
     sk1.update(byteArr); //null byte[]
     byteArr = new byte[0];
     sk1.update(byteArr); //empty byte[]
     byteArr = "Byte Array".getBytes();
-    sk1.update(byteArr); //#3 actual byte[]
+    sk1.update(byteArr); //#5 actual byte[]
+    
+    char[] charArr = null;
+    sk1.update(charArr); //null char[]
+    charArr = new char[0];
+    sk1.update(charArr); //empty char[]
+    charArr = "String".toCharArray();
+    sk1.update(charArr); //#6 actual char[]
+    
     int[] intArr = null;
     sk1.update(intArr); //null int[]
     intArr = new int[0];
     sk1.update(intArr); //empty int[]
     int[] intArr2 = { 1, 2, 3, 4, 5 };
-    sk1.update(intArr2); //#4 actual int[]
+    sk1.update(intArr2); //#7 actual int[]
+    
     long[] longArr = null;
     sk1.update(longArr); //null long[]
     longArr = new long[0];
     sk1.update(longArr); //empty long[]
     long[] longArr2 = { 6, 7, 8, 9 };
-    sk1.update(longArr2); //#5 actual long[]
+    sk1.update(longArr2); //#8 actual long[]
 
     double est = sk1.getEstimate();
-    assertEquals(est, 6.0, 0.0);
+    assertEquals(est, 8.0, 0.0);
   }
   
   @Test

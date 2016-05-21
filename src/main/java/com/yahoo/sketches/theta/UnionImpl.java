@@ -254,6 +254,11 @@ class UnionImpl extends SetOperation implements Union {
   }
   
   @Override
+  public void update(char[] data) {
+    gadget_.update(data);
+  }
+  
+  @Override
   public void update(int[] data) {
     gadget_.update(data);
   }

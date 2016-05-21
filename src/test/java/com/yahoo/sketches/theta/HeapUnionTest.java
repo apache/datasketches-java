@@ -497,38 +497,49 @@ public class HeapUnionTest {
     int k = 32;
     Union union = Sketches.setOperationBuilder().buildUnion(k);
     
-    union.update(1L);
-    union.update(1.5); //#1 double
+    union.update(1L);   //#1 long
+    union.update(1.5);  //#2 double
     union.update(0.0);
-    union.update(-0.0);
+    union.update(-0.0); //#3 double
     String s = null;
-    union.update(s); //null string
+    union.update(s);    //null string
     s = "";
-    union.update(s); //empty string
+    union.update(s);    //empty string
     s = "String";
-    union.update(s); //#2 actual string
+    union.update(s);    //#4 actual string
+    
     byte[] byteArr = null;
     union.update(byteArr); //null byte[]
     byteArr = new byte[0];
     union.update(byteArr); //empty byte[]
     byteArr = "Byte Array".getBytes();
-    union.update(byteArr); //#3 actual byte[]
+    union.update(byteArr); //#5 actual byte[]
+    
+    char[] charArr = null;
+    union.update(charArr); //null char[]
+    charArr = new char[0];
+    union.update(charArr); //empty char[]
+    charArr = "String".toCharArray();
+    union.update(charArr); //#6 actual char[]
+    
     int[] intArr = null;
     union.update(intArr); //null int[]
     intArr = new int[0];
     union.update(intArr); //empty int[]
     int[] intArr2 = { 1, 2, 3, 4, 5 };
-    union.update(intArr2); //#4 actual int[]
+    union.update(intArr2); //#7 actual int[]
+    
     long[] longArr = null;
     union.update(longArr); //null long[]
     longArr = new long[0];
     union.update(longArr); //empty long[]
     long[] longArr2 = { 6, 7, 8, 9 };
-    union.update(longArr2); //#5 actual long[]
+    union.update(longArr2); //#8 actual long[]
+    
     CompactSketch comp = union.getResult();
     double est = comp.getEstimate();
     boolean empty = comp.isEmpty();
-    assertEquals(est, 7.0, 0.0);
+    assertEquals(est, 8.0, 0.0);
     assertFalse(empty);
   }
   
