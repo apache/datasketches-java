@@ -136,6 +136,22 @@ public class BinomialBoundsNTest {
   }
   
   @Test
+  public void boundsExample() {
+    println("BinomialBoundsN Example:");
+    int k = 500;
+    double theta = 0.001;
+    int stdDev = 2;
+    double ub = BinomialBoundsN.getUpperBound(k, theta, stdDev, false);
+    double est = k/theta;
+    double lb = BinomialBoundsN.getLowerBound(k, theta, stdDev, false);
+    println("K="+k+", Theta="+theta+", SD="+stdDev);
+    println("UB:  "+ub);
+    println("Est: "+est);
+    println("LB:  "+lb);
+    println("");
+  }
+  
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }

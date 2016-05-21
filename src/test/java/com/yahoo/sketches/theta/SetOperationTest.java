@@ -328,8 +328,47 @@ public class SetOperationTest {
     assertTrue(SetOperation.isValidSetOpID(UNION.getID()));
     assertTrue(SetOperation.isValidSetOpID(INTERSECTION.getID()));
     assertTrue(SetOperation.isValidSetOpID(A_NOT_B.getID()));
-
   }
+  
+  @Test
+  public void setOpsExample() {
+    println("Set Operations Example:");
+    int k = 4096;
+    UpdateSketch skA = Sketches.updateSketchBuilder().build(k);
+    UpdateSketch skB = Sketches.updateSketchBuilder().build(k);
+    UpdateSketch skC = Sketches.updateSketchBuilder().build(k);
+    
+    for (int i=1;  i<=10; i++) { skA.update(i); }
+    for (int i=1;  i<=20; i++) { skB.update(i); }
+    for (int i=6;  i<=15; i++) { skC.update(i); } //overlapping set
+    
+    Union union = Sketches.setOperationBuilder().buildUnion(k);
+    union.update(skA);
+    union.update(skB);
+    // ... continue to iterate on the input sketches to union
+
+    CompactSketch unionSk = union.getResult();   //the result union sketch
+    println("A U B      : "+unionSk.getEstimate());   //the estimate of the union
+
+    //Intersection is similar
+    
+    Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    inter.update(unionSk);
+    inter.update(skC);
+    // ... continue to iterate on the input sketches to intersect
+
+    CompactSketch interSk = inter.getResult();  //the result intersection sketch 
+    println("(A U B) ^ C: "+interSk.getEstimate());  //the estimate of the intersection
+
+    //The AnotB operation is a little different as it is stateless:
+
+    AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
+    aNotB.update(skA, skC);
+
+    CompactSketch not = aNotB.getResult();
+    println("A \\ C      : "+not.getEstimate()); //the estimate of the AnotB operation
+  }
+  
   
   @Test
   public void printlnTest() {
