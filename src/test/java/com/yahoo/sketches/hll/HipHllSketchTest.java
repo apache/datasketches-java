@@ -37,7 +37,7 @@ public class HipHllSketchTest
     HllSketchBuilder bob = HllSketch.builder().setLogBuckets(10).setHipEstimator(true);
 
     HllSketch sketch = bob.build();
-    sketch.update(new long[]{182748912741928l});
+    sketch.update(new long[]{182748912741928L});
 
     boolean exceptionCaught = false;
     HllSketch unionInto = bob.build();

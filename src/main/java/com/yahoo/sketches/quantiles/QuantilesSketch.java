@@ -35,7 +35,7 @@ import com.yahoo.sketches.memory.Memory;
  * </ul>
  * A frequency histogram can be obtained by simply multiplying these fractions by getN(), 
  * which is the total count of values received. 
- * The getCDF(*) works similarly, but produces the cumulative distribution instead.</p>
+ * The getCDF(*) works similarly, but produces the cumulative distribution instead.
  * 
  * <p>The accuracy of this sketch is a function of the configured value <i>k</i>, which also affects
  * the overall size of the sketch. Accuracy of this quantile sketch is always with respect to

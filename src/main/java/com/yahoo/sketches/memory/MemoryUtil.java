@@ -16,6 +16,7 @@ public final class MemoryUtil {
   private MemoryUtil() {}
   
   /**
+   * 
    * @deprecated this method was moved to 
    * {@link NativeMemory#copy(Memory, long, Memory, long, long)}
    * @param source the source Memory
@@ -24,6 +25,7 @@ public final class MemoryUtil {
    * @param dstOffsetBytes the destination offset
    * @param lengthBytes the number of bytes to copy
    */
+  @Deprecated
   public static void copy(Memory source, long srcOffsetBytes, Memory destination, 
       long dstOffsetBytes, long lengthBytes) {
     NativeMemory.copy(source, srcOffsetBytes, destination, dstOffsetBytes, lengthBytes);
