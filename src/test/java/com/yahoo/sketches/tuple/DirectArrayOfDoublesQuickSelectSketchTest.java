@@ -81,7 +81,7 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
   // The moment of going into the estimation mode is, to some extent, an implementation detail
   // Here we assume that presenting as many unique values as twice the nominal size of the sketch will result in estimation mode
   public void estimationMode() {
-    ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setMemory(new NativeMemory(new byte[1000000])).build();
+    ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setMemory(new NativeMemory(new byte[4096 * 2 * 16 + 32])).build();
     Assert.assertEquals(sketch.getEstimate(), 0.0);
     for (int i = 1; i <= 8192; i++) sketch.update(i, new double[] {1.0});
     Assert.assertTrue(sketch.isEstimationMode());
@@ -181,4 +181,8 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
     Assert.assertEquals(sketch1.getTheta(), sketch2.getTheta());
   }
 
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void notEnoughMemory() {
+    new ArrayOfDoublesUpdatableSketchBuilder().setNominalEntries(32).setMemory(new NativeMemory(new byte[1055])).build();
+  }
 }
