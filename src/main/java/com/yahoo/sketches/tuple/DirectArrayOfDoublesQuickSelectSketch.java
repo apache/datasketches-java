@@ -47,6 +47,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
       lgResizeFactor,
       Integer.numberOfTrailingZeros(MIN_NOM_ENTRIES)
     );
+    checkIfEnoughMemory(dstMem, startingCapacity, numValues);
     mem_.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
     mem_.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
     mem_.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
@@ -214,11 +215,12 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     return mem_.isAnyBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_IN_SAMPLING_MODE.ordinal()));
   }
 
-  // rebuild in the same memory assuming enough space
+  // rebuild in the same memory
   @Override
   protected void rebuild(final int newCapacity) {
-    final int currCapacity = getCurrentCapacity();
     final int numValues = getNumValues();
+    checkIfEnoughMemory(mem_, newCapacity, numValues);
+    final int currCapacity = getCurrentCapacity();
     final long[] keys = new long[currCapacity];
     final double[] values = new double[currCapacity * numValues];
     mem_.getLongArray(keysOffset_, keys, 0, currCapacity);
@@ -259,6 +261,11 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   @Override
   public ArrayOfDoublesSketchIterator iterator() {
     return new DirectArrayOfDoublesSketchIterator(mem_, keysOffset_, getCurrentCapacity(), numValues_);
+  }
+
+  private static void checkIfEnoughMemory(final Memory mem, final int numEntries, final int numValues) {
+    final int sizeNeeded = ENTRIES_START + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues) * numEntries;
+    if (sizeNeeded > mem.getCapacity()) throw new IllegalArgumentException("Not enough memory: need " + sizeNeeded + " bytes, got " + mem.getCapacity() + " bytes");
   }
 
 }

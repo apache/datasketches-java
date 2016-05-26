@@ -28,6 +28,7 @@ class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
    */
   DirectArrayOfDoublesCompactSketch(final ArrayOfDoublesUpdatableSketch sketch, final Memory dstMem) {
     super(sketch.getNumValues());
+    checkIfEnoughMemory(dstMem, sketch.getRetainedEntries(), sketch.getNumValues());
     mem_ = dstMem;
     mem_.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
     mem_.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
@@ -64,6 +65,7 @@ class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
    */
   DirectArrayOfDoublesCompactSketch(final long[] keys, final double[] values, final long theta, final boolean isEmpty, final int numValues, final short seedHash, final Memory dstMem) {
     super(numValues);
+    checkIfEnoughMemory(dstMem, values.length, numValues);
     mem_ = dstMem;
     mem_.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
     mem_.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
@@ -158,6 +160,11 @@ class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
   @Override
   short getSeedHash() {
     return mem_.getShort(SEED_HASH_SHORT);
+  }
+
+  private static void checkIfEnoughMemory(final Memory mem, final int numEntries, final int numValues) {
+    final int sizeNeeded = ENTRIES_START + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues) * numEntries;
+    if (sizeNeeded > mem.getCapacity()) throw new IllegalArgumentException("Not enough memory: need " + sizeNeeded + " bytes, got " + mem.getCapacity() + " bytes");
   }
 
 }
