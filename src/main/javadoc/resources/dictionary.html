@@ -150,7 +150,7 @@ Thus, all the values in the hash table are always
 <p>One of the benefits of using the QuickSelect algorithm for the cache management of the sketch is
 that the number of <a href="#validHash">valid</a> hashes ranges from 
 <a href="#nomEntries">nominal entries</a> 
-to the current <a href="#refreshThresh">refresh threshold</a>.  
+to the current <i>REBUILD_THRESHOLD</i></a>, which is nominally 15/16 * <i>cacheSize</i>.  
 This means that without the user forcing 
 a <i>rebuild()</i>, the sketch, on average, may be about 50% larger than 
 <a href="#nomEntries">nominal entries</a>, about 19% more accurate, and faster.</p>

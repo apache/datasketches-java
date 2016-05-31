@@ -86,6 +86,7 @@
           <!-- 
             <show>private</show> 
           -->
+          <stylesheetfile>src/main/javadoc/stylesheet.css</stylesheetfile>
           <docfilessubdirs>true</docfilessubdirs>
         </configuration>
         <executions>
