@@ -55,7 +55,7 @@
     <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
-      <version>6.9.10</version>
+      <version>6.9.11</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -192,7 +192,7 @@
       <plugin>
         <groupId>org.eluder.coveralls</groupId>
         <artifactId>coveralls-maven-plugin</artifactId>
-        <version>4.1.0</version>
+        <version>4.2.0</version>
         <configuration>
           <repoToken />
         </configuration>
@@ -271,7 +271,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>license-maven-plugin</artifactId>
-          <version>1.8</version>
+          <version>1.9</version>
         </plugin>
 
         <plugin>
