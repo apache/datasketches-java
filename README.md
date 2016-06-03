@@ -1,4 +1,5 @@
-[![][travis img]][travis] [![][coveralls img]][coveralls]  [![][mavenbadge img]][mavenbadge] [![][versioneye img]][versioneye]
+[![][travis img]][travis] [![][coveralls img]][coveralls] [![][mavenbadge img]][mavenbadge] [![][versioneye img]][versioneye]
+
 [![][gitter img]][gitter]
 
 =================
