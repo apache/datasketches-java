@@ -512,7 +512,7 @@ public class FrequentLongsSketch {
    * The method first examines all active items in the sketch (items that have a counter).
    *  
    * <p>If <i>ErrorType = NO_FALSE_NEGATIVES</i>, this will include an item in the result 
-   * list if getUpperBound(item) &gt; maxError. 
+   * list if getUpperBound(item) &gt; getMaximumError(). 
    * There will be no false negatives, i.e., no Type II error.
    * There may be items in the set with true frequencies less than the threshold 
    * (false positives).</p>
