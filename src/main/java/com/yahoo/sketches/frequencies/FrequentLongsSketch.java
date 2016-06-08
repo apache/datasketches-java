@@ -539,8 +539,8 @@ public class FrequentLongsSketch {
     final long est;
     final long ub;
     final long lb;
-    private static final String fmt =  ("  %12d%12d%12d %d");
-    private static final String hfmt = ("  %12s%12s%12s %s");
+    private static final String fmt =  ("  %20d%20d%20d %d");
+    private static final String hfmt = ("  %20s%20s%20s %s");
     
     Row(final long item, final long estimate, final long ub, final long lb) {
       this.item = item;

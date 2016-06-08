@@ -264,8 +264,8 @@ class ReversePurgeLongHashMap {
    */
   @Override
   public String toString() {
-    String fmt  = "  %12d:%11d%12d %d";
-    String hfmt = "  %12s:%11s%12s %s";
+    String fmt  = "  %12d:%11d%20d %d";
+    String hfmt = "  %12s:%11s%20s %s";
     final StringBuilder sb = new StringBuilder();
     sb.append("ReversePurgeLongHashMap:").append(LS);
     sb.append(String.format(hfmt, "Index","States","Values","Keys")).append(LS);
