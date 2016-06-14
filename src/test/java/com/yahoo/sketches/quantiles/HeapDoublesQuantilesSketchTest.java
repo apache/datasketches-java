@@ -27,7 +27,7 @@ public class HeapDoublesQuantilesSketchTest {
 
   @BeforeMethod
   public void setUp() {
-    HeapDoublesQuantilesSketch.rand.setSeed(32749); // make sketches deterministic for testing
+    DoublesQuantilesSketch.rand.setSeed(32749); // make sketches deterministic for testing
   }
 
   @Test
