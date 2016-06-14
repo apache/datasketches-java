@@ -9,7 +9,7 @@ import java.util.Arrays;
 /**
  * Auxiliary data structure for answering quantile queries
  */
-class Auxiliary {
+class DoublesAuxiliary {
   long auxN_;
   double[] auxSamplesArr_; //array of size samples
   long[] auxCumWtsArr_;
@@ -18,7 +18,7 @@ class Auxiliary {
    * Constructs the Auxiliary structure from the HeapQuantilesSketch
    * @param qs a HeapQuantilesSketch
    */
-  Auxiliary(HeapQuantilesSketch qs ) {
+  DoublesAuxiliary(HeapDoublesQuantilesSketch qs ) {
     int k = qs.getK();
     long n = qs.getN();
     long bitPattern = qs.getBitPattern();

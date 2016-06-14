@@ -3,6 +3,9 @@ package com.yahoo.sketches.frequencies;
 import static com.yahoo.sketches.frequencies.PreambleUtil.*;
 import org.testng.annotations.Test;
 
+import com.yahoo.sketches.ArrayOfLongsSerDe;
+import com.yahoo.sketches.ArrayOfStringsSerDe;
+import com.yahoo.sketches.ArrayOfUtf16StringsSerDe;
 import com.yahoo.sketches.frequencies.FrequentItemsSketch.Row;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;

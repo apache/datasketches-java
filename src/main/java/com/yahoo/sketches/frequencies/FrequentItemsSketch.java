@@ -30,6 +30,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;
@@ -307,13 +308,13 @@ public class FrequentItemsSketch<T> {
       outBytes = ((preLongs + activeItems) << 3) + bytes.length;
     }
     final byte[] outArr = new byte[outBytes];
-    final NativeMemory mem = new NativeMemory(outArr);
+    final Memory mem = new NativeMemory(outArr);
 
     // build first preLong empty or not
     long pre0 = 0L;
     pre0 = insertPreLongs(preLongs, pre0);                  //Byte 0
     pre0 = insertSerVer(SER_VER, pre0);                     //Byte 1
-    pre0 = insertFamilyID(10, pre0);                        //Byte 2
+    pre0 = insertFamilyID(Family.FREQUENCY.getID(), pre0);  //Byte 2
     pre0 = insertLgMaxMapSize(lgMaxMapSize, pre0);          //Byte 3
     pre0 = insertLgCurMapSize(hashMap.getLgLength(), pre0); //Byte 4
     pre0 = (empty)? insertFlags(EMPTY_FLAG_MASK, pre0) : insertFlags(0, pre0); //Byte 5

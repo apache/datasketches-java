@@ -12,22 +12,20 @@ import static com.yahoo.sketches.quantiles.Util.TAB;
  * 
  * @author Lee Rhodes 
  */
-public class QuantilesSketchBuilder {
+public class DoublesQuantilesSketchBuilder {
   private int bK;
-  private short bSeed;
   
   /**
    * Constructor for building a new QuantilesSketch. The default configuration is 
    * <ul>
-   * <li>k: {@value com.yahoo.sketches.quantiles.QuantilesSketch#DEFAULT_K} 
+   * <li>k: {@value com.yahoo.sketches.quantiles.DoublesQuantilesSketch#DEFAULT_K} 
    * This produces a normalized rank error of about 1.7%</li>
    * <li>Seed: 0</li>
    * <li>Memory: null</li>
    * </ul>
    */
-  public QuantilesSketchBuilder() {
-    bK = QuantilesSketch.DEFAULT_K;
-    bSeed = 0;
+  public DoublesQuantilesSketchBuilder() {
+    bK = DoublesQuantilesSketch.DEFAULT_K;
   }
   
   /**
@@ -39,7 +37,7 @@ public class QuantilesSketchBuilder {
    * larger values of <i>k</i> to smaller values.
    * @return this builder
    */
-  public QuantilesSketchBuilder setK(int k) {
+  public DoublesQuantilesSketchBuilder setK(int k) {
     Util.checkK(k);
     bK = k;
     return this;
@@ -52,34 +50,13 @@ public class QuantilesSketchBuilder {
   public int getK() {
     return bK;
   }
-  
-  /**
-   * Setting the seed makes the results of the sketch deterministic if the input values are
-   * received in exactly the same order. This is only useful when performing test comparisons,
-   * otherwise is not recommended.
-   * @param seed Any value other than zero will be used as the seed in the internal random number 
-   * generator.
-   * @return this builder
-   */
-  public QuantilesSketchBuilder setSeed(short seed) {
-    bSeed = seed;
-    return this;
-  }
-  
-  /**
-   * Returns the current configured seed
-   * @return the current configured seed
-   */
-  public int getSeed() {
-    return bSeed;
-  }
-  
+
   /**
    * Returns a QuantilesSketch with the current configuration of this Builder.
    * @return a QuantilesSketch
    */
-  public QuantilesSketch build() {
-    return HeapQuantilesSketch.getInstance(bK, bSeed);
+  public DoublesQuantilesSketch build() {
+    return HeapDoublesQuantilesSketch.getInstance(bK);
   }
   
   /**
@@ -93,7 +70,7 @@ public class QuantilesSketchBuilder {
    * 
    * @return a QuantilesSketch
    */
-  public QuantilesSketch build(int k) {
+  public DoublesQuantilesSketch build(int k) {
     setK(k);
     return build();
   }
@@ -103,8 +80,7 @@ public class QuantilesSketchBuilder {
     StringBuilder sb = new StringBuilder();
     sb.append("QuantileSketchBuilder configuration:").append(LS);
     sb.append("K:").append(TAB).append(bK).append(LS);
-    sb.append("Seed:").append(TAB).append(bSeed).append(LS);
-    //sb.append("DstMemory:").append(TAB).append(bDstMem != null).append(LS);
     return sb.toString();
   }
+
 }

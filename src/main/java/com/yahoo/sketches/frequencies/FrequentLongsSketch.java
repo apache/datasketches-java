@@ -8,7 +8,6 @@ package com.yahoo.sketches.frequencies;
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.toLog2;
 import static com.yahoo.sketches.frequencies.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.frequencies.PreambleUtil.FREQ_SKETCH_TYPE;
 import static com.yahoo.sketches.frequencies.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractActiveItems;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractLgCurMapSize;
@@ -173,6 +172,8 @@ public class FrequentLongsSketch {
    */
   private ReversePurgeLongHashMap hashMap;
 
+  static final byte FREQ_LONGS_SKETCH_TYPE = 1;
+
   /**
    * Construct this sketch with the parameter maxMapSize and the default initialMapSize (8).
    * 
@@ -248,10 +249,10 @@ public class FrequentLongsSketch {
       throw new IllegalArgumentException(
           "Possible Corruption: (PreLongs == 1) ^ Empty == True.");
     }
-    if (type != FREQ_SKETCH_TYPE) {                     //Byte 6
+    if (type != FREQ_LONGS_SKETCH_TYPE) {                     //Byte 6
       throw new IllegalArgumentException(
           "Possible Corruption: Freq Sketch Type incorrect: " + type + " != " + 
-              FREQ_SKETCH_TYPE);
+              FREQ_LONGS_SKETCH_TYPE);
     }
 
     if (empty) {
@@ -318,7 +319,7 @@ public class FrequentLongsSketch {
           "Possible Corruption: (Empty ^ StreamLength=0) = true : Empty: " + empty + 
           ", strLen: " + streamLength);
     }
-    if (type != FREQ_SKETCH_TYPE) {
+    if (type != FREQ_LONGS_SKETCH_TYPE) {
       throw new IllegalArgumentException(
           "Possible Corruption: Sketch TYPE incorrect: " + type);
     }
@@ -350,7 +351,7 @@ public class FrequentLongsSketch {
     final int famID = Family.FREQUENCY.getID(); //1
     final int lgMaxMapSz = lgMaxMapSize; //2
     final int flags = (hashMap.getNumActive() == 0)? EMPTY_FLAG_MASK : 0; //3
-    final int type = FREQ_SKETCH_TYPE; //4
+    final byte type = FREQ_LONGS_SKETCH_TYPE; //4
     final String fmt = "%d,%d,%d,%d,%d,%d,%d,";
     final String s = 
         String.format(fmt, serVer, famID, lgMaxMapSz, flags, type, streamLength, offset);
@@ -377,17 +378,17 @@ public class FrequentLongsSketch {
       outBytes = (preLongs + 2 * activeItems) << 3; //2 because both keys and values are longs
     }
     final byte[] outArr = new byte[outBytes];
-    final NativeMemory mem = new NativeMemory(outArr);
+    final Memory mem = new NativeMemory(outArr);
 
     // build first preLong empty or not
     long pre0 = 0L;
     pre0 = insertPreLongs(preLongs, pre0);                  //Byte 0
     pre0 = insertSerVer(SER_VER, pre0);                     //Byte 1
-    pre0 = insertFamilyID(10, pre0);                        //Byte 2
+    pre0 = insertFamilyID(Family.FREQUENCY.getID(), pre0);  //Byte 2
     pre0 = insertLgMaxMapSize(lgMaxMapSize, pre0);          //Byte 3
     pre0 = insertLgCurMapSize(hashMap.getLgLength(), pre0); //Byte 4
     pre0 = (empty)? insertFlags(EMPTY_FLAG_MASK, pre0) : insertFlags(0, pre0); //Byte 5
-    pre0 = insertFreqSketchType(FREQ_SKETCH_TYPE, pre0);    //Byte 6
+    pre0 = insertFreqSketchType(FREQ_LONGS_SKETCH_TYPE, pre0); //Byte 6
 
     if (empty) {
       mem.putLong(0, pre0);
