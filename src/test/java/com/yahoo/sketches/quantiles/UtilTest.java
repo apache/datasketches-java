@@ -19,7 +19,7 @@ public class UtilTest {
   public void checkBufferElementCapacity() {
     int k = 227;
     int capEl = bufferElementCapacity(k, 0);
-    assertEquals(capEl, QuantilesSketch.MIN_BASE_BUF_SIZE);
+    assertEquals(capEl, DoublesQuantilesSketch.MIN_BASE_BUF_SIZE);
   }
   
   @Test

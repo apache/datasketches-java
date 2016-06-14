@@ -1,3 +1,7 @@
+/*
+ * Copyright 2016, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
 package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.Family.idToFamily;
@@ -22,26 +26,22 @@ import com.yahoo.sketches.memory.NativeMemory;
  * multi-byte integers (<i>int</i> and <i>long</i>) are stored in native byte order. The
  * <i>byte</i> values are treated as unsigned.</p>
  * 
- * <p>An empty QuantilesSketch only requires 8 bytes. All others require 40 bytes of preamble.</p> 
+ * <p>An empty QuantilesSketch only requires 8 bytes. All others require 24 bytes of preamble.</p> 
  * 
  * <pre>
  * Long || Start Byte Adr:
  * Adr: 
  *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0          |
- *  0   ||------Seed-------|--------K--------|  Flags | FamID  | SerVer | Preamble_Longs |
+ *  0   ||--------|--type--|--------K--------|  Flags | FamID  | SerVer | Preamble_Longs |
  *  
  *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8          |
  *  1   ||---------------------------------N_LONG----------------------------------------|
  *  
  *      ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |    16          |
- *  2   ||-------------------------------MIN_DOUBLE--------------------------------------|
+ *  2   ||--------------(unused)-------------|-----------BUFFER_DOUBLES_ALLOC------------|
  *
  *      ||   31   |   30   |   29   |   28   |   27   |   26   |   25   |    24          |
- *  3   ||-------------------------------MAX DOUBLE--------------------------------------|
- *      ||   39   |   38   |   37   |   36   |   35   |   34   |   33   |    32          |
- *  4   ||--------------(unused)-------------|-----------BUFFER_DOUBLES_ALLOC------------|
- *      ||   47   |   46   |   45   |   44   |   43   |   42   |   41   |    40          |
- *  5   ||-----------------------------START OF BUFFER-----------------------------------|
+ *  3   ||-----------------START OF BUFFER (INCLUDES MIN AND MAX VALUES)-----------------|
  *  </pre>
  *  
  *  @author Lee Rhodes
@@ -57,15 +57,17 @@ final class PreambleUtil {
   static final int FAMILY_BYTE                = 2;
   static final int FLAGS_BYTE                 = 3;
   static final int K_SHORT                    = 4;  //to 5
-  static final int SEED_SHORT                 = 6;  //to 7  stop here for empty sketch
+  static final int SKETCH_TYPE_BYTE           = 6;
+  // padding 7
   static final int N_LONG                     = 8;  //to 15
-  static final int MIN_DOUBLE                 = 16; //to 23
-  static final int MAX_DOUBLE                 = 24; //to 31
-  static final int BUFFER_DOUBLES_ALLOC_INT   = 32; //to 35
-  //                                            36 to 39 unused
+  static final int BUFFER_DOUBLES_ALLOC_INT   = 16; //to 19
+  // padding 20 - 23
+  static final int MIN_DOUBLE                 = 24; //to 31
+  static final int MAX_DOUBLE                 = 32; //to 39
   //Specific values for this implementation
-  static final int SER_VER                    = 1;
-  
+  static final int SER_VER                    = 2;
+  static final int PREAMBLE_LONGS             = 3;
+
   // flag bit masks
   static final int BIG_ENDIAN_FLAG_MASK       = 1;
   static final int READ_ONLY_FLAG_MASK        = 2;   //place holder
@@ -113,7 +115,7 @@ final class PreambleUtil {
     //boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
     boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
     int k = mem.getShort(K_SHORT);
-    int seed = mem.getShort(SEED_SHORT);
+    byte type = mem.getByte(SKETCH_TYPE_BYTE);
     //if absent, assumed values
     long n = 0;
     double minValue = Double.POSITIVE_INFINITY;
@@ -142,7 +144,7 @@ final class PreambleUtil {
   //sb.append("  COMPACT                     : ").append(compact).append(LS);
   //sb.append("  ORDERED                     : ").append(ordered).append(LS);
     sb.append("Bytes  4-5  : K               : ").append(k).append(LS);
-    sb.append("Bytes  6-7  : SEED            : ").append(seed).append(LS);
+    sb.append("Byte  6: SKETCH_TYPE          : ").append(type).append(LS);
     if (preLongs == 1) {
       sb.append(" --ABSENT, ASSUMED:").append(LS);
     }
@@ -187,13 +189,13 @@ final class PreambleUtil {
     long mask = 0XFFFFL;
     return (int) ((pre1 >>> shift) & mask);
   }
-  
-  static int extractSeed(final long pre0) {
-    int shift = SEED_SHORT << 3;
-    long mask = 0XFFFFL;
-    return (int) ((pre0 >>> shift) & mask);
+
+  static byte extractSketchType(final long pre0) {
+    final int shift = SKETCH_TYPE_BYTE << 3;
+    final long mask = 0XFFL;
+    return (byte) ((pre0 >>> shift) & mask);
   }
-  
+
   static int extractBufAlloc(final long pre4) {
     long mask = 0XFFFFFFFFL;
     return (int) (pre4 & mask);
@@ -227,13 +229,13 @@ final class PreambleUtil {
     long mask = 0XFFFFL;
     return ((k & mask) << shift) | (~(mask << shift) & pre0);
   }
-  
-  static long insertSeed(final int seed, final long pre0) {
-    int shift = SEED_SHORT << 3;
-    long mask = 0XFFFFL;
-    return ((seed & mask) << shift) | (~(mask << shift) & pre0);
+
+  static long insertSketchType(final byte sketchType, final long pre0) {
+    final int shift = SKETCH_TYPE_BYTE << 3;
+    final long mask = 0XFFL;
+    return ((sketchType & mask) << shift) | (~(mask << shift) & pre0);
   }
-  
+
   static long insertBufAlloc(final int bufAlloc, final long pre4) {
     long mask = 0XFFFFFFFFL;
     return (bufAlloc & mask) | (~mask & pre4);

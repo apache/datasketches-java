@@ -11,14 +11,14 @@ import org.testng.annotations.Test;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
-public class UnionBuilderTest {
+public class DoublesUnionBuilderTest {
 
   @Test
   public void checkBuilds() {
-    UnionBuilder bldr = new UnionBuilder();
-    Union union = bldr.build(); //virgin union
+    DoublesUnionBuilder bldr = new DoublesUnionBuilder();
+    DoublesUnion union = bldr.build(128); //virgin union
     
-    QuantilesSketch qs1 = QuantilesSketch.builder().build();
+    DoublesQuantilesSketch qs1 = DoublesQuantilesSketch.builder().build();
     for (int i=0; i<1000; i++) qs1.update(i);
     int bytes = qs1.getStorageBytes();
     Memory dstMem = new NativeMemory(new byte[bytes]);
@@ -26,11 +26,11 @@ public class UnionBuilderTest {
     Memory srcMem = dstMem;
     
     union = bldr.build(srcMem);
-    QuantilesSketch qs2 = union.getResult();
+    DoublesQuantilesSketch qs2 = union.getResult();
     assertEquals(qs1.getStorageBytes(), qs2.getStorageBytes());
     
     union = bldr.copyBuild(qs2);
-    QuantilesSketch qs3 = union.getResult();
+    DoublesQuantilesSketch qs3 = union.getResult();
     assertEquals(qs2.getStorageBytes(), qs3.getStorageBytes());
     assertFalse(qs2 == qs3);
   }

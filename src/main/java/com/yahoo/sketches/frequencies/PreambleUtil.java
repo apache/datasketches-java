@@ -71,7 +71,6 @@ final class PreambleUtil {
 
   // Specific values for this implementation
   static final int SER_VER = 1;
-  static final int FREQ_SKETCH_TYPE = 1;
 
   /**
    * Returns a human readable string summary of the preamble state of the given Memory. 

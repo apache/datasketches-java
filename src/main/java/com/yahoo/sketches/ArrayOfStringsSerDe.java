@@ -1,4 +1,4 @@
-package com.yahoo.sketches.frequencies;
+package com.yahoo.sketches;
 
 import java.nio.charset.StandardCharsets;
 

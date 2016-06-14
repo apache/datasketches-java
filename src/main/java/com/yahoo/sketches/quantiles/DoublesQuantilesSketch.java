@@ -107,7 +107,7 @@ Table Guide for QuantilesSketch Size in Bytes and Approximate Error:
  * getPMF(splitPoints[]) may not result in the original fractional values.</p>
  *  
  */
-public abstract class QuantilesSketch {
+public abstract class DoublesQuantilesSketch {
   static final int MIN_BASE_BUF_SIZE = 4; //This is somewhat arbitrary
   
   /**
@@ -115,37 +115,29 @@ public abstract class QuantilesSketch {
    */
   protected final int k_;
 
-  /**
-   * Used to make results of QuantilesSketch deterministic given a stream in the same order. 
-   * Not recommended for general usage. Ignored if zero.
+  /*
+   * Setting the seed makes the results of the sketch deterministic if the input values are
+   * received in exactly the same order. This is only useful when performing test comparisons,
+   * otherwise is not recommended.
    */
-  protected final short seed_;
-  
-  protected static final Random rand = new Random();
-  
-  /**
-   * A seed of zero means that the seed of the random generator will not be set. 
-   */
-  static final short DEFAULT_SEED = 0;
-  
+  public static final Random rand = new Random();
+
   /**
    * Default value for about 1.7% normalized rank accuracy
    */
   static final int DEFAULT_K = 128;
   
-  QuantilesSketch(int k, short seed) {
+  DoublesQuantilesSketch(int k) {
     Util.checkK(k);
     k_ = k;
-    seed_ = seed;
-    if (seed != 0) QuantilesSketch.rand.setSeed(seed);
   }
   
   /**
    * Returns a new builder
    * @return a new builder
    */
-  public static final QuantilesSketchBuilder builder() {
-    return new QuantilesSketchBuilder();
+  public static final DoublesQuantilesSketchBuilder builder() {
+    return new DoublesQuantilesSketchBuilder();
   }
   
   /** 
@@ -314,13 +306,7 @@ public abstract class QuantilesSketch {
   public static double getNormalizedRankError(int k) {
     return Util.EpsilonFromK.getAdjustedEpsilon(k);
   }
-  
-  /**
-   * Returns the seed
-   * @return the seed
-   */
-  public abstract short getSeed();
-  
+
   /**
    * Returns true if this sketch is empty
    * @return true if this sketch is empty
@@ -330,11 +316,10 @@ public abstract class QuantilesSketch {
   }
   
   /**
-   * Resets this sketch to a virgin state, but retains the original value of k and the seed.
+   * Resets this sketch to a virgin state, but retains the original value of k.
    */
   public abstract void reset();
-  
-  
+
   /**
    * Serialize this sketch to a byte array form. 
    * @return byte array of this sketch
@@ -366,7 +351,7 @@ public abstract class QuantilesSketch {
    * It is required that this.getK() = smallerK * 2^(nonnegative integer).
    * @return the new sketch.
    */
-  public abstract QuantilesSketch downSample(int smallerK);
+  public abstract DoublesQuantilesSketch downSample(int smallerK);
 
   /**
    * Heapify takes the sketch image in Memory and instantiates an on-heap Sketch. 
@@ -375,8 +360,8 @@ public abstract class QuantilesSketch {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a heap-based Sketch based on the given Memory
    */
-  public static QuantilesSketch heapify(Memory srcMem) {
-    return HeapQuantilesSketch.getInstance(srcMem);
+  public static DoublesQuantilesSketch heapify(Memory srcMem) {
+    return HeapDoublesQuantilesSketch.getInstance(srcMem);
   }
 
   /**

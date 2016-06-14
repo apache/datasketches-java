@@ -6,15 +6,19 @@ package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.SER_VER;
+import static com.yahoo.sketches.quantiles.PreambleUtil.PREAMBLE_LONGS;
+import static com.yahoo.sketches.quantiles.PreambleUtil.N_LONG;
+import static com.yahoo.sketches.quantiles.PreambleUtil.BUFFER_DOUBLES_ALLOC_INT;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFamilyID;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractPreLongs;
-import static com.yahoo.sketches.quantiles.PreambleUtil.extractSeed;
+import static com.yahoo.sketches.quantiles.PreambleUtil.extractSketchType;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertFamilyID;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertFlags;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertSketchType;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertPreLongs;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerVer;
 import static com.yahoo.sketches.quantiles.Util.computeBaseBufferCount;
@@ -32,8 +36,11 @@ import com.yahoo.sketches.memory.NativeMemory;
  * @author Kevin Lang
  * @author Lee Rhodes
  */
-class HeapQuantilesSketch extends QuantilesSketch {
-  
+class HeapDoublesQuantilesSketch extends DoublesQuantilesSketch {
+
+  // unique number of a particular type of items in the sketch and serialized layout to check compatibility of sketches
+  static final byte SKETCH_TYPE = 1;
+
   /**
    * Total number of data items in the stream so far. (Uniqueness plays no role in these sketches).
    */
@@ -83,8 +90,8 @@ class HeapQuantilesSketch extends QuantilesSketch {
   double[] combinedBuffer_;
 
   //**CONSTRUCTORS**********************************************************
-  private HeapQuantilesSketch(int k, short seed) { //Not fully initialized!
-    super(k, seed);
+  private HeapDoublesQuantilesSketch(int k) { //Not fully initialized!
+    super(k);
   }
   
   /**
@@ -98,8 +105,8 @@ class HeapQuantilesSketch extends QuantilesSketch {
    * otherwise it will be used to set the seed of the random generator.
    * @return a HeapQuantileSketch
    */
-  static HeapQuantilesSketch getInstance(int k, short seed) {
-    HeapQuantilesSketch hqs = new HeapQuantilesSketch(k, seed);
+  static HeapDoublesQuantilesSketch getInstance(int k) {
+    HeapDoublesQuantilesSketch hqs = new HeapDoublesQuantilesSketch(k);
     int bufAlloc = Math.min(MIN_BASE_BUF_SIZE,2*k); //the min is important
     hqs.n_ = 0;
     hqs.combinedBufferAllocatedCount_ = bufAlloc;
@@ -117,10 +124,10 @@ class HeapQuantilesSketch extends QuantilesSketch {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a QuantilesSketch on the Java heap.
    */
-  static HeapQuantilesSketch getInstance(Memory srcMem) {
+  static HeapDoublesQuantilesSketch getInstance(Memory srcMem) {
     long memCapBytes = srcMem.getCapacity();
-    if (memCapBytes < 8) {
-      throw new IllegalArgumentException("Memory too small: "+memCapBytes);
+    if (memCapBytes < Long.BYTES) {
+      throw new IllegalArgumentException("Memory too small: " + memCapBytes);
     }
     long pre0 = srcMem.getLong(0);
     int preambleLongs = extractPreLongs(pre0);
@@ -128,37 +135,43 @@ class HeapQuantilesSketch extends QuantilesSketch {
     int familyID = extractFamilyID(pre0);
     int flags = extractFlags(pre0);
     int k = extractK(pre0);
-    short seed = (short)extractSeed(pre0);
-    
+    byte type = extractSketchType(pre0);
+
+    if (type != SKETCH_TYPE) {
+      throw new IllegalArgumentException(
+          "Possible Corruption: Sketch Type incorrect: " + type + " != " + SKETCH_TYPE);
+    }
+
     boolean empty = Util.checkPreLongsFlagsCap(preambleLongs, flags, memCapBytes);
     Util.checkFamilyID(familyID);
     Util.checkSerVer(serVer);
-    
-    HeapQuantilesSketch hqs = getInstance(k, seed);
-    
+
+    HeapDoublesQuantilesSketch hqs = getInstance(k);
+
     if (empty) return hqs;
-    
+
     //Not empty, must have valid preamble
-    long[] remainderPreArr = new long[4];
-    srcMem.getLongArray(8, remainderPreArr, 0, 4);
-    
-    long n = remainderPreArr[0];
-    double minValue = Double.longBitsToDouble(remainderPreArr[1]);
-    double maxValue = Double.longBitsToDouble(remainderPreArr[2]);
-    int memBufAlloc = (int) remainderPreArr[3];
-    
+    long[] remainderPreArr = new long[preambleLongs - 1];
+    srcMem.getLongArray(8, remainderPreArr, 0, remainderPreArr.length);
+
+    long n = remainderPreArr[(N_LONG >> 3) - 1];
+    int memBufAlloc = (int) remainderPreArr[(BUFFER_DOUBLES_ALLOC_INT >> 3) - 1];
+
     Util.checkBufAllocAndCap(k, n, memBufAlloc, memCapBytes);
-    
+
     //set class members
     hqs.n_ = n;
     hqs.combinedBufferAllocatedCount_ = memBufAlloc;
-    hqs.minValue_ = minValue;
-    hqs.maxValue_ = maxValue;
+    int offsetBytes = preambleLongs << 3;
+    hqs.minValue_ = srcMem.getDouble(offsetBytes);
+    offsetBytes += Double.BYTES;
+    hqs.maxValue_ = srcMem.getDouble(offsetBytes);
+    offsetBytes += Double.BYTES;
     hqs.baseBufferCount_ = computeBaseBufferCount(k, n);
     hqs.bitPattern_ = computeBitPattern(k, n);
     hqs.combinedBuffer_ = new double[memBufAlloc];
-    srcMem.getDoubleArray(40, hqs.combinedBuffer_, 0, memBufAlloc);
-    
+    srcMem.getDoubleArray(offsetBytes, hqs.combinedBuffer_, 0, memBufAlloc);
+
     return hqs;
   }
   
@@ -167,9 +180,9 @@ class HeapQuantilesSketch extends QuantilesSketch {
    * @param sketch the given sketch
    * @return a copy of the given sketch, which may be either Direct or on-heap
    */
-  static HeapQuantilesSketch copy(QuantilesSketch sketch) {
-    HeapQuantilesSketch qsCopy; 
-    qsCopy = HeapQuantilesSketch.getInstance(sketch.getK(), sketch.getSeed());
+  static HeapDoublesQuantilesSketch copy(DoublesQuantilesSketch sketch) {
+    HeapDoublesQuantilesSketch qsCopy; 
+    qsCopy = HeapDoublesQuantilesSketch.getInstance(sketch.getK());
     qsCopy.n_ = sketch.getN();
     qsCopy.minValue_ = sketch.getMinValue();
     qsCopy.maxValue_ = sketch.getMaxValue();
@@ -207,7 +220,7 @@ class HeapQuantilesSketch extends QuantilesSketch {
     if      (fraction == 0.0) { return minValue_; }
     else if (fraction == 1.0) { return maxValue_; }
     else {
-      Auxiliary aux = this.constructAuxiliary();
+      DoublesAuxiliary aux = this.constructAuxiliary();
       return aux.getQuantile(fraction);
     }
   }
@@ -215,7 +228,7 @@ class HeapQuantilesSketch extends QuantilesSketch {
   @Override
   public double[] getQuantiles(double[] fractions) {
     Util.validateFractions(fractions);
-    Auxiliary aux = null; //
+    DoublesAuxiliary aux = null; //
     double[] answers = new double[fractions.length];
     for (int i = 0; i < fractions.length; i++) {
       double fraction = fractions[i];
@@ -280,12 +293,7 @@ class HeapQuantilesSketch extends QuantilesSketch {
   public long getN() { 
     return n_; 
   }
-  
-  @Override
-  public short getSeed() {
-    return seed_;
-  }
-  
+
   @Override
   public void reset() {
     n_ = 0;
@@ -308,8 +316,8 @@ class HeapQuantilesSketch extends QuantilesSketch {
       flags = EMPTY_FLAG_MASK;
     }
     else {
-      preLongs = 5;
-      arrLongs = preLongs + combinedBuffer_.length;
+      preLongs = PREAMBLE_LONGS;
+      arrLongs = preLongs + 2 + combinedBuffer_.length; // 2 more for min and max values
       flags = 0;
     }
     byte[] outArr = new byte[arrLongs << 3];
@@ -323,19 +331,23 @@ class HeapQuantilesSketch extends QuantilesSketch {
     //other flags: bigEndian = readOnly = compact = ordered = false
     pre0 = insertFlags(flags, pre0);
     pre0 = insertK(k_, pre0);
+    pre0 = insertSketchType(SKETCH_TYPE, pre0);
     
     if (empty) {
       mem.putLong(0, pre0);
-    }
-    else {
-      long[] preArr = new long[5];
+    } else {
+      long[] preArr = new long[PREAMBLE_LONGS];
       preArr[0] = pre0;
-      preArr[1] = n_;
-      preArr[2] = Double.doubleToLongBits(minValue_);
-      preArr[3] = Double.doubleToLongBits(maxValue_);
-      preArr[4] = combinedBufferAllocatedCount_;
-      mem.putLongArray(0, preArr, 0, 5);
-      mem.putDoubleArray(40, combinedBuffer_, 0, combinedBuffer_.length);
+      preArr[N_LONG >> 3] = n_;
+      preArr[BUFFER_DOUBLES_ALLOC_INT >> 3] = combinedBufferAllocatedCount_;
+      int offsetBytes = 0;
+      mem.putLongArray(offsetBytes, preArr, 0, preArr.length);
+      offsetBytes += preArr.length << 3;
+      mem.putDouble(offsetBytes, minValue_);
+      offsetBytes += Double.BYTES;
+      mem.putDouble(offsetBytes, maxValue_);
+      offsetBytes += Double.BYTES;
+      mem.putDoubleArray(offsetBytes, combinedBuffer_, 0, combinedBuffer_.length);
     }
     return outArr;
   }
@@ -346,9 +358,9 @@ class HeapQuantilesSketch extends QuantilesSketch {
   }
   
   @Override
-  public QuantilesSketch downSample(int newK) {
-    HeapQuantilesSketch oldSketch = this;
-    HeapQuantilesSketch newSketch = HeapQuantilesSketch.getInstance(newK, QuantilesSketch.DEFAULT_SEED);
+  public DoublesQuantilesSketch downSample(int newK) {
+    HeapDoublesQuantilesSketch oldSketch = this;
+    HeapDoublesQuantilesSketch newSketch = HeapDoublesQuantilesSketch.getInstance(newK);
     Util.downSamplingMergeInto(oldSketch, newSketch);
     return newSketch;
   }
@@ -394,8 +406,8 @@ class HeapQuantilesSketch extends QuantilesSketch {
    * queries.
    * @return the Auxiliary data structure
    */
-  Auxiliary constructAuxiliary() {
-    return new Auxiliary( this );
+  DoublesAuxiliary constructAuxiliary() {
+    return new DoublesAuxiliary( this );
   }
   
 } // End of class HeapQuantilesSketch

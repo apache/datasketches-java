@@ -77,7 +77,7 @@ public enum Family {
   /**
    * The Quantiles family of sketches.
    */
-  QUANTILES(8, "QUANTILES", 1, 5),
+  QUANTILES(8, "QUANTILES", 1, 3),
   
   /**
    * The Tuple family of sketches

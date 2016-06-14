@@ -1,4 +1,4 @@
-package com.yahoo.sketches.frequencies;
+package com.yahoo.sketches;
 
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;

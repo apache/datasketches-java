@@ -13,7 +13,7 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.SER_VER;
-import static com.yahoo.sketches.quantiles.QuantilesSketch.*;
+import static com.yahoo.sketches.quantiles.DoublesQuantilesSketch.*;
 
 import java.util.Arrays;
 
@@ -168,7 +168,7 @@ final class Util {
    * @param sketch the given quantiles sketch
    * @return a checksum of all the samples in the sketch
    */ //Used by test
-  static double sumOfSamplesInSketch(HeapQuantilesSketch sketch) {
+  static double sumOfSamplesInSketch(HeapDoublesQuantilesSketch sketch) {
     double[] combinedBuffer = sketch.getCombinedBuffer();
     int bbCount = sketch.getBaseBufferCount();
     double total = sumOfDoublesInSubArray(combinedBuffer, 0, bbCount);
@@ -191,7 +191,7 @@ final class Util {
    * @param sketch the given quantiles sketch
    * @return the unnormalized, accumulated counts of <i>m + 1</i> intervals.
    */
-  static long[] internalBuildHistogram(double[] splitPoints, HeapQuantilesSketch sketch) {
+  static long[] internalBuildHistogram(double[] splitPoints, HeapDoublesQuantilesSketch sketch) {
     double[] levelsArr  = sketch.getCombinedBuffer(); // aliasing is a bit dangerous
     double[] baseBuffer = levelsArr;                  // aliasing is a bit dangerous
     int bbCount = sketch.getBaseBufferCount();
@@ -235,7 +235,7 @@ final class Util {
    * Called when the base buffer has just acquired 2*k elements.
    * @param sketch the given quantiles sketch
    */
-  static void processFullBaseBuffer(HeapQuantilesSketch sketch) {
+  static void processFullBaseBuffer(HeapDoublesQuantilesSketch sketch) {
     int bbCount = sketch.getBaseBufferCount();
     long n = sketch.getN();
     assert bbCount == 2 * sketch.getK();  // internal consistency check
@@ -253,8 +253,6 @@ final class Util {
         baseBuffer, 0,
         true, sketch);
     sketch.baseBufferCount_ = 0;
-    // just while debugging
-    //Arrays.fill(baseBuffer, 0, 2*k_, DUMMY_VALUE);
     assert n / (2*sketch.getK()) == sketch.getBitPattern();  // internal consistency check
   }
 
@@ -262,7 +260,7 @@ final class Util {
       int startingLevel,
       double[] sizeKBuf, int sizeKStart,
       double[] size2KBuf, int size2KStart,
-      boolean doUpdateVersion, HeapQuantilesSketch sketch) { // else doMergeIntoVersion
+      boolean doUpdateVersion, HeapDoublesQuantilesSketch sketch) { // else doMergeIntoVersion
     double[] levelsArr = sketch.getCombinedBuffer();
     long bitPattern = sketch.getBitPattern();
     int k = sketch.getK();
@@ -295,15 +293,13 @@ final class Util {
           size2KBuf, size2KStart,
           levelsArr, ((2+endingLevel) * k),
           k);
-      // just while debugging
-      //Arrays.fill(levelsArr, ((2+lvl) * k_), ((2+lvl+1) * k_), DUMMY_VALUE);
     } // end of loop over lower levels
   
     // update bit pattern with binary-arithmetic ripple carry
     sketch.bitPattern_ = bitPattern + (((long) 1) << startingLevel);
   }
 
-  static void maybeGrowLevels(long newN, HeapQuantilesSketch sketch) { // important: newN might not equal n_
+  static void maybeGrowLevels(long newN, HeapDoublesQuantilesSketch sketch) { // important: newN might not equal n_
     int k = sketch.getK();
     int numLevelsNeeded = computeNumLevelsNeeded(k, newN);
     if (numLevelsNeeded == 0) {
@@ -318,16 +314,11 @@ final class Util {
     }
     // copies base buffer plus old levels
     double[] newCombinedBuffer = Arrays.copyOf(sketch.getCombinedBuffer(), spaceNeeded); 
-    //    just while debugging
-    //for (int i = combinedBufferAllocatedCount_; i < spaceNeeded; i++) {
-    //  newCombinedBuffer[i] = DUMMY_VALUE;
-    //}
-  
     sketch.combinedBufferAllocatedCount_ = spaceNeeded;
     sketch.combinedBuffer_ = newCombinedBuffer;
   }
 
-  static void growBaseBuffer(HeapQuantilesSketch sketch) {
+  static void growBaseBuffer(HeapDoublesQuantilesSketch sketch) {
     double[] baseBuffer = sketch.getCombinedBuffer();
     int oldSize = sketch.getCombinedBufferAllocatedCount();
     int k = sketch.getK();
@@ -335,8 +326,6 @@ final class Util {
     int newSize = Math.max(Math.min(2*k, 2*oldSize), 1);
     sketch.combinedBufferAllocatedCount_ = newSize;
     double[] newBuf = Arrays.copyOf(baseBuffer, newSize);
-    // just while debugging
-    //for (int i = oldSize; i < newSize; i++) {newBuf[i] = DUMMY_VALUE;}
     sketch.combinedBuffer_ = newBuf;
   }
 
@@ -349,7 +338,7 @@ final class Util {
    * @param src The source sketch
    * @param tgt The target sketch
    */
-  static void downSamplingMergeInto(HeapQuantilesSketch src, HeapQuantilesSketch tgt) {
+  static void downSamplingMergeInto(HeapDoublesQuantilesSketch src, HeapDoublesQuantilesSketch tgt) {
     int targetK = tgt.getK();
     int sourceK = src.getK();
     
@@ -362,8 +351,8 @@ final class Util {
     checkIfPowerOf2(downFactor, "source.getK()/target.getK() ratio");
     int lgDownFactor = Integer.numberOfTrailingZeros(downFactor);
     
-    double [] sourceLevels     = src.getCombinedBuffer(); // aliasing is a bit dangerous
-    double [] sourceBaseBuffer = src.getCombinedBuffer(); // aliasing is a bit dangerous
+    double[] sourceLevels     = src.getCombinedBuffer(); // aliasing is a bit dangerous
+    double[] sourceBaseBuffer = src.getCombinedBuffer(); // aliasing is a bit dangerous
   
     long nFinal = tgt.getN() + src.getN();
     
@@ -373,8 +362,8 @@ final class Util {
   
     Util.maybeGrowLevels (nFinal, tgt); 
   
-    double [] scratchBuf = new double [2*targetK];
-    double [] downBuf    = new double [targetK];
+    double[] scratchBuf = new double [2*targetK];
+    double[] downBuf    = new double [targetK];
   
     long srcBitPattern = src.getBitPattern();
     for (int srcLvl = 0; srcBitPattern != 0L; srcLvl++, srcBitPattern >>>= 1) {
@@ -406,7 +395,7 @@ final class Util {
     
   }
 
-  static String toString(boolean sketchSummary, boolean dataDetail, HeapQuantilesSketch sketch) {
+  static String toString(boolean sketchSummary, boolean dataDetail, HeapDoublesQuantilesSketch sketch) {
     StringBuilder sb = new StringBuilder();
     String thisSimpleName = sketch.getClass().getSimpleName();
     int bbCount = sketch.getBaseBufferCount();
@@ -462,7 +451,6 @@ final class Util {
       sb.append(LS).append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
       sb.append("   K                            : ").append(k).append(LS);
       sb.append("   N                            : ").append(nStr).append(LS);
-      sb.append("   Seed                         : ").append(sketch.getSeed()).append(LS);
       sb.append("   BaseBufferCount              : ").append(bbCount).append(LS);
       sb.append("   CombinedBufferAllocatedCount : ").append(bufCntStr).append(LS);
       sb.append("   Total Levels                 : ").append(numLevels).append(LS);
@@ -487,7 +475,7 @@ final class Util {
     //    assert startA == 0; // just for now
   
     //    int randomOffset = (int) (2.0 * Math.random());
-    int randomOffset = (QuantilesSketch.rand.nextBoolean())? 1 : 0;
+    int randomOffset = (DoublesQuantilesSketch.rand.nextBoolean())? 1 : 0;
     //    assert randomOffset == 0 || randomOffset == 1;
   
     //    int limA = startA + 2*k;
@@ -503,7 +491,7 @@ final class Util {
       double[] bufC, int startC, // output
       int kC, // number of items that should be in the output
       int stride) {
-    int randomOffset = (QuantilesSketch.rand.nextInt(stride));
+    int randomOffset = (DoublesQuantilesSketch.rand.nextInt(stride));
     int limC = startC + kC;
   
     for (int a = startA + randomOffset, c = startC; c < limC; a += stride, c++ ) {
@@ -541,7 +529,7 @@ final class Util {
     }
   }
 
-  static boolean sameStructurePredicate( HeapQuantilesSketch mq1, HeapQuantilesSketch mq2) {
+  static boolean sameStructurePredicate( HeapDoublesQuantilesSketch mq1, HeapDoublesQuantilesSketch mq2) {
     return (
             (mq1.getK() == mq2.getK()) &&
             (mq1.getN() == mq2.getN()) &&
@@ -613,7 +601,7 @@ final class Util {
 
   //used by HeapQS
   static double lg(double x) {
-    return ( Math.log(x)) / (Math.log(2.0) );
+    return ( Math.log(x) / Math.log(2.0) );
   }
   
   /**
@@ -885,10 +873,10 @@ final class Util {
    */ //used by Heap QS
   static class EpsilonFromK {
     /**
-     *  Used while crunching down the empirical results.  If this value is changed the adjustKForEps
-     *  value will be incorrect and must also be recomputed.  Don't touch this!
+     *  Used while crunching down the empirical results. If this value is changed the adjustKForEps
+     *  value will be incorrect and must also be recomputed. Don't touch this!
      */
-    private static final double deltaForEps = 0.01;  
+    private static final double deltaForEps = 0.01;
 
     /**
      *  A heuristic fudge factor that causes the inverted formula to better match the empirical.
@@ -899,7 +887,7 @@ final class Util {
     /**
      *  Ridiculously fine tolerance given the fudge factor; 1e-3 would probably suffice
      */
-    private static final double bracketedBinarySearchForEpsTol = 1e-15; 
+    private static final double bracketedBinarySearchForEpsTol = 1e-15;
 
     /**
      * From extensive empirical testing we recommend most users use this method for deriving 
@@ -908,10 +896,10 @@ final class Util {
      * @return the resulting epsilon
      */ //used by HeapQS, so far
     static double getAdjustedEpsilon(int k) {
-      if (k == 1) return 1.0; 
+      if (k == 1) return 1.0;
       return getTheoreticalEpsilon(k, adjustKForEps);
     }
-    
+
     /**
      * Finds the epsilon given K and a fudge factor.
      * See Cormode's Mergeable Summaries paper, Journal version, Theorem 3.6. 
@@ -933,7 +921,7 @@ final class Util {
       assert !epsForKPredicate(hi, kf);
       return bracketedBinarySearchForEps(kf, lo, hi);
     }
-    
+
     private static double kOfEpsFormula(double eps) {
       return (1.0 / eps) * (Math.sqrt(Math.log(1.0 / (eps * deltaForEps))));
     }
@@ -961,13 +949,4 @@ final class Util {
     }
   } //End of EpsilonFromK
 
-//  public static void main(String[] args) {
-//    long v = 1;
-//    for (int i=0; i<64; i++) {
-//      long w = v << i;
-//      long w2 = w -1;
-//      System.out.println(i+"\t"+Long.toBinaryString(w2)+"\t"+hiBitPos(w2)+"\t"+w2);
-//    }
-//  }
-  
 }
