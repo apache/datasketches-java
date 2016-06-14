@@ -8,6 +8,10 @@
 
 ## [Documentation](http://datasketches.github.io)
 
+
+## [Comments](https://groups.google.com/forum/#!forum/sketches-user)
+
+
 ## [Building](https://github.com/DataSketches/sketches-core/blob/master/README_building.md)
 
 
