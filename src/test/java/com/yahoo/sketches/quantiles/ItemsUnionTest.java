@@ -16,6 +16,32 @@ import com.yahoo.sketches.memory.NativeMemory;
 public class ItemsUnionTest {
 
   @Test
+  public void empty() {
+    ItemsUnion<Integer> union = ItemsUnion.getInstance(128, Comparator.naturalOrder());
+
+    union.update((ItemsQuantilesSketch<Integer>) null);
+    ItemsQuantilesSketch<Integer> result = union.getResult();
+    Assert.assertTrue(result.isEmpty());
+    Assert.assertEquals(result.getN(), 0);
+    Assert.assertNull(result.getMinValue());
+    Assert.assertNull(result.getMaxValue());
+
+    union.update((Integer) null);
+    result = union.getResult();
+    Assert.assertTrue(result.isEmpty());
+    Assert.assertEquals(result.getN(), 0);
+    Assert.assertNull(result.getMinValue());
+    Assert.assertNull(result.getMaxValue());
+
+    union.update(ItemsQuantilesSketch.getInstance(Comparator.naturalOrder()));
+    result = union.getResult();
+    Assert.assertTrue(result.isEmpty());
+    Assert.assertEquals(result.getN(), 0);
+    Assert.assertNull(result.getMinValue());
+    Assert.assertNull(result.getMaxValue());
+  }
+
+  @Test
   public void sameK() {
     ItemsUnion<Long> union = ItemsUnion.getInstance(128, Comparator.naturalOrder());
     ItemsQuantilesSketch<Long> result = union.getResult();

@@ -16,6 +16,7 @@ public class ItemsQuantilesSketchTest {
   public void empty() {
     ItemsQuantilesSketch<String> sketch = ItemsQuantilesSketch.getInstance(128, Comparator.naturalOrder());
     Assert.assertNotNull(sketch);
+    Assert.assertTrue(sketch.isEmpty());
     Assert.assertEquals(sketch.getN(), 0);
     Assert.assertEquals(sketch.getRetainedEntries(), 0);
     Assert.assertNull(sketch.getMinValue());
@@ -84,6 +85,14 @@ public class ItemsQuantilesSketchTest {
       Assert.assertEquals(cdf[0], 0.0);
       Assert.assertEquals(cdf[1], 1.0);
     }
+
+    sketch.reset();
+    Assert.assertTrue(sketch.isEmpty());
+    Assert.assertEquals(sketch.getN(), 0);
+    Assert.assertEquals(sketch.getRetainedEntries(), 0);
+    Assert.assertNull(sketch.getMinValue());
+    Assert.assertNull(sketch.getMaxValue());
+    Assert.assertNull(sketch.getQuantile(0.5));
   }
 
   @Test
@@ -98,7 +107,7 @@ public class ItemsQuantilesSketchTest {
     Assert.assertEquals(sketch.getQuantile(0.5), Integer.valueOf(500), 17);
     Integer[] quantiles = sketch.getQuantiles(new double[] {0, 0.5, 1});
     Assert.assertEquals(quantiles[0], Integer.valueOf(1)); // min value
-    Assert.assertEquals(quantiles[1], Integer.valueOf(500), 20); // median
+    Assert.assertEquals(quantiles[1], Integer.valueOf(500), 17); // median
     Assert.assertEquals(quantiles[2], Integer.valueOf(1000)); // max value
 
     {

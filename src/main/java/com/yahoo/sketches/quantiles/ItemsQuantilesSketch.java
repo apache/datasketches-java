@@ -317,7 +317,8 @@ public class ItemsQuantilesSketch<T> {
    */
   public void update(final T dataItem) {
     // this method only uses the base buffer part of the combined buffer
-  
+
+    if (dataItem == null) return;
     if (maxValue_ == null || comparator_.compare(dataItem, maxValue_) > 0) { maxValue_ = dataItem; }
     if (minValue_ == null || comparator_.compare(dataItem, minValue_) < 0) { minValue_ = dataItem; }
   
