@@ -38,7 +38,7 @@ import com.yahoo.sketches.memory.NativeMemory;
 
 /**
  * This is a stochastic streaming sketch that enables near-real time analysis of the 
- * approximate distribution of real values from a very large stream in a single pass. 
+ * approximate distribution of values from a very large stream in a single pass. 
  * The analysis is obtained using a getQuantiles(*) function or its inverse functions the 
  * Probability Mass Function from getPMF(*) and the Cumulative Distribution Function from getCDF(*).
  * 
@@ -116,13 +116,12 @@ Table Guide for QuantilesSketch Size in Bytes and Approximate Error:
  * <p>There is more documentation available on 
  * <a href="http://datasketches.github.io">DataSketches.GitHub.io</a>.</p>
  * 
- * <p>This is an implementation of the Low Discrepancy Mergeable Quantiles Sketch, using double 
- * values, described in section 3.2 of the journal version of the paper "Mergeable Summaries" 
- * by Agarwal, Cormode, Huang, Phillips, Wei, and Yi. 
+ * <p>This is an implementation of the Low Discrepancy Mergeable Quantiles Sketch, using arbitrary
+ * comparable values, described in section 3.2 of the journal version of the paper
+ * "Mergeable Summaries" by Agarwal, Cormode, Huang, Phillips, Wei, and Yi. 
  * <a href="http://dblp.org/rec/html/journals/tods/AgarwalCHPWY13"></a></p>
  * 
- * <p>This algorithm is independent of the distribution of values, which can be anywhere in the
- * range of the IEEE-754 64-bit doubles. 
+ * <p>This algorithm is independent of the distribution of values.
  * 
  * <p>This algorithm intentionally inserts randomness into the sampling process for values that
  * ultimately get retained in the sketch. The results produced by this algorithm are not 
