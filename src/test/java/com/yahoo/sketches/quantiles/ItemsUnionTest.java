@@ -16,29 +16,75 @@ import com.yahoo.sketches.memory.NativeMemory;
 public class ItemsUnionTest {
 
   @Test
-  public void empty() {
+  public void nullAndEmpty() {
     ItemsUnion<Integer> union = ItemsUnion.getInstance(128, Comparator.naturalOrder());
 
-    union.update((ItemsQuantilesSketch<Integer>) null);
+    // internal sketch is null at this point
+    union.update((Integer) null);
     ItemsQuantilesSketch<Integer> result = union.getResult();
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getN(), 0);
     Assert.assertNull(result.getMinValue());
     Assert.assertNull(result.getMaxValue());
 
-    union.update((Integer) null);
+    // internal sketch is empty at this point because getResult() instantiated it
+    union.update((ItemsQuantilesSketch<Integer>) null);
     result = union.getResult();
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getN(), 0);
     Assert.assertNull(result.getMinValue());
     Assert.assertNull(result.getMaxValue());
 
+    union.reset();
+    // internal sketch is null again
+    union.update((ItemsQuantilesSketch<Integer>) null);
+    result = union.getResult();
+    Assert.assertTrue(result.isEmpty());
+    Assert.assertEquals(result.getN(), 0);
+    Assert.assertNull(result.getMinValue());
+    Assert.assertNull(result.getMaxValue());
+
+    // internal sketch is not null again because getResult() instantiated it
     union.update(ItemsQuantilesSketch.getInstance(Comparator.naturalOrder()));
     result = union.getResult();
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getN(), 0);
     Assert.assertNull(result.getMinValue());
     Assert.assertNull(result.getMaxValue());
+
+    union.reset();
+    // internal sketch is null again
+    union.update(ItemsQuantilesSketch.getInstance(Comparator.naturalOrder()));
+    result = union.getResult();
+    Assert.assertTrue(result.isEmpty());
+    Assert.assertEquals(result.getN(), 0);
+    Assert.assertNull(result.getMinValue());
+    Assert.assertNull(result.getMaxValue());
+  }
+
+  @Test
+  public void nullAndEmptyInputsToNonEmptyUnion() {
+    ItemsUnion<Integer> union = ItemsUnion.getInstance(128, Comparator.naturalOrder());
+    union.update(1);
+    ItemsQuantilesSketch<Integer> result = union.getResult();
+    Assert.assertFalse(result.isEmpty());
+    Assert.assertEquals(result.getN(), 1);
+    Assert.assertEquals(result.getMinValue(), Integer.valueOf(1));
+    Assert.assertEquals(result.getMaxValue(), Integer.valueOf(1));
+
+    union.update((ItemsQuantilesSketch<Integer>) null);
+    result = union.getResult();
+    Assert.assertFalse(result.isEmpty());
+    Assert.assertEquals(result.getN(), 1);
+    Assert.assertEquals(result.getMinValue(), Integer.valueOf(1));
+    Assert.assertEquals(result.getMaxValue(), Integer.valueOf(1));
+
+    union.update(ItemsQuantilesSketch.getInstance(Comparator.naturalOrder()));
+    result = union.getResult();
+    Assert.assertFalse(result.isEmpty());
+    Assert.assertEquals(result.getN(), 1);
+    Assert.assertEquals(result.getMinValue(), Integer.valueOf(1));
+    Assert.assertEquals(result.getMaxValue(), Integer.valueOf(1));
   }
 
   @Test
@@ -122,6 +168,15 @@ public class ItemsUnionTest {
     Assert.assertEquals(result.getN(), 0);
     Assert.assertNull(result.getMinValue());
     Assert.assertNull(result.getMaxValue());
+  }
+
+  @Test
+  public void toStringCrudeCheck() {
+    ItemsUnion<String> union = ItemsUnion.getInstance(128, Comparator.naturalOrder());
+    union.update("a");
+    String brief = union.toString();
+    String full = union.toString(true, true);
+    Assert.assertTrue(brief.length() < full.length());
   }
 
 }

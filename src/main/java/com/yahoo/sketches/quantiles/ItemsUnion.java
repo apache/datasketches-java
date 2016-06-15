@@ -17,15 +17,6 @@ import com.yahoo.sketches.memory.Memory;
  */
 public class ItemsUnion<T> {
 
-  /**
-   * Returns a new UnionBuilder
-   * @return a new UnionBuilder
-   */
-  public static final DoublesUnionBuilder builder() {
-    //return new UnionBuilder();
-    return null;
-  }
-
   protected final int k_;
   protected final Comparator<? super T> comparator_;
   protected ItemsQuantilesSketch<T> gadget_;
@@ -223,6 +214,7 @@ public class ItemsUnion<T> {
    * @param dataItem The given datum.
    */
   public void update(final T dataItem) {
+    if (dataItem == null) return;
     if (gadget_ == null) gadget_ = ItemsQuantilesSketch.getInstance(k_, comparator_);
     gadget_.update(dataItem);
   }
