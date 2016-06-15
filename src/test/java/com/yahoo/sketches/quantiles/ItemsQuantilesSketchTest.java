@@ -94,7 +94,12 @@ public class ItemsQuantilesSketchTest {
     Assert.assertTrue(sketch.getRetainedEntries() < 1000);
     Assert.assertEquals(sketch.getMinValue(), Integer.valueOf(1));
     Assert.assertEquals(sketch.getMaxValue(), Integer.valueOf(1000));
-    Assert.assertEquals(sketch.getQuantile(0.5), Integer.valueOf(500), 20); // based on rank error for this particular case
+    // based on ~1.7% normalized rank error for this particular case
+    Assert.assertEquals(sketch.getQuantile(0.5), Integer.valueOf(500), 17);
+    Integer[] quantiles = sketch.getQuantiles(new double[] {0, 0.5, 1});
+    Assert.assertEquals(quantiles[0], Integer.valueOf(1)); // min value
+    Assert.assertEquals(quantiles[1], Integer.valueOf(500), 20); // median
+    Assert.assertEquals(quantiles[2], Integer.valueOf(1000)); // max value
 
     {
       double[] pmf = sketch.getPMF(new Integer[0]);
@@ -166,6 +171,33 @@ public class ItemsQuantilesSketchTest {
     Assert.assertEquals(sketch2.getMaxValue(), Integer.toBinaryString(1000 << 10));
     // based on ~1.7% normalized rank error for this particular case
     Assert.assertEquals(Integer.parseInt(sketch2.getQuantile(0.5), 2) >> 10, Integer.valueOf(500), 17);
+  }
+
+  @Test
+  public void toStringCrudeCheck() {
+    ItemsQuantilesSketch<String> sketch = ItemsQuantilesSketch.getInstance(Comparator.naturalOrder());
+    sketch.update("a");
+    String brief = sketch.toString();
+    String full = sketch.toString(true, true);
+    Assert.assertTrue(brief.length() < full.length());
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void unorderedSplitPoints() {
+    ItemsQuantilesSketch<Integer> sketch = ItemsQuantilesSketch.getInstance(Comparator.naturalOrder());
+    sketch.getPMF(new Integer[] {2, 1});
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void nonUniqueSplitPoints() {
+    ItemsQuantilesSketch<Integer> sketch = ItemsQuantilesSketch.getInstance(Comparator.naturalOrder());
+    sketch.getPMF(new Integer[] {1, 1});
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void nullInSplitPoints() {
+    ItemsQuantilesSketch<Integer> sketch = ItemsQuantilesSketch.getInstance(Comparator.naturalOrder());
+    sketch.getPMF(new Integer[] {1, null});
   }
 
 }

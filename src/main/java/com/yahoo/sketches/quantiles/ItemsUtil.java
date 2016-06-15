@@ -27,7 +27,8 @@ final class ItemsUtil {
   static final <T> void validateValues(final T[] values, final Comparator<? super T> comparator) {
     final int lenM1 = values.length - 1;
     for (int j = 0; j < lenM1; j++) {
-      if (comparator.compare(values[j], values[j + 1]) < 0) continue;
+      if (values[j] != null && values[j + 1] != null &&
+          comparator.compare(values[j], values[j + 1]) < 0) continue;
       throw new IllegalArgumentException(
           "Values must be unique, monotonically increasing and not null.");
     }
@@ -133,13 +134,13 @@ final class ItemsUtil {
     for (int lvl = startingLevel; lvl < endingLevel; lvl++) {
       assert (bitPattern & (1L << lvl)) > 0; // internal consistency check
       mergeTwoSizeKBuffers(
-          (T[]) levelsArr, ((2+lvl) * k),
-          (T[]) levelsArr, ((2+endingLevel) * k),
+          (T[]) levelsArr, (2+lvl) * k,
+          (T[]) levelsArr, (2+endingLevel) * k,
           size2KBuf, size2KStart,
           k, sketch.getComparator());
       zipSize2KBuffer(
           size2KBuf, size2KStart,
-          levelsArr, ((2+endingLevel) * k),
+          levelsArr, (2+endingLevel) * k,
           k);
       // to release the discarded objects
       Arrays.fill(levelsArr, (2 + lvl) * k, (2 + lvl + 1) * k, null);
@@ -209,7 +210,7 @@ final class ItemsUtil {
       tgt.update((T) sourceBaseBuffer[i]);
     }
 
-    maybeGrowLevels(nFinal, tgt); 
+    maybeGrowLevels(nFinal, tgt);
 
     final Object[] scratchBuf = new Object[2 * targetK];
     final Object[] downBuf    = new Object[targetK];

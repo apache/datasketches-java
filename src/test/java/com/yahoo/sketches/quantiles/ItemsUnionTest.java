@@ -16,7 +16,7 @@ import com.yahoo.sketches.memory.NativeMemory;
 public class ItemsUnionTest {
 
   @Test
-  public void test() {
+  public void sameK() {
     ItemsUnion<Long> union = ItemsUnion.getInstance(128, Comparator.naturalOrder());
     ItemsQuantilesSketch<Long> result = union.getResult();
     Assert.assertEquals(result.getN(), 0);
@@ -48,6 +48,49 @@ public class ItemsUnionTest {
     Assert.assertEquals(result.getMinValue(), Long.valueOf(1));
     Assert.assertEquals(result.getMaxValue(), Long.valueOf(3000));
     Assert.assertEquals(result.getQuantile(0.5), 1500, 51); // ~1.7% normalized rank error
+
+    result = union.getResult();
+    Assert.assertEquals(result.getN(), 0);
+    Assert.assertNull(result.getMinValue());
+    Assert.assertNull(result.getMaxValue());
+  }
+
+  @Test
+  public void differentK() {
+    ItemsUnion<Long> union = ItemsUnion.getInstance(512, Comparator.naturalOrder());
+    ItemsQuantilesSketch<Long> result = union.getResult();
+    Assert.assertEquals(result.getN(), 0);
+    Assert.assertNull(result.getMinValue());
+    Assert.assertNull(result.getMaxValue());
+
+    for (int i = 1; i <= 10000; i++) union.update((long) i);
+    result = union.getResult();
+    Assert.assertEquals(result.getK(), 512);
+    Assert.assertEquals(result.getN(), 10000);
+    Assert.assertEquals(result.getMinValue(), Long.valueOf(1));
+    Assert.assertEquals(result.getMaxValue(), Long.valueOf(10000));
+    Assert.assertEquals(result.getQuantile(0.5), 5000, 50); // ~0.5% normalized rank error
+
+    ItemsQuantilesSketch<Long> sketch1 = ItemsQuantilesSketch.getInstance(256, Comparator.naturalOrder());
+    for (int i = 10001; i <= 20000; i++) sketch1.update((long) i);
+    union.update(sketch1);
+    result = union.getResult();
+    Assert.assertEquals(result.getK(), 256);
+    Assert.assertEquals(result.getN(), 20000);
+    Assert.assertEquals(result.getMinValue(), Long.valueOf(1));
+    Assert.assertEquals(result.getMaxValue(), Long.valueOf(20000));
+    Assert.assertEquals(result.getQuantile(0.5), 10000, 180); // ~0.9% normalized rank error
+
+    ItemsQuantilesSketch<Long> sketch2 = ItemsQuantilesSketch.getInstance(128, Comparator.naturalOrder());
+    for (int i = 20001; i <= 30000; i++) sketch2.update((long) i);
+    ArrayOfItemsSerDe<Long> serDe = new ArrayOfLongsSerDe();
+    union.update(new NativeMemory(sketch2.toByteArray(serDe)), Comparator.naturalOrder(), serDe);
+    result = union.getResultAndReset();
+    Assert.assertEquals(result.getK(), 128);
+    Assert.assertEquals(result.getN(), 30000);
+    Assert.assertEquals(result.getMinValue(), Long.valueOf(1));
+    Assert.assertEquals(result.getMaxValue(), Long.valueOf(30000));
+    Assert.assertEquals(result.getQuantile(0.5), 15000, 510); // ~1.7% normalized rank error
 
     result = union.getResult();
     Assert.assertEquals(result.getN(), 0);
