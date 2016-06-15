@@ -132,8 +132,8 @@ public class HeapDoublesQuantilesSketchTest {
         assertTrue(auxItems.length == numSamples);
         assertTrue(auxAccum.length == numSamples + 1);
 
-        double mqSumOfSamples = Util.sumOfSamplesInSketch(qs);
-        double auSumOfSamples = Util.sumOfDoublesInSubArray(auxItems, 0, numSamples);
+        double mqSumOfSamples = sumOfSamplesInSketch(qs);
+        double auSumOfSamples = sumOfDoublesInSubArray(auxItems, 0, numSamples);
 
         // the following test might be able to detect errors in handling the samples
         // e.g. accidentally dropping or duplicating a sample
@@ -565,12 +565,12 @@ public class HeapDoublesQuantilesSketchTest {
     HeapDoublesQuantilesSketch directSketch = HeapDoublesQuantilesSketch.getInstance(2);
     HeapDoublesQuantilesSketch downSketch;
     downSketch = (HeapDoublesQuantilesSketch)origSketch.downSample(2);
-    assertTrue(Util.sameStructurePredicate (directSketch, downSketch));
+    assertTrue(sameStructurePredicate (directSketch, downSketch));
     for (int i = 0; i < 50; i++) {
       origSketch.update (i);
       directSketch.update (i);
       downSketch = (HeapDoublesQuantilesSketch)origSketch.downSample(2);
-      assertTrue (Util.sameStructurePredicate (directSketch, downSketch));
+      assertTrue (sameStructurePredicate (directSketch, downSketch));
     }
     
   }
@@ -594,8 +594,8 @@ public class HeapDoublesQuantilesSketchTest {
         for (int i2 = 1; i2 <= n2; i2++ ) {
           smlSketch.update(i2);
         }
-        Util.downSamplingMergeInto(bigSketch, smlSketch);
-        assertTrue (Util.sameStructurePredicate(directSketch, smlSketch));
+        DoublesUtil.downSamplingMergeInto(bigSketch, smlSketch);
+        assertTrue (sameStructurePredicate(directSketch, smlSketch));
       }
     }
   }
@@ -621,7 +621,7 @@ public class HeapDoublesQuantilesSketchTest {
         }
         DoublesUnion union = DoublesUnion.builder().build(smlSketch);
         union.update(bigSketch);
-        assertTrue (Util.sameStructurePredicate(directSketch, smlSketch));
+        assertTrue (sameStructurePredicate(directSketch, smlSketch));
       }
     }
   }
@@ -835,7 +835,47 @@ public class HeapDoublesQuantilesSketchTest {
     
   }
   
-  
+  /**
+   * Computes a checksum of all the samples in the sketch. Used in testing the Auxiliary
+   * @param sketch the given quantiles sketch
+   * @return a checksum of all the samples in the sketch
+   */
+  private static double sumOfSamplesInSketch(HeapDoublesQuantilesSketch sketch) {
+    double[] combinedBuffer = sketch.getCombinedBuffer();
+    int bbCount = sketch.getBaseBufferCount();
+    double total = sumOfDoublesInSubArray(combinedBuffer, 0, bbCount);
+    long bits = sketch.getBitPattern();
+    int k = sketch.getK();
+    assert bits == sketch.getN() / (2L * k); // internal consistency check
+    for (int lvl = 0; bits != 0L; lvl++, bits >>>= 1) {
+      if ((bits & 1L) > 0L) {
+        total += sumOfDoublesInSubArray(combinedBuffer, ((2+lvl) * k), k);
+      }
+    }
+    return total;
+  }
+
+  private static double sumOfDoublesInSubArray(double[] arr, int subArrayStart, int subArrayLength) {
+    double total = 0.0;
+    int subArrayStop = subArrayStart + subArrayLength;
+    for (int i = subArrayStart; i < subArrayStop; i++) {
+      total += arr[i];
+    }
+    return total;
+  }
+
+  private static boolean sameStructurePredicate(final HeapDoublesQuantilesSketch mq1, final HeapDoublesQuantilesSketch mq2) {
+    return (
+            (mq1.getK() == mq2.getK()) &&
+            (mq1.getN() == mq2.getN()) &&
+            (mq1.getCombinedBufferAllocatedCount() == mq2.getCombinedBufferAllocatedCount()) &&
+            (mq1.getBaseBufferCount() == mq2.getBaseBufferCount()) &&
+            (mq1.getBitPattern() == mq2.getBitPattern()) &&
+            (mq1.getMinValue() == mq2.getMinValue()) &&
+            (mq1.getMaxValue() == mq2.getMaxValue())
+           );
+  }
+
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
@@ -854,5 +894,5 @@ public class HeapDoublesQuantilesSketchTest {
   static void print(String s) {
     //System.err.print(s); //disable here
   }
-  
+
 }

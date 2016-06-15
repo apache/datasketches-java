@@ -618,8 +618,7 @@ public class ItemsQuantilesSketch<T> {
    * @return summary information about the sketch.
    */
   public String toString(final boolean sketchSummary, final boolean dataDetail) {
-    //return GenericUtil.toString(sketchSummary, dataDetail, this);
-    return null;
+    return ItemsUtil.toString(sketchSummary, dataDetail, this);
   }
 
   /**

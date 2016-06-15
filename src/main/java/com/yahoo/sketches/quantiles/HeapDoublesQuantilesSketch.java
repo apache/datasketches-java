@@ -203,12 +203,12 @@ class HeapDoublesQuantilesSketch extends DoublesQuantilesSketch {
     if (dataItem < minValue_) { minValue_ = dataItem; }
 
     if (baseBufferCount_+1 > combinedBufferAllocatedCount_) {
-      Util.growBaseBuffer(this);
+      DoublesUtil.growBaseBuffer(this);
     } 
     combinedBuffer_[baseBufferCount_++] = dataItem;
     n_++;
     if (baseBufferCount_ == 2*k_) {
-      Util.processFullBaseBuffer(this);
+      DoublesUtil.processFullBaseBuffer(this);
     }
   }
 
@@ -244,7 +244,7 @@ class HeapDoublesQuantilesSketch extends DoublesQuantilesSketch {
 
   @Override
   public double[] getPMF(double[] splitPoints) {
-    long[] counters = Util.internalBuildHistogram(splitPoints, this);
+    long[] counters = DoublesUtil.internalBuildHistogram(splitPoints, this);
     int numCounters = counters.length;
     double[] result = new double[numCounters];
     double n = n_;
@@ -260,7 +260,7 @@ class HeapDoublesQuantilesSketch extends DoublesQuantilesSketch {
 
   @Override
   public double[] getCDF(double[] splitPoints) {
-    long[] counters = Util.internalBuildHistogram(splitPoints, this);
+    long[] counters = DoublesUtil.internalBuildHistogram(splitPoints, this);
     int numCounters = counters.length;
     double[] result = new double[numCounters];
     double n = n_;
@@ -354,14 +354,14 @@ class HeapDoublesQuantilesSketch extends DoublesQuantilesSketch {
   
   @Override
   public String toString(boolean sketchSummary, boolean dataDetail) {
-    return Util.toString(sketchSummary, dataDetail, this);
+    return DoublesUtil.toString(sketchSummary, dataDetail, this);
   }
   
   @Override
   public DoublesQuantilesSketch downSample(int newK) {
     HeapDoublesQuantilesSketch oldSketch = this;
     HeapDoublesQuantilesSketch newSketch = HeapDoublesQuantilesSketch.getInstance(newK);
-    Util.downSamplingMergeInto(oldSketch, newSketch);
+    DoublesUtil.downSamplingMergeInto(oldSketch, newSketch);
     return newSketch;
   }
   
