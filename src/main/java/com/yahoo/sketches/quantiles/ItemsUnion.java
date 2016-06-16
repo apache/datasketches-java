@@ -29,6 +29,7 @@ public class ItemsUnion<T> {
 
   /**
    * Create an instance of ItemsUnion
+   * @param <T> type of item
    * @param k Parameter that controls space usage of sketch and accuracy of estimates.
    * It is recommended that <i>k</i> be a power of 2 to enable merging of sketches with
    * different values of <i>k</i>. However, in this case it is only possible to merge from 
@@ -42,6 +43,7 @@ public class ItemsUnion<T> {
 
   /**
    * Heapify the given srcMem into a Union object.
+   * @param <T> type of item
    * @param srcMem the given srcMem. 
    * A reference to srcMem will not be maintained internally.
    * @param comparator to compare items
@@ -55,6 +57,7 @@ public class ItemsUnion<T> {
 
   /**
    * Create an instance of ItemsUnion based on ItemsSketch
+   * @param <T> type of item
    * @param sketch the basis of the union
    * @return an instance of ItemsUnion
    */

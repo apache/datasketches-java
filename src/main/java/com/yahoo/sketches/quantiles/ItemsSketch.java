@@ -208,6 +208,7 @@ public class ItemsSketch<T> {
 
   /**
    * Obtains an instance of a GenericQuantileSketch.
+   * @param <T> type of item
    * @param comparator to compare items 
    * @return a GenericQuantileSketch
    */
@@ -217,12 +218,12 @@ public class ItemsSketch<T> {
 
   /**
    * Obtains an instance of a GenericQuantileSketch.
-   * 
+   * @param <T> type of item
    * @param k Parameter that controls space usage of sketch and accuracy of estimates. 
    * Must be greater than 0 and less than 65536.
    * It is recommended that <i>k</i> be a power of 2 to enable merging of sketches with
    * different values of <i>k</i>.
-   * @param comparator to compare items 
+   * @param comparator to compare items
    * @return a GenericQuantileSketch
    */
   public static <T> ItemsSketch<T> getInstance(final int k, final Comparator<? super T> comparator) {
@@ -240,6 +241,7 @@ public class ItemsSketch<T> {
 
   /**
    * Heapifies the given srcMem, which must be a Memory image of a GenericQuantilesSketch
+   * @param <T> type of item
    * @param srcMem a Memory image of a sketch.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param comparator to compare items
