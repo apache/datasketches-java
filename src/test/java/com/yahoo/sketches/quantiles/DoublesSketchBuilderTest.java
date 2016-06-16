@@ -13,7 +13,7 @@ import org.testng.annotations.Test;
 //import com.yahoo.sketches.memory.NativeMemory;
 
 
-public class DoublesQuantilesSketchBuilderTest {
+public class DoublesSketchBuilderTest {
 
   @Test
   public void checkBuilder() {
@@ -21,7 +21,7 @@ public class DoublesQuantilesSketchBuilderTest {
 //    byte[] byteArr = new byte[k]; //dummy value
 //    Memory mem = new NativeMemory(byteArr);
     
-    DoublesQuantilesSketchBuilder bldr = DoublesQuantilesSketch.builder();
+    DoublesSketchBuilder bldr = DoublesSketch.builder();
     
     bldr.setK(k);
     assertEquals(bldr.getK(), k);
@@ -31,8 +31,8 @@ public class DoublesQuantilesSketchBuilderTest {
     
     println(bldr.toString());
     
-    bldr = DoublesQuantilesSketch.builder();
-    assertEquals(bldr.getK(), DoublesQuantilesSketch.DEFAULT_K);
+    bldr = DoublesSketch.builder();
+    assertEquals(bldr.getK(), DoublesSketch.DEFAULT_K);
 //    assertNull(bldr.getMemory());
   }
   

@@ -1,3 +1,8 @@
+/*
+ * Copyright 2016, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
+
 package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.Util.checkIfPowerOf2;
@@ -29,7 +34,7 @@ final class DoublesUtil {
    * @param sketch the given quantiles sketch
    * @return the unnormalized, accumulated counts of <i>m + 1</i> intervals.
    */
-  static long[] internalBuildHistogram(final double[] splitPoints, final HeapDoublesQuantilesSketch sketch) {
+  static long[] internalBuildHistogram(final double[] splitPoints, final HeapDoublesSketch sketch) {
     final double[] levelsArr  = sketch.getCombinedBuffer();
     final double[] baseBuffer = levelsArr;
     final int bbCount = sketch.getBaseBufferCount();
@@ -69,7 +74,7 @@ final class DoublesUtil {
    * Called when the base buffer has just acquired 2*k elements.
    * @param sketch the given quantiles sketch
    */
-  static void processFullBaseBuffer(final HeapDoublesQuantilesSketch sketch) {
+  static void processFullBaseBuffer(final HeapDoublesSketch sketch) {
     final int bbCount = sketch.getBaseBufferCount();
     final long n = sketch.getN();
     assert bbCount == 2 * sketch.getK(); // internal consistency check
@@ -94,7 +99,7 @@ final class DoublesUtil {
       final int startingLevel,
       final double[] sizeKBuf, final int sizeKStart,
       final double[] size2KBuf, final int size2KStart,
-      final boolean doUpdateVersion, final HeapDoublesQuantilesSketch sketch) { // else doMergeIntoVersion
+      final boolean doUpdateVersion, final HeapDoublesSketch sketch) { // else doMergeIntoVersion
     final double[] levelsArr = sketch.getCombinedBuffer();
     final long bitPattern = sketch.getBitPattern();
     final int k = sketch.getK();
@@ -131,7 +136,7 @@ final class DoublesUtil {
     sketch.bitPattern_ = bitPattern + (1L << startingLevel);
   }
 
-  static void maybeGrowLevels(final long newN, final HeapDoublesQuantilesSketch sketch) { // important: newN might not equal n_
+  static void maybeGrowLevels(final long newN, final HeapDoublesSketch sketch) { // important: newN might not equal n_
     final int k = sketch.getK();
     final int numLevelsNeeded = Util.computeNumLevelsNeeded(k, newN);
     if (numLevelsNeeded == 0) {
@@ -149,7 +154,7 @@ final class DoublesUtil {
     sketch.combinedBufferAllocatedCount_ = spaceNeeded;
   }
 
-  static void growBaseBuffer(final HeapDoublesQuantilesSketch sketch) {
+  static void growBaseBuffer(final HeapDoublesSketch sketch) {
     final double[] baseBuffer = sketch.getCombinedBuffer();
     final int oldSize = sketch.getCombinedBufferAllocatedCount();
     final int k = sketch.getK();
@@ -168,7 +173,7 @@ final class DoublesUtil {
    * @param src The source sketch
    * @param tgt The target sketch
    */
-  static void downSamplingMergeInto(final HeapDoublesQuantilesSketch src, final HeapDoublesQuantilesSketch tgt) {
+  static void downSamplingMergeInto(final HeapDoublesSketch src, final HeapDoublesSketch tgt) {
     final int targetK = tgt.getK();
     final int sourceK = src.getK();
 
@@ -228,7 +233,7 @@ final class DoublesUtil {
       final double[] bufA, final int startA, // input
       final double[] bufC, final int startC, // output
       final int k) {
-    final int randomOffset = DoublesQuantilesSketch.rand.nextBoolean() ? 1 : 0;
+    final int randomOffset = DoublesSketch.rand.nextBoolean() ? 1 : 0;
     final int limC = startC + k;
     for (int a = startA + randomOffset, c = startC; c < limC; a += 2, c++) {
       bufC[c] = bufA[a];
@@ -240,7 +245,7 @@ final class DoublesUtil {
       final double[] bufC, final int startC, // output
       final int kC, // number of items that should be in the output
       final int stride) {
-    final int randomOffset = DoublesQuantilesSketch.rand.nextInt(stride);
+    final int randomOffset = DoublesSketch.rand.nextInt(stride);
     final int limC = startC + kC;
     for (int a = startA + randomOffset, c = startC; c < limC; a += stride, c++ ) {
       bufC[c] = bufA[a];
@@ -468,7 +473,7 @@ final class DoublesUtil {
     }
   }
 
-  static String toString(final boolean sketchSummary, final boolean dataDetail, final HeapDoublesQuantilesSketch sketch) {
+  static String toString(final boolean sketchSummary, final boolean dataDetail, final HeapDoublesSketch sketch) {
     final StringBuilder sb = new StringBuilder();
     final String thisSimpleName = sketch.getClass().getSimpleName();
     final int bbCount = sketch.getBaseBufferCount();

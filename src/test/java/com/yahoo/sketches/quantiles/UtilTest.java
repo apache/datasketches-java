@@ -4,7 +4,6 @@
  */
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.quantiles.Util.*;
 import static org.testng.Assert.assertEquals;
 
 import java.util.Arrays;
@@ -13,13 +12,18 @@ import org.testng.annotations.Test;
 
 import com.yahoo.sketches.quantiles.Util.EpsilonFromK;
 
+/*
+ * Copyright 2016, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
+
 public class UtilTest {
   
   @Test
   public void checkBufferElementCapacity() {
     int k = 227;
-    int capEl = bufferElementCapacity(k, 0);
-    assertEquals(capEl, DoublesQuantilesSketch.MIN_BASE_BUF_SIZE);
+    int capEl = Util.bufferElementCapacity(k, 0);
+    assertEquals(capEl, Util.MIN_BASE_BUF_SIZE);
   }
   
   @Test
@@ -35,13 +39,13 @@ public class UtilTest {
   
   @Test
   public void checkLg() {
-    int lgbase2 = (int)lg(4096);
+    int lgbase2 = (int) Util.lg(4096);
     assertEquals(lgbase2, 12);
   }
   
   @Test
   public void checkHiBitPos() {
-    int bitPos = hiBitPos(4096);
+    int bitPos = Util.hiBitPos(4096);
     assertEquals(bitPos, 12);
   }
   

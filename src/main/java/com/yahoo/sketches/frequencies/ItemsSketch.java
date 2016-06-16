@@ -128,7 +128,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * 
  * @author Justin Thaler
  */
-public class FrequentItemsSketch<T> {
+public class ItemsSketch<T> {
 
   /**
    * We start by allocating a small data structure capable of explicitly storing very small 
@@ -185,7 +185,7 @@ public class FrequentItemsSketch<T> {
    * 0.75 times * maxMapSize. Both the ultimate accuracy and size of this sketch are a 
    * function of maxMapSize.
    */
-  public FrequentItemsSketch(final int maxMapSize) {
+  public ItemsSketch(final int maxMapSize) {
     this(toLog2(maxMapSize, "maxMapSize"), LG_MIN_MAP_SIZE);
   }
 
@@ -200,7 +200,7 @@ public class FrequentItemsSketch<T> {
    * @param lgCurMapSize Log2 of the starting (current) physical size of the internal hash 
    * map managed by this sketch.
    */
-  FrequentItemsSketch(final int lgMaxMapSize, final int lgCurMapSize) {
+  ItemsSketch(final int lgMaxMapSize, final int lgCurMapSize) {
     //set initial size of hash map
     this.lgMaxMapSize = Math.max(lgMaxMapSize, LG_MIN_MAP_SIZE);
     final int lgCurMapSz = Math.max(lgCurMapSize, LG_MIN_MAP_SIZE);
@@ -222,7 +222,7 @@ public class FrequentItemsSketch<T> {
    * @param serDe an instance of ArrayOfItemsSerDe
    * @return a sketch instance of this class.
    */
-  public static <T> FrequentItemsSketch<T> getInstance(final Memory srcMem, final ArrayOfItemsSerDe<T> serDe) {
+  public static <T> ItemsSketch<T> getInstance(final Memory srcMem, final ArrayOfItemsSerDe<T> serDe) {
     final long pre0 = PreambleUtil.checkPreambleSize(srcMem); //make sure preamble will fit
     final int maxPreLongs = Family.FREQUENCY.getMaxPreLongs();
 
@@ -261,13 +261,13 @@ public class FrequentItemsSketch<T> {
     }
 
     if (empty) {
-      return new FrequentItemsSketch<T>(lgMaxMapSize, LG_MIN_MAP_SIZE);
+      return new ItemsSketch<T>(lgMaxMapSize, LG_MIN_MAP_SIZE);
     }
     //get full preamble
     final long[] preArr = new long[preLongs];
     srcMem.getLongArray(0, preArr, 0, preLongs);
 
-    FrequentItemsSketch<T> fis = new FrequentItemsSketch<T>(lgMaxMapSize, lgCurMapSize);
+    ItemsSketch<T> fis = new ItemsSketch<T>(lgMaxMapSize, lgCurMapSize);
     fis.streamLength = 0; //update after
     fis.offset = preArr[3];
 
@@ -379,7 +379,7 @@ public class FrequentItemsSketch<T> {
    * @return a sketch whose estimates are within the guarantees of the
    * largest error tolerance of the two merged sketches.
    */
-  public FrequentItemsSketch<T> merge(final FrequentItemsSketch<T> other) {
+  public ItemsSketch<T> merge(final ItemsSketch<T> other) {
     if (other == null) return this;
     if (other.isEmpty()) return this;
 

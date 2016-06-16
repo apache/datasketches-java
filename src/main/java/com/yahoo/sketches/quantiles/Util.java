@@ -11,7 +11,6 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.SER_VER;
-import static com.yahoo.sketches.quantiles.DoublesQuantilesSketch.*;
 
 import com.yahoo.sketches.Family;
 
@@ -23,6 +22,9 @@ import com.yahoo.sketches.Family;
  * functions.</p>
  */
 final class Util {
+
+  static final int MIN_BASE_BUF_SIZE = 4;
+
   /**
    * The java line separator character as a String.
    */

@@ -121,7 +121,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * 
  * @author Justin Thaler
  */
-public class FrequentLongsSketch {
+public class LongsSketch {
 
   /**
    * We start by allocating a small data structure capable of explicitly storing very small 
@@ -182,7 +182,7 @@ public class FrequentLongsSketch {
    * 0.75 times * maxMapSize. Both the ultimate accuracy and size of this sketch are a 
    * function of maxMapSize.
    */
-  public FrequentLongsSketch(final int maxMapSize) {
+  public LongsSketch(final int maxMapSize) {
     this(toLog2(maxMapSize, "maxMapSize"), LG_MIN_MAP_SIZE);
   }
 
@@ -197,7 +197,7 @@ public class FrequentLongsSketch {
    * @param lgCurMapSize Log2 of the starting (current) physical size of the internal hash 
    * map managed by this sketch.
    */
-  FrequentLongsSketch(final int lgMaxMapSize, final int lgCurMapSize) {
+  LongsSketch(final int lgMaxMapSize, final int lgCurMapSize) {
     //set initial size of hash map
     this.lgMaxMapSize = Math.max(lgMaxMapSize, LG_MIN_MAP_SIZE);
     final int lgCurMapSz = Math.max(lgCurMapSize, LG_MIN_MAP_SIZE);
@@ -217,7 +217,7 @@ public class FrequentLongsSketch {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a sketch instance of this class.
    */
-  public static FrequentLongsSketch getInstance(final Memory srcMem) {
+  public static LongsSketch getInstance(final Memory srcMem) {
     final long pre0 = PreambleUtil.checkPreambleSize(srcMem); //make sure preamble will fit
     final int maxPreLongs = Family.FREQUENCY.getMaxPreLongs();
 
@@ -256,13 +256,13 @@ public class FrequentLongsSketch {
     }
 
     if (empty) {
-      return new FrequentLongsSketch(lgMaxMapSize, LG_MIN_MAP_SIZE);
+      return new LongsSketch(lgMaxMapSize, LG_MIN_MAP_SIZE);
     }
     //get full preamble
     final long[] preArr = new long[preLongs];
     srcMem.getLongArray(0, preArr, 0, preLongs);
 
-    FrequentLongsSketch fls = new FrequentLongsSketch(lgMaxMapSize, lgCurMapSize);
+    LongsSketch fls = new LongsSketch(lgMaxMapSize, lgCurMapSize);
     fls.streamLength = 0; //update after
     fls.offset = preArr[3];
 
@@ -290,7 +290,7 @@ public class FrequentLongsSketch {
    * @param string a String representation of a sketch of this class.
    * @return a sketch instance of this class.
    */
-  public static FrequentLongsSketch getInstance(final String string) {
+  public static LongsSketch getInstance(final String string) {
     final String[] tokens = string.split(",");
     if (tokens.length < STR_PREAMBLE_TOKENS+2) {
       throw new IllegalArgumentException(
@@ -330,7 +330,7 @@ public class FrequentLongsSketch {
           ", numActive: " + numActive);
     }
 
-    final FrequentLongsSketch sketch = new FrequentLongsSketch(lgMax, lgCur);
+    final LongsSketch sketch = new LongsSketch(lgMax, lgCur);
     sketch.streamLength = streamLength;
     sketch.offset = offset;
     sketch.hashMap = deserializeFromStringArray(tokens);
@@ -451,7 +451,7 @@ public class FrequentLongsSketch {
    * @return a sketch whose estimates are within the guarantees of the
    * largest error tolerance of the two merged sketches.
    */
-  public FrequentLongsSketch merge(final FrequentLongsSketch other) {
+  public LongsSketch merge(final LongsSketch other) {
     if (other == null) return this;
     if (other.isEmpty()) return this;
 

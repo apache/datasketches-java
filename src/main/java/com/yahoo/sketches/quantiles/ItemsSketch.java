@@ -134,7 +134,7 @@ Table Guide for QuantilesSketch Size in Bytes and Approximate Error:
  * 
  * @param <T> type of item
  */
-public class ItemsQuantilesSketch<T> {
+public class ItemsSketch<T> {
 
   static final int MIN_BASE_BUF_SIZE = 4; //This is somewhat arbitrary
 
@@ -200,7 +200,7 @@ public class ItemsQuantilesSketch<T> {
    */
   static final int DEFAULT_K = 128;
 
-  private ItemsQuantilesSketch(final int k, final Comparator<? super T> comparator) {
+  private ItemsSketch(final int k, final Comparator<? super T> comparator) {
     Util.checkK(k);
     k_ = k;
     comparator_ = comparator;
@@ -211,7 +211,7 @@ public class ItemsQuantilesSketch<T> {
    * @param comparator to compare items 
    * @return a GenericQuantileSketch
    */
-  public static <T> ItemsQuantilesSketch<T> getInstance(final Comparator<? super T> comparator) {
+  public static <T> ItemsSketch<T> getInstance(final Comparator<? super T> comparator) {
     return getInstance(DEFAULT_K, comparator);
   }
 
@@ -225,8 +225,8 @@ public class ItemsQuantilesSketch<T> {
    * @param comparator to compare items 
    * @return a GenericQuantileSketch
    */
-  public static <T> ItemsQuantilesSketch<T> getInstance(final int k, final Comparator<? super T> comparator) {
-    ItemsQuantilesSketch<T> qs = new ItemsQuantilesSketch<T>(k, comparator);
+  public static <T> ItemsSketch<T> getInstance(final int k, final Comparator<? super T> comparator) {
+    ItemsSketch<T> qs = new ItemsSketch<T>(k, comparator);
     int bufAlloc = Math.min(MIN_BASE_BUF_SIZE, 2 * k); //the min is important
     qs.n_ = 0;
     qs.combinedBufferAllocatedCount_ = bufAlloc;
@@ -246,7 +246,7 @@ public class ItemsQuantilesSketch<T> {
    * @param serDe an instance of ArrayOfItemsSerDe
    * @return a GenericQuantilesSketch on the Java heap.
    */
-  public static <T> ItemsQuantilesSketch<T> getInstance(final Memory srcMem,
+  public static <T> ItemsSketch<T> getInstance(final Memory srcMem,
       final Comparator<? super T> comparator, final ArrayOfItemsSerDe<T> serDe) {
     long memCapBytes = srcMem.getCapacity();
     if (memCapBytes < 8) {
@@ -269,7 +269,7 @@ public class ItemsQuantilesSketch<T> {
     Util.checkFamilyID(familyID);
     Util.checkSerVer(serVer);
   
-    ItemsQuantilesSketch<T> qs = getInstance(k, comparator);
+    ItemsSketch<T> qs = getInstance(k, comparator);
   
     if (empty) return qs;
   
@@ -298,8 +298,8 @@ public class ItemsQuantilesSketch<T> {
    * @param sketch the given sketch
    * @return a copy of the given sketch
    */
-  static <T> ItemsQuantilesSketch<T> copy(final ItemsQuantilesSketch<T> sketch) {
-    final ItemsQuantilesSketch<T> qsCopy = ItemsQuantilesSketch.getInstance(sketch.k_, sketch.comparator_);
+  static <T> ItemsSketch<T> copy(final ItemsSketch<T> sketch) {
+    final ItemsSketch<T> qsCopy = ItemsSketch.getInstance(sketch.k_, sketch.comparator_);
     qsCopy.n_ = sketch.n_;
     qsCopy.minValue_ = sketch.getMinValue();
     qsCopy.maxValue_ = sketch.getMaxValue();
@@ -629,8 +629,8 @@ public class ItemsQuantilesSketch<T> {
    * It is required that this.getK() = newK * 2^(nonnegative integer).
    * @return the new sketch.
    */
-  public ItemsQuantilesSketch<T> downSample(final int newK) {
-    final ItemsQuantilesSketch<T> newSketch = ItemsQuantilesSketch.getInstance(newK, comparator_);
+  public ItemsSketch<T> downSample(final int newK) {
+    final ItemsSketch<T> newSketch = ItemsSketch.getInstance(newK, comparator_);
     ItemsUtil.downSamplingMergeInto(this, newSketch);
     return newSketch;
   }

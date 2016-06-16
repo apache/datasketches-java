@@ -34,7 +34,7 @@ public abstract class DoublesUnion {
    * 
    * @param sketchIn the sketch to be merged into this one.
    */
-  public abstract void update(DoublesQuantilesSketch sketchIn);
+  public abstract void update(DoublesSketch sketchIn);
   
   /**
    * Iterative union operation, which means this method can be repeatedly called.
@@ -63,7 +63,7 @@ public abstract class DoublesUnion {
    * This enables further union update operations on this state.
    * @return the result of this Union operation
    */
-  public abstract DoublesQuantilesSketch getResult();
+  public abstract DoublesSketch getResult();
   
   /**
    * Gets the result of this Union operation (without a copy) and resets this Union to the 
@@ -71,7 +71,7 @@ public abstract class DoublesUnion {
    * 
    * @return the result of this Union operation and reset.
    */
-  public abstract DoublesQuantilesSketch getResultAndReset();
+  public abstract DoublesSketch getResultAndReset();
   
   /**
    * Resets this Union to a virgin state.

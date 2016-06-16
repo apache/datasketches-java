@@ -2,6 +2,7 @@
  * Copyright 2016, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.Util.checkIfPowerOf2;
@@ -43,7 +44,7 @@ final class ItemsUtil {
    * @return the unnormalized, accumulated counts of <i>m + 1</i> intervals.
    */
   @SuppressWarnings("unchecked")
-  static <T> long[] internalBuildHistogram(final T[] splitPoints, ItemsQuantilesSketch<T> sketch) {
+  static <T> long[] internalBuildHistogram(final T[] splitPoints, ItemsSketch<T> sketch) {
     final Object[] levelsArr  = sketch.getCombinedBuffer();
     final Object[] baseBuffer = levelsArr;
     final int bbCount = sketch.getBaseBufferCount();
@@ -84,7 +85,7 @@ final class ItemsUtil {
    * @param sketch the given quantiles sketch
    */
   @SuppressWarnings("unchecked")
-  static <T> void processFullBaseBuffer(final ItemsQuantilesSketch<T> sketch) {
+  static <T> void processFullBaseBuffer(final ItemsSketch<T> sketch) {
     final int bbCount = sketch.getBaseBufferCount();
     final long n = sketch.getN();
     assert bbCount == 2 * sketch.getK(); // internal consistency check
@@ -111,7 +112,7 @@ final class ItemsUtil {
       final int startingLevel,
       final T[] sizeKBuf, final int sizeKStart,
       final T[] size2KBuf, final int size2KStart,
-      final boolean doUpdateVersion, final ItemsQuantilesSketch<T> sketch) { // else doMergeIntoVersion
+      final boolean doUpdateVersion, final ItemsSketch<T> sketch) { // else doMergeIntoVersion
     final Object[] levelsArr = sketch.getCombinedBuffer();
     final long bitPattern = sketch.getBitPattern();
     final int k = sketch.getK();
@@ -150,7 +151,7 @@ final class ItemsUtil {
     sketch.bitPattern_ = bitPattern + (1L << startingLevel);
   }
 
-  static <T> void maybeGrowLevels(final long newN, final ItemsQuantilesSketch<T> sketch) { // important: newN might not equal n_
+  static <T> void maybeGrowLevels(final long newN, final ItemsSketch<T> sketch) { // important: newN might not equal n_
     final int k = sketch.getK();
     final int numLevelsNeeded = Util.computeNumLevelsNeeded(k, newN);
     if (numLevelsNeeded == 0) {
@@ -168,7 +169,7 @@ final class ItemsUtil {
     sketch.combinedBufferAllocatedCount_ = spaceNeeded;
   }
 
-  static <T> void growBaseBuffer(final ItemsQuantilesSketch<T> sketch) {
+  static <T> void growBaseBuffer(final ItemsSketch<T> sketch) {
     final Object[] baseBuffer = sketch.getCombinedBuffer();
     final int oldSize = sketch.getCombinedBufferAllocatedCount();
     final int k = sketch.getK();
@@ -188,7 +189,7 @@ final class ItemsUtil {
    * @param tgt The target sketch
    */
   @SuppressWarnings("unchecked")
-  static <T> void downSamplingMergeInto(final ItemsQuantilesSketch<T> src, final ItemsQuantilesSketch<T> tgt) {
+  static <T> void downSamplingMergeInto(final ItemsSketch<T> src, final ItemsSketch<T> tgt) {
     final int targetK = tgt.getK();
     final int sourceK = src.getK();
 
@@ -248,7 +249,7 @@ final class ItemsUtil {
       final Object[] bufA, int startA, // input
       final Object[] bufC, int startC, // output
       final int k) {
-    int randomOffset = ItemsQuantilesSketch.rand.nextBoolean() ? 1 : 0;
+    int randomOffset = ItemsSketch.rand.nextBoolean() ? 1 : 0;
     int limC = startC + k;
     for (int a = startA + randomOffset, c = startC; c < limC; a += 2, c++) {
       bufC[c] = bufA[a];
@@ -260,7 +261,7 @@ final class ItemsUtil {
       final T[] bufC, final int startC, // output
       final int kC, // number of items that should be in the output
       final int stride) {
-    final int randomOffset = ItemsQuantilesSketch.rand.nextInt(stride);
+    final int randomOffset = ItemsSketch.rand.nextInt(stride);
     final int limC = startC + kC;
     for (int a = startSrc + randomOffset, c = startC; c < limC; a += stride, c++ ) {
       bufC[c] = bufSrc[a];
@@ -490,7 +491,7 @@ final class ItemsUtil {
     }
   }
 
-  static <T> String toString(final boolean sketchSummary, final boolean dataDetail, final ItemsQuantilesSketch<T> sketch) {
+  static <T> String toString(final boolean sketchSummary, final boolean dataDetail, final ItemsSketch<T> sketch) {
     final StringBuilder sb = new StringBuilder();
     final String thisSimpleName = sketch.getClass().getSimpleName();
     final int bbCount = sketch.getBaseBufferCount();

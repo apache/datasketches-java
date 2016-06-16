@@ -18,7 +18,7 @@ class DoublesAuxiliary {
    * Constructs the Auxiliary structure from the HeapQuantilesSketch
    * @param qs a HeapQuantilesSketch
    */
-  DoublesAuxiliary(HeapDoublesQuantilesSketch qs ) {
+  DoublesAuxiliary(HeapDoublesSketch qs ) {
     int k = qs.getK();
     long n = qs.getN();
     long bitPattern = qs.getBitPattern();

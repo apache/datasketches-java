@@ -36,7 +36,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * @author Kevin Lang
  * @author Lee Rhodes
  */
-class HeapDoublesQuantilesSketch extends DoublesQuantilesSketch {
+class HeapDoublesSketch extends DoublesSketch {
 
   // unique number of a particular type of items in the sketch and serialized layout to check compatibility of sketches
   static final byte SKETCH_TYPE = 1;
@@ -90,7 +90,7 @@ class HeapDoublesQuantilesSketch extends DoublesQuantilesSketch {
   double[] combinedBuffer_;
 
   //**CONSTRUCTORS**********************************************************
-  private HeapDoublesQuantilesSketch(int k) { //Not fully initialized!
+  private HeapDoublesSketch(int k) { //Not fully initialized!
     super(k);
   }
   
@@ -105,9 +105,9 @@ class HeapDoublesQuantilesSketch extends DoublesQuantilesSketch {
    * otherwise it will be used to set the seed of the random generator.
    * @return a HeapQuantileSketch
    */
-  static HeapDoublesQuantilesSketch getInstance(int k) {
-    HeapDoublesQuantilesSketch hqs = new HeapDoublesQuantilesSketch(k);
-    int bufAlloc = Math.min(MIN_BASE_BUF_SIZE,2*k); //the min is important
+  static HeapDoublesSketch getInstance(int k) {
+    HeapDoublesSketch hqs = new HeapDoublesSketch(k);
+    int bufAlloc = Math.min(Util.MIN_BASE_BUF_SIZE, 2 * k); //the min is important
     hqs.n_ = 0;
     hqs.combinedBufferAllocatedCount_ = bufAlloc;
     hqs.combinedBuffer_ = new double[bufAlloc];
@@ -124,7 +124,7 @@ class HeapDoublesQuantilesSketch extends DoublesQuantilesSketch {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a QuantilesSketch on the Java heap.
    */
-  static HeapDoublesQuantilesSketch getInstance(Memory srcMem) {
+  static HeapDoublesSketch getInstance(Memory srcMem) {
     long memCapBytes = srcMem.getCapacity();
     if (memCapBytes < Long.BYTES) {
       throw new IllegalArgumentException("Memory too small: " + memCapBytes);
@@ -146,7 +146,7 @@ class HeapDoublesQuantilesSketch extends DoublesQuantilesSketch {
     Util.checkFamilyID(familyID);
     Util.checkSerVer(serVer);
 
-    HeapDoublesQuantilesSketch hqs = getInstance(k);
+    HeapDoublesSketch hqs = getInstance(k);
 
     if (empty) return hqs;
 
@@ -180,9 +180,9 @@ class HeapDoublesQuantilesSketch extends DoublesQuantilesSketch {
    * @param sketch the given sketch
    * @return a copy of the given sketch, which may be either Direct or on-heap
    */
-  static HeapDoublesQuantilesSketch copy(DoublesQuantilesSketch sketch) {
-    HeapDoublesQuantilesSketch qsCopy; 
-    qsCopy = HeapDoublesQuantilesSketch.getInstance(sketch.getK());
+  static HeapDoublesSketch copy(DoublesSketch sketch) {
+    HeapDoublesSketch qsCopy; 
+    qsCopy = HeapDoublesSketch.getInstance(sketch.getK());
     qsCopy.n_ = sketch.getN();
     qsCopy.minValue_ = sketch.getMinValue();
     qsCopy.maxValue_ = sketch.getMaxValue();
@@ -297,7 +297,7 @@ class HeapDoublesQuantilesSketch extends DoublesQuantilesSketch {
   @Override
   public void reset() {
     n_ = 0;
-    combinedBufferAllocatedCount_ = Math.min(MIN_BASE_BUF_SIZE,2*k_); //the min is important
+    combinedBufferAllocatedCount_ = Math.min(Util.MIN_BASE_BUF_SIZE, 2 * k_); //the min is important
     combinedBuffer_ = new double[combinedBufferAllocatedCount_];
     baseBufferCount_ = 0;
     bitPattern_ = 0;
@@ -358,9 +358,9 @@ class HeapDoublesQuantilesSketch extends DoublesQuantilesSketch {
   }
   
   @Override
-  public DoublesQuantilesSketch downSample(int newK) {
-    HeapDoublesQuantilesSketch oldSketch = this;
-    HeapDoublesQuantilesSketch newSketch = HeapDoublesQuantilesSketch.getInstance(newK);
+  public DoublesSketch downSample(int newK) {
+    HeapDoublesSketch oldSketch = this;
+    HeapDoublesSketch newSketch = HeapDoublesSketch.getInstance(newK);
     DoublesUtil.downSamplingMergeInto(oldSketch, newSketch);
     return newSketch;
   }

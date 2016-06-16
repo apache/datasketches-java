@@ -19,9 +19,9 @@ public class ItemsUnion<T> {
 
   protected final int k_;
   protected final Comparator<? super T> comparator_;
-  protected ItemsQuantilesSketch<T> gadget_;
+  protected ItemsSketch<T> gadget_;
 
-  private ItemsUnion(final int k, final Comparator<? super T> comparator, ItemsQuantilesSketch<T> gadget) {
+  private ItemsUnion(final int k, final Comparator<? super T> comparator, ItemsSketch<T> gadget) {
     k_ = k;
     comparator_ = comparator;
     gadget_ = gadget;
@@ -49,7 +49,7 @@ public class ItemsUnion<T> {
    * @return an instance of ItemsUnion
    */
   public static <T> ItemsUnion<T> getInstance(final Memory srcMem, final Comparator<? super T> comparator, final ArrayOfItemsSerDe<T> serDe) {
-    final ItemsQuantilesSketch<T> gadget = ItemsQuantilesSketch.getInstance(srcMem, comparator, serDe); 
+    final ItemsSketch<T> gadget = ItemsSketch.getInstance(srcMem, comparator, serDe); 
     return new ItemsUnion<T>(gadget.getK(), gadget.getComparator(), gadget);
   }
 
@@ -58,12 +58,12 @@ public class ItemsUnion<T> {
    * @param sketch the basis of the union
    * @return an instance of ItemsUnion
    */
-  public static <T> ItemsUnion<T> getInstance(final ItemsQuantilesSketch<T> sketch) {
+  public static <T> ItemsUnion<T> getInstance(final ItemsSketch<T> sketch) {
     return new ItemsUnion<T>(sketch.getK(), sketch.getComparator(), sketch);
   }
 
   @SuppressWarnings("null")
-  static <T> ItemsQuantilesSketch<T> updateLogic(ItemsQuantilesSketch<T> myQS, ItemsQuantilesSketch<T> other) {
+  static <T> ItemsSketch<T> updateLogic(ItemsSketch<T> myQS, ItemsSketch<T> other) {
       int sw1 = ((myQS   == null)? 0 :   myQS.isEmpty()? 4: 8);
       sw1 |=    ((other  == null)? 0 :  other.isEmpty()? 1: 2);
       int outCase = 0; //0=null, 1=NOOP, 2=copy, 3=merge 
@@ -82,7 +82,7 @@ public class ItemsUnion<T> {
         case 0: return null;
         case 1: return myQS;
         case 2: {
-          return ItemsQuantilesSketch.copy(other); //required because caller has handle
+          return ItemsSketch.copy(other); //required because caller has handle
         }
         default:
       }
@@ -94,7 +94,7 @@ public class ItemsUnion<T> {
       
       //myQS_K > other_K, must reverse roles
       //must copy other as it will become mine and can't have any externally owned handles.
-      final ItemsQuantilesSketch<T> myNewQS = ItemsQuantilesSketch.copy(other);
+      final ItemsSketch<T> myNewQS = ItemsSketch.copy(other);
       mergeInto(myQS, myNewQS);
       return myNewQS;
     }
@@ -124,7 +124,7 @@ public class ItemsUnion<T> {
      * @param target The target sketch
      */
   @SuppressWarnings("unchecked")
-  static <T> void mergeInto(final ItemsQuantilesSketch<T> source, final ItemsQuantilesSketch<T> target) {
+  static <T> void mergeInto(final ItemsSketch<T> source, final ItemsSketch<T> target) {
     final int srcK = source.getK();
     final int tgtK = target.getK();
     final long srcN = source.getN();
@@ -185,7 +185,7 @@ public class ItemsUnion<T> {
    * 
    * @param sketchIn the sketch to be merged into this one.
    */
-  public void update(final ItemsQuantilesSketch<T> sketchIn) {
+  public void update(final ItemsSketch<T> sketchIn) {
     gadget_ = updateLogic(gadget_, sketchIn);
   }
 
@@ -204,7 +204,7 @@ public class ItemsUnion<T> {
    * @param serDe an instance of ArrayOfItemsSerDe
    */
   public void update(final Memory srcMem, final Comparator<? super T> comparator, final ArrayOfItemsSerDe<T> serDe) {
-    final ItemsQuantilesSketch<T> that = ItemsQuantilesSketch.getInstance(srcMem, comparator, serDe);
+    final ItemsSketch<T> that = ItemsSketch.getInstance(srcMem, comparator, serDe);
     gadget_ = updateLogic(gadget_, that);
   }
 
@@ -215,7 +215,7 @@ public class ItemsUnion<T> {
    */
   public void update(final T dataItem) {
     if (dataItem == null) return;
-    if (gadget_ == null) gadget_ = ItemsQuantilesSketch.getInstance(k_, comparator_);
+    if (gadget_ == null) gadget_ = ItemsSketch.getInstance(k_, comparator_);
     gadget_.update(dataItem);
   }
 
@@ -224,9 +224,9 @@ public class ItemsUnion<T> {
    * This enables further union update operations on this state.
    * @return the result of this Union operation
    */
-  public ItemsQuantilesSketch<T> getResult() {
-    if (gadget_ == null) return ItemsQuantilesSketch.getInstance(k_, comparator_);
-    return ItemsQuantilesSketch.copy(gadget_); //can't have any externally owned handles.
+  public ItemsSketch<T> getResult() {
+    if (gadget_ == null) return ItemsSketch.getInstance(k_, comparator_);
+    return ItemsSketch.copy(gadget_); //can't have any externally owned handles.
   }
 
   /**
@@ -235,9 +235,9 @@ public class ItemsUnion<T> {
    * 
    * @return the result of this Union operation and reset.
    */
-  public ItemsQuantilesSketch<T> getResultAndReset() {
+  public ItemsSketch<T> getResultAndReset() {
     if (gadget_ == null) return null; //Intentionally return null here for speed.
-    final ItemsQuantilesSketch<T> hqs = gadget_;
+    final ItemsSketch<T> hqs = gadget_;
     gadget_ = null;
     return hqs;
   }
@@ -264,7 +264,7 @@ public class ItemsUnion<T> {
    * @return summary information about the sketch.
    */
   public String toString(final boolean sketchSummary, final boolean dataDetail) {
-    if (gadget_ == null) return ItemsQuantilesSketch.getInstance(k_, comparator_).toString();
+    if (gadget_ == null) return ItemsSketch.getInstance(k_, comparator_).toString();
     return gadget_.toString(sketchSummary, dataDetail);
   }
 
