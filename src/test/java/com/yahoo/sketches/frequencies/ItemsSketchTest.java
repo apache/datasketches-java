@@ -264,7 +264,7 @@ public class ItemsSketchTest {
     sk1.update(new Long(1));
     ItemsSketch.Row<Long>[] rows = sk1.getFrequentItems(ErrorType.NO_FALSE_NEGATIVES);
     ItemsSketch.Row<Long> row = rows[0];
-    Long item = (Long)row.getItem();
+    Long item = row.getItem();
     Assert.assertEquals(row.getEstimate(), 1);
     Assert.assertEquals(row.getUpperBound(), 1);
     String s = row.toString();

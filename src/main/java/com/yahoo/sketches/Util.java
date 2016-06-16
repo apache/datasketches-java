@@ -146,8 +146,8 @@ public final class Util {
   }
   
   /**
-   * Returns the log-base2 of the given value
    * Checks the given value if it is a power of 2. If not, it throws an exception.
+   * Otherwise, returns the log-base2 of the given value.
    * @param value must be a power of 2 and greater than zero.
    * @param argName the argument name used in the exception if thrown.
    * @return the log-base2 of the given value
