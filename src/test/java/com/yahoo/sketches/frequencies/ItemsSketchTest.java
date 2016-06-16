@@ -6,7 +6,6 @@ import org.testng.annotations.Test;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.ArrayOfStringsSerDe;
 import com.yahoo.sketches.ArrayOfUtf16StringsSerDe;
-import com.yahoo.sketches.frequencies.ItemsSketch.Row;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -66,7 +65,7 @@ public class ItemsSketchTest {
     Assert.assertEquals(sketch.getEstimate("c"), 2);
     Assert.assertEquals(sketch.getEstimate("d"), 1);
 
-    ItemsSketch<String>.Row[] items = sketch.getFrequentItems(ErrorType.NO_FALSE_POSITIVES);
+    ItemsSketch.Row<String>[] items = sketch.getFrequentItems(ErrorType.NO_FALSE_POSITIVES);
     Assert.assertEquals(items.length, 4);
 
     sketch.reset();
@@ -95,24 +94,24 @@ public class ItemsSketchTest {
     Assert.assertEquals(sketch.getStreamLength(), 35);
 
     {
-      ItemsSketch<Integer>.Row[] items = 
+      ItemsSketch.Row<Integer>[] items = 
           sketch.getFrequentItems(ErrorType.NO_FALSE_POSITIVES);
       Assert.assertEquals(items.length, 2);
       // only 2 items (1 and 7) should have counts more than 1
       int count = 0;
-      for (ItemsSketch<Integer>.Row item: items) {
+      for (ItemsSketch.Row<Integer> item: items) {
         if (item.getLowerBound() > 1) count++;
       }
       Assert.assertEquals(count, 2);
     }
 
     {
-      ItemsSketch<Integer>.Row[] items = 
+      ItemsSketch.Row<Integer>[] items = 
           sketch.getFrequentItems(ErrorType.NO_FALSE_NEGATIVES);
       Assert.assertTrue(items.length >= 2);
       // only 2 items (1 and 7) should have counts more than 1
       int count = 0;
-      for (ItemsSketch<Integer>.Row item: items) {
+      for (ItemsSketch.Row<Integer> item: items) {
         if (item.getLowerBound() > 5) {
           count++;
         }
@@ -190,8 +189,9 @@ public class ItemsSketchTest {
   
   @Test
   public void getRowHeader() {
-    ItemsSketch<String> sketch1 = new ItemsSketch<String>(16);
-    sketch1.new Row("a", 0, 0, 0).getRowHeader();
+    String header = new ItemsSketch.Row<String>("a", 0, 0, 0).getRowHeader();
+    Assert.assertNotNull(header);
+    Assert.assertTrue(header.length() > 0);
   }
   
   @SuppressWarnings("unused")
@@ -262,8 +262,8 @@ public class ItemsSketchTest {
     Assert.assertEquals(sk1.merge(sk2), sk1 );
     Assert.assertEquals(sk1.merge(null), sk1);
     sk1.update(new Long(1));
-    Row[] rows = sk1.getFrequentItems(ErrorType.NO_FALSE_NEGATIVES);
-    Row row = rows[0];
+    ItemsSketch.Row<Long>[] rows = sk1.getFrequentItems(ErrorType.NO_FALSE_NEGATIVES);
+    ItemsSketch.Row<Long> row = rows[0];
     Long item = (Long)row.getItem();
     Assert.assertEquals(row.getEstimate(), 1);
     Assert.assertEquals(row.getUpperBound(), 1);

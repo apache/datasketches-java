@@ -456,14 +456,15 @@ public class ItemsSketch<T> {
    * desired.
    * @return an array of frequent items
    */
-  public Row[] getFrequentItems(final ErrorType errorType) { 
+  public Row<T>[] getFrequentItems(final ErrorType errorType) { 
     return sortItems(getMaximumError(), errorType);
   }
 
   /**
    * Row class that defines the return values from a getFrequentItems query.
+   * @param <T> type of item
    */
-  public class Row implements Comparable<Row> {
+  public static class Row<T> implements Comparable<Row<T>> {
     final T item;
     final long est;
     final long ub;
@@ -511,13 +512,13 @@ public class ItemsSketch<T> {
     }
 
     @Override
-    public int compareTo(final Row that) {
+    public int compareTo(final Row<T> that) {
       return (this.est < that.est) ? -1 : (this.est > that.est) ? 1 : 0;
     }
   }
 
-  Row[] sortItems(final long threshold, final ErrorType errorType) {
-    final ArrayList<Row> rowList = new ArrayList<Row>();
+  Row<T>[] sortItems(final long threshold, final ErrorType errorType) {
+    final ArrayList<Row<T>> rowList = new ArrayList<Row<T>>();
     final ReversePurgeItemHashMap<T>.Iterator iter = hashMap.iterator();
     if (errorType == ErrorType.NO_FALSE_NEGATIVES) {
       while (iter.next()) {
@@ -525,7 +526,7 @@ public class ItemsSketch<T> {
         final long ub = getUpperBound(iter.getKey());
         final long lb = getLowerBound(iter.getKey());
         if (ub >= threshold) {
-          final Row row = new Row(iter.getKey(), est, ub, lb);
+          final Row<T> row = new Row<T>(iter.getKey(), est, ub, lb);
           rowList.add(row);
         }
       }
@@ -535,22 +536,22 @@ public class ItemsSketch<T> {
         final long ub = getUpperBound(iter.getKey());
         final long lb = getLowerBound(iter.getKey());
         if (lb >= threshold) {
-          final Row row = new Row(iter.getKey(), est, ub, lb);
+          final Row<T> row = new Row<T>(iter.getKey(), est, ub, lb);
           rowList.add(row);
         }
       }
     }
 
     // descending order
-    rowList.sort(new Comparator<Row>() {
+    rowList.sort(new Comparator<Row<T>>() {
       @Override
-      public int compare(final Row r1, final Row r2) {
+      public int compare(final Row<T> r1, final Row<T> r2) {
         return r2.compareTo(r1);
       }
     });
     
     @SuppressWarnings("unchecked")
-    final Row[] rowsArr = rowList.toArray((Row[]) Array.newInstance(Row.class, rowList.size()));
+    final Row<T>[] rowsArr = rowList.toArray((Row<T>[]) Array.newInstance(Row.class, rowList.size()));
     return rowsArr;
   }
 
