@@ -9,46 +9,36 @@ import static com.yahoo.sketches.Util.checkIfPowerOf2;
 import static java.lang.System.arraycopy;
 
 import java.util.Arrays;
-import java.util.Comparator;
 
-/**
- * Utility class for generic quantiles sketch.
- * 
- * <p>This class contains a highly specialized sort called blockyTandemMergeSort().
- * It also contains methods that are used while building histograms and other common
- * functions.</p>
- */
-final class ItemsUtil {
+final class DoublesUtil {
 
   /**
    * Checks the sequential validity of the given array of values. 
-   * They must be unique, monotonically increasing and not null.
+   * They must be unique, monotonically increasing and not NaN.
    * @param values given array of values
    */
-  static final <T> void validateValues(final T[] values, final Comparator<? super T> comparator) {
+  static final void validateValues(final double[] values) {
     final int lenM1 = values.length - 1;
     for (int j = 0; j < lenM1; j++) {
-      if (values[j] != null && values[j + 1] != null &&
-          comparator.compare(values[j], values[j + 1]) < 0) continue;
+      if (values[j] < values[j + 1]) continue;
       throw new IllegalArgumentException(
-          "Values must be unique, monotonically increasing and not null.");
+          "Values must be unique, monotonically increasing and not NaN.");
     }
   }
 
   /**
    * Shared algorithm for both PMF and CDF functions. The splitPoints must be unique, monotonically
    * increasing values.
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing values
-   * that divide the ordered domain into <i>m+1</i> consecutive disjoint intervals.
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing doubles
+   * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
    * @param sketch the given quantiles sketch
    * @return the unnormalized, accumulated counts of <i>m + 1</i> intervals.
    */
-  @SuppressWarnings("unchecked")
-  static <T> long[] internalBuildHistogram(final T[] splitPoints, ItemsSketch<T> sketch) {
-    final Object[] levelsArr  = sketch.getCombinedBuffer();
-    final Object[] baseBuffer = levelsArr;
+  static long[] internalBuildHistogram(final double[] splitPoints, final HeapDoublesSketch sketch) {
+    final double[] levelsArr  = sketch.getCombinedBuffer();
+    final double[] baseBuffer = levelsArr;
     final int bbCount = sketch.getBaseBufferCount();
-    validateValues(splitPoints, sketch.getComparator());
+    validateValues(splitPoints);
 
     final int numSplitPoints = splitPoints.length;
     final int numCounters = numSplitPoints + 1;
@@ -57,13 +47,13 @@ final class ItemsUtil {
     long weight = 1;
     if (numSplitPoints < 50) { // empirically determined crossover
       // sort not worth it when few split points
-      bilinearTimeIncrementHistogramCounters(
-          (T[]) baseBuffer, 0, bbCount, weight, splitPoints, counters, sketch.getComparator());
+      DoublesUtil.bilinearTimeIncrementHistogramCounters(
+          baseBuffer, 0, bbCount, weight, splitPoints, counters);
     } else {
       Arrays.sort(baseBuffer, 0, bbCount);
       // sort is worth it when many split points
-      linearTimeIncrementHistogramCounters(
-          (T[]) baseBuffer, 0, bbCount, weight, splitPoints, counters, sketch.getComparator());
+      DoublesUtil.linearTimeIncrementHistogramCounters(
+          baseBuffer, 0, bbCount, weight, splitPoints, counters);
     }
 
     long myBitPattern = sketch.getBitPattern();
@@ -73,8 +63,8 @@ final class ItemsUtil {
       weight += weight; // *= 2
       if ((myBitPattern & 1L) > 0L) { //valid level exists
         // the levels are already sorted so we can use the fast version
-        linearTimeIncrementHistogramCounters(
-            (T[]) levelsArr, (2 + lvl) * k, k, weight, splitPoints, counters, sketch.getComparator());
+        DoublesUtil.linearTimeIncrementHistogramCounters(
+            levelsArr, (2 + lvl) * k, k, weight, splitPoints, counters);
       }
     }
     return counters;
@@ -84,44 +74,41 @@ final class ItemsUtil {
    * Called when the base buffer has just acquired 2*k elements.
    * @param sketch the given quantiles sketch
    */
-  @SuppressWarnings("unchecked")
-  static <T> void processFullBaseBuffer(final ItemsSketch<T> sketch) {
+  static void processFullBaseBuffer(final HeapDoublesSketch sketch) {
     final int bbCount = sketch.getBaseBufferCount();
     final long n = sketch.getN();
     assert bbCount == 2 * sketch.getK(); // internal consistency check
 
     // make sure there will be enough levels for the propagation
-    maybeGrowLevels(n, sketch); // important: n_ was incremented by update before we got here
+    DoublesUtil.maybeGrowLevels(n, sketch); // important: n_ was incremented by update before we got here
 
     // this aliasing is a bit dangerous; notice that we did it after the possible resizing
-    final Object[] baseBuffer = sketch.getCombinedBuffer(); 
+    final double[] baseBuffer = sketch.getCombinedBuffer(); 
 
     Arrays.sort(baseBuffer, 0, bbCount);
     inPlacePropagateCarry(
         0,
         null, 0,  // this null is okay
-        (T[]) baseBuffer, 0,
+        baseBuffer, 0,
         true, sketch);
     sketch.baseBufferCount_ = 0;
-    Arrays.fill(baseBuffer, 0, 2 * sketch.getK(), null); // to release the discarded objects
-    assert n / (2 * sketch.getK()) == sketch.getBitPattern();  // internal consistency check
+    assert n / (2 * sketch.getK()) == sketch.getBitPattern(); // internal consistency check
   }
 
-  @SuppressWarnings("unchecked")
-  static <T> void inPlacePropagateCarry(
+  static void inPlacePropagateCarry(
       final int startingLevel,
-      final T[] sizeKBuf, final int sizeKStart,
-      final T[] size2KBuf, final int size2KStart,
-      final boolean doUpdateVersion, final ItemsSketch<T> sketch) { // else doMergeIntoVersion
-    final Object[] levelsArr = sketch.getCombinedBuffer();
+      final double[] sizeKBuf, final int sizeKStart,
+      final double[] size2KBuf, final int size2KStart,
+      final boolean doUpdateVersion, final HeapDoublesSketch sketch) { // else doMergeIntoVersion
+    final double[] levelsArr = sketch.getCombinedBuffer();
     final long bitPattern = sketch.getBitPattern();
     final int k = sketch.getK();
 
     final int endingLevel = Util.positionOfLowestZeroBitStartingAt(bitPattern, startingLevel);
-
+  
     if (doUpdateVersion) { // update version of computation
       // its is okay for sizeKbuf to be null in this case
-      zipSize2KBuffer(
+      DoublesUtil.zipSize2KBuffer(
           size2KBuf, size2KStart,
           levelsArr, (2 + endingLevel) * k,
           k);
@@ -131,27 +118,25 @@ final class ItemsUtil {
           levelsArr, (2 + endingLevel) * k,
           k);
     }
-
+  
     for (int lvl = startingLevel; lvl < endingLevel; lvl++) {
       assert (bitPattern & (1L << lvl)) > 0; // internal consistency check
-      mergeTwoSizeKBuffers(
-          (T[]) levelsArr, (2+lvl) * k,
-          (T[]) levelsArr, (2+endingLevel) * k,
+      DoublesUtil.mergeTwoSizeKBuffers(
+          levelsArr, (2 + lvl) * k,
+          levelsArr, (2 + endingLevel) * k,
           size2KBuf, size2KStart,
-          k, sketch.getComparator());
-      zipSize2KBuffer(
+          k);
+      DoublesUtil.zipSize2KBuffer(
           size2KBuf, size2KStart,
           levelsArr, (2+endingLevel) * k,
           k);
-      // to release the discarded objects
-      Arrays.fill(levelsArr, (2 + lvl) * k, (2 + lvl + 1) * k, null);
     } // end of loop over lower levels
 
     // update bit pattern with binary-arithmetic ripple carry
     sketch.bitPattern_ = bitPattern + (1L << startingLevel);
   }
 
-  static <T> void maybeGrowLevels(final long newN, final ItemsSketch<T> sketch) { // important: newN might not equal n_
+  static void maybeGrowLevels(final long newN, final HeapDoublesSketch sketch) { // important: newN might not equal n_
     final int k = sketch.getK();
     final int numLevelsNeeded = Util.computeNumLevelsNeeded(k, newN);
     if (numLevelsNeeded == 0) {
@@ -169,8 +154,8 @@ final class ItemsUtil {
     sketch.combinedBufferAllocatedCount_ = spaceNeeded;
   }
 
-  static <T> void growBaseBuffer(final ItemsSketch<T> sketch) {
-    final Object[] baseBuffer = sketch.getCombinedBuffer();
+  static void growBaseBuffer(final HeapDoublesSketch sketch) {
+    final double[] baseBuffer = sketch.getCombinedBuffer();
     final int oldSize = sketch.getCombinedBufferAllocatedCount();
     final int k = sketch.getK();
     assert oldSize < 2 * k;
@@ -188,8 +173,7 @@ final class ItemsUtil {
    * @param src The source sketch
    * @param tgt The target sketch
    */
-  @SuppressWarnings("unchecked")
-  static <T> void downSamplingMergeInto(final ItemsSketch<T> src, final ItemsSketch<T> tgt) {
+  static void downSamplingMergeInto(final HeapDoublesSketch src, final HeapDoublesSketch tgt) {
     final int targetK = tgt.getK();
     final int sourceK = src.getK();
 
@@ -200,93 +184,93 @@ final class ItemsUtil {
 
     final int downFactor = sourceK / targetK;
     checkIfPowerOf2(downFactor, "source.getK()/target.getK() ratio");
-    int lgDownFactor = Integer.numberOfTrailingZeros(downFactor);
+    final int lgDownFactor = Integer.numberOfTrailingZeros(downFactor);
 
-    final Object[] sourceLevels     = src.getCombinedBuffer(); // aliasing is a bit dangerous
-    final Object[] sourceBaseBuffer = src.getCombinedBuffer(); // aliasing is a bit dangerous
+    final double[] sourceLevels     = src.getCombinedBuffer(); // aliasing is a bit dangerous
+    final double[] sourceBaseBuffer = src.getCombinedBuffer(); // aliasing is a bit dangerous
 
     final long nFinal = tgt.getN() + src.getN();
 
     for (int i = 0; i < src.getBaseBufferCount(); i++) {
-      tgt.update((T) sourceBaseBuffer[i]);
+      tgt.update(sourceBaseBuffer[i]);
     }
 
-    maybeGrowLevels(nFinal, tgt);
+    maybeGrowLevels (nFinal, tgt); 
 
-    final Object[] scratchBuf = new Object[2 * targetK];
-    final Object[] downBuf    = new Object[targetK];
+    final double[] scratchBuf = new double [2*targetK];
+    final double[] downBuf    = new double [targetK];
 
     long srcBitPattern = src.getBitPattern();
     for (int srcLvl = 0; srcBitPattern != 0L; srcLvl++, srcBitPattern >>>= 1) {
       if ((srcBitPattern & 1L) > 0L) {
-        justZipWithStride (
-            sourceLevels, (2 + srcLvl) * sourceK,
+        DoublesUtil.justZipWithStride (
+            sourceLevels, ((2+srcLvl) * sourceK),
             downBuf, 0,
             targetK,
             downFactor);
         inPlacePropagateCarry (
             srcLvl+lgDownFactor,
-            (T[]) downBuf, 0,
-            (T[]) scratchBuf, 0,
+            downBuf, 0,
+            scratchBuf, 0,
             false, tgt);
         // won't update target.n_ until the very end
       }
     }
     tgt.n_ = nFinal; 
 
-    assert tgt.getN() / (2*targetK) == tgt.getBitPattern(); // internal consistency check
+    assert tgt.getN() / (2 * targetK) == tgt.getBitPattern(); // internal consistency check
 
-    final T srcMax = src.getMaxValue();
-    final T srcMin = src.getMinValue();
-    final T tgtMax = tgt.getMaxValue();
-    final T tgtMin = tgt.getMinValue();
+    final double srcMax = src.getMaxValue();
+    final double srcMin = src.getMinValue();
+    final double tgtMax = tgt.getMaxValue();
+    final double tgtMin = tgt.getMinValue();
 
-    if (src.getComparator().compare(srcMax, tgtMax) > 0) tgt.maxValue_ = srcMax;
-    if (src.getComparator().compare(srcMin, tgtMin) < 0) tgt.minValue_ = srcMin;
+    if (srcMax > tgtMax) tgt.maxValue_ = srcMax;
+    if (srcMin < tgtMin) tgt.minValue_ = srcMin;
   }
 
   private static void zipSize2KBuffer(
-      final Object[] bufA, int startA, // input
-      final Object[] bufC, int startC, // output
+      final double[] bufA, final int startA, // input
+      final double[] bufC, final int startC, // output
       final int k) {
-    int randomOffset = ItemsSketch.rand.nextBoolean() ? 1 : 0;
-    int limC = startC + k;
+    final int randomOffset = DoublesSketch.rand.nextBoolean() ? 1 : 0;
+    final int limC = startC + k;
     for (int a = startA + randomOffset, c = startC; c < limC; a += 2, c++) {
       bufC[c] = bufA[a];
     }
   }
 
-  private static <T> void justZipWithStride(
-      final T[] bufSrc, final int startSrc, // input
-      final T[] bufC, final int startC, // output
+  private static void justZipWithStride(
+      final double[] bufA, final int startA, // input
+      final double[] bufC, final int startC, // output
       final int kC, // number of items that should be in the output
       final int stride) {
-    final int randomOffset = ItemsSketch.rand.nextInt(stride);
+    final int randomOffset = DoublesSketch.rand.nextInt(stride);
     final int limC = startC + kC;
-    for (int a = startSrc + randomOffset, c = startC; c < limC; a += stride, c++ ) {
-      bufC[c] = bufSrc[a];
+    for (int a = startA + randomOffset, c = startC; c < limC; a += stride, c++ ) {
+      bufC[c] = bufA[a];
     }
   }
 
-  private static <T> void mergeTwoSizeKBuffers(
-      final T[] keySrc1, final int startSrc1,
-      final T[] keySrc2, final int arrStart2,
-      final T[] keyDst,  final int arrStart3,
-      final int k, final Comparator<? super T> comparator) {
-    final int arrStop1 = startSrc1 + k;
+  private static void mergeTwoSizeKBuffers(
+      final double[] keySrc1, final int arrStart1,
+      final double[] keySrc2, final int arrStart2,
+      final double[] keyDst,  final int arrStart3,
+      final int k) {
+    final int arrStop1 = arrStart1 + k;
     final int arrStop2 = arrStart2 + k;
-  
-    int i1 = startSrc1;
+
+    int i1 = arrStart1;
     int i2 = arrStart2;
     int i3 = arrStart3;
     while (i1 < arrStop1 && i2 < arrStop2) {
-      if (comparator.compare(keySrc2[i2], keySrc1[i1]) < 0) { 
+      if (keySrc2[i2] < keySrc1[i1]) { 
         keyDst[i3++] = keySrc2[i2++];
       } else { 
         keyDst[i3++] = keySrc1[i1++];
-      }
+      } 
     }
-
+  
     if (i1 < arrStop1) {
       System.arraycopy(keySrc1, i1, keyDst, i3, arrStop1 - i1);
     } else {
@@ -305,15 +289,15 @@ final class ItemsUtil {
    * @param splitPoints must be unique and sorted. Number of splitPoints + 1 == counters.length.
    * @param counters array of counters
    */
-  static <T> void bilinearTimeIncrementHistogramCounters(final T[] samples, final int offset, final int numSamples,
-      final long weight, final T[] splitPoints, final long[] counters, final Comparator<? super T> comparator) {
+  static void bilinearTimeIncrementHistogramCounters(final double[] samples, final int offset, final int numSamples,
+      final long weight, final double[] splitPoints, final long[] counters) {
     assert (splitPoints.length + 1 == counters.length);
     for (int i = 0; i < numSamples; i++) { 
-      final T sample = samples[i + offset];
+      final double sample = samples[i + offset];
       int j = 0;
       for (j = 0; j < splitPoints.length; j++) {
-        final T splitpoint = splitPoints[j];
-        if (comparator.compare(sample, splitpoint) < 0) { 
+        final double splitpoint = splitPoints[j];
+        if (sample < splitpoint) {
           break;
         }
       }
@@ -337,12 +321,12 @@ final class ItemsUtil {
    * @param splitPoints must be unique and sorted. Number of splitPoints + 1 = counters.length.
    * @param counters array of counters
    */
-  static <T> void linearTimeIncrementHistogramCounters(final T[] samples, final int offset, final int numSamples,
-      final long weight, final T[] splitPoints, final long[] counters, final Comparator<? super T> comparator) {
+  static void linearTimeIncrementHistogramCounters(final double[] samples, final int offset, final int numSamples, 
+      final long weight, final double[] splitPoints, final long[] counters) {
     int i = 0;
     int j = 0;
     while (i < numSamples && j < splitPoints.length) {
-      if (comparator.compare(samples[i+offset], splitPoints[j]) < 0) {
+      if (samples[i + offset] < splitPoints[j]) {
         counters[j] += weight; // this sample goes into this bucket
         i++; // move on to next sample and see whether it also goes into this bucket
       } else {
@@ -357,7 +341,7 @@ final class ItemsUtil {
       counters[j] += (weight * (numSamples - i));
     }
   }
-  
+
   /**
    * blockyTandemMergeSort() is an implementation of top-down merge sort specialized
    * for the case where the input contains successive equal-length blocks
@@ -369,7 +353,7 @@ final class ItemsUtil {
    * @param arrLen length of keyArr and valArr 
    * @param blkSize size of internal sorted blocks
    */
-  static <T> void blockyTandemMergeSort(final T[] keyArr, final long[] valArr, final int arrLen, final int blkSize, final Comparator<? super T> comparator) {
+  static void blockyTandemMergeSort(final double[] keyArr, final long[] valArr, final int arrLen, final int blkSize) {
     assert blkSize >= 1;
     if (arrLen <= blkSize) return;
     int numblks = arrLen / blkSize;
@@ -377,13 +361,13 @@ final class ItemsUtil {
     assert (numblks * blkSize >= arrLen);
 
     // duplicate the input is preparation for the "ping-pong" copy reduction strategy. 
-    final T[] keyTmp = Arrays.copyOf(keyArr, arrLen);
-    final long[] valTmp = Arrays.copyOf(valArr, arrLen);
+    final double[] keyTmp = Arrays.copyOf(keyArr, arrLen);
+    final long[] valTmp   = Arrays.copyOf(valArr, arrLen);
 
     blockyTandemMergeSortRecursion(keyTmp, valTmp,
                                    keyArr, valArr,
                                    0, numblks,
-                                   blkSize, arrLen, comparator);
+                                   blkSize, arrLen);
   }
 
   /**
@@ -400,18 +384,17 @@ final class ItemsUtil {
    * @param grpLen group length, refers to pre-sorted blocks such as block 0, block 1, etc.
    * @param blkSize block size
    * @param arrLim array limit
-   * @param comparator to compare keys
    */
-  private static <T> void blockyTandemMergeSortRecursion(final T[] keySrc, final long[] valSrc,
-      final T[] keyDst, final long[] valDst, final int grpStart, final int grpLen, /* indices of blocks */
-      final int blkSize, final int arrLim, final Comparator<? super T> comparator) {
+  private static void blockyTandemMergeSortRecursion(final double[] keySrc, final long[] valSrc,
+      final double[] keyDst, final long[] valDst, final int grpStart, final int grpLen, /* indices of blocks */
+      final int blkSize, final int arrLim) {
     // Important note: grpStart and grpLen do NOT refer to positions in the underlying array.
     // Instead, they refer to the pre-sorted blocks, such as block 0, block 1, etc.
 
     assert (grpLen > 0);
     if (grpLen == 1) return;
-    int grpLen1 = grpLen / 2;
-    int grpLen2 = grpLen - grpLen1;
+    final int grpLen1 = grpLen / 2;
+    final int grpLen2 = grpLen - grpLen1;
     assert (grpLen1 >= 1);
     assert (grpLen2 >= grpLen1);
 
@@ -421,18 +404,18 @@ final class ItemsUtil {
     //swap roles of src and dst
     blockyTandemMergeSortRecursion(keyDst, valDst,
                            keySrc, valSrc,
-                           grpStart1, grpLen1, blkSize, arrLim, comparator);
+                           grpStart1, grpLen1, blkSize, arrLim);
 
     //swap roles of src and dst
     blockyTandemMergeSortRecursion(keyDst, valDst,
                            keySrc, valSrc,
-                           grpStart2, grpLen2, blkSize, arrLim, comparator);
+                           grpStart2, grpLen2, blkSize, arrLim);
 
     // here we convert indices of blocks into positions in the underlying array.
     final int arrStart1 = grpStart1 * blkSize;
     final int arrStart2 = grpStart2 * blkSize;
     final int arrLen1   = grpLen1   * blkSize;
-    int arrLen2   = grpLen2   * blkSize;
+    int arrLen2         = grpLen2   * blkSize;
 
     // special case for the final block which might be shorter than blkSize.
     if (arrStart2 + arrLen2 > arrLim) arrLen2 = arrLim - arrStart2;
@@ -441,9 +424,9 @@ final class ItemsUtil {
                 arrStart1, arrLen1, 
                 arrStart2, arrLen2,
                 keyDst, valDst,
-                arrStart1, comparator); // which will be arrStart3
+                arrStart1); // which will be arrStart3
   }
-  
+
   /**
    *  Performs two merges in tandem. One of them provides the sort keys
    *  while the other one passively undergoes the same data motion.
@@ -456,21 +439,20 @@ final class ItemsUtil {
    * @param keyDst key destination
    * @param valDst value destination
    * @param arrStart3 Array 3 start offset
-   * @param comparator to compare keys
    */
-  private static <T> void tandemMerge(final T[] keySrc, final long[] valSrc,
+  private static void tandemMerge(final double[] keySrc, final long[] valSrc,
                                   final int arrStart1, final int arrLen1,
                                   final int arrStart2, final int arrLen2,
-                                  final T[] keyDst, final long[] valDst,
-                                  final int arrStart3, final Comparator<? super T> comparator) {
+                                  final double[] keyDst, final long[] valDst,
+                                  final int arrStart3) {
     final int arrStop1 = arrStart1 + arrLen1;
     final int arrStop2 = arrStart2 + arrLen2;
-
+  
     int i1 = arrStart1;
     int i2 = arrStart2;
     int i3 = arrStart3;
     while (i1 < arrStop1 && i2 < arrStop2) {
-      if (comparator.compare(keySrc[i2], keySrc[i1]) < 0) {
+      if (keySrc[i2] < keySrc[i1]) { 
         keyDst[i3] = keySrc[i2];
         valDst[i3] = valSrc[i2];
         i3++; i2++;
@@ -480,7 +462,7 @@ final class ItemsUtil {
         i3++; i1++;
       }
     }
-
+  
     if (i1 < arrStop1) {
       arraycopy(keySrc, i1, keyDst, i3, arrStop1 - i1);
       arraycopy(valSrc, i1, valDst, i3, arrStop1 - i1);
@@ -491,7 +473,7 @@ final class ItemsUtil {
     }
   }
 
-  static <T> String toString(final boolean sketchSummary, final boolean dataDetail, final ItemsSketch<T> sketch) {
+  static String toString(final boolean sketchSummary, final boolean dataDetail, final HeapDoublesSketch sketch) {
     final StringBuilder sb = new StringBuilder();
     final String thisSimpleName = sketch.getClass().getSimpleName();
     final int bbCount = sketch.getBaseBufferCount();
@@ -501,13 +483,13 @@ final class ItemsUtil {
 
     if (dataDetail) {
       sb.append(Util.LS).append("### ").append(thisSimpleName).append(" DATA DETAIL: ").append(Util.LS);
-      final Object[] items  = sketch.getCombinedBuffer();
+      final double[] items  = sketch.getCombinedBuffer();
 
       //output the base buffer
-      sb.append("   BaseBuffer   :");
+      sb.append("   BaseBuffer   : ");
       if (bbCount > 0) {
         for (int i = 0; i < bbCount; i++) { 
-          sb.append(' ').append(items[i]);
+          sb.append(String.format("%10.1f", items[i]));
         }
       }
       sb.append(Util.LS);
@@ -520,9 +502,9 @@ final class ItemsUtil {
             final int levelNum = j > 2 * k ? (j - 2 * k) / k : 0;
             final String validLvl = ((1L << levelNum) & bitPattern) > 0 ? "    T  " : "    F  ";
             final String lvl = String.format("%5d", levelNum);
-            sb.append(Util.LS).append("   ").append(validLvl).append(" ").append(lvl).append(":");
+            sb.append(Util.LS).append("   ").append(validLvl).append(" ").append(lvl).append(": ");
           }
-          sb.append(' ').append(items[j]);
+          sb.append(String.format("%10.1f", items[j]));
         }
         sb.append(Util.LS);
       }
@@ -533,6 +515,7 @@ final class ItemsUtil {
       final long n = sketch.getN();
       final String nStr = String.format("%,d", n);
       final int numLevels = Util.computeNumLevelsNeeded(k, n);
+      final int bufBytes = combAllocCount * 8;
       final String bufCntStr = String.format("%,d", combAllocCount);
       final int preBytes = sketch.isEmpty() ? Long.BYTES : PreambleUtil.PREAMBLE_LONGS * Long.BYTES;
       final double eps = Util.EpsilonFromK.getAdjustedEpsilon(k);
@@ -548,10 +531,11 @@ final class ItemsUtil {
       sb.append("   Valid Levels                 : ").append(Util.numValidLevels(bitPattern)).append(Util.LS);
       sb.append("   Level Bit Pattern            : ").append(Long.toBinaryString(bitPattern)).append(Util.LS);
       sb.append("   Valid Samples                : ").append(numSampStr).append(Util.LS);
+      sb.append("   Buffer Storage Bytes         : ").append(String.format("%,d", bufBytes)).append(Util.LS);
       sb.append("   Preamble Bytes               : ").append(preBytes).append(Util.LS);
       sb.append("   Normalized Rank Error        : ").append(epsPct).append(Util.LS);
-      sb.append("   Min Value                    : ").append(sketch.getMinValue()).append(Util.LS);
-      sb.append("   Max Value                    : ").append(sketch.getMaxValue()).append(Util.LS);
+      sb.append("   Min Value                    : ").append(String.format("%,.3f", sketch.getMinValue())).append(Util.LS);
+      sb.append("   Max Value                    : ").append(String.format("%,.3f", sketch.getMaxValue())).append(Util.LS);
       sb.append("### END SKETCH SUMMARY").append(Util.LS);
     }
     return sb.toString();

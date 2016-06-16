@@ -4,7 +4,6 @@
  */
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.quantiles.Util.*;
 import static org.testng.Assert.assertEquals;
 
 import java.util.Arrays;
@@ -13,13 +12,18 @@ import org.testng.annotations.Test;
 
 import com.yahoo.sketches.quantiles.Util.EpsilonFromK;
 
+/*
+ * Copyright 2016, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
+
 public class UtilTest {
   
   @Test
   public void checkBufferElementCapacity() {
     int k = 227;
-    int capEl = bufferElementCapacity(k, 0);
-    assertEquals(capEl, DoublesQuantilesSketch.MIN_BASE_BUF_SIZE);
+    int capEl = Util.bufferElementCapacity(k, 0);
+    assertEquals(capEl, Util.MIN_BASE_BUF_SIZE);
   }
   
   @Test
@@ -35,13 +39,13 @@ public class UtilTest {
   
   @Test
   public void checkLg() {
-    int lgbase2 = (int)lg(4096);
+    int lgbase2 = (int) Util.lg(4096);
     assertEquals(lgbase2, 12);
   }
   
   @Test
   public void checkHiBitPos() {
-    int bitPos = hiBitPos(4096);
+    int bitPos = Util.hiBitPos(4096);
     assertEquals(bitPos, 12);
   }
   
@@ -50,13 +54,6 @@ public class UtilTest {
     long v = (1L << 32)-1L;
     int ones = Util.numValidLevels(v);
     assertEquals(ones, 32);
-  }
-  
-  @Test
-  public void checkSumOfDoublesInSubArray() {
-    double[] arr = {1, 2, 3, 4, 5, 6, 7, 8};
-    double sum = sumOfDoublesInSubArray(arr, 0, 4);
-    assertEquals(sum, 10.0, 0.0);
   }
   
   @Test
@@ -77,7 +74,7 @@ public class UtilTest {
       double [] splitPoints = {0.25, 0.4};
       long counters [] = {0, 0, 0};
       long answers  [] = {200, 100, 200};
-      Util.bilinearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
+      DoublesUtil.bilinearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
       for (int j = 0; j < counters.length; j++) {
         assert counters[j] == answers[j];
         // System.out.printf ("counter[%d] = %d\n", j, counters[j]);
@@ -89,7 +86,7 @@ public class UtilTest {
       double [] splitPoints = {0.01, 0.02};
       long counters [] = {0, 0, 0};
       long answers  [] = {0, 0, 500};
-      Util.bilinearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
+      DoublesUtil.bilinearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
       for (int j = 0; j < counters.length; j++) {
         assert counters[j] == answers[j];
         // System.out.printf ("counter[%d] = %d\n", j, counters[j]);
@@ -101,7 +98,7 @@ public class UtilTest {
       double [] splitPoints = {0.8, 0.9};
       long counters [] = {0, 0, 0};
       long answers  [] = {500, 0, 0};
-      Util.bilinearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
+      DoublesUtil.bilinearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
       for (int j = 0; j < counters.length; j++) {
         assert counters[j] == answers[j];
         // System.out.printf ("counter[%d] = %d\n", j, counters[j]);
@@ -122,7 +119,7 @@ public class UtilTest {
       double [] splitPoints = {0.25, 0.4};
       long counters [] = {0, 0, 0};
       long answers  [] = {200, 100, 200};
-      Util.linearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
+      DoublesUtil.linearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
       for (int j = 0; j < counters.length; j++) {
         assert counters[j] == answers[j];
         // System.out.printf ("counter[%d] = %d\n", j, counters[j]);
@@ -134,7 +131,7 @@ public class UtilTest {
       double [] splitPoints = {0.01, 0.02};
       long counters [] = {0, 0, 0};
       long answers  [] = {0, 0, 500};
-      Util.linearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
+      DoublesUtil.linearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
       for (int j = 0; j < counters.length; j++) {
         assert counters[j] == answers[j];
         // System.out.printf ("counter[%d] = %d\n", j, counters[j]);
@@ -146,7 +143,7 @@ public class UtilTest {
       double [] splitPoints = {0.8, 0.9};
       long counters [] = {0, 0, 0};
       long answers  [] = {500, 0, 0};
-      Util.linearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
+      DoublesUtil.linearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
       for (int j = 0; j < counters.length; j++) {
         assert counters[j] == answers[j];
         // System.out.printf ("counter[%d] = %d\n", j, counters[j]);
@@ -247,7 +244,7 @@ public class UtilTest {
          arr = makeMergeTestInput(arrLen, blkSize);
          long [] brr = makeTheTandemArray(arr);
          assertMergeTestPrecondition(arr, brr, arrLen, blkSize);
-         Util.blockyTandemMergeSort(arr, brr, arrLen, blkSize);
+         DoublesUtil.blockyTandemMergeSort(arr, brr, arrLen, blkSize);
          /* verify sorted order */
          for (int i = 0; i < arrLen-1; i++) {
            assert arr[i] <= arr[i+1];
@@ -275,7 +272,7 @@ public class UtilTest {
           double [] arr = makeMergeTestInput (arrLen, blkSize);
           long [] brr = makeTheTandemArray (arr);
           assertMergeTestPrecondition (arr, brr, arrLen, blkSize);
-          Util.blockyTandemMergeSort (arr, brr, arrLen, blkSize);
+          DoublesUtil.blockyTandemMergeSort (arr, brr, arrLen, blkSize);
           assertMergeTestPostcondition (arr, brr, arrLen);
         }
       }

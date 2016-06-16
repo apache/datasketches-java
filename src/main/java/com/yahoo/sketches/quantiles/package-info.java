@@ -3,7 +3,7 @@
  * analysis of the distribution of a stream of real (double) values or generic items. 
  * </p>
  * 
- * @see com.yahoo.sketches.quantiles.DoublesQuantilesSketch
+ * @see com.yahoo.sketches.quantiles.DoublesSketch
  * @author Lee Rhodes
  */
 package com.yahoo.sketches.quantiles;

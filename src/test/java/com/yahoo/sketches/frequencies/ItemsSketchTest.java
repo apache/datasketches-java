@@ -6,7 +6,7 @@ import org.testng.annotations.Test;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.ArrayOfStringsSerDe;
 import com.yahoo.sketches.ArrayOfUtf16StringsSerDe;
-import com.yahoo.sketches.frequencies.FrequentItemsSketch.Row;
+import com.yahoo.sketches.frequencies.ItemsSketch.Row;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -14,11 +14,11 @@ import static org.testng.Assert.fail;
 
 import org.testng.Assert;
 
-public class FrequentItemsSketchTest {
+public class ItemsSketchTest {
 
   @Test
   public void empty() {
-    FrequentItemsSketch<String> sketch = new FrequentItemsSketch<String>(8);
+    ItemsSketch<String> sketch = new ItemsSketch<String>(8);
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertEquals(sketch.getNumActiveItems(), 0);
     Assert.assertEquals(sketch.getStreamLength(), 0);
@@ -28,7 +28,7 @@ public class FrequentItemsSketchTest {
 
   @Test
   public void nullInput() {
-    FrequentItemsSketch<String> sketch = new FrequentItemsSketch<String>(8);
+    ItemsSketch<String> sketch = new ItemsSketch<String>(8);
     sketch.update(null);
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertEquals(sketch.getNumActiveItems(), 0);
@@ -39,7 +39,7 @@ public class FrequentItemsSketchTest {
 
   @Test
   public void oneItem() {
-    FrequentItemsSketch<String> sketch = new FrequentItemsSketch<String>(8);
+    ItemsSketch<String> sketch = new ItemsSketch<String>(8);
     sketch.update("a");
     Assert.assertFalse(sketch.isEmpty());
     Assert.assertEquals(sketch.getNumActiveItems(), 1);
@@ -50,7 +50,7 @@ public class FrequentItemsSketchTest {
 
   @Test
   public void severalItems() {
-    FrequentItemsSketch<String> sketch = new FrequentItemsSketch<String>(8);
+    ItemsSketch<String> sketch = new ItemsSketch<String>(8);
     sketch.update("a");
     sketch.update("b");
     sketch.update("c");
@@ -66,7 +66,7 @@ public class FrequentItemsSketchTest {
     Assert.assertEquals(sketch.getEstimate("c"), 2);
     Assert.assertEquals(sketch.getEstimate("d"), 1);
 
-    FrequentItemsSketch<String>.Row[] items = sketch.getFrequentItems(ErrorType.NO_FALSE_POSITIVES);
+    ItemsSketch<String>.Row[] items = sketch.getFrequentItems(ErrorType.NO_FALSE_POSITIVES);
     Assert.assertEquals(items.length, 4);
 
     sketch.reset();
@@ -77,7 +77,7 @@ public class FrequentItemsSketchTest {
 
   @Test
   public void estimationMode() {
-    FrequentItemsSketch<Integer> sketch = new FrequentItemsSketch<Integer>(8);
+    ItemsSketch<Integer> sketch = new ItemsSketch<Integer>(8);
     sketch.update(1, 10);
     sketch.update(2);
     sketch.update(3);
@@ -95,24 +95,24 @@ public class FrequentItemsSketchTest {
     Assert.assertEquals(sketch.getStreamLength(), 35);
 
     {
-      FrequentItemsSketch<Integer>.Row[] items = 
+      ItemsSketch<Integer>.Row[] items = 
           sketch.getFrequentItems(ErrorType.NO_FALSE_POSITIVES);
       Assert.assertEquals(items.length, 2);
       // only 2 items (1 and 7) should have counts more than 1
       int count = 0;
-      for (FrequentItemsSketch<Integer>.Row item: items) {
+      for (ItemsSketch<Integer>.Row item: items) {
         if (item.getLowerBound() > 1) count++;
       }
       Assert.assertEquals(count, 2);
     }
 
     {
-      FrequentItemsSketch<Integer>.Row[] items = 
+      ItemsSketch<Integer>.Row[] items = 
           sketch.getFrequentItems(ErrorType.NO_FALSE_NEGATIVES);
       Assert.assertTrue(items.length >= 2);
       // only 2 items (1 and 7) should have counts more than 1
       int count = 0;
-      for (FrequentItemsSketch<Integer>.Row item: items) {
+      for (ItemsSketch<Integer>.Row item: items) {
         if (item.getLowerBound() > 5) {
           count++;
         }
@@ -123,10 +123,10 @@ public class FrequentItemsSketchTest {
 
   @Test
   public void serializeStringDeserializeEmpty() {
-    FrequentItemsSketch<String> sketch1 = new FrequentItemsSketch<String>(8);
+    ItemsSketch<String> sketch1 = new ItemsSketch<String>(8);
     byte[] bytes = sketch1.serializeToByteArray(new ArrayOfStringsSerDe());
-    FrequentItemsSketch<String> sketch2 = 
-        FrequentItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfStringsSerDe());
+    ItemsSketch<String> sketch2 = 
+        ItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfStringsSerDe());
     Assert.assertTrue(sketch2.isEmpty());
     Assert.assertEquals(sketch2.getNumActiveItems(), 0);
     Assert.assertEquals(sketch2.getStreamLength(), 0);
@@ -134,15 +134,15 @@ public class FrequentItemsSketchTest {
 
   @Test
   public void serializeDeserializeUft8Strings() {
-    FrequentItemsSketch<String> sketch1 = new FrequentItemsSketch<String>(8);
+    ItemsSketch<String> sketch1 = new ItemsSketch<String>(8);
     sketch1.update("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     sketch1.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
     sketch1.update("ccccccccccccccccccccccccccccc");
     sketch1.update("ddddddddddddddddddddddddddddd");
 
     byte[] bytes = sketch1.serializeToByteArray(new ArrayOfStringsSerDe());
-    FrequentItemsSketch<String> sketch2 = 
-        FrequentItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfStringsSerDe());
+    ItemsSketch<String> sketch2 = 
+        ItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfStringsSerDe());
     sketch2.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
     sketch2.update("ccccccccccccccccccccccccccccc");
     sketch2.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
@@ -158,15 +158,15 @@ public class FrequentItemsSketchTest {
 
   @Test
   public void serializeDeserializeUtf16Strings() {
-    FrequentItemsSketch<String> sketch1 = new FrequentItemsSketch<String>(8);
+    ItemsSketch<String> sketch1 = new ItemsSketch<String>(8);
     sketch1.update("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     sketch1.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
     sketch1.update("ccccccccccccccccccccccccccccc");
     sketch1.update("ddddddddddddddddddddddddddddd");
 
     byte[] bytes = sketch1.serializeToByteArray(new ArrayOfUtf16StringsSerDe());
-    FrequentItemsSketch<String> sketch2 = 
-        FrequentItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfUtf16StringsSerDe());
+    ItemsSketch<String> sketch2 = 
+        ItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfUtf16StringsSerDe());
     sketch2.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
     sketch2.update("ccccccccccccccccccccccccccccc");
     sketch2.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
@@ -182,7 +182,7 @@ public class FrequentItemsSketchTest {
 
   @Test
   public void forceResize() {
-    FrequentItemsSketch<String> sketch1 = new FrequentItemsSketch<String>(16);
+    ItemsSketch<String> sketch1 = new ItemsSketch<String>(16);
     for (int i=0; i<32; i++) {
       sketch1.update(Integer.toString(i), i*i);
     }
@@ -190,14 +190,14 @@ public class FrequentItemsSketchTest {
   
   @Test
   public void getRowHeader() {
-    FrequentItemsSketch<String> sketch1 = new FrequentItemsSketch<String>(16);
+    ItemsSketch<String> sketch1 = new ItemsSketch<String>(16);
     sketch1.new Row("a", 0, 0, 0).getRowHeader();
   }
   
   @SuppressWarnings("unused")
   @Test
   public void serializeLongDeserialize() {
-    FrequentItemsSketch<Long> sketch1 = new FrequentItemsSketch<Long>(8);
+    ItemsSketch<Long> sketch1 = new ItemsSketch<Long>(8);
     sketch1.update(1L);
     sketch1.update(2L);
     sketch1.update(3L);
@@ -207,8 +207,8 @@ public class FrequentItemsSketchTest {
     //println(s);
     
     byte[] bytes = sketch1.serializeToByteArray(new ArrayOfLongsSerDe());
-    FrequentItemsSketch<Long> sketch2 = 
-        FrequentItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfLongsSerDe());
+    ItemsSketch<Long> sketch2 = 
+        ItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfLongsSerDe());
     sketch2.update(2L);
     sketch2.update(3L);
     sketch2.update(2L);
@@ -224,13 +224,13 @@ public class FrequentItemsSketchTest {
   
   @Test
   public void mergeExact() {
-    FrequentItemsSketch<String> sketch1 = new FrequentItemsSketch<String>(8);
+    ItemsSketch<String> sketch1 = new ItemsSketch<String>(8);
     sketch1.update("a");
     sketch1.update("b");
     sketch1.update("c");
     sketch1.update("d");
     
-    FrequentItemsSketch<String> sketch2 = new FrequentItemsSketch<String>(8);
+    ItemsSketch<String> sketch2 = new ItemsSketch<String>(8);
     sketch2.update("b");
     sketch2.update("c");
     sketch2.update("b");
@@ -255,10 +255,10 @@ public class FrequentItemsSketchTest {
   @SuppressWarnings({ "rawtypes", "unused" })
   @Test
   public void checkMisc() {
-    FrequentItemsSketch<Long> sk1 = new FrequentItemsSketch<Long>(8);
+    ItemsSketch<Long> sk1 = new ItemsSketch<Long>(8);
     Assert.assertEquals(sk1.getCurrentMapCapacity(), 6);
     Assert.assertEquals(sk1.getEstimate(new Long(1)), 0);
-    FrequentItemsSketch<Long> sk2 = new FrequentItemsSketch<Long>(8);
+    ItemsSketch<Long> sk2 = new ItemsSketch<Long>(8);
     Assert.assertEquals(sk1.merge(sk2), sk1 );
     Assert.assertEquals(sk1.merge(null), sk1);
     sk1.update(new Long(1));
@@ -273,13 +273,13 @@ public class FrequentItemsSketchTest {
   
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkUpdateException() {
-    FrequentItemsSketch<Long> sk1 = new FrequentItemsSketch<Long>(8);
+    ItemsSketch<Long> sk1 = new ItemsSketch<Long>(8);
     sk1.update(new Long(1), -1);
   }
   
   @Test
   public void checkMemExceptions() {
-    FrequentItemsSketch<Long> sk1 = new FrequentItemsSketch<Long>(8);
+    ItemsSketch<Long> sk1 = new ItemsSketch<Long>(8);
     sk1.update(new Long(1), 1);
     ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     byte[] byteArr = sk1.serializeToByteArray(serDe);
@@ -305,7 +305,7 @@ public class FrequentItemsSketchTest {
 
   @Test
   public void oneItemUtf8() {
-    FrequentItemsSketch<String> sketch1 = new FrequentItemsSketch<String>(8);
+    ItemsSketch<String> sketch1 = new ItemsSketch<String>(8);
     sketch1.update("\u5fb5");
     Assert.assertFalse(sketch1.isEmpty());
     Assert.assertEquals(sketch1.getNumActiveItems(), 1);
@@ -313,8 +313,8 @@ public class FrequentItemsSketchTest {
     Assert.assertEquals(sketch1.getEstimate("\u5fb5"), 1);
 
     byte[] bytes = sketch1.serializeToByteArray(new ArrayOfStringsSerDe());
-    FrequentItemsSketch<String> sketch2 = 
-        FrequentItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfStringsSerDe());
+    ItemsSketch<String> sketch2 = 
+        ItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfStringsSerDe());
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertEquals(sketch2.getNumActiveItems(), 1);
     Assert.assertEquals(sketch2.getStreamLength(), 1);
@@ -325,7 +325,7 @@ public class FrequentItemsSketchTest {
     ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     try {
       mem.putByte(byteOffset, (byte) byteValue); //Corrupt
-      FrequentItemsSketch.getInstance(mem, serDe);
+      ItemsSketch.getInstance(mem, serDe);
       fail();
     } catch (IllegalArgumentException e) {
       //expected

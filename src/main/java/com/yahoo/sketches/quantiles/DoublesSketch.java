@@ -107,8 +107,7 @@ Table Guide for QuantilesSketch Size in Bytes and Approximate Error:
  * getPMF(splitPoints[]) may not result in the original fractional values.</p>
  *  
  */
-public abstract class DoublesQuantilesSketch {
-  static final int MIN_BASE_BUF_SIZE = 4; //This is somewhat arbitrary
+public abstract class DoublesSketch {
   
   /**
    * Parameter that controls space usage of sketch and accuracy of estimates.
@@ -127,7 +126,7 @@ public abstract class DoublesQuantilesSketch {
    */
   static final int DEFAULT_K = 128;
   
-  DoublesQuantilesSketch(int k) {
+  DoublesSketch(int k) {
     Util.checkK(k);
     k_ = k;
   }
@@ -136,8 +135,8 @@ public abstract class DoublesQuantilesSketch {
    * Returns a new builder
    * @return a new builder
    */
-  public static final DoublesQuantilesSketchBuilder builder() {
-    return new DoublesQuantilesSketchBuilder();
+  public static final DoublesSketchBuilder builder() {
+    return new DoublesSketchBuilder();
   }
   
   /** 
@@ -351,7 +350,7 @@ public abstract class DoublesQuantilesSketch {
    * It is required that this.getK() = smallerK * 2^(nonnegative integer).
    * @return the new sketch.
    */
-  public abstract DoublesQuantilesSketch downSample(int smallerK);
+  public abstract DoublesSketch downSample(int smallerK);
 
   /**
    * Heapify takes the sketch image in Memory and instantiates an on-heap Sketch. 
@@ -360,8 +359,8 @@ public abstract class DoublesQuantilesSketch {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a heap-based Sketch based on the given Memory
    */
-  public static DoublesQuantilesSketch heapify(Memory srcMem) {
-    return HeapDoublesQuantilesSketch.getInstance(srcMem);
+  public static DoublesSketch heapify(Memory srcMem) {
+    return HeapDoublesSketch.getInstance(srcMem);
   }
 
   /**

@@ -13,15 +13,15 @@ import com.yahoo.sketches.memory.Memory;
  */
 class HeapDoublesUnion extends DoublesUnion {
   private final int k_;
-  private HeapDoublesQuantilesSketch gadget_;
+  private HeapDoublesSketch gadget_;
 
   HeapDoublesUnion(final int k) {
     k_ = k;
   }
   
-  HeapDoublesUnion(final DoublesQuantilesSketch sketch) {
+  HeapDoublesUnion(final DoublesSketch sketch) {
     k_ = sketch.getK();
-    gadget_ = (HeapDoublesQuantilesSketch) sketch;
+    gadget_ = (HeapDoublesSketch) sketch;
   }
   
   /**
@@ -30,37 +30,37 @@ class HeapDoublesUnion extends DoublesUnion {
    * A reference to srcMem will not be maintained internally.
    */
   HeapDoublesUnion(final Memory srcMem) {
-    gadget_ = HeapDoublesQuantilesSketch.getInstance(srcMem);
+    gadget_ = HeapDoublesSketch.getInstance(srcMem);
     k_ = gadget_.getK();
   }
   
   @Override
-  public void update(DoublesQuantilesSketch sketchIn) {
-    gadget_ = updateLogic(gadget_, (HeapDoublesQuantilesSketch)sketchIn);
+  public void update(DoublesSketch sketchIn) {
+    gadget_ = updateLogic(gadget_, (HeapDoublesSketch)sketchIn);
   }
 
   @Override
   public void update(Memory srcMem) {
-    HeapDoublesQuantilesSketch that = HeapDoublesQuantilesSketch.getInstance(srcMem);
+    HeapDoublesSketch that = HeapDoublesSketch.getInstance(srcMem);
     gadget_ = updateLogic(gadget_, that);
   }
 
   @Override
   public void update(double dataItem) {
-    if (gadget_ == null) gadget_ = HeapDoublesQuantilesSketch.getInstance(k_);
+    if (gadget_ == null) gadget_ = HeapDoublesSketch.getInstance(k_);
     gadget_.update(dataItem);
   }
 
   @Override
-  public DoublesQuantilesSketch getResult() {
-    if (gadget_ == null) return HeapDoublesQuantilesSketch.getInstance(k_);
-    return HeapDoublesQuantilesSketch.copy(gadget_); //can't have any externally owned handles.
+  public DoublesSketch getResult() {
+    if (gadget_ == null) return HeapDoublesSketch.getInstance(k_);
+    return HeapDoublesSketch.copy(gadget_); //can't have any externally owned handles.
   }
   
   @Override
-  public DoublesQuantilesSketch getResultAndReset() {
+  public DoublesSketch getResultAndReset() {
     if (gadget_ == null) return null; //Intentionally return null here for speed.
-    DoublesQuantilesSketch hqs = gadget_;
+    DoublesSketch hqs = gadget_;
     gadget_ = null;
     return hqs;
   }
@@ -77,14 +77,14 @@ class HeapDoublesUnion extends DoublesUnion {
   
   @Override
   public String toString(boolean sketchSummary, boolean dataDetail) {
-    if (gadget_ == null) return HeapDoublesQuantilesSketch.getInstance(k_).toString();
+    if (gadget_ == null) return HeapDoublesSketch.getInstance(k_).toString();
     return gadget_.toString(sketchSummary, dataDetail);
   }
   
 
 //@formatter:off
   @SuppressWarnings("null")
-  static HeapDoublesQuantilesSketch updateLogic(HeapDoublesQuantilesSketch myQS, HeapDoublesQuantilesSketch other) {
+  static HeapDoublesSketch updateLogic(HeapDoublesSketch myQS, HeapDoublesSketch other) {
     int sw1 = ((myQS   == null)? 0 :   myQS.isEmpty()? 4: 8);
     sw1 |=    ((other  == null)? 0 :  other.isEmpty()? 1: 2);
     int outCase = 0; //0=null, 1=NOOP, 2=copy, 3=merge 
@@ -103,7 +103,7 @@ class HeapDoublesUnion extends DoublesUnion {
       case 0: return null;
       case 1: return myQS;
       case 2: {
-        return HeapDoublesQuantilesSketch.copy(other); //required because caller has handle
+        return HeapDoublesSketch.copy(other); //required because caller has handle
       }
       default:
     }
@@ -115,7 +115,7 @@ class HeapDoublesUnion extends DoublesUnion {
     
     //myQS_K > other_K, must reverse roles
     //must copy other as it will become mine and can't have any externally owned handles.
-    HeapDoublesQuantilesSketch myNewQS = HeapDoublesQuantilesSketch.copy(other);
+    HeapDoublesSketch myNewQS = HeapDoublesSketch.copy(other);
     HeapDoublesUnion.mergeInto(myQS, myNewQS);
     return myNewQS;
   }
@@ -145,17 +145,17 @@ class HeapDoublesUnion extends DoublesUnion {
    * @param target The target sketch
    */
   
-  static void mergeInto(DoublesQuantilesSketch source, DoublesQuantilesSketch target) {
+  static void mergeInto(DoublesSketch source, DoublesSketch target) {
     
-    HeapDoublesQuantilesSketch src = (HeapDoublesQuantilesSketch)source;
-    HeapDoublesQuantilesSketch tgt = (HeapDoublesQuantilesSketch)target;
+    HeapDoublesSketch src = (HeapDoublesSketch)source;
+    HeapDoublesSketch tgt = (HeapDoublesSketch)target;
     int srcK = src.getK();
     int tgtK = tgt.getK();
     long srcN = src.getN();
     long tgtN = tgt.getN();
     
     if (srcK != tgtK) {
-      Util.downSamplingMergeInto(src, tgt);
+      DoublesUtil.downSamplingMergeInto(src, tgt);
       return;
     }
     
@@ -168,7 +168,7 @@ class HeapDoublesUnion extends DoublesUnion {
       tgt.update(srcBaseBuffer[i]);
     }
   
-    Util.maybeGrowLevels(nFinal, tgt);
+    DoublesUtil.maybeGrowLevels(nFinal, tgt);
   
     double[] scratchBuf = new double[2*tgtK];
   
@@ -176,7 +176,7 @@ class HeapDoublesUnion extends DoublesUnion {
     assert srcBitPattern == (srcN / (2L * srcK));
     for (int srcLvl = 0; srcBitPattern != 0L; srcLvl++, srcBitPattern >>>= 1) {
       if ((srcBitPattern & 1L) > 0L) {
-        Util.inPlacePropagateCarry(
+        DoublesUtil.inPlacePropagateCarry(
             srcLvl,
             srcLevels, ((2+srcLvl) * tgtK),
             scratchBuf, 0,

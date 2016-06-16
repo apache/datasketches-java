@@ -20,7 +20,7 @@ class ItemsAuxiliary<T> {
    * @param qs a HeapQuantilesSketch
    */
   @SuppressWarnings("unchecked")
-  ItemsAuxiliary(final ItemsQuantilesSketch<T> qs) {
+  ItemsAuxiliary(final ItemsSketch<T> qs) {
     final int k = qs.getK();
     final long n = qs.getN();
     final long bitPattern = qs.getBitPattern();

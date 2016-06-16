@@ -12,20 +12,20 @@ import static com.yahoo.sketches.quantiles.Util.TAB;
  * 
  * @author Lee Rhodes 
  */
-public class DoublesQuantilesSketchBuilder {
+public class DoublesSketchBuilder {
   private int bK;
   
   /**
    * Constructor for building a new QuantilesSketch. The default configuration is 
    * <ul>
-   * <li>k: {@value com.yahoo.sketches.quantiles.DoublesQuantilesSketch#DEFAULT_K} 
+   * <li>k: {@value com.yahoo.sketches.quantiles.DoublesSketch#DEFAULT_K} 
    * This produces a normalized rank error of about 1.7%</li>
    * <li>Seed: 0</li>
    * <li>Memory: null</li>
    * </ul>
    */
-  public DoublesQuantilesSketchBuilder() {
-    bK = DoublesQuantilesSketch.DEFAULT_K;
+  public DoublesSketchBuilder() {
+    bK = DoublesSketch.DEFAULT_K;
   }
   
   /**
@@ -37,7 +37,7 @@ public class DoublesQuantilesSketchBuilder {
    * larger values of <i>k</i> to smaller values.
    * @return this builder
    */
-  public DoublesQuantilesSketchBuilder setK(int k) {
+  public DoublesSketchBuilder setK(int k) {
     Util.checkK(k);
     bK = k;
     return this;
@@ -55,8 +55,8 @@ public class DoublesQuantilesSketchBuilder {
    * Returns a QuantilesSketch with the current configuration of this Builder.
    * @return a QuantilesSketch
    */
-  public DoublesQuantilesSketch build() {
-    return HeapDoublesQuantilesSketch.getInstance(bK);
+  public DoublesSketch build() {
+    return HeapDoublesSketch.getInstance(bK);
   }
   
   /**
@@ -70,7 +70,7 @@ public class DoublesQuantilesSketchBuilder {
    * 
    * @return a QuantilesSketch
    */
-  public DoublesQuantilesSketch build(int k) {
+  public DoublesSketch build(int k) {
     setK(k);
     return build();
   }

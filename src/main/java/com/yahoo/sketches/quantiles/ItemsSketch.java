@@ -38,7 +38,7 @@ import com.yahoo.sketches.memory.NativeMemory;
 
 /**
  * This is a stochastic streaming sketch that enables near-real time analysis of the 
- * approximate distribution of real values from a very large stream in a single pass. 
+ * approximate distribution of values from a very large stream in a single pass. 
  * The analysis is obtained using a getQuantiles(*) function or its inverse functions the 
  * Probability Mass Function from getPMF(*) and the Cumulative Distribution Function from getCDF(*).
  * 
@@ -116,13 +116,12 @@ Table Guide for QuantilesSketch Size in Bytes and Approximate Error:
  * <p>There is more documentation available on 
  * <a href="http://datasketches.github.io">DataSketches.GitHub.io</a>.</p>
  * 
- * <p>This is an implementation of the Low Discrepancy Mergeable Quantiles Sketch, using double 
- * values, described in section 3.2 of the journal version of the paper "Mergeable Summaries" 
- * by Agarwal, Cormode, Huang, Phillips, Wei, and Yi. 
+ * <p>This is an implementation of the Low Discrepancy Mergeable Quantiles Sketch, using arbitrary
+ * comparable values, described in section 3.2 of the journal version of the paper
+ * "Mergeable Summaries" by Agarwal, Cormode, Huang, Phillips, Wei, and Yi. 
  * <a href="http://dblp.org/rec/html/journals/tods/AgarwalCHPWY13"></a></p>
  * 
- * <p>This algorithm is independent of the distribution of values, which can be anywhere in the
- * range of the IEEE-754 64-bit doubles. 
+ * <p>This algorithm is independent of the distribution of values.
  * 
  * <p>This algorithm intentionally inserts randomness into the sampling process for values that
  * ultimately get retained in the sketch. The results produced by this algorithm are not 
@@ -135,7 +134,7 @@ Table Guide for QuantilesSketch Size in Bytes and Approximate Error:
  * 
  * @param <T> type of item
  */
-public class ItemsQuantilesSketch<T> {
+public class ItemsSketch<T> {
 
   static final int MIN_BASE_BUF_SIZE = 4; //This is somewhat arbitrary
 
@@ -201,7 +200,7 @@ public class ItemsQuantilesSketch<T> {
    */
   static final int DEFAULT_K = 128;
 
-  private ItemsQuantilesSketch(final int k, final Comparator<? super T> comparator) {
+  private ItemsSketch(final int k, final Comparator<? super T> comparator) {
     Util.checkK(k);
     k_ = k;
     comparator_ = comparator;
@@ -212,7 +211,7 @@ public class ItemsQuantilesSketch<T> {
    * @param comparator to compare items 
    * @return a GenericQuantileSketch
    */
-  public static <T> ItemsQuantilesSketch<T> getInstance(final Comparator<? super T> comparator) {
+  public static <T> ItemsSketch<T> getInstance(final Comparator<? super T> comparator) {
     return getInstance(DEFAULT_K, comparator);
   }
 
@@ -226,8 +225,8 @@ public class ItemsQuantilesSketch<T> {
    * @param comparator to compare items 
    * @return a GenericQuantileSketch
    */
-  public static <T> ItemsQuantilesSketch<T> getInstance(final int k, final Comparator<? super T> comparator) {
-    ItemsQuantilesSketch<T> qs = new ItemsQuantilesSketch<T>(k, comparator);
+  public static <T> ItemsSketch<T> getInstance(final int k, final Comparator<? super T> comparator) {
+    ItemsSketch<T> qs = new ItemsSketch<T>(k, comparator);
     int bufAlloc = Math.min(MIN_BASE_BUF_SIZE, 2 * k); //the min is important
     qs.n_ = 0;
     qs.combinedBufferAllocatedCount_ = bufAlloc;
@@ -247,7 +246,7 @@ public class ItemsQuantilesSketch<T> {
    * @param serDe an instance of ArrayOfItemsSerDe
    * @return a GenericQuantilesSketch on the Java heap.
    */
-  public static <T> ItemsQuantilesSketch<T> getInstance(final Memory srcMem,
+  public static <T> ItemsSketch<T> getInstance(final Memory srcMem,
       final Comparator<? super T> comparator, final ArrayOfItemsSerDe<T> serDe) {
     long memCapBytes = srcMem.getCapacity();
     if (memCapBytes < 8) {
@@ -270,7 +269,7 @@ public class ItemsQuantilesSketch<T> {
     Util.checkFamilyID(familyID);
     Util.checkSerVer(serVer);
   
-    ItemsQuantilesSketch<T> qs = getInstance(k, comparator);
+    ItemsSketch<T> qs = getInstance(k, comparator);
   
     if (empty) return qs;
   
@@ -299,8 +298,8 @@ public class ItemsQuantilesSketch<T> {
    * @param sketch the given sketch
    * @return a copy of the given sketch
    */
-  static <T> ItemsQuantilesSketch<T> copy(final ItemsQuantilesSketch<T> sketch) {
-    final ItemsQuantilesSketch<T> qsCopy = ItemsQuantilesSketch.getInstance(sketch.k_, sketch.comparator_);
+  static <T> ItemsSketch<T> copy(final ItemsSketch<T> sketch) {
+    final ItemsSketch<T> qsCopy = ItemsSketch.getInstance(sketch.k_, sketch.comparator_);
     qsCopy.n_ = sketch.n_;
     qsCopy.minValue_ = sketch.getMinValue();
     qsCopy.maxValue_ = sketch.getMaxValue();
@@ -318,7 +317,8 @@ public class ItemsQuantilesSketch<T> {
    */
   public void update(final T dataItem) {
     // this method only uses the base buffer part of the combined buffer
-  
+
+    if (dataItem == null) return;
     if (maxValue_ == null || comparator_.compare(dataItem, maxValue_) > 0) { maxValue_ = dataItem; }
     if (minValue_ == null || comparator_.compare(dataItem, minValue_) < 0) { minValue_ = dataItem; }
   
@@ -618,8 +618,7 @@ public class ItemsQuantilesSketch<T> {
    * @return summary information about the sketch.
    */
   public String toString(final boolean sketchSummary, final boolean dataDetail) {
-    //return GenericUtil.toString(sketchSummary, dataDetail, this);
-    return null;
+    return ItemsUtil.toString(sketchSummary, dataDetail, this);
   }
 
   /**
@@ -630,8 +629,8 @@ public class ItemsQuantilesSketch<T> {
    * It is required that this.getK() = newK * 2^(nonnegative integer).
    * @return the new sketch.
    */
-  public ItemsQuantilesSketch<T> downSample(final int newK) {
-    final ItemsQuantilesSketch<T> newSketch = ItemsQuantilesSketch.getInstance(newK, comparator_);
+  public ItemsSketch<T> downSample(final int newK) {
+    final ItemsSketch<T> newSketch = ItemsSketch.getInstance(newK, comparator_);
     ItemsUtil.downSamplingMergeInto(this, newSketch);
     return newSketch;
   }

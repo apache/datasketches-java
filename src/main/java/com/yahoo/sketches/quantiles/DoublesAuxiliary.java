@@ -18,7 +18,7 @@ class DoublesAuxiliary {
    * Constructs the Auxiliary structure from the HeapQuantilesSketch
    * @param qs a HeapQuantilesSketch
    */
-  DoublesAuxiliary(HeapDoublesQuantilesSketch qs ) {
+  DoublesAuxiliary(HeapDoublesSketch qs ) {
     int k = qs.getK();
     long n = qs.getN();
     long bitPattern = qs.getBitPattern();
@@ -36,7 +36,7 @@ class DoublesAuxiliary {
 
     // Sort the first "numSamples" slots of the two arrays in tandem, 
     //  taking advantage of the already sorted blocks of length k
-    Util.blockyTandemMergeSort(itemsArr, cumWtsArr, numSamples, k);
+    DoublesUtil.blockyTandemMergeSort(itemsArr, cumWtsArr, numSamples, k);
 
     // convert the item weights into totals of the weights preceding each item
     long subtot = 0;
