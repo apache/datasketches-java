@@ -115,6 +115,11 @@ public class ItemsSketchTest {
     Assert.assertEquals(quantiles[1], Integer.valueOf(500), 17); // median
     Assert.assertEquals(quantiles[2], Integer.valueOf(1000)); // max value
 
+    quantiles = sketch.getQuantiles(3);
+    Assert.assertEquals(quantiles[0], Integer.valueOf(1)); // min value
+    Assert.assertEquals(quantiles[1], Integer.valueOf(500), 17); // median
+    Assert.assertEquals(quantiles[2], Integer.valueOf(1000)); // max value
+
     {
       double[] pmf = sketch.getPMF(new Integer[0]);
       Assert.assertEquals(pmf.length, 1);
