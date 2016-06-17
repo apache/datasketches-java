@@ -9,6 +9,7 @@ import java.util.Comparator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import com.yahoo.sketches.ArrayOfDoublesSerDe;
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.ArrayOfStringsSerDe;
@@ -162,7 +163,25 @@ public class ItemsSketchTest {
     Assert.assertEquals(sketch2.getMinValue(), Long.valueOf(1));
     Assert.assertEquals(sketch2.getMaxValue(), Long.valueOf(1000));
     // based on ~1.7% normalized rank error for this particular case
-    Assert.assertEquals(sketch2.getQuantile(0.5), Integer.valueOf(500), 17);
+    Assert.assertEquals(sketch2.getQuantile(0.5), Long.valueOf(500), 17);
+  }
+
+  @Test
+  public void serializeDeserializeDouble() {
+    ItemsSketch<Double> sketch1 = ItemsSketch.getInstance(128, Comparator.naturalOrder());
+    for (int i = 1; i <= 500; i++) sketch1.update((double) i);
+
+    ArrayOfItemsSerDe<Double> serDe = new ArrayOfDoublesSerDe();
+    byte[] bytes = sketch1.toByteArray(serDe);
+    ItemsSketch<Double> sketch2 = ItemsSketch.getInstance(new NativeMemory(bytes), Comparator.naturalOrder(), serDe);
+
+    for (int i = 501; i <= 1000; i++) sketch2.update((double) i);
+    Assert.assertEquals(sketch2.getN(), 1000);
+    Assert.assertTrue(sketch2.getRetainedEntries() < 1000);
+    Assert.assertEquals(sketch2.getMinValue(), Double.valueOf(1));
+    Assert.assertEquals(sketch2.getMaxValue(), Double.valueOf(1000));
+    // based on ~1.7% normalized rank error for this particular case
+    Assert.assertEquals(sketch2.getQuantile(0.5), Double.valueOf(500), 17);
   }
 
   @Test
