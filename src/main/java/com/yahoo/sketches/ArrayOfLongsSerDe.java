@@ -4,7 +4,7 @@ import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
 /**
- * Methods of serializing and deserializing arrays of Long for use in FrequentItemsSketch
+ * Methods of serializing and deserializing arrays of Long.
  */
 public class ArrayOfLongsSerDe implements ArrayOfItemsSerDe<Long> {
 

@@ -4,7 +4,7 @@ import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
 /**
- * Methods of serializing and deserializing arrays of String for use in FrequentItemsSketch.
+ * Methods of serializing and deserializing arrays of String.
  * This class serializes strings using internal Java representation as char[], where each char
  * is a 16-bit code. The result is larger than one from {@link ArrayOfStringsSerDe}.
  * In an extreme case when all strings are in ASCII, the size is doubled. However it takes

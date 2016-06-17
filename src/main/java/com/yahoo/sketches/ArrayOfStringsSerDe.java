@@ -6,7 +6,7 @@ import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
 /**
- * Methods of serializing and deserializing arrays of String for use in FrequentItemsSketch.
+ * Methods of serializing and deserializing arrays of String.
  * This class serializes strings in UTF-8 format, which is more compact compared to
  * {@link ArrayOfUtf16StringsSerDe}. In an extreme case when all strings are in ASCII,
  * this method is 2 times more compact, but it takes more time to encode and decode

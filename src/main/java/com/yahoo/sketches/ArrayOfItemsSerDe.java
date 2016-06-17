@@ -3,7 +3,7 @@ package com.yahoo.sketches;
 import com.yahoo.sketches.memory.Memory;
 
 /**
- * Interface for serializing and deserializing custom types for use in FrequentItemsSketch
+ * Interface for serializing and deserializing custom types.
  * @param <T> Type of item
  */
 public interface ArrayOfItemsSerDe<T> {
