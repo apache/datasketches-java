@@ -136,8 +136,6 @@ Table Guide for QuantilesSketch Size in Bytes and Approximate Error:
  */
 public class ItemsSketch<T> {
 
-  static final int MIN_BASE_BUF_SIZE = 4; //This is somewhat arbitrary
-
   /**
    * Parameter that controls space usage of sketch and accuracy of estimates.
    */
@@ -228,7 +226,7 @@ public class ItemsSketch<T> {
    */
   public static <T> ItemsSketch<T> getInstance(final int k, final Comparator<? super T> comparator) {
     ItemsSketch<T> qs = new ItemsSketch<T>(k, comparator);
-    int bufAlloc = Math.min(MIN_BASE_BUF_SIZE, 2 * k); //the min is important
+    int bufAlloc = Math.min(Util.MIN_BASE_BUF_SIZE, 2 * k); //the min is important
     qs.n_ = 0;
     qs.combinedBufferAllocatedCount_ = bufAlloc;
     qs.combinedBuffer_ = new Object[bufAlloc];
@@ -549,7 +547,7 @@ public class ItemsSketch<T> {
    */
   public void reset() {
     n_ = 0;
-    combinedBufferAllocatedCount_ = Math.min(MIN_BASE_BUF_SIZE, 2 * k_); //the min is important
+    combinedBufferAllocatedCount_ = Math.min(Util.MIN_BASE_BUF_SIZE, 2 * k_); //the min is important
     combinedBuffer_ = new Object[combinedBufferAllocatedCount_];
     baseBufferCount_ = 0;
     bitPattern_ = 0;
