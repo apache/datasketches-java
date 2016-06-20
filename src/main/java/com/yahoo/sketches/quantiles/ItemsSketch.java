@@ -136,8 +136,6 @@ Table Guide for QuantilesSketch Size in Bytes and Approximate Error:
  */
 public class ItemsSketch<T> {
 
-  static final int MIN_BASE_BUF_SIZE = 4; //This is somewhat arbitrary
-
   /**
    * Parameter that controls space usage of sketch and accuracy of estimates.
    */
@@ -227,8 +225,8 @@ public class ItemsSketch<T> {
    * @return a GenericQuantileSketch
    */
   public static <T> ItemsSketch<T> getInstance(final int k, final Comparator<? super T> comparator) {
-    ItemsSketch<T> qs = new ItemsSketch<T>(k, comparator);
-    int bufAlloc = Math.min(MIN_BASE_BUF_SIZE, 2 * k); //the min is important
+    final ItemsSketch<T> qs = new ItemsSketch<T>(k, comparator);
+    final int bufAlloc = Math.min(Util.MIN_BASE_BUF_SIZE, 2 * k); //the min is important
     qs.n_ = 0;
     qs.combinedBufferAllocatedCount_ = bufAlloc;
     qs.combinedBuffer_ = new Object[bufAlloc];
@@ -250,37 +248,37 @@ public class ItemsSketch<T> {
    */
   public static <T> ItemsSketch<T> getInstance(final Memory srcMem,
       final Comparator<? super T> comparator, final ArrayOfItemsSerDe<T> serDe) {
-    long memCapBytes = srcMem.getCapacity();
+    final long memCapBytes = srcMem.getCapacity();
     if (memCapBytes < 8) {
       throw new IllegalArgumentException("Memory too small: " + memCapBytes);
     }
-    long pre0 = srcMem.getLong(0);
-    int preambleLongs = extractPreLongs(pre0);
-    int serVer = extractSerVer(pre0);
-    int familyID = extractFamilyID(pre0);
-    int flags = extractFlags(pre0);
-    int k = extractK(pre0);
-    byte type = extractSketchType(pre0);
-  
+    final long pre0 = srcMem.getLong(0);
+    final int preambleLongs = extractPreLongs(pre0);
+    final int serVer = extractSerVer(pre0);
+    final int familyID = extractFamilyID(pre0);
+    final int flags = extractFlags(pre0);
+    final int k = extractK(pre0);
+    final byte type = extractSketchType(pre0);
+
     if (type != serDe.getType()) {
       throw new IllegalArgumentException(
           "Possible Corruption: Sketch Type incorrect: " + type + " != " + serDe.getType());
     }
 
-    boolean empty = Util.checkPreLongsFlagsCap(preambleLongs, flags, memCapBytes);
+    final boolean empty = Util.checkPreLongsFlagsCap(preambleLongs, flags, memCapBytes);
     Util.checkFamilyID(familyID);
     Util.checkSerVer(serVer);
-  
-    ItemsSketch<T> qs = getInstance(k, comparator);
-  
+
+    final ItemsSketch<T> qs = getInstance(k, comparator);
+
     if (empty) return qs;
-  
+
     //Not empty, must have valid preamble
-    long[] remainderPreArr = new long[preambleLongs - 1];
+    final long[] remainderPreArr = new long[preambleLongs - 1];
     srcMem.getLongArray(Long.BYTES, remainderPreArr, 0, remainderPreArr.length);
   
     final long n = remainderPreArr[(N_LONG >> 3) - 1];
-    int numValidItems = (int) remainderPreArr[(BUFFER_DOUBLES_ALLOC_INT >> 3) - 1];
+    final int numValidItems = (int) remainderPreArr[(BUFFER_DOUBLES_ALLOC_INT >> 3) - 1];
   
     //set class members
     qs.n_ = n;
@@ -289,9 +287,9 @@ public class ItemsSketch<T> {
     qs.bitPattern_ = computeBitPattern(k, n);
     qs.combinedBuffer_ = new Object[qs.combinedBufferAllocatedCount_];
     final int itemsOffset = preambleLongs * Long.BYTES;
-    T[] validItems = serDe.deserializeFromMemory(new MemoryRegion(srcMem, itemsOffset, srcMem.getCapacity() - itemsOffset), numValidItems);
+    final T[] validItems = serDe.deserializeFromMemory(new MemoryRegion(srcMem, itemsOffset, srcMem.getCapacity() - itemsOffset), numValidItems);
     qs.putValidItemsPlusMinAndMax(validItems);
-  
+
     return qs;
   }
 
@@ -384,9 +382,9 @@ public class ItemsSketch<T> {
     Util.validateFractions(fractions);
     ItemsAuxiliary<T> aux = null;
     @SuppressWarnings("unchecked")
-    T[] answers = (T[]) Array.newInstance(minValue_.getClass(), fractions.length);
+    final T[] answers = (T[]) Array.newInstance(minValue_.getClass(), fractions.length);
     for (int i = 0; i < fractions.length; i++) {
-      double fraction = fractions[i];
+      final double fraction = fractions[i];
       if      (fraction == 0.0) { answers[i] = minValue_; }
       else if (fraction == 1.0) { answers[i] = maxValue_; }
       else {
@@ -549,7 +547,7 @@ public class ItemsSketch<T> {
    */
   public void reset() {
     n_ = 0;
-    combinedBufferAllocatedCount_ = Math.min(MIN_BASE_BUF_SIZE, 2 * k_); //the min is important
+    combinedBufferAllocatedCount_ = Math.min(Util.MIN_BASE_BUF_SIZE, 2 * k_); //the min is important
     combinedBuffer_ = new Object[combinedBufferAllocatedCount_];
     baseBufferCount_ = 0;
     bitPattern_ = 0;
