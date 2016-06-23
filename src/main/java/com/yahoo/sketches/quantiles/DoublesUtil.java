@@ -6,9 +6,12 @@
 package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.Util.checkIfPowerOf2;
+import static com.yahoo.sketches.Util.LS;
 import static java.lang.System.arraycopy;
 
 import java.util.Arrays;
+
+import com.yahoo.sketches.memory.Memory;
 
 final class DoublesUtil {
 
@@ -151,7 +154,7 @@ final class DoublesUtil {
     }
     // copies base buffer plus old levels
     sketch.combinedBuffer_ = Arrays.copyOf(sketch.getCombinedBuffer(), spaceNeeded); 
-    sketch.combinedBufferAllocatedCount_ = spaceNeeded;
+    sketch.combinedBufferItemCapacity_ = spaceNeeded;
   }
 
   static void growBaseBuffer(final HeapDoublesSketch sketch) {
@@ -160,7 +163,7 @@ final class DoublesUtil {
     final int k = sketch.getK();
     assert oldSize < 2 * k;
     final int newSize = Math.max(Math.min(2 * k, 2 * oldSize), 1);
-    sketch.combinedBufferAllocatedCount_ = newSize;
+    sketch.combinedBufferItemCapacity_ = newSize;
     sketch.combinedBuffer_ = Arrays.copyOf(baseBuffer, newSize);
   }
 
@@ -475,70 +478,108 @@ final class DoublesUtil {
 
   static String toString(final boolean sketchSummary, final boolean dataDetail, final HeapDoublesSketch sketch) {
     final StringBuilder sb = new StringBuilder();
-    final String thisSimpleName = sketch.getClass().getSimpleName();
-    final int bbCount = sketch.getBaseBufferCount();
-    final int combAllocCount = sketch.getCombinedBufferAllocatedCount();
-    final int k = sketch.getK();
-    final long bitPattern = sketch.getBitPattern();
-
     if (dataDetail) {
-      sb.append(Util.LS).append("### ").append(thisSimpleName).append(" DATA DETAIL: ").append(Util.LS);
-      final double[] items  = sketch.getCombinedBuffer();
-
-      //output the base buffer
-      sb.append("   BaseBuffer   : ");
-      if (bbCount > 0) {
-        for (int i = 0; i < bbCount; i++) { 
-          sb.append(String.format("%10.1f", items[i]));
-        }
-      }
-      sb.append(Util.LS);
-      //output all the levels
-      final int numItems = combAllocCount;
-      if (numItems > 2 * k) {
-        sb.append("   Valid | Level");
-        for (int j = 2 * k; j < numItems; j++) { //output level data starting at 2K
-          if (j % k == 0) { //start output of new level
-            final int levelNum = j > 2 * k ? (j - 2 * k) / k : 0;
-            final String validLvl = ((1L << levelNum) & bitPattern) > 0 ? "    T  " : "    F  ";
-            final String lvl = String.format("%5d", levelNum);
-            sb.append(Util.LS).append("   ").append(validLvl).append(" ").append(lvl).append(": ");
-          }
-          sb.append(String.format("%10.1f", items[j]));
-        }
-        sb.append(Util.LS);
-      }
-      sb.append("### END DATA DETAIL").append(Util.LS);
+      sb.append(getDataDetail(sketch));
     }
-
     if (sketchSummary) {
-      final long n = sketch.getN();
-      final String nStr = String.format("%,d", n);
-      final int numLevels = Util.computeNumLevelsNeeded(k, n);
-      final int bufBytes = combAllocCount * 8;
-      final String bufCntStr = String.format("%,d", combAllocCount);
-      final int preBytes = sketch.isEmpty() ? Long.BYTES : PreambleUtil.PREAMBLE_LONGS * Long.BYTES;
-      final double eps = Util.EpsilonFromK.getAdjustedEpsilon(k);
-      final String epsPct = String.format("%.3f%%", eps * 100.0);
-      final int numSamples = sketch.getRetainedEntries();
-      final String numSampStr = String.format("%,d", numSamples);
-      sb.append(Util.LS).append("### ").append(thisSimpleName).append(" SUMMARY: ").append(Util.LS);
-      sb.append("   K                            : ").append(k).append(Util.LS);
-      sb.append("   N                            : ").append(nStr).append(Util.LS);
-      sb.append("   BaseBufferCount              : ").append(bbCount).append(Util.LS);
-      sb.append("   CombinedBufferAllocatedCount : ").append(bufCntStr).append(Util.LS);
-      sb.append("   Total Levels                 : ").append(numLevels).append(Util.LS);
-      sb.append("   Valid Levels                 : ").append(Util.numValidLevels(bitPattern)).append(Util.LS);
-      sb.append("   Level Bit Pattern            : ").append(Long.toBinaryString(bitPattern)).append(Util.LS);
-      sb.append("   Valid Samples                : ").append(numSampStr).append(Util.LS);
-      sb.append("   Buffer Storage Bytes         : ").append(String.format("%,d", bufBytes)).append(Util.LS);
-      sb.append("   Preamble Bytes               : ").append(preBytes).append(Util.LS);
-      sb.append("   Normalized Rank Error        : ").append(epsPct).append(Util.LS);
-      sb.append("   Min Value                    : ").append(String.format("%,.3f", sketch.getMinValue())).append(Util.LS);
-      sb.append("   Max Value                    : ").append(String.format("%,.3f", sketch.getMaxValue())).append(Util.LS);
-      sb.append("### END SKETCH SUMMARY").append(Util.LS);
+      sb.append(getSummary(sketch));
     }
     return sb.toString();
   }
+  
+  static String getDataDetail(final HeapDoublesSketch sketch) {
+    final StringBuilder sb = new StringBuilder();
+    final String thisSimpleName = sketch.getClass().getSimpleName();
+    sb.append(LS).append("### ").append(thisSimpleName).append(" DATA DETAIL: ").append(LS);
+    
+    final int k = sketch.getK();
+    final long n = sketch.getN();
+    final int bbCount = sketch.getBaseBufferCount();
+    final long bitPattern = sketch.getBitPattern();
+    final double[] combBuf  = sketch.getCombinedBuffer();
+    
+    //output the base buffer
+    
+    sb.append("   BaseBuffer   : ");
+    for (int i = 0; i < bbCount; i++) { 
+      sb.append(String.format("%10.1f", combBuf[i]));
+    }
+    sb.append(LS);
+    
+    //output all the levels
+    int combBufSize = combBuf.length;
+    if (n >= 2 * k) {
+      sb.append("   Valid | Level");
+      for (int j = 2 * k; j < combBufSize; j++) { //output level data starting at 2K
+        if (j % k == 0) { //start output of new level
+          final int levelNum = j/k -2;
+          final String validLvl = ((1L << levelNum) & bitPattern) > 0 ? "    T  " : "    F  ";
+          final String lvl = String.format("%5d", levelNum);
+          sb.append(Util.LS).append("   ").append(validLvl).append(" ").append(lvl).append(": ");
+        }
+        sb.append(String.format("%10.1f", combBuf[j]));
+      }
+      sb.append(LS);
+    }
+    sb.append("### END DATA DETAIL").append(LS);
+    return sb.toString();
+  }
+  
+  static String getSummary(final HeapDoublesSketch sketch) {
+    final StringBuilder sb = new StringBuilder();
+    final String thisSimpleName = sketch.getClass().getSimpleName();
+    final int k = sketch.getK();
+    final long n = sketch.getN();
+    final String nStr = String.format("%,d", n);
+    final int bbCount = sketch.getBaseBufferCount();
+    final long bitPattern = sketch.getBitPattern();
+    final int totLevels = Util.computeNumLevelsNeeded(k, n);
+    final int validLevels = Util.computeValidLevels(bitPattern);
+    final boolean empty = sketch.isEmpty();
+    final int preBytes = empty ? Long.BYTES : 2 * Long.BYTES;
+    final int retItems = sketch.getRetainedItems();
+    final String retItemsStr = String.format("%,d", retItems);
+    final int bytes = preBytes + (retItems +2) * Double.BYTES;
+    final double eps = Util.EpsilonFromK.getAdjustedEpsilon(k);
+    final String epsPct = String.format("%.3f%%", eps * 100.0);
 
+    sb.append(Util.LS).append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
+    sb.append("   K                            : ").append(k).append(LS);
+    sb.append("   N                            : ").append(nStr).append(LS);
+    sb.append("   Levels (Total, Valid)        : ").append(totLevels+", "+validLevels).append(LS);
+    sb.append("   Level Bit Pattern            : ").append(Long.toBinaryString(bitPattern)).append(LS);
+    sb.append("   BaseBufferCount              : ").append(bbCount).append(LS);
+    sb.append("   Retained Items               : ").append(retItemsStr).append(LS);
+    sb.append("   Storage Bytes                : ").append(String.format("%,d", bytes)).append(LS);
+    sb.append("   Normalized Rank Error        : ").append(epsPct).append(LS);
+    sb.append("   Min Value                    : ").append(String.format("%,.3f", sketch.getMinValue())).append(LS);
+    sb.append("   Max Value                    : ").append(String.format("%,.3f", sketch.getMaxValue())).append(LS);
+    sb.append("### END SKETCH SUMMARY").append(LS);
+    return sb.toString();
+  }
+  
+  static String printMemData(Memory mem, int k, int n) {
+    if (n == 0) return "";
+    final StringBuilder sb = new StringBuilder();
+    sb.append(LS).append("### ").append("MEM DATA DETAIL:").append(LS);
+    String fmt1 = "\n%10.1f, ";
+    String fmt2 = "%10.1f, ";
+    int bbCount = Util.computeBaseBufferItems(k, n);
+    int ret = Util.computeRetainedItems(k, n);
+    sb.append("BaseBuffer Data:");
+    for (int i=0; i<bbCount; i++) {
+      double d = mem.getDouble(32+i*8);
+      if (i % k != 0) sb.append(String.format(fmt2, d));
+      else sb.append(String.format(fmt1, d));
+    }
+    sb.append("\n\nLevel Data:");
+    for (int i=0; i<ret-bbCount; i++) {
+      double d = mem.getDouble(32+i*8 +bbCount*8);
+      if (i % k != 0) sb.append(String.format(fmt2, d));
+      else sb.append(String.format(fmt1, d));
+    }
+    sb.append("\n### END DATA DETAIL").append(LS);
+    return sb.toString();
+  }
+  
 }

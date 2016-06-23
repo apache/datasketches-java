@@ -20,9 +20,9 @@ import com.yahoo.sketches.quantiles.Util.EpsilonFromK;
 public class UtilTest {
   
   @Test
-  public void checkBufferElementCapacity() {
+  public void checkCombBufItemCapacity() {
     int k = 227;
-    int capEl = Util.bufferElementCapacity(k, 0);
+    int capEl = Util.computeCombBufItemCapacity(k, 0);
     assertEquals(capEl, Util.MIN_BASE_BUF_SIZE);
   }
   
@@ -35,6 +35,11 @@ public class UtilTest {
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkGetAdjustedEpsilonException() {
     EpsilonFromK.getAdjustedEpsilon(0);
+  }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkPreLongsFlagsCap() {
+    Util.checkPreLongsFlagsCap(2, 0,  16);
   }
   
   @Test
@@ -52,7 +57,7 @@ public class UtilTest {
   @Test
   public void checkNumValidLevels() {
     long v = (1L << 32)-1L;
-    int ones = Util.numValidLevels(v);
+    int ones = Util.computeValidLevels(v);
     assertEquals(ones, 32);
   }
   

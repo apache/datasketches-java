@@ -26,7 +26,7 @@ class ItemsAuxiliary<T> {
     final long bitPattern = qs.getBitPattern();
     final Object[] combinedBuffer = qs.getCombinedBuffer();
     final int baseBufferCount = qs.getBaseBufferCount();
-    final int numSamples = qs.getRetainedEntries();
+    final int numSamples = qs.getRetainedItems();
 
     final Object[] itemsArr = new Object[numSamples];
     final long[] cumWtsArr = new long[numSamples + 1]; /* the extra slot is very important */

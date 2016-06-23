@@ -22,9 +22,10 @@ import com.yahoo.sketches.memory.Memory;
  * in this case one million. 
  * The value corresponding to the normalized rank of 0.5 represents the 50th percentile or median
  * value of the distribution, or getQuantile(0.5).  Similarly, the 95th percentile is obtained from 
- * getQuantile(0.95).</p>
+ * getQuantile(0.95). Using the getQuantiles(0.0, 1.0) will return the min and max values seen by
+ * the sketch.</p>
  * 
- * <p>If you have prior knowledge of the approximate range of values, for example, 1 to 1000 bytes,
+ * <p>From the min and max values, for example, 1 and 1000 bytes,
  * you can obtain the PMF from getPMF(100, 500, 900) that will result in an array of 
  * 4 fractional values such as {.4, .3, .2, .1}, which means that
  * <ul>
@@ -45,7 +46,7 @@ import com.yahoo.sketches.memory.Memory;
  * a confidence of about 99%.</p>
  * 
  * <pre>
-Table Guide for QuantilesSketch Size in Bytes and Approximate Error:
+Table Guide for DoublesSketch Size in Bytes and Approximate Error:
           K =&gt; |      16      32      64     128     256     512   1,024
     ~ Error =&gt; | 12.145%  6.359%  3.317%  1.725%  0.894%  0.463%  0.239%
              N | Size in Bytes -&gt;
@@ -124,7 +125,7 @@ public abstract class DoublesSketch {
   /**
    * Default value for about 1.7% normalized rank accuracy
    */
-  static final int DEFAULT_K = 128;
+  public static final int DEFAULT_K = 128;
   
   DoublesSketch(int k) {
     Util.checkK(k);
@@ -299,7 +300,7 @@ public abstract class DoublesSketch {
   
   /**
    * Static method version of {@link #getNormalizedRankError()}
-   * @param k the configuration parameter of a QuantilesSketch
+   * @param k the configuration parameter of a DoublesSketch
    * @return the rank error normalized as a fraction between zero and one.
    */
   public static double getNormalizedRankError(int k) {
@@ -364,16 +365,11 @@ public abstract class DoublesSketch {
   }
 
   /**
-   * Computes the number of retained entries (samples) in the sketch
-   * @return the number of retained entries (samples) in the sketch
+   * Computes the number of retained items (samples) in the sketch
+   * @return the number of retained items (samples) in the sketch
    */
-  public int getRetainedEntries() {
-    int k =  getK();
-    long n = getN();
-    int bbCnt = Util.computeBaseBufferCount(k, n);
-    long bitPattern = Util.computeBitPattern(k, n);
-    int validLevels = Long.bitCount(bitPattern);
-    return bbCnt + validLevels*k; 
+  public int getRetainedItems() {
+    return Util.computeRetainedItems(getK(), getN());
   }
 
   /**
@@ -382,7 +378,7 @@ public abstract class DoublesSketch {
    */
   public int getStorageBytes() {
     if (isEmpty()) return 8;
-    return 40 + Double.BYTES * Util.bufferElementCapacity(getK(), getN());
+    return 32 + Double.BYTES * Util.computeRetainedItems(getK(), getN());
   }
 
   /**
@@ -402,16 +398,16 @@ public abstract class DoublesSketch {
   abstract int getBaseBufferCount();
 
   /**
-   * Returns the allocated count for the combined base buffer
-   * @return the allocated count for the combined base buffer
-   */
-  abstract int getCombinedBufferAllocatedCount();
-
-  /**
    * Returns the bit pattern for valid log levels
    * @return the bit pattern for valid log levels
    */
   abstract long getBitPattern();
+
+  /**
+   * Returns the allocated count for the combined base buffer
+   * @return the allocated count for the combined base buffer
+   */
+  abstract int getCombinedBufferAllocatedCount();
 
   /**
    * Returns the combined buffer reference

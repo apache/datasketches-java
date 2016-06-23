@@ -44,7 +44,7 @@ public final class Space {
       sb.append(String.format("%,14d |", n));
       for (int kpow = 4; kpow <= 10; kpow++) {
         int k = 1 << kpow;
-        int elCap = (n == 0)? 1 : (Util.bufferElementCapacity(k, n)) + 5;
+        int elCap = (n == 0)? 1 : (Util.computeCombBufItemCapacity(k, n)) + 5;
         int ubBytes = elCap * elementSizeBytes;
         sb.append(String.format("%,8d", ubBytes));
       }

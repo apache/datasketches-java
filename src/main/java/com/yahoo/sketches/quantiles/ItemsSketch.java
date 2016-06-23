@@ -4,10 +4,8 @@
  */
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.quantiles.PreambleUtil.BUFFER_DOUBLES_ALLOC_INT;
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.N_LONG;
-import static com.yahoo.sketches.quantiles.PreambleUtil.PREAMBLE_LONGS;
 import static com.yahoo.sketches.quantiles.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFamilyID;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
@@ -21,7 +19,7 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.insertK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertPreLongs;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerVer;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertSketchType;
-import static com.yahoo.sketches.quantiles.Util.computeBaseBufferCount;
+import static com.yahoo.sketches.quantiles.Util.computeBaseBufferItems;
 import static com.yahoo.sketches.quantiles.Util.computeBitPattern;
 
 import java.lang.reflect.Array;
@@ -35,108 +33,22 @@ import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;
 import com.yahoo.sketches.memory.NativeMemory;
 
-
 /**
  * This is a stochastic streaming sketch that enables near-real time analysis of the 
- * approximate distribution of values from a very large stream in a single pass. 
+ * approximate distribution of comparable items from a very large stream in a single pass. 
  * The analysis is obtained using a getQuantiles(*) function or its inverse functions the 
  * Probability Mass Function from getPMF(*) and the Cumulative Distribution Function from getCDF(*).
  * 
- * <p>Consider a large stream of one million values such as packet sizes coming into a network node.
- * The absolute rank of any specific size value is simply its index in the hypothetical sorted 
- * array of values.
- * The normalized rank (or fractional rank) is the absolute rank divided by the stream size, 
- * in this case one million. 
- * The value corresponding to the normalized rank of 0.5 represents the 50th percentile or median
- * value of the distribution, or getQuantile(0.5).  Similarly, the 95th percentile is obtained from 
- * getQuantile(0.95).</p>
+ * The documentation for {@link DoublesSketch} applies here except that the size of an ItemsSketch
+ * is very dependent on the Items input into the sketch, so there is no comparable size table as 
+ * for the DoublesSketch.
  * 
- * <p>If you have prior knowledge of the approximate range of values, for example, 1 to 1000 bytes,
- * you can obtain the PMF from getPMF(100, 500, 900) that will result in an array of 
- * 4 fractional values such as {.4, .3, .2, .1}, which means that
- * <ul>
- * <li>40% of the values were &lt; 100,</li> 
- * <li>30% of the values were &ge; 100 and &lt; 500,</li>
- * <li>20% of the values were &ge; 500 and &lt; 900, and</li>
- * <li>10% of the values were &ge; 900.</li>
- * </ul>
- * A frequency histogram can be obtained by simply multiplying these fractions by getN(), 
- * which is the total count of values received. 
- * The getCDF(*) works similarly, but produces the cumulative distribution instead.
- * 
- * <p>The accuracy of this sketch is a function of the configured value <i>k</i>, which also affects
- * the overall size of the sketch. Accuracy of this quantile sketch is always with respect to
- * the normalized rank.  A <i>k</i> of 128 produces a normalized, rank error of about 1.7%. 
- * For example, the median value returned from getQuantile(0.5) will be between the actual values 
- * from the hypothetically sorted array of input values at normalized ranks of 0.483 and 0.517, with 
- * a confidence of about 99%.</p>
- * 
- * <pre>
-Table Guide for QuantilesSketch Size in Bytes and Approximate Error:
-          K =&gt; |      16      32      64     128     256     512   1,024
-    ~ Error =&gt; | 12.145%  6.359%  3.317%  1.725%  0.894%  0.463%  0.239%
-             N | Size in Bytes -&gt;
-------------------------------------------------------------------------
-             0 |       8       8       8       8       8       8       8
-             1 |      72      72      72      72      72      72      72
-             3 |      72      72      72      72      72      72      72
-             7 |     104     104     104     104     104     104     104
-            15 |     168     168     168     168     168     168     168
-            31 |     296     296     296     296     296     296     296
-            63 |     424     552     552     552     552     552     552
-           127 |     552     808   1,064   1,064   1,064   1,064   1,064
-           255 |     680   1,064   1,576   2,088   2,088   2,088   2,088
-           511 |     808   1,320   2,088   3,112   4,136   4,136   4,136
-         1,023 |     936   1,576   2,600   4,136   6,184   8,232   8,232
-         2,047 |   1,064   1,832   3,112   5,160   8,232  12,328  16,424
-         4,095 |   1,192   2,088   3,624   6,184  10,280  16,424  24,616
-         8,191 |   1,320   2,344   4,136   7,208  12,328  20,520  32,808
-        16,383 |   1,448   2,600   4,648   8,232  14,376  24,616  41,000
-        32,767 |   1,576   2,856   5,160   9,256  16,424  28,712  49,192
-        65,535 |   1,704   3,112   5,672  10,280  18,472  32,808  57,384
-       131,071 |   1,832   3,368   6,184  11,304  20,520  36,904  65,576
-       262,143 |   1,960   3,624   6,696  12,328  22,568  41,000  73,768
-       524,287 |   2,088   3,880   7,208  13,352  24,616  45,096  81,960
-     1,048,575 |   2,216   4,136   7,720  14,376  26,664  49,192  90,152
-     2,097,151 |   2,344   4,392   8,232  15,400  28,712  53,288  98,344
-     4,194,303 |   2,472   4,648   8,744  16,424  30,760  57,384 106,536
-     8,388,607 |   2,600   4,904   9,256  17,448  32,808  61,480 114,728
-    16,777,215 |   2,728   5,160   9,768  18,472  34,856  65,576 122,920
-    33,554,431 |   2,856   5,416  10,280  19,496  36,904  69,672 131,112
-    67,108,863 |   2,984   5,672  10,792  20,520  38,952  73,768 139,304
-   134,217,727 |   3,112   5,928  11,304  21,544  41,000  77,864 147,496
-   268,435,455 |   3,240   6,184  11,816  22,568  43,048  81,960 155,688
-   536,870,911 |   3,368   6,440  12,328  23,592  45,096  86,056 163,880
- 1,073,741,823 |   3,496   6,696  12,840  24,616  47,144  90,152 172,072
- 2,147,483,647 |   3,624   6,952  13,352  25,640  49,192  94,248 180,264
- 4,294,967,295 |   3,752   7,208  13,864  26,664  51,240  98,344 188,456
-
- * </pre>
-
  * <p>There is more documentation available on 
  * <a href="http://datasketches.github.io">DataSketches.GitHub.io</a>.</p>
- * 
- * <p>This is an implementation of the Low Discrepancy Mergeable Quantiles Sketch, using arbitrary
- * comparable values, described in section 3.2 of the journal version of the paper
- * "Mergeable Summaries" by Agarwal, Cormode, Huang, Phillips, Wei, and Yi. 
- * <a href="http://dblp.org/rec/html/journals/tods/AgarwalCHPWY13"></a></p>
- * 
- * <p>This algorithm is independent of the distribution of values.
- * 
- * <p>This algorithm intentionally inserts randomness into the sampling process for values that
- * ultimately get retained in the sketch. The results produced by this algorithm are not 
- * deterministic. For example, if the same stream is inserted into two different instances of this 
- * sketch, the answers obtained from the two sketches may not be be identical.</p>
- * 
- * <p>Similarly, there may be directional inconsistencies. For example, the resulting array of 
- * values obtained from getQuantiles(fractions[]) input into the reverse directional query 
- * getPMF(splitPoints[]) may not result in the original fractional values.</p>
  * 
  * @param <T> type of item
  */
 public class ItemsSketch<T> {
-
-  static final int MIN_BASE_BUF_SIZE = 4; //This is somewhat arbitrary
 
   /**
    * Parameter that controls space usage of sketch and accuracy of estimates.
@@ -166,7 +78,7 @@ public class ItemsSketch<T> {
    * Also, in the off-heap version, combinedBuffer_ won't even be a java array,
    * so it won't know its own length.
    */
-  protected int combinedBufferAllocatedCount_;
+  protected int combinedBufferItemCapacity_;
 
   /**
    * Number of samples currently in base buffer.
@@ -207,7 +119,7 @@ public class ItemsSketch<T> {
   }
 
   /**
-   * Obtains an instance of a GenericQuantileSketch.
+   * Obtains a new instance of an ItemsSketch using the DEFAULT_K.
    * @param <T> type of item
    * @param comparator to compare items 
    * @return a GenericQuantileSketch
@@ -217,20 +129,18 @@ public class ItemsSketch<T> {
   }
 
   /**
-   * Obtains an instance of a GenericQuantileSketch.
+   * Obtains a new instance of an ItemsSketch.
    * @param <T> type of item
    * @param k Parameter that controls space usage of sketch and accuracy of estimates. 
-   * Must be greater than 0 and less than 65536.
-   * It is recommended that <i>k</i> be a power of 2 to enable merging of sketches with
-   * different values of <i>k</i>.
+   * Must be greater than 2 and less than 65536 and a power of 2.
    * @param comparator to compare items
    * @return a GenericQuantileSketch
    */
   public static <T> ItemsSketch<T> getInstance(final int k, final Comparator<? super T> comparator) {
-    ItemsSketch<T> qs = new ItemsSketch<T>(k, comparator);
-    int bufAlloc = Math.min(MIN_BASE_BUF_SIZE, 2 * k); //the min is important
+    final ItemsSketch<T> qs = new ItemsSketch<T>(k, comparator);
+    final int bufAlloc = Math.min(Util.MIN_BASE_BUF_SIZE, 2 * k); //the min is important
     qs.n_ = 0;
-    qs.combinedBufferAllocatedCount_ = bufAlloc;
+    qs.combinedBufferItemCapacity_ = bufAlloc;
     qs.combinedBuffer_ = new Object[bufAlloc];
     qs.baseBufferCount_ = 0;
     qs.bitPattern_ = 0;
@@ -240,58 +150,56 @@ public class ItemsSketch<T> {
   }
 
   /**
-   * Heapifies the given srcMem, which must be a Memory image of a GenericQuantilesSketch
+   * Heapifies the given srcMem, which must be a Memory image of a ItemsSketch
    * @param <T> type of item
    * @param srcMem a Memory image of a sketch.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param comparator to compare items
    * @param serDe an instance of ArrayOfItemsSerDe
-   * @return a GenericQuantilesSketch on the Java heap.
+   * @return a ItemsSketch on the Java heap.
    */
   public static <T> ItemsSketch<T> getInstance(final Memory srcMem,
       final Comparator<? super T> comparator, final ArrayOfItemsSerDe<T> serDe) {
-    long memCapBytes = srcMem.getCapacity();
+    final long memCapBytes = srcMem.getCapacity();
     if (memCapBytes < 8) {
       throw new IllegalArgumentException("Memory too small: " + memCapBytes);
     }
-    long pre0 = srcMem.getLong(0);
-    int preambleLongs = extractPreLongs(pre0);
-    int serVer = extractSerVer(pre0);
-    int familyID = extractFamilyID(pre0);
-    int flags = extractFlags(pre0);
-    int k = extractK(pre0);
-    byte type = extractSketchType(pre0);
-  
+    final long pre0 = srcMem.getLong(0);
+    final int preambleLongs = extractPreLongs(pre0);
+    final int serVer = extractSerVer(pre0);
+    final int familyID = extractFamilyID(pre0);
+    final int flags = extractFlags(pre0);
+    final int k = extractK(pre0);
+    final byte type = extractSketchType(pre0);
+
     if (type != serDe.getType()) {
       throw new IllegalArgumentException(
           "Possible Corruption: Sketch Type incorrect: " + type + " != " + serDe.getType());
     }
 
-    boolean empty = Util.checkPreLongsFlagsCap(preambleLongs, flags, memCapBytes);
+    final boolean empty = Util.checkPreLongsFlagsCap(preambleLongs, flags, memCapBytes);
     Util.checkFamilyID(familyID);
     Util.checkSerVer(serVer);
-  
-    ItemsSketch<T> qs = getInstance(k, comparator);
-  
+
+    final ItemsSketch<T> qs = getInstance(k, comparator);
+
     if (empty) return qs;
-  
+
     //Not empty, must have valid preamble
-    long[] remainderPreArr = new long[preambleLongs - 1];
-    srcMem.getLongArray(Long.BYTES, remainderPreArr, 0, remainderPreArr.length);
-  
-    final long n = remainderPreArr[(N_LONG >> 3) - 1];
-    int numValidItems = (int) remainderPreArr[(BUFFER_DOUBLES_ALLOC_INT >> 3) - 1];
-  
+    final long n = srcMem.getLong(N_LONG); //pre1
+    final int retainedItems = Util.computeRetainedItems(k, n) + 2; // 2 for min and max
+
     //set class members
     qs.n_ = n;
-    qs.combinedBufferAllocatedCount_ = Util.bufferElementCapacity(k, n);
-    qs.baseBufferCount_ = computeBaseBufferCount(k, n);
+    qs.combinedBufferItemCapacity_ = Util.computeCombBufItemCapacity(k, n);
+    qs.baseBufferCount_ = computeBaseBufferItems(k, n);
     qs.bitPattern_ = computeBitPattern(k, n);
-    qs.combinedBuffer_ = new Object[qs.combinedBufferAllocatedCount_];
-    final int itemsOffset = preambleLongs * Long.BYTES;
-    T[] validItems = serDe.deserializeFromMemory(new MemoryRegion(srcMem, itemsOffset, srcMem.getCapacity() - itemsOffset), numValidItems);
+    qs.combinedBuffer_ = new Object[qs.combinedBufferItemCapacity_];
+    
+    final int srcMemItemsOffsetBytes = preambleLongs * Long.BYTES;
+    final T[] validItems = serDe.deserializeFromMemory(
+        new MemoryRegion(srcMem, srcMemItemsOffsetBytes, srcMem.getCapacity() - srcMemItemsOffsetBytes), retainedItems);
     qs.putValidItemsPlusMinAndMax(validItems);
-  
     return qs;
   }
 
@@ -305,7 +213,7 @@ public class ItemsSketch<T> {
     qsCopy.n_ = sketch.n_;
     qsCopy.minValue_ = sketch.getMinValue();
     qsCopy.maxValue_ = sketch.getMaxValue();
-    qsCopy.combinedBufferAllocatedCount_ = sketch.getCombinedBufferAllocatedCount();
+    qsCopy.combinedBufferItemCapacity_ = sketch.getCombinedBufferAllocatedCount();
     qsCopy.baseBufferCount_ = sketch.getBaseBufferCount();
     qsCopy.bitPattern_ = sketch.getBitPattern();
     Object[] combBuf = sketch.getCombinedBuffer();
@@ -323,8 +231,8 @@ public class ItemsSketch<T> {
     if (dataItem == null) return;
     if (maxValue_ == null || comparator_.compare(dataItem, maxValue_) > 0) { maxValue_ = dataItem; }
     if (minValue_ == null || comparator_.compare(dataItem, minValue_) < 0) { minValue_ = dataItem; }
-  
-    if (baseBufferCount_ + 1 > combinedBufferAllocatedCount_) {
+
+    if (baseBufferCount_ + 1 > combinedBufferItemCapacity_) {
       ItemsUtil.growBaseBuffer(this);
     } 
     combinedBuffer_[baseBufferCount_++] = dataItem;
@@ -333,7 +241,7 @@ public class ItemsSketch<T> {
       ItemsUtil.processFullBaseBuffer(this);
     }
   }
-  
+
   /**
    * This returns an approximation to the value of the data item
    * that would be preceded by the given fraction of a hypothetical sorted
@@ -384,9 +292,9 @@ public class ItemsSketch<T> {
     Util.validateFractions(fractions);
     ItemsAuxiliary<T> aux = null;
     @SuppressWarnings("unchecked")
-    T[] answers = (T[]) Array.newInstance(minValue_.getClass(), fractions.length);
+    final T[] answers = (T[]) Array.newInstance(minValue_.getClass(), fractions.length);
     for (int i = 0; i < fractions.length; i++) {
-      double fraction = fractions[i];
+      final double fraction = fractions[i];
       if      (fraction == 0.0) { answers[i] = minValue_; }
       else if (fraction == 1.0) { answers[i] = maxValue_; }
       else {
@@ -413,7 +321,7 @@ public class ItemsSketch<T> {
   public T[] getQuantiles(int evenlySpaced) {
     return getQuantiles(getEvenlySpaced(evenlySpaced));
   }
-  
+
   /**
    * Returns an approximation to the Probability Mass Function (PMF) of the input stream 
    * given a set of splitPoints (values).
@@ -526,16 +434,16 @@ public class ItemsSketch<T> {
   public double getNormalizedRankError() {
     return getNormalizedRankError(getK());
   }
-  
+
   /**
    * Static method version of {@link #getNormalizedRankError()}
-   * @param k the configuration parameter of a QuantilesSketch
+   * @param k the configuration parameter of a ItemsSketch
    * @return the rank error normalized as a fraction between zero and one.
    */
   public static double getNormalizedRankError(int k) {
     return Util.EpsilonFromK.getAdjustedEpsilon(k);
   }
-  
+
   /**
    * Returns true if this sketch is empty
    * @return true if this sketch is empty
@@ -543,14 +451,14 @@ public class ItemsSketch<T> {
   public boolean isEmpty() {
    return getN() == 0; 
   }
-  
+
   /**
    * Resets this sketch to a virgin state, but retains the original value of k.
    */
   public void reset() {
     n_ = 0;
-    combinedBufferAllocatedCount_ = Math.min(MIN_BASE_BUF_SIZE, 2 * k_); //the min is important
-    combinedBuffer_ = new Object[combinedBufferAllocatedCount_];
+    combinedBufferItemCapacity_ = Math.min(Util.MIN_BASE_BUF_SIZE, 2 * k_); //the min is important
+    combinedBuffer_ = new Object[combinedBufferItemCapacity_];
     baseBufferCount_ = 0;
     bitPattern_ = 0;
     minValue_ = null;
@@ -564,44 +472,41 @@ public class ItemsSketch<T> {
    */
   @SuppressWarnings("null")
   public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
-    final int preLongs, sizeBytes, flags;
+    final int preLongs, numOutBytes, flags;
     final boolean empty = isEmpty();
-    byte[] bytes = null;
+    byte[] itemsByteArr = null;
     T[] validItems = null;
+    
     if (empty) {
       preLongs = 1;
-      sizeBytes = Long.BYTES;
+      numOutBytes = Long.BYTES;
       flags = EMPTY_FLAG_MASK;
     } else {
-      preLongs = PREAMBLE_LONGS;
+      preLongs = 2;
       flags = 0;
       validItems = getValidItemsPlusMinAndMax();
-      bytes = serDe.serializeToByteArray(validItems);
-      sizeBytes = preLongs * Long.BYTES + bytes.length;
+      itemsByteArr = serDe.serializeToByteArray(validItems);
+      numOutBytes = preLongs * Long.BYTES + itemsByteArr.length; //includes min and max
     }
-    final byte[] outArr = new byte[sizeBytes];
-    final Memory mem = new NativeMemory(outArr);
-
-    //build first prelong
+    //build prelong 0
     long pre0 = 0L;
     pre0 = insertPreLongs(preLongs, pre0);
     pre0 = insertSerVer(SER_VER, pre0);
     pre0 = insertFamilyID(Family.QUANTILES.getID(), pre0);
-    //other flags: bigEndian = readOnly = compact = ordered = false
+    //other flags: bigEndian = false
     pre0 = insertFlags(flags, pre0);
     pre0 = insertK(k_, pre0);
     pre0 = insertSketchType(serDe.getType(), pre0);
 
+    final byte[] outArr = new byte[numOutBytes];
+    final Memory memOut = new NativeMemory(outArr);
     if (empty) {
-      mem.putLong(0, pre0);
-    } else {
-      final long[] preArr = new long[preLongs];
-      preArr[0] = pre0;
-      preArr[1] = n_;
-      preArr[2] = validItems.length;
-      mem.putLongArray(0, preArr, 0, preArr.length);
-      mem.putByteArray(PREAMBLE_LONGS * Long.BYTES, bytes, 0, bytes.length);
+      memOut.putLong(0, pre0);
+      return outArr;
     }
+    memOut.putLong(0, pre0);
+    memOut.putLong(N_LONG, n_);
+    memOut.putByteArray(preLongs * Long.BYTES, itemsByteArr, 0, itemsByteArr.length);
     return outArr;
   }
 
@@ -641,13 +546,8 @@ public class ItemsSketch<T> {
    * Computes the number of retained entries (samples) in the sketch
    * @return the number of retained entries (samples) in the sketch
    */
-  public int getRetainedEntries() {
-    final int k =  getK();
-    final long n = getN();
-    final int bbCnt = Util.computeBaseBufferCount(k, n);
-    final long bitPattern = Util.computeBitPattern(k, n);
-    final int validLevels = Long.bitCount(bitPattern);
-    return bbCnt + validLevels * k; 
+  public int getRetainedItems() {
+    return Util.computeRetainedItems(getK(), getN());
   }
 
   /**
@@ -682,7 +582,7 @@ public class ItemsSketch<T> {
    * @return the allocated count for the combined base buffer
    */
   protected int getCombinedBufferAllocatedCount() {
-    return combinedBufferAllocatedCount_;
+    return combinedBufferItemCapacity_;
   }
 
   /**
@@ -718,7 +618,7 @@ public class ItemsSketch<T> {
   private T[] getValidItemsPlusMinAndMax() {
     // 2 more for min and max values
     @SuppressWarnings("unchecked")
-    final T[] validItems = (T[]) Array.newInstance(minValue_.getClass(), getRetainedEntries() + 2);
+    final T[] validItems = (T[]) Array.newInstance(minValue_.getClass(), getRetainedItems() + 2);
     System.arraycopy(combinedBuffer_, 0, validItems, 0, baseBufferCount_);
     int index = baseBufferCount_;
     long bits = getBitPattern();

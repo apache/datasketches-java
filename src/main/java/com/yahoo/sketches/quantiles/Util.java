@@ -2,14 +2,12 @@
  * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
-import static com.yahoo.sketches.quantiles.PreambleUtil.BIG_ENDIAN_FLAG_MASK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
+import static com.yahoo.sketches.Util.isPowerOf2;
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.SER_VER;
 
 import com.yahoo.sketches.Family;
@@ -37,11 +35,11 @@ final class Util {
   
   /**
    * Checks the validity of the given value k
-   * @param k must be greater than or equal to 2 and less than 65536.
+   * @param k must be greater than 0 and less than 65536.
    */
   static void checkK(int k) {
-    if ((k < 1) || (k > ((1 << 16)-1))) {
-      throw new IllegalArgumentException("K must be >= 1 and < 65536");
+    if ((k < 1) || (k >= (1 << 16)) || !isPowerOf2(k)) {
+      throw new IllegalArgumentException("K must be > 0 and < 65536");
     }
   }
 
@@ -73,17 +71,12 @@ final class Util {
    * n and k.
    * @param k the given value of k
    * @param n the given value of n
-   * @param memBufAlloc the memory buffer allocation
-   * @param memCapBytes the memory capacity
+   * @param reqItems the number of items required
+   * @param memCapBytes the memory capacity in bytes
    */
-  static void checkBufAllocAndCap(int k, long n, int memBufAlloc, long memCapBytes) {
-    int computedBufAlloc = bufferElementCapacity(k, n);
-    if (memBufAlloc != computedBufAlloc) {
-      throw new IllegalArgumentException("Possible corruption: Invalid Buffer Allocated Count: "
-          + memBufAlloc +" != " +computedBufAlloc);
-    }
-    int maxPre = Family.QUANTILES.getMaxPreLongs();
-    int reqBufBytes = (maxPre + memBufAlloc) << 3;
+  static void checkMemCapacity(int reqItems, long memCapBytes) {
+    int maxPre = Family.QUANTILES.getMaxPreLongs() + 2;
+    int reqBufBytes = (maxPre + reqItems) << 3;
     if (memCapBytes < reqBufBytes) {
       throw new IllegalArgumentException("Possible corruption: Memory capacity too small: "+ 
           memCapBytes + " < "+ reqBufBytes);
@@ -99,7 +92,7 @@ final class Util {
    * @return the value of the empty state
    */
   static boolean checkPreLongsFlagsCap(int preambleLongs, int flags, long memCapBytes) {
-    boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
+    boolean empty = (flags & EMPTY_FLAG_MASK) > 0; //Preamble flags empty state
     int minPre = Family.QUANTILES.getMinPreLongs();
     int maxPre = Family.QUANTILES.getMaxPreLongs();
     boolean valid = ((preambleLongs == minPre) && empty) || ((preambleLongs == maxPre) && !empty);
@@ -108,7 +101,7 @@ final class Util {
           "Possible corruption: PreambleLongs inconsistent with empty state: " +preambleLongs);
     }
     checkFlags(flags);
-    if (!empty && (memCapBytes < (maxPre<<3))) {
+    if (!empty && (memCapBytes < ((maxPre+2) << 3))) {
       throw new IllegalArgumentException(
           "Possible corruption: Insufficient capacity for preamble: " +memCapBytes);
     }
@@ -120,11 +113,10 @@ final class Util {
    * @param flags the flags field
    */ //only used by checkPreLongsFlagsCap and test
   static void checkFlags(int flags) {
-    int flagsMask = 
-        ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
+    int flagsMask = ~EMPTY_FLAG_MASK;
     if ((flags & flagsMask) > 0) {
       throw new IllegalArgumentException(
-         "Possible corruption: Input srcMem cannot be: big-endian, compact, ordered, or read-only");
+         "Possible corruption: Invalid flags field: "+Integer.toBinaryString(flags));
     }
   }
 
@@ -146,32 +138,27 @@ final class Util {
     DoublesUtil.validateValues(fractions);
   }
 
+  static int computeRetainedItems(int k, long n) {
+    int bbCnt = computeBaseBufferItems(k, n);
+    long bitPattern = computeBitPattern(k, n);
+    int validLevels = Long.bitCount(bitPattern);
+    return bbCnt + validLevels*k;
+  }
+  
   /**
-   * Returns the current element capacity of the combined data buffer given <i>k</i> and <i>n</i>.
+   * Returns the current item capacity of the combined data buffer given <i>k</i> and <i>n</i>.
    * 
    * @param k sketch parameter. This determines the accuracy of the sketch and the 
    * size of the updatable data structure, which is a function of k.
    * 
-   * @param n The number of elements in the input stream
-   * @return the current element capacity of the combined data buffer
+   * @param n The number of items in the input stream
+   * @return the current item capacity of the combined data buffer
    */
-  static int bufferElementCapacity(int k, long n) {
-    int maxLevels = computeNumLevelsNeeded(k, n);
-    if (maxLevels > 0) return (2+maxLevels) * k;
-    assert n < 2*k;
-    int m = Math.min(MIN_BASE_BUF_SIZE,2*k);
-    if (n <= m) return m;
-    int q = intDivideRoundUp(n, m);
-    assert q >= 1;
-    int q2 = ceilingPowerOf2(q);
-    int x = m*q2;
-    return Math.min(x, 2*k);
-  }
-
-  private static int intDivideRoundUp(long n, int m) {
-    int q = (int)n/m;
-    if (q*m == n) return q;
-    else return q+1;
+  static int computeCombBufItemCapacity(int k, long n) {
+    int totLevels = computeNumLevelsNeeded(k, n);
+    if (totLevels > 0) return (2+totLevels) * k;
+    int bbCnt = computeBaseBufferItems(k, n); //just the base buffer
+    return Math.max(MIN_BASE_BUF_SIZE, ceilingPowerOf2(bbCnt));
   }
   
   /**
@@ -179,17 +166,28 @@ final class Util {
    * @param bitPattern the bit pattern for valid log levels
    * @return the number of valid levels above the base buffer
    */
-  static int numValidLevels(long bitPattern) {
+  static int computeValidLevels(long bitPattern) {
     return Long.bitCount(bitPattern);
   }
 
   /**
-   * Computes the base buffer count given k, n
+   * Computes the number of logarithmic levels needed given k and n.
+   * This is equivalent to max(floor(lg(n/k), 0).
+   * @param k the configured size of the sketch
+   * @param n the total values presented to the sketch.
+   * @return the number of levels needed.
+   */
+  static int computeNumLevelsNeeded(int k, long n) {
+    return 1 + hiBitPos(n / (2L * k));
+  }
+
+  /**
+   * Computes the number of base buffer items given k, n
    * @param k the configured size of the sketch
    * @param n the total values presented to the sketch
-   * @return the base buffer count
+   * @return the number of base buffer items 
    */
-  static int computeBaseBufferCount(int k, long n) {
+  static int computeBaseBufferItems(int k, long n) {
     return (int) (n % (2L * k));
   }
 
@@ -207,18 +205,7 @@ final class Util {
   static double lg(double x) {
     return ( Math.log(x) / Math.log(2.0) );
   }
-  
-  /**
-   * Computes the number of logarithmic levels needed given k and n.
-   * This is equivalent to max(floor(lg(n/k), 0).
-   * @param k the configured size of the sketch
-   * @param n the total values presented to the sketch.
-   * @return the number of levels needed.
-   */
-  static int computeNumLevelsNeeded(int k, long n) {
-    return 1 + hiBitPos(n / (2L * k));
-  }
-  
+
   /**
    * Zero based position of the highest one-bit of the given long
    * @param num the given long
@@ -337,4 +324,6 @@ final class Util {
     }
   } //End of EpsilonFromK
 
+  //static void println(String s) { System.err.println(s); }
+  //static void print(String s) { System.err.print(s); }
 }

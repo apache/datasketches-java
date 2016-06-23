@@ -166,7 +166,7 @@ final class ItemsUtil {
     }
     // copies base buffer plus old levels
     sketch.combinedBuffer_ = Arrays.copyOf(sketch.getCombinedBuffer(), spaceNeeded); 
-    sketch.combinedBufferAllocatedCount_ = spaceNeeded;
+    sketch.combinedBufferItemCapacity_ = spaceNeeded;
   }
 
   static <T> void growBaseBuffer(final ItemsSketch<T> sketch) {
@@ -175,7 +175,7 @@ final class ItemsUtil {
     final int k = sketch.getK();
     assert oldSize < 2 * k;
     final int newSize = Math.max(Math.min(2 * k, 2 * oldSize), 1);
-    sketch.combinedBufferAllocatedCount_ = newSize;
+    sketch.combinedBufferItemCapacity_ = newSize;
     sketch.combinedBuffer_ = Arrays.copyOf(baseBuffer, newSize);
   }
 
@@ -534,10 +534,10 @@ final class ItemsUtil {
       final String nStr = String.format("%,d", n);
       final int numLevels = Util.computeNumLevelsNeeded(k, n);
       final String bufCntStr = String.format("%,d", combAllocCount);
-      final int preBytes = sketch.isEmpty() ? Long.BYTES : PreambleUtil.PREAMBLE_LONGS * Long.BYTES;
+      final int preBytes = sketch.isEmpty() ? Long.BYTES : 2 * Long.BYTES;
       final double eps = Util.EpsilonFromK.getAdjustedEpsilon(k);
       final String epsPct = String.format("%.3f%%", eps * 100.0);
-      final int numSamples = sketch.getRetainedEntries();
+      final int numSamples = sketch.getRetainedItems();
       final String numSampStr = String.format("%,d", numSamples);
       sb.append(Util.LS).append("### ").append(thisSimpleName).append(" SUMMARY: ").append(Util.LS);
       sb.append("   K                            : ").append(k).append(Util.LS);
@@ -545,7 +545,7 @@ final class ItemsUtil {
       sb.append("   BaseBufferCount              : ").append(bbCount).append(Util.LS);
       sb.append("   CombinedBufferAllocatedCount : ").append(bufCntStr).append(Util.LS);
       sb.append("   Total Levels                 : ").append(numLevels).append(Util.LS);
-      sb.append("   Valid Levels                 : ").append(Util.numValidLevels(bitPattern)).append(Util.LS);
+      sb.append("   Valid Levels                 : ").append(Util.computeValidLevels(bitPattern)).append(Util.LS);
       sb.append("   Level Bit Pattern            : ").append(Long.toBinaryString(bitPattern)).append(Util.LS);
       sb.append("   Valid Samples                : ").append(numSampStr).append(Util.LS);
       sb.append("   Preamble Bytes               : ").append(preBytes).append(Util.LS);

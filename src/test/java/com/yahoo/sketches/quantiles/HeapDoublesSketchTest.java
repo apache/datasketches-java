@@ -2,16 +2,17 @@
  * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.SKETCH_TYPE_BYTE;
 import static com.yahoo.sketches.quantiles.Util.LS;
-import static com.yahoo.sketches.quantiles.Util.bufferElementCapacity;
+import static com.yahoo.sketches.quantiles.Util.computeCombBufItemCapacity;
 import static com.yahoo.sketches.quantiles.Util.computeNumLevelsNeeded;
 import static com.yahoo.sketches.quantiles.Util.lg;
 import static java.lang.Math.floor;
 import static org.testng.Assert.assertEquals;
-//import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -122,7 +123,7 @@ public class HeapDoublesSketchTest {
       HeapDoublesSketch qs = HeapDoublesSketch.getInstance(k);
       for (int numItemsSoFar = 0; numItemsSoFar < 1000; numItemsSoFar++) {
         DoublesAuxiliary aux = qs.constructAuxiliary();
-        int numSamples = qs.getRetainedEntries();
+        int numSamples = qs.getRetainedItems();
         double[] auxItems = aux.auxSamplesArr_;
         long[] auxAccum = aux.auxCumWtsArr_;
 
@@ -321,7 +322,6 @@ public class HeapDoublesSketchTest {
     println(s);
   }
   
-  
   @Test
   public void checkComputeNumLevelsNeeded() {
     int n = 1 << 20;
@@ -347,24 +347,21 @@ public class HeapDoublesSketchTest {
   
   @Test
   public void checkGetStorageBytes() {
-    int k = DoublesSketch.DEFAULT_K;
-    DoublesSketch qs = buildQS(k, 0); //k, n, start, seed
+    int k = DoublesSketch.DEFAULT_K; //128
+    DoublesSketch qs = buildQS(k, 0); //k, n
     int stor = qs.getStorageBytes();
     assertEquals(stor, 8);
     
     qs = buildQS(k, 2*k); //forces one level
     stor = qs.getStorageBytes();
-    int bbLen = qs.getCombinedBuffer().length << 3;
-    //println("BufLen      : "+bbLen);
-    //println("getStorBytes: "+stor);
-    assertEquals(stor, 40 + bbLen);
+    
+    int retItems = Util.computeRetainedItems(k, 2*k);
+    assertEquals(stor, 32 + (retItems << 3));
     
     qs = buildQS(k, 2*k-1); //just Base Buffer
     stor = qs.getStorageBytes();
-    bbLen = qs.getCombinedBuffer().length << 3;
-    //println("BufLen      : "+bbLen);
-    //println("getStorBytes: "+stor);
-    assertEquals(stor, 40 + bbLen);
+    retItems = Util.computeRetainedItems(k, 2*k-1);
+    assertEquals(stor, 32 + (retItems << 3));
   }
   
   @Test
@@ -431,20 +428,19 @@ public class HeapDoublesSketchTest {
   public void checkComputeBaseBufferCount() {
     int n = 1 << 20;
     int k = DoublesSketch.DEFAULT_K;
-    long bbCnt = Util.computeBaseBufferCount(k, n);
+    long bbCnt = Util.computeBaseBufferItems(k, n);
     assertEquals(bbCnt, n % (2L*k));
   }
   
   @Test
   public void checkToFromByteArray() {
     int k = DoublesSketch.DEFAULT_K;
-    int n = 1000000;
+    int n = 1000;
     DoublesSketch qs = buildQS(k,n);
     
     byte[] byteArr = qs.toByteArray();
     Memory mem = new NativeMemory(byteArr);
     DoublesSketch qs2 = DoublesSketch.heapify(mem);
-    //HeapQuantilesSketch qs2 = HeapQuantilesSketch.getInstance(mem);
     for (double f = 0.1; f < 0.95; f += 0.1) {
       assertEquals(qs.getQuantile(f), qs2.getQuantile(f), 0.0);
     }
@@ -488,20 +484,29 @@ public class HeapDoublesSketchTest {
   public void checkBufAllocAndCap() {
     int k = DoublesSketch.DEFAULT_K;
     long n = 1000;
-    int computedBufAlloc = bufferElementCapacity(k, n);
-    int memAlloc = computedBufAlloc - 1; //corrupt
-    int memCap = (computedBufAlloc + PreambleUtil.PREAMBLE_LONGS) * Long.BYTES;
-    Util.checkBufAllocAndCap(k, n, memAlloc, memCap);
+    int combBufItemCap = computeCombBufItemCapacity(k, n);
+    int badCapItems = combBufItemCap - 1; //corrupt
+    int memCapBytes = (combBufItemCap + 2) * Long.BYTES;
+    Util.checkMemCapacity(badCapItems, memCapBytes);
+  }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkIllegalSketchType() {
+    int k = DoublesSketch.DEFAULT_K;
+    DoublesSketch qs1 = buildQS(k, 0);
+    byte[] byteArr = qs1.toByteArray();
+    Memory mem = new NativeMemory(byteArr);
+    mem.putByte(SKETCH_TYPE_BYTE, (byte) 2); //Corrupt
+    HeapDoublesSketch.getInstance(mem);
   }
   
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkBufAllocAndCap2() {
     int k = DoublesSketch.DEFAULT_K;
     long n = 1000;
-    int computedBufAlloc = bufferElementCapacity(k, n);
-    int memAlloc = computedBufAlloc;
-    int memCap = (computedBufAlloc + PreambleUtil.PREAMBLE_LONGS) * Long.BYTES;
-    Util.checkBufAllocAndCap(k, n, memAlloc, memCap - 1); //corrupt
+    int combBufItemCap = computeCombBufItemCapacity(k, n);
+    int memCap = (combBufItemCap + 2) * Long.BYTES;
+    Util.checkMemCapacity(combBufItemCap, memCap - 1); //corrupt
   }
   
   @Test(expectedExceptions = IllegalArgumentException.class)
@@ -526,6 +531,22 @@ public class HeapDoublesSketchTest {
     Util.checkFlags(flags);
   }
 
+  @Test
+  public void checkZeroPatternReturn() {
+    int k = DoublesSketch.DEFAULT_K;
+    DoublesSketch qs1 = buildQS(k, 64);
+    byte[] byteArr = qs1.toByteArray();
+    Memory mem = new NativeMemory(byteArr);
+    HeapDoublesSketch.getInstance(mem);
+  }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkBadDownSamplingRatio() {
+    int k1 = 64;
+    DoublesSketch qs1 = buildQS(k1, k1);
+    qs1.downSample(2*k1);//should be smaller
+  }
+  
   @Test
   public void checkImproperKvalues() {
     checksForImproperK(0);
@@ -646,29 +667,7 @@ public class HeapDoublesSketchTest {
     DoublesSketch qs2 = DoublesSketch.builder().build(12); // 12/4 not pwr of 2
     HeapDoublesUnion.mergeInto(qs2, qs1);
   }
-  
-  private static void checksForImproperK(int k) {
-    String s = "Did not catch improper k: "+k;
-    try {
-      DoublesSketch.builder().setK(k);
-      fail(s);
-    } catch (IllegalArgumentException e) {
-      //pass
-    }
-    try {
-      DoublesSketch.builder().build(k);
-      fail(s);
-    } catch (IllegalArgumentException e) {
-      //pass
-    }
-    try {
-      HeapDoublesSketch.getInstance(k);
-      fail(s);
-    } catch (IllegalArgumentException e) {
-      //pass
-    }
-  }
-  
+
   //@Test  //visual only
   public void quantilesCheckViaMemory() {
     int k = 256;
@@ -724,18 +723,6 @@ public class HeapDoublesSketchTest {
       }
     }
     return sb.toString();
-  }
-  
-  static DoublesSketch buildQS(int k, long n) {
-    return buildQS(k, n, 0);
-  }
-  
-  static DoublesSketch buildQS(int k, long n, int startV) {
-    DoublesSketch qs = DoublesSketch.builder().build(k);
-    for (int i=0; i<n; i++) {
-      qs.update(startV + i);
-    }
-    return qs;
   }
 
   @Test
@@ -835,6 +822,28 @@ public class HeapDoublesSketchTest {
     
   }
   
+  private static void checksForImproperK(int k) {
+    String s = "Did not catch improper k: "+k;
+    try {
+      DoublesSketch.builder().setK(k);
+      fail(s);
+    } catch (IllegalArgumentException e) {
+      //pass
+    }
+    try {
+      DoublesSketch.builder().build(k);
+      fail(s);
+    } catch (IllegalArgumentException e) {
+      //pass
+    }
+    try {
+      HeapDoublesSketch.getInstance(k);
+      fail(s);
+    } catch (IllegalArgumentException e) {
+      //pass
+    }
+  }
+  
   /**
    * Computes a checksum of all the samples in the sketch. Used in testing the Auxiliary
    * @param sketch the given quantiles sketch
@@ -876,6 +885,18 @@ public class HeapDoublesSketchTest {
            );
   }
 
+  static DoublesSketch buildQS(int k, long n) {
+    return buildQS(k, n, 0);
+  }
+  
+  static DoublesSketch buildQS(int k, long n, int startV) {
+    DoublesSketch qs = DoublesSketch.builder().build(k);
+    for (int i=0; i<n; i++) {
+      qs.update(startV + i);
+    }
+    return qs;
+  }
+  
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());

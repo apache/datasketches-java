@@ -4,21 +4,18 @@
  */
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.quantiles.PreambleUtil.BUFFER_DOUBLES_ALLOC_INT;
 import static com.yahoo.sketches.quantiles.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.quantiles.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.quantiles.PreambleUtil.K_SHORT;
 import static com.yahoo.sketches.quantiles.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.quantiles.PreambleUtil.SKETCH_TYPE_BYTE;
 import static com.yahoo.sketches.quantiles.PreambleUtil.SER_VER_BYTE;
-import static com.yahoo.sketches.quantiles.PreambleUtil.extractBufAlloc;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFamilyID;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractSketchType;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerVer;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertBufAlloc;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertFamilyID;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertFlags;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertK;
@@ -57,10 +54,6 @@ public class PreambleUtilTest {
     v = 0XFFFFL;   shift = SKETCH_TYPE_BYTE << 3;
     assertEquals(extractSketchType(v<<shift), (byte) v);
     assertEquals(extractSketchType(~(v<<shift)), 0);
-    
-    v = 0XFFFFFFFFL; shift = BUFFER_DOUBLES_ALLOC_INT << 3;
-    assertEquals(extractBufAlloc(v<<shift), (int) v);
-    assertEquals(extractBufAlloc(~(v<<shift)), 0);
   }
   
   @Test
@@ -89,10 +82,6 @@ public class PreambleUtilTest {
     v = 0XFFL; shift = SKETCH_TYPE_BYTE << 3;
     assertEquals(insertSketchType((byte)v, ~(v<<shift)), -1L);
     assertEquals(insertSketchType((byte)v, 0), v<<shift);
-    
-    v = 0XFFFFFFFFL; shift = BUFFER_DOUBLES_ALLOC_INT << 3;
-    assertEquals(insertBufAlloc((int)v, ~(v<<shift)), -1L);
-    assertEquals(insertBufAlloc((int)v, 0), v<<shift);
   }
   
   @Test

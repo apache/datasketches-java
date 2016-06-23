@@ -15,17 +15,18 @@ public class DoublesUnionBuilderTest {
 
   @Test
   public void checkBuilds() {
-    DoublesUnionBuilder bldr = new DoublesUnionBuilder();
-    DoublesUnion union = bldr.build(128); //virgin union
-    
     DoublesSketch qs1 = DoublesSketch.builder().build();
     for (int i=0; i<1000; i++) qs1.update(i);
+    
     int bytes = qs1.getStorageBytes();
     Memory dstMem = new NativeMemory(new byte[bytes]);
     qs1.putMemory(dstMem);
     Memory srcMem = dstMem;
     
-    union = bldr.build(srcMem);
+    DoublesUnionBuilder bldr = new DoublesUnionBuilder();
+    DoublesUnion union = bldr.build(128); //virgin union
+    
+    union = bldr.build(srcMem); //FAILS HERE
     DoublesSketch qs2 = union.getResult();
     assertEquals(qs1.getStorageBytes(), qs2.getStorageBytes());
     
@@ -33,6 +34,18 @@ public class DoublesUnionBuilderTest {
     DoublesSketch qs3 = union.getResult();
     assertEquals(qs2.getStorageBytes(), qs3.getStorageBytes());
     assertFalse(qs2 == qs3);
+  }
+  
+  @Test
+  public void printlnTest() {
+    println("PRINTING: "+this.getClass().getName());
+  }
+
+  /**
+   * @param s value to print 
+   */
+  static void println(String s) {
+    //System.err.println(s); //disable here
   }
   
 }
