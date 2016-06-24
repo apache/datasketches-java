@@ -8,6 +8,7 @@ import java.lang.reflect.Array;
 import java.nio.ByteOrder;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -23,7 +24,16 @@ import com.yahoo.sketches.memory.NativeMemory;
  */
 public class CompactSketch<S extends Summary> extends Sketch<S> {
 
-  static final byte serialVersionUID = 1;
+  private static final byte serialVersionUID = 1;
+
+  // Layout of first 8 bytes:
+  // <pre>
+  // Long || Start Byte Adr:
+  // Adr:
+  //      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
+  //  0   ||                          |  Flags | SkType | FamID  | SerVer |  Preamble_Longs    |
+
+  private static final byte PREAMBLE_LONGS = 1;
 
   private enum Flags { IS_BIG_ENDIAN, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
 
@@ -45,11 +55,15 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     byte version = mem.getByte(offset++);
     byte familyId = mem.getByte(offset++);
     SerializerDeserializer.validateFamily(familyId, preambleLongs);
-    if (version != serialVersionUID) throw new RuntimeException("Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
+    if (version != serialVersionUID) {
+      throw new SketchesException("Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
+    }
     SerializerDeserializer.validateType(mem.getByte(offset++), SerializerDeserializer.SketchType.CompactSketch);
     byte flags = mem.getByte(offset++);
     boolean isBigEndian = (flags & (1 << Flags.IS_BIG_ENDIAN.ordinal())) > 0;
-    if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) throw new RuntimeException("Byte order mismatch");
+    if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
+      throw new SketchesException("Byte order mismatch");
+    }
     isEmpty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
     boolean isThetaIncluded = (flags & (1 << Flags.IS_THETA_INCLUDED.ordinal())) > 0;
     if (isThetaIncluded) {
@@ -76,7 +90,9 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
         DeserializeResult<S> result = SerializerDeserializer.deserializeFromMemory(mem, offset, className);
         S summary = result.getObject();
         offset += result.getSize();
-        if (summaries_ == null) summaries_ = (S[]) Array.newInstance(summary.getClass(), count);
+        if (summaries_ == null) {
+          summaries_ = (S[]) Array.newInstance(summary.getClass(), count);
+        }
         summaries_[i] = summary;
       }
     }
@@ -84,10 +100,14 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
 
   @Override
   public S[] getSummaries() {
-    if (keys_ == null || keys_.length == 0) return null;
+    if (keys_ == null || keys_.length == 0) {
+      return null;
+    }
     @SuppressWarnings("unchecked")
     S[] summaries = (S[]) Array.newInstance(summaries_.getClass().getComponentType(), summaries_.length);
-    for (int i = 0; i < summaries_.length; ++i) summaries[i] = summaries_[i].copy();
+    for (int i = 0; i < summaries_.length; ++i) {
+      summaries[i] = summaries_[i].copy();
+    }
     return summaries;
   }
 
@@ -95,15 +115,6 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
   public int getRetainedEntries() {
     return keys_ == null ? 0 : keys_.length;
   }
-
-  // Layout of first 8 bytes:
-  // <pre>
-  // Long || Start Byte Adr:
-  // Adr: 
-  //      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
-  //  0   ||                          |  Flags | SkType | FamID  | SerVer |  Preamble_Longs    |
-
-  private static final byte PREAMBLE_LONGS = 1;
 
   @SuppressWarnings("null")
   @Override
@@ -126,7 +137,9 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
       + Byte.BYTES // sketch type
       + Byte.BYTES; // flags
     boolean isThetaIncluded = theta_ < Long.MAX_VALUE;
-    if (isThetaIncluded) sizeBytes += Long.BYTES; // theta
+    if (isThetaIncluded) {
+      sizeBytes += Long.BYTES; // theta
+    }
     String summaryClassName = null;
     if (count > 0) {
       summaryClassName = summaries_[0].getClass().getName();
@@ -154,7 +167,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
       mem.putLong(offset, theta_);
       offset += Long.BYTES;
     }
-    if (count > 0) {
+    if (summaryClassName != null && count > 0) {
       mem.putByte(offset++, (byte) summaryClassName.length());
       mem.putInt(offset, getRetainedEntries());
       offset += Integer.BYTES;
