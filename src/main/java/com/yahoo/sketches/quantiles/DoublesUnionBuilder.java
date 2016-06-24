@@ -13,19 +13,32 @@ import com.yahoo.sketches.memory.Memory;
  */
 public class DoublesUnionBuilder {
 
+  private int k_;
+
   /**
    * Constructor for building a new UnionBuilder.
    */
   public DoublesUnionBuilder() {
+    k_ = DoublesSketch.DEFAULT_K;
+  }
+
+  /**
+   * Sets the parameter <i>k</i> that determines the accuracy and size of the sketch
+   * @param k determines the accuracy and size of the sketch.  
+   * @return this builder
+   */
+  public DoublesUnionBuilder setK(final int k) {
+    Util.checkK(k);
+    k_ = k;
+    return this;
   }
 
   /**
    * Returns a virgin Union object
-   * @param k determines the accuracy and size of the sketch.
    * @return a virgin Union object
    */
-  public DoublesUnion build(final int k) {
-    return new HeapDoublesUnion(k);
+  public DoublesUnion build() {
+    return new HeapDoublesUnion(k_);
   }
 
   /**

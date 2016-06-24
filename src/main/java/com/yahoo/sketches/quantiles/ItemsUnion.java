@@ -28,6 +28,16 @@ public class ItemsUnion<T> {
   }
 
   /**
+   * Create an instance of ItemsUnion with default k
+   * @param <T> type of item
+   * @param comparator to compare items
+   * @return an instance of ItemsUnion
+   */
+  public static <T> ItemsUnion<T> getInstance(final Comparator<? super T> comparator) {
+    return new ItemsUnion<T>(ItemsSketch.DEFAULT_K, comparator, null);
+  }
+
+  /**
    * Create an instance of ItemsUnion
    * @param <T> type of item
    * @param k Parameter that controls space usage of sketch and accuracy of estimates.
