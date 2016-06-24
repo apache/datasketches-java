@@ -102,11 +102,11 @@ final class DoublesUtil {
       final int startingLevel,
       final double[] sizeKBuf, final int sizeKStart,
       final double[] size2KBuf, final int size2KStart,
-      final boolean doUpdateVersion, final HeapDoublesSketch sketch) { // else doMergeIntoVersion
+      final boolean doUpdateVersion, final HeapDoublesSketch sketch
+    ) { // else doMergeIntoVersion
     final double[] levelsArr = sketch.getCombinedBuffer();
-    final long bitPattern = sketch.getBitPattern();
     final int k = sketch.getK();
-
+    final long bitPattern = sketch.bitPattern_; //the one prior to the last increment of n_
     final int endingLevel = Util.positionOfLowestZeroBitStartingAt(bitPattern, startingLevel);
   
     if (doUpdateVersion) { // update version of computation
@@ -149,7 +149,7 @@ final class DoublesUtil {
     assert newN >= 2L * k;
     assert numLevelsNeeded > 0; 
     final int spaceNeeded = (2 + numLevelsNeeded) * k;
-    if (spaceNeeded <= sketch.getCombinedBufferAllocatedCount()) {
+    if (spaceNeeded <= sketch.getCombinedBufferItemCapacity()) {
       return;
     }
     // copies base buffer plus old levels
@@ -159,7 +159,7 @@ final class DoublesUtil {
 
   static void growBaseBuffer(final HeapDoublesSketch sketch) {
     final double[] baseBuffer = sketch.getCombinedBuffer();
-    final int oldSize = sketch.getCombinedBufferAllocatedCount();
+    final int oldSize = sketch.getCombinedBufferItemCapacity();
     final int k = sketch.getK();
     assert oldSize < 2 * k;
     final int newSize = Math.max(Math.min(2 * k, 2 * oldSize), 1);

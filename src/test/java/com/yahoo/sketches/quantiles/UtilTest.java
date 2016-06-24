@@ -39,7 +39,7 @@ public class UtilTest {
   
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkPreLongsFlagsCap() {
-    Util.checkPreLongsFlagsCap(2, 0,  16);
+    Util.checkPreLongsFlagsCap(2, 0, 15);
   }
   
   @Test

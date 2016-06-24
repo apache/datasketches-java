@@ -877,7 +877,7 @@ public class HeapDoublesSketchTest {
     return (
             (mq1.getK() == mq2.getK()) &&
             (mq1.getN() == mq2.getN()) &&
-            (mq1.getCombinedBufferAllocatedCount() == mq2.getCombinedBufferAllocatedCount()) &&
+            (mq1.getCombinedBufferItemCapacity() == mq2.getCombinedBufferItemCapacity()) &&
             (mq1.getBaseBufferCount() == mq2.getBaseBufferCount()) &&
             (mq1.getBitPattern() == mq2.getBitPattern()) &&
             (mq1.getMinValue() == mq2.getMinValue()) &&

@@ -114,7 +114,12 @@ public abstract class DoublesSketch {
    * Parameter that controls space usage of sketch and accuracy of estimates.
    */
   protected final int k_;
-
+  
+  /**
+   * Total number of data items in the stream so far. (Uniqueness plays no role in these sketches).
+   */
+  protected long n_;
+  
   /*
    * Setting the seed makes the results of the sketch deterministic if the input values are
    * received in exactly the same order. This is only useful when performing test comparisons,
@@ -130,6 +135,7 @@ public abstract class DoublesSketch {
   DoublesSketch(int k) {
     Util.checkK(k);
     k_ = k;
+    n_ = 0;
   }
   
   /**
@@ -272,7 +278,9 @@ public abstract class DoublesSketch {
    * Returns the length of the input stream so far.
    * @return the length of the input stream so far
    */
-  public abstract long getN();
+  public long getN() {
+    return n_;
+  }
   
   /**
    * Get the rank error normalized as a fraction between zero and one. 
@@ -312,7 +320,7 @@ public abstract class DoublesSketch {
    * @return true if this sketch is empty
    */
   public boolean isEmpty() {
-   return getN() == 0; 
+   return n_ == 0; 
   }
   
   /**
@@ -401,13 +409,15 @@ public abstract class DoublesSketch {
    * Returns the bit pattern for valid log levels
    * @return the bit pattern for valid log levels
    */
-  abstract long getBitPattern();
+  long getBitPattern() {
+    return Util.computeBitPattern(k_, n_);
+  }
 
   /**
-   * Returns the allocated count for the combined base buffer
-   * @return the allocated count for the combined base buffer
+   * Returns the item capacity for the combined base buffer
+   * @return the item capacity for the combined base buffer
    */
-  abstract int getCombinedBufferAllocatedCount();
+  abstract int getCombinedBufferItemCapacity();
 
   /**
    * Returns the combined buffer reference

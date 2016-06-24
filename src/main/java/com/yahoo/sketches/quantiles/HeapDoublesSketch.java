@@ -44,11 +44,6 @@ class HeapDoublesSketch extends DoublesSketch {
   static final byte SKETCH_TYPE = 1;
 
   /**
-   * Total number of data items in the stream so far. (Uniqueness plays no role in these sketches).
-   */
-  long n_;
-
-  /**
    * The smallest value ever seen in the stream.
    */
   double minValue_;
@@ -64,14 +59,14 @@ class HeapDoublesSketch extends DoublesSketch {
    * Also, in the off-heap version, combinedBuffer_ won't even be a java array,
    * so it won't know its own length.
    */
-  int combinedBufferItemCapacity_;  //TODO need this?
+  int combinedBufferItemCapacity_;
 
   /**
    * Number of samples currently in base buffer.
    * 
    * Count = N % (2*K)
    */
-  int baseBufferCount_; //TODO need this?
+  int baseBufferCount_;
 
   /**
    * Active levels expressed as a bit pattern.
@@ -171,7 +166,7 @@ class HeapDoublesSketch extends DoublesSketch {
     srcMem.getDoubleArray(srcMemItemsOffsetBytes, hqs.combinedBuffer_, 0, hqs.baseBufferCount_);
     srcMemItemsOffsetBytes += hqs.baseBufferCount_ * Double.BYTES;
     
-    long bits = hqs.bitPattern_;
+    long bits = computeBitPattern(k, n);
     if (bits == 0) return hqs;
     int levelBytes = k * Double.BYTES;
     for (int level = 0; bits != 0L; level++, bits >>>= 1) {
@@ -194,7 +189,7 @@ class HeapDoublesSketch extends DoublesSketch {
     qsCopy.n_ = sketch.getN();
     qsCopy.minValue_ = sketch.getMinValue();
     qsCopy.maxValue_ = sketch.getMaxValue();
-    qsCopy.combinedBufferItemCapacity_ = sketch.getCombinedBufferAllocatedCount();
+    qsCopy.combinedBufferItemCapacity_ = sketch.getCombinedBufferItemCapacity();
     qsCopy.baseBufferCount_ = sketch.getBaseBufferCount();
     qsCopy.bitPattern_ = sketch.getBitPattern();
     double[] combBuf = sketch.getCombinedBuffer();
@@ -296,11 +291,6 @@ class HeapDoublesSketch extends DoublesSketch {
   public double getMaxValue() {
     return maxValue_;
   }
-  
-  @Override
-  public long getN() { 
-    return n_; 
-  }
 
   @Override
   public void reset() {
@@ -357,7 +347,7 @@ class HeapDoublesSketch extends DoublesSketch {
       offsetBytes += Double.BYTES * bbItems;
     }
     //insert levels
-    long bits = bitPattern_;
+    long bits = computeBitPattern(k_, n_);
     for (int level = 0; bits != 0L; level++, bits >>>= 1) {
       if ((bits & 1L) > 0L) {
         memOut.putDoubleArray(offsetBytes, combinedBuffer_, (2 + level) * k_, k_);
@@ -400,14 +390,14 @@ class HeapDoublesSketch extends DoublesSketch {
   }
   
   @Override
-  int getCombinedBufferAllocatedCount() {
+  int getCombinedBufferItemCapacity() {
     return combinedBufferItemCapacity_;
   }
   
-  @Override
-  long getBitPattern() {
-    return bitPattern_;
-  }
+//  @Override
+//  long getBitPattern() {
+//    return bitPattern_;
+//  }
 
   @Override
   double[] getCombinedBuffer() {

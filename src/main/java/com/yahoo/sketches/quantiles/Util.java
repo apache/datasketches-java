@@ -101,7 +101,7 @@ final class Util {
           "Possible corruption: PreambleLongs inconsistent with empty state: " +preambleLongs);
     }
     checkFlags(flags);
-    if (!empty && (memCapBytes < ((maxPre+2) << 3))) {
+    if (!empty && (memCapBytes < (preambleLongs << 3))) {
       throw new IllegalArgumentException(
           "Possible corruption: Insufficient capacity for preamble: " +memCapBytes);
     }
