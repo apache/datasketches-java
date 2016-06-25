@@ -18,7 +18,7 @@ public class HeapDoublesUnionTest {
   public void checkUnion1() {
     DoublesSketch result;
     DoublesSketch qs1 = null;
-    DoublesUnion union = DoublesUnion.builder().build(128); //virgin
+    DoublesUnion union = DoublesUnion.builder().build(); //virgin
     
     qs1 = buildQS(256, 1000); //first 1000
     union.update(qs1); //copy   me = null,  that = valid, OK
@@ -40,7 +40,7 @@ public class HeapDoublesUnionTest {
   public void checkUnion2() {
     DoublesSketch qs1 = buildQS(256, 1000);
     DoublesSketch qs2 = buildQS(128, 1000);
-    DoublesUnion union = DoublesUnion.builder().build(128); //virgin
+    DoublesUnion union = DoublesUnion.builder().build(); //virgin
     
     union.update(qs1);
     DoublesSketch res1 = union.getResult();
@@ -63,7 +63,7 @@ public class HeapDoublesUnionTest {
     qs1.putMemory(dstMem);
     Memory srcMem = dstMem;
     
-    DoublesUnion union = DoublesUnion.builder().build(128); //virgin
+    DoublesUnion union = DoublesUnion.builder().build(); //virgin
     union.update(srcMem);
     for (int i=1000; i<2000; i++) union.update(i);
     DoublesSketch qs2 = union.getResult();
@@ -94,7 +94,7 @@ public class HeapDoublesUnionTest {
 
   @Test
   public void updateWithDoubleValueOnly() {
-    DoublesUnion union = DoublesUnion.builder().build(128);
+    DoublesUnion union = DoublesUnion.builder().build();
     union.update(123.456);
     DoublesSketch qs = union.getResultAndReset();
     assertEquals(qs.getN(), 1);
