@@ -18,6 +18,9 @@ import com.yahoo.sketches.Family;
  * <p>This class contains a highly specialized sort called blockyTandemMergeSort().
  * It also contains methods that are used while building histograms and other common
  * functions.</p>
+ * 
+ * @author Kevin Lang
+ * @author Lee Rhodes
  */
 final class Util {
 

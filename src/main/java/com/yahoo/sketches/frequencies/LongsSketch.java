@@ -120,6 +120,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * If the stream causes 1E9 purges, our proof applies with probability at least 1 - 1E-5.
  * 
  * @author Justin Thaler
+ * @author Lee Rhodes
  */
 public class LongsSketch {
 

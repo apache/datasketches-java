@@ -18,6 +18,7 @@ import com.yahoo.sketches.QuickSelect;
  * 
  * @author Edo Liberty
  * @author Justin Thaler
+ * @author Lee Rhodes
  */
 class ReversePurgeLongHashMap {
   private static final double LOAD_FACTOR = 0.75;

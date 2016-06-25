@@ -8,6 +8,9 @@ import java.util.Arrays;
 
 /**
  * Auxiliary data structure for answering quantile queries
+ * 
+ * @author Kevin Lang
+ * @author Lee Rhodes
  */
 class DoublesAuxiliary {
   long auxN_;

@@ -106,7 +106,9 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
  * <p>Similarly, there may be directional inconsistencies. For example, the resulting array of 
  * values obtained from getQuantiles(fractions[]) input into the reverse directional query 
  * getPMF(splitPoints[]) may not result in the original fractional values.</p>
- *  
+ * 
+ * @author Kevin Lang
+ * @author Lee Rhodes
  */
 public abstract class DoublesSketch {
   

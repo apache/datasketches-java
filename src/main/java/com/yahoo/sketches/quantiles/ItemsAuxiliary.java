@@ -8,7 +8,10 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 /**
- * Auxiliary data structure for answering quantile queries
+ * Auxiliary data structure for answering generic quantile queries
+ * 
+ * @author Kevin Lang
+ * @author Alex Saydakov
  */
 class ItemsAuxiliary<T> {
   final long auxN_;

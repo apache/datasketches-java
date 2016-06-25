@@ -47,7 +47,7 @@ import com.yahoo.sketches.memory.Memory;
  *  5   ||----------start of values buffer, followed by keys buffer------------------------|
  * </pre>
  * 
- * @author Justin Thaler
+ * @author Lee Rhodes
  */
 final class PreambleUtil {
 

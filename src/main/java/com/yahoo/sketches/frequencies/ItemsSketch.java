@@ -127,6 +127,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * @param <T> The type of item to be tracked by this sketch
  * 
  * @author Justin Thaler
+ * @author Alex Saydakov
  */
 public class ItemsSketch<T> {
 

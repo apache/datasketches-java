@@ -13,6 +13,12 @@ import java.util.Arrays;
 
 import com.yahoo.sketches.memory.Memory;
 
+/**
+ * Static methods that support the doubles quantiles algorithms.
+ * 
+ * @author Kevin Lang
+ * @author Lee Rhodes
+ */
 final class DoublesUtil {
 
   /**

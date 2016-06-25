@@ -22,6 +22,7 @@ import com.yahoo.sketches.QuickSelect;
  * 
  * @author Edo Liberty
  * @author Justin Thaler
+ * @author Alex Saydakov
  */
 class ReversePurgeItemHashMap<T> {
   private static final double LOAD_FACTOR = 0.75;

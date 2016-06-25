@@ -48,6 +48,9 @@ import com.yahoo.sketches.memory.NativeMemory;
  * <a href="http://datasketches.github.io">DataSketches.GitHub.io</a>.</p>
  * 
  * @param <T> type of item
+ * 
+ * @author Kevin Lang
+ * @author Alex Saydakov
  */
 public class ItemsSketch<T> {
 

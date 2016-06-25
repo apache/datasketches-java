@@ -13,6 +13,7 @@ import com.yahoo.sketches.memory.Memory;
  * The API for Union operations for GenericQuantilesSketches
  * 
  * @author Lee Rhodes
+ * @author Alex Saydakov
  * @param <T> type of item
  */
 public class ItemsUnion<T> {
