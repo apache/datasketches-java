@@ -123,7 +123,7 @@ public class ItemsSketchTest {
   @Test
   public void serializeStringDeserializeEmpty() {
     ItemsSketch<String> sketch1 = new ItemsSketch<String>(8);
-    byte[] bytes = sketch1.serializeToByteArray(new ArrayOfStringsSerDe());
+    byte[] bytes = sketch1.toByteArray(new ArrayOfStringsSerDe());
     ItemsSketch<String> sketch2 = 
         ItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfStringsSerDe());
     Assert.assertTrue(sketch2.isEmpty());
@@ -139,7 +139,7 @@ public class ItemsSketchTest {
     sketch1.update("ccccccccccccccccccccccccccccc");
     sketch1.update("ddddddddddddddddddddddddddddd");
 
-    byte[] bytes = sketch1.serializeToByteArray(new ArrayOfStringsSerDe());
+    byte[] bytes = sketch1.toByteArray(new ArrayOfStringsSerDe());
     ItemsSketch<String> sketch2 = 
         ItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfStringsSerDe());
     sketch2.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
@@ -163,7 +163,7 @@ public class ItemsSketchTest {
     sketch1.update("ccccccccccccccccccccccccccccc");
     sketch1.update("ddddddddddddddddddddddddddddd");
 
-    byte[] bytes = sketch1.serializeToByteArray(new ArrayOfUtf16StringsSerDe());
+    byte[] bytes = sketch1.toByteArray(new ArrayOfUtf16StringsSerDe());
     ItemsSketch<String> sketch2 = 
         ItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfUtf16StringsSerDe());
     sketch2.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
@@ -206,7 +206,7 @@ public class ItemsSketchTest {
     String s = sketch1.toString();
     //println(s);
     
-    byte[] bytes = sketch1.serializeToByteArray(new ArrayOfLongsSerDe());
+    byte[] bytes = sketch1.toByteArray(new ArrayOfLongsSerDe());
     ItemsSketch<Long> sketch2 = 
         ItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfLongsSerDe());
     sketch2.update(2L);
@@ -282,7 +282,7 @@ public class ItemsSketchTest {
     ItemsSketch<Long> sk1 = new ItemsSketch<Long>(8);
     sk1.update(new Long(1), 1);
     ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
-    byte[] byteArr = sk1.serializeToByteArray(serDe);
+    byte[] byteArr = sk1.toByteArray(serDe);
     Memory mem = new NativeMemory(byteArr);
     //FrequentItemsSketch<Long> sk2 = FrequentItemsSketch.getInstance(mem, serDe);
     //println(sk2.toString());
@@ -312,7 +312,7 @@ public class ItemsSketchTest {
     Assert.assertEquals(sketch1.getStreamLength(), 1);
     Assert.assertEquals(sketch1.getEstimate("\u5fb5"), 1);
 
-    byte[] bytes = sketch1.serializeToByteArray(new ArrayOfStringsSerDe());
+    byte[] bytes = sketch1.toByteArray(new ArrayOfStringsSerDe());
     ItemsSketch<String> sketch2 = 
         ItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfStringsSerDe());
     Assert.assertFalse(sketch2.isEmpty());

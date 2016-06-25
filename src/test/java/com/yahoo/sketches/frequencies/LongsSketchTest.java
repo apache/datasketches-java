@@ -100,7 +100,7 @@ public class LongsSketchTest {
   public void frequentItemsByteSerialTest() {
     //Empty Sketch
     LongsSketch sketch = new LongsSketch(16);
-    byte[] bytearray0 = sketch.serializeToByteArray();
+    byte[] bytearray0 = sketch.toByteArray();
     Memory mem0 = new NativeMemory(bytearray0);
     LongsSketch new_sketch0 = LongsSketch.getInstance(mem0);
     String str0 = PreambleUtil.preambleToString(mem0);
@@ -116,7 +116,7 @@ public class LongsSketchTest {
     sketch.update(1000001, 1010230);
     sketch.update(1000002, 1010230);
 
-    byte[] bytearray1 = sketch.serializeToByteArray();
+    byte[] bytearray1 = sketch.toByteArray();
     Memory mem1 = new NativeMemory(bytearray1);
     LongsSketch new_sketch1 = LongsSketch.getInstance(mem1);
     String str1 = PreambleUtil.preambleToString(mem1);
@@ -147,7 +147,7 @@ public class LongsSketchTest {
     sketch2.update(207, 12902390);
     sketch2.update(208, 12902390);
 
-    byte[] bytearray2 = sketch2.serializeToByteArray();
+    byte[] bytearray2 = sketch2.toByteArray();
     Memory mem2 = new NativeMemory(bytearray2);
     LongsSketch new_sketch2 = LongsSketch.getInstance(mem2);
 
@@ -161,7 +161,7 @@ public class LongsSketchTest {
 
     LongsSketch merged_sketch = sketch.merge(sketch2);
 
-    byte[] bytearray = sketch.serializeToByteArray();
+    byte[] bytearray = sketch.toByteArray();
     Memory mem = new NativeMemory(bytearray);
     LongsSketch new_sketch = LongsSketch.getInstance(mem);
 
@@ -184,7 +184,7 @@ public class LongsSketchTest {
     sketch.update(1000002, 1010230);
     sketch.reset();
 
-    byte[] bytearray0 = sketch.serializeToByteArray();
+    byte[] bytearray0 = sketch.toByteArray();
     Memory mem0 = new NativeMemory(bytearray0);
     LongsSketch new_sketch0 = LongsSketch.getInstance(mem0);
 
@@ -205,7 +205,7 @@ public class LongsSketchTest {
     sk1.update(1000001, 1010230); println(sk1.toString());
     sk1.update(1000002, 1010230); println(sk1.toString());
     
-    byte[] bytearray0 = sk1.serializeToByteArray();
+    byte[] bytearray0 = sk1.toByteArray();
     Memory mem0 = new NativeMemory(bytearray0);
     LongsSketch sk2 = LongsSketch.getInstance(mem0);
     
@@ -263,7 +263,7 @@ public class LongsSketchTest {
     LongsSketch sk1 = new LongsSketch(minSize);
     sk1.update(1L);
     
-    byte[] bytearray0 = sk1.serializeToByteArray();
+    byte[] bytearray0 = sk1.toByteArray();
     Memory mem = new NativeMemory(bytearray0);
     long pre0 = mem.getLong(0); 
     

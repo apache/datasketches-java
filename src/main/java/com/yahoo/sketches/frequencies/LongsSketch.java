@@ -366,7 +366,7 @@ public class LongsSketch {
    * Returns a byte array representation of this sketch
    * @return a byte array representation of this sketch
    */
-  public byte[] serializeToByteArray() {
+  public byte[] toByteArray() {
     final int preLongs, outBytes;
     final boolean empty = isEmpty();
     final int activeItems = getNumActiveItems();

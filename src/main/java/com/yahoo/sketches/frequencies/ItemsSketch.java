@@ -294,7 +294,7 @@ public class ItemsSketch<T> {
    * @return a byte array representation of this sketch
    */
   @SuppressWarnings("null")
-  public byte[] serializeToByteArray(final ArrayOfItemsSerDe<T> serDe) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
     final int preLongs;
     final int outBytes;
     final boolean empty = isEmpty();
