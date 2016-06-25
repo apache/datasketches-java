@@ -13,7 +13,8 @@ import com.yahoo.sketches.BinomialBoundsN;
  * @param <S> Type of Summary
  */
 public abstract class Sketch<S extends Summary> {
-
+  protected static final byte PREAMBLE_LONGS = 1;
+  
   long[] keys_;
   S[] summaries_;
   long theta_;

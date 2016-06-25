@@ -76,7 +76,7 @@ public final class MurmurHash3 implements Serializable {
     // Get the tail
     long k1 = (rem == 0) ? 0 : key[tail]; //k2 -> 0
     // Mix the tail into the hash and return
-    return hashState.finalMix128(k1, 0, longs * 8); //convert to bytes
+    return hashState.finalMix128(k1, 0, longs * Long.BYTES); //convert to bytes
   }
   
   //--Hash of int[]----------------------------------------------------
@@ -107,17 +107,18 @@ public final class MurmurHash3 implements Serializable {
     int rem = ints - tail; // remainder ints: 0,1,2,3
     
     // Get the tail
-    long k1 = 0;
-    long k2 = 0;
+    long k1;
+    long k2;
     if (rem > 2) { //k1 -> whole; k2 -> partial
       k1 = getLong(key, tail, 2);
       k2 = getLong(key, tail + 2, rem - 2);
     } 
     else { //k1 -> whole, partial or 0; k2 == 0
       k1 = (rem == 0) ? 0 : getLong(key, tail, rem);
+      k2 = 0;
     }
     // Mix the tail into the hash and return
-    return hashState.finalMix128(k1, k2, ints * 4); //convert to bytes
+    return hashState.finalMix128(k1, k2, ints * Integer.BYTES); //convert to bytes
   }
   
   //--Hash of char[]----------------------------------------------------
@@ -148,17 +149,18 @@ public final class MurmurHash3 implements Serializable {
     int rem = chars - tail; // remainder chars: 0,1,2,3,4,5,6,7
     
     // Get the tail
-    long k1 = 0;
-    long k2 = 0;
+    long k1;
+    long k2;
     if (rem > 4) { //k1 -> whole; k2 -> partial
       k1 = getLong(key, tail, 4);
       k2 = getLong(key, tail + 4, rem - 4);
     } 
     else { //k1 -> whole, partial or 0; k2 == 0
       k1 = (rem == 0) ? 0 : getLong(key, tail, rem);
+      k2 = 0;
     }
     // Mix the tail into the hash and return
-    return hashState.finalMix128(k1, k2, chars * 2); //convert to bytes
+    return hashState.finalMix128(k1, k2, chars * Character.BYTES); //convert to bytes
   }
   
   //--Hash of byte[]----------------------------------------------------
@@ -189,14 +191,15 @@ public final class MurmurHash3 implements Serializable {
     int rem = bytes - tail; // remainder bytes: 0,1,...,15
     
     // Get the tail
-    long k1 = 0;
-    long k2 = 0;
+    long k1;
+    long k2;
     if (rem > 8) { //k1 -> whole; k2 -> partial
       k1 = getLong(key, tail, 8);
       k2 = getLong(key, tail + 8, rem - 8);
     } 
     else { //k1 -> whole, partial or 0; k2 == 0
       k1 = (rem == 0) ? 0 : getLong(key, tail, rem);
+      k2 = 0;
     }
     // Mix the tail into the hash and return
     return hashState.finalMix128(k1, k2, bytes);
@@ -246,7 +249,7 @@ public final class MurmurHash3 implements Serializable {
       h2 = finalMix64(h2);
       h1 += h2;
       h2 += h1;
-      return (new long[] { h1, h2 });
+      return new long[] { h1, h2 };
     }
     
     /**

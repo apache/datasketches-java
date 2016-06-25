@@ -29,7 +29,9 @@ final class ItemsUtil {
     final int lenM1 = values.length - 1;
     for (int j = 0; j < lenM1; j++) {
       if (values[j] != null && values[j + 1] != null &&
-          comparator.compare(values[j], values[j + 1]) < 0) continue;
+          comparator.compare(values[j], values[j + 1]) < 0) {
+        continue;
+      }
       throw new IllegalArgumentException(
           "Values must be unique, monotonically increasing and not null.");
     }
@@ -63,7 +65,8 @@ final class ItemsUtil {
       Arrays.sort(baseBuffer, 0, bbCount);
       // sort is worth it when many split points
       linearTimeIncrementHistogramCounters(
-          (T[]) baseBuffer, 0, bbCount, weight, splitPoints, counters, sketch.getComparator());
+          (T[]) baseBuffer, 0, bbCount, weight, splitPoints, counters, sketch.getComparator()
+      );
     }
 
     long myBitPattern = sketch.getBitPattern();

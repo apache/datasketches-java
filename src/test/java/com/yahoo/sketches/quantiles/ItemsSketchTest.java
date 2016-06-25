@@ -13,6 +13,7 @@ import com.yahoo.sketches.ArrayOfDoublesSerDe;
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.ArrayOfStringsSerDe;
+import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
 public class ItemsSketchTest {
@@ -217,9 +218,41 @@ public class ItemsSketchTest {
     sketch.update("a");
     String brief = sketch.toString();
     String full = sketch.toString(true, true);
+    println(full);
     Assert.assertTrue(brief.length() < full.length());
   }
 
+  @Test
+  public void toStringBiggerCheck() {
+    ItemsSketch<String> sketch = ItemsSketch.getInstance(16, Comparator.naturalOrder());
+    for (int i=0; i<40; i++) {
+      sketch.update(Integer.toString(i));
+    }
+    String bigger = sketch.toString();
+    String full = sketch.toString(true, true);
+    println(full);
+    Assert.assertTrue(bigger.length() < full.length());
+  }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkDownsampleException() {
+    ItemsSketch<String> sketch = ItemsSketch.getInstance(16, Comparator.naturalOrder());
+    for (int i=0; i<40; i++) {
+      sketch.update(Integer.toString(i));
+    }
+    sketch.downSample(32);
+  }
+  
+  @Test
+  public void checkDownsample() {
+    ItemsSketch<String> sketch = ItemsSketch.getInstance(16, Comparator.naturalOrder());
+    for (int i=0; i<40; i++) {
+      sketch.update(Integer.toString(i));
+    }
+    ItemsSketch<String> out = sketch.downSample(8);
+    Assert.assertEquals(out.getK(), 8);
+  }
+  
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void unorderedSplitPoints() {
     ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Comparator.naturalOrder());
@@ -238,4 +271,38 @@ public class ItemsSketchTest {
     sketch.getPMF(new Integer[] {1, null});
   }
 
+  @Test
+  public void checkPutMemory() {
+    ItemsSketch<String> sketch = ItemsSketch.getInstance(16, Comparator.naturalOrder());
+    for (int i=0; i<40; i++) {
+      sketch.update(Integer.toString(i));
+    }
+    byte[] byteArr = new byte[200];
+    Memory mem = new NativeMemory(byteArr);
+    sketch.putMemory(mem, new ArrayOfStringsSerDe());
+  }
+  
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkPutMemoryException() {
+    ItemsSketch<String> sketch = ItemsSketch.getInstance(16, Comparator.naturalOrder());
+    for (int i=0; i<40; i++) {
+      sketch.update(Integer.toString(i));
+    }
+    byte[] byteArr = new byte[100];
+    Memory mem = new NativeMemory(byteArr);
+    sketch.putMemory(mem, new ArrayOfStringsSerDe());
+  }
+  
+  @Test
+  public void printlnTest() {
+    println("PRINTING: "+this.getClass().getName());
+  }
+  
+  /**
+   * @param s value to print 
+   */
+  static void println(String s) {
+    //System.out.println(s); //disable here
+  }
+  
 }

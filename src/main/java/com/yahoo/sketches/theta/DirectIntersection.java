@@ -143,7 +143,7 @@ class DirectIntersection extends SetOperation implements Intersection {
       
       Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
       thetaLong_ = minThetaLong(sketchIn.getThetaLong());
-      empty_ = setEmpty(empty_ | sketchIn.isEmpty());  //Empty rule
+      empty_ = setEmpty(empty_ || sketchIn.isEmpty());  //Empty rule
       curCount_ = setCurCount(0);
       //No need for a HT.
     }
@@ -152,7 +152,7 @@ class DirectIntersection extends SetOperation implements Intersection {
       //Clone the incoming sketch
       Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
       thetaLong_ = minThetaLong(sketchIn.getThetaLong());
-      empty_ = setEmpty(empty_ | sketchIn.isEmpty());  //Empty rule
+      empty_ = setEmpty(empty_ || sketchIn.isEmpty());  //Empty rule
       
       curCount_ = setCurCount(sketchIn.getRetainedEntries(true));
       
@@ -173,7 +173,7 @@ class DirectIntersection extends SetOperation implements Intersection {
       //Must perform full intersect
       Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
       thetaLong_ = minThetaLong(sketchIn.getThetaLong());
-      empty_ = setEmpty(empty_ | sketchIn.isEmpty());
+      empty_ = setEmpty(empty_ || sketchIn.isEmpty());
       
       // sets resulting hashTable, curCount and adjusts lgArrLongs
       performIntersect(sketchIn);

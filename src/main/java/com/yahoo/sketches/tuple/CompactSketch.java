@@ -2,6 +2,7 @@
  * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.tuple;
 
 import java.lang.reflect.Array;
@@ -10,6 +11,7 @@ import java.nio.ByteOrder;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
+import com.yahoo.sketches.SketchesIllegalArgumentException;
 
 /**
  * CompactSketches are never created directly. They are created as a result of
@@ -22,9 +24,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * @param <S> type of Summary
  */
 public class CompactSketch<S extends Summary> extends Sketch<S> {
-
-  static final byte serialVersionUID = 1;
-
+  private static final byte serialVersionUID = 1;
   private enum Flags { IS_BIG_ENDIAN, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
 
   CompactSketch(final long[] keys, final S[] summaries, final long theta, final boolean isEmpty) {
@@ -45,11 +45,17 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     byte version = mem.getByte(offset++);
     byte familyId = mem.getByte(offset++);
     SerializerDeserializer.validateFamily(familyId, preambleLongs);
-    if (version != serialVersionUID) throw new RuntimeException("Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
-    SerializerDeserializer.validateType(mem.getByte(offset++), SerializerDeserializer.SketchType.CompactSketch);
+    if (version != serialVersionUID) {
+      throw new SketchesIllegalArgumentException("Serial version mismatch. Expected: " + serialVersionUID + 
+          ", actual: " + version);
+    }
+    SerializerDeserializer.
+      validateType(mem.getByte(offset++), SerializerDeserializer.SketchType.CompactSketch);
     byte flags = mem.getByte(offset++);
     boolean isBigEndian = (flags & (1 << Flags.IS_BIG_ENDIAN.ordinal())) > 0;
-    if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) throw new RuntimeException("Byte order mismatch");
+    if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
+      throw new SketchesIllegalArgumentException("Byte order mismatch");
+    }
     isEmpty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
     boolean isThetaIncluded = (flags & (1 << Flags.IS_THETA_INCLUDED.ordinal())) > 0;
     if (isThetaIncluded) {
@@ -73,10 +79,13 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
         offset += Long.BYTES;
       }
       for (int i = 0; i < count; i++) {
-        DeserializeResult<S> result = SerializerDeserializer.deserializeFromMemory(mem, offset, className);
+        DeserializeResult<S> result = 
+            SerializerDeserializer.deserializeFromMemory(mem, offset, className);
         S summary = result.getObject();
         offset += result.getSize();
-        if (summaries_ == null) summaries_ = (S[]) Array.newInstance(summary.getClass(), count);
+        if (summaries_ == null) {
+          summaries_ = (S[]) Array.newInstance(summary.getClass(), count);
+        }
         summaries_[i] = summary;
       }
     }
@@ -84,10 +93,16 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
 
   @Override
   public S[] getSummaries() {
-    if (keys_ == null || keys_.length == 0) return null;
+    if (keys_ == null || keys_.length == 0) {
+      return null;
+    }
+    
     @SuppressWarnings("unchecked")
-    S[] summaries = (S[]) Array.newInstance(summaries_.getClass().getComponentType(), summaries_.length);
-    for (int i = 0; i < summaries_.length; ++i) summaries[i] = summaries_[i].copy();
+    S[] summaries = 
+      (S[]) Array.newInstance(summaries_.getClass().getComponentType(), summaries_.length);
+    for (int i = 0; i < summaries_.length; ++i) {
+      summaries[i] = summaries_[i].copy();
+    }
     return summaries;
   }
 
@@ -97,14 +112,10 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
   }
 
   // Layout of first 8 bytes:
-  // <pre>
   // Long || Start Byte Adr:
   // Adr: 
   //      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
   //  0   ||                          |  Flags | SkType | FamID  | SerVer |  Preamble_Longs    |
-
-  private static final byte PREAMBLE_LONGS = 1;
-
   @SuppressWarnings("null")
   @Override
   public byte[] toByteArray() {
@@ -126,7 +137,9 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
       + Byte.BYTES // sketch type
       + Byte.BYTES; // flags
     boolean isThetaIncluded = theta_ < Long.MAX_VALUE;
-    if (isThetaIncluded) sizeBytes += Long.BYTES; // theta
+    if (isThetaIncluded) {
+      sizeBytes += Long.BYTES; // theta
+    }
     String summaryClassName = null;
     if (count > 0) {
       summaryClassName = summaries_[0].getClass().getName();

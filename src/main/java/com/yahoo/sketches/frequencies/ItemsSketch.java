@@ -295,7 +295,8 @@ public class ItemsSketch<T> {
    */
   @SuppressWarnings("null")
   public byte[] serializeToByteArray(final ArrayOfItemsSerDe<T> serDe) {
-    final int preLongs, outBytes;
+    final int preLongs;
+    final int outBytes;
     final boolean empty = isEmpty();
     final int activeItems = getNumActiveItems();
     byte[] bytes = null;
@@ -317,7 +318,7 @@ public class ItemsSketch<T> {
     pre0 = insertFamilyID(Family.FREQUENCY.getID(), pre0);  //Byte 2
     pre0 = insertLgMaxMapSize(lgMaxMapSize, pre0);          //Byte 3
     pre0 = insertLgCurMapSize(hashMap.getLgLength(), pre0); //Byte 4
-    pre0 = (empty)? insertFlags(EMPTY_FLAG_MASK, pre0) : insertFlags(0, pre0); //Byte 5
+    pre0 = empty ? insertFlags(EMPTY_FLAG_MASK, pre0) : insertFlags(0, pre0); //Byte 5
     pre0 = insertFreqSketchType(serDe.getType(), pre0);     //Byte 6
 
     if (empty) {
@@ -353,8 +354,12 @@ public class ItemsSketch<T> {
    * An count of zero is a no-op, and a negative count will throw an exception.
    */
   public void update(final T item, final long count) {
-    if (item == null || count == 0) return;
-    if (count < 0) throw new IllegalArgumentException("Count may not be negative");
+    if (item == null || count == 0) {
+      return;
+    }
+    if (count < 0) {
+      throw new IllegalArgumentException("Count may not be negative");
+    }
     this.streamLength += count;
     hashMap.adjustOrPutValue(item, count);
 
@@ -469,8 +474,8 @@ public class ItemsSketch<T> {
     final long est;
     final long ub;
     final long lb;
-    private static final String fmt =  ("  %12d%12d%12d %s");
-    private static final String hfmt = ("  %12s%12s%12s %s");
+    private static final String FMT =  "  %12d%12d%12d %s";
+    private static final String HFMT = "  %12s%12s%12s %s";
     
     Row(final T item, final long estimate, final long ub, final long lb) {
       this.item = item;
@@ -503,12 +508,12 @@ public class ItemsSketch<T> {
      * @return the descriptive row header
      */
     public String getRowHeader() {
-      return String.format(hfmt,"Est", "UB", "LB", "Item");
+      return String.format(HFMT,"Est", "UB", "LB", "Item");
     }
     
     @Override
     public String toString() {
-      return String.format(fmt,  est, ub, lb, item.toString());
+      return String.format(FMT,  est, ub, lb, item.toString());
     }
 
     @Override

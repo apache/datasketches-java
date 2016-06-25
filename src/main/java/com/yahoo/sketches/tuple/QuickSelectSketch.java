@@ -14,6 +14,7 @@ import com.yahoo.sketches.QuickSelect;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;
 import com.yahoo.sketches.memory.NativeMemory;
+import com.yahoo.sketches.SketchesIllegalArgumentException;
 
 /**
  * This is a hash table based implementation of a tuple sketch.
@@ -21,8 +22,8 @@ import com.yahoo.sketches.memory.NativeMemory;
  * @param <S> type of Summary
  */
 class QuickSelectSketch<S extends Summary> extends Sketch<S> {
-
-  static final byte serialVersionUID = 1;
+  private static final byte serialVersionUID = 1;
+  private enum Flags { IS_BIG_ENDIAN, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
 
   static final int MIN_NOM_ENTRIES = 32;
   static final int DEFAULT_LG_RESIZE_FACTOR = 3;
@@ -112,18 +113,25 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     final byte version = mem.getByte(offset++);
     final byte familyId = mem.getByte(offset++);
     SerializerDeserializer.validateFamily(familyId, preambleLongs);
-    if (version != serialVersionUID) throw new RuntimeException("Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
+    if (version != serialVersionUID) {
+      throw new SketchesIllegalArgumentException(
+          "Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
+    }
     SerializerDeserializer.validateType(mem.getByte(offset++), SerializerDeserializer.SketchType.QuickSelectSketch);
     final byte flags = mem.getByte(offset++);
     final boolean isBigEndian = (flags & (1 << Flags.IS_BIG_ENDIAN.ordinal())) > 0;
-    if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) throw new RuntimeException("Byte order mismatch");
+    if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
+      throw new SketchesIllegalArgumentException("Endian byte order mismatch");
+    }
     nomEntries_ = 1 << mem.getByte(offset++);
     lgCurrentCapacity_ = mem.getByte(offset++);
     lgResizeFactor_ = mem.getByte(offset++);
 
     final boolean isInSamplingMode = (flags & (1 << Flags.IS_IN_SAMPLING_MODE.ordinal())) > 0;
     samplingProbability_ = isInSamplingMode ? mem.getFloat(offset) : 1f;
-    if (isInSamplingMode) offset += Float.BYTES;
+    if (isInSamplingMode) {
+      offset += Float.BYTES;
+    }
 
     final boolean isThetaIncluded = (flags & (1 << Flags.IS_THETA_INCLUDED.ordinal())) > 0;
     if (isThetaIncluded) {
@@ -166,7 +174,9 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     S[] summaries = (S[]) Array.newInstance(summaryFactory_.newSummary().getClass(), count_);
     int i = 0;
     for (int j = 0; j < summaries_.length; j++) {
-      if (summaries_[j] != null) summaries[i++] = summaries_[j].copy();
+      if (summaries_[j] != null) {
+        summaries[i++] = summaries_[j].copy();
+      }
     }
     return summaries;
   }
@@ -205,17 +215,11 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     return new CompactSketch<S>(keys, summaries, theta_, isEmpty_);
   }
 
-  private enum Flags { IS_BIG_ENDIAN, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
-
   // Layout of first 8 bytes:
-  // <pre>
   // Long || Start Byte Adr:
   // Adr: 
   //      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
   //  0   ||   RF   |  lgArr | lgNom  |  Flags | SkType | FamID  | SerVer |  Preamble_Longs    |
-
-  private static final byte PREAMBLE_LONGS = 1;
-
   @SuppressWarnings("null")
   @Override
   public byte[] toByteArray() {
@@ -242,10 +246,16 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       + Byte.BYTES // log2(nomEntries)
       + Byte.BYTES // log2(currentCapacity)
       + Byte.BYTES; // log2(resizeFactor)
-    if (isInSamplingMode()) sizeBytes += Float.BYTES; // samplingProbability
+    if (isInSamplingMode()) {
+      sizeBytes += Float.BYTES; // samplingProbability
+    }
     final boolean isThetaIncluded = isInSamplingMode() ? theta_ < samplingProbability_ : theta_ < Long.MAX_VALUE;
-    if (isThetaIncluded) sizeBytes += Long.BYTES;
-    if (count_ > 0) sizeBytes += Integer.BYTES; // count
+    if (isThetaIncluded) {
+      sizeBytes += Long.BYTES;
+    }
+    if (count_ > 0) {
+      sizeBytes += Integer.BYTES; // count
+    }
     sizeBytes += Long.BYTES * count_ + summaryFactoryBytes.length + summariesBytesLength;
     final byte[] bytes = new byte[sizeBytes];
     final Memory mem = new NativeMemory(bytes);
@@ -329,7 +339,9 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
 
   int findOrInsert(final long key) {
     final int index = HashOperations.hashSearchOrInsert(keys_, lgCurrentCapacity_, key);
-    if (index < 0) count_++;
+    if (index < 0) {
+      count_++;
+    }
     return index;
   }
 
@@ -340,7 +352,9 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   }
 
   boolean rebuildIfNeeded() {
-    if (count_ < rebuildThreshold_) return false;
+    if (count_ < rebuildThreshold_) {
+      return false;
+    }
     if (keys_.length > nomEntries_) {
       updateTheta();
       rebuild();
@@ -364,7 +378,9 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     final long[] keys = new long[count_];
     int i = 0;
     for (int j = 0; j < keys_.length; j++) {
-      if (summaries_[j] != null) keys[i++] = keys_[j];
+      if (summaries_[j] != null) {
+        keys[i++] = keys_[j];
+      }
     }
     theta_ = QuickSelect.select(keys, 0, count_ - 1, nomEntries_);
   }
@@ -378,7 +394,9 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(newSize);
     count_ = 0;
     for (int i = 0; i < oldKeys.length; i++) {
-      if (oldSummaries[i] != null && oldKeys[i] < theta_) insert(oldKeys[i], oldSummaries[i]);
+      if (oldSummaries[i] != null && oldKeys[i] < theta_) {
+        insert(oldKeys[i], oldSummaries[i]);
+      }
     }
     setRebuildThreshold();
   }
