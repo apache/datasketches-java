@@ -185,7 +185,7 @@ class HeapAlphaSketch extends HeapUpdateSketch {
     if (isEstimationMode()) {
       int curCount = getRetainedEntries(true);
       double theta = getTheta();
-      return (thetaLong_ > split1_)? curCount / theta : (1 << lgNomLongs_) / theta;      
+      return (thetaLong_ > split1_)? curCount / theta : (1 << lgNomLongs_) / theta;
     } 
     return curCount_;
   }
