@@ -8,7 +8,7 @@ package com.yahoo.sketches;
 /**
  * Illegal Arguments Exception class for the library
  */
-public class SketchesIllegalArgumentException extends SketchesException {
+public class SketchesArgumentException extends SketchesException {
   private static final long serialVersionUID = 1L;
   
   //other constructors to be added as needed.
@@ -21,7 +21,7 @@ public class SketchesIllegalArgumentException extends SketchesException {
    * @param message the detail message. The detail message is saved for later retrieval by the 
    * Throwable.getMessage() method. 
    */
-  public SketchesIllegalArgumentException(String message) {
+  public SketchesArgumentException(String message) {
     super(message);
   }
 }

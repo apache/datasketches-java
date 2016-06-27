@@ -11,7 +11,7 @@ import java.nio.ByteOrder;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
-import com.yahoo.sketches.SketchesIllegalArgumentException;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * CompactSketches are never created directly. They are created as a result of
@@ -46,7 +46,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     byte familyId = mem.getByte(offset++);
     SerializerDeserializer.validateFamily(familyId, preambleLongs);
     if (version != serialVersionUID) {
-      throw new SketchesIllegalArgumentException("Serial version mismatch. Expected: " + serialVersionUID + 
+      throw new SketchesArgumentException("Serial version mismatch. Expected: " + serialVersionUID + 
           ", actual: " + version);
     }
     SerializerDeserializer.
@@ -54,7 +54,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     byte flags = mem.getByte(offset++);
     boolean isBigEndian = (flags & (1 << Flags.IS_BIG_ENDIAN.ordinal())) > 0;
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
-      throw new SketchesIllegalArgumentException("Byte order mismatch");
+      throw new SketchesArgumentException("Byte order mismatch");
     }
     isEmpty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
     boolean isThetaIncluded = (flags & (1 << Flags.IS_THETA_INCLUDED.ordinal())) > 0;

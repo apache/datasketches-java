@@ -8,7 +8,7 @@ package com.yahoo.sketches;
 /**
  * Illegal State Exception class for the library
  */
-public class SketchesIllegalStateException extends SketchesException {
+public class SketchesStateException extends SketchesException {
   private static final long serialVersionUID = 1L;
   
   //other constructors to be added as needed.
@@ -21,7 +21,7 @@ public class SketchesIllegalStateException extends SketchesException {
    * @param message the detail message. The detail message is saved for later retrieval by the 
    * Throwable.getMessage() method. 
    */
-  public SketchesIllegalStateException(String message) {
+  public SketchesStateException(String message) {
     super(message);
   }
 }

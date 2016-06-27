@@ -14,7 +14,7 @@ import com.yahoo.sketches.QuickSelect;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;
 import com.yahoo.sketches.memory.NativeMemory;
-import com.yahoo.sketches.SketchesIllegalArgumentException;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * This is a hash table based implementation of a tuple sketch.
@@ -114,14 +114,14 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     final byte familyId = mem.getByte(offset++);
     SerializerDeserializer.validateFamily(familyId, preambleLongs);
     if (version != serialVersionUID) {
-      throw new SketchesIllegalArgumentException(
+      throw new SketchesArgumentException(
           "Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
     }
     SerializerDeserializer.validateType(mem.getByte(offset++), SerializerDeserializer.SketchType.QuickSelectSketch);
     final byte flags = mem.getByte(offset++);
     final boolean isBigEndian = (flags & (1 << Flags.IS_BIG_ENDIAN.ordinal())) > 0;
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
-      throw new SketchesIllegalArgumentException("Endian byte order mismatch");
+      throw new SketchesArgumentException("Endian byte order mismatch");
     }
     nomEntries_ = 1 << mem.getByte(offset++);
     lgCurrentCapacity_ = mem.getByte(offset++);
