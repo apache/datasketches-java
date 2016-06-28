@@ -10,6 +10,9 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.nio.ByteBuffer;
 
+import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.SketchesStateException;
+
 /**
  * A general purpose wrapper for the MurmurHash3.
  * <ul>
@@ -233,7 +236,7 @@ public final class MurmurHash3Adaptor {
    */
   public static int asInt(long[] data, int n) {
     if ((data == null) || (data.length == 0)) {
-      throw new IllegalArgumentException("Input is null or empty.");
+      throw new SketchesArgumentException("Input is null or empty.");
     }
     return asInteger(data, n); //data is long[]
   }
@@ -247,7 +250,7 @@ public final class MurmurHash3Adaptor {
    */
   public static int asInt(int[] data, int n) {
     if ((data == null) || (data.length == 0)) {
-      throw new IllegalArgumentException("Input is null or empty.");
+      throw new SketchesArgumentException("Input is null or empty.");
     }    
     return asInteger(toLongArray(data), n); //data is int[]
   }
@@ -261,7 +264,7 @@ public final class MurmurHash3Adaptor {
    */
   public static int asInt(byte[] data, int n) {
     if ((data == null) || (data.length == 0)) {
-      throw new IllegalArgumentException("Input is null or empty.");
+      throw new SketchesArgumentException("Input is null or empty.");
     }
     return asInteger(toLongArray(data), n); //data is byte[]
   }
@@ -300,7 +303,7 @@ public final class MurmurHash3Adaptor {
    */
   public static int asInt(String datum, int n) {
     if ((datum == null) || datum.isEmpty()) {
-      throw new IllegalArgumentException("Input is null or empty.");
+      throw new SketchesArgumentException("Input is null or empty.");
     }
     byte[] data = datum.getBytes(UTF_8);
     return asInteger(toLongArray(data), n); //data is byte[]
@@ -323,7 +326,7 @@ public final class MurmurHash3Adaptor {
     int t;
     int cnt = 0;
     long seed = 0;
-    if (n < 2) throw new IllegalArgumentException("Given value of n must be &gt; 1.");
+    if (n < 2) throw new SketchesArgumentException("Given value of n must be &gt; 1.");
     if (n > (1 << 30)) {
       while (++cnt < 10000) {
         long[] h = MurmurHash3.hash(data, seed);
@@ -345,7 +348,7 @@ public final class MurmurHash3Adaptor {
         }
         seed += PRIME;
       } // end while
-      throw new IllegalStateException(
+      throw new SketchesStateException(
           "Internal Error: Failed to find integer &lt; n within 10000 iterations.");
     }
     long mask = ceilingPowerOf2(n) - 1;
@@ -369,7 +372,7 @@ public final class MurmurHash3Adaptor {
       }
       seed += PRIME;
     } // end while
-    throw new IllegalStateException(
+    throw new SketchesStateException(
         "Internal Error: Failed to find integer &lt; n within 10000 iterations.");
   }
   

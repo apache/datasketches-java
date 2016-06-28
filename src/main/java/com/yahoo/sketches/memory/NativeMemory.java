@@ -7,6 +7,8 @@ package com.yahoo.sketches.memory;
 
 import java.nio.ByteBuffer;
 
+import com.yahoo.sketches.SketchesArgumentException;
+
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_BOOLEAN_BASE_OFFSET;
 import static com.yahoo.sketches.memory.UnsafeUtil.BOOLEAN_SHIFT;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_BOOLEAN_INDEX_SCALE;
@@ -86,7 +88,7 @@ public class NativeMemory implements Memory {
   public NativeMemory(byte[] byteArray) {
     this(ARRAY_BYTE_BASE_OFFSET, byteArray, null);
     if ((byteArray == null) || (byteArray.length == 0)) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Array must must not be null and have a length greater than zero.");
     }
     nativeRawStartAddress_ = 0L;
@@ -101,7 +103,7 @@ public class NativeMemory implements Memory {
   public NativeMemory(long[] longArray) {
     this(ARRAY_LONG_BASE_OFFSET, longArray, null); 
     if ((longArray == null) || (longArray.length == 0)) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Array must must not be null and have a length greater than zero.");
     }
     nativeRawStartAddress_ = 0L;

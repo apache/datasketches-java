@@ -5,6 +5,7 @@
 package com.yahoo.sketches.tuple;
 
 import com.yahoo.sketches.QuickSelect;
+import com.yahoo.sketches.SketchesArgumentException;
 
 import static com.yahoo.sketches.Util.RESIZE_THRESHOLD;
 import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
@@ -129,7 +130,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
 
   @Override
   void insertOrIgnore(final long key, final double[] values) {
-    if (values.length != getNumValues()) throw new IllegalArgumentException("input array of values must have " + getNumValues() + " elements, but has " + values.length);
+    if (values.length != getNumValues()) throw new SketchesArgumentException("input array of values must have " + getNumValues() + " elements, but has " + values.length);
     setNotEmpty();
     if (key == 0 || key >= theta_) return;
     int index = findOrInsertKey(key);

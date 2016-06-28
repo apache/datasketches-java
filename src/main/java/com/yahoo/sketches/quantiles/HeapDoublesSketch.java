@@ -29,6 +29,7 @@ import static com.yahoo.sketches.quantiles.Util.computeCombBufItemCapacity;
 import java.util.Arrays;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -120,7 +121,7 @@ class HeapDoublesSketch extends DoublesSketch {
   static HeapDoublesSketch getInstance(Memory srcMem) {
     long memCapBytes = srcMem.getCapacity();
     if (memCapBytes < Long.BYTES) {
-      throw new IllegalArgumentException("Memory too small: " + memCapBytes);
+      throw new SketchesArgumentException("Memory too small: " + memCapBytes);
     }
     long pre0 = srcMem.getLong(0);
     int preambleLongs = extractPreLongs(pre0);
@@ -131,7 +132,7 @@ class HeapDoublesSketch extends DoublesSketch {
     byte type = extractSketchType(pre0);
     
     if (type != SKETCH_TYPE) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible Corruption: Sketch Type incorrect: " + type + " != " + SKETCH_TYPE);
     }
 
@@ -218,7 +219,7 @@ class HeapDoublesSketch extends DoublesSketch {
   @Override
   public double getQuantile(double fraction) {
     if ((fraction < 0.0) || (fraction > 1.0)) {
-      throw new IllegalArgumentException("Fraction cannot be less than zero or greater than 1.0");
+      throw new SketchesArgumentException("Fraction cannot be less than zero or greater than 1.0");
     }
     if      (fraction == 0.0) { return minValue_; }
     else if (fraction == 1.0) { return maxValue_; }
@@ -376,7 +377,7 @@ class HeapDoublesSketch extends DoublesSketch {
     int arrLen = byteArr.length;
     long memCap = dstMem.getCapacity();
     if (memCap < arrLen) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Destination Memory not large enough: "+memCap +" < "+arrLen);
     }
     dstMem.putByteArray(0, byteArr, 0, arrLen);

@@ -23,7 +23,7 @@ import com.yahoo.sketches.Util;
  */
 public class UtilTest {
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkPowerOf2() {
     checkIfPowerOf2(31, "31");
   }
@@ -46,9 +46,9 @@ public class UtilTest {
     checkIfPowerOf2(8, "Test 8");
     try {
       checkIfPowerOf2(7, "Test 7");
-      Assert.fail("Expected IllegalArgumentException");
+      Assert.fail("Expected SketchesArgumentException");
     } 
-    catch (IllegalArgumentException e) {
+    catch (SketchesArgumentException e) {
       //pass
     }
   }
@@ -77,7 +77,7 @@ public class UtilTest {
     Assert.assertEquals(floorPowerOf2((1 << 30) + 1), (1 << 30));
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkIfMultipleOf8AndGTzero() {
     checkIfMultipleOf8AndGT0(8, "test");
     checkIfMultipleOf8AndGT0(7, "test");
@@ -90,7 +90,7 @@ public class UtilTest {
     Assert.assertFalse(isMultipleOf8AndGT0(-1));
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkIfMultipleOf8AndGTzero2() {
     checkIfMultipleOf8AndGT0(8, "test");
     checkIfMultipleOf8AndGT0(-1, "test");
@@ -130,12 +130,12 @@ public class UtilTest {
     checkProbability(.5, "Good");
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkProbabilityFn2() {
     checkProbability(-.5, "Too Low");
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkProbabilityFn3() {
     checkProbability(1.5, "Too High");
   }

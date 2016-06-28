@@ -11,6 +11,7 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.SER_VER;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * Utility class for quantiles sketches.
@@ -42,7 +43,7 @@ final class Util {
    */
   static void checkK(int k) {
     if ((k < 1) || (k >= (1 << 16)) || !isPowerOf2(k)) {
-      throw new IllegalArgumentException("K must be > 0 and < 65536");
+      throw new SketchesArgumentException("K must be > 0 and < 65536");
     }
   }
 
@@ -52,7 +53,7 @@ final class Util {
    */
   static void checkSerVer(int serVer) {
     if (serVer != SER_VER) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible corruption: Invalid Serialization Version: "+serVer);
     }
   }
@@ -64,7 +65,7 @@ final class Util {
   static void checkFamilyID(int familyID) {
     Family family = Family.idToFamily(familyID);
     if (!family.equals(Family.QUANTILES)) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible corruption: Invalid Family: " + family.toString());
     }
   }
@@ -81,7 +82,7 @@ final class Util {
     int maxPre = Family.QUANTILES.getMaxPreLongs() + 2;
     int reqBufBytes = (maxPre + reqItems) << 3;
     if (memCapBytes < reqBufBytes) {
-      throw new IllegalArgumentException("Possible corruption: Memory capacity too small: "+ 
+      throw new SketchesArgumentException("Possible corruption: Memory capacity too small: "+ 
           memCapBytes + " < "+ reqBufBytes);
     }
   }
@@ -100,12 +101,12 @@ final class Util {
     int maxPre = Family.QUANTILES.getMaxPreLongs();
     boolean valid = ((preambleLongs == minPre) && empty) || ((preambleLongs == maxPre) && !empty);
     if (!valid) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible corruption: PreambleLongs inconsistent with empty state: " +preambleLongs);
     }
     checkFlags(flags);
     if (!empty && (memCapBytes < (preambleLongs << 3))) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible corruption: Insufficient capacity for preamble: " +memCapBytes);
     }
     return empty;
@@ -118,7 +119,7 @@ final class Util {
   static void checkFlags(int flags) {
     int flagsMask = ~EMPTY_FLAG_MASK;
     if ((flags & flagsMask) > 0) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
          "Possible corruption: Invalid flags field: "+Integer.toBinaryString(flags));
     }
   }
@@ -130,13 +131,13 @@ final class Util {
    */
   static final void validateFractions(double[] fractions) {
     if (fractions == null) {
-      throw new IllegalArgumentException("Fractions array may not be null.");
+      throw new SketchesArgumentException("Fractions array may not be null.");
     }
     if (fractions.length == 0) return;
     double flo = fractions[0];
     double fhi = fractions[fractions.length - 1];
     if ((flo < 0.0) || (fhi > 1.0)) {
-      throw new IllegalArgumentException("A fraction cannot be less than zero or greater than 1.0");
+      throw new SketchesArgumentException("A fraction cannot be less than zero or greater than 1.0");
     }
     DoublesUtil.validateValues(fractions);
   }
@@ -288,7 +289,7 @@ final class Util {
      * @return the resulting epsilon
      */ //used only by getAdjustedEpsilon()
     private static double getTheoreticalEpsilon(int k, double ff) {
-      if (k < 2) throw new IllegalArgumentException("K must be greater than one.");
+      if (k < 2) throw new SketchesArgumentException("K must be greater than one.");
       // don't need to check in the other direction because an int is very small
       double kf = k*ff;
       assert kf >= 2.15; // ensures that the bracketing succeeds

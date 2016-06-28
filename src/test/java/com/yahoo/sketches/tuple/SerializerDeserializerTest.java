@@ -4,6 +4,7 @@ import org.testng.annotations.Test;
 import org.testng.Assert;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.NativeMemory;
 
 public class SerializerDeserializerTest {
@@ -32,12 +33,12 @@ public class SerializerDeserializerTest {
     SerializerDeserializer.toByteArray(new Integer(0));
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void validateFamilyNotTuple() {
     SerializerDeserializer.validateFamily((byte) 1, (byte) 0); 
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void validateFamilyWrongPreambleLength() {
     SerializerDeserializer.validateFamily((byte) Family.TUPLE.getID(), (byte) 0); 
   }

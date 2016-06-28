@@ -71,13 +71,13 @@ public final class Util {
   public static final char TAB = '\t';
   
   /**
-   * Check if the two seed hashes are equal. If not, throw an IllegalArgumentException.
+   * Check if the two seed hashes are equal. If not, throw an SketchesArgumentException.
    * @param seedHashA the seedHash A
    * @param seedHashB the seedHash B
    */
   public static final void checkSeedHashes(short seedHashA, short seedHashB) {
     if (seedHashA != seedHashB) throw new 
-      IllegalArgumentException("Incompatible Seed Hashes. "+ seedHashA + ", "+ seedHashB);
+      SketchesArgumentException("Incompatible Seed Hashes. "+ seedHashA + ", "+ seedHashB);
   }
 
   /**
@@ -91,7 +91,7 @@ public final class Util {
     long[] seedArr = {seed};
     short seedHash = (short)((hash(seedArr, 0L)[0]) & 0xFFFFL);
     if (seedHash == 0) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "The given seed: " + seed + " produced a seedHash of zero. " + 
           "You must choose a different seed.");
     }
@@ -107,7 +107,7 @@ public final class Util {
     if (((v & 0X7L) == 0L) && (v > 0L)) {
       return;
     }
-    throw new IllegalArgumentException("The value of the parameter \"" + argName
+    throw new SketchesArgumentException("The value of the parameter \"" + argName
       + "\" must be a positive multiple of 8 and greater than zero: " + v);
   }
   
@@ -141,7 +141,7 @@ public final class Util {
     if ((v > 0) && ((v & (v - 1)) == 0)) {
       return;
     }
-    throw new IllegalArgumentException("The value of the parameter \"" + argName
+    throw new SketchesArgumentException("The value of the parameter \"" + argName
         + "\" must be a positive integer-power of 2" + " and greater than 0: " + v);
   }
   
@@ -168,7 +168,7 @@ public final class Util {
     if ((p >= 0.0) && (p <= 1.0)) {
       return;
     }
-    throw new IllegalArgumentException("The value of the parameter \"" + argName
+    throw new SketchesArgumentException("The value of the parameter \"" + argName
         + "\" must be between 0.0 inclusive and 1.0 inclusive: " + p);
   }
 

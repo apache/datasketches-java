@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -20,10 +21,10 @@ class SerializerDeserializer {
     final Family family = Family.idToFamily(familyId);
     if (family.equals(Family.TUPLE)) {
       if (preambleLongs != Family.TUPLE.getMinPreLongs()) {
-        throw new IllegalArgumentException("Possible corruption: Invalid PreambleLongs value for family TUPLE: " + preambleLongs);
+        throw new SketchesArgumentException("Possible corruption: Invalid PreambleLongs value for family TUPLE: " + preambleLongs);
       }
     } else {
-      throw new IllegalArgumentException("Possible corruption: Invalid Family: " + family.toString());
+      throw new SketchesArgumentException("Possible corruption: Invalid Family: " + family.toString());
     }
   }
 
@@ -49,7 +50,7 @@ class SerializerDeserializer {
       offset += className.length();
       mem.putByteArray(offset, objectBytes, 0, objectBytes.length);
       return bytes;
-    } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+    } catch (NoSuchMethodException | SecurityException | IllegalAccessException | SketchesArgumentException | InvocationTargetException e) {
       throw new RuntimeException(e);
     }
   }
@@ -72,13 +73,13 @@ class SerializerDeserializer {
           deserializeMethodCache.put(className, method);
       }
       return (DeserializeResult<T>) method.invoke(null, new MemoryRegion(mem, offset, mem.getCapacity() - offset));
-    } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException | ClassNotFoundException e) {
+    } catch (IllegalAccessException | SketchesArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException | ClassNotFoundException e) {
       throw new RuntimeException("Couldn't deserialize class " + className + " " + e);
     }
   }
 
   private static SketchType getSketchType(final byte sketchTypeByte) {
-    if (sketchTypeByte < 0 || sketchTypeByte >= SketchType.values().length) throw new IllegalArgumentException("Invalid Sketch Type " + sketchTypeByte);
+    if (sketchTypeByte < 0 || sketchTypeByte >= SketchType.values().length) throw new SketchesArgumentException("Invalid Sketch Type " + sketchTypeByte);
     return SketchType.values()[sketchTypeByte];
   }
 }

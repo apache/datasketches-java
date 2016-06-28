@@ -7,6 +7,7 @@ package com.yahoo.sketches.tuple;
 import org.testng.annotations.Test;
 import org.testng.Assert;
 
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.NativeMemory;
 
 public class ArrayOfDoublesAnotBTest {
@@ -234,21 +235,21 @@ public class ArrayOfDoublesAnotBTest {
     }
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void incompatibleSeedA() {
     ArrayOfDoublesSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(1).build();
     ArrayOfDoublesAnotB aNotB = new ArrayOfDoublesSetOperationBuilder().buildAnotB();
     aNotB.update(sketch, null);
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void incompatibleSeedB() {
     ArrayOfDoublesSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(1).build();
     ArrayOfDoublesAnotB aNotB = new ArrayOfDoublesSetOperationBuilder().buildAnotB();
     aNotB.update(null, sketch);
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void incompatibleSeeds() {
     ArrayOfDoublesSketch sketchA = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(1).build();
     ArrayOfDoublesSketch sketchB = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(2).build();

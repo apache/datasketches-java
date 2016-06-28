@@ -5,6 +5,7 @@
 package com.yahoo.sketches.theta;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -496,7 +497,7 @@ public class DirectUnionTest {
     union.update(v3mem1);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkMemBadSerVer() {
     int lgK = 12; //4096
     int k = 1 << lgK;
@@ -659,7 +660,7 @@ public class DirectUnionTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkPreambleLongsCorruption() {
     int k = 16;
     Memory mem = new NativeMemory(new byte[k*16 +32]);
@@ -677,7 +678,7 @@ public class DirectUnionTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkSizeTooSmall() {
     int k = 16;
     Memory mem = new NativeMemory(new byte[k*16 +32]); //initialized

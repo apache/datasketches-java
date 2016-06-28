@@ -4,6 +4,7 @@
  */
 package com.yahoo.sketches.theta;
 
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -134,7 +135,7 @@ public class SketchesTest {
     assertTrue(empty);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSketchFamily() {
     Union union = setOperationBuilder().buildUnion();
     byte[] byteArr = union.toByteArray();

@@ -10,6 +10,7 @@ import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.toLog2;
 
 import com.yahoo.sketches.QuickSelect;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * Implements a linear-probing based hash map of (key, value) pairs and is distinguished by a 
@@ -58,7 +59,7 @@ class ReversePurgeLongHashMap {
   static ReversePurgeLongHashMap getInstance(final String string) {
     String[] tokens = string.split(",");
     if (tokens.length < 2) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "String not long enough to specify length and capacity.");
     }
     final int numActive = Integer.parseInt(tokens[0]);

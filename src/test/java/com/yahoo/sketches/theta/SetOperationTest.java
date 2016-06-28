@@ -21,6 +21,7 @@ import org.testng.annotations.Test;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.theta.Sketch;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;
@@ -89,18 +90,18 @@ public class SetOperationTest {
     SetOperation.builder().buildUnion(1000);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBuilderBadFamily() {
     SetOperation.builder().build(Family.ALPHA);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBuilderIllegalPhi() {
     float p = (float)1.5;
     SetOperation.builder().setP(p).buildUnion();
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBuilderIllegalPlo() {
     float p = 0;
     SetOperation.builder().setP(p).buildUnion();
@@ -112,13 +113,13 @@ public class SetOperationTest {
     SetOperation.builder().setP(p).buildUnion();
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBuilderAnotB_noMem() {
     Memory mem = new NativeMemory(new byte[64]);
     SetOperation.builder().initMemory(mem).buildANotB();
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBuilderBadSeedHashes() {
     int k = 2048;
     long seed = 1021;
@@ -137,7 +138,7 @@ public class SetOperationTest {
     union.update(usk2); //throws seed exception here
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkIllegalSetOpHeapify() {
     int k = 64;
     UpdateSketch usk1 = UpdateSketch.builder().build(k);
@@ -147,7 +148,7 @@ public class SetOperationTest {
     SetOperation.heapify(mem);
   } 
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkIllegalSetOpWrap() {
     int k = 64;
     UpdateSketch usk1 = UpdateSketch.builder().build(k);

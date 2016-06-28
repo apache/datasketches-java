@@ -4,6 +4,8 @@
  */
 package com.yahoo.sketches.tuple;
 
+import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.SketchesStateException;
 import com.yahoo.sketches.memory.Memory;
 
 /**
@@ -34,7 +36,7 @@ final class HashOperations {
    * @return Current probe index if found, -1 if not found.
    */
   static int hashSearch(final long[] hashTable, final int lgArrLongs, final long hash) {
-    if (hash == 0) throw new IllegalArgumentException("Given hash cannot be zero: "+hash);
+    if (hash == 0) throw new SketchesArgumentException("Given hash cannot be zero: "+hash);
     final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
     final int stride = getStride(hash, lgArrLongs);
     int curProbe = (int) (hash & arrayMask);
@@ -216,7 +218,7 @@ final class HashOperations {
   static void checkThetaCorruption(final long thetaLong) {
     //if any one of the groups go negative it fails.
     if (( thetaLong | (thetaLong-1) ) < 0L ) {
-      throw new IllegalStateException(
+      throw new SketchesStateException(
           "Data Corruption: thetaLong was negative or zero: "+ "ThetaLong: "+thetaLong);
     }
   }
@@ -228,7 +230,7 @@ final class HashOperations {
   static void checkHashCorruption(final long hash) {
     //if any one of the groups go negative it fails.
     if ( hash < 0L ) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Data Corruption: hash was negative: "+ "Hash: "+hash);
     }
   }
@@ -255,7 +257,7 @@ final class HashOperations {
   static void checkHashAndThetaCorruption(final long thetaLong, final long hash) {
     //if any one of the groups go negative it fails.
     if (( hash | thetaLong | (thetaLong-1L) ) < 0L ) {
-      throw new IllegalStateException(
+      throw new SketchesStateException(
           "Data Corruption: Either hash was negative or thetaLong was negative or zero: "+
           "Hash: "+hash+", ThetaLong: "+thetaLong);
     }

@@ -193,7 +193,7 @@ public class QuickSelectTest {
    */
   public static int uniform(int n) {
     if (n <= 0) {
-      throw new IllegalArgumentException("n must be positive");
+      throw new SketchesArgumentException("n must be positive");
     }
     return random.nextInt(n);
   }

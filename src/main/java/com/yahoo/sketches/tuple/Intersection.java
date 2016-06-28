@@ -8,6 +8,8 @@ import static java.lang.Math.min;
 
 import java.lang.reflect.Array;
 
+import com.yahoo.sketches.SketchesStateException;
+
 /**
  * This is to compute an intersection of two or more tuple sketches.
  * A new instance represents the Universal Set.
@@ -92,7 +94,7 @@ public class Intersection<S extends Summary> {
    * @return result of the intersections so far
    */
   public CompactSketch<S> getResult() {
-    if (isFirstCall_) throw new IllegalStateException("getResult() with no intervening intersections is not a legal result.");
+    if (isFirstCall_) throw new SketchesStateException("getResult() with no intervening intersections is not a legal result.");
     if (sketch_ == null) return new CompactSketch<S>(null, null, theta_, isEmpty_);
     return sketch_.compact();
   }

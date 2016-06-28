@@ -20,6 +20,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.insertSerVer;
 import java.util.Arrays;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 
 /**
@@ -184,7 +185,7 @@ public abstract class CompactSketch extends Sketch {
     int outBytes = outLongs << 3;
     int dstBytes = (int) dstMem.getCapacity();
     if (outBytes > dstBytes) {
-      throw new IllegalArgumentException("Insufficient Memory: "+dstBytes+", Need: "+outBytes);
+      throw new SketchesArgumentException("Insufficient Memory: "+dstBytes+", Need: "+outBytes);
     }
     byte famID = (byte) stringToFamily("Compact").getID();
     

@@ -14,6 +14,8 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.Test;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.SketchesStateException;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -137,7 +139,7 @@ public class DirectIntersectionTest {
   
   @SuppressWarnings("unused")
   //Calling getResult on a virgin Intersect is illegal
-  @Test(expectedExceptions = IllegalStateException.class)
+  @Test(expectedExceptions = SketchesStateException.class)
   public void checkNoCall() {
     int lgK = 9;
     int k = 1<<lgK;
@@ -391,7 +393,7 @@ public class DirectIntersectionTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkOverflow() {
     int lgK = 9; //512
     int k = 1<<lgK;
@@ -511,7 +513,7 @@ public class DirectIntersectionTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkSizeLowerLimit() {
     int k = 8;
     
@@ -522,7 +524,7 @@ public class DirectIntersectionTest {
     Intersection inter = SetOperation.builder().initMemory(iMem).buildIntersection();
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkSizedTooSmall() {
     int lgK = 5;
     int k = 1<<lgK;
@@ -543,7 +545,7 @@ public class DirectIntersectionTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadPreambleLongs() {
     int k = 32;
     Intersection inter1, inter2;
@@ -561,7 +563,7 @@ public class DirectIntersectionTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
     int k = 32;
     Intersection inter1, inter2;
@@ -648,7 +650,7 @@ public class DirectIntersectionTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkExceptionSizes2() {
    DirectIntersection di = new DirectIntersection(9001L, new NativeMemory(new byte[16*8 + 24])); 
   }
@@ -678,7 +680,7 @@ public class DirectIntersectionTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkExceptions1() {
     //cheap tricks
     int k = 16;
@@ -690,7 +692,7 @@ public class DirectIntersectionTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkExceptions2() {
     //cheap tricks
     int k = 16;

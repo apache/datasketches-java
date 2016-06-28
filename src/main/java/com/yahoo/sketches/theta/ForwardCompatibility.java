@@ -11,6 +11,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
 import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
 import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
 
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 
@@ -98,7 +99,7 @@ class ForwardCompatibility {
   
   private static final void validateInputSize(int reqBytesIn, int memCap) {
     if (reqBytesIn > memCap) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
         "Input Memory or byte[] size is too small: Required Bytes: "+reqBytesIn+
         ", bytesIn: "+memCap);
     }

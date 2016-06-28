@@ -12,6 +12,7 @@ import java.nio.ByteOrder;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -392,7 +393,7 @@ final class PreambleUtil {
   }
   
   private static void throwNotBigEnough(long cap, int required) {
-    throw new IllegalArgumentException(
+    throw new SketchesArgumentException(
         "Possible Corruption: Size of byte array or Memory not large enough: Size: " + cap 
         + ", Required: " + required);
   }

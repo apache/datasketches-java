@@ -12,6 +12,7 @@ import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 
 /**
@@ -92,7 +93,7 @@ public class SetOperationBuilder {
    */
   public SetOperationBuilder setP(float p) {
     if ((p <= 0.0) || (p > 1.0)) {
-      throw new IllegalArgumentException("p must be > 0 and <= 1.0: "+p);
+      throw new SketchesArgumentException("p must be > 0 and <= 1.0: "+p);
     }
     bP = p;
     return this;
@@ -174,12 +175,12 @@ public class SetOperationBuilder {
         if (bDstMem == null) {
           setOp = new HeapAnotB(bSeed);
         } 
-        else throw new IllegalArgumentException(
+        else throw new SketchesArgumentException(
             "AnotB is a stateless operation and cannot be persisted.");
         break;
       }
       default: 
-        throw new IllegalArgumentException(
+        throw new SketchesArgumentException(
             "Given Family cannot be built as a SetOperation: "+family.toString());
     }
     return setOp;

@@ -24,6 +24,8 @@ import com.yahoo.sketches.memory.MemoryRequest;
 import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.SketchesStateException;
 import com.yahoo.sketches.theta.DirectQuickSelectSketch;
 
 /** 
@@ -31,7 +33,7 @@ import com.yahoo.sketches.theta.DirectQuickSelectSketch;
  */
 public class DirectQuickSelectSketchTest {
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
     int k = 512;
     Memory mem = makeNativeMemory(k);
@@ -52,7 +54,7 @@ public class DirectQuickSelectSketchTest {
     Sketch.wrap(mem);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkConstructorKtooSmall() {
     int k = 8;
     Memory mem = makeNativeMemory(k);
@@ -61,7 +63,7 @@ public class DirectQuickSelectSketchTest {
     UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkConstructorMemTooSmall() {
     int k = 16;
     Memory mem = makeNativeMemory(8);
@@ -70,7 +72,7 @@ public class DirectQuickSelectSketchTest {
     UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyIllegalFamilyID_heapify() {
     int k = 512;
     int bytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
@@ -124,7 +126,7 @@ public class DirectQuickSelectSketchTest {
     
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWrapIllegalFamilyID_wrap() {
     int k = 512;
     int maxBytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
@@ -140,7 +142,7 @@ public class DirectQuickSelectSketchTest {
     UpdateSketch usk2 = (UpdateSketch)Sketch.wrap(mem); //catch in Sketch.constructDirectSketch
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWrapIllegalFamilyID_direct() {
     int k = 512;
     int maxBytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
@@ -157,7 +159,7 @@ public class DirectQuickSelectSketchTest {
   }
   
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifySeedConflict() {
     int k = 512;
     long seed1 = 1021;
@@ -170,7 +172,7 @@ public class DirectQuickSelectSketchTest {
     Sketch.heapify(srcMem, seed2);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkCorruptLgNomLongs() {
     int k = 16;
     Memory mem = makeNativeMemory(k);
@@ -764,7 +766,7 @@ public class DirectQuickSelectSketchTest {
 
     @Override
     public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
-      throw new IllegalStateException("SHOULD NOT BE HERE");
+      throw new SketchesStateException("SHOULD NOT BE HERE");
   
     }
   }
@@ -820,7 +822,7 @@ public class DirectQuickSelectSketchTest {
 
     @Override
     public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
-      throw new IllegalStateException("SHOULD NOT BE HERE");
+      throw new SketchesStateException("SHOULD NOT BE HERE");
     }
   }
   //////////////////////////////////////////////////////
@@ -840,9 +842,9 @@ public class DirectQuickSelectSketchTest {
       for (int i=0; i<u; i++) {
         usk1.update(i);
       }
-      fail("Expected IllegalArgumentException");
+      fail("Expected SketchesArgumentException");
     } 
-    catch (IllegalArgumentException e) {
+    catch (SketchesArgumentException e) {
       //e.printStackTrace();
       //pass
     }
@@ -879,7 +881,7 @@ public class DirectQuickSelectSketchTest {
 
     @Override
     public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
-      throw new IllegalStateException("SHOULD NOT BE HERE");
+      throw new SketchesStateException("SHOULD NOT BE HERE");
     }
   }
   //////////////////////////////////////////////////////
@@ -899,8 +901,8 @@ public class DirectQuickSelectSketchTest {
       for (int i=0; i<u; i++) {
         usk1.update(i);
       }
-      fail("Expected IllegalArgumentException");
-    } catch (IllegalArgumentException e) {
+      fail("Expected SketchesArgumentException");
+    } catch (SketchesArgumentException e) {
       //e.printStackTrace();
       //pass
     }
@@ -909,7 +911,7 @@ public class DirectQuickSelectSketchTest {
     }
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkNegativeHashes() {
     int k = 512;
     UpdateSketch qs = UpdateSketch.builder().setFamily(QUICKSELECT).build(k);
@@ -933,24 +935,24 @@ public class DirectQuickSelectSketchTest {
     mem1.putByte(FAMILY_BYTE, (byte) 3); //corrupt Family by setting to Compact
     try {
       usk2 = DirectQuickSelectSketch.getInstance(mem1, DEFAULT_UPDATE_SEED);
-      fail("Expected IllegalArgumentException");
-    } catch (IllegalArgumentException e) {
+      fail("Expected SketchesArgumentException");
+    } catch (SketchesArgumentException e) {
       //Pass
     }
     mem1.putByte(FAMILY_BYTE, (byte) 2); //fix Family
     mem1.putByte(PREAMBLE_LONGS_BYTE, (byte) 1); //corrupt preLongs
     try {
       usk2 = DirectQuickSelectSketch.getInstance(mem1, DEFAULT_UPDATE_SEED);
-      fail("Expected IllegalArgumentException");
-    } catch (IllegalArgumentException e) {
+      fail("Expected SketchesArgumentException");
+    } catch (SketchesArgumentException e) {
       //pass
     }
     mem1.putByte(PREAMBLE_LONGS_BYTE, (byte) 3); //fix preLongs
     mem1.putByte(SER_VER_BYTE, (byte) 2); //corrupt serVer
     try {
       usk2 = DirectQuickSelectSketch.getInstance(mem1, DEFAULT_UPDATE_SEED);
-      fail("Expected IllegalArgumentException");
-    } catch (IllegalArgumentException e) {
+      fail("Expected SketchesArgumentException");
+    } catch (SketchesArgumentException e) {
       //pass
     }
     mem1.putByte(SER_VER_BYTE, (byte) 3); //fix serVer
@@ -959,8 +961,8 @@ public class DirectQuickSelectSketchTest {
     mem1.putByte(LG_ARR_LONGS_BYTE, (byte) 10); //corrupt lgArrLongs
     try {
       usk2 = DirectQuickSelectSketch.getInstance(mem1, DEFAULT_UPDATE_SEED);
-      fail("Expected IllegalArgumentException");
-    } catch (IllegalArgumentException e) {
+      fail("Expected SketchesArgumentException");
+    } catch (SketchesArgumentException e) {
       //pass
     }
     mem1.putLong(THETA_LONG, Long.MAX_VALUE); //fix theta and
@@ -969,8 +971,8 @@ public class DirectQuickSelectSketchTest {
     mem1.putByte(FLAGS_BYTE, badFlags);
     try {
       usk2 = DirectQuickSelectSketch.getInstance(mem1, DEFAULT_UPDATE_SEED);
-      fail("Expected IllegalArgumentException");
-    } catch (IllegalArgumentException e) {
+      fail("Expected SketchesArgumentException");
+    } catch (SketchesArgumentException e) {
       //pass
     }
     
@@ -978,8 +980,8 @@ public class DirectQuickSelectSketchTest {
     Memory mem2 = new NativeMemory(arr2);
     try {
       usk2 = DirectQuickSelectSketch.getInstance(mem2, DEFAULT_UPDATE_SEED);
-      fail("Expected IllegalArgumentException");
-    } catch (IllegalArgumentException e) {
+      fail("Expected SketchesArgumentException");
+    } catch (SketchesArgumentException e) {
       //pass
     }
   }

@@ -32,6 +32,8 @@ import java.util.Comparator;
 
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.SketchesStateException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -239,24 +241,24 @@ public class ItemsSketch<T> {
     final boolean preLongsEq1 = (preLongs == 1);        //Byte 0
     final boolean preLongsEqMax = (preLongs == maxPreLongs);
     if (!preLongsEq1 && !preLongsEqMax) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible Corruption: PreLongs must be 1 or " + maxPreLongs + ": " + preLongs);
     }
     if (serVer != SER_VER) {                            //Byte 1
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible Corruption: Ser Ver must be "+SER_VER+": " + serVer);
     }
     final int actFamID = Family.FREQUENCY.getID();      //Byte 2
     if (familyID != actFamID) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible Corruption: FamilyID must be "+actFamID+": " + familyID);
     }
     if (empty ^ preLongsEq1) {                          //Byte 5 and Byte 0
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible Corruption: (PreLongs == 1) ^ Empty == True.");
     }
     if (type != serDe.getType()) {                      //Byte 6
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible Corruption: Freq Sketch Type incorrect: " + type + " != " + 
               serDe.getType());
     }
@@ -359,7 +361,7 @@ public class ItemsSketch<T> {
       return;
     }
     if (count < 0) {
-      throw new IllegalArgumentException("Count may not be negative");
+      throw new SketchesArgumentException("Count may not be negative");
     }
     this.streamLength += count;
     hashMap.adjustOrPutValue(item, count);
@@ -371,7 +373,7 @@ public class ItemsSketch<T> {
       } else { //At tgt size, must purge
         offset += hashMap.purge(sampleSize);
         if (getNumActiveItems() > getMaximumMapCapacity()) {
-          throw new IllegalStateException("Purge did not reduce active items.");
+          throw new SketchesStateException("Purge did not reduce active items.");
         }
       }
     }

@@ -36,6 +36,7 @@ import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 
 /**
@@ -80,7 +81,7 @@ class HeapAlphaSketch extends HeapUpdateSketch {
    */
   static HeapAlphaSketch getInstance(int lgNomLongs, long seed, float p, ResizeFactor rf) {
     
-    if (lgNomLongs < ALPHA_MIN_LG_NOM_LONGS) throw new IllegalArgumentException(
+    if (lgNomLongs < ALPHA_MIN_LG_NOM_LONGS) throw new SketchesArgumentException(
         "This sketch requires a minimum nominal entries of "+(1 << ALPHA_MIN_LG_NOM_LONGS));
     
     double nomLongs = (1L << lgNomLongs);
@@ -126,23 +127,23 @@ class HeapAlphaSketch extends HeapUpdateSketch {
     Family family = Family.idToFamily(familyID);
     if (family.equals(Family.ALPHA)) {
       if (preambleLongs != Family.ALPHA.getMinPreLongs()) {
-        throw new IllegalArgumentException(
+        throw new SketchesArgumentException(
             "Possible corruption: Invalid PreambleLongs value for ALPHA: " +preambleLongs);
       }
     }
     else {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible corruption: Invalid Family: " + family.toString());
     }
     
     if (serVer != SER_VER) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible corruption: Invalid Serialization Version: "+serVer);
     }
     
     int flagsMask = ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
     if ((flags & flagsMask) > 0) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible corruption: Input srcMem cannot be: big-endian, compact, ordered, or read-only");
     }
     
@@ -151,14 +152,14 @@ class HeapAlphaSketch extends HeapUpdateSketch {
     long curCapBytes = srcMem.getCapacity();
     int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
     if (curCapBytes < minReqBytes) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible corruption: Current Memory size < min required size: " + 
               curCapBytes + " < " + minReqBytes);
     }
     
     double theta = thetaLong/MAX_THETA_LONG_AS_DOUBLE;
     if ((lgArrLongs <= lgNomLongs) && (theta < p) ) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
         "Possible corruption: Theta cannot be < p and lgArrLongs <= lgNomLongs. "+
             lgArrLongs + " <= " + lgNomLongs + ", Theta: "+theta + ", p: " + p);
     }
@@ -193,7 +194,7 @@ class HeapAlphaSketch extends HeapUpdateSketch {
   @Override
   public double getLowerBound(int numStdDev) {
     if ((numStdDev < 1) || (numStdDev > 3)) { 
-      throw new IllegalArgumentException("numStdDev can only be the values 1, 2 or 3.");
+      throw new SketchesArgumentException("numStdDev can only be the values 1, 2 or 3.");
     }
     double lb;
     if (isEstimationMode()) {
@@ -228,7 +229,7 @@ class HeapAlphaSketch extends HeapUpdateSketch {
   @Override
   public double getUpperBound(int numStdDev) {
     if ((numStdDev < 1) || (numStdDev > 3)) { 
-      throw new IllegalArgumentException("numStdDev can only be the values 1, 2 or 3.");
+      throw new SketchesArgumentException("numStdDev can only be the values 1, 2 or 3.");
     }
     if (isEstimationMode()) {
       double var = getVariance(1<<lgNomLongs_, getP(), alpha_, getTheta(), getRetainedEntries(true));

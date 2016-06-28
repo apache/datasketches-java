@@ -4,6 +4,8 @@
  */
 package com.yahoo.sketches.hll;
 
+import com.yahoo.sketches.SketchesArgumentException;
+
 /**
  * @author Kevin Lang
  */
@@ -34,7 +36,7 @@ class OnHeapFields implements Fields {
   public int intoByteArray(byte[] array, int offset) {
     int numBytesNeeded = numBytesToSerialize();
     if (array.length - offset < numBytesNeeded) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           String.format("array too small[%,d] < [%,d]", array.length - offset, numBytesNeeded)
       );
     }

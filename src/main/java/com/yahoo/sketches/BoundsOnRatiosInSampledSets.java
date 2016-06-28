@@ -81,11 +81,11 @@ public class BoundsOnRatiosInSampledSets {
   
   static void checkInputs(long a, long b, double f) {
     if ( ( (a - b) | (a) | (b) ) < 0) {  //if any group goes negative
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "a must be >= b and neither a nor b can be < 0: a = "+a+", b = "+b);
     }
     if ((f > 1.0) || (f <= 0.0)) {
-      throw new IllegalArgumentException("Required: ((f <= 1.0) && (f > 0.0)): "+f);
+      throw new SketchesArgumentException("Required: ((f <= 1.0) && (f > 0.0)): "+f);
     }
   }
   

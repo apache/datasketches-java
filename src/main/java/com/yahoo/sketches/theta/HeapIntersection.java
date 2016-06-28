@@ -31,6 +31,8 @@ import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.HashOperations;
+import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.SketchesStateException;
 import com.yahoo.sketches.Util;
 
 /**
@@ -75,10 +77,10 @@ class HeapIntersection extends SetOperation implements Intersection{
     long pre0 = preArr[0];
     int preambleLongs = extractPreLongs(pre0);
     if (preambleLongs != CONST_PREAMBLE_LONGS) {
-      throw new IllegalArgumentException("PreambleLongs must = 3.");
+      throw new SketchesArgumentException("PreambleLongs must = 3.");
     }
     int serVer = extractSerVer(pre0);
-    if (serVer != 3) throw new IllegalArgumentException("Ser Version must = 3");
+    if (serVer != 3) throw new SketchesArgumentException("Ser Version must = 3");
     int famID = extractFamilyID(pre0);
     Family.INTERSECTION.checkFamilyID(famID);
     //Note: Intersection does not use lgNomLongs or k, per se.
@@ -96,7 +98,7 @@ class HeapIntersection extends SetOperation implements Intersection{
     
     if (empty_) {
       if (curCount_ != 0) {
-        throw new IllegalArgumentException(
+        throw new SketchesArgumentException(
             "srcMem empty state inconsistent with curCount: "+empty_+","+curCount_);
       }
       //empty = true AND curCount_ = 0: OK
@@ -172,7 +174,7 @@ class HeapIntersection extends SetOperation implements Intersection{
   @Override
   public CompactSketch getResult(boolean dstOrdered, Memory dstMem) { 
     if (curCount_ < 0) {
-      throw new IllegalStateException(
+      throw new SketchesStateException(
           "Calling getResult() with no intervening intersections is not a legal result.");
     }
     long[] compactCacheR;
@@ -301,7 +303,7 @@ class HeapIntersection extends SetOperation implements Intersection{
           HashOperations.hashSearchOrInsert(hashTable_, lgArrLongs_, hashIn) < 0 ? 1 : 0;
     }
     if (tmpCnt != count) {
-      throw new IllegalArgumentException("Count Check Exception: got: "+tmpCnt+", expected: "+count);
+      throw new SketchesArgumentException("Count Check Exception: got: "+tmpCnt+", expected: "+count);
     }
   }
   

@@ -30,6 +30,7 @@ import java.util.Random;
 
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -166,7 +167,7 @@ public class ItemsSketch<T> {
       final Comparator<? super T> comparator, final ArrayOfItemsSerDe<T> serDe) {
     final long memCapBytes = srcMem.getCapacity();
     if (memCapBytes < 8) {
-      throw new IllegalArgumentException("Memory too small: " + memCapBytes);
+      throw new SketchesArgumentException("Memory too small: " + memCapBytes);
     }
     final long pre0 = srcMem.getLong(0);
     final int preambleLongs = extractPreLongs(pre0);
@@ -177,7 +178,7 @@ public class ItemsSketch<T> {
     final byte type = extractSketchType(pre0);
 
     if (type != serDe.getType()) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible Corruption: Sketch Type incorrect: " + type + " != " + serDe.getType());
     }
 
@@ -265,7 +266,7 @@ public class ItemsSketch<T> {
    */
   public T getQuantile(final double fraction) {
     if ((fraction < 0.0) || (fraction > 1.0)) {
-      throw new IllegalArgumentException("Fraction cannot be less than zero or greater than 1.0");
+      throw new SketchesArgumentException("Fraction cannot be less than zero or greater than 1.0");
     }
     if      (fraction == 0.0) { return minValue_; }
     else if (fraction == 1.0) { return maxValue_; }
@@ -565,7 +566,7 @@ public class ItemsSketch<T> {
     final byte[] byteArr = toByteArray(serDe);
     final long memCap = dstMem.getCapacity();
     if (memCap < byteArr.length) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Destination Memory not large enough: " + memCap + " < " + byteArr.length);
     }
     dstMem.putByteArray(0, byteArr, 0, byteArr.length);
@@ -648,7 +649,7 @@ public class ItemsSketch<T> {
 
   private static double[] getEvenlySpaced(final int n) {
     if (n <= 0) {
-      throw new IllegalArgumentException("n must be > zero.");
+      throw new SketchesArgumentException("n must be > zero.");
     }
     final double[] fractions = new double[n];
     fractions[0] = 0.0;

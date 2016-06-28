@@ -245,12 +245,12 @@ public final class BinomialBoundsN {
   //exposed only for test
   static final void checkArgs(long numSamples, double theta, int numSDev) {
     if ((numSDev | (numSDev -1) | (3-numSDev) | numSamples) < 0) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "numSDev must only be 1,2, or 3 and numSamples must >= 0: numSDev="
               +numSDev+", numSamples="+numSamples); 
     }
     if ((theta < 0.0) || (theta > 1.0)) {
-      throw new IllegalArgumentException("0.0 < theta <= 1.0: "+ theta);
+      throw new SketchesArgumentException("0.0 < theta <= 1.0: "+ theta);
     }
   }
   

@@ -6,6 +6,7 @@ package com.yahoo.sketches.quantiles;
 
 import java.util.Random;
 
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 
 
@@ -212,7 +213,7 @@ public abstract class DoublesSketch {
   static double[] getEvenlySpaced(int evenlySpaced) {
     int n = evenlySpaced;
     if (n <= 0) {
-      throw new IllegalArgumentException("EvenlySpaced must be > zero.");
+      throw new SketchesArgumentException("EvenlySpaced must be > zero.");
     }
     double[] fractions = new double[n];
     double frac = 0.0;

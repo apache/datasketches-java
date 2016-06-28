@@ -24,6 +24,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.extractSerVer;
 
 import com.yahoo.sketches.BinomialBoundsN;
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 
 /**
@@ -270,7 +271,7 @@ public abstract class Sketch {
     if (serVer == 2) {
       return ForwardCompatibility.heapify2to3(srcMem, seed);
     }
-    throw new IllegalArgumentException("Unknown Serialization Version: "+serVer);
+    throw new SketchesArgumentException("Unknown Serialization Version: "+serVer);
   }
   
   /**
@@ -309,7 +310,7 @@ public abstract class Sketch {
         if ((serVer == 3) && (preLongs == 3)) {
           return DirectQuickSelectSketch.getInstance(srcMem, seed);
         } else {
-          throw new IllegalArgumentException(
+          throw new SketchesArgumentException(
               "Corrupted: " + family + " family image: must have SerVer = 3 and preLongs = 3");
         }
       }
@@ -327,10 +328,10 @@ public abstract class Sketch {
             return ordered ? DirectCompactOrderedSketch.wrapInstance(srcMem, pre0) 
                            : DirectCompactSketch.wrapInstance(srcMem, pre0);
         }
-        throw new IllegalArgumentException(
+        throw new SketchesArgumentException(
             "Corrupted: " + family + " family image must have compact flag set");
       }
-      default: throw new IllegalArgumentException(
+      default: throw new SketchesArgumentException(
           "Sketch cannot wrap family: " + family + " as a Sketch");
     }
   }
@@ -506,7 +507,7 @@ public abstract class Sketch {
     switch(family) {
       case ALPHA: {
         if (compact) {
-          throw new IllegalArgumentException("Corrupted " + family + " image: cannot be compact");
+          throw new SketchesArgumentException("Corrupted " + family + " image: cannot be compact");
         }
         return HeapAlphaSketch.getInstance(srcMem, seed);
       }
@@ -515,12 +516,12 @@ public abstract class Sketch {
       }
       case COMPACT: {
         if(!compact) {
-          throw new IllegalArgumentException("Corrupted " + family + " image: must be compact");
+          throw new SketchesArgumentException("Corrupted " + family + " image: must be compact");
         }
         return ordered ? new HeapCompactOrderedSketch(srcMem) : new HeapCompactSketch(srcMem);
       }
       default: {
-        throw new IllegalArgumentException("Sketch cannot heapify family: " + family + " as a Sketch");
+        throw new SketchesArgumentException("Sketch cannot heapify family: " + family + " as a Sketch");
       }
     }
   }

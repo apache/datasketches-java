@@ -7,6 +7,7 @@ package com.yahoo.sketches.tuple;
 import org.testng.annotations.Test;
 import org.testng.Assert;
 
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.NativeMemory;
 
 public class DirectArrayOfDoublesQuickSelectSketchTest {
@@ -181,7 +182,7 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
     Assert.assertEquals(sketch1.getTheta(), sketch2.getTheta());
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void notEnoughMemory() {
     new ArrayOfDoublesUpdatableSketchBuilder().setNominalEntries(32).setMemory(new NativeMemory(new byte[1055])).build();
   }

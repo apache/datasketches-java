@@ -10,6 +10,7 @@ import java.util.Arrays;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.quantiles.Util.EpsilonFromK;
 
 /*
@@ -32,12 +33,12 @@ public class UtilTest {
     assertEquals(eps, .01, .005);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkGetAdjustedEpsilonException() {
     EpsilonFromK.getAdjustedEpsilon(0);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkPreLongsFlagsCap() {
     Util.checkPreLongsFlagsCap(2, 0, 15);
   }
@@ -112,7 +113,7 @@ public class UtilTest {
     } 
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkValidateFractionsException() {
     Util.validateFractions(null);
   }

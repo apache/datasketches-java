@@ -12,6 +12,7 @@ import static com.yahoo.sketches.Util.TAB;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 
 /**
@@ -95,7 +96,7 @@ public class UpdateSketchBuilder {
    */
   public UpdateSketchBuilder setP(float p) {
     if ((p <= 0.0) || (p > 1.0)) {
-      throw new IllegalArgumentException("p must be > 0 and <= 1.0: "+p);
+      throw new SketchesArgumentException("p must be > 0 and <= 1.0: "+p);
     }
     bP = p;
     return this;
@@ -178,7 +179,7 @@ public class UpdateSketchBuilder {
           sketch = HeapAlphaSketch.getInstance(bLgNomLongs, bSeed, bP, bRF);
         } 
         else {
-          throw new IllegalArgumentException("AlphaSketch cannot be made Direct to Memory.");
+          throw new SketchesArgumentException("AlphaSketch cannot be made Direct to Memory.");
         }
         break;
       }
@@ -192,7 +193,7 @@ public class UpdateSketchBuilder {
         break;
       }
       default: {
-        throw new IllegalArgumentException(
+        throw new SketchesArgumentException(
           "Given Family cannot be built as a Theta Sketch: "+bFam.toString());
       }
     }

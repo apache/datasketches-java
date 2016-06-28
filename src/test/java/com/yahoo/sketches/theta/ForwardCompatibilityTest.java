@@ -10,6 +10,7 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -48,7 +49,7 @@ public class ForwardCompatibilityTest {
     assertEquals(name, "HeapCompactOrderedSketch");
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkSerVer1_32Bytes_tooSmall() {
     byte[] byteArray = new byte[32];
     Memory mem = new NativeMemory(byteArray);
@@ -173,7 +174,7 @@ public class ForwardCompatibilityTest {
     int famId = v3mem.getByte(FAMILY_BYTE);
     int flags = v3mem.getByte(FLAGS_BYTE);
     if ((serVer != 3) || (famId != 3) || ((flags & 24) != 24)) 
-      throw new IllegalArgumentException("Memory must be V3, Compact, Ordered");
+      throw new SketchesArgumentException("Memory must be V3, Compact, Ordered");
     //must convert v3 preamble to a v1 preamble
     int v3preLongs = v3mem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
     int entries;
@@ -216,7 +217,7 @@ public class ForwardCompatibilityTest {
     int famId = v3mem.getByte(FAMILY_BYTE);
     int flags = v3mem.getByte(FLAGS_BYTE);
     if ((serVer != 3) || (famId != 3) || ((flags & 24) != 24)) 
-      throw new IllegalArgumentException("Memory must be V3, Compact, Ordered");
+      throw new SketchesArgumentException("Memory must be V3, Compact, Ordered");
     //compute size
     int preLongs = v3mem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
     int entries = (preLongs == 1)? 0 : v3mem.getInt(RETAINED_ENTRIES_INT);

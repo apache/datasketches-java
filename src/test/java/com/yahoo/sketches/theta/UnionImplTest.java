@@ -8,6 +8,7 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -28,7 +29,7 @@ public class UnionImplTest {
     assertEquals(union.getResult().getEstimate(), k, 0.0);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkUpdateMemException() {
     int k = 16;
     Memory mem = new NativeMemory(new byte[k*8 + 24]);

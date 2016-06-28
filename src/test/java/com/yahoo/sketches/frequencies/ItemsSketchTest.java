@@ -6,6 +6,7 @@ import org.testng.annotations.Test;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.ArrayOfStringsSerDe;
 import com.yahoo.sketches.ArrayOfUtf16StringsSerDe;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -271,7 +272,7 @@ public class ItemsSketchTest {
     //println(s);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkUpdateException() {
     ItemsSketch<Long> sk1 = new ItemsSketch<Long>(8);
     sk1.update(new Long(1), -1);
@@ -327,7 +328,7 @@ public class ItemsSketchTest {
       mem.putByte(byteOffset, (byte) byteValue); //Corrupt
       ItemsSketch.getInstance(mem, serDe);
       fail();
-    } catch (IllegalArgumentException e) {
+    } catch (SketchesArgumentException e) {
       //expected
     }
   }

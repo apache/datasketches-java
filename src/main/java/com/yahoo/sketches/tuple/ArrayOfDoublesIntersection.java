@@ -6,6 +6,7 @@ package com.yahoo.sketches.tuple;
 
 import static java.lang.Math.min;
 
+import com.yahoo.sketches.SketchesStateException;
 import com.yahoo.sketches.memory.Memory;
 
 /**
@@ -91,7 +92,7 @@ public abstract class ArrayOfDoublesIntersection {
    * @return Result of the intersections so far as a compact sketch.
    */
   public ArrayOfDoublesCompactSketch getResult(final Memory dstMem) {
-    if (isFirstCall_) throw new IllegalStateException("getResult() with no intervening intersections is not a legal result.");
+    if (isFirstCall_) throw new SketchesStateException("getResult() with no intervening intersections is not a legal result.");
     if (sketch_ == null) return new HeapArrayOfDoublesCompactSketch(null, null, Long.MAX_VALUE, true, numValues_, seedHash_);
     return sketch_.compact(dstMem);
   }

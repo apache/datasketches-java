@@ -9,6 +9,7 @@ import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.zeroPad;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 
 // @formatter:off
@@ -249,7 +250,7 @@ final class PreambleUtil {
   }
 
   private static void throwNotBigEnough(long cap, int required) {
-    throw new IllegalArgumentException(
+    throw new SketchesArgumentException(
         "Possible Corruption: "+
     "Size of byte array or Memory not large enough for Preamble: Size: " + cap 
         + ", Required: " + required);

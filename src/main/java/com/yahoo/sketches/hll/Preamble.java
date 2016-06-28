@@ -5,6 +5,7 @@
 package com.yahoo.sketches.hll;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.hash.MurmurHash3;
 import com.yahoo.sketches.memory.Memory;
@@ -43,7 +44,7 @@ public class Preamble {
 
     if ((logConfigK < Interpolation.INTERPOLATION_MIN_LOG_K) || 
         (logConfigK > Interpolation.INTERPOLATION_MAX_LOG_K)) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           String.format(
               "logConfigK[%s] is out of bounds, should be between [%s] and [%s]",
               logConfigK, Interpolation.INTERPOLATION_MIN_LOG_K, Interpolation.INTERPOLATION_MAX_LOG_K
@@ -80,7 +81,7 @@ public class Preamble {
     long[] seedArr = {seed};
     short seedHash = (short) ((MurmurHash3.hash(seedArr, 0L)[0]) & 0xFFFFL);
     if (seedHash == 0) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "The given seed: " + seed + " produced a seedHash of zero. " +
           "You must choose a different seed."
       );
@@ -91,7 +92,7 @@ public class Preamble {
 
   public static Preamble fromLogK(int logK) {
     if (logK > 255) {
-      throw new IllegalArgumentException("logK is greater than a byte, make it smaller");
+      throw new SketchesArgumentException("logK is greater than a byte, make it smaller");
     }
 
     byte flags = new PreambleFlags.Builder()
@@ -120,7 +121,7 @@ public class Preamble {
 
   public int intoByteArray(byte[] bytes, int offset) {
     if ((bytes.length - offset) < 8) {
-      throw new IllegalArgumentException("bytes too small");
+      throw new SketchesArgumentException("bytes too small");
     }
 
     Memory mem = new MemoryRegion(new NativeMemory(bytes), offset, 8);

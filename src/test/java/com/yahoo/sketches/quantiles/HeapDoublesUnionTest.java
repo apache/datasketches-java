@@ -84,7 +84,7 @@ public class HeapDoublesUnionTest {
     assertEquals(result.getMaxValue(), result.getMinValue(), 0.0);
   }
   
-  @Test//(expectedExceptions = IllegalStateException.class)
+  @Test//(expectedExceptions = SketchesStateException.class)
   public void checkResultAndReset() {
     DoublesSketch qs1 = buildQS(256, 0);
     DoublesUnion union = DoublesUnion.builder().build(qs1);

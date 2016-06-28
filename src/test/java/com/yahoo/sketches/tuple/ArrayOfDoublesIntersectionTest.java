@@ -7,6 +7,7 @@ package com.yahoo.sketches.tuple;
 import org.testng.annotations.Test;
 import org.testng.Assert;
 
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.NativeMemory;
 
 public class ArrayOfDoublesIntersectionTest {
@@ -210,7 +211,7 @@ public class ArrayOfDoublesIntersectionTest {
     for (int i = 0; i < values.length; i++) Assert.assertEquals(values[i][0], 4.0);
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void incompatibleSeeds() {
     ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(1).build();
     ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().setSeed(2).buildIntersection();

@@ -4,6 +4,7 @@
  */
 package com.yahoo.sketches.hll;
 
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.NativeMemory;
 
 /**
@@ -113,7 +114,7 @@ class OnHeapCompressedFields implements Fields {
   @Override
   public int intoByteArray(byte[] array, int offset) {
     if (array.length - offset < 6) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           String.format("array too small[%,d][%,d], need at least 6 bytes", array.length, offset)
       );
     }

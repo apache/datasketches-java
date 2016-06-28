@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.SketchesStateException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -234,24 +236,24 @@ public class LongsSketch {
     final boolean preLongsEq1 = (preLongs == 1);        //Byte 0
     final boolean preLongsEqMax = (preLongs == maxPreLongs);
     if (!preLongsEq1 && !preLongsEqMax) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible Corruption: PreLongs must be 1 or " + maxPreLongs + ": " + preLongs);
     }
     if (serVer != SER_VER) {                            //Byte 1
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible Corruption: Ser Ver must be "+SER_VER+": " + serVer);
     }
     final int actFamID = Family.FREQUENCY.getID();      //Byte 2
     if (familyID != actFamID) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible Corruption: FamilyID must be "+actFamID+": " + familyID);
     }
     if (empty ^ preLongsEq1) {                          //Byte 5 and Byte 0
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible Corruption: (PreLongs == 1) ^ Empty == True.");
     }
     if (type != FREQ_LONGS_SKETCH_TYPE) {                     //Byte 6
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible Corruption: Freq Sketch Type incorrect: " + type + " != " + 
               FREQ_LONGS_SKETCH_TYPE);
     }
@@ -294,7 +296,7 @@ public class LongsSketch {
   public static LongsSketch getInstance(final String string) {
     final String[] tokens = string.split(",");
     if (tokens.length < STR_PREAMBLE_TOKENS+2) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "String not long enough: "+tokens.length);
     }
     final int serVer  = Integer.parseInt(tokens[0]);
@@ -310,23 +312,23 @@ public class LongsSketch {
 
     //checks
     if (serVer != SER_VER) {
-      throw new IllegalArgumentException("Possible Corruption: Bad SerVer: "+serVer);
+      throw new SketchesArgumentException("Possible Corruption: Bad SerVer: "+serVer);
     }
     Family.FREQUENCY.checkFamilyID(famID);
     final boolean empty = flags > 0;
     final boolean zeroStream = (streamLength == 0);
     if (empty ^ zeroStream) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible Corruption: (Empty ^ StreamLength=0) = true : Empty: " + empty + 
           ", strLen: " + streamLength);
     }
     if (type != FREQ_LONGS_SKETCH_TYPE) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible Corruption: Sketch TYPE incorrect: " + type);
     }
     final int numTokens = tokens.length;
     if (2*numActive != (numTokens - STR_PREAMBLE_TOKENS -2)) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible Corruption: Incorrect # of tokens: " + numTokens + 
           ", numActive: " + numActive);
     }
@@ -427,7 +429,7 @@ public class LongsSketch {
    */
   public void update(final long item, final long count) {
     if (count == 0) return;
-    if (count < 0) throw new IllegalArgumentException("Count may not be negative");
+    if (count < 0) throw new SketchesArgumentException("Count may not be negative");
     this.streamLength += count;
     hashMap.adjustOrPutValue(item, count);
 
@@ -438,7 +440,7 @@ public class LongsSketch {
       } else { //At tgt size, must purge
         offset += hashMap.purge(sampleSize);
         if (getNumActiveItems() > getMaximumMapCapacity()) {
-          throw new IllegalStateException("Purge did not reduce active items.");
+          throw new SketchesStateException("Purge did not reduce active items.");
         }
       }
     }

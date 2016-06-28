@@ -30,17 +30,17 @@ public class BoundsOnRatiosInSampledSetsTest {
     assertEquals(getEstimateOfBoverA(0, 0), .5, 0.0);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInputA() {
     checkInputs(-1, 0, .3);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInputB() {
     checkInputs(500, -1, .3);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInputF() {
     checkInputs(500, 100, -1);
   }

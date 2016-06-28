@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.AllocMemory;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;
@@ -503,7 +504,7 @@ public class NativeMemoryTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkLongArrExcep() {
     long[] arr = new long[0];
     new NativeMemory(arr);
@@ -520,7 +521,7 @@ public class NativeMemoryTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkNullByteArray() {
     byte[] byteArr = null;
     NativeMemory mem = new NativeMemory(byteArr);

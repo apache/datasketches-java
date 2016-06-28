@@ -8,9 +8,11 @@ import static org.testng.Assert.assertNull;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.sketches.SketchesArgumentException;
+
 public class ReversePurgeLongHashMapTest {
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkgetInstanceString() {
     ReversePurgeLongHashMap.getInstance("");
   }

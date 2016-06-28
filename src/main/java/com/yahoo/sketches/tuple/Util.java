@@ -7,6 +7,8 @@ package com.yahoo.sketches.tuple;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.yahoo.sketches.SketchesArgumentException;
+
 class Util {
   /**
   * Gets the starting power of 2 so that it is a proper sub-multiple of the target by resize ratio.
@@ -49,7 +51,7 @@ class Util {
     final long[] seedArr = {seed};
     final short seedHash = (short)((hash(seedArr, 0L)[0]) & 0xFFFFL);
     if (seedHash == 0) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "The given seed: " + seed + " produced a seedHash of zero. " + 
           "You must choose a different seed.");
     }
@@ -57,7 +59,7 @@ class Util {
   }
   
   static final void checkSeedHashes(final short seedHashA, final short seedHashB) {
-    if (seedHashA != seedHashB) throw new IllegalArgumentException("Incompatible Seed Hashes. "+ seedHashA + ", " + seedHashB);
+    if (seedHashA != seedHashB) throw new SketchesArgumentException("Incompatible Seed Hashes. "+ seedHashA + ", " + seedHashB);
   }
 
 }

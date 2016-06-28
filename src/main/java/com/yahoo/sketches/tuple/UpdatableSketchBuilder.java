@@ -5,6 +5,7 @@
 package com.yahoo.sketches.tuple;
 
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * For building a new UpdatableSketch
@@ -63,7 +64,7 @@ public class UpdatableSketchBuilder<U, S extends UpdatableSummary<U>> {
    */
   public UpdatableSketchBuilder<U, S> setSamplingProbability(final float samplingProbability) {
     if (samplingProbability < 0 || samplingProbability > 1f) {
-      throw new IllegalArgumentException("sampling probability must be between 0 and 1");
+      throw new SketchesArgumentException("sampling probability must be between 0 and 1");
     }
     samplingProbability_ = samplingProbability;
     return this;

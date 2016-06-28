@@ -13,6 +13,7 @@ import com.yahoo.sketches.ArrayOfDoublesSerDe;
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.ArrayOfStringsSerDe;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -234,7 +235,7 @@ public class ItemsSketchTest {
     Assert.assertTrue(bigger.length() < full.length());
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkDownsampleException() {
     ItemsSketch<String> sketch = ItemsSketch.getInstance(16, Comparator.naturalOrder());
     for (int i=0; i<40; i++) {
@@ -253,19 +254,19 @@ public class ItemsSketchTest {
     Assert.assertEquals(out.getK(), 8);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void unorderedSplitPoints() {
     ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Comparator.naturalOrder());
     sketch.getPMF(new Integer[] {2, 1});
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void nonUniqueSplitPoints() {
     ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Comparator.naturalOrder());
     sketch.getPMF(new Integer[] {1, 1});
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void nullInSplitPoints() {
     ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Comparator.naturalOrder());
     sketch.getPMF(new Integer[] {1, null});
@@ -282,7 +283,7 @@ public class ItemsSketchTest {
     sketch.putMemory(mem, new ArrayOfStringsSerDe());
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkPutMemoryException() {
     ItemsSketch<String> sketch = ItemsSketch.getInstance(16, Comparator.naturalOrder());
     for (int i=0; i<40; i++) {

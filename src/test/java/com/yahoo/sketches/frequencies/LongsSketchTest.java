@@ -11,6 +11,8 @@ import static org.testng.Assert.fail;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import com.yahoo.sketches.SketchesArgumentException;
+
 /*
  * Copyright 2016, Yahoo! Inc. Licensed under the terms of the Apache License 2.0. See LICENSE file
  * at the project root for terms.
@@ -287,7 +289,7 @@ public class LongsSketchTest {
       mem.putByte(byteOffset, (byte) byteValue); //Corrupt
       LongsSketch.getInstance(mem);
       fail();
-    } catch (IllegalArgumentException e) {
+    } catch (SketchesArgumentException e) {
       //expected
     }
   }
@@ -307,8 +309,8 @@ public class LongsSketchTest {
   private static void tryBadString(String badString) {
     try {
       LongsSketch.getInstance(badString);
-      fail("Should have thrown IllegalArgumentException");
-    } catch (IllegalArgumentException e) {
+      fail("Should have thrown SketchesArgumentException");
+    } catch (SketchesArgumentException e) {
       //expected
     }
   }
@@ -363,19 +365,19 @@ public class LongsSketchTest {
     }
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkGetInstanceMemory() {
     NativeMemory mem = new NativeMemory(new byte[4]);
     LongsSketch.getInstance(mem);
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkGetInstanceString() {
     String s = "";
     LongsSketch.getInstance(s);
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkUpdateNegative() {
     int minSize = 1 << LG_MIN_MAP_SIZE;
     LongsSketch fls = new LongsSketch(minSize);
@@ -469,7 +471,7 @@ public class LongsSketchTest {
     }
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkGetAndCheckPreLongs() {
     byte[] byteArr = new byte[8];
     byteArr[0] = (byte) 2;

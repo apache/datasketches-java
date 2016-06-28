@@ -24,6 +24,7 @@ import org.testng.annotations.Test;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.theta.CompactSketch;
@@ -37,7 +38,7 @@ import com.yahoo.sketches.theta.UpdateSketch;
 public class HeapAlphaSketchTest {
   private Family fam_ = ALPHA;
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
     int k = 512;
     int u = k;
@@ -60,7 +61,7 @@ public class HeapAlphaSketchTest {
     Sketch.heapify(mem, seed);
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkConstructorKtooSmall() {
     int k = 256;
     
@@ -68,13 +69,13 @@ public class HeapAlphaSketchTest {
     UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).build(k);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkAlphaIncompatibleWithMem() {
     Memory mem = new NativeMemory(new byte[512*16+24]);
     UpdateSketch.builder().setFamily(Family.ALPHA).initMemory(mem).build(512);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkIllegalSketchID_UpdateSketch() {
     int k = 512;
     int u = k;
@@ -96,7 +97,7 @@ public class HeapAlphaSketchTest {
     Sketch.heapify(mem, seed);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifySeedConflict() {
     int k = 512;
     long seed1 = 1021;
@@ -488,7 +489,7 @@ public class HeapAlphaSketchTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkLBlimits0() {
     int k = 512;
     Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).build(k);
@@ -496,7 +497,7 @@ public class HeapAlphaSketchTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkUBlimits0() {
     int k = 512;
     Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).build(k);
@@ -504,7 +505,7 @@ public class HeapAlphaSketchTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkLBlimits4() {
     int k = 512;
     Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).build(k);
@@ -512,7 +513,7 @@ public class HeapAlphaSketchTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkUBlimits4() {
     int k = 512;
     Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).build(k);
@@ -520,7 +521,7 @@ public class HeapAlphaSketchTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadPreambleLongs() {
     int k = 512;
     Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).build(k);
@@ -531,7 +532,7 @@ public class HeapAlphaSketchTest {
     Sketch alpha2 = Sketch.heapify(mem);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkNegativeHashes() {
     int k = 512;
     UpdateSketch alpha = UpdateSketch.builder().setFamily(ALPHA).build(k);
@@ -563,7 +564,7 @@ public class HeapAlphaSketchTest {
       mem.putDouble(16, 0.5); //Corrupt the theta value
       HeapAlphaSketch.getInstance(mem, DEFAULT_UPDATE_SEED);
       fail();
-    } catch (IllegalArgumentException e) {
+    } catch (SketchesArgumentException e) {
       //expected
     }
     mem.putDouble(16, 1.0); //restore theta
@@ -573,7 +574,7 @@ public class HeapAlphaSketchTest {
     try {
       HeapAlphaSketch.getInstance(mem2, DEFAULT_UPDATE_SEED);
       fail();
-    } catch (IllegalArgumentException e) {
+    } catch (SketchesArgumentException e) {
       //expected
     }
   }
@@ -583,7 +584,7 @@ public class HeapAlphaSketchTest {
       mem.putByte(byteOffset, (byte) byteValue); //Corrupt
       HeapAlphaSketch.getInstance(mem, DEFAULT_UPDATE_SEED);
       fail();
-    } catch (IllegalArgumentException e) {
+    } catch (SketchesArgumentException e) {
       //expected
     }
   }

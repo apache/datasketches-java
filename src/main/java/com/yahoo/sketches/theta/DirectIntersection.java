@@ -13,6 +13,8 @@ import static java.lang.Math.min;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.HashOperations;
+import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.SketchesStateException;
 import com.yahoo.sketches.Util;
 
 /**
@@ -85,10 +87,10 @@ class DirectIntersection extends SetOperation implements Intersection {
     long pre0 = preArr[0];
     int preLongsMem = extractPreLongs(pre0);
     if (preLongsMem != CONST_PREAMBLE_LONGS) {
-      throw new IllegalArgumentException("PreambleLongs must = 3.");
+      throw new SketchesArgumentException("PreambleLongs must = 3.");
     }
     int serVer = extractSerVer(pre0);
-    if (serVer != 3) throw new IllegalArgumentException("Ser Version must = 3");
+    if (serVer != 3) throw new SketchesArgumentException("Ser Version must = 3");
     int famID = extractFamilyID(pre0);
     Family.INTERSECTION.checkFamilyID(famID);
     //Note: Intersection does not use lgNomLongs or k, per se.
@@ -106,7 +108,7 @@ class DirectIntersection extends SetOperation implements Intersection {
     
     if (empty_) {
       if (curCount_ != 0) {
-        throw new IllegalArgumentException(
+        throw new SketchesArgumentException(
             "srcMem empty state inconsistent with curCount: "+empty_+","+curCount_);
       }
       //empty = true AND curCount_ = 0: OK
@@ -163,7 +165,7 @@ class DirectIntersection extends SetOperation implements Intersection {
         mem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_);
       }
       else { //not enough space in dstMem //TODO move to request model
-        throw new IllegalArgumentException(
+        throw new SketchesArgumentException(
             "Insufficient dstMem hash table space: "+(1<<requiredLgArrLongs)+" > "+(1<<lgArrLongs_));
       }
       moveDataToHT(sketchIn.getCache(), curCount_);
@@ -183,7 +185,7 @@ class DirectIntersection extends SetOperation implements Intersection {
   @Override
   public CompactSketch getResult(boolean dstOrdered, Memory dstMem) {
     if (curCount_ < 0) {
-      throw new IllegalStateException(
+      throw new SketchesStateException(
           "Calling getResult() with no intervening intersections is not a legal result.");
     }
     long[] compactCacheR;
@@ -296,7 +298,7 @@ class DirectIntersection extends SetOperation implements Intersection {
           HashOperations.hashSearchOrInsert(mem_, lgArrLongs_, hashIn, preBytes) < 0 ? 1 : 0;
     }
     if (tmpCnt != count) {
-      throw new IllegalArgumentException("Count Check Exception: got: "+tmpCnt+", expected: "+count);
+      throw new SketchesArgumentException("Count Check Exception: got: "+tmpCnt+", expected: "+count);
     }
   }
   
@@ -307,7 +309,7 @@ class DirectIntersection extends SetOperation implements Intersection {
     long cap = dstMem.getCapacity();
     int maxLgArrLongs = Integer.numberOfTrailingZeros(floorPowerOf2((int)(cap - preBytes)) >>> 3);
     if (maxLgArrLongs < MIN_LG_ARR_LONGS) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
         "dstMem not large enough for minimum sized hash table: "+ cap);
     }
     return maxLgArrLongs;

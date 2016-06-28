@@ -12,6 +12,7 @@ import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.theta.CompactSketch;
@@ -160,7 +161,7 @@ public class CompactSketchTest {
     assertNotNull(csk2.getCache());
   }
  
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkMemTooSmall() {
     int k = 512;
     int u = k;
@@ -177,7 +178,7 @@ public class CompactSketchTest {
     CompactSketch csk = usk.compact(ordered, mem);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkMemTooSmallOrdered() {
     int k = 512;
     int u = k;

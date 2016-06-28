@@ -13,6 +13,8 @@ import static com.yahoo.sketches.hash.MurmurHash3Adaptor.modulo;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import com.yahoo.sketches.SketchesArgumentException;
+
 /**
  * @author Lee Rhodes
  */
@@ -292,55 +294,55 @@ public class MurmurHash3AdaptorTest {
     }
   }
   
-  @Test (expectedExceptions = IllegalArgumentException.class)
+  @Test (expectedExceptions = SketchesArgumentException.class)
   public void checkAsIntCornerCaseLongNull() {
     long[] arr = null;
     asInt(arr, 1000);
   }
   
-  @Test (expectedExceptions = IllegalArgumentException.class)
+  @Test (expectedExceptions = SketchesArgumentException.class)
   public void checkAsIntCornerCaseLongEmpty() {
     long[] arr = new long[0];
     asInt(arr, 1000);
   }
   
-  @Test (expectedExceptions = IllegalArgumentException.class)
+  @Test (expectedExceptions = SketchesArgumentException.class)
   public void checkAsIntCornerCaseIntNull() {
     int[] arr = null;
     asInt(arr, 1000);
   }
   
-  @Test (expectedExceptions = IllegalArgumentException.class)
+  @Test (expectedExceptions = SketchesArgumentException.class)
   public void checkAsIntCornerCaseIntEmpty() {
     int[] arr = new int[0];
     asInt(arr, 1000);
   }
   
-  @Test (expectedExceptions = IllegalArgumentException.class)
+  @Test (expectedExceptions = SketchesArgumentException.class)
   public void checkAsIntCornerCaseByteNull() {
     byte[] arr = null;
     asInt(arr, 1000);
   }
   
-  @Test (expectedExceptions = IllegalArgumentException.class)
+  @Test (expectedExceptions = SketchesArgumentException.class)
   public void checkAsIntCornerCaseByteEmpty() {
     byte[] arr = new byte[0];
     asInt(arr, 1000);
   }
 
-  @Test (expectedExceptions = IllegalArgumentException.class)
+  @Test (expectedExceptions = SketchesArgumentException.class)
   public void checkAsIntCornerCaseStringNull() {
     String s = null;
     asInt(s, 1000);
   }
   
-  @Test (expectedExceptions = IllegalArgumentException.class)
+  @Test (expectedExceptions = SketchesArgumentException.class)
   public void checkAsIntCornerCaseStringEmpty() {
     String s = "";
     asInt(s, 1000);
   }
   
-  @Test (expectedExceptions = IllegalArgumentException.class)
+  @Test (expectedExceptions = SketchesArgumentException.class)
   public void checkAsIntCornerCaseNTooSmall() {
     String s = "abc";
     asInt(s, 1);

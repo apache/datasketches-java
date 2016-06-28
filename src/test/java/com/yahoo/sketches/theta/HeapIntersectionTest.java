@@ -13,6 +13,8 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.Test;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.SketchesStateException;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -126,7 +128,7 @@ public class HeapIntersectionTest {
   
   @SuppressWarnings("unused")
   //Calling getResult on a virgin Intersect is illegal
-  @Test(expectedExceptions = IllegalStateException.class)
+  @Test(expectedExceptions = SketchesStateException.class)
   public void checkNoCall() {
     int lgK = 9;
     int k = 1<<lgK;
@@ -437,7 +439,7 @@ public class HeapIntersectionTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadPreambleLongs() {
     int k = 32;
     Intersection inter1, inter2;
@@ -451,7 +453,7 @@ public class HeapIntersectionTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
     int k = 32;
     Intersection inter1, inter2;

@@ -110,8 +110,8 @@ public class BinomialBoundsNTest {
       checkArgs(10L, 1.0, 3);
       checkArgs(10L, 1.0, 0);
       checkArgs(10L, 1.0, 4);
-      fail("Expected IllegalArgumentException");
-    } catch (IllegalArgumentException e) {
+      fail("Expected SketchesArgumentException");
+    } catch (SketchesArgumentException e) {
       //pass
     }
   }
@@ -130,7 +130,7 @@ public class BinomialBoundsNTest {
     assertEquals(result, 0.0, 0.0);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkThetaLimits1() {
     BinomialBoundsN.getUpperBound(100, 1.1, 1, false);
   }

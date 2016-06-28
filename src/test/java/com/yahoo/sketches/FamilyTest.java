@@ -61,17 +61,17 @@ public class FamilyTest {
 //    }
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadFamilyName() {
     stringToFamily("Test");
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadObject() {
     objectToFamily("Test");
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadFamilyID() {
     Family famAlpha = Family.ALPHA;
     Family famQS = Family.QUICKSELECT;

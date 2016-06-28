@@ -1,5 +1,6 @@
 package com.yahoo.sketches.hll;
 
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 import org.testng.Assert;
@@ -110,7 +111,7 @@ public class OnHeapHashFieldsTest
     boolean exceptionThrown = false;
     try {
       fields.intoByteArray(new byte[stored.length - 1], 0);
-    } catch (IllegalArgumentException e) {
+    } catch (SketchesArgumentException e) {
       exceptionThrown = true;
     }
     Assert.assertTrue(exceptionThrown, "Expected exception about length of array to be thrown.");

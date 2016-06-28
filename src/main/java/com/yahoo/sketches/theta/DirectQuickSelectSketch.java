@@ -51,6 +51,7 @@ import static com.yahoo.sketches.theta.UpdateReturnState.RejectedOverTheta;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRequest;
@@ -122,7 +123,7 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     //Make sure Memory is large enough
     long curMemCapBytes = dstMem.getCapacity();
     if (curMemCapBytes < minReqBytes) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
         "Memory capacity is too small: "+curMemCapBytes+" < "+minReqBytes);
     }
     int curCount = 0;
@@ -185,36 +186,36 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     long thetaLong = preArr[2];                                           //bytes 16-23
     
     if (serVer != SER_VER) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible corruption: Invalid Serialization Version: "+serVer);
     }
     
     Family family = Family.idToFamily(familyID);
     if (family.equals(Family.UNION)) {
       if (preambleLongs != Family.UNION.getMinPreLongs()) {
-        throw new IllegalArgumentException(
+        throw new SketchesArgumentException(
             "Possible corruption: Invalid PreambleLongs value for UNION: " +preambleLongs);
       }
     }
     else if (family.equals(Family.QUICKSELECT)) {
       if (preambleLongs != Family.QUICKSELECT.getMinPreLongs()) {
-        throw new IllegalArgumentException(
+        throw new SketchesArgumentException(
             "Possible corruption: Invalid PreambleLongs value for QUICKSELECT: " +preambleLongs);
       }
     } else {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible corruption: Invalid Family: " + family.toString());
     }
     
     if (lgNomLongs < MIN_LG_NOM_LONGS) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible corruption: Current Memory lgNomLongs < min required size: " + 
               lgNomLongs + " < " + MIN_LG_NOM_LONGS);
     }
     
     int flagsMask = ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
     if ((flags & flagsMask) > 0) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible corruption: Input srcMem cannot be: big-endian, compact, ordered, or read-only");
     }
     
@@ -223,14 +224,14 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
     long curCapBytes = srcMem.getCapacity();
     int minReqBytes = PreambleUtil.getMemBytes(lgArrLongs, preambleLongs);
     if (curCapBytes < minReqBytes) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible corruption: Current Memory size < min required size: " + 
               curCapBytes + " < " + minReqBytes);
     }
     
     double theta = thetaLong/MAX_THETA_LONG_AS_DOUBLE;
     if ((lgArrLongs <= lgNomLongs) && (theta < p) ) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
         "Possible corruption: Theta cannot be < p and lgArrLongs <= lgNomLongs. "+
             lgArrLongs + " <= " + lgNomLongs + ", Theta: "+theta + ", p: " + p);
     }
@@ -390,12 +391,12 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
           MemoryRequest memReq = mem_.getMemoryRequest();
           Memory dstMem = memReq.request(reqBytes);
           if (dstMem == null) { //returned a null
-            throw new IllegalArgumentException("MemoryRequest callback cannot be null.");
+            throw new SketchesArgumentException("MemoryRequest callback cannot be null.");
           }
           long newCap = dstMem.getCapacity();
           if (newCap < reqBytes) {
             memReq.free(dstMem);
-            throw new IllegalArgumentException("Requested memory not granted: "+newCap+" < "+reqBytes);
+            throw new SketchesArgumentException("Requested memory not granted: "+newCap+" < "+reqBytes);
           }
           moveAndResize(mem_, preambleLongs_, lgArrLongs_, dstMem, tgtLgArrLongs, thetaLong_);
           

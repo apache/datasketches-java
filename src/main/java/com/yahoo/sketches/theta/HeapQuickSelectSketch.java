@@ -35,6 +35,7 @@ import com.yahoo.sketches.Family;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 
 /**
@@ -127,37 +128,37 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
     long thetaLong = preArr[2];                                           //bytes 16-23
     
     if (serVer != SER_VER) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible corruption: Invalid Serialization Version: "+serVer);
     }
     
     Family family = Family.idToFamily(familyID);
     if (family.equals(Family.UNION)) {
       if (preambleLongs != Family.UNION.getMinPreLongs()) {
-        throw new IllegalArgumentException(
+        throw new SketchesArgumentException(
             "Possible corruption: Invalid PreambleLongs value for UNION: " +preambleLongs);
       }
     }
     else if (family.equals(Family.QUICKSELECT)) {
       if (preambleLongs != Family.QUICKSELECT.getMinPreLongs()) {
-        throw new IllegalArgumentException(
+        throw new SketchesArgumentException(
             "Possible corruption: Invalid PreambleLongs value for QUICKSELECT: " +preambleLongs);
       }
     } 
     else {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible corruption: Invalid Family: " + family.toString());
     }
     
     if (lgNomLongs < MIN_LG_NOM_LONGS) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible corruption: Current Memory lgNomLongs < min required size: " + 
               lgNomLongs + " < " + MIN_LG_NOM_LONGS);
     }
     
     int flagsMask = ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
     if ((flags & flagsMask) > 0) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible corruption: Input srcMem cannot be: big-endian, compact, ordered, or read-only");
     }
     
@@ -166,14 +167,14 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
     long curCapBytes = srcMem.getCapacity();
     int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
     if (curCapBytes < minReqBytes) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible corruption: Current Memory size < min required size: " + 
               curCapBytes + " < " + minReqBytes);
     }
     
     double theta = thetaLong/MAX_THETA_LONG_AS_DOUBLE;
     if ((lgArrLongs <= lgNomLongs) && (theta < p) ) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
         "Possible corruption: Theta cannot be < p and lgArrLongs <= lgNomLongs. "+
             lgArrLongs + " <= " + lgNomLongs + ", Theta: "+theta + ", p: " + p);
     }

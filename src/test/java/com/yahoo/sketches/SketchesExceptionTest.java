@@ -15,12 +15,12 @@ public class SketchesExceptionTest {
   }
   
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkSketchesIllegalArgumentException() {
+  public void checkSketchesArgumentException() {
     throw new SketchesArgumentException("This is a test.");
   }
   
   @Test(expectedExceptions = SketchesStateException.class)
-  public void checkSketchesIllegalStateException() {
+  public void checkSketchesStateException() {
     throw new SketchesStateException("This is a test.");
   }
 }

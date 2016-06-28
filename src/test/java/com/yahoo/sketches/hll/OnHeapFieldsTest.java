@@ -4,6 +4,8 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.yahoo.sketches.SketchesArgumentException;
+
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -90,7 +92,7 @@ public class OnHeapFieldsTest
     boolean exceptionThrown = false;
     try {
       fields.intoByteArray(new byte[stored.length - 1], 0);
-    } catch (IllegalArgumentException e) {
+    } catch (SketchesArgumentException e) {
       exceptionThrown = true;
     }
     Assert.assertTrue(exceptionThrown, "Expected exception about length of array to be thrown.");

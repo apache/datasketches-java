@@ -138,9 +138,9 @@ public class BoundsOnBinomialProportions { // confidence intervals for binomial 
   }
 
   private static void checkInputs(long n, long k) {
-    if (n < 0) throw new IllegalArgumentException("N must be non-negative");
-    if (k < 0) throw new IllegalArgumentException("K must be non-negative");
-    if (k > n) throw new IllegalArgumentException("K cannot exceed N");
+    if (n < 0) throw new SketchesArgumentException("N must be non-negative");
+    if (k < 0) throw new SketchesArgumentException("K must be non-negative");
+    if (k > n) throw new SketchesArgumentException("K cannot exceed N");
   }
   
   /**

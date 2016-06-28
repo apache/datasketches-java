@@ -124,7 +124,7 @@ public enum Family {
    */
   public void checkFamilyID(int id) {
     if (id != id_) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Possible Corruption: This Family "+this.toString() + 
           " does not match the ID of the given Family: "+ idToFamily(id).toString());
     }
@@ -166,7 +166,7 @@ public enum Family {
    */
   public static Family idToFamily(int id) {
     Family f = lookupID.get(id);
-    if (f == null) throw new IllegalArgumentException(
+    if (f == null) throw new SketchesArgumentException(
         "Possible Corruption: Illegal Family ID: "+ id);
     return f;
   }
@@ -178,7 +178,7 @@ public enum Family {
    */
   public static Family stringToFamily(String famName) {
     Family f = lookupFamName.get(famName.toUpperCase());
-    if (f == null) throw new IllegalArgumentException(
+    if (f == null) throw new SketchesArgumentException(
         "Possible Corruption: Illegal Family Name: "+famName);
     return f;
   }
@@ -195,6 +195,6 @@ public enum Family {
         return f;
       }
     }
-    throw new IllegalArgumentException("Possible Corruption: Unknown object");
+    throw new SketchesArgumentException("Possible Corruption: Unknown object");
   }
 }

@@ -6,6 +6,7 @@ package com.yahoo.sketches.theta;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 import org.testng.annotations.Test;
@@ -124,7 +125,7 @@ public class SketchTest {
     assertEquals(sk.getLgNomLongs(), 10);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBuilderIllegalP() {
     float p = (float)1.5;
     UpdateSketch.builder().setP(p).build();
@@ -152,7 +153,7 @@ public class SketchTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWrapBadFamily() {
     UpdateSketch sketch = UpdateSketch.builder().setFamily(Family.ALPHA).build(1024);
     byte[] byteArr = sketch.toByteArray();
@@ -161,7 +162,7 @@ public class SketchTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadFamily() {
     UpdateSketch sketch = UpdateSketch.builder().setFamily(Family.INTERSECTION).build(1024);
   }
@@ -176,7 +177,7 @@ public class SketchTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyAlphaCompactExcep() {
     int k = 512;
     Sketch sketch1 = UpdateSketch.builder().setFamily(ALPHA).build(k);
@@ -188,7 +189,7 @@ public class SketchTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyQSCompactExcep() {
     int k = 512;
     Sketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).build(k);
@@ -200,7 +201,7 @@ public class SketchTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyNotCompactExcep() {
     int k = 512;
     UpdateSketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).build(k);
@@ -214,7 +215,7 @@ public class SketchTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyFamilyExcep() {
     int k = 512;
     Union union = SetOperation.builder().buildUnion(k);
@@ -225,7 +226,7 @@ public class SketchTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWrapAlphaCompactExcep() {
     int k = 512;
     Sketch sketch1 = UpdateSketch.builder().setFamily(ALPHA).build(k);
@@ -238,7 +239,7 @@ public class SketchTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWrapQSCompactExcep() {
     int k = 512;
     Sketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).build(k);
@@ -250,7 +251,7 @@ public class SketchTest {
   }
   
   @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWrapNotCompactExcep() {
     int k = 512;
     UpdateSketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).build(k);

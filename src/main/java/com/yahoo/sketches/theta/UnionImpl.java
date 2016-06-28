@@ -25,6 +25,7 @@ import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 
 
@@ -215,7 +216,7 @@ class UnionImpl extends SetOperation implements Union {
     int cap = (int)skMem.getCapacity();
     int fam = skMem.getByte(FAMILY_BYTE);
     if (fam != 3) { //
-      throw new IllegalArgumentException("Family must be COMPACT or SET_SKETCH (old): " + fam);
+      throw new SketchesArgumentException("Family must be COMPACT or SET_SKETCH (old): " + fam);
     }
     int serVer = skMem.getByte(SER_VER_BYTE);
     if (serVer == 1) { //older SetSketch, which is compact and ordered
@@ -230,7 +231,7 @@ class UnionImpl extends SetOperation implements Union {
       if (cap <= 8) return; //empty
       processVer3(skMem);
     }
-    else throw new IllegalArgumentException("SerVer is unknown: "+serVer);
+    else throw new SketchesArgumentException("SerVer is unknown: "+serVer);
   }
   
   @Override

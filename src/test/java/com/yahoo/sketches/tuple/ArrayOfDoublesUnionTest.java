@@ -7,6 +7,7 @@ package com.yahoo.sketches.tuple;
 import org.testng.annotations.Test;
 import org.testng.Assert;
 
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.NativeMemory;
 
 public class ArrayOfDoublesUnionTest {
@@ -274,7 +275,7 @@ public class ArrayOfDoublesUnionTest {
     Assert.assertEquals(values[2][0], 3.0);
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void incompatibleSeeds() {
     ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(1).build();
     ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().setSeed(2).buildUnion();

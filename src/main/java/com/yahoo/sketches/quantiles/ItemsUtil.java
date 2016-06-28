@@ -11,6 +11,8 @@ import static java.lang.System.arraycopy;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import com.yahoo.sketches.SketchesArgumentException;
+
 /**
  * Utility class for generic quantiles sketch.
  * 
@@ -35,7 +37,7 @@ final class ItemsUtil {
           comparator.compare(values[j], values[j + 1]) < 0) {
         continue;
       }
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Values must be unique, monotonically increasing and not null.");
     }
   }
@@ -200,7 +202,7 @@ final class ItemsUtil {
     final int sourceK = src.getK();
 
     if ((sourceK % targetK) != 0) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "source.getK() must equal target.getK() * 2^(nonnegative integer).");
     }
 

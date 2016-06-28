@@ -5,6 +5,7 @@
 package com.yahoo.sketches.tuple;
 
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
@@ -67,7 +68,7 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
    */
   public ArrayOfDoublesUpdatableSketchBuilder setSamplingProbability(final float samplingProbability) {
     if (samplingProbability < 0 || samplingProbability > 1f) {
-      throw new IllegalArgumentException("sampling probability must be between 0 and 1");
+      throw new SketchesArgumentException("sampling probability must be between 0 and 1");
     }
     samplingProbability_ = samplingProbability;
     return this;

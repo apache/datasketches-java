@@ -13,6 +13,7 @@ import static com.yahoo.sketches.Util.*;
 import static java.lang.Math.max;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 
@@ -68,7 +69,7 @@ public abstract class SetOperation {
         return new HeapIntersection(srcMem, seed);
       }
       default: {
-        throw new IllegalArgumentException("SetOperation cannot heapify family: "+family.toString());
+        throw new SketchesArgumentException("SetOperation cannot heapify family: "+family.toString());
       }
     }
   }
@@ -100,7 +101,7 @@ public abstract class SetOperation {
     byte famID = srcMem.getByte(FAMILY_BYTE);
     Family family = idToFamily(famID);
     int serVer = srcMem.getByte(SER_VER_BYTE);
-    if (serVer != 3) throw new IllegalArgumentException("SerVer must be 3: "+serVer);
+    if (serVer != 3) throw new SketchesArgumentException("SerVer must be 3: "+serVer);
     switch(family) {
       case UNION : {
         return UnionImpl.wrapInstance(srcMem, seed);
@@ -109,7 +110,7 @@ public abstract class SetOperation {
         return new DirectIntersection(srcMem, seed);
       }
       default:
-        throw new IllegalArgumentException("SetOperation cannot wrap family: "+family.toString());
+        throw new SketchesArgumentException("SetOperation cannot wrap family: "+family.toString());
     }
   }
 

@@ -8,6 +8,7 @@ package com.yahoo.sketches.theta;
 import static com.yahoo.sketches.theta.PreambleUtil.*;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 
 /**
@@ -249,7 +250,7 @@ public final class Sketches {
   static void checkIfValidThetaSketch(Memory srcMem) {
     int fam = srcMem.getByte(FAMILY_BYTE);
     if (!Sketch.isValidSketchID(fam)) {
-     throw new IllegalArgumentException("Source Memory not a valid Sketch. Family: "+
+     throw new SketchesArgumentException("Source Memory not a valid Sketch. Family: "+
        Family.idToFamily(fam).toString()); 
     }
   }

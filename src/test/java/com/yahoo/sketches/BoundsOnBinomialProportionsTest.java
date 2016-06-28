@@ -97,23 +97,23 @@ public class BoundsOnBinomialProportionsTest {
   public void checkInputs() {
     try {
       estimateUnknownP(-1, 50);
-      fail("Should have thrown IllegalArgumentException.");
+      fail("Should have thrown SketchesArgumentException.");
     }
-    catch (IllegalArgumentException e) {
+    catch (SketchesArgumentException e) {
       //expected
     }
     try {
       estimateUnknownP(500, -50);
-      fail("Should have thrown IllegalArgumentException.");
+      fail("Should have thrown SketchesArgumentException.");
     }
-    catch (IllegalArgumentException e) {
+    catch (SketchesArgumentException e) {
       //expected
     }
     try {
       estimateUnknownP(500, 5000);
-      fail("Should have thrown IllegalArgumentException.");
+      fail("Should have thrown SketchesArgumentException.");
     }
-    catch (IllegalArgumentException e) {
+    catch (SketchesArgumentException e) {
       //expected
     }
     assertEquals(estimateUnknownP(0, 0), 0.5, 0.0);

@@ -24,6 +24,7 @@ import org.testng.annotations.Test;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.theta.CompactSketch;
@@ -37,7 +38,7 @@ import com.yahoo.sketches.theta.UpdateSketch;
 public class HeapQuickSelectSketchTest {
   private Family fam_ = QUICKSELECT;
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
     int k = 512;
     int u = k;
@@ -60,7 +61,7 @@ public class HeapQuickSelectSketchTest {
     Sketch.heapify(mem, seed);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkIllegalSketchID_UpdateSketch() {
     int k = 512;
     int u = k;
@@ -82,7 +83,7 @@ public class HeapQuickSelectSketchTest {
     Sketch.heapify(mem, seed);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifySeedConflict() {
     int k = 512;
     long seed1 = 1021;
@@ -93,7 +94,7 @@ public class HeapQuickSelectSketchTest {
     Sketch.heapify(srcMem, seed2);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyCorruptLgNomLongs() {
     UpdateSketch usk = UpdateSketch.builder().build(16);
     Memory srcMem = new NativeMemory(usk.toByteArray());
@@ -487,7 +488,7 @@ public class HeapQuickSelectSketchTest {
     assertFalse(sk1.isOrdered());
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkNegativeHashes() {
     int k = 512;
     UpdateSketch qs = UpdateSketch.builder().setFamily(QUICKSELECT).build(k);
@@ -525,7 +526,7 @@ public class HeapQuickSelectSketchTest {
       mem.putDouble(16, 0.5); //Corrupt the theta value
       HeapQuickSelectSketch.getInstance(mem, DEFAULT_UPDATE_SEED);
       fail();
-    } catch (IllegalArgumentException e) {
+    } catch (SketchesArgumentException e) {
       //expected
     }
     mem.putDouble(16, 1.0); //restore theta
@@ -535,7 +536,7 @@ public class HeapQuickSelectSketchTest {
     try {
       HeapQuickSelectSketch.getInstance(mem2, DEFAULT_UPDATE_SEED);
       fail();
-    } catch (IllegalArgumentException e) {
+    } catch (SketchesArgumentException e) {
       //expected
     }
   }
@@ -545,7 +546,7 @@ public class HeapQuickSelectSketchTest {
       mem.putByte(byteOffset, (byte) byteValue); //Corrupt
       HeapQuickSelectSketch.getInstance(mem, DEFAULT_UPDATE_SEED);
       fail();
-    } catch (IllegalArgumentException e) {
+    } catch (SketchesArgumentException e) {
       //expected
     }
   }

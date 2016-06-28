@@ -10,6 +10,7 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -265,7 +266,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
 
   private static void checkIfEnoughMemory(final Memory mem, final int numEntries, final int numValues) {
     final int sizeNeeded = ENTRIES_START + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues) * numEntries;
-    if (sizeNeeded > mem.getCapacity()) throw new IllegalArgumentException("Not enough memory: need " + sizeNeeded + " bytes, got " + mem.getCapacity() + " bytes");
+    if (sizeNeeded > mem.getCapacity()) throw new SketchesArgumentException("Not enough memory: need " + sizeNeeded + " bytes, got " + mem.getCapacity() + " bytes");
   }
 
 }

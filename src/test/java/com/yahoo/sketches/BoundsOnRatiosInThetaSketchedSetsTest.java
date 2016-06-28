@@ -50,7 +50,7 @@ public class BoundsOnRatiosInThetaSketchedSetsTest {
     println("lb : "+lb);
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkAbnormalReturns() {
     UpdateSketch skA = Sketches.updateSketchBuilder().build(); //4K
     UpdateSketch skC = Sketches.updateSketchBuilder().build();

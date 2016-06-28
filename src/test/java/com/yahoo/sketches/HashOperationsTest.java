@@ -19,38 +19,38 @@ public class HashOperationsTest {
   
   //Not otherwise already covered
   
-  @Test(expectedExceptions = IllegalStateException.class)
+  @Test(expectedExceptions = SketchesStateException.class)
   public void testThetaCorruption1() {
     checkThetaCorruption(0);
   }
   
-  @Test(expectedExceptions = IllegalStateException.class)
+  @Test(expectedExceptions = SketchesStateException.class)
   public void testThetaCorruption2() {
     checkThetaCorruption(-1);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void testHashCorruption() {
     checkHashCorruption(-1);
   }
   
-  @Test(expectedExceptions = IllegalStateException.class)
+  @Test(expectedExceptions = SketchesStateException.class)
   public void testHashAndThetaCorruption1() {
     checkHashAndThetaCorruption(1, 1); //pass
     checkHashAndThetaCorruption(0, 0); //theta = 0 fails
   }
   
-  @Test(expectedExceptions = IllegalStateException.class)
+  @Test(expectedExceptions = SketchesStateException.class)
   public void testHashAndThetaCorruption2() {
     checkHashAndThetaCorruption(-1, 0); //theta = -1 fails 
   }
   
-  @Test(expectedExceptions = IllegalStateException.class)
+  @Test(expectedExceptions = SketchesStateException.class)
   public void testHashAndThetaCorruption3() {
     checkHashAndThetaCorruption(1, -1); //hash = -1 fails
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHashSearch() {
     hashSearch(new long[4], 2, 0);
   }

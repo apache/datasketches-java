@@ -14,6 +14,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -61,21 +62,21 @@ public class PreambleUtilTest {
     byte[] byteArr = new byte[7];
     try { //check preLongs < 8 fails
       PreambleUtil.preambleToString(byteArr);
-      fail("Did not throw IllegalArgumentException.");
-    } catch (IllegalArgumentException e) {
+      fail("Did not throw SketchesArgumentException.");
+    } catch (SketchesArgumentException e) {
       //expected
     }
     byteArr = new byte[8];
     byteArr[0] = (byte) 2; //needs min capacity of 16
     try { //check preLongs == 2 fails
       PreambleUtil.preambleToString(byteArr);
-      fail("Did not throw IllegalArgumentException.");
-    } catch (IllegalArgumentException e) {
+      fail("Did not throw SketchesArgumentException.");
+    } catch (SketchesArgumentException e) {
       //expected
     }
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSeedHashFromSeed() {
     //In the first 64K values 50541 produces a seedHash of 0, 
     Util.computeSeedHash(50541);

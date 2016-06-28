@@ -1,6 +1,7 @@
 package com.yahoo.sketches.hll;
 
 import com.yahoo.sketches.hll.Preamble.Builder;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;
@@ -51,12 +52,12 @@ public class PreambleTest
 
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void testSharedPreambleTooLarge() {
     Preamble.fromLogK(256);
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void testSharedPreambleTooLarge2() {
     Preamble.fromLogK(50);
   }
@@ -71,7 +72,7 @@ public class PreambleTest
     Assert.assertFalse(preamble.equals(null));
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkIntoByteArray() {
     Preamble preamble = new Preamble.Builder()
         .setLogConfigK((byte) 10)
@@ -82,7 +83,7 @@ public class PreambleTest
     preamble.intoByteArray(bytes, initOffset);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSeedHashFromSeed() {
     Builder bldr = new Preamble.Builder();
     //In the first 64K values 50541 produces a seedHash of 0, 

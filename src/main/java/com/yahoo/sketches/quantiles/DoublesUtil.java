@@ -11,6 +11,7 @@ import static java.lang.System.arraycopy;
 
 import java.util.Arrays;
 
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 
 /**
@@ -30,7 +31,7 @@ final class DoublesUtil {
     final int lenM1 = values.length - 1;
     for (int j = 0; j < lenM1; j++) {
       if (values[j] < values[j + 1]) continue;
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "Values must be unique, monotonically increasing and not NaN.");
     }
   }
@@ -187,7 +188,7 @@ final class DoublesUtil {
     final int sourceK = src.getK();
 
     if ((sourceK % targetK) != 0) {
-      throw new IllegalArgumentException(
+      throw new SketchesArgumentException(
           "source.getK() must equal target.getK() * 2^(nonnegative integer).");
     }
 

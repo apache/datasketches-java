@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -284,13 +285,13 @@ public class HeapDoublesSketchTest {
     assertEquals(qs.getN(), 0);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkConstructorException() {
     @SuppressWarnings("unused")
     DoublesSketch qs = DoublesSketch.builder().build(0);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkGetQuantiles() {
     int k = DoublesSketch.DEFAULT_K;
     int n = 1000000;
@@ -299,7 +300,7 @@ public class HeapDoublesSketchTest {
     qs.getQuantiles(frac);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkGetQuantile() {
     int k = DoublesSketch.DEFAULT_K;
     int n = 1000000;
@@ -339,7 +340,7 @@ public class HeapDoublesSketchTest {
     assertEquals(bitP, n/(2L*k));
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkValidateSplitPoints() {
     double[] arr = {2, 1};
     Util.validateFractions(arr);
@@ -462,7 +463,7 @@ public class HeapDoublesSketchTest {
     //println(qs1.toString(true, true));
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkMemTooSmall1() {
     Memory mem = new NativeMemory(new byte[7]);
     @SuppressWarnings("unused")
@@ -470,17 +471,17 @@ public class HeapDoublesSketchTest {
   }
   
   //Corruption tests
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkSerVer() {
     Util.checkSerVer(0);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkFamilyID() {
     Util.checkFamilyID(3);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBufAllocAndCap() {
     int k = DoublesSketch.DEFAULT_K;
     long n = 1000;
@@ -490,7 +491,7 @@ public class HeapDoublesSketchTest {
     Util.checkMemCapacity(badCapItems, memCapBytes);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkIllegalSketchType() {
     int k = DoublesSketch.DEFAULT_K;
     DoublesSketch qs1 = buildQS(k, 0);
@@ -500,7 +501,7 @@ public class HeapDoublesSketchTest {
     HeapDoublesSketch.getInstance(mem);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBufAllocAndCap2() {
     int k = DoublesSketch.DEFAULT_K;
     long n = 1000;
@@ -509,7 +510,7 @@ public class HeapDoublesSketchTest {
     Util.checkMemCapacity(combBufItemCap, memCap - 1); //corrupt
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkPreLongsFlagsCap() {
     int preLongs = 5;
     int flags = EMPTY_FLAG_MASK;
@@ -517,7 +518,7 @@ public class HeapDoublesSketchTest {
     Util.checkPreLongsFlagsCap(preLongs, flags,  memCap); //corrupt
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkPreLongsFlagsCap2() {
     int preLongs = 5;
     int flags = 0;
@@ -525,7 +526,7 @@ public class HeapDoublesSketchTest {
     Util.checkPreLongsFlagsCap(preLongs, flags,  memCap); //corrupt
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkFlags() {
     int flags = 1;
     Util.checkFlags(flags);
@@ -540,7 +541,7 @@ public class HeapDoublesSketchTest {
     HeapDoublesSketch.getInstance(mem);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadDownSamplingRatio() {
     int k1 = 64;
     DoublesSketch qs1 = buildQS(k1, k1);
@@ -647,21 +648,21 @@ public class HeapDoublesSketchTest {
     }
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void testDownSamplingExceptions1() {
     DoublesSketch qs1 = DoublesSketch.builder().build(4); // not smaller
     DoublesSketch qs2 = DoublesSketch.builder().build(3);
     HeapDoublesUnion.mergeInto(qs2, qs1);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void testDownSamplingExceptions2() {
     DoublesSketch qs1 = DoublesSketch.builder().build(4);
     DoublesSketch qs2 = DoublesSketch.builder().build(7); // 7/4 not pwr of 2
     HeapDoublesUnion.mergeInto(qs2, qs1);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void testDownSamplingExceptions3() {
     DoublesSketch qs1 = DoublesSketch.builder().build(4);
     DoublesSketch qs2 = DoublesSketch.builder().build(12); // 12/4 not pwr of 2
@@ -745,7 +746,7 @@ public class HeapDoublesSketchTest {
     assertEquals(qs1.getMaxValue(), qs2.getMaxValue(), 0.0);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkPutMemoryTooSmall() {
     DoublesSketch qs1 = DoublesSketch.builder().build(); //k = 128
     for (int i=0; i<1000; i++) qs1.update(i);
@@ -790,7 +791,7 @@ public class HeapDoublesSketchTest {
     assertEquals(values[10], 1000.0, 0.0);
   }
   
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkEvenlySpacedQuantilesException() {
     DoublesSketch qsk = buildQS(32, 1001);
     qsk.getQuantiles(1);
@@ -827,19 +828,19 @@ public class HeapDoublesSketchTest {
     try {
       DoublesSketch.builder().setK(k);
       fail(s);
-    } catch (IllegalArgumentException e) {
+    } catch (SketchesArgumentException e) {
       //pass
     }
     try {
       DoublesSketch.builder().build(k);
       fail(s);
-    } catch (IllegalArgumentException e) {
+    } catch (SketchesArgumentException e) {
       //pass
     }
     try {
       HeapDoublesSketch.getInstance(k);
       fail(s);
-    } catch (IllegalArgumentException e) {
+    } catch (SketchesArgumentException e) {
       //pass
     }
   }
