@@ -50,6 +50,7 @@
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
 
+<!--  
   <repositories>
     <repository>
       <id>central</id>
@@ -57,13 +58,13 @@
       <url>http://jcenter.bintray.com</url>
     </repository>
   </repositories>
-
+-->
   <dependencies>
     <!-- Test Scope -->
     <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
-      <version>6.9.12</version>
+      <version>6.9.10</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
