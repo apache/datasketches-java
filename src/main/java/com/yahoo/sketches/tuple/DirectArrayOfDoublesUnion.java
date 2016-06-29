@@ -1,7 +1,8 @@
 /*
- * Copyright 2015, Yahoo! Inc.
+ * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.tuple;
 
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
@@ -9,8 +10,10 @@ import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import com.yahoo.sketches.memory.Memory;
 
 /**
- * This implementation keeps data in a given memory.
- * The purpose is to avoid garbage collection.
+ * Direct Union operation for tuple sketches of type ArrayOfDoubles.
+ * <p>This implementation uses data in a given Memory that is owned and managed by the caller.
+ * This Memory can be off-heap, which if managed properly will greatly reduce the need for
+ * the JVM to perform garbage collection.</p>
  */
 class DirectArrayOfDoublesUnion extends ArrayOfDoublesUnion {
 

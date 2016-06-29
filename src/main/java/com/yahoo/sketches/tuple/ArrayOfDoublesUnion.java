@@ -1,18 +1,14 @@
 /*
- * Copyright 2015, Yahoo! Inc.
+ * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.tuple;
 
 import com.yahoo.sketches.memory.Memory;
 
 /**
- * This is a base class for unions of ArrayOfDoublesSketch.
- * It is supposed to maintain a hash table based sketch to represent the union,
- * and maintain one more theta outside of the sketch, which can get smaller
- * than theta in the sketch, so that it can be taken into account at the very end
- * in getResult(). This is done for performance since we cannot lower the theta
- * inside the sketch without an expensive rebuild.
+ * The base class for unions of tuple sketches of type ArrayOfDoubles.
  */
 public abstract class ArrayOfDoublesUnion {
   final int nomEntries_;

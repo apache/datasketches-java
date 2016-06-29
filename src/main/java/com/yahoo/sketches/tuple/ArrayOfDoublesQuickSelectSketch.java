@@ -1,7 +1,8 @@
 /*
- * Copyright 2015, Yahoo! Inc.
+ * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.tuple;
 
 import com.yahoo.sketches.QuickSelect;
@@ -12,15 +13,14 @@ import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
 /**
- * Top level class for hash table based implementation, which uses quick select algorithm
- * when the time comes to rebuild the hash table and throw away some entries.
+ * Top level class for hash table based implementations of tuple sketch of type
+ * ArrayOfDoubles that uses the QuickSelect algorithm.
  */
 abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSketch {
 
   static final byte serialVersionUID = 1;
 
   // Layout of next 16 bytes:
-  // <pre>
   // Long || Start Byte Adr:
   // Adr: 
   //      ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |    16     |

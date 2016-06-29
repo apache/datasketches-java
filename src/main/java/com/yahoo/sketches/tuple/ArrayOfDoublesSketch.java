@@ -1,14 +1,17 @@
 /*
- * Copyright 2015, Yahoo! Inc.
+ * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.tuple;
 
 import com.yahoo.sketches.BinomialBoundsN;
 
 /**
- * This is a base class for a specialized version of a tuple sketch, where an array of double values is associated with each key.
- * A primitive array is used here, as opposed to a generic Summary object, for performance reasons.
+ * The base class for the tuple sketch of type ArrayOfDoubles, where an array of double values 
+ * is associated with each key.
+ * A primitive array of doubles is used here, as opposed to a generic Summary object, 
+ * for improved performance.
  */
 public abstract class ArrayOfDoublesSketch {
 
@@ -20,7 +23,6 @@ public abstract class ArrayOfDoublesSketch {
   static final int SIZE_OF_VALUE_BYTES = 8;
   
   // Common Layout of first 16 bytes:
-  // <pre>
   // Long || Start Byte Adr:
   // Adr: 
   //      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |

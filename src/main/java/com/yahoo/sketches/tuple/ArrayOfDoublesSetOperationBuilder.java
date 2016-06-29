@@ -1,3 +1,8 @@
+/*
+ * Copyright 2015-16, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
+
 package com.yahoo.sketches.tuple;
 
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
@@ -5,7 +10,7 @@ import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import com.yahoo.sketches.memory.Memory;
 
 /**
- * For building set operations
+ * Builds set operations object for tuple sketches of type ArrayOfDoubles.
  */
 public class ArrayOfDoublesSetOperationBuilder {
 

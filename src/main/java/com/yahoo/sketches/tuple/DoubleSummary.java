@@ -1,13 +1,15 @@
 /*
- * Copyright 2015, Yahoo! Inc.
+ * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.tuple;
 
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
 /**
+ * Summary for tuple sketches of generic type Double.
  * This summary keeps a double value. On update a predefined operation is performed depending on the mode.
  * Three modes are supported: Sum, Min and Max. The default mode is Sum.
  */

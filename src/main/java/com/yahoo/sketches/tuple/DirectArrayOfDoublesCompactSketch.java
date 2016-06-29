@@ -1,7 +1,8 @@
 /*
- * Copyright 2015, Yahoo! Inc.
+ * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.tuple;
 
 import java.nio.ByteOrder;
@@ -14,8 +15,10 @@ import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
 /**
- * This implementation keeps the data in a given memory, which is owned by the user.
- * The purpose is to avoid garbage collection.
+ * Direct Compact Sketch of type ArrayOfDoubles.
+ * <p>This implementation uses data in a given Memory that is owned and managed by the caller.
+ * This Memory can be off-heap, which if managed properly will greatly reduce the need for
+ * the JVM to perform garbage collection.</p>
  */
 class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
 

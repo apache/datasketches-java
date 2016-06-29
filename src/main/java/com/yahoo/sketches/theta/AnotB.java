@@ -2,12 +2,14 @@
  * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.theta;
 
 import com.yahoo.sketches.memory.Memory;
 
 /**
- * The API for AnotB operations. This is essentially a stateless operation. However to make the API
+ * The API for the set difference operation <i>A and not B</i> operations. 
+ * This is a stateless operation. However, to make the API
  * more consistent with the other set operations the intended use is:
  * <pre><code>
  * AnotB aNotB = SetOperationBuilder.buildAnotB();

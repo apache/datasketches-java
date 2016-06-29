@@ -1,7 +1,8 @@
 /*
- * Copyright 2015, Yahoo! Inc.
+ * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.tuple;
 
 import com.yahoo.sketches.memory.Memory;
@@ -9,7 +10,7 @@ import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.tuple.DoubleSummary.Mode;
 
 /**
- * This is a factory for DoubleSummary. It supports three modes of operation of DoubleSummary:
+ * Factory for DoubleSummary. It supports three modes of operation of DoubleSummary:
  * Sum, Min and Max.
  */
 public class DoubleSummaryFactory implements SummaryFactory<DoubleSummary> {

@@ -1,7 +1,8 @@
 /*
- * Copyright 2015, Yahoo! Inc.
+ * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.tuple;
 
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
@@ -15,8 +16,10 @@ import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
 /**
- * This implementation keeps the data in a given memory.
- * It is generally slower than on-heap implementation, but allows to avoid garbage collection
+ * Direct QuickSelect tuple sketch of type ArrayOfDoubles.
+ * <p>This implementation uses data in a given Memory that is owned and managed by the caller.
+ * This Memory can be off-heap, which if managed properly will greatly reduce the need for
+ * the JVM to perform garbage collection.</p>
  */
 class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketch {
 
@@ -40,7 +43,8 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @param dstMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
-  DirectArrayOfDoublesQuickSelectSketch(final int nomEntries, final int lgResizeFactor, final float samplingProbability, final int numValues, final long seed, final Memory dstMem) {
+  DirectArrayOfDoublesQuickSelectSketch(final int nomEntries, final int lgResizeFactor, 
+      final float samplingProbability, final int numValues, final long seed, final Memory dstMem) {
     super(numValues, seed);
     mem_ = dstMem;
     final int startingCapacity = 1 << Util.startingSubMultiple(

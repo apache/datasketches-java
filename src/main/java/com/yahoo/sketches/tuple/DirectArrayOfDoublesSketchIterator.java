@@ -1,13 +1,17 @@
 /*
- * Copyright 2015, Yahoo! Inc.
+ * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.tuple;
 
 import com.yahoo.sketches.memory.Memory;
 
 /**
- * Iterator over the off-heap ArrayOfDoublesSketch (compact or hash table)
+ * Iterator over the off-heap, Direct tuple sketch of type ArrayOfDoubles (compact or hash table).
+ * <p>This implementation uses data in a given Memory that is owned and managed by the caller.
+ * This Memory can be off-heap, which if managed properly will greatly reduce the need for
+ * the JVM to perform garbage collection.</p>
  */
 class DirectArrayOfDoublesSketchIterator implements ArrayOfDoublesSketchIterator {
 

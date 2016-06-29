@@ -1,16 +1,15 @@
 /*
- * Copyright 2015, Yahoo! Inc.
+ * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
-package com.yahoo.sketches.tuple;
 
-/**
- * The top level for updatable sketches
- */
+package com.yahoo.sketches.tuple;
 
 import com.yahoo.sketches.hash.MurmurHash3;
 import com.yahoo.sketches.memory.Memory;
-
+/**
+ * The top level for updatable tuple sketches of type ArrayOfDoubles.
+ */
 public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch {
 
   final long seed_;

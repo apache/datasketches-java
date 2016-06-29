@@ -1,7 +1,8 @@
 /*
- * Copyright 2015, Yahoo! Inc.
+ * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.tuple;
 
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
@@ -10,7 +11,7 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 
 /**
- * This is to compute a set difference of two tuple sketches
+ * Computes a set difference of two generic tuple sketches
  * @param <S> Type of Summary
  */
 public class AnotB<S extends Summary> {

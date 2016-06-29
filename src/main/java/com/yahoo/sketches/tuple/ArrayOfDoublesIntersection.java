@@ -1,7 +1,8 @@
 /*
- * Copyright 2015, Yahoo! Inc.
+ * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.tuple;
 
 import static java.lang.Math.min;
@@ -10,7 +11,7 @@ import com.yahoo.sketches.SketchesStateException;
 import com.yahoo.sketches.memory.Memory;
 
 /**
- * This is to compute an intersection of two or more sketches.
+ * Computes the intersection of two or more tuple sketches of type ArrayOfDoubles.
  * A new instance represents the Universal Set.
  * Every update() computes an intersection with the internal set
  * and can only reduce the internal set.
