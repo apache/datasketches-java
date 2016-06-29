@@ -1,3 +1,8 @@
+/*
+ * Copyright 2015-16, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
+
 /**
  * <p>The theta package contains all the sketch classes that are members of the 
  * <a href="{@docRoot}/resources/dictionary.html#thetaSketch">Theta Sketch Framework</a>.  
