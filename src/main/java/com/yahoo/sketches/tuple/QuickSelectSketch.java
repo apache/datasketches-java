@@ -2,6 +2,7 @@
  * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.tuple;
 
 import java.lang.reflect.Array;
@@ -17,7 +18,7 @@ import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
- * This is a hash table based implementation of a tuple sketch.
+ * A generic tuple sketch using the QuickSelect algorithm.
  *
  * @param <S> type of Summary
  */

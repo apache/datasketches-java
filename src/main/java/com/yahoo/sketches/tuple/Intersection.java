@@ -11,7 +11,7 @@ import java.lang.reflect.Array;
 import com.yahoo.sketches.SketchesStateException;
 
 /**
- * This is to compute an intersection of two or more tuple sketches.
+ * Computes an intersection of two or more generic tuple sketches.
  * A new instance represents the Universal Set.
  * Every update() computes an intersection with the internal set
  * and can only reduce the internal set.

@@ -9,7 +9,8 @@ import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import com.yahoo.sketches.memory.Memory;
 
 /**
- * This is on-heap implementation
+ * The on-heap implementation of the Union set operation for tuple sketches of type
+ * ArrayOfDoubles.
  */
 class HeapArrayOfDoublesUnion extends ArrayOfDoublesUnion {
 

@@ -6,7 +6,8 @@
 package com.yahoo.sketches.tuple;
 
 /**
- * On-heap implementation
+ * On-heap implementation of intersection set operation for tuple sketches of type
+ * ArrayOfDoubles.
  */
 class HeapArrayOfDoublesIntersection extends ArrayOfDoublesIntersection {
 

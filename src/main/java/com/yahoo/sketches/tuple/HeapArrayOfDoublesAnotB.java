@@ -13,7 +13,8 @@ import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
 /**
- * This is an on-heap implementation
+ * The on-heap implementation of the set difference operation <i>A and not B</i> for
+ * tuple sketches of type ArrayOfDoubles.
  */
 class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
 

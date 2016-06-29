@@ -8,7 +8,7 @@ package com.yahoo.sketches.tuple;
 import com.yahoo.sketches.memory.Memory;
 
 /**
- * Convenient static methods to instantiate sketches.
+ * Convenient static methods to instantiate generic tuple sketches.
  */
 public final class Sketches {
 

@@ -9,7 +9,7 @@ import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
 /**
- * Summary for tuple sketches of generic type Double.
+ * Summary for generic tuple sketches of type Double.
  * This summary keeps a double value. On update a predefined operation is performed depending on the mode.
  * Three modes are supported: Sum, Min and Max. The default mode is Sum.
  */

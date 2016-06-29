@@ -2,10 +2,11 @@
  * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.tuple;
 
 /**
- * Iterator over a Sketch
+ * Iterator over a generic tuple sketch
  * @param <S> Type of Summary
  */
 public class SketchIterator<S extends Summary> {

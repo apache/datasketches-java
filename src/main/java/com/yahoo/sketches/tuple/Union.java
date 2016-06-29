@@ -2,10 +2,11 @@
  * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.tuple;
 
 /**
- * This is to compute a union of two or more tuple sketches.
+ * Compute a union of two or more tuple sketches.
  * A new instance represents an empty set.
  * Every update() computes a union with the internal set
  * and can only grow the internal set.

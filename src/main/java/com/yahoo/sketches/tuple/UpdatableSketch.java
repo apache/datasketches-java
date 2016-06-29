@@ -2,6 +2,7 @@
  * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.tuple;
 
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
@@ -10,7 +11,7 @@ import com.yahoo.sketches.hash.MurmurHash3;
 import com.yahoo.sketches.memory.Memory;
 
 /**
- * This is an extension of QuickSelectSketch, which can be updated with many types of keys.
+ * An extension of QuickSelectSketch, which can be updated with many types of keys.
  * Summary objects are created using a user-defined SummaryFactory class,
  * which should allow very flexible parameterization if needed.
  * Keys are presented to a sketch along with values of a user-defined

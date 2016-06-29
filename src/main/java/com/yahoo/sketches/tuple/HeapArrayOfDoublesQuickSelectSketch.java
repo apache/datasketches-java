@@ -6,7 +6,7 @@
 package com.yahoo.sketches.tuple;
 
 /**
- * This is on-heap implementation
+ * The on-heap implementation of the tuple QuickSelect sketch of type ArrayOfDoubles. 
  */
 
 import java.nio.ByteOrder;

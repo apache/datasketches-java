@@ -15,7 +15,7 @@ import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
 /**
- * This is on-heap implementation.
+ * The on-heap implementation of tuple Compact Sketch of type ArrayOfDoubles.
  */
 class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
 

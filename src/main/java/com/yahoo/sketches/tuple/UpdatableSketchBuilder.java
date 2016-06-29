@@ -2,13 +2,14 @@
  * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.tuple;
 
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
- * For building a new UpdatableSketch
+ * For building a new generic tuple UpdatableSketch
  * @param <U> Type of update value
  * @param <S> Type of Summary
  */
