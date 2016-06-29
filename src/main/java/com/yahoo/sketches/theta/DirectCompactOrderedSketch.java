@@ -2,6 +2,7 @@
  * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
@@ -20,6 +21,10 @@ import com.yahoo.sketches.memory.Memory;
 /**
  * An off-heap (Direct), compact, ordered, read-only sketch. This sketch may be associated
  * with Serial Versions 1, 2, or 3.
+ * 
+ * <p>This implementation uses data in a given Memory that is owned and managed by the caller.
+ * This Memory can be off-heap, which if managed properly will greatly reduce the need for
+ * the JVM to perform garbage collection.</p>
  * 
  * @author Lee Rhodes
  */

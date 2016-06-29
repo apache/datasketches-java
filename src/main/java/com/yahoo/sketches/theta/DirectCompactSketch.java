@@ -12,6 +12,10 @@ import com.yahoo.sketches.memory.Memory;
  * An off-heap (Direct), compact, unordered, read-only sketch.  This sketch can only be associated
  * with a Serialization Version 3 format binary image.
  * 
+ * <p>This implementation uses data in a given Memory that is owned and managed by the caller.
+ * This Memory can be off-heap, which if managed properly will greatly reduce the need for
+ * the JVM to perform garbage collection.</p>
+ * 
  * @author Lee Rhodes
  */
 class DirectCompactSketch extends CompactSketch {

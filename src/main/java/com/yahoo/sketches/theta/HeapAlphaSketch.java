@@ -2,6 +2,7 @@
  * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.HashOperations.STRIDE_MASK;
@@ -43,7 +44,7 @@ import com.yahoo.sketches.Util;
  * This sketch uses the 
  * <a href="{@docRoot}/resources/dictionary.html#thetaSketch">Theta Sketch Framework</a>
  * and the 
- * <a href="{@docRoot}/resources/dictionary.html#alphaTCF">Alpha TCF</a>
+ * <a href="{@docRoot}/resources/dictionary.html#alphaTCF">Alpha TCF</a> algorithm
  * with a single cache.
  * 
  * @author Lee Rhodes
