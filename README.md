@@ -8,6 +8,7 @@
 
 ## [Documentation](http://datasketches.github.io)
 
+## [Latest Release](https://github.com/DataSketches/sketches-core/releases)
 
 ## [Comments](https://groups.google.com/forum/#!forum/sketches-user)
 
