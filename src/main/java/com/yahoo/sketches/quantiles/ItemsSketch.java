@@ -599,8 +599,11 @@ public class ItemsSketch<T> {
   }
 
   private void putValidItemsPlusMinAndMax(T[] validItems) {
-    System.arraycopy(validItems, 0, combinedBuffer_, 0, baseBufferCount_);
-    int index = baseBufferCount_;
+    int index = 0;
+    minValue_ = validItems[index++];
+    maxValue_ = validItems[index++];
+    System.arraycopy(validItems, index, combinedBuffer_, 0, baseBufferCount_);
+    index += baseBufferCount_;
     long bits = getBitPattern();
     for (int level = 0; bits != 0L; level++, bits >>>= 1) {
       if ((bits & 1L) > 0L) {
@@ -608,8 +611,6 @@ public class ItemsSketch<T> {
         index += k_;
       }
     }
-    minValue_ = validItems[index++];
-    maxValue_ = validItems[index];
   }
 
   /**
@@ -624,8 +625,11 @@ public class ItemsSketch<T> {
     // 2 more for min and max values
     @SuppressWarnings("unchecked")
     final T[] validItems = (T[]) Array.newInstance(minValue_.getClass(), getRetainedItems() + 2);
-    System.arraycopy(combinedBuffer_, 0, validItems, 0, baseBufferCount_);
-    int index = baseBufferCount_;
+    int index = 0;
+    validItems[index++] = minValue_;
+    validItems[index++] = maxValue_;
+    System.arraycopy(combinedBuffer_, 0, validItems, index, baseBufferCount_);
+    index += baseBufferCount_;
     long bits = getBitPattern();
     for (int level = 0; bits != 0L; level++, bits >>>= 1) {
       if ((bits & 1L) > 0L) {
@@ -633,8 +637,6 @@ public class ItemsSketch<T> {
         index += k_;
       }
     }
-    validItems[index++] = minValue_;
-    validItems[index] = maxValue_;
     return validItems;
   }
 
