@@ -33,7 +33,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * Long || Start Byte Adr: Common for both DoublesSketch and ItemsSketch
  * Adr: 
  *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0          |
- *  0   ||--------|--type--|--------K--------|  Flags | FamID  | SerVer | Preamble_Longs |
+ *  0   ||------type-------|--------K--------|  Flags | FamID  | SerVer | Preamble_Longs |
  *  
  *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8          |
  *  1   ||-----------------------------------N_LONG--------------------------------------|
@@ -63,8 +63,7 @@ final class PreambleUtil {
   static final int FAMILY_BYTE                = 2;
   static final int FLAGS_BYTE                 = 3;
   static final int K_SHORT                    = 4;  //to 5
-  static final int SKETCH_TYPE_BYTE           = 6;
-  // byte 7 (not used)*8=
+  static final int SER_DE_ID_SHORT          = 6;  //to 7 
   static final int N_LONG                     = 8;  //to 15
   
   //After Preamble:
@@ -119,7 +118,7 @@ final class PreambleUtil {
     String nativeOrder = ByteOrder.nativeOrder().toString();
     boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
     int k = mem.getShort(K_SHORT);
-    byte type = mem.getByte(SKETCH_TYPE_BYTE);
+    short type = mem.getShort(SER_DE_ID_SHORT);
     
     long n;
     if (preLongs == 1) {
@@ -182,10 +181,10 @@ final class PreambleUtil {
     return (int) ((pre1 >>> shift) & mask);
   }
 
-  static byte extractSketchType(final long pre0) {
-    final int shift = SKETCH_TYPE_BYTE << 3;
-    final long mask = 0XFFL;
-    return (byte) ((pre0 >>> shift) & mask);
+  static short extractSerDeId(final long pre0) {
+    final int shift = SER_DE_ID_SHORT << 3;
+    final long mask = 0XFFFFL;
+    return (short) ((pre0 >>> shift) & mask);
   }
 
   static long insertPreLongs(final int preLongs, final long pre0) {
@@ -217,10 +216,10 @@ final class PreambleUtil {
     return ((k & mask) << shift) | (~(mask << shift) & pre0);
   }
 
-  static long insertSketchType(final byte sketchType, final long pre0) {
-    final int shift = SKETCH_TYPE_BYTE << 3;
-    final long mask = 0XFFL;
-    return ((sketchType & mask) << shift) | (~(mask << shift) & pre0);
+  static long insertSerDeId(final short serDeId, final long pre0) {
+    final int shift = SER_DE_ID_SHORT << 3;
+    final long mask = 0XFFFFL;
+    return ((serDeId & mask) << shift) | (~(mask << shift) & pre0);
   }
 
 }

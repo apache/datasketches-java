@@ -13,13 +13,13 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerVer;
-import static com.yahoo.sketches.quantiles.PreambleUtil.extractSketchType;
+import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerDeId;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertFamilyID;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertFlags;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertPreLongs;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerVer;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertSketchType;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerDeId;
 import static com.yahoo.sketches.quantiles.Util.computeBaseBufferItems;
 import static com.yahoo.sketches.quantiles.Util.computeBitPattern;
 
@@ -175,11 +175,11 @@ public class ItemsSketch<T> {
     final int familyID = extractFamilyID(pre0);
     final int flags = extractFlags(pre0);
     final int k = extractK(pre0);
-    final byte type = extractSketchType(pre0);
+    final short serDeId = extractSerDeId(pre0);
 
-    if (type != serDe.getType()) {
+    if (serDeId != serDe.getId()) {
       throw new SketchesArgumentException(
-          "Possible Corruption: Sketch Type incorrect: " + type + " != " + serDe.getType());
+          "Possible Corruption: serDeId incorrect: " + serDeId + " != " + serDe.getId());
     }
 
     final boolean empty = Util.checkPreLongsFlagsCap(preambleLongs, flags, memCapBytes);
@@ -501,7 +501,7 @@ public class ItemsSketch<T> {
     //other flags: bigEndian = false
     pre0 = insertFlags(flags, pre0);
     pre0 = insertK(k_, pre0);
-    pre0 = insertSketchType(serDe.getType(), pre0);
+    pre0 = insertSerDeId(serDe.getId(), pre0);
 
     final byte[] outArr = new byte[numOutBytes];
     final Memory memOut = new NativeMemory(outArr);

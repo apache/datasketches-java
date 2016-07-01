@@ -37,7 +37,7 @@ import com.yahoo.sketches.memory.Memory;
  *  * Long || Start Byte Adr:
  * Adr: 
  *      ||    7     |    6   |    5   |    4   |    3   |    2   |    1   |     0          |
- *  0   ||----------|--Type--|-Flags--|-LgCur--| LgMax  | FamID  | SerVer | PreambleLongs  |
+ *  0   ||--------Type-------|-Flags--|-LgCur--| LgMax  | FamID  | SerVer | PreambleLongs  |
  *      ||    15    |   14   |   13   |   12   |   11   |   10   |    9   |     8          |
  *  1   ||------------(unused)-----------------|--------ActiveItems------------------------|
  *      ||    23    |   22   |   21   |   20   |   19   |   18   |   17   |    16          |
@@ -62,7 +62,7 @@ final class PreambleUtil {
   static final int LG_MAX_MAP_SIZE_BYTE      = 3;
   static final int LG_CUR_MAP_SIZE_BYTE      = 4;
   static final int FLAGS_BYTE                = 5;
-  static final int FREQ_SKETCH_TYPE_BYTE     = 6;
+  static final int SER_DE_ID_SHORT           = 6;  // to 7
   static final int ACTIVE_ITEMS_INT          = 8;  // to 11 : 0 to 4 in pre1
   static final int STREAMLENGTH_LONG         = 16; // to 23 : pre2
   static final int OFFSET_LONG               = 24; // to 31 : pre3
@@ -90,7 +90,7 @@ final class PreambleUtil {
     final int lgMaxMapSize = extractLgMaxMapSize(pre0); //byte 3
     final int lgCurMapSize = extractLgCurMapSize(pre0); //byte 4
     final int flags = extractFlags(pre0);         //byte 5
-    final int type = extractFreqSketchType(pre0); //byte 6
+    final int type = extractSerDeId(pre0); //byte 6
 
     final String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
@@ -177,10 +177,10 @@ final class PreambleUtil {
     return (int) ((pre0 >>> shift) & mask);
   }
 
-  static int extractFreqSketchType(final long pre0) { //Byte 6
-    final int shift = FREQ_SKETCH_TYPE_BYTE << 3;
-    final long mask = 0XFFL;
-    return (int) ((pre0 >>> shift) & mask);
+  static short extractSerDeId(final long pre0) { //Byte 6,7
+    final int shift = SER_DE_ID_SHORT << 3;
+    final long mask = 0XFFFFL;
+    return (short) ((pre0 >>> shift) & mask);
   }
 
   static int extractActiveItems(final long pre1) { //Bytes 8 to 11
@@ -223,10 +223,10 @@ final class PreambleUtil {
     return ((flags & mask) << shift) | (~(mask << shift) & pre0);
   }
 
-  static long insertFreqSketchType(final int freqSketchType, final long pre0) { //Byte 6
-    final int shift = FREQ_SKETCH_TYPE_BYTE << 3;
-    final long mask = 0XFFL;
-    return ((freqSketchType & mask) << shift) | (~(mask << shift) & pre0);
+  static long insertSerDeId(final short serDeId, final long pre0) { //Byte 6,7
+    final int shift = SER_DE_ID_SHORT << 3;
+    final long mask = 0XFFFFL;
+    return ((serDeId & mask) << shift) | (~(mask << shift) & pre0);
   }
 
   static long insertActiveItems(final int activeItems, final long pre1) { //Bytes 8 to 11

@@ -13,7 +13,7 @@ import static com.yahoo.sketches.frequencies.PreambleUtil.extractActiveItems;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractLgCurMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractFamilyID;
-import static com.yahoo.sketches.frequencies.PreambleUtil.extractFreqSketchType;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractSerDeId;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractLgMaxMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractSerVer;
@@ -21,14 +21,16 @@ import static com.yahoo.sketches.frequencies.PreambleUtil.insertActiveItems;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertLgCurMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertFlags;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertFamilyID;
-import static com.yahoo.sketches.frequencies.PreambleUtil.insertFreqSketchType;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertSerDeId;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertLgMaxMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertPreLongs;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertSerVer;
+//import static com.yahoo.sketches.SerDeType.ARRAY_OF_LONGS;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
@@ -143,6 +145,7 @@ public class LongsSketch {
 
   private static final int STR_PREAMBLE_TOKENS = 7;
 
+  private static final short ARRAY_OF_LONGS_SERDE_ID = new ArrayOfLongsSerDe().getId();
   /**
    * Log2 Maximum length of the arrays internal to the hash map supported by the data 
    * structure.
@@ -174,8 +177,6 @@ public class LongsSketch {
    * Hash map mapping stored items to approximate counts
    */
   private ReversePurgeLongHashMap hashMap;
-
-  static final byte FREQ_LONGS_SKETCH_TYPE = 1;
 
   /**
    * Construct this sketch with the parameter maxMapSize and the default initialMapSize (8).
@@ -230,7 +231,7 @@ public class LongsSketch {
     final int lgMaxMapSize = extractLgMaxMapSize(pre0); //Byte 3
     final int lgCurMapSize = extractLgCurMapSize(pre0); //Byte 4
     final boolean empty = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0; //Byte 5
-    final int type = extractFreqSketchType(pre0);       //Byte 6
+    final int serDeId = extractSerDeId(pre0);           //Byte 6
 
     // Checks
     final boolean preLongsEq1 = (preLongs == 1);        //Byte 0
@@ -252,10 +253,10 @@ public class LongsSketch {
       throw new SketchesArgumentException(
           "Possible Corruption: (PreLongs == 1) ^ Empty == True.");
     }
-    if (type != FREQ_LONGS_SKETCH_TYPE) {                     //Byte 6
+    if (serDeId != ARRAY_OF_LONGS_SERDE_ID) {           //Byte 6,7
       throw new SketchesArgumentException(
-          "Possible Corruption: Freq Sketch Type incorrect: " + type + " != " + 
-              FREQ_LONGS_SKETCH_TYPE);
+          "Possible Corruption: serDeId incorrect: " + serDeId + " != " + 
+              ARRAY_OF_LONGS_SERDE_ID);
     }
 
     if (empty) {
@@ -322,7 +323,7 @@ public class LongsSketch {
           "Possible Corruption: (Empty ^ StreamLength=0) = true : Empty: " + empty + 
           ", strLen: " + streamLength);
     }
-    if (type != FREQ_LONGS_SKETCH_TYPE) {
+    if (type != ARRAY_OF_LONGS_SERDE_ID) {
       throw new SketchesArgumentException(
           "Possible Corruption: Sketch TYPE incorrect: " + type);
     }
@@ -350,11 +351,11 @@ public class LongsSketch {
   public String serializeToString() {
     final StringBuilder sb = new StringBuilder();
     //start the string with parameters of the sketch
-    final int serVer = SER_VER; //0
+    final int serVer = SER_VER;                 //0
     final int famID = Family.FREQUENCY.getID(); //1
-    final int lgMaxMapSz = lgMaxMapSize; //2
+    final int lgMaxMapSz = lgMaxMapSize;        //2
     final int flags = (hashMap.getNumActive() == 0)? EMPTY_FLAG_MASK : 0; //3
-    final byte type = FREQ_LONGS_SKETCH_TYPE; //4
+    final short type = ARRAY_OF_LONGS_SERDE_ID;  //4
     final String fmt = "%d,%d,%d,%d,%d,%d,%d,";
     final String s = 
         String.format(fmt, serVer, famID, lgMaxMapSz, flags, type, streamLength, offset);
@@ -391,7 +392,7 @@ public class LongsSketch {
     pre0 = insertLgMaxMapSize(lgMaxMapSize, pre0);          //Byte 3
     pre0 = insertLgCurMapSize(hashMap.getLgLength(), pre0); //Byte 4
     pre0 = (empty)? insertFlags(EMPTY_FLAG_MASK, pre0) : insertFlags(0, pre0); //Byte 5
-    pre0 = insertFreqSketchType(FREQ_LONGS_SKETCH_TYPE, pre0); //Byte 6
+    pre0 = insertSerDeId(ARRAY_OF_LONGS_SERDE_ID, pre0);    //Byte 6,7
 
     if (empty) {
       mem.putLong(0, pre0);

@@ -11,9 +11,7 @@ import com.yahoo.sketches.memory.NativeMemory;
 /**
  * Methods of serializing and deserializing arrays of Double.
  */
-public class ArrayOfDoublesSerDe implements ArrayOfItemsSerDe<Double> {
-
-  private static final byte TYPE = 3;
+public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
 
   @Override
   public byte[] serializeToByteArray(Double[] items) {
@@ -36,11 +34,6 @@ public class ArrayOfDoublesSerDe implements ArrayOfItemsSerDe<Double> {
       offsetBytes += Double.BYTES;
     }
     return array;
-  }
-
-  @Override
-  public byte getType() {
-    return TYPE;
   }
 
 }

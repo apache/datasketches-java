@@ -11,30 +11,40 @@ import com.yahoo.sketches.memory.Memory;
  * Interface for serializing and deserializing custom types.
  * @param <T> Type of item
  */
-public interface ArrayOfItemsSerDe<T> {
+public abstract class ArrayOfItemsSerDe<T> {
 
   /**
    * This is to serialize an array of items to byte array.
    * The size of the array doesn't need to be serialized.
+   * This method is called by the sketch serialization process.
    * It will be provided to deserialize method.
    * @param items array of items to be serialized
    * @return serialized representation of the given array of items
    */
-  byte[] serializeToByteArray(T[] items);
+  public abstract byte[] serializeToByteArray(T[] items);
 
   /**
-   * This is to deserialize an array of items from a given Memory object
+   * This is to deserialize an array of items from a given Memory object.
+   * This method is called by the sketch deserialization process.
    * @param mem memory containing a serialized array of items
    * @param numItems number of items in the serialized array
    * @return deserialized array of items
    */
-  T[] deserializeFromMemory(Memory mem, int numItems);
+  public abstract T[] deserializeFromMemory(Memory mem, int numItems);
 
   /**
-   * This is a unique identifier of a particular ArrayOfItemsSerDe.
-   * It will be used by FrequentItemsSketch to check compatibility of serialized data.
-   * Be careful not to use the same type for incompatible representations.
-   * @return ArrayOfItemsSerDe type
+   * Provides a simple mechanism to check compatibility between SerDe implementations.
+   * 
+   * You will need to override this in the following cases:
+   * <ul><li>If you want to rename the class or change its package hierarchy and keep the ID the 
+   * same, which enables compatible deserialization of binary images that were serialized with a
+   * different class name or package hierarchy.</li>
+   * <li>If you wish to change the binary layout of the serialization and don't want to change the 
+   * class name or package hierarchy, you will need to change the returned code.</li>
+   * </ul>
+   * @return a unique identifier of this SerDe
    */
-  byte getType();
+  public short getId() {
+    return (short) getClass().getName().hashCode();
+  }
 }

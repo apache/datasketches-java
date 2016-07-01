@@ -14,21 +14,21 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.extractFamilyID;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractPreLongs;
-import static com.yahoo.sketches.quantiles.PreambleUtil.extractSketchType;
+import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerDeId;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertFamilyID;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertFlags;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertSketchType;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerDeId;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertPreLongs;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerVer;
 import static com.yahoo.sketches.quantiles.Util.computeBaseBufferItems;
 import static com.yahoo.sketches.quantiles.Util.computeBitPattern;
 import static com.yahoo.sketches.quantiles.Util.computeRetainedItems;
 import static com.yahoo.sketches.quantiles.Util.computeCombBufItemCapacity;
-
 import java.util.Arrays;
 
+import com.yahoo.sketches.ArrayOfDoublesSerDe;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
@@ -42,9 +42,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  */
 class HeapDoublesSketch extends DoublesSketch {
 
-  // unique number of a particular type of items in the sketch and serialized layout to check compatibility of sketches
-  static final byte SKETCH_TYPE = 1;
-
+  private static final short ARRAY_OF_DOUBLES_SERDE_ID = new ArrayOfDoublesSerDe().getId();
   /**
    * The smallest value ever seen in the stream.
    */
@@ -130,11 +128,11 @@ class HeapDoublesSketch extends DoublesSketch {
     int familyID = extractFamilyID(pre0);
     int flags = extractFlags(pre0);
     int k = extractK(pre0);
-    byte type = extractSketchType(pre0);
+    short serDeId = extractSerDeId(pre0);
     
-    if (type != SKETCH_TYPE) {
+    if (serDeId != ARRAY_OF_DOUBLES_SERDE_ID) {
       throw new SketchesArgumentException(
-          "Possible Corruption: Sketch Type incorrect: " + type + " != " + SKETCH_TYPE);
+      "Possible Corruption: serDeId incorrect: " + serDeId + " != " + ARRAY_OF_DOUBLES_SERDE_ID);
     }
 
     boolean empty = Util.checkPreLongsFlagsCap(preambleLongs, flags, memCapBytes);
@@ -328,7 +326,7 @@ class HeapDoublesSketch extends DoublesSketch {
     //other flags: bigEndian = false
     pre0 = insertFlags(flags, pre0);
     pre0 = insertK(k_, pre0);
-    pre0 = insertSketchType(SKETCH_TYPE, pre0);
+    pre0 = insertSerDeId(ARRAY_OF_DOUBLES_SERDE_ID, pre0);
     
     byte[] outArr = new byte[arrLongs << 3];
     Memory memOut = new NativeMemory(outArr);

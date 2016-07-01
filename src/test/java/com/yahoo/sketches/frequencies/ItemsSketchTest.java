@@ -306,7 +306,7 @@ public class ItemsSketchTest {
     tryBadMem(mem, FLAGS_BYTE, 4); //Corrupt to true
     mem.putLong(0, pre0); //restore
     
-    tryBadMem(mem, FREQ_SKETCH_TYPE_BYTE, 2);
+    tryBadMem(mem, SER_DE_ID_SHORT, 2);
   }
 
   @Test

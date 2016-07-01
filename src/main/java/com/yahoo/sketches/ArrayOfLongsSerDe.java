@@ -11,9 +11,7 @@ import com.yahoo.sketches.memory.NativeMemory;
 /**
  * Methods of serializing and deserializing arrays of Long.
  */
-public class ArrayOfLongsSerDe implements ArrayOfItemsSerDe<Long> {
-
-  private static final byte TYPE = 3;
+public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
 
   @Override
   public byte[] serializeToByteArray(Long[] items) {
@@ -36,11 +34,6 @@ public class ArrayOfLongsSerDe implements ArrayOfItemsSerDe<Long> {
       offsetBytes += Long.BYTES;
     }
     return array;
-  }
-
-  @Override
-  public byte getType() {
-    return TYPE;
   }
 
 }

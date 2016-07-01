@@ -6,7 +6,7 @@
 package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.SKETCH_TYPE_BYTE;
+import static com.yahoo.sketches.quantiles.PreambleUtil.SER_DE_ID_SHORT;
 import static com.yahoo.sketches.quantiles.Util.LS;
 import static com.yahoo.sketches.quantiles.Util.computeCombBufItemCapacity;
 import static com.yahoo.sketches.quantiles.Util.computeNumLevelsNeeded;
@@ -497,7 +497,7 @@ public class HeapDoublesSketchTest {
     DoublesSketch qs1 = buildQS(k, 0);
     byte[] byteArr = qs1.toByteArray();
     Memory mem = new NativeMemory(byteArr);
-    mem.putByte(SKETCH_TYPE_BYTE, (byte) 2); //Corrupt
+    mem.putByte(SER_DE_ID_SHORT, (byte) 2); //Corrupt
     HeapDoublesSketch.getInstance(mem);
   }
   

@@ -17,9 +17,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * this method is 2 times more compact, but it takes more time to encode and decode
  * by a factor of 1.5 to 2.
  */
-public class ArrayOfStringsSerDe implements ArrayOfItemsSerDe<String> {
-
-  private static final byte TYPE = 2;
+public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
 
   @Override
   public byte[] serializeToByteArray(String[] items) {
@@ -54,11 +52,6 @@ public class ArrayOfStringsSerDe implements ArrayOfItemsSerDe<String> {
       array[i] = new String(bytes, StandardCharsets.UTF_8);
     }
     return array;
-  }
-
-  @Override
-  public byte getType() {
-    return TYPE;
   }
 
 }

@@ -166,8 +166,9 @@ public enum Family {
    */
   public static Family idToFamily(int id) {
     Family f = lookupID.get(id);
-    if (f == null) throw new SketchesArgumentException(
-        "Possible Corruption: Illegal Family ID: "+ id);
+    if (f == null) {
+      throw new SketchesArgumentException("Possible Corruption: Illegal Family ID: "+ id);
+    }
     return f;
   }
   
@@ -178,8 +179,9 @@ public enum Family {
    */
   public static Family stringToFamily(String famName) {
     Family f = lookupFamName.get(famName.toUpperCase());
-    if (f == null) throw new SketchesArgumentException(
-        "Possible Corruption: Illegal Family Name: "+famName);
+    if (f == null) {
+      throw new SketchesArgumentException("Possible Corruption: Illegal Family Name: "+famName);
+    }
     return f;
   }
   

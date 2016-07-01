@@ -15,9 +15,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * In an extreme case when all strings are in ASCII, the size is doubled. However it takes
  * less time to serialize and deserialize by a factor of 1.5 to 2.
  */
-public class ArrayOfUtf16StringsSerDe implements ArrayOfItemsSerDe<String> {
-
-  private static final byte TYPE = 4;
+public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
 
   @Override
   public byte[] serializeToByteArray(String[] items) {
@@ -48,10 +46,5 @@ public class ArrayOfUtf16StringsSerDe implements ArrayOfItemsSerDe<String> {
       offsetBytes += strLength * Character.BYTES;
     }
     return array;
-  }
-
-  @Override
-  public byte getType() {
-    return TYPE;
   }
 }
