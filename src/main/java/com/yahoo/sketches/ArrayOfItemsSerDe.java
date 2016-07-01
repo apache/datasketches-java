@@ -8,25 +8,26 @@ package com.yahoo.sketches;
 import com.yahoo.sketches.memory.Memory;
 
 /**
- * Interface for serializing and deserializing custom types.
+ * Base class for serializing and deserializing custom types.
  * @param <T> Type of item
  */
 public abstract class ArrayOfItemsSerDe<T> {
 
   /**
-   * This is to serialize an array of items to byte array.
+   * Serialize an array of items to byte array.
    * The size of the array doesn't need to be serialized.
    * This method is called by the sketch serialization process.
-   * It will be provided to deserialize method.
+   * 
    * @param items array of items to be serialized
    * @return serialized representation of the given array of items
    */
   public abstract byte[] serializeToByteArray(T[] items);
 
   /**
-   * This is to deserialize an array of items from a given Memory object.
+   * Deserialize an array of items from a given Memory object.
    * This method is called by the sketch deserialization process.
-   * @param mem memory containing a serialized array of items
+   * 
+   * @param mem Memory containing a serialized array of items
    * @param numItems number of items in the serialized array
    * @return deserialized array of items
    */
@@ -45,6 +46,13 @@ public abstract class ArrayOfItemsSerDe<T> {
    * @return a unique identifier of this SerDe
    */
   public short getId() {
+    /*
+     * Note that the hashCode() of a String is strictly a function of the content of the String
+     * and will be the same across different JVMs. This is not the case for Object.hashCode(), 
+     * which generally computes the hash code from the native internal address of the object and
+     * will be DIFFERENT when computed on different JVMs. So if you override this method, make 
+     * sure it will be repeatable across JVMs.
+     */
     return (short) getClass().getName().hashCode();
   }
 }
