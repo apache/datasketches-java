@@ -24,9 +24,10 @@ public class DoublesUnionBuilderTest {
     Memory srcMem = dstMem;
     
     DoublesUnionBuilder bldr = new DoublesUnionBuilder();
+    bldr.setK(128);
     DoublesUnion union = bldr.build(); //virgin union
     
-    union = bldr.build(srcMem); //FAILS HERE
+    union = bldr.build(srcMem);
     DoublesSketch qs2 = union.getResult();
     assertEquals(qs1.getStorageBytes(), qs2.getStorageBytes());
     

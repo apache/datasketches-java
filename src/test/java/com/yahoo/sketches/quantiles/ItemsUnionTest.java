@@ -12,30 +12,47 @@ import org.testng.annotations.Test;
 
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
+import com.yahoo.sketches.ArrayOfStringsSerDe;
+import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
 public class ItemsUnionTest {
 
+  public static void main(String[] args) {
+    ItemsUnionTest test = new ItemsUnionTest();
+    test.nullAndEmpty();
+  }
+  
   @Test
   public void nullAndEmpty() {
-    ItemsUnion<Integer> union = ItemsUnion.getInstance(128, Comparator.naturalOrder());
+    ItemsUnion<Integer> union = ItemsUnion.getInstance(Comparator.naturalOrder());
 
-    // internal sketch is null at this point
+    // union gadget sketch is null at this point
     union.update((Integer) null);
     ItemsSketch<Integer> result = union.getResult();
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getN(), 0);
     Assert.assertNull(result.getMinValue());
     Assert.assertNull(result.getMaxValue());
-
-    // internal sketch is empty at this point because getResult() instantiated it
+    Assert.assertNull(union.getResultAndReset());
+    
+    ItemsSketch<Integer> emptySk = ItemsSketch.getInstance(Comparator.naturalOrder());
+    ItemsSketch<Integer> validSk = ItemsSketch.getInstance(Comparator.naturalOrder());
+    validSk.update(1);
+    union.update(validSk);
+    
+    union = ItemsUnion.getInstance(result);
+    // internal sketch is empty at this point
     union.update((ItemsSketch<Integer>) null);
+    union.update(emptySk);
     result = union.getResult();
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getN(), 0);
     Assert.assertNull(result.getMinValue());
     Assert.assertNull(result.getMaxValue());
-
+    union.update(validSk);
+    
+    
     union.reset();
     // internal sketch is null again
     union.update((ItemsSketch<Integer>) null);
@@ -88,6 +105,19 @@ public class ItemsUnionTest {
     Assert.assertEquals(result.getMaxValue(), Integer.valueOf(1));
   }
 
+  @SuppressWarnings("unused")
+  @Test
+  public void basedOnSketch() {
+    Comparator<String> comp = Comparator.naturalOrder();
+    ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
+    ItemsSketch<String> sketch = ItemsSketch.getInstance(comp);
+    ItemsUnion<String> union = ItemsUnion.getInstance(sketch);
+    byte[] byteArr = sketch.toByteArray(serDe);
+    Memory mem = new NativeMemory(byteArr);
+    union = ItemsUnion.getInstance(mem, comp, serDe);
+    Assert.assertEquals(byteArr.length, 8);
+  }
+  
   @Test
   public void sameK() {
     ItemsUnion<Long> union = ItemsUnion.getInstance(128, Comparator.naturalOrder());

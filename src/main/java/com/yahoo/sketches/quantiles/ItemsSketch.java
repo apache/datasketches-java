@@ -295,7 +295,6 @@ public class ItemsSketch<T> {
    */
   public T[] getQuantiles(final double[] fractions) {
     Util.validateFractions(fractions);
-    ItemsAuxiliary<T> aux = null;
     @SuppressWarnings("unchecked")
     final T[] answers = (T[]) Array.newInstance(minValue_.getClass(), fractions.length);
     for (int i = 0; i < fractions.length; i++) {
@@ -303,7 +302,7 @@ public class ItemsSketch<T> {
       if      (fraction == 0.0) { answers[i] = minValue_; }
       else if (fraction == 1.0) { answers[i] = maxValue_; }
       else {
-        if (aux == null) aux = this.constructAuxiliary();
+        ItemsAuxiliary<T> aux = this.constructAuxiliary();
         answers[i] = aux.getQuantile(fraction);
       }
     }

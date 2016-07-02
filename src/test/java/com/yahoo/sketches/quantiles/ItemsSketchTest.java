@@ -14,6 +14,7 @@ import com.yahoo.sketches.ArrayOfDoublesSerDe;
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.ArrayOfStringsSerDe;
+import com.yahoo.sketches.ArrayOfUtf16StringsSerDe;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -30,7 +31,8 @@ public class ItemsSketchTest {
     Assert.assertNull(sketch.getMinValue());
     Assert.assertNull(sketch.getMaxValue());
     Assert.assertNull(sketch.getQuantile(0.5));
-
+    byte[] byteArr = sketch.toByteArray(new ArrayOfStringsSerDe());
+    Assert.assertEquals(byteArr.length, 8);
     {
       double[] pmf = sketch.getPMF(new String[0]);
       Assert.assertEquals(pmf.length, 1);
@@ -113,17 +115,27 @@ public class ItemsSketchTest {
     Assert.assertEquals(sketch.getMaxValue(), Integer.valueOf(1000));
     // based on ~1.7% normalized rank error for this particular case
     Assert.assertEquals(sketch.getQuantile(0.5), Integer.valueOf(500), 17);
-
-    Integer[] quantiles = sketch.getQuantiles(new double[] {0, 0.5, 1});
+    Assert.assertEquals(sketch.getQuantile(0.0), Integer.valueOf(1));
+    Assert.assertEquals(sketch.getQuantile(1.0), Integer.valueOf(1000));
+    
+    double[] fracRanks = {0.0, 0.5, 1.0};
+    Integer[] quantiles = sketch.getQuantiles(fracRanks);
     Assert.assertEquals(quantiles[0], Integer.valueOf(1)); // min value
     Assert.assertEquals(quantiles[1], Integer.valueOf(500), 17); // median
     Assert.assertEquals(quantiles[2], Integer.valueOf(1000)); // max value
 
+    quantiles = sketch.getQuantiles(1);
+    Assert.assertEquals(quantiles[0], Integer.valueOf(1));
+    
     quantiles = sketch.getQuantiles(3);
     Assert.assertEquals(quantiles[0], Integer.valueOf(1)); // min value
     Assert.assertEquals(quantiles[1], Integer.valueOf(500), 17); // median
     Assert.assertEquals(quantiles[2], Integer.valueOf(1000)); // max value
 
+    double normErr = sketch.getNormalizedRankError();
+    Assert.assertEquals(normErr, .0172, .001);
+    println(""+normErr);
+    
     {
       double[] pmf = sketch.getPMF(new Integer[0]);
       Assert.assertEquals(pmf.length, 1);
@@ -137,6 +149,13 @@ public class ItemsSketchTest {
       Assert.assertEquals(pmf[1], 0.5, 0.05);
     }
 
+    {
+      Integer[] intArr = new Integer[50];
+      for (int i= 0; i<50; i++) intArr[i] = 20*i +10;
+      double[] pmf = sketch.getPMF(intArr);
+      Assert.assertEquals(pmf.length, 51);
+    }
+    
     {
       double[] cdf = sketch.getCDF(new Integer[0]);
       Assert.assertEquals(cdf.length, 1);
@@ -243,6 +262,47 @@ public class ItemsSketchTest {
       sketch.update(Integer.toString(i));
     }
     sketch.downSample(32);
+  }
+  
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkEvenlySpacedExcep() {
+    ItemsSketch<String> sketch = ItemsSketch.getInstance(16, Comparator.naturalOrder());
+    sketch.getQuantiles(0);
+  }
+  
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkFraction() {
+    ItemsSketch<String> sketch = ItemsSketch.getInstance(16, Comparator.naturalOrder());
+    sketch.update(null);
+    sketch.getQuantile(-0.1);
+  }
+  
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkGetInstanceExcep1() {
+    Memory mem = new NativeMemory(new byte[4]);
+    ItemsSketch.getInstance(mem, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
+  }
+  
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkGetInstanceExcep2() {
+    Memory mem = new NativeMemory(new byte[8]);
+    ItemsSketch.getInstance(mem, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
+  }
+  
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkBadSerDeId() {
+    ItemsSketch<String> sketch = ItemsSketch.getInstance(Comparator.naturalOrder());
+    byte[] byteArr = sketch.toByteArray(new ArrayOfStringsSerDe());
+    Memory mem = new NativeMemory(byteArr);
+    ItemsSketch.getInstance(mem, Comparator.naturalOrder(), new ArrayOfUtf16StringsSerDe());
+  }
+  
+  @Test
+  public void checkGoodSerDeId() {
+    ItemsSketch<String> sketch = ItemsSketch.getInstance(Comparator.naturalOrder());
+    byte[] byteArr = sketch.toByteArray(new ArrayOfStringsSerDe());
+    Memory mem = new NativeMemory(byteArr);
+    ItemsSketch.getInstance(mem, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
   }
   
   @Test

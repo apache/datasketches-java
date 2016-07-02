@@ -62,7 +62,8 @@ public class ItemsUnion<T> {
    * @param serDe an instance of ArrayOfItemsSerDe
    * @return an instance of ItemsUnion
    */
-  public static <T> ItemsUnion<T> getInstance(final Memory srcMem, final Comparator<? super T> comparator, final ArrayOfItemsSerDe<T> serDe) {
+  public static <T> ItemsUnion<T> getInstance(final Memory srcMem, 
+      final Comparator<? super T> comparator, final ArrayOfItemsSerDe<T> serDe) {
     final ItemsSketch<T> gadget = ItemsSketch.getInstance(srcMem, comparator, serDe); 
     return new ItemsUnion<T>(gadget.getK(), gadget.getComparator(), gadget);
   }
