@@ -5,14 +5,16 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
   <groupId>com.yahoo.datasketches</groupId>
   <artifactId>sketches-core</artifactId>
+  <packaging>jar</packaging>
   <version>0.6.1-SNAPSHOT</version>
 
+  <!-- Project Information -->
   <name>${project.groupId}:${project.artifactId}</name>
-  <description>Data Sketches Core</description>
+  <description>Sketches-core contains the core algorithms used by other repositories in the DataSketches library.</description>
   <url>http://datasketches.github.io/</url>
+  <inceptionYear>2015</inceptionYear>
 
   <licenses>
     <license>
@@ -21,26 +23,55 @@
     </license>
   </licenses>
 
-  <developers>
-    <developer>
-      <name>Lee Rhodes</name>
-      <url>https://github.com/leerho</url>
-    </developer>
-  </developers>
-
   <organization>
     <name>Yahoo! Inc.</name>
     <url>http://www.yahoo.com</url>
   </organization>
 
-  <inceptionYear>2015</inceptionYear>
+  <developers>
+    <developer>
+      <name>Lee Rhodes</name>
+      <roles>
+        <role>founder, project admin, lead developer</role>
+      </roles>
+      <url>https://github.com/leerho</url>
+    </developer>
+    <developer>
+      <name>Kevin Lang</name>
+      <roles>
+        <role>co-founder, lead research scientist, developer</role>
+      </roles>
+      <url>https://github.com/kevinjlang</url>
+    </developer>
+    <developer>
+      <name>Alexander Saydakov</name>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <url>https://github.com/AlexanderSaydakov</url>
+    </developer>
+    <developer>
+      <name>Justin Thaler</name>
+      <roles>
+        <role>research scientist, developer</role>
+      </roles>
+      <url>https://github.com/Justin8712</url>
+    </developer>
+    <developer>
+      <name>Edo Liberty</name>
+      <roles>
+        <role>research scientist, developer</role>
+      </roles>
+      <url>https://github.com/edoliberty</url>
+    </developer>
+  </developers>
 
-  <scm>
-    <connection>scm:git:ssh://git@github.com/DataSketches/sketches-core.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/DataSketches/sketches-core.git</developerConnection>
-    <url>https://github.com/DataSketches/sketches-core.git</url>
-    <tag>HEAD</tag>
-  </scm>
+  <contributors>
+    <contributor>
+      <url>https://github.com/DataSketches/sketches-core/graphs/contributors</url>
+    </contributor>
+  </contributors>
+  <!-- End Project Information -->
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -50,6 +81,38 @@
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
 
+  <!-- Environment Settings -->
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/DataSketches/sketches-core/issues</url>
+  </issueManagement>
+
+  <ciManagement>
+    <system>travis</system>
+    <url>https://travis-ci.org/DataSketches/sketches-core</url>
+  </ciManagement>
+
+  <mailingLists>
+    <mailingList>
+      <name>sketches-user</name>
+      <archive>https://groups.google.com/forum/#!forum/sketches-user</archive>
+      <subscribe>mailto:sketches-user%2Bsubscribe@googlegroups.com</subscribe>
+      <unsubscribe>mailto:sketches-user%2Bunsubscribe@googlegroups.com</unsubscribe>
+      <post>mailto:sketches-user@googlegroups.com</post>
+    </mailingList>
+  </mailingLists>
+
+  <scm>
+    <connection>scm:git:ssh://git@github.com/DataSketches/sketches-core.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/DataSketches/sketches-core.git</developerConnection>
+    <url>https://github.com/DataSketches/sketches-core.git</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <prerequisites>
+    <maven>3.0.4</maven>
+  </prerequisites>
+
   <repositories>
     <repository>
       <id>jcenter</id>
@@ -58,14 +121,57 @@
     </repository>
   </repositories>
 
+  <distributionManagement>
+    <repository>
+      <id>sonatype-nexus-staging</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
+
+  <!-- This is optional -->  
+  <profiles>
+    <profile>
+      <id>strict</id>
+      <build>
+        <pluginManagement>
+          <plugins>
+
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-compiler-plugin</artifactId>
+              <version>3.5.1</version>
+              <configuration>
+                <source>${maven.compiler.source}</source>
+                <target>${maven.compiler.target}</target>
+                <compilerId>javac-with-errorprone</compilerId>
+                <forceJavacCompilerUse>true</forceJavacCompilerUse>
+              </configuration>
+              <dependencies>
+                <dependency>
+                  <groupId>org.codehaus.plexus</groupId>
+                  <artifactId>plexus-compiler-javac-errorprone</artifactId>
+                  <version>2.8</version>
+                </dependency>
+              </dependencies>
+            </plugin>
+
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+  </profiles>
+  <!-- End of Environment Settings -->
+
   <dependencies>
+
     <!-- Test Scope -->
     <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
-      <version>6.9.10</version>
+      <version>6.9.12</version>
       <scope>test</scope>
     </dependency>
+
   </dependencies>
 
   <build>
@@ -292,43 +398,4 @@
     </pluginManagement>
   </build>
 
-  <!-- This is optional -->  
-  <profiles>
-    <profile>
-      <id>strict</id>
-      <build>
-        <pluginManagement>
-          <plugins>
-
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-compiler-plugin</artifactId>
-              <version>3.5.1</version>
-              <configuration>
-                <source>1.8</source>
-                <target>1.8</target>
-                <compilerId>javac-with-errorprone</compilerId>
-                <forceJavacCompilerUse>true</forceJavacCompilerUse>
-              </configuration>
-              <dependencies>
-                <dependency>
-                  <groupId>org.codehaus.plexus</groupId>
-                  <artifactId>plexus-compiler-javac-errorprone</artifactId>
-                  <version>2.7</version>
-                </dependency>
-              </dependencies>
-            </plugin>
-
-          </plugins>
-        </pluginManagement>
-      </build>
-    </profile>
-  </profiles>
-  
-  <distributionManagement>
-    <repository>
-      <id>sonatype-nexus-staging</id>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-    </repository>
-  </distributionManagement>
 </project>
