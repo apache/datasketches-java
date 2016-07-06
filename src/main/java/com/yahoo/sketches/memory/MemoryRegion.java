@@ -22,6 +22,7 @@ import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_LONG_INDEX_SCALE;
 import static com.yahoo.sketches.memory.UnsafeUtil.SHORT_SHIFT;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_SHORT_INDEX_SCALE;
 import static com.yahoo.sketches.memory.UnsafeUtil.assertBounds;
+import static com.yahoo.sketches.memory.UnsafeUtil.LS;
 
 /**
  * The MemoryRegion class implements the Memory interface and provides a means of 
@@ -454,10 +455,10 @@ public class MemoryRegion implements Memory {
   public String toHexString(String header, long offsetBytes, int lengthBytes) {
     assertBounds(offsetBytes, lengthBytes, capacityBytes_);
     StringBuilder sb = new StringBuilder();
-    sb.append(header).append("\n");
+    sb.append(header).append(LS);
     String s1 = String.format("(..., %d, %d)", offsetBytes, lengthBytes);
     sb.append(this.getClass().getSimpleName()).append(".toHexString").
-       append(s1).append(", hash: ").append(this.hashCode()).append("\n");
+       append(s1).append(", hash: ").append(this.hashCode()).append(LS);
     sb.append("  MemoryRequest: ");
     if (memReq_ != null) {
       sb.append(memReq_.getClass().getSimpleName()).append(", hash: ").append(memReq_.hashCode());

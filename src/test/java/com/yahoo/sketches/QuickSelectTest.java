@@ -246,7 +246,7 @@ public class QuickSelectTest {
     println("Return value of 0-based pivot including zeros:");
     println("select(arr, 0, " + (len - 1) + ", " + pivot + ") => " + ret);
     println("0-based index of pivot = pivot = " + (pivot));
-    println("Result Array:\n");
+    println("Result Array:"+LS);
     println(printArr(arr));
   }
 
@@ -274,7 +274,7 @@ public class QuickSelectTest {
     println("Return value of 1-based pivot discounting zeros:");
     println("selectDiscountingZeros(arr, " + nonZeros + ", " + pivot + ") => " + ret);
     println("0-based index of pivot= pivot+zeros-1 = " + ((pivot + zeros) - 1));
-    println("Result Array:\n");
+    println("Result Array:"+LS);
     println(printArr(arr));
   }
 
@@ -302,7 +302,7 @@ public class QuickSelectTest {
     println("Return value of 1-based pivot including zeros:");
     println("selectIncludingZeros(arr, " + pivot + ") => " + ret);
     println("0-based index of pivot= pivot-1 = " + (pivot - 1));
-    println("Result Array:\n");
+    println("Result Array:"+LS);
     println(printArr(arr));
   }
 
@@ -329,7 +329,7 @@ public class QuickSelectTest {
     println("Return value of 0-based pivot including zeros:");
     println("select(arr, 0, " + (len - 1) + ", " + pivot + ") => " + ret);
     println("0-based index of pivot = pivot = " + (pivot));
-    println("Result Array:\n");
+    println("Result Array:"+LS);
     println(printArr(arr));
   }
 
@@ -357,7 +357,7 @@ public class QuickSelectTest {
     println("Return value of 1-based pivot discounting zeros:");
     println("selectDiscountingZeros(arr, " + nonZeros + ", " + pivot + ") => " + ret);
     println("0-based index of pivot= pivot+zeros-1 = " + ((pivot + zeros) - 1));
-    println("Result Array:\n");
+    println("Result Array:"+LS);
     println(printArr(arr));
   }
 
@@ -385,22 +385,22 @@ public class QuickSelectTest {
     println("Return value of 1-based pivot including zeros:");
     println("selectIncludingZeros(arr, " + pivot + ") => " + ret);
     println("0-based index of pivot= pivot-1 = " + (pivot - 1));
-    println("Result Array:\n");
+    println("Result Array:"+LS);
     println(printArr(arr));
   }
   
 //  public static void main(String[] args) {
-//    println("\n==LONGS 1==========\n");
+//    println(LS+"==LONGS 1=========="+LS);
 //    test1();
-//    println("\n==LONGS 2==========\n");
+//    println(LS+"==LONGS 2=========="+LS);
 //    test2();
-//    println("\n==LONGS 3==========\n");
+//    println(LS+"==LONGS 3=========="+LS);
 //    test3();
-//    println("\n==DOUBLES 1========\n");
+//    println(LS+"==DOUBLES 1========"+LS);
 //    testDbl1();
-//    println("\n==DOUBLES 2========\n");
+//    println(LS+"==DOUBLES 2========"+LS);
 //    testDbl2();
-//    println("\n==DOUBLES 3========\n");
+//    println(LS+"==DOUBLES 3========"+LS);
 //    testDbl3();
 //    
 //

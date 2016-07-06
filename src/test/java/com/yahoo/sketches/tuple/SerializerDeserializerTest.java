@@ -11,6 +11,7 @@ import org.testng.Assert;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.NativeMemory;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public class SerializerDeserializerTest {
 
@@ -28,6 +29,7 @@ public class SerializerDeserializerTest {
     SerializerDeserializer.getSketchType(new NativeMemory(bytes));
   }
 
+  @SuppressFBWarnings("NP_NULL_PARAM_DEREF_NONVIRTUAL")
   @Test(expectedExceptions = RuntimeException.class)
   public void deserializeFromMemoryUsupportedClass() {
     SerializerDeserializer.deserializeFromMemory(null, 0, "bogus");

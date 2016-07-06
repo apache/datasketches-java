@@ -27,7 +27,7 @@ public class BoundsOnBinomialProportionsTest {
       double est = estimateUnknownP (n, k);
       assertTrue (lb <= est);
       assertTrue (Math.abs (lb - answers[(int) k]) < 1e-14);
-      //      System.out.printf ("LB\t%d\t%d\t%.1f\t%.16g\n", n, k, kappa, lb);
+      //      System.out.printf ("LB\t%d\t%d\t%.1f\t%.16g%n", n, k, kappa, lb);
     }
   }
   
@@ -44,7 +44,7 @@ public class BoundsOnBinomialProportionsTest {
       double est = estimateUnknownP (n, k);
       assertTrue (ub >= est);
       assertTrue (Math.abs (ub - answers[(int) k]) < 1e-14);
-      //      System.out.printf ("UB\t%d\t%d\t%.1f\t%.16g\n", n, k, kappa, ub);
+      //      System.out.printf ("UB\t%d\t%d\t%.1f\t%.16g%n", n, k, kappa, ub);
     }
   }
   
@@ -58,8 +58,8 @@ public class BoundsOnBinomialProportionsTest {
           double est = estimateUnknownP (n, k);
           assertTrue (lb <= est);
           assertTrue (ub >= est);
-          String slb = String.format("LB\t%d\t%d\t%.1f\t%.16g\n", n, k, kappa, lb);
-          String sub = String.format("UB\t%d\t%d\t%.1f\t%.16g\n", n, k, kappa, ub);
+          String slb = String.format("LB\t%d\t%d\t%.1f\t%.16g%n", n, k, kappa, lb);
+          String sub = String.format("UB\t%d\t%d\t%.1f\t%.16g%n", n, k, kappa, ub);
           println(slb);
           println(sub);
         }
@@ -71,7 +71,7 @@ public class BoundsOnBinomialProportionsTest {
   public static void printSomeNormalCDF () {
     double [] someX = {-10.0, -4.0, -3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0, 10.0};
     for (int i = 0; i < 11; i++) {
-      String s = String.format("normalCDF(%.1f) = %.12f\n", someX[i], normalCDF(someX[i]));
+      String s = String.format("normalCDF(%.1f) = %.12f%n", someX[i], normalCDF(someX[i]));
       println(s);
     }
   }

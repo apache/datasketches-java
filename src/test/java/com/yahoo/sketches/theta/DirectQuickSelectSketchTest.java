@@ -635,7 +635,7 @@ public class DirectQuickSelectSketchTest {
   //////////////////////////////////////////////////////
   //////////////////////////////////////////////////////
   //this one allocates what was asked from NativeMemory
-  private class MemoryManager implements MemoryRequest {
+  private static class MemoryManager implements MemoryRequest {
     
     @Override
     public Memory request(long capacityBytes) {
@@ -738,7 +738,7 @@ public class DirectQuickSelectSketchTest {
   //////////////////////////////////////////////////////
   //////////////////////////////////////////////////////
   //this one allocates twice what was asked
-  private class MemoryManager2 implements MemoryRequest {
+  private static class MemoryManager2 implements MemoryRequest {
     
     @Override
     public Memory request(long capacityBytes) {
@@ -796,7 +796,7 @@ public class DirectQuickSelectSketchTest {
   
   //////////////////////////////////////////////////////
   //////////////////////////////////////////////////////
-  private class BadMemoryManager implements MemoryRequest {
+  private static class BadMemoryManager implements MemoryRequest {
     
     @Override
     public Memory request(long capacityBytes) {
@@ -856,7 +856,7 @@ public class DirectQuickSelectSketchTest {
   
   //////////////////////////////////////////////////////
   //////////////////////////////////////////////////////
-  private class BadMemoryManager2 implements MemoryRequest {
+  private static class BadMemoryManager2 implements MemoryRequest {
     
     @Override
     public Memory request(long capacityBytes) {

@@ -646,13 +646,13 @@ public class DirectIntersectionTest {
   @SuppressWarnings("unused")
   @Test
   public void checkDefaultMinSize() {
-   DirectIntersection di = new DirectIntersection(9001L, new NativeMemory(new byte[32*8 + 24])); 
+   new DirectIntersection(9001L, new NativeMemory(new byte[32*8 + 24])); 
   }
   
   @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkExceptionSizes2() {
-   DirectIntersection di = new DirectIntersection(9001L, new NativeMemory(new byte[16*8 + 24])); 
+   new DirectIntersection(9001L, new NativeMemory(new byte[16*8 + 24])); 
   }
   
   @Test
@@ -685,10 +685,10 @@ public class DirectIntersectionTest {
     //cheap tricks
     int k = 16;
     Memory mem = new NativeMemory(new byte[k*16 + 24]);
-    DirectIntersection dirI = new DirectIntersection(Util.DEFAULT_UPDATE_SEED, mem);
+    new DirectIntersection(Util.DEFAULT_UPDATE_SEED, mem);
     //corrupt SerVer
     mem.putByte(PreambleUtil.SER_VER_BYTE, (byte) 2);
-    DirectIntersection dirI2 = new DirectIntersection(mem, Util.DEFAULT_UPDATE_SEED);
+    new DirectIntersection(mem, Util.DEFAULT_UPDATE_SEED);
   }
   
   @SuppressWarnings("unused")
@@ -697,13 +697,13 @@ public class DirectIntersectionTest {
     //cheap tricks
     int k = 16;
     Memory mem = new NativeMemory(new byte[k*16 + 24]);
-    DirectIntersection dirI = new DirectIntersection(Util.DEFAULT_UPDATE_SEED, mem);
+    new DirectIntersection(Util.DEFAULT_UPDATE_SEED, mem);
     //mem now has non-empty intersection
     //corrupt empty and CurCount
     mem.setBits(PreambleUtil.FLAGS_BYTE, (byte) PreambleUtil.EMPTY_FLAG_MASK);
     
     mem.putInt(PreambleUtil.RETAINED_ENTRIES_INT, 2);
-    DirectIntersection dirI2 = new DirectIntersection(mem, Util.DEFAULT_UPDATE_SEED);
+    new DirectIntersection(mem, Util.DEFAULT_UPDATE_SEED);
   }
   
   //Check Alex's bug intersecting 2 direct full sketches with only overlap of 2

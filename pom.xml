@@ -163,15 +163,20 @@
   <!-- End of Environment Settings -->
 
   <dependencies>
-
     <!-- Test Scope -->
     <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
-      <version>6.9.12</version>
+      <version>6.9.10</version>
       <scope>test</scope>
     </dependency>
-
+    
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>findbugs</artifactId>
+      <version>3.0.1</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

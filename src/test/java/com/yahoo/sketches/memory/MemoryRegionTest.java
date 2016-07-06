@@ -268,7 +268,7 @@ public class MemoryRegionTest {
   //////////////////////////////////////////////////////
   //////////////////////////////////////////////////////
   //this one allocates what was asked from MemoryRegion
-  private class MemoryRegionManager implements MemoryRequest {
+  private static class MemoryRegionManager implements MemoryRequest {
     private Memory parent_ = null;
     private long capUsed_ = 0;  //a very simple memory management scheme!
     

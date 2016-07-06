@@ -589,6 +589,25 @@ public class LongsSketch {
     public int compareTo(final Row that) {
       return (this.est < that.est) ? -1 : (this.est > that.est) ? 1 : 0;
     }
+    
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + (int) (est ^ (est >>> 32));
+      return result;
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) return true;
+      if (obj == null) return false;
+      if ( !(obj instanceof Row)) return false;
+      Row that = (Row) obj;
+      if (est != that.est) return false;
+      return true;
+    }
+    
   }
 
   Row[] sortItems(final long threshold, final ErrorType errorType) {

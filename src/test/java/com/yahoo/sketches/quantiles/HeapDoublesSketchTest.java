@@ -563,13 +563,13 @@ public class HeapDoublesSketchTest {
       directSketch.update (i);
     }
     HeapDoublesSketch downSketch = (HeapDoublesSketch)origSketch.downSample(smallK);
-    println ("\nOrig\n");
+    println (LS+"Orig+LS");
     String s = origSketch.toString(true, true);
     println(s);
-    println ("\nDown\n");
+    println (LS+"Down+LS");
     s = downSketch.toString(true, true);
     println(s);
-    println("\nDirect\n");
+    println(LS+"Direct"+LS);
     s = directSketch.toString(true, true);
     println(s);
   }

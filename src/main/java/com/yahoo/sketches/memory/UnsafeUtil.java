@@ -57,7 +57,7 @@ final class UnsafeUtil {
   static final int FLOAT_SHIFT     = 2;
   static final int DOUBLE_SHIFT    = 3;
   
-
+  public static final String LS = System.getProperty("line.separator");
   
 //@formatter:on
 
