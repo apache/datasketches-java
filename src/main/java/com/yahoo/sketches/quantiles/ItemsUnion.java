@@ -93,6 +93,7 @@ public class ItemsUnion<T> {
         case 8:  outCase = 1; break; //noop   myQS = valid, other = null
         case 9:  outCase = 1; break; //noop   myQS = valid, other = empty
         case 10: outCase = 3; break; //merge  myQS = valid, other = valid
+        default: //This cannot happen
       }
       switch (outCase) {
         case 0: return null;
@@ -100,7 +101,7 @@ public class ItemsUnion<T> {
         case 2: {
           return ItemsSketch.copy(other); //required because caller has handle
         }
-        default:
+        default: //This is Case 3, which falls out to the merge.
       }
       //must merge
       if (myQS.getK() <= other.getK()) { //I am smaller or equal, thus the target

@@ -42,7 +42,6 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
 
   // these can be derived from other things, but are kept here for performance
   int rebuildThreshold_;
-  int mask_;
   int lgCurrentCapacity_;
 
   ArrayOfDoublesQuickSelectSketch(final int numValues, final long seed) {
