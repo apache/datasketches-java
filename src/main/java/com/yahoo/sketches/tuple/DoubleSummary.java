@@ -43,7 +43,7 @@ public class DoubleSummary implements UpdatableSummary<Double> {
       case Max:
         value_ = Double.NEGATIVE_INFINITY;
         break;
-      default: //cannot happen
+      //default: //This cannot happen and cannot be tested
     }
   }
 
@@ -69,7 +69,7 @@ public class DoubleSummary implements UpdatableSummary<Double> {
     case Max:
       if (value > value_) value_ = value;
       break;
-    default: //cannot happen
+    //default: //This cannot happen and cannot be tested
     }
   }
 

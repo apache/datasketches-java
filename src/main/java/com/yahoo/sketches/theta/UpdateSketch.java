@@ -92,7 +92,7 @@ public abstract class UpdateSketch extends Sketch {
         sketchOut = new DirectCompactOrderedSketch(this, dstMem);
         break;
       }
-      default: //cannot happen
+      //default: //This cannot happen and cannot be tested
     }
     return sketchOut;
   }

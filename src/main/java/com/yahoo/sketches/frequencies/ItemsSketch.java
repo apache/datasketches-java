@@ -138,7 +138,7 @@ public class ItemsSketch<T> {
    * streams and then growing it as the stream grows. The following constant controls the 
    * size of the initial data structure.
    */
-  private static final int LG_MIN_MAP_SIZE = 3; // This is somewhat arbitrary
+  static final int LG_MIN_MAP_SIZE = 3; // This is somewhat arbitrary
 
   /**
    * This is a constant large enough that computing the median of SAMPLE_SIZE

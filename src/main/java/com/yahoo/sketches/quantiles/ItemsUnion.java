@@ -93,27 +93,32 @@ public class ItemsUnion<T> {
         case 8:  outCase = 1; break; //noop   myQS = valid, other = null
         case 9:  outCase = 1; break; //noop   myQS = valid, other = empty
         case 10: outCase = 3; break; //merge  myQS = valid, other = valid
-        default: //This cannot happen
+        //default: //This cannot happen and cannot be tested
       }
+      ItemsSketch<T> ret = null;
       switch (outCase) {
-        case 0: return null;
-        case 1: return myQS;
+        case 0: ret = null; break;
+        case 1: ret = myQS; break;
         case 2: {
-          return ItemsSketch.copy(other); //required because caller has handle
+          ret = ItemsSketch.copy(other); //required because caller has handle
+          break;
         }
-        default: //This is Case 3, which falls out to the merge.
+        case 3: { //must merge
+          if (myQS.getK() <= other.getK()) { //I am smaller or equal, thus the target
+            mergeInto(other, myQS);
+            ret = myQS;
+          } else {
+            //myQS_K > other_K, must reverse roles
+            //must copy other as it will become mine and can't have any externally owned handles.
+            final ItemsSketch<T> myNewQS = ItemsSketch.copy(other);
+            mergeInto(myQS, myNewQS);
+            ret = myNewQS;
+          }
+          break;
+        }
+        //default: //This cannot happen and cannot be tested
       }
-      //must merge
-      if (myQS.getK() <= other.getK()) { //I am smaller or equal, thus the target
-        mergeInto(other, myQS);
-        return myQS;
-      }
-      
-      //myQS_K > other_K, must reverse roles
-      //must copy other as it will become mine and can't have any externally owned handles.
-      final ItemsSketch<T> myNewQS = ItemsSketch.copy(other);
-      mergeInto(myQS, myNewQS);
-      return myNewQS;
+      return ret;
     }
   //@formatter:on
 

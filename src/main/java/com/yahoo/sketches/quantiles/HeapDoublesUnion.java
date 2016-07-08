@@ -99,7 +99,7 @@ class HeapDoublesUnion extends DoublesUnion {
       case 8:  outCase = 1; break; //noop   myQS = valid, other = null
       case 9:  outCase = 1; break; //noop   myQS = valid, other = empty
       case 10: outCase = 3; break; //merge  myQS = valid, other = valid
-      default: //This cannot happen
+      //default: //This cannot happen and cannot be tested
     }
     HeapDoublesSketch ret = null;
     switch (outCase) {
@@ -122,7 +122,7 @@ class HeapDoublesUnion extends DoublesUnion {
         }
         break;
       }
-      default: //cannot happen
+      //default: //This cannot happen and cannot be tested
     }
     return ret;
   }
