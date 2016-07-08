@@ -22,7 +22,7 @@ class OnHeapCompressedFields implements Fields {
   private volatile byte currMin = 0;
   private volatile byte currMax = 14;
   private volatile int exceptionGrowthBound;
-  private volatile int numAtCurrMin;
+  private int numAtCurrMin;
 
   public OnHeapCompressedFields(Preamble preamble) {
     this.preamble = preamble;

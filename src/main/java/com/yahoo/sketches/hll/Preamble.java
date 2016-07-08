@@ -17,11 +17,11 @@ import com.yahoo.sketches.memory.NativeMemory;
  * @author Kevin Lang
  */
 public class Preamble {
-  public static final byte PREAMBLE_LONGS = 1;
-  public static final byte PREAMBLE_VERSION = 8;
-  public static final byte HLL_PREAMBLE_FAMILY_ID = (byte) Family.HLL.getID();
+  static final byte PREAMBLE_LONGS = 1;
+  static final byte PREAMBLE_VERSION = 8;
+  static final byte HLL_PREAMBLE_FAMILY_ID = (byte) Family.HLL.getID();
 
-  public static final int[] AUX_SIZE = new int[] {
+  static final int[] AUX_SIZE = new int[] {
       1, 4, 4, 4, 4, 4, 4, 8, 8, 8,
       16, 16, 32, 32, 64, 128, 256, 512, 1024, 2048,
       4096, 8192, 16384, 32768, 65536, 131072, 262144

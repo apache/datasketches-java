@@ -58,18 +58,14 @@ public class DirectQuickSelectSketchTest {
   public void checkConstructorKtooSmall() {
     int k = 8;
     Memory mem = makeNativeMemory(k);
-    
-    @SuppressWarnings("unused")
-    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
+    UpdateSketch.builder().initMemory(mem).build(k);
   }
   
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkConstructorMemTooSmall() {
     int k = 16;
     Memory mem = makeNativeMemory(8);
-    
-    @SuppressWarnings("unused")
-    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
+    UpdateSketch.builder().initMemory(mem).build(k);
   }
   
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -77,15 +73,12 @@ public class DirectQuickSelectSketchTest {
     int k = 512;
     int bytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
     Memory mem = new NativeMemory(new byte[bytes]);
-    
-    @SuppressWarnings("unused")
-    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
+    UpdateSketch.builder().initMemory(mem).build(k);
 
     mem.putByte(FAMILY_BYTE, (byte) 0); //corrupt the Family ID byte
     
     //try to heapify the corrupted mem
-    @SuppressWarnings("unused")
-    UpdateSketch usk2 = (UpdateSketch)Sketch.heapify(mem); //catch in Sketch.constructHeapSketch
+    Sketch.heapify(mem); //catch in Sketch.constructHeapSketch
   }
   
   @Test
@@ -123,7 +116,6 @@ public class DirectQuickSelectSketchTest {
     assertEquals(curCount1, cacheCount);
     assertFalse(sk2.isDirect());
     assertFalse(sk2.isDirty());
-    
   }
   
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -132,14 +124,12 @@ public class DirectQuickSelectSketchTest {
     int maxBytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
     Memory mem = new NativeMemory(new byte[maxBytes]);
     
-    @SuppressWarnings("unused")
-    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
+    UpdateSketch.builder().initMemory(mem).build(k);
     
     mem.putByte(FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
     
     //try to wrap the corrupted mem
-    @SuppressWarnings("unused")
-    UpdateSketch usk2 = (UpdateSketch)Sketch.wrap(mem); //catch in Sketch.constructDirectSketch
+    Sketch.wrap(mem); //catch in Sketch.constructDirectSketch
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -148,14 +138,12 @@ public class DirectQuickSelectSketchTest {
     int maxBytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
     Memory mem = new NativeMemory(new byte[maxBytes]);
     
-    @SuppressWarnings("unused")
-    UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
+    UpdateSketch.builder().initMemory(mem).build(k);
     
     mem.putByte(FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
     
     //try to wrap the corrupted mem
-    @SuppressWarnings("unused")
-    UpdateSketch usk2 = DirectQuickSelectSketch.getInstance(mem, DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.getInstance(mem, DEFAULT_UPDATE_SEED);
   }
   
   
@@ -635,7 +623,7 @@ public class DirectQuickSelectSketchTest {
   //////////////////////////////////////////////////////
   //////////////////////////////////////////////////////
   //this one allocates what was asked from NativeMemory
-  private class MemoryManager implements MemoryRequest {
+  private static class MemoryManager implements MemoryRequest {
     
     @Override
     public Memory request(long capacityBytes) {
@@ -726,9 +714,7 @@ public class DirectQuickSelectSketchTest {
     assertEquals(usk1.getEstimate(), u, 0.1*u);
     
     NativeMemory mem2 = new NativeMemory(usk1.toByteArray());
-    
-    @SuppressWarnings("unused")
-    UpdateSketch usk2 = (UpdateSketch) Sketches.wrapSketch(mem2);
+    Sketches.wrapSketch(mem2);
     
     NativeMemory nMem = (NativeMemory) usk1.getMemory();
     println("Freed: " + nMem.getCapacity());
@@ -738,7 +724,7 @@ public class DirectQuickSelectSketchTest {
   //////////////////////////////////////////////////////
   //////////////////////////////////////////////////////
   //this one allocates twice what was asked
-  private class MemoryManager2 implements MemoryRequest {
+  private static class MemoryManager2 implements MemoryRequest {
     
     @Override
     public Memory request(long capacityBytes) {
@@ -796,7 +782,7 @@ public class DirectQuickSelectSketchTest {
   
   //////////////////////////////////////////////////////
   //////////////////////////////////////////////////////
-  private class BadMemoryManager implements MemoryRequest {
+  private static class BadMemoryManager implements MemoryRequest {
     
     @Override
     public Memory request(long capacityBytes) {
@@ -856,7 +842,7 @@ public class DirectQuickSelectSketchTest {
   
   //////////////////////////////////////////////////////
   //////////////////////////////////////////////////////
-  private class BadMemoryManager2 implements MemoryRequest {
+  private static class BadMemoryManager2 implements MemoryRequest {
     
     @Override
     public Memory request(long capacityBytes) {

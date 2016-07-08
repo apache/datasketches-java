@@ -28,7 +28,7 @@ public class AllocMemoryTest {
     println("Add: "+mem1add+", Cap: "+mem1.getCapacity());
     
     //reallocate at twice the size.
-    NativeMemory mem2 = new AllocMemory(mem1, 2*bytes, null);
+    NativeMemory mem2 = new AllocMemory(mem1, 2L * bytes, null);
     long mem2add = mem2.getAddress(0);
     boolean equal = (mem1add == mem2add);
     String eqStr = (equal)? ", EQUAL, " : ", NOT EQUAL, ";

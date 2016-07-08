@@ -30,12 +30,13 @@ public class SerializerDeserializerTest {
 
   @Test(expectedExceptions = RuntimeException.class)
   public void deserializeFromMemoryUsupportedClass() {
-    SerializerDeserializer.deserializeFromMemory(null, 0, "bogus");
+    NativeMemory mem = null;
+    SerializerDeserializer.deserializeFromMemory(mem, 0, "bogus");
   }
 
   @Test(expectedExceptions = RuntimeException.class)
   public void toByteArrayUnsupportedObject() {
-    SerializerDeserializer.toByteArray(new Integer(0));
+    SerializerDeserializer.toByteArray(Integer.valueOf(0));
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

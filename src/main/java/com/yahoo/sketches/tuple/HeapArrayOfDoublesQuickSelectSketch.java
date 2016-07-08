@@ -53,7 +53,6 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
     );
     keys_ = new long[startingCapacity];
     values_ = new double[startingCapacity * numValues];
-    mask_ = startingCapacity - 1;
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(startingCapacity);
     setRebuildThreshold();
   }
@@ -81,7 +80,6 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
     samplingProbability_ = mem.getFloat(SAMPLING_P_FLOAT);
     keys_ = new long[currentCapacity];
     values_ = new double[currentCapacity * numValues_];
-    mask_ = currentCapacity - 1;
     final boolean hasEntries = (flags & (1 << Flags.HAS_ENTRIES.ordinal())) > 0;
     count_ = hasEntries ? mem.getInt(RETAINED_ENTRIES_INT) : 0;
     if (count_ > 0) {
@@ -217,7 +215,6 @@ class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketc
     keys_ = new long[newCapacity];
     values_ = new double[newCapacity * numValues_];
     count_ = 0;
-    mask_ = newCapacity - 1;
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(newCapacity);
     for (int i = 0; i < oldKeys.length; i++) {
       if (oldKeys[i] != 0 && oldKeys[i] < theta_) insert(oldKeys[i], Arrays.copyOfRange(oldValues, i * numValues_, (i + 1) * numValues_));

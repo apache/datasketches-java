@@ -13,11 +13,7 @@ import org.testng.annotations.Test;
 
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.quantiles.Util.EpsilonFromK;
-
-/*
- * Copyright 2016, Yahoo! Inc.
- * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
- */
+//import static com.yahoo.sketches.TestingUtil.LS;
 
 public class UtilTest {
   
@@ -68,7 +64,7 @@ public class UtilTest {
     int [] answers = {9, 8, 7, 7, 7, 4, 4, 4, 1, 1};
     for (int i = 0, j = 9; i < 10; i++, j--) {
       int result = Util.positionOfLowestZeroBitStartingAt(109L, i);
-      //      System.out.printf ("%d %d\n", i, result);
+      //      System.out.printf ("%d %d%n", i, result);
       assert (answers[j] == result);
     }
   }
@@ -84,9 +80,9 @@ public class UtilTest {
       DoublesUtil.bilinearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
       for (int j = 0; j < counters.length; j++) {
         assert counters[j] == answers[j];
-        // System.out.printf ("counter[%d] = %d\n", j, counters[j]);
+        // System.out.printf ("counter[%d] = %d%n", j, counters[j]);
       }
-      // System.out.printf ("\n");
+      // System.out.printf ("%n");
     }
  
     {
@@ -96,9 +92,9 @@ public class UtilTest {
       DoublesUtil.bilinearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
       for (int j = 0; j < counters.length; j++) {
         assert counters[j] == answers[j];
-        // System.out.printf ("counter[%d] = %d\n", j, counters[j]);
+        // System.out.printf ("counter[%d] = %d%n", j, counters[j]);
       }
-      // System.out.printf ("\n");
+      // System.out.printf ("%n");
     }
  
     {
@@ -108,9 +104,9 @@ public class UtilTest {
       DoublesUtil.bilinearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
       for (int j = 0; j < counters.length; j++) {
         assert counters[j] == answers[j];
-        // System.out.printf ("counter[%d] = %d\n", j, counters[j]);
+        // System.out.printf ("counter[%d] = %d%n", j, counters[j]);
       }
-      // System.out.printf ("\n");
+      // System.out.printf ("%n");
     } 
   }
 
@@ -129,9 +125,9 @@ public class UtilTest {
       DoublesUtil.linearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
       for (int j = 0; j < counters.length; j++) {
         assert counters[j] == answers[j];
-        // System.out.printf ("counter[%d] = %d\n", j, counters[j]);
+        // System.out.printf ("counter[%d] = %d%n", j, counters[j]);
       }
-      // System.out.printf ("\n");
+      // System.out.printf ("%n");
     }
  
     {
@@ -141,9 +137,9 @@ public class UtilTest {
       DoublesUtil.linearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
       for (int j = 0; j < counters.length; j++) {
         assert counters[j] == answers[j];
-        // System.out.printf ("counter[%d] = %d\n", j, counters[j]);
+        // System.out.printf ("counter[%d] = %d%n", j, counters[j]);
       }
-      // System.out.printf ("\n");
+      // System.out.printf ("%n");
     }
  
     {
@@ -153,9 +149,9 @@ public class UtilTest {
       DoublesUtil.linearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
       for (int j = 0; j < counters.length; j++) {
         assert counters[j] == answers[j];
-        // System.out.printf ("counter[%d] = %d\n", j, counters[j]);
+        // System.out.printf ("counter[%d] = %d%n", j, counters[j]);
       }
-      // System.out.printf ("\n");
+      // System.out.printf ("%n");
     } 
   }
 
@@ -261,7 +257,7 @@ public class UtilTest {
      }
    }
    
-   //System.out.printf ("Passed: testBlockyTandemMergeSort\n");
+   //System.out.printf ("Passed: testBlockyTandemMergeSort%n");
  } 
 
   
@@ -271,10 +267,10 @@ public class UtilTest {
   private static void exhaustiveMain (String[] args) {
     assert (args.length == 1);
     int  numTries = Integer.parseInt (args[0]);
-    System.out.printf ("Testing blockyTandemMergeSort\n");
+    System.out.printf ("Testing blockyTandemMergeSort%n");
     for (int arrLen = 0; true ; arrLen++) { 
       for (int blkSize = 1; blkSize <= arrLen + 100; blkSize++) {
-        System.out.printf ("Testing %d times with arrLen = %d and blkSize = %d\n", numTries, arrLen, blkSize);
+        System.out.printf ("Testing %d times with arrLen = %d and blkSize = %d%n", numTries, arrLen, blkSize);
         for (int tryno = 1; tryno <= numTries; tryno++) {  
           double [] arr = makeMergeTestInput (arrLen, blkSize);
           long [] brr = makeTheTandemArray (arr);

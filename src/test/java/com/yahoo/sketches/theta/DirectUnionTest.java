@@ -4,6 +4,18 @@
  */
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV1;
+import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV2;
+import static com.yahoo.sketches.theta.HeapUnionTest.testAllCompactForms;
+import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
+import static com.yahoo.sketches.theta.SetOperation.getMaxUnionBytes;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
+
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
@@ -11,14 +23,7 @@ import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 import org.testng.annotations.Test;
 
-import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV1;
-import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV2;
-import static com.yahoo.sketches.theta.HeapUnionTest.testAllCompactForms;
-import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
-import static com.yahoo.sketches.theta.SetOperation.getMaxUnionBytes;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
+
 
 import java.util.Arrays;
 
@@ -630,7 +635,7 @@ public class DirectUnionTest {
     union.update(byteArr); //null byte[]
     byteArr = new byte[0];
     union.update(byteArr); //empty byte[]
-    byteArr = "Byte Array".getBytes();
+    byteArr = "Byte Array".getBytes(UTF_8);
     union.update(byteArr); //#3 actual byte[]
     int[] intArr = null;
     union.update(intArr); //null int[]
@@ -659,12 +664,12 @@ public class DirectUnionTest {
     assertEquals(setOp.getFamily(), Family.UNION);
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkPreambleLongsCorruption() {
     int k = 16;
     Memory mem = new NativeMemory(new byte[k*16 +32]);
     SetOperation setOp = new SetOperationBuilder().initMemory(mem).build(k,Family.UNION);
+    println(setOp.toString());
     long pre0 = mem.getLong(0);
     int familyID = PreambleUtil.extractFamilyID(pre0);
     int preLongs = PreambleUtil.extractPreLongs(pre0);
@@ -674,18 +679,18 @@ public class DirectUnionTest {
     //println(PreambleUtil.toString(mem));
     mem.putLong(0, pre0);
     //println(PreambleUtil.toString(mem));
-    DirectQuickSelectSketch sketch = DirectQuickSelectSketch.getInstance(mem, Util.DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.getInstance(mem, Util.DEFAULT_UPDATE_SEED);
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkSizeTooSmall() {
     int k = 16;
     Memory mem = new NativeMemory(new byte[k*16 +32]); //initialized
     SetOperation setOp = new SetOperationBuilder().initMemory(mem).build(k,Family.UNION);
+    println(setOp.toString());
     Memory mem2 = new NativeMemory(new byte[32]); //for just preamble
     NativeMemory.copy(mem, 0, mem2, 0, 32); //too small
-    DirectQuickSelectSketch sketch = DirectQuickSelectSketch.getInstance(mem2, Util.DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.getInstance(mem2, Util.DEFAULT_UPDATE_SEED);
   }
   
   @Test

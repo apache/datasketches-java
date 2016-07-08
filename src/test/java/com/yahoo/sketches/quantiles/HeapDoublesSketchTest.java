@@ -287,8 +287,8 @@ public class HeapDoublesSketchTest {
   
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkConstructorException() {
-    @SuppressWarnings("unused")
     DoublesSketch qs = DoublesSketch.builder().build(0);
+    qs.getQuantile(0.5); //never executed
   }
   
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -466,8 +466,8 @@ public class HeapDoublesSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkMemTooSmall1() {
     Memory mem = new NativeMemory(new byte[7]);
-    @SuppressWarnings("unused")
     HeapDoublesSketch qs2 = HeapDoublesSketch.getInstance(mem);
+    qs2.getQuantile(0.5);
   }
   
   //Corruption tests
@@ -563,13 +563,13 @@ public class HeapDoublesSketchTest {
       directSketch.update (i);
     }
     HeapDoublesSketch downSketch = (HeapDoublesSketch)origSketch.downSample(smallK);
-    println ("\nOrig\n");
+    println (LS+"Orig+LS");
     String s = origSketch.toString(true, true);
     println(s);
-    println ("\nDown\n");
+    println (LS+"Down+LS");
     s = downSketch.toString(true, true);
     println(s);
-    println("\nDirect\n");
+    println(LS+"Direct"+LS);
     s = directSketch.toString(true, true);
     println(s);
   }
@@ -760,7 +760,7 @@ public class HeapDoublesSketchTest {
     long n = 10;
     Method privateMethod = DoublesAuxiliary.class.getDeclaredMethod("posOfPhi", double.class, long.class );
     privateMethod.setAccessible(true);
-    long returnValue = (long) privateMethod.invoke(null, new Double(1.0), new Long(10));
+    long returnValue = (long) privateMethod.invoke(null, Double.valueOf(1.0), Long.valueOf(10));
     //println("" + returnValue);
     assertEquals(returnValue, n-1);
   }

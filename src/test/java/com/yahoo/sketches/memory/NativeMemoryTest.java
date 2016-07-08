@@ -524,7 +524,7 @@ public class NativeMemoryTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkNullByteArray() {
     byte[] byteArr = null;
-    NativeMemory mem = new NativeMemory(byteArr);
+    new NativeMemory(byteArr);
   }
   
   @Test

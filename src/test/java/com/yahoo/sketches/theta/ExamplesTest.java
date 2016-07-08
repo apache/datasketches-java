@@ -12,7 +12,7 @@ import org.testng.annotations.Test;
 public class ExamplesTest {
   
   @Test
-  public void SimpleCountingSketch() {
+  public void simpleCountingSketch() {
     int k = 4096;
     int u = 1000000;
     

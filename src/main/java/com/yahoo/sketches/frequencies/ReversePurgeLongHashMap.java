@@ -355,7 +355,7 @@ class ReversePurgeLongHashMap {
     return new Iterator(keys, values, states);
   }
 
-  class Iterator {
+  static class Iterator {
     private final long[] iKeys;
     private final long[] iValues;
     private final short[] iStates;

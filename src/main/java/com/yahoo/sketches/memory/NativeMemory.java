@@ -37,6 +37,7 @@ import static com.yahoo.sketches.memory.UnsafeUtil.UNSAFE_COPY_THRESHOLD;
 import static com.yahoo.sketches.memory.UnsafeUtil.assertBounds;
 import static com.yahoo.sketches.memory.UnsafeUtil.checkOverlap;
 import static com.yahoo.sketches.memory.UnsafeUtil.unsafe;
+import static com.yahoo.sketches.memory.UnsafeUtil.LS;
 
 /**
  * The NativeMemory class implements the Memory interface and is used to access Java byte arrays, 
@@ -56,7 +57,7 @@ import static com.yahoo.sketches.memory.UnsafeUtil.unsafe;
  * 
  * @author Lee Rhodes
  */
-@SuppressWarnings("restriction")
+//@SuppressWarnings("restriction")
 public class NativeMemory implements Memory {
   /* Truth table that distinguishes between Requires Free and actual off-heap Direct mode.
   Class        Case                 ObjBaseOff MemArr byteBuf rawAdd CapacityBytes  ReqFree Direct
@@ -640,10 +641,10 @@ public class NativeMemory implements Memory {
   @Override
   public String toHexString(String header, long offsetBytes, int lengthBytes) {
     StringBuilder sb = new StringBuilder();
-    sb.append(header).append("\n");
+    sb.append(header).append(LS);
     String s1 = String.format("(..., %d, %d)", offsetBytes, lengthBytes);
     sb.append(this.getClass().getSimpleName()).append(".toHexString").
-       append(s1).append(", hash: ").append(this.hashCode()).append("\n");
+       append(s1).append(", hash: ").append(this.hashCode()).append(LS);
     sb.append("  MemoryRequest: ");
     if (memReq_ != null) {
       sb.append(memReq_.getClass().getSimpleName()).append(", hash: ").append(memReq_.hashCode());
@@ -732,25 +733,25 @@ public class NativeMemory implements Memory {
     assertBounds(offsetBytes, lengthBytes, capacityBytes_);
     long unsafeRawAddress = getAddress(offsetBytes);
     StringBuilder sb = new StringBuilder();
-    sb.append(header).append("\n");
-    sb.append("Raw Address         : ").append(nativeRawStartAddress_).append("\n");
+    sb.append(header).append(LS);
+    sb.append("Raw Address         : ").append(nativeRawStartAddress_).append(LS);
     sb.append("Object Offset       : ").append(objectBaseOffset_).append(": ");
-    sb.append( (memArray_ == null)? "null" : memArray_.getClass().getSimpleName()).append("\n");
-    sb.append("Relative Offset     : ").append(offsetBytes).append("\n");
-    sb.append("Total Offset        : ").append(unsafeRawAddress).append("\n");
+    sb.append( (memArray_ == null)? "null" : memArray_.getClass().getSimpleName()).append(LS);
+    sb.append("Relative Offset     : ").append(offsetBytes).append(LS);
+    sb.append("Total Offset        : ").append(unsafeRawAddress).append(LS);
     sb.append("Native Region       :  0  1  2  3  4  5  6  7");
     long j = offsetBytes;
     StringBuilder sb2 = new StringBuilder();
     for (long i=0; i<lengthBytes; i++) {
       int b = unsafe.getByte(memArray_, unsafeRawAddress + i) & 0XFF;
       if ((i != 0) && ((i % 8) == 0)) {
-        sb.append(String.format("\n%20s: ", j)).append(sb2);
+        sb.append(String.format("%n%20s: ", j)).append(sb2);
         j += 8;
         sb2.setLength(0);
       }
       sb2.append(String.format("%02x ", b));
     }
-    sb.append(String.format("\n%20s: ", j)).append(sb2).append("\n");
+    sb.append(String.format("%n%20s: ", j)).append(sb2).append(LS);
     return sb.toString();
   }
 

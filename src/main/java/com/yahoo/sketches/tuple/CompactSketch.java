@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.tuple;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.lang.reflect.Array;
 import java.nio.ByteOrder;
 
@@ -72,7 +74,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
       byte[] classNameBuffer = new byte[classNameLength];
       mem.getByteArray(offset, classNameBuffer, 0, classNameLength);
       offset += classNameLength;
-      String className = new String(classNameBuffer);
+      String className = new String(classNameBuffer, UTF_8);
       keys_ = new long[count];
       for (int i = 0; i < count; i++) {
         keys_[i] = mem.getLong(offset);
@@ -171,7 +173,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
       mem.putByte(offset++, (byte) summaryClassName.length());
       mem.putInt(offset, getRetainedEntries());
       offset += Integer.BYTES;
-      mem.putByteArray(offset, summaryClassName.getBytes(), 0, summaryClassName.length());
+      mem.putByteArray(offset, summaryClassName.getBytes(UTF_8), 0, summaryClassName.length());
       offset += summaryClassName.length();
       for (int i = 0; i < count; i++) {
         mem.putLong(offset, keys_[i]);

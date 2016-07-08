@@ -426,6 +426,8 @@ class DirectQuickSelectSketch extends DirectUpdateSketch {
    * @return the hash table threshold
    */
   private static final int setHashTableThreshold(final int lgNomLongs, final int lgArrLongs) {
+    //FindBugs may complain if DQS_RESIZE_THRESHOLD == REBUILD_THRESHOLD, but this allows us
+    // to tune these constants for different sketches.
     double fraction = (lgArrLongs <= lgNomLongs) ? DQS_RESIZE_THRESHOLD : REBUILD_THRESHOLD;
     return (int) Math.floor(fraction * (1 << lgArrLongs));
   }

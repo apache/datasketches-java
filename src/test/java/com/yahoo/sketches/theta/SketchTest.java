@@ -152,19 +152,17 @@ public class SketchTest {
     assertEquals(ResizeFactor.getRF(3), X8);
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWrapBadFamily() {
     UpdateSketch sketch = UpdateSketch.builder().setFamily(Family.ALPHA).build(1024);
     byte[] byteArr = sketch.toByteArray();
     Memory srcMem = new NativeMemory(byteArr);
-    Sketch sketch2 = Sketch.wrap(srcMem);
+    Sketch.wrap(srcMem);
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadFamily() {
-    UpdateSketch sketch = UpdateSketch.builder().setFamily(Family.INTERSECTION).build(1024);
+    UpdateSketch.builder().setFamily(Family.INTERSECTION).build(1024);
   }
   
   @Test
@@ -176,7 +174,6 @@ public class SketchTest {
     assertEquals(serVer, 3);
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyAlphaCompactExcep() {
     int k = 512;
@@ -185,10 +182,9 @@ public class SketchTest {
     Memory mem = new NativeMemory(byteArray);
     //corrupt:
     mem.setBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
-    Sketch sketch2 = Sketch.heapify(mem);
+    Sketch.heapify(mem);
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyQSCompactExcep() {
     int k = 512;
@@ -197,10 +193,9 @@ public class SketchTest {
     Memory mem = new NativeMemory(byteArray);
     //corrupt:
     mem.setBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
-    Sketch sketch2 = Sketch.heapify(mem);
+    Sketch.heapify(mem);
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyNotCompactExcep() {
     int k = 512;
@@ -208,13 +203,12 @@ public class SketchTest {
     int bytes = Sketch.getMaxCompactSketchBytes(0);
     byte[] byteArray = new byte[bytes];
     Memory mem = new NativeMemory(byteArray);
-    CompactSketch comp = sketch1.compact(false, mem);
+    sketch1.compact(false, mem);
     //corrupt:
     mem.clearBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
-    Sketch sketch2 = Sketch.heapify(mem);
+    Sketch.heapify(mem);
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyFamilyExcep() {
     int k = 512;
@@ -222,10 +216,9 @@ public class SketchTest {
     byte[] byteArray = union.toByteArray();
     Memory mem = new NativeMemory(byteArray);
     //Improper use
-    Sketch sketch2 = Sketch.heapify(mem);
+    Sketch.heapify(mem);
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWrapAlphaCompactExcep() {
     int k = 512;
@@ -234,11 +227,10 @@ public class SketchTest {
     Memory mem = new NativeMemory(byteArray);
     //corrupt:
     mem.setBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
-    Sketch sketch2 = Sketch.wrap(mem);
+    Sketch.wrap(mem);
     
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWrapQSCompactExcep() {
     int k = 512;
@@ -247,10 +239,9 @@ public class SketchTest {
     Memory mem = new NativeMemory(byteArray);
     //corrupt:
     mem.setBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
-    Sketch sketch2 = Sketch.wrap(mem);
+    Sketch.wrap(mem);
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWrapNotCompactExcep() {
     int k = 512;
@@ -258,10 +249,10 @@ public class SketchTest {
     int bytes = Sketch.getMaxCompactSketchBytes(0);
     byte[] byteArray = new byte[bytes];
     Memory mem = new NativeMemory(byteArray);
-    CompactSketch comp = sketch1.compact(false, mem);
+    sketch1.compact(false, mem);
     //corrupt:
     mem.clearBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
-    Sketch sketch2 = Sketch.wrap(mem);
+    Sketch.wrap(mem);
   }
   
   @Test

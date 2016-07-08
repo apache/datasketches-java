@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.tuple;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -51,7 +53,7 @@ class SerializerDeserializer {
       final Memory mem = new NativeMemory(bytes);
       int offset = 0;
       mem.putByte(offset++, (byte)className.length());
-      mem.putByteArray(offset, className.getBytes(), 0, className.length());
+      mem.putByteArray(offset, className.getBytes(UTF_8), 0, className.length());
       offset += className.length();
       mem.putByteArray(offset, objectBytes, 0, objectBytes.length);
       return bytes;
@@ -64,7 +66,7 @@ class SerializerDeserializer {
     final int classNameLength = mem.getByte(offset);
     final byte[] classNameBuffer = new byte[classNameLength];
     mem.getByteArray(offset + 1, classNameBuffer, 0, classNameLength);
-    final String className = new String(classNameBuffer);
+    final String className = new String(classNameBuffer, UTF_8);
     final DeserializeResult<T> result = deserializeFromMemory(mem, offset + classNameLength + 1, className);
     return new DeserializeResult<T>(result.getObject(), result.getSize() + classNameLength + 1);
   }

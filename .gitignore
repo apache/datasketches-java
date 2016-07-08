@@ -13,7 +13,7 @@ bin/
 #Test output
 test-output/
 /.clover/
-tmp/
+local/
 
 # Build artifacts
 target/
@@ -33,3 +33,5 @@ Gemfile.lock
 _site/
 _*
 _*/
+
+FindBugsExcludeFilter.xml

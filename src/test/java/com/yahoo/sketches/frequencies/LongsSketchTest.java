@@ -11,18 +11,13 @@ import static com.yahoo.sketches.frequencies.LongsSketch.*;
 import static com.yahoo.sketches.Util.LS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.fail;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.yahoo.sketches.SketchesArgumentException;
-
-/*
- * Copyright 2016, Yahoo! Inc. Licensed under the terms of the Apache License 2.0. See LICENSE file
- * at the project root for terms.
- */
-
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.frequencies.LongsSketch.Row;
 import com.yahoo.sketches.memory.Memory;
@@ -102,7 +97,6 @@ public class LongsSketchTest {
     Assert.assertTrue(new_sketch.getStreamLength() == merged_sketch.getStreamLength());
   }
 
-  @SuppressWarnings("unused")
   @Test
   public void frequentItemsByteSerialTest() {
     //Empty Sketch
@@ -111,7 +105,7 @@ public class LongsSketchTest {
     Memory mem0 = new NativeMemory(bytearray0);
     LongsSketch new_sketch0 = LongsSketch.getInstance(mem0);
     String str0 = PreambleUtil.preambleToString(mem0);
-    //println(str0);
+    println(str0);
     String string0 = sketch.serializeToString();
     String new_string0 = new_sketch0.serializeToString();
     Assert.assertTrue(string0.equals(new_string0));
@@ -127,7 +121,7 @@ public class LongsSketchTest {
     Memory mem1 = new NativeMemory(bytearray1);
     LongsSketch new_sketch1 = LongsSketch.getInstance(mem1);
     String str1 = PreambleUtil.preambleToString(mem1);
-    //println(str1);
+    println(str1);
     String string1 = sketch.serializeToString();
     String new_string1 = new_sketch1.serializeToString();
     Assert.assertTrue(string1.equals(new_string1));
@@ -393,10 +387,20 @@ public class LongsSketchTest {
   @Test
   public void checkGetFrequentItems1() {
     int minSize = 1 << LG_MIN_MAP_SIZE;
-    LongsSketch fls = new LongsSketch(minSize);
-    fls.update(1);
-    Row[] rowArr = fls.getFrequentItems(ErrorType.NO_FALSE_POSITIVES);
+    LongsSketch fis = new LongsSketch(minSize);
+    fis.update(1);
+    Row[] rowArr = fis.getFrequentItems(ErrorType.NO_FALSE_POSITIVES);
     assertEquals(rowArr[0].est, 1);
+    Row row = rowArr[0];
+    assertTrue(row.hashCode() > 0);
+    assertTrue(row.equals(row));
+    assertFalse(row.equals(null));
+    assertFalse(row.equals(Integer.valueOf(0)));
+    Row newRow = new Row(row.item, row.est+1, row.ub, row.lb);
+    assertFalse(row.equals(newRow));
+    newRow = new Row(row.item, row.est, row.ub, row.lb);
+    assertTrue(row.equals(newRow));
+    
   }
 
   @Test
@@ -410,16 +414,15 @@ public class LongsSketchTest {
     assertEquals(bytes, 64);
   }
 
-  @SuppressWarnings("unused")
   @Test
   public void checkDeSerFromStringArray() {
     int minSize = 1 << LG_MIN_MAP_SIZE;
     LongsSketch fls = new LongsSketch(minSize);
     String ser = fls.serializeToString();
-    //println(ser);
+    println(ser);
     fls.update(1);
     ser = fls.serializeToString();
-    //println(ser);
+    println(ser);
   }
 
   @Test
@@ -435,7 +438,6 @@ public class LongsSketchTest {
     assertTrue(fle.isEmpty());
   }
 
-  @SuppressWarnings("unused")
   @Test
   public void checkSortItems() {
     int numSketches = 1; 
@@ -469,7 +471,7 @@ public class LongsSketchTest {
       long anEst  = first.getEstimate();
       long aLB    = first.getLowerBound();
       String s = first.toString();
-      //println(s);
+      println(s);
       assertTrue(anEst >= 0);
       assertTrue(aLB >= 0);
       assertEquals(anItem, anItem); //dummy test
@@ -520,9 +522,11 @@ public class LongsSketchTest {
     String hdr = Row.getRowHeader();
     println(hdr);
     for (int i=0; i<rows.length; i++) {
-      String s2 = rows[i].toString();
+      Row row = rows[i];
+      String s2 = row.toString();
       println(s2);
     }
+    
   }
 
   /**

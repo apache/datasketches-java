@@ -174,6 +174,7 @@ public abstract class CompactSketch extends Sketch {
         sketchOut = new DirectCompactOrderedSketch(compactCache, empty, seedHash, curCount, thetaLong, dstMem);
         break;
       }
+      //default: //This cannot happen and cannot be tested
     }
     return sketchOut;
   }

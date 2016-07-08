@@ -228,6 +228,7 @@ class HeapAnotB extends SetOperation implements AnotB {
         scanEarlyStopAsearchB();
         break; //(min, n, Ea)
       }
+      //default: //This cannot happen and cannot be tested
     }
   }
   
