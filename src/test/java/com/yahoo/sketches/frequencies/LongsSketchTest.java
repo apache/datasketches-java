@@ -102,7 +102,6 @@ public class LongsSketchTest {
     Assert.assertTrue(new_sketch.getStreamLength() == merged_sketch.getStreamLength());
   }
 
-  @SuppressWarnings("unused")
   @Test
   public void frequentItemsByteSerialTest() {
     //Empty Sketch
@@ -111,7 +110,7 @@ public class LongsSketchTest {
     Memory mem0 = new NativeMemory(bytearray0);
     LongsSketch new_sketch0 = LongsSketch.getInstance(mem0);
     String str0 = PreambleUtil.preambleToString(mem0);
-    //println(str0);
+    println(str0);
     String string0 = sketch.serializeToString();
     String new_string0 = new_sketch0.serializeToString();
     Assert.assertTrue(string0.equals(new_string0));
@@ -127,7 +126,7 @@ public class LongsSketchTest {
     Memory mem1 = new NativeMemory(bytearray1);
     LongsSketch new_sketch1 = LongsSketch.getInstance(mem1);
     String str1 = PreambleUtil.preambleToString(mem1);
-    //println(str1);
+    println(str1);
     String string1 = sketch.serializeToString();
     String new_string1 = new_sketch1.serializeToString();
     Assert.assertTrue(string1.equals(new_string1));
@@ -410,16 +409,15 @@ public class LongsSketchTest {
     assertEquals(bytes, 64);
   }
 
-  @SuppressWarnings("unused")
   @Test
   public void checkDeSerFromStringArray() {
     int minSize = 1 << LG_MIN_MAP_SIZE;
     LongsSketch fls = new LongsSketch(minSize);
     String ser = fls.serializeToString();
-    //println(ser);
+    println(ser);
     fls.update(1);
     ser = fls.serializeToString();
-    //println(ser);
+    println(ser);
   }
 
   @Test
@@ -435,7 +433,6 @@ public class LongsSketchTest {
     assertTrue(fle.isEmpty());
   }
 
-  @SuppressWarnings("unused")
   @Test
   public void checkSortItems() {
     int numSketches = 1; 
@@ -469,7 +466,7 @@ public class LongsSketchTest {
       long anEst  = first.getEstimate();
       long aLB    = first.getLowerBound();
       String s = first.toString();
-      //println(s);
+      println(s);
       assertTrue(anEst >= 0);
       assertTrue(aLB >= 0);
       assertEquals(anItem, anItem); //dummy test

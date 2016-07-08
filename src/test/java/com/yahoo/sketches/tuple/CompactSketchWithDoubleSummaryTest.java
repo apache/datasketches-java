@@ -120,7 +120,6 @@ public class CompactSketchWithDoubleSummaryTest {
     UpdatableSketch<Double, DoubleSummary> us = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     for (int i = 0; i < 8192; i++) us.update(i, 1.0);
     CompactSketch<DoubleSummary> sketch1 = us.compact();
-    @SuppressWarnings("unused")
-    UpdatableSketch<Double, DoubleSummary> sketch2 = Sketches.heapifyUpdatableSketch(new NativeMemory(sketch1.toByteArray()));
+    Sketches.heapifyUpdatableSketch(new NativeMemory(sketch1.toByteArray()));
   }
 }

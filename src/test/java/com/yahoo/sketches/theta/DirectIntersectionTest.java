@@ -137,7 +137,6 @@ public class DirectIntersectionTest {
     println(""+rsk1.getEstimate());
   }
   
-  @SuppressWarnings("unused")
   //Calling getResult on a virgin Intersect is illegal
   @Test(expectedExceptions = SketchesStateException.class)
   public void checkNoCall() {
@@ -151,7 +150,7 @@ public class DirectIntersectionTest {
     
     inter = SetOperation.builder().initMemory(iMem).buildIntersection();
     assertFalse(inter.hasResult());
-    CompactSketch rsk1 = inter.getResult(false, null);
+    inter.getResult(false, null);
   }
   
   @Test
@@ -512,7 +511,6 @@ public class DirectIntersectionTest {
     assertFalse(comp.isEmpty());
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkSizeLowerLimit() {
     int k = 8;
@@ -521,7 +519,7 @@ public class DirectIntersectionTest {
     byte[] memArr = new byte[memBytes];
     Memory iMem = new NativeMemory(memArr);
     
-    Intersection inter = SetOperation.builder().initMemory(iMem).buildIntersection();
+    SetOperation.builder().initMemory(iMem).buildIntersection();
   }
   
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -544,29 +542,26 @@ public class DirectIntersectionTest {
     inter.update(csk1);
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadPreambleLongs() {
     int k = 32;
-    Intersection inter1, inter2;
     
     int memBytes = getMaxIntersectionBytes(k);
     byte[] memArr = new byte[memBytes];
     Memory iMem = new NativeMemory(memArr);
     
-    inter1 = SetOperation.builder().initMemory(iMem).buildIntersection(); //virgin
+    Intersection inter1 = SetOperation.builder().initMemory(iMem).buildIntersection(); //virgin
     byte[] byteArray = inter1.toByteArray();
     Memory mem = new NativeMemory(byteArray);
     //corrupt:
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 2);//RF not used = 0
-    inter2 = Sketches.wrapIntersection(mem);
+    Sketches.wrapIntersection(mem);
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
     int k = 32;
-    Intersection inter1, inter2;
+    Intersection inter1;
     
     int memBytes = getMaxIntersectionBytes(k);
     byte[] memArr = new byte[memBytes];
@@ -577,20 +572,18 @@ public class DirectIntersectionTest {
     Memory mem = new NativeMemory(byteArray);
     //corrupt:
     mem.putByte(SER_VER_BYTE, (byte) 2);
-    inter2 = Sketches.wrapIntersection(mem); //throws in SetOperations
+    Sketches.wrapIntersection(mem); //throws in SetOperations
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = ClassCastException.class)
   public void checkFamilyID() {
     int k = 32;
     Union union;
-    Intersection inter1;
     
     union = SetOperation.builder().buildUnion(k);
     byte[] byteArray = union.toByteArray();
     Memory mem = new NativeMemory(byteArray);
-    inter1 = Sketches.wrapIntersection(mem);
+    Sketches.wrapIntersection(mem);
   }
   
   @Test

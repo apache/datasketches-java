@@ -200,7 +200,6 @@ public class ItemsSketchTest {
     Assert.assertTrue(header.length() > 0);
   }
   
-  @SuppressWarnings("unused")
   @Test
   public void serializeLongDeserialize() {
     ItemsSketch<Long> sketch1 = new ItemsSketch<Long>(8);
@@ -210,7 +209,7 @@ public class ItemsSketchTest {
     sketch1.update(4L);
 
     String s = sketch1.toString();
-    //println(s);
+    println(s);
     
     byte[] bytes = sketch1.toByteArray(new ArrayOfLongsSerDe());
     ItemsSketch<Long> sketch2 = 
@@ -258,35 +257,34 @@ public class ItemsSketchTest {
     Assert.assertNull(map.getActiveValues());
   }
   
-  @SuppressWarnings({ "rawtypes", "unused" })
   @Test
   public void checkMisc() {
     ItemsSketch<Long> sk1 = new ItemsSketch<Long>(8);
     Assert.assertEquals(sk1.getCurrentMapCapacity(), 6);
-    Assert.assertEquals(sk1.getEstimate(new Long(1)), 0);
+    Assert.assertEquals(sk1.getEstimate(Long.valueOf(1)), 0);
     ItemsSketch<Long> sk2 = new ItemsSketch<Long>(8);
     Assert.assertEquals(sk1.merge(sk2), sk1 );
     Assert.assertEquals(sk1.merge(null), sk1);
-    sk1.update(new Long(1));
+    sk1.update(Long.valueOf(1));
     ItemsSketch.Row<Long>[] rows = sk1.getFrequentItems(ErrorType.NO_FALSE_NEGATIVES);
     ItemsSketch.Row<Long> row = rows[0];
-    Long item = row.getItem();
+    Assert.assertEquals((long)row.getItem(), 1L);
     Assert.assertEquals(row.getEstimate(), 1);
     Assert.assertEquals(row.getUpperBound(), 1);
     String s = row.toString();
-    //println(s);
+    println(s);
   }
   
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkUpdateException() {
     ItemsSketch<Long> sk1 = new ItemsSketch<Long>(8);
-    sk1.update(new Long(1), -1);
+    sk1.update(Long.valueOf(1), -1);
   }
   
   @Test
   public void checkMemExceptions() {
     ItemsSketch<Long> sk1 = new ItemsSketch<Long>(8);
-    sk1.update(new Long(1), 1);
+    sk1.update(Long.valueOf(1), 1);
     ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     byte[] byteArr = sk1.toByteArray(serDe);
     Memory mem = new NativeMemory(byteArr);

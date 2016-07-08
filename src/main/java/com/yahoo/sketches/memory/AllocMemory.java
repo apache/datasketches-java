@@ -15,7 +15,7 @@ import static com.yahoo.sketches.memory.UnsafeUtil.unsafe;
  *
  * @author Lee Rhodes
  */
-@SuppressWarnings("restriction")
+//@SuppressWarnings("restriction")
 public class AllocMemory extends NativeMemory {
   
   /**

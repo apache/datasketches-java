@@ -105,17 +105,18 @@ public class ItemsUnionTest {
     Assert.assertEquals(result.getMaxValue(), Integer.valueOf(1));
   }
 
-  @SuppressWarnings("unused")
   @Test
   public void basedOnSketch() {
     Comparator<String> comp = Comparator.naturalOrder();
     ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
     ItemsSketch<String> sketch = ItemsSketch.getInstance(comp);
     ItemsUnion<String> union = ItemsUnion.getInstance(sketch);
+    union.reset();
     byte[] byteArr = sketch.toByteArray(serDe);
     Memory mem = new NativeMemory(byteArr);
     union = ItemsUnion.getInstance(mem, comp, serDe);
     Assert.assertEquals(byteArr.length, 8);
+    union.reset();
   }
   
   @Test

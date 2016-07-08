@@ -34,15 +34,16 @@ public class DoubleSummary implements UpdatableSummary<Double> {
   public DoubleSummary(final Mode mode) {
     mode_ = mode;
     switch (mode) {
-    case Sum:
-      value_ = 0;
-      break;
-    case Min:
-      value_ = Double.POSITIVE_INFINITY;
-      break;
-    case Max:
-      value_ = Double.NEGATIVE_INFINITY;
-      break;
+      case Sum:
+        value_ = 0;
+        break;
+      case Min:
+        value_ = Double.POSITIVE_INFINITY;
+        break;
+      case Max:
+        value_ = Double.NEGATIVE_INFINITY;
+        break;
+      default: //cannot happen
     }
   }
 
@@ -68,6 +69,7 @@ public class DoubleSummary implements UpdatableSummary<Double> {
     case Max:
       if (value > value_) value_ = value;
       break;
+    default: //cannot happen
     }
   }
 

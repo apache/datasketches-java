@@ -64,9 +64,7 @@ public class HeapAlphaSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkConstructorKtooSmall() {
     int k = 256;
-    
-    @SuppressWarnings("unused")
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).build(k);
+    UpdateSketch.builder().setFamily(fam_).build(k);
   }
   
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -488,39 +486,34 @@ public class HeapAlphaSketchTest {
     assertFalse(sk1.isOrdered());
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkLBlimits0() {
     int k = 512;
     Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).build(k);
-    double lb = alpha.getLowerBound(0);
+    alpha.getLowerBound(0);
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkUBlimits0() {
     int k = 512;
     Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).build(k);
-    double lb = alpha.getUpperBound(0);
+    alpha.getUpperBound(0);
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkLBlimits4() {
     int k = 512;
     Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).build(k);
-    double lb = alpha.getLowerBound(4);
+    alpha.getLowerBound(4);
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkUBlimits4() {
     int k = 512;
     Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).build(k);
-    double lb = alpha.getUpperBound(4);
+    alpha.getUpperBound(4);
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadPreambleLongs() {
     int k = 512;
@@ -529,7 +522,7 @@ public class HeapAlphaSketchTest {
     Memory mem = new NativeMemory(byteArray);
     //corrupt:
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 4);
-    Sketch alpha2 = Sketch.heapify(mem);
+    Sketch.heapify(mem);
   }
   
   @Test(expectedExceptions = SketchesArgumentException.class)

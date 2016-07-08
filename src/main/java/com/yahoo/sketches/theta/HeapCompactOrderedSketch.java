@@ -80,7 +80,7 @@ class HeapCompactOrderedSketch extends CompactSketch {
     Memory dstMem = new NativeMemory(byteArray);
     int emptyBit = isEmpty()? (byte) EMPTY_FLAG_MASK : 0;
     byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK);
-    dstMem = loadCompactMemory(getCache(), isEmpty(), getSeedHash(), getRetainedEntries(true),
+    loadCompactMemory(getCache(), isEmpty(), getSeedHash(), getRetainedEntries(true),
         getThetaLong(), dstMem, flags);
     return byteArray;
   }

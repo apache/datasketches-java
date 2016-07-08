@@ -173,9 +173,7 @@ public class CompactSketchTest {
     int bytes = usk.getCurrentBytes(compact);
     byte[] byteArray = new byte[bytes -8]; //too small
     Memory mem = new NativeMemory(byteArray);
-    
-    @SuppressWarnings("unused")
-    CompactSketch csk = usk.compact(ordered, mem);
+    usk.compact(ordered, mem);
   }
   
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -190,9 +188,7 @@ public class CompactSketchTest {
     int bytes = usk.getCurrentBytes(compact);
     byte[] byteArray = new byte[bytes -8]; //too small
     Memory mem = new NativeMemory(byteArray);
-    
-    @SuppressWarnings("unused")
-    CompactSketch csk = usk.compact(ordered, mem);
+    usk.compact(ordered, mem);
   }
   
   @Test

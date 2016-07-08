@@ -101,25 +101,30 @@ class HeapDoublesUnion extends DoublesUnion {
       case 10: outCase = 3; break; //merge  myQS = valid, other = valid
       default: //This cannot happen
     }
+    HeapDoublesSketch ret = null;
     switch (outCase) {
-      case 0: return null;
-      case 1: return myQS;
+      case 0: ret = null; break; 
+      case 1: ret = myQS; break;
       case 2: {
-        return HeapDoublesSketch.copy(other); //required because caller has handle
+        ret = HeapDoublesSketch.copy(other); //required because caller has handle
+        break;
       }
-      default: //This is Case 3, which falls out to the merge.
+      case 3: { //must merge
+        if (myQS.getK() <= other.getK()) { //I am smaller or equal, thus the target
+          HeapDoublesUnion.mergeInto(other, myQS);
+          ret = myQS;
+        } else {
+          //myQS_K > other_K, must reverse roles
+          //must copy other as it will become mine and can't have any externally owned handles.
+          HeapDoublesSketch myNewQS = HeapDoublesSketch.copy(other);
+          HeapDoublesUnion.mergeInto(myQS, myNewQS);
+          ret = myNewQS;
+        }
+        break;
+      }
+      default: //cannot happen
     }
-    //must merge
-    if (myQS.getK() <= other.getK()) { //I am smaller or equal, thus the target
-      HeapDoublesUnion.mergeInto(other, myQS);
-      return myQS;
-    }
-    
-    //myQS_K > other_K, must reverse roles
-    //must copy other as it will become mine and can't have any externally owned handles.
-    HeapDoublesSketch myNewQS = HeapDoublesSketch.copy(other);
-    HeapDoublesUnion.mergeInto(myQS, myNewQS);
-    return myNewQS;
+    return ret;
   }
 //@formatter:on
   

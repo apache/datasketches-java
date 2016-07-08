@@ -36,11 +36,11 @@ public class HeapAnotBTest {
     CompactSketch rsk1;
     
     rsk1 = aNb.getResult(false, null);
-    assertEquals(rsk1.getEstimate(), (double)(k/2));
+    assertEquals(rsk1.getEstimate(), k/2.0);
     
     aNb.update(usk1, usk2);
     rsk1 = aNb.getResult(true, null);
-    assertEquals(rsk1.getEstimate(), (double)(k/2));
+    assertEquals(rsk1.getEstimate(), k/2.0);
     
     //getCurrentBytes( compact )
     int bytes = rsk1.getCurrentBytes(true);
@@ -49,11 +49,11 @@ public class HeapAnotBTest {
     
     aNb.update(usk1, usk2);
     rsk1 = aNb.getResult(false, mem);
-    assertEquals(rsk1.getEstimate(), (double)(k/2));
+    assertEquals(rsk1.getEstimate(), k/2.0);
     
     aNb.update(usk1, usk2);
     rsk1 = aNb.getResult(true, mem);
-    assertEquals(rsk1.getEstimate(), (double)(k/2));
+    assertEquals(rsk1.getEstimate(), k/2.0);
   }
   
   @Test
@@ -265,7 +265,7 @@ public class HeapAnotBTest {
     r2 = aNb.getResult(ordered, mem2);
     double est = r2.getEstimate();
     println("est: "+est);
-    assertEquals(est, k/4, 0.0);
+    assertEquals(est, k/4.0, 0.0);
   }
   
   @Test
@@ -300,7 +300,7 @@ public class HeapAnotBTest {
     
     double est = r.getEstimate();
     println("est: "+est);
-    assertEquals(est, k/4, 0.0);
+    assertEquals(est, k/4.0, 0.0);
   }
   
   @Test

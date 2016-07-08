@@ -91,7 +91,6 @@ public class HeapArrayOfDoublesCompactSketchTest {
     ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) us.update(i, new double[] {1.0});
     ArrayOfDoublesCompactSketch sketch1 = us.compact();
-    @SuppressWarnings("unused")
-    ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketches.heapifySketch(new NativeMemory(sketch1.toByteArray()), 123);
+    ArrayOfDoublesSketches.heapifySketch(new NativeMemory(sketch1.toByteArray()), 123);
   }
 }

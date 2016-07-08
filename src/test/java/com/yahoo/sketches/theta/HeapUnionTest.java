@@ -7,8 +7,12 @@ package com.yahoo.sketches.theta;
 import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV1;
 import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV2;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+
 
 import java.util.Arrays;
 
@@ -513,7 +517,7 @@ public class HeapUnionTest {
     union.update(byteArr); //null byte[]
     byteArr = new byte[0];
     union.update(byteArr); //empty byte[]
-    byteArr = "Byte Array".getBytes();
+    byteArr = "Byte Array".getBytes(UTF_8);
     union.update(byteArr); //#5 actual byte[]
     
     char[] charArr = null;

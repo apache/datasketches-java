@@ -4,6 +4,7 @@
  */
 package com.yahoo.sketches.theta;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
@@ -38,7 +39,7 @@ public class UpdateSketchTest {
     sk1.update(byteArr); //null byte[]
     byteArr = new byte[0];
     sk1.update(byteArr); //empty byte[]
-    byteArr = "Byte Array".getBytes();
+    byteArr = "Byte Array".getBytes(UTF_8);
     sk1.update(byteArr); //#5 actual byte[]
     
     char[] charArr = null;
