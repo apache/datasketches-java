@@ -10,10 +10,12 @@
 # Compiler output, class files
 bin/
 
-#Test output
+#Test config and output
 test-output/
 /.clover/
 local/
+reports/
+.pmd
 
 # Build artifacts
 target/

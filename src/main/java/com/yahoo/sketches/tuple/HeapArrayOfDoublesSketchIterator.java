@@ -10,7 +10,7 @@ import java.util.Arrays;
 /**
  * Iterator over the on-heap ArrayOfDoublesSketch (compact or hash table)
  */
-class HeapArrayOfDoublesSketchIterator implements ArrayOfDoublesSketchIterator {
+final class HeapArrayOfDoublesSketchIterator implements ArrayOfDoublesSketchIterator {
 
   private long[] keys_;
   private double[] values_;

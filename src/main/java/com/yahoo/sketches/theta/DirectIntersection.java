@@ -27,7 +27,7 @@ import com.yahoo.sketches.Util;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-class DirectIntersection extends SetOperation implements Intersection {
+final class DirectIntersection extends SetOperation implements Intersection {
   private final short seedHash_;
   //Note: Intersection does not use lgNomLongs or k, per se.
   private int lgArrLongs_; //current size of hash table

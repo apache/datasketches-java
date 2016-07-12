@@ -16,7 +16,7 @@ import com.yahoo.sketches.memory.NativeMemory;
 /**
  * @author Kevin Lang
  */
-public class Preamble {
+public final class Preamble {
   static final byte PREAMBLE_LONGS = 1;
   static final byte PREAMBLE_VERSION = 8;
   static final byte HLL_PREAMBLE_FAMILY_ID = (byte) Family.HLL.getID();

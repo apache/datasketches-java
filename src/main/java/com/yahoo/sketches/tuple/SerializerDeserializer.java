@@ -18,7 +18,7 @@ import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;
 import com.yahoo.sketches.memory.NativeMemory;
 
-class SerializerDeserializer {
+final class SerializerDeserializer {
   static enum SketchType { QuickSelectSketch, CompactSketch, ArrayOfDoublesQuickSelectSketch, ArrayOfDoublesCompactSketch }
   static final int TYPE_BYTE_OFFSET = 3;
 

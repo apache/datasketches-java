@@ -17,7 +17,7 @@ import com.yahoo.sketches.memory.Memory;
  * @author Alex Saydakov
  * @param <T> type of item
  */
-public class ItemsUnion<T> {
+public final class ItemsUnion<T> {
 
   protected final int k_;
   protected final Comparator<? super T> comparator_;

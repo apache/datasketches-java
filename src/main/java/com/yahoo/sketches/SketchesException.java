@@ -25,4 +25,19 @@ public class SketchesException extends RuntimeException {
     super(message);
   }
   
+  /**
+   * Constructs a new runtime exception with the specified detail message and cause.
+   * 
+   * <p>Note that the detail message associated with cause is not automatically incorporated 
+   * in this runtime exception's detail message.</p>
+   * 
+   * @param message the detail message (which is saved for later retrieval by the 
+   * Throwable.getMessage() method).
+   * @param cause the cause (which is saved for later retrieval by the Throwable.getCause() 
+   * method). (A null value is permitted, and indicates that the cause is nonexistent or unknown.)
+   */
+  public SketchesException(String message, Throwable cause) {
+    super(message, cause);
+  }
+  
 }

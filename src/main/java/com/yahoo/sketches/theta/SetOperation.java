@@ -161,8 +161,14 @@ public abstract class SetOperation {
    * @return true if given Family id is one of the set operations
    */
   static boolean isValidSetOpID(int id) {
-    int loID = Family.UNION.getID();
-    int hiID = Family.A_NOT_B.getID();
-    return ((hiID - id) | (id - loID)) >= 0;
+    Family family = Family.idToFamily(id);
+    boolean ret;
+    switch (family) {
+      case UNION :
+      case INTERSECTION :
+      case A_NOT_B : ret = true; break;
+      default: ret = false; break;
+    }
+    return ret;
   }
 }

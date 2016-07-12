@@ -8,7 +8,7 @@ package com.yahoo.sketches.hll;
 /**
  * @author Kevin Lang
  */
-public class PreambleFlags {
+public final class PreambleFlags {
   static final int EMPTY_FLAG_MASK = 2;
   static final int UNION_MODE_FLAG_MASK = 4;
   static final int EIGHT_BYTE_PADDING_FLAG_MASK = 8;
@@ -17,6 +17,8 @@ public class PreambleFlags {
   static final int SHARED_PREAMBLE_FLAG_MASK = 64;
   static final int SPARSE_MODE_FLAG_MASK = 1;
 
+  private PreambleFlags() {}
+  
   public static byte setAllFlags(byte flagsByte, boolean isSparseMode, boolean isUnionMode, 
       boolean isEmpty, boolean isEightBytePadding, boolean isBigEndian, boolean isReadOnly, 
       boolean isSharedPreambleMode) {

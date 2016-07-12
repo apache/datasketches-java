@@ -10,7 +10,7 @@ import com.yahoo.sketches.SketchesArgumentException;
 /**
  * @author Kevin Lang
  */
-class OnHeapFields implements Fields {
+final class OnHeapFields implements Fields {
   private final Preamble preamble;
   private final byte[] buckets;
 

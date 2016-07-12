@@ -35,8 +35,8 @@ public class DoublesUnionBuilder {
   }
 
   /**
-   * Returns a virgin Union object
-   * @return a virgin Union object
+   * Returns a virgin Union object with the default k
+   * @return a virgin Union object with the default k
    */
   public DoublesUnion build() {
     return new HeapDoublesUnion(k_);

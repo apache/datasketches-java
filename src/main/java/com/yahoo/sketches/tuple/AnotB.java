@@ -7,6 +7,8 @@ package com.yahoo.sketches.tuple;
 
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
+import com.yahoo.sketches.HashOperations;
+
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
@@ -14,7 +16,7 @@ import java.util.Arrays;
  * Computes a set difference of two generic tuple sketches
  * @param <S> Type of Summary
  */
-public class AnotB<S extends Summary> {
+public final class AnotB<S extends Summary> {
   private boolean isEmpty_ = true;
   private long theta_ = Long.MAX_VALUE;
   private long[] keys_;

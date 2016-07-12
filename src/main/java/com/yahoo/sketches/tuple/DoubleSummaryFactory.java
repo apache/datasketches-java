@@ -13,7 +13,7 @@ import com.yahoo.sketches.tuple.DoubleSummary.Mode;
  * Factory for DoubleSummary. It supports three modes of operation of DoubleSummary:
  * Sum, Min and Max.
  */
-public class DoubleSummaryFactory implements SummaryFactory<DoubleSummary> {
+public final class DoubleSummaryFactory implements SummaryFactory<DoubleSummary> {
 
   private final DoubleSummary.Mode summaryMode_;
 

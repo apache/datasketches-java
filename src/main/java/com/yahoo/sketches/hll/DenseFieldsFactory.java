@@ -8,7 +8,7 @@ package com.yahoo.sketches.hll;
 /**
  * @author Kevin Lang
  */
-class DenseFieldsFactory implements FieldsFactory {
+final class DenseFieldsFactory implements FieldsFactory {
   
   @Override
   public Fields make(Preamble preamble) {

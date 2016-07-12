@@ -8,7 +8,7 @@ package com.yahoo.sketches.hll;
 /**
  * @author Kevin Lang
  */
-class HipHllSketch extends HllSketch {
+final class HipHllSketch extends HllSketch {
   // derived using some formulas from Ting's paper
   private static final double HIP_REL_ERROR_NUMER = 0.836083874576235;
 

@@ -11,6 +11,7 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -21,7 +22,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * This Memory can be off-heap, which if managed properly will greatly reduce the need for
  * the JVM to perform garbage collection.</p>
  */
-class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketch {
+final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketch {
 
   // these values exist only on heap, never serialized
   private Memory mem_;

@@ -23,7 +23,7 @@ import com.yahoo.sketches.memory.Memory;
  * 
  * @author Lee Rhodes
  */
-class ForwardCompatibility {
+final class ForwardCompatibility {
   
   /**
    * Convert a serialization version (SerVer) 1 sketch to a SerVer 3 HeapCompactOrderedSketch.

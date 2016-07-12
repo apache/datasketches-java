@@ -11,7 +11,7 @@ import com.yahoo.sketches.tuple.DoubleSummary.Mode;
  * Methods for producing unions and intersections of two generic tuple sketches of type Double,
  * where the Summary is of type DoubleSummary.
  */
-public class DoubleSummarySetOperations implements SummarySetOperations<DoubleSummary> {
+public final class DoubleSummarySetOperations implements SummarySetOperations<DoubleSummary> {
 
   private final Mode summaryMode_;
 

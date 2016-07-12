@@ -8,9 +8,9 @@ package com.yahoo.sketches.hll;
 /**
  * @author Kevin Lang
  */
-class HarmonicNumbers {
+final class HarmonicNumbers {
   private static final int NUM_EXACT_HARMONIC_NUMBERS = 25;
-
+  private static final double EULER_MASCHERONI_CONSTANT = 0.577215664901532860606512090082;
   private static double[] tableOfExactHarmonicNumbers = {
     0.0, // 0
     1.0, // 1
@@ -39,9 +39,8 @@ class HarmonicNumbers {
     1347822955.0 / 356948592.0 // 24
   };
 
-
-  private static final double EULER_MASCHERONI_CONSTANT = 0.577215664901532860606512090082;
-
+  private HarmonicNumbers() {}
+  
   @SuppressWarnings("cast")
   public static double harmonicNumber(long x_i) {
     if (x_i < NUM_EXACT_HARMONIC_NUMBERS) {

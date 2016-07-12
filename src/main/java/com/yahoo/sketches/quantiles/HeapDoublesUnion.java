@@ -12,7 +12,7 @@ import com.yahoo.sketches.memory.Memory;
  * 
  * @author Lee Rhodes
  */
-class HeapDoublesUnion extends DoublesUnion {
+final class HeapDoublesUnion extends DoublesUnion {
   private final int k_;
   private HeapDoublesSketch gadget_;
 
@@ -37,13 +37,13 @@ class HeapDoublesUnion extends DoublesUnion {
   
   @Override
   public void update(DoublesSketch sketchIn) {
-    gadget_ = updateLogic(gadget_, (HeapDoublesSketch)sketchIn);
+    gadget_ = updateLogic(k_, gadget_, (HeapDoublesSketch)sketchIn);
   }
 
   @Override
   public void update(Memory srcMem) {
     HeapDoublesSketch that = HeapDoublesSketch.getInstance(srcMem);
-    gadget_ = updateLogic(gadget_, that);
+    gadget_ = updateLogic(k_, gadget_, that);
   }
 
   @Override
@@ -85,14 +85,14 @@ class HeapDoublesUnion extends DoublesUnion {
 
 //@formatter:off
   @SuppressWarnings("null")
-  static HeapDoublesSketch updateLogic(HeapDoublesSketch myQS, HeapDoublesSketch other) {
+  static HeapDoublesSketch updateLogic(final int myK, final HeapDoublesSketch myQS, final HeapDoublesSketch other) {
     int sw1 = ((myQS   == null)? 0 :   myQS.isEmpty()? 4: 8);
     sw1 |=    ((other  == null)? 0 :  other.isEmpty()? 1: 2);
     int outCase = 0; //0=null, 1=NOOP, 2=copy, 3=merge 
     switch (sw1) {
       case 0:  outCase = 0; break; //null   myQS = null,  other = null
       case 1:  outCase = 2; break; //copy   myQS = null,  other = empty
-      case 2:  outCase = 2; break; //copy   myQS = null,  other = valid
+      case 2:  outCase = 4; break; //copy   myQS = null,  other = valid
       case 4:  outCase = 1; break; //noop   myQS = empty, other = null 
       case 5:  outCase = 1; break; //noop   myQS = empty, other = empty
       case 6:  outCase = 3; break; //merge  myQS = empty, other = valid
@@ -103,10 +103,10 @@ class HeapDoublesUnion extends DoublesUnion {
     }
     HeapDoublesSketch ret = null;
     switch (outCase) {
-      case 0: ret = null; break; 
+      case 0: ret = null; break;
       case 1: ret = myQS; break;
       case 2: {
-        ret = HeapDoublesSketch.copy(other); //required because caller has handle
+        ret = HeapDoublesSketch.getInstance(myK);
         break;
       }
       case 3: { //must merge
@@ -119,6 +119,14 @@ class HeapDoublesUnion extends DoublesUnion {
           HeapDoublesSketch myNewQS = HeapDoublesSketch.copy(other);
           HeapDoublesUnion.mergeInto(myQS, myNewQS);
           ret = myNewQS;
+        }
+        break;
+      }
+      case 4: {
+        if (myK < other.getK()) {
+          ret = (HeapDoublesSketch) other.downSample(myK);
+        } else {
+          ret = HeapDoublesSketch.copy(other); //required because caller has handle
         }
         break;
       }

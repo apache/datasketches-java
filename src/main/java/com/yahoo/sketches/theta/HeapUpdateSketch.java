@@ -21,7 +21,6 @@ import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
 
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.Util;
-import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
 /**
@@ -77,11 +76,6 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   @Override
   short getSeedHash() {
     return Util.computeSeedHash(getSeed());
-  }
-
-  @Override
-  Memory getMemory() {
-    return null;
   }
   
   byte[] toByteArray(int preLongs, byte family) {

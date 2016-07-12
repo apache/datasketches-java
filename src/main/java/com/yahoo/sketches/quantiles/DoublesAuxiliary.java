@@ -13,7 +13,7 @@ import java.util.Arrays;
  * @author Kevin Lang
  * @author Lee Rhodes
  */
-class DoublesAuxiliary {
+final class DoublesAuxiliary {
   long auxN_;
   double[] auxSamplesArr_; //array of size samples
   long[] auxCumWtsArr_;

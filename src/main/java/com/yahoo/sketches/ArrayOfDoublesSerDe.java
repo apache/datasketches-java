@@ -14,7 +14,7 @@ import com.yahoo.sketches.memory.NativeMemory;
 public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
 
   @Override
-  public byte[] serializeToByteArray(Double[] items) {
+  public byte[] serializeToByteArray(final Double[] items) {
     final byte[] bytes = new byte[Double.BYTES * items.length];
     final Memory mem = new NativeMemory(bytes);
     long offsetBytes = 0;

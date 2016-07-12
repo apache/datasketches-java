@@ -12,7 +12,7 @@
  * The accuracy of the estimation of the frequency of an item has well understood error 
  * bounds that can be returned by the sketch.</p>
  * 
- * <p>These sketches are mergable and can be serialized and deserialized into a compact 
+ * <p>These sketches are mergable and can be serialized and deserialized to/from a compact 
  * form.</p>
  * 
  */

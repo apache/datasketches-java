@@ -40,7 +40,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * @author Kevin Lang
  * @author Lee Rhodes
  */
-class HeapDoublesSketch extends DoublesSketch {
+final class HeapDoublesSketch extends DoublesSketch {
 
   private static final short ARRAY_OF_DOUBLES_SERDE_ID = new ArrayOfDoublesSerDe().getId();
   /**

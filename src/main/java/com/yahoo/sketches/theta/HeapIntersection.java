@@ -40,7 +40,7 @@ import com.yahoo.sketches.Util;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-class HeapIntersection extends SetOperation implements Intersection{
+final class HeapIntersection extends SetOperation implements Intersection{
   private final short seedHash_;
   //Note: Intersection does not use lgNomLongs or k, per se.
   private int lgArrLongs_;

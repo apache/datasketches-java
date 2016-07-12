@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * @author Kevin Lang
  */
-class OnHeapImmutableCompactFields implements Fields {
+final class OnHeapImmutableCompactFields implements Fields {
   public static OnHeapImmutableCompactFields fromFields(Fields fields) {
     List<Integer> vals = new ArrayList<>();
 

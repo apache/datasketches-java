@@ -8,13 +8,15 @@ package com.yahoo.sketches.hll;
 /**
  * @author Kevin Lang
  */
-class HashUtils {
+final class HashUtils {
   static int NOT_A_PAIR = -1;
 
-  static int getMaxHashSize(int index) {
-    return MAX_HASH_SIZE[index];
-  }
-  
+  private static final int KEY_BITS = 25;
+  private static final int KEY_MASK = (1 << KEY_BITS) - 1;
+
+  private static final int VAL_BITS = 6;
+  private static final int VAL_MASK = (1 << VAL_BITS) - 1;
+
   private static final int[] MAX_HASH_SIZE = new int[] {
       4, 16, 16, 16,
       16, 16, 16, 32,
@@ -25,11 +27,11 @@ class HashUtils {
       262144, 524288, 1048576
   };
 
-  private static final int KEY_BITS = 25;
-  private static final int KEY_MASK = (1 << KEY_BITS) - 1;
+  private HashUtils() {}
 
-  private static final int VAL_BITS = 6;
-  private static final int VAL_MASK = (1 << VAL_BITS) - 1;
+  static int getMaxHashSize(int index) {
+    return MAX_HASH_SIZE[index];
+  }
 
   static int keyOfPair(int pair) {
     return pair & KEY_MASK;

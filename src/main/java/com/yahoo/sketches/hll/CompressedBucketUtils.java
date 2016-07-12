@@ -8,10 +8,12 @@ package com.yahoo.sketches.hll;
 /**
  * @author Kevin Lang
  */
-class CompressedBucketUtils {
+final class CompressedBucketUtils {
   private static final int LO_NIBBLE_MASK = 0x0f;
   private static final int HI_NIBBLE_MASK = 0xf0;
 
+  private CompressedBucketUtils() {}
+  
   static byte getNibble(byte[] buckets, int index) {
     byte theByte = buckets[index >> 1];
     return (byte) (((index & 1) == 0 ? theByte >> 4 : theByte) & LO_NIBBLE_MASK);

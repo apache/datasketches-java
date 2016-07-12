@@ -20,7 +20,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * This Memory can be off-heap, which if managed properly will greatly reduce the need for
  * the JVM to perform garbage collection.</p>
  */
-class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
+final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
 
   // this value exists only on heap, never serialized
   private Memory mem_;

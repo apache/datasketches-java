@@ -5,13 +5,18 @@
 
 package com.yahoo.sketches.frequencies;
 
-import static com.yahoo.sketches.frequencies.DistTest.*;
-import static com.yahoo.sketches.frequencies.PreambleUtil.*;
-import static com.yahoo.sketches.frequencies.LongsSketch.*;
 import static com.yahoo.sketches.Util.LS;
+import static com.yahoo.sketches.frequencies.DistTest.randomGeometricDist;
+import static com.yahoo.sketches.frequencies.PreambleUtil.FAMILY_BYTE;
+import static com.yahoo.sketches.frequencies.PreambleUtil.FLAGS_BYTE;
+import static com.yahoo.sketches.frequencies.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.frequencies.PreambleUtil.SER_DE_ID_SHORT;
+import static com.yahoo.sketches.frequencies.PreambleUtil.SER_VER_BYTE;
+import static com.yahoo.sketches.frequencies.Util.LG_MIN_MAP_SIZE;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import org.testng.Assert;
@@ -198,7 +203,7 @@ public class LongsSketchTest {
 
   @Test
   public void checkFreqLongsMemSerDe() {
-    int minSize = 1 << LongsSketch.LG_MIN_MAP_SIZE;
+    int minSize = 1 << LG_MIN_MAP_SIZE;
     LongsSketch sk1 = new LongsSketch(minSize);
     sk1.update(10, 100);
     sk1.update(10, 100);
@@ -394,7 +399,7 @@ public class LongsSketchTest {
     Row row = rowArr[0];
     assertTrue(row.hashCode() > 0);
     assertTrue(row.equals(row));
-    assertFalse(row.equals(null));
+    assertNotNull(row);
     assertFalse(row.equals(Integer.valueOf(0)));
     Row newRow = new Row(row.item, row.est+1, row.ub, row.lb);
     assertFalse(row.equals(newRow));

@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.memory;
 
+import com.yahoo.sketches.SketchesException;
+
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Constructor;
@@ -104,7 +106,7 @@ final class UnsafeUtil {
       
     }
     catch (Exception e) {
-      throw new RuntimeException("Unable to acquire Unsafe. ", e);
+      throw new SketchesException("Unable to acquire Unsafe. ", e);
     }
   }
 

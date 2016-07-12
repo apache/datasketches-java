@@ -21,7 +21,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * 
  * @author Lee Rhodes
  */
-class HeapCompactSketch extends CompactSketch {
+final class HeapCompactSketch extends CompactSketch {
   private final long[] cache_;
     
   /**

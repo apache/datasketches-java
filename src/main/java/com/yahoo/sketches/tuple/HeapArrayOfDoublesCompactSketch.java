@@ -17,7 +17,7 @@ import com.yahoo.sketches.memory.NativeMemory;
 /**
  * The on-heap implementation of tuple Compact Sketch of type ArrayOfDoubles.
  */
-class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
+final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
 
   private final short seedHash_;
   private long[] keys_;
@@ -74,16 +74,25 @@ class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
   HeapArrayOfDoublesCompactSketch(final Memory mem, final long seed) {
     super(mem.getByte(NUM_VALUES_BYTE));
     seedHash_ = mem.getShort(SEED_HASH_SHORT);
-    SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE), mem.getByte(PREAMBLE_LONGS_BYTE));
-    SerializerDeserializer.validateType(mem.getByte(SKETCH_TYPE_BYTE), SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch);
+    SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE), 
+        mem.getByte(PREAMBLE_LONGS_BYTE));
+    SerializerDeserializer.validateType(mem.getByte(SKETCH_TYPE_BYTE), 
+        SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch);
     final byte version = mem.getByte(SERIAL_VERSION_BYTE);
-    if (version != serialVersionUID) throw new RuntimeException("Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
-    final boolean isBigEndian = mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_BIG_ENDIAN.ordinal()));
-    if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) throw new RuntimeException("Byte order mismatch");
+    if (version != serialVersionUID) {
+      throw new RuntimeException(
+          "Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
+    }
+    final boolean isBigEndian = 
+        mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_BIG_ENDIAN.ordinal()));
+    if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
+      throw new RuntimeException("Byte order mismatch");
+    }
     Util.checkSeedHashes(seedHash_, Util.computeSeedHash(seed));
     isEmpty_ = mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_EMPTY.ordinal()));
     theta_ = mem.getLong(THETA_LONG);
-    final boolean hasEntries = mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.HAS_ENTRIES.ordinal()));
+    final boolean hasEntries = 
+        mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.HAS_ENTRIES.ordinal()));
     if (hasEntries) {
       final int count = mem.getInt(RETAINED_ENTRIES_INT);
       keys_ = new long[count];

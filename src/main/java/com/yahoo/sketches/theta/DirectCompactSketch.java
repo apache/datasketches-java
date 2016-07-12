@@ -18,7 +18,7 @@ import com.yahoo.sketches.memory.Memory;
  * 
  * @author Lee Rhodes
  */
-class DirectCompactSketch extends CompactSketch {
+final class DirectCompactSketch extends CompactSketch {
   private Memory mem_;
   private int preLongs_; //1, 2, or 3
   

@@ -14,7 +14,7 @@ import java.util.Arrays;
 /**
  * @author Kevin Lang
  */
-class OnHeapHash {
+final class OnHeapHash {
   private int[] fields_;
   private int mask;
   private int numElements;

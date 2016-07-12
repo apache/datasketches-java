@@ -12,7 +12,7 @@ import com.yahoo.sketches.memory.Memory;
  * The on-heap implementation of the Union set operation for tuple sketches of type
  * ArrayOfDoubles.
  */
-class HeapArrayOfDoublesUnion extends ArrayOfDoublesUnion {
+final class HeapArrayOfDoublesUnion extends ArrayOfDoublesUnion {
 
   /**
    * Creates an instance of HeapArrayOfDoublesUnion with a custom seed

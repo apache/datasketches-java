@@ -22,7 +22,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * 
  * @author Lee Rhodes
  */
-class HeapCompactOrderedSketch extends CompactSketch {
+final class HeapCompactOrderedSketch extends CompactSketch {
   private final long[] cache_;
   
   /**

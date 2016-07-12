@@ -21,8 +21,10 @@ import static com.yahoo.sketches.BoundsOnBinomialProportions.approximateUpperBou
  * 
  * @author Kevin Lang
  */
-public class BoundsOnRatiosInSampledSets {
+public final class BoundsOnRatiosInSampledSets {
   private static final double NUM_STD_DEVS = 2.0; //made a constant to simplify interface.
+  
+  private BoundsOnRatiosInSampledSets() {}
   
   /**
    * Return the approximate lower bound based on a 95% confidence interval

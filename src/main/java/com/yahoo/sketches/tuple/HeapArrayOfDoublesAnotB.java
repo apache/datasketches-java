@@ -7,6 +7,7 @@ package com.yahoo.sketches.tuple;
 
 import java.util.Arrays;
 
+import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.memory.Memory;
 
 import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
@@ -16,7 +17,7 @@ import static com.yahoo.sketches.Util.ceilingPowerOf2;
  * The on-heap implementation of the set difference operation <i>A and not B</i> for
  * tuple sketches of type ArrayOfDoubles.
  */
-class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
+final class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
 
   private boolean isEmpty_ = true;
   private long theta_ = Long.MAX_VALUE;

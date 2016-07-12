@@ -6,7 +6,7 @@
 package com.yahoo.sketches.frequencies;
 
 import static com.yahoo.sketches.frequencies.PreambleUtil.*;
-import static com.yahoo.sketches.frequencies.ItemsSketch.LG_MIN_MAP_SIZE;
+import static com.yahoo.sketches.frequencies.Util.LG_MIN_MAP_SIZE;
 import org.testng.annotations.Test;
 
 import com.yahoo.sketches.ArrayOfLongsSerDe;
@@ -19,6 +19,7 @@ import com.yahoo.sketches.memory.NativeMemory;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -289,7 +290,7 @@ public class ItemsSketchTest {
     Row<Long> row = rowArr[0];
     assertTrue(row.hashCode() > 0);
     assertTrue(row.equals(row));
-    assertFalse(row.equals(null));
+    assertNotNull(row);
     assertFalse(row.equals(Integer.valueOf(0)));
     Row<Long> newRow = new Row<Long>(row.item, row.est+1, row.ub, row.lb);
     assertFalse(row.equals(newRow));

@@ -50,7 +50,7 @@ import com.yahoo.sketches.Util;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-class HeapAlphaSketch extends HeapUpdateSketch {
+final class HeapAlphaSketch extends HeapUpdateSketch {
   private static final int ALPHA_MIN_LG_NOM_LONGS = 9; //The smallest Log2 nom entries allowed => 512.
   private final double alpha_;  // computed from lgNomLongs
   private final long split1_;   // computed from alpha and p
@@ -290,6 +290,11 @@ class HeapAlphaSketch extends HeapUpdateSketch {
     return Family.ALPHA.getMinPreLongs();
   }
   
+  @Override
+  Memory getMemory() {
+    return null;
+  }
+  
   //SetArgument "interface"
   
   @Override
@@ -307,7 +312,7 @@ class HeapAlphaSketch extends HeapUpdateSketch {
     return cache_;
   }
   
-  //UpdateInternal interface
+  //UpdateInternal "interface"
   
   @Override
   int getLgArrLongs() {

@@ -74,7 +74,7 @@ public class PreambleTest
     Assert.assertEquals(preamble, preamble);
 
     Assert.assertTrue(preamble.equals(Preamble.fromLogK(13)));
-    Assert.assertFalse(preamble.equals(null));
+    Assert.assertNotNull(preamble);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

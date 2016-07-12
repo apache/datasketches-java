@@ -10,8 +10,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static com.yahoo.sketches.Util.*;
 
 /**
- * Top-level class for the HLL family of sketches. This class should not be constructed directly.
- * Use the HllSketchBuilder instead.
+ * Top-level class for the HLL family of sketches.
+ * Use the HllSketchBuilder to construct this class.
  * 
  * @author Kevin Lang
  */
@@ -227,13 +227,11 @@ public class HllSketch {
   }
 
   /**
-   * Set the update callback.  This is protected because it is intended that only children might *call*
-   * the method.  It is not expected that this would be overridden by a child class.  If someone overrides
-   * it and weird things happen, the bug lies in the fact that it was overridden.
+   * Set the update callback. It is final so that it can not be overridden.
    *
    * @param updateCallback the update callback for the HllSketch to use when talking with its Fields
    */
-  protected void setUpdateCallback(Fields.UpdateCallback updateCallback) {
+  protected final void setUpdateCallback(Fields.UpdateCallback updateCallback) {
     this.updateCallback = updateCallback;
   }
 

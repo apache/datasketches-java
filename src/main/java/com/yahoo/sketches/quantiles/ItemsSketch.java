@@ -53,7 +53,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * @author Kevin Lang
  * @author Alex Saydakov
  */
-public class ItemsSketch<T> {
+public final class ItemsSketch<T> {
 
   /**
    * Parameter that controls space usage of sketch and accuracy of estimates.

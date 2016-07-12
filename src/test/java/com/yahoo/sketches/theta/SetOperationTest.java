@@ -325,7 +325,7 @@ public class SetOperationTest {
   
   @Test
   public void checkValidSetOpID() {
-    assertFalse(SetOperation.isValidSetOpID(0));
+    assertFalse(SetOperation.isValidSetOpID(1)); //Alpha
     assertTrue(SetOperation.isValidSetOpID(UNION.getID()));
     assertTrue(SetOperation.isValidSetOpID(INTERSECTION.getID()));
     assertTrue(SetOperation.isValidSetOpID(A_NOT_B.getID()));

@@ -8,7 +8,10 @@ package com.yahoo.sketches.hll;
 /**
  * @author Kevin Lang
  */
-class Interpolation {
+final class Interpolation {
+  
+  private Interpolation() {}
+  
   static final int INTERPOLATION_MIN_LOG_K = 7;
   static final int INTERPOLATION_MAX_LOG_K = 21;
 

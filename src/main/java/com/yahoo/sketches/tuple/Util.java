@@ -10,7 +10,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.yahoo.sketches.SketchesArgumentException;
 
-class Util {
+final class Util {
   /**
   * Gets the starting power of 2 so that it is a proper sub-multiple of the target by resize ratio.
   * This version uses an integer to specify the lgResizeRatio.

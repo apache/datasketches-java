@@ -67,7 +67,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-class DirectQuickSelectSketch extends DirectUpdateSketch {
+final class DirectQuickSelectSketch extends DirectUpdateSketch {
   private static final double DQS_RESIZE_THRESHOLD  = 15.0 / 16.0; //tuned for space
   
   //These values may be accessed on every update, thus are kept on-heap for speed.

@@ -13,7 +13,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * This summary keeps a double value. On update a predefined operation is performed depending on the mode.
  * Three modes are supported: Sum, Min and Max. The default mode is Sum.
  */
-public class DoubleSummary implements UpdatableSummary<Double> {
+public final class DoubleSummary implements UpdatableSummary<Double> {
 
   public static enum Mode { Sum, Min, Max }
 

@@ -10,7 +10,7 @@ import com.yahoo.sketches.SketchesArgumentException;
 /**
  * @author Kevin Lang
  */
-class OnHeapHashFields implements Fields {
+final class OnHeapHashFields implements Fields {
   private final Preamble preamble;
   private final FieldsFactory denseFactory;
   private final int switchToDenseSize;

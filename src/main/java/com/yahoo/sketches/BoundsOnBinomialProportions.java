@@ -56,7 +56,9 @@ package com.yahoo.sketches;
  * 
  * @author Kevin Lang
  */
-public class BoundsOnBinomialProportions { // confidence intervals for binomial proportions
+public final class BoundsOnBinomialProportions { // confidence intervals for binomial proportions
+  
+  private BoundsOnBinomialProportions() {}
   
   /**
    * Computes lower bound of approximate Clopper-Pearson confidence interval for a binomial proportion.

@@ -11,6 +11,7 @@ import java.nio.ByteOrder;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.QuickSelect;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;

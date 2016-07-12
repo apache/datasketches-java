@@ -25,7 +25,8 @@ import static com.yahoo.sketches.frequencies.PreambleUtil.insertSerDeId;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertLgMaxMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertPreLongs;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertSerVer;
-//import static com.yahoo.sketches.SerDeType.ARRAY_OF_LONGS;
+import static com.yahoo.sketches.frequencies.Util.LG_MIN_MAP_SIZE;
+import static com.yahoo.sketches.frequencies.Util.SAMPLE_SIZE;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -127,21 +128,6 @@ import com.yahoo.sketches.memory.NativeMemory;
  * @author Lee Rhodes
  */
 public class LongsSketch {
-
-  /**
-   * We start by allocating a small data structure capable of explicitly storing very small 
-   * streams and then growing it as the stream grows. The following constant controls the 
-   * size of the initial data structure.
-   */
-  static final int LG_MIN_MAP_SIZE = 3; // This is somewhat arbitrary
-
-  /**
-   * This is a constant large enough that computing the median of SAMPLE_SIZE
-   * randomly selected entries from a list of numbers and outputting
-   * the empirical median will give a constant-factor approximation to the 
-   * true median with high probability
-   */
-  private static final int SAMPLE_SIZE = 1024;
 
   private static final int STR_PREAMBLE_TOKENS = 7;
 

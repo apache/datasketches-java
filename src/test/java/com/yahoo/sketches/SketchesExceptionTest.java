@@ -23,4 +23,13 @@ public class SketchesExceptionTest {
   public void checkSketchesStateException() {
     throw new SketchesStateException("This is a test.");
   }
+  
+  @Test(expectedExceptions = SketchesException.class)
+  public void checkSketchesExceptionWithThrowable() {
+    try {
+      throw new SketchesException("First Exception.");
+    } catch (SketchesException se) {
+      throw new SketchesException("Second Exception. "+ se);
+    }
+  }
 }

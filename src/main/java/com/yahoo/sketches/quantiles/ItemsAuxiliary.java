@@ -14,7 +14,7 @@ import java.util.Comparator;
  * @author Kevin Lang
  * @author Alex Saydakov
  */
-class ItemsAuxiliary<T> {
+final class ItemsAuxiliary<T> {
   final long auxN_;
   final Object[] auxSamplesArr_; //array of size samples
   final long[] auxCumWtsArr_;

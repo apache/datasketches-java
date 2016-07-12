@@ -42,7 +42,7 @@ import com.yahoo.sketches.Util;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements UpdateInternal, SetArgument {
+final class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements UpdateInternal, SetArgument {
   private final Family MY_FAMILY;
   
   private final int preambleLongs_;
@@ -247,6 +247,11 @@ class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch implements
   @Override
   int getPreambleLongs() {
     return preambleLongs_;
+  }
+  
+  @Override
+  Memory getMemory() {
+    return null;
   }
   
   @Override

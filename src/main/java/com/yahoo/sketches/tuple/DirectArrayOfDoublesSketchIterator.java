@@ -13,7 +13,7 @@ import com.yahoo.sketches.memory.Memory;
  * This Memory can be off-heap, which if managed properly will greatly reduce the need for
  * the JVM to perform garbage collection.</p>
  */
-class DirectArrayOfDoublesSketchIterator implements ArrayOfDoublesSketchIterator {
+final class DirectArrayOfDoublesSketchIterator implements ArrayOfDoublesSketchIterator {
 
   private Memory mem_;
   private int offset_;

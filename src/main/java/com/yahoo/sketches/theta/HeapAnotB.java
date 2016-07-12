@@ -20,7 +20,7 @@ import com.yahoo.sketches.memory.Memory;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-class HeapAnotB extends SetOperation implements AnotB {
+final class HeapAnotB extends SetOperation implements AnotB {
   private final short seedHash_;
   private Sketch a_;
   private Sketch b_;

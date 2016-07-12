@@ -15,10 +15,11 @@ import java.util.Arrays;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
-class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketch {
+final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketch {
 
   private final int nomEntries_;
   private final int lgResizeFactor_;

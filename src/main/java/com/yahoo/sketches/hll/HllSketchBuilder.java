@@ -22,7 +22,7 @@ public class HllSketchBuilder { //TODO will need to add seed and Memory, etc.
     preamble = Preamble.fromLogK(Integer.numberOfTrailingZeros(DEFAULT_NOMINAL_ENTRIES));
   }
   
-  public HllSketchBuilder copy() {  //not used.  Do we need this?
+  public HllSketchBuilder copy() {
     HllSketchBuilder retVal = new HllSketchBuilder();
 
     retVal.preamble = preamble;

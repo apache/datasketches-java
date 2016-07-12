@@ -18,7 +18,9 @@ import com.yahoo.sketches.theta.Sketch;
  * 
  * @author Kevin Lang
  */
-public class BoundsOnRatiosInThetaSketchedSets {
+public final class BoundsOnRatiosInThetaSketchedSets {
+  
+  private BoundsOnRatiosInThetaSketchedSets() {}
   
   /**
    * Gets the approximate lower bound for B over A based on a 95% confidence interval
