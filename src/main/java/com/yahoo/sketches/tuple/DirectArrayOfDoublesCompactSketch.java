@@ -110,12 +110,19 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
   DirectArrayOfDoublesCompactSketch(final Memory mem, final long seed) {
     super(mem.getByte(NUM_VALUES_BYTE));
     mem_ = mem;
-    SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE), mem.getByte(PREAMBLE_LONGS_BYTE));
-    SerializerDeserializer.validateType(mem_.getByte(SKETCH_TYPE_BYTE), SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch);
+    SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE), 
+        mem.getByte(PREAMBLE_LONGS_BYTE));
+    SerializerDeserializer.validateType(mem_.getByte(SKETCH_TYPE_BYTE), 
+        SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch);
     byte version = mem_.getByte(SERIAL_VERSION_BYTE);
-    if (version != serialVersionUID) throw new RuntimeException("Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
+    if (version != serialVersionUID) {
+      throw new SketchesArgumentException("Serial version mismatch. Expected: " + serialVersionUID + 
+          ", actual: " + version);
+    }
     boolean isBigEndian = mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_BIG_ENDIAN.ordinal()));
-    if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) throw new RuntimeException("Byte order mismatch");
+    if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
+      throw new SketchesArgumentException("Byte order mismatch");
+    }
     Util.checkSeedHashes(mem.getShort(SEED_HASH_SHORT), Util.computeSeedHash(seed));
     isEmpty_ = mem_.isAnyBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_EMPTY.ordinal()));
     theta_ = mem_.getLong(THETA_LONG);

@@ -728,11 +728,6 @@ public class DirectIntersectionTest {
     println("PRINTING: "+this.getClass().getName());
   }
   
-  public static void main(String[] args) {
-    DirectIntersectionTest test = new DirectIntersectionTest();
-    test.checkOverlappedDirect();
-  }
-  
   /**
    * @param s value to print 
    */

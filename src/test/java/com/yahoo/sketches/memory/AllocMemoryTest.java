@@ -76,10 +76,4 @@ public class AllocMemoryTest {
     //System.out.println(s); //disable here
   }
   
-  public static void main(String[] args) {
-    AllocMemoryTest amt = new AllocMemoryTest();
-    amt.checkReallocateNativeMemory();
-    
-  }
-  
 }

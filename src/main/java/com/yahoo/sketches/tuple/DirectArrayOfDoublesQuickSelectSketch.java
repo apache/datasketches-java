@@ -88,12 +88,19 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
   DirectArrayOfDoublesQuickSelectSketch(final Memory mem, final long seed) {
     super(mem.getByte(NUM_VALUES_BYTE), seed);
     mem_ = mem;
-    SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE), mem.getByte(PREAMBLE_LONGS_BYTE));
-    SerializerDeserializer.validateType(mem_.getByte(SKETCH_TYPE_BYTE), SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch);
+    SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE), 
+        mem.getByte(PREAMBLE_LONGS_BYTE));
+    SerializerDeserializer.validateType(mem_.getByte(SKETCH_TYPE_BYTE), 
+        SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch);
     final byte version = mem_.getByte(SERIAL_VERSION_BYTE);
-    if (version != serialVersionUID) throw new RuntimeException("Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
+    if (version != serialVersionUID) {
+      throw new SketchesArgumentException("Serial version mismatch. Expected: " + serialVersionUID + 
+          ", actual: " + version);
+    }
     final boolean isBigEndian = mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_BIG_ENDIAN.ordinal()));
-    if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) throw new RuntimeException("Byte order mismatch");
+    if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
+      throw new SketchesArgumentException("Byte order mismatch");
+    }
     Util.checkSeedHashes(mem.getShort(SEED_HASH_SHORT), Util.computeSeedHash(seed));
     keysOffset_ = ENTRIES_START;
     valuesOffset_ = keysOffset_ + SIZE_OF_KEY_BYTES * getCurrentCapacity();
@@ -268,7 +275,10 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
 
   private static void checkIfEnoughMemory(final Memory mem, final int numEntries, final int numValues) {
     final int sizeNeeded = ENTRIES_START + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues) * numEntries;
-    if (sizeNeeded > mem.getCapacity()) throw new SketchesArgumentException("Not enough memory: need " + sizeNeeded + " bytes, got " + mem.getCapacity() + " bytes");
+    if (sizeNeeded > mem.getCapacity()) {
+      throw new SketchesArgumentException("Not enough memory: need " + 
+          sizeNeeded + " bytes, got " + mem.getCapacity() + " bytes");
+    }
   }
 
 }

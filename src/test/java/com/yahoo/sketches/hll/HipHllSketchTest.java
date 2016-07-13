@@ -87,20 +87,20 @@ public class HipHllSketchTest
     };
   }
 
-  public static void main(String[] args)
-  {
-    HllSketch sketch = (HllSketch) getSketches()[0][0];
-
-    int numEntries = sketch.numBuckets();
-    for (int i = 0; i < numEntries * 3; ++i) {
-      if (i % 4 == 0) {
-        System.out.println();
-      }
-
-      sketch.update(new int[]{i});
-      System.out.printf("%.20fd, ", sketch.getEstimate());
-    }
-  }
+//  public static void main(String[] args)
+//  {
+//    HllSketch sketch = (HllSketch) getSketches()[0][0];
+//
+//    int numEntries = sketch.numBuckets();
+//    for (int i = 0; i < numEntries * 3; ++i) {
+//      if (i % 4 == 0) {
+//        System.out.println();
+//      }
+//
+//      sketch.update(new int[]{i});
+//      System.out.printf("%.20fd, ", sketch.getEstimate());
+//    }
+//  }
 
   private static final double[] estimatesAtLog10Buckets = new double[]{
       1.00000000000000000000d, 2.00085522296884570000d, 3.00219980187118000000d, 4.00403421547030000000d,

@@ -88,7 +88,7 @@ public class DirectArrayOfDoublesCompactSketchTest {
     Assert.assertEquals(sketch2.getThetaLong(), sketch1.getThetaLong());
   }
 
-  @Test(expectedExceptions = RuntimeException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void deserializeWithWrongSeed() {
     ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().setMemory(new NativeMemory(new byte[1000000])).build();
     for (int i = 0; i < 8192; i++) us.update(i, new double[] {1.0});

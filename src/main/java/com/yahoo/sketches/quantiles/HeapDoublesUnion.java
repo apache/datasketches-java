@@ -85,20 +85,21 @@ final class HeapDoublesUnion extends DoublesUnion {
 
 //@formatter:off
   @SuppressWarnings("null")
-  static HeapDoublesSketch updateLogic(final int myK, final HeapDoublesSketch myQS, final HeapDoublesSketch other) {
+  static HeapDoublesSketch updateLogic(final int myK, final HeapDoublesSketch myQS, 
+      final HeapDoublesSketch other) {
     int sw1 = ((myQS   == null)? 0 :   myQS.isEmpty()? 4: 8);
     sw1 |=    ((other  == null)? 0 :  other.isEmpty()? 1: 2);
     int outCase = 0; //0=null, 1=NOOP, 2=copy, 3=merge 
     switch (sw1) {
-      case 0:  outCase = 0; break; //null   myQS = null,  other = null
-      case 1:  outCase = 2; break; //copy   myQS = null,  other = empty
-      case 2:  outCase = 4; break; //copy   myQS = null,  other = valid
-      case 4:  outCase = 1; break; //noop   myQS = empty, other = null 
-      case 5:  outCase = 1; break; //noop   myQS = empty, other = empty
-      case 6:  outCase = 3; break; //merge  myQS = empty, other = valid
-      case 8:  outCase = 1; break; //noop   myQS = valid, other = null
-      case 9:  outCase = 1; break; //noop   myQS = valid, other = empty
-      case 10: outCase = 3; break; //merge  myQS = valid, other = valid
+      case 0:  outCase = 0; break; //myQS = null,  other = null ; return null
+      case 1:  outCase = 4; break; //myQS = null,  other = empty; copy or downsample(myK)
+      case 2:  outCase = 2; break; //myQS = null,  other = valid; copy or downsample(myK)
+      case 4:  outCase = 1; break; //myQS = empty, other = null ; no-op 
+      case 5:  outCase = 1; break; //myQS = empty, other = empty; no-op
+      case 6:  outCase = 3; break; //myQS = empty, other = valid; merge
+      case 8:  outCase = 1; break; //myQS = valid, other = null ; no-op
+      case 9:  outCase = 1; break; //myQS = valid, other = empty: no-op
+      case 10: outCase = 3; break; //myQS = valid, other = valid; merge
       //default: //This cannot happen and cannot be tested
     }
     HeapDoublesSketch ret = null;
@@ -106,7 +107,11 @@ final class HeapDoublesUnion extends DoublesUnion {
       case 0: ret = null; break;
       case 1: ret = myQS; break;
       case 2: {
-        ret = HeapDoublesSketch.getInstance(myK);
+        if (myK < other.getK()) {
+          ret = (HeapDoublesSketch) other.downSample(myK);
+        } else {
+          ret = HeapDoublesSketch.copy(other); //required because caller has handle
+        }
         break;
       }
       case 3: { //must merge
@@ -123,13 +128,10 @@ final class HeapDoublesUnion extends DoublesUnion {
         break;
       }
       case 4: {
-        if (myK < other.getK()) {
-          ret = (HeapDoublesSketch) other.downSample(myK);
-        } else {
-          ret = HeapDoublesSketch.copy(other); //required because caller has handle
-        }
+        ret = HeapDoublesSketch.getInstance(Math.min(myK, other.getK()));
         break;
       }
+      
       //default: //This cannot happen and cannot be tested
     }
     return ret;

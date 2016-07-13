@@ -73,12 +73,14 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   }
 
   /**
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
+   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than 
+   * given value.
    * @param numValues Number of double values to keep for each key
    * @return maximum required storage bytes given nomEntries and numValues
    */
   static int getMaxBytes(final int nomEntries, final int numValues) {
-    return ENTRIES_START + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues) * ceilingPowerOf2(nomEntries) * 2;
+    return ENTRIES_START + 
+        (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues) * ceilingPowerOf2(nomEntries) * 2;
   }
 
   // non-public methods below
@@ -129,7 +131,10 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
 
   @Override
   void insertOrIgnore(final long key, final double[] values) {
-    if (values.length != getNumValues()) throw new SketchesArgumentException("input array of values must have " + getNumValues() + " elements, but has " + values.length);
+    if (values.length != getNumValues()) {
+      throw new SketchesArgumentException("input array of values must have " + getNumValues() + 
+          " elements, but has " + values.length);
+    }
     setNotEmpty();
     if (key == 0 || key >= theta_) return;
     int index = findOrInsertKey(key);

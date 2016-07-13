@@ -5,6 +5,7 @@
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -437,23 +438,17 @@ public class HeapIntersectionTest {
   
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadPreambleLongs() {
-    Intersection inter1;
-    
-    inter1 = SetOperation.builder().buildIntersection(); //virgin
+    Intersection inter1 = SetOperation.builder().buildIntersection(); //virgin
     byte[] byteArray = inter1.toByteArray();
     Memory mem = new NativeMemory(byteArray);
     //corrupt:
-    mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 2);//RF not used = 0
+    mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 2); //RF not used = 0
     SetOperation.heapify(mem);
   }
   
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
-    int k = 32;
-    Intersection inter1;
-    
-    inter1 = SetOperation.builder().buildIntersection(); //virgin
+    Intersection inter1 = SetOperation.builder().buildIntersection(); //virgin
     byte[] byteArray = inter1.toByteArray();
     Memory mem = new NativeMemory(byteArray);
     //corrupt:
@@ -464,13 +459,23 @@ public class HeapIntersectionTest {
   @Test(expectedExceptions = ClassCastException.class)
   public void checkFamilyID() {
     int k = 32;
-    Union union;
-    
-    union = SetOperation.builder().buildUnion(k);
+    Union union = SetOperation.builder().buildUnion(k);
     byte[] byteArray = union.toByteArray();
     Memory mem = new NativeMemory(byteArray);
     Intersection inter1 = (Intersection) SetOperation.heapify(mem); //bad cast
     inter1.reset();
+  }
+  
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkBadEmptyState() {
+    Intersection inter1 = SetOperation.builder().buildIntersection(); //virgin
+    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    inter1.update(sk); //initializes to a true empty intersection.
+    byte[] byteArray = inter1.toByteArray();
+    Memory mem = new NativeMemory(byteArray);
+    //corrupt:
+    mem.putInt(RETAINED_ENTRIES_INT, 1);
+    SetOperation.heapify(mem);
   }
   
   @Test

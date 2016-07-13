@@ -5,8 +5,11 @@
 package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.HeapDoublesSketchTest.buildQS;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.yahoo.sketches.memory.Memory;
@@ -119,6 +122,28 @@ public class HeapDoublesUnionTest {
     union.update(sk2);
     DoublesSketch sk3 = union.getResultAndReset();
     assertNull(sk3);
+  }
+  
+  @Test
+  public void differentLargerK() {
+    DoublesUnion union = DoublesUnion.builder().setK(128).build();
+    DoublesSketch sketch1 = buildQS(256, 0);
+    union.update(sketch1);
+    Assert.assertEquals(union.getResult().getK(), 128);
+    sketch1.update(1.0);
+    union.update(sketch1);
+    Assert.assertEquals(union.getResult().getK(), 128);
+  }
+  
+  @Test
+  public void differentSmallerK() {
+    DoublesUnion union = DoublesUnion.builder().setK(128).build();
+    DoublesSketch sketch1 = buildQS(64, 0);
+    union.update(sketch1);
+    Assert.assertEquals(union.getResult().getK(), 64);
+    sketch1.update(1.0);
+    union.update(sketch1);
+    Assert.assertEquals(union.getResult().getK(), 64);
   }
   
   @Test

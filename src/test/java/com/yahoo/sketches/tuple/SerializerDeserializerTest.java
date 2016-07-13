@@ -21,20 +21,20 @@ public class SerializerDeserializerTest {
     Assert.assertEquals(SerializerDeserializer.getSketchType(new NativeMemory(bytes)), SerializerDeserializer.SketchType.CompactSketch);
   }
 
-  @Test(expectedExceptions = RuntimeException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void invalidSketchType() {
     byte[] bytes = new byte[4];
     bytes[SerializerDeserializer.TYPE_BYTE_OFFSET] = 33;
     SerializerDeserializer.getSketchType(new NativeMemory(bytes));
   }
 
-  @Test(expectedExceptions = RuntimeException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void deserializeFromMemoryUsupportedClass() {
     NativeMemory mem = null;
     SerializerDeserializer.deserializeFromMemory(mem, 0, "bogus");
   }
 
-  @Test(expectedExceptions = RuntimeException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void toByteArrayUnsupportedObject() {
     SerializerDeserializer.toByteArray(Integer.valueOf(0));
   }

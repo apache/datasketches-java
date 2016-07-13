@@ -164,11 +164,6 @@ public class HllSketchTest
       println(s);
     }
   }
-  
-  public static void main(String[] args) {
-    HllSketchTest test = new HllSketchTest();
-    test.simpleTest();
-  }
 
   private static final double[] estimatesAtLog10Buckets = new double[]{
       1.00000000000000000000d, 2.00097751710654850000d, 3.00293446426894660000d, 4.00587276005717300000d,

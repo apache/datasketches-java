@@ -77,13 +77,13 @@ public class BoundsOnBinomialProportionsTest {
   }
 
   // This is for Kevin's use only, and will not be one of the unit tests.
-  public static void main (String[] args) {
-    tinyLBTest ();
-    tinyUBTest ();
-    assertTrue (args.length == 1);
-    long maxN = Long.parseLong(args[0]);
-    lotsOfSpewage (maxN);
-  }
+//  public static void main (String[] args) {
+//    tinyLBTest ();
+//    tinyUBTest ();
+//    assertTrue (args.length == 1);
+//    long maxN = Long.parseLong(args[0]);
+//    lotsOfSpewage (maxN);
+//  }
 
   @Test
   public void checkNumStdDevZero() {

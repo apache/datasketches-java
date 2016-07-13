@@ -57,7 +57,7 @@ final class HeapIntersection extends SetOperation implements Intersection{
    */
   HeapIntersection(long seed) {
     seedHash_ = computeSeedHash(seed);
-    empty_ = false;
+    empty_ = false;  //A virgin intersection represents the Universal Set so empty is FALSE!
     curCount_ = -1;  //Universal Set is true
     thetaLong_ = Long.MAX_VALUE;
     lgArrLongs_ = 0;
@@ -78,10 +78,12 @@ final class HeapIntersection extends SetOperation implements Intersection{
     long pre0 = preArr[0];
     int preambleLongs = extractPreLongs(pre0);
     if (preambleLongs != CONST_PREAMBLE_LONGS) {
-      throw new SketchesArgumentException("PreambleLongs must = 3.");
+      throw new SketchesArgumentException("PreambleLongs must equal "+ CONST_PREAMBLE_LONGS);
     }
     int serVer = extractSerVer(pre0);
-    if (serVer != 3) throw new SketchesArgumentException("Ser Version must = 3");
+    if (serVer != SER_VER) {
+      throw new SketchesArgumentException("Ser Version must equal " + SER_VER);
+    }
     int famID = extractFamilyID(pre0);
     Family.INTERSECTION.checkFamilyID(famID);
     //Note: Intersection does not use lgNomLongs or k, per se.
@@ -300,8 +302,7 @@ final class HeapIntersection extends SetOperation implements Intersection{
       long hashIn = arr[i];
       if (HashOperations.continueCondition(thetaLong_, hashIn)) continue;
       // opportunity to use faster unconditional insert
-      tmpCnt += 
-          HashOperations.hashSearchOrInsert(hashTable_, lgArrLongs_, hashIn) < 0 ? 1 : 0;
+      tmpCnt += HashOperations.hashSearchOrInsert(hashTable_, lgArrLongs_, hashIn) < 0 ? 1 : 0;
     }
     if (tmpCnt != count) {
       throw new SketchesArgumentException("Count Check Exception: got: "+tmpCnt+", expected: "+count);

@@ -170,7 +170,7 @@ final class DirectIntersection extends SetOperation implements Intersection {
         lgArrLongs_ = setLgArrLongs(requiredLgArrLongs);
         mem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_);
       }
-      else { //not enough space in dstMem //TODO move to request model
+      else { //not enough space in dstMem //TODO move to request model?
         throw new SketchesArgumentException(
             "Insufficient dstMem hash table space: "+(1<<requiredLgArrLongs)+" > "+(1<<lgArrLongs_));
       }

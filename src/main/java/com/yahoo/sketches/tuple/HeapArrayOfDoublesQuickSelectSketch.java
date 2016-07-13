@@ -16,6 +16,7 @@ import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -41,14 +42,16 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
    * @param numValues number of double values to keep for each key
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
-  HeapArrayOfDoublesQuickSelectSketch(final int nomEntries, final int lgResizeFactor, final float samplingProbability, final int numValues, final long seed) {
+  HeapArrayOfDoublesQuickSelectSketch(final int nomEntries, final int lgResizeFactor, 
+      final float samplingProbability, final int numValues, final long seed) {
     super(numValues, seed);
     nomEntries_ = ceilingPowerOf2(nomEntries);
     lgResizeFactor_ = lgResizeFactor;
     samplingProbability_ = samplingProbability;
     theta_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
     final int startingCapacity = 1 << Util.startingSubMultiple(
-      Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries) * 2), // target table size is twice the number of nominal entries
+      // target table size is twice the number of nominal entries
+      Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries) * 2), 
       lgResizeFactor,
       Integer.numberOfTrailingZeros(MIN_NOM_ENTRIES)
     );
@@ -65,13 +68,20 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
    */
   HeapArrayOfDoublesQuickSelectSketch(final Memory mem, final long seed) {
     super(mem.getByte(NUM_VALUES_BYTE), seed);
-    SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE), mem.getByte(PREAMBLE_LONGS_BYTE));
-    SerializerDeserializer.validateType(mem.getByte(SKETCH_TYPE_BYTE), SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch);
+    SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE), 
+        mem.getByte(PREAMBLE_LONGS_BYTE));
+    SerializerDeserializer.validateType(mem.getByte(SKETCH_TYPE_BYTE), 
+        SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch);
     final byte version = mem.getByte(SERIAL_VERSION_BYTE);
-    if (version != serialVersionUID) throw new RuntimeException("Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
+    if (version != serialVersionUID) {
+      throw new SketchesArgumentException("Serial version mismatch. Expected: " + 
+          serialVersionUID + ", actual: " + version);
+    }
     final byte flags = mem.getByte(FLAGS_BYTE);
     final boolean isBigEndian = (flags & (1 << Flags.IS_BIG_ENDIAN.ordinal())) > 0;
-    if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) throw new RuntimeException("Byte order mismatch");
+    if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
+      throw new SketchesArgumentException("Byte order mismatch");
+    }
     Util.checkSeedHashes(mem.getShort(SEED_HASH_SHORT), Util.computeSeedHash(seed));
     isEmpty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
     nomEntries_ = 1 << mem.getByte(LG_NOM_ENTRIES_BYTE);
@@ -85,7 +95,8 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     count_ = hasEntries ? mem.getInt(RETAINED_ENTRIES_INT) : 0;
     if (count_ > 0) {
       mem.getLongArray(ENTRIES_START, keys_, 0, currentCapacity);
-      mem.getDoubleArray(ENTRIES_START + SIZE_OF_KEY_BYTES * currentCapacity, values_, 0, currentCapacity * numValues_);
+      mem.getDoubleArray(ENTRIES_START + SIZE_OF_KEY_BYTES * currentCapacity, values_, 0, 
+          currentCapacity * numValues_);
     }
     setRebuildThreshold();
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(currentCapacity);
@@ -98,7 +109,9 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     if (count > 0) {
       int i = 0;
       for (int j = 0; j < keys_.length; j++) {
-        if (keys_[j] != 0) values[i++] = Arrays.copyOfRange(values_, j * numValues_, (j + 1) * numValues_);
+        if (keys_[j] != 0) {
+          values[i++] = Arrays.copyOfRange(values_, j * numValues_, (j + 1) * numValues_);
+        }
       }
     }
     return values;
@@ -116,13 +129,15 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
 
   @Override
   public byte[] toByteArray() {
-    final int sizeBytes = ENTRIES_START + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues_) * getCurrentCapacity();
+    final int sizeBytes = ENTRIES_START + 
+        (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues_) * getCurrentCapacity();
     final byte[] byteArray = new byte[sizeBytes];
     final Memory mem = new NativeMemory(byteArray); // wrap the byte array to use the putX methods
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
     mem.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
     mem.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
-    mem.putByte(SKETCH_TYPE_BYTE, (byte)SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch.ordinal());
+    mem.putByte(SKETCH_TYPE_BYTE, 
+        (byte)SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch.ordinal());
     final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
     mem.putByte(FLAGS_BYTE, (byte)(
       (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0) |
@@ -140,7 +155,8 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     mem.putInt(RETAINED_ENTRIES_INT, count_);
     if (count_ > 0) {
       mem.putLongArray(ENTRIES_START, keys_, 0, keys_.length);
-      mem.putDoubleArray(ENTRIES_START + SIZE_OF_KEY_BYTES * keys_.length, values_, 0, values_.length);
+      mem.putDoubleArray(ENTRIES_START + SIZE_OF_KEY_BYTES * keys_.length, values_, 0, 
+          values_.length);
     }
     return byteArray;
   }
@@ -218,7 +234,9 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     count_ = 0;
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(newCapacity);
     for (int i = 0; i < oldKeys.length; i++) {
-      if (oldKeys[i] != 0 && oldKeys[i] < theta_) insert(oldKeys[i], Arrays.copyOfRange(oldValues, i * numValues_, (i + 1) * numValues_));
+      if (oldKeys[i] != 0 && oldKeys[i] < theta_) {
+        insert(oldKeys[i], Arrays.copyOfRange(oldValues, i * numValues_, (i + 1) * numValues_));
+      }
     }
     setRebuildThreshold();
   }

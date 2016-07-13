@@ -11,6 +11,7 @@ import java.util.Arrays;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -80,13 +81,13 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
         SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch);
     final byte version = mem.getByte(SERIAL_VERSION_BYTE);
     if (version != serialVersionUID) {
-      throw new RuntimeException(
+      throw new SketchesArgumentException(
           "Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
     }
     final boolean isBigEndian = 
         mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_BIG_ENDIAN.ordinal()));
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
-      throw new RuntimeException("Byte order mismatch");
+      throw new SketchesArgumentException("Byte order mismatch");
     }
     Util.checkSeedHashes(seedHash_, Util.computeSeedHash(seed));
     isEmpty_ = mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_EMPTY.ordinal()));
@@ -112,14 +113,16 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
     final int count = getRetainedEntries();
     int sizeBytes = EMPTY_SIZE;
     if (count > 0) {
-      sizeBytes = ENTRIES_START + SIZE_OF_KEY_BYTES * count + SIZE_OF_VALUE_BYTES * numValues_ * count;
+      sizeBytes = 
+          ENTRIES_START + SIZE_OF_KEY_BYTES * count + SIZE_OF_VALUE_BYTES * numValues_ * count;
     }
     final byte[] bytes = new byte[sizeBytes];
     final Memory mem = new NativeMemory(bytes);
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
     mem.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
     mem.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID()); 
-    mem.putByte(SKETCH_TYPE_BYTE, (byte) SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch.ordinal());
+    mem.putByte(SKETCH_TYPE_BYTE, 
+        (byte) SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch.ordinal());
     final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
     mem.putByte(FLAGS_BYTE, (byte) (
       ((isBigEndian ? 1 : 0) << Flags.IS_BIG_ENDIAN.ordinal()) |

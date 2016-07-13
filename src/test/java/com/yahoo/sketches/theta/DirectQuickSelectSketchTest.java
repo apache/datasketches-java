@@ -691,11 +691,6 @@ public class DirectQuickSelectSketchTest {
     nMem.freeMemory();
   }
   
-  public static void main(String[] args) {
-    DirectQuickSelectSketchTest test = new DirectQuickSelectSketchTest();
-    test.checkLimitedMemoryScenarios();
-  }
-  
   @Test
   public void checkLimitedMemoryWithP() {
     int k = 4096; 

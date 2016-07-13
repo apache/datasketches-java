@@ -66,7 +66,7 @@ final class PreambleUtil {
   static final int LG_ARR_LONGS_BYTE          = 4; //not used by compact
   static final int FLAGS_BYTE                 = 5; 
   static final int SEED_HASH_SHORT            = 6;  //byte 6,7
-  static final int RETAINED_ENTRIES_INT       = 8;  //4 byte aligned
+  static final int RETAINED_ENTRIES_INT       = 8;  //8 byte aligned
   static final int P_FLOAT                    = 12; //4 byte aligned, not used by compact
   static final int THETA_LONG                 = 16; //8-byte aligned
   static final int UNION_THETA_LONG           = 24; //8-byte aligned, only used by Union

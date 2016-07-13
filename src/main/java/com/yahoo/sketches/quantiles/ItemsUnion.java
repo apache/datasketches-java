@@ -77,49 +77,59 @@ public final class ItemsUnion<T> {
   public static <T> ItemsUnion<T> getInstance(final ItemsSketch<T> sketch) {
     return new ItemsUnion<T>(sketch.getK(), sketch.getComparator(), sketch);
   }
-
+  
+//@formatter:off
   @SuppressWarnings("null")
-  static <T> ItemsSketch<T> updateLogic(ItemsSketch<T> myQS, ItemsSketch<T> other) {
-      int sw1 = ((myQS   == null)? 0 :   myQS.isEmpty()? 4: 8);
-      sw1 |=    ((other  == null)? 0 :  other.isEmpty()? 1: 2);
-      int outCase = 0; //0=null, 1=NOOP, 2=copy, 3=merge 
-      switch (sw1) {
-        case 0:  outCase = 0; break; //null   myQS = null,  other = null
-        case 1:  outCase = 2; break; //copy   myQS = null,  other = empty
-        case 2:  outCase = 2; break; //copy   myQS = null,  other = valid
-        case 4:  outCase = 1; break; //noop   myQS = empty, other = null 
-        case 5:  outCase = 1; break; //noop   myQS = empty, other = empty
-        case 6:  outCase = 3; break; //merge  myQS = empty, other = valid
-        case 8:  outCase = 1; break; //noop   myQS = valid, other = null
-        case 9:  outCase = 1; break; //noop   myQS = valid, other = empty
-        case 10: outCase = 3; break; //merge  myQS = valid, other = valid
-        //default: //This cannot happen and cannot be tested
-      }
-      ItemsSketch<T> ret = null;
-      switch (outCase) {
-        case 0: ret = null; break;
-        case 1: ret = myQS; break;
-        case 2: {
-          ret = ItemsSketch.copy(other); //required because caller has handle
-          break;
-        }
-        case 3: { //must merge
-          if (myQS.getK() <= other.getK()) { //I am smaller or equal, thus the target
-            mergeInto(other, myQS);
-            ret = myQS;
-          } else {
-            //myQS_K > other_K, must reverse roles
-            //must copy other as it will become mine and can't have any externally owned handles.
-            final ItemsSketch<T> myNewQS = ItemsSketch.copy(other);
-            mergeInto(myQS, myNewQS);
-            ret = myNewQS;
-          }
-          break;
-        }
-        //default: //This cannot happen and cannot be tested
-      }
-      return ret;
+  static <T> ItemsSketch<T> updateLogic(final int myK, final Comparator<? super T> comparator,
+      final ItemsSketch<T> myQS, final ItemsSketch<T> other) {
+    int sw1 = ((myQS   == null)? 0 :   myQS.isEmpty()? 4: 8);
+    sw1 |=    ((other  == null)? 0 :  other.isEmpty()? 1: 2);
+    int outCase = 0; //0=null, 1=NOOP, 2=copy, 3=merge 
+    switch (sw1) {
+      case 0:  outCase = 0; break; //myQS = null,  other = null ; return null
+      case 1:  outCase = 4; break; //myQS = null,  other = empty; copy or downsample(myK)
+      case 2:  outCase = 2; break; //myQS = null,  other = valid; copy or downsample(myK)
+      case 4:  outCase = 1; break; //myQS = empty, other = null ; no-op 
+      case 5:  outCase = 1; break; //myQS = empty, other = empty; no-op
+      case 6:  outCase = 3; break; //myQS = empty, other = valid; merge
+      case 8:  outCase = 1; break; //myQS = valid, other = null ; no-op
+      case 9:  outCase = 1; break; //myQS = valid, other = empty: no-op
+      case 10: outCase = 3; break; //myQS = valid, other = valid; merge
+      //default: //This cannot happen and cannot be tested
     }
+    ItemsSketch<T> ret = null;
+    switch (outCase) {
+      case 0: ret = null; break;
+      case 1: ret = myQS; break;
+      case 2: {
+        if (myK < other.getK()) {
+          ret = other.downSample(myK);
+        } else {
+          ret = ItemsSketch.copy(other); //required because caller has handle
+        }
+        break;
+      }
+      case 3: { //must merge
+        if (myQS.getK() <= other.getK()) { //I am smaller or equal, thus the target
+          mergeInto(other, myQS);
+          ret = myQS;
+        } else {
+          //myQS_K > other_K, must reverse roles
+          //must copy other as it will become mine and can't have any externally owned handles.
+          final ItemsSketch<T> myNewQS = ItemsSketch.copy(other);
+          mergeInto(myQS, myNewQS);
+          ret = myNewQS;
+        }
+        break;
+      }
+      case 4: {
+        ret = ItemsSketch.getInstance(Math.min(myK, other.getK()), comparator);
+        break;
+      }
+      //default: //This cannot happen and cannot be tested
+    }
+    return ret;
+  }
   //@formatter:on
 
   /**
@@ -203,12 +213,12 @@ public final class ItemsUnion<T> {
    * If the given sketch is null or empty it is ignored.
    * 
    * <p>It is required that the results of the union operation, which can be obtained at any time, 
-   * is obtained from {@link #getResult() }.
+   * is obtained from {@link #getResult() }.</p>
    * 
    * @param sketchIn the sketch to be merged into this one.
    */
   public void update(final ItemsSketch<T> sketchIn) {
-    gadget_ = updateLogic(gadget_, sketchIn);
+    gadget_ = updateLogic(k_, comparator_, gadget_, sketchIn);
   }
 
   /**
@@ -220,14 +230,13 @@ public final class ItemsUnion<T> {
    * If the given sketch is null or empty it is ignored.
    * 
    * <p>It is required that the results of the union operation, which can be obtained at any time, 
-   * is obtained from {@link #getResult() }.
+   * is obtained from {@link #getResult() }.</p>
    * @param srcMem Memory image of sketch to be merged
-   * @param comparator to compare items 
    * @param serDe an instance of ArrayOfItemsSerDe
    */
-  public void update(final Memory srcMem, final Comparator<? super T> comparator, final ArrayOfItemsSerDe<T> serDe) {
-    final ItemsSketch<T> that = ItemsSketch.getInstance(srcMem, comparator, serDe);
-    gadget_ = updateLogic(gadget_, that);
+  public void update(final Memory srcMem, final ArrayOfItemsSerDe<T> serDe) {
+    final ItemsSketch<T> that = ItemsSketch.getInstance(srcMem, comparator_, serDe);
+    gadget_ = updateLogic(k_, comparator_, gadget_, that);
   }
 
   /**
