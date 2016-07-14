@@ -12,7 +12,7 @@ bin/
 
 #Test config and output
 test-output/
-/.clover/
+.clover/
 local/
 reports/
 .pmd
