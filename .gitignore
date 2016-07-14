@@ -35,5 +35,3 @@ Gemfile.lock
 _site/
 _*
 _*/
-
-FindBugsExcludeFilter.xml
