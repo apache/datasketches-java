@@ -291,10 +291,12 @@ public final class ItemsSketch<T> {
    * [0.0, 1.0] inclusive.
    * 
    * @return array of approximations to the given fractions in the same order as given fractions 
-   * array. 
+   * array. Returns null if sketch is empty
    */
   public T[] getQuantiles(final double[] fractions) {
+    if (isEmpty()) return null;
     Util.validateFractions(fractions);
+    ItemsAuxiliary<T> aux = null;
     @SuppressWarnings("unchecked")
     final T[] answers = (T[]) Array.newInstance(minValue_.getClass(), fractions.length);
     for (int i = 0; i < fractions.length; i++) {
@@ -302,7 +304,7 @@ public final class ItemsSketch<T> {
       if      (fraction == 0.0) { answers[i] = minValue_; }
       else if (fraction == 1.0) { answers[i] = maxValue_; }
       else {
-        ItemsAuxiliary<T> aux = this.constructAuxiliary();
+        if (aux == null) aux = this.constructAuxiliary();
         answers[i] = aux.getQuantile(fraction);
       }
     }
@@ -333,8 +335,8 @@ public final class ItemsSketch<T> {
    * The resulting approximations have a probabilistic guarantee that be obtained from the 
    * getNormalizedRankError() function.
    * 
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing doubles
-   * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing values
+   * that divide the domain into <i>m+1</i> consecutive disjoint intervals.
    * 
    * @return an array of m+1 doubles each of which is an approximation
    * to the fraction of the input stream values that fell into one of those intervals.
@@ -358,13 +360,13 @@ public final class ItemsSketch<T> {
 
   /**
    * Returns an approximation to the Cumulative Distribution Function (CDF), which is the 
-   * cumulative analog of the PMF, of the input stream given a set of splitPoint (values).
+   * cumulative analog of the PMF, of the input stream given a set of splitPoints (values).
    * <p>
    * More specifically, the value at array position j of the CDF is the
    * sum of the values in positions 0 through j of the PMF.
    * 
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing doubles
-   * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing values
+   * that divide the domain into <i>m+1</i> consecutive disjoint intervals.
    * 
    * @return an approximation to the CDF of the input stream given the splitPoints.
    */
