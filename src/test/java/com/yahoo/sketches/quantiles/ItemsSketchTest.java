@@ -31,6 +31,8 @@ public class ItemsSketchTest {
     Assert.assertNull(sketch.getMinValue());
     Assert.assertNull(sketch.getMaxValue());
     Assert.assertNull(sketch.getQuantile(0.5));
+    Assert.assertNull(sketch.getQuantiles(2));
+    Assert.assertNull(sketch.getQuantiles(new double[] {0.0, 1.0}));
     byte[] byteArr = sketch.toByteArray(new ArrayOfStringsSerDe());
     Assert.assertEquals(byteArr.length, 8);
     {
