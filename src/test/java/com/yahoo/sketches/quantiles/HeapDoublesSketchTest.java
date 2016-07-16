@@ -459,7 +459,12 @@ public class HeapDoublesSketchTest {
     assertEquals(qs2.getQuantile(0.0), Double.POSITIVE_INFINITY);
     assertEquals(qs2.getQuantile(1.0), Double.NEGATIVE_INFINITY);
     assertEquals(qs2.getQuantile(0.5), Double.NaN);
-    
+    double[] quantiles = qs2.getQuantiles(new double[] {0.0, 0.5, 1.0}); 
+    assertEquals(quantiles.length, 3);
+    assertEquals(quantiles[0], Double.POSITIVE_INFINITY);
+    assertEquals(quantiles[1], Double.NaN);
+    assertEquals(quantiles[2], Double.NEGATIVE_INFINITY);
+
     //println(qs1.toString(true, true));
   }
   
@@ -815,14 +820,15 @@ public class HeapDoublesSketchTest {
   public void checkPMFonEmpty() {
     DoublesSketch qsk = buildQS(32, 1001);
     double[] array = new double[0];
-    double[] qOut = qsk.getQuantiles(array); //check empty array
+    double[] qOut = qsk.getQuantiles(array);
+    assertEquals(qOut.length, 0);
     println("qOut: "+qOut.length);
     double[] cdfOut = qsk.getCDF(array);
     println("cdfOut: "+cdfOut.length);
     assertEquals(cdfOut[0], 1.0, 0.0);
     
   }
-  
+
   private static void checksForImproperK(int k) {
     String s = "Did not catch improper k: "+k;
     try {
