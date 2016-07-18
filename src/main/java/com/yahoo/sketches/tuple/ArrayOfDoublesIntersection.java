@@ -61,7 +61,7 @@ public abstract class ArrayOfDoublesIntersection {
       while (it.next()) {
         sketch_.insert(it.getKey(), it.getValues());
       }
-    } else {
+    } else { //not the first call
       int matchSize = min(sketch_.getRetainedEntries(), sketchIn.getRetainedEntries());
       long[] matchKeys = new long[matchSize];
       double[][] matchValues = new double[matchSize][];

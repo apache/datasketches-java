@@ -166,10 +166,10 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     return keys_[index];
   }
 
-  @Override
-  protected void setKey(final int index, final long key) {
-    keys_[index] = key;
-  }
+//  @Override
+//  protected void setKey(final int index, final long key) {
+//    keys_[index] = key;
+//  }
 
   @Override
   protected void incrementCount() {

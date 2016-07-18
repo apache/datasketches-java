@@ -126,6 +126,11 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
     return Util.computeSeedHash(seed_);
   }
 
+  /**
+   * Insert if key is less than theta and not a duplicate, otherwise ignore.
+   * @param key the hash value of the input value
+   * @param values array of values to update the summary 
+   */
   abstract void insertOrIgnore(long key, double[] values);
 
 }

@@ -30,6 +30,9 @@ public class ArrayOfDoublesUnionTest {
     ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion();
     union.update(sketch1);
     union.update(sketch2);
+    int maxBytes = ArrayOfDoublesUnion.getMaxBytes(union.nomEntries_, union.numValues_);
+    Assert.assertEquals(maxBytes, 131104);
+    System.err.println(maxBytes);
     ArrayOfDoublesCompactSketch result = union.getResult();
     Assert.assertEquals(result.getEstimate(), 3.0);
     double[][] values = result.getValues();

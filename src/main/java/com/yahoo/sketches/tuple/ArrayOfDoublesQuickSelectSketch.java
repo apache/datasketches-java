@@ -56,7 +56,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   abstract int getCurrentCapacity();
   abstract void rebuild(int newCapacity);
   abstract long getKey(int index);
-  abstract void setKey(int index, long key);
+  //abstract void setKey(int index, long key);
   abstract void setValues(int index, double[] values);
   abstract void incrementCount();
   abstract void setThetaLong(long theta);
