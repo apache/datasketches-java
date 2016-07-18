@@ -289,7 +289,9 @@ final class Util {
      * @return the resulting epsilon
      */ //used only by getAdjustedEpsilon()
     private static double getTheoreticalEpsilon(int k, double ff) {
-      if (k < 2) throw new SketchesArgumentException("K must be greater than one.");
+      if (k < 2) {
+        throw new SketchesArgumentException("K must be greater than one.");
+      }
       // don't need to check in the other direction because an int is very small
       double kf = k*ff;
       assert kf >= 2.15; // ensures that the bracketing succeeds

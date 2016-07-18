@@ -10,7 +10,8 @@ import com.yahoo.sketches.memory.NativeMemory;
 
 /**
  * Summary for generic tuple sketches of type Double.
- * This summary keeps a double value. On update a predefined operation is performed depending on the mode.
+ * This summary keeps a double value. On update a predefined operation is performed depending on 
+ * the mode.
  * Three modes are supported: Sum, Min and Max. The default mode is Sum.
  */
 public final class DoubleSummary implements UpdatableSummary<Double> {
@@ -102,10 +103,12 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
   /**
    * Creates an instance of the DoubleSummary given a serialized representation
    * @param mem Memory object with serialized DoubleSummary
-   * @return DeserializedResult object, which contains a DoubleSummary object and number of bytes read from the Memory
+   * @return DeserializedResult object, which contains a DoubleSummary object and number of bytes 
+   * read from the Memory
    */
   public static DeserializeResult<DoubleSummary> fromMemory(final Memory mem) {
-    return new DeserializeResult<DoubleSummary>(new DoubleSummary(mem.getDouble(VALUE_DOUBLE), Mode.values()[mem.getByte(MODE_BYTE)]), SERIALIZED_SIZE_BYTES);
+    return new DeserializeResult<DoubleSummary>(new DoubleSummary(mem.getDouble(VALUE_DOUBLE), 
+        Mode.values()[mem.getByte(MODE_BYTE)]), SERIALIZED_SIZE_BYTES);
   }
 
 }

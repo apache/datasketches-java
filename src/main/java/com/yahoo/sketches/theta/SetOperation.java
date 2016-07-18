@@ -102,7 +102,9 @@ public abstract class SetOperation {
     byte famID = srcMem.getByte(FAMILY_BYTE);
     Family family = idToFamily(famID);
     int serVer = srcMem.getByte(SER_VER_BYTE);
-    if (serVer != 3) throw new SketchesArgumentException("SerVer must be 3: "+serVer);
+    if (serVer != 3) {
+      throw new SketchesArgumentException("SerVer must be 3: "+serVer);
+    }
     switch(family) {
       case UNION : {
         return UnionImpl.wrapInstance(srcMem, seed);

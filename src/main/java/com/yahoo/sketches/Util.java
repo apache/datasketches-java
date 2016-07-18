@@ -76,8 +76,10 @@ public final class Util {
    * @param seedHashB the seedHash B
    */
   public static final void checkSeedHashes(short seedHashA, short seedHashB) {
-    if (seedHashA != seedHashB) throw new 
-      SketchesArgumentException("Incompatible Seed Hashes. "+ seedHashA + ", "+ seedHashB);
+    if (seedHashA != seedHashB) {
+      throw new SketchesArgumentException(
+          "Incompatible Seed Hashes. "+ seedHashA + ", "+ seedHashB);
+    }
   }
 
   /**

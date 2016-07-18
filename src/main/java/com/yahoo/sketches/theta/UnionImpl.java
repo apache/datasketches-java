@@ -232,7 +232,9 @@ final class UnionImpl extends SetOperation implements Union {
       if (cap <= 8) return; //empty
       processVer3(skMem);
     }
-    else throw new SketchesArgumentException("SerVer is unknown: "+serVer);
+    else {
+      throw new SketchesArgumentException("SerVer is unknown: "+serVer);
+    }
   }
   
   @Override

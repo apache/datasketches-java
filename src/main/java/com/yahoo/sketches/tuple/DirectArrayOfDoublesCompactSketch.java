@@ -30,14 +30,16 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
    * @param sketch the given UpdatableArrayOfDoublesSketch
    * @param dstMem the given destination Memory.
    */
-  DirectArrayOfDoublesCompactSketch(final ArrayOfDoublesUpdatableSketch sketch, final Memory dstMem) {
+  DirectArrayOfDoublesCompactSketch(final ArrayOfDoublesUpdatableSketch sketch, 
+      final Memory dstMem) {
     super(sketch.getNumValues());
     checkIfEnoughMemory(dstMem, sketch.getRetainedEntries(), sketch.getNumValues());
     mem_ = dstMem;
     mem_.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
     mem_.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
     mem_.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
-    mem_.putByte(SKETCH_TYPE_BYTE, (byte) SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch.ordinal());
+    mem_.putByte(SKETCH_TYPE_BYTE, (byte) 
+        SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch.ordinal());
     boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
     isEmpty_ = sketch.isEmpty();
     int count = sketch.getRetainedEntries();
@@ -67,14 +69,16 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
   /*
    * Creates an instance from components
    */
-  DirectArrayOfDoublesCompactSketch(final long[] keys, final double[] values, final long theta, final boolean isEmpty, final int numValues, final short seedHash, final Memory dstMem) {
+  DirectArrayOfDoublesCompactSketch(final long[] keys, final double[] values, final long theta, 
+      final boolean isEmpty, final int numValues, final short seedHash, final Memory dstMem) {
     super(numValues);
     checkIfEnoughMemory(dstMem, values.length, numValues);
     mem_ = dstMem;
     mem_.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
     mem_.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
     mem_.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
-    mem_.putByte(SKETCH_TYPE_BYTE, (byte) SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch.ordinal());
+    mem_.putByte(SKETCH_TYPE_BYTE, (byte) 
+        SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch.ordinal());
     boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
     isEmpty_ = isEmpty;
     int count = keys.length;
@@ -155,7 +159,8 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
     int count = getRetainedEntries();
     int sizeBytes = EMPTY_SIZE;
     if (count > 0) {
-      sizeBytes = ENTRIES_START + SIZE_OF_KEY_BYTES * count + SIZE_OF_VALUE_BYTES * count * numValues_;
+      sizeBytes = ENTRIES_START + SIZE_OF_KEY_BYTES * count + 
+          SIZE_OF_VALUE_BYTES * count * numValues_;
     }
     byte[] byteArray = new byte[sizeBytes];
     Memory mem = new NativeMemory(byteArray);
@@ -165,7 +170,8 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
 
   @Override
   public ArrayOfDoublesSketchIterator iterator() {
-    return new DirectArrayOfDoublesSketchIterator(mem_, ENTRIES_START, getRetainedEntries(), numValues_);
+    return new DirectArrayOfDoublesSketchIterator(
+        mem_, ENTRIES_START, getRetainedEntries(), numValues_);
   }
 
   @Override
@@ -173,9 +179,14 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
     return mem_.getShort(SEED_HASH_SHORT);
   }
 
-  private static void checkIfEnoughMemory(final Memory mem, final int numEntries, final int numValues) {
-    final int sizeNeeded = ENTRIES_START + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues) * numEntries;
-    if (sizeNeeded > mem.getCapacity()) throw new SketchesArgumentException("Not enough memory: need " + sizeNeeded + " bytes, got " + mem.getCapacity() + " bytes");
+  private static void checkIfEnoughMemory(final Memory mem, final int numEntries, 
+      final int numValues) {
+    final int sizeNeeded = 
+        ENTRIES_START + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues) * numEntries;
+    if (sizeNeeded > mem.getCapacity()) {
+      throw new SketchesArgumentException("Not enough memory: need " + sizeNeeded + 
+          " bytes, got " + mem.getCapacity() + " bytes");
+    }
   }
 
 }

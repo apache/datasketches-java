@@ -96,7 +96,9 @@ final class DirectIntersection extends SetOperation implements Intersection {
       throw new SketchesArgumentException("PreambleLongs must = 3.");
     }
     int serVer = extractSerVer(pre0);
-    if (serVer != 3) throw new SketchesArgumentException("Ser Version must = 3");
+    if (serVer != 3) {
+      throw new SketchesArgumentException("Ser Version must = 3");
+    }
     int famID = extractFamilyID(pre0);
     Family.INTERSECTION.checkFamilyID(famID);
     //Note: Intersection does not use lgNomLongs or k, per se.

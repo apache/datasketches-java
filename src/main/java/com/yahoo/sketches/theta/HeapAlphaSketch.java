@@ -82,8 +82,10 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    */
   static HeapAlphaSketch getInstance(int lgNomLongs, long seed, float p, ResizeFactor rf) {
     
-    if (lgNomLongs < ALPHA_MIN_LG_NOM_LONGS) throw new SketchesArgumentException(
+    if (lgNomLongs < ALPHA_MIN_LG_NOM_LONGS) {
+      throw new SketchesArgumentException(
         "This sketch requires a minimum nominal entries of "+(1 << ALPHA_MIN_LG_NOM_LONGS));
+    }
     
     double nomLongs = (1L << lgNomLongs);
     double alpha = nomLongs / (nomLongs + 1.0);

@@ -33,7 +33,8 @@ public class ArrayOfDoublesSetOperationBuilder {
 
   /**
    * This is to set the nominal number of entries.
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
+   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than 
+   * given value.
    * @return this builder
    */
   public ArrayOfDoublesSetOperationBuilder setNominalEntries(final int nomEntries) {
@@ -84,7 +85,8 @@ public class ArrayOfDoublesSetOperationBuilder {
   }
 
   /**
-   * Creates an instance of ArrayOfDoublesIntersection based on the current configuration of the builder.
+   * Creates an instance of ArrayOfDoublesIntersection based on the current configuration of the 
+   * builder.
    * The new instance is allocated on the heap if the memory is not provided.
    * The number of nominal entries is not relevant to this, so it is ignored.
    * @return an instance of ArrayOfDoublesIntersection

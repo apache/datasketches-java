@@ -34,7 +34,7 @@ public final class AnotB<S extends Summary> {
    */  
   @SuppressWarnings("unchecked")
   public void update(final Sketch<S> a, final Sketch<S> b) {
-    if (a != null) isEmpty_ = a.isEmpty(); // stays this way even if we end up with no entries in the result
+    if (a != null) isEmpty_ = a.isEmpty(); //stays this way even if we end up with no result entries
     long thetaA = a == null ? Long.MAX_VALUE : a.getThetaLong();
     long thetaB = b == null ? Long.MAX_VALUE : b.getThetaLong();
     theta_ = Math.min(thetaA, thetaB);
@@ -71,18 +71,22 @@ public final class AnotB<S extends Summary> {
    */
   public CompactSketch<S> getResult() {
     if (count_ == 0) return new CompactSketch<S>(null, null, theta_, isEmpty_);
-    CompactSketch<S> result = new CompactSketch<S>(Arrays.copyOfRange(keys_, 0, count_), Arrays.copyOfRange(summaries_, 0, count_), theta_, isEmpty_);
+    CompactSketch<S> result = 
+        new CompactSketch<S>(Arrays.copyOfRange(keys_, 0, count_), 
+            Arrays.copyOfRange(summaries_, 0, count_), theta_, isEmpty_);
     reset();
     return result;
   }
 
   private long[] convertToHashTable(final Sketch<S> sketch) {
     int size = Math.max(
-      ceilingPowerOf2((int) Math.ceil(sketch.getRetainedEntries() / QuickSelectSketch.REBUILD_RATIO_AT_TARGET_SIZE)),
+      ceilingPowerOf2((int) 
+          Math.ceil(sketch.getRetainedEntries() / QuickSelectSketch.REBUILD_RATIO_AT_TARGET_SIZE)),
       QuickSelectSketch.MIN_NOM_ENTRIES
     );
     long[] hashTable = new long[size];
-    HashOperations.hashArrayInsert(sketch.keys_, hashTable, Integer.numberOfTrailingZeros(size), theta_);
+    HashOperations.hashArrayInsert(
+        sketch.keys_, hashTable, Integer.numberOfTrailingZeros(size), theta_);
     return hashTable;
   }
 

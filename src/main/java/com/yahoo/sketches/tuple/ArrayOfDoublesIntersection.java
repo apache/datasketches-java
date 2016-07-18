@@ -93,8 +93,14 @@ public abstract class ArrayOfDoublesIntersection {
    * @return Result of the intersections so far as a compact sketch.
    */
   public ArrayOfDoublesCompactSketch getResult(final Memory dstMem) {
-    if (isFirstCall_) throw new SketchesStateException("getResult() with no intervening intersections is not a legal result.");
-    if (sketch_ == null) return new HeapArrayOfDoublesCompactSketch(null, null, Long.MAX_VALUE, true, numValues_, seedHash_);
+    if (isFirstCall_) {
+      throw new SketchesStateException(
+          "getResult() with no intervening intersections is not a legal result.");
+    }
+    if (sketch_ == null) {
+      return new HeapArrayOfDoublesCompactSketch(
+          null, null, Long.MAX_VALUE, true, numValues_, seedHash_);
+    }
     return sketch_.compact(dstMem);
   }
 

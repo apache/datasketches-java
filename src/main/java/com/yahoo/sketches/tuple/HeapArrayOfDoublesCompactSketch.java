@@ -50,7 +50,8 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
   /*
    * Creates an instance from components
    */
-  HeapArrayOfDoublesCompactSketch(final long[] keys, final double[] values, final long theta, final boolean isEmpty, final int numValues, final short seedHash) {
+  HeapArrayOfDoublesCompactSketch(final long[] keys, final double[] values, final long theta, 
+      final boolean isEmpty, final int numValues, final short seedHash) {
     super(numValues);
     keys_ = keys;
     values_ = values;

@@ -416,7 +416,9 @@ public class LongsSketch {
    */
   public void update(final long item, final long count) {
     if (count == 0) return;
-    if (count < 0) throw new SketchesArgumentException("Count may not be negative");
+    if (count < 0) {
+      throw new SketchesArgumentException("Count may not be negative");
+    }
     this.streamLength += count;
     hashMap.adjustOrPutValue(item, count);
 

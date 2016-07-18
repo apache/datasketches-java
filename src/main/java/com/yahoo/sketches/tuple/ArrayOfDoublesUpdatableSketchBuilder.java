@@ -41,7 +41,8 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
 
   /**
    * This is to set the nominal number of entries.
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
+   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than 
+   * given value.
    * @return this builder
    */
   public ArrayOfDoublesUpdatableSketchBuilder setNominalEntries(final int nomEntries) {
@@ -67,7 +68,8 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
    * @param samplingProbability sampling probability from 0 to 1
    * @return this builder
    */
-  public ArrayOfDoublesUpdatableSketchBuilder setSamplingProbability(final float samplingProbability) {
+  public ArrayOfDoublesUpdatableSketchBuilder 
+        setSamplingProbability(final float samplingProbability) {
     if (samplingProbability < 0 || samplingProbability > 1f) {
       throw new SketchesArgumentException("sampling probability must be between 0 and 1");
     }
@@ -111,9 +113,11 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
    */
   public ArrayOfDoublesUpdatableSketch build() {
     if (dstMem_ == null) {
-      return new HeapArrayOfDoublesQuickSelectSketch(nomEntries_, resizeFactor_.lg(), samplingProbability_, numValues_, seed_);
+      return new HeapArrayOfDoublesQuickSelectSketch(nomEntries_, resizeFactor_.lg(), 
+          samplingProbability_, numValues_, seed_);
     }
-    return new DirectArrayOfDoublesQuickSelectSketch(nomEntries_, resizeFactor_.lg(), samplingProbability_, numValues_, seed_, dstMem_);
+    return new DirectArrayOfDoublesQuickSelectSketch(nomEntries_, resizeFactor_.lg(), 
+        samplingProbability_, numValues_, seed_, dstMem_);
   }
 
 }

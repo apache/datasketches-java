@@ -41,7 +41,8 @@ public final class Sketches {
    * @param mem Memory object representing a Sketch
    * @return Sketch created from its Memory representation
    */
-  public static <U, S extends UpdatableSummary<U>> UpdatableSketch<U, S> heapifyUpdatableSketch(final Memory mem) {
+  public static <U, S extends 
+      UpdatableSummary<U>> UpdatableSketch<U, S> heapifyUpdatableSketch(final Memory mem) {
     return new UpdatableSketch<U, S>(mem);
   }
 

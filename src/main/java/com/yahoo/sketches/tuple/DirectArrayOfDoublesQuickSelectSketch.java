@@ -33,13 +33,15 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
   /**
    * Construct a new sketch using the given Memory as its backing store.
    * 
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
+   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than 
+   * given value.
    * @param lgResizeFactor log2(resize factor) - value from 0 to 3:
    * 0 - no resizing (max size allocated),
    * 1 - double internal hash table each time it reaches a threshold
    * 2 - grow four times
    * 3 - grow eight times (default)
-   * @param samplingProbability <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
+   * @param samplingProbability 
+   *  <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
    * @param numValues Number of double values to keep for each key.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @param dstMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
@@ -49,7 +51,8 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
     super(numValues, seed);
     mem_ = dstMem;
     final int startingCapacity = 1 << Util.startingSubMultiple(
-      Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries) * 2), // target table size is twice the number of nominal entries
+      // target table size is twice the number of nominal entries
+      Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries) * 2), 
       lgResizeFactor,
       Integer.numberOfTrailingZeros(MIN_NOM_ENTRIES)
     );
@@ -57,7 +60,8 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
     mem_.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
     mem_.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
     mem_.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
-    mem_.putByte(SKETCH_TYPE_BYTE, (byte) SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch.ordinal());
+    mem_.putByte(SKETCH_TYPE_BYTE, (byte) 
+        SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch.ordinal());
     final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
     mem_.putByte(FLAGS_BYTE, (byte) (
       (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0) |
@@ -97,7 +101,8 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
       throw new SketchesArgumentException("Serial version mismatch. Expected: " + serialVersionUID + 
           ", actual: " + version);
     }
-    final boolean isBigEndian = mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_BIG_ENDIAN.ordinal()));
+    final boolean isBigEndian = 
+        mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_BIG_ENDIAN.ordinal()));
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
       throw new SketchesArgumentException("Byte order mismatch");
     }
@@ -236,7 +241,8 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
     final double[] values = new double[currCapacity * numValues];
     mem_.getLongArray(keysOffset_, keys, 0, currCapacity);
     mem_.getDoubleArray(valuesOffset_, values, 0, currCapacity * numValues);
-    mem_.clear(keysOffset_, SIZE_OF_KEY_BYTES * newCapacity + SIZE_OF_VALUE_BYTES * newCapacity * numValues);
+    mem_.clear(keysOffset_, 
+        SIZE_OF_KEY_BYTES * newCapacity + SIZE_OF_VALUE_BYTES * newCapacity * numValues);
     mem_.putInt(RETAINED_ENTRIES_INT, 0);
     mem_.putByte(LG_CUR_CAPACITY_BYTE, (byte)Integer.numberOfTrailingZeros(newCapacity));
     valuesOffset_ = keysOffset_ + SIZE_OF_KEY_BYTES * newCapacity;
@@ -264,17 +270,21 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
     final int index = HashOperations.hashSearch(mem_, lgCurrentCapacity_, key, ENTRIES_START);
     if (index == -1) return null;
     final double[] array = new double[numValues_];
-    mem_.getDoubleArray(valuesOffset_ + SIZE_OF_VALUE_BYTES * numValues_ * index, array, 0, numValues_);
+    mem_.getDoubleArray(valuesOffset_ + SIZE_OF_VALUE_BYTES * numValues_ * index, 
+        array, 0, numValues_);
     return array;
   }
 
   @Override
   public ArrayOfDoublesSketchIterator iterator() {
-    return new DirectArrayOfDoublesSketchIterator(mem_, keysOffset_, getCurrentCapacity(), numValues_);
+    return new DirectArrayOfDoublesSketchIterator(mem_, keysOffset_, getCurrentCapacity(), 
+        numValues_);
   }
 
-  private static void checkIfEnoughMemory(final Memory mem, final int numEntries, final int numValues) {
-    final int sizeNeeded = ENTRIES_START + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues) * numEntries;
+  private static void checkIfEnoughMemory(final Memory mem, final int numEntries, 
+      final int numValues) {
+    final int sizeNeeded = 
+        ENTRIES_START + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues) * numEntries;
     if (sizeNeeded > mem.getCapacity()) {
       throw new SketchesArgumentException("Not enough memory: need " + 
           sizeNeeded + " bytes, got " + mem.getCapacity() + " bytes");

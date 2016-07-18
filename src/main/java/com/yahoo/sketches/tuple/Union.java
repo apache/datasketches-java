@@ -20,7 +20,8 @@ public class Union<S extends Summary> {
 
   /**
    * Creates new instance
-   * @param nomEntries nominal number of entries. Forced to the nearest power of 2 greater than given value.
+   * @param nomEntries nominal number of entries. Forced to the nearest power of 2 greater than 
+   * given value.
    * @param summaryFactory the summary factory
    */
   public Union(final int nomEntries, final SummaryFactory<S> summaryFactory) {

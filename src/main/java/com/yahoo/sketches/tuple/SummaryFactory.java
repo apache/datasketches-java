@@ -27,7 +27,8 @@ public interface SummaryFactory<S extends Summary> {
   /**
    * This is to create an instance of a Summary given a serialized representation
    * @param mem Memory object with serialized representation of a Summary
-   * @return DeserializedResult object, which contains a Summary object and number of bytes read from the Memory
+   * @return DeserializedResult object, which contains a Summary object and number of bytes read 
+   * from the Memory
    */
   public DeserializeResult<S> summaryFromMemory(Memory mem);
 

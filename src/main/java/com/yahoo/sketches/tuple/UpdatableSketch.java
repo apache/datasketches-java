@@ -28,7 +28,8 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
 
   /**
    * This is to create an instance of an UpdatableQuickSelectSketch.
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
+   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than 
+   * given value.
    * @param lgResizeFactor log2(resizeFactor) - value from 0 to 3:
    * <pre>
    * 0 - no resizing (max size allocated),
@@ -36,10 +37,12 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    * 2 - grow four times
    * 3 - grow eight times (default)
    * </pre>
-   * @param samplingProbability <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
+   * @param samplingProbability 
+   * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
    * @param summaryFactory An instance of a SummaryFactory.
    */
-  UpdatableSketch(final int nomEntries, final int lgResizeFactor, final float samplingProbability, final SummaryFactory<S> summaryFactory) {
+  UpdatableSketch(final int nomEntries, final int lgResizeFactor, final float samplingProbability, 
+      final SummaryFactory<S> summaryFactory) {
     super(nomEntries, lgResizeFactor, samplingProbability, summaryFactory);
   }
 

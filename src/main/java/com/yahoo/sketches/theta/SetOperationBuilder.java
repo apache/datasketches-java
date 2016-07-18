@@ -176,8 +176,10 @@ public class SetOperationBuilder {
         if (bDstMem == null) {
           setOp = new HeapAnotB(bSeed);
         } 
-        else throw new SketchesArgumentException(
+        else {
+          throw new SketchesArgumentException(
             "AnotB is a stateless operation and cannot be persisted.");
+        }
         break;
       }
       default: 

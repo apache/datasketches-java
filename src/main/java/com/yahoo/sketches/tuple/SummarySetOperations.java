@@ -20,7 +20,8 @@ public interface SummarySetOperations<S extends Summary> {
   public S union(S a, S b);
 
   /**
-   * This is called when an intersection of two sketches is produced, and both sketches have the same key.
+   * This is called when an intersection of two sketches is produced, and both sketches have the 
+   * same key.
    * @param a Summary from sketch A
    * @param b Summary from sketch B
    * @return intersection of Summary A and Summary B

@@ -17,7 +17,8 @@ public abstract class ArrayOfDoublesSketch {
 
   // The concept of being empty is about representing an empty set.
   // So a sketch can be non-empty, and have no entries.
-  // For example, as a result of a sampling, when some data was presented to the sketch, but no entries were retained.
+  // For example, as a result of a sampling, when some data was presented to the sketch, but no 
+  //  entries were retained.
   static enum Flags { IS_BIG_ENDIAN, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES }
   static final int SIZE_OF_KEY_BYTES = 8;
   static final int SIZE_OF_VALUE_BYTES = 8;
@@ -61,7 +62,8 @@ public abstract class ArrayOfDoublesSketch {
    * Gets the approximate upper error bound given the specified number of Standard Deviations. 
    * This will return getEstimate() if isEmpty() is true.
    * 
-   * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
+   * @param numStdDev 
+   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the upper bound.
    */
   public double getUpperBound(final int numStdDev) {
@@ -73,7 +75,8 @@ public abstract class ArrayOfDoublesSketch {
    * Gets the approximate lower error bound given the specified number of Standard Deviations.
    * This will return getEstimate() if isEmpty() is true.
    * 
-   * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
+   * @param numStdDev 
+   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the lower bound.
    */
   public double getLowerBound(final int numStdDev) {

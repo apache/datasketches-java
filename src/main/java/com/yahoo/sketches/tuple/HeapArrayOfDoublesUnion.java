@@ -16,7 +16,8 @@ final class HeapArrayOfDoublesUnion extends ArrayOfDoublesUnion {
 
   /**
    * Creates an instance of HeapArrayOfDoublesUnion with a custom seed
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
+   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than 
+   * given value.
    * @param numValues Number of double values to keep for each key.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */

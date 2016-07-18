@@ -54,7 +54,8 @@ public class Intersection<S extends Summary> {
       sketch_ = null;
       return;
     }
-    // assumes that constructor of QuickSelectSketch bumps the requested size up to the nearest power of 2
+    // assumes that constructor of QuickSelectSketch bumps the requested size up to the nearest 
+    // power of 2
     if (isFirstCall) {
       sketch_ = new QuickSelectSketch<S>(sketchIn.getRetainedEntries(), 0, summaryFactory_);
       SketchIterator<S> it = sketchIn.iterator();
@@ -66,14 +67,16 @@ public class Intersection<S extends Summary> {
       final int matchSize = min(sketch_.getRetainedEntries(), sketchIn.getRetainedEntries());
       final long[] matchKeys = new long[matchSize];
       @SuppressWarnings("unchecked")
-      final S[] matchSummaries = (S[]) Array.newInstance(summaryFactory_.newSummary().getClass(), matchSize);
+      final S[] matchSummaries = (S[]) 
+        Array.newInstance(summaryFactory_.newSummary().getClass(), matchSize);
       int matchCount = 0;
       SketchIterator<S> it = sketchIn.iterator();
       while (it.next()) {
         S summary = sketch_.find(it.getKey());
         if (summary != null) {
           matchKeys[matchCount] = it.getKey();
-          matchSummaries[matchCount] = summaryFactory_.getSummarySetOperations().intersection(summary, it.getSummary());
+          matchSummaries[matchCount] = 
+              summaryFactory_.getSummarySetOperations().intersection(summary, it.getSummary());
           matchCount++;
         }
       }
@@ -94,8 +97,13 @@ public class Intersection<S extends Summary> {
    * @return result of the intersections so far
    */
   public CompactSketch<S> getResult() {
-    if (isFirstCall_) throw new SketchesStateException("getResult() with no intervening intersections is not a legal result.");
-    if (sketch_ == null) return new CompactSketch<S>(null, null, theta_, isEmpty_);
+    if (isFirstCall_) {
+      throw new SketchesStateException(
+        "getResult() with no intervening intersections is not a legal result.");
+    }
+    if (sketch_ == null) {
+      return new CompactSketch<S>(null, null, theta_, isEmpty_);
+    }
     return sketch_.compact();
   }
 

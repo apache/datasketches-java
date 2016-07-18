@@ -79,7 +79,9 @@ public final class HashOperations {
    * @return Current probe index if found, -1 if not found.
    */
   public static int hashSearch(final long[] hashTable, final int lgArrLongs, final long hash) {
-    if (hash == 0) throw new SketchesArgumentException("Given hash cannot be zero: "+hash);
+    if (hash == 0) {
+      throw new SketchesArgumentException("Given hash cannot be zero: "+hash);
+    }
     final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
     final int stride = getStride(hash, lgArrLongs);
     int curProbe = (int) (hash & arrayMask);

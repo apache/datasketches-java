@@ -40,7 +40,7 @@ final class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
   public void update(final ArrayOfDoublesSketch a, final ArrayOfDoublesSketch b) {
     if (a != null) Util.checkSeedHashes(seedHash_, a.getSeedHash());
     if (b != null) Util.checkSeedHashes(seedHash_, b.getSeedHash());
-    if (a != null) isEmpty_ = a.isEmpty(); // stays this way even if we end up with no entries in the result
+    if (a != null) isEmpty_ = a.isEmpty();//stays this way even if we end up with no result entries
     final long thetaA = a == null ? Long.MAX_VALUE : a.getThetaLong();
     final long thetaB = b == null ? Long.MAX_VALUE : b.getThetaLong();
     theta_ = Math.min(thetaA, thetaB);
@@ -68,7 +68,8 @@ final class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
 
   @Override
   public ArrayOfDoublesCompactSketch getResult() {
-    if (count_ == 0) return new HeapArrayOfDoublesCompactSketch(null, null, Long.MAX_VALUE, true, numValues_, seedHash_);
+    if (count_ == 0) return new 
+        HeapArrayOfDoublesCompactSketch(null, null, Long.MAX_VALUE, true, numValues_, seedHash_);
     ArrayOfDoublesCompactSketch result = new HeapArrayOfDoublesCompactSketch(
       Arrays.copyOfRange(keys_, 0, count_),
       Arrays.copyOfRange(values_, 0, count_ * numValues_),

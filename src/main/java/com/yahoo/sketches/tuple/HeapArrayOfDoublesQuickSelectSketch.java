@@ -31,14 +31,17 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
   private double[] values_;
 
   /**
-   * This is to create an instance of a QuickSelectSketch with custom resize factor and sampling probability
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
+   * This is to create an instance of a QuickSelectSketch with custom resize factor and sampling 
+   * probability
+   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than 
+   * given value.
    * @param lgResizeFactor log2(resize factor) - value from 0 to 3:
    * 0 - no resizing (max size allocated),
    * 1 - double internal hash table each time it reaches a threshold
    * 2 - grow four times
    * 3 - grow eight times (default)
-   * @param samplingProbability <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
+   * @param samplingProbability 
+   * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
    * @param numValues number of double values to keep for each key
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */

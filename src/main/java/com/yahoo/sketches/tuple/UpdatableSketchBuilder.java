@@ -37,7 +37,8 @@ public class UpdatableSketchBuilder<U, S extends UpdatableSummary<U>> {
 
   /**
    * This is to set the nominal number of entries.
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
+   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than 
+   * given value.
    * @return this UpdatableSketchBuilder
    */
   public UpdatableSketchBuilder<U, S> setNominalEntries(final int nomEntries) {
@@ -76,7 +77,8 @@ public class UpdatableSketchBuilder<U, S extends UpdatableSummary<U>> {
    * @return an UpdatableSketch
    */
   public UpdatableSketch<U, S> build() {
-    return new UpdatableSketch<U, S>(nomEntries_, resizeFactor_.lg(), samplingProbability_, summaryFactory_);
+    return new UpdatableSketch<U, S>(nomEntries_, resizeFactor_.lg(), samplingProbability_, 
+        summaryFactory_);
   }
 
 }
