@@ -38,7 +38,7 @@ public abstract class ArrayOfItemsSerDe<T> {
    * 
    * You will need to override this in the following cases:
    * <ul><li>If you want to rename the class or change its package hierarchy and keep the ID the 
-   * same, which enables compatible deserialization of binary images that were serialized with a
+   * same. This enables compatible deserialization of binary images that were serialized with a
    * different class name or package hierarchy.</li>
    * <li>If you wish to change the binary layout of the serialization and don't want to change the 
    * class name or package hierarchy, you will need to change the returned code.</li>

@@ -222,7 +222,7 @@ public class ItemsSketch<T> {
     final int lgMaxMapSize = extractLgMaxMapSize(pre0); //Byte 3
     final int lgCurMapSize = extractLgCurMapSize(pre0); //Byte 4
     final boolean empty = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0; //Byte 5
-    final int serDeId = extractSerDeId(pre0);       //Byte 6,7
+    final int serDeId = extractSerDeId(pre0);           //Byte 6,7
 
     // Checks
     final boolean preLongsEq1 = (preLongs == 1);        //Byte 0
@@ -244,7 +244,7 @@ public class ItemsSketch<T> {
       throw new SketchesArgumentException(
           "Possible Corruption: (PreLongs == 1) ^ Empty == True.");
     }
-    if (serDeId != serDe.getId()) {                      //Byte 6,7
+    if (serDeId != serDe.getId()) {                     //Byte 6,7
       throw new SketchesArgumentException(
           "Possible Corruption: SerDe ID incorrect: " + serDeId + " != " + 
               serDe.getId());
@@ -309,7 +309,7 @@ public class ItemsSketch<T> {
     pre0 = insertLgMaxMapSize(lgMaxMapSize, pre0);          //Byte 3
     pre0 = insertLgCurMapSize(hashMap.getLgLength(), pre0); //Byte 4
     pre0 = empty ? insertFlags(EMPTY_FLAG_MASK, pre0) : insertFlags(0, pre0); //Byte 5
-    pre0 = insertSerDeId(serDe.getId(), pre0);            //Byte 6,7
+    pre0 = insertSerDeId(serDe.getId(), pre0);              //Byte 6,7
 
     if (empty) {
       mem.putLong(0, pre0);
