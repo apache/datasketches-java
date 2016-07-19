@@ -17,7 +17,7 @@ import static com.yahoo.sketches.memory.UnsafeUtil.unsafe;
  * @author Lee Rhodes
  */
 //@SuppressWarnings("restriction")
-public class AllocMemory extends NativeMemory {
+public class AllocMemory extends MemoryMappedFile {
   
   /**
    * Constructor for allocate native memory. 
@@ -108,15 +108,7 @@ public class AllocMemory extends NativeMemory {
    */
   @Override
   protected void finalize() {
-    if (requiresFree()) {
-      System.err.println(
-          "ERROR: freeMemory() has not been called: Address: " + nativeRawStartAddress_ 
-            + ", capacity: " + capacityBytes_);
-      java.lang.StackTraceElement[] arr = Thread.currentThread().getStackTrace();
-      for (int i = 0; i < arr.length; i++) { 
-        System.err.println(arr[i].toString()); 
-      }
-    }
+    super.finalize();
   }
   
 }
