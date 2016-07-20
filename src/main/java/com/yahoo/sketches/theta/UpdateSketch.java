@@ -56,6 +56,7 @@ public abstract class UpdateSketch extends Sketch {
   
   /**
    * Convert this UpdateSketch to a CompactSketch in the chosen form.
+   * 
    * <p>This compacting process converts the hash table form of an UpdateSketch to
    * a simple list of the valid hash values from the hash table.  Any hash values equal to or
    * greater than theta will be discarded.  The number of valid values remaining in the
@@ -74,7 +75,7 @@ public abstract class UpdateSketch extends Sketch {
    */
   public CompactSketch compact(boolean dstOrdered, Memory dstMem) {
     CompactSketch sketchOut = null;
-    int sw = (dstOrdered? 2:0) | ((dstMem != null)? 1:0);
+    int sw = (dstOrdered ? 2 : 0) | ((dstMem != null) ? 1 : 0);
     switch (sw) {
       case 0: { //dst not ordered, dstMem == null 
         sketchOut = new HeapCompactSketch(this);
@@ -294,7 +295,7 @@ public abstract class UpdateSketch extends Sketch {
    */
   static final int startingSubMultiple(int lgTarget, ResizeFactor rf, int lgMin) {
     int lgRR = rf.lg();
-    return (lgTarget <= lgMin)? lgMin : (lgRR == 0)? lgTarget : (lgTarget - lgMin) % lgRR + lgMin;
+    return (lgTarget <= lgMin) ? lgMin : (lgRR == 0) ? lgTarget : (lgTarget - lgMin) % lgRR + lgMin;
   }
   
 }

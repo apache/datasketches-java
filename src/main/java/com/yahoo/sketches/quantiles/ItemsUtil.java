@@ -33,8 +33,8 @@ final class ItemsUtil {
   static final <T> void validateValues(final T[] values, final Comparator<? super T> comparator) {
     final int lenM1 = values.length - 1;
     for (int j = 0; j < lenM1; j++) {
-      if (values[j] != null && values[j + 1] != null &&
-          comparator.compare(values[j], values[j + 1]) < 0) {
+      if (values[j] != null && values[j + 1] != null 
+          && comparator.compare(values[j], values[j + 1]) < 0) {
         continue;
       }
       throw new SketchesArgumentException(
@@ -143,13 +143,13 @@ final class ItemsUtil {
     for (int lvl = startingLevel; lvl < endingLevel; lvl++) {
       assert (bitPattern & (1L << lvl)) > 0; // internal consistency check
       mergeTwoSizeKBuffers(
-          (T[]) levelsArr, (2+lvl) * k,
-          (T[]) levelsArr, (2+endingLevel) * k,
+          (T[]) levelsArr, (2 + lvl) * k,
+          (T[]) levelsArr, (2 + endingLevel) * k,
           size2KBuf, size2KStart,
           k, sketch.getComparator());
       zipSize2KBuffer(
           size2KBuf, size2KStart,
-          levelsArr, (2+endingLevel) * k,
+          levelsArr, (2 + endingLevel) * k,
           k);
       // to release the discarded objects
       Arrays.fill(levelsArr, (2 + lvl) * k, (2 + lvl + 1) * k, null);
@@ -227,13 +227,13 @@ final class ItemsUtil {
     long srcBitPattern = src.getBitPattern();
     for (int srcLvl = 0; srcBitPattern != 0L; srcLvl++, srcBitPattern >>>= 1) {
       if ((srcBitPattern & 1L) > 0L) {
-        justZipWithStride (
+        justZipWithStride(
             sourceLevels, (2 + srcLvl) * sourceK,
             downBuf, 0,
             targetK,
             downFactor);
-        inPlacePropagateCarry (
-            srcLvl+lgDownFactor,
+        inPlacePropagateCarry(
+            srcLvl + lgDownFactor,
             (T[]) downBuf, 0,
             (T[]) scratchBuf, 0,
             false, tgt);
@@ -242,7 +242,7 @@ final class ItemsUtil {
     }
     tgt.n_ = nFinal; 
 
-    assert tgt.getN() / (2*targetK) == tgt.getBitPattern(); // internal consistency check
+    assert tgt.getN() / (2 * targetK) == tgt.getBitPattern(); // internal consistency check
 
     final T srcMax = src.getMaxValue();
     final T srcMin = src.getMinValue();
@@ -350,7 +350,7 @@ final class ItemsUtil {
     int i = 0;
     int j = 0;
     while (i < numSamples && j < splitPoints.length) {
-      if (comparator.compare(samples[i+offset], splitPoints[j]) < 0) {
+      if (comparator.compare(samples[i + offset], splitPoints[j]) < 0) {
         counters[j] += weight; // this sample goes into this bucket
         i++; // move on to next sample and see whether it also goes into this bucket
       } else {

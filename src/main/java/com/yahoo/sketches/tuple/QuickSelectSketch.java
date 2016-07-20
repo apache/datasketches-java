@@ -5,18 +5,18 @@
 
 package com.yahoo.sketches.tuple;
 
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
+
 import java.lang.reflect.Array;
 import java.nio.ByteOrder;
-
-import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.QuickSelect;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;
 import com.yahoo.sketches.memory.NativeMemory;
-import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * A generic tuple sketch using the QuickSelect algorithm.
@@ -25,7 +25,9 @@ import com.yahoo.sketches.SketchesArgumentException;
  */
 class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   private static final byte serialVersionUID = 1;
-  private enum Flags {IS_BIG_ENDIAN, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED}
+  
+  private enum Flags { IS_BIG_ENDIAN, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES, 
+    IS_THETA_INCLUDED }
 
   static final int MIN_NOM_ENTRIES = 32;
   static final int DEFAULT_LG_RESIZE_FACTOR = 3;
@@ -280,11 +282,11 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     mem.putByte(offset++, (byte) SerializerDeserializer.SketchType.QuickSelectSketch.ordinal());
     final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
     mem.putByte(offset++, (byte) (
-      (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0) |
-      (isInSamplingMode() ? 1 << Flags.IS_IN_SAMPLING_MODE.ordinal() : 0) |
-      (isEmpty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0) |
-      (count_ > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0) |
-      (isThetaIncluded ? 1<< Flags.IS_THETA_INCLUDED.ordinal() : 0)
+      (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0) 
+      | (isInSamplingMode() ? 1 << Flags.IS_IN_SAMPLING_MODE.ordinal() : 0) 
+      | (isEmpty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0) 
+      | (count_ > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0) 
+      | (isThetaIncluded ? 1 << Flags.IS_THETA_INCLUDED.ordinal() : 0)
     ));
     mem.putByte(offset++, (byte) Integer.numberOfTrailingZeros(nomEntries_));
     mem.putByte(offset++, (byte) lgCurrentCapacity_);

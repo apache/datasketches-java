@@ -5,14 +5,14 @@
 
 package com.yahoo.sketches.tuple;
 
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
+
 /**
  * The on-heap implementation of the tuple QuickSelect sketch of type ArrayOfDoubles. 
  */
 
 import java.nio.ByteOrder;
 import java.util.Arrays;
-
-import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
@@ -77,8 +77,8 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
         SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch);
     final byte version = mem.getByte(SERIAL_VERSION_BYTE);
     if (version != serialVersionUID) {
-      throw new SketchesArgumentException("Serial version mismatch. Expected: " + 
-          serialVersionUID + ", actual: " + version);
+      throw new SketchesArgumentException("Serial version mismatch. Expected: " 
+        + serialVersionUID + ", actual: " + version);
     }
     final byte flags = mem.getByte(FLAGS_BYTE);
     final boolean isBigEndian = (flags & (1 << Flags.IS_BIG_ENDIAN.ordinal())) > 0;
@@ -132,8 +132,8 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
 
   @Override
   public byte[] toByteArray() {
-    final int sizeBytes = ENTRIES_START + 
-        (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues_) * getCurrentCapacity();
+    final int sizeBytes = ENTRIES_START 
+        + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues_) * getCurrentCapacity();
     final byte[] byteArray = new byte[sizeBytes];
     final Memory mem = new NativeMemory(byteArray); // wrap the byte array to use the putX methods
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
@@ -143,10 +143,10 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
         (byte)SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch.ordinal());
     final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
     mem.putByte(FLAGS_BYTE, (byte)(
-      (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0) |
-      (isInSamplingMode() ? 1 << Flags.IS_IN_SAMPLING_MODE.ordinal() : 0) |
-      (isEmpty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0) |
-      (count_ > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
+      (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0) 
+      | (isInSamplingMode() ? 1 << Flags.IS_IN_SAMPLING_MODE.ordinal() : 0) 
+      | (isEmpty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0) 
+      | (count_ > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
     ));
     mem.putByte(NUM_VALUES_BYTE, (byte) numValues_);
     mem.putShort(SEED_HASH_SHORT, Util.computeSeedHash(seed_));
@@ -194,7 +194,9 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
       values_[index] += values[0];
     } else {
       final int offset = index * numValues_;
-      for (int i = 0; i < numValues_; i++) values_[offset + i] += values[i];
+      for (int i = 0; i < numValues_; i++) {
+        values_[offset + i] += values[i];
+      }
     }
   }
 

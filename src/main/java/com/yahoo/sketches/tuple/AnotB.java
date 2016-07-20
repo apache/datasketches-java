@@ -7,10 +7,10 @@ package com.yahoo.sketches.tuple;
 
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
-import com.yahoo.sketches.HashOperations;
-
 import java.lang.reflect.Array;
 import java.util.Arrays;
+
+import com.yahoo.sketches.HashOperations;
 
 /**
  * Computes a set difference of two generic tuple sketches

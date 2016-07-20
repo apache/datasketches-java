@@ -54,7 +54,7 @@ final class Util {
   static void checkSerVer(int serVer) {
     if (serVer != SER_VER) {
       throw new SketchesArgumentException(
-          "Possible corruption: Invalid Serialization Version: "+serVer);
+          "Possible corruption: Invalid Serialization Version: " + serVer);
     }
   }
 
@@ -82,8 +82,8 @@ final class Util {
     int maxPre = Family.QUANTILES.getMaxPreLongs() + 2;
     int reqBufBytes = (maxPre + reqItems) << 3;
     if (memCapBytes < reqBufBytes) {
-      throw new SketchesArgumentException("Possible corruption: Memory capacity too small: "+ 
-          memCapBytes + " < "+ reqBufBytes);
+      throw new SketchesArgumentException("Possible corruption: Memory capacity too small: "
+          + memCapBytes + " < " + reqBufBytes);
     }
   }
 
@@ -102,12 +102,12 @@ final class Util {
     boolean valid = ((preambleLongs == minPre) && empty) || ((preambleLongs == maxPre) && !empty);
     if (!valid) {
       throw new SketchesArgumentException(
-          "Possible corruption: PreambleLongs inconsistent with empty state: " +preambleLongs);
+          "Possible corruption: PreambleLongs inconsistent with empty state: " + preambleLongs);
     }
     checkFlags(flags);
     if (!empty && (memCapBytes < (preambleLongs << 3))) {
       throw new SketchesArgumentException(
-          "Possible corruption: Insufficient capacity for preamble: " +memCapBytes);
+          "Possible corruption: Insufficient capacity for preamble: " + memCapBytes);
     }
     return empty;
   }
@@ -120,7 +120,7 @@ final class Util {
     int flagsMask = ~EMPTY_FLAG_MASK;
     if ((flags & flagsMask) > 0) {
       throw new SketchesArgumentException(
-         "Possible corruption: Invalid flags field: "+Integer.toBinaryString(flags));
+         "Possible corruption: Invalid flags field: " + Integer.toBinaryString(flags));
     }
   }
 
@@ -146,7 +146,7 @@ final class Util {
     int bbCnt = computeBaseBufferItems(k, n);
     long bitPattern = computeBitPattern(k, n);
     int validLevels = Long.bitCount(bitPattern);
-    return bbCnt + validLevels*k;
+    return bbCnt + validLevels * k;
   }
   
   /**
@@ -160,7 +160,7 @@ final class Util {
    */
   static int computeCombBufItemCapacity(int k, long n) {
     int totLevels = computeNumLevelsNeeded(k, n);
-    if (totLevels > 0) return (2+totLevels) * k;
+    if (totLevels > 0) return (2 + totLevels) * k;
     int bbCnt = computeBaseBufferItems(k, n); //just the base buffer
     return Math.max(MIN_BASE_BUF_SIZE, ceilingPowerOf2(bbCnt));
   }
@@ -293,7 +293,7 @@ final class Util {
         throw new SketchesArgumentException("K must be greater than one.");
       }
       // don't need to check in the other direction because an int is very small
-      double kf = k*ff;
+      double kf = k * ff;
       assert kf >= 2.15; // ensures that the bracketing succeeds
       assert kf < 1e12;  // ditto, but could actually be bigger
       double lo = 1e-16;

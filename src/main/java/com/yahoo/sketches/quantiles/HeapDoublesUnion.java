@@ -87,8 +87,8 @@ final class HeapDoublesUnion extends DoublesUnion {
   @SuppressWarnings("null")
   static HeapDoublesSketch updateLogic(final int myK, final HeapDoublesSketch myQS, 
       final HeapDoublesSketch other) {
-    int sw1 = ((myQS   == null)? 0 :   myQS.isEmpty()? 4: 8);
-    sw1 |=    ((other  == null)? 0 :  other.isEmpty()? 1: 2);
+    int sw1 = ((myQS   == null) ? 0 :   myQS.isEmpty() ? 4 : 8);
+    sw1 |=    ((other  == null) ? 0 :  other.isEmpty() ? 1 : 2);
     int outCase = 0; //0=null, 1=NOOP, 2=copy, 3=merge 
     switch (sw1) {
       case 0:  outCase = 0; break; //myQS = null,  other = null ; return null
@@ -149,7 +149,7 @@ final class HeapDoublesUnion extends DoublesUnion {
    * allocating fresh buffers) as the more complicated and seemingly more efficient approach that 
    * tracks a single carry propagation wave through both sketches.
    * 
-   * <p> This simplified code probably does do slightly more "outer loop" work, but I am pretty 
+   * <p>This simplified code probably does do slightly more "outer loop" work, but I am pretty 
    * sure that even that is within a constant factor of the more complicated code, plus the 
    * total amount of "outer loop" work is at least a factor of K smaller than the total amount of 
    * merging work, which is identical in the two approaches.
@@ -187,7 +187,7 @@ final class HeapDoublesUnion extends DoublesUnion {
   
     DoublesUtil.maybeGrowLevels(nFinal, tgt);
   
-    double[] scratchBuf = new double[2*tgtK];
+    double[] scratchBuf = new double[2 * tgtK];
   
     long srcBitPattern = src.getBitPattern();
     assert srcBitPattern == (srcN / (2L * srcK));
@@ -195,7 +195,7 @@ final class HeapDoublesUnion extends DoublesUnion {
       if ((srcBitPattern & 1L) > 0L) {
         DoublesUtil.inPlacePropagateCarry(
             srcLvl,
-            srcLevels, ((2+srcLvl) * tgtK),
+            srcLevels, ((2 + srcLvl) * tgtK),
             scratchBuf, 0,
             false, tgt);
         // won't update qsTarget.n_ until the very end
@@ -204,7 +204,7 @@ final class HeapDoublesUnion extends DoublesUnion {
   
     tgt.n_ = nFinal;
     
-    assert tgt.getN() / (2*tgtK) == tgt.getBitPattern(); // internal consistency check
+    assert tgt.getN() / (2 * tgtK) == tgt.getBitPattern(); // internal consistency check
     
     double srcMax = src.getMaxValue();
     double srcMin = src.getMinValue();

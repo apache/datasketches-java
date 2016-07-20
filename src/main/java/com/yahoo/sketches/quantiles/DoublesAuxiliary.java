@@ -93,9 +93,9 @@ final class DoublesAuxiliary {
     for (int lvl = 0; bits != 0L; lvl++, bits >>>= 1) {
       weight *= 2;
       if ((bits & 1L) > 0L) {
-        int offset = (2+lvl) * k;
+        int offset = (2 + lvl) * k;
         for (int i = 0; i < k; i++) {
-          itemsArr[nxt] = combinedBuffer[i+offset];
+          itemsArr[nxt] = combinedBuffer[i + offset];
           cumWtsArr[nxt] = weight;
           nxt++;
         }
@@ -115,7 +115,7 @@ final class DoublesAuxiliary {
 
     // Must sort the items that came from the base buffer.
     // Don't need to sort the corresponding weights because they are all the same.
-    Arrays.sort (itemsArr, startOfBaseBufferBlock, numSamples);
+    Arrays.sort(itemsArr, startOfBaseBufferBlock, numSamples);
     cumWtsArr[numSamples] = 0;
   }
 
@@ -194,7 +194,7 @@ final class DoublesAuxiliary {
    */
   private static long posOfPhi(double phi, long n) { // don't tinker with this definition
     long pos = (long) Math.floor(phi * n); 
-    return (pos == n)? n-1 : pos;
+    return (pos == n) ? n - 1 : pos;
   }
 
 } /* end of class Auxiliary */

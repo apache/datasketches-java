@@ -10,20 +10,20 @@ import static com.yahoo.sketches.Util.toLog2;
 import static com.yahoo.sketches.frequencies.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.frequencies.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractActiveItems;
-import static com.yahoo.sketches.frequencies.PreambleUtil.extractLgCurMapSize;
-import static com.yahoo.sketches.frequencies.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractFamilyID;
-import static com.yahoo.sketches.frequencies.PreambleUtil.extractSerDeId;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractFlags;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractLgCurMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractLgMaxMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractPreLongs;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractSerDeId;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertActiveItems;
-import static com.yahoo.sketches.frequencies.PreambleUtil.insertLgCurMapSize;
-import static com.yahoo.sketches.frequencies.PreambleUtil.insertFlags;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertFamilyID;
-import static com.yahoo.sketches.frequencies.PreambleUtil.insertSerDeId;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertFlags;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertLgCurMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertLgMaxMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertPreLongs;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertSerDeId;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertSerVer;
 import static com.yahoo.sketches.frequencies.Util.LG_MIN_MAP_SIZE;
 import static com.yahoo.sketches.frequencies.Util.SAMPLE_SIZE;
@@ -64,9 +64,9 @@ import com.yahoo.sketches.memory.NativeMemory;
  * <p>The hash map starts at a very small size (8 entries), and grows as needed up to the 
  * specified <i>maxMapSize</i>.</p>
  *  
- * <p>The internal memory space usage of this sketch is 18 * <i>mapSize</i> bytes, plus a small constant
- * number of additional bytes. The internal memory space usage of this sketch will never exceed 
- * 18 * <i>maxMapSize</i> bytes, plus a small constant number of additional bytes.</p>
+ * <p>The internal memory space usage of this sketch is 18 * <i>mapSize</i> bytes, plus a small 
+ * constant number of additional bytes. The internal memory space usage of this sketch will never 
+ * exceed 18 * <i>maxMapSize</i> bytes, plus a small constant number of additional bytes.</p>
  * 
  * <p><b>Maximum Capacity of the Sketch</b></p>
  * 
@@ -194,7 +194,7 @@ public class LongsSketch {
     hashMap = new ReversePurgeLongHashMap(1 << lgCurMapSz);
     this.curMapCap = hashMap.getCapacity(); 
     final int maxMapCap = 
-        (int) ((1 << lgMaxMapSize)*ReversePurgeLongHashMap.getLoadFactor());
+        (int) ((1 << lgMaxMapSize) * ReversePurgeLongHashMap.getLoadFactor());
     offset = 0;
     sampleSize = Math.min(SAMPLE_SIZE, maxMapCap); 
   }
@@ -228,12 +228,12 @@ public class LongsSketch {
     }
     if (serVer != SER_VER) {                            //Byte 1
       throw new SketchesArgumentException(
-          "Possible Corruption: Ser Ver must be "+SER_VER+": " + serVer);
+          "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
     }
     final int actFamID = Family.FREQUENCY.getID();      //Byte 2
     if (familyID != actFamID) {
       throw new SketchesArgumentException(
-          "Possible Corruption: FamilyID must be "+actFamID+": " + familyID);
+          "Possible Corruption: FamilyID must be " + actFamID + ": " + familyID);
     }
     if (empty ^ preLongsEq1) {                          //Byte 5 and Byte 0
       throw new SketchesArgumentException(
@@ -241,8 +241,8 @@ public class LongsSketch {
     }
     if (serDeId != ARRAY_OF_LONGS_SERDE_ID) {           //Byte 6,7
       throw new SketchesArgumentException(
-          "Possible Corruption: serDeId incorrect: " + serDeId + " != " + 
-              ARRAY_OF_LONGS_SERDE_ID);
+          "Possible Corruption: serDeId incorrect: " + serDeId + " != " 
+              + ARRAY_OF_LONGS_SERDE_ID);
     }
 
     if (empty) {
@@ -282,9 +282,9 @@ public class LongsSketch {
    */
   public static LongsSketch getInstance(final String string) {
     final String[] tokens = string.split(",");
-    if (tokens.length < STR_PREAMBLE_TOKENS+2) {
+    if (tokens.length < STR_PREAMBLE_TOKENS + 2) {
       throw new SketchesArgumentException(
-          "String not long enough: "+tokens.length);
+          "String not long enough: " + tokens.length);
     }
     final int serVer  = Integer.parseInt(tokens[0]);
     final int famID   = Integer.parseInt(tokens[1]);
@@ -299,25 +299,25 @@ public class LongsSketch {
 
     //checks
     if (serVer != SER_VER) {
-      throw new SketchesArgumentException("Possible Corruption: Bad SerVer: "+serVer);
+      throw new SketchesArgumentException("Possible Corruption: Bad SerVer: " + serVer);
     }
     Family.FREQUENCY.checkFamilyID(famID);
     final boolean empty = flags > 0;
     final boolean zeroStream = (streamLength == 0);
     if (empty ^ zeroStream) {
       throw new SketchesArgumentException(
-          "Possible Corruption: (Empty ^ StreamLength=0) = true : Empty: " + empty + 
-          ", strLen: " + streamLength);
+          "Possible Corruption: (Empty ^ StreamLength=0) = true : Empty: " + empty 
+            + ", strLen: " + streamLength);
     }
     if (type != ARRAY_OF_LONGS_SERDE_ID) {
       throw new SketchesArgumentException(
           "Possible Corruption: Sketch TYPE incorrect: " + type);
     }
     final int numTokens = tokens.length;
-    if (2*numActive != (numTokens - STR_PREAMBLE_TOKENS -2)) {
+    if (2 * numActive != (numTokens - STR_PREAMBLE_TOKENS - 2)) {
       throw new SketchesArgumentException(
-          "Possible Corruption: Incorrect # of tokens: " + numTokens + 
-          ", numActive: " + numActive);
+          "Possible Corruption: Incorrect # of tokens: " + numTokens 
+            + ", numActive: " + numActive);
     }
 
     final LongsSketch sketch = new LongsSketch(lgMax, lgCur);
@@ -340,7 +340,7 @@ public class LongsSketch {
     final int serVer = SER_VER;                 //0
     final int famID = Family.FREQUENCY.getID(); //1
     final int lgMaxMapSz = lgMaxMapSize;        //2
-    final int flags = (hashMap.getNumActive() == 0)? EMPTY_FLAG_MASK : 0; //3
+    final int flags = (hashMap.getNumActive() == 0) ? EMPTY_FLAG_MASK : 0; //3
     final short type = ARRAY_OF_LONGS_SERDE_ID;  //4
     final String fmt = "%d,%d,%d,%d,%d,%d,%d,";
     final String s = 
@@ -377,7 +377,7 @@ public class LongsSketch {
     pre0 = insertFamilyID(Family.FREQUENCY.getID(), pre0);  //Byte 2
     pre0 = insertLgMaxMapSize(lgMaxMapSize, pre0);          //Byte 3
     pre0 = insertLgCurMapSize(hashMap.getLgLength(), pre0); //Byte 4
-    pre0 = (empty)? insertFlags(EMPTY_FLAG_MASK, pre0) : insertFlags(0, pre0); //Byte 5
+    pre0 = (empty) ? insertFlags(EMPTY_FLAG_MASK, pre0) : insertFlags(0, pre0); //Byte 5
     pre0 = insertSerDeId(ARRAY_OF_LONGS_SERDE_ID, pre0);    //Byte 6,7
 
     if (empty) {
@@ -502,7 +502,7 @@ public class LongsSketch {
    * Returns an array of Rows that include frequent items, estimates, upper and lower bounds
    * given an ErrorCondition. 
    * 
-   * The method first examines all active items in the sketch (items that have a counter).
+   * <p>The method first examines all active items in the sketch (items that have a counter).
    *  
    * <p>If <i>ErrorType = NO_FALSE_NEGATIVES</i>, this will include an item in the result 
    * list if getUpperBound(item) &gt; getMaximumError(). 
@@ -541,6 +541,7 @@ public class LongsSketch {
       this.ub = ub;
       this.lb = lb;
     }
+    
     /**
      * @return item of type T
      */
@@ -715,8 +716,7 @@ public class LongsSketch {
    * @return the number of bytes required to store this sketch as an array of bytes.
    */
   public int getStorageBytes() {
-    if (isEmpty())
-      return 8;
+    if (isEmpty()) return 8;
     return 6 * 8 + 16 * getNumActiveItems();
   }
 

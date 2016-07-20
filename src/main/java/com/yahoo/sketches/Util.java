@@ -33,6 +33,7 @@ public final class Util {
    * The resize threshold = 0.5; tuned for speed.
    */
   public static final double RESIZE_THRESHOLD = 0.5;
+  
   private Util() {}
   
   /**
@@ -45,7 +46,7 @@ public final class Util {
   public static final int DEFAULT_NOMINAL_ENTRIES = 4096;
   
   /**
-   * <p>The seed 9001 used in the sketch update methods is a prime number that 
+   * The seed 9001 used in the sketch update methods is a prime number that 
    * was chosen very early on in experimental testing. Choosing a seed is somewhat arbitrary, and 
    * the author cannot prove that this particular seed is somehow superior to other seeds.  There 
    * was some early internet disussion that a seed of 0 did not produce as clean avalanche diagrams 
@@ -78,7 +79,7 @@ public final class Util {
   public static final void checkSeedHashes(short seedHashA, short seedHashB) {
     if (seedHashA != seedHashB) {
       throw new SketchesArgumentException(
-          "Incompatible Seed Hashes. "+ seedHashA + ", "+ seedHashB);
+          "Incompatible Seed Hashes. " + seedHashA + ", " + seedHashB);
     }
   }
 
@@ -94,8 +95,8 @@ public final class Util {
     short seedHash = (short)((hash(seedArr, 0L)[0]) & 0xFFFFL);
     if (seedHash == 0) {
       throw new SketchesArgumentException(
-          "The given seed: " + seed + " produced a seedHash of zero. " + 
-          "You must choose a different seed.");
+          "The given seed: " + seed + " produced a seedHash of zero. " 
+              + "You must choose a different seed.");
     }
     return seedHash; 
   }
@@ -163,7 +164,8 @@ public final class Util {
    * Checks the given parameter to make sure it is positive and between 0.0 inclusive and 1.0
    * inclusive.
    * 
-   * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
+   * @param p 
+   * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
    * @param argName Used in the thrown exception.
    */
   public static void checkProbability(double p, String argName) {
@@ -191,7 +193,7 @@ public final class Util {
   public static int ceilingPowerOf2(int n) {
     if (n <= 1) { return 1; }
     int topPwrOf2 = 1 << 30;
-    return (n >= topPwrOf2)? topPwrOf2 :Integer.highestOneBit((n-1) << 1);
+    return (n >= topPwrOf2) ? topPwrOf2 : Integer.highestOneBit((n - 1) << 1);
   }
 
   /**
@@ -235,11 +237,11 @@ public final class Util {
     if (sLen < fieldLength) {
       char[] out = new char[fieldLength]; 
       int zeros = fieldLength - sLen;
-      for (int i=0; i<zeros; i++) {
+      for (int i = 0; i < zeros; i++) {
         out[i] = '0';
       }
-      for (int i=zeros; i<fieldLength; i++) {
-        out[i] = chArr[i-zeros];
+      for (int i = zeros; i < fieldLength; i++) {
+        out[i] = chArr[i - zeros];
       }
       return String.valueOf(out);
     }

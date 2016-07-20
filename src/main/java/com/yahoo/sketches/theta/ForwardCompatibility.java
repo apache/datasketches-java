@@ -89,7 +89,7 @@ final class ForwardCompatibility {
     int reqBytesIn = (curCount + mdLongs) << 3;
     validateInputSize(reqBytesIn, memCap);
     
-    long thetaLong = (mdLongs < 3)? Long.MAX_VALUE : srcMem.getLong(THETA_LONG);
+    long thetaLong = (mdLongs < 3) ? Long.MAX_VALUE : srcMem.getLong(THETA_LONG);
     boolean empty = srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
     
     long[] compactOrderedCache = new long[curCount];
@@ -101,8 +101,8 @@ final class ForwardCompatibility {
   private static final void validateInputSize(int reqBytesIn, int memCap) {
     if (reqBytesIn > memCap) {
       throw new SketchesArgumentException(
-        "Input Memory or byte[] size is too small: Required Bytes: "+reqBytesIn+
-        ", bytesIn: "+memCap);
+        "Input Memory or byte[] size is too small: Required Bytes: " + reqBytesIn 
+          + ", bytesIn: " + memCap);
     }
   }
   

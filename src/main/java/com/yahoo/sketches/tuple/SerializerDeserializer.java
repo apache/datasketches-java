@@ -21,6 +21,7 @@ import com.yahoo.sketches.memory.NativeMemory;
 final class SerializerDeserializer {
   static enum SketchType { QuickSelectSketch, CompactSketch, ArrayOfDoublesQuickSelectSketch, 
     ArrayOfDoublesCompactSketch }
+  
   static final int TYPE_BYTE_OFFSET = 3;
 
   private static final Map<String, Method> deserializeMethodCache = new HashMap<String, Method>();
@@ -41,8 +42,8 @@ final class SerializerDeserializer {
   static void validateType(final byte sketchTypeByte, final SketchType expectedType) {
     SketchType sketchType = getSketchType(sketchTypeByte);
     if (!sketchType.equals(expectedType)) {
-      throw new SketchesArgumentException("Sketch Type mismatch. Expected " + expectedType.name() +
-          ", got " + sketchType.name());
+      throw new SketchesArgumentException("Sketch Type mismatch. Expected " + expectedType.name() 
+        + ", got " + sketchType.name());
     }
   }
 
@@ -64,8 +65,8 @@ final class SerializerDeserializer {
       offset += className.length();
       mem.putByteArray(offset, objectBytes, 0, objectBytes.length);
       return bytes;
-    } catch (NoSuchMethodException | SecurityException | IllegalAccessException | 
-        SketchesArgumentException | InvocationTargetException e) {
+    } catch (NoSuchMethodException | SecurityException | IllegalAccessException 
+        | SketchesArgumentException | InvocationTargetException e) {
       throw new SketchesArgumentException("Failed to serialize given object: " + e);
     }
   }
@@ -91,8 +92,8 @@ final class SerializerDeserializer {
       }
       return (DeserializeResult<T>) 
           method.invoke(null, new MemoryRegion(mem, offset, mem.getCapacity() - offset));
-    } catch (IllegalAccessException | SketchesArgumentException | InvocationTargetException | 
-          NoSuchMethodException | SecurityException | ClassNotFoundException e) {
+    } catch (IllegalAccessException | SketchesArgumentException | InvocationTargetException 
+        | NoSuchMethodException | SecurityException | ClassNotFoundException e) {
       throw new SketchesArgumentException("Failed to deserialize class " + className + " " + e);
     }
   }

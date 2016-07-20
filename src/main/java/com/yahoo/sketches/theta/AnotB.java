@@ -17,8 +17,8 @@ import com.yahoo.sketches.memory.Memory;
  * CompactSketch result = aNotB.getResult();
  * </code></pre>
  * 
- * Calling the update function a second time essentially clears the internal state and updates with
- * the new pair of sketches.
+ * <p>Calling the update function a second time essentially clears the internal state and updates 
+ * with the new pair of sketches.
  * 
  * @author Lee Rhodes
  */

@@ -135,7 +135,8 @@ final class PreambleUtil {
     }
     
     sb.append(  "Preamble Bytes                : ").append(preLongs * 8).append(LS);
-    sb.append(  "TOTAL Sketch Bytes            : ").append((preLongs + activeItems*2) << 3).append(LS)
+    sb.append(  "TOTAL Sketch Bytes            : ").append((preLongs + activeItems * 2) << 3)
+      .append(LS)
       .append("### END FREQUENCY SKETCH PREAMBLE SUMMARY").append(LS);
     return sb.toString();
   }
@@ -251,9 +252,9 @@ final class PreambleUtil {
 
   private static void throwNotBigEnough(long cap, int required) {
     throw new SketchesArgumentException(
-        "Possible Corruption: "+
-    "Size of byte array or Memory not large enough for Preamble: Size: " + cap 
-        + ", Required: " + required);
+        "Possible Corruption: " 
+            + "Size of byte array or Memory not large enough for Preamble: Size: " + cap 
+            + ", Required: " + required);
   }
 
 }

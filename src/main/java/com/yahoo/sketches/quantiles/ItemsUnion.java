@@ -82,8 +82,8 @@ public final class ItemsUnion<T> {
   @SuppressWarnings("null")
   static <T> ItemsSketch<T> updateLogic(final int myK, final Comparator<? super T> comparator,
       final ItemsSketch<T> myQS, final ItemsSketch<T> other) {
-    int sw1 = ((myQS   == null)? 0 :   myQS.isEmpty()? 4: 8);
-    sw1 |=    ((other  == null)? 0 :  other.isEmpty()? 1: 2);
+    int sw1 = ((myQS   == null) ? 0 :   myQS.isEmpty() ? 4 : 8);
+    sw1 |=    ((other  == null) ? 0 :  other.isEmpty() ? 1 : 2);
     int outCase = 0; //0=null, 1=NOOP, 2=copy, 3=merge 
     switch (sw1) {
       case 0:  outCase = 0; break; //myQS = null,  other = null ; return null
@@ -143,7 +143,7 @@ public final class ItemsUnion<T> {
      * allocating fresh buffers) as the more complicated and seemingly more efficient approach that 
      * tracks a single carry propagation wave through both sketches.
      * 
-     * <p> This simplified code probably does do slightly more "outer loop" work, but I am pretty 
+     * <p>This simplified code probably does do slightly more "outer loop" work, but I am pretty 
      * sure that even that is within a constant factor of the more complicated code, plus the 
      * total amount of "outer loop" work is at least a factor of K smaller than the total amount of 
      * merging work, which is identical in the two approaches.

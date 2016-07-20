@@ -5,8 +5,8 @@
 
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.HashOperations.*;
 import static com.yahoo.sketches.Family.idToFamily;
+import static com.yahoo.sketches.HashOperations.count;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
@@ -176,7 +176,7 @@ public abstract class Sketch {
       seed = uis.getSeed();
       arrLongs = 1 << uis.getLgArrLongs();
       p = uis.getP();
-      rf = 1<<uis.getLgResizeFactor();
+      rf = 1 << uis.getLgResizeFactor();
     } 
     
     if (dataDetail) {
@@ -193,7 +193,7 @@ public abstract class Sketch {
             sb.append(LS).append(String.format("   %6d", (j + 1)));
           }
           if (hexMode) {
-            sb.append(" "+zeroPad(Long.toHexString(h), 16)+",");
+            sb.append(" " + zeroPad(Long.toHexString(h), 16) + ",");
           } 
           else {
             sb.append(String.format(" %20d,", h));
@@ -271,7 +271,7 @@ public abstract class Sketch {
     if (serVer == 2) {
       return ForwardCompatibility.heapify2to3(srcMem, seed);
     }
-    throw new SketchesArgumentException("Unknown Serialization Version: "+serVer);
+    throw new SketchesArgumentException("Unknown Serialization Version: " + serVer);
   }
   
   /**
@@ -418,11 +418,11 @@ public abstract class Sketch {
   //PREAMBLE
   
   final int getCurrentPreambleLongs(boolean compact) {
-    return compact? compactPreambleLongs(getThetaLong(), isEmpty()) : getPreambleLongs();
+    return compact ? compactPreambleLongs(getThetaLong(), isEmpty()) : getPreambleLongs();
   }
   
   final static int compactPreambleLongs(long thetaLong, boolean empty) {
-    return (thetaLong < Long.MAX_VALUE)? 3 : empty? 1 : 2;
+    return (thetaLong < Long.MAX_VALUE) ? 3 : empty ? 1 : 2;
   }
   
   //CHECK PREAMBLE
@@ -465,9 +465,9 @@ public abstract class Sketch {
    * @return true if given Family id is one of the theta sketches
    */
   static boolean isValidSketchID(int id) {
-  return (id == Family.ALPHA.getID())       ||
-         (id == Family.QUICKSELECT.getID()) ||
-         (id == Family.COMPACT.getID());
+  return (id == Family.ALPHA.getID())
+      || (id == Family.QUICKSELECT.getID()) 
+      || (id == Family.COMPACT.getID());
   }
 
   static final boolean estMode(long thetaLong, boolean empty) {
@@ -504,7 +504,7 @@ public abstract class Sketch {
   private static final Sketch constructHeapSketch(byte famID, boolean ordered, Memory srcMem, long seed) {
     boolean compact = srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
     Family family = idToFamily(famID);
-    switch(family) {
+    switch (family) {
       case ALPHA: {
         if (compact) {
           throw new SketchesArgumentException("Corrupted " + family + " image: cannot be compact");
@@ -515,7 +515,7 @@ public abstract class Sketch {
         return HeapQuickSelectSketch.getInstance(srcMem, seed);
       }
       case COMPACT: {
-        if(!compact) {
+        if (!compact) {
           throw new SketchesArgumentException("Corrupted " + family + " image: must be compact");
         }
         return ordered ? new HeapCompactOrderedSketch(srcMem) : new HeapCompactSketch(srcMem);

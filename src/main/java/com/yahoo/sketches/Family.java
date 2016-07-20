@@ -2,6 +2,7 @@
  * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches;
 
 import java.util.HashMap;
@@ -103,7 +104,7 @@ public enum Family {
     }
   }
 
-  private Family (int id, String famName, int minPreLongs, int maxPreLongs) {
+  private Family(int id, String famName, int minPreLongs, int maxPreLongs) {
     id_ = id;
     famName_ = famName.toUpperCase();
     minPreLongs_ = minPreLongs;
@@ -125,8 +126,8 @@ public enum Family {
   public void checkFamilyID(int id) {
     if (id != id_) {
       throw new SketchesArgumentException(
-          "Possible Corruption: This Family "+this.toString() + 
-          " does not match the ID of the given Family: "+ idToFamily(id).toString());
+          "Possible Corruption: This Family " + this.toString() 
+            + " does not match the ID of the given Family: " + idToFamily(id).toString());
     }
   }
   
@@ -167,7 +168,7 @@ public enum Family {
   public static Family idToFamily(int id) {
     Family f = lookupID.get(id);
     if (f == null) {
-      throw new SketchesArgumentException("Possible Corruption: Illegal Family ID: "+ id);
+      throw new SketchesArgumentException("Possible Corruption: Illegal Family ID: " + id);
     }
     return f;
   }
@@ -180,7 +181,7 @@ public enum Family {
   public static Family stringToFamily(String famName) {
     Family f = lookupFamName.get(famName.toUpperCase());
     if (f == null) {
-      throw new SketchesArgumentException("Possible Corruption: Illegal Family Name: "+famName);
+      throw new SketchesArgumentException("Possible Corruption: Illegal Family Name: " + famName);
     }
     return f;
   }

@@ -5,10 +5,10 @@
 
 package com.yahoo.sketches.tuple;
 
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+
 import java.nio.ByteOrder;
 import java.util.Arrays;
-
-import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -126,9 +126,9 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
         (byte) SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch.ordinal());
     final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
     mem.putByte(FLAGS_BYTE, (byte) (
-      ((isBigEndian ? 1 : 0) << Flags.IS_BIG_ENDIAN.ordinal()) |
-      ((isEmpty() ? 1 : 0) << Flags.IS_EMPTY.ordinal()) |
-      ((count > 0 ? 1 : 0) << Flags.HAS_ENTRIES.ordinal())
+      ((isBigEndian ? 1 : 0) << Flags.IS_BIG_ENDIAN.ordinal()) 
+      | ((isEmpty() ? 1 : 0) << Flags.IS_EMPTY.ordinal()) 
+      | ((count > 0 ? 1 : 0) << Flags.HAS_ENTRIES.ordinal())
     ));
     mem.putByte(NUM_VALUES_BYTE, (byte) numValues_);
     mem.putShort(SEED_HASH_SHORT, seedHash_);

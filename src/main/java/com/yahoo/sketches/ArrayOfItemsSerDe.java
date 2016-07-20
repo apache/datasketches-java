@@ -36,7 +36,7 @@ public abstract class ArrayOfItemsSerDe<T> {
   /**
    * Provides a simple mechanism to check compatibility between SerDe implementations.
    * 
-   * You will need to override this in the following cases:
+   * <p>You will need to override this in the following cases:
    * <ul><li>If you want to rename the class or change its package hierarchy and keep the ID the 
    * same. This enables compatible deserialization of binary images that were serialized with a
    * different class name or package hierarchy.</li>

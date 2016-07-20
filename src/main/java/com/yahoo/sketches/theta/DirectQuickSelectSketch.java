@@ -123,14 +123,14 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
     
     //Choose RF, minReqBytes, lgArrLongs. 
     int lgRF = rf.lg();
-    int lgArrLongs = (lgRF == 0)? lgNomLongs +1 : MIN_LG_ARR_LONGS;
+    int lgArrLongs = (lgRF == 0) ? lgNomLongs + 1 : MIN_LG_ARR_LONGS;
     int minReqBytes = PreambleUtil.getMemBytes(lgArrLongs, preambleLongs);
     
     //Make sure Memory is large enough
     long curMemCapBytes = dstMem.getCapacity();
     if (curMemCapBytes < minReqBytes) {
       throw new SketchesArgumentException(
-        "Memory capacity is too small: "+curMemCapBytes+" < "+minReqBytes);
+        "Memory capacity is too small: " + curMemCapBytes + " < " + minReqBytes);
     }
     int curCount = 0;
 //@formatter:off
@@ -193,20 +193,20 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
     
     if (serVer != SER_VER) {
       throw new SketchesArgumentException(
-          "Possible corruption: Invalid Serialization Version: "+serVer);
+          "Possible corruption: Invalid Serialization Version: " + serVer);
     }
     
     Family family = Family.idToFamily(familyID);
     if (family.equals(Family.UNION)) {
       if (preambleLongs != Family.UNION.getMinPreLongs()) {
         throw new SketchesArgumentException(
-            "Possible corruption: Invalid PreambleLongs value for UNION: " +preambleLongs);
+            "Possible corruption: Invalid PreambleLongs value for UNION: " + preambleLongs);
       }
     }
     else if (family.equals(Family.QUICKSELECT)) {
       if (preambleLongs != Family.QUICKSELECT.getMinPreLongs()) {
         throw new SketchesArgumentException(
-            "Possible corruption: Invalid PreambleLongs value for QUICKSELECT: " +preambleLongs);
+            "Possible corruption: Invalid PreambleLongs value for QUICKSELECT: " + preambleLongs);
       }
     } else {
       throw new SketchesArgumentException(
@@ -215,8 +215,8 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
     
     if (lgNomLongs < MIN_LG_NOM_LONGS) {
       throw new SketchesArgumentException(
-          "Possible corruption: Current Memory lgNomLongs < min required size: " + 
-              lgNomLongs + " < " + MIN_LG_NOM_LONGS);
+          "Possible corruption: Current Memory lgNomLongs < min required size: " 
+              + lgNomLongs + " < " + MIN_LG_NOM_LONGS);
     }
     
     int flagsMask = ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
@@ -231,15 +231,15 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
     int minReqBytes = PreambleUtil.getMemBytes(lgArrLongs, preambleLongs);
     if (curCapBytes < minReqBytes) {
       throw new SketchesArgumentException(
-          "Possible corruption: Current Memory size < min required size: " + 
-              curCapBytes + " < " + minReqBytes);
+          "Possible corruption: Current Memory size < min required size: " 
+              + curCapBytes + " < " + minReqBytes);
     }
     
-    double theta = thetaLong/MAX_THETA_LONG_AS_DOUBLE;
+    double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
     if ((lgArrLongs <= lgNomLongs) && (theta < p) ) {
       throw new SketchesArgumentException(
-        "Possible corruption: Theta cannot be < p and lgArrLongs <= lgNomLongs. "+
-            lgArrLongs + " <= " + lgNomLongs + ", Theta: "+theta + ", p: " + p);
+        "Possible corruption: Theta cannot be < p and lgArrLongs <= lgNomLongs. " 
+            + lgArrLongs + " <= " + lgNomLongs + ", Theta: " + theta + ", p: " + p);
     }
     
     DirectQuickSelectSketch dqss = new DirectQuickSelectSketch(lgNomLongs, seed, p, myRF, preambleLongs);
@@ -301,7 +301,7 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
     //lgArrLongs stays the same
     int arrLongs = 1 << getLgArrLongs();
     int preBytes = preambleLongs_ << 3;
-    mem_.clear(preBytes, arrLongs*8); //clear data array
+    mem_.clear(preBytes, arrLongs * 8); //clear data array
     //flags: bigEndian = readOnly = compact = ordered = false; empty = true.
     mem_.putByte(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);       //byte 5
     empty_ = true; 
@@ -321,7 +321,7 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
   long[] getCache() {
     long[] cacheArr = new long[1 << lgArrLongs_];
     Memory mem = new NativeMemory(cacheArr);
-    NativeMemory.copy(mem_, preambleLongs_ << 3, mem, 0, 8<< lgArrLongs_);
+    NativeMemory.copy(mem_, preambleLongs_ << 3, mem, 0, 8 << lgArrLongs_);
     return cacheArr;
   }
   
@@ -379,7 +379,7 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
       else { //Not at full size, resize. Should not get here if lgRF = 0 and memCap is too small.
         int lgRF = getLgResizeFactor();
         int actLgRF = actLgResizeFactor(mem_.getCapacity(), lgArrLongs_, preambleLongs_, lgRF);
-        int tgtLgArrLongs = Math.min(lgArrLongs_ + actLgRF, lgNomLongs_+1);
+        int tgtLgArrLongs = Math.min(lgArrLongs_ + actLgRF, lgNomLongs_ + 1);
         if (actLgRF > 0) { //Expand in current Memory
           resize(mem_, preambleLongs_, lgArrLongs_, tgtLgArrLongs);
           //update locals
@@ -402,7 +402,8 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
           long newCap = dstMem.getCapacity();
           if (newCap < reqBytes) {
             memReq.free(dstMem);
-            throw new SketchesArgumentException("Requested memory not granted: "+newCap+" < "+reqBytes);
+            throw new SketchesArgumentException("Requested memory not granted: " + newCap + " < " 
+                + reqBytes);
           }
           moveAndResize(mem_, preambleLongs_, lgArrLongs_, dstMem, tgtLgArrLongs, thetaLong_);
           

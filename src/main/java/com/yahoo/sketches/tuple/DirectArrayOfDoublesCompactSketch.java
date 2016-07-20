@@ -5,9 +5,9 @@
 
 package com.yahoo.sketches.tuple;
 
-import java.nio.ByteOrder;
-
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+
+import java.nio.ByteOrder;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -44,9 +44,9 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
     isEmpty_ = sketch.isEmpty();
     int count = sketch.getRetainedEntries();
     mem_.putByte(FLAGS_BYTE, (byte) (
-      (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0) |
-      (isEmpty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0) |
-      (count > 0 ? 1 << Flags.HAS_ENTRIES.ordinal(): 0)
+      (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0) 
+      | (isEmpty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0) 
+      | (count > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
     ));
     mem_.putByte(NUM_VALUES_BYTE, (byte) numValues_);
     mem_.putShort(SEED_HASH_SHORT, Util.computeSeedHash(sketch.getSeed()));
@@ -83,9 +83,9 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
     isEmpty_ = isEmpty;
     int count = keys.length;
     mem_.putByte(FLAGS_BYTE, (byte) (
-      (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0) |
-      (isEmpty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0) |
-      (count > 0 ? 1 << Flags.HAS_ENTRIES.ordinal(): 0)
+      (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0) 
+      | (isEmpty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0) 
+      | (count > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
     ));
     mem_.putByte(NUM_VALUES_BYTE, (byte) numValues_);
     mem_.putShort(SEED_HASH_SHORT, seedHash);
@@ -120,8 +120,8 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
         SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch);
     byte version = mem_.getByte(SERIAL_VERSION_BYTE);
     if (version != serialVersionUID) {
-      throw new SketchesArgumentException("Serial version mismatch. Expected: " + serialVersionUID + 
-          ", actual: " + version);
+      throw new SketchesArgumentException("Serial version mismatch. Expected: " + serialVersionUID 
+          + ", actual: " + version);
     }
     boolean isBigEndian = mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_BIG_ENDIAN.ordinal()));
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
@@ -159,8 +159,8 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
     int count = getRetainedEntries();
     int sizeBytes = EMPTY_SIZE;
     if (count > 0) {
-      sizeBytes = ENTRIES_START + SIZE_OF_KEY_BYTES * count + 
-          SIZE_OF_VALUE_BYTES * count * numValues_;
+      sizeBytes = ENTRIES_START + SIZE_OF_KEY_BYTES * count 
+          + SIZE_OF_VALUE_BYTES * count * numValues_;
     }
     byte[] byteArray = new byte[sizeBytes];
     Memory mem = new NativeMemory(byteArray);
@@ -184,8 +184,8 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
     final int sizeNeeded = 
         ENTRIES_START + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues) * numEntries;
     if (sizeNeeded > mem.getCapacity()) {
-      throw new SketchesArgumentException("Not enough memory: need " + sizeNeeded + 
-          " bytes, got " + mem.getCapacity() + " bytes");
+      throw new SketchesArgumentException("Not enough memory: need " + sizeNeeded 
+          + " bytes, got " + mem.getCapacity() + " bytes");
     }
   }
 

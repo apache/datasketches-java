@@ -2,9 +2,18 @@
  * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.theta.PreambleUtil.*;
+import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
+import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
+import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
+import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
 
 import com.yahoo.sketches.memory.Memory;
 
@@ -56,7 +65,7 @@ final class DirectCompactSketch extends CompactSketch {
         sketch.getRetainedEntries(true), //curCount_  set here
         sketch.getThetaLong()            //thetaLong_ set here
         );
-    int emptyBit = isEmpty()? (byte) EMPTY_FLAG_MASK : 0;
+    int emptyBit = isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
     byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK);
     boolean ordered = false;
     long[] compactCache = 
@@ -77,7 +86,7 @@ final class DirectCompactSketch extends CompactSketch {
   DirectCompactSketch(long[] compactCache, boolean empty, short seedHash, int curCount, 
       long thetaLong, Memory dstMem) {
     super(empty, seedHash, curCount, thetaLong);
-    int emptyBit = empty? (byte) EMPTY_FLAG_MASK : 0;
+    int emptyBit = empty ? (byte) EMPTY_FLAG_MASK : 0;
     byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK);
     mem_ = loadCompactMemory(compactCache, empty, seedHash, curCount, thetaLong, dstMem, flags);
   }

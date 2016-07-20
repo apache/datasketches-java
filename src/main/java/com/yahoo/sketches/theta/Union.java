@@ -29,7 +29,7 @@ public interface Union {
    * which may be ordered or unordered, or the earlier versions of SetSketch, 
    * which is always compact and ordered.
    * 
-   * This method can be repeatedly called. 
+   * <p>This method can be repeatedly called. 
    * If the given sketch is null it is interpreted as an empty sketch.
    * @param mem Memory image of sketch to be merged
    */
@@ -118,6 +118,7 @@ public interface Union {
    * @return the result of this operation as an ordered CompactSketch on the Java heap
    */
   CompactSketch getResult();
+  
   /**
    * Returns a byte array image of this Union object
    * @return a byte array image of this Union object

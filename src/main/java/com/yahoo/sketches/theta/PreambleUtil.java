@@ -176,7 +176,7 @@ final class PreambleUtil {
       thetaLong = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
       thetaULong = thetaLong;
     } 
-    else if (preLongs == 3){
+    else if (preLongs == 3) {
       long pre1 = mem.getLong(8);
       curCount = extractCurCount(pre1);
       p = extractP(pre1);

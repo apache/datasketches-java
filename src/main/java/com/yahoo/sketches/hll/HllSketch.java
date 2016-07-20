@@ -5,9 +5,9 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static com.yahoo.sketches.Util.*;
 
 /**
  * Top-level class for the HLL family of sketches.
@@ -18,6 +18,10 @@ import static com.yahoo.sketches.Util.*;
 public class HllSketch {
   private static final double HLL_REL_ERROR_NUMER = 1.04;
 
+  /**
+   * Returns an HllSketchBuilder
+   * @return an HllSketchBuilder
+   */
   public static HllSketchBuilder builder() {
     return new HllSketchBuilder();
   }
@@ -27,6 +31,10 @@ public class HllSketch {
 
   private Fields fields;
 
+  /**
+   * Construct this class with the given Fields
+   * @param fields the given Fields
+   */
   public HllSketch(Fields fields) {
     this.fields = fields;
     this.updateCallback = new Fields.UpdateCallback() {
@@ -153,10 +161,20 @@ public class HllSketch {
     return linEst;
   }
 
+  /**
+   * Gets the upper bound with respect to the Estimate
+   * @param numStdDevs the number of standard deviations from the Estimate
+   * @return the upper bound
+   */
   public double getUpperBound(double numStdDevs) {
     return getEstimate() / (1.0 - eps(numStdDevs));
   }
 
+  /**
+   * Gets the lower bound with respect to the Estimate
+   * @param numStdDevs the number of standard deviations from the Estimate
+   * @return the lower bound
+   */
   public double getLowerBound(double numStdDevs) {
     double lowerBound = getEstimate() / (1.0 + eps(numStdDevs));
     double numNonZeros = preamble.getConfigK();
@@ -184,6 +202,11 @@ public class HllSketch {
     return (configK * (HarmonicNumbers.harmonicNumber(configK) - HarmonicNumbers.harmonicNumber(longV)));
   }
 
+  /**
+   * Union this sketch with that one
+   * @param that the other sketch
+   * @return this sketch
+   */
   public HllSketch union(HllSketch that) {
     fields = that.fields.unionInto(fields, updateCallback);
     return this;
@@ -199,8 +222,12 @@ public class HllSketch {
     return numStdDevs * HLL_REL_ERROR_NUMER / Math.sqrt(preamble.getConfigK());
   }
 
+  /**
+   * Serializes this sketch to a byte array
+   * @return this sketch as a byte array
+   */
   public byte[] toByteArray() {
-    int numBytes = (preamble.getPreambleSize() << 3) + fields.numBytesToSerialize();
+    int numBytes = (preamble.getPreambleLongs() << 3) + fields.numBytesToSerialize();
     byte[] retVal = new byte[numBytes];
 
     fields.intoByteArray(retVal, preamble.intoByteArray(retVal, 0));
@@ -208,20 +235,36 @@ public class HllSketch {
     return retVal;
   }
 
+  /**
+   * Serializes this sketch without the Preamble as a byte array
+   * @return this sketch without the Preamble as a byte array
+   */
   public byte[] toByteArrayNoPreamble() {
     byte[] retVal = new byte[fields.numBytesToSerialize()];
     fields.intoByteArray(retVal, 0);
     return retVal;
   }
 
+  /**
+   * Returns this sketch in compact form
+   * @return this sketch in compact form
+   */
   public HllSketch asCompact() {
     return new HllSketch(fields.toCompact());
   }
 
+  /**
+   * Returns the number of configured buckets (k)
+   * @return the number of configured buckets (k)
+   */
   public int numBuckets() {
     return preamble.getConfigK();
   }
-
+  
+  /**
+   * Gets the Preamble of this sketch
+   * @return the Preamble of this sketch
+   */
   public Preamble getPreamble() {
     return preamble;
   }

@@ -5,9 +5,9 @@
 
 package com.yahoo.sketches.frequencies;
 
-import static com.yahoo.sketches.frequencies.Util.hash;
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.toLog2;
+import static com.yahoo.sketches.frequencies.Util.hash;
 
 import com.yahoo.sketches.QuickSelect;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -136,7 +136,8 @@ class ReversePurgeLongHashMap {
 
     if (states[probe] == 0) {
       // adding the key to the table the value
-      assert (numActive <= loadThreshold): "numActive: "+numActive+" > loadThreshold: "+loadThreshold;
+      assert (numActive <= loadThreshold) 
+        : "numActive: " + numActive + " > loadThreshold : " + loadThreshold;
       keys[probe] = key;
       values[probe] = adjustAmount;
       states[probe] = (short) drift;
@@ -181,8 +182,9 @@ class ReversePurgeLongHashMap {
    * values are retained.
    */
   void adjustAllValuesBy(final long adjustAmount) {
-    for (int i = keys.length; i-- > 0;)
+    for (int i = keys.length; i-- > 0; ) {
       values[i] += adjustAmount;
+    }
   }
 
   /**
@@ -192,11 +194,12 @@ class ReversePurgeLongHashMap {
     if (numActive == 0) return null;
     final long[] returnedKeys = new long[numActive];
     int j = 0;
-    for (int i = 0; i < keys.length; i++)
+    for (int i = 0; i < keys.length; i++) {
       if (isActive(i)) {
         returnedKeys[j] = keys[i];
         j++;
       }
+    }
     assert (j == numActive) : "j: " + j + " != numActive: " + numActive;
     return returnedKeys;
   }
@@ -346,8 +349,9 @@ class ReversePurgeLongHashMap {
   private int hashProbe(final long key) {
     final int arrayMask = keys.length - 1;
     int probe = (int) hash(key) & arrayMask;
-    while (states[probe] > 0 && keys[probe] != key)
+    while (states[probe] > 0 && keys[probe] != key) {
       probe = (probe + 1) & arrayMask;
+    }
     return probe;
   }
 

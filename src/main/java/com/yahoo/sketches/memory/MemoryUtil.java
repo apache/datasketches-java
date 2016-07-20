@@ -48,7 +48,7 @@ public final class MemoryUtil {
    * Note that this guarantees that the return value will be &ge; 0 if and only if the key is found.
    */
   public static int binarySearchLongs(Memory mem, int fromLongIndex, int toLongIndex, long key) {
-    assertBounds(fromLongIndex<<3, (toLongIndex-fromLongIndex)<<3, mem.getCapacity());
+    assertBounds(fromLongIndex << 3, (toLongIndex - fromLongIndex) << 3, mem.getCapacity());
     int low = fromLongIndex;
     int high = toLongIndex - 1;
     
@@ -56,12 +56,9 @@ public final class MemoryUtil {
       int mid = (low + high) >>> 1;
       long midVal = mem.getLong(mid << 3);
       
-      if (midVal < key)
-        low = mid + 1;
-      else if (midVal > key)
-        high = mid - 1;
-      else
-        return mid; // key found
+      if (midVal < key)      { low = mid + 1;  }
+      else if (midVal > key) { high = mid - 1; }
+      else                   { return mid;     } // key found
     }
     return -(low + 1); // key not found.
   }

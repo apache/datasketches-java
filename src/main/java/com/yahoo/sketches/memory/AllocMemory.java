@@ -11,6 +11,7 @@ import static com.yahoo.sketches.memory.UnsafeUtil.unsafe;
  * The AllocMemory class is a subclass of NativeMemory and is used to allocate direct, off-heap 
  * native memory, which is then accessed by the NativeMemory methods. 
  * It is the responsibility of the calling class to free this memory using freeMemory() when done. 
+ * 
  * <p>The task of direct allocation was moved to this sub-class for performance reasons. 
  *
  * @author Lee Rhodes
@@ -20,6 +21,7 @@ public class AllocMemory extends NativeMemory {
   
   /**
    * Constructor for allocate native memory. 
+   * 
    * <p>Allocates and provides access to capacityBytes directly in native (off-heap) memory 
    * leveraging the Memory interface.  The MemoryRequest callback is set to null.
    * @param capacityBytes the size in bytes of the native memory
@@ -33,6 +35,7 @@ public class AllocMemory extends NativeMemory {
   
   /**
    * Constructor for allocate native memory with MemoryRequest.
+   * 
    * <p>Allocates and provides access to capacityBytes directly in native (off-heap) memory leveraging
    * the Memory interface. 
    * @param capacityBytes the size in bytes of the native memory
@@ -47,6 +50,7 @@ public class AllocMemory extends NativeMemory {
   
   /**
    * Constructor for reallocate native memory.
+   * 
    * <p>Reallocates the given off-heap NativeMemory to a new a new native (off-heap) memory location; 
    * copies the contents of the original given NativeMemory to the new location. 
    * Any memory beyond the capacity of the original given NativeMemory will be uninitialized. 
@@ -71,6 +75,7 @@ public class AllocMemory extends NativeMemory {
   
   /**
    * Constructor for allocate native memory, copy and clear.
+   * 
    * <p>Allocate a new native (off-heap) memory with capacityBytes; copy the contents of origMem from
    * zero to copyToBytes; clear the new memory from copyToBytes to capacityBytes.
    * @param origMem The original NativeMemory, a portion of which will be copied to the 
@@ -89,7 +94,7 @@ public class AllocMemory extends NativeMemory {
     super.capacityBytes_ = capacityBytes;
     this.memReq_ = memReq;
     NativeMemory.copy(origMem, 0, this, 0, copyToBytes);
-    this.clear(copyToBytes, capacityBytes-copyToBytes);
+    this.clear(copyToBytes, capacityBytes - copyToBytes);
   }
   
   @Override
@@ -105,10 +110,10 @@ public class AllocMemory extends NativeMemory {
   protected void finalize() {
     if (requiresFree()) {
       System.err.println(
-          "ERROR: freeMemory() has not been called: Address: "+ nativeRawStartAddress_ +
-          ", capacity: " + capacityBytes_);
+          "ERROR: freeMemory() has not been called: Address: " + nativeRawStartAddress_ 
+            + ", capacity: " + capacityBytes_);
       java.lang.StackTraceElement[] arr = Thread.currentThread().getStackTrace();
-      for (int i=0; i<arr.length; i++) { 
+      for (int i = 0; i < arr.length; i++) { 
         System.err.println(arr[i].toString()); 
       }
     }

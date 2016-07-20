@@ -5,7 +5,13 @@
 
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.theta.PreambleUtil.*;
+import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
+import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -164,6 +170,7 @@ public final class Sketches {
   public static int getSerializationVersion(Memory srcMem) {
     return Sketch.getSerializationVersion(srcMem);
   }
+  
   /**
    * Ref: {@link SetOperation#getMaxUnionBytes(int)}
    * @param nomEntries Ref: {@link SetOperation#getMaxUnionBytes(int)} {@code nomEntries}
@@ -231,12 +238,12 @@ public final class Sketches {
   
   static int getRetainedEntries(Memory srcMem) {
     int preLongs = getPreambleLongs(srcMem);
-    return (preLongs == 1)? 0: srcMem.getInt(RETAINED_ENTRIES_INT); //for SerVer 1,2,3
+    return (preLongs == 1) ? 0 : srcMem.getInt(RETAINED_ENTRIES_INT); //for SerVer 1,2,3
   }
   
   static long getThetaLong(Memory srcMem) {
     int preLongs = getPreambleLongs(srcMem);
-    return (preLongs < 3)? Long.MAX_VALUE : srcMem.getLong(THETA_LONG); //for SerVer 1,2,3
+    return (preLongs < 3) ? Long.MAX_VALUE : srcMem.getLong(THETA_LONG); //for SerVer 1,2,3
   }
   
   static boolean getEmpty(Memory srcMem) {
@@ -250,8 +257,8 @@ public final class Sketches {
   static void checkIfValidThetaSketch(Memory srcMem) {
     int fam = srcMem.getByte(FAMILY_BYTE);
     if (!Sketch.isValidSketchID(fam)) {
-     throw new SketchesArgumentException("Source Memory not a valid Sketch. Family: "+
-       Family.idToFamily(fam).toString()); 
+     throw new SketchesArgumentException("Source Memory not a valid Sketch. Family: " 
+         + Family.idToFamily(fam).toString()); 
     }
   }
 }

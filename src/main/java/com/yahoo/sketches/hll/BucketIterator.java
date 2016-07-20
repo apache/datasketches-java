@@ -8,9 +8,9 @@ package com.yahoo.sketches.hll;
 /**
  * A BucketIterator is an iterator over bucket values in an Hll Fields object.
  *
- * The general pattern for usage is you call next() and if that returns true, you will get values from
- * getKey() and getValue().  If next() returned false, that means that iteration is complete; 
- * getKey() and getValue() become undefined.
+ * <p>The general pattern for usage is you call next() and if that returns true, you will get 
+ * values from getKey() and getValue().  If next() returned false, that means that iteration is 
+ * complete; getKey() and getValue() become undefined.</p>
  * 
  * @author Kevin Lang
  */

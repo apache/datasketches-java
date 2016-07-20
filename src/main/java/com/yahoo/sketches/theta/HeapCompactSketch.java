@@ -69,7 +69,7 @@ final class HeapCompactSketch extends CompactSketch {
       long thetaLong) {
     super(empty, seedHash, curCount, thetaLong);
     assert compactCache != null;
-    cache_ = (curCount == 0)? new long[0] : compactCache;
+    cache_ = (curCount == 0) ? new long[0] : compactCache;
   }
   
   //Sketch interface
@@ -79,7 +79,7 @@ final class HeapCompactSketch extends CompactSketch {
     int bytes = getCurrentBytes(true);
     byte[] byteArray = new byte[bytes];
     Memory dstMem = new NativeMemory(byteArray);
-    int emptyBit = isEmpty()? (byte) EMPTY_FLAG_MASK : 0;
+    int emptyBit = isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
     byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK);
     loadCompactMemory(getCache(), isEmpty(), getSeedHash(), getRetainedEntries(true),
         getThetaLong(), dstMem, flags);

@@ -5,8 +5,6 @@
 
 package com.yahoo.sketches;
 
-import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.SketchesStateException;
 import com.yahoo.sketches.memory.Memory;
 
 /**
@@ -80,7 +78,7 @@ public final class HashOperations {
    */
   public static int hashSearch(final long[] hashTable, final int lgArrLongs, final long hash) {
     if (hash == 0) {
-      throw new SketchesArgumentException("Given hash cannot be zero: "+hash);
+      throw new SketchesArgumentException("Given hash cannot be zero: " + hash);
     }
     final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
     final int stride = getStride(hash, lgArrLongs);
@@ -112,7 +110,7 @@ public final class HashOperations {
       final int lgArrLongs, final long thetaLong) {
     int count = 0;
     final int arrLen = srcArr.length;
-    checkThetaCorruption(thetaLong); //TODO only place used
+    checkThetaCorruption(thetaLong);
     for (int i = 0; i < arrLen; i++ ) { // scan source array, build target array
       final long hash = srcArr[i];
       checkHashCorruption(hash);
@@ -266,9 +264,9 @@ public final class HashOperations {
    */
   public static void checkThetaCorruption(final long thetaLong) {
     //if any one of the groups go negative it fails.
-    if (( thetaLong | (thetaLong-1) ) < 0L ) {
+    if (( thetaLong | (thetaLong - 1) ) < 0L ) {
       throw new SketchesStateException(
-          "Data Corruption: thetaLong was negative or zero: "+ "ThetaLong: "+thetaLong);
+          "Data Corruption: thetaLong was negative or zero: " + "ThetaLong: " + thetaLong);
     }
   }
 
@@ -280,7 +278,7 @@ public final class HashOperations {
     //if any one of the groups go negative it fails.
     if ( hash < 0L ) {
       throw new SketchesArgumentException(
-          "Data Corruption: hash was negative: "+ "Hash: "+hash);
+          "Data Corruption: hash was negative: " + "Hash: " + hash);
     }
   }
 
@@ -295,7 +293,7 @@ public final class HashOperations {
    */
   public static boolean continueCondition(final long thetaLong, final long hash) {
     //if any one of the groups go negative it returns true
-    return (( (hash-1L) | (thetaLong - hash -1L)) < 0L );
+    return (( (hash - 1L) | (thetaLong - hash - 1L)) < 0L );
   }
 
   /**
@@ -305,10 +303,10 @@ public final class HashOperations {
    */
   public static void checkHashAndThetaCorruption(final long thetaLong, final long hash) {
     //if any one of the groups go negative it fails.
-    if (( hash | thetaLong | (thetaLong-1L) ) < 0L ) {
+    if (( hash | thetaLong | (thetaLong - 1L) ) < 0L ) {
       throw new SketchesStateException(
-          "Data Corruption: Either hash was negative or thetaLong was negative or zero: "+
-          "Hash: "+hash+", ThetaLong: "+thetaLong);
+          "Data Corruption: Either hash was negative or thetaLong was negative or zero: " 
+              + "Hash: " + hash + ", ThetaLong: " + thetaLong);
     }
   }
 

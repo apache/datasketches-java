@@ -13,6 +13,10 @@ public final class CompositeBucketIterator implements BucketIterator {
 
   private int index = 0;
 
+  /**
+   * Constructs with given list (or array) of iterators
+   * @param iters the given list (or array) of iterators
+   */
   public CompositeBucketIterator(BucketIterator... iters) {
     this.iters = iters;
   }

@@ -16,7 +16,22 @@ import com.yahoo.sketches.memory.NativeMemory;
  */
 public final class DoubleSummary implements UpdatableSummary<Double> {
 
-  public static enum Mode { Sum, Min, Max }
+  /**
+   * The aggregation modes for this Summary
+   */
+  public static enum Mode { 
+    /**
+     * The aggregation mode is the summation function
+     */
+    Sum, 
+    /**
+     * The aggregation mode is the minimum function
+     */
+    Min, 
+    /**
+     * The aggregation mode is the maximum function
+     */
+    Max }
 
   private double value_;
   private final Mode mode_;
@@ -60,7 +75,7 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
 
   @Override
   public void update(final Double value) {
-    switch(mode_) {
+    switch (mode_) {
     case Sum:
       value_ += value.doubleValue();
       break;

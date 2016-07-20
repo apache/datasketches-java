@@ -20,7 +20,9 @@ public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
   @Override
   public byte[] serializeToByteArray(String[] items) {
     int length = 0;
-    for (int i = 0; i < items.length; i++) length += items[i].length() * Character.BYTES + Integer.BYTES;
+    for (int i = 0; i < items.length; i++) {
+      length += items[i].length() * Character.BYTES + Integer.BYTES;
+    }
     final byte[] bytes = new byte[length];
     final Memory mem = new NativeMemory(bytes);
     long offsetBytes = 0;

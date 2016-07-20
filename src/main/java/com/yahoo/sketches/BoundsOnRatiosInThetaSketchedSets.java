@@ -34,7 +34,7 @@ public final class BoundsOnRatiosInThetaSketchedSets {
     checkThetas(thetaA, thetaB);
     
     int countB = sketchB.getRetainedEntries(true);
-    int countA = (thetaB == thetaA)? sketchA.getRetainedEntries(true) 
+    int countA = (thetaB == thetaA) ? sketchA.getRetainedEntries(true) 
         : sketchA.getCountLessThanTheta(thetaB);
     
     if (countA <= 0) return 0;
@@ -54,7 +54,7 @@ public final class BoundsOnRatiosInThetaSketchedSets {
     checkThetas(thetaA, thetaB);
 
     int countB = sketchB.getRetainedEntries(true);
-    int countA = (thetaB == thetaA)? sketchA.getRetainedEntries(true) 
+    int countA = (thetaB == thetaA) ? sketchA.getRetainedEntries(true) 
         : sketchA.getCountLessThanTheta(thetaB);
     
     if (countA <= 0) return 1.0;
@@ -74,7 +74,7 @@ public final class BoundsOnRatiosInThetaSketchedSets {
     checkThetas(thetaA, thetaB);
 
     int countB = sketchB.getRetainedEntries(true);
-    int countA = (thetaB == thetaA)? sketchA.getRetainedEntries(true) 
+    int countA = (thetaB == thetaA) ? sketchA.getRetainedEntries(true) 
         : sketchA.getCountLessThanTheta(thetaB);
     
     if (countA <= 0) return 0.5;

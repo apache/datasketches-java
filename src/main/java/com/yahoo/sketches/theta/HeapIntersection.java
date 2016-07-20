@@ -29,18 +29,18 @@ import static java.lang.Math.min;
 import java.util.Arrays;
 
 import com.yahoo.sketches.Family;
-import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
 import com.yahoo.sketches.Util;
+import com.yahoo.sketches.memory.Memory;
+import com.yahoo.sketches.memory.NativeMemory;
 
 /**
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-final class HeapIntersection extends SetOperation implements Intersection{
+final class HeapIntersection extends SetOperation implements Intersection {
   private final short seedHash_;
   //Note: Intersection does not use lgNomLongs or k, per se.
   private int lgArrLongs_;
@@ -78,7 +78,7 @@ final class HeapIntersection extends SetOperation implements Intersection{
     long pre0 = preArr[0];
     int preambleLongs = extractPreLongs(pre0);
     if (preambleLongs != CONST_PREAMBLE_LONGS) {
-      throw new SketchesArgumentException("PreambleLongs must equal "+ CONST_PREAMBLE_LONGS);
+      throw new SketchesArgumentException("PreambleLongs must equal " + CONST_PREAMBLE_LONGS);
     }
     int serVer = extractSerVer(pre0);
     if (serVer != SER_VER) {
@@ -102,7 +102,7 @@ final class HeapIntersection extends SetOperation implements Intersection{
     if (empty_) {
       if (curCount_ != 0) {
         throw new SketchesArgumentException(
-            "srcMem empty state inconsistent with curCount: "+empty_+","+curCount_);
+            "srcMem empty state inconsistent with curCount: " + empty_ + "," + curCount_);
       }
       //empty = true AND curCount_ = 0: OK
     }
@@ -208,7 +208,7 @@ final class HeapIntersection extends SetOperation implements Intersection{
   @Override
   public byte[] toByteArray() {
     int preBytes = CONST_PREAMBLE_LONGS << 3;
-    int dataBytes = (curCount_ > 0)? 8 << lgArrLongs_ : 0;
+    int dataBytes = (curCount_ > 0) ? 8 << lgArrLongs_ : 0;
     byte[] byteArrOut = new byte[preBytes + dataBytes];
     NativeMemory memOut = new NativeMemory(byteArrOut);
     
@@ -305,7 +305,8 @@ final class HeapIntersection extends SetOperation implements Intersection{
       tmpCnt += HashOperations.hashSearchOrInsert(hashTable_, lgArrLongs_, hashIn) < 0 ? 1 : 0;
     }
     if (tmpCnt != count) {
-      throw new SketchesArgumentException("Count Check Exception: got: "+tmpCnt+", expected: "+count);
+      throw new SketchesArgumentException("Count Check Exception: got: " + tmpCnt 
+          + ", expected: " + count);
     }
   }
   

@@ -5,9 +5,9 @@
 
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.theta.CompactSketch.compactCache;
 import static com.yahoo.sketches.HashOperations.hashArrayInsert;
 import static com.yahoo.sketches.HashOperations.hashSearch;
+import static com.yahoo.sketches.theta.CompactSketch.compactCache;
 import static java.lang.Math.min;
 
 import java.util.Arrays;
@@ -56,7 +56,7 @@ final class HeapAnotB extends SetOperation implements AnotB {
   
   @Override
   public CompactSketch getResult(boolean dstOrdered, Memory dstMem) {
-    long[] compactCache = (curCount_ <= 0)? new long[0] : Arrays.copyOfRange(cache_, 0, curCount_);
+    long[] compactCache = (curCount_ <= 0) ? new long[0] : Arrays.copyOfRange(cache_, 0, curCount_);
     if (dstOrdered && (curCount_ > 1)) {
       Arrays.sort(compactCache);
     }
@@ -80,8 +80,10 @@ final class HeapAnotB extends SetOperation implements AnotB {
   //restricted
   
   void compute() {
-    int swA = (a_ == null)? 0 : (a_.isEmpty())? 1: (a_ instanceof UpdateSketch)? 4 : (a_.isOrdered())? 3 : 2;
-    int swB = (b_ == null)? 0 : (b_.isEmpty())? 1: (b_ instanceof UpdateSketch)? 4 : (b_.isOrdered())? 3 : 2;
+    int swA = (a_ == null) ? 0 : (a_.isEmpty()) 
+        ? 1 : (a_ instanceof UpdateSketch) ? 4 : (a_.isOrdered()) ? 3 : 2;
+    int swB = (b_ == null) ? 0 : (b_.isEmpty()) ? 1 : (b_ instanceof UpdateSketch) 
+        ? 4 : (b_.isOrdered()) ? 3 : 2;
     int sw = (swA * 8) | swB;
     
     //  NOTES:
@@ -185,7 +187,7 @@ final class HeapAnotB extends SetOperation implements AnotB {
       case 18: 
       case 19: 
       case 34: 
-      case 35: {//A compact or HT, B compact or ordered 
+      case 35: { //A compact or HT, B compact or ordered 
         Util.checkSeedHashes(seedHash_, a_.getSeedHash());
         Util.checkSeedHashes(seedHash_, b_.getSeedHash());
         thetaLong_ = min(a_.getThetaLong(), b_.getThetaLong());

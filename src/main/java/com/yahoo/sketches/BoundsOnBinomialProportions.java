@@ -16,7 +16,8 @@ package com.yahoo.sketches;
  * that are called <i>n</i> and <i>k</i> in our sketching library. There is also a third
  * parameter, numStdDev, that specifies the desired confidence level.</p>
  * <ul>
- * <li><i>n</i> is the number of independent randomized trials. It is given and therefore known.</li>
+ * <li><i>n</i> is the number of independent randomized trials. It is given and therefore known.
+ * </li>
  * <li><i>p</i> is the probability of a trial being a success. It is unknown.</li>
  * <li><i>k</i> is the number of trials (out of <i>n</i>) that turn out to be successes. It is
  * a random variable governed by a binomial distribution. After any given
@@ -61,17 +62,22 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
   private BoundsOnBinomialProportions() {}
   
   /**
-   * Computes lower bound of approximate Clopper-Pearson confidence interval for a binomial proportion.
+   * Computes lower bound of approximate Clopper-Pearson confidence interval for a binomial 
+   * proportion.
    * 
    * <p>Implementation Notes:<br>
-   * The approximateLowerBoundOnP is defined with respect to the right tail of the binomial distribution.</p>
+   * The approximateLowerBoundOnP is defined with respect to the right tail of the binomial 
+   * distribution.</p>
    * <ul>
-   * <li>We want to solve for the <i>p</i> for which sum<sub><i>j,k,n</i></sub>bino(<i>j;n,p</i>) = delta.</li>
+   * <li>We want to solve for the <i>p</i> for which sum<sub><i>j,k,n</i></sub>bino(<i>j;n,p</i>) 
+   * = delta.</li>
    * <li>We now restate that in terms of the left tail.</li>
-   * <li>We want to solve for the p for which sum<sub><i>j,0,(k-1)</i></sub>bino(<i>j;n,p</i>) = 1 - delta.</li>
+   * <li>We want to solve for the p for which sum<sub><i>j,0,(k-1)</i></sub>bino(<i>j;n,p</i>) 
+   * = 1 - delta.</li>
    * <li>Define <i>x</i> = 1-<i>p</i>.</li>
    * <li>We want to solve for the <i>x</i> for which I<sub><i>x(n-k+1,k)</i></sub> = 1 - delta.</li>
-   * <li>We specify 1-delta via numStdDevs through the right tail of the standard normal distribution.</li>
+   * <li>We specify 1-delta via numStdDevs through the right tail of the standard normal 
+   * distribution.</li>
    * <li>Smaller values of numStdDevs correspond to bigger values of 1-delta and hence to smaller
    * values of delta. In fact, usefully small values of delta correspond to negative values of 
    * numStdDevs.</li>
@@ -84,28 +90,32 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
    * @return the lower bound of the approximate Clopper-Pearson confidence interval for the 
    * unknown success probability.
    */
-  public static double approximateLowerBoundOnP (long n, long k, double numStdDevs) {
+  public static double approximateLowerBoundOnP(long n, long k, double numStdDevs) {
     checkInputs(n, k);
     if (n == 0) { return 0.0; } // the coin was never flipped, so we know nothing
     else if (k == 0) { return 0.0; }
     else if (k == 1) { return (exactLowerBoundOnPForKequalsOne(n, deltaOfNumStdevs(numStdDevs))); }
     else if (k == n) { return (exactLowerBoundOnPForKequalsN(n, deltaOfNumStdevs(numStdDevs))); }
     else {
-      double x = abramowitzStegunFormula26p5p22 (n - k + 1, k, (-1.0 * numStdDevs));
+      double x = abramowitzStegunFormula26p5p22(n - k + 1, k, (-1.0 * numStdDevs));
       return (1.0 - x); // which is p
     }
   }
 
   /**
-   * Computes upper bound of approximate Clopper-Pearson confidence interval for a binomial proportion.
+   * Computes upper bound of approximate Clopper-Pearson confidence interval for a binomial 
+   * proportion.
    * 
    * <p>Implementation Notes:<br>
-   * The approximateUpperBoundOnP is defined with respect to the left tail of the binomial distribution.</p>
+   * The approximateUpperBoundOnP is defined with respect to the left tail of the binomial 
+   * distribution.</p>
    * <ul>
-   * <li>We want to solve for the <i>p</i> for which sum<sub><i>j,0,k</i></sub>bino(<i>j;n,p</i>) = delta.</li>
+   * <li>We want to solve for the <i>p</i> for which sum<sub><i>j,0,k</i></sub>bino(<i>j;n,p</i>) 
+   * = delta.</li>
    * <li>Define <i>x</i> = 1-<i>p</i>.</li>
    * <li>We want to solve for the <i>x</i> for which I<sub><i>x(n-k,k+1)</i></sub> = delta.</li>
-   * <li>We specify delta via numStdDevs through the right tail of the standard normal distribution.</li>
+   * <li>We specify delta via numStdDevs through the right tail of the standard normal 
+   * distribution.</li>
    * <li>Bigger values of numStdDevs correspond to smaller values of delta.</li>
    * <li>return <i>p</i> = 1-<i>x</i>.</li>
    * </ul>
@@ -115,14 +125,18 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
    * @return the upper bound of the approximate Clopper-Pearson confidence interval for the 
    * unknown success probability.
    */
-  public static double approximateUpperBoundOnP (long n, long k, double numStdDevs) {
+  public static double approximateUpperBoundOnP(long n, long k, double numStdDevs) {
     checkInputs(n, k);
     if (n == 0) { return 1.0; } // the coin was never flipped, so we know nothing
     else if (k == n) { return 1.0; }
-    else if (k == n-1) { return (exactUpperBoundOnPForKequalsNminusOne(n, deltaOfNumStdevs(numStdDevs))); }
-    else if (k == 0)   { return (exactUpperBoundOnPForKequalsZero(n, deltaOfNumStdevs(numStdDevs))); }
+    else if (k == n - 1) { 
+      return (exactUpperBoundOnPForKequalsNminusOne(n, deltaOfNumStdevs(numStdDevs))); 
+    }
+    else if (k == 0) { 
+      return (exactUpperBoundOnPForKequalsZero(n, deltaOfNumStdevs(numStdDevs))); 
+    }
     else {
-      double x = abramowitzStegunFormula26p5p22 (n - k, k + 1, numStdDevs);
+      double x = abramowitzStegunFormula26p5p22(n - k, k + 1, numStdDevs);
       return (1.0 - x); // which is p
     }
   }
@@ -133,7 +147,7 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
    * @param k is the number of successes. Must be non-negative, and cannot exceed n.
    * @return the estimate of the unknown binomial proportion.
    */
-  public static double estimateUnknownP (long n, long k) {
+  public static double estimateUnknownP(long n, long k) {
     checkInputs(n, k);
     if (n == 0) { return 0.5; } // the coin was never flipped, so we know nothing
     else { return ((double) k / (double) n); }
@@ -150,9 +164,9 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
    * @param x is the input to the erf function
    * @return returns erf(x), accurate to roughly 7 decimal digits.
    */
-  public static double erf (double x) {
-    if (x < 0.0) return (-1.0 * (erf_of_nonneg (-1.0 * x)));
-    else return (erf_of_nonneg (x));
+  public static double erf(double x) {
+    if (x < 0.0) return (-1.0 * (erf_of_nonneg(-1.0 * x)));
+    else return (erf_of_nonneg(x));
   }
 
   /**
@@ -160,12 +174,13 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
    * @param x is the input to the normalCDF function
    * @return returns the approximation to normalCDF(x).
    */
-  public static double normalCDF (double x) { 
-    return (0.5 * (1.0 + (erf (x / (Math.sqrt(2.0))))));
+  public static double normalCDF(double x) { 
+    return (0.5 * (1.0 + (erf(x / (Math.sqrt(2.0))))));
   }
-
+  
+//@formatter:off
   // Abramowitz and Stegun formula 7.1.28, p. 88; Claims accuracy of about 7 decimal digits */
-  private static double erf_of_nonneg (double x) {
+  private static double erf_of_nonneg(double x) {
   // The constants that appear below, formatted for easy checking against the book.
   //    a1 = 0.07052 30784
   //    a3 = 0.00927 05272
@@ -184,13 +199,13 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
     double x4 = x2 * x2;
     double x5 = x2 * x3;
     double x6 = x3 * x3;
-    double sum = ( 1.0 + 
-                   a1 * x  + 
-                   a2 * x2 +
-                   a3 * x3 +
-                   a4 * x4 +
-                   a5 * x5 +
-                   a6 * x6 );
+    double sum = ( 1.0 
+                 + a1 * x 
+                 + a2 * x2 
+                 + a3 * x3 
+                 + a4 * x4 
+                 + a5 * x5 
+                 + a6 * x6 );
     double sum2 = sum * sum; // raise the sum to the 16th power
     double sum4 = sum2 * sum2;
     double sum8 = sum4 * sum4;
@@ -198,10 +213,10 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
     return (1.0 - (1.0 / sum16));
   }
 
-  private static double deltaOfNumStdevs (double kappa) {
+  private static double deltaOfNumStdevs(double kappa) {
     return (normalCDF(-1.0 * kappa));
   }
-
+//@formatter:on
   // Formula 26.5.22 on page 945 of Abramowitz & Stegun, which is an approximation
   // of the inverse of the incomplete beta function I_x(a,b) = delta
   // viewed as a scalar function of x.
@@ -214,35 +229,35 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
   // and it is worth keeping it that way so that it will always be easy to verify
   // that the formula was typed in correctly.
   
-  private static double abramowitzStegunFormula26p5p22 (double a, double b, double yp) {
+  private static double abramowitzStegunFormula26p5p22(double a, double b, double yp) {
     double b2m1 = 2.0 * b - 1.0;
     double a2m1 = 2.0 * a - 1.0;
     double lambda = ((yp * yp) - 3.0) / 6.0;
     double htmp = (1.0 / a2m1) + (1.0 / b2m1);
     double h = 2.0 / htmp;
-    double term1 = yp * (Math.sqrt (h + lambda)) / h;
+    double term1 = yp * (Math.sqrt(h + lambda)) / h;
     double term2 = (1.0 / b2m1) - (1.0 / a2m1);
     double term3 = lambda + (5.0 / 6.0) - (2.0 / (3.0 * h));
     double w = term1 - (term2 * term3);
-    double xp = a / (a + (b * (Math.exp (2.0 * w))));
+    double xp = a / (a + (b * (Math.exp(2.0 * w))));
     return xp;
   }
 
   // Formulas for some special cases.
 
-  private static double exactUpperBoundOnPForKequalsZero (double n, double delta) {
+  private static double exactUpperBoundOnPForKequalsZero(double n, double delta) {
     return (1.0 - Math.pow(delta, (1.0 / n)));
   }
 
-  private static double exactLowerBoundOnPForKequalsN (double n, double delta) {
+  private static double exactLowerBoundOnPForKequalsN(double n, double delta) {
     return (Math.pow(delta, (1.0 / n)));
   }
 
-  private static double exactLowerBoundOnPForKequalsOne (double n, double delta) {
+  private static double exactLowerBoundOnPForKequalsOne(double n, double delta) {
     return (1.0 - Math.pow((1.0 - delta), (1.0 / n)));
   }
 
-  private static double exactUpperBoundOnPForKequalsNminusOne (double n, double delta) {
+  private static double exactUpperBoundOnPForKequalsNminusOne(double n, double delta) {
     return (Math.pow((1.0 - delta), (1.0 / n)));
   }
 

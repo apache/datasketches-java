@@ -2,6 +2,7 @@
  * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.hash;
 
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
@@ -312,8 +313,8 @@ public final class MurmurHash3Adaptor {
   /**
    * Returns a deterministic uniform random integer with a minimum inclusive value of zero and a 
    * maximum exclusive value of n given the input data.
-   * <p>
-   * The integer values produced are only as random as the MurmurHash3 algorithm, which may be
+   * 
+   * <p>The integer values produced are only as random as the MurmurHash3 algorithm, which may be
    * adequate for many applications. However, if you are looking for high guarantees of randomness
    * you should turn to more sophisticated random generators such as Mersenne Twister or Well19937c
    * algorithms.
@@ -379,8 +380,8 @@ public final class MurmurHash3Adaptor {
   /**
    * Returns a uniform random double with a minimum inclusive value of zero and a maximum exclusive
    * value of 1.0.
-   * <p>
-   * The double values produced are only as random as the MurmurHash3 algorithm, which may be
+   * 
+   * <p>The double values produced are only as random as the MurmurHash3 algorithm, which may be
    * adequate for many applications. However, if you are looking for high guarantees of randomness
    * you should turn to more sophisticated random generators such as Mersenne Twister or Well
    * algorithms.
@@ -439,22 +440,22 @@ public final class MurmurHash3Adaptor {
   
   private static long[] toLongArray(byte[] data) {
     int dataLen = data.length;
-    int longLen = (dataLen+7)/8;
+    int longLen = (dataLen + 7) / 8;
     long[] longArr = new long[longLen];
-    for (int bi=0; bi<dataLen; bi++) {
-      int li = bi/8;
-      longArr[li] |= (((long)data[bi]) << (bi*8) % 64);
+    for (int bi = 0; bi < dataLen; bi++) {
+      int li = bi / 8;
+      longArr[li] |= (((long)data[bi]) << (bi * 8) % 64);
     }
     return longArr;
   }
   
   private static long[] toLongArray(int[] data) {
     int dataLen = data.length;
-    int longLen = (dataLen+1)/2;
+    int longLen = (dataLen + 1) / 2;
     long[] longArr = new long[longLen];
-    for (int ii=0; ii<dataLen; ii++) {
-      int li = ii/2;
-      longArr[li] |= (((long)data[ii]) << (ii*32) % 64);
+    for (int ii = 0; ii < dataLen; ii++) {
+      int li = ii / 2;
+      longArr[li] |= (((long)data[ii]) << (ii * 32) % 64);
     }
     return longArr;
   }

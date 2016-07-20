@@ -5,24 +5,24 @@
 
 package com.yahoo.sketches.memory;
 
-import static com.yahoo.sketches.memory.UnsafeUtil.BOOLEAN_SHIFT;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_BOOLEAN_INDEX_SCALE;
-import static com.yahoo.sketches.memory.UnsafeUtil.BYTE_SHIFT;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_BYTE_INDEX_SCALE;
-import static com.yahoo.sketches.memory.UnsafeUtil.CHAR_SHIFT;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_CHAR_INDEX_SCALE;
-import static com.yahoo.sketches.memory.UnsafeUtil.DOUBLE_SHIFT;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_DOUBLE_INDEX_SCALE;
-import static com.yahoo.sketches.memory.UnsafeUtil.FLOAT_SHIFT;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_FLOAT_INDEX_SCALE;
-import static com.yahoo.sketches.memory.UnsafeUtil.INT_SHIFT;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_INT_INDEX_SCALE;
-import static com.yahoo.sketches.memory.UnsafeUtil.LONG_SHIFT;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_LONG_INDEX_SCALE;
-import static com.yahoo.sketches.memory.UnsafeUtil.SHORT_SHIFT;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_SHORT_INDEX_SCALE;
-import static com.yahoo.sketches.memory.UnsafeUtil.assertBounds;
+import static com.yahoo.sketches.memory.UnsafeUtil.BOOLEAN_SHIFT;
+import static com.yahoo.sketches.memory.UnsafeUtil.BYTE_SHIFT;
+import static com.yahoo.sketches.memory.UnsafeUtil.CHAR_SHIFT;
+import static com.yahoo.sketches.memory.UnsafeUtil.DOUBLE_SHIFT;
+import static com.yahoo.sketches.memory.UnsafeUtil.FLOAT_SHIFT;
+import static com.yahoo.sketches.memory.UnsafeUtil.INT_SHIFT;
+import static com.yahoo.sketches.memory.UnsafeUtil.LONG_SHIFT;
 import static com.yahoo.sketches.memory.UnsafeUtil.LS;
+import static com.yahoo.sketches.memory.UnsafeUtil.SHORT_SHIFT;
+import static com.yahoo.sketches.memory.UnsafeUtil.assertBounds;
 
 /**
  * The MemoryRegion class implements the Memory interface and provides a means of 
@@ -87,6 +87,11 @@ public class MemoryRegion implements Memory {
     memReq_ = memReq;
   }
   
+  /**
+   * Reassign the offset and capacity of this MemoryRegion
+   * @param memOffsetBytes the given offset from the parent's start
+   * @param capacityBytes the given capacity of this region
+   */
   public void reassign(long memOffsetBytes, long capacityBytes) {
     assertBounds(memOffsetBytes, capacityBytes, mem_.getCapacity());
     memOffsetBytes_ = memOffsetBytes;
@@ -457,8 +462,8 @@ public class MemoryRegion implements Memory {
     StringBuilder sb = new StringBuilder();
     sb.append(header).append(LS);
     String s1 = String.format("(..., %d, %d)", offsetBytes, lengthBytes);
-    sb.append(this.getClass().getSimpleName()).append(".toHexString").
-       append(s1).append(", hash: ").append(this.hashCode()).append(LS);
+    sb.append(this.getClass().getSimpleName()).append(".toHexString")
+      .append(s1).append(", hash: ").append(this.hashCode()).append(LS);
     sb.append("  MemoryRequest: ");
     if (memReq_ != null) {
       sb.append(memReq_.getClass().getSimpleName()).append(", hash: ").append(memReq_.hashCode());

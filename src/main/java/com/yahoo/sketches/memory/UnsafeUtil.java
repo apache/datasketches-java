@@ -5,11 +5,11 @@
 
 package com.yahoo.sketches.memory;
 
+import java.lang.reflect.Constructor;
+
 import com.yahoo.sketches.SketchesException;
 
 import sun.misc.Unsafe;
-
-import java.lang.reflect.Constructor;
 
 /**
  * Provides package private reference to the sun.misc.Unsafe class and its key static fields.
@@ -121,7 +121,7 @@ final class UnsafeUtil {
    */
   static void assertBounds(final long reqOff, final long reqLen, final long allocSize) {
     assert ((reqOff | reqLen | (reqOff + reqLen) | (allocSize - (reqOff + reqLen))) >= 0) : 
-      "offset: "+ reqOff + ", reqLength: "+ reqLen+ ", size: "+allocSize;
+      "offset: " + reqOff + ", reqLength: " + reqLen + ", size: " + allocSize;
   }
 
   /**

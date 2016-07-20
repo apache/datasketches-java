@@ -110,8 +110,8 @@ public abstract class CompactSketch extends Sketch {
     }
     long[] cacheOut = new long[curCount];
     int len = srcCache.length;
-    int j=0;
-    for (int i=0; i<len; i++) {
+    int j = 0;
+    for (int i = 0; i < len; i++) {
       long v = srcCache[i];
       if ((v <= 0L) || (v >= thetaLong) ) continue;
       cacheOut[j++] = v;
@@ -139,8 +139,8 @@ public abstract class CompactSketch extends Sketch {
     }
     long[] cacheOut = new long[curCount];
     int len = 1 << lgArrLongs;
-    int j=0;
-    for (int i=0; i<len; i++) {
+    int j = 0;
+    for (int i = 0; i < len; i++) {
       long v = srcCache[i];
       if ((v <= 0L) || (v >= thetaLong) ) continue;
       cacheOut[j++] = v;
@@ -156,7 +156,7 @@ public abstract class CompactSketch extends Sketch {
       long[] compactCache, boolean empty, short seedHash, int curCount, long thetaLong, 
       boolean dstOrdered, Memory dstMem) {
     CompactSketch sketchOut = null;
-    int sw = (dstOrdered? 2:0) | ((dstMem != null)? 1:0);
+    int sw = (dstOrdered ? 2 : 0) | ((dstMem != null) ? 1 : 0);
     switch (sw) {
       case 0: { //dst not ordered, dstMem == null 
         sketchOut = new HeapCompactSketch(compactCache, empty, seedHash, curCount, thetaLong);
@@ -187,7 +187,8 @@ public abstract class CompactSketch extends Sketch {
     int outBytes = outLongs << 3;
     int dstBytes = (int) dstMem.getCapacity();
     if (outBytes > dstBytes) {
-      throw new SketchesArgumentException("Insufficient Memory: "+dstBytes+", Need: "+outBytes);
+      throw new SketchesArgumentException("Insufficient Memory: " + dstBytes 
+        + ", Need: " + outBytes);
     }
     byte famID = (byte) stringToFamily("Compact").getID();
     
@@ -219,13 +220,13 @@ public abstract class CompactSketch extends Sketch {
   
   static final int getCurCount(Memory srcMem) {
     int preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    int curCount = (preLongs > 1)? srcMem.getInt(RETAINED_ENTRIES_INT) : 0;
+    int curCount = (preLongs > 1) ? srcMem.getInt(RETAINED_ENTRIES_INT) : 0;
     return curCount;
   }
   
   static final long getThetaLong(Memory srcMem) {
     int preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    long thetaLong = (preLongs > 2)? srcMem.getLong(THETA_LONG): Long.MAX_VALUE;
+    long thetaLong = (preLongs > 2) ? srcMem.getLong(THETA_LONG) : Long.MAX_VALUE;
     return thetaLong;
   }
   

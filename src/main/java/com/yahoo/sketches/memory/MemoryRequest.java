@@ -23,6 +23,7 @@ public interface MemoryRequest {
   
   /**
    * Request for allocate, copy and clear.
+   * 
    * <p>Request to allocate new Memory with the capacityBytes; copy the contents of origMem from
    * zero to copyToBytes; clear the new memory from copyToBytes to capacityBytes.
    * @param origMem The original Memory, a portion of which will be copied to the

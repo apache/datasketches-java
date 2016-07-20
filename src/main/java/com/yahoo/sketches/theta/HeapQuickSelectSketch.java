@@ -6,6 +6,10 @@
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.QuickSelect.selectExcludingZeros;
+import static com.yahoo.sketches.Util.MIN_LG_ARR_LONGS;
+import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
+import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
+import static com.yahoo.sketches.Util.RESIZE_THRESHOLD;
 import static com.yahoo.sketches.theta.PreambleUtil.BIG_ENDIAN_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
@@ -27,16 +31,15 @@ import static com.yahoo.sketches.theta.PreambleUtil.getMemBytes;
 import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountIncremented;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedDuplicate;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedOverTheta;
-import static com.yahoo.sketches.Util.*;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
 import com.yahoo.sketches.Family;
-import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
+import com.yahoo.sketches.memory.Memory;
 
 /**
  * @author Lee Rhodes
@@ -92,7 +95,7 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch impl
     
     HeapQuickSelectSketch hqss = new HeapQuickSelectSketch(lgNomLongs, seed, p, rf, 
         preambleLongs, family);
-    int lgArrLongs = startingSubMultiple(lgNomLongs+1, rf, MIN_LG_ARR_LONGS);
+    int lgArrLongs = startingSubMultiple(lgNomLongs + 1, rf, MIN_LG_ARR_LONGS);
     hqss.lgArrLongs_ = lgArrLongs;
     hqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     hqss.curCount_ = 0;
@@ -129,20 +132,20 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch impl
     
     if (serVer != SER_VER) {
       throw new SketchesArgumentException(
-          "Possible corruption: Invalid Serialization Version: "+serVer);
+          "Possible corruption: Invalid Serialization Version: " + serVer);
     }
     
     Family family = Family.idToFamily(familyID);
     if (family.equals(Family.UNION)) {
       if (preambleLongs != Family.UNION.getMinPreLongs()) {
         throw new SketchesArgumentException(
-            "Possible corruption: Invalid PreambleLongs value for UNION: " +preambleLongs);
+            "Possible corruption: Invalid PreambleLongs value for UNION: " + preambleLongs);
       }
     }
     else if (family.equals(Family.QUICKSELECT)) {
       if (preambleLongs != Family.QUICKSELECT.getMinPreLongs()) {
         throw new SketchesArgumentException(
-            "Possible corruption: Invalid PreambleLongs value for QUICKSELECT: " +preambleLongs);
+            "Possible corruption: Invalid PreambleLongs value for QUICKSELECT: " + preambleLongs);
       }
     } 
     else {
@@ -152,8 +155,8 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch impl
     
     if (lgNomLongs < MIN_LG_NOM_LONGS) {
       throw new SketchesArgumentException(
-          "Possible corruption: Current Memory lgNomLongs < min required size: " + 
-              lgNomLongs + " < " + MIN_LG_NOM_LONGS);
+          "Possible corruption: Current Memory lgNomLongs < min required size: " 
+              + lgNomLongs + " < " + MIN_LG_NOM_LONGS);
     }
     
     int flagsMask = ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
@@ -168,15 +171,15 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch impl
     int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
     if (curCapBytes < minReqBytes) {
       throw new SketchesArgumentException(
-          "Possible corruption: Current Memory size < min required size: " + 
-              curCapBytes + " < " + minReqBytes);
+          "Possible corruption: Current Memory size < min required size: " 
+              + curCapBytes + " < " + minReqBytes);
     }
     
-    double theta = thetaLong/MAX_THETA_LONG_AS_DOUBLE;
+    double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
     if ((lgArrLongs <= lgNomLongs) && (theta < p) ) {
       throw new SketchesArgumentException(
-        "Possible corruption: Theta cannot be < p and lgArrLongs <= lgNomLongs. "+
-            lgArrLongs + " <= " + lgNomLongs + ", Theta: "+theta + ", p: " + p);
+        "Possible corruption: Theta cannot be < p and lgArrLongs <= lgNomLongs. " 
+            + lgArrLongs + " <= " + lgNomLongs + ", Theta: " + theta + ", p: " + p);
     }
     
     HeapQuickSelectSketch hqss = new HeapQuickSelectSketch(lgNomLongs, seed, p, myRF, preambleLongs, 
@@ -226,7 +229,7 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch impl
   @Override
   public final void reset() {
     ResizeFactor rf = getResizeFactor();
-    int lgArrLongsSM = startingSubMultiple(lgNomLongs_+1, rf, MIN_LG_ARR_LONGS);
+    int lgArrLongsSM = startingSubMultiple(lgNomLongs_ + 1, rf, MIN_LG_ARR_LONGS);
     if (lgArrLongsSM == lgArrLongs_) {
       int arrLongs = cache_.length;
       assert (1 << lgArrLongs_) == arrLongs; 

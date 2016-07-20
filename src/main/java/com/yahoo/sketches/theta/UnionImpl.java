@@ -10,8 +10,8 @@ import static com.yahoo.sketches.theta.CompactSketch.createCompactSketch;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
@@ -22,12 +22,12 @@ import static com.yahoo.sketches.theta.PreambleUtil.UNION_THETA_LONG;
 import static java.lang.Math.min;
 
 import com.yahoo.sketches.Family;
-import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
+import com.yahoo.sketches.memory.Memory;
+import com.yahoo.sketches.memory.NativeMemory;
 
 
 /**
@@ -101,6 +101,7 @@ final class UnionImpl extends SetOperation implements Union {
     unionImpl.unionMem_ = dstMem;
     return unionImpl;
   }
+  
   /**
    * Wrap a Union object around a Union Memory object containing data. 
    * @param srcMem The source Memory object.
@@ -127,7 +128,7 @@ final class UnionImpl extends SetOperation implements Union {
     //curCount <= k; gadget theta could be p < 1.0, but cannot do a quick select
     long thetaLongR = min(gadget_.getThetaLong(), unionThetaLong_);
     double p = gadget_.getP();
-    double thetaR = thetaLongR/MAX_THETA_LONG_AS_DOUBLE;
+    double thetaR = thetaLongR / MAX_THETA_LONG_AS_DOUBLE;
     long[] gadgetCache = gadget_.getCache(); //if Direct, always a copy
     //CurCount must be recounted with a scan using the new theta
     int curCountR = HashOperations.count(gadgetCache, thetaLongR);
@@ -174,13 +175,13 @@ final class UnionImpl extends SetOperation implements Union {
     unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule with incoming
     int curCountIn = sketchIn.getRetainedEntries(true);
     
-    if(sketchIn.isOrdered()) { //Only true if Compact. Use early stop
+    if (sketchIn.isOrdered()) { //Only true if Compact. Use early stop
       
-      if(sketchIn.isDirect()) { //ordered, direct thus compact
+      if (sketchIn.isDirect()) { //ordered, direct thus compact
         Memory skMem = sketchIn.getMemory();
         int preambleLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
         for (int i = 0; i < curCountIn; i++ ) {
-          int offsetBytes = (preambleLongs +i) << 3;
+          int offsetBytes = (preambleLongs + i) << 3;
           long hashIn = skMem.getLong(offsetBytes);
           if (hashIn >= unionThetaLong_) break; // "early stop"
           gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
@@ -198,7 +199,7 @@ final class UnionImpl extends SetOperation implements Union {
     else { //either not-ordered compact or Hash Table form. A HT may have dirty values.
       long[] cacheIn = sketchIn.getCache(); //if off-heap this will be a copy
       int arrLongs = cacheIn.length;
-      for (int i = 0, c=0; (i < arrLongs) && (c < curCountIn); i++ ) {
+      for (int i = 0, c = 0; (i < arrLongs) && (c < curCountIn); i++ ) {
         long hashIn = cacheIn[i];
         if ((hashIn <= 0L) || (hashIn >= unionThetaLong_)) continue; //rejects dirty values
         gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
@@ -224,7 +225,7 @@ final class UnionImpl extends SetOperation implements Union {
       if (cap <= 24) return; //empty
       processVer1(skMem);
     }
-    else if (serVer == 2) {//older SetSketch, which is compact and ordered
+    else if (serVer == 2) { //older SetSketch, which is compact and ordered
       if (cap <= 8) return; //empty
       processVer2(skMem);
     }
@@ -233,7 +234,7 @@ final class UnionImpl extends SetOperation implements Union {
       processVer3(skMem);
     }
     else {
-      throw new SketchesArgumentException("SerVer is unknown: "+serVer);
+      throw new SketchesArgumentException("SerVer is unknown: " + serVer);
     }
   }
   
@@ -280,7 +281,7 @@ final class UnionImpl extends SetOperation implements Union {
     int curCount = skMem.getInt(RETAINED_ENTRIES_INT);
     int preLongs = 3;
     for (int i = 0; i < curCount; i++ ) {
-      int offsetBytes = (preLongs +i) << 3;
+      int offsetBytes = (preLongs + i) << 3;
       long hashIn = skMem.getLong(offsetBytes);
       if (hashIn >= unionThetaLong_) break; // "early stop"
       gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
@@ -307,7 +308,7 @@ final class UnionImpl extends SetOperation implements Union {
     }
     unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule
     for (int i = 0; i < curCount; i++ ) {
-      int offsetBytes = (preLongs +i) << 3;
+      int offsetBytes = (preLongs + i) << 3;
       long hashIn = skMem.getLong(offsetBytes);
       if (hashIn >= unionThetaLong_) break; // "early stop"
       gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
@@ -337,7 +338,7 @@ final class UnionImpl extends SetOperation implements Union {
     boolean ordered = skMem.isAnyBitsSet(FLAGS_BYTE, (byte) ORDERED_FLAG_MASK);
     if (ordered) { //must be compact
       for (int i = 0; i < curCount; i++ ) {
-        int offsetBytes = (preLongs +i) << 3;
+        int offsetBytes = (preLongs + i) << 3;
         long hashIn = skMem.getLong(offsetBytes);
         if (hashIn >= unionThetaLong_) break; // "early stop"
         gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
@@ -345,9 +346,9 @@ final class UnionImpl extends SetOperation implements Union {
     }
     else { //not-ordered, could be compact or hash-table form
       boolean compact = skMem.isAnyBitsSet(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
-      int size = (compact)? curCount : 1 << skMem.getByte(LG_ARR_LONGS_BYTE);
+      int size = (compact) ? curCount : 1 << skMem.getByte(LG_ARR_LONGS_BYTE);
       for (int i = 0; i < size; i++ ) {
-        int offsetBytes = (preLongs +i) << 3;
+        int offsetBytes = (preLongs + i) << 3;
         long hashIn = skMem.getLong(offsetBytes);
         if ((hashIn <= 0L) || (hashIn >= unionThetaLong_)) continue;
         gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed

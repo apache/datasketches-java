@@ -7,9 +7,9 @@ package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.Util.DEFAULT_NOMINAL_ENTRIES;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
-import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.TAB;
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
@@ -97,7 +97,7 @@ public class UpdateSketchBuilder {
    */
   public UpdateSketchBuilder setP(float p) {
     if ((p <= 0.0) || (p > 1.0)) {
-      throw new SketchesArgumentException("p must be > 0 and <= 1.0: "+p);
+      throw new SketchesArgumentException("p must be > 0 and <= 1.0: " + p);
     }
     bP = p;
     return this;
@@ -195,7 +195,7 @@ public class UpdateSketchBuilder {
       }
       default: {
         throw new SketchesArgumentException(
-          "Given Family cannot be built as a Theta Sketch: "+bFam.toString());
+          "Given Family cannot be built as a Theta Sketch: " + bFam.toString());
       }
     }
     return sketch;
@@ -216,14 +216,14 @@ public class UpdateSketchBuilder {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("UpdateSketchBuilder configuration:").append(LS).
-       append("LgK:").append(TAB).append(bLgNomLongs).append(LS).
-       append("K:").append(TAB).append(1 << bLgNomLongs).append(LS).
-       append("Seed:").append(TAB).append(bSeed).append(LS).
-       append("p:").append(TAB).append(bP).append(LS).
-       append("ResizeFactor:").append(TAB).append(bRF).append(LS).
-       append("Family:").append(TAB).append(bFam).append(LS).
-       append("DstMemory:").append(TAB).append(bDstMem != null).append(LS);
+    sb.append("UpdateSketchBuilder configuration:").append(LS)
+      .append("LgK:").append(TAB).append(bLgNomLongs).append(LS)
+      .append("K:").append(TAB).append(1 << bLgNomLongs).append(LS)
+      .append("Seed:").append(TAB).append(bSeed).append(LS)
+      .append("p:").append(TAB).append(bP).append(LS)
+      .append("ResizeFactor:").append(TAB).append(bRF).append(LS)
+      .append("Family:").append(TAB).append(bFam).append(LS)
+      .append("DstMemory:").append(TAB).append(bDstMem != null).append(LS);
     return sb.toString();
   }
   

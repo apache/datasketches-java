@@ -10,20 +10,20 @@ import static com.yahoo.sketches.Util.toLog2;
 import static com.yahoo.sketches.frequencies.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.frequencies.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractActiveItems;
-import static com.yahoo.sketches.frequencies.PreambleUtil.extractLgCurMapSize;
-import static com.yahoo.sketches.frequencies.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractFamilyID;
-import static com.yahoo.sketches.frequencies.PreambleUtil.extractSerDeId;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractFlags;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractLgCurMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractLgMaxMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractPreLongs;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractSerDeId;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertActiveItems;
-import static com.yahoo.sketches.frequencies.PreambleUtil.insertLgCurMapSize;
-import static com.yahoo.sketches.frequencies.PreambleUtil.insertFlags;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertFamilyID;
-import static com.yahoo.sketches.frequencies.PreambleUtil.insertSerDeId;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertFlags;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertLgCurMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertLgMaxMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertPreLongs;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertSerDeId;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertSerVer;
 import static com.yahoo.sketches.frequencies.Util.LG_MIN_MAP_SIZE;
 import static com.yahoo.sketches.frequencies.Util.SAMPLE_SIZE;
@@ -212,7 +212,8 @@ public class ItemsSketch<T> {
    * @param serDe an instance of ArrayOfItemsSerDe
    * @return a sketch instance of this class.
    */
-  public static <T> ItemsSketch<T> getInstance(final Memory srcMem, final ArrayOfItemsSerDe<T> serDe) {
+  public static <T> ItemsSketch<T> getInstance(final Memory srcMem, 
+      final ArrayOfItemsSerDe<T> serDe) {
     final long pre0 = PreambleUtil.checkPreambleSize(srcMem); //make sure preamble will fit
     final int maxPreLongs = Family.FREQUENCY.getMaxPreLongs();
 
@@ -233,12 +234,12 @@ public class ItemsSketch<T> {
     }
     if (serVer != SER_VER) {                            //Byte 1
       throw new SketchesArgumentException(
-          "Possible Corruption: Ser Ver must be "+SER_VER+": " + serVer);
+          "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
     }
     final int actFamID = Family.FREQUENCY.getID();      //Byte 2
     if (familyID != actFamID) {
       throw new SketchesArgumentException(
-          "Possible Corruption: FamilyID must be "+actFamID+": " + familyID);
+          "Possible Corruption: FamilyID must be " + actFamID + ": " + familyID);
     }
     if (empty ^ preLongsEq1) {                          //Byte 5 and Byte 0
       throw new SketchesArgumentException(
@@ -246,8 +247,7 @@ public class ItemsSketch<T> {
     }
     if (serDeId != serDe.getId()) {                     //Byte 6,7
       throw new SketchesArgumentException(
-          "Possible Corruption: SerDe ID incorrect: " + serDeId + " != " + 
-              serDe.getId());
+          "Possible Corruption: SerDe ID incorrect: " + serDeId + " != " + serDe.getId());
     }
 
     if (empty) {
@@ -433,7 +433,7 @@ public class ItemsSketch<T> {
    * Returns an array of Rows that include frequent items, estimates, upper and lower bounds
    * given an ErrorCondition. 
    * 
-   * The method first examines all active items in the sketch (items that have a counter).
+   * <p>The method first examines all active items in the sketch (items that have a counter).
    *  
    * <p>If <i>ErrorType = NO_FALSE_NEGATIVES</i>, this will include an item in the result 
    * list if getUpperBound(item) &gt; maxError. 
@@ -588,7 +588,8 @@ public class ItemsSketch<T> {
     });
     
     @SuppressWarnings("unchecked")
-    final Row<T>[] rowsArr = rowList.toArray((Row<T>[]) Array.newInstance(Row.class, rowList.size()));
+    final Row<T>[] rowsArr = 
+      rowList.toArray((Row<T>[]) Array.newInstance(Row.class, rowList.size()));
     return rowsArr;
   }
 

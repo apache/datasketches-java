@@ -9,19 +9,27 @@ package com.yahoo.sketches.hll;
  * An interface that abstracts out the underlying storage of an HLL from the hashing
  * and other activities required to maintain an HLL.
  *
- * This interface is experimental, but the API is not solidified and we reserve the
- * right to make backwards incompatible changes without pushing up the library's version.
+ * <p>This interface is experimental, but the API is not solidified and we reserve the
+ * right to make backwards incompatible changes without pushing up the library's version.</p>
  *
- * Implement at your own risk.
+ * <p>Implement at your own risk.</p>
  * 
  * @author Kevin Lang
  */
 public interface Fields {
+  /** Naive dense version */
   byte NAIVE_DENSE_VERSION = 0x0;
+  /** Hash sparse version */
   byte HASH_SPARSE_VERSION = 0x1;
+  /** Sorted sparse version */
   byte SORTED_SPARSE_VERSION = 0x2;
+  /** Compressed dense version */
   byte COMPRESSED_DENSE_VERSION = 0x3;
 
+  /**
+   * Gets  the Preamble
+   * @return the Preamble
+   */
   Preamble getPreamble();
 
   /**
@@ -29,7 +37,7 @@ public interface Fields {
    * is expected to maintain the MAX val for each bucket.  If the val passed in is less
    * than the currently stored val, this method should do nothing.
    *
-   * A callback *must* be provided which will be called whenever the provided val is
+   * <p>A callback *must* be provided which will be called whenever the provided val is
    * greater than the currently stored value.
    *
    * @param bucket the bucket to update
@@ -42,7 +50,7 @@ public interface Fields {
   /**
    * Fills the array starting from offset with the byte array representation of the fields
    *
-   * This should *not* include the preamble
+   * <p>This should *not* include the preamble
    * @param array given array to fill
    * @param offset starting with this offset
    * @return the last offset written +1
@@ -74,14 +82,16 @@ public interface Fields {
   BucketIterator getBucketIterator();
 
   /**
-   * Unions the current Fields into the Fields presented as an argument.  This exists to allow for polymorphic dispatch
-   * to enable optimized unioning when available.  That is, most implementations will end up delegating to
+   * Unions the current Fields into the Fields presented as an argument. This exists to allow for 
+   * polymorphic dispatch to enable optimized unioning when available. That is, most 
+   * implementations will end up delegating to:
    *
-   * recipient.unionBucketIterator(getBucketIterator());
+   * <code>recipient.unionBucketIterator(getBucketIterator());</code>
    *
-   * But, if there is a method that is more specific to the implementation, it can choose to delegate to, e.g.
+   * <p>But, if there is a method that is more specific to the implementation, it can choose to 
+   * delegate to, e.g:
    *
-   * unionCompressedAndExceptions()
+   * <code>unionCompressedAndExceptions()</code>
    *
    * @param recipient The fields to be unioned *into*
    * @param cb The callback to be called whenever a bucket value is updated
@@ -124,7 +134,10 @@ public interface Fields {
      */
     void bucketUpdated(int bucket, byte oldVal, byte newVal);
   }
-
+  
+  /**
+   * Returns a new No-Op Callback
+   */
   UpdateCallback NOOP_CB = new UpdateCallback() {
     
     @Override

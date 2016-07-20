@@ -24,4 +24,5 @@ public enum ErrorType {
    * However, there may be <i>Type I</i> error samples (<i>False Positives</i>) 
    * that were included that should not have been. 
    */
-  NO_FALSE_NEGATIVES}
+  NO_FALSE_NEGATIVES 
+}

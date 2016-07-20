@@ -5,43 +5,44 @@
 
 package com.yahoo.sketches.memory;
 
-import java.nio.ByteBuffer;
-
-import com.yahoo.sketches.SketchesArgumentException;
-
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_BOOLEAN_BASE_OFFSET;
-import static com.yahoo.sketches.memory.UnsafeUtil.BOOLEAN_SHIFT;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_BOOLEAN_INDEX_SCALE;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_BYTE_BASE_OFFSET;
-import static com.yahoo.sketches.memory.UnsafeUtil.BYTE_SHIFT;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_BYTE_INDEX_SCALE;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_CHAR_BASE_OFFSET;
-import static com.yahoo.sketches.memory.UnsafeUtil.CHAR_SHIFT;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_CHAR_INDEX_SCALE;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_DOUBLE_BASE_OFFSET;
-import static com.yahoo.sketches.memory.UnsafeUtil.DOUBLE_SHIFT;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_DOUBLE_INDEX_SCALE;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_FLOAT_BASE_OFFSET;
-import static com.yahoo.sketches.memory.UnsafeUtil.FLOAT_SHIFT;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_FLOAT_INDEX_SCALE;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_INT_BASE_OFFSET;
-import static com.yahoo.sketches.memory.UnsafeUtil.INT_SHIFT;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_INT_INDEX_SCALE;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_LONG_BASE_OFFSET;
-import static com.yahoo.sketches.memory.UnsafeUtil.LONG_SHIFT;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_LONG_INDEX_SCALE;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_SHORT_BASE_OFFSET;
-import static com.yahoo.sketches.memory.UnsafeUtil.SHORT_SHIFT;
 import static com.yahoo.sketches.memory.UnsafeUtil.ARRAY_SHORT_INDEX_SCALE;
+import static com.yahoo.sketches.memory.UnsafeUtil.BOOLEAN_SHIFT;
+import static com.yahoo.sketches.memory.UnsafeUtil.BYTE_SHIFT;
+import static com.yahoo.sketches.memory.UnsafeUtil.CHAR_SHIFT;
+import static com.yahoo.sketches.memory.UnsafeUtil.DOUBLE_SHIFT;
+import static com.yahoo.sketches.memory.UnsafeUtil.FLOAT_SHIFT;
+import static com.yahoo.sketches.memory.UnsafeUtil.INT_SHIFT;
+import static com.yahoo.sketches.memory.UnsafeUtil.LONG_SHIFT;
+import static com.yahoo.sketches.memory.UnsafeUtil.LS;
+import static com.yahoo.sketches.memory.UnsafeUtil.SHORT_SHIFT;
 import static com.yahoo.sketches.memory.UnsafeUtil.UNSAFE_COPY_THRESHOLD;
 import static com.yahoo.sketches.memory.UnsafeUtil.assertBounds;
 import static com.yahoo.sketches.memory.UnsafeUtil.checkOverlap;
 import static com.yahoo.sketches.memory.UnsafeUtil.unsafe;
-import static com.yahoo.sketches.memory.UnsafeUtil.LS;
+
+import java.nio.ByteBuffer;
+
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * The NativeMemory class implements the Memory interface and is used to access Java byte arrays, 
  * long arrays and ByteBuffers by presenting them as arguments to the constructors of this class.
+ * 
  * <p>The sub-class AllocMemory is used to allocate direct, off-heap native memory, which is then 
  * accessed by the NativeMemory methods. 
  * 
@@ -154,12 +155,12 @@ public class NativeMemory implements Memory {
   public void copy(long srcOffsetBytes, long dstOffsetBytes, long lengthBytes) {
     assertBounds(srcOffsetBytes, lengthBytes, capacityBytes_);
     assertBounds(dstOffsetBytes, lengthBytes, capacityBytes_);
-    assert checkOverlap(srcOffsetBytes, dstOffsetBytes, lengthBytes): "regions must not overlap";
+    assert checkOverlap(srcOffsetBytes, dstOffsetBytes, lengthBytes) : "regions must not overlap";
     long srcAdd = getAddress(srcOffsetBytes);
     long dstAdd = getAddress(dstOffsetBytes);
     
     while (lengthBytes > 0) {
-      long size = (lengthBytes > UNSAFE_COPY_THRESHOLD)? UNSAFE_COPY_THRESHOLD : lengthBytes;
+      long size = (lengthBytes > UNSAFE_COPY_THRESHOLD) ? UNSAFE_COPY_THRESHOLD : lengthBytes;
       unsafe.copyMemory(memArray_, srcAdd, memArray_, dstAdd, lengthBytes);
       lengthBytes -= size;
       srcAdd += size;
@@ -200,7 +201,7 @@ public class NativeMemory implements Memory {
     }
 
     while (lengthBytes > 0) {
-      long size = (lengthBytes > UNSAFE_COPY_THRESHOLD)? UNSAFE_COPY_THRESHOLD : lengthBytes;
+      long size = (lengthBytes > UNSAFE_COPY_THRESHOLD) ? UNSAFE_COPY_THRESHOLD : lengthBytes;
       unsafe.copyMemory(srcParent, srcAdd, dstParent, dstAdd, lengthBytes);
       lengthBytes -= size;
       srcAdd += size;
@@ -527,7 +528,7 @@ public class NativeMemory implements Memory {
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     unsafe.copyMemory(
       srcArray,
-      ARRAY_FLOAT_BASE_OFFSET+ (srcOffset << FLOAT_SHIFT),
+      ARRAY_FLOAT_BASE_OFFSET + (srcOffset << FLOAT_SHIFT),
       memArray_, 
       getAddress(offsetBytes),
       copyBytes);
@@ -643,8 +644,8 @@ public class NativeMemory implements Memory {
     StringBuilder sb = new StringBuilder();
     sb.append(header).append(LS);
     String s1 = String.format("(..., %d, %d)", offsetBytes, lengthBytes);
-    sb.append(this.getClass().getSimpleName()).append(".toHexString").
-       append(s1).append(", hash: ").append(this.hashCode()).append(LS);
+    sb.append(this.getClass().getSimpleName()).append(".toHexString")
+      .append(s1).append(", hash: ").append(this.hashCode()).append(LS);
     sb.append("  MemoryRequest: ");
     if (memReq_ != null) {
       sb.append(memReq_.getClass().getSimpleName()).append(", hash: ").append(memReq_.hashCode());
@@ -684,7 +685,7 @@ public class NativeMemory implements Memory {
    * and the reference to MemoryRequest to null, which effectively disables this class. 
    * However, 
    * 
-   * It is always safe to call this method when you are done with this class.
+   * <p>It is always safe to call this method when you are done with this class.
    */
   public void freeMemory() {
     if (requiresFree()) {
@@ -736,13 +737,13 @@ public class NativeMemory implements Memory {
     sb.append(header).append(LS);
     sb.append("Raw Address         : ").append(nativeRawStartAddress_).append(LS);
     sb.append("Object Offset       : ").append(objectBaseOffset_).append(": ");
-    sb.append( (memArray_ == null)? "null" : memArray_.getClass().getSimpleName()).append(LS);
+    sb.append( (memArray_ == null) ? "null" : memArray_.getClass().getSimpleName()).append(LS);
     sb.append("Relative Offset     : ").append(offsetBytes).append(LS);
     sb.append("Total Offset        : ").append(unsafeRawAddress).append(LS);
     sb.append("Native Region       :  0  1  2  3  4  5  6  7");
     long j = offsetBytes;
     StringBuilder sb2 = new StringBuilder();
-    for (long i=0; i<lengthBytes; i++) {
+    for (long i = 0; i < lengthBytes; i++) {
       int b = unsafe.getByte(memArray_, unsafeRawAddress + i) & 0XFF;
       if ((i != 0) && ((i % 8) == 0)) {
         sb.append(String.format("%n%20s: ", j)).append(sb2);

@@ -37,7 +37,7 @@ final class HllUtils {
    * @return  the inverse integer power of 2: 1/(2^e) == 2^(-e)
    */
   static double invPow2(int e) {
-    assert (e | (1024 - e -1)) >= 0 : "e cannot be negative or greater than 1023: "+ e;
+    assert (e | (1024 - e - 1)) >= 0 : "e cannot be negative or greater than 1023: " + e;
     return Double.longBitsToDouble((0x3ffL - e) << 52); //suggested by Otmar Ertl
   }
   

@@ -5,9 +5,9 @@
 
 package com.yahoo.sketches.frequencies;
 
-import static com.yahoo.sketches.frequencies.Util.hash;
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.toLog2;
+import static com.yahoo.sketches.frequencies.Util.hash;
 
 import java.lang.reflect.Array;
 
@@ -96,7 +96,8 @@ class ReversePurgeItemHashMap<T> {
 
     if (states[probe] == 0) {
       // adding the key to the table the value
-      assert (numActive <= loadThreshold): "numActive: "+numActive+" > loadThreshold: "+loadThreshold;
+      assert (numActive <= loadThreshold) 
+        : "numActive: " + numActive + " > loadThreshold: " + loadThreshold;
       keys[probe] = key;
       values[probe] = adjustAmount;
       states[probe] = (short) drift;
@@ -141,8 +142,9 @@ class ReversePurgeItemHashMap<T> {
    * values are retained.
    */
   void adjustAllValuesBy(final long adjustAmount) {
-    for (int i = values.length; i-- > 0;)
+    for (int i = values.length; i-- > 0;) {
       values[i] += adjustAmount;
+    }
   }
 
   /**
@@ -153,12 +155,15 @@ class ReversePurgeItemHashMap<T> {
     if (numActive == 0) return null;
     T[] returnedKeys = null;
     int j = 0;
-    for (int i = 0; i < keys.length; i++)
+    for (int i = 0; i < keys.length; i++) {
       if (isActive(i)) {
-        if (returnedKeys == null) returnedKeys = (T[]) Array.newInstance(keys[i].getClass(), numActive);
+        if (returnedKeys == null) {
+          returnedKeys = (T[]) Array.newInstance(keys[i].getClass(), numActive);
+        }
         returnedKeys[j] = (T) keys[i];
         j++;
       }
+    }
     assert (j == numActive) : "j: " + j + " != numActive: " + numActive;
     return returnedKeys;
   }
@@ -310,8 +315,9 @@ class ReversePurgeItemHashMap<T> {
   private int hashProbe(final T key) {
     final int arrayMask = keys.length - 1;
     int probe = (int) hash(key.hashCode()) & arrayMask;
-    while (states[probe] > 0 && !keys[probe].equals(key))
+    while (states[probe] > 0 && !keys[probe].equals(key)) {
       probe = (probe + 1) & arrayMask;
+    }
     return probe;
   }
 

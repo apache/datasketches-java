@@ -94,7 +94,7 @@ public class SetOperationBuilder {
    */
   public SetOperationBuilder setP(float p) {
     if ((p <= 0.0) || (p > 1.0)) {
-      throw new SketchesArgumentException("p must be > 0 and <= 1.0: "+p);
+      throw new SketchesArgumentException("p must be > 0 and <= 1.0: " + p);
     }
     bP = p;
     return this;
@@ -184,7 +184,7 @@ public class SetOperationBuilder {
       }
       default: 
         throw new SketchesArgumentException(
-            "Given Family cannot be built as a SetOperation: "+family.toString());
+            "Given Family cannot be built as a SetOperation: " + family.toString());
     }
     return setOp;
   }  
@@ -243,13 +243,13 @@ public class SetOperationBuilder {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("SetOperationBuilder configuration:").append(LS).
-       append("LgK:").append(TAB).append(bLgNomLongs).append(LS).
-       append("K:").append(TAB).append(1 << bLgNomLongs).append(LS).
-       append("Seed:").append(TAB).append(bSeed).append(LS).
-       append("p:").append(TAB).append(bP).append(LS).
-       append("ResizeFactor:").append(TAB).append(bRF).append(LS).
-       append("DstMemory:").append(TAB).append(bDstMem != null).append(LS);
+    sb.append("SetOperationBuilder configuration:").append(LS)
+      .append("LgK:").append(TAB).append(bLgNomLongs).append(LS)
+      .append("K:").append(TAB).append(1 << bLgNomLongs).append(LS)
+      .append("Seed:").append(TAB).append(bSeed).append(LS)
+      .append("p:").append(TAB).append(bP).append(LS)
+      .append("ResizeFactor:").append(TAB).append(bRF).append(LS)
+      .append("DstMemory:").append(TAB).append(bDstMem != null).append(LS);
     return sb.toString();
   }
   

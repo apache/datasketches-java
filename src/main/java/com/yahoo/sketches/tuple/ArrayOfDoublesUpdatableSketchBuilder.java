@@ -5,11 +5,11 @@
 
 package com.yahoo.sketches.tuple;
 
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
-
-import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 
 /**
  * For building a new ArrayOfDoublesUpdatableSketch

@@ -5,13 +5,13 @@
 
 package com.yahoo.sketches.tuple;
 
+import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
+
 import java.util.Arrays;
 
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.memory.Memory;
-
-import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
-import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
 /**
  * The on-heap implementation of the set difference operation <i>A and not B</i> for
@@ -26,6 +26,7 @@ final class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
   private int count_;
   private final short seedHash_;
   private final int numValues_;
+  
   /**
    * Creates an instance of HeapArrayOfDoublesAnotB given a custom seed
    * @param numValues Number of double values to keep for each key.

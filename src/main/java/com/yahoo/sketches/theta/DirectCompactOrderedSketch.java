@@ -66,7 +66,7 @@ final class DirectCompactOrderedSketch extends CompactSketch {
         sketch.getRetainedEntries(true), //curCount_  set here 
         sketch.getThetaLong()            //thetaLong_ set here
         );
-    int emptyBit = isEmpty()? (byte) EMPTY_FLAG_MASK : 0;
+    int emptyBit = isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
     byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK);
     boolean ordered = true;
     long[] compactOrderedCache = 
@@ -90,7 +90,7 @@ final class DirectCompactOrderedSketch extends CompactSketch {
   DirectCompactOrderedSketch(long[] compactOrderedCache, boolean empty, short seedHash, int curCount, 
       long thetaLong, Memory dstMem) {
     super(empty, seedHash, curCount, thetaLong);
-    int emptyBit = isEmpty()? (byte) EMPTY_FLAG_MASK : 0;
+    int emptyBit = isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
     byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK);
     mem_ = loadCompactMemory(compactOrderedCache, empty, seedHash, curCount, thetaLong, dstMem, flags);
   }

@@ -11,8 +11,8 @@ package com.yahoo.sketches.tuple;
 public interface Summary {
 
   /**
-   * @return copy of the Summary
    * @param <S> type of summary
+   * @return copy of the Summary
    */
   public <S extends Summary> S copy();
 

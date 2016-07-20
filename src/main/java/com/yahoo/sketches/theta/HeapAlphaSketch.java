@@ -6,6 +6,9 @@
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.HashOperations.STRIDE_MASK;
+import static com.yahoo.sketches.Util.MIN_LG_ARR_LONGS;
+import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
+import static com.yahoo.sketches.Util.RESIZE_THRESHOLD;
 import static com.yahoo.sketches.theta.PreambleUtil.BIG_ENDIAN_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
@@ -28,17 +31,16 @@ import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountIncremente
 import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountNotIncremented;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedDuplicate;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedOverTheta;
-import static com.yahoo.sketches.Util.*;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.sqrt;
 
 import com.yahoo.sketches.Family;
-import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
+import com.yahoo.sketches.memory.Memory;
 
 /**
  * This sketch uses the 
@@ -84,16 +86,16 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     
     if (lgNomLongs < ALPHA_MIN_LG_NOM_LONGS) {
       throw new SketchesArgumentException(
-        "This sketch requires a minimum nominal entries of "+(1 << ALPHA_MIN_LG_NOM_LONGS));
+        "This sketch requires a minimum nominal entries of " + (1 << ALPHA_MIN_LG_NOM_LONGS));
     }
     
     double nomLongs = (1L << lgNomLongs);
     double alpha = nomLongs / (nomLongs + 1.0);
-    long split1 = (long) ((p * (alpha + 1.0)/2.0) * MAX_THETA_LONG_AS_DOUBLE);
+    long split1 = (long) ((p * (alpha + 1.0) / 2.0) * MAX_THETA_LONG_AS_DOUBLE);
     
     HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, seed, p, rf, alpha, split1);
     
-    int lgArrLongs = startingSubMultiple(lgNomLongs+1, rf, MIN_LG_ARR_LONGS);
+    int lgArrLongs = startingSubMultiple(lgNomLongs + 1, rf, MIN_LG_ARR_LONGS);
     has.lgArrLongs_ = lgArrLongs;
     has.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     has.curCount_ = 0; 
@@ -131,7 +133,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     if (family.equals(Family.ALPHA)) {
       if (preambleLongs != Family.ALPHA.getMinPreLongs()) {
         throw new SketchesArgumentException(
-            "Possible corruption: Invalid PreambleLongs value for ALPHA: " +preambleLongs);
+            "Possible corruption: Invalid PreambleLongs value for ALPHA: " + preambleLongs);
       }
     }
     else {
@@ -141,7 +143,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     
     if (serVer != SER_VER) {
       throw new SketchesArgumentException(
-          "Possible corruption: Invalid Serialization Version: "+serVer);
+          "Possible corruption: Invalid Serialization Version: " + serVer);
     }
     
     int flagsMask = ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
@@ -156,20 +158,20 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
     if (curCapBytes < minReqBytes) {
       throw new SketchesArgumentException(
-          "Possible corruption: Current Memory size < min required size: " + 
-              curCapBytes + " < " + minReqBytes);
+          "Possible corruption: Current Memory size < min required size: " 
+              + curCapBytes + " < " + minReqBytes);
     }
     
-    double theta = thetaLong/MAX_THETA_LONG_AS_DOUBLE;
+    double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
     if ((lgArrLongs <= lgNomLongs) && (theta < p) ) {
       throw new SketchesArgumentException(
-        "Possible corruption: Theta cannot be < p and lgArrLongs <= lgNomLongs. "+
-            lgArrLongs + " <= " + lgNomLongs + ", Theta: "+theta + ", p: " + p);
+        "Possible corruption: Theta cannot be < p and lgArrLongs <= lgNomLongs. " 
+            + lgArrLongs + " <= " + lgNomLongs + ", Theta: " + theta + ", p: " + p);
     }
     
     double nomLongs = (1L << lgNomLongs);
     double alpha = nomLongs / (nomLongs + 1.0);
-    long split1 = (long) ((p * (alpha + 1.0)/2.0) * MAX_THETA_LONG_AS_DOUBLE);
+    long split1 = (long) ((p * (alpha + 1.0) / 2.0) * MAX_THETA_LONG_AS_DOUBLE);
     
     HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, seed, p, myRF, alpha, split1);
     has.lgArrLongs_ = lgArrLongs;
@@ -189,7 +191,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     if (isEstimationMode()) {
       int curCount = getRetainedEntries(true);
       double theta = getTheta();
-      return (thetaLong_ > split1_)? curCount / theta : (1 << lgNomLongs_) / theta;
+      return (thetaLong_ > split1_) ? curCount / theta : (1 << lgNomLongs_) / theta;
     } 
     return curCount_;
   }
@@ -204,7 +206,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
       int validCount = getRetainedEntries(true);
       if (validCount > 0) {
         double est = getEstimate();
-        double var = getVariance(1<<lgNomLongs_, getP(), alpha_, getTheta(), validCount);
+        double var = getVariance(1 << lgNomLongs_, getP(), alpha_, getTheta(), validCount);
         lb = est - numStdDev * sqrt(var);
         lb = max(lb, 0.0);
       } 
@@ -235,7 +237,8 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
       throw new SketchesArgumentException("numStdDev can only be the values 1, 2 or 3.");
     }
     if (isEstimationMode()) {
-      double var = getVariance(1<<lgNomLongs_, getP(), alpha_, getTheta(), getRetainedEntries(true));
+      double var = 
+          getVariance(1 << lgNomLongs_, getP(), alpha_, getTheta(), getRetainedEntries(true));
       return getEstimate() + numStdDev * sqrt(var);
     }
     return curCount_;
@@ -268,7 +271,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   
   @Override
   public final void reset() {
-    int lgArrLongs = startingSubMultiple(lgNomLongs_+1, getResizeFactor(), MIN_LG_ARR_LONGS);
+    int lgArrLongs = startingSubMultiple(lgNomLongs_ + 1, getResizeFactor(), MIN_LG_ARR_LONGS);
     if (lgArrLongs == lgArrLongs_) {
       int arrLongs = cache_.length;
       assert (1 << lgArrLongs_) == arrLongs; 
@@ -343,9 +346,9 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     }
     //insertion occurred, must increment
     curCount_++;
-    int r = (thetaLong_ > split1_)? 0 : 1;  //are we in sketch mode? (i.e., seen k+1 inserts?)
+    int r = (thetaLong_ > split1_) ? 0 : 1;  //are we in sketch mode? (i.e., seen k+1 inserts?)
     if (r == 0) { //not yet sketch mode (has not seen k+1 inserts), but could be sampling
-      if (curCount_ > (1<<lgNomLongs_)) { // > k
+      if (curCount_ > (1 << lgNomLongs_)) { // > k
         //Reached the k+1 insert. Must be at tgt size or larger.
         //Transition to Sketch Mode. Happens only once.
         //Decrement theta, make dirty, don't bother check size, already not-empty.
@@ -520,29 +523,29 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   // @formatter:on
   private static final double getVariance(double k, double p, double alpha, double theta, 
       int count) {
-    double kPlus1 = k+1.0;
-    double y = 1.0/p;
-    double ySq = y*y;
+    double kPlus1 = k + 1.0;
+    double y = 1.0 / p;
+    double ySq = y * y;
     double ySqMinusY = ySq - y;
     int r = getR(theta, alpha, p);
     double result;
     if (r == 0) {
-      result = count*ySqMinusY;
+      result = count * ySqMinusY;
     } 
     else if (r == 1) {
-      result = kPlus1*ySqMinusY; //term1
+      result = kPlus1 * ySqMinusY; //term1
     } 
     else { //r > 1
-      double b = 1.0/alpha;
-      double bSq = b*b;
-      double x = p/theta;
-      double xSq = x*x;
-      double term1 = kPlus1*ySqMinusY;
-      double term2 = y/(1.0 - bSq);
-      double term3 = (y*bSq - y*xSq - b - bSq + x + x*b);
+      double b = 1.0 / alpha;
+      double bSq = b * b;
+      double x = p / theta;
+      double xSq = x * x;
+      double term1 = kPlus1 * ySqMinusY;
+      double term2 = y / (1.0 - bSq);
+      double term3 = (y * bSq - y * xSq - b - bSq + x + x * b);
       result = term1 + term2 * term3;
     }
-    double term4 = (1-theta)/(theta*theta);
+    double term4 = (1 - theta) / (theta * theta);
     return result + term4;
   }
   
@@ -555,7 +558,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    * @return R.
    */
   private static final int getR(double theta, double alpha, double p) {
-    double split1 = p * (alpha + 1.0)/2.0;
+    double split1 = p * (alpha + 1.0) / 2.0;
     if (theta > split1) return 0;
     if (theta > (alpha * split1)) return 1;
     return 2;

@@ -64,9 +64,9 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
         SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch.ordinal());
     final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
     mem_.putByte(FLAGS_BYTE, (byte) (
-      (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0) |
-      (samplingProbability < 1f ? 1 << Flags.IS_IN_SAMPLING_MODE.ordinal() : 0) |
-      (1 << Flags.IS_EMPTY.ordinal())
+      (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0) 
+      | (samplingProbability < 1f ? 1 << Flags.IS_IN_SAMPLING_MODE.ordinal() : 0) 
+      | (1 << Flags.IS_EMPTY.ordinal())
     ));
     mem_.putByte(NUM_VALUES_BYTE, (byte) numValues);
     mem_.putShort(SEED_HASH_SHORT, Util.computeSeedHash(seed));
@@ -98,8 +98,8 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
         SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch);
     final byte version = mem_.getByte(SERIAL_VERSION_BYTE);
     if (version != serialVersionUID) {
-      throw new SketchesArgumentException("Serial version mismatch. Expected: " + serialVersionUID + 
-          ", actual: " + version);
+      throw new SketchesArgumentException("Serial version mismatch. Expected: " + serialVersionUID 
+          + ", actual: " + version);
     }
     final boolean isBigEndian = 
         mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_BIG_ENDIAN.ordinal()));
@@ -169,7 +169,9 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
   @Override
   protected void incrementCount() {
     int count = mem_.getInt(RETAINED_ENTRIES_INT);
-    if (count == 0) mem_.setBits(FLAGS_BYTE, (byte) (1 << Flags.HAS_ENTRIES.ordinal()));
+    if (count == 0) {
+      mem_.setBits(FLAGS_BYTE, (byte) (1 << Flags.HAS_ENTRIES.ordinal()));
+    }
     mem_.putInt(RETAINED_ENTRIES_INT, count + 1);
   }
 
@@ -286,8 +288,8 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
     final int sizeNeeded = 
         ENTRIES_START + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues) * numEntries;
     if (sizeNeeded > mem.getCapacity()) {
-      throw new SketchesArgumentException("Not enough memory: need " + 
-          sizeNeeded + " bytes, got " + mem.getCapacity() + " bytes");
+      throw new SketchesArgumentException("Not enough memory: need " 
+          + sizeNeeded + " bytes, got " + mem.getCapacity() + " bytes");
     }
   }
 

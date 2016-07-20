@@ -1044,10 +1044,11 @@ final class Interpolation {
   };
 
   static double cubicInterpolateUsingTable(double[] xArr, double[] yArr, double x) {
-    assert (xArr.length >= 4 && xArr.length == yArr.length && x >= xArr[0] && x<= xArr[xArr.length - 1]);
+    assert (xArr.length >= 4 && xArr.length == yArr.length && x >= xArr[0] 
+        && x <= xArr[xArr.length - 1]);
     if (x == xArr[xArr.length - 1]) return yArr[yArr.length - 1]; // corner case
     int offset = findStraddle(xArr, x);
-    assert(offset >= 0 && offset <= xArr.length - 2);
+    assert (offset >= 0 && offset <= xArr.length - 2);
     if (offset == 0) return cubicInterpolateAux(xArr, yArr, offset, x); // corner case
     if (offset == xArr.length - 2) return cubicInterpolateAux(xArr, yArr, offset - 2, x); // corner case
     return cubicInterpolateAux(xArr, yArr, offset - 1, x);

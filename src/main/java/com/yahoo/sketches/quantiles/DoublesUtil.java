@@ -5,8 +5,8 @@
 
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.Util.checkIfPowerOf2;
 import static com.yahoo.sketches.Util.LS;
+import static com.yahoo.sketches.Util.checkIfPowerOf2;
 import static java.lang.System.arraycopy;
 
 import java.util.Arrays;
@@ -138,7 +138,7 @@ final class DoublesUtil {
           k);
       DoublesUtil.zipSize2KBuffer(
           size2KBuf, size2KStart,
-          levelsArr, (2+endingLevel) * k,
+          levelsArr, (2 + endingLevel) * k,
           k);
     } // end of loop over lower levels
 
@@ -205,21 +205,21 @@ final class DoublesUtil {
       tgt.update(sourceBaseBuffer[i]);
     }
 
-    maybeGrowLevels (nFinal, tgt); 
+    maybeGrowLevels(nFinal, tgt); 
 
-    final double[] scratchBuf = new double [2*targetK];
+    final double[] scratchBuf = new double [2 * targetK];
     final double[] downBuf    = new double [targetK];
 
     long srcBitPattern = src.getBitPattern();
     for (int srcLvl = 0; srcBitPattern != 0L; srcLvl++, srcBitPattern >>>= 1) {
       if ((srcBitPattern & 1L) > 0L) {
-        DoublesUtil.justZipWithStride (
-            sourceLevels, ((2+srcLvl) * sourceK),
+        DoublesUtil.justZipWithStride(
+            sourceLevels, ((2 + srcLvl) * sourceK),
             downBuf, 0,
             targetK,
             downFactor);
-        inPlacePropagateCarry (
-            srcLvl+lgDownFactor,
+        inPlacePropagateCarry(
+            srcLvl + lgDownFactor,
             downBuf, 0,
             scratchBuf, 0,
             false, tgt);
@@ -519,7 +519,7 @@ final class DoublesUtil {
       sb.append("   Valid | Level");
       for (int j = 2 * k; j < combBufSize; j++) { //output level data starting at 2K
         if (j % k == 0) { //start output of new level
-          final int levelNum = j/k -2;
+          final int levelNum = j / k - 2;
           final String validLvl = ((1L << levelNum) & bitPattern) > 0 ? "    T  " : "    F  ";
           final String lvl = String.format("%5d", levelNum);
           sb.append(Util.LS).append("   ").append(validLvl).append(" ").append(lvl).append(": ");
@@ -546,14 +546,14 @@ final class DoublesUtil {
     final int preBytes = empty ? Long.BYTES : 2 * Long.BYTES;
     final int retItems = sketch.getRetainedItems();
     final String retItemsStr = String.format("%,d", retItems);
-    final int bytes = preBytes + (retItems +2) * Double.BYTES;
+    final int bytes = preBytes + (retItems + 2) * Double.BYTES;
     final double eps = Util.EpsilonFromK.getAdjustedEpsilon(k);
     final String epsPct = String.format("%.3f%%", eps * 100.0);
 
     sb.append(Util.LS).append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
     sb.append("   K                            : ").append(k).append(LS);
     sb.append("   N                            : ").append(nStr).append(LS);
-    sb.append("   Levels (Total, Valid)        : ").append(totLevels+", "+validLevels).append(LS);
+    sb.append("   Levels (Total, Valid)        : ").append(totLevels + ", " + validLevels).append(LS);
     sb.append("   Level Bit Pattern            : ").append(Long.toBinaryString(bitPattern)).append(LS);
     sb.append("   BaseBufferCount              : ").append(bbCount).append(LS);
     sb.append("   Retained Items               : ").append(retItemsStr).append(LS);
@@ -574,18 +574,18 @@ final class DoublesUtil {
     int bbCount = Util.computeBaseBufferItems(k, n);
     int ret = Util.computeRetainedItems(k, n);
     sb.append("BaseBuffer Data:");
-    for (int i=0; i<bbCount; i++) {
-      double d = mem.getDouble(32+i*8);
+    for (int i = 0; i < bbCount; i++) {
+      double d = mem.getDouble(32 + i * 8);
       if (i % k != 0) sb.append(String.format(fmt2, d));
       else sb.append(String.format(fmt1, d));
     }
-    sb.append(LS+LS+"Level Data:");
-    for (int i=0; i<ret-bbCount; i++) {
-      double d = mem.getDouble(32+i*8 +bbCount*8);
+    sb.append(LS + LS + "Level Data:");
+    for (int i = 0; i < ret - bbCount; i++) {
+      double d = mem.getDouble(32 + i * 8 + bbCount * 8);
       if (i % k != 0) sb.append(String.format(fmt2, d));
       else sb.append(String.format(fmt1, d));
     }
-    sb.append(LS+"### END DATA DETAIL").append(LS);
+    sb.append(LS + "### END DATA DETAIL").append(LS);
     return sb.toString();
   }
   

@@ -69,7 +69,7 @@ final class HeapCompactOrderedSketch extends CompactSketch {
       long thetaLong) {
     super(empty, seedHash, curCount, thetaLong);
     assert compactOrderedCache != null;
-    cache_ = (curCount == 0)? new long[0] : compactOrderedCache;
+    cache_ = (curCount == 0) ? new long[0] : compactOrderedCache;
   }
   
   //Sketch interface
@@ -78,7 +78,7 @@ final class HeapCompactOrderedSketch extends CompactSketch {
   public byte[] toByteArray() {
     byte[] byteArray = new byte[getCurrentBytes(true)];
     Memory dstMem = new NativeMemory(byteArray);
-    int emptyBit = isEmpty()? (byte) EMPTY_FLAG_MASK : 0;
+    int emptyBit = isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
     byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK);
     loadCompactMemory(getCache(), isEmpty(), getSeedHash(), getRetainedEntries(true),
         getThetaLong(), dstMem, flags);
