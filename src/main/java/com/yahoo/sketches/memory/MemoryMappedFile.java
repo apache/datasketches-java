@@ -15,8 +15,9 @@ import java.nio.channels.FileChannel;
 import sun.nio.ch.FileChannelImpl;
 
 /**
- * MemoryMappedFile class extends NativeMemory and is used to memory map files (including those > 2GB)
- * off heap. It is the responsibility of the calling class to free the memory.
+ * MemoryMappedFile class extends NativeMemory and is used to memory map files 
+ * (including those &gt; 2GB) off heap. It is the responsibility of the calling class to free the 
+ * memory.
  *
  * <p>This is a little bit backwards: By rights MemoryMappedFile should be a
  * subclass of AllocMemory, but to keep the spec clear and simple,
@@ -58,14 +59,17 @@ public class MemoryMappedFile extends NativeMemory {
     MemoryMappedFile(long objectBaseOffset, Object memArray, ByteBuffer byteBuf) {
         super(objectBaseOffset, memArray, byteBuf);
     }
+    
     //pass-through
     MemoryMappedFile(byte[] byteArray) {
         super(byteArray);
     }
+    
     //pass-through
     MemoryMappedFile(long[] longArray) {
         super(longArray);
     }
+    
     //pass-through
     MemoryMappedFile(ByteBuffer byteBuf) {
         super(byteBuf);
@@ -88,7 +92,7 @@ public class MemoryMappedFile extends NativeMemory {
         int ps = unsafe.pageSize();
         int count = pageCount(ps, capacityBytes_);
         long a = nativeRawStartAddress_;
-        for (int i=0; i<count; i++) {
+        for (int i = 0; i < count; i++) {
             unsafe.getByte(a);
             a += ps;
         }
@@ -108,10 +112,10 @@ public class MemoryMappedFile extends NativeMemory {
     protected void finalize() {
         if (requiresFree()) {
             System.err.println(
-                    "ERROR: freeMemory() has not been called: Address: "+ nativeRawStartAddress_ +
-                            ", capacity: " + capacityBytes_);
+                    "ERROR: freeMemory() has not been called: Address: " + nativeRawStartAddress_ 
+                    + ", capacity: " + capacityBytes_);
             java.lang.StackTraceElement[] arr = Thread.currentThread().getStackTrace();
-            for (int i=0; i<arr.length; i++) {
+            for (int i = 0; i < arr.length; i++) {
                 System.err.println(arr[i].toString());
             }
         }
@@ -137,7 +141,7 @@ public class MemoryMappedFile extends NativeMemory {
 
     private static int pageCount(int ps, long length) {
         long s = 1;
-        while (s*ps < length) {
+        while (s * ps < length) {
             s++;
         }
         return (int)s;
