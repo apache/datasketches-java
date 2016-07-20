@@ -25,7 +25,7 @@ import sun.nio.ch.FileChannelImpl;
  * memory.
  *
  * <p>This is a little bit backwards: By rights MemoryMappedFile should be a
- * subclass of AllocMemory, but to keep the spec clear and simple,
+ * subclass of AllocMemory, but to keep the specification clear and simple,
  * it's easier to do it the other way around.
  *
  * @author Praveenkumar Venkatesan
@@ -63,21 +63,6 @@ public class MemoryMappedFile extends NativeMemory {
     //pass-through
     MemoryMappedFile(long objectBaseOffset, Object memArray, ByteBuffer byteBuf) {
         super(objectBaseOffset, memArray, byteBuf);
-    }
-    
-    //pass-through
-    MemoryMappedFile(byte[] byteArray) {
-        super(byteArray);
-    }
-    
-    //pass-through
-    MemoryMappedFile(long[] longArray) {
-        super(longArray);
-    }
-    
-    //pass-through
-    MemoryMappedFile(ByteBuffer byteBuf) {
-        super(byteBuf);
     }
 
     /**
