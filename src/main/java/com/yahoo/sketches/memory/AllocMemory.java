@@ -51,8 +51,8 @@ public class AllocMemory extends MemoryMappedFile {
   /**
    * Constructor for reallocate native memory.
    * 
-   * <p>Reallocates the given off-heap NativeMemory to a new a new native (off-heap) memory location; 
-   * copies the contents of the original given NativeMemory to the new location. 
+   * <p>Reallocates the given off-heap NativeMemory to a new a new native (off-heap) memory 
+   * location and copies the contents of the original given NativeMemory to the new location. 
    * Any memory beyond the capacity of the original given NativeMemory will be uninitialized. 
    * Dispose of this new memory by calling {@link NativeMemory#freeMemory()}. 
    * @param origMem The original NativeMemory that needs to be reallocated and must not be null. 
@@ -66,7 +66,8 @@ public class AllocMemory extends MemoryMappedFile {
    */
   public AllocMemory(NativeMemory origMem, long newCapacityBytes, MemoryRequest memReq) {
     super(0L, null, null);
-    super.nativeRawStartAddress_ = unsafe.reallocateMemory(origMem.nativeRawStartAddress_, newCapacityBytes);
+    super.nativeRawStartAddress_ = unsafe.reallocateMemory(origMem.nativeRawStartAddress_, 
+        newCapacityBytes);
     super.capacityBytes_ = newCapacityBytes;
     this.memReq_ = memReq;
     origMem.nativeRawStartAddress_ = 0; //does not require freeMem
@@ -76,8 +77,8 @@ public class AllocMemory extends MemoryMappedFile {
   /**
    * Constructor for allocate native memory, copy and clear.
    * 
-   * <p>Allocate a new native (off-heap) memory with capacityBytes; copy the contents of origMem from
-   * zero to copyToBytes; clear the new memory from copyToBytes to capacityBytes.
+   * <p>Allocate a new native (off-heap) memory with capacityBytes; copy the contents of origMem 
+   * from zero to copyToBytes; clear the new memory from copyToBytes to capacityBytes.
    * @param origMem The original NativeMemory, a portion of which will be copied to the 
    * newly allocated Memory. 
    * The reference must not be null.
@@ -88,7 +89,8 @@ public class AllocMemory extends MemoryMappedFile {
    * upper limit of the region to be cleared. 
    * @param memReq The MemoryRequest callback, which may be null.
    */
-  public AllocMemory(NativeMemory origMem, long copyToBytes, long capacityBytes, MemoryRequest memReq) {
+  public AllocMemory(NativeMemory origMem, long copyToBytes, long capacityBytes, 
+      MemoryRequest memReq) {
     super(0L, null, null);
     super.nativeRawStartAddress_ = unsafe.allocateMemory(capacityBytes);
     super.capacityBytes_ = capacityBytes;
