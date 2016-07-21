@@ -9,7 +9,6 @@ import static com.yahoo.sketches.memory.UnsafeUtil.unsafe;
 
 import java.io.File;
 import java.io.FileDescriptor;
-import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -24,17 +23,13 @@ import sun.nio.ch.FileChannelImpl;
  * (including those &gt; 2GB) off heap. It is the responsibility of the calling class to free the 
  * memory.
  *
- * <p>This is a little bit backwards: By rights MemoryMappedFile should be a
- * subclass of AllocMemory, but to keep the specification clear and simple,
- * it's easier to do it the other way around.
- *
  * @author Praveenkumar Venkatesan
  */
 public class MemoryMappedFile extends NativeMemory {
 
     private FileChannel fileChannel_ = null;
     private RandomAccessFile randomAccessFile_ = null;
-    private MappedByteBuffer dummyMbbInstance_= null;
+    private MappedByteBuffer dummyMbbInstance_ = null;
 
     /**
      * Constructor for memory mapping a file.
@@ -45,7 +40,7 @@ public class MemoryMappedFile extends NativeMemory {
      * @param position - memory map starting from this position in the file
      * @param len - Memory map at most len bytes &gt; 0 starting from {@code position}
      *
-     * @throws FileNotFoundException file not found
+     * @throws Exception file not found or RuntimeException, etc.
      */
     public MemoryMappedFile(File file, long position, long len) throws Exception {
         super(0L, null, null);
@@ -74,7 +69,8 @@ public class MemoryMappedFile extends NativeMemory {
      * resident in physical memory. Invoking this method may cause some number of page faults 
      * and I/O operations to occur.
      *
-     * http://docs.oracle.com/javase/8/docs/api/java/nio/MappedByteBuffer.html#load--
+     * @see <a href="http://docs.oracle.com/javase/8/docs/api/java/nio/MappedByteBuffer.html#load--">
+     * java/nio/MappedByteBuffer.load</a>
      */
     public void load() {
         madvise();
@@ -98,8 +94,11 @@ public class MemoryMappedFile extends NativeMemory {
      * in physical memory. The returned value is a hint, rather than a guarantee,
      * because the underlying operating system may have paged out some of the buffer's data
      * by the time that an invocation of this method returns.
-     *
-     * http://docs.oracle.com/javase/8/docs/api/java/nio/MappedByteBuffer.html#isLoaded--
+     * 
+     * @return true if loaded
+     * 
+     * @see <a href="http://docs.oracle.com/javase/8/docs/api/java/nio/MappedByteBuffer.html#isLoaded--">
+     * java/nio/MappedByteBuffer.isLoaded</a>
      */
     public boolean isLoaded() {
         try {
@@ -126,6 +125,10 @@ public class MemoryMappedFile extends NativeMemory {
         super.freeMemory();
     }
 
+    /**
+     * If the JVM calls this method and a "freeMemory() has not been called" a <i>System.err</i>
+     * message will be logged.
+     */
     @Override
     protected void finalize() {
         if (requiresFree()) {

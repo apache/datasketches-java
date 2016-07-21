@@ -104,13 +104,4 @@ public class AllocMemory extends MemoryMappedFile {
     super.freeMemory();
   }
   
-  /**
-   * If the JVM calls this method and a "freeMemory() has not been called" a <i>System.err</i>
-   * message will be logged.
-   */
-  @Override
-  protected void finalize() {
-    super.finalize();
-  }
-  
 }

@@ -16,7 +16,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 /**
- * Created by Praveenkumar Venkatesan on 7/19/16.
+ * @author Praveenkumar Venkatesan
  */
 public class MemoryMappedFileTest {
 
@@ -27,6 +27,7 @@ public class MemoryMappedFileTest {
         file = new File(getClass().getClassLoader().getResource("memory_mapped.txt").getFile());
     }
 
+    @SuppressWarnings("unused")
     @Test
     public void testMapException() {
         File dummy = new File(getClass().getClassLoader().getResource("dummy.txt").getFile());
@@ -41,6 +42,7 @@ public class MemoryMappedFileTest {
         assertFalse(true);
     }
 
+    @SuppressWarnings("unused")
     @Test
     public void testIllegalArgumentException() {
 
