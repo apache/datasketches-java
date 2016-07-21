@@ -13,6 +13,7 @@ import java.io.FileNotFoundException;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 /**
  * Created by Praveenkumar Venkatesan on 7/19/16.
@@ -26,9 +27,35 @@ public class MemoryMappedFileTest {
         file = new File(getClass().getClassLoader().getResource("memory_mapped.txt").getFile());
     }
 
+    @Test
+    public void testMapException() {
+        File dummy = new File(getClass().getClassLoader().getResource("dummy.txt").getFile());
+
+        try {
+            new MemoryMappedFile(dummy, 0, dummy.length());
+        } catch (Exception e) {
+            assertTrue(true);
+            return;
+        }
+
+        assertFalse(true);
+    }
 
     @Test
-    public void checkMemoryMapAndFree() {
+    public void testIllegalArgumentException() {
+
+        try {
+            new MemoryMappedFile(file, 0, Integer.MAX_VALUE);
+        } catch (Exception e) {
+            assertTrue(true);
+            return;
+        }
+
+        assertFalse(true);
+    }
+
+    @Test
+    public void testMemoryMapAndFree() {
         long memCapacity = file.length();
 
         MemoryMappedFile mmf = null;
@@ -37,16 +64,32 @@ public class MemoryMappedFileTest {
             assertEquals(memCapacity, mmf.getCapacity());
             mmf.freeMemory();
             assertEquals(0L, mmf.getCapacity());
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
             assertFalse(true);
         }
     }
 
     @Test
-    public void checkReadByAnotherProcess() {
+    public void testMultipleUnMaps() {
         MemoryMappedFile mmf = null;
         try {
             mmf = new MemoryMappedFile(file, 0, file.length());
+            mmf.freeMemory();
+            mmf.freeMemory();
+        } catch (Exception e) {
+            assertTrue(true);
+            return;
+        }
+        assertFalse(true);
+
+    }
+
+    @Test
+    public void testReadByAnotherProcess() {
+        MemoryMappedFile mmf = null;
+        try {
+            mmf = new MemoryMappedFile(file, 0, file.length());
+            mmf.load();
             char[] cbuf = new char[500];
             mmf.getCharArray(500, cbuf, 0, 500);
             CharArrayReader car = new CharArrayReader(cbuf);
@@ -66,7 +109,7 @@ public class MemoryMappedFileTest {
     }
 
     @Test
-    public void checkReadFailAfterFree() {
+    public void testReadFailAfterFree() {
         MemoryMappedFile mmf = null;
         try {
             mmf = new MemoryMappedFile(file, 0, file.length());
@@ -81,4 +124,17 @@ public class MemoryMappedFileTest {
             assertFalse(true);
         }
     }
+
+    @Test
+    public void testLoad() throws Exception {
+        MemoryMappedFile mmf = null;
+        try {
+            mmf = new MemoryMappedFile(file, 0, file.length());
+            mmf.load();
+            assertTrue(mmf.isLoaded());
+        } catch (FileNotFoundException e) {
+            assertFalse(true);
+        }
+    }
+
 }
