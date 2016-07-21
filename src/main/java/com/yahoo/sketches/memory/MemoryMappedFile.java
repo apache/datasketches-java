@@ -32,8 +32,9 @@ import sun.nio.ch.FileChannelImpl;
  */
 public class MemoryMappedFile extends NativeMemory {
 
-    private FileChannel fileChannel = null;
-    private RandomAccessFile randomAccessFile = null;
+    private FileChannel fileChannel_ = null;
+    private RandomAccessFile randomAccessFile_ = null;
+    private MappedByteBuffer dummyMbbInstance_= null;
 
     /**
      * Constructor for memory mapping a file.
@@ -42,22 +43,24 @@ public class MemoryMappedFile extends NativeMemory {
      * FileChannelImpl.c. The owner will have read write access to that address space.</p>
      * @param file - File to be mapped
      * @param position - memory map starting from this position in the file
-     * @param len - memory map at most len bytes starting from {@code position}
+     * @param len - Memory map at most len bytes &gt; 0 starting from {@code position}
      *
      * @throws FileNotFoundException file not found
      */
-    public MemoryMappedFile(File file, long position, long len) throws FileNotFoundException {
+    public MemoryMappedFile(File file, long position, long len) throws Exception {
         super(0L, null, null);
 
         if (len > file.length()) {
             throw new IllegalArgumentException("Can only map at most the length of a file");
         }
 
-        this.randomAccessFile = new RandomAccessFile(file, "rw");
-        this.fileChannel = randomAccessFile.getChannel();
+        this.randomAccessFile_ = new RandomAccessFile(file, "rw");
+        this.fileChannel_ = randomAccessFile_.getChannel();
         super.nativeRawStartAddress_ = map(position, len);
         super.capacityBytes_ = len;
         super.memReq_ = null;
+
+        createDummyMbbInstance();
     }
     
     //pass-through
@@ -70,12 +73,10 @@ public class MemoryMappedFile extends NativeMemory {
      * This method makes a best effort to ensure that, when it returns, this buffer's content is 
      * resident in physical memory. Invoking this method may cause some number of page faults 
      * and I/O operations to occur.
+     *
+     * http://docs.oracle.com/javase/8/docs/api/java/nio/MappedByteBuffer.html#load--
      */
     public void load() {
-        if (capacityBytes_ == 0) {
-            return;
-        }
-
         madvise();
 
         // Read a byte from each page to bring it into memory.
@@ -88,9 +89,36 @@ public class MemoryMappedFile extends NativeMemory {
         }
     }
 
+    /**
+     * Tells whether or not the content is resident in physical memory.
+     * A return value of true implies that it is highly likely that all of the data in this buffer
+     * is resident in physical memory and may therefore be accessed without incurring
+     * any virtual-memory page faults or I/O operations.
+     * A return value of false does not necessarily imply that the content is not resident
+     * in physical memory. The returned value is a hint, rather than a guarantee,
+     * because the underlying operating system may have paged out some of the buffer's data
+     * by the time that an invocation of this method returns.
+     *
+     * http://docs.oracle.com/javase/8/docs/api/java/nio/MappedByteBuffer.html#isLoaded--
+     */
+    public boolean isLoaded() {
+        try {
+            int ps = unsafe.pageSize();
+            int pageCount = pageCount(ps, capacityBytes_);
+            Method method = MappedByteBuffer.class.getDeclaredMethod("isLoaded0", long.class,
+                    long.class, int.class);
+            method.setAccessible(true);
+            return (boolean) method.invoke(
+                    dummyMbbInstance_, nativeRawStartAddress_, capacityBytes_, pageCount);
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    String.format("Encountered %s exception while loading", e.getClass()));
+        }
+    }
+
     @Override
     public void freeMemory() {
-        if (fileChannel != null) {
+        if (fileChannel_ != null) {
             unmap();
             nativeRawStartAddress_ = 0L;
         }
@@ -121,8 +149,8 @@ public class MemoryMappedFile extends NativeMemory {
             Method method = 
                 FileChannelImpl.class.getDeclaredMethod("unmap0", long.class, long.class);
             method.setAccessible(true);
-            method.invoke(fileChannel, nativeRawStartAddress_, capacityBytes_);
-            randomAccessFile.close();
+            method.invoke(fileChannel_, nativeRawStartAddress_, capacityBytes_);
+            randomAccessFile_.close();
         } catch (Exception e) {
             throw new RuntimeException(
                 String.format("Encountered %s exception while freeing memory", e.getClass()));
@@ -137,10 +165,7 @@ public class MemoryMappedFile extends NativeMemory {
         return (int)s;
     }
 
-    /**
-     * madvise is a system call made by load0 native method
-     */
-    private void madvise() throws RuntimeException {
+    private void createDummyMbbInstance() throws RuntimeException {
         try {
             Class<?> cl = Class.forName("java.nio.DirectByteBuffer");
             Constructor<?> ctor = cl.getDeclaredConstructor(
@@ -149,15 +174,25 @@ public class MemoryMappedFile extends NativeMemory {
                     FileDescriptor.class,
                     Runnable.class);
             ctor.setAccessible(true);
-            MappedByteBuffer dbb = (MappedByteBuffer) ctor.newInstance(
+            dummyMbbInstance_ = (MappedByteBuffer) ctor.newInstance(
                     0, // some junk capacity
                     nativeRawStartAddress_,
                     null,
                     null);
-            Method method = MappedByteBuffer.class.getDeclaredMethod("load0", long.class, 
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * madvise is a system call made by load0 native method
+     */
+    private void madvise() throws RuntimeException {
+        try {
+            Method method = MappedByteBuffer.class.getDeclaredMethod("load0", long.class,
                 long.class);
             method.setAccessible(true);
-            method.invoke(dbb, nativeRawStartAddress_, capacityBytes_);
+            method.invoke(dummyMbbInstance_, nativeRawStartAddress_, capacityBytes_);
         } catch (Exception e) {
             throw new RuntimeException(
                 String.format("Encountered %s exception while loading", e.getClass()));
@@ -173,22 +208,16 @@ public class MemoryMappedFile extends NativeMemory {
         int pagePosition = (int)(position % unsafe.pageSize());
         long mapPosition = position - pagePosition;
         long mapSize = len + pagePosition;
-        long addr = -1;
 
         try {
-            Method method = FileChannelImpl.class.getDeclaredMethod("map0", int.class, long.class, 
+            Method method = FileChannelImpl.class.getDeclaredMethod("map0", int.class, long.class,
                 long.class);
             method.setAccessible(true);
-            addr = (long)method.invoke(fileChannel, 1, mapPosition, mapSize);
+            long addr = (long)method.invoke(fileChannel_, 1, mapPosition, mapSize);
+            return addr;
         } catch (Exception e) {
             throw new RuntimeException(String.format("Encountered %s exception while mapping",
                 e.getClass()));
         }
-
-        if (addr < 0) {
-            throw new RuntimeException("Negative values are invalid addresses");
-        }
-
-        return addr;
     }
 }
