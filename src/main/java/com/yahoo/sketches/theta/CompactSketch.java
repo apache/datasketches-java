@@ -6,10 +6,7 @@
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.Family.stringToFamily;
-import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
-import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
 import static com.yahoo.sketches.theta.PreambleUtil.insertCurCount;
 import static com.yahoo.sketches.theta.PreambleUtil.insertFamilyID;
 import static com.yahoo.sketches.theta.PreambleUtil.insertFlags;
@@ -216,18 +213,6 @@ public abstract class CompactSketch extends Sketch {
     }
     dstMem.putLongArray(0, outArr, 0, outLongs);
     return dstMem;
-  }
-  
-  static final int getCurCount(Memory srcMem) {
-    int preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    int curCount = (preLongs > 1) ? srcMem.getInt(RETAINED_ENTRIES_INT) : 0;
-    return curCount;
-  }
-  
-  static final long getThetaLong(Memory srcMem) {
-    int preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    long thetaLong = (preLongs > 2) ? srcMem.getLong(THETA_LONG) : Long.MAX_VALUE;
-    return thetaLong;
   }
   
 }

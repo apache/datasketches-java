@@ -74,7 +74,7 @@ final class HeapDoublesSketch extends DoublesSketch {
    * 
    * <p>Pattern = N / (2 * K)
    */
-  long bitPattern_; //TODO need this?
+  long bitPattern_;
 
   /**
    * This single array contains the base buffer plus all levels some of which may not be used.
@@ -303,9 +303,9 @@ final class HeapDoublesSketch extends DoublesSketch {
     minValue_ = java.lang.Double.POSITIVE_INFINITY;
     maxValue_ = java.lang.Double.NEGATIVE_INFINITY;
   }
-
+  
   @Override
-  public byte[] toByteArray() {
+  public byte[] toByteArray(boolean sort) {
     int preLongs, arrLongs, flags;
     boolean empty = isEmpty();
     
@@ -344,6 +344,9 @@ final class HeapDoublesSketch extends DoublesSketch {
     int bbItems = computeBaseBufferItems(k_, n_);
     int offsetBytes = (preLongs + 2) << 3;
     if ((bbItems < 2 * k_) && (bbItems > 0)) {
+      if (sort)  {
+        Arrays.sort(combinedBuffer_, 0, bbItems);
+      }
       memOut.putDoubleArray(offsetBytes , combinedBuffer_, 0, bbItems);
       offsetBytes += Double.BYTES * bbItems;
     }
@@ -372,8 +375,8 @@ final class HeapDoublesSketch extends DoublesSketch {
   }
   
   @Override
-  public void putMemory(Memory dstMem) {
-    byte[] byteArr = toByteArray();
+  public void putMemory(Memory dstMem, boolean sort) {
+    byte[] byteArr = toByteArray(sort);
     int arrLen = byteArr.length;
     long memCap = dstMem.getCapacity();
     if (memCap < arrLen) {

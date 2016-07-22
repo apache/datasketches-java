@@ -436,10 +436,10 @@ public class HeapDoublesSketchTest {
   @Test
   public void checkToFromByteArray() {
     int k = DoublesSketch.DEFAULT_K;
-    int n = 1000;
+    int n = 1300; //generates a pattern of 5 = (101)
     DoublesSketch qs = buildQS(k,n);
     
-    byte[] byteArr = qs.toByteArray();
+    byte[] byteArr = qs.toByteArray(true);
     Memory mem = new NativeMemory(byteArr);
     DoublesSketch qs2 = DoublesSketch.heapify(mem);
     for (double f = 0.1; f < 0.95; f += 0.1) {

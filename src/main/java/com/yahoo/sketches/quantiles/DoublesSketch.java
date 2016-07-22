@@ -333,10 +333,22 @@ public abstract class DoublesSketch {
 
   /**
    * Serialize this sketch to a byte array form. 
+   * This does not sort the base buffer.
    * @return byte array of this sketch
    */
-  public abstract byte[] toByteArray();
+  public byte[] toByteArray() {
+    return toByteArray(false);
+  }
 
+  /**
+   * Serialize this sketch to a byte array form. 
+   * @param sort if true, this sorts the base buffer, which optimizes merge performance at
+   * the cost of slightly increased serialization time. 
+   * In real-time build-and-merge environments, this may not be desirable. 
+   * @return byte array of this sketch
+   */
+  public abstract byte[] toByteArray(boolean sort);
+  
   /**
    * Returns summary information about this sketch.
    */
@@ -394,11 +406,23 @@ public abstract class DoublesSketch {
 
   /**
    * Puts the current sketch into the given Memory if there is sufficient space.
-   * Otherwise, throws an error.
+   * Otherwise, throws an error. This sorts the base buffer based on the given sort flag.
+   * @param dstMem the given memory.
+   * @param sort if true, this sorts the base buffer, which optimizes merge performance at
+   * the cost of slightly increased serialization time. 
+   * In real-time build-and-merge environments, this may not be desirable. 
+   */
+  public abstract void putMemory(Memory dstMem, boolean sort);
+  
+  /**
+   * Puts the current sketch into the given Memory if there is sufficient space.
+   * Otherwise, throws an error. This does not sort the base buffer.
    * 
    * @param dstMem the given memory.
    */
-  public abstract void putMemory(Memory dstMem);
+  public void putMemory(Memory dstMem) {
+    putMemory(dstMem, false);
+  }
 
   //Restricted abstract
 

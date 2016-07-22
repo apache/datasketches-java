@@ -134,6 +134,7 @@ public class MemoryMappedFileTest {
             mmf = new MemoryMappedFile(file, 0, file.length());
             mmf.load();
             assertTrue(mmf.isLoaded());
+            mmf.freeMemory();
         } catch (FileNotFoundException e) {
             assertFalse(true);
         }

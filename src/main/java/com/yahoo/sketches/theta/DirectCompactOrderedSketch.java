@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.Util.checkSeedHashes;
+import static com.yahoo.sketches.Util.computeSeedHash;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
@@ -40,16 +42,20 @@ final class DirectCompactOrderedSketch extends CompactSketch {
    * Wraps the given Memory, which may be a SerVer 1, 2, or 3 sketch.
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param pre0 the first 8 bytes of the preamble
+   * @param seed the update seed
    * @return this sketch
    */
-  static DirectCompactOrderedSketch wrapInstance(Memory srcMem, long pre0) {
+  static DirectCompactOrderedSketch wrapInstance(Memory srcMem, long pre0, long seed) {
     int preLongs = extractPreLongs(pre0);
     int flags = extractFlags(pre0);
     boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
-    short seedHash = (short) extractSeedHash(pre0);
+    short memSeedHash = (short) extractSeedHash(pre0);
+    short computedSeedHash = computeSeedHash(seed);
+    checkSeedHashes(memSeedHash, computedSeedHash);
     int curCount = (preLongs > 1) ? srcMem.getInt(RETAINED_ENTRIES_INT) : 0;
     long thetaLong = (preLongs > 2) ? srcMem.getLong(THETA_LONG) : Long.MAX_VALUE;
-    DirectCompactOrderedSketch dcos = new DirectCompactOrderedSketch(empty, seedHash, curCount, thetaLong);
+    DirectCompactOrderedSketch dcos = 
+        new DirectCompactOrderedSketch(empty, memSeedHash, curCount, thetaLong);
     dcos.preLongs_ = preLongs;
     dcos.mem_ = srcMem;
     return dcos;
@@ -70,7 +76,8 @@ final class DirectCompactOrderedSketch extends CompactSketch {
     byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK);
     boolean ordered = true;
     long[] compactOrderedCache = 
-        CompactSketch.compactCache(sketch.getCache(), getRetainedEntries(false), getThetaLong(), ordered);
+        CompactSketch.compactCache(
+            sketch.getCache(), getRetainedEntries(false), getThetaLong(), ordered);
     
     mem_ = loadCompactMemory(compactOrderedCache, isEmpty(), getSeedHash(), 
         getRetainedEntries(false), getThetaLong(), dstMem, flags);
@@ -82,17 +89,20 @@ final class DirectCompactOrderedSketch extends CompactSketch {
    * Constructs this sketch from correct, valid components.
    * @param compactOrderedCache in compact, ordered form
    * @param empty The correct <a href="{@docRoot}/resources/dictionary.html#empty">Empty</a>.
-   * @param seedHash The correct <a href="{@docRoot}/resources/dictionary.html#seedHash">Seed Hash</a>.
+   * @param seedHash The correct 
+   * <a href="{@docRoot}/resources/dictionary.html#seedHash">Seed Hash</a>.
    * @param curCount correct value
-   * @param thetaLong The correct <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
+   * @param thetaLong The correct 
+   * <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
    * @param dstMem the destination Memory.  This clears it before use.
    */
-  DirectCompactOrderedSketch(long[] compactOrderedCache, boolean empty, short seedHash, int curCount, 
-      long thetaLong, Memory dstMem) {
+  DirectCompactOrderedSketch(long[] compactOrderedCache, boolean empty, short seedHash, 
+      int curCount, long thetaLong, Memory dstMem) {
     super(empty, seedHash, curCount, thetaLong);
     int emptyBit = isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
     byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK);
-    mem_ = loadCompactMemory(compactOrderedCache, empty, seedHash, curCount, thetaLong, dstMem, flags);
+    mem_ = 
+        loadCompactMemory(compactOrderedCache, empty, seedHash, curCount, thetaLong, dstMem, flags);
   }
   
   //Sketch interface

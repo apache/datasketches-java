@@ -986,6 +986,14 @@ public class DirectQuickSelectSketchTest {
     for (int i=0; i<u; i++) sketch.update(i);
   }
   
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkBadLgNomLongs() {
+    int k = 16;
+    Memory mem = new NativeMemory(new byte[k*16 +24]);
+    Sketches.updateSketchBuilder().initMemory(mem).build(k);
+    mem.putByte(LG_NOM_LONGS_BYTE, (byte) 3); //Corrupt LgNomLongs byte
+    DirectQuickSelectSketch.getInstance(mem, DEFAULT_UPDATE_SEED);
+  }
   
   @Test
   public void printlnTest() {

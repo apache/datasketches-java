@@ -325,8 +325,8 @@ public abstract class Sketch {
         boolean compact = (flags & (byte)COMPACT_FLAG_MASK) > 0;
         boolean ordered = (flags & (byte)ORDERED_FLAG_MASK) > 0;
         if (compact) {
-            return ordered ? DirectCompactOrderedSketch.wrapInstance(srcMem, pre0) 
-                           : DirectCompactSketch.wrapInstance(srcMem, pre0);
+            return ordered ? DirectCompactOrderedSketch.wrapInstance(srcMem, pre0, seed) 
+                           : DirectCompactSketch.wrapInstance(srcMem, pre0, seed);
         }
         throw new SketchesArgumentException(
             "Corrupted: " + family + " family image must have compact flag set");
@@ -501,13 +501,15 @@ public abstract class Sketch {
    * The seed required to instantiate a non-compact sketch.
    * @return a Sketch
    */
-  private static final Sketch constructHeapSketch(byte famID, boolean ordered, Memory srcMem, long seed) {
+  private static final Sketch constructHeapSketch(byte famID, boolean ordered, Memory srcMem, 
+      long seed) {
     boolean compact = srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
     Family family = idToFamily(famID);
     switch (family) {
       case ALPHA: {
         if (compact) {
-          throw new SketchesArgumentException("Corrupted " + family + " image: cannot be compact");
+          throw new SketchesArgumentException("Possibly Corrupted " + family 
+              + " image: cannot be compact");
         }
         return HeapAlphaSketch.getInstance(srcMem, seed);
       }
@@ -516,12 +518,15 @@ public abstract class Sketch {
       }
       case COMPACT: {
         if (!compact) {
-          throw new SketchesArgumentException("Corrupted " + family + " image: must be compact");
+          throw new SketchesArgumentException("Possibly Corrupted " + family 
+              + " image: must be compact");
         }
-        return ordered ? new HeapCompactOrderedSketch(srcMem) : new HeapCompactSketch(srcMem);
+        return ordered ? HeapCompactOrderedSketch.heapifyInstance(srcMem, seed) 
+                       : HeapCompactSketch.heapifyInstance(srcMem, seed);
       }
       default: {
-        throw new SketchesArgumentException("Sketch cannot heapify family: " + family + " as a Sketch");
+        throw new SketchesArgumentException("Sketch cannot heapify family: " + family 
+            + " as a Sketch");
       }
     }
   }

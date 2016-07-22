@@ -574,7 +574,6 @@ public class HeapUnionTest {
     assertEquals(setOp.getFamily(), Family.UNION);
   }
   
-  
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());

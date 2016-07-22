@@ -12,6 +12,7 @@ import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -26,8 +27,10 @@ public class CompactSketchTest {
   
   @Test
   public void checkHeapifyWrap() {
-    int k = 16;
+    int k = 4096;
+    checkHeapifyWrap(k, 0); //empty
     checkHeapifyWrap(k, k); //exact
+    checkHeapifyWrap(k, 4 * k); //estimating
   }
   
   //test combinations of compact ordered/not ordered and heap/direct
@@ -35,7 +38,7 @@ public class CompactSketchTest {
     UpdateSketch usk = UpdateSketch.builder().build(k);
     for (int i=0; i<u; i++) usk.update(i);
     double uskEst = usk.getEstimate();
-    assertEquals(uskEst, k, 0.0);
+    assertEquals(uskEst, u, 0.05 * u);
     int uskCount = usk.getRetainedEntries(true);
     short uskSeedHash = usk.getSeedHash();
     long uskThetaLong = usk.getThetaLong();
@@ -51,6 +54,7 @@ public class CompactSketchTest {
     assertFalse(csk.isDirect());
     assertTrue(csk.isCompact());
     assertFalse(csk.isOrdered());
+    assertEquals(csk.getFamily(), Family.COMPACT);
     //println("Ord: "+(!ordered)+", Mem: "+"Null");
     //println(csk.toString(true, true, 8, true));
     //println(PreambleUtil.toString(byteArray));

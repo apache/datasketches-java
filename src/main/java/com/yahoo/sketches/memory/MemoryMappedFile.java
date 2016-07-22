@@ -69,7 +69,8 @@ public class MemoryMappedFile extends NativeMemory {
      * resident in physical memory. Invoking this method may cause some number of page faults 
      * and I/O operations to occur.
      *
-     * @see <a href="http://docs.oracle.com/javase/8/docs/api/java/nio/MappedByteBuffer.html#load--">
+     * @see 
+     * <a href="http://docs.oracle.com/javase/8/docs/api/java/nio/MappedByteBuffer.html#load--">
      * java/nio/MappedByteBuffer.load</a>
      */
     public void load() {
@@ -97,7 +98,8 @@ public class MemoryMappedFile extends NativeMemory {
      * 
      * @return true if loaded
      * 
-     * @see <a href="http://docs.oracle.com/javase/8/docs/api/java/nio/MappedByteBuffer.html#isLoaded--">
+     * @see 
+     * <a href="http://docs.oracle.com/javase/8/docs/api/java/nio/MappedByteBuffer.html#isLoaded--">
      * java/nio/MappedByteBuffer.isLoaded</a>
      */
     public boolean isLoaded() {

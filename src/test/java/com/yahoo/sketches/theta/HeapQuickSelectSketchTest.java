@@ -502,7 +502,7 @@ public class HeapQuickSelectSketchTest {
   }
   
   @Test
-  public void checkMemDeSerExceptions() {
+  public void checkMemSerDeExceptions() {
     int k = 1024;
     UpdateSketch sk1 = UpdateSketch.builder().setFamily(QUICKSELECT).build(k);
     sk1.update(1L); //forces preLongs to 3
@@ -521,6 +521,8 @@ public class HeapQuickSelectSketchTest {
     
     tryBadMem(mem, FLAGS_BYTE, 2); //Corrupt READ_ONLY to true
     mem.putLong(0, pre0); //restore
+    
+    tryBadMem(mem, FAMILY_BYTE, 4); //Corrupt, Family to Union
     
     try {
       mem.putDouble(16, 0.5); //Corrupt the theta value
@@ -550,11 +552,6 @@ public class HeapQuickSelectSketchTest {
       //expected
     }
   }
-  
-  
-  
-  
-  
   
   @Test
   public void printlnTest() {
