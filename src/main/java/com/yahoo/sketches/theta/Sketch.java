@@ -27,13 +27,15 @@ import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 
+import java.io.Serializable;
+
 /**
  * The top-level class for all sketches. This class is never constructed directly. 
  * Use the UpdateSketch.builder() methods to create UpdateSketches.
  * 
  * @author Lee Rhodes 
  */
-public abstract class Sketch {
+public abstract class Sketch implements Serializable {
 
   static final int DEFAULT_LG_RESIZE_FACTOR = 3;   //Unique to Heap
   
