@@ -45,9 +45,12 @@ public class MemoryMappedFile extends NativeMemory {
     public MemoryMappedFile(File file, long position, long len) throws Exception {
         super(0L, null, null);
 
-        if (len > file.length()) {
-            throw new IllegalArgumentException("Can only map at most the length of a file");
-        }
+        if (position < 0L)
+             throw new IllegalArgumentException("Negative position");
+        if (len < 0L)
+             throw new IllegalArgumentException("Negative size");
+        if (position + len < 0)
+             throw new IllegalArgumentException("Position + size overflow");
 
         this.randomAccessFile_ = new RandomAccessFile(file, "rw");
         this.fileChannel_ = randomAccessFile_.getChannel();
@@ -55,6 +58,8 @@ public class MemoryMappedFile extends NativeMemory {
         super.capacityBytes_ = len;
         super.memReq_ = null;
 
+        // len can be more than the file.length
+        randomAccessFile_.setLength(len);
         createDummyMbbInstance();
     }
     
@@ -114,6 +119,37 @@ public class MemoryMappedFile extends NativeMemory {
         } catch (Exception e) {
             throw new RuntimeException(
                     String.format("Encountered %s exception while loading", e.getClass()));
+        }
+    }
+
+    /**
+     *
+     * Forces any changes made to this content to be written to the storage device
+     * containing the mapped file.
+     *
+     * If the file mapped into this buffer resides on a local storage device then when this method
+     * returns it is guaranteed that all changes made to the buffer since it was created,
+     * or since this method was last invoked, will have been written to that device.
+     *
+     * If the file does not reside on a local device then no such guarantee is made.
+     *
+     * If this buffer was not mapped in read/write mode
+     * (java.nio.channels.FileChannel.MapMode.READ_WRITE) then invoking this method has no effect.
+     *
+     * @see
+     * <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/MappedByteBuffer.html#force--">
+     * java/nio/MappedByteBuffer.force</a>
+     */
+    public void force() {
+        try {
+            Method method = MappedByteBuffer.class.getDeclaredMethod("force0", FileDescriptor.class,
+                    long.class, long.class);
+            method.setAccessible(true);
+            method.invoke(dummyMbbInstance_, randomAccessFile_.getFD(),
+                    nativeRawStartAddress_, capacityBytes_);
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    String.format("Encountered %s exception in force", e.getClass()));
         }
     }
 

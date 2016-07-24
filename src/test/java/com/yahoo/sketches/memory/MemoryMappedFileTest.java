@@ -9,7 +9,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import java.io.CharArrayReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -44,25 +43,35 @@ public class MemoryMappedFileTest {
 
     @SuppressWarnings("unused")
     @Test
-    public void testIllegalArgumentException() {
-
+    public void testIllegalArgumentException() throws Exception {
         try {
-            new MemoryMappedFile(file, 0, Integer.MAX_VALUE);
+            new MemoryMappedFile(file, -1, Integer.MAX_VALUE);
         } catch (Exception e) {
             assertTrue(true);
             return;
         }
 
-        assertFalse(true);
+        try {
+            new MemoryMappedFile(file, 0, -1);
+        } catch (Exception e) {
+            assertTrue(true);
+            return;
+        }
+
+        try {
+            new MemoryMappedFile(file, 1, -2);
+        } catch (Exception e) {
+            assertTrue(true);
+            return;
+        }
     }
 
     @Test
     public void testMemoryMapAndFree() {
         long memCapacity = file.length();
 
-        MemoryMappedFile mmf = null;
         try {
-            mmf = new MemoryMappedFile(file, 0, file.length());
+            MemoryMappedFile mmf = new MemoryMappedFile(file, 0, file.length());
             assertEquals(memCapacity, mmf.getCapacity());
             mmf.freeMemory();
             assertEquals(0L, mmf.getCapacity());
@@ -73,9 +82,8 @@ public class MemoryMappedFileTest {
 
     @Test
     public void testMultipleUnMaps() {
-        MemoryMappedFile mmf = null;
         try {
-            mmf = new MemoryMappedFile(file, 0, file.length());
+            MemoryMappedFile mmf = new MemoryMappedFile(file, 0, file.length());
             mmf.freeMemory();
             mmf.freeMemory();
         } catch (Exception e) {
@@ -88,9 +96,8 @@ public class MemoryMappedFileTest {
 
     @Test
     public void testReadByAnotherProcess() {
-        MemoryMappedFile mmf = null;
         try {
-            mmf = new MemoryMappedFile(file, 0, file.length());
+            MemoryMappedFile mmf = new MemoryMappedFile(file, 0, file.length());
             mmf.load();
             char[] cbuf = new char[500];
             mmf.getCharArray(500, cbuf, 0, 500);
@@ -112,9 +119,8 @@ public class MemoryMappedFileTest {
 
     @Test
     public void testReadFailAfterFree() {
-        MemoryMappedFile mmf = null;
         try {
-            mmf = new MemoryMappedFile(file, 0, file.length());
+            MemoryMappedFile mmf = new MemoryMappedFile(file, 0, file.length());
             mmf.freeMemory();
             char[] cbuf = new char[500];
             try {
@@ -128,16 +134,65 @@ public class MemoryMappedFileTest {
     }
 
     @Test
-    public void testLoad() throws Exception {
-        MemoryMappedFile mmf = null;
+    public void testLoad() {
         try {
-            mmf = new MemoryMappedFile(file, 0, file.length());
+            MemoryMappedFile mmf = new MemoryMappedFile(file, 0, file.length());
             mmf.load();
             assertTrue(mmf.isLoaded());
             mmf.freeMemory();
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
             assertFalse(true);
         }
     }
 
+    @Test
+    public void testForce() {
+        File org = new File(getClass().getClassLoader().getResource("force_original.txt").getFile());
+        long orgBytes = org.length();
+
+        try {
+            // extra 5bytes for buffer
+            int buf = (int)orgBytes + 5;
+
+            MemoryMappedFile mmf = new MemoryMappedFile(org, 0, buf);
+            mmf.load();
+
+            // existing content
+            byte[] c = new byte[buf];
+            mmf.getByteArray(0, c, 0, c.length);
+
+            // add content
+            String cor = "Correcting spelling mistakes";
+            byte[] b = cor.getBytes();
+            mmf.putByteArray(0, b, 0, b.length);
+
+            mmf.force();
+            mmf.freeMemory();
+
+            MemoryMappedFile nmf = new MemoryMappedFile(org, 0, buf);
+            nmf.load();
+
+            // existing content
+            byte[] n = new byte[buf];
+            nmf.getByteArray(0, n, 0, n.length);
+
+            int index = 0;
+            boolean corrected = true;
+
+            // make sure that new content is diff
+            while (index < buf) {
+                if (b[index] != n[index]) {
+                    corrected = false;
+                    break;
+                }
+                index++;
+            }
+
+            assertTrue(corrected);
+
+            nmf.freeMemory();
+        } catch (Exception e) {
+            assertFalse(true);
+        }
+    }
 }
