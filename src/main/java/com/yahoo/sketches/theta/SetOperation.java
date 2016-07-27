@@ -170,13 +170,8 @@ public abstract class SetOperation {
    */
   static boolean isValidSetOpID(int id) {
     Family family = Family.idToFamily(id);
-    boolean ret;
-    switch (family) {
-      case UNION :
-      case INTERSECTION :
-      case A_NOT_B : ret = true; break;
-      default: ret = false; break;
-    }
+    boolean ret = ((family == Family.UNION) || (family == Family.INTERSECTION) 
+        || (family == Family.A_NOT_B));
     return ret;
   }
 }

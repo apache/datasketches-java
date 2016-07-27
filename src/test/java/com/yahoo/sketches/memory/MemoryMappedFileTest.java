@@ -8,11 +8,13 @@ package com.yahoo.sketches.memory;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.CharArrayReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 
 import org.testng.annotations.Test;
 
@@ -25,7 +27,7 @@ public class MemoryMappedFileTest {
   @Test(expectedExceptions = RuntimeException.class)
   public void testMapException() throws Exception {
     File dummy = createFile("dummy.txt", "");
-    Memory mmf = new MemoryMappedFile(dummy, 0, dummy.length()); //zero length
+    new MemoryMappedFile(dummy, 0, dummy.length()); //zero length
   }
   
   @SuppressWarnings("unused")
@@ -154,7 +156,7 @@ public class MemoryMappedFileTest {
 
       // add content
       String cor = "Correcting spelling mistakes";
-      byte[] b = cor.getBytes();
+      byte[] b = cor.getBytes(UTF_8);
       mmf.putByteArray(0, b, 0, b.length);
 
       mmf.force();
@@ -193,13 +195,17 @@ public class MemoryMappedFileTest {
     mem.freeMemory();
   }
   
-  @SuppressWarnings("resource")
   private static File createFile(String fileName, String text) throws FileNotFoundException {
     File file = new File(fileName);
     file.deleteOnExit();
-    PrintWriter writer = new PrintWriter(file);
-    writer.print(text);
-    writer.close();
+    PrintWriter writer;
+    try {
+      writer = new PrintWriter(file, UTF_8.name());
+      writer.print(text);
+      writer.close();
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    }
     return file;
   }
   

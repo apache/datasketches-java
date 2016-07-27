@@ -6,6 +6,7 @@
 package com.yahoo.sketches.memory;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 import com.yahoo.sketches.SketchesException;
 
@@ -70,18 +71,25 @@ final class UnsafeUtil {
   static final long UNSAFE_COPY_THRESHOLD = 1L << 20; //2^20
 
   static {
-    try {
-      //should work across JVMs, e.g., with Android:
-      Constructor<Unsafe> unsafeConstructor = Unsafe.class.getDeclaredConstructor();
-      unsafeConstructor.setAccessible(true);
-      unsafe = unsafeConstructor.newInstance();
+      try {
+        //should work across JVMs, e.g., with Android:
+        Constructor<Unsafe> unsafeConstructor = Unsafe.class.getDeclaredConstructor();
+        unsafeConstructor.setAccessible(true);
+        unsafe = unsafeConstructor.newInstance();
 
-      // Alternative, but may not work across different JVMs.
-//    Field field = Unsafe.class.getDeclaredField("theUnsafe");
-//    field.setAccessible(true);
-//    unsafe = (Unsafe) field.get(null);
+        // Alternative, but may not work across different JVMs.
+//      Field field = Unsafe.class.getDeclaredField("theUnsafe");
+//      field.setAccessible(true);
+//      unsafe = (Unsafe) field.get(null);
 
-      //4 on 32-bits systems, 8 on 64-bit systems.  Not an indicator of compressed ref (Oop)
+      } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+          | InvocationTargetException | NoSuchMethodException e) {
+        e.printStackTrace();
+        throw new SketchesException("Unable to acquire Unsafe. ", e);
+      }
+
+      //4 on 32-bits systems and 64-bit systems < 32GB, otherwise 8.  
+      //This alone is not an indicator of compressed ref (Oop)
       ADDRESS_SIZE = unsafe.addressSize(); 
 
       ARRAY_BOOLEAN_BASE_OFFSET = unsafe.arrayBaseOffset(boolean[].class);
@@ -103,11 +111,6 @@ final class UnsafeUtil {
       ARRAY_FLOAT_INDEX_SCALE = unsafe.arrayIndexScale(float[].class);
       ARRAY_DOUBLE_INDEX_SCALE = unsafe.arrayIndexScale(double[].class);
       ARRAY_OBJECT_INDEX_SCALE = unsafe.arrayIndexScale(Object[].class);
-      
-    }
-    catch (Exception e) {
-      throw new SketchesException("Unable to acquire Unsafe. ", e);
-    }
   }
 
   private UnsafeUtil() {}
