@@ -25,7 +25,7 @@ public class MemoryMappedFileTest {
   @Test(expectedExceptions = RuntimeException.class)
   public void testMapException() throws Exception {
     File dummy = createFile("dummy.txt", "");
-    Memory mmf = new MemoryMappedFile(dummy, 0, dummy.length()); //zero length
+    new MemoryMappedFile(dummy, 0, dummy.length()); //zero length
   }
   
   @SuppressWarnings("unused")
