@@ -25,7 +25,7 @@ public class MemoryMappedFileTest {
   @Test(expectedExceptions = RuntimeException.class)
   public void testMapException() throws Exception {
     File dummy = createFile("dummy.txt", "");
-    new MemoryMappedFile(dummy, 0, dummy.length()); //zero length
+    Memory mmf = new MemoryMappedFile(dummy, 0, dummy.length()); //zero length
   }
   
   @SuppressWarnings("unused")
@@ -76,12 +76,11 @@ public class MemoryMappedFileTest {
       MemoryMappedFile mmf = new MemoryMappedFile(file, 0, file.length());
       mmf.freeMemory();
       mmf.freeMemory();
+      fail("Failed: testMultipleUnMaps()");
     } catch (Exception e) {
-      assertTrue(true);
+      // Expected
       return;
     }
-    fail("Failed: testMultipleUnMaps()");
-
   }
 
   @Test
