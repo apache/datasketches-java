@@ -248,12 +248,17 @@ final class HeapDoublesSketch extends DoublesSketch {
 
   @Override
   public double[] getPMF(double[] splitPoints) {
+    return internalGetPMF(splitPoints);
+  }
+
+  private double[] internalGetPMF(double[] splitPoints)
+  {
     long[] counters = DoublesUtil.internalBuildHistogram(splitPoints, this);
     int numCounters = counters.length;
     double[] result = new double[numCounters];
     double n = n_;
     long subtotal = 0;
-    for (int j = 0; j < numCounters; j++) { 
+    for (int j = 0; j < numCounters; j++) {
       long count = counters[j];
       subtotal += count;
       result[j] = count / n; //normalize by n
@@ -264,18 +269,7 @@ final class HeapDoublesSketch extends DoublesSketch {
 
   @Override
   public double[] getCDF(double[] splitPoints) {
-    long[] counters = DoublesUtil.internalBuildHistogram(splitPoints, this);
-    int numCounters = counters.length;
-    double[] result = new double[numCounters];
-    double n = n_;
-    long subtotal = 0;
-    for (int j = 0; j < numCounters; j++) { 
-      long count = counters[j];
-      subtotal += count;
-      result[j] = subtotal / n; //normalize by n
-    }
-    assert subtotal == n; //internal consistency check
-    return result;
+    return internalGetPMF(splitPoints);
   }
 
   @Override
