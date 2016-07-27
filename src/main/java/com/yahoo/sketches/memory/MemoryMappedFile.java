@@ -124,7 +124,7 @@ public class MemoryMappedFile extends NativeMemory {
                     String.format("Encountered %s exception while loading", e.getClass()));
         }
     }
-
+    
     /**
      * Forces any changes made to this content to be written to the storage device
      * containing the mapped file.
@@ -201,7 +201,7 @@ public class MemoryMappedFile extends NativeMemory {
         }
     }
 
-    private static int pageCount(int ps, long length) {
+    static final int pageCount(int ps, long length) {
         long s = 1;
         while (s * ps < length) {
             s++;
@@ -224,7 +224,8 @@ public class MemoryMappedFile extends NativeMemory {
                     null,
                     null);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(
+                "Could not create Dummy MappedByteBuffer instance: " + e.getClass());
         }
     }
 

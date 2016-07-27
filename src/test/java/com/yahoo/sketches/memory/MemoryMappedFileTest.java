@@ -34,7 +34,7 @@ public class MemoryMappedFileTest {
     File file = new File(getClass().getClassLoader().getResource("memory_mapped.txt").getFile());
     try {
       new MemoryMappedFile(file, -1, Integer.MAX_VALUE);
-      fail("Failed: testIllegalArgumentException: Pos was negative.");
+      fail("Failed: testIllegalArgumentException: Position was negative.");
     } catch (Exception e) {
       // Expected;
     }
@@ -47,7 +47,7 @@ public class MemoryMappedFileTest {
     }
 
     try {
-      new MemoryMappedFile(file, 1, -2);
+      new MemoryMappedFile(file, Long.MAX_VALUE, 2);
       fail("Failed: testIllegalArgumentException: Sum of position + size is negative.");
     } catch (Exception e) {
       // Expected;
@@ -64,6 +64,7 @@ public class MemoryMappedFileTest {
       assertEquals(memCapacity, mmf.getCapacity());
       mmf.freeMemory();
       assertEquals(0L, mmf.getCapacity());
+      assertEquals(MemoryMappedFile.pageCount(1, 16), 16); //check pageCounter
     } catch (Exception e) {
       fail("Failed: testMemoryMapAndFree()");
     }
@@ -184,6 +185,12 @@ public class MemoryMappedFileTest {
     } catch (Exception e) {
       fail("Failed: testForce()." + e);
     }
+  }
+  
+  @Test
+  public void checkPassThrough() {
+    NativeMemory mem = new AllocMemory(1024L);
+    mem.freeMemory();
   }
   
   @SuppressWarnings("resource")
