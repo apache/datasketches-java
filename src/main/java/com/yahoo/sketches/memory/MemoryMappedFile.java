@@ -45,12 +45,15 @@ public class MemoryMappedFile extends NativeMemory {
     public MemoryMappedFile(File file, long position, long len) throws Exception {
         super(0L, null, null);
 
-        if (position < 0L)
+        if (position < 0L) {
              throw new IllegalArgumentException("Negative position");
-        if (len < 0L)
+        }
+        if (len < 0L) {
              throw new IllegalArgumentException("Negative size");
-        if (position + len < 0)
+        }
+        if (position + len < 0) {
              throw new IllegalArgumentException("Position + size overflow");
+        }
 
         this.randomAccessFile_ = new RandomAccessFile(file, "rw");
         this.fileChannel_ = randomAccessFile_.getChannel();
@@ -123,18 +126,18 @@ public class MemoryMappedFile extends NativeMemory {
     }
 
     /**
-     *
      * Forces any changes made to this content to be written to the storage device
      * containing the mapped file.
      *
-     * If the file mapped into this buffer resides on a local storage device then when this method
-     * returns it is guaranteed that all changes made to the buffer since it was created,
-     * or since this method was last invoked, will have been written to that device.
+     * <p>If the file mapped into this buffer resides on a local storage device then when this 
+     * method returns it is guaranteed that all changes made to the buffer since it was created,
+     * or since this method was last invoked, will have been written to that device.</p>
      *
-     * If the file does not reside on a local device then no such guarantee is made.
+     * <p>If the file does not reside on a local device then no such guarantee is made.</p>
      *
-     * If this buffer was not mapped in read/write mode
+     * <p>If this buffer was not mapped in read/write mode
      * (java.nio.channels.FileChannel.MapMode.READ_WRITE) then invoking this method has no effect.
+     * </p>
      *
      * @see
      * <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/MappedByteBuffer.html#force--">
