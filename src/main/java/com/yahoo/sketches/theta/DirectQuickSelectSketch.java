@@ -95,7 +95,8 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
    * 
    * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLongs">See lgNomLongs</a>.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
+   * @param p 
+   * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
    * @param rf Currently internally fixed at 2. Unless dstMem is not configured with a valid 
    * MemoryRequest, in which case the rf is effectively 1, which is no resizing at all and the 
    * dstMem must be large enough for a full sketch.
@@ -156,7 +157,8 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
     //clear hash table area
     dstMem.clear(preambleLongs << 3, 8 << lgArrLongs); 
     
-    DirectQuickSelectSketch dqss = new DirectQuickSelectSketch(lgNomLongs, seed, p, rf, preambleLongs);
+    DirectQuickSelectSketch dqss = 
+        new DirectQuickSelectSketch(lgNomLongs, seed, p, rf, preambleLongs);
     dqss.lgArrLongs_ = lgArrLongs;
     dqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     dqss.curCount_ = curCount;
@@ -219,10 +221,11 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
               + lgNomLongs + " < " + MIN_LG_NOM_LONGS);
     }
     
-    int flagsMask = ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
+    int flagsMask = 
+        ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
     if ((flags & flagsMask) > 0) {
       throw new SketchesArgumentException(
-          "Possible corruption: Input srcMem cannot be: big-endian, compact, ordered, or read-only");
+        "Possible corruption: Input srcMem cannot be: big-endian, compact, ordered, or read-only");
     }
     
     Util.checkSeedHashes(seedHash, Util.computeSeedHash(seed));
@@ -242,7 +245,8 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
             + lgArrLongs + " <= " + lgNomLongs + ", Theta: " + theta + ", p: " + p);
     }
     
-    DirectQuickSelectSketch dqss = new DirectQuickSelectSketch(lgNomLongs, seed, p, myRF, preambleLongs);
+    DirectQuickSelectSketch dqss = 
+        new DirectQuickSelectSketch(lgNomLongs, seed, p, myRF, preambleLongs);
     dqss.lgArrLongs_ = lgArrLongs;
     dqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     dqss.curCount_ = curCount;
@@ -370,7 +374,8 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
       
       if (lgArrLongs_ > lgNomLongs_) { //at full size, rebuild
         //Assumes no dirty values, changes thetaLong_, curCount_
-        assert (lgArrLongs_ == lgNomLongs_ + 1) : "lgArr: " + lgArrLongs_ + ", lgNom: " + lgNomLongs_;
+        assert 
+          (lgArrLongs_ == lgNomLongs_ + 1) : "lgArr: " + lgArrLongs_ + ", lgNom: " + lgNomLongs_;
         quickSelectAndRebuild(mem_, preambleLongs_, lgNomLongs_, lgArrLongs_, curCount_);  //rebuild
         curCount_ = mem_.getInt(RETAINED_ENTRIES_INT);
         thetaLong_ = mem_.getLong(THETA_LONG);
