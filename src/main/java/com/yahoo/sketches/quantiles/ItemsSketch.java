@@ -348,18 +348,7 @@ public final class ItemsSketch<T> {
    * splitPoint.
    */
   public double[] getPMF(final T[] splitPoints) {
-    final long[] counters = ItemsUtil.internalBuildHistogram(splitPoints, this);
-    final int numCounters = counters.length;
-    final double[] result = new double[numCounters];
-    final double n = n_;
-    long subtotal = 0;
-    for (int j = 0; j < numCounters; j++) { 
-      final long count = counters[j];
-      subtotal += count;
-      result[j] = count / n; //normalize by n
-    }
-    assert subtotal == n; //internal consistency check
-    return result;
+    return getPMFOrCDF(splitPoints, false);
   }
 
   /**
@@ -375,15 +364,27 @@ public final class ItemsSketch<T> {
    * @return an approximation to the CDF of the input stream given the splitPoints.
    */
   public double[] getCDF(final T[] splitPoints) {
-    final long[] counters = ItemsUtil.internalBuildHistogram(splitPoints, this);
-    final int numCounters = counters.length;
-    final double[] result = new double[numCounters];
-    final double n = n_;
+    return getPMFOrCDF(splitPoints, true);
+  }
+
+  private double[] getPMFOrCDF(final T[] splitPoints, boolean isCDF) {
+    long[] counters = ItemsUtil.internalBuildHistogram(splitPoints, this);
+    int numCounters = counters.length;
+    double[] result = new double[numCounters];
+    double n = n_;
     long subtotal = 0;
-    for (int j = 0; j < numCounters; j++) { 
-      final long count = counters[j];
-      subtotal += count;
-      result[j] = subtotal / n; //normalize by n
+    if (isCDF) {
+      for (int j = 0; j < numCounters; j++) {
+        long count = counters[j];
+        subtotal += count;
+        result[j] = subtotal / n; //normalize by n
+      }
+    } else { // PMF
+      for (int j = 0; j < numCounters; j++) {
+        long count = counters[j];
+        subtotal += count;
+        result[j] = count / n; //normalize by n
+      }
     }
     assert subtotal == n; //internal consistency check
     return result;
@@ -527,7 +528,7 @@ public final class ItemsSketch<T> {
   public String toString() {
     return toString(true, false);
   }
-  
+
   /**
    * Returns summary information about this sketch. Used for debugging.
    * @param sketchSummary if true includes sketch summary
