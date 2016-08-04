@@ -17,19 +17,19 @@ package com.yahoo.sketches;
 // writeup of this scheme.
 @SuppressWarnings({"cast"})
 public final class BinomialBoundsN {
-  
+
   private BinomialBoundsN() {}
-  
-  private static double[] deltaOfNumSDev = 
+
+  private static double[] deltaOfNumSDev =
   {
     0.5000000000000000000, // not actually using this value
     0.1586553191586026479,
     0.0227502618904135701,
     0.0013498126861731796
   };
-  
+
   // our "classic" bounds, but now with continuity correction
-  
+
   private static double contClassicLB(double numSamplesF, double theta, double numSDev) {
     double nHat = (numSamplesF - 0.5) / theta;
     double b = numSDev * Math.sqrt((1.0 - theta) / theta);
@@ -37,7 +37,7 @@ public final class BinomialBoundsN {
     double center = nHat + 0.5 * (b * b);
     return (center - d);
   }
-  
+
   private static double contClassicUB(double numSamplesF, double theta, double numSDev) {
     double nHat = (numSamplesF + 0.5) / theta;
     double b   = numSDev * Math.sqrt((1.0 - theta) / theta);
@@ -65,7 +65,7 @@ public final class BinomialBoundsN {
     q = 1.0 - p;
     numSamplesF = (double) numSamplesI;
     // Use a different algorithm if the following isn't true; this one will be too slow, or worse. 
-    assertTrue((numSamplesF / p) < 500.0); 
+    assertTrue((numSamplesF / p) < 500.0);
     curTerm = Math.pow(p, numSamplesF);  // curTerm = posteriorProbability (k, k, p) 
     assertTrue(curTerm > 1e-100); // sanity check for non-use of logarithms 
     tot = curTerm;
@@ -73,12 +73,12 @@ public final class BinomialBoundsN {
     while (tot <= delta) { // this test can fail even the first time 
       curTerm = curTerm * q * ((double) m) / ((double) (m + 1 - numSamplesI));
       tot += curTerm;
-      m += 1;    
+      m += 1;
     }
     // we have reached a state where tot > delta, so back up one 
     return (m - 1);
   }
-  
+
   //  The following procedure has very limited applicability. 
   //  The above remarks about specialNStar() also apply here.
   private static long specialNPrimeB(long numSamplesI, double p, double delta) {
@@ -97,17 +97,17 @@ public final class BinomialBoundsN {
     while (tot < oneMinusDelta) {
       curTerm = curTerm * q * ((double) m) / ((double) (m + 1 - numSamplesI));
       tot += curTerm;
-      m += 1;    
+      m += 1;
     }
     return (m); // don't need to back up
   }
-  
+
   private static long specialNPrimeF(long numSamplesI, double p, double delta) {
     // Use a different algorithm if the following isn't true; this one will be too slow, or worse.
     assertTrue((((double) numSamplesI) / p) < 500.0); //A super-small delta could also make it slow.
     return (specialNPrimeB(numSamplesI + 1, p, delta));
   }
-  
+
   // The following computes an approximation to the lower bound of 
   // a Frequentist confidence interval based on the tails of the Binomial distribtuion.
   private static double computeApproxBinoLB(long numSamplesI, double theta, int numSDev) {
@@ -117,7 +117,7 @@ public final class BinomialBoundsN {
 
     else if (numSamplesI == 0) {
       return (0.0);
-    }  
+    }
 
     else if (numSamplesI == 1) {
       double delta = deltaOfNumSDev[numSDev];
@@ -135,7 +135,7 @@ public final class BinomialBoundsN {
 
     else if (theta > (1.0 - 1e-5)) {  // empirically-determined threshold 
       return ((double) numSamplesI);
-    }  
+    }
 
     else if (theta < ((double) numSamplesI) / 360.0) {  // empirically-determined threshold 
       // here we use the gaussian approximation, but with a modified "numSDev" 
@@ -153,7 +153,7 @@ public final class BinomialBoundsN {
       return ((double) nstar); // don't need to round 
     }
   }
-  
+
   // The following computes an approximation to the upper bound of
   // a Frequentist confidence interval based on the tails of the Binomial distribution.
   private static double computeApproxBinoUB(long numSamplesI, double theta, int numSDev) {
@@ -177,11 +177,11 @@ public final class BinomialBoundsN {
 
     else if (theta > (1.0 - 1e-5)) { // empirically-determined threshold 
       return ((double) (numSamplesI + 1));
-    }  
+    }
 
     else if (theta < ((double) numSamplesI) / 360.0) {  // empirically-determined threshold 
       // here we use the gaussian approximation, but with a modified "numSDev" 
-      int index; 
+      int index;
       double rawUB;
       index = 3 * ((int) numSamplesI) + (numSDev - 1);
       rawUB = contClassicUB((double) numSamplesI, theta, EquivTables.getUB(index));
@@ -210,7 +210,7 @@ public final class BinomialBoundsN {
    * still exist.
    * @return the approximate upper bound value
    */
-  public static double getLowerBound(long numSamples, double theta, int numSDev, 
+  public static double getLowerBound(long numSamples, double theta, int numSDev,
       boolean noDataSeen) {
     //in earlier code numSamples was called numSamplesI
     if (noDataSeen) return 0.0;
@@ -220,7 +220,7 @@ public final class BinomialBoundsN {
     double est = numSamplesF / theta;
     return (Math.min(est, Math.max(numSamplesF, lb)));
   }
-  
+
   /**
    * Returns the approximate upper bound value
    * @param numSamples the number of samples in the sample set
@@ -233,7 +233,7 @@ public final class BinomialBoundsN {
    * still exist.
    * @return the approximate upper bound value
    */
-  public static double getUpperBound(long numSamples, double theta, int numSDev, 
+  public static double getUpperBound(long numSamples, double theta, int numSDev,
       boolean noDataSeen) {
     //in earlier code numSamples was called numSamplesI
     if (noDataSeen) return 0.0;
@@ -243,21 +243,21 @@ public final class BinomialBoundsN {
     double est = numSamplesF / theta;
     return (Math.max(est, ub));
   }
-  
+
   //exposed only for test
   static final void checkArgs(long numSamples, double theta, int numSDev) {
     if ((numSDev | (numSDev - 1) | (3 - numSDev) | numSamples) < 0) {
       throw new SketchesArgumentException(
           "numSDev must only be 1,2, or 3 and numSamples must >= 0: numSDev="
-              + numSDev + ", numSamples=" + numSamples); 
+              + numSDev + ", numSamples=" + numSamples);
     }
     if ((theta < 0.0) || (theta > 1.0)) {
       throw new SketchesArgumentException("0.0 < theta <= 1.0: " + theta);
     }
   }
-  
+
   private static void assertTrue(final boolean truth) {
     assert (truth);
   }
-  
+
 } // end of class "BinomialBoundsN"

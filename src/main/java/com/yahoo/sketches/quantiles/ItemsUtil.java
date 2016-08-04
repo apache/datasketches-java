@@ -377,7 +377,8 @@ final class ItemsUtil {
    * @param arrLen length of keyArr and valArr 
    * @param blkSize size of internal sorted blocks
    */
-  static <T> void blockyTandemMergeSort(final T[] keyArr, final long[] valArr, final int arrLen, final int blkSize, final Comparator<? super T> comparator) {
+  static <T> void blockyTandemMergeSort(final T[] keyArr, final long[] valArr, final int arrLen, 
+      final int blkSize, final Comparator<? super T> comparator) {
     assert blkSize >= 1;
     if (arrLen <= blkSize) return;
     int numblks = arrLen / blkSize;

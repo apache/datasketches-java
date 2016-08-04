@@ -47,7 +47,7 @@
     </module>
     
     <module name="AvoidEscapedUnicodeCharacters">
-      <property name="severity" value="ignore"/>
+      <property name="severity" value="warning"/>
       <property name="allowEscapesForControlCharacters" value="true"/>
       <property name="allowByTailComment" value="true"/>
       <property name="allowNonPrintableEscapes" value="true"/>
@@ -55,8 +55,8 @@
     </module>
     
     <module name="LineLength">
-      <property name="severity" value="ignore"/>
-      <property name="max" value="100"/>
+      <property name="severity" value="warning"/>
+      <property name="max" value="140"/>
       <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
@@ -65,10 +65,10 @@
     
     <module name="OneTopLevelClass"/>
     
-    <module name="NoLineWrap"/>
+    <module name="NoLineWrap"/> <!-- Only for import and package statements -->
     
     <module name="EmptyBlock">
-      <property name="severity" value="ignore"/>
+      <property name="severity" value="warning"/>
       <property name="option" value="TEXT"/>
       <property name="tokens" value="LITERAL_TRY, LITERAL_FINALLY, LITERAL_IF, LITERAL_ELSE, LITERAL_SWITCH"/>
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
@@ -78,18 +78,13 @@
       <property name="allowSingleLineStatement" value="true"/>
     </module>
     
-    <module name="LeftCurly">
+    <module name="LeftCurly"> <!-- doesn't allow for if (n == 0) { return 0.0; }, which is readable and not corruptable -->
       <property name="severity" value="ignore"/>
       <property name="maxLineLength" value="100"/>
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
     
-    <module name="RightCurly">
-      <property name="severity" value="ignore"/>
-      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
-    </module>
-    
-    <module name="RightCurly">
+    <module name="RightCurly"> <!-- requires right curly start a new line; alone: on a line alone -->
       <property name="severity" value="ignore"/>
       <property name="option" value="alone"/>
       <property name="tokens" value="CLASS_DEF, METHOD_DEF, CTOR_DEF, LITERAL_FOR, LITERAL_WHILE, LITERAL_DO, STATIC_INIT, INSTANCE_INIT"/>
@@ -326,6 +321,14 @@
     <module name="RedundantImport"/>
     
     <module name="UnusedImports"/>
+    
+    <module name="Regexp">
+      <property name="severity" value="ignore"/>
+      <property name="format" value="[ \t]+$"/>
+      <property name="illegalPattern" value="true"/>
+      <property name="message" value="Trailing whitespace"/>
+      <property name="ignoreComments" value="true"/>
+    </module>
     
   </module> <!-- End of TreeWalker -->
 </module>

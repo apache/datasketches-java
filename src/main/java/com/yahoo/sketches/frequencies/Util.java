@@ -8,13 +8,13 @@ package com.yahoo.sketches.frequencies;
 final class Util {
 
   private Util() {}
-  
+
   /**
    * The following constant controls the size of the initial data structure for the 
    * frequencies sketches and its value is somewhat arbitrary.
    */
   static final int LG_MIN_MAP_SIZE = 3;
-  
+
   /**
    * This constant is large enough so that computing the median of SAMPLE_SIZE
    * randomly selected entries from a list of numbers and outputting
@@ -22,7 +22,7 @@ final class Util {
    * true median with high probability.
    */
   static final int SAMPLE_SIZE = 1024;
-  
+
   /**
    * @param key to be hashed
    * @return an index into the hash table This hash function is taken from the internals of 
@@ -36,5 +36,5 @@ final class Util {
     key ^= key >>> 33;
     return key;
   }
-  
+
 }

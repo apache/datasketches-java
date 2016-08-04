@@ -58,9 +58,9 @@ package com.yahoo.sketches;
  * @author Kevin Lang
  */
 public final class BoundsOnBinomialProportions { // confidence intervals for binomial proportions
-  
+
   private BoundsOnBinomialProportions() {}
-  
+
   /**
    * Computes lower bound of approximate Clopper-Pearson confidence interval for a binomial 
    * proportion.
@@ -158,7 +158,7 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
     if (k < 0) throw new SketchesArgumentException("K must be non-negative");
     if (k > n) throw new SketchesArgumentException("K cannot exceed N");
   }
-  
+
   /**
    * Computes an approximation to the erf() function.
    * @param x is the input to the erf function
@@ -177,7 +177,7 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
   public static double normalCDF(double x) { 
     return (0.5 * (1.0 + (erf(x / (Math.sqrt(2.0))))));
   }
-  
+
 //@formatter:off
   // Abramowitz and Stegun formula 7.1.28, p. 88; Claims accuracy of about 7 decimal digits */
   private static double erf_of_nonneg(double x) {
@@ -228,7 +228,7 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
   // We point out that the variable names correspond to those in the book,
   // and it is worth keeping it that way so that it will always be easy to verify
   // that the formula was typed in correctly.
-  
+
   private static double abramowitzStegunFormula26p5p22(double a, double b, double yp) {
     double b2m1 = 2.0 * b - 1.0;
     double a2m1 = 2.0 * a - 1.0;
