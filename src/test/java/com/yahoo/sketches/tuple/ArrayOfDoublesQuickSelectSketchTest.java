@@ -13,6 +13,12 @@ import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.tuple.ArrayOfDoublesUpdatableSketch;
 
 public class ArrayOfDoublesQuickSelectSketchTest {
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void invalidSamplingProbability() {
+    new ArrayOfDoublesUpdatableSketchBuilder().setSamplingProbability(2f);
+  }
+
   @Test
   public void heapToDirectExactTwoDoubles() {
     double[] valuesArr = {1.0, 2.0};
@@ -43,6 +49,26 @@ public class ArrayOfDoublesQuickSelectSketchTest {
       Assert.assertEquals(array[0], 2.0);
       Assert.assertEquals(array[1], 4.0);
     }
+  }
+
+  @Test
+  public void heapToDirectWithSeed() {
+    long seed = 1;
+    double[] values = {1.0};
+
+    ArrayOfDoublesUpdatableSketch sketch1 = 
+        new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed).build();
+    sketch1.update("a", values);
+    sketch1.update("b", values);
+    sketch1.update("c", values);
+
+    ArrayOfDoublesUpdatableSketch sketch2 = (ArrayOfDoublesUpdatableSketch) 
+        ArrayOfDoublesSketches.wrapSketch(new NativeMemory(sketch1.toByteArray()), seed);
+    sketch2.update("b", values);
+    sketch2.update("c", values);
+    sketch2.update("d", values);
+
+    Assert.assertEquals(sketch2.getEstimate(), 4.0);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -83,6 +109,27 @@ public class ArrayOfDoublesQuickSelectSketchTest {
       Assert.assertEquals(array[0], 2.0);
       Assert.assertEquals(array[1], 4.0);
     }
+  }
+  
+  @Test
+  public void directToHeapWithSeed() {
+    long seed = 1;
+    double[] values = {1.0};
+
+    ArrayOfDoublesUpdatableSketch sketch1 = 
+        new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed).setMemory(
+            new NativeMemory(new byte[1000000])).build();
+    sketch1.update("a", values);
+    sketch1.update("b", values);
+    sketch1.update("c", values);
+
+    ArrayOfDoublesUpdatableSketch sketch2 = (ArrayOfDoublesUpdatableSketch) 
+        ArrayOfDoublesSketches.heapifySketch(new NativeMemory(sketch1.toByteArray()), seed);
+    sketch2.update("b", values);
+    sketch2.update("c", values);
+    sketch2.update("d", values);
+
+    Assert.assertEquals(sketch2.getEstimate(), 4.0);
   }
   
   private static void noopUpdates(ArrayOfDoublesUpdatableSketch sketch, double[] valuesArr) {

@@ -178,7 +178,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       offset += summaryResult.getSize();
       insert(key, summary);
     }
-    setIsEmpty((flags & (1 << Flags.IS_EMPTY.ordinal())) > 0);
+    isEmpty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
     setRebuildThreshold();
   }
 
@@ -346,8 +346,8 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     this.theta_ = theta;
   }
 
-  void setIsEmpty(final boolean isEmpty) {
-    this.isEmpty_ = isEmpty;
+  void setNotEmpty() {
+    this.isEmpty_ = false;
   }
 
   SummaryFactory<S> getSummaryFactory() {

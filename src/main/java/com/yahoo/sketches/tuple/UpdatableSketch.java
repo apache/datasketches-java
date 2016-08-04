@@ -124,7 +124,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
   }
 
   private void insertOrIgnore(final long key, final U value) {
-    setIsEmpty(false);
+    setNotEmpty();
     if (key >= getThetaLong()) return;
     int index = findOrInsert(key);
     if (index < 0) {

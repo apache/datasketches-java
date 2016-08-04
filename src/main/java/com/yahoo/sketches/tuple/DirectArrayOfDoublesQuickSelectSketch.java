@@ -161,11 +161,6 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
     return mem_.getLong(keysOffset_ + SIZE_OF_KEY_BYTES * index);
   }
 
-//  @Override
-//  protected void setKey(final int index, final long key) {
-//    mem_.putLong(keysOffset_ + SIZE_OF_KEY_BYTES * index, key);
-//  }
-
   @Override
   protected void incrementCount() {
     int count = mem_.getInt(RETAINED_ENTRIES_INT);
@@ -214,17 +209,6 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
     if (isEmpty_) {
       isEmpty_ = false;
       mem_.clearBits(FLAGS_BYTE, (byte) (1 << Flags.IS_EMPTY.ordinal()));
-    }
-  }
-
-  @Override
-  protected void setIsEmpty(final boolean isEmpty) {
-    if (isEmpty_ && !isEmpty) {
-      isEmpty_ = false;
-      mem_.clearBits(FLAGS_BYTE, (byte) (1 << Flags.IS_EMPTY.ordinal()));
-    } else if (!isEmpty_ && isEmpty) {
-      isEmpty_ = true;
-      mem_.setBits(FLAGS_BYTE, (byte) (1 << Flags.IS_EMPTY.ordinal()));
     }
   }
 
