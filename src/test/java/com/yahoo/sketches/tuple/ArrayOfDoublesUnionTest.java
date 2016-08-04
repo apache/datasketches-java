@@ -79,6 +79,31 @@ public class ArrayOfDoublesUnionTest {
   }
 
   @Test
+  public void heapEstimationModeFullOverlapTwoValuesAndDownsizing() {
+    int key = 0;
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).build();
+    for (int i = 0; i < 8192; i++) sketch1.update(key++, new double[] {1.0, 2.0});
+
+    key = 0; // full overlap
+    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).build();
+    for (int i = 0; i < 8192; i++) sketch2.update(key++, new double[] {1.0, 2.0});
+
+    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().setNumberOfValues(2).setNominalEntries(1024).buildUnion();
+    union.update(sketch1);
+    union.update(sketch2);
+    ArrayOfDoublesCompactSketch result = union.getResult();
+    Assert.assertFalse(result.isEmpty());
+    Assert.assertTrue(result.isEstimationMode());
+    Assert.assertEquals(result.getEstimate(), 8192.0, 8192 * 0.01);
+    Assert.assertEquals(result.getRetainedEntries(), 1024); // union was downsampled
+
+    ArrayOfDoublesSketchIterator it = result.iterator();
+    while (it.next()) {
+      Assert.assertEquals(it.getValues(), new double[] {2.0, 4.0});
+    }
+  }
+
+  @Test
   public void heapMixedMode() {
     int key = 0;
     ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
