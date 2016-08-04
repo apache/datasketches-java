@@ -5,8 +5,6 @@
 
 package com.yahoo.sketches.tuple;
 
-import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
-
 import com.yahoo.sketches.memory.Memory;
 
 /**
@@ -36,17 +34,9 @@ final class DirectArrayOfDoublesUnion extends ArrayOfDoublesUnion {
   /**
    * Wraps the given Memory.
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   */
-  public DirectArrayOfDoublesUnion(final Memory mem) {
-    this(mem, DEFAULT_UPDATE_SEED);
-  }
-
-  /**
-   * Wraps the given Memory.
-   * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
-  public DirectArrayOfDoublesUnion(final Memory mem, final long seed) {
+  DirectArrayOfDoublesUnion(final Memory mem, final long seed) {
     super(new DirectArrayOfDoublesQuickSelectSketch(mem, seed));
     mem_ = mem;
   }
