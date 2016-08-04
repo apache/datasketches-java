@@ -62,7 +62,7 @@ public class ArrayOfDoublesIntersectionTest {
   }
 
   @Test
-  public void exactWithEmpty() {
+  public void heapExactWithEmpty() {
     ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch1.update(1, new double[] {1});
     sketch1.update(2, new double[] {1});
@@ -74,6 +74,29 @@ public class ArrayOfDoublesIntersectionTest {
     intersection.update(sketch1, null);
     intersection.update(sketch2, null);
     ArrayOfDoublesCompactSketch result = intersection.getResult();
+    Assert.assertTrue(result.isEmpty());
+    Assert.assertEquals(result.getRetainedEntries(), 0);
+    Assert.assertEquals(result.getEstimate(), 0.0);
+    Assert.assertEquals(result.getLowerBound(1), 0.0);
+    Assert.assertEquals(result.getUpperBound(1), 0.0);
+  }
+
+  @Test
+  public void directExactWithEmpty() {
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder()
+        .setMemory(new NativeMemory(new byte[1000000])).build();
+    sketch1.update(1, new double[] {1});
+    sketch1.update(2, new double[] {1});
+    sketch1.update(3, new double[] {1});
+
+    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder()
+        .setMemory(new NativeMemory(new byte[1000000])).build();
+
+    ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().
+        setMemory(new NativeMemory(new byte[1000000])).buildIntersection();
+    intersection.update(sketch1, null);
+    intersection.update(sketch2, null);
+    ArrayOfDoublesCompactSketch result = intersection.getResult(new NativeMemory(new byte[1000000]));
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getRetainedEntries(), 0);
     Assert.assertEquals(result.getEstimate(), 0.0);
@@ -118,7 +141,7 @@ public class ArrayOfDoublesIntersectionTest {
   }
 
   @Test
-  public void disjointEstimationMode() {
+  public void heapDisjointEstimationMode() {
     int key = 0;
     ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) sketch1.update(key++, new double[] {1.0});
@@ -130,6 +153,30 @@ public class ArrayOfDoublesIntersectionTest {
     intersection.update(sketch1, combiner);
     intersection.update(sketch2, combiner);
     ArrayOfDoublesCompactSketch result = intersection.getResult();
+    Assert.assertTrue(result.isEmpty());
+    Assert.assertEquals(result.getRetainedEntries(), 0);
+    Assert.assertEquals(result.getEstimate(), 0.0);
+    Assert.assertEquals(result.getLowerBound(1), 0.0);
+    Assert.assertEquals(result.getUpperBound(1), 0.0);
+    Assert.assertEquals(result.getValues().length, 0);
+  }
+
+  @Test
+  public void directDisjointEstimationMode() {
+    int key = 0;
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().
+        setMemory(new NativeMemory(new byte[1000000])).build();
+    for (int i = 0; i < 8192; i++) sketch1.update(key++, new double[] {1.0});
+
+    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().
+        setMemory(new NativeMemory(new byte[1000000])).build();
+    for (int i = 0; i < 8192; i++) sketch2.update(key++, new double[] {1.0});
+
+    ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().
+        setMemory(new NativeMemory(new byte[1000000])).buildIntersection();
+    intersection.update(sketch1, combiner);
+    intersection.update(sketch2, combiner);
+    ArrayOfDoublesCompactSketch result = intersection.getResult(new NativeMemory(new byte[1000000]));
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getRetainedEntries(), 0);
     Assert.assertEquals(result.getEstimate(), 0.0);

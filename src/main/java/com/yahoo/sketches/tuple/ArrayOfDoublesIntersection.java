@@ -51,7 +51,7 @@ public abstract class ArrayOfDoublesIntersection {
     Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
     theta_ = min(theta_, sketchIn.getThetaLong());
     isEmpty_ |= sketchIn.isEmpty();
-    if (sketchIn.getRetainedEntries() == 0) {
+    if (isEmpty_ || sketchIn.getRetainedEntries() == 0) {
       sketch_ = null;
       return;
     }
@@ -82,7 +82,7 @@ public abstract class ArrayOfDoublesIntersection {
       }
       if (sketch_ != null) {
         sketch_.setThetaLong(theta_);
-        sketch_.setIsEmpty(isEmpty_);
+        sketch_.setNotEmpty();
       }
     }
   }

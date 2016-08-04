@@ -51,9 +51,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   abstract void updateValues(int index, double[] values);
   
   abstract void setNotEmpty();
-  
-  abstract void setIsEmpty(boolean isEmpty);
-  
+
   abstract boolean isInSamplingMode();
   
   abstract int getResizeFactor();
@@ -63,8 +61,6 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   abstract void rebuild(int newCapacity);
   
   abstract long getKey(int index);
-  
-  //abstract void setKey(int index, long key);
   
   abstract void setValues(int index, double[] values);
   

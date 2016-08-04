@@ -51,7 +51,7 @@ public class Intersection<S extends Summary> {
     }
     theta_ = min(theta_, sketchIn.getThetaLong());
     isEmpty_ |= sketchIn.isEmpty();
-    if (sketchIn.getRetainedEntries() == 0) {
+    if (isEmpty_ || sketchIn.getRetainedEntries() == 0) {
       sketch_ = null;
       return;
     }
@@ -89,7 +89,7 @@ public class Intersection<S extends Summary> {
     }
     if (sketch_ != null) {
       sketch_.setThetaLong(theta_);
-      sketch_.setIsEmpty(isEmpty_);
+      sketch_.setNotEmpty();
     }
   }
 

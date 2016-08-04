@@ -8,6 +8,7 @@ package com.yahoo.sketches.tuple;
 import org.testng.annotations.Test;
 import org.testng.Assert;
 
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -175,9 +176,9 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
   }
 
   @Test
-  public void serializeDeserializeEstimation() throws Exception {
+  public void serializeDeserializeEstimationNoResize() throws Exception {
     ArrayOfDoublesUpdatableSketch sketch1 = 
-        new ArrayOfDoublesUpdatableSketchBuilder().
+        new ArrayOfDoublesUpdatableSketchBuilder().setResizeFactor(ResizeFactor.X1).
         setMemory(new NativeMemory(new byte[1000000])).build();
     for (int j = 0; j < 10; j++) {
       for (int i = 0; i < 8192; i++) sketch1.update(i, new double[] {1.0});

@@ -5,8 +5,6 @@
 
 package com.yahoo.sketches.tuple;
 
-import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
-
 import com.yahoo.sketches.memory.Memory;
 
 /**
@@ -27,19 +25,11 @@ final class HeapArrayOfDoublesUnion extends ArrayOfDoublesUnion {
   }
 
   /**
-   * This is to create an instance given a serialized form
-   * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   */
-  public HeapArrayOfDoublesUnion(final Memory mem) {
-    this(mem, DEFAULT_UPDATE_SEED);
-  }
-
-  /**
    * This is to create an instance given a serialized form and a custom seed
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
-  public HeapArrayOfDoublesUnion(final Memory mem, final long seed) {
+  HeapArrayOfDoublesUnion(final Memory mem, final long seed) {
     super(new HeapArrayOfDoublesQuickSelectSketch(mem, seed));
   }
 

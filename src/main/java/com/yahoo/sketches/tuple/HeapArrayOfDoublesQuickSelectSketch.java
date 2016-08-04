@@ -169,11 +169,6 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     return keys_[index];
   }
 
-//  @Override
-//  protected void setKey(final int index, final long key) {
-//    keys_[index] = key;
-//  }
-
   @Override
   protected void incrementCount() {
     count_++;
@@ -203,11 +198,6 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
   @Override
   protected void setNotEmpty() {
     isEmpty_ = false;
-  }
-
-  @Override
-  protected void setIsEmpty(final boolean isEmpty) {
-    isEmpty_ = isEmpty;
   }
 
   @Override
