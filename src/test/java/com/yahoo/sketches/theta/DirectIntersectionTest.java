@@ -4,9 +4,11 @@
  */
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.theta.SetOperation.CONST_PREAMBLE_LONGS;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.theta.SetOperation.getMaxIntersectionBytes;
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -16,7 +18,6 @@ import org.testng.annotations.Test;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
-import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -24,6 +25,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * @author Lee Rhodes
  */
 public class DirectIntersectionTest {
+  private static final int PREBYTES = CONST_PREAMBLE_LONGS << 3; //24
   
   @Test
   public void checkExactIntersectionNoOverlap() {
@@ -636,16 +638,20 @@ public class DirectIntersectionTest {
     inter3.reset();
   }
   
-  @SuppressWarnings("unused")
+  //@SuppressWarnings("unused")
   @Test
   public void checkDefaultMinSize() {
-   new DirectIntersection(9001L, new NativeMemory(new byte[32*8 + 24])); 
+    int k = 32;
+    NativeMemory mem = new NativeMemory(new byte[k*8 + PREBYTES]);
+    IntersectionImpl.initNewDirectInstance(DEFAULT_UPDATE_SEED, mem);
   }
   
-  @SuppressWarnings("unused")
+  //@SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkExceptionSizes2() {
-   new DirectIntersection(9001L, new NativeMemory(new byte[16*8 + 24])); 
+  public void checkExceptionMinSize() {
+    int k = 16;
+    NativeMemory mem = new NativeMemory(new byte[k*8 + PREBYTES]);
+    IntersectionImpl.initNewDirectInstance(DEFAULT_UPDATE_SEED, mem);
   }
   
   @Test
@@ -667,36 +673,35 @@ public class DirectIntersectionTest {
   public void checkFamily() {
     //cheap trick
     int k = 16;
-    Memory mem = new NativeMemory(new byte[k*16 + 24]);
-    DirectIntersection heapI = new DirectIntersection(Util.DEFAULT_UPDATE_SEED, mem);
-    assertEquals(heapI.getFamily(), Family.INTERSECTION);
+    Memory mem = new NativeMemory(new byte[k*16 + PREBYTES]);
+    IntersectionImpl impl = IntersectionImpl.initNewDirectInstance(DEFAULT_UPDATE_SEED, mem);
+    assertEquals(impl.getFamily(), Family.INTERSECTION);
   }
   
-  @SuppressWarnings("unused")
+  //@SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkExceptions1() {
-    //cheap tricks
     int k = 16;
-    Memory mem = new NativeMemory(new byte[k*16 + 24]);
-    new DirectIntersection(Util.DEFAULT_UPDATE_SEED, mem);
+    Memory mem = new NativeMemory(new byte[k*16 + PREBYTES]);
+    IntersectionImpl.initNewDirectInstance(DEFAULT_UPDATE_SEED, mem);
     //corrupt SerVer
     mem.putByte(PreambleUtil.SER_VER_BYTE, (byte) 2);
-    new DirectIntersection(mem, Util.DEFAULT_UPDATE_SEED);
+    IntersectionImpl.wrapInstance(mem, DEFAULT_UPDATE_SEED);
+    //new DirectIntersection(mem, Util.DEFAULT_UPDATE_SEED);
   }
   
-  @SuppressWarnings("unused")
+  //@SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkExceptions2() {
-    //cheap tricks
     int k = 16;
-    Memory mem = new NativeMemory(new byte[k*16 + 24]);
-    new DirectIntersection(Util.DEFAULT_UPDATE_SEED, mem);
+    Memory mem = new NativeMemory(new byte[k*16 + PREBYTES]);
+    IntersectionImpl.initNewDirectInstance(DEFAULT_UPDATE_SEED, mem);
     //mem now has non-empty intersection
     //corrupt empty and CurCount
     mem.setBits(PreambleUtil.FLAGS_BYTE, (byte) PreambleUtil.EMPTY_FLAG_MASK);
-    
     mem.putInt(PreambleUtil.RETAINED_ENTRIES_INT, 2);
-    new DirectIntersection(mem, Util.DEFAULT_UPDATE_SEED);
+    IntersectionImpl.wrapInstance(mem, DEFAULT_UPDATE_SEED);
+    //new DirectIntersection(mem, Util.DEFAULT_UPDATE_SEED);
   }
   
   //Check Alex's bug intersecting 2 direct full sketches with only overlap of 2
@@ -704,7 +709,7 @@ public class DirectIntersectionTest {
   @Test
   public void checkOverlappedDirect() {
     int k = 1 << 4;
-    int memBytes = 2*k*16 +24; //plenty of room
+    int memBytes = 2*k*16 +PREBYTES; //plenty of room
     UpdateSketch sk1 = Sketches.updateSketchBuilder().build(k);
     UpdateSketch sk2 = Sketches.updateSketchBuilder().build(k);
     for (int i=0; i<k; i++) {

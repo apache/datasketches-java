@@ -165,10 +165,11 @@ public class SetOperationBuilder {
       }
       case INTERSECTION: {
         if (bDstMem == null) {
-          setOp = new HeapIntersection(bSeed);
+          setOp = IntersectionImpl.initNewHeapInstance(bSeed);
+          //setOp = new HeapIntersection(bSeed);
         } 
         else {
-          setOp = new DirectIntersection(bSeed, bDstMem);
+          setOp = IntersectionImpl.initNewDirectInstance(bSeed, bDstMem);
         }
         break;
       }

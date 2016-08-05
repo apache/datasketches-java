@@ -68,7 +68,8 @@ public abstract class SetOperation {
         return UnionImpl.heapifyInstance(srcMem, seed);
       }
       case INTERSECTION : {
-        return new HeapIntersection(srcMem, seed);
+        return IntersectionImpl.heapifyInstance(srcMem, seed);
+        //return new HeapIntersection(srcMem, seed);
       }
       default: {
         throw new SketchesArgumentException("SetOperation cannot heapify family: " 
@@ -112,7 +113,7 @@ public abstract class SetOperation {
         return UnionImpl.wrapInstance(srcMem, seed);
       }
       case INTERSECTION : {
-        return new DirectIntersection(srcMem, seed);
+        return IntersectionImpl.wrapInstance(srcMem, seed);
       }
       default:
         throw new SketchesArgumentException("SetOperation cannot wrap family: " + family.toString());
