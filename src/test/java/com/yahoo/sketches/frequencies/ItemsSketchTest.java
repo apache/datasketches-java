@@ -279,6 +279,8 @@ public class ItemsSketchTest {
     Assert.assertEquals(row.getUpperBound(), 1);
     String s = row.toString();
     println(s);
+    ItemsSketch.Row<Long> nullRow = null; //check equals(null)
+    Assert.assertFalse(row.equals(nullRow));
   }
   
   @Test

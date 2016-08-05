@@ -494,10 +494,7 @@ final class IntersectionImpl extends SetOperation implements Intersection {
         tmpCnt++;
       }
     }
-    if (tmpCnt != count) {
-      throw new SketchesArgumentException("Count Check Exception: got: " + tmpCnt 
-          + ", expected: " + count);
-    }
+    assert (tmpCnt == count) : "Intersection Count Check: got: " + tmpCnt + ", expected: " + count;
   }
 
   //special handlers for Off Heap
