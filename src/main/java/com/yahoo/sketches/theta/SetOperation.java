@@ -155,6 +155,11 @@ public abstract class SetOperation {
     return Util.computeSeedHash(seed);
   }
   
+  /**
+   * Computes minimum lgArrLongs from a current count.
+   * @param count the given current count
+   * @return the minimum lgArrLongs from a current count.
+   */
   //Used by intersection and AnotB
   static final int computeMinLgArrLongsFromCount(final int count) {
     int upperCount = (int) Math.ceil(count / REBUILD_THRESHOLD);
