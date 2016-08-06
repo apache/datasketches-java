@@ -88,7 +88,7 @@ final class IntersectionImpl extends SetOperation implements Intersection {
     impl.thetaLong_ = Long.MAX_VALUE;
     impl.lgArrLongs_ = 0;
     impl.hashTable_ = null;
-    impl.mem_ = null;
+    impl.mem_ = null; //On the Heap
     return impl;
   }
   
@@ -417,7 +417,6 @@ final class IntersectionImpl extends SetOperation implements Intersection {
         if (foundIdx == -1) continue;
         matchSet[matchSetCount++] = hashIn;
       }
-
     } 
     else {
       //either unordered compact or hash table
