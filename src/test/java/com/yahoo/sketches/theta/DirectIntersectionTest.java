@@ -638,7 +638,6 @@ public class DirectIntersectionTest {
     inter3.reset();
   }
   
-  //@SuppressWarnings("unused")
   @Test
   public void checkDefaultMinSize() {
     int k = 32;
@@ -646,7 +645,6 @@ public class DirectIntersectionTest {
     IntersectionImpl.initNewDirectInstance(DEFAULT_UPDATE_SEED, mem);
   }
   
-  //@SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkExceptionMinSize() {
     int k = 16;
@@ -678,7 +676,6 @@ public class DirectIntersectionTest {
     assertEquals(impl.getFamily(), Family.INTERSECTION);
   }
   
-  //@SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkExceptions1() {
     int k = 16;
@@ -687,10 +684,8 @@ public class DirectIntersectionTest {
     //corrupt SerVer
     mem.putByte(PreambleUtil.SER_VER_BYTE, (byte) 2);
     IntersectionImpl.wrapInstance(mem, DEFAULT_UPDATE_SEED);
-    //new DirectIntersection(mem, Util.DEFAULT_UPDATE_SEED);
   }
   
-  //@SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkExceptions2() {
     int k = 16;
@@ -701,7 +696,6 @@ public class DirectIntersectionTest {
     mem.setBits(PreambleUtil.FLAGS_BYTE, (byte) PreambleUtil.EMPTY_FLAG_MASK);
     mem.putInt(PreambleUtil.RETAINED_ENTRIES_INT, 2);
     IntersectionImpl.wrapInstance(mem, DEFAULT_UPDATE_SEED);
-    //new DirectIntersection(mem, Util.DEFAULT_UPDATE_SEED);
   }
   
   //Check Alex's bug intersecting 2 direct full sketches with only overlap of 2

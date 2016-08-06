@@ -201,7 +201,7 @@ public class ItemsSketchTest {
   
   @Test
   public void getRowHeader() {
-    String header = new ItemsSketch.Row<String>("a", 0, 0, 0).getRowHeader();
+    String header = ItemsSketch.Row.getRowHeader();
     Assert.assertNotNull(header);
     Assert.assertTrue(header.length() > 0);
   }

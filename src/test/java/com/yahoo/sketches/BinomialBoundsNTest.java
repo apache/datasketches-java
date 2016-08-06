@@ -63,7 +63,7 @@ public class BinomialBoundsNTest {
   private static final double TOL = 1E-15;
   
   @Test
-  public void checkBounds() {
+  public static void checkBounds() {
     int i = 0;
     for (int ci = 1; ci <= 3; ci++, i++) {
       double[] arr = runTestAux (20, ci, 1e-3);
@@ -102,7 +102,7 @@ public class BinomialBoundsNTest {
   };
   
   @Test
-  public void checkCheckArgs() {
+  public static void checkCheckArgs() {
     try {
       checkArgs(-1L, 1.0, 1);
       checkArgs(10L, 0.0, 1);
@@ -117,7 +117,7 @@ public class BinomialBoundsNTest {
   }
   
   @Test
-  public void checkComputeApproxBino_LB_UB() {
+  public static void checkComputeApproxBino_LB_UB() {
     long n = 100;
     double theta = (2.0 - 1e-5)/2.0;
     double result = getLowerBound(n, theta, 1, false);
@@ -131,12 +131,12 @@ public class BinomialBoundsNTest {
   }
   
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkThetaLimits1() {
+  public static void checkThetaLimits1() {
     BinomialBoundsN.getUpperBound(100, 1.1, 1, false);
   }
   
   @Test
-  public void boundsExample() {
+  public static void boundsExample() {
     println("BinomialBoundsN Example:");
     int k = 500;
     double theta = 0.001;

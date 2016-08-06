@@ -90,7 +90,7 @@ public class HeapDoublesUnionTest {
   @Test//(expectedExceptions = SketchesStateException.class)
   public void checkResultAndReset() {
     DoublesSketch qs1 = buildQS(256, 0);
-    DoublesUnion union = DoublesUnion.builder().build(qs1);
+    DoublesUnion union = DoublesUnionBuilder.build(qs1);
     DoublesSketch qs2 = union.getResultAndReset();
     assertEquals(qs2.getK(), 256);
   }

@@ -69,7 +69,6 @@ public abstract class SetOperation {
       }
       case INTERSECTION : {
         return IntersectionImpl.heapifyInstance(srcMem, seed);
-        //return new HeapIntersection(srcMem, seed);
       }
       default: {
         throw new SketchesArgumentException("SetOperation cannot heapify family: " 

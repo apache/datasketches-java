@@ -27,11 +27,11 @@ public class DoublesUnionBuilderTest {
     bldr.setK(128);
     DoublesUnion union = bldr.build(); //virgin union
     
-    union = bldr.build(srcMem);
+    union = DoublesUnionBuilder.build(srcMem);
     DoublesSketch qs2 = union.getResult();
     assertEquals(qs1.getStorageBytes(), qs2.getStorageBytes());
     
-    union = bldr.copyBuild(qs2);
+    union = DoublesUnionBuilder.copyBuild(qs2);
     DoublesSketch qs3 = union.getResult();
     assertEquals(qs2.getStorageBytes(), qs3.getStorageBytes());
     assertFalse(qs2 == qs3);

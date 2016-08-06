@@ -166,7 +166,6 @@ public class SetOperationBuilder {
       case INTERSECTION: {
         if (bDstMem == null) {
           setOp = IntersectionImpl.initNewHeapInstance(bSeed);
-          //setOp = new HeapIntersection(bSeed);
         } 
         else {
           setOp = IntersectionImpl.initNewDirectInstance(bSeed, bDstMem);

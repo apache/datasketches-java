@@ -497,7 +497,7 @@ public class ItemsSketch<T> {
     /**
      * @return the descriptive row header
      */
-    public String getRowHeader() {
+    public static String getRowHeader() {
       return String.format(HFMT,"Est", "UB", "LB", "Item");
     }
     
