@@ -68,7 +68,7 @@ public abstract class SetOperation {
         return UnionImpl.heapifyInstance(srcMem, seed);
       }
       case INTERSECTION : {
-        return new HeapIntersection(srcMem, seed);
+        return IntersectionImpl.heapifyInstance(srcMem, seed);
       }
       default: {
         throw new SketchesArgumentException("SetOperation cannot heapify family: " 
@@ -112,7 +112,7 @@ public abstract class SetOperation {
         return UnionImpl.wrapInstance(srcMem, seed);
       }
       case INTERSECTION : {
-        return new DirectIntersection(srcMem, seed);
+        return IntersectionImpl.wrapInstance(srcMem, seed);
       }
       default:
         throw new SketchesArgumentException("SetOperation cannot wrap family: " + family.toString());
@@ -155,6 +155,11 @@ public abstract class SetOperation {
     return Util.computeSeedHash(seed);
   }
   
+  /**
+   * Computes minimum lgArrLongs from a current count.
+   * @param count the given current count
+   * @return the minimum lgArrLongs from a current count.
+   */
   //Used by intersection and AnotB
   static final int computeMinLgArrLongsFromCount(final int count) {
     int upperCount = (int) Math.ceil(count / REBUILD_THRESHOLD);

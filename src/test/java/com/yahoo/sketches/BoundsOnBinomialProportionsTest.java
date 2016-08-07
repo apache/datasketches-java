@@ -86,7 +86,7 @@ public class BoundsOnBinomialProportionsTest {
 //  }
 
   @Test
-  public void checkNumStdDevZero() {
+  public static void checkNumStdDevZero() {
     double lb = BoundsOnBinomialProportions.approximateLowerBoundOnP( 1000, 100, 0.0);
     double ub = BoundsOnBinomialProportions.approximateUpperBoundOnP( 1000, 100, 0.0);
     println("LB: "+lb);
@@ -94,7 +94,7 @@ public class BoundsOnBinomialProportionsTest {
   }
   
   @Test
-  public void checkInputs() {
+  public static void checkInputs() {
     try {
       estimateUnknownP(-1, 50);
       fail("Should have thrown SketchesArgumentException.");
@@ -120,7 +120,7 @@ public class BoundsOnBinomialProportionsTest {
   }
   
   @Test
-  public void checkErf() {
+  public static void checkErf() {
     assertTrue(erf(-2.0) < 0.99);
     assertTrue(erf(2.0)  > 0.99);
   }

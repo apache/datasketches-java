@@ -7,6 +7,7 @@ package com.yahoo.sketches.theta;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -16,7 +17,6 @@ import org.testng.annotations.Test;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
-import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.theta.CompactSketch;
@@ -490,9 +490,8 @@ public class HeapIntersectionTest {
   
   @Test
   public void checkFamily() {
-    //cheap trick
-    HeapIntersection heapI = new HeapIntersection(Util.DEFAULT_UPDATE_SEED);
-    assertEquals(heapI.getFamily(), Family.INTERSECTION);
+    IntersectionImpl impl = IntersectionImpl.initNewHeapInstance(DEFAULT_UPDATE_SEED);
+    assertEquals(impl.getFamily(), Family.INTERSECTION);
   }
   
   @Test

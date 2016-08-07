@@ -62,7 +62,8 @@ public final class HashOperations {
     return cnt;
   }
 
-  // make odd and independent of index assuming lgArrLongs lowest bits of the hash were used for index
+  // make odd and independent of index assuming lgArrLongs lowest bits of the hash were used for 
+  //  index
   private static int getStride(final long hash, final int lgArrLongs) {
     return (2 * (int) ((hash >> (lgArrLongs)) & STRIDE_MASK)) + 1;
   }
@@ -132,9 +133,10 @@ public final class HashOperations {
    * lgArrLongs &le; log2(hashTable.length).
    * @param hash hash value that must not be zero and if not a duplicate will be inserted into the
    * array into an empty slot
-   * @return index if found, -(index + 1) if inserted
+   * @return index &ge; 0 if found (duplicate); &lt; 0 if inserted, inserted at -(index + 1).
    */
-  public static int hashSearchOrInsert(final long[] hashTable, final int lgArrLongs, final long hash) {
+  public static int hashSearchOrInsert(final long[] hashTable, final int lgArrLongs, 
+      final long hash) {
     final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
     final int stride = getStride(hash, lgArrLongs);
     int curProbe = (int) (hash & arrayMask);
@@ -158,7 +160,7 @@ public final class HashOperations {
    * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
    * lgArrLongs &le; log2(hashTable.length).
    * @param hash value that must not be zero and will be inserted into the array into an empty slot.
-   * @return index of insertion.
+   * @return index of insertion.  Always positive or zero.
    */
   public static int hashInsertOnly(final long[] hashTable, final int lgArrLongs, final long hash) {
     final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
@@ -181,7 +183,7 @@ public final class HashOperations {
    * @param hash A hash value that must not be zero and if not a duplicate will be inserted into the
    * array into an empty slot.
    * @param memOffsetBytes offset in the memory where the hash array starts
-   * @return index if found, -(index + 1) if inserted
+   * @return index &ge; 0 if found (duplicate); &lt; 0 if inserted, inserted at -(index + 1).
    */
   public static int hashSearchOrInsert(final Memory mem, final int lgArrLongs, final long hash, 
       final int memOffsetBytes) {
@@ -213,7 +215,8 @@ public final class HashOperations {
    * @param memOffsetBytes offset in the memory where the hash array starts
    * @return index if found, -1 if not found.
    */
-  public static int hashSearch(final Memory mem, final int lgArrLongs, final long hash, final int memOffsetBytes) {
+  public static int hashSearch(final Memory mem, final int lgArrLongs, final long hash, 
+      final int memOffsetBytes) {
     final int arrayMask = (1 << lgArrLongs) - 1;
     final int stride = getStride(hash, lgArrLongs);
     int curProbe = (int) (hash & arrayMask);
@@ -239,7 +242,7 @@ public final class HashOperations {
    * lgArrLongs &le; log2(hashTable.length).
    * @param hash value that must not be zero and will be inserted into the array into an empty slot.
    * @param memOffsetBytes offset in the memory where the hash array starts
-   * @return index of insertion.
+   * @return index of insertion.  Always positive or zero.
    */
   public static int hashInsertOnly(final Memory mem, final int lgArrLongs, final long hash, 
       final int memOffsetBytes) {
