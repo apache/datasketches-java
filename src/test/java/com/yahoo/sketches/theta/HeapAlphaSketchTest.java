@@ -27,10 +27,6 @@ import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
-import com.yahoo.sketches.theta.CompactSketch;
-import com.yahoo.sketches.theta.HeapAlphaSketch;
-import com.yahoo.sketches.theta.Sketch;
-import com.yahoo.sketches.theta.UpdateSketch;
 
 /** 
  * @author Lee Rhodes

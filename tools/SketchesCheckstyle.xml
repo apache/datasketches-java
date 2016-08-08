@@ -243,8 +243,10 @@
     </module>
     
     <module name="CustomImportOrder">
-      <property name="specialImportsRegExp" value="com.google"/>
+      <property name="specialImportsRegExp" value="org"/>
       <property name="sortImportsInGroupAlphabetically" value="true"/>
+      <property name="separateLineBetweenGroups" value="true"/>
+      <!-- Google: "STATIC###SPECIAL_IMPORTS###THIRD_PARTY_PACKAGE###STANDARD_JAVA_PACKAGE" -->
       <property name="customImportOrderRules" value="STATIC###STANDARD_JAVA_PACKAGE###SPECIAL_IMPORTS###THIRD_PARTY_PACKAGE"/>
     </module>
     

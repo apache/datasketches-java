@@ -16,6 +16,7 @@ test-output/
 local/
 reports/
 .pmd
+tmp/
 
 # Build artifacts
 target/
