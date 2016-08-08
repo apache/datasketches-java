@@ -95,7 +95,6 @@ public class NativeMemory implements Memory {
     }
     nativeRawStartAddress_ = 0L;
     capacityBytes_ = byteArray.length;
-    
   }
   
   /**
@@ -130,7 +129,6 @@ public class NativeMemory implements Memory {
       nativeRawStartAddress_ = 0L;
     }
     capacityBytes_ = byteBuf.capacity();
-    
   }
   
   @Override
