@@ -233,7 +233,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     sketch2.update(3, 1.0);
     sketch2.update(3, 1.0);
 
-    Union<DoubleSummary> union = new Union<DoubleSummary>(8, new DoubleSummaryFactory());
+    Union<DoubleSummary> union = new Union<DoubleSummary>(new DoubleSummaryFactory());
     union.update(sketch1);
     union.update(sketch2);
     CompactSketch<DoubleSummary> result = union.getResult();
