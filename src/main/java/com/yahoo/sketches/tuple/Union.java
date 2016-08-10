@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.tuple;
 
+import static com.yahoo.sketches.Util.DEFAULT_NOMINAL_ENTRIES;
+
 /**
  * Compute a union of two or more tuple sketches.
  * A new instance represents an empty set.
@@ -17,6 +19,14 @@ public class Union<S extends Summary> {
   private final SummaryFactory<S> summaryFactory_;
   private QuickSelectSketch<S> sketch_;
   private long theta_; // need to maintain outside of the sketch
+
+  /**
+   * Creates new instance with default nominal entries
+   * @param summaryFactory the summary factory
+   */
+  public Union(final SummaryFactory<S> summaryFactory) {
+    this(DEFAULT_NOMINAL_ENTRIES, summaryFactory);
+  }
 
   /**
    * Creates new instance
