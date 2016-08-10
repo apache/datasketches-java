@@ -10,13 +10,24 @@ import com.yahoo.sketches.theta.Sketch;
 /**
  * This class is used to compute the bounds on the estimate of the ratio <i>B / A</i>, where:
  * <ul>
- * <li><i>A</i> is a Theta Sketch of unique identifiers.</li>
- * <li><i>B</i> is a Theta Sketch of a subset <i>B</i> of <i>A</i> obtained by an intersection
- * with a Theta Sketch <i>C</i>.</li>
+ * <li><i>A</i> is a Theta Sketch of population <i>PopA</i>.</li>
+ * <li><i>B</i> is a Theta Sketch of population <i>PopB</i> that is a proper subset of <i>A</i>, 
+ * obtained by an intersection of <i>A</i> with some other Theta Sketch <i>C</i>, 
+ * which acts like a predicate or selection clause.</li>
+ * <li>The estimate of the ratio <i>PopB/PopA</i> is
+ * BoundsOnRatiosInThetaSketchedSets.getEstimateOfBoverA(<i>A, B</i>).</li>
+ * <li>The Upper Bound estimate on the ratio PopB/PopA is 
+ * BoundsOnRatiosInThetaSketchedSets.getUpperBoundForBoverA(<i>A, B</i>).</li>
+ * <li>The Lower Bound estimate on the ratio PopB/PopA is 
+ * BoundsOnRatiosInThetaSketchedSets.getLowerBoundForBoverA(<i>A, B</i>).</li>
  * </ul>
- * The theta of A cannot be greater than the theta of B.
+ * Note: The theta of <i>A</i> cannot be greater than the theta of <i>B</i>. 
+ * If <i>B</i> is formed as an intersection of <i>A</i> and some other set <i>C</i>, 
+ * then the theta of <i>B</i> is guaranteed to be less than or equal to the theta of <i>B</i>.
  * 
+ * @version 0.5.1
  * @author Kevin Lang
+ * @author Lee Rhodes
  */
 public final class BoundsOnRatiosInThetaSketchedSets {
   
