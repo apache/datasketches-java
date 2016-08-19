@@ -25,6 +25,7 @@ import org.testng.annotations.Test;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 
@@ -464,7 +465,7 @@ public class HeapAlphaSketchTest {
     assertEquals(1 << sk1.getLgArrLongs(), 2*k);
     sk1.reset();
     ResizeFactor rf = sk1.getResizeFactor();
-    int subMul = UpdateSketch.startingSubMultiple(11, rf, 5); //messy
+    int subMul = Util.startingSubMultiple(11, rf, 5); //messy
     assertEquals(sk1.getLgArrLongs(), subMul);
     
     UpdateSketch usk2 = UpdateSketch.builder().setFamily(fam_).setResizeFactor(ResizeFactor.X1).build(k);
@@ -475,7 +476,7 @@ public class HeapAlphaSketchTest {
     assertEquals(1 << sk1.getLgArrLongs(), 2*k);
     sk1.reset();
     rf = sk1.getResizeFactor();
-    subMul = UpdateSketch.startingSubMultiple(11, rf, 5); //messy
+    subMul = Util.startingSubMultiple(11, rf, 5); //messy
     assertEquals(sk1.getLgArrLongs(), subMul);
     
     assertNull(sk1.getMemory());

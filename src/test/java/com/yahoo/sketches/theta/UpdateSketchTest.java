@@ -11,6 +11,7 @@ import org.testng.annotations.Test;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
 import com.yahoo.sketches.theta.UpdateSketch;
@@ -70,15 +71,15 @@ public class UpdateSketchTest {
   @Test
   public void checkStartingSubMultiple() {
     int lgSubMul;
-    lgSubMul = UpdateSketch.startingSubMultiple(10, ResizeFactor.X1, 5);
+    lgSubMul = Util.startingSubMultiple(10, ResizeFactor.X1, 5);
     assertEquals(lgSubMul, 10);
-    lgSubMul = UpdateSketch.startingSubMultiple(10, ResizeFactor.X2, 5);
+    lgSubMul = Util.startingSubMultiple(10, ResizeFactor.X2, 5);
     assertEquals(lgSubMul, 5);
-    lgSubMul = UpdateSketch.startingSubMultiple(10, ResizeFactor.X4, 5);
+    lgSubMul = Util.startingSubMultiple(10, ResizeFactor.X4, 5);
     assertEquals(lgSubMul, 6);
-    lgSubMul = UpdateSketch.startingSubMultiple(10, ResizeFactor.X8, 5);
+    lgSubMul = Util.startingSubMultiple(10, ResizeFactor.X8, 5);
     assertEquals(lgSubMul, 7);
-    lgSubMul = UpdateSketch.startingSubMultiple(4, ResizeFactor.X1, 5);
+    lgSubMul = Util.startingSubMultiple(4, ResizeFactor.X1, 5);
     assertEquals(lgSubMul, 5);
   }
   

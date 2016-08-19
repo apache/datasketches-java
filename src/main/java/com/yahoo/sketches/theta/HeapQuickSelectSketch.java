@@ -95,7 +95,7 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch impl
     
     HeapQuickSelectSketch hqss = new HeapQuickSelectSketch(lgNomLongs, seed, p, rf, 
         preambleLongs, family);
-    int lgArrLongs = startingSubMultiple(lgNomLongs + 1, rf, MIN_LG_ARR_LONGS);
+    int lgArrLongs = Util.startingSubMultiple(lgNomLongs + 1, rf, MIN_LG_ARR_LONGS);
     hqss.lgArrLongs_ = lgArrLongs;
     hqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     hqss.curCount_ = 0;
@@ -229,7 +229,7 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch { //UpdateSketch impl
   @Override
   public final void reset() {
     ResizeFactor rf = getResizeFactor();
-    int lgArrLongsSM = startingSubMultiple(lgNomLongs_ + 1, rf, MIN_LG_ARR_LONGS);
+    int lgArrLongsSM = Util.startingSubMultiple(lgNomLongs_ + 1, rf, MIN_LG_ARR_LONGS);
     if (lgArrLongsSM == lgArrLongs_) {
       int arrLongs = cache_.length;
       assert (1 << lgArrLongs_) == arrLongs; 
