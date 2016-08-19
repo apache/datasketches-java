@@ -5,7 +5,11 @@
 
 package com.yahoo.sketches.tuple;
 
+import static com.yahoo.sketches.Util.MIN_LG_ARR_LONGS;
+import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
+import static com.yahoo.sketches.Util.RESIZE_THRESHOLD;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
+import static com.yahoo.sketches.Util.startingSubMultiple;
 
 import java.lang.reflect.Array;
 import java.nio.ByteOrder;
@@ -13,6 +17,7 @@ import java.nio.ByteOrder;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.QuickSelect;
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.MemoryRegion;
@@ -29,10 +34,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   private enum Flags { IS_BIG_ENDIAN, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES, 
     IS_THETA_INCLUDED }
 
-  static final int MIN_NOM_ENTRIES = 32;
   static final int DEFAULT_LG_RESIZE_FACTOR = 3;
-  private static final double REBUILD_RATIO_AT_RESIZE = 0.5;
-  static final double REBUILD_RATIO_AT_TARGET_SIZE = 15.0 / 16.0;
   private final int nomEntries_;
   private int lgCurrentCapacity_;
   private final int lgResizeFactor_;
@@ -91,11 +93,11 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       lgResizeFactor,
       samplingProbability,
       summaryFactory,
-      1 << Util.startingSubMultiple(
+      1 << startingSubMultiple(
         // target table size is twice the number of nominal entries
         Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries) * 2), 
-        lgResizeFactor,
-        Integer.numberOfTrailingZeros(MIN_NOM_ENTRIES)
+        ResizeFactor.getRF(lgResizeFactor),
+        MIN_LG_ARR_LONGS
       )
     );
   }
@@ -420,9 +422,9 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
 
   private void setRebuildThreshold() {
     if (keys_.length > nomEntries_) {
-      rebuildThreshold_ = (int) (keys_.length * REBUILD_RATIO_AT_TARGET_SIZE);
+      rebuildThreshold_ = (int) (keys_.length * REBUILD_THRESHOLD);
     } else {
-      rebuildThreshold_ = (int) (keys_.length * REBUILD_RATIO_AT_RESIZE);
+      rebuildThreshold_ = (int) (keys_.length * RESIZE_THRESHOLD);
     }
   }
 

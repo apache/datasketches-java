@@ -5,6 +5,9 @@
 
 package com.yahoo.sketches;
 
+import com.yahoo.sketches.memory.Memory;
+import com.yahoo.sketches.memory.SingleClassNativeMemory;
+
 /**
  * QuickSelect algorithm improved from Sedgewick. Gets the kth order value 
  * (1-based or 0-based) from the array. 
@@ -92,7 +95,7 @@ public final class QuickSelect {
    * @param hi  the high index
    * @return the next partition value.  Ultimately, the desired pivot.
    */
-  private static int partition(long[] arr, final int lo, final int hi) {
+  private static int partition(final long[] arr, final int lo, final int hi) {
     int i = lo, j = hi + 1; //left and right scan indices
     long v = arr[lo]; //partitioning item value
     while (true) {
@@ -224,5 +227,97 @@ public final class QuickSelect {
     arr[j] = x;
     return j;
   }
-  
+
+
+  public static long select(final Memory mem, int lo, int hi, final int pivot) {
+    while (hi > lo) {
+      int j = partition(mem, lo, hi);
+      if (j == pivot) {
+        return mem.getLong(pivot << 3);
+      }
+      if (j > pivot) {
+        hi = j - 1;
+      } 
+      else {
+        lo = j + 1;
+      }
+    }
+    return mem.getLong(pivot << 3);
+  }
+
+  private static int partition(final Memory mem, final int lo, final int hi) {
+    int i = lo, j = hi + 1; //left and right scan indices
+    long v = mem.getLong(lo << 3); //partitioning item value
+    while (true) {
+      //Scan right, scan left, check for scan complete, and exchange
+      while (mem.getLong((++i) << 3) < v) {
+        if (i == hi) {
+          break;
+        }
+      }
+      while (v < mem.getLong((--j) << 3)) {
+        if (j == lo) {
+          break;
+        }
+      }
+      if (i >= j) {
+        break;
+      }
+      long x = mem.getLong(i << 3);
+      mem.putLong(i << 3, mem.getLong(j << 3));
+      mem.putLong(j << 3, x);
+    }
+    //put v=arr[j] into position with a[lo .. j-1] <= a[j] <= a[j+1 .. hi]
+    long x = mem.getLong(lo << 3);
+    mem.putLong(lo << 3, mem.getLong(j << 3));
+    mem.putLong(j << 3, x);
+    return j;
+  }
+
+
+  public static long select(final SingleClassNativeMemory mem, int lo, int hi, final int pivot) {
+    while (hi > lo) {
+      int j = partition(mem, lo, hi);
+      if (j == pivot) {
+        return mem.getLong(pivot << 3);
+      }
+      if (j > pivot) {
+        hi = j - 1;
+      } 
+      else {
+        lo = j + 1;
+      }
+    }
+    return mem.getLong(pivot << 3);
+  }
+
+  private static int partition(final SingleClassNativeMemory mem, final int lo, final int hi) {
+    int i = lo, j = hi + 1; //left and right scan indices
+    long v = mem.getLong(lo << 3); //partitioning item value
+    while (true) {
+      //Scan right, scan left, check for scan complete, and exchange
+      while (mem.getLong((++i) << 3) < v) {
+        if (i == hi) {
+          break;
+        }
+      }
+      while (v < mem.getLong((--j) << 3)) {
+        if (j == lo) {
+          break;
+        }
+      }
+      if (i >= j) {
+        break;
+      }
+      long x = mem.getLong(i << 3);
+      mem.putLong(i << 3, mem.getLong(j << 3));
+      mem.putLong(j << 3, x);
+    }
+    //put v=arr[j] into position with a[lo .. j-1] <= a[j] <= a[j+1 .. hi]
+    long x = mem.getLong(lo << 3);
+    mem.putLong(lo << 3, mem.getLong(j << 3));
+    mem.putLong(j << 3, x);
+    return j;
+  }
+
 }

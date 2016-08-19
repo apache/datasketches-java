@@ -37,7 +37,6 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   // 4 bytes of padding for alignment
   static final int ENTRIES_START = 32;
 
-  static final int MIN_NOM_ENTRIES = 32;
   static final int DEFAULT_LG_RESIZE_FACTOR = 3;
 
   // these can be derived from other things, but are kept here for performance
