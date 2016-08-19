@@ -22,7 +22,7 @@ public final class Util {
   /**
    * The smallest Log2 nom entries allowed: 16.
    */
-  public static final int MIN_LG_NOM_LONGS = 4; //
+  public static final int MIN_LG_NOM_LONGS = 4;
 
   /**
    * The hash table rebuild threshold = 15.0/16.0.

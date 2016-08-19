@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.tuple;
 
+import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
+import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
 import java.lang.reflect.Array;
@@ -80,9 +82,8 @@ public final class AnotB<S extends Summary> {
 
   private long[] convertToHashTable(final Sketch<S> sketch) {
     int size = Math.max(
-      ceilingPowerOf2((int) 
-          Math.ceil(sketch.getRetainedEntries() / QuickSelectSketch.REBUILD_RATIO_AT_TARGET_SIZE)),
-      QuickSelectSketch.MIN_NOM_ENTRIES
+      ceilingPowerOf2((int) Math.ceil(sketch.getRetainedEntries() / REBUILD_THRESHOLD)),
+      1 << MIN_LG_NOM_LONGS
     );
     long[] hashTable = new long[size];
     HashOperations.hashArrayInsert(

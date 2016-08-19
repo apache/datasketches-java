@@ -5,7 +5,9 @@
 
 package com.yahoo.sketches.tuple;
 
+import static com.yahoo.sketches.Util.MIN_LG_ARR_LONGS;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
+import static com.yahoo.sketches.Util.startingSubMultiple;
 
 /**
  * The on-heap implementation of the tuple QuickSelect sketch of type ArrayOfDoubles. 
@@ -16,6 +18,7 @@ import java.util.Arrays;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -52,11 +55,11 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     lgResizeFactor_ = lgResizeFactor;
     samplingProbability_ = samplingProbability;
     theta_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
-    final int startingCapacity = 1 << Util.startingSubMultiple(
+    final int startingCapacity = 1 << startingSubMultiple(
       // target table size is twice the number of nominal entries
       Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries) * 2), 
-      lgResizeFactor,
-      Integer.numberOfTrailingZeros(MIN_NOM_ENTRIES)
+      ResizeFactor.getRF(lgResizeFactor),
+      MIN_LG_ARR_LONGS
     );
     keys_ = new long[startingCapacity];
     values_ = new double[startingCapacity * numValues];
