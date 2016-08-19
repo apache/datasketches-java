@@ -5,9 +5,6 @@
 
 package com.yahoo.sketches;
 
-import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.memory.SingleClassNativeMemory;
-
 /**
  * QuickSelect algorithm improved from Sedgewick. Gets the kth order value 
  * (1-based or 0-based) from the array. 
@@ -32,7 +29,7 @@ public final class QuickSelect {
    * @param pivot The 0-based index of the value to pivot on.
    * @return The value of the smallest (n)th element where n is 0-based.
    */
-  public static long select(long[] arr, int lo, int hi, final int pivot) {
+  public static long select(final long[] arr, int lo, int hi, final int pivot) {
     while (hi > lo) {
       int j = partition(arr, lo, hi);
       if (j == pivot) {
@@ -59,7 +56,7 @@ public final class QuickSelect {
    * pivot-1.
    * @return The value of the smallest (N)th element including zeros, where N is 1-based.
    */
-  public static long selectIncludingZeros(long[] arr, final int pivot) {
+  public static long selectIncludingZeros(final long[] arr, final int pivot) {
     int arrSize = arr.length;
     int adj = pivot - 1;
     return select(arr, 0, arrSize - 1, adj);
@@ -77,7 +74,7 @@ public final class QuickSelect {
    * pivot+arr.length-nonZeros-1.
    * @return The value of the smallest (N)th element excluding zeros, where N is 1-based.
    */
-  public static long selectExcludingZeros(long[] arr, final int nonZeros, final int pivot) {
+  public static long selectExcludingZeros(final long[] arr, final int nonZeros, final int pivot) {
     if (pivot > nonZeros) {
       return 0L;
     }
@@ -136,7 +133,7 @@ public final class QuickSelect {
    * @param pivot The 0-based smallest value to pivot on.
    * @return The value of the smallest (n)th element where n is 0-based.
    */
-  public static double select(double[] arr, int lo, int hi, final int pivot) {
+  public static double select(final double[] arr, int lo, int hi, final int pivot) {
     while (hi > lo) {
       int j = partition(arr, lo, hi);
       if (j == pivot) {
@@ -163,7 +160,7 @@ public final class QuickSelect {
    * pivot-1.
    * @return The value of the smallest (N)th element including zeros, where N is 1-based.
    */
-  public static double selectIncludingZeros(double[] arr, final int pivot) {
+  public static double selectIncludingZeros(final double[] arr, final int pivot) {
     int arrSize = arr.length;
     int adj = pivot - 1;
     return select(arr, 0, arrSize - 1, adj);
@@ -181,7 +178,7 @@ public final class QuickSelect {
    * pivot+arr.length-nonZeros-1.
    * @return The value of the smallest (N)th element excluding zeros, where N is 1-based.
    */
-  public static double selectExcludingZeros(double[] arr, final int nonZeros, final int pivot) {
+  public static double selectExcludingZeros(final double[] arr, final int nonZeros, final int pivot) {
     if (pivot > nonZeros) {
       return 0L;
     }
@@ -199,7 +196,7 @@ public final class QuickSelect {
    * @param hi  the high index
    * @return the next partition value.  Ultimately, the desired pivot.
    */
-  private static int partition(double[] arr, final int lo, final int hi) {
+  private static int partition(final double[] arr, final int lo, final int hi) {
     int i = lo, j = hi + 1; //left and right scan indices
     double v = arr[lo]; //partitioning item value
     while (true) {
@@ -225,98 +222,6 @@ public final class QuickSelect {
     double x = arr[lo];
     arr[lo] = arr[j];
     arr[j] = x;
-    return j;
-  }
-
-
-  public static long select(final Memory mem, int lo, int hi, final int pivot) {
-    while (hi > lo) {
-      int j = partition(mem, lo, hi);
-      if (j == pivot) {
-        return mem.getLong(pivot << 3);
-      }
-      if (j > pivot) {
-        hi = j - 1;
-      } 
-      else {
-        lo = j + 1;
-      }
-    }
-    return mem.getLong(pivot << 3);
-  }
-
-  private static int partition(final Memory mem, final int lo, final int hi) {
-    int i = lo, j = hi + 1; //left and right scan indices
-    long v = mem.getLong(lo << 3); //partitioning item value
-    while (true) {
-      //Scan right, scan left, check for scan complete, and exchange
-      while (mem.getLong((++i) << 3) < v) {
-        if (i == hi) {
-          break;
-        }
-      }
-      while (v < mem.getLong((--j) << 3)) {
-        if (j == lo) {
-          break;
-        }
-      }
-      if (i >= j) {
-        break;
-      }
-      long x = mem.getLong(i << 3);
-      mem.putLong(i << 3, mem.getLong(j << 3));
-      mem.putLong(j << 3, x);
-    }
-    //put v=arr[j] into position with a[lo .. j-1] <= a[j] <= a[j+1 .. hi]
-    long x = mem.getLong(lo << 3);
-    mem.putLong(lo << 3, mem.getLong(j << 3));
-    mem.putLong(j << 3, x);
-    return j;
-  }
-
-
-  public static long select(final SingleClassNativeMemory mem, int lo, int hi, final int pivot) {
-    while (hi > lo) {
-      int j = partition(mem, lo, hi);
-      if (j == pivot) {
-        return mem.getLong(pivot << 3);
-      }
-      if (j > pivot) {
-        hi = j - 1;
-      } 
-      else {
-        lo = j + 1;
-      }
-    }
-    return mem.getLong(pivot << 3);
-  }
-
-  private static int partition(final SingleClassNativeMemory mem, final int lo, final int hi) {
-    int i = lo, j = hi + 1; //left and right scan indices
-    long v = mem.getLong(lo << 3); //partitioning item value
-    while (true) {
-      //Scan right, scan left, check for scan complete, and exchange
-      while (mem.getLong((++i) << 3) < v) {
-        if (i == hi) {
-          break;
-        }
-      }
-      while (v < mem.getLong((--j) << 3)) {
-        if (j == lo) {
-          break;
-        }
-      }
-      if (i >= j) {
-        break;
-      }
-      long x = mem.getLong(i << 3);
-      mem.putLong(i << 3, mem.getLong(j << 3));
-      mem.putLong(j << 3, x);
-    }
-    //put v=arr[j] into position with a[lo .. j-1] <= a[j] <= a[j+1 .. hi]
-    long x = mem.getLong(lo << 3);
-    mem.putLong(lo << 3, mem.getLong(j << 3));
-    mem.putLong(j << 3, x);
     return j;
   }
 
