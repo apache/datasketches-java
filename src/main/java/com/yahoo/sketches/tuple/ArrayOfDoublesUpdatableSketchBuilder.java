@@ -5,8 +5,8 @@
 
 package com.yahoo.sketches.tuple;
 
-import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.Util.DEFAULT_NOMINAL_ENTRIES;
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;

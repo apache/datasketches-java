@@ -5,9 +5,9 @@
 
 package com.yahoo.sketches.tuple;
 
+import static com.yahoo.sketches.Util.MIN_LG_ARR_LONGS;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.Util.startingSubMultiple;
-import static com.yahoo.sketches.Util.MIN_LG_ARR_LONGS;
 
 import java.nio.ByteOrder;
 import java.util.Arrays;
