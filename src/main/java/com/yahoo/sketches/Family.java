@@ -88,8 +88,13 @@ public enum Family {
   /**
    * The Frequency family of sketches
    */
-  FREQUENCY(10, "FREQUENCY", 1, 4);
-  
+  FREQUENCY(10, "FREQUENCY", 1, 4),
+
+  /**
+   * The sampling sampling family of sketches, which is not part of the Theta Sketch Framework
+   */
+  RESERVOIR(11, "RESERVOIR", 1, 2);
+
   private static final Map<Integer, Family> lookupID = new HashMap<Integer, Family>();
   private static final Map<String, Family> lookupFamName = new HashMap<String, Family>();
   private int id_;
