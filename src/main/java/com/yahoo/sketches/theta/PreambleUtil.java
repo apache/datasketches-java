@@ -31,7 +31,7 @@ import com.yahoo.sketches.memory.NativeMemory;
  * <i>byte</i> values are treated as unsigned.</p>
  * 
  * <p>An empty CompactSketch only requires 8 bytes. An exact (non-estimating) compact 
- * sketch requres 16 bytes of preamble. UpdateSketches require 24 bytes of preamble. Union objects
+ * sketch requires 16 bytes of preamble. UpdateSketches require 24 bytes of preamble. Union objects
  * require 32 bytes of preamble.</p>
  * 
  * <pre>
@@ -59,7 +59,7 @@ final class PreambleUtil {
   // ###### DO NOT MESS WITH THIS FROM HERE ...
   // Preamble byte Addresses
   static final int PREAMBLE_LONGS_BYTE        = 0; //low 6 bits
-  static final int LG_RESIZE_FACTOR_BYTE      = 0; //upper 2 bits. Not used by compact or direct.
+  static final int LG_RESIZE_FACTOR_BITS      = 6; //upper 2 bits. BIT offset in byte. Not used by compact or direct.
   static final int SER_VER_BYTE               = 1;
   static final int FAMILY_BYTE                = 2; //SerVer1,2 was SKETCH_TYPE_BYTE
   static final int LG_NOM_LONGS_BYTE          = 3; //not used by compact
@@ -262,7 +262,7 @@ final class PreambleUtil {
   }
   
   static int extractResizeFactor(final long long0) {
-    int shift = 6;
+    int shift = LG_RESIZE_FACTOR_BITS; // units in bits
     long mask = 0X3L;
     return (int) ((long0 >>> shift) & mask);
   }
@@ -325,7 +325,7 @@ final class PreambleUtil {
   }
   
   static long insertResizeFactor(final int rf, final long long0) {
-    int shift = 6;
+    int shift = LG_RESIZE_FACTOR_BITS; // units in bits
     long mask = 3L;
     return ((rf & mask) << shift) | (~(mask << shift) & long0);
   }
