@@ -93,7 +93,7 @@ public enum Family {
   /**
    * The sampling sampling family of sketches, which is not part of the Theta Sketch Framework
    */
-  RESERVOIR(11, "RESERVOIR", 1, 2);
+  RESERVOIR(11, "RESERVOIR", 2, 2);
 
   private static final Map<Integer, Family> lookupID = new HashMap<Integer, Family>();
   private static final Map<String, Family> lookupFamName = new HashMap<String, Family>();

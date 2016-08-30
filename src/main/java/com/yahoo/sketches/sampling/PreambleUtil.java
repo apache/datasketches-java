@@ -37,7 +37,7 @@ import static com.yahoo.sketches.Util.zeroPad;
  *  0   ||-----------Reservoir Size----------|  Flags | FamID  | SerVer |   Preamble_Longs   |
  *  
  *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
- *  1   ||---------------------------------Items Seen Count----------------------------------|
+ *  1   ||------SerDe ID---|-------------------Items Seen Count------------------------------|
  *  </pre>
  *
  *  @author Jon Malkin
@@ -54,7 +54,8 @@ final class PreambleUtil {
   static final int FAMILY_BYTE          = 2;
   static final int FLAGS_BYTE           = 3;
   static final int RESERVOIR_SIZE       = 4;
-  static final int ITEMS_SEEN_COUNT     = 8; // 8 byte aligned
+  static final int ITEMS_SEEN_COUNT     = 0; // 8 byte aligned
+  static final int SERDE_ID_SHORT       = 6;
 
   // flag bit masks
   //static final int BIG_ENDIAN_FLAG_MASK = 1;
@@ -96,6 +97,8 @@ final class PreambleUtil {
   public static String preambleToString(Memory mem) {
     int preLongs = getAndCheckPreLongs(mem);  //make sure we can get the assumed preamble
     long pre0 = mem.getLong(0);
+    long pre1 = mem.getLong(8);
+
     int serVer = extractSerVer(pre0);
     Family family = Family.idToFamily(extractFamilyID(pre0));
 
@@ -107,16 +110,11 @@ final class PreambleUtil {
     //boolean compact = (flags & COMPACT_FLAG_MASK) > 0;
     //boolean ordered = (flags & ORDERED_FLAG_MASK) > 0;
     //boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
-    boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
+    boolean isEmpty = (flags & EMPTY_FLAG_MASK) > 0;
 
-    //Assumed if preLongs == 1
     int resSize = mem.getInt(4);
-    //Assumed if preLongs == 1 or 2 or 3
-    long itemsSeen = 0;
-
-    if (preLongs == 2) {
-      itemsSeen = mem.getLong(8);
-    }
+    long itemsSeen = isEmpty ? 0 : extractItemsSeenCount(pre1);
+    int serDeId = extractSerDeId(pre1);
 
     StringBuilder sb = new StringBuilder();
     sb.append(LS)
@@ -128,22 +126,19 @@ final class PreambleUtil {
       //.append("  BIG_ENDIAN_STORAGE          : ").append(bigEndian).append(LS)
       .append("  (Native Byte Order)         : ").append(nativeOrder).append(LS)
       //.append("  READ_ONLY                   : ").append(readOnly).append(LS)
-      .append("  EMPTY                       : ").append(empty).append(LS)
+      .append("  EMPTY                       : ").append(isEmpty).append(LS)
       //.append("  COMPACT                     : ").append(compact).append(LS)
       //.append("  ORDERED                     : ").append(ordered).append(LS)
-      .append("Bytes 4-7  : Reservoir Size   : ").append(Integer.toHexString(resSize)).append(LS);
+      .append("Bytes 4-7   : Reservoir Size  : ").append(Integer.toHexString(resSize)).append(LS)
+      .append("Bytes 8-13  : Items Seen      : ").append(itemsSeen).append(LS)
+      .append("Bytes 14-15 : SerDe ID        : ").append(serDeId).append(LS);
 
-    if (preLongs == 2) {
-      sb.append("Bytes 8-15 : Items Seen     : ").append(itemsSeen).append(LS);
-    }
-    sb.append(  "Preamble Bytes                : ").append(preLongs * 8).append(LS);
+    sb.append("Preamble Bytes                : ").append(preLongs * 8).append(LS);
     //sb.append(  "Data Bytes                    : ").append(curCount * 8).append(LS);
     //sb.append(  "TOTAL Sketch Bytes            : ").append(mem.getCapacity()).append(LS)
     sb.append("### END SKETCH PREAMBLE SUMMARY").append(LS);
     return sb.toString();
   }
-  
-//@formatter:on
   
   //Extract from long and insert into long methods
   
@@ -177,7 +172,14 @@ final class PreambleUtil {
   }
 
   static long extractItemsSeenCount(final long long1) {
-    return long1;
+    long mask = 0XFFFFFFFFFFFFL;
+    return (long1 & mask);
+  }
+
+  static int extractSerDeId(final long long1) {
+    int shift = SERDE_ID_SHORT << 3;
+    long mask = 0XFFFFL;
+    return (int) ((long1 >>> shift) & mask);
   }
 
   static long insertPreLongs(final int preLongs, final long long0) {
@@ -209,8 +211,15 @@ final class PreambleUtil {
     return ((reservoirSize & mask) << shift) | (~(mask << shift) & long0);
   }
 
-  static long insertItemsSeenCount(final int totalSeen, final long long1) {
-    return totalSeen;
+  static long insertItemsSeenCount(final long totalSeen, final long long1) {
+    long mask = 0XFFFFFFFFFFFFL;
+    return (totalSeen & mask) | (~mask & long1);
+  }
+
+  static long insertSerDeId(final int serDeId, final long long1) {
+    int shift = SERDE_ID_SHORT << 3;
+    long mask = 0XFFFFL;
+    return ((serDeId & mask) << shift) | (~(mask << shift) & long1);
   }
   
   /**
