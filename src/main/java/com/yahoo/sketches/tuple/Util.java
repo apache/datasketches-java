@@ -11,27 +11,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.yahoo.sketches.SketchesArgumentException;
 
 final class Util {
-  /**
-  * Gets the starting power of 2 so that it is a proper sub-multiple of the target by resize ratio.
-  * This version uses an integer to specify the lgResizeRatio.
-  *
-  * @param lgTarget Power of 2 of the target number
-  * @param lgResizeRatio Values 0 to 3 (0 - no resize (max size upfront), 1 - double, 
-  * 2 - four times, 3 - 8 times)
-  * @param lgMin Minimum starting power of 2
-  * @return The returning log2 size will be a proper sub-multiple of the final lgTarget by the 
-  * lgResizeRatio
-  */
-  static final int startingSubMultiple(final int lgTarget, final int lgResizeRatio, 
-      final int lgMin) {
-    int lgStart;
-    if (lgResizeRatio > 0) {
-      lgStart = (Math.abs(lgTarget - lgMin) % lgResizeRatio) + lgMin;
-    } else {
-      lgStart = (lgTarget < lgMin) ? lgMin : lgTarget;
-    }
-    return lgStart;
-  }
 
   static final long[] doubleToLongArray(final double value) {
     final double d = (value == 0.0) ? 0.0 : value; // canonicalize -0.0, 0.0

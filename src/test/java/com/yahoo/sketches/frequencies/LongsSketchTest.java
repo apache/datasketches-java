@@ -520,6 +520,11 @@ public class LongsSketchTest {
     println("");
   }
 
+  public static void main(String[] args) {
+    LongsSketchTest test = new LongsSketchTest();
+    test.checkToString1();
+  }
+  
   private static void printRows(LongsSketch fls, ErrorType eType) {
     Row[] rows = fls.getFrequentItems(eType);
     String s1 = eType.toString();
@@ -531,9 +536,12 @@ public class LongsSketchTest {
       String s2 = row.toString();
       println(s2);
     }
-    
+    if (rows.length > 0) { //check equals null case
+      Row nullRow = null;
+      assertFalse(rows[0].equals(nullRow));
+    }
   }
-
+  
   /**
    * @param s value to print
    */

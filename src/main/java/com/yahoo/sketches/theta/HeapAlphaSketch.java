@@ -95,7 +95,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     
     HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, seed, p, rf, alpha, split1);
     
-    int lgArrLongs = startingSubMultiple(lgNomLongs + 1, rf, MIN_LG_ARR_LONGS);
+    int lgArrLongs = Util.startingSubMultiple(lgNomLongs + 1, rf, MIN_LG_ARR_LONGS);
     has.lgArrLongs_ = lgArrLongs;
     has.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     has.curCount_ = 0; 
@@ -271,7 +271,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   
   @Override
   public final void reset() {
-    int lgArrLongs = startingSubMultiple(lgNomLongs_ + 1, getResizeFactor(), MIN_LG_ARR_LONGS);
+    int lgArrLongs = Util.startingSubMultiple(lgNomLongs_ + 1, getResizeFactor(), MIN_LG_ARR_LONGS);
     if (lgArrLongs == lgArrLongs_) {
       int arrLongs = cache_.length;
       assert (1 << lgArrLongs_) == arrLongs; 

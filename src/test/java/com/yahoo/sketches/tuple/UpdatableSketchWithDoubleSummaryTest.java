@@ -8,6 +8,7 @@ import org.testng.annotations.Test;
 import org.testng.Assert;
 
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.NativeMemory;
 
 public class UpdatableSketchWithDoubleSummaryTest {
@@ -232,7 +233,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     sketch2.update(3, 1.0);
     sketch2.update(3, 1.0);
 
-    Union<DoubleSummary> union = new Union<DoubleSummary>(8, new DoubleSummaryFactory());
+    Union<DoubleSummary> union = new Union<DoubleSummary>(new DoubleSummaryFactory());
     union.update(sketch1);
     union.update(sketch2);
     CompactSketch<DoubleSummary> result = union.getResult();
@@ -507,6 +508,15 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(result.getEstimate(), 2.0);
     Assert.assertEquals(result.getLowerBound(1), 2.0);
     Assert.assertEquals(result.getUpperBound(1), 2.0);
+
+    // same thing, but compact sketches
+    aNotB.update(sketchA.compact(), sketchB.compact());
+    result = aNotB.getResult();
+    Assert.assertEquals(result.getRetainedEntries(), 2);
+    Assert.assertFalse(result.isEmpty());
+    Assert.assertEquals(result.getEstimate(), 2.0);
+    Assert.assertEquals(result.getLowerBound(1), 2.0);
+    Assert.assertEquals(result.getUpperBound(1), 2.0);
   }
 
   @Test
@@ -564,6 +574,11 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertTrue(result.getUpperBound(1) > result.getEstimate());
     summaries = sketchB.getSummaries();
     for (DoubleSummary summary: summaries) Assert.assertEquals(summary.getValue(), 1.0);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void invalidSamplingProbability() {
+    new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).setSamplingProbability(2f).build();
   }
 
 }

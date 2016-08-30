@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.tuple;
 
+import static com.yahoo.sketches.Util.DEFAULT_NOMINAL_ENTRIES;
+
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -20,7 +22,6 @@ public class UpdatableSketchBuilder<U, S extends UpdatableSummary<U>> {
   private float samplingProbability_;
   private final SummaryFactory<S> summaryFactory_;
 
-  private static final int DEFAULT_NOMINAL_ENTRIES = 4096;
   private static final float DEFAULT_SAMPLING_PROBABILITY = 1;
   private static final ResizeFactor DEFAULT_RESIZE_FACTOR = ResizeFactor.X8;
 

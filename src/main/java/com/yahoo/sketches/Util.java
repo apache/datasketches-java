@@ -22,7 +22,7 @@ public final class Util {
   /**
    * The smallest Log2 nom entries allowed: 16.
    */
-  public static final int MIN_LG_NOM_LONGS = 4; //
+  public static final int MIN_LG_NOM_LONGS = 4;
 
   /**
    * The hash table rebuild threshold = 15.0/16.0.
@@ -70,7 +70,7 @@ public final class Util {
    * The tab character
    */
   public static final char TAB = '\t';
-  
+
   /**
    * Check if the two seed hashes are equal. If not, throw an SketchesArgumentException.
    * @param seedHashA the seedHash A
@@ -223,6 +223,20 @@ public final class Util {
    */
   public static boolean isLessThanUnsigned(long n1, long n2) {
     return (n1 < n2) ^ ((n1 < 0) != (n2 < 0));
+  }
+  
+  /**
+   * Gets the smallest allowed exponent of 2 that it is a sub-multiple of the target by zero, 
+   * one or more resize factors.
+   * 
+   * @param lgTarget Log2 of the target size
+   * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
+   * @param lgMin Log2 of the minimum allowed starting size
+   * @return The Log2 of the starting size
+   */
+  public static final int startingSubMultiple(int lgTarget, ResizeFactor rf, int lgMin) {
+    int lgRF = rf.lg();
+    return (lgTarget <= lgMin) ? lgMin : (lgRF == 0) ? lgTarget : (lgTarget - lgMin) % lgRF + lgMin;
   }
   
   /**

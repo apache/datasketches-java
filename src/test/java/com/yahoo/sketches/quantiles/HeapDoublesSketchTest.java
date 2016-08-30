@@ -75,7 +75,7 @@ public class HeapDoublesSketchTest {
       }
     }
     assertEquals(qs.getN()+qs2.getN(), n);
-    DoublesUnion union = DoublesUnion.builder().build(qs);
+    DoublesUnion union = DoublesUnionBuilder.build(qs);
     union.update(qs2);
     DoublesSketch result = union.getResult();
     
@@ -183,11 +183,11 @@ public class HeapDoublesSketchTest {
     assertTrue(resultsA[0] == 1.0);
     assertTrue(resultsA[1] == 999.0);
     
-    DoublesUnion union1 = DoublesUnion.builder().build(qs1);
+    DoublesUnion union1 = DoublesUnionBuilder.build(qs1);
     union1.update(qs2);
     DoublesSketch result1 = union1.getResult();
     
-    DoublesUnion union2 = DoublesUnion.builder().build(qs2);
+    DoublesUnion union2 = DoublesUnionBuilder.build(qs2);
     union2.update(qs3);
     DoublesSketch result2 = union2.getResult();
 
@@ -231,11 +231,11 @@ public class HeapDoublesSketchTest {
     assert (resultsA[1] == 5.0);
     assert (resultsA[2] == 8.0);
 
-    DoublesUnion union1 = DoublesUnion.builder().build(qs1);
+    DoublesUnion union1 = DoublesUnionBuilder.build(qs1);
     union1.update(qs2);
     DoublesSketch result1 = union1.getResult();
     
-    DoublesUnion union2 = DoublesUnion.builder().build(qs2);
+    DoublesUnion union2 = DoublesUnionBuilder.build(qs2);
     union2.update(qs3);
     DoublesSketch result2 = union2.getResult();
 
@@ -386,7 +386,7 @@ public class HeapDoublesSketchTest {
     int n = 1000000;
     DoublesSketch qs1 = buildQS(k,n,0);
     DoublesSketch qs2 = buildQS(k,0,0); //empty
-    DoublesUnion union = DoublesUnion.builder().build(qs2);
+    DoublesUnion union = DoublesUnionBuilder.build(qs2);
     union.update(qs1);
     DoublesSketch result = union.getResult();
     double med1 = qs1.getQuantile(0.5);
@@ -400,7 +400,7 @@ public class HeapDoublesSketchTest {
     int k = DoublesSketch.DEFAULT_K;
     DoublesSketch qs1 = buildQS(k,  1000, 0);
     DoublesSketch qs2 = buildQS(2*k,1000, 1000);
-    DoublesUnion union = DoublesUnion.builder().build(qs2);
+    DoublesUnion union = DoublesUnionBuilder.build(qs2);
     union.update(qs1); //attempt merge into larger k
     DoublesSketch result = union.getResult();
     assertEquals(result.getK(), k);
@@ -646,7 +646,7 @@ public class HeapDoublesSketchTest {
         for (int i2 = 1; i2 <= n2; i2++ ) {
           smlSketch.update(i2);
         }
-        DoublesUnion union = DoublesUnion.builder().build(smlSketch);
+        DoublesUnion union = DoublesUnionBuilder.build(smlSketch);
         union.update(bigSketch);
         assertTrue (sameStructurePredicate(directSketch, smlSketch));
       }
@@ -778,9 +778,9 @@ public class HeapDoublesSketchTest {
 
     int k = 1024;
     DoublesSketch qsk = new DoublesSketchBuilder().build(k);
-    DoublesUnion u1 = DoublesUnion.builder().build(qsk);
+    DoublesUnion u1 = DoublesUnionBuilder.build(qsk);
     u1.getResult().putMemory(mem);
-    DoublesUnion u2 = DoublesUnion.builder().build(mem);
+    DoublesUnion u2 = DoublesUnionBuilder.build(mem);
     DoublesSketch qsk2 = u2.getResult();
     assertTrue(qsk2.isEmpty());
   }

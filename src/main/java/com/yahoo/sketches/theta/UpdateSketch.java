@@ -282,20 +282,4 @@ public abstract class UpdateSketch extends Sketch {
    */
   abstract boolean isDirty();
   
-  //static methods
-  
-  /**
-   * Gets the smallest allowed exponent of 2 that it is a sub-multiple of the target by zero, 
-   * one or more resize factors.
-   * 
-   * @param lgTarget Log2 of the target size
-   * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
-   * @param lgMin Log2 of the minimum allowed starting size
-   * @return The Log-base 2 of the starting size
-   */
-  static final int startingSubMultiple(int lgTarget, ResizeFactor rf, int lgMin) {
-    int lgRR = rf.lg();
-    return (lgTarget <= lgMin) ? lgMin : (lgRR == 0) ? lgTarget : (lgTarget - lgMin) % lgRR + lgMin;
-  }
-  
 }

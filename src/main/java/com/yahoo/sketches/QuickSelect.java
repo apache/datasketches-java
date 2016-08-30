@@ -29,7 +29,7 @@ public final class QuickSelect {
    * @param pivot The 0-based index of the value to pivot on.
    * @return The value of the smallest (n)th element where n is 0-based.
    */
-  public static long select(long[] arr, int lo, int hi, final int pivot) {
+  public static long select(final long[] arr, int lo, int hi, final int pivot) {
     while (hi > lo) {
       int j = partition(arr, lo, hi);
       if (j == pivot) {
@@ -56,7 +56,7 @@ public final class QuickSelect {
    * pivot-1.
    * @return The value of the smallest (N)th element including zeros, where N is 1-based.
    */
-  public static long selectIncludingZeros(long[] arr, final int pivot) {
+  public static long selectIncludingZeros(final long[] arr, final int pivot) {
     int arrSize = arr.length;
     int adj = pivot - 1;
     return select(arr, 0, arrSize - 1, adj);
@@ -74,7 +74,7 @@ public final class QuickSelect {
    * pivot+arr.length-nonZeros-1.
    * @return The value of the smallest (N)th element excluding zeros, where N is 1-based.
    */
-  public static long selectExcludingZeros(long[] arr, final int nonZeros, final int pivot) {
+  public static long selectExcludingZeros(final long[] arr, final int nonZeros, final int pivot) {
     if (pivot > nonZeros) {
       return 0L;
     }
@@ -92,7 +92,7 @@ public final class QuickSelect {
    * @param hi  the high index
    * @return the next partition value.  Ultimately, the desired pivot.
    */
-  private static int partition(long[] arr, final int lo, final int hi) {
+  private static int partition(final long[] arr, final int lo, final int hi) {
     int i = lo, j = hi + 1; //left and right scan indices
     long v = arr[lo]; //partitioning item value
     while (true) {
@@ -133,7 +133,7 @@ public final class QuickSelect {
    * @param pivot The 0-based smallest value to pivot on.
    * @return The value of the smallest (n)th element where n is 0-based.
    */
-  public static double select(double[] arr, int lo, int hi, final int pivot) {
+  public static double select(final double[] arr, int lo, int hi, final int pivot) {
     while (hi > lo) {
       int j = partition(arr, lo, hi);
       if (j == pivot) {
@@ -160,7 +160,7 @@ public final class QuickSelect {
    * pivot-1.
    * @return The value of the smallest (N)th element including zeros, where N is 1-based.
    */
-  public static double selectIncludingZeros(double[] arr, final int pivot) {
+  public static double selectIncludingZeros(final double[] arr, final int pivot) {
     int arrSize = arr.length;
     int adj = pivot - 1;
     return select(arr, 0, arrSize - 1, adj);
@@ -178,7 +178,7 @@ public final class QuickSelect {
    * pivot+arr.length-nonZeros-1.
    * @return The value of the smallest (N)th element excluding zeros, where N is 1-based.
    */
-  public static double selectExcludingZeros(double[] arr, final int nonZeros, final int pivot) {
+  public static double selectExcludingZeros(final double[] arr, final int nonZeros, final int pivot) {
     if (pivot > nonZeros) {
       return 0L;
     }
@@ -196,7 +196,7 @@ public final class QuickSelect {
    * @param hi  the high index
    * @return the next partition value.  Ultimately, the desired pivot.
    */
-  private static int partition(double[] arr, final int lo, final int hi) {
+  private static int partition(final double[] arr, final int lo, final int hi) {
     int i = lo, j = hi + 1; //left and right scan indices
     double v = arr[lo]; //partitioning item value
     while (true) {
@@ -224,5 +224,5 @@ public final class QuickSelect {
     arr[j] = x;
     return j;
   }
-  
+
 }

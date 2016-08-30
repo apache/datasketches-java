@@ -5,13 +5,16 @@
 
 package com.yahoo.sketches.tuple;
 
+import static com.yahoo.sketches.Util.MIN_LG_ARR_LONGS;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
+import static com.yahoo.sketches.Util.startingSubMultiple;
 
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -50,11 +53,11 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
       final float samplingProbability, final int numValues, final long seed, final Memory dstMem) {
     super(numValues, seed);
     mem_ = dstMem;
-    final int startingCapacity = 1 << Util.startingSubMultiple(
+    final int startingCapacity = 1 << startingSubMultiple(
       // target table size is twice the number of nominal entries
       Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries) * 2), 
-      lgResizeFactor,
-      Integer.numberOfTrailingZeros(MIN_NOM_ENTRIES)
+      ResizeFactor.getRF(lgResizeFactor),
+      MIN_LG_ARR_LONGS
     );
     checkIfEnoughMemory(dstMem, startingCapacity, numValues);
     mem_.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);

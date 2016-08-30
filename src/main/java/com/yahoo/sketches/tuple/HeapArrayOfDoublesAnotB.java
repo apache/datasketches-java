@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.tuple;
 
+import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
 import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
@@ -102,7 +103,7 @@ final class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
   private static long[] convertToHashTable(final ArrayOfDoublesSketch sketch) {
     final int size = Math.max(
       ceilingPowerOf2((int) Math.ceil(sketch.getRetainedEntries() / REBUILD_THRESHOLD)),
-      ArrayOfDoublesQuickSelectSketch.MIN_NOM_ENTRIES
+      1 << MIN_LG_NOM_LONGS
     );
     final long[] hashTable = new long[size];
     ArrayOfDoublesSketchIterator it = sketch.iterator();

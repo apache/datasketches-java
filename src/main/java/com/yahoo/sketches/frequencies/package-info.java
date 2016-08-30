@@ -15,5 +15,6 @@
  * <p>These sketches are mergable and can be serialized and deserialized to/from a compact 
  * form.</p>
  * 
+ * @author Lee Rhodes
  */
 package com.yahoo.sketches.frequencies;

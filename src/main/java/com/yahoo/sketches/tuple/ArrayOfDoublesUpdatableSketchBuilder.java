@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.tuple;
 
+import static com.yahoo.sketches.Util.DEFAULT_NOMINAL_ENTRIES;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 
 import com.yahoo.sketches.ResizeFactor;
@@ -23,7 +24,6 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
   private long seed_;
   private Memory dstMem_;
 
-  private static final int DEFAULT_NOMINAL_ENTRIES = 4096;
   private static final int DEFAULT_NUMBER_OF_VALUES = 1;
   private static final float DEFAULT_SAMPLING_PROBABILITY = 1;
   private static final ResizeFactor DEFAULT_RESIZE_FACTOR = ResizeFactor.X8;
