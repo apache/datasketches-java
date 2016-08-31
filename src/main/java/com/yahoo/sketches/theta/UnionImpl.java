@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.QuickSelect.selectExcludingZeros;
 import static com.yahoo.sketches.theta.CompactSketch.compactCache;
 import static com.yahoo.sketches.theta.CompactSketch.createCompactSketch;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
@@ -120,20 +121,29 @@ final class UnionImpl extends SetOperation implements Union {
   @Override
   public CompactSketch getResult(boolean dstOrdered, Memory dstMem) {
     int gadgetCurCount = gadget_.getRetainedEntries(true);
+    long gadgetThetaLong = gadget_.getThetaLong();
+    int arrLongs = 1 << gadget_.getLgArrLongs();
     int k = 1 << gadget_.getLgNomLongs();
     
+    long[] gadgetCache = gadget_.getCache(); //if direct a copy, otherwise a reference
+    long gNewThetaLong = gadgetThetaLong;
+    
     if (gadgetCurCount > k) {
-      gadget_.rebuild();
-    } 
-    //curCount <= k; gadget theta could be p < 1.0, but cannot do a quick select
-    long thetaLongR = min(gadget_.getThetaLong(), unionThetaLong_);
-    double p = gadget_.getP();
-    double thetaR = thetaLongR / MAX_THETA_LONG_AS_DOUBLE;
-    long[] gadgetCache = gadget_.getCache(); //if Direct, always a copy
-    //CurCount must be recounted with a scan using the new theta
-    int curCountR = HashOperations.count(gadgetCache, thetaLongR);
+      if (!gadget_.isDirect()) {
+        gadgetCache = new long[arrLongs];
+        System.arraycopy(gadget_.getCache(), 0, gadgetCache, 0, arrLongs);
+      }
+      gNewThetaLong = selectExcludingZeros(gadgetCache, gadgetCurCount, k + 1);//messes the cache_ 
+    }
+    
+    long thetaLongR = min(gNewThetaLong, unionThetaLong_);
+    int curCountR = (thetaLongR < gadget_.getThetaLong()) 
+        ? HashOperations.count(gadgetCache, thetaLongR)
+        : gadgetCurCount;
     long[] compactCacheR = compactCache(gadgetCache, curCountR, thetaLongR, dstOrdered);
-    boolean emptyR = (gadget_.isEmpty() && (p >= thetaR) && (curCountR == 0));
+    boolean emptyR = (gadget_.isEmpty() 
+        && (gadget_.getP() >= thetaLongR / MAX_THETA_LONG_AS_DOUBLE) && (curCountR == 0));
+    
     return createCompactSketch(compactCacheR, emptyR, seedHash_, curCountR, thetaLongR, 
         dstOrdered, dstMem);
   }
