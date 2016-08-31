@@ -124,7 +124,6 @@ final class UnionImpl extends SetOperation implements Union {
     long gadgetThetaLong = gadget_.getThetaLong();
     int arrLongs = 1 << gadget_.getLgArrLongs();
     int k = 1 << gadget_.getLgNomLongs();
-    
     long[] gadgetCache = gadget_.getCache(); //if direct a copy, otherwise a reference
     long gNewThetaLong = gadgetThetaLong;
     
@@ -137,10 +136,13 @@ final class UnionImpl extends SetOperation implements Union {
     }
     
     long thetaLongR = min(gNewThetaLong, unionThetaLong_);
+    
     int curCountR = (thetaLongR < gadget_.getThetaLong()) 
         ? HashOperations.count(gadgetCache, thetaLongR)
         : gadgetCurCount;
+    
     long[] compactCacheR = compactCache(gadgetCache, curCountR, thetaLongR, dstOrdered);
+    
     boolean emptyR = (gadget_.isEmpty() 
         && (gadget_.getP() >= thetaLongR / MAX_THETA_LONG_AS_DOUBLE) && (curCountR == 0));
     
