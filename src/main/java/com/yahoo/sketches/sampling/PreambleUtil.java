@@ -6,6 +6,7 @@
 package com.yahoo.sketches.sampling;
 
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.memory.Memory;
 import com.yahoo.sketches.memory.NativeMemory;
@@ -26,18 +27,16 @@ import static com.yahoo.sketches.Util.zeroPad;
  * multi-byte integers (<i>int</i> and <i>long</i>) are stored in native byte order. The
  * <i>byte</i> values are treated as unsigned.</p>
  * 
- * <p>An empty CompactSketch only requires 8 bytes. An exact (non-estimating) compact 
- * sketch requres 16 bytes of preamble. UpdateSketches require 24 bytes of preamble. Union objects
- * require 32 bytes of preamble.</p>
- * 
+ * <p>An empty sampling sketch only requires 8 bytes. A non-empty sampling sketch requires 16 bytes of preamble.</p>
+ *
  * <pre>
  * Long || Start Byte Adr:
- * Adr: 
+ * Adr:
  *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
- *  0   ||-----------Reservoir Size----------|  Flags | FamID  | SerVer |   Preamble_Longs   |
- *  
+ *  0   ||-----SerDe ID----|--Reservoir Size-|  Flags | FamID  | SerVer |   Preamble_Longs   |
+ *
  *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
- *  1   ||------SerDe ID---|-------------------Items Seen Count------------------------------|
+ *  1   ||------Empty------|-------------------Items Seen Count------------------------------|
  *  </pre>
  *
  *  @author Jon Malkin
@@ -49,13 +48,14 @@ final class PreambleUtil {
   
   // ###### DO NOT MESS WITH THIS FROM HERE ...
   // Preamble byte Addresses
-  static final int PREAMBLE_LONGS_BYTE  = 0; // Only low 6 bits used
-  static final int SER_VER_BYTE         = 1;
-  static final int FAMILY_BYTE          = 2;
-  static final int FLAGS_BYTE           = 3;
-  static final int RESERVOIR_SIZE       = 4;
-  static final int ITEMS_SEEN_COUNT     = 0; // 8 byte aligned
-  static final int SERDE_ID_SHORT       = 6;
+  static final int PREAMBLE_LONGS_BYTE   = 0; // Only low 6 bits used
+  static final int LG_RESIZE_FACTOR_BITS = 6; //upper 2 bits. Not used by compact or direct.
+  static final int SER_VER_BYTE          = 1;
+  static final int FAMILY_BYTE           = 2;
+  static final int FLAGS_BYTE            = 3;
+  static final int RESERVOIR_SIZE_SHORT  = 4;
+  static final int ITEMS_SEEN_COUNT      = 0; // 8 byte aligned
+  static final int SERDE_ID_SHORT        = 6;
 
   // flag bit masks
   //static final int BIG_ENDIAN_FLAG_MASK = 1;
@@ -99,6 +99,7 @@ final class PreambleUtil {
     long pre0 = mem.getLong(0);
     long pre1 = mem.getLong(8);
 
+    ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(pre0));
     int serVer = extractSerVer(pre0);
     Family family = Family.idToFamily(extractFamilyID(pre0));
 
@@ -112,14 +113,16 @@ final class PreambleUtil {
     //boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
     boolean isEmpty = (flags & EMPTY_FLAG_MASK) > 0;
 
-    int resSize = mem.getInt(4);
+    int encResSize = extractReservoirSize(pre0);
+    int resSize = ReservoirSize.decodeValue(encResSize);
     long itemsSeen = isEmpty ? 0 : extractItemsSeenCount(pre1);
-    int serDeId = extractSerDeId(pre1);
+    int serDeId = extractSerDeId(pre0);
 
     StringBuilder sb = new StringBuilder();
     sb.append(LS)
       .append("### SKETCH PREAMBLE SUMMARY:").append(LS)
       .append("Byte  0: Preamble Longs       : ").append(preLongs).append(LS)
+      .append("Byte  0: ResizeFactor         : ").append(rf.toString()).append(LS)
       .append("Byte  1: Serialization Version: ").append(serVer).append(LS)
       .append("Byte  2: Family               : ").append(family.toString()).append(LS)
       .append("Byte  3: Flags Field          : ").append(flagsStr).append(LS)
@@ -129,9 +132,11 @@ final class PreambleUtil {
       .append("  EMPTY                       : ").append(isEmpty).append(LS)
       //.append("  COMPACT                     : ").append(compact).append(LS)
       //.append("  ORDERED                     : ").append(ordered).append(LS)
-      .append("Bytes 4-7   : Reservoir Size  : ").append(Integer.toHexString(resSize)).append(LS)
-      .append("Bytes 8-13  : Items Seen      : ").append(itemsSeen).append(LS)
-      .append("Bytes 14-15 : SerDe ID        : ").append(serDeId).append(LS);
+      .append("Bytes 4-5   : Reservoir Size  : ").append(Integer.toHexString(resSize)).append(LS)
+      .append("Bytes 6-7   : SerDe ID        : ").append(serDeId).append(LS);
+    if (!isEmpty) {
+      sb.append("Bytes 8-13  : Items Seen      : ").append(itemsSeen).append(LS);
+    }
 
     sb.append("Preamble Bytes                : ").append(preLongs * 8).append(LS);
     //sb.append(  "Data Bytes                    : ").append(curCount * 8).append(LS);
@@ -146,7 +151,13 @@ final class PreambleUtil {
     long mask = 0X3FL;
     return (int) (long0 & mask);
   }
-  
+
+  static int extractResizeFactor(final long long0) {
+    int shift = LG_RESIZE_FACTOR_BITS; // units in bits
+    long mask = 0X3L;
+    return (int) ((long0 >>> shift) & mask);
+  }
+
   static int extractSerVer(final long long0) {
     int shift = SER_VER_BYTE << 3;
     long mask = 0XFFL;
@@ -166,8 +177,8 @@ final class PreambleUtil {
   }
 
   static int extractReservoirSize(final long long0) {
-    int shift = RESERVOIR_SIZE << 3;
-    long mask = 0XFFFFFFFFL;
+    int shift = RESERVOIR_SIZE_SHORT << 3;
+    long mask = 0XFFFFL;
     return (int) ((long0 >>> shift) & mask);
   }
 
@@ -176,17 +187,23 @@ final class PreambleUtil {
     return (long1 & mask);
   }
 
-  static int extractSerDeId(final long long1) {
+  static int extractSerDeId(final long long0) {
     int shift = SERDE_ID_SHORT << 3;
     long mask = 0XFFFFL;
-    return (int) ((long1 >>> shift) & mask);
+    return (int) ((long0 >>> shift) & mask);
   }
 
   static long insertPreLongs(final int preLongs, final long long0) {
     long mask = 0X3FL;
     return (preLongs & mask) | (~mask & long0);
   }
-  
+
+  static long insertResizeFactor(final int rf, final long long0) {
+    int shift = LG_RESIZE_FACTOR_BITS; // units in bits
+    long mask = 3L;
+    return ((rf & mask) << shift) | (~(mask << shift) & long0);
+  }
+
   static long insertSerVer(final int serVer, final long long0) {
     int shift = SER_VER_BYTE << 3;
     long mask = 0XFFL;
@@ -206,8 +223,8 @@ final class PreambleUtil {
   }
 
   static long insertReservoirSize(final int reservoirSize, final long long0) {
-    int shift = RESERVOIR_SIZE << 3;
-    long mask = 0XFFFFFFFFL;
+    int shift = RESERVOIR_SIZE_SHORT << 3;
+    long mask = 0XFFFFL;
     return ((reservoirSize & mask) << shift) | (~(mask << shift) & long0);
   }
 
@@ -216,10 +233,10 @@ final class PreambleUtil {
     return (totalSeen & mask) | (~mask & long1);
   }
 
-  static long insertSerDeId(final int serDeId, final long long1) {
+  static long insertSerDeId(final int serDeId, final long long0) {
     int shift = SERDE_ID_SHORT << 3;
     long mask = 0XFFFFL;
-    return ((serDeId & mask) << shift) | (~(mask << shift) & long1);
+    return ((serDeId & mask) << shift) | (~(mask << shift) & long0);
   }
   
   /**

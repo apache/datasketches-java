@@ -35,7 +35,8 @@ public class ReservoirLongSketch {
     static Random rand = new Random();
 
     int reservoirSize_;      // max size of sampling
-    int currItemsAlloc_; // currently allocated array size
+    int encodedResSize_;     // compact encoding of reservoir size
+    int currItemsAlloc_;     // currently allocated array size
     int currCount_;          // number of items in sampling
     long itemsSeen_;         // number of items presented to sketch
     ResizeFactor rf_;        // resize factor
@@ -68,16 +69,18 @@ public class ReservoirLongSketch {
             throw new IllegalArgumentException("k must be at least 2");
         }
 
-        reservoirSize_ = k;
+        encodedResSize_ = ReservoirSize.computeSize(k);
+
+        reservoirSize_ = ReservoirSize.decodeValue(encodedResSize_);
         rf_ = rf;
 
         currCount_ = 0;
         itemsSeen_ = 0;
 
-        int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(k), "ReservoirLongSketch");
-        int initialSize = startingSubMultiple(k, ceilingLgK, MIN_LG_ARR_LONGS);
+        int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize_), "ReservoirLongSketch");
+        int initialSize = startingSubMultiple(reservoirSize_, ceilingLgK, MIN_LG_ARR_LONGS);
 
-        currItemsAlloc_ = getAdjustedSize(k, initialSize);
+        currItemsAlloc_ = getAdjustedSize(reservoirSize_, initialSize);
         data_ = new long[currItemsAlloc_];
         java.util.Arrays.fill(data_,  0L);
     }
@@ -134,10 +137,13 @@ public class ReservoirLongSketch {
         final int numPreLongs = getAndCheckPreLongs(srcMem);
         final long pre0 = srcMem.getLong(0);
         final long pre1 = srcMem.getLong(8);
+        final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(pre0));
         final int serVer = extractSerVer(pre0);
         final int familyId = extractFamilyID(pre0);
         final boolean isEmpty = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0;
-        final int reservoirSize = extractReservoirSize(pre0);
+
+        final int encodedReservoirSize = extractReservoirSize(pre0);
+        final int reservoirSize  = ReservoirSize.decodeValue(encodedReservoirSize);
 
         // Check values
         final boolean preLongsEqMin = (numPreLongs == Family.RESERVOIR.getMinPreLongs());
@@ -146,7 +152,7 @@ public class ReservoirLongSketch {
         if (!preLongsEqMin & !preLongsEqMax) {
             throw new SketchesArgumentException(
                     "Possible corruption: Non-empty sketch with only " + Family.RESERVOIR.getMinPreLongs() +
-                            "prelongs");
+                            "preLongs");
         }
         if (serVer != SER_VER) {
             throw new SketchesArgumentException(
@@ -157,21 +163,21 @@ public class ReservoirLongSketch {
             throw new SketchesArgumentException(
                     "Possible Corruption: FamilyID must be " + reqFamilyId + ": " + familyId);
         }
-        final int serDeId = extractSerDeId(pre1);
+        final int serDeId = extractSerDeId(pre0);
         if (serDeId != ARRAY_OF_LONGS_SERDE_ID) {
             throw new SketchesArgumentException(
                     "Possible Corruption: SerDeID must be " + ARRAY_OF_LONGS_SERDE_ID + ": " + serDeId);
         }
 
         if (isEmpty) {
-            return new ReservoirLongSketch(reservoirSize, DEFAULT_RESIZE_FACTOR);
+            return new ReservoirLongSketch(reservoirSize, rf);
         }
 
         //get full preamble
         final long[] preArr = new long[numPreLongs];
         srcMem.getLongArray(0, preArr, 0, numPreLongs);
 
-        ReservoirLongSketch rls = new ReservoirLongSketch(reservoirSize, DEFAULT_RESIZE_FACTOR);
+        ReservoirLongSketch rls = new ReservoirLongSketch(reservoirSize, rf);
         rls.itemsSeen_ = extractItemsSeenCount(pre1);  // no mask needed
 
         int preLongBytes = numPreLongs << 3;
@@ -220,23 +226,28 @@ public class ReservoirLongSketch {
 
         // build first preLong
         long pre0 = 0L;
-        pre0 = PreambleUtil.insertPreLongs(preLongs, pre0);                  //Byte 0
-        pre0 = PreambleUtil.insertSerVer(SER_VER, pre0);                     //Byte 1
-        pre0 = PreambleUtil.insertFamilyID(Family.RESERVOIR.getID(), pre0);  //Byte 2
-        pre0 = (empty) ? PreambleUtil.insertFlags(EMPTY_FLAG_MASK, pre0) : PreambleUtil.insertFlags(0, pre0); //Byte 3
-        pre0 = PreambleUtil.insertReservoirSize(reservoirSize_, pre0);       //Bytes 4-7
+        pre0 = PreambleUtil.insertPreLongs(preLongs, pre0);                  // Byte 0
+        pre0 = PreambleUtil.insertResizeFactor(rf_.lg(), pre0);
+        pre0 = PreambleUtil.insertSerVer(SER_VER, pre0);                     // Byte 1
+        pre0 = PreambleUtil.insertFamilyID(Family.RESERVOIR.getID(), pre0);  // Byte 2
+        pre0 = (empty) ? PreambleUtil.insertFlags(EMPTY_FLAG_MASK, pre0) : PreambleUtil.insertFlags(0, pre0); // Byte 3
+        pre0 = PreambleUtil.insertReservoirSize(encodedResSize_, pre0);      // Bytes 4-5
+        pre0 = PreambleUtil.insertSerDeId(ARRAY_OF_LONGS_SERDE_ID, pre0);    // Bytes 6-7
 
-        // second preLong needs SerDe ID, empty or not
-        long pre1 = 0L;
-        pre1 = PreambleUtil.insertItemsSeenCount(itemsSeen_, pre1);
-        pre1 = PreambleUtil.insertSerDeId(ARRAY_OF_LONGS_SERDE_ID, pre1);
+        if (empty) {
+            mem.putLong(0, pre0);
+        } else {
+            // second preLong, only if non-empty
+            long pre1 = 0L;
+            pre1 = PreambleUtil.insertItemsSeenCount(itemsSeen_, pre1);
 
-        final long[] preArr = new long[preLongs];
-        preArr[0] = pre0;
-        preArr[1] = pre1;
-        mem.putLongArray(0, preArr, 0, preLongs);
-        final int preBytes = preLongs << 3;
-        mem.putLongArray(preBytes, data_, 0, numItems);
+            final long[] preArr = new long[preLongs];
+            preArr[0] = pre0;
+            preArr[1] = pre1;
+            mem.putLongArray(0, preArr, 0, preLongs);
+            final int preBytes = preLongs << 3;
+            mem.putLongArray(preBytes, data_, 0, numItems);
+        }
 
         return outArr;
     }
@@ -306,9 +317,10 @@ public class ReservoirLongSketch {
     }
 
     public static void main(String[] args) {
-        ReservoirLongSketch rs = ReservoirLongSketch.getInstance(5);
+        ReservoirLongSketch rs = ReservoirLongSketch.getInstance(5, ResizeFactor.X8);
         rs.setRandomSeed(11L);
 
+        /*
         for (long i = 0; i < 3; ++i) {
             rs.update(i);
         }
@@ -328,9 +340,7 @@ public class ReservoirLongSketch {
             System.out.println(l);
         }
         System.out.println("\n\n");
-
-        //rs = ReservoirLongSketch.getInstance(5);
-
+        */
         byte[] ser1 = rs.toByteArray();
         Memory mem = new NativeMemory(ser1);
 
