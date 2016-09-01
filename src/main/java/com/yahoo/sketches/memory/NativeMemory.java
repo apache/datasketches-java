@@ -149,17 +149,19 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public void copy(long srcOffsetBytes, long dstOffsetBytes, long lengthBytes) {
+  public void copy(final long srcOffsetBytes, final long dstOffsetBytes, final long lengthBytes) {
     assertBounds(srcOffsetBytes, lengthBytes, capacityBytes_);
     assertBounds(dstOffsetBytes, lengthBytes, capacityBytes_);
     assert checkOverlap(srcOffsetBytes, dstOffsetBytes, lengthBytes) : "regions must not overlap";
+    
     long srcAdd = getAddress(srcOffsetBytes);
     long dstAdd = getAddress(dstOffsetBytes);
+    long lenBytes = lengthBytes;
     
-    while (lengthBytes > 0) {
-      long size = (lengthBytes > UNSAFE_COPY_THRESHOLD) ? UNSAFE_COPY_THRESHOLD : lengthBytes;
-      unsafe.copyMemory(memArray_, srcAdd, memArray_, dstAdd, lengthBytes);
-      lengthBytes -= size;
+    while (lenBytes > 0) {
+      long size = (lenBytes > UNSAFE_COPY_THRESHOLD) ? UNSAFE_COPY_THRESHOLD : lenBytes;
+      unsafe.copyMemory(memArray_, srcAdd, memArray_, dstAdd, lenBytes);
+      lenBytes -= size;
       srcAdd += size;
       dstAdd += size;
     }
@@ -178,31 +180,24 @@ public class NativeMemory implements Memory {
    * @param dstOffsetBytes the destination offset
    * @param lengthBytes the number of bytes to copy
    */
-  public static void copy(Memory source, long srcOffsetBytes, Memory destination, 
-      long dstOffsetBytes, long lengthBytes) {
+  public static final void copy(final Memory source, final long srcOffsetBytes, 
+      final Memory destination, final long dstOffsetBytes, final long lengthBytes) {
+    
     assertBounds(srcOffsetBytes, lengthBytes, source.getCapacity());
     assertBounds(dstOffsetBytes, lengthBytes, destination.getCapacity());
-    long srcAdd = srcOffsetBytes;
-    long dstAdd = dstOffsetBytes;
-    Object srcParent = source;
-    Object dstParent = destination;
 
-    while ((srcParent != null) && (srcParent instanceof Memory))  {
-      srcAdd = ((Memory) srcParent).getAddress(srcAdd);
-      srcParent = ((Memory) srcParent).getParent();
-    } 
-
-    while ((dstParent != null) && (dstParent instanceof Memory)) {
-      dstAdd = ((Memory) dstParent).getAddress(dstAdd);
-      dstParent = ((Memory) dstParent).getParent();
-    }
-
-    while (lengthBytes > 0) {
-      long size = (lengthBytes > UNSAFE_COPY_THRESHOLD) ? UNSAFE_COPY_THRESHOLD : lengthBytes;
-      unsafe.copyMemory(srcParent, srcAdd, dstParent, dstAdd, lengthBytes);
-      lengthBytes -= size;
-      srcAdd += size;
-      dstAdd += size;
+    long srcAdd = source.getCumulativeOffset(srcOffsetBytes);
+    long dstAdd = destination.getCumulativeOffset(dstOffsetBytes);
+    Object srcParent = (source.isDirect()) ? null : source.getNativeMemory().memArray_;
+    Object dstParent = (destination.isDirect()) ? null : destination.getNativeMemory().memArray_;
+    long lenBytes = lengthBytes;
+    
+    while (lenBytes > 0) {
+      long chunkBytes = (lenBytes > UNSAFE_COPY_THRESHOLD) ? UNSAFE_COPY_THRESHOLD : lenBytes;
+      unsafe.copyMemory(srcParent, srcAdd, dstParent, dstAdd, lenBytes);
+      lenBytes -= chunkBytes;
+      srcAdd += chunkBytes;
+      dstAdd += chunkBytes;
     }
   }
 
@@ -622,6 +617,11 @@ public class NativeMemory implements Memory {
   }
 
   @Override
+  public long getCumulativeOffset(final long offsetBytes) {
+    return getAddress(offsetBytes);
+  }
+
+  @Override
   public MemoryRequest getMemoryRequest() {
     return memReq_;
   }
@@ -631,11 +631,26 @@ public class NativeMemory implements Memory {
     return memArray_;
   }
 
+  /**
+   * Returns true if this NativeMemory is accessing native (off-heap) memory directly. 
+   * This includes the case of a Direct ByteBuffer.
+   * @return true if this NativeMemory is accessing native (off-heap) memory directly.
+   */
+  @Override
+  public boolean isDirect() {
+    return nativeRawStartAddress_ > 0;
+  }
+
   @Override
   public void setMemoryRequest(MemoryRequest memReq) {
     memReq_ = memReq;
   }
 
+  @Override
+  public NativeMemory getNativeMemory() {
+    return this;
+  }
+  
   @Override
   public String toHexString(String header, long offsetBytes, int lengthBytes) {
     StringBuilder sb = new StringBuilder();
@@ -666,15 +681,6 @@ public class NativeMemory implements Memory {
    */
   public ByteBuffer byteBuffer() {
     return byteBuf_;
-  }
-
-  /**
-   * Returns true if this NativeMemory is accessing native (off-heap) memory directly. 
-   * This includes the case of a Direct ByteBuffer.
-   * @return true if this NativeMemory is accessing native (off-heap) memory directly.
-   */
-  public boolean isDirect() {
-    return nativeRawStartAddress_ > 0;
   }
 
   /**

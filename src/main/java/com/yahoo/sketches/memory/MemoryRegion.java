@@ -442,15 +442,30 @@ public class MemoryRegion implements Memory {
   }
 
   @Override
+  public long getCumulativeOffset(final long offsetBytes) {
+    return mem_.getCumulativeOffset(0L) + getAddress(offsetBytes);
+  }
+  
+  @Override
   public MemoryRequest getMemoryRequest() {
     return memReq_;
   }
-
+  
+  @Override
+  public NativeMemory getNativeMemory() {
+    return mem_.getNativeMemory();
+  }
+  
   @Override
   public Object getParent() {
     return mem_;
   }
 
+  @Override
+  public boolean isDirect() {
+    return mem_.isDirect();
+  }
+  
   @Override
   public void setMemoryRequest(MemoryRequest memReq) {
     memReq_ = memReq;
