@@ -411,9 +411,10 @@ public interface Memory {
   //Non-data methods
   
   /**
-   * Returns the start address of this Memory plus the offset.
+   * Returns the start address of this Memory relative to its parent plus the offset in bytes.
    * @param offsetBytes the given offset in bytes from the start address of this Memory
-   * @return the start address of this Memory plus the offset.
+   * relative to its parent.
+   * @return the start address of this Memory relative to its parent plus the offset in bytes.
    */
   long getAddress(final long offsetBytes);
   
@@ -424,16 +425,39 @@ public interface Memory {
   long getCapacity();
   
   /**
+   * Returns the cumulative offset in bytes of this Memory from the base Memory including the given
+   * offset. If this Memory is derived from Direct memory it will include the raw native address. 
+   * If this Memory is derived from a byte or long array it will include the 
+   * ARRAY_&lt;TYPE&gt;_BASE_OFFSET. 
+   * @param offsetBytes the given offset in bytes
+   * @return the cumulative offset in bytes of this Memory from the base Memory including the given
+   * offset.
+   */
+  long getCumulativeOffset(final long offsetBytes);
+  
+  /**
    * Returns a MemoryRequest or null
    * @return a MemoryRequest or null
    */
   MemoryRequest getMemoryRequest();
   
   /**
+   * Returns the root NativeMemory, which could also be the derived MemoryMappedFile or AllocMemory.
+   * @return the root NativeMemory.
+   */
+  NativeMemory getNativeMemory();
+  
+  /**
    * Gets the parent Memory or backing array. Used internally.
    * @return the parent Memory.
    */
   Object getParent();
+  
+  /**
+   * Returns true if this Memory is Direct (native) memory.
+   * @return true if this Memory is Direct (native) memory.
+   */
+  boolean isDirect();
   
   /**
    * Sets a MemoryRequest
