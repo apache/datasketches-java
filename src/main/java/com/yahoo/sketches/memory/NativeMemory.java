@@ -119,15 +119,14 @@ public class NativeMemory implements Memory {
     if (byteBuf.isDirect()) {
       objectBaseOffset_ = 0L;
       memArray_ = null;
-      byteBuf_ = byteBuf;
       nativeRawStartAddress_ = ((sun.nio.ch.DirectBuffer)byteBuf).address();
     } 
     else { //must have array
       objectBaseOffset_ = ARRAY_BYTE_BASE_OFFSET;
       memArray_ = byteBuf.array();
-      byteBuf_ = byteBuf;
       nativeRawStartAddress_ = 0L;
     }
+    byteBuf_ = byteBuf;
     capacityBytes_ = byteBuf.capacity();
   }
   
