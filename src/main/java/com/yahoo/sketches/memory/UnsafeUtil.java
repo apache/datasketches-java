@@ -13,7 +13,7 @@ import com.yahoo.sketches.SketchesException;
 import sun.misc.Unsafe;
 
 /**
- * Provides package private reference to the sun.misc.Unsafe class and its key static fields.
+ * Provides access to the sun.misc.Unsafe class and its key static fields.
  * 
  * <p><b>NOTE:</b> Native/Direct memory acquired using Unsafe may have garbage in it. 
  * It is the responsibility of the using class to clear this memory, if required, 
@@ -21,44 +21,43 @@ import sun.misc.Unsafe;
  * 
  * @author Lee Rhodes
  */
-
 //@SuppressWarnings("restriction")
-final class UnsafeUtil {
-  static final Unsafe unsafe;
+public final class UnsafeUtil {
+  public static final Unsafe unsafe;
   
-  static final int ADDRESS_SIZE; //not an indicator of whether compressed references are used.
+  public static final int ADDRESS_SIZE; //not an indicator of whether compressed references are used.
   
   //varies depending on compressed ref, 16 or 24 for 64-bit systems
-  static final int ARRAY_BOOLEAN_BASE_OFFSET;
-  static final int ARRAY_BYTE_BASE_OFFSET;
-  static final int ARRAY_SHORT_BASE_OFFSET;
-  static final int ARRAY_CHAR_BASE_OFFSET;
-  static final int ARRAY_INT_BASE_OFFSET;
-  static final int ARRAY_LONG_BASE_OFFSET;
-  static final int ARRAY_FLOAT_BASE_OFFSET;
-  static final int ARRAY_DOUBLE_BASE_OFFSET;
-  static final int ARRAY_OBJECT_BASE_OFFSET;
+  public static final int ARRAY_BOOLEAN_BASE_OFFSET;
+  public static final int ARRAY_BYTE_BASE_OFFSET;
+  public static final int ARRAY_SHORT_BASE_OFFSET;
+  public static final int ARRAY_CHAR_BASE_OFFSET;
+  public static final int ARRAY_INT_BASE_OFFSET;
+  public static final int ARRAY_LONG_BASE_OFFSET;
+  public static final int ARRAY_FLOAT_BASE_OFFSET;
+  public static final int ARRAY_DOUBLE_BASE_OFFSET;
+  public static final int ARRAY_OBJECT_BASE_OFFSET;
   
 //@formatter:off
-  static final int ARRAY_BOOLEAN_INDEX_SCALE; // 1
-  static final int ARRAY_BYTE_INDEX_SCALE;    // 1
-  static final int ARRAY_SHORT_INDEX_SCALE;   // 2
-  static final int ARRAY_CHAR_INDEX_SCALE;    // 2
-  static final int ARRAY_INT_INDEX_SCALE;     // 4
-  static final int ARRAY_LONG_INDEX_SCALE;    // 8
-  static final int ARRAY_FLOAT_INDEX_SCALE;   // 4
-  static final int ARRAY_DOUBLE_INDEX_SCALE;  // 8
-  static final int ARRAY_OBJECT_INDEX_SCALE;  // varies, 4 or 8 depending on compressed ref
+  public static final int ARRAY_BOOLEAN_INDEX_SCALE; // 1
+  public static final int ARRAY_BYTE_INDEX_SCALE;    // 1
+  public static final int ARRAY_SHORT_INDEX_SCALE;   // 2
+  public static final int ARRAY_CHAR_INDEX_SCALE;    // 2
+  public static final int ARRAY_INT_INDEX_SCALE;     // 4
+  public static final int ARRAY_LONG_INDEX_SCALE;    // 8
+  public static final int ARRAY_FLOAT_INDEX_SCALE;   // 4
+  public static final int ARRAY_DOUBLE_INDEX_SCALE;  // 8
+  public static final int ARRAY_OBJECT_INDEX_SCALE;  // varies, 4 or 8 depending on compressed ref
   
   //Used to convert "type" to bytes:  bytes = longs << LONG_SHIFT
-  static final int BOOLEAN_SHIFT   = 0;
-  static final int BYTE_SHIFT      = 0;
-  static final int SHORT_SHIFT     = 1;
-  static final int CHAR_SHIFT      = 1;
-  static final int INT_SHIFT       = 2;
-  static final int LONG_SHIFT      = 3;
-  static final int FLOAT_SHIFT     = 2;
-  static final int DOUBLE_SHIFT    = 3;
+  public static final int BOOLEAN_SHIFT   = 0;
+  public static final int BYTE_SHIFT      = 0;
+  public static final int SHORT_SHIFT     = 1;
+  public static final int CHAR_SHIFT      = 1;
+  public static final int INT_SHIFT       = 2;
+  public static final int LONG_SHIFT      = 3;
+  public static final int FLOAT_SHIFT     = 2;
+  public static final int DOUBLE_SHIFT    = 3;
   
   public static final String LS = System.getProperty("line.separator");
   
@@ -68,7 +67,7 @@ final class UnsafeUtil {
    * This number limits the number of bytes to copy per call to Unsafe's copyMemory method. 
    * A limit is imposed to allow for safepoint polling during a large copy.
    */
-  static final long UNSAFE_COPY_THRESHOLD = 1L << 20; //2^20
+  public static final long UNSAFE_COPY_THRESHOLD = 1L << 20; //2^20
 
   static {
       try {
@@ -122,19 +121,19 @@ final class UnsafeUtil {
    * @param reqLen the requested length
    * @param allocSize the allocated size. 
    */
-  static void assertBounds(final long reqOff, final long reqLen, final long allocSize) {
+  public static void assertBounds(final long reqOff, final long reqLen, final long allocSize) {
     assert ((reqOff | reqLen | (reqOff + reqLen) | (allocSize - (reqOff + reqLen))) >= 0) : 
       "offset: " + reqOff + ", reqLength: " + reqLen + ", size: " + allocSize;
   }
 
   /**
-   * Return true if the two memory regions do not overlap
+   * Return true if the given offsets and length do not overlap.
    * @param srcOff the start of the source region
    * @param dstOff the start of the destination region
    * @param length the length of both regions
-   * @return true if the two memory regions do not overlap
+   * @return true if the given offsets and length do not overlap.
    */
-  static boolean checkOverlap(final long srcOff, final long dstOff, final long length) {
+  public static boolean checkOverlap(final long srcOff, final long dstOff, final long length) {
     long min = Math.min(srcOff, dstOff);
     long max = Math.max(srcOff, dstOff);
     return (min + length) <= max;
