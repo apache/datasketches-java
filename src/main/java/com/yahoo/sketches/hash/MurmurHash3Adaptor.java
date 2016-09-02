@@ -5,7 +5,6 @@
 
 package com.yahoo.sketches.hash;
 
-import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -458,6 +457,27 @@ public final class MurmurHash3Adaptor {
       longArr[li] |= (((long)data[ii]) << (ii * 32) % 64);
     }
     return longArr;
+  }
+  
+  
+  /**
+   * Computes the ceiling power of 2 within the range [1, 2^30]. This is the smallest positive power
+   * of 2 that equal to or greater than the given n. <br>
+   * For:
+   * <ul>
+   * <li>n &le; 1: returns 1</li>
+   * <li>2^30 &le; n &le; 2^31 -1 : returns 2^30</li>
+   * <li>n == a power of 2 : returns n</li>
+   * <li>otherwise returns the smallest power of 2 greater than n</li>
+   * </ul>
+   * 
+   * @param n The input argument.
+   * @return the ceiling power of 2.
+   */
+  private static int ceilingPowerOf2(int n) {
+    if (n <= 1) { return 1; }
+    int topPwrOf2 = 1 << 30;
+    return (n >= topPwrOf2) ? topPwrOf2 : Integer.highestOneBit((n - 1) << 1);
   }
   
 }
