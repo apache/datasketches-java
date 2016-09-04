@@ -8,8 +8,8 @@ package com.yahoo.sketches.sampling;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.memory.NativeMemory;
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.NativeMemory;
 
 import java.nio.ByteOrder;
 

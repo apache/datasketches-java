@@ -6,9 +6,9 @@ import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
-import com.yahoo.sketches.memory.Memory;
-import com.yahoo.sketches.memory.MemoryRegion;
-import com.yahoo.sketches.memory.NativeMemory;
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.MemoryRegion;
+import com.yahoo.memory.NativeMemory;
 
 import java.lang.reflect.Array;
 import java.util.Random;
