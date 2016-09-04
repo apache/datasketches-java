@@ -1,13 +1,16 @@
 package com.yahoo.sketches.sampling;
 
+import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.memory.Memory;
+import com.yahoo.sketches.memory.MemoryRegion;
 import com.yahoo.sketches.memory.NativeMemory;
 
+import java.lang.reflect.Array;
 import java.util.Random;
 
 import static com.yahoo.sketches.sampling.PreambleUtil.*;
@@ -18,14 +21,12 @@ import static com.yahoo.sketches.sampling.PreambleUtil.*;
  * @author jmalkin
  * @author langk
  */
-public class ReservoirLongSketch {
+public class ReservoirItemSketch<T> {
 
     /**
      * The smallest sampling array allocated: 16
      */
     private static final int MIN_LG_ARR_LONGS = 4;
-
-    private static final int ARRAY_OF_LONGS_SERDE_ID = new ArrayOfLongsSerDe().getId();
 
     /**
      * Default sampling size multiple when reallocating storage: 8
@@ -37,10 +38,9 @@ public class ReservoirLongSketch {
     int reservoirSize_;      // max size of sampling
     int encodedResSize_;     // compact encoding of reservoir size
     int currItemsAlloc_;     // currently allocated array size
-    int currCount_;          // number of items in sampling
     long itemsSeen_;         // number of items presented to sketch
     ResizeFactor rf_;        // resize factor
-    long[] data_;            // stored sampling data
+    Object[] data_;          // stored sampled data
 
     /**
      * Construct a mergeable sampling sample sketch with up to k samples using the default resize factor (8).
@@ -48,8 +48,8 @@ public class ReservoirLongSketch {
      * @param k Maximum size of sampling. Allocated size may be smaller until sampling fills. Unlike many sketches
      *          in this package, this value does <em>not</em> need to be a power of 2.
      */
-    public static ReservoirLongSketch getInstance(final int k) {
-        return new ReservoirLongSketch(k, DEFAULT_RESIZE_FACTOR);
+    public static ReservoirItemSketch getInstance(final int k) {
+        return new ReservoirItemSketch(k, DEFAULT_RESIZE_FACTOR);
     }
 
     /**
@@ -59,30 +59,66 @@ public class ReservoirLongSketch {
      *          in this package, this value does <em>not</em> need to be a power of 2.
      * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
      */
-    public static ReservoirLongSketch getInstance(final int k, ResizeFactor rf) {
-        return new ReservoirLongSketch(k, rf);
+    public static ReservoirItemSketch getInstance(final int k, ResizeFactor rf) {
+        return new ReservoirItemSketch(k, rf);
     }
 
-    private ReservoirLongSketch(final int k, ResizeFactor rf) {
+    private ReservoirItemSketch(final int k, final ResizeFactor rf) {
         // required due to a theorem about lightness during merging
         if (k < 2) {
             throw new IllegalArgumentException("k must be at least 2");
         }
 
         encodedResSize_ = ReservoirSize.computeSize(k);
-
         reservoirSize_ = ReservoirSize.decodeValue(encodedResSize_);
         rf_ = rf;
 
-        currCount_ = 0;
         itemsSeen_ = 0;
 
         int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize_), "ReservoirLongSketch");
         int initialSize = startingSubMultiple(reservoirSize_, ceilingLgK, MIN_LG_ARR_LONGS);
 
         currItemsAlloc_ = getAdjustedSize(reservoirSize_, initialSize);
-        data_ = new long[currItemsAlloc_];
-        java.util.Arrays.fill(data_,  0L);
+        data_ = new Object[currItemsAlloc_];
+    }
+
+    /**
+     * Creates a fully-populated sketch. Used internally to avoid extraneous array allocation when deserializing.
+     * @param data Reservoir data as an <tt>Object[]</tt>
+     * @param itemsSeen Number of items presented to the sketch so far
+     * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
+     * @param encodedResSize Compact encoding of reservoir size
+     */
+    private ReservoirItemSketch(final Object[] data, final long itemsSeen,
+                                final ResizeFactor rf, final int encodedResSize) {
+        int reservoirSize = ReservoirSize.decodeValue(encodedResSize);
+
+        if (data == null) {
+            throw new SketchesArgumentException("Instantiating sketch with null reservoir");
+        }
+        if (reservoirSize < data.length) {
+            throw new SketchesArgumentException("Instantiating sketch with max size less than array length: "
+                    + reservoirSize + " max size, array of length " + data.length);
+        }
+        if ((itemsSeen > reservoirSize && data.length < reservoirSize)
+                || (itemsSeen < reservoirSize && data.length < itemsSeen)) {
+            throw new SketchesArgumentException("Instantiating sketch with under-full reservoir. Items seen: " +
+                    itemsSeen + ", max reservoir size: " + reservoirSize + ", data array length: " + data.length);
+        }
+        /*
+        if (currItemsAlloc != data.length) {
+            throw new SketchesArgumentException("Instantiating sketch with current allocation " + currItemsAlloc +
+                    " but data arrany length " + data.length);
+        }
+        */
+
+        // TODO: compute target current allocation to validate?
+        encodedResSize_ = encodedResSize;
+        reservoirSize_ = reservoirSize;
+        currItemsAlloc_ = data.length;
+        itemsSeen_ = itemsSeen;
+        rf_ = rf;
+        data_ = data;
     }
 
     /**
@@ -117,16 +153,32 @@ public class ReservoirLongSketch {
     }
 
     /**
-     * Returns a copy of the items in the reservoir. The returned array length may be smaller than the reservoir
-     * capacity.
+     * Returns a copy of the items in the reservoir, or null if empty. The returned array length may be smaller than
+     * the reservoir capacity.
+     *
+     * In order to allocate an array of generic type T, uses the class of the first item in the array. This method
+     * may throw a <tt>ClassCastException</tt> if the reservoir stores instances of a polymorphci base class.
+     *
      * @return A copy of the reservoir array
      */
-    public long[] getSamples() {
+    public T[] getSamples() {
         if (itemsSeen_ == 0) {
             return null;
         }
+
+        return getSamples(data_[0].getClass());
+    }
+
+    @SuppressWarnings("unchecked")
+    public T[] getSamples(Class clazz) {
+         if (itemsSeen_ == 0) {
+             return null;
+         }
+
         int numSamples = (int) Math.min((long) reservoirSize_, itemsSeen_);
-        return java.util.Arrays.copyOf(data_, numSamples);
+        T[] dst = (T[]) Array.newInstance(clazz, numSamples);
+        System.arraycopy(data_, 0, dst, 0, numSamples);
+        return dst;
     }
 
 
@@ -138,17 +190,16 @@ public class ReservoirLongSketch {
      * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
      * @return a sketch instance of this class
      */
-    public static ReservoirLongSketch getInstance(final Memory srcMem) {
+    public static <T> ReservoirItemSketch getInstance(final Memory srcMem, ArrayOfItemsSerDe<T> serDe) {
         final int numPreLongs = getAndCheckPreLongs(srcMem);
         final long pre0 = srcMem.getLong(0);
-        final long pre1 = srcMem.getLong(8);
         final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(pre0));
         final int serVer = extractSerVer(pre0);
         final int familyId = extractFamilyID(pre0);
         final boolean isEmpty = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0;
 
-        final int encodedReservoirSize = extractReservoirSize(pre0);
-        final int reservoirSize  = ReservoirSize.decodeValue(encodedReservoirSize);
+        final int encodedResSize = extractReservoirSize(pre0);
+        final int reservoirSize  = ReservoirSize.decodeValue(encodedResSize);
 
         // Check values
         final boolean preLongsEqMin = (numPreLongs == Family.RESERVOIR.getMinPreLongs());
@@ -169,62 +220,64 @@ public class ReservoirLongSketch {
                     "Possible Corruption: FamilyID must be " + reqFamilyId + ": " + familyId);
         }
         final int serDeId = extractSerDeId(pre0);
-        if (serDeId != ARRAY_OF_LONGS_SERDE_ID) {
+        if (serDe.getId() != serDeId) {
             throw new SketchesArgumentException(
-                    "Possible Corruption: SerDeID must be " + ARRAY_OF_LONGS_SERDE_ID + ": " + serDeId);
+                    "Possible Corruption: SerDeID must be " + serDeId + ": " + serDe.getId());
         }
 
         if (isEmpty) {
-            return new ReservoirLongSketch(reservoirSize, rf);
+            return new ReservoirItemSketch<T>(reservoirSize, rf);
         }
 
-        //get full preamble
-        final long[] preArr = new long[numPreLongs];
-        srcMem.getLongArray(0, preArr, 0, numPreLongs);
-
-        ReservoirLongSketch rls = new ReservoirLongSketch(reservoirSize, rf);
-        rls.itemsSeen_ = extractItemsSeenCount(pre1);  // no mask needed
+        //get rest of preamble
+        final long pre1 = srcMem.getLong(8);
+        long itemsSeen = extractItemsSeenCount(pre1);
 
         int preLongBytes = numPreLongs << 3;
-        if (rls.itemsSeen_ >= rls.reservoirSize_) {
-            // full reservoir so allocate it all
-            rls.data_ = new long[rls.reservoirSize_];
-
-            srcMem.getLongArray(preLongBytes, rls.data_, 0, rls.reservoirSize_);
-        } else {
+        int allocatedSize = reservoirSize; // default to full reservoir
+        if (itemsSeen < reservoirSize) {
             // under-full so determine size to allocate, using ceilingLog2(totalSeen) as minimum
             // casts to int are safe since under-full
-            int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(rls.reservoirSize_), "getInstance");
-            int minLgSize = Util.toLog2(Util.ceilingPowerOf2((int) rls.itemsSeen_), "getInstance");
-            int initialSize = startingSubMultiple(rls.reservoirSize_, ceilingLgK,
+            int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize), "getInstance");
+            int minLgSize = Util.toLog2(Util.ceilingPowerOf2((int) itemsSeen), "getInstance");
+            int initialSize = startingSubMultiple(reservoirSize, ceilingLgK,
                     Math.min(minLgSize, MIN_LG_ARR_LONGS));
 
-            // initialize full allocation to zero, then load the relevant number of samples
-            rls.currItemsAlloc_ = getAdjustedSize(rls.reservoirSize_, initialSize);
-            rls.data_ = new long[rls.currItemsAlloc_];
-            java.util.Arrays.fill(rls.data_,  0L);
-
-            srcMem.getLongArray(preLongBytes, rls.data_, 0, (int) rls.itemsSeen_);
+            allocatedSize = getAdjustedSize(reservoirSize, initialSize);
         }
+        Object[] data = serDe.deserializeFromMemory(
+                new MemoryRegion(srcMem, preLongBytes, srcMem.getCapacity() - preLongBytes), allocatedSize);
 
-        return rls;
+        return new ReservoirItemSketch<T>(data, itemsSeen, rf, encodedResSize);
     }
 
+
     /**
-     * Returns a byte array representation of this sketch
+     * Returns a byte array representation of this sketch. May fail for polymorphic item tyes.
      * @return a byte array representation of this sketch
      */
-    public byte[] toByteArray() {
+    public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
+        if (itemsSeen_ == 0) {
+            // null class is ok since empty -- no need to call serDe
+            return toByteArray(serDe, null);
+        } else {
+            return toByteArray(serDe, data_[0].getClass());
+        }
+    }
+
+    public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe, final Class clazz) {
         final int preLongs, outBytes;
         final boolean empty = itemsSeen_ == 0;
-        final int numItems = (int) Math.min(reservoirSize_, itemsSeen_);
+        //final int numItems = (int) Math.min(reservoirSize_, itemsSeen_);
+        byte[] bytes = null; // for serialized data from serDe
 
         if (empty) {
             preLongs = 1;
             outBytes = 8;
         } else {
             preLongs = Family.RESERVOIR.getMaxPreLongs();
-            outBytes = (preLongs + numItems) << 3; // for longs, we know the size
+            bytes = serDe.serializeToByteArray(getSamples(clazz));
+            outBytes = (preLongs << 3) + bytes.length;
         }
         final byte[] outArr = new byte[outBytes];
         final Memory mem = new NativeMemory(outArr);
@@ -237,7 +290,7 @@ public class ReservoirLongSketch {
         pre0 = PreambleUtil.insertFamilyID(Family.RESERVOIR.getID(), pre0);  // Byte 2
         pre0 = (empty) ? PreambleUtil.insertFlags(EMPTY_FLAG_MASK, pre0) : PreambleUtil.insertFlags(0, pre0); // Byte 3
         pre0 = PreambleUtil.insertReservoirSize(encodedResSize_, pre0);      // Bytes 4-5
-        pre0 = PreambleUtil.insertSerDeId(ARRAY_OF_LONGS_SERDE_ID, pre0);    // Bytes 6-7
+        pre0 = PreambleUtil.insertSerDeId(serDe.getId(), pre0);              // Bytes 6-7
 
         if (empty) {
             mem.putLong(0, pre0);
@@ -251,7 +304,7 @@ public class ReservoirLongSketch {
             preArr[1] = pre1;
             mem.putLongArray(0, preArr, 0, preLongs);
             final int preBytes = preLongs << 3;
-            mem.putLongArray(preBytes, data_, 0, numItems);
+            mem.putByteArray(preBytes, bytes, 0, bytes.length);
         }
 
         return outArr;
@@ -271,7 +324,7 @@ public class ReservoirLongSketch {
      *
      * @param item a unit-weight (equivalently, unweighted) item of the set being sampled from
      */
-    public void update (long item) {
+    public void update (T item) {
         if (itemsSeen_ < reservoirSize_) { // code for initial phase where we take the first reservoirSize_ items
             if (itemsSeen_ >= currItemsAlloc_) {
                 growReservoir();
@@ -296,7 +349,7 @@ public class ReservoirLongSketch {
      */
     private void growReservoir() {
         int newSize = getAdjustedSize(reservoirSize_, currItemsAlloc_ * rf_.getValue());
-        long[] buffer = java.util.Arrays.copyOf(data_, newSize);
+        Object[] buffer = java.util.Arrays.copyOf(data_, newSize);
 
         currItemsAlloc_ = newSize;
         data_ = buffer;
@@ -322,16 +375,33 @@ public class ReservoirLongSketch {
     }
 
     public static void main(String[] args) {
-        ReservoirLongSketch rs = ReservoirLongSketch.getInstance(5, ResizeFactor.X8);
+
+        ReservoirItemSketch<Long> rs = ReservoirItemSketch.<Long>getInstance(5, ResizeFactor.X8);
         rs.setRandomSeed(11L);
 
-        /*
         for (long i = 0; i < 3; ++i) {
             rs.update(i);
         }
 
+        /*
+        ReservoirItemSketch<Long> rs = ReservoirItemSketch.<Long>getInstance(5);
+        rs.setRandomSeed(11L);
+
+        rs.update(1L);
+        rs.update(2);
+        rs.update(3.0);
+        */
+        for (Long l : rs.getSamples()) {
+            System.out.println(l);
+        }
+
+        ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
+
+
         System.out.println("Samples after 3:");
         for (long l : rs.getSamples()) {
+        //for (Object i : rs.getSamples()) {
+        //    Long l = (Long) i;
             System.out.println(l);
         }
         System.out.println("\n\n");
@@ -345,19 +415,20 @@ public class ReservoirLongSketch {
             System.out.println(l);
         }
         System.out.println("\n\n");
-        */
-        byte[] ser1 = rs.toByteArray();
+
+        byte[] ser1 = rs.toByteArray(serDe);
         Memory mem = new NativeMemory(ser1);
 
+        //ReservoirItemSketch<Long> rs2 = ReservoirItemSketch.<Long>getInstance(mem, serDe);
         ReservoirLongSketch rs2 = ReservoirLongSketch.getInstance(mem);
         byte[] ser2 = rs2.toByteArray();
 
-        /*
         System.out.println("Reconstructed samples:");
         for (long l : rs2.getSamples()) {
             System.out.println(l);
         }
-        */
+
+
 
         System.out.println("Preamble:");
         System.out.println(preambleToString(ser1));
