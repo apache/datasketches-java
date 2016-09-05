@@ -16,7 +16,7 @@ import static com.yahoo.memory.UnsafeUtil.unsafe;
  *
  * @author Lee Rhodes
  */
-//@SuppressWarnings("restriction")
+@SuppressWarnings("restriction")
 public class AllocMemory extends MemoryMappedFile {
   
   /**

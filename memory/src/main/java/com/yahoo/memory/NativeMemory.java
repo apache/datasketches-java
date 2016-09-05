@@ -28,7 +28,7 @@ import static com.yahoo.memory.UnsafeUtil.*;
  * 
  * @author Lee Rhodes
  */
-//@SuppressWarnings("restriction")
+@SuppressWarnings("restriction")
 public class NativeMemory implements Memory {
   /* Truth table that distinguishes between Requires Free and actual off-heap Direct mode.
   Class        Case                 ObjBaseOff MemArr byteBuf rawAdd CapacityBytes  ReqFree Direct

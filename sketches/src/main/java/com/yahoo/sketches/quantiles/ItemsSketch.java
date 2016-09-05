@@ -32,7 +32,7 @@ import static com.yahoo.sketches.quantiles.Util.computeBitPattern;
  * for the DoublesSketch.
  * 
  * <p>There is more documentation available on 
- * <a href="http://datasketches.github.io">DataSketches.GitHub.io</a>.</p>
+ * <a href="https://datasketches.github.io">DataSketches.GitHub.io</a>.</p>
  * 
  * @param <T> type of item
  * 

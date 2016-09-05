@@ -24,6 +24,7 @@ import static com.yahoo.memory.UnsafeUtil.unsafe;
  *
  * @author Praveenkumar Venkatesan
  */
+@SuppressWarnings("restriction")
 public class MemoryMappedFile extends NativeMemory {
 
   private FileChannel fileChannel_ = null;
@@ -78,7 +79,7 @@ public class MemoryMappedFile extends NativeMemory {
    * returns, this buffer's content is resident in physical memory. Invoking this method may cause
    * some number of page faults and I/O operations to occur.
    *
-   * @see <a href="http://docs.oracle.com/javase/8/docs/api/java/nio/MappedByteBuffer.html#load--">
+   * @see <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/MappedByteBuffer.html#load--">
    * java/nio/MappedByteBuffer.load</a>
    */
   public void load() {
@@ -106,7 +107,7 @@ public class MemoryMappedFile extends NativeMemory {
    * @return true if loaded
    * 
    * @see <a href=
-   * "http://docs.oracle.com/javase/8/docs/api/java/nio/MappedByteBuffer.html#isLoaded--"> java
+   * "https://docs.oracle.com/javase/8/docs/api/java/nio/MappedByteBuffer.html#isLoaded--"> java
    * /nio/MappedByteBuffer.isLoaded</a>
    */
   public boolean isLoaded() {
