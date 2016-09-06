@@ -17,7 +17,7 @@ import com.yahoo.sketches.theta.Intersection;
  * <p>NOTE: Numerical instability may cause an off-by-one error on reservoir size, causing a slight increase in
  * storage over the optimal value.</p>
  *
- * @uathor jmalkin
+ * @author jmalkin
  */
 public class ReservoirSize {
     /**

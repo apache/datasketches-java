@@ -47,7 +47,8 @@ public class ReservoirItemSketch<T> {
      *
      * @param k Maximum size of sampling. Allocated size may be smaller until sampling fills. Unlike many sketches
      *          in this package, this value does <em>not</em> need to be a power of 2.
-     */
+     * @return A ReservoirLongSketch initialized with maximum size k and the default resize factor.
+     * */
     public static ReservoirItemSketch getInstance(final int k) {
         return new ReservoirItemSketch(k, DEFAULT_RESIZE_FACTOR);
     }
@@ -58,7 +59,8 @@ public class ReservoirItemSketch<T> {
      * @param k Maximum size of sampling. Allocated size may be smaller until sampling fills. Unlike many sketches
      *          in this package, this value does <em>not</em> need to be a power of 2.
      * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
-     */
+     * @return A ReservoirLongSketch initialized with maximum size k and resize factor rf.
+     * */
     public static ReservoirItemSketch getInstance(final int k, ResizeFactor rf) {
         return new ReservoirItemSketch(k, rf);
     }
@@ -148,7 +150,11 @@ public class ReservoirItemSketch<T> {
         return (int) Math.min((long) reservoirSize_, itemsSeen_);
     }
 
-    void setRandomSeed(long seed) {
+    /**
+     * Sets the seed used with Java's internal (pseudo)random number generator.
+     * @param seed the seed value to use.
+     */
+    public void setRandomSeed(long seed) {
         rand.setSeed(seed);
     }
 
@@ -157,7 +163,7 @@ public class ReservoirItemSketch<T> {
      * the reservoir capacity.
      *
      * In order to allocate an array of generic type T, uses the class of the first item in the array. This method
-     * may throw a <tt>ClassCastException</tt> if the reservoir stores instances of a polymorphci base class.
+     * may throw an <tt>ArrayAssignmentException</tt> if the reservoir stores instances of a polymorphci base class.
      *
      * @return A copy of the reservoir array
      */
@@ -169,6 +175,17 @@ public class ReservoirItemSketch<T> {
         return getSamples(data_[0].getClass());
     }
 
+    /**
+     * Returns a copy of the items in the reservoir as members of Class <em>clazz</em>, or null if empty. The returned
+     * array length may be smaller than the reservoir capacity.
+     *
+     * This method allocates an array of class <em>clazz</em>, which must either match or extend T. This method
+     * should be used when objects in the array are all instances of T but are not necessarily instances of the
+     * base class.
+     *
+     * @param clazz A class to which the items are cast before returning
+     * @return A copy of the reservoir array
+     */
     @SuppressWarnings("unchecked")
     public T[] getSamples(Class clazz) {
          if (itemsSeen_ == 0) {
@@ -186,8 +203,10 @@ public class ReservoirItemSketch<T> {
      * Returns a sketch instance of this class from the given srcMem,
      * which must be a Memory representation of this sketch class.
      *
+     * @param <T> The type of item this sketch contains
      * @param srcMem a Memory representation of a sketch of this class.
      * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+     * @param serDe An instance of ArrayOfItemsSerDe
      * @return a sketch instance of this class
      */
     public static <T> ReservoirItemSketch getInstance(final Memory srcMem, ArrayOfItemsSerDe<T> serDe) {
@@ -253,7 +272,8 @@ public class ReservoirItemSketch<T> {
 
 
     /**
-     * Returns a byte array representation of this sketch. May fail for polymorphic item tyes.
+     * Returns a byte array representation of this sketch. May fail for polymorphic item types.
+     * @param serDe An instance of ArrayOfItemsSerDe
      * @return a byte array representation of this sketch
      */
     public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
@@ -265,6 +285,13 @@ public class ReservoirItemSketch<T> {
         }
     }
 
+    /**
+     * Returns a byte array representation of this sketch. Copies contents into an array of the specified class for
+     * serialization to allow for polymorphic types.
+     * @param serDe An instance of ArrayOfItemsSerDe
+     * @param clazz The class represented by type &lt;T&gt;
+     * @return a byte array representation of this sketch
+     */
     public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe, final Class clazz) {
         final int preLongs, outBytes;
         final boolean empty = itemsSeen_ == 0;

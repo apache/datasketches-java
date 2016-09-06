@@ -32,7 +32,7 @@ public class ReservoirLongSketch {
      */
     private static final ResizeFactor DEFAULT_RESIZE_FACTOR = ResizeFactor.X8;
 
-    static Random rand = new Random();
+    private static Random rand = new Random();
 
     int reservoirSize_;      // max size of sampling
     int encodedResSize_;     // compact encoding of reservoir size
@@ -47,6 +47,7 @@ public class ReservoirLongSketch {
      *
      * @param k Maximum size of sampling. Allocated size may be smaller until sampling fills. Unlike many sketches
      *          in this package, this value does <em>not</em> need to be a power of 2.
+     * @return A ReservoirLongSketch initialized with maximum size k and the default resize factor.
      */
     public static ReservoirLongSketch getInstance(final int k) {
         return new ReservoirLongSketch(k, DEFAULT_RESIZE_FACTOR);
@@ -58,6 +59,7 @@ public class ReservoirLongSketch {
      * @param k Maximum size of sampling. Allocated size may be smaller until sampling fills. Unlike many sketches
      *          in this package, this value does <em>not</em> need to be a power of 2.
      * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
+     * @return A ReservoirLongSketch initialized with maximum size k and ResizeFactor rf.
      */
     public static ReservoirLongSketch getInstance(final int k, ResizeFactor rf) {
         return new ReservoirLongSketch(k, rf);
@@ -112,7 +114,11 @@ public class ReservoirLongSketch {
         return (int) Math.min((long) reservoirSize_, itemsSeen_);
     }
 
-    void setRandomSeed(long seed) {
+    /**
+     * Sets the seed used with Java's internal (pseudo)random number generator.
+     * @param seed the seed value to use.
+     */
+    public void setRandomSeed(long seed) {
         rand.setSeed(seed);
     }
 
