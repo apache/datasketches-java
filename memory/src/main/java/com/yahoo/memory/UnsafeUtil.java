@@ -19,7 +19,7 @@ import java.lang.reflect.InvocationTargetException;
  * 
  * @author Lee Rhodes
  */
-//@SuppressWarnings("restriction")
+@SuppressWarnings("restriction")
 public final class UnsafeUtil {
   public static final Unsafe unsafe;
   

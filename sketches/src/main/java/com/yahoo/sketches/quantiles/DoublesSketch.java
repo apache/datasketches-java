@@ -90,12 +90,12 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
  * </pre>
 
  * <p>There is more documentation available on 
- * <a href="http://datasketches.github.io">DataSketches.GitHub.io</a>.</p>
+ * <a href="https://datasketches.github.io">DataSketches.GitHub.io</a>.</p>
  * 
  * <p>This is an implementation of the Low Discrepancy Mergeable Quantiles Sketch, using double 
  * values, described in section 3.2 of the journal version of the paper "Mergeable Summaries" 
  * by Agarwal, Cormode, Huang, Phillips, Wei, and Yi. 
- * <a href="http://dblp.org/rec/html/journals/tods/AgarwalCHPWY13"></a></p>
+ * <a href="http://dblp.org/rec/html/journals/tods/AgarwalCHPWY13"></a></p> <!-- does not work with https -->
  * 
  * <p>This algorithm is independent of the distribution of values, which can be anywhere in the
  * range of the IEEE-754 64-bit doubles. 

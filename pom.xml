@@ -3,7 +3,7 @@
      Licensed under the terms of the Apache License 2.0.
      See LICENSE file at the project root for terms. -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="https://maven.apache.org/POM/4.0.0" xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.yahoo.datasketches</groupId>
@@ -14,19 +14,19 @@
     <!-- Project Information -->
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Sketches contains the core algorithms used by other repositories in the DataSketches library.</description>
-    <url>http://datasketches.github.io/</url>
+    <url>https://datasketches.github.io/</url>
     <inceptionYear>2015</inceptionYear>
 
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
         </license>
     </licenses>
 
     <organization>
         <name>Yahoo! Inc.</name>
-        <url>http://www.yahoo.com</url>
+        <url>https://www.yahoo.com</url>
     </organization>
 
     <developers>
@@ -80,6 +80,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <argLine>-Xmx1024m -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8</argLine>
     </properties>
 
     <!-- Environment Settings -->
@@ -118,7 +119,7 @@
         <repository>
             <id>jcenter</id>
             <name>bintray</name>
-            <url>http://jcenter.bintray.com</url>
+            <url>https://jcenter.bintray.com</url>
         </repository>
     </repositories>
 
@@ -140,7 +141,6 @@
                         <plugin>
                             <groupId>org.apache.maven.plugins</groupId>
                             <artifactId>maven-compiler-plugin</artifactId>
-                            <version>3.5.1</version>
                             <configuration>
                                 <source>${maven.compiler.source}</source>
                                 <target>${maven.compiler.target}</target>
@@ -191,8 +191,27 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                  <!--
+                    <show>private</show>
+                  -->
+                  <stylesheetfile>sketches/src/main/javadoc/stylesheet.css</stylesheetfile>
+                  <docfilessubdirs>true</docfilessubdirs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                          </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.0.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -203,10 +222,10 @@
                     </execution>
                 </executions>
             </plugin>
+            
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.7</version>
                 <extensions>true</extensions>
                 <configuration>
                     <serverId>sonatype-nexus-staging</serverId>
@@ -214,12 +233,12 @@
                     <autoReleaseAfterClose>false</autoReleaseAfterClose>
                 </configuration>
             </plugin>
+            
             <!-- Code coverage plugin, generates coverage report to target/site/jacoco/
                  To skip coverage generation add -Djacoco.skip=true -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.7.7.201606060606</version>
                 <executions>
                     <!-- Prepares the property pointing to the JaCoCo runtime agent which
                          is passed as VM argument when Maven the Surefire plugin is executed. -->
@@ -233,7 +252,7 @@
                             <destFile>${jacoco.ut.execution.data.file}</destFile>
                             <!-- Sets the name of the property containing the settings for JaCoCo runtime agent.
                                  Used by the surefire plugin -->
-                            <propertyName>JaCoCoArgLine</propertyName>
+                            <!-- <propertyName>JaCoCoArgLine</propertyName> -->
                         </configuration>
                     </execution>
                     <!-- Ensures that the code coverage report for unit tests is created after
@@ -280,7 +299,6 @@
             <plugin>
                 <groupId>org.eluder.coveralls</groupId>
                 <artifactId>coveralls-maven-plugin</artifactId>
-                <version>4.2.0</version>
                 <configuration>
                     <repoToken />
                 </configuration>
@@ -289,15 +307,15 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.19.1</version>
                 <configuration>
                     <!-- locale settings must be set on the command line before startup -->
                     <!-- set heap size to work around https://github.com/travis-ci/travis-ci/issues/3396 -->
                     <!-- Eclipse runtime config for TestNG will only look at the first argLine definition.
                          When running Maven test, the second one will override the first and pull in the
                          JaCoCo arguments. This is a hack to fix a nasty Eclipse bug. -->
+                    <!--
                     <argLine> -Xmx1024m -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8 </argLine>
-                    <argLine> -Xmx1024m -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8 ${JaCoCoArgLine} </argLine>
+                    <argLine> -Xmx1024m -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8 ${JaCoCoArgLine} </argLine> -->
                     <useFile>false</useFile>
                     <redirectTestOutputToFile>false</redirectTestOutputToFile>
                 </configuration>
@@ -306,7 +324,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.6</version>
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
@@ -322,66 +339,121 @@
 
         <pluginManagement>
             <plugins>
+              <!-- ORG.APACHE.MAVEN -->
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-assembly-plugin</artifactId>
+                  <version>2.6</version>
+              </plugin>
 
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-clean-plugin</artifactId>
-                    <version>3.0.0</version>
-                </plugin>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-clean-plugin</artifactId>
+                  <version>3.0.0</version>
+              </plugin>
 
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-dependency-plugin</artifactId>
-                    <version>2.10</version>
-                </plugin>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-compiler-plugin</artifactId>
+                  <version>3.5.1</version>
+              </plugin>
 
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-deploy-plugin</artifactId>
-                    <version>2.8.2</version>
-                </plugin>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-dependency-plugin</artifactId>
+                  <version>2.10</version>
+              </plugin>
 
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-help-plugin</artifactId>
-                    <version>2.2</version>
-                </plugin>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-deploy-plugin</artifactId>
+                  <version>2.8.2</version>
+              </plugin>
 
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-install-plugin</artifactId>
-                    <version>2.5.2</version>
-                </plugin>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-gpg-plugin</artifactId>
+                  <version>1.6</version>
+              </plugin>
 
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-resources-plugin</artifactId>
-                    <version>3.0.1</version>
-                </plugin>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-help-plugin</artifactId>
+                  <version>2.2</version>
+              </plugin>
 
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-release-plugin</artifactId>
-                    <version>2.5.3</version>
-                </plugin>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-install-plugin</artifactId>
+                  <version>2.5.2</version>
+              </plugin>
 
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-assembly-plugin</artifactId>
-                    <version>2.6</version>
-                </plugin>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-javadoc-plugin</artifactId>
+                  <version>2.10.4</version>
+              </plugin>
 
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>license-maven-plugin</artifactId>
-                    <version>1.9</version>
-                </plugin>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-release-plugin</artifactId>
+                  <version>2.5.3</version>
+              </plugin>
 
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>exec-maven-plugin</artifactId>
-                    <version>1.5.0</version>
-                </plugin>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-resources-plugin</artifactId>
+                  <version>3.0.1</version>
+              </plugin>
+
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-shade-plugin</artifactId>
+                  <version>2.4.3</version>
+              </plugin>
+
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-source-plugin</artifactId>
+                  <version>3.0.1</version>
+              </plugin>
+
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-surefire-plugin</artifactId>
+                  <version>2.19.1</version>
+              </plugin>
+
+              <!-- OTHER -->
+              <plugin>
+                  <groupId>org.codehaus.mojo</groupId>
+                  <artifactId>exec-maven-plugin</artifactId>
+                  <version>1.5.0</version>
+              </plugin>
+
+              <plugin>
+                  <groupId>org.codehaus.mojo</groupId>
+                  <artifactId>license-maven-plugin</artifactId>
+                  <version>1.9</version>
+              </plugin>
+
+              <plugin>
+                  <groupId>org.eluder.coveralls</groupId>
+                  <artifactId>coveralls-maven-plugin</artifactId>
+                  <version>4.2.0</version>
+              </plugin>
+
+              <plugin>
+                  <groupId>org.jacoco</groupId>
+                  <artifactId>jacoco-maven-plugin</artifactId>
+                  <version>0.7.7.201606060606</version>
+              </plugin>
+
+              <plugin>
+                  <groupId>org.sonatype.plugins</groupId>
+                  <artifactId>nexus-staging-maven-plugin</artifactId>
+                  <version>1.6.7</version>
+              </plugin>
 
             </plugins>
         </pluginManagement>

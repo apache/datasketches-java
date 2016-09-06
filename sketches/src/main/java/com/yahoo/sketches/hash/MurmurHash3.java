@@ -18,7 +18,7 @@ import java.io.Serializable;
  * The C++ MurmurHash3_x64_128(...), revision 150, of the MurmurHash3, written by Austin Appleby, 
  * which is in the Public Domain, was the inspiration for this implementation in Java. 
  * The C++ version can be found at 
- * <a href= "http://code.google.com/p/smhasher/source/browse/trunk/MurmurHash3.cpp"> SMHasher &amp;
+ * <a href= "https://code.google.com/p/smhasher/source/browse/trunk/MurmurHash3.cpp"> SMHasher &amp;
  * MurmurHash</a>.
  * </p>
  * 

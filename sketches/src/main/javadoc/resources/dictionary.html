@@ -11,7 +11,7 @@ About sketch accuracy...
 
 <h3><a name="alphaTCF">Alpha TCF</a></h3>
 The Alpha Theta Choosing Function (TCF) and the theory behind it is fully described in the 
-<a href="https://github.com/DataSketches/DataSketches.github.io/blob/master/docs/ThetaSketchFramework.pdf">Theta Sketch Framework</a> paper. 
+<a href="https://github.com/DataSketches/DataSketches.github.io/blob/master/docs/pdf/ThetaSketchFramework.pdf">Theta Sketch Framework</a> paper. 
 The alpha algorithm is optimized for speed and accuracy in a real-time sketch
 building / estimating environment.
 <p>One of the properties of the Alpha Algorithm used for cache management within a sketch is that
@@ -20,13 +20,13 @@ the value of <a href="#thetaLong">Theta Long</a> is always up-to-date. There may
 values in the cache, but the Alpha Algorithm estimation function ignores them.</p>
 
 <h3><a name="defaultNomEntries">Default Nominal Entries</a></h3>
-The default nominal entries of 4096 is provided as a convenience for those cases where the 
+In Theta Sketches, the default nominal entries of 4096 is provided as a convenience for those cases where the 
 number of entries is not provided. 
 A sketch of 4096 entries has a Relative Standard Error (RSE) of +/- 1.56% at a confidence of 68%; 
 or equivalently, a Relative Error of +/- 3.1% at a confidence of 95.4%.
 
 <h3><a name="defaultUpdateSeed">Default Update Seed</a></h3>
-<p>The default <a href="#seed">Update Hash Seed</a> 9001 is a prime number that was chosen 
+<p>In Theta Sketches, the default <a href="#seed">Update Hash Seed</a> 9001 is a prime number that was chosen 
 very early on in experimental testing. 
 Choosing a seed is somewhat arbitrary, and this particular seed is not superior to other seeds.
 <p>In performing set operations on two sketches it is critical that the same hash
@@ -39,7 +39,7 @@ So don't change it!
 <h3><a name="degenerateSketch">Degenerate Sketch</a></h3>
 A sketch is considered <i>degenerate</i> if it has never reached reached 
 <a href="#estMode">Estimation Mode</a> where the count of its retained hash values is 
-exact and less than <a href="#nomEntries">Nominal Entries</a> 
+exact and less than <a href="#nomEntries">Nominal Entries</a> (or <i>k</i> entries)
 and no estimation is needed.  This is also referred to as <i>Exact Mode</i>.
 
 <h3><a name="dstMem">Destination Memory</a></h3>
@@ -48,17 +48,17 @@ enough the returned object will be backed by this Memory.
 If null, the returned object will be on the Java heap.
 
 <h3><a name="dstOrdered">Destination Ordered</a></h3>
-Refers to the ordering of hash values in a returned CompactSketch. 
+In Theta Sketches, this refers to the ordering of hash values in a returned CompactSketch. 
 If true, the internal hash values will be ordered. This will enable much higher 
 performance during union (merge) operations but at the cost of a sort, which may not be 
 desirable in some applications, especially real-time.
 
 <h3><a name="dirtyHash">Dirty Hash</a></h3>
-A retained hash value is considered <i>dirty</i> if it is &ge; <a href="#thetaLong">Theta Long</a> or &lt; 0.  
+For the Theta Alpha Sketch, a retained hash value is considered <i>dirty</i> if it is &ge; <a href="#thetaLong">Theta Long</a> or &lt; 0.  
 See <a href="#validHash">Valid Hash</a>.
 
 <h3><a name="empty">Empty</a></h3>
-The state <i>Empty</i> for a sketch means that the sketch cache has zero hash values and that none of the
+In Theta Sketches, the state <i>Empty</i> for a sketch means that the sketch cache has zero hash values and that none of the
 update methods have been called with valid data.  The internal <i>empty flag</i> is one of the state variables
 within the sketch and is accessed with the <i>isEmpty()</i> method, which is useful for rejecting empty 
 sketches from a set operation.
@@ -72,23 +72,23 @@ operations can result in a sketch with zero values but with a valid theta and up
 from set operations that would otherwise include them could result in impacting the accuracy of results.
 
 <h3><a name="estMode">Estimation Mode</a></h3>
-Once a sketch exceeds the configured <a href="#nomEntries">Nominal Entries</a> number of retained hash values,
+Once a Theta Sketch exceeds the configured <a href="#nomEntries">Nominal Entries</a>, or <i>k</i>, number of retained hash values,
 the sketch transitions into <i>estimation mode</i> where it must now estimate the population of uniques that
 the retained entries represent.  A sketch can also be in estimation mode if the sketch was configured with a
 <a href="#p">Sampling Probability</a> &lt; 1.0.  
 <i>Estimation Mode</i> = (<a href="#theta">&theta;</a> &lt; 1.0) &amp; NOT <i>empty</i>.
 
 <h3><a name="lgNomLongs">lgNomLongs</a></h3>
-The Log base 2 of the number of <a href="#nomEntries">Nominal Entries</a>.
+For Theta Sketches, the Log base 2 of the number of <a href="#nomEntries">Nominal Entries</a>.
 
 <h3><a name="lgArrLongs">lgArrLongs</a></h3>
-The Log base 2 of the size of the internal hash table in 64-bit longs.
+For Theta Sketches, the Log base 2 of the size of the internal hash table in 64-bit longs.
 
 <h3><a name="mem">Memory</a></h3>
 The backing Memory object which may be a source or destination.
 
 <h3><a name="nomEntries">Nominal Entries</a></h3>
-Depending on the class, the constructor data type is <i>int</i> or <i>String</i>. 
+For Theta Sketches and depending on the specific sketch, the constructor data type is <i>int</i> or <i>String</i>. 
 Acceptable values for constructing new sketches are positive integers that are powers of two.
 This parameter specifies the target nominal number of entries (a.k.a. <i>k</i>) that will be retained in the internal cache 
 and ultimately determines the accuracy of the sketch (see <a href="#accuracy">Sketch Accuracy</a>).
@@ -104,21 +104,22 @@ vary from <i>k</i> to almost <i>2*k</i>.
 Alpha Sketches this value is 512.  Specifying a value less than this minimum value just results in the minimum value being used.
 
 <h3><a name="numStdDev">Number of Standard Deviations</a></h3>
-This is a positive integer (1, 2, or 3) used in the getUpperBounds(int numStdDev) and 
+This is usually a positive integer (1, 2, or 3) used in the getUpperBounds(int numStdDev) and 
 getLowerBounds(int numStdDev) methods and usually represents the +/- deviation from the center of the 
 Standard Normal Gaussian Distribution.<br>
 A value of 1 will produce 68.3% confidence bounds.<br>
 A value of 2 will produce 95.4% confidence bounds.<br>
 A value of 3 will produce 99.7% confidence bounds.<br>
 
-<p>However, for sketches with very small counts (&lt; 100) and (theta &lt; 1.0) the error distribution of the sketch is no longer Gaussian
-and becomes quite asymmetric as the counts approach one.  Nonetheless, special mathematical approximation methods are used to
+<p>However, for Theta Sketches with very small counts (&lt; 100) and (theta &lt; 1.0) the error distribution of the sketch is no longer Gaussian
+and becomes quite asymmetric as the counts approach one.  
+Nonetheless, special mathematical approximation methods are used to
 estimate the value of the upper and lower bounds such that they are accurate to within one percent of the estimation of the mean.
 See <a href="#accuracy">Sketch Accuracy</a>.
 
 <h3><a name="p">Sampling Probability <i>p</i></a></h3>
-The uniform random pre-sketching sampling probability.
-Depending on the class, the constructor data type is <i>float</i> or <i>String</i>.
+For Theta Sketches, the uniform random pre-sketching sampling probability.
+Depending on the specific sketch, the constructor data type is <i>float</i> or <i>String</i>.
 Incoming hashed data values are sampled by this probability factor before being submitted to 
 the sketching algorithm.  For example, if <i>p</i> were set to 0.25, then on average, only one 
 forth of the incoming values, selected uniformly and at random, would be evaluated by the 
@@ -129,7 +130,7 @@ Its value must be in the range: 0 &lt; p &le; 1.0.
 <a href="#degenerateSketch">degenerate sketches</a>.
 
 <h3><a name="quickSelectTCF">Quick Select TCF</a></h3>
-The fundamental QuickSelect algorithm is described in classic algorithm texts by Sedgewick and
+The fundamental Theta Sketch QuickSelect algorithm is described in classic algorithm texts by Sedgewick and
 is the Theta Choosing Function (<a href="#tcf">TCF</a>) for the QuickSelect Sketches.
 When the internal hash table of the sketch reaches its internal 
 <i>refresh threshold</i>, 
@@ -156,7 +157,7 @@ a <i>rebuild()</i>, the sketch, on average, may be about 50% larger than
 <a href="#nomEntries">nominal entries</a>, about 19% more accurate, and faster.</p>
 
 <h3><a name="resizeFactor">Resize Factor</a></h3>
-The Resize Factor is a dynamic, speed performance vs. memory size tradeoff.
+For Theta Sketches, the Resize Factor is a dynamic, speed performance vs. memory size tradeoff.
 The sketches created on-heap and configured with a Resize Factor of &gt; X1 start out with
 an internal hash table size that is the smallest submultiple of the the target 
 <a href="#nomEntries">Nominal Entries</a> 
@@ -168,7 +169,7 @@ the current sketch cache array size. <br>
 Similarly, "X4" is a factor of 4 and "X8 is a factor of 8.
 
 <h3><a name="seed">Seed</a></h3>
-The long (64-bit) seed is required by the Update Hash Function. 
+For Theta Sketches, the long (64-bit) seed is required by the Update Hash Function. 
 This seed value is intentionally not serialized along with this sketch in order to provide 
 some security and protection against "dictionary attacks". 
 <p>In order to provide some protection against accidental mixing 
@@ -184,23 +185,23 @@ If it does produce zero, an error will be thrown and the user must provide a dif
 See also <a href="#defaultUpdateSeed">Default Update Seed</a>. 
 
 <h3><a name="seedHash">Seed Hash</a></h3>
-A 16-bit hash of the <a href="#seed">Update Hash Seed</a> used internally to validate 
+For Theta Sketches, a 16-bit hash of the <a href="#seed">Update Hash Seed</a> used internally to validate 
 (1) that two sketches undergoing set operations were, in fact, created using matching <a href="#seed">Update Hash Seeds</a>; 
 or (2) that when deserializing or wrapping a sketch image that the caller has the correct seed.
 
 <h3><a name="tcf">Theta Choosing Function (TCF)</a></h3>
-The Theta Choosing Function (TCF) and the theory behind it is fully described in the
-<a href="https://github.com/DataSketches/DataSketches.github.io/blob/master/docs/ThetaSketchFramework.pdf">Theta Sketch Framework</a> paper.
+For Theta Sketches, the Theta Choosing Function (TCF) and the theory behind it is fully described in the
+<a href="https://github.com/DataSketches/DataSketches.github.io/blob/master/docs/pdf/ThetaSketchFramework.pdf">Theta Sketch Framework</a> paper.
 
 <h3><a name="theta">Theta, &theta;</a></h3>
-Refers to the mathematical random variable &theta; that represents the current probability
-that the next, non-duplicate unique input value presented to the sketch will change the state of the sketch.  
+For Theta Sketches, refers to the mathematical random variable &theta; that represents the current probability
+that the next, non-duplicate unique input value presented to the sketch will change the state of the sketch. 
 Given <i>N</i> uniquified inputs to a sketch configured to retain at most <i>k</i> hashes of the inputs, 
 <code>&theta; &asymp; <i>k/N</i>,  0 &lt; &theta; &le; 1.0</code>, and &theta; = (double) thetaLong / Long.MAX_VALUE;.  
 See <a href="#thetaLong">thetaLong</a>.
 
 <h3><a name="thetaLong">thetaLong</a></h3>
-The 64-bit, positive <i>long</i> equivalent of <a href="#theta">theta</a> where<br>
+For Theta Sketches, the 64-bit, positive <i>long</i> equivalent of <a href="#theta">theta</a> where<br>
 0 &lt; <i>thetaLong</i> &le; <i>Long.MAX_VALUE</i>, and <i>thetaLong</i> = &theta; * Long.MAX_VALUE.
 
 <h3><a name="thetaSketch">Theta Sketch Framework</a></h3>
@@ -209,10 +210,10 @@ to be arguments to the Union, Intersection and AnotB Set Operations.
 This framework also enables the sketches to share estimation, upper and lower bounds algorithms and 
 a common serialization data structure.
 The Theta Sketch Framework, Theta Choosing Functions and the theory behind them is fully described 
-in the <a href="https://github.com/DataSketches/DataSketches.github.io/blob/master/docs/ThetaSketchFramework.pdf">Theta Sketch Framework</a> paper.
+in the <a href="https://github.com/DataSketches/DataSketches.github.io/blob/master/docs/pdf/ThetaSketchFramework.pdf">Theta Sketch Framework</a> paper.
 
 <h3><a name="updateReturnState">Update Return State</a></h3>
-Provides useful detail for sketch characterization and debugging.  It is not required that any of
+For Theta Sketches, this provides useful detail for sketch characterization and debugging.  It is not required that any of
 these values be monitored during normal operation.
 The UpdateReturnState is defined as follows:
 <ul>
@@ -226,7 +227,7 @@ because a dirty value was overridden.</li>
 
 
 <h3><a name="validHash">Valid Hash</a></h3>
-A retained hash value is considered <i>valid</i> if it is greater than zero and less than 
+For Theta Sketches, a retained hash value is considered <i>valid</i> if it is greater than zero and less than 
 <a href="#thetaLong">thetaLong</a>.  See <a href="#dirtyHash">Dirty Hash</a>.
 
 </body>

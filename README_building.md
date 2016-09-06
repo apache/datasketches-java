@@ -44,7 +44,7 @@ files again, this time to the next development version. Finally, the changes are
 3. If the prepare has an error (the build will fail if any tests fail), run 'mvn release:clean' to clean up the 
 generated files and reset the workspace. If the prepare needs to be rolled back (undone in the SCM system), run 'mvn release:rollback'.
 
-See http://maven.apache.org/maven-release/maven-release-plugin/examples/prepare-release.html for more info.
+See https://maven.apache.org/maven-release/maven-release-plugin/examples/prepare-release.html for more info.
 
 #### Perform a release:
 Next, "perform" a release. Performing a release checks out the tagged release from the SCM system into a new directory,
@@ -57,7 +57,7 @@ and published.
 You can add the '-DdryRun=true' option to test the release process without actually generating a release. dryRun is 
 supported on both the prepare and perform steps.
 
-See http://maven.apache.org/maven-release/maven-release-plugin/examples/perform-release.html for more info.
+See https://maven.apache.org/maven-release/maven-release-plugin/examples/perform-release.html for more info.
 
 #### Rollback a release
 If a release has been prepared but not performed yet, the release can be rolled back. Rolling back a release resets
