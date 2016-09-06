@@ -1,16 +1,26 @@
 package com.yahoo.sketches.sampling;
 
+import static com.yahoo.sketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractFamilyID;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractFlags;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractItemsSeenCount;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractReservoirSize;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractResizeFactor;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractSerDeId;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractSerVer;
+import static com.yahoo.sketches.sampling.PreambleUtil.getAndCheckPreLongs;
+import static com.yahoo.sketches.sampling.PreambleUtil.preambleToString;
+
+import java.util.Random;
+
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
-
-import java.util.Random;
-
-import static com.yahoo.sketches.sampling.PreambleUtil.*;
 
 /**
  * Created by jmalkin on 8/22/16.
@@ -162,8 +172,8 @@ public class ReservoirLongSketch {
 
         if (!preLongsEqMin & !preLongsEqMax) {
             throw new SketchesArgumentException(
-                    "Possible corruption: Non-empty sketch with only " + Family.RESERVOIR.getMinPreLongs() +
-                            "preLongs");
+                    "Possible corruption: Non-empty sketch with only " + Family.RESERVOIR.getMinPreLongs()
+                    + "preLongs");
         }
         if (serVer != SER_VER) {
             throw new SketchesArgumentException(
@@ -277,7 +287,7 @@ public class ReservoirLongSketch {
      *
      * @param item a unit-weight (equivalently, unweighted) item of the set being sampled from
      */
-    public void update (long item) {
+    public void update(long item) {
         if (itemsSeen_ < reservoirSize_) { // code for initial phase where we take the first reservoirSize_ items
             if (itemsSeen_ >= currItemsAlloc_) {
                 growReservoir();

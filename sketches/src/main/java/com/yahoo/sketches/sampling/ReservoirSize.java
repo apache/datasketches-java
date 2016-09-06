@@ -1,7 +1,6 @@
 package com.yahoo.sketches.sampling;
 
 import com.yahoo.sketches.Util;
-import com.yahoo.sketches.theta.Intersection;
 
 /**
  * This class provides a compact representation of reservoir size by encoding it into a fixed-point 16-bit value.

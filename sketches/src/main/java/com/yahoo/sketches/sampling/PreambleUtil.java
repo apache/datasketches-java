@@ -5,16 +5,16 @@
 
 package com.yahoo.sketches.sampling;
 
-import com.yahoo.sketches.Family;
-import com.yahoo.sketches.ResizeFactor;
-import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import static com.yahoo.sketches.Util.LS;
+import static com.yahoo.sketches.Util.zeroPad;
 
 import java.nio.ByteOrder;
 
-import static com.yahoo.sketches.Util.LS;
-import static com.yahoo.sketches.Util.zeroPad;
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.NativeMemory;
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
 
 //@formatter:off
 

@@ -1,19 +1,31 @@
 package com.yahoo.sketches.sampling;
 
+import static com.yahoo.sketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractFamilyID;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractFlags;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractItemsSeenCount;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractReservoirSize;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractResizeFactor;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractSerDeId;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractSerVer;
+import static com.yahoo.sketches.sampling.PreambleUtil.getAndCheckPreLongs;
+import static com.yahoo.sketches.sampling.PreambleUtil.preambleToString;
+
+import java.lang.reflect.Array;
+import java.util.Random;
+
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.MemoryRegion;
+import com.yahoo.memory.NativeMemory;
+
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryRegion;
-import com.yahoo.memory.NativeMemory;
 
-import java.lang.reflect.Array;
-import java.util.Random;
-
-import static com.yahoo.sketches.sampling.PreambleUtil.*;
 
 /**
  * Created by jmalkin on 8/22/16.
@@ -104,8 +116,8 @@ public class ReservoirItemSketch<T> {
         }
         if ((itemsSeen > reservoirSize && data.length < reservoirSize)
                 || (itemsSeen < reservoirSize && data.length < itemsSeen)) {
-            throw new SketchesArgumentException("Instantiating sketch with under-full reservoir. Items seen: " +
-                    itemsSeen + ", max reservoir size: " + reservoirSize + ", data array length: " + data.length);
+            throw new SketchesArgumentException("Instantiating sketch with under-full reservoir. Items seen: "
+                    + itemsSeen + ", max reservoir size: " + reservoirSize + ", data array length: " + data.length);
         }
         /*
         if (currItemsAlloc != data.length) {
@@ -162,8 +174,9 @@ public class ReservoirItemSketch<T> {
      * Returns a copy of the items in the reservoir, or null if empty. The returned array length may be smaller than
      * the reservoir capacity.
      *
-     * In order to allocate an array of generic type T, uses the class of the first item in the array. This method
-     * may throw an <tt>ArrayAssignmentException</tt> if the reservoir stores instances of a polymorphci base class.
+     * <p>In order to allocate an array of generic type T, uses the class of the first item in the array. This method
+     * method may throw an <tt>ArrayAssignmentException</tt> if the reservoir stores instances of a polymorphic base
+     * class.</p>
      *
      * @return A copy of the reservoir array
      */
@@ -179,9 +192,9 @@ public class ReservoirItemSketch<T> {
      * Returns a copy of the items in the reservoir as members of Class <em>clazz</em>, or null if empty. The returned
      * array length may be smaller than the reservoir capacity.
      *
-     * This method allocates an array of class <em>clazz</em>, which must either match or extend T. This method
+     * <p>This method allocates an array of class <em>clazz</em>, which must either match or extend T. This method
      * should be used when objects in the array are all instances of T but are not necessarily instances of the
-     * base class.
+     * base class.</p>
      *
      * @param clazz A class to which the items are cast before returning
      * @return A copy of the reservoir array
@@ -226,8 +239,8 @@ public class ReservoirItemSketch<T> {
 
         if (!preLongsEqMin & !preLongsEqMax) {
             throw new SketchesArgumentException(
-                    "Possible corruption: Non-empty sketch with only " + Family.RESERVOIR.getMinPreLongs() +
-                            "preLongs");
+                    "Possible corruption: Non-empty sketch with only " + Family.RESERVOIR.getMinPreLongs()
+                    + "preLongs");
         }
         if (serVer != SER_VER) {
             throw new SketchesArgumentException(
@@ -351,7 +364,7 @@ public class ReservoirItemSketch<T> {
      *
      * @param item a unit-weight (equivalently, unweighted) item of the set being sampled from
      */
-    public void update (T item) {
+    public void update(T item) {
         if (itemsSeen_ < reservoirSize_) { // code for initial phase where we take the first reservoirSize_ items
             if (itemsSeen_ >= currItemsAlloc_) {
                 growReservoir();
