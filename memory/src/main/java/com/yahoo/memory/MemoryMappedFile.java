@@ -24,7 +24,7 @@ import static com.yahoo.memory.UnsafeUtil.unsafe;
  *
  * @author Praveenkumar Venkatesan
  */
-@SuppressWarnings("restriction")
+//@SuppressWarnings("restriction")
 public class MemoryMappedFile extends NativeMemory {
 
   private FileChannel fileChannel_ = null;
