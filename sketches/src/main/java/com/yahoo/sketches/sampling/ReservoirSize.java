@@ -37,6 +37,7 @@ public class ReservoirSize {
     private static final int EXPONENT_MASK  = 0X1F;
     private static final int EXPONENT_SHIFT = 11;
     private static final int INDEX_MASK     = 0X07FF;
+    private static final int OUTPUT_MASK    = 0XFFFF;
     private static final int MAX_ABS_VALUE  = 2146959360;
     private static final int MAX_ENC_VALUE  = 0XF7FF; // p=30, i=2047
 
@@ -52,26 +53,28 @@ public class ReservoirSize {
                     + MAX_ABS_VALUE + ": "  + k);
         }
 
-        // find exponent as power of 2
         int p = Util.toLog2(Util.floorPowerOf2(k), "computeSize: p");
+
+        // because of floor() + 1 below, need to check power of 2 here
+        if (Util.isPowerOf2(k)) {
+            return ((p & EXPONENT_MASK) << EXPONENT_SHIFT) & OUTPUT_MASK;
+        }
 
         // mantissa is scalar in range [1,2); can reconstruct k as m * 2^p
         double m = Math.pow(2.0, Math.log(k) * INV_LN_2 - p);
 
         // Convert to index offset: ceil(m * BPO) - BPO
-        // Additional multiple by BPO/BPO to deal with numerical precision issues
-        // Should always be in range 0-(BINS_PER_OCTAVE-1)
-        int i = (int) Math.ceil(m * BINS_PER_OCTAVE) - BINS_PER_OCTAVE;
+        // Typically in range range 0-(BINS_PER_OCTAVE-1) (but see note below)
+        int i = (int) Math.floor(m * BINS_PER_OCTAVE) - BINS_PER_OCTAVE + 1;
 
         // Due to ceiling, possible to overflow BINS_PER_OCTAVE
         // E.g., if BPO = 2048 then for k=32767 we have p=14. Except that 32767 > decodeValue(p=14, i=2047)=32756,
         // so we encode and return p+1
-
-        if (i == BINS_PER_OCTAVE && p < EXPONENT_MASK) {
-            return (((p + 1) & EXPONENT_MASK) << EXPONENT_SHIFT) & 0XFFFF;
+        if (i == BINS_PER_OCTAVE) {
+            return (((p + 1) & EXPONENT_MASK) << EXPONENT_SHIFT) & OUTPUT_MASK;
         }
 
-        return ((p & EXPONENT_MASK) << EXPONENT_SHIFT) | (i & INDEX_MASK) & 0XFFFF;
+        return ((p & EXPONENT_MASK) << EXPONENT_SHIFT) | (i & INDEX_MASK) & OUTPUT_MASK;
     }
 
     /**

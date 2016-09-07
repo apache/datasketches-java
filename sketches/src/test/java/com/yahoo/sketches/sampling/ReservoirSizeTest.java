@@ -88,11 +88,11 @@ public class ReservoirSizeTest {
         // the target.
         // This condition should always hold regardless of the random seed used.
         final double eps = 1.0 / ReservoirSize.BINS_PER_OCTAVE;
+        final int maxValue = 2146959359; // based on MAX_ABS_VALUE
         final int numIters = 1000000;
 
         for (int i = 0; i < numIters; ++i) {
-            //int input = (int) (Math.random() * (1 << 16) - 1) + 1;
-            int input = (int) (Math.random() * 2146959359) + 1;
+            int input = (int) (Math.random() * maxValue) + 1;
             int result = ReservoirSize.decodeValue(ReservoirSize.computeSize(input));
 
             // result must be no smaller than input
