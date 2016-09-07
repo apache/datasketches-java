@@ -10,11 +10,11 @@ import java.util.Comparator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.ArrayOfStringsSerDe;
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
 
 public class ItemsUnionTest {
   

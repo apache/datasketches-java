@@ -4,12 +4,6 @@
  */
 package com.yahoo.sketches.theta;
 
-import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.Util;
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
-import org.testng.annotations.Test;
-
 import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV1;
 import static com.yahoo.sketches.theta.Sketches.getMaxCompactSketchBytes;
 import static com.yahoo.sketches.theta.Sketches.getMaxIntersectionBytes;
@@ -22,7 +16,16 @@ import static com.yahoo.sketches.theta.Sketches.setOperationBuilder;
 import static com.yahoo.sketches.theta.Sketches.updateSketchBuilder;
 import static com.yahoo.sketches.theta.Sketches.wrapSetOperation;
 import static com.yahoo.sketches.theta.Sketches.wrapSketch;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
+
+import org.testng.annotations.Test;
+
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.NativeMemory;
+import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.Util;
 
 /**
  * @author Lee Rhodes

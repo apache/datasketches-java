@@ -5,15 +5,27 @@
 
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.Family.idToFamily;
+import static com.yahoo.sketches.HashOperations.count;
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+import static com.yahoo.sketches.Util.LS;
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
+import static com.yahoo.sketches.Util.zeroPad;
+import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
+import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.extractFamilyID;
+import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
+import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractSerVer;
+
+import com.yahoo.memory.Memory;
 import com.yahoo.sketches.BinomialBoundsN;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.memory.Memory;
-
-import static com.yahoo.sketches.Family.idToFamily;
-import static com.yahoo.sketches.HashOperations.count;
-import static com.yahoo.sketches.Util.*;
-import static com.yahoo.sketches.theta.PreambleUtil.*;
 
 /**
  * The top-level class for all sketches. This class is never constructed directly. 

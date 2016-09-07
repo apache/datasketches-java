@@ -5,16 +5,19 @@
 
 package com.yahoo.sketches.theta;
 
-import com.yahoo.sketches.Family;
-import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.Util;
-import com.yahoo.memory.Memory;
-
 import static com.yahoo.sketches.Family.idToFamily;
-import static com.yahoo.sketches.Util.*;
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+import static com.yahoo.sketches.Util.MIN_LG_ARR_LONGS;
+import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static java.lang.Math.max;
+
+import com.yahoo.memory.Memory;
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.Util;
 
 /**
  * The parent API for all Set Operations

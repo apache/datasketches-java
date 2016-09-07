@@ -4,16 +4,21 @@
  */
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.theta.PreambleUtil.*;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
+import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
+import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.Util;
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
+import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.Util;
 
 /**
  * @author Lee Rhodes

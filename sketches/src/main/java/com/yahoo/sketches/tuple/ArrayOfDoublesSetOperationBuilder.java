@@ -5,9 +5,9 @@
 
 package com.yahoo.sketches.tuple;
 
-import com.yahoo.memory.Memory;
-
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+
+import com.yahoo.memory.Memory;
 
 /**
  * Builds set operations object for tuple sketches of type ArrayOfDoubles.

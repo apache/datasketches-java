@@ -5,11 +5,11 @@
 
 package com.yahoo.sketches.tuple;
 
-import org.testng.annotations.Test;
 import org.testng.Assert;
+import org.testng.annotations.Test;
 
-import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.memory.NativeMemory;
+import com.yahoo.sketches.SketchesArgumentException;
 
 public class ArrayOfDoublesQuickSelectSketchTest {
 

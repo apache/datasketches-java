@@ -5,14 +5,14 @@
 
 package com.yahoo.sketches.quantiles;
 
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
-
-import java.nio.ByteOrder;
-
 import static com.yahoo.sketches.Family.idToFamily;
 import static com.yahoo.sketches.quantiles.Util.LS;
 import static com.yahoo.sketches.quantiles.Util.computeRetainedItems;
+
+import java.nio.ByteOrder;
+
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.NativeMemory;
 
 //@formatter:off
 

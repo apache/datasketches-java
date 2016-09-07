@@ -5,10 +5,15 @@
 
 package com.yahoo.sketches;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
-import com.yahoo.sketches.theta.*;
 import org.testng.annotations.Test;
+
+import com.yahoo.sketches.theta.CompactSketch;
+import com.yahoo.sketches.theta.Intersection;
+import com.yahoo.sketches.theta.Sketches;
+import com.yahoo.sketches.theta.UpdateSketch;
 
 public class BoundsOnRatiosInThetaSketchedSetsTest {
 

@@ -5,10 +5,10 @@
 
 package com.yahoo.sketches.quantiles;
 
-import com.yahoo.sketches.ArrayOfItemsSerDe;
-import com.yahoo.memory.Memory;
-
 import java.util.Comparator;
+
+import com.yahoo.memory.Memory;
+import com.yahoo.sketches.ArrayOfItemsSerDe;
 
 /**
  * The API for Union operations for GenericQuantilesSketches

@@ -5,15 +5,15 @@
 
 package com.yahoo.sketches.hll;
 
-import com.yahoo.sketches.hll.Preamble.Builder;
-import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.Util;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.MemoryRegion;
 import com.yahoo.memory.NativeMemory;
-
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.Util;
+import com.yahoo.sketches.hll.Preamble.Builder;
 
 public class PreambleTest
 {

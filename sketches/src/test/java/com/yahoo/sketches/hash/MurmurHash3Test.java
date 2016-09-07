@@ -10,8 +10,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.sketches.hash.MurmurHash3;
-
 /**
  * Tests the MurmurHash3 against specific, known hash results given known
  * inputs obtained from the public domain C++ version 150.

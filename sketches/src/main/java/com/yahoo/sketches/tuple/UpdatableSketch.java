@@ -5,10 +5,10 @@
 
 package com.yahoo.sketches.tuple;
 
-import com.yahoo.sketches.hash.MurmurHash3;
-import com.yahoo.memory.Memory;
-
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+
+import com.yahoo.memory.Memory;
+import com.yahoo.sketches.hash.MurmurHash3;
 
 /**
  * An extension of QuickSelectSketch, which can be updated with many types of keys.

@@ -5,12 +5,13 @@
 
 package com.yahoo.sketches.hll;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+
+import java.util.Arrays;
+
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import java.util.Arrays;
 
 public class HllSketchTest
 {

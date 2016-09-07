@@ -4,12 +4,21 @@
  */
 package com.yahoo.memory;
 
-import org.testng.annotations.Test;
+import static com.yahoo.memory.CommonTest.getAndAddSetTests;
+import static com.yahoo.memory.CommonTest.setClearIsBitsTests;
+import static com.yahoo.memory.CommonTest.setClearMemoryRegionsTests;
+import static com.yahoo.memory.CommonTest.setGetArraysTests;
+import static com.yahoo.memory.CommonTest.setGetPartialArraysWithOffsetTests;
+import static com.yahoo.memory.CommonTest.setGetTests;
+import static com.yahoo.memory.CommonTest.toHexStringAllMemTests;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.nio.ByteBuffer;
 
-import static com.yahoo.memory.CommonTest.*;
-import static org.testng.Assert.*;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -199,7 +208,26 @@ public class NativeMemoryTest {
       mem.freeMemory();
     }
   }
-  
+
+  @Test(expectedExceptions = ReadOnlyMemoryException.class)
+  public void checkReadOnlyMemoryCopyException() {
+    int memCapacity = 64;
+    NativeMemory mem1 = new AllocMemory(memCapacity);
+
+    for (int i=0; i<memCapacity; i++) {
+      mem1.putByte(i, (byte) i);
+    }
+
+    NativeMemory mem2 = (NativeMemory) mem1.asReadOnlyMemory();
+    try {
+      NativeMemory.copy(mem1, 0, mem2, 0, memCapacity);
+    }
+    finally {
+      mem1.freeMemory();
+      mem2.freeMemory();
+    }
+  }
+
   @Test
   public void checkCopyCrossNativeSmall() {
     int memCapacity = 64;
@@ -509,6 +537,34 @@ public class NativeMemoryTest {
   public void checkNullByteArray() {
     byte[] byteArr = null;
     new NativeMemory(byteArr);
+  }
+
+  @Test
+  public void checkIsReadOnly() {
+    long[] srcArray = { 1, -2, 3, -4, 5, -6, 7, -8 };
+    NativeMemory mem = new NativeMemory(srcArray);
+    assertFalse(mem.isReadOnly());
+
+    Memory readOnlyMem = mem.asReadOnlyMemory();
+    assertTrue(readOnlyMem.isReadOnly());
+
+    for (int i = 0; i < mem.getCapacity(); i++) {
+      assertEquals(mem.getByte(i), readOnlyMem.getByte(i));
+    }
+    mem.freeMemory();
+  }
+
+  @Test(expectedExceptions = ReadOnlyMemoryException.class)
+  public void checkWritesOnReadOnlyMemory() {
+    long[] srcArray = { 1, -2, 3, -4, 5, -6, 7, -8 };
+    NativeMemory mem = new NativeMemory(srcArray);
+    Memory readOnlyMem = mem.asReadOnlyMemory();
+    try {
+      readOnlyMem.putLong(0, 10L);
+    }
+    finally {
+      mem.freeMemory();
+    }
   }
   
   @Test

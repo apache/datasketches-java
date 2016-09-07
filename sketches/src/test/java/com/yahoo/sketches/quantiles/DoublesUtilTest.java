@@ -5,10 +5,10 @@
 
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.quantiles.Util.LS;
-import static com.yahoo.sketches.quantiles.HeapDoublesSketchTest.*;
 //import static org.testng.Assert.assertEquals;
 //import static org.testng.Assert.assertTrue;
+import static com.yahoo.sketches.quantiles.HeapDoublesSketchTest.buildQS;
+import static com.yahoo.sketches.quantiles.Util.LS;
 
 import org.testng.annotations.Test;
 

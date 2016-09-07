@@ -7,20 +7,18 @@ package com.yahoo.sketches.theta;
 import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV1;
 import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV2;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
-
 import static java.nio.charset.StandardCharsets.UTF_8;
-
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 
-
 import java.util.Arrays;
 
-import com.yahoo.sketches.Family;
-import com.yahoo.sketches.SketchesArgumentException;
+import org.testng.annotations.Test;
+
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
-import org.testng.annotations.Test;
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * @author Lee Rhodes

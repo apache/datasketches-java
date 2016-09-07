@@ -5,10 +5,12 @@
 
 package com.yahoo.sketches.tuple;
 
+import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
+import static com.yahoo.sketches.Util.RESIZE_THRESHOLD;
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
+
 import com.yahoo.sketches.QuickSelect;
 import com.yahoo.sketches.SketchesArgumentException;
-
-import static com.yahoo.sketches.Util.*;
 
 /**
  * Top level class for hash table based implementations of tuple sketch of type

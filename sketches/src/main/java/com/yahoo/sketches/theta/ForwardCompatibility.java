@@ -5,11 +5,16 @@
 
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
+import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
+import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
+
+import com.yahoo.memory.Memory;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
-import com.yahoo.memory.Memory;
-
-import static com.yahoo.sketches.theta.PreambleUtil.*;
 
 /**
  * Used to convert older serialization versions 1 and 2 to version 3.  The Serialization

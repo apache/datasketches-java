@@ -5,9 +5,9 @@
 
 package com.yahoo.sketches.hll;
 
-import org.testng.annotations.Test;
+import static org.testng.Assert.assertEquals;
 
-import static org.testng.Assert.*;
+import org.testng.annotations.Test;
 
 /**
  */

@@ -469,4 +469,14 @@ public class MemoryRegion implements Memory {
     return mem_.toHexString(sb.toString(), getAddress(offsetBytes), lengthBytes);
   }
 
+  @Override
+  public boolean isReadOnly() {
+    return false;
+  }
+
+  @Override
+  public Memory asReadOnlyMemory() {
+    Memory readOnlyMem = mem_.asReadOnlyMemory();
+    return new MemoryRegionR(readOnlyMem, memOffsetBytes_, capacityBytes_, memReq_);
+  }
 }

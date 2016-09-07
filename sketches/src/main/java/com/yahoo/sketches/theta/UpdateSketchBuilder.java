@@ -5,12 +5,16 @@
 
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.Util.DEFAULT_NOMINAL_ENTRIES;
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+import static com.yahoo.sketches.Util.LS;
+import static com.yahoo.sketches.Util.TAB;
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
+
+import com.yahoo.memory.Memory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.memory.Memory;
-
-import static com.yahoo.sketches.Util.*;
 
 /**
  * For building a new UpdateSketch.

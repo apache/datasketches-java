@@ -5,11 +5,11 @@
 
 package com.yahoo.sketches.hll;
 
-import com.yahoo.sketches.SketchesArgumentException;
+import java.util.Arrays;
+
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
-
-import java.util.Arrays;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * @author Kevin Lang

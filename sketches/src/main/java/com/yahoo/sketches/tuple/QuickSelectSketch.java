@@ -5,15 +5,23 @@
 
 package com.yahoo.sketches.tuple;
 
-import com.yahoo.sketches.*;
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryRegion;
-import com.yahoo.memory.NativeMemory;
+import static com.yahoo.sketches.Util.MIN_LG_ARR_LONGS;
+import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
+import static com.yahoo.sketches.Util.RESIZE_THRESHOLD;
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
+import static com.yahoo.sketches.Util.startingSubMultiple;
 
 import java.lang.reflect.Array;
 import java.nio.ByteOrder;
 
-import static com.yahoo.sketches.Util.*;
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.MemoryRegion;
+import com.yahoo.memory.NativeMemory;
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.HashOperations;
+import com.yahoo.sketches.QuickSelect;
+import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * A generic tuple sketch using the QuickSelect algorithm.

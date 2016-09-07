@@ -4,8 +4,14 @@
  */
 package com.yahoo.sketches;
 
-import static com.yahoo.sketches.BoundsOnBinomialProportions.*;
-import static org.testng.Assert.*;
+import static com.yahoo.sketches.BoundsOnBinomialProportions.approximateLowerBoundOnP;
+import static com.yahoo.sketches.BoundsOnBinomialProportions.approximateUpperBoundOnP;
+import static com.yahoo.sketches.BoundsOnBinomialProportions.erf;
+import static com.yahoo.sketches.BoundsOnBinomialProportions.estimateUnknownP;
+import static com.yahoo.sketches.BoundsOnBinomialProportions.normalCDF;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 

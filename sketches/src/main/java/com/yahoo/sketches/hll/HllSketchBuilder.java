@@ -5,7 +5,9 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.Util.*;
+import static com.yahoo.sketches.Util.DEFAULT_NOMINAL_ENTRIES;
+import static com.yahoo.sketches.Util.LS;
+import static com.yahoo.sketches.Util.TAB;
 
 /**
  * @author Kevin Lang
