@@ -16,8 +16,6 @@ import static com.yahoo.sketches.Util.zeroPad;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.sketches.Util;
-
 /**
  * @author Lee Rhodes
  */

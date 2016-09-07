@@ -5,14 +5,21 @@
 
 package com.yahoo.sketches.theta;
 
-import com.yahoo.sketches.Family;
-import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.memory.Memory;
+import static com.yahoo.sketches.Family.stringToFamily;
+import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
+import static com.yahoo.sketches.theta.PreambleUtil.insertCurCount;
+import static com.yahoo.sketches.theta.PreambleUtil.insertFamilyID;
+import static com.yahoo.sketches.theta.PreambleUtil.insertFlags;
+import static com.yahoo.sketches.theta.PreambleUtil.insertP;
+import static com.yahoo.sketches.theta.PreambleUtil.insertPreLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.insertSeedHash;
+import static com.yahoo.sketches.theta.PreambleUtil.insertSerVer;
 
 import java.util.Arrays;
 
-import static com.yahoo.sketches.Family.stringToFamily;
-import static com.yahoo.sketches.theta.PreambleUtil.*;
+import com.yahoo.memory.Memory;
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * The parent class of all the CompactSketches. CompactSketches are never created directly. 

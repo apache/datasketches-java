@@ -5,8 +5,8 @@
 
 package com.yahoo.sketches.hll;
 
-import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.memory.NativeMemory;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * @author Kevin Lang

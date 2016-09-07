@@ -9,23 +9,20 @@ import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSe
 import static com.yahoo.sketches.theta.HeapUnionTest.testAllCompactForms;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.theta.SetOperation.getMaxUnionBytes;
-
 import static java.nio.charset.StandardCharsets.UTF_8;
-
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import java.util.Arrays;
+
+import org.testng.annotations.Test;
+
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
-import org.testng.annotations.Test;
-
-
-
-import java.util.Arrays;
 
 /**
  * @author Lee Rhodes

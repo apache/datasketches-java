@@ -5,12 +5,14 @@
 
 package com.yahoo.sketches.tuple;
 
-import com.yahoo.sketches.HashOperations;
-import com.yahoo.memory.Memory;
+import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
+import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
 import java.util.Arrays;
 
-import static com.yahoo.sketches.Util.*;
+import com.yahoo.memory.Memory;
+import com.yahoo.sketches.HashOperations;
 
 /**
  * The on-heap implementation of the set difference operation <i>A and not B</i> for

@@ -5,16 +5,16 @@
 
 package com.yahoo.sketches.theta;
 
-import com.yahoo.sketches.Family;
-import com.yahoo.sketches.Util;
-import com.yahoo.memory.Memory;
-
-import java.util.Arrays;
-
 import static com.yahoo.sketches.HashOperations.hashArrayInsert;
 import static com.yahoo.sketches.HashOperations.hashSearch;
 import static com.yahoo.sketches.theta.CompactSketch.compactCache;
 import static java.lang.Math.min;
+
+import java.util.Arrays;
+
+import com.yahoo.memory.Memory;
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.Util;
 
 /**
  * @author Lee Rhodes

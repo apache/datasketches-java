@@ -4,14 +4,20 @@
  */
 package com.yahoo.sketches;
 
-import static com.yahoo.sketches.HashOperations.*;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.assertFalse;
+import static com.yahoo.sketches.HashOperations.checkHashAndThetaCorruption;
+import static com.yahoo.sketches.HashOperations.checkHashCorruption;
+import static com.yahoo.sketches.HashOperations.checkThetaCorruption;
+import static com.yahoo.sketches.HashOperations.continueCondition;
+import static com.yahoo.sketches.HashOperations.hashArrayInsert;
+import static com.yahoo.sketches.HashOperations.hashInsertOnly;
+import static com.yahoo.sketches.HashOperations.hashSearch;
+import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
-import static com.yahoo.sketches.hash.MurmurHash3.*;
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
 

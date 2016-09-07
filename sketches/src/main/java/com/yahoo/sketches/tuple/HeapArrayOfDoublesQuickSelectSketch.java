@@ -5,17 +5,19 @@
 
 package com.yahoo.sketches.tuple;
 
-import com.yahoo.sketches.Family;
-import com.yahoo.sketches.HashOperations;
-import com.yahoo.sketches.ResizeFactor;
-import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import static com.yahoo.sketches.Util.MIN_LG_ARR_LONGS;
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
+import static com.yahoo.sketches.Util.startingSubMultiple;
 
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
-import static com.yahoo.sketches.Util.*;
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.NativeMemory;
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.HashOperations;
+import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * The on-heap implementation of the tuple QuickSelect sketch of type ArrayOfDoubles.

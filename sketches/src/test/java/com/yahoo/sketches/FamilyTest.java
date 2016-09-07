@@ -4,12 +4,14 @@
  */
 package com.yahoo.sketches;
 
-import static com.yahoo.sketches.Family.*;
-import static org.testng.Assert.*;
+import static com.yahoo.sketches.Family.idToFamily;
+import static com.yahoo.sketches.Family.objectToFamily;
+import static com.yahoo.sketches.Family.stringToFamily;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.sketches.Family;
 //import com.yahoo.sketches.theta.Sketch;
 import com.yahoo.sketches.theta.UpdateSketch;
 

@@ -5,10 +5,10 @@
 
 package com.yahoo.sketches.tuple;
 
-import com.yahoo.sketches.SketchesArgumentException;
-
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static java.nio.charset.StandardCharsets.UTF_8;
+
+import com.yahoo.sketches.SketchesArgumentException;
 
 final class Util {
 

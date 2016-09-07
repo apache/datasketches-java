@@ -5,10 +5,10 @@
 
 package com.yahoo.sketches;
 
+import java.nio.charset.StandardCharsets;
+
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * Methods of serializing and deserializing arrays of String.

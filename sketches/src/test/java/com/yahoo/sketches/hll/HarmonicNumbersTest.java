@@ -4,8 +4,9 @@
  */
 package com.yahoo.sketches.hll;
 
-import static org.testng.Assert.*;
-import static com.yahoo.sketches.hll.HarmonicNumbers.*;
+import static com.yahoo.sketches.hll.HarmonicNumbers.harmonicNumber;
+import static org.testng.Assert.assertEquals;
+
 import org.testng.annotations.Test;
 
 public class HarmonicNumbersTest {

@@ -5,11 +5,11 @@
 
 package com.yahoo.sketches.tuple;
 
-import com.yahoo.sketches.SketchesStateException;
+import static java.lang.Math.min;
 
 import java.lang.reflect.Array;
 
-import static java.lang.Math.min;
+import com.yahoo.sketches.SketchesStateException;
 
 /**
  * Computes an intersection of two or more generic tuple sketches.

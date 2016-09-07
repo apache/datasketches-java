@@ -9,11 +9,11 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.Util;
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
 
 /** 
  * @author Lee Rhodes

@@ -4,8 +4,8 @@
  */
 package com.yahoo.sketches.tuple;
 
-import org.testng.annotations.Test;
 import org.testng.Assert;
+import org.testng.annotations.Test;
 
 import com.yahoo.memory.NativeMemory;
 

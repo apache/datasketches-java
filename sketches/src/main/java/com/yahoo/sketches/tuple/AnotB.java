@@ -5,12 +5,14 @@
 
 package com.yahoo.sketches.tuple;
 
-import com.yahoo.sketches.HashOperations;
+import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
+import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
-import static com.yahoo.sketches.Util.*;
+import com.yahoo.sketches.HashOperations;
 
 /**
  * Computes a set difference of two generic tuple sketches

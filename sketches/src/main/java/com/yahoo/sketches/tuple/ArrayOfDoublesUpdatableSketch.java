@@ -5,8 +5,8 @@
 
 package com.yahoo.sketches.tuple;
 
-import com.yahoo.sketches.hash.MurmurHash3;
 import com.yahoo.memory.Memory;
+import com.yahoo.sketches.hash.MurmurHash3;
 
 /**
  * The top level for updatable tuple sketches of type ArrayOfDoubles.

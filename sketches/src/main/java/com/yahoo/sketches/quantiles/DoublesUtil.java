@@ -5,14 +5,14 @@
 
 package com.yahoo.sketches.quantiles;
 
-import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.memory.Memory;
-
-import java.util.Arrays;
-
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.checkIfPowerOf2;
 import static java.lang.System.arraycopy;
+
+import java.util.Arrays;
+
+import com.yahoo.memory.Memory;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * Static methods that support the doubles quantiles algorithms.

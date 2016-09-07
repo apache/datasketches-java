@@ -5,14 +5,14 @@
 
 package com.yahoo.sketches.tuple;
 
-import com.yahoo.sketches.Family;
-import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 
 import java.nio.ByteOrder;
 
-import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.NativeMemory;
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * Direct Compact Sketch of type ArrayOfDoubles.

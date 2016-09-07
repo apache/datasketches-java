@@ -5,7 +5,6 @@
 
 package com.yahoo.sketches.frequencies;
 
-import com.yahoo.sketches.frequencies.ReversePurgeLongHashMap;
 import com.yahoo.sketches.hash.MurmurHash3;
 
 public class StressTestHashMap {

@@ -5,10 +5,10 @@
 
 package com.yahoo.sketches.tuple;
 
-import com.yahoo.sketches.SketchesStateException;
-import com.yahoo.memory.Memory;
-
 import static java.lang.Math.min;
+
+import com.yahoo.memory.Memory;
+import com.yahoo.sketches.SketchesStateException;
 
 /**
  * Computes the intersection of two or more tuple sketches of type ArrayOfDoubles.

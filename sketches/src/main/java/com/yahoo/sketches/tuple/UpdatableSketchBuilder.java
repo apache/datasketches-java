@@ -5,10 +5,10 @@
 
 package com.yahoo.sketches.tuple;
 
+import static com.yahoo.sketches.Util.DEFAULT_NOMINAL_ENTRIES;
+
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
-
-import static com.yahoo.sketches.Util.DEFAULT_NOMINAL_ENTRIES;
 
 /**
  * For building a new generic tuple UpdatableSketch

@@ -5,8 +5,13 @@
 
 package com.yahoo.sketches;
 
-import static com.yahoo.sketches.BoundsOnRatiosInSampledSets.*;
-import static org.testng.Assert.*;
+import static com.yahoo.sketches.BoundsOnRatiosInSampledSets.checkInputs;
+import static com.yahoo.sketches.BoundsOnRatiosInSampledSets.getEstimateOfA;
+import static com.yahoo.sketches.BoundsOnRatiosInSampledSets.getEstimateOfB;
+import static com.yahoo.sketches.BoundsOnRatiosInSampledSets.getEstimateOfBoverA;
+import static com.yahoo.sketches.BoundsOnRatiosInSampledSets.getLowerBoundForBoverA;
+import static com.yahoo.sketches.BoundsOnRatiosInSampledSets.getUpperBoundForBoverA;
+import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 

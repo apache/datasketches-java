@@ -5,13 +5,13 @@
 
 package com.yahoo.sketches.quantiles;
 
-import com.yahoo.sketches.SketchesArgumentException;
+import static com.yahoo.sketches.Util.checkIfPowerOf2;
+import static java.lang.System.arraycopy;
 
 import java.util.Arrays;
 import java.util.Comparator;
 
-import static com.yahoo.sketches.Util.checkIfPowerOf2;
-import static java.lang.System.arraycopy;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * Utility class for generic quantiles sketch.
