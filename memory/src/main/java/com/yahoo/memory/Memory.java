@@ -477,7 +477,7 @@ public interface Memory {
 
 
   /**
-   * Tells if this memory is read only
+   * Returns true if this memory is read only
    * @return true if this memory is read only
    */
   boolean isReadOnly();

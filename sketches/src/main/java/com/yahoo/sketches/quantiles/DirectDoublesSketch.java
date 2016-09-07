@@ -5,35 +5,11 @@
 
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.MAX_DOUBLE;
 import static com.yahoo.sketches.quantiles.PreambleUtil.MIN_DOUBLE;
-import static com.yahoo.sketches.quantiles.PreambleUtil.N_LONG;
-import static com.yahoo.sketches.quantiles.PreambleUtil.SER_VER;
-import static com.yahoo.sketches.quantiles.PreambleUtil.extractFamilyID;
-import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
-import static com.yahoo.sketches.quantiles.PreambleUtil.extractK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.extractPreLongs;
-import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerDeId;
-import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerVer;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertFamilyID;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertFlags;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertPreLongs;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerDeId;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerVer;
-import static com.yahoo.sketches.quantiles.Util.computeBaseBufferItems;
-import static com.yahoo.sketches.quantiles.Util.computeBitPattern;
-import static com.yahoo.sketches.quantiles.Util.computeCombBufItemCapacity;
-import static com.yahoo.sketches.quantiles.Util.computeRetainedItems;
-
-import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.ArrayOfDoublesSerDe;
-import com.yahoo.sketches.Family;
-import com.yahoo.sketches.SketchesArgumentException;
 
 
 /**
@@ -42,6 +18,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Kevin Lang
  * @author Lee Rhodes
  */
+@SuppressWarnings("unused")
 public class DirectDoublesSketch extends DoublesSketch {
 
   private static final short ARRAY_OF_DOUBLES_SERDE_ID = new ArrayOfDoublesSerDe().getId();
