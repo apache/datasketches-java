@@ -4,13 +4,6 @@
  */
 package com.yahoo.sketches.theta;
 
-import com.yahoo.sketches.Family;
-import com.yahoo.sketches.ResizeFactor;
-import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
-import org.testng.annotations.Test;
-
 import static com.yahoo.sketches.Family.ALPHA;
 import static com.yahoo.sketches.Family.COMPACT;
 import static com.yahoo.sketches.Family.QUICKSELECT;
@@ -27,6 +20,14 @@ import static com.yahoo.sketches.theta.Sketch.getMaxCompactSketchBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+
+import org.testng.annotations.Test;
+
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.NativeMemory;
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * @author Lee Rhodes

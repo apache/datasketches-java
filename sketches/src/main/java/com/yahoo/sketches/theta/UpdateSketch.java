@@ -5,12 +5,12 @@
 
 package com.yahoo.sketches.theta;
 
-import com.yahoo.sketches.ResizeFactor;
-import com.yahoo.memory.Memory;
-
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedNullOrEmpty;
 import static java.nio.charset.StandardCharsets.UTF_8;
+
+import com.yahoo.memory.Memory;
+import com.yahoo.sketches.ResizeFactor;
 
 /**
  * The parent class for the  Update Sketch families, such as QuickSelect and Alpha.  

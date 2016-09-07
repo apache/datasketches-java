@@ -5,9 +5,9 @@
 
 package com.yahoo.sketches.tuple;
 
-import com.yahoo.memory.Memory;
-
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+
+import com.yahoo.memory.Memory;
 
 /**
  * Convenient static methods to instantiate tuple sketches of type ArrayOfDoubles.

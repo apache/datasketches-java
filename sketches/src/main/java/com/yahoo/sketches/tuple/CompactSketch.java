@@ -5,15 +5,15 @@
 
 package com.yahoo.sketches.tuple;
 
-import com.yahoo.sketches.Family;
-import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.lang.reflect.Array;
 import java.nio.ByteOrder;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.NativeMemory;
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * CompactSketches are never created directly. They are created as a result of

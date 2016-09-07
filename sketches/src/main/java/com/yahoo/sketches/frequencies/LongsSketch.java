@@ -5,21 +5,38 @@
 
 package com.yahoo.sketches.frequencies;
 
-import com.yahoo.sketches.ArrayOfLongsSerDe;
-import com.yahoo.sketches.Family;
-import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.SketchesStateException;
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import static com.yahoo.sketches.Util.LS;
+import static com.yahoo.sketches.Util.toLog2;
+import static com.yahoo.sketches.frequencies.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.frequencies.PreambleUtil.SER_VER;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractActiveItems;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractFamilyID;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractFlags;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractLgCurMapSize;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractLgMaxMapSize;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractPreLongs;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractSerDeId;
+import static com.yahoo.sketches.frequencies.PreambleUtil.extractSerVer;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertActiveItems;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertFamilyID;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertFlags;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertLgCurMapSize;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertLgMaxMapSize;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertPreLongs;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertSerDeId;
+import static com.yahoo.sketches.frequencies.PreambleUtil.insertSerVer;
+import static com.yahoo.sketches.frequencies.Util.LG_MIN_MAP_SIZE;
+import static com.yahoo.sketches.frequencies.Util.SAMPLE_SIZE;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 
-import static com.yahoo.sketches.Util.LS;
-import static com.yahoo.sketches.Util.toLog2;
-import static com.yahoo.sketches.frequencies.PreambleUtil.*;
-import static com.yahoo.sketches.frequencies.Util.LG_MIN_MAP_SIZE;
-import static com.yahoo.sketches.frequencies.Util.SAMPLE_SIZE;
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.NativeMemory;
+import com.yahoo.sketches.ArrayOfLongsSerDe;
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.SketchesStateException;
 
 /**
  * <p>This sketch is useful for tracking approximate frequencies of <i>long</i> items with optional

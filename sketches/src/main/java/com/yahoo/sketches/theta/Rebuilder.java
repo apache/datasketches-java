@@ -5,13 +5,15 @@
 
 package com.yahoo.sketches.theta;
 
-import com.yahoo.sketches.HashOperations;
-import com.yahoo.sketches.Util;
+import static com.yahoo.sketches.QuickSelect.selectExcludingZeros;
+import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
+import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
+
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
-
-import static com.yahoo.sketches.QuickSelect.selectExcludingZeros;
-import static com.yahoo.sketches.theta.PreambleUtil.*;
+import com.yahoo.sketches.HashOperations;
+import com.yahoo.sketches.Util;
 
 /**
  * Handles common resize, rebuild and move operations. 

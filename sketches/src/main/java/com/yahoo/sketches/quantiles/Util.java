@@ -5,13 +5,13 @@
 
 package com.yahoo.sketches.quantiles;
 
-import com.yahoo.sketches.Family;
-import com.yahoo.sketches.SketchesArgumentException;
-
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.Util.isPowerOf2;
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.SER_VER;
+
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * Utility class for quantiles sketches.

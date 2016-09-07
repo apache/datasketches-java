@@ -5,14 +5,14 @@
 
 package com.yahoo.sketches.hll;
 
-import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.NativeMemory;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * @author Kevin Lang

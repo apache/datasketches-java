@@ -5,12 +5,18 @@
 
 package com.yahoo.memory;
 
-import org.testng.annotations.Test;
-
-import java.io.*;
-
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
+
+import java.io.CharArrayReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+
+import org.testng.annotations.Test;
 
 /**
  * @author Praveenkumar Venkatesan

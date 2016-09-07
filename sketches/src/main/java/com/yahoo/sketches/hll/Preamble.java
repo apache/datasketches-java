@@ -5,13 +5,13 @@
 
 package com.yahoo.sketches.hll;
 
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.MemoryRegion;
+import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.hash.MurmurHash3;
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryRegion;
-import com.yahoo.memory.NativeMemory;
 
 /**
  * @author Kevin Lang

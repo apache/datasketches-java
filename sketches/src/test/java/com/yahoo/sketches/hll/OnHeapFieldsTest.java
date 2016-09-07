@@ -5,14 +5,14 @@
 
 package com.yahoo.sketches.hll;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.yahoo.sketches.SketchesArgumentException;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 /**
  */

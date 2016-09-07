@@ -5,12 +5,12 @@
 
 package com.yahoo.sketches.frequencies;
 
-import com.yahoo.sketches.QuickSelect;
-import com.yahoo.sketches.SketchesArgumentException;
-
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.toLog2;
 import static com.yahoo.sketches.frequencies.Util.hash;
+
+import com.yahoo.sketches.QuickSelect;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * Implements a linear-probing based hash map of (key, value) pairs and is distinguished by a 

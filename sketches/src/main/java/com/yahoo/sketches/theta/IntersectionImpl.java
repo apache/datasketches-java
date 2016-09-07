@@ -5,18 +5,48 @@
 
 package com.yahoo.sketches.theta;
 
-import com.yahoo.sketches.*;
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
-
-import java.util.Arrays;
-
 import static com.yahoo.sketches.Family.objectToFamily;
 import static com.yahoo.sketches.Util.MIN_LG_ARR_LONGS;
 import static com.yahoo.sketches.Util.floorPowerOf2;
 import static com.yahoo.sketches.theta.CompactSketch.compactCachePart;
-import static com.yahoo.sketches.theta.PreambleUtil.*;
+import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.P_FLOAT;
+import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
+import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
+import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
+import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
+import static com.yahoo.sketches.theta.PreambleUtil.extractCurCount;
+import static com.yahoo.sketches.theta.PreambleUtil.extractFamilyID;
+import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
+import static com.yahoo.sketches.theta.PreambleUtil.extractLgArrLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
+import static com.yahoo.sketches.theta.PreambleUtil.extractSerVer;
+import static com.yahoo.sketches.theta.PreambleUtil.insertCurCount;
+import static com.yahoo.sketches.theta.PreambleUtil.insertFamilyID;
+import static com.yahoo.sketches.theta.PreambleUtil.insertFlags;
+import static com.yahoo.sketches.theta.PreambleUtil.insertLgArrLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.insertP;
+import static com.yahoo.sketches.theta.PreambleUtil.insertPreLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.insertSeedHash;
+import static com.yahoo.sketches.theta.PreambleUtil.insertSerVer;
 import static java.lang.Math.min;
+
+import java.util.Arrays;
+
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.NativeMemory;
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.HashOperations;
+import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.SketchesStateException;
+import com.yahoo.sketches.Util;
 
 /**
  * Intersection operation for Theta Sketches.

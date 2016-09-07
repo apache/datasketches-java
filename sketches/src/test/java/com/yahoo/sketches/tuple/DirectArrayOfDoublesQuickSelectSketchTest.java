@@ -5,12 +5,12 @@
 
 package com.yahoo.sketches.tuple;
 
-import org.testng.annotations.Test;
 import org.testng.Assert;
+import org.testng.annotations.Test;
 
+import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.memory.NativeMemory;
 
 public class DirectArrayOfDoublesQuickSelectSketchTest {
   @Test

@@ -5,13 +5,13 @@
 
 package com.yahoo.sketches.hash;
 
-import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.SketchesStateException;
+import static com.yahoo.sketches.hash.MurmurHash3.hash;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.nio.ByteBuffer;
 
-import static com.yahoo.sketches.hash.MurmurHash3.hash;
-import static java.nio.charset.StandardCharsets.UTF_8;
+import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.SketchesStateException;
 
 /**
  * A general purpose wrapper for the MurmurHash3.

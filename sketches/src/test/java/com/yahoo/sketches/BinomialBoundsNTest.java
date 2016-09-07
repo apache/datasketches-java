@@ -5,14 +5,14 @@
 
 package com.yahoo.sketches;
 
-import static com.yahoo.sketches.BinomialBoundsN.*;
-import static org.testng.Assert.assertTrue;
+import static com.yahoo.sketches.BinomialBoundsN.checkArgs;
+import static com.yahoo.sketches.BinomialBoundsN.getLowerBound;
+import static com.yahoo.sketches.BinomialBoundsN.getUpperBound;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
-
-import com.yahoo.sketches.BinomialBoundsN;
 
 /**
  * @author Kevin Lang

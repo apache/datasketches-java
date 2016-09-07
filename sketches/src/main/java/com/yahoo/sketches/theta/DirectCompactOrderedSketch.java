@@ -5,11 +5,20 @@
 
 package com.yahoo.sketches.theta;
 
-import com.yahoo.memory.Memory;
-
 import static com.yahoo.sketches.Util.checkSeedHashes;
 import static com.yahoo.sketches.Util.computeSeedHash;
-import static com.yahoo.sketches.theta.PreambleUtil.*;
+import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
+import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
+import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
+import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
+
+import com.yahoo.memory.Memory;
 
 /**
  * An off-heap (Direct), compact, ordered, read-only sketch. This sketch may be associated

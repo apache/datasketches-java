@@ -5,10 +5,10 @@
 
 package com.yahoo.sketches.quantiles;
 
-import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.memory.Memory;
-
 import java.util.Random;
+
+import com.yahoo.memory.Memory;
+import com.yahoo.sketches.SketchesArgumentException;
 
 
 /**

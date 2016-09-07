@@ -22,11 +22,11 @@ import static org.testng.Assert.fail;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.frequencies.LongsSketch.Row;
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
 
 public class LongsSketchTest {
 

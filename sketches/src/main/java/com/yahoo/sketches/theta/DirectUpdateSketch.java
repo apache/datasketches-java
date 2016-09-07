@@ -5,10 +5,10 @@
 
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
+
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.Util;
-
-import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
 
 /**
  * The parent class for Direct Updatable Theta Sketches.

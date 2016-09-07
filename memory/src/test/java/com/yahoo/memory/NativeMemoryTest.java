@@ -4,12 +4,21 @@
  */
 package com.yahoo.memory;
 
-import org.testng.annotations.Test;
+import static com.yahoo.memory.CommonTest.getAndAddSetTests;
+import static com.yahoo.memory.CommonTest.setClearIsBitsTests;
+import static com.yahoo.memory.CommonTest.setClearMemoryRegionsTests;
+import static com.yahoo.memory.CommonTest.setGetArraysTests;
+import static com.yahoo.memory.CommonTest.setGetPartialArraysWithOffsetTests;
+import static com.yahoo.memory.CommonTest.setGetTests;
+import static com.yahoo.memory.CommonTest.toHexStringAllMemTests;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.nio.ByteBuffer;
 
-import static com.yahoo.memory.CommonTest.*;
-import static org.testng.Assert.*;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes

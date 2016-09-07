@@ -5,15 +5,30 @@
 
 package com.yahoo.sketches.theta;
 
-import com.yahoo.sketches.*;
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
-
 import static com.yahoo.sketches.QuickSelect.selectExcludingZeros;
 import static com.yahoo.sketches.theta.CompactSketch.compactCache;
 import static com.yahoo.sketches.theta.CompactSketch.createCompactSketch;
-import static com.yahoo.sketches.theta.PreambleUtil.*;
+import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
+import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
+import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
+import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
+import static com.yahoo.sketches.theta.PreambleUtil.UNION_THETA_LONG;
 import static java.lang.Math.min;
+
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.NativeMemory;
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.HashOperations;
+import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.Util;
 
 
 /**

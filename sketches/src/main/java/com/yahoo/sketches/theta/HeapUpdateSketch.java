@@ -5,12 +5,23 @@
 
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
+import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.P_FLOAT;
+import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
+import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
+import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
+import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
+
+import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.Util;
-import com.yahoo.memory.NativeMemory;
-
-import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
-import static com.yahoo.sketches.theta.PreambleUtil.*;
 
 /**
  * @author Lee Rhodes

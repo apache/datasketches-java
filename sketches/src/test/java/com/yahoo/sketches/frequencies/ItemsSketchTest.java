@@ -5,18 +5,12 @@
 
 package com.yahoo.sketches.frequencies;
 
-import static com.yahoo.sketches.frequencies.PreambleUtil.*;
+import static com.yahoo.sketches.frequencies.PreambleUtil.FAMILY_BYTE;
+import static com.yahoo.sketches.frequencies.PreambleUtil.FLAGS_BYTE;
+import static com.yahoo.sketches.frequencies.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.frequencies.PreambleUtil.SER_DE_ID_SHORT;
+import static com.yahoo.sketches.frequencies.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.frequencies.Util.LG_MIN_MAP_SIZE;
-import org.testng.annotations.Test;
-
-import com.yahoo.sketches.ArrayOfLongsSerDe;
-import com.yahoo.sketches.ArrayOfStringsSerDe;
-import com.yahoo.sketches.ArrayOfUtf16StringsSerDe;
-import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.frequencies.ItemsSketch.Row;
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
-
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -24,6 +18,15 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import org.testng.Assert;
+import org.testng.annotations.Test;
+
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.NativeMemory;
+import com.yahoo.sketches.ArrayOfLongsSerDe;
+import com.yahoo.sketches.ArrayOfStringsSerDe;
+import com.yahoo.sketches.ArrayOfUtf16StringsSerDe;
+import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.frequencies.ItemsSketch.Row;
 
 public class ItemsSketchTest {
 
