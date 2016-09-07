@@ -9,7 +9,9 @@ import org.testng.annotations.Test;
 import static com.yahoo.memory.CommonTest.*;
 import static java.lang.Math.min;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.fail;
+import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * @author Lee Rhodes
@@ -331,7 +333,35 @@ public class MemoryRegionTest {
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
-  
+
+
+  @Test
+  public void checkIsReadOnly() {
+    long[] srcArray = { 1, -2, 3, -4, 5, -6, 7, -8 };
+    NativeMemory mem = new NativeMemory(srcArray);
+    MemoryRegion mr = new MemoryRegion(mem, 0, mem.getCapacity());
+    assertFalse(mr.isReadOnly());
+
+    Memory readOnlyMem = mr.asReadOnlyMemory();
+    assertTrue(((Memory)readOnlyMem.getParent()).isReadOnly());
+    assertTrue(readOnlyMem.isReadOnly());
+
+    for (int i = 0; i < mem.getCapacity(); i++) {
+      assertEquals(mem.getByte(i), readOnlyMem.getByte(i));
+    }
+    mem.freeMemory();
+  }
+
+  @Test(expectedExceptions = ReadOnlyMemoryException.class)
+  public void checkWritesOnReadOnlyMemory() {
+    long[] srcArray = { 1, -2, 3, -4, 5, -6, 7, -8 };
+    NativeMemory mem = new NativeMemory(srcArray);
+    MemoryRegion mr = new MemoryRegion(mem, 0, mem.getCapacity());
+    Memory readOnlyMem = mr.asReadOnlyMemory();
+    readOnlyMem.putLong(0, 10L);
+    mem.freeMemory();
+  }
+
   /**
    * @param s value to print 
    */
