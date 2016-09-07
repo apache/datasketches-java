@@ -156,6 +156,10 @@ public class NativeMemory implements Memory {
     assertBounds(srcOffsetBytes, lengthBytes, source.getCapacity());
     assertBounds(dstOffsetBytes, lengthBytes, destination.getCapacity());
 
+    if (destination.isReadOnly()) {
+      throw new ReadOnlyMemoryException();
+    }
+
     long srcAdd = source.getCumulativeOffset(srcOffsetBytes);
     long dstAdd = destination.getCumulativeOffset(dstOffsetBytes);
     Object srcParent = (source.isDirect()) ? null : source.getNativeMemory().memArray_;
@@ -739,4 +743,17 @@ public class NativeMemory implements Memory {
     return (nativeRawStartAddress_ != 0L) && (byteBuf_ == null);
   }
 
+  @Override
+  public boolean isReadOnly() {
+    return false;
+  }
+
+  @Override
+  public Memory asReadOnlyMemory() {
+    NativeMemoryR nmr = new NativeMemoryR(objectBaseOffset_, memArray_, byteBuf_);
+    nmr.nativeRawStartAddress_ = nativeRawStartAddress_;
+    nmr.capacityBytes_ = capacityBytes_;
+    nmr.memReq_ = memReq_;
+    return nmr;
+  }
 }
