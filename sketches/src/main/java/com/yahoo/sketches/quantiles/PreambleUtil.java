@@ -71,6 +71,7 @@ final class PreambleUtil {
   //After Preamble:
   static final int MIN_DOUBLE                 = 16; //to 23 (Only for DoublesSketch)
   static final int MAX_DOUBLE                 = 24; //to 31 (Only for DoublesSketch)
+  static final int COMBINED_BUFFER            = 32; //to 39 (Only for DoublesSketch)
   
   //Specific values for this implementation
   static final int SER_VER                    = 2;
