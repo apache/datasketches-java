@@ -219,10 +219,13 @@ public class NativeMemoryTest {
     }
 
     NativeMemory mem2 = (NativeMemory) mem1.asReadOnlyMemory();
-    NativeMemory.copy(mem1, 0, mem2, 0, memCapacity);
-
-    mem1.freeMemory();
-    mem2.freeMemory();
+    try {
+      NativeMemory.copy(mem1, 0, mem2, 0, memCapacity);
+    }
+    finally {
+      mem1.freeMemory();
+      mem2.freeMemory();
+    }
   }
 
   @Test
@@ -535,11 +538,6 @@ public class NativeMemoryTest {
     byte[] byteArr = null;
     new NativeMemory(byteArr);
   }
-  
-  @Test
-  public void printlnTest() {
-    println("PRINTING: "+this.getClass().getName());
-  }
 
   @Test
   public void checkIsReadOnly() {
@@ -561,10 +559,19 @@ public class NativeMemoryTest {
     long[] srcArray = { 1, -2, 3, -4, 5, -6, 7, -8 };
     NativeMemory mem = new NativeMemory(srcArray);
     Memory readOnlyMem = mem.asReadOnlyMemory();
-    readOnlyMem.putLong(0, 10L);
-    mem.freeMemory();
+    try {
+      readOnlyMem.putLong(0, 10L);
+    }
+    finally {
+      mem.freeMemory();
+    }
   }
-
+  
+  @Test
+  public void printlnTest() {
+    println("PRINTING: "+this.getClass().getName());
+  }
+  
   /**
    * @param s value to print 
    */

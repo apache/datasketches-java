@@ -334,12 +334,6 @@ public class MemoryRegionTest {
     println(reg3.toHexString("Region3", 0, (int)reg3.getCapacity()));
     
   }
-  
-  @Test
-  public void printlnTest() {
-    println("PRINTING: "+this.getClass().getName());
-  }
-
 
   @Test
   public void checkIsReadOnly() {
@@ -364,10 +358,19 @@ public class MemoryRegionTest {
     NativeMemory mem = new NativeMemory(srcArray);
     MemoryRegion mr = new MemoryRegion(mem, 0, mem.getCapacity());
     Memory readOnlyMem = mr.asReadOnlyMemory();
-    readOnlyMem.putLong(0, 10L);
-    mem.freeMemory();
+    try {
+      readOnlyMem.putLong(0, 10L);
+    }
+    finally {
+      mem.freeMemory();
+    }
   }
 
+  @Test
+  public void printlnTest() {
+    println("PRINTING: "+this.getClass().getName());
+  }
+  
   /**
    * @param s value to print 
    */
