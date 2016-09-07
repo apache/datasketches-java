@@ -30,6 +30,8 @@ import com.yahoo.sketches.Util;
 /**
  * Created by jmalkin on 8/22/16.
  *
+ * @param <T> The type of object held in the reservoir.
+ *
  * @author jmalkin
  * @author langk
  */
@@ -45,24 +47,25 @@ public class ReservoirItemSketch<T> {
      */
     private static final ResizeFactor DEFAULT_RESIZE_FACTOR = ResizeFactor.X8;
 
-    static Random rand = new Random();
+    private static final Random rand = new Random();
 
-    int reservoirSize_;      // max size of sampling
-    int encodedResSize_;     // compact encoding of reservoir size
-    int currItemsAlloc_;     // currently allocated array size
-    long itemsSeen_;         // number of items presented to sketch
-    ResizeFactor rf_;        // resize factor
-    Object[] data_;          // stored sampled data
+    private int reservoirSize_;      // max size of sampling
+    private int encodedResSize_;     // compact encoding of reservoir size
+    private int currItemsAlloc_;     // currently allocated array size
+    private long itemsSeen_;         // number of items presented to sketch
+    private ResizeFactor rf_;        // resize factor
+    private Object[] data_;          // stored sampled data
 
     /**
      * Construct a mergeable sampling sample sketch with up to k samples using the default resize factor (8).
      *
      * @param k Maximum size of sampling. Allocated size may be smaller until sampling fills. Unlike many sketches
      *          in this package, this value does <em>not</em> need to be a power of 2.
+     * @param <T> The type of object held in the reservoir.
      * @return A ReservoirLongSketch initialized with maximum size k and the default resize factor.
      * */
-    public static ReservoirItemSketch getInstance(final int k) {
-        return new ReservoirItemSketch(k, DEFAULT_RESIZE_FACTOR);
+    public static <T> ReservoirItemSketch getInstance(final int k) {
+        return new ReservoirItemSketch<T>(k, DEFAULT_RESIZE_FACTOR);
     }
 
     /**
@@ -71,10 +74,11 @@ public class ReservoirItemSketch<T> {
      * @param k Maximum size of sampling. Allocated size may be smaller until sampling fills. Unlike many sketches
      *          in this package, this value does <em>not</em> need to be a power of 2.
      * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
+     * @param <T> The type of object held in the reservoir.
      * @return A ReservoirLongSketch initialized with maximum size k and resize factor rf.
      * */
-    public static ReservoirItemSketch getInstance(final int k, ResizeFactor rf) {
-        return new ReservoirItemSketch(k, rf);
+    public static <T> ReservoirItemSketch getInstance(final int k, ResizeFactor rf) {
+        return new ReservoirItemSketch<T>(k, rf);
     }
 
     private ReservoirItemSketch(final int k, final ResizeFactor rf) {
@@ -122,7 +126,7 @@ public class ReservoirItemSketch<T> {
         /*
         if (currItemsAlloc != data.length) {
             throw new SketchesArgumentException("Instantiating sketch with current allocation " + currItemsAlloc +
-                    " but data arrany length " + data.length);
+                    " but data array length " + data.length);
         }
         */
 
@@ -159,7 +163,7 @@ public class ReservoirItemSketch<T> {
      * @return the number of items currently in the reservoir
      */
     public int getNumSamples() {
-        return (int) Math.min((long) reservoirSize_, itemsSeen_);
+        return (int) Math.min(reservoirSize_, itemsSeen_);
     }
 
     /**
@@ -200,12 +204,12 @@ public class ReservoirItemSketch<T> {
      * @return A copy of the reservoir array
      */
     @SuppressWarnings("unchecked")
-    public T[] getSamples(Class clazz) {
+    public T[] getSamples(Class<?> clazz) {
          if (itemsSeen_ == 0) {
              return null;
          }
 
-        int numSamples = (int) Math.min((long) reservoirSize_, itemsSeen_);
+        int numSamples = (int) Math.min(reservoirSize_, itemsSeen_);
         T[] dst = (T[]) Array.newInstance(clazz, numSamples);
         System.arraycopy(data_, 0, dst, 0, numSamples);
         return dst;
@@ -305,7 +309,7 @@ public class ReservoirItemSketch<T> {
      * @param clazz The class represented by type &lt;T&gt;
      * @return a byte array representation of this sketch
      */
-    public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe, final Class clazz) {
+    public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe, final Class<?> clazz) {
         final int preLongs, outBytes;
         final boolean empty = itemsSeen_ == 0;
         //final int numItems = (int) Math.min(reservoirSize_, itemsSeen_);
@@ -354,7 +358,7 @@ public class ReservoirItemSketch<T> {
         if (itemsSeen_ < reservoirSize_) {
             return 1.0;
         } else {
-            return ((double) itemsSeen_ / (double) reservoirSize_);
+            return (1.0 * itemsSeen_ / reservoirSize_);
         }
     }
 
@@ -410,27 +414,27 @@ public class ReservoirItemSketch<T> {
         return resizeTarget;
     }
 
-    static int startingSubMultiple(int lgTarget, int lgRf, int lgMin) {
+    private static int startingSubMultiple(int lgTarget, int lgRf, int lgMin) {
         return (lgTarget <= lgMin) ? lgMin : (lgRf == 0) ? lgTarget : (lgTarget - lgMin) % lgRf + lgMin;
     }
 
+    /*
     public static void main(String[] args) {
 
-        ReservoirItemSketch<Long> rs = ReservoirItemSketch.<Long>getInstance(5, ResizeFactor.X8);
+        ReservoirItemSketch<Long> rs = ReservoirItemSketch.<Long> getInstance(5, ResizeFactor.X8);
         rs.setRandomSeed(11L);
 
         for (long i = 0; i < 3; ++i) {
             rs.update(i);
         }
 
-        /*
-        ReservoirItemSketch<Long> rs = ReservoirItemSketch.<Long>getInstance(5);
-        rs.setRandomSeed(11L);
+        //ReservoirItemSketch<Long> rs = ReservoirItemSketch.<Long>getInstance(5);
+        //rs.setRandomSeed(11L);
 
-        rs.update(1L);
-        rs.update(2);
-        rs.update(3.0);
-        */
+        //rs.update(1L);
+        //rs.update(2);
+        //rs.update(3.0);
+
         for (Long l : rs.getSamples()) {
             System.out.println(l);
         }
@@ -490,6 +494,7 @@ public class ReservoirItemSketch<T> {
         }
         System.out.println("Arrays match!");
     }
+    */
 
     static String printBytesAsLongs(byte[] byteArr) {
         StringBuilder sb = new StringBuilder();

@@ -42,15 +42,15 @@ public class ReservoirLongSketch {
      */
     private static final ResizeFactor DEFAULT_RESIZE_FACTOR = ResizeFactor.X8;
 
-    private static Random rand = new Random();
+    private static final Random rand = new Random();
 
-    int reservoirSize_;      // max size of sampling
-    int encodedResSize_;     // compact encoding of reservoir size
-    int currItemsAlloc_;     // currently allocated array size
-    int currCount_;          // number of items in sampling
-    long itemsSeen_;         // number of items presented to sketch
-    ResizeFactor rf_;        // resize factor
-    long[] data_;            // stored sampling data
+    private int reservoirSize_;      // max size of sampling
+    private int encodedResSize_;     // compact encoding of reservoir size
+    private int currItemsAlloc_;     // currently allocated array size
+    private int currCount_;          // number of items in sampling
+    private long itemsSeen_;         // number of items presented to sketch
+    private ResizeFactor rf_;        // resize factor
+    private long[] data_;            // stored sampling data
 
     /**
      * Construct a mergeable sampling sample sketch with up to k samples using the default resize factor (8).
@@ -121,7 +121,7 @@ public class ReservoirLongSketch {
      * @return the number of items currently in the reservoir
      */
     public int getNumSamples() {
-        return (int) Math.min((long) reservoirSize_, itemsSeen_);
+        return (int) Math.min(reservoirSize_, itemsSeen_);
     }
 
     /**
@@ -141,7 +141,7 @@ public class ReservoirLongSketch {
         if (itemsSeen_ == 0) {
             return null;
         }
-        int numSamples = (int) Math.min((long) reservoirSize_, itemsSeen_);
+        int numSamples = (int) Math.min(reservoirSize_, itemsSeen_);
         return java.util.Arrays.copyOf(data_, numSamples);
     }
 
@@ -277,7 +277,7 @@ public class ReservoirLongSketch {
         if (itemsSeen_ < reservoirSize_) {
             return 1.0;
         } else {
-            return ((double) itemsSeen_ / (double) reservoirSize_);
+            return (1.0 * itemsSeen_ / reservoirSize_);
         }
     }
 

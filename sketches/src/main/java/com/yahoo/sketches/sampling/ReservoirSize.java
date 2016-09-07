@@ -7,8 +7,8 @@ import com.yahoo.sketches.Util;
  * This class provides a compact representation of reservoir size by encoding it into a fixed-point 16-bit value.
  * <p>The value itself is a fractional power of 2, with 5 bits of exponent and 11 bits of mantissa. The exponent
  * allows a choice of anywhere from 0-30, and there are 2048 possible reservoir size values within each octave.
- * Because reservoir size must be an integer, this means that some sizes below 2048 may have multiple valid encodings
- * .</p>
+ * Because reservoir size must be an integer, this means that some sizes below 2048 may have multiple valid encodings.
+ * </p>
  *
  * <p>Reservoir sizes can be specified exactly to 4096, and may be off by up to 0.03% thereafter. The value returned
  * is always at least as large as the requested size, but may be larger.
@@ -89,7 +89,7 @@ public class ReservoirSize {
 
         int p = (value >> EXPONENT_SHIFT) & EXPONENT_MASK;
         int i = value & INDEX_MASK;
-        //System.out.printf("Decode: value=%d\tp=%d\ti=%d\n", value, p, i);
+
         return (int) ((1 << p) * (i * INV_BINS_PER_OCTAVE + 1.0));
     }
 }
