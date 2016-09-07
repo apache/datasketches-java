@@ -200,7 +200,7 @@ public class NativeMemoryTest {
     }
   }
 
-  @Test(expectedExceptions = ReadOnlyMemoryException.class)
+  @Test
   public void checkReadOnlyMemoryCopyException() {
     int memCapacity = 64;
     NativeMemory mem1 = new AllocMemory(memCapacity);
@@ -209,11 +209,16 @@ public class NativeMemoryTest {
       mem1.putByte(i, (byte) i);
     }
 
-    NativeMemory mem2 = (NativeMemory) mem1.asReadOnlyMemory();
-    NativeMemory.copy(mem1, 0, mem2, 0, memCapacity);
+    boolean catchException = false;
+    NativeMemory readOnlyMem = (NativeMemory) mem1.asReadOnlyMemory();
+    try {
+        NativeMemory.copy(mem1, 0, readOnlyMem, 0, memCapacity);
+    } catch (ReadOnlyMemoryException e) {
+        catchException=true;
+    }
 
+    assertTrue(catchException);
     mem1.freeMemory();
-    mem2.freeMemory();
   }
 
   @Test
@@ -547,12 +552,19 @@ public class NativeMemoryTest {
     mem.freeMemory();
   }
 
-  @Test(expectedExceptions = ReadOnlyMemoryException.class)
+  @Test
   public void checkWritesOnReadOnlyMemory() {
     long[] srcArray = { 1, -2, 3, -4, 5, -6, 7, -8 };
     NativeMemory mem = new NativeMemory(srcArray);
     Memory readOnlyMem = mem.asReadOnlyMemory();
-    readOnlyMem.putLong(0, 10L);
+    boolean catchException = false;
+    try {
+        readOnlyMem.putLong(0, 10L);
+    } catch (ReadOnlyMemoryException e) {
+        catchException = true;
+    }
+
+    assertTrue(catchException);
     mem.freeMemory();
   }
 

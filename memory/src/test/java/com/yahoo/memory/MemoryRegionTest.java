@@ -352,13 +352,20 @@ public class MemoryRegionTest {
     mem.freeMemory();
   }
 
-  @Test(expectedExceptions = ReadOnlyMemoryException.class)
+  @Test
   public void checkWritesOnReadOnlyMemory() {
     long[] srcArray = { 1, -2, 3, -4, 5, -6, 7, -8 };
     NativeMemory mem = new NativeMemory(srcArray);
     MemoryRegion mr = new MemoryRegion(mem, 0, mem.getCapacity());
     Memory readOnlyMem = mr.asReadOnlyMemory();
-    readOnlyMem.putLong(0, 10L);
+    boolean catchException = false;
+    try {
+        readOnlyMem.putLong(0, 10L);
+    } catch (ReadOnlyMemoryException e) {
+        catchException = true;
+    }
+
+    assertTrue(catchException);
     mem.freeMemory();
   }
 
