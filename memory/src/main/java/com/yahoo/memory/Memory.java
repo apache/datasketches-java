@@ -478,11 +478,13 @@ public interface Memory {
 
   /**
    * Tells if this memory is read only
+   * @return true if this memory is read only
    */
   boolean isReadOnly();
 
   /**
    * Returns a read-only version of this memory
+   * @return a read-only version of this memory
    */
   Memory asReadOnlyMemory();
 

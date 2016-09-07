@@ -3,7 +3,9 @@ package com.yahoo.memory;
 import java.nio.ByteBuffer;
 
 /**
- * Created by pv1 on 9/6/16.
+ * Read-only version of NativeMemory
+ * 
+ * @author Praveenkumar Venkatesan
  */
 class NativeMemoryR extends NativeMemory {
 
@@ -161,4 +163,3 @@ class NativeMemoryR extends NativeMemory {
         throw new ReadOnlyMemoryException();
     }
 }
-

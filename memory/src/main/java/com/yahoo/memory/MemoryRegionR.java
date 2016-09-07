@@ -1,7 +1,9 @@
 package com.yahoo.memory;
 
 /**
- * Created by pv1 on 9/6/16.
+ * Read-only version of MemoryRegion
+ * 
+ * @author Praveenkumar Venkatesan
  */
 public class MemoryRegionR extends MemoryRegion {
 
