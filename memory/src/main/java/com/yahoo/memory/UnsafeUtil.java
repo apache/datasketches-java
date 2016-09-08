@@ -5,10 +5,10 @@
 
 package com.yahoo.memory;
 
-import sun.misc.Unsafe;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+
+import sun.misc.Unsafe;
 
 /**
  * Provides access to the sun.misc.Unsafe class and its key static fields.

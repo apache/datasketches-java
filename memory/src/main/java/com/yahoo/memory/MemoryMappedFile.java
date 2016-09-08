@@ -5,7 +5,7 @@
 
 package com.yahoo.memory;
 
-import sun.nio.ch.FileChannelImpl;
+import static com.yahoo.memory.UnsafeUtil.unsafe;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -16,7 +16,7 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
-import static com.yahoo.memory.UnsafeUtil.unsafe;
+import sun.nio.ch.FileChannelImpl;
 
 /**
  * MemoryMappedFile class extends NativeMemory and is used to memory map files (including those &gt;
