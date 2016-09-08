@@ -63,7 +63,7 @@ public class PreambleUtilTest {
   @Test
   public void checkInsertExtractPreLongs() {
     Memory onHeapMem = new NativeMemory(new byte[128]);
-    Memory offHeapMem = new AllocMemory(128);
+    NativeMemory offHeapMem = new AllocMemory(128);
     offHeapMem.clear();
     long onHeapOffset = onHeapMem.getCumulativeOffset(0L);
     long offHeapOffset = offHeapMem.getCumulativeOffset(0L);
@@ -74,6 +74,7 @@ public class PreambleUtilTest {
     insertPreLongs(offHeapMem, true, offHeapOffset, by);
     x = extractPreLongs(offHeapMem, true, offHeapOffset) & by;
     assertEquals(x, by);
+    offHeapMem.freeMemory();
   }
   
   @Test
