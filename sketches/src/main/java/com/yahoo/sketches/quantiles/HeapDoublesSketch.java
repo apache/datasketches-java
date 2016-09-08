@@ -56,6 +56,11 @@ final class HeapDoublesSketch extends DoublesSketch {
   double maxValue_;
 
   /**
+   * The total count of items seen.
+   */
+  long n_;
+  
+  /**
    * In the initial on-heap version, equals combinedBuffer_.length.
    * May differ in later versions that grow space more aggressively.
    * Also, in the off-heap version, combinedBuffer_ won't even be a java array,
@@ -285,6 +290,12 @@ final class HeapDoublesSketch extends DoublesSketch {
     return k_;
   }
 
+  @Override
+  public long getN() {
+    return n_;
+  }
+  
+  
   @Override
   public double getMinValue() {
     return minValue_;

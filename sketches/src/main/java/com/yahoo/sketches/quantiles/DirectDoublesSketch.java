@@ -5,8 +5,7 @@
 
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.quantiles.PreambleUtil.MAX_DOUBLE;
-import static com.yahoo.sketches.quantiles.PreambleUtil.MIN_DOUBLE;
+import static com.yahoo.sketches.quantiles.PreambleUtil.*;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.ArrayOfDoublesSerDe;
@@ -24,6 +23,8 @@ public class DirectDoublesSketch extends DoublesSketch {
   private static final short ARRAY_OF_DOUBLES_SERDE_ID = new ArrayOfDoublesSerDe().getId();
   
   private Memory mem_;
+  
+  
   
   //**CONSTRUCTORS**********************************************************  
   private DirectDoublesSketch(int k) {
@@ -84,6 +85,11 @@ public class DirectDoublesSketch extends DoublesSketch {
   }
 
   @Override
+  public long getN() {
+    return mem_.getLong(N_LONG);
+  }
+  
+  @Override
   public double getMinValue() {
     // TODO Auto-generated method stub
     return 0;
@@ -142,7 +148,5 @@ public class DirectDoublesSketch extends DoublesSketch {
     // TODO Auto-generated method stub
     return null;
   }
-  
-
   
 }
