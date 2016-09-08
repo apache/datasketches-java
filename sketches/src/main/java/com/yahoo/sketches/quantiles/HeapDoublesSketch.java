@@ -44,7 +44,6 @@ import com.yahoo.sketches.SketchesArgumentException;
 final class HeapDoublesSketch extends DoublesSketch {
 
   private static final short ARRAY_OF_DOUBLES_SERDE_ID = new ArrayOfDoublesSerDe().getId();
-  
   /**
    * The smallest value ever seen in the stream.
    */
@@ -55,11 +54,6 @@ final class HeapDoublesSketch extends DoublesSketch {
    */
   double maxValue_;
 
-  /**
-   * The total count of items seen.
-   */
-  long n_;
-  
   /**
    * In the initial on-heap version, equals combinedBuffer_.length.
    * May differ in later versions that grow space more aggressively.
@@ -129,12 +123,8 @@ final class HeapDoublesSketch extends DoublesSketch {
     if (memCapBytes < Long.BYTES) {
       throw new SketchesArgumentException("Memory too small: " + memCapBytes);
     }
-    long cumOffset = srcMem.getCumulativeOffset(0L);
-    boolean direct = srcMem.isDirect();
-    
-    
     long pre0 = srcMem.getLong(0);
-    int preambleLongs = extractPreLongs(srcMem, direct, cumOffset);
+    int preambleLongs = extractPreLongs(pre0);
     int serVer = extractSerVer(pre0);
     int familyID = extractFamilyID(pre0);
     int flags = extractFlags(pre0);
@@ -294,12 +284,6 @@ final class HeapDoublesSketch extends DoublesSketch {
     return k_;
   }
 
-  @Override
-  public long getN() {
-    return n_;
-  }
-  
-  
   @Override
   public double getMinValue() {
     return minValue_;

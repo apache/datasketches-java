@@ -8,6 +8,7 @@ package com.yahoo.sketches.quantiles;
 import static com.yahoo.sketches.quantiles.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.quantiles.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.quantiles.PreambleUtil.K_SHORT;
+import static com.yahoo.sketches.quantiles.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.quantiles.PreambleUtil.SER_DE_ID_SHORT;
 import static com.yahoo.sketches.quantiles.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFamilyID;
@@ -26,18 +27,14 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.AllocMemory;
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
-
 public class PreambleUtilTest {
 
   @Test
   public void checkExtracts() {
     long v; int shift;
-//    v = 0XFFL;    shift = PREAMBLE_LONGS_BYTE << 3;
-//    assertEquals(extractPreLongs(v<<shift), (int) v);
-//    assertEquals(extractPreLongs(~(v<<shift)), 0);
+    v = 0XFFL;    shift = PREAMBLE_LONGS_BYTE << 3;
+    assertEquals(extractPreLongs(v<<shift), (int) v);
+    assertEquals(extractPreLongs(~(v<<shift)), 0);
     
     v = 0XFFL;    shift = SER_VER_BYTE << 3;
     assertEquals(extractSerVer(v<<shift), (int) v);
@@ -61,27 +58,11 @@ public class PreambleUtilTest {
   }
   
   @Test
-  public void checkInsertExtractPreLongs() {
-    Memory onHeapMem = new NativeMemory(new byte[128]);
-    Memory offHeapMem = new AllocMemory(128);
-    offHeapMem.clear();
-    long onHeapOffset = onHeapMem.getCumulativeOffset(0L);
-    long offHeapOffset = offHeapMem.getCumulativeOffset(0L);
-    int by = 0XFF;
-    insertPreLongs(onHeapMem, false, onHeapOffset, by);
-    int x = extractPreLongs(onHeapMem, false, onHeapOffset) & by;
-    assertEquals(x, by);
-    insertPreLongs(offHeapMem, true, offHeapOffset, by);
-    x = extractPreLongs(offHeapMem, true, offHeapOffset) & by;
-    assertEquals(x, by);
-  }
-  
-  @Test
   public void checkInserts() {
     long v; int shift;
-//    v = 0XFFL; shift = PREAMBLE_LONGS_BYTE << 3;
-//    assertEquals(insertPreLongs((int)v, ~(v<<shift)), -1L);
-//    assertEquals(insertPreLongs((int)v, 0), v<<shift);
+    v = 0XFFL; shift = PREAMBLE_LONGS_BYTE << 3;
+    assertEquals(insertPreLongs((int)v, ~(v<<shift)), -1L);
+    assertEquals(insertPreLongs((int)v, 0), v<<shift);
     
     v = 0XFFL; shift = SER_VER_BYTE << 3; 
     assertEquals(insertSerVer((int)v, ~(v<<shift)), -1L);

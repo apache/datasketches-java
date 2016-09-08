@@ -174,11 +174,8 @@ public final class ItemsSketch<T> {
     if (memCapBytes < 8) {
       throw new SketchesArgumentException("Memory too small: " + memCapBytes);
     }
-    long cumOffset = srcMem.getCumulativeOffset(0L);
-    boolean direct = srcMem.isDirect();
-    
     final long pre0 = srcMem.getLong(0);
-    final int preambleLongs = extractPreLongs(srcMem, direct, cumOffset);
+    final int preambleLongs = extractPreLongs(pre0);
     final int serVer = extractSerVer(pre0);
     final int familyID = extractFamilyID(pre0);
     final int flags = extractFlags(pre0);
