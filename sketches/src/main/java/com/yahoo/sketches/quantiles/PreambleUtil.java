@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.quantiles;
 
+import static com.yahoo.memory.UnsafeUtil.unsafe;
 import static com.yahoo.sketches.Family.idToFamily;
 import static com.yahoo.sketches.quantiles.Util.LS;
 import static com.yahoo.sketches.quantiles.Util.computeRetainedItems;
@@ -155,9 +156,10 @@ final class PreambleUtil {
   
 //@formatter:on
   
-  static int extractPreLongs(final long pre0) {
-    long mask = 0XFFL;
-    return (int) (pre0 & mask);
+  static int extractPreLongs(Memory mem, boolean direct, long cumOffset) {
+    return (direct) 
+        ? unsafe.getByte(cumOffset + PREAMBLE_LONGS_BYTE)
+        : unsafe.getByte(mem, cumOffset);
   }
   
   static int extractSerVer(final long pre0) {
@@ -195,6 +197,14 @@ final class PreambleUtil {
     return (preLongs & mask) | (~mask & pre0);
   }
 
+  static void insertPreLongs(Memory mem, boolean direct, long cumOffset, int preLongs) {
+    if (direct) {
+      unsafe.putByte(cumOffset, (byte) preLongs);
+    } else {
+      unsafe.putByte(mem, cumOffset, (byte) preLongs);
+    }
+  }
+  
   static long insertSerVer(final int serVer, final long pre0) {
     int shift = SER_VER_BYTE << 3;
     long mask = 0XFFL;

@@ -129,8 +129,12 @@ final class HeapDoublesSketch extends DoublesSketch {
     if (memCapBytes < Long.BYTES) {
       throw new SketchesArgumentException("Memory too small: " + memCapBytes);
     }
+    long cumOffset = srcMem.getCumulativeOffset(0L);
+    boolean direct = srcMem.isDirect();
+    
+    
     long pre0 = srcMem.getLong(0);
-    int preambleLongs = extractPreLongs(pre0);
+    int preambleLongs = extractPreLongs(srcMem, direct, cumOffset);
     int serVer = extractSerVer(pre0);
     int familyID = extractFamilyID(pre0);
     int flags = extractFlags(pre0);

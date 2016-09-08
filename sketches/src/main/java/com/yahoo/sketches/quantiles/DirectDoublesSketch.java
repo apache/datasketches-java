@@ -5,11 +5,13 @@
 
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.quantiles.PreambleUtil.*;
+import static com.yahoo.memory.UnsafeUtil.unsafe;
+import static com.yahoo.sketches.quantiles.PreambleUtil.MAX_DOUBLE;
+import static com.yahoo.sketches.quantiles.PreambleUtil.MIN_DOUBLE;
+import static com.yahoo.sketches.quantiles.PreambleUtil.N_LONG;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.ArrayOfDoublesSerDe;
-
 
 /**
  * Implements the DoublesSketch off-heap.
@@ -23,8 +25,8 @@ public class DirectDoublesSketch extends DoublesSketch {
   private static final short ARRAY_OF_DOUBLES_SERDE_ID = new ArrayOfDoublesSerDe().getId();
   
   private Memory mem_;
-  
-  
+  private long cumOffset_;
+  private boolean direct_;
   
   //**CONSTRUCTORS**********************************************************  
   private DirectDoublesSketch(int k) {
@@ -32,20 +34,11 @@ public class DirectDoublesSketch extends DoublesSketch {
   }
   
   static DirectDoublesSketch getInstance(int k, Memory dstMem) {
-    DirectDoublesSketch dqs = new DirectDoublesSketch(k);
-    dqs.mem_ = dstMem;
-    return dqs;
-  }
-  
-  
-  
-  
-  private void putMinValue(double minValue) {
-    mem_.putDouble(MIN_DOUBLE, minValue);
-  }
-  
-  private void putMaxValue(double maxValue) {
-    mem_.putDouble(MAX_DOUBLE,  maxValue);
+    DirectDoublesSketch dds = new DirectDoublesSketch(k);
+    dds.mem_ = dstMem;
+    dds.cumOffset_ = dds.mem_.getCumulativeOffset(0L);
+    dds.direct_ = dds.mem_.isDirect();
+    return dds;
   }
 
   @Override
@@ -89,16 +82,34 @@ public class DirectDoublesSketch extends DoublesSketch {
     return mem_.getLong(N_LONG);
   }
   
+  void putMinValue(double minValue) {
+    if (direct_) {
+      unsafe.putDouble(cumOffset_ + MIN_DOUBLE, minValue);
+    } else {
+      mem_.putDouble(MIN_DOUBLE, minValue);
+    }
+  }
+  
   @Override
   public double getMinValue() {
-    // TODO Auto-generated method stub
-    return 0;
+    return (direct_)
+        ? unsafe.getDouble(cumOffset_ + MIN_DOUBLE)
+        : mem_.getDouble(MIN_DOUBLE);
   }
 
+  void putMaxValue(double maxValue) {
+    if (direct_) {
+      unsafe.putDouble(cumOffset_ + MAX_DOUBLE, maxValue);
+    } else {
+      mem_.putDouble(MAX_DOUBLE, maxValue);
+    }
+  }
+  
   @Override
   public double getMaxValue() {
-    // TODO Auto-generated method stub
-    return 0;
+    return (direct_) 
+        ? unsafe.getDouble(cumOffset_ + MAX_DOUBLE)
+        : mem_.getDouble(MAX_DOUBLE);
   }
 
   @Override

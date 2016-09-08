@@ -5,6 +5,7 @@
 
 package com.yahoo.memory;
 
+import java.nio.ByteBuffer;
 
 /**
  * The Memory interface defines <i>get</i> and <i>put</i> methods for all Java primitive and 
@@ -48,6 +49,20 @@ public interface Memory {
    * @param lengthBytes the number of bytes to copy
    */
   void copy(long srcOffsetBytes, long dstOffsetBytes, long lengthBytes);
+  
+  /**
+   * Fills all bytes of this Memory region to the given byte value. 
+   * @param value the given byte value
+   */
+  void fill(byte value);
+  
+  /**
+   * Fills a portion of this Memory region to the given byte value. 
+   * @param offsetBytes offset bytes relative to this Memory start
+   * @param lengthBytes the length in bytes
+   * @param value the given byte value
+   */
+  void fill(long offsetBytes, long lengthBytes, byte value);
   
   /**
    * Atomically adds the given value to the integer located at offsetBytes.
@@ -388,20 +403,6 @@ public interface Memory {
   void putShortArray(long offsetBytes, short[] srcArray, int srcOffset, int length);
   
   /**
-   * Fills all bytes of this Memory region to the given byte value. 
-   * @param value the given byte value
-   */
-  void fill(byte value);
-  
-  /**
-   * Fills a portion of this Memory region to the given byte value. 
-   * @param offsetBytes offset bytes relative to this Memory start
-   * @param lengthBytes the length in bytes
-   * @param value the given byte value
-   */
-  void fill(long offsetBytes, long lengthBytes, byte value);
-  
-  /**
    * Sets the bits defined by the bitMask
    * @param offsetBytes offset bytes relative to this Memory start
    * @param bitMask the bits set to one will be set
@@ -409,6 +410,23 @@ public interface Memory {
   void setBits(long offsetBytes, byte bitMask);
   
   //Non-data methods
+  /**
+   * Returns the backing on-heap primitive array if there is one, otherwise returns null
+   * @return the backing on-heap primitive array if there is one, otherwise returns null
+   */
+  Object array();
+  
+  /**
+   * Returns a read-only version of this memory
+   * @return a read-only version of this memory
+   */
+  Memory asReadOnlyMemory();
+  
+  /**
+   * Returns the backing ByteBuffer if there is one, otherwise returns null
+   * @return the backing ByteBuffer if there is one, otherwise returns null
+   */
+  ByteBuffer byteBuffer();
   
   /**
    * Returns the start address of this Memory relative to its parent plus the offset in bytes.
@@ -454,10 +472,34 @@ public interface Memory {
   Object getParent();
   
   /**
-   * Returns true if this Memory is Direct (native) memory.
-   * @return true if this Memory is Direct (native) memory.
+   * Returns true if this Memory is backed by an on-heap primitive array
+   * @return true if this Memory is backed by an on-heap primitive array
+   */
+  boolean hasArray();
+  
+  /**
+   * Returns true if this Memory is backed by a ByteBuffer
+   * @return true if this Memory is backed by a ByteBuffer
+   */ 
+  boolean hasByteBuffer();
+  
+  /**
+   * Returns true if this Memory has a capacity greater than zero
+   * @return true if this Memory has a capacity greater than zero
+   */
+  boolean isAllocated();
+  
+  /**
+   * Returns true if the backing memory is direct (off-heap) memory.
+   * @return true if the backing memory is direct (off-heap) memory.
    */
   boolean isDirect();
+  
+  /**
+   * Returns true if this Memory is read only
+   * @return true if this Memory is read only
+   */
+  boolean isReadOnly();
   
   /**
    * Sets a MemoryRequest
@@ -474,18 +516,5 @@ public interface Memory {
    * @return a formatted hex string in a human readable array
    */
   String toHexString(String header, long offsetBytes, int lengthBytes);
-
-
-  /**
-   * Returns true if this memory is read only
-   * @return true if this memory is read only
-   */
-  boolean isReadOnly();
-
-  /**
-   * Returns a read-only version of this memory
-   * @return a read-only version of this memory
-   */
-  Memory asReadOnlyMemory();
 
 }

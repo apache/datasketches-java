@@ -165,44 +165,17 @@ public class NativeMemory implements Memory {
     }
   }
 
-  /**
-   * Copies bytes from a source Memory to the destination Memory.  If the source and destination
-   * are the same Memory use the single Memory copy method.  Nonetheless, if the source and 
-   * destination Memories are derived from the same underlying base Memory, the source and the 
-   * destination regions should not overlap within the base Memory region. 
-   * This is difficult to check at run time, so be warned that this overlap could cause 
-   * unpredictable results.
-   * @param source the source Memory
-   * @param srcOffsetBytes the source offset
-   * @param destination the destination Memory
-   * @param dstOffsetBytes the destination offset
-   * @param lengthBytes the number of bytes to copy
-   */
-  public static final void copy(final Memory source, final long srcOffsetBytes, 
-      final Memory destination, final long dstOffsetBytes, final long lengthBytes) {
-    
-    assertBounds(srcOffsetBytes, lengthBytes, source.getCapacity());
-    assertBounds(dstOffsetBytes, lengthBytes, destination.getCapacity());
-
-    if (destination.isReadOnly()) {
-      throw new ReadOnlyMemoryException();
-    }
-
-    long srcAdd = source.getCumulativeOffset(srcOffsetBytes);
-    long dstAdd = destination.getCumulativeOffset(dstOffsetBytes);
-    Object srcParent = (source.isDirect()) ? null : source.getNativeMemory().memArray_;
-    Object dstParent = (destination.isDirect()) ? null : destination.getNativeMemory().memArray_;
-    long lenBytes = lengthBytes;
-    
-    while (lenBytes > 0) {
-      long chunkBytes = (lenBytes > UNSAFE_COPY_THRESHOLD) ? UNSAFE_COPY_THRESHOLD : lenBytes;
-      unsafe.copyMemory(srcParent, srcAdd, dstParent, dstAdd, lenBytes);
-      lenBytes -= chunkBytes;
-      srcAdd += chunkBytes;
-      dstAdd += chunkBytes;
-    }
+  @Override
+  public void fill(byte value) {
+    fill(0, capacityBytes_, value);
   }
 
+  @Override
+  public void fill(long offsetBytes, long lengthBytes, byte value) {
+    assertBounds(offsetBytes, lengthBytes, capacityBytes_);
+    unsafe.setMemory(memArray_, getAddress(offsetBytes), lengthBytes, value);
+  }
+  
   @Override
   public int getAndAddInt(long offsetBytes, int delta) {
     assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
@@ -586,17 +559,6 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public void fill(byte value) {
-    fill(0, capacityBytes_, value);
-  }
-
-  @Override
-  public void fill(long offsetBytes, long lengthBytes, byte value) {
-    assertBounds(offsetBytes, lengthBytes, capacityBytes_);
-    unsafe.setMemory(memArray_, getAddress(offsetBytes), lengthBytes, value);
-  }
-
-  @Override
   public void setBits(long offsetBytes, byte bitMask) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
     long unsafeRawAddress = getAddress(offsetBytes);
@@ -605,6 +567,25 @@ public class NativeMemory implements Memory {
   }
 
   //Non-data Memory interface methods
+
+  @Override
+  public Object array() {
+    return memArray_;
+  }
+
+  @Override
+  public Memory asReadOnlyMemory() {
+    NativeMemoryR nmr = new NativeMemoryR(objectBaseOffset_, memArray_, byteBuf_);
+    nmr.nativeRawStartAddress_ = nativeRawStartAddress_;
+    nmr.capacityBytes_ = capacityBytes_;
+    nmr.memReq_ = memReq_;
+    return nmr;
+  }
+  
+  @Override
+  public ByteBuffer byteBuffer() {
+    return byteBuf_;
+  }
 
   @Override
   public final long getAddress(final long offsetBytes) {
@@ -629,28 +610,43 @@ public class NativeMemory implements Memory {
   }
 
   @Override
+  public NativeMemory getNativeMemory() {
+    return this;
+  }
+  
+  @Override
   public Object getParent() {
     return memArray_;
   }
-
-  /**
-   * Returns true if this NativeMemory is accessing native (off-heap) memory directly. 
-   * This includes the case of a Direct ByteBuffer.
-   * @return true if this NativeMemory is accessing native (off-heap) memory directly.
-   */
+  
+  @Override
+  public boolean hasArray() {
+    return (memArray_ != null);
+  }
+  
+  @Override
+  public boolean hasByteBuffer() {
+    return (byteBuf_ != null);
+  }
+  
+  @Override
+  public boolean isAllocated() {
+    return (capacityBytes_ > 0L);
+  }
+  
   @Override
   public boolean isDirect() {
     return nativeRawStartAddress_ > 0;
+  }
+  
+  @Override
+  public boolean isReadOnly() {
+    return false;
   }
 
   @Override
   public void setMemoryRequest(MemoryRequest memReq) {
     memReq_ = memReq;
-  }
-
-  @Override
-  public NativeMemory getNativeMemory() {
-    return this;
   }
   
   @Override
@@ -666,29 +662,50 @@ public class NativeMemory implements Memory {
     } else sb.append("null");
     return toHex(sb.toString(), offsetBytes, lengthBytes);
   }
-
+  
   //NativeMemory only methods
-
+  
   /**
-   * Returns the backing on-heap primitive array if there is one, otherwise returns null
-   * @return the backing on-heap primitive array if there is one, otherwise returns null
+   * Copies bytes from a source Memory to the destination Memory.  If the source and destination
+   * are the same Memory use the single Memory copy method.  Nonetheless, if the source and 
+   * destination Memories are derived from the same underlying base Memory, the source and the 
+   * destination regions should not overlap within the base Memory region. 
+   * This is difficult to check at run time, so be warned that this overlap could cause 
+   * unpredictable results.
+   * @param source the source Memory
+   * @param srcOffsetBytes the source offset
+   * @param destination the destination Memory
+   * @param dstOffsetBytes the destination offset
+   * @param lengthBytes the number of bytes to copy
    */
-  public Object array() {
-    return memArray_;
-  }
+  public static final void copy(final Memory source, final long srcOffsetBytes, 
+      final Memory destination, final long dstOffsetBytes, final long lengthBytes) {
+    
+    assertBounds(srcOffsetBytes, lengthBytes, source.getCapacity());
+    assertBounds(dstOffsetBytes, lengthBytes, destination.getCapacity());
 
-  /**
-   * Returns the backing ByteBuffer if there is one, otherwise returns null
-   * @return the backing ByteBuffer if there is one, otherwise returns null
-   */
-  public ByteBuffer byteBuffer() {
-    return byteBuf_;
-  }
+    if (destination.isReadOnly()) {
+      throw new ReadOnlyMemoryException();
+    }
 
+    long srcAdd = source.getCumulativeOffset(srcOffsetBytes);
+    long dstAdd = destination.getCumulativeOffset(dstOffsetBytes);
+    Object srcParent = (source.isDirect()) ? null : source.getNativeMemory().memArray_;
+    Object dstParent = (destination.isDirect()) ? null : destination.getNativeMemory().memArray_;
+    long lenBytes = lengthBytes;
+    
+    while (lenBytes > 0) {
+      long chunkBytes = (lenBytes > UNSAFE_COPY_THRESHOLD) ? UNSAFE_COPY_THRESHOLD : lenBytes;
+      unsafe.copyMemory(srcParent, srcAdd, dstParent, dstAdd, lenBytes);
+      lenBytes -= chunkBytes;
+      srcAdd += chunkBytes;
+      dstAdd += chunkBytes;
+    }
+  }
+  
   /**
    * This frees this Memory only if it is required. This always sets the capacity to zero
-   * and the reference to MemoryRequest to null, which effectively disables this class. 
-   * However, 
+   * and the reference to MemoryRequest to null, which effectively disables this class.
    * 
    * <p>It is always safe to call this method when you are done with this class.
    */
@@ -700,31 +717,7 @@ public class NativeMemory implements Memory {
     capacityBytes_ = 0L;
     memReq_ = null;
   }
-
-  /**
-   * Returns true if this Memory is backed by an on-heap primitive array
-   * @return true if this Memory is backed by an on-heap primitive array
-   */
-  public boolean hasArray() {
-    return (memArray_ != null);
-  }
-
-  /**
-   * Returns true if this Memory is backed by a ByteBuffer
-   * @return true if this Memory is backed by a ByteBuffer
-   */
-  public boolean hasByteBuffer() {
-    return (byteBuf_ != null);
-  }
-
-  /**
-   * Returns true if the underlying memory of this Memory has a capacity greater than zero
-   * @return true if the underlying memory of this Memory has a capacity greater than zero
-   */
-  public boolean isAllocated() {
-    return (capacityBytes_ > 0L);
-  }
-
+  
   //Restricted methods
 
   /**
@@ -771,17 +764,4 @@ public class NativeMemory implements Memory {
     return (nativeRawStartAddress_ != 0L) && (byteBuf_ == null);
   }
 
-  @Override
-  public boolean isReadOnly() {
-    return false;
-  }
-
-  @Override
-  public Memory asReadOnlyMemory() {
-    NativeMemoryR nmr = new NativeMemoryR(objectBaseOffset_, memArray_, byteBuf_);
-    nmr.nativeRawStartAddress_ = nativeRawStartAddress_;
-    nmr.capacityBytes_ = capacityBytes_;
-    nmr.memReq_ = memReq_;
-    return nmr;
-  }
 }
