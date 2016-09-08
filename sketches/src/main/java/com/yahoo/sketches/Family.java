@@ -91,7 +91,7 @@ public enum Family {
   FREQUENCY(10, "FREQUENCY", 1, 4),
 
   /**
-   * The sampling sampling family of sketches, which is not part of the Theta Sketch Framework
+   * The reservoir sampling family of sketches, which is not part of the Theta Sketch Framework
    */
   RESERVOIR(11, "RESERVOIR", 1, 2);
 
