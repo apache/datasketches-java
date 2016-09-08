@@ -26,6 +26,12 @@ import com.yahoo.sketches.SketchesArgumentException;
  * MAP: Low significance bytes of this <i>long</i> data structure are on the right. However, the
  * multi-byte integers (<i>int</i> and <i>long</i>) are stored in native byte order. The
  * <i>byte</i> values are treated as unsigned.</p>
+ *
+ * <p>The count of items seen is limited to 48 bits (~256 trillion) even though there are adjacent unused preamble
+ * bits. The acceptance probability for an item is a double in the range [0,1), limiting us to 53 bits of randomness
+ * due to details of the IEEE floating point format. To ensure meaningful probabilities as the items seen count
+ * approaches capacity, we intentionally use slightly fewer bits.
+ * </p>
  * 
  * <p>An empty sampling sketch only requires 8 bytes. A non-empty sampling sketch requires 16 bytes of preamble.</p>
  *
@@ -36,7 +42,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  *  0   ||-----SerDe ID----|--Reservoir Size-|  Flags | FamID  | SerVer |   Preamble_Longs   |
  *
  *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
- *  1   ||------Empty------|-------------------Items Seen Count------------------------------|
+ *  1   ||-----(empty)-----|-------------------Items Seen Count------------------------------|
  *  </pre>
  *
  *  @author Jon Malkin
@@ -49,13 +55,13 @@ final class PreambleUtil {
   // ###### DO NOT MESS WITH THIS FROM HERE ...
   // Preamble byte Addresses
   static final int PREAMBLE_LONGS_BYTE   = 0; // Only low 6 bits used
-  static final int LG_RESIZE_FACTOR_BITS = 6; //upper 2 bits. Not used by compact or direct.
+  static final int LG_RESIZE_FACTOR_BITS = 6; // upper 2 bits. Not used by compact or direct.
   static final int SER_VER_BYTE          = 1;
   static final int FAMILY_BYTE           = 2;
   static final int FLAGS_BYTE            = 3;
   static final int RESERVOIR_SIZE_SHORT  = 4;
-  static final int ITEMS_SEEN_COUNT      = 0; // 8 byte aligned
   static final int SERDE_ID_SHORT        = 6;
+  static final int ITEMS_SEEN_BYTE       = 8;
 
   // flag bit masks
   //static final int BIG_ENDIAN_FLAG_MASK = 1;

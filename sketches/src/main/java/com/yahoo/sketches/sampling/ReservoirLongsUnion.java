@@ -9,5 +9,5 @@ package com.yahoo.sketches.sampling;
  *
  * Created by jmalkin on 8/24/16.
  */
-public class ReservoirLongUnion {
+public class ReservoirLongsUnion {
 }

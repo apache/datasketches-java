@@ -28,7 +28,7 @@ import com.yahoo.sketches.Util;
  * @author jmalkin
  * @author langk
  */
-public class ReservoirLongSketch {
+public class ReservoirLongsSketch {
 
     /**
      * The smallest sampling array allocated: 16
@@ -47,7 +47,6 @@ public class ReservoirLongSketch {
     private int reservoirSize_;      // max size of sampling
     private int encodedResSize_;     // compact encoding of reservoir size
     private int currItemsAlloc_;     // currently allocated array size
-    private int currCount_;          // number of items in sampling
     private long itemsSeen_;         // number of items presented to sketch
     private ResizeFactor rf_;        // resize factor
     private long[] data_;            // stored sampling data
@@ -57,10 +56,10 @@ public class ReservoirLongSketch {
      *
      * @param k Maximum size of sampling. Allocated size may be smaller until sampling fills. Unlike many sketches
      *          in this package, this value does <em>not</em> need to be a power of 2.
-     * @return A ReservoirLongSketch initialized with maximum size k and the default resize factor.
+     * @return A ReservoirLongsSketch initialized with maximum size k and the default resize factor.
      */
-    public static ReservoirLongSketch getInstance(final int k) {
-        return new ReservoirLongSketch(k, DEFAULT_RESIZE_FACTOR);
+    public static ReservoirLongsSketch getInstance(final int k) {
+        return new ReservoirLongsSketch(k, DEFAULT_RESIZE_FACTOR);
     }
 
     /**
@@ -69,13 +68,13 @@ public class ReservoirLongSketch {
      * @param k Maximum size of sampling. Allocated size may be smaller until sampling fills. Unlike many sketches
      *          in this package, this value does <em>not</em> need to be a power of 2.
      * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
-     * @return A ReservoirLongSketch initialized with maximum size k and ResizeFactor rf.
+     * @return A ReservoirLongsSketch initialized with maximum size k and ResizeFactor rf.
      */
-    public static ReservoirLongSketch getInstance(final int k, ResizeFactor rf) {
-        return new ReservoirLongSketch(k, rf);
+    public static ReservoirLongsSketch getInstance(final int k, ResizeFactor rf) {
+        return new ReservoirLongsSketch(k, rf);
     }
 
-    private ReservoirLongSketch(final int k, ResizeFactor rf) {
+    private ReservoirLongsSketch(final int k, ResizeFactor rf) {
         // required due to a theorem about lightness during merging
         if (k < 2) {
             throw new IllegalArgumentException("k must be at least 2");
@@ -86,16 +85,50 @@ public class ReservoirLongSketch {
         reservoirSize_ = ReservoirSize.decodeValue(encodedResSize_);
         rf_ = rf;
 
-        currCount_ = 0;
         itemsSeen_ = 0;
 
-        int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize_), "ReservoirLongSketch");
+        int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize_), "ReservoirLongsSketch");
         int initialSize = startingSubMultiple(reservoirSize_, ceilingLgK, MIN_LG_ARR_LONGS);
 
         currItemsAlloc_ = getAdjustedSize(reservoirSize_, initialSize);
         data_ = new long[currItemsAlloc_];
         java.util.Arrays.fill(data_,  0L);
     }
+
+    /**
+     * Creates a fully-populated sketch. Used internally to avoid extraneous array allocation when deserializing.
+     * Uses size of data array to as initial array allocation.
+     * @param data Reservoir data as long[]
+     * @param itemsSeen Number of items presented to the sketch so far
+     * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
+     * @param encodedResSize Compact encoding of reservoir size
+     */
+    private ReservoirLongsSketch(final long[] data, final long itemsSeen,
+                                 final ResizeFactor rf, final int encodedResSize) {
+        int reservoirSize = ReservoirSize.decodeValue(encodedResSize);
+
+        if (data == null) {
+            throw new SketchesArgumentException("Instantiating sketch with null reservoir");
+        }
+        if (reservoirSize < data.length) {
+            throw new SketchesArgumentException("Instantiating sketch with max size less than array length: "
+                    + reservoirSize + " max size, array of length " + data.length);
+        }
+        if ((itemsSeen > reservoirSize && data.length < reservoirSize)
+                || (itemsSeen < reservoirSize && data.length < itemsSeen)) {
+            throw new SketchesArgumentException("Instantiating sketch with under-full reservoir. Items seen: "
+                    + itemsSeen + ", max reservoir size: " + reservoirSize + ", data array length: " + data.length);
+        }
+
+        // TODO: compute target current allocation to validate?
+        encodedResSize_ = encodedResSize;
+        reservoirSize_ = reservoirSize;
+        currItemsAlloc_ = data.length;
+        itemsSeen_ = itemsSeen;
+        rf_ = rf;
+        data_ = data;
+    }
+
 
     /**
      * Returns the sketch's value of <i>k</i>, the maximum number of samples stored in the reservoir. The current
@@ -154,7 +187,7 @@ public class ReservoirLongSketch {
      * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
      * @return a sketch instance of this class
      */
-    public static ReservoirLongSketch getInstance(final Memory srcMem) {
+    public static ReservoirLongsSketch getInstance(final Memory srcMem) {
         final int numPreLongs = getAndCheckPreLongs(srcMem);
         final long pre0 = srcMem.getLong(0);
         final long pre1 = srcMem.getLong(8);
@@ -191,14 +224,14 @@ public class ReservoirLongSketch {
         }
 
         if (isEmpty) {
-            return new ReservoirLongSketch(reservoirSize, rf);
+            return new ReservoirLongsSketch(reservoirSize, rf);
         }
 
         //get full preamble
         final long[] preArr = new long[numPreLongs];
         srcMem.getLongArray(0, preArr, 0, numPreLongs);
 
-        ReservoirLongSketch rls = new ReservoirLongSketch(reservoirSize, rf);
+        ReservoirLongsSketch rls = new ReservoirLongsSketch(reservoirSize, rf);
         rls.itemsSeen_ = extractItemsSeenCount(pre1);  // no mask needed
 
         int preLongBytes = numPreLongs << 3;
@@ -338,7 +371,7 @@ public class ReservoirLongSketch {
     }
 
     public static void main(String[] args) {
-        ReservoirLongSketch rs = ReservoirLongSketch.getInstance(5, ResizeFactor.X8);
+        ReservoirLongsSketch rs = ReservoirLongsSketch.getInstance(5, ResizeFactor.X8);
         rs.setRandomSeed(11L);
 
         /*
@@ -365,7 +398,7 @@ public class ReservoirLongSketch {
         byte[] ser1 = rs.toByteArray();
         Memory mem = new NativeMemory(ser1);
 
-        ReservoirLongSketch rs2 = ReservoirLongSketch.getInstance(mem);
+        ReservoirLongsSketch rs2 = ReservoirLongsSketch.getInstance(mem);
         byte[] ser2 = rs2.toByteArray();
 
         /*

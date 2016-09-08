@@ -20,7 +20,6 @@ import com.yahoo.memory.MemoryRegion;
 import com.yahoo.memory.NativeMemory;
 
 import com.yahoo.sketches.ArrayOfItemsSerDe;
-import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -35,7 +34,7 @@ import com.yahoo.sketches.Util;
  * @author jmalkin
  * @author langk
  */
-public class ReservoirItemSketch<T> {
+public class ReservoirItemsSketch<T> {
 
     /**
      * The smallest sampling array allocated: 16
@@ -62,10 +61,10 @@ public class ReservoirItemSketch<T> {
      * @param k Maximum size of sampling. Allocated size may be smaller until sampling fills. Unlike many sketches
      *          in this package, this value does <em>not</em> need to be a power of 2.
      * @param <T> The type of object held in the reservoir.
-     * @return A ReservoirLongSketch initialized with maximum size k and the default resize factor.
+     * @return A ReservoirLongsSketch initialized with maximum size k and the default resize factor.
      * */
-    public static <T> ReservoirItemSketch getInstance(final int k) {
-        return new ReservoirItemSketch<T>(k, DEFAULT_RESIZE_FACTOR);
+    public static <T> ReservoirItemsSketch getInstance(final int k) {
+        return new ReservoirItemsSketch<T>(k, DEFAULT_RESIZE_FACTOR);
     }
 
     /**
@@ -75,13 +74,13 @@ public class ReservoirItemSketch<T> {
      *          in this package, this value does <em>not</em> need to be a power of 2.
      * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
      * @param <T> The type of object held in the reservoir.
-     * @return A ReservoirLongSketch initialized with maximum size k and resize factor rf.
+     * @return A ReservoirLongsSketch initialized with maximum size k and resize factor rf.
      * */
-    public static <T> ReservoirItemSketch getInstance(final int k, ResizeFactor rf) {
-        return new ReservoirItemSketch<T>(k, rf);
+    public static <T> ReservoirItemsSketch getInstance(final int k, ResizeFactor rf) {
+        return new ReservoirItemsSketch<T>(k, rf);
     }
 
-    private ReservoirItemSketch(final int k, final ResizeFactor rf) {
+    private ReservoirItemsSketch(final int k, final ResizeFactor rf) {
         // required due to a theorem about lightness during merging
         if (k < 2) {
             throw new IllegalArgumentException("k must be at least 2");
@@ -93,7 +92,7 @@ public class ReservoirItemSketch<T> {
 
         itemsSeen_ = 0;
 
-        int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize_), "ReservoirLongSketch");
+        int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize_), "ReservoirLongsSketch");
         int initialSize = startingSubMultiple(reservoirSize_, ceilingLgK, MIN_LG_ARR_LONGS);
 
         currItemsAlloc_ = getAdjustedSize(reservoirSize_, initialSize);
@@ -102,13 +101,14 @@ public class ReservoirItemSketch<T> {
 
     /**
      * Creates a fully-populated sketch. Used internally to avoid extraneous array allocation when deserializing.
+     * Uses size of data array to as initial array allocation.
      * @param data Reservoir data as an <tt>Object[]</tt>
      * @param itemsSeen Number of items presented to the sketch so far
      * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
      * @param encodedResSize Compact encoding of reservoir size
      */
-    private ReservoirItemSketch(final Object[] data, final long itemsSeen,
-                                final ResizeFactor rf, final int encodedResSize) {
+    private ReservoirItemsSketch(final Object[] data, final long itemsSeen,
+                                 final ResizeFactor rf, final int encodedResSize) {
         int reservoirSize = ReservoirSize.decodeValue(encodedResSize);
 
         if (data == null) {
@@ -226,7 +226,7 @@ public class ReservoirItemSketch<T> {
      * @param serDe An instance of ArrayOfItemsSerDe
      * @return a sketch instance of this class
      */
-    public static <T> ReservoirItemSketch getInstance(final Memory srcMem, ArrayOfItemsSerDe<T> serDe) {
+    public static <T> ReservoirItemsSketch getInstance(final Memory srcMem, ArrayOfItemsSerDe<T> serDe) {
         final int numPreLongs = getAndCheckPreLongs(srcMem);
         final long pre0 = srcMem.getLong(0);
         final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(pre0));
@@ -262,7 +262,7 @@ public class ReservoirItemSketch<T> {
         }
 
         if (isEmpty) {
-            return new ReservoirItemSketch<T>(reservoirSize, rf);
+            return new ReservoirItemsSketch<T>(reservoirSize, rf);
         }
 
         //get rest of preamble
@@ -284,7 +284,7 @@ public class ReservoirItemSketch<T> {
         Object[] data = serDe.deserializeFromMemory(
                 new MemoryRegion(srcMem, preLongBytes, srcMem.getCapacity() - preLongBytes), allocatedSize);
 
-        return new ReservoirItemSketch<T>(data, itemsSeen, rf, encodedResSize);
+        return new ReservoirItemsSketch<T>(data, itemsSeen, rf, encodedResSize);
     }
 
 
@@ -421,14 +421,14 @@ public class ReservoirItemSketch<T> {
     /*
     public static void main(String[] args) {
 
-        ReservoirItemSketch<Long> rs = ReservoirItemSketch.<Long> getInstance(5, ResizeFactor.X8);
+        ReservoirItemsSketch<Long> rs = ReservoirItemsSketch.<Long> getInstance(5, ResizeFactor.X8);
         rs.setRandomSeed(11L);
 
         for (long i = 0; i < 3; ++i) {
             rs.update(i);
         }
 
-        //ReservoirItemSketch<Long> rs = ReservoirItemSketch.<Long>getInstance(5);
+        //ReservoirItemsSketch<Long> rs = ReservoirItemsSketch.<Long>getInstance(5);
         //rs.setRandomSeed(11L);
 
         //rs.update(1L);
@@ -463,8 +463,8 @@ public class ReservoirItemSketch<T> {
         byte[] ser1 = rs.toByteArray(serDe);
         Memory mem = new NativeMemory(ser1);
 
-        //ReservoirItemSketch<Long> rs2 = ReservoirItemSketch.<Long>getInstance(mem, serDe);
-        ReservoirLongSketch rs2 = ReservoirLongSketch.getInstance(mem);
+        //ReservoirItemsSketch<Long> rs2 = ReservoirItemsSketch.<Long>getInstance(mem, serDe);
+        ReservoirLongsSketch rs2 = ReservoirLongsSketch.getInstance(mem);
         byte[] ser2 = rs2.toByteArray();
 
         System.out.println("Reconstructed samples:");

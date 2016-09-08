@@ -12,5 +12,11 @@ import com.yahoo.sketches.SketchesArgumentException;
 /**
  * Created by jmalkin on 9/7/16.
  */
-public class ReservoirLongSketchTest {
+public class ReservoirLongsSketchTest {
+    @Test
+    public void checkSerVer() {
+
+
+    }
+
 }
