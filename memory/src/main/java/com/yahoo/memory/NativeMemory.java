@@ -141,9 +141,10 @@ public class NativeMemory implements Memory {
   @Override
   public void clearBits(long offsetBytes, byte bitMask) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
-    int value = unsafe.getByte(memArray_, getAddress(offsetBytes)) & 0XFF;
+    long unsafeRawAddress = getAddress(offsetBytes);
+    int value = unsafe.getByte(memArray_, unsafeRawAddress) & 0XFF;
     value &= ~bitMask;   
-    unsafe.putByte(memArray_, getAddress(offsetBytes), (byte)value);
+    unsafe.putByte(memArray_, unsafeRawAddress, (byte)value);
   }
 
   @Override
@@ -375,32 +376,28 @@ public class NativeMemory implements Memory {
   @Override
   public boolean isAllBitsClear(long offsetBytes, byte bitMask) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
-    long unsafeRawAddress = getAddress(offsetBytes);
-    int value = ~unsafe.getByte(memArray_, unsafeRawAddress) & bitMask & 0XFF; 
+    int value = ~unsafe.getByte(memArray_, getAddress(offsetBytes)) & bitMask & 0XFF; 
     return value == bitMask;
   }
 
   @Override
   public boolean isAllBitsSet(long offsetBytes, byte bitMask) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
-    long unsafeRawAddress = getAddress(offsetBytes);
-    int value = unsafe.getByte(memArray_, unsafeRawAddress) & bitMask & 0XFF;
+    int value = unsafe.getByte(memArray_, getAddress(offsetBytes)) & bitMask & 0XFF;
     return value == bitMask;
   }
 
   @Override
   public boolean isAnyBitsClear(long offsetBytes, byte bitMask) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
-    long unsafeRawAddress = getAddress(offsetBytes);
-    int value = ~unsafe.getByte(memArray_, unsafeRawAddress) & bitMask & 0XFF; 
+    int value = ~unsafe.getByte(memArray_, getAddress(offsetBytes)) & bitMask & 0XFF; 
     return value != 0;
   }
 
   @Override
   public boolean isAnyBitsSet(long offsetBytes, byte bitMask) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
-    long unsafeRawAddress = getAddress(offsetBytes);
-    int value = unsafe.getByte(memArray_, unsafeRawAddress) & bitMask & 0XFF;
+    int value = unsafe.getByte(memArray_, getAddress(offsetBytes)) & bitMask & 0XFF;
     return value != 0;
   }
 
@@ -586,7 +583,14 @@ public class NativeMemory implements Memory {
   public ByteBuffer byteBuffer() {
     return byteBuf_;
   }
-
+  
+  /**
+   * Returns the Unsafe address plus the given offsetBytes. The Unsafe address may be either the
+   * raw native memory address when in direct mode, or the objectBaseOffset if the memArray object 
+   * is not null.
+   * @param offsetBytes the given offset in bytes from the start address of this Memory.
+   * @return the Unsafe address plus the given offsetBytes.
+   */
   @Override
   public final long getAddress(final long offsetBytes) {
     assertBounds(offsetBytes, 0, capacityBytes_);
