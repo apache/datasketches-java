@@ -17,6 +17,7 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertFamilyID;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertFlags;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertN;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertPreLongs;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerDeId;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerVer;
@@ -175,15 +176,14 @@ public final class ItemsSketch<T> {
       throw new SketchesArgumentException("Memory too small: " + memCapBytes);
     }
     long cumOffset = srcMem.getCumulativeOffset(0L);
-    boolean direct = srcMem.isDirect();
+    Object memArr = srcMem.array();
     
-    final long pre0 = srcMem.getLong(0);
-    final int preambleLongs = extractPreLongs(srcMem, direct, cumOffset);
-    final int serVer = extractSerVer(pre0);
-    final int familyID = extractFamilyID(pre0);
-    final int flags = extractFlags(pre0);
-    final int k = extractK(pre0);
-    final short serDeId = extractSerDeId(pre0);
+    final int preambleLongs = extractPreLongs(memArr, cumOffset);
+    final int serVer = extractSerVer(memArr, cumOffset);
+    final int familyID = extractFamilyID(memArr, cumOffset);
+    final int flags = extractFlags(memArr, cumOffset);
+    final int k = extractK(memArr, cumOffset);
+    final short serDeId = extractSerDeId(memArr, cumOffset);
 
     if (serDeId != serDe.getId()) {
       throw new SketchesArgumentException(
@@ -502,24 +502,23 @@ public final class ItemsSketch<T> {
       itemsByteArr = serDe.serializeToByteArray(validItems);
       numOutBytes = preLongs * Long.BYTES + itemsByteArr.length; //includes min and max
     }
-    //build prelong 0
-    long pre0 = 0L;
-    pre0 = insertPreLongs(preLongs, pre0);
-    pre0 = insertSerVer(SER_VER, pre0);
-    pre0 = insertFamilyID(Family.QUANTILES.getID(), pre0);
-    //other flags: bigEndian = false
-    pre0 = insertFlags(flags, pre0);
-    pre0 = insertK(k_, pre0);
-    pre0 = insertSerDeId(serDe.getId(), pre0);
-
     final byte[] outArr = new byte[numOutBytes];
     final Memory memOut = new NativeMemory(outArr);
+    long cumOffset = memOut.getCumulativeOffset(0L);
+    
+    //build prelong 0
+    insertPreLongs(outArr, cumOffset, preLongs);
+    insertSerVer(outArr, cumOffset, SER_VER);
+    insertFamilyID(outArr, cumOffset, Family.QUANTILES.getID());
+    //other flags: bigEndian = false
+    insertFlags(outArr, cumOffset, flags);
+    insertK(outArr, cumOffset, k_);
+    insertSerDeId(outArr, cumOffset, serDe.getId());
+
     if (empty) {
-      memOut.putLong(0, pre0);
       return outArr;
     }
-    memOut.putLong(0, pre0);
-    memOut.putLong(N_LONG, n_);
+    insertN(outArr, cumOffset, n_);
     memOut.putByteArray(preLongs * Long.BYTES, itemsByteArr, 0, itemsByteArr.length);
     return outArr;
   }

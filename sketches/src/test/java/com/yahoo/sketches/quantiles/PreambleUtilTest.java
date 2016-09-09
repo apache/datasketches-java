@@ -5,23 +5,7 @@
 
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.quantiles.PreambleUtil.FAMILY_BYTE;
-import static com.yahoo.sketches.quantiles.PreambleUtil.FLAGS_BYTE;
-import static com.yahoo.sketches.quantiles.PreambleUtil.K_SHORT;
-import static com.yahoo.sketches.quantiles.PreambleUtil.SER_DE_ID_SHORT;
-import static com.yahoo.sketches.quantiles.PreambleUtil.SER_VER_BYTE;
-import static com.yahoo.sketches.quantiles.PreambleUtil.extractFamilyID;
-import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
-import static com.yahoo.sketches.quantiles.PreambleUtil.extractK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.extractPreLongs;
-import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerDeId;
-import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerVer;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertFamilyID;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertFlags;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertPreLongs;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerDeId;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerVer;
+import static com.yahoo.sketches.quantiles.PreambleUtil.*;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
@@ -31,78 +15,128 @@ import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
 
 public class PreambleUtilTest {
-
-  @Test
-  public void checkExtracts() {
-    long v; int shift;
-//    v = 0XFFL;    shift = PREAMBLE_LONGS_BYTE << 3;
-//    assertEquals(extractPreLongs(v<<shift), (int) v);
-//    assertEquals(extractPreLongs(~(v<<shift)), 0);
-    
-    v = 0XFFL;    shift = SER_VER_BYTE << 3;
-    assertEquals(extractSerVer(v<<shift), (int) v);
-    assertEquals(extractSerVer(~(v<<shift)), 0);
-    
-    v = 0XFFL;    shift = FAMILY_BYTE << 3;
-    assertEquals(extractFamilyID(v<<shift), (int) v);
-    assertEquals(extractFamilyID(~(v<<shift)), 0);
-    
-    v = 0XFFL; shift = FLAGS_BYTE << 3;
-    assertEquals(extractFlags(v<<shift), (int) v);
-    assertEquals(extractFlags(~(v<<shift)), 0);
-    
-    v = 0XFFFFL;   shift = K_SHORT << 3;
-    assertEquals(extractK(v<<shift), (int) v);
-    assertEquals(extractK(~(v<<shift)), 0);
-    
-    v = 0XFFFFL;   shift = SER_DE_ID_SHORT << 3;
-    assertEquals(extractSerDeId(v<<shift), (byte) v);
-    assertEquals(extractSerDeId(~(v<<shift)), 0);
-  }
   
   @Test
-  public void checkInsertExtractPreLongs() {
-    Memory onHeapMem = new NativeMemory(new byte[128]);
-    NativeMemory offHeapMem = new AllocMemory(128);
-    offHeapMem.clear();
+  public void checkInsertsAndExtracts() {
+    int bytes = 32;
+    Memory onHeapMem = new NativeMemory(new byte[bytes]);
+    NativeMemory offHeapMem = new AllocMemory(bytes);
+    Object onHeapArr = onHeapMem.array();
+    Object offHeapArr = offHeapMem.array();
     long onHeapOffset = onHeapMem.getCumulativeOffset(0L);
     long offHeapOffset = offHeapMem.getCumulativeOffset(0L);
-    int by = 0XFF;
-    insertPreLongs(onHeapMem, false, onHeapOffset, by);
-    int x = extractPreLongs(onHeapMem, false, onHeapOffset) & by;
-    assertEquals(x, by);
-    insertPreLongs(offHeapMem, true, offHeapOffset, by);
-    x = extractPreLongs(offHeapMem, true, offHeapOffset) & by;
-    assertEquals(x, by);
+    
+    onHeapMem.clear();
+    offHeapMem.clear();
+    
+    //BYTES
+    int v = 0XFF;
+    int onH, offH;
+    
+    //PREAMBLE_LONGS_BYTE;
+    insertPreLongs(onHeapArr, onHeapOffset, v);
+    onH = extractPreLongs(onHeapArr, onHeapOffset);
+    assertEquals(onH, v);
+    
+    insertPreLongs(offHeapArr, offHeapOffset, v);
+    offH = extractPreLongs(offHeapArr, offHeapOffset);
+    assertEquals(offH, v);
+    onHeapMem.clear();
+    offHeapMem.clear();
+    
+    //SER_VER_BYTE;
+    insertSerVer(onHeapArr, onHeapOffset, v);
+    onH = extractSerVer(onHeapArr, onHeapOffset);
+    assertEquals(onH, v);
+    
+    insertSerVer(offHeapArr, offHeapOffset, v);
+    offH = extractSerVer(offHeapArr, offHeapOffset);
+    assertEquals(offH, v);
+    onHeapMem.clear();
+    offHeapMem.clear();
+    
+    //FAMILY_BYTE;
+    insertFamilyID(onHeapArr, onHeapOffset, v);
+    onH = extractFamilyID(onHeapArr, onHeapOffset);
+    assertEquals(onH, v);
+    
+    insertFamilyID(offHeapArr, offHeapOffset, v);
+    offH = extractFamilyID(offHeapArr, offHeapOffset);
+    assertEquals(offH, v);
+    offHeapMem.clear();
+    
+    //FLAGS_BYTE;
+    insertFlags(onHeapArr, onHeapOffset, v);
+    onH = extractFlags(onHeapArr, onHeapOffset);
+    assertEquals(onH, v);
+    
+    insertFlags(offHeapArr, offHeapOffset, v);
+    offH = extractFlags(offHeapArr, offHeapOffset);
+    assertEquals(offH, v);
+    offHeapMem.clear();
+    
+    //SHORTS
+    v = 0XFFFF;
+    
+    //K_SHORT;
+    insertK(onHeapArr, onHeapOffset, v);
+    onH = extractK(onHeapArr, onHeapOffset);
+    assertEquals(onH, v);
+    
+    insertK(offHeapArr, offHeapOffset, v);
+    offH = extractK(offHeapArr, offHeapOffset);
+    assertEquals(offH, v);
+    offHeapMem.clear();
+    
+    //SER_DE_ID_SHORT;
+    insertSerDeId(onHeapArr, onHeapOffset, v);
+    onH = extractSerDeId(onHeapArr, onHeapOffset) & 0XFFFF;
+    assertEquals(onH, v);
+    
+    insertSerDeId(offHeapArr, offHeapOffset, v);
+    offH = extractSerDeId(offHeapArr, offHeapOffset) & 0XFFFF;
+    assertEquals(offH, v);
+    offHeapMem.clear();
+    
+    //LONGS
+    
+    //N_LONG;
+    long onHL, offHL, vL = 1L << 30;
+    insertN(onHeapArr, onHeapOffset, vL);
+    onHL = extractN(onHeapArr, onHeapOffset);
+    assertEquals(onHL, vL);
+    
+    insertN(offHeapArr, offHeapOffset, vL);
+    offHL = extractN(offHeapArr, offHeapOffset);
+    assertEquals(offHL, vL);
+    offHeapMem.clear();
+    
+    //DOUBLES
+    
+    //MIN_DOUBLE;
+    double onHD, offHD, vD = 1L << 40;
+    
+    insertMinDouble(onHeapArr, onHeapOffset, vD);
+    onHD = extractMinDouble(onHeapArr, onHeapOffset);
+    assertEquals(onHD, vD);
+    
+    insertMinDouble(offHeapArr, offHeapOffset, vD);
+    offHD = extractMinDouble(offHeapArr, offHeapOffset);
+    assertEquals(offHD, vD);
+    offHeapMem.clear();
+    
+    //MAX_DOUBLE;
+    insertMaxDouble(onHeapArr, onHeapOffset, vD);
+    onHD = extractMaxDouble(onHeapArr, onHeapOffset);
+    assertEquals(onHD, vD);
+    
+    insertMaxDouble(offHeapArr, offHeapOffset, vD);
+    offHD = extractMaxDouble(offHeapArr, offHeapOffset);
+    assertEquals(offHD, vD);
+    offHeapMem.clear();
+    
+    
     offHeapMem.freeMemory();
-  }
-  
-  @Test
-  public void checkInserts() {
-    long v; int shift;
-//    v = 0XFFL; shift = PREAMBLE_LONGS_BYTE << 3;
-//    assertEquals(insertPreLongs((int)v, ~(v<<shift)), -1L);
-//    assertEquals(insertPreLongs((int)v, 0), v<<shift);
-    
-    v = 0XFFL; shift = SER_VER_BYTE << 3; 
-    assertEquals(insertSerVer((int)v, ~(v<<shift)), -1L);
-    assertEquals(insertSerVer((int)v, 0), v<<shift);
-    
-    v = 0XFFL; shift = FAMILY_BYTE << 3;
-    assertEquals(insertFamilyID((int)v, ~(v<<shift)), -1L);
-    assertEquals(insertFamilyID((int)v, 0), v<<shift);
-    
-    v = 0XFFL; shift = FLAGS_BYTE << 3;
-    assertEquals(insertFlags((int)v, ~(v<<shift)), -1L);
-    assertEquals(insertFlags((int)v, 0), v<<shift);
-    
-    v = 0XFFFFL; shift = K_SHORT << 3;
-    assertEquals(insertK((int)v, ~(v<<shift)), -1L);
-    assertEquals(insertK((int)v, 0), v<<shift);
-    
-    v = 0XFFFFL; shift = SER_DE_ID_SHORT << 3;
-    assertEquals(insertSerDeId((byte)v, ~(v<<shift)), -1L);
-    assertEquals(insertSerDeId((byte)v, 0), v<<shift);
   }
   
   @Test
@@ -132,7 +166,7 @@ public class PreambleUtilTest {
    * @param s value to print 
    */
   static void println(String s) {
-    //System.out.println(s); //disable here
+    //System.err.println(s); //disable here
   }
   
 }
