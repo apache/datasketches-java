@@ -6,19 +6,22 @@
 package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.MAX_DOUBLE;
-import static com.yahoo.sketches.quantiles.PreambleUtil.MIN_DOUBLE;
-import static com.yahoo.sketches.quantiles.PreambleUtil.N_LONG;
 import static com.yahoo.sketches.quantiles.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFamilyID;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.extractMaxDouble;
+import static com.yahoo.sketches.quantiles.PreambleUtil.extractMinDouble;
+import static com.yahoo.sketches.quantiles.PreambleUtil.extractN;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerDeId;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertFamilyID;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertFlags;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertMaxDouble;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertMinDouble;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertN;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertPreLongs;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerDeId;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerVer;
@@ -31,7 +34,6 @@ import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
-import com.yahoo.sketches.ArrayOfDoublesSerDe;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -42,8 +44,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Lee Rhodes
  */
 final class HeapDoublesSketch extends DoublesSketch {
-
-  private static final short ARRAY_OF_DOUBLES_SERDE_ID = new ArrayOfDoublesSerDe().getId();
+  
   /**
    * The smallest value ever seen in the stream.
    */
@@ -54,6 +55,11 @@ final class HeapDoublesSketch extends DoublesSketch {
    */
   double maxValue_;
 
+  /**
+   * The total count of items seen.
+   */
+  long n_;
+  
   /**
    * In the initial on-heap version, equals combinedBuffer_.length.
    * May differ in later versions that grow space more aggressively.
@@ -123,13 +129,15 @@ final class HeapDoublesSketch extends DoublesSketch {
     if (memCapBytes < Long.BYTES) {
       throw new SketchesArgumentException("Memory too small: " + memCapBytes);
     }
-    long pre0 = srcMem.getLong(0);
-    int preambleLongs = extractPreLongs(pre0);
-    int serVer = extractSerVer(pre0);
-    int familyID = extractFamilyID(pre0);
-    int flags = extractFlags(pre0);
-    int k = extractK(pre0);
-    short serDeId = extractSerDeId(pre0);
+    long cumOffset = srcMem.getCumulativeOffset(0L);
+    Object memArr = srcMem.array();
+    
+    int preambleLongs = extractPreLongs(memArr, cumOffset);
+    int serVer = extractSerVer(memArr, cumOffset);
+    int familyID = extractFamilyID(memArr, cumOffset);
+    int flags = extractFlags(memArr, cumOffset);
+    int k = extractK(memArr, cumOffset);
+    short serDeId = extractSerDeId(memArr, cumOffset);
 
     if (serDeId != ARRAY_OF_DOUBLES_SERDE_ID) {
       throw new SketchesArgumentException(
@@ -145,8 +153,7 @@ final class HeapDoublesSketch extends DoublesSketch {
     if (empty) return hqs;
 
     //Not empty, must have valid preamble + min, max
-
-    long n = srcMem.getLong(PreambleUtil.N_LONG);
+    long n = extractN(memArr, cumOffset);
     int retainedItems = computeRetainedItems(k, n);
     Util.checkMemCapacity(retainedItems, memCapBytes);
 
@@ -158,9 +165,9 @@ final class HeapDoublesSketch extends DoublesSketch {
     hqs.combinedBuffer_ = new double[hqs.combinedBufferItemCapacity_];
 
     int srcMemItemsOffsetBytes = preambleLongs * Long.BYTES;
-    hqs.minValue_ = srcMem.getDouble(srcMemItemsOffsetBytes);
+    hqs.minValue_ = extractMinDouble(memArr, cumOffset);
     srcMemItemsOffsetBytes += Double.BYTES;
-    hqs.maxValue_ = srcMem.getDouble(srcMemItemsOffsetBytes);
+    hqs.maxValue_ = extractMaxDouble(memArr, cumOffset);
     srcMemItemsOffsetBytes += Double.BYTES;
 
     //load Base Buffer
@@ -285,6 +292,12 @@ final class HeapDoublesSketch extends DoublesSketch {
   }
 
   @Override
+  public long getN() {
+    return n_;
+  }
+  
+  
+  @Override
   public double getMinValue() {
     return minValue_;
   }
@@ -320,27 +333,27 @@ final class HeapDoublesSketch extends DoublesSketch {
       arrLongs = preLongs + 2 + Util.computeRetainedItems(k_, n_); // 2 for min and max values
       flags = 0;
     }
-    //build prelong 0
-    long pre0 = 0L;
-    pre0 = insertPreLongs(preLongs, pre0);
-    pre0 = insertSerVer(SER_VER, pre0);
-    pre0 = insertFamilyID(Family.QUANTILES.getID(), pre0);
-    //other flags: bigEndian = false
-    pre0 = insertFlags(flags, pre0);
-    pre0 = insertK(k_, pre0);
-    pre0 = insertSerDeId(ARRAY_OF_DOUBLES_SERDE_ID, pre0);
-    
     byte[] outArr = new byte[arrLongs << 3];
     Memory memOut = new NativeMemory(outArr);
+    long cumOffset = memOut.getCumulativeOffset(0L);
+    
+    //build prelong 0
+    insertPreLongs(outArr, cumOffset, preLongs);
+    insertSerVer(outArr, cumOffset, SER_VER);
+    insertFamilyID(outArr, cumOffset, Family.QUANTILES.getID());
+    //other flags: bigEndian = false
+    insertFlags(outArr, cumOffset, flags);
+    insertK(outArr, cumOffset, k_);
+    insertSerDeId(outArr, cumOffset, ARRAY_OF_DOUBLES_SERDE_ID);
+
     if (empty) {
-      memOut.putLong(0, pre0);
       return outArr;
     }
     //insert preamble + min and max
-    memOut.putLong(0, pre0);
-    memOut.putLong(N_LONG, n_);
-    memOut.putDouble(MIN_DOUBLE, minValue_);
-    memOut.putDouble(MAX_DOUBLE, maxValue_);
+    insertN(outArr, cumOffset, n_);
+    insertMinDouble(outArr, cumOffset, minValue_);
+    insertMaxDouble(outArr, cumOffset, maxValue_);
+    
     //insert BaseBuffer
     int bbItems = computeBaseBufferItems(k_, n_);
     int offsetBytes = (preLongs + 2) << 3;

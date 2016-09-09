@@ -8,6 +8,7 @@ package com.yahoo.sketches.quantiles;
 import java.util.Random;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.sketches.ArrayOfDoublesSerDe;
 import com.yahoo.sketches.SketchesArgumentException;
 
 
@@ -114,6 +115,8 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
  */
 public abstract class DoublesSketch {
   
+  static final short ARRAY_OF_DOUBLES_SERDE_ID = new ArrayOfDoublesSerDe().getId();
+  
   /**
    * Parameter that controls space usage of sketch and accuracy of estimates.
    */
@@ -122,7 +125,7 @@ public abstract class DoublesSketch {
   /**
    * Total number of data items in the stream so far. (Uniqueness plays no role in these sketches).
    */
-  protected long n_;
+  //protected long n_;
   
   /**
    * Setting the seed makes the results of the sketch deterministic if the input values are
@@ -139,7 +142,6 @@ public abstract class DoublesSketch {
   DoublesSketch(int k) {
     Util.checkK(k);
     k_ = k;
-    n_ = 0;
   }
   
   /**
@@ -281,9 +283,7 @@ public abstract class DoublesSketch {
    * Returns the length of the input stream so far.
    * @return the length of the input stream so far
    */
-  public long getN() {
-    return n_;
-  }
+  public abstract long getN();
   
   /**
    * Get the rank error normalized as a fraction between zero and one. 
@@ -323,7 +323,7 @@ public abstract class DoublesSketch {
    * @return true if this sketch is empty
    */
   public boolean isEmpty() {
-   return n_ == 0; 
+   return getN() == 0; 
   }
   
   /**
@@ -437,7 +437,7 @@ public abstract class DoublesSketch {
    * @return the bit pattern for valid log levels
    */
   long getBitPattern() {
-    return Util.computeBitPattern(k_, n_);
+    return Util.computeBitPattern(k_, getN());
   }
 
   /**
