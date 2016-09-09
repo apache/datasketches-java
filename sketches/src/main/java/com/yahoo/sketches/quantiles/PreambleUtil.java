@@ -123,18 +123,17 @@ final class PreambleUtil {
     boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
     int k = mem.getShort(K_SHORT);
     short serDeId = mem.getShort(SER_DE_ID_SHORT);
-    boolean dblSkInstance = serDeId == DoublesSketch.ARRAY_OF_DOUBLES_SERDE_ID;
+    
     long n;
-    double minDouble = Double.POSITIVE_INFINITY;
-    double maxDouble = Double.NEGATIVE_INFINITY;
+    double minDouble, maxDouble;
     if (preLongs == 1) {
       n = 0;
+      minDouble = Double.POSITIVE_INFINITY;
+      maxDouble = Double.POSITIVE_INFINITY;
     } else { // preLongs == 2
       n = mem.getLong(N_LONG);
-      if (dblSkInstance) {
-        minDouble = mem.getDouble(MIN_DOUBLE);
-        maxDouble = mem.getDouble(MAX_DOUBLE);
-      }
+      minDouble = mem.getDouble(MIN_DOUBLE);
+      maxDouble = mem.getDouble(MAX_DOUBLE);
     } 
     
     StringBuilder sb = new StringBuilder();
@@ -148,15 +147,13 @@ final class PreambleUtil {
     sb.append("  (Native Byte Order)         : ").append(nativeOrder).append(LS);
     sb.append("  EMPTY                       : ").append(empty).append(LS);
     sb.append("Bytes  4-5  : K               : ").append(k).append(LS);
-    sb.append("Bytes  6-7  : SerDeId         : ").append(serDeId).append(LS);
+    sb.append("Byte  6-7: SerDeId            : ").append(serDeId).append(LS);
     if (preLongs == 1) {
       sb.append(" --ABSENT, ASSUMED:").append(LS);
     }
     sb.append("Bytes  8-15 : N                : ").append(n).append(LS);
-    if (dblSkInstance) {
-      sb.append("Bytes 16-23 : Min Double       : ").append(minDouble).append(LS);
-      sb.append("Bytes 24-31 : Max Double       : ").append(maxDouble).append(LS);
-    }
+    sb.append("MinDouble                      : ").append(minDouble).append(LS);
+    sb.append("MaxDouble                      : ").append(maxDouble).append(LS);
     sb.append("Retained Items                 : ").append(computeRetainedItems(k, n)).append(LS);
     sb.append("Total Bytes                    : ").append(mem.getCapacity()).append(LS);
     sb.append("### END SKETCH PREAMBLE SUMMARY").append(LS);

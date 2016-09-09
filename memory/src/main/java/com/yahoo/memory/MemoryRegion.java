@@ -441,6 +441,12 @@ public class MemoryRegion implements Memory {
     return mem_.byteBuffer();
   }
   
+  /**
+   * Returns the start address of this Memory relative to its parent plus the given offsetBytes.
+   * @param offsetBytes the given offset in bytes from the start address of this Memory
+   * relative to its parent.
+   * @return the start address of this Memory relative to its parent plus the offset in bytes.
+   */
   @Override
   public final long getAddress(final long offsetBytes) {
     return memOffsetBytes_ + offsetBytes;

@@ -63,6 +63,7 @@ public class PreambleUtilTest {
     insertFamilyID(offHeapArr, offHeapOffset, v);
     offH = extractFamilyID(offHeapArr, offHeapOffset);
     assertEquals(offH, v);
+    onHeapMem.clear();
     offHeapMem.clear();
     
     //FLAGS_BYTE;
@@ -73,6 +74,7 @@ public class PreambleUtilTest {
     insertFlags(offHeapArr, offHeapOffset, v);
     offH = extractFlags(offHeapArr, offHeapOffset);
     assertEquals(offH, v);
+    onHeapMem.clear();
     offHeapMem.clear();
     
     //SHORTS
@@ -86,6 +88,7 @@ public class PreambleUtilTest {
     insertK(offHeapArr, offHeapOffset, v);
     offH = extractK(offHeapArr, offHeapOffset);
     assertEquals(offH, v);
+    onHeapMem.clear();
     offHeapMem.clear();
     
     //SER_DE_ID_SHORT;
@@ -96,6 +99,7 @@ public class PreambleUtilTest {
     insertSerDeId(offHeapArr, offHeapOffset, v);
     offH = extractSerDeId(offHeapArr, offHeapOffset) & 0XFFFF;
     assertEquals(offH, v);
+    onHeapMem.clear();
     offHeapMem.clear();
     
     //LONGS
@@ -109,6 +113,7 @@ public class PreambleUtilTest {
     insertN(offHeapArr, offHeapOffset, vL);
     offHL = extractN(offHeapArr, offHeapOffset);
     assertEquals(offHL, vL);
+    onHeapMem.clear();
     offHeapMem.clear();
     
     //DOUBLES
@@ -123,6 +128,7 @@ public class PreambleUtilTest {
     insertMinDouble(offHeapArr, offHeapOffset, vD);
     offHD = extractMinDouble(offHeapArr, offHeapOffset);
     assertEquals(offHD, vD);
+    onHeapMem.clear();
     offHeapMem.clear();
     
     //MAX_DOUBLE;
@@ -133,6 +139,7 @@ public class PreambleUtilTest {
     insertMaxDouble(offHeapArr, offHeapOffset, vD);
     offHD = extractMaxDouble(offHeapArr, offHeapOffset);
     assertEquals(offHD, vD);
+    onHeapMem.clear();
     offHeapMem.clear();
     
     

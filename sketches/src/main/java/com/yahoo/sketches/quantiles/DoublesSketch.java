@@ -121,7 +121,12 @@ public abstract class DoublesSketch {
    * Parameter that controls space usage of sketch and accuracy of estimates.
    */
   protected final int k_;
-
+  
+  /**
+   * Total number of data items in the stream so far. (Uniqueness plays no role in these sketches).
+   */
+  //protected long n_;
+  
   /**
    * Setting the seed makes the results of the sketch deterministic if the input values are
    * received in exactly the same order. This is only useful when performing test comparisons,
