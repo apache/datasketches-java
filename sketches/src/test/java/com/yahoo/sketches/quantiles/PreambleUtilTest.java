@@ -166,7 +166,7 @@ public class PreambleUtilTest {
    * @param s value to print 
    */
   static void println(String s) {
-    //System.err.println(s); //disable here
+    //System.out.println(s); //disable here
   }
   
 }

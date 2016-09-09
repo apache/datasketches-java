@@ -34,7 +34,6 @@ import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
-import com.yahoo.sketches.ArrayOfDoublesSerDe;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -45,8 +44,6 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Lee Rhodes
  */
 final class HeapDoublesSketch extends DoublesSketch {
-
-  private static final short ARRAY_OF_DOUBLES_SERDE_ID = new ArrayOfDoublesSerDe().getId();
   
   /**
    * The smallest value ever seen in the stream.

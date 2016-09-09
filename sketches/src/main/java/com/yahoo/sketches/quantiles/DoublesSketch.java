@@ -8,6 +8,7 @@ package com.yahoo.sketches.quantiles;
 import java.util.Random;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.sketches.ArrayOfDoublesSerDe;
 import com.yahoo.sketches.SketchesArgumentException;
 
 
@@ -114,16 +115,13 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
  */
 public abstract class DoublesSketch {
   
+  static final short ARRAY_OF_DOUBLES_SERDE_ID = new ArrayOfDoublesSerDe().getId();
+  
   /**
    * Parameter that controls space usage of sketch and accuracy of estimates.
    */
   protected final int k_;
-  
-  /**
-   * Total number of data items in the stream so far. (Uniqueness plays no role in these sketches).
-   */
-  //protected long n_;
-  
+
   /**
    * Setting the seed makes the results of the sketch deterministic if the input values are
    * received in exactly the same order. This is only useful when performing test comparisons,

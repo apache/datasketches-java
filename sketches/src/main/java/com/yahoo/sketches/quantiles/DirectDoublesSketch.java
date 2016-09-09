@@ -6,12 +6,11 @@
 package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.memory.UnsafeUtil.unsafe;
-import static com.yahoo.sketches.quantiles.PreambleUtil.MAX_DOUBLE;
-import static com.yahoo.sketches.quantiles.PreambleUtil.MIN_DOUBLE;
-import static com.yahoo.sketches.quantiles.PreambleUtil.N_LONG;
+import static com.yahoo.sketches.quantiles.PreambleUtil.*;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.sketches.ArrayOfDoublesSerDe;
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * Implements the DoublesSketch off-heap.
@@ -22,25 +21,49 @@ import com.yahoo.sketches.ArrayOfDoublesSerDe;
 @SuppressWarnings("unused")
 public class DirectDoublesSketch extends DoublesSketch {
 
-  private static final short ARRAY_OF_DOUBLES_SERDE_ID = new ArrayOfDoublesSerDe().getId();
-  
   private Memory mem_;
-  private long cumOffset_;
-  private boolean direct_;
+  private long cumOffset_; //
+  private Object memArr_;
+  
   
   //**CONSTRUCTORS**********************************************************  
   private DirectDoublesSketch(int k) {
     super(k);
   }
   
-  static DirectDoublesSketch getInstance(int k, Memory dstMem) {
+  static DirectDoublesSketch newInstance(int k, Memory dstMem) {
     DirectDoublesSketch dds = new DirectDoublesSketch(k);
+    long memCap = dstMem.getCapacity();
+    long minCap = 32 + (k << 3);
+    if (memCap < minCap) {
+      throw new SketchesArgumentException(
+          "Destination Memory too small: " + memCap + " < " + minCap);
+    }
+    long cumOffset = dstMem.getCumulativeOffset(0L);
+    Object memArr = dstMem.array();
+    
+    //init dstMem
+    insertPreLongs(memArr, cumOffset, 2);
+    insertSerVer(memArr, cumOffset, SER_VER);
+    insertFamilyID(memArr, cumOffset, Family.QUANTILES.getID());
+    int flags = EMPTY_FLAG_MASK; //empty
+    insertFlags(memArr, cumOffset, flags);
+    insertK(memArr, cumOffset, k);
+    insertSerDeId(memArr, cumOffset, DoublesSketch.ARRAY_OF_DOUBLES_SERDE_ID);
+    insertN(memArr, cumOffset, 0L);
+    insertMinDouble(memArr, cumOffset, Double.POSITIVE_INFINITY);
+    insertMaxDouble(memArr, cumOffset, Double.NEGATIVE_INFINITY);
+    
     dds.mem_ = dstMem;
     dds.cumOffset_ = dds.mem_.getCumulativeOffset(0L);
-    dds.direct_ = dds.mem_.isDirect();
+    dds.memArr_ = dds.mem_.array();
     return dds;
   }
 
+  static DirectDoublesSketch wrapInstance(Memory srcMem) {
+    return null;
+  }
+  
   @Override
   public void update(double dataItem) {
     // TODO Auto-generated method stub
@@ -73,43 +96,30 @@ public class DirectDoublesSketch extends DoublesSketch {
 
   @Override
   public int getK() {
-    // TODO Auto-generated method stub
-    return 0;
+    return extractK(memArr_, cumOffset_);
   }
 
   @Override
   public long getN() {
-    return mem_.getLong(N_LONG);
+    return extractN(memArr_, cumOffset_);
   }
   
   void putMinValue(double minValue) {
-    if (direct_) {
-      unsafe.putDouble(cumOffset_ + MIN_DOUBLE, minValue);
-    } else {
-      mem_.putDouble(MIN_DOUBLE, minValue);
-    }
+    insertMinDouble(memArr_, cumOffset_, minValue);
   }
   
   @Override
   public double getMinValue() {
-    return (direct_)
-        ? unsafe.getDouble(cumOffset_ + MIN_DOUBLE)
-        : mem_.getDouble(MIN_DOUBLE);
+    return extractMinDouble(memArr_, cumOffset_);
   }
 
   void putMaxValue(double maxValue) {
-    if (direct_) {
-      unsafe.putDouble(cumOffset_ + MAX_DOUBLE, maxValue);
-    } else {
-      mem_.putDouble(MAX_DOUBLE, maxValue);
-    }
+    insertMaxDouble(memArr_, cumOffset_, maxValue);
   }
   
   @Override
   public double getMaxValue() {
-    return (direct_) 
-        ? unsafe.getDouble(cumOffset_ + MAX_DOUBLE)
-        : mem_.getDouble(MAX_DOUBLE);
+    return extractMaxDouble(memArr_, cumOffset_);
   }
 
   @Override
