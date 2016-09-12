@@ -119,7 +119,7 @@ final class PreambleUtil {
     //boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
     boolean isEmpty = (flags & EMPTY_FLAG_MASK) > 0;
 
-    int encResSize = extractReservoirSize(pre0);
+    short encResSize = extractReservoirSize(pre0);
     int resSize = ReservoirSize.decodeValue(encResSize);
     long itemsSeen = isEmpty ? 0 : extractItemsSeenCount(pre1);
     int serDeId = extractSerDeId(pre0);
@@ -182,10 +182,10 @@ final class PreambleUtil {
     return (int) ((long0 >>> shift) & mask);
   }
 
-  static int extractReservoirSize(final long long0) {
+  static short extractReservoirSize(final long long0) {
     int shift = RESERVOIR_SIZE_SHORT << 3;
     long mask = 0XFFFFL;
-    return (int) ((long0 >>> shift) & mask);
+    return (short) ((long0 >>> shift) & mask);
   }
 
   static long extractItemsSeenCount(final long long1) {
@@ -228,7 +228,7 @@ final class PreambleUtil {
     return ((flags & mask) << shift) | (~(mask << shift) & long0);
   }
 
-  static long insertReservoirSize(final int reservoirSize, final long long0) {
+  static long insertReservoirSize(final short reservoirSize, final long long0) {
     int shift = RESERVOIR_SIZE_SHORT << 3;
     long mask = 0XFFFFL;
     return ((reservoirSize & mask) << shift) | (~(mask << shift) & long0);

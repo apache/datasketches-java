@@ -15,31 +15,31 @@ import com.yahoo.sketches.SketchesArgumentException;
 public class ReservoirSizeTest {
     @Test
     public void checkComputeSize() {
-        int enc;
+        short enc;
         enc = ReservoirSize.computeSize(1);
-        assertEquals(enc, 0x0000);
+        assertEquals(enc, (short) 0x0000);
 
         enc = ReservoirSize.computeSize(128);
-        assertEquals(enc, 0x3800);
+        assertEquals(enc, (short) 0x3800);
 
         enc = ReservoirSize.computeSize(200);
-        assertEquals(enc, 0x3C80);
+        assertEquals(enc, (short) 0x3C80);
 
         enc = ReservoirSize.computeSize(4097);
-        assertEquals(enc, 0x6001);
+        assertEquals(enc, (short) 0x6001);
 
         enc = ReservoirSize.computeSize(5000);
-        assertEquals(enc, 0x61C5); // NOTE: 0x61C4 is exact but Java seems to have numerical precision issues
+        assertEquals(enc, (short) 0x61C5); // NOTE: 0x61C4 is exact but Java seems to have numerical precision issues
 
         enc = ReservoirSize.computeSize(25000);
-        assertEquals(enc, 0x7436);
+        assertEquals(enc, (short) 0x7436);
 
         enc = ReservoirSize.computeSize(32767);
-        assertEquals(enc, 0x7800); // Encoding cannot represent 32767 with an exponent of 14, so need to go to the
-                                   // next power of 2
+        assertEquals(enc, (short) 0x7800); // Encoding cannot represent 32767 with an exponent of 14, so
+                                           // need to go to the next power of 2
 
         enc = ReservoirSize.computeSize(95342);
-        assertEquals(enc, 0x83A4);
+        assertEquals(enc, (short) 0x83A4);
 
         try {
             ReservoirSize.computeSize(-1);
@@ -53,32 +53,32 @@ public class ReservoirSizeTest {
     public void checkDeviceValue() {
         int dec;
 
-        dec = ReservoirSize.decodeValue(0x0000);
+        dec = ReservoirSize.decodeValue((short) 0x0000);
         assertEquals(dec, 1);
 
-        dec = ReservoirSize.decodeValue(0x3800);
+        dec = ReservoirSize.decodeValue((short) 0x3800);
         assertEquals(dec, 128);
 
-        dec = ReservoirSize.decodeValue(0x3C80);
+        dec = ReservoirSize.decodeValue((short) 0x3C80);
         assertEquals(dec, 200);
 
-        dec = ReservoirSize.decodeValue(0x6001);
+        dec = ReservoirSize.decodeValue((short) 0x6001);
         assertEquals(dec, 4098);
 
-        dec = ReservoirSize.decodeValue(0x61C4);
+        dec = ReservoirSize.decodeValue((short) 0x61C4);
         assertEquals(dec, 5000);
 
-        dec = ReservoirSize.decodeValue(0x7435);
+        dec = ReservoirSize.decodeValue((short) 0x7435);
         assertEquals(dec, 25000);
 
-        dec = ReservoirSize.decodeValue(0x83A4);
+        dec = ReservoirSize.decodeValue((short) 0x83A4);
         assertEquals(dec, 95360);
 
         try {
-            ReservoirSize.decodeValue(-1);
+            ReservoirSize.decodeValue((short) -1);
             fail();
         } catch (SketchesArgumentException e) {
-            assertTrue(e.getMessage().equals("Value to decode must fit in an unsigned short: -1"));
+            assertTrue(e.getMessage().startsWith("Maximum valid encoded value is "));
         }
     }
 
@@ -89,7 +89,7 @@ public class ReservoirSizeTest {
         // This condition should always hold regardless of the random seed used.
         final double eps = 1.0 / ReservoirSize.BINS_PER_OCTAVE;
         final int maxValue = 2146959359; // based on MAX_ABS_VALUE
-        final int numIters = 1000000;
+        final int numIters = 10000;
 
         for (int i = 0; i < numIters; ++i) {
             int input = (int) (Math.random() * maxValue) + 1;

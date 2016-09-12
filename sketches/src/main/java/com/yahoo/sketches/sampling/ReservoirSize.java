@@ -19,7 +19,7 @@ import com.yahoo.sketches.Util;
  *
  * @author jmalkin
  */
-public class ReservoirSize {
+final class ReservoirSize {
     /**
      * Number of bins per power of two.
      */
@@ -34,30 +34,31 @@ public class ReservoirSize {
     /**
      * Values for encoding/decoding
      */
-    private static final int EXPONENT_MASK  = 0X1F;
+    private static final int EXPONENT_MASK = 0x1F;
     private static final int EXPONENT_SHIFT = 11;
-    private static final int INDEX_MASK     = 0X07FF;
-    private static final int OUTPUT_MASK    = 0XFFFF;
-    private static final int MAX_ABS_VALUE  = 2146959360;
-    private static final int MAX_ENC_VALUE  = 0XF7FF; // p=30, i=2047
+    private static final int INDEX_MASK = 0x07FF;
+    private static final int OUTPUT_MASK = 0xFFFF;
+    private static final int MAX_ABS_VALUE = 2146959360;
+    private static final int MAX_ENC_VALUE = 0xF7FF; // p=30, i=2047
 
     /**
      * Given target reservoir size k, computes the smallest representable reservoir size that can hold k entries and
-     * returns it in a 16-bit fixed-point format.
+     * returns it in a 16-bit fixed-point format as a <tt>short</tt>.
+     *
      * @param k target reservoir size
      * @return reservoir size as 16-bit encoded value
      */
-    public static int computeSize(final int k) throws SketchesArgumentException {
+    static short computeSize(final int k) throws SketchesArgumentException {
         if (k < 1 || k > MAX_ABS_VALUE) {
             throw new SketchesArgumentException("Can only encode strictly positive sketch sizes less than "
-                    + MAX_ABS_VALUE + ": "  + k);
+                    + MAX_ABS_VALUE + ", found: " + k);
         }
 
         int p = Util.toLog2(Util.floorPowerOf2(k), "computeSize: p");
 
         // because of floor() + 1 below, need to check power of 2 here
         if (Util.isPowerOf2(k)) {
-            return ((p & EXPONENT_MASK) << EXPONENT_SHIFT) & OUTPUT_MASK;
+            return (short) (((p & EXPONENT_MASK) << EXPONENT_SHIFT) & OUTPUT_MASK);
         }
 
         // mantissa is scalar in range [1,2); can reconstruct k as m * 2^p
@@ -71,20 +72,24 @@ public class ReservoirSize {
         // E.g., if BPO = 2048 then for k=32767 we have p=14. Except that 32767 > decodeValue(p=14, i=2047)=32756,
         // so we encode and return p+1
         if (i == BINS_PER_OCTAVE) {
-            return (((p + 1) & EXPONENT_MASK) << EXPONENT_SHIFT) & OUTPUT_MASK;
+            return (short) ((((p + 1) & EXPONENT_MASK) << EXPONENT_SHIFT) & OUTPUT_MASK);
         }
 
-        return ((p & EXPONENT_MASK) << EXPONENT_SHIFT) | (i & INDEX_MASK) & OUTPUT_MASK;
+        return (short) (((p & EXPONENT_MASK) << EXPONENT_SHIFT) | (i & INDEX_MASK) & OUTPUT_MASK);
     }
 
     /**
      * Decodes the 16-bit reservoir size value into an int.
-     * @param value Encoded 16-bit value
-     * @return int represented by value
+     *
+     * @param encodedSize Encoded 16-bit value
+     * @return int represented by <tt>encodedSize</tt>
      */
-    public static int decodeValue(final int value) {
-        if (value < 0 || value > MAX_ENC_VALUE) {
-            throw new SketchesArgumentException("Value to decode must fit in an unsigned short: " + value);
+    static int decodeValue(final short encodedSize) {
+        int value = encodedSize & 0xFFFF;
+
+        if (value > MAX_ENC_VALUE) {
+            throw new SketchesArgumentException("Maximum valid encoded value is " + Integer.toHexString(MAX_ENC_VALUE)
+                    + ", found: " + value);
         }
 
         int p = (value >> EXPONENT_SHIFT) & EXPONENT_MASK;
