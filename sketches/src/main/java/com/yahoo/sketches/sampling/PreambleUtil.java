@@ -6,6 +6,7 @@
 package com.yahoo.sketches.sampling;
 
 import static com.yahoo.sketches.Util.LS;
+import static com.yahoo.sketches.Util.TAB;
 import static com.yahoo.sketches.Util.zeroPad;
 
 import java.nio.ByteOrder;
@@ -136,15 +137,14 @@ final class PreambleUtil {
       .append("  (Native Byte Order)         : ").append(nativeOrder).append(LS)
       //.append("  READ_ONLY                   : ").append(readOnly).append(LS)
       .append("  EMPTY                       : ").append(isEmpty).append(LS)
-      //.append("  COMPACT                     : ").append(compact).append(LS)
-      //.append("  ORDERED                     : ").append(ordered).append(LS)
-      .append("Bytes 4-5   : Reservoir Size  : ").append(Integer.toHexString(resSize)).append(LS)
+      .append("Bytes 4-5   : Reservoir Size  : ").append(resSize).append(TAB + "(")
+            .append(Integer.toHexString(encResSize)).append(")").append(LS)
       .append("Bytes 6-7   : SerDe ID        : ").append(serDeId).append(LS);
     if (!isEmpty) {
       sb.append("Bytes 8-13  : Items Seen      : ").append(itemsSeen).append(LS);
     }
 
-    sb.append("Preamble Bytes                : ").append(preLongs * 8).append(LS);
+    sb.append("Preamble Bytes                : ").append(preLongs << 3).append(LS);
     //sb.append(  "Data Bytes                    : ").append(curCount * 8).append(LS);
     //sb.append(  "TOTAL Sketch Bytes            : ").append(mem.getCapacity()).append(LS)
     sb.append("### END SKETCH PREAMBLE SUMMARY").append(LS);

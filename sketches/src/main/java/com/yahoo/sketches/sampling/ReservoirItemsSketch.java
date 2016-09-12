@@ -416,21 +416,4 @@ public class ReservoirItemsSketch<T> {
     private static int startingSubMultiple(int lgTarget, int lgRf, int lgMin) {
         return (lgTarget <= lgMin) ? lgMin : (lgRf == 0) ? lgTarget : (lgTarget - lgMin) % lgRf + lgMin;
     }
-
-
-    /*
-    static String printBytesAsLongs(byte[] byteArr) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < byteArr.length; i += 8) {
-            for (int j = i + 7; j >= i; --j) {
-                String str = Integer.toHexString(byteArr[j] & 0XFF);
-                sb.append(Util.zeroPad(str, 2));
-            }
-            sb.append(Util.LS);
-
-        }
-
-        return sb.toString();
-    }
-    */
 }

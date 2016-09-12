@@ -82,6 +82,9 @@ public class ReservoirItemsSketchTest {
         ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
         ReservoirItemsSketch<String> loadedRis = ReservoirItemsSketch.<String>getInstance(mem, serDe);
         assertEquals(loadedRis.getNumSamples(), 0);
+
+        println("Empty sketch:");
+        println(PreambleUtil.preambleToString(mem));
     }
 
     @Test
@@ -119,6 +122,9 @@ public class ReservoirItemsSketchTest {
                 new ArrayOfStringsSerDe());
 
         validateReservoirEquality(ris, loadedRis);
+
+        println("Under-full reservoir:");
+        println(PreambleUtil.preambleToString(mem));
     }
 
     @Test
@@ -135,6 +141,9 @@ public class ReservoirItemsSketchTest {
         assertEquals(ris.getNumSamples(), ris.getK());
 
         validateSerializeAndDeserialize(ris);
+
+        println("Full reservoir:");
+        println(PreambleUtil.preambleToString(ris.toByteArray(new ArrayOfLongsSerDe())));
     }
 
     @Test
@@ -324,4 +333,7 @@ public class ReservoirItemsSketchTest {
         }
     }
 
+    private static void println(String msg) {
+        //System.out.println(msg);
+    }
 }
