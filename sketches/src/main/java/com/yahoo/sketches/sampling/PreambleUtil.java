@@ -193,10 +193,10 @@ final class PreambleUtil {
     return (long1 & mask);
   }
 
-  static int extractSerDeId(final long long0) {
+  static short extractSerDeId(final long long0) {
     int shift = SERDE_ID_SHORT << 3;
     long mask = 0XFFFFL;
-    return (int) ((long0 >>> shift) & mask);
+    return (short) ((long0 >>> shift) & mask);
   }
 
   static long insertPreLongs(final int preLongs, final long long0) {

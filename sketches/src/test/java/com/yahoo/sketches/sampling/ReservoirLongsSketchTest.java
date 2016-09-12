@@ -8,17 +8,15 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import com.yahoo.sketches.Family;
-import com.yahoo.sketches.ResizeFactor;
-import com.yahoo.sketches.SketchesException;
+import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
-
+import com.yahoo.sketches.SketchesException;
 import com.yahoo.sketches.SketchesStateException;
-import org.testng.annotations.Test;
-
 
 public class ReservoirLongsSketchTest {
     private static final double EPS = 1e-8;
@@ -134,8 +132,6 @@ public class ReservoirLongsSketchTest {
         short encResSize64 = ReservoirSize.computeSize(64);
         short encResSize1 = ReservoirSize.computeSize(1);
 
-        ReservoirLongsSketch rls;
-
         // no data
         try {
             new ReservoirLongsSketch(null, 128, rf, encResSize128);
@@ -202,7 +198,7 @@ public class ReservoirLongsSketchTest {
         int k = 32;
         ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
 
-        for (int i = 0; i < (k/2); ++i) {
+        for (int i = 0; i < (k / 2); ++i) {
             rls.update(i);
         }
         assertEquals(rls.getImplicitSampleWeight(), 1.0); // should be exact value here

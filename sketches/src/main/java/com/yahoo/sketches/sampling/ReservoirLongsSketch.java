@@ -37,7 +37,8 @@ public class ReservoirLongsSketch {
     private static final int MIN_LG_ARR_LONGS = 4;
 
     /**
-     * Using 48 bits to capture number of items seen
+     * Using 48 bits to capture number of items seen, so sketch cannot process more after this many items
+     * capacity
      */
     private static final long MAX_ITEMS_SEEN = (1 << 48) - 1;
 
@@ -110,7 +111,7 @@ public class ReservoirLongsSketch {
      * @param encodedResSize Compact encoding of reservoir size
      */
     ReservoirLongsSketch(final long[] data, final long itemsSeen,
-                                 final ResizeFactor rf, final short encodedResSize) {
+                         final ResizeFactor rf, final short encodedResSize) {
         int reservoirSize = ReservoirSize.decodeValue(encodedResSize);
 
         if (data == null) {
@@ -124,7 +125,7 @@ public class ReservoirLongsSketch {
                     + reservoirSize + " max size, array of length " + data.length);
         }
         if ((itemsSeen >= reservoirSize && data.length < reservoirSize)
-                || (itemsSeen <= reservoirSize && data.length < itemsSeen)) {
+                || (itemsSeen < reservoirSize && data.length < itemsSeen)) {
             throw new SketchesArgumentException("Instantiating sketch with too few samples. Items seen: "
                     + itemsSeen + ", max reservoir size: " + reservoirSize + ", data array length: " + data.length);
         }
@@ -218,7 +219,7 @@ public class ReservoirLongsSketch {
             throw new SketchesArgumentException(
                     "Possible Corruption: FamilyID must be " + reqFamilyId + ": " + familyId);
         }
-        final int serDeId = extractSerDeId(pre0);
+        final short serDeId = extractSerDeId(pre0);
         if (serDeId != ARRAY_OF_LONGS_SERDE_ID) {
             throw new SketchesArgumentException(
                     "Possible Corruption: SerDeID must be " + ARRAY_OF_LONGS_SERDE_ID + ": " + serDeId);
@@ -240,10 +241,10 @@ public class ReservoirLongsSketch {
             // casts to int are safe since under-full
             int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize), "getInstance");
             int minLgSize = Util.toLog2(Util.ceilingPowerOf2((int) itemsSeen), "getInstance");
-            int initialSize = startingSubMultiple(reservoirSize, ceilingLgK,
+            int initialLgSize = startingSubMultiple(reservoirSize, ceilingLgK,
                     Math.min(minLgSize, MIN_LG_ARR_LONGS));
 
-            allocatedSize = getAdjustedSize(reservoirSize, 1 << initialSize);
+            allocatedSize = getAdjustedSize(reservoirSize, 1 << initialLgSize);
         }
 
         long[] data = new long[allocatedSize];
