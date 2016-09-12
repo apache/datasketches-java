@@ -15,6 +15,7 @@ import org.testng.annotations.Test;
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
+import com.yahoo.sketches.ArrayOfNumbersSerDe;
 import com.yahoo.sketches.ArrayOfStringsSerDe;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
@@ -138,7 +139,7 @@ public class ReservoirItemsSketchTest {
 
     @Test
     public void checkPolymorphicType() {
-        ReservoirItemsSketch<Number> ris = ReservoirItemsSketch.<Number>getInstance(3);
+        ReservoirItemsSketch<Number> ris = ReservoirItemsSketch.<Number>getInstance(6);
 
         Number[] data = ris.getSamples(Number.class);
         assertNull(data);
@@ -147,10 +148,13 @@ public class ReservoirItemsSketchTest {
         ris.update(1);
         ris.update(2L);
         ris.update(3.0);
+        ris.update((short) (44023 & 0xFFFF));
+        ris.update((byte) (68 & 0xFF));
+        ris.update(4.0F);
 
         data = ris.getSamples(Number.class);
         assertNotNull(data);
-        assertEquals(data.length, 3);
+        assertEquals(data.length, 6);
 
         // copying samples without specifying Number.class should fail
         try {
@@ -158,6 +162,31 @@ public class ReservoirItemsSketchTest {
             fail();
         } catch (ArrayStoreException e) {
             // expected
+        }
+
+        // likewise for toByteArray() (which uses getSamples() internally for type handling)
+        ArrayOfNumbersSerDe serDe = new ArrayOfNumbersSerDe();
+        try {
+            ris.toByteArray(serDe);
+            fail();
+        } catch (ArrayStoreException e) {
+            // expected
+        }
+
+        byte[] sketchBytes = ris.toByteArray(serDe, Number.class);
+        assertEquals(sketchBytes.length, 49);
+
+        Memory mem = new NativeMemory(sketchBytes);
+        ReservoirItemsSketch<Number> loadedRis = ReservoirItemsSketch.<Number>getInstance(mem, serDe);
+
+        assertEquals(ris.getNumSamples(), loadedRis.getNumSamples());
+
+        Number[] samples1 = ris.getSamples(Number.class);
+        Number[] samples2 = loadedRis.getSamples(Number.class);
+        assertEquals(samples1.length, samples2.length);
+
+        for (int i = 0; i < samples1.length; ++i) {
+            assertEquals(samples1[i], samples2[i]);
         }
     }
 
