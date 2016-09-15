@@ -12,6 +12,7 @@ import static com.yahoo.sketches.sampling.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.sampling.PreambleUtil.getAndCheckPreLongs;
 import static com.yahoo.sketches.sampling.PreambleUtil.preambleToString;
 
+import java.util.Arrays;
 import java.util.Random;
 
 import com.yahoo.memory.Memory;
@@ -49,7 +50,7 @@ public class ReservoirLongsSketch {
      */
     private static final ResizeFactor DEFAULT_RESIZE_FACTOR = ResizeFactor.X8;
 
-    private static final Random rand = new Random();
+    public static final Random rand = new Random();
 
     private int reservoirSize_;      // max size of sampling
     private short encodedResSize_;   // compact encoding of reservoir size
@@ -81,6 +82,91 @@ public class ReservoirLongsSketch {
         return new ReservoirLongsSketch(k, rf);
     }
 
+    /**
+     * Returns a sketch instance of this class from the given srcMem,
+     * which must be a Memory representation of this sketch class.
+     *
+     * @param srcMem a Memory representation of a sketch of this class.
+     * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+     * @return a sketch instance of this class
+     */
+    public static ReservoirLongsSketch getInstance(final Memory srcMem) {
+        final int numPreLongs = getAndCheckPreLongs(srcMem);
+        final long pre0 = srcMem.getLong(0);
+        final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(pre0));
+        final int serVer = extractSerVer(pre0);
+        final int familyId = extractFamilyID(pre0);
+        final boolean isEmpty = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0;
+
+        final short encodedResSize = extractReservoirSize(pre0);
+        final int reservoirSize  = ReservoirSize.decodeValue(encodedResSize);
+
+
+        // Check values
+        final boolean preLongsEqMin = (numPreLongs == Family.RESERVOIR.getMinPreLongs());
+        final boolean preLongsEqMax = (numPreLongs == Family.RESERVOIR.getMaxPreLongs());
+
+        if (!preLongsEqMin & !preLongsEqMax) {
+            throw new SketchesArgumentException(
+                    "Possible corruption: Non-empty sketch with only " + Family.RESERVOIR.getMinPreLongs()
+                            + "preLongs");
+        }
+        if (serVer != SER_VER) {
+            throw new SketchesArgumentException(
+                    "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
+        }
+        final int reqFamilyId = Family.RESERVOIR.getID();
+        if (familyId != reqFamilyId) {
+            throw new SketchesArgumentException(
+                    "Possible Corruption: FamilyID must be " + reqFamilyId + ": " + familyId);
+        }
+        final short serDeId = extractSerDeId(pre0);
+        if (serDeId != ARRAY_OF_LONGS_SERDE_ID) {
+            throw new SketchesArgumentException(
+                    "Possible Corruption: SerDeID must be " + ARRAY_OF_LONGS_SERDE_ID + ": " + serDeId);
+        }
+
+        if (isEmpty) {
+            return new ReservoirLongsSketch(reservoirSize, rf);
+        }
+
+        //get rest of preamble
+        final long pre1 = srcMem.getLong(8);
+        final long itemsSeen = extractItemsSeenCount(pre1);
+
+        int preLongBytes = numPreLongs << 3;
+        int numSketchLongs = (int) Math.min(itemsSeen, reservoirSize);
+        int allocatedSize = reservoirSize; // default to full reservoir
+        if (itemsSeen < reservoirSize) {
+            // under-full so determine size to allocate, using ceilingLog2(totalSeen) as minimum
+            // casts to int are safe since under-full
+            int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize), "getInstance");
+            int minLgSize = Util.toLog2(Util.ceilingPowerOf2((int) itemsSeen), "getInstance");
+            int initialLgSize = startingSubMultiple(reservoirSize, ceilingLgK,
+                    Math.min(minLgSize, MIN_LG_ARR_LONGS));
+
+            allocatedSize = getAdjustedSize(reservoirSize, 1 << initialLgSize);
+        }
+
+        long[] data = new long[allocatedSize];
+        srcMem.getLongArray(preLongBytes, data, 0, numSketchLongs);
+
+        return new ReservoirLongsSketch(data, itemsSeen, rf, encodedResSize);
+    }
+
+    /**
+     * Thin wrapper around package-private constructor
+     * @param data Reservoir data as long[]
+     * @param itemsSeen Number of items presented to the sketch so far
+     * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
+     * @param encodedResSize Compact encoding of reservoir size
+     * @return New sketch built with the provided inputs
+     */
+    static ReservoirLongsSketch getInstance(final long[] data, final long itemsSeen,
+                                            final ResizeFactor rf, final short encodedResSize) {
+        return new ReservoirLongsSketch(data, itemsSeen, rf, encodedResSize);
+    }
+
     private ReservoirLongsSketch(final int k, ResizeFactor rf) {
         // required due to a theorem about lightness during merging
         if (k < 2) {
@@ -110,8 +196,8 @@ public class ReservoirLongsSketch {
      * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
      * @param encodedResSize Compact encoding of reservoir size
      */
-    ReservoirLongsSketch(final long[] data, final long itemsSeen,
-                         final ResizeFactor rf, final short encodedResSize) {
+    private ReservoirLongsSketch(final long[] data, final long itemsSeen,
+                                 final ResizeFactor rf, final short encodedResSize) {
         int reservoirSize = ReservoirSize.decodeValue(encodedResSize);
 
         if (data == null) {
@@ -137,6 +223,25 @@ public class ReservoirLongsSketch {
         itemsSeen_ = itemsSeen;
         rf_ = rf;
         data_ = data;
+    }
+
+    /**
+     * Fast constructor for full-specified sketch with no encoded/decoding size and no validation.
+     * @param reservoirSize Maximum reservoir capacity
+     * @param encodedResSize Maximum reservoir capacity encoded into fixed-point format
+     * @param currItemsAlloc Current array size (assumed equal to data.length)
+     * @param itemsSeen Total items seen by this sketch
+     * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
+     * @param data Data array backing the reservoir, will <em>not</em> be copied
+     */
+    private ReservoirLongsSketch(final int reservoirSize, final short encodedResSize, final int currItemsAlloc,
+                                 final long itemsSeen, final ResizeFactor rf, final long[] data) {
+        this.reservoirSize_ = reservoirSize;
+        this.encodedResSize_ = encodedResSize;
+        this.currItemsAlloc_ = currItemsAlloc;
+        this.itemsSeen_ = itemsSeen;
+        this.rf_ = rf;
+        this.data_ = data;
     }
 
 
@@ -181,77 +286,6 @@ public class ReservoirLongsSketch {
     }
 
 
-    /**
-     * Returns a sketch instance of this class from the given srcMem,
-     * which must be a Memory representation of this sketch class.
-     *
-     * @param srcMem a Memory representation of a sketch of this class.
-     * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-     * @return a sketch instance of this class
-     */
-    public static ReservoirLongsSketch getInstance(final Memory srcMem) {
-        final int numPreLongs = getAndCheckPreLongs(srcMem);
-        final long pre0 = srcMem.getLong(0);
-        final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(pre0));
-        final int serVer = extractSerVer(pre0);
-        final int familyId = extractFamilyID(pre0);
-        final boolean isEmpty = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0;
-
-        final short encodedResSize = extractReservoirSize(pre0);
-        final int reservoirSize  = ReservoirSize.decodeValue(encodedResSize);
-
-
-        // Check values
-        final boolean preLongsEqMin = (numPreLongs == Family.RESERVOIR.getMinPreLongs());
-        final boolean preLongsEqMax = (numPreLongs == Family.RESERVOIR.getMaxPreLongs());
-
-        if (!preLongsEqMin & !preLongsEqMax) {
-            throw new SketchesArgumentException(
-                    "Possible corruption: Non-empty sketch with only " + Family.RESERVOIR.getMinPreLongs()
-                    + "preLongs");
-        }
-        if (serVer != SER_VER) {
-            throw new SketchesArgumentException(
-                    "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
-        }
-        final int reqFamilyId = Family.RESERVOIR.getID();
-        if (familyId != reqFamilyId) {
-            throw new SketchesArgumentException(
-                    "Possible Corruption: FamilyID must be " + reqFamilyId + ": " + familyId);
-        }
-        final short serDeId = extractSerDeId(pre0);
-        if (serDeId != ARRAY_OF_LONGS_SERDE_ID) {
-            throw new SketchesArgumentException(
-                    "Possible Corruption: SerDeID must be " + ARRAY_OF_LONGS_SERDE_ID + ": " + serDeId);
-        }
-
-        if (isEmpty) {
-            return new ReservoirLongsSketch(reservoirSize, rf);
-        }
-
-        //get rest of preamble
-        final long pre1 = srcMem.getLong(8);
-        final long itemsSeen = extractItemsSeenCount(pre1);
-
-        int preLongBytes = numPreLongs << 3;
-        int numSketchLongs = (int) Math.min(itemsSeen, reservoirSize);
-        int allocatedSize = reservoirSize; // default to full reservoir
-        if (itemsSeen < reservoirSize) {
-            // under-full so determine size to allocate, using ceilingLog2(totalSeen) as minimum
-            // casts to int are safe since under-full
-            int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize), "getInstance");
-            int minLgSize = Util.toLog2(Util.ceilingPowerOf2((int) itemsSeen), "getInstance");
-            int initialLgSize = startingSubMultiple(reservoirSize, ceilingLgK,
-                    Math.min(minLgSize, MIN_LG_ARR_LONGS));
-
-            allocatedSize = getAdjustedSize(reservoirSize, 1 << initialLgSize);
-        }
-
-        long[] data = new long[allocatedSize];
-        srcMem.getLongArray(preLongBytes, data, 0, numSketchLongs);
-
-        return new ReservoirLongsSketch(data, itemsSeen, rf, encodedResSize);
-    }
 
     /**
      * Returns a byte array representation of this sketch
@@ -366,6 +400,60 @@ public class ReservoirLongsSketch {
 
     static int startingSubMultiple(int lgTarget, int lgRf, int lgMin) {
         return (lgTarget <= lgMin) ? lgMin : (lgRf == 0) ? lgTarget : (lgTarget - lgMin) % lgRf + lgMin;
+    }
+
+    /**
+     * Useful during union operations to avoid copying the data array around if only updating a few points.
+     * @param pos The position from which to retrieve the element
+     * @return The value in the reservoir at position <tt>pos</tt>
+     */
+    long getValueAtPosition(int pos) {
+        if (itemsSeen_ == 0) {
+            throw new SketchesArgumentException("Requested element from empty reservoir.");
+        }
+        else if (pos < 0 || pos >= getNumSamples()) {
+            throw new SketchesArgumentException("Requested position must be between 0 and " + getNumSamples() + ", "
+                    + "inclusive. Received: " + pos);
+        }
+
+        return data_[pos];
+    }
+
+    /**
+     * Useful during union operation to force-insert a value into the union gadget. Does <em>NOT</em> increment count
+     * of items seen.
+     * @param value The entry to store in the reservoir
+     * @param pos The position at which to store the entry
+     */
+    void insertValueAtPosition(long value, int pos) {
+        if (itemsSeen_ == 0) {
+            throw new SketchesArgumentException("Inserting element into unallocated, empty reservoir.");
+        }
+        else if (pos < 0 || pos >= getNumSamples()) {
+            throw new SketchesArgumentException("Insert position must be between 0 and " + getNumSamples() + ", "
+                    + "inclusive. Received: " + pos);
+        }
+
+        data_[pos] = value;
+    }
+
+    /**
+     * Used during union operations to update count of items seen. Does <em>NOT</em> check sign, but will throw an
+     * exception if the final result exceeds the maximum possible items seen value.
+     * @param inc The value added
+     */
+    void forceIncrementItemsSeen(final long inc) {
+        itemsSeen_ += inc;
+
+        if (itemsSeen_ > MAX_ITEMS_SEEN) {
+            throw new SketchesStateException("Sketch has exceeded capacity for total items seen. Limit: "
+                    + MAX_ITEMS_SEEN + ", found: " + itemsSeen_);
+        }
+    }
+
+    ReservoirLongsSketch copy() {
+        long[] dataCopy = Arrays.copyOf(data_, currItemsAlloc_);
+        return new ReservoirLongsSketch(reservoirSize_, encodedResSize_, currItemsAlloc_, itemsSeen_, rf_, dataCopy);
     }
 
     /*

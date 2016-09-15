@@ -134,7 +134,7 @@ public class ReservoirLongsSketchTest {
 
         // no data
         try {
-            new ReservoirLongsSketch(null, 128, rf, encResSize128);
+            ReservoirLongsSketch.getInstance(null, 128, rf, encResSize128);
             fail();
         } catch (SketchesException e) {
             assertTrue(e.getMessage().contains("null reservoir"));
@@ -142,7 +142,7 @@ public class ReservoirLongsSketchTest {
 
         // size too small
         try {
-            new ReservoirLongsSketch(data, 128, rf, encResSize1);
+            ReservoirLongsSketch.getInstance(data, 128, rf, encResSize1);
             fail();
         } catch (SketchesException e) {
             assertTrue(e.getMessage().contains("size less than 2"));
@@ -150,7 +150,7 @@ public class ReservoirLongsSketchTest {
 
         // configured reservoir size smaller than data length
         try {
-            new ReservoirLongsSketch(data, 128, rf, encResSize64);
+            ReservoirLongsSketch.getInstance(data, 128, rf, encResSize64);
             fail();
         } catch (SketchesException e) {
             assertTrue(e.getMessage().contains("max size less than array length"));
@@ -158,7 +158,7 @@ public class ReservoirLongsSketchTest {
 
         // too many items seen vs data length, full sketch
         try {
-            new ReservoirLongsSketch(data, 512, rf, encResSize256);
+            ReservoirLongsSketch.getInstance(data, 512, rf, encResSize256);
             fail();
         } catch (SketchesException e) {
             assertTrue(e.getMessage().contains("too few samples"));
@@ -166,7 +166,7 @@ public class ReservoirLongsSketchTest {
 
         // too many items seen vs data length, under-full sketch
         try {
-            new ReservoirLongsSketch(data, 256, rf, encResSize256);
+            ReservoirLongsSketch.getInstance(data, 256, rf, encResSize256);
             fail();
         } catch (SketchesException e) {
             assertTrue(e.getMessage().contains("too few samples"));
@@ -179,8 +179,7 @@ public class ReservoirLongsSketchTest {
         short encResSize = ReservoirSize.computeSize(64);
         long itemsSeen = (1 << 48) - 2;
 
-        ReservoirLongsSketch rls = new ReservoirLongsSketch(data, itemsSeen,
-                ResizeFactor.X8, encResSize);
+        ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(data, itemsSeen, ResizeFactor.X8, encResSize);
 
         // this should work, the next should fail
         rls.update(0);
