@@ -115,6 +115,10 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
  */
 public abstract class DoublesSketch {
   
+  /**
+   * This promises compatibility between a sketch binary image created with the concrete class  
+   * DoublesSketch and ItemsSketch&lt;Double&gt; serialized with this same Serialization Version ID. 
+   */
   static final short ARRAY_OF_DOUBLES_SERDE_ID = new ArrayOfDoublesSerDe().getId();
   
   /**
@@ -332,22 +336,33 @@ public abstract class DoublesSketch {
   public abstract void reset();
 
   /**
-   * Serialize this sketch to a byte array form. 
-   * This does not sort the base buffer.
+   * Serialize this sketch to a byte array, not-oredered, compact form. 
+   * This does not order the base buffer.
    * @return byte array of this sketch
    */
   public byte[] toByteArray() {
-    return toByteArray(false);
+    return toByteArray(false, true);
   }
 
   /**
-   * Serialize this sketch to a byte array form. 
-   * @param sort if true, this sorts the base buffer, which optimizes merge performance at
+   * Serialize this sketch in a byte array, compact form. 
+   * @param ordered if true, this sorts the base buffer, which optimizes merge performance at
    * the cost of slightly increased serialization time. 
    * In real-time build-and-merge environments, this may not be desirable. 
-   * @return byte array of this sketch
+   * @return this sketch in a byte array form.
    */
-  public abstract byte[] toByteArray(boolean sort);
+  public byte[] toByteArray(boolean ordered) {
+    return toByteArray(ordered, true);
+  }
+  
+  /**
+   * Serialize this sketch in a byte array form.
+   * @param ordered if true, this sorts the base buffer, which optimizes merge performance at
+   * the cost of slightly increased serialization time.
+   * @param compact if true the sketch will be serialized in compact form.
+   * @return this sketch in a byte array form.
+   */
+  public abstract byte[] toByteArray(boolean ordered, boolean compact);
   
   /**
    * Returns summary information about this sketch.
@@ -401,7 +416,7 @@ public abstract class DoublesSketch {
    */
   public int getStorageBytes() {
     if (isEmpty()) return 8;
-    return 32 + Double.BYTES * Util.computeRetainedItems(getK(), getN());
+    return 32 + (Util.computeRetainedItems(getK(), getN()) << 3);
   }
 
   /**

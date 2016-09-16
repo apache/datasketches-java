@@ -5,12 +5,13 @@
 
 package com.yahoo.sketches.quantiles;
 
+import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.N_LONG;
-import static com.yahoo.sketches.quantiles.PreambleUtil.SER_VER;
+import static com.yahoo.sketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFamilyID;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.extractN;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerDeId;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerVer;
@@ -185,6 +186,12 @@ public final class ItemsSketch<T> {
     final int k = extractK(memArr, cumOffset);
     final short serDeId = extractSerDeId(memArr, cumOffset);
 
+    ItemsUtil.checkItemsSerVer(serVer);
+    
+    if ((serVer == 3) && ((flags & COMPACT_FLAG_MASK) == 0)) {
+      throw new SketchesArgumentException("Non-compact Memory images are not supported.");
+    }
+    
     if (serDeId != serDe.getId()) {
       throw new SketchesArgumentException(
           "Possible Corruption: serDeId incorrect: " + serDeId + " != " + serDe.getId());
@@ -192,27 +199,29 @@ public final class ItemsSketch<T> {
 
     final boolean empty = Util.checkPreLongsFlagsCap(preambleLongs, flags, memCapBytes);
     Util.checkFamilyID(familyID);
-    Util.checkSerVer(serVer);
 
-    final ItemsSketch<T> qs = getInstance(k, comparator);
-
+    final ItemsSketch<T> qs = getInstance(k, comparator); //checks k
     if (empty) return qs;
 
-    //Not empty, must have valid preamble
-    final long n = srcMem.getLong(N_LONG); //pre1
-    final int retainedItems = Util.computeRetainedItems(k, n) + 2; // 2 for min and max
+    //Not empty, must have valid preamble + min, max
+    final long n = extractN(memArr, cumOffset);
+    
+    //can't check memory capacity here, not enough information
+    final int extra = 2; //for min, max
+    int numMemItems = Util.computeRetainedItems(k, n) + extra;
 
     //set class members
     qs.n_ = n;
-    qs.combinedBufferItemCapacity_ = Util.computeCombBufItemCapacity(k, n);
+    qs.combinedBufferItemCapacity_ = Util.computeCombinedBufferItemCapacity(k, n);
     qs.baseBufferCount_ = computeBaseBufferItems(k, n);
     qs.bitPattern_ = computeBitPattern(k, n);
     qs.combinedBuffer_ = new Object[qs.combinedBufferItemCapacity_];
     
     final int srcMemItemsOffsetBytes = preambleLongs * Long.BYTES;
-    final T[] validItems = serDe.deserializeFromMemory(
-        new MemoryRegion(srcMem, srcMemItemsOffsetBytes, srcMem.getCapacity() - srcMemItemsOffsetBytes), retainedItems);
-    qs.putValidItemsPlusMinAndMax(validItems);
+    final MemoryRegion mReg = new MemoryRegion(srcMem, srcMemItemsOffsetBytes, 
+        srcMem.getCapacity() - srcMemItemsOffsetBytes);
+    final T[] itemsArray = serDe.deserializeFromMemory(mReg, numMemItems);
+    qs.itemsArrayToCombinedBuffer(itemsArray);
     return qs;
   }
 
@@ -311,7 +320,9 @@ public final class ItemsSketch<T> {
       if      (fraction == 0.0) { answers[i] = minValue_; }
       else if (fraction == 1.0) { answers[i] = maxValue_; }
       else {
-        if (aux == null) aux = this.constructAuxiliary();
+        if (aux == null) { 
+          aux = this.constructAuxiliary();
+        }
         answers[i] = aux.getQuantile(fraction);
       }
     }
@@ -484,45 +495,54 @@ public final class ItemsSketch<T> {
    * @param serDe an instance of ArrayOfItemsSerDe
    * @return byte array of this sketch
    */
-  @SuppressWarnings("null")
   public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
-    final int preLongs, numOutBytes, flags;
+    return toByteArray(false, serDe);
+  }
+  
+  /**
+   * Serialize this sketch to a byte array form.
+   * @param ordered if true the base buffer will be ordered (default == false).
+   * @param serDe an instance of ArrayOfItemsSerDe
+   * @return this sketch in a byte array form.
+   */
+  public byte[] toByteArray(final boolean ordered, final ArrayOfItemsSerDe<T> serDe) {
     final boolean empty = isEmpty();
-    byte[] itemsByteArr = null;
-    T[] validItems = null;
+
+    int flags = (empty ? EMPTY_FLAG_MASK : 0) 
+        | (ordered ? ORDERED_FLAG_MASK : 0) 
+        | COMPACT_FLAG_MASK;
     
     if (empty) {
-      preLongs = 1;
-      numOutBytes = Long.BYTES;
-      flags = EMPTY_FLAG_MASK;
-    } else {
-      preLongs = 2;
-      flags = 0;
-      validItems = getValidItemsPlusMinAndMax();
-      itemsByteArr = serDe.serializeToByteArray(validItems);
-      numOutBytes = preLongs * Long.BYTES + itemsByteArr.length; //includes min and max
+      byte[] outByteArr = new byte[Long.BYTES];
+      Memory memOut = new NativeMemory(outByteArr);
+      long cumOffset = memOut.getCumulativeOffset(0L);
+      int preLongs = 1;
+      insertPre0(outByteArr, cumOffset, preLongs, flags, k_, serDe.getId());
+      return outByteArr;
     }
-    final byte[] outArr = new byte[numOutBytes];
-    final Memory memOut = new NativeMemory(outArr);
+    
+    //not empty
+    T[] dataArr = combinedBufferToItemsArray(ordered); //includes min and max
+    
+    int preLongs = 2;
+    byte[] itemsByteArr = serDe.serializeToByteArray(dataArr);
+    int numOutBytes = (preLongs << 3) + itemsByteArr.length;
+    byte[] outByteArr = new byte[numOutBytes];
+    Memory memOut = new NativeMemory(outByteArr);
     long cumOffset = memOut.getCumulativeOffset(0L);
     
-    //build prelong 0
-    insertPreLongs(outArr, cumOffset, preLongs);
-    insertSerVer(outArr, cumOffset, SER_VER);
-    insertFamilyID(outArr, cumOffset, Family.QUANTILES.getID());
-    //other flags: bigEndian = false
-    insertFlags(outArr, cumOffset, flags);
-    insertK(outArr, cumOffset, k_);
-    insertSerDeId(outArr, cumOffset, serDe.getId());
-
-    if (empty) {
-      return outArr;
-    }
-    insertN(outArr, cumOffset, n_);
-    memOut.putByteArray(preLongs * Long.BYTES, itemsByteArr, 0, itemsByteArr.length);
-    return outArr;
+    //insert preamble
+    insertPre0(outByteArr, cumOffset, preLongs, flags, k_, serDe.getId());
+    insertN(outByteArr, cumOffset, n_);
+    
+    //insert data
+    memOut.putByteArray(preLongs << 3, itemsByteArr, 0, itemsByteArr.length);
+    return outByteArr;
   }
 
+  
+  
+  
   /**
    * Returns summary information about this sketch.
    */
@@ -606,21 +626,6 @@ public final class ItemsSketch<T> {
     return bitPattern_;
   }
 
-  private void putValidItemsPlusMinAndMax(T[] validItems) {
-    int index = 0;
-    minValue_ = validItems[index++];
-    maxValue_ = validItems[index++];
-    System.arraycopy(validItems, index, combinedBuffer_, 0, baseBufferCount_);
-    index += baseBufferCount_;
-    long bits = getBitPattern();
-    for (int level = 0; bits != 0L; level++, bits >>>= 1) {
-      if ((bits & 1L) > 0L) {
-        System.arraycopy(validItems, index, combinedBuffer_, (2 + level) * k_, k_);
-        index += k_;
-      }
-    }
-  }
-
   /**
    * Returns the combined buffer reference
    * @return the combined buffer reference
@@ -628,26 +633,82 @@ public final class ItemsSketch<T> {
   protected Object[] getCombinedBuffer() {
     return combinedBuffer_;
   }
+  
+  /**
+   * Loads the Combined Buffer, min and max from the given items array. 
+   * The Combined Buffer is always in non-compact form and must be pre-allocated.
+   * @param itemsArray the given items array
+   */
+  private void itemsArrayToCombinedBuffer(T[] itemsArray) {
+    final int extra = 2; // space for min and max values
+    
+    //Load min, max
+    minValue_ = itemsArray[0];
+    maxValue_ = itemsArray[1];
 
-  private T[] getValidItemsPlusMinAndMax() {
-    // 2 more for min and max values
-    @SuppressWarnings("unchecked")
-    final T[] validItems = (T[]) Array.newInstance(minValue_.getClass(), getRetainedItems() + 2);
-    int index = 0;
-    validItems[index++] = minValue_;
-    validItems[index++] = maxValue_;
-    System.arraycopy(combinedBuffer_, 0, validItems, index, baseBufferCount_);
-    index += baseBufferCount_;
-    long bits = getBitPattern();
-    for (int level = 0; bits != 0L; level++, bits >>>= 1) {
-      if ((bits & 1L) > 0L) {
-        System.arraycopy(combinedBuffer_, (2 + level) * k_, validItems, index, k_);
-        index += k_;
+    //Load base buffer
+    System.arraycopy(itemsArray, extra, combinedBuffer_, 0, baseBufferCount_);
+    
+    //Load levels
+    long bits = bitPattern_;
+    if (bits > 0) {
+      int index = extra + baseBufferCount_;
+      for (int level = 0; bits != 0L; level++, bits >>>= 1) {
+        if ((bits & 1L) > 0L) {
+          System.arraycopy(itemsArray, index, combinedBuffer_, (2 + level) * k_, k_);
+          index += k_;
+        }
       }
     }
-    return validItems;
+  }
+  
+  /**
+   * Returns an array of items in compact form, including min and max extracted from the 
+   * Combined Buffer. 
+   * @param ordered true if the desired form of the resulting array has the base buffer sorted.
+   * @return an array of items, including min and max extracted from the Combined Buffer.
+   */
+  @SuppressWarnings("unchecked")
+  private T[] combinedBufferToItemsArray(boolean ordered) { //TODO Ref
+    T[] outArr = null; 
+    final int extra = 2; // extra space for min and max values
+    final int outArrCap = getRetainedItems();
+    outArr = (T[]) Array.newInstance(minValue_.getClass(), outArrCap + extra);
+    
+    //Load min, max
+    outArr[0] = minValue_;
+    outArr[1] = maxValue_;
+    
+    //Load base buffer
+    System.arraycopy(combinedBuffer_, 0, outArr, extra, baseBufferCount_);
+    
+    //Load levels
+    long bits = bitPattern_;
+    if (bits > 0) {
+      int index = extra + baseBufferCount_;
+      for (int level = 0; bits != 0L; level++, bits >>>= 1) {
+        if ((bits & 1L) > 0L) {
+          System.arraycopy(combinedBuffer_, (2 + level) * k_, outArr, index, k_);
+          index += k_;
+        }
+      }
+    }
+    if (ordered) {
+      Arrays.sort(outArr, extra, baseBufferCount_ + extra, comparator_);
+    }
+    return outArr;
   }
 
+  private static final void insertPre0(byte[] outArr, long cumOffset, int preLongs, int flags, 
+      int k, short serDeId) {
+    insertPreLongs(outArr, cumOffset, preLongs);
+    insertSerVer(outArr, cumOffset, ItemsUtil.ITEMS_SER_VER);
+    insertFamilyID(outArr, cumOffset, Family.QUANTILES.getID());
+    insertFlags(outArr, cumOffset, flags);
+    insertK(outArr, cumOffset, k);
+    insertSerDeId(outArr, cumOffset, serDeId);
+  }
+  
   /**
    * Returns the Auxiliary data structure which is only used for getQuantile() and getQuantiles() 
    * queries.

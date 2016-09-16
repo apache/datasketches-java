@@ -7,8 +7,10 @@ package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.Util.isPowerOf2;
+import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.SER_VER;
+import static com.yahoo.sketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.READ_ONLY_FLAG_MASK;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -24,6 +26,8 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Lee Rhodes
  */
 final class Util {
+  
+  private Util() {}
 
   static final int MIN_BASE_BUF_SIZE = 4;
 
@@ -48,17 +52,6 @@ final class Util {
   }
 
   /**
-   * Check the validity of the given serialization version
-   * @param serVer the given serialization version
-   */
-  static void checkSerVer(int serVer) {
-    if (serVer != SER_VER) {
-      throw new SketchesArgumentException(
-          "Possible corruption: Invalid Serialization Version: " + serVer);
-    }
-  }
-
-  /**
    * Checks the validity of the given family ID
    * @param familyID the given family ID
    */
@@ -67,23 +60,6 @@ final class Util {
     if (!family.equals(Family.QUANTILES)) {
       throw new SketchesArgumentException(
           "Possible corruption: Invalid Family: " + family.toString());
-    }
-  }
-
-  /**
-   * Checks the validity of the memory buffer allocation and the memory capacity assuming
-   * n and k.
-   * @param k the given value of k
-   * @param n the given value of n
-   * @param reqItems the number of items required
-   * @param memCapBytes the memory capacity in bytes
-   */
-  static void checkMemCapacity(int reqItems, long memCapBytes) {
-    int maxPre = Family.QUANTILES.getMaxPreLongs() + 2;
-    int reqBufBytes = (maxPre + reqItems) << 3;
-    if (memCapBytes < reqBufBytes) {
-      throw new SketchesArgumentException("Possible corruption: Memory capacity too small: "
-          + memCapBytes + " < " + reqBufBytes);
     }
   }
 
@@ -117,7 +93,8 @@ final class Util {
    * @param flags the flags field
    */ //only used by checkPreLongsFlagsCap and test
   static void checkFlags(int flags) {
-    int flagsMask = ~EMPTY_FLAG_MASK;
+    int allowedFlags = READ_ONLY_FLAG_MASK | EMPTY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK;
+    int flagsMask = ~allowedFlags;
     if ((flags & flagsMask) > 0) {
       throw new SketchesArgumentException(
          "Possible corruption: Invalid flags field: " + Integer.toBinaryString(flags));
@@ -133,15 +110,37 @@ final class Util {
     if (fractions == null) {
       throw new SketchesArgumentException("Fractions array may not be null.");
     }
-    if (fractions.length == 0) return;
+    int len = fractions.length;
+    if (len == 0) return;
     double flo = fractions[0];
     double fhi = fractions[fractions.length - 1];
     if ((flo < 0.0) || (fhi > 1.0)) {
       throw new SketchesArgumentException("A fraction cannot be less than zero or greater than 1.0");
     }
-    DoublesUtil.validateValues(fractions);
+    Util.validateValues(fractions);
+    return;
   }
 
+  /**
+   * Checks the sequential validity of the given array of double values. 
+   * They must be unique, monotonically increasing and not NaN.
+   * @param values the given array of double values
+   */
+  static final void validateValues(final double[] values) {
+    final int lenM1 = values.length - 1;
+    for (int j = 0; j < lenM1; j++) {
+      if (values[j] < values[j + 1]) continue;
+      throw new SketchesArgumentException(
+          "Values must be unique, monotonically increasing and not NaN.");
+    }
+  }
+  
+  /**
+   * Returns the number of retained items in the sketch given k and n.
+   * @param k the given configured k of the sketch
+   * @param n the current number of items seen by the sketch
+   * @return the number of retained items in the sketch given k and n.
+   */
   static int computeRetainedItems(int k, long n) {
     int bbCnt = computeBaseBufferItems(k, n);
     long bitPattern = computeBitPattern(k, n);
@@ -150,19 +149,26 @@ final class Util {
   }
   
   /**
-   * Returns the current item capacity of the combined data buffer given <i>k</i> and <i>n</i>.
+   * Returns the current item capacity of the non-compact combined data buffer 
+   * given <i>k</i> and <i>n</i>.  If total levels = 0, this returns the ceiling power of 2 
+   * size for the base buffer or the MIN_BASE_BUF_SIZE, whichever is larger.
    * 
    * @param k sketch parameter. This determines the accuracy of the sketch and the 
-   * size of the updatable data structure, which is a function of k.
+   * size of the updatable data structure, which is a function of <i>k</i> and <i>n</i>.
    * 
    * @param n The number of items in the input stream
    * @return the current item capacity of the combined data buffer
    */
-  static int computeCombBufItemCapacity(int k, long n) {
+  static int computeCombinedBufferItemCapacity(int k, long n) {
     int totLevels = computeNumLevelsNeeded(k, n);
-    if (totLevels > 0) return (2 + totLevels) * k;
-    int bbCnt = computeBaseBufferItems(k, n); //just the base buffer
-    return Math.max(MIN_BASE_BUF_SIZE, ceilingPowerOf2(bbCnt));
+    int ret;
+    if (totLevels > 0) {
+      ret = (2 + totLevels) * k;
+    } else { //compute the partial the base buffer when totLevels = 0
+      int bbItems = computeBaseBufferItems(k, n);
+      ret = Math.max(MIN_BASE_BUF_SIZE, ceilingPowerOf2(bbItems));
+    }
+    return ret;
   }
   
   /**
@@ -177,6 +183,7 @@ final class Util {
   /**
    * Computes the number of logarithmic levels needed given k and n.
    * This is equivalent to max(floor(lg(n/k), 0).
+   * Returns zero if n is less than 2 * k.
    * @param k the configured size of the sketch
    * @param n the total values presented to the sketch.
    * @return the number of levels needed.
@@ -184,7 +191,7 @@ final class Util {
   static int computeNumLevelsNeeded(int k, long n) {
     return 1 + hiBitPos(n / (2L * k));
   }
-
+  
   /**
    * Computes the number of base buffer items given k, n
    * @param k the configured size of the sketch
@@ -206,12 +213,18 @@ final class Util {
     return n / (2L * k);
   }
 
+  /**
+   * Returns the log_base2 of x
+   * @param x the given x
+   * @return the log_base2 of x
+   */
   static double lg(double x) {
     return ( Math.log(x) / Math.log(2.0) );
   }
 
   /**
-   * Zero based position of the highest one-bit of the given long
+   * Zero based position of the highest one-bit of the given long. 
+   * Returns minus one if num is zero.
    * @param num the given long
    * @return Zero based position of the highest one-bit of the given long
    */
@@ -219,6 +232,12 @@ final class Util {
     return 63 - Long.numberOfLeadingZeros(num);
   }
 
+  /**
+   * Returns the zero-based bit position of the lowest zero bit starting at bit startingPos.
+   * @param numIn the input bits as a long
+   * @param startingPos the zero-based starting bit position
+   * @return the zero-based bit position of the lowest zero bit starting at bit startingPos.
+   */
   static int positionOfLowestZeroBitStartingAt(long numIn, int startingPos) {
     long num = numIn >>> startingPos;
     int pos = 0;
@@ -330,6 +349,6 @@ final class Util {
     }
   } //End of EpsilonFromK
 
-  //static void println(String s) { System.err.println(s); }
-  //static void print(String s) { System.err.print(s); }
+  //static void println(String s) { System.out.println(s); }
+  //static void print(String s) { System.out.print(s); }
 }

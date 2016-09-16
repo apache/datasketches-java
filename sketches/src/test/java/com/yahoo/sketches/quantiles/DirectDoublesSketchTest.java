@@ -16,7 +16,7 @@ public class DirectDoublesSketchTest {
 
   @Test
   public void checkUnsafePutsGets() {
-    NativeMemory mem = new AllocMemory(160);
+    NativeMemory mem = new AllocMemory(288);
     DirectDoublesSketch dds = DirectDoublesSketch.newInstance(16, mem);
     
     mem.clear();

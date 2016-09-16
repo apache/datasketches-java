@@ -5,8 +5,9 @@
 
 package com.yahoo.sketches.quantiles;
 
+import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.SER_VER;
+import static com.yahoo.sketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFamilyID;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractK;
@@ -27,8 +28,7 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerDeId;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerVer;
 import static com.yahoo.sketches.quantiles.Util.computeBaseBufferItems;
 import static com.yahoo.sketches.quantiles.Util.computeBitPattern;
-import static com.yahoo.sketches.quantiles.Util.computeCombBufItemCapacity;
-import static com.yahoo.sketches.quantiles.Util.computeRetainedItems;
+import static com.yahoo.sketches.quantiles.Util.computeCombinedBufferItemCapacity;
 
 import java.util.Arrays;
 
@@ -126,70 +126,56 @@ final class HeapDoublesSketch extends DoublesSketch {
    */
   static HeapDoublesSketch getInstance(Memory srcMem) {
     long memCapBytes = srcMem.getCapacity();
-    if (memCapBytes < Long.BYTES) {
+    if (memCapBytes < 8) {
       throw new SketchesArgumentException("Memory too small: " + memCapBytes);
     }
     long cumOffset = srcMem.getCumulativeOffset(0L);
-    Object memArr = srcMem.array();
+    Object memArr = srcMem.array(); //may be null
     
-    int preambleLongs = extractPreLongs(memArr, cumOffset);
+    //Extract the preamble first 8 bytes 
+    int preLongs = extractPreLongs(memArr, cumOffset);
     int serVer = extractSerVer(memArr, cumOffset);
     int familyID = extractFamilyID(memArr, cumOffset);
     int flags = extractFlags(memArr, cumOffset);
     int k = extractK(memArr, cumOffset);
     short serDeId = extractSerDeId(memArr, cumOffset);
 
+    //VALIDITY CHECKS
+    DoublesUtil.checkDoublesSerVer(serVer);
+    
     if (serDeId != ARRAY_OF_DOUBLES_SERDE_ID) {
       throw new SketchesArgumentException(
       "Possible Corruption: serDeId incorrect: " + serDeId + " != " + ARRAY_OF_DOUBLES_SERDE_ID);
     }
-
-    boolean empty = Util.checkPreLongsFlagsCap(preambleLongs, flags, memCapBytes);
+    boolean empty = Util.checkPreLongsFlagsCap(preLongs, flags, memCapBytes);
     Util.checkFamilyID(familyID);
-    Util.checkSerVer(serVer);
 
     HeapDoublesSketch hqs = getInstance(k); //checks k
-
     if (empty) return hqs;
+    
+    //Not empty, must have valid preamble + min, max, n.
+    //Forward compatibility from SerVer = 2 :
+    boolean compact = (serVer == 2) | ((flags & COMPACT_FLAG_MASK) > 0);
 
-    //Not empty, must have valid preamble + min, max
-    long n = extractN(memArr, cumOffset);
-    int retainedItems = computeRetainedItems(k, n);
-    Util.checkMemCapacity(retainedItems, memCapBytes);
+    long n = extractN(memArr, cumOffset); //Second 8 bytes of preamble
+    DoublesUtil.checkMemCapacity(k, n, compact, memCapBytes);
 
-    //set class members
+    //set class members by computing them
     hqs.n_ = n;
-    hqs.combinedBufferItemCapacity_ = computeCombBufItemCapacity(k, n);
+    hqs.combinedBufferItemCapacity_ = computeCombinedBufferItemCapacity(k, n);
     hqs.baseBufferCount_ = computeBaseBufferItems(k, n);
     hqs.bitPattern_ = computeBitPattern(k, n);
     hqs.combinedBuffer_ = new double[hqs.combinedBufferItemCapacity_];
-
-    int srcMemItemsOffsetBytes = preambleLongs * Long.BYTES;
-    hqs.minValue_ = extractMinDouble(memArr, cumOffset);
-    srcMemItemsOffsetBytes += Double.BYTES;
-    hqs.maxValue_ = extractMaxDouble(memArr, cumOffset);
-    srcMemItemsOffsetBytes += Double.BYTES;
-
-    //load Base Buffer
-    srcMem.getDoubleArray(srcMemItemsOffsetBytes, hqs.combinedBuffer_, 0, hqs.baseBufferCount_);
-    srcMemItemsOffsetBytes += hqs.baseBufferCount_ * Double.BYTES;
-
-    long bits = computeBitPattern(k, n);
-    if (bits == 0) return hqs;
-    int levelBytes = k * Double.BYTES;
-    for (int level = 0; bits != 0L; level++, bits >>>= 1) {
-      if ((bits & 1L) > 0L) {
-        srcMem.getDoubleArray(srcMemItemsOffsetBytes, hqs.combinedBuffer_, (2 + level) * k, k);
-        srcMemItemsOffsetBytes += levelBytes;
-      }
-    }
+    
+    //Extract min, max, data from srcMem into Combined Buffer
+    hqs.srcMemoryToCombinedBuffer(compact, srcMem);
     return hqs;
   }
 
   /**
-   * Returns a copy of the given sketch, which may be either Direct or on-heap
+   * Returns a copy of the given sketch
    * @param sketch the given sketch
-   * @return a copy of the given sketch, which may be either Direct or on-heap
+   * @return a copy of the given sketch
    */
   static HeapDoublesSketch copy(DoublesSketch sketch) {
     HeapDoublesSketch qsCopy;
@@ -239,14 +225,16 @@ final class HeapDoublesSketch extends DoublesSketch {
   @Override
   public double[] getQuantiles(double[] fractions) {
     Util.validateFractions(fractions);
-    DoublesAuxiliary aux = null; //
+    DoublesAuxiliary aux = null;
     double[] answers = new double[fractions.length];
     for (int i = 0; i < fractions.length; i++) {
       double fraction = fractions[i];
       if      (fraction == 0.0) { answers[i] = minValue_; }
       else if (fraction == 1.0) { answers[i] = maxValue_; }
       else {
-        if (aux == null) aux = this.constructAuxiliary();
+        if (aux == null) {
+          aux = this.constructAuxiliary();
+        }
         answers[i] = aux.getQuantile(fraction);
       }
     }
@@ -319,60 +307,161 @@ final class HeapDoublesSketch extends DoublesSketch {
   }
   
   @Override
-  public byte[] toByteArray(boolean sort) {
-    int preLongs, arrLongs, flags;
+  public byte[] toByteArray(boolean ordered, boolean compact) {
     boolean empty = isEmpty();
-    
-    if (empty) {
-      preLongs = 1;
-      arrLongs = 1;
-      flags = EMPTY_FLAG_MASK;
-    }
-    else {
-      preLongs = 2;
-      arrLongs = preLongs + 2 + Util.computeRetainedItems(k_, n_); // 2 for min and max values
-      flags = 0;
-    }
-    byte[] outArr = new byte[arrLongs << 3];
-    Memory memOut = new NativeMemory(outArr);
-    long cumOffset = memOut.getCumulativeOffset(0L);
-    
-    //build prelong 0
-    insertPreLongs(outArr, cumOffset, preLongs);
-    insertSerVer(outArr, cumOffset, SER_VER);
-    insertFamilyID(outArr, cumOffset, Family.QUANTILES.getID());
-    //other flags: bigEndian = false
-    insertFlags(outArr, cumOffset, flags);
-    insertK(outArr, cumOffset, k_);
-    insertSerDeId(outArr, cumOffset, ARRAY_OF_DOUBLES_SERDE_ID);
 
-    if (empty) {
-      return outArr;
-    }
-    //insert preamble + min and max
-    insertN(outArr, cumOffset, n_);
-    insertMinDouble(outArr, cumOffset, minValue_);
-    insertMaxDouble(outArr, cumOffset, maxValue_);
+    int flags = (empty ? EMPTY_FLAG_MASK : 0) 
+        | (ordered ? ORDERED_FLAG_MASK : 0) 
+        | (compact ? COMPACT_FLAG_MASK : 0);
     
-    //insert BaseBuffer
-    int bbItems = computeBaseBufferItems(k_, n_);
-    int offsetBytes = (preLongs + 2) << 3;
-    if ((bbItems < 2 * k_) && (bbItems > 0)) {
-      if (sort)  {
-        Arrays.sort(combinedBuffer_, 0, bbItems);
-      }
-      memOut.putDoubleArray(offsetBytes , combinedBuffer_, 0, bbItems);
-      offsetBytes += Double.BYTES * bbItems;
+    if (empty) {
+      byte[] outByteArr = new byte[Long.BYTES];
+      Memory memOut = new NativeMemory(outByteArr);
+      long cumOffset = memOut.getCumulativeOffset(0L);
+      int preLongs = 1;
+      insertPre0(outByteArr, cumOffset, preLongs, flags, k_);
+      return outByteArr;
     }
-    //insert levels
-    long bits = computeBitPattern(k_, n_);
-    for (int level = 0; bits != 0L; level++, bits >>>= 1) {
-      if ((bits & 1L) > 0L) {
-        memOut.putDoubleArray(offsetBytes, combinedBuffer_, (2 + level) * k_, k_);
-        offsetBytes += k_ * Double.BYTES;
+    //not empty
+    return combinedBufferToByteArray(ordered, compact);
+  }
+  
+  /**
+   * Loads the Combined Buffer, min and max from the given source Memory. 
+   * The Combined Buffer is always in non-compact form and must be pre-allocated.
+   * @param compact true if the given Memory is in compact form
+   * @param srcMem the given source Memory
+   */
+  private void srcMemoryToCombinedBuffer(boolean compact, Memory srcMem) {
+    final int preLongs = 2;
+    final int extra = 2; // space for min and max values
+    final int preBytes = (preLongs + extra) << 3;
+    long cumOffset = srcMem.getCumulativeOffset(0L);
+    Object memArr = srcMem.array(); //may be null
+    int bbCnt = baseBufferCount_;
+    
+    
+    //Load min, max
+    minValue_ = extractMinDouble(memArr, cumOffset);
+    maxValue_ = extractMaxDouble(memArr, cumOffset);
+    
+    if (compact) {
+      //Load base buffer
+      srcMem.getDoubleArray(preBytes, combinedBuffer_, 0, bbCnt);
+      
+      //Load levels from compact srcMem
+      long bits = bitPattern_;
+      if (bits != 0) {
+        long memOffset = preBytes + (bbCnt << 3);
+        int combBufOffset = 2 * k_;
+        while (bits != 0L) {
+          if ((bits & 1L) > 0L) {
+            srcMem.getDoubleArray(memOffset, combinedBuffer_, combBufOffset, k_);
+            memOffset += (k_ << 3); //bytes, increment compactly
+          }
+          combBufOffset += k_; //doubles, increment every level
+          bits >>>= 1;
+        }
+      }
+    } else { //srcMem not compact
+      int levels = Util.computeNumLevelsNeeded(k_, n_);
+      int totItems = (levels == 0) ? bbCnt : (2 + levels) * k_;
+      srcMem.getDoubleArray(preBytes, combinedBuffer_, 0, totItems);
+    }
+  }
+  
+  /**
+   * Returns a byte array, including preamble, min, max and data extracted from the Combined Buffer.
+   * @param ordered true if the desired form of the resulting array has the base buffer sorted.
+   * @param compact true if the desired form of the resulting array is in compact form.
+   * @return a byte array, including preamble, min, max and data extracted from the Combined Buffer.
+   */
+  private byte[] combinedBufferToByteArray(boolean ordered, boolean compact) {
+    final int preLongs = 2;
+    final int extra = 2; // extra space for min and max values
+    int preBytes = (preLongs + extra) << 3;
+    int flags = (ordered ? ORDERED_FLAG_MASK : 0) | (compact ? COMPACT_FLAG_MASK : 0);
+    double[] bbItemsArr = null;
+    
+    final int bbCnt = Util.computeBaseBufferItems(k_, n_);
+    if (bbCnt > 0) {
+      bbItemsArr = new double[bbCnt];
+      System.arraycopy(combinedBuffer_, 0, bbItemsArr, 0, bbCnt);
+      if (ordered) { Arrays.sort(bbItemsArr); }
+    }
+    byte[] outByteArr = null;
+
+    if (compact) {
+      final int retainedItems = getRetainedItems();
+      int outBytes = (retainedItems << 3) + preBytes;
+      outByteArr = new byte[outBytes];
+      
+      Memory memOut = new NativeMemory(outByteArr);
+      long cumOffset = memOut.getCumulativeOffset(0L);
+      
+      //insert preamble, min, max
+      insertPre0(outByteArr, cumOffset, preLongs, flags, k_);
+      insertN(outByteArr, cumOffset, n_);
+      insertMinDouble(outByteArr, cumOffset, minValue_);
+      insertMaxDouble(outByteArr, cumOffset, maxValue_);
+      
+      //insert base buffer
+      if (bbCnt > 0) {
+        memOut.putDoubleArray(preBytes, bbItemsArr, 0, bbCnt);
+      }
+      //insert levels into compact dstMem (and array)
+      long bits = bitPattern_;
+      if (bits != 0) {
+        long memOffset = preBytes + (baseBufferCount_ << 3); //bytes
+        int combBufOffset = 2 * k_; //doubles
+        while (bits != 0L) {
+          if ((bits & 1L) > 0L) {
+            memOut.putDoubleArray(memOffset, combinedBuffer_, combBufOffset, k_);
+            memOffset += (k_ << 3); //bytes, increment compactly
+          }
+          combBufOffset += k_; //doubles, increment every level
+          bits >>>= 1;
+        }
+      }
+
+    } else { //not compact
+      final int totLevels = Util.computeNumLevelsNeeded(k_, n_);
+      int outBytes = (totLevels == 0)
+          ? (bbCnt << 3) + preBytes
+          : (((2 + totLevels) * k_) << 3)  + preBytes;
+      outByteArr = new byte[outBytes];
+      
+      Memory memOut = new NativeMemory(outByteArr);
+      long cumOffset = memOut.getCumulativeOffset(0L);
+      
+      //insert preamble, min, max
+      insertPre0(outByteArr, cumOffset, preLongs, flags, k_);
+      insertN(outByteArr, cumOffset, n_);
+      insertMinDouble(outByteArr, cumOffset, minValue_);
+      insertMaxDouble(outByteArr, cumOffset, maxValue_);
+      
+      //insert base buffer
+      if (bbCnt > 0) {
+        memOut.putDoubleArray(preBytes, bbItemsArr, 0, bbCnt);
+      }
+      //insert levels
+      if (totLevels > 0) {
+        long memOffset = preBytes + ((2L * k_) << 3);
+        int combBufOffset = 2 * k_;
+        memOut.putDoubleArray(memOffset, combinedBuffer_, combBufOffset, totLevels * k_);
       }
     }
-    return outArr;
+    return outByteArr;
+  }
+  
+  private static final void insertPre0(byte[] outArr, long cumOffset, int preLongs, int flags, 
+      int k) {
+    insertPreLongs(outArr, cumOffset, preLongs);
+    insertSerVer(outArr, cumOffset, DoublesUtil.DOUBLES_SER_VER);
+    insertFamilyID(outArr, cumOffset, Family.QUANTILES.getID());
+    insertFlags(outArr, cumOffset, flags);
+    insertK(outArr, cumOffset, k);
+    insertSerDeId(outArr, cumOffset, ARRAY_OF_DOUBLES_SERDE_ID);
   }
   
   @Override

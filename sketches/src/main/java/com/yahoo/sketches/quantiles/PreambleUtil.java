@@ -73,16 +73,13 @@ final class PreambleUtil {
   static final int MIN_DOUBLE                 = 16; //to 23 (Only for DoublesSketch)
   static final int MAX_DOUBLE                 = 24; //to 31 (Only for DoublesSketch)
   static final int COMBINED_BUFFER            = 32; //to 39 (Only for DoublesSketch)
-  
-  //Specific values for this implementation
-  static final int SER_VER                    = 2;
 
   // flag bit masks
   static final int BIG_ENDIAN_FLAG_MASK       = 1;
-  //static final int READ_ONLY_FLAG_MASK        = 2;   //reserved
+  static final int READ_ONLY_FLAG_MASK        = 2;
   static final int EMPTY_FLAG_MASK            = 4;
-  //static final int COMPACT_FLAG_MASK          = 8;   //reserved
-  //static final int ORDERED_FLAG_MASK          = 16;  //reserved
+  static final int COMPACT_FLAG_MASK          = 8;
+  static final int ORDERED_FLAG_MASK          = 16;
   
   static final boolean NATIVE_ORDER_IS_BIG_ENDIAN  = 
       (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
@@ -120,18 +117,18 @@ final class PreambleUtil {
     int flags = mem.getByte(FLAGS_BYTE);
     boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
     String nativeOrder = ByteOrder.nativeOrder().toString();
+    boolean readOnly  = (flags & READ_ONLY_FLAG_MASK) > 0;
     boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
+    boolean compact = (flags & COMPACT_FLAG_MASK) > 0;
+    boolean ordered = (flags & ORDERED_FLAG_MASK) > 0;
     int k = mem.getShort(K_SHORT);
     short serDeId = mem.getShort(SER_DE_ID_SHORT);
+    boolean doublesSketch = (serDeId == DoublesSketch.ARRAY_OF_DOUBLES_SERDE_ID);
     
-    long n;
-    double minDouble, maxDouble;
-    if (preLongs == 1) {
-      n = 0;
-      minDouble = Double.POSITIVE_INFINITY;
-      maxDouble = Double.POSITIVE_INFINITY;
-    } else { // preLongs == 2
-      n = mem.getLong(N_LONG);
+    long n = (preLongs == 1) ? 0L : mem.getLong(N_LONG);
+    double minDouble = Double.POSITIVE_INFINITY;
+    double maxDouble = Double.NEGATIVE_INFINITY;
+    if ((preLongs > 1) && doublesSketch) { // preLongs = 2 or 3
       minDouble = mem.getDouble(MIN_DOUBLE);
       maxDouble = mem.getDouble(MAX_DOUBLE);
     } 
@@ -143,17 +140,22 @@ final class PreambleUtil {
     sb.append("Byte  1: Serialization Version: ").append(serVer).append(LS);
     sb.append("Byte  2: Family               : ").append(famName).append(LS);
     sb.append("Byte  3: Flags Field          : ").append(String.format("%02o", flags)).append(LS);
-    sb.append("  BIG_ENDIAN_STORAGE          : ").append(bigEndian).append(LS);
+    sb.append("  BIG ENDIAN                  : ").append(bigEndian).append(LS);
     sb.append("  (Native Byte Order)         : ").append(nativeOrder).append(LS);
+    sb.append("  READ ONLY                   : ").append(readOnly).append(LS);
     sb.append("  EMPTY                       : ").append(empty).append(LS);
+    sb.append("  COMPACT                     : ").append(compact).append(LS);
+    sb.append("  ORDERED                     : ").append(ordered).append(LS);
     sb.append("Bytes  4-5  : K               : ").append(k).append(LS);
     sb.append("Byte  6-7: SerDeId            : ").append(serDeId).append(LS);
     if (preLongs == 1) {
       sb.append(" --ABSENT, ASSUMED:").append(LS);
     }
     sb.append("Bytes  8-15 : N                : ").append(n).append(LS);
-    sb.append("MinDouble                      : ").append(minDouble).append(LS);
-    sb.append("MaxDouble                      : ").append(maxDouble).append(LS);
+    if (doublesSketch) {
+      sb.append("MinDouble                      : ").append(minDouble).append(LS);
+      sb.append("MaxDouble                      : ").append(maxDouble).append(LS);
+    }
     sb.append("Retained Items                 : ").append(computeRetainedItems(k, n)).append(LS);
     sb.append("Total Bytes                    : ").append(mem.getCapacity()).append(LS);
     sb.append("### END SKETCH PREAMBLE SUMMARY").append(LS);

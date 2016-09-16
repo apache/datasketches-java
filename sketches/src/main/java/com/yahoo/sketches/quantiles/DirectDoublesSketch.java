@@ -5,12 +5,27 @@
 
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.memory.UnsafeUtil.unsafe;
-import static com.yahoo.sketches.quantiles.PreambleUtil.*;
+import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
+import static com.yahoo.sketches.quantiles.PreambleUtil.extractK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.extractMaxDouble;
+import static com.yahoo.sketches.quantiles.PreambleUtil.extractMinDouble;
+import static com.yahoo.sketches.quantiles.PreambleUtil.extractN;
+import static com.yahoo.sketches.quantiles.PreambleUtil.extractPreLongs;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertFamilyID;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertFlags;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertMaxDouble;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertMinDouble;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertN;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertPreLongs;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerDeId;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerVer;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.SketchesStateException;
 
 /**
  * Implements the DoublesSketch off-heap.
@@ -20,7 +35,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  */
 @SuppressWarnings("unused")
 public class DirectDoublesSketch extends DoublesSketch {
-
+  private static final int DIRECT_PRE_LONGS = 4; //includes min and max values
   private Memory mem_;
   private long cumOffset_; //
   private Object memArr_;
@@ -34,7 +49,7 @@ public class DirectDoublesSketch extends DoublesSketch {
   static DirectDoublesSketch newInstance(int k, Memory dstMem) {
     DirectDoublesSketch dds = new DirectDoublesSketch(k);
     long memCap = dstMem.getCapacity();
-    long minCap = 32 + (k << 3);
+    long minCap = (DIRECT_PRE_LONGS + 2 * k) << 3; //allow for full base buffer
     if (memCap < minCap) {
       throw new SketchesArgumentException(
           "Destination Memory too small: " + memCap + " < " + minCap);
@@ -44,7 +59,7 @@ public class DirectDoublesSketch extends DoublesSketch {
     
     //init dstMem
     insertPreLongs(memArr, cumOffset, 2);
-    insertSerVer(memArr, cumOffset, SER_VER);
+    insertSerVer(memArr, cumOffset, DoublesUtil.DOUBLES_SER_VER);
     insertFamilyID(memArr, cumOffset, Family.QUANTILES.getID());
     int flags = EMPTY_FLAG_MASK; //empty
     insertFlags(memArr, cumOffset, flags);
@@ -61,6 +76,7 @@ public class DirectDoublesSketch extends DoublesSketch {
   }
 
   static DirectDoublesSketch wrapInstance(Memory srcMem) {
+    //TODO
     return null;
   }
   
@@ -124,16 +140,34 @@ public class DirectDoublesSketch extends DoublesSketch {
 
   @Override
   public void reset() {
-    // TODO Auto-generated method stub
-    
+    insertN(memArr_, cumOffset_, 0L);
+    insertMinDouble(memArr_, cumOffset_, Double.POSITIVE_INFINITY);
+    insertMaxDouble(memArr_, cumOffset_, Double.NEGATIVE_INFINITY);
   }
+  
+  //TODO This needs rethinking
 
   @Override
-  public byte[] toByteArray(boolean sort) {
-    // TODO Auto-generated method stub
+  public byte[] toByteArray(boolean ordered, boolean compact) {
+    int preLongs = extractPreLongs(memArr_, cumOffset_);
+    boolean empty = (extractFlags(memArr_, cumOffset_) & EMPTY_FLAG_MASK) > 0;
+    if (empty ^ (preLongs == 1)) {
+      throw new SketchesStateException(
+          "Inconsistent state of Empty and PreLongs: Empty: " + empty + ", PreLongs: " + preLongs);
+    }
+    if (empty) {
+      byte[] out = new byte[8];
+      mem_.getByteArray(0, out, 0, 8);
+      return out;
+    }
+    int k = extractK(memArr_, cumOffset_);
+    long n = extractN(memArr_, cumOffset_);
+    
+    //TODO
+    
     return null;
   }
-
+  
   @Override
   public String toString(boolean sketchSummary, boolean dataDetail) {
     // TODO Auto-generated method stub
@@ -154,14 +188,12 @@ public class DirectDoublesSketch extends DoublesSketch {
 
   @Override
   int getBaseBufferCount() {
-    // TODO Auto-generated method stub
-    return 0;
+    return Util.computeBaseBufferItems(getK(), getN());
   }
 
   @Override
   int getCombinedBufferItemCapacity() {
-    // TODO Auto-generated method stub
-    return 0;
+    return Util.computeCombinedBufferItemCapacity(getK(), getN());
   }
 
   @Override
@@ -169,5 +201,21 @@ public class DirectDoublesSketch extends DoublesSketch {
     // TODO Auto-generated method stub
     return null;
   }
+  
+  /**
+   * Returns the current item capacity of the combined, non-compact, data buffer 
+   * given <i>k</i> and <i>n</i>. The base buffer is always allocated at full size.
+   * 
+   * @param k sketch parameter. This determines the accuracy of the sketch and the 
+   * size of the updatable data structure, which is a function of <i>k</i> and <i>n</i>.
+   * 
+   * @param n The number of items in the input stream
+   * @return the current item capacity of the combined data buffer
+   */
+  private static final int computeDirectCombBufItemCapacity(int k, long n) {
+    int totLevels = Util.computeNumLevelsNeeded(k, n);
+    return (2 + totLevels) * k; //base buffer always allocated at full size.
+  }
+  
   
 }

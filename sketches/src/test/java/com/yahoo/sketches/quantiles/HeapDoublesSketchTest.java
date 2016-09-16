@@ -8,7 +8,7 @@ package com.yahoo.sketches.quantiles;
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.SER_DE_ID_SHORT;
 import static com.yahoo.sketches.quantiles.Util.LS;
-import static com.yahoo.sketches.quantiles.Util.computeCombBufItemCapacity;
+import static com.yahoo.sketches.quantiles.Util.computeCombinedBufferItemCapacity;
 import static com.yahoo.sketches.quantiles.Util.computeNumLevelsNeeded;
 import static com.yahoo.sketches.quantiles.Util.lg;
 import static java.lang.Math.floor;
@@ -309,7 +309,7 @@ public class HeapDoublesSketchTest {
     qs.getQuantile(frac);
   }
   
-  //@Test  //visual only
+  //@Test  //visual only  //TODO
   public void summaryCheckViaMemory() {
     DoublesSketch qs = buildQS(256, 1000000);
     String s = qs.toString();
@@ -435,16 +435,55 @@ public class HeapDoublesSketchTest {
   
   @Test
   public void checkToFromByteArray() {
-    int k = DoublesSketch.DEFAULT_K;
-    int n = 1300; //generates a pattern of 5 = (101)
-    DoublesSketch qs = buildQS(k,n);
+    checkToFromByteArray2(128, 1300); //generates a pattern of 5 -> 101
+    checkToFromByteArray2(4, 7);
+    checkToFromByteArray2(4, 8);
+    checkToFromByteArray2(4, 9);
+  }
+  
+  private static void checkToFromByteArray2(int k, int n) {
+    DoublesSketch qs = buildQS(k, n);
+    byte[] byteArr;
+    Memory mem;
+    DoublesSketch qs2;
     
-    byte[] byteArr = qs.toByteArray(true);
-    Memory mem = new NativeMemory(byteArr);
-    DoublesSketch qs2 = DoublesSketch.heapify(mem);
+    //ordered, compact
+    byteArr = qs.toByteArray(true, true);
+    mem = new NativeMemory(byteArr);
+    qs2 = DoublesSketch.heapify(mem);
     for (double f = 0.1; f < 0.95; f += 0.1) {
       assertEquals(qs.getQuantile(f), qs2.getQuantile(f), 0.0);
     }
+    
+    //ordered, non-compact
+    byteArr = qs.toByteArray(true, false);
+    mem = new NativeMemory(byteArr);
+    qs2 = DoublesSketch.heapify(mem);
+    for (double f = 0.1; f < 0.95; f += 0.1) {
+      assertEquals(qs.getQuantile(f), qs2.getQuantile(f), 0.0);
+    }
+    
+    //not ordered, compact
+    byteArr = qs.toByteArray(false, true);
+    mem = new NativeMemory(byteArr);
+    qs2 = DoublesSketch.heapify(mem);
+    for (double f = 0.1; f < 0.95; f += 0.1) {
+      assertEquals(qs.getQuantile(f), qs2.getQuantile(f), 0.0);
+    }
+    
+    //Not ordered, not compact
+    byteArr = qs.toByteArray(false, false);
+    mem = new NativeMemory(byteArr);
+    qs2 = DoublesSketch.heapify(mem);
+    for (double f = 0.1; f < 0.95; f += 0.1) {
+      assertEquals(qs.getQuantile(f), qs2.getQuantile(f), 0.0);
+    }
+    
+  }
+  
+  public static void main(String[] args) {
+    HeapDoublesSketchTest test = new HeapDoublesSketchTest();
+    test.checkToFromByteArray();
   }
   
   @Test
@@ -478,7 +517,7 @@ public class HeapDoublesSketchTest {
   //Corruption tests
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkSerVer() {
-    Util.checkSerVer(0);
+    DoublesUtil.checkDoublesSerVer(0);
   }
   
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -487,13 +526,13 @@ public class HeapDoublesSketchTest {
   }
   
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkBufAllocAndCap() {
+  public void checkMemCapacityException() {
     int k = DoublesSketch.DEFAULT_K;
     long n = 1000;
-    int combBufItemCap = computeCombBufItemCapacity(k, n);
-    int badCapItems = combBufItemCap - 1; //corrupt
-    int memCapBytes = (combBufItemCap + 2) * Long.BYTES;
-    Util.checkMemCapacity(badCapItems, memCapBytes);
+    int combBufItemCap = computeCombinedBufferItemCapacity(k, n);
+    int memCapBytes = (combBufItemCap + 4) << 3;
+    int badCapBytes = memCapBytes - 1; //corrupt
+    DoublesUtil.checkMemCapacity(k, n, false, badCapBytes);
   }
   
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -507,12 +546,12 @@ public class HeapDoublesSketchTest {
   }
   
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkBufAllocAndCap2() {
+  public void checkBufAllocAndCap() {
     int k = DoublesSketch.DEFAULT_K;
     long n = 1000;
-    int combBufItemCap = computeCombBufItemCapacity(k, n);
-    int memCap = (combBufItemCap + 2) * Long.BYTES;
-    Util.checkMemCapacity(combBufItemCap, memCap - 1); //corrupt
+    int combBufItemCap = computeCombinedBufferItemCapacity(k, n); //non-compact cap
+    int memCapBytes = (combBufItemCap + 4) << 3;
+    DoublesUtil.checkMemCapacity(k, n, false, memCapBytes - 1); //corrupt
   }
   
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -579,7 +618,7 @@ public class HeapDoublesSketchTest {
     println(s);
   }
   
-  //@Test  //Visual only tests
+  //@Test  //Visual only tests //TODO
   public void checkDownSampling() {
     testDownSampling(4,4);
     testDownSampling(16,4);
@@ -674,10 +713,10 @@ public class HeapDoublesSketchTest {
     HeapDoublesUnion.mergeInto(qs2, qs1);
   }
 
-  //@Test  //visual only
+  //@Test  //visual only //TODO
   public void quantilesCheckViaMemory() {
     int k = 256;
-    long n = 1000000;
+    int n = 1000000;
     DoublesSketch qs = buildQS(k, n);
     double[] ranks = {0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
     String s = getRanksTable(qs, ranks);
@@ -892,11 +931,11 @@ public class HeapDoublesSketchTest {
            );
   }
 
-  static DoublesSketch buildQS(int k, long n) {
+  static DoublesSketch buildQS(int k, int n) {
     return buildQS(k, n, 0);
   }
   
-  static DoublesSketch buildQS(int k, long n, int startV) {
+  static DoublesSketch buildQS(int k, int n, int startV) {
     DoublesSketch qs = DoublesSketch.builder().build(k);
     for (int i=0; i<n; i++) {
       qs.update(startV + i);
@@ -920,7 +959,7 @@ public class HeapDoublesSketchTest {
    * @param s value to print 
    */
   static void print(String s) {
-    //System.err.print(s); //disable here
+    System.err.print(s); //disable here
   }
 
 }

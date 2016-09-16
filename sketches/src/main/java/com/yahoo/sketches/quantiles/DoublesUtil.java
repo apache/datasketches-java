@@ -7,35 +7,67 @@ package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.checkIfPowerOf2;
+import static com.yahoo.sketches.quantiles.Util.computeRetainedItems;
 import static java.lang.System.arraycopy;
 
 import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
- * Static methods that support the doubles quantiles algorithms.
+ * Utilities that support the doubles quantiles algorithms.
+ * 
+ * <p>This class contains a highly specialized sort called blockyTandemMergeSort().
+ * It also contains methods that are used while building histograms and other common
+ * functions.</p>
  * 
  * @author Kevin Lang
  * @author Lee Rhodes
  */
 final class DoublesUtil {
 
+  private DoublesUtil() {} 
+  
+  static final int DOUBLES_SER_VER = 3;
+  static final int PRIOR_DOUBLES_SER_VER = 2;
+  
   /**
-   * Checks the sequential validity of the given array of values. 
-   * They must be unique, monotonically increasing and not NaN.
-   * @param values given array of values
+   * Checks the validity of the memory capacity assuming n, k and compact.
+   * @param k the given value of k
+   * @param n the given value of n
+   * @param compact true if memory is in compact form
+   * @param memCapBytes the memory capacity in bytes
    */
-  static final void validateValues(final double[] values) {
-    final int lenM1 = values.length - 1;
-    for (int j = 0; j < lenM1; j++) {
-      if (values[j] < values[j + 1]) continue;
-      throw new SketchesArgumentException(
-          "Values must be unique, monotonically increasing and not NaN.");
+  static void checkMemCapacity(int k, long n, boolean compact, long memCapBytes) {
+    int metaPre = Family.QUANTILES.getMaxPreLongs() + 2;
+    int retainedItems = computeRetainedItems(k, n);
+    int reqBufBytes;
+    if (compact) {
+      reqBufBytes = (metaPre + retainedItems) << 3;
+    } else { //not compact
+      int totLevels = Util.computeNumLevelsNeeded(k, n);
+      reqBufBytes = (totLevels == 0) 
+          ? (metaPre + retainedItems) << 3 
+          : (metaPre + (2 + totLevels) * k) << 3;
+    }
+    if (memCapBytes < reqBufBytes) {
+      throw new SketchesArgumentException("Possible corruption: Memory capacity too small: "
+          + memCapBytes + " < " + reqBufBytes);
     }
   }
-
+  
+  /**
+   * Check the validity of the given serialization version
+   * @param serVer the given serialization version
+   */
+  static void checkDoublesSerVer(int serVer) {
+    if ((serVer == DOUBLES_SER_VER) || (serVer == PRIOR_DOUBLES_SER_VER)) { return; }
+    throw new SketchesArgumentException(
+        "Possible corruption: Invalid Serialization Version: " + serVer);
+  }
+  
   /**
    * Shared algorithm for both PMF and CDF functions. The splitPoints must be unique, monotonically
    * increasing values.
@@ -48,7 +80,7 @@ final class DoublesUtil {
     final double[] levelsArr  = sketch.getCombinedBuffer();
     final double[] baseBuffer = levelsArr;
     final int bbCount = sketch.getBaseBufferCount();
-    validateValues(splitPoints);
+    Util.validateValues(splitPoints);
 
     final int numSplitPoints = splitPoints.length;
     final int numCounters = numSplitPoints + 1;
