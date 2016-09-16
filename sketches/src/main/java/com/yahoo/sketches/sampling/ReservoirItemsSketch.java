@@ -10,10 +10,8 @@ import static com.yahoo.sketches.sampling.PreambleUtil.extractResizeFactor;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractSerDeId;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.sampling.PreambleUtil.getAndCheckPreLongs;
-import static com.yahoo.sketches.sampling.PreambleUtil.preambleToString;
 
 import java.lang.reflect.Array;
-import java.util.Random;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.MemoryRegion;
@@ -52,8 +50,6 @@ public class ReservoirItemsSketch<T> {
      * Default sampling size multiple when reallocating storage: 8
      */
     private static final ResizeFactor DEFAULT_RESIZE_FACTOR = ResizeFactor.X8;
-
-    public static final Random rand = new Random();
 
     private int reservoirSize_;      // max size of sampling
     private short encodedResSize_;     // compact encoding of reservoir size
@@ -100,9 +96,9 @@ public class ReservoirItemsSketch<T> {
         itemsSeen_ = 0;
 
         int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize_), "ReservoirLongsSketch");
-        int initialSize = startingSubMultiple(reservoirSize_, ceilingLgK, MIN_LG_ARR_LONGS);
+        int initialSize = SamplingUtil.startingSubMultiple(reservoirSize_, ceilingLgK, MIN_LG_ARR_LONGS);
 
-        currItemsAlloc_ = getAdjustedSize(reservoirSize_, initialSize);
+        currItemsAlloc_ = SamplingUtil.getAdjustedSize(reservoirSize_, initialSize);
         data_ = new Object[currItemsAlloc_];
     }
 
@@ -201,9 +197,9 @@ public class ReservoirItemsSketch<T> {
      */
     @SuppressWarnings("unchecked")
     public T[] getSamples(Class<?> clazz) {
-         if (itemsSeen_ == 0) {
-             return null;
-         }
+        if (itemsSeen_ == 0) {
+            return null;
+        }
 
         int numSamples = (int) Math.min(reservoirSize_, itemsSeen_);
         T[] dst = (T[]) Array.newInstance(clazz, numSamples);
@@ -272,10 +268,10 @@ public class ReservoirItemsSketch<T> {
             // casts to int are safe since under-full
             int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize), "getInstance");
             int minLgSize = Util.toLog2(Util.ceilingPowerOf2((int) itemsSeen), "getInstance");
-            int initialLgSize = startingSubMultiple(reservoirSize, ceilingLgK,
+            int initialLgSize = SamplingUtil.startingSubMultiple(reservoirSize, ceilingLgK,
                     Math.min(minLgSize, MIN_LG_ARR_LONGS));
 
-            allocatedSize = getAdjustedSize(reservoirSize, 1 << initialLgSize);
+            allocatedSize = SamplingUtil.getAdjustedSize(reservoirSize, 1 << initialLgSize);
         }
         Object[] data = serDe.deserializeFromMemory(
                 new MemoryRegion(srcMem, preLongBytes, srcMem.getCapacity() - preLongBytes), allocatedSize);
@@ -380,8 +376,8 @@ public class ReservoirItemsSketch<T> {
             ++itemsSeen_;
             // prob(keep_item) < k / n = reservoirSize_ / itemsSeen_
             // so multiply to get: keep if rand * itemsSeen_ < reservoirSize_
-            if (rand.nextDouble() * itemsSeen_ < reservoirSize_) {
-                int newSlot = rand.nextInt(reservoirSize_);
+            if (SamplingUtil.rand.nextDouble() * itemsSeen_ < reservoirSize_) {
+                int newSlot = SamplingUtil.rand.nextInt(reservoirSize_);
                 data_[newSlot] = item;
             }
         }
@@ -391,29 +387,11 @@ public class ReservoirItemsSketch<T> {
      * Increases allocated sampling size by (adjusted) ResizeFactor and copies data from old sampling.
      */
     private void growReservoir() {
-        int newSize = getAdjustedSize(reservoirSize_, currItemsAlloc_ * rf_.getValue());
+        int newSize = SamplingUtil.getAdjustedSize(reservoirSize_, currItemsAlloc_ * rf_
+                .getValue());
         Object[] buffer = java.util.Arrays.copyOf(data_, newSize);
 
         currItemsAlloc_ = newSize;
         data_ = buffer;
-    }
-
-    /**
-     * Checks if target sampling allocation is more than 50% of max sampling size. If so, returns max sampling size,
-     * otherwise passes through the target size.
-     *
-     * @param maxSize Maximum allowed reservoir size, as from getK()
-     * @param resizeTarget Next size based on a pure ResizeFactor scaling
-     * @return (reservoirSize_ &lt; 2*resizeTarget ? reservoirSize_ : resizeTarget)
-     */
-    private static int getAdjustedSize(final int maxSize, final int resizeTarget) {
-        if (maxSize - (resizeTarget << 1) < 0L) {
-            return maxSize;
-        }
-        return resizeTarget;
-    }
-
-    private static int startingSubMultiple(int lgTarget, int lgRf, int lgMin) {
-        return (lgTarget <= lgMin) ? lgMin : (lgRf == 0) ? lgTarget : (lgTarget - lgMin) % lgRf + lgMin;
     }
 }

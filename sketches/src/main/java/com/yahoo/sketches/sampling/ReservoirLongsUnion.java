@@ -1,5 +1,7 @@
 package com.yahoo.sketches.sampling;
 
+import java.util.Map;
+
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.ResizeFactor;
 
@@ -137,11 +139,12 @@ public class ReservoirLongsUnion {
 
             double rescaled_one = targetTotal;
             assert (rescaled_prob < rescaled_one); // TODO: exception to enforce strict lightness?
-            double rescaled_flip = rescaled_one * gadget_.rand.nextDouble(); // TODO: move to util class w/ other statics
+            double rescaled_flip = rescaled_one * SamplingUtil.rand.nextDouble(); // TODO: move to util class w/
+            // other statics
             if (rescaled_flip < rescaled_prob) {
                 // Intentionally NOT doing optimizaiton to extract slot number from rescaled_flip.
                 // Grabbing new random bits to ensure all slots in play
-                int slotNo = gadget_.rand.nextInt(tgtK);
+                int slotNo = SamplingUtil.rand.nextInt(tgtK);
                 gadget_.insertValueAtPosition(source.getValueAtPosition(i), slotNo);
             } // end of inlined weight update
         } // end of loop over source samples
@@ -154,8 +157,98 @@ public class ReservoirLongsUnion {
         assert (checkN == gadget_.getN());
     }
 
+    /**
+     * Returns a sketch representing the current state of the union.
+     * @return The result of any unions already processed.
+     */
     public ReservoirLongsSketch getResult() {
         return (gadget_ != null ? gadget_.copy() : null);
     }
+
+    /**
+     * Returns a byte array representation of this union
+     * @return a byte array representation of this union
+     */
+    public byte[] toByteArray() {
+        return (gadget_ != null ? gadget_.toByteArray() : null);
+    }
+
+    public static void main(String[] args) {
+        int iter = 100000;
+        int k = 20;
+        java.util.TreeMap<Long, Integer> hist = new java.util.TreeMap<>();
+
+        for (int i = 0; i < iter; ++i) {
+            long[] out = simpleUnion(k);
+
+            for (int j = 0; j < k; ++j) {
+                long key = out[j];
+                if (hist.containsKey(key)) {
+                    int count = hist.get(key);
+                    hist.put(key, ++count);
+                } else {
+                    hist.put(key, 1);
+                }
+            }
+        }
+
+        //for (Long l : java.util.Collections.sort(hist.keySet().to)) {
+        for (Map.Entry e : hist.entrySet()) {
+            System.out.println(e.getKey() + ": " + e.getValue().toString());
+        }
+        System.out.println("H      = " + computeEntropy(k * iter, hist));
+        System.out.println("Theo H = " + Math.log(20 * k) / Math.log(2.0));
+
+    }
+
+    public static double computeEntropy(final long denom, java.util.Map<Long, Integer> data) {
+        double H = 0.0;
+        double scaleFactor = 1.0 / denom;
+        double INV_LN_2 = 1.0 / Math.log(2.0);
+
+        for (int count : data.values()) {
+            double p = count * scaleFactor;
+            H -= p * Math.log(p) * INV_LN_2;
+        }
+
+        return H;
+    }
+
+    public static long[] simpleUnion(final int k) {
+        ReservoirLongsSketch rls1 = ReservoirLongsSketch.getInstance(k);
+        ReservoirLongsSketch rls2 = ReservoirLongsSketch.getInstance(k);
+
+        for (long i = 0; i < 10 * k; ++i) {
+            rls1.update((long) i);
+            rls2.update((long) k * k + i);
+        }
+
+        /*
+        System.out.println("Samples 1:");
+        long[] data1 = rls1.getSamples();
+        long[] data2 = rls2.getSamples();
+        for (long l : data1) {
+            System.out.println(l);
+        }
+        System.out.println("Samples 2:");
+        for (long l : data2) {
+            System.out.println(l);
+        }
+        */
+
+        ReservoirLongsUnion rlu = new ReservoirLongsUnion(rls1);
+        rlu.update(rls2);
+
+        long[] result = rlu.getResult().getSamples();
+        /*
+        System.out.println("\nResult:");
+        for (long l : result) {
+            System.out.println(l);
+        }
+        */
+
+        return result;
+    }
+
 
 }
