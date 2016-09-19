@@ -1,45 +1,38 @@
 package com.yahoo.sketches.sampling;
 
-import static com.yahoo.sketches.sampling.PreambleUtil.FAMILY_BYTE;
-
 import java.util.Map;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.sketches.Family;
+import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.ResizeFactor;
 
 /**
- * Class to union reservoir samples.
+ * Class to union reservoir samples. Because the union process picks one of the two sketches to use as the base,
+ * we provide only a union; a merge would result in unpredictable side effects on the underlying sketches.
  *
- * <p>For efficiency reasons, the unioning process picks one of the two sketches to use as the base. As a result,
- * we provide only a stateful union. Using the same approach for a merge would result in unpredictable side effects on
- * the underlying sketches.</p>
- *
- * <p>If taking the union of two reservoirs of different sizes, the output sample will contain no more than
+ * <p>If taking the uinon of two reservoirs of different sizes, the output sample will contain no more than
  * MIN(k_1, k_2) samples.</p>
  *
  * @author Jon Malkin
  * @author Kevin Lang
  */
-public class ReservoirLongsUnion {
-    private ReservoirLongsSketch gadget_;
+public class ReservoirItemsUnion<T> {
+    private ReservoirItemsSketch<T> gadget_;
 
-    public ReservoirLongsUnion(final int k) {
-        gadget_ = ReservoirLongsSketch.getInstance(k);
+    public ReservoirItemsUnion(final int k) {
+        gadget_ = ReservoirItemsSketch.getInstance(k);
     }
 
-    public ReservoirLongsUnion(final int k, final ResizeFactor rf) {
-        gadget_ = ReservoirLongsSketch.getInstance(k, rf);
+    public ReservoirItemsUnion(final int k, final ResizeFactor rf) {
+        gadget_ = ReservoirItemsSketch.getInstance(k, rf);
     }
 
-    public ReservoirLongsUnion(ReservoirLongsSketch sketchIn) {
-        //gadget_ = (sketchIn == null ? null : sketchIn.copy());
+    public ReservoirItemsUnion(ReservoirItemsSketch sketchIn) {
         gadget_ = sketchIn.copy();
     }
 
-    public ReservoirLongsUnion(Memory srcMem) {
-        Family.RESERVOIR.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
-        gadget_ = ReservoirLongsSketch.getInstance(srcMem);
+    public ReservoirItemsUnion(Memory srcMem, ArrayOfItemsSerDe<T> serDe) {
+        gadget_ = ReservoirItemsSketch.getInstance(srcMem, serDe);
     }
 
     /**
@@ -49,17 +42,12 @@ public class ReservoirLongsUnion {
      *
      * @param sketchIn The incoming sketch.
      */
-    void update(ReservoirLongsSketch sketchIn) {
-        if (sketchIn != null) {
-            twoWayMergeInternal(sketchIn, false);
-        }
-        /*
+    void update(ReservoirItemsSketch<T> sketchIn) {
         if (gadget_ == null) {
             gadget_ = sketchIn;
         } else if (sketchIn != null) {
             twoWayMergeInternal(sketchIn, false);
         } // if sketchIn == null, return
-        */
     }
 
     /**
@@ -69,26 +57,25 @@ public class ReservoirLongsUnion {
      * If the given sketch is null it is interpreted as an empty sketch.
      * @param mem Memory image of sketch to be merged
      */
-    void update(Memory mem) {
+    void update(Memory mem, ArrayOfItemsSerDe<T> serDe) {
         if (mem != null) {
-            ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(mem);
-            twoWayMergeInternal(rls, true);
-            /*
+            ReservoirItemsSketch<T> rls = ReservoirItemsSketch.getInstance(mem, serDe);
+
             if (gadget_ == null) {
                 gadget_ = rls;
             } else {
                 twoWayMergeInternal(rls, true);
             }
-            */
         }
     }
 
     /**
-     * Present this union with a long.
+     * Present this union with a reservoir item.
      *
-     * @param datum The given long datum.
+     * @param datum The given datum of type T.
      */
-    public void update(long datum) {
+    public void update(T datum) {
+        // TODO: what if gadget_ is null?
         gadget_.update(datum);
     }
 
@@ -98,14 +85,14 @@ public class ReservoirLongsUnion {
      * @param sketchIn Sketch with new samples from which to draw
      * @param isModifiable Flag indicating whether sketchIn can be modified (e.g. if it was rebuild from Memory)
      */
-    private void twoWayMergeInternal(final ReservoirLongsSketch sketchIn, final boolean isModifiable) {
+    private void twoWayMergeInternal(final ReservoirItemsSketch<T> sketchIn, final boolean isModifiable) {
         // TODO: need explicit check on reservoir size to set to min(sketchIn.getK() and gadget_.getK())?
         // TODO: better checks for nulls/empty sketches?
         if (sketchIn.getN() <= sketchIn.getK()) {
             twoWayMergeInternalStandard(sketchIn);
-        } else if (gadget_.getN() < gadget_.getK()) {  // TODO: should this be <=?
+        } else if (gadget_.getN() < gadget_.getK()) {
             // merge into sketchIn, so swap first
-            ReservoirLongsSketch tmpSketch = gadget_;
+            ReservoirItemsSketch<T> tmpSketch = gadget_;
             gadget_ = (isModifiable ? sketchIn : sketchIn.copy());
             twoWayMergeInternalStandard(tmpSketch);
         } else if (sketchIn.getImplicitSampleWeight() < gadget_.getN() / ((double) (gadget_.getK() - 1))) {
@@ -116,14 +103,14 @@ public class ReservoirLongsUnion {
             // gadget_.getImplicitSampleWeight() < sketchIn.getN() / ((double) (sketchIn.getK() - 1))) {
             // implicit weights in gadget are light enough to merge into sketchIn
             // merge into sketchIn, so swap first
-            ReservoirLongsSketch tmpSketch = gadget_;
+            ReservoirItemsSketch<T> tmpSketch = gadget_;
             gadget_ = (isModifiable ? sketchIn : sketchIn.copy());
             twoWayMergeInternalWeighted(tmpSketch);
         }
     }
 
     // should be called ONLY by twoWayMergeInternal
-    private void twoWayMergeInternalStandard(final ReservoirLongsSketch source) {
+    private void twoWayMergeInternalStandard(final ReservoirItemsSketch<T> source) {
         assert (source.getN() <= source.getK());
         int numInputSamples = source.getNumSamples();
         for (int i = 0; i < numInputSamples; ++i) {
@@ -132,7 +119,7 @@ public class ReservoirLongsUnion {
     }
 
     // should be called ONLY by twoWayMergeInternal
-    private void twoWayMergeInternalWeighted(final ReservoirLongsSketch source) {
+    private void twoWayMergeInternalWeighted(final ReservoirItemsSketch<T> source) {
         assert (gadget_.getN() >= gadget_.getK()); // gadget_ capable of accepting (light) general weights
 
         int numSourceSamples = source.getK();
@@ -164,8 +151,8 @@ public class ReservoirLongsUnion {
         } // end of loop over source samples
 
 
-        // targetTotal was fractional but should now be an integer again. Could validate with
-        // low tolerance, but for now just round to check.
+        // targetTotal was fractional but should now be an integer again. Could validate with low tolerance, but for now
+        // just round to check.
         long checkN = (long) Math.floor(0.5 + targetTotal);
         gadget_.forceIncrementItemsSeen(source.getN());
         assert (checkN == gadget_.getN());
@@ -175,31 +162,41 @@ public class ReservoirLongsUnion {
      * Returns a sketch representing the current state of the union.
      * @return The result of any unions already processed.
      */
-    public ReservoirLongsSketch getResult() {
-        //return (gadget_ != null ? gadget_.copy() : null);
-        return gadget_;
+    public ReservoirItemsSketch<T> getResult() {
+        return (gadget_ != null ? gadget_.copy() : null);
     }
 
     /**
      * Returns a byte array representation of this union
+     * @param serDe An instance of ArrayOfItemsSerDe
      * @return a byte array representation of this union
      */
-    public byte[] toByteArray() {
-        //return (gadget_ != null ? gadget_.toByteArray() : null);
-        return gadget_.toByteArray();
+    public byte[] toByteArray(ArrayOfItemsSerDe<T> serDe) {
+        return (gadget_ != null ? gadget_.toByteArray(serDe) : null);
     }
 
-    /*
+    /**
+     * Returns a byte array representation of this union. This method should be used when the array elements are
+     * subclasses of a common base class.
+     * @param serDe An instance of ArrayOfItemsSerDe
+     * @param clazz A class to which the items are cast before serialization
+     * @return a byte array representation of this union
+     */
+    public byte[] toByteArray(ArrayOfItemsSerDe<T> serDe, Class<?> clazz) {
+        return (gadget_ != null ? gadget_.toByteArray(serDe, clazz) : null);
+    }
+
+
     public static void main(String[] args) {
         int iter = 100000;
         int k = 20;
-        java.util.TreeMap<Long, Integer> hist = new java.util.TreeMap<>();
+        java.util.TreeMap<Integer, Integer> hist = new java.util.TreeMap<>();
 
         for (int i = 0; i < iter; ++i) {
-            long[] out = simpleUnion(k);
+            Integer[] out = simpleUnion(k);
 
             for (int j = 0; j < k; ++j) {
-                long key = out[j];
+                int key = out[j];
                 if (hist.containsKey(key)) {
                     int count = hist.get(key);
                     hist.put(key, ++count);
@@ -209,18 +206,24 @@ public class ReservoirLongsUnion {
             }
         }
 
-        for (Map.Entry e : hist.entrySet()) {
+        int min = Integer.MAX_VALUE;
+        int max = Integer.MIN_VALUE;
+        for (Map.Entry<Integer,Integer> e : hist.entrySet()) {
             System.out.println(e.getKey() + ": " + e.getValue().toString());
+            if (e.getValue() < min) { min = e.getValue(); }
+            if (e.getValue() > max) { max = e.getValue(); }
         }
         System.out.println("H      = " + computeEntropy(k * iter, hist));
         System.out.println("Theo H = " + Math.log(20 * k) / Math.log(2.0));
+        System.out.println("min = " + min);
+        System.out.println("max = " + max);
 
     }
 
-    public static double computeEntropy(final long denom, java.util.Map<Long, Integer> data) {
+    public static double computeEntropy(final long denom, Map<Integer, Integer> data) {
         double H = 0.0;
         double scaleFactor = 1.0 / denom;
-        double INV_LN_2 = 1.0 / Math.log(2.0);
+        final double INV_LN_2 = 1.0 / Math.log(2.0);
 
         for (int count : data.values()) {
             double p = count * scaleFactor;
@@ -230,23 +233,41 @@ public class ReservoirLongsUnion {
         return H;
     }
 
-    public static long[] simpleUnion(final int k) {
-        ReservoirLongsSketch rls1 = ReservoirLongsSketch.getInstance(k);
-        ReservoirLongsSketch rls2 = ReservoirLongsSketch.getInstance(k);
+    public static Integer[] simpleUnion(final int k) {
+        ReservoirItemsSketch<Integer> rls1 = ReservoirItemsSketch.getInstance(k);
+        ReservoirItemsSketch<Integer> rls2 = ReservoirItemsSketch.getInstance(k);
 
-        for (long i = 0; i < 10 * k; ++i) {
-            rls1.update((long) i);
-            rls2.update((long) k * k + i);
+        for (int i = 0; i < 10 * k; ++i) {
+            rls1.update(i);
+            rls2.update(k * k + i);
         }
 
-        ReservoirLongsUnion rlu = new ReservoirLongsUnion(rls1);
+        /*
+        System.out.println("Samples 1:");
+        long[] data1 = rls1.getSamples();
+        long[] data2 = rls2.getSamples();
+        for (int i : data1) {
+            System.out.println(i);
+        }
+        System.out.println("Samples 2:");
+        for (int i : data2) {
+            System.out.println(i);
+        }
+        */
+
+        ReservoirItemsUnion<Integer> rlu = new ReservoirItemsUnion<>(rls1);
         rlu.update(rls2);
 
-        long[] result = rlu.getResult().getSamples();
+        Integer[] result = rlu.getResult().getSamples();
+        /*
+        System.out.println("\nResult:");
+        for (int i : result) {
+            System.out.println(i);
+        }
+        */
 
         return result;
     }
-    */
 
 
 }

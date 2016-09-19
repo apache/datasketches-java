@@ -12,6 +12,7 @@ import static com.yahoo.sketches.sampling.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.sampling.PreambleUtil.getAndCheckPreLongs;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.MemoryRegion;
@@ -66,7 +67,7 @@ public class ReservoirItemsSketch<T> {
      * @param <T> The type of object held in the reservoir.
      * @return A ReservoirLongsSketch initialized with maximum size k and the default resize factor.
      * */
-    public static <T> ReservoirItemsSketch getInstance(final int k) {
+    public static <T> ReservoirItemsSketch<T> getInstance(final int k) {
         return new ReservoirItemsSketch<T>(k, DEFAULT_RESIZE_FACTOR);
     }
 
@@ -79,9 +80,23 @@ public class ReservoirItemsSketch<T> {
      * @param <T> The type of object held in the reservoir.
      * @return A ReservoirLongsSketch initialized with maximum size k and resize factor rf.
      * */
-    public static <T> ReservoirItemsSketch getInstance(final int k, ResizeFactor rf) {
+    public static <T> ReservoirItemsSketch<T> getInstance(final int k, ResizeFactor rf) {
         return new ReservoirItemsSketch<T>(k, rf);
     }
+
+    /**
+     * Thin wrapper around private constructor
+     * @param data Reservoir data as long[]
+     * @param itemsSeen Number of items presented to the sketch so far
+     * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
+     * @param encodedResSize Compact encoding of reservoir size
+     * @return New sketch built with the provided inputs
+     */
+    static <T> ReservoirItemsSketch<T> getInstance(final T[] data, final long itemsSeen,
+                                            final ResizeFactor rf, final short encodedResSize) {
+        return new ReservoirItemsSketch(data, itemsSeen, rf, encodedResSize);
+    }
+
 
     private ReservoirItemsSketch(final int k, final ResizeFactor rf) {
         // required due to a theorem about lightness during merging
@@ -110,8 +125,8 @@ public class ReservoirItemsSketch<T> {
      * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
      * @param encodedResSize Compact encoding of reservoir size
      */
-    ReservoirItemsSketch(final Object[] data, final long itemsSeen,
-                         final ResizeFactor rf, final short encodedResSize) {
+    private ReservoirItemsSketch(final Object[] data, final long itemsSeen,
+                                 final ResizeFactor rf, final short encodedResSize) {
         int reservoirSize = ReservoirSize.decodeValue(encodedResSize);
 
         if (data == null) {
@@ -138,6 +153,26 @@ public class ReservoirItemsSketch<T> {
         rf_ = rf;
         data_ = data;
     }
+
+    /**
+     * Fast constructor for full-specified sketch with no encoded/decoding size and no validation. Used with copy().
+     * @param reservoirSize Maximum reservoir capacity
+     * @param encodedResSize Maximum reservoir capacity encoded into fixed-point format
+     * @param currItemsAlloc Current array size (assumed equal to data.length)
+     * @param itemsSeen Total items seen by this sketch
+     * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
+     * @param data Data array backing the reservoir, will <em>not</em> be copied
+     */
+    private ReservoirItemsSketch(final int reservoirSize, final short encodedResSize, final int currItemsAlloc,
+                                 final long itemsSeen, final ResizeFactor rf, final Object[] data) {
+        this.reservoirSize_ = reservoirSize;
+        this.encodedResSize_ = encodedResSize;
+        this.currItemsAlloc_ = currItemsAlloc;
+        this.itemsSeen_ = itemsSeen;
+        this.rf_ = rf;
+        this.data_ = data;
+    }
+
 
     /**
      * Returns the sketch's value of <i>k</i>, the maximum number of samples stored in the reservoir. The current
@@ -218,7 +253,7 @@ public class ReservoirItemsSketch<T> {
      * @param serDe An instance of ArrayOfItemsSerDe
      * @return a sketch instance of this class
      */
-    public static <T> ReservoirItemsSketch getInstance(final Memory srcMem, ArrayOfItemsSerDe<T> serDe) {
+    public static <T> ReservoirItemsSketch<T> getInstance(final Memory srcMem, ArrayOfItemsSerDe<T> serDe) {
         final int numPreLongs = getAndCheckPreLongs(srcMem);
         final long pre0 = srcMem.getLong(0);
         final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(pre0));
@@ -394,4 +429,64 @@ public class ReservoirItemsSketch<T> {
         currItemsAlloc_ = newSize;
         data_ = buffer;
     }
+
+    /**
+     * Useful during union operations to avoid copying the data array around if only updating a few points.
+     * @param pos The position from which to retrieve the element
+     * @return The value in the reservoir at position <tt>pos</tt>
+     */
+    T getValueAtPosition(int pos) {
+        if (itemsSeen_ == 0) {
+            throw new SketchesArgumentException("Requested element from empty reservoir.");
+        }
+        else if (pos < 0 || pos >= getNumSamples()) {
+            throw new SketchesArgumentException("Requested position must be between 0 and " + getNumSamples() + ", "
+                    + "inclusive. Received: " + pos);
+        }
+
+        return (T) data_[pos];
+    }
+
+    /**
+     * Useful during union operation to force-insert a value into the union gadget. Does <em>NOT</em> increment count
+     * of items seen.
+     * @param value The entry to store in the reservoir
+     * @param pos The position at which to store the entry
+     */
+    void insertValueAtPosition(T value, int pos) {
+        if (itemsSeen_ == 0) {
+            throw new SketchesArgumentException("Inserting element into unallocated, empty reservoir.");
+        }
+        else if (pos < 0 || pos >= getNumSamples()) {
+            throw new SketchesArgumentException("Insert position must be between 0 and " + getNumSamples() + ", "
+                    + "inclusive. Received: " + pos);
+        }
+
+        data_[pos] = value;
+    }
+
+    /**
+     * Used during union operations to update count of items seen. Does <em>NOT</em> check sign, but will throw an
+     * exception if the final result exceeds the maximum possible items seen value.
+     * @param inc The value added
+     */
+    void forceIncrementItemsSeen(final long inc) {
+        itemsSeen_ += inc;
+
+        if (itemsSeen_ > MAX_ITEMS_SEEN) {
+            throw new SketchesStateException("Sketch has exceeded capacity for total items seen. Limit: "
+                    + MAX_ITEMS_SEEN + ", found: " + itemsSeen_);
+        }
+    }
+
+    /**
+     * Used during union operations to ensure we do not overwrite an existing reservoir. Creates a
+     * <en>shallow</en> copy of the reservoir.
+     * @return A copy of the current sketch
+     */
+    ReservoirItemsSketch copy() {
+        Object[] dataCopy = Arrays.copyOf(data_, currItemsAlloc_);
+        return new ReservoirItemsSketch<>(reservoirSize_, encodedResSize_, currItemsAlloc_, itemsSeen_, rf_, dataCopy);
+    }
+
 }

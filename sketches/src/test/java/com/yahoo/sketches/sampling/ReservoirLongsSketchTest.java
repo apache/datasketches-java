@@ -209,7 +209,90 @@ public class ReservoirLongsSketchTest {
         assertTrue(rls.getImplicitSampleWeight() - 1.5 < EPS);
     }
 
-    private Memory getBasicSerializedRLS() {
+    @Test
+    public void checkSetAndGetValue() {
+        int k = 20;
+        int tgtIdx = 5;
+        ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
+        for (int i = 0; i < k; ++i) {
+            rls.update(i);
+        }
+
+        assertEquals(rls.getValueAtPosition(tgtIdx), tgtIdx);
+        rls.insertValueAtPosition(-1, tgtIdx);
+        assertEquals(rls.getValueAtPosition(tgtIdx), -1);
+    }
+
+    @Test
+    public void checkBadSetAndGetValue() {
+        int k = 20;
+        int tgtIdx = 5;
+        ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
+
+        try {
+            rls.getValueAtPosition(0);
+            fail();
+        } catch (SketchesArgumentException e) {
+            ; // expected
+        }
+
+        for (int i = 0; i < k; ++i) {
+            rls.update(i);
+        }
+        assertEquals(rls.getValueAtPosition(tgtIdx), tgtIdx);
+
+        try {
+            rls.insertValueAtPosition(-1, -1);
+            fail();
+        } catch (SketchesArgumentException e) {
+            ; // expected
+        }
+
+        try {
+            rls.insertValueAtPosition(-1, k + 1);
+            fail();
+        } catch (SketchesArgumentException e) {
+            ; // expected
+        }
+
+        try {
+            rls.getValueAtPosition(-1);
+            fail();
+        } catch (SketchesArgumentException e) {
+            ; // expected
+        }
+
+        try {
+            rls.getValueAtPosition(k + 1);
+            fail();
+        } catch (SketchesArgumentException e) {
+            ; // expected
+        }
+    }
+
+    @Test
+    public void checkForceIncrement() {
+        int k = 100;
+        ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
+
+        for (int i = 0; i < 2 * k; ++i) {
+            rls.update(i);
+        }
+
+        assertEquals(rls.getN(), 2 * k);
+        rls.forceIncrementItemsSeen(k);
+        assertEquals(rls.getN(), 3 * k);
+
+        try {
+            rls.forceIncrementItemsSeen((1 << 48) - 1);
+            fail();
+        } catch (SketchesStateException e) {
+            ; // expected
+        }
+    }
+
+
+    public static Memory getBasicSerializedRLS() {
         int k = 10;
         int n = 20;
 
@@ -227,7 +310,7 @@ public class ReservoirLongsSketchTest {
         return new NativeMemory(sketchBytes);
     }
 
-    private void validateSerializeAndDeserialize(ReservoirLongsSketch rls) {
+    public static void validateSerializeAndDeserialize(ReservoirLongsSketch rls) {
         byte[] sketchBytes = rls.toByteArray();
         assertEquals(sketchBytes.length, (Family.RESERVOIR.getMaxPreLongs() + rls.getNumSamples()) << 3);
 
@@ -238,7 +321,7 @@ public class ReservoirLongsSketchTest {
         validateReservoirEquality(rls, loadedRls);
     }
 
-    private void validateReservoirEquality(ReservoirLongsSketch rls1, ReservoirLongsSketch rls2) {
+    public static void validateReservoirEquality(ReservoirLongsSketch rls1, ReservoirLongsSketch rls2) {
         assertEquals(rls1.getNumSamples(), rls2.getNumSamples());
 
         if (rls1.getNumSamples() == 0) { return; }

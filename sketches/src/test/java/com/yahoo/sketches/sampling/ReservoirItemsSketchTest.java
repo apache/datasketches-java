@@ -215,7 +215,7 @@ public class ReservoirItemsSketchTest {
 
         // no data
         try {
-            new ReservoirItemsSketch<Byte>(null, 128, rf, encResSize128);
+            ReservoirItemsSketch.<Byte>getInstance(null, 128, rf, encResSize128);
             fail();
         } catch (SketchesException e) {
             assertTrue(e.getMessage().contains("null reservoir"));
@@ -223,7 +223,7 @@ public class ReservoirItemsSketchTest {
 
         // size too small
         try {
-            new ReservoirItemsSketch(data, 128, rf, encResSize1);
+            ReservoirItemsSketch.getInstance(data, 128, rf, encResSize1);
             fail();
         } catch (SketchesException e) {
             assertTrue(e.getMessage().contains("size less than 2"));
@@ -231,7 +231,7 @@ public class ReservoirItemsSketchTest {
 
         // configured reservoir size smaller than data length
         try {
-            new ReservoirItemsSketch(data, 128, rf, encResSize64);
+            ReservoirItemsSketch.getInstance(data, 128, rf, encResSize64);
             fail();
         } catch (SketchesException e) {
             assertTrue(e.getMessage().contains("max size less than array length"));
@@ -239,7 +239,7 @@ public class ReservoirItemsSketchTest {
 
         // too many items seen vs data length, full sketch
         try {
-            new ReservoirItemsSketch(data, 512, rf, encResSize256);
+            ReservoirItemsSketch.getInstance(data, 512, rf, encResSize256);
             fail();
         } catch (SketchesException e) {
             assertTrue(e.getMessage().contains("too few samples"));
@@ -247,7 +247,7 @@ public class ReservoirItemsSketchTest {
 
         // too many items seen vs data length, under-full sketch
         try {
-            new ReservoirItemsSketch(data, 256, rf, encResSize256);
+            ReservoirItemsSketch.getInstance(data, 256, rf, encResSize256);
             fail();
         } catch (SketchesException e) {
             assertTrue(e.getMessage().contains("too few samples"));
@@ -260,7 +260,8 @@ public class ReservoirItemsSketchTest {
         short encResSize = ReservoirSize.computeSize(64);
         long itemsSeen = (1 << 48) - 2;
 
-        ReservoirItemsSketch<Long> ris = new ReservoirItemsSketch<Long>(data, itemsSeen, ResizeFactor.X8, encResSize);
+        ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(data, itemsSeen, ResizeFactor.X8,
+                encResSize);
 
         // this should work, the next should fail
         ris.update(0L);
@@ -276,7 +277,7 @@ public class ReservoirItemsSketchTest {
     @Test
     public void checkSampleWeight() {
         int k = 32;
-        ReservoirItemsSketch<Integer> ris = ReservoirItemsSketch.<Integer>getInstance(k);
+        ReservoirItemsSketch<Integer> ris = ReservoirItemsSketch.getInstance(k);
 
         for (int i = 0; i < (k / 2); ++i) {
             ris.update(i);
@@ -294,7 +295,7 @@ public class ReservoirItemsSketchTest {
         int k = 10;
         int n = 20;
 
-        ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.<Long>getInstance(k);
+        ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(k);
         assertEquals(ris.getNumSamples(), 0);
 
         for (int i = 0; i < n; ++i) {

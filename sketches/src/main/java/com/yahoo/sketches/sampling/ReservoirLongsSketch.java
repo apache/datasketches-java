@@ -151,7 +151,7 @@ public class ReservoirLongsSketch {
     }
 
     /**
-     * Thin wrapper around package-private constructor
+     * Thin wrapper around private constructor
      * @param data Reservoir data as long[]
      * @param itemsSeen Number of items presented to the sketch so far
      * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
@@ -222,7 +222,7 @@ public class ReservoirLongsSketch {
     }
 
     /**
-     * Fast constructor for full-specified sketch with no encoded/decoding size and no validation.
+     * Fast constructor for full-specified sketch with no encoded/decoding size and no validation. Used with copy().
      * @param reservoirSize Maximum reservoir capacity
      * @param encodedResSize Maximum reservoir capacity encoded into fixed-point format
      * @param currItemsAlloc Current array size (assumed equal to data.length)
@@ -389,8 +389,8 @@ public class ReservoirLongsSketch {
             throw new SketchesArgumentException("Requested element from empty reservoir.");
         }
         else if (pos < 0 || pos >= getNumSamples()) {
-            throw new SketchesArgumentException("Requested position must be between 0 and " + getNumSamples() + ", "
-                    + "inclusive. Received: " + pos);
+            throw new SketchesArgumentException("Requested position must be between 0 and "
+                    + (getNumSamples() - 1) + ", inclusive. Received: " + pos);
         }
 
         return data_[pos];
@@ -398,15 +398,12 @@ public class ReservoirLongsSketch {
 
     /**
      * Useful during union operation to force-insert a value into the union gadget. Does <em>NOT</em> increment count
-     * of items seen.
+     * of items seen. Cannot insert beyond current number of samples; if reservoir is not full, use update().
      * @param value The entry to store in the reservoir
      * @param pos The position at which to store the entry
      */
     void insertValueAtPosition(long value, int pos) {
-        if (itemsSeen_ == 0) {
-            throw new SketchesArgumentException("Inserting element into unallocated, empty reservoir.");
-        }
-        else if (pos < 0 || pos >= getNumSamples()) {
+        if (pos < 0 || pos >= getNumSamples()) {
             throw new SketchesArgumentException("Insert position must be between 0 and " + getNumSamples() + ", "
                     + "inclusive. Received: " + pos);
         }
