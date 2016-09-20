@@ -27,7 +27,7 @@ public class ReservoirItemsUnion<T> {
         gadget_ = ReservoirItemsSketch.getInstance(k, rf);
     }
 
-    public ReservoirItemsUnion(ReservoirItemsSketch sketchIn) {
+    public ReservoirItemsUnion(ReservoirItemsSketch<T> sketchIn) {
         gadget_ = sketchIn.copy();
     }
 
@@ -43,11 +43,16 @@ public class ReservoirItemsUnion<T> {
      * @param sketchIn The incoming sketch.
      */
     void update(ReservoirItemsSketch<T> sketchIn) {
+        if (sketchIn != null) {
+            twoWayMergeInternal(sketchIn, false);
+        }
+        /*
         if (gadget_ == null) {
             gadget_ = sketchIn;
         } else if (sketchIn != null) {
             twoWayMergeInternal(sketchIn, false);
         } // if sketchIn == null, return
+        */
     }
 
     /**
@@ -60,12 +65,14 @@ public class ReservoirItemsUnion<T> {
     void update(Memory mem, ArrayOfItemsSerDe<T> serDe) {
         if (mem != null) {
             ReservoirItemsSketch<T> rls = ReservoirItemsSketch.getInstance(mem, serDe);
-
+            twoWayMergeInternal(rls, true);
+            /*
             if (gadget_ == null) {
                 gadget_ = rls;
             } else {
                 twoWayMergeInternal(rls, true);
             }
+            */
         }
     }
 
@@ -140,8 +147,7 @@ public class ReservoirItemsUnion<T> {
 
             double rescaled_one = targetTotal;
             assert (rescaled_prob < rescaled_one); // TODO: exception to enforce strict lightness?
-            double rescaled_flip = rescaled_one * SamplingUtil.rand.nextDouble(); // TODO: move to util class w/
-            // other statics
+            double rescaled_flip = rescaled_one * SamplingUtil.rand.nextDouble();
             if (rescaled_flip < rescaled_prob) {
                 // Intentionally NOT doing optimization to extract slot number from rescaled_flip.
                 // Grabbing new random bits to ensure all slots in play
@@ -187,6 +193,7 @@ public class ReservoirItemsUnion<T> {
     }
 
 
+    /*
     public static void main(String[] args) {
         int iter = 100000;
         int k = 20;
@@ -242,32 +249,13 @@ public class ReservoirItemsUnion<T> {
             rls2.update(k * k + i);
         }
 
-        /*
-        System.out.println("Samples 1:");
-        long[] data1 = rls1.getSamples();
-        long[] data2 = rls2.getSamples();
-        for (int i : data1) {
-            System.out.println(i);
-        }
-        System.out.println("Samples 2:");
-        for (int i : data2) {
-            System.out.println(i);
-        }
-        */
-
         ReservoirItemsUnion<Integer> rlu = new ReservoirItemsUnion<>(rls1);
         rlu.update(rls2);
 
         Integer[] result = rlu.getResult().getSamples();
-        /*
-        System.out.println("\nResult:");
-        for (int i : result) {
-            System.out.println(i);
-        }
-        */
 
         return result;
     }
-
+    */
 
 }

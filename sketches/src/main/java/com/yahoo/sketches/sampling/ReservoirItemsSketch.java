@@ -454,10 +454,7 @@ public class ReservoirItemsSketch<T> {
      * @param pos The position at which to store the entry
      */
     void insertValueAtPosition(T value, int pos) {
-        if (itemsSeen_ == 0) {
-            throw new SketchesArgumentException("Inserting element into unallocated, empty reservoir.");
-        }
-        else if (pos < 0 || pos >= getNumSamples()) {
+        if (pos < 0 || pos >= getNumSamples()) {
             throw new SketchesArgumentException("Insert position must be between 0 and " + getNumSamples() + ", "
                     + "inclusive. Received: " + pos);
         }
@@ -484,9 +481,8 @@ public class ReservoirItemsSketch<T> {
      * <en>shallow</en> copy of the reservoir.
      * @return A copy of the current sketch
      */
-    ReservoirItemsSketch copy() {
+    ReservoirItemsSketch<T> copy() {
         Object[] dataCopy = Arrays.copyOf(data_, currItemsAlloc_);
         return new ReservoirItemsSketch<>(reservoirSize_, encodedResSize_, currItemsAlloc_, itemsSeen_, rf_, dataCopy);
     }
-
 }

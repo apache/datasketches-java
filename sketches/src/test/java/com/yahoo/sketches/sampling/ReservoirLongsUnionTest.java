@@ -8,14 +8,7 @@ import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
-import com.yahoo.sketches.ArrayOfLongsSerDe;
-import com.yahoo.sketches.ArrayOfNumbersSerDe;
-import com.yahoo.sketches.ArrayOfStringsSerDe;
-import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
-import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.SketchesException;
-import com.yahoo.sketches.SketchesStateException;
 
 
 public class ReservoirLongsUnionTest {
@@ -55,12 +48,11 @@ public class ReservoirLongsUnionTest {
 
     @Test(expectedExceptions = java.lang.NullPointerException.class)
     public void checkNullGadgetInstantiation() {
-        // ok to have a null sketch
-        ReservoirLongsUnion rlu = new ReservoirLongsUnion((ReservoirLongsSketch) null);
-        assertNull(rlu.getResult());
-        assertNull(rlu.toByteArray());
+        new ReservoirLongsUnion((ReservoirLongsSketch) null);
+    }
 
-        // null Memory throws an exception
+    @Test(expectedExceptions = java.lang.NullPointerException.class)
+    public void checkNullMemoryInstantiation() {
         new ReservoirLongsUnion((Memory) null);
     }
 
