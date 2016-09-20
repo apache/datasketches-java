@@ -2,8 +2,6 @@ package com.yahoo.sketches.sampling;
 
 import static com.yahoo.sketches.sampling.PreambleUtil.FAMILY_BYTE;
 
-import java.util.Map;
-
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
