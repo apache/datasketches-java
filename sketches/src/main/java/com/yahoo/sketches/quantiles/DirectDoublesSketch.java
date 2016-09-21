@@ -5,13 +5,18 @@
 
 package com.yahoo.sketches.quantiles;
 
+import static com.yahoo.sketches.quantiles.DoublesUtil.checkMemCapacity;
+import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.extractFamilyID;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractMaxDouble;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractMinDouble;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractN;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractPreLongs;
+import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerDeId;
+import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertFamilyID;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertFlags;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertK;
@@ -49,7 +54,7 @@ public class DirectDoublesSketch extends DoublesSketch {
   static DirectDoublesSketch newInstance(int k, Memory dstMem) {
     DirectDoublesSketch dds = new DirectDoublesSketch(k);
     long memCap = dstMem.getCapacity();
-    long minCap = (DIRECT_PRE_LONGS + 2 * k) << 3; //allow for full base buffer
+    long minCap = (DIRECT_PRE_LONGS + 2 * k) << 3; //require at least full base buffer
     if (memCap < minCap) {
       throw new SketchesArgumentException(
           "Destination Memory too small: " + memCap + " < " + minCap);
@@ -76,8 +81,44 @@ public class DirectDoublesSketch extends DoublesSketch {
   }
 
   static DirectDoublesSketch wrapInstance(Memory srcMem) {
-    //TODO
-    return null;
+    long memCapBytes = srcMem.getCapacity();
+    if (memCapBytes < 8) { //initially require enough for the first long
+      throw new SketchesArgumentException(
+          "Destination Memory too small: " + memCapBytes + " < 8");
+    }
+    long cumOffset = srcMem.getCumulativeOffset(0L);
+    Object memArr = srcMem.array(); //may be null
+    
+    //Extract the preamble first 8 bytes 
+    int preLongs = extractPreLongs(memArr, cumOffset);
+    int serVer = extractSerVer(memArr, cumOffset);
+    int familyID = extractFamilyID(memArr, cumOffset);
+    int flags = extractFlags(memArr, cumOffset);
+    int k = extractK(memArr, cumOffset);
+    short serDeId = extractSerDeId(memArr, cumOffset);
+    
+    //VALIDITY CHECKS
+    DoublesUtil.checkDoublesSerVer(serVer);
+    
+    if (serDeId != ARRAY_OF_DOUBLES_SERDE_ID) {
+      throw new SketchesArgumentException(
+      "Possible Corruption: serDeId incorrect: " + serDeId + " != " + ARRAY_OF_DOUBLES_SERDE_ID);
+    }
+    boolean empty = Util.checkPreLongsFlagsCap(preLongs, flags, memCapBytes);
+    Util.checkFamilyID(familyID);
+    
+    boolean compact = (serVer == 2) | ((flags & COMPACT_FLAG_MASK) > 0);
+    if (compact) {
+      throw new SketchesArgumentException("Compact Memory is not supported for Direct.");
+    }
+    DirectDoublesSketch dds = new DirectDoublesSketch(k);
+    if (empty) { return dds; }
+    
+    //check if srcMem has required capacity given k, n, compact, memCapBytes
+    long n = extractN(memArr, cumOffset);
+    checkMemCapacity(k, n, compact, memCapBytes);
+
+    return dds;
   }
   
   @Override
@@ -193,7 +234,7 @@ public class DirectDoublesSketch extends DoublesSketch {
 
   @Override
   int getCombinedBufferItemCapacity() {
-    return Util.computeCombinedBufferItemCapacity(getK(), getN());
+    return Util.computeExpandedCombinedBufferItemCapacity(getK(), getN());
   }
 
   @Override

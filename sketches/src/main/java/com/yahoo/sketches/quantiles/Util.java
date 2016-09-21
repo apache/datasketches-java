@@ -93,7 +93,8 @@ final class Util {
    * @param flags the flags field
    */ //only used by checkPreLongsFlagsCap and test
   static void checkFlags(int flags) {
-    int allowedFlags = READ_ONLY_FLAG_MASK | EMPTY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK;
+    int allowedFlags = 
+        READ_ONLY_FLAG_MASK | EMPTY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK;
     int flagsMask = ~allowedFlags;
     if ((flags & flagsMask) > 0) {
       throw new SketchesArgumentException(
@@ -108,14 +109,15 @@ final class Util {
    */
   static final void validateFractions(double[] fractions) {
     if (fractions == null) {
-      throw new SketchesArgumentException("Fractions array may not be null.");
+      throw new SketchesArgumentException("Fractions cannot be null.");
     }
     int len = fractions.length;
     if (len == 0) return;
     double flo = fractions[0];
     double fhi = fractions[fractions.length - 1];
     if ((flo < 0.0) || (fhi > 1.0)) {
-      throw new SketchesArgumentException("A fraction cannot be less than zero or greater than 1.0");
+      throw new SketchesArgumentException(
+          "A fraction cannot be less than zero or greater than 1.0");
     }
     Util.validateValues(fractions);
     return;
@@ -127,6 +129,9 @@ final class Util {
    * @param values the given array of double values
    */
   static final void validateValues(final double[] values) {
+    if (values == null) {
+      throw new SketchesArgumentException("Values cannot be null.");
+    }
     final int lenM1 = values.length - 1;
     for (int j = 0; j < lenM1; j++) {
       if (values[j] < values[j + 1]) continue;
@@ -149,7 +154,7 @@ final class Util {
   }
   
   /**
-   * Returns the current item capacity of the non-compact combined data buffer 
+   * Returns the current item capacity of the non-compact, expanded combined data buffer 
    * given <i>k</i> and <i>n</i>.  If total levels = 0, this returns the ceiling power of 2 
    * size for the base buffer or the MIN_BASE_BUF_SIZE, whichever is larger.
    * 
@@ -159,7 +164,7 @@ final class Util {
    * @param n The number of items in the input stream
    * @return the current item capacity of the combined data buffer
    */
-  static int computeCombinedBufferItemCapacity(int k, long n) {
+  static int computeExpandedCombinedBufferItemCapacity(int k, long n) {
     int totLevels = computeNumLevelsNeeded(k, n);
     int ret;
     if (totLevels > 0) {
@@ -278,7 +283,8 @@ final class Util {
 
     /**
      *  A heuristic fudge factor that causes the inverted formula to better match the empirical.
-     *  The value of 4/3 is directly associated with the deltaForEps value of 0.01. Don't touch this!
+     *  The value of 4/3 is directly associated with the deltaForEps value of 0.01. 
+     *  Don't touch this!
      */
     private static final double adjustKForEps = 4.0 / 3.0;  // fudge factor
 

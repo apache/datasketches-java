@@ -212,7 +212,7 @@ public final class ItemsSketch<T> {
 
     //set class members
     qs.n_ = n;
-    qs.combinedBufferItemCapacity_ = Util.computeCombinedBufferItemCapacity(k, n);
+    qs.combinedBufferItemCapacity_ = Util.computeExpandedCombinedBufferItemCapacity(k, n);
     qs.baseBufferCount_ = computeBaseBufferItems(k, n);
     qs.bitPattern_ = computeBitPattern(k, n);
     qs.combinedBuffer_ = new Object[qs.combinedBufferItemCapacity_];

@@ -19,10 +19,10 @@ final class DoublesAuxiliary {
   long[] auxCumWtsArr_;
 
   /**
-   * Constructs the Auxiliary structure from the HeapQuantilesSketch
-   * @param qs a HeapQuantilesSketch
+   * Constructs the Auxiliary structure from the DoublesSketch
+   * @param qs a DoublesSketch
    */
-  DoublesAuxiliary(HeapDoublesSketch qs ) {
+  DoublesAuxiliary(DoublesSketch qs ) {
     int k = qs.getK();
     long n = qs.getN();
     long bitPattern = qs.getBitPattern();
@@ -33,7 +33,7 @@ final class DoublesAuxiliary {
     double[] itemsArr = new double[numSamples];
     long[] cumWtsArr = new long[numSamples + 1]; /* the extra slot is very important */
 
-    // Populate from HeapQuantilesSketch:
+    // Populate from DoublesSketch:
     //  copy over the "levels" and then the base buffer, all with appropriate weights
     populateFromQuantilesSketch(k, n, bitPattern, combinedBuffer, baseBufferCount,
         numSamples, itemsArr, cumWtsArr);

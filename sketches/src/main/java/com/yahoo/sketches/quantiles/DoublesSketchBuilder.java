@@ -57,7 +57,7 @@ public class DoublesSketchBuilder {
    * @return a QuantilesSketch
    */
   public DoublesSketch build() {
-    return HeapDoublesSketch.getInstance(bK);
+    return HeapDoublesSketch.newInstance(bK);
   }
   
   /**

@@ -31,7 +31,7 @@ final class HeapDoublesUnion extends DoublesUnion {
    * A reference to srcMem will not be maintained internally.
    */
   HeapDoublesUnion(final Memory srcMem) {
-    gadget_ = HeapDoublesSketch.getInstance(srcMem);
+    gadget_ = HeapDoublesSketch.heapifyInstance(srcMem);
     k_ = gadget_.getK();
   }
   
@@ -42,19 +42,19 @@ final class HeapDoublesUnion extends DoublesUnion {
 
   @Override
   public void update(Memory srcMem) {
-    HeapDoublesSketch that = HeapDoublesSketch.getInstance(srcMem);
+    HeapDoublesSketch that = HeapDoublesSketch.heapifyInstance(srcMem);
     gadget_ = updateLogic(k_, gadget_, that);
   }
 
   @Override
   public void update(double dataItem) {
-    if (gadget_ == null) gadget_ = HeapDoublesSketch.getInstance(k_);
+    if (gadget_ == null) gadget_ = HeapDoublesSketch.newInstance(k_);
     gadget_.update(dataItem);
   }
 
   @Override
   public DoublesSketch getResult() {
-    if (gadget_ == null) return HeapDoublesSketch.getInstance(k_);
+    if (gadget_ == null) return HeapDoublesSketch.newInstance(k_);
     return HeapDoublesSketch.copy(gadget_); //can't have any externally owned handles.
   }
   
@@ -78,7 +78,7 @@ final class HeapDoublesUnion extends DoublesUnion {
   
   @Override
   public String toString(boolean sketchSummary, boolean dataDetail) {
-    if (gadget_ == null) return HeapDoublesSketch.getInstance(k_).toString();
+    if (gadget_ == null) return HeapDoublesSketch.newInstance(k_).toString();
     return gadget_.toString(sketchSummary, dataDetail);
   }
   
@@ -128,7 +128,7 @@ final class HeapDoublesUnion extends DoublesUnion {
         break;
       }
       case 4: {
-        ret = HeapDoublesSketch.getInstance(Math.min(myK, other.getK()));
+        ret = HeapDoublesSketch.newInstance(Math.min(myK, other.getK()));
         break;
       }
       

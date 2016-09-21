@@ -127,11 +127,6 @@ public abstract class DoublesSketch {
   protected final int k_;
   
   /**
-   * Total number of data items in the stream so far. (Uniqueness plays no role in these sketches).
-   */
-  //protected long n_;
-  
-  /**
    * Setting the seed makes the results of the sketch deterministic if the input values are
    * received in exactly the same order. This is only useful when performing test comparisons,
    * otherwise is not recommended.
@@ -156,6 +151,17 @@ public abstract class DoublesSketch {
     return new DoublesSketchBuilder();
   }
   
+  /**
+   * Heapify takes the sketch image in Memory and instantiates an on-heap Sketch. 
+   * The resulting sketch will not retain any link to the source Memory.
+   * @param srcMem a Memory image of a Sketch.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @return a heap-based Sketch based on the given Memory
+   */
+  public static DoublesSketch heapify(Memory srcMem) {
+    return HeapDoublesSketch.heapifyInstance(srcMem);
+  }
+  
   /** 
    * Updates this sketch with the given double data item
    * @param dataItem an item from a stream of items.  NaNs are ignored.
@@ -169,7 +175,13 @@ public abstract class DoublesSketch {
    * 
    * <p>We note that this method has a fairly large overhead (microseconds instead of nanoseconds)
    * so it should not be called multiple times to get different quantiles from the same
-   * sketch. Instead use getQuantiles(). which pays the overhead only once.
+   * sketch. Instead use getQuantiles(), which pays the overhead only once.
+   * 
+   * <p>If the sketch is empty:
+   * <ul><li>getQuantile(0.0) returns Double.POSITIVE_INFINITY</li>
+   * <li>getQuantile(1.0) returns Double.NEGATIVE_INFINITY</li>
+   * <li>getQuantile(0.0 &lt;rank&gt; 1.0) returns Double.NaN</li>
+   * </ul></p>
    * 
    * @param fraction the specified fractional position in the hypothetical sorted stream.
    * These are also called normalized ranks or fractional ranks.
@@ -189,6 +201,12 @@ public abstract class DoublesSketch {
    * a single query.  It is strongly recommend that this method be used instead of multiple calls 
    * to getQuantile().
    * 
+   * <p>If the sketch is empty:
+   * <ul><li>getQuantiles(0.0, ...) returns Double.POSITIVE_INFINITY</li>
+   * <li>getQuantiles(..., 1.0) returns Double.NEGATIVE_INFINITY</li>
+   * <li>getQuantiles(..., 0.0 &lt;rank&gt; 1.0, ...) returns Double.NaN</li>
+   * </ul></p>
+   * 
    * @param fractions given array of fractional positions in the hypothetical sorted stream.
    * These are also called normalized ranks or fractional ranks.
    * These fractions must be monotonic, in increasing order and in the interval 
@@ -203,6 +221,11 @@ public abstract class DoublesSketch {
    * This is also a more efficient multiple-query version of getQuantile() and allows the caller to
    * specify the number of evenly spaced fractional ranks.
    * 
+   * <p>If the sketch is empty:
+   * <ul><li>getQuantiles(0.0, ...) returns Double.POSITIVE_INFINITY</li>
+   * <li>getQuantiles(..., 1.0) returns Double.NEGATIVE_INFINITY</li>
+   * <li>getQuantiles(..., 0.0 &lt;rank&gt; 1.0, ...) returns Double.NaN</li>
+   * </ul></p>
    * 
    * @param evenlySpaced an integer that specifies the number of evenly spaced fractional ranks. 
    * This must be a positive integer greater than 0. A value of 1 will return the min value. 
@@ -241,6 +264,8 @@ public abstract class DoublesSketch {
    * <p>The resulting approximations have a probabilistic guarantee that be obtained from the 
    * getNormalizedRankError() function.
    * 
+   * <p>If the sketch is empty this returns Double.NaN for all values.</p>
+   * 
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing doubles
    * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
    * 
@@ -258,6 +283,8 @@ public abstract class DoublesSketch {
    * <p>More specifically, the value at array position j of the CDF is the
    * sum of the values in positions 0 through j of the PMF.
    * 
+   * <p>If the sketch is empty this returns Double.NaN for all values.</p>
+   * 
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing doubles
    * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
    * 
@@ -272,13 +299,17 @@ public abstract class DoublesSketch {
   public abstract int getK();
 
   /**
-   * Returns the min value of the stream
+   * Returns the min value of the stream.
+   * If the sketch is empty this returns Double.POSITIVE_INFINITY.
+   * 
    * @return the min value of the stream
    */
   public abstract double getMinValue();
 
   /**
-   * Returns the max value of the stream
+   * Returns the max value of the stream.
+   * If the sketch is empty this returns Double.NEGATIVE_INFINITY.
+   * 
    * @return the max value of the stream
    */
   public abstract double getMaxValue();
@@ -331,7 +362,7 @@ public abstract class DoublesSketch {
   }
   
   /**
-   * Resets this sketch to a virgin state, but retains the original value of k.
+   * Resets this sketch to the empty state, but retains the original value of k.
    */
   public abstract void reset();
 
@@ -392,17 +423,6 @@ public abstract class DoublesSketch {
   public abstract DoublesSketch downSample(int smallerK);
 
   /**
-   * Heapify takes the sketch image in Memory and instantiates an on-heap Sketch. 
-   * The resulting sketch will not retain any link to the source Memory.
-   * @param srcMem a Memory image of a Sketch.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @return a heap-based Sketch based on the given Memory
-   */
-  public static DoublesSketch heapify(Memory srcMem) {
-    return HeapDoublesSketch.getInstance(srcMem);
-  }
-
-  /**
    * Computes the number of retained items (samples) in the sketch
    * @return the number of retained items (samples) in the sketch
    */
@@ -418,20 +438,19 @@ public abstract class DoublesSketch {
     if (isEmpty()) return 8;
     return 32 + (Util.computeRetainedItems(getK(), getN()) << 3);
   }
-
+  
   /**
-   * Puts the current sketch into the given Memory if there is sufficient space.
-   * Otherwise, throws an error. This sorts the base buffer based on the given sort flag.
-   * @param dstMem the given memory.
-   * @param sort if true, this sorts the base buffer, which optimizes merge performance at
-   * the cost of slightly increased serialization time. 
-   * In real-time build-and-merge environments, this may not be desirable. 
+   * Returns the number of bytes required to store a sketch as an array of bytes with the
+   * given values of <i>k</i> and <i>n</i>.
+   * @param k the size configuration parameter for the sketch
+   * @param n the number of items input into the sketch
+   * @return the number of bytes required to store this sketch as an array of bytes.
    */
   public abstract void putMemory(Memory dstMem, boolean sort);
   
   /**
-   * Puts the current sketch into the given Memory if there is sufficient space.
-   * Otherwise, throws an error. This does not sort the base buffer.
+   * Puts the current sketch into the given Memory if there is sufficient space, otherwise, 
+   * throws an error. This does not sort the base buffer and loads the memory in compact form.
    * 
    * @param dstMem the given memory.
    */
@@ -467,4 +486,15 @@ public abstract class DoublesSketch {
    */
   abstract double[] getCombinedBuffer();
 
+  //Other restricted
+  
+  /**
+   * Returns the Auxiliary data structure which is only used for getQuantile() and getQuantiles() 
+   * queries.
+   * @return the Auxiliary data structure
+   */
+  DoublesAuxiliary constructAuxiliary() {
+    return new DoublesAuxiliary( this );
+  }
+  
 }

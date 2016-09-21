@@ -28,7 +28,7 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerDeId;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerVer;
 import static com.yahoo.sketches.quantiles.Util.computeBaseBufferItems;
 import static com.yahoo.sketches.quantiles.Util.computeBitPattern;
-import static com.yahoo.sketches.quantiles.Util.computeCombinedBufferItemCapacity;
+import static com.yahoo.sketches.quantiles.Util.computeExpandedCombinedBufferItemCapacity;
 
 import java.util.Arrays;
 
@@ -105,7 +105,7 @@ final class HeapDoublesSketch extends DoublesSketch {
    * Must be greater than 2 and less than 65536 and a power of 2.
    * @return a HeapQuantileSketch
    */
-  static HeapDoublesSketch getInstance(int k) {
+  static HeapDoublesSketch newInstance(int k) {
     HeapDoublesSketch hqs = new HeapDoublesSketch(k);
     int bufAlloc = Math.min(Util.MIN_BASE_BUF_SIZE, 2 * k); //the min is important
     hqs.n_ = 0;
@@ -124,7 +124,7 @@ final class HeapDoublesSketch extends DoublesSketch {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a DoublesSketch on the Java heap.
    */
-  static HeapDoublesSketch getInstance(Memory srcMem) {
+  static HeapDoublesSketch heapifyInstance(Memory srcMem) {
     long memCapBytes = srcMem.getCapacity();
     if (memCapBytes < 8) {
       throw new SketchesArgumentException("Memory too small: " + memCapBytes);
@@ -150,7 +150,7 @@ final class HeapDoublesSketch extends DoublesSketch {
     boolean empty = Util.checkPreLongsFlagsCap(preLongs, flags, memCapBytes);
     Util.checkFamilyID(familyID);
 
-    HeapDoublesSketch hqs = getInstance(k); //checks k
+    HeapDoublesSketch hqs = newInstance(k); //checks k
     if (empty) return hqs;
     
     //Not empty, must have valid preamble + min, max, n.
@@ -162,7 +162,7 @@ final class HeapDoublesSketch extends DoublesSketch {
 
     //set class members by computing them
     hqs.n_ = n;
-    hqs.combinedBufferItemCapacity_ = computeCombinedBufferItemCapacity(k, n);
+    hqs.combinedBufferItemCapacity_ = computeExpandedCombinedBufferItemCapacity(k, n);
     hqs.baseBufferCount_ = computeBaseBufferItems(k, n);
     hqs.bitPattern_ = computeBitPattern(k, n);
     hqs.combinedBuffer_ = new double[hqs.combinedBufferItemCapacity_];
@@ -179,7 +179,7 @@ final class HeapDoublesSketch extends DoublesSketch {
    */
   static HeapDoublesSketch copy(DoublesSketch sketch) {
     HeapDoublesSketch qsCopy;
-    qsCopy = HeapDoublesSketch.getInstance(sketch.getK());
+    qsCopy = HeapDoublesSketch.newInstance(sketch.getK());
     qsCopy.n_ = sketch.getN();
     qsCopy.minValue_ = sketch.getMinValue();
     qsCopy.maxValue_ = sketch.getMaxValue();
@@ -472,7 +472,7 @@ final class HeapDoublesSketch extends DoublesSketch {
   @Override
   public DoublesSketch downSample(int newK) {
     HeapDoublesSketch oldSketch = this;
-    HeapDoublesSketch newSketch = HeapDoublesSketch.getInstance(newK);
+    HeapDoublesSketch newSketch = HeapDoublesSketch.newInstance(newK);
     DoublesUtil.downSamplingMergeInto(oldSketch, newSketch);
     return newSketch;
   }
@@ -509,17 +509,6 @@ final class HeapDoublesSketch extends DoublesSketch {
   @Override
   double[] getCombinedBuffer() {
     return combinedBuffer_;
-  }
-  
-  //Other restricted
-  
-  /**
-   * Returns the Auxiliary data structure which is only used for getQuantile() and getQuantiles() 
-   * queries.
-   * @return the Auxiliary data structure
-   */
-  DoublesAuxiliary constructAuxiliary() {
-    return new DoublesAuxiliary( this );
   }
   
 } // End of class HeapDoublesSketch
