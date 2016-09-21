@@ -55,7 +55,7 @@ final class HeapDoublesUnion extends DoublesUnion {
   @Override
   public DoublesSketch getResult() {
     if (gadget_ == null) return HeapDoublesSketch.newInstance(k_);
-    return HeapDoublesSketch.copy(gadget_); //can't have any externally owned handles.
+    return DoublesUtil.copy(gadget_); //can't have any externally owned handles.
   }
   
   @Override
@@ -110,7 +110,7 @@ final class HeapDoublesUnion extends DoublesUnion {
         if (myK < other.getK()) {
           ret = (HeapDoublesSketch) other.downSample(myK);
         } else {
-          ret = HeapDoublesSketch.copy(other); //required because caller has handle
+          ret = DoublesUtil.copy(other); //required because caller has handle
         }
         break;
       }
@@ -121,7 +121,7 @@ final class HeapDoublesUnion extends DoublesUnion {
         } else {
           //myQS_K > other_K, must reverse roles
           //must copy other as it will become mine and can't have any externally owned handles.
-          HeapDoublesSketch myNewQS = HeapDoublesSketch.copy(other);
+          HeapDoublesSketch myNewQS = DoublesUtil.copy(other);
           HeapDoublesUnion.mergeInto(myQS, myNewQS);
           ret = myNewQS;
         }

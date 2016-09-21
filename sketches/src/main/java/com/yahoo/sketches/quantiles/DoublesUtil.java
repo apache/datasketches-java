@@ -7,12 +7,25 @@ package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.checkIfPowerOf2;
+import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertFamilyID;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertFlags;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertMaxDouble;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertMinDouble;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertN;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertPreLongs;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerDeId;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerVer;
 import static com.yahoo.sketches.quantiles.Util.computeRetainedItems;
 import static java.lang.System.arraycopy;
 
 import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -32,6 +45,166 @@ final class DoublesUtil {
   
   static final int DOUBLES_SER_VER = 3;
   static final int PRIOR_DOUBLES_SER_VER = 2;
+  
+  
+  static double[] getPMFOrCDF(DoublesSketch sketch, double[] splitPoints, boolean isCDF) {
+    long[] counters = internalBuildHistogram(sketch, splitPoints);
+    int numCounters = counters.length;
+    double[] result = new double[numCounters];
+    double n = sketch.getN();
+    long subtotal = 0;
+    if (isCDF) {
+      for (int j = 0; j < numCounters; j++) {
+        long count = counters[j];
+        subtotal += count;
+        result[j] = subtotal / n; //normalize by n
+      }
+    } else { // PMF
+      for (int j = 0; j < numCounters; j++) {
+        long count = counters[j];
+        subtotal += count;
+        result[j] = count / n; //normalize by n
+      }
+    }
+    assert subtotal == n; //internal consistency check
+    return result;
+  }
+
+  /**
+   * Returns an on-heap copy of the given sketch
+   * @param sketch the given sketch
+   * @return a copy of the given sketch
+   */
+  static HeapDoublesSketch copy(DoublesSketch sketch) {
+    HeapDoublesSketch qsCopy;
+    qsCopy = HeapDoublesSketch.newInstance(sketch.getK());
+    qsCopy.n_ = sketch.getN();
+    qsCopy.minValue_ = sketch.getMinValue();
+    qsCopy.maxValue_ = sketch.getMaxValue();
+    qsCopy.combinedBufferItemCapacity_ = sketch.getCombinedBufferItemCapacity();
+    qsCopy.baseBufferCount_ = sketch.getBaseBufferCount();
+    qsCopy.bitPattern_ = sketch.getBitPattern();
+    double[] combBuf = sketch.getCombinedBuffer();
+    qsCopy.combinedBuffer_ = Arrays.copyOf(combBuf, combBuf.length);
+    return qsCopy;
+  }
+  
+  static byte[] toByteArray(DoublesSketch sketch, boolean ordered, boolean compact) {
+    boolean empty = sketch.isEmpty();
+
+    int flags = (empty ? EMPTY_FLAG_MASK : 0) 
+        | (ordered ? ORDERED_FLAG_MASK : 0) 
+        | (compact ? COMPACT_FLAG_MASK : 0);
+    
+    if (empty) {
+      byte[] outByteArr = new byte[Long.BYTES];
+      Memory memOut = new NativeMemory(outByteArr);
+      long cumOffset = memOut.getCumulativeOffset(0L);
+      int preLongs = 1;
+      DoublesUtil.insertPre0(outByteArr, cumOffset, preLongs, flags, sketch.getK());
+      return outByteArr;
+    }
+    //not empty
+    return DoublesUtil.combinedBufferToByteArray(sketch, ordered, compact);
+  }
+  
+  /**
+   * Returns a byte array, including preamble, min, max and data extracted from the Combined Buffer.
+   * @param ordered true if the desired form of the resulting array has the base buffer sorted.
+   * @param compact true if the desired form of the resulting array is in compact form.
+   * @return a byte array, including preamble, min, max and data extracted from the Combined Buffer.
+   */
+  static byte[] combinedBufferToByteArray(DoublesSketch sketch, boolean ordered, 
+      boolean compact) {
+    final int preLongs = 2;
+    final int extra = 2; // extra space for min and max values
+    int preBytes = (preLongs + extra) << 3;
+    int flags = (ordered ? ORDERED_FLAG_MASK : 0) | (compact ? COMPACT_FLAG_MASK : 0);
+    int k = sketch.getK();
+    long n = sketch.getN();
+    double[] combinedBuffer = sketch.getCombinedBuffer();
+    double[] bbItemsArr = null;
+    
+    final int bbCnt = Util.computeBaseBufferItems(k, n);
+    if (bbCnt > 0) {
+      bbItemsArr = new double[bbCnt];
+      System.arraycopy(combinedBuffer, 0, bbItemsArr, 0, bbCnt);
+      if (ordered) { Arrays.sort(bbItemsArr); }
+    }
+    byte[] outByteArr = null;
+  
+    if (compact) {
+      final int retainedItems = sketch.getRetainedItems();
+      int outBytes = (retainedItems << 3) + preBytes;
+      outByteArr = new byte[outBytes];
+      
+      Memory memOut = new NativeMemory(outByteArr);
+      long cumOffset = memOut.getCumulativeOffset(0L);
+      
+      //insert preamble, min, max
+      insertPre0(outByteArr, cumOffset, preLongs, flags, k);
+      insertN(outByteArr, cumOffset, n);
+      insertMinDouble(outByteArr, cumOffset, sketch.getMinValue());
+      insertMaxDouble(outByteArr, cumOffset, sketch.getMaxValue());
+      
+      //insert base buffer
+      if (bbCnt > 0) {
+        memOut.putDoubleArray(preBytes, bbItemsArr, 0, bbCnt);
+      }
+      //insert levels into compact dstMem (and array)
+      long bits = sketch.getBitPattern();
+      if (bits != 0) {
+        long memOffset = preBytes + (bbCnt << 3); //bytes
+        int combBufOffset = 2 * k; //doubles
+        while (bits != 0L) {
+          if ((bits & 1L) > 0L) {
+            memOut.putDoubleArray(memOffset, combinedBuffer, combBufOffset, k);
+            memOffset += (k << 3); //bytes, increment compactly
+          }
+          combBufOffset += k; //doubles, increment every level
+          bits >>>= 1;
+        }
+      }
+  
+    } else { //not compact
+      final int totLevels = Util.computeNumLevelsNeeded(k, n);
+      int outBytes = (totLevels == 0)
+          ? (bbCnt << 3) + preBytes
+          : (((2 + totLevels) * k) << 3)  + preBytes;
+      outByteArr = new byte[outBytes];
+      
+      Memory memOut = new NativeMemory(outByteArr);
+      long cumOffset = memOut.getCumulativeOffset(0L);
+      
+      //insert preamble, min, max
+      insertPre0(outByteArr, cumOffset, preLongs, flags, k);
+      insertN(outByteArr, cumOffset, n);
+      insertMinDouble(outByteArr, cumOffset, sketch.getMinValue());
+      insertMaxDouble(outByteArr, cumOffset, sketch.getMaxValue());
+      
+      //insert base buffer
+      if (bbCnt > 0) {
+        memOut.putDoubleArray(preBytes, bbItemsArr, 0, bbCnt);
+      }
+      //insert levels
+      if (totLevels > 0) {
+        long memOffset = preBytes + ((2L * k) << 3);
+        int combBufOffset = 2 * k;
+        memOut.putDoubleArray(memOffset, combinedBuffer, combBufOffset, totLevels * k);
+      }
+    }
+    return outByteArr;
+  }
+  
+  static void insertPre0(byte[] outArr, long cumOffset, int preLongs, int flags, 
+      int k) {
+    insertPreLongs(outArr, cumOffset, preLongs);
+    insertSerVer(outArr, cumOffset, DOUBLES_SER_VER);
+    insertFamilyID(outArr, cumOffset, Family.QUANTILES.getID());
+    insertFlags(outArr, cumOffset, flags);
+    insertK(outArr, cumOffset, k);
+    insertSerDeId(outArr, cumOffset, DoublesSketch.ARRAY_OF_DOUBLES_SERDE_ID);
+  }
   
   /**
    * Checks the validity of the memory capacity assuming n, k and compact.
@@ -71,12 +244,12 @@ final class DoublesUtil {
   /**
    * Shared algorithm for both PMF and CDF functions. The splitPoints must be unique, monotonically
    * increasing values.
+   * @param sketch the given quantiles DoublesSketch
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing doubles
    * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
-   * @param sketch the given quantiles sketch
    * @return the unnormalized, accumulated counts of <i>m + 1</i> intervals.
    */
-  static long[] internalBuildHistogram(final double[] splitPoints, final HeapDoublesSketch sketch) {
+  static long[] internalBuildHistogram(final DoublesSketch sketch, final double[] splitPoints) {
     final double[] levelsArr  = sketch.getCombinedBuffer();
     final double[] baseBuffer = levelsArr;
     final int bbCount = sketch.getBaseBufferCount();
@@ -112,10 +285,21 @@ final class DoublesUtil {
     return counters;
   }
 
+  static void growBaseBuffer(final DoublesSketch sketch) { //n has not been incremented yet
+    final double[] baseBuffer = sketch.getCombinedBuffer(); //in this case it is just the BB
+    final int oldSize = sketch.getCombinedBufferItemCapacity(); //current array size
+    final int k = sketch.getK();
+    assert oldSize < 2 * k;
+    final int newSize = Math.max(Math.min(2 * k, 2 * oldSize), 1);
+    sketch.putCombinedBufferItemCapacity(newSize);
+    sketch.putCombinedBuffer(Arrays.copyOf(baseBuffer, newSize));
+  }
+  
   /**
    * Called when the base buffer has just acquired 2*k elements.
    * @param sketch the given quantiles sketch
    */
+  //important: n_ was incremented by update before we got here
   static void processFullBaseBuffer(final HeapDoublesSketch sketch) {
     final int bbCount = sketch.getBaseBufferCount();
     final long n = sketch.getN();
@@ -137,6 +321,24 @@ final class DoublesUtil {
     assert n / (2 * sketch.getK()) == sketch.getBitPattern(); // internal consistency check
   }
 
+  static void maybeGrowLevels(final long newN, final HeapDoublesSketch sketch) { // important: newN might not equal n_
+    final int k = sketch.getK();
+    final int numLevelsNeeded = Util.computeNumLevelsNeeded(k, newN);
+    if (numLevelsNeeded == 0) {
+      return; // don't need any levels yet, and might have small base buffer; this can happen during a merge
+    }
+    // from here on we need a full-size base buffer and at least one level
+    assert newN >= 2L * k;
+    assert numLevelsNeeded > 0; 
+    final int spaceNeeded = (2 + numLevelsNeeded) * k;
+    if (spaceNeeded <= sketch.getCombinedBufferItemCapacity()) {
+      return;
+    }
+    // copies base buffer plus old levels
+    sketch.combinedBuffer_ = Arrays.copyOf(sketch.getCombinedBuffer(), spaceNeeded); 
+    sketch.combinedBufferItemCapacity_ = spaceNeeded;
+  }
+  
   static void inPlacePropagateCarry(
       final int startingLevel,
       final double[] sizeKBuf, final int sizeKStart,
@@ -176,34 +378,6 @@ final class DoublesUtil {
 
     // update bit pattern with binary-arithmetic ripple carry
     sketch.bitPattern_ = bitPattern + (1L << startingLevel);
-  }
-
-  static void maybeGrowLevels(final long newN, final HeapDoublesSketch sketch) { // important: newN might not equal n_
-    final int k = sketch.getK();
-    final int numLevelsNeeded = Util.computeNumLevelsNeeded(k, newN);
-    if (numLevelsNeeded == 0) {
-      return; // don't need any levels yet, and might have small base buffer; this can happen during a merge
-    }
-    // from here on we need a full-size base buffer and at least one level
-    assert newN >= 2L * k;
-    assert numLevelsNeeded > 0; 
-    final int spaceNeeded = (2 + numLevelsNeeded) * k;
-    if (spaceNeeded <= sketch.getCombinedBufferItemCapacity()) {
-      return;
-    }
-    // copies base buffer plus old levels
-    sketch.combinedBuffer_ = Arrays.copyOf(sketch.getCombinedBuffer(), spaceNeeded); 
-    sketch.combinedBufferItemCapacity_ = spaceNeeded;
-  }
-
-  static void growBaseBuffer(final HeapDoublesSketch sketch) {
-    final double[] baseBuffer = sketch.getCombinedBuffer();
-    final int oldSize = sketch.getCombinedBufferItemCapacity();
-    final int k = sketch.getK();
-    assert oldSize < 2 * k;
-    final int newSize = Math.max(Math.min(2 * k, 2 * oldSize), 1);
-    sketch.combinedBufferItemCapacity_ = newSize;
-    sketch.combinedBuffer_ = Arrays.copyOf(baseBuffer, newSize);
   }
 
   /**

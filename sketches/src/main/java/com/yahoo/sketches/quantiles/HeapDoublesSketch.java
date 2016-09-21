@@ -172,25 +172,6 @@ final class HeapDoublesSketch extends DoublesSketch {
     return hqs;
   }
 
-  /**
-   * Returns a copy of the given sketch
-   * @param sketch the given sketch
-   * @return a copy of the given sketch
-   */
-  static HeapDoublesSketch copy(DoublesSketch sketch) {
-    HeapDoublesSketch qsCopy;
-    qsCopy = HeapDoublesSketch.newInstance(sketch.getK());
-    qsCopy.n_ = sketch.getN();
-    qsCopy.minValue_ = sketch.getMinValue();
-    qsCopy.maxValue_ = sketch.getMaxValue();
-    qsCopy.combinedBufferItemCapacity_ = sketch.getCombinedBufferItemCapacity();
-    qsCopy.baseBufferCount_ = sketch.getBaseBufferCount();
-    qsCopy.bitPattern_ = sketch.getBitPattern();
-    double[] combBuf = sketch.getCombinedBuffer();
-    qsCopy.combinedBuffer_ = Arrays.copyOf(combBuf, combBuf.length);
-    return qsCopy;
-  }
-
   @Override
   public void update(double dataItem) {
     // this method only uses the base buffer part of the combined buffer
@@ -243,35 +224,12 @@ final class HeapDoublesSketch extends DoublesSketch {
 
   @Override
   public double[] getPMF(double[] splitPoints) {
-    return getPMFOrCDF(splitPoints, false);
+    return DoublesUtil.getPMFOrCDF(this, splitPoints, false);
   }
 
   @Override
   public double[] getCDF(double[] splitPoints) {
-    return getPMFOrCDF(splitPoints, true);
-  }
-
-  private double[] getPMFOrCDF(double[] splitPoints, boolean isCDF) {
-    long[] counters = DoublesUtil.internalBuildHistogram(splitPoints, this);
-    int numCounters = counters.length;
-    double[] result = new double[numCounters];
-    double n = n_;
-    long subtotal = 0;
-    if (isCDF) {
-      for (int j = 0; j < numCounters; j++) {
-        long count = counters[j];
-        subtotal += count;
-        result[j] = subtotal / n; //normalize by n
-      }
-    } else { // PMF
-      for (int j = 0; j < numCounters; j++) {
-        long count = counters[j];
-        subtotal += count;
-        result[j] = count / n; //normalize by n
-      }
-    }
-    assert subtotal == n; //internal consistency check
-    return result;
+    return DoublesUtil.getPMFOrCDF(this, splitPoints, true);
   }
 
   @Override
@@ -304,26 +262,6 @@ final class HeapDoublesSketch extends DoublesSketch {
     bitPattern_ = 0;
     minValue_ = Double.POSITIVE_INFINITY;
     maxValue_ = Double.NEGATIVE_INFINITY;
-  }
-  
-  @Override
-  public byte[] toByteArray(boolean ordered, boolean compact) {
-    boolean empty = isEmpty();
-
-    int flags = (empty ? EMPTY_FLAG_MASK : 0) 
-        | (ordered ? ORDERED_FLAG_MASK : 0) 
-        | (compact ? COMPACT_FLAG_MASK : 0);
-    
-    if (empty) {
-      byte[] outByteArr = new byte[Long.BYTES];
-      Memory memOut = new NativeMemory(outByteArr);
-      long cumOffset = memOut.getCumulativeOffset(0L);
-      int preLongs = 1;
-      insertPre0(outByteArr, cumOffset, preLongs, flags, k_);
-      return outByteArr;
-    }
-    //not empty
-    return combinedBufferToByteArray(ordered, compact);
   }
   
   /**
@@ -368,100 +306,6 @@ final class HeapDoublesSketch extends DoublesSketch {
       int totItems = (levels == 0) ? bbCnt : (2 + levels) * k_;
       srcMem.getDoubleArray(preBytes, combinedBuffer_, 0, totItems);
     }
-  }
-  
-  /**
-   * Returns a byte array, including preamble, min, max and data extracted from the Combined Buffer.
-   * @param ordered true if the desired form of the resulting array has the base buffer sorted.
-   * @param compact true if the desired form of the resulting array is in compact form.
-   * @return a byte array, including preamble, min, max and data extracted from the Combined Buffer.
-   */
-  private byte[] combinedBufferToByteArray(boolean ordered, boolean compact) {
-    final int preLongs = 2;
-    final int extra = 2; // extra space for min and max values
-    int preBytes = (preLongs + extra) << 3;
-    int flags = (ordered ? ORDERED_FLAG_MASK : 0) | (compact ? COMPACT_FLAG_MASK : 0);
-    double[] bbItemsArr = null;
-    
-    final int bbCnt = Util.computeBaseBufferItems(k_, n_);
-    if (bbCnt > 0) {
-      bbItemsArr = new double[bbCnt];
-      System.arraycopy(combinedBuffer_, 0, bbItemsArr, 0, bbCnt);
-      if (ordered) { Arrays.sort(bbItemsArr); }
-    }
-    byte[] outByteArr = null;
-
-    if (compact) {
-      final int retainedItems = getRetainedItems();
-      int outBytes = (retainedItems << 3) + preBytes;
-      outByteArr = new byte[outBytes];
-      
-      Memory memOut = new NativeMemory(outByteArr);
-      long cumOffset = memOut.getCumulativeOffset(0L);
-      
-      //insert preamble, min, max
-      insertPre0(outByteArr, cumOffset, preLongs, flags, k_);
-      insertN(outByteArr, cumOffset, n_);
-      insertMinDouble(outByteArr, cumOffset, minValue_);
-      insertMaxDouble(outByteArr, cumOffset, maxValue_);
-      
-      //insert base buffer
-      if (bbCnt > 0) {
-        memOut.putDoubleArray(preBytes, bbItemsArr, 0, bbCnt);
-      }
-      //insert levels into compact dstMem (and array)
-      long bits = bitPattern_;
-      if (bits != 0) {
-        long memOffset = preBytes + (baseBufferCount_ << 3); //bytes
-        int combBufOffset = 2 * k_; //doubles
-        while (bits != 0L) {
-          if ((bits & 1L) > 0L) {
-            memOut.putDoubleArray(memOffset, combinedBuffer_, combBufOffset, k_);
-            memOffset += (k_ << 3); //bytes, increment compactly
-          }
-          combBufOffset += k_; //doubles, increment every level
-          bits >>>= 1;
-        }
-      }
-
-    } else { //not compact
-      final int totLevels = Util.computeNumLevelsNeeded(k_, n_);
-      int outBytes = (totLevels == 0)
-          ? (bbCnt << 3) + preBytes
-          : (((2 + totLevels) * k_) << 3)  + preBytes;
-      outByteArr = new byte[outBytes];
-      
-      Memory memOut = new NativeMemory(outByteArr);
-      long cumOffset = memOut.getCumulativeOffset(0L);
-      
-      //insert preamble, min, max
-      insertPre0(outByteArr, cumOffset, preLongs, flags, k_);
-      insertN(outByteArr, cumOffset, n_);
-      insertMinDouble(outByteArr, cumOffset, minValue_);
-      insertMaxDouble(outByteArr, cumOffset, maxValue_);
-      
-      //insert base buffer
-      if (bbCnt > 0) {
-        memOut.putDoubleArray(preBytes, bbItemsArr, 0, bbCnt);
-      }
-      //insert levels
-      if (totLevels > 0) {
-        long memOffset = preBytes + ((2L * k_) << 3);
-        int combBufOffset = 2 * k_;
-        memOut.putDoubleArray(memOffset, combinedBuffer_, combBufOffset, totLevels * k_);
-      }
-    }
-    return outByteArr;
-  }
-  
-  private static final void insertPre0(byte[] outArr, long cumOffset, int preLongs, int flags, 
-      int k) {
-    insertPreLongs(outArr, cumOffset, preLongs);
-    insertSerVer(outArr, cumOffset, DoublesUtil.DOUBLES_SER_VER);
-    insertFamilyID(outArr, cumOffset, Family.QUANTILES.getID());
-    insertFlags(outArr, cumOffset, flags);
-    insertK(outArr, cumOffset, k);
-    insertSerDeId(outArr, cumOffset, ARRAY_OF_DOUBLES_SERDE_ID);
   }
   
   @Override
@@ -509,6 +353,16 @@ final class HeapDoublesSketch extends DoublesSketch {
   @Override
   double[] getCombinedBuffer() {
     return combinedBuffer_;
+  }
+  
+  @Override
+  void putCombinedBuffer(double[] combinedBuffer) {
+    combinedBuffer_ = combinedBuffer;
+  }
+  
+  @Override
+  void putCombinedBufferItemCapacity(int combBufItemCap) {
+    combinedBufferItemCapacity_ = combBufItemCap;
   }
   
 } // End of class HeapDoublesSketch

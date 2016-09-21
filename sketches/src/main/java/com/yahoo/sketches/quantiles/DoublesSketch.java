@@ -239,24 +239,6 @@ public abstract class DoublesSketch {
     return getQuantiles(getEvenlySpaced(evenlySpaced));
   }
   
-  static double[] getEvenlySpaced(int evenlySpaced) {
-    int n = evenlySpaced;
-    if (n <= 0) {
-      throw new SketchesArgumentException("EvenlySpaced must be > zero.");
-    }
-    double[] fractions = new double[n];
-    double frac = 0.0;
-    fractions[0] = frac;
-    for (int i = 1; i < n; i++) {
-      frac = (double)i / (n - 1);
-      fractions[i] = frac;
-    }
-    if (n > 1) {
-      fractions[n - 1] = 1.0;
-    }
-    return fractions;
-  }
-  
   /**
    * Returns an approximation to the Probability Mass Function (PMF) of the input stream 
    * given a set of splitPoints (values).
@@ -393,7 +375,9 @@ public abstract class DoublesSketch {
    * @param compact if true the sketch will be serialized in compact form.
    * @return this sketch in a byte array form.
    */
-  public abstract byte[] toByteArray(boolean ordered, boolean compact);
+  public byte[] toByteArray(boolean ordered, boolean compact) {
+    return DoublesUtil.toByteArray(this, ordered, compact);
+  }
   
   /**
    * Returns summary information about this sketch.
@@ -446,7 +430,10 @@ public abstract class DoublesSketch {
    * @param n the number of items input into the sketch
    * @return the number of bytes required to store this sketch as an array of bytes.
    */
-  public abstract void putMemory(Memory dstMem, boolean sort);
+  public int getStorageBytes(int k, long n) {
+    if (n == 0) return 8;
+    return 32 + (Util.computeRetainedItems(k, n) << 3);
+  }
   
   /**
    * Puts the current sketch into the given Memory if there is sufficient space, otherwise, 
@@ -455,9 +442,62 @@ public abstract class DoublesSketch {
    * @param dstMem the given memory.
    */
   public void putMemory(Memory dstMem) {
-    putMemory(dstMem, false);
+    putMemory(dstMem, false, true);
+  }
+  
+  /**
+   * Puts the current sketch into the given Memory if there is sufficient space, otherwise, 
+   * throws an error. This loads the memory in compact form.
+   * @param dstMem the given memory.
+   * @param ordered if true, this sorts the base buffer, which optimizes merge performance at
+   * the cost of slightly increased serialization time. In real-time build-and-merge environments, 
+   * ordering may not be desirable. 
+   */
+  public void putMemory(Memory dstMem, boolean ordered) {
+    putMemory(dstMem, ordered, true);
   }
 
+  /**
+   * Puts the current sketch into the given Memory if there is sufficient space,
+   * 0therwise, throws an error. This sorts the base buffer based on the given sort flag.
+   * @param dstMem the given memory.
+   * @param ordered if true, this sorts the base buffer, which optimizes merge performance at
+   * the cost of slightly increased serialization time. In real-time build-and-merge environments, 
+   * ordering may not be desirable.
+   * @param compact if true, loads the memory in compact form.
+   */
+  public void putMemory(Memory dstMem, boolean ordered, boolean compact) {
+    byte[] byteArr = toByteArray(ordered, compact);
+    int arrLen = byteArr.length;
+    long memCap = dstMem.getCapacity();
+    if (memCap < arrLen) {
+      throw new SketchesArgumentException(
+          "Destination Memory not large enough: " + memCap + " < " + arrLen);
+    }
+    dstMem.putByteArray(0, byteArr, 0, arrLen);
+  }
+  
+  //Restricted
+  
+  static double[] getEvenlySpaced(int evenlySpaced) {
+    int n = evenlySpaced;
+    if (n <= 0) {
+      throw new SketchesArgumentException("EvenlySpaced must be > zero.");
+    }
+    double[] fractions = new double[n];
+    double frac = 0.0;
+    fractions[0] = frac;
+    for (int i = 1; i < n; i++) {
+      frac = (double)i / (n - 1);
+      fractions[i] = frac;
+    }
+    if (n > 1) {
+      fractions[n - 1] = 1.0;
+    }
+    return fractions;
+  }
+  
+  
   //Restricted abstract
 
   /**
@@ -486,6 +526,19 @@ public abstract class DoublesSketch {
    */
   abstract double[] getCombinedBuffer();
 
+  /**
+   * Puts the combined buffer.  This must be in non-compact form!
+   * @param combinedBuffer the combined buffer array
+   */
+  abstract void putCombinedBuffer(double[] combinedBuffer);
+  
+  /**
+   * Puts the combinedBufferItemCapacity
+   * @param combBufItemCap the given capacity
+   */
+  abstract void putCombinedBufferItemCapacity(int combBufItemCap);
+  
+  
   //Other restricted
   
   /**

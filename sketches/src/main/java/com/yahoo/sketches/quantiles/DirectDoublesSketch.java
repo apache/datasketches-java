@@ -243,6 +243,18 @@ public class DirectDoublesSketch extends DoublesSketch {
     return null;
   }
   
+  @Override
+  void putCombinedBuffer(double[] combinedBuffer) {
+    mem_.putDoubleArray(32, combinedBuffer, 0, combinedBuffer.length);
+  }
+  
+  @Override
+  void putCombinedBufferItemCapacity(int combBufItemCap) {
+    //intentionally a no-op
+  }
+  
+  //Other restricted
+  
   /**
    * Returns the current item capacity of the combined, non-compact, data buffer 
    * given <i>k</i> and <i>n</i>. The base buffer is always allocated at full size.
@@ -257,6 +269,5 @@ public class DirectDoublesSketch extends DoublesSketch {
     int totLevels = Util.computeNumLevelsNeeded(k, n);
     return (2 + totLevels) * k; //base buffer always allocated at full size.
   }
-  
   
 }
