@@ -98,7 +98,8 @@ final class PreambleUtil {
   }
   
   /**
-   * Returns a human readable string summary of the internal state of the given Memory. 
+   * Returns a human readable string summary of the Preamble of the given Memory. If this Memory
+   * image is from a DoublesSketch, the MinValue and MaxValue will also be output. 
    * Used primarily in testing.
    * 
    * @param mem the given Memory

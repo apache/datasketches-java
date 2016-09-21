@@ -190,7 +190,17 @@ public abstract class DoublesSketch {
    * 
    * @return the approximation to the value at the above fraction
    */
-  public abstract double getQuantile(double fraction);
+  public double getQuantile(double fraction) {
+    if ((fraction < 0.0) || (fraction > 1.0)) {
+      throw new SketchesArgumentException("Fraction cannot be less than zero or greater than 1.0");
+    }
+    if      (fraction == 0.0) { return this.getMinValue(); }
+    else if (fraction == 1.0) { return this.getMaxValue(); }
+    else {
+      DoublesAuxiliary aux = this.constructAuxiliary();
+      return aux.getQuantile(fraction);
+    }
+  }
   
   /**
    * This is a more efficient multiple-query version of getQuantile().
@@ -215,7 +225,23 @@ public abstract class DoublesSketch {
    * @return array of approximations to the given fractions in the same order as given fractions 
    * array. 
    */
-  public abstract double[] getQuantiles(double[] fractions);
+  public double[] getQuantiles(double[] fractions) {
+    Util.validateFractions(fractions);
+    DoublesAuxiliary aux = null;
+    double[] answers = new double[fractions.length];
+    for (int i = 0; i < fractions.length; i++) {
+      double fraction = fractions[i];
+      if      (fraction == 0.0) { answers[i] = this.getMinValue(); }
+      else if (fraction == 1.0) { answers[i] = this.getMaxValue(); }
+      else {
+        if (aux == null) {
+          aux = this.constructAuxiliary();
+        }
+        answers[i] = aux.getQuantile(fraction);
+      }
+    }
+    return answers;
+  }
   
   /**
    * This is also a more efficient multiple-query version of getQuantile() and allows the caller to
@@ -256,7 +282,9 @@ public abstract class DoublesSketch {
    * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
    * splitPoint.
    */
-  public abstract double[] getPMF(double[] splitPoints);
+  public double[] getPMF(double[] splitPoints) {
+    return DoublesUtil.getPMFOrCDF(this, splitPoints, false);
+  }
   
   /**
    * Returns an approximation to the Cumulative Distribution Function (CDF), which is the 
@@ -272,7 +300,9 @@ public abstract class DoublesSketch {
    * 
    * @return an approximation to the CDF of the input stream given the splitPoints.
    */
-  public abstract double[] getCDF(double[] splitPoints);
+  public double[] getCDF(double[] splitPoints) {
+    return DoublesUtil.getPMFOrCDF(this, splitPoints, true);
+  }
   
   /**
    * Returns the configured value of K
@@ -339,9 +369,7 @@ public abstract class DoublesSketch {
    * Returns true if this sketch is empty
    * @return true if this sketch is empty
    */
-  public boolean isEmpty() {
-   return getN() == 0; 
-  }
+  public abstract boolean isEmpty();
   
   /**
    * Resets this sketch to the empty state, but retains the original value of k.
@@ -393,8 +421,9 @@ public abstract class DoublesSketch {
    * @param dataDetail if true includes data detail
    * @return summary information about the sketch.
    */
-  public abstract String toString(boolean sketchSummary, boolean dataDetail);
-  
+  public String toString(boolean sketchSummary, boolean dataDetail) {
+    return DoublesUtil.toString(sketchSummary, dataDetail, this);
+  }
 
   /**
    * From an existing sketch, this creates a new sketch that can have a smaller value of K.

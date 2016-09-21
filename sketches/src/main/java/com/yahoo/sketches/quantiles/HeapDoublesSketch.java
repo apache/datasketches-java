@@ -191,48 +191,6 @@ final class HeapDoublesSketch extends DoublesSketch {
   }
 
   @Override
-  public double getQuantile(double fraction) {
-    if ((fraction < 0.0) || (fraction > 1.0)) {
-      throw new SketchesArgumentException("Fraction cannot be less than zero or greater than 1.0");
-    }
-    if      (fraction == 0.0) { return minValue_; }
-    else if (fraction == 1.0) { return maxValue_; }
-    else {
-      DoublesAuxiliary aux = this.constructAuxiliary();
-      return aux.getQuantile(fraction);
-    }
-  }
-
-  @Override
-  public double[] getQuantiles(double[] fractions) {
-    Util.validateFractions(fractions);
-    DoublesAuxiliary aux = null;
-    double[] answers = new double[fractions.length];
-    for (int i = 0; i < fractions.length; i++) {
-      double fraction = fractions[i];
-      if      (fraction == 0.0) { answers[i] = minValue_; }
-      else if (fraction == 1.0) { answers[i] = maxValue_; }
-      else {
-        if (aux == null) {
-          aux = this.constructAuxiliary();
-        }
-        answers[i] = aux.getQuantile(fraction);
-      }
-    }
-    return answers;
-  }
-
-  @Override
-  public double[] getPMF(double[] splitPoints) {
-    return DoublesUtil.getPMFOrCDF(this, splitPoints, false);
-  }
-
-  @Override
-  public double[] getCDF(double[] splitPoints) {
-    return DoublesUtil.getPMFOrCDF(this, splitPoints, true);
-  }
-
-  @Override
   public int getK() {
     return k_;
   }
@@ -242,6 +200,10 @@ final class HeapDoublesSketch extends DoublesSketch {
     return n_;
   }
   
+  @Override
+  public boolean isEmpty() {
+    return n_ == 0;
+  }
   
   @Override
   public double getMinValue() {
@@ -308,10 +270,10 @@ final class HeapDoublesSketch extends DoublesSketch {
     }
   }
   
-  @Override
-  public String toString(boolean sketchSummary, boolean dataDetail) {
-    return DoublesUtil.toString(sketchSummary, dataDetail, this);
-  }
+//  @Override
+//  public String toString(boolean sketchSummary, boolean dataDetail) {
+//    return DoublesUtil.toString(sketchSummary, dataDetail, this);
+//  }
   
   @Override
   public DoublesSketch downSample(int newK) {

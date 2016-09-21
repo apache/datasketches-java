@@ -302,30 +302,37 @@ final class DoublesUtil {
   //important: n_ was incremented by update before we got here
   static void processFullBaseBuffer(final HeapDoublesSketch sketch) {
     final int bbCount = sketch.getBaseBufferCount();
-    final long n = sketch.getN();
-    assert bbCount == 2 * sketch.getK(); // internal consistency check
+    final int k = sketch.getK();
+    final long newN = sketch.getN();
+    assert bbCount == 2 * k; // internal consistency check
 
     // make sure there will be enough levels for the propagation
-    DoublesUtil.maybeGrowLevels(n, sketch); // important: n_ was incremented by update before we got here
+    DoublesUtil.maybeGrowLevels(newN, sketch);
 
-    // this aliasing is a bit dangerous; notice that we did it after the possible resizing
+    // notice that this is acquired after the possible resizing
     final double[] baseBuffer = sketch.getCombinedBuffer(); 
 
-    Arrays.sort(baseBuffer, 0, bbCount);
+    Arrays.sort(baseBuffer, 0, bbCount); //sort the BB
     inPlacePropagateCarry(
-        0,
-        null, 0,  // this null is okay
-        baseBuffer, 0,
-        true, sketch);
+        0,           //starting level
+        null,        //sizeKbuf,   not needed here
+        0,           //sizeKStart, not needed here
+        baseBuffer,  //size2Kbuf, the base buffer = the Combined Buffer 
+        0,           //size2KStart
+        true,        //doUpdateVersion 
+        sketch);     //the sketch
     sketch.baseBufferCount_ = 0;
-    assert n / (2 * sketch.getK()) == sketch.getBitPattern(); // internal consistency check
+    assert newN / (2 * k) == sketch.getBitPattern(); // internal consistency check
   }
 
-  static void maybeGrowLevels(final long newN, final HeapDoublesSketch sketch) { // important: newN might not equal n_
+  //important: newN might not equal n_
+  // This only increases the size and does not touch or move any data.
+  static void maybeGrowLevels(final long newN, final HeapDoublesSketch sketch) {
     final int k = sketch.getK();
     final int numLevelsNeeded = Util.computeNumLevelsNeeded(k, newN);
     if (numLevelsNeeded == 0) {
-      return; // don't need any levels yet, and might have small base buffer; this can happen during a merge
+    // don't need any levels yet, and might have small base buffer; this can happen during a merge
+      return; 
     }
     // from here on we need a full-size base buffer and at least one level
     assert newN >= 2L * k;
@@ -379,6 +386,10 @@ final class DoublesUtil {
     // update bit pattern with binary-arithmetic ripple carry
     sketch.bitPattern_ = bitPattern + (1L << startingLevel);
   }
+
+
+
+
 
   /**
    * Merges the source sketch into the target sketch that can have a smaller value of K.
@@ -689,7 +700,8 @@ final class DoublesUtil {
     }
   }
 
-  static String toString(final boolean sketchSummary, final boolean dataDetail, final HeapDoublesSketch sketch) {
+  static String toString(final boolean sketchSummary, final boolean dataDetail, 
+      final DoublesSketch sketch) {
     final StringBuilder sb = new StringBuilder();
     if (dataDetail) {
       sb.append(getDataDetail(sketch));
@@ -700,7 +712,7 @@ final class DoublesUtil {
     return sb.toString();
   }
   
-  static String getDataDetail(final HeapDoublesSketch sketch) {
+  static String getDataDetail(final DoublesSketch sketch) {
     final StringBuilder sb = new StringBuilder();
     final String thisSimpleName = sketch.getClass().getSimpleName();
     sb.append(LS).append("### ").append(thisSimpleName).append(" DATA DETAIL: ").append(LS);
@@ -738,7 +750,7 @@ final class DoublesUtil {
     return sb.toString();
   }
   
-  static String getSummary(final HeapDoublesSketch sketch) {
+  static String getSummary(final DoublesSketch sketch) {
     final StringBuilder sb = new StringBuilder();
     final String thisSimpleName = sketch.getClass().getSimpleName();
     final int k = sketch.getK();
@@ -759,14 +771,18 @@ final class DoublesUtil {
     sb.append(Util.LS).append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
     sb.append("   K                            : ").append(k).append(LS);
     sb.append("   N                            : ").append(nStr).append(LS);
-    sb.append("   Levels (Total, Valid)        : ").append(totLevels + ", " + validLevels).append(LS);
-    sb.append("   Level Bit Pattern            : ").append(Long.toBinaryString(bitPattern)).append(LS);
+    sb.append("   Levels (Total, Valid)        : ")
+      .append(totLevels + ", " + validLevels).append(LS);
+    sb.append("   Level Bit Pattern            : ")
+      .append(Long.toBinaryString(bitPattern)).append(LS);
     sb.append("   BaseBufferCount              : ").append(bbCount).append(LS);
     sb.append("   Retained Items               : ").append(retItemsStr).append(LS);
     sb.append("   Storage Bytes                : ").append(String.format("%,d", bytes)).append(LS);
     sb.append("   Normalized Rank Error        : ").append(epsPct).append(LS);
-    sb.append("   Min Value                    : ").append(String.format("%,.3f", sketch.getMinValue())).append(LS);
-    sb.append("   Max Value                    : ").append(String.format("%,.3f", sketch.getMaxValue())).append(LS);
+    sb.append("   Min Value                    : ")
+      .append(String.format("%,.3f", sketch.getMinValue())).append(LS);
+    sb.append("   Max Value                    : ")
+      .append(String.format("%,.3f", sketch.getMaxValue())).append(LS);
     sb.append("### END SKETCH SUMMARY").append(LS);
     return sb.toString();
   }

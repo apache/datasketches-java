@@ -140,18 +140,6 @@ public class DirectDoublesSketch extends DoublesSketch {
   }
 
   @Override
-  public double[] getPMF(double[] splitPoints) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public double[] getCDF(double[] splitPoints) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
   public int getK() {
     return extractK(memArr_, cumOffset_);
   }
@@ -159,6 +147,11 @@ public class DirectDoublesSketch extends DoublesSketch {
   @Override
   public long getN() {
     return extractN(memArr_, cumOffset_);
+  }
+  
+  @Override
+  public boolean isEmpty() {
+    return (PreambleUtil.extractFlags(memArr_, cumOffset_) & EMPTY_FLAG_MASK) > 0;
   }
   
   void putMinValue(double minValue) {
@@ -209,11 +202,11 @@ public class DirectDoublesSketch extends DoublesSketch {
     return null;
   }
   
-  @Override
-  public String toString(boolean sketchSummary, boolean dataDetail) {
-    // TODO Auto-generated method stub
-    return null;
-  }
+//  @Override
+//  public String toString(boolean sketchSummary, boolean dataDetail) {
+//    // TODO Auto-generated method stub
+//    return null;
+//  }
 
   @Override
   public DoublesSketch downSample(int smallerK) {
