@@ -111,12 +111,13 @@ public class ReservoirItemsSketchTest {
             assertEquals(data[i], Integer.toString(i));
         }
 
-        // not using validateSerializeAndDeserialize() to check with a non-Long
+        // not using validateSerializeAndDeserialize() to check with a non-Lon
+        // g
         expectedLength += Family.RESERVOIR.getMaxPreLongs() << 3;
         byte[] sketchBytes = ris.toByteArray(new ArrayOfStringsSerDe());
         assertEquals(sketchBytes.length, expectedLength);
 
-        // ensure full reservoir rebuilds correctly
+        // ensure reservoir rebuilds correctly
         Memory mem = new NativeMemory(sketchBytes);
         ReservoirItemsSketch<String> loadedRis = ReservoirItemsSketch.getInstance(mem,
                 new ArrayOfStringsSerDe());

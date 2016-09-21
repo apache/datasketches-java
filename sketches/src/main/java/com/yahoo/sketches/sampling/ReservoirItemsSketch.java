@@ -297,7 +297,8 @@ public class ReservoirItemsSketch<T> {
         final long itemsSeen = extractItemsSeenCount(pre1);
 
         int preLongBytes = numPreLongs << 3;
-        int allocatedSize = reservoirSize; // default to full reservoir
+        int allocatedItems = reservoirSize; // default to full reservoir
+
         if (itemsSeen < reservoirSize) {
             // under-full so determine size to allocate, using ceilingLog2(totalSeen) as minimum
             // casts to int are safe since under-full
@@ -306,12 +307,21 @@ public class ReservoirItemsSketch<T> {
             int initialLgSize = SamplingUtil.startingSubMultiple(reservoirSize, ceilingLgK,
                     Math.min(minLgSize, MIN_LG_ARR_LONGS));
 
-            allocatedSize = SamplingUtil.getAdjustedSize(reservoirSize, 1 << initialLgSize);
+            allocatedItems = SamplingUtil.getAdjustedSize(reservoirSize, 1 << initialLgSize);
         }
-        Object[] data = serDe.deserializeFromMemory(
-                new MemoryRegion(srcMem, preLongBytes, srcMem.getCapacity() - preLongBytes), allocatedSize);
 
-        return new ReservoirItemsSketch<T>(data, itemsSeen, rf, encodedResSize);
+        int itemsToRead = (int) Math.min(reservoirSize, itemsSeen);
+        Object[] data = serDe.deserializeFromMemory(
+                new MemoryRegion(srcMem, preLongBytes, srcMem.getCapacity() - preLongBytes), itemsToRead);
+
+        // if we read fewer items than allocated space, copy into properly-sized array
+        if (itemsToRead < allocatedItems) {
+            Object[] dst = new Object[allocatedItems];
+            System.arraycopy(data, 0, dst, 0, itemsToRead);
+            data = dst;
+        }
+
+        return new ReservoirItemsSketch<>(data, itemsSeen, rf, encodedResSize);
     }
 
 

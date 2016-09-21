@@ -104,7 +104,7 @@ final class PreambleUtil {
   public static String preambleToString(Memory mem) {
     int preLongs = getAndCheckPreLongs(mem);  //make sure we can get the assumed preamble
     long pre0 = mem.getLong(0);
-    long pre1 = mem.getLong(8);
+    long pre1 = 0;
 
     ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(pre0));
     int serVer = extractSerVer(pre0);
@@ -122,8 +122,13 @@ final class PreambleUtil {
 
     short encResSize = extractReservoirSize(pre0);
     int resSize = ReservoirSize.decodeValue(encResSize);
-    long itemsSeen = isEmpty ? 0 : extractItemsSeenCount(pre1);
     int serDeId = extractSerDeId(pre0);
+
+    long itemsSeen = 0;
+    if (!isEmpty) {
+      pre1 = mem.getLong(8);
+      itemsSeen = extractItemsSeenCount(pre1);
+    }
 
     StringBuilder sb = new StringBuilder();
     sb.append(LS)
