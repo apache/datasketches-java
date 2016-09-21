@@ -151,9 +151,10 @@ public class DirectDoublesSketch extends DoublesSketch {
   
   @Override
   public boolean isEmpty() {
-    return (PreambleUtil.extractFlags(memArr_, cumOffset_) & EMPTY_FLAG_MASK) > 0;
+    return (extractFlags(memArr_, cumOffset_) & EMPTY_FLAG_MASK) > 0;
   }
   
+  @Override
   void putMinValue(double minValue) {
     insertMinDouble(memArr_, cumOffset_, minValue);
   }
@@ -163,6 +164,7 @@ public class DirectDoublesSketch extends DoublesSketch {
     return extractMinDouble(memArr_, cumOffset_);
   }
 
+  @Override
   void putMaxValue(double maxValue) {
     insertMaxDouble(memArr_, cumOffset_, maxValue);
   }
@@ -177,6 +179,7 @@ public class DirectDoublesSketch extends DoublesSketch {
     insertN(memArr_, cumOffset_, 0L);
     insertMinDouble(memArr_, cumOffset_, Double.POSITIVE_INFINITY);
     insertMaxDouble(memArr_, cumOffset_, Double.NEGATIVE_INFINITY);
+    insertFlags(memArr_, cumOffset_, EMPTY_FLAG_MASK); //not compact, not ordered
   }
   
   //TODO This needs rethinking
@@ -201,12 +204,6 @@ public class DirectDoublesSketch extends DoublesSketch {
     
     return null;
   }
-  
-//  @Override
-//  public String toString(boolean sketchSummary, boolean dataDetail) {
-//    // TODO Auto-generated method stub
-//    return null;
-//  }
 
   @Override
   public DoublesSketch downSample(int smallerK) {
@@ -261,6 +258,30 @@ public class DirectDoublesSketch extends DoublesSketch {
   private static final int computeDirectCombBufItemCapacity(int k, long n) {
     int totLevels = Util.computeNumLevelsNeeded(k, n);
     return (2 + totLevels) * k; //base buffer always allocated at full size.
+  }
+
+  @Override
+  void putN(long n) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  void putBaseBufferCount(int baseBufCount) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  void putBitPattern(long bitPattern) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  Memory getMemory() {
+    // TODO Auto-generated method stub
+    return null;
   }
   
 }

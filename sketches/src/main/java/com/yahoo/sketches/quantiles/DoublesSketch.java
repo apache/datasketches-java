@@ -554,7 +554,7 @@ public abstract class DoublesSketch {
    * @return the combined buffer reference
    */
   abstract double[] getCombinedBuffer();
-
+  
   /**
    * Puts the combined buffer.  This must be in non-compact form!
    * @param combinedBuffer the combined buffer array
@@ -562,11 +562,46 @@ public abstract class DoublesSketch {
   abstract void putCombinedBuffer(double[] combinedBuffer);
   
   /**
+   * Puts the min value
+   * @param minValue the given min value
+   */
+  abstract void putMinValue(double minValue);
+  
+  /**
+   * Puts the max value
+   * @param maxValue the given max value
+   */
+  abstract void putMaxValue(double maxValue);
+
+  /**
+   * Puts the value of <i>n</i>
+   * @param n the given value of <i>n</i>
+   */
+  abstract void putN(long n);
+  
+  /**
    * Puts the combinedBufferItemCapacity
    * @param combBufItemCap the given capacity
    */
   abstract void putCombinedBufferItemCapacity(int combBufItemCap);
   
+  /**
+   * Puts the base buffer count
+   * @param baseBufCount the given base buffer count
+   */
+  abstract void putBaseBufferCount(int baseBufCount);
+  
+  /**
+   * Puts the bit pattern
+   * @param bitPattern the given bit pattern
+   */
+  abstract void putBitPattern(long bitPattern);
+  
+  /**
+   * Gets the Memory if it exists, otherwise returns null.
+   * @return the Memory if it exists, otherwise returns null.
+   */
+  abstract Memory getMemory();
   
   //Other restricted
   
