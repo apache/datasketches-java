@@ -660,7 +660,7 @@ public class HeapDoublesSketchTest {
         for (int i2 = 1; i2 <= n2; i2++ ) {
           smlSketch.update(i2);
         }
-        DoublesUtil.downSamplingMergeInto(bigSketch, smlSketch);
+        DoublesMergeImpl.downSamplingMergeInto(bigSketch, smlSketch);
         assertTrue (sameStructurePredicate(directSketch, smlSketch));
       }
     }

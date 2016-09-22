@@ -77,7 +77,7 @@ public class UtilTest {
       double [] splitPoints = {0.25, 0.4};
       long counters [] = {0, 0, 0};
       long answers  [] = {200, 100, 200};
-      DoublesUtil.bilinearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
+      DoublesPmfCdfImpl.bilinearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
       for (int j = 0; j < counters.length; j++) {
         assert counters[j] == answers[j];
         // System.out.printf ("counter[%d] = %d%n", j, counters[j]);
@@ -89,7 +89,7 @@ public class UtilTest {
       double [] splitPoints = {0.01, 0.02};
       long counters [] = {0, 0, 0};
       long answers  [] = {0, 0, 500};
-      DoublesUtil.bilinearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
+      DoublesPmfCdfImpl.bilinearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
       for (int j = 0; j < counters.length; j++) {
         assert counters[j] == answers[j];
         // System.out.printf ("counter[%d] = %d%n", j, counters[j]);
@@ -101,7 +101,7 @@ public class UtilTest {
       double [] splitPoints = {0.8, 0.9};
       long counters [] = {0, 0, 0};
       long answers  [] = {500, 0, 0};
-      DoublesUtil.bilinearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
+      DoublesPmfCdfImpl.bilinearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
       for (int j = 0; j < counters.length; j++) {
         assert counters[j] == answers[j];
         // System.out.printf ("counter[%d] = %d%n", j, counters[j]);
@@ -122,7 +122,7 @@ public class UtilTest {
       double [] splitPoints = {0.25, 0.4};
       long counters [] = {0, 0, 0};
       long answers  [] = {200, 100, 200};
-      DoublesUtil.linearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
+      DoublesPmfCdfImpl.linearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
       for (int j = 0; j < counters.length; j++) {
         assert counters[j] == answers[j];
         // System.out.printf ("counter[%d] = %d%n", j, counters[j]);
@@ -134,7 +134,7 @@ public class UtilTest {
       double [] splitPoints = {0.01, 0.02};
       long counters [] = {0, 0, 0};
       long answers  [] = {0, 0, 500};
-      DoublesUtil.linearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
+      DoublesPmfCdfImpl.linearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
       for (int j = 0; j < counters.length; j++) {
         assert counters[j] == answers[j];
         // System.out.printf ("counter[%d] = %d%n", j, counters[j]);
@@ -146,7 +146,7 @@ public class UtilTest {
       double [] splitPoints = {0.8, 0.9};
       long counters [] = {0, 0, 0};
       long answers  [] = {500, 0, 0};
-      DoublesUtil.linearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
+      DoublesPmfCdfImpl.linearTimeIncrementHistogramCounters (samples, 0, 5, 100, splitPoints, counters);
       for (int j = 0; j < counters.length; j++) {
         assert counters[j] == answers[j];
         // System.out.printf ("counter[%d] = %d%n", j, counters[j]);
@@ -247,7 +247,7 @@ public class UtilTest {
          arr = makeMergeTestInput(arrLen, blkSize);
          long [] brr = makeTheTandemArray(arr);
          assertMergeTestPrecondition(arr, brr, arrLen, blkSize);
-         DoublesUtil.blockyTandemMergeSort(arr, brr, arrLen, blkSize);
+         DoublesMergeImpl.blockyTandemMergeSort(arr, brr, arrLen, blkSize);
          /* verify sorted order */
          for (int i = 0; i < arrLen-1; i++) {
            assert arr[i] <= arr[i+1];
@@ -275,7 +275,7 @@ public class UtilTest {
           double [] arr = makeMergeTestInput (arrLen, blkSize);
           long [] brr = makeTheTandemArray (arr);
           assertMergeTestPrecondition (arr, brr, arrLen, blkSize);
-          DoublesUtil.blockyTandemMergeSort (arr, brr, arrLen, blkSize);
+          DoublesMergeImpl.blockyTandemMergeSort (arr, brr, arrLen, blkSize);
           assertMergeTestPostcondition (arr, brr, arrLen);
         }
       }

@@ -171,16 +171,16 @@ final class HeapDoublesSketch extends DoublesSketch {
 //    int combinedBufferItemCapacity = getCombinedBufferItemCapacity();
 
     if (baseBufferCount_ + 1 > combinedBufferItemCapacity_) {
-      DoublesUtil.growBaseBuffer(this);
+      DoublesUpdateImpl.growBaseBuffer(this);
     }
 //    baseBufferCount++;
-//    putBaseBufferCount(baseBufferCount); //TODO delete
+//    putBaseBufferCount(baseBufferCount);
 //    //put the new item in the base buffer
-//    combinedBuffer_[baseBufferCount] = dataItem; //TODO make more eff for direct.
+//    combinedBuffer_[baseBufferCount] = dataItem;
     combinedBuffer_[baseBufferCount_++] = dataItem;
     n_++;
     if (baseBufferCount_ == 2 * k_) {
-      DoublesUtil.processFullBaseBuffer(this);
+      DoublesUpdateImpl.processFullBaseBuffer(this);
     }
   }
 
@@ -232,7 +232,7 @@ final class HeapDoublesSketch extends DoublesSketch {
     final int preBytes = (preLongs + extra) << 3;
     long cumOffset = srcMem.getCumulativeOffset(0L);
     Object memArr = srcMem.array(); //may be null
-    int bbCnt = baseBufferCount_;  //TODO this was computed before
+    int bbCnt = baseBufferCount_;
     int k = getK();
     long n = getN();
     double[] combinedBuffer = getCombinedBuffer();
@@ -245,7 +245,7 @@ final class HeapDoublesSketch extends DoublesSketch {
       srcMem.getDoubleArray(preBytes, combinedBuffer, 0, bbCnt);
       
       //Load levels from compact srcMem
-      long bits = bitPattern_;//TODO this was computed before
+      long bits = bitPattern_;
       if (bits != 0) {
         long memOffset = preBytes + (bbCnt << 3);
         int combBufOffset = 2 * k;
@@ -273,15 +273,15 @@ final class HeapDoublesSketch extends DoublesSketch {
    * It is required that this.getK() = smallerK * 2^(nonnegative integer).
    * @return the new sketch.
    */
-  @Override //TODO this was notin parent before
+  @Override
   public DoublesSketch downSample(int smallerK) {
     HeapDoublesSketch oldSketch = this;
     HeapDoublesSketch newSketch = HeapDoublesSketch.newInstance(smallerK);
-    DoublesUtil.downSamplingMergeInto(oldSketch, newSketch);
+    DoublesMergeImpl.downSamplingMergeInto(oldSketch, newSketch);
     return newSketch;
   }
   
-  @Override //TODO this was missing in bad version
+  @Override
   public void putMemory(Memory dstMem, boolean sort) {
     byte[] byteArr = toByteArray(sort);
     int arrLen = byteArr.length;
@@ -299,11 +299,6 @@ final class HeapDoublesSketch extends DoublesSketch {
   int getBaseBufferCount() {
     return baseBufferCount_;
   }
-  
-//  @Override //this existed in bad version
-//  long getBitPattern() {
-//    return bitPattern_;
-//  }
   
   @Override
   int getCombinedBufferItemCapacity() {

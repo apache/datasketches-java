@@ -45,6 +45,43 @@ public class DirectDoublesSketch extends DoublesSketch {
   private long cumOffset_; //
   private Object memArr_;
   
+  /**
+   * The smallest value ever seen in the stream.
+   */
+  double minValue_;
+
+  /**
+   * The largest value ever seen in the stream.
+   */
+  double maxValue_;
+
+  /**
+   * The total count of items seen.
+   */
+  long n_;
+
+  /**
+   * Number of samples currently in base buffer.
+   * 
+   * <p>Count = N % (2*K)
+   */
+  int baseBufferCount_;
+
+  /**
+   * Active levels expressed as a bit pattern.
+   * 
+   * <p>Pattern = N / (2 * K)
+   */
+  long bitPattern_;
+  
+  /**
+   * In the initial on-heap version, equals combinedBuffer_.length.
+   * May differ in later versions that grow space more aggressively.
+   * Also, in the off-heap version, combinedBuffer_ won't be a java array,
+   * so it won't know its own length.
+   */
+  int combinedBufferItemCapacity_;
+  
   
   //**CONSTRUCTORS**********************************************************  
   private DirectDoublesSketch(int k) {
@@ -64,7 +101,7 @@ public class DirectDoublesSketch extends DoublesSketch {
     
     //init dstMem
     insertPreLongs(memArr, cumOffset, 2);
-    insertSerVer(memArr, cumOffset, DoublesUtil.DOUBLES_SER_VER);
+    insertSerVer(memArr, cumOffset, DoublesSketch.DOUBLES_SER_VER);
     insertFamilyID(memArr, cumOffset, Family.QUANTILES.getID());
     int flags = EMPTY_FLAG_MASK; //empty
     insertFlags(memArr, cumOffset, flags);
@@ -155,18 +192,8 @@ public class DirectDoublesSketch extends DoublesSketch {
   }
   
   @Override
-  void putMinValue(double minValue) {
-    insertMinDouble(memArr_, cumOffset_, minValue);
-  }
-  
-  @Override
   public double getMinValue() {
     return extractMinDouble(memArr_, cumOffset_);
-  }
-
-  @Override
-  void putMaxValue(double maxValue) {
-    insertMaxDouble(memArr_, cumOffset_, maxValue);
   }
   
   @Override
@@ -211,11 +238,7 @@ public class DirectDoublesSketch extends DoublesSketch {
     return null;
   }
 
-  @Override
-  public void putMemory(Memory dstMem, boolean sort) {
-    // TODO Auto-generated method stub
-    
-  }
+
 
   @Override
   int getBaseBufferCount() {
@@ -233,6 +256,24 @@ public class DirectDoublesSketch extends DoublesSketch {
     return null;
   }
   
+  //Restricted Overrides
+  
+  @Override
+  Memory getMemory() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+  
+  @Override
+  void putMinValue(double minValue) {
+    insertMinDouble(memArr_, cumOffset_, minValue);
+  }
+  
+  @Override
+  void putMaxValue(double maxValue) {
+    insertMaxDouble(memArr_, cumOffset_, maxValue);
+  }
+  
   @Override
   void putCombinedBuffer(double[] combinedBuffer) {
     mem_.putDoubleArray(32, combinedBuffer, 0, combinedBuffer.length);
@@ -243,22 +284,6 @@ public class DirectDoublesSketch extends DoublesSketch {
     //intentionally a no-op
   }
   
-  //Other restricted
-  
-  /**
-   * Returns the current item capacity of the combined, non-compact, data buffer 
-   * given <i>k</i> and <i>n</i>. The base buffer is always allocated at full size.
-   * 
-   * @param k sketch parameter. This determines the accuracy of the sketch and the 
-   * size of the updatable data structure, which is a function of <i>k</i> and <i>n</i>.
-   * 
-   * @param n The number of items in the input stream
-   * @return the current item capacity of the combined data buffer
-   */
-  private static final int computeDirectCombBufItemCapacity(int k, long n) {
-    int totLevels = Util.computeNumLevelsNeeded(k, n);
-    return (2 + totLevels) * k; //base buffer always allocated at full size.
-  }
 
   @Override
   void putN(long n) {
@@ -277,11 +302,27 @@ public class DirectDoublesSketch extends DoublesSketch {
     // TODO Auto-generated method stub
     
   }
-
+  
   @Override
-  Memory getMemory() {
+  public void putMemory(Memory dstMem, boolean sort) {
     // TODO Auto-generated method stub
-    return null;
+  }
+  
+  //Other restricted
+  
+  /**
+   * Returns the current item capacity of the combined, non-compact, data buffer 
+   * given <i>k</i> and <i>n</i>. The base buffer is always allocated at full size.
+   * 
+   * @param k sketch parameter. This determines the accuracy of the sketch and the 
+   * size of the updatable data structure, which is a function of <i>k</i> and <i>n</i>.
+   * 
+   * @param n The number of items in the input stream
+   * @return the current item capacity of the combined data buffer
+   */
+  private static final int computeDirectCombBufItemCapacity(int k, long n) {
+    int totLevels = Util.computeNumLevelsNeeded(k, n);
+    return (2 + totLevels) * k; //base buffer always allocated at full size.
   }
   
 }

@@ -40,7 +40,7 @@ final class DoublesAuxiliary {
 
     // Sort the first "numSamples" slots of the two arrays in tandem, 
     //  taking advantage of the already sorted blocks of length k
-    DoublesUtil.blockyTandemMergeSort(itemsArr, cumWtsArr, numSamples, k);
+    DoublesMergeImpl.blockyTandemMergeSort(itemsArr, cumWtsArr, numSamples, k);
 
     // convert the item weights into totals of the weights preceding each item
     long subtot = 0;

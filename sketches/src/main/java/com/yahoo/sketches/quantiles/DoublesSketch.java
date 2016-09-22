@@ -114,6 +114,8 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
  * @author Lee Rhodes
  */
 public abstract class DoublesSketch {
+  static final int DOUBLES_SER_VER = 3;
+  static final int MIN_DOUBLES_SER_VER = 2;
   
   /**
    * This promises compatibility between a sketch binary image created with the concrete class  
@@ -121,10 +123,16 @@ public abstract class DoublesSketch {
    */
   static final short ARRAY_OF_DOUBLES_SERDE_ID = new ArrayOfDoublesSerDe().getId();
   
+
+
+
+  
   /**
    * Parameter that controls space usage of sketch and accuracy of estimates.
    */
   protected final int k_;
+
+
   
   /**
    * Setting the seed makes the results of the sketch deterministic if the input values are
@@ -283,7 +291,7 @@ public abstract class DoublesSketch {
    * splitPoint.
    */
   public double[] getPMF(double[] splitPoints) {
-    return DoublesUtil.getPMFOrCDF(this, splitPoints, false);
+    return DoublesPmfCdfImpl.getPMFOrCDF(this, splitPoints, false);
   }
   
   /**
@@ -301,7 +309,7 @@ public abstract class DoublesSketch {
    * @return an approximation to the CDF of the input stream given the splitPoints.
    */
   public double[] getCDF(double[] splitPoints) {
-    return DoublesUtil.getPMFOrCDF(this, splitPoints, true);
+    return DoublesPmfCdfImpl.getPMFOrCDF(this, splitPoints, true);
   }
   
   /**
@@ -404,7 +412,7 @@ public abstract class DoublesSketch {
    * @return this sketch in a byte array form.
    */
   public byte[] toByteArray(boolean ordered, boolean compact) {
-    return DoublesUtil.toByteArray(this, ordered, compact);
+    return DoublesToByteArrayImpl.toByteArray(this, ordered, compact);
   }
   
   /**

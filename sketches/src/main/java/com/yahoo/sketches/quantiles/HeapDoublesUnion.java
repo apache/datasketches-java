@@ -172,7 +172,7 @@ final class HeapDoublesUnion extends DoublesUnion {
     long tgtN = tgt.getN();
     
     if (srcK != tgtK) {
-      DoublesUtil.downSamplingMergeInto(src, tgt);
+      DoublesMergeImpl.downSamplingMergeInto(src, tgt);
       return;
     }
     
@@ -185,7 +185,7 @@ final class HeapDoublesUnion extends DoublesUnion {
       tgt.update(srcBaseBuffer[i]);
     }
   
-    DoublesUtil.maybeGrowLevels(nFinal, tgt);
+    DoublesUpdateImpl.maybeGrowLevels(nFinal, tgt);
   
     double[] scratchBuf = new double[2 * tgtK];
   
@@ -193,7 +193,7 @@ final class HeapDoublesUnion extends DoublesUnion {
     assert srcBitPattern == (srcN / (2L * srcK));
     for (int srcLvl = 0; srcBitPattern != 0L; srcLvl++, srcBitPattern >>>= 1) {
       if ((srcBitPattern & 1L) > 0L) {
-        DoublesUtil.inPlacePropagateCarry(
+        DoublesUpdateImpl.inPlacePropagateCarry(
             srcLvl,
             srcLevels, ((2 + srcLvl) * tgtK),
             scratchBuf, 0,
