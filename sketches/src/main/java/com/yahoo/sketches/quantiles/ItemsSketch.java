@@ -669,7 +669,7 @@ public final class ItemsSketch<T> {
    * @return an array of items, including min and max extracted from the Combined Buffer.
    */
   @SuppressWarnings("unchecked")
-  private T[] combinedBufferToItemsArray(boolean ordered) { //TODO Ref
+  private T[] combinedBufferToItemsArray(boolean ordered) {
     T[] outArr = null; 
     final int extra = 2; // extra space for min and max values
     final int outArrCap = getRetainedItems();

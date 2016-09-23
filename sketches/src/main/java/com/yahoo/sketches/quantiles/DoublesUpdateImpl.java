@@ -55,7 +55,7 @@ public class DoublesUpdateImpl {
     final int k = sketch.getK();
     final int numLevelsNeeded = Util.computeNumLevelsNeeded(k, newN);
     if (numLevelsNeeded == 0) {
-    // don't need any levels yet, and might have small base buffer; this can happen during a merge
+      // don't need any levels yet, and might have small base buffer; this can happen during a merge
       return; 
     }
     // from here on we need a full-size base buffer and at least one level

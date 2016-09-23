@@ -91,8 +91,8 @@ final class Util {
   /**
    * Checks just the flags field of the preamble
    * @param flags the flags field
-   */ //only used by checkPreLongsFlagsCap and test
-  static void checkFlags(int flags) {
+   */ 
+  static void checkFlags(int flags) {  //only used by checkPreLongsFlagsCap and test
     int allowedFlags = 
         READ_ONLY_FLAG_MASK | EMPTY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK;
     int flagsMask = ~allowedFlags;
@@ -298,8 +298,8 @@ final class Util {
      * epsilon. This uses a fudge factor of 4/3 times the theoretical calculation of epsilon.
      * @param k the given k that must be greater than one.
      * @return the resulting epsilon
-     */ //used by HeapQS, so far
-    static double getAdjustedEpsilon(int k) {
+     */
+    static double getAdjustedEpsilon(int k) { //used by HeapQS, so far
       if (k == 1) return 1.0;
       return getTheoreticalEpsilon(k, adjustKForEps);
     }
@@ -312,8 +312,8 @@ final class Util {
      * @param k The given value of k
      * @param ff The given fudge factor. No fudge factor = 1.0. 
      * @return the resulting epsilon
-     */ //used only by getAdjustedEpsilon()
-    private static double getTheoreticalEpsilon(int k, double ff) {
+     */ 
+    private static double getTheoreticalEpsilon(int k, double ff) { //used only by getAdjustedEpsilon()
       if (k < 2) {
         throw new SketchesArgumentException("K must be greater than one.");
       }

@@ -83,7 +83,7 @@ final class HeapDoublesUnion extends DoublesUnion {
   }
   
 
-//@formatter:off
+  //@formatter:off
   @SuppressWarnings("null")
   static HeapDoublesSketch updateLogic(final int myK, final HeapDoublesSketch myQS, 
       final HeapDoublesSketch other) {
@@ -136,9 +136,9 @@ final class HeapDoublesUnion extends DoublesUnion {
     }
     return ret;
   }
-//@formatter:on
+  //@formatter:on
   
-/**
+  /**
    * Merges the source sketch into the target sketch that can have a smaller value of K.
    * However, it is required that the ratio of the two K values be a power of 2.
    * I.e., source.getK() = target.getK() * 2^(nonnegative integer).
@@ -198,7 +198,7 @@ final class HeapDoublesUnion extends DoublesUnion {
             srcLevels, ((2 + srcLvl) * tgtK),
             scratchBuf, 0,
             false, tgt); //do Merge-Into-Version
-        // won't update qsTarget.n_ until the very end
+            // won't update qsTarget.n_ until the very end
       }
     }
   

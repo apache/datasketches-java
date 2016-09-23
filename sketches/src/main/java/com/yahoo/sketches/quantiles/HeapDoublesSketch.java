@@ -167,16 +167,16 @@ final class HeapDoublesSketch extends DoublesSketch {
     if (dataItem > maxValue) { putMaxValue(dataItem); }
     if (dataItem < minValue) { putMinValue(dataItem); }
 
-//    int baseBufferCount = getBaseBufferCount();
-//    int combinedBufferItemCapacity = getCombinedBufferItemCapacity();
+    //int baseBufferCount = getBaseBufferCount();
+    //int combinedBufferItemCapacity = getCombinedBufferItemCapacity();
 
     if (baseBufferCount_ + 1 > combinedBufferItemCapacity_) {
       DoublesUpdateImpl.growBaseBuffer(this);
     }
-//    baseBufferCount++;
-//    putBaseBufferCount(baseBufferCount);
-//    //put the new item in the base buffer
-//    combinedBuffer_[baseBufferCount] = dataItem;
+    //baseBufferCount++;
+    //putBaseBufferCount(baseBufferCount);
+    // //put the new item in the base buffer
+    //combinedBuffer_[baseBufferCount] = dataItem;
     combinedBuffer_[baseBufferCount_++] = dataItem;
     n_++;
     if (baseBufferCount_ == 2 * k_) {
