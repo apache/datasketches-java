@@ -336,7 +336,6 @@ public class ReservoirLongsSketchTest {
         }
     }
 
-
     public static Memory getBasicSerializedRLS() {
         int k = 10;
         int n = 20;

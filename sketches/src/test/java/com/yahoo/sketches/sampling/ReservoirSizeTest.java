@@ -46,7 +46,7 @@ public class ReservoirSizeTest {
     }
 
     @Test
-    public void checkDeviceValue() {
+    public void checkDecodeValue() {
         int dec;
 
         dec = ReservoirSize.decodeValue((short) 0x0000);
@@ -79,13 +79,13 @@ public class ReservoirSizeTest {
     }
 
     @Test
-    public void checkEncodeDecode() {
+    public void checkRelativeError() {
         // Generate some random values and ensure the relative error of the decoded result is within epsilon (eps) of
         // the target.
         // This condition should always hold regardless of the random seed used.
         final double eps = 1.0 / ReservoirSize.BINS_PER_OCTAVE;
         final int maxValue = 2146959359; // based on MAX_ABS_VALUE
-        final int numIters = 10000;
+        final int numIters = 100;
 
         for (int i = 0; i < numIters; ++i) {
             int input = (int) (Math.random() * maxValue) + 1;
