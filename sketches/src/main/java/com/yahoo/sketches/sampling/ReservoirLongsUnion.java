@@ -1,10 +1,18 @@
 package com.yahoo.sketches.sampling;
 
+import static com.yahoo.sketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.sampling.PreambleUtil.FAMILY_BYTE;
+import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractFlags;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractMaxK;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractSerVer;
+import static com.yahoo.sketches.sampling.PreambleUtil.getAndCheckPreLongs;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.MemoryRegion;
+import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.Family;
-import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * Class to union reservoir samples.
@@ -13,71 +21,127 @@ import com.yahoo.sketches.ResizeFactor;
  * we provide only a stateful union. Using the same approach for a merge would result in unpredictable side effects on
  * the underlying sketches.</p>
  *
- * <p>If taking the union of two reservoirs of different sizes, the output sample will contain no more than
- * MIN(k_1, k_2) samples.</p>
+ * <p>A union object is created with a maximum value of <tt>k</tt>, represented using the ReservoirSize class. The
+ * unioning process may cause the actual number of samples to fall below that maximum value, but never to exceed it.
+ * The result of a union will be a reservoir where each item from teh global input has a uniform probability
+ * of selection, but there are no claims about higher order statistics. For instance, in general all possible
+ * permutations of the global input are not equally likely.</p>
  *
  * @author Jon Malkin
  * @author Kevin Lang
  */
 public class ReservoirLongsUnion {
     private ReservoirLongsSketch gadget_;
+    private final short encodedMaxK_;
 
-    public ReservoirLongsUnion(final int k) {
-        gadget_ = ReservoirLongsSketch.getInstance(k);
+    /**
+     * Empty constructor using ReservoirSize-encoded maxK value
+     * @param maxK Maximum allowed reservoir capacity for this union
+     */
+    private ReservoirLongsUnion(final short maxK) {
+        encodedMaxK_ = maxK;
     }
 
-    public ReservoirLongsUnion(final int k, final ResizeFactor rf) {
-        gadget_ = ReservoirLongsSketch.getInstance(k, rf);
+    /**
+     * Creates an empty Union with a maximum reservoir capacity of size k, subject to the precision of ReservoirSize
+     * @param maxK The maximum allowed reservoir capacity for any sketches in the union
+     * @return A new ReservoirLongsUnion
+     */
+    public static ReservoirLongsUnion getInstance(final int maxK) {
+        final short encodedMaxK = ReservoirSize.computeSize(maxK);
+        return new ReservoirLongsUnion(encodedMaxK);
     }
 
-    public ReservoirLongsUnion(ReservoirLongsSketch sketchIn) {
-        //gadget_ = (sketchIn == null ? null : sketchIn.copy());
-        gadget_ = sketchIn.copy();
+    /**
+     * Instantiates a Union from Memory
+     * @param srcMem Memory object containing a serialized union
+     * @return A ReservoirLongsUnion created from the provided Memory
+     */
+    public static ReservoirLongsUnion getInstance(final Memory srcMem) {
+        Family.RESERVOIR_UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
+
+        final int numPreLongs = getAndCheckPreLongs(srcMem);
+        final long pre0 = srcMem.getLong(0);
+        final int serVer = extractSerVer(pre0);
+        final boolean isEmpty = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0;
+
+        final short encodedMaxK = extractMaxK(pre0);
+
+        final boolean preLongsEqMin = (numPreLongs == Family.RESERVOIR.getMinPreLongs());
+        final boolean preLongsEqMax = (numPreLongs == Family.RESERVOIR.getMaxPreLongs());
+
+        if (!preLongsEqMin & !preLongsEqMax) {
+            throw new SketchesArgumentException(
+                    "Possible corruption: Non-empty sketch with only " + Family.RESERVOIR.getMinPreLongs()
+                            + "preLongs");
+        }
+        if (serVer != SER_VER) {
+            throw new SketchesArgumentException(
+                    "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
+        }
+
+        ReservoirLongsUnion rlu = new ReservoirLongsUnion(encodedMaxK);
+
+        if (!isEmpty) {
+            int preLongBytes = numPreLongs << 3;
+            MemoryRegion sketchMem = new MemoryRegion(srcMem, preLongBytes, srcMem.getCapacity() - preLongBytes);
+            ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(sketchMem);
+            rlu.update(rls);
+        }
+
+        return rlu;
     }
 
-    public ReservoirLongsUnion(Memory srcMem) {
-        Family.RESERVOIR.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
-        gadget_ = ReservoirLongsSketch.getInstance(srcMem);
+    /**
+     * Returns the maximum allowed reservoir capacity in this union. The current reservoir capacity may be lower.
+     * @return The maximum allowed reservoir capacity in this union.
+     */
+    public int getMaxK() {
+        return ReservoirSize.decodeValue(encodedMaxK_);
     }
 
     /**
      * Union the given sketch.
-     * This method can be repeatedly called.
-     * If the given sketch is null it is interpreted as an empty sketch.
+     * <p>This method can be repeatedly called.
+     * If the given sketch is null it is interpreted as an empty sketch.</p>
      *
      * @param sketchIn The incoming sketch.
      */
-    void update(ReservoirLongsSketch sketchIn) {
-        if (sketchIn != null) {
-            twoWayMergeInternal(sketchIn, false);
-        }
-        /*
+    public void update(ReservoirLongsSketch sketchIn) {
+        if (sketchIn == null) { return; }
+
+        int maxK = ReservoirSize.decodeValue(encodedMaxK_);
+        ReservoirLongsSketch rls = (sketchIn.getK() <= maxK ? sketchIn : sketchIn.downsampledCopy(encodedMaxK_));
+
+        // can modify the sketch if we downsampled, otherwise may need to copy it
         if (gadget_ == null) {
-            gadget_ = sketchIn;
-        } else if (sketchIn != null) {
-            twoWayMergeInternal(sketchIn, false);
-        } // if sketchIn == null, return
-        */
+            gadget_ = (sketchIn == rls ? rls.copy() : rls);
+        } else {
+            boolean isModifiable = (sketchIn != rls);
+            twoWayMergeInternal(rls, isModifiable);
+        }
     }
 
     /**
      * Union the given Memory image of the sketch.
      *
      * <p>This method can be repeatedly called.
-     * If the given sketch is null it is interpreted as an empty sketch.
+     * If the given sketch is null it is interpreted as an empty sketch.</p>
      * @param mem Memory image of sketch to be merged
      */
-    void update(Memory mem) {
-        if (mem != null) {
-            ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(mem);
+    public void update(Memory mem) {
+        if (mem == null) { return; }
+
+        // TODO: add a downsampling getInstance(Memory)?
+        ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(mem);
+
+        int maxK = ReservoirSize.decodeValue(encodedMaxK_);
+        rls = (rls.getK() <= maxK ? rls : rls.downsampledCopy(encodedMaxK_));
+
+        if (gadget_ == null) {
+            gadget_ = rls;
+        } else {
             twoWayMergeInternal(rls, true);
-            /*
-            if (gadget_ == null) {
-                gadget_ = rls;
-            } else {
-                twoWayMergeInternal(rls, true);
-            }
-            */
         }
     }
 
@@ -87,7 +151,55 @@ public class ReservoirLongsUnion {
      * @param datum The given long datum.
      */
     public void update(long datum) {
+        if (gadget_ == null) {
+            int maxK = ReservoirSize.decodeValue(encodedMaxK_);
+            gadget_ = ReservoirLongsSketch.getInstance(maxK);
+        }
         gadget_.update(datum);
+    }
+
+    /**
+     * Returns a sketch representing the current state of the union.
+     * @return The result of any unions already processed.
+     */
+    public ReservoirLongsSketch getResult() {
+        return (gadget_ != null ? gadget_.copy() : null);
+    }
+
+    /**
+     * Returns a byte array representation of this union
+     * @return a byte array representation of this union
+     */
+    public byte[] toByteArray() {
+        final int preLongs, outBytes;
+        final boolean empty = gadget_ == null;
+        byte[] gadgetBytes = (gadget_ != null ? gadget_.toByteArray() : null);
+
+        if (empty) {
+            preLongs = Family.RESERVOIR_UNION.getMinPreLongs();
+            outBytes = 8;
+        } else {
+            preLongs = Family.RESERVOIR_UNION.getMaxPreLongs();
+            outBytes = (preLongs << 3) + gadgetBytes.length; // for longs, we know the size
+        }
+        final byte[] outArr = new byte[outBytes];
+        final Memory mem = new NativeMemory(outArr);
+
+        // build preLong
+        long pre0 = 0L;
+        pre0 = PreambleUtil.insertPreLongs(preLongs, pre0);                        // Byte 0
+        pre0 = PreambleUtil.insertSerVer(SER_VER, pre0);                           // Byte 1
+        pre0 = PreambleUtil.insertFamilyID(Family.RESERVOIR_UNION.getID(), pre0);  // Byte 2
+        pre0 = (empty) ? PreambleUtil.insertFlags(EMPTY_FLAG_MASK, pre0) : PreambleUtil.insertFlags(0, pre0); // Byte 3
+        pre0 = PreambleUtil.insertMaxK(encodedMaxK_, pre0);                        // Bytes 4-5
+
+        mem.putLong(0, pre0);
+        if (!empty) {
+            final int preBytes = preLongs << 3;
+            mem.putByteArray(preBytes, gadgetBytes, 0, gadgetBytes.length);
+        }
+
+        return outArr;
     }
 
     /**
@@ -101,7 +213,7 @@ public class ReservoirLongsUnion {
         // TODO: better checks for nulls/empty sketches?
         if (sketchIn.getN() <= sketchIn.getK()) {
             twoWayMergeInternalStandard(sketchIn);
-        } else if (gadget_.getN() < gadget_.getK()) {  // TODO: should this be <=?
+        } else if (gadget_.getN() < gadget_.getK()) {
             // merge into sketchIn, so swap first
             ReservoirLongsSketch tmpSketch = gadget_;
             gadget_ = (isModifiable ? sketchIn : sketchIn.copy());
@@ -168,83 +280,4 @@ public class ReservoirLongsUnion {
         gadget_.forceIncrementItemsSeen(source.getN());
         assert (checkN == gadget_.getN());
     }
-
-    /**
-     * Returns a sketch representing the current state of the union.
-     * @return The result of any unions already processed.
-     */
-    public ReservoirLongsSketch getResult() {
-        //return (gadget_ != null ? gadget_.copy() : null);
-        return gadget_;
-    }
-
-    /**
-     * Returns a byte array representation of this union
-     * @return a byte array representation of this union
-     */
-    public byte[] toByteArray() {
-        //return (gadget_ != null ? gadget_.toByteArray() : null);
-        return gadget_.toByteArray();
-    }
-
-    /*
-    public static void main(String[] args) {
-        int iter = 100000;
-        int k = 20;
-        java.util.TreeMap<Long, Integer> hist = new java.util.TreeMap<>();
-
-        for (int i = 0; i < iter; ++i) {
-            long[] out = simpleUnion(k);
-
-            for (int j = 0; j < k; ++j) {
-                long key = out[j];
-                if (hist.containsKey(key)) {
-                    int count = hist.get(key);
-                    hist.put(key, ++count);
-                } else {
-                    hist.put(key, 1);
-                }
-            }
-        }
-
-        for (Map.Entry e : hist.entrySet()) {
-            System.out.println(e.getKey() + ": " + e.getValue().toString());
-        }
-        System.out.println("H      = " + computeEntropy(k * iter, hist));
-        System.out.println("Theo H = " + Math.log(20 * k) / Math.log(2.0));
-
-    }
-
-    public static double computeEntropy(final long denom, java.util.Map<Long, Integer> data) {
-        double H = 0.0;
-        double scaleFactor = 1.0 / denom;
-        double INV_LN_2 = 1.0 / Math.log(2.0);
-
-        for (int count : data.values()) {
-            double p = count * scaleFactor;
-            H -= p * Math.log(p) * INV_LN_2;
-        }
-
-        return H;
-    }
-
-    public static long[] simpleUnion(final int k) {
-        ReservoirLongsSketch rls1 = ReservoirLongsSketch.getInstance(k);
-        ReservoirLongsSketch rls2 = ReservoirLongsSketch.getInstance(k);
-
-        for (long i = 0; i < 10 * k; ++i) {
-            rls1.update((long) i);
-            rls2.update((long) k * k + i);
-        }
-
-        ReservoirLongsUnion rlu = new ReservoirLongsUnion(rls1);
-        rlu.update(rls2);
-
-        long[] result = rlu.getResult().getSamples();
-
-        return result;
-    }
-    */
-
-
 }

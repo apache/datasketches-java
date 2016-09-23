@@ -28,11 +28,10 @@ import com.yahoo.sketches.SketchesArgumentException;
  * multi-byte integers (<i>int</i> and <i>long</i>) are stored in native byte order. The
  * <i>byte</i> values are treated as unsigned.</p>
  *
- * <p>The count of items seen is limited to 48 bits (~256 trillion) even though there are adjacent unused preamble
- * bits. The acceptance probability for an item is a double in the range [0,1), limiting us to 53 bits of randomness
- * due to details of the IEEE floating point format. To ensure meaningful probabilities as the items seen count
- * approaches capacity, we intentionally use slightly fewer bits.
- * </p>
+ * <p><strong>Sketch:</strong> The count of items seen is limited to 48 bits (~256 trillion) even though there are
+ * adjacent unused preamble bits. The acceptance probability for an item is a double in the range [0,1), limiting us
+ * to 53 bits of randomness due to details of the IEEE floating point format. To ensure meaningful probabilities as
+ * the items seen count approaches capacity, we intentionally use slightly fewer bits.</p>
  * 
  * <p>An empty sampling sketch only requires 8 bytes. A non-empty sampling sketch requires 16 bytes of preamble.</p>
  *
@@ -44,6 +43,18 @@ import com.yahoo.sketches.SketchesArgumentException;
  *
  *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
  *  1   ||-----(empty)-----|-------------------Items Seen Count------------------------------|
+ *  </pre>
+ *
+ * <p><string>Union:</string> The union has fewer internal paramters to track and uses a slightly different preamble
+ * structure.</p>
+ *
+ * <p>An empty union only requires 8 bytes. A non-empty union requires 8 bytes of preamble.</p>
+ *
+ * <pre>
+ * Long || Start Byte Adr:
+ * Adr:
+ *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
+ *  0   ||-----(empty)-----|Max Res. Size (K)|  Flags | FamID  | SerVer |   Preamble_Longs   |
  *  </pre>
  *
  *  @author Jon Malkin
@@ -63,6 +74,8 @@ final class PreambleUtil {
   static final int RESERVOIR_SIZE_SHORT  = 4;
   static final int SERDE_ID_SHORT        = 6;
   static final int ITEMS_SEEN_BYTE       = 8;
+
+  static final int MAX_K_SHORT           = 4; // used in Union only
 
   // flag bit masks
   //static final int BIG_ENDIAN_FLAG_MASK = 1;
@@ -102,9 +115,9 @@ final class PreambleUtil {
    * @return the summary preamble string.
    */
   public static String preambleToString(Memory mem) {
+    // TODO: different path for sketch vs union
     int preLongs = getAndCheckPreLongs(mem);  //make sure we can get the assumed preamble
     long pre0 = mem.getLong(0);
-    long pre1 = 0;
 
     ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(pre0));
     int serVer = extractSerVer(pre0);
@@ -126,7 +139,7 @@ final class PreambleUtil {
 
     long itemsSeen = 0;
     if (!isEmpty) {
-      pre1 = mem.getLong(8);
+      long pre1 = mem.getLong(8);
       itemsSeen = extractItemsSeenCount(pre1);
     }
 
@@ -204,6 +217,12 @@ final class PreambleUtil {
     return (short) ((long0 >>> shift) & mask);
   }
 
+  static short extractMaxK(final long long0) {
+    int shift = MAX_K_SHORT << 3;
+    long mask = 0XFFFFL;
+    return (short) ((long0 >>> shift) & mask);
+  }
+
   static long insertPreLongs(final int preLongs, final long long0) {
     long mask = 0X3FL;
     return (preLongs & mask) | (~mask & long0);
@@ -249,6 +268,12 @@ final class PreambleUtil {
     long mask = 0XFFFFL;
     return ((serDeId & mask) << shift) | (~(mask << shift) & long0);
   }
+
+  static long insertMaxK(final short maxK, final long long0) {
+    int shift = MAX_K_SHORT << 3;
+    long mask = 0XFFFFL;
+    return ((maxK & mask) << shift) | (~(mask << shift) & long0);
+  }
   
   /**
    * Checks Memory for capacity to hold the preamble and returns the extracted preLongs.
@@ -270,5 +295,4 @@ final class PreambleUtil {
         "Possible Corruption: Size of byte array or Memory not large enough: Size: " + cap 
         + ", Required: " + required);
   }
-
 }

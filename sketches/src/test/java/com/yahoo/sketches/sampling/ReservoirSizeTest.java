@@ -8,10 +8,6 @@ import org.testng.annotations.Test;
 
 import com.yahoo.sketches.SketchesArgumentException;
 
-
-/**
- * Created by jmalkin on 9/6/16.
- */
 public class ReservoirSizeTest {
     @Test
     public void checkComputeSize() {

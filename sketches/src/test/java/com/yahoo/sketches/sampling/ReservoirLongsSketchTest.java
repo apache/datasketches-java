@@ -23,7 +23,16 @@ public class ReservoirLongsSketchTest {
 
     @Test(expectedExceptions = SketchesArgumentException.class)
     public void checkInvalidK() {
-        ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(0);
+        ReservoirLongsSketch.getInstance(0);
+        fail();
+    }
+
+    @Test(expectedExceptions = SketchesArgumentException.class)
+    public void checkBadPreLongs() {
+        Memory mem = getBasicSerializedRLS();
+        mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 0); // corrupt the preLongs count
+
+        ReservoirLongsSketch.getInstance(mem);
         fail();
     }
 
@@ -40,15 +49,6 @@ public class ReservoirLongsSketchTest {
     public void checkBadFamily() {
         Memory mem = getBasicSerializedRLS();
         mem.putByte(FAMILY_BYTE, (byte) 0); // corrupt the family ID
-
-        ReservoirLongsSketch.getInstance(mem);
-        fail();
-    }
-
-    @Test(expectedExceptions = SketchesArgumentException.class)
-    public void checkBadPreLongs() {
-        Memory mem = getBasicSerializedRLS();
-        mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 0); // corrupt the preLongs count
 
         ReservoirLongsSketch.getInstance(mem);
         fail();
@@ -119,6 +119,51 @@ public class ReservoirLongsSketchTest {
     }
 
     @Test
+    public void checkDownsampledCopy() {
+        int k = 256;
+        int tgtK = 64;
+        short encTgtK = ReservoirSize.computeSize(tgtK);
+
+        ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
+
+        // check status at 3 points:
+        // 1. n < encTgtK
+        // 2. encTgtK < n < k
+        // 3. n > k
+
+        int i;
+        for (i = 0; i < tgtK - 1; ++i) {
+            rls.update(i);
+        }
+
+        ReservoirLongsSketch dsCopy = rls.downsampledCopy(encTgtK);
+        assertEquals(dsCopy.getK(), tgtK);
+
+        // should be identical other than value of k, which isn't checked here
+        validateReservoirEquality(rls, dsCopy);
+
+        // check condition 2 next
+        for (; i < k - 1; ++i) {
+            rls.update(i);
+        }
+        assertEquals(rls.getN(), k - 1);
+
+        dsCopy = rls.downsampledCopy(encTgtK);
+        assertEquals(dsCopy.getN(), rls.getN());
+        assertEquals(dsCopy.getNumSamples(), tgtK);
+
+        // and now condition 3
+        for (; i < 2 * k; ++i) {
+            rls.update(i);
+        }
+        assertEquals(rls.getN(), 2 * k);
+
+        dsCopy = rls.downsampledCopy(encTgtK);
+        assertEquals(dsCopy.getN(), rls.getN());
+        assertEquals(dsCopy.getNumSamples(), tgtK);
+    }
+
+    @Test
     public void checkBadConstructorArgs() {
         long[] data = new long[128];
         for (int i = 0; i < 128; ++i) {
@@ -177,7 +222,7 @@ public class ReservoirLongsSketchTest {
     public void checkSketchCapacity() {
         long[] data = new long[64];
         short encResSize = ReservoirSize.computeSize(64);
-        long itemsSeen = (1 << 48) - 2;
+        long itemsSeen = 0xFFFFFFFFFFFFL - 1;
 
         ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(data, itemsSeen, ResizeFactor.X8, encResSize);
 
@@ -206,7 +251,7 @@ public class ReservoirLongsSketchTest {
         for (int i = 0; i < k; ++i) {
             rls.update(i);
         }
-        assertTrue(rls.getImplicitSampleWeight() - 1.5 < EPS);
+        assertTrue(Math.abs(rls.getImplicitSampleWeight() - 1.5) < EPS);
     }
 
     @Test
@@ -233,7 +278,7 @@ public class ReservoirLongsSketchTest {
             rls.getValueAtPosition(0);
             fail();
         } catch (SketchesArgumentException e) {
-            ; // expected
+            // expected
         }
 
         for (int i = 0; i < k; ++i) {
@@ -245,28 +290,28 @@ public class ReservoirLongsSketchTest {
             rls.insertValueAtPosition(-1, -1);
             fail();
         } catch (SketchesArgumentException e) {
-            ; // expected
+            // expected
         }
 
         try {
             rls.insertValueAtPosition(-1, k + 1);
             fail();
         } catch (SketchesArgumentException e) {
-            ; // expected
+            // expected
         }
 
         try {
             rls.getValueAtPosition(-1);
             fail();
         } catch (SketchesArgumentException e) {
-            ; // expected
+            // expected
         }
 
         try {
             rls.getValueAtPosition(k + 1);
             fail();
         } catch (SketchesArgumentException e) {
-            ; // expected
+            // expected
         }
     }
 
@@ -284,10 +329,10 @@ public class ReservoirLongsSketchTest {
         assertEquals(rls.getN(), 3 * k);
 
         try {
-            rls.forceIncrementItemsSeen((1 << 48) - 1);
+            rls.forceIncrementItemsSeen(0xFFFFFFFFFFFFL - 1);
             fail();
         } catch (SketchesStateException e) {
-            ; // expected
+            // expected
         }
     }
 
@@ -324,7 +369,9 @@ public class ReservoirLongsSketchTest {
     public static void validateReservoirEquality(ReservoirLongsSketch rls1, ReservoirLongsSketch rls2) {
         assertEquals(rls1.getNumSamples(), rls2.getNumSamples());
 
-        if (rls1.getNumSamples() == 0) { return; }
+        if (rls1.getNumSamples() == 0) {
+            return;
+        }
 
         long[] samples1 = rls1.getSamples();
         long[] samples2 = rls2.getSamples();
@@ -335,4 +382,17 @@ public class ReservoirLongsSketchTest {
         }
     }
 
+    static String printBytesAsLongs(byte[] byteArr) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < byteArr.length; i += 8) {
+            for (int j = i + 7; j >= i; --j) {
+                String str = Integer.toHexString(byteArr[j] & 0XFF);
+                sb.append(com.yahoo.sketches.Util.zeroPad(str, 2));
+            }
+            sb.append(com.yahoo.sketches.Util.LS);
+
+        }
+
+        return sb.toString();
+    }
 }
