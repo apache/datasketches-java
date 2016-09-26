@@ -243,8 +243,8 @@ class ReversePurgeItemHashMap<T> {
     for (int i = 0; i < keys.length; i++) {
       if (states[i] <= 0) continue;
       sb.append(String.format(fmt, i, states[i], values[i], keys[i].toString()));
+      sb.append(LS);
     }
-    sb.append(LS);
     return sb.toString();
   }
 
