@@ -15,7 +15,7 @@ import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
- * Class to union reservoir samples.
+ * Class to union reservoir samples of longs.
  *
  * <p>For efficiency reasons, the unioning process picks one of the two sketches to use as the base. As a result,
  * we provide only a stateful union. Using the same approach for a merge would result in unpredictable side effects on
@@ -201,6 +201,23 @@ public class ReservoirLongsUnion {
 
         return outArr;
     }
+
+    // We make a three-way classification of sketch states.
+    // "uni" when (n < k);   source of unit weights, can only accept unit weights
+    // "mid" when (n == k);  source of unit weights, can accept "light" general weights.
+    // "gen" when (n > k);   source of general weights, can accept "light" general weights.
+
+    //     source          target          status            update            notes
+    // ---------------------------------------------------------------------------------------------------------
+    //     uni,mid          uni             okay             standard       target might transition to mid and gen
+    //     uni,mid        mid,gen           okay             standard       target might transition to gen
+    //       gen            uni          must swap              N/A
+    //       gen          mid,gen       maybe swap            weighted     N assumes fractional values during merge
+    // ---------------------------------------------------------------------------------------------------------
+
+    // Here is why in the (gen, gen) merge case, the items will be light enough in at least one direction:
+    // Obviously either (n_s/k_s <= n_t/k_t) OR (n_s/k_s >= n_t/k_t).
+    // WLOG say its the former, then (n_s/k_s < n_t/(k_t - 1)) provided n_t > 0 and k_t > 1
 
     /**
      * This either merges sketchIn into gadget_ or gadget_ into sketchIn. If merging into sketchIn with isModifiable

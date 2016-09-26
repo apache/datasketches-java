@@ -23,7 +23,8 @@ import com.yahoo.sketches.SketchesStateException;
 import com.yahoo.sketches.Util;
 
 /**
- * Created by jmalkin on 8/22/16.
+ * This sketch provides a reservoir sample over an input stream of <tt>long</tt>s. The sketch contains a uniform
+ * random sample of data over the items presented to it.
  *
  * @author jmalkin
  * @author langk
@@ -54,7 +55,6 @@ public class ReservoirLongsSketch {
     private long itemsSeen_;         // number of items presented to sketch
     private ResizeFactor rf_;        // resize factor
     private long[] data_;            // stored sampling data
-
 
     /**
      * The basic constructor for building an empty sketch.

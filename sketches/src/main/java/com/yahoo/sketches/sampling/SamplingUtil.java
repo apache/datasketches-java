@@ -17,7 +17,7 @@ public class SamplingUtil {
      *
      * @param maxSize Maximum allowed reservoir size, as from getK()
      * @param resizeTarget Next size based on a pure ResizeFactor scaling
-     * @return (reservoirSize_ &lt; 2*resizeTarget ? reservoirSize_ : resizeTarget)
+     * @return <code>(reservoirSize_ &lt; 2*resizeTarget ? reservoirSize_ : resizeTarget)</code>
      */
     static int getAdjustedSize(final int maxSize, final int resizeTarget) {
         if (maxSize - (resizeTarget << 1) < 0L) {

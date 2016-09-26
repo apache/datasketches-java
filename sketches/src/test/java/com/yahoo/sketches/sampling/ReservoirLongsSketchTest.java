@@ -336,7 +336,7 @@ public class ReservoirLongsSketchTest {
         }
     }
 
-    public static Memory getBasicSerializedRLS() {
+    static Memory getBasicSerializedRLS() {
         int k = 10;
         int n = 20;
 
@@ -354,7 +354,7 @@ public class ReservoirLongsSketchTest {
         return new NativeMemory(sketchBytes);
     }
 
-    public static void validateSerializeAndDeserialize(ReservoirLongsSketch rls) {
+    static void validateSerializeAndDeserialize(ReservoirLongsSketch rls) {
         byte[] sketchBytes = rls.toByteArray();
         assertEquals(sketchBytes.length, (Family.RESERVOIR.getMaxPreLongs() + rls.getNumSamples()) << 3);
 
@@ -365,7 +365,7 @@ public class ReservoirLongsSketchTest {
         validateReservoirEquality(rls, loadedRls);
     }
 
-    public static void validateReservoirEquality(ReservoirLongsSketch rls1, ReservoirLongsSketch rls2) {
+    static void validateReservoirEquality(ReservoirLongsSketch rls1, ReservoirLongsSketch rls2) {
         assertEquals(rls1.getNumSamples(), rls2.getNumSamples());
 
         if (rls1.getNumSamples() == 0) {

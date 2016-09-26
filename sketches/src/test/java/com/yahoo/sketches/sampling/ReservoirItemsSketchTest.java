@@ -151,8 +151,8 @@ public class ReservoirItemsSketchTest {
     public void checkPolymorphicType() {
         ReservoirItemsSketch<Number> ris = ReservoirItemsSketch.getInstance(6);
 
-        Number[] data = ris.getSamples(Number.class);
-        assertNull(data);
+        assertNull(ris.getSamples());
+        assertNull(ris.getSamples(Number.class));
 
         // using mixed types
         ris.update(1);
@@ -162,7 +162,8 @@ public class ReservoirItemsSketchTest {
         ris.update((byte) (68 & 0xFF));
         ris.update(4.0F);
 
-        data = ris.getSamples(Number.class);
+        //Number[] data = ris.getSamples();
+        Number[] data = ris.getSamples(Number.class);
         assertNotNull(data);
         assertEquals(data.length, 6);
 
@@ -259,7 +260,7 @@ public class ReservoirItemsSketchTest {
     public void checkSketchCapacity() {
         Long[] data = new Long[64];
         short encResSize = ReservoirSize.computeSize(64);
-        long itemsSeen = (1 << 48) - 2;
+        long itemsSeen = 0xFFFFFFFFFFFFL - 1;
 
         ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(data, itemsSeen, ResizeFactor.X8,
                 encResSize);
@@ -316,7 +317,7 @@ public class ReservoirItemsSketchTest {
             ris.getValueAtPosition(0);
             fail();
         } catch (SketchesArgumentException e) {
-            ; // expected
+            // expected
         }
 
         for (int i = 0; i < k; ++i) {
@@ -328,28 +329,28 @@ public class ReservoirItemsSketchTest {
             ris.insertValueAtPosition(-1, -1);
             fail();
         } catch (SketchesArgumentException e) {
-            ; // expected
+            // expected
         }
 
         try {
             ris.insertValueAtPosition(-1, k + 1);
             fail();
         } catch (SketchesArgumentException e) {
-            ; // expected
+            // expected
         }
 
         try {
             ris.getValueAtPosition(-1);
             fail();
         } catch (SketchesArgumentException e) {
-            ; // expected
+            // expected
         }
 
         try {
             ris.getValueAtPosition(k + 1);
             fail();
         } catch (SketchesArgumentException e) {
-            ; // expected
+            // expected
         }
     }
 
@@ -367,14 +368,14 @@ public class ReservoirItemsSketchTest {
         assertEquals(rls.getN(), 3 * k);
 
         try {
-            rls.forceIncrementItemsSeen((1 << 48) - 1);
+            rls.forceIncrementItemsSeen(0xFFFFFFFFFFFFL - 1);
             fail();
         } catch (SketchesStateException e) {
-            ; // expected
+            // expected
         }
     }
 
-    public static Memory getBasicSerializedLongsRIS() {
+    static Memory getBasicSerializedLongsRIS() {
         int k = 10;
         int n = 20;
 
@@ -392,7 +393,7 @@ public class ReservoirItemsSketchTest {
         return new NativeMemory(sketchBytes);
     }
 
-    public static void validateSerializeAndDeserialize(ReservoirItemsSketch<Long> ris) {
+    static void validateSerializeAndDeserialize(ReservoirItemsSketch<Long> ris) {
         byte[] sketchBytes = ris.toByteArray(new ArrayOfLongsSerDe());
         assertEquals(sketchBytes.length, (Family.RESERVOIR.getMaxPreLongs() + ris.getNumSamples()) << 3);
 
@@ -403,7 +404,7 @@ public class ReservoirItemsSketchTest {
         validateReservoirEquality(ris, loadedRis);
     }
 
-    public static <T> void validateReservoirEquality(ReservoirItemsSketch<T> ris1, ReservoirItemsSketch<T> ris2) {
+    static <T> void validateReservoirEquality(ReservoirItemsSketch<T> ris1, ReservoirItemsSketch<T> ris2) {
         assertEquals(ris1.getNumSamples(), ris2.getNumSamples());
 
         if (ris1.getNumSamples() == 0) { return; }
