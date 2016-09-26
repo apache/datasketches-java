@@ -183,8 +183,8 @@ public class ReservoirItemsSketch<T> {
      * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
      * @param serDe An instance of ArrayOfItemsSerDe
      * @return a sketch instance of this class
-     * @noinspection unchecked
      */
+    @SuppressWarnings("unchecked") // forcing for the whole method seems sub-optimal
     public static <T> ReservoirItemsSketch<T> getInstance(final Memory srcMem, ArrayOfItemsSerDe<T> serDe) {
         final int numPreLongs = getAndCheckPreLongs(srcMem);
         final long pre0 = srcMem.getLong(0);
@@ -341,7 +341,6 @@ public class ReservoirItemsSketch<T> {
      *
      * @param clazz A class to which the items are cast before returning
      * @return A copy of the reservoir array
-     * @noinspection SuspiciousSystemArraycopy
      */
     @SuppressWarnings("unchecked")
     public T[] getSamples(Class<?> clazz) {
