@@ -170,6 +170,7 @@ public class ReservoirLongsUnion {
      * Returns a byte array representation of this union
      * @return a byte array representation of this union
      */
+    @SuppressWarnings("null") // gadgetBytes will be null only if gadget_ == null AND empty == true
     public byte[] toByteArray() {
         final int preLongs, outBytes;
         final boolean empty = gadget_ == null;
@@ -180,7 +181,7 @@ public class ReservoirLongsUnion {
             outBytes = 8;
         } else {
             preLongs = Family.RESERVOIR_UNION.getMaxPreLongs();
-            outBytes = (preLongs << 3) + gadgetBytes.length; // for longs, we know the size
+            outBytes = (preLongs << 3) + gadgetBytes.length; // longs, so we know the size
         }
         final byte[] outArr = new byte[outBytes];
         final Memory mem = new NativeMemory(outArr);
