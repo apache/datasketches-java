@@ -31,7 +31,7 @@ final class HeapDoublesUnion extends DoublesUnion {
    * A reference to srcMem will not be maintained internally.
    */
   HeapDoublesUnion(final Memory srcMem) {
-    gadget_ = HeapDoublesSketch.getInstance(srcMem);
+    gadget_ = HeapDoublesSketch.heapifyInstance(srcMem);
     k_ = gadget_.getK();
   }
   
@@ -42,20 +42,20 @@ final class HeapDoublesUnion extends DoublesUnion {
 
   @Override
   public void update(Memory srcMem) {
-    HeapDoublesSketch that = HeapDoublesSketch.getInstance(srcMem);
+    HeapDoublesSketch that = HeapDoublesSketch.heapifyInstance(srcMem);
     gadget_ = updateLogic(k_, gadget_, that);
   }
 
   @Override
   public void update(double dataItem) {
-    if (gadget_ == null) gadget_ = HeapDoublesSketch.getInstance(k_);
+    if (gadget_ == null) gadget_ = HeapDoublesSketch.newInstance(k_);
     gadget_.update(dataItem);
   }
 
   @Override
   public DoublesSketch getResult() {
-    if (gadget_ == null) return HeapDoublesSketch.getInstance(k_);
-    return HeapDoublesSketch.copy(gadget_); //can't have any externally owned handles.
+    if (gadget_ == null) return HeapDoublesSketch.newInstance(k_);
+    return DoublesUtil.copy(gadget_); //can't have any externally owned handles.
   }
   
   @Override
@@ -78,12 +78,12 @@ final class HeapDoublesUnion extends DoublesUnion {
   
   @Override
   public String toString(boolean sketchSummary, boolean dataDetail) {
-    if (gadget_ == null) return HeapDoublesSketch.getInstance(k_).toString();
+    if (gadget_ == null) return HeapDoublesSketch.newInstance(k_).toString();
     return gadget_.toString(sketchSummary, dataDetail);
   }
   
 
-//@formatter:off
+  //@formatter:off
   @SuppressWarnings("null")
   static HeapDoublesSketch updateLogic(final int myK, final HeapDoublesSketch myQS, 
       final HeapDoublesSketch other) {
@@ -110,7 +110,7 @@ final class HeapDoublesUnion extends DoublesUnion {
         if (myK < other.getK()) {
           ret = (HeapDoublesSketch) other.downSample(myK);
         } else {
-          ret = HeapDoublesSketch.copy(other); //required because caller has handle
+          ret = DoublesUtil.copy(other); //required because caller has handle
         }
         break;
       }
@@ -121,14 +121,14 @@ final class HeapDoublesUnion extends DoublesUnion {
         } else {
           //myQS_K > other_K, must reverse roles
           //must copy other as it will become mine and can't have any externally owned handles.
-          HeapDoublesSketch myNewQS = HeapDoublesSketch.copy(other);
+          HeapDoublesSketch myNewQS = DoublesUtil.copy(other);
           HeapDoublesUnion.mergeInto(myQS, myNewQS);
           ret = myNewQS;
         }
         break;
       }
       case 4: {
-        ret = HeapDoublesSketch.getInstance(Math.min(myK, other.getK()));
+        ret = HeapDoublesSketch.newInstance(Math.min(myK, other.getK()));
         break;
       }
       
@@ -136,9 +136,9 @@ final class HeapDoublesUnion extends DoublesUnion {
     }
     return ret;
   }
-//@formatter:on
+  //@formatter:on
   
-/**
+  /**
    * Merges the source sketch into the target sketch that can have a smaller value of K.
    * However, it is required that the ratio of the two K values be a power of 2.
    * I.e., source.getK() = target.getK() * 2^(nonnegative integer).
@@ -172,7 +172,7 @@ final class HeapDoublesUnion extends DoublesUnion {
     long tgtN = tgt.getN();
     
     if (srcK != tgtK) {
-      DoublesUtil.downSamplingMergeInto(src, tgt);
+      DoublesMergeImpl.downSamplingMergeInto(src, tgt);
       return;
     }
     
@@ -185,7 +185,7 @@ final class HeapDoublesUnion extends DoublesUnion {
       tgt.update(srcBaseBuffer[i]);
     }
   
-    DoublesUtil.maybeGrowLevels(nFinal, tgt);
+    DoublesUpdateImpl.maybeGrowLevels(nFinal, tgt);
   
     double[] scratchBuf = new double[2 * tgtK];
   
@@ -193,12 +193,12 @@ final class HeapDoublesUnion extends DoublesUnion {
     assert srcBitPattern == (srcN / (2L * srcK));
     for (int srcLvl = 0; srcBitPattern != 0L; srcLvl++, srcBitPattern >>>= 1) {
       if ((srcBitPattern & 1L) > 0L) {
-        DoublesUtil.inPlacePropagateCarry(
+        DoublesUpdateImpl.inPlacePropagateCarry(
             srcLvl,
             srcLevels, ((2 + srcLvl) * tgtK),
             scratchBuf, 0,
-            false, tgt);
-        // won't update qsTarget.n_ until the very end
+            false, tgt); //do Merge-Into-Version
+            // won't update qsTarget.n_ until the very end
       }
     }
   

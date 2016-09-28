@@ -8,6 +8,7 @@ package com.yahoo.sketches.quantiles;
 import java.util.Random;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.sketches.ArrayOfDoublesSerDe;
 import com.yahoo.sketches.SketchesArgumentException;
 
 
@@ -113,16 +114,25 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
  * @author Lee Rhodes
  */
 public abstract class DoublesSketch {
+  static final int DOUBLES_SER_VER = 3;
+  static final int MIN_DOUBLES_SER_VER = 2;
+  
+  /**
+   * This promises compatibility between a sketch binary image created with the concrete class  
+   * DoublesSketch and ItemsSketch&lt;Double&gt; serialized with this same Serialization Version ID. 
+   */
+  static final short ARRAY_OF_DOUBLES_SERDE_ID = new ArrayOfDoublesSerDe().getId();
+  
+
+
+
   
   /**
    * Parameter that controls space usage of sketch and accuracy of estimates.
    */
   protected final int k_;
-  
-  /**
-   * Total number of data items in the stream so far. (Uniqueness plays no role in these sketches).
-   */
-  protected long n_;
+
+
   
   /**
    * Setting the seed makes the results of the sketch deterministic if the input values are
@@ -139,7 +149,6 @@ public abstract class DoublesSketch {
   DoublesSketch(int k) {
     Util.checkK(k);
     k_ = k;
-    n_ = 0;
   }
   
   /**
@@ -148,6 +157,17 @@ public abstract class DoublesSketch {
    */
   public static final DoublesSketchBuilder builder() {
     return new DoublesSketchBuilder();
+  }
+  
+  /**
+   * Heapify takes the sketch image in Memory and instantiates an on-heap Sketch. 
+   * The resulting sketch will not retain any link to the source Memory.
+   * @param srcMem a Memory image of a Sketch.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @return a heap-based Sketch based on the given Memory
+   */
+  public static DoublesSketch heapify(Memory srcMem) {
+    return HeapDoublesSketch.heapifyInstance(srcMem);
   }
   
   /** 
@@ -163,7 +183,13 @@ public abstract class DoublesSketch {
    * 
    * <p>We note that this method has a fairly large overhead (microseconds instead of nanoseconds)
    * so it should not be called multiple times to get different quantiles from the same
-   * sketch. Instead use getQuantiles(). which pays the overhead only once.
+   * sketch. Instead use getQuantiles(), which pays the overhead only once.
+   * 
+   * <p>If the sketch is empty:
+   * <ul><li>getQuantile(0.0) returns Double.POSITIVE_INFINITY</li>
+   * <li>getQuantile(1.0) returns Double.NEGATIVE_INFINITY</li>
+   * <li>getQuantile(0.0 &lt;rank&gt; 1.0) returns Double.NaN</li>
+   * </ul></p>
    * 
    * @param fraction the specified fractional position in the hypothetical sorted stream.
    * These are also called normalized ranks or fractional ranks.
@@ -172,7 +198,17 @@ public abstract class DoublesSketch {
    * 
    * @return the approximation to the value at the above fraction
    */
-  public abstract double getQuantile(double fraction);
+  public double getQuantile(double fraction) {
+    if ((fraction < 0.0) || (fraction > 1.0)) {
+      throw new SketchesArgumentException("Fraction cannot be less than zero or greater than 1.0");
+    }
+    if      (fraction == 0.0) { return this.getMinValue(); }
+    else if (fraction == 1.0) { return this.getMaxValue(); }
+    else {
+      DoublesAuxiliary aux = this.constructAuxiliary();
+      return aux.getQuantile(fraction);
+    }
+  }
   
   /**
    * This is a more efficient multiple-query version of getQuantile().
@@ -183,6 +219,12 @@ public abstract class DoublesSketch {
    * a single query.  It is strongly recommend that this method be used instead of multiple calls 
    * to getQuantile().
    * 
+   * <p>If the sketch is empty:
+   * <ul><li>getQuantiles(0.0, ...) returns Double.POSITIVE_INFINITY</li>
+   * <li>getQuantiles(..., 1.0) returns Double.NEGATIVE_INFINITY</li>
+   * <li>getQuantiles(..., 0.0 &lt;rank&gt; 1.0, ...) returns Double.NaN</li>
+   * </ul></p>
+   * 
    * @param fractions given array of fractional positions in the hypothetical sorted stream.
    * These are also called normalized ranks or fractional ranks.
    * These fractions must be monotonic, in increasing order and in the interval 
@@ -191,12 +233,33 @@ public abstract class DoublesSketch {
    * @return array of approximations to the given fractions in the same order as given fractions 
    * array. 
    */
-  public abstract double[] getQuantiles(double[] fractions);
+  public double[] getQuantiles(double[] fractions) {
+    Util.validateFractions(fractions);
+    DoublesAuxiliary aux = null;
+    double[] answers = new double[fractions.length];
+    for (int i = 0; i < fractions.length; i++) {
+      double fraction = fractions[i];
+      if      (fraction == 0.0) { answers[i] = this.getMinValue(); }
+      else if (fraction == 1.0) { answers[i] = this.getMaxValue(); }
+      else {
+        if (aux == null) {
+          aux = this.constructAuxiliary();
+        }
+        answers[i] = aux.getQuantile(fraction);
+      }
+    }
+    return answers;
+  }
   
   /**
    * This is also a more efficient multiple-query version of getQuantile() and allows the caller to
    * specify the number of evenly spaced fractional ranks.
    * 
+   * <p>If the sketch is empty:
+   * <ul><li>getQuantiles(0.0, ...) returns Double.POSITIVE_INFINITY</li>
+   * <li>getQuantiles(..., 1.0) returns Double.NEGATIVE_INFINITY</li>
+   * <li>getQuantiles(..., 0.0 &lt;rank&gt; 1.0, ...) returns Double.NaN</li>
+   * </ul></p>
    * 
    * @param evenlySpaced an integer that specifies the number of evenly spaced fractional ranks. 
    * This must be a positive integer greater than 0. A value of 1 will return the min value. 
@@ -210,30 +273,14 @@ public abstract class DoublesSketch {
     return getQuantiles(getEvenlySpaced(evenlySpaced));
   }
   
-  static double[] getEvenlySpaced(int evenlySpaced) {
-    int n = evenlySpaced;
-    if (n <= 0) {
-      throw new SketchesArgumentException("EvenlySpaced must be > zero.");
-    }
-    double[] fractions = new double[n];
-    double frac = 0.0;
-    fractions[0] = frac;
-    for (int i = 1; i < n; i++) {
-      frac = (double)i / (n - 1);
-      fractions[i] = frac;
-    }
-    if (n > 1) {
-      fractions[n - 1] = 1.0;
-    }
-    return fractions;
-  }
-  
   /**
    * Returns an approximation to the Probability Mass Function (PMF) of the input stream 
    * given a set of splitPoints (values).
    * 
    * <p>The resulting approximations have a probabilistic guarantee that be obtained from the 
    * getNormalizedRankError() function.
+   * 
+   * <p>If the sketch is empty this returns Double.NaN for all values.</p>
    * 
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing doubles
    * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
@@ -243,7 +290,9 @@ public abstract class DoublesSketch {
    * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
    * splitPoint.
    */
-  public abstract double[] getPMF(double[] splitPoints);
+  public double[] getPMF(double[] splitPoints) {
+    return DoublesPmfCdfImpl.getPMFOrCDF(this, splitPoints, false);
+  }
   
   /**
    * Returns an approximation to the Cumulative Distribution Function (CDF), which is the 
@@ -252,12 +301,16 @@ public abstract class DoublesSketch {
    * <p>More specifically, the value at array position j of the CDF is the
    * sum of the values in positions 0 through j of the PMF.
    * 
+   * <p>If the sketch is empty this returns Double.NaN for all values.</p>
+   * 
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing doubles
    * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
    * 
    * @return an approximation to the CDF of the input stream given the splitPoints.
    */
-  public abstract double[] getCDF(double[] splitPoints);
+  public double[] getCDF(double[] splitPoints) {
+    return DoublesPmfCdfImpl.getPMFOrCDF(this, splitPoints, true);
+  }
   
   /**
    * Returns the configured value of K
@@ -266,13 +319,17 @@ public abstract class DoublesSketch {
   public abstract int getK();
 
   /**
-   * Returns the min value of the stream
+   * Returns the min value of the stream.
+   * If the sketch is empty this returns Double.POSITIVE_INFINITY.
+   * 
    * @return the min value of the stream
    */
   public abstract double getMinValue();
 
   /**
-   * Returns the max value of the stream
+   * Returns the max value of the stream.
+   * If the sketch is empty this returns Double.NEGATIVE_INFINITY.
+   * 
    * @return the max value of the stream
    */
   public abstract double getMaxValue();
@@ -281,9 +338,7 @@ public abstract class DoublesSketch {
    * Returns the length of the input stream so far.
    * @return the length of the input stream so far
    */
-  public long getN() {
-    return n_;
-  }
+  public abstract long getN();
   
   /**
    * Get the rank error normalized as a fraction between zero and one. 
@@ -322,32 +377,43 @@ public abstract class DoublesSketch {
    * Returns true if this sketch is empty
    * @return true if this sketch is empty
    */
-  public boolean isEmpty() {
-   return n_ == 0; 
-  }
+  public abstract boolean isEmpty();
   
   /**
-   * Resets this sketch to a virgin state, but retains the original value of k.
+   * Resets this sketch to the empty state, but retains the original value of k.
    */
   public abstract void reset();
 
   /**
-   * Serialize this sketch to a byte array form. 
-   * This does not sort the base buffer.
+   * Serialize this sketch to a byte array, not-oredered, compact form. 
+   * This does not order the base buffer.
    * @return byte array of this sketch
    */
   public byte[] toByteArray() {
-    return toByteArray(false);
+    return toByteArray(false, true);
   }
 
   /**
-   * Serialize this sketch to a byte array form. 
-   * @param sort if true, this sorts the base buffer, which optimizes merge performance at
+   * Serialize this sketch in a byte array, compact form. 
+   * @param ordered if true, this sorts the base buffer, which optimizes merge performance at
    * the cost of slightly increased serialization time. 
    * In real-time build-and-merge environments, this may not be desirable. 
-   * @return byte array of this sketch
+   * @return this sketch in a byte array form.
    */
-  public abstract byte[] toByteArray(boolean sort);
+  public byte[] toByteArray(boolean ordered) {
+    return toByteArray(ordered, true);
+  }
+  
+  /**
+   * Serialize this sketch in a byte array form.
+   * @param ordered if true, this sorts the base buffer, which optimizes merge performance at
+   * the cost of slightly increased serialization time.
+   * @param compact if true the sketch will be serialized in compact form.
+   * @return this sketch in a byte array form.
+   */
+  public byte[] toByteArray(boolean ordered, boolean compact) {
+    return DoublesToByteArrayImpl.toByteArray(this, ordered, compact);
+  }
   
   /**
    * Returns summary information about this sketch.
@@ -363,8 +429,9 @@ public abstract class DoublesSketch {
    * @param dataDetail if true includes data detail
    * @return summary information about the sketch.
    */
-  public abstract String toString(boolean sketchSummary, boolean dataDetail);
-  
+  public String toString(boolean sketchSummary, boolean dataDetail) {
+    return DoublesUtil.toString(sketchSummary, dataDetail, this);
+  }
 
   /**
    * From an existing sketch, this creates a new sketch that can have a smaller value of K.
@@ -375,17 +442,6 @@ public abstract class DoublesSketch {
    * @return the new sketch.
    */
   public abstract DoublesSketch downSample(int smallerK);
-
-  /**
-   * Heapify takes the sketch image in Memory and instantiates an on-heap Sketch. 
-   * The resulting sketch will not retain any link to the source Memory.
-   * @param srcMem a Memory image of a Sketch.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @return a heap-based Sketch based on the given Memory
-   */
-  public static DoublesSketch heapify(Memory srcMem) {
-    return HeapDoublesSketch.getInstance(srcMem);
-  }
 
   /**
    * Computes the number of retained items (samples) in the sketch
@@ -401,29 +457,84 @@ public abstract class DoublesSketch {
    */
   public int getStorageBytes() {
     if (isEmpty()) return 8;
-    return 32 + Double.BYTES * Util.computeRetainedItems(getK(), getN());
+    return 32 + (Util.computeRetainedItems(getK(), getN()) << 3);
   }
-
-  /**
-   * Puts the current sketch into the given Memory if there is sufficient space.
-   * Otherwise, throws an error. This sorts the base buffer based on the given sort flag.
-   * @param dstMem the given memory.
-   * @param sort if true, this sorts the base buffer, which optimizes merge performance at
-   * the cost of slightly increased serialization time. 
-   * In real-time build-and-merge environments, this may not be desirable. 
-   */
-  public abstract void putMemory(Memory dstMem, boolean sort);
   
   /**
-   * Puts the current sketch into the given Memory if there is sufficient space.
-   * Otherwise, throws an error. This does not sort the base buffer.
+   * Returns the number of bytes required to store a sketch as an array of bytes with the
+   * given values of <i>k</i> and <i>n</i>.
+   * @param k the size configuration parameter for the sketch
+   * @param n the number of items input into the sketch
+   * @return the number of bytes required to store this sketch as an array of bytes.
+   */
+  public int getStorageBytes(int k, long n) {
+    if (n == 0) return 8;
+    return 32 + (Util.computeRetainedItems(k, n) << 3);
+  }
+  
+  /**
+   * Puts the current sketch into the given Memory if there is sufficient space, otherwise, 
+   * throws an error. This does not sort the base buffer and loads the memory in compact form.
    * 
    * @param dstMem the given memory.
    */
   public void putMemory(Memory dstMem) {
-    putMemory(dstMem, false);
+    putMemory(dstMem, false, true);
+  }
+  
+  /**
+   * Puts the current sketch into the given Memory if there is sufficient space, otherwise, 
+   * throws an error. This loads the memory in compact form.
+   * @param dstMem the given memory.
+   * @param ordered if true, this sorts the base buffer, which optimizes merge performance at
+   * the cost of slightly increased serialization time. In real-time build-and-merge environments, 
+   * ordering may not be desirable. 
+   */
+  public void putMemory(Memory dstMem, boolean ordered) {
+    putMemory(dstMem, ordered, true);
   }
 
+  /**
+   * Puts the current sketch into the given Memory if there is sufficient space,
+   * 0therwise, throws an error. This sorts the base buffer based on the given sort flag.
+   * @param dstMem the given memory.
+   * @param ordered if true, this sorts the base buffer, which optimizes merge performance at
+   * the cost of slightly increased serialization time. In real-time build-and-merge environments, 
+   * ordering may not be desirable.
+   * @param compact if true, loads the memory in compact form.
+   */
+  public void putMemory(Memory dstMem, boolean ordered, boolean compact) {
+    byte[] byteArr = toByteArray(ordered, compact);
+    int arrLen = byteArr.length;
+    long memCap = dstMem.getCapacity();
+    if (memCap < arrLen) {
+      throw new SketchesArgumentException(
+          "Destination Memory not large enough: " + memCap + " < " + arrLen);
+    }
+    dstMem.putByteArray(0, byteArr, 0, arrLen);
+  }
+  
+  //Restricted
+  
+  static double[] getEvenlySpaced(int evenlySpaced) {
+    int n = evenlySpaced;
+    if (n <= 0) {
+      throw new SketchesArgumentException("EvenlySpaced must be > zero.");
+    }
+    double[] fractions = new double[n];
+    double frac = 0.0;
+    fractions[0] = frac;
+    for (int i = 1; i < n; i++) {
+      frac = (double)i / (n - 1);
+      fractions[i] = frac;
+    }
+    if (n > 1) {
+      fractions[n - 1] = 1.0;
+    }
+    return fractions;
+  }
+  
+  
   //Restricted abstract
 
   /**
@@ -437,7 +548,7 @@ public abstract class DoublesSketch {
    * @return the bit pattern for valid log levels
    */
   long getBitPattern() {
-    return Util.computeBitPattern(k_, n_);
+    return Util.computeBitPattern(k_, getN());
   }
 
   /**
@@ -451,5 +562,64 @@ public abstract class DoublesSketch {
    * @return the combined buffer reference
    */
   abstract double[] getCombinedBuffer();
+  
+  /**
+   * Puts the combined buffer.  This must be in non-compact form!
+   * @param combinedBuffer the combined buffer array
+   */
+  abstract void putCombinedBuffer(double[] combinedBuffer);
+  
+  /**
+   * Puts the min value
+   * @param minValue the given min value
+   */
+  abstract void putMinValue(double minValue);
+  
+  /**
+   * Puts the max value
+   * @param maxValue the given max value
+   */
+  abstract void putMaxValue(double maxValue);
 
+  /**
+   * Puts the value of <i>n</i>
+   * @param n the given value of <i>n</i>
+   */
+  abstract void putN(long n);
+  
+  /**
+   * Puts the combinedBufferItemCapacity
+   * @param combBufItemCap the given capacity
+   */
+  abstract void putCombinedBufferItemCapacity(int combBufItemCap);
+  
+  /**
+   * Puts the base buffer count
+   * @param baseBufCount the given base buffer count
+   */
+  abstract void putBaseBufferCount(int baseBufCount);
+  
+  /**
+   * Puts the bit pattern
+   * @param bitPattern the given bit pattern
+   */
+  abstract void putBitPattern(long bitPattern);
+  
+  /**
+   * Gets the Memory if it exists, otherwise returns null.
+   * @return the Memory if it exists, otherwise returns null.
+   */
+  abstract Memory getMemory();
+  
+  //Other restricted
+  
+  /**
+   * Returns the Auxiliary data structure which is only used for getQuantile() and getQuantiles() 
+   * queries.
+   * @return the Auxiliary data structure
+   */
+  DoublesAuxiliary constructAuxiliary() {
+    return new DoublesAuxiliary( this );
+  }
+  
 }

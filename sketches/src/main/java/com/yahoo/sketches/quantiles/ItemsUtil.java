@@ -25,6 +25,21 @@ import com.yahoo.sketches.SketchesArgumentException;
  */
 final class ItemsUtil {
 
+  private ItemsUtil() {}
+  
+  static final int ITEMS_SER_VER = 3;
+  static final int PRIOR_ITEMS_SER_VER = 2;
+  
+  /**
+   * Check the validity of the given serialization version
+   * @param serVer the given serialization version
+   */
+  static void checkItemsSerVer(int serVer) {
+    if ((serVer == ITEMS_SER_VER) || (serVer == PRIOR_ITEMS_SER_VER)) { return; }
+    throw new SketchesArgumentException(
+        "Possible corruption: Invalid Serialization Version: " + serVer);
+  }
+  
   /**
    * Checks the sequential validity of the given array of values. 
    * They must be unique, monotonically increasing and not null.

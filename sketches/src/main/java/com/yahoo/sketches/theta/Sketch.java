@@ -219,7 +219,7 @@ public abstract class Sketch {
       if (updateSketch) sb.append("   p                       : ").append(p).append(LS);
       sb.append("   Theta (double)          : ").append(thetaDbl).append(LS);
       sb.append("   Theta (long)            : ").append(thetaLong).append(LS);
-      sb.append("   Theta (long, hex        : ").append(thetaHex).append(LS);
+      sb.append("   Theta (long) hex        : ").append(thetaHex).append(LS);
       sb.append("   EstMode?                : ").append(isEstimationMode()).append(LS);
       sb.append("   Empty?                  : ").append(isEmpty()).append(LS);
       if (updateSketch) sb.append("   Resize Factor           : ").append(rf).append(LS);

@@ -5,8 +5,6 @@
 
 package com.yahoo.sketches.quantiles;
 
-//import static org.testng.Assert.assertEquals;
-//import static org.testng.Assert.assertTrue;
 import static com.yahoo.sketches.quantiles.HeapDoublesSketchTest.buildQS;
 import static com.yahoo.sketches.quantiles.Util.LS;
 

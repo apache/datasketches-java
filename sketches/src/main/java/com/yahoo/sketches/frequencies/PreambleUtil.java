@@ -142,7 +142,7 @@ final class PreambleUtil {
     return sb.toString();
   }
 
-// @formatter:on
+  // @formatter:on
   
   static int extractPreLongs(final long pre0) { //Byte 0
     final long mask = 0X3FL; //Lower 6 bits

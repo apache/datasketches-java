@@ -8,7 +8,7 @@ package com.yahoo.sketches.quantiles;
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.SER_DE_ID_SHORT;
 import static com.yahoo.sketches.quantiles.Util.LS;
-import static com.yahoo.sketches.quantiles.Util.computeCombBufItemCapacity;
+import static com.yahoo.sketches.quantiles.Util.computeExpandedCombinedBufferItemCapacity;
 import static com.yahoo.sketches.quantiles.Util.computeNumLevelsNeeded;
 import static com.yahoo.sketches.quantiles.Util.lg;
 import static java.lang.Math.floor;
@@ -121,7 +121,7 @@ public class HeapDoublesSketchTest {
   @Test
   public void checkConstructAuxiliary() {
     for (int k = 2; k <= 32; k *= 2) {
-      HeapDoublesSketch qs = HeapDoublesSketch.getInstance(k);
+      HeapDoublesSketch qs = HeapDoublesSketch.newInstance(k);
       for (int numItemsSoFar = 0; numItemsSoFar < 1000; numItemsSoFar++) {
         DoublesAuxiliary aux = qs.constructAuxiliary();
         int numSamples = qs.getRetainedItems();
@@ -309,7 +309,7 @@ public class HeapDoublesSketchTest {
     qs.getQuantile(frac);
   }
   
-  //@Test  //visual only
+  //@Test  //visual only  //TODO
   public void summaryCheckViaMemory() {
     DoublesSketch qs = buildQS(256, 1000000);
     String s = qs.toString();
@@ -318,7 +318,7 @@ public class HeapDoublesSketchTest {
     
     NativeMemory srcMem = new NativeMemory(qs.toByteArray());
     
-    HeapDoublesSketch qs2 = HeapDoublesSketch.getInstance(srcMem);
+    HeapDoublesSketch qs2 = HeapDoublesSketch.heapifyInstance(srcMem);
     s = qs2.toString();
     println(s);
   }
@@ -435,16 +435,55 @@ public class HeapDoublesSketchTest {
   
   @Test
   public void checkToFromByteArray() {
-    int k = DoublesSketch.DEFAULT_K;
-    int n = 1300; //generates a pattern of 5 = (101)
-    DoublesSketch qs = buildQS(k,n);
+    checkToFromByteArray2(128, 1300); //generates a pattern of 5 -> 101
+    checkToFromByteArray2(4, 7);
+    checkToFromByteArray2(4, 8);
+    checkToFromByteArray2(4, 9);
+  }
+  
+  private static void checkToFromByteArray2(int k, int n) {
+    DoublesSketch qs = buildQS(k, n);
+    byte[] byteArr;
+    Memory mem;
+    DoublesSketch qs2;
     
-    byte[] byteArr = qs.toByteArray(true);
-    Memory mem = new NativeMemory(byteArr);
-    DoublesSketch qs2 = DoublesSketch.heapify(mem);
+    //ordered, compact
+    byteArr = qs.toByteArray(true, true);
+    mem = new NativeMemory(byteArr);
+    qs2 = DoublesSketch.heapify(mem);
     for (double f = 0.1; f < 0.95; f += 0.1) {
       assertEquals(qs.getQuantile(f), qs2.getQuantile(f), 0.0);
     }
+    
+    //ordered, non-compact
+    byteArr = qs.toByteArray(true, false);
+    mem = new NativeMemory(byteArr);
+    qs2 = DoublesSketch.heapify(mem);
+    for (double f = 0.1; f < 0.95; f += 0.1) {
+      assertEquals(qs.getQuantile(f), qs2.getQuantile(f), 0.0);
+    }
+    
+    //not ordered, compact
+    byteArr = qs.toByteArray(false, true);
+    mem = new NativeMemory(byteArr);
+    qs2 = DoublesSketch.heapify(mem);
+    for (double f = 0.1; f < 0.95; f += 0.1) {
+      assertEquals(qs.getQuantile(f), qs2.getQuantile(f), 0.0);
+    }
+    
+    //Not ordered, not compact
+    byteArr = qs.toByteArray(false, false);
+    mem = new NativeMemory(byteArr);
+    qs2 = DoublesSketch.heapify(mem);
+    for (double f = 0.1; f < 0.95; f += 0.1) {
+      assertEquals(qs.getQuantile(f), qs2.getQuantile(f), 0.0);
+    }
+    
+  }
+  
+  public static void main(String[] args) {
+    HeapDoublesSketchTest test = new HeapDoublesSketchTest();
+    test.checkToFromByteArray();
   }
   
   @Test
@@ -471,14 +510,14 @@ public class HeapDoublesSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkMemTooSmall1() {
     Memory mem = new NativeMemory(new byte[7]);
-    HeapDoublesSketch qs2 = HeapDoublesSketch.getInstance(mem);
+    HeapDoublesSketch qs2 = HeapDoublesSketch.heapifyInstance(mem);
     qs2.getQuantile(0.5);
   }
   
   //Corruption tests
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkSerVer() {
-    Util.checkSerVer(0);
+    DoublesUtil.checkDoublesSerVer(0);
   }
   
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -487,13 +526,13 @@ public class HeapDoublesSketchTest {
   }
   
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkBufAllocAndCap() {
+  public void checkMemCapacityException() {
     int k = DoublesSketch.DEFAULT_K;
     long n = 1000;
-    int combBufItemCap = computeCombBufItemCapacity(k, n);
-    int badCapItems = combBufItemCap - 1; //corrupt
-    int memCapBytes = (combBufItemCap + 2) * Long.BYTES;
-    Util.checkMemCapacity(badCapItems, memCapBytes);
+    int combBufItemCap = computeExpandedCombinedBufferItemCapacity(k, n);
+    int memCapBytes = (combBufItemCap + 4) << 3;
+    int badCapBytes = memCapBytes - 1; //corrupt
+    DoublesUtil.checkMemCapacity(k, n, false, badCapBytes);
   }
   
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -503,16 +542,16 @@ public class HeapDoublesSketchTest {
     byte[] byteArr = qs1.toByteArray();
     Memory mem = new NativeMemory(byteArr);
     mem.putByte(SER_DE_ID_SHORT, (byte) 2); //Corrupt
-    HeapDoublesSketch.getInstance(mem);
+    HeapDoublesSketch.heapifyInstance(mem);
   }
   
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkBufAllocAndCap2() {
+  public void checkBufAllocAndCap() {
     int k = DoublesSketch.DEFAULT_K;
     long n = 1000;
-    int combBufItemCap = computeCombBufItemCapacity(k, n);
-    int memCap = (combBufItemCap + 2) * Long.BYTES;
-    Util.checkMemCapacity(combBufItemCap, memCap - 1); //corrupt
+    int combBufItemCap = computeExpandedCombinedBufferItemCapacity(k, n); //non-compact cap
+    int memCapBytes = (combBufItemCap + 4) << 3;
+    DoublesUtil.checkMemCapacity(k, n, false, memCapBytes - 1); //corrupt
   }
   
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -543,7 +582,7 @@ public class HeapDoublesSketchTest {
     DoublesSketch qs1 = buildQS(k, 64);
     byte[] byteArr = qs1.toByteArray();
     Memory mem = new NativeMemory(byteArr);
-    HeapDoublesSketch.getInstance(mem);
+    HeapDoublesSketch.heapifyInstance(mem);
   }
   
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -561,8 +600,8 @@ public class HeapDoublesSketchTest {
   
   //Visual only tests
   static void testDownSampling(int bigK, int smallK) {  
-    HeapDoublesSketch origSketch = HeapDoublesSketch.getInstance(bigK);
-    HeapDoublesSketch directSketch = HeapDoublesSketch.getInstance(smallK);
+    HeapDoublesSketch origSketch = HeapDoublesSketch.newInstance(bigK);
+    HeapDoublesSketch directSketch = HeapDoublesSketch.newInstance(smallK);
     for (int i = 127; i >= 1; i--) {
       origSketch.update (i);
       directSketch.update (i);
@@ -579,7 +618,7 @@ public class HeapDoublesSketchTest {
     println(s);
   }
   
-  //@Test  //Visual only tests
+  //@Test  //Visual only tests //TODO
   public void checkDownSampling() {
     testDownSampling(4,4);
     testDownSampling(16,4);
@@ -588,8 +627,8 @@ public class HeapDoublesSketchTest {
   
   @Test
   public void testDownSampling2 () {
-    HeapDoublesSketch origSketch = HeapDoublesSketch.getInstance(8);
-    HeapDoublesSketch directSketch = HeapDoublesSketch.getInstance(2);
+    HeapDoublesSketch origSketch = HeapDoublesSketch.newInstance(8);
+    HeapDoublesSketch directSketch = HeapDoublesSketch.newInstance(2);
     HeapDoublesSketch downSketch;
     downSketch = (HeapDoublesSketch)origSketch.downSample(2);
     assertTrue(sameStructurePredicate (directSketch, downSketch));
@@ -605,23 +644,23 @@ public class HeapDoublesSketchTest {
   @Test
   public void testDownSampling3() {
     for (int n1 = 0; n1 < 50; n1++ ) {
-      HeapDoublesSketch bigSketch = HeapDoublesSketch.getInstance(8);
+      HeapDoublesSketch bigSketch = HeapDoublesSketch.newInstance(8);
       for (int i1 = 1; i1 <= n1; i1++ ) {
         bigSketch.update(i1);
       }
       for (int n2 = 0; n2 < 50; n2++ ) {
-        HeapDoublesSketch directSketch = HeapDoublesSketch.getInstance(2);
+        HeapDoublesSketch directSketch = HeapDoublesSketch.newInstance(2);
         for (int i1 = 1; i1 <= n1; i1++ ) {
           directSketch.update(i1);
         }
         for (int i2 = 1; i2 <= n2; i2++ ) {
           directSketch.update(i2);
         }
-        HeapDoublesSketch smlSketch = HeapDoublesSketch.getInstance(2);
+        HeapDoublesSketch smlSketch = HeapDoublesSketch.newInstance(2);
         for (int i2 = 1; i2 <= n2; i2++ ) {
           smlSketch.update(i2);
         }
-        DoublesUtil.downSamplingMergeInto(bigSketch, smlSketch);
+        DoublesMergeImpl.downSamplingMergeInto(bigSketch, smlSketch);
         assertTrue (sameStructurePredicate(directSketch, smlSketch));
       }
     }
@@ -630,19 +669,19 @@ public class HeapDoublesSketchTest {
   @Test
   public void testDownSampling4() {
     for (int n1 = 0; n1 < 50; n1++ ) {
-      HeapDoublesSketch bigSketch = HeapDoublesSketch.getInstance(8);
+      HeapDoublesSketch bigSketch = HeapDoublesSketch.newInstance(8);
       for (int i1 = 1; i1 <= n1; i1++ ) {
         bigSketch.update(i1);
       }
       for (int n2 = 0; n2 < 50; n2++ ) {
-        HeapDoublesSketch directSketch = HeapDoublesSketch.getInstance(2);
+        HeapDoublesSketch directSketch = HeapDoublesSketch.newInstance(2);
         for (int i1 = 1; i1 <= n1; i1++ ) {
           directSketch.update(i1);
         }
         for (int i2 = 1; i2 <= n2; i2++ ) {
           directSketch.update(i2);
         }
-        HeapDoublesSketch smlSketch = HeapDoublesSketch.getInstance(2);
+        HeapDoublesSketch smlSketch = HeapDoublesSketch.newInstance(2);
         for (int i2 = 1; i2 <= n2; i2++ ) {
           smlSketch.update(i2);
         }
@@ -674,10 +713,10 @@ public class HeapDoublesSketchTest {
     HeapDoublesUnion.mergeInto(qs2, qs1);
   }
 
-  //@Test  //visual only
+  //@Test  //visual only //TODO
   public void quantilesCheckViaMemory() {
     int k = 256;
-    long n = 1000000;
+    int n = 1000000;
     DoublesSketch qs = buildQS(k, n);
     double[] ranks = {0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
     String s = getRanksTable(qs, ranks);
@@ -686,7 +725,7 @@ public class HeapDoublesSketchTest {
     
     NativeMemory srcMem = new NativeMemory(qs.toByteArray());
     
-    HeapDoublesSketch qs2 = HeapDoublesSketch.getInstance(srcMem);
+    HeapDoublesSketch qs2 = HeapDoublesSketch.heapifyInstance(srcMem);
     println(getRanksTable(qs2, ranks));
   }
   
@@ -844,7 +883,7 @@ public class HeapDoublesSketchTest {
       //pass
     }
     try {
-      HeapDoublesSketch.getInstance(k);
+      HeapDoublesSketch.newInstance(k);
       fail(s);
     } catch (SketchesArgumentException e) {
       //pass
@@ -892,11 +931,11 @@ public class HeapDoublesSketchTest {
            );
   }
 
-  static DoublesSketch buildQS(int k, long n) {
+  static DoublesSketch buildQS(int k, int n) {
     return buildQS(k, n, 0);
   }
   
-  static DoublesSketch buildQS(int k, long n, int startV) {
+  static DoublesSketch buildQS(int k, int n, int startV) {
     DoublesSketch qs = DoublesSketch.builder().build(k);
     for (int i=0; i<n; i++) {
       qs.update(startV + i);

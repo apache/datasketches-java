@@ -24,6 +24,8 @@ import static com.yahoo.memory.UnsafeUtil.LS;
 import static com.yahoo.memory.UnsafeUtil.SHORT_SHIFT;
 import static com.yahoo.memory.UnsafeUtil.assertBounds;
 
+import java.nio.ByteBuffer;
+
 /**
  * The MemoryRegion class implements the Memory interface and provides a means of 
  * hierarchically partitioning a large block of native memory into 
@@ -127,31 +129,38 @@ public class MemoryRegion implements Memory {
   }
 
   @Override
+  public void fill(byte value) {
+    fill(0, capacityBytes_, value);
+  }
+
+  @Override
+  public void fill(long offsetBytes, long lengthBytes, byte value) {
+    assertBounds(offsetBytes, lengthBytes, capacityBytes_);
+    mem_.fill(getAddress(offsetBytes), lengthBytes, value);
+  }
+  
+  @Override
   public int getAndAddInt(long offsetBytes, int delta) {
     assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
-    long unsafeRawAddress = getAddress(offsetBytes);
-    return mem_.getAndAddInt(unsafeRawAddress, delta);
+    return mem_.getAndAddInt(getAddress(offsetBytes), delta);
   }
 
   @Override
   public long getAndAddLong(long offsetBytes, long delta) {
     assertBounds(offsetBytes, ARRAY_LONG_INDEX_SCALE, capacityBytes_);
-    long unsafeRawAddress = getAddress(offsetBytes);
-    return mem_.getAndAddLong(unsafeRawAddress, delta);
+    return mem_.getAndAddLong(getAddress(offsetBytes), delta);
   }
 
   @Override
   public int getAndSetInt(long offsetBytes, int newValue) {
     assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
-    long unsafeRawAddress = getAddress(offsetBytes);
-    return mem_.getAndSetInt(unsafeRawAddress, newValue);
+    return mem_.getAndSetInt(getAddress(offsetBytes), newValue);
   }
 
   @Override
   public long getAndSetLong(long offsetBytes, long newValue) {
     assertBounds(offsetBytes, ARRAY_LONG_INDEX_SCALE, capacityBytes_);
-    long unsafeRawAddress = getAddress(offsetBytes);
-    return mem_.getAndSetLong(unsafeRawAddress, newValue);
+    return mem_.getAndSetLong(getAddress(offsetBytes), newValue);
   }
 
   @Override
@@ -269,32 +278,28 @@ public class MemoryRegion implements Memory {
   @Override
   public boolean isAllBitsClear(long offsetBytes, byte bitMask) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
-    long unsafeRawAddress = getAddress(offsetBytes);
-    int value = ~mem_.getByte(unsafeRawAddress) & bitMask & 0XFF; 
+    int value = ~mem_.getByte(getAddress(offsetBytes)) & bitMask & 0XFF; 
     return value == bitMask;
   }
 
   @Override
   public boolean isAllBitsSet(long offsetBytes, byte bitMask) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
-    long unsafeRawAddress = getAddress(offsetBytes);
-    int value = mem_.getByte(unsafeRawAddress) & bitMask & 0XFF;
+    int value = mem_.getByte(getAddress(offsetBytes)) & bitMask & 0XFF;
     return value == bitMask;
   }
 
   @Override
   public boolean isAnyBitsClear(long offsetBytes, byte bitMask) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
-    long unsafeRawAddress = getAddress(offsetBytes);
-    int value = ~mem_.getByte(unsafeRawAddress) & bitMask & 0XFF; 
+    int value = ~mem_.getByte(getAddress(offsetBytes)) & bitMask & 0XFF; 
     return value != 0;
   }
 
   @Override
   public boolean isAnyBitsSet(long offsetBytes, byte bitMask) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
-    long unsafeRawAddress = getAddress(offsetBytes);
-    int value = mem_.getByte(unsafeRawAddress) & bitMask & 0XFF;
+    int value = mem_.getByte(getAddress(offsetBytes)) & bitMask & 0XFF;
     return value != 0;
   }
 
@@ -411,26 +416,37 @@ public class MemoryRegion implements Memory {
   }
 
   @Override
-  public void fill(byte value) {
-    fill(0, capacityBytes_, value);
-  }
-
-  @Override
-  public void fill(long offsetBytes, long lengthBytes, byte value) {
-    assertBounds(offsetBytes, lengthBytes, capacityBytes_);
-    mem_.fill(getAddress(offsetBytes), lengthBytes, value);
-  }
-
-  @Override
   public void setBits(long offsetBytes, byte bitMask) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
-    long unsafeRawAddress = getAddress(offsetBytes);
-    byte value = mem_.getByte(unsafeRawAddress);
-    mem_.putByte(unsafeRawAddress, (byte)(value | bitMask));
+    long relativeOffset = getAddress(offsetBytes);
+    byte value = mem_.getByte(relativeOffset);
+    mem_.putByte(relativeOffset, (byte)(value | bitMask));
   }
 
   //Non-data Memory interface methods
 
+  @Override
+  public Object array() {
+    return mem_.array();
+  }
+  
+  @Override
+  public Memory asReadOnlyMemory() {
+    Memory readOnlyMem = mem_.asReadOnlyMemory();
+    return new MemoryRegionR(readOnlyMem, memOffsetBytes_, capacityBytes_, memReq_);
+  }
+  
+  @Override
+  public ByteBuffer byteBuffer() {
+    return mem_.byteBuffer();
+  }
+  
+  /**
+   * Returns the start address of this Memory relative to its parent plus the given offsetBytes.
+   * @param offsetBytes the given offset in bytes from the start address of this Memory
+   * relative to its parent.
+   * @return the start address of this Memory relative to its parent plus the offset in bytes.
+   */
   @Override
   public final long getAddress(final long offsetBytes) {
     return memOffsetBytes_ + offsetBytes;
@@ -460,10 +476,30 @@ public class MemoryRegion implements Memory {
   public Object getParent() {
     return mem_;
   }
-
+  
+  @Override
+  public boolean hasArray() {
+    return mem_.hasArray();
+  }
+  
+  @Override
+  public boolean hasByteBuffer() {
+    return mem_.hasByteBuffer();
+  }
+  
+  @Override
+  public boolean isAllocated() {
+    return (capacityBytes_ > 0L);
+  }
+  
   @Override
   public boolean isDirect() {
     return mem_.isDirect();
+  }
+  
+  @Override
+  public boolean isReadOnly() {
+    return false;
   }
   
   @Override
@@ -486,14 +522,4 @@ public class MemoryRegion implements Memory {
     return mem_.toHexString(sb.toString(), getAddress(offsetBytes), lengthBytes);
   }
 
-  @Override
-  public boolean isReadOnly() {
-    return false;
-  }
-
-  @Override
-  public Memory asReadOnlyMemory() {
-    Memory readOnlyMem = mem_.asReadOnlyMemory();
-    return new MemoryRegionR(readOnlyMem, memOffsetBytes_, capacityBytes_, memReq_);
-  }
 }

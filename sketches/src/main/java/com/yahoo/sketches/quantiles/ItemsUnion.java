@@ -78,7 +78,7 @@ public final class ItemsUnion<T> {
     return new ItemsUnion<T>(sketch.getK(), sketch.getComparator(), sketch);
   }
   
-//@formatter:off
+  //@formatter:off
   @SuppressWarnings("null")
   static <T> ItemsSketch<T> updateLogic(final int myK, final Comparator<? super T> comparator,
       final ItemsSketch<T> myQS, final ItemsSketch<T> other) {
