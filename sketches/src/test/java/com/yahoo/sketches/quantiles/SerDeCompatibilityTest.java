@@ -37,11 +37,14 @@ public class SerDeCompatibilityTest {
 
   @Test
   public void doublesToItems() {
-    DoublesSketch sketch1 = DoublesSketch.builder().build();
+    DoublesSketch sketch1 = DoublesSketch.builder().build(); //SerVer = 3
     for (int i = 1; i <= 500; i++) sketch1.update(i);
 
-    byte[] bytes = sketch1.toByteArray();
-    ItemsSketch<Double> sketch2 = ItemsSketch.getInstance(new NativeMemory(bytes), Comparator.naturalOrder(), serDe);
+    byte[] bytes = sketch1.toByteArray(); //unordered, compact
+    
+    //reconstruct with ItemsSketch
+    ItemsSketch<Double> sketch2 = ItemsSketch.getInstance(new NativeMemory(bytes), 
+        Comparator.naturalOrder(), serDe);
 
     for (int i = 501; i <= 1000; i++) sketch2.update((double) i);
     Assert.assertEquals(sketch2.getN(), 1000);
@@ -51,5 +54,5 @@ public class SerDeCompatibilityTest {
     // based on ~1.7% normalized rank error for this particular case
     Assert.assertEquals(sketch2.getQuantile(0.5), Double.valueOf(500), 17);
   }
-
+  
 }

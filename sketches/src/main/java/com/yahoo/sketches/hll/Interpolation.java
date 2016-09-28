@@ -15,7 +15,7 @@ final class Interpolation {
   static final int INTERPOLATION_MIN_LOG_K = 7;
   static final int INTERPOLATION_MAX_LOG_K = 21;
 
-  //TODO arrays should be made private and then accessed via getters.  But may impact performance.
+  //arrays could be made private and then accessed via getters.  But may impact performance.
   
   static final double interpolation_x_arrs[][] = {
     // log K = 7

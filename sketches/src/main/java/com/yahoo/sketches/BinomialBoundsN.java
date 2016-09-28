@@ -189,7 +189,7 @@ public final class BinomialBoundsN {
     }
 
     else { // This is the most difficult range to approximate; we will compute an "exact" UB. 
-        // We know that est <= 360, so specialNPrimeF() shouldn't be ridiculously slow. 
+      // We know that est <= 360, so specialNPrimeF() shouldn't be ridiculously slow. 
       double delta = deltaOfNumSDev[numSDev];
       long nprimef = specialNPrimeF(numSamplesI, theta, delta);
       return ((double) nprimef); // don't need to round 

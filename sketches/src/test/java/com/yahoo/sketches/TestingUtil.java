@@ -19,10 +19,10 @@ import com.yahoo.memory.NativeMemory;
 public class TestingUtil {
   public static final String LS = System.getProperty("line.separator");
   public static final char TAB = '\t';
-  
+
   /**
    * Returns a string structured as an array of longs viewed as spaced hex bytes in Big-Endian order.
-   * Each row (a long) is preceeded by a long index. 
+   * Each row (a long) is preceeded by a long index.
    * @param arr the given byte array
    * @param comment an optional header comment
    * @return the above described string.
@@ -31,10 +31,10 @@ public class TestingUtil {
     Memory mem = new NativeMemory(arr);
     return memToHexBytes(mem, comment);
   }
-  
+
   /**
    * Returns a string structured as an array of longs viewed as spaced hex bytes in Big-Endian order.
-   * Each row (a long) is preceeded by a long index. 
+   * Each row (a long) is preceeded by a long index.
    * @param arr the given long array
    * @param comment an optional header comment
    * @return the above described string.
@@ -43,7 +43,7 @@ public class TestingUtil {
     Memory mem = new NativeMemory(arr);
     return memToHexBytes(mem, comment);
   }
-  
+
   /**
    * Returns a string structured as an array of longs viewed as spaced hex bytes in Big-Endian order.
    * Each row (a long) is preceeded by a long index.  Any odd bytes at the end are presented in
@@ -92,7 +92,49 @@ public class TestingUtil {
     }
     return sb.toString();
   }
-  
+
+  //@Test
+  public static void testMilliSec() {
+    int hr = 1;
+    int min = 23;
+    int sec = 45;
+    int mS = 678;
+    long mSec = mS + 1000*sec + 60000*min + 3600000*hr;
+    println(milliSecToString(mSec));
+  }
+
+  //@Test
+  public static void testNanoSec() {
+    int sec = 98;
+    int mS = 765;
+    int uS = 432;
+    int nS = 123;
+    long nSec = nS + 1000*uS + 1000000*mS + 1000000000L*sec;
+    println(nanoSecToString(nSec));
+  }
+
+  public static String nanoSecToString(long nS) {
+    long rem_nS = (long)(nS % 1000.0);
+    long rem_uS = (long)((nS / 1000.0) % 1000.0);
+    long rem_mS = (long)((nS / 1000000.0) % 1000.0);
+    long sec    = (long)(nS / 1000000000.0);
+    String nSstr = zeroPad(Long.toString(rem_nS), 3);
+    String uSstr = zeroPad(Long.toString(rem_uS), 3);
+    String mSstr = zeroPad(Long.toString(rem_mS), 3);
+    return String.format("%d.%3s %3s %3s", sec, mSstr, uSstr, nSstr);
+  }
+
+  public static String milliSecToString(long mS) {
+    long rem_mS = (long)(mS % 1000.0);
+    long rem_sec = (long)((mS / 1000.0) % 60.0);
+    long rem_min = (long)((mS / 60000.0) % 60.0);
+    long hr  =     (long)(mS / 3600000.0);
+    String mSstr = zeroPad(Long.toString(rem_mS), 3);
+    String secStr = zeroPad(Long.toString(rem_sec), 2);
+    String minStr = zeroPad(Long.toString(rem_min), 2);
+    return String.format("%d:%2s:%2s.%3s", hr, minStr, secStr, mSstr);
+  }
+
   //@Test
   public static void test1() {
     int len = 27;
@@ -103,20 +145,20 @@ public class TestingUtil {
     Memory mem = new NativeMemory(byteArr);
     println(memToHexBytes(mem, "Test"));
   }
-  
+
   private static final long insertByte(final int byteVal, int byteIdx, long long0) {
     int shift = byteIdx << 3;
     long mask = 0XFFL;
     return ((byteVal & mask) << shift) | (~(mask << shift) & long0);
   }
-  
+
   //@Test
   public void printlnTest() {
     println(this.getClass().getSimpleName());
   }
-  
+
   /**
-   * @param s value to print 
+   * @param s value to print
    */
   static void println(String s) {
     //System.out.println(s); //disable here

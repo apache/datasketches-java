@@ -5,18 +5,19 @@
 
 package com.yahoo.memory;
 
+import java.nio.ByteBuffer;
 
 /**
- * The Memory interface defines <i>get</i> and <i>put</i> methods for all Java primitive and 
- * primitive array types to/from a byte offset that is relative to the base address of some 
- * object or region of native memory defined by the implementing class. 
+ * The Memory interface defines <i>get</i> and <i>put</i> methods for all Java primitive and
+ * primitive array types to/from a byte offset that is relative to the base address of some
+ * object or region of native memory defined by the implementing class.
  * The methods of this interface leverage the capabilities of the sun.misc.Unsafe class.
- * 
- * <p>In contrast to the <i>java.nio.ByteBuffer</i> classes, which were designed for native 
- * streaming I/O and include concepts such as <i>position, limit, mark, flip,</i> and <i>rewind</i>, 
- * this interface specifically bypasses these concepts and instead provides a rich collection of 
+ *
+ * <p>In contrast to the <i>java.nio.ByteBuffer</i> classes, which were designed for native
+ * streaming I/O and include concepts such as <i>position, limit, mark, flip,</i> and <i>rewind</i>,
+ * this interface specifically bypasses these concepts and instead provides a rich collection of
  * primitive, bit, array and copy methods that access the data directly from a single byte offset.
- * 
+ *
  * @author Lee Rhodes
  */
 public interface Memory {
@@ -25,21 +26,21 @@ public interface Memory {
    * Clears all bytes of this Memory to zero
    */
   void clear();
-  
+
   /**
-   * Clears a portion of this Memory to zero. 
+   * Clears a portion of this Memory to zero.
    * @param offsetBytes offset bytes relative to this Memory start
    * @param lengthBytes the length in bytes
    */
   void clear(long offsetBytes, long lengthBytes);
-  
+
   /**
    * Clears the bits defined by the bitMask
-   * @param offsetBytes offset bytes relative to this Memory start. 
+   * @param offsetBytes offset bytes relative to this Memory start.
    * @param bitMask the bits set to one will be cleared
    */
   void clearBits(long offsetBytes, byte bitMask);
-  
+
   /**
    * Copies bytes from a source region of this Memory to a destination region of this Memory.
    * These regions may not overlap.  This will be checked if asserts are enabled in the JVM.
@@ -48,7 +49,21 @@ public interface Memory {
    * @param lengthBytes the number of bytes to copy
    */
   void copy(long srcOffsetBytes, long dstOffsetBytes, long lengthBytes);
-  
+
+  /**
+   * Fills all bytes of this Memory region to the given byte value.
+   * @param value the given byte value
+   */
+  void fill(byte value);
+
+  /**
+   * Fills a portion of this Memory region to the given byte value.
+   * @param offsetBytes offset bytes relative to this Memory start
+   * @param lengthBytes the length in bytes
+   * @param value the given byte value
+   */
+  void fill(long offsetBytes, long lengthBytes, byte value);
+
   /**
    * Atomically adds the given value to the integer located at offsetBytes.
    * @param offsetBytes offset bytes relative to this Memory start
@@ -56,7 +71,7 @@ public interface Memory {
    * @return the modified value
    */
   int getAndAddInt(long offsetBytes, int delta);
-  
+
   /**
    * Atomically adds the given value to the long located at offsetBytes.
    * @param offsetBytes offset bytes relative to this Memory start
@@ -64,7 +79,7 @@ public interface Memory {
    * @return the modified value
    */
   long getAndAddLong(long offsetBytes, long delta);
-  
+
   /**
    * Atomically exchanges the given value with the current value located at offsetBytes.
    * @param offsetBytes offset bytes relative to this Memory start
@@ -72,7 +87,7 @@ public interface Memory {
    * @return the previous value
    */
   int getAndSetInt(long offsetBytes, int newValue);
-  
+
   /**
    * Atomically exchanges the given value with the current value located at offsetBytes.
    * @param offsetBytes offset bytes relative to this Memory start
@@ -80,15 +95,15 @@ public interface Memory {
    * @return the previous value
    */
   long getAndSetLong(long offsetBytes, long newValue);
-  
-  
+
+
   /**
    * Gets the boolean value at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
    * @return the boolean at the given offset
    */
   boolean getBoolean(long offsetBytes);
-  
+
   /**
    * Gets the boolean array at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
@@ -98,14 +113,14 @@ public interface Memory {
    * The size of this array determines the bytes transferred.
    */
   void getBooleanArray(long offsetBytes, boolean[] dstArray, int dstOffset, int length);
-  
+
   /**
    * Gets the byte at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
    * @return the byte at the given offset
    */
   byte getByte(long offsetBytes);
-  
+
   /**
    * Gets the byte array at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
@@ -115,15 +130,15 @@ public interface Memory {
    * The size of this array determines the bytes transferred.
    */
   void getByteArray(long offsetBytes, byte[] dstArray, int dstOffset, int length);
-  
-  
+
+
   /**
    * Gets the char at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
    * @return the char at the given offset
    */
   char getChar(long offsetBytes);
-  
+
   /**
    * Gets the char array at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
@@ -133,14 +148,14 @@ public interface Memory {
    * The size of this array determines the bytes transferred.
    */
   void getCharArray(long offsetBytes, char[] dstArray, int dstOffset, int length);
-  
+
   /**
    * Gets the double at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
    * @return the double at the given offset
    */
   double getDouble(long offsetBytes);
-  
+
   /**
    * Gets the double array at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
@@ -150,14 +165,14 @@ public interface Memory {
    * The size of this array determines the bytes transferred.
    */
   void getDoubleArray(long offsetBytes, double[] dstArray, int dstOffset, int length);
-  
+
   /**
    * Gets the float at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
    * @return the float at the given offset
    */
   float getFloat(long offsetBytes);
-  
+
   /**
    * Gets the float array at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
@@ -167,14 +182,14 @@ public interface Memory {
    * The size of this array determines the bytes transferred.
    */
   void getFloatArray(long offsetBytes, float[] dstArray, int dstOffset, int length);
-  
+
   /**
    * Gets the int at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
    * @return the int at the given offset
    */
   int getInt(long offsetBytes);
-  
+
   /**
    * Gets the int array at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
@@ -184,7 +199,7 @@ public interface Memory {
    * The size of this array determines the bytes transferred.
    */
   void getIntArray(long offsetBytes, int[] dstArray, int dstOffset, int length);
-  
+
   /**
    * Gets the long at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
@@ -201,7 +216,7 @@ public interface Memory {
    * The size of this array determines the bytes transferred.
    */
   void getLongArray(long offsetBytes, long[] dstArray, int dstOffset, int length);
-  
+
   /**
    * Gets the short at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
@@ -218,7 +233,7 @@ public interface Memory {
    * The size of this array determines the bytes transferred.
    */
   void getShortArray(long offsetBytes, short[] dstArray, int dstOffset, int length);
-  
+
   /**
    * Returns true if all bits defined by the bitMask are clear
    * @param offsetBytes offset bytes relative to this Memory start
@@ -226,7 +241,7 @@ public interface Memory {
    * @return true if all bits defined by the bitMask are clear
    */
   boolean isAllBitsClear(long offsetBytes, byte bitMask);
-  
+
   /**
    * Returns true if all bits defined by the bitMask are set
    * @param offsetBytes offset bytes relative to this Memory start
@@ -234,7 +249,7 @@ public interface Memory {
    * @return true if all bits defined by the bitMask are set
    */
   boolean isAllBitsSet(long offsetBytes, byte bitMask);
-  
+
   /**
    * Returns true if any bits defined by the bitMask are clear
    * @param offsetBytes offset bytes relative to this Memory start
@@ -242,7 +257,7 @@ public interface Memory {
    * @return true if any bits defined by the bitMask are clear
    */
   boolean isAnyBitsClear(long offsetBytes, byte bitMask);
-  
+
   /**
    * Returns true if any bits defined by the bitMask are set
    * @param offsetBytes offset bytes relative to this Memory start
@@ -250,14 +265,14 @@ public interface Memory {
    * @return true if any bits defined by the bitMask are set
    */
   boolean isAnyBitsSet(long offsetBytes, byte bitMask);
-  
+
   /**
    * Puts the boolean value at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
    * @param value the value to put
    */
   void putBoolean(long offsetBytes, boolean value);
-  
+
   /**
    * Puts the boolean array at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
@@ -267,14 +282,14 @@ public interface Memory {
    * The size of this array determines the bytes transferred.
    */
   void putBooleanArray(long offsetBytes, boolean[] srcArray, int srcOffset, int length);
-  
+
   /**
    * Puts the byte value at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
    * @param value the value to put
    */
   void putByte(long offsetBytes, byte value);
-  
+
   /**
    * Puts the byte array at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
@@ -284,14 +299,14 @@ public interface Memory {
    * The size of this array determines the bytes transferred.
    */
   void putByteArray(long offsetBytes, byte[] srcArray, int srcOffset, int length);
-  
+
   /**
    * Puts the char value at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
    * @param value the value to put
    */
   void putChar(long offsetBytes, char value);
-  
+
   /**
    * Puts the char array at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
@@ -301,14 +316,14 @@ public interface Memory {
    * The size of this array determines the bytes transferred.
    */
   void putCharArray(long offsetBytes, char[] srcArray, int srcOffset, int length);
-  
+
   /**
    * Puts the double value at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
    * @param value the value to put
    */
   void putDouble(long offsetBytes, double value);
-  
+
   /**
    * Puts the double array at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
@@ -318,14 +333,14 @@ public interface Memory {
    * The size of this array determines the bytes transferred.
    */
   void putDoubleArray(long offsetBytes, double[] srcArray, int srcOffset, int length);
-  
+
   /**
    * Puts the float value at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
    * @param value the value to put
    */
   void putFloat(long offsetBytes, float value);
-  
+
   /**
    * Puts the float array at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
@@ -335,14 +350,14 @@ public interface Memory {
    * The size of this array determines the bytes transferred.
    */
   void putFloatArray(long offsetBytes, float[] srcArray, int srcOffset, int length);
-  
+
   /**
    * Puts the int value at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
    * @param value the value to put
    */
   void putInt(long offsetBytes, int value);
-  
+
   /**
    * Puts the int array at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
@@ -352,14 +367,14 @@ public interface Memory {
    * The size of this array determines the bytes transferred.
    */
   void putIntArray(long offsetBytes, int[] srcArray, int srcOffset, int length);
-  
+
   /**
    * Puts the long value at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
    * @param value the value to put
    */
   void putLong(long offsetBytes, long value);
-  
+
   /**
    * Puts the long array at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
@@ -369,14 +384,14 @@ public interface Memory {
    * The size of this array determines the bytes transferred.
    */
   void putLongArray(long offsetBytes, long[] srcArray, int srcOffset, int length);
-  
+
   /**
    * Puts the short value at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
    * @param value the value to put
    */
   void putShort(long offsetBytes, short value);
-  
+
   /**
    * Puts the short array at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
@@ -386,106 +401,125 @@ public interface Memory {
    * The size of this array determines the bytes transferred.
    */
   void putShortArray(long offsetBytes, short[] srcArray, int srcOffset, int length);
-  
-  /**
-   * Fills all bytes of this Memory region to the given byte value. 
-   * @param value the given byte value
-   */
-  void fill(byte value);
-  
-  /**
-   * Fills a portion of this Memory region to the given byte value. 
-   * @param offsetBytes offset bytes relative to this Memory start
-   * @param lengthBytes the length in bytes
-   * @param value the given byte value
-   */
-  void fill(long offsetBytes, long lengthBytes, byte value);
-  
+
   /**
    * Sets the bits defined by the bitMask
    * @param offsetBytes offset bytes relative to this Memory start
    * @param bitMask the bits set to one will be set
    */
   void setBits(long offsetBytes, byte bitMask);
-  
+
   //Non-data methods
-  
   /**
-   * Returns the start address of this Memory relative to its parent plus the offset in bytes.
-   * @param offsetBytes the given offset in bytes from the start address of this Memory
-   * relative to its parent.
-   * @return the start address of this Memory relative to its parent plus the offset in bytes.
+   * Returns the backing on-heap primitive array if there is one, otherwise returns null
+   * @return the backing on-heap primitive array if there is one, otherwise returns null
    */
-  long getAddress(final long offsetBytes);
-  
-  /**
-   * Gets the capacity of this Memory in bytes
-   * @return the capacity of this Memory in bytes
-   */
-  long getCapacity();
-  
-  /**
-   * Returns the cumulative offset in bytes of this Memory from the base Memory including the given
-   * offset. If this Memory is derived from Direct memory it will include the raw native address. 
-   * If this Memory is derived from a byte or long array it will include the 
-   * ARRAY_&lt;TYPE&gt;_BASE_OFFSET. 
-   * @param offsetBytes the given offset in bytes
-   * @return the cumulative offset in bytes of this Memory from the base Memory including the given
-   * offset.
-   */
-  long getCumulativeOffset(final long offsetBytes);
-  
-  /**
-   * Returns a MemoryRequest or null
-   * @return a MemoryRequest or null
-   */
-  MemoryRequest getMemoryRequest();
-  
-  /**
-   * Returns the root NativeMemory, which could also be the derived MemoryMappedFile or AllocMemory.
-   * @return the root NativeMemory.
-   */
-  NativeMemory getNativeMemory();
-  
-  /**
-   * Gets the parent Memory or backing array. Used internally.
-   * @return the parent Memory.
-   */
-  Object getParent();
-  
-  /**
-   * Returns true if this Memory is Direct (native) memory.
-   * @return true if this Memory is Direct (native) memory.
-   */
-  boolean isDirect();
-  
-  /**
-   * Sets a MemoryRequest
-   * @param memReq the MemoryRequest
-   */
-  void setMemoryRequest(MemoryRequest memReq);
-  
-  /**
-   * Returns a formatted hex string of an area of this Memory. 
-   * Used primarily for testing.
-   * @param header decriptive header
-   * @param offsetBytes offset bytes relative to this Memory start 
-   * @param lengthBytes number of bytes to convert to a hex string
-   * @return a formatted hex string in a human readable array
-   */
-  String toHexString(String header, long offsetBytes, int lengthBytes);
-
-
-  /**
-   * Tells if this memory is read only
-   * @return true if this memory is read only
-   */
-  boolean isReadOnly();
+  Object array();
 
   /**
    * Returns a read-only version of this memory
    * @return a read-only version of this memory
    */
   Memory asReadOnlyMemory();
+
+  /**
+   * Returns the backing ByteBuffer if there is one, otherwise returns null
+   * @return the backing ByteBuffer if there is one, otherwise returns null
+   */
+  ByteBuffer byteBuffer();
+
+  /**
+   * Returns the start address of this Memory relative to its parent plus the offset in bytes.
+   * <p>
+   * Note that the precise definition of the returned address is slightly different for
+   * {@link NativeMemory#getAddress(long)} as it is the root of the Memory hierarchy and has no
+   * parent.</p>
+   * @param offsetBytes the given offset in bytes from the start address of this Memory
+   * relative to its parent.
+   * @return the start address of this Memory relative to its parent plus the offset in bytes.
+   * @see NativeMemory#getAddress(long)
+   */
+  long getAddress(final long offsetBytes);
+
+  /**
+   * Gets the capacity of this Memory in bytes
+   * @return the capacity of this Memory in bytes
+   */
+  long getCapacity();
+
+  /**
+   * Returns the cumulative offset in bytes of this Memory from the base Memory including the given
+   * offset. If this Memory is derived from Direct memory it will include the raw native address.
+   * If this Memory is derived from a byte or long array it will include the
+   * ARRAY_&lt;TYPE&gt;_BASE_OFFSET.
+   * @param offsetBytes the given offset in bytes
+   * @return the cumulative offset in bytes of this Memory from the base Memory including the given
+   * offset.
+   */
+  long getCumulativeOffset(final long offsetBytes);
+
+  /**
+   * Returns a MemoryRequest or null
+   * @return a MemoryRequest or null
+   */
+  MemoryRequest getMemoryRequest();
+
+  /**
+   * Returns the root NativeMemory, which could also be the derived MemoryMappedFile or AllocMemory.
+   * @return the root NativeMemory.
+   */
+  NativeMemory getNativeMemory();
+
+  /**
+   * Gets the parent Memory or backing array. Used internally.
+   * @return the parent Memory.
+   */
+  Object getParent();
+
+  /**
+   * Returns true if this Memory is backed by an on-heap primitive array
+   * @return true if this Memory is backed by an on-heap primitive array
+   */
+  boolean hasArray();
+
+  /**
+   * Returns true if this Memory is backed by a ByteBuffer
+   * @return true if this Memory is backed by a ByteBuffer
+   */
+  boolean hasByteBuffer();
+
+  /**
+   * Returns true if this Memory has a capacity greater than zero
+   * @return true if this Memory has a capacity greater than zero
+   */
+  boolean isAllocated();
+
+  /**
+   * Returns true if the backing memory is direct (off-heap) memory.
+   * @return true if the backing memory is direct (off-heap) memory.
+   */
+  boolean isDirect();
+
+  /**
+   * Returns true if this Memory is read only
+   * @return true if this Memory is read only
+   */
+  boolean isReadOnly();
+
+  /**
+   * Sets a MemoryRequest
+   * @param memReq the MemoryRequest
+   */
+  void setMemoryRequest(MemoryRequest memReq);
+
+  /**
+   * Returns a formatted hex string of an area of this Memory.
+   * Used primarily for testing.
+   * @param header decriptive header
+   * @param offsetBytes offset bytes relative to this Memory start
+   * @param lengthBytes number of bytes to convert to a hex string
+   * @return a formatted hex string in a human readable array
+   */
+  String toHexString(String header, long offsetBytes, int lengthBytes);
 
 }
