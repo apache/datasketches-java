@@ -38,22 +38,22 @@ import static com.yahoo.memory.UnsafeUtil.unsafe;
 import java.nio.ByteBuffer;
 
 /**
- * The NativeMemory class implements the Memory interface and is used to access Java byte arrays, 
+ * The NativeMemory class implements the Memory interface and is used to access Java byte arrays,
  * long arrays and ByteBuffers by presenting them as arguments to the constructors of this class.
- * 
- * <p>The sub-class AllocMemory is used to allocate direct, off-heap native memory, which is then 
- * accessed by the NativeMemory methods. 
- * 
- * <p>These methods extend many of the sun.misc.Unsafe class methods. Unsafe is an internal, 
- * low-level class used by many Java library classes for performance reasons. To achieve high 
+ *
+ * <p>The sub-class AllocMemory is used to allocate direct, off-heap native memory, which is then
+ * accessed by the NativeMemory methods.
+ *
+ * <p>These methods extend many of the sun.misc.Unsafe class methods. Unsafe is an internal,
+ * low-level class used by many Java library classes for performance reasons. To achieve high
  * performance Unsafe DOES NOT do any bounds checking. And for the same performance reasons, the
  * methods in this class DO NOT do any bounds checking when running in a default-configured JVM.
- * However, the methods in this class will perform bounds checking if the JVM is configured to 
- * enable asserts (-ea). Test enviornments such as JUnit and TestNG automatically configure the 
+ * However, the methods in this class will perform bounds checking if the JVM is configured to
+ * enable asserts (-ea). Test enviornments such as JUnit and TestNG automatically configure the
  * JVM to enable asserts. Thus, it is incumbent on the user of this class to make sure that their
  * code is thoroughly tested.  Violating memory bounds can cause memory segment faults, which takes
  * down the JVM and can be very difficult to debug. </p>
- * 
+ *
  * @author Lee Rhodes
  */
 //@SuppressWarnings("restriction")
@@ -73,14 +73,14 @@ public class NativeMemory implements Memory {
   protected volatile long nativeRawStartAddress_;
   protected volatile long capacityBytes_;
   protected volatile MemoryRequest memReq_ = null; //set via AllocMemory
-  
+
   //only sets the finals
   protected NativeMemory(long objectBaseOffset, Object memArray, ByteBuffer byteBuf) {
     objectBaseOffset_ = objectBaseOffset;
     memArray_ = memArray;
     byteBuf_ = byteBuf;
   }
-  
+
   /**
    * Provides access to the given byteArray using Memory interface
    * @param byteArray an on-heap byte array
@@ -94,13 +94,13 @@ public class NativeMemory implements Memory {
     nativeRawStartAddress_ = 0L;
     capacityBytes_ = byteArray.length;
   }
-  
+
   /**
    * Provides access to the given longArray using Memory interface
    * @param longArray an on-heap long array
    */
   public NativeMemory(long[] longArray) {
-    this(ARRAY_LONG_BASE_OFFSET, longArray, null); 
+    this(ARRAY_LONG_BASE_OFFSET, longArray, null);
     if ((longArray == null) || (longArray.length == 0)) {
       throw new IllegalArgumentException(
           "Array must must not be null and have a length greater than zero.");
@@ -108,7 +108,7 @@ public class NativeMemory implements Memory {
     nativeRawStartAddress_ = 0L;
     capacityBytes_ = longArray.length << LONG_SHIFT;
   }
-  
+
   /**
    * Provides access to the backing store of the given ByteBuffer using Memory interface
    * @param byteBuf the given ByteBuffer
@@ -118,7 +118,7 @@ public class NativeMemory implements Memory {
       objectBaseOffset_ = 0L;
       memArray_ = null;
       nativeRawStartAddress_ = ((sun.nio.ch.DirectBuffer)byteBuf).address();
-    } 
+    }
     else { //must have array
       objectBaseOffset_ = ARRAY_BYTE_BASE_OFFSET;
       memArray_ = byteBuf.array();
@@ -127,7 +127,7 @@ public class NativeMemory implements Memory {
     byteBuf_ = byteBuf;
     capacityBytes_ = byteBuf.capacity();
   }
-  
+
   @Override
   public void clear() {
     fill(0, capacityBytes_, (byte) 0);
@@ -143,7 +143,7 @@ public class NativeMemory implements Memory {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
     long unsafeRawAddress = getAddress(offsetBytes);
     int value = unsafe.getByte(memArray_, unsafeRawAddress) & 0XFF;
-    value &= ~bitMask;   
+    value &= ~bitMask;
     unsafe.putByte(memArray_, unsafeRawAddress, (byte)value);
   }
 
@@ -152,11 +152,11 @@ public class NativeMemory implements Memory {
     assertBounds(srcOffsetBytes, lengthBytes, capacityBytes_);
     assertBounds(dstOffsetBytes, lengthBytes, capacityBytes_);
     assert checkOverlap(srcOffsetBytes, dstOffsetBytes, lengthBytes) : "regions must not overlap";
-    
+
     long srcAdd = getAddress(srcOffsetBytes);
     long dstAdd = getAddress(dstOffsetBytes);
     long lenBytes = lengthBytes;
-    
+
     while (lenBytes > 0) {
       long size = (lenBytes > UNSAFE_COPY_THRESHOLD) ? UNSAFE_COPY_THRESHOLD : lenBytes;
       unsafe.copyMemory(memArray_, srcAdd, memArray_, dstAdd, lenBytes);
@@ -176,7 +176,7 @@ public class NativeMemory implements Memory {
     assertBounds(offsetBytes, lengthBytes, capacityBytes_);
     unsafe.setMemory(memArray_, getAddress(offsetBytes), lengthBytes, value);
   }
-  
+
   @Override
   public int getAndAddInt(long offsetBytes, int delta) {
     assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
@@ -233,9 +233,9 @@ public class NativeMemory implements Memory {
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     assertBounds(dstOffset, length, dstArray.length);
     unsafe.copyMemory(
-      memArray_, 
+      memArray_,
       getAddress(offsetBytes),
-      dstArray, 
+      dstArray,
       ARRAY_BOOLEAN_BASE_OFFSET + (dstOffset << BOOLEAN_SHIFT),
       copyBytes);
   }
@@ -253,8 +253,8 @@ public class NativeMemory implements Memory {
     assertBounds(dstOffset, length, dstArray.length);
     unsafe.copyMemory(
       memArray_,
-      getAddress(offsetBytes), 
-      dstArray, 
+      getAddress(offsetBytes),
+      dstArray,
       ARRAY_BYTE_BASE_OFFSET + (dstOffset << BYTE_SHIFT),
       copyBytes);
   }
@@ -271,9 +271,9 @@ public class NativeMemory implements Memory {
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     assertBounds(dstOffset, length, dstArray.length);
     unsafe.copyMemory(
-      memArray_, 
-      getAddress(offsetBytes), 
-      dstArray, 
+      memArray_,
+      getAddress(offsetBytes),
+      dstArray,
       ARRAY_CHAR_BASE_OFFSET + (dstOffset << CHAR_SHIFT),
       copyBytes);
   }
@@ -290,9 +290,9 @@ public class NativeMemory implements Memory {
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     assertBounds(dstOffset, length, dstArray.length);
     unsafe.copyMemory(
-      memArray_,  
-      getAddress(offsetBytes), 
-      dstArray, 
+      memArray_,
+      getAddress(offsetBytes),
+      dstArray,
       ARRAY_DOUBLE_BASE_OFFSET + (dstOffset << DOUBLE_SHIFT),
       copyBytes);
   }
@@ -309,9 +309,9 @@ public class NativeMemory implements Memory {
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     assertBounds(dstOffset, length, dstArray.length);
     unsafe.copyMemory(
-      memArray_,  
+      memArray_,
       getAddress(offsetBytes),
-      dstArray, 
+      dstArray,
       ARRAY_FLOAT_BASE_OFFSET + (dstOffset << FLOAT_SHIFT),
       copyBytes);
   }
@@ -328,9 +328,9 @@ public class NativeMemory implements Memory {
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     assertBounds(dstOffset, length, dstArray.length);
     unsafe.copyMemory(
-      memArray_, 
-      getAddress(offsetBytes), 
-      dstArray, 
+      memArray_,
+      getAddress(offsetBytes),
+      dstArray,
       ARRAY_INT_BASE_OFFSET  + (dstOffset << INT_SHIFT),
       copyBytes);
   }
@@ -347,9 +347,9 @@ public class NativeMemory implements Memory {
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     assertBounds(dstOffset, length, dstArray.length);
     unsafe.copyMemory(
-      memArray_,  
+      memArray_,
       getAddress(offsetBytes),
-      dstArray, 
+      dstArray,
       ARRAY_LONG_BASE_OFFSET + (dstOffset << LONG_SHIFT),
       copyBytes);
   }
@@ -366,9 +366,9 @@ public class NativeMemory implements Memory {
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     assertBounds(dstOffset, length, dstArray.length);
     unsafe.copyMemory(
-      memArray_,  
+      memArray_,
       getAddress(offsetBytes),
-      dstArray, 
+      dstArray,
       ARRAY_SHORT_BASE_OFFSET + (dstOffset << SHORT_SHIFT),
       copyBytes);
   }
@@ -376,7 +376,7 @@ public class NativeMemory implements Memory {
   @Override
   public boolean isAllBitsClear(long offsetBytes, byte bitMask) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
-    int value = ~unsafe.getByte(memArray_, getAddress(offsetBytes)) & bitMask & 0XFF; 
+    int value = ~unsafe.getByte(memArray_, getAddress(offsetBytes)) & bitMask & 0XFF;
     return value == bitMask;
   }
 
@@ -390,7 +390,7 @@ public class NativeMemory implements Memory {
   @Override
   public boolean isAnyBitsClear(long offsetBytes, byte bitMask) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
-    int value = ~unsafe.getByte(memArray_, getAddress(offsetBytes)) & bitMask & 0XFF; 
+    int value = ~unsafe.getByte(memArray_, getAddress(offsetBytes)) & bitMask & 0XFF;
     return value != 0;
   }
 
@@ -415,7 +415,7 @@ public class NativeMemory implements Memory {
     unsafe.copyMemory(
       srcArray,
       ARRAY_BOOLEAN_BASE_OFFSET + (srcOffset << BOOLEAN_SHIFT),
-      memArray_, 
+      memArray_,
       getAddress(offsetBytes),
       copyBytes
       );
@@ -435,7 +435,7 @@ public class NativeMemory implements Memory {
     unsafe.copyMemory(
       srcArray,
       ARRAY_BYTE_BASE_OFFSET + (srcOffset << BYTE_SHIFT),
-      memArray_, 
+      memArray_,
       getAddress(offsetBytes),
       copyBytes
       );
@@ -455,7 +455,7 @@ public class NativeMemory implements Memory {
     unsafe.copyMemory(
       srcArray,
       ARRAY_CHAR_BASE_OFFSET + (srcOffset << CHAR_SHIFT),
-      memArray_, 
+      memArray_,
       getAddress(offsetBytes),
       copyBytes);
   }
@@ -474,7 +474,7 @@ public class NativeMemory implements Memory {
     unsafe.copyMemory(
       srcArray,
       ARRAY_DOUBLE_BASE_OFFSET + (srcOffset << DOUBLE_SHIFT),
-      memArray_, 
+      memArray_,
       getAddress(offsetBytes),
       copyBytes);
   }
@@ -493,7 +493,7 @@ public class NativeMemory implements Memory {
     unsafe.copyMemory(
       srcArray,
       ARRAY_FLOAT_BASE_OFFSET + (srcOffset << FLOAT_SHIFT),
-      memArray_, 
+      memArray_,
       getAddress(offsetBytes),
       copyBytes);
   }
@@ -512,7 +512,7 @@ public class NativeMemory implements Memory {
     unsafe.copyMemory(
       srcArray,
       ARRAY_INT_BASE_OFFSET + (srcOffset << INT_SHIFT),
-      memArray_, 
+      memArray_,
       getAddress(offsetBytes),
       copyBytes);
   }
@@ -531,7 +531,7 @@ public class NativeMemory implements Memory {
     unsafe.copyMemory(
       srcArray,
       ARRAY_LONG_BASE_OFFSET + (srcOffset << LONG_SHIFT),
-      memArray_, 
+      memArray_,
       getAddress(offsetBytes),
       copyBytes);
   }
@@ -545,7 +545,7 @@ public class NativeMemory implements Memory {
   @Override
   public void putShortArray(long offsetBytes, short[] srcArray, int srcOffset, int length) {
     long copyBytes = length << SHORT_SHIFT;
-    assertBounds(srcOffset, length, srcArray.length); 
+    assertBounds(srcOffset, length, srcArray.length);
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     unsafe.copyMemory(
       srcArray,
@@ -578,18 +578,24 @@ public class NativeMemory implements Memory {
     nmr.memReq_ = memReq_;
     return nmr;
   }
-  
+
   @Override
   public ByteBuffer byteBuffer() {
     return byteBuf_;
   }
-  
+
   /**
    * Returns the Unsafe address plus the given offsetBytes. The Unsafe address may be either the
-   * raw native memory address when in direct mode, or the objectBaseOffset if the memArray object 
+   * raw native memory address when in direct mode, or the objectBaseOffset if the memArray object
    * is not null.
+   * <p>
+   * Note that the precise definition of the returned address is slightly different for
+   * {@link Memory#getAddress(long)} as it may have a parent in the Memory hierarchy. Also note
+   * that for this class only, the {@link #getCumulativeOffset(long)} will return the same
+   * result as this method.</p>
    * @param offsetBytes the given offset in bytes from the start address of this Memory.
    * @return the Unsafe address plus the given offsetBytes.
+   * @see Memory#getAddress(long)
    */
   @Override
   public final long getAddress(final long offsetBytes) {
@@ -617,32 +623,32 @@ public class NativeMemory implements Memory {
   public NativeMemory getNativeMemory() {
     return this;
   }
-  
+
   @Override
   public Object getParent() {
     return memArray_;
   }
-  
+
   @Override
   public boolean hasArray() {
     return (memArray_ != null);
   }
-  
+
   @Override
   public boolean hasByteBuffer() {
     return (byteBuf_ != null);
   }
-  
+
   @Override
   public boolean isAllocated() {
     return (capacityBytes_ > 0L);
   }
-  
+
   @Override
   public boolean isDirect() {
     return nativeRawStartAddress_ > 0;
   }
-  
+
   @Override
   public boolean isReadOnly() {
     return false;
@@ -652,7 +658,7 @@ public class NativeMemory implements Memory {
   public void setMemoryRequest(MemoryRequest memReq) {
     memReq_ = memReq;
   }
-  
+
   @Override
   public String toHexString(String header, long offsetBytes, int lengthBytes) {
     StringBuilder sb = new StringBuilder();
@@ -666,15 +672,15 @@ public class NativeMemory implements Memory {
     } else sb.append("null");
     return toHex(sb.toString(), offsetBytes, lengthBytes);
   }
-  
+
   //NativeMemory only methods
-  
+
   /**
    * Copies bytes from a source Memory to the destination Memory.  If the source and destination
-   * are the same Memory use the single Memory copy method.  Nonetheless, if the source and 
-   * destination Memories are derived from the same underlying base Memory, the source and the 
-   * destination regions should not overlap within the base Memory region. 
-   * This is difficult to check at run time, so be warned that this overlap could cause 
+   * are the same Memory use the single Memory copy method.  Nonetheless, if the source and
+   * destination Memories are derived from the same underlying base Memory, the source and the
+   * destination regions should not overlap within the base Memory region.
+   * This is difficult to check at run time, so be warned that this overlap could cause
    * unpredictable results.
    * @param source the source Memory
    * @param srcOffsetBytes the source offset
@@ -682,9 +688,9 @@ public class NativeMemory implements Memory {
    * @param dstOffsetBytes the destination offset
    * @param lengthBytes the number of bytes to copy
    */
-  public static final void copy(final Memory source, final long srcOffsetBytes, 
+  public static final void copy(final Memory source, final long srcOffsetBytes,
       final Memory destination, final long dstOffsetBytes, final long lengthBytes) {
-    
+
     assertBounds(srcOffsetBytes, lengthBytes, source.getCapacity());
     assertBounds(dstOffsetBytes, lengthBytes, destination.getCapacity());
 
@@ -697,7 +703,7 @@ public class NativeMemory implements Memory {
     Object srcParent = (source.isDirect()) ? null : source.getNativeMemory().memArray_;
     Object dstParent = (destination.isDirect()) ? null : destination.getNativeMemory().memArray_;
     long lenBytes = lengthBytes;
-    
+
     while (lenBytes > 0) {
       long chunkBytes = (lenBytes > UNSAFE_COPY_THRESHOLD) ? UNSAFE_COPY_THRESHOLD : lenBytes;
       unsafe.copyMemory(srcParent, srcAdd, dstParent, dstAdd, lenBytes);
@@ -706,27 +712,27 @@ public class NativeMemory implements Memory {
       dstAdd += chunkBytes;
     }
   }
-  
+
   /**
    * This frees this Memory only if it is required. This always sets the capacity to zero
    * and the reference to MemoryRequest to null, which effectively disables this class.
-   * 
+   *
    * <p>It is always safe to call this method when you are done with this class.
    */
   public void freeMemory() {
     if (requiresFree()) {
-        unsafe.freeMemory(nativeRawStartAddress_); 
+        unsafe.freeMemory(nativeRawStartAddress_);
         nativeRawStartAddress_ = 0L;
     }
     capacityBytes_ = 0L;
     memReq_ = null;
   }
-  
+
   //Restricted methods
 
   /**
-   * Returns a formatted hex string of an area of this Memory. 
-   * Used primarily for testing. 
+   * Returns a formatted hex string of an area of this Memory.
+   * Used primarily for testing.
    * @param header a descriptive header
    * @param offsetBytes offset bytes relative to the Memory start
    * @param lengthBytes number of bytes to convert to a hex string
@@ -759,7 +765,7 @@ public class NativeMemory implements Memory {
   }
 
   /**
-   * Returns true if the object requires being freed.  
+   * Returns true if the object requires being freed.
    * This method exists to standardize the check between freeMemory() and finalize()
    *
    * @return true if the object should be freed when it is no longer needed
