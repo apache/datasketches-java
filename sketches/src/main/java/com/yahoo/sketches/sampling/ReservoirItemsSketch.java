@@ -57,10 +57,8 @@ public class ReservoirItemsSketch<T> {
     private int currItemsAlloc_;     // currently allocated array size
     private long itemsSeen_;         // number of items presented to sketch
     private ResizeFactor rf_;        // resize factor
-    private Object[] data_;               // stored sampled data
+    private Object[] data_;          // stored sampled data
 
-
-    @SuppressWarnings("unchecked")
     private ReservoirItemsSketch(final int k, final ResizeFactor rf) {
         // required due to a theorem about lightness during merging
         if (k < 2) {
@@ -376,6 +374,7 @@ public class ReservoirItemsSketch<T> {
      * @param clazz Teh class represented by &lt;T&gt;
      * @return a byte array representation of this sketch
      */
+    @SuppressWarnings("null") // bytes will be null only if empty == true
     public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe, final Class<?> clazz) {
     //public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
         final int preLongs, outBytes;

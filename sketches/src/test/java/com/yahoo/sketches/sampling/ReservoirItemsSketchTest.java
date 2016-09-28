@@ -418,6 +418,10 @@ public class ReservoirItemsSketchTest {
         }
     }
 
+    /**
+     * Wrapper around System.out.println() allowing a simple way to disable logging in tests
+     * @param msg The message to print
+     */
     private static void println(String msg) {
         //System.out.println(msg);
     }

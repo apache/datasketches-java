@@ -194,6 +194,7 @@ public class ReservoirItemsUnion<T> {
      * @param clazz A class to which the items are cast before serialization
      * @return a byte array representation of this union
      */
+    @SuppressWarnings("null") // gadgetBytes will be null only if gadget_ == null AND empty == true
     public byte[] toByteArray(ArrayOfItemsSerDe<T> serDe, Class<?> clazz) {
         final int preLongs, outBytes;
         final boolean empty = gadget_ == null;
