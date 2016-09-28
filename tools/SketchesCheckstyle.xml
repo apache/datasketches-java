@@ -24,16 +24,26 @@
   <property name="severity" value="warning"/>
 
   <property name="fileExtensions" value="java, properties, xml"/>
+  
   <!-- Checks for whitespace                               -->
   <!-- See http://checkstyle.sourceforge.net/config_whitespace.html Note: Does not work with https. -->
   <module name="FileTabCharacter"> <!-- Cannot be under TreeWalker -->
     <property name="eachLine" value="true"/>
   </module>
   
-  <module name="JavadocPackage"/> <!-- Added: Cannot be under TreeWalker -->
-
+  <module name="JavadocPackage"/>
+  
+  <module name="NewlineAtEndOfFile">
+    <property name="lineSeparator" value="lf"/>
+  </module>
+  
   <module name="TreeWalker">
-
+    <!--
+    <module name="TodoComment">
+      <property name="format" value="(//TODO)|(//FIXME)"/>
+    </module>
+    -->
+    
     <module name="OuterTypeFilename"> <!-- Google: default -->
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
@@ -315,8 +325,8 @@
     </module>
     
     <module name="CommentsIndentation">
-      <property name="severity" value="ignore"/>
-      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+      <property name="severity" value="warning"/>
+      <!-- <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/> -->
     </module>
 
     <!-- Added -->

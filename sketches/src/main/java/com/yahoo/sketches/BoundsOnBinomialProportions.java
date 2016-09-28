@@ -178,16 +178,16 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
     return (0.5 * (1.0 + (erf(x / (Math.sqrt(2.0))))));
   }
 
-//@formatter:off
+  //@formatter:off
   // Abramowitz and Stegun formula 7.1.28, p. 88; Claims accuracy of about 7 decimal digits */
   private static double erf_of_nonneg(double x) {
-  // The constants that appear below, formatted for easy checking against the book.
-  //    a1 = 0.07052 30784
-  //    a3 = 0.00927 05272
-  //    a5 = 0.00027 65672
-  //    a2 = 0.04228 20123
-  //    a4 = 0.00015 20143
-  //    a6 = 0.00004 30638
+    // The constants that appear below, formatted for easy checking against the book.
+    //    a1 = 0.07052 30784
+    //    a3 = 0.00927 05272
+    //    a5 = 0.00027 65672
+    //    a2 = 0.04228 20123
+    //    a4 = 0.00015 20143
+    //    a6 = 0.00004 30638
     double a1 = 0.0705230784;
     double a3 = 0.0092705272;
     double a5 = 0.0002765672;
@@ -216,7 +216,7 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
   private static double deltaOfNumStdevs(double kappa) {
     return (normalCDF(-1.0 * kappa));
   }
-//@formatter:on
+  //@formatter:on
   // Formula 26.5.22 on page 945 of Abramowitz & Stegun, which is an approximation
   // of the inverse of the incomplete beta function I_x(a,b) = delta
   // viewed as a scalar function of x.

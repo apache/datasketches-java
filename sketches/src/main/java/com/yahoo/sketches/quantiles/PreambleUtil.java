@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.quantiles;
 
+import static com.yahoo.memory.UnsafeUtil.unsafe;
 import static com.yahoo.sketches.Family.idToFamily;
 import static com.yahoo.sketches.quantiles.Util.LS;
 import static com.yahoo.sketches.quantiles.Util.computeRetainedItems;
@@ -71,16 +72,14 @@ final class PreambleUtil {
   //After Preamble:
   static final int MIN_DOUBLE                 = 16; //to 23 (Only for DoublesSketch)
   static final int MAX_DOUBLE                 = 24; //to 31 (Only for DoublesSketch)
-  
-  //Specific values for this implementation
-  static final int SER_VER                    = 2;
+  static final int COMBINED_BUFFER            = 32; //to 39 (Only for DoublesSketch)
 
   // flag bit masks
   static final int BIG_ENDIAN_FLAG_MASK       = 1;
-  //static final int READ_ONLY_FLAG_MASK        = 2;   //reserved
+  static final int READ_ONLY_FLAG_MASK        = 2;
   static final int EMPTY_FLAG_MASK            = 4;
-  //static final int COMPACT_FLAG_MASK          = 8;   //reserved
-  //static final int ORDERED_FLAG_MASK          = 16;  //reserved
+  static final int COMPACT_FLAG_MASK          = 8;
+  static final int ORDERED_FLAG_MASK          = 16;
   
   static final boolean NATIVE_ORDER_IS_BIG_ENDIAN  = 
       (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
@@ -99,7 +98,8 @@ final class PreambleUtil {
   }
   
   /**
-   * Returns a human readable string summary of the internal state of the given Memory. 
+   * Returns a human readable string summary of the Preamble of the given Memory. If this Memory
+   * image is from a DoublesSketch, the MinValue and MaxValue will also be output. 
    * Used primarily in testing.
    * 
    * @param mem the given Memory
@@ -118,15 +118,20 @@ final class PreambleUtil {
     int flags = mem.getByte(FLAGS_BYTE);
     boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
     String nativeOrder = ByteOrder.nativeOrder().toString();
+    boolean readOnly  = (flags & READ_ONLY_FLAG_MASK) > 0;
     boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
+    boolean compact = (flags & COMPACT_FLAG_MASK) > 0;
+    boolean ordered = (flags & ORDERED_FLAG_MASK) > 0;
     int k = mem.getShort(K_SHORT);
-    short type = mem.getShort(SER_DE_ID_SHORT);
+    short serDeId = mem.getShort(SER_DE_ID_SHORT);
+    boolean doublesSketch = (serDeId == DoublesSketch.ARRAY_OF_DOUBLES_SERDE_ID);
     
-    long n;
-    if (preLongs == 1) {
-      n = 0;
-    } else { // preLongs == 2
-      n = mem.getLong(N_LONG);
+    long n = (preLongs == 1) ? 0L : mem.getLong(N_LONG);
+    double minDouble = Double.POSITIVE_INFINITY;
+    double maxDouble = Double.NEGATIVE_INFINITY;
+    if ((preLongs > 1) && doublesSketch) { // preLongs = 2 or 3
+      minDouble = mem.getDouble(MIN_DOUBLE);
+      maxDouble = mem.getDouble(MAX_DOUBLE);
     } 
     
     StringBuilder sb = new StringBuilder();
@@ -136,92 +141,99 @@ final class PreambleUtil {
     sb.append("Byte  1: Serialization Version: ").append(serVer).append(LS);
     sb.append("Byte  2: Family               : ").append(famName).append(LS);
     sb.append("Byte  3: Flags Field          : ").append(String.format("%02o", flags)).append(LS);
-    sb.append("  BIG_ENDIAN_STORAGE          : ").append(bigEndian).append(LS);
+    sb.append("  BIG ENDIAN                  : ").append(bigEndian).append(LS);
     sb.append("  (Native Byte Order)         : ").append(nativeOrder).append(LS);
+    sb.append("  READ ONLY                   : ").append(readOnly).append(LS);
     sb.append("  EMPTY                       : ").append(empty).append(LS);
+    sb.append("  COMPACT                     : ").append(compact).append(LS);
+    sb.append("  ORDERED                     : ").append(ordered).append(LS);
     sb.append("Bytes  4-5  : K               : ").append(k).append(LS);
-    sb.append("Byte  6: SKETCH_TYPE          : ").append(type).append(LS);
-    //Byte 7 not used
+    sb.append("Byte  6-7: SerDeId            : ").append(serDeId).append(LS);
     if (preLongs == 1) {
       sb.append(" --ABSENT, ASSUMED:").append(LS);
     }
     sb.append("Bytes  8-15 : N                : ").append(n).append(LS);
+    if (doublesSketch) {
+      sb.append("MinDouble                      : ").append(minDouble).append(LS);
+      sb.append("MaxDouble                      : ").append(maxDouble).append(LS);
+    }
     sb.append("Retained Items                 : ").append(computeRetainedItems(k, n)).append(LS);
     sb.append("Total Bytes                    : ").append(mem.getCapacity()).append(LS);
     sb.append("### END SKETCH PREAMBLE SUMMARY").append(LS);
     return sb.toString();
   }
   
-//@formatter:on
+  //@formatter:on
+
+  static int extractPreLongs(final Object arr, final long cumOffset) {
+    return unsafe.getByte(arr, cumOffset + PREAMBLE_LONGS_BYTE) & 0XFF;
+  }
+
+  static int extractSerVer(final Object arr, final long cumOffset) {
+    return unsafe.getByte(arr, cumOffset + SER_VER_BYTE) & 0XFF;
+  }
+
+  static int extractFamilyID(final Object arr, final long cumOffset) {
+    return unsafe.getByte(arr, cumOffset + FAMILY_BYTE) & 0XFF;
+  }
+
+  static int extractFlags(final Object arr, final long cumOffset) {
+    return unsafe.getByte(arr, cumOffset + FLAGS_BYTE) & 0XFF;
+  }
+
+  static int extractK(final Object arr, final long cumOffset) {
+    return unsafe.getShort(arr, cumOffset + K_SHORT) & 0XFFFF;
+  }
+
+  static short extractSerDeId(final Object arr, final long cumOffset) {
+    return unsafe.getShort(arr, cumOffset + SER_DE_ID_SHORT);
+  }
   
-  static int extractPreLongs(final long pre0) {
-    long mask = 0XFFL;
-    return (int) (pre0 & mask);
+  static long extractN(final Object arr, final long cumOffset) {
+    return unsafe.getLong(arr, cumOffset + N_LONG);
   }
   
-  static int extractSerVer(final long pre0) {
-    int shift = SER_VER_BYTE << 3;
-    long mask = 0XFFL;
-    return (int) ((pre0 >>> shift) & mask);
+  static double extractMinDouble(final Object arr, final long cumOffset) {
+    return unsafe.getDouble(arr, cumOffset + MIN_DOUBLE);
   }
   
-  static int extractFamilyID(final long pre0) {
-    int shift = FAMILY_BYTE << 3;
-    long mask = 0XFFL;
-    return (int) ((pre0 >>> shift) & mask);
+  static double extractMaxDouble(final Object arr, final long cumOffset) {
+    return unsafe.getDouble(arr, cumOffset + MAX_DOUBLE);
+  }
+
+  static void insertPreLongs(Object arr, long cumOffset, int value) {
+    unsafe.putByte(arr, cumOffset + PREAMBLE_LONGS_BYTE, (byte) value);
   }
   
-  static int extractFlags(final long pre0) {
-    int shift = FLAGS_BYTE << 3;
-    long mask = 0XFFL;
-    return (int) ((pre0 >>> shift) & mask);
+  static void insertSerVer(Object arr, long cumOffset, int value) {
+    unsafe.putByte(arr, cumOffset + SER_VER_BYTE, (byte) value);
   }
   
-  static int extractK(final long pre1) {
-    int shift = K_SHORT << 3;
-    long mask = 0XFFFFL;
-    return (int) ((pre1 >>> shift) & mask);
+  static void insertFamilyID(Object arr, long cumOffset, int value) {
+    unsafe.putByte(arr, cumOffset + FAMILY_BYTE, (byte) value);
   }
-
-  static short extractSerDeId(final long pre0) {
-    final int shift = SER_DE_ID_SHORT << 3;
-    final long mask = 0XFFFFL;
-    return (short) ((pre0 >>> shift) & mask);
+  
+  static void insertFlags(Object arr, long cumOffset, int value) {
+    unsafe.putByte(arr, cumOffset + FLAGS_BYTE, (byte) value);
   }
-
-  static long insertPreLongs(final int preLongs, final long pre0) {
-    long mask = 0XFFL;
-    return (preLongs & mask) | (~mask & pre0);
+  
+  static void insertK(Object arr, long cumOffset, int value) {
+    unsafe.putShort(arr, cumOffset + K_SHORT, (short) value);
   }
-
-  static long insertSerVer(final int serVer, final long pre0) {
-    int shift = SER_VER_BYTE << 3;
-    long mask = 0XFFL;
-    return ((serVer & mask) << shift) | (~(mask << shift) & pre0);
+  
+  static void insertSerDeId(Object arr, long cumOffset, int value) {
+    unsafe.putShort(arr, cumOffset + SER_DE_ID_SHORT, (short) value);
   }
-
-  static long insertFamilyID(final int familyID, final long pre0) {
-    int shift = FAMILY_BYTE << 3;
-    long mask = 0XFFL;
-    return ((familyID & mask) << shift) | (~(mask << shift) & pre0);
+  
+  static void insertN(Object arr, long cumOffset, long value) {
+    unsafe.putLong(arr, cumOffset + N_LONG, value);
   }
-
-  static long insertFlags(final int flags, final long pre0) {
-    int shift = FLAGS_BYTE << 3;
-    long mask = 0XFFL;
-    return ((flags & mask) << shift) | (~(mask << shift) & pre0);
+  
+  static void insertMinDouble(Object arr, long cumOffset, double value) {
+    unsafe.putDouble(arr, cumOffset + MIN_DOUBLE, value);
   }
-
-  static long insertK(final int k, final long pre0) {
-    int shift = K_SHORT << 3;
-    long mask = 0XFFFFL;
-    return ((k & mask) << shift) | (~(mask << shift) & pre0);
+  
+  static void insertMaxDouble(Object arr, long cumOffset, double value) {
+    unsafe.putDouble(arr, cumOffset + MAX_DOUBLE, value);
   }
-
-  static long insertSerDeId(final short serDeId, final long pre0) {
-    final int shift = SER_DE_ID_SHORT << 3;
-    final long mask = 0XFFFFL;
-    return ((serDeId & mask) << shift) | (~(mask << shift) & pre0);
-  }
-
 }

@@ -134,7 +134,7 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
         "Memory capacity is too small: " + curMemCapBytes + " < " + minReqBytes);
     }
     int curCount = 0;
-//@formatter:off
+    //@formatter:off
     //Build preamble
     long pre0, pre1, thetaLong;
     pre0 = insertPreLongs(preambleLongs, 0L);                   //byte 0
@@ -149,7 +149,7 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
     pre1 = curCount;                                            //bytes 8-11
     pre1 = insertP(p, pre1);                                    //bytes 12-15
     thetaLong = (long)(p * MAX_THETA_LONG_AS_DOUBLE);           //bytes 16-23
-//@formatter:on
+    //@formatter:on
     //Insert preamble into Memory, only responsible for first 3 longs
     long[] preArr = {pre0, pre1, thetaLong};
     dstMem.putLongArray(0, preArr, 0, 3);

@@ -19,7 +19,7 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
   /**
    * The aggregation modes for this Summary
    */
-  public static enum Mode { 
+  public static enum Mode {
     /**
      * The aggregation mode is the summation function
      */
@@ -31,7 +31,8 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
     /**
      * The aggregation mode is the maximum function
      */
-    Max }
+    Max 
+  }
 
   private double value_;
   private final Mode mode_;
@@ -59,7 +60,7 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
       case Max:
         value_ = Double.NEGATIVE_INFINITY;
         break;
-      //default: //This cannot happen and cannot be tested
+        //default: //This cannot happen and cannot be tested
     }
   }
 
@@ -85,7 +86,7 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
     case Max:
       if (value > value_) value_ = value;
       break;
-    //default: //This cannot happen and cannot be tested
+      //default: //This cannot happen and cannot be tested
     }
   }
 

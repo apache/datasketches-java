@@ -343,7 +343,6 @@ public class MemoryRegionTest {
     assertFalse(mr.isReadOnly());
 
     Memory readOnlyMem = mr.asReadOnlyMemory();
-    assertTrue(((Memory)readOnlyMem.getParent()).isReadOnly());
     assertTrue(readOnlyMem.isReadOnly());
 
     for (int i = 0; i < mem.getCapacity(); i++) {

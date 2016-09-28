@@ -12,7 +12,7 @@ import static com.yahoo.sketches.Util.TAB;
 /**
  * @author Kevin Lang
  */
-public class HllSketchBuilder { //TODO will need to add seed and Memory, etc.
+public class HllSketchBuilder { // will need to add seed and Memory, etc.
   private Preamble preamble = null;
   private boolean compressedDense = false;
   private boolean denseMode = false;

@@ -40,10 +40,10 @@ public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
   }
 
   @Override
-  public String[] deserializeFromMemory(Memory mem, int length) {
-    final String[] array = new String[length];
+  public String[] deserializeFromMemory(Memory mem, int numItems) {
+    final String[] array = new String[numItems];
     long offsetBytes = 0;
-    for (int i = 0; i < length; i++) {
+    for (int i = 0; i < numItems; i++) {
       final int strLength = mem.getInt(offsetBytes);
       offsetBytes += Integer.BYTES;
       final byte[] bytes = new byte[strLength];

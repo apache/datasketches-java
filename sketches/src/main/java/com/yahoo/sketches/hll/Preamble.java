@@ -65,9 +65,9 @@ public final class Preamble {
         .setVersion(memory.getByte(1))
         .setFamilyId(memory.getByte(2))
         .setLogConfigK(memory.getByte(3))
-            // Invert the ++ in order to skip over the unused byte.  Some bits are wasted
-            // instead of packing the preamble so that the semantics of the various parts of the
-            // preamble can be aligned across different types of sketches.
+        // Invert the ++ in order to skip over the unused byte.  Some bits are wasted
+        // instead of packing the preamble so that the semantics of the various parts of the
+        // preamble can be aligned across different types of sketches.
         .setFlags(memory.getByte(5));
 
     short seedHash = memory.getShort(6);
@@ -251,7 +251,7 @@ public final class Preamble {
     private byte version = Preamble.PREAMBLE_VERSION;
     private byte familyId = Preamble.HLL_PREAMBLE_FAMILY_ID;
     private byte logConfigK = (byte) Integer.numberOfTrailingZeros(Util.DEFAULT_NOMINAL_ENTRIES);
-    private byte flags; //TODO needs defaults
+    private byte flags; //needs defaults?
     private short seedHash = computeSeedHash(Util.DEFAULT_UPDATE_SEED);
     
     /**
