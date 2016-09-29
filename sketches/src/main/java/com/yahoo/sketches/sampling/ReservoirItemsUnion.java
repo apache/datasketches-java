@@ -1,5 +1,6 @@
 package com.yahoo.sketches.sampling;
 
+import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.sampling.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER;
@@ -18,18 +19,19 @@ import com.yahoo.sketches.SketchesArgumentException;
 /**
  * Class to union reservoir samples of generic items.
  *
- * <p>For efficiency reasons, the unioning process picks one of the two sketches to use as the base. As a result,
- * we provide only a stateful union. Using the same approach for a merge would result in unpredictable side effects on
- * the underlying sketches.</p>
+ * <p>For efficiency reasons, the unioning process picks one of the two sketches to use as the
+ * base. As a result, we provide only a stateful union. Using the same approach for a merge would
+ * result in unpredictable side effects on the underlying sketches.</p>
  *
- * <p>A union object is created with a maximum value of <tt>k</tt>, represented using the ReservoirSize class. The
- * unioning process may cause the actual number of samples to fall below that maximum value, but never to exceed it.
- * The result of a union will be a reservoir where each item from teh global input has a uniform probability
- * of selection, but there are no claims about higher order statistics. For instance, in general all possible
- * permutations of the global input are not equally likely.</p>
+ * <p>A union object is created with a maximum value of <tt>k</tt>, represented using the
+ * ReservoirSize class. The unioning process may cause the actual number of samples to fall below
+ * that maximum value, but never to exceed it. The result of a union will be a reservoir where
+ * each item from teh global input has a uniform probability of selection, but there are no
+ * claims about higher order statistics. For instance, in general all possible permutations of
+ * the global input are not equally likely.</p>
  *
- * <p>If taking the uinon of two reservoirs of different sizes, the output sample will contain no more than
- * MIN(k_1, k_2) samples.</p>
+ * <p>If taking the uinon of two reservoirs of different sizes, the output sample will contain no
+ * more than MIN(k_1, k_2) samples.</p>
  *
  * @author Jon Malkin
  * @author Kevin Lang
@@ -47,7 +49,8 @@ public class ReservoirItemsUnion<T> {
     }
 
     /**
-     * Creates an empty Union with a maximum reservoir capacity of size k, subject to the precision of ReservoirSize
+     * Creates an empty Union with a maximum reservoir capacity of size k, subject to the
+     * precision of ReservoirSize
      * @param <T> The type of item this sketch contains
      * @param maxK The maximum allowed reservoir capacity for any sketches in the union
      * @return A new ReservoirItemsUnion
@@ -64,7 +67,8 @@ public class ReservoirItemsUnion<T> {
      * @param serDe An instance of ArrayOfItemsSerDe
      * @return A ReservoirItemsUnion created from the provided Memory
      */
-    public static <T> ReservoirItemsUnion<T> getInstance(final Memory srcMem, ArrayOfItemsSerDe<T> serDe) {
+    public static <T> ReservoirItemsUnion<T> getInstance(final Memory srcMem,
+                                                         ArrayOfItemsSerDe<T> serDe) {
         Family.RESERVOIR_UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
 
         final int numPreLongs = getAndCheckPreLongs(srcMem);
@@ -79,8 +83,8 @@ public class ReservoirItemsUnion<T> {
 
         if (!preLongsEqMin & !preLongsEqMax) {
             throw new SketchesArgumentException(
-                    "Possible corruption: Non-empty sketch with only " + Family.RESERVOIR.getMinPreLongs()
-                            + "preLongs");
+                    "Possible corruption: Non-empty sketch with only "
+                            + Family.RESERVOIR.getMinPreLongs() + "preLongs");
         }
         if (serVer != SER_VER) {
             throw new SketchesArgumentException(
@@ -100,7 +104,8 @@ public class ReservoirItemsUnion<T> {
     }
 
     /**
-     * Returns the maximum allowed reservoir capacity in this union. The current reservoir capacity may be lower.
+     * Returns the maximum allowed reservoir capacity in this union. The current reservoir
+     * capacity may be lower.
      * @return The maximum allowed reservoir capacity in this union.
      */
     public int getMaxK() {
@@ -118,7 +123,9 @@ public class ReservoirItemsUnion<T> {
         if (sketchIn == null) { return; }
 
         int maxK = ReservoirSize.decodeValue(encodedMaxK_);
-        ReservoirItemsSketch<T> ris = (sketchIn.getK() <= maxK ? sketchIn : sketchIn.downsampledCopy(encodedMaxK_));
+        ReservoirItemsSketch<T> ris = (sketchIn.getK() <= maxK
+                ? sketchIn
+                : sketchIn.downsampledCopy(encodedMaxK_));
 
         // can modify the sketch if we downsampled, otherwise may need to copy it
         if (gadget_ == null) {
@@ -188,8 +195,30 @@ public class ReservoirItemsUnion<T> {
     }
 
     /**
-     * Returns a byte array representation of this union. This method should be used when the array elements are
-     * subclasses of a common base class.
+     * Returns a human-readable summary of the sketch, without data.
+     * @return A string version of the sketch summary
+     */
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        String thisSimpleName = this.getClass().getSimpleName();
+
+        sb.append(LS);
+        sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
+        sb.append("   Max k: ").append(ReservoirSize.decodeValue(encodedMaxK_)).append(LS);
+        if (gadget_ == null) {
+            sb.append("   Gadget is null").append(LS);
+        } else {
+            sb.append("   Gadget summary: ").append(gadget_.toString());
+        }
+        sb.append("### END UNION SUMMARY").append(LS);
+
+        return sb.toString();
+    }
+
+    /**
+     * Returns a byte array representation of this union. This method should be used when the
+     * array elements are subclasses of a common base class.
      * @param serDe An instance of ArrayOfItemsSerDe
      * @param clazz A class to which the items are cast before serialization
      * @return a byte array representation of this union
@@ -215,7 +244,9 @@ public class ReservoirItemsUnion<T> {
         pre0 = PreambleUtil.insertPreLongs(preLongs, pre0);                        // Byte 0
         pre0 = PreambleUtil.insertSerVer(SER_VER, pre0);                           // Byte 1
         pre0 = PreambleUtil.insertFamilyID(Family.RESERVOIR_UNION.getID(), pre0);  // Byte 2
-        pre0 = (empty) ? PreambleUtil.insertFlags(EMPTY_FLAG_MASK, pre0) : PreambleUtil.insertFlags(0, pre0); // Byte 3
+        pre0 = (empty)
+                ? PreambleUtil.insertFlags(EMPTY_FLAG_MASK, pre0)
+                : PreambleUtil.insertFlags(0, pre0);                               // Byte 3
         pre0 = PreambleUtil.insertMaxK(encodedMaxK_, pre0);                        // Bytes 4-5
         pre0 = PreambleUtil.insertSerDeId(serDe.getId(), pre0);
 
@@ -247,12 +278,15 @@ public class ReservoirItemsUnion<T> {
     // WLOG say its the former, then (n_s/k_s < n_t/(k_t - 1)) provided n_t > 0 and k_t > 1
 
     /**
-     * This either merges sketchIn into gadget_ or gadget_ into sketchIn. If merging into sketchIn with isModifiable
-     * set to false, copies elements from sketchIn first, leaving original unchanged.
+     * This either merges sketchIn into gadget_ or gadget_ into sketchIn. If merging into sketchIn
+     * with isModifiable set to false, copies elements from sketchIn first, leaving original
+     * unchanged.
      * @param sketchIn Sketch with new samples from which to draw
-     * @param isModifiable Flag indicating whether sketchIn can be modified (e.g. if it was rebuild from Memory)
+     * @param isModifiable Flag indicating whether sketchIn can be modified (e.g. if it was
+     *                     rebuild from Memory)
      */
-    private void twoWayMergeInternal(final ReservoirItemsSketch<T> sketchIn, final boolean isModifiable) {
+    private void twoWayMergeInternal(final ReservoirItemsSketch<T> sketchIn,
+                                     final boolean isModifiable) {
         if (sketchIn.getN() <= sketchIn.getK()) {
             twoWayMergeInternalStandard(sketchIn);
         } else if (gadget_.getN() < gadget_.getK()) {
@@ -285,7 +319,8 @@ public class ReservoirItemsUnion<T> {
 
     // should be called ONLY by twoWayMergeInternal
     private void twoWayMergeInternalWeighted(final ReservoirItemsSketch<T> source) {
-        assert (gadget_.getN() >= gadget_.getK()); // gadget_ capable of accepting (light) general weights
+        assert (gadget_.getN() >= gadget_.getK()); // gadget_ capable of accepting (light)
+                                                   // general weights
 
         int numSourceSamples = source.getK();
 
@@ -304,7 +339,7 @@ public class ReservoirItemsUnion<T> {
             targetTotal += sourceItemWeight;
 
             double rescaled_one = targetTotal;
-            assert (rescaled_prob < rescaled_one); // Do we want an exception to enforce strict lightness?
+            assert (rescaled_prob < rescaled_one); // Use an exception to enforce strict lightness?
             double rescaled_flip = rescaled_one * SamplingUtil.rand.nextDouble();
             if (rescaled_flip < rescaled_prob) {
                 // Intentionally NOT doing optimization to extract slot number from rescaled_flip.
@@ -315,8 +350,8 @@ public class ReservoirItemsUnion<T> {
         } // end of loop over source samples
 
 
-        // targetTotal was fractional but should now be an integer again. Could validate with low tolerance, but for now
-        // just round to check.
+        // targetTotal was fractional but should now be an integer again. Could validate with low
+        // tolerance, but for now just round to check.
         long checkN = (long) Math.floor(0.5 + targetTotal);
         gadget_.forceIncrementItemsSeen(source.getN());
         assert (checkN == gadget_.getN());

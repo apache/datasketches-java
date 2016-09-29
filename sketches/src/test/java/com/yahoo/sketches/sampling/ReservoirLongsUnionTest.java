@@ -22,6 +22,8 @@ public class ReservoirLongsUnionTest {
 
         // will intentionally break if changing empty union serialization
         assertEquals(unionBytes.length, 8);
+
+        println(rlu.toString());
     }
 
     @Test
@@ -29,7 +31,7 @@ public class ReservoirLongsUnionTest {
         int n = 100;
         int k = 25;
 
-        // crate empty unions
+        // create empty unions
         ReservoirLongsUnion rlu = ReservoirLongsUnion.getInstance(k);
         assertNull(rlu.getResult());
         rlu.update(5);
@@ -50,6 +52,8 @@ public class ReservoirLongsUnionTest {
         rlu = ReservoirLongsUnion.getInstance(rls.getK());
         rlu.update(mem);
         assertNotNull(rlu.getResult());
+
+        println(rlu.toString());
     }
 
      @Test
@@ -195,7 +199,8 @@ public class ReservoirLongsUnionTest {
         fail();
     }
 
-    private static void validateUnionEquality(final ReservoirLongsUnion rlu1, ReservoirLongsUnion rlu2) {
+    private static void validateUnionEquality(final ReservoirLongsUnion rlu1,
+                                              final ReservoirLongsUnion rlu2) {
         assertEquals(rlu1.getMaxK(), rlu2.getMaxK());
 
         ReservoirLongsSketchTest.validateReservoirEquality(rlu1.getResult(), rlu2.getResult());
@@ -209,5 +214,13 @@ public class ReservoirLongsUnionTest {
         }
 
         return rls;
+    }
+
+    /**
+     * Wrapper around System.out.println() allowing a simple way to disable logging in tests
+     * @param msg The message to print
+     */
+    private static void println(String msg) {
+        //System.out.println(msg);
     }
 }
