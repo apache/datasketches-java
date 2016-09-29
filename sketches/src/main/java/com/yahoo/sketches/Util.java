@@ -9,11 +9,11 @@ import static com.yahoo.sketches.hash.MurmurHash3.hash;
 
 /**
  * Common utility functions.
- * 
+ *
  * @author Lee Rhodes
  */
 public final class Util {
-  
+
   /**
    * The smallest Log2 cache size allowed: 32.
    */
@@ -33,39 +33,39 @@ public final class Util {
    * The resize threshold = 0.5; tuned for speed.
    */
   public static final double RESIZE_THRESHOLD = 0.5;
-  
+
   private Util() {}
-  
+
   /**
-   * The default nominal entries is provided as a convenience for those cases where the 
-   * nominal sketch size in number of entries is not provided.  
-   * A sketch of 4096 entries has a Relative Standard Error (RSE) of +/- 1.56% at a confidence of 
-   * 68%; or equivalently, a Relative Error of +/- 3.1% at a confidence of 95.4%. 
+   * The default nominal entries is provided as a convenience for those cases where the
+   * nominal sketch size in number of entries is not provided.
+   * A sketch of 4096 entries has a Relative Standard Error (RSE) of +/- 1.56% at a confidence of
+   * 68%; or equivalently, a Relative Error of +/- 3.1% at a confidence of 95.4%.
    * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">See Default Nominal Entries</a>
    */
   public static final int DEFAULT_NOMINAL_ENTRIES = 4096;
-  
+
   /**
-   * The seed 9001 used in the sketch update methods is a prime number that 
-   * was chosen very early on in experimental testing. Choosing a seed is somewhat arbitrary, and 
-   * the author cannot prove that this particular seed is somehow superior to other seeds.  There 
-   * was some early internet disussion that a seed of 0 did not produce as clean avalanche diagrams 
-   * as non-zero seeds, but this may have been more related to the MurmurHash2 release, which did 
+   * The seed 9001 used in the sketch update methods is a prime number that
+   * was chosen very early on in experimental testing. Choosing a seed is somewhat arbitrary, and
+   * the author cannot prove that this particular seed is somehow superior to other seeds.  There
+   * was some early internet disussion that a seed of 0 did not produce as clean avalanche diagrams
+   * as non-zero seeds, but this may have been more related to the MurmurHash2 release, which did
    * have some issues. As far as the author can determine, MurmurHash3 does not have these problems.
-   * 
+   *
    * <p>In order to perform set operations on two sketches it is critical that the same hash
-   * function and seed are identical for both sketches, otherwise the assumed 1:1 relationship 
-   * between the original source key value and the hashed bit string would be violated. Once 
+   * function and seed are identical for both sketches, otherwise the assumed 1:1 relationship
+   * between the original source key value and the hashed bit string would be violated. Once
    * you have developed a history of stored sketches you are stuck with it.
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">See Default Update Seed</a>
    */
   public static final long DEFAULT_UPDATE_SEED = 9001L;
-  
+
   /**
    * The java line separator character as a String.
    */
   public static final String LS = System.getProperty("line.separator");
-  
+
   /**
    * The tab character
    */
@@ -95,10 +95,10 @@ public final class Util {
     short seedHash = (short)((hash(seedArr, 0L)[0]) & 0xFFFFL);
     if (seedHash == 0) {
       throw new SketchesArgumentException(
-          "The given seed: " + seed + " produced a seedHash of zero. " 
+          "The given seed: " + seed + " produced a seedHash of zero. "
               + "You must choose a different seed.");
     }
-    return seedHash; 
+    return seedHash;
   }
 
   /**
@@ -113,7 +113,7 @@ public final class Util {
     throw new SketchesArgumentException("The value of the parameter \"" + argName
       + "\" must be a positive multiple of 8 and greater than zero: " + v);
   }
-  
+
   /**
    * Returns true if v is a multiple of 8 and greater than zero
    * @param v The parameter to check
@@ -122,10 +122,10 @@ public final class Util {
   public static boolean isMultipleOf8AndGT0(long v) {
     return (((v & 0X7L) == 0L) && (v > 0L));
   }
-  
+
   /**
    * Returns true if argument is exactly a positive power of 2 and greater than zero.
-   * 
+   *
    * @param v The input argument.
    * @return true if argument is exactly a positive power of 2 and greater than zero.
    */
@@ -136,7 +136,7 @@ public final class Util {
   /**
    * Checks the given parameter to make sure it is positive, an integer-power of 2 and greater than
    * zero.
-   * 
+   *
    * @param v The input argument.
    * @param argName Used in the thrown exception.
    */
@@ -147,7 +147,7 @@ public final class Util {
     throw new SketchesArgumentException("The value of the parameter \"" + argName
         + "\" must be a positive integer-power of 2" + " and greater than 0: " + v);
   }
-  
+
   /**
    * Checks the given value if it is a power of 2. If not, it throws an exception.
    * Otherwise, returns the log-base2 of the given value.
@@ -159,12 +159,12 @@ public final class Util {
     checkIfPowerOf2(value, argName);
     return Integer.numberOfTrailingZeros(value);
   }
-  
+
   /**
    * Checks the given parameter to make sure it is positive and between 0.0 inclusive and 1.0
    * inclusive.
-   * 
-   * @param p 
+   *
+   * @param p
    * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
    * @param argName Used in the thrown exception.
    */
@@ -186,7 +186,7 @@ public final class Util {
    * <li>n == a power of 2 : returns n</li>
    * <li>otherwise returns the smallest power of 2 greater than n</li>
    * </ul>
-   * 
+   *
    * @param n The input argument.
    * @return the ceiling power of 2.
    */
@@ -206,7 +206,7 @@ public final class Util {
    * <li>n == a power of 2 : returns n</li>
    * <li>otherwise returns the largest power of 2 less than n</li>
    * </ul>
-   * 
+   *
    * @param n The given argument.
    * @return the floor power of 2.
    */
@@ -214,7 +214,7 @@ public final class Util {
     if (n <= 1) { return 1; }
     return Integer.highestOneBit(n);
   }
-  
+
   /**
    * Unsigned compare with longs.
    * @param n1 A long to be treated as if unsigned.
@@ -224,11 +224,11 @@ public final class Util {
   public static boolean isLessThanUnsigned(long n1, long n2) {
     return (n1 < n2) ^ ((n1 < 0) != (n2 < 0));
   }
-  
+
   /**
-   * Gets the smallest allowed exponent of 2 that it is a sub-multiple of the target by zero, 
+   * Gets the smallest allowed exponent of 2 that it is a sub-multiple of the target by zero,
    * one or more resize factors.
-   * 
+   *
    * @param lgTarget Log2 of the target size
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @param lgMin Log2 of the minimum allowed starting size
@@ -238,28 +238,55 @@ public final class Util {
     int lgRF = rf.lg();
     return (lgTarget <= lgMin) ? lgMin : (lgRF == 0) ? lgTarget : (lgTarget - lgMin) % lgRF + lgMin;
   }
-  
+
   /**
-   * Prepend the given string with zeros.
+   * Prepend the given string with zeros. If the given string is equal or greater than the given
+   * field length, it will be returned without modification.
    * @param s the given string
-   * @param fieldLength desired total field length including the string
-   * @return a string front padded with zeros.
+   * @param fieldLength desired total field length including the given string
+   * @return the given string prepended with zeros.
    */
   public static final String zeroPad(String s, int fieldLength) {
+    return characterPad(s, fieldLength, '0', false);
+  }
+
+  /**
+   * Prepend or postpend the given string with the given character to fill the given field length.
+   * If the given string is equal or greater than the given field length, it will be returned
+   * without modification.
+   * @param s the given string
+   * @param fieldLength the desired field length
+   * @param padChar the desired pad character
+   * @param postpend if true append the pacCharacters to the end of the string.
+   * @return prepended or postpended given string with the given character to fill the given field
+   * length.
+   */
+  public static final String characterPad(String s, int fieldLength, char padChar,
+      boolean postpend) {
     char[] chArr = s.toCharArray();
     int sLen = chArr.length;
     if (sLen < fieldLength) {
-      char[] out = new char[fieldLength]; 
-      int zeros = fieldLength - sLen;
-      for (int i = 0; i < zeros; i++) {
-        out[i] = '0';
+      char[] out = new char[fieldLength];
+      int blanks = fieldLength - sLen;
+
+      if (postpend) {
+        for (int i = 0; i < sLen; i++) {
+          out[i] = chArr[i];
+        }
+        for (int i = sLen; i < fieldLength; i++) {
+          out[i] = padChar;
+        }
+      } else { //prepend
+        for (int i = 0; i < blanks; i++) {
+          out[i] = padChar;
+        }
+        for (int i = blanks; i < fieldLength; i++) {
+          out[i] = chArr[i - blanks];
+        }
       }
-      for (int i = zeros; i < fieldLength; i++) {
-        out[i] = chArr[i - zeros];
-      }
+
       return String.valueOf(out);
     }
     return s;
   }
-  
 }
