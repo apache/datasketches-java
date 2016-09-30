@@ -21,83 +21,83 @@ import com.yahoo.sketches.Util;
  * @author jmalkin
  */
 final class ReservoirSize {
-    /**
-     * Number of bins per power of two.
-     */
-    static final int BINS_PER_OCTAVE = 2048;
+  /**
+   * Number of bins per power of two.
+   */
+  static final int BINS_PER_OCTAVE = 2048;
 
-    /**
-     * Precomputed inverse values for efficiency
-     */
-    private static final double INV_BINS_PER_OCTAVE = 1.0 / BINS_PER_OCTAVE;
-    private static final double INV_LN_2 = 1.0 / Math.log(2.0);
+  /**
+   * Precomputed inverse values for efficiency
+   */
+  private static final double INV_BINS_PER_OCTAVE = 1.0 / BINS_PER_OCTAVE;
+  private static final double INV_LN_2 = 1.0 / Math.log(2.0);
 
-    /**
-     * Values for encoding/decoding
-     */
-    private static final int EXPONENT_MASK = 0x1F;
-    private static final int EXPONENT_SHIFT = 11;
-    private static final int INDEX_MASK = 0x07FF;
-    private static final int OUTPUT_MASK = 0xFFFF;
-    private static final int MAX_ABS_VALUE = 2146959360;
-    private static final int MAX_ENC_VALUE = 0xF7FF; // p=30, i=2047
+  /**
+   * Values for encoding/decoding
+   */
+  private static final int EXPONENT_MASK = 0x1F;
+  private static final int EXPONENT_SHIFT = 11;
+  private static final int INDEX_MASK = 0x07FF;
+  private static final int OUTPUT_MASK = 0xFFFF;
+  private static final int MAX_ABS_VALUE = 2146959360;
+  private static final int MAX_ENC_VALUE = 0xF7FF; // p=30, i=2047
 
-    private ReservoirSize() {}
+  private ReservoirSize() {}
 
-    /**
-     * Given target reservoir size k, computes the smallest representable reservoir size that can
-     * hold k entries and returns it in a 16-bit fixed-point format as a <tt>short</tt>.
-     *
-     * @param k target reservoir size
-     * @return reservoir size as 16-bit encoded value
-     */
-    static short computeSize(final int k) throws SketchesArgumentException {
-        if (k < 1 || k > MAX_ABS_VALUE) {
-            throw new SketchesArgumentException("Can only encode strictly positive sketch sizes "
-                    + "less than " + MAX_ABS_VALUE + ", found: " + k);
-        }
-
-        int p = Util.toLog2(Util.floorPowerOf2(k), "computeSize: p");
-
-        // because of floor() + 1 below, need to check power of 2 here
-        if (Util.isPowerOf2(k)) {
-            return (short) (((p & EXPONENT_MASK) << EXPONENT_SHIFT) & OUTPUT_MASK);
-        }
-
-        // mantissa is scalar in range [1,2); can reconstruct k as m * 2^p
-        double m = Math.pow(2.0, Math.log(k) * INV_LN_2 - p);
-
-        // Convert to index offset: ceil(m * BPO) - BPO
-        // Typically in range range 0-(BINS_PER_OCTAVE-1) (but see note below)
-        int i = (int) Math.floor(m * BINS_PER_OCTAVE) - BINS_PER_OCTAVE + 1;
-
-        // Due to ceiling, possible to overflow BINS_PER_OCTAVE
-        // E.g., if BPO = 2048 then for k=32767 we have p=14. Except that 32767 > decodeValue
-        // (p=14, i=2047)=32756, so we encode and return p+1
-        if (i == BINS_PER_OCTAVE) {
-            return (short) ((((p + 1) & EXPONENT_MASK) << EXPONENT_SHIFT) & OUTPUT_MASK);
-        }
-
-        return (short) (((p & EXPONENT_MASK) << EXPONENT_SHIFT) | (i & INDEX_MASK) & OUTPUT_MASK);
+  /**
+   * Given target reservoir size k, computes the smallest representable reservoir size that can
+   * hold k entries and returns it in a 16-bit fixed-point format as a <tt>short</tt>.
+   *
+   * @param k target reservoir size
+   * @return reservoir size as 16-bit encoded value
+   */
+  static short computeSize(final int k) throws SketchesArgumentException {
+    if (k < 1 || k > MAX_ABS_VALUE) {
+      throw new SketchesArgumentException("Can only encode strictly positive sketch sizes "
+              + "less than " + MAX_ABS_VALUE + ", found: " + k);
     }
 
-    /**
-     * Decodes the 16-bit reservoir size value into an int.
-     *
-     * @param encodedSize Encoded 16-bit value
-     * @return int represented by <tt>encodedSize</tt>
-     */
-    static int decodeValue(final short encodedSize) {
-        int value = encodedSize & 0xFFFF;
+    int p = Util.toLog2(Util.floorPowerOf2(k), "computeSize: p");
 
-        if (value > MAX_ENC_VALUE) {
-            throw new SketchesArgumentException("Maximum valid encoded value is "
-                    + Integer.toHexString(MAX_ENC_VALUE) + ", found: " + value);
-        }
-
-        int p = (value >> EXPONENT_SHIFT) & EXPONENT_MASK;
-        int i = value & INDEX_MASK;
-
-        return (int) ((1 << p) * (i * INV_BINS_PER_OCTAVE + 1.0));
+    // because of floor() + 1 below, need to check power of 2 here
+    if (Util.isPowerOf2(k)) {
+      return (short) (((p & EXPONENT_MASK) << EXPONENT_SHIFT) & OUTPUT_MASK);
     }
+
+    // mantissa is scalar in range [1,2); can reconstruct k as m * 2^p
+    double m = Math.pow(2.0, Math.log(k) * INV_LN_2 - p);
+
+    // Convert to index offset: ceil(m * BPO) - BPO
+    // Typically in range range 0-(BINS_PER_OCTAVE-1) (but see note below)
+    int i = (int) Math.floor(m * BINS_PER_OCTAVE) - BINS_PER_OCTAVE + 1;
+
+    // Due to ceiling, possible to overflow BINS_PER_OCTAVE
+    // E.g., if BPO = 2048 then for k=32767 we have p=14. Except that 32767 > decodeValue
+    // (p=14, i=2047)=32756, so we encode and return p+1
+    if (i == BINS_PER_OCTAVE) {
+      return (short) ((((p + 1) & EXPONENT_MASK) << EXPONENT_SHIFT) & OUTPUT_MASK);
+    }
+
+    return (short) (((p & EXPONENT_MASK) << EXPONENT_SHIFT) | (i & INDEX_MASK) & OUTPUT_MASK);
+  }
+
+  /**
+   * Decodes the 16-bit reservoir size value into an int.
+   *
+   * @param encodedSize Encoded 16-bit value
+   * @return int represented by <tt>encodedSize</tt>
+   */
+  static int decodeValue(final short encodedSize) {
+    int value = encodedSize & 0xFFFF;
+
+    if (value > MAX_ENC_VALUE) {
+      throw new SketchesArgumentException("Maximum valid encoded value is "
+              + Integer.toHexString(MAX_ENC_VALUE) + ", found: " + value);
+    }
+
+    int p = (value >> EXPONENT_SHIFT) & EXPONENT_MASK;
+    int i = value & INDEX_MASK;
+
+    return (int) ((1 << p) * (i * INV_BINS_PER_OCTAVE + 1.0));
+  }
 }
