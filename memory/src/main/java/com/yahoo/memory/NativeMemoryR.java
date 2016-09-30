@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 
 /**
  * Read-only version of NativeMemory
- * 
+ *
  * @author Praveenkumar Venkatesan
  */
 class NativeMemoryR extends NativeMemory {
@@ -27,7 +27,7 @@ class NativeMemoryR extends NativeMemory {
     public void clearBits(long offsetBytes, byte bitMask) {
         throw new ReadOnlyMemoryException();
     }
-    
+
     @Override
     public void copy(long srcOffsetBytes, long dstOffsetBytes, long lengthBytes) {
         throw new ReadOnlyMemoryException();
@@ -42,27 +42,27 @@ class NativeMemoryR extends NativeMemory {
     public void fill(byte value) {
         throw new ReadOnlyMemoryException();
     }
-    
+
     @Override
     public int getAndAddInt(long offsetBytes, int delta) {
         throw new ReadOnlyMemoryException();
     }
-    
+
     @Override
     public long getAndAddLong(long offsetBytes, long delta) {
         throw new ReadOnlyMemoryException();
     }
-    
+
     @Override
     public int getAndSetInt(long offsetBytes, int newValue) {
         throw new ReadOnlyMemoryException();
     }
-    
+
     @Override
     public long getAndSetLong(long offsetBytes, long newValue) {
         throw new ReadOnlyMemoryException();
     }
-    
+
     @Override
     public void putBoolean(long offsetBytes, boolean srcValue) {
         throw new ReadOnlyMemoryException();
@@ -149,50 +149,39 @@ class NativeMemoryR extends NativeMemory {
     }
 
     //Non-data Memory interface methods
-    
+
     @Override
     public Object array() {
       throw new ReadOnlyMemoryException();
     }
-    
+
+    //asReadOnlyMemory() //OK
+
     @Override
-    public Memory asReadOnlyMemory() { //TODO ?? essentially a copy method
+    public ByteBuffer byteBuffer() { //TODO if BB is already RO this should be OK
       throw new ReadOnlyMemoryException();
     }
-    
-    @Override
-    public ByteBuffer byteBuffer() {
-      throw new ReadOnlyMemoryException();
-    }
-    
-    //getAddress() cannot be overridden, but harmless
-    //getCapacity() OK
-    
-    @Override
-    public long getCumulativeOffset(final long offsetBytes) { //why would this be needed
-      throw new ReadOnlyMemoryException();
-    }
-    
-    @Override
-    public MemoryRequest getMemoryRequest() { //why would this be needed
-      throw new ReadOnlyMemoryException();
-    }
+
+    //getAddress() //cannot be overridden, but harmless
+    //getCapacity() //OK
+    //getCumulativeOffset() //OK
+    //getMemoryRequest() //OK
 
     @Override
     public NativeMemory getNativeMemory() {
       throw new ReadOnlyMemoryException();
     }
-    
+
     @Override
     public Object getParent() {
       throw new ReadOnlyMemoryException();
     }
-    
+
     //hasArray() OK
     //hasByteBuffer() OK
     //isAllocated() OK
     //isDirect() OK
-    
+
     @Override
     public boolean isReadOnly() {
         return true;
@@ -202,11 +191,11 @@ class NativeMemoryR extends NativeMemory {
     public void setMemoryRequest(MemoryRequest memReq) {
         throw new ReadOnlyMemoryException();
     }
-    
+
     //toHexString OK
-    
+
     //copy Memory to Memory OK, Checks if destination is writable.
-    
+
     @Override
     public void freeMemory() {
         throw new ReadOnlyMemoryException();
