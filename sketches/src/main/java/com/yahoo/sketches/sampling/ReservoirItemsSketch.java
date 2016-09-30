@@ -367,6 +367,7 @@ public class ReservoirItemsSketch<T> {
      * Returns a human-readable summary of the sketch, without data.
      * @return A string version of the sketch summary
      */
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
