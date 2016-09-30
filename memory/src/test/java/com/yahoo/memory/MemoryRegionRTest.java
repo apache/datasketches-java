@@ -10,7 +10,7 @@ import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
-public class NativeMemoryRTest {
+public class MemoryRegionRTest {
 
   private static final byte B0 = 0;
   private static final char C0 = 0;
@@ -31,7 +31,8 @@ public class NativeMemoryRTest {
   @Test
   public void checkIllegalMethods() {
     NativeMemory mem = new NativeMemory(new byte[8]);
-    NativeMemoryR ro = (NativeMemoryR) mem.asReadOnlyMemory();
+    MemoryRegion reg = new MemoryRegion(mem, 0, mem.getCapacity());
+    MemoryRegionR ro = (MemoryRegionR) reg.asReadOnlyMemory();
     try {
       ro.clear();
       fail();
@@ -269,20 +270,13 @@ public class NativeMemoryRTest {
     } catch (ReadOnlyMemoryException e) {
       /* pass */
     }
-
-    try {
-      ro.freeMemory();
-      fail();
-    } catch (ReadOnlyMemoryException e) {
-      /* pass */
-    }
-
   }
 
   @Test
   public void checkLegalMethods() {
     NativeMemory mem = new NativeMemory(new byte[8]);
-    NativeMemoryR ro = (NativeMemoryR) mem.asReadOnlyMemory();
+    MemoryRegion reg = new MemoryRegion(mem, 0, mem.getCapacity());
+    MemoryRegionR ro = (MemoryRegionR) reg.asReadOnlyMemory();
     assertTrue(ro.isReadOnly());
   }
 
