@@ -19,7 +19,7 @@ import java.util.Map;
  */
 public enum Family {
   /**
-   * The Alpha Sketch algorithm is a member of the Theta Sketch Framework of sketches and is best 
+   * The Alpha Sketch family is a member of the Theta Sketch Framework of sketches and is best 
    * suited for real-time processes where both the updating of the sketch and getting the estimate 
    * is performed directly on the sketch.  In this situation the AlphaSketch has roughly a 
    * 30% improvement (~1/sqrt(2*k)) in its error distribution as compared to the QuickSelect 
@@ -37,7 +37,7 @@ public enum Family {
   ALPHA(1, "Alpha", 3, 3),
   
   /**
-   * The QuickSelect Sketch algorithm is a member of the Theta Sketch Framework of sketches and 
+   * The QuickSelect Sketch family is a member of the Theta Sketch Framework of sketches and 
    * is the workhorse of the Theta Sketch Families and can be constructed for either on-heap or 
    * off-heap operation. 
    * The QuickSelect Sketch is created using the UpdateSketch.builder().
@@ -46,61 +46,64 @@ public enum Family {
   QUICKSELECT(2, "QuickSelect", 3, 3),
   
   /**
-   * The compact family of sketches.  The compact sketches are never created 
-   * directly with a constructor or Builder.  Instead they are created as a result of the compact() 
+   * The Compact Sketch family is a member of the Theta Sketch Framework of sketches.  
+   * The are read-only and cannot be updated, but can participate in any of the Set Operations.
+   * The compact sketches are never created directly with a constructor or Builder.  
+   * Instead they are created as a result of the compact() 
    * method of an UpdateSketch or as a result of a getResult() of a SetOperation.
    */
   COMPACT(3, "Compact", 1, 3),
   
   /**
-   * The family of Union set operations.
+   * The Union family is an operation for the Theta Sketch Framework of sketches.
    * The Union is constructed using the SetOperation.builder().
    */
   UNION(4, "Union", 4, 4),
   
   /**
-   * The family of Intersection set operations.
+   * The Intersection family is an operation for the Theta Sketch Framework of sketches.
    * The Intersection is constructed using the SetOperation.builder().
    */
   INTERSECTION(5, "Intersection", 3, 3),
   
   /**
-   * The family of A-and-not-B set operations.
+   * The A and not B family is an operation for the Theta Sketch Framework of sketches.
    * The AnotB operation is constructed using the SetOperation.builder().
    */
   A_NOT_B(6, "AnotB", 3, 3),
   
   /**
-   * The HLL family of sketches, which is not part of the Theta Sketch Framework.
+   * The HLL family of sketches. (Not part of TSF.)
    */
   HLL(7, "HLL", 1, 1),
   
   /**
-   * The Quantiles family of sketches.
+   * The Quantiles family of sketches. (Not part of TSF.)
    */
   QUANTILES(8, "QUANTILES", 1, 2),
   
   /**
-   * The Tuple family of sketches
+   * The Tuple family of sketches is a large family of sketches that are extensions of the
+   * Theta Sketch Framework.
    */
   TUPLE(9, "TUPLE", 1, 1),
   
   /**
-   * The Frequency family of sketches
+   * The Frequency family of sketches. (Not part of TSF.)
    */
   FREQUENCY(10, "FREQUENCY", 1, 4),
-
+  
   /**
-   * The reservoir sampling family of sketches, which is not part of the Theta Sketch Framework
+   * The Reservoir family of sketches. (Not part of TSF.)
    */
   RESERVOIR(11, "RESERVOIR", 1, 2),
-
+  
   /**
-   * The reservoir sampling family of Union operations.
+   * The reservoir sampling family of Union operations. (Not part of TSF.)
    */
   RESERVOIR_UNION(12, "RESERVOIR_UNION", 1, 1);
 
-    private static final Map<Integer, Family> lookupID = new HashMap<Integer, Family>();
+  private static final Map<Integer, Family> lookupID = new HashMap<Integer, Family>();
   private static final Map<String, Family> lookupFamName = new HashMap<String, Family>();
   private int id_;
   private String famName_;
