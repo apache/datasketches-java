@@ -99,7 +99,7 @@ public class ReservoirItemsUnionTest {
     assertNotNull(riu.getResult());
   }
 
-  @SuppressWarnings("null") // this is the point of the test
+  //@SuppressWarnings("null") // this is the point of the test
   @Test(expectedExceptions = NullPointerException.class)
   public void checkNullMemoryInstantiation() {
     ReservoirItemsUnion.getInstance(null, new ArrayOfStringsSerDe());

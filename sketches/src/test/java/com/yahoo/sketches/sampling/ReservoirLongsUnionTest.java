@@ -91,7 +91,7 @@ public class ReservoirLongsUnionTest {
     validateUnionEquality(rlu, rebuiltUnion);
   }
 
-  @SuppressWarnings("null") // this is the point of the test
+  //@SuppressWarnings("null") // this is the point of the test
   @Test(expectedExceptions = java.lang.NullPointerException.class)
   public void checkNullMemoryInstantiation() {
     ReservoirLongsUnion.getInstance(null);
