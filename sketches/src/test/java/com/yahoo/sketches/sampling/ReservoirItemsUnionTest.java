@@ -94,6 +94,10 @@ public class ReservoirItemsUnionTest {
     riu.update(null, new ArrayOfLongsSerDe());
     assertNull(riu.getResult());
 
+    // null item
+    riu.update((Long) null);
+    assertNull(riu.getResult());
+
     // valid input
     riu.update(5L);
     assertNotNull(riu.getResult());

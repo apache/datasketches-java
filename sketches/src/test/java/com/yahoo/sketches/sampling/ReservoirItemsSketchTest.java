@@ -307,6 +307,10 @@ public class ReservoirItemsSketchTest {
     int k = 20;
     short tgtIdx = 5;
     ReservoirItemsSketch<Short> ris = ReservoirItemsSketch.getInstance(k);
+
+    ris.update(null);
+    assertEquals(ris.getN(), 0);
+
     for (short i = 0; i < k; ++i) {
       ris.update(i);
     }

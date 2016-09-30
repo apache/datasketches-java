@@ -305,6 +305,9 @@ public class ReservoirItemsSketch<T> {
       throw new SketchesStateException("Sketch has exceeded capacity for total items seen: "
               + MAX_ITEMS_SEEN);
     }
+    if (item == null) {
+      return;
+    }
 
     if (itemsSeen_ < reservoirSize_) { // initial phase, take the first reservoirSize_ items
       if (itemsSeen_ >= currItemsAlloc_) {

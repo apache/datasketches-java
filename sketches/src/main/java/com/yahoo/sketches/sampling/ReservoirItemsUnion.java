@@ -174,6 +174,10 @@ public class ReservoirItemsUnion<T> {
    * @param datum The given datum of type T.
    */
   public void update(T datum) {
+    if (datum == null) {
+      return;
+    }
+
     if (gadget_ == null) {
       int maxK = ReservoirSize.decodeValue(encodedMaxK_);
       gadget_ = ReservoirItemsSketch.getInstance(maxK);
