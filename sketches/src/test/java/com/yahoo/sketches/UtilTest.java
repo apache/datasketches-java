@@ -5,6 +5,7 @@
 package com.yahoo.sketches;
 
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
+import static com.yahoo.sketches.Util.characterPad;
 import static com.yahoo.sketches.Util.checkIfMultipleOf8AndGT0;
 import static com.yahoo.sketches.Util.checkIfPowerOf2;
 import static com.yahoo.sketches.Util.checkProbability;
@@ -45,7 +46,7 @@ public class UtilTest {
     try {
       checkIfPowerOf2(7, "Test 7");
       Assert.fail("Expected SketchesArgumentException");
-    } 
+    }
     catch (SketchesArgumentException e) {
       //pass
     }
@@ -74,26 +75,26 @@ public class UtilTest {
     Assert.assertEquals(floorPowerOf2((1 << 30)), (1 << 30));
     Assert.assertEquals(floorPowerOf2((1 << 30) + 1), (1 << 30));
   }
-  
+
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkIfMultipleOf8AndGTzero() {
     checkIfMultipleOf8AndGT0(8, "test");
     checkIfMultipleOf8AndGT0(7, "test");
   }
-  
+
   @Test
   public void checkIsMultipleOf8AndGT0() {
     Assert.assertTrue(isMultipleOf8AndGT0(8));
     Assert.assertFalse(isMultipleOf8AndGT0(7));
     Assert.assertFalse(isMultipleOf8AndGT0(-1));
   }
-  
+
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkIfMultipleOf8AndGTzero2() {
     checkIfMultipleOf8AndGT0(8, "test");
     checkIfMultipleOf8AndGT0(-1, "test");
   }
-  
+
   @Test
   public void checkIsLessThanUnsigned() {
     long n1 = 1;
@@ -107,7 +108,7 @@ public class UtilTest {
     Assert.assertFalse(Util.isLessThanUnsigned(n3, n2));
     Assert.assertFalse(Util.isLessThanUnsigned(n4, n3));
   }
-  
+
   @Test
   public void checkPrintln() {
     print("com.yahoo.sketches.UtilTest"); println(".checkPrintln():");
@@ -122,53 +123,60 @@ public class UtilTest {
     String out = zeroPad(vHex, 16);
     println(out);
   }
-  
+
+  @Test
+  public void checkCharacterPad() {
+    String s = "Sleeping ... ";
+    String out = characterPad(s, 20, 'z', true);
+    println(out);
+  }
+
   @Test
   public void checkProbabilityFn1() {
     checkProbability(.5, "Good");
   }
-  
+
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkProbabilityFn2() {
     checkProbability(-.5, "Too Low");
   }
-  
+
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkProbabilityFn3() {
     checkProbability(1.5, "Too High");
   }
-  
+
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
-  
+
   /**
-   * @param s value to print 
+   * @param s value to print
    */
   static void println(String s) {
     //System.out.println(s); //disable here
   }
-  
+
   /**
-   * @param d value to print 
+   * @param d value to print
    */
   static void println(double d) {
     //System.out.println(d); //disable here
   }
-  
+
   /**
-   * @param s value to print 
+   * @param s value to print
    */
   static void print(String s) {
     //System.out.println(s); //disable here
   }
-  
+
   /**
-   * @param d value to print 
+   * @param d value to print
    */
   static void print(double d) {
     //System.out.println(d); //disable here
   }
-  
+
 }

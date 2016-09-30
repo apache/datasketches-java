@@ -24,12 +24,12 @@ import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * Implements the DoublesSketch on the Java heap.
- * 
+ *
  * @author Kevin Lang
  * @author Lee Rhodes
  */
 final class HeapDoublesSketch extends DoublesSketch {
-  
+
   /**
    * The smallest value ever seen in the stream.
    */
@@ -47,18 +47,18 @@ final class HeapDoublesSketch extends DoublesSketch {
 
   /**
    * Number of samples currently in base buffer.
-   * 
+   *
    * <p>Count = N % (2*K)
    */
   int baseBufferCount_;
 
   /**
    * Active levels expressed as a bit pattern.
-   * 
+   *
    * <p>Pattern = N / (2 * K)
    */
   long bitPattern_;
-  
+
   /**
    * In the initial on-heap version, equals combinedBuffer_.length.
    * May differ in later versions that grow space more aggressively.
@@ -66,14 +66,14 @@ final class HeapDoublesSketch extends DoublesSketch {
    * so it won't know its own length.
    */
   int combinedBufferItemCapacity_;
-  
+
   /**
    * This single array contains the base buffer plus all levels some of which may not be used.
    * A level is of size K and is either full and sorted, or not used. A "not used" buffer may have
    * garbage. Whether a level buffer used or not is indicated by the bitPattern_.
    * The base buffer has length 2*K but might not be full and isn't necessarily sorted.
-   * The base buffer precedes the level buffers. 
-   * 
+   * The base buffer precedes the level buffers.
+   *
    * The levels arrays require quite a bit of explanation, which we defer until later.
    */
   double[] combinedBuffer_;
@@ -82,11 +82,11 @@ final class HeapDoublesSketch extends DoublesSketch {
   private HeapDoublesSketch(int k) {
     super(k);
   }
-  
+
   /**
    * Obtains a new instance of a DoublesSketch.
-   * 
-   * @param k Parameter that controls space usage of sketch and accuracy of estimates. 
+   *
+   * @param k Parameter that controls space usage of sketch and accuracy of estimates.
    * Must be greater than 2 and less than 65536 and a power of 2.
    * @return a HeapQuantileSketch
    */
@@ -116,8 +116,8 @@ final class HeapDoublesSketch extends DoublesSketch {
     }
     long cumOffset = srcMem.getCumulativeOffset(0L);
     Object memArr = srcMem.array(); //may be null
-    
-    //Extract the preamble first 8 bytes 
+
+    //Extract the preamble first 8 bytes
     int preLongs = extractPreLongs(memArr, cumOffset);
     int serVer = extractSerVer(memArr, cumOffset);
     int familyID = extractFamilyID(memArr, cumOffset);
@@ -127,7 +127,7 @@ final class HeapDoublesSketch extends DoublesSketch {
 
     //VALIDITY CHECKS
     DoublesUtil.checkDoublesSerVer(serVer);
-    
+
     if (serDeId != ARRAY_OF_DOUBLES_SERDE_ID) {
       throw new SketchesArgumentException(
       "Possible Corruption: serDeId incorrect: " + serDeId + " != " + ARRAY_OF_DOUBLES_SERDE_ID);
@@ -137,7 +137,7 @@ final class HeapDoublesSketch extends DoublesSketch {
 
     HeapDoublesSketch hds = newInstance(k); //checks k
     if (empty) { return hds; }
-    
+
     //Not empty, must have valid preamble + min, max, n.
     //Forward compatibility from SerVer = 2 :
     boolean compact = (serVer == 2) | ((flags & COMPACT_FLAG_MASK) > 0);
@@ -151,7 +151,7 @@ final class HeapDoublesSketch extends DoublesSketch {
     hds.baseBufferCount_ = computeBaseBufferItems(k, n);
     hds.bitPattern_ = computeBitPattern(k, n);
     hds.combinedBuffer_ = new double[hds.combinedBufferItemCapacity_];
-    
+
     //Extract min, max, data from srcMem into Combined Buffer
     hds.srcMemoryToCombinedBuffer(compact, srcMem);
     return hds;
@@ -163,7 +163,7 @@ final class HeapDoublesSketch extends DoublesSketch {
     if (Double.isNaN(dataItem)) return;
     double maxValue = getMaxValue();
     double minValue = getMinValue();
-    
+
     if (dataItem > maxValue) { putMaxValue(dataItem); }
     if (dataItem < minValue) { putMinValue(dataItem); }
 
@@ -193,12 +193,12 @@ final class HeapDoublesSketch extends DoublesSketch {
   public long getN() {
     return n_;
   }
-  
+
   @Override
   public boolean isEmpty() {
     return (n_ == 0);
   }
-  
+
   @Override
   public double getMinValue() {
     return minValue_;
@@ -219,9 +219,9 @@ final class HeapDoublesSketch extends DoublesSketch {
     minValue_ = Double.POSITIVE_INFINITY;
     maxValue_ = Double.NEGATIVE_INFINITY;
   }
-  
+
   /**
-   * Loads the Combined Buffer, min and max from the given source Memory. 
+   * Loads the Combined Buffer, min and max from the given source Memory.
    * The Combined Buffer is always in non-compact form and must be pre-allocated.
    * @param compact true if the given source Memory is in compact form
    * @param srcMem the given source Memory
@@ -239,11 +239,11 @@ final class HeapDoublesSketch extends DoublesSketch {
     //Load min, max
     putMinValue(extractMinDouble(memArr, cumOffset));
     putMaxValue(extractMaxDouble(memArr, cumOffset));
-    
+
     if (compact) {
       //Load base buffer
       srcMem.getDoubleArray(preBytes, combinedBuffer, 0, bbCnt);
-      
+
       //Load levels from compact srcMem
       long bits = bitPattern_;
       if (bits != 0) {
@@ -264,11 +264,11 @@ final class HeapDoublesSketch extends DoublesSketch {
       srcMem.getDoubleArray(preBytes, combinedBuffer, 0, totItems);
     }
   }
-  
+
   /**
    * From an existing sketch, this creates a new heap sketch that can have a smaller value of K.
    * The original sketch is not modified.
-   * 
+   *
    * @param smallerK the new sketch's value of K that must be smaller than this value of K.
    * It is required that this.getK() = smallerK * 2^(nonnegative integer).
    * @return the new sketch.
@@ -280,26 +280,14 @@ final class HeapDoublesSketch extends DoublesSketch {
     DoublesMergeImpl.downSamplingMergeInto(oldSketch, newSketch);
     return newSketch;
   }
-  
-  @Override
-  public void putMemory(Memory dstMem, boolean sort) {
-    byte[] byteArr = toByteArray(sort);
-    int arrLen = byteArr.length;
-    long memCap = dstMem.getCapacity();
-    if (memCap < arrLen) {
-      throw new SketchesArgumentException(
-          "Destination Memory not large enough: " + memCap + " < " + arrLen);
-    }
-    dstMem.putByteArray(0, byteArr, 0, arrLen);
-  }
-  
+
   //Restricted overrides
-  
+
   @Override
   int getBaseBufferCount() {
     return baseBufferCount_;
   }
-  
+
   @Override
   int getCombinedBufferItemCapacity() {
     return combinedBufferItemCapacity_;
@@ -309,45 +297,45 @@ final class HeapDoublesSketch extends DoublesSketch {
   double[] getCombinedBuffer() {
     return combinedBuffer_;
   }
-  
+
   @Override
   void putCombinedBuffer(double[] combinedBuffer) {
     combinedBuffer_ = combinedBuffer;
   }
-  
+
   @Override
   void putMinValue(double minValue) {
     minValue_ = minValue;
   }
-  
+
   @Override
   void putMaxValue(double maxValue) {
     maxValue_ = maxValue;
   }
-  
+
   @Override
   void putN(long n) {
     n_ = n;
   }
-  
+
   @Override
   void putCombinedBufferItemCapacity(int combBufItemCap) {
     combinedBufferItemCapacity_ = combBufItemCap;
   }
-  
+
   @Override
   void putBaseBufferCount(int baseBufferCount) {
     baseBufferCount_ = baseBufferCount;
   }
-  
+
   @Override
   void putBitPattern(long bitPattern) {
     bitPattern_ = bitPattern;
   }
-  
+
   @Override
   Memory getMemory() {
     return null;
   }
-  
+
 } // End of class HeapDoublesSketch

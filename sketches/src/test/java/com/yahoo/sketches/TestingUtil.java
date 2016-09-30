@@ -93,6 +93,38 @@ public class TestingUtil {
     return sb.toString();
   }
 
+  /**
+   * Returns the given time in nanoseconds formatted as Sec.mSec uSec nSec
+   * @param nS the given nanoseconds
+   * @return the given time in nanoseconds formatted as Sec.mSec uSec nSec
+   */
+  public static String nanoSecToString(long nS) {
+    long rem_nS = (long)(nS % 1000.0);
+    long rem_uS = (long)((nS / 1000.0) % 1000.0);
+    long rem_mS = (long)((nS / 1000000.0) % 1000.0);
+    long sec    = (long)(nS / 1000000000.0);
+    String nSstr = zeroPad(Long.toString(rem_nS), 3);
+    String uSstr = zeroPad(Long.toString(rem_uS), 3);
+    String mSstr = zeroPad(Long.toString(rem_mS), 3);
+    return String.format("%d.%3s %3s %3s", sec, mSstr, uSstr, nSstr);
+  }
+
+  /**
+   * Returns the given time in milliseconds formatted as Hours:Min:Sec.mSec
+   * @param mS the given nanoseconds
+   * @return the given time in milliseconds formatted as Hours:Min:Sec.mSec
+   */
+  public static String milliSecToString(long mS) {
+    long rem_mS = (long)(mS % 1000.0);
+    long rem_sec = (long)((mS / 1000.0) % 60.0);
+    long rem_min = (long)((mS / 60000.0) % 60.0);
+    long hr  =     (long)(mS / 3600000.0);
+    String mSstr = zeroPad(Long.toString(rem_mS), 3);
+    String secStr = zeroPad(Long.toString(rem_sec), 2);
+    String minStr = zeroPad(Long.toString(rem_min), 2);
+    return String.format("%d:%2s:%2s.%3s", hr, minStr, secStr, mSstr);
+  }
+
   //@Test
   public static void testMilliSec() {
     int hr = 1;
@@ -111,28 +143,6 @@ public class TestingUtil {
     int nS = 123;
     long nSec = nS + 1000*uS + 1000000*mS + 1000000000L*sec;
     println(nanoSecToString(nSec));
-  }
-
-  public static String nanoSecToString(long nS) {
-    long rem_nS = (long)(nS % 1000.0);
-    long rem_uS = (long)((nS / 1000.0) % 1000.0);
-    long rem_mS = (long)((nS / 1000000.0) % 1000.0);
-    long sec    = (long)(nS / 1000000000.0);
-    String nSstr = zeroPad(Long.toString(rem_nS), 3);
-    String uSstr = zeroPad(Long.toString(rem_uS), 3);
-    String mSstr = zeroPad(Long.toString(rem_mS), 3);
-    return String.format("%d.%3s %3s %3s", sec, mSstr, uSstr, nSstr);
-  }
-
-  public static String milliSecToString(long mS) {
-    long rem_mS = (long)(mS % 1000.0);
-    long rem_sec = (long)((mS / 1000.0) % 60.0);
-    long rem_min = (long)((mS / 60000.0) % 60.0);
-    long hr  =     (long)(mS / 3600000.0);
-    String mSstr = zeroPad(Long.toString(rem_mS), 3);
-    String secStr = zeroPad(Long.toString(rem_sec), 2);
-    String minStr = zeroPad(Long.toString(rem_min), 2);
-    return String.format("%d:%2s:%2s.%3s", hr, minStr, secStr, mSstr);
   }
 
   //@Test

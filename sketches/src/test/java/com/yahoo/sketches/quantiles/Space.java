@@ -9,18 +9,17 @@ import static com.yahoo.sketches.quantiles.Util.LS;
 
 /**
  * Utility functions for computing space consumed by the QuantileSketch.
- * 
+ *
  * @author Kevin Lang
  * @author Lee Rhodes
  */
 public final class Space {
-  
-  
+
   private Space() {}
-  
+
   /**
-   * Returns a pretty print string of a table of the maximum sizes of a QuantileSketch 
-   * data structure configured as a single array over a range of <i>n</i> and <i>k</i>. 
+   * Returns a pretty print string of a table of the maximum sizes of a QuantileSketch
+   * data structure configured as a single array over a range of <i>n</i> and <i>k</i>.
    * @param lgKlo the starting value of k expressed as log_base2(k)
    * @param lgKhi the ending value of k expressed as log_base2(k)
    * @param maxLgN the ending value of N expressed as log_base2(N)
@@ -68,18 +67,18 @@ public final class Space {
     }
     return sb.toString();
   }
-  
+
   //External calls
   private static int elemCapacity(int k, long n) {
     return (n == 0)? 8 : (Util.computeExpandedCombinedBufferItemCapacity(k, n) + 4) * Double.BYTES;
   }
-  
+
   private static double getEpsilon(int k) {
     return Util.EpsilonFromK.getAdjustedEpsilon(k);
   }
-  
+
   /**
-   * Pretty prints a table of the maximum sizes of a QuantileSketch 
+   * Pretty prints a table of the maximum sizes of a QuantileSketch
    * data structure configured as a single array over a range of <i>n</i> and <i>k</i> and given
    * an element size of 8 bytes.
    * @param args Not used.
@@ -87,6 +86,6 @@ public final class Space {
   public static void main(String[] args) {
     println(spaceTableGuide(4, 15, 32));
   }
-  
+
   static void println(String s) { System.out.println(s); }
 }
