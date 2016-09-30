@@ -27,6 +27,8 @@ public class ReservoirItemsUnionTest {
 
         // will intentionally break if changing empty union serialization
         assertEquals(unionBytes.length, 8);
+
+        println(riu.toString());
     }
 
     @Test
@@ -56,6 +58,8 @@ public class ReservoirItemsUnionTest {
         riu = ReservoirItemsUnion.getInstance(ris.getK());
         riu.update(mem, serDe);
         assertNotNull(riu.getResult());
+
+        println(riu.toString());
     }
 
     @Test
@@ -246,5 +250,13 @@ public class ReservoirItemsUnionTest {
         }
 
         return rls;
+    }
+
+    /**
+     * Wrapper around System.out.println() allowing a simple way to disable logging in tests
+     * @param msg The message to print
+     */
+    private static void println(String msg) {
+        //System.out.println(msg);
     }
 }

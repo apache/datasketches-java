@@ -1,5 +1,6 @@
 package com.yahoo.sketches.sampling;
 
+import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractFamilyID;
@@ -26,8 +27,8 @@ import com.yahoo.sketches.Util;
 
 
 /**
- * This sketch provides a reservoir sample over an input stream of items. The sketch contains a uniform
- * random sample of data over the items presented to it.
+ * This sketch provides a reservoir sample over an input stream of items. The sketch contains a
+ * uniform random sample of unweighted items fromt eh stream.
  *
  * @param <T> The type of object held in the reservoir.
  *
@@ -42,8 +43,8 @@ public class ReservoirItemsSketch<T> {
     private static final int MIN_LG_ARR_LONGS = 4;
 
     /**
-     * Using 48 bits to capture number of items seen, so sketch cannot process more after this many items
-     * capacity
+     * Using 48 bits to capture number of items seen, so sketch cannot process more after this
+     * many items capacity
      */
     private static final long MAX_ITEMS_SEEN = 0xFFFFFFFFFFFFL;
 
@@ -79,7 +80,8 @@ public class ReservoirItemsSketch<T> {
     }
 
     /**
-     * Creates a fully-populated sketch. Used internally to avoid extraneous array allocation when deserializing.
+     * Creates a fully-populated sketch. Used internally to avoid extraneous array allocation
+     * when deserializing.
      * Uses size of data array to as initial array allocation.
      * @param data Reservoir data as an <tt>Object[]</tt>
      * @param itemsSeen Number of items presented to the sketch so far
@@ -103,7 +105,8 @@ public class ReservoirItemsSketch<T> {
         if ((itemsSeen >= reservoirSize && data.length < reservoirSize)
                 || (itemsSeen < reservoirSize && data.length < itemsSeen)) {
             throw new SketchesArgumentException("Instantiating sketch with too few samples. Items seen: "
-                    + itemsSeen + ", max reservoir size: " + reservoirSize + ", data array length: " + data.length);
+                    + itemsSeen + ", max reservoir size: " + reservoirSize
+                    + ", data array length: " + data.length);
         }
 
         // Should we compute target current allocation to validate?
@@ -116,7 +119,8 @@ public class ReservoirItemsSketch<T> {
     }
 
     /**
-     * Fast constructor for fully-specified sketch with no encoded/decoding size and no validation. Used with copy().
+     * Fast constructor for fully-specified sketch with no encoded/decoding size and no
+     * validation. Used with copy().
      * @param reservoirSize Maximum reservoir capacity
      * @param encodedResSize Maximum reservoir capacity encoded into fixed-point format
      * @param currItemsAlloc Current array size (assumed equal to data.length)
@@ -124,8 +128,9 @@ public class ReservoirItemsSketch<T> {
      * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
      * @param data Data array backing the reservoir, will <em>not</em> be copied
      */
-    private ReservoirItemsSketch(final int reservoirSize, final short encodedResSize, final int currItemsAlloc,
-                                 final long itemsSeen, final ResizeFactor rf, final T[] data) {
+    private ReservoirItemsSketch(final int reservoirSize, final short encodedResSize,
+                                 final int currItemsAlloc, final long itemsSeen,
+                                 final ResizeFactor rf, final T[] data) {
         this.reservoirSize_ = reservoirSize;
         this.encodedResSize_ = encodedResSize;
         this.currItemsAlloc_ = currItemsAlloc;
@@ -135,10 +140,12 @@ public class ReservoirItemsSketch<T> {
     }
 
     /**
-     * Construct a mergeable sampling sample sketch with up to k samples using the default resize factor (8).
+     * Construct a mergeable sampling sample sketch with up to k samples using the default resize
+     * factor (8).
      *
-     * @param k Maximum size of sampling. Allocated size may be smaller until sampling fills. Unlike many sketches
-     *          in this package, this value does <em>not</em> need to be a power of 2.
+     * @param k Maximum size of sampling. Allocated size may be smaller until sampling fills.
+     *          Unlike many sketches in this package, this value does <em>not</em> need to be a
+     *          power of 2.
      * @param <T> The type of object held in the reservoir.
      * @return A ReservoirLongsSketch initialized with maximum size k and the default resize factor.
      * */
@@ -147,10 +154,12 @@ public class ReservoirItemsSketch<T> {
     }
 
     /**
-     * Construct a mergeable sampling sample sketch with up to k samples using the default resize factor (8).
+     * Construct a mergeable sampling sample sketch with up to k samples using the default resize
+     * factor (8).
      *
-     * @param k Maximum size of sampling. Allocated size may be smaller until sampling fills. Unlike many sketches
-     *          in this package, this value does <em>not</em> need to be a power of 2.
+     * @param k Maximum size of sampling. Allocated size may be smaller until sampling fills.
+     *          Unlike many sketches in this package, this value does <em>not</em> need to be a
+     *          power of 2.
      * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
      * @param <T> The type of object held in the reservoir.
      * @return A ReservoirLongsSketch initialized with maximum size k and resize factor rf.
@@ -183,7 +192,8 @@ public class ReservoirItemsSketch<T> {
      * @return a sketch instance of this class
      */
     @SuppressWarnings("unchecked") // forcing for the whole method seems sub-optimal
-    public static <T> ReservoirItemsSketch<T> getInstance(final Memory srcMem, ArrayOfItemsSerDe<T> serDe) {
+    public static <T> ReservoirItemsSketch<T> getInstance(final Memory srcMem,
+                                                          ArrayOfItemsSerDe<T> serDe) {
         final int numPreLongs = getAndCheckPreLongs(srcMem);
         final long pre0 = srcMem.getLong(0);
         final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(pre0));
@@ -200,8 +210,8 @@ public class ReservoirItemsSketch<T> {
 
         if (!preLongsEqMin & !preLongsEqMax) {
             throw new SketchesArgumentException(
-                    "Possible corruption: Non-empty sketch with only " + Family.RESERVOIR.getMinPreLongs()
-                            + "preLongs");
+                    "Possible corruption: Non-empty sketch with only "
+                            + Family.RESERVOIR.getMinPreLongs() + "preLongs");
         }
         if (serVer != SER_VER) {
             throw new SketchesArgumentException(
@@ -255,8 +265,8 @@ public class ReservoirItemsSketch<T> {
     }
 
     /**
-     * Returns the sketch's value of <i>k</i>, the maximum number of samples stored in the reservoir. The current
-     * number of items in the sketch may be lower.
+     * Returns the sketch's value of <i>k</i>, the maximum number of samples stored in the
+     * reservoir. The current number of items in the sketch may be lower.
      *
      * @return k, the maximum number of samples in the reservoir
      */
@@ -274,7 +284,8 @@ public class ReservoirItemsSketch<T> {
     }
 
     /**
-     * Returns the current number of items in the reservoir, which may be smaller than the reservoir capacity.
+     * Returns the current number of items in the reservoir, which may be smaller than the
+     * reservoir capacity.
      * @return the number of items currently in the reservoir
      */
     public int getNumSamples() {
@@ -288,10 +299,11 @@ public class ReservoirItemsSketch<T> {
      */
     public void update(T item) {
         if (itemsSeen_ == MAX_ITEMS_SEEN) {
-            throw new SketchesStateException("Sketch has exceeded capacity for total items seen: " + MAX_ITEMS_SEEN);
+            throw new SketchesStateException("Sketch has exceeded capacity for total items seen: "
+                    + MAX_ITEMS_SEEN);
         }
 
-        if (itemsSeen_ < reservoirSize_) { // code for initial phase where we take the first reservoirSize_ items
+        if (itemsSeen_ < reservoirSize_) { // initial phase, take the first reservoirSize_ items
             if (itemsSeen_ >= currItemsAlloc_) {
                 growReservoir();
             }
@@ -311,12 +323,12 @@ public class ReservoirItemsSketch<T> {
     }
 
     /**
-     * Returns a copy of the items in the reservoir, or null if empty. The returned array length may be smaller than
-     * the reservoir capacity.
+     * Returns a copy of the items in the reservoir, or null if empty. The returned array length
+     * may be smaller than the reservoir capacity.
      *
-     * <p>In order to allocate an array of generic type T, uses the class of the first item in the array. This method
-     * method may throw an <tt>ArrayAssignmentException</tt> if the reservoir stores instances of a polymorphic base
-     * class.</p>
+     * <p>In order to allocate an array of generic type T, uses the class of the first item in
+     * the array. This method method may throw an <tt>ArrayAssignmentException</tt> if the
+     * reservoir stores instances of a polymorphic base class.</p>
      *
      * @return A copy of the reservoir array
      */
@@ -326,16 +338,15 @@ public class ReservoirItemsSketch<T> {
         }
 
         return getSamples(data_[0].getClass());
-        //return Arrays.copyOf(data_, getNumSamples());
     }
 
     /**
-     * Returns a copy of the items in the reservoir as members of Class <em>clazz</em>, or null if empty. The returned
-     * array length may be smaller than the reservoir capacity.
+     * Returns a copy of the items in the reservoir as members of Class <em>clazz</em>, or null
+     * if empty. The returned array length may be smaller than the reservoir capacity.
      *
-     * <p>This method allocates an array of class <em>clazz</em>, which must either match or extend T. This method
-     * should be used when objects in the array are all instances of T but are not necessarily instances of the
-     * base class.</p>
+     * <p>This method allocates an array of class <em>clazz</em>, which must either match or
+     * extend T. This method should be used when objects in the array are all instances of T but
+     * are not necessarily instances of the base class.</p>
      *
      * @param clazz A class to which the items are cast before returning
      * @return A copy of the reservoir array
@@ -353,11 +364,31 @@ public class ReservoirItemsSketch<T> {
     }
 
     /**
+     * Returns a human-readable summary of the sketch, without data.
+     * @return A string version of the sketch summary
+     */
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        String thisSimpleName = this.getClass().getSimpleName();
+
+        sb.append(LS);
+        sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
+        sb.append("   k            : ").append(reservoirSize_).append(LS);
+        sb.append("   n            : ").append(itemsSeen_).append(LS);
+        sb.append("   Current size : ").append(currItemsAlloc_).append(LS);
+        sb.append("   Resize factor: ").append(rf_).append(LS);
+        sb.append("### END SKETCH SUMMARY").append(LS);
+
+        return sb.toString();
+    }
+
+    /**
      * Returns a byte array representation of this sketch. May fail for polymorphic item types.
      * @param serDe An instance of ArrayOfItemsSerDe
      * @return a byte array representation of this sketch
      */
-
     public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
         if (itemsSeen_ == 0) {
             // null class is ok since empty -- no need to call serDe
@@ -368,8 +399,8 @@ public class ReservoirItemsSketch<T> {
     }
 
     /**
-     * Returns a byte array representation of this sketch. Copies contents into an array of the specified class for
-     * serialization to allow for polymorphic types.
+     * Returns a byte array representation of this sketch. Copies contents into an array of the
+     * specified class for serialization to allow for polymorphic types.
      * @param serDe An instance of ArrayOfItemsSerDe
      * @param clazz Teh class represented by &lt;T&gt;
      * @return a byte array representation of this sketch
@@ -398,7 +429,9 @@ public class ReservoirItemsSketch<T> {
         pre0 = PreambleUtil.insertResizeFactor(rf_.lg(), pre0);
         pre0 = PreambleUtil.insertSerVer(SER_VER, pre0);                     // Byte 1
         pre0 = PreambleUtil.insertFamilyID(Family.RESERVOIR.getID(), pre0);  // Byte 2
-        pre0 = (empty) ? PreambleUtil.insertFlags(EMPTY_FLAG_MASK, pre0) : PreambleUtil.insertFlags(0, pre0); // Byte 3
+        pre0 = (empty)
+                ? PreambleUtil.insertFlags(EMPTY_FLAG_MASK, pre0)
+                : PreambleUtil.insertFlags(0, pre0);                         // Byte 3
         pre0 = PreambleUtil.insertReservoirSize(encodedResSize_, pre0);      // Bytes 4-5
         pre0 = PreambleUtil.insertSerDeId(serDe.getId(), pre0);              // Bytes 6-7
 
@@ -429,7 +462,8 @@ public class ReservoirItemsSketch<T> {
     }
 
     /**
-     * Useful during union operations to avoid copying the data array around if only updating a few points.
+     * Useful during union operations to avoid copying the data array around if only updating a
+     * few points.
      * @param pos The position from which to retrieve the element
      * @return The value in the reservoir at position <tt>pos</tt>
      */
@@ -439,39 +473,40 @@ public class ReservoirItemsSketch<T> {
             throw new SketchesArgumentException("Requested element from empty reservoir.");
         }
         else if (pos < 0 || pos >= getNumSamples()) {
-            throw new SketchesArgumentException("Requested position must be between 0 and " + getNumSamples() + ", "
-                    + "inclusive. Received: " + pos);
+            throw new SketchesArgumentException("Requested position must be between 0 and "
+                    + getNumSamples() + ", " + "inclusive. Received: " + pos);
         }
 
         return (T) data_[pos];
     }
 
     /**
-     * Useful during union operation to force-insert a value into the union gadget. Does <em>NOT</em> increment count
-     * of items seen.
+     * Useful during union operation to force-insert a value into the union gadget. Does
+     * <em>NOT</em> increment count of items seen.
      * @param value The entry to store in the reservoir
      * @param pos The position at which to store the entry
      */
     void insertValueAtPosition(T value, int pos) {
         if (pos < 0 || pos >= getNumSamples()) {
-            throw new SketchesArgumentException("Insert position must be between 0 and " + getNumSamples() + ", "
-                    + "inclusive. Received: " + pos);
+            throw new SketchesArgumentException("Insert position must be between 0 and "
+                    + getNumSamples() + ", " + "inclusive. Received: " + pos);
         }
 
         data_[pos] = value;
     }
 
     /**
-     * Used during union operations to update count of items seen. Does <em>NOT</em> check sign, but will throw an
-     * exception if the final result exceeds the maximum possible items seen value.
+     * Used during union operations to update count of items seen. Does <em>NOT</em> check sign,
+     * but will throw an exception if the final result exceeds the maximum possible items seen
+     * value.
      * @param inc The value added
      */
     void forceIncrementItemsSeen(final long inc) {
         itemsSeen_ += inc;
 
         if (itemsSeen_ > MAX_ITEMS_SEEN) {
-            throw new SketchesStateException("Sketch has exceeded capacity for total items seen. Limit: "
-                    + MAX_ITEMS_SEEN + ", found: " + itemsSeen_);
+            throw new SketchesStateException("Sketch has exceeded capacity for total items seen. "
+                    + "Limit: " + MAX_ITEMS_SEEN + ", found: " + itemsSeen_);
         }
     }
 
@@ -483,23 +518,24 @@ public class ReservoirItemsSketch<T> {
     @SuppressWarnings("unchecked")
     ReservoirItemsSketch<T> copy() {
         T[] dataCopy = Arrays.copyOf((T[]) data_, currItemsAlloc_);
-        return new ReservoirItemsSketch<>(reservoirSize_, encodedResSize_, currItemsAlloc_, itemsSeen_, rf_, dataCopy);
+        return new ReservoirItemsSketch<>(reservoirSize_, encodedResSize_, currItemsAlloc_,
+                                          itemsSeen_, rf_, dataCopy);
     }
 
     // Note: the downsampling approach may appear strange but avoids several edge cases
     //   Q1: Why not just permute samples and then take the first "newK" of them?
     //   A1: We're assuming the sketch source is read-only
-    //   Q2: Why not copy the source sketch, permute samples, then truncate the sample array and reduce k?
-    //   A2: That would involve allocating memory proportional to the old k. Even if only a temporary violation of
-    //       maxK, we're avoiding violating it at all.
+    //   Q2: Why not copy the source sketch, permute samples, then truncate the sample array and
+    //       reduce k?
+    //   A2: That would involve allocating memory proportional to the old k. Even if only a
+    //       temporary violation of maxK, we're avoiding violating it at all.
     ReservoirItemsSketch<T> downsampledCopy(final short encMaxK) {
         int tgtSize = ReservoirSize.decodeValue(encMaxK);
 
-        // TODO: avoid resizes by using ResizeFactor.X1 if reservoir already full
         ReservoirItemsSketch<T> ris = new ReservoirItemsSketch<>(tgtSize, rf_);
         for (T item : getSamples()) {
-            // Pretending old implicit weights are all 1. Not true in general, but they're all equal so update should
-            // work properly as long as we update itemsSeen_ at the end.
+            // Pretending old implicit weights are all 1. Not true in general, but they're all
+            // equal so update should work properly as long as we update itemsSeen_ at the end.
             ris.update(item);
         }
 
@@ -512,11 +548,11 @@ public class ReservoirItemsSketch<T> {
     }
 
     /**
-     * Increases allocated sampling size by (adjusted) ResizeFactor and copies data from old sampling.
+     * Increases allocated sampling size by (adjusted) ResizeFactor and copies data from old
+     * sampling.
      */
     private void growReservoir() {
         int newSize = SamplingUtil.getAdjustedSize(reservoirSize_, currItemsAlloc_ * rf_.getValue());
-        //T[] buffer = java.util.Arrays.copyOf(data_, newSize);
         Object[] buffer = java.util.Arrays.copyOf(data_, newSize);
 
         currItemsAlloc_ = newSize;

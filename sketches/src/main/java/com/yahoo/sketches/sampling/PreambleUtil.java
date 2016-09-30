@@ -28,12 +28,14 @@ import com.yahoo.sketches.SketchesArgumentException;
  * multi-byte integers (<i>int</i> and <i>long</i>) are stored in native byte order. The
  * <i>byte</i> values are treated as unsigned.</p>
  *
- * <p><strong>Sketch:</strong> The count of items seen is limited to 48 bits (~256 trillion) even though there are
- * adjacent unused preamble bits. The acceptance probability for an item is a double in the range [0,1), limiting us
- * to 53 bits of randomness due to details of the IEEE floating point format. To ensure meaningful probabilities as
- * the items seen count approaches capacity, we intentionally use slightly fewer bits.</p>
+ * <p><strong>Sketch:</strong> The count of items seen is limited to 48 bits (~256 trillion) even
+ * though there are adjacent unused preamble bits. The acceptance probability for an item is a
+ * double in the range [0,1), limiting us to 53 bits of randomness due to details of the IEEE
+ * floating point format. To ensure meaningful probabilities as the items seen count approaches
+ * capacity, we intentionally use slightly fewer bits.</p>
  * 
- * <p>An empty sampling sketch only requires 8 bytes. A non-empty sampling sketch requires 16 bytes of preamble.</p>
+ * <p>An empty sampling sketch only requires 8 bytes. A non-empty sampling sketch requires 16
+ * bytes of preamble.</p>
  *
  * <pre>
  * Long || Start Byte Adr:
@@ -45,8 +47,8 @@ import com.yahoo.sketches.SketchesArgumentException;
  *  1   ||-----(empty)-----|-------------------Items Seen Count------------------------------|
  *  </pre>
  *
- * <p><string>Union:</string> The union has fewer internal paramters to track and uses a slightly different preamble
- * structure.</p>
+ * <p><string>Union:</string> The union has fewer internal paramters to track and uses a slightly
+ * different preamble structure.</p>
  *
  * <p>An empty union only requires 8 bytes. A non-empty union requires 8 bytes of preamble.</p>
  *
@@ -157,7 +159,7 @@ final class PreambleUtil {
       .append("  EMPTY                       : ").append(isEmpty).append(LS)
       .append("Bytes 4-5   : Reservoir Size  : ").append(resSize).append(TAB + "(")
             .append(Integer.toHexString(encResSize)).append(")").append(LS)
-      .append("Bytes 6-7   : SerDe ID        : ").append(serDeId).append(LS);
+      .append("Bytes 6-7   : SerDe ID        : ").append(Integer.toHexString(serDeId)).append(LS);
     if (!isEmpty) {
       sb.append("Bytes 8-13  : Items Seen      : ").append(itemsSeen).append(LS);
     }

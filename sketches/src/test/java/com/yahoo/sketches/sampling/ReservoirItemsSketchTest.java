@@ -84,7 +84,10 @@ public class ReservoirItemsSketchTest {
         assertEquals(loadedRis.getNumSamples(), 0);
 
         println("Empty sketch:");
+        println("  Preamble:");
         println(PreambleUtil.preambleToString(mem));
+        println("  Sketch:");
+        println(ris.toString());
     }
 
     @Test
@@ -111,8 +114,7 @@ public class ReservoirItemsSketchTest {
             assertEquals(data[i], Integer.toString(i));
         }
 
-        // not using validateSerializeAndDeserialize() to check with a non-Lon
-        // g
+        // not using validateSerializeAndDeserialize() to check with a non-Long
         expectedLength += Family.RESERVOIR.getMaxPreLongs() << 3;
         byte[] sketchBytes = ris.toByteArray(new ArrayOfStringsSerDe());
         assertEquals(sketchBytes.length, expectedLength);
@@ -125,7 +127,10 @@ public class ReservoirItemsSketchTest {
         validateReservoirEquality(ris, loadedRis);
 
         println("Under-full reservoir:");
+        println("  Preamble:");
         println(PreambleUtil.preambleToString(mem));
+        println("  Sketch:");
+        println(ris.toString());
     }
 
     @Test
@@ -144,7 +149,10 @@ public class ReservoirItemsSketchTest {
         validateSerializeAndDeserialize(ris);
 
         println("Full reservoir:");
+        println("  Preamble:");
         println(PreambleUtil.preambleToString(ris.toByteArray(new ArrayOfLongsSerDe())));
+        println("  Sketch:");
+        println(ris.toString());
     }
 
     @Test
@@ -260,10 +268,11 @@ public class ReservoirItemsSketchTest {
     public void checkSketchCapacity() {
         Long[] data = new Long[64];
         short encResSize = ReservoirSize.computeSize(64);
-        long itemsSeen = 0xFFFFFFFFFFFFL - 1;
+        long itemsSeen = (1L << 48) - 2;
 
-        ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(data, itemsSeen, ResizeFactor.X8,
-                encResSize);
+        ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(data, itemsSeen,
+                                                                          ResizeFactor.X8,
+                                                                          encResSize);
 
         // this should work, the next should fail
         ris.update(0L);
@@ -368,7 +377,7 @@ public class ReservoirItemsSketchTest {
         assertEquals(rls.getN(), 3 * k);
 
         try {
-            rls.forceIncrementItemsSeen(0xFFFFFFFFFFFFL - 1);
+            rls.forceIncrementItemsSeen((1L << 48) - 2);
             fail();
         } catch (SketchesStateException e) {
             // expected
@@ -395,7 +404,8 @@ public class ReservoirItemsSketchTest {
 
     static void validateSerializeAndDeserialize(ReservoirItemsSketch<Long> ris) {
         byte[] sketchBytes = ris.toByteArray(new ArrayOfLongsSerDe());
-        assertEquals(sketchBytes.length, (Family.RESERVOIR.getMaxPreLongs() + ris.getNumSamples()) << 3);
+        assertEquals(sketchBytes.length,
+                     (Family.RESERVOIR.getMaxPreLongs() + ris.getNumSamples()) << 3);
 
         // ensure full reservoir rebuilds correctly
         Memory mem = new NativeMemory(sketchBytes);
@@ -404,7 +414,8 @@ public class ReservoirItemsSketchTest {
         validateReservoirEquality(ris, loadedRis);
     }
 
-    static <T> void validateReservoirEquality(ReservoirItemsSketch<T> ris1, ReservoirItemsSketch<T> ris2) {
+    static <T> void validateReservoirEquality(ReservoirItemsSketch<T> ris1,
+                                              ReservoirItemsSketch<T> ris2) {
         assertEquals(ris1.getNumSamples(), ris2.getNumSamples());
 
         if (ris1.getNumSamples() == 0) { return; }

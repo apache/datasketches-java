@@ -76,6 +76,9 @@ public class ReservoirLongsSketchTest {
         assertEquals(sketchBytes.length, Family.RESERVOIR.getMinPreLongs() << 3);
         ReservoirLongsSketch loadedRls = ReservoirLongsSketch.getInstance(mem);
         assertEquals(loadedRls.getNumSamples(), 0);
+
+        println("Empty sketch:");
+        println(rls.toString());
     }
 
     @Test
@@ -116,6 +119,9 @@ public class ReservoirLongsSketchTest {
         assertEquals(rls.getNumSamples(), rls.getK());
 
         validateSerializeAndDeserialize(rls);
+
+        println("Full reservoir:");
+        println(rls.toString());
     }
 
     @Test
@@ -222,9 +228,10 @@ public class ReservoirLongsSketchTest {
     public void checkSketchCapacity() {
         long[] data = new long[64];
         short encResSize = ReservoirSize.computeSize(64);
-        long itemsSeen = 0xFFFFFFFFFFFFL - 1;
+        long itemsSeen = (1L << 48) - 2;
 
-        ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(data, itemsSeen, ResizeFactor.X8, encResSize);
+        ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(data, itemsSeen,
+                                                                    ResizeFactor.X8, encResSize);
 
         // this should work, the next should fail
         rls.update(0);
@@ -329,7 +336,7 @@ public class ReservoirLongsSketchTest {
         assertEquals(rls.getN(), 3 * k);
 
         try {
-            rls.forceIncrementItemsSeen(0xFFFFFFFFFFFFL - 1);
+            rls.forceIncrementItemsSeen((1L << 48) - 1);
             fail();
         } catch (SketchesStateException e) {
             // expected
@@ -356,7 +363,8 @@ public class ReservoirLongsSketchTest {
 
     static void validateSerializeAndDeserialize(ReservoirLongsSketch rls) {
         byte[] sketchBytes = rls.toByteArray();
-        assertEquals(sketchBytes.length, (Family.RESERVOIR.getMaxPreLongs() + rls.getNumSamples()) << 3);
+        assertEquals(sketchBytes.length,
+                     (Family.RESERVOIR.getMaxPreLongs() + rls.getNumSamples()) << 3);
 
         // ensure full reservoir rebuilds correctly
         Memory mem = new NativeMemory(sketchBytes);
@@ -393,5 +401,13 @@ public class ReservoirLongsSketchTest {
         }
 
         return sb.toString();
+    }
+
+    /**
+     * Wrapper around System.out.println() allowing a simple way to disable logging in tests
+     * @param msg The message to print
+     */
+    private static void println(String msg) {
+        //System.out.println(msg);
     }
 }

@@ -5,11 +5,10 @@
  */
 
 /**
- * <p>This package is dedicated to streaming algorithms that enable sampling sampling of items in an
- * unweighted stream of items.</p>
+ * <p>This package is dedicated to streaming algorithms that enable fixed size, uniform sampling of unweighted items
+ * from a stream.</p>
  *
  * <p>These sketches are mergable and can be serialized and deserialized to/from a compact
  * form.</p>
- *
  */
 package com.yahoo.sketches.sampling;
