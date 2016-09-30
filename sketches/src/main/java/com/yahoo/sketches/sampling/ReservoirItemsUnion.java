@@ -30,6 +30,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  *
  * <p>If taking the uinon of two reservoirs of different sizes, the output sample will contain no more than
  * MIN(k_1, k_2) samples.</p>
+ * @param <T> The specific Java type for this sketch
  *
  * @author Jon Malkin
  * @author Kevin Lang

@@ -376,7 +376,6 @@ public class ReservoirItemsSketch<T> {
      */
     @SuppressWarnings("null") // bytes will be null only if empty == true
     public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe, final Class<?> clazz) {
-    //public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
         final int preLongs, outBytes;
         final boolean empty = itemsSeen_ == 0;
         byte[] bytes = null; // for serialized data from serDe
