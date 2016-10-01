@@ -32,7 +32,7 @@ public enum ResizeFactor {
   
   private int lg_;
   
-  private ResizeFactor(int lg) {
+  ResizeFactor(int lg) {
     this.lg_  = lg;
   }
   
