@@ -12,6 +12,20 @@
     <Method name="deserializeFromMemoryUsupportedClass" />
   </Match>
 
+  <!-- Intentionally set to null to throw an exception during test -->
+  <Match>
+    <Bug pattern="NP_NULL_PARAM_DEREF_NONVIRTUAL" />
+    <Class name="com.yahoo.sketches.sampling.ReservoirLongsUnionTest" />
+    <Method name="checkNullMemoryInstantiation" />
+  </Match>
+
+  <!-- Intentionally set to null to throw an exception during test -->
+  <Match>
+    <Bug pattern="NP_NULL_PARAM_DEREF_NONVIRTUAL" />
+    <Class name="com.yahoo.sketches.sampling.ReservoirItemsUnionTest" />
+    <Method name="checkNullMemoryInstantiation" />
+  </Match>
+
   <!-- False positive.  FindBugs complains if DQS_RESIZE_THRESHOLD == REBUILD_THRESHOLD, 
        but this allows us to tune these constants for different sketches. -->
   <Match>
