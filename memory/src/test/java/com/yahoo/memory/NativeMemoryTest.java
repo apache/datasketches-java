@@ -567,7 +567,7 @@ public class NativeMemoryTest {
     }
   }
 
-  private class DummyMemReq implements MemoryRequest {
+  private static class DummyMemReq implements MemoryRequest {
     @Override public Memory request(long capacityBytes) { return null; }
     @Override public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
       return null;
@@ -584,10 +584,9 @@ public class NativeMemoryTest {
     mem.setMemoryRequest(req);
     MemoryRequest req2 = mem.getMemoryRequest();
     assertTrue(req.equals(req2));
-    @SuppressWarnings("unused")
     String s = mem.toHexString("Test", 0, 8);
-    //println(s);
-    assertTrue(arr.equals(mem.getParent()));
+    println(s);
+    assertTrue(arr == mem.getParent());
   }
 
   @Test

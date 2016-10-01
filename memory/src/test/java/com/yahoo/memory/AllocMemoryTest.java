@@ -61,7 +61,7 @@ public class AllocMemoryTest {
     mem2.freeMemory();
   }
 
-  private class DummyMemReq implements MemoryRequest {
+  private static class DummyMemReq implements MemoryRequest {
     @Override public Memory request(long capacityBytes) { return null; }
     @Override public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
       return null;

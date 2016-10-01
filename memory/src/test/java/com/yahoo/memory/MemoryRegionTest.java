@@ -372,7 +372,7 @@ public class MemoryRegionTest {
     NativeMemory mem = new NativeMemory(arr);
     MemoryRegion reg = new MemoryRegion(mem, 0, mem.getCapacity());
     byte[] arr2 = (byte[]) reg.array();
-    assertTrue(arr.equals(arr2));
+    assertTrue(arr == arr2);
     assertTrue(reg.hasArray());
     assertTrue(reg.isAllocated());
     assertFalse(reg.hasByteBuffer());
