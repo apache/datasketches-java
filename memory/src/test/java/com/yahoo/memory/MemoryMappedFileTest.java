@@ -19,17 +19,20 @@ import java.io.UnsupportedEncodingException;
 import org.testng.annotations.Test;
 
 /**
+ * Note: this class requires the resource file:
+ * <i>/memory/src/test/resources/memory_mapped.txt</i>.
+ *
  * @author Praveenkumar Venkatesan
  */
 public class MemoryMappedFileTest {
-  
+
   @SuppressWarnings("unused")
   @Test(expectedExceptions = RuntimeException.class)
   public void testMapException() throws Exception {
     File dummy = createFile("dummy.txt", "");
     new MemoryMappedFile(dummy, 0, dummy.length()); //zero length
   }
-  
+
   @SuppressWarnings("unused")
   @Test
   public void testIllegalArgumentException() throws Exception {
@@ -188,13 +191,13 @@ public class MemoryMappedFileTest {
       fail("Failed: testForce()." + e);
     }
   }
-  
+
   @Test
   public void checkPassThrough() {
     NativeMemory mem = new AllocMemory(1024L);
     mem.freeMemory();
   }
-  
+
   private static File createFile(String fileName, String text) throws FileNotFoundException {
     File file = new File(fileName);
     file.deleteOnExit();
@@ -208,5 +211,5 @@ public class MemoryMappedFileTest {
     }
     return file;
   }
-  
+
 }
