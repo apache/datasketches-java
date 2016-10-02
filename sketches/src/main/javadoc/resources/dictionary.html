@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "https://www.w3.org/TR/html4/frameset.dtd">
 <html>
 <head>
 <title>Sketch Library Dictionary</title>
@@ -104,8 +104,9 @@ vary from <i>k</i> to almost <i>2*k</i>.
 Alpha Sketches this value is 512.  Specifying a value less than this minimum value just results in the minimum value being used.
 
 <h3><a name="numStdDev">Number of Standard Deviations</a></h3>
-This is usually a positive integer (1, 2, or 3) used in the getUpperBounds(int numStdDev) and 
-getLowerBounds(int numStdDev) methods and usually represents the +/- deviation from the center of the 
+This is a positive number, which may be either an integer (1, 2, or 3) or a double &le; 3.0. 
+This value is used in the getUpperBounds(int numStdDev) and 
+getLowerBounds(int numStdDev) methods and represents the +/- standard deviation from the center of the 
 Standard Normal Gaussian Distribution.<br>
 A value of 1 will produce 68.3% confidence bounds.<br>
 A value of 2 will produce 95.4% confidence bounds.<br>
