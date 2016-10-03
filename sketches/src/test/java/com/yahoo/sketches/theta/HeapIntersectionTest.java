@@ -184,7 +184,7 @@ public class HeapIntersectionTest {
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkBadArguments() {
+  public void checkPairwiseBadArguments() {
     int lgK = 10;
     int k = 1<<lgK;
 
