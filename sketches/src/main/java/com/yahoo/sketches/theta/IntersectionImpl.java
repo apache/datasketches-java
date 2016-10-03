@@ -462,21 +462,28 @@ final class IntersectionImpl extends SetOperation implements Intersection {
     assert (tmpCnt == count) : "Intersection Count Check: got: " + tmpCnt + ", expected: " + count;
   }
 
+
   /**
    * This implements a stateless, pair-wise intersection on Sketches that are already compact and
-   * ordered.
-   * @param skA The first sketch argument. Must be compact and ordered.
-   * @param skB The second sketch argument. Must be compact and ordered.
-   * @return the result of the intersection as a compact, ordered heap sketch.
+   * ordered. This will work with sketches that are either on-heap or off-heap.
+   *
+   * <p>This is temporary and will be replaced with equivalent functionality in a new
+   * release of the DataSketches library.</p>
+   *
+   * @param skA The first sketch argument. Must be compact, ordered and not null.
+   * @param skB The second sketch argument. Must be compact, ordered and not null.
+   * @return the result of the intersection as a heap, compact, ordered sketch.
    */
   static Sketch pairwiseIntersect(Sketch skA, Sketch skB) {
     if (!skA.isCompact() || !skA.isOrdered() || !skB.isCompact() || !skB.isOrdered()) {
       throw new SketchesArgumentException("Require compact, ordered sketch, got: "
-          + skA.getClass() + ", " + skB.getClass());
+          + skA.getClass().getSimpleName() + ", " + skB.getClass().getSimpleName());
     }
-    Util.checkSeedHashes(skA.getSeedHash(), skB.getSeedHash());
+    short seedHashA = skA.getSeedHash();
+    short seedHashB = skB.getSeedHash();
+    Util.checkSeedHashes(seedHashA, seedHashB);
 
-    long theta = Math.min(skA.getThetaLong(), skB.getThetaLong());
+    long thetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong()); //Theta rule
     int indexA = 0;
     int indexB = 0;
     int count = 0;
@@ -490,7 +497,7 @@ final class IntersectionImpl extends SetOperation implements Intersection {
       long hashA = cacheA[indexA];
       long hashB = cacheB[indexB];
 
-      if (hashA > theta || hashB > theta) {
+      if (hashA > thetaLong || hashB > thetaLong) {
         break;
       }
 
@@ -505,8 +512,10 @@ final class IntersectionImpl extends SetOperation implements Intersection {
       }
     }
 
+    boolean empty = skA.isEmpty() || skB.isEmpty(); //empty rule is OR
+
     return new HeapCompactOrderedSketch(
-        Arrays.copyOf(outCache, count), count == 0, skA.getSeedHash(), count, theta);
+        Arrays.copyOf(outCache, count), empty, seedHashA, count, thetaLong);
   }
 
   //special handlers for Off Heap
