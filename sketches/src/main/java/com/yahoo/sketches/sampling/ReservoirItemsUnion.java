@@ -26,11 +26,11 @@ import com.yahoo.sketches.SketchesArgumentException;
  * <p>A union object is created with a maximum value of <tt>k</tt>, represented using the
  * ReservoirSize class. The unioning process may cause the actual number of samples to fall below
  * that maximum value, but never to exceed it. The result of a union will be a reservoir where
- * each item from teh global input has a uniform probability of selection, but there are no
+ * each item from the global input has a uniform probability of selection, but there are no
  * claims about higher order statistics. For instance, in general all possible permutations of
  * the global input are not equally likely.</p>
  *
- * <p>If taking the uinon of two reservoirs of different sizes, the output sample will contain no more
+ * <p>If taking the union of two reservoirs of different sizes, the output sample will contain no more
  * than MIN(k_1, k_2) samples.</p>
  *
  * @param <T> The specific Java type for this sketch
@@ -73,7 +73,7 @@ public class ReservoirItemsUnion<T> {
    * @return A ReservoirItemsUnion created from the provided Memory
    */
   public static <T> ReservoirItemsUnion<T> getInstance(final Memory srcMem,
-      ArrayOfItemsSerDe<T> serDe) {
+      final ArrayOfItemsSerDe<T> serDe) {
     Family.RESERVOIR_UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
 
     final int numPreLongs = getAndCheckPreLongs(srcMem);
@@ -95,13 +95,13 @@ public class ReservoirItemsUnion<T> {
           "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
     }
 
-    ReservoirItemsUnion<T> riu = new ReservoirItemsUnion<>(encodedMaxK);
+    final ReservoirItemsUnion<T> riu = new ReservoirItemsUnion<>(encodedMaxK);
 
     if (!isEmpty) {
-      int preLongBytes = numPreLongs << 3;
-      MemoryRegion sketchMem =
+      final int preLongBytes = numPreLongs << 3;
+      final MemoryRegion sketchMem =
           new MemoryRegion(srcMem, preLongBytes, srcMem.getCapacity() - preLongBytes);
-      ReservoirItemsSketch<T> ris = ReservoirItemsSketch.getInstance(sketchMem, serDe);
+      final ReservoirItemsSketch<T> ris = ReservoirItemsSketch.getInstance(sketchMem, serDe);
       riu.update(ris);
     }
 
@@ -124,20 +124,20 @@ public class ReservoirItemsUnion<T> {
    *
    * @param sketchIn The incoming sketch.
    */
-  public void update(ReservoirItemsSketch<T> sketchIn) {
+  public void update(final ReservoirItemsSketch<T> sketchIn) {
     if (sketchIn == null) {
       return;
     }
 
-    int maxK = ReservoirSize.decodeValue(encodedMaxK_);
-    ReservoirItemsSketch<T> ris =
+    final int maxK = ReservoirSize.decodeValue(encodedMaxK_);
+    final ReservoirItemsSketch<T> ris =
         (sketchIn.getK() <= maxK ? sketchIn : sketchIn.downsampledCopy(encodedMaxK_));
 
     // can modify the sketch if we downsampled, otherwise may need to copy it
     if (gadget_ == null) {
       gadget_ = (sketchIn == ris ? ris.copy() : ris);
     } else {
-      boolean isModifiable = (sketchIn != ris);
+      final boolean isModifiable = (sketchIn != ris);
       twoWayMergeInternal(ris, isModifiable);
     }
   }
@@ -151,14 +151,14 @@ public class ReservoirItemsUnion<T> {
    * @param mem Memory image of sketch to be merged
    * @param serDe An instance of ArrayOfItemsSerDe
    */
-  public void update(Memory mem, ArrayOfItemsSerDe<T> serDe) {
+  public void update(final Memory mem, final ArrayOfItemsSerDe<T> serDe) {
     if (mem == null) {
       return;
     }
 
     ReservoirItemsSketch<T> ris = ReservoirItemsSketch.getInstance(mem, serDe);
 
-    int maxK = ReservoirSize.decodeValue(encodedMaxK_);
+    final int maxK = ReservoirSize.decodeValue(encodedMaxK_);
     ris = (ris.getK() <= maxK ? ris : ris.downsampledCopy(encodedMaxK_));
 
     if (gadget_ == null) {
@@ -173,13 +173,13 @@ public class ReservoirItemsUnion<T> {
    *
    * @param datum The given datum of type T.
    */
-  public void update(T datum) {
+  public void update(final T datum) {
     if (datum == null) {
       return;
     }
 
     if (gadget_ == null) {
-      int maxK = ReservoirSize.decodeValue(encodedMaxK_);
+      final int maxK = ReservoirSize.decodeValue(encodedMaxK_);
       gadget_ = ReservoirItemsSketch.getInstance(maxK);
     }
     gadget_.update(datum);
@@ -200,13 +200,12 @@ public class ReservoirItemsUnion<T> {
    * @param serDe An instance of ArrayOfItemsSerDe
    * @return a byte array representation of this union
    */
-  public byte[] toByteArray(ArrayOfItemsSerDe<T> serDe) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
     if (gadget_ == null || gadget_.getNumSamples() == 0) {
       return toByteArray(serDe, null);
     } else {
       return toByteArray(serDe, gadget_.getValueAtPosition(0).getClass());
     }
-
   }
 
   /**
@@ -216,9 +215,9 @@ public class ReservoirItemsUnion<T> {
    */
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
 
-    String thisSimpleName = this.getClass().getSimpleName();
+    final String thisSimpleName = this.getClass().getSimpleName();
 
     sb.append(LS);
     sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
@@ -242,10 +241,10 @@ public class ReservoirItemsUnion<T> {
    * @return a byte array representation of this union
    */
   @SuppressWarnings("null") // gadgetBytes will be null only if gadget_ == null AND empty == true
-  public byte[] toByteArray(ArrayOfItemsSerDe<T> serDe, Class<?> clazz) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe, final Class<?> clazz) {
     final int preLongs, outBytes;
     final boolean empty = gadget_ == null;
-    byte[] gadgetBytes = (gadget_ != null ? gadget_.toByteArray(serDe, clazz) : null);
+    final byte[] gadgetBytes = (gadget_ != null ? gadget_.toByteArray(serDe, clazz) : null);
 
     if (empty) {
       preLongs = Family.RESERVOIR_UNION.getMinPreLongs();
@@ -274,7 +273,6 @@ public class ReservoirItemsUnion<T> {
     }
 
     return outArr;
-
   }
 
   // We make a three-way classification of sketch states.
@@ -310,7 +308,7 @@ public class ReservoirItemsUnion<T> {
       twoWayMergeInternalStandard(sketchIn);
     } else if (gadget_.getN() < gadget_.getK()) {
       // merge into sketchIn, so swap first
-      ReservoirItemsSketch<T> tmpSketch = gadget_;
+      final ReservoirItemsSketch<T> tmpSketch = gadget_;
       gadget_ = (isModifiable ? sketchIn : sketchIn.copy());
       twoWayMergeInternalStandard(tmpSketch);
     } else if (sketchIn.getImplicitSampleWeight() < gadget_.getN()
@@ -322,7 +320,7 @@ public class ReservoirItemsUnion<T> {
       // gadget_.getImplicitSampleWeight() < sketchIn.getN() / ((double) (sketchIn.getK() - 1))) {
       // implicit weights in gadget are light enough to merge into sketchIn
       // merge into sketchIn, so swap first
-      ReservoirItemsSketch<T> tmpSketch = gadget_;
+      final ReservoirItemsSketch<T> tmpSketch = gadget_;
       gadget_ = (isModifiable ? sketchIn : sketchIn.copy());
       twoWayMergeInternalWeighted(tmpSketch);
     }
@@ -331,7 +329,7 @@ public class ReservoirItemsUnion<T> {
   // should be called ONLY by twoWayMergeInternal
   private void twoWayMergeInternalStandard(final ReservoirItemsSketch<T> source) {
     assert (source.getN() <= source.getK());
-    int numInputSamples = source.getNumSamples();
+    final int numInputSamples = source.getNumSamples();
     for (int i = 0; i < numInputSamples; ++i) {
       gadget_.update(source.getValueAtPosition(i));
     }
@@ -342,13 +340,13 @@ public class ReservoirItemsUnion<T> {
     // gadget_ capable of accepting (light) general weights
     assert (gadget_.getN() >= gadget_.getK());
 
-    int numSourceSamples = source.getK();
+    final int numSourceSamples = source.getK();
 
-    double sourceItemWeight = (source.getN() / (double) numSourceSamples);
-    double rescaled_prob = gadget_.getK() * sourceItemWeight; // K * weight
+    final double sourceItemWeight = (source.getN() / (double) numSourceSamples);
+    final double rescaled_prob = gadget_.getK() * sourceItemWeight; // K * weight
     double targetTotal = gadget_.getN(); // assumes fractional values during merge
 
-    int tgtK = gadget_.getK();
+    final int tgtK = gadget_.getK();
 
     for (int i = 0; i < numSourceSamples; ++i) {
       // inlining the update procedure, using targetTotal for the fractional N values
@@ -358,13 +356,13 @@ public class ReservoirItemsUnion<T> {
 
       targetTotal += sourceItemWeight;
 
-      double rescaled_one = targetTotal;
+      final double rescaled_one = targetTotal;
       assert (rescaled_prob < rescaled_one); // Use an exception to enforce strict lightness?
-      double rescaled_flip = rescaled_one * SamplingUtil.rand.nextDouble();
+      final double rescaled_flip = rescaled_one * SamplingUtil.rand.nextDouble();
       if (rescaled_flip < rescaled_prob) {
         // Intentionally NOT doing optimization to extract slot number from rescaled_flip.
         // Grabbing new random bits to ensure all slots in play
-        int slotNo = SamplingUtil.rand.nextInt(tgtK);
+        final int slotNo = SamplingUtil.rand.nextInt(tgtK);
         gadget_.insertValueAtPosition(source.getValueAtPosition(i), slotNo);
       } // end of inlined weight update
     } // end of loop over source samples
@@ -372,7 +370,7 @@ public class ReservoirItemsUnion<T> {
 
     // targetTotal was fractional but should now be an integer again. Could validate with low
     // tolerance, but for now just round to check.
-    long checkN = (long) Math.floor(0.5 + targetTotal);
+    final long checkN = (long) Math.floor(0.5 + targetTotal);
     gadget_.forceIncrementItemsSeen(source.getN());
     assert (checkN == gadget_.getN());
   }
