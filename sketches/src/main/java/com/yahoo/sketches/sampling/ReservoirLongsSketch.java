@@ -50,11 +50,11 @@ public class ReservoirLongsSketch {
    */
   private static final ResizeFactor DEFAULT_RESIZE_FACTOR = ResizeFactor.X8;
 
-  private int reservoirSize_; // max size of sampling
-  private short encodedResSize_; // compact encoding of reservoir size
+  private final int reservoirSize_; // max size of sampling
+  private final short encodedResSize_; // compact encoding of reservoir size
   private int currItemsAlloc_; // currently allocated array size
   private long itemsSeen_; // number of items presented to sketch
-  private ResizeFactor rf_; // resize factor
+  private final ResizeFactor rf_; // resize factor
   private long[] data_; // stored sampling data
 
   /**
@@ -63,7 +63,7 @@ public class ReservoirLongsSketch {
    * @param k Target maximum reservoir size
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    */
-  private ReservoirLongsSketch(final int k, ResizeFactor rf) {
+  private ReservoirLongsSketch(final int k, final ResizeFactor rf) {
     // required due to a theorem about lightness during merging
     if (k < 2) {
       throw new SketchesArgumentException("k must be at least 2");
@@ -76,8 +76,8 @@ public class ReservoirLongsSketch {
 
     itemsSeen_ = 0;
 
-    int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize_), "ReservoirLongsSketch");
-    int initialSize =
+    final int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize_), "ReservoirLongsSketch");
+    final int initialSize =
         SamplingUtil.startingSubMultiple(reservoirSize_, ceilingLgK, MIN_LG_ARR_LONGS);
 
     currItemsAlloc_ = SamplingUtil.getAdjustedSize(reservoirSize_, initialSize);
@@ -96,7 +96,7 @@ public class ReservoirLongsSketch {
    */
   private ReservoirLongsSketch(final long[] data, final long itemsSeen, final ResizeFactor rf,
       final short encodedResSize) {
-    int reservoirSize = ReservoirSize.decodeValue(encodedResSize);
+    final int reservoirSize = ReservoirSize.decodeValue(encodedResSize);
 
     if (data == null) {
       throw new SketchesArgumentException("Instantiating sketch with null reservoir");
@@ -168,7 +168,7 @@ public class ReservoirLongsSketch {
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @return A ReservoirLongsSketch initialized with maximum size k and ResizeFactor rf.
    */
-  public static ReservoirLongsSketch getInstance(final int k, ResizeFactor rf) {
+  public static ReservoirLongsSketch getInstance(final int k, final ResizeFactor rf) {
     return new ReservoirLongsSketch(k, rf);
   }
 
@@ -219,21 +219,21 @@ public class ReservoirLongsSketch {
     final long pre1 = srcMem.getLong(8);
     final long itemsSeen = extractItemsSeenCount(pre1);
 
-    int preLongBytes = numPreLongs << 3;
-    int numSketchLongs = (int) Math.min(itemsSeen, reservoirSize);
+    final int preLongBytes = numPreLongs << 3;
+    final int numSketchLongs = (int) Math.min(itemsSeen, reservoirSize);
     int allocatedSize = reservoirSize; // default to full reservoir
     if (itemsSeen < reservoirSize) {
       // under-full so determine size to allocate, using ceilingLog2(totalSeen) as minimum
       // casts to int are safe since under-full
-      int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize), "getInstance");
-      int minLgSize = Util.toLog2(Util.ceilingPowerOf2((int) itemsSeen), "getInstance");
-      int initialLgSize = SamplingUtil.startingSubMultiple(reservoirSize, ceilingLgK,
+      final int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize), "getInstance");
+      final int minLgSize = Util.toLog2(Util.ceilingPowerOf2((int) itemsSeen), "getInstance");
+      final int initialLgSize = SamplingUtil.startingSubMultiple(reservoirSize, ceilingLgK,
           Math.min(minLgSize, MIN_LG_ARR_LONGS));
 
       allocatedSize = SamplingUtil.getAdjustedSize(reservoirSize, 1 << initialLgSize);
     }
 
-    long[] data = new long[allocatedSize];
+    final long[] data = new long[allocatedSize];
     srcMem.getLongArray(preLongBytes, data, 0, numSketchLongs);
 
     return new ReservoirLongsSketch(data, itemsSeen, rf, encodedResSize);
@@ -292,7 +292,7 @@ public class ReservoirLongsSketch {
     if (itemsSeen_ == 0) {
       return null;
     }
-    int numSamples = (int) Math.min(reservoirSize_, itemsSeen_);
+    final int numSamples = (int) Math.min(reservoirSize_, itemsSeen_);
     return java.util.Arrays.copyOf(data_, numSamples);
   }
 
@@ -301,7 +301,7 @@ public class ReservoirLongsSketch {
    *
    * @param item a unit-weight (equivalently, unweighted) item of the set being sampled from
    */
-  public void update(long item) {
+  public void update(final long item) {
     if (itemsSeen_ == MAX_ITEMS_SEEN) {
       throw new SketchesStateException(
           "Sketch has exceeded capacity for total items seen: " + MAX_ITEMS_SEEN);
@@ -333,9 +333,9 @@ public class ReservoirLongsSketch {
    */
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
 
-    String thisSimpleName = this.getClass().getSimpleName();
+    final String thisSimpleName = this.getClass().getSimpleName();
 
     sb.append(LS);
     sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
@@ -412,7 +412,7 @@ public class ReservoirLongsSketch {
    * @param pos The position from which to retrieve the element
    * @return The value in the reservoir at position <tt>pos</tt>
    */
-  long getValueAtPosition(int pos) {
+  long getValueAtPosition(final int pos) {
     if (itemsSeen_ == 0) {
       throw new SketchesArgumentException("Requested element from empty reservoir.");
     } else if (pos < 0 || pos >= getNumSamples()) {
@@ -431,7 +431,7 @@ public class ReservoirLongsSketch {
    * @param value The entry to store in the reservoir
    * @param pos The position at which to store the entry
    */
-  void insertValueAtPosition(long value, int pos) {
+  void insertValueAtPosition(final long value, final int pos) {
     if (pos < 0 || pos >= getNumSamples()) {
       throw new SketchesArgumentException("Insert position must be between 0 and " + getNumSamples()
           + ", inclusive. Received: " + pos);
@@ -456,7 +456,7 @@ public class ReservoirLongsSketch {
   }
 
   ReservoirLongsSketch copy() {
-    long[] dataCopy = Arrays.copyOf(data_, currItemsAlloc_);
+    final long[] dataCopy = Arrays.copyOf(data_, currItemsAlloc_);
     return new ReservoirLongsSketch(reservoirSize_, encodedResSize_, currItemsAlloc_, itemsSeen_,
         rf_, dataCopy);
   }
@@ -469,10 +469,10 @@ public class ReservoirLongsSketch {
   // A2: That would involve allocating memory proportional to the old k. Even if only a
   // temporary violation of maxK, we're avoiding violating it at all.
   ReservoirLongsSketch downsampledCopy(final short encMaxK) {
-    int tgtSize = ReservoirSize.decodeValue(encMaxK);
+    final int tgtSize = ReservoirSize.decodeValue(encMaxK);
 
-    ReservoirLongsSketch rls = new ReservoirLongsSketch(tgtSize, rf_);
-    for (long l : getSamples()) {
+    final ReservoirLongsSketch rls = new ReservoirLongsSketch(tgtSize, rf_);
+    for (final long l: getSamples()) {
       // Pretending old implicit weights are all 1. Not true in general, but they're all
       // equal so update should work properly as long as we update itemsSeen_ at the end.
       rls.update(l);
@@ -490,10 +490,7 @@ public class ReservoirLongsSketch {
    * Increases allocated sampling size by (adjusted) ResizeFactor and copies data from old sampling.
    */
   private void growReservoir() {
-    int newSize = SamplingUtil.getAdjustedSize(reservoirSize_, currItemsAlloc_ * rf_.getValue());
-    long[] buffer = java.util.Arrays.copyOf(data_, newSize);
-
-    currItemsAlloc_ = newSize;
-    data_ = buffer;
+    currItemsAlloc_ = SamplingUtil.getAdjustedSize(reservoirSize_, currItemsAlloc_ * rf_.getValue());
+    data_ = java.util.Arrays.copyOf(data_, currItemsAlloc_);
   }
 }

@@ -28,7 +28,7 @@ public class SamplingUtil {
     return resizeTarget;
   }
 
-  static int startingSubMultiple(int lgTarget, int lgRf, int lgMin) {
+  static int startingSubMultiple(final int lgTarget, final int lgRf, final int lgMin) {
     return (lgTarget <= lgMin)
             ? lgMin : (lgRf == 0) ? lgTarget
             : (lgTarget - lgMin) % lgRf + lgMin;
