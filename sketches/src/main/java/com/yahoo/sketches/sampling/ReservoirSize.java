@@ -57,7 +57,7 @@ final class ReservoirSize {
               + "less than " + MAX_ABS_VALUE + ", found: " + k);
     }
 
-    int p = Util.toLog2(Util.floorPowerOf2(k), "computeSize: p");
+    final int p = Util.toLog2(Util.floorPowerOf2(k), "computeSize: p");
 
     // because of floor() + 1 below, need to check power of 2 here
     if (Util.isPowerOf2(k)) {
@@ -65,11 +65,11 @@ final class ReservoirSize {
     }
 
     // mantissa is scalar in range [1,2); can reconstruct k as m * 2^p
-    double m = Math.pow(2.0, Math.log(k) * INV_LN_2 - p);
+    final double m = Math.pow(2.0, Math.log(k) * INV_LN_2 - p);
 
     // Convert to index offset: ceil(m * BPO) - BPO
     // Typically in range range 0-(BINS_PER_OCTAVE-1) (but see note below)
-    int i = (int) Math.floor(m * BINS_PER_OCTAVE) - BINS_PER_OCTAVE + 1;
+    final int i = (int) Math.floor(m * BINS_PER_OCTAVE) - BINS_PER_OCTAVE + 1;
 
     // Due to ceiling, possible to overflow BINS_PER_OCTAVE
     // E.g., if BPO = 2048 then for k=32767 we have p=14. Except that 32767 > decodeValue
@@ -88,15 +88,15 @@ final class ReservoirSize {
    * @return int represented by <tt>encodedSize</tt>
    */
   static int decodeValue(final short encodedSize) {
-    int value = encodedSize & 0xFFFF;
+    final int value = encodedSize & 0xFFFF;
 
     if (value > MAX_ENC_VALUE) {
       throw new SketchesArgumentException("Maximum valid encoded value is "
               + Integer.toHexString(MAX_ENC_VALUE) + ", found: " + value);
     }
 
-    int p = (value >> EXPONENT_SHIFT) & EXPONENT_MASK;
-    int i = value & INDEX_MASK;
+    final int p = (value >> EXPONENT_SHIFT) & EXPONENT_MASK;
+    final int i = value & INDEX_MASK;
 
     return (int) ((1 << p) * (i * INV_BINS_PER_OCTAVE + 1.0));
   }
