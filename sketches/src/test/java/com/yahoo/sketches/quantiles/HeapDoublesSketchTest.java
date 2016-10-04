@@ -13,6 +13,7 @@ import static com.yahoo.sketches.quantiles.Util.computeNumLevelsNeeded;
 import static com.yahoo.sketches.quantiles.Util.lg;
 import static java.lang.Math.floor;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -872,6 +873,34 @@ public class HeapDoublesSketchTest {
     println("cdfOut: "+cdfOut.length);
     assertEquals(cdfOut[0], 1.0, 0.0);
   }
+
+  @Test
+  public void checkPuts() {
+    long n1 = 1001;
+    DoublesSketch qsk = buildQS(32, (int)n1);
+    long n2 = qsk.getN();
+    assertEquals(n2, n1);
+
+    int bbCnt1 = qsk.getBaseBufferCount();
+    long pat1 = qsk.getBitPattern();
+
+    qsk.putBitPattern(pat1 + 1); //corrupt the pattern
+    long pat2 = qsk.getBitPattern();
+    assertEquals(pat1 + 1, pat2);
+
+    qsk.putBaseBufferCount(bbCnt1 + 1); //corrupt the bbCount
+    int bbCnt2 = qsk.getBaseBufferCount();
+    assertEquals(bbCnt1 + 1, bbCnt2);
+
+    qsk.putN(n1 + 1); //corrupt N
+    long n3 = qsk.getN();
+    assertEquals(n1 + 1, n3);
+
+    assertNull(qsk.getMemory());
+  }
+
+
+  //private methods
 
   private static void checksForImproperK(int k) {
     String s = "Did not catch improper k: "+k;

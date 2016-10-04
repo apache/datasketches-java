@@ -462,62 +462,6 @@ final class IntersectionImpl extends SetOperation implements Intersection {
     assert (tmpCnt == count) : "Intersection Count Check: got: " + tmpCnt + ", expected: " + count;
   }
 
-
-  /**
-   * This implements a stateless, pair-wise intersection on Sketches that are already compact and
-   * ordered. This will work with sketches that are either on-heap or off-heap.
-   *
-   * <p>This is temporary and will be replaced with equivalent functionality in a new
-   * release of the DataSketches library.</p>
-   *
-   * @param skA The first sketch argument. Must be compact, ordered and not null.
-   * @param skB The second sketch argument. Must be compact, ordered and not null.
-   * @return the result of the intersection as a heap, compact, ordered sketch.
-   */
-  static Sketch pairwiseIntersect(Sketch skA, Sketch skB) {
-    if (!skA.isCompact() || !skA.isOrdered() || !skB.isCompact() || !skB.isOrdered()) {
-      throw new SketchesArgumentException("Require compact, ordered sketch, got: "
-          + skA.getClass().getSimpleName() + ", " + skB.getClass().getSimpleName());
-    }
-    short seedHashA = skA.getSeedHash();
-    short seedHashB = skB.getSeedHash();
-    Util.checkSeedHashes(seedHashA, seedHashB);
-
-    long thetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong()); //Theta rule
-    int indexA = 0;
-    int indexB = 0;
-    int count = 0;
-
-    long[] cacheA = skA.getCache();
-    long[] cacheB = skB.getCache();
-
-    long[] outCache = new long[Math.min(cacheA.length, cacheB.length)];
-
-    while (indexA < cacheA.length && indexB < cacheB.length) {
-      long hashA = cacheA[indexA];
-      long hashB = cacheB[indexB];
-
-      if (hashA > thetaLong || hashB > thetaLong) {
-        break;
-      }
-
-      if (hashA == hashB) {
-        outCache[count++] = hashA;
-        ++indexA;
-        ++indexB;
-      } else if (hashA < hashB) {
-        ++indexA;
-      } else {
-        ++indexB;
-      }
-    }
-
-    boolean empty = skA.isEmpty() || skB.isEmpty(); //empty rule is OR
-
-    return new HeapCompactOrderedSketch(
-        Arrays.copyOf(outCache, count), empty, seedHashA, count, thetaLong);
-  }
-
   //special handlers for Off Heap
   /**
    * Returns the correct maximum lgArrLongs given the capacity of the Memory. Checks that the

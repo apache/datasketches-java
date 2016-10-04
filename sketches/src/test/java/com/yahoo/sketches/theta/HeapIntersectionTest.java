@@ -64,24 +64,6 @@ public class HeapIntersectionTest {
   }
 
   @Test
-  public void checkPairwiseIntersectionNoOverlap() {
-    int lgK = 9;
-    int k = 1<<lgK;
-
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
-
-    for (int i=0; i<k/2; i++) usk1.update(i);
-    for (int i=k/2; i<k; i++) usk2.update(i);
-
-    CompactSketch csk1 = usk1.compact(true, null);
-    CompactSketch csk2 = usk2.compact(true, null);
-
-    Sketch rsk = IntersectionImpl.pairwiseIntersect(csk1, csk2);
-    assertEquals(rsk.getEstimate(), 0.0);
-  }
-
-  @Test
   public void checkExactIntersectionFullOverlap() {
     int lgK = 9;
     int k = 1<<lgK;
@@ -118,24 +100,6 @@ public class HeapIntersectionTest {
   }
 
   @Test
-  public void checkPairwiseIntersectionFullOverlap() {
-    int lgK = 9;
-    int k = 1<<lgK;
-
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
-
-    for (int i=0; i<k; i++) usk1.update(i);
-    for (int i=0; i<k; i++) usk2.update(i);
-
-    CompactSketch csk1 = usk1.compact(true, null);
-    CompactSketch csk2 = usk2.compact(true, null);
-
-    Sketch rsk = IntersectionImpl.pairwiseIntersect(csk1, csk2);
-    assertEquals(rsk.getEstimate(), (double)k);
-  }
-
-  @Test
   public void checkIntersectionEarlyStop() {
     int lgK = 10;
     int k = 1<<lgK;
@@ -159,38 +123,6 @@ public class HeapIntersectionTest {
     double sd2err = 2048 * 2.0/Math.sqrt(k);
     //println("2048 = " + rsk1.getEstimate() + " +/- " + sd2err);
     assertEquals(result, 2048.0, sd2err);
-  }
-
-  @Test
-  public void checkPairwiseIntersectionEarlyStop() {
-    int lgK = 10;
-    int k = 1<<lgK;
-    int u = 4*k;
-
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
-
-    for (int i=0; i<u; i++) usk1.update(i);
-    for (int i=u/2; i<u + u/2; i++) usk2.update(i);
-
-    CompactSketch csk1 = usk1.compact(true, null);
-    CompactSketch csk2 = usk2.compact(true, null);
-
-    Sketch rsk = IntersectionImpl.pairwiseIntersect(csk1, csk2);
-    double result = rsk.getEstimate();
-    double sd2err = 2048 * 2.0/Math.sqrt(k);
-    //println("2048 = " + rsk.getEstimate() + " +/- " + sd2err);
-    assertEquals(result, 2048.0, sd2err);
-  }
-
-  @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkPairwiseBadArguments() {
-    int lgK = 10;
-    int k = 1<<lgK;
-
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
-    IntersectionImpl.pairwiseIntersect(usk1, usk2);
   }
 
   //Calling getResult on a virgin Intersect is illegal
@@ -569,7 +501,7 @@ public class HeapIntersectionTest {
    * @param s value to print
    */
   static void println(String s) {
-    System.out.println(s); //disable here
+    //System.out.println(s); //disable here
   }
 
 }
