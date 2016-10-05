@@ -48,6 +48,7 @@ public abstract class ArrayOfItemsSerDe<T> {
    * @return a unique identifier of this SerDe
    */
   public short getId() {
+
     /*
      * Note that the hashCode() of a String is strictly a function of the content of the String
      * and will be the same across different JVMs. This is not the case for Object.hashCode(),

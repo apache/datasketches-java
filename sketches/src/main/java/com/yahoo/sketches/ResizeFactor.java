@@ -9,33 +9,33 @@ package com.yahoo.sketches;
  * For the Families that accept this configuration parameter, it controls the size multiple that
  * affects how fast the internal cache grows, when more space is required.
  * <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
- * 
+ *
  * @author Lee Rhodes
  */
 public enum ResizeFactor {
   /**
    * Do not resize. Sketch will be configured to full size.
    */
-  X1(0), 
+  X1(0),
   /**
    * Resize factor is 2.
    */
-  X2(1), 
+  X2(1),
   /**
    * Resize factor is 4.
    */
-  X4(2), 
+  X4(2),
   /**
    * Resize factor is 8.
    */
   X8(3);
-  
+
   private int lg_;
-  
+
   ResizeFactor(int lg) {
     this.lg_  = lg;
   }
-  
+
   /**
    * Returns the Log-base 2 of the Resize Factor
    * @return the Log-base 2 of the Resize Factor
@@ -43,7 +43,7 @@ public enum ResizeFactor {
   public int lg() {
     return lg_;
   }
-  
+
   /**
    * Returns the Resize Factor given the Log-base 2 of the Resize Factor
    * @param lg a value between zero and 3, inclusive.
@@ -55,7 +55,7 @@ public enum ResizeFactor {
     if (X4.lg() == lg) return X4;
     return X8;
   }
-  
+
   /**
    * Returns the Resize Factor
    * @return the Resize Factor

@@ -13,7 +13,7 @@ package com.yahoo.sketches.hll;
  * @author Kevin Lang
  */
 interface FieldsFactory {
-  
+
   /**
    * Makes a new Fields object using the given preamble
    *

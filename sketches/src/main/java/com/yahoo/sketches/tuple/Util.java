@@ -35,18 +35,18 @@ final class Util {
     final short seedHash = (short)((hash(seedArr, 0L)[0]) & 0xFFFFL);
     if (seedHash == 0) {
       throw new SketchesArgumentException(
-          "The given seed: " + seed + " produced a seedHash of zero. " 
+          "The given seed: " + seed + " produced a seedHash of zero. "
               + "You must choose a different seed.");
     }
-    return seedHash; 
+    return seedHash;
   }
-  
+
   static final void checkSeedHashes(final short seedHashA, final short seedHashB) {
     if (seedHashA != seedHashB) {
-      throw new SketchesArgumentException("Incompatible Seed Hashes. " + seedHashA + ", " 
+      throw new SketchesArgumentException("Incompatible Seed Hashes. " + seedHashA + ", "
           + seedHashB);
     }
-        
+
   }
 
 }

@@ -18,8 +18,8 @@ import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * For building a new UpdateSketch.
- * 
- * @author Lee Rhodes 
+ *
+ * @author Lee Rhodes
  */
 public class UpdateSketchBuilder {
   private int bLgNomLongs;
@@ -28,13 +28,13 @@ public class UpdateSketchBuilder {
   private Family bFam;
   private float bP;
   private Memory bDstMem;
-  
+
   /**
-   * Constructor for building a new UpdateSketch. The default configuration is 
+   * Constructor for building a new UpdateSketch. The default configuration is
    * <ul>
    * <li>Nominal Entries: {@value com.yahoo.sketches.Util#DEFAULT_NOMINAL_ENTRIES}</li>
    * <li>Seed: {@value com.yahoo.sketches.Util#DEFAULT_UPDATE_SEED}</li>
-   * <li>Resize Factor: The default for sketches on the Java heap is 
+   * <li>Resize Factor: The default for sketches on the Java heap is
    * {@link ResizeFactor#X8}.
    * For direct sketches, which are targeted for native memory off the Java heap, this value will
    * be fixed at either {@link ResizeFactor#X1} or
@@ -52,7 +52,7 @@ public class UpdateSketchBuilder {
     bFam = Family.QUICKSELECT;
     bDstMem = null;
   }
-  
+
   /**
    * Sets the Nominal Entries for this sketch.
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
@@ -63,7 +63,7 @@ public class UpdateSketchBuilder {
     bLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
     return this;
   }
-  
+
   /**
    * Returns Log-base 2 Nominal Entries
    * @return Log-base 2 Nominal Entries
@@ -71,7 +71,7 @@ public class UpdateSketchBuilder {
   public int getLgNominalEntries() {
     return bLgNomLongs;
   }
-  
+
   /**
    * Sets the long seed value that is required by the hashing function.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
@@ -81,7 +81,7 @@ public class UpdateSketchBuilder {
     bSeed = seed;
     return this;
   }
-  
+
   /**
    * Returns the seed
    * @return the seed
@@ -89,7 +89,7 @@ public class UpdateSketchBuilder {
   public long getSeed() {
     return bSeed;
   }
-  
+
   /**
    * Sets the upfront uniform sampling probability, <i>p</i>
    * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
@@ -102,7 +102,7 @@ public class UpdateSketchBuilder {
     bP = p;
     return this;
   }
-  
+
   /**
    * Returns the pre-sampling probability <i>p</i>
    * @return the pre-sampling probability <i>p</i>
@@ -110,7 +110,7 @@ public class UpdateSketchBuilder {
   public float getP() {
     return bP;
   }
-  
+
   /**
    * Sets the cache Resize Factor.
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
@@ -120,17 +120,17 @@ public class UpdateSketchBuilder {
     bRF = rf;
     return this;
   }
-  
+
   /**
-   * Returns the Resize Factor 
+   * Returns the Resize Factor
    * @return the Resize Factor
    */
   public ResizeFactor getResizeFactor() {
     return bRF;
   }
-  
+
   /**
-   * Set the Family.  
+   * Set the Family.
    * @param family the family for this builder
    * @return this UpdateSketchBuilder
    */
@@ -138,7 +138,7 @@ public class UpdateSketchBuilder {
     this.bFam = family;
     return this;
   }
-  
+
   /**
    * Returns the Family
    * @return the Family
@@ -146,11 +146,11 @@ public class UpdateSketchBuilder {
   public Family getFamily() {
     return bFam;
   }
-  
+
   /**
-   * Initialize the specified backing destination Memory store.  
+   * Initialize the specified backing destination Memory store.
    * Note: this cannot be used with the Alpha Family of sketches.
-   * @param dstMem  The destination Memory. 
+   * @param dstMem  The destination Memory.
    * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
    * @return this UpdateSketchBuilder
    */
@@ -158,7 +158,7 @@ public class UpdateSketchBuilder {
     bDstMem = dstMem;
     return this;
   }
-  
+
   /**
    * Returns the Destination Memory
    * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
@@ -167,7 +167,7 @@ public class UpdateSketchBuilder {
   public Memory getMemory() {
     return bDstMem;
   }
-  
+
   /**
    * Returns an UpdateSketch with the current configuration of this Builder.
    * @return an UpdateSketch
@@ -178,7 +178,7 @@ public class UpdateSketchBuilder {
       case ALPHA: {
         if (bDstMem == null) {
           sketch = HeapAlphaSketch.getInstance(bLgNomLongs, bSeed, bP, bRF);
-        } 
+        }
         else {
           throw new SketchesArgumentException("AlphaSketch cannot be made Direct to Memory.");
         }
@@ -187,7 +187,7 @@ public class UpdateSketchBuilder {
       case QUICKSELECT: {
         if (bDstMem == null) {
           sketch = HeapQuickSelectSketch.getInstance(bLgNomLongs, bSeed, bP, bRF, false);
-        } 
+        }
         else {
           sketch = DirectQuickSelectSketch.getInstance(bLgNomLongs, bSeed, bP, bRF, bDstMem, false);
         }
@@ -200,7 +200,7 @@ public class UpdateSketchBuilder {
     }
     return sketch;
   }
-  
+
   /**
    * Returns an UpdateSketch with the current configuration of this Builder and the given
    * <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>.
@@ -211,8 +211,8 @@ public class UpdateSketchBuilder {
   public UpdateSketch build(int nomEntries) {
     bLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
     return build();
-  }  
-  
+  }
+
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
@@ -226,5 +226,5 @@ public class UpdateSketchBuilder {
       .append("DstMemory:").append(TAB).append(bDstMem != null).append(LS);
     return sb.toString();
   }
-  
+
 }

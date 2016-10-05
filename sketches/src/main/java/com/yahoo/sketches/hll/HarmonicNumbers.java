@@ -40,7 +40,7 @@ final class HarmonicNumbers {
   };
 
   private HarmonicNumbers() {}
-  
+
   @SuppressWarnings("cast")
   public static double harmonicNumber(long x_i) {
     if (x_i < NUM_EXACT_HARMONIC_NUMBERS) {

@@ -33,7 +33,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * double in the range [0,1), limiting us to 53 bits of randomness due to details of the IEEE
  * floating point format. To ensure meaningful probabilities as the items seen count approaches
  * capacity, we intentionally use slightly fewer bits.</p>
- * 
+ *
  * <p>An empty sampling sketch only requires 8 bytes. A non-empty sampling sketch requires 16
  * bytes of preamble.</p>
  *
@@ -65,7 +65,7 @@ import com.yahoo.sketches.SketchesArgumentException;
 final class PreambleUtil {
 
   private PreambleUtil() {}
-  
+
   // ###### DO NOT MESS WITH THIS FROM HERE ...
   // Preamble byte Addresses
   static final int PREAMBLE_LONGS_BYTE   = 0; // Only low 6 bits used
@@ -88,17 +88,16 @@ final class PreambleUtil {
 
   //Other constants
   static final int SER_VER                    = 1;
-  
-  static final boolean NATIVE_ORDER_IS_BIG_ENDIAN  = 
+
+  static final boolean NATIVE_ORDER_IS_BIG_ENDIAN  =
       (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
-  
 
   // STRINGS
 
   /**
-   * Returns a human readable string summary of the preamble state of the given byte array. 
+   * Returns a human readable string summary of the preamble state of the given byte array.
    * Used primarily in testing.
-   * 
+   *
    * @param byteArr the given byte array.
    * @return the summary preamble string.
    */
@@ -108,11 +107,11 @@ final class PreambleUtil {
   }
 
   /**
-   * Returns a human readable string summary of the preamble state of the given Memory. 
+   * Returns a human readable string summary of the preamble state of the given Memory.
    * Note: other than making sure that the given Memory size is large
-   * enough for just the preamble, this does not do much value checking of the contents of the 
+   * enough for just the preamble, this does not do much value checking of the contents of the
    * preamble as this is primarily a tool for debugging the preamble visually.
-   * 
+   *
    * @param mem the given Memory.
    * @return the summary preamble string.
    */
@@ -170,9 +169,9 @@ final class PreambleUtil {
     sb.append("### END SKETCH PREAMBLE SUMMARY").append(LS);
     return sb.toString();
   }
-  
+
   //Extract from long and insert into long methods
-  
+
   static int extractPreLongs(final long long0) {
     long mask = 0X3FL;
     return (int) (long0 & mask);
@@ -189,7 +188,7 @@ final class PreambleUtil {
     long mask = 0XFFL;
     return (int) ((long0 >>> shift) & mask);
   }
-  
+
   static int extractFamilyID(final long long0) {
     int shift = FAMILY_BYTE << 3;
     long mask = 0XFFL;
@@ -241,13 +240,13 @@ final class PreambleUtil {
     long mask = 0XFFL;
     return ((serVer & mask) << shift) | (~(mask << shift) & long0);
   }
-  
+
   static long insertFamilyID(final int familyID, final long long0) {
     int shift = FAMILY_BYTE << 3;
     long mask = 0XFFL;
     return ((familyID & mask) << shift) | (~(mask << shift) & long0);
   }
-  
+
   static long insertFlags(final int flags, final long long0) {
     int shift = FLAGS_BYTE << 3;
     long mask = 0XFFL;
@@ -276,7 +275,7 @@ final class PreambleUtil {
     long mask = 0XFFFFL;
     return ((maxK & mask) << shift) | (~(mask << shift) & long0);
   }
-  
+
   /**
    * Checks Memory for capacity to hold the preamble and returns the extracted preLongs.
    * @param mem the given Memory
@@ -291,10 +290,10 @@ final class PreambleUtil {
     if (cap < required) { throwNotBigEnough(cap, required); }
     return preLongs;
   }
-  
+
   private static void throwNotBigEnough(long cap, int required) {
     throw new SketchesArgumentException(
-        "Possible Corruption: Size of byte array or Memory not large enough: Size: " + cap 
+        "Possible Corruption: Size of byte array or Memory not large enough: Size: " + cap
         + ", Required: " + required);
   }
 }

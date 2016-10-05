@@ -14,12 +14,12 @@ import java.lang.reflect.Array;
 import com.yahoo.sketches.QuickSelect;
 
 /**
- * Implements a linear-probing based hash map of (key, value) pairs and is distinguished by a 
- * "reverse" purge operation that removes all keys in the map whose associated values are &le; 0 
+ * Implements a linear-probing based hash map of (key, value) pairs and is distinguished by a
+ * "reverse" purge operation that removes all keys in the map whose associated values are &le; 0
  * and is performed in reverse, starting at the "back" of the array and moving toward the front.
- * 
+ *
  * @param <T> The type of item to be tracked by this sketch
- * 
+ *
  * @author Edo Liberty
  * @author Justin Thaler
  * @author Alex Saydakov
@@ -37,11 +37,11 @@ class ReversePurgeItemHashMap<T> {
   /**
    * Constructor will create arrays of length mapSize, which must be a power of two.
    * This restriction was made to ensure fast hashing.
-   * The protected variable this.loadThreshold is then set to the largest value that 
+   * The protected variable this.loadThreshold is then set to the largest value that
    * will not overload the hash table.
-   * 
-   * @param mapSize This determines the number of cells in the arrays underlying the 
-   * HashMap implementation and must be a power of 2. 
+   *
+   * @param mapSize This determines the number of cells in the arrays underlying the
+   * HashMap implementation and must be a power of 2.
    * The hash table will be expected to store LOAD_FACTOR * mapSize (key, value) pairs.
    */
   ReversePurgeItemHashMap(final int mapSize) {
@@ -75,11 +75,11 @@ class ReversePurgeItemHashMap<T> {
     }
     return 0;
   }
-  
+
   /**
    * Increments the value mapped to the key if the key is present in the map. Otherwise,
    * the key is inserted with the putAmount.
-   * 
+   *
    * @param key the key of the value to increment
    * @param adjustAmount the amount by which to increment the value
    */
@@ -96,7 +96,7 @@ class ReversePurgeItemHashMap<T> {
 
     if (states[probe] == 0) {
       // adding the key to the table the value
-      assert (numActive <= loadThreshold) 
+      assert (numActive <= loadThreshold)
         : "numActive: " + numActive + " > loadThreshold: " + loadThreshold;
       keys[probe] = key;
       values[probe] = adjustAmount;
@@ -108,15 +108,15 @@ class ReversePurgeItemHashMap<T> {
       values[probe] += adjustAmount;
     }
   }
-  
+
   /**
    * Processes the map arrays and retains only keys with positive counts.
    */
   void keepOnlyPositiveCounts() {
-    // Starting from the back, find the first empty cell, 
+    // Starting from the back, find the first empty cell,
     //  which establishes the high end of a cluster.
     int firstProbe = states.length - 1;
-    while (states[firstProbe] > 0) { 
+    while (states[firstProbe] > 0) {
       firstProbe--;
     }
     // firstProbe keeps track of this point.
@@ -311,7 +311,7 @@ class ReversePurgeItemHashMap<T> {
       assert (drift < DRIFT_LIMIT) : "drift: " + drift + " >= DRIFT_LIMIT";
     }
   }
-  
+
   private int hashProbe(final T key) {
     final int arrayMask = keys.length - 1;
     int probe = (int) hash(key.hashCode()) & arrayMask;

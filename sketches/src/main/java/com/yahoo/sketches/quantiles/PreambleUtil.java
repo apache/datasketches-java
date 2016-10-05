@@ -20,29 +20,29 @@ import com.yahoo.memory.NativeMemory;
 /**
  * This class defines the preamble data structure and provides basic utilities for some of the key
  * fields.
- * <p>The intent of the design of this class was to isolate the detailed knowledge of the bit and 
+ * <p>The intent of the design of this class was to isolate the detailed knowledge of the bit and
  * byte layout of the serialized form of the sketches derived from the Sketch class into one place.
- * This allows the possibility of the introduction of different serialization 
+ * This allows the possibility of the introduction of different serialization
  * schemes with minimal impact on the rest of the library.</p>
- *  
+ *
  * <p>
  * MAP: Low significance bytes of this <i>long</i> data structure are on the right. However, the
  * multi-byte integers (<i>int</i> and <i>long</i>) are stored in native byte order. The
  * <i>byte</i> values are treated as unsigned.</p>
- * 
- * <p>An empty QuantilesSketch only requires 8 bytes. All others require 24 bytes of preamble.</p> 
- * 
+ *
+ * <p>An empty QuantilesSketch only requires 8 bytes. All others require 24 bytes of preamble.</p>
+ *
  * <pre>
  * Long || Start Byte Adr: Common for both DoublesSketch and ItemsSketch
- * Adr: 
+ * Adr:
  *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0          |
  *  0   ||------SerDeId----|--------K--------|  Flags | FamID  | SerVer | Preamble_Longs |
- *  
+ *
  *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8          |
  *  1   ||-----------------------------------N_LONG--------------------------------------|
- *  
+ *
  *  Applies only to DoublesSketch:
- *  
+ *
  *      ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |    16          |
  *  2   ||---------------------------START OF DATA, MIN_DOUBLE---------------------------|
  *
@@ -52,7 +52,7 @@ import com.yahoo.memory.NativeMemory;
  *      ||   39   |   38   |   37   |   36   |   35   |   34   |   33   |    32          |
  *  4   ||---------------------------------REST OF DATA----------------------------------|
  *  </pre>
- *  
+ *
  *  @author Lee Rhodes
  */
 final class PreambleUtil {
@@ -66,9 +66,9 @@ final class PreambleUtil {
   static final int FAMILY_BYTE                = 2;
   static final int FLAGS_BYTE                 = 3;
   static final int K_SHORT                    = 4;  //to 5
-  static final int SER_DE_ID_SHORT            = 6;  //to 7 
+  static final int SER_DE_ID_SHORT            = 6;  //to 7
   static final int N_LONG                     = 8;  //to 15
-  
+
   //After Preamble:
   static final int MIN_DOUBLE                 = 16; //to 23 (Only for DoublesSketch)
   static final int MAX_DOUBLE                 = 24; //to 31 (Only for DoublesSketch)
@@ -80,15 +80,15 @@ final class PreambleUtil {
   static final int EMPTY_FLAG_MASK            = 4;
   static final int COMPACT_FLAG_MASK          = 8;
   static final int ORDERED_FLAG_MASK          = 16;
-  
-  static final boolean NATIVE_ORDER_IS_BIG_ENDIAN  = 
+
+  static final boolean NATIVE_ORDER_IS_BIG_ENDIAN  =
       (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
-  
+
   // STRINGS
   /**
-   * Returns a human readable string summary of the internal state of the given byte array. 
+   * Returns a human readable string summary of the internal state of the given byte array.
    * Used primarily in testing.
-   * 
+   *
    * @param byteArr the given byte array.
    * @return the summary string.
    */
@@ -96,12 +96,12 @@ final class PreambleUtil {
     Memory mem = new NativeMemory(byteArr);
     return toString(mem);
   }
-  
+
   /**
    * Returns a human readable string summary of the Preamble of the given Memory. If this Memory
-   * image is from a DoublesSketch, the MinValue and MaxValue will also be output. 
+   * image is from a DoublesSketch, the MinValue and MaxValue will also be output.
    * Used primarily in testing.
-   * 
+   *
    * @param mem the given Memory
    * @return the summary string.
    */
@@ -125,15 +125,15 @@ final class PreambleUtil {
     int k = mem.getShort(K_SHORT);
     short serDeId = mem.getShort(SER_DE_ID_SHORT);
     boolean doublesSketch = (serDeId == DoublesSketch.ARRAY_OF_DOUBLES_SERDE_ID);
-    
+
     long n = (preLongs == 1) ? 0L : mem.getLong(N_LONG);
     double minDouble = Double.POSITIVE_INFINITY;
     double maxDouble = Double.NEGATIVE_INFINITY;
     if ((preLongs > 1) && doublesSketch) { // preLongs = 2 or 3
       minDouble = mem.getDouble(MIN_DOUBLE);
       maxDouble = mem.getDouble(MAX_DOUBLE);
-    } 
-    
+    }
+
     StringBuilder sb = new StringBuilder();
     sb.append(LS);
     sb.append("### QUANTILES SKETCH PREAMBLE SUMMARY:").append(LS);
@@ -162,7 +162,7 @@ final class PreambleUtil {
     sb.append("### END SKETCH PREAMBLE SUMMARY").append(LS);
     return sb.toString();
   }
-  
+
   //@formatter:on
 
   static int extractPreLongs(final Object arr, final long cumOffset) {
@@ -188,15 +188,15 @@ final class PreambleUtil {
   static short extractSerDeId(final Object arr, final long cumOffset) {
     return unsafe.getShort(arr, cumOffset + SER_DE_ID_SHORT);
   }
-  
+
   static long extractN(final Object arr, final long cumOffset) {
     return unsafe.getLong(arr, cumOffset + N_LONG);
   }
-  
+
   static double extractMinDouble(final Object arr, final long cumOffset) {
     return unsafe.getDouble(arr, cumOffset + MIN_DOUBLE);
   }
-  
+
   static double extractMaxDouble(final Object arr, final long cumOffset) {
     return unsafe.getDouble(arr, cumOffset + MAX_DOUBLE);
   }
@@ -204,35 +204,35 @@ final class PreambleUtil {
   static void insertPreLongs(Object arr, long cumOffset, int value) {
     unsafe.putByte(arr, cumOffset + PREAMBLE_LONGS_BYTE, (byte) value);
   }
-  
+
   static void insertSerVer(Object arr, long cumOffset, int value) {
     unsafe.putByte(arr, cumOffset + SER_VER_BYTE, (byte) value);
   }
-  
+
   static void insertFamilyID(Object arr, long cumOffset, int value) {
     unsafe.putByte(arr, cumOffset + FAMILY_BYTE, (byte) value);
   }
-  
+
   static void insertFlags(Object arr, long cumOffset, int value) {
     unsafe.putByte(arr, cumOffset + FLAGS_BYTE, (byte) value);
   }
-  
+
   static void insertK(Object arr, long cumOffset, int value) {
     unsafe.putShort(arr, cumOffset + K_SHORT, (short) value);
   }
-  
+
   static void insertSerDeId(Object arr, long cumOffset, int value) {
     unsafe.putShort(arr, cumOffset + SER_DE_ID_SHORT, (short) value);
   }
-  
+
   static void insertN(Object arr, long cumOffset, long value) {
     unsafe.putLong(arr, cumOffset + N_LONG, value);
   }
-  
+
   static void insertMinDouble(Object arr, long cumOffset, double value) {
     unsafe.putDouble(arr, cumOffset + MIN_DOUBLE, value);
   }
-  
+
   static void insertMaxDouble(Object arr, long cumOffset, double value) {
     unsafe.putDouble(arr, cumOffset + MAX_DOUBLE, value);
   }

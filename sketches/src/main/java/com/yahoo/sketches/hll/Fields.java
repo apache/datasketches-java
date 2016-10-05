@@ -13,7 +13,7 @@ package com.yahoo.sketches.hll;
  * right to make backwards incompatible changes without pushing up the library's version.</p>
  *
  * <p>Implement at your own risk.</p>
- * 
+ *
  * @author Kevin Lang
  */
 public interface Fields {
@@ -82,13 +82,13 @@ public interface Fields {
   BucketIterator getBucketIterator();
 
   /**
-   * Unions the current Fields into the Fields presented as an argument. This exists to allow for 
-   * polymorphic dispatch to enable optimized unioning when available. That is, most 
+   * Unions the current Fields into the Fields presented as an argument. This exists to allow for
+   * polymorphic dispatch to enable optimized unioning when available. That is, most
    * implementations will end up delegating to:
    *
    * <code>recipient.unionBucketIterator(getBucketIterator());</code>
    *
-   * <p>But, if there is a method that is more specific to the implementation, it can choose to 
+   * <p>But, if there is a method that is more specific to the implementation, it can choose to
    * delegate to, e.g:
    *
    * <code>unionCompressedAndExceptions()</code>
@@ -125,6 +125,7 @@ public interface Fields {
    * to get the information it needs to use the HipEstimation algorithm instead of the built-in one.
    */
   interface UpdateCallback {
+
     /**
      * Called when a bucket value is updated.
      *
@@ -134,12 +135,12 @@ public interface Fields {
      */
     void bucketUpdated(int bucket, byte oldVal, byte newVal);
   }
-  
+
   /**
    * Returns a new No-Op Callback
    */
   UpdateCallback NOOP_CB = new UpdateCallback() {
-    
+
     @Override
     public void bucketUpdated(int bucket, byte oldVal, byte newVal) {
       //intentionally empty

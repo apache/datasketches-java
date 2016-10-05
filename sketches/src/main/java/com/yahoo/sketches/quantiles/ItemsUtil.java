@@ -15,21 +15,21 @@ import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * Utility class for generic quantiles sketch.
- * 
+ *
  * <p>This class contains a highly specialized sort called blockyTandemMergeSort().
  * It also contains methods that are used while building histograms and other common
  * functions.</p>
- * 
+ *
  * @author Kevin Lang
  * @author Alex Saydadov
  */
 final class ItemsUtil {
 
   private ItemsUtil() {}
-  
+
   static final int ITEMS_SER_VER = 3;
   static final int PRIOR_ITEMS_SER_VER = 2;
-  
+
   /**
    * Check the validity of the given serialization version
    * @param serVer the given serialization version
@@ -39,16 +39,16 @@ final class ItemsUtil {
     throw new SketchesArgumentException(
         "Possible corruption: Invalid Serialization Version: " + serVer);
   }
-  
+
   /**
-   * Checks the sequential validity of the given array of values. 
+   * Checks the sequential validity of the given array of values.
    * They must be unique, monotonically increasing and not null.
    * @param values given array of values
    */
   static final <T> void validateValues(final T[] values, final Comparator<? super T> comparator) {
     final int lenM1 = values.length - 1;
     for (int j = 0; j < lenM1; j++) {
-      if (values[j] != null && values[j + 1] != null 
+      if (values[j] != null && values[j + 1] != null
           && comparator.compare(values[j], values[j + 1]) < 0) {
         continue;
       }
@@ -117,7 +117,7 @@ final class ItemsUtil {
     maybeGrowLevels(n, sketch); // important: n_ was incremented by update before we got here
 
     // this aliasing is a bit dangerous; notice that we did it after the possible resizing
-    final Object[] baseBuffer = sketch.getCombinedBuffer(); 
+    final Object[] baseBuffer = sketch.getCombinedBuffer();
 
     Arrays.sort(baseBuffer, 0, bbCount);
     inPlacePropagateCarry(
@@ -182,13 +182,13 @@ final class ItemsUtil {
     }
     // from here on we need a full-size base buffer and at least one level
     assert newN >= 2L * k;
-    assert numLevelsNeeded > 0; 
+    assert numLevelsNeeded > 0;
     final int spaceNeeded = (2 + numLevelsNeeded) * k;
     if (spaceNeeded <= sketch.getCombinedBufferAllocatedCount()) {
       return;
     }
     // copies base buffer plus old levels
-    sketch.combinedBuffer_ = Arrays.copyOf(sketch.getCombinedBuffer(), spaceNeeded); 
+    sketch.combinedBuffer_ = Arrays.copyOf(sketch.getCombinedBuffer(), spaceNeeded);
     sketch.combinedBufferItemCapacity_ = spaceNeeded;
   }
 
@@ -207,7 +207,7 @@ final class ItemsUtil {
    * However, it is required that the ratio of the two K values be a power of 2.
    * I.e., source.getK() = target.getK() * 2^(nonnegative integer).
    * The source is not modified.
-   * 
+   *
    * @param src The source sketch
    * @param tgt The target sketch
    */
@@ -255,7 +255,7 @@ final class ItemsUtil {
         // won't update target.n_ until the very end
       }
     }
-    tgt.n_ = nFinal; 
+    tgt.n_ = nFinal;
 
     assert tgt.getN() / (2 * targetK) == tgt.getBitPattern(); // internal consistency check
 
@@ -298,14 +298,14 @@ final class ItemsUtil {
       final int k, final Comparator<? super T> comparator) {
     final int arrStop1 = startSrc1 + k;
     final int arrStop2 = arrStart2 + k;
-  
+
     int i1 = startSrc1;
     int i2 = arrStart2;
     int i3 = arrStart3;
     while (i1 < arrStop1 && i2 < arrStop2) {
-      if (comparator.compare(keySrc2[i2], keySrc1[i1]) < 0) { 
+      if (comparator.compare(keySrc2[i2], keySrc1[i1]) < 0) {
         keyDst[i3++] = keySrc2[i2++];
-      } else { 
+      } else {
         keyDst[i3++] = keySrc1[i1++];
       }
     }
@@ -331,12 +331,12 @@ final class ItemsUtil {
   static <T> void bilinearTimeIncrementHistogramCounters(final T[] samples, final int offset, final int numSamples,
       final long weight, final T[] splitPoints, final long[] counters, final Comparator<? super T> comparator) {
     assert (splitPoints.length + 1 == counters.length);
-    for (int i = 0; i < numSamples; i++) { 
+    for (int i = 0; i < numSamples; i++) {
       final T sample = samples[i + offset];
       int j = 0;
       for (j = 0; j < splitPoints.length; j++) {
         final T splitpoint = splitPoints[j];
-        if (comparator.compare(sample, splitpoint) < 0) { 
+        if (comparator.compare(sample, splitpoint) < 0) {
           break;
         }
       }
@@ -380,7 +380,7 @@ final class ItemsUtil {
       counters[j] += (weight * (numSamples - i));
     }
   }
-  
+
   /**
    * blockyTandemMergeSort() is an implementation of top-down merge sort specialized
    * for the case where the input contains successive equal-length blocks
@@ -389,10 +389,10 @@ final class ItemsUtil {
    * as discussed above.
    * @param keyArr array of keys
    * @param valArr array of values
-   * @param arrLen length of keyArr and valArr 
+   * @param arrLen length of keyArr and valArr
    * @param blkSize size of internal sorted blocks
    */
-  static <T> void blockyTandemMergeSort(final T[] keyArr, final long[] valArr, final int arrLen, 
+  static <T> void blockyTandemMergeSort(final T[] keyArr, final long[] valArr, final int arrLen,
       final int blkSize, final Comparator<? super T> comparator) {
     assert blkSize >= 1;
     if (arrLen <= blkSize) return;
@@ -400,7 +400,7 @@ final class ItemsUtil {
     if (numblks * blkSize < arrLen) numblks += 1;
     assert (numblks * blkSize >= arrLen);
 
-    // duplicate the input is preparation for the "ping-pong" copy reduction strategy. 
+    // duplicate the input is preparation for the "ping-pong" copy reduction strategy.
     final T[] keyTmp = Arrays.copyOf(keyArr, arrLen);
     final long[] valTmp = Arrays.copyOf(valArr, arrLen);
 
@@ -414,7 +414,7 @@ final class ItemsUtil {
    *  blockyTandemMergeSortRecursion() is called by blockyTandemMergeSort().
    *  In addition to performing the algorithm's top down recursion,
    *  it manages the buffer swapping that eliminates most copying.
-   *  It also maps the input's pre-sorted blocks into the subarrays 
+   *  It also maps the input's pre-sorted blocks into the subarrays
    *  that are processed by tandemMerge().
    * @param keySrc key source
    * @param valSrc value source
@@ -462,12 +462,12 @@ final class ItemsUtil {
     if (arrStart2 + arrLen2 > arrLim) arrLen2 = arrLim - arrStart2;
 
     tandemMerge(keySrc, valSrc,
-                arrStart1, arrLen1, 
+                arrStart1, arrLen1,
                 arrStart2, arrLen2,
                 keyDst, valDst,
                 arrStart1, comparator); // which will be arrStart3
   }
-  
+
   /**
    *  Performs two merges in tandem. One of them provides the sort keys
    *  while the other one passively undergoes the same data motion.
@@ -498,7 +498,7 @@ final class ItemsUtil {
         keyDst[i3] = keySrc[i2];
         valDst[i3] = valSrc[i2];
         i3++; i2++;
-      } else { 
+      } else {
         keyDst[i3] = keySrc[i1];
         valDst[i3] = valSrc[i1];
         i3++; i1++;
@@ -530,7 +530,7 @@ final class ItemsUtil {
       //output the base buffer
       sb.append("   BaseBuffer   :");
       if (bbCount > 0) {
-        for (int i = 0; i < bbCount; i++) { 
+        for (int i = 0; i < bbCount; i++) {
           sb.append(' ').append(items[i]);
         }
       }

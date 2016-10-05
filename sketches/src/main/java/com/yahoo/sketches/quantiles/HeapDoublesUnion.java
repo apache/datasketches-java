@@ -9,7 +9,7 @@ import com.yahoo.memory.Memory;
 
 /**
  * Union operation for on-heap.
- * 
+ *
  * @author Lee Rhodes
  */
 final class HeapDoublesUnion extends DoublesUnion {
@@ -19,22 +19,22 @@ final class HeapDoublesUnion extends DoublesUnion {
   HeapDoublesUnion(final int k) {
     k_ = k;
   }
-  
+
   HeapDoublesUnion(final DoublesSketch sketch) {
     k_ = sketch.getK();
     gadget_ = (HeapDoublesSketch) sketch;
   }
-  
+
   /**
    * Heapify the given srcMem into a HeapUnion object.
-   * @param srcMem the given srcMem. 
+   * @param srcMem the given srcMem.
    * A reference to srcMem will not be maintained internally.
    */
   HeapDoublesUnion(final Memory srcMem) {
     gadget_ = HeapDoublesSketch.heapifyInstance(srcMem);
     k_ = gadget_.getK();
   }
-  
+
   @Override
   public void update(DoublesSketch sketchIn) {
     gadget_ = updateLogic(k_, gadget_, (HeapDoublesSketch)sketchIn);
@@ -57,7 +57,7 @@ final class HeapDoublesUnion extends DoublesUnion {
     if (gadget_ == null) return HeapDoublesSketch.newInstance(k_);
     return DoublesUtil.copy(gadget_); //can't have any externally owned handles.
   }
-  
+
   @Override
   public DoublesSketch getResultAndReset() {
     if (gadget_ == null) return null; //Intentionally return null here for speed.
@@ -65,36 +65,36 @@ final class HeapDoublesUnion extends DoublesUnion {
     gadget_ = null;
     return hqs;
   }
-  
+
   @Override
   public void reset() {
     gadget_ = null;
   }
-  
+
   @Override
   public String toString() {
     return toString(true, false);
   }
-  
+
   @Override
   public String toString(boolean sketchSummary, boolean dataDetail) {
     if (gadget_ == null) return HeapDoublesSketch.newInstance(k_).toString();
     return gadget_.toString(sketchSummary, dataDetail);
   }
-  
+
 
   //@formatter:off
   @SuppressWarnings("null")
-  static HeapDoublesSketch updateLogic(final int myK, final HeapDoublesSketch myQS, 
+  static HeapDoublesSketch updateLogic(final int myK, final HeapDoublesSketch myQS,
       final HeapDoublesSketch other) {
     int sw1 = ((myQS   == null) ? 0 :   myQS.isEmpty() ? 4 : 8);
     sw1 |=    ((other  == null) ? 0 :  other.isEmpty() ? 1 : 2);
-    int outCase = 0; //0=null, 1=NOOP, 2=copy, 3=merge 
+    int outCase = 0; //0=null, 1=NOOP, 2=copy, 3=merge
     switch (sw1) {
       case 0:  outCase = 0; break; //myQS = null,  other = null ; return null
       case 1:  outCase = 4; break; //myQS = null,  other = empty; copy or downsample(myK)
       case 2:  outCase = 2; break; //myQS = null,  other = valid; copy or downsample(myK)
-      case 4:  outCase = 1; break; //myQS = empty, other = null ; no-op 
+      case 4:  outCase = 1; break; //myQS = empty, other = null ; no-op
       case 5:  outCase = 1; break; //myQS = empty, other = empty; no-op
       case 6:  outCase = 3; break; //myQS = empty, other = valid; merge
       case 8:  outCase = 1; break; //myQS = valid, other = null ; no-op
@@ -131,64 +131,64 @@ final class HeapDoublesUnion extends DoublesUnion {
         ret = HeapDoublesSketch.newInstance(Math.min(myK, other.getK()));
         break;
       }
-      
+
       //default: //This cannot happen and cannot be tested
     }
     return ret;
   }
   //@formatter:on
-  
+
   /**
    * Merges the source sketch into the target sketch that can have a smaller value of K.
    * However, it is required that the ratio of the two K values be a power of 2.
    * I.e., source.getK() = target.getK() * 2^(nonnegative integer).
    * The source is not modified.
-   * 
-   * <p>Note: It is easy to prove that the following simplified code which launches multiple waves of 
-   * carry propagation does exactly the same amount of merging work (including the work of 
-   * allocating fresh buffers) as the more complicated and seemingly more efficient approach that 
+   *
+   * <p>Note: It is easy to prove that the following simplified code which launches multiple waves of
+   * carry propagation does exactly the same amount of merging work (including the work of
+   * allocating fresh buffers) as the more complicated and seemingly more efficient approach that
    * tracks a single carry propagation wave through both sketches.
-   * 
-   * <p>This simplified code probably does do slightly more "outer loop" work, but I am pretty 
-   * sure that even that is within a constant factor of the more complicated code, plus the 
-   * total amount of "outer loop" work is at least a factor of K smaller than the total amount of 
+   *
+   * <p>This simplified code probably does do slightly more "outer loop" work, but I am pretty
+   * sure that even that is within a constant factor of the more complicated code, plus the
+   * total amount of "outer loop" work is at least a factor of K smaller than the total amount of
    * merging work, which is identical in the two approaches.
    *
-   * <p>Note: a two-way merge that doesn't modify either of its two inputs could be implemented 
+   * <p>Note: a two-way merge that doesn't modify either of its two inputs could be implemented
    * by making a deep copy of the larger sketch and then merging the smaller one into it.
    * However, it was decided not to do this.
-   * 
+   *
    * @param source The source sketch
    * @param target The target sketch
    */
-  
+
   static void mergeInto(DoublesSketch source, DoublesSketch target) {
-    
+
     HeapDoublesSketch src = (HeapDoublesSketch)source;
     HeapDoublesSketch tgt = (HeapDoublesSketch)target;
     int srcK = src.getK();
     int tgtK = tgt.getK();
     long srcN = src.getN();
     long tgtN = tgt.getN();
-    
+
     if (srcK != tgtK) {
       DoublesMergeImpl.downSamplingMergeInto(src, tgt);
       return;
     }
-    
+
     double[] srcLevels     = src.getCombinedBuffer(); // aliasing is a bit dangerous
     double[] srcBaseBuffer = srcLevels;               // aliasing is a bit dangerous
-  
+
     long nFinal = tgtN + srcN;
-  
+
     for (int i = 0; i < src.getBaseBufferCount(); i++) {
       tgt.update(srcBaseBuffer[i]);
     }
-  
+
     DoublesUpdateImpl.maybeGrowLevels(nFinal, tgt);
-  
+
     double[] scratchBuf = new double[2 * tgtK];
-  
+
     long srcBitPattern = src.getBitPattern();
     assert srcBitPattern == (srcN / (2L * srcK));
     for (int srcLvl = 0; srcBitPattern != 0L; srcLvl++, srcBitPattern >>>= 1) {
@@ -201,11 +201,11 @@ final class HeapDoublesUnion extends DoublesUnion {
             // won't update qsTarget.n_ until the very end
       }
     }
-  
+
     tgt.n_ = nFinal;
-    
+
     assert tgt.getN() / (2 * tgtK) == tgt.getBitPattern(); // internal consistency check
-    
+
     double srcMax = src.getMaxValue();
     double srcMin = src.getMinValue();
     double tgtMax = tgt.getMaxValue();

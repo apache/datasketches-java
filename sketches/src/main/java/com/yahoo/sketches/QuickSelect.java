@@ -6,23 +6,23 @@
 package com.yahoo.sketches;
 
 /**
- * QuickSelect algorithm improved from Sedgewick. Gets the kth order value 
- * (1-based or 0-based) from the array. 
+ * QuickSelect algorithm improved from Sedgewick. Gets the kth order value
+ * (1-based or 0-based) from the array.
  * Warning! This changes the ordering of elements in the given array!<br>
  * Also see:<br>
  * blog.teamleadnet.com/2012/07/quick-select-algorithm-find-kth-element.html<br>
  * See QuickSelectTest for examples and testNG tests.
- * 
+ *
  * @author Lee Rhodes
  */
 public final class QuickSelect {
-  
+
   private QuickSelect() {}
-  
+
   /**
-   * Gets the 0-based kth order statistic from the array. Warning! This changes the ordering 
+   * Gets the 0-based kth order statistic from the array. Warning! This changes the ordering
    * of elements in the given array!
-   * 
+   *
    * @param arr The array to be re-arranged.
    * @param lo The lowest 0-based index to be considered.
    * @param hi The highest 0-based index to be considered.
@@ -37,7 +37,7 @@ public final class QuickSelect {
       }
       if (j > pivot) {
         hi = j - 1;
-      } 
+      }
       else {
         lo = j + 1;
       }
@@ -46,13 +46,13 @@ public final class QuickSelect {
   }
 
   /**
-   * Gets the 1-based kth order statistic from the array including any zero values in the 
+   * Gets the 1-based kth order statistic from the array including any zero values in the
    * array. Warning! This changes the ordering of elements in the given array!
-   * 
+   *
    * @param arr The hash array.
-   * @param pivot The 1-based index of the value that is chosen as the pivot for the array. 
-   * After the operation all values below this 1-based index will be less than this value 
-   * and all values above this index will be greater. The 0-based index of the pivot will be 
+   * @param pivot The 1-based index of the value that is chosen as the pivot for the array.
+   * After the operation all values below this 1-based index will be less than this value
+   * and all values above this index will be greater. The 0-based index of the pivot will be
    * pivot-1.
    * @return The value of the smallest (N)th element including zeros, where N is 1-based.
    */
@@ -63,13 +63,13 @@ public final class QuickSelect {
   }
 
   /**
-   * Gets the 1-based kth order statistic from the array excluding any zero values in the 
+   * Gets the 1-based kth order statistic from the array excluding any zero values in the
    * array. Warning! This changes the ordering of elements in the given array!
-   * 
+   *
    * @param arr The hash array.
    * @param nonZeros The number of non-zero values in the array.
-   * @param pivot The 1-based index of the value that is chosen as the pivot for the array. 
-   * After the operation all values below this 1-based index will be less than this value 
+   * @param pivot The 1-based index of the value that is chosen as the pivot for the array.
+   * After the operation all values below this 1-based index will be less than this value
    * and all values above this index will be greater. The 0-based index of the pivot will be
    * pivot+arr.length-nonZeros-1.
    * @return The value of the smallest (N)th element excluding zeros, where N is 1-based.
@@ -83,10 +83,10 @@ public final class QuickSelect {
     int adjK = (pivot + zeros) - 1;
     return select(arr, 0, arrSize - 1, adjK);
   }
-  
+
   /**
    * Partition arr[] into arr[lo .. i-1], arr[i], arr[i+1,hi]
-   * 
+   *
    * @param arr The given array to partition
    * @param lo  the low index
    * @param hi  the high index
@@ -120,13 +120,13 @@ public final class QuickSelect {
     arr[j] = x;
     return j;
   }
-  
+
   //For double arrays
-  
+
   /**
-   * Gets the 0-based kth order statistic from the array. Warning! This changes the ordering 
+   * Gets the 0-based kth order statistic from the array. Warning! This changes the ordering
    * of elements in the given array!
-   * 
+   *
    * @param arr The array to be re-arranged.
    * @param lo The lowest 0-based index to be considered.
    * @param hi The highest 0-based index to be considered.
@@ -141,7 +141,7 @@ public final class QuickSelect {
       }
       if (j > pivot) {
         hi = j - 1;
-      } 
+      }
       else {
         lo = j + 1;
       }
@@ -150,13 +150,13 @@ public final class QuickSelect {
   }
 
   /**
-   * Gets the 1-based kth order statistic from the array including any zero values in the 
+   * Gets the 1-based kth order statistic from the array including any zero values in the
    * array. Warning! This changes the ordering of elements in the given array!
-   * 
+   *
    * @param arr The hash array.
-   * @param pivot The 1-based index of the value that is chosen as the pivot for the array. 
-   * After the operation all values below this 1-based index will be less than this value 
-   * and all values above this index will be greater. The 0-based index of the pivot will be 
+   * @param pivot The 1-based index of the value that is chosen as the pivot for the array.
+   * After the operation all values below this 1-based index will be less than this value
+   * and all values above this index will be greater. The 0-based index of the pivot will be
    * pivot-1.
    * @return The value of the smallest (N)th element including zeros, where N is 1-based.
    */
@@ -167,13 +167,13 @@ public final class QuickSelect {
   }
 
   /**
-   * Gets the 1-based kth order statistic from the array excluding any zero values in the 
+   * Gets the 1-based kth order statistic from the array excluding any zero values in the
    * array. Warning! This changes the ordering of elements in the given array!
-   * 
+   *
    * @param arr The hash array.
    * @param nonZeros The number of non-zero values in the array.
-   * @param pivot The 1-based index of the value that is chosen as the pivot for the array. 
-   * After the operation all values below this 1-based index will be less than this value 
+   * @param pivot The 1-based index of the value that is chosen as the pivot for the array.
+   * After the operation all values below this 1-based index will be less than this value
    * and all values above this index will be greater. The 0-based index of the pivot will be
    * pivot+arr.length-nonZeros-1.
    * @return The value of the smallest (N)th element excluding zeros, where N is 1-based.
@@ -190,7 +190,7 @@ public final class QuickSelect {
 
   /**
    * Partition arr[] into arr[lo .. i-1], arr[i], arr[i+1,hi]
-   * 
+   *
    * @param arr The given array to partition
    * @param lo  the low index
    * @param hi  the high index

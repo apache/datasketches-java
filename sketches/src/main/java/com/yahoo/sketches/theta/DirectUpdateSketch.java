@@ -12,11 +12,11 @@ import com.yahoo.sketches.Util;
 
 /**
  * The parent class for Direct Updatable Theta Sketches.
- * 
+ *
  * <p>This implementation uses data in a given Memory that is owned and managed by the caller.
  * This Memory can be off-heap, which if managed properly will greatly reduce the need for
  * the JVM to perform garbage collection.</p>
- * 
+ *
  * @author Lee Rhodes
  */
 abstract class DirectUpdateSketch extends UpdateSketch {
@@ -34,14 +34,14 @@ abstract class DirectUpdateSketch extends UpdateSketch {
 
   @Override
   public boolean isDirect() {
-    return true; 
+    return true;
   }
 
   @Override
   public ResizeFactor getResizeFactor() {
     return rf_;
   }
-  
+
   //restricted methods
 
   @Override

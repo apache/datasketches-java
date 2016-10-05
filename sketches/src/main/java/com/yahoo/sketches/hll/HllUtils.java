@@ -7,13 +7,13 @@ package com.yahoo.sketches.hll;
 
 /**
  * Utility functions for the HLL package
- * 
+ *
  * @author Kevin Lang
  */
 final class HllUtils {
 
   private HllUtils() {}
-  
+
   static double computeInvPow2Sum(int numBuckets, BucketIterator iter) {
     double retVal = 0;
     while (iter.next()) {
@@ -32,7 +32,7 @@ final class HllUtils {
   }
 
   /**
-   * Computes the inverse integer power of 2: 1/(2^e) == 2^(-e). 
+   * Computes the inverse integer power of 2: 1/(2^e) == 2^(-e).
    * @param e a positive value between 0 and 1023 inclusive
    * @return  the inverse integer power of 2: 1/(2^e) == 2^(-e)
    */
@@ -40,5 +40,5 @@ final class HllUtils {
     assert (e | (1024 - e - 1)) >= 0 : "e cannot be negative or greater than 1023: " + e;
     return Double.longBitsToDouble((0x3ffL - e) << 52); //suggested by Otmar Ertl
   }
-  
+
 }

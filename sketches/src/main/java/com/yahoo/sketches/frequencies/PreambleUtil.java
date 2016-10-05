@@ -23,20 +23,20 @@ import com.yahoo.sketches.SketchesArgumentException;
  * allows the possibility of the introduction of different serialization schemes with minimal impact
  * on the rest of the library.
  * </p>
- * 
+ *
  * <p>
  * MAP: Low significance bytes of this <i>long</i> data structure are on the right. However, the
  * multi-byte integers (<i>int</i> and <i>long</i>) are stored in native byte order. The <i>byte</i>
  * values are treated as unsigned.
  * </p>
- * 
+ *
  * <p>
  * An empty FrequentItems only requires 8 bytes. All others require 32 bytes of preamble.
  * </p>
- * 
+ *
  * <pre>
  *  * Long || Start Byte Adr:
- * Adr: 
+ * Adr:
  *      ||    7     |    6   |    5   |    4   |    3   |    2   |    1   |     0          |
  *  0   ||-------SerDeId-----|-Flags--|-LgCur--| LgMax  | FamID  | SerVer | PreambleLongs  |
  *      ||    15    |   14   |   13   |   12   |   11   |   10   |    9   |     8          |
@@ -48,7 +48,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  *      ||    39    |   38   |   37   |   36   |   35   |   34   |   33   |    32          |
  *  5   ||----------start of values buffer, followed by keys buffer------------------------|
  * </pre>
- * 
+ *
  * @author Lee Rhodes
  */
 final class PreambleUtil {
@@ -75,11 +75,11 @@ final class PreambleUtil {
   static final int SER_VER = 1;
 
   /**
-   * Returns a human readable string summary of the preamble state of the given Memory. 
+   * Returns a human readable string summary of the preamble state of the given Memory.
    * Note: other than making sure that the given Memory size is large
-   * enough for just the preamble, this does not do much value checking of the contents of the 
+   * enough for just the preamble, this does not do much value checking of the contents of the
    * preamble as this is primarily a tool for debugging the preamble visually.
-   * 
+   *
    * @param srcMem the given Memory.
    * @return the summary preamble string.
    */
@@ -114,7 +114,7 @@ final class PreambleUtil {
       streamLength = preArr[2];
       offset = preArr[3];
     }
-    
+
     final StringBuilder sb = new StringBuilder();
     sb.append(LS)
       .append("### FREQUENCY SKETCH PREAMBLE SUMMARY:").append(LS)
@@ -126,7 +126,7 @@ final class PreambleUtil {
       .append("Byte  5: Flags Field          : ").append(flagsStr).append(LS)
       .append("  EMPTY                       : ").append(empty).append(LS)
       .append("Byte  6: Freq Sketch Type     : ").append(type).append(LS);
-      
+
     if (preLongs == 1) {
       sb.append(" --ABSENT, ASSUMED:").append(LS);
     } else { //preLongs == maxPreLongs
@@ -134,7 +134,7 @@ final class PreambleUtil {
       sb.append("Bytes 16-23: StreamLength   : ").append(streamLength).append(LS)
         .append("Bytes 24-31: Offset         : ").append(offset).append(LS);
     }
-    
+
     sb.append(  "Preamble Bytes                : ").append(preLongs * 8).append(LS);
     sb.append(  "TOTAL Sketch Bytes            : ").append((preLongs + activeItems * 2) << 3)
       .append(LS)
@@ -143,7 +143,7 @@ final class PreambleUtil {
   }
 
   // @formatter:on
-  
+
   static int extractPreLongs(final long pre0) { //Byte 0
     final long mask = 0X3FL; //Lower 6 bits
     return (int) (pre0 & mask);
@@ -166,7 +166,7 @@ final class PreambleUtil {
     final long mask = 0XFFL;
     return (int) ((pre0 >>> shift) & mask);
   }
-  
+
   static int extractLgCurMapSize(final long pre0) { //Byte 4
     final int shift = LG_CUR_MAP_SIZE_BYTE << 3;
     final long mask = 0XFFL;
@@ -198,7 +198,7 @@ final class PreambleUtil {
   static long insertSerVer(final int serVer, final long pre0) { //Byte 1
     final int shift = SER_VER_BYTE << 3;
     final long mask = 0XFFL;
-    return ((serVer & mask) << shift) | (~(mask << shift) & pre0); 
+    return ((serVer & mask) << shift) | (~(mask << shift) & pre0);
   }
 
   static long insertFamilyID(final int familyID, final long pre0) { //Byte 2
@@ -253,8 +253,8 @@ final class PreambleUtil {
 
   private static void throwNotBigEnough(long cap, int required) {
     throw new SketchesArgumentException(
-        "Possible Corruption: " 
-            + "Size of byte array or Memory not large enough for Preamble: Size: " + cap 
+        "Possible Corruption: "
+            + "Size of byte array or Memory not large enough for Preamble: Size: " + cap
             + ", Required: " + required);
   }
 

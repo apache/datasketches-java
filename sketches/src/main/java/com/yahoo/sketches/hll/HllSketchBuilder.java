@@ -17,14 +17,14 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
   private boolean compressedDense = false;
   private boolean denseMode = false;
   private boolean hipEstimator = false;
-  
+
   /**
    * Default constructor using default nominal entries (4096).
    */
   public HllSketchBuilder() {
     preamble = Preamble.fromLogK(Integer.numberOfTrailingZeros(DEFAULT_NOMINAL_ENTRIES));
   }
-  
+
   /**
    * Copy constructor
    * @return a copy of this sketch
@@ -38,7 +38,7 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
 
     return retVal;
   }
-  
+
   /**
    * Sets the number of buckets (k) from the log_base2 of the desired value.
    * @param logBuckets the given log_base2 of the desired number of buckets
@@ -48,7 +48,7 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
     this.preamble = Preamble.fromLogK((byte) logBuckets);
     return this;
   }
-  
+
   /**
    * Gets the currently configured log_base2 of the number of buckets (k)
    * @return the currently configured log_base2 of the number of buckets (k)
@@ -56,7 +56,7 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
   public int getLogBuckets() {
     return preamble.getLogConfigK();
   }
-  
+
   /**
    * Sets the Preamble
    * @param preamble the given Preamble
@@ -66,7 +66,7 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
     this.preamble = preamble;
     return this;
   }
-  
+
   /**
    * Gets the configured Preamble
    * @return the configured Preamble
@@ -74,7 +74,7 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
   public Preamble getPreamble() {
     return preamble;
   }
-  
+
   /**
    * Sets the Dense Mode flag
    * @param denseMode the state of dense mode
@@ -120,7 +120,7 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
     this.hipEstimator = hipEstimator;
     return this;
   }
-  
+
   /**
    * Gets the state of the Hip Estimator option
    * @return the state of the Hip Estimator option
@@ -128,7 +128,7 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
   public boolean isHipEstimator() {
     return hipEstimator;
   }
-  
+
   /**
    * Build a new HllSketch
    * @return a new HllSketch
@@ -147,14 +147,14 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
     } else {
       fields = new OnHeapHashFields(preamble, 16, HashUtils.getMaxHashSize(preamble.getLogConfigK()), denseFactory);
     }
-    
+
     if (hipEstimator) {
       return new HipHllSketch(fields);
     } else {
       return new HllSketch(fields);
     }
   }
-  
+
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
@@ -164,8 +164,8 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
       .append("DenseMode:").append(TAB).append(denseMode).append(LS)
       .append("HIP Estimator:").append(TAB).append(hipEstimator).append(LS)
       .append("Compressed Dense:").append(TAB).append(compressedDense).append(LS);
-    
+
     return sb.toString();
   }
-  
+
 }

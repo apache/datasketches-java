@@ -27,41 +27,41 @@ import static com.yahoo.memory.UnsafeUtil.assertBounds;
 import java.nio.ByteBuffer;
 
 /**
- * The MemoryRegion class implements the Memory interface and provides a means of 
- * hierarchically partitioning a large block of native memory into 
- * smaller regions of memory, each with their own capacity and offsets. 
- * 
- * <p>If asserts are enabled in the JVM, the methods in this class perform bounds checking against 
+ * The MemoryRegion class implements the Memory interface and provides a means of
+ * hierarchically partitioning a large block of native memory into
+ * smaller regions of memory, each with their own capacity and offsets.
+ *
+ * <p>If asserts are enabled in the JVM, the methods in this class perform bounds checking against
  * the region's defined boundaries and then redirect the call to the parent Memory class. If the
- * parent class is also a MemoryRegion it does a similar check and then calls its parent. 
+ * parent class is also a MemoryRegion it does a similar check and then calls its parent.
  * The root of this hierarchy will be a NativeMemory class that ultimately performs the desired
- * task. If asserts are not enabled the JIT compiler will eliminate all the asserts and the 
- * hierarchical calls should collapse to a call to the NativeMemory method.</p> 
- * 
- * <p>Because asserts must be specifically enabled in the JVM, it is incumbent on the user of this 
- * class to make sure that their code is thoroughly tested.  
+ * task. If asserts are not enabled the JIT compiler will eliminate all the asserts and the
+ * hierarchical calls should collapse to a call to the NativeMemory method.</p>
+ *
+ * <p>Because asserts must be specifically enabled in the JVM, it is incumbent on the user of this
+ * class to make sure that their code is thoroughly tested.
  * Violating memory bounds can cause memory segment faults, which takes
  * down the JVM and can be very difficult to debug.</p>
- * 
+ *
  * @see NativeMemory
  * @author Lee Rhodes
  */
 public class MemoryRegion implements Memory {
   /**
    * The parent Memory object from which an offset and capacity is defined by this class.
-   * This field is used to keep a reference to the parent Memory to 
+   * This field is used to keep a reference to the parent Memory to
    * ensure that its memory isn't freed before we are done with it.
    */
   private final Memory mem_;
   private volatile long memOffsetBytes_;
   private volatile long capacityBytes_;
   private volatile MemoryRequest memReq_ = null;
-  
+
   /**
-   * Defines a region of the given parent Memory by defining an offset and capacity that are 
+   * Defines a region of the given parent Memory by defining an offset and capacity that are
    * within the boundaries of the parent.
    * @param memory the parent Memory
-   * @param memOffsetBytes the starting offset in bytes of this region with respect to the 
+   * @param memOffsetBytes the starting offset in bytes of this region with respect to the
    * start of the parent memory.
    * @param capacityBytes the capacity in bytes of this region.
    */
@@ -71,12 +71,12 @@ public class MemoryRegion implements Memory {
     memOffsetBytes_ = memOffsetBytes;
     capacityBytes_ = capacityBytes;
   }
-  
+
   /**
-   * Defines a region of the given parent Memory by defining an offset and capacity that are 
+   * Defines a region of the given parent Memory by defining an offset and capacity that are
    * within the boundaries of the parent.
    * @param memory the parent Memory
-   * @param memOffsetBytes the starting offset in bytes of this region with respect to the 
+   * @param memOffsetBytes the starting offset in bytes of this region with respect to the
    * start of the parent memory.
    * @param capacityBytes the capacity in bytes of this region.
    * @param memReq a MemoryRequest object
@@ -88,7 +88,7 @@ public class MemoryRegion implements Memory {
     capacityBytes_ = capacityBytes;
     memReq_ = memReq;
   }
-  
+
   /**
    * Reassign the offset and capacity of this MemoryRegion
    * @param memOffsetBytes the given offset from the parent's start
@@ -99,7 +99,7 @@ public class MemoryRegion implements Memory {
     memOffsetBytes_ = memOffsetBytes;
     capacityBytes_ = capacityBytes;
   }
-  
+
   @Override
   public void clear() {
     fill(0, capacityBytes_, (byte) 0);
@@ -124,7 +124,7 @@ public class MemoryRegion implements Memory {
     long max = Math.max(srcOffsetBytes, dstOffsetBytes);
     assertBounds(min, lengthBytes, max); //regions must not overlap
     long srcAdd = getAddress(srcOffsetBytes);
-    long dstAdd = getAddress(dstOffsetBytes); 
+    long dstAdd = getAddress(dstOffsetBytes);
     mem_.copy(srcAdd, dstAdd, lengthBytes);
   }
 
@@ -138,7 +138,7 @@ public class MemoryRegion implements Memory {
     assertBounds(offsetBytes, lengthBytes, capacityBytes_);
     mem_.fill(getAddress(offsetBytes), lengthBytes, value);
   }
-  
+
   @Override
   public int getAndAddInt(long offsetBytes, int delta) {
     assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
@@ -278,7 +278,7 @@ public class MemoryRegion implements Memory {
   @Override
   public boolean isAllBitsClear(long offsetBytes, byte bitMask) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
-    int value = ~mem_.getByte(getAddress(offsetBytes)) & bitMask & 0XFF; 
+    int value = ~mem_.getByte(getAddress(offsetBytes)) & bitMask & 0XFF;
     return value == bitMask;
   }
 
@@ -292,7 +292,7 @@ public class MemoryRegion implements Memory {
   @Override
   public boolean isAnyBitsClear(long offsetBytes, byte bitMask) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
-    int value = ~mem_.getByte(getAddress(offsetBytes)) & bitMask & 0XFF; 
+    int value = ~mem_.getByte(getAddress(offsetBytes)) & bitMask & 0XFF;
     return value != 0;
   }
 
@@ -429,18 +429,18 @@ public class MemoryRegion implements Memory {
   public Object array() {
     return mem_.array();
   }
-  
+
   @Override
   public Memory asReadOnlyMemory() {
     Memory readOnlyMem = mem_.asReadOnlyMemory();
     return new MemoryRegionR(readOnlyMem, memOffsetBytes_, capacityBytes_, memReq_);
   }
-  
+
   @Override
   public ByteBuffer byteBuffer() {
     return mem_.byteBuffer();
   }
-  
+
   /**
    * Returns the start address of this Memory relative to its parent plus the given offsetBytes.
    * @param offsetBytes the given offset in bytes from the start address of this Memory
@@ -461,47 +461,47 @@ public class MemoryRegion implements Memory {
   public long getCumulativeOffset(final long offsetBytes) {
     return mem_.getCumulativeOffset(0L) + getAddress(offsetBytes);
   }
-  
+
   @Override
   public MemoryRequest getMemoryRequest() {
     return memReq_;
   }
-  
+
   @Override
   public NativeMemory getNativeMemory() {
     return mem_.getNativeMemory();
   }
-  
+
   @Override
   public Object getParent() {
     return mem_;
   }
-  
+
   @Override
   public boolean hasArray() {
     return mem_.hasArray();
   }
-  
+
   @Override
   public boolean hasByteBuffer() {
     return mem_.hasByteBuffer();
   }
-  
+
   @Override
   public boolean isAllocated() {
     return (capacityBytes_ > 0L);
   }
-  
+
   @Override
   public boolean isDirect() {
     return mem_.isDirect();
   }
-  
+
   @Override
   public boolean isReadOnly() {
     return false;
   }
-  
+
   @Override
   public void setMemoryRequest(MemoryRequest memReq) {
     memReq_ = memReq;

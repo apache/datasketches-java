@@ -21,14 +21,14 @@ import com.yahoo.sketches.Util;
 
 /**
  * The parent API for all Set Operations
- * 
+ *
  * @author Lee Rhodes
  */
 public abstract class SetOperation {
   static final int CONST_PREAMBLE_LONGS = 3;
-  
+
   SetOperation() {}
-  
+
   /**
    * Makes a new builder
    *
@@ -37,12 +37,12 @@ public abstract class SetOperation {
   public static final SetOperationBuilder builder() {
     return new SetOperationBuilder();
   }
-  
+
   /**
-   * Heapify takes the SetOperations image in Memory and instantiates an on-heap 
+   * Heapify takes the SetOperations image in Memory and instantiates an on-heap
    * SetOperation using the
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
-   * The resulting SetOperation will not retain any link to the source Memory. 
+   * The resulting SetOperation will not retain any link to the source Memory.
    * @param srcMem an image of a SetOperation where the image seed hash matches the default seed hash.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a Heap-based SetOperation from the given Memory
@@ -52,7 +52,7 @@ public abstract class SetOperation {
   }
 
   /**
-   * Heapify takes the SetOperation image in Memory and instantiates an on-heap 
+   * Heapify takes the SetOperation image in Memory and instantiates an on-heap
    * SetOperation using the given seed.
    * The resulting SetOperation will not retain any link to the source Memory.
    * @param srcMem an image of a SetOperation where the hash of the given seed matches the image seed hash.
@@ -71,17 +71,17 @@ public abstract class SetOperation {
         return IntersectionImpl.heapifyInstance(srcMem, seed);
       }
       default: {
-        throw new SketchesArgumentException("SetOperation cannot heapify family: " 
+        throw new SketchesArgumentException("SetOperation cannot heapify family: "
             + family.toString());
       }
     }
   }
 
   /**
-   * Wrap takes the SetOperation image in Memory and refers to it directly. 
-   * There is no data copying onto the java heap.  
-   * Only "Direct" SetOperations that have been explicity stored as direct can be wrapped.  
-   * This method assumes the 
+   * Wrap takes the SetOperation image in Memory and refers to it directly.
+   * There is no data copying onto the java heap.
+   * Only "Direct" SetOperations that have been explicity stored as direct can be wrapped.
+   * This method assumes the
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
    * @param srcMem an image of a SetOperation where the image seed hash matches the default seed hash.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
@@ -92,8 +92,8 @@ public abstract class SetOperation {
   }
 
   /**
-   * Wrap takes the SetOperation image in Memory and refers to it directly. 
-   * There is no data copying onto the java heap.  
+   * Wrap takes the SetOperation image in Memory and refers to it directly.
+   * There is no data copying onto the java heap.
    * Only "Direct" SetOperations that have been explicity stored as direct can be wrapped.
    * @param srcMem an image of a SetOperation where the hash of the given seed matches the image seed hash.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
@@ -129,9 +129,9 @@ public abstract class SetOperation {
     int nomEnt = ceilingPowerOf2(nomEntries);
     return (nomEnt << 4) + (Family.UNION.getMaxPreLongs() << 3);
   }
-  
+
   /**
-   * Returns the maximum required storage bytes given a nomEntries parameter for Intersection 
+   * Returns the maximum required storage bytes given a nomEntries parameter for Intersection
    * operations
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
    * This will become the ceiling power of 2 if it is not.
@@ -142,19 +142,19 @@ public abstract class SetOperation {
     int bytes = (nomEnt << 4) + (Family.INTERSECTION.getMaxPreLongs() << 3);
     return bytes;
   }
-  
+
   /**
    * Gets the Family of this SetOperation
    * @return the Family of this SetOperation
    */
   public abstract Family getFamily();
-  
+
   //restricted
-  
+
   static short computeSeedHash(long seed) {
     return Util.computeSeedHash(seed);
   }
-  
+
   /**
    * Computes minimum lgArrLongs from a current count.
    * @param count the given current count
@@ -167,7 +167,7 @@ public abstract class SetOperation {
     int newLgArrLongs = Integer.numberOfTrailingZeros(arrLongs);
     return newLgArrLongs;
   }
-  
+
   /**
    * Returns true if given Family id is one of the set operations
    * @param id the given Family id
@@ -175,7 +175,7 @@ public abstract class SetOperation {
    */
   static boolean isValidSetOpID(int id) {
     Family family = Family.idToFamily(id);
-    boolean ret = ((family == Family.UNION) || (family == Family.INTERSECTION) 
+    boolean ret = ((family == Family.UNION) || (family == Family.INTERSECTION)
         || (family == Family.A_NOT_B));
     return ret;
   }

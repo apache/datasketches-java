@@ -9,14 +9,14 @@ package com.yahoo.sketches.hll;
  * @author Kevin Lang
  */
 final class Interpolation {
-  
+
   private Interpolation() {}
-  
+
   static final int INTERPOLATION_MIN_LOG_K = 7;
   static final int INTERPOLATION_MAX_LOG_K = 21;
 
   //arrays could be made private and then accessed via getters.  But may impact performance.
-  
+
   static final double interpolation_x_arrs[][] = {
     // log K = 7
     {91.554623, 93.970317, 96.431113, 98.937264, 101.488909, 104.086010, 106.728780, 109.417062,
@@ -1044,7 +1044,7 @@ final class Interpolation {
   };
 
   static double cubicInterpolateUsingTable(double[] xArr, double[] yArr, double x) {
-    assert (xArr.length >= 4 && xArr.length == yArr.length && x >= xArr[0] 
+    assert (xArr.length >= 4 && xArr.length == yArr.length && x >= xArr[0]
         && x <= xArr[xArr.length - 1]);
     if (x == xArr[xArr.length - 1]) return yArr[yArr.length - 1]; // corner case
     int offset = findStraddle(xArr, x);
@@ -1065,7 +1065,7 @@ final class Interpolation {
   }
 
   // interpolate using the cubic curve that passes through the four given points, using the Lagrange interpolation formula
-  private static double cubicInterpolateAuxAux(double x0, double y0, double x1, double y1, 
+  private static double cubicInterpolateAuxAux(double x0, double y0, double x1, double y1,
       double x2, double y2, double x3, double y3, double x) {
     double l0Numer = (x - x1) * (x - x2) * (x - x3);
     double l1Numer = (x - x0) * (x - x2) * (x - x3);

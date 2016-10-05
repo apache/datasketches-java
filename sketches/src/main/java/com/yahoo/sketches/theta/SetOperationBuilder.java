@@ -18,7 +18,7 @@ import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * For building a new SetOperation.
- * 
+ *
  * @author Lee Rhodes
  */
 public class SetOperationBuilder {
@@ -27,9 +27,9 @@ public class SetOperationBuilder {
   private ResizeFactor bRF;
   private float bP;
   private Memory bDstMem;
-  
+
   /**
-   * Constructor for building a new SetOperation.  The default configuration is 
+   * Constructor for building a new SetOperation.  The default configuration is
    * <ul>
    * <li>Nominal Entries: {@value com.yahoo.sketches.Util#DEFAULT_NOMINAL_ENTRIES}</li>
    * <li>Seed: {@value com.yahoo.sketches.Util#DEFAULT_UPDATE_SEED}</li>
@@ -45,7 +45,7 @@ public class SetOperationBuilder {
     bRF = ResizeFactor.X8;
     bDstMem = null;
   }
-  
+
   /**
    * Sets the Nominal Entries for this set operation.
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
@@ -56,7 +56,7 @@ public class SetOperationBuilder {
     bLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
     return this;
   }
-  
+
   /**
    * Returns Log-base 2 Nominal Entries
    * @return Log-base 2 Nominal Entries
@@ -64,9 +64,9 @@ public class SetOperationBuilder {
   public int getLgNominalEntries() {
     return bLgNomLongs;
   }
-  
-  
-  
+
+
+
   /**
    * Sets the long seed value that is require by the hashing function.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
@@ -76,7 +76,7 @@ public class SetOperationBuilder {
     bSeed = seed;
     return this;
   }
-  
+
   /**
    * Returns the seed
    * @return the seed
@@ -84,7 +84,7 @@ public class SetOperationBuilder {
   public long getSeed() {
     return bSeed;
   }
-  
+
   /**
    * Sets the upfront uniform sampling probability, <i>p</i>. Although this functionality is
    * implemented for Unions only, it rarely makes sense to use it. The proper use of upfront
@@ -99,7 +99,7 @@ public class SetOperationBuilder {
     bP = p;
     return this;
   }
-  
+
   /**
    * Returns the pre-sampling probability <i>p</i>
    * @return the pre-sampling probability <i>p</i>
@@ -107,7 +107,7 @@ public class SetOperationBuilder {
   public float getP() {
     return bP;
   }
-  
+
   /**
    * Sets the cache Resize Factor
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
@@ -117,18 +117,18 @@ public class SetOperationBuilder {
     bRF = rf;
     return this;
   }
-  
+
   /**
-   * Returns the Resize Factor 
+   * Returns the Resize Factor
    * @return the Resize Factor
    */
   public ResizeFactor getResizeFactor() {
     return bRF;
   }
-  
+
   /**
-   * Initializes the backing Memory store. 
-   * @param dstMem  The destination Memory. 
+   * Initializes the backing Memory store.
+   * @param dstMem  The destination Memory.
    * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>
    * @return this SetOperationBuilder
    */
@@ -136,7 +136,7 @@ public class SetOperationBuilder {
     bDstMem = dstMem;
     return this;
   }
-  
+
   /**
    * Returns the Destination Memory
    * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
@@ -145,7 +145,7 @@ public class SetOperationBuilder {
   public Memory getMemory() {
     return bDstMem;
   }
-  
+
   /**
    * Returns a SetOperation with the current configuration of this Builder and the given Family.
    * @param family the chosen SetOperation family
@@ -157,7 +157,7 @@ public class SetOperationBuilder {
       case UNION: {
         if (bDstMem == null) {
           setOp = UnionImpl.initNewHeapInstance(bLgNomLongs, bSeed, bP, bRF);
-        } 
+        }
         else {
           setOp = UnionImpl.initNewDirectInstance(bLgNomLongs, bSeed, bP, bRF, bDstMem);
         }
@@ -166,7 +166,7 @@ public class SetOperationBuilder {
       case INTERSECTION: {
         if (bDstMem == null) {
           setOp = IntersectionImpl.initNewHeapInstance(bSeed);
-        } 
+        }
         else {
           setOp = IntersectionImpl.initNewDirectInstance(bSeed, bDstMem);
         }
@@ -175,20 +175,20 @@ public class SetOperationBuilder {
       case A_NOT_B: {
         if (bDstMem == null) {
           setOp = new HeapAnotB(bSeed);
-        } 
+        }
         else {
           throw new SketchesArgumentException(
             "AnotB is a stateless operation and cannot be persisted.");
         }
         break;
       }
-      default: 
+      default:
         throw new SketchesArgumentException(
             "Given Family cannot be built as a SetOperation: " + family.toString());
     }
     return setOp;
-  }  
-  
+  }
+
   /**
    * Returns a SetOperation with the current configuration of this Builder and the given
    * <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a> and Family.
@@ -239,7 +239,7 @@ public class SetOperationBuilder {
     return (AnotB) build(Family.A_NOT_B);
   }
 
-  
+
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
@@ -252,5 +252,5 @@ public class SetOperationBuilder {
       .append("DstMemory:").append(TAB).append(bDstMem != null).append(LS);
     return sb.toString();
   }
-  
+
 }

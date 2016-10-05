@@ -96,7 +96,6 @@ public interface Memory {
    */
   long getAndSetLong(long offsetBytes, long newValue);
 
-
   /**
    * Gets the boolean value at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
@@ -130,7 +129,6 @@ public interface Memory {
    * The size of this array determines the bytes transferred.
    */
   void getByteArray(long offsetBytes, byte[] dstArray, int dstOffset, int length);
-
 
   /**
    * Gets the char at the given offset

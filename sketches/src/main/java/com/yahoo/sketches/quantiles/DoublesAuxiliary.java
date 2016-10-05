@@ -9,7 +9,7 @@ import java.util.Arrays;
 
 /**
  * Auxiliary data structure for answering quantile queries
- * 
+ *
  * @author Kevin Lang
  * @author Lee Rhodes
  */
@@ -29,7 +29,7 @@ final class DoublesAuxiliary {
     double[] combinedBuffer = qs.getCombinedBuffer();
     int baseBufferCount = qs.getBaseBufferCount();
     int numSamples = qs.getRetainedItems();
-    
+
     double[] itemsArr = new double[numSamples];
     long[] cumWtsArr = new long[numSamples + 1]; /* the extra slot is very important */
 
@@ -38,7 +38,7 @@ final class DoublesAuxiliary {
     populateFromQuantilesSketch(k, n, bitPattern, combinedBuffer, baseBufferCount,
         numSamples, itemsArr, cumWtsArr);
 
-    // Sort the first "numSamples" slots of the two arrays in tandem, 
+    // Sort the first "numSamples" slots of the two arrays in tandem,
     //  taking advantage of the already sorted blocks of length k
     DoublesMergeImpl.blockyTandemMergeSort(itemsArr, cumWtsArr, numSamples, k);
 
@@ -51,12 +51,12 @@ final class DoublesAuxiliary {
     }
 
     assert subtot == n;
-    
+
     auxN_ = n;
     auxSamplesArr_ = itemsArr;
     auxCumWtsArr_ = cumWtsArr;
   }
-  
+
   /**
    * Get the estimated value given phi
    * @param phi the fractional position where: 0 &le; &#966; &le; 1.0.
@@ -71,7 +71,7 @@ final class DoublesAuxiliary {
     return (approximatelyAnswerPositionalQuery(pos));
   }
 
-  
+
   /**
    * Populate the arrays and registers from a HeapQuantilesSketch
    * @param k K value of sketch
@@ -119,17 +119,17 @@ final class DoublesAuxiliary {
     cumWtsArr[numSamples] = 0;
   }
 
-  /* Let m_i denote the minimum position of the length=n "full" sorted sequence 
+  /* Let m_i denote the minimum position of the length=n "full" sorted sequence
      that is represented in slot i of the length = n "chunked" sorted sequence.
-  
+
      Note that m_i is the same thing as auxCumWtsArr_[i]
-  
+
      Then the answer to a positional query 0 <= q < n
-     is l, where 0 <= l < len, 
+     is l, where 0 <= l < len,
      A)  m_l <= q
      B)   q  < m_r
      C)   l+1 = r
-  
+
      A) and B) provide the invariants for our binary search.
      Observe that they are satisfied by the initial conditions:  l = 0 and r = len.
   */
@@ -169,11 +169,11 @@ final class DoublesAuxiliary {
     assert q < arr[r];
     return (searchForChunkContainingPos(arr, q, l, r));
   }
-  
+
   /* Assuming that there are n items in the true stream, this asks what
      item would appear in position 0 <= pos < n of a hypothetical sorted
-     version of that stream.  
-  
+     version of that stream.
+
      Note that since that since the true stream is unavailable,
      we don't actually answer the question for that stream, but rather for
      a _different_ stream of the same length, that could hypothetically
@@ -186,14 +186,14 @@ final class DoublesAuxiliary {
   }
 
   /**
-   * Returns the zero-based index (position) of a value in the hypothetical sorted stream of 
-   * values of size n. 
+   * Returns the zero-based index (position) of a value in the hypothetical sorted stream of
+   * values of size n.
    * @param phi the fractional position where: 0 &le; &#966; &le; 1.0.
    * @param n the size of the stream
    * @return the index, a value between 0 and n-1.
    */
   private static long posOfPhi(double phi, long n) { // don't tinker with this definition
-    long pos = (long) Math.floor(phi * n); 
+    long pos = (long) Math.floor(phi * n);
     return (pos == n) ? n - 1 : pos;
   }
 

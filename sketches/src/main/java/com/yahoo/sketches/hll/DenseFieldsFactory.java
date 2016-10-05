@@ -9,7 +9,7 @@ package com.yahoo.sketches.hll;
  * @author Kevin Lang
  */
 final class DenseFieldsFactory implements FieldsFactory {
-  
+
   @Override
   public Fields make(Preamble preamble) {
     return new OnHeapFields(preamble);

@@ -20,13 +20,13 @@ import com.yahoo.sketches.SketchesArgumentException;
 /**
  * This class brings together the common sketch and set operation creation methods and
  * the public static methods into one place.
- * 
+ *
  * @author Lee Rhodes
  */
 public final class Sketches {
-  
+
   private Sketches() {}
-  
+
   /**
    * Ref: {@link UpdateSketchBuilder UpdateSketchBuilder}
    * @return {@link UpdateSketchBuilder UpdateSketchBuilder}
@@ -34,7 +34,7 @@ public final class Sketches {
   public static UpdateSketchBuilder updateSketchBuilder() {
     return new UpdateSketchBuilder();
   }
-  
+
   /**
    * Ref: {@link Sketch#heapify(Memory) Sketch.heapify(Memory)}
    * @param srcMem Ref: {@link Sketch#heapify(Memory) Sketch.heapify(Memory)} {@code srcMem}
@@ -43,7 +43,7 @@ public final class Sketches {
   public static Sketch heapifySketch(Memory srcMem) {
     return Sketch.heapify(srcMem);
   }
-  
+
   /**
    * Ref: {@link Sketch#heapify(Memory, long) Sketch.heapify(Memory, long)}
    * @param srcMem Ref: {@link Sketch#heapify(Memory, long) Sketch.heapify(Memory, long)} {@code srcMem}
@@ -53,7 +53,7 @@ public final class Sketches {
   public static Sketch heapifySketch(Memory srcMem, long seed) {
     return Sketch.heapify(srcMem, seed);
   }
-  
+
   /**
    * Ref: {@link Sketch#wrap(Memory) Sketch.heapify(Memory)}
    * @param srcMem Ref: {@link Sketch#wrap(Memory) Sketch.heapify(Memory)} {@code srcMem}
@@ -62,7 +62,7 @@ public final class Sketches {
   public static Sketch wrapSketch(Memory srcMem) {
     return Sketch.wrap(srcMem);
   }
-  
+
   /**
    * Ref: {@link Sketch#wrap(Memory, long) Sketch.wrap(Memory, long)}
    * @param srcMem Ref: {@link Sketch#wrap(Memory, long) Sketch.wrap(Memory, long)} {@code srcMem}
@@ -72,7 +72,7 @@ public final class Sketches {
   public static Sketch wrapSketch(Memory srcMem, long seed) {
     return Sketch.wrap(srcMem, seed);
   }
-  
+
   /**
    * Ref: {@link SetOperationBuilder SetOperationBuilder}
    * @return {@link SetOperationBuilder SetOperationBuilder}
@@ -80,7 +80,7 @@ public final class Sketches {
   public static SetOperationBuilder setOperationBuilder() {
     return new SetOperationBuilder();
   }
-  
+
   /**
    * Ref: {@link SetOperation#heapify(Memory) SetOperation.heapify(Memory)}
    * @param srcMem Ref: {@link SetOperation#heapify(Memory) SetOperation.heapify(Memory)} {@code srcMem}
@@ -89,11 +89,11 @@ public final class Sketches {
   public static SetOperation heapifySetOperation(Memory srcMem) {
     return SetOperation.heapify(srcMem);
   }
-  
+
   /**
    * Ref: {@link SetOperation#heapify(Memory, long) SetOperation.heapify(Memory, long)}
    * @param srcMem Ref: {@link SetOperation#heapify(Memory, long) SetOperation.heapify(Memory, long)}
-   * {@code srcMem} 
+   * {@code srcMem}
    * @param seed Ref: {@link SetOperation#heapify(Memory, long) SetOperation.heapify(Memory, long)}
    * {@code seed}
    * @return {@link SetOperation SetOperation}
@@ -101,7 +101,7 @@ public final class Sketches {
   public static SetOperation heapifySetOperation(Memory srcMem, long seed) {
     return SetOperation.heapify(srcMem, seed);
   }
-  
+
   /**
    * Ref: {@link SetOperation#wrap(Memory) SetOperation.wrap(Memory)}
    * @param srcMem Ref: {@link SetOperation#wrap(Memory) SetOperation.wrap(Memory)} {@code srcMem}
@@ -140,19 +140,19 @@ public final class Sketches {
   public static SetOperation wrapSetOperation(Memory srcMem, long seed) {
     return SetOperation.wrap(srcMem, seed);
   }
-  
+
   //Get size methods, etc
-  
+
   /**
    * Ref: {@link Sketch#getMaxCompactSketchBytes(int)}
-   * @param numberOfEntries  Ref: {@link Sketch#getMaxCompactSketchBytes(int)} 
+   * @param numberOfEntries  Ref: {@link Sketch#getMaxCompactSketchBytes(int)}
    * {@code numberOfEntries}
    * @return Ref: {@link Sketch#getMaxCompactSketchBytes(int)}
    */
   public static int getMaxCompactSketchBytes(int numberOfEntries) {
     return Sketch.getMaxCompactSketchBytes(numberOfEntries);
   }
-  
+
   /**
    * Ref: {@link Sketch#getMaxUpdateSketchBytes(int)}
    * @param nomEntries Ref: {@link Sketch#getMaxUpdateSketchBytes(int)} {@code nomEntries}
@@ -161,7 +161,7 @@ public final class Sketches {
   public static int getMaxUpdateSketchBytes(int nomEntries) {
     return Sketch.getMaxUpdateSketchBytes(nomEntries);
   }
-  
+
   /**
    * Ref: {@link Sketch#getSerializationVersion(Memory)}
    * @param srcMem Ref: {@link Sketch#getSerializationVersion(Memory)} {@code srcMem}
@@ -170,7 +170,7 @@ public final class Sketches {
   public static int getSerializationVersion(Memory srcMem) {
     return Sketch.getSerializationVersion(srcMem);
   }
-  
+
   /**
    * Ref: {@link SetOperation#getMaxUnionBytes(int)}
    * @param nomEntries Ref: {@link SetOperation#getMaxUnionBytes(int)} {@code nomEntries}
@@ -179,7 +179,7 @@ public final class Sketches {
   public static int getMaxUnionBytes(int nomEntries) {
     return SetOperation.getMaxUnionBytes(nomEntries);
   }
-  
+
   /**
    * Ref: {@link SetOperation#getMaxIntersectionBytes(int)}
    * @param nomEntries Ref: {@link SetOperation#getMaxIntersectionBytes(int)} {@code nomEntries}
@@ -188,9 +188,9 @@ public final class Sketches {
   public static int getMaxIntersectionBytes(int nomEntries) {
     return SetOperation.getMaxIntersectionBytes(nomEntries);
   }
-  
+
   //Get estimates and bounds from Memory
-  
+
   /**
    * Gets the unique count estimate from a valid memory image of a Sketch
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
@@ -200,27 +200,27 @@ public final class Sketches {
     checkIfValidThetaSketch(srcMem);
     return Sketch.estimate(getThetaLong(srcMem), getRetainedEntries(srcMem), getEmpty(srcMem));
   }
-  
+
   /**
-   * Gets the approximate upper error bound from a valid memory image of a Sketch 
-   * given the specified number of Standard Deviations. 
+   * Gets the approximate upper error bound from a valid memory image of a Sketch
+   * given the specified number of Standard Deviations.
    * This will return getEstimate() if isEmpty() is true.
-   * 
+   *
    * @param numStdDev
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @param srcMem 
+   * @param srcMem
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return the upper bound.
    */
   public static double getUpperBound(int numStdDev, Memory srcMem) {
     return Sketch.upperBound(getRetainedEntries(srcMem), getThetaLong(srcMem), numStdDev, getEmpty(srcMem));
   }
-  
+
   /**
    * Gets the approximate lower error bound from a valid memory image of a Sketch
-   * given the specified number of Standard Deviations. 
+   * given the specified number of Standard Deviations.
    * This will return getEstimate() if isEmpty() is true.
-   * 
+   *
    * @param numStdDev
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
@@ -229,23 +229,23 @@ public final class Sketches {
   public static double getLowerBound(int numStdDev, Memory srcMem) {
     return Sketch.lowerBound(getRetainedEntries(srcMem), getThetaLong(srcMem), numStdDev, getEmpty(srcMem));
   }
-  
+
   //Restricted static methods
-  
+
   static int getPreambleLongs(Memory srcMem) {
     return srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F; //for SerVer 1,2,3
   }
-  
+
   static int getRetainedEntries(Memory srcMem) {
     int preLongs = getPreambleLongs(srcMem);
     return (preLongs == 1) ? 0 : srcMem.getInt(RETAINED_ENTRIES_INT); //for SerVer 1,2,3
   }
-  
+
   static long getThetaLong(Memory srcMem) {
     int preLongs = getPreambleLongs(srcMem);
     return (preLongs < 3) ? Long.MAX_VALUE : srcMem.getLong(THETA_LONG); //for SerVer 1,2,3
   }
-  
+
   static boolean getEmpty(Memory srcMem) {
     int serVer = srcMem.getByte(SER_VER_BYTE);
     if (serVer == 1) {
@@ -253,12 +253,12 @@ public final class Sketches {
     }
     return srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); //for SerVer 2 & 3
   }
-  
+
   static void checkIfValidThetaSketch(Memory srcMem) {
     int fam = srcMem.getByte(FAMILY_BYTE);
     if (!Sketch.isValidSketchID(fam)) {
-     throw new SketchesArgumentException("Source Memory not a valid Sketch. Family: " 
-         + Family.idToFamily(fam).toString()); 
+     throw new SketchesArgumentException("Source Memory not a valid Sketch. Family: "
+         + Family.idToFamily(fam).toString());
     }
   }
 }

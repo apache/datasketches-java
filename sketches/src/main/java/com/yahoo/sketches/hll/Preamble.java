@@ -43,7 +43,7 @@ public final class Preamble {
     this.flags = flags;
     this.seedHash = seedHash;
 
-    if ((logConfigK < Interpolation.INTERPOLATION_MIN_LOG_K) 
+    if ((logConfigK < Interpolation.INTERPOLATION_MIN_LOG_K)
         || (logConfigK > Interpolation.INTERPOLATION_MAX_LOG_K)) {
       throw new SketchesArgumentException(
           String.format(
@@ -53,7 +53,7 @@ public final class Preamble {
       );
     }
   }
-  
+
   /**
    * Instantiates a new Preamble from the given Memory
    * @param memory the given Memory
@@ -88,7 +88,7 @@ public final class Preamble {
     short seedHash = (short) ((MurmurHash3.hash(seedArr, 0L)[0]) & 0xFFFFL);
     if (seedHash == 0) {
       throw new SketchesArgumentException(
-          "The given seed: " + seed + " produced a seedHash of zero. " 
+          "The given seed: " + seed + " produced a seedHash of zero. "
               + "You must choose a different seed."
       );
     }
@@ -122,7 +122,7 @@ public final class Preamble {
         .setSeedHash(seedHash)
         .build();
   }
-  
+
   /**
    * Serializes this Preamble to a byte array.
    * @return this Preamble as a byte array
@@ -148,7 +148,7 @@ public final class Preamble {
     return offset + 8;
   }
 
-  /** 
+  /**
    * Gets the size of the Preamble in longs
    * @return the size of the Preamble in longs
    */
@@ -179,7 +179,7 @@ public final class Preamble {
   public byte getLogConfigK() {
     return logConfigK;
   }
-  
+
   /**
    * Gets the configured K
    * @return the configured K
@@ -187,7 +187,7 @@ public final class Preamble {
   public int getConfigK() {
     return 1 << logConfigK;
   }
-  
+
   /**
    * Gets the maximum auxiliary size
    * @return the maximum auxiliary size
@@ -223,11 +223,11 @@ public final class Preamble {
 
     Preamble preamble = (Preamble) o;
 
-    return familyId == preamble.familyId 
-       && flags == preamble.flags 
-       && logConfigK == preamble.logConfigK 
-       && preambleLongs == preamble.preambleLongs 
-       && seedHash == preamble.seedHash 
+    return familyId == preamble.familyId
+       && flags == preamble.flags
+       && logConfigK == preamble.logConfigK
+       && preambleLongs == preamble.preambleLongs
+       && seedHash == preamble.seedHash
        && version == preamble.version;
   }
 
@@ -253,7 +253,7 @@ public final class Preamble {
     private byte logConfigK = (byte) Integer.numberOfTrailingZeros(Util.DEFAULT_NOMINAL_ENTRIES);
     private byte flags; //needs defaults?
     private short seedHash = computeSeedHash(Util.DEFAULT_UPDATE_SEED);
-    
+
     /**
      * Sets the preamble longs byte
      * @param preambleLongs the size of the preamble in longs
@@ -273,7 +273,7 @@ public final class Preamble {
       this.version = version;
       return this;
     }
-    
+
     /**
      * Sets the Family ID for this Preamble
      * @param familyId the Family ID
@@ -303,7 +303,7 @@ public final class Preamble {
       this.flags = flags;
       return this;
     }
-    
+
     /**
      * Sets the seed hash from the given seed
      * @param seed the given seed
@@ -312,7 +312,7 @@ public final class Preamble {
     public Builder setSeed(long seed) {
       return setSeedHash(computeSeedHash(seed));
     }
-    
+
     /**
      * Sets the seed hash directly from the given seed hash
      * @param seedHash the given seed hash
@@ -322,7 +322,7 @@ public final class Preamble {
       this.seedHash = seedHash;
       return this;
     }
-    
+
     /**
      * Build this Preamble
      * @return a new Preamble

@@ -13,10 +13,10 @@ import com.yahoo.sketches.QuickSelect;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
- * Implements a linear-probing based hash map of (key, value) pairs and is distinguished by a 
- * "reverse" purge operation that removes all keys in the map whose associated values are &le; 0 
+ * Implements a linear-probing based hash map of (key, value) pairs and is distinguished by a
+ * "reverse" purge operation that removes all keys in the map whose associated values are &le; 0
  * and is performed in reverse, starting at the "back" of the array and moving toward the front.
- * 
+ *
  * @author Edo Liberty
  * @author Justin Thaler
  * @author Lee Rhodes
@@ -34,11 +34,11 @@ class ReversePurgeLongHashMap {
   /**
    * Constructor will create arrays of length mapSize, which must be a power of two.
    * This restriction was made to ensure fast hashing.
-   * The protected variable this.loadThreshold is then set to the largest value that 
+   * The protected variable this.loadThreshold is then set to the largest value that
    * will not overload the hash table.
-   * 
-   * @param mapSize This determines the number of cells in the arrays underlying the 
-   * HashMap implementation and must be a power of 2. 
+   *
+   * @param mapSize This determines the number of cells in the arrays underlying the
+   * HashMap implementation and must be a power of 2.
    * The hash table will be expected to store LOAD_FACTOR * mapSize (key, value) pairs.
    */
   ReversePurgeLongHashMap(final int mapSize) {
@@ -52,7 +52,7 @@ class ReversePurgeLongHashMap {
   /**
    * Returns an instance of this class from the given String,
    * which must be a String representation of this class.
-   * 
+   *
    * @param string a String representation of this class.
    * @return an instance of this class.
    */
@@ -73,12 +73,12 @@ class ReversePurgeLongHashMap {
     }
     return table;
   }
-  
+
   //Serialization
-  
+
   /**
    * Returns a String representation of this hash map.
-   * 
+   *
    * @return a String representation of this hash map.
    */
   String serializeToString() {
@@ -92,7 +92,7 @@ class ReversePurgeLongHashMap {
     }
     return sb.toString();
   }
-  
+
   /**
    * @param probe location in the hash table array
    * @return true if the cell in the array contains an active key
@@ -115,11 +115,11 @@ class ReversePurgeLongHashMap {
     }
     return 0;
   }
-  
+
   /**
    * Increments the value mapped to the key if the key is present in the map. Otherwise,
    * the key is inserted with the putAmount.
-   * 
+   *
    * @param key the key of the value to increment
    * @param adjustAmount the amount by which to increment the value
    */
@@ -136,7 +136,7 @@ class ReversePurgeLongHashMap {
 
     if (states[probe] == 0) {
       // adding the key to the table the value
-      assert (numActive <= loadThreshold) 
+      assert (numActive <= loadThreshold)
         : "numActive: " + numActive + " > loadThreshold : " + loadThreshold;
       keys[probe] = key;
       values[probe] = adjustAmount;
@@ -148,15 +148,15 @@ class ReversePurgeLongHashMap {
       values[probe] += adjustAmount;
     }
   }
-  
+
   /**
    * Processes the map arrays and retains only keys with positive counts.
    */
   void keepOnlyPositiveCounts() {
-    // Starting from the back, find the first empty cell, 
+    // Starting from the back, find the first empty cell,
     //  which establishes the high end of a cluster.
     int firstProbe = keys.length - 1;
-    while (states[firstProbe] > 0) { 
+    while (states[firstProbe] > 0) {
       firstProbe--;
     }
     // firstProbe keeps track of this point.
@@ -345,7 +345,7 @@ class ReversePurgeLongHashMap {
       assert (drift < DRIFT_LIMIT) : "drift: " + drift + " >= DRIFT_LIMIT";
     }
   }
-  
+
   private int hashProbe(final long key) {
     final int arrayMask = keys.length - 1;
     int probe = (int) hash(key) & arrayMask;

@@ -31,7 +31,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   private final long seed_;
   private final float p_;
   private final ResizeFactor rf_;
-  
+
   HeapUpdateSketch(int lgNomLongs, long seed, float p, ResizeFactor rf) {
     lgNomLongs_ = Math.max(lgNomLongs, MIN_LG_NOM_LONGS);
     seed_ = seed;
@@ -40,19 +40,19 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   }
 
   //Sketch
-  
+
   @Override
   public boolean isDirect() {
-    return false; 
+    return false;
   }
-  
+
   @Override
   public ResizeFactor getResizeFactor() {
     return rf_;
   }
-  
+
   //restricted methods
-  
+
   @Override
   int getLgNomLongs() {
     return lgNomLongs_;
@@ -67,7 +67,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   long getSeed() {
     return seed_;
   }
-  
+
   @Override
   float getP() {
     return p_;
@@ -77,14 +77,14 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   short getSeedHash() {
     return Util.computeSeedHash(getSeed());
   }
-  
+
   byte[] toByteArray(int preLongs, byte family) {
     if (isDirty()) rebuild();
     int preBytes = preLongs << 3;
     int dataBytes = getCurrentDataLongs(false) << 3;
     byte[] byteArrOut = new byte[preBytes + dataBytes];
     NativeMemory memOut = new NativeMemory(byteArrOut);
-    
+
     //preamble
     byte byte0 = (byte) ((this.getLgResizeFactor() << 6) | preLongs);
     memOut.putByte(PREAMBLE_LONGS_BYTE, byte0);
@@ -92,7 +92,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     memOut.putByte(FAMILY_BYTE, family);
     memOut.putByte(LG_NOM_LONGS_BYTE, (byte) this.getLgNomLongs());
     memOut.putByte(LG_ARR_LONGS_BYTE, (byte) this.getLgArrLongs());
-    
+
     memOut.putShort(SEED_HASH_SHORT, this.getSeedHash());
     memOut.putInt(RETAINED_ENTRIES_INT, this.getRetainedEntries(true));
     memOut.putFloat(P_FLOAT, this.getP());
@@ -101,7 +101,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     //Flags: BigEnd=0, ReadOnly=0, Empty=X, compact=0, ordered=0
     byte flags = this.isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
     memOut.putByte(FLAGS_BYTE, flags);
-    
+
     //Data
     int arrLongs = 1 << this.getLgArrLongs();
     long[] cache = this.getCache();
@@ -109,5 +109,5 @@ abstract class HeapUpdateSketch extends UpdateSketch {
 
     return byteArrOut;
   }
-  
+
 }

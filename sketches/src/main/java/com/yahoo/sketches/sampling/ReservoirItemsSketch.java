@@ -25,7 +25,6 @@ import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
 import com.yahoo.sketches.Util;
 
-
 /**
  * This sketch provides a reservoir sample over an input stream of items. The sketch contains a
  * uniform random sample of unweighted items from the stream.

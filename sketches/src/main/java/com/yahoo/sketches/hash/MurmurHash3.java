@@ -13,44 +13,44 @@ import java.io.Serializable;
  * The MurmurHash3 is a fast, non-cryptographic, 128-bit hash function that has
  * excellent avalanche and 2-way bit independence properties.
  * </p>
- * 
+ *
  * <p>
- * The C++ MurmurHash3_x64_128(...), revision 150, of the MurmurHash3, written by Austin Appleby, 
- * which is in the Public Domain, was the inspiration for this implementation in Java. 
- * The C++ version can be found at 
+ * The C++ MurmurHash3_x64_128(...), revision 150, of the MurmurHash3, written by Austin Appleby,
+ * which is in the Public Domain, was the inspiration for this implementation in Java.
+ * The C++ version can be found at
  * <a href= "https://code.google.com/p/smhasher/source/browse/trunk/MurmurHash3.cpp"> SMHasher &amp;
  * MurmurHash</a>.
  * </p>
- * 
+ *
  * <p>
  * This java implementation pays close attention to the C++ algorithms in order to
  * maintain bit-wise compatibility, but the design is quite different. This implementation has also
  * been extended to include processing of arrays of longs, char or ints, which was not part of the
  * original C++ implementation. This implementation produces the same exact output hash bits as
  * the above C++ method given the same input.</p>
- * 
- * <p>In addition, with this implementation, the hash of byte[], char[], int[], or long[] will 
- * produce the same hash result if, and only if, all the arrays have the same exact length in 
- * bytes, and if the contents of the values in the arrays have the same byte endianness and 
+ *
+ * <p>In addition, with this implementation, the hash of byte[], char[], int[], or long[] will
+ * produce the same hash result if, and only if, all the arrays have the same exact length in
+ * bytes, and if the contents of the values in the arrays have the same byte endianness and
  * overall order. There is a unit test for this class that demonstrates this.</p>
- * 
+ *
  * <p>
  * The structure of this implementation also reflects a separation of code that is dependent on the
  * input structure (in this case byte[], int[] or long[]) from code that is independent of the input
  * structure. This also makes the code more readable and suitable for future extensions.
  * </p>
- * 
+ *
  * @author Lee Rhodes
  */
 public final class MurmurHash3 implements Serializable {
   private static final long serialVersionUID = 0L;
-  
+
   private MurmurHash3() {}
-  
+
   //--Hash of long[]----------------------------------------------------
   /**
    * Returns a long array of size 2, which is a 128-bit hash of the input.
-   * 
+   *
    * @param key The input long[] array. Must be non-null and non-empty.
    * @param seed A long valued seed.
    * @return the hash.
@@ -58,32 +58,32 @@ public final class MurmurHash3 implements Serializable {
   public static long[] hash(long[] key, long seed) {
     HashState hashState = new HashState(seed, seed);
     final int longs = key.length; //in longs
-    
+
     // Number of full 128-bit blocks of 2 longs (the body).
     // Possible exclusion of a remainder of 1 long.
     final int nblocks = longs >> 1; //longs / 2
-    
+
     // Process the 128-bit blocks (the body) into the hash
     for (int i = 0; i < nblocks; i++ ) {
       long k1 = key[2 * i]; //0, 2, 4, ...
       long k2 = key[(2 * i) + 1]; //1, 3, 5, ...
       hashState.blockMix128(k1, k2);
     }
-    
+
     // Get the tail index, remainder length
     int tail = nblocks * 2; // 2 longs / block
     int rem = longs - tail; // remainder longs: 0,1
-    
+
     // Get the tail
     long k1 = (rem == 0) ? 0 : key[tail]; //k2 -> 0
     // Mix the tail into the hash and return
     return hashState.finalMix128(k1, 0, longs * Long.BYTES); //convert to bytes
   }
-  
+
   //--Hash of int[]----------------------------------------------------
   /**
    * Returns a long array of size 2, which is a 128-bit hash of the input.
-   * 
+   *
    * @param key The input int[] array. Must be non-null and non-empty.
    * @param seed A long valued seed.
    * @return the hash.
@@ -91,29 +91,29 @@ public final class MurmurHash3 implements Serializable {
   public static long[] hash(int[] key, long seed) {
     HashState hashState = new HashState(seed, seed);
     final int ints = key.length; //in ints
-    
+
     // Number of full 128-bit blocks of 4 ints.
     // Possible exclusion of a remainder of up to 3 ints.
     final int nblocks = ints >> 2; //ints / 4
-    
+
     // Process the 128-bit blocks (the body) into the hash
     for (int i = 0; i < nblocks; i++ ) { //4 ints per block
       long k1 = getLong(key, 4 * i, 2); //0, 4, 8, ...
       long k2 = getLong(key, (4 * i) + 2, 2); //2, 6, 10, ...
       hashState.blockMix128(k1, k2);
     }
-    
+
     // Get the tail index, remainder length
-    int tail = nblocks * 4; // 4 ints per block 
+    int tail = nblocks * 4; // 4 ints per block
     int rem = ints - tail; // remainder ints: 0,1,2,3
-    
+
     // Get the tail
     long k1;
     long k2;
     if (rem > 2) { //k1 -> whole; k2 -> partial
       k1 = getLong(key, tail, 2);
       k2 = getLong(key, tail + 2, rem - 2);
-    } 
+    }
     else { //k1 -> whole, partial or 0; k2 == 0
       k1 = (rem == 0) ? 0 : getLong(key, tail, rem);
       k2 = 0;
@@ -121,11 +121,11 @@ public final class MurmurHash3 implements Serializable {
     // Mix the tail into the hash and return
     return hashState.finalMix128(k1, k2, ints * Integer.BYTES); //convert to bytes
   }
-  
+
   //--Hash of char[]----------------------------------------------------
   /**
    * Returns a long array of size 2, which is a 128-bit hash of the input.
-   * 
+   *
    * @param key The input char[] array. Must be non-null and non-empty.
    * @param seed A long valued seed.
    * @return the hash.
@@ -133,29 +133,29 @@ public final class MurmurHash3 implements Serializable {
   public static long[] hash(char[] key, long seed) {
     HashState hashState = new HashState(seed, seed);
     final int chars = key.length; //in chars
-    
+
     // Number of full 128-bit blocks of 8 chars.
     // Possible exclusion of a remainder of up to 7 chars.
     final int nblocks = chars >> 3; //chars / 8
-    
+
     // Process the 128-bit blocks (the body) into the hash
     for (int i = 0; i < nblocks; i++ ) { //8 chars per block
       long k1 = getLong(key, 8 * i, 4); //0, 8, 16, ...
       long k2 = getLong(key, (8 * i) + 4, 4); //4, 12, 20, ...
       hashState.blockMix128(k1, k2);
     }
-    
+
     // Get the tail index, remainder length
-    int tail = nblocks * 8; // 8 chars per block 
+    int tail = nblocks * 8; // 8 chars per block
     int rem = chars - tail; // remainder chars: 0,1,2,3,4,5,6,7
-    
+
     // Get the tail
     long k1;
     long k2;
     if (rem > 4) { //k1 -> whole; k2 -> partial
       k1 = getLong(key, tail, 4);
       k2 = getLong(key, tail + 4, rem - 4);
-    } 
+    }
     else { //k1 -> whole, partial or 0; k2 == 0
       k1 = (rem == 0) ? 0 : getLong(key, tail, rem);
       k2 = 0;
@@ -163,11 +163,11 @@ public final class MurmurHash3 implements Serializable {
     // Mix the tail into the hash and return
     return hashState.finalMix128(k1, k2, chars * Character.BYTES); //convert to bytes
   }
-  
+
   //--Hash of byte[]----------------------------------------------------
   /**
    * Returns a long array of size 2, which is a 128-bit hash of the input.
-   * 
+   *
    * @param key The input byte[] array. Must be non-null and non-empty.
    * @param seed A long valued seed.
    * @return the hash.
@@ -175,29 +175,29 @@ public final class MurmurHash3 implements Serializable {
   public static long[] hash(byte[] key, long seed) {
     HashState hashState = new HashState(seed, seed);
     final int bytes = key.length; //in bytes
-    
+
     // Number of full 128-bit blocks of 16 bytes.
     // Possible exclusion of a remainder of up to 15 bytes.
     final int nblocks = bytes >> 4; //bytes / 16
-    
+
     // Process the 128-bit blocks (the body) into the hash
     for (int i = 0; i < nblocks; i++ ) { //16 bytes per block
       long k1 = getLong(key, 16 * i, 8); //0, 16, 32, ...
       long k2 = getLong(key, (16 * i) + 8, 8); //8, 24, 40, ...
       hashState.blockMix128(k1, k2);
     }
-    
+
     // Get the tail index, remainder length
     int tail = nblocks * 16; //16 bytes per block
     int rem = bytes - tail; // remainder bytes: 0,1,...,15
-    
+
     // Get the tail
     long k1;
     long k2;
     if (rem > 8) { //k1 -> whole; k2 -> partial
       k1 = getLong(key, tail, 8);
       k2 = getLong(key, tail + 8, rem - 8);
-    } 
+    }
     else { //k1 -> whole, partial or 0; k2 == 0
       k1 = (rem == 0) ? 0 : getLong(key, tail, rem);
       k2 = 0;
@@ -205,7 +205,7 @@ public final class MurmurHash3 implements Serializable {
     // Mix the tail into the hash and return
     return hashState.finalMix128(k1, k2, bytes);
   }
-  
+
   //--HashState class---------------------------------------------------
   /**
    * Common processing of the 128-bit hash state independent of input type.
@@ -215,15 +215,15 @@ public final class MurmurHash3 implements Serializable {
     private static final long C2 = 0x4cf5ad432745937fL;
     private long h1;
     private long h2;
-    
+
     HashState(long h1, long h2) {
       this.h1 = h1;
       this.h2 = h2;
     }
-    
+
     /**
      * Block mix (128-bit block) of input key to internal hash state.
-     * 
+     *
      * @param k1 intermediate mix value
      * @param k2 intermediate mix value
      */
@@ -232,13 +232,13 @@ public final class MurmurHash3 implements Serializable {
       h1 = Long.rotateLeft(h1, 27);
       h1 += h2;
       h1 = (h1 * 5) + 0x52dce729;
-      
+
       h2 ^= mixK2(k2);
       h2 = Long.rotateLeft(h2, 31);
       h2 += h1;
       h2 = (h2 * 5) + 0x38495ab5;
     }
-    
+
     long[] finalMix128(long k1, long k2, long inputLengthBytes) {
       h1 ^= mixK1(k1);
       h2 ^= mixK2(k2);
@@ -252,10 +252,10 @@ public final class MurmurHash3 implements Serializable {
       h2 += h1;
       return new long[] { h1, h2 };
     }
-    
+
     /**
      * Final self mix of h*.
-     * 
+     *
      * @param h input to final mix
      * @return mix
      */
@@ -267,10 +267,10 @@ public final class MurmurHash3 implements Serializable {
       h ^= h >>> 33;
       return h;
     }
-    
+
     /**
      * Self mix of k1
-     * 
+     *
      * @param k1 input argument
      * @return mix
      */
@@ -280,10 +280,10 @@ public final class MurmurHash3 implements Serializable {
       k1 *= C2;
       return k1;
     }
-    
+
     /**
      * Self mix of k2
-     * 
+     *
      * @param k2 input argument
      * @return mix
      */
@@ -294,13 +294,13 @@ public final class MurmurHash3 implements Serializable {
       return k2;
     }
   }
-  
+
   //--Helper methods----------------------------------------------------
   /**
    * Gets a long from the given byte array starting at the given byte array index and continuing for
    * remainder (rem) bytes. The bytes are extracted in little-endian order. There is no limit
    * checking.
-   * 
+   *
    * @param bArr The given input byte array.
    * @param index Zero-based index from the start of the byte array.
    * @param rem Remainder bytes. An integer in the range [1,8].
@@ -314,12 +314,12 @@ public final class MurmurHash3 implements Serializable {
     }
     return out;
   }
-  
+
   /**
    * Gets a long from the given char array starting at the given char array index and continuing for
    * remainder (rem) chars. The chars are extracted in little-endian order. There is no limit
    * checking.
-   * 
+   *
    * @param charArr The given input char array.
    * @param index Zero-based index from the start of the char array.
    * @param rem Remainder chars. An integer in the range [1,4].
@@ -333,12 +333,12 @@ public final class MurmurHash3 implements Serializable {
     }
     return out;
   }
-  
+
   /**
    * Gets a long from the given int array starting at the given int array index and continuing for
    * remainder (rem) integers. The integers are extracted in little-endian order. There is no limit
    * checking.
-   * 
+   *
    * @param intArr The given input int array.
    * @param index Zero-based index from the start of the int array.
    * @param rem Remainder integers. An integer in the range [1,2].

@@ -22,20 +22,20 @@ import com.yahoo.sketches.SketchesStateException;
  * array of 16 bytes.</li>
  * <li>Provides modulo, asDouble and asInt functions.</li>
  * </ul>
- * 
+ *
  * @author Lee Rhodes
  */
 public final class MurmurHash3Adaptor {
   private static final long BIT62 = 1L << 62;
   private static final long MAX_LONG = Long.MAX_VALUE;
   private static final long INT_MASK = 0x7FFFFFFFL;
-  private static final long PRIME = 9219741426499971445L; //from P. L'Ecuyer and R. Simard 
-  
+  private static final long PRIME = 9219741426499971445L; //from P. L'Ecuyer and R. Simard
+
   private MurmurHash3Adaptor() {}
-  
+
   /**
    * Hash a long and long seed.
-   * 
+   *
    * @param datum the input long value
    * @param seed A long valued seed.
    * @return The 128-bit hash as a byte[16] in Big Endian order from 2 64-bit longs.
@@ -44,10 +44,10 @@ public final class MurmurHash3Adaptor {
     long[] data = { datum };
     return toByteArray(hash(data, seed));
   }
-  
+
   /**
    * Hash a long[] and long seed.
-   * 
+   *
    * @param data the input long array
    * @param seed A long valued seed.
    * @return The 128-bit hash as a byte[16] in Big Endian order from 2 64-bit longs.
@@ -58,10 +58,10 @@ public final class MurmurHash3Adaptor {
     }
     return toByteArray(hash(data, seed));
   }
-  
+
   /**
    * Hash an int[] and long seed.
-   * 
+   *
    * @param data the input int array
    * @param seed A long valued seed.
    * @return The 128-bit hash as a byte[16] in Big Endian order from 2 64-bit longs.
@@ -72,10 +72,10 @@ public final class MurmurHash3Adaptor {
     }
     return toByteArray(hash(data, seed));
   }
-  
+
   /**
    * Hash a char[] and long seed.
-   * 
+   *
    * @param data the input char array
    * @param seed A long valued seed.
    * @return The 128-bit hash as a byte[16] in Big Endian order from 2 64-bit longs.
@@ -86,10 +86,10 @@ public final class MurmurHash3Adaptor {
     }
     return toByteArray(hash(data, seed));
   }
-  
+
   /**
    * Hash a byte[] and long seed.
-   * 
+   *
    * @param data the input byte array
    * @param seed A long valued seed.
    * @return The 128-bit hash as a byte[16] in Big Endian order from 2 64-bit longs.
@@ -100,10 +100,10 @@ public final class MurmurHash3Adaptor {
     }
     return toByteArray(hash(data, seed));
   }
-  
+
   /**
    * Hash a double and long seed.
-   * 
+   *
    * @param datum the input double
    * @param seed A long valued seed.
    * @return The 128-bit hash as a byte[16] in Big Endian order from 2 64-bit longs.
@@ -113,10 +113,10 @@ public final class MurmurHash3Adaptor {
     long[] data = { Double.doubleToLongBits(d) }; //canonicalize all NaN forms
     return toByteArray(hash(data, seed));
   }
-  
+
   /**
    * Hash a String and long seed.
-   * 
+   *
    * @param datum the input String
    * @param seed A long valued seed.
    * @return The 128-bit hash as a byte[16] in Big Endian order from 2 64-bit longs.
@@ -128,10 +128,10 @@ public final class MurmurHash3Adaptor {
     byte[] data = datum.getBytes(UTF_8);
     return toByteArray(hash(data, seed));
   }
-  
+
   /**
    * Hash a long and long seed.
-   * 
+   *
    * @param datum the input long
    * @param seed A long valued seed.
    * @return The 128-bit hash as a long[2].
@@ -140,10 +140,10 @@ public final class MurmurHash3Adaptor {
     long[] data = { datum };
     return hash(data, seed);
   }
-  
+
   /**
    * Hash a long[] and long seed.
-   * 
+   *
    * @param data the input long array.
    * @param seed A long valued seed.
    * @return The 128-bit hash as a long[2].
@@ -154,10 +154,10 @@ public final class MurmurHash3Adaptor {
     }
     return hash(data, seed);
   }
-  
+
   /**
    * Hash a int[] and long seed.
-   * 
+   *
    * @param data the input int array.
    * @param seed A long valued seed.
    * @return The 128-bit hash as a long[2].
@@ -168,10 +168,10 @@ public final class MurmurHash3Adaptor {
     }
     return hash(data, seed);
   }
-  
+
   /**
    * Hash a char[] and long seed.
-   * 
+   *
    * @param data the input char array.
    * @param seed A long valued seed.
    * @return The 128-bit hash as a long[2].
@@ -182,10 +182,10 @@ public final class MurmurHash3Adaptor {
     }
     return hash(data, seed);
   }
-  
+
   /**
    * Hash a byte[] and long seed.
-   * 
+   *
    * @param data the input byte array.
    * @param seed A long valued seed.
    * @return The 128-bit hash as a long[2].
@@ -196,10 +196,10 @@ public final class MurmurHash3Adaptor {
     }
     return hash(data, seed);
   }
-  
+
   /**
    * Hash a double and long seed.
-   * 
+   *
    * @param datum the input double.
    * @param seed A long valued seed.
    * @return The 128-bit hash as a long[2].
@@ -209,10 +209,10 @@ public final class MurmurHash3Adaptor {
     long[] data = { Double.doubleToLongBits(d) };//canonicalize all NaN forms
     return hash(data, seed);
   }
-  
+
   /**
    * Hash a String and long seed.
-   * 
+   *
    * @param datum the input String.
    * @param seed A long valued seed.
    * @return The 128-bit hash as a long[2].
@@ -224,9 +224,9 @@ public final class MurmurHash3Adaptor {
     byte[] data = datum.getBytes(UTF_8);
     return hash(data, seed);
   }
-  
+
   //As Integer functions
-  
+
   /**
    * Returns a deterministic uniform random integer between zero (inclusive) and
    * n (exclusive) given the input data.
@@ -240,7 +240,7 @@ public final class MurmurHash3Adaptor {
     }
     return asInteger(data, n); //data is long[]
   }
-  
+
   /**
    * Returns a deterministic uniform random integer between zero (inclusive) and
    * n (exclusive) given the input data.
@@ -251,10 +251,10 @@ public final class MurmurHash3Adaptor {
   public static int asInt(int[] data, int n) {
     if ((data == null) || (data.length == 0)) {
       throw new SketchesArgumentException("Input is null or empty.");
-    }    
+    }
     return asInteger(toLongArray(data), n); //data is int[]
   }
-  
+
   /**
    * Returns a deterministic uniform random integer between zero (inclusive) and
    * n (exclusive) given the input data.
@@ -268,7 +268,7 @@ public final class MurmurHash3Adaptor {
     }
     return asInteger(toLongArray(data), n); //data is byte[]
   }
-  
+
   /**
    * Returns a deterministic uniform random integer between zero (inclusive) and
    * n (exclusive) given the input datum.
@@ -280,7 +280,7 @@ public final class MurmurHash3Adaptor {
     long[] data = { datum };
     return asInteger(data, n); //data is long[]
   }
-  
+
   /**
    * Returns a deterministic uniform random integer between zero (inclusive) and
    * n (exclusive) given the input double.
@@ -293,7 +293,7 @@ public final class MurmurHash3Adaptor {
     long[] data = { Double.doubleToLongBits(d) };//canonicalize all NaN forms
     return asInteger(data, n); //data is long[]
   }
-  
+
   /**
    * Returns a deterministic uniform random integer between zero (inclusive) and
    * n (exclusive) given the input datum.
@@ -308,16 +308,16 @@ public final class MurmurHash3Adaptor {
     byte[] data = datum.getBytes(UTF_8);
     return asInteger(toLongArray(data), n); //data is byte[]
   }
-  
+
   /**
-   * Returns a deterministic uniform random integer with a minimum inclusive value of zero and a 
+   * Returns a deterministic uniform random integer with a minimum inclusive value of zero and a
    * maximum exclusive value of n given the input data.
-   * 
+   *
    * <p>The integer values produced are only as random as the MurmurHash3 algorithm, which may be
    * adequate for many applications. However, if you are looking for high guarantees of randomness
    * you should turn to more sophisticated random generators such as Mersenne Twister or Well19937c
    * algorithms.
-   * 
+   *
    * @param data The input data (key)
    * @param n The upper exclusive bound of the integers produced. Must be &gt; 1.
    * @return deterministic uniform random integer
@@ -375,27 +375,27 @@ public final class MurmurHash3Adaptor {
     throw new SketchesStateException(
         "Internal Error: Failed to find integer &lt; n within 10000 iterations.");
   }
-  
+
   /**
    * Returns a uniform random double with a minimum inclusive value of zero and a maximum exclusive
    * value of 1.0.
-   * 
+   *
    * <p>The double values produced are only as random as the MurmurHash3 algorithm, which may be
    * adequate for many applications. However, if you are looking for high guarantees of randomness
    * you should turn to more sophisticated random generators such as Mersenne Twister or Well
    * algorithms.
-   * 
+   *
    * @param hash The output of the MurmurHash3.
    * @return the uniform random double.
    */
   public static double asDouble(long[] hash) {
     return (hash[0] >>> 12) * 0x1.0p-52d;
   }
-  
+
   /**
    * Returns the remainder from the modulo division of the 128-bit output of the murmurHash3 by the
    * divisor.
-   * 
+   *
    * @param h0 The lower 64-bits of the 128-bit MurmurHash3 hash.
    * @param h1 The upper 64-bits of the 128-bit MurmurHash3 hash.
    * @param divisor Must be positive and greater than zero.
@@ -408,11 +408,11 @@ public final class MurmurHash3Adaptor {
     long modTop = mulRule(mulRule(BIT62, 4L, d), modH1, d);
     return (int) addRule(modTop, modH0, d);
   }
-  
+
   /**
    * Returns the remainder from the modulo division of the 128-bit output of the murmurHash3 by the
    * divisor.
-   * 
+   *
    * @param hash The size 2 long array from the MurmurHash3.
    * @param divisor Must be positive and greater than zero.
    * @return the modulo result
@@ -420,15 +420,15 @@ public final class MurmurHash3Adaptor {
   public static int modulo(long[] hash, int divisor) {
     return modulo(hash[0], hash[1], divisor);
   }
-  
+
   private static long addRule(long a, long b, long d) {
     return ((a % d) + (b % d)) % d;
   }
-  
+
   private static long mulRule(long a, long b, long d) {
     return ((a % d) * (b % d)) % d;
   }
-  
+
   private static byte[] toByteArray(long[] hash) { //Assumes Big Endian
     byte[] bArr = new byte[16];
     ByteBuffer bb = ByteBuffer.wrap(bArr);
@@ -436,7 +436,7 @@ public final class MurmurHash3Adaptor {
     bb.putLong(hash[1]);
     return bArr;
   }
-  
+
   private static long[] toLongArray(byte[] data) {
     int dataLen = data.length;
     int longLen = (dataLen + 7) / 8;
@@ -447,7 +447,7 @@ public final class MurmurHash3Adaptor {
     }
     return longArr;
   }
-  
+
   private static long[] toLongArray(int[] data) {
     int dataLen = data.length;
     int longLen = (dataLen + 1) / 2;
@@ -458,8 +458,8 @@ public final class MurmurHash3Adaptor {
     }
     return longArr;
   }
-  
-  
+
+
   /**
    * Computes the ceiling power of 2 within the range [1, 2^30]. This is the smallest positive power
    * of 2 that equal to or greater than the given n. <br>
@@ -470,7 +470,7 @@ public final class MurmurHash3Adaptor {
    * <li>n == a power of 2 : returns n</li>
    * <li>otherwise returns the smallest power of 2 greater than n</li>
    * </ul>
-   * 
+   *
    * @param n The input argument.
    * @return the ceiling power of 2.
    */
@@ -479,5 +479,5 @@ public final class MurmurHash3Adaptor {
     int topPwrOf2 = 1 << 30;
     return (n >= topPwrOf2) ? topPwrOf2 : Integer.highestOneBit((n - 1) << 1);
   }
-  
+
 }

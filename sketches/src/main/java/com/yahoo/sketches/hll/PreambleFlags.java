@@ -18,7 +18,7 @@ public final class PreambleFlags {
   static final int SPARSE_MODE_FLAG_MASK = 1;
 
   private PreambleFlags() {}
-  
+
   /**
    * Sets the flags of the flags byte
    * @param flagsByte the given byte to initialize
@@ -31,8 +31,8 @@ public final class PreambleFlags {
    * @param isSharedPreambleMode the state of Shared Preamble Mode
    * @return the resulting flags byte
    */
-  public static byte setAllFlags(byte flagsByte, boolean isSparseMode, boolean isUnionMode, 
-      boolean isEmpty, boolean isEightBytePadding, boolean isBigEndian, boolean isReadOnly, 
+  public static byte setAllFlags(byte flagsByte, boolean isSparseMode, boolean isUnionMode,
+      boolean isEmpty, boolean isEightBytePadding, boolean isBigEndian, boolean isReadOnly,
       boolean isSharedPreambleMode) {
 
     flagsByte = initFlag(flagsByte, isSparseMode, SPARSE_MODE_FLAG_MASK);
@@ -74,7 +74,7 @@ public final class PreambleFlags {
       this.isBigEndian = isBigEndian;
       return this;
     }
-    
+
     /**
      * Sets the Read Only state
      * @param isReadOnly true if Read Only
@@ -84,7 +84,7 @@ public final class PreambleFlags {
       this.isReadOnly = isReadOnly;
       return this;
     }
-    
+
     /**
      * Sets the Empty state
      * @param isEmpty true if Empty
@@ -94,7 +94,7 @@ public final class PreambleFlags {
       this.isEmpty = isEmpty;
       return this;
     }
-    
+
     /**
      * Sets the Shared Preamble Mode
      * @param isSharedPreambleMode true if using a Shared Preamble
@@ -104,7 +104,7 @@ public final class PreambleFlags {
       this.isSharedPreambleMode = isSharedPreambleMode;
       return this;
     }
-    
+
     /**
      * Sets the Sparse Mode
      * @param isSparseMode true if using Sparse Mode
@@ -127,7 +127,7 @@ public final class PreambleFlags {
 
     /**
      * Sets the Eight-Byte-Padding state
-     * @param isEightBytePadding true if using Eight-Byte-Padding 
+     * @param isEightBytePadding true if using Eight-Byte-Padding
      * @return this Builder
      */
     public Builder setEightBytePadding(boolean isEightBytePadding) {
@@ -141,7 +141,7 @@ public final class PreambleFlags {
      */
     public byte build() {
       byte flags = 0;
-      flags = PreambleFlags.setAllFlags(flags, isSparseMode, isUnionMode, isEmpty, 
+      flags = PreambleFlags.setAllFlags(flags, isSparseMode, isUnionMode, isEmpty,
           isEightBytePadding, isBigEndian, isReadOnly, isSharedPreambleMode);
       return flags;
     }
