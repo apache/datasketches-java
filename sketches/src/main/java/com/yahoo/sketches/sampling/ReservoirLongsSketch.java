@@ -27,8 +27,8 @@ import com.yahoo.sketches.Util;
  * This sketch provides a reservoir sample over an input stream of <tt>long</tt>s. The sketch
  * contains a uniform random sample of items from the stream.
  *
- * @author jmalkin
- * @author langk
+ * @author Jon Malkin
+ * @author Kevin Lang
  */
 public class ReservoirLongsSketch {
 

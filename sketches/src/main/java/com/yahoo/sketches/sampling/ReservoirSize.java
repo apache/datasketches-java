@@ -18,7 +18,7 @@ import com.yahoo.sketches.Util;
  * <p>NOTE: Numerical instability may cause an off-by-one error on reservoir size, causing a
  * slight increase in storage over the optimal value.</p>
  *
- * @author jmalkin
+ * @author Jon Malkin
  */
 final class ReservoirSize {
   /**

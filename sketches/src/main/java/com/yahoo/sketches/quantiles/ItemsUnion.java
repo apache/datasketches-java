@@ -12,10 +12,11 @@ import com.yahoo.sketches.ArrayOfItemsSerDe;
 
 /**
  * The API for Union operations for GenericQuantilesSketches
- * 
+ *
+ * @param <T> type of item
+ *
  * @author Lee Rhodes
  * @author Alex Saydakov
- * @param <T> type of item
  */
 public final class ItemsUnion<T> {
 
@@ -44,7 +45,7 @@ public final class ItemsUnion<T> {
    * @param <T> type of item
    * @param k Parameter that controls space usage of sketch and accuracy of estimates.
    * It is recommended that <i>k</i> be a power of 2 to enable merging of sketches with
-   * different values of <i>k</i>. However, in this case it is only possible to merge from 
+   * different values of <i>k</i>. However, in this case it is only possible to merge from
    * larger values of <i>k</i> to smaller values.
    * @param comparator to compare items
    * @return an instance of ItemsUnion
@@ -56,15 +57,15 @@ public final class ItemsUnion<T> {
   /**
    * Heapify the given srcMem into a Union object.
    * @param <T> type of item
-   * @param srcMem the given srcMem. 
+   * @param srcMem the given srcMem.
    * A reference to srcMem will not be maintained internally.
    * @param comparator to compare items
    * @param serDe an instance of ArrayOfItemsSerDe
    * @return an instance of ItemsUnion
    */
-  public static <T> ItemsUnion<T> getInstance(final Memory srcMem, 
+  public static <T> ItemsUnion<T> getInstance(final Memory srcMem,
       final Comparator<? super T> comparator, final ArrayOfItemsSerDe<T> serDe) {
-    final ItemsSketch<T> gadget = ItemsSketch.getInstance(srcMem, comparator, serDe); 
+    final ItemsSketch<T> gadget = ItemsSketch.getInstance(srcMem, comparator, serDe);
     return new ItemsUnion<T>(gadget.getK(), gadget.getComparator(), gadget);
   }
 
@@ -77,19 +78,19 @@ public final class ItemsUnion<T> {
   public static <T> ItemsUnion<T> getInstance(final ItemsSketch<T> sketch) {
     return new ItemsUnion<T>(sketch.getK(), sketch.getComparator(), sketch);
   }
-  
+
   //@formatter:off
   @SuppressWarnings("null")
   static <T> ItemsSketch<T> updateLogic(final int myK, final Comparator<? super T> comparator,
       final ItemsSketch<T> myQS, final ItemsSketch<T> other) {
     int sw1 = ((myQS   == null) ? 0 :   myQS.isEmpty() ? 4 : 8);
     sw1 |=    ((other  == null) ? 0 :  other.isEmpty() ? 1 : 2);
-    int outCase = 0; //0=null, 1=NOOP, 2=copy, 3=merge 
+    int outCase = 0; //0=null, 1=NOOP, 2=copy, 3=merge
     switch (sw1) {
       case 0:  outCase = 0; break; //myQS = null,  other = null ; return null
       case 1:  outCase = 4; break; //myQS = null,  other = empty; copy or downsample(myK)
       case 2:  outCase = 2; break; //myQS = null,  other = valid; copy or downsample(myK)
-      case 4:  outCase = 1; break; //myQS = empty, other = null ; no-op 
+      case 4:  outCase = 1; break; //myQS = empty, other = null ; no-op
       case 5:  outCase = 1; break; //myQS = empty, other = empty; no-op
       case 6:  outCase = 3; break; //myQS = empty, other = valid; merge
       case 8:  outCase = 1; break; //myQS = valid, other = null ; no-op
@@ -137,21 +138,21 @@ public final class ItemsUnion<T> {
      * However, it is required that the ratio of the two K values be a power of 2.
      * I.e., source.getK() = target.getK() * 2^(nonnegative integer).
      * The source is not modified.
-     * 
-     * <p>Note: It is easy to prove that the following simplified code which launches multiple waves of 
-     * carry propagation does exactly the same amount of merging work (including the work of 
-     * allocating fresh buffers) as the more complicated and seemingly more efficient approach that 
+     *
+     * <p>Note: It is easy to prove that the following simplified code which launches multiple waves of
+     * carry propagation does exactly the same amount of merging work (including the work of
+     * allocating fresh buffers) as the more complicated and seemingly more efficient approach that
      * tracks a single carry propagation wave through both sketches.
-     * 
-     * <p>This simplified code probably does do slightly more "outer loop" work, but I am pretty 
-     * sure that even that is within a constant factor of the more complicated code, plus the 
-     * total amount of "outer loop" work is at least a factor of K smaller than the total amount of 
+     *
+     * <p>This simplified code probably does do slightly more "outer loop" work, but I am pretty
+     * sure that even that is within a constant factor of the more complicated code, plus the
+     * total amount of "outer loop" work is at least a factor of K smaller than the total amount of
      * merging work, which is identical in the two approaches.
      *
-     * <p>Note: a two-way merge that doesn't modify either of its two inputs could be implemented 
+     * <p>Note: a two-way merge that doesn't modify either of its two inputs could be implemented
      * by making a deep copy of the larger sketch and then merging the smaller one into it.
      * However, it was decided not to do this.
-     * 
+     *
      * @param source The source sketch
      * @param target The target sketch
      */
@@ -161,25 +162,25 @@ public final class ItemsUnion<T> {
     final int tgtK = target.getK();
     final long srcN = source.getN();
     final long tgtN = target.getN();
-  
+
     if (srcK != tgtK) {
       ItemsUtil.downSamplingMergeInto(source, target);
       return;
     }
-  
+
     final Object[] srcLevels     = source.getCombinedBuffer(); // aliasing is a bit dangerous
     final Object[] srcBaseBuffer = srcLevels;                  // aliasing is a bit dangerous
-  
+
     final long nFinal = tgtN + srcN;
-  
+
     for (int i = 0; i < source.getBaseBufferCount(); i++) {
       target.update((T) srcBaseBuffer[i]);
     }
-  
+
     ItemsUtil.maybeGrowLevels(nFinal, target);
-  
+
     final Object[] scratchBuf = new Object[2 * tgtK];
-  
+
     long srcBitPattern = source.getBitPattern();
     assert srcBitPattern == (srcN / (2L * srcK));
     for (int srcLvl = 0; srcBitPattern != 0L; srcLvl++, srcBitPattern >>>= 1) {
@@ -193,9 +194,9 @@ public final class ItemsUnion<T> {
       }
     }
     target.n_ = nFinal;
-  
+
     assert target.getN() / (2 * tgtK) == target.getBitPattern(); // internal consistency check
-  
+
     final T srcMax = source.getMaxValue();
     final T srcMin = source.getMinValue();
     final T tgtMax = target.getMaxValue();
@@ -206,15 +207,15 @@ public final class ItemsUnion<T> {
 
   /**
    * Iterative union operation, which means this method can be repeatedly called.
-   * Merges the given sketch into this union object. 
+   * Merges the given sketch into this union object.
    * The given sketch is not modified.
    * It is required that the ratio of the two K values be a power of 2.
    * This is easily satisfied if each of the K values is already a power of 2.
    * If the given sketch is null or empty it is ignored.
-   * 
-   * <p>It is required that the results of the union operation, which can be obtained at any time, 
+   *
+   * <p>It is required that the results of the union operation, which can be obtained at any time,
    * is obtained from {@link #getResult() }.</p>
-   * 
+   *
    * @param sketchIn the sketch to be merged into this one.
    */
   public void update(final ItemsSketch<T> sketchIn) {
@@ -228,8 +229,8 @@ public final class ItemsUnion<T> {
    * It is required that the ratio of the two K values be a power of 2.
    * This is easily satisfied if each of the K values is already a power of 2.
    * If the given sketch is null or empty it is ignored.
-   * 
-   * <p>It is required that the results of the union operation, which can be obtained at any time, 
+   *
+   * <p>It is required that the results of the union operation, which can be obtained at any time,
    * is obtained from {@link #getResult() }.</p>
    * @param srcMem Memory image of sketch to be merged
    * @param serDe an instance of ArrayOfItemsSerDe
@@ -240,8 +241,8 @@ public final class ItemsUnion<T> {
   }
 
   /**
-   * Update this union with the given double (or float) data Item. 
-   * 
+   * Update this union with the given double (or float) data Item.
+   *
    * @param dataItem The given datum.
    */
   public void update(final T dataItem) {
@@ -261,9 +262,9 @@ public final class ItemsUnion<T> {
   }
 
   /**
-   * Gets the result of this Union operation (without a copy) and resets this Union to the 
+   * Gets the result of this Union operation (without a copy) and resets this Union to the
    * virgin state.
-   * 
+   *
    * @return the result of this Union operation and reset.
    */
   public ItemsSketch<T> getResultAndReset() {

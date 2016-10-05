@@ -10,6 +10,8 @@ import com.yahoo.memory.NativeMemory;
 
 /**
  * Methods of serializing and deserializing arrays of Long.
+ *
+ * @author Alex Saydakov
  */
 public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
 

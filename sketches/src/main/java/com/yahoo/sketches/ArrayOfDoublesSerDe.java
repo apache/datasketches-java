@@ -10,6 +10,8 @@ import com.yahoo.memory.NativeMemory;
 
 /**
  * Methods of serializing and deserializing arrays of Double.
+ *
+ * @author Alex Saydakov
  */
 public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
 

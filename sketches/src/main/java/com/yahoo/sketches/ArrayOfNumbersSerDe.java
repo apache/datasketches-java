@@ -10,11 +10,15 @@ import com.yahoo.memory.NativeMemory;
 
 /**
  * Methods of serializing and deserializing arrays of the object version of primitive types of Number.
+ *
  * <p>This class serializes numbers with a leading byte (ASCII character) indicating the type. The class keeps
  * the values byte aligned, even though only 3 bits are strictly necessary to encode one of
  * the 6 different primitives with object types that extend Number.</p>
+ *
  * <p>Classes handled are: <tt>Long</tt>, <tt>Integer</tt>, <tt>Short</tt>, <tt>Byte</tt>, <tt>Double</tt>, and
  * <tt>Float</tt>.</p>
+ *
+ * @author Alex Saydakov
  */
 public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
 

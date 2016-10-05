@@ -25,7 +25,6 @@ import com.yahoo.sketches.SketchesArgumentException;
 /**
  * Implements the DoublesSketch on the Java heap.
  *
- * @author Kevin Lang
  * @author Lee Rhodes
  */
 final class HeapDoublesSketch extends DoublesSketch {

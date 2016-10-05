@@ -14,6 +14,8 @@ import com.yahoo.memory.NativeMemory;
  * is a 16-bit code. The result is larger than one from {@link ArrayOfStringsSerDe}.
  * In an extreme case when all strings are in ASCII, the size is doubled. However it takes
  * less time to serialize and deserialize by a factor of 1.5 to 2.
+ *
+ * @author Alex Saydakov
  */
 public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
 

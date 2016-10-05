@@ -17,16 +17,15 @@ import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * Utility class for quantiles sketches.
- * 
+ *
  * <p>This class contains a highly specialized sort called blockyTandemMergeSort().
  * It also contains methods that are used while building histograms and other common
  * functions.</p>
- * 
- * @author Kevin Lang
+ *
  * @author Lee Rhodes
  */
 final class Util {
-  
+
   private Util() {}
 
   static final int MIN_BASE_BUF_SIZE = 4;
@@ -35,12 +34,12 @@ final class Util {
    * The java line separator character as a String.
    */
   public static final String LS = System.getProperty("line.separator");
-  
+
   /**
    * The tab character
    */
   public static final char TAB = '\t';
-  
+
   /**
    * Checks the validity of the given value k
    * @param k must be greater than 0 and less than 65536.
@@ -66,7 +65,7 @@ final class Util {
   /**
    * Checks the consistency of the flag bits and the state of preambleLong and the memory
    * capacity and returns the empty state.
-   * @param preambleLongs the size of preamble in longs 
+   * @param preambleLongs the size of preamble in longs
    * @param flags the flags field
    * @param memCapBytes the memory capacity
    * @return the value of the empty state
@@ -91,9 +90,9 @@ final class Util {
   /**
    * Checks just the flags field of the preamble
    * @param flags the flags field
-   */ 
+   */
   static void checkFlags(int flags) {  //only used by checkPreLongsFlagsCap and test
-    int allowedFlags = 
+    int allowedFlags =
         READ_ONLY_FLAG_MASK | EMPTY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK;
     int flagsMask = ~allowedFlags;
     if ((flags & flagsMask) > 0) {
@@ -103,7 +102,7 @@ final class Util {
   }
 
   /**
-   * Checks the sequential validity of the given array of fractions. 
+   * Checks the sequential validity of the given array of fractions.
    * They must be unique, monotonically increasing and not NaN, not &lt; 0 and not &gt; 1.0.
    * @param fractions array
    */
@@ -124,7 +123,7 @@ final class Util {
   }
 
   /**
-   * Checks the sequential validity of the given array of double values. 
+   * Checks the sequential validity of the given array of double values.
    * They must be unique, monotonically increasing and not NaN.
    * @param values the given array of double values
    */
@@ -139,7 +138,7 @@ final class Util {
           "Values must be unique, monotonically increasing and not NaN.");
     }
   }
-  
+
   /**
    * Returns the number of retained items in the sketch given k and n.
    * @param k the given configured k of the sketch
@@ -152,15 +151,15 @@ final class Util {
     int validLevels = Long.bitCount(bitPattern);
     return bbCnt + validLevels * k;
   }
-  
+
   /**
-   * Returns the current item capacity of the non-compact, expanded combined data buffer 
-   * given <i>k</i> and <i>n</i>.  If total levels = 0, this returns the ceiling power of 2 
+   * Returns the current item capacity of the non-compact, expanded combined data buffer
+   * given <i>k</i> and <i>n</i>.  If total levels = 0, this returns the ceiling power of 2
    * size for the base buffer or the MIN_BASE_BUF_SIZE, whichever is larger.
-   * 
-   * @param k sketch parameter. This determines the accuracy of the sketch and the 
+   *
+   * @param k sketch parameter. This determines the accuracy of the sketch and the
    * size of the updatable data structure, which is a function of <i>k</i> and <i>n</i>.
-   * 
+   *
    * @param n The number of items in the input stream
    * @return the current item capacity of the combined data buffer
    */
@@ -175,7 +174,7 @@ final class Util {
     }
     return ret;
   }
-  
+
   /**
    * Computes the number of valid levels above the base buffer
    * @param bitPattern the bit pattern for valid log levels
@@ -196,12 +195,12 @@ final class Util {
   static int computeNumLevelsNeeded(int k, long n) {
     return 1 + hiBitPos(n / (2L * k));
   }
-  
+
   /**
    * Computes the number of base buffer items given k, n
    * @param k the configured size of the sketch
    * @param n the total values presented to the sketch
-   * @return the number of base buffer items 
+   * @return the number of base buffer items
    */
   static int computeBaseBufferItems(int k, long n) {
     return (int) (n % (2L * k));
@@ -228,7 +227,7 @@ final class Util {
   }
 
   /**
-   * Zero based position of the highest one-bit of the given long. 
+   * Zero based position of the highest one-bit of the given long.
    * Returns minus one if num is zero.
    * @param num the given long
    * @return Zero based position of the highest one-bit of the given long
@@ -283,7 +282,7 @@ final class Util {
 
     /**
      *  A heuristic fudge factor that causes the inverted formula to better match the empirical.
-     *  The value of 4/3 is directly associated with the deltaForEps value of 0.01. 
+     *  The value of 4/3 is directly associated with the deltaForEps value of 0.01.
      *  Don't touch this!
      */
     private static final double adjustKForEps = 4.0 / 3.0;  // fudge factor
@@ -294,7 +293,7 @@ final class Util {
     private static final double bracketedBinarySearchForEpsTol = 1e-15;
 
     /**
-     * From extensive empirical testing we recommend most users use this method for deriving 
+     * From extensive empirical testing we recommend most users use this method for deriving
      * epsilon. This uses a fudge factor of 4/3 times the theoretical calculation of epsilon.
      * @param k the given k that must be greater than one.
      * @return the resulting epsilon
@@ -306,13 +305,13 @@ final class Util {
 
     /**
      * Finds the epsilon given K and a fudge factor.
-     * See Cormode's Mergeable Summaries paper, Journal version, Theorem 3.6. 
-     * This has a good fit between values of k between 16 and 1024. 
+     * See Cormode's Mergeable Summaries paper, Journal version, Theorem 3.6.
+     * This has a good fit between values of k between 16 and 1024.
      * Beyond that has not been empirically tested.
      * @param k The given value of k
-     * @param ff The given fudge factor. No fudge factor = 1.0. 
+     * @param ff The given fudge factor. No fudge factor = 1.0.
      * @return the resulting epsilon
-     */ 
+     */
     private static double getTheoreticalEpsilon(int k, double ff) { //used only by getAdjustedEpsilon()
       if (k < 2) {
         throw new SketchesArgumentException("K must be greater than one.");

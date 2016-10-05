@@ -9,7 +9,8 @@ import java.nio.ByteBuffer;
  */
 public class MemoryRegionR extends MemoryRegion {
 
-    public MemoryRegionR(Memory memory, long memOffsetBytes, long capacityBytes, MemoryRequest memReq) {
+    public MemoryRegionR(Memory memory, long memOffsetBytes, long capacityBytes,
+        MemoryRequest memReq) {
         super(memory, memOffsetBytes, capacityBytes, memReq);
     }
 

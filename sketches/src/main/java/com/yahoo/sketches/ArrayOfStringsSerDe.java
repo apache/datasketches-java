@@ -16,6 +16,8 @@ import com.yahoo.memory.NativeMemory;
  * {@link ArrayOfUtf16StringsSerDe}. In an extreme case when all strings are in ASCII,
  * this method is 2 times more compact, but it takes more time to encode and decode
  * by a factor of 1.5 to 2.
+ *
+ * @author Alex Saydakov
  */
 public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
 

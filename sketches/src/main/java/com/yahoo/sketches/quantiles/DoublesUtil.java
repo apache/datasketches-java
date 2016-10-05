@@ -16,18 +16,17 @@ import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * Utilities that support the doubles quantiles algorithms.
- * 
+ *
  * <p>This class contains a highly specialized sort called blockyTandemMergeSort().
  * It also contains methods that are used while building histograms and other common
  * functions.</p>
- * 
- * @author Kevin Lang
+ *
  * @author Lee Rhodes
  */
 final class DoublesUtil {
 
-  private DoublesUtil() {} 
-  
+  private DoublesUtil() {}
+
   /**
    * Returns an on-heap copy of the given sketch
    * @param sketch the given sketch
@@ -46,7 +45,7 @@ final class DoublesUtil {
     qsCopy.combinedBuffer_ = Arrays.copyOf(combBuf, combBuf.length);
     return qsCopy;
   }
-  
+
   /**
    * Checks the validity of the memory capacity assuming n, k and compact.
    * @param k the given value of k
@@ -62,8 +61,8 @@ final class DoublesUtil {
       reqBufBytes = (metaPre + retainedItems) << 3;
     } else { //not compact
       int totLevels = Util.computeNumLevelsNeeded(k, n);
-      reqBufBytes = (totLevels == 0) 
-          ? (metaPre + retainedItems) << 3 
+      reqBufBytes = (totLevels == 0)
+          ? (metaPre + retainedItems) << 3
           : (metaPre + (2 + totLevels) * k) << 3;
     }
     if (memCapBytes < reqBufBytes) {
@@ -71,7 +70,7 @@ final class DoublesUtil {
           + memCapBytes + " < " + reqBufBytes);
     }
   }
-  
+
   /**
    * Check the validity of the given serialization version
    * @param serVer the given serialization version
@@ -79,13 +78,13 @@ final class DoublesUtil {
   static void checkDoublesSerVer(int serVer) {
     int max = DoublesSketch.DOUBLES_SER_VER;
     int min = DoublesSketch.MIN_DOUBLES_SER_VER;
-    if ((serVer > max) || (serVer < min)) { 
+    if ((serVer > max) || (serVer < min)) {
       throw new SketchesArgumentException(
           "Possible corruption: Unsupported Serialization Version: " + serVer);
     }
   }
-  
-  static String toString(final boolean sketchSummary, final boolean dataDetail, 
+
+  static String toString(final boolean sketchSummary, final boolean dataDetail,
       final DoublesSketch sketch) {
     final StringBuilder sb = new StringBuilder();
     if (dataDetail) {
@@ -96,26 +95,26 @@ final class DoublesUtil {
     }
     return sb.toString();
   }
-  
+
   static String getDataDetail(final DoublesSketch sketch) {
     final StringBuilder sb = new StringBuilder();
     final String thisSimpleName = sketch.getClass().getSimpleName();
     sb.append(LS).append("### ").append(thisSimpleName).append(" DATA DETAIL: ").append(LS);
-    
+
     final int k = sketch.getK();
     final long n = sketch.getN();
     final int bbCount = sketch.getBaseBufferCount();
     final long bitPattern = sketch.getBitPattern();
     final double[] combBuf  = sketch.getCombinedBuffer();
-    
+
     //output the base buffer
-    
+
     sb.append("   BaseBuffer   : ");
-    for (int i = 0; i < bbCount; i++) { 
+    for (int i = 0; i < bbCount; i++) {
       sb.append(String.format("%10.1f", combBuf[i]));
     }
     sb.append(LS);
-    
+
     //output all the levels
     int combBufSize = combBuf.length;
     if (n >= 2 * k) {
@@ -134,7 +133,7 @@ final class DoublesUtil {
     sb.append("### END DATA DETAIL").append(LS);
     return sb.toString();
   }
-  
+
   static String getSummary(final DoublesSketch sketch) {
     final StringBuilder sb = new StringBuilder();
     final String thisSimpleName = sketch.getClass().getSimpleName();
@@ -171,7 +170,7 @@ final class DoublesUtil {
     sb.append("### END SKETCH SUMMARY").append(LS);
     return sb.toString();
   }
-  
+
   static String printMemData(Memory mem, int k, int n) {
     if (n == 0) return "";
     final StringBuilder sb = new StringBuilder();
@@ -195,5 +194,5 @@ final class DoublesUtil {
     sb.append(LS + "### END DATA DETAIL").append(LS);
     return sb.toString();
   }
-  
+
 }

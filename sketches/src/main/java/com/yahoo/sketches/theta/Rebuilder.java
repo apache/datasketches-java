@@ -16,53 +16,55 @@ import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.Util;
 
 /**
- * Handles common resize, rebuild and move operations. 
+ * Handles common resize, rebuild and move operations.
  * The Memory based operations assume a specific data structure that is unique to the theta sketches.
+ *
+ * @author Lee Rhodes
  */
 final class Rebuilder {
-  
+
   private Rebuilder() {}
-  
+
   /**
    * Rebuild the hashTable in the given Memory at its current size. Changes theta and thus count.
    * This assumes a Memory preamble of standard form with correct values of curCount and thetaLong.
    * ThetaLong and curCount will change.
    * Afterwards, caller must update local class members curCount and thetaLong from Memory.
-   * 
+   *
    * @param mem the Memory the given Memory
    * @param preambleLongs size of preamble in longs
    * @param lgNomLongs the log_base2 of k, the configuration parameter of the sketch
    * @param lgArrLongs the log_base2 of the current size of the hash table
    * @param curCount the number of valid entries
    */
-  static final void quickSelectAndRebuild(final Memory mem, final int preambleLongs, 
+  static final void quickSelectAndRebuild(final Memory mem, final int preambleLongs,
       final int lgNomLongs, final int lgArrLongs, int curCount) {
     //Pull data into tmp arr for QS algo
     int arrLongs = 1 << lgArrLongs;
     long[] tmpArr = new long[arrLongs];
     int preBytes = preambleLongs << 3;
     mem.getLongArray(preBytes, tmpArr, 0, arrLongs); //copy mem data to tmpArr
-    
+
     //Do the QuickSelect on a tmp arr to create new thetaLong
     int pivot = (1 << lgNomLongs) + 1; // (K+1) pivot for QS
     long newThetaLong = selectExcludingZeros(tmpArr, curCount, pivot);
     mem.putLong(THETA_LONG, newThetaLong); //UPDATE thetalong
-    
+
     //Rebuild to clean up dirty data, update count
     long[] tgtArr = new long[arrLongs];
     int newCurCount = HashOperations.hashArrayInsert(tmpArr, tgtArr, lgArrLongs, newThetaLong);
     mem.putInt(RETAINED_ENTRIES_INT, newCurCount); //UPDATE curCount
-    
+
     //put the rebuilt array back into memory
     mem.putLongArray(preBytes, tgtArr, 0, arrLongs);
   }
-  
+
   /**
    * Moves me (the entire sketch) to a new larger Memory location and rebuilds the hash table.
-   * This assumes a Memory preamble of standard form with the correct value of thetaLong. 
-   * Afterwards, the caller must update the local Memory reference, lgArrLongs 
+   * This assumes a Memory preamble of standard form with the correct value of thetaLong.
+   * Afterwards, the caller must update the local Memory reference, lgArrLongs
    * and hashTableThreshold from the dstMemory and free the source Memory.
-   * 
+   *
    * @param srcMem the source Memory
    * @param preambleLongs size of preamble in longs
    * @param srcLgArrLongs size (log_base2) of source hash table
@@ -70,7 +72,7 @@ final class Rebuilder {
    * @param dstLgArrLongs the destination hash table target size
    * @param thetaLong theta as a long
    */
-  static final void moveAndResize(final Memory srcMem, final int preambleLongs, 
+  static final void moveAndResize(final Memory srcMem, final int preambleLongs,
       final int srcLgArrLongs, final Memory dstMem, final int dstLgArrLongs, final long thetaLong) {
     //Move Preamble to destination memory
     int preBytes = preambleLongs << 3;
@@ -88,20 +90,20 @@ final class Rebuilder {
     dstMem.putLongArray(preBytes, dstHTArr, 0, dstHTLen);
     dstMem.putByte(LG_ARR_LONGS_BYTE, (byte)dstLgArrLongs); //update in dstMem
   }
-  
+
   /**
    * Resizes existing hash array into a larger one within a single Memory assuming enough space.
-   * This assumes a Memory preamble of standard form with the correct value of thetaLong.  
+   * This assumes a Memory preamble of standard form with the correct value of thetaLong.
    * The Memory lgArrLongs will change.
    * Afterwards, the caller must update local copies of lgArrLongs and hashTableThreshold from
    * Memory.
-   * 
+   *
    * @param mem the Memory
    * @param preambleLongs the size of the preamble in longs
    * @param srcLgArrLongs the size of the source hash table
    * @param dstLgArrLongs the LgArrLongs value for the new hash table
    */
-  static final void resize(final Memory mem, final int preambleLongs, 
+  static final void resize(final Memory mem, final int preambleLongs,
       final int srcLgArrLongs, final int dstLgArrLongs) {
     //Preamble stays in place
     int preBytes = preambleLongs << 3;
@@ -119,9 +121,9 @@ final class Rebuilder {
     mem.putLongArray(preBytes, dstHTArr, 0, dstHTLen); //put it back, no need to clear
     mem.putByte(LG_ARR_LONGS_BYTE, (byte) dstLgArrLongs); //update in mem
   }
-  
+
   /**
-   * Returns the actual log2 Resize Factor that can be used to grow the hash table. This will be 
+   * Returns the actual log2 Resize Factor that can be used to grow the hash table. This will be
    * an integer value between zero and the given lgRF, inclusive;
    * @param capBytes the current memory capacity in bytes
    * @param lgArrLongs the current lg hash table size in longs
@@ -134,5 +136,5 @@ final class Rebuilder {
     int lgFactor = Math.max(Integer.numberOfTrailingZeros(maxHTLongs) - lgArrLongs, 0);
     return (lgFactor >= lgRF) ? lgRF : lgFactor;
   }
-  
+
 }

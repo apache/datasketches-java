@@ -31,8 +31,9 @@ import com.yahoo.sketches.Util;
  * uniform random sample of unweighted items from the stream.
  *
  * @param <T> The type of object held in the reservoir.
- * @author jmalkin
- * @author langk
+ *
+ * @author Jon Malkin
+ * @author Kevin Lang
  */
 public class ReservoirItemsSketch<T> {
 

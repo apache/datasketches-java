@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Yahoo! Inc. Licensed under the terms of the 
+ * Copyright 2016, Yahoo! Inc. Licensed under the terms of the
  * Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
@@ -12,14 +12,20 @@ import java.util.Arrays;
 
 import com.yahoo.sketches.SketchesArgumentException;
 
-public class DoublesMergeImpl {
+/**
+ * Down-sampling and merge algorithms for quantiles.
+ *
+ * @author Lee Rhodes
+ * @author Kevin Lang
+ */
+class DoublesMergeImpl {
 
   /**
    * Merges the source sketch into the target sketch that can have a smaller value of K.
    * However, it is required that the ratio of the two K values be a power of 2.
    * I.e., source.getK() = target.getK() * 2^(nonnegative integer).
    * The source is not modified.
-   * 
+   *
    * @param src The source sketch
    * @param tgt The target sketch
    */
@@ -45,7 +51,7 @@ public class DoublesMergeImpl {
       tgt.update(sourceBaseBuffer[i]);
     }
 
-    DoublesUpdateImpl.maybeGrowLevels(nFinal, tgt); 
+    DoublesUpdateImpl.maybeGrowLevels(nFinal, tgt);
 
     final double[] scratchBuf = new double [2 * targetK];
     final double[] downBuf    = new double [targetK];
@@ -66,7 +72,7 @@ public class DoublesMergeImpl {
         // won't update target.n_ until the very end
       }
     }
-    tgt.n_ = nFinal; 
+    tgt.n_ = nFinal;
 
     assert tgt.getN() / (2 * targetK) == tgt.getBitPattern(); // internal consistency check
 
@@ -99,11 +105,11 @@ public class DoublesMergeImpl {
    * as discussed above.
    * @param keyArr array of keys
    * @param valArr array of values
-   * @param arrLen length of keyArr and valArr 
+   * @param arrLen length of keyArr and valArr
    * @param blkSize size of internal sorted blocks
    */
   //used by DoublesAuxiliary and UtilTest
-  static void blockyTandemMergeSort(final double[] keyArr, final long[] valArr, final int arrLen, 
+  static void blockyTandemMergeSort(final double[] keyArr, final long[] valArr, final int arrLen,
       final int blkSize) {
     assert blkSize >= 1;
     if (arrLen <= blkSize) return;
@@ -111,7 +117,7 @@ public class DoublesMergeImpl {
     if (numblks * blkSize < arrLen) numblks += 1;
     assert (numblks * blkSize >= arrLen);
 
-    // duplicate the input is preparation for the "ping-pong" copy reduction strategy. 
+    // duplicate the input is preparation for the "ping-pong" copy reduction strategy.
     final double[] keyTmp = Arrays.copyOf(keyArr, arrLen);
     final long[] valTmp   = Arrays.copyOf(valArr, arrLen);
 
@@ -125,7 +131,7 @@ public class DoublesMergeImpl {
    *  blockyTandemMergeSortRecursion() is called by blockyTandemMergeSort().
    *  In addition to performing the algorithm's top down recursion,
    *  it manages the buffer swapping that eliminates most copying.
-   *  It also maps the input's pre-sorted blocks into the subarrays 
+   *  It also maps the input's pre-sorted blocks into the subarrays
    *  that are processed by tandemMerge().
    * @param keySrc key source
    * @param valSrc value source
@@ -137,7 +143,7 @@ public class DoublesMergeImpl {
    * @param arrLim array limit
    */
   private static void blockyTandemMergeSortRecursion(final double[] keySrc, final long[] valSrc,
-      final double[] keyDst, final long[] valDst, final int grpStart, final int grpLen, 
+      final double[] keyDst, final long[] valDst, final int grpStart, final int grpLen,
       /* indices of blocks */ final int blkSize, final int arrLim) {
     // Important note: grpStart and grpLen do NOT refer to positions in the underlying array.
     // Instead, they refer to the pre-sorted blocks, such as block 0, block 1, etc.
@@ -172,7 +178,7 @@ public class DoublesMergeImpl {
     if (arrStart2 + arrLen2 > arrLim) arrLen2 = arrLim - arrStart2;
 
     tandemMerge(keySrc, valSrc,
-                arrStart1, arrLen1, 
+                arrStart1, arrLen1,
                 arrStart2, arrLen2,
                 keyDst, valDst,
                 arrStart1); // which will be arrStart3
@@ -198,22 +204,22 @@ public class DoublesMergeImpl {
                                   final int arrStart3) {
     final int arrStop1 = arrStart1 + arrLen1;
     final int arrStop2 = arrStart2 + arrLen2;
-  
+
     int i1 = arrStart1;
     int i2 = arrStart2;
     int i3 = arrStart3;
     while (i1 < arrStop1 && i2 < arrStop2) {
-      if (keySrc[i2] < keySrc[i1]) { 
+      if (keySrc[i2] < keySrc[i1]) {
         keyDst[i3] = keySrc[i2];
         valDst[i3] = valSrc[i2];
         i3++; i2++;
-      } else { 
+      } else {
         keyDst[i3] = keySrc[i1];
         valDst[i3] = valSrc[i1];
         i3++; i1++;
       }
     }
-  
+
     if (i1 < arrStop1) {
       arraycopy(keySrc, i1, keyDst, i3, arrStop1 - i1);
       arraycopy(valSrc, i1, valDst, i3, arrStop1 - i1);
@@ -223,6 +229,5 @@ public class DoublesMergeImpl {
       arraycopy(valSrc, i2, valDst, i3, arrStop2 - i2);
     }
   }
-  
-  
+
 }

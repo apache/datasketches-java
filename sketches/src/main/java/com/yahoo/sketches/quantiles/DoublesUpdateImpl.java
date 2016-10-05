@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Yahoo! Inc. Licensed under the terms of the 
+ * Copyright 2016, Yahoo! Inc. Licensed under the terms of the
  * Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
@@ -7,6 +7,12 @@ package com.yahoo.sketches.quantiles;
 
 import java.util.Arrays;
 
+/**
+ * The doubles update algorithms for quantiles.
+ *
+ * @author Lee Rhodes
+ * @author Kevin Lang
+ */
 public class DoublesUpdateImpl {
 
   static void growBaseBuffer(final DoublesSketch sketch) { //n has not been incremented yet
@@ -18,7 +24,7 @@ public class DoublesUpdateImpl {
     sketch.putCombinedBufferItemCapacity(newSize);
     sketch.putCombinedBuffer(Arrays.copyOf(baseBuffer, newSize));
   }
-  
+
   /**
    * Called when the base buffer has just acquired 2*k elements.
    * @param sketch the given quantiles sketch
@@ -34,16 +40,16 @@ public class DoublesUpdateImpl {
     maybeGrowLevels(newN, sketch);
 
     // notice that this is acquired after the possible resizing
-    final double[] baseBuffer = sketch.getCombinedBuffer(); 
+    final double[] baseBuffer = sketch.getCombinedBuffer();
 
     Arrays.sort(baseBuffer, 0, bbCount); //sort the BB
     inPlacePropagateCarry(
         0,           //starting level
         null,        //sizeKbuf,   not needed here
         0,           //sizeKStart, not needed here
-        baseBuffer,  //size2Kbuf, the base buffer = the Combined Buffer 
+        baseBuffer,  //size2Kbuf, the base buffer = the Combined Buffer
         0,           //size2KStart
-        true,        //doUpdateVersion 
+        true,        //doUpdateVersion
         sketch);     //the sketch
     sketch.baseBufferCount_ = 0;
     assert newN / (2 * k) == sketch.getBitPattern(); // internal consistency check
@@ -56,20 +62,20 @@ public class DoublesUpdateImpl {
     final int numLevelsNeeded = Util.computeNumLevelsNeeded(k, newN);
     if (numLevelsNeeded == 0) {
       // don't need any levels yet, and might have small base buffer; this can happen during a merge
-      return; 
+      return;
     }
     // from here on we need a full-size base buffer and at least one level
     assert newN >= 2L * k;
-    assert numLevelsNeeded > 0; 
+    assert numLevelsNeeded > 0;
     final int spaceNeeded = (2 + numLevelsNeeded) * k;
     if (spaceNeeded <= sketch.getCombinedBufferItemCapacity()) {
       return;
     }
     // copies base buffer plus old levels
-    sketch.combinedBuffer_ = Arrays.copyOf(sketch.getCombinedBuffer(), spaceNeeded); 
+    sketch.combinedBuffer_ = Arrays.copyOf(sketch.getCombinedBuffer(), spaceNeeded);
     sketch.combinedBufferItemCapacity_ = spaceNeeded;
   }
-  
+
   static void inPlacePropagateCarry(
       final int startingLevel,
       final double[] sizeKBuf, final int sizeKStart,
@@ -80,7 +86,7 @@ public class DoublesUpdateImpl {
     final int k = sketch.getK();
     final long bitPattern = sketch.bitPattern_; //the one prior to the last increment of n_
     final int endingLevel = Util.positionOfLowestZeroBitStartingAt(bitPattern, startingLevel);
-  
+
     if (doUpdateVersion) { // update version of computation
       // its is okay for sizeKbuf to be null in this case
       zipSize2KBuffer(
@@ -93,7 +99,7 @@ public class DoublesUpdateImpl {
           levelsArr, (2 + endingLevel) * k,
           k);
     }
-  
+
     for (int lvl = startingLevel; lvl < endingLevel; lvl++) {
       assert (bitPattern & (1L << lvl)) > 0; // internal consistency check
       mergeTwoSizeKBuffers(
@@ -110,7 +116,7 @@ public class DoublesUpdateImpl {
     // update bit pattern with binary-arithmetic ripple carry
     sketch.bitPattern_ = bitPattern + (1L << startingLevel);
   }
-  
+
   private static void zipSize2KBuffer(
       final double[] bufA, final int startA, // input
       final double[] bufC, final int startC, // output
@@ -121,7 +127,7 @@ public class DoublesUpdateImpl {
       bufC[c] = bufA[a];
     }
   }
-  
+
   private static void mergeTwoSizeKBuffers(
       final double[] keySrc1, final int arrStart1,
       final double[] keySrc2, final int arrStart2,
@@ -134,13 +140,13 @@ public class DoublesUpdateImpl {
     int i2 = arrStart2;
     int i3 = arrStart3;
     while (i1 < arrStop1 && i2 < arrStop2) {
-      if (keySrc2[i2] < keySrc1[i1]) { 
+      if (keySrc2[i2] < keySrc1[i1]) {
         keyDst[i3++] = keySrc2[i2++];
-      } else { 
+      } else {
         keyDst[i3++] = keySrc1[i1++];
-      } 
+      }
     }
-  
+
     if (i1 < arrStop1) {
       System.arraycopy(keySrc1, i1, keyDst, i3, arrStop1 - i1);
     } else {
@@ -148,5 +154,5 @@ public class DoublesUpdateImpl {
       System.arraycopy(keySrc1, i2, keyDst, i3, arrStop2 - i2);
     }
   }
-  
+
 }

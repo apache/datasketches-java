@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Yahoo! Inc. Licensed under the terms of the 
+ * Copyright 2016, Yahoo! Inc. Licensed under the terms of the
  * Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
@@ -7,7 +7,13 @@ package com.yahoo.sketches.quantiles;
 
 import java.util.Arrays;
 
-public class DoublesPmfCdfImpl {
+/**
+ * The PMF and CDF algorithms for quantiles.
+ *
+ * @author Lee Rhodes
+ * @author Kevin Lang
+ */
+class DoublesPmfCdfImpl {
 
   static double[] getPMFOrCDF(DoublesSketch sketch, double[] splitPoints, boolean isCDF) {
     long[] counters = internalBuildHistogram(sketch, splitPoints);
@@ -31,7 +37,7 @@ public class DoublesPmfCdfImpl {
     assert subtotal == n; //internal consistency check
     return result;
   }
-  
+
   /**
    * Shared algorithm for both PMF and CDF functions. The splitPoints must be unique, monotonically
    * increasing values.
@@ -75,7 +81,7 @@ public class DoublesPmfCdfImpl {
     }
     return counters;
   }
-  
+
   /**
    * Because of the nested loop, cost is O(numSamples * numSplitPoints), which is bilinear.
    * This method does NOT require the samples to be sorted.
@@ -86,10 +92,10 @@ public class DoublesPmfCdfImpl {
    * @param splitPoints must be unique and sorted. Number of splitPoints + 1 == counters.length.
    * @param counters array of counters
    */
-  static void bilinearTimeIncrementHistogramCounters(final double[] samples, final int offset, 
+  static void bilinearTimeIncrementHistogramCounters(final double[] samples, final int offset,
       final int numSamples, final long weight, final double[] splitPoints, final long[] counters) {
     assert (splitPoints.length + 1 == counters.length);
-    for (int i = 0; i < numSamples; i++) { 
+    for (int i = 0; i < numSamples; i++) {
       final double sample = samples[i + offset];
       int j = 0;
       for (j = 0; j < splitPoints.length; j++) {
@@ -118,7 +124,7 @@ public class DoublesPmfCdfImpl {
    * @param splitPoints must be unique and sorted. Number of splitPoints + 1 = counters.length.
    * @param counters array of counters
    */
-  static void linearTimeIncrementHistogramCounters(final double[] samples, final int offset, 
+  static void linearTimeIncrementHistogramCounters(final double[] samples, final int offset,
       final int numSamples, final long weight, final double[] splitPoints, final long[] counters) {
     int i = 0;
     int j = 0;
@@ -138,5 +144,5 @@ public class DoublesPmfCdfImpl {
       counters[j] += (weight * (numSamples - i));
     }
   }
-  
+
 }
