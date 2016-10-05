@@ -65,6 +65,13 @@
             </roles>
             <url>https://github.com/edoliberty</url>
         </developer>
+        <developer>
+            <name>Jon Malkin</name>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <url>https://github.com/jmalkin</url>
+        </developer>
     </developers>
 
     <contributors>
