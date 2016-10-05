@@ -7,7 +7,7 @@ import java.util.Random;
  *
  * @author Jon Malkin
  */
-public class SamplingUtil {
+class SamplingUtil {
 
   public static final Random rand = new Random();
 

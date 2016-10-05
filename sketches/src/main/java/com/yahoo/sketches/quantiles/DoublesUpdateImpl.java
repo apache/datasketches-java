@@ -13,7 +13,7 @@ import java.util.Arrays;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-public class DoublesUpdateImpl {
+class DoublesUpdateImpl {
 
   static void growBaseBuffer(final DoublesSketch sketch) { //n has not been incremented yet
     final double[] baseBuffer = sketch.getCombinedBuffer(); //in this case it is just the BB

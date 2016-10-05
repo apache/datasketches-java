@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
  * The methods of this interface leverage the capabilities of the sun.misc.Unsafe class.
  *
  * <p>In contrast to the <i>java.nio.ByteBuffer</i> classes, which were designed for native
- * streaming I/O and include concepts such as <i>position, limit, mark, flip,</i> and <i>rewind</i>,
+ * streaming I/O and include concepts such as <i>position, limit, mark, flip</i> and <i>rewind</i>,
  * this interface specifically bypasses these concepts and instead provides a rich collection of
  * primitive, bit, array and copy methods that access the data directly from a single byte offset.
  *
