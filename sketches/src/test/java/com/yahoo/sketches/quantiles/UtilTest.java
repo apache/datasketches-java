@@ -232,6 +232,12 @@ public class UtilTest {
    testBlockyTandemMergeSort(10, 50);
  }
 
+ @Test(expectedExceptions = SketchesArgumentException.class)
+ public void checkValidateValues() {
+   double[] arr = null;
+   Util.validateValues(arr);
+ }
+
  /**
   *
   * @param numTries number of tries

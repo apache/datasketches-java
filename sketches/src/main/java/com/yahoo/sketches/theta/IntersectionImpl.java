@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Yahoo! Inc. Licensed under the terms of the 
+ * Copyright 2016, Yahoo! Inc. Licensed under the terms of the
  * Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
@@ -50,12 +50,12 @@ import com.yahoo.sketches.Util;
 
 /**
  * Intersection operation for Theta Sketches.
- * 
- * <p>This implementation uses data either on-heap or off-heap in a given Memory 
+ *
+ * <p>This implementation uses data either on-heap or off-heap in a given Memory
  * that is owned and managed by the caller.
  * The off-heap Memory, which if managed properly will greatly reduce the need for
  * the JVM to perform garbage collection.</p>
- * 
+ *
  * @author Lee Rhodes
  * @author Kevin Lang
  */
@@ -66,19 +66,19 @@ final class IntersectionImpl extends SetOperation implements Intersection {
   private int curCount_; //curCount of HT, if < 0 means Universal Set (US) is true
   private long thetaLong_;
   private boolean empty_;
-  
+
   private long[] hashTable_ = null;  //HT => Data.  Only used On Heap
   private int maxLgArrLongs_ = 0; //max size of hash table. Only used Off Heap
   private Memory mem_ = null; //must be set by one of the factory methods. Only used Off Heap.
 
-  
+
   private IntersectionImpl(short seedHash) {
     seedHash_ = seedHash;
   }
-  
+
   /**
    * Construct a new Intersection target on the java heap.
-   * 
+   *
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Seed</a>
    */
   static IntersectionImpl initNewHeapInstance(long seed) {
@@ -91,18 +91,18 @@ final class IntersectionImpl extends SetOperation implements Intersection {
     impl.mem_ = null; //On the Heap
     return impl;
   }
-  
+
   /**
-   * Heapify an intersection target from a Memory image containing data. 
+   * Heapify an intersection target from a Memory image containing data.
    * @param srcMem The source Memory object.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a> 
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
   static IntersectionImpl heapifyInstance(Memory srcMem, long seed) {
     int preLongs = CONST_PREAMBLE_LONGS;
     long[] preArr = new long[preLongs];
     srcMem.getLongArray(0, preArr, 0, preLongs);
-    
+
     long pre0 = preArr[0];
     int preambleLongs = extractPreLongs(pre0);
     if (preambleLongs != CONST_PREAMBLE_LONGS) {
@@ -114,21 +114,21 @@ final class IntersectionImpl extends SetOperation implements Intersection {
     }
     int famID = extractFamilyID(pre0);
     Family.INTERSECTION.checkFamilyID(famID);
-    
+
     short seedHash = computeSeedHash(seed);
     short seedHashMem = (short) extractSeedHash(pre0);
     Util.checkSeedHashes(seedHashMem, seedHash); //check for seed hash conflict
-    
+
     IntersectionImpl impl = new IntersectionImpl(seedHash);
-    
+
     //Note: Intersection does not use lgNomLongs or k, per se.
     impl.lgArrLongs_ = extractLgArrLongs(pre0); //current hash table size
-    
+
     int flags = extractFlags(pre0);
     impl.empty_ = (flags & EMPTY_FLAG_MASK) > 0;
     impl.curCount_ = srcMem.getInt(RETAINED_ENTRIES_INT);
     impl.thetaLong_ = srcMem.getLong(THETA_LONG);
-    
+
     if (impl.empty_) {
       if (impl.curCount_ != 0) {
         throw new SketchesArgumentException(
@@ -145,25 +145,25 @@ final class IntersectionImpl extends SetOperation implements Intersection {
     impl.mem_ = null; //On the Heap
     return impl;
   }
-  
+
   /**
    * Construct a new Intersection target direct to the given destination Memory.
    * Called by SetOperation.Builder.
-   * 
+   *
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Seed</a>
-   * @param dstMem destination Memory.  
+   * @param dstMem destination Memory.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
   static IntersectionImpl initNewDirectInstance(long seed, Memory dstMem) {
     short seedHash = computeSeedHash(seed);
     IntersectionImpl impl = new IntersectionImpl(seedHash);
-    
+
     int preLongs = CONST_PREAMBLE_LONGS;
     impl.maxLgArrLongs_ = checkMaxLgArrLongs(dstMem); //Only Off Heap
-    
+
     //build preamble and cache together in single Memory, insert fields into memory in one step
     long[] preArr = new long[preLongs]; //becomes the preamble
-    
+
     long pre0 = 0;
     pre0 = insertPreLongs(preLongs, pre0); //RF not used = 0
     pre0 = insertSerVer(SER_VER, pre0);
@@ -173,35 +173,35 @@ final class IntersectionImpl extends SetOperation implements Intersection {
     pre0 = insertLgArrLongs(MIN_LG_ARR_LONGS, pre0);
     //flags: bigEndian = readOnly = compact = ordered = false;
     impl.empty_ = false;
-    
+
     pre0 = insertFlags(0, pre0);
     pre0 = insertSeedHash(seedHash, pre0);
     preArr[0] = pre0;
-    
+
     long pre1 = 0;
     impl.curCount_ = -1; //set in mem below
     pre1 = insertCurCount(-1, pre1);
     pre1 = insertP((float) 1.0, pre1);
     preArr[1] = pre1;
-    
+
     impl.thetaLong_ = Long.MAX_VALUE;
     preArr[2] = impl.thetaLong_;
     dstMem.putLongArray(0, preArr, 0, preLongs); //put into mem
     impl.mem_ = dstMem; //Off Heap
     return impl;
   }
-  
+
   /**
-   * Wrap an Intersection target around the given source Memory containing intersection data. 
+   * Wrap an Intersection target around the given source Memory containing intersection data.
    * @param srcMem The source Memory image.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a> 
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
   static IntersectionImpl wrapInstance(Memory srcMem, long seed) {
     int preLongs = CONST_PREAMBLE_LONGS;
     long[] preArr = new long[preLongs];
     srcMem.getLongArray(0, preArr, 0, preLongs);
-    
+
     long pre0 = preArr[0];
     int preLongsMem = extractPreLongs(pre0);
     if (preLongsMem != CONST_PREAMBLE_LONGS) {
@@ -213,22 +213,22 @@ final class IntersectionImpl extends SetOperation implements Intersection {
     }
     int famID = extractFamilyID(pre0);
     Family.INTERSECTION.checkFamilyID(famID);
-    
+
     short seedHash = computeSeedHash(seed);
     short seedHashMem = (short) extractSeedHash(pre0);
     Util.checkSeedHashes(seedHashMem, seedHash); //check for seed hash conflict
-    
+
     IntersectionImpl impl = new IntersectionImpl(seedHash);
-    
+
     //Note: Intersection does not use lgNomLongs or k, per se.
     impl.lgArrLongs_ = extractLgArrLongs(pre0); //current hash table size
     impl.maxLgArrLongs_ = checkMaxLgArrLongs(srcMem); //Only Off Heap, check for min size
     int flags = extractFlags(pre0);
     impl.empty_ = (flags & EMPTY_FLAG_MASK) > 0;
-    
+
     impl.curCount_ = extractCurCount(preArr[1]);
     impl.thetaLong_ = preArr[2];
-    
+
     if (impl.empty_) {
       if (impl.curCount_ != 0) {
         throw new SketchesArgumentException(
@@ -239,7 +239,7 @@ final class IntersectionImpl extends SetOperation implements Intersection {
     impl.mem_ = srcMem; //Off Heap
     return impl;
   }
-  
+
   @Override
   public void update(Sketch sketchIn) {
     if (sketchIn == null) { //null := Th = 1.0, count = 0, empty = true
@@ -251,14 +251,14 @@ final class IntersectionImpl extends SetOperation implements Intersection {
       curCount_ = setCurCount(0, mem_);
       return;
     }
-    
+
     //The Intersection State Machine
     int sketchInEntries = sketchIn.getRetainedEntries(true);
-    
+
     Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
     thetaLong_ = setThetaLong(min(thetaLong_, sketchIn.getThetaLong()), mem_); //Theta rule
     empty_ = setEmpty(empty_ || sketchIn.isEmpty(), mem_);  //Empty rule
-    
+
     if ((curCount_ == 0) || (sketchInEntries == 0)) {
       //The 1st Call (curCount  < 0) and sketchInEntries == 0.
       //The Nth Call (curCount == 0) and sketchInEntries == 0.
@@ -274,14 +274,14 @@ final class IntersectionImpl extends SetOperation implements Intersection {
       int requiredLgArrLongs = computeMinLgArrLongsFromCount(curCount_);
       int priorLgArrLongs = lgArrLongs_; //only used in error message
       lgArrLongs_ = setLgArrLongs(requiredLgArrLongs, mem_);
-      
+
       if (mem_ != null) { //Off heap, check if current dstMem is large enough
         if (requiredLgArrLongs <= maxLgArrLongs_) { //OK
           mem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_);
         }
         else { //not enough space in dstMem //TODO move to request model?
           throw new SketchesArgumentException(
-              "Insufficient dstMem hash table space: " 
+              "Insufficient dstMem hash table space: "
                   + (1 << requiredLgArrLongs) + " > " + (1 << priorLgArrLongs));
         }
       } else { //On the heap, allocate a HT
@@ -304,12 +304,12 @@ final class IntersectionImpl extends SetOperation implements Intersection {
           "Calling getResult() with no intervening intersections is not a legal result.");
     }
     long[] compactCacheR;
-    
+
     if (curCount_ == 0) {
       compactCacheR = new long[0];
       return CompactSketch.createCompactSketch(
           compactCacheR, empty_, seedHash_, curCount_, thetaLong_, dstOrdered, dstMem);
-    } 
+    }
     //else curCount > 0
     long[] hashTable;
     if (mem_ != null) {
@@ -320,7 +320,7 @@ final class IntersectionImpl extends SetOperation implements Intersection {
       hashTable = hashTable_;
     }
     compactCacheR = compactCachePart(hashTable, lgArrLongs_, curCount_, thetaLong_, dstOrdered);
-    
+
     //Create the CompactSketch
     return CompactSketch.createCompactSketch(
         compactCacheR, empty_, seedHash_, curCount_, thetaLong_, dstOrdered, dstMem);
@@ -343,10 +343,10 @@ final class IntersectionImpl extends SetOperation implements Intersection {
     byte[] byteArrOut = new byte[preBytes + dataBytes];
     if (mem_ != null) {
       mem_.getByteArray(0, byteArrOut, 0, preBytes + dataBytes);
-    } 
+    }
     else {
       NativeMemory memOut = new NativeMemory(byteArrOut);
-      
+
       //preamble
       memOut.putByte(PREAMBLE_LONGS_BYTE, (byte) CONST_PREAMBLE_LONGS); //RF not used = 0
       memOut.putByte(SER_VER_BYTE, (byte) SER_VER);
@@ -355,7 +355,7 @@ final class IntersectionImpl extends SetOperation implements Intersection {
       memOut.putByte(LG_ARR_LONGS_BYTE, (byte) lgArrLongs_);
       if (empty_) {
         memOut.setBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
-      } 
+      }
       else {
         memOut.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
       }
@@ -363,7 +363,7 @@ final class IntersectionImpl extends SetOperation implements Intersection {
       memOut.putInt(RETAINED_ENTRIES_INT, curCount_);
       memOut.putFloat(P_FLOAT, (float) 1.0);
       memOut.putLong(THETA_LONG, thetaLong_);
-      
+
       //data
       if (curCount_ > 0) {
         memOut.putLongArray(preBytes, hashTable_, 0, 1 << lgArrLongs_);
@@ -387,7 +387,7 @@ final class IntersectionImpl extends SetOperation implements Intersection {
   }
 
   //restricted
-  
+
   private void performIntersect(Sketch sketchIn) {
     // curCount and input data are nonzero, match against HT
     assert ((curCount_ > 0) && (!empty_));
@@ -397,7 +397,7 @@ final class IntersectionImpl extends SetOperation implements Intersection {
     if (mem_ != null) {
       int htLen = 1 << lgArrLongs_;
       hashTable = new long[htLen];
-      mem_.getLongArray(CONST_PREAMBLE_LONGS << 3, hashTable, 0, htLen); 
+      mem_.getLongArray(CONST_PREAMBLE_LONGS << 3, hashTable, 0, htLen);
     } else {
       hashTable = hashTable_;
     }
@@ -409,7 +409,7 @@ final class IntersectionImpl extends SetOperation implements Intersection {
       //ordered compact, which enables early stop
       for (int i = 0; i < arrLongsIn; i++ ) {
         long hashIn = cacheIn[i];
-        if (hashIn <= 0L) continue;
+        //if (hashIn <= 0L) continue;  //<=0 should not happen
         if (hashIn >= thetaLong_) {
           break; //early stop assumes that hashes in input sketch are ordered!
         }
@@ -417,7 +417,7 @@ final class IntersectionImpl extends SetOperation implements Intersection {
         if (foundIdx == -1) continue;
         matchSet[matchSetCount++] = hashIn;
       }
-    } 
+    }
     else {
       //either unordered compact or hash table
       for (int i = 0; i < arrLongsIn; i++ ) {
@@ -439,7 +439,7 @@ final class IntersectionImpl extends SetOperation implements Intersection {
     //move matchSet to target
     moveDataToTgt(matchSet, matchSetCount);
   }
-  
+
   private void moveDataToTgt(long[] arr, int count) {
     int arrLongsIn = arr.length;
     int tmpCnt = 0;
@@ -464,7 +464,7 @@ final class IntersectionImpl extends SetOperation implements Intersection {
 
   //special handlers for Off Heap
   /**
-   * Returns the correct maximum lgArrLongs given the capacity of the Memory. Checks that the 
+   * Returns the correct maximum lgArrLongs given the capacity of the Memory. Checks that the
    * capacity is large enough for the minimum sized hash table.
    * @param dstMem the given Memory
    * @return the correct maximum lgArrLongs given the capacity of the Memory
@@ -479,33 +479,33 @@ final class IntersectionImpl extends SetOperation implements Intersection {
     }
     return maxLgArrLongs;
   }
-  
+
   private static final boolean setEmpty(boolean empty, Memory mem) {
     if (mem != null) {
       if (empty) {
         mem.setBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
-      } 
+      }
       else {
         mem.clearBits(FLAGS_BYTE, (byte)EMPTY_FLAG_MASK);
       }
     }
     return empty;
   }
-  
+
   private static final int setLgArrLongs(int lgArrLongs, Memory mem) {
     if (mem != null) {
       mem.putByte(LG_ARR_LONGS_BYTE, (byte) lgArrLongs);
     }
     return lgArrLongs;
   }
-  
+
   private static final long setThetaLong(long thetaLong, Memory mem) {
     if (mem != null) {
       mem.putLong(THETA_LONG, thetaLong);
     }
     return thetaLong;
   }
-  
+
   private static final int setCurCount(int curCount, Memory mem) {
     if (mem != null) {
       mem.putInt(RETAINED_ENTRIES_INT, curCount);

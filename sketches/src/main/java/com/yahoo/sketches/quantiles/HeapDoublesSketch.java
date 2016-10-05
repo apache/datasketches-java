@@ -299,6 +299,11 @@ final class HeapDoublesSketch extends DoublesSketch {
   }
 
   @Override
+  long getBitPattern() {
+    return bitPattern_;
+  }
+
+  @Override
   void putCombinedBuffer(double[] combinedBuffer) {
     combinedBuffer_ = combinedBuffer;
   }

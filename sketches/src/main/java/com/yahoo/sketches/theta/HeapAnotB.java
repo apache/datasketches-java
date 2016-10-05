@@ -25,24 +25,24 @@ final class HeapAnotB extends SetOperation implements AnotB {
   private Sketch a_;
   private Sketch b_;
   private long thetaLong_;
-  private boolean empty_; 
+  private boolean empty_;
   private long[] cache_; // no match set
   private int curCount_ = 0;
-  
+
   private int lgArrLongsHT_; //for Hash Table only. may not need to be member after refactoring
   private long[] bHashTable_; //may not need to be member after refactoring.
-  
+
   /**
    * Construct a new Union SetOperation on the java heap.  Called by SetOperation.Builder.
-   * 
+   *
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
   HeapAnotB(long seed) {
     seedHash_ = computeSeedHash(seed);
   }
-  
+
   @Override
-  public void update(Sketch a, Sketch b) { 
+  public void update(Sketch a, Sketch b) {
     a_ = a;
     b_ = b;
     thetaLong_ = Long.MAX_VALUE;
@@ -53,7 +53,7 @@ final class HeapAnotB extends SetOperation implements AnotB {
     bHashTable_ = null;
     compute();
   }
-  
+
   @Override
   public CompactSketch getResult(boolean dstOrdered, Memory dstMem) {
     long[] compactCache = (curCount_ <= 0) ? new long[0] : Arrays.copyOfRange(cache_, 0, curCount_);
@@ -61,31 +61,31 @@ final class HeapAnotB extends SetOperation implements AnotB {
       Arrays.sort(compactCache);
     }
     //Create the CompactSketch
-    CompactSketch comp = CompactSketch.createCompactSketch(compactCache, empty_, seedHash_, curCount_, 
+    CompactSketch comp = CompactSketch.createCompactSketch(compactCache, empty_, seedHash_, curCount_,
         thetaLong_, dstOrdered, dstMem);
     reset();
     return comp;
   }
-  
+
   @Override
   public CompactSketch getResult() {
     return getResult(true, null);
   }
-  
+
   @Override
   public Family getFamily() {
     return Family.A_NOT_B;
   }
-  
+
   //restricted
-  
+
   void compute() {
-    int swA = (a_ == null) ? 0 : (a_.isEmpty()) 
+    int swA = (a_ == null) ? 0 : (a_.isEmpty())
         ? 1 : (a_ instanceof UpdateSketch) ? 4 : (a_.isOrdered()) ? 3 : 2;
-    int swB = (b_ == null) ? 0 : (b_.isEmpty()) ? 1 : (b_ instanceof UpdateSketch) 
+    int swB = (b_ == null) ? 0 : (b_.isEmpty()) ? 1 : (b_ instanceof UpdateSketch)
         ? 4 : (b_.isOrdered()) ? 3 : 2;
     int sw = (swA * 8) | swB;
-    
+
     //  NOTES:
     //    In the table below, A and B refer to the two input sketches in the order A-not-B.
     //    The Theta rule: min( ThetaA, ThetaB)
@@ -129,16 +129,16 @@ final class HeapAnotB extends SetOperation implements AnotB {
     //H    C    4    2    34    B -> H; => H,H
     //H    O    4    3    35    B -> H; => H,H
     //H    H    4    4    36    scan all A, search B, on nomatch -> list
-    
+
     switch (sw) {
-      case 0 : { //A and B are null.  
+      case 0 : { //A and B are null.
         thetaLong_ = Long.MAX_VALUE;
         empty_ = true;
         break; //{1.0, 0, T}
       }
-      case 1: 
-      case 2: 
-      case 3: 
+      case 1:
+      case 2:
+      case 3:
       case 4:  { //A is null, B is valid
         Util.checkSeedHashes(seedHash_, b_.getSeedHash());
         thetaLong_ = b_.getThetaLong();
@@ -151,9 +151,9 @@ final class HeapAnotB extends SetOperation implements AnotB {
         empty_ = true;
         break; //{ThA, 0, T}
       }
-      case 9: 
-      case 10: 
-      case 11: 
+      case 9:
+      case 10:
+      case 11:
       case 12: { //A empty, B valid
         Util.checkSeedHashes(seedHash_, a_.getSeedHash());
         Util.checkSeedHashes(seedHash_, b_.getSeedHash());
@@ -161,8 +161,8 @@ final class HeapAnotB extends SetOperation implements AnotB {
         empty_ = true;
         break; //{min, 0, T}
       }
-      case 16: 
-      case 24: 
+      case 16:
+      case 24:
       case 32: { //A valid, B null
         Util.checkSeedHashes(seedHash_, a_.getSeedHash());
         thetaLong_ = a_.getThetaLong();
@@ -172,8 +172,8 @@ final class HeapAnotB extends SetOperation implements AnotB {
         cache_ = compactCache(a_.getCache(), curCount_, thetaLong_, false);
         break; //(min, 0, Ea)
       }
-      case 17: 
-      case 25: 
+      case 17:
+      case 25:
       case 33: { //A valid, B empty
         Util.checkSeedHashes(seedHash_, a_.getSeedHash());
         Util.checkSeedHashes(seedHash_, b_.getSeedHash());
@@ -181,13 +181,13 @@ final class HeapAnotB extends SetOperation implements AnotB {
         empty_ = a_.isEmpty();
         //move A to cache
         curCount_ = a_.getRetainedEntries(true);
-        cache_ = compactCache(a_.getCache(), curCount_, thetaLong_, false); 
+        cache_ = compactCache(a_.getCache(), curCount_, thetaLong_, false);
         break; //(min, 0, Ea)
       }
-      case 18: 
-      case 19: 
-      case 34: 
-      case 35: { //A compact or HT, B compact or ordered 
+      case 18:
+      case 19:
+      case 34:
+      case 35: { //A compact or HT, B compact or ordered
         Util.checkSeedHashes(seedHash_, a_.getSeedHash());
         Util.checkSeedHashes(seedHash_, b_.getSeedHash());
         thetaLong_ = min(a_.getThetaLong(), b_.getThetaLong());
@@ -197,8 +197,8 @@ final class HeapAnotB extends SetOperation implements AnotB {
         scanAllAsearchB(); //builds cache, curCount from A, HT
         break; //(min, n, Ea)
       }
-      case 26: 
-      case 27: { //A ordered early stop, B compact or ordered 
+      case 26:
+      case 27: { //A ordered early stop, B compact or ordered
         Util.checkSeedHashes(seedHash_, a_.getSeedHash());
         Util.checkSeedHashes(seedHash_, b_.getSeedHash());
         thetaLong_ = min(a_.getThetaLong(), b_.getThetaLong());
@@ -207,7 +207,7 @@ final class HeapAnotB extends SetOperation implements AnotB {
         scanEarlyStopAsearchB();
         break; //(min, n, Ea)
       }
-      case 20: 
+      case 20:
       case 36: { //A compact or HT, B is already HT
         Util.checkSeedHashes(seedHash_, a_.getSeedHash());
         Util.checkSeedHashes(seedHash_, b_.getSeedHash());
@@ -233,15 +233,14 @@ final class HeapAnotB extends SetOperation implements AnotB {
       //default: //This cannot happen and cannot be tested
     }
   }
-  
+
   private void convertBtoHT() {
     int curCountB = b_.getRetainedEntries(true);
     lgArrLongsHT_ = computeMinLgArrLongsFromCount(curCountB);
     bHashTable_ = new long[1 << lgArrLongsHT_];
-    int count = hashArrayInsert(b_.getCache(), bHashTable_, lgArrLongsHT_, thetaLong_);
-    assert (count == curCountB);
+    hashArrayInsert(b_.getCache(), bHashTable_, lgArrLongsHT_, thetaLong_);
   }
-  
+
   //Sketch A is either unordered compact or hash table
   private void scanAllAsearchB() {
     long[] scanAArr = a_.getCache();
@@ -255,7 +254,7 @@ final class HeapAnotB extends SetOperation implements AnotB {
       cache_[curCount_++] = hashIn;
     }
   }
-  
+
   //Sketch A is ordered compact, which enables early stop
   private void scanEarlyStopAsearchB() {
     long[] scanAArr = a_.getCache();
@@ -272,7 +271,7 @@ final class HeapAnotB extends SetOperation implements AnotB {
       cache_[curCount_++] = hashIn;
     }
   }
-  
+
   private void reset() {
     a_ = null;
     b_ = null;
@@ -283,5 +282,5 @@ final class HeapAnotB extends SetOperation implements AnotB {
     lgArrLongsHT_ = 5;
     bHashTable_ = null;
   }
-  
+
 }

@@ -123,16 +123,10 @@ public abstract class DoublesSketch {
    */
   static final short ARRAY_OF_DOUBLES_SERDE_ID = new ArrayOfDoublesSerDe().getId();
 
-
-
-
-
   /**
    * Parameter that controls space usage of sketch and accuracy of estimates.
    */
   protected final int k_;
-
-
 
   /**
    * Setting the seed makes the results of the sketch deterministic if the input values are
@@ -547,9 +541,7 @@ public abstract class DoublesSketch {
    * Returns the bit pattern for valid log levels
    * @return the bit pattern for valid log levels
    */
-  long getBitPattern() {
-    return Util.computeBitPattern(k_, getN());
-  }
+  abstract long getBitPattern();
 
   /**
    * Returns the item capacity for the combined base buffer
