@@ -38,16 +38,12 @@
                         <configuration>
                             <relocations>
                                 <relocation>
-                                    <pattern>com.yahoo.sketches</pattern>
-                                    <shadedPattern>shaded.com.yahoo.sketches</shadedPattern>
-                                </relocation>
-                                <relocation>
                                     <pattern>com.yahoo.memory</pattern>
                                     <shadedPattern>shaded.com.yahoo.memory</shadedPattern>
                                 </relocation>
                             </relocations>
                             <shadedArtifactAttached>true</shadedArtifactAttached>
-                            <shadedClassifierName>with-shaded-core</shadedClassifierName>
+                            <shadedClassifierName>with-shaded-memory</shadedClassifierName>
                         </configuration>
                     </execution>
                 </executions>
