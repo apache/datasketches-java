@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.sketches.Util.invPow2;
+
 /**
  * @author Kevin Lang
  */
@@ -30,8 +32,8 @@ final class HipHllSketch extends HllSketch {
             double oneOverQ = oneOverQ();
             hipEstAccum += oneOverQ;
             // subtraction before addition is intentional, in order to avoid overflow
-            invPow2Sum -= HllUtils.invPow2(oldVal);
-            invPow2Sum += HllUtils.invPow2(newVal);
+            invPow2Sum -= invPow2(oldVal);
+            invPow2Sum += invPow2(newVal);
           }
 
           private double oneOverQ() {

@@ -216,6 +216,16 @@ public final class Util {
   }
 
   /**
+   * Computes the inverse integer power of 2: 1/(2^e) = 2^(-e).
+   * @param e a positive value between 0 and 1023 inclusive
+   * @return  the inverse integer power of 2: 1/(2^e) = 2^(-e)
+   */
+  public static double invPow2(int e) {
+    assert (e | (1024 - e - 1)) >= 0 : "e cannot be negative or greater than 1023: " + e;
+    return Double.longBitsToDouble((1023L - e) << 52);
+  }
+
+  /**
    * Unsigned compare with longs.
    * @param n1 A long to be treated as if unsigned.
    * @param n2 A long to be treated as if unsigned.

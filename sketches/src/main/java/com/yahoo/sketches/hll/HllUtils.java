@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.sketches.Util.invPow2;
+
 /**
  * Utility functions for the HLL package
  *
@@ -29,16 +31,6 @@ final class HllUtils {
       fields = fields.updateBucket(iter.getKey(), iter.getValue(), updateCallback);
     }
     return fields;
-  }
-
-  /**
-   * Computes the inverse integer power of 2: 1/(2^e) == 2^(-e).
-   * @param e a positive value between 0 and 1023 inclusive
-   * @return  the inverse integer power of 2: 1/(2^e) == 2^(-e)
-   */
-  static double invPow2(int e) {
-    assert (e | (1024 - e - 1)) >= 0 : "e cannot be negative or greater than 1023: " + e;
-    return Double.longBitsToDouble((0x3ffL - e) << 52); //suggested by Otmar Ertl
   }
 
 }
