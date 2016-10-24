@@ -129,6 +129,29 @@ public class ReservoirItemsUnionTest {
   }
 
   @Test
+  public void checkArrayInputUpdate() {
+    int k = 32;
+    int n = 64;
+    ReservoirItemsUnion<Integer> riu = ReservoirItemsUnion.getInstance(k);
+
+    Integer[] data = new Integer[k];
+    for (int i = 0; i < k; ++i) {
+      data[i] = i;
+    }
+    riu.update(n, k, data);
+    assertEquals(riu.getResult().getN(), n);
+    assertEquals(riu.getResult().getK(), k); // power of 2, so exact
+
+    data = new Integer[2 * k];
+    for (int i = 0; i < 2 * k; ++i) {
+      data[i] = -i;
+    }
+    riu.update(10 * n, 2 * k, data);
+    assertEquals(riu.getResult().getN(), 11 * n); // total = n + 10n
+    assertEquals(riu.getResult().getK(), k); // should have downsampled the 2nd
+  }
+
+  @Test
   public void checkStandardMergeNoCopy() {
     int k = 1024;
     int n1 = 256;

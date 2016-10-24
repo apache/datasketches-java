@@ -14,6 +14,7 @@ import com.yahoo.memory.MemoryRegion;
 import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -186,6 +187,30 @@ public class ReservoirItemsUnion<T> {
   }
 
   /**
+   * Present this union with raw elements of a sketch. Useful when operating in a distributed
+   * environment like Pig Latin scripts, where an explicit SerDe may be overly complicated but
+   * keeping raw values is simple.
+   *
+   * @param n Total items seen
+   * @param k Reservoir size
+   * @param samples Reservoir samples
+   */
+  public void update(long n, int k, T[] samples) {
+    short encodedK = ReservoirSize.computeSize(k);
+    ReservoirItemsSketch<T> ris = ReservoirItemsSketch.getInstance(samples, n,
+            ResizeFactor.X8, encodedK); // yes, forcing the resize factor here
+
+    final int maxK = ReservoirSize.decodeValue(encodedMaxK_);
+    ris = (ris.getK() <= maxK ? ris : ris.downsampledCopy(encodedMaxK_));
+
+    if (gadget_ == null) {
+      gadget_ = ris;
+    } else {
+      twoWayMergeInternal(ris, true);
+    }
+  }
+
+  /**
    * Returns a sketch representing the current state of the union.
    *
    * @return The result of any unions already processed.
@@ -303,7 +328,7 @@ public class ReservoirItemsUnion<T> {
    *        from Memory)
    */
   private void twoWayMergeInternal(final ReservoirItemsSketch<T> sketchIn,
-      final boolean isModifiable) {
+                                   final boolean isModifiable) {
     if (sketchIn.getN() <= sketchIn.getK()) {
       twoWayMergeInternalStandard(sketchIn);
     } else if (gadget_.getN() < gadget_.getK()) {

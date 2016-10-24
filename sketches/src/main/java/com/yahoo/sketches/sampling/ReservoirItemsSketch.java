@@ -39,7 +39,7 @@ public class ReservoirItemsSketch<T> {
   /**
    * The smallest sampling array allocated: 16
    */
-  private static final int MIN_LG_ARR_LONGS = 4;
+  private static final int MIN_LG_ARR_ITEMS = 4;
 
   /**
    * Using 48 bits to capture number of items seen, so sketch cannot process more after this
@@ -59,6 +59,7 @@ public class ReservoirItemsSketch<T> {
   private final ResizeFactor rf_;        // resize factor
   private Object[] data_;          // stored sampled data
 
+  @SuppressWarnings("unchecked")
   private ReservoirItemsSketch(final int k, final ResizeFactor rf) {
     // required due to a theorem about lightness during merging
     if (k < 2) {
@@ -72,9 +73,10 @@ public class ReservoirItemsSketch<T> {
     itemsSeen_ = 0;
 
     final int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize_), "ReservoirLongsSketch");
-    final int initialSize = SamplingUtil.startingSubMultiple(reservoirSize_, ceilingLgK, MIN_LG_ARR_LONGS);
+    final int lgInitialSize =
+            SamplingUtil.startingSubMultiple(ceilingLgK, rf_.lg(), MIN_LG_ARR_ITEMS);
 
-    currItemsAlloc_ = SamplingUtil.getAdjustedSize(reservoirSize_, initialSize);
+    currItemsAlloc_ = SamplingUtil.getAdjustedSize(reservoirSize_, (1 << lgInitialSize));
     data_ = new Object[currItemsAlloc_];
   }
 
@@ -247,7 +249,7 @@ public class ReservoirItemsSketch<T> {
       final int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize), "getInstance");
       final int minLgSize = Util.toLog2(Util.ceilingPowerOf2((int) itemsSeen), "getInstance");
       final int initialLgSize = SamplingUtil.startingSubMultiple(reservoirSize, ceilingLgK,
-              Math.min(minLgSize, MIN_LG_ARR_LONGS));
+              Math.min(minLgSize, MIN_LG_ARR_ITEMS));
 
       allocatedItems = SamplingUtil.getAdjustedSize(reservoirSize, 1 << initialLgSize);
     }
@@ -367,6 +369,21 @@ public class ReservoirItemsSketch<T> {
     final T[] dst = (T[]) Array.newInstance(clazz, numSamples);
     System.arraycopy(data_, 0, dst, 0, numSamples);
     return dst;
+  }
+
+  /**
+   * Returns the actual array backing the reservoir. <em>Any changes to this array will corrupt
+   * the reservoir sample.</em> The returned array length may differ from the number of items in
+   * the reservoir.
+   *
+   * <p>This method should be used only when making a copy of the returned samples, to avoid
+   * an extraneous array copy.</p>
+   *
+   * @return The raw array backing this reservoir.
+   */
+  @SuppressWarnings("unchecked")
+  public T[] getRawReservoirSamples() {
+    return (T[]) data_;
   }
 
   /**

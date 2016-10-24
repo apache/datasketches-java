@@ -265,6 +265,32 @@ public class ReservoirItemsSketchTest {
   }
 
   @Test
+  public void checkRawSamples() {
+    int  k = 32;
+    long n = 12;
+    ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(k, ResizeFactor.X2);
+
+    for (long i = 0; i < n; ++i) {
+      ris.update(i);
+    }
+
+    Long[] samples = ris.getSamples();
+    assertEquals(samples.length, n);
+
+    Object[] rawSamples = ris.getRawReservoirSamples();
+    assertEquals(rawSamples.length, 16); // Assumes min length is still 16
+
+    // change a value and make sure getSamples() reflects that change
+    assertEquals((long) rawSamples[0], 0L);
+    rawSamples[0] = -1L;
+
+    samples = ris.getSamples();
+    assertEquals((long) samples[0], -1L);
+    assertEquals(samples.length, n);
+  }
+
+
+  @Test
   public void checkSketchCapacity() {
     Long[] data = new Long[64];
     short encResSize = ReservoirSize.computeSize(64);
