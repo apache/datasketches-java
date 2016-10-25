@@ -72,10 +72,10 @@ public class ReservoirItemsSketch<T> {
     itemsSeen_ = 0;
 
     final int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize_), "ReservoirLongsSketch");
-    final int initialLgSize
-            = SamplingUtil.startingSubMultiple(ceilingLgK, rf_.lg(), MIN_LG_ARR_ITEMS);
+    final int initialLgSize =
+            SamplingUtil.startingSubMultiple(ceilingLgK, rf_.lg(), MIN_LG_ARR_ITEMS);
 
-    currItemsAlloc_ = SamplingUtil.getAdjustedSize(reservoirSize_, (1 << initialLgSize));
+    currItemsAlloc_ = SamplingUtil.getAdjustedSize(reservoirSize_, 1 << initialLgSize);
     data_ = new Object[currItemsAlloc_];
   }
 
