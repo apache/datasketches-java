@@ -77,10 +77,10 @@ public class ReservoirLongsSketch {
     itemsSeen_ = 0;
 
     final int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize_), "ReservoirLongsSketch");
-    final int initialSize =
-        SamplingUtil.startingSubMultiple(reservoirSize_, ceilingLgK, MIN_LG_ARR_LONGS);
+    final int initialLgSize
+            = SamplingUtil.startingSubMultiple(ceilingLgK, rf_.lg(), MIN_LG_ARR_LONGS);
 
-    currItemsAlloc_ = SamplingUtil.getAdjustedSize(reservoirSize_, initialSize);
+    currItemsAlloc_ = SamplingUtil.getAdjustedSize(reservoirSize_, (1 << initialLgSize));
     data_ = new long[currItemsAlloc_];
     java.util.Arrays.fill(data_, 0L);
   }
@@ -227,8 +227,8 @@ public class ReservoirLongsSketch {
       // casts to int are safe since under-full
       final int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize), "getInstance");
       final int minLgSize = Util.toLog2(Util.ceilingPowerOf2((int) itemsSeen), "getInstance");
-      final int initialLgSize = SamplingUtil.startingSubMultiple(reservoirSize, ceilingLgK,
-          Math.min(minLgSize, MIN_LG_ARR_LONGS));
+      final int initialLgSize = SamplingUtil.startingSubMultiple(ceilingLgK, rf.lg(),
+              Math.max(minLgSize, MIN_LG_ARR_LONGS));
 
       allocatedSize = SamplingUtil.getAdjustedSize(reservoirSize, 1 << initialLgSize);
     }
