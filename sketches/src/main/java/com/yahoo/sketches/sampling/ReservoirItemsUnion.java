@@ -9,6 +9,8 @@ import static com.yahoo.sketches.sampling.PreambleUtil.extractMaxK;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.sampling.PreambleUtil.getAndCheckPreLongs;
 
+import java.util.ArrayList;
+
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.MemoryRegion;
 import com.yahoo.memory.NativeMemory;
@@ -189,16 +191,17 @@ public class ReservoirItemsUnion<T> {
   /**
    * Present this union with raw elements of a sketch. Useful when operating in a distributed
    * environment like Pig Latin scripts, where an explicit SerDe may be overly complicated but
-   * keeping raw values is simple.
+   * keeping raw values is simple. Values are <em>not</em> copied and the input array may be
+   * modified.
    *
    * @param n Total items seen
    * @param k Reservoir size
-   * @param samples Reservoir samples
+   * @param input Reservoir samples
    */
-  public void update(long n, int k, T[] samples) {
+  public void update(long n, int k, ArrayList<T> input) {
     short encodedK = ReservoirSize.computeSize(k);
-    ReservoirItemsSketch<T> ris = ReservoirItemsSketch.getInstance(samples, n,
-            ResizeFactor.X8, encodedK); // yes, forcing the resize factor here
+    ReservoirItemsSketch<T> ris = ReservoirItemsSketch.getInstance(input, n,
+            ResizeFactor.X8, encodedK); // forcing a resize factor
 
     final int maxK = ReservoirSize.decodeValue(encodedMaxK_);
     ris = (ris.getK() <= maxK ? ris : ris.downsampledCopy(encodedMaxK_));

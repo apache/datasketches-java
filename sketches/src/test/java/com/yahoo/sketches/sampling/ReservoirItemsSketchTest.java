@@ -10,6 +10,8 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.util.ArrayList;
+
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
@@ -170,7 +172,6 @@ public class ReservoirItemsSketchTest {
     ris.update((byte) (68 & 0xFF));
     ris.update(4.0F);
 
-    //Number[] data = ris.getSamples();
     Number[] data = ris.getSamples(Number.class);
     assertNotNull(data);
     assertEquals(data.length, 6);
@@ -211,9 +212,9 @@ public class ReservoirItemsSketchTest {
 
   @Test
   public void checkBadConstructorArgs() {
-    String[] data = new String[128];
+    ArrayList<String> data = new ArrayList<>(128);
     for (int i = 0; i < 128; ++i) {
-      data[i] = Integer.toString(i);
+      data.add(Integer.toString(i));
     }
 
     ResizeFactor rf = ResizeFactor.X8;
@@ -277,6 +278,7 @@ public class ReservoirItemsSketchTest {
     Long[] samples = ris.getSamples();
     assertEquals(samples.length, n);
 
+    /*
     Object[] rawSamples = ris.getRawReservoirSamples();
     assertEquals(rawSamples.length, 16); // Assumes min length is still 16
 
@@ -287,12 +289,16 @@ public class ReservoirItemsSketchTest {
     samples = ris.getSamples();
     assertEquals((long) samples[0], -1L);
     assertEquals(samples.length, n);
+    */
   }
 
 
   @Test
   public void checkSketchCapacity() {
-    Long[] data = new Long[64];
+    ArrayList<Long> data = new ArrayList<>(64);
+    for (long i = 0; i < 64; ++i) {
+      data.add(i);
+    }
     short encResSize = ReservoirSize.computeSize(64);
     long itemsSeen = (1L << 48) - 2;
 
