@@ -20,7 +20,7 @@ import com.yahoo.sketches.Util;
  *
  * @author Jon Malkin
  */
-final class ReservoirSize {
+public final class ReservoirSize {
   /**
    * Number of bins per power of two.
    */
@@ -51,7 +51,7 @@ final class ReservoirSize {
    * @param k target reservoir size
    * @return reservoir size as 16-bit encoded value
    */
-  static short computeSize(final int k) throws SketchesArgumentException {
+  public static short computeSize(final int k) throws SketchesArgumentException {
     if (k < 1 || k > MAX_ABS_VALUE) {
       throw new SketchesArgumentException("Can only encode strictly positive sketch sizes "
               + "less than " + MAX_ABS_VALUE + ", found: " + k);
@@ -87,7 +87,7 @@ final class ReservoirSize {
    * @param encodedSize Encoded 16-bit value
    * @return int represented by <tt>encodedSize</tt>
    */
-  static int decodeValue(final short encodedSize) {
+  public static int decodeValue(final short encodedSize) {
     final int value = encodedSize & 0xFFFF;
 
     if (value > MAX_ENC_VALUE) {
