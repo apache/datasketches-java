@@ -5,18 +5,20 @@
 
 package com.yahoo.sketches.hllmap;
 
-public final class MapDistribution {
+final class MapDistribution {
 
   // excluding the first and the last levels
-  public static final int NUM_LEVELS = 8; //total of traverse + coupon map levels
-  public static final int NUM_TRAVERSE_LEVELS = 3;
+  static final int NUM_LEVELS = 8; // total of traverse + coupon map levels
+  static final int NUM_TRAVERSE_LEVELS = 3;
 
+  // This set of parameters is tuned to avoid pathological resizing
+  // Consider modeling the behavior before changing 
   static final int COUPON_MAP_MIN_NUM_ENTRIES = 157;
   static final double COUPON_MAP_SHRINK_TRIGGER_FACTOR = 0.5;
   static final double COUPON_MAP_GROW_TRIGGER_FACTOR = 15.0 / 16.0;
   static final double COUPON_MAP_TARGET_FILL_FACTOR = 2.0 / 3.0;
 
-  public static final int HLL_INIT_NUM_ENTRIES = 100;
-  public static final float HLL_RESIZE_FACTOR = 2.0F;
+  static final int HLL_INIT_NUM_ENTRIES = 100;
+  static final float HLL_RESIZE_FACTOR = 2.0F;
 
 }
