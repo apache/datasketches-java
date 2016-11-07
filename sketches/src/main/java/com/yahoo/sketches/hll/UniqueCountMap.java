@@ -3,13 +3,13 @@
  * Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
-package com.yahoo.sketches.hllmap;
+package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hllmap.MapDistribution.HLL_INIT_NUM_ENTRIES;
-import static com.yahoo.sketches.hllmap.MapDistribution.HLL_RESIZE_FACTOR;
-import static com.yahoo.sketches.hllmap.MapDistribution.NUM_LEVELS;
-import static com.yahoo.sketches.hllmap.MapDistribution.NUM_TRAVERSE_LEVELS;
-import static com.yahoo.sketches.hllmap.Util.fmtLong;
+import static com.yahoo.sketches.hll.MapDistribution.HLL_INIT_NUM_ENTRIES;
+import static com.yahoo.sketches.hll.MapDistribution.HLL_RESIZE_FACTOR;
+import static com.yahoo.sketches.hll.MapDistribution.NUM_LEVELS;
+import static com.yahoo.sketches.hll.MapDistribution.NUM_TRAVERSE_LEVELS;
+import static com.yahoo.sketches.hll.Util.fmtLong;
 
 /**
  * This map is to keep approximate unique counts of some ID associated with some other ID,

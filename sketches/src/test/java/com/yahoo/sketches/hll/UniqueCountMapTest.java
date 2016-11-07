@@ -3,10 +3,12 @@
  * Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
-package com.yahoo.sketches.hllmap;
+package com.yahoo.sketches.hll;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
+import com.yahoo.sketches.hll.UniqueCountMap;
 
 public class UniqueCountMapTest {
   private static final int k_ = 512;

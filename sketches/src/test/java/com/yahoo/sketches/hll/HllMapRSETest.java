@@ -3,20 +3,25 @@
  * Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
-package com.yahoo.sketches.hllmap;
+package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hllmap.MapTestingUtil.LS;
-import static com.yahoo.sketches.hllmap.MapTestingUtil.bytesToString;
-import static com.yahoo.sketches.hllmap.MapTestingUtil.evenlyLgSpaced;
-import static com.yahoo.sketches.hllmap.MapTestingUtil.intToBytes;
-import static com.yahoo.sketches.hllmap.MapTestingUtil.longToBytes;
-import static com.yahoo.sketches.hllmap.MapTestingUtil.milliSecToString;
+import static com.yahoo.sketches.hll.MapTestingUtil.LS;
+import static com.yahoo.sketches.hll.MapTestingUtil.bytesToString;
+import static com.yahoo.sketches.hll.MapTestingUtil.evenlyLgSpaced;
+import static com.yahoo.sketches.hll.MapTestingUtil.intToBytes;
+import static com.yahoo.sketches.hll.MapTestingUtil.longToBytes;
+import static com.yahoo.sketches.hll.MapTestingUtil.milliSecToString;
 
 //import org.testng.annotations.Test;
 
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.hll.CouponHashMap;
+import com.yahoo.sketches.hll.CouponMap;
+import com.yahoo.sketches.hll.HllMap;
 import com.yahoo.sketches.hll.HllSketch;
 import com.yahoo.sketches.hll.HllSketchBuilder;
+import com.yahoo.sketches.hll.Map;
+import com.yahoo.sketches.hll.UniqueCountMap;
 import com.yahoo.sketches.theta.Sketch;
 import com.yahoo.sketches.theta.Sketches;
 import com.yahoo.sketches.theta.UpdateSketch;

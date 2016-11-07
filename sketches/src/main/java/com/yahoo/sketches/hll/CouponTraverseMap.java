@@ -3,12 +3,12 @@
  * Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
-package com.yahoo.sketches.hllmap;
+package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hllmap.MapDistribution.COUPON_MAP_GROW_TRIGGER_FACTOR;
-import static com.yahoo.sketches.hllmap.MapDistribution.COUPON_MAP_MIN_NUM_ENTRIES;
-import static com.yahoo.sketches.hllmap.MapDistribution.COUPON_MAP_SHRINK_TRIGGER_FACTOR;
-import static com.yahoo.sketches.hllmap.MapDistribution.COUPON_MAP_TARGET_FILL_FACTOR;
+import static com.yahoo.sketches.hll.MapDistribution.COUPON_MAP_GROW_TRIGGER_FACTOR;
+import static com.yahoo.sketches.hll.MapDistribution.COUPON_MAP_MIN_NUM_ENTRIES;
+import static com.yahoo.sketches.hll.MapDistribution.COUPON_MAP_SHRINK_TRIGGER_FACTOR;
+import static com.yahoo.sketches.hll.MapDistribution.COUPON_MAP_TARGET_FILL_FACTOR;
 
 import java.util.Arrays;
 

@@ -3,15 +3,18 @@
  * Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
-package com.yahoo.sketches.hllmap;
+package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hllmap.MapTestingUtil.TAB;
-import static com.yahoo.sketches.hllmap.MapTestingUtil.bytesToLong;
-import static com.yahoo.sketches.hllmap.MapTestingUtil.intToBytes;
-import static com.yahoo.sketches.hllmap.MapTestingUtil.longToBytes;
+import static com.yahoo.sketches.hll.MapTestingUtil.TAB;
+import static com.yahoo.sketches.hll.MapTestingUtil.bytesToLong;
+import static com.yahoo.sketches.hll.MapTestingUtil.intToBytes;
+import static com.yahoo.sketches.hll.MapTestingUtil.longToBytes;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
+
+import com.yahoo.sketches.hll.HllMap;
+import com.yahoo.sketches.hll.Map;
 
 
 public class HllMapTest {

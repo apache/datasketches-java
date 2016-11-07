@@ -3,10 +3,13 @@
  * Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
-package com.yahoo.sketches.hllmap;
+package com.yahoo.sketches.hll;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
+import com.yahoo.sketches.hll.Map;
+import com.yahoo.sketches.hll.SingleCouponMap;
 
 public class SingleCouponMapTest {
 

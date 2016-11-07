@@ -3,10 +3,10 @@
  * Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
-package com.yahoo.sketches.hllmap;
+package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hllmap.Util.fmtDouble;
-import static com.yahoo.sketches.hllmap.Util.fmtLong;
+import static com.yahoo.sketches.hll.Util.fmtDouble;
+import static com.yahoo.sketches.hll.Util.fmtLong;
 
 abstract class CouponMap extends Map {
 
