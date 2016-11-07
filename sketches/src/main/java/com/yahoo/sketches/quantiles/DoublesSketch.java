@@ -96,7 +96,7 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
  * <p>This is an implementation of the Low Discrepancy Mergeable Quantiles Sketch, using double
  * values, described in section 3.2 of the journal version of the paper "Mergeable Summaries"
  * by Agarwal, Cormode, Huang, Phillips, Wei, and Yi.
- * <a href="http://dblp.org/rec/html/journals/tods/AgarwalCHPWY13"></a></p> <!-- does not work with https -->
+ * <a href="http://dblp.org/rec/html/journals/tods/AgarwalCHPWY13"></a></p>
  *
  * <p>This algorithm is independent of the distribution of values, which can be anywhere in the
  * range of the IEEE-754 64-bit doubles.
