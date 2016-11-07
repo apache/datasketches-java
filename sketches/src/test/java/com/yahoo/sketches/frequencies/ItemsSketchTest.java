@@ -8,7 +8,6 @@ package com.yahoo.sketches.frequencies;
 import static com.yahoo.sketches.frequencies.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.frequencies.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.frequencies.PreambleUtil.PREAMBLE_LONGS_BYTE;
-import static com.yahoo.sketches.frequencies.PreambleUtil.SER_DE_ID_SHORT;
 import static com.yahoo.sketches.frequencies.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.frequencies.Util.LG_MIN_MAP_SIZE;
 import static org.testng.Assert.assertEquals;
@@ -331,8 +330,6 @@ public class ItemsSketchTest {
     
     tryBadMem(mem, FLAGS_BYTE, 4); //Corrupt to true
     mem.putLong(0, pre0); //restore
-    
-    tryBadMem(mem, SER_DE_ID_SHORT, 2);
   }
 
   @Test

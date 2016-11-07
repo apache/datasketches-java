@@ -15,7 +15,6 @@ import static com.yahoo.sketches.frequencies.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractLgCurMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractLgMaxMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractPreLongs;
-import static com.yahoo.sketches.frequencies.PreambleUtil.extractSerDeId;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertActiveItems;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertFamilyID;
@@ -23,7 +22,6 @@ import static com.yahoo.sketches.frequencies.PreambleUtil.insertFlags;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertLgCurMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertLgMaxMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertPreLongs;
-import static com.yahoo.sketches.frequencies.PreambleUtil.insertSerDeId;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertSerVer;
 import static com.yahoo.sketches.frequencies.Util.LG_MIN_MAP_SIZE;
 import static com.yahoo.sketches.frequencies.Util.SAMPLE_SIZE;
@@ -33,7 +31,6 @@ import java.util.Comparator;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
-import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
@@ -129,9 +126,8 @@ import com.yahoo.sketches.SketchesStateException;
  */
 public class LongsSketch {
 
-  private static final int STR_PREAMBLE_TOKENS = 7;
+  private static final int STR_PREAMBLE_TOKENS = 6;
 
-  private static final short ARRAY_OF_LONGS_SERDE_ID = new ArrayOfLongsSerDe().getId();
   /**
    * Log2 Maximum length of the arrays internal to the hash map supported by the data 
    * structure.
@@ -217,7 +213,6 @@ public class LongsSketch {
     final int lgMaxMapSize = extractLgMaxMapSize(pre0); //Byte 3
     final int lgCurMapSize = extractLgCurMapSize(pre0); //Byte 4
     final boolean empty = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0; //Byte 5
-    final int serDeId = extractSerDeId(pre0);           //Byte 6
 
     // Checks
     final boolean preLongsEq1 = (preLongs == 1);        //Byte 0
@@ -238,11 +233,6 @@ public class LongsSketch {
     if (empty ^ preLongsEq1) {                          //Byte 5 and Byte 0
       throw new SketchesArgumentException(
           "Possible Corruption: (PreLongs == 1) ^ Empty == True.");
-    }
-    if (serDeId != ARRAY_OF_LONGS_SERDE_ID) {           //Byte 6,7
-      throw new SketchesArgumentException(
-          "Possible Corruption: serDeId incorrect: " + serDeId + " != " 
-              + ARRAY_OF_LONGS_SERDE_ID);
     }
 
     if (empty) {
@@ -290,12 +280,11 @@ public class LongsSketch {
     final int famID   = Integer.parseInt(tokens[1]);
     final int lgMax   = Integer.parseInt(tokens[2]);
     final int flags   = Integer.parseInt(tokens[3]);
-    final int type    = Integer.parseInt(tokens[4]);
-    final long streamLength = Long.parseLong(tokens[5]);
-    final long offset       = Long.parseLong(tokens[6]);
+    final long streamLength = Long.parseLong(tokens[4]);
+    final long offset       = Long.parseLong(tokens[5]);
     //should always get at least the next 2 from the map
-    final int numActive = Integer.parseInt(tokens[7]);
-    final int lgCur = Integer.numberOfTrailingZeros(Integer.parseInt(tokens[8]));
+    final int numActive = Integer.parseInt(tokens[6]);
+    final int lgCur = Integer.numberOfTrailingZeros(Integer.parseInt(tokens[7]));
 
     //checks
     if (serVer != SER_VER) {
@@ -308,10 +297,6 @@ public class LongsSketch {
       throw new SketchesArgumentException(
           "Possible Corruption: (Empty ^ StreamLength=0) = true : Empty: " + empty 
             + ", strLen: " + streamLength);
-    }
-    if (type != ARRAY_OF_LONGS_SERDE_ID) {
-      throw new SketchesArgumentException(
-          "Possible Corruption: Sketch TYPE incorrect: " + type);
     }
     final int numTokens = tokens.length;
     if (2 * numActive != (numTokens - STR_PREAMBLE_TOKENS - 2)) {
@@ -341,10 +326,9 @@ public class LongsSketch {
     final int famID = Family.FREQUENCY.getID(); //1
     final int lgMaxMapSz = lgMaxMapSize;        //2
     final int flags = (hashMap.getNumActive() == 0) ? EMPTY_FLAG_MASK : 0; //3
-    final short type = ARRAY_OF_LONGS_SERDE_ID;  //4
-    final String fmt = "%d,%d,%d,%d,%d,%d,%d,";
+    final String fmt = "%d,%d,%d,%d,%d,%d,";
     final String s = 
-        String.format(fmt, serVer, famID, lgMaxMapSz, flags, type, streamLength, offset);
+        String.format(fmt, serVer, famID, lgMaxMapSz, flags, streamLength, offset);
     sb.append(s);
     sb.append(hashMap.serializeToString()); //numActive, curMaplen, key[i], value[i], ...
     // maxMapCap, samplesize are deterministic functions of maxMapSize, 
@@ -378,7 +362,6 @@ public class LongsSketch {
     pre0 = insertLgMaxMapSize(lgMaxMapSize, pre0);          //Byte 3
     pre0 = insertLgCurMapSize(hashMap.getLgLength(), pre0); //Byte 4
     pre0 = (empty) ? insertFlags(EMPTY_FLAG_MASK, pre0) : insertFlags(0, pre0); //Byte 5
-    pre0 = insertSerDeId(ARRAY_OF_LONGS_SERDE_ID, pre0);    //Byte 6,7
 
     if (empty) {
       mem.putLong(0, pre0);

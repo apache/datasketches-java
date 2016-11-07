@@ -10,7 +10,6 @@ import static com.yahoo.sketches.frequencies.DistTest.randomGeometricDist;
 import static com.yahoo.sketches.frequencies.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.frequencies.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.frequencies.PreambleUtil.PREAMBLE_LONGS_BYTE;
-import static com.yahoo.sketches.frequencies.PreambleUtil.SER_DE_ID_SHORT;
 import static com.yahoo.sketches.frequencies.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.frequencies.Util.LG_MIN_MAP_SIZE;
 import static org.testng.Assert.assertEquals;
@@ -284,8 +283,6 @@ public class LongsSketchTest {
     
     tryBadMem(mem, FLAGS_BYTE, 4); //Corrupt to true
     mem.putLong(0, pre0); //restore
-    
-    tryBadMem(mem, SER_DE_ID_SHORT, 2);
   }
 
   private static void tryBadMem(Memory mem, int byteOffset, int byteValue) {
@@ -302,12 +299,11 @@ public class LongsSketchTest {
   public void checkFreqLongsStringDeSerExceptions() {
     //FrequentLongsSketch sk1 = new FrequentLongsSketch(8);
     //String str1 = sk1.serializeToString();
-    //String correct   = "1,10,2,4,16769,0,0,0,4,";
+    //String correct   = "1,10,2,4,0,0,0,4,";
     
-    tryBadString("2,10,2,4,16769,0,0,0,4,"); //bad SerVer of 2
-    tryBadString("1,10,2,0,16769,0,0,0,4,"); //bad empty of 0
-    tryBadString(  "1,10,2,4,16768,0,0,0,4,"); //bad type
-    tryBadString(  "1,10,2,4,16769,0,0,0,4,0,"); //one extra
+    tryBadString("2,10,2,4,0,0,0,4,"); //bad SerVer of 2
+    tryBadString("1,10,2,0,0,0,0,4,"); //bad empty of 0
+    tryBadString(  "1,10,2,4,0,0,0,4,0,"); //one extra
   }
 
   private static void tryBadString(String badString) {

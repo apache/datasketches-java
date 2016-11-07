@@ -8,7 +8,6 @@ package com.yahoo.sketches.quantiles;
 import java.util.Random;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.sketches.ArrayOfDoublesSerDe;
 import com.yahoo.sketches.SketchesArgumentException;
 
 
@@ -116,12 +115,6 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
 public abstract class DoublesSketch {
   static final int DOUBLES_SER_VER = 3;
   static final int MIN_DOUBLES_SER_VER = 2;
-
-  /**
-   * This promises compatibility between a sketch binary image created with the concrete class
-   * DoublesSketch and ItemsSketch&lt;Double&gt; serialized with this same Serialization Version ID.
-   */
-  static final short ARRAY_OF_DOUBLES_SERDE_ID = new ArrayOfDoublesSerDe().getId();
 
   /**
    * Parameter that controls space usage of sketch and accuracy of estimates.

@@ -19,7 +19,6 @@ import com.yahoo.sketches.ArrayOfDoublesSerDe;
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.ArrayOfStringsSerDe;
-import com.yahoo.sketches.ArrayOfUtf16StringsSerDe;
 import com.yahoo.sketches.SketchesArgumentException;
 
 public class ItemsSketchTest {
@@ -259,7 +258,7 @@ public class ItemsSketchTest {
     Assert.assertTrue(brief.length() < full.length());
     ArrayOfItemsSerDe<String> serDe = new ArrayOfStringsSerDe();
     byte[] bytes = sketch.toByteArray(serDe);
-    PreambleUtil.toString(bytes);
+    PreambleUtil.toString(bytes, false);
     //ItemsSketch<String> sketch2 = ItemsSketch.getInstance(new NativeMemory(bytes), Comparator.naturalOrder(), serDe);
   }
 
@@ -309,14 +308,6 @@ public class ItemsSketchTest {
     ItemsSketch.getInstance(mem, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
   }
   
-  @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkBadSerDeId() {
-    ItemsSketch<String> sketch = ItemsSketch.getInstance(Comparator.naturalOrder());
-    byte[] byteArr = sketch.toByteArray(new ArrayOfStringsSerDe());
-    Memory mem = new NativeMemory(byteArr);
-    ItemsSketch.getInstance(mem, Comparator.naturalOrder(), new ArrayOfUtf16StringsSerDe());
-  }
-  
   @Test
   public void checkGoodSerDeId() {
     ItemsSketch<String> sketch = ItemsSketch.getInstance(Comparator.naturalOrder());
@@ -361,7 +352,7 @@ public class ItemsSketchTest {
     byte[] byteArr = sketch.toByteArray(serDe);
     Memory mem = new NativeMemory(byteArr);
     mem.clearBits(PreambleUtil.FLAGS_BYTE, (byte) PreambleUtil.COMPACT_FLAG_MASK);
-    println(PreambleUtil.toString(mem));
+    println(PreambleUtil.toString(mem, false));
     ItemsSketch.getInstance(mem, Comparator.naturalOrder(), serDe);
   }
   
