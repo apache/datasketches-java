@@ -24,8 +24,8 @@ import static com.yahoo.sketches.hllmap.Util.fmtLong;
  *
  * <p>The unique values in all the levels, except the last one, are stored in a special form
  * based on a hash of the original value. We call this form a coupon. This is a 16-bit
- * value similar to an HLL sketch value with 10 bits of address and a 6-bit number, which
- * represents the number of leading zeroes in a 64-bit hash plus one to make it non-zero.
+ * value that fully describes a k=1024 HLL bin. It contains 10 bits of address and a 6-bit number,
+ * which represents the number of leading zeroes in a 64-bit hash plus one to make it non-zero.
  *
  * <p>All hash tables here have prime size to reduce wasted space compared to powers of two.
  * Open addressing with the second hash is used to resolve collisions.
@@ -61,15 +61,9 @@ public class UniqueCountMap {
   private final int keySizeBytes_;
   private final int k_;
 
-  // coupon is a 16-bit value similar to HLL sketch value: 10-bit address,
-  // 6-bit number of leading zeroes in a 64-bit hash of the key + 1
-
-  // prime size, double hash, no deletes, 1-bit state array
-  // state: 0 - value is a coupon (if used), 1 - value is a level number
-  // same growth rule as for the next levels
   private final SingleCouponMap baseLevelMap;
 
-  // TraverseCouponMap or HashCouponMap instances
+  /** TraverseCouponMap or HashCouponMap instances */
   private final CouponMap[] intermediateLevelMaps;
 
   // this map has a fixed slotSize (row size). No shrinking.
@@ -80,16 +74,16 @@ public class UniqueCountMap {
   /**
    * Constructs a UniqueCountMap. The initial number of entries provides a tradeoff between
    * wasted space, if too high, and wasted time resizing the table, if too low.
-   * @param targetNumEntries initial size of the base table
+   * @param initialNumEntries initial size of the base table
    * @param keySizeBytes must be at least 4 bytes to have enough entropy
    * @param k parameter for last level HLL sketch (1024 is recommended)
    */
-  public UniqueCountMap(final int targetNumEntries, final int keySizeBytes, final int k) {
+  public UniqueCountMap(final int initialNumEntries, final int keySizeBytes, final int k) {
     Util.checkK(k);
     Util.checkKeySizeBytes(keySizeBytes);
     k_ = k;
     keySizeBytes_ = keySizeBytes;
-    baseLevelMap = SingleCouponMap.getInstance(targetNumEntries, keySizeBytes);
+    baseLevelMap = SingleCouponMap.getInstance(initialNumEntries, keySizeBytes);
     intermediateLevelMaps = new CouponMap[NUM_LEVELS];
   }
 

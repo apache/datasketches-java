@@ -15,18 +15,14 @@ import java.util.Arrays;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.hash.MurmurHash3;
 
-// prime size, double hash, with deletes, 1-bit state array
-// state: 0: empty always, don't need to look at 1st coupon. Coupons could be dirty.
-// state: 1: valid entry or dirty, during rebuild, look at the first coupon to tell
-// state: 1: first coupon > 0 means valid entry; first coupon == 0: dirty (we set to 0 when deleted)
-
-// rebuilding TraverseCouponMap and HashCouponMap: can grow or shrink
-// keep numValid and numInvalid
-// grow if numValid + numInvalid > 0.9 * capacity
-// shrink if numValid < 0.5 * capacity
-// new size T ~= (10/7) * numValid
-// BigInteger nextPrime() can be used
-
+/**
+ * Implements a key-value map where the value is a simple array of coupons. Search operations are a
+ * simple traverse of the consecutive coupons. Because of this, the maximum practical size of the
+ * coupon array is about 8 coupons.
+ *
+ * <p>The map is implemented as a prime-sized, Open Address, Double Hash, with deletes and a 1-bit
+ * state array. The size of this map can grow or shrink.
+ */
 class CouponTraverseMap extends CouponMap {
   private final int maxCouponsPerKey_;
   private final double entrySizeBytes_;
@@ -39,6 +35,13 @@ class CouponTraverseMap extends CouponMap {
   //Arrays
   private byte[] keysArr_;
   private short[] couponsArr_;
+
+  /**
+   * <ul><li>State: 0: Empty always, don't need to look at 1st coupon. Coupons could be dirty.</li>
+   * <li>State: 1: Valid entry or dirty. During rebuild, look at the first coupon to determine.
+   * If first coupon != 0 means valid entry; first coupon == 0: dirty (we set to 0 when deleted)</li>
+   * </ul>
+   */
   private byte[] stateArr_;
 
   private CouponTraverseMap(final int keySizeBytes, final int maxCouponsPerKey) {
@@ -92,7 +95,7 @@ class CouponTraverseMap extends CouponMap {
       if (isBitClear(stateArr_, entryIndex)) {
         return firstDeletedIndex == -1 ? ~entryIndex : ~firstDeletedIndex; // found empty or deleted
       }
-      if (couponsArr_[entryIndex * maxCouponsPerKey_] == 0) {
+      if (couponsArr_[entryIndex * maxCouponsPerKey_] == 0) { //found deleted
         if (firstDeletedIndex == -1) firstDeletedIndex = entryIndex;
       } else if (Map.arraysEqual(keysArr_, entryIndex * keySizeBytes_, key, 0, keySizeBytes_)) {
         return entryIndex; // found key

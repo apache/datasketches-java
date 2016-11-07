@@ -7,7 +7,6 @@ package com.yahoo.sketches.hllmap;
 
 import static com.yahoo.sketches.hllmap.MapDistribution.COUPON_MAP_GROW_TRIGGER_FACTOR;
 import static com.yahoo.sketches.hllmap.MapDistribution.COUPON_MAP_TARGET_FILL_FACTOR;
-
 import static com.yahoo.sketches.hllmap.Util.fmtDouble;
 import static com.yahoo.sketches.hllmap.Util.fmtLong;
 
@@ -16,11 +15,12 @@ import java.util.Arrays;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.hash.MurmurHash3;
 
-
-// Always holds all keys.
-// prime size, double hash, no deletes, 1-bit state array
-// same growth algorithm as for the next levels, except no shrink. Constants may be specific.
-
+/**
+ * Implements a key-value map where the value is a single coupon or a map reference.
+ * This map holds all keys for all levels of the {@link UniqueCountMap}.
+ * This map is implemented with a prime sized Open Address, Double Hash, with a 1-bit state array,
+ * which indicates the contents of the value.
+ */
 class SingleCouponMap extends Map {
   public static final String LS = System.getProperty("line.separator");
 
@@ -34,8 +34,12 @@ class SingleCouponMap extends Map {
   private byte[] keysArr_;
   private short[] couponsArr_;
 
-  // state: 0: empty or valid; empty if coupon is 0, otherwise valid.
-  // state: 1: original coupon has been promoted, current coupon contains a table # instead.
+  /**
+   * <ul><li>state: 0: empty or valid; empty if coupon is 0, otherwise valid.</li>
+   * <li>state: 1: original coupon has been promoted, current coupon contains a table #
+   * reference instead.</li>
+   * </ul>
+   */
   private byte[] stateArr_;
 
   private SingleCouponMap(final int keySizeBytes, final int tableEntries) {
@@ -116,7 +120,7 @@ class SingleCouponMap extends Map {
         entryIndex = findKey(key);
         assert entryIndex < 0;
       }
-      //will return negative: was not found, inserted
+      //will return negative: duplicate was not found, thus key was inserted
       System.arraycopy(key, 0, keysArr_, ~entryIndex * keySizeBytes_, keySizeBytes_);
       curCountEntries_++;
     }

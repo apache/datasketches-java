@@ -6,7 +6,6 @@
 package com.yahoo.sketches.hllmap;
 
 import static com.yahoo.sketches.Util.checkIfPowerOf2;
-
 import static com.yahoo.sketches.hllmap.MapDistribution.COUPON_MAP_GROW_TRIGGER_FACTOR;
 import static com.yahoo.sketches.hllmap.MapDistribution.COUPON_MAP_MIN_NUM_ENTRIES;
 import static com.yahoo.sketches.hllmap.MapDistribution.COUPON_MAP_SHRINK_TRIGGER_FACTOR;
@@ -17,19 +16,16 @@ import java.util.Arrays;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.hash.MurmurHash3;
 
-// Outer hash: prime size, double hash, with deletes, 1-byte count per key, 255 is marker for "dirty"
-
-// rebuilding TraverseCouponMap and CouponHashMap: can grow or shrink
-// keep numValid and numInvalid
-// grow if numValid + numInvalid > 0.9 * capacity
-// shrink if numValid < 0.5 * capacity
-// new size T ~= (10/7) * numValid
-// BigInteger nextPrime() can be used
-
-//Inner hash table:
-// Linear probing, OASH, threshold = 0.75
-// Probably starts after Traverse > 8.  Need to be able to adjust this.
-
+/**
+ * Implements a key-value map where the value is a hash map of coupons.
+ *
+ * <p>The outer map is implemented as a prime-sized, Open Address, Double Hash, with deletes, so
+ * this table can grow and shrink. Each entry row has a 1-byte count where 255 is a marker for
+ * "dirty" and zero is empty.
+ *
+ * <p>The inner hash tables are implemented with linear probing or OASH and a fill threshold of
+ * 0.75.
+ */
 class CouponHashMap extends CouponMap {
 
   private static final double INNER_LOAD_FACTOR = 0.75;

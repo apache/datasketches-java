@@ -13,10 +13,21 @@ import java.util.Arrays;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.hash.MurmurHash3;
 
-/*
- * Consider flexible coupon size ?
+/**
+ * Implements a key-value map where the value is a compact HLL sketch of size k.
+ * The HLL bins are compacted into 10 bins per long so that a 1024 bins are compacted into
+ * 824 bytes, which is a 20% reduction in space. Higher density compressions are possible
+ * (up to 50%), but the required code is much more complex and considerably slower.
+ *
+ * <p>Each entry row, assoicated with a key, also contains 3 double registers for accurately
+ * tracking the HIP (Historical Inverse Probability) estimator.  HLL implementations have multiple
+ * estimators and the early estimators in this implementation are quite novel and provide superior
+ * error performance over most other HLL implementations.
+ *
+ * @author Lee Rhodes
+ * @author KevinLang
+ * @author Alexander Saydakov
  */
-
 class HllMap extends Map {
   public static final String LS = System.getProperty("line.separator");
   private static final double LOAD_FACTOR = 15.0 / 16.0;
@@ -43,7 +54,7 @@ class HllMap extends Map {
    * @param keySizeBytes size of key in bytes
    * @param k size of HLL sketch
    */
-  private HllMap(final int keySizeBytes, int k, final int tableEntries) {
+  private HllMap(final int keySizeBytes, final int k, final int tableEntries) {
     super(keySizeBytes);
     k_ = k;
     hllArrLongs_ = k / 10 + 1;
@@ -51,7 +62,8 @@ class HllMap extends Map {
     entrySizeBytes_ = keySizeBytes + hllArrLongs_ * Long.BYTES + 3 * Double.BYTES + byteFraction;
   }
 
-  static HllMap getInstance(final int tgtEntries, final int keySizeBytes, final int k, final float growthFactor) {
+  static HllMap getInstance(final int tgtEntries, final int keySizeBytes, final int k,
+      final float growthFactor) {
     Util.checkK(k);
     Util.checkGrowthFactor(growthFactor);
     Util.checkTgtEntries(tgtEntries);
