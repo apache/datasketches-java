@@ -24,9 +24,10 @@ import java.io.InputStreamReader;
  *
  * <p>A typical command line might be as follows:</p>
  *
- * <p><code>cat NumIDsTABnumKeys.txt |
- * java -cp hllmap.jar:sketches-core-0.8.2-SNAPSHOT-with-shaded-memory.jar
- * com.yahoo.sketches.hllmap.DistributionModel</code></p>
+ * <p><code>
+ * cat NumIDsTabNumKeys.txt | java -cp sketches-core-0.8.2-SNAPSHOT-with-shaded-memory.jar \
+ * com.yahoo.sketches.hllmap.ProcessDistributionStream
+ * </code></p>
  */
 public class ProcessDistributionStream {
   private static final String LS = System.getProperty("line.separator");

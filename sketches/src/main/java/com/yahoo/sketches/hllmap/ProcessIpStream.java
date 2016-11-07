@@ -23,8 +23,7 @@ import java.net.InetAddress;
  *
  * <p>A typical command line might be as follows:</p>
  *
- * <p><code>cat IPTabIdPairs.txt |
- * java -cp hllmap.jar:sketches-core-0.8.2-SNAPSHOT-with-shaded-memory.jar
+ * <p><code>cat IPTabIdPairs.txt | java -cp sketches-core-0.8.2-SNAPSHOT-with-shaded-memory.jar
  * com.yahoo.sketches.hllmap.ProcessIpStream</code></p>
  */
 public class ProcessIpStream {
