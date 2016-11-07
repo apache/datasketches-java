@@ -25,11 +25,11 @@ import static com.yahoo.sketches.hllmap.Util.fmtLong;
  * <p>The unique values in all the levels, except the last one, are stored in a special form
  * based on a hash of the original value. We call this form a coupon. This is a 16-bit
  * value similar to an HLL sketch value with 10 bits of address and a 6-bit number, which
- * represents the number of leading zeroes in a 64-bit hash plus one to make it non-zero. 
- * 
+ * represents the number of leading zeroes in a 64-bit hash plus one to make it non-zero.
+ *
  * <p>All hash tables here have prime size to reduce wasted space compared to powers of two.
  * Open addressing with the second hash is used to resolve collisions.
- * 
+ *
  * <p>The base table holds all the keys, so it doesn't need to support deletes. As a value, it
  * holds either one coupon or, once promoted, a level number to speed up the lookup.
  *
@@ -43,7 +43,7 @@ import static com.yahoo.sketches.hllmap.Util.fmtLong;
  * to this point. Coupon collisions are treated as duplicate coupons, so the number of coupons
  * slightly underestimates the unique count, which is another reason to switch to a more
  * complicated scheme on the next levels.
- * 
+ *
  * <p>Next levels use hash tables to store coupons for each key. These inner hash tables have
  * power of two sizes, and use linear probing for collision resolution. Historical Inverse
  * Probability (HIP) estimator is used from this point on.
@@ -193,6 +193,14 @@ public class UniqueCountMap {
       return map.getEstimate(key);
     }
     return lastLevelMap.getEstimate(key);
+  }
+
+  /**
+   * Returns the number of active, unique keys across all levels
+   * @return the number of active, unique keys across all levels
+   */
+  public int getActiveEntries() {
+    return baseLevelMap.getCurrentCountEntries();
   }
 
   /**

@@ -31,11 +31,9 @@ import java.io.InputStreamReader;
  */
 public class ProcessDistributionStream {
   private static final String LS = System.getProperty("line.separator");
-  private int lineCount = 0;
-  private int ip = 0;
-  private long val = 0;
-  private byte[] ipBytes = new byte[4];
-  private byte[] valBytes = new byte[8];
+  private static final int HLL_K = 1024;
+  private static final int IP_BYTES = 4;
+  private static final int INIT_ENTRIES = 1000;
 
   private ProcessDistributionStream() {}
 
@@ -53,29 +51,33 @@ public class ProcessDistributionStream {
     StringBuilder sb = new StringBuilder();
     long start_mS = System.currentTimeMillis();
     String line = "";
+    int lineCount = 0;
     long updateCount = 0;
-    UniqueCountMap map = new UniqueCountMap(1000, 4, 1024);
+    int ipCount = 0;
+    byte[] ipBytes = new byte[IP_BYTES];
+    byte[] valBytes = new byte[Long.BYTES];
+    UniqueCountMap map = new UniqueCountMap(INIT_ENTRIES, IP_BYTES, HLL_K);
     long updateTime_nS = 0;
     try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
       while ((line = br.readLine()) != null) {
         String[] tokens = line.split("\t");
         checkLen(tokens);
         lineCount++;
+        long numValues = Long.parseLong(tokens[0]); //Verify the token order!
         long numIps = Long.parseLong(tokens[1]);
-        long numValues = Long.parseLong(tokens[0]);
 
         for (long nips = 0; nips < numIps; nips++) {
-          intToBytes(++ip, ipBytes);
+          ipCount++;
+          intToBytes(ipCount, ipBytes);
           for (long vals = 0; vals < numValues; vals++) {
             long start_nS = System.nanoTime();
-            map.update(ipBytes, longToBytes(++val, valBytes));
+            updateCount++; // never repeated for any ip
+            map.update(ipBytes, longToBytes(updateCount, valBytes));
             long end_nS = System.nanoTime();
             updateTime_nS += end_nS - start_nS;
           }
         }
       }
-      updateCount = val;
-      int ipCount = ip;
 
       String thisSimpleName = this.getClass().getSimpleName();
       sb.append("# ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
