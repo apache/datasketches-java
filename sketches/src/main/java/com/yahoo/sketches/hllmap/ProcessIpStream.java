@@ -15,7 +15,7 @@ import java.net.InetAddress;
  * The input stream may consist of many duplicate IPs and or duplicate IDs.
  * The pair is of the form:
  *
- * <p><code>&lt;IP&gt;&lt;TAB&gt;&lt;ID&lt;&lt;line-separator&gt;.</code></p>
+ * <p><code>&lt;IP&gt;&lt;TAB&gt;&lt;ID&gt;&lt;line-separator&gt;.</code></p>
  *
  * <p>The end of the stream is a null input line.</p>
  *

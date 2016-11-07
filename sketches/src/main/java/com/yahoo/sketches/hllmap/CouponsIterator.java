@@ -5,7 +5,7 @@
 
 package com.yahoo.sketches.hllmap;
 
-public class CouponsIterator {
+class CouponsIterator {
 
   private final int offset_;
   private final int maxEntries_;

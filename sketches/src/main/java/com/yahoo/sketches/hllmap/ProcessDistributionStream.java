@@ -13,7 +13,7 @@ import java.io.InputStreamReader;
  * The input stream defines a distribution whereby each pair defines the number of keys with the
  * corresponding number of unique IDs. Each pair is of the form:
  *
- * <p><code>&lt;NumIDs&gt;&lt;TAB&gt;&lt;NumKeys&lt;&lt;line-separator&gt;.</code></p>
+ * <p><code>&lt;NumIDs&gt;&lt;TAB&gt;&lt;NumKeys&gt;&lt;line-separator&gt;.</code></p>
  *
  * <p>For each input pair, this model generates <i>NumIDs</i> unique identifiers for each of
  * <i>NumKeys</i> (also unique) and inputs them into the UniqueCountMap.</p>

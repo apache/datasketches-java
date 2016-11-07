@@ -11,7 +11,7 @@ import java.math.BigInteger;
 
 import com.yahoo.sketches.SketchesArgumentException;
 
-public final class Util {
+final class Util {
 
   /**
    * Returns the next prime number that is greater than the given target. There will be
