@@ -51,6 +51,10 @@ import com.yahoo.sketches.SketchesArgumentException;
  *
  * <p>This approach provides unbiased unique count estimates with Relative Standard Error (RSE)
  * of about 2.5% (68% confidence) using HLL sketch on the last level with k=1024.
+ *
+ * @author Lee Rhodes
+ * @author Alex Saydakov
+ * @author Kevin Lang
  */
 public class UniqueCountMap {
   private static final String LS = System.getProperty("line.separator");
