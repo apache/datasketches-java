@@ -6,10 +6,7 @@
 package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.Util.checkIfPowerOf2;
-import static com.yahoo.sketches.hll.MapDistribution.COUPON_MAP_GROW_TRIGGER_FACTOR;
-import static com.yahoo.sketches.hll.MapDistribution.COUPON_MAP_MIN_NUM_ENTRIES;
-import static com.yahoo.sketches.hll.MapDistribution.COUPON_MAP_SHRINK_TRIGGER_FACTOR;
-import static com.yahoo.sketches.hll.MapDistribution.COUPON_MAP_TARGET_FILL_FACTOR;
+import static com.yahoo.sketches.Util.invPow2;
 
 import java.util.Arrays;
 
@@ -23,11 +20,9 @@ import com.yahoo.sketches.hash.MurmurHash3;
  * this table can grow and shrink. Each entry row has a 1-byte count where 255 is a marker for
  * "dirty" and zero is empty.
  *
- * <p>The inner hash tables are implemented with linear probing or OASH and a fill threshold of
- * 0.75.
+ * <p>The inner hash tables are implemented with linear probing or OASH and a load factor of 0.75.
  */
 class CouponHashMap extends CouponMap {
-
   private static final double INNER_LOAD_FACTOR = 0.75;
   private static final byte DELETED_KEY_MARKER = (byte) 255;
   private static final int BYTE_MASK = 0XFF;
@@ -169,7 +164,7 @@ class CouponHashMap extends CouponMap {
     curCountsArr_[entryIndex]++;
     //hip +=  k/qt; qt -= 1/2^(val);
     hipEstAccumArr_[entryIndex] += COUPON_K / invPow2SumArr_[entryIndex];
-    invPow2SumArr_[entryIndex] -= Util.invPow2(coupon16Value(coupon));
+    invPow2SumArr_[entryIndex] -= invPow2(coupon16Value(coupon));
     return hipEstAccumArr_[entryIndex]; //returns the estimate
   }
 
@@ -264,7 +259,7 @@ class CouponHashMap extends CouponMap {
     final float[] oldHipEstAccumArr = hipEstAccumArr_;
     final int oldNumEntries = tableEntries_;
     tableEntries_ = Math.max(
-      Util.nextPrime((int) (numActiveKeys_ / COUPON_MAP_TARGET_FILL_FACTOR)),
+      nextPrime((int) (numActiveKeys_ / COUPON_MAP_TARGET_FILL_FACTOR)),
       COUPON_MAP_MIN_NUM_ENTRIES
     );
     capacityEntries_ = (int)(tableEntries_ * COUPON_MAP_GROW_TRIGGER_FACTOR);

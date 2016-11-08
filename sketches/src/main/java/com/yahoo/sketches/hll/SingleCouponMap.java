@@ -5,11 +5,6 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hll.MapDistribution.COUPON_MAP_GROW_TRIGGER_FACTOR;
-import static com.yahoo.sketches.hll.MapDistribution.COUPON_MAP_TARGET_FILL_FACTOR;
-import static com.yahoo.sketches.hll.Util.fmtDouble;
-import static com.yahoo.sketches.hll.Util.fmtLong;
-
 import java.util.Arrays;
 
 import com.yahoo.sketches.SketchesArgumentException;
@@ -49,8 +44,7 @@ class SingleCouponMap extends Map {
   }
 
   static SingleCouponMap getInstance(final int tgtEntries, final int keySizeBytes) {
-    Util.checkTgtEntries(tgtEntries); //optional
-    final int tableEntries = Util.nextPrime(tgtEntries);
+    final int tableEntries = nextPrime(tgtEntries);
 
     final SingleCouponMap map = new SingleCouponMap(keySizeBytes, tableEntries);
 
@@ -175,11 +169,11 @@ class SingleCouponMap extends Map {
 
   @Override
   public String toString() {
-    final String te = fmtLong(getTableEntries());
-    final String ce = fmtLong(getCapacityEntries());
-    final String cce = fmtLong(getCurrentCountEntries());
-    final String esb = fmtDouble(getEntrySizeBytes());
-    final String mub = fmtLong(getMemoryUsageBytes());
+    final String te = Map.fmtLong(getTableEntries());
+    final String ce = Map.fmtLong(getCapacityEntries());
+    final String cce = Map.fmtLong(getCurrentCountEntries());
+    final String esb = Map.fmtDouble(getEntrySizeBytes());
+    final String mub = Map.fmtLong(getMemoryUsageBytes());
 
     final StringBuilder sb = new StringBuilder();
     final String thisSimpleName = this.getClass().getSimpleName();
@@ -200,7 +194,7 @@ class SingleCouponMap extends Map {
     final short[] oldCouponsArr = couponsArr_;
     final byte[] oldStateArr = stateArr_;
     final int oldTableEntries = tableEntries_;
-    tableEntries_ = Util.nextPrime((int) (curCountEntries_ / COUPON_MAP_TARGET_FILL_FACTOR));
+    tableEntries_ = nextPrime((int) (curCountEntries_ / COUPON_MAP_TARGET_FILL_FACTOR));
     capacityEntries_ = (int)(tableEntries_ * COUPON_MAP_GROW_TRIGGER_FACTOR);
     keysArr_ = new byte[tableEntries_ * keySizeBytes_];
     couponsArr_ = new short[tableEntries_];

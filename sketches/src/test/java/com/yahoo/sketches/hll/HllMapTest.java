@@ -13,9 +13,6 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.sketches.hll.HllMap;
-import com.yahoo.sketches.hll.Map;
-
 
 public class HllMapTest {
 
@@ -23,10 +20,8 @@ public class HllMapTest {
   public void singleKeyTest() {
     int k = 1024;
     int u = 1000;
-    int initEntries = 16;
     int keySize = 4;
-    float rf = (float)1.2;
-    HllMap map = HllMap.getInstance(initEntries, keySize, k, rf);
+    HllMap map = HllMap.getInstance(keySize, k);
     println("Entry bytes   : " + map.getEntrySizeBytes());
     println("Capacity      : " + map.getCapacityEntries());
     println("Table Entries : " + map.getTableEntries());
@@ -59,11 +54,9 @@ public class HllMapTest {
     int k = 1024;
     int u = 1000;
     int keys = 20;
-    int initEntries = 16;
     int keySize = 4;
     long v = 0;
-    float rf = (float)2.0;
-    HllMap map = HllMap.getInstance(initEntries, keySize, k, rf);
+    HllMap map = HllMap.getInstance(keySize, k);
     println("Entry bytes   : " + map.getEntrySizeBytes());
     println("Capacity      : " + map.getCapacityEntries());
     println("Table Entries : " + map.getTableEntries());

@@ -5,12 +5,13 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hll.Util.fmtDouble;
-import static com.yahoo.sketches.hll.Util.fmtLong;
-
 abstract class CouponMap extends Map {
-
   private static final String LS = System.getProperty("line.separator");
+
+  // These parameters are tuned to avoid pathological resizing.
+  // Consider modeling the behavior before changing
+  static final int COUPON_MAP_MIN_NUM_ENTRIES = 157;
+  static final double COUPON_MAP_SHRINK_TRIGGER_FACTOR = 0.5;
 
   /**
    * @param keySizeBytes size of keys in bytes
@@ -32,7 +33,7 @@ abstract class CouponMap extends Map {
   abstract int getCouponCount(int index);
 
   abstract CouponsIterator getCouponsIterator(byte[] key);
-  
+
   abstract int getMaxCouponsPerEntry();
 
   abstract int getCapacityCouponsPerEntry();
@@ -43,15 +44,15 @@ abstract class CouponMap extends Map {
 
   @Override
   public String toString() {
-    final String mcpe = fmtLong(getMaxCouponsPerEntry());
-    final String ccpe = fmtLong(getCapacityCouponsPerEntry());
-    final String te = fmtLong(getTableEntries());
-    final String ce = fmtLong(getCapacityEntries());
-    final String cce = fmtLong(getCurrentCountEntries());
-    final String ae = fmtLong(getActiveEntries());
-    final String de = fmtLong(getDeletedEntries());
-    final String esb = fmtDouble(getEntrySizeBytes());
-    final String mub = fmtLong(getMemoryUsageBytes());
+    final String mcpe = Map.fmtLong(getMaxCouponsPerEntry());
+    final String ccpe = Map.fmtLong(getCapacityCouponsPerEntry());
+    final String te = Map.fmtLong(getTableEntries());
+    final String ce = Map.fmtLong(getCapacityEntries());
+    final String cce = Map.fmtLong(getCurrentCountEntries());
+    final String ae = Map.fmtLong(getActiveEntries());
+    final String de = Map.fmtLong(getDeletedEntries());
+    final String esb = Map.fmtDouble(getEntrySizeBytes());
+    final String mub = Map.fmtLong(getMemoryUsageBytes());
 
     final StringBuilder sb = new StringBuilder();
     final String thisSimpleName = this.getClass().getSimpleName();

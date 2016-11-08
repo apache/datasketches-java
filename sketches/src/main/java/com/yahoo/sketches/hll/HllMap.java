@@ -5,8 +5,7 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hll.Util.fmtDouble;
-import static com.yahoo.sketches.hll.Util.fmtLong;
+import static com.yahoo.sketches.Util.invPow2;
 
 import java.util.Arrays;
 
@@ -31,7 +30,8 @@ import com.yahoo.sketches.hash.MurmurHash3;
 class HllMap extends Map {
   public static final String LS = System.getProperty("line.separator");
   private static final double LOAD_FACTOR = 15.0 / 16.0;
-
+  private static final int HLL_INIT_NUM_ENTRIES = 157;
+  private static final float HLL_RESIZE_FACTOR = 2.0F;
   private final int k_;
   private final int hllArrLongs_;
   private final double entrySizeBytes_;
@@ -62,19 +62,15 @@ class HllMap extends Map {
     entrySizeBytes_ = keySizeBytes + hllArrLongs_ * Long.BYTES + 3 * Double.BYTES + byteFraction;
   }
 
-  static HllMap getInstance(final int tgtEntries, final int keySizeBytes, final int k,
-      final float growthFactor) {
-    Util.checkK(k);
-    Util.checkGrowthFactor(growthFactor);
-    Util.checkTgtEntries(tgtEntries);
-    final int tableEntries = Util.nextPrime(tgtEntries);
+  static HllMap getInstance(final int keySizeBytes, final int k) {
+    final int tableEntries = HLL_INIT_NUM_ENTRIES;
 
     final HllMap map = new HllMap(keySizeBytes, k, tableEntries);
 
     map.tableEntries_ = tableEntries;
     map.capacityEntries_ = (int)(tableEntries * LOAD_FACTOR);
     map.curCountEntries_ = 0;
-    map.growthFactor_ = growthFactor;
+    map.growthFactor_ = HLL_RESIZE_FACTOR;
 
     map.keysArr_ = new byte[tableEntries * map.keySizeBytes_];
     map.arrOfHllArr_ = new long[tableEntries * map.hllArrLongs_];
@@ -163,12 +159,12 @@ class HllMap extends Map {
 
   @Override
   public String toString() {
-    final String kStr = fmtLong(k_);
-    final String te = fmtLong(getTableEntries());
-    final String ce = fmtLong(getCapacityEntries());
-    final String cce = fmtLong(getCurrentCountEntries());
-    final String esb = fmtDouble(getEntrySizeBytes());
-    final String mub = fmtLong(getMemoryUsageBytes());
+    final String kStr = Map.fmtLong(k_);
+    final String te = Map.fmtLong(getTableEntries());
+    final String ce = Map.fmtLong(getCapacityEntries());
+    final String cce = Map.fmtLong(getCurrentCountEntries());
+    final String esb = Map.fmtDouble(getEntrySizeBytes());
+    final String mub = Map.fmtLong(getMemoryUsageBytes());
 
     final StringBuilder sb = new StringBuilder();
     final String thisSimpleName = this.getClass().getSimpleName();
@@ -254,10 +250,10 @@ class HllMap extends Map {
     hipEstAccumArr_[entryIndex] += oneOverQ;
 
     //update invPow2Sum
-    if (oldValue < 32) { invPow2SumHiArr_[entryIndex] -= Util.invPow2(oldValue); }
-    else               { invPow2SumLoArr_[entryIndex] -= Util.invPow2(oldValue); }
-    if (newValue < 32) { invPow2SumHiArr_[entryIndex] += Util.invPow2(newValue); }
-    else               { invPow2SumLoArr_[entryIndex] += Util.invPow2(newValue); }
+    if (oldValue < 32) { invPow2SumHiArr_[entryIndex] -= invPow2(oldValue); }
+    else               { invPow2SumLoArr_[entryIndex] -= invPow2(oldValue); }
+    if (newValue < 32) { invPow2SumHiArr_[entryIndex] += invPow2(newValue); }
+    else               { invPow2SumLoArr_[entryIndex] += invPow2(newValue); }
 
     //insert the new value
     hllLong &= ~(0X3FL << shift);  //zero out the 6-bit field
@@ -267,7 +263,7 @@ class HllMap extends Map {
   }
 
   private final void resize() {
-    final int newTableEntries = Util.nextPrime((int)(tableEntries_ * growthFactor_));
+    final int newTableEntries = nextPrime((int)(tableEntries_ * growthFactor_));
     final int newCapacityEntries = (int)(newTableEntries * LOAD_FACTOR);
 
     final byte[] newKeysArr = new byte[newTableEntries * keySizeBytes_];

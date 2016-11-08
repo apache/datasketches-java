@@ -5,7 +5,7 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hll.Util.checkKeySizeBytes;
+import java.math.BigInteger;
 
 import com.yahoo.sketches.hash.MurmurHash3;
 
@@ -13,15 +13,15 @@ import com.yahoo.sketches.hash.MurmurHash3;
  * Base class of all the maps. Defines the basic API for all maps
  */
 abstract class Map {
-
   static final long SEED = 1234567890L;
   static final int SIX_BIT_MASK = 0X3F; // 6 bits
   static final int TEN_BIT_MASK = 0X3FF; //10 bits
+  static final double COUPON_MAP_GROW_TRIGGER_FACTOR = 15.0 / 16.0;
+  static final double COUPON_MAP_TARGET_FILL_FACTOR = 2.0 / 3.0;
 
   final int keySizeBytes_;
 
   Map(final int keySizeBytes) {
-    checkKeySizeBytes(keySizeBytes);
     keySizeBytes_ = keySizeBytes;
   }
 
@@ -129,4 +129,21 @@ abstract class Map {
     bits[byteIndex] |= mask;
   }
 
+  /**
+   * Returns the next prime number that is greater than the given target. There will be
+   * no prime numbers less than the returned prime number that are greater than the given target.
+   * @param target the starting value to begin the search for the next prime
+   * @return the next prime number that is greater than or equal to the given target.
+   */
+  static int nextPrime(int target) {
+    return BigInteger.valueOf(target).nextProbablePrime().intValueExact();
+  }
+
+  static String fmtLong(long value) {
+    return String.format("%,d", value);
+  }
+
+  static String fmtDouble(double value) {
+    return String.format("%,.3f", value);
+  }
 }

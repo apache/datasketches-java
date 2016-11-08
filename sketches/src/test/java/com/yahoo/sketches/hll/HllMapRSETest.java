@@ -15,13 +15,6 @@ import static com.yahoo.sketches.hll.MapTestingUtil.milliSecToString;
 //import org.testng.annotations.Test;
 
 import com.yahoo.sketches.ResizeFactor;
-import com.yahoo.sketches.hll.CouponHashMap;
-import com.yahoo.sketches.hll.CouponMap;
-import com.yahoo.sketches.hll.HllMap;
-import com.yahoo.sketches.hll.HllSketch;
-import com.yahoo.sketches.hll.HllSketchBuilder;
-import com.yahoo.sketches.hll.Map;
-import com.yahoo.sketches.hll.UniqueCountMap;
 import com.yahoo.sketches.theta.Sketch;
 import com.yahoo.sketches.theta.Sketches;
 import com.yahoo.sketches.theta.UpdateSketch;
@@ -82,8 +75,6 @@ public class HllMapRSETest {
     int keySize = 4;
     int lgK = 10;
     int k = 1 << lgK;
-    float rf = 2.0F;
-    int initEntries = 1 << (startLgTrials +1);
 
     /***************************************/
     //Other
@@ -133,7 +124,7 @@ public class HllMapRSETest {
       int ipv4 = 10 << 24; //10.0.0.0
 
       if (skEnum == SketchEnum.HLL_MAP) {
-        map = HllMap.getInstance(initEntries, keySize, k, rf); //renew per trial set
+        map = HllMap.getInstance(keySize, k); //renew per trial set
       }
 
       else if (skEnum == SketchEnum.COUPON_HASH_MAP) {

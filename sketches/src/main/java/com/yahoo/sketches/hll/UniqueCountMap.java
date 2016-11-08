@@ -5,11 +5,7 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hll.MapDistribution.HLL_INIT_NUM_ENTRIES;
-import static com.yahoo.sketches.hll.MapDistribution.HLL_RESIZE_FACTOR;
-import static com.yahoo.sketches.hll.MapDistribution.NUM_LEVELS;
-import static com.yahoo.sketches.hll.MapDistribution.NUM_TRAVERSE_LEVELS;
-import static com.yahoo.sketches.hll.Util.fmtLong;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * This map is to keep approximate unique counts of some ID associated with some other ID,
@@ -58,6 +54,8 @@ import static com.yahoo.sketches.hll.Util.fmtLong;
  */
 public class UniqueCountMap {
   private static final String LS = System.getProperty("line.separator");
+  private static final int NUM_INTERMEDIATE_LEVELS = 8; // total of traverse + coupon map levels
+  private static final int NUM_TRAVERSE_LEVELS = 3;
   private final int keySizeBytes_;
   private final int k_;
 
@@ -79,12 +77,13 @@ public class UniqueCountMap {
    * @param k parameter for last level HLL sketch (1024 is recommended)
    */
   public UniqueCountMap(final int initialNumEntries, final int keySizeBytes, final int k) {
-    Util.checkK(k);
-    Util.checkKeySizeBytes(keySizeBytes);
+    checkTgtEntries(initialNumEntries);
+    checkKeySizeBytes(keySizeBytes);
+    checkK(k);
     k_ = k;
     keySizeBytes_ = keySizeBytes;
     baseLevelMap = SingleCouponMap.getInstance(initialNumEntries, keySizeBytes);
-    intermediateLevelMaps = new CouponMap[NUM_LEVELS];
+    intermediateLevelMaps = new CouponMap[NUM_INTERMEDIATE_LEVELS];
   }
 
   /**
@@ -121,7 +120,7 @@ public class UniqueCountMap {
     }
 
     int level = baseLevelMapCoupon;
-    if (level <= NUM_LEVELS) {
+    if (level <= NUM_INTERMEDIATE_LEVELS) {
       final CouponMap map = intermediateLevelMaps[level - 1];
       final int index = map.findOrInsertKey(key);
       double estimate = map.findOrInsertCoupon(index, coupon);
@@ -129,7 +128,7 @@ public class UniqueCountMap {
       // promote to the next level
       level++;
       baseLevelMap.setCoupon(baseLevelIndex, (short) level, true); //set coupon = level number; state = 1
-      if (level <= NUM_LEVELS) {
+      if (level <= NUM_INTERMEDIATE_LEVELS) {
         final CouponMap newMap = getIntermediateMapForLevel(level);
         final int newMapIndex = newMap.findOrInsertKey(key);
         final CouponsIterator it = map.getCouponsIterator(key);
@@ -141,7 +140,7 @@ public class UniqueCountMap {
         estimate = newMap.findOrInsertCoupon(newMapIndex, coupon);
       } else { // promoting to the last level
         if (lastLevelMap == null) {
-          lastLevelMap = HllMap.getInstance(HLL_INIT_NUM_ENTRIES, keySizeBytes_, k_, HLL_RESIZE_FACTOR);
+          lastLevelMap = HllMap.getInstance(keySizeBytes_, k_);
         }
         final CouponsIterator it = map.getCouponsIterator(key);
         final int lastLevelIndex = lastLevelMap.findOrInsertKey(key);
@@ -182,7 +181,7 @@ public class UniqueCountMap {
     if (index < 0) return 0;
     if (baseLevelMap.isCoupon(index)) return 1;
     final short level = baseLevelMap.getCoupon(index);
-    if (level <= NUM_LEVELS) {
+    if (level <= NUM_INTERMEDIATE_LEVELS) {
       final Map map = intermediateLevelMaps[level - 1];
       return map.getEstimate(key);
     }
@@ -237,10 +236,10 @@ public class UniqueCountMap {
    */
   @Override
   public String toString() {
-    final String ksb = fmtLong(keySizeBytes_);
-    final String hllk = fmtLong(k_);
-    final String lvls  = fmtLong(getActiveLevels());
-    final String mub = fmtLong(getMemoryUsageBytes());
+    final String ksb = Map.fmtLong(keySizeBytes_);
+    final String hllk = Map.fmtLong(k_);
+    final String lvls  = Map.fmtLong(getActiveLevels());
+    final String mub = Map.fmtLong(getMemoryUsageBytes());
     final StringBuilder sb = new StringBuilder();
     final String thisSimpleName = this.getClass().getSimpleName();
     sb.append("## ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
@@ -265,6 +264,24 @@ public class UniqueCountMap {
     sb.append("## ").append("END SKETCH SUMMARY");
     sb.append(LS);
     return sb.toString();
+  }
+
+  private static final void checkK(int k) {
+    if (!com.yahoo.sketches.Util.isPowerOf2(k) || (k > 1024) || (k < 16)) {
+      throw new SketchesArgumentException("K must be power of 2 and (16 <= k <= 1024): " + k);
+    }
+  }
+
+  private static final void checkTgtEntries(int tgtEntries) {
+    if (tgtEntries < 16) {
+      throw new SketchesArgumentException("tgtEntries must be >= 16");
+    }
+  }
+
+  private static final void checkKeySizeBytes(int keySizeBytes) {
+    if (keySizeBytes < 4) {
+      throw new SketchesArgumentException("KeySizeBytes must be >= 4: " + keySizeBytes);
+    }
   }
 
 }

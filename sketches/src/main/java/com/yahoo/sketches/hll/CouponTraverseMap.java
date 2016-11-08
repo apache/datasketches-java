@@ -5,11 +5,6 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hll.MapDistribution.COUPON_MAP_GROW_TRIGGER_FACTOR;
-import static com.yahoo.sketches.hll.MapDistribution.COUPON_MAP_MIN_NUM_ENTRIES;
-import static com.yahoo.sketches.hll.MapDistribution.COUPON_MAP_SHRINK_TRIGGER_FACTOR;
-import static com.yahoo.sketches.hll.MapDistribution.COUPON_MAP_TARGET_FILL_FACTOR;
-
 import java.util.Arrays;
 
 import com.yahoo.sketches.SketchesArgumentException;
@@ -226,7 +221,7 @@ class CouponTraverseMap extends CouponMap {
     final byte[] oldStateArr = stateArr_;
     final int oldSizeKeys = tableEntries_;
     tableEntries_ = Math.max(
-      Util.nextPrime((int) (numActiveKeys_ / COUPON_MAP_TARGET_FILL_FACTOR)),
+      nextPrime((int) (numActiveKeys_ / COUPON_MAP_TARGET_FILL_FACTOR)),
       COUPON_MAP_MIN_NUM_ENTRIES
     );
     capacityEntries_ = (int)(tableEntries_ * COUPON_MAP_GROW_TRIGGER_FACTOR);

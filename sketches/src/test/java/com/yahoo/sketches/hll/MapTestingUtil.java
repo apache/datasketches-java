@@ -9,7 +9,7 @@ import static com.yahoo.sketches.Util.zeroPad;
 
 import org.testng.annotations.Test;
 
-public class MapTestingUtil {
+public final class MapTestingUtil {
   public static final String LS = System.getProperty("line.separator");
   public static final char TAB = '\t';
 
@@ -39,22 +39,8 @@ public class MapTestingUtil {
     return out;
   }
 
-  public static final double mXplusY(final double m, final double x, final double y) {
+  public static double mXplusY(final double m, final double x, final double y) {
     return m * x + y;
-  }
-
-  /**
-   * Returns a Little-Endian byte array extracted from the given int.
-   * @param v the given int
-   * @param arr a given array of 4 bytes that will be returned with the data
-   * @return a Little-Endian byte array extracted from the given int.
-   */
-  public static final byte[] intToBytes(int v, byte[] arr) {
-    for (int i=0; i<4; i++) {
-      arr[i] = (byte) (v & 0XFF);
-      v >>>= 8;
-    }
-    return arr;
   }
 
   /**
@@ -62,7 +48,7 @@ public class MapTestingUtil {
    * @param arr the given byte array
    * @return an int extracted from a Little-Endian byte array.
    */
-  public static final int bytesToInt(byte[] arr) {
+  public static int bytesToInt(byte[] arr) {
     int v = 0;
     for (int i=0; i<4; i++) {
       v |= (arr[i] & 0XFF) << i * 8;
@@ -71,25 +57,11 @@ public class MapTestingUtil {
   }
 
   /**
-   * Returns a Little-Endian byte array extracted from the given long.
-   * @param v the given long
-   * @param arr a given array of 8 bytes that will be returned with the data
-   * @return a Little-Endian byte array extracted from the given long.
-   */
-  public static final byte[] longToBytes(long v, byte[] arr) {
-    for (int i=0; i<8; i++) {
-      arr[i] = (byte) (v & 0XFFL);
-      v >>>= 8;
-    }
-    return arr;
-  }
-
-  /**
    * Returns a long extracted from a Little-Endian byte array.
    * @param arr the given byte array
    * @return a long extracted from a Little-Endian byte array.
    */
-  public static final long bytesToLong(byte[] arr) {
+  public static long bytesToLong(byte[] arr) {
     long v = 0;
     for (int i=0; i<8; i++) {
       v |= (arr[i] & 0XFFL) << i * 8;
@@ -105,7 +77,7 @@ public class MapTestingUtil {
    * @param sep the separator string between bytes
    * @return a string view of a byte array
    */
-  public static final String bytesToString(
+  public static String bytesToString(
       byte[] arr, boolean signed, boolean littleEndian, String sep) {
     StringBuilder sb = new StringBuilder();
     int mask = (signed) ? 0XFFFFFFFF : 0XFF;
@@ -161,7 +133,7 @@ public class MapTestingUtil {
   // TEST
 
   @Test
-  public void checkEvenlyLgSpaced() {
+  public static void checkEvenlyLgSpaced() {
     int lgStart = 0;
     int lgEnd = 10;
     int ppo = 4;
@@ -176,7 +148,7 @@ public class MapTestingUtil {
   }
 
   @Test
-  public void checkBytesToString() {
+  public static void checkBytesToString() {
     long lng = 0XF8F7F6F504030201L;
     println(Long.toHexString(lng));
     byte[] bytes = new byte[8];
@@ -188,6 +160,34 @@ public class MapTestingUtil {
     println("signed, BE: "+bytesToString(bytes, true,  false, sep));
     long v = bytesToLong(bytes);
     println(Long.toHexString(v));
+  }
+
+  /**
+   * Returns a Little-Endian byte array extracted from the given int.
+   * @param v the given int
+   * @param arr a given array of 4 bytes that will be returned with the data
+   * @return a Little-Endian byte array extracted from the given int.
+   */
+  static byte[] intToBytes(int v, byte[] arr) {
+    for (int i = 0; i < 4; i++) {
+      arr[i] = (byte) (v & 0XFF);
+      v >>>= 8;
+    }
+    return arr;
+  }
+
+  /**
+   * Returns a Little-Endian byte array extracted from the given long.
+   * @param v the given long
+   * @param arr a given array of 8 bytes that will be returned with the data
+   * @return a Little-Endian byte array extracted from the given long.
+   */
+  static byte[] longToBytes(long v, byte[] arr) {
+    for (int i = 0; i < 8; i++) {
+      arr[i] = (byte) (v & 0XFFL);
+      v >>>= 8;
+    }
+    return arr;
   }
 
   @Test
