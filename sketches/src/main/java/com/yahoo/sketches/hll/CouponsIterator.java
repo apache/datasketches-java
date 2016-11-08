@@ -5,6 +5,13 @@
 
 package com.yahoo.sketches.hll;
 
+/**
+ * Common iterator class for maps that need one.
+ *
+ * @author Lee Rhodes
+ * @author Alex Saydakov
+ * @author Kevin Lang
+ */
 class CouponsIterator {
 
   private final int offset_;

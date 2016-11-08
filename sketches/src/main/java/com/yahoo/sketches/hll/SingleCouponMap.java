@@ -15,6 +15,10 @@ import com.yahoo.sketches.hash.MurmurHash3;
  * This map holds all keys for all levels of the {@link UniqueCountMap}.
  * This map is implemented with a prime sized Open Address, Double Hash, with a 1-bit state array,
  * which indicates the contents of the value.
+ *
+ * @author Lee Rhodes
+ * @author Alex Saydakov
+ * @author Kevin Lang
  */
 class SingleCouponMap extends Map {
   public static final String LS = System.getProperty("line.separator");

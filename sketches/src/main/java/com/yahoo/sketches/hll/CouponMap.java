@@ -5,6 +5,13 @@
 
 package com.yahoo.sketches.hll;
 
+/**
+ * Base class and API for the intermediate maps.
+ *
+ * @author Lee Rhodes
+ * @author Alex Saydakov
+ * @author Kevin Lang
+ */
 abstract class CouponMap extends Map {
   private static final String LS = System.getProperty("line.separator");
 

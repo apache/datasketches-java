@@ -21,6 +21,10 @@ import com.yahoo.sketches.hash.MurmurHash3;
  * "dirty" and zero is empty.
  *
  * <p>The inner hash tables are implemented with linear probing or OASH and a load factor of 0.75.
+ *
+ * @author Lee Rhodes
+ * @author Alex Saydakov
+ * @author Kevin Lang
  */
 class CouponHashMap extends CouponMap {
   private static final double INNER_LOAD_FACTOR = 0.75;

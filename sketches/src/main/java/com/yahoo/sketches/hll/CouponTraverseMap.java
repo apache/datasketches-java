@@ -17,6 +17,10 @@ import com.yahoo.sketches.hash.MurmurHash3;
  *
  * <p>The map is implemented as a prime-sized, Open Address, Double Hash, with deletes and a 1-bit
  * state array. The size of this map can grow or shrink.
+ *
+ * @author Lee Rhodes
+ * @author Alex Saydakov
+ * @author Kevin Lang
  */
 class CouponTraverseMap extends CouponMap {
   private final int maxCouponsPerKey_;

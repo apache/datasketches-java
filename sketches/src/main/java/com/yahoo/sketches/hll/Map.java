@@ -10,7 +10,11 @@ import java.math.BigInteger;
 import com.yahoo.sketches.hash.MurmurHash3;
 
 /**
- * Base class of all the maps. Defines the basic API for all maps
+ * Base class and API for all the maps.
+ *
+ * @author Lee Rhodes
+ * @author Alex Saydakov
+ * @author Kevin Lang
  */
 abstract class Map {
   static final long SEED = 1234567890L;
