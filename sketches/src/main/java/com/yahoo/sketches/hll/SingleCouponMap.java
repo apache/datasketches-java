@@ -23,7 +23,7 @@ import com.yahoo.sketches.hash.MurmurHash3;
 class SingleCouponMap extends Map {
   public static final String LS = System.getProperty("line.separator");
 
-  private final double entrySizeBytes_;
+  private double entrySizeBytes_;
 
   private int tableEntries_;
   private int capacityEntries_;

@@ -34,7 +34,6 @@ import java.io.InputStreamReader;
  */
 public class ProcessDistributionStream {
   private static final String LS = System.getProperty("line.separator");
-  private static final int HLL_K = 1024;
   private static final int IP_BYTES = 4;
   private static final int INIT_ENTRIES = 1000;
 
@@ -60,7 +59,7 @@ public class ProcessDistributionStream {
     byte[] ipBytes = new byte[IP_BYTES];
     byte[] valBytes = new byte[Long.BYTES];
 
-    UniqueCountMap map = new UniqueCountMap(INIT_ENTRIES, IP_BYTES, HLL_K);
+    UniqueCountMap map = new UniqueCountMap(INIT_ENTRIES, IP_BYTES);
     long updateTime_nS = 0;
     try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in, UTF_8))) {
 

@@ -31,7 +31,6 @@ import java.net.InetAddress;
  */
 public class ProcessIpStream {
   private static final String LS = System.getProperty("line.separator");
-  private static final int HLL_K = 1024;
   private static final int IP_BYTES = 4;
   private static final int INIT_ENTRIES = 1000;
 
@@ -58,7 +57,7 @@ public class ProcessIpStream {
     long lineCount = 0;
     long updateCount = 0;
 
-    UniqueCountMap map = new UniqueCountMap(initialNumEntries, IP_BYTES, HLL_K);
+    UniqueCountMap map = new UniqueCountMap(initialNumEntries, IP_BYTES);
     long updateTime_nS = 0;
     try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in, UTF_8))) {
 

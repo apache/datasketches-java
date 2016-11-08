@@ -13,11 +13,10 @@ import org.testng.annotations.Test;
 import com.yahoo.sketches.SketchesArgumentException;
 
 public class UniqueCountMapTest {
-  private static final int k_ = 512;
 
   @Test
   public void nullKey() {
-    UniqueCountMap map = new UniqueCountMap(16, 4, k_);
+    UniqueCountMap map = new UniqueCountMap(16, 4);
     double estimate = map.update(null, null);
     Assert.assertEquals(estimate, Double.NaN);
     Assert.assertEquals(map.getEstimate(null), Double.NaN);
@@ -25,47 +24,41 @@ public class UniqueCountMapTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void wrongSizeKeyUpdate() {
-    UniqueCountMap map = new UniqueCountMap(16, 4, k_);
+    UniqueCountMap map = new UniqueCountMap(16, 4);
     byte[] key = new byte[] {0};
     map.update(key, null);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void wrongSizeKey() {
-    UniqueCountMap map = new UniqueCountMap(16, 2, k_);
+    UniqueCountMap map = new UniqueCountMap(16, 2);
     println(map.toString());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void wrongSizeKeyGetEstimate() {
-    UniqueCountMap map = new UniqueCountMap(16, 4, k_);
+    UniqueCountMap map = new UniqueCountMap(16, 4);
     byte[] key = new byte[] {0};
     map.getEstimate(key);
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
-  public void wrongSizeK() {
-    UniqueCountMap map = new UniqueCountMap(16, 4, 8);
-    println(map.toString());
-  }
-
   @Test
   public void emptyMapNullValue() {
-    UniqueCountMap map = new UniqueCountMap(16, 4, k_);
+    UniqueCountMap map = new UniqueCountMap(16, 4);
     double estimate = map.update("1234".getBytes(UTF_8), null);
     Assert.assertEquals(estimate, 0.0);
   }
 
   @Test
   public void oneEntry() {
-    UniqueCountMap map = new UniqueCountMap(16, 4, k_);
+    UniqueCountMap map = new UniqueCountMap(16, 4);
     double estimate = map.update("1234".getBytes(UTF_8), "a".getBytes(UTF_8));
     Assert.assertEquals(estimate, 1.0, 0.01);
   }
 
   @Test
   public void duplicateEntry() {
-    UniqueCountMap map = new UniqueCountMap(16, 4, k_);
+    UniqueCountMap map = new UniqueCountMap(16, 4);
     byte[] key = "1234".getBytes(UTF_8);
     double estimate = map.update(key, "a".getBytes(UTF_8));
     Assert.assertEquals(estimate, 1.0);
@@ -77,7 +70,7 @@ public class UniqueCountMapTest {
 
   @Test
   public void oneKeyTwoValues() {
-    UniqueCountMap map = new UniqueCountMap(16, 4, k_);
+    UniqueCountMap map = new UniqueCountMap(16, 4);
     double estimate = map.update("1234".getBytes(UTF_8), "a".getBytes(UTF_8));
     Assert.assertEquals(estimate, 1.0);
     estimate = map.update("1234".getBytes(UTF_8), "b".getBytes(UTF_8));
@@ -86,7 +79,7 @@ public class UniqueCountMapTest {
 
   @Test
   public void oneKeyThreeValues() {
-    UniqueCountMap map = new UniqueCountMap(16, 4, k_);
+    UniqueCountMap map = new UniqueCountMap(16, 4);
     byte[] key = "1234".getBytes(UTF_8);
     double estimate = map.update(key, "a".getBytes(UTF_8));
     Assert.assertEquals(estimate, 1.0);
@@ -99,7 +92,7 @@ public class UniqueCountMapTest {
   @SuppressWarnings("unused")
   @Test
   public void oneKeyManyValues() {
-    UniqueCountMap map = new UniqueCountMap(16, 4, k_);
+    UniqueCountMap map = new UniqueCountMap(16, 4);
     byte[] key = "1234".getBytes(UTF_8);
     byte[] id = new byte[4];
     for (int i = 1; i <= 1000; i++) {
@@ -119,7 +112,7 @@ public class UniqueCountMapTest {
 
   @Test
   public void manyKeys() {
-    UniqueCountMap map = new UniqueCountMap(2000, 4, k_);
+    UniqueCountMap map = new UniqueCountMap(2000, 4);
     for (int i = 1; i <= 1000; i++) {
       byte[] key = String.format("%4s", i).getBytes(UTF_8);
       double estimate = map.update(key, new byte[] {1});
