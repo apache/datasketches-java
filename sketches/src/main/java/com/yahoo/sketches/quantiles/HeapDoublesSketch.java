@@ -13,7 +13,6 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.extractMaxDouble;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractMinDouble;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractN;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractPreLongs;
-import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerDeId;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.quantiles.Util.computeBaseBufferItems;
 import static com.yahoo.sketches.quantiles.Util.computeBitPattern;
@@ -122,15 +121,10 @@ final class HeapDoublesSketch extends DoublesSketch {
     int familyID = extractFamilyID(memArr, cumOffset);
     int flags = extractFlags(memArr, cumOffset);
     int k = extractK(memArr, cumOffset);
-    short serDeId = extractSerDeId(memArr, cumOffset);
 
     //VALIDITY CHECKS
     DoublesUtil.checkDoublesSerVer(serVer);
 
-    if (serDeId != ARRAY_OF_DOUBLES_SERDE_ID) {
-      throw new SketchesArgumentException(
-      "Possible Corruption: serDeId incorrect: " + serDeId + " != " + ARRAY_OF_DOUBLES_SERDE_ID);
-    }
     boolean empty = Util.checkPreLongsFlagsCap(preLongs, flags, memCapBytes);
     Util.checkFamilyID(familyID);
 

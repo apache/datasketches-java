@@ -91,17 +91,6 @@ public class PreambleUtilTest {
     onHeapMem.clear();
     offHeapMem.clear();
     
-    //SER_DE_ID_SHORT;
-    insertSerDeId(onHeapArr, onHeapOffset, v);
-    onH = extractSerDeId(onHeapArr, onHeapOffset) & 0XFFFF;
-    assertEquals(onH, v);
-    
-    insertSerDeId(offHeapArr, offHeapOffset, v);
-    offH = extractSerDeId(offHeapArr, offHeapOffset) & 0XFFFF;
-    assertEquals(offH, v);
-    onHeapMem.clear();
-    offHeapMem.clear();
-    
     //LONGS
     
     //N_LONG;
@@ -153,7 +142,7 @@ public class PreambleUtilTest {
     DoublesSketch qs = DoublesSketch.builder().build(k);
     for (int i=0; i<n; i++) qs.update(i);
     byte[] byteArr = qs.toByteArray();
-    println(PreambleUtil.toString(byteArr));
+    println(PreambleUtil.toString(byteArr, true));
   }
   
   @Test
@@ -161,7 +150,7 @@ public class PreambleUtilTest {
     int k = DoublesSketch.DEFAULT_K;
     DoublesSketch qs = DoublesSketch.builder().build(k);
     byte[] byteArr = qs.toByteArray();
-    println(PreambleUtil.toString(byteArr));
+    println(PreambleUtil.toString(byteArr, true));
   }
   
   @Test

@@ -6,7 +6,6 @@
 package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.SER_DE_ID_SHORT;
 import static com.yahoo.sketches.quantiles.Util.LS;
 import static com.yahoo.sketches.quantiles.Util.computeExpandedCombinedBufferItemCapacity;
 import static com.yahoo.sketches.quantiles.Util.computeNumLevelsNeeded;
@@ -534,16 +533,6 @@ public class HeapDoublesSketchTest {
     int memCapBytes = (combBufItemCap + 4) << 3;
     int badCapBytes = memCapBytes - 1; //corrupt
     DoublesUtil.checkMemCapacity(k, n, false, badCapBytes);
-  }
-
-  @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkIllegalSketchType() {
-    int k = DoublesSketch.DEFAULT_K;
-    DoublesSketch qs1 = buildQS(k, 0);
-    byte[] byteArr = qs1.toByteArray();
-    Memory mem = new NativeMemory(byteArr);
-    mem.putByte(SER_DE_ID_SHORT, (byte) 2); //Corrupt
-    HeapDoublesSketch.heapifyInstance(mem);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

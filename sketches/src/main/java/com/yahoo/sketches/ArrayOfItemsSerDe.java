@@ -11,7 +11,7 @@ import com.yahoo.memory.Memory;
  * Base class for serializing and deserializing custom types.
  * @param <T> Type of item
  *
- * @author Alex Saydakov
+ * @author Alexander Saydakov
  */
 public abstract class ArrayOfItemsSerDe<T> {
 
@@ -47,6 +47,7 @@ public abstract class ArrayOfItemsSerDe<T> {
    * </ul>
    * @return a unique identifier of this SerDe
    */
+  @Deprecated
   public short getId() {
 
     /*
