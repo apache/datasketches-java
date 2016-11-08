@@ -5,11 +5,10 @@
 
 package com.yahoo.sketches.hll;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import com.yahoo.sketches.hll.Map;
-import com.yahoo.sketches.hll.SingleCouponMap;
 
 public class SingleCouponMapTest {
 
@@ -41,14 +40,14 @@ public class SingleCouponMapTest {
     SingleCouponMap map = SingleCouponMap.getInstance(entries, keySizeBytes);
 
     for (int i = 0; i < numKeys; i++) {
-      byte[] key = String.format("%4s", i).getBytes();
+      byte[] key = String.format("%4s", i).getBytes(UTF_8);
       byte[] id =  new byte[] {1, 0, 0, 0};
       int coupon = Map.coupon16(id);
       double estimate = map.update(key, coupon);
       Assert.assertEquals(estimate, 1.0);
     }
     for (int i = 0; i < numKeys; i++) {
-      byte[] key = String.format("%4s", i).getBytes();
+      byte[] key = String.format("%4s", i).getBytes(UTF_8);
       double estimate = map.getEstimate(key);
       Assert.assertEquals(estimate, 1.0);
     }
@@ -60,12 +59,12 @@ public class SingleCouponMapTest {
   public void manyKeys() {
     SingleCouponMap map = SingleCouponMap.getInstance(2000, 4);
     for (int i = 1; i <= 1000; i++) {
-      byte[] key = String.format("%4s", i).getBytes();
+      byte[] key = String.format("%4s", i).getBytes(UTF_8);
       double estimate = map.update(key, 1);
       Assert.assertEquals(estimate, 1.0);
     }
     for (int i = 1; i <= 1000; i++) {
-      byte[] key = String.format("%4s", i).getBytes();
+      byte[] key = String.format("%4s", i).getBytes(UTF_8);
       double estimate = map.update(key, 2);
       Assert.assertEquals(estimate, -1.0);
     }

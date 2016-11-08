@@ -6,6 +6,7 @@
 package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.TestingUtil.milliSecToString;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -59,14 +60,14 @@ public class ProcessIpStream {
 
     UniqueCountMap map = new UniqueCountMap(initialNumEntries, IP_BYTES, HLL_K);
     long updateTime_nS = 0;
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in, UTF_8))) {
 
       while ((line = br.readLine()) != null) {
         String[] tokens = line.split("\t");
         checkLen(tokens);
         lineCount++;
         byte[] iAddBytes = InetAddress.getByName(tokens[0]).getAddress();
-        byte[] valBytes = tokens[1].getBytes();
+        byte[] valBytes = tokens[1].getBytes(UTF_8);
         long start_nS = System.nanoTime();
         map.update(iAddBytes, valBytes);
         long end_nS = System.nanoTime();

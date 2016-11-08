@@ -6,6 +6,7 @@
 package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.TestingUtil.milliSecToString;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -61,7 +62,7 @@ public class ProcessDistributionStream {
 
     UniqueCountMap map = new UniqueCountMap(INIT_ENTRIES, IP_BYTES, HLL_K);
     long updateTime_nS = 0;
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in, UTF_8))) {
 
       while ((line = br.readLine()) != null) {
         String[] tokens = line.split("\t");

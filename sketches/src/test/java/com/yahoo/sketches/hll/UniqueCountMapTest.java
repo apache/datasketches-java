@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.hll;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -28,10 +30,10 @@ public class UniqueCountMapTest {
     map.update(key, null);
   }
 
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void wrongSizeKey() {
     UniqueCountMap map = new UniqueCountMap(16, 2, k_);
+    println(map.toString());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -41,33 +43,33 @@ public class UniqueCountMapTest {
     map.getEstimate(key);
   }
 
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void wrongSizeK() {
     UniqueCountMap map = new UniqueCountMap(16, 4, 8);
+    println(map.toString());
   }
 
   @Test
   public void emptyMapNullValue() {
     UniqueCountMap map = new UniqueCountMap(16, 4, k_);
-    double estimate = map.update("1234".getBytes(), null);
+    double estimate = map.update("1234".getBytes(UTF_8), null);
     Assert.assertEquals(estimate, 0.0);
   }
 
   @Test
   public void oneEntry() {
     UniqueCountMap map = new UniqueCountMap(16, 4, k_);
-    double estimate = map.update("1234".getBytes(), "a".getBytes());
+    double estimate = map.update("1234".getBytes(UTF_8), "a".getBytes(UTF_8));
     Assert.assertEquals(estimate, 1.0, 0.01);
   }
 
   @Test
   public void duplicateEntry() {
     UniqueCountMap map = new UniqueCountMap(16, 4, k_);
-    byte[] key = "1234".getBytes();
-    double estimate = map.update(key, "a".getBytes());
+    byte[] key = "1234".getBytes(UTF_8);
+    double estimate = map.update(key, "a".getBytes(UTF_8));
     Assert.assertEquals(estimate, 1.0);
-    estimate = map.update(key, "a".getBytes());
+    estimate = map.update(key, "a".getBytes(UTF_8));
     Assert.assertEquals(estimate, 1.0);
     estimate = map.update(key, null);
     Assert.assertEquals(estimate, 1.0);
@@ -76,21 +78,21 @@ public class UniqueCountMapTest {
   @Test
   public void oneKeyTwoValues() {
     UniqueCountMap map = new UniqueCountMap(16, 4, k_);
-    double estimate = map.update("1234".getBytes(), "a".getBytes());
+    double estimate = map.update("1234".getBytes(UTF_8), "a".getBytes(UTF_8));
     Assert.assertEquals(estimate, 1.0);
-    estimate = map.update("1234".getBytes(), "b".getBytes());
+    estimate = map.update("1234".getBytes(UTF_8), "b".getBytes(UTF_8));
     Assert.assertEquals(estimate, 2.0, 0.02);
   }
 
   @Test
   public void oneKeyThreeValues() {
     UniqueCountMap map = new UniqueCountMap(16, 4, k_);
-    byte[] key = "1234".getBytes();
-    double estimate = map.update(key, "a".getBytes());
+    byte[] key = "1234".getBytes(UTF_8);
+    double estimate = map.update(key, "a".getBytes(UTF_8));
     Assert.assertEquals(estimate, 1.0);
-    estimate = map.update(key, "b".getBytes());
+    estimate = map.update(key, "b".getBytes(UTF_8));
     Assert.assertEquals(estimate, 2.0);
-    estimate = map.update(key, "c".getBytes());
+    estimate = map.update(key, "c".getBytes(UTF_8));
     Assert.assertEquals(estimate, 3.0);
   }
 
@@ -98,7 +100,7 @@ public class UniqueCountMapTest {
   @Test
   public void oneKeyManyValues() {
     UniqueCountMap map = new UniqueCountMap(16, 4, k_);
-    byte[] key = "1234".getBytes();
+    byte[] key = "1234".getBytes(UTF_8);
     byte[] id = new byte[4];
     for (int i = 1; i <= 1000; i++) {
       id = MapTestingUtil.intToBytes(i, id);
@@ -119,19 +121,19 @@ public class UniqueCountMapTest {
   public void manyKeys() {
     UniqueCountMap map = new UniqueCountMap(2000, 4, k_);
     for (int i = 1; i <= 1000; i++) {
-      byte[] key = String.format("%4s", i).getBytes();
+      byte[] key = String.format("%4s", i).getBytes(UTF_8);
       double estimate = map.update(key, new byte[] {1});
       Assert.assertEquals(estimate, 1.0);
     }
     Assert.assertEquals(1000, map.getActiveEntries());
     for (int i = 1; i <= 1000; i++) {
-      byte[] key = String.format("%4s", i).getBytes();
+      byte[] key = String.format("%4s", i).getBytes(UTF_8);
       double estimate = map.update(key, new byte[] {2});
       Assert.assertEquals(estimate, 2.0);
     }
     Assert.assertEquals(1000, map.getActiveEntries());
     for (int i = 1; i <= 1000; i++) {
-      byte[] key = String.format("%4s", i).getBytes();
+      byte[] key = String.format("%4s", i).getBytes(UTF_8);
       double estimate = map.update(key, new byte[] {3});
       Assert.assertEquals(estimate, 3.0);
     }

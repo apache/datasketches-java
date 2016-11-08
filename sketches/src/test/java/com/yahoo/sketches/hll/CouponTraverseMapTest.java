@@ -5,10 +5,10 @@
 
 package com.yahoo.sketches.hll;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import com.yahoo.sketches.hll.CouponTraverseMap;
 
 public class CouponTraverseMapTest {
 
@@ -31,15 +31,15 @@ public class CouponTraverseMapTest {
   @Test
   public void delete() {
     CouponTraverseMap map = CouponTraverseMap.getInstance(4, 1);
-    double estimate = map.update("1234".getBytes(), 1);
+    double estimate = map.update("1234".getBytes(UTF_8), 1);
     Assert.assertEquals(estimate, 1.0);
-    int index1 = map.findKey("1234".getBytes());
+    int index1 = map.findKey("1234".getBytes(UTF_8));
     Assert.assertTrue(index1 >= 0);
     map.deleteKey(index1);
-    int index2 = map.findKey("1234".getBytes());
+    int index2 = map.findKey("1234".getBytes(UTF_8));
     // should be complement of the same index as before
     Assert.assertEquals(~index2, index1);
-    Assert.assertEquals(map.getEstimate("1".getBytes()), 0.0);
+    Assert.assertEquals(map.getEstimate("1".getBytes(UTF_8)), 0.0);
   }
 
   @Test
@@ -47,13 +47,13 @@ public class CouponTraverseMapTest {
     CouponTraverseMap map = CouponTraverseMap.getInstance(4, 1);
     long sizeBytes1 = map.getMemoryUsageBytes();
     for (int i = 0; i < 1000; i ++) {
-      byte[] key = String.format("%4s", i).getBytes();
+      byte[] key = String.format("%4s", i).getBytes(UTF_8);
       map.update(key, 1);
     }
     long sizeBytes2 = map.getMemoryUsageBytes();
     Assert.assertTrue(sizeBytes2 > sizeBytes1);
     for (int i = 0; i < 1000; i ++) {
-      byte[] key = String.format("%4s", i).getBytes();
+      byte[] key = String.format("%4s", i).getBytes(UTF_8);
       int index = map.findKey(key);
       Assert.assertTrue(index >= 0);
       map.deleteKey(index);

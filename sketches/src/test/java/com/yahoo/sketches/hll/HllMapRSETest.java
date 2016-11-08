@@ -5,7 +5,6 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hll.MapTestingUtil.LS;
 import static com.yahoo.sketches.hll.MapTestingUtil.bytesToString;
 import static com.yahoo.sketches.hll.MapTestingUtil.evenlyLgSpaced;
 import static com.yahoo.sketches.hll.MapTestingUtil.intToBytes;
@@ -21,7 +20,7 @@ import com.yahoo.sketches.theta.UpdateSketch;
 import com.yahoo.sketches.theta.UpdateSketchBuilder;
 
 public class HllMapRSETest {
-
+  private static final String LS = System.getProperty("line.separator");
   enum SketchEnum { HLL_MAP, THETA, HLL, COUPON_HASH_MAP, UNIQUE_COUNT_MAP}
 
   //@Test
@@ -232,7 +231,8 @@ public class HllMapRSETest {
       String line = String.format("%d\t%d\t%.2f\t%.2f%%\t%.2f%%\t%,d", x, trials, mean, bias*100, relErr*100, memUsage);
       println(line);
     }
-    println(String.format("\nUpdates          :\t%,d", v));
+    println("");
+    println(String.format("Updates          :\t%,d", v));
     if ((skEnum == SketchEnum.HLL_MAP) || (skEnum == SketchEnum.COUPON_HASH_MAP)) {
       println(String.format("Table  Entries   :\t%,d",map.getTableEntries()));
       println(String.format("Capacity Entries :\t%,d",map.getCapacityEntries()));
