@@ -8,7 +8,7 @@ package com.yahoo.sketches.hll;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.sketches.hll.UniqueCountMap;
+import com.yahoo.sketches.SketchesArgumentException;
 
 public class UniqueCountMapTest {
   private static final int k_ = 512;
@@ -21,18 +21,30 @@ public class UniqueCountMapTest {
     Assert.assertEquals(map.getEstimate(null), Double.NaN);
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void wrongSizeKeyUpdate() {
     UniqueCountMap map = new UniqueCountMap(16, 4, k_);
     byte[] key = new byte[] {0};
     map.update(key, null);
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @SuppressWarnings("unused")
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void wrongSizeKey() {
+    UniqueCountMap map = new UniqueCountMap(16, 2, k_);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void wrongSizeKeyGetEstimate() {
     UniqueCountMap map = new UniqueCountMap(16, 4, k_);
     byte[] key = new byte[] {0};
     map.getEstimate(key);
+  }
+
+  @SuppressWarnings("unused")
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void wrongSizeK() {
+    UniqueCountMap map = new UniqueCountMap(16, 4, 8);
   }
 
   @Test
@@ -99,7 +111,8 @@ public class UniqueCountMapTest {
       Assert.assertEquals(estimate, i, i * 0.10);
       Assert.assertEquals(map.getEstimate(key), estimate);
     }
-    println(map.toString());
+    String out = map.toString();
+    println(out);
   }
 
   @Test
@@ -110,19 +123,22 @@ public class UniqueCountMapTest {
       double estimate = map.update(key, new byte[] {1});
       Assert.assertEquals(estimate, 1.0);
     }
+    Assert.assertEquals(1000, map.getActiveEntries());
     for (int i = 1; i <= 1000; i++) {
       byte[] key = String.format("%4s", i).getBytes();
       double estimate = map.update(key, new byte[] {2});
       Assert.assertEquals(estimate, 2.0);
     }
+    Assert.assertEquals(1000, map.getActiveEntries());
     for (int i = 1; i <= 1000; i++) {
       byte[] key = String.format("%4s", i).getBytes();
       double estimate = map.update(key, new byte[] {3});
       Assert.assertEquals(estimate, 3.0);
     }
-    println(map.toString());
+    Assert.assertEquals(1000, map.getActiveEntries());
+    String out = map.toString();
+    println(out);
   }
-
 
   @Test
   public void printlnTest() {

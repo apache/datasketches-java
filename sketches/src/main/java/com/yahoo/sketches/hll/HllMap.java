@@ -54,7 +54,7 @@ class HllMap extends Map {
    * @param keySizeBytes size of key in bytes
    * @param k size of HLL sketch
    */
-  private HllMap(final int keySizeBytes, final int k, final int tableEntries) {
+  private HllMap(final int tableEntries, final int keySizeBytes, final int k) {
     super(keySizeBytes);
     k_ = k;
     hllArrLongs_ = k / 10 + 1;
@@ -65,7 +65,7 @@ class HllMap extends Map {
   static HllMap getInstance(final int keySizeBytes, final int k) {
     final int tableEntries = HLL_INIT_NUM_ENTRIES;
 
-    final HllMap map = new HllMap(keySizeBytes, k, tableEntries);
+    final HllMap map = new HllMap(tableEntries, keySizeBytes, k);
 
     map.tableEntries_ = tableEntries;
     map.capacityEntries_ = (int)(tableEntries * LOAD_FACTOR);
@@ -209,7 +209,7 @@ class HllMap extends Map {
 
   /**
    * Find the first empty slot for the given key.
-   * Only used by growSize, where it is known that the key does not exist in the table.
+   * Only used by resize, where it is known that the key does not exist in the table.
    * Throws an exception if no empty slots.
    * @param key the given key
    * @param tableEntries prime size of table

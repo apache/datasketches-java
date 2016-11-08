@@ -95,7 +95,7 @@ public class UniqueCountMap {
   public double update(final byte[] key, final byte[] identifier) {
     if (key == null) return Double.NaN;
     if (key.length != keySizeBytes_) {
-      throw new IllegalArgumentException("Key must be " + keySizeBytes_ + " bytes long");
+      throw new SketchesArgumentException("Key must be " + keySizeBytes_ + " bytes long");
     }
     if (identifier == null) return getEstimate(key);
     final short coupon = (short) Map.coupon16(identifier);
@@ -176,7 +176,7 @@ public class UniqueCountMap {
    */
   public double getEstimate(final byte[] key) {
     if (key == null) return Double.NaN;
-    if (key.length != keySizeBytes_) throw new IllegalArgumentException("Key must be " + keySizeBytes_ + " bytes long");
+    if (key.length != keySizeBytes_) throw new SketchesArgumentException("Key must be " + keySizeBytes_ + " bytes long");
     final int index = baseLevelMap.findKey(key);
     if (index < 0) return 0;
     if (baseLevelMap.isCoupon(index)) return 1;

@@ -37,7 +37,7 @@ class SingleCouponMap extends Map {
    */
   private byte[] stateArr_;
 
-  private SingleCouponMap(final int keySizeBytes, final int tableEntries) {
+  private SingleCouponMap(final int tableEntries, final int keySizeBytes) {
     super(keySizeBytes);
     final double byteFraction = Math.ceil(tableEntries / 8.0) / tableEntries;
     entrySizeBytes_ = keySizeBytes + Short.BYTES + byteFraction;
@@ -46,7 +46,7 @@ class SingleCouponMap extends Map {
   static SingleCouponMap getInstance(final int tgtEntries, final int keySizeBytes) {
     final int tableEntries = nextPrime(tgtEntries);
 
-    final SingleCouponMap map = new SingleCouponMap(keySizeBytes, tableEntries);
+    final SingleCouponMap map = new SingleCouponMap(tableEntries, keySizeBytes);
 
     map.tableEntries_ = tableEntries;
     map.capacityEntries_ = (int)(tableEntries * COUPON_MAP_GROW_TRIGGER_FACTOR);

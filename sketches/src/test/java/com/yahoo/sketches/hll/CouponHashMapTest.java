@@ -8,8 +8,7 @@ package com.yahoo.sketches.hll;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.sketches.hll.CouponHashMap;
-import com.yahoo.sketches.hll.Map;
+import com.yahoo.sketches.SketchesArgumentException;
 
 public class CouponHashMapTest {
 
@@ -27,6 +26,16 @@ public class CouponHashMapTest {
     double estimate = map.update(key, 1);
     Assert.assertEquals(estimate, 1.0);
     Assert.assertEquals(map.getEstimate(key), 1.0);
+    Assert.assertEquals(1, map.getCouponCount(map.findKey(key)));
+  }
+
+  @SuppressWarnings("unused")
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void keyNotFound() {
+    CouponHashMap map = CouponHashMap.getInstance(4, 16);
+    byte[] key = new byte[] {0, 0, 0, 0};
+    double estimate = map.update(key, 1);
+    map.updateEstimate(map.findKey(new byte[] {1,0,0,0}), 2.0);
   }
 
   @Test
