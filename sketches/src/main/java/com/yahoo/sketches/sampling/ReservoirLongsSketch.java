@@ -8,7 +8,6 @@ import static com.yahoo.sketches.sampling.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractItemsSeenCount;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractReservoirSize;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractResizeFactor;
-import static com.yahoo.sketches.sampling.PreambleUtil.extractSerDeId;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.sampling.PreambleUtil.getAndCheckPreLongs;
 
@@ -16,7 +15,6 @@ import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
-import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -42,8 +40,6 @@ public class ReservoirLongsSketch {
    * items capacity
    */
   private static final long MAX_ITEMS_SEEN = 0xFFFFFFFFFFFFL;
-
-  private static final int ARRAY_OF_LONGS_SERDE_ID = new ArrayOfLongsSerDe().getId();
 
   /**
    * Default sampling size multiple when reallocating storage: 8
@@ -204,11 +200,6 @@ public class ReservoirLongsSketch {
     if (serVer != SER_VER) {
       throw new SketchesArgumentException(
           "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
-    }
-    final short serDeId = extractSerDeId(pre0);
-    if (serDeId != ARRAY_OF_LONGS_SERDE_ID) {
-      throw new SketchesArgumentException(
-          "Possible Corruption: SerDeID must be " + ARRAY_OF_LONGS_SERDE_ID + ": " + serDeId);
     }
 
     if (isEmpty) {
@@ -377,7 +368,6 @@ public class ReservoirLongsSketch {
     pre0 = (empty) ? PreambleUtil.insertFlags(EMPTY_FLAG_MASK, pre0)
         : PreambleUtil.insertFlags(0, pre0); // Byte 3
     pre0 = PreambleUtil.insertReservoirSize(encodedResSize_, pre0); // Bytes 4-5
-    pre0 = PreambleUtil.insertSerDeId(ARRAY_OF_LONGS_SERDE_ID, pre0); // Bytes 6-7
 
     if (empty) {
       mem.putLong(0, pre0);

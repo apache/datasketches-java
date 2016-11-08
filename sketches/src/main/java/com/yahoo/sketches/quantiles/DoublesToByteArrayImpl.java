@@ -15,7 +15,6 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.insertMaxDouble;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertMinDouble;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertN;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertPreLongs;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerDeId;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerVer;
 
 import java.util.Arrays;
@@ -145,7 +144,6 @@ class DoublesToByteArrayImpl {
     insertFamilyID(outArr, cumOffset, Family.QUANTILES.getID());
     insertFlags(outArr, cumOffset, flags);
     insertK(outArr, cumOffset, k);
-    insertSerDeId(outArr, cumOffset, DoublesSketch.ARRAY_OF_DOUBLES_SERDE_ID);
   }
 
 }

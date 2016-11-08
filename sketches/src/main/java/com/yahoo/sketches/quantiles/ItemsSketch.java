@@ -13,14 +13,12 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractN;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractPreLongs;
-import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerDeId;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertFamilyID;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertFlags;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertN;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertPreLongs;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerDeId;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerVer;
 import static com.yahoo.sketches.quantiles.Util.computeBaseBufferItems;
 import static com.yahoo.sketches.quantiles.Util.computeBitPattern;
@@ -53,7 +51,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @param <T> type of item
  * 
  * @author Kevin Lang
- * @author Alex Saydakov
+ * @author Alexander Saydakov
  */
 public final class ItemsSketch<T> {
 
@@ -184,7 +182,6 @@ public final class ItemsSketch<T> {
     final int familyID = extractFamilyID(memArr, cumOffset);
     final int flags = extractFlags(memArr, cumOffset);
     final int k = extractK(memArr, cumOffset);
-    final short serDeId = extractSerDeId(memArr, cumOffset);
 
     ItemsUtil.checkItemsSerVer(serVer);
     
@@ -192,11 +189,6 @@ public final class ItemsSketch<T> {
       throw new SketchesArgumentException("Non-compact Memory images are not supported.");
     }
     
-    if (serDeId != serDe.getId()) {
-      throw new SketchesArgumentException(
-          "Possible Corruption: serDeId incorrect: " + serDeId + " != " + serDe.getId());
-    }
-
     final boolean empty = Util.checkPreLongsFlagsCap(preambleLongs, flags, memCapBytes);
     Util.checkFamilyID(familyID);
 
@@ -517,7 +509,7 @@ public final class ItemsSketch<T> {
       Memory memOut = new NativeMemory(outByteArr);
       long cumOffset = memOut.getCumulativeOffset(0L);
       int preLongs = 1;
-      insertPre0(outByteArr, cumOffset, preLongs, flags, k_, serDe.getId());
+      insertPre0(outByteArr, cumOffset, preLongs, flags, k_);
       return outByteArr;
     }
     
@@ -532,7 +524,7 @@ public final class ItemsSketch<T> {
     long cumOffset = memOut.getCumulativeOffset(0L);
     
     //insert preamble
-    insertPre0(outByteArr, cumOffset, preLongs, flags, k_, serDe.getId());
+    insertPre0(outByteArr, cumOffset, preLongs, flags, k_);
     insertN(outByteArr, cumOffset, n_);
     
     //insert data
@@ -540,9 +532,6 @@ public final class ItemsSketch<T> {
     return outByteArr;
   }
 
-  
-  
-  
   /**
    * Returns summary information about this sketch.
    */
@@ -700,13 +689,12 @@ public final class ItemsSketch<T> {
   }
 
   private static final void insertPre0(byte[] outArr, long cumOffset, int preLongs, int flags, 
-      int k, short serDeId) {
+      int k) {
     insertPreLongs(outArr, cumOffset, preLongs);
     insertSerVer(outArr, cumOffset, ItemsUtil.ITEMS_SER_VER);
     insertFamilyID(outArr, cumOffset, Family.QUANTILES.getID());
     insertFlags(outArr, cumOffset, flags);
     insertK(outArr, cumOffset, k);
-    insertSerDeId(outArr, cumOffset, serDeId);
   }
   
   /**

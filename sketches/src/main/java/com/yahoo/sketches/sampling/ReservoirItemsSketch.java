@@ -8,7 +8,6 @@ import static com.yahoo.sketches.sampling.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractItemsSeenCount;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractReservoirSize;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractResizeFactor;
-import static com.yahoo.sketches.sampling.PreambleUtil.extractSerDeId;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.sampling.PreambleUtil.getAndCheckPreLongs;
 
@@ -224,11 +223,6 @@ public class ReservoirItemsSketch<T> {
       throw new SketchesArgumentException(
               "Possible Corruption: FamilyID must be " + reqFamilyId + ": " + familyId);
     }
-    final short serDeId = extractSerDeId(pre0);
-    if (serDe.getId() != serDeId) {
-      throw new SketchesArgumentException(
-              "Possible Corruption: SerDeID must be " + serDeId + ": " + serDe.getId());
-    }
 
     if (isEmpty) {
       return new ReservoirItemsSketch<>(reservoirSize, rf);
@@ -441,7 +435,6 @@ public class ReservoirItemsSketch<T> {
             ? PreambleUtil.insertFlags(EMPTY_FLAG_MASK, pre0)
             : PreambleUtil.insertFlags(0, pre0);                         // Byte 3
     pre0 = PreambleUtil.insertReservoirSize(encodedResSize_, pre0);      // Bytes 4-5
-    pre0 = PreambleUtil.insertSerDeId(serDe.getId(), pre0);              // Bytes 6-7
 
     if (empty) {
       mem.putLong(0, pre0);
