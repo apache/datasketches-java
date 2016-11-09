@@ -292,7 +292,6 @@ public class ReservoirItemsUnion<T> {
     pre0 = (empty) ? PreambleUtil.insertFlags(EMPTY_FLAG_MASK, pre0)
         : PreambleUtil.insertFlags(0, pre0); // Byte 3
     pre0 = PreambleUtil.insertMaxK(encodedMaxK_, pre0); // Bytes 4-5
-    pre0 = PreambleUtil.insertSerDeId(serDe.getId(), pre0);
 
     mem.putLong(0, pre0);
     if (!empty) {

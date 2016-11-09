@@ -15,7 +15,6 @@ import static com.yahoo.sketches.frequencies.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractLgCurMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractLgMaxMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractPreLongs;
-import static com.yahoo.sketches.frequencies.PreambleUtil.extractSerDeId;
 import static com.yahoo.sketches.frequencies.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertActiveItems;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertFamilyID;
@@ -23,7 +22,6 @@ import static com.yahoo.sketches.frequencies.PreambleUtil.insertFlags;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertLgCurMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertLgMaxMapSize;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertPreLongs;
-import static com.yahoo.sketches.frequencies.PreambleUtil.insertSerDeId;
 import static com.yahoo.sketches.frequencies.PreambleUtil.insertSerVer;
 import static com.yahoo.sketches.frequencies.Util.LG_MIN_MAP_SIZE;
 import static com.yahoo.sketches.frequencies.Util.SAMPLE_SIZE;
@@ -223,7 +221,6 @@ public class ItemsSketch<T> {
     final int lgMaxMapSize = extractLgMaxMapSize(pre0); //Byte 3
     final int lgCurMapSize = extractLgCurMapSize(pre0); //Byte 4
     final boolean empty = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0; //Byte 5
-    final int serDeId = extractSerDeId(pre0);           //Byte 6,7
 
     // Checks
     final boolean preLongsEq1 = (preLongs == 1);        //Byte 0
@@ -244,10 +241,6 @@ public class ItemsSketch<T> {
     if (empty ^ preLongsEq1) {                          //Byte 5 and Byte 0
       throw new SketchesArgumentException(
           "Possible Corruption: (PreLongs == 1) ^ Empty == True.");
-    }
-    if (serDeId != serDe.getId()) {                     //Byte 6,7
-      throw new SketchesArgumentException(
-          "Possible Corruption: SerDe ID incorrect: " + serDeId + " != " + serDe.getId());
     }
 
     if (empty) {
@@ -309,7 +302,6 @@ public class ItemsSketch<T> {
     pre0 = insertLgMaxMapSize(lgMaxMapSize, pre0);          //Byte 3
     pre0 = insertLgCurMapSize(hashMap.getLgLength(), pre0); //Byte 4
     pre0 = empty ? insertFlags(EMPTY_FLAG_MASK, pre0) : insertFlags(0, pre0); //Byte 5
-    pre0 = insertSerDeId(serDe.getId(), pre0);              //Byte 6,7
 
     if (empty) {
       mem.putLong(0, pre0);

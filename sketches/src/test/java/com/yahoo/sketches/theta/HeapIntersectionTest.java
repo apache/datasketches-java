@@ -454,7 +454,6 @@ public class HeapIntersectionTest {
     SetOperation.heapify(mem);
   }
 
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = ClassCastException.class)
   public void checkFamilyID() {
     int k = 32;
@@ -462,6 +461,7 @@ public class HeapIntersectionTest {
     byte[] byteArray = union.toByteArray();
     Memory mem = new NativeMemory(byteArray);
     Intersection inter1 = (Intersection) SetOperation.heapify(mem); //bad cast
+    println(inter1.toString());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

@@ -41,7 +41,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * Long || Start Byte Adr:
  * Adr:
  *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
- *  0   ||-----SerDe ID----|--Reservoir Size-|  Flags | FamID  | SerVer |   Preamble_Longs   |
+ *  0   ||-----(empty)-----|--Reservoir Size-|  Flags | FamID  | SerVer |   Preamble_Longs   |
  *
  *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
  *  1   ||-----(empty)-----|-------------------Items Seen Count------------------------------|
@@ -74,7 +74,6 @@ final class PreambleUtil {
   static final int FAMILY_BYTE           = 2;
   static final int FLAGS_BYTE            = 3;
   static final int RESERVOIR_SIZE_SHORT  = 4;
-  static final int SERDE_ID_SHORT        = 6;
   static final int ITEMS_SEEN_BYTE       = 8;
 
   static final int MAX_K_SHORT           = 4; // used in Union only
@@ -136,7 +135,6 @@ final class PreambleUtil {
 
     short encResSize = extractReservoirSize(pre0);
     int resSize = ReservoirSize.decodeValue(encResSize);
-    int serDeId = extractSerDeId(pre0);
 
     long itemsSeen = 0;
     if (!isEmpty) {
@@ -157,8 +155,7 @@ final class PreambleUtil {
       //.append("  READ_ONLY                   : ").append(readOnly).append(LS)
       .append("  EMPTY                       : ").append(isEmpty).append(LS)
       .append("Bytes 4-5   : Reservoir Size  : ").append(resSize).append(TAB + "(")
-            .append(Integer.toHexString(encResSize)).append(")").append(LS)
-      .append("Bytes 6-7   : SerDe ID        : ").append(Integer.toHexString(serDeId)).append(LS);
+      .append(Integer.toHexString(encResSize)).append(")").append(LS);
     if (!isEmpty) {
       sb.append("Bytes 8-13  : Items Seen      : ").append(itemsSeen).append(LS);
     }
@@ -212,12 +209,6 @@ final class PreambleUtil {
     return (long1 & mask);
   }
 
-  static short extractSerDeId(final long long0) {
-    int shift = SERDE_ID_SHORT << 3;
-    long mask = 0XFFFFL;
-    return (short) ((long0 >>> shift) & mask);
-  }
-
   static short extractMaxK(final long long0) {
     int shift = MAX_K_SHORT << 3;
     long mask = 0XFFFFL;
@@ -262,12 +253,6 @@ final class PreambleUtil {
   static long insertItemsSeenCount(final long totalSeen, final long long1) {
     long mask = 0XFFFFFFFFFFFFL;
     return (totalSeen & mask) | (~mask & long1);
-  }
-
-  static long insertSerDeId(final int serDeId, final long long0) {
-    int shift = SERDE_ID_SHORT << 3;
-    long mask = 0XFFFFL;
-    return ((serDeId & mask) << shift) | (~(mask << shift) & long0);
   }
 
   static long insertMaxK(final short maxK, final long long0) {

@@ -36,7 +36,7 @@ import com.yahoo.memory.NativeMemory;
  * Long || Start Byte Adr: Common for both DoublesSketch and ItemsSketch
  * Adr:
  *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0          |
- *  0   ||------SerDeId----|--------K--------|  Flags | FamID  | SerVer | Preamble_Longs |
+ *  0   ||------unused-----|--------K--------|  Flags | FamID  | SerVer | Preamble_Longs |
  *
  *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8          |
  *  1   ||-----------------------------------N_LONG--------------------------------------|
@@ -66,7 +66,6 @@ final class PreambleUtil {
   static final int FAMILY_BYTE                = 2;
   static final int FLAGS_BYTE                 = 3;
   static final int K_SHORT                    = 4;  //to 5
-  static final int SER_DE_ID_SHORT            = 6;  //to 7
   static final int N_LONG                     = 8;  //to 15
 
   //After Preamble:
@@ -90,11 +89,13 @@ final class PreambleUtil {
    * Used primarily in testing.
    *
    * @param byteArr the given byte array.
+   * @param isDoublesSketch flag to indicate that the byte array represents DoublesSketch
+   * to print min and max value in the summary
    * @return the summary string.
    */
-  public static String toString(byte[] byteArr) {
+  static String toString(byte[] byteArr, boolean isDoublesSketch) {
     Memory mem = new NativeMemory(byteArr);
-    return toString(mem);
+    return toString(mem, isDoublesSketch);
   }
 
   /**
@@ -103,13 +104,15 @@ final class PreambleUtil {
    * Used primarily in testing.
    *
    * @param mem the given Memory
+   * @param isDoublesSketch flag to indicate that the byte array represents DoublesSketch
+   * to print min and max value in the summary
    * @return the summary string.
    */
-  public static String toString(Memory mem) {
-    return memoryToString(mem);
+  static String toString(Memory mem, boolean isDoublesSketch) {
+    return memoryToString(mem, isDoublesSketch);
   }
 
-  private static String memoryToString(Memory mem) {
+  private static String memoryToString(Memory mem, boolean isDoublesSketch) {
     //pre0
     int preLongs = (mem.getByte(PREAMBLE_LONGS_BYTE)) & 0XFF; //either 1 or 2
     int serVer = mem.getByte(SER_VER_BYTE);
@@ -123,13 +126,11 @@ final class PreambleUtil {
     boolean compact = (flags & COMPACT_FLAG_MASK) > 0;
     boolean ordered = (flags & ORDERED_FLAG_MASK) > 0;
     int k = mem.getShort(K_SHORT);
-    short serDeId = mem.getShort(SER_DE_ID_SHORT);
-    boolean doublesSketch = (serDeId == DoublesSketch.ARRAY_OF_DOUBLES_SERDE_ID);
 
     long n = (preLongs == 1) ? 0L : mem.getLong(N_LONG);
     double minDouble = Double.POSITIVE_INFINITY;
     double maxDouble = Double.NEGATIVE_INFINITY;
-    if ((preLongs > 1) && doublesSketch) { // preLongs = 2 or 3
+    if ((preLongs > 1) && isDoublesSketch) { // preLongs = 2 or 3
       minDouble = mem.getDouble(MIN_DOUBLE);
       maxDouble = mem.getDouble(MAX_DOUBLE);
     }
@@ -148,12 +149,11 @@ final class PreambleUtil {
     sb.append("  COMPACT                     : ").append(compact).append(LS);
     sb.append("  ORDERED                     : ").append(ordered).append(LS);
     sb.append("Bytes  4-5  : K               : ").append(k).append(LS);
-    sb.append("Byte  6-7: SerDeId            : ").append(serDeId).append(LS);
     if (preLongs == 1) {
       sb.append(" --ABSENT, ASSUMED:").append(LS);
     }
     sb.append("Bytes  8-15 : N                : ").append(n).append(LS);
-    if (doublesSketch) {
+    if (isDoublesSketch) {
       sb.append("MinDouble                      : ").append(minDouble).append(LS);
       sb.append("MaxDouble                      : ").append(maxDouble).append(LS);
     }
@@ -183,10 +183,6 @@ final class PreambleUtil {
 
   static int extractK(final Object arr, final long cumOffset) {
     return unsafe.getShort(arr, cumOffset + K_SHORT) & 0XFFFF;
-  }
-
-  static short extractSerDeId(final Object arr, final long cumOffset) {
-    return unsafe.getShort(arr, cumOffset + SER_DE_ID_SHORT);
   }
 
   static long extractN(final Object arr, final long cumOffset) {
@@ -219,10 +215,6 @@ final class PreambleUtil {
 
   static void insertK(Object arr, long cumOffset, int value) {
     unsafe.putShort(arr, cumOffset + K_SHORT, (short) value);
-  }
-
-  static void insertSerDeId(Object arr, long cumOffset, int value) {
-    unsafe.putShort(arr, cumOffset + SER_DE_ID_SHORT, (short) value);
   }
 
   static void insertN(Object arr, long cumOffset, long value) {

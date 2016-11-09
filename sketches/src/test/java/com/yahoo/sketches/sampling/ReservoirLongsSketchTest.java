@@ -2,7 +2,6 @@ package com.yahoo.sketches.sampling;
 
 import static com.yahoo.sketches.sampling.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.sampling.PreambleUtil.PREAMBLE_LONGS_BYTE;
-import static com.yahoo.sketches.sampling.PreambleUtil.SERDE_ID_SHORT;
 import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER_BYTE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -50,16 +49,6 @@ public class ReservoirLongsSketchTest {
     Memory mem = getBasicSerializedRLS();
     mem.putByte(FAMILY_BYTE, (byte) 0); // corrupt the family ID
 
-    ReservoirLongsSketch.getInstance(mem);
-    fail();
-  }
-
-  @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkBadSerDeID() {
-    Memory mem = getBasicSerializedRLS();
-
-    mem.putByte(SERDE_ID_SHORT, (byte) 0);
-    mem.putByte(SERDE_ID_SHORT + 1, (byte) 0);
     ReservoirLongsSketch.getInstance(mem);
     fail();
   }
