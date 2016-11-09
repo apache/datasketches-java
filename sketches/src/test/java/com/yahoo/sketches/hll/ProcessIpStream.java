@@ -24,13 +24,16 @@ import java.net.InetAddress;
  *
  * <p>At the end of the stream, UniqueCountMap.toString() is called and sent to Standard-Out.</p>
  *
- * <p>A typical command line might be as follows:</p>
+ * <p>To run, create a jar of the test code for sketches-core.
+ * A typical command line might be as follows:</p>
  *
- * <p><code>cat IPTabIdPairs.txt | java -cp sketches-core-0.8.2-SNAPSHOT-with-shaded-memory.jar
- * com.yahoo.sketches.hllmap.ProcessIpStream</code></p>
+ * <p><code>cat IPTabIdPairs.txt | java -cp sketches-core-test.jar:\
+ * sketches-core-0.8.2-SNAPSHOT.jar: \
+ * memory-0.8.2-SNAPSHOT.jar \
+ * com.yahoo.sketches.hll.ProcessIpStream</code></p>
  */
 public class ProcessIpStream {
-  private static final String LS = System.getProperty("line.separator");
+  static final String LS = System.getProperty("line.separator");
   private static final int IP_BYTES = 4;
   private static final int INIT_ENTRIES = 1000;
 
@@ -84,7 +87,7 @@ public class ProcessIpStream {
     printTaskTime(sb, total_mS, updateCount);
   }
 
-  private static void printStats(StringBuilder sb, String className, UniqueCountMap map,
+  static void printStats(StringBuilder sb, String className, UniqueCountMap map,
       long lineCount, int ipCount, long updateCount, long updateTime_nS) {
     sb.append("# ").append(className).append(" SUMMARY: ").append(LS);
     sb.append(map.toString()).append(LS);
@@ -95,7 +98,7 @@ public class ProcessIpStream {
         .append(String.format("%,.3f", ((updateTime_nS * 1.0) / updateCount))).append(LS);
   }
 
-  private static void printTaskTime(StringBuilder sb, long total_mS, long updateCount) {
+  static void printTaskTime(StringBuilder sb, long total_mS, long updateCount) {
     sb.append("  Total Task Time           : ").append(milliSecToString(total_mS)).append(LS);
     sb.append("  Task nS Per Update        : ")
         .append(String.format("%,.3f", ((total_mS * 1E6) / updateCount))).append(LS);
@@ -103,7 +106,7 @@ public class ProcessIpStream {
     println(sb.toString());
   }
 
-  private static final void checkLen(String[] tokens) {
+  static final void checkLen(String[] tokens) {
     int len = tokens.length;
     if (len != 2) throw new IllegalArgumentException("Args.length must be 2: " + len);
   }

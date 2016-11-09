@@ -24,7 +24,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * <p>Given such highly-skewed distributions, using this map is far more efficient space-wise than
  * the alternative of dedicating an HLL sketch per key. Based on our measurements, after
  * subtracting the space required for key storage, the average bytes per key required for unique
- * count estimation is about 12.
+ * count estimation is about 10.
  *
  * <p>Internally, this map is implemented as a hierarchy of hash maps with progressively
  * increasing storage allocated for unique count estimation. As a key acquires more identifiers it
