@@ -39,8 +39,8 @@ import com.yahoo.sketches.SketchesArgumentException;
  * <p>All hash tables here have prime size to reduce wasted space compared to powers of two.
  * Open addressing with the second hash is used to resolve collisions.
  *
- * <p>The base table holds all the keys. Each key is associated with one 16-bit value. Initially,
- * the value is a single coupon, once the key is promoted, this 16-bit field contains a reference
+ * <p>The base table holds all the keys and each key is associated with one 16-bit value. Initially,
+ * the value is a single coupon. Once the key is promoted, this 16-bit field contains a reference
  * to the map level where the key is still active.
  *
  * <p>The intermediate maps between the base level map and the final HLL map are of two types.
@@ -52,12 +52,12 @@ import com.yahoo.sketches.SketchesArgumentException;
  * intermediate tables to dynamically grow and shrink.
  *
  * <p>This approach provides unbiased unique count estimates with Relative Standard Error (RSE)
- * of about 2.5% with a confidence of 68% or equivalently, about 5% with a confidence of 95%.
+ * of about 2.5% with 68% confidence, or equivalently, about 5% with a 95% confidence.
  *
  * <p>There are 2 classes in the test hierarchy that can be used from the command line to feed this
- * mapping sketch piped from standard-in. The first is ProcessIpStream that processes IP/ID pairs
- * and the second, ProcessDistributionStream processes pairs that describe a distribution. Refer to
- * the javadocs for those classes.
+ * mapping sketch piped from standard-in. The first is ProcessIpStream, which processes IP/ID pairs
+ * and the second, ProcessDistributionStream, which processes pairs that describe a distribution.
+ * Please refer to the javadocs for those classes for more information.
  *
  * @author Lee Rhodes
  * @author Alex Saydakov
