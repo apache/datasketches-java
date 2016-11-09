@@ -11,6 +11,7 @@ import static org.testng.Assert.fail;
 
 import java.util.ArrayList;
 
+import com.yahoo.sketches.theta.Sketch;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
@@ -59,6 +60,25 @@ public class ReservoirItemsSketchTest {
     ReservoirItemsSketch.getInstance(mem, new ArrayOfLongsSerDe());
     fail();
   }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkBadMemory() {
+    byte[] bytes = new byte[4];
+    Memory mem = new NativeMemory(bytes);
+
+    try {
+      PreambleUtil.getAndCheckPreLongs(mem);
+      fail();
+    } catch (SketchesArgumentException e) {
+      // expected
+    }
+
+    bytes = new byte[8];
+    bytes[0] = 2; // only 1 preLong worth of data in bytearray
+    mem = new NativeMemory(bytes);
+    PreambleUtil.getAndCheckPreLongs(mem);
+  }
+
 
   @Test
   public void checkEmptySketch() {
@@ -267,18 +287,16 @@ public class ReservoirItemsSketchTest {
     Long[] samples = ris.getSamples();
     assertEquals(samples.length, n);
 
-    /*
-    Object[] rawSamples = ris.getRawReservoirSamples();
-    assertEquals(rawSamples.length, 16); // Assumes min length is still 16
+    ArrayList<Long> rawSamples = ris.getRawSamplesAsList();
+    assertEquals(rawSamples.size(), n);
 
     // change a value and make sure getSamples() reflects that change
-    assertEquals((long) rawSamples[0], 0L);
-    rawSamples[0] = -1L;
+    assertEquals((long) rawSamples.get(0), 0L);
+    rawSamples.set(0, -1L);
 
     samples = ris.getSamples();
     assertEquals((long) samples[0], -1L);
     assertEquals(samples.length, n);
-    */
   }
 
 
