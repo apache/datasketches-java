@@ -139,15 +139,15 @@ abstract class Map {
    * @param target the starting value to begin the search for the next prime
    * @return the next prime number that is greater than or equal to the given target.
    */
-  static int nextPrime(int target) {
+  static int nextPrime(final int target) {
     return BigInteger.valueOf(target).nextProbablePrime().intValueExact();
   }
 
-  static String fmtLong(long value) {
+  static String fmtLong(final long value) {
     return String.format("%,d", value);
   }
 
-  static String fmtDouble(double value) {
+  static String fmtDouble(final double value) {
     return String.format("%,.3f", value);
   }
 }
