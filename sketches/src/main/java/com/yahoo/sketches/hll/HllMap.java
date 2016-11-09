@@ -18,8 +18,8 @@ import com.yahoo.sketches.hash.MurmurHash3;
  * 824 bytes, which is a 20% reduction in space. Higher density compressions are possible
  * (up to 50%), but the required code is much more complex and considerably slower.
  *
- * <p>Each entry row, assoicated with a key, also contains 3 double registers for accurately
- * tracking the HIP (Historical Inverse Probability) estimator.  HLL implementations have multiple
+ * <p>Each entry row, associated with a key, also contains 3 double registers for accurately
+ * tracking the HIP (Historical Inverse Probability) estimator. HLL implementations have multiple
  * estimators and the early estimators in this implementation are quite novel and provide superior
  * error performance over most other HLL implementations.
  *

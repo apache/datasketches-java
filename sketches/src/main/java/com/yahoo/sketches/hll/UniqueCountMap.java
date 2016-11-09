@@ -9,7 +9,7 @@ import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * This is a real-time, key-value map that tracks approximate unique counts of identifiers
- * (the values) asssociated with each key. An example might be tracking the number of unique user
+ * (the values) associated with each key. An example might be tracking the number of unique user
  * identifiers associated with each IP address. This map has been specifically designed for the
  * use-case where the number of keys is quite large (many millions) and the distribution of
  * identifiers per key is very skewed. A typical distribution where this works well is a
@@ -18,7 +18,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * identifier, 99% of the keys would have less than 20 identifiers, etc.
  *
  * <p>The space consumed by this map is quite sensitive to the actual distribution of identifiers
- * per key, so you should chacterize and or experiment with your typical input streams beforehand.
+ * per key, so you should characterize and or experiment with your typical input streams beforehand.
  * Nonetheless, our experiments on live streams of over 100M keys required space less than 2GB.
  *
  * <p>Given such highly-skewed distributions, using this map is far more efficient space-wise than
@@ -40,7 +40,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * Open addressing with the second hash is used to resolve collisions.
  *
  * <p>The base table holds all the keys, so it doesn't need to support deletes. Each key is
- * assoicated with one 16-bit value. Initially, the value is a single coupon, once promoted, this
+ * associated with one 16-bit value. Initially, the value is a single coupon, once promoted, this
  * 16-bit field contains a reference to the map level where the key is still active.
  *
  * <p>The intermediate maps between the base level map and the final HLL map are of two types.
@@ -304,13 +304,13 @@ public class UniqueCountMap {
     return sb.toString();
   }
 
-  private static final void checkTgtEntries(int tgtEntries) {
+  private static final void checkTgtEntries(final int tgtEntries) {
     if (tgtEntries < 16) {
       throw new SketchesArgumentException("tgtEntries must be >= 16");
     }
   }
 
-  private static final void checkKeySizeBytes(int keySizeBytes) {
+  private static final void checkKeySizeBytes(final int keySizeBytes) {
     if (keySizeBytes < 4) {
       throw new SketchesArgumentException("KeySizeBytes must be >= 4: " + keySizeBytes);
     }
