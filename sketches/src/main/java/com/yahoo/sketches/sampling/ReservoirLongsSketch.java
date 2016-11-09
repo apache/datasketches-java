@@ -46,12 +46,12 @@ public class ReservoirLongsSketch {
    */
   private static final ResizeFactor DEFAULT_RESIZE_FACTOR = ResizeFactor.X8;
 
-  private final int reservoirSize_; // max size of sampling
+  private final int reservoirSize_;    // max size of sampling
   private final short encodedResSize_; // compact encoding of reservoir size
-  private int currItemsAlloc_; // currently allocated array size
-  private long itemsSeen_; // number of items presented to sketch
-  private final ResizeFactor rf_; // resize factor
-  private long[] data_; // stored sampling data
+  private int currItemsAlloc_;         // currently allocated array size
+  private long itemsSeen_;             // number of items presented to sketch
+  private final ResizeFactor rf_;      // resize factor
+  private long[] data_;                // stored sampling data
 
   /**
    * The basic constructor for building an empty sketch.
@@ -73,10 +73,10 @@ public class ReservoirLongsSketch {
     itemsSeen_ = 0;
 
     final int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize_), "ReservoirLongsSketch");
-    final int initialSize =
-        SamplingUtil.startingSubMultiple(reservoirSize_, ceilingLgK, MIN_LG_ARR_LONGS);
+    final int initialLgSize =
+            SamplingUtil.startingSubMultiple(ceilingLgK, rf_.lg(), MIN_LG_ARR_LONGS);
 
-    currItemsAlloc_ = SamplingUtil.getAdjustedSize(reservoirSize_, initialSize);
+    currItemsAlloc_ = SamplingUtil.getAdjustedSize(reservoirSize_, 1 << initialLgSize);
     data_ = new long[currItemsAlloc_];
     java.util.Arrays.fill(data_, 0L);
   }
@@ -218,8 +218,8 @@ public class ReservoirLongsSketch {
       // casts to int are safe since under-full
       final int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize), "getInstance");
       final int minLgSize = Util.toLog2(Util.ceilingPowerOf2((int) itemsSeen), "getInstance");
-      final int initialLgSize = SamplingUtil.startingSubMultiple(reservoirSize, ceilingLgK,
-          Math.min(minLgSize, MIN_LG_ARR_LONGS));
+      final int initialLgSize = SamplingUtil.startingSubMultiple(ceilingLgK, rf.lg(),
+              Math.max(minLgSize, MIN_LG_ARR_LONGS));
 
       allocatedSize = SamplingUtil.getAdjustedSize(reservoirSize, 1 << initialLgSize);
     }

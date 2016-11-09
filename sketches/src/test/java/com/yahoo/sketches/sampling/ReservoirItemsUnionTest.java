@@ -8,6 +8,8 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.fail;
 
+import java.util.ArrayList;
+
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
@@ -126,6 +128,29 @@ public class ReservoirItemsUnionTest {
     riu.update(sketch2);
     assertEquals(riu.getResult().getK(), smallK);
     assertEquals(riu.getResult().getNumSamples(), smallK);
+  }
+
+  @Test
+  public void checkListInputUpdate() {
+    int k = 32;
+    int n = 64;
+    ReservoirItemsUnion<Integer> riu = ReservoirItemsUnion.getInstance(k);
+
+    ArrayList<Integer> data = new ArrayList<>(k);
+    for (int i = 0; i < k; ++i) {
+      data.add(i);
+    }
+    riu.update(n, k, data);
+    assertEquals(riu.getResult().getN(), n);
+    assertEquals(riu.getResult().getK(), k); // power of 2, so exact
+
+    data = new ArrayList<>(2 * k);
+    for (int i = 0; i < 2 * k; ++i) {
+      data.add(i);
+    }
+    riu.update(10 * n, 2 * k, data);
+    assertEquals(riu.getResult().getN(), 11 * n); // total = n + 10n
+    assertEquals(riu.getResult().getK(), k); // should have downsampled the 2nd
   }
 
   @Test
