@@ -227,14 +227,9 @@ public class ReservoirItemsSketchTest {
 
     ResizeFactor rf = ResizeFactor.X8;
 
-    short encResSize256 = ReservoirSize.computeSize(256);
-    short encResSize128 = ReservoirSize.computeSize(128);
-    short encResSize64 = ReservoirSize.computeSize(64);
-    short encResSize1 = ReservoirSize.computeSize(1);
-
     // no data
     try {
-      ReservoirItemsSketch.<Byte>getInstance(null, 128, rf, encResSize128);
+      ReservoirItemsSketch.<Byte>getInstance(null, 128, rf, 128);
       fail();
     } catch (SketchesException e) {
       assertTrue(e.getMessage().contains("null reservoir"));
@@ -242,7 +237,7 @@ public class ReservoirItemsSketchTest {
 
     // size too small
     try {
-      ReservoirItemsSketch.getInstance(data, 128, rf, encResSize1);
+      ReservoirItemsSketch.getInstance(data, 128, rf, 1);
       fail();
     } catch (SketchesException e) {
       assertTrue(e.getMessage().contains("size less than 2"));
@@ -250,7 +245,7 @@ public class ReservoirItemsSketchTest {
 
     // configured reservoir size smaller than data length
     try {
-      ReservoirItemsSketch.getInstance(data, 128, rf, encResSize64);
+      ReservoirItemsSketch.getInstance(data, 128, rf, 64);
       fail();
     } catch (SketchesException e) {
       assertTrue(e.getMessage().contains("max size less than array length"));
@@ -258,7 +253,7 @@ public class ReservoirItemsSketchTest {
 
     // too many items seen vs data length, full sketch
     try {
-      ReservoirItemsSketch.getInstance(data, 512, rf, encResSize256);
+      ReservoirItemsSketch.getInstance(data, 512, rf, 256);
       fail();
     } catch (SketchesException e) {
       assertTrue(e.getMessage().contains("too few samples"));
@@ -266,7 +261,7 @@ public class ReservoirItemsSketchTest {
 
     // too many items seen vs data length, under-full sketch
     try {
-      ReservoirItemsSketch.getInstance(data, 256, rf, encResSize256);
+      ReservoirItemsSketch.getInstance(data, 256, rf, 256);
       fail();
     } catch (SketchesException e) {
       assertTrue(e.getMessage().contains("too few samples"));
@@ -305,12 +300,10 @@ public class ReservoirItemsSketchTest {
     for (long i = 0; i < 64; ++i) {
       data.add(i);
     }
-    short encResSize = ReservoirSize.computeSize(64);
     long itemsSeen = (1L << 48) - 2;
 
     ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(data, itemsSeen,
-            ResizeFactor.X8,
-            encResSize);
+            ResizeFactor.X8, 64);
 
     // this should work, the next should fail
     ris.update(0L);

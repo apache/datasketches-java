@@ -38,15 +38,15 @@ import com.yahoo.sketches.SketchesArgumentException;
  */
 public class ReservoirLongsUnion {
   private ReservoirLongsSketch gadget_;
-  private final short encodedMaxK_;
+  private final int maxK_;
 
   /**
    * Empty constructor using ReservoirSize-encoded maxK value
    *
    * @param maxK Maximum allowed reservoir capacity for this union
    */
-  private ReservoirLongsUnion(final short maxK) {
-    encodedMaxK_ = maxK;
+  private ReservoirLongsUnion(final int maxK) {
+    maxK_ = maxK;
   }
 
   /**
@@ -57,8 +57,7 @@ public class ReservoirLongsUnion {
    * @return A new ReservoirLongsUnion
    */
   public static ReservoirLongsUnion getInstance(final int maxK) {
-    final short encodedMaxK = ReservoirSize.computeSize(maxK);
-    return new ReservoirLongsUnion(encodedMaxK);
+    return new ReservoirLongsUnion(maxK);
   }
 
   /**
@@ -75,7 +74,7 @@ public class ReservoirLongsUnion {
     final int serVer = extractSerVer(pre0);
     final boolean isEmpty = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0;
 
-    final short encodedMaxK = extractMaxK(pre0);
+    final int maxK = extractMaxK(pre0);
 
     final boolean preLongsEqMin = (numPreLongs == Family.RESERVOIR.getMinPreLongs());
     final boolean preLongsEqMax = (numPreLongs == Family.RESERVOIR.getMaxPreLongs());
@@ -89,7 +88,7 @@ public class ReservoirLongsUnion {
           "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
     }
 
-    final ReservoirLongsUnion rlu = new ReservoirLongsUnion(encodedMaxK);
+    final ReservoirLongsUnion rlu = new ReservoirLongsUnion(maxK);
 
     if (!isEmpty) {
       final int preLongBytes = numPreLongs << 3;
@@ -108,9 +107,7 @@ public class ReservoirLongsUnion {
    *
    * @return The maximum allowed reservoir capacity in this union.
    */
-  public int getMaxK() {
-    return ReservoirSize.decodeValue(encodedMaxK_);
-  }
+  public int getMaxK() { return maxK_; }
 
   /**
    * Union the given sketch.
@@ -126,9 +123,8 @@ public class ReservoirLongsUnion {
       return;
     }
 
-    final int maxK = ReservoirSize.decodeValue(encodedMaxK_);
     final ReservoirLongsSketch rls =
-        (sketchIn.getK() <= maxK ? sketchIn : sketchIn.downsampledCopy(encodedMaxK_));
+        (sketchIn.getK() <= maxK_ ? sketchIn : sketchIn.downsampledCopy(maxK_));
 
     // can modify the sketch if we downsampled, otherwise may need to copy it
     if (gadget_ == null) {
@@ -156,8 +152,7 @@ public class ReservoirLongsUnion {
 
     ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(mem);
 
-    final int maxK = ReservoirSize.decodeValue(encodedMaxK_);
-    rls = (rls.getK() <= maxK ? rls : rls.downsampledCopy(encodedMaxK_));
+    rls = (rls.getK() <= maxK_ ? rls : rls.downsampledCopy(maxK_));
 
     if (gadget_ == null) {
       gadget_ = rls;
@@ -173,8 +168,7 @@ public class ReservoirLongsUnion {
    */
   public void update(final long datum) {
     if (gadget_ == null) {
-      final int maxK = ReservoirSize.decodeValue(encodedMaxK_);
-      gadget_ = ReservoirLongsSketch.getInstance(maxK);
+      gadget_ = ReservoirLongsSketch.getInstance(maxK_);
     }
     gadget_.update(datum);
   }
@@ -201,7 +195,7 @@ public class ReservoirLongsUnion {
 
     sb.append(LS);
     sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
-    sb.append("Max k: ").append(ReservoirSize.decodeValue(encodedMaxK_)).append(LS);
+    sb.append("Max k: ").append(maxK_).append(LS);
     if (gadget_ == null) {
       sb.append("Gadget is null").append(LS);
     } else {
@@ -240,7 +234,7 @@ public class ReservoirLongsUnion {
     pre0 = PreambleUtil.insertFamilyID(Family.RESERVOIR_UNION.getID(), pre0); // Byte 2
     pre0 = (empty) ? PreambleUtil.insertFlags(EMPTY_FLAG_MASK, pre0)
         : PreambleUtil.insertFlags(0, pre0); // Byte 3
-    pre0 = PreambleUtil.insertMaxK(encodedMaxK_, pre0); // Bytes 4-5
+    pre0 = PreambleUtil.insertMaxK(maxK_, pre0); // Bytes 4-5
 
     mem.putLong(0, pre0);
     if (!empty) {
