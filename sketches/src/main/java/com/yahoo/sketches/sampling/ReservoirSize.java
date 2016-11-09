@@ -51,7 +51,7 @@ public final class ReservoirSize {
    * @param k target reservoir size
    * @return reservoir size as 16-bit encoded value
    */
-  public static short computeSize(final int k) throws SketchesArgumentException {
+  public static short computeSize(final int k) {
     if (k < 1 || k > MAX_ABS_VALUE) {
       throw new SketchesArgumentException("Can only encode strictly positive sketch sizes "
               + "less than " + MAX_ABS_VALUE + ", found: " + k);

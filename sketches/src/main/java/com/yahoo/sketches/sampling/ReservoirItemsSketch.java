@@ -59,7 +59,6 @@ public class ReservoirItemsSketch<T> {
   private final ResizeFactor rf_;        // resize factor
   private ArrayList<T> data_;            // stored sampled data
 
-  @SuppressWarnings("unchecked")
   private ReservoirItemsSketch(final int k, final ResizeFactor rf) {
     // required due to a theorem about lightness during merging
     if (k < 2) {
@@ -195,7 +194,6 @@ public class ReservoirItemsSketch<T> {
    * @param serDe  An instance of ArrayOfItemsSerDe
    * @return a sketch instance of this class
    */
-  @SuppressWarnings("unchecked") // forcing for the whole method seems sub-optimal
   public static <T> ReservoirItemsSketch<T> getInstance(final Memory srcMem,
                                                         final ArrayOfItemsSerDe<T> serDe) {
     final int numPreLongs = getAndCheckPreLongs(srcMem);
@@ -340,7 +338,7 @@ public class ReservoirItemsSketch<T> {
       return null;
     }
 
-    Class clazz = data_.get(0).getClass();
+    Class<?> clazz = data_.get(0).getClass();
     return data_.toArray((T[]) Array.newInstance(clazz, 0));
   }
 
@@ -483,7 +481,6 @@ public class ReservoirItemsSketch<T> {
    * @param pos The position from which to retrieve the element
    * @return The value in the reservoir at position <tt>pos</tt>
    */
-  @SuppressWarnings("unchecked")
   T getValueAtPosition(final int pos) {
     if (itemsSeen_ == 0) {
       throw new SketchesArgumentException("Requested element from empty reservoir.");
