@@ -8,10 +8,10 @@ package com.yahoo.sketches.hll;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
- * This is a real-time, key-value map that tracks approximate unique counts of identifiers
- * (the values) associated with each key. An example might be tracking the number of unique user
- * identifiers associated with each IP address. This map has been specifically designed for the
- * use-case where the number of keys is quite large (many millions) and the distribution of
+ * This is a real-time, key-value mapping sketch that tracks approximate unique counts of
+ * identifiers (the values) associated with each key. An example might be tracking the number of
+ * unique user identifiers associated with each IP address. This map has been specifically designed
+ * for the use-case where the number of keys is quite large (many millions) and the distribution of
  * identifiers per key is very skewed. A typical distribution where this works well is a
  * power-law distribution of identifiers per key of the form <i>p(x) = Cx<sup>-&alpha;</sup></i>,
  * where <i>&alpha;</i> &lt; 0.5. Assuming 100M keys, over 75% of the keys would have only one
@@ -39,9 +39,9 @@ import com.yahoo.sketches.SketchesArgumentException;
  * <p>All hash tables here have prime size to reduce wasted space compared to powers of two.
  * Open addressing with the second hash is used to resolve collisions.
  *
- * <p>The base table holds all the keys, so it doesn't need to support deletes. Each key is
- * associated with one 16-bit value. Initially, the value is a single coupon, once promoted, this
- * 16-bit field contains a reference to the map level where the key is still active.
+ * <p>The base table holds all the keys. Each key is associated with one 16-bit value. Initially,
+ * the value is a single coupon, once the key is promoted, this 16-bit field contains a reference
+ * to the map level where the key is still active.
  *
  * <p>The intermediate maps between the base level map and the final HLL map are of two types.
  * The first few of these are called traverse maps where the coupons are
@@ -49,10 +49,15 @@ import com.yahoo.sketches.SketchesArgumentException;
  * are stored in small hash tables.
  *
  * <p>All the intermediate maps support deletes which allows reuse and enables the
- * intermediate tables to dynamically shrink.
+ * intermediate tables to dynamically grow and shrink.
  *
  * <p>This approach provides unbiased unique count estimates with Relative Standard Error (RSE)
  * of about 2.5% with a confidence of 68% or equivalently, about 5% with a confidence of 95%.
+ *
+ * <p>There are 2 classes in the test hierarchy that can be used from the command line to feed this
+ * mapping sketch piped from standard-in. The first is ProcessIpStream that processes IP/ID pairs
+ * and the second, ProcessDistributionStream processes pairs that describe a distribution. Refer to
+ * the javadocs for those classes.
  *
  * @author Lee Rhodes
  * @author Alex Saydakov
