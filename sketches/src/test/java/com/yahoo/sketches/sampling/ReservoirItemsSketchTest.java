@@ -11,7 +11,6 @@ import static org.testng.Assert.fail;
 
 import java.util.ArrayList;
 
-import com.yahoo.sketches.theta.Sketch;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
