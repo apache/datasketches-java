@@ -23,6 +23,7 @@ import com.yahoo.sketches.hash.MurmurHash3;
  * @author Kevin Lang
  */
 class CouponTraverseMap extends CouponMap {
+  private static final double RSE = 0.408 / Math.sqrt(1024);
   private final int maxCouponsPerKey_;
   private final double entrySizeBytes_;
 
@@ -75,12 +76,12 @@ class CouponTraverseMap extends CouponMap {
 
   @Override
   double getUpperBound(byte[] key) {
-    return getEstimate(key); //actually a wee bit higher
+    return getEstimate(key) * (1 + RSE);
   }
 
   @Override
   double getLowerBound(byte[] key) {
-    return getEstimate(key); //actually a wee bit lower
+    return getEstimate(key) * (1 - RSE);
   }
 
 

@@ -58,12 +58,12 @@ public class HllMapRSETest {
     /***************************************/
     //test parameters
     int startLgX = 0; //1
-    int endLgX = 16;  //was 16 = 65K # of uniques per trial
+    int endLgX = 18;  //was 16 = 65K # of uniques per trial
     if (skEnum == SketchEnum.COUPON_HASH_MAP) {
       endLgX = 7;
     }
     int startLgTrials = 20; //was 16 # of Keys
-    int endLgTrials = 10;
+    int endLgTrials = 12;
     int ppo = 4; //Points per Octave
 
     int points = ppo * (endLgX - startLgX) + 1;
@@ -106,7 +106,7 @@ public class HllMapRSETest {
       println("UniqueCountMap: k:\t" + k);
     }
 
-    println("U\tTrials\tMean\tBias\tRSE");
+    println("U\tTrials\tMean\tBias\tRSE\tMemUsage");
     double sum=0, sumErr=0,sumErrSq=0;
 
     //at each point do multiple trials.
@@ -131,7 +131,7 @@ public class HllMapRSETest {
       }
 
       else if (skEnum == SketchEnum.UNIQUE_COUNT_MAP) {
-        ucMap = new UniqueCountMap(10, 4); //renew per trial set
+        ucMap = new UniqueCountMap(4); //renew per trial set
       }
       //else do nothing to the other sketches
 
@@ -268,11 +268,11 @@ public class HllMapRSETest {
 
   public static void main(String[] args) {
     HllMapRSETest test = new HllMapRSETest();
-    test.testHllMap();
+//    test.testHllMap();
 //    test.testTheta();
 //    test.testHll();
 //    test.testCouponHashMap();
-//    test.testUniqueCountMap();
+    test.testUniqueCountMap();
   }
 
   static void println(String s) { System.out.println(s); }
