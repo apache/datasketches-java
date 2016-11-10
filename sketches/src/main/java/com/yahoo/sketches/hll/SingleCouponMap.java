@@ -22,12 +22,12 @@ import com.yahoo.sketches.hash.MurmurHash3;
  */
 class SingleCouponMap extends Map {
   public static final String LS = System.getProperty("line.separator");
-
-  private double entrySizeBytes_;
+  private static final double RSE = 0.408 / Math.sqrt(1024);
 
   private int tableEntries_;
   private int capacityEntries_;
   private int curCountEntries_;
+  private double entrySizeBytes_;
 
   // Arrays
   private byte[] keysArr_;
@@ -41,20 +41,18 @@ class SingleCouponMap extends Map {
    */
   private byte[] stateArr_;
 
-  private SingleCouponMap(final int tableEntries, final int keySizeBytes) {
+  private SingleCouponMap(final int keySizeBytes) {
     super(keySizeBytes);
-    final double byteFraction = Math.ceil(tableEntries / 8.0) / tableEntries;
-    entrySizeBytes_ = keySizeBytes + Short.BYTES + byteFraction;
   }
 
-  static SingleCouponMap getInstance(final int tgtEntries, final int keySizeBytes) {
-    final int tableEntries = nextPrime(tgtEntries);
+  static SingleCouponMap getInstance(final int initialNumEntries, final int keySizeBytes) {
+    final int tableEntries = nextPrime(initialNumEntries);
 
-    final SingleCouponMap map = new SingleCouponMap(tableEntries, keySizeBytes);
-
+    final SingleCouponMap map = new SingleCouponMap(keySizeBytes);
     map.tableEntries_ = tableEntries;
     map.capacityEntries_ = (int)(tableEntries * COUPON_MAP_GROW_TRIGGER_FACTOR);
     map.curCountEntries_ = 0;
+    map.entrySizeBytes_ = updateEntrySizeBytes(tableEntries, keySizeBytes);
 
     map.keysArr_ = new byte[tableEntries * map.keySizeBytes_];
     map.couponsArr_ = new short[tableEntries];
@@ -86,13 +84,13 @@ class SingleCouponMap extends Map {
   }
 
   @Override
-  double getUpperBound(byte[] key) { //only used in test
-    return getEstimate(key);
+  double getUpperBound(byte[] key) {
+    return getEstimate(key) * (1 + RSE);
   }
 
   @Override
-  double getLowerBound(byte[] key) { //only used in test
-    return getEstimate(key);
+  double getLowerBound(byte[] key) {
+    return getEstimate(key) * (1 - RSE);
   }
 
   /**
@@ -213,6 +211,8 @@ class SingleCouponMap extends Map {
     keysArr_ = new byte[tableEntries_ * keySizeBytes_];
     couponsArr_ = new short[tableEntries_];
     stateArr_ = new byte[(int) Math.ceil(tableEntries_ / 8.0)];
+    entrySizeBytes_ = updateEntrySizeBytes(tableEntries_, keySizeBytes_);
+    //move the data
     for (int i = 0; i < oldTableEntries; i++) {
       if (oldCouponsArr[i] != 0) {
         final byte[] key =
@@ -237,6 +237,11 @@ class SingleCouponMap extends Map {
       entryIndex = (entryIndex + stride) % tableEntries_;
     } while (entryIndex != loopIndex);
     throw new SketchesArgumentException("Key not found and no empty slots!");
+  }
+
+  private static final double updateEntrySizeBytes(int tableEntries, int keySizeBytes) {
+    final double byteFraction = Math.ceil(tableEntries / 8.0) / tableEntries;
+    return keySizeBytes + Short.BYTES + byteFraction;
   }
 
 }

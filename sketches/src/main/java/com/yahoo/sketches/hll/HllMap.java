@@ -34,13 +34,13 @@ class HllMap extends Map {
   private static final float HLL_RESIZE_FACTOR = 2.0F;
   private static final double RSE = 0.836 / Math.sqrt(1024);
   private final int k_;
-  private final int hllArrLongs_;
-  private final double entrySizeBytes_;
+  private final int hllArrLongs_; //# of longs required to store the HLL array
 
-  private int tableEntries_; //Full size of the table
-  private int capacityEntries_; //max capacity entries defined by Load factor
-  private int curCountEntries_; //current count of valid entries
-  private float growthFactor_;  //e.g., 1.2 to 2.0
+  private int tableEntries_;      //Full size of the table
+  private int capacityEntries_;   //max capacity entries defined by Load factor
+  private int curCountEntries_;   //current count of valid entries
+  private float growthFactor_;    //e.g., 1.2 to 2.0
+  private double entrySizeBytes_;
 
   //Arrays
   private byte[] keysArr_; //keys of zero are allowed
@@ -55,23 +55,21 @@ class HllMap extends Map {
    * @param keySizeBytes size of key in bytes
    * @param k size of HLL sketch
    */
-  private HllMap(final int tableEntries, final int keySizeBytes, final int k) {
+  private HllMap(final int keySizeBytes, final int k) {
     super(keySizeBytes);
     k_ = k;
     hllArrLongs_ = k / 10 + 1;
-    final double byteFraction = Math.ceil(tableEntries / 8.0) / tableEntries;
-    entrySizeBytes_ = keySizeBytes + hllArrLongs_ * Long.BYTES + 3 * Double.BYTES + byteFraction;
   }
 
   static HllMap getInstance(final int keySizeBytes, final int k) {
     final int tableEntries = HLL_INIT_NUM_ENTRIES;
 
-    final HllMap map = new HllMap(tableEntries, keySizeBytes, k);
-
+    final HllMap map = new HllMap(keySizeBytes, k);
     map.tableEntries_ = tableEntries;
     map.capacityEntries_ = (int)(tableEntries * LOAD_FACTOR);
     map.curCountEntries_ = 0;
     map.growthFactor_ = HLL_RESIZE_FACTOR;
+    map.entrySizeBytes_ = updateEntrySizeBytes(map.tableEntries_, keySizeBytes, map.hllArrLongs_);
 
     map.keysArr_ = new byte[tableEntries * map.keySizeBytes_];
     map.arrOfHllArr_ = new long[tableEntries * map.hllArrLongs_];
@@ -287,12 +285,13 @@ class HllMap extends Map {
     for (int oldIndex = 0; oldIndex < tableEntries_; oldIndex++) {
       if (isBitClear(stateArr_, oldIndex)) continue;
       // extract an old key
-      final byte[] key = Arrays.copyOfRange(keysArr_, oldIndex * keySizeBytes_, (oldIndex + 1) * keySizeBytes_);
+      final byte[] key =
+          Arrays.copyOfRange(keysArr_, oldIndex * keySizeBytes_, (oldIndex + 1) * keySizeBytes_);
       final int newIndex = findEmpty(key, newTableEntries, newStateArr);
       System.arraycopy(key, 0, newKeysArr, newIndex * keySizeBytes_, keySizeBytes_); //put key
       //put the rest of the row
-      System.arraycopy(
-          arrOfHllArr_, oldIndex * hllArrLongs_, newArrOfHllArr, newIndex * hllArrLongs_, hllArrLongs_);
+      System.arraycopy(arrOfHllArr_, oldIndex * hllArrLongs_, newArrOfHllArr,
+          newIndex * hllArrLongs_, hllArrLongs_);
       newInvPow2Sum1[newIndex] = invPow2SumHiArr_[oldIndex];
       newInvPow2Sum2[newIndex] = invPow2SumLoArr_[oldIndex];
       newHipEstAccum[newIndex] = hipEstAccumArr_[oldIndex];
@@ -302,6 +301,7 @@ class HllMap extends Map {
     tableEntries_ = newTableEntries;
     capacityEntries_ = newCapacityEntries;
     //curCountEntries_, growthFactor_  unchanged
+    entrySizeBytes_ = updateEntrySizeBytes(tableEntries_, keySizeBytes_, hllArrLongs_);
 
     keysArr_ = newKeysArr;
     arrOfHllArr_ = newArrOfHllArr;
@@ -309,6 +309,12 @@ class HllMap extends Map {
     invPow2SumLoArr_ = newInvPow2Sum2; //init to 0
     hipEstAccumArr_ = newHipEstAccum;  //init to 0
     stateArr_ = newStateArr;
+  }
+
+  private static final double updateEntrySizeBytes(int tableEntries, int keySizeBytes,
+      int hllArrLongs) {
+    final double byteFraction = Math.ceil(tableEntries / 8.0) / tableEntries;
+    return keySizeBytes + hllArrLongs * Long.BYTES + 3 * Double.BYTES + byteFraction;
   }
 
 }

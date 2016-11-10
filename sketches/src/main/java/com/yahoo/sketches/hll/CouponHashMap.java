@@ -53,14 +53,14 @@ class CouponHashMap extends CouponMap {
     super(keySizeBytes);
     maxCouponsPerKey_ = maxCouponsPerKey;
     capacityCouponsPerKey_ = (int)(maxCouponsPerKey * INNER_LOAD_FACTOR);
-    entrySizeBytes_ = keySizeBytes + maxCouponsPerKey + 1 + 8;
+    entrySizeBytes_ = keySizeBytes + maxCouponsPerKey * Short.BYTES + 1 + 4 + 4;
   }
 
   static CouponHashMap getInstance(final int keySizeBytes, final int maxCouponsPerKey) {
     checkMaxCouponsPerKey(maxCouponsPerKey);
-    final CouponHashMap map = new CouponHashMap(keySizeBytes, maxCouponsPerKey);
-
     final int tableEntries = COUPON_MAP_MIN_NUM_ENTRIES;
+
+    final CouponHashMap map = new CouponHashMap(keySizeBytes, maxCouponsPerKey);
     map.tableEntries_ = tableEntries;
     map.capacityEntries_ = (int)(tableEntries * COUPON_MAP_GROW_TRIGGER_FACTOR);
     map.numActiveKeys_ = 0;
@@ -87,7 +87,6 @@ class CouponHashMap extends CouponMap {
     return hipEstAccumArr_[index];
   }
 
-
   @Override
   double getUpperBound(byte[] key) {
     return getEstimate(key) * (1 + RSE);
@@ -97,7 +96,6 @@ class CouponHashMap extends CouponMap {
   double getLowerBound(byte[] key) {
     return getEstimate(key) * (1 - RSE);
   }
-
 
   @Override
   void updateEstimate(final int entryIndex, final double estimate) {
@@ -141,7 +139,8 @@ class CouponHashMap extends CouponMap {
     if (entryIndex < 0) { //key not found
       entryIndex = ~entryIndex;
       if (curCountsArr_[entryIndex] == DELETED_KEY_MARKER) { // reusing slot from a deleted key
-        Arrays.fill(couponsArr_, entryIndex * maxCouponsPerKey_, (entryIndex + 1) *  maxCouponsPerKey_, (short) 0);
+        Arrays.fill(couponsArr_, entryIndex * maxCouponsPerKey_,
+            (entryIndex + 1) *  maxCouponsPerKey_, (short) 0);
         curCountsArr_[entryIndex] = 0;
         numDeletedKeys_--;
       }

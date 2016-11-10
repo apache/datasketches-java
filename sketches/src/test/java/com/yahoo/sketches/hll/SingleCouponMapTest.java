@@ -32,8 +32,8 @@ public class SingleCouponMapTest {
     double estimate = map.update(key, coupon);
     Assert.assertEquals(estimate, 1.0);
     Assert.assertEquals(map.getEstimate(key), 1.0);
-    Assert.assertEquals(map.getUpperBound(key), 1.0);
-    Assert.assertEquals(map.getLowerBound(key), 1.0);
+    Assert.assertTrue(map.getUpperBound(key) >= 1.0);
+    Assert.assertTrue(map.getLowerBound(key) <= 1.0);
   }
 
   @Test
@@ -50,14 +50,14 @@ public class SingleCouponMapTest {
       double estimate = map.update(key, coupon);
       Assert.assertEquals(estimate, 1.0);
       Assert.assertEquals(map.getEstimate(key), 1.0);
-      Assert.assertEquals(map.getUpperBound(key), 1.0);
-      Assert.assertEquals(map.getLowerBound(key), 1.0);
+      Assert.assertTrue(map.getUpperBound(key) >= 1.0);
+      Assert.assertTrue(map.getLowerBound(key) <= 1.0);
     }
     for (int i = 0; i < numKeys; i++) {
       byte[] key = String.format("%4s", i).getBytes(UTF_8);
       Assert.assertEquals(map.getEstimate(key), 1.0);
-      Assert.assertEquals(map.getUpperBound(key), 1.0);
-      Assert.assertEquals(map.getLowerBound(key), 1.0);
+      Assert.assertTrue(map.getUpperBound(key) >= 1.0);
+      Assert.assertTrue(map.getLowerBound(key) <= 1.0);
     }
     println(map.toString());
     Assert.assertEquals(map.getCurrentCountEntries(), numKeys);
@@ -71,8 +71,8 @@ public class SingleCouponMapTest {
       double estimate = map.update(key, 1); //bogus coupon
       Assert.assertEquals(estimate, 1.0);
       Assert.assertEquals(map.getEstimate(key), 1.0);
-      Assert.assertEquals(map.getUpperBound(key), 1.0);
-      Assert.assertEquals(map.getLowerBound(key), 1.0);
+      Assert.assertTrue(map.getUpperBound(key) >= 1.0);
+      Assert.assertTrue(map.getLowerBound(key) <= 1.0);
     }
     for (int i = 1; i <= 1000; i++) {
       byte[] key = String.format("%4s", i).getBytes(UTF_8);

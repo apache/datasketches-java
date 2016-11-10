@@ -25,12 +25,12 @@ import com.yahoo.sketches.hash.MurmurHash3;
 class CouponTraverseMap extends CouponMap {
   private static final double RSE = 0.408 / Math.sqrt(1024);
   private final int maxCouponsPerKey_;
-  private final double entrySizeBytes_;
 
   private int tableEntries_;
   private int capacityEntries_;
   private int numActiveKeys_;
   private int numDeletedKeys_;
+  private double entrySizeBytes_;
 
   //Arrays
   private byte[] keysArr_;
@@ -47,17 +47,20 @@ class CouponTraverseMap extends CouponMap {
   private CouponTraverseMap(final int keySizeBytes, final int maxCouponsPerKey) {
     super(keySizeBytes);
     maxCouponsPerKey_ = maxCouponsPerKey;
-    double byteFraction = Math.ceil(COUPON_MAP_MIN_NUM_ENTRIES / 8.0) / COUPON_MAP_MIN_NUM_ENTRIES;
-    entrySizeBytes_ = keySizeBytes + maxCouponsPerKey * 2 + byteFraction;
   }
 
   static CouponTraverseMap getInstance(final int keySizeBytes, final int maxCouponsPerKey) {
+
     CouponTraverseMap map = new CouponTraverseMap(keySizeBytes, maxCouponsPerKey);
     map.tableEntries_ = COUPON_MAP_MIN_NUM_ENTRIES;
+    map.capacityEntries_ = (int)(map.tableEntries_ * COUPON_MAP_GROW_TRIGGER_FACTOR);
+    map.numActiveKeys_ = 0;
+    map.numDeletedKeys_ = 0;
+    map.entrySizeBytes_ = updateEntrySizeBytes(map.tableEntries_, keySizeBytes, maxCouponsPerKey);
+
     map.keysArr_ = new byte[COUPON_MAP_MIN_NUM_ENTRIES * keySizeBytes];
     map.couponsArr_ = new short[COUPON_MAP_MIN_NUM_ENTRIES * maxCouponsPerKey];
     map.stateArr_ = new byte[(int) Math.ceil(COUPON_MAP_MIN_NUM_ENTRIES / 8.0)];
-    map.capacityEntries_ = (int)(map.tableEntries_ * COUPON_MAP_GROW_TRIGGER_FACTOR);
     return map;
   }
 
@@ -231,7 +234,7 @@ class CouponTraverseMap extends CouponMap {
     return maxCouponsPerKey_;
   }
 
-  private void resize() {
+  private void resize() { //can grow or shrink
     final byte[] oldKeysArr = keysArr_;
     final short[] oldCouponsArr = couponsArr_;
     final byte[] oldStateArr = stateArr_;
@@ -241,16 +244,22 @@ class CouponTraverseMap extends CouponMap {
       COUPON_MAP_MIN_NUM_ENTRIES
     );
     capacityEntries_ = (int)(tableEntries_ * COUPON_MAP_GROW_TRIGGER_FACTOR);
+    numActiveKeys_ = 0;
+    numDeletedKeys_ = 0;
+    entrySizeBytes_ = updateEntrySizeBytes(tableEntries_, keySizeBytes_, maxCouponsPerKey_);
+
     keysArr_ = new byte[tableEntries_ * keySizeBytes_];
     couponsArr_ = new short[tableEntries_ * maxCouponsPerKey_];
     stateArr_ = new byte[(int) Math.ceil(tableEntries_ / 8.0)];
-    numActiveKeys_ = 0;
-    numDeletedKeys_ = 0;
+
+    //move data
     for (int i = 0; i < oldSizeKeys; i++) {
       if (isBitSet(oldStateArr, i) && oldCouponsArr[i * maxCouponsPerKey_] != 0) {
-        final byte[] key = Arrays.copyOfRange(oldKeysArr, i * keySizeBytes_, i * keySizeBytes_ + keySizeBytes_);
+        final byte[] key =
+            Arrays.copyOfRange(oldKeysArr, i * keySizeBytes_, i * keySizeBytes_ + keySizeBytes_);
         final int index = insertKey(key);
-        System.arraycopy(oldCouponsArr, i * maxCouponsPerKey_, couponsArr_, index * maxCouponsPerKey_, maxCouponsPerKey_);
+        System.arraycopy(oldCouponsArr, i * maxCouponsPerKey_, couponsArr_,
+            index * maxCouponsPerKey_, maxCouponsPerKey_);
       }
     }
   }
@@ -277,6 +286,12 @@ class CouponTraverseMap extends CouponMap {
     for (int i = 0; i < maxCouponsPerKey_; i++) {
       couponsArr_[couponAreaIndex + i] = 0;
     }
+  }
+
+  private static final double updateEntrySizeBytes(int tableEntries, int keySizeBytes,
+      int maxCouponsPerKey) {
+    final double byteFraction = Math.ceil(tableEntries / 8.0) / tableEntries;
+    return keySizeBytes + maxCouponsPerKey * Short.BYTES + byteFraction;
   }
 
 }
