@@ -5,10 +5,8 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hll.MapTestingUtil.bytesToLong;
 import static com.yahoo.sketches.hll.MapTestingUtil.intToBytes;
 import static com.yahoo.sketches.hll.MapTestingUtil.longToBytes;
-import static org.testng.Assert.assertEquals;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -16,7 +14,6 @@ import org.testng.annotations.Test;
 
 public class HllMapTest {
 
-  @SuppressWarnings("unused")
   @Test
   public void singleKeyTest() {
     int k = 1024;
@@ -45,12 +42,12 @@ public class HllMapTest {
       if (i % 100 == 0) {
         double err = (est/i -1.0) * 100;
         String eStr = String.format("%.3f%%", err);
-        //println("i: "+i + "\t Est: " + est + TAB + eStr);
+        println("i: "+i + "\t Est: " + est + "\t" + eStr);
       }
     }
     byte[] key2 = intToBytes(2, key);
-    Assert.assertEquals(0.0, map.getEstimate(key2));
-    Assert.assertEquals(4, map.getKeySizeBytes());
+    Assert.assertEquals(map.getEstimate(key2), 0.0);
+    Assert.assertEquals(map.getKeySizeBytes(), 4);
 
 //    println("Table Entries : " + map.getTableEntries());
     Assert.assertEquals(map.getCurrentCountEntries(), 1);
@@ -59,7 +56,6 @@ public class HllMapTest {
     //map.printEntry(key);
   }
 
-  @SuppressWarnings("unused")
   @Test
   public void resizeTest() {
     int k = 1024;
@@ -83,14 +79,15 @@ public class HllMapTest {
       key = intToBytes(j, key);
       for (i=0; i< u; i++) {
         id = longToBytes(++v, id);
-        assertEquals(v, bytesToLong(id)); //TODO remove
         int coupon = Map.coupon16(id);
         map.update(key, coupon);
       }
       double est = map.getEstimate(key);
+      Assert.assertTrue(map.getUpperBound(key) > est);
+      Assert.assertTrue(map.getLowerBound(key) < est);
       double err = (est/u -1.0) * 100;
       String eStr = String.format("%.3f%%", err);
-      //println("key: " + j + "\tu: "+u + "\t Est: " + est + TAB + eStr);
+      println("key: " + j + "\tu: "+u + "\t Est: " + est + "\t" + eStr);
     }
     Assert.assertEquals(317, map.getTableEntries());
 //    println("Table Entries  : " + map.getTableEntries());
@@ -102,7 +99,7 @@ public class HllMapTest {
       double est = map.getEstimate(key);
       double err = (est/u -1.0) * 100;
       String eStr = String.format("%.3f%%", err);
-      //println("key: " + j + "\tu: "+u + "\t Est: " + est + TAB + eStr);
+      println("key: " + j + "\tu: "+u + "\t Est: " + est + "\t" + eStr);
     }
     //println(map.toString());
   }

@@ -15,19 +15,24 @@ import com.yahoo.sketches.SketchesArgumentException;
 public class CouponHashMapTest {
 
   @Test
-  public void getEstimateNovelKey() {
+  public void getEstimateNoEntry() {
     CouponHashMap map = CouponHashMap.getInstance(4, 16);
     byte[] key = new byte[] {0, 0, 0, 0};
     Assert.assertEquals(map.getEstimate(key), 0.0);
+    Assert.assertEquals(map.getUpperBound(key), 0.0);
+    Assert.assertEquals(map.getLowerBound(key), 0.0);
+    Assert.assertNull(map.getCouponsIterator(key));
   }
 
   @Test
-  public void oneKeyOneValue() {
+  public void oneKeyOneEntry() {
     CouponHashMap map = CouponHashMap.getInstance(4, 16);
     byte[] key = new byte[] {0, 0, 0, 0};
     double estimate = map.update(key, 1);
     Assert.assertEquals(estimate, 1.0);
     Assert.assertEquals(map.getEstimate(key), 1.0);
+    Assert.assertTrue(map.getUpperBound(key) > 1.0);
+    Assert.assertTrue(map.getLowerBound(key) < 1.0);
     Assert.assertEquals(1, map.getCouponCount(map.findKey(key)));
   }
 
@@ -35,9 +40,14 @@ public class CouponHashMapTest {
   public void keyNotFound() {
     CouponHashMap map = CouponHashMap.getInstance(4, 16);
     byte[] key = new byte[] {0, 0, 0, 0};
-    double estimate = map.update(key, 1);
+    map.update(key, 1);
     map.updateEstimate(map.findKey(new byte[] {1,0,0,0}), 2.0);
-    println(""+estimate);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void wrongCouponsPerKey() {
+    CouponHashMap map = CouponHashMap.getInstance(4, 8);
+    println(map.toString()); //required otherwise FindBugs will show error
   }
 
   @Test

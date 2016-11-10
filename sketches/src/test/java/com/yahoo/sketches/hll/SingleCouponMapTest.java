@@ -13,14 +13,16 @@ import org.testng.annotations.Test;
 public class SingleCouponMapTest {
 
   @Test
-  public void getEstimateNoneKey() {
+  public void getEstimateNoEntry() {
     SingleCouponMap map = SingleCouponMap.getInstance(1000, 4);
     byte[] key = new byte[] {0, 0, 0, 1};
     Assert.assertEquals(map.getEstimate(key), 0.0);
+    Assert.assertEquals(map.getUpperBound(key), 0.0);
+    Assert.assertEquals(map.getLowerBound(key), 0.0);
   }
 
   @Test
-  public void oneKeyOneValue() {
+  public void oneKeyOneEntry() {
     int entries = 16;
     int keySizeBytes = 4;
     SingleCouponMap map = SingleCouponMap.getInstance(entries, keySizeBytes);
@@ -30,6 +32,8 @@ public class SingleCouponMapTest {
     double estimate = map.update(key, coupon);
     Assert.assertEquals(estimate, 1.0);
     Assert.assertEquals(map.getEstimate(key), 1.0);
+    Assert.assertEquals(map.getUpperBound(key), 1.0);
+    Assert.assertEquals(map.getLowerBound(key), 1.0);
   }
 
   @Test
@@ -45,11 +49,15 @@ public class SingleCouponMapTest {
       int coupon = Map.coupon16(id);
       double estimate = map.update(key, coupon);
       Assert.assertEquals(estimate, 1.0);
+      Assert.assertEquals(map.getEstimate(key), 1.0);
+      Assert.assertEquals(map.getUpperBound(key), 1.0);
+      Assert.assertEquals(map.getLowerBound(key), 1.0);
     }
     for (int i = 0; i < numKeys; i++) {
       byte[] key = String.format("%4s", i).getBytes(UTF_8);
-      double estimate = map.getEstimate(key);
-      Assert.assertEquals(estimate, 1.0);
+      Assert.assertEquals(map.getEstimate(key), 1.0);
+      Assert.assertEquals(map.getUpperBound(key), 1.0);
+      Assert.assertEquals(map.getLowerBound(key), 1.0);
     }
     println(map.toString());
     Assert.assertEquals(map.getCurrentCountEntries(), numKeys);
@@ -60,13 +68,16 @@ public class SingleCouponMapTest {
     SingleCouponMap map = SingleCouponMap.getInstance(2000, 4);
     for (int i = 1; i <= 1000; i++) {
       byte[] key = String.format("%4s", i).getBytes(UTF_8);
-      double estimate = map.update(key, 1);
+      double estimate = map.update(key, 1); //bogus coupon
       Assert.assertEquals(estimate, 1.0);
+      Assert.assertEquals(map.getEstimate(key), 1.0);
+      Assert.assertEquals(map.getUpperBound(key), 1.0);
+      Assert.assertEquals(map.getLowerBound(key), 1.0);
     }
     for (int i = 1; i <= 1000; i++) {
       byte[] key = String.format("%4s", i).getBytes(UTF_8);
-      double estimate = map.update(key, 2);
-      Assert.assertEquals(estimate, -1.0);
+      double estimate = map.update(key, 2); //different bogus coupon
+      Assert.assertEquals(estimate, -1.0); //table number
     }
     Assert.assertEquals(map.getCurrentCountEntries(), 1000);
   }

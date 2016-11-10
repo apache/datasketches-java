@@ -99,7 +99,7 @@ public class UniqueCountMap {
    */
   public UniqueCountMap(final int initialNumEntries, final int keySizeBytes) {
     checkTgtEntries(initialNumEntries);
-    checkKeySizeBytes(keySizeBytes);
+    checkConstructorKeySize(keySizeBytes);
 
     keySizeBytes_ = keySizeBytes;
     baseLevelMap = SingleCouponMap.getInstance(initialNumEntries, keySizeBytes);
@@ -115,9 +115,7 @@ public class UniqueCountMap {
    */
   public double update(final byte[] key, final byte[] identifier) {
     if (key == null) return Double.NaN;
-    if (key.length != keySizeBytes_) {
-      throw new SketchesArgumentException("Key size must be " + keySizeBytes_ + " bytes.");
-    }
+    checkMethodKeySize(key);
     if (identifier == null) return getEstimate(key);
     final short coupon = (short) Map.coupon16(identifier);
 
@@ -185,16 +183,58 @@ public class UniqueCountMap {
    */
   public double getEstimate(final byte[] key) {
     if (key == null) return Double.NaN;
-    if (key.length != keySizeBytes_) throw new SketchesArgumentException("Key must be " + keySizeBytes_ + " bytes long");
-    final int index = baseLevelMap.findKey(key);
-    if (index < 0) return 0;
-    if (baseLevelMap.isCoupon(index)) return 1;
-    final short level = baseLevelMap.getCoupon(index);
+    checkMethodKeySize(key);
+    double est = baseLevelMap.getEstimate(key);
+    if (est >= 0.0) return est;
+    //key has been promoted
+    final int level = -(int)est;
     if (level <= NUM_INTERMEDIATE_LEVELS) {
       final Map map = intermediateLevelMaps[level - 1];
       return map.getEstimate(key);
     }
     return lastLevelMap.getEstimate(key);
+  }
+
+  /**
+   * Returns the upper bound cardinality with respect to {@link #getEstimate(byte[])} associated
+   * with the given key.
+   * @param key the given key
+   * @return the upper bound cardinality with respect to {@link #getEstimate(byte[])} associated
+   * with the given key.
+   */
+  public double getUpperBound(final byte[] key) {
+    if (key == null) return Double.NaN;
+    checkMethodKeySize(key);
+    double est = baseLevelMap.getEstimate(key);
+    if (est >= 0.0) return est;
+    //key has been promoted
+    final int level = -(int)est;
+    if (level <= NUM_INTERMEDIATE_LEVELS) {
+      final Map map = intermediateLevelMaps[level - 1];
+      return map.getUpperBound(key);
+    }
+    return lastLevelMap.getUpperBound(key);
+  }
+
+  /**
+   * Returns the lower bound cardinality with respect to {@link #getEstimate(byte[])} associated
+   * with the given key.
+   * @param key the given key
+   * @return the lower bound cardinality with respect to {@link #getEstimate(byte[])} associated
+   * with the given key.
+   */
+  public double getLowerBound(final byte[] key) {
+    if (key == null) return Double.NaN;
+    checkMethodKeySize(key);
+    double est = baseLevelMap.getEstimate(key);
+    if (est >= 0.0) return est;
+    //key has been promoted
+    final int level = -(int)est;
+    if (level <= NUM_INTERMEDIATE_LEVELS) {
+      final Map map = intermediateLevelMaps[level - 1];
+      return map.getLowerBound(key);
+    }
+    return lastLevelMap.getLowerBound(key);
   }
 
   /**
@@ -329,9 +369,15 @@ public class UniqueCountMap {
     }
   }
 
-  private static final void checkKeySizeBytes(final int keySizeBytes) {
+  private static final void checkConstructorKeySize(final int keySizeBytes) {
     if (keySizeBytes < 4) {
       throw new SketchesArgumentException("KeySizeBytes must be >= 4: " + keySizeBytes);
+    }
+  }
+
+  private final void checkMethodKeySize(final byte[] key) {
+    if (key.length != keySizeBytes_) {
+      throw new SketchesArgumentException("Key size must be " + keySizeBytes_ + " bytes.");
     }
   }
 

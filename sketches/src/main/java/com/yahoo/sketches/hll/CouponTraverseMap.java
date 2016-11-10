@@ -74,6 +74,17 @@ class CouponTraverseMap extends CouponMap {
   }
 
   @Override
+  double getUpperBound(byte[] key) {
+    return getEstimate(key); //actually a wee bit higher
+  }
+
+  @Override
+  double getLowerBound(byte[] key) {
+    return getEstimate(key); //actually a wee bit lower
+  }
+
+
+  @Override
   void updateEstimate(final int index, final double estimate) {
     // not used in this map
   }

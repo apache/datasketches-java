@@ -32,6 +32,7 @@ class HllMap extends Map {
   private static final double LOAD_FACTOR = 15.0 / 16.0;
   private static final int HLL_INIT_NUM_ENTRIES = 157;
   private static final float HLL_RESIZE_FACTOR = 2.0F;
+  private static final double RSE = 0.836 / Math.sqrt(1024);
   private final int k_;
   private final int hllArrLongs_;
   private final double entrySizeBytes_;
@@ -95,6 +96,16 @@ class HllMap extends Map {
       return 0;
     }
     return hipEstAccumArr_[entryIndex];
+  }
+
+  @Override
+  double getUpperBound(byte[] key) {
+    return getEstimate(key) * (1 + RSE);
+  }
+
+  @Override
+  double getLowerBound(byte[] key) {
+    return getEstimate(key) * (1 - RSE);
   }
 
   void updateEstimate(final int entryIndex, final double estimate) {

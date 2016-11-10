@@ -16,10 +16,12 @@ public class UniqueCountMapTest {
   private final static int INIT_ENTRIES = 211;
   @Test
   public void nullKey() {
-    UniqueCountMap map = new UniqueCountMap(INIT_ENTRIES, 4);
+    UniqueCountMap map = new UniqueCountMap(4);
     double estimate = map.update(null, null);
     Assert.assertEquals(estimate, Double.NaN);
     Assert.assertEquals(map.getEstimate(null), Double.NaN);
+    Assert.assertEquals(map.getUpperBound(null), Double.NaN);
+    Assert.assertEquals(map.getLowerBound(null), Double.NaN);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -27,6 +29,12 @@ public class UniqueCountMapTest {
     UniqueCountMap map = new UniqueCountMap(INIT_ENTRIES, 4);
     byte[] key = new byte[] {0};
     map.update(key, null);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void wrongTgtEntries() {
+    UniqueCountMap map = new UniqueCountMap(101, 4);
+    println(map.toString()); //required otherwise FindBugs will show error
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -89,7 +97,6 @@ public class UniqueCountMapTest {
     Assert.assertEquals(estimate, 3.0);
   }
 
-  @SuppressWarnings("unused")
   @Test
   public void oneKeyManyValues() {
     UniqueCountMap map = new UniqueCountMap(INIT_ENTRIES, 4);
@@ -101,10 +108,12 @@ public class UniqueCountMapTest {
       if (i % 100 == 0) {
         double err = (estimate/i -1.0) * 100;
         String eStr = String.format("%.3f%%", err);
-        //println("i: "+i + "\t Est: " + estimate + TAB + eStr);
+        println("i: "+i + "\t Est: " + estimate + "\t" + eStr);
       }
       Assert.assertEquals(estimate, i, i * 0.10);
       Assert.assertEquals(map.getEstimate(key), estimate);
+      Assert.assertTrue(map.getUpperBound(key) >= estimate);
+      Assert.assertTrue(map.getLowerBound(key) <= estimate);
     }
     String out = map.toString();
     println(out);

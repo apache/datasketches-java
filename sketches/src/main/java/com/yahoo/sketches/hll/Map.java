@@ -47,6 +47,24 @@ abstract class Map {
    */
   abstract double getEstimate(byte[] key);
 
+  /**
+   * Returns the upper bound cardinality with respect to {@link #getEstimate(byte[])} associated
+   * with the given key. This approximates the RSE with 68% confidence.
+   * @param key the given key
+   * @return the upper bound cardinality with respect to {@link #getEstimate(byte[])} associated
+   * with the given key.
+   */
+  abstract double getUpperBound(byte[] key);
+
+  /**
+   * Returns the lower bound cardinality with respect to {@link #getEstimate(byte[])} associated
+   * with the given key. This approximates the RSE with 68% confidence.
+   * @param key the given key
+   * @return the lower bound cardinality with respect to {@link #getEstimate(byte[])} associated
+   * with the given key.
+   */
+  abstract double getLowerBound(byte[] key);
+
   int getKeySizeBytes() {
     return keySizeBytes_;
   }
@@ -137,7 +155,7 @@ abstract class Map {
    * Returns the next prime number that is greater than the given target. There will be
    * no prime numbers less than the returned prime number that are greater than the given target.
    * @param target the starting value to begin the search for the next prime
-   * @return the next prime number that is greater than or equal to the given target.
+   * @return the next prime number that is greater than the given target.
    */
   static int nextPrime(final int target) {
     return BigInteger.valueOf(target).nextProbablePrime().intValueExact();

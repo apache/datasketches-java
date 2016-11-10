@@ -82,7 +82,17 @@ class SingleCouponMap extends Map {
     final int entryIndex = findKey(key);
     if (entryIndex < 0) return 0;
     if (isCoupon(entryIndex)) return 1;
-    return ~couponsArr_[entryIndex]; //indicates coupon contains table #
+    return -getCoupon(entryIndex); // negative table level #, never 0
+  }
+
+  @Override
+  double getUpperBound(byte[] key) { //only used in test
+    return getEstimate(key);
+  }
+
+  @Override
+  double getLowerBound(byte[] key) { //only used in test
+    return getEstimate(key);
   }
 
   /**

@@ -31,6 +31,7 @@ class CouponHashMap extends CouponMap {
   private static final byte DELETED_KEY_MARKER = (byte) 255;
   private static final int BYTE_MASK = 0XFF;
   private static final int COUPON_K = 1024;
+  private static final double RSE = 0.408 / Math.sqrt(1024);
 
   private final int maxCouponsPerKey_;
   private final int capacityCouponsPerKey_;
@@ -85,6 +86,18 @@ class CouponHashMap extends CouponMap {
     if (index < 0) return 0;
     return hipEstAccumArr_[index];
   }
+
+
+  @Override
+  double getUpperBound(byte[] key) {
+    return getEstimate(key) * (1 + RSE);
+  }
+
+  @Override
+  double getLowerBound(byte[] key) {
+    return getEstimate(key) * (1 - RSE);
+  }
+
 
   @Override
   void updateEstimate(final int entryIndex, final double estimate) {

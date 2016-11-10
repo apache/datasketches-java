@@ -13,19 +13,24 @@ import org.testng.annotations.Test;
 public class CouponTraverseMapTest {
 
   @Test
-  public void getEstimateNovelKey() {
+  public void getEstimateNoEntry() {
     CouponTraverseMap map = CouponTraverseMap.getInstance(4, 1);
     byte[] key = new byte[] {0, 0, 0 ,0};
     Assert.assertEquals(map.getEstimate(key), 0.0);
+    Assert.assertEquals(map.getUpperBound(key), 0.0);
+    Assert.assertEquals(map.getLowerBound(key), 0.0);
+    Assert.assertNull(map.getCouponsIterator(key));
   }
 
   @Test
-  public void oneKeyOneValue() {
+  public void oneKeyOneEntry() {
     CouponTraverseMap map = CouponTraverseMap.getInstance(4, 1);
     byte[] key = new byte[] {0, 0, 0 ,0};
     double estimate = map.update(key, 1);
     Assert.assertEquals(estimate, 1.0);
     Assert.assertEquals(map.getEstimate(key), 1.0);
+    Assert.assertEquals(map.getUpperBound(key), 1.0);
+    Assert.assertEquals(map.getLowerBound(key), 1.0);
   }
 
   @Test
