@@ -21,7 +21,7 @@ import com.yahoo.sketches.hash.MurmurHash3;
  * @author Kevin Lang
  */
 class SingleCouponMap extends Map {
-  public static final String LS = System.getProperty("line.separator");
+  private static final String LS = System.getProperty("line.separator");
   private static final double RSE = 0.408 / Math.sqrt(1024);
 
   private int tableEntries_;

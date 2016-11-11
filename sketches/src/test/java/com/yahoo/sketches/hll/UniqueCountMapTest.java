@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import org.testng.Assert;
@@ -29,12 +30,6 @@ public class UniqueCountMapTest {
     UniqueCountMap map = new UniqueCountMap(INIT_ENTRIES, 4);
     byte[] key = new byte[] {0};
     map.update(key, null);
-  }
-
-  @Test(expectedExceptions = SketchesArgumentException.class)
-  public void wrongTgtEntries() {
-    UniqueCountMap map = new UniqueCountMap(101, 4);
-    println(map.toString()); //required otherwise FindBugs will show error
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -143,6 +138,36 @@ public class UniqueCountMapTest {
     String out = map.toString();
     println(out);
   }
+
+  @Test
+  public void forceDeletesAndReuse() {
+    UniqueCountMap map = new UniqueCountMap(156, 4);
+    byte[] key = new byte[4];
+    byte[] id = new byte[8];
+    for (int v = 1; v <= 200; v++) {
+      long h = (int) hash(new long[]{v}, 0L)[0];
+      id = MapTestingUtil.longToBytes(h, id);
+      for(int k = 1; k <= 147; k++) {
+        key = MapTestingUtil.intToBytes(k, key);
+        map.update(key, id);
+      }
+    }
+    //reuse
+    for (int v = 1; v <= 200; v++) {
+      long h = (int) hash(new long[]{v}, 0L)[0];
+      id = MapTestingUtil.longToBytes(h, id);
+      for(int k = 1+147; k <= 2 * 147; k++) {
+        key = MapTestingUtil.intToBytes(k, key);
+        map.update(key, id);
+      }
+    }
+    Assert.assertEquals(map.getIntermediateMaps().length, 8);
+    Assert.assertNotNull(map.getBaseMap());
+    Assert.assertNotNull(map.getHllMap());
+    //println(map.toString());
+  }
+
+
 
   @Test
   public void printlnTest() {

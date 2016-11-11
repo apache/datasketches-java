@@ -163,7 +163,7 @@ class CouponHashMap extends CouponMap {
   double findOrInsertCoupon(final int entryIndex, final short coupon) {
     final int couponMapArrEntryIndex = entryIndex * maxCouponsPerKey_;
 
-    int innerCouponIndex = (coupon & 0xffff) % maxCouponsPerKey_;
+    int innerCouponIndex = (coupon & 0xFFFF) % maxCouponsPerKey_;
 
     while (couponsArr_[couponMapArrEntryIndex + innerCouponIndex] != 0) {
       if (couponsArr_[couponMapArrEntryIndex + innerCouponIndex] == coupon) {
@@ -171,7 +171,7 @@ class CouponHashMap extends CouponMap {
       }
       innerCouponIndex = (innerCouponIndex + 1) % maxCouponsPerKey_; //linear search
     }
-    if ((curCountsArr_[entryIndex] & BYTE_MASK) > capacityCouponsPerKey_) {
+    if (((curCountsArr_[entryIndex] + 1) & BYTE_MASK) > capacityCouponsPerKey_) {
       //returns the negative estimate, as signal to promote
       return -hipEstAccumArr_[entryIndex];
     }
