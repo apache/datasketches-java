@@ -12,6 +12,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.Util;
 
 public class UniqueCountMapTest {
   private final static int INIT_ENTRIES = 211;
@@ -98,7 +99,7 @@ public class UniqueCountMapTest {
     byte[] key = "1234".getBytes(UTF_8);
     byte[] id = new byte[4];
     for (int i = 1; i <= 1000; i++) {
-      id = MapTestingUtil.intToBytes(i, id);
+      id = Util.intToBytes(i, id);
       double estimate = map.update(key, id);
       if (i % 100 == 0) {
         double err = (estimate/i -1.0) * 100;
@@ -146,18 +147,18 @@ public class UniqueCountMapTest {
     byte[] id = new byte[8];
     for (int v = 1; v <= 200; v++) {
       long h = (int) hash(new long[]{v}, 0L)[0];
-      id = MapTestingUtil.longToBytes(h, id);
+      id = Util.longToBytes(h, id);
       for(int k = 1; k <= 147; k++) {
-        key = MapTestingUtil.intToBytes(k, key);
+        key = Util.intToBytes(k, key);
         map.update(key, id);
       }
     }
     //reuse
     for (int v = 1; v <= 200; v++) {
       long h = (int) hash(new long[]{v}, 0L)[0];
-      id = MapTestingUtil.longToBytes(h, id);
+      id = Util.longToBytes(h, id);
       for(int k = 1+147; k <= 2 * 147; k++) {
-        key = MapTestingUtil.intToBytes(k, key);
+        key = Util.intToBytes(k, key);
         map.update(key, id);
       }
     }
