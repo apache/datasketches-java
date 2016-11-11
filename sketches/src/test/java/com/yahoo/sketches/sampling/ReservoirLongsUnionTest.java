@@ -2,6 +2,8 @@ package com.yahoo.sketches.sampling;
 
 import static com.yahoo.sketches.sampling.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.sampling.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.sampling.PreambleUtil.RESERVOIR_SIZE_INT;
+import static com.yahoo.sketches.sampling.PreambleUtil.RESERVOIR_SIZE_SHORT;
 import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER_BYTE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -12,6 +14,7 @@ import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
+import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
 public class ReservoirLongsUnionTest {
@@ -89,6 +92,66 @@ public class ReservoirLongsUnionTest {
 
     ReservoirLongsUnion rebuiltUnion = ReservoirLongsUnion.getInstance(mem);
     validateUnionEquality(rlu, rebuiltUnion);
+  }
+
+  @Test
+  public void checkVersionConversionWithEmptyGadget() {
+    int k = 32768;
+    short encK = ReservoirSize.computeSize(k);
+
+    ReservoirLongsUnion rlu = ReservoirLongsUnion.getInstance(k);
+    byte[] unionBytesOrig = rlu.toByteArray();
+
+    // get a new byte[], manually revert to v1, then reconstruct
+    byte[] unionBytes = rlu.toByteArray();
+    Memory unionMem = new NativeMemory(unionBytes);
+
+    unionMem.putByte(SER_VER_BYTE, (byte) 1);
+    unionMem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
+    unionMem.putShort(RESERVOIR_SIZE_SHORT, encK);
+
+    ReservoirLongsUnion rebuilt = ReservoirLongsUnion.getInstance(unionMem);
+    byte[] rebuiltBytes = rebuilt.toByteArray();
+
+    assertEquals(unionBytesOrig.length, rebuiltBytes.length);
+    for (int i = 0; i < unionBytesOrig.length; ++i) {
+      assertEquals(unionBytesOrig[i], rebuiltBytes[i]);
+    }
+  }
+
+  @Test
+  public void checkVersionConversionWithGadget() {
+    long n = 32;
+    int k = 256;
+    short encK = ReservoirSize.computeSize(k);
+
+    ReservoirLongsUnion rlu = ReservoirLongsUnion.getInstance(k);
+    for (long i = 0; i < n; ++i) {
+      rlu.update(i);
+    }
+    byte[] unionBytesOrig = rlu.toByteArray();
+
+    // get a new byte[], manually revert to v1, then reconstruct
+    byte[] unionBytes = rlu.toByteArray();
+    Memory unionMem = new NativeMemory(unionBytes);
+
+    unionMem.putByte(SER_VER_BYTE, (byte) 1);
+    unionMem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
+    unionMem.putShort(RESERVOIR_SIZE_SHORT, encK);
+
+    // force gadget header to v1, too
+    int offset = Family.RESERVOIR_UNION.getMaxPreLongs() << 3;
+    unionMem.putByte(offset + SER_VER_BYTE, (byte) 1);
+    unionMem.putInt(offset + RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
+    unionMem.putShort(offset + RESERVOIR_SIZE_SHORT, encK);
+
+    ReservoirLongsUnion rebuilt = ReservoirLongsUnion.getInstance(unionMem);
+    byte[] rebuiltBytes = rebuilt.toByteArray();
+
+    assertEquals(unionBytesOrig.length, rebuiltBytes.length);
+    for (int i = 0; i < unionBytesOrig.length; ++i) {
+      assertEquals(unionBytesOrig[i], rebuiltBytes[i]);
+    }
   }
 
   //@SuppressWarnings("null") // this is the point of the test

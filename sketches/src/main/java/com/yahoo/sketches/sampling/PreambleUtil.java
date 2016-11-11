@@ -41,14 +41,16 @@ import com.yahoo.sketches.SketchesArgumentException;
  * Long || Start Byte Adr:
  * Adr:
  *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
- *  0   ||-----(empty)-----|--Reservoir Size-|  Flags | FamID  | SerVer |   Preamble_Longs   |
+ *  0   ||--------Reservoir Size (K)---------|  Flags | FamID  | SerVer |   Preamble_Longs   |
  *
  *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
  *  1   ||-----(empty)-----|-------------------Items Seen Count------------------------------|
  *  </pre>
  *
- * <p><string>Union:</string> The union has fewer internal paramters to track and uses a slightly
- * different preamble structure.</p>
+ * <p><strong>Union:</strong> The union has fewer internal parameters to track and uses a slightly
+ * different preamble structure. The maximum reservoir size intentionally occupies the same byte
+ * range as the reservoir size in the sketch preamble, allowing the same methods to be used for
+ * reading and writing the values.</p>
  *
  * <p>An empty union only requires 8 bytes. A non-empty union requires 8 bytes of preamble.</p>
  *
@@ -56,7 +58,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * Long || Start Byte Adr:
  * Adr:
  *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
- *  0   ||-----(empty)-----|Max Res. Size (K)|  Flags | FamID  | SerVer |   Preamble_Longs   |
+ *  0   ||---------Max Res. Size (K)---------|  Flags | FamID  | SerVer |   Preamble_Longs   |
  *  </pre>
  *
  *  @author Jon Malkin
@@ -73,10 +75,12 @@ final class PreambleUtil {
   static final int SER_VER_BYTE          = 1;
   static final int FAMILY_BYTE           = 2;
   static final int FLAGS_BYTE            = 3;
-  static final int RESERVOIR_SIZE_SHORT  = 4;
+  static final int RESERVOIR_SIZE_SHORT  = 4; // used in ser_ver 1
+  static final int RESERVOIR_SIZE_INT    = 4;
   static final int ITEMS_SEEN_BYTE       = 8;
 
-  static final int MAX_K_SHORT           = 4; // used in Union only
+  //static final int MAX_K_SHORT           = 4; // used in Union only, ser_ver 1
+  //static final int MAX_K_INT             = 4; // used in Union only
 
   // flag bit masks
   //static final int BIG_ENDIAN_FLAG_MASK = 1;
@@ -86,7 +90,7 @@ final class PreambleUtil {
   //static final int ORDERED_FLAG_MASK    = 16;
 
   //Other constants
-  static final int SER_VER                    = 1;
+  static final int SER_VER                    = 2;
 
   static final boolean NATIVE_ORDER_IS_BIG_ENDIAN  =
       (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
@@ -133,8 +137,7 @@ final class PreambleUtil {
     //boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
     boolean isEmpty = (flags & EMPTY_FLAG_MASK) > 0;
 
-    short encResSize = extractReservoirSize(pre0);
-    int resSize = ReservoirSize.decodeValue(encResSize);
+    int resSize = extractReservoirSize(pre0);
 
     long itemsSeen = 0;
     if (!isEmpty) {
@@ -154,10 +157,9 @@ final class PreambleUtil {
       .append("  (Native Byte Order)         : ").append(nativeOrder).append(LS)
       //.append("  READ_ONLY                   : ").append(readOnly).append(LS)
       .append("  EMPTY                       : ").append(isEmpty).append(LS)
-      .append("Bytes 4-5   : Reservoir Size  : ").append(resSize).append(TAB + "(")
-      .append(Integer.toHexString(encResSize)).append(")").append(LS);
+      .append("Bytes  4-7: Reservoir Size    : ").append(resSize).append(TAB + "(").append(LS);
     if (!isEmpty) {
-      sb.append("Bytes 8-13  : Items Seen      : ").append(itemsSeen).append(LS);
+      sb.append("Bytes 8-13: Items Seen      : ").append(itemsSeen).append(LS);
     }
 
     sb.append("Preamble Bytes                : ").append(preLongs << 3).append(LS);
@@ -198,21 +200,21 @@ final class PreambleUtil {
     return (int) ((long0 >>> shift) & mask);
   }
 
-  static short extractReservoirSize(final long long0) {
+  static short extractEncodedReservoirSize(final long long0) {
     int shift = RESERVOIR_SIZE_SHORT << 3;
     long mask = 0XFFFFL;
     return (short) ((long0 >>> shift) & mask);
   }
 
+  static int extractReservoirSize(final long long0) {
+    int shift = RESERVOIR_SIZE_INT << 3;
+    long mask = 0XFFFFFFFFL;
+    return (int) ((long0 >>> shift) & mask);
+  }
+
   static long extractItemsSeenCount(final long long1) {
     long mask = 0XFFFFFFFFFFFFL;
     return (long1 & mask);
-  }
-
-  static short extractMaxK(final long long0) {
-    int shift = MAX_K_SHORT << 3;
-    long mask = 0XFFFFL;
-    return (short) ((long0 >>> shift) & mask);
   }
 
   static long insertPreLongs(final int preLongs, final long long0) {
@@ -244,21 +246,15 @@ final class PreambleUtil {
     return ((flags & mask) << shift) | (~(mask << shift) & long0);
   }
 
-  static long insertReservoirSize(final short reservoirSize, final long long0) {
-    int shift = RESERVOIR_SIZE_SHORT << 3;
-    long mask = 0XFFFFL;
+  static long insertReservoirSize(final int reservoirSize, final long long0) {
+    int shift = RESERVOIR_SIZE_INT << 3;
+    long mask = 0XFFFFFFFFL;
     return ((reservoirSize & mask) << shift) | (~(mask << shift) & long0);
   }
 
   static long insertItemsSeenCount(final long totalSeen, final long long1) {
     long mask = 0XFFFFFFFFFFFFL;
     return (totalSeen & mask) | (~mask & long1);
-  }
-
-  static long insertMaxK(final short maxK, final long long0) {
-    int shift = MAX_K_SHORT << 3;
-    long mask = 0XFFFFL;
-    return ((maxK & mask) << shift) | (~(mask << shift) & long0);
   }
 
   /**

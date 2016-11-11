@@ -2,6 +2,8 @@ package com.yahoo.sketches.sampling;
 
 import static com.yahoo.sketches.sampling.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.sampling.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.sampling.PreambleUtil.RESERVOIR_SIZE_INT;
+import static com.yahoo.sketches.sampling.PreambleUtil.RESERVOIR_SIZE_SHORT;
 import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER_BYTE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -117,7 +119,6 @@ public class ReservoirLongsSketchTest {
   public void checkDownsampledCopy() {
     int k = 256;
     int tgtK = 64;
-    short encTgtK = ReservoirSize.computeSize(tgtK);
 
     ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
 
@@ -131,7 +132,7 @@ public class ReservoirLongsSketchTest {
       rls.update(i);
     }
 
-    ReservoirLongsSketch dsCopy = rls.downsampledCopy(encTgtK);
+    ReservoirLongsSketch dsCopy = rls.downsampledCopy(tgtK);
     assertEquals(dsCopy.getK(), tgtK);
 
     // should be identical other than value of k, which isn't checked here
@@ -143,7 +144,7 @@ public class ReservoirLongsSketchTest {
     }
     assertEquals(rls.getN(), k - 1);
 
-    dsCopy = rls.downsampledCopy(encTgtK);
+    dsCopy = rls.downsampledCopy(tgtK);
     assertEquals(dsCopy.getN(), rls.getN());
     assertEquals(dsCopy.getNumSamples(), tgtK);
 
@@ -153,7 +154,7 @@ public class ReservoirLongsSketchTest {
     }
     assertEquals(rls.getN(), 2 * k);
 
-    dsCopy = rls.downsampledCopy(encTgtK);
+    dsCopy = rls.downsampledCopy(tgtK);
     assertEquals(dsCopy.getN(), rls.getN());
     assertEquals(dsCopy.getNumSamples(), tgtK);
   }
@@ -167,14 +168,9 @@ public class ReservoirLongsSketchTest {
 
     ResizeFactor rf = ResizeFactor.X8;
 
-    short encResSize256 = ReservoirSize.computeSize(256);
-    short encResSize128 = ReservoirSize.computeSize(128);
-    short encResSize64 = ReservoirSize.computeSize(64);
-    short encResSize1 = ReservoirSize.computeSize(1);
-
     // no data
     try {
-      ReservoirLongsSketch.getInstance(null, 128, rf, encResSize128);
+      ReservoirLongsSketch.getInstance(null, 128, rf, 128);
       fail();
     } catch (SketchesException e) {
       assertTrue(e.getMessage().contains("null reservoir"));
@@ -182,7 +178,7 @@ public class ReservoirLongsSketchTest {
 
     // size too small
     try {
-      ReservoirLongsSketch.getInstance(data, 128, rf, encResSize1);
+      ReservoirLongsSketch.getInstance(data, 128, rf, 1);
       fail();
     } catch (SketchesException e) {
       assertTrue(e.getMessage().contains("size less than 2"));
@@ -190,7 +186,7 @@ public class ReservoirLongsSketchTest {
 
     // configured reservoir size smaller than data length
     try {
-      ReservoirLongsSketch.getInstance(data, 128, rf, encResSize64);
+      ReservoirLongsSketch.getInstance(data, 128, rf, 64);
       fail();
     } catch (SketchesException e) {
       assertTrue(e.getMessage().contains("max size less than array length"));
@@ -198,7 +194,7 @@ public class ReservoirLongsSketchTest {
 
     // too many items seen vs data length, full sketch
     try {
-      ReservoirLongsSketch.getInstance(data, 512, rf, encResSize256);
+      ReservoirLongsSketch.getInstance(data, 512, rf, 256);
       fail();
     } catch (SketchesException e) {
       assertTrue(e.getMessage().contains("too few samples"));
@@ -206,7 +202,7 @@ public class ReservoirLongsSketchTest {
 
     // too many items seen vs data length, under-full sketch
     try {
-      ReservoirLongsSketch.getInstance(data, 256, rf, encResSize256);
+      ReservoirLongsSketch.getInstance(data, 256, rf, 256);
       fail();
     } catch (SketchesException e) {
       assertTrue(e.getMessage().contains("too few samples"));
@@ -216,11 +212,10 @@ public class ReservoirLongsSketchTest {
   @Test
   public void checkSketchCapacity() {
     long[] data = new long[64];
-    short encResSize = ReservoirSize.computeSize(64);
     long itemsSeen = (1L << 48) - 2;
 
     ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(data, itemsSeen,
-            ResizeFactor.X8, encResSize);
+            ResizeFactor.X8, data.length);
 
     // this should work, the next should fail
     rls.update(0);
@@ -248,6 +243,32 @@ public class ReservoirLongsSketchTest {
       rls.update(i);
     }
     assertTrue(Math.abs(rls.getImplicitSampleWeight() - 1.5) < EPS);
+  }
+
+  @Test
+  public void checkVersionConversion() {
+    // version change from 1 to 2 only impact first preamble long, so empty sketch is sufficient
+    int k = 32768;
+    short encK = ReservoirSize.computeSize(k);
+
+    ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
+    byte[] sketchBytesOrig = rls.toByteArray();
+
+    // get a new byte[], manually revert to v1, then reconstruct
+    byte[] sketchBytes = rls.toByteArray();
+    Memory sketchMem = new NativeMemory(sketchBytes);
+
+    sketchMem.putByte(SER_VER_BYTE, (byte) 1);
+    sketchMem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
+    sketchMem.putShort(RESERVOIR_SIZE_SHORT, encK);
+
+    ReservoirLongsSketch rebuilt = ReservoirLongsSketch.getInstance(sketchMem);
+    byte[] rebuiltBytes = rebuilt.toByteArray();
+
+    assertEquals(sketchBytesOrig.length, rebuiltBytes.length);
+    for (int i = 0; i < sketchBytesOrig.length; ++i) {
+      assertEquals(sketchBytesOrig[i], rebuiltBytes[i]);
+    }
   }
 
   @Test

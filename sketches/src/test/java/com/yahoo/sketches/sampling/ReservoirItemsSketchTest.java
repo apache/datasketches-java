@@ -2,6 +2,8 @@ package com.yahoo.sketches.sampling;
 
 import static com.yahoo.sketches.sampling.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.sampling.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.sampling.PreambleUtil.RESERVOIR_SIZE_INT;
+import static com.yahoo.sketches.sampling.PreambleUtil.RESERVOIR_SIZE_SHORT;
 import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER_BYTE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -227,14 +229,9 @@ public class ReservoirItemsSketchTest {
 
     ResizeFactor rf = ResizeFactor.X8;
 
-    short encResSize256 = ReservoirSize.computeSize(256);
-    short encResSize128 = ReservoirSize.computeSize(128);
-    short encResSize64 = ReservoirSize.computeSize(64);
-    short encResSize1 = ReservoirSize.computeSize(1);
-
     // no data
     try {
-      ReservoirItemsSketch.<Byte>getInstance(null, 128, rf, encResSize128);
+      ReservoirItemsSketch.<Byte>getInstance(null, 128, rf, 128);
       fail();
     } catch (SketchesException e) {
       assertTrue(e.getMessage().contains("null reservoir"));
@@ -242,7 +239,7 @@ public class ReservoirItemsSketchTest {
 
     // size too small
     try {
-      ReservoirItemsSketch.getInstance(data, 128, rf, encResSize1);
+      ReservoirItemsSketch.getInstance(data, 128, rf, 1);
       fail();
     } catch (SketchesException e) {
       assertTrue(e.getMessage().contains("size less than 2"));
@@ -250,7 +247,7 @@ public class ReservoirItemsSketchTest {
 
     // configured reservoir size smaller than data length
     try {
-      ReservoirItemsSketch.getInstance(data, 128, rf, encResSize64);
+      ReservoirItemsSketch.getInstance(data, 128, rf, 64);
       fail();
     } catch (SketchesException e) {
       assertTrue(e.getMessage().contains("max size less than array length"));
@@ -258,7 +255,7 @@ public class ReservoirItemsSketchTest {
 
     // too many items seen vs data length, full sketch
     try {
-      ReservoirItemsSketch.getInstance(data, 512, rf, encResSize256);
+      ReservoirItemsSketch.getInstance(data, 512, rf, 256);
       fail();
     } catch (SketchesException e) {
       assertTrue(e.getMessage().contains("too few samples"));
@@ -266,7 +263,7 @@ public class ReservoirItemsSketchTest {
 
     // too many items seen vs data length, under-full sketch
     try {
-      ReservoirItemsSketch.getInstance(data, 256, rf, encResSize256);
+      ReservoirItemsSketch.getInstance(data, 256, rf, 256);
       fail();
     } catch (SketchesException e) {
       assertTrue(e.getMessage().contains("too few samples"));
@@ -305,12 +302,10 @@ public class ReservoirItemsSketchTest {
     for (long i = 0; i < 64; ++i) {
       data.add(i);
     }
-    short encResSize = ReservoirSize.computeSize(64);
     long itemsSeen = (1L << 48) - 2;
 
     ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(data, itemsSeen,
-            ResizeFactor.X8,
-            encResSize);
+            ResizeFactor.X8, 64);
 
     // this should work, the next should fail
     ris.update(0L);
@@ -338,6 +333,33 @@ public class ReservoirItemsSketchTest {
       ris.update(i);
     }
     assertTrue(ris.getImplicitSampleWeight() - 1.5 < EPS);
+  }
+
+  @Test
+  public void checkVersionConversion() {
+    // version change from 1 to 2 only impact first preamble long, so empty sketch is sufficient
+    int k = 32768;
+    short encK = ReservoirSize.computeSize(k);
+    ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
+
+    ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(k);
+    byte[] sketchBytesOrig = ris.toByteArray(serDe);
+
+    // get a new byte[], manually revert to v1, then reconstruct
+    byte[] sketchBytes = ris.toByteArray(serDe);
+    Memory sketchMem = new NativeMemory(sketchBytes);
+
+    sketchMem.putByte(SER_VER_BYTE, (byte) 1);
+    sketchMem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
+    sketchMem.putShort(RESERVOIR_SIZE_SHORT, encK);
+
+    ReservoirItemsSketch<Long> rebuilt = ReservoirItemsSketch.getInstance(sketchMem, serDe);
+    byte[] rebuiltBytes = rebuilt.toByteArray(serDe);
+
+    assertEquals(sketchBytesOrig.length, rebuiltBytes.length);
+    for (int i = 0; i < sketchBytesOrig.length; ++i) {
+      assertEquals(sketchBytesOrig[i], rebuiltBytes[i]);
+    }
   }
 
   @Test
