@@ -332,7 +332,7 @@ public class UniqueCountMap {
   }
 
   /**
-   * Returns a string with a human-readable summary of the UniqueCountMap and all the internal levels
+   * Returns a string with a human-readable summary of the UniqueCountMap and all the internal maps
    * @return human-readable summary
    */
   @Override
