@@ -55,11 +55,12 @@ import com.yahoo.sketches.SketchesArgumentException;
  * <p>The sketch estimator algorithms are unbiased with a Relative Standard Error (RSE)
  * of about 2.6% with 68% confidence, or equivalently, about 5.2% with a 95% confidence.
  *
- * <p>There are 2 classes in the test hierarchy that can be used from the command line to feed this
- * mapping sketch piped from standard-in for experimental evaluation.
- * The first is ProcessIpStream, which processes simple IP/ID pairs
- * and the second, ProcessDistributionStream, which processes pairs that describe a distribution.
- * Please refer to the javadocs for those classes for more information.
+ * <p>In a parallel package in the sketches-misc repository, there are 2 classes  that can be used
+ * from the command line to feed this mapping sketch piped from standard-in for experimental
+ * evaluation. The first is ProcessIpStream, which processes simple IP/ID pairs and the second,
+ * ProcessDistributionStream, which processes pairs that describe a distribution.
+ * In this same package is the VariousMapRSETest class that was used to generate the error plots
+ * for the web site. Please refer to the javadocs for those classes for more information.
  *
  * @author Lee Rhodes
  * @author Alex Saydakov
