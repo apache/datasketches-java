@@ -168,17 +168,14 @@ public class ReservoirLongsSketch {
    *        "{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a sketch instance of this class
    */
-  public static ReservoirLongsSketch getInstance(final Memory srcMem) {
+  public static ReservoirLongsSketch getInstance(Memory srcMem) {
     Family.RESERVOIR.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
 
     final int numPreLongs = getAndCheckPreLongs(srcMem);
-    final long pre0 = srcMem.getLong(0);
+    long pre0 = srcMem.getLong(0);
     final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(pre0));
     final int serVer = extractSerVer(pre0);
     final boolean isEmpty = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0;
-
-    final int k= extractReservoirSize(pre0);
-
 
     // Check values
     final boolean preLongsEqMin = (numPreLongs == Family.RESERVOIR.getMinPreLongs());
@@ -189,9 +186,16 @@ public class ReservoirLongsSketch {
           + Family.RESERVOIR.getMinPreLongs() + "preLongs");
     }
     if (serVer != SER_VER) {
-      throw new SketchesArgumentException(
-          "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
+      if (serVer == 1) {
+        srcMem = VersionConverter.convertSketch1to2(srcMem);
+        pre0 = srcMem.getLong(0);
+      } else {
+        throw new SketchesArgumentException(
+                "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
+      }
     }
+
+    final int k = extractReservoirSize(pre0);
 
     if (isEmpty) {
       return new ReservoirLongsSketch(k, rf);

@@ -41,14 +41,16 @@ import com.yahoo.sketches.SketchesArgumentException;
  * Long || Start Byte Adr:
  * Adr:
  *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
- *  0   ||-----(empty)-----|--Reservoir Size-|  Flags | FamID  | SerVer |   Preamble_Longs   |
+ *  0   ||--------Reservoir Size (K)---------|  Flags | FamID  | SerVer |   Preamble_Longs   |
  *
  *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
  *  1   ||-----(empty)-----|-------------------Items Seen Count------------------------------|
  *  </pre>
  *
- * <p><string>Union:</string> The union has fewer internal paramters to track and uses a slightly
- * different preamble structure.</p>
+ * <p><strong>Union:</strong> The union has fewer internal parameters to track and uses a slightly
+ * different preamble structure. The maximum reservoir size intentionally occupies the same byte
+ * range as the reservoir size in the sketch preamble, allowing the same methods to be used for
+ * reading and writing the values.</p>
  *
  * <p>An empty union only requires 8 bytes. A non-empty union requires 8 bytes of preamble.</p>
  *
@@ -56,7 +58,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * Long || Start Byte Adr:
  * Adr:
  *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
- *  0   ||-----(empty)-----|Max Res. Size (K)|  Flags | FamID  | SerVer |   Preamble_Longs   |
+ *  0   ||---------Max Res. Size (K)---------|  Flags | FamID  | SerVer |   Preamble_Longs   |
  *  </pre>
  *
  *  @author Jon Malkin
@@ -77,8 +79,8 @@ final class PreambleUtil {
   static final int RESERVOIR_SIZE_INT    = 4;
   static final int ITEMS_SEEN_BYTE       = 8;
 
-  static final int MAX_K_SHORT           = 4; // used in Union only, ser_ver 1
-  static final int MAX_K_INT             = 4; // used in Union only
+  //static final int MAX_K_SHORT           = 4; // used in Union only, ser_ver 1
+  //static final int MAX_K_INT             = 4; // used in Union only
 
   // flag bit masks
   //static final int BIG_ENDIAN_FLAG_MASK = 1;
@@ -207,24 +209,12 @@ final class PreambleUtil {
   static int extractReservoirSize(final long long0) {
     int shift = RESERVOIR_SIZE_INT << 3;
     long mask = 0XFFFFFFFFL;
-    return (short) ((long0 >>> shift) & mask);
+    return (int) ((long0 >>> shift) & mask);
   }
 
   static long extractItemsSeenCount(final long long1) {
     long mask = 0XFFFFFFFFFFFFL;
     return (long1 & mask);
-  }
-
-  static short extractEncodedMaxK(final long long0) {
-    int shift = MAX_K_SHORT << 3;
-    long mask = 0XFFFFL;
-    return (short) ((long0 >>> shift) & mask);
-  }
-
-  static int extractMaxK(final long long0) {
-    int shift = MAX_K_INT << 3;
-    long mask = 0XFFFFFFFFL;
-    return (short) ((long0 >>> shift) & mask);
   }
 
   static long insertPreLongs(final int preLongs, final long long0) {
@@ -265,12 +255,6 @@ final class PreambleUtil {
   static long insertItemsSeenCount(final long totalSeen, final long long1) {
     long mask = 0XFFFFFFFFFFFFL;
     return (totalSeen & mask) | (~mask & long1);
-  }
-
-  static long insertMaxK(final int maxK, final long long0) {
-    int shift = MAX_K_INT << 3;
-    long mask = 0XFFFFFFFFL;
-    return ((maxK & mask) << shift) | (~(mask << shift) & long0);
   }
 
   /**

@@ -5,7 +5,7 @@ import static com.yahoo.sketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.sampling.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractFlags;
-import static com.yahoo.sketches.sampling.PreambleUtil.extractMaxK;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractReservoirSize;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.sampling.PreambleUtil.getAndCheckPreLongs;
 
@@ -66,28 +66,32 @@ public class ReservoirLongsUnion {
    * @param srcMem Memory object containing a serialized union
    * @return A ReservoirLongsUnion created from the provided Memory
    */
-  public static ReservoirLongsUnion getInstance(final Memory srcMem) {
+  public static ReservoirLongsUnion getInstance(Memory srcMem) {
     Family.RESERVOIR_UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
 
     final int numPreLongs = getAndCheckPreLongs(srcMem);
-    final long pre0 = srcMem.getLong(0);
+    long pre0 = srcMem.getLong(0);
     final int serVer = extractSerVer(pre0);
     final boolean isEmpty = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0;
 
-    final int maxK = extractMaxK(pre0);
-
-    final boolean preLongsEqMin = (numPreLongs == Family.RESERVOIR.getMinPreLongs());
-    final boolean preLongsEqMax = (numPreLongs == Family.RESERVOIR.getMaxPreLongs());
+    final boolean preLongsEqMin = (numPreLongs == Family.RESERVOIR_UNION.getMinPreLongs());
+    final boolean preLongsEqMax = (numPreLongs == Family.RESERVOIR_UNION.getMaxPreLongs());
 
     if (!preLongsEqMin & !preLongsEqMax) {
-      throw new SketchesArgumentException("Possible corruption: Non-empty sketch with only "
-          + Family.RESERVOIR.getMinPreLongs() + "preLongs");
+      throw new SketchesArgumentException("Possible corruption: Non-empty union with only "
+          + Family.RESERVOIR_UNION.getMinPreLongs() + "preLongs");
     }
     if (serVer != SER_VER) {
-      throw new SketchesArgumentException(
-          "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
+      if (serVer == 1) {
+        srcMem = VersionConverter.convertUnion1to2(srcMem);
+        pre0 = srcMem.getLong(0);
+      } else {
+        throw new SketchesArgumentException(
+                "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
+      }
     }
 
+    final int maxK = extractReservoirSize(pre0);
     final ReservoirLongsUnion rlu = new ReservoirLongsUnion(maxK);
 
     if (!isEmpty) {
@@ -234,7 +238,7 @@ public class ReservoirLongsUnion {
     pre0 = PreambleUtil.insertFamilyID(Family.RESERVOIR_UNION.getID(), pre0); // Byte 2
     pre0 = (empty) ? PreambleUtil.insertFlags(EMPTY_FLAG_MASK, pre0)
         : PreambleUtil.insertFlags(0, pre0); // Byte 3
-    pre0 = PreambleUtil.insertMaxK(maxK_, pre0); // Bytes 4-5
+    pre0 = PreambleUtil.insertReservoirSize(maxK_, pre0); // Bytes 4-7
 
     mem.putLong(0, pre0);
     if (!empty) {

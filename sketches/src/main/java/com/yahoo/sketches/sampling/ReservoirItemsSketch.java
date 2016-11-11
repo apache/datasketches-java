@@ -186,16 +186,14 @@ public class ReservoirItemsSketch<T> {
    * @param serDe  An instance of ArrayOfItemsSerDe
    * @return a sketch instance of this class
    */
-  public static <T> ReservoirItemsSketch<T> getInstance(final Memory srcMem,
+  public static <T> ReservoirItemsSketch<T> getInstance(Memory srcMem,
                                                         final ArrayOfItemsSerDe<T> serDe) {
     final int numPreLongs = getAndCheckPreLongs(srcMem);
-    final long pre0 = srcMem.getLong(0);
+    long pre0 = srcMem.getLong(0);
     final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(pre0));
     final int serVer = extractSerVer(pre0);
     final int familyId = extractFamilyID(pre0);
     final boolean isEmpty = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0;
-
-    final int k = extractReservoirSize(pre0);
 
     // Check values
     final boolean preLongsEqMin = (numPreLongs == Family.RESERVOIR.getMinPreLongs());
@@ -207,14 +205,21 @@ public class ReservoirItemsSketch<T> {
                       + Family.RESERVOIR.getMinPreLongs() + "preLongs");
     }
     if (serVer != SER_VER) {
-      throw new SketchesArgumentException(
-              "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
+      if (serVer == 1) {
+        srcMem = VersionConverter.convertSketch1to2(srcMem);
+        pre0 = srcMem.getLong(0);
+      } else {
+        throw new SketchesArgumentException(
+                "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
+      }
     }
     final int reqFamilyId = Family.RESERVOIR.getID();
     if (familyId != reqFamilyId) {
       throw new SketchesArgumentException(
               "Possible Corruption: FamilyID must be " + reqFamilyId + ": " + familyId);
     }
+
+    final int k = extractReservoirSize(pre0);
 
     if (isEmpty) {
       return new ReservoirItemsSketch<>(k, rf);

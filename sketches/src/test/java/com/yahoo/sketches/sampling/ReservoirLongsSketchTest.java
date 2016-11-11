@@ -2,6 +2,8 @@ package com.yahoo.sketches.sampling;
 
 import static com.yahoo.sketches.sampling.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.sampling.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.sampling.PreambleUtil.RESERVOIR_SIZE_INT;
+import static com.yahoo.sketches.sampling.PreambleUtil.RESERVOIR_SIZE_SHORT;
 import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER_BYTE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -241,6 +243,32 @@ public class ReservoirLongsSketchTest {
       rls.update(i);
     }
     assertTrue(Math.abs(rls.getImplicitSampleWeight() - 1.5) < EPS);
+  }
+
+  @Test
+  public void checkVersionConversion() {
+    // version change from 1 to 2 only impact first preamble long, so empty sketch is sufficient
+    int k = 32768;
+    short encK = ReservoirSize.computeSize(k);
+
+    ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
+    byte[] sketchBytesOrig = rls.toByteArray();
+
+    // get a new byte[], manually revert to v1, then reconstruct
+    byte[] sketchBytes = rls.toByteArray();
+    Memory sketchMem = new NativeMemory(sketchBytes);
+
+    sketchMem.putByte(SER_VER_BYTE, (byte) 1);
+    sketchMem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
+    sketchMem.putShort(RESERVOIR_SIZE_SHORT, encK);
+
+    ReservoirLongsSketch rebuilt = ReservoirLongsSketch.getInstance(sketchMem);
+    byte[] rebuiltBytes = rebuilt.toByteArray();
+
+    assertEquals(sketchBytesOrig.length, rebuiltBytes.length);
+    for (int i = 0; i < sketchBytesOrig.length; ++i) {
+      assertEquals(sketchBytesOrig[i], rebuiltBytes[i]);
+    }
   }
 
   @Test
