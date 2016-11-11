@@ -83,7 +83,7 @@ public class UniqueCountMap {
 
   /**
    * Constructs a UniqueCountMap with an initial capacity of one million entries.
-   * @param keySizeBytes must be at least 4 bytes to have enough entropy.
+   * @param keySizeBytes must be at least 4 bytes to have sufficient entropy.
    */
   public UniqueCountMap(final int keySizeBytes) {
     this(INITIAL_NUM_ENTRIES, keySizeBytes);
