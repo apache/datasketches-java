@@ -17,6 +17,7 @@ import com.yahoo.sketches.ArrayOfLongsSerDe;
  * edge cases not easily tested elsewhere.
  */
 public class VersionConverterTest {
+
   @Test
   public void checkReadOnlyMemory() {
     int k = 32768;
@@ -41,11 +42,12 @@ public class VersionConverterTest {
     assertEquals(sketchMem, convertedSketch);
   }
 
-  private Memory revertToV1(Memory mem, short encodedK) {
+  private static Memory revertToV1(Memory mem, short encodedK) {
     mem.putByte(SER_VER_BYTE, (byte) 1);
     mem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
     mem.putShort(RESERVOIR_SIZE_SHORT, encodedK);
 
     return mem;
   }
+
 }
