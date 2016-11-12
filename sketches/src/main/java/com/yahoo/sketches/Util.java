@@ -72,6 +72,21 @@ public final class Util {
   public static final char TAB = '\t';
 
   /**
+   * Returns a string of spaced hex bytes in Big-Endian order.
+   * @param v the given long
+   * @return string of spaced hex bytes in Big-Endian order.
+   */
+  public static String longToHexBytes(long v) {
+    long mask = 0XFFL;
+    StringBuilder sb = new StringBuilder();
+    for (int i = 8; i-- > 0; ) {
+      String s = Long.toHexString((v >>> i * 8) & mask);
+      sb.append(zeroPad(s, 2)).append(" ");
+    }
+    return sb.toString();
+  }
+
+  /**
    * Returns an int array of points that will be evenly spaced on a log axis.
    * This is designed for Log_base2 numbers.
    * @param lgStart the Log_base2 of the starting value. E.g., for 1 lgStart = 0.

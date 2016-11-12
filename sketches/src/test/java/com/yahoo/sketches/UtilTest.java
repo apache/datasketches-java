@@ -14,12 +14,13 @@ import static com.yahoo.sketches.Util.checkIfPowerOf2;
 import static com.yahoo.sketches.Util.checkProbability;
 import static com.yahoo.sketches.Util.evenlyLgSpaced;
 import static com.yahoo.sketches.Util.floorPowerOf2;
+import static com.yahoo.sketches.Util.intToBytes;
 import static com.yahoo.sketches.Util.isLessThanUnsigned;
 import static com.yahoo.sketches.Util.isMultipleOf8AndGT0;
 import static com.yahoo.sketches.Util.isPowerOf2;
 import static com.yahoo.sketches.Util.milliSecToString;
 import static com.yahoo.sketches.Util.nanoSecToString;
-import static com.yahoo.sketches.Util.*;
+import static com.yahoo.sketches.Util.zeroPad;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -221,7 +222,6 @@ public class UtilTest {
     String expected = "1:01:01.001";
     Assert.assertEquals(result, expected);
   }
-
 
   @Test
   public void printlnTest() {
