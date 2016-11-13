@@ -84,8 +84,9 @@ final class ItemsAuxiliary<T> {
    * @param cumWtsArr the cumulative weights for each item from the sketch populated here
    */
   private final static <T> void populateFromQuantilesSketch(
-      final int k, final long n, final long bitPattern, final T[] combinedBuffer, final int baseBufferCount,
-      final int numSamples, final T[] itemsArr, final long[] cumWtsArr, final Comparator<? super T> comparator) {
+      final int k, final long n, final long bitPattern, final T[] combinedBuffer,
+      final int baseBufferCount, final int numSamples, final T[] itemsArr, final long[] cumWtsArr,
+      final Comparator<? super T> comparator) {
     long weight = 1;
     int nxt = 0;
     long bits = bitPattern;

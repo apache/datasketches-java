@@ -96,7 +96,8 @@ final class OnHeapFields implements Fields {
   }
 
   @Override
-  public Fields unionCompressedAndExceptions(byte[] compressed, int minVal, OnHeapHash exceptions, UpdateCallback cb) {
+  public Fields unionCompressedAndExceptions(
+      byte[] compressed, int minVal, OnHeapHash exceptions, UpdateCallback cb) {
     return unionBucketIterator(CompressedBucketUtils.getBucketIterator(compressed, minVal, exceptions), cb);
   }
 }

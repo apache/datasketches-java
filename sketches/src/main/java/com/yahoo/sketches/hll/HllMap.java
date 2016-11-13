@@ -197,7 +197,8 @@ class HllMap extends Map {
    * @param stateArr the bit vector that holds valid/empty state of each entry
    * @return the entry index of the given key, or the one's complement of the index if not found.
    */
-  private static final int findKey(final byte[] keyArr, final byte[] key, final int tableEntries, final byte[] stateArr) {
+  private static final int findKey(final byte[] keyArr, final byte[] key, final int tableEntries,
+      final byte[] stateArr) {
     final int keyLen = key.length;
     final long[] hash = MurmurHash3.hash(key, SEED);
     int entryIndex  = getIndex(hash[0], tableEntries);

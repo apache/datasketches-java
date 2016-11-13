@@ -92,7 +92,8 @@ abstract class Map {
    * @param length the length in bytes of the two sub-arrays.
    * @return <tt>true</tt> if the two sub-arrays are equal
    */
-  static final boolean arraysEqual(final byte[] a, final int offsetA, final byte[] b, final int offsetB, final int length) {
+  static final boolean arraysEqual(final byte[] a, final int offsetA, final byte[] b,
+      final int offsetB, final int length) {
     for (int i = 0; i < length; i++) {
       if (a[i + offsetA] != b[i + offsetB]) {
         return false;

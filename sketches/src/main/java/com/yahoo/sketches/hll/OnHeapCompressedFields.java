@@ -48,7 +48,8 @@ final class OnHeapCompressedFields implements Fields {
           index, val, new UpdateCallback() {
             @Override
             public void bucketUpdated(int bucket, byte oldVal, byte newVal) {
-              callback.bucketUpdated(bucket, theOldVal == 0xf ? oldVal : (byte) (theOldVal + currMin), newVal);
+              callback.bucketUpdated(
+                  bucket, theOldVal == 0xf ? oldVal : (byte) (theOldVal + currMin), newVal);
             }
           }
       );
