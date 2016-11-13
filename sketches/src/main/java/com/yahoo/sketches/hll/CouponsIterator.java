@@ -28,7 +28,7 @@ class CouponsIterator {
   boolean next() {
     index_++;
     while (index_ < maxEntries_) {
-      if (couponsArr_[offset_ + index_] != 0) return true;
+      if (couponsArr_[offset_ + index_] != 0) { return true; }
       index_++;
     }
     return false;

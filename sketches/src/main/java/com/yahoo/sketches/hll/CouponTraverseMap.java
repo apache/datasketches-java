@@ -73,7 +73,7 @@ class CouponTraverseMap extends CouponMap {
   @Override
   double getEstimate(final byte[] key) {
     final int entryIndex = findKey(key);
-    if (entryIndex < 0) return 0;
+    if (entryIndex < 0) { return 0; }
     return getCouponCount(entryIndex);
   }
 
@@ -110,7 +110,7 @@ class CouponTraverseMap extends CouponMap {
         return firstDeletedIndex == -1 ? ~entryIndex : ~firstDeletedIndex; // found empty or deleted
       }
       if (couponsArr_[entryIndex * maxCouponsPerKey_] == 0) { //found deleted
-        if (firstDeletedIndex == -1) firstDeletedIndex = entryIndex;
+        if (firstDeletedIndex == -1) { firstDeletedIndex = entryIndex; }
       } else if (Map.arraysEqual(keysArr_, entryIndex * keySizeBytes_, key, 0, keySizeBytes_)) {
         return entryIndex; // found key
       }
@@ -146,7 +146,7 @@ class CouponTraverseMap extends CouponMap {
     boolean wasFound = false;
     for (int i = 0; i < maxCouponsPerKey_; i++) {
       if (couponsArr_[offset + i] == 0) {
-        if (wasFound) return i;
+        if (wasFound) { return i; }
         couponsArr_[offset + i] = value;
         return i + 1;
       }
@@ -154,7 +154,7 @@ class CouponTraverseMap extends CouponMap {
         wasFound = true;
       }
     }
-    if (wasFound) return maxCouponsPerKey_;
+    if (wasFound) { return maxCouponsPerKey_; }
     return -maxCouponsPerKey_;
   }
 
@@ -183,7 +183,7 @@ class CouponTraverseMap extends CouponMap {
   @Override
   CouponsIterator getCouponsIterator(final byte[] key) {
     final int entryIndex = findKey(key);
-    if (entryIndex < 0) return null;
+    if (entryIndex < 0) { return null; }
     return new CouponsIterator(couponsArr_, entryIndex * maxCouponsPerKey_, maxCouponsPerKey_);
   }
 

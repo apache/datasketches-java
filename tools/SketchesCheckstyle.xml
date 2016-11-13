@@ -85,7 +85,8 @@
     </module>
     
     <module name="NeedBraces">
-      <property name="allowSingleLineStatement" value="true"/>
+      <property name="allowSingleLineStatement" value="false"/> <!-- default = false -->
+      <property name="allowEmptyLoopBody" value="false"/>      <!-- default = false -->
     </module>
     
     <module name="LeftCurly"> <!-- doesn't allow for if (n == 0) { return 0.0; }, which is readable and not corruptable -->

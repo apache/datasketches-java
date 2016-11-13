@@ -264,8 +264,8 @@ final class ItemsUtil {
     final T tgtMax = tgt.getMaxValue();
     final T tgtMin = tgt.getMinValue();
 
-    if (src.getComparator().compare(srcMax, tgtMax) > 0) tgt.maxValue_ = srcMax;
-    if (src.getComparator().compare(srcMin, tgtMin) < 0) tgt.minValue_ = srcMin;
+    if (src.getComparator().compare(srcMax, tgtMax) > 0) { tgt.maxValue_ = srcMax; }
+    if (src.getComparator().compare(srcMin, tgtMin) < 0) { tgt.minValue_ = srcMin; }
   }
 
   private static void zipSize2KBuffer(
@@ -395,9 +395,9 @@ final class ItemsUtil {
   static <T> void blockyTandemMergeSort(final T[] keyArr, final long[] valArr, final int arrLen,
       final int blkSize, final Comparator<? super T> comparator) {
     assert blkSize >= 1;
-    if (arrLen <= blkSize) return;
+    if (arrLen <= blkSize) { return; }
     int numblks = arrLen / blkSize;
-    if (numblks * blkSize < arrLen) numblks += 1;
+    if (numblks * blkSize < arrLen) { numblks += 1; }
     assert (numblks * blkSize >= arrLen);
 
     // duplicate the input is preparation for the "ping-pong" copy reduction strategy.
@@ -433,7 +433,7 @@ final class ItemsUtil {
     // Instead, they refer to the pre-sorted blocks, such as block 0, block 1, etc.
 
     assert (grpLen > 0);
-    if (grpLen == 1) return;
+    if (grpLen == 1) { return; }
     int grpLen1 = grpLen / 2;
     int grpLen2 = grpLen - grpLen1;
     assert (grpLen1 >= 1);
@@ -459,7 +459,9 @@ final class ItemsUtil {
     int arrLen2   = grpLen2   * blkSize;
 
     // special case for the final block which might be shorter than blkSize.
-    if (arrStart2 + arrLen2 > arrLim) arrLen2 = arrLim - arrStart2;
+    if (arrStart2 + arrLen2 > arrLim) {
+      arrLen2 = arrLim - arrStart2;
+    }
 
     tandemMerge(keySrc, valSrc,
                 arrStart1, arrLen1,

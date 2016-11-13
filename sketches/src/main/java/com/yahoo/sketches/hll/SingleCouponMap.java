@@ -78,8 +78,8 @@ class SingleCouponMap extends Map {
   @Override
   double getEstimate(final byte[] key) {
     final int entryIndex = findKey(key);
-    if (entryIndex < 0) return 0;
-    if (isCoupon(entryIndex)) return 1;
+    if (entryIndex < 0) { return 0; }
+    if (isCoupon(entryIndex)) { return 1; }
     return -getCoupon(entryIndex); // negative table level #, never 0
   }
 

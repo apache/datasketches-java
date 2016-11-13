@@ -111,7 +111,7 @@ final class Util {
       throw new SketchesArgumentException("Fractions cannot be null.");
     }
     int len = fractions.length;
-    if (len == 0) return;
+    if (len == 0) { return; }
     double flo = fractions[0];
     double fhi = fractions[fractions.length - 1];
     if ((flo < 0.0) || (fhi > 1.0)) {
@@ -133,7 +133,7 @@ final class Util {
     }
     final int lenM1 = values.length - 1;
     for (int j = 0; j < lenM1; j++) {
-      if (values[j] < values[j + 1]) continue;
+      if (values[j] < values[j + 1]) { continue; }
       throw new SketchesArgumentException(
           "Values must be unique, monotonically increasing and not NaN.");
     }
@@ -299,7 +299,7 @@ final class Util {
      * @return the resulting epsilon
      */
     static double getAdjustedEpsilon(int k) { //used by HeapQS, so far
-      if (k == 1) return 1.0;
+      if (k == 1) { return 1.0; }
       return getTheoreticalEpsilon(k, adjustKForEps);
     }
 

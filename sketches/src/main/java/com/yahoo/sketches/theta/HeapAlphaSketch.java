@@ -559,8 +559,8 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    */
   private static final int getR(double theta, double alpha, double p) {
     double split1 = p * (alpha + 1.0) / 2.0;
-    if (theta > split1) return 0;
-    if (theta > (alpha * split1)) return 1;
+    if (theta > split1) { return 0; }
+    if (theta > (alpha * split1)) { return 1; }
     return 2;
   }
 

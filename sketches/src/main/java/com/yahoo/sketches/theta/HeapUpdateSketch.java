@@ -79,7 +79,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   }
 
   byte[] toByteArray(int preLongs, byte family) {
-    if (isDirty()) rebuild();
+    if (isDirty()) { rebuild(); }
     int preBytes = preLongs << 3;
     int dataBytes = getCurrentDataLongs(false) << 3;
     byte[] byteArrOut = new byte[preBytes + dataBytes];

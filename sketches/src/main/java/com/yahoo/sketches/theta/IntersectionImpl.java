@@ -414,7 +414,7 @@ final class IntersectionImpl extends SetOperation implements Intersection {
           break; //early stop assumes that hashes in input sketch are ordered!
         }
         int foundIdx = HashOperations.hashSearch(hashTable, lgArrLongs_, hashIn);
-        if (foundIdx == -1) continue;
+        if (foundIdx == -1) { continue; }
         matchSet[matchSetCount++] = hashIn;
       }
     }
@@ -422,9 +422,9 @@ final class IntersectionImpl extends SetOperation implements Intersection {
       //either unordered compact or hash table
       for (int i = 0; i < arrLongsIn; i++ ) {
         long hashIn = cacheIn[i];
-        if ((hashIn <= 0L) || (hashIn >= thetaLong_)) continue;
+        if ((hashIn <= 0L) || (hashIn >= thetaLong_)) { continue; }
         int foundIdx = HashOperations.hashSearch(hashTable, lgArrLongs_, hashIn);
-        if (foundIdx == -1) continue;
+        if (foundIdx == -1) { continue; }
         matchSet[matchSetCount++] = hashIn;
       }
     }
@@ -447,14 +447,14 @@ final class IntersectionImpl extends SetOperation implements Intersection {
       int preBytes = CONST_PREAMBLE_LONGS << 3;
       for (int i = 0; i < arrLongsIn; i++ ) {
         long hashIn = arr[i];
-        if (HashOperations.continueCondition(thetaLong_, hashIn)) continue;
+        if (HashOperations.continueCondition(thetaLong_, hashIn)) { continue; }
         HashOperations.hashInsertOnly(mem_, lgArrLongs_, hashIn, preBytes);
         tmpCnt++;
       }
     } else { //On Heap. Assumes HT exists and is large enough
       for (int i = 0; i < arrLongsIn; i++ ) {
         long hashIn = arr[i];
-        if (HashOperations.continueCondition(thetaLong_, hashIn)) continue;
+        if (HashOperations.continueCondition(thetaLong_, hashIn)) { continue; }
         HashOperations.hashInsertOnly(hashTable_, lgArrLongs_, hashIn);
         tmpCnt++;
       }

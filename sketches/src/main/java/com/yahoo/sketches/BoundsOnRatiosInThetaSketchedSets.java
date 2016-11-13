@@ -47,7 +47,7 @@ public final class BoundsOnRatiosInThetaSketchedSets {
     int countA = (thetaB == thetaA) ? sketchA.getRetainedEntries(true)
         : sketchA.getCountLessThanTheta(thetaB);
 
-    if (countA <= 0) return 0;
+    if (countA <= 0) { return 0; }
 
     return BoundsOnRatiosInSampledSets.getLowerBoundForBoverA(countA, countB, thetaB);
   }
@@ -67,7 +67,7 @@ public final class BoundsOnRatiosInThetaSketchedSets {
     int countA = (thetaB == thetaA) ? sketchA.getRetainedEntries(true)
         : sketchA.getCountLessThanTheta(thetaB);
 
-    if (countA <= 0) return 1.0;
+    if (countA <= 0) { return 1.0; }
 
     return BoundsOnRatiosInSampledSets.getUpperBoundForBoverA(countA, countB, thetaB);
   }
@@ -87,7 +87,7 @@ public final class BoundsOnRatiosInThetaSketchedSets {
     int countA = (thetaB == thetaA) ? sketchA.getRetainedEntries(true)
         : sketchA.getCountLessThanTheta(thetaB);
 
-    if (countA <= 0) return 0.5;
+    if (countA <= 0) { return 0.5; }
 
     return (double) countB / (double) countA;
   }

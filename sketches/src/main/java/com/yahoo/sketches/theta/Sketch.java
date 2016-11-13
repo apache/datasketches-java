@@ -212,20 +212,28 @@ public abstract class Sketch {
 
       sb.append(LS);
       sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
-      if (updateSketch) sb.append("   Nominal Entries (k)     : ").append(nomLongs).append(LS);
+      if (updateSketch) {
+        sb.append("   Nominal Entries (k)     : ").append(nomLongs).append(LS);
+      }
       sb.append("   Estimate                : ").append(getEstimate()).append(LS);
       sb.append("   Upper Bound, 95% conf   : ").append(getUpperBound(2)).append(LS);
       sb.append("   Lower Bound, 95% conf   : ").append(getLowerBound(2)).append(LS);
-      if (updateSketch) sb.append("   p                       : ").append(p).append(LS);
+      if (updateSketch) {
+        sb.append("   p                       : ").append(p).append(LS);
+      }
       sb.append("   Theta (double)          : ").append(thetaDbl).append(LS);
       sb.append("   Theta (long)            : ").append(thetaLong).append(LS);
       sb.append("   Theta (long) hex        : ").append(thetaHex).append(LS);
       sb.append("   EstMode?                : ").append(isEstimationMode()).append(LS);
       sb.append("   Empty?                  : ").append(isEmpty()).append(LS);
-      if (updateSketch) sb.append("   Resize Factor           : ").append(rf).append(LS);
+      if (updateSketch) {
+        sb.append("   Resize Factor           : ").append(rf).append(LS);
+      }
       sb.append("   Array Size Entries      : ").append(arrLongs).append(LS);
       sb.append("   Retained Entries        : ").append(curCount).append(LS);
-      if (updateSketch) sb.append("   Update Seed             : ").append(Long.toString(seed)).append(LS);
+      if (updateSketch) {
+        sb.append("   Update Seed             : ").append(Long.toString(seed)).append(LS);
+      }
       sb.append("   Seed Hash               : ").append(Integer.toHexString(seedHash)).append(LS);
       sb.append("### END SKETCH SUMMARY").append(LS);
 

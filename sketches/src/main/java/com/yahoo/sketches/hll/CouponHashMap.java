@@ -83,7 +83,7 @@ class CouponHashMap extends CouponMap {
   @Override
   double getEstimate(final byte[] key) {
     final int index = findKey(key);
-    if (index < 0) return 0;
+    if (index < 0) { return 0; }
     return hipEstAccumArr_[index];
   }
 
@@ -203,7 +203,7 @@ class CouponHashMap extends CouponMap {
   @Override
   CouponsIterator getCouponsIterator(final byte[] key) {
     final int entryIndex = findKey(key);
-    if (entryIndex < 0) return null;
+    if (entryIndex < 0) { return null; }
     return new CouponsIterator(couponsArr_, entryIndex * maxCouponsPerKey_, maxCouponsPerKey_);
   }
 

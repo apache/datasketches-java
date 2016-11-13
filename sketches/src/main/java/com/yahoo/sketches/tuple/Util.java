@@ -19,7 +19,7 @@ final class Util {
   }
 
   static final byte[] stringToByteArray(final String value) {
-    if (value == null || value.isEmpty()) return null;
+    if (value == null || value.isEmpty()) { return null; }
     return value.getBytes(UTF_8);
   }
 

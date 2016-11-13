@@ -22,8 +22,8 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
 
   /**
    * Updates this sketch with a long key and double values.
-   * The values will be stored or added to the ones associated with the key 
-   * 
+   * The values will be stored or added to the ones associated with the key
+   *
    * @param key The given long key
    * @param values The given values
    */
@@ -33,8 +33,8 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
 
   /**
    * Updates this sketch with a double key and double values.
-   * The values will be stored or added to the ones associated with the key 
-   * 
+   * The values will be stored or added to the ones associated with the key
+   *
    * @param key The given double key
    * @param values The given values
    */
@@ -44,8 +44,8 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
 
   /**
    * Updates this sketch with a String key and double values.
-   * The values will be stored or added to the ones associated with the key 
-   * 
+   * The values will be stored or added to the ones associated with the key
+   *
    * @param key The given String key
    * @param values The given values
    */
@@ -55,37 +55,37 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
 
   /**
    * Updates this sketch with a byte[] key and double values.
-   * The values will be stored or added to the ones associated with the key 
-   * 
+   * The values will be stored or added to the ones associated with the key
+   *
    * @param key The given byte[] key
    * @param values The given values
    */
   public void update(final byte[] key, final double[] values) {
-    if (key == null || key.length == 0) return;
+    if (key == null || key.length == 0) { return; }
     insertOrIgnore(MurmurHash3.hash(key, seed_)[0] >>> 1, values);
   }
 
   /**
    * Updates this sketch with a int[] key and double values.
-   * The values will be stored or added to the ones associated with the key 
-   * 
+   * The values will be stored or added to the ones associated with the key
+   *
    * @param key The given int[] key
    * @param values The given values
    */
   public void update(final int[] key, final double[] values) {
-    if (key == null || key.length == 0) return;
+    if (key == null || key.length == 0) { return; }
     insertOrIgnore(MurmurHash3.hash(key, seed_)[0] >>> 1, values);
   }
 
   /**
    * Updates this sketch with a long[] key and double values.
-   * The values will be stored or added to the ones associated with the key 
-   * 
+   * The values will be stored or added to the ones associated with the key
+   *
    * @param key The given long[] key
    * @param values The given values
    */
   public void update(final long[] key, final double[] values) {
-    if (key == null || key.length == 0) return;
+    if (key == null || key.length == 0) { return; }
     insertOrIgnore(MurmurHash3.hash(key, seed_)[0] >>> 1, values);
   }
 
@@ -114,7 +114,9 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @return compact sketch (off-heap if memory is provided)
    */
   public ArrayOfDoublesCompactSketch compact(final Memory dstMem) {
-    if (dstMem == null) return new HeapArrayOfDoublesCompactSketch(this);
+    if (dstMem == null) {
+      return new HeapArrayOfDoublesCompactSketch(this);
+    }
     return new DirectArrayOfDoublesCompactSketch(this, dstMem);
   }
 
@@ -130,7 +132,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
   /**
    * Insert if key is less than theta and not a duplicate, otherwise ignore.
    * @param key the hash value of the input value
-   * @param values array of values to update the summary 
+   * @param values array of values to update the summary
    */
   abstract void insertOrIgnore(long key, double[] values);
 

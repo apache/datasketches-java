@@ -195,7 +195,7 @@ final class UnionImpl extends SetOperation implements Union {
         for (int i = 0; i < curCountIn; i++ ) {
           int offsetBytes = (preambleLongs + i) << 3;
           long hashIn = skMem.getLong(offsetBytes);
-          if (hashIn >= unionThetaLong_) break; // "early stop"
+          if (hashIn >= unionThetaLong_) { break; } // "early stop"
           gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
         }
       }
@@ -203,7 +203,7 @@ final class UnionImpl extends SetOperation implements Union {
         long[] cacheIn = sketchIn.getCache(); //not a copy!
         for (int i = 0; i < curCountIn; i++ ) {
           long hashIn = cacheIn[i];
-          if (hashIn >= unionThetaLong_) break; // "early stop"
+          if (hashIn >= unionThetaLong_) { break; } // "early stop"
           gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
         }
       }
@@ -213,20 +213,22 @@ final class UnionImpl extends SetOperation implements Union {
       int arrLongs = cacheIn.length;
       for (int i = 0, c = 0; (i < arrLongs) && (c < curCountIn); i++ ) {
         long hashIn = cacheIn[i];
-        if ((hashIn <= 0L) || (hashIn >= unionThetaLong_)) continue; //rejects dirty values
+        if ((hashIn <= 0L) || (hashIn >= unionThetaLong_)) { continue; } //rejects dirty values
         gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
         c++; //insures against invalid state inside the incoming sketch
 
       }
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //Theta rule with gadget
-    if (unionMem_ != null) unionMem_.putLong(UNION_THETA_LONG, unionThetaLong_);
+    if (unionMem_ != null) {
+      unionMem_.putLong(UNION_THETA_LONG, unionThetaLong_);
+    }
   }
 
   @Override
   public void update(Memory skMem) {
     //UNION Empty Rule: AND the empty states
-    if (skMem == null) return;
+    if (skMem == null) { return; }
     int cap = (int)skMem.getCapacity();
     int fam = skMem.getByte(FAMILY_BYTE);
     if (fam != 3) { //
@@ -234,15 +236,15 @@ final class UnionImpl extends SetOperation implements Union {
     }
     int serVer = skMem.getByte(SER_VER_BYTE);
     if (serVer == 1) { //older SetSketch, which is compact and ordered
-      if (cap <= 24) return; //empty
+      if (cap <= 24) { return; } //empty
       processVer1(skMem);
     }
     else if (serVer == 2) { //older SetSketch, which is compact and ordered
-      if (cap <= 8) return; //empty
+      if (cap <= 8) { return; } //empty
       processVer2(skMem);
     }
     else if (serVer == 3) { //Only the OpenSource sketches
-      if (cap <= 8) return; //empty
+      if (cap <= 8) { return; } //empty
       processVer3(skMem);
     }
     else {
@@ -295,11 +297,13 @@ final class UnionImpl extends SetOperation implements Union {
     for (int i = 0; i < curCount; i++ ) {
       int offsetBytes = (preLongs + i) << 3;
       long hashIn = skMem.getLong(offsetBytes);
-      if (hashIn >= unionThetaLong_) break; // "early stop"
+      if (hashIn >= unionThetaLong_) { break; } // "early stop"
       gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
-    if (unionMem_ != null) unionMem_.putLong(UNION_THETA_LONG, unionThetaLong_);
+    if (unionMem_ != null) {
+      unionMem_.putLong(UNION_THETA_LONG, unionThetaLong_);
+    }
   }
 
   //has seedhash and p, could have 0 entries & theta,
@@ -322,11 +326,13 @@ final class UnionImpl extends SetOperation implements Union {
     for (int i = 0; i < curCount; i++ ) {
       int offsetBytes = (preLongs + i) << 3;
       long hashIn = skMem.getLong(offsetBytes);
-      if (hashIn >= unionThetaLong_) break; // "early stop"
+      if (hashIn >= unionThetaLong_) { break; } // "early stop"
       gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
-    if (unionMem_ != null) unionMem_.putLong(UNION_THETA_LONG, unionThetaLong_);
+    if (unionMem_ != null) {
+      unionMem_.putLong(UNION_THETA_LONG, unionThetaLong_);
+    }
   }
 
   //has seedhash, p, could have 0 entries & theta,
@@ -352,7 +358,7 @@ final class UnionImpl extends SetOperation implements Union {
       for (int i = 0; i < curCount; i++ ) {
         int offsetBytes = (preLongs + i) << 3;
         long hashIn = skMem.getLong(offsetBytes);
-        if (hashIn >= unionThetaLong_) break; // "early stop"
+        if (hashIn >= unionThetaLong_) { break; } // "early stop"
         gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
       }
     }
@@ -362,12 +368,14 @@ final class UnionImpl extends SetOperation implements Union {
       for (int i = 0; i < size; i++ ) {
         int offsetBytes = (preLongs + i) << 3;
         long hashIn = skMem.getLong(offsetBytes);
-        if ((hashIn <= 0L) || (hashIn >= unionThetaLong_)) continue;
+        if ((hashIn <= 0L) || (hashIn >= unionThetaLong_)) { continue; }
         gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
       }
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
-    if (unionMem_ != null) unionMem_.putLong(UNION_THETA_LONG, unionThetaLong_);
+    if (unionMem_ != null) {
+      unionMem_.putLong(UNION_THETA_LONG, unionThetaLong_);
+    }
   }
 
 }

@@ -113,9 +113,9 @@ public class UniqueCountMap {
    * @return the estimate of the number of unique identifiers encountered so far for the given key.
    */
   public double update(final byte[] key, final byte[] identifier) {
-    if (key == null) return Double.NaN;
+    if (key == null) { return Double.NaN; }
     checkMethodKeySize(key);
-    if (identifier == null) return getEstimate(key);
+    if (identifier == null) { return getEstimate(key); }
     final short coupon = (short) Map.coupon16(identifier);
 
     final int baseMapIndex = baseMap_.findOrInsertKey(key);
@@ -126,7 +126,7 @@ public class UniqueCountMap {
     }
     final short baseMapCoupon = baseMap_.getCoupon(baseMapIndex);
     if (baseMap_.isCoupon(baseMapIndex)) {
-      if (baseMapCoupon == coupon) return 1; //duplicate
+      if (baseMapCoupon == coupon) { return 1; } //duplicate
       // promote from the base map
       baseMap_.setCoupon(baseMapIndex, (short) 1, true); //set coupon = Level 1; state = 1
       CouponMap newMap = getIntermediateMap(1);
@@ -142,7 +142,7 @@ public class UniqueCountMap {
       final CouponMap map = intermediateMaps_[level - 1];
       final int index = map.findOrInsertKey(key);
       double estimate = map.findOrInsertCoupon(index, coupon);
-      if (estimate > 0) return estimate;
+      if (estimate > 0) { return estimate; }
       // promote to the next level
       level++;
       baseMap_.setCoupon(baseMapIndex, (short) level, true); //set coupon = level number; state = 1
@@ -181,10 +181,10 @@ public class UniqueCountMap {
    * @return estimate of unique count so far
    */
   public double getEstimate(final byte[] key) {
-    if (key == null) return Double.NaN;
+    if (key == null) { return Double.NaN; }
     checkMethodKeySize(key);
     double est = baseMap_.getEstimate(key);
-    if (est >= 0.0) return est;
+    if (est >= 0.0) { return est; }
     //key has been promoted
     final int level = -(int)est;
     if (level <= NUM_INTERMEDIATE_MAPS) {
@@ -202,10 +202,10 @@ public class UniqueCountMap {
    * with the given key.
    */
   public double getUpperBound(final byte[] key) {
-    if (key == null) return Double.NaN;
+    if (key == null) { return Double.NaN; }
     checkMethodKeySize(key);
     double est = baseMap_.getEstimate(key);
-    if (est >= 0.0) return est;
+    if (est >= 0.0) { return est; }
     //key has been promoted
     final int level = -(int)est;
     if (level <= NUM_INTERMEDIATE_MAPS) {
@@ -223,10 +223,10 @@ public class UniqueCountMap {
    * with the given key.
    */
   public double getLowerBound(final byte[] key) {
-    if (key == null) return Double.NaN;
+    if (key == null) { return Double.NaN; }
     checkMethodKeySize(key);
     double est = baseMap_.getEstimate(key);
-    if (est >= 0.0) return est;
+    if (est >= 0.0) { return est; }
     //key has been promoted
     final int level = -(int)est;
     if (level <= NUM_INTERMEDIATE_MAPS) {
@@ -297,9 +297,9 @@ public class UniqueCountMap {
     int levels = 1;
     int iMapsLen = intermediateMaps_.length;
     for (int i = 0; i < iMapsLen; i++) {
-      if (intermediateMaps_[i] != null) levels++;
+      if (intermediateMaps_[i] != null) { levels++; }
     }
-    if (hllMap_ != null) levels++;
+    if (hllMap_ != null) { levels++; }
     return levels;
   }
 

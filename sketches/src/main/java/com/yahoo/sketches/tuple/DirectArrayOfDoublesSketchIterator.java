@@ -23,7 +23,7 @@ final class DirectArrayOfDoublesSketchIterator implements ArrayOfDoublesSketchIt
   private static final int SIZE_OF_KEY_BYTES = 8;
   private static final int SIZE_OF_VALUE_BYTES = 8;
 
-  DirectArrayOfDoublesSketchIterator(final Memory mem, final int offset, final int numEntries, 
+  DirectArrayOfDoublesSketchIterator(final Memory mem, final int offset, final int numEntries,
       final int numValues) {
     mem_ = mem;
     offset_ = offset;
@@ -36,7 +36,7 @@ final class DirectArrayOfDoublesSketchIterator implements ArrayOfDoublesSketchIt
   public boolean next() {
     i_++;
     while (i_ < numEntries_) {
-      if (mem_.getLong(offset_ + SIZE_OF_KEY_BYTES * i_) != 0) return true;
+      if (mem_.getLong(offset_ + SIZE_OF_KEY_BYTES * i_) != 0) { return true; }
       i_++;
     }
     return false;
@@ -49,10 +49,12 @@ final class DirectArrayOfDoublesSketchIterator implements ArrayOfDoublesSketchIt
 
   @Override
   public double[] getValues() {
-    if (numValues_ == 1) return new double[] { 
+    if (numValues_ == 1) {
+      return new double[] {
         mem_.getDouble(offset_ + SIZE_OF_KEY_BYTES * numEntries_ + SIZE_OF_VALUE_BYTES * i_) };
+    }
     final double[] array = new double[numValues_];
-    mem_.getDoubleArray(offset_ + SIZE_OF_KEY_BYTES * numEntries_ 
+    mem_.getDoubleArray(offset_ + SIZE_OF_KEY_BYTES * numEntries_
         + SIZE_OF_VALUE_BYTES * i_ * numValues_, array, 0, numValues_);
     return array;
   }

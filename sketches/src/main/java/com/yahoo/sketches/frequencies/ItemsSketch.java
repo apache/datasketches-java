@@ -39,102 +39,102 @@ import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
 
 /**
- * <p>This sketch is useful for tracking approximate frequencies of items of type <i>&lt;T&gt;</i> 
- * with optional associated counts (<i>&lt;T&gt;</i> item, <i>long</i> count) that are members of a 
- * multiset of such items. The true frequency of an item is defined to be the sum of associated 
+ * <p>This sketch is useful for tracking approximate frequencies of items of type <i>&lt;T&gt;</i>
+ * with optional associated counts (<i>&lt;T&gt;</i> item, <i>long</i> count) that are members of a
+ * multiset of such items. The true frequency of an item is defined to be the sum of associated
  * counts.</p>
- * 
+ *
  * <p>This implementation provides the following capabilities:</p>
  * <ul>
  * <li>Estimate the frequency of an item.</li>
- * <li>Return upper and lower bounds of any item, such that the true frequency is always 
+ * <li>Return upper and lower bounds of any item, such that the true frequency is always
  * between the upper and lower bounds.</li>
  * <li>Return a global maximum error that holds for all items in the stream.</li>
- * <li>Return an array of frequent items that qualify either a NO_FALSE_POSITIVES or a 
+ * <li>Return an array of frequent items that qualify either a NO_FALSE_POSITIVES or a
  * NO_FALSE_NEGATIVES error type.</li>
  * <li>Merge itself with another sketch object created from this class.</li>
  * <li>Serialize/Deserialize to/from a byte array.</li>
  * </ul>
- * 
+ *
  * <p><b>Space Usage</b></p>
- * 
- * <p>The sketch is initialized with a <i>maxMapSize</i> that specifies the maximum physical 
+ *
+ * <p>The sketch is initialized with a <i>maxMapSize</i> that specifies the maximum physical
  * length of the internal hash map of the form (<i>&lt;T&gt;</i> item, <i>long</i> count).
  * The <i>maxMapSize</i> must be a power of 2.</p>
- * 
- * <p>The hash map starts at a very small size (8 entries), and grows as needed up to the 
+ *
+ * <p>The hash map starts at a very small size (8 entries), and grows as needed up to the
  * specified <i>maxMapSize</i>.</p>
- *  
- * <p>Excluding external space required for the item objects, the internal memory space usage of 
- * this sketch is 18 * <i>mapSize</i> bytes (assuming 8 bytes for each Java reference), plus a small 
- * constant number of additional bytes. The internal memory space usage of this sketch will never 
+ *
+ * <p>Excluding external space required for the item objects, the internal memory space usage of
+ * this sketch is 18 * <i>mapSize</i> bytes (assuming 8 bytes for each Java reference), plus a small
+ * constant number of additional bytes. The internal memory space usage of this sketch will never
  * exceed 18 * <i>maxMapSize</i> bytes, plus a small constant number of additional bytes.</p>
- * 
+ *
  * <p><b>Maximum Capacity of the Sketch</b></p>
- * 
- * <p>The LOAD_FACTOR for the hash map is internally set at 75%, 
- * which means at any time the map capacity of (item, count) pairs is <i>mapCap</i> = 0.75 * 
+ *
+ * <p>The LOAD_FACTOR for the hash map is internally set at 75%,
+ * which means at any time the map capacity of (item, count) pairs is <i>mapCap</i> = 0.75 *
  * <i>mapSize</i>.
- * The maximum capacity of (item, count) pairs of the sketch is <i>maxMapCap</i> = 0.75 * 
+ * The maximum capacity of (item, count) pairs of the sketch is <i>maxMapCap</i> = 0.75 *
  * <i>maxMapSize</i>.</p>
- * 
+ *
  * <p><b>Updating the sketch with (item, count) pairs</b></p>
- * 
- * <p>If the item is found in the hash map, the mapped count field (the "counter") is 
- * incremented by the incoming count, otherwise, a new counter "(item, count) pair" is 
- * created. If the number of tracked counters reaches the maximum capacity of the hash map 
- * the sketch decrements all of the counters (by an approximately computed median), and 
+ *
+ * <p>If the item is found in the hash map, the mapped count field (the "counter") is
+ * incremented by the incoming count, otherwise, a new counter "(item, count) pair" is
+ * created. If the number of tracked counters reaches the maximum capacity of the hash map
+ * the sketch decrements all of the counters (by an approximately computed median), and
  * removes any non-positive counters.</p>
- * 
+ *
  * <p><b>Accuracy</b></p>
- * 
- * <p>If fewer than 0.75 * <i>maxMapSize</i> different items are inserted into the sketch the 
+ *
+ * <p>If fewer than 0.75 * <i>maxMapSize</i> different items are inserted into the sketch the
  * estimated frequencies returned by the sketch will be exact.</p>
- * 
- * <p>The logic of the frequent items sketch is such that the stored counts and true counts are 
- * never too different. 
- * More specifically, for any <i>item</i>, the sketch can return an estimate of the 
- * true frequency of <i>item</i>, along with upper and lower bounds on the frequency 
+ *
+ * <p>The logic of the frequent items sketch is such that the stored counts and true counts are
+ * never too different.
+ * More specifically, for any <i>item</i>, the sketch can return an estimate of the
+ * true frequency of <i>item</i>, along with upper and lower bounds on the frequency
  * (that hold deterministically).</p>
- * 
+ *
  * <p>For this implementation and for a specific active <i>item</i>, it is guaranteed that
- * the true frequency will be between the Upper Bound (UB) and the Lower Bound (LB) computed for 
- * that <i>item</i>.  Specifically, <i>(UB- LB) &le; W * epsilon</i>, where <i>W</i> denotes the 
+ * the true frequency will be between the Upper Bound (UB) and the Lower Bound (LB) computed for
+ * that <i>item</i>.  Specifically, <i>(UB- LB) &le; W * epsilon</i>, where <i>W</i> denotes the
  * sum of all item counts, and <i>epsilon = 3.5/M</i>, where <i>M</i> is the <i>maxMapSize</i>.</p>
- * 
- * <p>This is a worst case guarantee that applies to arbitrary inputs.<sup>1</sup> 
+ *
+ * <p>This is a worst case guarantee that applies to arbitrary inputs.<sup>1</sup>
  * For inputs typically seen in practice <i>(UB-LB)</i> is usually much smaller.
  * </p>
- * 
+ *
  * <p><b>Background</b></p>
- * 
+ *
  * <p>This code implements a variant of what is commonly known as the "Misra-Gries
- * algorithm". Variants of it were discovered and rediscovered and redesigned several times 
+ * algorithm". Variants of it were discovered and rediscovered and redesigned several times
  * over the years:</p>
  * <ul><li>"Finding repeated elements", Misra, Gries, 1982</li>
- * <li>"Frequency estimation of Internet packet streams with limited space" Demaine, 
+ * <li>"Frequency estimation of Internet packet streams with limited space" Demaine,
  * Lopez-Ortiz, Munro, 2002</li>
  * <li>"A simple algorithm for finding frequent elements in streams and bags" Karp, Shenker,
  * Papadimitriou, 2003</li>
- * <li>"Efficient Computation of Frequent and Top-k Elements in Data Streams" Metwally, 
+ * <li>"Efficient Computation of Frequent and Top-k Elements in Data Streams" Metwally,
  * Agrawal, Abbadi, 2006</li>
  * </ul>
- * 
- * <sup>1</sup> For speed we do employ some randomization that introduces a small probability that 
- * our proof of the worst-case bound might not apply to a given run.  However, we have ensured 
- * that this probability is extremely small. For example, if the stream causes one table purge 
- * (rebuild), our proof of the worst case bound applies with probability at least 1 - 1E-14. 
+ *
+ * <sup>1</sup> For speed we do employ some randomization that introduces a small probability that
+ * our proof of the worst-case bound might not apply to a given run.  However, we have ensured
+ * that this probability is extremely small. For example, if the stream causes one table purge
+ * (rebuild), our proof of the worst case bound applies with probability at least 1 - 1E-14.
  * If the stream causes 1E9 purges, our proof applies with probability at least 1 - 1E-5.
- * 
+ *
  * @param <T> The type of item to be tracked by this sketch
- * 
+ *
  * @author Justin Thaler
  * @author Alex Saydakov
  */
 public class ItemsSketch<T> {
 
   /**
-   * Log2 Maximum length of the arrays internal to the hash map supported by the data 
+   * Log2 Maximum length of the arrays internal to the hash map supported by the data
    * structure.
    */
   private int lgMaxMapSize;
@@ -167,10 +167,10 @@ public class ItemsSketch<T> {
 
   /**
    * Construct this sketch with the parameter maxMapSize and the default initialMapSize (8).
-   * 
-   * @param maxMapSize Determines the physical size of the internal hash map managed by this 
-   * sketch and must be a power of 2.  The maximum capacity of this internal hash map is 
-   * 0.75 times * maxMapSize. Both the ultimate accuracy and size of this sketch are a 
+   *
+   * @param maxMapSize Determines the physical size of the internal hash map managed by this
+   * sketch and must be a power of 2.  The maximum capacity of this internal hash map is
+   * 0.75 times * maxMapSize. Both the ultimate accuracy and size of this sketch are a
    * function of maxMapSize.
    */
   public ItemsSketch(final int maxMapSize) {
@@ -178,14 +178,14 @@ public class ItemsSketch<T> {
   }
 
   /**
-   * Construct this sketch with parameter lgMapMapSize and lgCurMapSize. This internal 
+   * Construct this sketch with parameter lgMapMapSize and lgCurMapSize. This internal
    * constructor is used when deserializing the sketch.
-   * 
-   * @param lgMaxMapSize Log2 of the physical size of the internal hash map managed by this 
+   *
+   * @param lgMaxMapSize Log2 of the physical size of the internal hash map managed by this
    * sketch. The maximum capacity of this internal hash map is 0.75 times 2^lgMaxMapSize.
    * Both the ultimate accuracy and size of this sketch are a function of lgMaxMapSize.
-   * 
-   * @param lgCurMapSize Log2 of the starting (current) physical size of the internal hash 
+   *
+   * @param lgCurMapSize Log2 of the starting (current) physical size of the internal hash
    * map managed by this sketch.
    */
   ItemsSketch(final int lgMaxMapSize, final int lgCurMapSize) {
@@ -193,24 +193,24 @@ public class ItemsSketch<T> {
     this.lgMaxMapSize = Math.max(lgMaxMapSize, LG_MIN_MAP_SIZE);
     final int lgCurMapSz = Math.max(lgCurMapSize, LG_MIN_MAP_SIZE);
     hashMap = new ReversePurgeItemHashMap<T>(1 << lgCurMapSz);
-    this.curMapCap = hashMap.getCapacity(); 
-    final int maxMapCap = 
+    this.curMapCap = hashMap.getCapacity();
+    final int maxMapCap =
         (int) ((1 << lgMaxMapSize) * ReversePurgeItemHashMap.getLoadFactor());
     offset = 0;
-    sampleSize = Math.min(SAMPLE_SIZE, maxMapCap); 
+    sampleSize = Math.min(SAMPLE_SIZE, maxMapCap);
   }
 
   /**
-   * Returns a sketch instance of this class from the given srcMem, 
+   * Returns a sketch instance of this class from the given srcMem,
    * which must be a Memory representation of this sketch class.
-   * 
+   *
    * @param <T> The type of item that this sketch will track
-   * @param srcMem a Memory representation of a sketch of this class. 
+   * @param srcMem a Memory representation of a sketch of this class.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param serDe an instance of ArrayOfItemsSerDe
    * @return a sketch instance of this class.
    */
-  public static <T> ItemsSketch<T> getInstance(final Memory srcMem, 
+  public static <T> ItemsSketch<T> getInstance(final Memory srcMem,
       final ArrayOfItemsSerDe<T> serDe) {
     final long pre0 = PreambleUtil.checkPreambleSize(srcMem); //make sure preamble will fit
     final int maxPreLongs = Family.FREQUENCY.getMaxPreLongs();
@@ -322,17 +322,17 @@ public class ItemsSketch<T> {
 
   /**
    * Update this sketch with an item and a frequency count of one.
-   * @param item for which the frequency should be increased. 
+   * @param item for which the frequency should be increased.
    */
   public void update(final T item) {
     update(item, 1);
   }
 
   /**
-   * Update this sketch with a item and a positive frequency count. 
-   * @param item for which the frequency should be increased. The item can be any long value and is 
+   * Update this sketch with a item and a positive frequency count.
+   * @param item for which the frequency should be increased. The item can be any long value and is
    * only used by the sketch to determine uniqueness.
-   * @param count the amount by which the frequency of the item should be increased. 
+   * @param count the amount by which the frequency of the item should be increased.
    * An count of zero is a no-op, and a negative count will throw an exception.
    */
   public void update(final T item, final long count) {
@@ -359,19 +359,19 @@ public class ItemsSketch<T> {
   }
 
   /**
-   * This function merges the other sketch into this one. 
+   * This function merges the other sketch into this one.
    * The other sketch may be of a different size.
-   * 
-   * @param other sketch of this class 
+   *
+   * @param other sketch of this class
    * @return a sketch whose estimates are within the guarantees of the
    * largest error tolerance of the two merged sketches.
    */
   public ItemsSketch<T> merge(final ItemsSketch<T> other) {
-    if (other == null) return this;
-    if (other.isEmpty()) return this;
+    if (other == null) { return this; }
+    if (other.isEmpty()) { return this; }
 
     final long streamLen = this.streamLength + other.streamLength; //capture before merge
-    
+
     final ReversePurgeItemHashMap<T>.Iterator iter = other.hashMap.iterator();
     while (iter.next()) { //this may add to offset during rebuilds
       this.update(iter.getKey(), iter.getValue());
@@ -382,10 +382,10 @@ public class ItemsSketch<T> {
   }
 
   /**
-   * Gets the estimate of the frequency of the given item. 
-   * Note: The true frequency of a item would be the sum of the counts as a result of the 
+   * Gets the estimate of the frequency of the given item.
+   * Note: The true frequency of a item would be the sum of the counts as a result of the
    * two update functions.
-   * 
+   *
    * @param item the given item
    * @return the estimate of the frequency of the given item
    */
@@ -398,9 +398,9 @@ public class ItemsSketch<T> {
 
   /**
    * Gets the guaranteed upper bound frequency of the given item.
-   * 
+   *
    * @param item the given item
-   * @return the guaranteed upper bound frequency of the given item. That is, a number which 
+   * @return the guaranteed upper bound frequency of the given item. That is, a number which
    * is guaranteed to be no smaller than the real frequency.
    */
   public long getUpperBound(final T item) {
@@ -409,11 +409,11 @@ public class ItemsSketch<T> {
   }
 
   /**
-   * Gets the guaranteed lower bound frequency of the given item, which can never be 
+   * Gets the guaranteed lower bound frequency of the given item, which can never be
    * negative.
-   * 
+   *
    * @param item the given item.
-   * @return the guaranteed lower bound frequency of the given item. That is, a number which 
+   * @return the guaranteed lower bound frequency of the given item. That is, a number which
    * is guaranteed to be no larger than the real frequency.
    */
   public long getLowerBound(final T item) {
@@ -423,27 +423,27 @@ public class ItemsSketch<T> {
 
   /**
    * Returns an array of Rows that include frequent items, estimates, upper and lower bounds
-   * given an ErrorCondition. 
-   * 
+   * given an ErrorCondition.
+   *
    * <p>The method first examines all active items in the sketch (items that have a counter).
-   *  
-   * <p>If <i>ErrorType = NO_FALSE_NEGATIVES</i>, this will include an item in the result 
-   * list if getUpperBound(item) &gt; maxError. 
+   *
+   * <p>If <i>ErrorType = NO_FALSE_NEGATIVES</i>, this will include an item in the result
+   * list if getUpperBound(item) &gt; maxError.
    * There will be no false negatives, i.e., no Type II error.
-   * There may be items in the set with true frequencies less than the threshold 
+   * There may be items in the set with true frequencies less than the threshold
    * (false positives).</p>
-   * 
-   * <p>If <i>ErrorType = NO_FALSE_POSITIVES</i>, this will include an item in the result 
-   * list if getLowerBound(item) &gt; getMaximumError(). 
+   *
+   * <p>If <i>ErrorType = NO_FALSE_POSITIVES</i>, this will include an item in the result
+   * list if getLowerBound(item) &gt; getMaximumError().
    * There will be no false positives, i.e., no Type I error.
-   * There may be items omitted from the set with true frequencies greater than the 
+   * There may be items omitted from the set with true frequencies greater than the
    * threshold (false negatives).</p>
-   * 
-   * @param errorType determines whether no false positives or no false negatives are 
+   *
+   * @param errorType determines whether no false positives or no false negatives are
    * desired.
    * @return an array of frequent items
    */
-  public Row<T>[] getFrequentItems(final ErrorType errorType) { 
+  public Row<T>[] getFrequentItems(final ErrorType errorType) {
     return sortItems(getMaximumError(), errorType);
   }
 
@@ -458,7 +458,7 @@ public class ItemsSketch<T> {
     final long lb;
     private static final String FMT =  "  %12d%12d%12d %s";
     private static final String HFMT = "  %12s%12s%12s %s";
-    
+
     Row(final T item, final long estimate, final long ub, final long lb) {
       this.item = item;
       this.est = estimate;
@@ -470,17 +470,17 @@ public class ItemsSketch<T> {
      * @return item of type T
      */
     public T getItem() { return item; }
-    
+
     /**
      * @return the estimate
      */
     public long getEstimate() { return est; }
-    
+
     /**
      * @return the upper bound
      */
     public long getUpperBound() { return ub; }
-    
+
     /**
      * @return return the lower bound
      */
@@ -492,27 +492,27 @@ public class ItemsSketch<T> {
     public static String getRowHeader() {
       return String.format(HFMT,"Est", "UB", "LB", "Item");
     }
-    
+
     @Override
     public String toString() {
       return String.format(FMT,  est, ub, lb, item.toString());
     }
 
     /**
-     * This compareTo is strictly limited to the Row.getEstimate() value and does not imply any 
-     * ordering whatsoever to the other elements of the row: item and upper and lower bounds. 
+     * This compareTo is strictly limited to the Row.getEstimate() value and does not imply any
+     * ordering whatsoever to the other elements of the row: item and upper and lower bounds.
      * Defined this way, this compareTo will be consistent with hashCode() and equals(Object).
      * @param that the other row to compare to.
-     * @return a negative integer, zero, or a positive integer as this.getEstimate() is less than, 
+     * @return a negative integer, zero, or a positive integer as this.getEstimate() is less than,
      * equal to, or greater than that.getEstimate().
      */
     @Override
     public int compareTo(final Row<T> that) {
       return (this.est < that.est) ? -1 : (this.est > that.est) ? 1 : 0;
     }
-    
+
     /**
-     * This hashCode is computed only from the Row.getEstimate() value. 
+     * This hashCode is computed only from the Row.getEstimate() value.
      * Defined this way, this hashCode will be consistent with equals(Object):<br>
      * If (x.equals(y)) implies: x.hashCode() == y.hashCode().<br>
      * If (!x.equals(y)) does NOT imply: x.hashCode() != y.hashCode().
@@ -527,7 +527,7 @@ public class ItemsSketch<T> {
     }
 
     /**
-     * This equals is computed only from the Row.getEstimate() value and does not imply equality 
+     * This equals is computed only from the Row.getEstimate() value and does not imply equality
      * of the other items within the row: item and upper and lower bounds.
      * Defined this way, this equals will be consistent with compareTo(Row).
      * @param obj the other row to determine equality with.
@@ -536,14 +536,14 @@ public class ItemsSketch<T> {
     @SuppressWarnings("unchecked")
     @Override
     public boolean equals(Object obj) {
-      if (this == obj) return true;
-      if (obj == null) return false;
-      if ( !(obj instanceof Row)) return false;
+      if (this == obj) { return true; }
+      if (obj == null) { return false; }
+      if ( !(obj instanceof Row)) { return false; }
       Row<T> that = (Row<T>) obj;
-      if (est != that.est) return false;
+      if (est != that.est) { return false; }
       return true;
     }
-    
+
   } //End of class Row<T>
 
   Row<T>[] sortItems(final long threshold, final ErrorType errorType) {
@@ -578,16 +578,16 @@ public class ItemsSketch<T> {
         return r2.compareTo(r1);
       }
     });
-    
+
     @SuppressWarnings("unchecked")
-    final Row<T>[] rowsArr = 
+    final Row<T>[] rowsArr =
       rowList.toArray((Row<T>[]) Array.newInstance(Row.class, rowList.size()));
     return rowsArr;
   }
 
   /**
    * Returns the current number of counters the sketch is configured to support.
-   * 
+   *
    * @return the current number of counters the sketch is configured to support.
    */
   public int getCurrentMapCapacity() {
@@ -595,8 +595,8 @@ public class ItemsSketch<T> {
   }
 
   /**
-   * @return An upper bound on the maximum error of getEstimate(item) for any item. 
-   * This is equivalent to the maximum distance between the upper bound and the lower bound 
+   * @return An upper bound on the maximum error of getEstimate(item) for any item.
+   * This is equivalent to the maximum distance between the upper bound and the lower bound
    * for any item.
    */
   public long getMaximumError() {
@@ -605,7 +605,7 @@ public class ItemsSketch<T> {
 
   /**
    * Returns true if this sketch is empty
-   * 
+   *
    * @return true if this sketch is empty
    */
   public boolean isEmpty() {
@@ -614,7 +614,7 @@ public class ItemsSketch<T> {
 
   /**
    * Returns the sum of the frequencies in the stream seen so far by the sketch
-   * 
+   *
    * @return the sum of the frequencies in the stream seen so far by the sketch
    */
   public long getStreamLength() {
@@ -623,7 +623,7 @@ public class ItemsSketch<T> {
 
   /**
    * Returns the maximum number of counters the sketch is configured to support.
-   * 
+   *
    * @return the maximum number of counters the sketch is configured to support.
    */
   public int getMaximumMapCapacity() {
@@ -660,5 +660,5 @@ public class ItemsSketch<T> {
     sb.append(hashMap.toString());
     return sb.toString();
   }
-  
+
 }

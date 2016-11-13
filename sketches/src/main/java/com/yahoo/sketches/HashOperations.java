@@ -86,7 +86,7 @@ public final class HashOperations {
     int curProbe = (int) (hash & arrayMask);
     // search for duplicate or zero
     while (hashTable[curProbe] != 0) {
-      if (hashTable[curProbe] == hash) return curProbe; // a duplicate
+      if (hashTable[curProbe] == hash) { return curProbe; } // a duplicate
       curProbe = (curProbe + stride) & arrayMask;
     }
     return -1;
@@ -142,7 +142,7 @@ public final class HashOperations {
     int curProbe = (int) (hash & arrayMask);
     // search for duplicate or zero
     while (hashTable[curProbe] != 0) {
-      if (hashTable[curProbe] == hash) return curProbe; // a duplicate
+      if (hashTable[curProbe] == hash) { return curProbe; } // a duplicate
       // not a duplicate and not zero, continue searching
       curProbe = (curProbe + stride) & arrayMask;
     }
@@ -194,7 +194,7 @@ public final class HashOperations {
     long curArrayHash = mem.getLong(curProbeOffsetBytes);
     // search for duplicate or zero
     while (curArrayHash != 0) {
-      if (curArrayHash == hash) return curProbe; // curArrayHash is a duplicate
+      if (curArrayHash == hash) { return curProbe; } // curArrayHash is a duplicate
       // curArrayHash is not a duplicate and not zero, continue searching
       curProbe = (curProbe + stride) & arrayMask;
       curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes;
@@ -223,7 +223,7 @@ public final class HashOperations {
     int curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes;
     long curArrayHash = mem.getLong(curProbeOffsetBytes);
     while (curArrayHash != 0) {
-      if (curArrayHash == hash) return curProbe;
+      if (curArrayHash == hash) { return curProbe; }
       curProbe = (curProbe + stride) & arrayMask;
       curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes;
       curArrayHash = mem.getLong(curProbeOffsetBytes);

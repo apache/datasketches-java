@@ -191,7 +191,7 @@ class ReversePurgeLongHashMap {
    * @return an array containing the active keys in the hash map.
    */
   long[] getActiveKeys() {
-    if (numActive == 0) return null;
+    if (numActive == 0) { return null; }
     final long[] returnedKeys = new long[numActive];
     int j = 0;
     for (int i = 0; i < keys.length; i++) {
@@ -208,7 +208,7 @@ class ReversePurgeLongHashMap {
    * @return an array containing the values corresponding. to the active keys in the hash
    */
   long[] getActiveValues() {
-    if (numActive == 0) return null;
+    if (numActive == 0) { return null; }
     final long[] returnedValues = new long[numActive];
     int j = 0;
     for (int i = 0; i < values.length; i++) {
@@ -276,7 +276,7 @@ class ReversePurgeLongHashMap {
     sb.append(String.format(hfmt, "Index","States","Values","Keys")).append(LS);
 
     for (int i = 0; i < keys.length; i++) {
-      if (states[i] <= 0) continue;
+      if (states[i] <= 0) { continue; }
       sb.append(String.format(fmt, i, states[i], values[i], keys[i])).append(LS);
     }
     return sb.toString();
@@ -375,7 +375,7 @@ class ReversePurgeLongHashMap {
     boolean next() {
       i++;
       while (i < iKeys.length) {
-        if (iStates[i] > 0) return true;
+        if (iStates[i] > 0) { return true; }
         i++;
       }
       return false;

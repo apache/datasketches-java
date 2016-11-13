@@ -55,7 +55,7 @@ public class Intersection<S extends Summary> {
       sketch_ = null;
       return;
     }
-    // assumes that constructor of QuickSelectSketch bumps the requested size up to the nearest 
+    // assumes that constructor of QuickSelectSketch bumps the requested size up to the nearest
     // power of 2
     if (isFirstCall) {
       sketch_ = new QuickSelectSketch<S>(sketchIn.getRetainedEntries(), 0, summaryFactory_);
@@ -68,7 +68,7 @@ public class Intersection<S extends Summary> {
       final int matchSize = min(sketch_.getRetainedEntries(), sketchIn.getRetainedEntries());
       final long[] matchKeys = new long[matchSize];
       @SuppressWarnings("unchecked")
-      final S[] matchSummaries = (S[]) 
+      final S[] matchSummaries = (S[])
         Array.newInstance(summaryFactory_.newSummary().getClass(), matchSize);
       int matchCount = 0;
       SketchIterator<S> it = sketchIn.iterator();
@@ -76,7 +76,7 @@ public class Intersection<S extends Summary> {
         S summary = sketch_.find(it.getKey());
         if (summary != null) {
           matchKeys[matchCount] = it.getKey();
-          matchSummaries[matchCount] = 
+          matchSummaries[matchCount] =
               summaryFactory_.getSummarySetOperations().intersection(summary, it.getSummary());
           matchCount++;
         }
@@ -84,7 +84,9 @@ public class Intersection<S extends Summary> {
       sketch_ = null;
       if (matchCount > 0) {
         sketch_ = new QuickSelectSketch<S>(matchCount, 0, summaryFactory_);
-        for (int i = 0; i < matchCount; i++) sketch_.insert(matchKeys[i], matchSummaries[i]);
+        for (int i = 0; i < matchCount; i++) {
+          sketch_.insert(matchKeys[i], matchSummaries[i]);
+        }
       }
     }
     if (sketch_ != null) {

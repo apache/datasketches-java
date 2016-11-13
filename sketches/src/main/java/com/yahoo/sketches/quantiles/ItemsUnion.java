@@ -246,8 +246,10 @@ public final class ItemsUnion<T> {
    * @param dataItem The given datum.
    */
   public void update(final T dataItem) {
-    if (dataItem == null) return;
-    if (gadget_ == null) gadget_ = ItemsSketch.getInstance(k_, comparator_);
+    if (dataItem == null) { return; }
+    if (gadget_ == null) {
+      gadget_ = ItemsSketch.getInstance(k_, comparator_);
+    }
     gadget_.update(dataItem);
   }
 
@@ -257,7 +259,9 @@ public final class ItemsUnion<T> {
    * @return the result of this Union operation
    */
   public ItemsSketch<T> getResult() {
-    if (gadget_ == null) return ItemsSketch.getInstance(k_, comparator_);
+    if (gadget_ == null) {
+      return ItemsSketch.getInstance(k_, comparator_);
+    }
     return ItemsSketch.copy(gadget_); //can't have any externally owned handles.
   }
 
@@ -268,7 +272,7 @@ public final class ItemsUnion<T> {
    * @return the result of this Union operation and reset.
    */
   public ItemsSketch<T> getResultAndReset() {
-    if (gadget_ == null) return null; //Intentionally return null here for speed.
+    if (gadget_ == null) { return null; } //Intentionally return null here for speed.
     final ItemsSketch<T> hqs = gadget_;
     gadget_ = null;
     return hqs;
@@ -296,7 +300,9 @@ public final class ItemsUnion<T> {
    * @return summary information about the sketch.
    */
   public String toString(final boolean sketchSummary, final boolean dataDetail) {
-    if (gadget_ == null) return ItemsSketch.getInstance(k_, comparator_).toString();
+    if (gadget_ == null) {
+      return ItemsSketch.getInstance(k_, comparator_).toString();
+    }
     return gadget_.toString(sketchSummary, dataDetail);
   }
 

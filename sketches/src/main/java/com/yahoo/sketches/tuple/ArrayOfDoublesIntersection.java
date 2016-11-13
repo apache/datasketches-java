@@ -78,7 +78,9 @@ public abstract class ArrayOfDoublesIntersection {
       sketch_ = null;
       if (matchCount > 0) {
         sketch_ = createSketch(matchCount, numValues_, seed_);
-        for (int i = 0; i < matchCount; i++) sketch_.insert(matchKeys[i], matchValues[i]);
+        for (int i = 0; i < matchCount; i++) {
+          sketch_.insert(matchKeys[i], matchValues[i]);
+        }
       }
       if (sketch_ != null) {
         sketch_.setThetaLong(theta_);

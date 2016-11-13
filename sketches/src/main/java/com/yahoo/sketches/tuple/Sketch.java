@@ -15,7 +15,7 @@ import com.yahoo.sketches.BinomialBoundsN;
  */
 public abstract class Sketch<S extends Summary> {
   protected static final byte PREAMBLE_LONGS = 1;
-  
+
   long[] keys_;
   S[] summaries_;
   long theta_;
@@ -28,33 +28,33 @@ public abstract class Sketch<S extends Summary> {
    * @return best estimate of the number of unique values
    */
   public double getEstimate() {
-    if (!isEstimationMode()) return getRetainedEntries();
+    if (!isEstimationMode()) { return getRetainedEntries(); }
     return getRetainedEntries() / getTheta();
   }
 
   /**
-   * Gets the approximate upper error bound given the specified number of Standard Deviations. 
+   * Gets the approximate upper error bound given the specified number of Standard Deviations.
    * This will return getEstimate() if isEmpty() is true.
-   * 
-   * @param numStdDev 
+   *
+   * @param numStdDev
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the upper bound.
    */
   public double getUpperBound(final int numStdDev) {
-    if (!isEstimationMode()) return getRetainedEntries();
+    if (!isEstimationMode()) { return getRetainedEntries(); }
     return BinomialBoundsN.getUpperBound(getRetainedEntries(), getTheta(), numStdDev, isEmpty_);
   }
 
   /**
    * Gets the approximate lower error bound given the specified number of Standard Deviations.
    * This will return getEstimate() if isEmpty() is true.
-   * 
-   * @param numStdDev 
+   *
+   * @param numStdDev
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the lower bound.
    */
   public double getLowerBound(final int numStdDev) {
-    if (!isEstimationMode()) return getRetainedEntries();
+    if (!isEstimationMode()) { return getRetainedEntries(); }
     return BinomialBoundsN.getLowerBound(getRetainedEntries(), getTheta(), numStdDev, isEmpty_);
   }
 

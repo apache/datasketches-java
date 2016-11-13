@@ -153,7 +153,7 @@ final class HeapDoublesSketch extends DoublesSketch {
   @Override
   public void update(double dataItem) {
     // this method only uses the base buffer part of the combined buffer
-    if (Double.isNaN(dataItem)) return;
+    if (Double.isNaN(dataItem)) { return; }
     double maxValue = getMaxValue();
     double minValue = getMinValue();
 

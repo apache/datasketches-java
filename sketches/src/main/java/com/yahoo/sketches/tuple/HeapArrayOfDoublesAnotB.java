@@ -27,7 +27,7 @@ final class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
   private int count_;
   private final short seedHash_;
   private final int numValues_;
-  
+
   /**
    * Creates an instance of HeapArrayOfDoublesAnotB given a custom seed
    * @param numValues Number of double values to keep for each key.
@@ -40,13 +40,15 @@ final class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
 
   @Override
   public void update(final ArrayOfDoublesSketch a, final ArrayOfDoublesSketch b) {
-    if (a != null) Util.checkSeedHashes(seedHash_, a.getSeedHash());
-    if (b != null) Util.checkSeedHashes(seedHash_, b.getSeedHash());
-    if (a != null) isEmpty_ = a.isEmpty();//stays this way even if we end up with no result entries
+    if (a != null) { Util.checkSeedHashes(seedHash_, a.getSeedHash()); }
+    if (b != null) { Util.checkSeedHashes(seedHash_, b.getSeedHash()); }
+    if (a != null) { //stays this way even if we end up with no result entries
+      isEmpty_ = a.isEmpty();
+    }
     final long thetaA = a == null ? Long.MAX_VALUE : a.getThetaLong();
     final long thetaB = b == null ? Long.MAX_VALUE : b.getThetaLong();
     theta_ = Math.min(thetaA, thetaB);
-    if (a == null || a.getRetainedEntries() == 0) return;
+    if (a == null || a.getRetainedEntries() == 0) { return; }
     if (b == null || b.getRetainedEntries() == 0) {
       getNoMatchSetFromSketch(a);
     } else {
@@ -70,8 +72,10 @@ final class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
 
   @Override
   public ArrayOfDoublesCompactSketch getResult() {
-    if (count_ == 0) return new 
+    if (count_ == 0) {
+      return new
         HeapArrayOfDoublesCompactSketch(null, null, Long.MAX_VALUE, true, numValues_, seedHash_);
+    }
     ArrayOfDoublesCompactSketch result = new HeapArrayOfDoublesCompactSketch(
       Arrays.copyOfRange(keys_, 0, count_),
       Arrays.copyOfRange(values_, 0, count_ * numValues_),
@@ -86,7 +90,7 @@ final class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
 
   @Override
   public ArrayOfDoublesCompactSketch getResult(final Memory mem) {
-    if (mem == null || count_ == 0) return getResult();
+    if (mem == null || count_ == 0) { return getResult(); }
     ArrayOfDoublesCompactSketch result = new DirectArrayOfDoublesCompactSketch(
       Arrays.copyOfRange(keys_, 0, count_),
       Arrays.copyOfRange(values_, 0, count_ * numValues_),

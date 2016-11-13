@@ -34,21 +34,21 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
   private double[] values_;
 
   /**
-   * This is to create an instance of a QuickSelectSketch with custom resize factor and sampling 
+   * This is to create an instance of a QuickSelectSketch with custom resize factor and sampling
    * probability
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than 
+   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than
    * given value.
    * @param lgResizeFactor log2(resize factor) - value from 0 to 3:
    * 0 - no resizing (max size allocated),
    * 1 - double internal hash table each time it reaches a threshold
    * 2 - grow four times
    * 3 - grow eight times (default)
-   * @param samplingProbability 
+   * @param samplingProbability
    * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
    * @param numValues number of double values to keep for each key
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
-  HeapArrayOfDoublesQuickSelectSketch(final int nomEntries, final int lgResizeFactor, 
+  HeapArrayOfDoublesQuickSelectSketch(final int nomEntries, final int lgResizeFactor,
       final float samplingProbability, final int numValues, final long seed) {
     super(numValues, seed);
     nomEntries_ = ceilingPowerOf2(nomEntries);
@@ -57,7 +57,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     theta_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
     final int startingCapacity = 1 << startingSubMultiple(
       // target table size is twice the number of nominal entries
-      Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries) * 2), 
+      Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries) * 2),
       ResizeFactor.getRF(lgResizeFactor),
       MIN_LG_ARR_LONGS
     );
@@ -74,13 +74,13 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
    */
   HeapArrayOfDoublesQuickSelectSketch(final Memory mem, final long seed) {
     super(mem.getByte(NUM_VALUES_BYTE), seed);
-    SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE), 
+    SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE),
         mem.getByte(PREAMBLE_LONGS_BYTE));
-    SerializerDeserializer.validateType(mem.getByte(SKETCH_TYPE_BYTE), 
+    SerializerDeserializer.validateType(mem.getByte(SKETCH_TYPE_BYTE),
         SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch);
     final byte version = mem.getByte(SERIAL_VERSION_BYTE);
     if (version != serialVersionUID) {
-      throw new SketchesArgumentException("Serial version mismatch. Expected: " 
+      throw new SketchesArgumentException("Serial version mismatch. Expected: "
         + serialVersionUID + ", actual: " + version);
     }
     final byte flags = mem.getByte(FLAGS_BYTE);
@@ -101,7 +101,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     count_ = hasEntries ? mem.getInt(RETAINED_ENTRIES_INT) : 0;
     if (count_ > 0) {
       mem.getLongArray(ENTRIES_START, keys_, 0, currentCapacity);
-      mem.getDoubleArray(ENTRIES_START + SIZE_OF_KEY_BYTES * currentCapacity, values_, 0, 
+      mem.getDoubleArray(ENTRIES_START + SIZE_OF_KEY_BYTES * currentCapacity, values_, 0,
           currentCapacity * numValues_);
     }
     setRebuildThreshold();
@@ -135,20 +135,20 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
 
   @Override
   public byte[] toByteArray() {
-    final int sizeBytes = ENTRIES_START 
+    final int sizeBytes = ENTRIES_START
         + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues_) * getCurrentCapacity();
     final byte[] byteArray = new byte[sizeBytes];
     final Memory mem = new NativeMemory(byteArray); // wrap the byte array to use the putX methods
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
     mem.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
     mem.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
-    mem.putByte(SKETCH_TYPE_BYTE, 
+    mem.putByte(SKETCH_TYPE_BYTE,
         (byte)SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch.ordinal());
     final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
     mem.putByte(FLAGS_BYTE, (byte)(
-      (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0) 
-      | (isInSamplingMode() ? 1 << Flags.IS_IN_SAMPLING_MODE.ordinal() : 0) 
-      | (isEmpty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0) 
+      (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0)
+      | (isInSamplingMode() ? 1 << Flags.IS_IN_SAMPLING_MODE.ordinal() : 0)
+      | (isEmpty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0)
       | (count_ > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
     ));
     mem.putByte(NUM_VALUES_BYTE, (byte) numValues_);
@@ -161,7 +161,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     mem.putInt(RETAINED_ENTRIES_INT, count_);
     if (count_ > 0) {
       mem.putLongArray(ENTRIES_START, keys_, 0, keys_.length);
-      mem.putDoubleArray(ENTRIES_START + SIZE_OF_KEY_BYTES * keys_.length, values_, 0, 
+      mem.putDoubleArray(ENTRIES_START + SIZE_OF_KEY_BYTES * keys_.length, values_, 0,
           values_.length);
     }
     return byteArray;
@@ -252,7 +252,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
   @Override
   protected double[] find(final long key) {
     final int index = HashOperations.hashSearch(keys_, lgCurrentCapacity_, key);
-    if (index == -1) return null;
+    if (index == -1) { return null; }
     return Arrays.copyOfRange(values_, index * numValues_, (index + 1) * numValues_);
   }
 

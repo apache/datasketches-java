@@ -109,7 +109,7 @@ public abstract class CompactSketch extends Sketch {
     int j = 0;
     for (int i = 0; i < len; i++) {
       long v = srcCache[i];
-      if ((v <= 0L) || (v >= thetaLong) ) continue;
+      if ((v <= 0L) || (v >= thetaLong) ) { continue; }
       cacheOut[j++] = v;
     }
     assert curCount == j;
@@ -140,7 +140,7 @@ public abstract class CompactSketch extends Sketch {
     int j = 0;
     for (int i = 0; i < len; i++) {
       long v = srcCache[i];
-      if ((v <= 0L) || (v >= thetaLong) ) continue;
+      if ((v <= 0L) || (v >= thetaLong) ) { continue; }
       cacheOut[j++] = v;
     }
     assert curCount == j;

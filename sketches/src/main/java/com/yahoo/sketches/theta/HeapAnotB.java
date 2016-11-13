@@ -248,9 +248,9 @@ final class HeapAnotB extends SetOperation implements AnotB {
     cache_ = new long[arrLongsIn];
     for (int i = 0; i < arrLongsIn; i++ ) {
       long hashIn = scanAArr[i];
-      if ((hashIn <= 0L) || (hashIn >= thetaLong_)) continue;
+      if ((hashIn <= 0L) || (hashIn >= thetaLong_)) { continue; }
       int foundIdx = hashSearch(bHashTable_, lgArrLongsHT_, hashIn);
-      if (foundIdx > -1) continue;
+      if (foundIdx > -1) { continue; }
       cache_[curCount_++] = hashIn;
     }
   }
@@ -262,12 +262,12 @@ final class HeapAnotB extends SetOperation implements AnotB {
     cache_ = new long[arrLongsIn]; //maybe 2x what is needed, but getRetainedEntries can be slow.
     for (int i = 0; i < arrLongsIn; i++ ) {
       long hashIn = scanAArr[i];
-      if (hashIn <= 0L) continue;
+      if (hashIn <= 0L) { continue; }
       if (hashIn >= thetaLong_) {
         break; //early stop assumes that hashes in input sketch are ordered!
       }
       int foundIdx = hashSearch(bHashTable_, lgArrLongsHT_, hashIn);
-      if (foundIdx > -1) continue;
+      if (foundIdx > -1) { continue; }
       cache_[curCount_++] = hashIn;
     }
   }
