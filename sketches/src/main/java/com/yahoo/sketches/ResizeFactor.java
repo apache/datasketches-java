@@ -50,9 +50,9 @@ public enum ResizeFactor {
    * @return the Resize Factor given the Log-base 2 of the Resize Factor
    */
   public static ResizeFactor getRF(int lg) {
-    if (X1.lg() == lg) return X1;
-    if (X2.lg() == lg) return X2;
-    if (X4.lg() == lg) return X4;
+    if (X1.lg() == lg) { return X1; }
+    if (X2.lg() == lg) { return X2; }
+    if (X4.lg() == lg) { return X4; }
     return X8;
   }
 

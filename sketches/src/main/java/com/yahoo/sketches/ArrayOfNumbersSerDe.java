@@ -15,8 +15,8 @@ import com.yahoo.memory.NativeMemory;
  * the values byte aligned, even though only 3 bits are strictly necessary to encode one of
  * the 6 different primitives with object types that extend Number.</p>
  *
- * <p>Classes handled are: <tt>Long</tt>, <tt>Integer</tt>, <tt>Short</tt>, <tt>Byte</tt>, <tt>Double</tt>, and
- * <tt>Float</tt>.</p>
+ * <p>Classes handled are: <tt>Long</tt>, <tt>Integer</tt>, <tt>Short</tt>, <tt>Byte</tt>,
+ * <tt>Double</tt>, and <tt>Float</tt>.</p>
  *
  * @author Alex Saydakov
  */
@@ -49,7 +49,8 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
       } else if (item instanceof Float) {
         length += Byte.BYTES + Float.BYTES;
       } else {
-        throw new SketchesArgumentException("Item must be one of: Long, Integer, Short, Byte, Double, Float, (null)");
+        throw new SketchesArgumentException(
+            "Item must be one of: Long, Integer, Short, Byte, Double, Float, (null)");
       }
     }
     final byte[] bytes = new byte[length];

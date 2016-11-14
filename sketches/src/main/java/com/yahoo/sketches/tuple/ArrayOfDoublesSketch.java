@@ -8,30 +8,30 @@ package com.yahoo.sketches.tuple;
 import com.yahoo.sketches.BinomialBoundsN;
 
 /**
- * The base class for the tuple sketch of type ArrayOfDoubles, where an array of double values 
+ * The base class for the tuple sketch of type ArrayOfDoubles, where an array of double values
  * is associated with each key.
- * A primitive array of doubles is used here, as opposed to a generic Summary object, 
+ * A primitive array of doubles is used here, as opposed to a generic Summary object,
  * for improved performance.
  */
 public abstract class ArrayOfDoublesSketch {
 
   // The concept of being empty is about representing an empty set.
   // So a sketch can be non-empty, and have no entries.
-  // For example, as a result of a sampling, when some data was presented to the sketch, but no 
+  // For example, as a result of a sampling, when some data was presented to the sketch, but no
   //  entries were retained.
   static enum Flags { IS_BIG_ENDIAN, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES }
-  
+
   static final int SIZE_OF_KEY_BYTES = 8;
   static final int SIZE_OF_VALUE_BYTES = 8;
-  
+
   // Common Layout of first 16 bytes:
   // Long || Start Byte Adr:
-  // Adr: 
+  // Adr:
   //      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
   //  0   ||    Seed Hash    | #Dbls  |  Flags | SkType | FamID  | SerVer |  Preamble_Longs    |
   //      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
   //  1   ||-------------------------Theta Long------------------------------------------------|
-  
+
   static final int PREAMBLE_LONGS_BYTE = 0; // not used, always 1
   static final int SERIAL_VERSION_BYTE = 1;
   static final int FAMILY_ID_BYTE = 2;
@@ -55,33 +55,33 @@ public abstract class ArrayOfDoublesSketch {
    * @return best estimate of the number of unique values
    */
   public double getEstimate() {
-    if (!isEstimationMode()) return getRetainedEntries();
+    if (!isEstimationMode()) { return getRetainedEntries(); }
     return getRetainedEntries() / getTheta();
   }
 
   /**
-   * Gets the approximate upper error bound given the specified number of Standard Deviations. 
+   * Gets the approximate upper error bound given the specified number of Standard Deviations.
    * This will return getEstimate() if isEmpty() is true.
-   * 
-   * @param numStdDev 
+   *
+   * @param numStdDev
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the upper bound.
    */
   public double getUpperBound(final int numStdDev) {
-    if (!isEstimationMode()) return getRetainedEntries();
+    if (!isEstimationMode()) { return getRetainedEntries(); }
     return BinomialBoundsN.getUpperBound(getRetainedEntries(), getTheta(), numStdDev, isEmpty_);
   }
 
   /**
    * Gets the approximate lower error bound given the specified number of Standard Deviations.
    * This will return getEstimate() if isEmpty() is true.
-   * 
-   * @param numStdDev 
+   *
+   * @param numStdDev
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the lower bound.
    */
   public double getLowerBound(final int numStdDev) {
-    if (!isEstimationMode()) return getRetainedEntries();
+    if (!isEstimationMode()) { return getRetainedEntries(); }
     return BinomialBoundsN.getLowerBound(getRetainedEntries(), getTheta(), numStdDev, isEmpty_);
   }
 

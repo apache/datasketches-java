@@ -25,9 +25,9 @@ public final class DoubleSummarySetOperations implements SummarySetOperations<Do
 
   @Override
   public DoubleSummary union(final DoubleSummary a, final DoubleSummary b) {
-    final DoubleSummary result = new DoubleSummary(summaryMode_); 
-    if (a != null) result.update(a.getValue());
-    if (b != null) result.update(b.getValue());
+    final DoubleSummary result = new DoubleSummary(summaryMode_);
+    if (a != null) { result.update(a.getValue()); }
+    if (b != null) { result.update(b.getValue()); }
     return result;
   }
 

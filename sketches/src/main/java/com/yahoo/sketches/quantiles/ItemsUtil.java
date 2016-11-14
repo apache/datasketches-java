@@ -174,11 +174,13 @@ final class ItemsUtil {
     sketch.bitPattern_ = bitPattern + (1L << startingLevel);
   }
 
-  static <T> void maybeGrowLevels(final long newN, final ItemsSketch<T> sketch) { // important: newN might not equal n_
+  static <T> void maybeGrowLevels(final long newN, final ItemsSketch<T> sketch) {
+    // important: newN might not equal n_
     final int k = sketch.getK();
     final int numLevelsNeeded = Util.computeNumLevelsNeeded(k, newN);
     if (numLevelsNeeded == 0) {
-      return; // don't need any levels yet, and might have small base buffer; this can happen during a merge
+      // don't need any levels yet, and might have small base buffer; this can happen during a merge
+      return;
     }
     // from here on we need a full-size base buffer and at least one level
     assert newN >= 2L * k;
@@ -264,8 +266,8 @@ final class ItemsUtil {
     final T tgtMax = tgt.getMaxValue();
     final T tgtMin = tgt.getMinValue();
 
-    if (src.getComparator().compare(srcMax, tgtMax) > 0) tgt.maxValue_ = srcMax;
-    if (src.getComparator().compare(srcMin, tgtMin) < 0) tgt.minValue_ = srcMin;
+    if (src.getComparator().compare(srcMax, tgtMax) > 0) { tgt.maxValue_ = srcMax; }
+    if (src.getComparator().compare(srcMin, tgtMin) < 0) { tgt.minValue_ = srcMin; }
   }
 
   private static void zipSize2KBuffer(
@@ -328,8 +330,9 @@ final class ItemsUtil {
    * @param splitPoints must be unique and sorted. Number of splitPoints + 1 == counters.length.
    * @param counters array of counters
    */
-  static <T> void bilinearTimeIncrementHistogramCounters(final T[] samples, final int offset, final int numSamples,
-      final long weight, final T[] splitPoints, final long[] counters, final Comparator<? super T> comparator) {
+  static <T> void bilinearTimeIncrementHistogramCounters(final T[] samples, final int offset,
+      final int numSamples, final long weight, final T[] splitPoints, final long[] counters,
+      final Comparator<? super T> comparator) {
     assert (splitPoints.length + 1 == counters.length);
     for (int i = 0; i < numSamples; i++) {
       final T sample = samples[i + offset];
@@ -360,8 +363,9 @@ final class ItemsUtil {
    * @param splitPoints must be unique and sorted. Number of splitPoints + 1 = counters.length.
    * @param counters array of counters
    */
-  static <T> void linearTimeIncrementHistogramCounters(final T[] samples, final int offset, final int numSamples,
-      final long weight, final T[] splitPoints, final long[] counters, final Comparator<? super T> comparator) {
+  static <T> void linearTimeIncrementHistogramCounters(final T[] samples, final int offset,
+      final int numSamples, final long weight, final T[] splitPoints, final long[] counters,
+      final Comparator<? super T> comparator) {
     int i = 0;
     int j = 0;
     while (i < numSamples && j < splitPoints.length) {
@@ -395,9 +399,9 @@ final class ItemsUtil {
   static <T> void blockyTandemMergeSort(final T[] keyArr, final long[] valArr, final int arrLen,
       final int blkSize, final Comparator<? super T> comparator) {
     assert blkSize >= 1;
-    if (arrLen <= blkSize) return;
+    if (arrLen <= blkSize) { return; }
     int numblks = arrLen / blkSize;
-    if (numblks * blkSize < arrLen) numblks += 1;
+    if (numblks * blkSize < arrLen) { numblks += 1; }
     assert (numblks * blkSize >= arrLen);
 
     // duplicate the input is preparation for the "ping-pong" copy reduction strategy.
@@ -433,7 +437,7 @@ final class ItemsUtil {
     // Instead, they refer to the pre-sorted blocks, such as block 0, block 1, etc.
 
     assert (grpLen > 0);
-    if (grpLen == 1) return;
+    if (grpLen == 1) { return; }
     int grpLen1 = grpLen / 2;
     int grpLen2 = grpLen - grpLen1;
     assert (grpLen1 >= 1);
@@ -459,7 +463,9 @@ final class ItemsUtil {
     int arrLen2   = grpLen2   * blkSize;
 
     // special case for the final block which might be shorter than blkSize.
-    if (arrStart2 + arrLen2 > arrLim) arrLen2 = arrLim - arrStart2;
+    if (arrStart2 + arrLen2 > arrLim) {
+      arrLen2 = arrLim - arrStart2;
+    }
 
     tandemMerge(keySrc, valSrc,
                 arrStart1, arrLen1,
@@ -515,7 +521,8 @@ final class ItemsUtil {
     }
   }
 
-  static <T> String toString(final boolean sketchSummary, final boolean dataDetail, final ItemsSketch<T> sketch) {
+  static <T> String toString(final boolean sketchSummary, final boolean dataDetail,
+      final ItemsSketch<T> sketch) {
     final StringBuilder sb = new StringBuilder();
     final String thisSimpleName = sketch.getClass().getSimpleName();
     final int bbCount = sketch.getBaseBufferCount();
@@ -569,8 +576,10 @@ final class ItemsUtil {
       sb.append("   BaseBufferCount              : ").append(bbCount).append(Util.LS);
       sb.append("   CombinedBufferAllocatedCount : ").append(bufCntStr).append(Util.LS);
       sb.append("   Total Levels                 : ").append(numLevels).append(Util.LS);
-      sb.append("   Valid Levels                 : ").append(Util.computeValidLevels(bitPattern)).append(Util.LS);
-      sb.append("   Level Bit Pattern            : ").append(Long.toBinaryString(bitPattern)).append(Util.LS);
+      sb.append("   Valid Levels                 : ").append(Util.computeValidLevels(bitPattern))
+        .append(Util.LS);
+      sb.append("   Level Bit Pattern            : ").append(Long.toBinaryString(bitPattern))
+        .append(Util.LS);
       sb.append("   Valid Samples                : ").append(numSampStr).append(Util.LS);
       sb.append("   Preamble Bytes               : ").append(preBytes).append(Util.LS);
       sb.append("   Normalized Rank Error        : ").append(epsPct).append(Util.LS);

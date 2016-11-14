@@ -26,10 +26,10 @@ final class HeapArrayOfDoublesSketchIterator implements ArrayOfDoublesSketchIter
 
   @Override
   public boolean next() {
-    if (keys_ == null) return false;
+    if (keys_ == null) { return false; }
     i_++;
     while (i_ < keys_.length) {
-      if (keys_[i_] != 0) return true;
+      if (keys_[i_] != 0) { return true; }
       i_++;
     }
     return false;
@@ -42,7 +42,9 @@ final class HeapArrayOfDoublesSketchIterator implements ArrayOfDoublesSketchIter
 
   @Override
   public double[] getValues() {
-    if (numValues_ == 1) return new double[] { values_[i_] };
+    if (numValues_ == 1) {
+      return new double[] { values_[i_] };
+    }
     return Arrays.copyOfRange(values_, i_ * numValues_, (i_ + 1) *  numValues_);
   }
 

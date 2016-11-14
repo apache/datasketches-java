@@ -36,20 +36,20 @@ import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
- * This is a stochastic streaming sketch that enables near-real time analysis of the 
- * approximate distribution of comparable items from a very large stream in a single pass. 
- * The analysis is obtained using a getQuantiles(*) function or its inverse functions the 
+ * This is a stochastic streaming sketch that enables near-real time analysis of the
+ * approximate distribution of comparable items from a very large stream in a single pass.
+ * The analysis is obtained using a getQuantiles(*) function or its inverse functions the
  * Probability Mass Function from getPMF(*) and the Cumulative Distribution Function from getCDF(*).
- * 
+ *
  * <p>The documentation for {@link DoublesSketch} applies here except that the size of an ItemsSketch
- * is very dependent on the Items input into the sketch, so there is no comparable size table as 
+ * is very dependent on the Items input into the sketch, so there is no comparable size table as
  * for the DoublesSketch.
- * 
- * <p>There is more documentation available on 
+ *
+ * <p>There is more documentation available on
  * <a href="https://datasketches.github.io">DataSketches.GitHub.io</a>.</p>
- * 
+ *
  * @param <T> type of item
- * 
+ *
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
@@ -87,14 +87,14 @@ public final class ItemsSketch<T> {
 
   /**
    * Number of samples currently in base buffer.
-   * 
+   *
    * <p>Count = N % (2*K)
    */
   protected int baseBufferCount_;
 
   /**
    * Active levels expressed as a bit pattern.
-   * 
+   *
    * <p>Pattern = N / (2 * K)
    */
   protected long bitPattern_;
@@ -104,8 +104,8 @@ public final class ItemsSketch<T> {
    * A level is of size K and is either full and sorted, or not used. A "not used" buffer may have
    * garbage. Whether a level buffer used or not is indicated by the bitPattern_.
    * The base buffer has length 2*K but might not be full and isn't necessarily sorted.
-   * The base buffer precedes the level buffers. 
-   * 
+   * The base buffer precedes the level buffers.
+   *
    * <p>The levels arrays require quite a bit of explanation, which we defer until later.
    */
   protected Object[] combinedBuffer_;
@@ -131,7 +131,7 @@ public final class ItemsSketch<T> {
   /**
    * Obtains a new instance of an ItemsSketch using the DEFAULT_K.
    * @param <T> type of item
-   * @param comparator to compare items 
+   * @param comparator to compare items
    * @return a GenericQuantileSketch
    */
   public static <T> ItemsSketch<T> getInstance(final Comparator<? super T> comparator) {
@@ -141,7 +141,7 @@ public final class ItemsSketch<T> {
   /**
    * Obtains a new instance of an ItemsSketch.
    * @param <T> type of item
-   * @param k Parameter that controls space usage of sketch and accuracy of estimates. 
+   * @param k Parameter that controls space usage of sketch and accuracy of estimates.
    * Must be greater than 2 and less than 65536 and a power of 2.
    * @param comparator to compare items
    * @return a GenericQuantileSketch
@@ -176,7 +176,7 @@ public final class ItemsSketch<T> {
     }
     long cumOffset = srcMem.getCumulativeOffset(0L);
     Object memArr = srcMem.array();
-    
+
     final int preambleLongs = extractPreLongs(memArr, cumOffset);
     final int serVer = extractSerVer(memArr, cumOffset);
     final int familyID = extractFamilyID(memArr, cumOffset);
@@ -184,20 +184,20 @@ public final class ItemsSketch<T> {
     final int k = extractK(memArr, cumOffset);
 
     ItemsUtil.checkItemsSerVer(serVer);
-    
+
     if ((serVer == 3) && ((flags & COMPACT_FLAG_MASK) == 0)) {
       throw new SketchesArgumentException("Non-compact Memory images are not supported.");
     }
-    
+
     final boolean empty = Util.checkPreLongsFlagsCap(preambleLongs, flags, memCapBytes);
     Util.checkFamilyID(familyID);
 
     final ItemsSketch<T> qs = getInstance(k, comparator); //checks k
-    if (empty) return qs;
+    if (empty) { return qs; }
 
     //Not empty, must have valid preamble + min, max
     final long n = extractN(memArr, cumOffset);
-    
+
     //can't check memory capacity here, not enough information
     final int extra = 2; //for min, max
     int numMemItems = Util.computeRetainedItems(k, n) + extra;
@@ -208,9 +208,9 @@ public final class ItemsSketch<T> {
     qs.baseBufferCount_ = computeBaseBufferItems(k, n);
     qs.bitPattern_ = computeBitPattern(k, n);
     qs.combinedBuffer_ = new Object[qs.combinedBufferItemCapacity_];
-    
+
     final int srcMemItemsOffsetBytes = preambleLongs * Long.BYTES;
-    final MemoryRegion mReg = new MemoryRegion(srcMem, srcMemItemsOffsetBytes, 
+    final MemoryRegion mReg = new MemoryRegion(srcMem, srcMemItemsOffsetBytes,
         srcMem.getCapacity() - srcMemItemsOffsetBytes);
     final T[] itemsArray = serDe.deserializeFromMemory(mReg, numMemItems);
     qs.itemsArrayToCombinedBuffer(itemsArray);
@@ -235,20 +235,20 @@ public final class ItemsSketch<T> {
     return qsCopy;
   }
 
-  /** 
+  /**
    * Updates this sketch with the given double data item
    * @param dataItem an item from a stream of items.  NaNs are ignored.
    */
   public void update(final T dataItem) {
     // this method only uses the base buffer part of the combined buffer
 
-    if (dataItem == null) return;
+    if (dataItem == null) { return; }
     if (maxValue_ == null || comparator_.compare(dataItem, maxValue_) > 0) { maxValue_ = dataItem; }
     if (minValue_ == null || comparator_.compare(dataItem, minValue_) < 0) { minValue_ = dataItem; }
 
     if (baseBufferCount_ + 1 > combinedBufferItemCapacity_) {
       ItemsUtil.growBaseBuffer(this);
-    } 
+    }
     combinedBuffer_[baseBufferCount_++] = dataItem;
     n_++;
     if (baseBufferCount_ == 2 * k_) {
@@ -260,16 +260,16 @@ public final class ItemsSketch<T> {
    * This returns an approximation to the value of the data item
    * that would be preceded by the given fraction of a hypothetical sorted
    * version of the input stream so far.
-   * 
+   *
    * <p>We note that this method has a fairly large overhead (microseconds instead of nanoseconds)
    * so it should not be called multiple times to get different quantiles from the same
    * sketch. Instead use getQuantiles(). which pays the overhead only once.
-   * 
+   *
    * @param fraction the specified fractional position in the hypothetical sorted stream.
    * These are also called normalized ranks or fractional ranks.
-   * If fraction = 0.0, the true minimum value of the stream is returned. 
-   * If fraction = 1.0, the true maximum value of the stream is returned. 
-   * 
+   * If fraction = 0.0, the true minimum value of the stream is returned.
+   * If fraction = 1.0, the true maximum value of the stream is returned.
+   *
    * @return the approximation to the value at the above fraction
    */
   public T getQuantile(final double fraction) {
@@ -286,23 +286,23 @@ public final class ItemsSketch<T> {
 
   /**
    * This is a more efficient multiple-query version of getQuantile().
-   * 
+   *
    * <p>This returns an array that could have been generated by using getQuantile() with many different
-   * fractional ranks, but would be very inefficient. 
-   * This method incurs the internal set-up overhead once and obtains multiple quantile values in 
-   * a single query.  It is strongly recommend that this method be used instead of multiple calls 
+   * fractional ranks, but would be very inefficient.
+   * This method incurs the internal set-up overhead once and obtains multiple quantile values in
+   * a single query.  It is strongly recommend that this method be used instead of multiple calls
    * to getQuantile().
-   * 
+   *
    * @param fractions given array of fractional positions in the hypothetical sorted stream.
    * These are also called normalized ranks or fractional ranks.
-   * These fractions must be monotonic, in increasing order and in the interval 
+   * These fractions must be monotonic, in increasing order and in the interval
    * [0.0, 1.0] inclusive.
-   * 
-   * @return array of approximations to the given fractions in the same order as given fractions 
+   *
+   * @return array of approximations to the given fractions in the same order as given fractions
    * array. Returns null if sketch is empty
    */
   public T[] getQuantiles(final double[] fractions) {
-    if (isEmpty()) return null;
+    if (isEmpty()) { return null; }
     Util.validateFractions(fractions);
     ItemsAuxiliary<T> aux = null;
     @SuppressWarnings("unchecked")
@@ -312,7 +312,7 @@ public final class ItemsSketch<T> {
       if      (fraction == 0.0) { answers[i] = minValue_; }
       else if (fraction == 1.0) { answers[i] = maxValue_; }
       else {
-        if (aux == null) { 
+        if (aux == null) {
           aux = this.constructAuxiliary();
         }
         answers[i] = aux.getQuantile(fraction);
@@ -324,30 +324,30 @@ public final class ItemsSketch<T> {
   /**
    * This is also a more efficient multiple-query version of getQuantile() and allows the caller to
    * specify the number of evenly spaced fractional ranks.
-   * 
-   * 
-   * @param evenlySpaced an integer that specifies the number of evenly spaced fractional ranks. 
-   * This must be a positive integer greater than 0. A value of 1 will return the min value. 
-   * A value of 2 will return the min and the max value. A value of 3 will return the min, 
+   *
+   *
+   * @param evenlySpaced an integer that specifies the number of evenly spaced fractional ranks.
+   * This must be a positive integer greater than 0. A value of 1 will return the min value.
+   * A value of 2 will return the min and the max value. A value of 3 will return the min,
    * the median and the max value, etc.
-   * 
-   * @return array of approximations to the given fractions in the same order as given fractions 
-   * array. 
+   *
+   * @return array of approximations to the given fractions in the same order as given fractions
+   * array.
    */
   public T[] getQuantiles(int evenlySpaced) {
     return getQuantiles(getEvenlySpaced(evenlySpaced));
   }
 
   /**
-   * Returns an approximation to the Probability Mass Function (PMF) of the input stream 
+   * Returns an approximation to the Probability Mass Function (PMF) of the input stream
    * given a set of splitPoints (values).
-   * 
-   * <p>The resulting approximations have a probabilistic guarantee that be obtained from the 
+   *
+   * <p>The resulting approximations have a probabilistic guarantee that be obtained from the
    * getNormalizedRankError() function.
-   * 
+   *
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing values
    * that divide the domain into <i>m+1</i> consecutive disjoint intervals.
-   * 
+   *
    * @return an array of m+1 doubles each of which is an approximation
    * to the fraction of the input stream values that fell into one of those intervals.
    * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
@@ -358,15 +358,15 @@ public final class ItemsSketch<T> {
   }
 
   /**
-   * Returns an approximation to the Cumulative Distribution Function (CDF), which is the 
+   * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
    * cumulative analog of the PMF, of the input stream given a set of splitPoints (values).
-   * 
+   *
    * <p>More specifically, the value at array position j of the CDF is the
    * sum of the values in positions 0 through j of the PMF.
-   * 
+   *
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing values
    * that divide the domain into <i>m+1</i> consecutive disjoint intervals.
-   * 
+   *
    * @return an approximation to the CDF of the input stream given the splitPoints.
    */
   public double[] getCDF(final T[] splitPoints) {
@@ -400,8 +400,8 @@ public final class ItemsSketch<T> {
    * Returns the configured value of K
    * @return the configured value of K
    */
-  public int getK() { 
-    return k_; 
+  public int getK() {
+    return k_;
   }
 
   /**
@@ -424,28 +424,28 @@ public final class ItemsSketch<T> {
    * Returns the length of the input stream so far.
    * @return the length of the input stream so far
    */
-  public long getN() { 
-    return n_; 
+  public long getN() {
+    return n_;
   }
 
   /**
-   * Get the rank error normalized as a fraction between zero and one. 
-   * The error of this sketch is specified as a fraction of the normalized rank of the hypothetical 
-   * sorted stream of items presented to the sketch. 
-   * 
-   * <p>Suppose the sketch is presented with N values. The raw rank (0 to N-1) of an item 
-   * would be its index position in the sorted version of the input stream. If we divide the 
+   * Get the rank error normalized as a fraction between zero and one.
+   * The error of this sketch is specified as a fraction of the normalized rank of the hypothetical
+   * sorted stream of items presented to the sketch.
+   *
+   * <p>Suppose the sketch is presented with N values. The raw rank (0 to N-1) of an item
+   * would be its index position in the sorted version of the input stream. If we divide the
    * raw rank by N, it becomes the normalized rank, which is between 0 and 1.0.
-   * 
-   * <p>For example, choosing a K of 227 yields a normalized rank error of about 1%. 
-   * The upper bound on the median value obtained by getQuantile(0.5) would be the value in the 
-   * hypothetical ordered stream of values at the normalized rank of 0.51. 
-   * The lower bound would be the value in the hypothetical ordered stream of values at the 
+   *
+   * <p>For example, choosing a K of 227 yields a normalized rank error of about 1%.
+   * The upper bound on the median value obtained by getQuantile(0.5) would be the value in the
+   * hypothetical ordered stream of values at the normalized rank of 0.51.
+   * The lower bound would be the value in the hypothetical ordered stream of values at the
    * normalized rank of 0.49.
-   * 
-   * <p>The error of this sketch cannot be translated into an error (relative or absolute) of the 
+   *
+   * <p>The error of this sketch cannot be translated into an error (relative or absolute) of the
    * returned quantile values.
-   * 
+   *
    * @return the rank error normalized as a fraction between zero and one.
    */
   public double getNormalizedRankError() {
@@ -466,7 +466,7 @@ public final class ItemsSketch<T> {
    * @return true if this sketch is empty
    */
   public boolean isEmpty() {
-   return getN() == 0; 
+   return getN() == 0;
   }
 
   /**
@@ -483,14 +483,14 @@ public final class ItemsSketch<T> {
   }
 
   /**
-   * Serialize this sketch to a byte array form. 
+   * Serialize this sketch to a byte array form.
    * @param serDe an instance of ArrayOfItemsSerDe
    * @return byte array of this sketch
    */
   public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
     return toByteArray(false, serDe);
   }
-  
+
   /**
    * Serialize this sketch to a byte array form.
    * @param ordered if true the base buffer will be ordered (default == false).
@@ -500,10 +500,10 @@ public final class ItemsSketch<T> {
   public byte[] toByteArray(final boolean ordered, final ArrayOfItemsSerDe<T> serDe) {
     final boolean empty = isEmpty();
 
-    int flags = (empty ? EMPTY_FLAG_MASK : 0) 
-        | (ordered ? ORDERED_FLAG_MASK : 0) 
+    int flags = (empty ? EMPTY_FLAG_MASK : 0)
+        | (ordered ? ORDERED_FLAG_MASK : 0)
         | COMPACT_FLAG_MASK;
-    
+
     if (empty) {
       byte[] outByteArr = new byte[Long.BYTES];
       Memory memOut = new NativeMemory(outByteArr);
@@ -512,21 +512,21 @@ public final class ItemsSketch<T> {
       insertPre0(outByteArr, cumOffset, preLongs, flags, k_);
       return outByteArr;
     }
-    
+
     //not empty
     T[] dataArr = combinedBufferToItemsArray(ordered); //includes min and max
-    
+
     int preLongs = 2;
     byte[] itemsByteArr = serDe.serializeToByteArray(dataArr);
     int numOutBytes = (preLongs << 3) + itemsByteArr.length;
     byte[] outByteArr = new byte[numOutBytes];
     Memory memOut = new NativeMemory(outByteArr);
     long cumOffset = memOut.getCumulativeOffset(0L);
-    
+
     //insert preamble
     insertPre0(outByteArr, cumOffset, preLongs, flags, k_);
     insertN(outByteArr, cumOffset, n_);
-    
+
     //insert data
     memOut.putByteArray(preLongs << 3, itemsByteArr, 0, itemsByteArr.length);
     return outByteArr;
@@ -553,7 +553,7 @@ public final class ItemsSketch<T> {
   /**
    * From an existing sketch, this creates a new sketch that can have a smaller value of K.
    * The original sketch is not modified.
-   * 
+   *
    * @param newK the new value of K that must be smaller than current value of K.
    * It is required that this.getK() = newK * 2^(nonnegative integer).
    * @return the new sketch.
@@ -575,7 +575,7 @@ public final class ItemsSketch<T> {
   /**
    * Puts the current sketch into the given Memory if there is sufficient space.
    * Otherwise, throws an error.
-   * 
+   *
    * @param dstMem the given memory.
    * @param serDe an instance of ArrayOfItemsSerDe
    */
@@ -622,22 +622,22 @@ public final class ItemsSketch<T> {
   protected Object[] getCombinedBuffer() {
     return combinedBuffer_;
   }
-  
+
   /**
-   * Loads the Combined Buffer, min and max from the given items array. 
+   * Loads the Combined Buffer, min and max from the given items array.
    * The Combined Buffer is always in non-compact form and must be pre-allocated.
    * @param itemsArray the given items array
    */
   private void itemsArrayToCombinedBuffer(T[] itemsArray) {
     final int extra = 2; // space for min and max values
-    
+
     //Load min, max
     minValue_ = itemsArray[0];
     maxValue_ = itemsArray[1];
 
     //Load base buffer
     System.arraycopy(itemsArray, extra, combinedBuffer_, 0, baseBufferCount_);
-    
+
     //Load levels
     long bits = bitPattern_;
     if (bits > 0) {
@@ -650,27 +650,27 @@ public final class ItemsSketch<T> {
       }
     }
   }
-  
+
   /**
-   * Returns an array of items in compact form, including min and max extracted from the 
-   * Combined Buffer. 
+   * Returns an array of items in compact form, including min and max extracted from the
+   * Combined Buffer.
    * @param ordered true if the desired form of the resulting array has the base buffer sorted.
    * @return an array of items, including min and max extracted from the Combined Buffer.
    */
   @SuppressWarnings("unchecked")
   private T[] combinedBufferToItemsArray(boolean ordered) {
-    T[] outArr = null; 
+    T[] outArr = null;
     final int extra = 2; // extra space for min and max values
     final int outArrCap = getRetainedItems();
     outArr = (T[]) Array.newInstance(minValue_.getClass(), outArrCap + extra);
-    
+
     //Load min, max
     outArr[0] = minValue_;
     outArr[1] = maxValue_;
-    
+
     //Load base buffer
     System.arraycopy(combinedBuffer_, 0, outArr, extra, baseBufferCount_);
-    
+
     //Load levels
     long bits = bitPattern_;
     if (bits > 0) {
@@ -688,7 +688,7 @@ public final class ItemsSketch<T> {
     return outArr;
   }
 
-  private static final void insertPre0(byte[] outArr, long cumOffset, int preLongs, int flags, 
+  private static final void insertPre0(byte[] outArr, long cumOffset, int preLongs, int flags,
       int k) {
     insertPreLongs(outArr, cumOffset, preLongs);
     insertSerVer(outArr, cumOffset, ItemsUtil.ITEMS_SER_VER);
@@ -696,9 +696,9 @@ public final class ItemsSketch<T> {
     insertFlags(outArr, cumOffset, flags);
     insertK(outArr, cumOffset, k);
   }
-  
+
   /**
-   * Returns the Auxiliary data structure which is only used for getQuantile() and getQuantiles() 
+   * Returns the Auxiliary data structure which is only used for getQuantile() and getQuantiles()
    * queries.
    * @return the Auxiliary data structure
    */

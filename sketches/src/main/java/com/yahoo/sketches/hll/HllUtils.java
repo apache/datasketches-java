@@ -26,7 +26,8 @@ final class HllUtils {
     return retVal;
   }
 
-  static Fields unionBucketIterator(Fields fields, BucketIterator iter, Fields.UpdateCallback updateCallback) {
+  static Fields unionBucketIterator(
+      Fields fields, BucketIterator iter, Fields.UpdateCallback updateCallback) {
     while (iter.next()) {
       fields = fields.updateBucket(iter.getKey(), iter.getValue(), updateCallback);
     }

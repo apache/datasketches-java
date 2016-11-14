@@ -28,7 +28,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
 
   /**
    * This is to create an instance of an UpdatableQuickSelectSketch.
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than 
+   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than
    * given value.
    * @param lgResizeFactor log2(resizeFactor) - value from 0 to 3:
    * <pre>
@@ -37,11 +37,11 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    * 2 - grow four times
    * 3 - grow eight times (default)
    * </pre>
-   * @param samplingProbability 
+   * @param samplingProbability
    * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
    * @param summaryFactory An instance of a SummaryFactory.
    */
-  UpdatableSketch(final int nomEntries, final int lgResizeFactor, final float samplingProbability, 
+  UpdatableSketch(final int nomEntries, final int lgResizeFactor, final float samplingProbability,
       final SummaryFactory<S> summaryFactory) {
     super(nomEntries, lgResizeFactor, samplingProbability, summaryFactory);
   }
@@ -56,8 +56,8 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
 
   /**
    * Updates this sketch with a long key and U value.
-   * The value is passed to update() method of the Summary object associated with the key 
-   * 
+   * The value is passed to update() method of the Summary object associated with the key
+   *
    * @param key The given long key
    * @param value The given U value
    */
@@ -67,8 +67,8 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
 
   /**
    * Updates this sketch with a double key and U value.
-   * The value is passed to update() method of the Summary object associated with the key 
-   * 
+   * The value is passed to update() method of the Summary object associated with the key
+   *
    * @param key The given double key
    * @param value The given U value
    */
@@ -78,8 +78,8 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
 
   /**
    * Updates this sketch with a String key and U value.
-   * The value is passed to update() method of the Summary object associated with the key 
-   * 
+   * The value is passed to update() method of the Summary object associated with the key
+   *
    * @param key The given String key
    * @param value The given U value
    */
@@ -89,43 +89,43 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
 
   /**
    * Updates this sketch with a byte[] key and U value.
-   * The value is passed to update() method of the Summary object associated with the key 
-   * 
+   * The value is passed to update() method of the Summary object associated with the key
+   *
    * @param key The given byte[] key
    * @param value The given U value
    */
   public void update(final byte[] key, final U value) {
-    if (key == null || key.length == 0) return;
+    if (key == null || key.length == 0) { return; }
     insertOrIgnore(MurmurHash3.hash(key, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
   }
 
   /**
    * Updates this sketch with a int[] key and U value.
-   * The value is passed to update() method of the Summary object associated with the key 
-   * 
+   * The value is passed to update() method of the Summary object associated with the key
+   *
    * @param key The given int[] key
    * @param value The given U value
    */
   public void update(final int[] key, final U value) {
-    if (key == null || key.length == 0) return;
+    if (key == null || key.length == 0) { return; }
     insertOrIgnore(MurmurHash3.hash(key, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
   }
 
   /**
    * Updates this sketch with a long[] key and U value.
-   * The value is passed to update() method of the Summary object associated with the key 
-   * 
+   * The value is passed to update() method of the Summary object associated with the key
+   *
    * @param key The given long[] key
    * @param value The given U value
    */
   public void update(final long[] key, final U value) {
-    if (key == null || key.length == 0) return;
+    if (key == null || key.length == 0) { return; }
     insertOrIgnore(MurmurHash3.hash(key, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
   }
 
   private void insertOrIgnore(final long key, final U value) {
     setNotEmpty();
-    if (key >= getThetaLong()) return;
+    if (key >= getThetaLong()) { return; }
     int index = findOrInsert(key);
     if (index < 0) {
       index = ~index;

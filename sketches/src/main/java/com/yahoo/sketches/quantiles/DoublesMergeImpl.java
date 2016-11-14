@@ -81,8 +81,8 @@ class DoublesMergeImpl {
     final double tgtMax = tgt.getMaxValue();
     final double tgtMin = tgt.getMinValue();
 
-    if (srcMax > tgtMax) tgt.putMaxValue(srcMax);
-    if (srcMin < tgtMin) tgt.putMinValue(srcMin);
+    if (srcMax > tgtMax) { tgt.putMaxValue(srcMax); }
+    if (srcMin < tgtMin) { tgt.putMinValue(srcMin); }
   }
 
   private static void justZipWithStride(
@@ -112,9 +112,9 @@ class DoublesMergeImpl {
   static void blockyTandemMergeSort(final double[] keyArr, final long[] valArr, final int arrLen,
       final int blkSize) {
     assert blkSize >= 1;
-    if (arrLen <= blkSize) return;
+    if (arrLen <= blkSize) { return; }
     int numblks = arrLen / blkSize;
-    if (numblks * blkSize < arrLen) numblks += 1;
+    if (numblks * blkSize < arrLen) { numblks += 1; }
     assert (numblks * blkSize >= arrLen);
 
     // duplicate the input is preparation for the "ping-pong" copy reduction strategy.
@@ -149,7 +149,7 @@ class DoublesMergeImpl {
     // Instead, they refer to the pre-sorted blocks, such as block 0, block 1, etc.
 
     assert (grpLen > 0);
-    if (grpLen == 1) return;
+    if (grpLen == 1) { return; }
     final int grpLen1 = grpLen / 2;
     final int grpLen2 = grpLen - grpLen1;
     assert (grpLen1 >= 1);
@@ -175,7 +175,7 @@ class DoublesMergeImpl {
     int arrLen2         = grpLen2   * blkSize;
 
     // special case for the final block which might be shorter than blkSize.
-    if (arrStart2 + arrLen2 > arrLim) arrLen2 = arrLim - arrStart2;
+    if (arrStart2 + arrLen2 > arrLim) { arrLen2 = arrLim - arrStart2; }
 
     tandemMerge(keySrc, valSrc,
                 arrStart1, arrLen1,

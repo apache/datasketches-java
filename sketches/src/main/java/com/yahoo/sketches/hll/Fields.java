@@ -66,9 +66,9 @@ public interface Fields {
   int numBytesToSerialize();
 
   /**
-   * Return the compact form of this fields object.  The compact form is intended as the most compact representation
-   * of the same data.  Generally, the compact form is not updatable and it is acceptable for it to throw
-   * UnsupportedOperationException's out of the update calls.
+   * Return the compact form of this fields object.  The compact form is intended as the most
+   * compact representation of the same data.  Generally, the compact form is not updatable and
+   * it is acceptable for it to throw UnsupportedOperationExceptions out of the update calls.
    *
    * @return  The compact representation of these fields.
    */
@@ -112,16 +112,19 @@ public interface Fields {
    * Unions the provided compressed byte[] and exceptions hash into the current Fields object.
    *
    * @param compressed a byte array of compressed, 4-bit values as used by OnHeapCompressedFields
-   * @param minVal the minimum value (or "offset").  I.e. a 0 in a nibble from compressed represent this actual value
+   * @param minVal the minimum value (or "offset").  I.e. a 0 in a nibble from compressed represent
+   * this actual value
    * @param exceptions the exceptions hash
    * @param cb The callback to be called whenever a bucket value is updated
    * @return The new fields object to use to represent the unioned buckets
    */
-  Fields unionCompressedAndExceptions(byte[] compressed, int minVal, OnHeapHash exceptions, UpdateCallback cb);
+  Fields unionCompressedAndExceptions(byte[] compressed, int minVal, OnHeapHash exceptions,
+      UpdateCallback cb);
 
   /**
-   * An UpdateCallback is a callback provided to calls that potentially update buckets.  It is a single method
-   * interface that can provide feedback to the caller about when a bucket was updated.  This enables the HipHllSketch
+   * An UpdateCallback is a callback provided to calls that potentially update buckets.  It is a
+   * single method interface that can provide feedback to the caller about when a bucket was updated.
+   * This enables the HipHllSketch
    * to get the information it needs to use the HipEstimation algorithm instead of the built-in one.
    */
   interface UpdateCallback {

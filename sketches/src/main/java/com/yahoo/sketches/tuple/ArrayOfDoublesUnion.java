@@ -32,10 +32,10 @@ public abstract class ArrayOfDoublesUnion {
    * @param sketchIn sketch to add to the union
    */
   public void update(final ArrayOfDoublesSketch sketchIn) {
-    if (sketchIn == null) return;
+    if (sketchIn == null) { return; }
     Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
-    if (sketchIn.isEmpty()) return;
-    if (sketchIn.getThetaLong() < theta_) theta_ = sketchIn.getThetaLong();
+    if (sketchIn.isEmpty()) { return; }
+    if (sketchIn.getThetaLong() < theta_) { theta_ = sketchIn.getThetaLong(); }
     ArrayOfDoublesSketchIterator it = sketchIn.iterator();
     while (it.next()) {
       sketch_.merge(it.getKey(), it.getValues());
@@ -74,7 +74,7 @@ public abstract class ArrayOfDoublesUnion {
   }
 
   /**
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than 
+   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than
    * given value.
    * @param numValues Number of double values to keep for each key
    * @return maximum required storage bytes given nomEntries and numValues

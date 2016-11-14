@@ -37,8 +37,8 @@ public final class BoundsOnRatiosInSampledSets {
    */
   public static double getLowerBoundForBoverA(long a, long b, double f) {
     checkInputs(a, b, f);
-    if (a == 0) return 0.0;
-    if (f == 1.0) return (double) b / a;
+    if (a == 0) { return 0.0; }
+    if (f == 1.0) { return (double) b / a; }
     return approximateLowerBoundOnP(a, b, NUM_STD_DEVS * hackyAdjuster(f));
   }
 
@@ -51,8 +51,8 @@ public final class BoundsOnRatiosInSampledSets {
    */
   public static double getUpperBoundForBoverA(long a, long b, double f) {
     checkInputs(a, b, f);
-    if (a == 0) return 1.0;
-    if (f == 1.0) return (double) b / a;
+    if (a == 0) { return 1.0; }
+    if (f == 1.0) { return (double) b / a; }
     return approximateUpperBoundOnP(a, b, NUM_STD_DEVS * hackyAdjuster(f));
   }
 
@@ -64,7 +64,7 @@ public final class BoundsOnRatiosInSampledSets {
    */
   public static double getEstimateOfBoverA(long a, long b) {
     checkInputs(a, b, 0.3);
-    if (a == 0) return 0.5;
+    if (a == 0) { return 0.5; }
     return (double) b / a;
   }
 

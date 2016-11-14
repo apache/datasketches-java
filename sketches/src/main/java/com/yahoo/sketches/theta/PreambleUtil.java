@@ -60,7 +60,8 @@ final class PreambleUtil {
   // ###### DO NOT MESS WITH THIS FROM HERE ...
   // Preamble byte Addresses
   static final int PREAMBLE_LONGS_BYTE        = 0; //low 6 bits
-  static final int LG_RESIZE_FACTOR_BITS      = 6; //upper 2 bits. BIT offset in byte. Not used by compact or direct.
+  //upper 2 bits. BIT offset in byte. Not used by compact or direct.
+  static final int LG_RESIZE_FACTOR_BITS      = 6;
   static final int SER_VER_BYTE               = 1;
   static final int FAMILY_BYTE                = 2; //SerVer1,2 was SKETCH_TYPE_BYTE
   static final int LG_NOM_LONGS_BYTE          = 3; //not used by compact

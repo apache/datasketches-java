@@ -17,6 +17,8 @@ final class Interpolation {
 
   //arrays could be made private and then accessed via getters.  But may impact performance.
 
+  //CHECKSTYLE.OFF: LineLength
+
   static final double interpolation_x_arrs[][] = {
     // log K = 7
     {91.554623, 93.970317, 96.431113, 98.937264, 101.488909, 104.086010, 106.728780, 109.417062,
@@ -1043,14 +1045,22 @@ final class Interpolation {
     20971520.0}
   };
 
+  //CHECKSTYLE.ON: LineLength
+
   static double cubicInterpolateUsingTable(double[] xArr, double[] yArr, double x) {
     assert (xArr.length >= 4 && xArr.length == yArr.length && x >= xArr[0]
         && x <= xArr[xArr.length - 1]);
-    if (x == xArr[xArr.length - 1]) return yArr[yArr.length - 1]; // corner case
+    if (x == xArr[xArr.length - 1]) { // corner case
+      return yArr[yArr.length - 1];
+    }
     int offset = findStraddle(xArr, x);
     assert (offset >= 0 && offset <= xArr.length - 2);
-    if (offset == 0) return cubicInterpolateAux(xArr, yArr, offset, x); // corner case
-    if (offset == xArr.length - 2) return cubicInterpolateAux(xArr, yArr, offset - 2, x); // corner case
+    if (offset == 0) { // corner case
+      return cubicInterpolateAux(xArr, yArr, offset, x);
+    }
+    if (offset == xArr.length - 2) { // corner case
+      return cubicInterpolateAux(xArr, yArr, offset - 2, x);
+    }
     return cubicInterpolateAux(xArr, yArr, offset - 1, x);
   }
 
@@ -1064,7 +1074,8 @@ final class Interpolation {
     );
   }
 
-  // interpolate using the cubic curve that passes through the four given points, using the Lagrange interpolation formula
+  // interpolate using the cubic curve that passes through the four given points, using the
+  //  Lagrange interpolation formula
   private static double cubicInterpolateAuxAux(double x0, double y0, double x1, double y1,
       double x2, double y2, double x3, double y3, double x) {
     double l0Numer = (x - x1) * (x - x2) * (x - x3);
@@ -1094,7 +1105,7 @@ final class Interpolation {
     int middle;
     assert (left < right);
     assert (xArr[left] <= x && x < xArr[right]); /* the invariant */
-    if (left + 1 == right) return (left);
+    if (left + 1 == right) { return (left); }
     middle = left + ((right - left) / 2);
     if (xArr[middle] <= x) {
       return (findStraddleAux(xArr, middle, right, x));

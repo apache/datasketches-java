@@ -6,11 +6,11 @@
 package com.yahoo.sketches;
 
 /**
- * This class enables the estimation of error bounds given a sample set size, the sampling 
- * probability theta, the number of standard deviations and a simple noDataSeen flag.  This can 
+ * This class enables the estimation of error bounds given a sample set size, the sampling
+ * probability theta, the number of standard deviations and a simple noDataSeen flag.  This can
  * be used to estimate error bounds for fixed threshold sampling as well as the error bounds
  * calculations for sketches.
- * 
+ *
  * @author Kevin Lang
  */
 // BTW, the suffixes "NStar", "NPrimeB", and "NPrimeF" correspond to variables in the formal
@@ -47,7 +47,7 @@ public final class BinomialBoundsN {
   }
 
   // This is a special purpose calculator for NStar, using a computational
-  // strategy inspired by its Bayesian definition. It is only appropriate 
+  // strategy inspired by its Bayesian definition. It is only appropriate
   // for a very limited set of inputs. However, the procedure computeApproxBinoLB ()
   // below does in fact only call it for suitably limited inputs.
   // Outside of this limited range, two different bad things will happen.
@@ -64,22 +64,22 @@ public final class BinomialBoundsN {
     assertTrue(0.0 < delta && delta < 1.0);
     q = 1.0 - p;
     numSamplesF = (double) numSamplesI;
-    // Use a different algorithm if the following isn't true; this one will be too slow, or worse. 
+    // Use a different algorithm if the following isn't true; this one will be too slow, or worse.
     assertTrue((numSamplesF / p) < 500.0);
-    curTerm = Math.pow(p, numSamplesF);  // curTerm = posteriorProbability (k, k, p) 
-    assertTrue(curTerm > 1e-100); // sanity check for non-use of logarithms 
+    curTerm = Math.pow(p, numSamplesF);  // curTerm = posteriorProbability (k, k, p)
+    assertTrue(curTerm > 1e-100); // sanity check for non-use of logarithms
     tot = curTerm;
     m = numSamplesI;
-    while (tot <= delta) { // this test can fail even the first time 
+    while (tot <= delta) { // this test can fail even the first time
       curTerm = curTerm * q * ((double) m) / ((double) (m + 1 - numSamplesI));
       tot += curTerm;
       m += 1;
     }
-    // we have reached a state where tot > delta, so back up one 
+    // we have reached a state where tot > delta, so back up one
     return (m - 1);
   }
 
-  //  The following procedure has very limited applicability. 
+  //  The following procedure has very limited applicability.
   //  The above remarks about specialNStar() also apply here.
   private static long specialNPrimeB(long numSamplesI, double p, double delta) {
     double q, tot, numSamplesF, curTerm, oneMinusDelta;
@@ -108,7 +108,7 @@ public final class BinomialBoundsN {
     return (specialNPrimeB(numSamplesI + 1, p, delta));
   }
 
-  // The following computes an approximation to the lower bound of 
+  // The following computes an approximation to the lower bound of
   // a Frequentist confidence interval based on the tails of the Binomial distribtuion.
   private static double computeApproxBinoLB(long numSamplesI, double theta, int numSDev) {
     if (theta == 1.0) {
@@ -122,35 +122,35 @@ public final class BinomialBoundsN {
     else if (numSamplesI == 1) {
       double delta = deltaOfNumSDev[numSDev];
       double rawLB = (Math.log(1.0 - delta)) / (Math.log(1.0 - theta));
-      return (Math.floor(rawLB)); // round down 
+      return (Math.floor(rawLB)); // round down
     }
 
     else if (numSamplesI > 120) {
-      // plenty of samples, so gaussian approximation to binomial distribution isn't too bad 
+      // plenty of samples, so gaussian approximation to binomial distribution isn't too bad
       double rawLB = contClassicLB((double) numSamplesI, theta, (double) numSDev);
-      return (rawLB - 0.5); // fake round down 
+      return (rawLB - 0.5); // fake round down
     }
 
-    // at this point we know 2 <= numSamplesI <= 120 
+    // at this point we know 2 <= numSamplesI <= 120
 
-    else if (theta > (1.0 - 1e-5)) {  // empirically-determined threshold 
+    else if (theta > (1.0 - 1e-5)) {  // empirically-determined threshold
       return ((double) numSamplesI);
     }
 
-    else if (theta < ((double) numSamplesI) / 360.0) {  // empirically-determined threshold 
-      // here we use the gaussian approximation, but with a modified "numSDev" 
+    else if (theta < ((double) numSamplesI) / 360.0) {  // empirically-determined threshold
+      // here we use the gaussian approximation, but with a modified "numSDev"
       int index;
       double rawLB;
       index = 3 * ((int) numSamplesI) + (numSDev - 1);
       rawLB = contClassicLB((double) numSamplesI, theta, EquivTables.getLB(index));
-      return (rawLB - 0.5); // fake round down 
+      return (rawLB - 0.5); // fake round down
     }
 
-    else { // This is the most difficult range to approximate; we will compute an "exact" LB. 
-      // We know that est <= 360, so specialNStar() shouldn't be ridiculously slow. 
+    else { // This is the most difficult range to approximate; we will compute an "exact" LB.
+      // We know that est <= 360, so specialNStar() shouldn't be ridiculously slow.
       double delta = deltaOfNumSDev[numSDev];
       long nstar = specialNStar(numSamplesI, theta, delta);
-      return ((double) nstar); // don't need to round 
+      return ((double) nstar); // don't need to round
     }
   }
 
@@ -164,35 +164,35 @@ public final class BinomialBoundsN {
     else if (numSamplesI == 0) {
       double delta = deltaOfNumSDev[numSDev];
       double rawUB = (Math.log(delta)) / (Math.log(1.0 - theta));
-      return (Math.ceil(rawUB)); // round up 
+      return (Math.ceil(rawUB)); // round up
     }
 
     else if (numSamplesI > 120) {
-      // plenty of samples, so gaussian approximation to binomial distribution isn't too bad 
+      // plenty of samples, so gaussian approximation to binomial distribution isn't too bad
       double rawUB = contClassicUB((double) numSamplesI, theta, (double) numSDev);
-      return (rawUB + 0.5); // fake round up 
+      return (rawUB + 0.5); // fake round up
     }
 
-    // at this point we know 1 <= numSamplesI <= 120 
+    // at this point we know 1 <= numSamplesI <= 120
 
-    else if (theta > (1.0 - 1e-5)) { // empirically-determined threshold 
+    else if (theta > (1.0 - 1e-5)) { // empirically-determined threshold
       return ((double) (numSamplesI + 1));
     }
 
-    else if (theta < ((double) numSamplesI) / 360.0) {  // empirically-determined threshold 
-      // here we use the gaussian approximation, but with a modified "numSDev" 
+    else if (theta < ((double) numSamplesI) / 360.0) {  // empirically-determined threshold
+      // here we use the gaussian approximation, but with a modified "numSDev"
       int index;
       double rawUB;
       index = 3 * ((int) numSamplesI) + (numSDev - 1);
       rawUB = contClassicUB((double) numSamplesI, theta, EquivTables.getUB(index));
-      return (rawUB + 0.5); // fake round up 
+      return (rawUB + 0.5); // fake round up
     }
 
-    else { // This is the most difficult range to approximate; we will compute an "exact" UB. 
-      // We know that est <= 360, so specialNPrimeF() shouldn't be ridiculously slow. 
+    else { // This is the most difficult range to approximate; we will compute an "exact" UB.
+      // We know that est <= 360, so specialNPrimeF() shouldn't be ridiculously slow.
       double delta = deltaOfNumSDev[numSDev];
       long nprimef = specialNPrimeF(numSamplesI, theta, delta);
-      return ((double) nprimef); // don't need to round 
+      return ((double) nprimef); // don't need to round
     }
   }
 
@@ -205,15 +205,15 @@ public final class BinomialBoundsN {
    * @param numSDev the number of "standard deviations" from the mean for the tail bounds.  This
    * must be an integer value of 1, 2 or 3.
    * @param noDataSeen this is normally false. However, in the case where you have zero samples and
-   * a a theta &lt; 1.0, this flag enables the distinction between a virgin case when no actual 
-   * data has been seen and the case where the estimate may be zero but an upper error bound may 
+   * a a theta &lt; 1.0, this flag enables the distinction between a virgin case when no actual
+   * data has been seen and the case where the estimate may be zero but an upper error bound may
    * still exist.
    * @return the approximate upper bound value
    */
   public static double getLowerBound(long numSamples, double theta, int numSDev,
       boolean noDataSeen) {
     //in earlier code numSamples was called numSamplesI
-    if (noDataSeen) return 0.0;
+    if (noDataSeen) { return 0.0; }
     checkArgs(numSamples, theta, numSDev);
     double lb = computeApproxBinoLB(numSamples, theta, numSDev);
     double numSamplesF = (double) numSamples;
@@ -225,18 +225,18 @@ public final class BinomialBoundsN {
    * Returns the approximate upper bound value
    * @param numSamples the number of samples in the sample set
    * @param theta the sampling probability
-   * @param numSDev the number of "standard deviations" from the mean used to compute thetail 
+   * @param numSDev the number of "standard deviations" from the mean used to compute thetail
    * bounds. This must be an integer value of 1, 2 or 3.
    * @param noDataSeen this is normally false. However, in the case where you have zero samples and
-   * a a theta &lt; 1.0, this flag enables the distinction between a virgin case when no actual 
-   * data has been seen and the case where the estimate may be zero but an upper error bound may 
+   * a a theta &lt; 1.0, this flag enables the distinction between a virgin case when no actual
+   * data has been seen and the case where the estimate may be zero but an upper error bound may
    * still exist.
    * @return the approximate upper bound value
    */
   public static double getUpperBound(long numSamples, double theta, int numSDev,
       boolean noDataSeen) {
     //in earlier code numSamples was called numSamplesI
-    if (noDataSeen) return 0.0;
+    if (noDataSeen) { return 0.0; }
     checkArgs(numSamples, theta, numSDev);
     double ub = computeApproxBinoUB(numSamples, theta, numSDev);
     double numSamplesF = (double) numSamples;

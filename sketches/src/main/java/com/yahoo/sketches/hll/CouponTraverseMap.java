@@ -50,7 +50,6 @@ class CouponTraverseMap extends Map {
   }
 
   static CouponTraverseMap getInstance(final int keySizeBytes, final int maxCouponsPerKey) {
-
     CouponTraverseMap map = new CouponTraverseMap(keySizeBytes, maxCouponsPerKey);
     map.tableEntries_ = COUPON_MAP_MIN_NUM_ENTRIES;
     map.capacityEntries_ = (int)(map.tableEntries_ * COUPON_MAP_GROW_TRIGGER_FACTOR);
@@ -71,22 +70,39 @@ class CouponTraverseMap extends Map {
   }
 
   @Override
+  double update(final int entryIndex, final short value) {
+    final int offset = entryIndex * maxCouponsPerKey_;
+    boolean wasFound = false;
+    for (int i = 0; i < maxCouponsPerKey_; i++) {
+      if (couponsArr_[offset + i] == 0) {
+        if (wasFound) { return i; }
+        couponsArr_[offset + i] = value;
+        return i + 1;
+      }
+      if (couponsArr_[offset + i] == value) {
+        wasFound = true;
+      }
+    }
+    if (wasFound) { return maxCouponsPerKey_; }
+    return -maxCouponsPerKey_;
+  }
+
+  @Override
   double getEstimate(final byte[] key) {
     final int entryIndex = findKey(key);
-    if (entryIndex < 0) return 0;
+    if (entryIndex < 0) { return 0; }
     return getCouponCount(entryIndex);
   }
 
   @Override
-  double getUpperBound(byte[] key) {
+  double getUpperBound(final byte[] key) {
     return getEstimate(key) * (1 + RSE);
   }
 
   @Override
-  double getLowerBound(byte[] key) {
+  double getLowerBound(final byte[] key) {
     return getEstimate(key) * (1 - RSE);
   }
-
 
   @Override
   void updateEstimate(final int index, final double estimate) {
@@ -110,7 +126,7 @@ class CouponTraverseMap extends Map {
         return firstDeletedIndex == -1 ? ~entryIndex : ~firstDeletedIndex; // found empty or deleted
       }
       if (couponsArr_[entryIndex * maxCouponsPerKey_] == 0) { //found deleted
-        if (firstDeletedIndex == -1) firstDeletedIndex = entryIndex;
+        if (firstDeletedIndex == -1) { firstDeletedIndex = entryIndex; }
       } else if (Map.arraysEqual(keysArr_, entryIndex * keySizeBytes_, key, 0, keySizeBytes_)) {
         return entryIndex; // found key
       }
@@ -138,24 +154,6 @@ class CouponTraverseMap extends Map {
       numActiveKeys_++;
     }
     return entryIndex;
-  }
-
-  @Override
-  double update(final int entryIndex, final short value) {
-    final int offset = entryIndex * maxCouponsPerKey_;
-    boolean wasFound = false;
-    for (int i = 0; i < maxCouponsPerKey_; i++) {
-      if (couponsArr_[offset + i] == 0) {
-        if (wasFound) return i;
-        couponsArr_[offset + i] = value;
-        return i + 1;
-      }
-      if (couponsArr_[offset + i] == value) {
-        wasFound = true;
-      }
-    }
-    if (wasFound) return maxCouponsPerKey_;
-    return -maxCouponsPerKey_;
   }
 
   @Override

@@ -443,7 +443,7 @@ public abstract class DoublesSketch {
    * @return the number of bytes required to store this sketch as an array of bytes.
    */
   public int getStorageBytes() {
-    if (isEmpty()) return 8;
+    if (isEmpty()) { return 8; }
     return 32 + (Util.computeRetainedItems(getK(), getN()) << 3);
   }
 
@@ -455,7 +455,7 @@ public abstract class DoublesSketch {
    * @return the number of bytes required to store this sketch as an array of bytes.
    */
   public int getStorageBytes(int k, long n) {
-    if (n == 0) return 8;
+    if (n == 0) { return 8; }
     return 32 + (Util.computeRetainedItems(k, n) << 3);
   }
 

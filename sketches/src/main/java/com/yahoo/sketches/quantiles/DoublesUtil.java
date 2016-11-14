@@ -172,7 +172,7 @@ final class DoublesUtil {
   }
 
   static String printMemData(Memory mem, int k, int n) {
-    if (n == 0) return "";
+    if (n == 0) { return ""; }
     final StringBuilder sb = new StringBuilder();
     sb.append(LS).append("### ").append("MEM DATA DETAIL:").append(LS);
     String fmt1 = "%n%10.1f, ";
@@ -182,14 +182,14 @@ final class DoublesUtil {
     sb.append("BaseBuffer Data:");
     for (int i = 0; i < bbCount; i++) {
       double d = mem.getDouble(32 + i * 8);
-      if (i % k != 0) sb.append(String.format(fmt2, d));
-      else sb.append(String.format(fmt1, d));
+      if (i % k != 0) { sb.append(String.format(fmt2, d)); }
+      else { sb.append(String.format(fmt1, d)); }
     }
     sb.append(LS + LS + "Level Data:");
     for (int i = 0; i < ret - bbCount; i++) {
       double d = mem.getDouble(32 + i * 8 + bbCount * 8);
-      if (i % k != 0) sb.append(String.format(fmt2, d));
-      else sb.append(String.format(fmt1, d));
+      if (i % k != 0) { sb.append(String.format(fmt2, d)); }
+      else { sb.append(String.format(fmt1, d)); }
     }
     sb.append(LS + "### END DATA DETAIL").append(LS);
     return sb.toString();

@@ -30,17 +30,17 @@ public final class AnotB<S extends Summary> {
    * A null sketch is interpreted as an empty sketch.
    * This is not an accumulating update. Calling update() more than once
    * without calling getResult() will discard the result of previous update()
-   * 
+   *
    * @param a The incoming sketch for the first argument
    * @param b The incoming sketch for the second argument
-   */  
+   */
   @SuppressWarnings("unchecked")
   public void update(final Sketch<S> a, final Sketch<S> b) {
-    if (a != null) isEmpty_ = a.isEmpty(); //stays this way even if we end up with no result entries
+    if (a != null) { isEmpty_ = a.isEmpty(); } //stays this way even if we end up with no result entries
     long thetaA = a == null ? Long.MAX_VALUE : a.getThetaLong();
     long thetaB = b == null ? Long.MAX_VALUE : b.getThetaLong();
     theta_ = Math.min(thetaA, thetaB);
-    if (a == null || a.getRetainedEntries() == 0) return;
+    if (a == null || a.getRetainedEntries() == 0) { return; }
     if (b == null || b.getRetainedEntries() == 0) {
       getNoMatchSetFromSketch(a);
     } else {
@@ -72,9 +72,11 @@ public final class AnotB<S extends Summary> {
    * @return the result of this operation as a CompactSketch
    */
   public CompactSketch<S> getResult() {
-    if (count_ == 0) return new CompactSketch<S>(null, null, theta_, isEmpty_);
-    CompactSketch<S> result = 
-        new CompactSketch<S>(Arrays.copyOfRange(keys_, 0, count_), 
+    if (count_ == 0) {
+      return new CompactSketch<S>(null, null, theta_, isEmpty_);
+    }
+    CompactSketch<S> result =
+        new CompactSketch<S>(Arrays.copyOfRange(keys_, 0, count_),
             Arrays.copyOfRange(summaries_, 0, count_), theta_, isEmpty_);
     reset();
     return result;

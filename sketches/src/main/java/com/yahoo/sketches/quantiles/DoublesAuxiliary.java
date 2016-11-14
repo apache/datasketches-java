@@ -66,7 +66,7 @@ final class DoublesAuxiliary {
     assert 0.0 <= phi;
     assert phi <= 1.0;
     long n = this.auxN_;
-    if (n <= 0) return Double.NaN;
+    if (n <= 0) { return Double.NaN; }
     long pos = posOfPhi(phi, n);
     return (approximatelyAnswerPositionalQuery(pos));
   }

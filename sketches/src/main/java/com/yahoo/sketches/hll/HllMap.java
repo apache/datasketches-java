@@ -87,8 +87,14 @@ class HllMap extends Map {
   }
 
   @Override
+  double update(final int entryIndex, final short coupon) {
+    updateHll(entryIndex, coupon); //update HLL array, updates HIP
+    return hipEstAccumArr_[entryIndex];
+  }
+
+  @Override
   double getEstimate(final byte[] key) {
-    if (key == null) return Double.NaN;
+    if (key == null) { return Double.NaN; }
     final int entryIndex = findKey(key);
     if (entryIndex < 0) {
       return 0;
@@ -158,12 +164,6 @@ class HllMap extends Map {
       }
     }
     return entryIndex;
-  }
-
-  @Override
-  double update(final int entryIndex, final short coupon) {
-    updateHll(entryIndex, coupon); //update HLL array, updates HIP
-    return hipEstAccumArr_[entryIndex];
   }
 
   @Override
@@ -293,7 +293,7 @@ class HllMap extends Map {
 
     long hllLong = arrOfHllArr_[entryIndex * hllArrLongs_ + longIdx];
     final int oldValue = (int)(hllLong >>> shift) & SIX_BIT_MASK;
-    if (newValue <= oldValue) return false;
+    if (newValue <= oldValue) { return false; }
     // newValue > oldValue
 
     //update hipEstAccum BEFORE updating invPow2Sum
@@ -326,7 +326,7 @@ class HllMap extends Map {
     final byte[] newStateArr = new byte[(int) Math.ceil(newTableEntries / 8.0)];
 
     for (int oldIndex = 0; oldIndex < tableEntries_; oldIndex++) {
-      if (isBitClear(stateArr_, oldIndex)) continue;
+      if (isBitClear(stateArr_, oldIndex)) { continue; }
       // extract an old key
       final byte[] key =
           Arrays.copyOfRange(keysArr_, oldIndex * keySizeBytes_, (oldIndex + 1) * keySizeBytes_);

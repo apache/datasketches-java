@@ -10,7 +10,7 @@ import com.yahoo.memory.NativeMemory;
 
 /**
  * Summary for generic tuple sketches of type Double.
- * This summary keeps a double value. On update a predefined operation is performed depending on 
+ * This summary keeps a double value. On update a predefined operation is performed depending on
  * the mode.
  * Three modes are supported: Sum, Min and Max. The default mode is Sum.
  */
@@ -23,15 +23,15 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
     /**
      * The aggregation mode is the summation function
      */
-    Sum, 
+    Sum,
     /**
      * The aggregation mode is the minimum function
      */
-    Min, 
+    Min,
     /**
      * The aggregation mode is the maximum function
      */
-    Max 
+    Max
   }
 
   private double value_;
@@ -81,10 +81,10 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
       value_ += value.doubleValue();
       break;
     case Min:
-      if (value < value_) value_ = value;
+      if (value < value_) { value_ = value; }
       break;
     case Max:
-      if (value > value_) value_ = value;
+      if (value > value_) { value_ = value; }
       break;
       //default: //This cannot happen and cannot be tested
     }
@@ -119,11 +119,11 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
   /**
    * Creates an instance of the DoubleSummary given a serialized representation
    * @param mem Memory object with serialized DoubleSummary
-   * @return DeserializedResult object, which contains a DoubleSummary object and number of bytes 
+   * @return DeserializedResult object, which contains a DoubleSummary object and number of bytes
    * read from the Memory
    */
   public static DeserializeResult<DoubleSummary> fromMemory(final Memory mem) {
-    return new DeserializeResult<DoubleSummary>(new DoubleSummary(mem.getDouble(VALUE_DOUBLE), 
+    return new DeserializeResult<DoubleSummary>(new DoubleSummary(mem.getDouble(VALUE_DOUBLE),
         Mode.values()[mem.getByte(MODE_BYTE)]), SERIALIZED_SIZE_BYTES);
   }
 

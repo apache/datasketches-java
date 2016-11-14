@@ -5,12 +5,10 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hll.MapTestingUtil.intToBytes;
-import static com.yahoo.sketches.hll.MapTestingUtil.longToBytes;
-
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import com.yahoo.sketches.Util;
 
 public class HllMapTest {
 
@@ -34,9 +32,9 @@ public class HllMapTest {
     byte[] key = new byte[4];
     byte[] id = new byte[4];
     double est;
-    key = intToBytes(1, key);
+    key = Util.intToBytes(1, key);
     for (int i=1; i<= u; i++) {
-      id = intToBytes(i, id);
+      id = Util.intToBytes(i, id);
       short coupon = (short) Map.coupon16(id);
       est = map.update(key, coupon);
       if (i % 100 == 0) {
@@ -45,7 +43,7 @@ public class HllMapTest {
         println("i: "+i + "\t Est: " + est + "\t" + eStr);
       }
     }
-    byte[] key2 = intToBytes(2, key);
+    byte[] key2 = Util.intToBytes(2, key);
     Assert.assertEquals(map.getEstimate(key2), 0.0);
     Assert.assertEquals(map.getKeySizeBytes(), 4);
 
@@ -76,9 +74,9 @@ public class HllMapTest {
     byte[] id = new byte[8];
     int i, j;
     for (j=1; j<=keys; j++) {
-      key = intToBytes(j, key);
+      key = Util.intToBytes(j, key);
       for (i=0; i< u; i++) {
-        id = longToBytes(++v, id);
+        id = Util.longToBytes(++v, id);
         short coupon = (short) Map.coupon16(id);
         map.update(key, coupon);
       }
@@ -95,7 +93,7 @@ public class HllMapTest {
 //    println("Cur Count      : " + map.getCurrentCountEntries());
 //    println("Theoretical RSE: " + (1/Math.sqrt(k)));
     for (j=1; j<=keys; j++) {
-      key = intToBytes(j, key);
+      key = Util.intToBytes(j, key);
       double est = map.getEstimate(key);
       double err = (est/u -1.0) * 100;
       String eStr = String.format("%.3f%%", err);

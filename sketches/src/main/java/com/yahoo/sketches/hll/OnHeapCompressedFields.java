@@ -40,7 +40,7 @@ final class OnHeapCompressedFields implements Fields {
 
   @Override
   public Fields updateBucket(int index, byte val, final UpdateCallback callback) {
-    if (val <= currMin) return this;
+    if (val <= currMin) { return this; }
     if (val > currMax) {
       final byte theOldVal = CompressedBucketUtils.getNibble(buckets, index);
       CompressedBucketUtils.setNibble(buckets, index, (byte) 0xf);
@@ -48,7 +48,8 @@ final class OnHeapCompressedFields implements Fields {
           index, val, new UpdateCallback() {
             @Override
             public void bucketUpdated(int bucket, byte oldVal, byte newVal) {
-              callback.bucketUpdated(bucket, theOldVal == 0xf ? oldVal : (byte) (theOldVal + currMin), newVal);
+              callback.bucketUpdated(
+                  bucket, theOldVal == 0xf ? oldVal : (byte) (theOldVal + currMin), newVal);
             }
           }
       );

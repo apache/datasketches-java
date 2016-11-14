@@ -19,7 +19,8 @@ final class OnHeapHashFields implements Fields {
 
   private int growthBound;
 
-  public OnHeapHashFields(Preamble preamble, int startSize, int switchToDenseSize, FieldsFactory denseFactory) {
+  public OnHeapHashFields(
+      Preamble preamble, int startSize, int switchToDenseSize, FieldsFactory denseFactory) {
     this.preamble = preamble;
     this.denseFactory = denseFactory;
     this.hasher = new OnHeapHash(startSize);

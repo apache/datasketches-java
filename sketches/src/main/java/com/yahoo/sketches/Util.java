@@ -72,6 +72,160 @@ public final class Util {
   public static final char TAB = '\t';
 
   /**
+   * Returns a string of spaced hex bytes in Big-Endian order.
+   * @param v the given long
+   * @return string of spaced hex bytes in Big-Endian order.
+   */
+  public static String longToHexBytes(long v) {
+    long mask = 0XFFL;
+    StringBuilder sb = new StringBuilder();
+    for (int i = 8; i-- > 0; ) {
+      String s = Long.toHexString((v >>> i * 8) & mask);
+      sb.append(zeroPad(s, 2)).append(" ");
+    }
+    return sb.toString();
+  }
+
+  /**
+   * Returns an int array of points that will be evenly spaced on a log axis.
+   * This is designed for Log_base2 numbers.
+   * @param lgStart the Log_base2 of the starting value. E.g., for 1 lgStart = 0.
+   * @param lgEnd the Log_base2 of the ending value. E.g. for 1024 lgEnd = 10.
+   * @param points the total number of points including the starting and ending values.
+   * @return an int array of points that will be evenly spaced on a log axis.
+   */
+  public static int[] evenlyLgSpaced(int lgStart, int lgEnd, int points) {
+    if (points <= 0) {
+      throw new SketchesArgumentException("points must be > 0");
+    }
+    if ((lgEnd < 0) || (lgStart < 0)) {
+      throw new SketchesArgumentException("lgStart and lgEnd must be >= 0.");
+    }
+    int[] out = new int[points];
+    out[0] = 1 << lgStart;
+    if (points == 1) { return out; }
+    double delta = (lgEnd - lgStart) / (points - 1.0);
+    for (int i = 1; i < points; i++) {
+      double mXpY = delta * i + lgStart;
+      out[i] = (int)Math.round(Math.pow(2, mXpY));
+    }
+    return out;
+  }
+
+  /**
+   * Returns an int extracted from a Little-Endian byte array.
+   * @param arr the given byte array
+   * @return an int extracted from a Little-Endian byte array.
+   */
+  public static int bytesToInt(byte[] arr) {
+    int v = 0;
+    for (int i = 0; i < 4; i++) {
+      v |= (arr[i] & 0XFF) << i * 8;
+    }
+    return v;
+  }
+
+  /**
+   * Returns a long extracted from a Little-Endian byte array.
+   * @param arr the given byte array
+   * @return a long extracted from a Little-Endian byte array.
+   */
+  public static long bytesToLong(byte[] arr) {
+    long v = 0;
+    for (int i = 0; i < 8; i++) {
+      v |= (arr[i] & 0XFFL) << i * 8;
+    }
+    return v;
+  }
+
+  /**
+   * Returns a string view of a byte array
+   * @param arr the given byte array
+   * @param signed set true if you want the byte values signed.
+   * @param littleEndian set true if you want Little-Endian order
+   * @param sep the separator string between bytes
+   * @return a string view of a byte array
+   */
+  public static String bytesToString(
+      byte[] arr, boolean signed, boolean littleEndian, String sep) {
+    StringBuilder sb = new StringBuilder();
+    int mask = (signed) ? 0XFFFFFFFF : 0XFF;
+    int arrLen = arr.length;
+    if (littleEndian) {
+      for (int i = 0; i < arrLen - 1; i++) {
+        sb.append(arr[i] & mask).append(sep);
+      }
+      sb.append(arr[arrLen - 1] & mask);
+    } else {
+      for (int i = arrLen; i-- > 1; ) {
+        sb.append(arr[i] & mask).append(sep);
+      }
+      sb.append(arr[0] & mask);
+    }
+    return sb.toString();
+  }
+
+  /**
+   * Returns the given time in nanoseconds formatted as Sec.mSec uSec nSec
+   * @param nS the given nanoseconds
+   * @return the given time in nanoseconds formatted as Sec.mSec uSec nSec
+   */
+  public static String nanoSecToString(long nS) {
+    long rem_nS = (long)(nS % 1000.0);
+    long rem_uS = (long)((nS / 1000.0) % 1000.0);
+    long rem_mS = (long)((nS / 1000000.0) % 1000.0);
+    long sec    = (long)(nS / 1000000000.0);
+    String nSstr = zeroPad(Long.toString(rem_nS), 3);
+    String uSstr = zeroPad(Long.toString(rem_uS), 3);
+    String mSstr = zeroPad(Long.toString(rem_mS), 3);
+    return String.format("%d.%3s %3s %3s", sec, mSstr, uSstr, nSstr);
+  }
+
+  /**
+   * Returns the given time in milliseconds formatted as Hours:Min:Sec.mSec
+   * @param mS the given nanoseconds
+   * @return the given time in milliseconds formatted as Hours:Min:Sec.mSec
+   */
+  public static String milliSecToString(long mS) {
+    long rem_mS = (long)(mS % 1000.0);
+    long rem_sec = (long)((mS / 1000.0) % 60.0);
+    long rem_min = (long)((mS / 60000.0) % 60.0);
+    long hr  =     (long)(mS / 3600000.0);
+    String mSstr = zeroPad(Long.toString(rem_mS), 3);
+    String secStr = zeroPad(Long.toString(rem_sec), 2);
+    String minStr = zeroPad(Long.toString(rem_min), 2);
+    return String.format("%d:%2s:%2s.%3s", hr, minStr, secStr, mSstr);
+  }
+
+  /**
+   * Returns a Little-Endian byte array extracted from the given int.
+   * @param v the given int
+   * @param arr a given array of 4 bytes that will be returned with the data
+   * @return a Little-Endian byte array extracted from the given int.
+   */
+  public static byte[] intToBytes(int v, byte[] arr) {
+    for (int i = 0; i < 4; i++) {
+      arr[i] = (byte) (v & 0XFF);
+      v >>>= 8;
+    }
+    return arr;
+  }
+
+  /**
+   * Returns a Little-Endian byte array extracted from the given long.
+   * @param v the given long
+   * @param arr a given array of 8 bytes that will be returned with the data
+   * @return a Little-Endian byte array extracted from the given long.
+   */
+  public static byte[] longToBytes(long v, byte[] arr) {
+    for (int i = 0; i < 8; i++) {
+      arr[i] = (byte) (v & 0XFFL);
+      v >>>= 8;
+    }
+    return arr;
+  }
+
+  /**
    * Check if the two seed hashes are equal. If not, throw an SketchesArgumentException.
    * @param seedHashA the seedHash A
    * @param seedHashB the seedHash B

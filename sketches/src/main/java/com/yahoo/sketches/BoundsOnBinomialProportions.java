@@ -7,7 +7,7 @@ package com.yahoo.sketches;
 
 /**
  * Confidence intervals for binomial proportions.
- * 
+ *
  * <p>This class computes an approximation to the Clopper-Pearson confidence interval
  * for a binomial proportion. Exact Clopper-Pearson intervals are strictly
  * conservative, but these approximations are not.</p>
@@ -23,38 +23,38 @@ package com.yahoo.sketches;
  * a random variable governed by a binomial distribution. After any given
  * batch of <i>n</i> independent trials, the random variable <i>k</i> has a specific
  * value which is observed and is therefore known.</li>
- * <li><i>pHat</i> = <i>k</i> / <i>n</i> is an unbiased estimate of the unknown success 
+ * <li><i>pHat</i> = <i>k</i> / <i>n</i> is an unbiased estimate of the unknown success
  * probability <i>p</i>.</li>
  * </ul>
  *
  * <p>Alternatively, consider a coin with unknown heads probability <i>p</i>. Where
  * <i>n</i> is the number of independent flips of that coin, and <i>k</i> is the number
  * of times that the coin comes up heads during a given batch of <i>n</i> flips.
- * This class computes a frequentist confidence interval [lowerBoundOnP, upperBoundOnP] for the 
+ * This class computes a frequentist confidence interval [lowerBoundOnP, upperBoundOnP] for the
  * unknown <i>p</i>.</p>
- * 
+ *
  * <p>Conceptually, the desired confidence level is specified by a tail probability delta.</p>
  *
  * <p>Ideally, over a large ensemble of independent batches of trials,
- * the fraction of batches in which the true <i>p</i> lies below lowerBoundOnP would be at most 
- * delta, and the fraction of batches in which the true <i>p</i> lies above upperBoundOnP 
+ * the fraction of batches in which the true <i>p</i> lies below lowerBoundOnP would be at most
+ * delta, and the fraction of batches in which the true <i>p</i> lies above upperBoundOnP
  * would also be at most delta.
  *
  * <p>Setting aside the philophical difficulties attaching to that statement, it isn't quite
  * true because we are approximating the Clopper-Pearson interval.</p>
  *
- * <p>Finally, we point out that in this class's interface, the confidence parameter delta is 
- * not specified directly, but rather through a "number of standard deviations" numStdDev. 
+ * <p>Finally, we point out that in this class's interface, the confidence parameter delta is
+ * not specified directly, but rather through a "number of standard deviations" numStdDev.
  * The library effectively converts that to a delta via delta = normalCDF (-1.0 * numStdDev).</p>
  *
  * <p>It is perhaps worth emphasizing that the library is NOT merely adding and subtracting
- * numStdDev standard deviations to the estimate. It is doing something better, that to some 
+ * numStdDev standard deviations to the estimate. It is doing something better, that to some
  * extent accounts for the fact that the binomial distribution has a non-gaussian shape.</p>
  *
  * <p>In particular, it is using an approximation to the inverse of the incomplete beta function
- * that appears as formula 26.5.22 on page 945 of the "Handbook of Mathematical Functions" 
+ * that appears as formula 26.5.22 on page 945 of the "Handbook of Mathematical Functions"
  * by Abramowitz and Stegun.</p>
- * 
+ *
  * @author Kevin Lang
  */
 public final class BoundsOnBinomialProportions { // confidence intervals for binomial proportions
@@ -62,32 +62,32 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
   private BoundsOnBinomialProportions() {}
 
   /**
-   * Computes lower bound of approximate Clopper-Pearson confidence interval for a binomial 
+   * Computes lower bound of approximate Clopper-Pearson confidence interval for a binomial
    * proportion.
-   * 
+   *
    * <p>Implementation Notes:<br>
-   * The approximateLowerBoundOnP is defined with respect to the right tail of the binomial 
+   * The approximateLowerBoundOnP is defined with respect to the right tail of the binomial
    * distribution.</p>
    * <ul>
-   * <li>We want to solve for the <i>p</i> for which sum<sub><i>j,k,n</i></sub>bino(<i>j;n,p</i>) 
+   * <li>We want to solve for the <i>p</i> for which sum<sub><i>j,k,n</i></sub>bino(<i>j;n,p</i>)
    * = delta.</li>
    * <li>We now restate that in terms of the left tail.</li>
-   * <li>We want to solve for the p for which sum<sub><i>j,0,(k-1)</i></sub>bino(<i>j;n,p</i>) 
+   * <li>We want to solve for the p for which sum<sub><i>j,0,(k-1)</i></sub>bino(<i>j;n,p</i>)
    * = 1 - delta.</li>
    * <li>Define <i>x</i> = 1-<i>p</i>.</li>
    * <li>We want to solve for the <i>x</i> for which I<sub><i>x(n-k+1,k)</i></sub> = 1 - delta.</li>
-   * <li>We specify 1-delta via numStdDevs through the right tail of the standard normal 
+   * <li>We specify 1-delta via numStdDevs through the right tail of the standard normal
    * distribution.</li>
    * <li>Smaller values of numStdDevs correspond to bigger values of 1-delta and hence to smaller
-   * values of delta. In fact, usefully small values of delta correspond to negative values of 
+   * values of delta. In fact, usefully small values of delta correspond to negative values of
    * numStdDevs.</li>
    * <li>return <i>p</i> = 1-<i>x</i>.</li>
    * </ul>
-   * 
+   *
    * @param n is the number of trials. Must be non-negative.
    * @param k is the number of successes. Must be non-negative, and cannot exceed n.
    * @param numStdDevs the number of standard deviations defining the confidence interval
-   * @return the lower bound of the approximate Clopper-Pearson confidence interval for the 
+   * @return the lower bound of the approximate Clopper-Pearson confidence interval for the
    * unknown success probability.
    */
   public static double approximateLowerBoundOnP(long n, long k, double numStdDevs) {
@@ -103,18 +103,18 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
   }
 
   /**
-   * Computes upper bound of approximate Clopper-Pearson confidence interval for a binomial 
+   * Computes upper bound of approximate Clopper-Pearson confidence interval for a binomial
    * proportion.
-   * 
+   *
    * <p>Implementation Notes:<br>
-   * The approximateUpperBoundOnP is defined with respect to the left tail of the binomial 
+   * The approximateUpperBoundOnP is defined with respect to the left tail of the binomial
    * distribution.</p>
    * <ul>
-   * <li>We want to solve for the <i>p</i> for which sum<sub><i>j,0,k</i></sub>bino(<i>j;n,p</i>) 
+   * <li>We want to solve for the <i>p</i> for which sum<sub><i>j,0,k</i></sub>bino(<i>j;n,p</i>)
    * = delta.</li>
    * <li>Define <i>x</i> = 1-<i>p</i>.</li>
    * <li>We want to solve for the <i>x</i> for which I<sub><i>x(n-k,k+1)</i></sub> = delta.</li>
-   * <li>We specify delta via numStdDevs through the right tail of the standard normal 
+   * <li>We specify delta via numStdDevs through the right tail of the standard normal
    * distribution.</li>
    * <li>Bigger values of numStdDevs correspond to smaller values of delta.</li>
    * <li>return <i>p</i> = 1-<i>x</i>.</li>
@@ -122,18 +122,18 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
    * @param n is the number of trials. Must be non-negative.
    * @param k is the number of successes. Must be non-negative, and cannot exceed <i>n</i>.
    * @param numStdDevs the number of standard deviations defining the confidence interval
-   * @return the upper bound of the approximate Clopper-Pearson confidence interval for the 
+   * @return the upper bound of the approximate Clopper-Pearson confidence interval for the
    * unknown success probability.
    */
   public static double approximateUpperBoundOnP(long n, long k, double numStdDevs) {
     checkInputs(n, k);
     if (n == 0) { return 1.0; } // the coin was never flipped, so we know nothing
     else if (k == n) { return 1.0; }
-    else if (k == n - 1) { 
-      return (exactUpperBoundOnPForKequalsNminusOne(n, deltaOfNumStdevs(numStdDevs))); 
+    else if (k == n - 1) {
+      return (exactUpperBoundOnPForKequalsNminusOne(n, deltaOfNumStdevs(numStdDevs)));
     }
-    else if (k == 0) { 
-      return (exactUpperBoundOnPForKequalsZero(n, deltaOfNumStdevs(numStdDevs))); 
+    else if (k == 0) {
+      return (exactUpperBoundOnPForKequalsZero(n, deltaOfNumStdevs(numStdDevs)));
     }
     else {
       double x = abramowitzStegunFormula26p5p22(n - k, k + 1, numStdDevs);
@@ -154,9 +154,9 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
   }
 
   private static void checkInputs(long n, long k) {
-    if (n < 0) throw new SketchesArgumentException("N must be non-negative");
-    if (k < 0) throw new SketchesArgumentException("K must be non-negative");
-    if (k > n) throw new SketchesArgumentException("K cannot exceed N");
+    if (n < 0) { throw new SketchesArgumentException("N must be non-negative"); }
+    if (k < 0) { throw new SketchesArgumentException("K must be non-negative"); }
+    if (k > n) { throw new SketchesArgumentException("K cannot exceed N"); }
   }
 
   /**
@@ -165,8 +165,8 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
    * @return returns erf(x), accurate to roughly 7 decimal digits.
    */
   public static double erf(double x) {
-    if (x < 0.0) return (-1.0 * (erf_of_nonneg(-1.0 * x)));
-    else return (erf_of_nonneg(x));
+    if (x < 0.0) { return (-1.0 * (erf_of_nonneg(-1.0 * x))); }
+    else { return (erf_of_nonneg(x)); }
   }
 
   /**
@@ -174,7 +174,7 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
    * @param x is the input to the normalCDF function
    * @return returns the approximation to normalCDF(x).
    */
-  public static double normalCDF(double x) { 
+  public static double normalCDF(double x) {
     return (0.5 * (1.0 + (erf(x / (Math.sqrt(2.0))))));
   }
 
@@ -199,12 +199,12 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
     double x4 = x2 * x2;
     double x5 = x2 * x3;
     double x6 = x3 * x3;
-    double sum = ( 1.0 
-                 + a1 * x 
-                 + a2 * x2 
-                 + a3 * x3 
-                 + a4 * x4 
-                 + a5 * x5 
+    double sum = ( 1.0
+                 + a1 * x
+                 + a2 * x2
+                 + a3 * x3
+                 + a4 * x4
+                 + a5 * x5
                  + a6 * x6 );
     double sum2 = sum * sum; // raise the sum to the 16th power
     double sum4 = sum2 * sum2;

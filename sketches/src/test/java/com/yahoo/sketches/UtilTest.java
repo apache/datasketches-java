@@ -4,14 +4,22 @@
  */
 package com.yahoo.sketches;
 
+import static com.yahoo.sketches.Util.bytesToInt;
+import static com.yahoo.sketches.Util.bytesToLong;
+import static com.yahoo.sketches.Util.bytesToString;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.Util.characterPad;
 import static com.yahoo.sketches.Util.checkIfMultipleOf8AndGT0;
 import static com.yahoo.sketches.Util.checkIfPowerOf2;
 import static com.yahoo.sketches.Util.checkProbability;
+import static com.yahoo.sketches.Util.evenlyLgSpaced;
 import static com.yahoo.sketches.Util.floorPowerOf2;
+import static com.yahoo.sketches.Util.intToBytes;
+import static com.yahoo.sketches.Util.isLessThanUnsigned;
 import static com.yahoo.sketches.Util.isMultipleOf8AndGT0;
 import static com.yahoo.sketches.Util.isPowerOf2;
+import static com.yahoo.sketches.Util.milliSecToString;
+import static com.yahoo.sketches.Util.nanoSecToString;
 import static com.yahoo.sketches.Util.zeroPad;
 
 import org.testng.Assert;
@@ -101,19 +109,12 @@ public class UtilTest {
     long n2 = 3;
     long n3 = -3;
     long n4 = -1;
-    Assert.assertTrue(Util.isLessThanUnsigned(n1, n2));
-    Assert.assertTrue(Util.isLessThanUnsigned(n2, n3));
-    Assert.assertTrue(Util.isLessThanUnsigned(n3, n4));
-    Assert.assertFalse(Util.isLessThanUnsigned(n2, n1));
-    Assert.assertFalse(Util.isLessThanUnsigned(n3, n2));
-    Assert.assertFalse(Util.isLessThanUnsigned(n4, n3));
-  }
-
-  @Test
-  public void checkPrintln() {
-    print("com.yahoo.sketches.UtilTest"); println(".checkPrintln():");
-    print("  Long MAX & MIN: "); print(Long.MAX_VALUE); print(", "); println(Long.MIN_VALUE);
-    print("  Doubles:        "); print(1.2345); print(", "); println(5.4321);
+    Assert.assertTrue(isLessThanUnsigned(n1, n2));
+    Assert.assertTrue(isLessThanUnsigned(n2, n3));
+    Assert.assertTrue(isLessThanUnsigned(n3, n4));
+    Assert.assertFalse(isLessThanUnsigned(n2, n1));
+    Assert.assertFalse(isLessThanUnsigned(n3, n2));
+    Assert.assertFalse(isLessThanUnsigned(n4, n3));
   }
 
   @Test
@@ -147,8 +148,86 @@ public class UtilTest {
   }
 
   @Test
+  public void checkEvenlyLgSpaced() {
+    int lgStart = 0;
+    int lgEnd = 4;
+    int ppo = 1;
+    int points = ppo * (lgEnd - lgStart) +1;
+    int[] pts = evenlyLgSpaced(lgStart, lgEnd, points);
+    Assert.assertEquals(pts[0], 1);
+    Assert.assertEquals(pts[1], 2);
+    Assert.assertEquals(pts[2], 4);
+    Assert.assertEquals(pts[3], 8);
+    Assert.assertEquals(pts[4], 16);
+    pts = evenlyLgSpaced(lgStart, lgEnd, 1);
+    Assert.assertEquals(pts[0], 1);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkEvenlyLgSpacedExcep1() {
+    evenlyLgSpaced(1, 2, -1);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkEvenlyLgSpacedExcep2() {
+    evenlyLgSpaced(-1, 2, 3);
+  }
+
+  @Test
+  public void checkBytesToInt() {
+    byte[] arr = new byte[] {4, 3, 2, 1};
+    int result = 4 + (3 << 8) + (2 << 16) + (1 << 24);
+    Assert.assertEquals(bytesToInt(arr), result);
+    byte[] arr2 = intToBytes(result, new byte[4]);
+    Assert.assertEquals(arr, arr2);
+  }
+
+  @Test
+  public void checkBytesToLong() {
+    byte[] arr = new byte[] {8, 7, 6, 5, 4, 3, 2, 1};
+    long result = 8L + (7L << 8) + (6L << 16) + (5L << 24)
+               + (4L << 32) + (3L << 40) + (2L << 48) + (1L << 56);
+    Assert.assertEquals(bytesToLong(arr), result);
+  }
+
+  @Test
+  public void checkBytesToString() {
+    long lng = 0XF8F7F6F504030201L;
+    //println(Long.toHexString(lng));
+    byte[] bytes = new byte[8];
+    bytes = Util.longToBytes(lng, bytes);
+    String sep = ".";
+    String unsignLE = bytesToString(bytes, false, true, sep);
+    String signedLE = bytesToString(bytes, true, true, sep);
+    String unsignBE = bytesToString(bytes, false,  false, sep);
+    String signedBE = bytesToString(bytes, true,  false, sep);
+    Assert.assertEquals(unsignLE, "1.2.3.4.245.246.247.248");
+    Assert.assertEquals(signedLE, "1.2.3.4.-11.-10.-9.-8");
+    Assert.assertEquals(unsignBE, "248.247.246.245.4.3.2.1");
+    Assert.assertEquals(signedBE, "-8.-9.-10.-11.4.3.2.1");
+  }
+
+  @Test
+  public void checkNsecToString() {
+    long nS = 1000000000L + 1000000L + 1000L + 1L;
+    String result = nanoSecToString(nS);
+    String expected = "1.001 001 001";
+    Assert.assertEquals(result, expected);
+  }
+
+  @Test
+  public void checkMsecToString() {
+    long nS = 60L * 60L * 1000L + 60L * 1000L + 1000L + 1L;
+    String result = milliSecToString(nS);
+    String expected = "1:01:01.001";
+    Assert.assertEquals(result, expected);
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
+    print("  Long MAX & MIN: "); print(Long.MAX_VALUE); print(", "); println(Long.MIN_VALUE);
+    print("  Doubles:        "); print(1.2345); print(", "); println(5.4321);
   }
 
   /**

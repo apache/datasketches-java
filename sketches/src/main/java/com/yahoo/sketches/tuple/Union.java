@@ -30,7 +30,7 @@ public class Union<S extends Summary> {
 
   /**
    * Creates new instance
-   * @param nomEntries nominal number of entries. Forced to the nearest power of 2 greater than 
+   * @param nomEntries nominal number of entries. Forced to the nearest power of 2 greater than
    * given value.
    * @param summaryFactory the summary factory
    */
@@ -46,10 +46,12 @@ public class Union<S extends Summary> {
    * @param sketchIn input sketch to add to the internal set
    */
   public void update(final Sketch<S> sketchIn) {
-    if (sketchIn == null || sketchIn.isEmpty()) return;
-    if (sketchIn.theta_ < theta_) theta_ = sketchIn.theta_;
+    if (sketchIn == null || sketchIn.isEmpty()) { return; }
+    if (sketchIn.theta_ < theta_) { theta_ = sketchIn.theta_; }
     final SketchIterator<S> it = sketchIn.iterator();
-    while (it.next()) sketch_.merge(it.getKey(), it.getSummary());
+    while (it.next()) {
+      sketch_.merge(it.getKey(), it.getSummary());
+    }
   }
 
   /**

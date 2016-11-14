@@ -67,20 +67,35 @@ class SingleCouponMap extends Map {
   }
 
   @Override
+  double update(final int entryIndex, final short coupon) {
+    if (couponsArr_[entryIndex] == 0) {
+      couponsArr_[entryIndex] = coupon;
+      return 1;
+    }
+    if (isCoupon(entryIndex)) {
+      if (couponsArr_[entryIndex] == coupon) { //duplicate
+        return 1;
+      }
+      return 0; // signal to promote
+    }
+    return -couponsArr_[entryIndex]; // negative level number
+  }
+
+  @Override
   double getEstimate(final byte[] key) {
     final int entryIndex = findKey(key);
-    if (entryIndex < 0) return 0;
-    if (isCoupon(entryIndex)) return 1;
+    if (entryIndex < 0) { return 0; }
+    if (isCoupon(entryIndex)) { return 1; }
     return -getCoupon(entryIndex); // negative: level #, zero: signal to promote
   }
 
   @Override
-  double getUpperBound(byte[] key) {
+  double getUpperBound(final byte[] key) {
     return getEstimate(key) * (1 + RSE);
   }
 
   @Override
-  double getLowerBound(byte[] key) {
+  double getLowerBound(final byte[] key) {
     return getEstimate(key) * (1 - RSE);
   }
 
@@ -127,21 +142,6 @@ class SingleCouponMap extends Map {
   }
 
   @Override
-  double update(final int entryIndex, final short coupon) {
-    if (couponsArr_[entryIndex] == 0) {
-      couponsArr_[entryIndex] = coupon;
-      return 1;
-    }
-    if (isCoupon(entryIndex)) {
-      if (couponsArr_[entryIndex] == coupon) { //duplicate
-        return 1;
-      }
-      return 0; // signal to promote
-    }
-    return -couponsArr_[entryIndex]; // negative level number
-  }
-
-  @Override
   void deleteKey(final int entryIndex) {
     // no deletes
   }
@@ -153,7 +153,7 @@ class SingleCouponMap extends Map {
 
   @Override
   int getCouponCount(final int entryIndex) {
-    if (couponsArr_[entryIndex] == 0 || !isCoupon(entryIndex)) return 0;
+    if (couponsArr_[entryIndex] == 0 || !isCoupon(entryIndex)) { return 0; }
     return 1;
   }
 

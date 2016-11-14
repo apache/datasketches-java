@@ -326,7 +326,9 @@ public final class MurmurHash3Adaptor {
     int t;
     int cnt = 0;
     long seed = 0;
-    if (n < 2) throw new SketchesArgumentException("Given value of n must be &gt; 1.");
+    if (n < 2) {
+      throw new SketchesArgumentException("Given value of n must be &gt; 1.");
+    }
     if (n > (1 << 30)) {
       while (++cnt < 10000) {
         long[] h = MurmurHash3.hash(data, seed);

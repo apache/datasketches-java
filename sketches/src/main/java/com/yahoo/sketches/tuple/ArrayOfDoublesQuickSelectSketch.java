@@ -22,7 +22,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
 
   // Layout of next 16 bytes:
   // Long || Start Byte Adr:
-  // Adr: 
+  // Adr:
   //      ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |    16     |
   //  3   ||-----------P (float)---------------|--------|--lgRF--|--lgArr-|---lgNom---|
   //      ||   31   |   30   |   29   |   28   |   27   |   26   |   25   |    24     |
@@ -48,29 +48,29 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   }
 
   abstract void updateValues(int index, double[] values);
-  
+
   abstract void setNotEmpty();
 
   abstract boolean isInSamplingMode();
-  
+
   abstract int getResizeFactor();
-  
+
   abstract int getCurrentCapacity();
-  
+
   abstract void rebuild(int newCapacity);
-  
+
   abstract long getKey(int index);
-  
+
   abstract void setValues(int index, double[] values);
-  
+
   abstract void incrementCount();
-  
+
   abstract void setThetaLong(long theta);
-  
+
   abstract int insertKey(long key);
-  
+
   abstract int findOrInsertKey(long key);
-  
+
   abstract double[] find(long key);
 
   @Override
@@ -82,13 +82,13 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   }
 
   /**
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than 
+   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than
    * given value.
    * @param numValues Number of double values to keep for each key
    * @return maximum required storage bytes given nomEntries and numValues
    */
   static int getMaxBytes(final int nomEntries, final int numValues) {
-    return ENTRIES_START 
+    return ENTRIES_START
         + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues) * ceilingPowerOf2(nomEntries) * 2;
   }
 
@@ -111,7 +111,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   }
 
   void rebuildIfNeeded() {
-    if (getRetainedEntries() < rebuildThreshold_) return;
+    if (getRetainedEntries() < rebuildThreshold_) { return; }
     if (getCurrentCapacity() > getNominalEntries()) {
       updateTheta();
       rebuild();
@@ -119,7 +119,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
       rebuild(getCurrentCapacity() * getResizeFactor());
     }
   }
-  
+
   void rebuild() {
     rebuild(getCurrentCapacity());
   }
@@ -141,11 +141,11 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   @Override
   void insertOrIgnore(final long key, final double[] values) {
     if (values.length != getNumValues()) {
-      throw new SketchesArgumentException("input array of values must have " + getNumValues() 
+      throw new SketchesArgumentException("input array of values must have " + getNumValues()
         + " elements, but has " + values.length);
     }
     setNotEmpty();
-    if (key == 0 || key >= theta_) return;
+    if (key == 0 || key >= theta_) { return; }
     int index = findOrInsertKey(key);
     if (index < 0) {
       incrementCount();
@@ -160,8 +160,8 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
     long[] keys = new long[getRetainedEntries()];
     int i = 0;
     for (int j = 0; j < getCurrentCapacity(); j++) {
-      long key = getKey(j); 
-      if (key != 0) keys[i++] = key;
+      long key = getKey(j);
+      if (key != 0) { keys[i++] = key; }
     }
     setThetaLong(QuickSelect.select(keys, 0, getRetainedEntries() - 1, getNominalEntries()));
   }

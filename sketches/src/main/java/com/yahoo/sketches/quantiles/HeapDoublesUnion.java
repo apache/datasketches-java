@@ -48,19 +48,23 @@ final class HeapDoublesUnion extends DoublesUnion {
 
   @Override
   public void update(double dataItem) {
-    if (gadget_ == null) gadget_ = HeapDoublesSketch.newInstance(k_);
+    if (gadget_ == null) {
+      gadget_ = HeapDoublesSketch.newInstance(k_);
+    }
     gadget_.update(dataItem);
   }
 
   @Override
   public DoublesSketch getResult() {
-    if (gadget_ == null) return HeapDoublesSketch.newInstance(k_);
+    if (gadget_ == null) {
+      return HeapDoublesSketch.newInstance(k_);
+    }
     return DoublesUtil.copy(gadget_); //can't have any externally owned handles.
   }
 
   @Override
   public DoublesSketch getResultAndReset() {
-    if (gadget_ == null) return null; //Intentionally return null here for speed.
+    if (gadget_ == null) { return null; } //Intentionally return null here for speed.
     DoublesSketch hqs = gadget_;
     gadget_ = null;
     return hqs;
@@ -78,7 +82,9 @@ final class HeapDoublesUnion extends DoublesUnion {
 
   @Override
   public String toString(boolean sketchSummary, boolean dataDetail) {
-    if (gadget_ == null) return HeapDoublesSketch.newInstance(k_).toString();
+    if (gadget_ == null) {
+      return HeapDoublesSketch.newInstance(k_).toString();
+    }
     return gadget_.toString(sketchSummary, dataDetail);
   }
 

@@ -10,7 +10,7 @@ import java.util.Comparator;
 
 /**
  * Auxiliary data structure for answering generic quantile queries
- * 
+ *
  * @author Kevin Lang
  * @author Alex Saydakov
  */
@@ -40,7 +40,7 @@ final class ItemsAuxiliary<T> {
     populateFromQuantilesSketch(k, n, bitPattern, (T[]) combinedBuffer, baseBufferCount,
         numSamples, (T[]) itemsArr, cumWtsArr, qs.getComparator());
 
-    // Sort the first "numSamples" slots of the two arrays in tandem, 
+    // Sort the first "numSamples" slots of the two arrays in tandem,
     // taking advantage of the already sorted blocks of length k
     ItemsUtil.blockyTandemMergeSort((T[]) itemsArr, cumWtsArr, numSamples, k, qs.getComparator());
 
@@ -67,7 +67,7 @@ final class ItemsAuxiliary<T> {
   T getQuantile(final double phi) {
     assert 0.0 <= phi;
     assert phi <= 1.0;
-    if (auxN_ <= 0) return null;
+    if (auxN_ <= 0) { return null; }
     long pos = posOfPhi(phi, auxN_);
     return (approximatelyAnswerPositionalQuery(pos));
   }
@@ -84,8 +84,9 @@ final class ItemsAuxiliary<T> {
    * @param cumWtsArr the cumulative weights for each item from the sketch populated here
    */
   private final static <T> void populateFromQuantilesSketch(
-      final int k, final long n, final long bitPattern, final T[] combinedBuffer, final int baseBufferCount,
-      final int numSamples, final T[] itemsArr, final long[] cumWtsArr, final Comparator<? super T> comparator) {
+      final int k, final long n, final long bitPattern, final T[] combinedBuffer,
+      final int baseBufferCount, final int numSamples, final T[] itemsArr, final long[] cumWtsArr,
+      final Comparator<? super T> comparator) {
     long weight = 1;
     int nxt = 0;
     long bits = bitPattern;
@@ -119,13 +120,13 @@ final class ItemsAuxiliary<T> {
     cumWtsArr[numSamples] = 0;
   }
 
-  /* Let m_i denote the minimum position of the length=n "full" sorted sequence 
+  /* Let m_i denote the minimum position of the length=n "full" sorted sequence
      that is represented in slot i of the length = n "chunked" sorted sequence.
 
      Note that m_i is the same thing as auxCumWtsArr_[i]
 
      Then the answer to a positional query 0 <= q < n
-     is l, where 0 <= l < len, 
+     is l, where 0 <= l < len,
      A)  m_l <= q
      B)   q  < m_r
      C)   l+1 = r
@@ -168,11 +169,11 @@ final class ItemsAuxiliary<T> {
     assert q < arr[r];
     return searchForChunkContainingPos(arr, q, l, r);
   }
-  
+
   /* Assuming that there are n items in the true stream, this asks what
      item would appear in position 0 <= pos < n of a hypothetical sorted
-     version of that stream.  
-  
+     version of that stream.
+
      Note that since that since the true stream is unavailable,
      we don't actually answer the question for that stream, but rather for
      a _different_ stream of the same length, that could hypothetically
@@ -185,14 +186,14 @@ final class ItemsAuxiliary<T> {
   }
 
   /**
-   * Returns the zero-based index (position) of a value in the hypothetical sorted stream of 
-   * values of size n. 
+   * Returns the zero-based index (position) of a value in the hypothetical sorted stream of
+   * values of size n.
    * @param phi the fractional position where: 0 &le; &#966; &le; 1.0.
    * @param n the size of the stream
    * @return the index, a value between 0 and n-1.
    */
   private static long posOfPhi(final double phi, final long n) { // don't tinker with this definition
-    final long pos = (long) Math.floor(phi * n); 
+    final long pos = (long) Math.floor(phi * n);
     return (pos == n) ? n - 1 : pos;
   }
 

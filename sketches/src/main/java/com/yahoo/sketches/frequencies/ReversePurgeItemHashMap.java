@@ -67,7 +67,7 @@ class ReversePurgeItemHashMap<T> {
    * hash map.
    */
   long get(final T key) {
-    if (key == null) return 0;
+    if (key == null) { return 0; }
     final int probe = hashProbe(key);
     if (states[probe] > 0) {
       assert (keys[probe]).equals(key);
@@ -152,7 +152,7 @@ class ReversePurgeItemHashMap<T> {
    */
   @SuppressWarnings("unchecked")
   T[] getActiveKeys() {
-    if (numActive == 0) return null;
+    if (numActive == 0) { return null; }
     T[] returnedKeys = null;
     int j = 0;
     for (int i = 0; i < keys.length; i++) {
@@ -172,7 +172,7 @@ class ReversePurgeItemHashMap<T> {
    * @return an array containing the values corresponding. to the active keys in the hash
    */
   long[] getActiveValues() {
-    if (numActive == 0) return null;
+    if (numActive == 0) { return null; }
     final long[] returnedValues = new long[numActive];
     int j = 0;
     for (int i = 0; i < values.length; i++) {
@@ -241,7 +241,7 @@ class ReversePurgeItemHashMap<T> {
     sb.append(String.format(hfmt, "Index","States","Values","Keys")).append(LS);
 
     for (int i = 0; i < keys.length; i++) {
-      if (states[i] <= 0) continue;
+      if (states[i] <= 0) { continue; }
       sb.append(String.format(fmt, i, states[i], values[i], keys[i].toString()));
       sb.append(LS);
     }
@@ -341,7 +341,7 @@ class ReversePurgeItemHashMap<T> {
     boolean next() {
       i++;
       while (i < iKeys.length) {
-        if (iStates[i] > 0) return true;
+        if (iStates[i] > 0) { return true; }
         i++;
       }
       return false;
