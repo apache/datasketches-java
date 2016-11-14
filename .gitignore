@@ -29,6 +29,8 @@ build.xml
 *.iml
 *.properties
 *.releaseBackup
+*.next
+*.tag
 
 # Jekyll
 Gemfile
