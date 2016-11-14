@@ -81,13 +81,20 @@ abstract class Map {
 
   abstract int findOrInsertKey(byte[] key);
 
-  abstract void deleteKey(int index);
+  /**
+   * Delete the key at the given index
+   * @param index the given index
+   */
+  void deleteKey(final int index) {}
 
-  abstract void updateEstimate(int index, double estimate);
+  /**
+   * Update the internal estimate at the given index
+   * @param index the given index
+   * @param estimate the given estimate
+   */
+  void updateEstimate(int index, double estimate) {}
 
   abstract double update(int index, short coupon);
-
-  abstract int getCouponCount(int index);
 
   abstract CouponsIterator getCouponsIterator(int index);
 

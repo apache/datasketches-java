@@ -327,7 +327,7 @@ public class UniqueCountMap {
       } else if (level < maps_.length - 1) {
         maps_[level] = CouponHashMap.getInstance(keySizeBytes_, newLevelCapacity);
       } else {
-        maps_[level] = HllMap.getInstance(keySizeBytes_, HLL_K);;
+        maps_[level] = HllMap.getInstance(keySizeBytes_, HLL_K);
       }
     }
     return maps_[level];

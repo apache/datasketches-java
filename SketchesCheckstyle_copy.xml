@@ -95,11 +95,6 @@
       <!-- <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/> -->
     </module>
     
-    <module name="FinalLocalVariable">
-      <property name="severity" value="ignore"/>
-      <property name="tokens" value="VARIABLE_DEF,PARAMETER_DEF"/>
-    </module>
-    
     <module name="IllegalTokenText">
       <property name="severity" value="warning"/>
       <property name="tokens" value="STRING_LITERAL, CHAR_LITERAL"/>

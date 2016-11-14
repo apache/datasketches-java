@@ -196,11 +196,6 @@ class CouponHashMap extends Map {
   }
 
   @Override
-  int getCouponCount(final int index) {
-    return (curCountsArr_[index] & BYTE_MASK);
-  }
-
-  @Override
   CouponsIterator getCouponsIterator(final int entryIndex) {
     return new CouponsIterator(couponsArr_, entryIndex * maxCouponsPerKey_, maxCouponsPerKey_);
   }

@@ -21,7 +21,6 @@ import com.yahoo.sketches.hash.MurmurHash3;
  * @author Kevin Lang
  */
 class SingleCouponMap extends Map {
-  private static final String LS = System.getProperty("line.separator");
   private static final double RSE = 0.408 / Math.sqrt(1024);
 
   private int tableEntries_;
@@ -142,22 +141,6 @@ class SingleCouponMap extends Map {
   }
 
   @Override
-  void deleteKey(final int entryIndex) {
-    // no deletes
-  }
-
-  @Override
-  void updateEstimate(final int entryIndex, final double estimate) {
-    // unused
-  }
-
-  @Override
-  int getCouponCount(final int entryIndex) {
-    if (couponsArr_[entryIndex] == 0 || !isCoupon(entryIndex)) { return 0; }
-    return 1;
-  }
-
-  @Override
   CouponsIterator getCouponsIterator(final int entryIndex) {
     return new CouponsIterator(couponsArr_, entryIndex, 1);
   }
@@ -231,28 +214,6 @@ class SingleCouponMap extends Map {
         + stateArr_.length;
     final long other = 4 * 4 + 8;
     return arrays + other;
-  }
-
-  @Override
-  public String toString() {
-    final String te = Map.fmtLong(getTableEntries());
-    final String ce = Map.fmtLong(getCapacityEntries());
-    final String cce = Map.fmtLong(getCurrentCountEntries());
-    final String esb = Map.fmtDouble(getEntrySizeBytes());
-    final String mub = Map.fmtLong(getMemoryUsageBytes());
-
-    final StringBuilder sb = new StringBuilder();
-    final String thisSimpleName = this.getClass().getSimpleName();
-    sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
-    sb.append("    Max Coupons Per Entry     : ").append(1).append(LS);
-    sb.append("    Capacity Coupons Per Entry: ").append(1).append(LS);
-    sb.append("    Table Entries             : ").append(te).append(LS);
-    sb.append("    Capacity Entries          : ").append(ce).append(LS);
-    sb.append("    Current Count Entries     : ").append(cce).append(LS);
-    sb.append("    Entry Size Bytes          : ").append(esb).append(LS);
-    sb.append("    Memory Usage Bytes        : ").append(mub).append(LS);
-    sb.append("### END SKETCH SUMMARY").append(LS);
-    return sb.toString();
   }
 
   private void resize() {

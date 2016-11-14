@@ -28,7 +28,6 @@ import com.yahoo.sketches.hash.MurmurHash3;
  * @author Alexander Saydakov
  */
 class HllMap extends Map {
-  public static final String LS = System.getProperty("line.separator");
   private static final double LOAD_FACTOR = 15.0 / 16.0;
   private static final int HLL_INIT_NUM_ENTRIES = 157;
   private static final float HLL_RESIZE_FACTOR = 2.0F;
@@ -199,17 +198,6 @@ class HllMap extends Map {
   }
 
   @Override
-  void deleteKey(int index) {
-    // not applicable
-  }
-
-  @Override
-  int getCouponCount(int index) {
-    // not applicable
-    return 0;
-  }
-
-  @Override
   CouponsIterator getCouponsIterator(final int index) {
     // not applicable
     return null;
@@ -235,28 +223,6 @@ class HllMap extends Map {
   @Override
   int getDeletedEntries() {
     return 0;
-  }
-
-  @Override
-  public String toString() {
-    final String kStr = Map.fmtLong(k_);
-    final String te = Map.fmtLong(getTableEntries());
-    final String ce = Map.fmtLong(getCapacityEntries());
-    final String cce = Map.fmtLong(getCurrentCountEntries());
-    final String esb = Map.fmtDouble(getEntrySizeBytes());
-    final String mub = Map.fmtLong(getMemoryUsageBytes());
-
-    final StringBuilder sb = new StringBuilder();
-    final String thisSimpleName = this.getClass().getSimpleName();
-    sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
-    sb.append("    HLL k                     : ").append(kStr).append(LS);
-    sb.append("    Table Entries             : ").append(te).append(LS);
-    sb.append("    Capacity Entries          : ").append(ce).append(LS);
-    sb.append("    Current Count Entries     : ").append(cce).append(LS);
-    sb.append("    Entry Size Bytes          : ").append(esb).append(LS);
-    sb.append("    Memory Usage Bytes        : ").append(mub).append(LS);
-    sb.append("### END SKETCH SUMMARY").append(LS);
-    return sb.toString();
   }
 
   /**

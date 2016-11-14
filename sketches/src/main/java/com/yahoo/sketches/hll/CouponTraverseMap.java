@@ -104,11 +104,6 @@ class CouponTraverseMap extends Map {
     return getEstimate(key) * (1 - RSE);
   }
 
-  @Override
-  void updateEstimate(final int index, final double estimate) {
-    // not used in this map
-  }
-
   /**
    * Returns entryIndex if the given key is found. If not found, returns one's complement entryIndex
    * of an empty slot for insertion, which may be over a deleted key.
@@ -167,8 +162,7 @@ class CouponTraverseMap extends Map {
     }
   }
 
-  @Override
-  int getCouponCount(final int entryIndex) {
+  private int getCouponCount(final int entryIndex) {
     final int offset = entryIndex * maxCouponsPerKey_;
     for (int i = 0; i < maxCouponsPerKey_; i++) {
       if (couponsArr_[offset + i] == 0) {

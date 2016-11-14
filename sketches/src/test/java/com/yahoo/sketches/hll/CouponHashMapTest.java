@@ -32,7 +32,6 @@ public class CouponHashMapTest {
     Assert.assertEquals(map.getEstimate(key), 1.0);
     Assert.assertTrue(map.getUpperBound(key) > 1.0);
     Assert.assertTrue(map.getLowerBound(key) < 1.0);
-    Assert.assertEquals(1, map.getCouponCount(map.findKey(key)));
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
