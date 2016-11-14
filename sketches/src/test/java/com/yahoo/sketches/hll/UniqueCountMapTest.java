@@ -161,7 +161,6 @@ public class UniqueCountMapTest {
         map.update(key, id);
       }
     }
-    Assert.assertEquals(map.getIntermediateMaps().length, 8);
     Assert.assertNotNull(map.getBaseMap());
     Assert.assertNotNull(map.getHllMap());
     //println(map.toString());

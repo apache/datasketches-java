@@ -19,10 +19,10 @@ import com.yahoo.sketches.hash.MurmurHash3;
  * state array. The size of this map can grow or shrink.
  *
  * @author Lee Rhodes
- * @author Alex Saydakov
+ * @author Alexander Saydakov
  * @author Kevin Lang
  */
-class CouponTraverseMap extends CouponMap {
+class CouponTraverseMap extends Map {
   private static final double RSE = 0.408 / Math.sqrt(1024);
   private final int maxCouponsPerKey_;
 
@@ -65,9 +65,9 @@ class CouponTraverseMap extends CouponMap {
   }
 
   @Override
-  double update(final byte[] key, final int coupon) {
+  double update(final byte[] key, final short coupon) {
     int entryIndex = findOrInsertKey(key);
-    return findOrInsertCoupon(entryIndex, (short) coupon);
+    return update(entryIndex, coupon);
   }
 
   @Override
@@ -141,7 +141,7 @@ class CouponTraverseMap extends CouponMap {
   }
 
   @Override
-  double findOrInsertCoupon(final int entryIndex, final short value) {
+  double update(final int entryIndex, final short value) {
     final int offset = entryIndex * maxCouponsPerKey_;
     boolean wasFound = false;
     for (int i = 0; i < maxCouponsPerKey_; i++) {
@@ -181,9 +181,7 @@ class CouponTraverseMap extends CouponMap {
   }
 
   @Override
-  CouponsIterator getCouponsIterator(final byte[] key) {
-    final int entryIndex = findKey(key);
-    if (entryIndex < 0) return null;
+  CouponsIterator getCouponsIterator(final int entryIndex) {
     return new CouponsIterator(couponsArr_, entryIndex * maxCouponsPerKey_, maxCouponsPerKey_);
   }
 

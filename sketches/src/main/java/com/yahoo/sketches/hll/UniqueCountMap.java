@@ -63,24 +63,20 @@ import com.yahoo.sketches.SketchesArgumentException;
  * for the web site. Please refer to the javadocs for those classes for more information.
  *
  * @author Lee Rhodes
- * @author Alex Saydakov
+ * @author Alexander Saydakov
  * @author Kevin Lang
  */
 public class UniqueCountMap {
   private static final String LS = System.getProperty("line.separator");
-  private static final int NUM_INTERMEDIATE_MAPS = 8; // total of traverse + coupon maps
+  private static final int NUM_LEVELS = 10; // total of single coupon + traverse + coupon maps + hll
   private static final int NUM_TRAVERSE_MAPS = 3;
   private static final int HLL_K = 1024;
   private static final int INITIAL_NUM_ENTRIES = 1000003;
   private static final int MIN_INITIAL_NUM_ENTRIES = 157;
   private final int keySizeBytes_;
 
-  private final SingleCouponMap baseMap_;
-
   /** TraverseCouponMap or HashCouponMap instances */
-  private final CouponMap[] intermediateMaps_;
-
-  private HllMap hllMap_;
+  private final Map[] maps_;
 
   /**
    * Constructs a UniqueCountMap with an initial capacity of one million entries.
@@ -101,8 +97,8 @@ public class UniqueCountMap {
     checkConstructorKeySize(keySizeBytes);
     int initEntries = Math.max(initialNumEntries, MIN_INITIAL_NUM_ENTRIES);
     keySizeBytes_ = keySizeBytes;
-    baseMap_ = SingleCouponMap.getInstance(initEntries, keySizeBytes);
-    intermediateMaps_ = new CouponMap[NUM_INTERMEDIATE_MAPS];
+    maps_ = new Map[NUM_LEVELS]; // includes base level and top level
+    maps_[0] = SingleCouponMap.getInstance(initEntries, keySizeBytes);
   }
 
   /**
@@ -118,61 +114,21 @@ public class UniqueCountMap {
     if (identifier == null) return getEstimate(key);
     final short coupon = (short) Map.coupon16(identifier);
 
-    final int baseMapIndex = baseMap_.findOrInsertKey(key);
-    if (baseMapIndex < 0) {
-      // this is a new key for the baseMap. Set the coupon, keep the state bit clear.
-      baseMap_.setCoupon(~baseMapIndex, coupon, false);
-      return 1;
-    }
-    final short baseMapCoupon = baseMap_.getCoupon(baseMapIndex);
-    if (baseMap_.isCoupon(baseMapIndex)) {
-      if (baseMapCoupon == coupon) return 1; //duplicate
-      // promote from the base map
-      baseMap_.setCoupon(baseMapIndex, (short) 1, true); //set coupon = Level 1; state = 1
-      CouponMap newMap = getIntermediateMap(1);
-      final int index = newMap.findOrInsertKey(key);
-      newMap.findOrInsertCoupon(index, baseMapCoupon);
-      final double estimate = newMap.findOrInsertCoupon(index, coupon);
-      assert estimate > 0; // this must be positive since we have just promoted
-      return estimate;
+    final int baseMapIndex = maps_[0].findOrInsertKey(key);
+    final double baseMapEstimate = maps_[0].update(baseMapIndex, coupon);
+    if (baseMapEstimate > 0) return baseMapEstimate;
+    int level = -(int) baseMapEstimate; // base map is level 0
+    if (level == 0) {
+      return promote(key, coupon, maps_[0], baseMapIndex, level, baseMapIndex, 0);
     }
 
-    int level = baseMapCoupon;
-    if (level <= NUM_INTERMEDIATE_MAPS) {
-      final CouponMap map = intermediateMaps_[level - 1];
-      final int index = map.findOrInsertKey(key);
-      double estimate = map.findOrInsertCoupon(index, coupon);
-      if (estimate > 0) return estimate;
-      // promote to the next level
-      level++;
-      baseMap_.setCoupon(baseMapIndex, (short) level, true); //set coupon = level number; state = 1
-      if (level <= NUM_INTERMEDIATE_MAPS) {
-        final CouponMap newMap = getIntermediateMap(level);
-        final int newMapIndex = newMap.findOrInsertKey(key);
-        final CouponsIterator it = map.getCouponsIterator(key);
-        while (it.next()) {
-          final double est = newMap.findOrInsertCoupon(newMapIndex, it.getValue());
-          assert est > 0;
-        }
-        newMap.updateEstimate(newMapIndex, -estimate);
-        estimate = newMap.findOrInsertCoupon(newMapIndex, coupon);
-      } else { // promoting to the last level
-        if (hllMap_ == null) {
-          hllMap_ = HllMap.getInstance(keySizeBytes_, HLL_K);
-        }
-        final CouponsIterator it = map.getCouponsIterator(key);
-        final int lastLevelIndex = hllMap_.findOrInsertKey(key);
-        while (it.next()) {
-          hllMap_.findOrInsertCoupon(lastLevelIndex, it.getValue());
-        }
-        hllMap_.updateEstimate(lastLevelIndex, -estimate);
-        estimate = hllMap_.findOrInsertCoupon(lastLevelIndex, coupon);
-      }
-      map.deleteKey(index);
-      assert estimate > 0; // this must be positive since we have just promoted
+    final Map map = maps_[level];
+    final int index = map.findOrInsertKey(key);
+    double estimate = map.update(index, coupon);
+    if (estimate > 0) {
       return estimate;
     }
-    return hllMap_.update(key, coupon);
+    return promote(key, coupon, map, index, level, baseMapIndex, -estimate);
   }
 
   /**
@@ -183,15 +139,12 @@ public class UniqueCountMap {
   public double getEstimate(final byte[] key) {
     if (key == null) return Double.NaN;
     checkMethodKeySize(key);
-    double est = baseMap_.getEstimate(key);
+    double est = maps_[0].getEstimate(key);
     if (est >= 0.0) return est;
     //key has been promoted
     final int level = -(int)est;
-    if (level <= NUM_INTERMEDIATE_MAPS) {
-      final Map map = intermediateMaps_[level - 1];
-      return map.getEstimate(key);
-    }
-    return hllMap_.getEstimate(key);
+    final Map map = maps_[level];
+    return map.getEstimate(key);
   }
 
   /**
@@ -204,15 +157,12 @@ public class UniqueCountMap {
   public double getUpperBound(final byte[] key) {
     if (key == null) return Double.NaN;
     checkMethodKeySize(key);
-    double est = baseMap_.getEstimate(key);
+    double est = maps_[0].getEstimate(key);
     if (est >= 0.0) return est;
     //key has been promoted
     final int level = -(int)est;
-    if (level <= NUM_INTERMEDIATE_MAPS) {
-      final Map map = intermediateMaps_[level - 1];
-      return map.getUpperBound(key);
-    }
-    return hllMap_.getUpperBound(key);
+    final Map map = maps_[level];
+    return map.getUpperBound(key);
   }
 
   /**
@@ -225,15 +175,12 @@ public class UniqueCountMap {
   public double getLowerBound(final byte[] key) {
     if (key == null) return Double.NaN;
     checkMethodKeySize(key);
-    double est = baseMap_.getEstimate(key);
+    double est = maps_[0].getEstimate(key);
     if (est >= 0.0) return est;
     //key has been promoted
     final int level = -(int)est;
-    if (level <= NUM_INTERMEDIATE_MAPS) {
-      final Map map = intermediateMaps_[level - 1];
-      return map.getLowerBound(key);
-    }
-    return hllMap_.getLowerBound(key);
+    final Map map = maps_[level];
+    return map.getLowerBound(key);
   }
 
   /**
@@ -241,7 +188,7 @@ public class UniqueCountMap {
    * @return the number of active, unique keys across all internal maps
    */
   public int getActiveEntries() {
-    return baseMap_.getCurrentCountEntries();
+    return maps_[0].getCurrentCountEntries();
   }
 
   /**
@@ -249,14 +196,11 @@ public class UniqueCountMap {
    * @return total bytes used by all internal maps
    */
   public long getMemoryUsageBytes() {
-    long total = baseMap_.getMemoryUsageBytes();
-    for (int i = 0; i < intermediateMaps_.length; i++) {
-      if (intermediateMaps_[i] != null) {
-        total += intermediateMaps_[i].getMemoryUsageBytes();
+    long total = 0;
+    for (int i = 0; i < maps_.length; i++) {
+      if (maps_[i] != null) {
+        total += maps_[i].getMemoryUsageBytes();
       }
-    }
-    if (hllMap_ != null) {
-      total += hllMap_.getMemoryUsageBytes();
     }
     return total;
   }
@@ -266,14 +210,11 @@ public class UniqueCountMap {
    * @return total bytes used for key storage
    */
   public long getKeyMemoryUsageBytes() {
-    long total = baseMap_.getCurrentCountEntries() * keySizeBytes_;
-    for (int i = 0; i < intermediateMaps_.length; i++) {
-      if (intermediateMaps_[i] != null) {
-        total += intermediateMaps_[i].getActiveEntries() * keySizeBytes_;
+    long total = 0;
+    for (int i = 0; i < maps_.length; i++) {
+      if (maps_[i] != null) {
+        total += maps_[i].getActiveEntries() * keySizeBytes_;
       }
-    }
-    if (hllMap_ != null) {
-      total += hllMap_.getCurrentCountEntries() * keySizeBytes_;
     }
     return total;
   }
@@ -294,42 +235,28 @@ public class UniqueCountMap {
    * @return the number of active levels so far
    */
   int getActiveMaps() {
-    int levels = 1;
-    int iMapsLen = intermediateMaps_.length;
+    int levels = 0;
+    int iMapsLen = maps_.length;
     for (int i = 0; i < iMapsLen; i++) {
-      if (intermediateMaps_[i] != null) levels++;
+      if (maps_[i] != null) levels++;
     }
-    if (hllMap_ != null) levels++;
     return levels;
-  }
-
-  /**
-   * Returns a CouponMap array of the active intermediate maps
-   * @return a CouponMap array of the active intermediate maps
-   */
-  CouponMap[] getIntermediateMaps() {
-    int iMapsLen = intermediateMaps_.length;
-    CouponMap[] cMapArr = new CouponMap[iMapsLen];
-    for (int i = 0; i < iMapsLen; i++) {
-      cMapArr[i] = intermediateMaps_[i];
-    }
-    return cMapArr;
   }
 
   /**
    * Returns the base map
    * @return the base map
    */
-  SingleCouponMap getBaseMap() {
-    return baseMap_;
+  Map getBaseMap() {
+    return maps_[0];
   }
 
   /**
    * Returns the top-level HllMap. It may be null.
    * @return the top-level HllMap.
    */
-  HllMap getHllMap() {
-    return hllMap_;
+  Map getHllMap() {
+    return maps_[maps_.length - 1];
   }
 
   /**
@@ -361,34 +288,51 @@ public class UniqueCountMap {
     sb.append("   Total Key Memory Bytes     : ").append(kMem).append(LS);
     sb.append("   Avg Sketch Memory Bytes/Key: ").append(avgValMem).append(LS);
     sb.append(LS);
-    sb.append(baseMap_.toString());
-    sb.append(LS);
-    for (int i = 0; i < intermediateMaps_.length; i++) {
-      final CouponMap cMap = intermediateMaps_[i];
+    for (int i = 0; i < maps_.length; i++) {
+      final Map cMap = maps_[i];
       if (cMap != null) {
         sb.append(cMap.toString());
         sb.append(LS);
       }
-    }
-    if (hllMap_ != null) {
-      sb.append(hllMap_.toString());
-      sb.append(LS);
     }
     sb.append("## ").append("END UNIQUE COUNT MAP SUMMARY");
     sb.append(LS);
     return sb.toString();
   }
 
-  private CouponMap getIntermediateMap(final int level) {
-    if (intermediateMaps_[level - 1] == null) {
+  private void setLevelInBaseMap(final int index, final int level) {
+    ((SingleCouponMap) maps_[0]).setLevel(index, level);
+  }
+
+  private double promote(final byte[] key, final short coupon, final Map fromMap, final int fromIndex,
+      final int fromLevel, final int baseMapIndex, final double estimate) {
+    final Map newMap = getMapForLevel(fromLevel + 1);
+    final int newMapIndex = newMap.findOrInsertKey(key);
+    final CouponsIterator it = fromMap.getCouponsIterator(fromIndex);
+    while (it.next()) {
+      final double est = newMap.update(newMapIndex, it.getValue());
+      assert est > 0;
+    }
+    fromMap.deleteKey(fromIndex);
+    newMap.updateEstimate(newMapIndex, estimate);
+    final double newEstimate = newMap.update(newMapIndex, coupon);
+    setLevelInBaseMap(baseMapIndex, fromLevel + 1);
+    assert newEstimate > 0; // this must be positive since we have just promoted
+    return newEstimate;
+  }
+
+  private Map getMapForLevel(final int level) {
+    if (maps_[level] == null) {
       final int newLevelCapacity = 1 << level;
       if (level <= NUM_TRAVERSE_MAPS) {
-        intermediateMaps_[level - 1] = CouponTraverseMap.getInstance(keySizeBytes_, newLevelCapacity);
+        maps_[level] = CouponTraverseMap.getInstance(keySizeBytes_, newLevelCapacity);
+      } else if (level < maps_.length - 1) {
+        maps_[level] = CouponHashMap.getInstance(keySizeBytes_, newLevelCapacity);
       } else {
-        intermediateMaps_[level - 1] = CouponHashMap.getInstance(keySizeBytes_, newLevelCapacity);
+        maps_[level] = HllMap.getInstance(keySizeBytes_, HLL_K);;
       }
     }
-    return intermediateMaps_[level - 1];
+    return maps_[level];
   }
 
   private static final void checkConstructorKeySize(final int keySizeBytes) {

@@ -81,15 +81,15 @@ class HllMap extends Map {
   }
 
   @Override
-  double update(final byte[] key, final int coupon) {
+  double update(final byte[] key, final short coupon) {
     final int entryIndex = findOrInsertKey(key);
-    return findOrInsertCoupon(entryIndex, coupon);
+    return update(entryIndex, coupon);
   }
 
   @Override
   double getEstimate(final byte[] key) {
     if (key == null) return Double.NaN;
-    final int entryIndex = findKey(keysArr_, key, tableEntries_, stateArr_);
+    final int entryIndex = findKey(key);
     if (entryIndex < 0) {
       return 0;
     }
@@ -106,12 +106,43 @@ class HllMap extends Map {
     return getEstimate(key) * (1 - RSE);
   }
 
+  @Override
   void updateEstimate(final int entryIndex, final double estimate) {
     hipEstAccumArr_[entryIndex] = estimate;
   }
 
+  /**
+   * Returns the entry index for the given key given the array of keys, if found.
+   * Otherwise, returns the one's complement of first empty entry found;
+   * @param keyArr the given array of keys
+   * @param key the key to search for
+   * @param tableEntries the total number of entries in the table.
+   * @param stateArr the bit vector that holds valid/empty state of each entry
+   * @return the entry index of the given key, or the one's complement of the index if not found.
+   */
+  @Override
+  final int findKey(final byte[] key) {
+    final int keyLen = key.length;
+    final long[] hash = MurmurHash3.hash(key, SEED);
+    int entryIndex  = getIndex(hash[0], tableEntries_);
+    final int stride = getStride(hash[1], tableEntries_);
+    final int loopIndex = entryIndex;
+
+    do {
+      if (isBitClear(stateArr_, entryIndex)) { //check if slot is empty
+        return ~entryIndex;
+      }
+      if (arraysEqual(key, 0, keysArr_, entryIndex * keyLen, keyLen)) { //check for key match
+        return entryIndex;
+      }
+      entryIndex = (entryIndex + stride) % tableEntries_;
+    } while (entryIndex != loopIndex);
+    throw new SketchesArgumentException("Key not found and no empty slots!");
+  }
+
+  @Override
   int findOrInsertKey(final byte[] key) {
-    int entryIndex = findKey(keysArr_, key, tableEntries_, stateArr_);
+    int entryIndex = findKey(key);
     if (entryIndex < 0) { //key not found, initialize new row
       entryIndex = ~entryIndex;
       System.arraycopy(key, 0, keysArr_, entryIndex * keySizeBytes_, keySizeBytes_);
@@ -122,14 +153,15 @@ class HllMap extends Map {
       curCountEntries_++;
       if (curCountEntries_ > capacityEntries_) {
         resize();
-        entryIndex = findKey(keysArr_, key, tableEntries_, stateArr_);
+        entryIndex = findKey(key);
         assert entryIndex >= 0;
       }
     }
     return entryIndex;
   }
 
-  double findOrInsertCoupon(final int entryIndex, final int coupon) {
+  @Override
+  double update(final int entryIndex, final short coupon) {
     updateHll(entryIndex, coupon); //update HLL array, updates HIP
     return hipEstAccumArr_[entryIndex];
   }
@@ -167,6 +199,45 @@ class HllMap extends Map {
   }
 
   @Override
+  void deleteKey(int index) {
+    // not applicable
+  }
+
+  @Override
+  int getCouponCount(int index) {
+    // not applicable
+    return 0;
+  }
+
+  @Override
+  CouponsIterator getCouponsIterator(final int index) {
+    // not applicable
+    return null;
+  }
+
+  @Override
+  int getMaxCouponsPerEntry() {
+    // not applicable
+    return 0;
+  }
+
+  @Override
+  int getCapacityCouponsPerEntry() {
+    // not applicable
+    return 0;
+  }
+
+  @Override
+  int getActiveEntries() {
+    return curCountEntries_;
+  }
+
+  @Override
+  int getDeletedEntries() {
+    return 0;
+  }
+
+  @Override
   public String toString() {
     final String kStr = Map.fmtLong(k_);
     final String te = Map.fmtLong(getTableEntries());
@@ -186,34 +257,6 @@ class HllMap extends Map {
     sb.append("    Memory Usage Bytes        : ").append(mub).append(LS);
     sb.append("### END SKETCH SUMMARY").append(LS);
     return sb.toString();
-  }
-
-  /**
-   * Returns the entry index for the given key given the array of keys, if found.
-   * Otherwise, returns the one's complement of first empty entry found;
-   * @param keyArr the given array of keys
-   * @param key the key to search for
-   * @param tableEntries the total number of entries in the table.
-   * @param stateArr the bit vector that holds valid/empty state of each entry
-   * @return the entry index of the given key, or the one's complement of the index if not found.
-   */
-  private static final int findKey(final byte[] keyArr, final byte[] key, final int tableEntries, final byte[] stateArr) {
-    final int keyLen = key.length;
-    final long[] hash = MurmurHash3.hash(key, SEED);
-    int entryIndex  = getIndex(hash[0], tableEntries);
-    final int stride = getStride(hash[1], tableEntries);
-    final int loopIndex = entryIndex;
-
-    do {
-      if (isBitClear(stateArr, entryIndex)) { //check if slot is empty
-        return ~entryIndex;
-      }
-      if (arraysEqual(key, 0, keyArr, entryIndex * keyLen, keyLen)) { //check for key match
-        return entryIndex;
-      }
-      entryIndex = (entryIndex + stride) % tableEntries;
-    } while (entryIndex != loopIndex);
-    throw new SketchesArgumentException("Key not found and no empty slots!");
   }
 
   /**

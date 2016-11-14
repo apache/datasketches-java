@@ -17,7 +17,7 @@ import com.yahoo.sketches.hash.MurmurHash3;
  * which indicates the contents of the value.
  *
  * @author Lee Rhodes
- * @author Alex Saydakov
+ * @author Alexander Saydakov
  * @author Kevin Lang
  */
 class SingleCouponMap extends Map {
@@ -61,18 +61,9 @@ class SingleCouponMap extends Map {
   }
 
   @Override
-  double update(final byte[] key, final int coupon) {
+  double update(final byte[] key, final short coupon) {
     final int entryIndex = findOrInsertKey(key);
-    if (entryIndex < 0) { // insert
-      setCoupon(~entryIndex, (short) coupon, false);
-      return 1.0;
-    }
-    int coupon2 = couponsArr_[entryIndex];
-    //depends on the fact that a valid coupon can never be a small number.
-    if (coupon == coupon2) {
-      return 1.0;
-    }
-    return -couponsArr_[entryIndex]; //indicates coupon contains table #
+    return update(entryIndex, coupon);
   }
 
   @Override
@@ -80,7 +71,7 @@ class SingleCouponMap extends Map {
     final int entryIndex = findKey(key);
     if (entryIndex < 0) return 0;
     if (isCoupon(entryIndex)) return 1;
-    return -getCoupon(entryIndex); // negative table level #, never 0
+    return -getCoupon(entryIndex); // negative: level #, zero: signal to promote
   }
 
   @Override
@@ -100,6 +91,7 @@ class SingleCouponMap extends Map {
    * @param key the given key
    * @return the entryIndex
    */
+  @Override
   int findKey(final byte[] key) {
     final long[] hash = MurmurHash3.hash(key, SEED);
     int entryIndex = getIndex(hash[0], tableEntries_);
@@ -118,6 +110,7 @@ class SingleCouponMap extends Map {
     throw new SketchesArgumentException("Key not found and no empty slots!");
   }
 
+  @Override
   int findOrInsertKey(final byte[] key) {
     int entryIndex = findKey(key);
     if (entryIndex < 0) {
@@ -126,11 +119,67 @@ class SingleCouponMap extends Map {
         entryIndex = findKey(key);
         assert entryIndex < 0;
       }
-      //will return negative: duplicate was not found, thus key was inserted
-      System.arraycopy(key, 0, keysArr_, ~entryIndex * keySizeBytes_, keySizeBytes_);
+      entryIndex = ~entryIndex;
+      System.arraycopy(key, 0, keysArr_, entryIndex * keySizeBytes_, keySizeBytes_);
       curCountEntries_++;
     }
     return entryIndex;
+  }
+
+  @Override
+  double update(final int entryIndex, final short coupon) {
+    if (couponsArr_[entryIndex] == 0) {
+      couponsArr_[entryIndex] = coupon;
+      return 1;
+    }
+    if (isCoupon(entryIndex)) {
+      if (couponsArr_[entryIndex] == coupon) { //duplicate
+        return 1;
+      }
+      return 0; // signal to promote
+    }
+    return -couponsArr_[entryIndex]; // negative level number
+  }
+
+  @Override
+  void deleteKey(final int entryIndex) {
+    // no deletes
+  }
+
+  @Override
+  void updateEstimate(final int entryIndex, final double estimate) {
+    // unused
+  }
+
+  @Override
+  int getCouponCount(final int entryIndex) {
+    if (couponsArr_[entryIndex] == 0 || !isCoupon(entryIndex)) return 0;
+    return 1;
+  }
+
+  @Override
+  CouponsIterator getCouponsIterator(final int entryIndex) {
+    return new CouponsIterator(couponsArr_, entryIndex, 1);
+  }
+
+  @Override
+  int getMaxCouponsPerEntry() {
+    return 1;
+  }
+
+  @Override
+  int getCapacityCouponsPerEntry() {
+    return 1;
+  }
+
+  @Override
+  int getActiveEntries() {
+    return curCountEntries_;
+  }
+
+  @Override
+  int getDeletedEntries() {
+    return 0;
   }
 
   boolean isCoupon(final int entryIndex) {
@@ -148,6 +197,11 @@ class SingleCouponMap extends Map {
     } else {
       clearBit(stateArr_, entryIndex);
     }
+  }
+
+  void setLevel(final int entryIndex, final int level) {
+    couponsArr_[entryIndex] = (short) level;
+    setBit(stateArr_, entryIndex);
   }
 
   @Override
