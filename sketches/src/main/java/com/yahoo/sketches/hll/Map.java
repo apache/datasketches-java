@@ -37,10 +37,6 @@ abstract class Map {
     keySizeBytes_ = keySizeBytes;
   }
 
-  int getKeySizeBytes() {
-    return keySizeBytes_;
-  }
-
   /**
    * Update this map with a key and a coupon.
    * Return the cardinality estimate of all identifiers that have been associated with this key,
@@ -53,11 +49,27 @@ abstract class Map {
   abstract double update(byte[] key, short coupon);
 
   /**
+   * Updates this map with an index and a coupon
+   * @param index the given index
+   * @param coupon the given coupon
+   * @return the cardinality estimate of all identifiers that have been associated with this key,
+   * including this update.
+   */
+  abstract double update(int index, short coupon);
+
+  /**
    * Returns the estimate of the cardinality of identifiers associated with the given key.
    * @param key the given key
    * @return the estimate of the cardinality of identifiers associated with the given key.
    */
   abstract double getEstimate(byte[] key);
+
+  /**
+   * Update the internal estimate at the given index
+   * @param index the given index
+   * @param estimate the given estimate
+   */
+  void updateEstimate(int index, double estimate) {}
 
   /**
    * Returns the upper bound cardinality with respect to {@link #getEstimate(byte[])} associated
@@ -81,21 +93,6 @@ abstract class Map {
 
   abstract int findOrInsertKey(byte[] key);
 
-  /**
-   * Delete the key at the given index
-   * @param index the given index
-   */
-  void deleteKey(final int index) {}
-
-  /**
-   * Update the internal estimate at the given index
-   * @param index the given index
-   * @param estimate the given estimate
-   */
-  void updateEstimate(int index, double estimate) {}
-
-  abstract double update(int index, short coupon);
-
   abstract CouponsIterator getCouponsIterator(int index);
 
   abstract int getMaxCouponsPerEntry();
@@ -116,33 +113,15 @@ abstract class Map {
 
   abstract long getMemoryUsageBytes();
 
-  @Override
-  public String toString() {
-    final String mcpe = Map.fmtLong(getMaxCouponsPerEntry());
-    final String ccpe = Map.fmtLong(getCapacityCouponsPerEntry());
-    final String te = Map.fmtLong(getTableEntries());
-    final String ce = Map.fmtLong(getCapacityEntries());
-    final String cce = Map.fmtLong(getCurrentCountEntries());
-    final String ae = Map.fmtLong(getActiveEntries());
-    final String de = Map.fmtLong(getDeletedEntries());
-    final String esb = Map.fmtDouble(getEntrySizeBytes());
-    final String mub = Map.fmtLong(getMemoryUsageBytes());
-
-    final StringBuilder sb = new StringBuilder();
-    final String thisSimpleName = this.getClass().getSimpleName();
-    sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
-    sb.append("    Max Coupons Per Entry     : ").append(mcpe).append(LS);
-    sb.append("    Capacity Coupons Per Entry: ").append(ccpe).append(LS);
-    sb.append("    Table Entries             : ").append(te).append(LS);
-    sb.append("    Capacity Entries          : ").append(ce).append(LS);
-    sb.append("    Current Count Entries     : ").append(cce).append(LS);
-    sb.append("      Active Entries          : ").append(ae).append(LS);
-    sb.append("      Deleted Entries         : ").append(de).append(LS);
-    sb.append("    Entry Size Bytes          : ").append(esb).append(LS);
-    sb.append("    Memory Usage Bytes        : ").append(mub).append(LS);
-    sb.append("### END SKETCH SUMMARY").append(LS);
-    return sb.toString();
+  int getKeySizeBytes() {
+    return keySizeBytes_;
   }
+
+  /**
+   * Delete the key at the given index
+   * @param index the given index
+   */
+  void deleteKey(final int index) {}
 
   /**
    * Returns <tt>true</tt> if the two specified sub-arrays of bytes are <i>equal</i> to one another.
@@ -233,6 +212,34 @@ abstract class Map {
 
   static String fmtDouble(final double value) {
     return String.format("%,.3f", value);
+  }
+
+  @Override
+  public String toString() {
+    final String mcpe = Map.fmtLong(getMaxCouponsPerEntry());
+    final String ccpe = Map.fmtLong(getCapacityCouponsPerEntry());
+    final String te = Map.fmtLong(getTableEntries());
+    final String ce = Map.fmtLong(getCapacityEntries());
+    final String cce = Map.fmtLong(getCurrentCountEntries());
+    final String ae = Map.fmtLong(getActiveEntries());
+    final String de = Map.fmtLong(getDeletedEntries());
+    final String esb = Map.fmtDouble(getEntrySizeBytes());
+    final String mub = Map.fmtLong(getMemoryUsageBytes());
+
+    final StringBuilder sb = new StringBuilder();
+    final String thisSimpleName = this.getClass().getSimpleName();
+    sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
+    sb.append("    Max Coupons Per Entry     : ").append(mcpe).append(LS);
+    sb.append("    Capacity Coupons Per Entry: ").append(ccpe).append(LS);
+    sb.append("    Table Entries             : ").append(te).append(LS);
+    sb.append("    Capacity Entries          : ").append(ce).append(LS);
+    sb.append("    Current Count Entries     : ").append(cce).append(LS);
+    sb.append("      Active Entries          : ").append(ae).append(LS);
+    sb.append("      Deleted Entries         : ").append(de).append(LS);
+    sb.append("    Entry Size Bytes          : ").append(esb).append(LS);
+    sb.append("    Memory Usage Bytes        : ").append(mub).append(LS);
+    sb.append("### END SKETCH SUMMARY").append(LS);
+    return sb.toString();
   }
 
 }
