@@ -5,7 +5,7 @@ import static com.yahoo.sketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.sampling.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractFlags;
-import static com.yahoo.sketches.sampling.PreambleUtil.extractReservoirSize;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractMaxK;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.sampling.PreambleUtil.getAndCheckPreLongs;
 
@@ -100,7 +100,7 @@ public class ReservoirItemsUnion<T> {
       }
     }
 
-    final int maxK = extractReservoirSize(pre0);
+    final int maxK = extractMaxK(pre0);
     final ReservoirItemsUnion<T> riu = new ReservoirItemsUnion<>(maxK);
 
     if (!isEmpty) {
@@ -287,7 +287,7 @@ public class ReservoirItemsUnion<T> {
     pre0 = PreambleUtil.insertFamilyID(Family.RESERVOIR_UNION.getID(), pre0); // Byte 2
     pre0 = (empty) ? PreambleUtil.insertFlags(EMPTY_FLAG_MASK, pre0)
         : PreambleUtil.insertFlags(0, pre0); // Byte 3
-    pre0 = PreambleUtil.insertReservoirSize(maxK_, pre0); // Bytes 4-5
+    pre0 = PreambleUtil.insertMaxK(maxK_, pre0); // Bytes 4-5
 
     mem.putLong(0, pre0);
     if (!empty) {
