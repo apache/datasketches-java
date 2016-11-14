@@ -51,6 +51,7 @@
     </module>
     -->
     
+    <!-- Used with SuppressionCommentFilter -->
     <module name="FileContentsHolder"/>
     
     <module name="OuterTypeFilename"> <!-- Google: default -->
@@ -95,16 +96,18 @@
     
     <module name="NeedBraces">
       <property name="allowSingleLineStatement" value="false"/> <!-- default = false -->
-      <property name="allowEmptyLoopBody" value="false"/>      <!-- default = false -->
+      <property name="allowEmptyLoopBody" value="false"/>       <!-- default = false -->
     </module>
     
-    <module name="LeftCurly"> <!-- doesn't allow for if (n == 0) { return 0.0; }, which is readable and not corruptable -->
+    <module name="LeftCurly"> 
+      <!-- doesn't allow for if (n == 0) { return 0.0; }, which is readable and not corruptable -->
       <property name="severity" value="ignore"/>
       <property name="maxLineLength" value="100"/>
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
     
-    <module name="RightCurly"> <!-- requires right curly start a new line; alone: on a line alone -->
+    <module name="RightCurly"> 
+      <!-- requires right curly start a new line; alone: on a line alone -->
       <property name="severity" value="ignore"/>
       <property name="option" value="alone"/>
       <property name="tokens" value="CLASS_DEF, METHOD_DEF, CTOR_DEF, LITERAL_FOR, LITERAL_WHILE, LITERAL_DO, STATIC_INIT, INSTANCE_INIT"/>
@@ -136,17 +139,19 @@
     </module>
     
     <module name="MissingSwitchDefault">
+      <!-- Too many false positives -->
       <property name="severity" value="ignore"/>
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
     
     <module name="FallThrough">
-      <property name="severity" value="ignore"/>
-      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+      <property name="severity" value="warning"/>
+      <property name="reliefPattern" value="fallthru|falls? ?through|FALL[- ]?THROUGH"/>
+      <!-- <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/> -->
     </module>
     
     <module name="UpperEll">
-      <property name="severity" value="ignore"/>
+      <property name="severity" value="warning"/>
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
     
