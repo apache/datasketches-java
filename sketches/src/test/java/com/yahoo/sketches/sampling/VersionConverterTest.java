@@ -42,6 +42,7 @@ public class VersionConverterTest {
     assertEquals(sketchMem, convertedSketch);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void checkDeprecatedPreambleMethods() {
     long pre0 = 0;
