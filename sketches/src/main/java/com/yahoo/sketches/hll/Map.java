@@ -13,13 +13,21 @@ import com.yahoo.sketches.hash.MurmurHash3;
  * Base class and API for all the maps.
  *
  * @author Lee Rhodes
- * @author Alex Saydakov
+ * @author Alexander Saydakov
  * @author Kevin Lang
  */
 abstract class Map {
+
+  private static final String LS = System.getProperty("line.separator");
+
   static final long SEED = 1234567890L;
   static final int SIX_BIT_MASK = 0X3F; // 6 bits
   static final int TEN_BIT_MASK = 0X3FF; //10 bits
+
+  // These parameters are tuned as a set to avoid pathological resizing.
+  // Consider modeling the behavior before changing any of them
+  static final int COUPON_MAP_MIN_NUM_ENTRIES = 157;
+  static final double COUPON_MAP_SHRINK_TRIGGER_FACTOR = 0.5;
   static final double COUPON_MAP_GROW_TRIGGER_FACTOR = 15.0 / 16.0;
   static final double COUPON_MAP_TARGET_FILL_FACTOR = 2.0 / 3.0;
 
@@ -27,6 +35,10 @@ abstract class Map {
 
   Map(final int keySizeBytes) {
     keySizeBytes_ = keySizeBytes;
+  }
+
+  int getKeySizeBytes() {
+    return keySizeBytes_;
   }
 
   /**
@@ -38,7 +50,7 @@ abstract class Map {
    * @return the cardinality estimate of all identifiers that have been associated with this key,
    * including this update.
    */
-  abstract double update(byte[] key, int coupon);
+  abstract double update(byte[] key, short coupon);
 
   /**
    * Returns the estimate of the cardinality of identifiers associated with the given key.
@@ -65,9 +77,27 @@ abstract class Map {
    */
   abstract double getLowerBound(byte[] key);
 
-  int getKeySizeBytes() {
-    return keySizeBytes_;
-  }
+  abstract int findKey(byte[] key);
+
+  abstract int findOrInsertKey(byte[] key);
+
+  abstract void deleteKey(int index);
+
+  abstract void updateEstimate(int index, double estimate);
+
+  abstract double update(int index, short coupon);
+
+  abstract int getCouponCount(int index);
+
+  abstract CouponsIterator getCouponsIterator(int index);
+
+  abstract int getMaxCouponsPerEntry();
+
+  abstract int getCapacityCouponsPerEntry();
+
+  abstract int getActiveEntries();
+
+  abstract int getDeletedEntries();
 
   abstract double getEntrySizeBytes();
 
@@ -78,6 +108,34 @@ abstract class Map {
   abstract int getCurrentCountEntries();
 
   abstract long getMemoryUsageBytes();
+
+  @Override
+  public String toString() {
+    final String mcpe = Map.fmtLong(getMaxCouponsPerEntry());
+    final String ccpe = Map.fmtLong(getCapacityCouponsPerEntry());
+    final String te = Map.fmtLong(getTableEntries());
+    final String ce = Map.fmtLong(getCapacityEntries());
+    final String cce = Map.fmtLong(getCurrentCountEntries());
+    final String ae = Map.fmtLong(getActiveEntries());
+    final String de = Map.fmtLong(getDeletedEntries());
+    final String esb = Map.fmtDouble(getEntrySizeBytes());
+    final String mub = Map.fmtLong(getMemoryUsageBytes());
+
+    final StringBuilder sb = new StringBuilder();
+    final String thisSimpleName = this.getClass().getSimpleName();
+    sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
+    sb.append("    Max Coupons Per Entry     : ").append(mcpe).append(LS);
+    sb.append("    Capacity Coupons Per Entry: ").append(ccpe).append(LS);
+    sb.append("    Table Entries             : ").append(te).append(LS);
+    sb.append("    Capacity Entries          : ").append(ce).append(LS);
+    sb.append("    Current Count Entries     : ").append(cce).append(LS);
+    sb.append("      Active Entries          : ").append(ae).append(LS);
+    sb.append("      Deleted Entries         : ").append(de).append(LS);
+    sb.append("    Entry Size Bytes          : ").append(esb).append(LS);
+    sb.append("    Memory Usage Bytes        : ").append(mub).append(LS);
+    sb.append("### END SKETCH SUMMARY").append(LS);
+    return sb.toString();
+  }
 
   /**
    * Returns <tt>true</tt> if the two specified sub-arrays of bytes are <i>equal</i> to one another.
@@ -169,4 +227,5 @@ abstract class Map {
   static String fmtDouble(final double value) {
     return String.format("%,.3f", value);
   }
+
 }

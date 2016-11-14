@@ -23,10 +23,10 @@ import com.yahoo.sketches.hash.MurmurHash3;
  * <p>The inner hash tables are implemented with linear probing or OASH and a load factor of 0.75.
  *
  * @author Lee Rhodes
- * @author Alex Saydakov
+ * @author Alexander Saydakov
  * @author Kevin Lang
  */
-class CouponHashMap extends CouponMap {
+class CouponHashMap extends Map {
   private static final double INNER_LOAD_FACTOR = 0.75;
   private static final byte DELETED_KEY_MARKER = (byte) 255;
   private static final int BYTE_MASK = 0XFF;
@@ -75,9 +75,34 @@ class CouponHashMap extends CouponMap {
   }
 
   @Override
-  double update(final byte[] key, final int coupon) {
+  double update(final byte[] key, final short coupon) {
     int entryIndex = findOrInsertKey(key);
-    return findOrInsertCoupon(entryIndex, (short)coupon); //negative when time to promote
+    return update(entryIndex, coupon); //negative when time to promote
+  }
+
+  @Override
+  double update(final int entryIndex, final short coupon) {
+    final int couponMapArrEntryIndex = entryIndex * maxCouponsPerKey_;
+
+    int innerCouponIndex = (coupon & 0xFFFF) % maxCouponsPerKey_;
+
+    while (couponsArr_[couponMapArrEntryIndex + innerCouponIndex] != 0) {
+      if (couponsArr_[couponMapArrEntryIndex + innerCouponIndex] == coupon) {
+        return hipEstAccumArr_[entryIndex]; //duplicate, returns the estimate
+      }
+      innerCouponIndex = (innerCouponIndex + 1) % maxCouponsPerKey_; //linear search
+    }
+    if (((curCountsArr_[entryIndex] + 1) & BYTE_MASK) > capacityCouponsPerKey_) {
+      //returns the negative estimate, as signal to promote
+      return -hipEstAccumArr_[entryIndex];
+    }
+
+    couponsArr_[couponMapArrEntryIndex + innerCouponIndex] = coupon; //insert
+    curCountsArr_[entryIndex]++;
+    //hip +=  k/qt; qt -= 1/2^(val);
+    hipEstAccumArr_[entryIndex] += COUPON_K / invPow2SumArr_[entryIndex];
+    invPow2SumArr_[entryIndex] -= invPow2(coupon16Value(coupon));
+    return hipEstAccumArr_[entryIndex]; //returns the estimate
   }
 
   @Override
@@ -160,31 +185,6 @@ class CouponHashMap extends CouponMap {
   }
 
   @Override
-  double findOrInsertCoupon(final int entryIndex, final short coupon) {
-    final int couponMapArrEntryIndex = entryIndex * maxCouponsPerKey_;
-
-    int innerCouponIndex = (coupon & 0xFFFF) % maxCouponsPerKey_;
-
-    while (couponsArr_[couponMapArrEntryIndex + innerCouponIndex] != 0) {
-      if (couponsArr_[couponMapArrEntryIndex + innerCouponIndex] == coupon) {
-        return hipEstAccumArr_[entryIndex]; //duplicate, returns the estimate
-      }
-      innerCouponIndex = (innerCouponIndex + 1) % maxCouponsPerKey_; //linear search
-    }
-    if (((curCountsArr_[entryIndex] + 1) & BYTE_MASK) > capacityCouponsPerKey_) {
-      //returns the negative estimate, as signal to promote
-      return -hipEstAccumArr_[entryIndex];
-    }
-
-    couponsArr_[couponMapArrEntryIndex + innerCouponIndex] = coupon; //insert
-    curCountsArr_[entryIndex]++;
-    //hip +=  k/qt; qt -= 1/2^(val);
-    hipEstAccumArr_[entryIndex] += COUPON_K / invPow2SumArr_[entryIndex];
-    invPow2SumArr_[entryIndex] -= invPow2(coupon16Value(coupon));
-    return hipEstAccumArr_[entryIndex]; //returns the estimate
-  }
-
-  @Override
   void deleteKey(final int entryIndex) {
     curCountsArr_[entryIndex] = DELETED_KEY_MARKER;
     numActiveKeys_--;
@@ -201,9 +201,7 @@ class CouponHashMap extends CouponMap {
   }
 
   @Override
-  CouponsIterator getCouponsIterator(final byte[] key) {
-    final int entryIndex = findKey(key);
-    if (entryIndex < 0) { return null; }
+  CouponsIterator getCouponsIterator(final int entryIndex) {
     return new CouponsIterator(couponsArr_, entryIndex * maxCouponsPerKey_, maxCouponsPerKey_);
   }
 

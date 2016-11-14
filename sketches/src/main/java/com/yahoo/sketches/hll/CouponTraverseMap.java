@@ -19,10 +19,10 @@ import com.yahoo.sketches.hash.MurmurHash3;
  * state array. The size of this map can grow or shrink.
  *
  * @author Lee Rhodes
- * @author Alex Saydakov
+ * @author Alexander Saydakov
  * @author Kevin Lang
  */
-class CouponTraverseMap extends CouponMap {
+class CouponTraverseMap extends Map {
   private static final double RSE = 0.408 / Math.sqrt(1024);
   private final int maxCouponsPerKey_;
 
@@ -50,7 +50,6 @@ class CouponTraverseMap extends CouponMap {
   }
 
   static CouponTraverseMap getInstance(final int keySizeBytes, final int maxCouponsPerKey) {
-
     CouponTraverseMap map = new CouponTraverseMap(keySizeBytes, maxCouponsPerKey);
     map.tableEntries_ = COUPON_MAP_MIN_NUM_ENTRIES;
     map.capacityEntries_ = (int)(map.tableEntries_ * COUPON_MAP_GROW_TRIGGER_FACTOR);
@@ -65,9 +64,27 @@ class CouponTraverseMap extends CouponMap {
   }
 
   @Override
-  double update(final byte[] key, final int coupon) {
+  double update(final byte[] key, final short coupon) {
     int entryIndex = findOrInsertKey(key);
-    return findOrInsertCoupon(entryIndex, (short) coupon);
+    return update(entryIndex, coupon);
+  }
+
+  @Override
+  double update(final int entryIndex, final short value) {
+    final int offset = entryIndex * maxCouponsPerKey_;
+    boolean wasFound = false;
+    for (int i = 0; i < maxCouponsPerKey_; i++) {
+      if (couponsArr_[offset + i] == 0) {
+        if (wasFound) { return i; }
+        couponsArr_[offset + i] = value;
+        return i + 1;
+      }
+      if (couponsArr_[offset + i] == value) {
+        wasFound = true;
+      }
+    }
+    if (wasFound) { return maxCouponsPerKey_; }
+    return -maxCouponsPerKey_;
   }
 
   @Override
@@ -78,15 +95,14 @@ class CouponTraverseMap extends CouponMap {
   }
 
   @Override
-  double getUpperBound(byte[] key) {
+  double getUpperBound(final byte[] key) {
     return getEstimate(key) * (1 + RSE);
   }
 
   @Override
-  double getLowerBound(byte[] key) {
+  double getLowerBound(final byte[] key) {
     return getEstimate(key) * (1 - RSE);
   }
-
 
   @Override
   void updateEstimate(final int index, final double estimate) {
@@ -141,24 +157,6 @@ class CouponTraverseMap extends CouponMap {
   }
 
   @Override
-  double findOrInsertCoupon(final int entryIndex, final short value) {
-    final int offset = entryIndex * maxCouponsPerKey_;
-    boolean wasFound = false;
-    for (int i = 0; i < maxCouponsPerKey_; i++) {
-      if (couponsArr_[offset + i] == 0) {
-        if (wasFound) { return i; }
-        couponsArr_[offset + i] = value;
-        return i + 1;
-      }
-      if (couponsArr_[offset + i] == value) {
-        wasFound = true;
-      }
-    }
-    if (wasFound) { return maxCouponsPerKey_; }
-    return -maxCouponsPerKey_;
-  }
-
-  @Override
   void deleteKey(final int entryIndex) {
     couponsArr_[entryIndex * maxCouponsPerKey_] = 0;
     numActiveKeys_--;
@@ -181,9 +179,7 @@ class CouponTraverseMap extends CouponMap {
   }
 
   @Override
-  CouponsIterator getCouponsIterator(final byte[] key) {
-    final int entryIndex = findKey(key);
-    if (entryIndex < 0) { return null; }
+  CouponsIterator getCouponsIterator(final int entryIndex) {
     return new CouponsIterator(couponsArr_, entryIndex * maxCouponsPerKey_, maxCouponsPerKey_);
   }
 

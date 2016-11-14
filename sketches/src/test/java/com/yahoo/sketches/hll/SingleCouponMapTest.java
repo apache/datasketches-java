@@ -28,7 +28,7 @@ public class SingleCouponMapTest {
     SingleCouponMap map = SingleCouponMap.getInstance(entries, keySizeBytes);
     byte[] key = new byte[] {0, 0, 0, 0}; // zero key must work
     byte[] id =  new byte[] {1, 0, 0, 0};
-    int coupon = Map.coupon16(id);
+    short coupon = (short) Map.coupon16(id);
     double estimate = map.update(key, coupon);
     Assert.assertEquals(estimate, 1.0);
     Assert.assertEquals(map.getEstimate(key), 1.0);
@@ -46,7 +46,7 @@ public class SingleCouponMapTest {
     for (int i = 0; i < numKeys; i++) {
       byte[] key = String.format("%4s", i).getBytes(UTF_8);
       byte[] id =  new byte[] {1, 0, 0, 0};
-      int coupon = Map.coupon16(id);
+      short coupon = (short) Map.coupon16(id);
       double estimate = map.update(key, coupon);
       Assert.assertEquals(estimate, 1.0);
       Assert.assertEquals(map.getEstimate(key), 1.0);
@@ -68,7 +68,7 @@ public class SingleCouponMapTest {
     SingleCouponMap map = SingleCouponMap.getInstance(2000, 4);
     for (int i = 1; i <= 1000; i++) {
       byte[] key = String.format("%4s", i).getBytes(UTF_8);
-      double estimate = map.update(key, 1); //bogus coupon
+      double estimate = map.update(key, (short) 1); //bogus coupon
       Assert.assertEquals(estimate, 1.0);
       Assert.assertEquals(map.getEstimate(key), 1.0);
       Assert.assertTrue(map.getUpperBound(key) >= 1.0);
@@ -76,8 +76,8 @@ public class SingleCouponMapTest {
     }
     for (int i = 1; i <= 1000; i++) {
       byte[] key = String.format("%4s", i).getBytes(UTF_8);
-      double estimate = map.update(key, 2); //different bogus coupon
-      Assert.assertEquals(estimate, -1.0); //table number
+      double estimate = map.update(key, (short) 2); //different bogus coupon
+      Assert.assertEquals(estimate, 0.0); // signal to promote
     }
     Assert.assertEquals(map.getCurrentCountEntries(), 1000);
   }

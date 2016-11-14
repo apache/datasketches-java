@@ -21,14 +21,13 @@ public class CouponHashMapTest {
     Assert.assertEquals(map.getEstimate(key), 0.0);
     Assert.assertEquals(map.getUpperBound(key), 0.0);
     Assert.assertEquals(map.getLowerBound(key), 0.0);
-    Assert.assertNull(map.getCouponsIterator(key));
   }
 
   @Test
   public void oneKeyOneEntry() {
     CouponHashMap map = CouponHashMap.getInstance(4, 16);
     byte[] key = new byte[] {0, 0, 0, 0};
-    double estimate = map.update(key, 1);
+    double estimate = map.update(key, (short) 1);
     Assert.assertEquals(estimate, 1.0);
     Assert.assertEquals(map.getEstimate(key), 1.0);
     Assert.assertTrue(map.getUpperBound(key) > 1.0);
@@ -40,7 +39,7 @@ public class CouponHashMapTest {
   public void keyNotFound() {
     CouponHashMap map = CouponHashMap.getInstance(4, 16);
     byte[] key = new byte[] {0, 0, 0, 0};
-    map.update(key, 1);
+    map.update(key, (short) 1);
     map.updateEstimate(map.findKey(new byte[] {1,0,0,0}), 2.0);
   }
 
@@ -53,7 +52,7 @@ public class CouponHashMapTest {
   @Test
   public void delete() {
     CouponHashMap map = CouponHashMap.getInstance(4, 16);
-    double estimate = map.update("1234".getBytes(UTF_8), 1);
+    double estimate = map.update("1234".getBytes(UTF_8), (short) 1);
     Assert.assertEquals(estimate, 1.0);
     int index1 = map.findKey("1234".getBytes(UTF_8));
     Assert.assertTrue(index1 >= 0);
@@ -70,7 +69,7 @@ public class CouponHashMapTest {
     long sizeBytes1 = map.getMemoryUsageBytes();
     for (int i = 0; i < 1000; i ++) {
       byte[] key = String.format("%4s", i).getBytes(UTF_8);
-      map.update(key, Map.coupon16(new byte[] {1}));
+      map.update(key, (short) Map.coupon16(new byte[] {1}));
     }
     long sizeBytes2 = map.getMemoryUsageBytes();
     Assert.assertTrue(sizeBytes2 > sizeBytes1);
