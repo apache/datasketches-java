@@ -77,6 +77,7 @@ final class PreambleUtil {
   static final int FLAGS_BYTE            = 3;
   static final int RESERVOIR_SIZE_SHORT  = 4; // used in ser_ver 1
   static final int RESERVOIR_SIZE_INT    = 4;
+  static final int SERDE_ID_SHORT        = 6; // used in ser_ver 1
   static final int ITEMS_SEEN_BYTE       = 8;
 
   //static final int MAX_K_SHORT           = 4; // used in Union only, ser_ver 1
@@ -212,6 +213,17 @@ final class PreambleUtil {
     return (int) ((long0 >>> shift) & mask);
   }
 
+  static int extractMaxK(final long long0) {
+    return extractReservoirSize(long0);
+  }
+
+  @Deprecated
+  static short extractSerDeId(final long long0) {
+    int shift = SERDE_ID_SHORT << 3;
+    long mask = 0XFFFFL;
+    return (short) ((long0 >>> shift) & mask);
+  }
+
   static long extractItemsSeenCount(final long long1) {
     long mask = 0XFFFFFFFFFFFFL;
     return (long1 & mask);
@@ -250,6 +262,17 @@ final class PreambleUtil {
     int shift = RESERVOIR_SIZE_INT << 3;
     long mask = 0XFFFFFFFFL;
     return ((reservoirSize & mask) << shift) | (~(mask << shift) & long0);
+  }
+
+  static long insertMaxK(final int reservoirSize, final long long0) {
+    return insertReservoirSize(reservoirSize, long0);
+  }
+
+  @Deprecated
+  static long insertSerDeId(final int serDeId, final long long0) {
+    int shift = SERDE_ID_SHORT << 3;
+    long mask = 0XFFFFL;
+    return ((serDeId & mask) << shift) | (~(mask << shift) & long0);
   }
 
   static long insertItemsSeenCount(final long totalSeen, final long long1) {

@@ -42,6 +42,16 @@ public class VersionConverterTest {
     assertEquals(sketchMem, convertedSketch);
   }
 
+  @Test
+  public void checkDeprecatedPreambleMethods() {
+    long pre0 = 0;
+    ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
+
+    // SerDe ID
+    pre0 = PreambleUtil.insertSerDeId(serDe.getId(), pre0);
+    assertEquals(serDe.getId(), PreambleUtil.extractSerDeId(pre0));
+  }
+
   private static Memory revertToV1(Memory mem, short encodedK) {
     mem.putByte(SER_VER_BYTE, (byte) 1);
     mem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
