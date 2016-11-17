@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.UnsafeUtil;
 
 /**
  * Methods of serializing and deserializing arrays of String.
@@ -46,11 +47,11 @@ public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
     final String[] array = new String[numItems];
     long offsetBytes = 0;
     for (int i = 0; i < numItems; i++) {
-      checkMemorySize(mem, offsetBytes + Integer.BYTES);
+      UnsafeUtil.checkBounds(offsetBytes, Integer.BYTES, mem.getCapacity());
       final int strLength = mem.getInt(offsetBytes);
       offsetBytes += Integer.BYTES;
       final byte[] bytes = new byte[strLength];
-      checkMemorySize(mem, offsetBytes + strLength);
+      UnsafeUtil.checkBounds(offsetBytes, strLength, mem.getCapacity());
       mem.getByteArray(offsetBytes, bytes, 0, strLength);
       offsetBytes += strLength;
       array[i] = new String(bytes, StandardCharsets.UTF_8);

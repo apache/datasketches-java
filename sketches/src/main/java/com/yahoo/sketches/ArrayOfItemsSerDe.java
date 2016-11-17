@@ -60,11 +60,4 @@ public abstract class ArrayOfItemsSerDe<T> {
     return (short) getClass().getName().hashCode();
   }
 
-  static void checkMemorySize(final Memory mem, final long sizeBytes) {
-    if (mem.getCapacity() < sizeBytes) {
-      throw new SketchesArgumentException("Memory access is out of range: capacity=" + mem.getCapacity()
-        + ", accessed=" + sizeBytes);
-    }
-  }
-
 }

@@ -7,6 +7,7 @@ package com.yahoo.sketches;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.UnsafeUtil;
 
 /**
  * Methods of serializing and deserializing arrays of String.
@@ -42,11 +43,11 @@ public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
     final String[] array = new String[numItems];
     long offsetBytes = 0;
     for (int i = 0; i < numItems; i++) {
-      checkMemorySize(mem, offsetBytes + Integer.BYTES);
+      UnsafeUtil.checkBounds(offsetBytes, Integer.BYTES, mem.getCapacity());
       final int strLength = mem.getInt(offsetBytes);
       offsetBytes += Integer.BYTES;
       final char[] chars = new char[strLength];
-      checkMemorySize(mem, offsetBytes + strLength * Character.BYTES);
+      UnsafeUtil.checkBounds(offsetBytes, strLength * Character.BYTES, mem.getCapacity());
       mem.getCharArray(offsetBytes, chars, 0, strLength);
       array[i] = new String(chars);
       offsetBytes += strLength * Character.BYTES;

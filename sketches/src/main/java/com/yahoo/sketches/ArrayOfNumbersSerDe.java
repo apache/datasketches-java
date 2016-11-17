@@ -7,6 +7,7 @@ package com.yahoo.sketches;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.UnsafeUtil;
 
 /**
  * Methods of serializing and deserializing arrays of the object version of primitive types of Number.
@@ -92,38 +93,38 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
     final Number[] array = new Number[length];
     long offsetBytes = 0;
     for (int i = 0; i < length; i++) {
-      checkMemorySize(mem, offsetBytes);
+      UnsafeUtil.checkBounds(offsetBytes, Byte.BYTES, mem.getCapacity());
       final byte numType = mem.getByte(offsetBytes);
       offsetBytes += Byte.BYTES;
 
       switch (numType) {
         case LONG_INDICATOR:
-          checkMemorySize(mem, offsetBytes + Long.BYTES);
+          UnsafeUtil.checkBounds(offsetBytes, Long.BYTES, mem.getCapacity());
           array[i] = mem.getLong(offsetBytes);
           offsetBytes += Long.BYTES;
           break;
         case INTEGER_INDICATOR:
-          checkMemorySize(mem, offsetBytes + Integer.BYTES);
+          UnsafeUtil.checkBounds(offsetBytes, Integer.BYTES, mem.getCapacity());
           array[i] = mem.getInt(offsetBytes);
           offsetBytes += Integer.BYTES;
           break;
         case SHORT_INDICATOR:
-          checkMemorySize(mem, offsetBytes + Short.BYTES);
+          UnsafeUtil.checkBounds(offsetBytes, Short.BYTES, mem.getCapacity());
           array[i] = mem.getShort(offsetBytes);
           offsetBytes += Short.BYTES;
           break;
         case BYTE_INDICATOR:
-          checkMemorySize(mem, offsetBytes);
+          UnsafeUtil.checkBounds(offsetBytes, Byte.BYTES, mem.getCapacity());
           array[i] = mem.getByte(offsetBytes);
           offsetBytes += Byte.BYTES;
           break;
         case DOUBLE_INDICATOR:
-          checkMemorySize(mem, offsetBytes + Double.BYTES);
+          UnsafeUtil.checkBounds(offsetBytes, Double.BYTES, mem.getCapacity());
           array[i] = mem.getDouble(offsetBytes);
           offsetBytes += Double.BYTES;
           break;
         case FLOAT_INDICATOR:
-          checkMemorySize(mem, offsetBytes + Float.BYTES);
+          UnsafeUtil.checkBounds(offsetBytes, Float.BYTES, mem.getCapacity());
           array[i] = mem.getFloat(offsetBytes);
           offsetBytes += Float.BYTES;
           break;
