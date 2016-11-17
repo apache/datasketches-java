@@ -15,12 +15,12 @@ import com.yahoo.memory.NativeMemory;
  * In an extreme case when all strings are in ASCII, the size is doubled. However it takes
  * less time to serialize and deserialize by a factor of 1.5 to 2.
  *
- * @author Alex Saydakov
+ * @author Alexander Saydakov
  */
 public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
 
   @Override
-  public byte[] serializeToByteArray(String[] items) {
+  public byte[] serializeToByteArray(final String[] items) {
     int length = 0;
     for (int i = 0; i < items.length; i++) {
       length += items[i].length() * Character.BYTES + Integer.BYTES;
@@ -38,17 +38,20 @@ public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
   }
 
   @Override
-  public String[] deserializeFromMemory(Memory mem, int numItems) {
+  public String[] deserializeFromMemory(final Memory mem, final int numItems) {
     final String[] array = new String[numItems];
     long offsetBytes = 0;
     for (int i = 0; i < numItems; i++) {
+      checkMemorySize(mem, offsetBytes + Integer.BYTES);
       final int strLength = mem.getInt(offsetBytes);
       offsetBytes += Integer.BYTES;
       final char[] chars = new char[strLength];
+      checkMemorySize(mem, offsetBytes + strLength * Character.BYTES);
       mem.getCharArray(offsetBytes, chars, 0, strLength);
       array[i] = new String(chars);
       offsetBytes += strLength * Character.BYTES;
     }
     return array;
   }
+
 }

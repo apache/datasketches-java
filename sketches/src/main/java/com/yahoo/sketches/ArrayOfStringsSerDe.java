@@ -17,12 +17,12 @@ import com.yahoo.memory.NativeMemory;
  * this method is 2 times more compact, but it takes more time to encode and decode
  * by a factor of 1.5 to 2.
  *
- * @author Alex Saydakov
+ * @author Alexander Saydakov
  */
 public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
 
   @Override
-  public byte[] serializeToByteArray(String[] items) {
+  public byte[] serializeToByteArray(final String[] items) {
     int length = 0;
     byte[][] itemsBytes = new byte[items.length][];
     for (int i = 0; i < items.length; i++) {
@@ -42,13 +42,15 @@ public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
   }
 
   @Override
-  public String[] deserializeFromMemory(Memory mem, int numItems) {
+  public String[] deserializeFromMemory(final Memory mem, final int numItems) {
     final String[] array = new String[numItems];
     long offsetBytes = 0;
     for (int i = 0; i < numItems; i++) {
+      checkMemorySize(mem, offsetBytes + Integer.BYTES);
       final int strLength = mem.getInt(offsetBytes);
       offsetBytes += Integer.BYTES;
       final byte[] bytes = new byte[strLength];
+      checkMemorySize(mem, offsetBytes + strLength);
       mem.getByteArray(offsetBytes, bytes, 0, strLength);
       offsetBytes += strLength;
       array[i] = new String(bytes, StandardCharsets.UTF_8);

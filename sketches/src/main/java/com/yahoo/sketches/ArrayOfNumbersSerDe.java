@@ -18,7 +18,7 @@ import com.yahoo.memory.NativeMemory;
  * <p>Classes handled are: <tt>Long</tt>, <tt>Integer</tt>, <tt>Short</tt>, <tt>Byte</tt>,
  * <tt>Double</tt>, and <tt>Float</tt>.</p>
  *
- * @author Alex Saydakov
+ * @author Jon Malkin
  */
 public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
 
@@ -28,12 +28,11 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
   private static final byte BYTE_INDICATOR    = 'B' & 0x8F;
   private static final byte DOUBLE_INDICATOR  = 'D' & 0x8F;
   private static final byte FLOAT_INDICATOR   = 'F' & 0x8F;
-  //private static final byte NULL_INDICATOR    = 'N' & 0x8F;
 
   @Override
-  public byte[] serializeToByteArray(Number[] items) {
+  public byte[] serializeToByteArray(final Number[] items) {
     int length = 0;
-    for (Number item : items) {
+    for (final Number item: items) {
       if (item == null) {
         length += Byte.BYTES;
       } else if (item instanceof Long) {
@@ -56,12 +55,7 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
     final byte[] bytes = new byte[length];
     final Memory mem = new NativeMemory(bytes);
     long offsetBytes = 0;
-    for (Number item : items) {
-      /*
-      if (item == null) {
-        mem.putByte(offsetBytes, NULL_INDICATOR);
-        offsetBytes += Byte.BYTES;
-      } else */
+    for (final Number item: items) {
       if (item instanceof Long) {
         mem.putByte(offsetBytes, LONG_INDICATOR);
         mem.putLong(offsetBytes + 1, item.longValue());
@@ -94,44 +88,45 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
   }
 
   @Override
-  public Number[] deserializeFromMemory(Memory mem, int length) {
+  public Number[] deserializeFromMemory(final Memory mem, final int length) {
     final Number[] array = new Number[length];
     long offsetBytes = 0;
     for (int i = 0; i < length; i++) {
+      checkMemorySize(mem, offsetBytes);
       final byte numType = mem.getByte(offsetBytes);
       offsetBytes += Byte.BYTES;
 
       switch (numType) {
         case LONG_INDICATOR:
+          checkMemorySize(mem, offsetBytes + Long.BYTES);
           array[i] = mem.getLong(offsetBytes);
           offsetBytes += Long.BYTES;
           break;
         case INTEGER_INDICATOR:
+          checkMemorySize(mem, offsetBytes + Integer.BYTES);
           array[i] = mem.getInt(offsetBytes);
           offsetBytes += Integer.BYTES;
           break;
         case SHORT_INDICATOR:
+          checkMemorySize(mem, offsetBytes + Short.BYTES);
           array[i] = mem.getShort(offsetBytes);
           offsetBytes += Short.BYTES;
           break;
         case BYTE_INDICATOR:
+          checkMemorySize(mem, offsetBytes);
           array[i] = mem.getByte(offsetBytes);
           offsetBytes += Byte.BYTES;
           break;
         case DOUBLE_INDICATOR:
+          checkMemorySize(mem, offsetBytes + Double.BYTES);
           array[i] = mem.getDouble(offsetBytes);
           offsetBytes += Double.BYTES;
           break;
         case FLOAT_INDICATOR:
+          checkMemorySize(mem, offsetBytes + Float.BYTES);
           array[i] = mem.getFloat(offsetBytes);
           offsetBytes += Float.BYTES;
           break;
-        /*
-        case NULL_INDICATOR:
-          array[i] = null;
-          // offsetBytes unchanged
-          break;
-         */
         default:
           throw new SketchesArgumentException("Unrecognized entry type reading Number array entry " + i + ": "
                   + numType);

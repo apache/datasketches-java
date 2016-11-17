@@ -11,7 +11,7 @@ import com.yahoo.memory.NativeMemory;
 /**
  * Methods of serializing and deserializing arrays of Double.
  *
- * @author Alex Saydakov
+ * @author Alexander Saydakov
  */
 public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
 
@@ -28,7 +28,8 @@ public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
   }
 
   @Override
-  public Double[] deserializeFromMemory(Memory mem, int length) {
+  public Double[] deserializeFromMemory(final Memory mem, final int length) {
+    checkMemorySize(mem, length * Double.BYTES);
     final Double[] array = new Double[length];
     long offsetBytes = 0;
     for (int i = 0; i < length; i++) {

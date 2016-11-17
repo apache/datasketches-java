@@ -11,12 +11,12 @@ import com.yahoo.memory.NativeMemory;
 /**
  * Methods of serializing and deserializing arrays of Long.
  *
- * @author Alex Saydakov
+ * @author Alexander Saydakov
  */
 public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
 
   @Override
-  public byte[] serializeToByteArray(Long[] items) {
+  public byte[] serializeToByteArray(final Long[] items) {
     final byte[] bytes = new byte[Long.BYTES * items.length];
     final Memory mem = new NativeMemory(bytes);
     long offsetBytes = 0;
@@ -28,7 +28,8 @@ public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
   }
 
   @Override
-  public Long[] deserializeFromMemory(Memory mem, int length) {
+  public Long[] deserializeFromMemory(final Memory mem, final int length) {
+    checkMemorySize(mem, length * Long.BYTES);
     final Long[] array = new Long[length];
     long offsetBytes = 0;
     for (int i = 0; i < length; i++) {
