@@ -204,7 +204,7 @@ final class HeapDoublesUnion extends DoublesUnion {
             srcLevels, ((2 + srcLvl) * tgtK),
             scratchBuf, 0,
             false, tgt); //do Merge-Into-Version
-            // won't update qsTarget.n_ until the very end
+        // won't update qsTarget.n_ until the very end
       }
     }
 
