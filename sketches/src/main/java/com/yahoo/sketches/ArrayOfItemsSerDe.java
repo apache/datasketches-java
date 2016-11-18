@@ -59,4 +59,5 @@ public abstract class ArrayOfItemsSerDe<T> {
      */
     return (short) getClass().getName().hashCode();
   }
+
 }

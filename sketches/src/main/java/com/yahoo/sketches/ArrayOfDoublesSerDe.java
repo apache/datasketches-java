@@ -7,11 +7,12 @@ package com.yahoo.sketches;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.UnsafeUtil;
 
 /**
  * Methods of serializing and deserializing arrays of Double.
  *
- * @author Alex Saydakov
+ * @author Alexander Saydakov
  */
 public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
 
@@ -28,7 +29,8 @@ public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
   }
 
   @Override
-  public Double[] deserializeFromMemory(Memory mem, int length) {
+  public Double[] deserializeFromMemory(final Memory mem, final int length) {
+    UnsafeUtil.checkBounds(0, Double.BYTES, mem.getCapacity());
     final Double[] array = new Double[length];
     long offsetBytes = 0;
     for (int i = 0; i < length; i++) {
