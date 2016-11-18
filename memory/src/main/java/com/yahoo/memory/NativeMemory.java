@@ -120,7 +120,7 @@ public class NativeMemory implements Memory {
       nativeRawStartAddress_ = ((sun.nio.ch.DirectBuffer)byteBuf).address();
     }
     else { //must have array
-      objectBaseOffset_ = ARRAY_BYTE_BASE_OFFSET;
+      objectBaseOffset_ = ARRAY_BYTE_BASE_OFFSET + byteBuf.arrayOffset() * ARRAY_BYTE_INDEX_SCALE;
       memArray_ = byteBuf.array();
       nativeRawStartAddress_ = 0L;
     }

@@ -17,6 +17,7 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import org.testng.annotations.Test;
 
@@ -565,6 +566,42 @@ public class NativeMemoryTest {
     finally {
       mem.freeMemory();
     }
+  }
+
+  @Test
+  public void testSliceDirectByteBuffer()
+  {
+    ByteBuffer buf = ByteBuffer.allocateDirect(8);
+    buf.duplicate().order(ByteOrder.nativeOrder()).putInt(1).putInt(2);
+
+    ByteBuffer buf2 = buf.duplicate();
+    buf2.position(4).limit(8);
+    buf2 = buf2.slice().order(ByteOrder.nativeOrder());
+
+    assertEquals(4, buf2.capacity());
+    assertEquals(2, buf2.getInt(0));
+
+    final NativeMemory nm = new NativeMemory(buf2.slice());
+    assertEquals(4, nm.getCapacity());
+    assertEquals(2, nm.getInt(0));
+  }
+
+  @Test
+  public void testSliceHeapByteBuffer()
+  {
+    ByteBuffer buf = ByteBuffer.allocate(8);
+    buf.duplicate().order(ByteOrder.nativeOrder()).putInt(1).putInt(2);
+
+    ByteBuffer buf2 = buf.duplicate();
+    buf2.position(4).limit(8);
+    buf2 = buf2.slice().order(ByteOrder.nativeOrder());
+
+    assertEquals(4, buf2.capacity());
+    assertEquals(2, buf2.getInt(0));
+
+    final NativeMemory nm = new NativeMemory(buf2.slice());
+    assertEquals(4, nm.getCapacity());
+    assertEquals(2, nm.getInt(0));
   }
 
   private static class DummyMemReq implements MemoryRequest {
