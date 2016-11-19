@@ -36,7 +36,7 @@ public final class UnsafeUtil {
   public static final int ARRAY_DOUBLE_BASE_OFFSET;
   public static final int ARRAY_OBJECT_BASE_OFFSET;
 
-//@formatter:off
+  //@formatter:off
   public static final int ARRAY_BOOLEAN_INDEX_SCALE; // 1
   public static final int ARRAY_BYTE_INDEX_SCALE;    // 1
   public static final int ARRAY_SHORT_INDEX_SCALE;   // 2
@@ -59,7 +59,7 @@ public final class UnsafeUtil {
 
   public static final String LS = System.getProperty("line.separator");
 
-//@formatter:on
+  //@formatter:on
 
   /**
    * This number limits the number of bytes to copy per call to Unsafe's copyMemory method.
@@ -70,16 +70,16 @@ public final class UnsafeUtil {
   static {
       try {
         //should work across JVMs, e.g., with Android:
-        Constructor<Unsafe> unsafeConstructor = Unsafe.class.getDeclaredConstructor();
+        final Constructor<Unsafe> unsafeConstructor = Unsafe.class.getDeclaredConstructor();
         unsafeConstructor.setAccessible(true);
         unsafe = unsafeConstructor.newInstance();
 
         // Alternative, but may not work across different JVMs.
-//      Field field = Unsafe.class.getDeclaredField("theUnsafe");
-//      field.setAccessible(true);
-//      unsafe = (Unsafe) field.get(null);
+        //      Field field = Unsafe.class.getDeclaredField("theUnsafe");
+        //      field.setAccessible(true);
+        //      unsafe = (Unsafe) field.get(null);
 
-      } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+      } catch (final InstantiationException | IllegalAccessException | IllegalArgumentException
           | InvocationTargetException | NoSuchMethodException e) {
         e.printStackTrace();
         throw new RuntimeException("Unable to acquire Unsafe. ", e);
@@ -147,8 +147,8 @@ public final class UnsafeUtil {
    * @return true if the given offsets and length do not overlap.
    */
   public static boolean checkOverlap(final long srcOff, final long dstOff, final long length) {
-    long min = Math.min(srcOff, dstOff);
-    long max = Math.max(srcOff, dstOff);
+    final long min = Math.min(srcOff, dstOff);
+    final long max = Math.max(srcOff, dstOff);
     return (min + length) <= max;
   }
 

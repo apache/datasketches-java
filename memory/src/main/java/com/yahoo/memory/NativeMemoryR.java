@@ -1,3 +1,8 @@
+/*
+ * Copyright 2015-16, Yahoo! Inc. Licensed under the terms of the Apache License 2.0. See LICENSE
+ * file at the project root for terms.
+ */
+
 package com.yahoo.memory;
 
 import java.nio.ByteBuffer;
@@ -9,195 +14,204 @@ import java.nio.ByteBuffer;
  */
 class NativeMemoryR extends NativeMemory {
 
-    protected NativeMemoryR(long objectBaseOffset, Object memArray, ByteBuffer byteBuf) {
-        super(objectBaseOffset, memArray, byteBuf);
-    }
+  protected NativeMemoryR(final long objectBaseOffset, final Object memArray,
+      final ByteBuffer byteBuf) {
+    super(objectBaseOffset, memArray, byteBuf);
+  }
 
-    @Override
-    public void clear() {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void clear() {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public void clear(long offsetBytes, long lengthBytes) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void clear(final long offsetBytes, final long lengthBytes) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public void clearBits(long offsetBytes, byte bitMask) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void clearBits(final long offsetBytes, final byte bitMask) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public void copy(long srcOffsetBytes, long dstOffsetBytes, long lengthBytes) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void copy(final long srcOffsetBytes, final long dstOffsetBytes, final long lengthBytes) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public void fill(long offsetBytes, long lengthBytes, byte value) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void fill(final long offsetBytes, final long lengthBytes, final byte value) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public void fill(byte value) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void fill(final byte value) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public int getAndAddInt(long offsetBytes, int delta) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public int getAndAddInt(final long offsetBytes, final int delta) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public long getAndAddLong(long offsetBytes, long delta) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public long getAndAddLong(final long offsetBytes, final long delta) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public int getAndSetInt(long offsetBytes, int newValue) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public int getAndSetInt(final long offsetBytes, final int newValue) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public long getAndSetLong(long offsetBytes, long newValue) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public long getAndSetLong(final long offsetBytes, final long newValue) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public void putBoolean(long offsetBytes, boolean srcValue) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void putBoolean(final long offsetBytes, final boolean srcValue) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public void putBooleanArray(long offsetBytes, boolean[] srcArray, int srcOffset, int length) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void putBooleanArray(final long offsetBytes, final boolean[] srcArray, final int srcOffset,
+      final int length) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public void putByte(long offsetBytes, byte srcValue) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void putByte(final long offsetBytes, final byte srcValue) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public void putByteArray(long offsetBytes, byte[] srcArray, int srcOffset, int length) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void putByteArray(final long offsetBytes, final byte[] srcArray, final int srcOffset,
+      final int length) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public void putChar(long offsetBytes, char srcValue) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void putChar(final long offsetBytes, final char srcValue) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public void putCharArray(long offsetBytes, char[] srcArray, int srcOffset, int length) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void putCharArray(final long offsetBytes, final char[] srcArray, final int srcOffset,
+      final int length) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public void putDouble(long offsetBytes, double srcValue) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void putDouble(final long offsetBytes, final double srcValue) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public void putDoubleArray(long offsetBytes, double[] srcArray, int srcOffset, int length) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void putDoubleArray(final long offsetBytes, final double[] srcArray, final int srcOffset,
+      final int length) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public void putFloat(long offsetBytes, float srcValue) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void putFloat(final long offsetBytes, final float srcValue) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public void putFloatArray(long offsetBytes, float[] srcArray, int srcOffset, int length) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void putFloatArray(final long offsetBytes, final float[] srcArray, final int srcOffset,
+      final int length) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public void putInt(long offsetBytes, int srcValue) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void putInt(final long offsetBytes, final int srcValue) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public void putIntArray(long offsetBytes, int[] srcArray, int srcOffset, int length) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void putIntArray(final long offsetBytes, final int[] srcArray, final int srcOffset,
+      final int length) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public void putLong(long offsetBytes, long srcValue) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void putLong(final long offsetBytes, final long srcValue) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public void putLongArray(long offsetBytes, long[] srcArray, int srcOffset, int length) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void putLongArray(final long offsetBytes, final long[] srcArray, final int srcOffset,
+      final int length) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public void putShort(long offsetBytes, short srcValue) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void putShort(final long offsetBytes, final short srcValue) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public void putShortArray(long offsetBytes, short[] srcArray, int srcOffset, int length) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void putShortArray(final long offsetBytes, final short[] srcArray, final int srcOffset,
+      final int length) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public void setBits(long offsetBytes, byte bitMask) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void setBits(final long offsetBytes, final byte bitMask) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    //Non-data Memory interface methods
+  // Non-data Memory interface methods
 
-    @Override
-    public Object array() {
-      throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public Object array() {
+    throw new ReadOnlyMemoryException();
+  }
 
-    //asReadOnlyMemory() //OK
+  // asReadOnlyMemory() //OK
 
-    @Override
-    public ByteBuffer byteBuffer() { //TODO if BB is already RO this should be OK
-      throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public ByteBuffer byteBuffer() {
+    throw new ReadOnlyMemoryException();
+  }
 
-    //getAddress() //cannot be overridden, but harmless
-    //getCapacity() //OK
-    //getCumulativeOffset() //OK
-    //getMemoryRequest() //OK
+  // getAddress() //cannot be overridden, but harmless
+  // getCapacity() //OK
+  // getCumulativeOffset() //OK
+  // getMemoryRequest() //OK
 
-    @Override
-    public NativeMemory getNativeMemory() {
-      throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public NativeMemory getNativeMemory() {
+    throw new ReadOnlyMemoryException();
+  }
 
-    @Override
-    public Object getParent() {
-      throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public Object getParent() {
+    throw new ReadOnlyMemoryException();
+  }
 
-    //hasArray() OK
-    //hasByteBuffer() OK
-    //isAllocated() OK
-    //isDirect() OK
+  // hasArray() OK
+  // hasByteBuffer() OK
+  // isAllocated() OK
+  // isDirect() OK
 
-    @Override
-    public boolean isReadOnly() {
-        return true;
-    }
+  @Override
+  public boolean isReadOnly() {
+    return true;
+  }
 
-    @Override
-    public void setMemoryRequest(MemoryRequest memReq) {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void setMemoryRequest(final MemoryRequest memReq) {
+    throw new ReadOnlyMemoryException();
+  }
 
-    //toHexString OK
+  // toHexString OK
 
-    //copy Memory to Memory OK, Checks if destination is writable.
+  // copy Memory to Memory OK, Checks if destination is writable.
 
-    @Override
-    public void freeMemory() {
-        throw new ReadOnlyMemoryException();
-    }
+  @Override
+  public void freeMemory() {
+    throw new ReadOnlyMemoryException();
+  }
 }

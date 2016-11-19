@@ -75,7 +75,8 @@ public class NativeMemory implements Memory {
   protected volatile MemoryRequest memReq_ = null; //set via AllocMemory
 
   //only sets the finals
-  protected NativeMemory(long objectBaseOffset, Object memArray, ByteBuffer byteBuf) {
+  protected NativeMemory(final long objectBaseOffset, final Object memArray,
+      final ByteBuffer byteBuf) {
     objectBaseOffset_ = objectBaseOffset;
     memArray_ = memArray;
     byteBuf_ = byteBuf;
@@ -85,7 +86,7 @@ public class NativeMemory implements Memory {
    * Provides access to the given byteArray using Memory interface
    * @param byteArray an on-heap byte array
    */
-  public NativeMemory(byte[] byteArray) {
+  public NativeMemory(final byte[] byteArray) {
     this(ARRAY_BYTE_BASE_OFFSET, byteArray, null);
     if ((byteArray == null) || (byteArray.length == 0)) {
       throw new IllegalArgumentException(
@@ -99,7 +100,7 @@ public class NativeMemory implements Memory {
    * Provides access to the given longArray using Memory interface
    * @param longArray an on-heap long array
    */
-  public NativeMemory(long[] longArray) {
+  public NativeMemory(final long[] longArray) {
     this(ARRAY_LONG_BASE_OFFSET, longArray, null);
     if ((longArray == null) || (longArray.length == 0)) {
       throw new IllegalArgumentException(
@@ -113,7 +114,7 @@ public class NativeMemory implements Memory {
    * Provides access to the backing store of the given ByteBuffer using Memory interface
    * @param byteBuf the given ByteBuffer
    */
-  public NativeMemory(ByteBuffer byteBuf) {
+  public NativeMemory(final ByteBuffer byteBuf) {
     if (byteBuf.isDirect()) {
       objectBaseOffset_ = 0L;
       memArray_ = null;
@@ -134,14 +135,14 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public void clear(long offsetBytes, long lengthBytes) {
+  public void clear(final long offsetBytes, final long lengthBytes) {
     fill(offsetBytes, lengthBytes, (byte) 0);
   }
 
   @Override
-  public void clearBits(long offsetBytes, byte bitMask) {
+  public void clearBits(final long offsetBytes, final byte bitMask) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
-    long unsafeRawAddress = getAddress(offsetBytes);
+    final long unsafeRawAddress = getAddress(offsetBytes);
     int value = unsafe.getByte(memArray_, unsafeRawAddress) & 0XFF;
     value &= ~bitMask;
     unsafe.putByte(memArray_, unsafeRawAddress, (byte)value);
@@ -158,7 +159,7 @@ public class NativeMemory implements Memory {
     long lenBytes = lengthBytes;
 
     while (lenBytes > 0) {
-      long size = (lenBytes > UNSAFE_COPY_THRESHOLD) ? UNSAFE_COPY_THRESHOLD : lenBytes;
+      final long size = (lenBytes > UNSAFE_COPY_THRESHOLD) ? UNSAFE_COPY_THRESHOLD : lenBytes;
       unsafe.copyMemory(memArray_, srcAdd, memArray_, dstAdd, lenBytes);
       lenBytes -= size;
       srcAdd += size;
@@ -167,20 +168,20 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public void fill(byte value) {
+  public void fill(final byte value) {
     fill(0, capacityBytes_, value);
   }
 
   @Override
-  public void fill(long offsetBytes, long lengthBytes, byte value) {
+  public void fill(final long offsetBytes, final long lengthBytes, final byte value) {
     assertBounds(offsetBytes, lengthBytes, capacityBytes_);
     unsafe.setMemory(memArray_, getAddress(offsetBytes), lengthBytes, value);
   }
 
   @Override
-  public int getAndAddInt(long offsetBytes, int delta) {
+  public int getAndAddInt(final long offsetBytes, final int delta) {
     assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
-    long unsafeRawAddress = getAddress(offsetBytes);
+    final long unsafeRawAddress = getAddress(offsetBytes);
     int v;
     do {
         v = unsafe.getIntVolatile(memArray_, unsafeRawAddress);
@@ -189,9 +190,9 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public long getAndAddLong(long offsetBytes, long delta) {
+  public long getAndAddLong(final long offsetBytes, final long delta) {
     assertBounds(offsetBytes, ARRAY_LONG_INDEX_SCALE, capacityBytes_);
-    long unsafeRawAddress = getAddress(offsetBytes);
+    final long unsafeRawAddress = getAddress(offsetBytes);
     long v;
     do {
         v = unsafe.getLongVolatile(memArray_, unsafeRawAddress);
@@ -200,9 +201,9 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public int getAndSetInt(long offsetBytes, int newValue) {
+  public int getAndSetInt(final long offsetBytes, final int newValue) {
     assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
-    long unsafeRawAddress = getAddress(offsetBytes);
+    final long unsafeRawAddress = getAddress(offsetBytes);
     int v;
     do {
         v = unsafe.getIntVolatile(memArray_, unsafeRawAddress);
@@ -211,9 +212,9 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public long getAndSetLong(long offsetBytes, long newValue) {
+  public long getAndSetLong(final long offsetBytes, final long newValue) {
     assertBounds(offsetBytes, ARRAY_LONG_INDEX_SCALE, capacityBytes_);
-    long unsafeRawAddress = getAddress(offsetBytes);
+    final long unsafeRawAddress = getAddress(offsetBytes);
     long v;
     do {
         v = unsafe.getLongVolatile(memArray_, unsafeRawAddress);
@@ -222,14 +223,15 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public boolean getBoolean(long offsetBytes) {
+  public boolean getBoolean(final long offsetBytes) {
     assertBounds(offsetBytes, ARRAY_BOOLEAN_INDEX_SCALE, capacityBytes_);
     return unsafe.getBoolean(memArray_, getAddress(offsetBytes));
   }
 
   @Override
-  public void getBooleanArray(long offsetBytes, boolean[] dstArray, int dstOffset, int length) {
-    long copyBytes = length << BOOLEAN_SHIFT;
+  public void getBooleanArray(final long offsetBytes, final boolean[] dstArray, final int dstOffset,
+      final int length) {
+    final long copyBytes = length << BOOLEAN_SHIFT;
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     assertBounds(dstOffset, length, dstArray.length);
     unsafe.copyMemory(
@@ -241,14 +243,15 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public byte getByte(long offsetBytes) {
+  public byte getByte(final long offsetBytes) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
     return unsafe.getByte(memArray_, getAddress(offsetBytes));
   }
 
   @Override
-  public void getByteArray(long offsetBytes, byte[] dstArray, int dstOffset, int length) {
-    long copyBytes = length << BYTE_SHIFT;
+  public void getByteArray(final long offsetBytes, final byte[] dstArray, final int dstOffset,
+      final int length) {
+    final long copyBytes = length << BYTE_SHIFT;
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     assertBounds(dstOffset, length, dstArray.length);
     unsafe.copyMemory(
@@ -260,14 +263,15 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public char getChar(long offsetBytes) {
+  public char getChar(final long offsetBytes) {
     assertBounds(offsetBytes, ARRAY_CHAR_INDEX_SCALE, capacityBytes_);
     return unsafe.getChar(memArray_, getAddress(offsetBytes));
   }
 
   @Override
-  public void getCharArray(long offsetBytes, char[] dstArray, int dstOffset, int length) {
-    long copyBytes = length << CHAR_SHIFT;
+  public void getCharArray(final long offsetBytes, final char[] dstArray, final int dstOffset,
+      final int length) {
+    final long copyBytes = length << CHAR_SHIFT;
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     assertBounds(dstOffset, length, dstArray.length);
     unsafe.copyMemory(
@@ -279,14 +283,15 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public double getDouble(long offsetBytes) {
+  public double getDouble(final long offsetBytes) {
     assertBounds(offsetBytes, ARRAY_DOUBLE_INDEX_SCALE, capacityBytes_);
     return unsafe.getDouble(memArray_, getAddress(offsetBytes));
   }
 
   @Override
-  public void getDoubleArray(long offsetBytes, double[] dstArray, int dstOffset, int length) {
-    long copyBytes = length << DOUBLE_SHIFT;
+  public void getDoubleArray(final long offsetBytes, final double[] dstArray, final int dstOffset,
+      final int length) {
+    final long copyBytes = length << DOUBLE_SHIFT;
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     assertBounds(dstOffset, length, dstArray.length);
     unsafe.copyMemory(
@@ -298,14 +303,15 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public float getFloat(long offsetBytes) {
+  public float getFloat(final long offsetBytes) {
     assertBounds(offsetBytes, ARRAY_FLOAT_INDEX_SCALE, capacityBytes_);
     return unsafe.getFloat(memArray_, getAddress(offsetBytes));
   }
 
   @Override
-  public void getFloatArray(long offsetBytes, float[] dstArray, int dstOffset, int length) {
-    long copyBytes = length << FLOAT_SHIFT;
+  public void getFloatArray(final long offsetBytes, final float[] dstArray, final int dstOffset,
+      final int length) {
+    final long copyBytes = length << FLOAT_SHIFT;
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     assertBounds(dstOffset, length, dstArray.length);
     unsafe.copyMemory(
@@ -317,14 +323,15 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public int getInt(long offsetBytes) {
+  public int getInt(final long offsetBytes) {
     assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
     return unsafe.getInt(memArray_, getAddress(offsetBytes));
   }
 
   @Override
-  public void getIntArray(long offsetBytes, int[] dstArray, int dstOffset, int length) {
-    long copyBytes = length << INT_SHIFT;
+  public void getIntArray(final long offsetBytes, final int[] dstArray, final int dstOffset,
+      final int length) {
+    final long copyBytes = length << INT_SHIFT;
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     assertBounds(dstOffset, length, dstArray.length);
     unsafe.copyMemory(
@@ -336,14 +343,15 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public long getLong(long offsetBytes) {
+  public long getLong(final long offsetBytes) {
     assertBounds(offsetBytes, ARRAY_LONG_INDEX_SCALE, capacityBytes_);
     return unsafe.getLong(memArray_, getAddress(offsetBytes));
   }
 
   @Override
-  public void getLongArray(long offsetBytes, long[] dstArray, int dstOffset, int length) {
-    long copyBytes = length << LONG_SHIFT;
+  public void getLongArray(final long offsetBytes, final long[] dstArray, final int dstOffset,
+      final int length) {
+    final long copyBytes = length << LONG_SHIFT;
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     assertBounds(dstOffset, length, dstArray.length);
     unsafe.copyMemory(
@@ -355,14 +363,15 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public short getShort(long offsetBytes) {
+  public short getShort(final long offsetBytes) {
     assertBounds(offsetBytes, ARRAY_SHORT_INDEX_SCALE, capacityBytes_);
     return unsafe.getShort(memArray_, getAddress(offsetBytes));
   }
 
   @Override
-  public void getShortArray(long offsetBytes, short[] dstArray, int dstOffset, int length) {
-    long copyBytes = length << SHORT_SHIFT;
+  public void getShortArray(final long offsetBytes, final short[] dstArray, final int dstOffset,
+      final int length) {
+    final long copyBytes = length << SHORT_SHIFT;
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     assertBounds(dstOffset, length, dstArray.length);
     unsafe.copyMemory(
@@ -374,42 +383,43 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public boolean isAllBitsClear(long offsetBytes, byte bitMask) {
+  public boolean isAllBitsClear(final long offsetBytes, final byte bitMask) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
-    int value = ~unsafe.getByte(memArray_, getAddress(offsetBytes)) & bitMask & 0XFF;
+    final int value = ~unsafe.getByte(memArray_, getAddress(offsetBytes)) & bitMask & 0XFF;
     return value == bitMask;
   }
 
   @Override
-  public boolean isAllBitsSet(long offsetBytes, byte bitMask) {
+  public boolean isAllBitsSet(final long offsetBytes, final byte bitMask) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
-    int value = unsafe.getByte(memArray_, getAddress(offsetBytes)) & bitMask & 0XFF;
+    final int value = unsafe.getByte(memArray_, getAddress(offsetBytes)) & bitMask & 0XFF;
     return value == bitMask;
   }
 
   @Override
-  public boolean isAnyBitsClear(long offsetBytes, byte bitMask) {
+  public boolean isAnyBitsClear(final long offsetBytes, final byte bitMask) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
-    int value = ~unsafe.getByte(memArray_, getAddress(offsetBytes)) & bitMask & 0XFF;
+    final int value = ~unsafe.getByte(memArray_, getAddress(offsetBytes)) & bitMask & 0XFF;
     return value != 0;
   }
 
   @Override
-  public boolean isAnyBitsSet(long offsetBytes, byte bitMask) {
+  public boolean isAnyBitsSet(final long offsetBytes, final byte bitMask) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
-    int value = unsafe.getByte(memArray_, getAddress(offsetBytes)) & bitMask & 0XFF;
+    final int value = unsafe.getByte(memArray_, getAddress(offsetBytes)) & bitMask & 0XFF;
     return value != 0;
   }
 
   @Override
-  public void putBoolean(long offsetBytes, boolean srcValue) {
+  public void putBoolean(final long offsetBytes, final boolean srcValue) {
     assertBounds(offsetBytes, ARRAY_BOOLEAN_INDEX_SCALE, capacityBytes_);
     unsafe.putBoolean(memArray_, getAddress(offsetBytes), srcValue);
   }
 
   @Override
-  public void putBooleanArray(long offsetBytes, boolean[] srcArray, int srcOffset, int length) {
-    long copyBytes = length << BOOLEAN_SHIFT;
+  public void putBooleanArray(final long offsetBytes, final boolean[] srcArray, final int srcOffset,
+      final int length) {
+    final long copyBytes = length << BOOLEAN_SHIFT;
     assertBounds(srcOffset, length, srcArray.length);
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     unsafe.copyMemory(
@@ -422,14 +432,15 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public void putByte(long offsetBytes, byte srcValue) {
+  public void putByte(final long offsetBytes, final byte srcValue) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
     unsafe.putByte(memArray_, getAddress(offsetBytes), srcValue);
   }
 
   @Override
-  public void putByteArray(long offsetBytes, byte[] srcArray, int srcOffset, int length) {
-    long copyBytes = length << BYTE_SHIFT;
+  public void putByteArray(final long offsetBytes, final byte[] srcArray, final int srcOffset,
+      final int length) {
+    final long copyBytes = length << BYTE_SHIFT;
     assertBounds(srcOffset, length, srcArray.length);
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     unsafe.copyMemory(
@@ -442,14 +453,15 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public void putChar(long offsetBytes, char srcValue) {
+  public void putChar(final long offsetBytes, final char srcValue) {
     assertBounds(offsetBytes, ARRAY_CHAR_INDEX_SCALE, capacityBytes_);
     unsafe.putChar(memArray_, getAddress(offsetBytes), srcValue);
   }
 
   @Override
-  public void putCharArray(long offsetBytes, char[] srcArray, int srcOffset, int length) {
-    long copyBytes = length << CHAR_SHIFT;
+  public void putCharArray(final long offsetBytes, final char[] srcArray, final int srcOffset,
+      final int length) {
+    final long copyBytes = length << CHAR_SHIFT;
     assertBounds(srcOffset, length, srcArray.length);
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     unsafe.copyMemory(
@@ -461,14 +473,15 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public void putDouble(long offsetBytes, double srcValue) {
+  public void putDouble(final long offsetBytes, final double srcValue) {
     assertBounds(offsetBytes, ARRAY_DOUBLE_INDEX_SCALE, capacityBytes_);
     unsafe.putDouble(memArray_, getAddress(offsetBytes), srcValue);
   }
 
   @Override
-  public void putDoubleArray(long offsetBytes, double[] srcArray, int srcOffset, int length) {
-    long copyBytes = length << DOUBLE_SHIFT;
+  public void putDoubleArray(final long offsetBytes, final double[] srcArray, final int srcOffset,
+      final int length) {
+    final long copyBytes = length << DOUBLE_SHIFT;
     assertBounds(srcOffset, length, srcArray.length);
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     unsafe.copyMemory(
@@ -480,14 +493,15 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public void putFloat(long offsetBytes, float srcValue) {
+  public void putFloat(final long offsetBytes, final float srcValue) {
     assertBounds(offsetBytes, ARRAY_FLOAT_INDEX_SCALE, capacityBytes_);
     unsafe.putFloat(memArray_, getAddress(offsetBytes), srcValue);
   }
 
   @Override
-  public void putFloatArray(long offsetBytes, float[] srcArray, int srcOffset, int length) {
-    long copyBytes = length << FLOAT_SHIFT;
+  public void putFloatArray(final long offsetBytes, final float[] srcArray, final int srcOffset,
+      final int length) {
+    final long copyBytes = length << FLOAT_SHIFT;
     assertBounds(srcOffset, length, srcArray.length);
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     unsafe.copyMemory(
@@ -499,14 +513,15 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public void putInt(long offsetBytes, int srcValue) {
+  public void putInt(final long offsetBytes, final int srcValue) {
     assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
     unsafe.putInt(memArray_, getAddress(offsetBytes), srcValue);
   }
 
   @Override
-  public void putIntArray(long offsetBytes, int[] srcArray, int srcOffset, int length) {
-    long copyBytes = length << INT_SHIFT;
+  public void putIntArray(final long offsetBytes, final int[] srcArray, final int srcOffset,
+      final int length) {
+    final long copyBytes = length << INT_SHIFT;
     assertBounds(srcOffset, length, srcArray.length);
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     unsafe.copyMemory(
@@ -518,14 +533,15 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public void putLong(long offsetBytes, long srcValue) {
+  public void putLong(final long offsetBytes, final long srcValue) {
     assertBounds(offsetBytes, ARRAY_LONG_INDEX_SCALE, capacityBytes_);
     unsafe.putLong(memArray_, getAddress(offsetBytes), srcValue);
   }
 
   @Override
-  public void putLongArray(long offsetBytes, long[] srcArray, int srcOffset, int length) {
-    long copyBytes = length << LONG_SHIFT;
+  public void putLongArray(final long offsetBytes, final long[] srcArray, final int srcOffset,
+      final int length) {
+    final long copyBytes = length << LONG_SHIFT;
     assertBounds(srcOffset, length, srcArray.length);
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     unsafe.copyMemory(
@@ -537,14 +553,15 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public void putShort(long offsetBytes, short srcValue) {
+  public void putShort(final long offsetBytes, final short srcValue) {
     assertBounds(offsetBytes, ARRAY_SHORT_INDEX_SCALE, capacityBytes_);
     unsafe.putShort(memArray_, getAddress(offsetBytes), srcValue);
   }
 
   @Override
-  public void putShortArray(long offsetBytes, short[] srcArray, int srcOffset, int length) {
-    long copyBytes = length << SHORT_SHIFT;
+  public void putShortArray(final long offsetBytes, final short[] srcArray, final int srcOffset,
+      final int length) {
+    final long copyBytes = length << SHORT_SHIFT;
     assertBounds(srcOffset, length, srcArray.length);
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
     unsafe.copyMemory(
@@ -556,10 +573,10 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public void setBits(long offsetBytes, byte bitMask) {
+  public void setBits(final long offsetBytes, final byte bitMask) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
-    long unsafeRawAddress = getAddress(offsetBytes);
-    byte value = unsafe.getByte(memArray_, unsafeRawAddress);
+    final long unsafeRawAddress = getAddress(offsetBytes);
+    final byte value = unsafe.getByte(memArray_, unsafeRawAddress);
     unsafe.putByte(memArray_, unsafeRawAddress, (byte)(value | bitMask));
   }
 
@@ -572,7 +589,7 @@ public class NativeMemory implements Memory {
 
   @Override
   public Memory asReadOnlyMemory() {
-    NativeMemoryR nmr = new NativeMemoryR(objectBaseOffset_, memArray_, byteBuf_);
+    final NativeMemoryR nmr = new NativeMemoryR(objectBaseOffset_, memArray_, byteBuf_);
     nmr.nativeRawStartAddress_ = nativeRawStartAddress_;
     nmr.capacityBytes_ = capacityBytes_;
     nmr.memReq_ = memReq_;
@@ -655,21 +672,21 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public void setMemoryRequest(MemoryRequest memReq) {
+  public void setMemoryRequest(final MemoryRequest memReq) {
     memReq_ = memReq;
   }
 
   @Override
-  public String toHexString(String header, long offsetBytes, int lengthBytes) {
-    StringBuilder sb = new StringBuilder();
+  public String toHexString(final String header, final long offsetBytes, final int lengthBytes) {
+    final StringBuilder sb = new StringBuilder();
     sb.append(header).append(LS);
-    String s1 = String.format("(..., %d, %d)", offsetBytes, lengthBytes);
+    final String s1 = String.format("(..., %d, %d)", offsetBytes, lengthBytes);
     sb.append(this.getClass().getSimpleName()).append(".toHexString")
       .append(s1).append(", hash: ").append(this.hashCode()).append(LS);
     sb.append("  MemoryRequest: ");
     if (memReq_ != null) {
       sb.append(memReq_.getClass().getSimpleName()).append(", hash: ").append(memReq_.hashCode());
-    } else sb.append("null");
+    } else { sb.append("null"); }
     return toHex(sb.toString(), offsetBytes, lengthBytes);
   }
 
@@ -700,12 +717,12 @@ public class NativeMemory implements Memory {
 
     long srcAdd = source.getCumulativeOffset(srcOffsetBytes);
     long dstAdd = destination.getCumulativeOffset(dstOffsetBytes);
-    Object srcParent = (source.isDirect()) ? null : source.getNativeMemory().memArray_;
-    Object dstParent = (destination.isDirect()) ? null : destination.getNativeMemory().memArray_;
+    final Object srcParent = (source.isDirect()) ? null : source.getNativeMemory().memArray_;
+    final Object dstParent = (destination.isDirect()) ? null : destination.getNativeMemory().memArray_;
     long lenBytes = lengthBytes;
 
     while (lenBytes > 0) {
-      long chunkBytes = (lenBytes > UNSAFE_COPY_THRESHOLD) ? UNSAFE_COPY_THRESHOLD : lenBytes;
+      final long chunkBytes = (lenBytes > UNSAFE_COPY_THRESHOLD) ? UNSAFE_COPY_THRESHOLD : lenBytes;
       unsafe.copyMemory(srcParent, srcAdd, dstParent, dstAdd, lenBytes);
       lenBytes -= chunkBytes;
       srcAdd += chunkBytes;
@@ -738,10 +755,10 @@ public class NativeMemory implements Memory {
    * @param lengthBytes number of bytes to convert to a hex string
    * @return a formatted hex string in a human readable array
    */
-  private String toHex(String header, long offsetBytes, int lengthBytes) {
+  private String toHex(final String header, final long offsetBytes, final int lengthBytes) {
     assertBounds(offsetBytes, lengthBytes, capacityBytes_);
-    long unsafeRawAddress = getAddress(offsetBytes);
-    StringBuilder sb = new StringBuilder();
+    final long unsafeRawAddress = getAddress(offsetBytes);
+    final StringBuilder sb = new StringBuilder();
     sb.append(header).append(LS);
     sb.append("Raw Address         : ").append(nativeRawStartAddress_).append(LS);
     sb.append("Object Offset       : ").append(objectBaseOffset_).append(": ");
@@ -750,9 +767,9 @@ public class NativeMemory implements Memory {
     sb.append("Total Offset        : ").append(unsafeRawAddress).append(LS);
     sb.append("Native Region       :  0  1  2  3  4  5  6  7");
     long j = offsetBytes;
-    StringBuilder sb2 = new StringBuilder();
+    final StringBuilder sb2 = new StringBuilder();
     for (long i = 0; i < lengthBytes; i++) {
-      int b = unsafe.getByte(memArray_, unsafeRawAddress + i) & 0XFF;
+      final int b = unsafe.getByte(memArray_, unsafeRawAddress + i) & 0XFF;
       if ((i != 0) && ((i % 8) == 0)) {
         sb.append(String.format("%n%20s: ", j)).append(sb2);
         j += 8;

@@ -27,8 +27,8 @@ public final class MemoryUtil {
    * @param lengthBytes the number of bytes to copy
    */
   @Deprecated
-  public static void copy(Memory source, long srcOffsetBytes, Memory destination,
-      long dstOffsetBytes, long lengthBytes) {
+  public static void copy(final Memory source, final long srcOffsetBytes, final Memory destination,
+      final long dstOffsetBytes, final long lengthBytes) {
     NativeMemory.copy(source, srcOffsetBytes, destination, dstOffsetBytes, lengthBytes);
   }
 
@@ -47,14 +47,15 @@ public final class MemoryUtil {
    * than the key, or toIndex if all elements in the range are less than the specified key.
    * Note that this guarantees that the return value will be &ge; 0 if and only if the key is found.
    */
-  public static int binarySearchLongs(Memory mem, int fromLongIndex, int toLongIndex, long key) {
+  public static int binarySearchLongs(final Memory mem, final int fromLongIndex,
+      final int toLongIndex, final long key) {
     assertBounds(fromLongIndex << 3, (toLongIndex - fromLongIndex) << 3, mem.getCapacity());
     int low = fromLongIndex;
     int high = toLongIndex - 1;
 
     while (low <= high) {
-      int mid = (low + high) >>> 1;
-      long midVal = mem.getLong(mid << 3);
+      final int mid = (low + high) >>> 1;
+      final long midVal = mem.getLong(mid << 3);
 
       if (midVal < key)      { low = mid + 1;  }
       else if (midVal > key) { high = mid - 1; }

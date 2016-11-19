@@ -26,7 +26,7 @@ public class AllocMemory extends MemoryMappedFile {
    * leveraging the Memory interface.  The MemoryRequest callback is set to null.
    * @param capacityBytes the size in bytes of the native memory
    */
-  public AllocMemory(long capacityBytes) {
+  public AllocMemory(final long capacityBytes) {
     super(0L, null, null);
     super.nativeRawStartAddress_ = unsafe.allocateMemory(capacityBytes);
     super.capacityBytes_ = capacityBytes;
@@ -41,7 +41,7 @@ public class AllocMemory extends MemoryMappedFile {
    * @param capacityBytes the size in bytes of the native memory
    * @param memReq The MemoryRequest callback
    */
-  public AllocMemory(long capacityBytes, MemoryRequest memReq) {
+  public AllocMemory(final long capacityBytes, final MemoryRequest memReq) {
     super(0L, null, null);
     super.nativeRawStartAddress_ = unsafe.allocateMemory(capacityBytes);
     super.capacityBytes_ = capacityBytes;
@@ -64,7 +64,8 @@ public class AllocMemory extends MemoryMappedFile {
    * @param newCapacityBytes the desired new capacity of the newly allocated memory in bytes
    * @param memReq The MemoryRequest callback, which may be null.
    */
-  public AllocMemory(NativeMemory origMem, long newCapacityBytes, MemoryRequest memReq) {
+  public AllocMemory(final NativeMemory origMem, final long newCapacityBytes,
+      final MemoryRequest memReq) {
     super(0L, null, null);
     super.nativeRawStartAddress_ = unsafe.reallocateMemory(origMem.nativeRawStartAddress_,
         newCapacityBytes);
@@ -89,8 +90,8 @@ public class AllocMemory extends MemoryMappedFile {
    * upper limit of the region to be cleared.
    * @param memReq The MemoryRequest callback, which may be null.
    */
-  public AllocMemory(NativeMemory origMem, long copyToBytes, long capacityBytes,
-      MemoryRequest memReq) {
+  public AllocMemory(final NativeMemory origMem, final long copyToBytes, final long capacityBytes,
+      final MemoryRequest memReq) {
     super(0L, null, null);
     super.nativeRawStartAddress_ = unsafe.allocateMemory(capacityBytes);
     super.capacityBytes_ = capacityBytes;
