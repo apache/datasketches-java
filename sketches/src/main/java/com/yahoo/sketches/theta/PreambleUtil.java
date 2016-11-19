@@ -102,7 +102,7 @@ final class PreambleUtil {
    * @param preambleLongs current preamble size
    * @return the size in bytes
    */
-  static final int getMemBytes(int lgArrLongs, int preambleLongs) {
+  static final int getMemBytes(final int lgArrLongs, final int preambleLongs) {
     return (8 << lgArrLongs) + (preambleLongs << 3);
   }
 
@@ -115,8 +115,8 @@ final class PreambleUtil {
    * @param byteArr the given byte array.
    * @return the summary preamble string.
    */
-  public static String preambleToString(byte[] byteArr) {
-    Memory mem = new NativeMemory(byteArr);
+  public static String preambleToString(final byte[] byteArr) {
+    final Memory mem = new NativeMemory(byteArr);
     return preambleToString(mem);
   }
 
@@ -129,26 +129,26 @@ final class PreambleUtil {
    * @param mem the given Memory.
    * @return the summary preamble string.
    */
-  public static String preambleToString(Memory mem) {
-    int preLongs = getAndCheckPreLongs(mem);  //make sure we can get the assumed preamble
-    long pre0 = mem.getLong(0);
-    ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(pre0));
-    int serVer = extractSerVer(pre0);
-    Family family = Family.idToFamily(extractFamilyID(pre0));
-    int lgNomLongs = extractLgNomLongs(pre0);
-    int lgArrLongs = extractLgArrLongs(pre0);
+  public static String preambleToString(final Memory mem) {
+    final int preLongs = getAndCheckPreLongs(mem);  //make sure we can get the assumed preamble
+    final long pre0 = mem.getLong(0);
+    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(pre0));
+    final int serVer = extractSerVer(pre0);
+    final Family family = Family.idToFamily(extractFamilyID(pre0));
+    final int lgNomLongs = extractLgNomLongs(pre0);
+    final int lgArrLongs = extractLgArrLongs(pre0);
 
     //Flags
-    int flags = extractFlags(pre0);
-    String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
-    boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
-    String nativeOrder = ByteOrder.nativeOrder().toString();
-    boolean compact = (flags & COMPACT_FLAG_MASK) > 0;
-    boolean ordered = (flags & ORDERED_FLAG_MASK) > 0;
-    boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
-    boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
+    final int flags = extractFlags(pre0);
+    final String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
+    final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
+    final String nativeOrder = ByteOrder.nativeOrder().toString();
+    final boolean compact = (flags & COMPACT_FLAG_MASK) > 0;
+    final boolean ordered = (flags & ORDERED_FLAG_MASK) > 0;
+    final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
+    final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
 
-    int seedHash = extractSeedHash(pre0);
+    final int seedHash = extractSeedHash(pre0);
 
     //Assumed if preLongs == 1
     int curCount = 0;
@@ -159,32 +159,32 @@ final class PreambleUtil {
     long thetaULong = thetaLong;
 
     if (preLongs == 2) {
-      long pre1 = mem.getLong(8);
+      final long pre1 = mem.getLong(8);
       curCount = extractCurCount(pre1);
       p = extractP(pre1);
       thetaLong = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
       thetaULong = thetaLong;
     }
     else if (preLongs == 3) {
-      long pre1 = mem.getLong(8);
+      final long pre1 = mem.getLong(8);
       curCount = extractCurCount(pre1);
       p = extractP(pre1);
       thetaLong = mem.getLong(THETA_LONG);
       thetaULong = thetaLong;
     }
     else if (preLongs == 4) {
-      long pre1 = mem.getLong(8);
+      final long pre1 = mem.getLong(8);
       curCount = extractCurCount(pre1);
       p = extractP(pre1);
       thetaLong = mem.getLong(THETA_LONG);
       thetaULong = mem.getLong(UNION_THETA_LONG);
     } //else: the same as preLongs == 1
-    double thetaDbl = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
-    String thetaHex = zeroPad(Long.toHexString(thetaLong), 16);
-    double thetaUDbl = thetaULong / MAX_THETA_LONG_AS_DOUBLE;
-    String thetaUHex = zeroPad(Long.toHexString(thetaULong), 16);
+    final double thetaDbl = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
+    final String thetaHex = zeroPad(Long.toHexString(thetaLong), 16);
+    final double thetaUDbl = thetaULong / MAX_THETA_LONG_AS_DOUBLE;
+    final String thetaUHex = zeroPad(Long.toHexString(thetaULong), 16);
 
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
     sb.append(LS)
       .append("### SKETCH PREAMBLE SUMMARY:").append(LS)
       .append("Byte  0: Preamble Longs       : ").append(preLongs).append(LS)
@@ -246,123 +246,123 @@ final class PreambleUtil {
   //Extract from long and insert into long methods
 
   static int extractPreLongs(final long long0) {
-    long mask = 0X3FL;
+    final long mask = 0X3FL;
     return (int) (long0 & mask);
   }
 
   static int extractResizeFactor(final long long0) {
-    int shift = LG_RESIZE_FACTOR_BITS; // units in bits
-    long mask = 0X3L;
+    final int shift = LG_RESIZE_FACTOR_BITS; // units in bits
+    final long mask = 0X3L;
     return (int) ((long0 >>> shift) & mask);
   }
 
   static int extractSerVer(final long long0) {
-    int shift = SER_VER_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = SER_VER_BYTE << 3;
+    final long mask = 0XFFL;
     return (int) ((long0 >>> shift) & mask);
   }
 
   static int extractFamilyID(final long long0) {
-    int shift = FAMILY_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = FAMILY_BYTE << 3;
+    final long mask = 0XFFL;
     return (int) ((long0 >>> shift) & mask);
   }
 
   static int extractLgNomLongs(final long long0) {
-    int shift = LG_NOM_LONGS_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = LG_NOM_LONGS_BYTE << 3;
+    final long mask = 0XFFL;
     return (int) ((long0 >>> shift) & mask);
   }
 
   static int extractLgArrLongs(final long long0) {
-    int shift = LG_ARR_LONGS_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = LG_ARR_LONGS_BYTE << 3;
+    final long mask = 0XFFL;
     return (int) ((long0 >>> shift) & mask);
   }
 
   static int extractFlags(final long long0) {
-    int shift = FLAGS_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = FLAGS_BYTE << 3;
+    final long mask = 0XFFL;
     return (int) ((long0 >>> shift) & mask);
   }
 
   static int extractFlagsV1(final long long0) {
-    int shift = FLAGS_BYTE_V1 << 3;
-    long mask = 0XFFL;
+    final int shift = FLAGS_BYTE_V1 << 3;
+    final long mask = 0XFFL;
     return (int) ((long0 >>> shift) & mask);
   }
 
   static int extractSeedHash(final long long0) {
-    int shift = SEED_HASH_SHORT << 3;
-    long mask = 0XFFFFL;
+    final int shift = SEED_HASH_SHORT << 3;
+    final long mask = 0XFFFFL;
     return (int) ((long0 >>> shift) & mask);
   }
 
   static int extractCurCount(final long long1) {
-    long mask = 0XFFFFFFFFL;
+    final long mask = 0XFFFFFFFFL;
     return (int) (long1 & mask);
   }
 
   static float extractP(final long long1) {
-    int shift = 32;
+    final int shift = 32;
     return Float.intBitsToFloat((int)(long1 >>> shift));
   }
 
   static long insertPreLongs(final int preLongs, final long long0) {
-    long mask = 0X3FL;
+    final long mask = 0X3FL;
     return (preLongs & mask) | (~mask & long0);
   }
 
   static long insertResizeFactor(final int rf, final long long0) {
-    int shift = LG_RESIZE_FACTOR_BITS; // units in bits
-    long mask = 3L;
+    final int shift = LG_RESIZE_FACTOR_BITS; // units in bits
+    final long mask = 3L;
     return ((rf & mask) << shift) | (~(mask << shift) & long0);
   }
 
   static long insertSerVer(final int serVer, final long long0) {
-    int shift = SER_VER_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = SER_VER_BYTE << 3;
+    final long mask = 0XFFL;
     return ((serVer & mask) << shift) | (~(mask << shift) & long0);
   }
 
   static long insertFamilyID(final int familyID, final long long0) {
-    int shift = FAMILY_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = FAMILY_BYTE << 3;
+    final long mask = 0XFFL;
     return ((familyID & mask) << shift) | (~(mask << shift) & long0);
   }
 
   static long insertLgNomLongs(final int lgNomLongs, final long long0) {
-    int shift = LG_NOM_LONGS_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = LG_NOM_LONGS_BYTE << 3;
+    final long mask = 0XFFL;
     return ((lgNomLongs & mask) << shift) | (~(mask << shift) & long0);
   }
 
   static long insertLgArrLongs(final int lgArrLongs, final long long0) {
-    int shift = LG_ARR_LONGS_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = LG_ARR_LONGS_BYTE << 3;
+    final long mask = 0XFFL;
     return ((lgArrLongs & mask) << shift) | (~(mask << shift) & long0);
   }
 
   static long insertFlags(final int flags, final long long0) {
-    int shift = FLAGS_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = FLAGS_BYTE << 3;
+    final long mask = 0XFFL;
     return ((flags & mask) << shift) | (~(mask << shift) & long0);
   }
 
   static long insertSeedHash(final int seedHash, final long long0) {
-    int shift = SEED_HASH_SHORT << 3;
-    long mask = 0XFFFFL;
+    final int shift = SEED_HASH_SHORT << 3;
+    final long mask = 0XFFFFL;
     return ((seedHash & mask) << shift) | (~(mask << shift) & long0);
   }
 
   static long insertCurCount(final int curCount, final long long1) { //Retained Entries
-    long mask = 0XFFFFFFFFL;
+    final long mask = 0XFFFFFFFFL;
     return (curCount & mask) | (~mask & long1);
   }
 
   static long insertP(final float p, final long long1) {
-    int shift = 32;
-    long mask = 0XFFFFFFFFL;
+    final int shift = 32;
+    final long mask = 0XFFFFFFFFL;
     return ((Float.floatToRawIntBits(p) & mask) << shift) | (~(mask << shift) & long1);
   }
 
@@ -371,17 +371,17 @@ final class PreambleUtil {
    * @param mem the given Memory
    * @return the extracted prelongs value.
    */
-  static int getAndCheckPreLongs(Memory mem) {
-    long cap = mem.getCapacity();
+  static int getAndCheckPreLongs(final Memory mem) {
+    final long cap = mem.getCapacity();
     if (cap < 8) { throwNotBigEnough(cap, 8); }
-    long pre0 = mem.getLong(0);
-    int preLongs = extractPreLongs(pre0);
-    int required = Math.max(preLongs << 3, 8);
+    final long pre0 = mem.getLong(0);
+    final int preLongs = extractPreLongs(pre0);
+    final int required = Math.max(preLongs << 3, 8);
     if (cap < required) { throwNotBigEnough(cap, required); }
     return preLongs;
   }
 
-  private static void throwNotBigEnough(long cap, int required) {
+  private static void throwNotBigEnough(final long cap, final int required) {
     throw new SketchesArgumentException(
         "Possible Corruption: Size of byte array or Memory not large enough: Size: " + cap
         + ", Required: " + required);

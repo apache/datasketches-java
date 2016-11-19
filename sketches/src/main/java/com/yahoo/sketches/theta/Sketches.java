@@ -40,7 +40,7 @@ public final class Sketches {
    * @param srcMem Ref: {@link Sketch#heapify(Memory) Sketch.heapify(Memory)} {@code srcMem}
    * @return {@link Sketch Sketch}
    */
-  public static Sketch heapifySketch(Memory srcMem) {
+  public static Sketch heapifySketch(final Memory srcMem) {
     return Sketch.heapify(srcMem);
   }
 
@@ -50,7 +50,7 @@ public final class Sketches {
    * @param seed Ref: {@link Sketch#heapify(Memory, long) Sketch.heapify(Memory, long)} {@code seed}
    * @return {@link Sketch Sketch}
    */
-  public static Sketch heapifySketch(Memory srcMem, long seed) {
+  public static Sketch heapifySketch(final Memory srcMem, final long seed) {
     return Sketch.heapify(srcMem, seed);
   }
 
@@ -59,7 +59,7 @@ public final class Sketches {
    * @param srcMem Ref: {@link Sketch#wrap(Memory) Sketch.heapify(Memory)} {@code srcMem}
    * @return {@link Sketch Sketch}
    */
-  public static Sketch wrapSketch(Memory srcMem) {
+  public static Sketch wrapSketch(final Memory srcMem) {
     return Sketch.wrap(srcMem);
   }
 
@@ -69,7 +69,7 @@ public final class Sketches {
    * @param seed Ref: {@link Sketch#wrap(Memory, long) Sketch.wrap(Memory, long)} {@code seed}
    * @return {@link Sketch Sketch}
    */
-  public static Sketch wrapSketch(Memory srcMem, long seed) {
+  public static Sketch wrapSketch(final Memory srcMem, final long seed) {
     return Sketch.wrap(srcMem, seed);
   }
 
@@ -86,7 +86,7 @@ public final class Sketches {
    * @param srcMem Ref: {@link SetOperation#heapify(Memory) SetOperation.heapify(Memory)} {@code srcMem}
    * @return {@link SetOperation SetOperation}
    */
-  public static SetOperation heapifySetOperation(Memory srcMem) {
+  public static SetOperation heapifySetOperation(final Memory srcMem) {
     return SetOperation.heapify(srcMem);
   }
 
@@ -98,7 +98,7 @@ public final class Sketches {
    * {@code seed}
    * @return {@link SetOperation SetOperation}
    */
-  public static SetOperation heapifySetOperation(Memory srcMem, long seed) {
+  public static SetOperation heapifySetOperation(final Memory srcMem, final long seed) {
     return SetOperation.heapify(srcMem, seed);
   }
 
@@ -107,7 +107,7 @@ public final class Sketches {
    * @param srcMem Ref: {@link SetOperation#wrap(Memory) SetOperation.wrap(Memory)} {@code srcMem}
    * @return {@link SetOperation SetOperation}
    */
-  public static SetOperation wrapSetOperation(Memory srcMem) {
+  public static SetOperation wrapSetOperation(final Memory srcMem) {
     return SetOperation.wrap(srcMem);
   }
 
@@ -116,7 +116,7 @@ public final class Sketches {
    * @param srcMem Ref: {@link SetOperation#wrap(Memory)} {@code srcMem}
    * @return a Union backed by the given Memory
    */
-  public static Union wrapUnion(Memory srcMem) {
+  public static Union wrapUnion(final Memory srcMem) {
     return (Union) SetOperation.wrap(srcMem);
   }
 
@@ -125,7 +125,7 @@ public final class Sketches {
    * @param srcMem Ref: {@link SetOperation#wrap(Memory)} {@code srcMem}
    * @return a Intersection backed by the given Memory
    */
-  public static Intersection wrapIntersection(Memory srcMem) {
+  public static Intersection wrapIntersection(final Memory srcMem) {
     return (Intersection) SetOperation.wrap(srcMem);
   }
 
@@ -137,7 +137,7 @@ public final class Sketches {
    * {@code seed}
    * @return {@link SetOperation SetOperation}
    */
-  public static SetOperation wrapSetOperation(Memory srcMem, long seed) {
+  public static SetOperation wrapSetOperation(final Memory srcMem, final long seed) {
     return SetOperation.wrap(srcMem, seed);
   }
 
@@ -149,7 +149,7 @@ public final class Sketches {
    * {@code numberOfEntries}
    * @return Ref: {@link Sketch#getMaxCompactSketchBytes(int)}
    */
-  public static int getMaxCompactSketchBytes(int numberOfEntries) {
+  public static int getMaxCompactSketchBytes(final int numberOfEntries) {
     return Sketch.getMaxCompactSketchBytes(numberOfEntries);
   }
 
@@ -158,7 +158,7 @@ public final class Sketches {
    * @param nomEntries Ref: {@link Sketch#getMaxUpdateSketchBytes(int)} {@code nomEntries}
    * @return Ref: {@link Sketch#getMaxUpdateSketchBytes(int)}
    */
-  public static int getMaxUpdateSketchBytes(int nomEntries) {
+  public static int getMaxUpdateSketchBytes(final int nomEntries) {
     return Sketch.getMaxUpdateSketchBytes(nomEntries);
   }
 
@@ -167,7 +167,7 @@ public final class Sketches {
    * @param srcMem Ref: {@link Sketch#getSerializationVersion(Memory)} {@code srcMem}
    * @return Ref: {@link Sketch#getSerializationVersion(Memory)}
    */
-  public static int getSerializationVersion(Memory srcMem) {
+  public static int getSerializationVersion(final Memory srcMem) {
     return Sketch.getSerializationVersion(srcMem);
   }
 
@@ -176,7 +176,7 @@ public final class Sketches {
    * @param nomEntries Ref: {@link SetOperation#getMaxUnionBytes(int)} {@code nomEntries}
    * @return Ref: {@link SetOperation#getMaxUnionBytes(int)}
    */
-  public static int getMaxUnionBytes(int nomEntries) {
+  public static int getMaxUnionBytes(final int nomEntries) {
     return SetOperation.getMaxUnionBytes(nomEntries);
   }
 
@@ -185,7 +185,7 @@ public final class Sketches {
    * @param nomEntries Ref: {@link SetOperation#getMaxIntersectionBytes(int)} {@code nomEntries}
    * @return Ref: {@link SetOperation#getMaxIntersectionBytes(int)}
    */
-  public static int getMaxIntersectionBytes(int nomEntries) {
+  public static int getMaxIntersectionBytes(final int nomEntries) {
     return SetOperation.getMaxIntersectionBytes(nomEntries);
   }
 
@@ -196,7 +196,7 @@ public final class Sketches {
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return the sketch's best estimate of the cardinality of the input stream.
    */
-  public static double getEstimate(Memory srcMem) {
+  public static double getEstimate(final Memory srcMem) {
     checkIfValidThetaSketch(srcMem);
     return Sketch.estimate(getThetaLong(srcMem), getRetainedEntries(srcMem), getEmpty(srcMem));
   }
@@ -212,7 +212,7 @@ public final class Sketches {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return the upper bound.
    */
-  public static double getUpperBound(int numStdDev, Memory srcMem) {
+  public static double getUpperBound(final int numStdDev, final Memory srcMem) {
     return Sketch.upperBound(getRetainedEntries(srcMem), getThetaLong(srcMem), numStdDev, getEmpty(srcMem));
   }
 
@@ -226,36 +226,36 @@ public final class Sketches {
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return the lower bound.
    */
-  public static double getLowerBound(int numStdDev, Memory srcMem) {
+  public static double getLowerBound(final int numStdDev, final Memory srcMem) {
     return Sketch.lowerBound(getRetainedEntries(srcMem), getThetaLong(srcMem), numStdDev, getEmpty(srcMem));
   }
 
   //Restricted static methods
 
-  static int getPreambleLongs(Memory srcMem) {
+  static int getPreambleLongs(final Memory srcMem) {
     return srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F; //for SerVer 1,2,3
   }
 
-  static int getRetainedEntries(Memory srcMem) {
-    int preLongs = getPreambleLongs(srcMem);
+  static int getRetainedEntries(final Memory srcMem) {
+    final int preLongs = getPreambleLongs(srcMem);
     return (preLongs == 1) ? 0 : srcMem.getInt(RETAINED_ENTRIES_INT); //for SerVer 1,2,3
   }
 
-  static long getThetaLong(Memory srcMem) {
-    int preLongs = getPreambleLongs(srcMem);
+  static long getThetaLong(final Memory srcMem) {
+    final int preLongs = getPreambleLongs(srcMem);
     return (preLongs < 3) ? Long.MAX_VALUE : srcMem.getLong(THETA_LONG); //for SerVer 1,2,3
   }
 
-  static boolean getEmpty(Memory srcMem) {
-    int serVer = srcMem.getByte(SER_VER_BYTE);
+  static boolean getEmpty(final Memory srcMem) {
+    final int serVer = srcMem.getByte(SER_VER_BYTE);
     if (serVer == 1) {
       return ((getThetaLong(srcMem) == Long.MAX_VALUE) && (getRetainedEntries(srcMem) == 0));
     }
     return srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); //for SerVer 2 & 3
   }
 
-  static void checkIfValidThetaSketch(Memory srcMem) {
-    int fam = srcMem.getByte(FAMILY_BYTE);
+  static void checkIfValidThetaSketch(final Memory srcMem) {
+    final int fam = srcMem.getByte(FAMILY_BYTE);
     if (!Sketch.isValidSketchID(fam)) {
      throw new SketchesArgumentException("Source Memory not a valid Sketch. Family: "
          + Family.idToFamily(fam).toString());

@@ -58,8 +58,8 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
 
   private long[] cache_;
 
-  private HeapQuickSelectSketch(int lgNomLongs, long seed, float p, ResizeFactor rf,
-      int preambleLongs, Family family) {
+  private HeapQuickSelectSketch(final int lgNomLongs, final long seed, final float p,
+      final ResizeFactor rf, final int preambleLongs, final Family family) {
     super(lgNomLongs,
     seed,
     p,
@@ -79,12 +79,12 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
    * Otherwise, it is behaving as a normal QuickSelectSketch.
    * @return instance of this sketch
    */
-  static HeapQuickSelectSketch getInstance(int lgNomLongs, long seed, float p, ResizeFactor rf,
-      boolean unionGadget) {
+  static HeapQuickSelectSketch getInstance(final int lgNomLongs, final long seed, final float p,
+      final ResizeFactor rf, final boolean unionGadget) {
 
     //Choose family, preambleLongs
-    Family family;
-    int preambleLongs;
+    final Family family;
+    final int preambleLongs;
     if (unionGadget) {
       preambleLongs = Family.UNION.getMinPreLongs();
       family = Family.UNION;
@@ -94,9 +94,9 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
       family = Family.QUICKSELECT;
     }
 
-    HeapQuickSelectSketch hqss = new HeapQuickSelectSketch(lgNomLongs, seed, p, rf,
+    final HeapQuickSelectSketch hqss = new HeapQuickSelectSketch(lgNomLongs, seed, p, rf,
         preambleLongs, family);
-    int lgArrLongs = Util.startingSubMultiple(lgNomLongs + 1, rf, MIN_LG_ARR_LONGS);
+    final int lgArrLongs = Util.startingSubMultiple(lgNomLongs + 1, rf, MIN_LG_ARR_LONGS);
     hqss.lgArrLongs_ = lgArrLongs;
     hqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     hqss.curCount_ = 0;
@@ -114,29 +114,29 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return instance of this sketch
    */
-  static HeapQuickSelectSketch getInstance(Memory srcMem, long seed) {
-    long[] preArr = new long[3];
+  static HeapQuickSelectSketch getInstance(final Memory srcMem, final long seed) {
+    final long[] preArr = new long[3];
     srcMem.getLongArray(0, preArr, 0, 3); //extract the preamble
-    long long0 = preArr[0];
-    int preambleLongs = extractPreLongs(long0);                           //byte 0
-    ResizeFactor myRF = ResizeFactor.getRF(extractResizeFactor(long0));   //byte 0
-    int serVer = extractSerVer(long0);                                    //byte 1
-    int familyID = extractFamilyID(long0);                                //byte 2
-    int lgNomLongs = extractLgNomLongs(long0);                            //byte 3
-    int lgArrLongs = extractLgArrLongs(long0);                            //byte 4
-    int flags = extractFlags(long0);                                      //byte 5
-    short seedHash = (short)extractSeedHash(long0);                       //byte 6,7
-    long long1 = preArr[1];
-    int curCount = extractCurCount(long1);                                //bytes 8-11
-    float p = extractP(long1);                                            //bytes 12-15
-    long thetaLong = preArr[2];                                           //bytes 16-23
+    final long long0 = preArr[0];
+    final int preambleLongs = extractPreLongs(long0);                           //byte 0
+    final ResizeFactor myRF = ResizeFactor.getRF(extractResizeFactor(long0));   //byte 0
+    final int serVer = extractSerVer(long0);                                    //byte 1
+    final int familyID = extractFamilyID(long0);                                //byte 2
+    final int lgNomLongs = extractLgNomLongs(long0);                            //byte 3
+    final int lgArrLongs = extractLgArrLongs(long0);                            //byte 4
+    final int flags = extractFlags(long0);                                      //byte 5
+    final short seedHash = (short)extractSeedHash(long0);                       //byte 6,7
+    final long long1 = preArr[1];
+    final int curCount = extractCurCount(long1);                                //bytes 8-11
+    final float p = extractP(long1);                                            //bytes 12-15
+    final long thetaLong = preArr[2];                                           //bytes 16-23
 
     if (serVer != SER_VER) {
       throw new SketchesArgumentException(
           "Possible corruption: Invalid Serialization Version: " + serVer);
     }
 
-    Family family = Family.idToFamily(familyID);
+    final Family family = Family.idToFamily(familyID);
     if (family.equals(Family.UNION)) {
       if (preambleLongs != Family.UNION.getMinPreLongs()) {
         throw new SketchesArgumentException(
@@ -160,7 +160,8 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
               + lgNomLongs + " < " + MIN_LG_NOM_LONGS);
     }
 
-    int flagsMask = ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
+    final int flagsMask =
+        ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
     if ((flags & flagsMask) > 0) {
       throw new SketchesArgumentException(
           "Possible corruption: Input srcMem cannot be: big-endian, compact, ordered, or read-only");
@@ -168,23 +169,23 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
 
     Util.checkSeedHashes(seedHash, Util.computeSeedHash(seed));
 
-    long curCapBytes = srcMem.getCapacity();
-    int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
+    final long curCapBytes = srcMem.getCapacity();
+    final int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
     if (curCapBytes < minReqBytes) {
       throw new SketchesArgumentException(
           "Possible corruption: Current Memory size < min required size: "
               + curCapBytes + " < " + minReqBytes);
     }
 
-    double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
+    final double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
     if ((lgArrLongs <= lgNomLongs) && (theta < p) ) {
       throw new SketchesArgumentException(
         "Possible corruption: Theta cannot be < p and lgArrLongs <= lgNomLongs. "
             + lgArrLongs + " <= " + lgNomLongs + ", Theta: " + theta + ", p: " + p);
     }
 
-    HeapQuickSelectSketch hqss = new HeapQuickSelectSketch(lgNomLongs, seed, p, myRF, preambleLongs,
-        family);
+    final HeapQuickSelectSketch hqss = new HeapQuickSelectSketch(lgNomLongs, seed, p, myRF,
+        preambleLongs, family);
     hqss.lgArrLongs_ = lgArrLongs;
     hqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     hqss.curCount_ = curCount;
@@ -198,7 +199,7 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
   //Sketch
 
   @Override
-  public int getRetainedEntries(boolean valid) {
+  public int getRetainedEntries(final boolean valid) {
     return curCount_;
   }
 
@@ -229,10 +230,10 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
 
   @Override
   public final void reset() {
-    ResizeFactor rf = getResizeFactor();
-    int lgArrLongsSM = Util.startingSubMultiple(lgNomLongs_ + 1, rf, MIN_LG_ARR_LONGS);
+    final ResizeFactor rf = getResizeFactor();
+    final int lgArrLongsSM = Util.startingSubMultiple(lgNomLongs_ + 1, rf, MIN_LG_ARR_LONGS);
     if (lgArrLongsSM == lgArrLongs_) {
-      int arrLongs = cache_.length;
+      final int arrLongs = cache_.length;
       assert (1 << lgArrLongs_) == arrLongs;
       java.util.Arrays.fill(cache_,  0L);
     }
@@ -279,7 +280,7 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
   }
 
   @Override
-  UpdateReturnState hashUpdate(long hash) {
+  UpdateReturnState hashUpdate(final long hash) {
     HashOperations.checkHashCorruption(hash);
     empty_ = false;
 
@@ -312,14 +313,14 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
   //Must resize. Changes lgArrLongs_ and cache_. theta and count don't change.
   // Used by hashUpdate()
   private final void resizeCache() {
-    ResizeFactor rf = getResizeFactor();
-    int lgTgtLongs = lgNomLongs_ + 1;
-    int lgDeltaLongs = lgTgtLongs - lgArrLongs_;
-    int lgResizeFactor = max(min(rf.lg(), lgDeltaLongs), 1); //rf_.lg() could be 0
+    final ResizeFactor rf = getResizeFactor();
+    final int lgTgtLongs = lgNomLongs_ + 1;
+    final int lgDeltaLongs = lgTgtLongs - lgArrLongs_;
+    final int lgResizeFactor = max(min(rf.lg(), lgDeltaLongs), 1); //rf_.lg() could be 0
     lgArrLongs_ += lgResizeFactor; // new tgt size
 
-    long[] tgtArr = new long[1 << lgArrLongs_];
-    int newCount = HashOperations.hashArrayInsert(cache_, tgtArr, lgArrLongs_, thetaLong_);
+    final long[] tgtArr = new long[1 << lgArrLongs_];
+    final int newCount = HashOperations.hashArrayInsert(cache_, tgtArr, lgArrLongs_, thetaLong_);
 
     assert newCount == curCount_;  //Assumes no dirty values.
     curCount_ = newCount;
@@ -330,14 +331,14 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
 
   //array stays the same size. Changes theta and thus count
   private final void quickSelectAndRebuild() {
-    int arrLongs = 1 << lgArrLongs_;
+    final int arrLongs = 1 << lgArrLongs_;
 
-    int pivot = (1 << lgNomLongs_) + 1; // pivot for QS
+    final int pivot = (1 << lgNomLongs_) + 1; // pivot for QS
 
     thetaLong_ = selectExcludingZeros(cache_, curCount_, pivot); //messes up the cache_
 
     // now we rebuild to clean up dirty data, update count, reconfigure as a hash table
-    long[] tgtArr = new long[arrLongs];
+    final long[] tgtArr = new long[arrLongs];
     curCount_ = HashOperations.hashArrayInsert(cache_, tgtArr, lgArrLongs_, thetaLong_);
     cache_ = tgtArr;
     //hashTableThreshold stays the same
@@ -351,7 +352,7 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
    * @return the hash table threshold
    */
   static final int setHashTableThreshold(final int lgNomLongs, final int lgArrLongs) {
-    double fraction = (lgArrLongs <= lgNomLongs) ? RESIZE_THRESHOLD : REBUILD_THRESHOLD;
+    final double fraction = (lgArrLongs <= lgNomLongs) ? RESIZE_THRESHOLD : REBUILD_THRESHOLD;
     return (int) Math.floor(fraction * (1 << lgArrLongs));
   }
 

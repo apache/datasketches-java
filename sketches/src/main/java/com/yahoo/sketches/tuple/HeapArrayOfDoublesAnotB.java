@@ -58,7 +58,7 @@ final class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
       final int noMatchSize = a.getRetainedEntries();
       keys_ = new long[noMatchSize];
       values_ = new double[noMatchSize * numValues_];
-      ArrayOfDoublesSketchIterator it = a.iterator();
+      final ArrayOfDoublesSketchIterator it = a.iterator();
       while (it.next()) {
         final int index = HashOperations.hashSearch(hashTable, lgHashTableSize, it.getKey());
         if (index == -1) {
@@ -76,7 +76,7 @@ final class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
       return new
         HeapArrayOfDoublesCompactSketch(null, null, Long.MAX_VALUE, true, numValues_, seedHash_);
     }
-    ArrayOfDoublesCompactSketch result = new HeapArrayOfDoublesCompactSketch(
+    final ArrayOfDoublesCompactSketch result = new HeapArrayOfDoublesCompactSketch(
       Arrays.copyOfRange(keys_, 0, count_),
       Arrays.copyOfRange(values_, 0, count_ * numValues_),
       theta_,
@@ -91,7 +91,7 @@ final class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
   @Override
   public ArrayOfDoublesCompactSketch getResult(final Memory mem) {
     if (mem == null || count_ == 0) { return getResult(); }
-    ArrayOfDoublesCompactSketch result = new DirectArrayOfDoublesCompactSketch(
+    final ArrayOfDoublesCompactSketch result = new DirectArrayOfDoublesCompactSketch(
       Arrays.copyOfRange(keys_, 0, count_),
       Arrays.copyOfRange(values_, 0, count_ * numValues_),
       theta_,
@@ -110,7 +110,7 @@ final class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
       1 << MIN_LG_NOM_LONGS
     );
     final long[] hashTable = new long[size];
-    ArrayOfDoublesSketchIterator it = sketch.iterator();
+    final ArrayOfDoublesSketchIterator it = sketch.iterator();
     final int lgSize = Integer.numberOfTrailingZeros(size);
     while (it.next()) {
       HashOperations.hashInsertOnly(hashTable, lgSize, it.getKey());
@@ -130,7 +130,7 @@ final class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
     count_ = sketch.getRetainedEntries();
     keys_ = new long[count_];
     values_ = new double[count_ * numValues_];
-    ArrayOfDoublesSketchIterator it = sketch.iterator();
+    final ArrayOfDoublesSketchIterator it = sketch.iterator();
     int i = 0;
     while (it.next()) {
       keys_[i] = it.getKey();

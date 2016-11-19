@@ -52,7 +52,7 @@ public class SetOperationBuilder {
    * This will become the ceiling power of 2 if it is not.
    * @return this SetOperationBuilder
    */
-  public SetOperationBuilder setNominalEntries(int nomEntries) {
+  public SetOperationBuilder setNominalEntries(final int nomEntries) {
     bLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
     return this;
   }
@@ -72,7 +72,7 @@ public class SetOperationBuilder {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return this SetOperationBuilder
    */
-  public SetOperationBuilder setSeed(long seed) {
+  public SetOperationBuilder setSeed(final long seed) {
     bSeed = seed;
     return this;
   }
@@ -92,7 +92,7 @@ public class SetOperationBuilder {
    * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
    * @return this SetOperationBuilder
    */
-  public SetOperationBuilder setP(float p) {
+  public SetOperationBuilder setP(final float p) {
     if ((p <= 0.0) || (p > 1.0)) {
       throw new SketchesArgumentException("p must be > 0 and <= 1.0: " + p);
     }
@@ -113,7 +113,7 @@ public class SetOperationBuilder {
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @return this SetOperationBuilder
    */
-  public SetOperationBuilder setResizeFactor(ResizeFactor rf) {
+  public SetOperationBuilder setResizeFactor(final ResizeFactor rf) {
     bRF = rf;
     return this;
   }
@@ -132,7 +132,7 @@ public class SetOperationBuilder {
    * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>
    * @return this SetOperationBuilder
    */
-  public SetOperationBuilder initMemory(Memory dstMem) {
+  public SetOperationBuilder initMemory(final Memory dstMem) {
     bDstMem = dstMem;
     return this;
   }
@@ -151,7 +151,7 @@ public class SetOperationBuilder {
    * @param family the chosen SetOperation family
    * @return a SetOperation
    */
-  public SetOperation build(Family family) {
+  public SetOperation build(final Family family) {
     SetOperation setOp = null;
     switch (family) {
       case UNION: {
@@ -197,7 +197,7 @@ public class SetOperationBuilder {
    * @param family build this SetOperation family
    * @return a SetOperation
    */
-  public SetOperation build(int nomEntries, Family family) {
+  public SetOperation build(final int nomEntries, final Family family) {
     bLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
     return build(family);
   }
@@ -217,7 +217,7 @@ public class SetOperationBuilder {
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
    * @return a Union object
    */
-  public Union buildUnion(int nomEntries) {
+  public Union buildUnion(final int nomEntries) {
     return (Union) build(nomEntries, Family.UNION);
   }
 
@@ -242,7 +242,7 @@ public class SetOperationBuilder {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
     sb.append("SetOperationBuilder configuration:").append(LS)
       .append("LgK:").append(TAB).append(bLgNomLongs).append(LS)
       .append("K:").append(TAB).append(1 << bLgNomLongs).append(LS)

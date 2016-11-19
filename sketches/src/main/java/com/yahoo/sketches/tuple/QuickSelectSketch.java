@@ -162,7 +162,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       count = mem.getInt(offset);
       offset += Integer.BYTES;
     }
-    DeserializeResult<SummaryFactory<S>> factoryResult =
+    final DeserializeResult<SummaryFactory<S>> factoryResult =
         SerializerDeserializer.deserializeFromMemory(mem, offset);
     summaryFactory_ = factoryResult.getObject();
     offset += factoryResult.getSize();
@@ -170,13 +170,13 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     keys_ = new long[currentCapacity];
     summaries_ = (S[]) Array.newInstance(summaryFactory_.newSummary().getClass(), currentCapacity);
 
-    MemoryRegion memRegion = new MemoryRegion(mem, 0, mem.getCapacity());
+    final MemoryRegion memRegion = new MemoryRegion(mem, 0, mem.getCapacity());
     for (int i = 0; i < count; i++) {
-      long key = mem.getLong(offset);
+      final long key = mem.getLong(offset);
       offset += Long.BYTES;
       memRegion.reassign(offset, mem.getCapacity() - offset);
-      DeserializeResult<S> summaryResult = summaryFactory_.summaryFromMemory(memRegion);
-      S summary = summaryResult.getObject();
+      final DeserializeResult<S> summaryResult = summaryFactory_.summaryFromMemory(memRegion);
+      final S summary = summaryResult.getObject();
       offset += summaryResult.getSize();
       insert(key, summary);
     }
@@ -187,7 +187,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   @Override
   public S[] getSummaries() {
     @SuppressWarnings("unchecked")
-    S[] summaries = (S[]) Array.newInstance(summaryFactory_.newSummary().getClass(), count_);
+    final S[] summaries = (S[]) Array.newInstance(summaryFactory_.newSummary().getClass(), count_);
     int i = 0;
     for (int j = 0; j < summaries_.length; j++) {
       if (summaries_[j] != null) {
@@ -329,7 +329,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   void merge(final long key, final S summary) {
     isEmpty_ = false;
     if (key < theta_) {
-      int index = findOrInsert(key);
+      final int index = findOrInsert(key);
       if (index < 0) {
         summaries_[~index] = summary.copy();
       } else {

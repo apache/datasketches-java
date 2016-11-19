@@ -73,9 +73,9 @@ public abstract class UpdateSketch extends Sketch {
    *
    * @return this sketch as a CompactSketch in the chosen form
    */
-  public CompactSketch compact(boolean dstOrdered, Memory dstMem) {
+  public CompactSketch compact(final boolean dstOrdered, final Memory dstMem) {
     CompactSketch sketchOut = null;
-    int sw = (dstOrdered ? 2 : 0) | ((dstMem != null) ? 1 : 0);
+    final int sw = (dstOrdered ? 2 : 0) | ((dstMem != null) ? 1 : 0);
     switch (sw) {
       case 0: { //dst not ordered, dstMem == null
         sketchOut = new HeapCompactSketch(this);
@@ -126,8 +126,8 @@ public abstract class UpdateSketch extends Sketch {
    * @return
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
-  public UpdateReturnState update(long datum) {
-    long[] data = { datum };
+  public UpdateReturnState update(final long datum) {
+    final long[] data = { datum };
     return hashUpdate(hash(data, getSeed())[0] >>> 1);
   }
 
@@ -142,9 +142,9 @@ public abstract class UpdateSketch extends Sketch {
    * @return
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
-  public UpdateReturnState update(double datum) {
-    double d = (datum == 0.0) ? 0.0 : datum; // canonicalize -0.0, 0.0
-    long[] data = { Double.doubleToLongBits(d) };// canonicalize all NaN forms
+  public UpdateReturnState update(final double datum) {
+    final double d = (datum == 0.0) ? 0.0 : datum; // canonicalize -0.0, 0.0
+    final long[] data = { Double.doubleToLongBits(d) };// canonicalize all NaN forms
     return hashUpdate(hash(data, getSeed())[0] >>> 1);
   }
 
@@ -161,11 +161,11 @@ public abstract class UpdateSketch extends Sketch {
    * @return
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
-  public UpdateReturnState update(String datum) {
+  public UpdateReturnState update(final String datum) {
     if (datum == null || datum.isEmpty()) {
       return RejectedNullOrEmpty;
     }
-    byte[] data = datum.getBytes(UTF_8);
+    final byte[] data = datum.getBytes(UTF_8);
     return hashUpdate(hash(data, getSeed())[0] >>> 1);
   }
 
@@ -177,7 +177,7 @@ public abstract class UpdateSketch extends Sketch {
    * @return
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
-  public UpdateReturnState update(byte[] data) {
+  public UpdateReturnState update(final byte[] data) {
     if ((data == null) || (data.length == 0)) {
       return RejectedNullOrEmpty;
     }
@@ -195,7 +195,7 @@ public abstract class UpdateSketch extends Sketch {
    * @return
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
-  public UpdateReturnState update(char[] data) {
+  public UpdateReturnState update(final char[] data) {
     if ((data == null) || (data.length == 0)) {
       return RejectedNullOrEmpty;
     }
@@ -210,7 +210,7 @@ public abstract class UpdateSketch extends Sketch {
    * @return
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
-  public UpdateReturnState update(int[] data) {
+  public UpdateReturnState update(final int[] data) {
     if ((data == null) || (data.length == 0)) {
       return RejectedNullOrEmpty;
     }
@@ -225,7 +225,7 @@ public abstract class UpdateSketch extends Sketch {
    * @return
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
-  public UpdateReturnState update(long[] data) {
+  public UpdateReturnState update(final long[] data) {
     if ((data == null) || (data.length == 0)) {
       return RejectedNullOrEmpty;
     }

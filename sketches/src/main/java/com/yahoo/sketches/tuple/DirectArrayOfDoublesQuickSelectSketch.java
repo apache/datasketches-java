@@ -129,7 +129,7 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
       int i = 0;
       for (int j = 0; j < getCurrentCapacity(); j++) {
         if (mem_.getLong(keyOffset) != 0) {
-          double[] array = new double[numValues_];
+          final double[] array = new double[numValues_];
           mem_.getDoubleArray(valuesOffset, array, 0, numValues_);
           values[i++] = array;
         }
@@ -166,7 +166,7 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
 
   @Override
   protected void incrementCount() {
-    int count = mem_.getInt(RETAINED_ENTRIES_INT);
+    final int count = mem_.getInt(RETAINED_ENTRIES_INT);
     if (count == 0) {
       mem_.setBits(FLAGS_BYTE, (byte) (1 << Flags.HAS_ENTRIES.ordinal()));
     }

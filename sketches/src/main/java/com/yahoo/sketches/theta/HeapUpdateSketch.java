@@ -32,7 +32,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   private final float p_;
   private final ResizeFactor rf_;
 
-  HeapUpdateSketch(int lgNomLongs, long seed, float p, ResizeFactor rf) {
+  HeapUpdateSketch(final int lgNomLongs, final long seed, final float p, final ResizeFactor rf) {
     lgNomLongs_ = Math.max(lgNomLongs, MIN_LG_NOM_LONGS);
     seed_ = seed;
     p_ = p;
@@ -78,15 +78,15 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     return Util.computeSeedHash(getSeed());
   }
 
-  byte[] toByteArray(int preLongs, byte family) {
+  byte[] toByteArray(final int preLongs, final byte family) {
     if (isDirty()) { rebuild(); }
-    int preBytes = preLongs << 3;
-    int dataBytes = getCurrentDataLongs(false) << 3;
-    byte[] byteArrOut = new byte[preBytes + dataBytes];
-    NativeMemory memOut = new NativeMemory(byteArrOut);
+    final int preBytes = preLongs << 3;
+    final int dataBytes = getCurrentDataLongs(false) << 3;
+    final byte[] byteArrOut = new byte[preBytes + dataBytes];
+    final NativeMemory memOut = new NativeMemory(byteArrOut);
 
     //preamble
-    byte byte0 = (byte) ((this.getLgResizeFactor() << 6) | preLongs);
+    final byte byte0 = (byte) ((this.getLgResizeFactor() << 6) | preLongs);
     memOut.putByte(PREAMBLE_LONGS_BYTE, byte0);
     memOut.putByte(SER_VER_BYTE, (byte) SER_VER);
     memOut.putByte(FAMILY_BYTE, family);
@@ -99,12 +99,12 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     memOut.putLong(THETA_LONG, this.getThetaLong());
 
     //Flags: BigEnd=0, ReadOnly=0, Empty=X, compact=0, ordered=0
-    byte flags = this.isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
+    final byte flags = this.isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
     memOut.putByte(FLAGS_BYTE, flags);
 
     //Data
-    int arrLongs = 1 << this.getLgArrLongs();
-    long[] cache = this.getCache();
+    final int arrLongs = 1 << this.getLgArrLongs();
+    final long[] cache = this.getCache();
     memOut.putLongArray(preBytes, cache, 0, arrLongs); //load byteArrOut
 
     return byteArrOut;

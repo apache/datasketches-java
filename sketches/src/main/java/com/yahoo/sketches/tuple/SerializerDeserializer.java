@@ -19,9 +19,9 @@ import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
 final class SerializerDeserializer {
-  static enum SketchType { QuickSelectSketch, CompactSketch, ArrayOfDoublesQuickSelectSketch, 
+  static enum SketchType { QuickSelectSketch, CompactSketch, ArrayOfDoublesQuickSelectSketch,
     ArrayOfDoublesCompactSketch }
-  
+
   static final int TYPE_BYTE_OFFSET = 3;
 
   private static final Map<String, Method> deserializeMethodCache = new HashMap<String, Method>();
@@ -40,9 +40,9 @@ final class SerializerDeserializer {
   }
 
   static void validateType(final byte sketchTypeByte, final SketchType expectedType) {
-    SketchType sketchType = getSketchType(sketchTypeByte);
+    final SketchType sketchType = getSketchType(sketchTypeByte);
     if (!sketchType.equals(expectedType)) {
-      throw new SketchesArgumentException("Sketch Type mismatch. Expected " + expectedType.name() 
+      throw new SketchesArgumentException("Sketch Type mismatch. Expected " + expectedType.name()
         + ", got " + sketchType.name());
     }
   }
@@ -55,7 +55,7 @@ final class SerializerDeserializer {
   static byte[] toByteArray(final Object object) {
     try {
       final String className = object.getClass().getName();
-      final byte[] objectBytes = 
+      final byte[] objectBytes =
           ((byte[]) object.getClass().getMethod("toByteArray", (Class<?>[])null).invoke(object));
       final byte[] bytes = new byte[1 + className.length() + objectBytes.length];
       final Memory mem = new NativeMemory(bytes);
@@ -65,7 +65,7 @@ final class SerializerDeserializer {
       offset += className.length();
       mem.putByteArray(offset, objectBytes, 0, objectBytes.length);
       return bytes;
-    } catch (NoSuchMethodException | SecurityException | IllegalAccessException 
+    } catch (final NoSuchMethodException | SecurityException | IllegalAccessException
         | SketchesArgumentException | InvocationTargetException e) {
       throw new SketchesArgumentException("Failed to serialize given object: " + e);
     }
@@ -76,13 +76,13 @@ final class SerializerDeserializer {
     final byte[] classNameBuffer = new byte[classNameLength];
     mem.getByteArray(offset + 1, classNameBuffer, 0, classNameLength);
     final String className = new String(classNameBuffer, UTF_8);
-    final DeserializeResult<T> result = 
+    final DeserializeResult<T> result =
         deserializeFromMemory(mem, offset + classNameLength + 1, className);
     return new DeserializeResult<T>(result.getObject(), result.getSize() + classNameLength + 1);
   }
 
   @SuppressWarnings("unchecked")
-  static <T> DeserializeResult<T> 
+  static <T> DeserializeResult<T>
       deserializeFromMemory(final Memory mem, final int offset, final String className) {
     try {
       Method method = deserializeMethodCache.get(className);
@@ -90,9 +90,9 @@ final class SerializerDeserializer {
           method = Class.forName(className).getMethod("fromMemory", Memory.class);
           deserializeMethodCache.put(className, method);
       }
-      return (DeserializeResult<T>) 
+      return (DeserializeResult<T>)
           method.invoke(null, new MemoryRegion(mem, offset, mem.getCapacity() - offset));
-    } catch (IllegalAccessException | SketchesArgumentException | InvocationTargetException 
+    } catch (final IllegalAccessException | SketchesArgumentException | InvocationTargetException
         | NoSuchMethodException | SecurityException | ClassNotFoundException e) {
       throw new SketchesArgumentException("Failed to deserialize class " + className + " " + e);
     }

@@ -57,7 +57,7 @@ public abstract class Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the lower bound.
    */
-  public double getLowerBound(int numStdDev) {
+  public double getLowerBound(final int numStdDev) {
     return (isEstimationMode())
         ? lowerBound(getRetainedEntries(true), getThetaLong(), numStdDev, isEmpty())
         : getRetainedEntries(true);
@@ -86,8 +86,8 @@ public abstract class Sketch {
    * @param theta the given theta as a double between zero and one.
    * @return the number of hash values less than the given theta.
    */
-  public int getCountLessThanTheta(double theta) {
-    long thetaLong = (long) (MAX_THETA_LONG_AS_DOUBLE * theta);
+  public int getCountLessThanTheta(final double theta) {
+    final long thetaLong = (long) (MAX_THETA_LONG_AS_DOUBLE * theta);
     return count(getCache(), thetaLong);
   }
 
@@ -99,7 +99,7 @@ public abstract class Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the upper bound.
    */
-  public double getUpperBound(int numStdDev) {
+  public double getUpperBound(final int numStdDev) {
     return (isEstimationMode())
         ? upperBound(getRetainedEntries(true), getThetaLong(), numStdDev, isEmpty())
         : getRetainedEntries(true);
@@ -154,24 +154,25 @@ public abstract class Sketch {
    * @param hexMode If true, hashes will be output in hex.
    * @return The result string, which can be very long.
    */
-  public String toString(boolean sketchSummary, boolean dataDetail, int width, boolean hexMode) {
-    StringBuilder sb = new StringBuilder();
+  public String toString(final boolean sketchSummary, final boolean dataDetail, final int width,
+      final boolean hexMode) {
+    final StringBuilder sb = new StringBuilder();
 
-    long[] cache = getCache();
+    final long[] cache = getCache();
     int nomLongs = 0;
     int arrLongs = cache.length;
     long seed = 0;
     float p = 0;
     int rf = 0;
     //int preLongs = getPreambleLongs();
-    boolean updateSketch = (this instanceof UpdateSketch);
+    final boolean updateSketch = (this instanceof UpdateSketch);
 
     //boolean direct = isDirect();
-    long thetaLong = this.getThetaLong();
-    int curCount = this.getRetainedEntries(true);
+    final long thetaLong = this.getThetaLong();
+    final int curCount = this.getRetainedEntries(true);
 
     if (updateSketch) {
-      UpdateSketch uis = (UpdateSketch)this;
+      final UpdateSketch uis = (UpdateSketch)this;
       nomLongs = 1 << uis.getLgNomLongs();
       seed = uis.getSeed();
       arrLongs = 1 << uis.getLgArrLongs();
@@ -180,11 +181,11 @@ public abstract class Sketch {
     }
 
     if (dataDetail) {
-      int w = (width > 0) ? width : 8; // default is 8 wide
+      final int w = (width > 0) ? width : 8; // default is 8 wide
       if (curCount > 0) {
         sb.append("### SKETCH DATA DETAIL");
         for (int i = 0, j = 0; i < arrLongs; i++ ) {
-          long h;
+          final long h;
           h = cache[i];
           if ((h <= 0) || (h >= thetaLong)) {
             continue;
@@ -205,10 +206,10 @@ public abstract class Sketch {
     }
 
     if (sketchSummary) {
-      double thetaDbl = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
-      String thetaHex = zeroPad(Long.toHexString(thetaLong), 16);
-      String thisSimpleName = this.getClass().getSimpleName();
-      int seedHash = this.getSeedHash() & 0XFFFF;
+      final double thetaDbl = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
+      final String thetaHex = zeroPad(Long.toHexString(thetaLong), 16);
+      final String thisSimpleName = this.getClass().getSimpleName();
+      final int seedHash = this.getSeedHash() & 0XFFFF;
 
       sb.append(LS);
       sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
@@ -252,7 +253,7 @@ public abstract class Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a Heap-based Sketch from the given Memory
    */
-  public static Sketch heapify(Memory srcMem) {
+  public static Sketch heapify(final Memory srcMem) {
     return heapify(srcMem, DEFAULT_UPDATE_SEED);
   }
 
@@ -266,11 +267,11 @@ public abstract class Sketch {
    * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
    * @return a Heap-based Sketch from the given Memory
    */
-  public static Sketch heapify(Memory srcMem, long seed) {
-    int serVer = srcMem.getByte(SER_VER_BYTE);
+  public static Sketch heapify(final Memory srcMem, final long seed) {
+    final int serVer = srcMem.getByte(SER_VER_BYTE);
     if (serVer == 3) {
-      byte famID = srcMem.getByte(FAMILY_BYTE);
-      boolean ordered = srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) ORDERED_FLAG_MASK);
+      final byte famID = srcMem.getByte(FAMILY_BYTE);
+      final boolean ordered = srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) ORDERED_FLAG_MASK);
       return constructHeapSketch(famID, ordered, srcMem, seed);
     }
     if (serVer == 1) {
@@ -291,7 +292,7 @@ public abstract class Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a Sketch backed by the given Memory
    */
-  public static Sketch wrap(Memory srcMem) {
+  public static Sketch wrap(final Memory srcMem) {
     return wrap(srcMem, DEFAULT_UPDATE_SEED);
   }
 
@@ -307,12 +308,12 @@ public abstract class Sketch {
    * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
    * @return a UpdateSketch backed by the given Memory
    */
-  public static Sketch wrap(Memory srcMem, long seed) {
-    long pre0 = srcMem.getLong(0);
-    int preLongs = extractPreLongs(pre0);
-    int serVer = extractSerVer(pre0);
-    int famID = extractFamilyID(pre0);
-    Family family = Family.idToFamily(famID);
+  public static Sketch wrap(final Memory srcMem, final long seed) {
+    final long pre0 = srcMem.getLong(0);
+    final int preLongs = extractPreLongs(pre0);
+    final int serVer = extractSerVer(pre0);
+    final int famID = extractFamilyID(pre0);
+    final Family family = Family.idToFamily(famID);
     switch (family) {
       case QUICKSELECT: { //Hash Table structure
         if ((serVer == 3) && (preLongs == 3)) {
@@ -329,9 +330,9 @@ public abstract class Sketch {
         else if (serVer == 2) {
           return ForwardCompatibility.heapify2to3(srcMem, seed);
         }
-        int flags = extractFlags(pre0);
-        boolean compact = (flags & (byte)COMPACT_FLAG_MASK) > 0;
-        boolean ordered = (flags & (byte)ORDERED_FLAG_MASK) > 0;
+        final int flags = extractFlags(pre0);
+        final boolean compact = (flags & (byte)COMPACT_FLAG_MASK) > 0;
+        final boolean ordered = (flags & (byte)ORDERED_FLAG_MASK) > 0;
         if (compact) {
             return ordered ? DirectCompactOrderedSketch.wrapInstance(srcMem, pre0, seed)
                            : DirectCompactSketch.wrapInstance(srcMem, pre0, seed);
@@ -352,9 +353,9 @@ public abstract class Sketch {
    * If this sketch is already in compact form this parameter is ignored.
    * @return the number of storage bytes required for this sketch
    */
-  public int getCurrentBytes(boolean compact) {
-    int preBytes = getCurrentPreambleLongs(compact) << 3;
-    int dataBytes = getCurrentDataLongs(compact) << 3;
+  public int getCurrentBytes(final boolean compact) {
+    final int preBytes = getCurrentPreambleLongs(compact) << 3;
+    final int dataBytes = getCurrentDataLongs(compact) << 3;
     return preBytes + dataBytes;
   }
 
@@ -365,7 +366,7 @@ public abstract class Sketch {
    * @return the maximum number of storage bytes required for a CompactSketch with the given number
    * of entries.
    */
-  public static int getMaxCompactSketchBytes(int numberOfEntries) {
+  public static int getMaxCompactSketchBytes(final int numberOfEntries) {
     return (numberOfEntries << 3) + (Family.COMPACT.getMaxPreLongs() << 3);
   }
 
@@ -377,8 +378,8 @@ public abstract class Sketch {
    * @return the maximum number of storage bytes required for a UpdateSketch with the given
    * nomEntries
    */
-  public static int getMaxUpdateSketchBytes(int nomEntries) {
-    int nomEnt = ceilingPowerOf2(nomEntries);
+  public static int getMaxUpdateSketchBytes(final int nomEntries) {
+    final int nomEnt = ceilingPowerOf2(nomEntries);
     return (nomEnt << 4) + (Family.QUICKSELECT.getMaxPreLongs() << 3);
   }
 
@@ -387,7 +388,7 @@ public abstract class Sketch {
    * @param mem the sketch Memory
    * @return the serialization version from the Memory
    */
-  public static int getSerializationVersion(Memory mem) {
+  public static int getSerializationVersion(final Memory mem) {
     return mem.getByte(SER_VER_BYTE);
   }
 
@@ -411,8 +412,8 @@ public abstract class Sketch {
 
   //Restricted methods
 
-  final int getCurrentDataLongs(boolean compact) {
-    int longs;
+  final int getCurrentDataLongs(final boolean compact) {
+    final int longs;
     if ((this instanceof CompactSketch) || compact) {
       longs = getRetainedEntries(true);
     }
@@ -422,11 +423,11 @@ public abstract class Sketch {
     return longs;
   }
 
-  final int getCurrentPreambleLongs(boolean compact) {
+  final int getCurrentPreambleLongs(final boolean compact) {
     return compact ? compactPreambleLongs(getThetaLong(), isEmpty()) : getPreambleLongs();
   }
 
-  final static int compactPreambleLongs(long thetaLong, boolean empty) {
+  final static int compactPreambleLongs(final long thetaLong, final boolean empty) {
     return (thetaLong < Long.MAX_VALUE) ? 3 : empty ? 1 : 2;
   }
 
@@ -466,31 +467,33 @@ public abstract class Sketch {
    * @param id the given Family id
    * @return true if given Family id is one of the theta sketches
    */
-  static boolean isValidSketchID(int id) {
+  static boolean isValidSketchID(final int id) {
   return (id == Family.ALPHA.getID())
       || (id == Family.QUICKSELECT.getID())
       || (id == Family.COMPACT.getID());
   }
 
-  static final boolean estMode(long thetaLong, boolean empty) {
+  static final boolean estMode(final long thetaLong, final boolean empty) {
     return (thetaLong < Long.MAX_VALUE) && !empty;
   }
 
-  static final double estimate(long thetaLong, int curCount, boolean empty) {
+  static final double estimate(final long thetaLong, final int curCount, final boolean empty) {
     if (estMode(thetaLong, empty)) {
-      double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
+      final double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
       return curCount / theta;
     }
     return curCount;
   }
 
-  static final double lowerBound(int curCount, long thetaLong, int numStdDev, boolean empty) {
-    double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
+  static final double lowerBound(final int curCount, final long thetaLong, final int numStdDev,
+      final boolean empty) {
+    final double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
     return BinomialBoundsN.getLowerBound(curCount, theta, numStdDev, empty);
   }
 
-  static final double upperBound(int curCount, long thetaLong, int numStdDev, boolean empty) {
-    double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
+  static final double upperBound(final int curCount, final long thetaLong, final int numStdDev,
+      final boolean empty) {
+    final double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
     return BinomialBoundsN.getUpperBound(curCount, theta, numStdDev, empty);
   }
 
@@ -503,10 +506,10 @@ public abstract class Sketch {
    * The seed required to instantiate a non-compact sketch.
    * @return a Sketch
    */
-  private static final Sketch constructHeapSketch(byte famID, boolean ordered, Memory srcMem,
-      long seed) {
-    boolean compact = srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
-    Family family = idToFamily(famID);
+  private static final Sketch constructHeapSketch(final byte famID, final boolean ordered,
+      final Memory srcMem, final long seed) {
+    final boolean compact = srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
+    final Family family = idToFamily(famID);
     switch (family) {
       case ALPHA: {
         if (compact) {

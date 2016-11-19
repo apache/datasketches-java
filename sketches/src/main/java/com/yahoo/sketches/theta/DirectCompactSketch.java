@@ -33,7 +33,8 @@ final class DirectCompactSketch extends CompactSketch {
   private Memory mem_;
   private int preLongs_; //1, 2, or 3
 
-  private DirectCompactSketch(boolean empty, short seedHash, int curCount, long thetaLong) {
+  private DirectCompactSketch(final boolean empty, final short seedHash, final int curCount,
+      final long thetaLong) {
     super(empty, seedHash, curCount, thetaLong);
   }
 
@@ -44,16 +45,16 @@ final class DirectCompactSketch extends CompactSketch {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return this sketch
    */
-  static DirectCompactSketch wrapInstance(Memory srcMem, long pre0, long seed) {
-    int preLongs = extractPreLongs(pre0);
-    int flags = extractFlags(pre0);
-    boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
-    short memSeedHash = (short) extractSeedHash(pre0);
-    short computedSeedHash = computeSeedHash(seed);
+  static DirectCompactSketch wrapInstance(final Memory srcMem, final long pre0, final long seed) {
+    final int preLongs = extractPreLongs(pre0);
+    final int flags = extractFlags(pre0);
+    final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
+    final short memSeedHash = (short) extractSeedHash(pre0);
+    final short computedSeedHash = computeSeedHash(seed);
     checkSeedHashes(memSeedHash, computedSeedHash);
-    int curCount = (preLongs > 1) ? srcMem.getInt(RETAINED_ENTRIES_INT) : 0;
-    long thetaLong = (preLongs > 2) ? srcMem.getLong(THETA_LONG) : Long.MAX_VALUE;
-    DirectCompactSketch dcs = new DirectCompactSketch(empty, memSeedHash, curCount, thetaLong);
+    final int curCount = (preLongs > 1) ? srcMem.getInt(RETAINED_ENTRIES_INT) : 0;
+    final long thetaLong = (preLongs > 2) ? srcMem.getLong(THETA_LONG) : Long.MAX_VALUE;
+    final DirectCompactSketch dcs = new DirectCompactSketch(empty, memSeedHash, curCount, thetaLong);
     dcs.preLongs_ = extractPreLongs(pre0);
     dcs.mem_ = srcMem;
     return dcs;
@@ -64,16 +65,16 @@ final class DirectCompactSketch extends CompactSketch {
    * @param sketch the given UpdateSketch
    * @param dstMem the given destination Memory.  This clears it before use.
    */
-  DirectCompactSketch(UpdateSketch sketch, Memory dstMem) {
+  DirectCompactSketch(final UpdateSketch sketch, final Memory dstMem) {
     super(sketch.isEmpty(),
         sketch.getSeedHash(),
         sketch.getRetainedEntries(true), //curCount_  set here
         sketch.getThetaLong()            //thetaLong_ set here
         );
-    int emptyBit = isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
-    byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK);
-    boolean ordered = false;
-    long[] compactCache =
+    final int emptyBit = isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
+    final byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK);
+    final boolean ordered = false;
+    final long[] compactCache =
         CompactSketch.compactCache(sketch.getCache(), getRetainedEntries(false), getThetaLong(), ordered);
     mem_ = loadCompactMemory(compactCache, isEmpty(), getSeedHash(), getRetainedEntries(false),
         getThetaLong(), dstMem, flags);
@@ -88,11 +89,11 @@ final class DirectCompactSketch extends CompactSketch {
    * @param thetaLong The correct <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
    * @param dstMem the destination Memory. This clears it before use.
    */
-  DirectCompactSketch(long[] compactCache, boolean empty, short seedHash, int curCount,
-      long thetaLong, Memory dstMem) {
+  DirectCompactSketch(final long[] compactCache, final boolean empty, final short seedHash,
+      final int curCount, final long thetaLong, final Memory dstMem) {
     super(empty, seedHash, curCount, thetaLong);
-    int emptyBit = empty ? (byte) EMPTY_FLAG_MASK : 0;
-    byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK);
+    final int emptyBit = empty ? (byte) EMPTY_FLAG_MASK : 0;
+    final byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK);
     mem_ = loadCompactMemory(compactCache, empty, seedHash, curCount, thetaLong, dstMem, flags);
   }
 
@@ -114,7 +115,7 @@ final class DirectCompactSketch extends CompactSketch {
 
   @Override
   long[] getCache() {
-    long[] cache = new long[getRetainedEntries(false)];
+    final long[] cache = new long[getRetainedEntries(false)];
     mem_.getLongArray(preLongs_ << 3, cache, 0, getRetainedEntries(false));
     return cache;
   }
@@ -135,10 +136,10 @@ final class DirectCompactSketch extends CompactSketch {
    * @param curCount the current valid count
    * @return this Direct, Compact sketch as a byte array
    */
-  static byte[] compactMemoryToByteArray(final Memory srcMem, int curCount) {
-    int preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    int outBytes = (curCount << 3) + (preLongs << 3);
-    byte[] byteArrOut = new byte[outBytes];
+  static byte[] compactMemoryToByteArray(final Memory srcMem, final int curCount) {
+    final int preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+    final int outBytes = (curCount << 3) + (preLongs << 3);
+    final byte[] byteArrOut = new byte[outBytes];
     srcMem.getByteArray(0, byteArrOut, 0, outBytes);
     return byteArrOut;
   }

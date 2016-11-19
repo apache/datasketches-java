@@ -37,26 +37,26 @@ public final class AnotB<S extends Summary> {
   @SuppressWarnings("unchecked")
   public void update(final Sketch<S> a, final Sketch<S> b) {
     if (a != null) { isEmpty_ = a.isEmpty(); } //stays this way even if we end up with no result entries
-    long thetaA = a == null ? Long.MAX_VALUE : a.getThetaLong();
-    long thetaB = b == null ? Long.MAX_VALUE : b.getThetaLong();
+    final long thetaA = a == null ? Long.MAX_VALUE : a.getThetaLong();
+    final long thetaB = b == null ? Long.MAX_VALUE : b.getThetaLong();
     theta_ = Math.min(thetaA, thetaB);
     if (a == null || a.getRetainedEntries() == 0) { return; }
     if (b == null || b.getRetainedEntries() == 0) {
       getNoMatchSetFromSketch(a);
     } else {
-      long[] hashTable;
+      final long[] hashTable;
       if (b instanceof CompactSketch) {
         hashTable = convertToHashTable(b);
       } else {
         hashTable = b.keys_;
       }
-      int lgHashTableSize = Integer.numberOfTrailingZeros(hashTable.length);
-      int noMatchSize = a.getRetainedEntries();
+      final int lgHashTableSize = Integer.numberOfTrailingZeros(hashTable.length);
+      final int noMatchSize = a.getRetainedEntries();
       keys_ = new long[noMatchSize];
       summaries_ = (S[]) Array.newInstance(a.summaries_.getClass().getComponentType(), noMatchSize);
       for (int i = 0; i < a.keys_.length; i++) {
         if (a.keys_[i] != 0) {
-          int index = HashOperations.hashSearch(hashTable, lgHashTableSize, a.keys_[i]);
+          final int index = HashOperations.hashSearch(hashTable, lgHashTableSize, a.keys_[i]);
           if (index == -1) {
             keys_[count_] = a.keys_[i];
             summaries_[count_] = a.summaries_[i];
@@ -75,7 +75,7 @@ public final class AnotB<S extends Summary> {
     if (count_ == 0) {
       return new CompactSketch<S>(null, null, theta_, isEmpty_);
     }
-    CompactSketch<S> result =
+    final CompactSketch<S> result =
         new CompactSketch<S>(Arrays.copyOfRange(keys_, 0, count_),
             Arrays.copyOfRange(summaries_, 0, count_), theta_, isEmpty_);
     reset();
@@ -83,11 +83,11 @@ public final class AnotB<S extends Summary> {
   }
 
   private long[] convertToHashTable(final Sketch<S> sketch) {
-    int size = Math.max(
+    final int size = Math.max(
       ceilingPowerOf2((int) Math.ceil(sketch.getRetainedEntries() / REBUILD_THRESHOLD)),
       1 << MIN_LG_NOM_LONGS
     );
-    long[] hashTable = new long[size];
+    final long[] hashTable = new long[size];
     HashOperations.hashArrayInsert(
         sketch.keys_, hashTable, Integer.numberOfTrailingZeros(size), theta_);
     return hashTable;
@@ -106,7 +106,7 @@ public final class AnotB<S extends Summary> {
       keys_ = sketch.keys_.clone();
       summaries_ = sketch.summaries_.clone();
     } else { // assuming only two types: CompactSketch and QuickSelectSketch
-      CompactSketch<S> compact = ((QuickSelectSketch<S>)sketch).compact();
+      final CompactSketch<S> compact = ((QuickSelectSketch<S>)sketch).compact();
       keys_ = compact.keys_;
       summaries_ = compact.summaries_;
     }

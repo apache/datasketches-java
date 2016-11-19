@@ -36,7 +36,7 @@ public abstract class ArrayOfDoublesUnion {
     Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
     if (sketchIn.isEmpty()) { return; }
     if (sketchIn.getThetaLong() < theta_) { theta_ = sketchIn.getThetaLong(); }
-    ArrayOfDoublesSketchIterator it = sketchIn.iterator();
+    final ArrayOfDoublesSketchIterator it = sketchIn.iterator();
     while (it.next()) {
       sketch_.merge(it.getKey(), it.getValues());
     }

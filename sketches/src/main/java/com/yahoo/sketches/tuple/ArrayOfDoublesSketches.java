@@ -30,7 +30,7 @@ public final class ArrayOfDoublesSketches {
    * @return an ArrayOfDoublesSketch
    */
   public static ArrayOfDoublesSketch heapifySketch(final Memory mem, final long seed) {
-    SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(mem);
+    final SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(mem);
     if (sketchType == SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch) {
       return new HeapArrayOfDoublesQuickSelectSketch(mem, seed);
     }
@@ -53,7 +53,7 @@ public final class ArrayOfDoublesSketches {
    * @return an ArrayOfDoublesSketch
    */
   public static ArrayOfDoublesSketch wrapSketch(final Memory mem, final long seed) {
-    SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(mem);
+    final SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(mem);
     if (sketchType == SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch) {
       return new DirectArrayOfDoublesQuickSelectSketch(mem, seed);
     }

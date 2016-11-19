@@ -41,7 +41,7 @@ public abstract class ArrayOfDoublesIntersection {
    * @param combiner Method of combining two arrays of double values
    */
   public void update(final ArrayOfDoublesSketch sketchIn, final ArrayOfDoublesCombiner combiner) {
-    boolean isFirstCall = isFirstCall_;
+    final boolean isFirstCall = isFirstCall_;
     isFirstCall_ = false;
     if (sketchIn == null) {
       isEmpty_ = true;
@@ -57,18 +57,18 @@ public abstract class ArrayOfDoublesIntersection {
     }
     if (isFirstCall) {
       sketch_ = createSketch(sketchIn.getRetainedEntries(), numValues_, seed_);
-      ArrayOfDoublesSketchIterator it = sketchIn.iterator();
+      final ArrayOfDoublesSketchIterator it = sketchIn.iterator();
       while (it.next()) {
         sketch_.insert(it.getKey(), it.getValues());
       }
     } else { //not the first call
-      int matchSize = min(sketch_.getRetainedEntries(), sketchIn.getRetainedEntries());
-      long[] matchKeys = new long[matchSize];
-      double[][] matchValues = new double[matchSize][];
+      final int matchSize = min(sketch_.getRetainedEntries(), sketchIn.getRetainedEntries());
+      final long[] matchKeys = new long[matchSize];
+      final double[][] matchValues = new double[matchSize][];
       int matchCount = 0;
-      ArrayOfDoublesSketchIterator it = sketchIn.iterator();
+      final ArrayOfDoublesSketchIterator it = sketchIn.iterator();
       while (it.next()) {
-        double[] values = sketch_.find(it.getKey());
+        final double[] values = sketch_.find(it.getKey());
         if (values != null) {
           matchKeys[matchCount] = it.getKey();
           matchValues[matchCount] = combiner.combine(values, it.getValues());

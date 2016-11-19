@@ -28,22 +28,22 @@ public class PairwiseSetOperations {
    * @param skB The second ordered, CompactSketch argument that must not be null.
    * @return the result as a Heap-based, ordered CompactSketch.
    */
-  public static CompactSketch intersect(CompactSketch skA, CompactSketch skB) {
+  public static CompactSketch intersect(final CompactSketch skA, final CompactSketch skB) {
     final short seedHash = checkOrderedAndSeedHash(skA, skB);
 
-    long thetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong()); //Theta rule
+    final long thetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong()); //Theta rule
     int indexA = 0;
     int indexB = 0;
     int outCount = 0;
 
-    long[] cacheA = skA.getCache();
-    long[] cacheB = skB.getCache();
+    final long[] cacheA = skA.getCache();
+    final long[] cacheB = skB.getCache();
 
-    long[] outCache = new long[Math.min(cacheA.length, cacheB.length)];
+    final long[] outCache = new long[Math.min(cacheA.length, cacheB.length)];
 
     while ((indexA < cacheA.length) && (indexB < cacheB.length)) {
-      long hashA = cacheA[indexA];
-      long hashB = cacheB[indexB];
+      final long hashA = cacheA[indexA];
+      final long hashB = cacheB[indexB];
 
       if (hashA >= thetaLong || hashB >= thetaLong) {
         break;
@@ -60,7 +60,7 @@ public class PairwiseSetOperations {
       }
     }
 
-    boolean empty = skA.isEmpty() || skB.isEmpty(); //Empty rule is OR
+    final boolean empty = skA.isEmpty() || skB.isEmpty(); //Empty rule is OR
 
     return new HeapCompactOrderedSketch(
         Arrays.copyOf(outCache, outCount), empty, seedHash, outCount, thetaLong);
@@ -74,22 +74,22 @@ public class PairwiseSetOperations {
    * @param skB The second ordered, CompactSketch argument that must not be null.
    * @return the result as a Heap-based, ordered CompactSketch.
    */
-  public static CompactSketch aNotB(CompactSketch skA, CompactSketch skB) {
+  public static CompactSketch aNotB(final CompactSketch skA, final CompactSketch skB) {
     final short seedHash = checkOrderedAndSeedHash(skA, skB);
 
-    long thetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong()); //Theta rule
+    final long thetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong()); //Theta rule
     int indexA = 0;
     int indexB = 0;
     int outCount = 0;
 
-    long[] cacheA = skA.getCache();
-    long[] cacheB = skB.getCache();
+    final long[] cacheA = skA.getCache();
+    final long[] cacheB = skB.getCache();
 
-    long[] outCache = new long[cacheA.length];
+    final long[] outCache = new long[cacheA.length];
 
     while (indexA < cacheA.length) {
-      long hashA = cacheA[indexA];
-      long hashB = (indexB >= cacheB.length) ? thetaLong : cacheB[indexB];
+      final long hashA = cacheA[indexA];
+      final long hashB = (indexB >= cacheB.length) ? thetaLong : cacheB[indexB];
 
       if (hashA >= thetaLong) {
         break;
@@ -106,7 +106,7 @@ public class PairwiseSetOperations {
       }
     }
 
-    boolean empty = skA.isEmpty(); //Empty rule is whatever A is
+    final boolean empty = skA.isEmpty(); //Empty rule is whatever A is
 
     return new HeapCompactOrderedSketch(
         Arrays.copyOf(outCache, outCount), empty, seedHash, outCount, thetaLong);
@@ -120,22 +120,22 @@ public class PairwiseSetOperations {
    * @param skB The second ordered, CompactSketch argument that must not be null.
    * @return the result as a Heap-based, ordered CompactSketch.
    */
-  public static CompactSketch union(CompactSketch skA, CompactSketch skB) {
+  public static CompactSketch union(final CompactSketch skA, final CompactSketch skB) {
     final short seedHash = checkOrderedAndSeedHash(skA, skB);
 
-    long thetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong()); //Theta rule
+    final long thetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong()); //Theta rule
     int indexA = 0;
     int indexB = 0;
     int outCount = 0;
 
-    long[] cacheA = skA.getCache();
-    long[] cacheB = skB.getCache();
+    final long[] cacheA = skA.getCache();
+    final long[] cacheB = skB.getCache();
 
-    long[] outCache = new long[cacheA.length + cacheB.length];
+    final long[] outCache = new long[cacheA.length + cacheB.length];
 
     while ((indexA < cacheA.length) || (indexB < cacheB.length)) {
-      long hashA = (indexA >= cacheA.length) ? thetaLong : cacheA[indexA];
-      long hashB = (indexB >= cacheB.length) ? thetaLong : cacheB[indexB];
+      final long hashA = (indexA >= cacheA.length) ? thetaLong : cacheA[indexA];
+      final long hashB = (indexB >= cacheB.length) ? thetaLong : cacheB[indexB];
 
       if (hashA >= thetaLong && hashB >= thetaLong) {
         break;
@@ -154,7 +154,7 @@ public class PairwiseSetOperations {
       }
     }
 
-    boolean empty = skA.isEmpty() && skB.isEmpty(); //Empty rule is AND
+    final boolean empty = skA.isEmpty() && skB.isEmpty(); //Empty rule is AND
 
     return new HeapCompactOrderedSketch(
         Arrays.copyOf(outCache, outCount), empty, seedHash, outCount, thetaLong);
@@ -166,8 +166,8 @@ public class PairwiseSetOperations {
       throw new SketchesArgumentException("Sketch must be ordered, got: "
           + skA.getClass().getSimpleName() + ", " + skB.getClass().getSimpleName());
     }
-    short seedHashA = skA.getSeedHash();
-    short seedHashB = skB.getSeedHash();
+    final short seedHashA = skA.getSeedHash();
+    final short seedHashB = skB.getSeedHash();
     Util.checkSeedHashes(seedHashA, seedHashB);
     return seedHashA;
   }

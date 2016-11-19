@@ -59,7 +59,7 @@ public class UpdateSketchBuilder {
    * This will become the ceiling power of 2 if it is not.
    * @return this UpdateSketchBuilder
    */
-  public UpdateSketchBuilder setNominalEntries(int nomEntries) {
+  public UpdateSketchBuilder setNominalEntries(final int nomEntries) {
     bLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
     return this;
   }
@@ -77,7 +77,7 @@ public class UpdateSketchBuilder {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return this UpdateSketchBuilder
    */
-  public UpdateSketchBuilder setSeed(long seed) {
+  public UpdateSketchBuilder setSeed(final long seed) {
     bSeed = seed;
     return this;
   }
@@ -95,7 +95,7 @@ public class UpdateSketchBuilder {
    * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
    * @return this UpdateSketchBuilder
    */
-  public UpdateSketchBuilder setP(float p) {
+  public UpdateSketchBuilder setP(final float p) {
     if ((p <= 0.0) || (p > 1.0)) {
       throw new SketchesArgumentException("p must be > 0 and <= 1.0: " + p);
     }
@@ -116,7 +116,7 @@ public class UpdateSketchBuilder {
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @return this UpdateSketchBuilder
    */
-  public UpdateSketchBuilder setResizeFactor(ResizeFactor rf) {
+  public UpdateSketchBuilder setResizeFactor(final ResizeFactor rf) {
     bRF = rf;
     return this;
   }
@@ -134,7 +134,7 @@ public class UpdateSketchBuilder {
    * @param family the family for this builder
    * @return this UpdateSketchBuilder
    */
-  public UpdateSketchBuilder setFamily(Family family) {
+  public UpdateSketchBuilder setFamily(final Family family) {
     this.bFam = family;
     return this;
   }
@@ -154,7 +154,7 @@ public class UpdateSketchBuilder {
    * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
    * @return this UpdateSketchBuilder
    */
-  public UpdateSketchBuilder initMemory(Memory dstMem) {
+  public UpdateSketchBuilder initMemory(final Memory dstMem) {
     bDstMem = dstMem;
     return this;
   }
@@ -208,14 +208,14 @@ public class UpdateSketchBuilder {
    * This will become the ceiling power of 2 if it is not.
    * @return an UpdateSketch
    */
-  public UpdateSketch build(int nomEntries) {
+  public UpdateSketch build(final int nomEntries) {
     bLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
     return build();
   }
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
     sb.append("UpdateSketchBuilder configuration:").append(LS)
       .append("LgK:").append(TAB).append(bLgNomLongs).append(LS)
       .append("K:").append(TAB).append(1 << bLgNomLongs).append(LS)

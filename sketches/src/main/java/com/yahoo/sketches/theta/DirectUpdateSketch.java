@@ -25,7 +25,7 @@ abstract class DirectUpdateSketch extends UpdateSketch {
   private final float p_;
   private final ResizeFactor rf_;
 
-  DirectUpdateSketch(int lgNomLongs, long seed, float p, ResizeFactor rf) {
+  DirectUpdateSketch(final int lgNomLongs, final long seed, final float p, final ResizeFactor rf) {
     lgNomLongs_ = Math.max(lgNomLongs, MIN_LG_NOM_LONGS);
     seed_ = seed;
     p_ = p;

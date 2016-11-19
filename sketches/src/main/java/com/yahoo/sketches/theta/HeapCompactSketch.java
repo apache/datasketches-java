@@ -28,8 +28,8 @@ import com.yahoo.memory.NativeMemory;
 final class HeapCompactSketch extends CompactSketch {
   private final long[] cache_;
 
-  private HeapCompactSketch(boolean empty, short seedHash, int curCount, long thetaLong,
-      long[] cache) {
+  private HeapCompactSketch(final boolean empty, final short seedHash, final int curCount,
+      final long thetaLong, final long[] cache) {
     super(empty, seedHash, curCount, thetaLong);
     cache_ = cache;
   }
@@ -40,21 +40,21 @@ final class HeapCompactSketch extends CompactSketch {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return this sketch
    */
-  static HeapCompactSketch heapifyInstance(Memory srcMem, long seed) {
-    long pre0 = srcMem.getLong(PREAMBLE_LONGS_BYTE);
-    int preLongs = extractPreLongs(pre0);
-    int flags = extractFlags(pre0);
-    boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
-    short memSeedHash = (short) extractSeedHash(pre0);
-    short computedSeedHash = computeSeedHash(seed);
+  static HeapCompactSketch heapifyInstance(final Memory srcMem, final long seed) {
+    final long pre0 = srcMem.getLong(PREAMBLE_LONGS_BYTE);
+    final int preLongs = extractPreLongs(pre0);
+    final int flags = extractFlags(pre0);
+    final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
+    final short memSeedHash = (short) extractSeedHash(pre0);
+    final short computedSeedHash = computeSeedHash(seed);
     checkSeedHashes(memSeedHash, computedSeedHash);
-    int curCount = (preLongs > 1) ? srcMem.getInt(RETAINED_ENTRIES_INT) : 0;
-    long thetaLong = (preLongs > 2) ? srcMem.getLong(THETA_LONG) : Long.MAX_VALUE;
-    long[] cacheArr = new long[curCount];
+    final int curCount = (preLongs > 1) ? srcMem.getInt(RETAINED_ENTRIES_INT) : 0;
+    final long thetaLong = (preLongs > 2) ? srcMem.getLong(THETA_LONG) : Long.MAX_VALUE;
+    final long[] cacheArr = new long[curCount];
     if (curCount > 0) {
       srcMem.getLongArray(preLongs << 3, cacheArr, 0, curCount);
     }
-    HeapCompactSketch hcs =
+    final HeapCompactSketch hcs =
         new HeapCompactSketch(empty, memSeedHash, curCount, thetaLong, cacheArr);
     return hcs;
   }
@@ -63,13 +63,13 @@ final class HeapCompactSketch extends CompactSketch {
    * Converts the given UpdateSketch to this compact form.
    * @param sketch the given UpdateSketch
    */
-  HeapCompactSketch(UpdateSketch sketch) {
+  HeapCompactSketch(final UpdateSketch sketch) {
     super(sketch.isEmpty(),
         sketch.getSeedHash(),
         sketch.getRetainedEntries(true), //curCount_  set here
         sketch.getThetaLong()            //thetaLong_ set here
         );
-    boolean ordered = false;
+    final boolean ordered = false;
     cache_ = CompactSketch.compactCache(sketch.getCache(), getRetainedEntries(false),
         getThetaLong(), ordered);
   }
@@ -84,8 +84,8 @@ final class HeapCompactSketch extends CompactSketch {
    * @param thetaLong The correct
    * <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
    */
-  HeapCompactSketch(long[] compactCache, boolean empty, short seedHash, int curCount,
-      long thetaLong) {
+  HeapCompactSketch(final long[] compactCache, final boolean empty, final short seedHash,
+      final int curCount, final long thetaLong) {
     super(empty, seedHash, curCount, thetaLong);
     assert compactCache != null;
     cache_ = (curCount == 0) ? new long[0] : compactCache;
@@ -95,11 +95,11 @@ final class HeapCompactSketch extends CompactSketch {
 
   @Override
   public byte[] toByteArray() {
-    int bytes = getCurrentBytes(true);
-    byte[] byteArray = new byte[bytes];
-    Memory dstMem = new NativeMemory(byteArray);
-    int emptyBit = isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
-    byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK);
+    final int bytes = getCurrentBytes(true);
+    final byte[] byteArray = new byte[bytes];
+    final Memory dstMem = new NativeMemory(byteArray);
+    final int emptyBit = isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
+    final byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK);
     loadCompactMemory(getCache(), isEmpty(), getSeedHash(), getRetainedEntries(true),
         getThetaLong(), dstMem, flags);
     return byteArray;

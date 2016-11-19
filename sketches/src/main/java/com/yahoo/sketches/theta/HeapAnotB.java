@@ -37,12 +37,12 @@ final class HeapAnotB extends SetOperation implements AnotB {
    *
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
-  HeapAnotB(long seed) {
+  HeapAnotB(final long seed) {
     seedHash_ = computeSeedHash(seed);
   }
 
   @Override
-  public void update(Sketch a, Sketch b) {
+  public void update(final Sketch a, final Sketch b) {
     a_ = a;
     b_ = b;
     thetaLong_ = Long.MAX_VALUE;
@@ -55,14 +55,16 @@ final class HeapAnotB extends SetOperation implements AnotB {
   }
 
   @Override
-  public CompactSketch getResult(boolean dstOrdered, Memory dstMem) {
-    long[] compactCache = (curCount_ <= 0) ? new long[0] : Arrays.copyOfRange(cache_, 0, curCount_);
+  public CompactSketch getResult(final boolean dstOrdered, final Memory dstMem) {
+    final long[] compactCache = (curCount_ <= 0)
+        ? new long[0]
+        : Arrays.copyOfRange(cache_, 0, curCount_);
     if (dstOrdered && (curCount_ > 1)) {
       Arrays.sort(compactCache);
     }
     //Create the CompactSketch
-    CompactSketch comp = CompactSketch.createCompactSketch(compactCache, empty_, seedHash_, curCount_,
-        thetaLong_, dstOrdered, dstMem);
+    final CompactSketch comp = CompactSketch.createCompactSketch(compactCache, empty_, seedHash_,
+        curCount_, thetaLong_, dstOrdered, dstMem);
     reset();
     return comp;
   }
@@ -80,11 +82,11 @@ final class HeapAnotB extends SetOperation implements AnotB {
   //restricted
 
   void compute() {
-    int swA = (a_ == null) ? 0 : (a_.isEmpty())
+    final int swA = (a_ == null) ? 0 : (a_.isEmpty())
         ? 1 : (a_ instanceof UpdateSketch) ? 4 : (a_.isOrdered()) ? 3 : 2;
-    int swB = (b_ == null) ? 0 : (b_.isEmpty()) ? 1 : (b_ instanceof UpdateSketch)
+    final int swB = (b_ == null) ? 0 : (b_.isEmpty()) ? 1 : (b_ instanceof UpdateSketch)
         ? 4 : (b_.isOrdered()) ? 3 : 2;
-    int sw = (swA * 8) | swB;
+    final int sw = (swA * 8) | swB;
 
     //  NOTES:
     //    In the table below, A and B refer to the two input sketches in the order A-not-B.
@@ -235,7 +237,7 @@ final class HeapAnotB extends SetOperation implements AnotB {
   }
 
   private void convertBtoHT() {
-    int curCountB = b_.getRetainedEntries(true);
+    final int curCountB = b_.getRetainedEntries(true);
     lgArrLongsHT_ = computeMinLgArrLongsFromCount(curCountB);
     bHashTable_ = new long[1 << lgArrLongsHT_];
     hashArrayInsert(b_.getCache(), bHashTable_, lgArrLongsHT_, thetaLong_);
@@ -243,13 +245,13 @@ final class HeapAnotB extends SetOperation implements AnotB {
 
   //Sketch A is either unordered compact or hash table
   private void scanAllAsearchB() {
-    long[] scanAArr = a_.getCache();
-    int arrLongsIn = scanAArr.length;
+    final long[] scanAArr = a_.getCache();
+    final int arrLongsIn = scanAArr.length;
     cache_ = new long[arrLongsIn];
     for (int i = 0; i < arrLongsIn; i++ ) {
-      long hashIn = scanAArr[i];
+      final long hashIn = scanAArr[i];
       if ((hashIn <= 0L) || (hashIn >= thetaLong_)) { continue; }
-      int foundIdx = hashSearch(bHashTable_, lgArrLongsHT_, hashIn);
+      final int foundIdx = hashSearch(bHashTable_, lgArrLongsHT_, hashIn);
       if (foundIdx > -1) { continue; }
       cache_[curCount_++] = hashIn;
     }
@@ -257,16 +259,16 @@ final class HeapAnotB extends SetOperation implements AnotB {
 
   //Sketch A is ordered compact, which enables early stop
   private void scanEarlyStopAsearchB() {
-    long[] scanAArr = a_.getCache();
-    int arrLongsIn = scanAArr.length;
+    final long[] scanAArr = a_.getCache();
+    final int arrLongsIn = scanAArr.length;
     cache_ = new long[arrLongsIn]; //maybe 2x what is needed, but getRetainedEntries can be slow.
     for (int i = 0; i < arrLongsIn; i++ ) {
-      long hashIn = scanAArr[i];
+      final long hashIn = scanAArr[i];
       if (hashIn <= 0L) { continue; }
       if (hashIn >= thetaLong_) {
         break; //early stop assumes that hashes in input sketch are ordered!
       }
-      int foundIdx = hashSearch(bHashTable_, lgArrLongsHT_, hashIn);
+      final int foundIdx = hashSearch(bHashTable_, lgArrLongsHT_, hashIn);
       if (foundIdx > -1) { continue; }
       cache_[curCount_++] = hashIn;
     }

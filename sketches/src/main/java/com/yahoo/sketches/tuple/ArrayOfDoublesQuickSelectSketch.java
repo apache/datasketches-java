@@ -99,7 +99,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   void merge(final long key, final double[] values) {
     setNotEmpty();
     if (key < theta_) {
-      int index = findOrInsertKey(key);
+      final int index = findOrInsertKey(key);
       if (index < 0) {
         incrementCount();
         setValues(~index, values);
@@ -125,7 +125,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   }
 
   void insert(final long key, final double[] values) {
-    int index = insertKey(key);
+    final int index = insertKey(key);
     setValues(index, values);
     incrementCount();
   }
@@ -146,7 +146,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
     }
     setNotEmpty();
     if (key == 0 || key >= theta_) { return; }
-    int index = findOrInsertKey(key);
+    final int index = findOrInsertKey(key);
     if (index < 0) {
       incrementCount();
       setValues(~index, values);
@@ -157,10 +157,10 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   }
 
   void updateTheta() {
-    long[] keys = new long[getRetainedEntries()];
+    final long[] keys = new long[getRetainedEntries()];
     int i = 0;
     for (int j = 0; j < getCurrentCapacity(); j++) {
-      long key = getKey(j);
+      final long key = getKey(j);
       if (key != 0) { keys[i++] = key; }
     }
     setThetaLong(QuickSelect.select(keys, 0, getRetainedEntries() - 1, getNominalEntries()));

@@ -47,7 +47,7 @@ public abstract class SetOperation {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a Heap-based SetOperation from the given Memory
    */
-  public static SetOperation heapify(Memory srcMem) {
+  public static SetOperation heapify(final Memory srcMem) {
     return heapify(srcMem, DEFAULT_UPDATE_SEED);
   }
 
@@ -60,9 +60,9 @@ public abstract class SetOperation {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a Heap-based SetOperation from the given Memory
    */
-  public static SetOperation heapify(Memory srcMem, long seed) {
-    byte famID = srcMem.getByte(FAMILY_BYTE);
-    Family family = idToFamily(famID);
+  public static SetOperation heapify(final Memory srcMem, final long seed) {
+    final byte famID = srcMem.getByte(FAMILY_BYTE);
+    final Family family = idToFamily(famID);
     switch (family) {
       case UNION : {
         return UnionImpl.heapifyInstance(srcMem, seed);
@@ -87,7 +87,7 @@ public abstract class SetOperation {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a SetOperation backed by the given Memory
    */
-  public static SetOperation wrap(Memory srcMem) {
+  public static SetOperation wrap(final Memory srcMem) {
     return wrap(srcMem, DEFAULT_UPDATE_SEED);
   }
 
@@ -100,10 +100,10 @@ public abstract class SetOperation {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a SetOperation backed by the given Memory
    */
-  public static SetOperation wrap(Memory srcMem, long seed) {
-    byte famID = srcMem.getByte(FAMILY_BYTE);
-    Family family = idToFamily(famID);
-    int serVer = srcMem.getByte(SER_VER_BYTE);
+  public static SetOperation wrap(final Memory srcMem, final long seed) {
+    final byte famID = srcMem.getByte(FAMILY_BYTE);
+    final Family family = idToFamily(famID);
+    final int serVer = srcMem.getByte(SER_VER_BYTE);
     if (serVer != 3) {
       throw new SketchesArgumentException("SerVer must be 3: " + serVer);
     }
@@ -125,8 +125,8 @@ public abstract class SetOperation {
    * This will become the ceiling power of 2 if it is not.
    * @return the maximum required storage bytes given a nomEntries parameter
    */
-  public static int getMaxUnionBytes(int nomEntries) {
-    int nomEnt = ceilingPowerOf2(nomEntries);
+  public static int getMaxUnionBytes(final int nomEntries) {
+    final int nomEnt = ceilingPowerOf2(nomEntries);
     return (nomEnt << 4) + (Family.UNION.getMaxPreLongs() << 3);
   }
 
@@ -137,9 +137,9 @@ public abstract class SetOperation {
    * This will become the ceiling power of 2 if it is not.
    * @return the maximum required storage bytes given a nomEntries parameter
    */
-  public static int getMaxIntersectionBytes(int nomEntries) {
-    int nomEnt = ceilingPowerOf2(nomEntries);
-    int bytes = (nomEnt << 4) + (Family.INTERSECTION.getMaxPreLongs() << 3);
+  public static int getMaxIntersectionBytes(final int nomEntries) {
+    final int nomEnt = ceilingPowerOf2(nomEntries);
+    final int bytes = (nomEnt << 4) + (Family.INTERSECTION.getMaxPreLongs() << 3);
     return bytes;
   }
 
@@ -151,7 +151,7 @@ public abstract class SetOperation {
 
   //restricted
 
-  static short computeSeedHash(long seed) {
+  static short computeSeedHash(final long seed) {
     return Util.computeSeedHash(seed);
   }
 
@@ -162,9 +162,9 @@ public abstract class SetOperation {
    */
   //Used by intersection and AnotB
   static final int computeMinLgArrLongsFromCount(final int count) {
-    int upperCount = (int) Math.ceil(count / REBUILD_THRESHOLD);
-    int arrLongs = max(ceilingPowerOf2(upperCount), 1 << MIN_LG_ARR_LONGS);
-    int newLgArrLongs = Integer.numberOfTrailingZeros(arrLongs);
+    final int upperCount = (int) Math.ceil(count / REBUILD_THRESHOLD);
+    final int arrLongs = max(ceilingPowerOf2(upperCount), 1 << MIN_LG_ARR_LONGS);
+    final int newLgArrLongs = Integer.numberOfTrailingZeros(arrLongs);
     return newLgArrLongs;
   }
 
@@ -173,9 +173,9 @@ public abstract class SetOperation {
    * @param id the given Family id
    * @return true if given Family id is one of the set operations
    */
-  static boolean isValidSetOpID(int id) {
-    Family family = Family.idToFamily(id);
-    boolean ret = ((family == Family.UNION) || (family == Family.INTERSECTION)
+  static boolean isValidSetOpID(final int id) {
+    final Family family = Family.idToFamily(id);
+    final boolean ret = ((family == Family.UNION) || (family == Family.INTERSECTION)
         || (family == Family.A_NOT_B));
     return ret;
   }

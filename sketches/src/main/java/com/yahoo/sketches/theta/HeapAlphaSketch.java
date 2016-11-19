@@ -66,8 +66,8 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   private long[] cache_;
   private boolean dirty_ = false;
 
-  private HeapAlphaSketch(int lgNomLongs, long seed, float p, ResizeFactor rf,
-      double alpha, long split1) {
+  private HeapAlphaSketch(final int lgNomLongs, final long seed, final float p,
+      final ResizeFactor rf, final double alpha, final long split1) {
     super(lgNomLongs, seed, p, rf);
     alpha_ = alpha;
     split1_ = split1;
@@ -82,20 +82,21 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @return instance of this sketch
    */
-  static HeapAlphaSketch getInstance(int lgNomLongs, long seed, float p, ResizeFactor rf) {
+  static HeapAlphaSketch getInstance(final int lgNomLongs, final long seed, final float p,
+      final ResizeFactor rf) {
 
     if (lgNomLongs < ALPHA_MIN_LG_NOM_LONGS) {
       throw new SketchesArgumentException(
         "This sketch requires a minimum nominal entries of " + (1 << ALPHA_MIN_LG_NOM_LONGS));
     }
 
-    double nomLongs = (1L << lgNomLongs);
-    double alpha = nomLongs / (nomLongs + 1.0);
-    long split1 = (long) ((p * (alpha + 1.0) / 2.0) * MAX_THETA_LONG_AS_DOUBLE);
+    final double nomLongs = (1L << lgNomLongs);
+    final double alpha = nomLongs / (nomLongs + 1.0);
+    final long split1 = (long) ((p * (alpha + 1.0) / 2.0) * MAX_THETA_LONG_AS_DOUBLE);
 
-    HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, seed, p, rf, alpha, split1);
+    final HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, seed, p, rf, alpha, split1);
 
-    int lgArrLongs = Util.startingSubMultiple(lgNomLongs + 1, rf, MIN_LG_ARR_LONGS);
+    final int lgArrLongs = Util.startingSubMultiple(lgNomLongs + 1, rf, MIN_LG_ARR_LONGS);
     has.lgArrLongs_ = lgArrLongs;
     has.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     has.curCount_ = 0;
@@ -112,24 +113,24 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return instance of this sketch
    */
-  static HeapAlphaSketch getInstance(Memory srcMem, long seed) {
-    long[] preArr = new long[3];
+  static HeapAlphaSketch getInstance(final Memory srcMem, final long seed) {
+    final long[] preArr = new long[3];
     srcMem.getLongArray(0, preArr, 0, 3); //extract the preamble
-    long long0 = preArr[0];
-    int preambleLongs = extractPreLongs(long0);                           //byte 0
-    ResizeFactor myRF = ResizeFactor.getRF(extractResizeFactor(long0));   //byte 0
-    int serVer = extractSerVer(long0);                                    //byte 1
-    int familyID = extractFamilyID(long0);                                //byte 2
-    int lgNomLongs = extractLgNomLongs(long0);                            //byte 3
-    int lgArrLongs = extractLgArrLongs(long0);                            //byte 4
-    int flags = extractFlags(long0);                                      //byte 5
-    short seedHash = (short)extractSeedHash(long0);                       //byte 6,7
-    long long1 = preArr[1];
-    int curCount = extractCurCount(long1);                                //bytes 8-11
-    float p = extractP(long1);                                            //bytes 12-15
-    long thetaLong = preArr[2];                                           //bytes 16-23
+    final long long0 = preArr[0];
+    final int preambleLongs = extractPreLongs(long0);                           //byte 0
+    final ResizeFactor myRF = ResizeFactor.getRF(extractResizeFactor(long0));   //byte 0
+    final int serVer = extractSerVer(long0);                                    //byte 1
+    final int familyID = extractFamilyID(long0);                                //byte 2
+    final int lgNomLongs = extractLgNomLongs(long0);                            //byte 3
+    final int lgArrLongs = extractLgArrLongs(long0);                            //byte 4
+    final int flags = extractFlags(long0);                                      //byte 5
+    final short seedHash = (short)extractSeedHash(long0);                       //byte 6,7
+    final long long1 = preArr[1];
+    final int curCount = extractCurCount(long1);                                //bytes 8-11
+    final float p = extractP(long1);                                            //bytes 12-15
+    final long thetaLong = preArr[2];                                           //bytes 16-23
 
-    Family family = Family.idToFamily(familyID);
+    final Family family = Family.idToFamily(familyID);
     if (family.equals(Family.ALPHA)) {
       if (preambleLongs != Family.ALPHA.getMinPreLongs()) {
         throw new SketchesArgumentException(
@@ -146,7 +147,8 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
           "Possible corruption: Invalid Serialization Version: " + serVer);
     }
 
-    int flagsMask = ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
+    final int flagsMask =
+        ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
     if ((flags & flagsMask) > 0) {
       throw new SketchesArgumentException(
           "Possible corruption: Input srcMem cannot be: big-endian, compact, ordered, or read-only");
@@ -154,26 +156,26 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
 
     Util.checkSeedHashes(seedHash, Util.computeSeedHash(seed));
 
-    long curCapBytes = srcMem.getCapacity();
-    int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
+    final long curCapBytes = srcMem.getCapacity();
+    final int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
     if (curCapBytes < minReqBytes) {
       throw new SketchesArgumentException(
           "Possible corruption: Current Memory size < min required size: "
               + curCapBytes + " < " + minReqBytes);
     }
 
-    double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
+    final double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
     if ((lgArrLongs <= lgNomLongs) && (theta < p) ) {
       throw new SketchesArgumentException(
         "Possible corruption: Theta cannot be < p and lgArrLongs <= lgNomLongs. "
             + lgArrLongs + " <= " + lgNomLongs + ", Theta: " + theta + ", p: " + p);
     }
 
-    double nomLongs = (1L << lgNomLongs);
-    double alpha = nomLongs / (nomLongs + 1.0);
-    long split1 = (long) ((p * (alpha + 1.0) / 2.0) * MAX_THETA_LONG_AS_DOUBLE);
+    final double nomLongs = (1L << lgNomLongs);
+    final double alpha = nomLongs / (nomLongs + 1.0);
+    final long split1 = (long) ((p * (alpha + 1.0) / 2.0) * MAX_THETA_LONG_AS_DOUBLE);
 
-    HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, seed, p, myRF, alpha, split1);
+    final HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, seed, p, myRF, alpha, split1);
     has.lgArrLongs_ = lgArrLongs;
     has.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     has.curCount_ = curCount;
@@ -189,24 +191,24 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   @Override
   public double getEstimate() {
     if (isEstimationMode()) {
-      int curCount = getRetainedEntries(true);
-      double theta = getTheta();
+      final int curCount = getRetainedEntries(true);
+      final double theta = getTheta();
       return (thetaLong_ > split1_) ? curCount / theta : (1 << lgNomLongs_) / theta;
     }
     return curCount_;
   }
 
   @Override
-  public double getLowerBound(int numStdDev) {
+  public double getLowerBound(final int numStdDev) {
     if ((numStdDev < 1) || (numStdDev > 3)) {
       throw new SketchesArgumentException("numStdDev can only be the values 1, 2 or 3.");
     }
     double lb;
     if (isEstimationMode()) {
-      int validCount = getRetainedEntries(true);
+      final int validCount = getRetainedEntries(true);
       if (validCount > 0) {
-        double est = getEstimate();
-        double var = getVariance(1 << lgNomLongs_, getP(), alpha_, getTheta(), validCount);
+        final double est = getEstimate();
+        final double var = getVariance(1 << lgNomLongs_, getP(), alpha_, getTheta(), validCount);
         lb = est - numStdDev * sqrt(var);
         lb = max(lb, 0.0);
       }
@@ -221,10 +223,10 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   }
 
   @Override
-  public int getRetainedEntries(boolean valid) {
+  public int getRetainedEntries(final boolean valid) {
     if (curCount_ > 0) {
       if (valid && isDirty()) {
-        int curCount = HashOperations.countPart(getCache(), getLgArrLongs(), getThetaLong());
+        final int curCount = HashOperations.countPart(getCache(), getLgArrLongs(), getThetaLong());
         return curCount;
       }
     }
@@ -232,12 +234,12 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   }
 
   @Override
-  public double getUpperBound(int numStdDev) {
+  public double getUpperBound(final int numStdDev) {
     if ((numStdDev < 1) || (numStdDev > 3)) {
       throw new SketchesArgumentException("numStdDev can only be the values 1, 2 or 3.");
     }
     if (isEstimationMode()) {
-      double var =
+      final double var =
           getVariance(1 << lgNomLongs_, getP(), alpha_, getTheta(), getRetainedEntries(true));
       return getEstimate() + numStdDev * sqrt(var);
     }
@@ -271,9 +273,10 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
 
   @Override
   public final void reset() {
-    int lgArrLongs = Util.startingSubMultiple(lgNomLongs_ + 1, getResizeFactor(), MIN_LG_ARR_LONGS);
+    final int lgArrLongs =
+        Util.startingSubMultiple(lgNomLongs_ + 1, getResizeFactor(), MIN_LG_ARR_LONGS);
     if (lgArrLongs == lgArrLongs_) {
-      int arrLongs = cache_.length;
+      final int arrLongs = cache_.length;
       assert (1 << lgArrLongs_) == arrLongs;
       java.util.Arrays.fill(cache_, 0L);
     }
@@ -325,7 +328,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   }
 
   @Override
-  UpdateReturnState hashUpdate(long hash) {
+  UpdateReturnState hashUpdate(final long hash) {
     HashOperations.checkHashCorruption(hash);
     empty_ = false;
 
@@ -346,7 +349,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     }
     //insertion occurred, must increment
     curCount_++;
-    int r = (thetaLong_ > split1_) ? 0 : 1;  //are we in sketch mode? (i.e., seen k+1 inserts?)
+    final int r = (thetaLong_ > split1_) ? 0 : 1; //are we in sketch mode? (i.e., seen k+1 inserts?)
     if (r == 0) { //not yet sketch mode (has not seen k+1 inserts), but could be sampling
       if (curCount_ > (1 << lgNomLongs_)) { // > k
         //Reached the k+1 insert. Must be at tgt size or larger.
@@ -385,10 +388,10 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    * @param hash must not be 0. If not a duplicate, it will be inserted into the hash array
    * @return <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
-  private final UpdateReturnState enhancedHashInsert(long[] hashTable, long hash) {
-    int arrayMask = (1 << lgArrLongs_) - 1; // arrayLongs -1
+  private final UpdateReturnState enhancedHashInsert(final long[] hashTable, final long hash) {
+    final int arrayMask = (1 << lgArrLongs_) - 1; // arrayLongs -1
     // make odd and independent of curProbe:
-    int stride = (2 * (int) ((hash >> lgArrLongs_) & STRIDE_MASK)) + 1;
+    final int stride = (2 * (int) ((hash >> lgArrLongs_) & STRIDE_MASK)) + 1;
     int curProbe = (int) (hash & arrayMask);
     long curTableHash = hashTable[curProbe];
 
@@ -398,7 +401,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
       // curHash is not a duplicate and not zero
 
       if (curTableHash >= thetaLong_) { // curTableHash is garbage, do enhanced insert
-        int rememberPos = curProbe; // remember its position.
+        final int rememberPos = curProbe; // remember its position.
         // Now we must make sure there are no duplicates in this search path,
         //   so we keep searching
         curProbe = (curProbe + stride) & arrayMask; // move forward
@@ -447,7 +450,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   //Checks for rare lockup condition
   // Used by hashUpdate(), rebuild()
   private final void rebuildDirty() {
-    int curCountBefore = curCount_;
+    final int curCountBefore = curCount_;
     forceRebuildDirtyCache(); //changes curCount_ only
     if (curCountBefore == curCount_) {
       //clean but unsuccessful at reducing count, must take drastic measures, very rare.
@@ -460,12 +463,12 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   // Used by hashUpdate()
   private final void resizeClean() {
     //must resize, but are we at tgt size?
-    int lgTgtLongs = lgNomLongs_ + 1;
+    final int lgTgtLongs = lgNomLongs_ + 1;
     if (lgTgtLongs > lgArrLongs_) {
       //not yet at tgt size
-      ResizeFactor rf = getResizeFactor();
-      int lgDeltaLongs = lgTgtLongs - lgArrLongs_; //must be > 0
-      int lgResizeFactor = max(min(rf.lg(), lgDeltaLongs), 1); //rf_.lg() could be 0
+      final ResizeFactor rf = getResizeFactor();
+      final int lgDeltaLongs = lgTgtLongs - lgArrLongs_; //must be > 0
+      final int lgResizeFactor = max(min(rf.lg(), lgDeltaLongs), 1); //rf_.lg() could be 0
       forceResizeCleanCache(lgResizeFactor);
     }
     else {
@@ -476,11 +479,11 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
 
   //Force resize. Changes lgArrLongs_ only. Theta doesn't change, count doesn't change.
   // Used by rebuildDirty(), resizeClean()
-  private final void forceResizeCleanCache(int lgResizeFactor) {
+  private final void forceResizeCleanCache(final int lgResizeFactor) {
     assert (!dirty_); // Should never be dirty before a resize.
     lgArrLongs_ += lgResizeFactor; // new tgt size
-    long[] tgtArr = new long[1 << lgArrLongs_];
-    int newCount = HashOperations.hashArrayInsert(cache_, tgtArr, lgArrLongs_, thetaLong_);
+    final long[] tgtArr = new long[1 << lgArrLongs_];
+    final int newCount = HashOperations.hashArrayInsert(cache_, tgtArr, lgArrLongs_, thetaLong_);
     assert (curCount_ == newCount);
     curCount_ = newCount;
     cache_ = tgtArr;
@@ -490,7 +493,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   //Cache stays the same size. Must be dirty. Theta doesn't change, count will change.
   // Used by rebuildDirtyAtTgtSize()
   private final void forceRebuildDirtyCache() {
-    long[] tgtArr = new long[1 << lgArrLongs_];
+    final long[] tgtArr = new long[1 << lgArrLongs_];
     curCount_ = HashOperations.hashArrayInsert(cache_, tgtArr, lgArrLongs_, thetaLong_);
     cache_ = tgtArr;
     dirty_ = false;
@@ -521,14 +524,14 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    * @return the variance.
    */
   // @formatter:on
-  private static final double getVariance(double k, double p, double alpha, double theta,
-      int count) {
-    double kPlus1 = k + 1.0;
-    double y = 1.0 / p;
-    double ySq = y * y;
-    double ySqMinusY = ySq - y;
-    int r = getR(theta, alpha, p);
-    double result;
+  private static final double getVariance(final double k, final double p, final double alpha,
+      final double theta, final int count) {
+    final double kPlus1 = k + 1.0;
+    final double y = 1.0 / p;
+    final double ySq = y * y;
+    final double ySqMinusY = ySq - y;
+    final int r = getR(theta, alpha, p);
+    final double result;
     if (r == 0) {
       result = count * ySqMinusY;
     }
@@ -536,16 +539,16 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
       result = kPlus1 * ySqMinusY; //term1
     }
     else { //r > 1
-      double b = 1.0 / alpha;
-      double bSq = b * b;
-      double x = p / theta;
-      double xSq = x * x;
-      double term1 = kPlus1 * ySqMinusY;
-      double term2 = y / (1.0 - bSq);
-      double term3 = (y * bSq - y * xSq - b - bSq + x + x * b);
+      final double b = 1.0 / alpha;
+      final double bSq = b * b;
+      final double x = p / theta;
+      final double xSq = x * x;
+      final double term1 = kPlus1 * ySqMinusY;
+      final double term2 = y / (1.0 - bSq);
+      final double term3 = (y * bSq - y * xSq - b - bSq + x + x * b);
       result = term1 + term2 * term3;
     }
-    double term4 = (1 - theta) / (theta * theta);
+    final double term4 = (1 - theta) / (theta * theta);
     return result + term4;
   }
 
@@ -557,8 +560,8 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>.
    * @return R.
    */
-  private static final int getR(double theta, double alpha, double p) {
-    double split1 = p * (alpha + 1.0) / 2.0;
+  private static final int getR(final double theta, final double alpha, final double p) {
+    final double split1 = p * (alpha + 1.0) / 2.0;
     if (theta > split1) { return 0; }
     if (theta > (alpha * split1)) { return 1; }
     return 2;
@@ -572,7 +575,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    * @return the hash table threshold
    */
   private static final int setHashTableThreshold(final int lgNomLongs, final int lgArrLongs) {
-    double fraction = (lgArrLongs <= lgNomLongs) ? RESIZE_THRESHOLD : REBUILD_THRESHOLD;
+    final double fraction = (lgArrLongs <= lgNomLongs) ? RESIZE_THRESHOLD : REBUILD_THRESHOLD;
     return (int) Math.floor(fraction * (1 << lgArrLongs));
   }
 
