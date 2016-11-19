@@ -30,18 +30,18 @@ import com.yahoo.sketches.Family;
  */
 class DoublesToByteArrayImpl {
 
-  static byte[] toByteArray(DoublesSketch sketch, boolean ordered, boolean compact) {
-    boolean empty = sketch.isEmpty();
+  static byte[] toByteArray(final DoublesSketch sketch, final boolean ordered, final boolean compact) {
+    final boolean empty = sketch.isEmpty();
 
-    int flags = (empty ? EMPTY_FLAG_MASK : 0)
+    final int flags = (empty ? EMPTY_FLAG_MASK : 0)
         | (ordered ? ORDERED_FLAG_MASK : 0)
         | (compact ? COMPACT_FLAG_MASK : 0);
 
     if (empty) {
-      byte[] outByteArr = new byte[Long.BYTES];
-      Memory memOut = new NativeMemory(outByteArr);
-      long cumOffset = memOut.getCumulativeOffset(0L);
-      int preLongs = 1;
+      final byte[] outByteArr = new byte[Long.BYTES];
+      final Memory memOut = new NativeMemory(outByteArr);
+      final long cumOffset = memOut.getCumulativeOffset(0L);
+      final int preLongs = 1;
       insertPre0(outByteArr, cumOffset, preLongs, flags, sketch.getK());
       return outByteArr;
     }
@@ -55,15 +55,15 @@ class DoublesToByteArrayImpl {
    * @param compact true if the desired form of the resulting array is in compact form.
    * @return a byte array, including preamble, min, max and data extracted from the Combined Buffer.
    */
-  static byte[] combinedBufferToByteArray(DoublesSketch sketch, boolean ordered,
-      boolean compact) {
+  static byte[] combinedBufferToByteArray(final DoublesSketch sketch, final boolean ordered,
+      final boolean compact) {
     final int preLongs = 2;
     final int extra = 2; // extra space for min and max values
-    int preBytes = (preLongs + extra) << 3;
-    int flags = (ordered ? ORDERED_FLAG_MASK : 0) | (compact ? COMPACT_FLAG_MASK : 0);
-    int k = sketch.getK();
-    long n = sketch.getN();
-    double[] combinedBuffer = sketch.getCombinedBuffer();
+    final int preBytes = (preLongs + extra) << 3;
+    final int flags = (ordered ? ORDERED_FLAG_MASK : 0) | (compact ? COMPACT_FLAG_MASK : 0);
+    final int k = sketch.getK();
+    final long n = sketch.getN();
+    final double[] combinedBuffer = sketch.getCombinedBuffer();
     double[] bbItemsArr = null;
 
     final int bbCnt = Util.computeBaseBufferItems(k, n);
@@ -76,11 +76,11 @@ class DoublesToByteArrayImpl {
 
     if (compact) {
       final int retainedItems = sketch.getRetainedItems();
-      int outBytes = (retainedItems << 3) + preBytes;
+      final int outBytes = (retainedItems << 3) + preBytes;
       outByteArr = new byte[outBytes];
 
-      Memory memOut = new NativeMemory(outByteArr);
-      long cumOffset = memOut.getCumulativeOffset(0L);
+      final Memory memOut = new NativeMemory(outByteArr);
+      final long cumOffset = memOut.getCumulativeOffset(0L);
 
       //insert preamble, min, max
       insertPre0(outByteArr, cumOffset, preLongs, flags, k);
@@ -109,13 +109,13 @@ class DoublesToByteArrayImpl {
 
     } else { //not compact
       final int totLevels = Util.computeNumLevelsNeeded(k, n);
-      int outBytes = (totLevels == 0)
+      final int outBytes = (totLevels == 0)
           ? (bbCnt << 3) + preBytes
           : (((2 + totLevels) * k) << 3)  + preBytes;
       outByteArr = new byte[outBytes];
 
-      Memory memOut = new NativeMemory(outByteArr);
-      long cumOffset = memOut.getCumulativeOffset(0L);
+      final Memory memOut = new NativeMemory(outByteArr);
+      final long cumOffset = memOut.getCumulativeOffset(0L);
 
       //insert preamble, min, max
       insertPre0(outByteArr, cumOffset, preLongs, flags, k);
@@ -129,16 +129,16 @@ class DoublesToByteArrayImpl {
       }
       //insert levels
       if (totLevels > 0) {
-        long memOffset = preBytes + ((2L * k) << 3);
-        int combBufOffset = 2 * k;
+        final long memOffset = preBytes + ((2L * k) << 3);
+        final int combBufOffset = 2 * k;
         memOut.putDoubleArray(memOffset, combinedBuffer, combBufOffset, totLevels * k);
       }
     }
     return outByteArr;
   }
 
-  static void insertPre0(byte[] outArr, long cumOffset, int preLongs, int flags,
-      int k) {
+  static void insertPre0(final byte[] outArr, final long cumOffset, final int preLongs,
+      final int flags, final int k) {
     insertPreLongs(outArr, cumOffset, preLongs);
     insertSerVer(outArr, cumOffset, DoublesSketch.DOUBLES_SER_VER);
     insertFamilyID(outArr, cumOffset, Family.QUANTILES.getID());

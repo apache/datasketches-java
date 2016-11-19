@@ -38,7 +38,7 @@ public class DoublesSketchBuilder {
    * larger values of <i>k</i> to smaller values.
    * @return this builder
    */
-  public DoublesSketchBuilder setK(int k) {
+  public DoublesSketchBuilder setK(final int k) {
     Util.checkK(k);
     bK = k;
     return this;
@@ -71,14 +71,14 @@ public class DoublesSketchBuilder {
    *
    * @return a QuantilesSketch
    */
-  public DoublesSketch build(int k) {
+  public DoublesSketch build(final int k) {
     setK(k);
     return build();
   }
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
     sb.append("QuantileSketchBuilder configuration:").append(LS);
     sb.append("K:").append(TAB).append(bK).append(LS);
     return sb.toString();

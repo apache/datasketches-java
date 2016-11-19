@@ -76,11 +76,11 @@ public final class Util {
    * @param v the given long
    * @return string of spaced hex bytes in Big-Endian order.
    */
-  public static String longToHexBytes(long v) {
-    long mask = 0XFFL;
-    StringBuilder sb = new StringBuilder();
+  public static String longToHexBytes(final long v) {
+    final long mask = 0XFFL;
+    final StringBuilder sb = new StringBuilder();
     for (int i = 8; i-- > 0; ) {
-      String s = Long.toHexString((v >>> i * 8) & mask);
+      final String s = Long.toHexString((v >>> i * 8) & mask);
       sb.append(zeroPad(s, 2)).append(" ");
     }
     return sb.toString();
@@ -94,19 +94,19 @@ public final class Util {
    * @param points the total number of points including the starting and ending values.
    * @return an int array of points that will be evenly spaced on a log axis.
    */
-  public static int[] evenlyLgSpaced(int lgStart, int lgEnd, int points) {
+  public static int[] evenlyLgSpaced(final int lgStart, final int lgEnd, final int points) {
     if (points <= 0) {
       throw new SketchesArgumentException("points must be > 0");
     }
     if ((lgEnd < 0) || (lgStart < 0)) {
       throw new SketchesArgumentException("lgStart and lgEnd must be >= 0.");
     }
-    int[] out = new int[points];
+    final int[] out = new int[points];
     out[0] = 1 << lgStart;
     if (points == 1) { return out; }
-    double delta = (lgEnd - lgStart) / (points - 1.0);
+    final double delta = (lgEnd - lgStart) / (points - 1.0);
     for (int i = 1; i < points; i++) {
-      double mXpY = delta * i + lgStart;
+      final double mXpY = delta * i + lgStart;
       out[i] = (int)Math.round(Math.pow(2, mXpY));
     }
     return out;
@@ -117,7 +117,7 @@ public final class Util {
    * @param arr the given byte array
    * @return an int extracted from a Little-Endian byte array.
    */
-  public static int bytesToInt(byte[] arr) {
+  public static int bytesToInt(final byte[] arr) {
     int v = 0;
     for (int i = 0; i < 4; i++) {
       v |= (arr[i] & 0XFF) << i * 8;
@@ -130,7 +130,7 @@ public final class Util {
    * @param arr the given byte array
    * @return a long extracted from a Little-Endian byte array.
    */
-  public static long bytesToLong(byte[] arr) {
+  public static long bytesToLong(final byte[] arr) {
     long v = 0;
     for (int i = 0; i < 8; i++) {
       v |= (arr[i] & 0XFFL) << i * 8;
@@ -147,10 +147,10 @@ public final class Util {
    * @return a string view of a byte array
    */
   public static String bytesToString(
-      byte[] arr, boolean signed, boolean littleEndian, String sep) {
-    StringBuilder sb = new StringBuilder();
-    int mask = (signed) ? 0XFFFFFFFF : 0XFF;
-    int arrLen = arr.length;
+      final byte[] arr, final boolean signed, final boolean littleEndian, final String sep) {
+    final StringBuilder sb = new StringBuilder();
+    final int mask = (signed) ? 0XFFFFFFFF : 0XFF;
+    final int arrLen = arr.length;
     if (littleEndian) {
       for (int i = 0; i < arrLen - 1; i++) {
         sb.append(arr[i] & mask).append(sep);
@@ -170,14 +170,14 @@ public final class Util {
    * @param nS the given nanoseconds
    * @return the given time in nanoseconds formatted as Sec.mSec uSec nSec
    */
-  public static String nanoSecToString(long nS) {
-    long rem_nS = (long)(nS % 1000.0);
-    long rem_uS = (long)((nS / 1000.0) % 1000.0);
-    long rem_mS = (long)((nS / 1000000.0) % 1000.0);
-    long sec    = (long)(nS / 1000000000.0);
-    String nSstr = zeroPad(Long.toString(rem_nS), 3);
-    String uSstr = zeroPad(Long.toString(rem_uS), 3);
-    String mSstr = zeroPad(Long.toString(rem_mS), 3);
+  public static String nanoSecToString(final long nS) {
+    final long rem_nS = (long)(nS % 1000.0);
+    final long rem_uS = (long)((nS / 1000.0) % 1000.0);
+    final long rem_mS = (long)((nS / 1000000.0) % 1000.0);
+    final long sec    = (long)(nS / 1000000000.0);
+    final String nSstr = zeroPad(Long.toString(rem_nS), 3);
+    final String uSstr = zeroPad(Long.toString(rem_uS), 3);
+    final String mSstr = zeroPad(Long.toString(rem_mS), 3);
     return String.format("%d.%3s %3s %3s", sec, mSstr, uSstr, nSstr);
   }
 
@@ -186,14 +186,14 @@ public final class Util {
    * @param mS the given nanoseconds
    * @return the given time in milliseconds formatted as Hours:Min:Sec.mSec
    */
-  public static String milliSecToString(long mS) {
-    long rem_mS = (long)(mS % 1000.0);
-    long rem_sec = (long)((mS / 1000.0) % 60.0);
-    long rem_min = (long)((mS / 60000.0) % 60.0);
-    long hr  =     (long)(mS / 3600000.0);
-    String mSstr = zeroPad(Long.toString(rem_mS), 3);
-    String secStr = zeroPad(Long.toString(rem_sec), 2);
-    String minStr = zeroPad(Long.toString(rem_min), 2);
+  public static String milliSecToString(final long mS) {
+    final long rem_mS = (long)(mS % 1000.0);
+    final long rem_sec = (long)((mS / 1000.0) % 60.0);
+    final long rem_min = (long)((mS / 60000.0) % 60.0);
+    final long hr  =     (long)(mS / 3600000.0);
+    final String mSstr = zeroPad(Long.toString(rem_mS), 3);
+    final String secStr = zeroPad(Long.toString(rem_sec), 2);
+    final String minStr = zeroPad(Long.toString(rem_min), 2);
     return String.format("%d:%2s:%2s.%3s", hr, minStr, secStr, mSstr);
   }
 
@@ -203,7 +203,7 @@ public final class Util {
    * @param arr a given array of 4 bytes that will be returned with the data
    * @return a Little-Endian byte array extracted from the given int.
    */
-  public static byte[] intToBytes(int v, byte[] arr) {
+  public static byte[] intToBytes(int v, final byte[] arr) {
     for (int i = 0; i < 4; i++) {
       arr[i] = (byte) (v & 0XFF);
       v >>>= 8;
@@ -217,7 +217,7 @@ public final class Util {
    * @param arr a given array of 8 bytes that will be returned with the data
    * @return a Little-Endian byte array extracted from the given long.
    */
-  public static byte[] longToBytes(long v, byte[] arr) {
+  public static byte[] longToBytes(long v, final byte[] arr) {
     for (int i = 0; i < 8; i++) {
       arr[i] = (byte) (v & 0XFFL);
       v >>>= 8;
@@ -230,7 +230,7 @@ public final class Util {
    * @param seedHashA the seedHash A
    * @param seedHashB the seedHash B
    */
-  public static final void checkSeedHashes(short seedHashA, short seedHashB) {
+  public static final void checkSeedHashes(final short seedHashA, final short seedHashB) {
     if (seedHashA != seedHashB) {
       throw new SketchesArgumentException(
           "Incompatible Seed Hashes. " + seedHashA + ", " + seedHashB);
@@ -244,9 +244,9 @@ public final class Util {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
    * @return the seed hash.
    */
-  public static short computeSeedHash(long seed) {
-    long[] seedArr = {seed};
-    short seedHash = (short)((hash(seedArr, 0L)[0]) & 0xFFFFL);
+  public static short computeSeedHash(final long seed) {
+    final long[] seedArr = {seed};
+    final short seedHash = (short)((hash(seedArr, 0L)[0]) & 0xFFFFL);
     if (seedHash == 0) {
       throw new SketchesArgumentException(
           "The given seed: " + seed + " produced a seedHash of zero. "
@@ -260,7 +260,7 @@ public final class Util {
    * @param v The parameter to check
    * @param argName This name will be part of the error message if the check fails.
    */
-  public static void checkIfMultipleOf8AndGT0(long v, String argName) {
+  public static void checkIfMultipleOf8AndGT0(final long v, final String argName) {
     if (((v & 0X7L) == 0L) && (v > 0L)) {
       return;
     }
@@ -273,7 +273,7 @@ public final class Util {
    * @param v The parameter to check
    * @return true if v is a multiple of 8 and greater than zero
    */
-  public static boolean isMultipleOf8AndGT0(long v) {
+  public static boolean isMultipleOf8AndGT0(final long v) {
     return (((v & 0X7L) == 0L) && (v > 0L));
   }
 
@@ -283,7 +283,7 @@ public final class Util {
    * @param v The input argument.
    * @return true if argument is exactly a positive power of 2 and greater than zero.
    */
-  public static boolean isPowerOf2(int v) {
+  public static boolean isPowerOf2(final int v) {
     return (v > 0) && ((v & (v - 1)) == 0); //or (v > 0) && ((v & -v) == v)
   }
 
@@ -294,7 +294,7 @@ public final class Util {
    * @param v The input argument.
    * @param argName Used in the thrown exception.
    */
-  public static void checkIfPowerOf2(int v, String argName) {
+  public static void checkIfPowerOf2(final int v, final String argName) {
     if ((v > 0) && ((v & (v - 1)) == 0)) {
       return;
     }
@@ -309,7 +309,7 @@ public final class Util {
    * @param argName the argument name used in the exception if thrown.
    * @return the log-base2 of the given value
    */
-  public static int toLog2(int value, String argName) {
+  public static int toLog2(final int value, final String argName) {
     checkIfPowerOf2(value, argName);
     return Integer.numberOfTrailingZeros(value);
   }
@@ -322,7 +322,7 @@ public final class Util {
    * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
    * @param argName Used in the thrown exception.
    */
-  public static void checkProbability(double p, String argName) {
+  public static void checkProbability(final double p, final String argName) {
     if ((p >= 0.0) && (p <= 1.0)) {
       return;
     }
@@ -344,9 +344,9 @@ public final class Util {
    * @param n The input argument.
    * @return the ceiling power of 2.
    */
-  public static int ceilingPowerOf2(int n) {
+  public static int ceilingPowerOf2(final int n) {
     if (n <= 1) { return 1; }
-    int topPwrOf2 = 1 << 30;
+    final int topPwrOf2 = 1 << 30;
     return (n >= topPwrOf2) ? topPwrOf2 : Integer.highestOneBit((n - 1) << 1);
   }
 
@@ -364,7 +364,7 @@ public final class Util {
    * @param n The given argument.
    * @return the floor power of 2.
    */
-  public static int floorPowerOf2(int n) {
+  public static int floorPowerOf2(final int n) {
     if (n <= 1) { return 1; }
     return Integer.highestOneBit(n);
   }
@@ -374,7 +374,7 @@ public final class Util {
    * @param e a positive value between 0 and 1023 inclusive
    * @return  the inverse integer power of 2: 1/(2^e) = 2^(-e)
    */
-  public static double invPow2(int e) {
+  public static double invPow2(final int e) {
     assert (e | (1024 - e - 1)) >= 0 : "e cannot be negative or greater than 1023: " + e;
     return Double.longBitsToDouble((1023L - e) << 52);
   }
@@ -385,7 +385,7 @@ public final class Util {
    * @param n2 A long to be treated as if unsigned.
    * @return true if n1 &gt; n2.
    */
-  public static boolean isLessThanUnsigned(long n1, long n2) {
+  public static boolean isLessThanUnsigned(final long n1, final long n2) {
     return (n1 < n2) ^ ((n1 < 0) != (n2 < 0));
   }
 
@@ -398,8 +398,9 @@ public final class Util {
    * @param lgMin Log2 of the minimum allowed starting size
    * @return The Log2 of the starting size
    */
-  public static final int startingSubMultiple(int lgTarget, ResizeFactor rf, int lgMin) {
-    int lgRF = rf.lg();
+  public static final int startingSubMultiple(final int lgTarget, final ResizeFactor rf,
+      final int lgMin) {
+    final int lgRF = rf.lg();
     return (lgTarget <= lgMin) ? lgMin : (lgRF == 0) ? lgTarget : (lgTarget - lgMin) % lgRF + lgMin;
   }
 
@@ -410,7 +411,7 @@ public final class Util {
    * @param fieldLength desired total field length including the given string
    * @return the given string prepended with zeros.
    */
-  public static final String zeroPad(String s, int fieldLength) {
+  public static final String zeroPad(final String s, final int fieldLength) {
     return characterPad(s, fieldLength, '0', false);
   }
 
@@ -425,13 +426,13 @@ public final class Util {
    * @return prepended or postpended given string with the given character to fill the given field
    * length.
    */
-  public static final String characterPad(String s, int fieldLength, char padChar,
-      boolean postpend) {
-    char[] chArr = s.toCharArray();
-    int sLen = chArr.length;
+  public static final String characterPad(final String s, final int fieldLength, final char padChar,
+      final boolean postpend) {
+    final char[] chArr = s.toCharArray();
+    final int sLen = chArr.length;
     if (sLen < fieldLength) {
-      char[] out = new char[fieldLength];
-      int blanks = fieldLength - sLen;
+      final char[] out = new char[fieldLength];
+      final int blanks = fieldLength - sLen;
 
       if (postpend) {
         for (int i = 0; i < sLen; i++) {

@@ -18,10 +18,10 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Kevin Lang
  */
 final class OnHeapImmutableCompactFields implements Fields {
-  public static OnHeapImmutableCompactFields fromFields(Fields fields) {
-    List<Integer> vals = new ArrayList<>();
+  public static OnHeapImmutableCompactFields fromFields(final Fields fields) {
+    final List<Integer> vals = new ArrayList<>();
 
-    BucketIterator iter = fields.getBucketIterator();
+    final BucketIterator iter = fields.getBucketIterator();
     while (iter.next()) {
       vals.add(HashUtils.pairOfKeyAndVal(iter.getKey(), iter.getValue()));
     }
@@ -29,13 +29,13 @@ final class OnHeapImmutableCompactFields implements Fields {
         vals,
         new Comparator<Integer>() {
           @Override
-          public int compare(Integer o1, Integer o2) {
+          public int compare(final Integer o1, final Integer o2) {
             return HashUtils.valOfPair(o2) - HashUtils.valOfPair(o1);
           }
         }
     );
 
-    int[] theFields = new int[vals.size()];
+    final int[] theFields = new int[vals.size()];
     int count = 0;
     for (Integer val : vals) {
       theFields[count++] = val;
@@ -47,7 +47,7 @@ final class OnHeapImmutableCompactFields implements Fields {
   private final Preamble preamble;
   private final int[] fields;
 
-  OnHeapImmutableCompactFields(Preamble preamble, int[] fields) {
+  OnHeapImmutableCompactFields(final Preamble preamble, final int[] fields) {
     this.preamble = preamble;
     this.fields = fields;
   }
@@ -58,20 +58,20 @@ final class OnHeapImmutableCompactFields implements Fields {
   }
 
   @Override
-  public Fields updateBucket(int i, byte val, UpdateCallback cb) {
+  public Fields updateBucket(final int i, final byte val, final UpdateCallback cb) {
     throw new UnsupportedOperationException("Cannot mutate a compact sketch");
   }
 
   @Override
-  public int intoByteArray(byte[] array, int offset) {
-    int numBytesNeeded = numBytesToSerialize();
+  public int intoByteArray(final byte[] array, int offset) {
+    final int numBytesNeeded = numBytesToSerialize();
     if (array.length - offset < numBytesNeeded) {
       throw new SketchesArgumentException(
           String.format("array too small[%,d] < [%,d]", array.length - offset, numBytesNeeded)
       );
     }
 
-    Memory mem = new NativeMemory(array);
+    final Memory mem = new NativeMemory(array);
     mem.putByte(offset++, Fields.SORTED_SPARSE_VERSION);
 
     for (int field : fields) {
@@ -114,18 +114,18 @@ final class OnHeapImmutableCompactFields implements Fields {
   }
 
   @Override
-  public Fields unionInto(Fields recipient, UpdateCallback cb) {
+  public Fields unionInto(final Fields recipient, final UpdateCallback cb) {
     return recipient.unionBucketIterator(getBucketIterator(), cb);
   }
 
   @Override
-  public Fields unionBucketIterator(BucketIterator iter, UpdateCallback cb) {
+  public Fields unionBucketIterator(final BucketIterator iter, final UpdateCallback cb) {
     throw new UnsupportedOperationException("Cannot mutate a compact sketch");
   }
 
   @Override
-  public Fields unionCompressedAndExceptions(
-      byte[] compressed, int minVal, OnHeapHash exceptions, UpdateCallback cb) {
+  public Fields unionCompressedAndExceptions(final byte[] compressed, final int minVal,
+      final OnHeapHash exceptions, final UpdateCallback cb) {
     throw new UnsupportedOperationException("Cannot mutate a compact sketch");
   }
 }

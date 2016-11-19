@@ -9,8 +9,8 @@ import com.yahoo.memory.Memory;
 
 /**
  * For building a new QuantilesSketch Union operation.
- * 
- * @author Lee Rhodes 
+ *
+ * @author Lee Rhodes
  */
 public class DoublesUnionBuilder {
 
@@ -25,7 +25,7 @@ public class DoublesUnionBuilder {
 
   /**
    * Sets the parameter <i>k</i> that determines the accuracy and size of the sketch
-   * @param k determines the accuracy and size of the sketch.  
+   * @param k determines the accuracy and size of the sketch.
    * @return this builder
    */
   public DoublesUnionBuilder setK(final int k) {
@@ -43,11 +43,11 @@ public class DoublesUnionBuilder {
   }
 
   /**
-   * Returns a Union object that has been initialized with the given sketch to be used as a union 
-   * target and will be modified. If you do not want the given sketch to be modified use the 
+   * Returns a Union object that has been initialized with the given sketch to be used as a union
+   * target and will be modified. If you do not want the given sketch to be modified use the
    * {@link #copyBuild(DoublesSketch)}.
-   * 
-   * @param sketch a QuantilesSketch that will be used as a target of subsequent union operations. 
+   *
+   * @param sketch a QuantilesSketch that will be used as a target of subsequent union operations.
    * @return a Union object
    */
   public static DoublesUnion build(final DoublesSketch sketch) {
@@ -57,17 +57,17 @@ public class DoublesUnionBuilder {
   /**
    * Returns a Union object that has been initialized with the data from the given Memory image
    * of a QuantilesSketch. A reference to this Memory image is not retained.
-   * 
+   *
    * @param srcMem a Memory image of a QuantilesSketch
    * @return a Union object
    */
-  public static DoublesUnion build(Memory srcMem) {
+  public static DoublesUnion build(final Memory srcMem) {
     return new HeapDoublesUnion(srcMem);
   }
 
   /**
    * Returns a Union object that has been initialized with the data from the given sketch.
-   * 
+   *
    * @param sketch A QuantilesSketch to be used as a source of data, but will not be modified.
    * @return a Union object
    */

@@ -32,8 +32,8 @@ final class DoublesUtil {
    * @param sketch the given sketch
    * @return a copy of the given sketch
    */
-  static HeapDoublesSketch copy(DoublesSketch sketch) {
-    HeapDoublesSketch qsCopy;
+  static HeapDoublesSketch copy(final DoublesSketch sketch) {
+    final HeapDoublesSketch qsCopy;
     qsCopy = HeapDoublesSketch.newInstance(sketch.getK());
     qsCopy.n_ = sketch.getN();
     qsCopy.minValue_ = sketch.getMinValue();
@@ -41,7 +41,7 @@ final class DoublesUtil {
     qsCopy.combinedBufferItemCapacity_ = sketch.getCombinedBufferItemCapacity();
     qsCopy.baseBufferCount_ = sketch.getBaseBufferCount();
     qsCopy.bitPattern_ = sketch.getBitPattern();
-    double[] combBuf = sketch.getCombinedBuffer();
+    final double[] combBuf = sketch.getCombinedBuffer();
     qsCopy.combinedBuffer_ = Arrays.copyOf(combBuf, combBuf.length);
     return qsCopy;
   }
@@ -53,14 +53,15 @@ final class DoublesUtil {
    * @param compact true if memory is in compact form
    * @param memCapBytes the memory capacity in bytes
    */
-  static void checkMemCapacity(int k, long n, boolean compact, long memCapBytes) {
-    int metaPre = Family.QUANTILES.getMaxPreLongs() + 2;
-    int retainedItems = computeRetainedItems(k, n);
-    int reqBufBytes;
+  static void checkMemCapacity(final int k, final long n, final boolean compact,
+      final long memCapBytes) {
+    final int metaPre = Family.QUANTILES.getMaxPreLongs() + 2;
+    final int retainedItems = computeRetainedItems(k, n);
+    final int reqBufBytes;
     if (compact) {
       reqBufBytes = (metaPre + retainedItems) << 3;
     } else { //not compact
-      int totLevels = Util.computeNumLevelsNeeded(k, n);
+      final int totLevels = Util.computeNumLevelsNeeded(k, n);
       reqBufBytes = (totLevels == 0)
           ? (metaPre + retainedItems) << 3
           : (metaPre + (2 + totLevels) * k) << 3;
@@ -75,9 +76,9 @@ final class DoublesUtil {
    * Check the validity of the given serialization version
    * @param serVer the given serialization version
    */
-  static void checkDoublesSerVer(int serVer) {
-    int max = DoublesSketch.DOUBLES_SER_VER;
-    int min = DoublesSketch.MIN_DOUBLES_SER_VER;
+  static void checkDoublesSerVer(final int serVer) {
+    final int max = DoublesSketch.DOUBLES_SER_VER;
+    final int min = DoublesSketch.MIN_DOUBLES_SER_VER;
     if ((serVer > max) || (serVer < min)) {
       throw new SketchesArgumentException(
           "Possible corruption: Unsupported Serialization Version: " + serVer);
@@ -116,7 +117,7 @@ final class DoublesUtil {
     sb.append(LS);
 
     //output all the levels
-    int combBufSize = combBuf.length;
+    final int combBufSize = combBuf.length;
     if (n >= 2 * k) {
       sb.append("   Valid | Level");
       for (int j = 2 * k; j < combBufSize; j++) { //output level data starting at 2K
@@ -171,23 +172,23 @@ final class DoublesUtil {
     return sb.toString();
   }
 
-  static String printMemData(Memory mem, int k, int n) {
+  static String printMemData(final Memory mem, final int k, final int n) {
     if (n == 0) { return ""; }
     final StringBuilder sb = new StringBuilder();
     sb.append(LS).append("### ").append("MEM DATA DETAIL:").append(LS);
-    String fmt1 = "%n%10.1f, ";
-    String fmt2 = "%10.1f, ";
-    int bbCount = Util.computeBaseBufferItems(k, n);
-    int ret = Util.computeRetainedItems(k, n);
+    final String fmt1 = "%n%10.1f, ";
+    final String fmt2 = "%10.1f, ";
+    final int bbCount = Util.computeBaseBufferItems(k, n);
+    final int ret = Util.computeRetainedItems(k, n);
     sb.append("BaseBuffer Data:");
     for (int i = 0; i < bbCount; i++) {
-      double d = mem.getDouble(32 + i * 8);
+      final double d = mem.getDouble(32 + i * 8);
       if (i % k != 0) { sb.append(String.format(fmt2, d)); }
       else { sb.append(String.format(fmt1, d)); }
     }
     sb.append(LS + LS + "Level Data:");
     for (int i = 0; i < ret - bbCount; i++) {
-      double d = mem.getDouble(32 + i * 8 + bbCount * 8);
+      final double d = mem.getDouble(32 + i * 8 + bbCount * 8);
       if (i % k != 0) { sb.append(String.format(fmt2, d)); }
       else { sb.append(String.format(fmt1, d)); }
     }

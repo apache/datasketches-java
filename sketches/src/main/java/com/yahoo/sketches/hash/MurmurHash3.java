@@ -55,8 +55,8 @@ public final class MurmurHash3 implements Serializable {
    * @param seed A long valued seed.
    * @return the hash.
    */
-  public static long[] hash(long[] key, long seed) {
-    HashState hashState = new HashState(seed, seed);
+  public static long[] hash(final long[] key, final long seed) {
+    final HashState hashState = new HashState(seed, seed);
     final int longs = key.length; //in longs
 
     // Number of full 128-bit blocks of 2 longs (the body).
@@ -65,17 +65,17 @@ public final class MurmurHash3 implements Serializable {
 
     // Process the 128-bit blocks (the body) into the hash
     for (int i = 0; i < nblocks; i++ ) {
-      long k1 = key[2 * i]; //0, 2, 4, ...
-      long k2 = key[(2 * i) + 1]; //1, 3, 5, ...
+      final long k1 = key[2 * i]; //0, 2, 4, ...
+      final long k2 = key[(2 * i) + 1]; //1, 3, 5, ...
       hashState.blockMix128(k1, k2);
     }
 
     // Get the tail index, remainder length
-    int tail = nblocks * 2; // 2 longs / block
-    int rem = longs - tail; // remainder longs: 0,1
+    final int tail = nblocks * 2; // 2 longs / block
+    final int rem = longs - tail; // remainder longs: 0,1
 
     // Get the tail
-    long k1 = (rem == 0) ? 0 : key[tail]; //k2 -> 0
+    final long k1 = (rem == 0) ? 0 : key[tail]; //k2 -> 0
     // Mix the tail into the hash and return
     return hashState.finalMix128(k1, 0, longs * Long.BYTES); //convert to bytes
   }
@@ -88,8 +88,8 @@ public final class MurmurHash3 implements Serializable {
    * @param seed A long valued seed.
    * @return the hash.
    */
-  public static long[] hash(int[] key, long seed) {
-    HashState hashState = new HashState(seed, seed);
+  public static long[] hash(final int[] key, final long seed) {
+    final HashState hashState = new HashState(seed, seed);
     final int ints = key.length; //in ints
 
     // Number of full 128-bit blocks of 4 ints.
@@ -98,18 +98,18 @@ public final class MurmurHash3 implements Serializable {
 
     // Process the 128-bit blocks (the body) into the hash
     for (int i = 0; i < nblocks; i++ ) { //4 ints per block
-      long k1 = getLong(key, 4 * i, 2); //0, 4, 8, ...
-      long k2 = getLong(key, (4 * i) + 2, 2); //2, 6, 10, ...
+      final long k1 = getLong(key, 4 * i, 2); //0, 4, 8, ...
+      final long k2 = getLong(key, (4 * i) + 2, 2); //2, 6, 10, ...
       hashState.blockMix128(k1, k2);
     }
 
     // Get the tail index, remainder length
-    int tail = nblocks * 4; // 4 ints per block
-    int rem = ints - tail; // remainder ints: 0,1,2,3
+    final int tail = nblocks * 4; // 4 ints per block
+    final int rem = ints - tail; // remainder ints: 0,1,2,3
 
     // Get the tail
-    long k1;
-    long k2;
+    final long k1;
+    final long k2;
     if (rem > 2) { //k1 -> whole; k2 -> partial
       k1 = getLong(key, tail, 2);
       k2 = getLong(key, tail + 2, rem - 2);
@@ -130,8 +130,8 @@ public final class MurmurHash3 implements Serializable {
    * @param seed A long valued seed.
    * @return the hash.
    */
-  public static long[] hash(char[] key, long seed) {
-    HashState hashState = new HashState(seed, seed);
+  public static long[] hash(final char[] key, final long seed) {
+    final HashState hashState = new HashState(seed, seed);
     final int chars = key.length; //in chars
 
     // Number of full 128-bit blocks of 8 chars.
@@ -140,18 +140,18 @@ public final class MurmurHash3 implements Serializable {
 
     // Process the 128-bit blocks (the body) into the hash
     for (int i = 0; i < nblocks; i++ ) { //8 chars per block
-      long k1 = getLong(key, 8 * i, 4); //0, 8, 16, ...
-      long k2 = getLong(key, (8 * i) + 4, 4); //4, 12, 20, ...
+      final long k1 = getLong(key, 8 * i, 4); //0, 8, 16, ...
+      final long k2 = getLong(key, (8 * i) + 4, 4); //4, 12, 20, ...
       hashState.blockMix128(k1, k2);
     }
 
     // Get the tail index, remainder length
-    int tail = nblocks * 8; // 8 chars per block
-    int rem = chars - tail; // remainder chars: 0,1,2,3,4,5,6,7
+    final int tail = nblocks * 8; // 8 chars per block
+    final int rem = chars - tail; // remainder chars: 0,1,2,3,4,5,6,7
 
     // Get the tail
-    long k1;
-    long k2;
+    final long k1;
+    final long k2;
     if (rem > 4) { //k1 -> whole; k2 -> partial
       k1 = getLong(key, tail, 4);
       k2 = getLong(key, tail + 4, rem - 4);
@@ -172,8 +172,8 @@ public final class MurmurHash3 implements Serializable {
    * @param seed A long valued seed.
    * @return the hash.
    */
-  public static long[] hash(byte[] key, long seed) {
-    HashState hashState = new HashState(seed, seed);
+  public static long[] hash(final byte[] key, final long seed) {
+    final HashState hashState = new HashState(seed, seed);
     final int bytes = key.length; //in bytes
 
     // Number of full 128-bit blocks of 16 bytes.
@@ -182,18 +182,18 @@ public final class MurmurHash3 implements Serializable {
 
     // Process the 128-bit blocks (the body) into the hash
     for (int i = 0; i < nblocks; i++ ) { //16 bytes per block
-      long k1 = getLong(key, 16 * i, 8); //0, 16, 32, ...
-      long k2 = getLong(key, (16 * i) + 8, 8); //8, 24, 40, ...
+      final long k1 = getLong(key, 16 * i, 8); //0, 16, 32, ...
+      final long k2 = getLong(key, (16 * i) + 8, 8); //8, 24, 40, ...
       hashState.blockMix128(k1, k2);
     }
 
     // Get the tail index, remainder length
-    int tail = nblocks * 16; //16 bytes per block
-    int rem = bytes - tail; // remainder bytes: 0,1,...,15
+    final int tail = nblocks * 16; //16 bytes per block
+    final int rem = bytes - tail; // remainder bytes: 0,1,...,15
 
     // Get the tail
-    long k1;
-    long k2;
+    final long k1;
+    final long k2;
     if (rem > 8) { //k1 -> whole; k2 -> partial
       k1 = getLong(key, tail, 8);
       k2 = getLong(key, tail + 8, rem - 8);
@@ -216,7 +216,7 @@ public final class MurmurHash3 implements Serializable {
     private long h1;
     private long h2;
 
-    HashState(long h1, long h2) {
+    HashState(final long h1, final long h2) {
       this.h1 = h1;
       this.h2 = h2;
     }
@@ -227,7 +227,7 @@ public final class MurmurHash3 implements Serializable {
      * @param k1 intermediate mix value
      * @param k2 intermediate mix value
      */
-    void blockMix128(long k1, long k2) {
+    void blockMix128(final long k1, final long k2) {
       h1 ^= mixK1(k1);
       h1 = Long.rotateLeft(h1, 27);
       h1 += h2;
@@ -239,7 +239,7 @@ public final class MurmurHash3 implements Serializable {
       h2 = (h2 * 5) + 0x38495ab5;
     }
 
-    long[] finalMix128(long k1, long k2, long inputLengthBytes) {
+    long[] finalMix128(final long k1, final long k2, final long inputLengthBytes) {
       h1 ^= mixK1(k1);
       h2 ^= mixK2(k2);
       h1 ^= inputLengthBytes;
@@ -306,10 +306,10 @@ public final class MurmurHash3 implements Serializable {
    * @param rem Remainder bytes. An integer in the range [1,8].
    * @return long
    */
-  private static long getLong(byte[] bArr, int index, int rem) {
+  private static long getLong(final byte[] bArr, final int index, final int rem) {
     long out = 0L;
     for (int i = rem; i-- > 0;) { //i= 7,6,5,4,3,2,1,0
-      byte b = bArr[index + i];
+      final byte b = bArr[index + i];
       out ^= (b & 0xFFL) << (i * 8); //equivalent to |=
     }
     return out;
@@ -325,10 +325,10 @@ public final class MurmurHash3 implements Serializable {
    * @param rem Remainder chars. An integer in the range [1,4].
    * @return long
    */
-  private static long getLong(char[] charArr, int index, int rem) {
+  private static long getLong(final char[] charArr, final int index, final int rem) {
     long out = 0L;
     for (int i = rem; i-- > 0;) { //i= 3,2,1,0
-      char c = charArr[index + i];
+      final char c = charArr[index + i];
       out ^= (c & 0xFFFFL) << (i * 16); //equivalent to |=
     }
     return out;
@@ -344,10 +344,10 @@ public final class MurmurHash3 implements Serializable {
    * @param rem Remainder integers. An integer in the range [1,2].
    * @return long
    */
-  private static long getLong(int[] intArr, int index, int rem) {
+  private static long getLong(final int[] intArr, final int index, final int rem) {
     long out = 0L;
     for (int i = rem; i-- > 0;) { //i= 1,0
-      int v = intArr[index + i];
+      final int v = intArr[index + i];
       out ^= (v & 0xFFFFFFFFL) << (i * 32); //equivalent to |=
     }
     return out;

@@ -165,7 +165,7 @@ final class Util {
    */
   static int computeExpandedCombinedBufferItemCapacity(final int k, final long n) {
     final int totLevels = computeNumLevelsNeeded(k, n);
-    int ret;
+    final int ret;
     if (totLevels > 0) {
       ret = (2 + totLevels) * k;
     } else { //compute the partial the base buffer when totLevels = 0

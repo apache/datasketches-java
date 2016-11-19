@@ -90,14 +90,14 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
    * @return the lower bound of the approximate Clopper-Pearson confidence interval for the
    * unknown success probability.
    */
-  public static double approximateLowerBoundOnP(long n, long k, double numStdDevs) {
+  public static double approximateLowerBoundOnP(final long n, final long k, final double numStdDevs) {
     checkInputs(n, k);
     if (n == 0) { return 0.0; } // the coin was never flipped, so we know nothing
     else if (k == 0) { return 0.0; }
     else if (k == 1) { return (exactLowerBoundOnPForKequalsOne(n, deltaOfNumStdevs(numStdDevs))); }
     else if (k == n) { return (exactLowerBoundOnPForKequalsN(n, deltaOfNumStdevs(numStdDevs))); }
     else {
-      double x = abramowitzStegunFormula26p5p22(n - k + 1, k, (-1.0 * numStdDevs));
+      final double x = abramowitzStegunFormula26p5p22(n - k + 1, k, (-1.0 * numStdDevs));
       return (1.0 - x); // which is p
     }
   }
@@ -125,7 +125,7 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
    * @return the upper bound of the approximate Clopper-Pearson confidence interval for the
    * unknown success probability.
    */
-  public static double approximateUpperBoundOnP(long n, long k, double numStdDevs) {
+  public static double approximateUpperBoundOnP(final long n, final long k, final double numStdDevs) {
     checkInputs(n, k);
     if (n == 0) { return 1.0; } // the coin was never flipped, so we know nothing
     else if (k == n) { return 1.0; }
@@ -136,7 +136,7 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
       return (exactUpperBoundOnPForKequalsZero(n, deltaOfNumStdevs(numStdDevs)));
     }
     else {
-      double x = abramowitzStegunFormula26p5p22(n - k, k + 1, numStdDevs);
+      final double x = abramowitzStegunFormula26p5p22(n - k, k + 1, numStdDevs);
       return (1.0 - x); // which is p
     }
   }
@@ -147,13 +147,13 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
    * @param k is the number of successes. Must be non-negative, and cannot exceed n.
    * @return the estimate of the unknown binomial proportion.
    */
-  public static double estimateUnknownP(long n, long k) {
+  public static double estimateUnknownP(final long n, final long k) {
     checkInputs(n, k);
     if (n == 0) { return 0.5; } // the coin was never flipped, so we know nothing
     else { return ((double) k / (double) n); }
   }
 
-  private static void checkInputs(long n, long k) {
+  private static void checkInputs(final long n, final long k) {
     if (n < 0) { throw new SketchesArgumentException("N must be non-negative"); }
     if (k < 0) { throw new SketchesArgumentException("K must be non-negative"); }
     if (k > n) { throw new SketchesArgumentException("K cannot exceed N"); }
@@ -164,7 +164,7 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
    * @param x is the input to the erf function
    * @return returns erf(x), accurate to roughly 7 decimal digits.
    */
-  public static double erf(double x) {
+  public static double erf(final double x) {
     if (x < 0.0) { return (-1.0 * (erf_of_nonneg(-1.0 * x))); }
     else { return (erf_of_nonneg(x)); }
   }
@@ -174,13 +174,13 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
    * @param x is the input to the normalCDF function
    * @return returns the approximation to normalCDF(x).
    */
-  public static double normalCDF(double x) {
+  public static double normalCDF(final double x) {
     return (0.5 * (1.0 + (erf(x / (Math.sqrt(2.0))))));
   }
 
   //@formatter:off
   // Abramowitz and Stegun formula 7.1.28, p. 88; Claims accuracy of about 7 decimal digits */
-  private static double erf_of_nonneg(double x) {
+  private static double erf_of_nonneg(final double x) {
     // The constants that appear below, formatted for easy checking against the book.
     //    a1 = 0.07052 30784
     //    a3 = 0.00927 05272
@@ -188,34 +188,35 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
     //    a2 = 0.04228 20123
     //    a4 = 0.00015 20143
     //    a6 = 0.00004 30638
-    double a1 = 0.0705230784;
-    double a3 = 0.0092705272;
-    double a5 = 0.0002765672;
-    double a2 = 0.0422820123;
-    double a4 = 0.0001520143;
-    double a6 = 0.0000430638;
-    double x2 = x * x; // x squared, x cubed, etc.
-    double x3 = x2 * x;
-    double x4 = x2 * x2;
-    double x5 = x2 * x3;
-    double x6 = x3 * x3;
-    double sum = ( 1.0
+    final double a1 = 0.0705230784;
+    final double a3 = 0.0092705272;
+    final double a5 = 0.0002765672;
+    final double a2 = 0.0422820123;
+    final double a4 = 0.0001520143;
+    final double a6 = 0.0000430638;
+    final double x2 = x * x; // x squared, x cubed, etc.
+    final double x3 = x2 * x;
+    final double x4 = x2 * x2;
+    final double x5 = x2 * x3;
+    final double x6 = x3 * x3;
+    final double sum = ( 1.0
                  + a1 * x
                  + a2 * x2
                  + a3 * x3
                  + a4 * x4
                  + a5 * x5
                  + a6 * x6 );
-    double sum2 = sum * sum; // raise the sum to the 16th power
-    double sum4 = sum2 * sum2;
-    double sum8 = sum4 * sum4;
-    double sum16 = sum8 * sum8;
+    final double sum2 = sum * sum; // raise the sum to the 16th power
+    final double sum4 = sum2 * sum2;
+    final double sum8 = sum4 * sum4;
+    final double sum16 = sum8 * sum8;
     return (1.0 - (1.0 / sum16));
   }
 
-  private static double deltaOfNumStdevs(double kappa) {
+  private static double deltaOfNumStdevs(final double kappa) {
     return (normalCDF(-1.0 * kappa));
   }
+
   //@formatter:on
   // Formula 26.5.22 on page 945 of Abramowitz & Stegun, which is an approximation
   // of the inverse of the incomplete beta function I_x(a,b) = delta
@@ -229,35 +230,36 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
   // and it is worth keeping it that way so that it will always be easy to verify
   // that the formula was typed in correctly.
 
-  private static double abramowitzStegunFormula26p5p22(double a, double b, double yp) {
-    double b2m1 = 2.0 * b - 1.0;
-    double a2m1 = 2.0 * a - 1.0;
-    double lambda = ((yp * yp) - 3.0) / 6.0;
-    double htmp = (1.0 / a2m1) + (1.0 / b2m1);
-    double h = 2.0 / htmp;
-    double term1 = yp * (Math.sqrt(h + lambda)) / h;
-    double term2 = (1.0 / b2m1) - (1.0 / a2m1);
-    double term3 = lambda + (5.0 / 6.0) - (2.0 / (3.0 * h));
-    double w = term1 - (term2 * term3);
-    double xp = a / (a + (b * (Math.exp(2.0 * w))));
+  private static double abramowitzStegunFormula26p5p22(final double a, final double b,
+      final double yp) {
+    final double b2m1 = 2.0 * b - 1.0;
+    final double a2m1 = 2.0 * a - 1.0;
+    final double lambda = ((yp * yp) - 3.0) / 6.0;
+    final double htmp = (1.0 / a2m1) + (1.0 / b2m1);
+    final double h = 2.0 / htmp;
+    final double term1 = yp * (Math.sqrt(h + lambda)) / h;
+    final double term2 = (1.0 / b2m1) - (1.0 / a2m1);
+    final double term3 = lambda + (5.0 / 6.0) - (2.0 / (3.0 * h));
+    final double w = term1 - (term2 * term3);
+    final double xp = a / (a + (b * (Math.exp(2.0 * w))));
     return xp;
   }
 
   // Formulas for some special cases.
 
-  private static double exactUpperBoundOnPForKequalsZero(double n, double delta) {
+  private static double exactUpperBoundOnPForKequalsZero(final double n, final double delta) {
     return (1.0 - Math.pow(delta, (1.0 / n)));
   }
 
-  private static double exactLowerBoundOnPForKequalsN(double n, double delta) {
+  private static double exactLowerBoundOnPForKequalsN(final double n, final double delta) {
     return (Math.pow(delta, (1.0 / n)));
   }
 
-  private static double exactLowerBoundOnPForKequalsOne(double n, double delta) {
+  private static double exactLowerBoundOnPForKequalsOne(final double n, final double delta) {
     return (1.0 - Math.pow((1.0 - delta), (1.0 / n)));
   }
 
-  private static double exactUpperBoundOnPForKequalsNminusOne(double n, double delta) {
+  private static double exactUpperBoundOnPForKequalsNminusOne(final double n, final double delta) {
     return (Math.pow((1.0 - delta), (1.0 / n)));
   }
 

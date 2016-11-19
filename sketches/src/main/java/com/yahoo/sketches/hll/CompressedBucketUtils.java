@@ -13,43 +13,44 @@ final class CompressedBucketUtils {
   private static final int HI_NIBBLE_MASK = 0xf0;
 
   private CompressedBucketUtils() {}
-  
-  static byte getNibble(byte[] buckets, int index) {
-    byte theByte = buckets[index >> 1];
+
+  static byte getNibble(final byte[] buckets, final int index) {
+    final byte theByte = buckets[index >> 1];
     return (byte) (((index & 1) == 0 ? theByte >> 4 : theByte) & LO_NIBBLE_MASK);
   }
 
-  static void setNibble(byte[] buckets, int index, byte newValue) {
-    int byteno = index >> 1;
-    byte oldValue = buckets[byteno];
+  static void setNibble(final byte[] buckets, final int index, final byte newValue) {
+    final int byteno = index >> 1;
+    final byte oldValue = buckets[byteno];
     if ((index & 1) == 0) {
       buckets[byteno] = (byte) (((newValue << 4) & HI_NIBBLE_MASK) | (oldValue & LO_NIBBLE_MASK));
-    } 
+    }
     else {
       buckets[byteno] = (byte) ((oldValue & HI_NIBBLE_MASK) | (newValue & LO_NIBBLE_MASK));
     }
   }
 
-  static void updateNibble(byte[] buckets, int index, byte newNibble, Fields.UpdateCallback callback) {
+  static void updateNibble(final byte[] buckets, final int index, final byte newNibble,
+      final Fields.UpdateCallback callback) {
     if (newNibble < 0) {
       return;
     }
 
-    int byteno = index >> 1;
-    byte oldValue = buckets[byteno];
-    int oldLowNibble = oldValue & LO_NIBBLE_MASK;
-    int oldHighNibble = oldValue & HI_NIBBLE_MASK;
+    final int byteno = index >> 1;
+    final byte oldValue = buckets[byteno];
+    final int oldLowNibble = oldValue & LO_NIBBLE_MASK;
+    final int oldHighNibble = oldValue & HI_NIBBLE_MASK;
 
     if ((index & 1) == 0) {
-      int newHighNibble = newNibble << 4;
+      final int newHighNibble = newNibble << 4;
       if (oldHighNibble < newHighNibble) {
         buckets[byteno] = (byte) (newHighNibble | oldLowNibble);
-        int oldNib = oldHighNibble >> 4;
+        final int oldNib = oldHighNibble >> 4;
         callback.bucketUpdated(index, (byte) oldNib, newNibble);
       }
-    } 
+    }
     else {
-      int newLoNibble = newNibble & LO_NIBBLE_MASK;
+      final int newLoNibble = newNibble & LO_NIBBLE_MASK;
       if (oldLowNibble < newLoNibble) {
         buckets[byteno] = (byte) (oldHighNibble | newLoNibble);
         callback.bucketUpdated(index, (byte) oldLowNibble, newNibble);
@@ -57,9 +58,10 @@ final class CompressedBucketUtils {
     }
   }
 
-  static BucketIterator getBucketIterator(final byte[] buckets, final int currMin, OnHeapHash exceptions) {
-    BucketIterator exceptionsIter = exceptions.getBucketIterator();
-    BucketIterator nibblesIter = new BucketIterator() {
+  static BucketIterator getBucketIterator(final byte[] buckets, final int currMin,
+      final OnHeapHash exceptions) {
+    final BucketIterator exceptionsIter = exceptions.getBucketIterator();
+    final BucketIterator nibblesIter = new BucketIterator() {
       private int i = -1;
       private int size = buckets.length << 1;
 

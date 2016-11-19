@@ -35,11 +35,11 @@ public class HllSketch {
    * Construct this class with the given Fields
    * @param fields the given Fields
    */
-  public HllSketch(Fields fields) {
+  public HllSketch(final Fields fields) {
     this.fields = fields;
     this.updateCallback = new Fields.UpdateCallback() {
       @Override
-      public void bucketUpdated(int bucket, byte oldVal, byte newVal) {
+      public void bucketUpdated(final int bucket, final byte oldVal, final byte newVal) {
         //intentionally empty
       }
     };
@@ -51,8 +51,8 @@ public class HllSketch {
    *
    * @param datum The given long datum.
    */
-  public void update(long datum) {
-    long[] data = { datum };
+  public void update(final long datum) {
+    final long[] data = { datum };
     updateWithHash(hash(data, DEFAULT_UPDATE_SEED));
   }
 
@@ -65,9 +65,9 @@ public class HllSketch {
    *
    * @param datum The given double datum.
    */
-  public void update(double datum) {
-    double d = (datum == 0.0) ? 0.0 : datum; // canonicalize -0.0, 0.0
-    long[] data = { Double.doubleToLongBits(d) };// canonicalize all NaN forms
+  public void update(final double datum) {
+    final double d = (datum == 0.0) ? 0.0 : datum; // canonicalize -0.0, 0.0
+    final long[] data = { Double.doubleToLongBits(d) };// canonicalize all NaN forms
     updateWithHash(hash(data, DEFAULT_UPDATE_SEED));
   }
 
@@ -78,11 +78,11 @@ public class HllSketch {
    *
    * @param datum The given String.
    */
-  public void update(String datum) {
+  public void update(final String datum) {
     if (datum == null || datum.isEmpty()) {
       return;
     }
-    byte[] data = datum.getBytes(UTF_8);
+    final byte[] data = datum.getBytes(UTF_8);
     updateWithHash(hash(data, DEFAULT_UPDATE_SEED));
   }
 
@@ -92,7 +92,7 @@ public class HllSketch {
    *
    * @param data The given byte array.
    */
-  public void update(byte[] data) {
+  public void update(final byte[] data) {
     if ((data == null) || (data.length == 0)) {
       return;
     }
@@ -105,7 +105,7 @@ public class HllSketch {
    *
    * @param data The given int array.
    */
-  public void update(int[] data) {
+  public void update(final int[] data) {
     if ((data == null) || (data.length == 0)) {
       return;
     }
@@ -118,7 +118,7 @@ public class HllSketch {
    *
    * @param data The given long array.
    */
-  public void update(long[] data) {
+  public void update(final long[] data) {
     if ((data == null) || (data.length == 0)) {
       return;
     }
@@ -130,11 +130,13 @@ public class HllSketch {
    * @return the sketch's best estimate of the cardinality of the input stream.
    */
   public double getEstimate() {
-    double rawEst = getRawEstimate();
-    int logK = preamble.getLogConfigK();
+    final double rawEst = getRawEstimate();
+    final int logK = preamble.getLogConfigK();
 
-    double[] x_arr = Interpolation.interpolation_x_arrs[logK - Interpolation.INTERPOLATION_MIN_LOG_K];
-    double[] y_arr = Interpolation.interpolation_y_arrs[logK - Interpolation.INTERPOLATION_MIN_LOG_K];
+    final double[] x_arr =
+        Interpolation.interpolation_x_arrs[logK - Interpolation.INTERPOLATION_MIN_LOG_K];
+    final double[] y_arr =
+        Interpolation.interpolation_y_arrs[logK - Interpolation.INTERPOLATION_MIN_LOG_K];
 
     if (rawEst < x_arr[0]) {
       return 0;
@@ -143,15 +145,15 @@ public class HllSketch {
       return rawEst;
     }
 
-    double adjEst = Interpolation.cubicInterpolateUsingTable(x_arr, y_arr, rawEst);
-    int configK = preamble.getConfigK();
+    final double adjEst = Interpolation.cubicInterpolateUsingTable(x_arr, y_arr, rawEst);
+    final int configK = preamble.getConfigK();
 
     if (adjEst > 3.0 * configK) {
       return adjEst;
     }
 
-    double linEst = getLinearEstimate();
-    double avgEst = (adjEst + linEst) / 2.0;
+    final double linEst = getLinearEstimate();
+    final double avgEst = (adjEst + linEst) / 2.0;
 
     // The following constant 0.64 comes from empirical measurements (see below) of the crossover
     //   point between the average error of the linear estimator and the adjusted hll estimator
@@ -166,7 +168,7 @@ public class HllSketch {
    * @param numStdDevs the number of standard deviations from the Estimate
    * @return the upper bound
    */
-  public double getUpperBound(double numStdDevs) {
+  public double getUpperBound(final double numStdDevs) {
     return getEstimate() / (1.0 - eps(numStdDevs));
   }
 
@@ -175,8 +177,8 @@ public class HllSketch {
    * @param numStdDevs the number of standard deviations from the Estimate
    * @return the lower bound
    */
-  public double getLowerBound(double numStdDevs) {
-    double lowerBound = getEstimate() / (1.0 + eps(numStdDevs));
+  public double getLowerBound(final double numStdDevs) {
+    final double lowerBound = getEstimate() / (1.0 + eps(numStdDevs));
     double numNonZeros = preamble.getConfigK();
     numNonZeros -= numBucketsAtZero();
     if (lowerBound < numNonZeros) {
@@ -186,7 +188,7 @@ public class HllSketch {
   }
 
   private double getRawEstimate() {
-    int numBuckets = preamble.getConfigK();
+    final int numBuckets = preamble.getConfigK();
     double correctionFactor = 0.7213 / (1.0 + 1.079 / numBuckets);
     correctionFactor *= numBuckets * numBuckets;
     correctionFactor /= inversePowerOf2Sum();
@@ -194,8 +196,8 @@ public class HllSketch {
   }
 
   private double getLinearEstimate() {
-    int configK = preamble.getConfigK();
-    long longV = numBucketsAtZero();
+    final int configK = preamble.getConfigK();
+    final long longV = numBucketsAtZero();
     if (longV == 0) {
       return configK * Math.log(configK / 0.5);
     }
@@ -207,18 +209,18 @@ public class HllSketch {
    * @param that the other sketch
    * @return this sketch
    */
-  public HllSketch union(HllSketch that) {
+  public HllSketch union(final HllSketch that) {
     fields = that.fields.unionInto(fields, updateCallback);
     return this;
   }
 
-  private void updateWithHash(long[] hash) {
-    byte newValue = (byte) (Long.numberOfLeadingZeros(hash[1]) + 1);
-    int slotno = (int) hash[0] & (preamble.getConfigK() - 1);
+  private void updateWithHash(final long[] hash) {
+    final byte newValue = (byte) (Long.numberOfLeadingZeros(hash[1]) + 1);
+    final int slotno = (int) hash[0] & (preamble.getConfigK() - 1);
     fields = fields.updateBucket(slotno, newValue, updateCallback);
   }
 
-  private double eps(double numStdDevs) {
+  private double eps(final double numStdDevs) {
     return numStdDevs * HLL_REL_ERROR_NUMER / Math.sqrt(preamble.getConfigK());
   }
 
@@ -227,8 +229,8 @@ public class HllSketch {
    * @return this sketch as a byte array
    */
   public byte[] toByteArray() {
-    int numBytes = (preamble.getPreambleLongs() << 3) + fields.numBytesToSerialize();
-    byte[] retVal = new byte[numBytes];
+    final int numBytes = (preamble.getPreambleLongs() << 3) + fields.numBytesToSerialize();
+    final byte[] retVal = new byte[numBytes];
 
     fields.intoByteArray(retVal, preamble.intoByteArray(retVal, 0));
 
@@ -240,7 +242,7 @@ public class HllSketch {
    * @return this sketch without the Preamble as a byte array
    */
   public byte[] toByteArrayNoPreamble() {
-    byte[] retVal = new byte[fields.numBytesToSerialize()];
+    final byte[] retVal = new byte[fields.numBytesToSerialize()];
     fields.intoByteArray(retVal, 0);
     return retVal;
   }
@@ -274,7 +276,7 @@ public class HllSketch {
    *
    * @param updateCallback the update callback for the HllSketch to use when talking with its Fields
    */
-  protected final void setUpdateCallback(Fields.UpdateCallback updateCallback) {
+  protected final void setUpdateCallback(final Fields.UpdateCallback updateCallback) {
     this.updateCallback = updateCallback;
   }
 
@@ -293,7 +295,7 @@ public class HllSketch {
     int retVal = 0;
     int count = 0;
 
-    BucketIterator bucketIter = fields.getBucketIterator();
+    final BucketIterator bucketIter = fields.getBucketIterator();
     while (bucketIter.next()) {
       if (bucketIter.getValue() == 0) {
         ++retVal;

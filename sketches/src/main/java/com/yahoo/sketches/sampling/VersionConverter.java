@@ -27,7 +27,7 @@ final class VersionConverter {
    * @param srcMem Memory object holding a serialized v1 reservoir sample
    * @return Memory object containing the same reservoir sample serialized as v2.
    */
-  static Memory convertSketch1to2(Memory srcMem) {
+  static Memory convertSketch1to2(final Memory srcMem) {
     return perform1to2Changes(srcMem);
   }
 
@@ -38,40 +38,40 @@ final class VersionConverter {
    * @param srcMem Memory object holding a serialized v1 reservoir union
    * @return Memory object containing the same reservoir union serialized as v2.
    */
-  static Memory convertUnion1to2(Memory srcMem) {
+  static Memory convertUnion1to2(final Memory srcMem) {
     // convert the union preamble
-    Memory converted = perform1to2Changes(srcMem);
+    final Memory converted = perform1to2Changes(srcMem);
 
     // if sketch gadget exists, convert that, too
-    long pre0 = converted.getLong(0);
-    int preLongs = extractPreLongs(pre0);
-    int flags = extractFlags(pre0);
-    boolean isEmpty = (flags & EMPTY_FLAG_MASK) > 0;
+    final long pre0 = converted.getLong(0);
+    final int preLongs = extractPreLongs(pre0);
+    final int flags = extractFlags(pre0);
+    final boolean isEmpty = (flags & EMPTY_FLAG_MASK) > 0;
 
     if (!isEmpty) {
-      int memCap = (int) converted.getCapacity();
-      int preLongBytes = preLongs << 3;
-      MemoryRegion sketchMem = new MemoryRegion(converted, preLongBytes, memCap - preLongBytes);
+      final int memCap = (int) converted.getCapacity();
+      final int preLongBytes = preLongs << 3;
+      final MemoryRegion sketchMem = new MemoryRegion(converted, preLongBytes, memCap - preLongBytes);
       convertSketch1to2(sketchMem);
     }
 
     return converted;
   }
 
-  private static Memory perform1to2Changes(Memory srcMem) {
-    int memCap = (int) srcMem.getCapacity();
+  private static Memory perform1to2Changes(final Memory srcMem) {
+    final int memCap = (int) srcMem.getCapacity();
 
     Memory converted = srcMem;
     if (srcMem.isReadOnly()) {
-      byte[] data = new byte[memCap];
+      final byte[] data = new byte[memCap];
       srcMem.getByteArray(0, data, 0, memCap);
       converted = new NativeMemory(data);
     }
 
     // get encoded k, decode, write new value
     long pre0 = converted.getLong(0);
-    short encodedK = extractEncodedReservoirSize(pre0);
-    int k = ReservoirSize.decodeValue(encodedK);
+    final short encodedK = extractEncodedReservoirSize(pre0);
+    final int k = ReservoirSize.decodeValue(encodedK);
     pre0 = insertReservoirSize(k, pre0);
 
     // update serialization version

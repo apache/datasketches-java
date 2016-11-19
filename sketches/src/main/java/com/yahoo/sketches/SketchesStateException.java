@@ -23,7 +23,7 @@ public class SketchesStateException extends SketchesException {
    * @param message the detail message. The detail message is saved for later retrieval by the
    * Throwable.getMessage() method.
    */
-  public SketchesStateException(String message) {
+  public SketchesStateException(final String message) {
     super(message);
   }
 }

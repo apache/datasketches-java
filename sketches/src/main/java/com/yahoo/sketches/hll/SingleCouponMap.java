@@ -20,7 +20,7 @@ import com.yahoo.sketches.hash.MurmurHash3;
  * @author Alexander Saydakov
  * @author Kevin Lang
  */
-class SingleCouponMap extends Map {
+final class SingleCouponMap extends Map {
   private static final double RSE = 0.408 / Math.sqrt(1024);
 
   private int tableEntries_;
@@ -254,7 +254,7 @@ class SingleCouponMap extends Map {
     throw new SketchesArgumentException("Key not found and no empty slots!");
   }
 
-  private static final double updateEntrySizeBytes(int tableEntries, int keySizeBytes) {
+  private static final double updateEntrySizeBytes(final int tableEntries, final int keySizeBytes) {
     final double byteFraction = Math.ceil(tableEntries / 8.0) / tableEntries;
     return keySizeBytes + Short.BYTES + byteFraction;
   }

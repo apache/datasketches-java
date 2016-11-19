@@ -225,7 +225,7 @@ final class ItemsUtil {
 
     final int downFactor = sourceK / targetK;
     checkIfPowerOf2(downFactor, "source.getK()/target.getK() ratio");
-    int lgDownFactor = Integer.numberOfTrailingZeros(downFactor);
+    final int lgDownFactor = Integer.numberOfTrailingZeros(downFactor);
 
     final Object[] sourceLevels     = src.getCombinedBuffer(); // aliasing is a bit dangerous
     final Object[] sourceBaseBuffer = src.getCombinedBuffer(); // aliasing is a bit dangerous
@@ -271,11 +271,11 @@ final class ItemsUtil {
   }
 
   private static void zipSize2KBuffer(
-      final Object[] bufA, int startA, // input
-      final Object[] bufC, int startC, // output
+      final Object[] bufA, final int startA, // input
+      final Object[] bufC, final int startC, // output
       final int k) {
-    int randomOffset = ItemsSketch.rand.nextBoolean() ? 1 : 0;
-    int limC = startC + k;
+    final int randomOffset = ItemsSketch.rand.nextBoolean() ? 1 : 0;
+    final int limC = startC + k;
     for (int a = startA + randomOffset, c = startC; c < limC; a += 2, c++) {
       bufC[c] = bufA[a];
     }
@@ -438,8 +438,8 @@ final class ItemsUtil {
 
     assert (grpLen > 0);
     if (grpLen == 1) { return; }
-    int grpLen1 = grpLen / 2;
-    int grpLen2 = grpLen - grpLen1;
+    final int grpLen1 = grpLen / 2;
+    final int grpLen2 = grpLen - grpLen1;
     assert (grpLen1 >= 1);
     assert (grpLen2 >= grpLen1);
 

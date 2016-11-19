@@ -35,7 +35,7 @@ public final class BoundsOnRatiosInSampledSets {
    * When <i>f</i> = 1.0 this returns the estimate.
    * @return the approximate upper bound
    */
-  public static double getLowerBoundForBoverA(long a, long b, double f) {
+  public static double getLowerBoundForBoverA(final long a, final long b, final double f) {
     checkInputs(a, b, f);
     if (a == 0) { return 0.0; }
     if (f == 1.0) { return (double) b / a; }
@@ -49,7 +49,7 @@ public final class BoundsOnRatiosInSampledSets {
    * @param f the inclusion probability used to produce the set with size <i>a</i>.
    * @return the approximate lower bound
    */
-  public static double getUpperBoundForBoverA(long a, long b, double f) {
+  public static double getUpperBoundForBoverA(final long a, final long b, final double f) {
     checkInputs(a, b, f);
     if (a == 0) { return 1.0; }
     if (f == 1.0) { return (double) b / a; }
@@ -62,7 +62,7 @@ public final class BoundsOnRatiosInSampledSets {
    * @param b See class javadoc
    * @return the estimate of b over a
    */
-  public static double getEstimateOfBoverA(long a, long b) {
+  public static double getEstimateOfBoverA(final long a, final long b) {
     checkInputs(a, b, 0.3);
     if (a == 0) { return 0.5; }
     return (double) b / a;
@@ -76,12 +76,12 @@ public final class BoundsOnRatiosInSampledSets {
    * @param f the inclusion probability used to produce the set with size <i>a</i>.
    * @return the hacky Adjuster
    */
-  private static double hackyAdjuster(double f) {
-    double tmp = Math.sqrt(1.0 - f);
+  private static double hackyAdjuster(final double f) {
+    final double tmp = Math.sqrt(1.0 - f);
     return (f <= 0.5) ? tmp : tmp + (0.01 * (f - 0.5));
   }
 
-  static void checkInputs(long a, long b, double f) {
+  static void checkInputs(final long a, final long b, final double f) {
     if ( ( (a - b) | (a) | (b) ) < 0) {  //if any group goes negative
       throw new SketchesArgumentException(
           "a must be >= b and neither a nor b can be < 0: a = " + a + ", b = " + b);
@@ -97,7 +97,7 @@ public final class BoundsOnRatiosInSampledSets {
    * @param f the inclusion probability used to produce the set with size <i>a</i>.
    * @return the approximate lower bound
    */
-  public static double getEstimateOfA(long a, double f) {
+  public static double getEstimateOfA(final long a, final double f) {
     checkInputs(a, 1, f);
     return a / f;
   }
@@ -108,7 +108,7 @@ public final class BoundsOnRatiosInSampledSets {
    * @param f the inclusion probability used to produce the set with size <i>a</i>.
    * @return the approximate lower bound
    */
-  public static double getEstimateOfB(long b, double f) {
+  public static double getEstimateOfB(final long b, final double f) {
     checkInputs(b + 1, b, f);
     return b / f;
   }

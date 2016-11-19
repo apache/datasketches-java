@@ -28,7 +28,7 @@ import com.yahoo.sketches.Util;
  * @author Jon Malkin
  * @author Kevin Lang
  */
-public class ReservoirLongsSketch {
+public final class ReservoirLongsSketch {
 
   /**
    * The smallest sampling array allocated: 16
@@ -306,7 +306,7 @@ public class ReservoirLongsSketch {
       // prob(keep_item) < k / n = reservoirSize_ / itemsSeen_
       // so multiply to get: keep if rand * itemsSeen_ < reservoirSize_
       if (SamplingUtil.rand.nextDouble() * itemsSeen_ < reservoirSize_) {
-        int newSlot = SamplingUtil.rand.nextInt(reservoirSize_);
+        final int newSlot = SamplingUtil.rand.nextInt(reservoirSize_);
         data_[newSlot] = item;
       }
     }

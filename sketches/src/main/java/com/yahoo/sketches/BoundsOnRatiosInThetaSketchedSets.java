@@ -38,13 +38,13 @@ public final class BoundsOnRatiosInThetaSketchedSets {
    * @param sketchB the sketch B
    * @return the approximate lower bound for B over A
    */
-  public static double getLowerBoundForBoverA(Sketch sketchA, Sketch sketchB) {
-    double thetaA = sketchA.getTheta();
-    double thetaB = sketchB.getTheta();
+  public static double getLowerBoundForBoverA(final Sketch sketchA, final Sketch sketchB) {
+    final double thetaA = sketchA.getTheta();
+    final double thetaB = sketchB.getTheta();
     checkThetas(thetaA, thetaB);
 
-    int countB = sketchB.getRetainedEntries(true);
-    int countA = (thetaB == thetaA) ? sketchA.getRetainedEntries(true)
+    final int countB = sketchB.getRetainedEntries(true);
+    final int countA = (thetaB == thetaA) ? sketchA.getRetainedEntries(true)
         : sketchA.getCountLessThanTheta(thetaB);
 
     if (countA <= 0) { return 0; }
@@ -58,13 +58,13 @@ public final class BoundsOnRatiosInThetaSketchedSets {
    * @param sketchB the sketch B
    * @return the approximate upper bound for B over A
    */
-  public static double getUpperBoundForBoverA(Sketch sketchA, Sketch sketchB) {
-    double thetaA = sketchA.getTheta();
-    double thetaB = sketchB.getTheta();
+  public static double getUpperBoundForBoverA(final Sketch sketchA, final Sketch sketchB) {
+    final double thetaA = sketchA.getTheta();
+    final double thetaB = sketchB.getTheta();
     checkThetas(thetaA, thetaB);
 
-    int countB = sketchB.getRetainedEntries(true);
-    int countA = (thetaB == thetaA) ? sketchA.getRetainedEntries(true)
+    final int countB = sketchB.getRetainedEntries(true);
+    final int countA = (thetaB == thetaA) ? sketchA.getRetainedEntries(true)
         : sketchA.getCountLessThanTheta(thetaB);
 
     if (countA <= 0) { return 1.0; }
@@ -78,13 +78,13 @@ public final class BoundsOnRatiosInThetaSketchedSets {
    * @param sketchB the sketch B
    * @return the estimate for B over A
    */
-  public static double getEstimateOfBoverA(Sketch sketchA, Sketch sketchB) {
-    double thetaA = sketchA.getTheta();
-    double thetaB = sketchB.getTheta();
+  public static double getEstimateOfBoverA(final Sketch sketchA, final Sketch sketchB) {
+    final double thetaA = sketchA.getTheta();
+    final double thetaB = sketchB.getTheta();
     checkThetas(thetaA, thetaB);
 
-    int countB = sketchB.getRetainedEntries(true);
-    int countA = (thetaB == thetaA) ? sketchA.getRetainedEntries(true)
+    final int countB = sketchB.getRetainedEntries(true);
+    final int countA = (thetaB == thetaA) ? sketchA.getRetainedEntries(true)
         : sketchA.getCountLessThanTheta(thetaB);
 
     if (countA <= 0) { return 0.5; }
@@ -92,7 +92,7 @@ public final class BoundsOnRatiosInThetaSketchedSets {
     return (double) countB / (double) countA;
   }
 
-  static void checkThetas(double thetaA, double thetaB) {
+  static void checkThetas(final double thetaA, final double thetaB) {
     if (thetaB > thetaA) {
       throw new SketchesArgumentException("ThetaB cannot be > ThetaA.");
     }

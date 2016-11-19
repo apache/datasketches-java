@@ -81,7 +81,7 @@ final class HeapDoublesUnion extends DoublesUnion {
   }
 
   @Override
-  public String toString(boolean sketchSummary, boolean dataDetail) {
+  public String toString(final boolean sketchSummary, final boolean dataDetail) {
     if (gadget_ == null) {
       return HeapDoublesSketch.newInstance(k_).toString();
     }

@@ -40,8 +40,8 @@ public final class MurmurHash3Adaptor {
    * @param seed A long valued seed.
    * @return The 128-bit hash as a byte[16] in Big Endian order from 2 64-bit longs.
    */
-  public static byte[] hashToBytes(long datum, long seed) {
-    long[] data = { datum };
+  public static byte[] hashToBytes(final long datum, final long seed) {
+    final long[] data = { datum };
     return toByteArray(hash(data, seed));
   }
 
@@ -52,7 +52,7 @@ public final class MurmurHash3Adaptor {
    * @param seed A long valued seed.
    * @return The 128-bit hash as a byte[16] in Big Endian order from 2 64-bit longs.
    */
-  public static byte[] hashToBytes(long[] data, long seed) {
+  public static byte[] hashToBytes(final long[] data, final long seed) {
     if ((data == null) || (data.length == 0)) {
       return null;
     }
@@ -66,7 +66,7 @@ public final class MurmurHash3Adaptor {
    * @param seed A long valued seed.
    * @return The 128-bit hash as a byte[16] in Big Endian order from 2 64-bit longs.
    */
-  public static byte[] hashToBytes(int[] data, long seed) {
+  public static byte[] hashToBytes(final int[] data, final long seed) {
     if ((data == null) || (data.length == 0)) {
       return null;
     }
@@ -80,7 +80,7 @@ public final class MurmurHash3Adaptor {
    * @param seed A long valued seed.
    * @return The 128-bit hash as a byte[16] in Big Endian order from 2 64-bit longs.
    */
-  public static byte[] hashToBytes(char[] data, long seed) {
+  public static byte[] hashToBytes(final char[] data, final long seed) {
     if ((data == null) || (data.length == 0)) {
       return null;
     }
@@ -94,7 +94,7 @@ public final class MurmurHash3Adaptor {
    * @param seed A long valued seed.
    * @return The 128-bit hash as a byte[16] in Big Endian order from 2 64-bit longs.
    */
-  public static byte[] hashToBytes(byte[] data, long seed) {
+  public static byte[] hashToBytes(final byte[] data, final long seed) {
     if ((data == null) || (data.length == 0)) {
       return null;
     }
@@ -108,9 +108,9 @@ public final class MurmurHash3Adaptor {
    * @param seed A long valued seed.
    * @return The 128-bit hash as a byte[16] in Big Endian order from 2 64-bit longs.
    */
-  public static byte[] hashToBytes(double datum, long seed) {
-    double d = (datum == 0.0) ? 0.0 : datum; //canonicalize -0.0, 0.0
-    long[] data = { Double.doubleToLongBits(d) }; //canonicalize all NaN forms
+  public static byte[] hashToBytes(final double datum, final long seed) {
+    final double d = (datum == 0.0) ? 0.0 : datum; //canonicalize -0.0, 0.0
+    final long[] data = { Double.doubleToLongBits(d) }; //canonicalize all NaN forms
     return toByteArray(hash(data, seed));
   }
 
@@ -121,11 +121,11 @@ public final class MurmurHash3Adaptor {
    * @param seed A long valued seed.
    * @return The 128-bit hash as a byte[16] in Big Endian order from 2 64-bit longs.
    */
-  public static byte[] hashToBytes(String datum, long seed) {
+  public static byte[] hashToBytes(final String datum, final long seed) {
     if ((datum == null) || datum.isEmpty()) {
       return null;
     }
-    byte[] data = datum.getBytes(UTF_8);
+    final byte[] data = datum.getBytes(UTF_8);
     return toByteArray(hash(data, seed));
   }
 
@@ -136,8 +136,8 @@ public final class MurmurHash3Adaptor {
    * @param seed A long valued seed.
    * @return The 128-bit hash as a long[2].
    */
-  public static long[] hashToLongs(long datum, long seed) {
-    long[] data = { datum };
+  public static long[] hashToLongs(final long datum, final long seed) {
+    final long[] data = { datum };
     return hash(data, seed);
   }
 
@@ -148,7 +148,7 @@ public final class MurmurHash3Adaptor {
    * @param seed A long valued seed.
    * @return The 128-bit hash as a long[2].
    */
-  public static long[] hashToLongs(long[] data, long seed) {
+  public static long[] hashToLongs(final long[] data, final long seed) {
     if ((data == null) || (data.length == 0)) {
       return null;
     }
@@ -162,7 +162,7 @@ public final class MurmurHash3Adaptor {
    * @param seed A long valued seed.
    * @return The 128-bit hash as a long[2].
    */
-  public static long[] hashToLongs(int[] data, long seed) {
+  public static long[] hashToLongs(final int[] data, final long seed) {
     if ((data == null) || (data.length == 0)) {
       return null;
     }
@@ -176,7 +176,7 @@ public final class MurmurHash3Adaptor {
    * @param seed A long valued seed.
    * @return The 128-bit hash as a long[2].
    */
-  public static long[] hashToLongs(char[] data, long seed) {
+  public static long[] hashToLongs(final char[] data, final long seed) {
     if ((data == null) || (data.length == 0)) {
       return null;
     }
@@ -190,7 +190,7 @@ public final class MurmurHash3Adaptor {
    * @param seed A long valued seed.
    * @return The 128-bit hash as a long[2].
    */
-  public static long[] hashToLongs(byte[] data, long seed) {
+  public static long[] hashToLongs(final byte[] data, final long seed) {
     if ((data == null) || (data.length == 0)) {
       return null;
     }
@@ -204,9 +204,9 @@ public final class MurmurHash3Adaptor {
    * @param seed A long valued seed.
    * @return The 128-bit hash as a long[2].
    */
-  public static long[] hashToLongs(double datum, long seed) {
-    double d = (datum == 0.0) ? 0.0 : datum; //canonicalize -0.0, 0.0
-    long[] data = { Double.doubleToLongBits(d) };//canonicalize all NaN forms
+  public static long[] hashToLongs(final double datum, final long seed) {
+    final double d = (datum == 0.0) ? 0.0 : datum; //canonicalize -0.0, 0.0
+    final long[] data = { Double.doubleToLongBits(d) };//canonicalize all NaN forms
     return hash(data, seed);
   }
 
@@ -217,11 +217,11 @@ public final class MurmurHash3Adaptor {
    * @param seed A long valued seed.
    * @return The 128-bit hash as a long[2].
    */
-  public static long[] hashToLongs(String datum, long seed) {
+  public static long[] hashToLongs(final String datum, final long seed) {
     if ((datum == null) || datum.isEmpty()) {
       return null;
     }
-    byte[] data = datum.getBytes(UTF_8);
+    final byte[] data = datum.getBytes(UTF_8);
     return hash(data, seed);
   }
 
@@ -234,7 +234,7 @@ public final class MurmurHash3Adaptor {
    * @param n The upper exclusive bound of the integers produced. Must be &gt; 1.
    * @return deterministic uniform random integer
    */
-  public static int asInt(long[] data, int n) {
+  public static int asInt(final long[] data, final int n) {
     if ((data == null) || (data.length == 0)) {
       throw new SketchesArgumentException("Input is null or empty.");
     }
@@ -248,7 +248,7 @@ public final class MurmurHash3Adaptor {
    * @param n The upper exclusive bound of the integers produced. Must be &gt; 1.
    * @return deterministic uniform random integer
    */
-  public static int asInt(int[] data, int n) {
+  public static int asInt(final int[] data, final int n) {
     if ((data == null) || (data.length == 0)) {
       throw new SketchesArgumentException("Input is null or empty.");
     }
@@ -262,7 +262,7 @@ public final class MurmurHash3Adaptor {
    * @param n The upper exclusive bound of the integers produced. Must be &gt; 1.
    * @return deterministic uniform random integer.
    */
-  public static int asInt(byte[] data, int n) {
+  public static int asInt(final byte[] data, final int n) {
     if ((data == null) || (data.length == 0)) {
       throw new SketchesArgumentException("Input is null or empty.");
     }
@@ -276,8 +276,8 @@ public final class MurmurHash3Adaptor {
    * @param n The upper exclusive bound of the integers produced. Must be &gt; 1.
    * @return deterministic uniform random integer
    */
-  public static int asInt(long datum, int n) {
-    long[] data = { datum };
+  public static int asInt(final long datum, final int n) {
+    final long[] data = { datum };
     return asInteger(data, n); //data is long[]
   }
 
@@ -288,9 +288,9 @@ public final class MurmurHash3Adaptor {
    * @param n The upper exclusive bound of the integers produced. Must be &gt; 1.
    * @return deterministic uniform random integer
    */
-  public static int asInt(double datum, int n) {
-    double d = (datum == 0.0) ? 0.0 : datum; //canonicalize -0.0, 0.0
-    long[] data = { Double.doubleToLongBits(d) };//canonicalize all NaN forms
+  public static int asInt(final double datum, final int n) {
+    final double d = (datum == 0.0) ? 0.0 : datum; //canonicalize -0.0, 0.0
+    final long[] data = { Double.doubleToLongBits(d) };//canonicalize all NaN forms
     return asInteger(data, n); //data is long[]
   }
 
@@ -301,11 +301,11 @@ public final class MurmurHash3Adaptor {
    * @param n The upper exclusive bound of the integers produced. Must be &gt; 1.
    * @return deterministic uniform random integer
    */
-  public static int asInt(String datum, int n) {
+  public static int asInt(final String datum, final int n) {
     if ((datum == null) || datum.isEmpty()) {
       throw new SketchesArgumentException("Input is null or empty.");
     }
-    byte[] data = datum.getBytes(UTF_8);
+    final byte[] data = datum.getBytes(UTF_8);
     return asInteger(toLongArray(data), n); //data is byte[]
   }
 
@@ -322,7 +322,7 @@ public final class MurmurHash3Adaptor {
    * @param n The upper exclusive bound of the integers produced. Must be &gt; 1.
    * @return deterministic uniform random integer
    */
-  private static int asInteger(long[] data, int n) {
+  private static int asInteger(final long[] data, final int n) {
     int t;
     int cnt = 0;
     long seed = 0;
@@ -331,7 +331,7 @@ public final class MurmurHash3Adaptor {
     }
     if (n > (1 << 30)) {
       while (++cnt < 10000) {
-        long[] h = MurmurHash3.hash(data, seed);
+        final long[] h = MurmurHash3.hash(data, seed);
         t = (int) (h[0] & INT_MASK);
         if (t < n) {
           return t;
@@ -353,9 +353,9 @@ public final class MurmurHash3Adaptor {
       throw new SketchesStateException(
           "Internal Error: Failed to find integer &lt; n within 10000 iterations.");
     }
-    long mask = ceilingPowerOf2(n) - 1;
+    final long mask = ceilingPowerOf2(n) - 1;
     while (++cnt < 10000) {
-      long[] h = MurmurHash3.hash(data, seed);
+      final long[] h = MurmurHash3.hash(data, seed);
       t = (int) (h[0] & mask);
       if (t < n) {
         return t;
@@ -390,7 +390,7 @@ public final class MurmurHash3Adaptor {
    * @param hash The output of the MurmurHash3.
    * @return the uniform random double.
    */
-  public static double asDouble(long[] hash) {
+  public static double asDouble(final long[] hash) {
     return (hash[0] >>> 12) * 0x1.0p-52d;
   }
 
@@ -403,11 +403,11 @@ public final class MurmurHash3Adaptor {
    * @param divisor Must be positive and greater than zero.
    * @return the modulo result.
    */
-  public static int modulo(long h0, long h1, int divisor) {
-    long d = divisor;
-    long modH0 = (h0 < 0L) ? addRule(mulRule(BIT62, 2L, d), (h0 & MAX_LONG), d) : h0 % d;
-    long modH1 = (h1 < 0L) ? addRule(mulRule(BIT62, 2L, d), (h1 & MAX_LONG), d) : h1 % d;
-    long modTop = mulRule(mulRule(BIT62, 4L, d), modH1, d);
+  public static int modulo(final long h0, final long h1, final int divisor) {
+    final long d = divisor;
+    final long modH0 = (h0 < 0L) ? addRule(mulRule(BIT62, 2L, d), (h0 & MAX_LONG), d) : h0 % d;
+    final long modH1 = (h1 < 0L) ? addRule(mulRule(BIT62, 2L, d), (h1 & MAX_LONG), d) : h1 % d;
+    final long modTop = mulRule(mulRule(BIT62, 4L, d), modH1, d);
     return (int) addRule(modTop, modH0, d);
   }
 
@@ -419,43 +419,43 @@ public final class MurmurHash3Adaptor {
    * @param divisor Must be positive and greater than zero.
    * @return the modulo result
    */
-  public static int modulo(long[] hash, int divisor) {
+  public static int modulo(final long[] hash, final int divisor) {
     return modulo(hash[0], hash[1], divisor);
   }
 
-  private static long addRule(long a, long b, long d) {
+  private static long addRule(final long a, final long b, final long d) {
     return ((a % d) + (b % d)) % d;
   }
 
-  private static long mulRule(long a, long b, long d) {
+  private static long mulRule(final long a, final long b, final long d) {
     return ((a % d) * (b % d)) % d;
   }
 
-  private static byte[] toByteArray(long[] hash) { //Assumes Big Endian
-    byte[] bArr = new byte[16];
-    ByteBuffer bb = ByteBuffer.wrap(bArr);
+  private static byte[] toByteArray(final long[] hash) { //Assumes Big Endian
+    final byte[] bArr = new byte[16];
+    final ByteBuffer bb = ByteBuffer.wrap(bArr);
     bb.putLong(hash[0]);
     bb.putLong(hash[1]);
     return bArr;
   }
 
-  private static long[] toLongArray(byte[] data) {
-    int dataLen = data.length;
-    int longLen = (dataLen + 7) / 8;
-    long[] longArr = new long[longLen];
+  private static long[] toLongArray(final byte[] data) {
+    final int dataLen = data.length;
+    final int longLen = (dataLen + 7) / 8;
+    final long[] longArr = new long[longLen];
     for (int bi = 0; bi < dataLen; bi++) {
-      int li = bi / 8;
+      final int li = bi / 8;
       longArr[li] |= (((long)data[bi]) << (bi * 8) % 64);
     }
     return longArr;
   }
 
-  private static long[] toLongArray(int[] data) {
-    int dataLen = data.length;
-    int longLen = (dataLen + 1) / 2;
-    long[] longArr = new long[longLen];
+  private static long[] toLongArray(final int[] data) {
+    final int dataLen = data.length;
+    final int longLen = (dataLen + 1) / 2;
+    final long[] longArr = new long[longLen];
     for (int ii = 0; ii < dataLen; ii++) {
-      int li = ii / 2;
+      final int li = ii / 2;
       longArr[li] |= (((long)data[ii]) << (ii * 32) % 64);
     }
     return longArr;
@@ -476,9 +476,9 @@ public final class MurmurHash3Adaptor {
    * @param n The input argument.
    * @return the ceiling power of 2.
    */
-  private static int ceilingPowerOf2(int n) {
+  private static int ceilingPowerOf2(final int n) {
     if (n <= 1) { return 1; }
-    int topPwrOf2 = 1 << 30;
+    final int topPwrOf2 = 1 << 30;
     return (n >= topPwrOf2) ? topPwrOf2 : Integer.highestOneBit((n - 1) << 1);
   }
 

@@ -26,7 +26,7 @@ import com.yahoo.sketches.hash.MurmurHash3;
  * @author Alexander Saydakov
  * @author Kevin Lang
  */
-class CouponHashMap extends Map {
+final class CouponHashMap extends Map {
   private static final double INNER_LOAD_FACTOR = 0.75;
   private static final byte DELETED_KEY_MARKER = (byte) 255;
   private static final int BYTE_MASK = 0XFF;
@@ -76,7 +76,7 @@ class CouponHashMap extends Map {
 
   @Override
   double update(final byte[] key, final short coupon) {
-    int entryIndex = findOrInsertKey(key);
+    final int entryIndex = findOrInsertKey(key);
     return update(entryIndex, coupon); //negative when time to promote
   }
 
@@ -113,12 +113,12 @@ class CouponHashMap extends Map {
   }
 
   @Override
-  double getUpperBound(byte[] key) {
+  double getUpperBound(final byte[] key) {
     return getEstimate(key) * (1 + RSE);
   }
 
   @Override
-  double getLowerBound(byte[] key) {
+  double getLowerBound(final byte[] key) {
     return getEstimate(key) * (1 - RSE);
   }
 

@@ -145,7 +145,7 @@ public interface Fields {
   UpdateCallback NOOP_CB = new UpdateCallback() {
 
     @Override
-    public void bucketUpdated(int bucket, byte oldVal, byte newVal) {
+    public void bucketUpdated(final int bucket, final byte oldVal, final byte newVal) {
       //intentionally empty
     }
   };

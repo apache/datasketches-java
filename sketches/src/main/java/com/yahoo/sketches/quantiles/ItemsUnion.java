@@ -24,7 +24,8 @@ public final class ItemsUnion<T> {
   protected final Comparator<? super T> comparator_;
   protected ItemsSketch<T> gadget_;
 
-  private ItemsUnion(final int k, final Comparator<? super T> comparator, ItemsSketch<T> gadget) {
+  private ItemsUnion(final int k, final Comparator<? super T> comparator,
+      final ItemsSketch<T> gadget) {
     k_ = k;
     comparator_ = comparator;
     gadget_ = gadget;

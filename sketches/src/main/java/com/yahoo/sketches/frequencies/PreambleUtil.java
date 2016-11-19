@@ -241,7 +241,7 @@ final class PreambleUtil {
    * @param mem the given Memory
    * @return the first 8 bytes of preamble as a long.
    */
-  static long checkPreambleSize(Memory mem) {
+  static long checkPreambleSize(final Memory mem) {
     final long cap = mem.getCapacity();
     if (cap < 8) { throwNotBigEnough(cap, 8); }
     final long pre0 = mem.getLong(0);
@@ -251,7 +251,7 @@ final class PreambleUtil {
     return pre0;
   }
 
-  private static void throwNotBigEnough(long cap, int required) {
+  private static void throwNotBigEnough(final long cap, final int required) {
     throw new SketchesArgumentException(
         "Possible Corruption: "
             + "Size of byte array or Memory not large enough for Preamble: Size: " + cap

@@ -15,21 +15,22 @@ import java.util.Arrays;
  */
 class DoublesPmfCdfImpl {
 
-  static double[] getPMFOrCDF(DoublesSketch sketch, double[] splitPoints, boolean isCDF) {
-    long[] counters = internalBuildHistogram(sketch, splitPoints);
-    int numCounters = counters.length;
-    double[] result = new double[numCounters];
-    double n = sketch.getN();
+  static double[] getPMFOrCDF(final DoublesSketch sketch, final double[] splitPoints,
+      final boolean isCDF) {
+    final long[] counters = internalBuildHistogram(sketch, splitPoints);
+    final int numCounters = counters.length;
+    final double[] result = new double[numCounters];
+    final double n = sketch.getN();
     long subtotal = 0;
     if (isCDF) {
       for (int j = 0; j < numCounters; j++) {
-        long count = counters[j];
+        final long count = counters[j];
         subtotal += count;
         result[j] = subtotal / n; //normalize by n
       }
     } else { // PMF
       for (int j = 0; j < numCounters; j++) {
-        long count = counters[j];
+        final long count = counters[j];
         subtotal += count;
         result[j] = count / n; //normalize by n
       }

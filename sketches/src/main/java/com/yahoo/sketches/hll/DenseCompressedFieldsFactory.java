@@ -11,7 +11,7 @@ package com.yahoo.sketches.hll;
 final class DenseCompressedFieldsFactory implements FieldsFactory {
 
   @Override
-  public Fields make(Preamble preamble) {
+  public Fields make(final Preamble preamble) {
     return new OnHeapCompressedFields(preamble);
   }
 }

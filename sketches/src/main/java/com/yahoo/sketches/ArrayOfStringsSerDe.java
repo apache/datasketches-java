@@ -25,7 +25,7 @@ public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
   @Override
   public byte[] serializeToByteArray(final String[] items) {
     int length = 0;
-    byte[][] itemsBytes = new byte[items.length][];
+    final byte[][] itemsBytes = new byte[items.length][];
     for (int i = 0; i < items.length; i++) {
       itemsBytes[i] = items[i].getBytes(StandardCharsets.UTF_8);
       length += itemsBytes[i].length + Integer.BYTES;

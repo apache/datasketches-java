@@ -27,7 +27,7 @@ import com.yahoo.sketches.hash.MurmurHash3;
  * @author KevinLang
  * @author Alexander Saydakov
  */
-class HllMap extends Map {
+final class HllMap extends Map {
   private static final double LOAD_FACTOR = 15.0 / 16.0;
   private static final int HLL_INIT_NUM_ENTRIES = 157;
   private static final float HLL_RESIZE_FACTOR = 2.0F;
@@ -102,12 +102,12 @@ class HllMap extends Map {
   }
 
   @Override
-  double getUpperBound(byte[] key) {
+  double getUpperBound(final byte[] key) {
     return getEstimate(key) * (1 + RSE);
   }
 
   @Override
-  double getLowerBound(byte[] key) {
+  double getLowerBound(final byte[] key) {
     return getEstimate(key) * (1 - RSE);
   }
 
@@ -320,8 +320,8 @@ class HllMap extends Map {
     stateArr_ = newStateArr;
   }
 
-  private static final double updateEntrySizeBytes(int tableEntries, int keySizeBytes,
-      int hllArrLongs) {
+  private static final double updateEntrySizeBytes(final int tableEntries, final int keySizeBytes,
+      final int hllArrLongs) {
     final double byteFraction = Math.ceil(tableEntries / 8.0) / tableEntries;
     return keySizeBytes + hllArrLongs * Long.BYTES + 3 * Double.BYTES + byteFraction;
   }

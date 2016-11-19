@@ -30,19 +30,21 @@ public final class BinomialBoundsN {
 
   // our "classic" bounds, but now with continuity correction
 
-  private static double contClassicLB(double numSamplesF, double theta, double numSDev) {
-    double nHat = (numSamplesF - 0.5) / theta;
-    double b = numSDev * Math.sqrt((1.0 - theta) / theta);
-    double d  = 0.5 * b * Math.sqrt(b * b + 4.0 * nHat);
-    double center = nHat + 0.5 * (b * b);
+  private static double contClassicLB(final double numSamplesF, final double theta,
+      final double numSDev) {
+    final double nHat = (numSamplesF - 0.5) / theta;
+    final double b = numSDev * Math.sqrt((1.0 - theta) / theta);
+    final double d  = 0.5 * b * Math.sqrt(b * b + 4.0 * nHat);
+    final double center = nHat + 0.5 * (b * b);
     return (center - d);
   }
 
-  private static double contClassicUB(double numSamplesF, double theta, double numSDev) {
-    double nHat = (numSamplesF + 0.5) / theta;
-    double b   = numSDev * Math.sqrt((1.0 - theta) / theta);
-    double d  = 0.5 * b * Math.sqrt(b * b + 4.0 * nHat);
-    double center = nHat + 0.5 * (b * b);
+  private static double contClassicUB(final double numSamplesF, final double theta,
+      final double numSDev) {
+    final double nHat = (numSamplesF + 0.5) / theta;
+    final double b   = numSDev * Math.sqrt((1.0 - theta) / theta);
+    final double d  = 0.5 * b * Math.sqrt(b * b + 4.0 * nHat);
+    final double center = nHat + 0.5 * (b * b);
     return (center + d);
   }
 
@@ -56,8 +58,9 @@ public final class BinomialBoundsN {
   // problem were fixed, the running time of this procedure is essentially linear
   // in est = (numSamples / p), and that can be Very, Very Big.
 
-  private static long specialNStar(long numSamplesI, double p, double delta) {
-    double q, tot, numSamplesF, curTerm;
+  private static long specialNStar(final long numSamplesI, final double p, final double delta) {
+    final double q, numSamplesF;
+    double tot, curTerm;
     long m;
     assertTrue(numSamplesI >= 1);
     assertTrue(0.0 < p && p < 1.0);
@@ -81,8 +84,9 @@ public final class BinomialBoundsN {
 
   //  The following procedure has very limited applicability.
   //  The above remarks about specialNStar() also apply here.
-  private static long specialNPrimeB(long numSamplesI, double p, double delta) {
-    double q, tot, numSamplesF, curTerm, oneMinusDelta;
+  private static long specialNPrimeB(final long numSamplesI, final double p, final double delta) {
+    final double q, numSamplesF, oneMinusDelta;
+    double tot, curTerm;
     long m;
     assertTrue(numSamplesI >= 1);
     assertTrue(0.0 < p && p < 1.0);
@@ -102,7 +106,7 @@ public final class BinomialBoundsN {
     return (m); // don't need to back up
   }
 
-  private static long specialNPrimeF(long numSamplesI, double p, double delta) {
+  private static long specialNPrimeF(final long numSamplesI, final double p, final double delta) {
     // Use a different algorithm if the following isn't true; this one will be too slow, or worse.
     assertTrue((((double) numSamplesI) / p) < 500.0); //A super-small delta could also make it slow.
     return (specialNPrimeB(numSamplesI + 1, p, delta));
@@ -110,7 +114,8 @@ public final class BinomialBoundsN {
 
   // The following computes an approximation to the lower bound of
   // a Frequentist confidence interval based on the tails of the Binomial distribtuion.
-  private static double computeApproxBinoLB(long numSamplesI, double theta, int numSDev) {
+  private static double computeApproxBinoLB(final long numSamplesI, final double theta,
+      final int numSDev) {
     if (theta == 1.0) {
       return ((double) numSamplesI);
     }
@@ -120,14 +125,14 @@ public final class BinomialBoundsN {
     }
 
     else if (numSamplesI == 1) {
-      double delta = deltaOfNumSDev[numSDev];
-      double rawLB = (Math.log(1.0 - delta)) / (Math.log(1.0 - theta));
+      final double delta = deltaOfNumSDev[numSDev];
+      final double rawLB = (Math.log(1.0 - delta)) / (Math.log(1.0 - theta));
       return (Math.floor(rawLB)); // round down
     }
 
     else if (numSamplesI > 120) {
       // plenty of samples, so gaussian approximation to binomial distribution isn't too bad
-      double rawLB = contClassicLB((double) numSamplesI, theta, (double) numSDev);
+      final double rawLB = contClassicLB( (double)numSamplesI, theta, (double)numSDev);
       return (rawLB - 0.5); // fake round down
     }
 
@@ -139,8 +144,8 @@ public final class BinomialBoundsN {
 
     else if (theta < ((double) numSamplesI) / 360.0) {  // empirically-determined threshold
       // here we use the gaussian approximation, but with a modified "numSDev"
-      int index;
-      double rawLB;
+      final int index;
+      final double rawLB;
       index = 3 * ((int) numSamplesI) + (numSDev - 1);
       rawLB = contClassicLB((double) numSamplesI, theta, EquivTables.getLB(index));
       return (rawLB - 0.5); // fake round down
@@ -148,28 +153,29 @@ public final class BinomialBoundsN {
 
     else { // This is the most difficult range to approximate; we will compute an "exact" LB.
       // We know that est <= 360, so specialNStar() shouldn't be ridiculously slow.
-      double delta = deltaOfNumSDev[numSDev];
-      long nstar = specialNStar(numSamplesI, theta, delta);
+      final double delta = deltaOfNumSDev[numSDev];
+      final long nstar = specialNStar(numSamplesI, theta, delta);
       return ((double) nstar); // don't need to round
     }
   }
 
   // The following computes an approximation to the upper bound of
   // a Frequentist confidence interval based on the tails of the Binomial distribution.
-  private static double computeApproxBinoUB(long numSamplesI, double theta, int numSDev) {
+  private static double computeApproxBinoUB(final long numSamplesI, final double theta,
+      final int numSDev) {
     if (theta == 1.0) {
-      return ((double) numSamplesI);
+      return ((double)numSamplesI);
     }
 
     else if (numSamplesI == 0) {
-      double delta = deltaOfNumSDev[numSDev];
-      double rawUB = (Math.log(delta)) / (Math.log(1.0 - theta));
+      final double delta = deltaOfNumSDev[numSDev];
+      final double rawUB = (Math.log(delta)) / (Math.log(1.0 - theta));
       return (Math.ceil(rawUB)); // round up
     }
 
     else if (numSamplesI > 120) {
       // plenty of samples, so gaussian approximation to binomial distribution isn't too bad
-      double rawUB = contClassicUB((double) numSamplesI, theta, (double) numSDev);
+      final double rawUB = contClassicUB((double) numSamplesI, theta, (double) numSDev);
       return (rawUB + 0.5); // fake round up
     }
 
@@ -181,8 +187,8 @@ public final class BinomialBoundsN {
 
     else if (theta < ((double) numSamplesI) / 360.0) {  // empirically-determined threshold
       // here we use the gaussian approximation, but with a modified "numSDev"
-      int index;
-      double rawUB;
+      final int index;
+      final double rawUB;
       index = 3 * ((int) numSamplesI) + (numSDev - 1);
       rawUB = contClassicUB((double) numSamplesI, theta, EquivTables.getUB(index));
       return (rawUB + 0.5); // fake round up
@@ -190,8 +196,8 @@ public final class BinomialBoundsN {
 
     else { // This is the most difficult range to approximate; we will compute an "exact" UB.
       // We know that est <= 360, so specialNPrimeF() shouldn't be ridiculously slow.
-      double delta = deltaOfNumSDev[numSDev];
-      long nprimef = specialNPrimeF(numSamplesI, theta, delta);
+      final double delta = deltaOfNumSDev[numSDev];
+      final long nprimef = specialNPrimeF(numSamplesI, theta, delta);
       return ((double) nprimef); // don't need to round
     }
   }
@@ -210,14 +216,14 @@ public final class BinomialBoundsN {
    * still exist.
    * @return the approximate upper bound value
    */
-  public static double getLowerBound(long numSamples, double theta, int numSDev,
-      boolean noDataSeen) {
+  public static double getLowerBound(final long numSamples, final double theta, final int numSDev,
+      final boolean noDataSeen) {
     //in earlier code numSamples was called numSamplesI
     if (noDataSeen) { return 0.0; }
     checkArgs(numSamples, theta, numSDev);
-    double lb = computeApproxBinoLB(numSamples, theta, numSDev);
-    double numSamplesF = (double) numSamples;
-    double est = numSamplesF / theta;
+    final double lb = computeApproxBinoLB(numSamples, theta, numSDev);
+    final double numSamplesF = (double) numSamples;
+    final double est = numSamplesF / theta;
     return (Math.min(est, Math.max(numSamplesF, lb)));
   }
 
@@ -233,19 +239,19 @@ public final class BinomialBoundsN {
    * still exist.
    * @return the approximate upper bound value
    */
-  public static double getUpperBound(long numSamples, double theta, int numSDev,
-      boolean noDataSeen) {
+  public static double getUpperBound(final long numSamples, final double theta, final int numSDev,
+      final boolean noDataSeen) {
     //in earlier code numSamples was called numSamplesI
     if (noDataSeen) { return 0.0; }
     checkArgs(numSamples, theta, numSDev);
-    double ub = computeApproxBinoUB(numSamples, theta, numSDev);
-    double numSamplesF = (double) numSamples;
-    double est = numSamplesF / theta;
+    final double ub = computeApproxBinoUB(numSamples, theta, numSDev);
+    final double numSamplesF = (double) numSamples;
+    final double est = numSamplesF / theta;
     return (Math.max(est, ub));
   }
 
   //exposed only for test
-  static final void checkArgs(long numSamples, double theta, int numSDev) {
+  static final void checkArgs(final long numSamples, final double theta, final int numSDev) {
     if ((numSDev | (numSDev - 1) | (3 - numSDev) | numSamples) < 0) {
       throw new SketchesArgumentException(
           "numSDev must only be 1,2, or 3 and numSamples must >= 0: numSDev="

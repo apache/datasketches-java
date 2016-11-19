@@ -34,7 +34,7 @@ public final class HashOperations {
     int cnt = 0;
     final int len = 1 << lgArrLongs;
     for (int i = len; i-- > 0;) {
-      long hash = srcArr[i];
+      final long hash = srcArr[i];
       if (continueCondition(thetaLong, hash) ) {
         continue;
       }
@@ -49,11 +49,11 @@ public final class HashOperations {
    * @param thetaLong <a href="{@docRoot}/resources/dictionary.html#thetaLong">See Theta Long</a>
    * @return the cardinality
    */
-  public static int count(long[] srcArr, long thetaLong) {
+  public static int count(final long[] srcArr, final long thetaLong) {
     int cnt = 0;
-    int len = srcArr.length;
+    final int len = srcArr.length;
     for (int i = len; i-- > 0;) {
-      long hash = srcArr[i];
+      final long hash = srcArr[i];
       if (continueCondition(thetaLong, hash) ) {
         continue;
       }

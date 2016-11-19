@@ -96,7 +96,7 @@
     </module>
     
     <module name="FinalLocalVariable">
-      <property name="severity" value="ignore"/>
+      <property name="severity" value="warning"/>
       <property name="tokens" value="VARIABLE_DEF,PARAMETER_DEF"/>
     </module>
     
@@ -141,6 +141,9 @@
     
     <!-- Class Design -->
     <module name="OneTopLevelClass"/>
+    
+    <module name="FinalClass"/>
+    
     
     <!-- Imports -->
     <module name="AvoidStarImport"/>

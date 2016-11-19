@@ -68,7 +68,7 @@ final class ItemsAuxiliary<T> {
     assert 0.0 <= phi;
     assert phi <= 1.0;
     if (auxN_ <= 0) { return null; }
-    long pos = posOfPhi(phi, auxN_);
+    final long pos = posOfPhi(phi, auxN_);
     return (approximatelyAnswerPositionalQuery(pos));
   }
 
@@ -94,7 +94,7 @@ final class ItemsAuxiliary<T> {
     for (int lvl = 0; bits != 0L; lvl++, bits >>>= 1) {
       weight *= 2;
       if ((bits & 1L) > 0L) {
-        int offset = (2 + lvl) * k;
+        final int offset = (2 + lvl) * k;
         for (int i = 0; i < k; i++) {
           itemsArr[nxt] = combinedBuffer[i + offset];
           cumWtsArr[nxt] = weight;
@@ -104,7 +104,7 @@ final class ItemsAuxiliary<T> {
     }
 
     weight = 1; // NOT a mistake! We just copied the highest level; now we need to copy the base buffer
-    int startOfBaseBufferBlock = nxt;
+    final int startOfBaseBufferBlock = nxt;
 
     // Copy BaseBuffer over, along with weight = 1
     for (int i = 0; i < baseBufferCount; i++) {
@@ -143,7 +143,7 @@ final class ItemsAuxiliary<T> {
     if (l + 1 == r) {
       return l;
     } else {
-      int m = l + (r - l) / 2;
+      final int m = l + (r - l) / 2;
       if (arr[m] <= q) {
         return (searchForChunkContainingPos(arr, q, m, r));
       }
@@ -157,10 +157,10 @@ final class ItemsAuxiliary<T> {
   private static int chunkContainingPos(final long[] arr, final long q) {
     final int nominalLength = arr.length - 1; // remember, arr contains an "extra" position
     assert nominalLength > 0;
-    long n = arr[nominalLength];
+    final long n = arr[nominalLength];
     assert 0 <= q;
     assert q < n;
-    int l = 0;
+    final int l = 0;
     final int r = nominalLength;
     /* the following three asserts should probably be retained since they ensure
        that the necessary invariants hold at the beginning of the search */

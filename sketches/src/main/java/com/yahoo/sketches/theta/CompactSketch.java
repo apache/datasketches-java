@@ -40,7 +40,7 @@ public abstract class CompactSketch extends Sketch {
   private final int curCount_;
   private final long thetaLong_;
 
-  CompactSketch(boolean empty, short seedHash, int curCount, long thetaLong) {
+  CompactSketch(final boolean empty, final short seedHash, final int curCount, final long thetaLong) {
     empty_ = empty;
     seedHash_ = seedHash;
     curCount_ = curCount;
@@ -50,7 +50,7 @@ public abstract class CompactSketch extends Sketch {
   //Sketch
 
   @Override
-  public int getRetainedEntries(boolean valid) {
+  public int getRetainedEntries(final boolean valid) {
     return curCount_;
   }
 
@@ -100,15 +100,15 @@ public abstract class CompactSketch extends Sketch {
    * @return the compacted array
    */
   static final long[] compactCache(
-      final long[] srcCache, int curCount, long thetaLong, boolean dstOrdered) {
+      final long[] srcCache, final int curCount, final long thetaLong, final boolean dstOrdered) {
     if (curCount == 0) {
       return new long[0];
     }
-    long[] cacheOut = new long[curCount];
-    int len = srcCache.length;
+    final long[] cacheOut = new long[curCount];
+    final int len = srcCache.length;
     int j = 0;
     for (int i = 0; i < len; i++) {
-      long v = srcCache[i];
+      final long v = srcCache[i];
       if ((v <= 0L) || (v >= thetaLong) ) { continue; }
       cacheOut[j++] = v;
     }
@@ -130,16 +130,16 @@ public abstract class CompactSketch extends Sketch {
    * @param dstOrdered true if output array must be sorted
    * @return the compacted array
    */
-  static final long[] compactCachePart(final long[] srcCache, int lgArrLongs, int curCount,
-      long thetaLong, boolean dstOrdered) {
+  static final long[] compactCachePart(final long[] srcCache, final int lgArrLongs,
+      final int curCount, final long thetaLong, final boolean dstOrdered) {
     if (curCount == 0) {
       return new long[0];
     }
-    long[] cacheOut = new long[curCount];
-    int len = 1 << lgArrLongs;
+    final long[] cacheOut = new long[curCount];
+    final int len = 1 << lgArrLongs;
     int j = 0;
     for (int i = 0; i < len; i++) {
-      long v = srcCache[i];
+      final long v = srcCache[i];
       if ((v <= 0L) || (v >= thetaLong) ) { continue; }
       cacheOut[j++] = v;
     }
@@ -150,11 +150,11 @@ public abstract class CompactSketch extends Sketch {
     return cacheOut;
   }
 
-  static final CompactSketch createCompactSketch(
-      long[] compactCache, boolean empty, short seedHash, int curCount, long thetaLong,
-      boolean dstOrdered, Memory dstMem) {
+  static final CompactSketch createCompactSketch(final long[] compactCache, final boolean empty,
+      final short seedHash, final int curCount, final long thetaLong, final boolean dstOrdered,
+      final Memory dstMem) {
     CompactSketch sketchOut = null;
-    int sw = (dstOrdered ? 2 : 0) | ((dstMem != null) ? 1 : 0);
+    final int sw = (dstOrdered ? 2 : 0) | ((dstMem != null) ? 1 : 0);
     switch (sw) {
       case 0: { //dst not ordered, dstMem == null
         sketchOut = new HeapCompactSketch(compactCache, empty, seedHash, curCount, thetaLong);
@@ -180,20 +180,20 @@ public abstract class CompactSketch extends Sketch {
     return sketchOut;
   }
 
-  static final Memory loadCompactMemory(
-      long[] compactCache, boolean empty, short seedHash, int curCount,
-      long thetaLong, Memory dstMem, byte flags) {
-    int preLongs = compactPreambleLongs(thetaLong, empty);
-    int outLongs = preLongs + curCount;
-    int outBytes = outLongs << 3;
-    int dstBytes = (int) dstMem.getCapacity();
+  static final Memory loadCompactMemory(final long[] compactCache, final boolean empty,
+      final short seedHash, final int curCount, final long thetaLong, final Memory dstMem,
+      final byte flags) {
+    final int preLongs = compactPreambleLongs(thetaLong, empty);
+    final int outLongs = preLongs + curCount;
+    final int outBytes = outLongs << 3;
+    final int dstBytes = (int) dstMem.getCapacity();
     if (outBytes > dstBytes) {
       throw new SketchesArgumentException("Insufficient Memory: " + dstBytes
         + ", Need: " + outBytes);
     }
-    byte famID = (byte) stringToFamily("Compact").getID();
+    final byte famID = (byte) stringToFamily("Compact").getID();
 
-    long[] outArr = new long[outLongs];
+    final long[] outArr = new long[outLongs];
     long pre0 = 0;
     pre0 = insertPreLongs(preLongs, pre0); //RF not used = 0
     pre0 = insertSerVer(SER_VER, pre0);

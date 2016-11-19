@@ -42,12 +42,12 @@ final class HarmonicNumbers {
   private HarmonicNumbers() {}
 
   @SuppressWarnings("cast")
-  public static double harmonicNumber(long x_i) {
+  public static double harmonicNumber(final long x_i) {
     if (x_i < NUM_EXACT_HARMONIC_NUMBERS) {
       return tableOfExactHarmonicNumbers[(int) x_i];
     } else {
-      double x = (double) x_i;
-      double invSq = 1.0 / (x * x);
+      final double x = (double) x_i;
+      final double invSq = 1.0 / (x * x);
       double sum = Math.log(x) + EULER_MASCHERONI_CONSTANT + (1.0 / (2.0 * x));
       /* note: the number of terms included from this series expansion is appropriate
          for the size of the exact table (25) and the precision of doubles */

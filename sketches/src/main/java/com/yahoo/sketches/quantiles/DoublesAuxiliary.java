@@ -22,16 +22,16 @@ final class DoublesAuxiliary {
    * Constructs the Auxiliary structure from the DoublesSketch
    * @param qs a DoublesSketch
    */
-  DoublesAuxiliary(DoublesSketch qs ) {
-    int k = qs.getK();
-    long n = qs.getN();
-    long bitPattern = qs.getBitPattern();
-    double[] combinedBuffer = qs.getCombinedBuffer();
-    int baseBufferCount = qs.getBaseBufferCount();
-    int numSamples = qs.getRetainedItems();
+  DoublesAuxiliary(final DoublesSketch qs ) {
+    final int k = qs.getK();
+    final long n = qs.getN();
+    final long bitPattern = qs.getBitPattern();
+    final double[] combinedBuffer = qs.getCombinedBuffer();
+    final int baseBufferCount = qs.getBaseBufferCount();
+    final int numSamples = qs.getRetainedItems();
 
-    double[] itemsArr = new double[numSamples];
-    long[] cumWtsArr = new long[numSamples + 1]; /* the extra slot is very important */
+    final double[] itemsArr = new double[numSamples];
+    final long[] cumWtsArr = new long[numSamples + 1]; /* the extra slot is very important */
 
     // Populate from DoublesSketch:
     //  copy over the "levels" and then the base buffer, all with appropriate weights
@@ -45,7 +45,7 @@ final class DoublesAuxiliary {
     // convert the item weights into totals of the weights preceding each item
     long subtot = 0;
     for (int i = 0; i < numSamples + 1; i++ ) {
-      long newSubtot = subtot + cumWtsArr[i];
+      final long newSubtot = subtot + cumWtsArr[i];
       cumWtsArr[i] = subtot;
       subtot = newSubtot;
     }
@@ -62,12 +62,12 @@ final class DoublesAuxiliary {
    * @param phi the fractional position where: 0 &le; &#966; &le; 1.0.
    * @return the estimated value given phi
    */
-  double getQuantile(double phi) {
+  double getQuantile(final double phi) {
     assert 0.0 <= phi;
     assert phi <= 1.0;
-    long n = this.auxN_;
+    final long n = this.auxN_;
     if (n <= 0) { return Double.NaN; }
-    long pos = posOfPhi(phi, n);
+    final long pos = posOfPhi(phi, n);
     return (approximatelyAnswerPositionalQuery(pos));
   }
 
@@ -84,8 +84,9 @@ final class DoublesAuxiliary {
    * @param cumWtsArr the cumulative weights for each item from the sketch populated here
    */
   private final static void populateFromQuantilesSketch(
-      int k, long n, long bitPattern, double[] combinedBuffer, int baseBufferCount,
-      int numSamples, double[] itemsArr, long[] cumWtsArr) {
+      final int k, final long n, final long bitPattern, final double[] combinedBuffer,
+      final int baseBufferCount, final int numSamples, final double[] itemsArr,
+      final long[] cumWtsArr) {
     long weight = 1;
     int nxt = 0;
     long bits = bitPattern;
@@ -93,7 +94,7 @@ final class DoublesAuxiliary {
     for (int lvl = 0; bits != 0L; lvl++, bits >>>= 1) {
       weight *= 2;
       if ((bits & 1L) > 0L) {
-        int offset = (2 + lvl) * k;
+        final int offset = (2 + lvl) * k;
         for (int i = 0; i < k; i++) {
           itemsArr[nxt] = combinedBuffer[i + offset];
           cumWtsArr[nxt] = weight;
@@ -103,7 +104,7 @@ final class DoublesAuxiliary {
     }
 
     weight = 1; // NOT a mistake! We just copied the highest level; now we need to copy the base buffer
-    int startOfBaseBufferBlock = nxt;
+    final int startOfBaseBufferBlock = nxt;
 
     // Copy BaseBuffer over, along with weight = 1
     for (int i = 0; i < baseBufferCount; i++) {
@@ -133,7 +134,8 @@ final class DoublesAuxiliary {
      A) and B) provide the invariants for our binary search.
      Observe that they are satisfied by the initial conditions:  l = 0 and r = len.
   */
-  private static int searchForChunkContainingPos(long[] arr, long q, int l, int r) {
+  private static int searchForChunkContainingPos(
+      final long[] arr, final long q, final int l, final int r) {
     /* the following three asserts can probably go away eventually, since it is fairly clear
        that if these invariants hold at the beginning of the search, they will be maintained */
     assert l < r;
@@ -143,7 +145,7 @@ final class DoublesAuxiliary {
       return l;
     }
     else {
-      int m = l + (r - l) / 2;
+      final int m = l + (r - l) / 2;
       if (arr[m] <= q) {
         return (searchForChunkContainingPos(arr, q, m, r));
       }
@@ -154,14 +156,14 @@ final class DoublesAuxiliary {
   }
 
   /* this is written in terms of a plain array to facilitate testing */
-  private static int chunkContainingPos(long[] arr, long q) {
-    int nominalLength = arr.length - 1; /* remember, arr contains an "extra" position */
+  private static int chunkContainingPos(final long[] arr, final long q) {
+    final int nominalLength = arr.length - 1; /* remember, arr contains an "extra" position */
     assert nominalLength > 0;
-    long n = arr[nominalLength];
+    final long n = arr[nominalLength];
     assert 0 <= q;
     assert q < n;
-    int l = 0;
-    int r = nominalLength;
+    final int l = 0;
+    final int r = nominalLength;
     /* the following three asserts should probably be retained since they ensure
        that the necessary invariants hold at the beginning of the search */
     assert l < r;
@@ -178,10 +180,10 @@ final class DoublesAuxiliary {
      we don't actually answer the question for that stream, but rather for
      a _different_ stream of the same length, that could hypothetically
      be reconstructed from the weighted samples in our sketch */
-  private double approximatelyAnswerPositionalQuery(long pos) {
+  private double approximatelyAnswerPositionalQuery(final long pos) {
     assert 0 <= pos;
     assert pos < this.auxN_;
-    int index = chunkContainingPos(this.auxCumWtsArr_, pos);
+    final int index = chunkContainingPos(this.auxCumWtsArr_, pos);
     return (this.auxSamplesArr_[index]);
   }
 
@@ -192,8 +194,8 @@ final class DoublesAuxiliary {
    * @param n the size of the stream
    * @return the index, a value between 0 and n-1.
    */
-  private static long posOfPhi(double phi, long n) { // don't tinker with this definition
-    long pos = (long) Math.floor(phi * n);
+  private static long posOfPhi(final double phi, final long n) { // don't tinker with this definition
+    final long pos = (long) Math.floor(phi * n);
     return (pos == n) ? n - 1 : pos;
   }
 

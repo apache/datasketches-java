@@ -17,7 +17,7 @@ public final class CompositeBucketIterator implements BucketIterator {
    * Constructs with given list (or array) of iterators
    * @param iters the given list (or array) of iterators
    */
-  public CompositeBucketIterator(BucketIterator... iters) {
+  public CompositeBucketIterator(final BucketIterator... iters) {
     this.iters = iters;
   }
 

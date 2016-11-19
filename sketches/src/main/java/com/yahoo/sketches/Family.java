@@ -117,7 +117,7 @@ public enum Family {
     }
   }
 
-  private Family(int id, String famName, int minPreLongs, int maxPreLongs) {
+  private Family(final int id, final String famName, final int minPreLongs, final int maxPreLongs) {
     id_ = id;
     famName_ = famName.toUpperCase();
     minPreLongs_ = minPreLongs;
@@ -136,7 +136,7 @@ public enum Family {
    *
    * @param id the given id, a value &lt; 128.
    */
-  public void checkFamilyID(int id) {
+  public void checkFamilyID(final int id) {
     if (id != id_) {
       throw new SketchesArgumentException(
           "Possible Corruption: This Family " + this.toString()
@@ -178,8 +178,8 @@ public enum Family {
    * @param id the given ID
    * @return the Family given the ID
    */
-  public static Family idToFamily(int id) {
-    Family f = lookupID.get(id);
+  public static Family idToFamily(final int id) {
+    final Family f = lookupID.get(id);
     if (f == null) {
       throw new SketchesArgumentException("Possible Corruption: Illegal Family ID: " + id);
     }
@@ -191,8 +191,8 @@ public enum Family {
    * @param famName the family name
    * @return the Family given the family name
    */
-  public static Family stringToFamily(String famName) {
-    Family f = lookupFamName.get(famName.toUpperCase());
+  public static Family stringToFamily(final String famName) {
+    final Family f = lookupFamName.get(famName.toUpperCase());
     if (f == null) {
       throw new SketchesArgumentException("Possible Corruption: Illegal Family Name: " + famName);
     }
@@ -204,8 +204,8 @@ public enum Family {
    * @param obj a recognized Family class object
    * @return the Family given one of the recognized class objects on one of the Families
    */
-  public static Family objectToFamily(Object obj) {
-    String sname = obj.getClass().getSimpleName().toUpperCase();
+  public static Family objectToFamily(final Object obj) {
+    final String sname = obj.getClass().getSimpleName().toUpperCase();
     for (Family f : values()) {
       if (sname.contains(f.toString())) {
         return f;

@@ -19,11 +19,11 @@ final class EquivTables {
 
   private EquivTables() {}
 
-  static double getLB(int index) {
+  static double getLB(final int index) {
     return lbEquivTable[index];
   }
 
-  static double getUB(int index) {
+  static double getUB(final int index) {
     return ubEquivTable[index];
   }
 

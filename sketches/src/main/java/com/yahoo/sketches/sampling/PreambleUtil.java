@@ -105,8 +105,8 @@ final class PreambleUtil {
    * @param byteArr the given byte array.
    * @return the summary preamble string.
    */
-  public static String preambleToString(byte[] byteArr) {
-    Memory mem = new NativeMemory(byteArr);
+  public static String preambleToString(final byte[] byteArr) {
+    final Memory mem = new NativeMemory(byteArr);
     return preambleToString(mem);
   }
 
@@ -119,34 +119,34 @@ final class PreambleUtil {
    * @param mem the given Memory.
    * @return the summary preamble string.
    */
-  public static String preambleToString(Memory mem) {
+  public static String preambleToString(final Memory mem) {
     // TODO: different path for sketch vs union
-    int preLongs = getAndCheckPreLongs(mem);  //make sure we can get the assumed preamble
-    long pre0 = mem.getLong(0);
+    final int preLongs = getAndCheckPreLongs(mem);  //make sure we can get the assumed preamble
+    final long pre0 = mem.getLong(0);
 
-    ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(pre0));
-    int serVer = extractSerVer(pre0);
-    Family family = Family.idToFamily(extractFamilyID(pre0));
+    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(pre0));
+    final int serVer = extractSerVer(pre0);
+    final Family family = Family.idToFamily(extractFamilyID(pre0));
 
     //Flags
-    int flags = extractFlags(pre0);
-    String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
+    final int flags = extractFlags(pre0);
+    final String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
     //boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
-    String nativeOrder = ByteOrder.nativeOrder().toString();
+    final String nativeOrder = ByteOrder.nativeOrder().toString();
     //boolean compact = (flags & COMPACT_FLAG_MASK) > 0;
     //boolean ordered = (flags & ORDERED_FLAG_MASK) > 0;
     //boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
-    boolean isEmpty = (flags & EMPTY_FLAG_MASK) > 0;
+    final boolean isEmpty = (flags & EMPTY_FLAG_MASK) > 0;
 
-    int resSize = extractReservoirSize(pre0);
+    final int resSize = extractReservoirSize(pre0);
 
     long itemsSeen = 0;
     if (!isEmpty) {
-      long pre1 = mem.getLong(8);
+      final long pre1 = mem.getLong(8);
       itemsSeen = extractItemsSeenCount(pre1);
     }
 
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
     sb.append(LS)
       .append("### SKETCH PREAMBLE SUMMARY:").append(LS)
       .append("Byte  0: Preamble Longs       : ").append(preLongs).append(LS)
@@ -173,43 +173,43 @@ final class PreambleUtil {
   //Extract from long and insert into long methods
 
   static int extractPreLongs(final long long0) {
-    long mask = 0X3FL;
+    final long mask = 0X3FL;
     return (int) (long0 & mask);
   }
 
   static int extractResizeFactor(final long long0) {
-    int shift = LG_RESIZE_FACTOR_BITS; // units in bits
-    long mask = 0X3L;
+    final int shift = LG_RESIZE_FACTOR_BITS; // units in bits
+    final long mask = 0X3L;
     return (int) ((long0 >>> shift) & mask);
   }
 
   static int extractSerVer(final long long0) {
-    int shift = SER_VER_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = SER_VER_BYTE << 3;
+    final long mask = 0XFFL;
     return (int) ((long0 >>> shift) & mask);
   }
 
   static int extractFamilyID(final long long0) {
-    int shift = FAMILY_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = FAMILY_BYTE << 3;
+    final long mask = 0XFFL;
     return (int) ((long0 >>> shift) & mask);
   }
 
   static int extractFlags(final long long0) {
-    int shift = FLAGS_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = FLAGS_BYTE << 3;
+    final long mask = 0XFFL;
     return (int) ((long0 >>> shift) & mask);
   }
 
   static short extractEncodedReservoirSize(final long long0) {
-    int shift = RESERVOIR_SIZE_SHORT << 3;
-    long mask = 0XFFFFL;
+    final int shift = RESERVOIR_SIZE_SHORT << 3;
+    final long mask = 0XFFFFL;
     return (short) ((long0 >>> shift) & mask);
   }
 
   static int extractReservoirSize(final long long0) {
-    int shift = RESERVOIR_SIZE_INT << 3;
-    long mask = 0XFFFFFFFFL;
+    final int shift = RESERVOIR_SIZE_INT << 3;
+    final long mask = 0XFFFFFFFFL;
     return (int) ((long0 >>> shift) & mask);
   }
 
@@ -219,48 +219,48 @@ final class PreambleUtil {
 
   @Deprecated
   static short extractSerDeId(final long long0) {
-    int shift = SERDE_ID_SHORT << 3;
-    long mask = 0XFFFFL;
+    final int shift = SERDE_ID_SHORT << 3;
+    final long mask = 0XFFFFL;
     return (short) ((long0 >>> shift) & mask);
   }
 
   static long extractItemsSeenCount(final long long1) {
-    long mask = 0XFFFFFFFFFFFFL;
+    final long mask = 0XFFFFFFFFFFFFL;
     return (long1 & mask);
   }
 
   static long insertPreLongs(final int preLongs, final long long0) {
-    long mask = 0X3FL;
+    final long mask = 0X3FL;
     return (preLongs & mask) | (~mask & long0);
   }
 
   static long insertResizeFactor(final int rf, final long long0) {
-    int shift = LG_RESIZE_FACTOR_BITS; // units in bits
-    long mask = 3L;
+    final int shift = LG_RESIZE_FACTOR_BITS; // units in bits
+    final long mask = 3L;
     return ((rf & mask) << shift) | (~(mask << shift) & long0);
   }
 
   static long insertSerVer(final int serVer, final long long0) {
-    int shift = SER_VER_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = SER_VER_BYTE << 3;
+    final long mask = 0XFFL;
     return ((serVer & mask) << shift) | (~(mask << shift) & long0);
   }
 
   static long insertFamilyID(final int familyID, final long long0) {
-    int shift = FAMILY_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = FAMILY_BYTE << 3;
+    final long mask = 0XFFL;
     return ((familyID & mask) << shift) | (~(mask << shift) & long0);
   }
 
   static long insertFlags(final int flags, final long long0) {
-    int shift = FLAGS_BYTE << 3;
-    long mask = 0XFFL;
+    final int shift = FLAGS_BYTE << 3;
+    final long mask = 0XFFL;
     return ((flags & mask) << shift) | (~(mask << shift) & long0);
   }
 
   static long insertReservoirSize(final int reservoirSize, final long long0) {
-    int shift = RESERVOIR_SIZE_INT << 3;
-    long mask = 0XFFFFFFFFL;
+    final int shift = RESERVOIR_SIZE_INT << 3;
+    final long mask = 0XFFFFFFFFL;
     return ((reservoirSize & mask) << shift) | (~(mask << shift) & long0);
   }
 
@@ -270,13 +270,13 @@ final class PreambleUtil {
 
   @Deprecated
   static long insertSerDeId(final int serDeId, final long long0) {
-    int shift = SERDE_ID_SHORT << 3;
-    long mask = 0XFFFFL;
+    final int shift = SERDE_ID_SHORT << 3;
+    final long mask = 0XFFFFL;
     return ((serDeId & mask) << shift) | (~(mask << shift) & long0);
   }
 
   static long insertItemsSeenCount(final long totalSeen, final long long1) {
-    long mask = 0XFFFFFFFFFFFFL;
+    final long mask = 0XFFFFFFFFFFFFL;
     return (totalSeen & mask) | (~mask & long1);
   }
 
@@ -285,17 +285,17 @@ final class PreambleUtil {
    * @param mem the given Memory
    * @return the extracted prelongs value.
    */
-  static int getAndCheckPreLongs(Memory mem) {
-    long cap = mem.getCapacity();
+  static int getAndCheckPreLongs(final Memory mem) {
+    final long cap = mem.getCapacity();
     if (cap < 8) { throwNotBigEnough(cap, 8); }
-    long pre0 = mem.getLong(0);
-    int preLongs = extractPreLongs(pre0);
-    int required = Math.max(preLongs << 3, 8);
+    final long pre0 = mem.getLong(0);
+    final int preLongs = extractPreLongs(pre0);
+    final int required = Math.max(preLongs << 3, 8);
     if (cap < required) { throwNotBigEnough(cap, required); }
     return preLongs;
   }
 
-  private static void throwNotBigEnough(long cap, int required) {
+  private static void throwNotBigEnough(final long cap, final int required) {
     throw new SketchesArgumentException(
         "Possible Corruption: Size of byte array or Memory not large enough: Size: " + cap
         + ", Required: " + required);

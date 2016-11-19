@@ -69,7 +69,7 @@ abstract class Map {
    * @param index the given index
    * @param estimate the given estimate
    */
-  void updateEstimate(int index, double estimate) {}
+  void updateEstimate(final int index, final double estimate) {}
 
   /**
    * Returns the upper bound cardinality with respect to {@link #getEstimate(byte[])} associated

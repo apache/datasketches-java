@@ -23,7 +23,7 @@ public class SketchesException extends RuntimeException {
    * @param message the detail message. The detail message is saved for later retrieval by the
    * Throwable.getMessage() method.
    */
-  public SketchesException(String message) {
+  public SketchesException(final String message) {
     super(message);
   }
 
@@ -38,7 +38,7 @@ public class SketchesException extends RuntimeException {
    * @param cause the cause (which is saved for later retrieval by the Throwable.getCause()
    * method). (A null value is permitted, and indicates that the cause is nonexistent or unknown.)
    */
-  public SketchesException(String message, Throwable cause) {
+  public SketchesException(final String message, final Throwable cause) {
     super(message, cause);
   }
 

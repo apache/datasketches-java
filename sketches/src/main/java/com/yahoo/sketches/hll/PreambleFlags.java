@@ -31,9 +31,9 @@ public final class PreambleFlags {
    * @param isSharedPreambleMode the state of Shared Preamble Mode
    * @return the resulting flags byte
    */
-  public static byte setAllFlags(byte flagsByte, boolean isSparseMode, boolean isUnionMode,
-      boolean isEmpty, boolean isEightBytePadding, boolean isBigEndian, boolean isReadOnly,
-      boolean isSharedPreambleMode) {
+  public static byte setAllFlags(byte flagsByte, final boolean isSparseMode, final boolean isUnionMode,
+      final boolean isEmpty, final boolean isEightBytePadding, final boolean isBigEndian,
+      final boolean isReadOnly, final boolean isSharedPreambleMode) {
 
     flagsByte = initFlag(flagsByte, isSparseMode, SPARSE_MODE_FLAG_MASK);
     flagsByte = initFlag(flagsByte, isEmpty, EMPTY_FLAG_MASK);
@@ -45,7 +45,7 @@ public final class PreambleFlags {
     return flagsByte;
   }
 
-  private static byte initFlag(byte flagsByte, boolean isSet, int mask) {
+  private static byte initFlag(final byte flagsByte, final boolean isSet, final int mask) {
     if (isSet) {
       return (byte) (flagsByte | mask);
     } else {
@@ -70,7 +70,7 @@ public final class PreambleFlags {
      * @param isBigEndian true if Big Endian
      * @return this Builder
      */
-    public Builder setBigEndian(boolean isBigEndian) {
+    public Builder setBigEndian(final boolean isBigEndian) {
       this.isBigEndian = isBigEndian;
       return this;
     }
@@ -80,7 +80,7 @@ public final class PreambleFlags {
      * @param isReadOnly true if Read Only
      * @return this Builder
      */
-    public Builder setReadOnly(boolean isReadOnly) {
+    public Builder setReadOnly(final boolean isReadOnly) {
       this.isReadOnly = isReadOnly;
       return this;
     }
@@ -90,7 +90,7 @@ public final class PreambleFlags {
      * @param isEmpty true if Empty
      * @return this Builder
      */
-    public Builder setEmpty(boolean isEmpty) {
+    public Builder setEmpty(final boolean isEmpty) {
       this.isEmpty = isEmpty;
       return this;
     }
@@ -100,7 +100,7 @@ public final class PreambleFlags {
      * @param isSharedPreambleMode true if using a Shared Preamble
      * @return this Builder
      */
-    public Builder setSharedPreambleMode(boolean isSharedPreambleMode) {
+    public Builder setSharedPreambleMode(final boolean isSharedPreambleMode) {
       this.isSharedPreambleMode = isSharedPreambleMode;
       return this;
     }
@@ -110,7 +110,7 @@ public final class PreambleFlags {
      * @param isSparseMode true if using Sparse Mode
      * @return this Builder
      */
-    public Builder setSparseMode(boolean isSparseMode) {
+    public Builder setSparseMode(final boolean isSparseMode) {
       this.isSparseMode = isSparseMode;
       return this;
     }
@@ -120,7 +120,7 @@ public final class PreambleFlags {
      * @param isUnionMode true if in Union Mode
      * @return this Builder
      */
-    public Builder setUnionMode(boolean isUnionMode) {
+    public Builder setUnionMode(final boolean isUnionMode) {
       this.isUnionMode = isUnionMode;
       return this;
     }
@@ -130,7 +130,7 @@ public final class PreambleFlags {
      * @param isEightBytePadding true if using Eight-Byte-Padding
      * @return this Builder
      */
-    public Builder setEightBytePadding(boolean isEightBytePadding) {
+    public Builder setEightBytePadding(final boolean isEightBytePadding) {
       this.isEightBytePadding = isEightBytePadding;
       return this;
     }

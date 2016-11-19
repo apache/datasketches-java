@@ -1047,13 +1047,13 @@ final class Interpolation {
 
   //CHECKSTYLE.ON: LineLength
 
-  static double cubicInterpolateUsingTable(double[] xArr, double[] yArr, double x) {
+  static double cubicInterpolateUsingTable(final double[] xArr, final double[] yArr, final double x) {
     assert (xArr.length >= 4 && xArr.length == yArr.length && x >= xArr[0]
         && x <= xArr[xArr.length - 1]);
     if (x == xArr[xArr.length - 1]) { // corner case
       return yArr[yArr.length - 1];
     }
-    int offset = findStraddle(xArr, x);
+    final int offset = findStraddle(xArr, x);
     assert (offset >= 0 && offset <= xArr.length - 2);
     if (offset == 0) { // corner case
       return cubicInterpolateAux(xArr, yArr, offset, x);
@@ -1064,7 +1064,8 @@ final class Interpolation {
     return cubicInterpolateAux(xArr, yArr, offset - 1, x);
   }
 
-  private static double cubicInterpolateAux(double[] xArr, double[] yArr, int offset, double x) {
+  private static double cubicInterpolateAux(final double[] xArr, final double[] yArr,
+      final int offset, final double x) {
     return cubicInterpolateAuxAux(
       xArr[offset], yArr[offset],
       xArr[offset + 1], yArr[offset + 1],
@@ -1076,33 +1077,34 @@ final class Interpolation {
 
   // interpolate using the cubic curve that passes through the four given points, using the
   //  Lagrange interpolation formula
-  private static double cubicInterpolateAuxAux(double x0, double y0, double x1, double y1,
-      double x2, double y2, double x3, double y3, double x) {
-    double l0Numer = (x - x1) * (x - x2) * (x - x3);
-    double l1Numer = (x - x0) * (x - x2) * (x - x3);
-    double l2Numer = (x - x0) * (x - x1) * (x - x3);
-    double l3Numer = (x - x0) * (x - x1) * (x - x2);
+  private static double cubicInterpolateAuxAux(final double x0, final double y0, final double x1,
+      final double y1,
+      final double x2, final double y2, final double x3, final double y3, final double x) {
+    final double l0Numer = (x - x1) * (x - x2) * (x - x3);
+    final double l1Numer = (x - x0) * (x - x2) * (x - x3);
+    final double l2Numer = (x - x0) * (x - x1) * (x - x3);
+    final double l3Numer = (x - x0) * (x - x1) * (x - x2);
 
-    double l0Denom = (x0 - x1) * (x0 - x2) * (x0 - x3);
-    double l1Denom = (x1 - x0) * (x1 - x2) * (x1 - x3);
-    double l2Denom = (x2 - x0) * (x2 - x1) * (x2 - x3);
-    double l3Denom = (x3 - x0) * (x3 - x1) * (x3 - x2);
+    final double l0Denom = (x0 - x1) * (x0 - x2) * (x0 - x3);
+    final double l1Denom = (x1 - x0) * (x1 - x2) * (x1 - x3);
+    final double l2Denom = (x2 - x0) * (x2 - x1) * (x2 - x3);
+    final double l3Denom = (x3 - x0) * (x3 - x1) * (x3 - x2);
 
-    double term0 = y0 * l0Numer / l0Denom;
-    double term1 = y1 * l1Numer / l1Denom;
-    double term2 = y2 * l2Numer / l2Denom;
-    double term3 = y3 * l3Numer / l3Denom;
+    final double term0 = y0 * l0Numer / l0Denom;
+    final double term1 = y1 * l1Numer / l1Denom;
+    final double term2 = y2 * l2Numer / l2Denom;
+    final double term3 = y3 * l3Numer / l3Denom;
 
     return term0 + term1 + term2 + term3;
   }
 
-  private static int findStraddle(double[] xArr, double x) {
+  private static int findStraddle(final double[] xArr, final double x) {
     assert (xArr.length >= 2 && x >= xArr[0] && x <= xArr[xArr.length - 1]);
     return (findStraddleAux(xArr, 0, xArr.length - 1, x));
   }
 
-  private static int findStraddleAux(double[] xArr, int left, int right, double x) {
-    int middle;
+  private static int findStraddleAux(final double[] xArr, final int left, final int right, final double x) {
+    final int middle;
     assert (left < right);
     assert (xArr[left] <= x && x < xArr[right]); /* the invariant */
     if (left + 1 == right) { return (left); }

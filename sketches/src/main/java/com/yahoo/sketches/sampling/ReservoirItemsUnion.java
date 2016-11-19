@@ -41,7 +41,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Jon Malkin
  * @author Kevin Lang
  */
-public class ReservoirItemsUnion<T> {
+public final class ReservoirItemsUnion<T> {
   private ReservoirItemsSketch<T> gadget_;
   private final int maxK_;
 
@@ -196,7 +196,7 @@ public class ReservoirItemsUnion<T> {
    * @param k Reservoir size
    * @param input Reservoir samples
    */
-  public void update(final long n, final int k, ArrayList<T> input) {
+  public void update(final long n, final int k, final ArrayList<T> input) {
     ReservoirItemsSketch<T> ris = ReservoirItemsSketch.getInstance(input, n,
             ResizeFactor.X8, k); // forcing a resize factor
 

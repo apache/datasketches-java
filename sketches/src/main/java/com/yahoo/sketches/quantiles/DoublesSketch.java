@@ -133,7 +133,7 @@ public abstract class DoublesSketch {
    */
   public static final int DEFAULT_K = 128;
 
-  DoublesSketch(int k) {
+  DoublesSketch(final int k) {
     Util.checkK(k);
     k_ = k;
   }
@@ -153,7 +153,7 @@ public abstract class DoublesSketch {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a heap-based Sketch based on the given Memory
    */
-  public static DoublesSketch heapify(Memory srcMem) {
+  public static DoublesSketch heapify(final Memory srcMem) {
     return HeapDoublesSketch.heapifyInstance(srcMem);
   }
 
@@ -185,14 +185,14 @@ public abstract class DoublesSketch {
    *
    * @return the approximation to the value at the above fraction
    */
-  public double getQuantile(double fraction) {
+  public double getQuantile(final double fraction) {
     if ((fraction < 0.0) || (fraction > 1.0)) {
       throw new SketchesArgumentException("Fraction cannot be less than zero or greater than 1.0");
     }
     if      (fraction == 0.0) { return this.getMinValue(); }
     else if (fraction == 1.0) { return this.getMaxValue(); }
     else {
-      DoublesAuxiliary aux = this.constructAuxiliary();
+      final DoublesAuxiliary aux = this.constructAuxiliary();
       return aux.getQuantile(fraction);
     }
   }
@@ -220,12 +220,12 @@ public abstract class DoublesSketch {
    * @return array of approximations to the given fractions in the same order as given fractions
    * array.
    */
-  public double[] getQuantiles(double[] fractions) {
+  public double[] getQuantiles(final double[] fractions) {
     Util.validateFractions(fractions);
     DoublesAuxiliary aux = null;
-    double[] answers = new double[fractions.length];
+    final double[] answers = new double[fractions.length];
     for (int i = 0; i < fractions.length; i++) {
-      double fraction = fractions[i];
+      final double fraction = fractions[i];
       if      (fraction == 0.0) { answers[i] = this.getMinValue(); }
       else if (fraction == 1.0) { answers[i] = this.getMaxValue(); }
       else {
@@ -256,7 +256,7 @@ public abstract class DoublesSketch {
    * @return array of approximations to the given fractions in the same order as given fractions
    * array.
    */
-  public double[] getQuantiles(int evenlySpaced) {
+  public double[] getQuantiles(final int evenlySpaced) {
     return getQuantiles(getEvenlySpaced(evenlySpaced));
   }
 
@@ -277,7 +277,7 @@ public abstract class DoublesSketch {
    * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
    * splitPoint.
    */
-  public double[] getPMF(double[] splitPoints) {
+  public double[] getPMF(final double[] splitPoints) {
     return DoublesPmfCdfImpl.getPMFOrCDF(this, splitPoints, false);
   }
 
@@ -295,7 +295,7 @@ public abstract class DoublesSketch {
    *
    * @return an approximation to the CDF of the input stream given the splitPoints.
    */
-  public double[] getCDF(double[] splitPoints) {
+  public double[] getCDF(final double[] splitPoints) {
     return DoublesPmfCdfImpl.getPMFOrCDF(this, splitPoints, true);
   }
 
@@ -356,7 +356,7 @@ public abstract class DoublesSketch {
    * @param k the configuration parameter of a DoublesSketch
    * @return the rank error normalized as a fraction between zero and one.
    */
-  public static double getNormalizedRankError(int k) {
+  public static double getNormalizedRankError(final int k) {
     return Util.EpsilonFromK.getAdjustedEpsilon(k);
   }
 
@@ -387,7 +387,7 @@ public abstract class DoublesSketch {
    * In real-time build-and-merge environments, this may not be desirable.
    * @return this sketch in a byte array form.
    */
-  public byte[] toByteArray(boolean ordered) {
+  public byte[] toByteArray(final boolean ordered) {
     return toByteArray(ordered, true);
   }
 
@@ -398,7 +398,7 @@ public abstract class DoublesSketch {
    * @param compact if true the sketch will be serialized in compact form.
    * @return this sketch in a byte array form.
    */
-  public byte[] toByteArray(boolean ordered, boolean compact) {
+  public byte[] toByteArray(final boolean ordered, final boolean compact) {
     return DoublesToByteArrayImpl.toByteArray(this, ordered, compact);
   }
 
@@ -416,7 +416,7 @@ public abstract class DoublesSketch {
    * @param dataDetail if true includes data detail
    * @return summary information about the sketch.
    */
-  public String toString(boolean sketchSummary, boolean dataDetail) {
+  public String toString(final boolean sketchSummary, final boolean dataDetail) {
     return DoublesUtil.toString(sketchSummary, dataDetail, this);
   }
 
@@ -454,7 +454,7 @@ public abstract class DoublesSketch {
    * @param n the number of items input into the sketch
    * @return the number of bytes required to store this sketch as an array of bytes.
    */
-  public int getStorageBytes(int k, long n) {
+  public int getStorageBytes(final int k, final long n) {
     if (n == 0) { return 8; }
     return 32 + (Util.computeRetainedItems(k, n) << 3);
   }
@@ -465,7 +465,7 @@ public abstract class DoublesSketch {
    *
    * @param dstMem the given memory.
    */
-  public void putMemory(Memory dstMem) {
+  public void putMemory(final Memory dstMem) {
     putMemory(dstMem, false, true);
   }
 
@@ -477,7 +477,7 @@ public abstract class DoublesSketch {
    * the cost of slightly increased serialization time. In real-time build-and-merge environments,
    * ordering may not be desirable.
    */
-  public void putMemory(Memory dstMem, boolean ordered) {
+  public void putMemory(final Memory dstMem, final boolean ordered) {
     putMemory(dstMem, ordered, true);
   }
 
@@ -490,10 +490,10 @@ public abstract class DoublesSketch {
    * ordering may not be desirable.
    * @param compact if true, loads the memory in compact form.
    */
-  public void putMemory(Memory dstMem, boolean ordered, boolean compact) {
-    byte[] byteArr = toByteArray(ordered, compact);
-    int arrLen = byteArr.length;
-    long memCap = dstMem.getCapacity();
+  public void putMemory(final Memory dstMem, final boolean ordered, final boolean compact) {
+    final byte[] byteArr = toByteArray(ordered, compact);
+    final int arrLen = byteArr.length;
+    final long memCap = dstMem.getCapacity();
     if (memCap < arrLen) {
       throw new SketchesArgumentException(
           "Destination Memory not large enough: " + memCap + " < " + arrLen);
@@ -503,12 +503,12 @@ public abstract class DoublesSketch {
 
   //Restricted
 
-  static double[] getEvenlySpaced(int evenlySpaced) {
-    int n = evenlySpaced;
+  static double[] getEvenlySpaced(final int evenlySpaced) {
+    final int n = evenlySpaced;
     if (n <= 0) {
       throw new SketchesArgumentException("EvenlySpaced must be > zero.");
     }
-    double[] fractions = new double[n];
+    final double[] fractions = new double[n];
     double frac = 0.0;
     fractions[0] = frac;
     for (int i = 1; i < n; i++) {

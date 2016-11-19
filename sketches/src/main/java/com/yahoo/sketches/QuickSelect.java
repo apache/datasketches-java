@@ -31,7 +31,7 @@ public final class QuickSelect {
    */
   public static long select(final long[] arr, int lo, int hi, final int pivot) {
     while (hi > lo) {
-      int j = partition(arr, lo, hi);
+      final int j = partition(arr, lo, hi);
       if (j == pivot) {
         return arr[pivot];
       }
@@ -57,8 +57,8 @@ public final class QuickSelect {
    * @return The value of the smallest (N)th element including zeros, where N is 1-based.
    */
   public static long selectIncludingZeros(final long[] arr, final int pivot) {
-    int arrSize = arr.length;
-    int adj = pivot - 1;
+    final int arrSize = arr.length;
+    final int adj = pivot - 1;
     return select(arr, 0, arrSize - 1, adj);
   }
 
@@ -78,9 +78,9 @@ public final class QuickSelect {
     if (pivot > nonZeros) {
       return 0L;
     }
-    int arrSize = arr.length;
-    int zeros = arrSize - nonZeros;
-    int adjK = (pivot + zeros) - 1;
+    final int arrSize = arr.length;
+    final int zeros = arrSize - nonZeros;
+    final int adjK = (pivot + zeros) - 1;
     return select(arr, 0, arrSize - 1, adjK);
   }
 
@@ -94,7 +94,7 @@ public final class QuickSelect {
    */
   private static int partition(final long[] arr, final int lo, final int hi) {
     int i = lo, j = hi + 1; //left and right scan indices
-    long v = arr[lo]; //partitioning item value
+    final long v = arr[lo]; //partitioning item value
     while (true) {
       //Scan right, scan left, check for scan complete, and exchange
       while (arr[ ++i] < v) {
@@ -110,12 +110,12 @@ public final class QuickSelect {
       if (i >= j) {
         break;
       }
-      long x = arr[i];
+      final long x = arr[i];
       arr[i] = arr[j];
       arr[j] = x;
     }
     //put v=arr[j] into position with a[lo .. j-1] <= a[j] <= a[j+1 .. hi]
-    long x = arr[lo];
+    final long x = arr[lo];
     arr[lo] = arr[j];
     arr[j] = x;
     return j;
@@ -135,7 +135,7 @@ public final class QuickSelect {
    */
   public static double select(final double[] arr, int lo, int hi, final int pivot) {
     while (hi > lo) {
-      int j = partition(arr, lo, hi);
+      final int j = partition(arr, lo, hi);
       if (j == pivot) {
         return arr[pivot];
       }
@@ -161,8 +161,8 @@ public final class QuickSelect {
    * @return The value of the smallest (N)th element including zeros, where N is 1-based.
    */
   public static double selectIncludingZeros(final double[] arr, final int pivot) {
-    int arrSize = arr.length;
-    int adj = pivot - 1;
+    final int arrSize = arr.length;
+    final int adj = pivot - 1;
     return select(arr, 0, arrSize - 1, adj);
   }
 
@@ -182,9 +182,9 @@ public final class QuickSelect {
     if (pivot > nonZeros) {
       return 0L;
     }
-    int arrSize = arr.length;
-    int zeros = arrSize - nonZeros;
-    int adjK = (pivot + zeros) - 1;
+    final int arrSize = arr.length;
+    final int zeros = arrSize - nonZeros;
+    final int adjK = (pivot + zeros) - 1;
     return select(arr, 0, arrSize - 1, adjK);
   }
 
@@ -198,7 +198,7 @@ public final class QuickSelect {
    */
   private static int partition(final double[] arr, final int lo, final int hi) {
     int i = lo, j = hi + 1; //left and right scan indices
-    double v = arr[lo]; //partitioning item value
+    final double v = arr[lo]; //partitioning item value
     while (true) {
       //Scan right, scan left, check for scan complete, and exchange
       while (arr[ ++i] < v) {
@@ -214,12 +214,12 @@ public final class QuickSelect {
       if (i >= j) {
         break;
       }
-      double x = arr[i];
+      final double x = arr[i];
       arr[i] = arr[j];
       arr[j] = x;
     }
     //put v=arr[j] into position with a[lo .. j-1] <= a[j] <= a[j+1 .. hi]
-    double x = arr[lo];
+    final double x = arr[lo];
     arr[lo] = arr[j];
     arr[j] = x;
     return j;

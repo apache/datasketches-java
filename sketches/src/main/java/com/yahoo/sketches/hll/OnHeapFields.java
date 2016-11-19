@@ -14,7 +14,7 @@ final class OnHeapFields implements Fields {
   private final Preamble preamble;
   private final byte[] buckets;
 
-  public OnHeapFields(Preamble preamble) {
+  public OnHeapFields(final Preamble preamble) {
     this.preamble = preamble;
     buckets = new byte[preamble.getConfigK()];
   }
@@ -25,7 +25,7 @@ final class OnHeapFields implements Fields {
   }
 
   @Override
-  public Fields updateBucket(int index, byte val, UpdateCallback callback) {
+  public Fields updateBucket(final int index, final byte val, final UpdateCallback callback) {
     if (val > buckets[index]) {
       callback.bucketUpdated(index, buckets[index], val);
       buckets[index] = val;
@@ -34,8 +34,8 @@ final class OnHeapFields implements Fields {
   }
 
   @Override
-  public int intoByteArray(byte[] array, int offset) {
-    int numBytesNeeded = numBytesToSerialize();
+  public int intoByteArray(final byte[] array, int offset) {
+    final int numBytesNeeded = numBytesToSerialize();
     if (array.length - offset < numBytesNeeded) {
       throw new SketchesArgumentException(
           String.format("array too small[%,d] < [%,d]", array.length - offset, numBytesNeeded)
@@ -86,18 +86,18 @@ final class OnHeapFields implements Fields {
   }
 
   @Override
-  public Fields unionInto(Fields recipient, UpdateCallback cb) {
+  public Fields unionInto(final Fields recipient, final UpdateCallback cb) {
     return recipient.unionBucketIterator(getBucketIterator(), cb);
   }
 
   @Override
-  public Fields unionBucketIterator(BucketIterator iter, UpdateCallback callback) {
+  public Fields unionBucketIterator(final BucketIterator iter, final UpdateCallback callback) {
     return HllUtils.unionBucketIterator(this, iter, callback);
   }
 
   @Override
   public Fields unionCompressedAndExceptions(
-      byte[] compressed, int minVal, OnHeapHash exceptions, UpdateCallback cb) {
+      final byte[] compressed, final int minVal, final OnHeapHash exceptions, final UpdateCallback cb) {
     return unionBucketIterator(CompressedBucketUtils.getBucketIterator(compressed, minVal, exceptions), cb);
   }
 }

@@ -32,7 +32,7 @@ public enum ResizeFactor {
 
   private int lg_;
 
-  ResizeFactor(int lg) {
+  ResizeFactor(final int lg) {
     this.lg_  = lg;
   }
 
@@ -49,7 +49,7 @@ public enum ResizeFactor {
    * @param lg a value between zero and 3, inclusive.
    * @return the Resize Factor given the Log-base 2 of the Resize Factor
    */
-  public static ResizeFactor getRF(int lg) {
+  public static ResizeFactor getRF(final int lg) {
     if (X1.lg() == lg) { return X1; }
     if (X2.lg() == lg) { return X2; }
     if (X4.lg() == lg) { return X4; }

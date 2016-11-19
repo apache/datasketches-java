@@ -22,7 +22,7 @@ import com.yahoo.sketches.hash.MurmurHash3;
  * @author Alexander Saydakov
  * @author Kevin Lang
  */
-class CouponTraverseMap extends Map {
+final class CouponTraverseMap extends Map {
   private static final double RSE = 0.408 / Math.sqrt(1024);
   private final int maxCouponsPerKey_;
 
@@ -50,7 +50,7 @@ class CouponTraverseMap extends Map {
   }
 
   static CouponTraverseMap getInstance(final int keySizeBytes, final int maxCouponsPerKey) {
-    CouponTraverseMap map = new CouponTraverseMap(keySizeBytes, maxCouponsPerKey);
+    final CouponTraverseMap map = new CouponTraverseMap(keySizeBytes, maxCouponsPerKey);
     map.tableEntries_ = COUPON_MAP_MIN_NUM_ENTRIES;
     map.capacityEntries_ = (int)(map.tableEntries_ * COUPON_MAP_GROW_TRIGGER_FACTOR);
     map.numActiveKeys_ = 0;
@@ -65,7 +65,7 @@ class CouponTraverseMap extends Map {
 
   @Override
   double update(final byte[] key, final short coupon) {
-    int entryIndex = findOrInsertKey(key);
+    final int entryIndex = findOrInsertKey(key);
     return update(entryIndex, coupon);
   }
 
@@ -278,8 +278,8 @@ class CouponTraverseMap extends Map {
     }
   }
 
-  private static final double updateEntrySizeBytes(int tableEntries, int keySizeBytes,
-      int maxCouponsPerKey) {
+  private static final double updateEntrySizeBytes(final int tableEntries, final int keySizeBytes,
+      final int maxCouponsPerKey) {
     final double byteFraction = Math.ceil(tableEntries / 8.0) / tableEntries;
     return keySizeBytes + maxCouponsPerKey * Short.BYTES + byteFraction;
   }

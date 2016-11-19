@@ -30,7 +30,7 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
    * @return a copy of this sketch
    */
   public HllSketchBuilder copy() {
-    HllSketchBuilder retVal = new HllSketchBuilder();
+    final HllSketchBuilder retVal = new HllSketchBuilder();
     retVal.preamble = preamble;
     retVal.compressedDense = compressedDense;
     retVal.denseMode = denseMode;
@@ -44,7 +44,7 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
    * @param logBuckets the given log_base2 of the desired number of buckets
    * @return this Builder
    */
-  public HllSketchBuilder setLogBuckets(int logBuckets) {
+  public HllSketchBuilder setLogBuckets(final int logBuckets) {
     this.preamble = Preamble.fromLogK((byte) logBuckets);
     return this;
   }
@@ -62,7 +62,7 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
    * @param preamble the given Preamble
    * @return this builder
    */
-  public HllSketchBuilder setPreamble(Preamble preamble) {
+  public HllSketchBuilder setPreamble(final Preamble preamble) {
     this.preamble = preamble;
     return this;
   }
@@ -80,7 +80,7 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
    * @param denseMode the state of dense mode
    * @return this builder
    */
-  public HllSketchBuilder setDenseMode(boolean denseMode) {
+  public HllSketchBuilder setDenseMode(final boolean denseMode) {
     this.denseMode = denseMode;
     return this;
   }
@@ -98,7 +98,7 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
    * @param compressedDense the state of Compressed Dense
    * @return this builder
    */
-  public HllSketchBuilder setCompressedDense(boolean compressedDense) {
+  public HllSketchBuilder setCompressedDense(final boolean compressedDense) {
     this.compressedDense = compressedDense;
     return this;
   }
@@ -116,7 +116,7 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
    * @param hipEstimator true if the Hip Estimater option is to be used
    * @return this builder
    */
-  public HllSketchBuilder setHipEstimator(boolean hipEstimator) {
+  public HllSketchBuilder setHipEstimator(final boolean hipEstimator) {
     this.hipEstimator = hipEstimator;
     return this;
   }
@@ -158,7 +158,7 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
     sb.append("HllSketchBuilder configuration:").append(LS)
       .append("LgK:").append(TAB).append(preamble.getLogConfigK()).append(LS)
       .append("K:").append(TAB).append(preamble.getConfigK()).append(LS)

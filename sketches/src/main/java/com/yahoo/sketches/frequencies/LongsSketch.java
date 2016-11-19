@@ -242,7 +242,7 @@ public class LongsSketch {
     final long[] preArr = new long[preLongs];
     srcMem.getLongArray(0, preArr, 0, preLongs);
 
-    LongsSketch fls = new LongsSketch(lgMaxMapSize, lgCurMapSize);
+    final LongsSketch fls = new LongsSketch(lgMaxMapSize, lgCurMapSize);
     fls.streamLength = 0; //update after
     fls.offset = preArr[3];
 
@@ -593,11 +593,11 @@ public class LongsSketch {
      * @return true if this.getEstimate() equals ((Row)obj).getEstimate().
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
       if (this == obj) { return true; }
       if (obj == null) { return false; }
       if ( !(obj instanceof Row)) { return false; }
-      Row that = (Row) obj;
+      final Row that = (Row) obj;
       if (est != that.est) { return false; }
       return true;
     }
@@ -733,15 +733,15 @@ public class LongsSketch {
    * @param tokens the given array of Strings tokens.
    * @return a hash map object of this class
    */
-  static ReversePurgeLongHashMap deserializeFromStringArray(String[] tokens) {
+  static ReversePurgeLongHashMap deserializeFromStringArray(final String[] tokens) {
     final int ignore = STR_PREAMBLE_TOKENS;
     final int numActive = Integer.parseInt(tokens[ignore]);
     final int length = Integer.parseInt(tokens[ignore + 1]);
     final ReversePurgeLongHashMap hashMap = new ReversePurgeLongHashMap(length);
     int j = 2 + ignore;
     for (int i = 0; i < numActive; i++) {
-      long key = Long.parseLong(tokens[j++]);
-      long value = Long.parseLong(tokens[j++]);
+      final long key = Long.parseLong(tokens[j++]);
+      final long value = Long.parseLong(tokens[j++]);
       hashMap.adjustOrPutValue(key, value);
     }
     return hashMap;

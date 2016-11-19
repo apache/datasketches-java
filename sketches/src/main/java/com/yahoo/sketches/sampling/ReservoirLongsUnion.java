@@ -36,7 +36,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Jon Malkin
  * @author Kevin Lang
  */
-public class ReservoirLongsUnion {
+public final class ReservoirLongsUnion {
   private ReservoirLongsSketch gadget_;
   private final int maxK_;
 
@@ -344,7 +344,7 @@ public class ReservoirLongsUnion {
 
     // targetTotal was fractional but should now be an integer again. Could validate with
     // low tolerance, but for now just round to check.
-    long checkN = (long) Math.floor(0.5 + targetTotal);
+    final long checkN = (long) Math.floor(0.5 + targetTotal);
     gadget_.forceIncrementItemsSeen(source.getN());
     assert (checkN == gadget_.getN());
   }

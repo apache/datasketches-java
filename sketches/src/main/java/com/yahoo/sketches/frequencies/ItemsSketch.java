@@ -250,7 +250,7 @@ public class ItemsSketch<T> {
     final long[] preArr = new long[preLongs];
     srcMem.getLongArray(0, preArr, 0, preLongs);
 
-    ItemsSketch<T> fis = new ItemsSketch<T>(lgMaxMapSize, lgCurMapSize);
+    final ItemsSketch<T> fis = new ItemsSketch<T>(lgMaxMapSize, lgCurMapSize);
     fis.streamLength = 0; //update after
     fis.offset = preArr[3];
 
@@ -535,11 +535,11 @@ public class ItemsSketch<T> {
      */
     @SuppressWarnings("unchecked")
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
       if (this == obj) { return true; }
       if (obj == null) { return false; }
       if ( !(obj instanceof Row)) { return false; }
-      Row<T> that = (Row<T>) obj;
+      final Row<T> that = (Row<T>) obj;
       if (est != that.est) { return false; }
       return true;
     }

@@ -34,7 +34,7 @@ import com.yahoo.sketches.Util;
  * @author Jon Malkin
  * @author Kevin Lang
  */
-public class ReservoirItemsSketch<T> {
+public final class ReservoirItemsSketch<T> {
 
   /**
    * The smallest sampling array allocated: 16
@@ -158,7 +158,7 @@ public class ReservoirItemsSketch<T> {
    * @param <T> The type of object held in the reservoir.
    * @return A ReservoirLongsSketch initialized with maximum size k and resize factor rf.
    */
-  public static <T> ReservoirItemsSketch<T> getInstance(final int k, ResizeFactor rf) {
+  public static <T> ReservoirItemsSketch<T> getInstance(final int k, final ResizeFactor rf) {
     return new ReservoirItemsSketch<>(k, rf);
   }
 
@@ -244,11 +244,11 @@ public class ReservoirItemsSketch<T> {
     }
 
     final int itemsToRead = (int) Math.min(k, itemsSeen);
-    T[] data = serDe.deserializeFromMemory(
-            new MemoryRegion(srcMem, preLongBytes, srcMem.getCapacity() - preLongBytes), itemsToRead);
-    ArrayList<T> dataList = new ArrayList<>(Arrays.asList(data));
+    final T[] data = serDe.deserializeFromMemory(
+        new MemoryRegion(srcMem, preLongBytes, srcMem.getCapacity() - preLongBytes), itemsToRead);
+    final ArrayList<T> dataList = new ArrayList<>(Arrays.asList(data));
 
-    ReservoirItemsSketch<T> ris = new ReservoirItemsSketch<>(dataList, itemsSeen, rf, k);
+    final ReservoirItemsSketch<T> ris = new ReservoirItemsSketch<>(dataList, itemsSeen, rf, k);
     ris.data_.ensureCapacity(allocatedItems);
     ris.currItemsAlloc_ = allocatedItems;
 
@@ -333,7 +333,7 @@ public class ReservoirItemsSketch<T> {
       return null;
     }
 
-    Class<?> clazz = data_.get(0).getClass();
+    final Class<?> clazz = data_.get(0).getClass();
     return data_.toArray((T[]) Array.newInstance(clazz, 0));
   }
 
@@ -349,7 +349,7 @@ public class ReservoirItemsSketch<T> {
    * @return A copy of the reservoir array
    */
   @SuppressWarnings("unchecked")
-  public T[] getSamples(Class<?> clazz) {
+  public T[] getSamples(final Class<?> clazz) {
     if (itemsSeen_ == 0) {
       return null;
     }

@@ -57,7 +57,7 @@ class ReversePurgeLongHashMap {
    * @return an instance of this class.
    */
   static ReversePurgeLongHashMap getInstance(final String string) {
-    String[] tokens = string.split(",");
+    final String[] tokens = string.split(",");
     if (tokens.length < 2) {
       throw new SketchesArgumentException(
           "String not long enough to specify length and capacity.");
@@ -269,8 +269,8 @@ class ReversePurgeLongHashMap {
    */
   @Override
   public String toString() {
-    String fmt  = "  %12d:%11d%20d %d";
-    String hfmt = "  %12s:%11s%20s %s";
+    final String fmt  = "  %12d:%11d%20d %d";
+    final String hfmt = "  %12s:%11s%20s %s";
     final StringBuilder sb = new StringBuilder();
     sb.append("ReversePurgeLongHashMap:").append(LS);
     sb.append(String.format(hfmt, "Index","States","Values","Keys")).append(LS);

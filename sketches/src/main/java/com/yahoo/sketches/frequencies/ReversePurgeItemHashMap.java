@@ -234,8 +234,8 @@ class ReversePurgeItemHashMap<T> {
    */
   @Override
   public String toString() {
-    String fmt  = "  %12d:%11d%12d %s";
-    String hfmt = "  %12s:%11s%12s %s";
+    final String fmt  = "  %12d:%11d%12d %s";
+    final String hfmt = "  %12s:%11s%12s %s";
     final StringBuilder sb = new StringBuilder();
     sb.append("ReversePurgeItemHashMap").append(LS);
     sb.append(String.format(hfmt, "Index","States","Values","Keys")).append(LS);

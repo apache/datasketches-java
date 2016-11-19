@@ -29,19 +29,19 @@ final class HashUtils {
 
   private HashUtils() {}
 
-  static int getMaxHashSize(int index) {
+  static int getMaxHashSize(final int index) {
     return MAX_HASH_SIZE[index];
   }
 
-  static int keyOfPair(int pair) {
+  static int keyOfPair(final int pair) {
     return pair & KEY_MASK;
   }
 
-  static byte valOfPair(int pair) {
+  static byte valOfPair(final int pair) {
     return (byte) ((pair >> KEY_BITS) & VAL_MASK);
   }
 
-  static int pairOfKeyAndVal(int key, byte value) {
+  static int pairOfKeyAndVal(final int key, final byte value) {
     return ((value & VAL_MASK) << KEY_BITS) | (key & KEY_MASK);
   }
 }

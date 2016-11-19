@@ -34,8 +34,8 @@ public final class Preamble {
   private byte flags;
   private short seedHash;
 
-  private Preamble(
-      byte preambleLongs, byte version, byte familyId, byte logConfigK, byte flags, short seedHash) {
+  private Preamble(final byte preambleLongs, final byte version, final byte familyId,
+      final byte logConfigK, final byte flags, final short seedHash) {
     this.preambleLongs = preambleLongs;
     this.version = version;
     this.familyId = familyId;
@@ -59,8 +59,8 @@ public final class Preamble {
    * @param memory the given Memory
    * @return a new Preamble from the given Memory
    */
-  public static Preamble fromMemory(Memory memory) {
-    Builder builder = new Builder()
+  public static Preamble fromMemory(final Memory memory) {
+    final Builder builder = new Builder()
         .setPreambleLongs(memory.getByte(0))
         .setVersion(memory.getByte(1))
         .setFamilyId(memory.getByte(2))
@@ -70,7 +70,7 @@ public final class Preamble {
         // preamble can be aligned across different types of sketches.
         .setFlags(memory.getByte(5));
 
-    short seedHash = memory.getShort(6);
+    final short seedHash = memory.getShort(6);
     return builder.setSeedHash(seedHash).build();
   }
 
@@ -83,9 +83,9 @@ public final class Preamble {
    *
    * @return the seed hash.
    */
-  private static short computeSeedHash(long seed) {
-    long[] seedArr = {seed};
-    short seedHash = (short) ((MurmurHash3.hash(seedArr, 0L)[0]) & 0xFFFFL);
+  private static short computeSeedHash(final long seed) {
+    final long[] seedArr = {seed};
+    final short seedHash = (short) ((MurmurHash3.hash(seedArr, 0L)[0]) & 0xFFFFL);
     if (seedHash == 0) {
       throw new SketchesArgumentException(
           "The given seed: " + seed + " produced a seedHash of zero. "
@@ -100,12 +100,12 @@ public final class Preamble {
    * @param logK log_base2 of the desired K
    * @return a new Preamble with the parameter log_base2 of K.
    */
-  public static Preamble fromLogK(int logK) {
+  public static Preamble fromLogK(final int logK) {
     if (logK > 255) {
       throw new SketchesArgumentException("logK is greater than a byte, make it smaller");
     }
 
-    byte flags = new PreambleFlags.Builder()
+    final byte flags = new PreambleFlags.Builder()
         .setBigEndian(false)
         .setReadOnly(true)
         .setEmpty(true)
@@ -115,7 +115,7 @@ public final class Preamble {
         .setEightBytePadding(false)
         .build();
 
-    short seedHash = computeSeedHash(Util.DEFAULT_UPDATE_SEED);
+    final short seedHash = computeSeedHash(Util.DEFAULT_UPDATE_SEED);
     return new Builder()
         .setLogConfigK((byte) logK)
         .setFlags(flags)
@@ -128,17 +128,17 @@ public final class Preamble {
    * @return this Preamble as a byte array
    */
   public byte[] toByteArray() {
-    byte[] retVal = new byte[getPreambleLongs() << 3];
+    final byte[] retVal = new byte[getPreambleLongs() << 3];
     intoByteArray(retVal, 0);
     return retVal;
   }
 
-  int intoByteArray(byte[] bytes, int offset) {
+  int intoByteArray(final byte[] bytes, final int offset) {
     if ((bytes.length - offset) < 8) {
       throw new SketchesArgumentException("bytes too small");
     }
 
-    Memory mem = new MemoryRegion(new NativeMemory(bytes), offset, 8);
+    final Memory mem = new MemoryRegion(new NativeMemory(bytes), offset, 8);
     mem.putByte(0, getPreambleLongs());
     mem.putByte(1, getVersion());
     mem.putByte(2, getFamilyId());
@@ -213,7 +213,7 @@ public final class Preamble {
   }
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(final Object o) {
     if (this == o) {
       return true;
     }
@@ -221,7 +221,7 @@ public final class Preamble {
       return false;
     }
 
-    Preamble preamble = (Preamble) o;
+    final Preamble preamble = (Preamble) o;
 
     return familyId == preamble.familyId
        && flags == preamble.flags
@@ -259,7 +259,7 @@ public final class Preamble {
      * @param preambleLongs the size of the preamble in longs
      * @return this Builder
      */
-    public Builder setPreambleLongs(byte preambleLongs) {
+    public Builder setPreambleLongs(final byte preambleLongs) {
       this.preambleLongs = preambleLongs;
       return this;
     }
@@ -269,7 +269,7 @@ public final class Preamble {
      * @param version the serialization version
      * @return this Builder
      */
-    public Builder setVersion(byte version) {
+    public Builder setVersion(final byte version) {
       this.version = version;
       return this;
     }
@@ -279,7 +279,7 @@ public final class Preamble {
      * @param familyId the Family ID
      * @return this Builder
      */
-    public Builder setFamilyId(byte familyId) {
+    public Builder setFamilyId(final byte familyId) {
       this.familyId = familyId;
       return this;
     }
@@ -289,7 +289,7 @@ public final class Preamble {
      * @param logConfigK the log_base2 of K
      * @return this Builder
      */
-    public Builder setLogConfigK(byte logConfigK) {
+    public Builder setLogConfigK(final byte logConfigK) {
       this.logConfigK = logConfigK;
       return this;
     }
@@ -299,7 +299,7 @@ public final class Preamble {
      * @param flags the flags byte
      * @return this Builder
      */
-    public Builder setFlags(byte flags) {
+    public Builder setFlags(final byte flags) {
       this.flags = flags;
       return this;
     }
@@ -309,7 +309,7 @@ public final class Preamble {
      * @param seed the given seed
      * @return this Builder
      */
-    public Builder setSeed(long seed) {
+    public Builder setSeed(final long seed) {
       return setSeedHash(computeSeedHash(seed));
     }
 
@@ -318,7 +318,7 @@ public final class Preamble {
      * @param seedHash the given seed hash
      * @return this Builder
      */
-    public Builder setSeedHash(short seedHash) {
+    public Builder setSeedHash(final short seedHash) {
       this.seedHash = seedHash;
       return this;
     }

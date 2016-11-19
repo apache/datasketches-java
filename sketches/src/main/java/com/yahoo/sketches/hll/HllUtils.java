@@ -16,7 +16,7 @@ final class HllUtils {
 
   private HllUtils() {}
 
-  static double computeInvPow2Sum(int numBuckets, BucketIterator iter) {
+  static double computeInvPow2Sum(int numBuckets, final BucketIterator iter) {
     double retVal = 0;
     while (iter.next()) {
       retVal += invPow2(iter.getValue());
@@ -27,7 +27,7 @@ final class HllUtils {
   }
 
   static Fields unionBucketIterator(
-      Fields fields, BucketIterator iter, Fields.UpdateCallback updateCallback) {
+      Fields fields, final BucketIterator iter, final Fields.UpdateCallback updateCallback) {
     while (iter.next()) {
       fields = fields.updateBucket(iter.getKey(), iter.getValue(), updateCallback);
     }

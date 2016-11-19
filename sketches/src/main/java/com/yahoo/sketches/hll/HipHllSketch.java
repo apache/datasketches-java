@@ -28,8 +28,8 @@ final class HipHllSketch extends HllSketch {
           private int numBuckets = fields.getPreamble().getConfigK();
 
           @Override
-          public void bucketUpdated(int bucket, byte oldVal, byte newVal) {
-            double oneOverQ = oneOverQ();
+          public void bucketUpdated(final int bucket, final byte oldVal, final byte newVal) {
+            final double oneOverQ = oneOverQ();
             hipEstAccum += oneOverQ;
             // subtraction before addition is intentional, in order to avoid overflow
             invPow2Sum -= invPow2(oldVal);
@@ -44,22 +44,22 @@ final class HipHllSketch extends HllSketch {
   }
 
   @Override
-  public HllSketch union(HllSketch that) {
+  public HllSketch union(final HllSketch that) {
     throw new UnsupportedOperationException(
         "HipHllSketches cannot handle merges, use a normal HllSketch");
   }
 
   @Override
-  public double getUpperBound(double numStdDevs) {
+  public double getUpperBound(final double numStdDevs) {
     return hipEstAccum / (1.0 - eps(numStdDevs));
   }
 
   @Override
-  public double getLowerBound(double numStdDevs) {
-    double lowerBound = hipEstAccum / (1.0 + eps(numStdDevs));
-    int numBuckets = numBuckets();
+  public double getLowerBound(final double numStdDevs) {
+    final double lowerBound = hipEstAccum / (1.0 + eps(numStdDevs));
+    final int numBuckets = numBuckets();
     if (lowerBound < numBuckets) {
-      double numNonZeros = numBuckets - numBucketsAtZero();
+      final double numNonZeros = numBuckets - numBucketsAtZero();
       if (lowerBound < numNonZeros) {
         return numNonZeros;
       }
@@ -77,7 +77,7 @@ final class HipHllSketch extends HllSketch {
     return invPow2Sum;
   }
 
-  private double eps(double numStdDevs) {
+  private double eps(final double numStdDevs) {
     return numStdDevs * HIP_REL_ERROR_NUMER / Math.sqrt(numBuckets());
   }
 }

@@ -19,8 +19,8 @@ final class OnHeapHashFields implements Fields {
 
   private int growthBound;
 
-  public OnHeapHashFields(
-      Preamble preamble, int startSize, int switchToDenseSize, FieldsFactory denseFactory) {
+  public OnHeapHashFields(final Preamble preamble, final int startSize, final int switchToDenseSize,
+      final FieldsFactory denseFactory) {
     this.preamble = preamble;
     this.denseFactory = denseFactory;
     this.hasher = new OnHeapHash(startSize);
@@ -35,15 +35,15 @@ final class OnHeapHashFields implements Fields {
   }
 
   @Override
-  public Fields updateBucket(int key, byte val, UpdateCallback callback) {
+  public Fields updateBucket(final int key, final byte val, final UpdateCallback callback) {
     hasher.updateBucket(key, val, callback);
 
     if (hasher.getNumElements() >= growthBound) {
-      int[] fields = hasher.getFields();
+      final int[] fields = hasher.getFields();
       this.growthBound = 3 * (fields.length >>> 2);
       if (fields.length == switchToDenseSize) {
-        Fields retVal = denseFactory.make(preamble);
-        BucketIterator iter = getBucketIterator();
+        final Fields retVal = denseFactory.make(preamble);
+        final BucketIterator iter = getBucketIterator();
         while (iter.next()) {
           retVal.updateBucket(iter.getKey(), iter.getValue(), NOOP_CB);
         }
@@ -58,8 +58,8 @@ final class OnHeapHashFields implements Fields {
   }
 
   @Override
-  public int intoByteArray(byte[] array, int offset) {
-    int numBytesNeeded = numBytesToSerialize();
+  public int intoByteArray(final byte[] array, final int offset) {
+    final int numBytesNeeded = numBytesToSerialize();
     if (array.length - offset < numBytesNeeded) {
       throw new SketchesArgumentException(
           String.format("array too small[%,d] < [%,d]", array.length - offset, numBytesNeeded)
@@ -86,18 +86,18 @@ final class OnHeapHashFields implements Fields {
   }
 
   @Override
-  public Fields unionInto(Fields recipient, UpdateCallback cb) {
+  public Fields unionInto(final Fields recipient, final UpdateCallback cb) {
     return recipient.unionBucketIterator(getBucketIterator(), cb);
   }
 
   @Override
-  public Fields unionBucketIterator(BucketIterator iter, UpdateCallback callback) {
+  public Fields unionBucketIterator(final BucketIterator iter, final UpdateCallback callback) {
     return HllUtils.unionBucketIterator(this, iter, callback);
   }
 
   @Override
-  public Fields unionCompressedAndExceptions(
-      byte[] compressed, int minVal, OnHeapHash exceptions, UpdateCallback cb) {
+  public Fields unionCompressedAndExceptions(final byte[] compressed, final int minVal,
+      final OnHeapHash exceptions, final UpdateCallback cb) {
     return unionBucketIterator(
         CompressedBucketUtils.getBucketIterator(compressed, minVal, exceptions), cb);
   }
