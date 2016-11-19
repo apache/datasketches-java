@@ -44,7 +44,7 @@ final class Util {
    * Checks the validity of the given value k
    * @param k must be greater than 0 and less than 65536.
    */
-  static void checkK(int k) {
+  static void checkK(final int k) {
     if ((k < 1) || (k >= (1 << 16)) || !isPowerOf2(k)) {
       throw new SketchesArgumentException("K must be > 0 and < 65536");
     }
@@ -54,8 +54,8 @@ final class Util {
    * Checks the validity of the given family ID
    * @param familyID the given family ID
    */
-  static void checkFamilyID(int familyID) {
-    Family family = Family.idToFamily(familyID);
+  static void checkFamilyID(final int familyID) {
+    final Family family = Family.idToFamily(familyID);
     if (!family.equals(Family.QUANTILES)) {
       throw new SketchesArgumentException(
           "Possible corruption: Invalid Family: " + family.toString());
@@ -70,11 +70,11 @@ final class Util {
    * @param memCapBytes the memory capacity
    * @return the value of the empty state
    */
-  static boolean checkPreLongsFlagsCap(int preambleLongs, int flags, long memCapBytes) {
-    boolean empty = (flags & EMPTY_FLAG_MASK) > 0; //Preamble flags empty state
-    int minPre = Family.QUANTILES.getMinPreLongs();
-    int maxPre = Family.QUANTILES.getMaxPreLongs();
-    boolean valid = ((preambleLongs == minPre) && empty) || ((preambleLongs == maxPre) && !empty);
+  static boolean checkPreLongsFlagsCap(final int preambleLongs, final int flags, final long memCapBytes) {
+    final boolean empty = (flags & EMPTY_FLAG_MASK) > 0; //Preamble flags empty state
+    final int minPre = Family.QUANTILES.getMinPreLongs();
+    final int maxPre = Family.QUANTILES.getMaxPreLongs();
+    final boolean valid = ((preambleLongs == minPre) && empty) || ((preambleLongs == maxPre) && !empty);
     if (!valid) {
       throw new SketchesArgumentException(
           "Possible corruption: PreambleLongs inconsistent with empty state: " + preambleLongs);
@@ -91,10 +91,10 @@ final class Util {
    * Checks just the flags field of the preamble
    * @param flags the flags field
    */
-  static void checkFlags(int flags) {  //only used by checkPreLongsFlagsCap and test
-    int allowedFlags =
+  static void checkFlags(final int flags) {  //only used by checkPreLongsFlagsCap and test
+    final int allowedFlags =
         READ_ONLY_FLAG_MASK | EMPTY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK;
-    int flagsMask = ~allowedFlags;
+    final int flagsMask = ~allowedFlags;
     if ((flags & flagsMask) > 0) {
       throw new SketchesArgumentException(
          "Possible corruption: Invalid flags field: " + Integer.toBinaryString(flags));
@@ -106,14 +106,14 @@ final class Util {
    * They must be unique, monotonically increasing and not NaN, not &lt; 0 and not &gt; 1.0.
    * @param fractions array
    */
-  static final void validateFractions(double[] fractions) {
+  static final void validateFractions(final double[] fractions) {
     if (fractions == null) {
       throw new SketchesArgumentException("Fractions cannot be null.");
     }
-    int len = fractions.length;
+    final int len = fractions.length;
     if (len == 0) { return; }
-    double flo = fractions[0];
-    double fhi = fractions[fractions.length - 1];
+    final double flo = fractions[0];
+    final double fhi = fractions[fractions.length - 1];
     if ((flo < 0.0) || (fhi > 1.0)) {
       throw new SketchesArgumentException(
           "A fraction cannot be less than zero or greater than 1.0");
@@ -145,10 +145,10 @@ final class Util {
    * @param n the current number of items seen by the sketch
    * @return the number of retained items in the sketch given k and n.
    */
-  static int computeRetainedItems(int k, long n) {
-    int bbCnt = computeBaseBufferItems(k, n);
-    long bitPattern = computeBitPattern(k, n);
-    int validLevels = Long.bitCount(bitPattern);
+  static int computeRetainedItems(final int k, final long n) {
+    final int bbCnt = computeBaseBufferItems(k, n);
+    final long bitPattern = computeBitPattern(k, n);
+    final int validLevels = Long.bitCount(bitPattern);
     return bbCnt + validLevels * k;
   }
 
@@ -163,13 +163,13 @@ final class Util {
    * @param n The number of items in the input stream
    * @return the current item capacity of the combined data buffer
    */
-  static int computeExpandedCombinedBufferItemCapacity(int k, long n) {
-    int totLevels = computeNumLevelsNeeded(k, n);
+  static int computeExpandedCombinedBufferItemCapacity(final int k, final long n) {
+    final int totLevels = computeNumLevelsNeeded(k, n);
     int ret;
     if (totLevels > 0) {
       ret = (2 + totLevels) * k;
     } else { //compute the partial the base buffer when totLevels = 0
-      int bbItems = computeBaseBufferItems(k, n);
+      final int bbItems = computeBaseBufferItems(k, n);
       ret = Math.max(MIN_BASE_BUF_SIZE, ceilingPowerOf2(bbItems));
     }
     return ret;
@@ -180,7 +180,7 @@ final class Util {
    * @param bitPattern the bit pattern for valid log levels
    * @return the number of valid levels above the base buffer
    */
-  static int computeValidLevels(long bitPattern) {
+  static int computeValidLevels(final long bitPattern) {
     return Long.bitCount(bitPattern);
   }
 
@@ -192,7 +192,7 @@ final class Util {
    * @param n the total values presented to the sketch.
    * @return the number of levels needed.
    */
-  static int computeNumLevelsNeeded(int k, long n) {
+  static int computeNumLevelsNeeded(final int k, final long n) {
     return 1 + hiBitPos(n / (2L * k));
   }
 
@@ -202,7 +202,7 @@ final class Util {
    * @param n the total values presented to the sketch
    * @return the number of base buffer items
    */
-  static int computeBaseBufferItems(int k, long n) {
+  static int computeBaseBufferItems(final int k, final long n) {
     return (int) (n % (2L * k));
   }
 
@@ -213,7 +213,7 @@ final class Util {
    * @param n the total values presented to the sketch.
    * @return the levels bit pattern
    */
-  static long computeBitPattern(int k, long n) {
+  static long computeBitPattern(final int k, final long n) {
     return n / (2L * k);
   }
 
@@ -222,7 +222,7 @@ final class Util {
    * @param x the given x
    * @return the log_base2 of x
    */
-  static double lg(double x) {
+  static double lg(final double x) {
     return ( Math.log(x) / Math.log(2.0) );
   }
 
@@ -232,7 +232,7 @@ final class Util {
    * @param num the given long
    * @return Zero based position of the highest one-bit of the given long
    */
-  static int hiBitPos(long num) {
+  static int hiBitPos(final long num) {
     return 63 - Long.numberOfLeadingZeros(num);
   }
 
@@ -242,7 +242,7 @@ final class Util {
    * @param startingPos the zero-based starting bit position
    * @return the zero-based bit position of the lowest zero bit starting at bit startingPos.
    */
-  static int positionOfLowestZeroBitStartingAt(long numIn, int startingPos) {
+  static int positionOfLowestZeroBitStartingAt(final long numIn, final int startingPos) {
     long num = numIn >>> startingPos;
     int pos = 0;
     while ((num & 1L) != 0) {
@@ -298,7 +298,7 @@ final class Util {
      * @param k the given k that must be greater than one.
      * @return the resulting epsilon
      */
-    static double getAdjustedEpsilon(int k) { //used by HeapQS, so far
+    static double getAdjustedEpsilon(final int k) { //used by HeapQS, so far
       if (k == 1) { return 1.0; }
       return getTheoreticalEpsilon(k, adjustKForEps);
     }
@@ -312,37 +312,38 @@ final class Util {
      * @param ff The given fudge factor. No fudge factor = 1.0.
      * @return the resulting epsilon
      */
-    private static double getTheoreticalEpsilon(int k, double ff) { //used only by getAdjustedEpsilon()
+    //used only by getAdjustedEpsilon()
+    private static double getTheoreticalEpsilon(final int k, final double ff) {
       if (k < 2) {
         throw new SketchesArgumentException("K must be greater than one.");
       }
       // don't need to check in the other direction because an int is very small
-      double kf = k * ff;
+      final double kf = k * ff;
       assert kf >= 2.15; // ensures that the bracketing succeeds
       assert kf < 1e12;  // ditto, but could actually be bigger
-      double lo = 1e-16;
-      double hi = 1.0 - 1e-16;
+      final double lo = 1e-16;
+      final double hi = 1.0 - 1e-16;
       assert epsForKPredicate(lo, kf);
       assert !epsForKPredicate(hi, kf);
       return bracketedBinarySearchForEps(kf, lo, hi);
     }
 
-    private static double kOfEpsFormula(double eps) {
+    private static double kOfEpsFormula(final double eps) {
       return (1.0 / eps) * (Math.sqrt(Math.log(1.0 / (eps * deltaForEps))));
     }
 
-    private static boolean epsForKPredicate(double eps, double kf) {
+    private static boolean epsForKPredicate(final double eps, final double kf) {
       return kOfEpsFormula(eps) >= kf;
     }
 
-    private static double bracketedBinarySearchForEps(double kf, double lo, double hi) {
+    private static double bracketedBinarySearchForEps(final double kf, final double lo, final double hi) {
       assert lo < hi;
       assert epsForKPredicate(lo, kf);
       assert !epsForKPredicate(hi, kf);
       if ((hi - lo) / lo < bracketedBinarySearchForEpsTol) {
         return lo;
       }
-      double mid = (lo + hi) / 2.0;
+      final double mid = (lo + hi) / 2.0;
       assert mid > lo;
       assert mid < hi;
       if (epsForKPredicate(mid, kf)) {

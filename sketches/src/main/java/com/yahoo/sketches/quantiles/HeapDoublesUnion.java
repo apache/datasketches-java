@@ -36,18 +36,18 @@ final class HeapDoublesUnion extends DoublesUnion {
   }
 
   @Override
-  public void update(DoublesSketch sketchIn) {
+  public void update(final DoublesSketch sketchIn) {
     gadget_ = updateLogic(k_, gadget_, (HeapDoublesSketch)sketchIn);
   }
 
   @Override
-  public void update(Memory srcMem) {
-    HeapDoublesSketch that = HeapDoublesSketch.heapifyInstance(srcMem);
+  public void update(final Memory srcMem) {
+    final HeapDoublesSketch that = HeapDoublesSketch.heapifyInstance(srcMem);
     gadget_ = updateLogic(k_, gadget_, that);
   }
 
   @Override
-  public void update(double dataItem) {
+  public void update(final double dataItem) {
     if (gadget_ == null) {
       gadget_ = HeapDoublesSketch.newInstance(k_);
     }
@@ -65,7 +65,7 @@ final class HeapDoublesUnion extends DoublesUnion {
   @Override
   public DoublesSketch getResultAndReset() {
     if (gadget_ == null) { return null; } //Intentionally return null here for speed.
-    DoublesSketch hqs = gadget_;
+    final DoublesSketch hqs = gadget_;
     gadget_ = null;
     return hqs;
   }
@@ -127,7 +127,7 @@ final class HeapDoublesUnion extends DoublesUnion {
         } else {
           //myQS_K > other_K, must reverse roles
           //must copy other as it will become mine and can't have any externally owned handles.
-          HeapDoublesSketch myNewQS = DoublesUtil.copy(other);
+          final HeapDoublesSketch myNewQS = DoublesUtil.copy(other);
           HeapDoublesUnion.mergeInto(myQS, myNewQS);
           ret = myNewQS;
         }
@@ -168,24 +168,24 @@ final class HeapDoublesUnion extends DoublesUnion {
    * @param target The target sketch
    */
 
-  static void mergeInto(DoublesSketch source, DoublesSketch target) {
+  static void mergeInto(final DoublesSketch source, final DoublesSketch target) {
 
-    HeapDoublesSketch src = (HeapDoublesSketch)source;
-    HeapDoublesSketch tgt = (HeapDoublesSketch)target;
-    int srcK = src.getK();
-    int tgtK = tgt.getK();
-    long srcN = src.getN();
-    long tgtN = tgt.getN();
+    final HeapDoublesSketch src = (HeapDoublesSketch)source;
+    final HeapDoublesSketch tgt = (HeapDoublesSketch)target;
+    final int srcK = src.getK();
+    final int tgtK = tgt.getK();
+    final long srcN = src.getN();
+    final long tgtN = tgt.getN();
 
     if (srcK != tgtK) {
       DoublesMergeImpl.downSamplingMergeInto(src, tgt);
       return;
     }
 
-    double[] srcLevels     = src.getCombinedBuffer(); // aliasing is a bit dangerous
-    double[] srcBaseBuffer = srcLevels;               // aliasing is a bit dangerous
+    final double[] srcLevels     = src.getCombinedBuffer(); // aliasing is a bit dangerous
+    final double[] srcBaseBuffer = srcLevels;               // aliasing is a bit dangerous
 
-    long nFinal = tgtN + srcN;
+    final long nFinal = tgtN + srcN;
 
     for (int i = 0; i < src.getBaseBufferCount(); i++) {
       tgt.update(srcBaseBuffer[i]);
@@ -193,7 +193,7 @@ final class HeapDoublesUnion extends DoublesUnion {
 
     DoublesUpdateImpl.maybeGrowLevels(nFinal, tgt);
 
-    double[] scratchBuf = new double[2 * tgtK];
+    final double[] scratchBuf = new double[2 * tgtK];
 
     long srcBitPattern = src.getBitPattern();
     assert srcBitPattern == (srcN / (2L * srcK));
@@ -212,10 +212,10 @@ final class HeapDoublesUnion extends DoublesUnion {
 
     assert tgt.getN() / (2 * tgtK) == tgt.getBitPattern(); // internal consistency check
 
-    double srcMax = src.getMaxValue();
-    double srcMin = src.getMinValue();
-    double tgtMax = tgt.getMaxValue();
-    double tgtMin = tgt.getMinValue();
+    final double srcMax = src.getMaxValue();
+    final double srcMin = src.getMinValue();
+    final double tgtMax = tgt.getMaxValue();
+    final double tgtMin = tgt.getMinValue();
     if (srcMax > tgtMax) { tgt.maxValue_ = srcMax; }
     if (srcMin < tgtMin) { tgt.minValue_ = srcMin; }
   }

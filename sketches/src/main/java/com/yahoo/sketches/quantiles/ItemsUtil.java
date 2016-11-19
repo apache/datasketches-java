@@ -21,7 +21,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * functions.</p>
  *
  * @author Kevin Lang
- * @author Alex Saydadov
+ * @author Alexander Saydadov
  */
 final class ItemsUtil {
 
@@ -34,7 +34,7 @@ final class ItemsUtil {
    * Check the validity of the given serialization version
    * @param serVer the given serialization version
    */
-  static void checkItemsSerVer(int serVer) {
+  static void checkItemsSerVer(final int serVer) {
     if ((serVer == ITEMS_SER_VER) || (serVer == PRIOR_ITEMS_SER_VER)) { return; }
     throw new SketchesArgumentException(
         "Possible corruption: Invalid Serialization Version: " + serVer);
@@ -66,7 +66,7 @@ final class ItemsUtil {
    * @return the unnormalized, accumulated counts of <i>m + 1</i> intervals.
    */
   @SuppressWarnings("unchecked")
-  static <T> long[] internalBuildHistogram(final T[] splitPoints, ItemsSketch<T> sketch) {
+  static <T> long[] internalBuildHistogram(final T[] splitPoints, final ItemsSketch<T> sketch) {
     final Object[] levelsArr  = sketch.getCombinedBuffer();
     final Object[] baseBuffer = levelsArr;
     final int bbCount = sketch.getBaseBufferCount();
