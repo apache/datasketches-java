@@ -93,8 +93,8 @@ final class PreambleUtil {
    * to print min and max value in the summary
    * @return the summary string.
    */
-  static String toString(byte[] byteArr, boolean isDoublesSketch) {
-    Memory mem = new NativeMemory(byteArr);
+  static String toString(final byte[] byteArr, final boolean isDoublesSketch) {
+    final Memory mem = new NativeMemory(byteArr);
     return toString(mem, isDoublesSketch);
   }
 
@@ -108,26 +108,26 @@ final class PreambleUtil {
    * to print min and max value in the summary
    * @return the summary string.
    */
-  static String toString(Memory mem, boolean isDoublesSketch) {
+  static String toString(final Memory mem, final boolean isDoublesSketch) {
     return memoryToString(mem, isDoublesSketch);
   }
 
-  private static String memoryToString(Memory mem, boolean isDoublesSketch) {
+  private static String memoryToString(final Memory mem, final boolean isDoublesSketch) {
     //pre0
-    int preLongs = (mem.getByte(PREAMBLE_LONGS_BYTE)) & 0XFF; //either 1 or 2
-    int serVer = mem.getByte(SER_VER_BYTE);
-    int familyID = mem.getByte(FAMILY_BYTE);
-    String famName = idToFamily(familyID).toString();
-    int flags = mem.getByte(FLAGS_BYTE);
-    boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
-    String nativeOrder = ByteOrder.nativeOrder().toString();
-    boolean readOnly  = (flags & READ_ONLY_FLAG_MASK) > 0;
-    boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
-    boolean compact = (flags & COMPACT_FLAG_MASK) > 0;
-    boolean ordered = (flags & ORDERED_FLAG_MASK) > 0;
-    int k = mem.getShort(K_SHORT);
+    final int preLongs = (mem.getByte(PREAMBLE_LONGS_BYTE)) & 0XFF; //either 1 or 2
+    final int serVer = mem.getByte(SER_VER_BYTE);
+    final int familyID = mem.getByte(FAMILY_BYTE);
+    final String famName = idToFamily(familyID).toString();
+    final int flags = mem.getByte(FLAGS_BYTE);
+    final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
+    final String nativeOrder = ByteOrder.nativeOrder().toString();
+    final boolean readOnly  = (flags & READ_ONLY_FLAG_MASK) > 0;
+    final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
+    final boolean compact = (flags & COMPACT_FLAG_MASK) > 0;
+    final boolean ordered = (flags & ORDERED_FLAG_MASK) > 0;
+    final int k = mem.getShort(K_SHORT);
 
-    long n = (preLongs == 1) ? 0L : mem.getLong(N_LONG);
+    final long n = (preLongs == 1) ? 0L : mem.getLong(N_LONG);
     double minDouble = Double.POSITIVE_INFINITY;
     double maxDouble = Double.NEGATIVE_INFINITY;
     if ((preLongs > 1) && isDoublesSketch) { // preLongs = 2 or 3
@@ -135,7 +135,7 @@ final class PreambleUtil {
       maxDouble = mem.getDouble(MAX_DOUBLE);
     }
 
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
     sb.append(LS);
     sb.append("### QUANTILES SKETCH PREAMBLE SUMMARY:").append(LS);
     sb.append("Byte  0: Preamble Longs       : ").append(preLongs).append(LS);
@@ -197,35 +197,35 @@ final class PreambleUtil {
     return unsafe.getDouble(arr, cumOffset + MAX_DOUBLE);
   }
 
-  static void insertPreLongs(Object arr, long cumOffset, int value) {
+  static void insertPreLongs(final Object arr, final long cumOffset, final int value) {
     unsafe.putByte(arr, cumOffset + PREAMBLE_LONGS_BYTE, (byte) value);
   }
 
-  static void insertSerVer(Object arr, long cumOffset, int value) {
+  static void insertSerVer(final Object arr, final long cumOffset, final int value) {
     unsafe.putByte(arr, cumOffset + SER_VER_BYTE, (byte) value);
   }
 
-  static void insertFamilyID(Object arr, long cumOffset, int value) {
+  static void insertFamilyID(final Object arr, final long cumOffset, final int value) {
     unsafe.putByte(arr, cumOffset + FAMILY_BYTE, (byte) value);
   }
 
-  static void insertFlags(Object arr, long cumOffset, int value) {
+  static void insertFlags(final Object arr, final long cumOffset, final int value) {
     unsafe.putByte(arr, cumOffset + FLAGS_BYTE, (byte) value);
   }
 
-  static void insertK(Object arr, long cumOffset, int value) {
+  static void insertK(final Object arr, final long cumOffset, final int value) {
     unsafe.putShort(arr, cumOffset + K_SHORT, (short) value);
   }
 
-  static void insertN(Object arr, long cumOffset, long value) {
+  static void insertN(final Object arr, final long cumOffset, final long value) {
     unsafe.putLong(arr, cumOffset + N_LONG, value);
   }
 
-  static void insertMinDouble(Object arr, long cumOffset, double value) {
+  static void insertMinDouble(final Object arr, final long cumOffset, final double value) {
     unsafe.putDouble(arr, cumOffset + MIN_DOUBLE, value);
   }
 
-  static void insertMaxDouble(Object arr, long cumOffset, double value) {
+  static void insertMaxDouble(final Object arr, final long cumOffset, final double value) {
     unsafe.putDouble(arr, cumOffset + MAX_DOUBLE, value);
   }
 }
