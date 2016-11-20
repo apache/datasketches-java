@@ -115,27 +115,31 @@ public final class UnsafeUtil {
   /**
    * Perform bounds checking using java assert (if enabled) checking the requested offset and length
    * against the allocated size.
-   * If reqOff + reqLen > allocSize or any of the parameters are negative an exception will be thrown.
+   * If reqOff + reqLen &gt; allocSize or any of the parameters are negative an exception will
+   * be thrown.
    * @param reqOff the requested offset
    * @param reqLen the requested length
    * @param allocSize the allocated size.
    */
   public static void assertBounds(final long reqOff, final long reqLen, final long allocSize) {
     assert ((reqOff | reqLen | (reqOff + reqLen) | (allocSize - (reqOff + reqLen))) >= 0) :
-      "offset: " + reqOff + ", reqLength: " + reqLen + ", size: " + allocSize;
+      "reqOffset: " + reqOff + ", reqLength: " + reqLen
+      + ", (reqOff + reqLen): " + (reqOff + reqLen) + ", allocSize: " + allocSize;
   }
 
   /**
    * Check the requested offset and length against the allocated size.
-   * If reqOff + reqLen > allocSize or any of the parameters are negative an exception will be thrown.
+   * If reqOff + reqLen &gt; allocSize or any of the parameters are negative an exception will
+   * be thrown.
    * @param reqOff the requested offset
    * @param reqLen the requested length
    * @param allocSize the allocated size.
    */
   public static void checkBounds(final long reqOff, final long reqLen, final long allocSize) {
     if ((reqOff | reqLen | (reqOff + reqLen) | (allocSize - (reqOff + reqLen))) < 0) {
-      throw new IllegalArgumentException("offset: " + reqOff + ", reqLength: " + reqLen + ", size: "
-        + allocSize);
+      throw new IllegalArgumentException(
+          "reqOffset: " + reqOff + ", reqLength: "
+              + ", (reqOff + reqLen): " + (reqOff + reqLen) + ", allocSize: " + allocSize);
     }
   }
 
