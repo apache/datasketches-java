@@ -43,15 +43,13 @@ public class DoublesUnionBuilder {
   }
 
   /**
-   * Returns a Union object that has been initialized with the given sketch to be used as a union
-   * target and will be modified. If you do not want the given sketch to be modified use the
-   * {@link #copyBuild(DoublesSketch)}.
+   * Returns a Union object that has been initialized with the data from the given sketch.
    *
-   * @param sketch a QuantilesSketch that will be used as a target of subsequent union operations.
+   * @param sketch A QuantilesSketch to be used as a source of data, but will not be modified.
    * @return a Union object
    */
   public static DoublesUnion build(final DoublesSketch sketch) {
-    return new HeapDoublesUnion(sketch);
+    return new HeapDoublesUnion(DoublesUtil.copy(sketch));
   }
 
   /**
@@ -71,6 +69,7 @@ public class DoublesUnionBuilder {
    * @param sketch A QuantilesSketch to be used as a source of data, but will not be modified.
    * @return a Union object
    */
+  @Deprecated
   public static DoublesUnion copyBuild(final DoublesSketch sketch) {
     return new HeapDoublesUnion(DoublesUtil.copy(sketch));
   }
