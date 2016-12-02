@@ -623,7 +623,6 @@ public class HeapDoublesSketchTest {
       downSketch = (HeapDoublesSketch)origSketch.downSample(2);
       assertTrue (sameStructurePredicate (directSketch, downSketch));
     }
-
   }
 
   @Test
@@ -646,32 +645,6 @@ public class HeapDoublesSketchTest {
           smlSketch.update(i2);
         }
         DoublesMergeImpl.downSamplingMergeInto(bigSketch, smlSketch);
-        assertTrue (sameStructurePredicate(directSketch, smlSketch));
-      }
-    }
-  }
-
-  @Test
-  public void testDownSampling4() {
-    for (int n1 = 0; n1 < 50; n1++ ) {
-      HeapDoublesSketch bigSketch = HeapDoublesSketch.newInstance(8);
-      for (int i1 = 1; i1 <= n1; i1++ ) {
-        bigSketch.update(i1);
-      }
-      for (int n2 = 0; n2 < 50; n2++ ) {
-        HeapDoublesSketch directSketch = HeapDoublesSketch.newInstance(2);
-        for (int i1 = 1; i1 <= n1; i1++ ) {
-          directSketch.update(i1);
-        }
-        for (int i2 = 1; i2 <= n2; i2++ ) {
-          directSketch.update(i2);
-        }
-        HeapDoublesSketch smlSketch = HeapDoublesSketch.newInstance(2);
-        for (int i2 = 1; i2 <= n2; i2++ ) {
-          smlSketch.update(i2);
-        }
-        DoublesUnion union = DoublesUnionBuilder.build(smlSketch);
-        union.update(bigSketch);
         assertTrue (sameStructurePredicate(directSketch, smlSketch));
       }
     }

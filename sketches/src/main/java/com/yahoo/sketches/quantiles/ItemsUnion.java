@@ -77,7 +77,7 @@ public final class ItemsUnion<T> {
    * @return an instance of ItemsUnion
    */
   public static <T> ItemsUnion<T> getInstance(final ItemsSketch<T> sketch) {
-    return new ItemsUnion<T>(sketch.getK(), sketch.getComparator(), sketch);
+    return new ItemsUnion<T>(sketch.getK(), sketch.getComparator(), ItemsSketch.copy(sketch));
   }
 
   //@formatter:off
