@@ -32,6 +32,8 @@ abstract class DirectUpdateSketch extends UpdateSketch {
     rf_ = rf;
   }
 
+  //Sketch
+
   @Override
   public boolean isDirect() {
     return true;

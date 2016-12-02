@@ -113,26 +113,28 @@ final class PreambleUtil {
   }
 
   private static String memoryToString(final Memory mem, final boolean isDoublesSketch) {
-    //pre0
-    final int preLongs = (mem.getByte(PREAMBLE_LONGS_BYTE)) & 0XFF; //either 1 or 2
-    final int serVer = mem.getByte(SER_VER_BYTE);
-    final int familyID = mem.getByte(FAMILY_BYTE);
+    final Object memObj = mem.array(); //may be null
+    final long cumOffset = mem.getCumulativeOffset(0L);
+
+    final int preLongs = extractPreLongs(memObj, cumOffset); //either 1 or 2
+    final int serVer = extractSerVer(memObj, cumOffset);
+    final int familyID = extractFamilyID(memObj, cumOffset);
     final String famName = idToFamily(familyID).toString();
-    final int flags = mem.getByte(FLAGS_BYTE);
+    final int flags = extractFlags(memObj, cumOffset);
     final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
     final String nativeOrder = ByteOrder.nativeOrder().toString();
     final boolean readOnly  = (flags & READ_ONLY_FLAG_MASK) > 0;
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
     final boolean compact = (flags & COMPACT_FLAG_MASK) > 0;
     final boolean ordered = (flags & ORDERED_FLAG_MASK) > 0;
-    final int k = mem.getShort(K_SHORT);
+    final int k = extractK(memObj, cumOffset);
 
-    final long n = (preLongs == 1) ? 0L : mem.getLong(N_LONG);
+    final long n = (preLongs == 1) ? 0L : extractN(memObj, cumOffset);
     double minDouble = Double.POSITIVE_INFINITY;
     double maxDouble = Double.NEGATIVE_INFINITY;
     if ((preLongs > 1) && isDoublesSketch) { // preLongs = 2 or 3
-      minDouble = mem.getDouble(MIN_DOUBLE);
-      maxDouble = mem.getDouble(MAX_DOUBLE);
+      minDouble = extractMinDouble(memObj, cumOffset);
+      maxDouble = extractMaxDouble(memObj, cumOffset);
     }
 
     final StringBuilder sb = new StringBuilder();
@@ -165,67 +167,67 @@ final class PreambleUtil {
 
   //@formatter:on
 
-  static int extractPreLongs(final Object arr, final long cumOffset) {
-    return unsafe.getByte(arr, cumOffset + PREAMBLE_LONGS_BYTE) & 0XFF;
+  static int extractPreLongs(final Object memObj, final long cumOffset) {
+    return unsafe.getByte(memObj, cumOffset + PREAMBLE_LONGS_BYTE) & 0XFF;
   }
 
-  static int extractSerVer(final Object arr, final long cumOffset) {
-    return unsafe.getByte(arr, cumOffset + SER_VER_BYTE) & 0XFF;
+  static int extractSerVer(final Object memObj, final long cumOffset) {
+    return unsafe.getByte(memObj, cumOffset + SER_VER_BYTE) & 0XFF;
   }
 
-  static int extractFamilyID(final Object arr, final long cumOffset) {
-    return unsafe.getByte(arr, cumOffset + FAMILY_BYTE) & 0XFF;
+  static int extractFamilyID(final Object memObj, final long cumOffset) {
+    return unsafe.getByte(memObj, cumOffset + FAMILY_BYTE) & 0XFF;
   }
 
-  static int extractFlags(final Object arr, final long cumOffset) {
-    return unsafe.getByte(arr, cumOffset + FLAGS_BYTE) & 0XFF;
+  static int extractFlags(final Object memObj, final long cumOffset) {
+    return unsafe.getByte(memObj, cumOffset + FLAGS_BYTE) & 0XFF;
   }
 
-  static int extractK(final Object arr, final long cumOffset) {
-    return unsafe.getShort(arr, cumOffset + K_SHORT) & 0XFFFF;
+  static int extractK(final Object memObj, final long cumOffset) {
+    return unsafe.getShort(memObj, cumOffset + K_SHORT) & 0XFFFF;
   }
 
-  static long extractN(final Object arr, final long cumOffset) {
-    return unsafe.getLong(arr, cumOffset + N_LONG);
+  static long extractN(final Object memObj, final long cumOffset) {
+    return unsafe.getLong(memObj, cumOffset + N_LONG);
   }
 
-  static double extractMinDouble(final Object arr, final long cumOffset) {
-    return unsafe.getDouble(arr, cumOffset + MIN_DOUBLE);
+  static double extractMinDouble(final Object memObj, final long cumOffset) {
+    return unsafe.getDouble(memObj, cumOffset + MIN_DOUBLE);
   }
 
-  static double extractMaxDouble(final Object arr, final long cumOffset) {
-    return unsafe.getDouble(arr, cumOffset + MAX_DOUBLE);
+  static double extractMaxDouble(final Object memObj, final long cumOffset) {
+    return unsafe.getDouble(memObj, cumOffset + MAX_DOUBLE);
   }
 
-  static void insertPreLongs(final Object arr, final long cumOffset, final int value) {
-    unsafe.putByte(arr, cumOffset + PREAMBLE_LONGS_BYTE, (byte) value);
+  static void insertPreLongs(final Object memObj, final long cumOffset, final int value) {
+    unsafe.putByte(memObj, cumOffset + PREAMBLE_LONGS_BYTE, (byte) value);
   }
 
-  static void insertSerVer(final Object arr, final long cumOffset, final int value) {
-    unsafe.putByte(arr, cumOffset + SER_VER_BYTE, (byte) value);
+  static void insertSerVer(final Object memObj, final long cumOffset, final int value) {
+    unsafe.putByte(memObj, cumOffset + SER_VER_BYTE, (byte) value);
   }
 
-  static void insertFamilyID(final Object arr, final long cumOffset, final int value) {
-    unsafe.putByte(arr, cumOffset + FAMILY_BYTE, (byte) value);
+  static void insertFamilyID(final Object memObj, final long cumOffset, final int value) {
+    unsafe.putByte(memObj, cumOffset + FAMILY_BYTE, (byte) value);
   }
 
-  static void insertFlags(final Object arr, final long cumOffset, final int value) {
-    unsafe.putByte(arr, cumOffset + FLAGS_BYTE, (byte) value);
+  static void insertFlags(final Object memObj, final long cumOffset, final int value) {
+    unsafe.putByte(memObj, cumOffset + FLAGS_BYTE, (byte) value);
   }
 
-  static void insertK(final Object arr, final long cumOffset, final int value) {
-    unsafe.putShort(arr, cumOffset + K_SHORT, (short) value);
+  static void insertK(final Object memObj, final long cumOffset, final int value) {
+    unsafe.putShort(memObj, cumOffset + K_SHORT, (short) value);
   }
 
-  static void insertN(final Object arr, final long cumOffset, final long value) {
-    unsafe.putLong(arr, cumOffset + N_LONG, value);
+  static void insertN(final Object memObj, final long cumOffset, final long value) {
+    unsafe.putLong(memObj, cumOffset + N_LONG, value);
   }
 
-  static void insertMinDouble(final Object arr, final long cumOffset, final double value) {
-    unsafe.putDouble(arr, cumOffset + MIN_DOUBLE, value);
+  static void insertMinDouble(final Object memObj, final long cumOffset, final double value) {
+    unsafe.putDouble(memObj, cumOffset + MIN_DOUBLE, value);
   }
 
-  static void insertMaxDouble(final Object arr, final long cumOffset, final double value) {
-    unsafe.putDouble(arr, cumOffset + MAX_DOUBLE, value);
+  static void insertMaxDouble(final Object memObj, final long cumOffset, final double value) {
+    unsafe.putDouble(memObj, cumOffset + MAX_DOUBLE, value);
   }
 }

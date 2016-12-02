@@ -7,23 +7,25 @@ package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.P_FLOAT;
-import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
-import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
-import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
+import static com.yahoo.sketches.theta.PreambleUtil.insertCurCount;
+import static com.yahoo.sketches.theta.PreambleUtil.insertFamilyID;
+import static com.yahoo.sketches.theta.PreambleUtil.insertFlags;
+import static com.yahoo.sketches.theta.PreambleUtil.insertLgArrLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.insertLgNomLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.insertP;
+import static com.yahoo.sketches.theta.PreambleUtil.insertPreLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.insertSeedHash;
+import static com.yahoo.sketches.theta.PreambleUtil.insertSerVer;
+import static com.yahoo.sketches.theta.PreambleUtil.insertThetaLong;
 
 import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.Util;
 
 /**
+ * The parent class for Heap Updatable Theta Sketches.
+ *
  * @author Lee Rhodes
  */
 abstract class HeapUpdateSketch extends UpdateSketch {
@@ -78,29 +80,31 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     return Util.computeSeedHash(getSeed());
   }
 
-  byte[] toByteArray(final int preLongs, final byte family) {
+  byte[] toByteArray(final int preLongs, final byte familyID) {
     if (isDirty()) { rebuild(); }
-    final int preBytes = preLongs << 3;
+    final int preBytes = (preLongs << 3) & 0X3F;
     final int dataBytes = getCurrentDataLongs(false) << 3;
     final byte[] byteArrOut = new byte[preBytes + dataBytes];
     final NativeMemory memOut = new NativeMemory(byteArrOut);
+    final Object memObj = memOut.array(); //may be null
+    final long memAdd = memOut.getCumulativeOffset(0L);
 
     //preamble
-    final byte byte0 = (byte) ((this.getLgResizeFactor() << 6) | preLongs);
-    memOut.putByte(PREAMBLE_LONGS_BYTE, byte0);
-    memOut.putByte(SER_VER_BYTE, (byte) SER_VER);
-    memOut.putByte(FAMILY_BYTE, family);
-    memOut.putByte(LG_NOM_LONGS_BYTE, (byte) this.getLgNomLongs());
-    memOut.putByte(LG_ARR_LONGS_BYTE, (byte) this.getLgArrLongs());
-
-    memOut.putShort(SEED_HASH_SHORT, this.getSeedHash());
-    memOut.putInt(RETAINED_ENTRIES_INT, this.getRetainedEntries(true));
-    memOut.putFloat(P_FLOAT, this.getP());
-    memOut.putLong(THETA_LONG, this.getThetaLong());
+    final int rf = this.getLgResizeFactor() & 3;
+    final byte byte0 = (byte) ((rf << 6) | preLongs);
+    insertPreLongs(memObj, memAdd, byte0);
+    insertSerVer(memObj, memAdd, SER_VER);
+    insertFamilyID(memObj, memAdd, familyID);
+    insertLgNomLongs(memObj, memAdd, this.getLgNomLongs());
+    insertLgArrLongs(memObj, memAdd, this.getLgArrLongs());
+    insertSeedHash(memObj, memAdd, this.getSeedHash());
+    insertCurCount(memObj, memAdd, this.getRetainedEntries(true));
+    insertP(memObj, memAdd, this.getP());
+    insertThetaLong(memObj, memAdd, this.getThetaLong());
 
     //Flags: BigEnd=0, ReadOnly=0, Empty=X, compact=0, ordered=0
     final byte flags = this.isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
-    memOut.putByte(FLAGS_BYTE, flags);
+    insertFlags(memObj, memAdd, flags);
 
     //Data
     final int arrLongs = 1 << this.getLgArrLongs();

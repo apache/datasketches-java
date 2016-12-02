@@ -209,7 +209,7 @@ public abstract class Sketch {
       final double thetaDbl = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
       final String thetaHex = zeroPad(Long.toHexString(thetaLong), 16);
       final String thisSimpleName = this.getClass().getSimpleName();
-      final int seedHash = this.getSeedHash() & 0XFFFF;
+      final int seedHash = this.getSeedHash();
 
       sb.append(LS);
       sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
@@ -233,9 +233,11 @@ public abstract class Sketch {
       sb.append("   Array Size Entries      : ").append(arrLongs).append(LS);
       sb.append("   Retained Entries        : ").append(curCount).append(LS);
       if (updateSketch) {
-        sb.append("   Update Seed             : ").append(Long.toString(seed)).append(LS);
+        sb.append("   Update Seed             : ")
+          .append(Long.toHexString(seed)).append(" | ")
+          .append(Long.toString(seed)).append(LS);
       }
-      sb.append("   Seed Hash               : ").append(Integer.toHexString(seedHash)).append(LS);
+      sb.append("   Seed Hash               : ").append(seedHash).append(LS);
       sb.append("### END SKETCH SUMMARY").append(LS);
 
     }
@@ -309,15 +311,18 @@ public abstract class Sketch {
    * @return a UpdateSketch backed by the given Memory
    */
   public static Sketch wrap(final Memory srcMem, final long seed) {
+    final Object memObj = srcMem.array(); //may be null
+    final long memAdd = srcMem.getCumulativeOffset(0L);
+
     final long pre0 = srcMem.getLong(0);
-    final int preLongs = extractPreLongs(pre0);
-    final int serVer = extractSerVer(pre0);
-    final int famID = extractFamilyID(pre0);
+    final int preLongs = extractPreLongs(memObj, memAdd);
+    final int serVer = extractSerVer(memObj, memAdd);
+    final int famID = extractFamilyID(memObj, memAdd);
     final Family family = Family.idToFamily(famID);
     switch (family) {
       case QUICKSELECT: { //Hash Table structure
         if ((serVer == 3) && (preLongs == 3)) {
-          return DirectQuickSelectSketch.getInstance(srcMem, seed);
+          return DirectQuickSelectSketch.wrapInstance(srcMem, seed);
         } else {
           throw new SketchesArgumentException(
               "Corrupted: " + family + " family image: must have SerVer = 3 and preLongs = 3");
@@ -330,9 +335,9 @@ public abstract class Sketch {
         else if (serVer == 2) {
           return ForwardCompatibility.heapify2to3(srcMem, seed);
         }
-        final int flags = extractFlags(pre0);
-        final boolean compact = (flags & (byte)COMPACT_FLAG_MASK) > 0;
-        final boolean ordered = (flags & (byte)ORDERED_FLAG_MASK) > 0;
+        final int flags = extractFlags(memObj, memAdd);
+        final boolean compact = (flags & COMPACT_FLAG_MASK) > 0; //used for corruption check
+        final boolean ordered = (flags & ORDERED_FLAG_MASK) > 0;
         if (compact) {
             return ordered ? DirectCompactOrderedSketch.wrapInstance(srcMem, pre0, seed)
                            : DirectCompactSketch.wrapInstance(srcMem, pre0, seed);
@@ -516,10 +521,10 @@ public abstract class Sketch {
           throw new SketchesArgumentException("Possibly Corrupted " + family
               + " image: cannot be compact");
         }
-        return HeapAlphaSketch.getInstance(srcMem, seed);
+        return HeapAlphaSketch.heapifyInstance(srcMem, seed);
       }
       case QUICKSELECT: {
-        return HeapQuickSelectSketch.getInstance(srcMem, seed);
+        return HeapQuickSelectSketch.heapifyInstance(srcMem, seed);
       }
       case COMPACT: {
         if (!compact) {

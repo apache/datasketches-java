@@ -9,13 +9,12 @@ import static com.yahoo.sketches.Util.checkSeedHashes;
 import static com.yahoo.sketches.Util.computeSeedHash;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
-import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
+import static com.yahoo.sketches.theta.PreambleUtil.extractCurCount;
 import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
+import static com.yahoo.sketches.theta.PreambleUtil.extractThetaLong;
 
 import com.yahoo.memory.Memory;
 
@@ -46,26 +45,29 @@ final class DirectCompactSketch extends CompactSketch {
    * @return this sketch
    */
   static DirectCompactSketch wrapInstance(final Memory srcMem, final long pre0, final long seed) {
-    final int preLongs = extractPreLongs(pre0);
-    final int flags = extractFlags(pre0);
+    final Object memObj = srcMem.array(); //may be null
+    final long memAdd = srcMem.getCumulativeOffset(0L);
+
+    final int preLongs = extractPreLongs(memObj, memAdd);
+    final int flags = extractFlags(memObj, memAdd);
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
-    final short memSeedHash = (short) extractSeedHash(pre0);
+    final short memSeedHash = (short) extractSeedHash(memObj, memAdd);
     final short computedSeedHash = computeSeedHash(seed);
     checkSeedHashes(memSeedHash, computedSeedHash);
-    final int curCount = (preLongs > 1) ? srcMem.getInt(RETAINED_ENTRIES_INT) : 0;
-    final long thetaLong = (preLongs > 2) ? srcMem.getLong(THETA_LONG) : Long.MAX_VALUE;
+    final int curCount = (preLongs > 1) ? extractCurCount(memObj, memAdd) : 0;
+    final long thetaLong = (preLongs > 2) ? extractThetaLong(memObj, memAdd) : Long.MAX_VALUE;
     final DirectCompactSketch dcs = new DirectCompactSketch(empty, memSeedHash, curCount, thetaLong);
-    dcs.preLongs_ = extractPreLongs(pre0);
+    dcs.preLongs_ = extractPreLongs(memObj, memAdd);
     dcs.mem_ = srcMem;
     return dcs;
   }
 
-  /**  //TODO convert to factory
+  /**
    * Converts the given UpdateSketch to this compact form.
    * @param sketch the given UpdateSketch
    * @param dstMem the given destination Memory.  This clears it before use.
    */
-  DirectCompactSketch(final UpdateSketch sketch, final Memory dstMem) {
+  DirectCompactSketch(final UpdateSketch sketch, final Memory dstMem) { //TODO convert to factory
     super(sketch.isEmpty(),
         sketch.getSeedHash(),
         sketch.getRetainedEntries(true), //curCount_  set here
@@ -80,7 +82,7 @@ final class DirectCompactSketch extends CompactSketch {
         getThetaLong(), dstMem, flags);
   }
 
-  /**  //TODO convert to factory
+  /**
    * Constructs this sketch from correct, valid components.
    * @param compactCache in compact form
    * @param empty The correct <a href="{@docRoot}/resources/dictionary.html#empty">Empty</a>.
@@ -89,6 +91,7 @@ final class DirectCompactSketch extends CompactSketch {
    * @param thetaLong The correct <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
    * @param dstMem the destination Memory. This clears it before use.
    */
+  //TODO convert to factory
   DirectCompactSketch(final long[] compactCache, final boolean empty, final short seedHash,
       final int curCount, final long thetaLong, final Memory dstMem) {
     super(empty, seedHash, curCount, thetaLong);
@@ -137,7 +140,10 @@ final class DirectCompactSketch extends CompactSketch {
    * @return this Direct, Compact sketch as a byte array
    */
   static byte[] compactMemoryToByteArray(final Memory srcMem, final int curCount) {
-    final int preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+    final Object memObj = srcMem.array(); //may be null
+    final long memAdd = srcMem.getCumulativeOffset(0L);
+
+    final int preLongs = extractPreLongs(memObj, memAdd);
     final int outBytes = (curCount << 3) + (preLongs << 3);
     final byte[] byteArrOut = new byte[outBytes];
     srcMem.getByteArray(0, byteArrOut, 0, outBytes);

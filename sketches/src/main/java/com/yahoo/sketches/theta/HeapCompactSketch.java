@@ -9,13 +9,12 @@ import static com.yahoo.sketches.Util.checkSeedHashes;
 import static com.yahoo.sketches.Util.computeSeedHash;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
-import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
+import static com.yahoo.sketches.theta.PreambleUtil.extractCurCount;
 import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
+import static com.yahoo.sketches.theta.PreambleUtil.extractThetaLong;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
@@ -41,15 +40,17 @@ final class HeapCompactSketch extends CompactSketch {
    * @return this sketch
    */
   static HeapCompactSketch heapifyInstance(final Memory srcMem, final long seed) {
-    final long pre0 = srcMem.getLong(PREAMBLE_LONGS_BYTE);
-    final int preLongs = extractPreLongs(pre0);
-    final int flags = extractFlags(pre0);
+    final Object memObj = srcMem.array(); //may be null
+    final long memAdd = srcMem.getCumulativeOffset(0L);
+
+    final int preLongs = extractPreLongs(memObj, memAdd);
+    final int flags = extractFlags(memObj, memAdd);
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
-    final short memSeedHash = (short) extractSeedHash(pre0);
+    final short memSeedHash = (short) extractSeedHash(memObj, memAdd);
     final short computedSeedHash = computeSeedHash(seed);
     checkSeedHashes(memSeedHash, computedSeedHash);
-    final int curCount = (preLongs > 1) ? srcMem.getInt(RETAINED_ENTRIES_INT) : 0;
-    final long thetaLong = (preLongs > 2) ? srcMem.getLong(THETA_LONG) : Long.MAX_VALUE;
+    final int curCount = (preLongs > 1) ? extractCurCount(memObj, memAdd) : 0;
+    final long thetaLong = (preLongs > 2) ? extractThetaLong(memObj, memAdd) : Long.MAX_VALUE;
     final long[] cacheArr = new long[curCount];
     if (curCount > 0) {
       srcMem.getLongArray(preLongs << 3, cacheArr, 0, curCount);

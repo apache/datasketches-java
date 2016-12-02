@@ -552,7 +552,7 @@ public class HeapAlphaSketchTest {
     
     try {
       mem.putDouble(16, 0.5); //Corrupt the theta value
-      HeapAlphaSketch.getInstance(mem, DEFAULT_UPDATE_SEED);
+      HeapAlphaSketch.heapifyInstance(mem, DEFAULT_UPDATE_SEED);
       fail();
     } catch (SketchesArgumentException e) {
       //expected
@@ -562,7 +562,7 @@ public class HeapAlphaSketchTest {
     Memory mem2 = new NativeMemory(byteArray2);
     NativeMemory.copy(mem, 0, mem2, 0, mem2.getCapacity());
     try {
-      HeapAlphaSketch.getInstance(mem2, DEFAULT_UPDATE_SEED);
+      HeapAlphaSketch.heapifyInstance(mem2, DEFAULT_UPDATE_SEED);
       fail();
     } catch (SketchesArgumentException e) {
       //expected
@@ -572,7 +572,7 @@ public class HeapAlphaSketchTest {
   private static void tryBadMem(Memory mem, int byteOffset, int byteValue) {
     try {
       mem.putByte(byteOffset, (byte) byteValue); //Corrupt
-      HeapAlphaSketch.getInstance(mem, DEFAULT_UPDATE_SEED);
+      HeapAlphaSketch.heapifyInstance(mem, DEFAULT_UPDATE_SEED);
       fail();
     } catch (SketchesArgumentException e) {
       //expected

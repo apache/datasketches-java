@@ -14,6 +14,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.insertP;
 import static com.yahoo.sketches.theta.PreambleUtil.insertPreLongs;
 import static com.yahoo.sketches.theta.PreambleUtil.insertSeedHash;
 import static com.yahoo.sketches.theta.PreambleUtil.insertSerVer;
+import static com.yahoo.sketches.theta.PreambleUtil.insertThetaLong;
 
 import java.util.Arrays;
 
@@ -193,29 +194,26 @@ public abstract class CompactSketch extends Sketch {
     }
     final byte famID = (byte) stringToFamily("Compact").getID();
 
-    final long[] outArr = new long[outLongs];
-    long pre0 = 0;
-    pre0 = insertPreLongs(preLongs, pre0); //RF not used = 0
-    pre0 = insertSerVer(SER_VER, pre0);
-    pre0 = insertFamilyID(famID, pre0);
+    final Object memObj = dstMem.array(); //may be null
+    final long memAdd = dstMem.getCumulativeOffset(0L);
+
+    insertPreLongs(memObj, memAdd, preLongs); //RF not used = 0
+    insertSerVer(memObj, memAdd, SER_VER);
+    insertFamilyID(memObj, memAdd, famID);
     //ignore lgNomLongs, lgArrLongs bytes for compact sketches
-    pre0 = insertFlags(flags, pre0);
-    pre0 = insertSeedHash(seedHash, pre0);
-    outArr[0] = pre0;
+    insertFlags(memObj, memAdd, flags);
+    insertSeedHash(memObj, memAdd, seedHash);
 
     if (preLongs > 1) {
-      long pre1 = 0;
-      pre1 = insertCurCount(curCount, pre1);
-      pre1 = insertP((float) 1.0, pre1);
-      outArr[1] = pre1;
+      insertCurCount(memObj, memAdd, curCount);
+      insertP(memObj, memAdd, (float) 1.0);
     }
     if (preLongs > 2) {
-      outArr[2] = thetaLong;
+      insertThetaLong(memObj, memAdd, thetaLong);
     }
     if ((compactCache != null) && (curCount > 0)) {
-      System.arraycopy(compactCache, 0, outArr, preLongs, curCount);
+      dstMem.putLongArray(preLongs << 3, compactCache, 0, curCount);
     }
-    dstMem.putLongArray(0, outArr, 0, outLongs);
     return dstMem;
   }
 

@@ -4,7 +4,6 @@
  */
 package com.yahoo.sketches;
 
-import static com.yahoo.sketches.HashOperations.checkHashAndThetaCorruption;
 import static com.yahoo.sketches.HashOperations.checkHashCorruption;
 import static com.yahoo.sketches.HashOperations.checkThetaCorruption;
 import static com.yahoo.sketches.HashOperations.continueCondition;
@@ -22,45 +21,29 @@ import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
 
 public class HashOperationsTest {
-  
+
   //Not otherwise already covered
-  
+
   @Test(expectedExceptions = SketchesStateException.class)
   public void testThetaCorruption1() {
     checkThetaCorruption(0);
   }
-  
+
   @Test(expectedExceptions = SketchesStateException.class)
   public void testThetaCorruption2() {
     checkThetaCorruption(-1);
   }
-  
+
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void testHashCorruption() {
     checkHashCorruption(-1);
   }
-  
-  @Test(expectedExceptions = SketchesStateException.class)
-  public void testHashAndThetaCorruption1() {
-    checkHashAndThetaCorruption(1, 1); //pass
-    checkHashAndThetaCorruption(0, 0); //theta = 0 fails
-  }
-  
-  @Test(expectedExceptions = SketchesStateException.class)
-  public void testHashAndThetaCorruption2() {
-    checkHashAndThetaCorruption(-1, 0); //theta = -1 fails 
-  }
-  
-  @Test(expectedExceptions = SketchesStateException.class)
-  public void testHashAndThetaCorruption3() {
-    checkHashAndThetaCorruption(1, -1); //hash = -1 fails
-  }
-  
+
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHashSearch() {
     hashSearch(new long[4], 2, 0);
   }
-  
+
   @Test
   public void checkHashArrayInsert() {
     long[] hTable = new long[16];
@@ -74,7 +57,7 @@ public class HashOperationsTest {
     }
 
   }
-  
+
   @Test
   public void testContinueCondtion() {
     long thetaLong = Long.MAX_VALUE/2;
@@ -124,9 +107,9 @@ public class HashOperationsTest {
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
-  
+
   /**
-   * @param s value to print 
+   * @param s value to print
    */
   static void println(String s) {
     //System.out.println(s); //disable here

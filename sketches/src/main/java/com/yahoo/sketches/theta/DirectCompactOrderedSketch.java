@@ -12,11 +12,11 @@ import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
-import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
+import static com.yahoo.sketches.theta.PreambleUtil.extractCurCount;
 import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
+import static com.yahoo.sketches.theta.PreambleUtil.extractThetaLong;
 
 import com.yahoo.memory.Memory;
 
@@ -48,14 +48,17 @@ final class DirectCompactOrderedSketch extends CompactSketch {
    */
   static DirectCompactOrderedSketch wrapInstance(final Memory srcMem, final long pre0,
       final long seed) {
-    final int preLongs = extractPreLongs(pre0);
-    final int flags = extractFlags(pre0);
+    final Object memObj = srcMem.array(); //may be null
+    final long memAdd = srcMem.getCumulativeOffset(0L);
+
+    final int preLongs = extractPreLongs(memObj, memAdd);
+    final int flags = extractFlags(memObj, memAdd);
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
-    final short memSeedHash = (short) extractSeedHash(pre0);
+    final short memSeedHash = (short) extractSeedHash(memObj, memAdd);
     final short computedSeedHash = computeSeedHash(seed);
     checkSeedHashes(memSeedHash, computedSeedHash);
-    final int curCount = (preLongs > 1) ? srcMem.getInt(RETAINED_ENTRIES_INT) : 0;
-    final long thetaLong = (preLongs > 2) ? srcMem.getLong(THETA_LONG) : Long.MAX_VALUE;
+    final int curCount = (preLongs > 1) ? extractCurCount(memObj, memAdd) : 0;
+    final long thetaLong = (preLongs > 2) ? extractThetaLong(memObj, memAdd) : Long.MAX_VALUE;
     final DirectCompactOrderedSketch dcos =
         new DirectCompactOrderedSketch(empty, memSeedHash, curCount, thetaLong);
     dcos.preLongs_ = preLongs;

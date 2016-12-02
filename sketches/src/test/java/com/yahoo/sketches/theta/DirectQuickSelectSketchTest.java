@@ -152,7 +152,7 @@ public class DirectQuickSelectSketchTest {
     mem.putByte(FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
     
     //try to wrap the corrupted mem
-    DirectQuickSelectSketch.getInstance(mem, DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.wrapInstance(mem, DEFAULT_UPDATE_SEED);
   }
   
   
@@ -924,7 +924,7 @@ public class DirectQuickSelectSketchTest {
     UpdateSketch usk2;
     mem1.putByte(FAMILY_BYTE, (byte) 3); //corrupt Family by setting to Compact
     try {
-      usk2 = DirectQuickSelectSketch.getInstance(mem1, DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.wrapInstance(mem1, DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (SketchesArgumentException e) {
       //Pass
@@ -932,7 +932,7 @@ public class DirectQuickSelectSketchTest {
     mem1.putByte(FAMILY_BYTE, (byte) 2); //fix Family
     mem1.putByte(PREAMBLE_LONGS_BYTE, (byte) 1); //corrupt preLongs
     try {
-      usk2 = DirectQuickSelectSketch.getInstance(mem1, DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.wrapInstance(mem1, DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (SketchesArgumentException e) {
       //pass
@@ -940,7 +940,7 @@ public class DirectQuickSelectSketchTest {
     mem1.putByte(PREAMBLE_LONGS_BYTE, (byte) 3); //fix preLongs
     mem1.putByte(SER_VER_BYTE, (byte) 2); //corrupt serVer
     try {
-      usk2 = DirectQuickSelectSketch.getInstance(mem1, DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.wrapInstance(mem1, DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (SketchesArgumentException e) {
       //pass
@@ -950,7 +950,7 @@ public class DirectQuickSelectSketchTest {
     mem1.putLong(THETA_LONG, Long.MAX_VALUE >>> 1); //corrupt theta and
     mem1.putByte(LG_ARR_LONGS_BYTE, (byte) 10); //corrupt lgArrLongs
     try {
-      usk2 = DirectQuickSelectSketch.getInstance(mem1, DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.wrapInstance(mem1, DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (SketchesArgumentException e) {
       //pass
@@ -960,7 +960,7 @@ public class DirectQuickSelectSketchTest {
     byte badFlags = (byte) (BIG_ENDIAN_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | ORDERED_FLAG_MASK);
     mem1.putByte(FLAGS_BYTE, badFlags);
     try {
-      usk2 = DirectQuickSelectSketch.getInstance(mem1, DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.wrapInstance(mem1, DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (SketchesArgumentException e) {
       //pass
@@ -969,7 +969,7 @@ public class DirectQuickSelectSketchTest {
     byte[] arr2 = Arrays.copyOfRange(arr1, 0, bytes-1); //corrupt length
     Memory mem2 = new NativeMemory(arr2);
     try {
-      usk2 = DirectQuickSelectSketch.getInstance(mem2, DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.wrapInstance(mem2, DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (SketchesArgumentException e) {
       //pass
@@ -1001,7 +1001,7 @@ public class DirectQuickSelectSketchTest {
     Memory mem = new NativeMemory(new byte[k*16 +24]);
     Sketches.updateSketchBuilder().initMemory(mem).build(k);
     mem.putByte(LG_NOM_LONGS_BYTE, (byte) 3); //Corrupt LgNomLongs byte
-    DirectQuickSelectSketch.getInstance(mem, DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.wrapInstance(mem, DEFAULT_UPDATE_SEED);
   }
   
   @Test

@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches;
 
+import static com.yahoo.memory.UnsafeUtil.unsafe;
+
 import com.yahoo.memory.Memory;
 
 /**
@@ -68,8 +70,11 @@ public final class HashOperations {
     return (2 * (int) ((hash >> (lgArrLongs)) & STRIDE_MASK)) + 1;
   }
 
+  //ON-HEAP
+
   /**
-   * This is a classical Knuth-style Open Addressing, Double Hash search scheme.
+   * This is a classical Knuth-style Open Addressing, Double Hash search scheme for on-heap.
+   * Returns the index if found, -1 if not found.
    *
    * @param hashTable The hash table to search. Must be a power of 2 in size.
    * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
@@ -93,11 +98,62 @@ public final class HashOperations {
   }
 
   /**
+   * This is a classical Knuth-style Open Addressing, Double Hash insert scheme for on-heap.
+   * This method assumes that the input hash is not a duplicate.
+   * Useful for rebuilding tables to avoid unnecessary comparisons.
+   * Returns the index of insertion, which is always positive or zero.
+   *
+   * @param hashTable the hash table to insert into.
+   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * lgArrLongs &le; log2(hashTable.length).
+   * @param hash value that must not be zero and will be inserted into the array into an empty slot.
+   * @return index of insertion.  Always positive or zero.
+   */
+  public static int hashInsertOnly(final long[] hashTable, final int lgArrLongs, final long hash) {
+    final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
+    final int stride = getStride(hash, lgArrLongs);
+    int curProbe = (int) (hash & arrayMask);
+    while (hashTable[curProbe] != 0) {
+      curProbe = (curProbe + stride) & arrayMask;
+    }
+    hashTable[curProbe] = hash;
+    return curProbe;
+  }
+
+  /**
+   * This is a classical Knuth-style Open Addressing, Double Hash insert scheme for on-heap.
+   * Returns index &ge; 0 if found (duplicate); &lt; 0 if inserted, inserted at -(index + 1).
+   *
+   * @param hashTable the hash table to insert into.
+   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * lgArrLongs &le; log2(hashTable.length).
+   * @param hash hash value that must not be zero and if not a duplicate will be inserted into the
+   * array into an empty slot
+   * @return index &ge; 0 if found (duplicate); &lt; 0 if inserted, inserted at -(index + 1).
+   */
+  public static int hashSearchOrInsert(final long[] hashTable, final int lgArrLongs,
+      final long hash) {
+    final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
+    final int stride = getStride(hash, lgArrLongs);
+    int curProbe = (int) (hash & arrayMask);
+    // search for duplicate or zero
+    while (hashTable[curProbe] != 0) {
+      if (hashTable[curProbe] == hash) { return curProbe; } // a duplicate
+      // not a duplicate and not zero, continue searching
+      curProbe = (curProbe + stride) & arrayMask;
+    }
+    // must be zero, so insert
+    hashTable[curProbe] = hash;
+    return ~curProbe;
+  }
+
+  /**
    * Inserts the given long array into the given hash table array of the target size,
    * removes any negative input values, ignores duplicates and counts the values inserted.
    * The given hash table may have values, but they must have been inserted by this method or one
    * of the other OADH insert methods in this class and they may not be dirty.
    * This method performs additional checks against potentially invalid hash values or theta values.
+   * Returns the count of values actually inserted.
    *
    * @param srcArr the source hash array to be potentially inserted
    * @param hashTable The correctly sized target hash table that must be a power of two.
@@ -125,57 +181,70 @@ public final class HashOperations {
     return count;
   }
 
+  //OFF-HEAP (these are kept for backward compatibility)
+
   /**
-   * This is a classical Knuth-style Open Addressing, Double Hash insert scheme.
+   * This is a classical Knuth-style Open Addressing, Double Hash search scheme for off-heap.
+   * Returns the index if found, -1 if not found.
    *
-   * @param hashTable the hash table to insert into.
+   * @param mem The Memory hash table to search.
    * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
    * lgArrLongs &le; log2(hashTable.length).
-   * @param hash hash value that must not be zero and if not a duplicate will be inserted into the
-   * array into an empty slot
-   * @return index &ge; 0 if found (duplicate); &lt; 0 if inserted, inserted at -(index + 1).
+   * @param hash A hash value to search for. Must not be zero.
+   * @param memOffsetBytes offset in the memory where the hash array starts
+   * @return index if found, -1 if not found.
    */
-  public static int hashSearchOrInsert(final long[] hashTable, final int lgArrLongs,
-      final long hash) {
-    final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
+  public static int hashSearch(final Memory mem, final int lgArrLongs, final long hash,
+      final int memOffsetBytes) {
+    final int arrayMask = (1 << lgArrLongs) - 1;
     final int stride = getStride(hash, lgArrLongs);
     int curProbe = (int) (hash & arrayMask);
-    // search for duplicate or zero
-    while (hashTable[curProbe] != 0) {
-      if (hashTable[curProbe] == hash) { return curProbe; } // a duplicate
-      // not a duplicate and not zero, continue searching
+    int curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes;
+    long curArrayHash = mem.getLong(curProbeOffsetBytes);
+    while (curArrayHash != 0) {
+      if (curArrayHash == hash) { return curProbe; }
       curProbe = (curProbe + stride) & arrayMask;
+      curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes;
+      curArrayHash = mem.getLong(curProbeOffsetBytes);
     }
-    // must be zero, so insert
-    hashTable[curProbe] = hash;
-    return ~curProbe;
+    return -1;
   }
 
   /**
-   * This is a classical Knuth-style Open Addressing, Double Hash insert scheme.
+   * This is a classical Knuth-style Open Addressing, Double Hash insert scheme for off-heap,
+   * but inserts values directly into a Memory.
    * This method assumes that the input hash is not a duplicate.
    * Useful for rebuilding tables to avoid unnecessary comparisons.
+   * Returns the index of insertion, which is always positive or zero.
    *
-   * @param hashTable the hash table to insert into.
+   * @param mem The Memory hash table to insert into.
    * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
    * lgArrLongs &le; log2(hashTable.length).
    * @param hash value that must not be zero and will be inserted into the array into an empty slot.
+   * @param memOffsetBytes offset in the memory where the hash array starts
    * @return index of insertion.  Always positive or zero.
    */
-  public static int hashInsertOnly(final long[] hashTable, final int lgArrLongs, final long hash) {
+  public static int hashInsertOnly(final Memory mem, final int lgArrLongs, final long hash,
+      final int memOffsetBytes) {
     final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
     final int stride = getStride(hash, lgArrLongs);
     int curProbe = (int) (hash & arrayMask);
-    while (hashTable[curProbe] != 0) {
+    int curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes;
+    long curArrayHash = mem.getLong(curProbeOffsetBytes);
+    // search for duplicate or zero
+    while (curArrayHash != 0L) {
       curProbe = (curProbe + stride) & arrayMask;
+      curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes;
+      curArrayHash = mem.getLong(curProbeOffsetBytes);
     }
-    hashTable[curProbe] = hash;
+    mem.putLong(curProbeOffsetBytes, hash);
     return curProbe;
   }
 
   /**
-   * This is a classical Knuth-style Open Addressing, Double Hash insert scheme, but inserts
-   * values directly into a Memory.
+   * This is a classical Knuth-style Open Addressing, Double Hash insert scheme for off-heap,
+   * but inserts values directly into a Memory.
+   * Returns index &ge; 0 if found (duplicate); &lt; 0 if inserted, inserted at -(index + 1).
    *
    * @param mem The Memory hash table to insert into.
    * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
@@ -205,60 +274,75 @@ public final class HashOperations {
     return ~curProbe;
   }
 
-  /**
-   * This is a classical Knuth-style Open Addressing, Double Hash search scheme.
-   *
-   * @param mem The Memory hash table to search.
-   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
-   * lgArrLongs &le; log2(hashTable.length).
-   * @param hash A hash value to search for. Must not be zero.
-   * @param memOffsetBytes offset in the memory where the hash array starts
-   * @return index if found, -1 if not found.
-   */
-  public static int hashSearch(final Memory mem, final int lgArrLongs, final long hash,
-      final int memOffsetBytes) {
-    final int arrayMask = (1 << lgArrLongs) - 1;
-    final int stride = getStride(hash, lgArrLongs);
-    int curProbe = (int) (hash & arrayMask);
-    int curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes;
-    long curArrayHash = mem.getLong(curProbeOffsetBytes);
-    while (curArrayHash != 0) {
-      if (curArrayHash == hash) { return curProbe; }
-      curProbe = (curProbe + stride) & arrayMask;
-      curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes;
-      curArrayHash = mem.getLong(curProbeOffsetBytes);
-    }
-    return -1;
-  }
+  //FAST OFF-HEAP
 
   /**
    * This is a classical Knuth-style Open Addressing, Double Hash insert scheme, but inserts
    * values directly into a Memory.
    * This method assumes that the input hash is not a duplicate.
    * Useful for rebuilding tables to avoid unnecessary comparisons.
+   * Returns the index of insertion, which is always positive or zero.
    *
-   * @param mem The Memory hash table to insert into.
+   * @param memObj The internal Memory object or null.
+   * @param memAdd The absolute starting address of the Memory or java object header offset if
+   * memObj is null.
    * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
    * lgArrLongs &le; log2(hashTable.length).
    * @param hash value that must not be zero and will be inserted into the array into an empty slot.
-   * @param memOffsetBytes offset in the memory where the hash array starts
+   * @param hashArrStartOffsetBytes offset in the memory where the hash array starts
    * @return index of insertion.  Always positive or zero.
    */
-  public static int hashInsertOnly(final Memory mem, final int lgArrLongs, final long hash,
-      final int memOffsetBytes) {
+  public static int fastHashInsertOnly(final Object memObj, final long memAdd, final int lgArrLongs,
+      final long hash, final int hashArrStartOffsetBytes) {
     final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
     final int stride = getStride(hash, lgArrLongs);
     int curProbe = (int) (hash & arrayMask);
-    int curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes;
-    long curArrayHash = mem.getLong(curProbeOffsetBytes);
+    int curProbeOffsetBytes = (curProbe << 3) + hashArrStartOffsetBytes;
+    long curArrayHash = unsafe.getLong(memObj, memAdd + curProbeOffsetBytes);
     // search for duplicate or zero
     while (curArrayHash != 0L) {
       curProbe = (curProbe + stride) & arrayMask;
-      curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes;
-      curArrayHash = mem.getLong(curProbeOffsetBytes);
+      curProbeOffsetBytes = (curProbe << 3) + hashArrStartOffsetBytes;
+      curArrayHash = unsafe.getLong(memObj, memAdd + curProbeOffsetBytes);
     }
-    mem.putLong(curProbeOffsetBytes, hash);
+    // must be zero, so insert
+    unsafe.putLong(memObj, memAdd + curProbeOffsetBytes, hash);
     return curProbe;
+  }
+
+  /**
+   * This is a classical Knuth-style Open Addressing, Double Hash insert scheme, but inserts
+   * values directly into a Memory.
+   * Returns index &ge; 0 if found (duplicate); &lt; 0 if inserted, inserted at -(index + 1).
+   *
+   * @param memObj The internal Memory object or null.
+   * @param memAdd The absolute starting address of the Memory or java object header offset if
+   * memObj is null.
+   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * lgArrLongs &le; log2(hashTable.length).
+   * @param hash A hash value that must not be zero and if not a duplicate will be inserted into the
+   * array into an empty slot.
+   * @param hashArrStartOffsetBytes offset in the memory where the hash array starts
+   * @return index &ge; 0 if found (duplicate); &lt; 0 if inserted, inserted at -(index + 1).
+   */
+  public static int fastHashSearchOrInsert(final Object memObj, final long memAdd,
+      final int lgArrLongs, final long hash, final int hashArrStartOffsetBytes) {
+    final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
+    final int stride = getStride(hash, lgArrLongs);
+    int curProbe = (int) (hash & arrayMask);
+    int curProbeOffsetBytes = (curProbe << 3) + hashArrStartOffsetBytes;
+    long curArrayHash = unsafe.getLong(memObj, memAdd + curProbeOffsetBytes);
+    // search for duplicate or zero
+    while (curArrayHash != 0) {
+      if (curArrayHash == hash) { return curProbe; } // curArrayHash is a duplicate
+      // curArrayHash is not a duplicate and not zero, continue searching
+      curProbe = (curProbe + stride) & arrayMask;
+      curProbeOffsetBytes = (curProbe << 3) + hashArrStartOffsetBytes;
+      curArrayHash = unsafe.getLong(memObj, memAdd + curProbeOffsetBytes);
+    }
+    // must be zero, so insert
+    unsafe.putLong(memObj, memAdd + curProbeOffsetBytes, hash);
+    return ~curProbe;
   }
 
   /**
@@ -278,7 +362,6 @@ public final class HashOperations {
    * Note a hash of zero is normally ignored, but a negative hash is never allowed.
    */
   public static void checkHashCorruption(final long hash) {
-    //if any one of the groups go negative it fails.
     if ( hash < 0L ) {
       throw new SketchesArgumentException(
           "Data Corruption: hash was negative: " + "Hash: " + hash);
@@ -297,20 +380,6 @@ public final class HashOperations {
   public static boolean continueCondition(final long thetaLong, final long hash) {
     //if any one of the groups go negative it returns true
     return (( (hash - 1L) | (thetaLong - hash - 1L)) < 0L );
-  }
-
-  /**
-   * Checks for invalid values of both a hash value and of a theta value.
-   * @param thetaLong cannot be negative or zero, otherwise it throws an exception
-   * @param hash cannot be negative, otherwise it throws an exception
-   */
-  public static void checkHashAndThetaCorruption(final long thetaLong, final long hash) {
-    //if any one of the groups go negative it fails.
-    if (( hash | thetaLong | (thetaLong - 1L) ) < 0L ) {
-      throw new SketchesStateException(
-          "Data Corruption: Either hash was negative or thetaLong was negative or zero: "
-              + "Hash: " + hash + ", ThetaLong: " + thetaLong);
-    }
   }
 
 }

@@ -177,7 +177,7 @@ public class UpdateSketchBuilder {
     switch (bFam) {
       case ALPHA: {
         if (bDstMem == null) {
-          sketch = HeapAlphaSketch.getInstance(bLgNomLongs, bSeed, bP, bRF);
+          sketch = HeapAlphaSketch.newHeapInstance(bLgNomLongs, bSeed, bP, bRF);
         }
         else {
           throw new SketchesArgumentException("AlphaSketch cannot be made Direct to Memory.");
@@ -186,10 +186,10 @@ public class UpdateSketchBuilder {
       }
       case QUICKSELECT: {
         if (bDstMem == null) {
-          sketch = HeapQuickSelectSketch.getInstance(bLgNomLongs, bSeed, bP, bRF, false);
+          sketch = HeapQuickSelectSketch.initNewHeapInstance(bLgNomLongs, bSeed, bP, bRF, false);
         }
         else {
-          sketch = DirectQuickSelectSketch.getInstance(bLgNomLongs, bSeed, bP, bRF, bDstMem, false);
+          sketch = DirectQuickSelectSketch.initNewDirectInstance(bLgNomLongs, bSeed, bP, bRF, bDstMem, false);
         }
         break;
       }

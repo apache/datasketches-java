@@ -481,11 +481,6 @@ public class HeapDoublesSketchTest {
 
   }
 
-  public static void main(String[] args) {
-    HeapDoublesSketchTest test = new HeapDoublesSketchTest();
-    test.checkToFromByteArray();
-  }
-
   @Test
   public void checkEmpty() {
     int k = DoublesSketch.DEFAULT_K;

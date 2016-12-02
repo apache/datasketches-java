@@ -175,13 +175,13 @@ public final class ItemsSketch<T> {
       throw new SketchesArgumentException("Memory too small: " + memCapBytes);
     }
     final long cumOffset = srcMem.getCumulativeOffset(0L);
-    final Object memArr = srcMem.array();
+    final Object memObj = srcMem.array();
 
-    final int preambleLongs = extractPreLongs(memArr, cumOffset);
-    final int serVer = extractSerVer(memArr, cumOffset);
-    final int familyID = extractFamilyID(memArr, cumOffset);
-    final int flags = extractFlags(memArr, cumOffset);
-    final int k = extractK(memArr, cumOffset);
+    final int preambleLongs = extractPreLongs(memObj, cumOffset);
+    final int serVer = extractSerVer(memObj, cumOffset);
+    final int familyID = extractFamilyID(memObj, cumOffset);
+    final int flags = extractFlags(memObj, cumOffset);
+    final int k = extractK(memObj, cumOffset);
 
     ItemsUtil.checkItemsSerVer(serVer);
 
@@ -196,7 +196,7 @@ public final class ItemsSketch<T> {
     if (empty) { return qs; }
 
     //Not empty, must have valid preamble + min, max
-    final long n = extractN(memArr, cumOffset);
+    final long n = extractN(memObj, cumOffset);
 
     //can't check memory capacity here, not enough information
     final int extra = 2; //for min, max

@@ -113,14 +113,14 @@ final class HeapDoublesSketch extends DoublesSketch {
       throw new SketchesArgumentException("Source Memory too small: " + memCapBytes + " < 8");
     }
     final long cumOffset = srcMem.getCumulativeOffset(0L);
-    final Object memArr = srcMem.array(); //may be null
+    final Object memObj = srcMem.array(); //may be null
 
     //Extract the preamble first 8 bytes
-    final int preLongs = extractPreLongs(memArr, cumOffset);
-    final int serVer = extractSerVer(memArr, cumOffset);
-    final int familyID = extractFamilyID(memArr, cumOffset);
-    final int flags = extractFlags(memArr, cumOffset);
-    final int k = extractK(memArr, cumOffset);
+    final int preLongs = extractPreLongs(memObj, cumOffset);
+    final int serVer = extractSerVer(memObj, cumOffset);
+    final int familyID = extractFamilyID(memObj, cumOffset);
+    final int flags = extractFlags(memObj, cumOffset);
+    final int k = extractK(memObj, cumOffset);
 
     //VALIDITY CHECKS
     DoublesUtil.checkDoublesSerVer(serVer);
@@ -135,7 +135,7 @@ final class HeapDoublesSketch extends DoublesSketch {
     //Forward compatibility from SerVer = 2 :
     final boolean compact = (serVer == 2) | ((flags & COMPACT_FLAG_MASK) > 0);
 
-    final long n = extractN(memArr, cumOffset); //Second 8 bytes of preamble
+    final long n = extractN(memObj, cumOffset); //Second 8 bytes of preamble
     DoublesUtil.checkMemCapacity(k, n, compact, memCapBytes);
 
     //set class members by computing them

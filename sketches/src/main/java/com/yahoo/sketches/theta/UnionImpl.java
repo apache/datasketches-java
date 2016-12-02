@@ -62,7 +62,7 @@ final class UnionImpl extends SetOperation implements Union {
    */
   static UnionImpl initNewHeapInstance(final int lgNomLongs, final long seed, final float p,
       final ResizeFactor rf) {
-    final UpdateSketch gadget = HeapQuickSelectSketch.getInstance(lgNomLongs, seed, p, rf, true);
+    final UpdateSketch gadget = HeapQuickSelectSketch.initNewHeapInstance(lgNomLongs, seed, p, rf, true);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionMem_ = null;
     return unionImpl;
@@ -78,7 +78,7 @@ final class UnionImpl extends SetOperation implements Union {
    */
   static UnionImpl heapifyInstance(final Memory srcMem, final long seed) {
     Family.UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
-    final UpdateSketch gadget = HeapQuickSelectSketch.getInstance(srcMem, seed);
+    final UpdateSketch gadget = HeapQuickSelectSketch.heapifyInstance(srcMem, seed);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionMem_ = null;
     return unionImpl;
@@ -99,7 +99,7 @@ final class UnionImpl extends SetOperation implements Union {
       initNewDirectInstance(final int lgNomLongs, final long seed, final float p,
           final ResizeFactor rf, final Memory dstMem) {
     final UpdateSketch gadget =
-        DirectQuickSelectSketch.getInstance(lgNomLongs, seed, p, rf, dstMem, true);
+        DirectQuickSelectSketch.initNewDirectInstance(lgNomLongs, seed, p, rf, dstMem, true);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionMem_ = dstMem;
     return unionImpl;
@@ -114,7 +114,7 @@ final class UnionImpl extends SetOperation implements Union {
    */
   static UnionImpl wrapInstance(final Memory srcMem, final long seed) {
     Family.UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
-    final UpdateSketch gadget = DirectQuickSelectSketch.getInstance(srcMem, seed);
+    final UpdateSketch gadget = DirectQuickSelectSketch.wrapInstance(srcMem, seed);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionMem_ = srcMem;
     return unionImpl;

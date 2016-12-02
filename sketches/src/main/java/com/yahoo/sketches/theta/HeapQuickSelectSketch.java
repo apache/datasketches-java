@@ -22,11 +22,12 @@ import static com.yahoo.sketches.theta.PreambleUtil.extractFamilyID;
 import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.theta.PreambleUtil.extractLgArrLongs;
 import static com.yahoo.sketches.theta.PreambleUtil.extractLgNomLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractLgResizeFactor;
 import static com.yahoo.sketches.theta.PreambleUtil.extractP;
 import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
-import static com.yahoo.sketches.theta.PreambleUtil.extractResizeFactor;
 import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
 import static com.yahoo.sketches.theta.PreambleUtil.extractSerVer;
+import static com.yahoo.sketches.theta.PreambleUtil.extractThetaLong;
 import static com.yahoo.sketches.theta.PreambleUtil.getMemBytes;
 import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountIncremented;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedDuplicate;
@@ -79,7 +80,7 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
    * Otherwise, it is behaving as a normal QuickSelectSketch.
    * @return instance of this sketch
    */
-  static HeapQuickSelectSketch getInstance(final int lgNomLongs, final long seed, final float p,
+  static HeapQuickSelectSketch initNewHeapInstance(final int lgNomLongs, final long seed, final float p,
       final ResizeFactor rf, final boolean unionGadget) {
 
     //Choose family, preambleLongs
@@ -114,22 +115,21 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return instance of this sketch
    */
-  static HeapQuickSelectSketch getInstance(final Memory srcMem, final long seed) {
-    final long[] preArr = new long[3];
-    srcMem.getLongArray(0, preArr, 0, 3); //extract the preamble
-    final long long0 = preArr[0];
-    final int preambleLongs = extractPreLongs(long0);                           //byte 0
-    final ResizeFactor myRF = ResizeFactor.getRF(extractResizeFactor(long0));   //byte 0
-    final int serVer = extractSerVer(long0);                                    //byte 1
-    final int familyID = extractFamilyID(long0);                                //byte 2
-    final int lgNomLongs = extractLgNomLongs(long0);                            //byte 3
-    final int lgArrLongs = extractLgArrLongs(long0);                            //byte 4
-    final int flags = extractFlags(long0);                                      //byte 5
-    final short seedHash = (short)extractSeedHash(long0);                       //byte 6,7
-    final long long1 = preArr[1];
-    final int curCount = extractCurCount(long1);                                //bytes 8-11
-    final float p = extractP(long1);                                            //bytes 12-15
-    final long thetaLong = preArr[2];                                           //bytes 16-23
+  static HeapQuickSelectSketch heapifyInstance(final Memory srcMem, final long seed) {
+    final Object memObj = srcMem.array(); //may be null
+    final long memAdd = srcMem.getCumulativeOffset(0L);
+
+    final int preambleLongs = extractPreLongs(memObj, memAdd);                           //byte 0
+    final ResizeFactor myRF = ResizeFactor.getRF(extractLgResizeFactor(memObj, memAdd)); //byte 0
+    final int serVer = extractSerVer(memObj, memAdd);                                    //byte 1
+    final int familyID = extractFamilyID(memObj, memAdd);                                //byte 2
+    final int lgNomLongs = extractLgNomLongs(memObj, memAdd);                            //byte 3
+    final int lgArrLongs = extractLgArrLongs(memObj, memAdd);                            //byte 4
+    final int flags = extractFlags(memObj, memAdd);                                      //byte 5
+    final short seedHash = (short)extractSeedHash(memObj, memAdd);                       //byte 6,7
+    final int curCount = extractCurCount(memObj, memAdd);                                //bytes 8-11
+    final float p = extractP(memObj, memAdd);                                            //bytes 12-15
+    final long thetaLong = extractThetaLong(memObj, memAdd);                             //bytes 16-23
 
     if (serVer != SER_VER) {
       throw new SketchesArgumentException(
@@ -192,7 +192,7 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
     hqss.thetaLong_ = thetaLong;
     hqss.empty_ = (flags & EMPTY_FLAG_MASK) > 0;
     hqss.cache_ = new long[1 << lgArrLongs];
-    srcMem.getLongArray(preambleLongs << 3, hqss.cache_, 0, 1 << lgArrLongs);  //read in as hash table
+    srcMem.getLongArray(preambleLongs << 3, hqss.cache_, 0, 1 << lgArrLongs); //read in as hash table
     return hqss;
   }
 

@@ -523,7 +523,7 @@ public class HeapQuickSelectSketchTest {
     
     try {
       mem.putDouble(16, 0.5); //Corrupt the theta value
-      HeapQuickSelectSketch.getInstance(mem, DEFAULT_UPDATE_SEED);
+      HeapQuickSelectSketch.heapifyInstance(mem, DEFAULT_UPDATE_SEED);
       fail();
     } catch (SketchesArgumentException e) {
       //expected
@@ -533,7 +533,7 @@ public class HeapQuickSelectSketchTest {
     Memory mem2 = new NativeMemory(byteArray2);
     NativeMemory.copy(mem, 0, mem2, 0, mem2.getCapacity());
     try {
-      HeapQuickSelectSketch.getInstance(mem2, DEFAULT_UPDATE_SEED);
+      HeapQuickSelectSketch.heapifyInstance(mem2, DEFAULT_UPDATE_SEED);
       fail();
     } catch (SketchesArgumentException e) {
       //expected
@@ -543,7 +543,7 @@ public class HeapQuickSelectSketchTest {
   private static void tryBadMem(Memory mem, int byteOffset, int byteValue) {
     try {
       mem.putByte(byteOffset, (byte) byteValue); //Corrupt
-      HeapQuickSelectSketch.getInstance(mem, DEFAULT_UPDATE_SEED);
+      HeapQuickSelectSketch.heapifyInstance(mem, DEFAULT_UPDATE_SEED);
       fail();
     } catch (SketchesArgumentException e) {
       //expected

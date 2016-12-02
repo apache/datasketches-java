@@ -209,11 +209,11 @@ public class LongsSketchTest {
     sk1.update(15, 3443); println(sk1.toString());
     sk1.update(1000001, 1010230); println(sk1.toString());
     sk1.update(1000002, 1010230); println(sk1.toString());
-    
+
     byte[] bytearray0 = sk1.toByteArray();
     Memory mem0 = new NativeMemory(bytearray0);
     LongsSketch sk2 = LongsSketch.getInstance(mem0);
-    
+
     checkEquality(sk1, sk2);
   }
 
@@ -226,10 +226,10 @@ public class LongsSketchTest {
     sk1.update(15, 3443);
     sk1.update(1000001, 1010230);
     sk1.update(1000002, 1010230);
-    
+
     String string1 = sk1.serializeToString();
     LongsSketch sk2 = LongsSketch.getInstance(string1);
-    
+
     checkEquality(sk1, sk2);
   }
 
@@ -241,7 +241,7 @@ public class LongsSketchTest {
     assertEquals(sk1.getStorageBytes(), sk2.getStorageBytes());
     assertEquals(sk1.getStreamLength(), sk2.getStreamLength());
     assertEquals(sk1.isEmpty(), sk2.isEmpty());
-    
+
     ErrorType NFN = ErrorType.NO_FALSE_NEGATIVES;
     ErrorType NFP = ErrorType.NO_FALSE_POSITIVES;
     Row[] rowArr1 = sk1.getFrequentItems(NFN);
@@ -267,20 +267,20 @@ public class LongsSketchTest {
     int minSize = 1 << LG_MIN_MAP_SIZE;
     LongsSketch sk1 = new LongsSketch(minSize);
     sk1.update(1L);
-    
+
     byte[] bytearray0 = sk1.toByteArray();
     Memory mem = new NativeMemory(bytearray0);
-    long pre0 = mem.getLong(0); 
-    
+    long pre0 = mem.getLong(0);
+
     tryBadMem(mem, PREAMBLE_LONGS_BYTE, 2); //Corrupt
     mem.putLong(0, pre0); //restore
-    
+
     tryBadMem(mem, SER_VER_BYTE, 2); //Corrupt
     mem.putLong(0, pre0); //restore
-    
+
     tryBadMem(mem, FAMILY_BYTE, 2); //Corrupt
     mem.putLong(0, pre0); //restore
-    
+
     tryBadMem(mem, FLAGS_BYTE, 4); //Corrupt to true
     mem.putLong(0, pre0); //restore
   }
@@ -300,7 +300,7 @@ public class LongsSketchTest {
     //FrequentLongsSketch sk1 = new FrequentLongsSketch(8);
     //String str1 = sk1.serializeToString();
     //String correct   = "1,10,2,4,0,0,0,4,";
-    
+
     tryBadString("2,10,2,4,0,0,0,4,"); //bad SerVer of 2
     tryBadString("1,10,2,0,0,0,0,4,"); //bad empty of 0
     tryBadString(  "1,10,2,4,0,0,0,4,0,"); //one extra
@@ -311,16 +311,16 @@ public class LongsSketchTest {
       LongsSketch.getInstance(badString);
       fail("Should have thrown SketchesArgumentException");
     } catch (SketchesArgumentException e) {
-      //expected 
+      //expected
     }
   }
-  
+
   @Test
   public void checkFreqLongs(){
-    int numSketches = 1; 
+    int numSketches = 1;
     int n = 2222;
     double error_tolerance = 1.0/100;
-    
+
     LongsSketch[] sketches = new LongsSketch[numSketches];
     for (int h = 0; h < numSketches; h++) {
       sketches[h] = newFrequencySketch(error_tolerance);
@@ -333,14 +333,14 @@ public class LongsSketchTest {
       for (int h = 0; h < numSketches; h++)
         sketches[h].update(item);
     }
-    
+
     for(int h=0; h<numSketches; h++) {
       long threshold = sketches[h].getMaximumError();
       Row[] rows = sketches[h].getFrequentItems(ErrorType.NO_FALSE_NEGATIVES);
       for (int i = 0; i < rows.length; i++) {
         Assert.assertTrue(rows[i].getUpperBound() > threshold);
       }
-      
+
       rows = sketches[h].getFrequentItems(ErrorType.NO_FALSE_POSITIVES);
       for (int i = 0; i < rows.length; i++) {
         Assert.assertTrue(rows[i].getLowerBound() > threshold);
@@ -401,7 +401,7 @@ public class LongsSketchTest {
     assertFalse(row.equals(newRow));
     newRow = new Row(row.item, row.est, row.ub, row.lb);
     assertTrue(row.equals(newRow));
-    
+
   }
 
   @Test
@@ -433,7 +433,7 @@ public class LongsSketchTest {
     LongsSketch fls2 = null;
     LongsSketch fle = fls1.merge(fls2);
     assertTrue(fle.isEmpty());
-    
+
     fls2 = new LongsSketch(minSize);
     fle = fls1.merge(fls2);
     assertTrue(fle.isEmpty());
@@ -441,12 +441,12 @@ public class LongsSketchTest {
 
   @Test
   public void checkSortItems() {
-    int numSketches = 1; 
+    int numSketches = 1;
     int n = 2222;
     double error_tolerance = 1.0/100;
     int sketchSize = Util.ceilingPowerOf2((int) (1.0 /(error_tolerance*ReversePurgeLongHashMap.getLoadFactor())));
     //println("sketchSize: "+sketchSize);
-    
+
     LongsSketch[] sketches = new LongsSketch[numSketches];
     for (int h = 0; h < numSketches; h++) {
       sketches[h] = new LongsSketch(sketchSize);
@@ -459,7 +459,7 @@ public class LongsSketchTest {
       for (int h = 0; h < numSketches; h++)
         sketches[h].update(item);
     }
-    
+
     for(int h=0; h<numSketches; h++) {
       long threshold = sketches[h].getMaximumError();
       Row[] rows = sketches[h].getFrequentItems(ErrorType.NO_FALSE_NEGATIVES);
@@ -516,11 +516,6 @@ public class LongsSketchTest {
     println("");
   }
 
-  public static void main(String[] args) {
-    LongsSketchTest test = new LongsSketchTest();
-    test.checkToString1();
-  }
-  
   private static void printRows(LongsSketch fls, ErrorType eType) {
     Row[] rows = fls.getFrequentItems(eType);
     String s1 = eType.toString();
@@ -537,7 +532,7 @@ public class LongsSketchTest {
       assertFalse(rows[0].equals(nullRow));
     }
   }
-  
+
   /**
    * @param s value to print
    */

@@ -7,8 +7,12 @@ package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.QuickSelect.selectExcludingZeros;
 import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
-import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
+import static com.yahoo.sketches.theta.PreambleUtil.extractCurCount;
+import static com.yahoo.sketches.theta.PreambleUtil.extractLgArrLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractThetaLong;
+import static com.yahoo.sketches.theta.PreambleUtil.insertCurCount;
+import static com.yahoo.sketches.theta.PreambleUtil.insertLgArrLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.insertThetaLong;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
@@ -34,12 +38,20 @@ final class Rebuilder {
    * @param mem the Memory the given Memory
    * @param preambleLongs size of preamble in longs
    * @param lgNomLongs the log_base2 of k, the configuration parameter of the sketch
-   * @param lgArrLongs the log_base2 of the current size of the hash table
-   * @param curCount the number of valid entries
+   * @return updated current count based on number of values in the hash table.
    */
-  static final void quickSelectAndRebuild(final Memory mem, final int preambleLongs,
-      final int lgNomLongs, final int lgArrLongs, final int curCount) {
+  static final int quickSelectAndRebuild(final Memory mem, final int preambleLongs,
+      final int lgNomLongs) {
+    //Note: This copies the Memory data onto the heap and then at the end copies the result
+    // back to Memory. Even if we tried to do this directly into Memory it would require pre-clearing,
+    // and the internal loops would be slower. The bulk copies are performed at a low level and
+    // are quite fast. Measurements reveal that we are not paying much of a penalty.
+    final Object memObj = mem.array(); //may be null
+    final long memAdd = mem.getCumulativeOffset(0L);
+
     //Pull data into tmp arr for QS algo
+    final int lgArrLongs = extractLgArrLongs(memObj, memAdd);
+    final int curCount = extractCurCount(memObj, memAdd);
     final int arrLongs = 1 << lgArrLongs;
     final long[] tmpArr = new long[arrLongs];
     final int preBytes = preambleLongs << 3;
@@ -48,16 +60,17 @@ final class Rebuilder {
     //Do the QuickSelect on a tmp arr to create new thetaLong
     final int pivot = (1 << lgNomLongs) + 1; // (K+1) pivot for QS
     final long newThetaLong = selectExcludingZeros(tmpArr, curCount, pivot);
-    mem.putLong(THETA_LONG, newThetaLong); //UPDATE thetalong
+    insertThetaLong(memObj, memAdd, newThetaLong); //UPDATE thetalong
 
     //Rebuild to clean up dirty data, update count
     final long[] tgtArr = new long[arrLongs];
     final int newCurCount =
         HashOperations.hashArrayInsert(tmpArr, tgtArr, lgArrLongs, newThetaLong);
-    mem.putInt(RETAINED_ENTRIES_INT, newCurCount); //UPDATE curCount
+    insertCurCount(memObj, memAdd, newCurCount); //UPDATE curCount
 
     //put the rebuilt array back into memory
     mem.putLongArray(preBytes, tgtArr, 0, arrLongs);
+    return newCurCount;
   }
 
   /**
@@ -75,6 +88,11 @@ final class Rebuilder {
    */
   static final void moveAndResize(final Memory srcMem, final int preambleLongs,
       final int srcLgArrLongs, final Memory dstMem, final int dstLgArrLongs, final long thetaLong) {
+    //Note: This copies the Memory data onto the heap and then at the end copies the result
+    // back to Memory. Even if we tried to do this directly into Memory it would require pre-clearing,
+    // and the internal loops would be slower. The bulk copies are performed at a low level and
+    // are quite fast. Measurements reveal that we are not paying much of a penalty.
+
     //Move Preamble to destination memory
     final int preBytes = preambleLongs << 3;
     NativeMemory.copy(srcMem, 0, dstMem, 0, preBytes); //copy the preamble
@@ -102,10 +120,17 @@ final class Rebuilder {
    * @param mem the Memory
    * @param preambleLongs the size of the preamble in longs
    * @param srcLgArrLongs the size of the source hash table
-   * @param dstLgArrLongs the LgArrLongs value for the new hash table
+   * @param tgtLgArrLongs the LgArrLongs value for the new hash table
    */
   static final void resize(final Memory mem, final int preambleLongs,
-      final int srcLgArrLongs, final int dstLgArrLongs) {
+      final int srcLgArrLongs, final int tgtLgArrLongs) {
+    //Note: This copies the Memory data onto the heap and then at the end copies the result
+    // back to Memory. Even if we tried to do this directly into Memory it would require pre-clearing,
+    // and the internal loops would be slower. The bulk copies are performed at a low level and
+    // are quite fast. Measurements reveal that we are not paying much of a penalty.
+    final Object memObj = mem.array(); //may be null
+    final long memAdd = mem.getCumulativeOffset(0L);
+
     //Preamble stays in place
     final int preBytes = preambleLongs << 3;
     //Bulk copy source to on-heap buffer
@@ -113,14 +138,14 @@ final class Rebuilder {
     final long[] srcHTArr = new long[srcHTLen]; //on-heap src buffer
     mem.getLongArray(preBytes, srcHTArr, 0, srcHTLen);
     //Create destination on-heap buffer
-    final int dstHTLen = 1 << dstLgArrLongs;
+    final int dstHTLen = 1 << tgtLgArrLongs;
     final long[] dstHTArr = new long[dstHTLen]; //on-heap dst buffer
     //Rebuild hash table in destination buffer
-    final long thetaLong = mem.getLong(THETA_LONG);
-    HashOperations.hashArrayInsert(srcHTArr, dstHTArr, dstLgArrLongs, thetaLong);
+    final long thetaLong = extractThetaLong(memObj, memAdd);
+    HashOperations.hashArrayInsert(srcHTArr, dstHTArr, tgtLgArrLongs, thetaLong);
     //Bulk copy to destination memory
-    mem.putLongArray(preBytes, dstHTArr, 0, dstHTLen); //put it back, no need to clear
-    mem.putByte(LG_ARR_LONGS_BYTE, (byte) dstLgArrLongs); //update in mem
+    mem.putLongArray(preBytes, dstHTArr, 0, dstHTLen);  //put it back, no need to clear
+    insertLgArrLongs(memObj, memAdd, tgtLgArrLongs); //update in mem
   }
 
   /**
