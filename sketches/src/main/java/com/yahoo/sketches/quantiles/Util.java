@@ -42,11 +42,11 @@ final class Util {
 
   /**
    * Checks the validity of the given value k
-   * @param k must be greater than 0 and less than 65536.
+   * @param k must be greater than 1 and less than 65536.
    */
   static void checkK(final int k) {
-    if ((k < 1) || (k >= (1 << 16)) || !isPowerOf2(k)) {
-      throw new SketchesArgumentException("K must be > 0 and < 65536");
+    if ((k < 2) || (k >= (1 << 16)) || !isPowerOf2(k)) {
+      throw new SketchesArgumentException("K must be > 1 and < 65536");
     }
   }
 
@@ -153,7 +153,7 @@ final class Util {
   }
 
   /**
-   * Returns the current item capacity of the non-compact, expanded combined data buffer
+   * Returns the current item capacity of the combined data buffer
    * given <i>k</i> and <i>n</i>.  If total levels = 0, this returns the ceiling power of 2
    * size for the base buffer or the MIN_BASE_BUF_SIZE, whichever is larger.
    *
@@ -161,27 +161,37 @@ final class Util {
    * size of the updatable data structure, which is a function of <i>k</i> and <i>n</i>.
    *
    * @param n The number of items in the input stream
+   * @param partialBaseBuffer true if partial base buffer is allowed.
    * @return the current item capacity of the combined data buffer
    */
-  static int computeExpandedCombinedBufferItemCapacity(final int k, final long n) {
+  static int computeCombinedBufferItemCapacity(final int k, final long n,
+      final boolean partialBaseBuffer) {
     final int totLevels = computeNumLevelsNeeded(k, n);
-    final int ret;
-    if (totLevels > 0) {
-      ret = (2 + totLevels) * k;
-    } else { //compute the partial the base buffer when totLevels = 0
-      final int bbItems = computeBaseBufferItems(k, n);
-      ret = Math.max(MIN_BASE_BUF_SIZE, ceilingPowerOf2(bbItems));
+    if (totLevels == 0) {
+      if (partialBaseBuffer) {
+        final int bbItems = computeBaseBufferItems(k, n);
+        return Math.max(MIN_BASE_BUF_SIZE, ceilingPowerOf2(bbItems));
+      }
     }
-    return ret;
+    return (2 + totLevels) * k;
   }
 
   /**
    * Computes the number of valid levels above the base buffer
-   * @param bitPattern the bit pattern for valid log levels
+   * @param bitPattern the bit pattern
    * @return the number of valid levels above the base buffer
    */
   static int computeValidLevels(final long bitPattern) {
     return Long.bitCount(bitPattern);
+  }
+
+  /**
+   * Computes the number of total levels above the base buffer
+   * @param bitPattern the bit pattern
+   * @return the number of total levels above the base buffer
+   */
+  static int computeTotalLevels(final long bitPattern) {
+    return hiBitPos(bitPattern) + 1;
   }
 
   /**
@@ -299,7 +309,6 @@ final class Util {
      * @return the resulting epsilon
      */
     static double getAdjustedEpsilon(final int k) { //used by HeapQS, so far
-      if (k == 1) { return 1.0; }
       return getTheoreticalEpsilon(k, adjustKForEps);
     }
 

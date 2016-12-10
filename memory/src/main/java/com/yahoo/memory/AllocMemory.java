@@ -8,11 +8,16 @@ package com.yahoo.memory;
 import static com.yahoo.memory.UnsafeUtil.unsafe;
 
 /**
- * The AllocMemory class is a subclass of NativeMemory and is used to allocate direct, off-heap
- * native memory, which is then accessed by the NativeMemory methods.
+ * The AllocMemory class is a subclass of MemoryMappedFile, which is a subclass of
+ * NativeMemory<sup>1</sup>.  AllocMemory is used to allocate direct,
+ * off-heap memory, which can then be accessed by the NativeMemory methods.
  * It is the responsibility of the calling class to free this memory using freeMemory() when done.
  *
- * <p>The task of direct allocation was moved to this sub-class for performance reasons.
+ * <p>[1] The task of direct allocation was moved to this sub-class to improve JVM performance of
+ * loading NativeMemory classes that do not use off-heap memory and thus do not require JVM
+ * tracking of the finalize() method. The parent MemoryMappedFile acts only as a pass-through to
+ * NativeMemory. This design allows leveraging the freeMemory() and finalize() methods of the
+ * parents so that these actions occur only in one place for the instance heirarchy.
  *
  * @author Lee Rhodes
  */

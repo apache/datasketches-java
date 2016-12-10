@@ -11,18 +11,14 @@
   http://checkstyle.sourceforge.net (or in your downloaded distribution). Note: Does not work with https.
 
   Most Checks are configurable, be sure to consult the documentation.
-
   To completely disable a check, just comment it out or delete it from the file.
 
   Authors: Max Vetrenko, Ruslan Diachenko, Roman Ivanov.
-
 -->
 
 <module name = "Checker">
   <property name="charset" value="UTF-8"/>
-
   <property name="severity" value="warning"/>
-
   <property name="fileExtensions" value="java, properties, xml"/>
   
   <!-- Enable suppression using comments: //CHECKSTYLE.OFF RULE and //CHECKSTYLE.ON RULE-->

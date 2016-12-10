@@ -93,10 +93,12 @@ public abstract class CompactSketch extends Sketch {
   }
 
   /**
-   * Compact the given array.
+   * Compact the given array. The source cache can be a hash table with interstitial zeros or
+   * "dirty" values.
    * @param srcCache anything
    * @param curCount must be correct
-   * @param thetaLong The correct <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
+   * @param thetaLong The correct
+   * <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
    * @param dstOrdered true if output array must be sorted
    * @return the compacted array
    */
@@ -108,9 +110,9 @@ public abstract class CompactSketch extends Sketch {
     final long[] cacheOut = new long[curCount];
     final int len = srcCache.length;
     int j = 0;
-    for (int i = 0; i < len; i++) {
+    for (int i = 0; i < len; i++) { //scan the full srcCache
       final long v = srcCache[i];
-      if ((v <= 0L) || (v >= thetaLong) ) { continue; }
+      if ((v <= 0L) || (v >= thetaLong) ) { continue; } //ignoring zeros or dirty values
       cacheOut[j++] = v;
     }
     assert curCount == j;

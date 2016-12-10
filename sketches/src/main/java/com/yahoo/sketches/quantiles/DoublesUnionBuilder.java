@@ -49,7 +49,7 @@ public class DoublesUnionBuilder {
    * @return a Union object
    */
   public static DoublesUnion build(final DoublesSketch sketch) {
-    return new HeapDoublesUnion(DoublesUtil.copy(sketch));
+    return new HeapDoublesUnion(DoublesUtil.copyToHeap(sketch));
   }
 
   /**
@@ -71,7 +71,7 @@ public class DoublesUnionBuilder {
    */
   @Deprecated
   public static DoublesUnion copyBuild(final DoublesSketch sketch) {
-    return new HeapDoublesUnion(DoublesUtil.copy(sketch));
+    return new HeapDoublesUnion(DoublesUtil.copyToHeap(sketch));
   }
 
 }

@@ -29,52 +29,68 @@ class DoublesMergeImpl {
    * @param src The source sketch
    * @param tgt The target sketch
    */
-  static void downSamplingMergeInto(final HeapDoublesSketch src, final HeapDoublesSketch tgt) {
-    final int targetK = tgt.getK();
-    final int sourceK = src.getK();
+  static void downSamplingMergeInto(final DoublesSketch src, final DoublesSketch tgt) {
+    final int srcK = src.getK();
+    final int tgtK = tgt.getK();
 
-    if ((sourceK % targetK) != 0) {
+    if ((srcK % tgtK) != 0) {
       throw new SketchesArgumentException(
           "source.getK() must equal target.getK() * 2^(nonnegative integer).");
     }
 
-    final int downFactor = sourceK / targetK;
+    final int downFactor = srcK / tgtK;
     checkIfPowerOf2(downFactor, "source.getK()/target.getK() ratio");
     final int lgDownFactor = Integer.numberOfTrailingZeros(downFactor);
 
-    final double[] sourceLevels     = src.getCombinedBuffer(); // aliasing is a bit dangerous
-    final double[] sourceBaseBuffer = src.getCombinedBuffer(); // aliasing is a bit dangerous
+    final double[] srcCombBuf = src.getCombinedBuffer();
 
     final long nFinal = tgt.getN() + src.getN();
 
     for (int i = 0; i < src.getBaseBufferCount(); i++) {
-      tgt.update(sourceBaseBuffer[i]);
+      tgt.update(srcCombBuf[i]);
     }
 
-    DoublesUpdateImpl.maybeGrowLevels(nFinal, tgt);
+    final int spaceNeeded = DoublesUpdateImpl.maybeGrowLevels(nFinal, tgtK);
+    final double[] tgtCombBuf;
 
-    final double[] scratchBuf = new double [2 * targetK];
-    final double[] downBuf    = new double [targetK];
+    if (spaceNeeded > tgt.getCombinedBufferItemCapacity()) {
+      // heap: copies base buffer plus old levels
+      // off-heap: just checks for enough room, for now, and extracts to heap
+      tgtCombBuf = tgt.growCombinedBuffer(spaceNeeded);
+    } else {
+      tgtCombBuf = tgt.getCombinedBuffer();
+    }
+
+    //working scratch buffers
+    final double[] scratch2KBuf = new double [2 * tgtK];
+    final double[] downScratchKBuf = new double [tgtK];
 
     long srcBitPattern = src.getBitPattern();
+    long newTgtBitPattern = tgt.getBitPattern();
     for (int srcLvl = 0; srcBitPattern != 0L; srcLvl++, srcBitPattern >>>= 1) {
       if ((srcBitPattern & 1L) > 0L) {
         justZipWithStride(
-            sourceLevels, ((2 + srcLvl) * sourceK),
-            downBuf, 0,
-            targetK,
-            downFactor);
-        DoublesUpdateImpl.inPlacePropagateCarry(
-            srcLvl + lgDownFactor,
-            downBuf, 0,
-            scratchBuf, 0,
-            false, tgt);
-        // won't update target.n_ until the very end
+            srcCombBuf, ((2 + srcLvl) * srcK),
+            downScratchKBuf, 0,
+            tgtK,
+            downFactor
+        );
+        newTgtBitPattern = DoublesUpdateImpl.inPlacePropagateCarry(
+            srcLvl + lgDownFactor,    //starting level
+            downScratchKBuf, 0,       //sizeKBuf, start
+            scratch2KBuf, 0,          //size2KBuf, start
+            false,                    //do mergeInto version
+            tgtK,
+            tgtCombBuf,
+            newTgtBitPattern
+        );
       }
     }
-    tgt.n_ = nFinal;
+    tgt.putCombinedBuffer(tgtCombBuf);
+    tgt.putBitPattern(newTgtBitPattern); //off-heap is a no-op
+    tgt.putN(nFinal);
 
-    assert tgt.getN() / (2 * targetK) == tgt.getBitPattern(); // internal consistency check
+    assert tgt.getN() / (2 * tgtK) == newTgtBitPattern; // internal consistency check
 
     final double srcMax = src.getMaxValue();
     final double srcMin = src.getMinValue();
@@ -83,18 +99,6 @@ class DoublesMergeImpl {
 
     if (srcMax > tgtMax) { tgt.putMaxValue(srcMax); }
     if (srcMin < tgtMin) { tgt.putMinValue(srcMin); }
-  }
-
-  private static void justZipWithStride(
-      final double[] bufA, final int startA, // input
-      final double[] bufC, final int startC, // output
-      final int kC, // number of items that should be in the output
-      final int stride) {
-    final int randomOffset = DoublesSketch.rand.nextInt(stride);
-    final int limC = startC + kC;
-    for (int a = startA + randomOffset, c = startC; c < limC; a += stride, c++ ) {
-      bufC[c] = bufA[a];
-    }
   }
 
   /**
@@ -108,7 +112,7 @@ class DoublesMergeImpl {
    * @param arrLen length of keyArr and valArr
    * @param blkSize size of internal sorted blocks
    */
-  //used by DoublesAuxiliary and UtilTest
+  //also used by DoublesAuxiliary and UtilTest
   static void blockyTandemMergeSort(final double[] keyArr, final long[] valArr, final int arrLen,
       final int blkSize) {
     assert blkSize >= 1;
@@ -125,6 +129,18 @@ class DoublesMergeImpl {
                                    keyArr, valArr,
                                    0, numblks,
                                    blkSize, arrLen);
+  }
+
+  private static void justZipWithStride(
+      final double[] bufA, final int startA, // input
+      final double[] bufC, final int startC, // output
+      final int kC, // number of items that should be in the output
+      final int stride) {
+    final int randomOffset = DoublesSketch.rand.nextInt(stride);
+    final int limC = startC + kC;
+    for (int a = startA + randomOffset, c = startC; c < limC; a += stride, c++ ) {
+      bufC[c] = bufA[a];
+    }
   }
 
   /**

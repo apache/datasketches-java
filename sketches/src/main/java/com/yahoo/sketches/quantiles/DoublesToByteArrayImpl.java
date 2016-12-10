@@ -28,9 +28,12 @@ import com.yahoo.sketches.Family;
  *
  * @author Lee Rhodes
  */
-class DoublesToByteArrayImpl {
+final class DoublesToByteArrayImpl {
 
-  static byte[] toByteArray(final DoublesSketch sketch, final boolean ordered, final boolean compact) {
+  private DoublesToByteArrayImpl() {}
+
+  static byte[] toByteArray(final DoublesSketch sketch, final boolean ordered,
+      final boolean compact) {
     final boolean empty = sketch.isEmpty();
 
     final int flags = (empty ? EMPTY_FLAG_MASK : 0)
@@ -40,9 +43,10 @@ class DoublesToByteArrayImpl {
     if (empty) {
       final byte[] outByteArr = new byte[Long.BYTES];
       final Memory memOut = new NativeMemory(outByteArr);
-      final long cumOffset = memOut.getCumulativeOffset(0L);
+      final Object memObj = memOut.array();
+      final long memAdd = memOut.getCumulativeOffset(0L);
       final int preLongs = 1;
-      insertPre0(outByteArr, cumOffset, preLongs, flags, sketch.getK());
+      insertPre0(memObj, memAdd, preLongs, flags, sketch.getK());
       return outByteArr;
     }
     //not empty
@@ -63,11 +67,11 @@ class DoublesToByteArrayImpl {
     final int flags = (ordered ? ORDERED_FLAG_MASK : 0) | (compact ? COMPACT_FLAG_MASK : 0);
     final int k = sketch.getK();
     final long n = sketch.getN();
-    final double[] combinedBuffer = sketch.getCombinedBuffer();
+    final double[] combinedBuffer = sketch.getCombinedBuffer(); //non-compact
     double[] bbItemsArr = null;
 
     final int bbCnt = Util.computeBaseBufferItems(k, n);
-    if (bbCnt > 0) {
+    if (bbCnt > 0) { //Base buffer items only
       bbItemsArr = new double[bbCnt];
       System.arraycopy(combinedBuffer, 0, bbItemsArr, 0, bbCnt);
       if (ordered) { Arrays.sort(bbItemsArr); }
@@ -80,13 +84,14 @@ class DoublesToByteArrayImpl {
       outByteArr = new byte[outBytes];
 
       final Memory memOut = new NativeMemory(outByteArr);
-      final long cumOffset = memOut.getCumulativeOffset(0L);
+      final Object memObj = memOut.array();
+      final long memAdd = memOut.getCumulativeOffset(0L);
 
-      //insert preamble, min, max
-      insertPre0(outByteArr, cumOffset, preLongs, flags, k);
-      insertN(outByteArr, cumOffset, n);
-      insertMinDouble(outByteArr, cumOffset, sketch.getMinValue());
-      insertMaxDouble(outByteArr, cumOffset, sketch.getMaxValue());
+      //insert preamble-0, N, min, max
+      insertPre0(memObj, memAdd, preLongs, flags, k);
+      insertN(memObj, memAdd, n);
+      insertMinDouble(memObj, memAdd, sketch.getMinValue());
+      insertMaxDouble(memObj, memAdd, sketch.getMaxValue());
 
       //insert base buffer
       if (bbCnt > 0) {
@@ -115,13 +120,14 @@ class DoublesToByteArrayImpl {
       outByteArr = new byte[outBytes];
 
       final Memory memOut = new NativeMemory(outByteArr);
-      final long cumOffset = memOut.getCumulativeOffset(0L);
+      final Object memObj = memOut.array();
+      final long memAdd = memOut.getCumulativeOffset(0L);
 
       //insert preamble, min, max
-      insertPre0(outByteArr, cumOffset, preLongs, flags, k);
-      insertN(outByteArr, cumOffset, n);
-      insertMinDouble(outByteArr, cumOffset, sketch.getMinValue());
-      insertMaxDouble(outByteArr, cumOffset, sketch.getMaxValue());
+      insertPre0(memObj, memAdd, preLongs, flags, k);
+      insertN(memObj, memAdd, n);
+      insertMinDouble(memObj, memAdd, sketch.getMinValue());
+      insertMaxDouble(memObj, memAdd, sketch.getMaxValue());
 
       //insert base buffer
       if (bbCnt > 0) {
@@ -137,13 +143,13 @@ class DoublesToByteArrayImpl {
     return outByteArr;
   }
 
-  static void insertPre0(final byte[] outArr, final long cumOffset, final int preLongs,
+  static void insertPre0(final Object memObj, final long memAdd, final int preLongs,
       final int flags, final int k) {
-    insertPreLongs(outArr, cumOffset, preLongs);
-    insertSerVer(outArr, cumOffset, DoublesSketch.DOUBLES_SER_VER);
-    insertFamilyID(outArr, cumOffset, Family.QUANTILES.getID());
-    insertFlags(outArr, cumOffset, flags);
-    insertK(outArr, cumOffset, k);
+    insertPreLongs(memObj, memAdd, preLongs);
+    insertSerVer(memObj, memAdd, DoublesSketch.DOUBLES_SER_VER);
+    insertFamilyID(memObj, memAdd, Family.QUANTILES.getID());
+    insertFlags(memObj, memAdd, flags);
+    insertK(memObj, memAdd, k);
   }
 
 }

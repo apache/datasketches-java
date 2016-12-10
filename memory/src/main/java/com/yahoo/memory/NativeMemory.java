@@ -732,7 +732,7 @@ public class NativeMemory implements Memory {
 
   /**
    * This frees this Memory only if it is required. This always sets the capacity to zero
-   * and the reference to MemoryRequest to null, which effectively disables this class.
+   * and the reference to MemoryRequest to null, which effectively disables this instance.
    *
    * <p>It is always safe to call this method when you are done with this class.
    */

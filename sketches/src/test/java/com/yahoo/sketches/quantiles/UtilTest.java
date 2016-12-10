@@ -19,7 +19,7 @@ public class UtilTest {
   @Test
   public void checkCombBufItemCapacity() {
     int k = 227;
-    int capEl = Util.computeExpandedCombinedBufferItemCapacity(k, 0);
+    int capEl = Util.computeCombinedBufferItemCapacity(k, 0, true);
     assertEquals(capEl, Util.MIN_BASE_BUF_SIZE);
   }
 

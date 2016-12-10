@@ -7,7 +7,7 @@ package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.Util.LS;
-import static com.yahoo.sketches.quantiles.Util.computeExpandedCombinedBufferItemCapacity;
+import static com.yahoo.sketches.quantiles.Util.computeCombinedBufferItemCapacity;
 import static com.yahoo.sketches.quantiles.Util.computeNumLevelsNeeded;
 import static com.yahoo.sketches.quantiles.Util.lg;
 import static java.lang.Math.floor;
@@ -524,7 +524,7 @@ public class HeapDoublesSketchTest {
   public void checkMemCapacityException() {
     int k = DoublesSketch.DEFAULT_K;
     long n = 1000;
-    int combBufItemCap = computeExpandedCombinedBufferItemCapacity(k, n);
+    int combBufItemCap = computeCombinedBufferItemCapacity(k, n, true);
     int memCapBytes = (combBufItemCap + 4) << 3;
     int badCapBytes = memCapBytes - 1; //corrupt
     DoublesUtil.checkMemCapacity(k, n, false, badCapBytes);
@@ -534,7 +534,7 @@ public class HeapDoublesSketchTest {
   public void checkBufAllocAndCap() {
     int k = DoublesSketch.DEFAULT_K;
     long n = 1000;
-    int combBufItemCap = computeExpandedCombinedBufferItemCapacity(k, n); //non-compact cap
+    int combBufItemCap = computeCombinedBufferItemCapacity(k, n, true); //non-compact cap
     int memCapBytes = (combBufItemCap + 4) << 3;
     DoublesUtil.checkMemCapacity(k, n, false, memCapBytes - 1); //corrupt
   }
@@ -574,7 +574,7 @@ public class HeapDoublesSketchTest {
   public void checkBadDownSamplingRatio() {
     int k1 = 64;
     DoublesSketch qs1 = buildQS(k1, k1);
-    qs1.downSample(2*k1);//should be smaller
+    qs1.downSample(qs1, 2*k1, null);//should be smaller
   }
 
   @Test
@@ -591,7 +591,8 @@ public class HeapDoublesSketchTest {
       origSketch.update (i);
       directSketch.update (i);
     }
-    HeapDoublesSketch downSketch = (HeapDoublesSketch)origSketch.downSample(smallK);
+    HeapDoublesSketch downSketch =
+        (HeapDoublesSketch)origSketch.downSample(origSketch, smallK, null);
     println (LS+"Orig+LS");
     String s = origSketch.toString(true, true);
     println(s);
@@ -615,12 +616,12 @@ public class HeapDoublesSketchTest {
     HeapDoublesSketch origSketch = HeapDoublesSketch.newInstance(8);
     HeapDoublesSketch directSketch = HeapDoublesSketch.newInstance(2);
     HeapDoublesSketch downSketch;
-    downSketch = (HeapDoublesSketch)origSketch.downSample(2);
+    downSketch = (HeapDoublesSketch)origSketch.downSample(origSketch, 2, null);
     assertTrue(sameStructurePredicate (directSketch, downSketch));
     for (int i = 0; i < 50; i++) {
       origSketch.update (i);
       directSketch.update (i);
-      downSketch = (HeapDoublesSketch)origSketch.downSample(2);
+      downSketch = (HeapDoublesSketch)origSketch.downSample(origSketch, 2, null);
       assertTrue (sameStructurePredicate (directSketch, downSketch));
     }
   }
@@ -729,15 +730,15 @@ public class HeapDoublesSketchTest {
   }
 
   @Test
-  public void checkKisOne() {
-    int k = 1;
+  public void checkKisTwo() {
+    int k = 2;
     DoublesSketch qs1 = DoublesSketch.builder().build(k);
     double err = qs1.getNormalizedRankError();
-    assertEquals(err, 1.0, 0.0);
-    byte[] arr = qs1.toByteArray(true, true);
+    assertTrue(err < 1.0);
+    byte[] arr = qs1.toByteArray(true, true); //8
     assertEquals(arr.length, qs1.getStorageBytes(k, 0));
     qs1.update(1.0);
-    arr = qs1.toByteArray(true, true);
+    arr = qs1.toByteArray(true, true); //40
     assertEquals(arr.length, qs1.getStorageBytes(k, 1));
   }
 
@@ -934,16 +935,22 @@ public class HeapDoublesSketchTest {
     return qs;
   }
 
+  public static void main(String[] args) {
+    //DoublesUtilTest dut = new DoublesUtilTest();
+    buildQS(128, 4, 0);
+  }
+
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
+    print("PRINTING: "+this.getClass().getName() + LS);
   }
 
   /**
    * @param s value to print
    */
   static void println(String s) {
-    //print(s+LS);
+    print(s+LS);
   }
 
   /**

@@ -27,7 +27,7 @@ public class ItemsSketchTest {
   public void setUp() {
     DoublesSketch.rand.setSeed(32749); // make sketches deterministic for testing
   }
-  
+
   @Test
   public void empty() {
     ItemsSketch<String> sketch = ItemsSketch.getInstance(128, Comparator.naturalOrder());
@@ -126,7 +126,7 @@ public class ItemsSketchTest {
     Assert.assertEquals(sketch.getQuantile(0.5), Integer.valueOf(500), 17);
     Assert.assertEquals(sketch.getQuantile(0.0), Integer.valueOf(1));
     Assert.assertEquals(sketch.getQuantile(1.0), Integer.valueOf(1000));
-    
+
     double[] fracRanks = {0.0, 0.5, 1.0};
     Integer[] quantiles = sketch.getQuantiles(fracRanks);
     Assert.assertEquals(quantiles[0], Integer.valueOf(1)); // min value
@@ -138,10 +138,10 @@ public class ItemsSketchTest {
     Assert.assertEquals(quantiles2[0], Integer.valueOf(250), 17); // min value
     Assert.assertEquals(quantiles2[1], Integer.valueOf(500), 17); // median
     Assert.assertEquals(quantiles2[2], Integer.valueOf(750), 17); // max value
-    
+
     quantiles = sketch.getQuantiles(1);
     Assert.assertEquals(quantiles[0], Integer.valueOf(1));
-    
+
     quantiles = sketch.getQuantiles(3);
     Assert.assertEquals(quantiles[0], Integer.valueOf(1)); // min value
     Assert.assertEquals(quantiles[1], Integer.valueOf(500), 17); // median
@@ -150,7 +150,7 @@ public class ItemsSketchTest {
     double normErr = sketch.getNormalizedRankError();
     Assert.assertEquals(normErr, .0172, .001);
     println(""+normErr);
-    
+
     {
       double[] pmf = sketch.getPMF(new Integer[0]);
       Assert.assertEquals(pmf.length, 1);
@@ -170,7 +170,7 @@ public class ItemsSketchTest {
       double[] pmf = sketch.getPMF(intArr);
       Assert.assertEquals(pmf.length, 51);
     }
-    
+
     {
       double[] cdf = sketch.getCDF(new Integer[0]);
       Assert.assertEquals(cdf.length, 1);
@@ -251,14 +251,21 @@ public class ItemsSketchTest {
   @Test
   public void toStringCrudeCheck() {
     ItemsSketch<String> sketch = ItemsSketch.getInstance(Comparator.naturalOrder());
+    String brief, full, part;
+    brief = sketch.toString();
+    full = sketch.toString(true, true);
+    part = sketch.toString(false, true);
     sketch.update("a");
-    String brief = sketch.toString();
-    String full = sketch.toString(true, true);
+    brief = sketch.toString();
+    full = sketch.toString(true, true);
+    part = sketch.toString(false, true);
     //println(full);
     Assert.assertTrue(brief.length() < full.length());
+    Assert.assertTrue(part.length() < full.length());
     ArrayOfItemsSerDe<String> serDe = new ArrayOfStringsSerDe();
     byte[] bytes = sketch.toByteArray(serDe);
     PreambleUtil.toString(bytes, false);
+    PreambleUtil.toString(bytes, true);
     //ItemsSketch<String> sketch2 = ItemsSketch.getInstance(new NativeMemory(bytes), Comparator.naturalOrder(), serDe);
   }
 
@@ -273,7 +280,7 @@ public class ItemsSketchTest {
     //println(full);
     Assert.assertTrue(bigger.length() < full.length());
   }
-  
+
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkDownsampleException() {
     ItemsSketch<String> sketch = ItemsSketch.getInstance(16, Comparator.naturalOrder());
@@ -282,32 +289,32 @@ public class ItemsSketchTest {
     }
     sketch.downSample(32);
   }
-  
+
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkEvenlySpacedExcep() {
     ItemsSketch<String> sketch = ItemsSketch.getInstance(16, Comparator.naturalOrder());
     sketch.getQuantiles(0);
   }
-  
+
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkFraction() {
     ItemsSketch<String> sketch = ItemsSketch.getInstance(16, Comparator.naturalOrder());
     sketch.update(null);
     sketch.getQuantile(-0.1);
   }
-  
+
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkGetInstanceExcep1() {
     Memory mem = new NativeMemory(new byte[4]);
     ItemsSketch.getInstance(mem, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
   }
-  
+
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkGetInstanceExcep2() {
     Memory mem = new NativeMemory(new byte[8]);
     ItemsSketch.getInstance(mem, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
   }
-  
+
   @Test
   public void checkGoodSerDeId() {
     ItemsSketch<String> sketch = ItemsSketch.getInstance(Comparator.naturalOrder());
@@ -316,7 +323,7 @@ public class ItemsSketchTest {
     //println(PreambleUtil.toString(mem));
     ItemsSketch.getInstance(mem, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
   }
-  
+
   @Test
   public void checkDownsample() {
     ItemsSketch<String> sketch = ItemsSketch.getInstance(16, Comparator.naturalOrder());
@@ -326,7 +333,7 @@ public class ItemsSketchTest {
     ItemsSketch<String> out = sketch.downSample(8);
     Assert.assertEquals(out.getK(), 8);
   }
-  
+
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void unorderedSplitPoints() {
     ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Comparator.naturalOrder());
@@ -355,7 +362,7 @@ public class ItemsSketchTest {
     println(PreambleUtil.toString(mem, false));
     ItemsSketch.getInstance(mem, Comparator.naturalOrder(), serDe);
   }
-  
+
   @Test
   public void checkPutMemory() {
     ItemsSketch<String> sketch = ItemsSketch.getInstance(16, Comparator.naturalOrder());
@@ -366,7 +373,7 @@ public class ItemsSketchTest {
     Memory mem = new NativeMemory(byteArr);
     sketch.putMemory(mem, new ArrayOfStringsSerDe());
   }
-  
+
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkPutMemoryException() {
     ItemsSketch<String> sketch = ItemsSketch.getInstance(16, Comparator.naturalOrder());
@@ -377,7 +384,7 @@ public class ItemsSketchTest {
     Memory mem = new NativeMemory(byteArr);
     sketch.putMemory(mem, new ArrayOfStringsSerDe());
   }
-  
+
   @Test
   public void checkPMFonEmpty() {
     ItemsSketch<String> iss = buildStringIS(32, 32);
@@ -389,7 +396,7 @@ public class ItemsSketchTest {
     println("cdfOut: "+cdfOut.length);
     assertEquals(cdfOut[0], 1.0, 0.0);
   }
-  
+
   @Test
   public void checkToFromByteArray() {
     checkToFromByteArray2(128, 1300); //generates a pattern of 5 -> 101
@@ -397,14 +404,14 @@ public class ItemsSketchTest {
     checkToFromByteArray2(4, 8);
     checkToFromByteArray2(4, 9);
   }
-  
+
   private static void checkToFromByteArray2(int k, int n) {
     ItemsSketch<String> is = buildStringIS(k, n);
     byte[] byteArr;
     Memory mem;
     ItemsSketch<String> is2;
     ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
-    
+
     //ordered
     byteArr = is.toByteArray(true, serDe);
     mem = new NativeMemory(byteArr);
@@ -412,7 +419,7 @@ public class ItemsSketchTest {
     for (double f = 0.1; f < 0.95; f += 0.1) {
       assertEquals(is.getQuantile(f), is2.getQuantile(f));
     }
-    
+
     //Not-ordered
     byteArr = is.toByteArray(false, serDe);
     mem = new NativeMemory(byteArr);
@@ -421,11 +428,11 @@ public class ItemsSketchTest {
       assertEquals(is.getQuantile(f), is2.getQuantile(f));
     }
   }
-  
+
   static ItemsSketch<String> buildStringIS(int k, int n) {
     return buildStringIS(k, n, 0);
   }
-  
+
   static ItemsSketch<String> buildStringIS(int k, int n, int start) {
     ItemsSketch<String> sketch = ItemsSketch.getInstance(k, Comparator.naturalOrder());
     for (int i = 0; i < n; i++) {
@@ -433,17 +440,17 @@ public class ItemsSketchTest {
     }
     return sketch;
   }
-  
+
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
-  
+
   /**
-   * @param s value to print 
+   * @param s value to print
    */
   static void println(String s) {
     //System.out.println(s); //disable here
   }
-  
+
 }

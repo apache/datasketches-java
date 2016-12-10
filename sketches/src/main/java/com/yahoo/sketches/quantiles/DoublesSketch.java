@@ -421,14 +421,25 @@ public abstract class DoublesSketch {
   }
 
   /**
-   * From an existing sketch, this creates a new sketch that can have a smaller value of K.
+   * From an source sketch, create a new sketch that must have a smaller value of K.
    * The original sketch is not modified.
    *
+   * @param srcSketch the sourcing sketch
    * @param smallerK the new sketch's value of K that must be smaller than this value of K.
    * It is required that this.getK() = smallerK * 2^(nonnegative integer).
+   * @param dstMem the destination Memory.  It must not overlap the Memory of this sketch.
+   * If null, a heap sketch will be returned, otherwise it will be off-heap.
+   *
    * @return the new sketch.
    */
-  public abstract DoublesSketch downSample(int smallerK);
+  public DoublesSketch downSample(final DoublesSketch srcSketch, final int smallerK,
+      final Memory dstMem) {
+    final DoublesSketch newSketch = (dstMem == null)
+        ? HeapDoublesSketch.newInstance(smallerK)
+        : DirectDoublesSketch.newInstance(smallerK, dstMem);
+    DoublesMergeImpl.downSamplingMergeInto(srcSketch, newSketch);
+    return newSketch;
+  }
 
   /**
    * Computes the number of retained items (samples) in the sketch
@@ -439,8 +450,8 @@ public abstract class DoublesSketch {
   }
 
   /**
-   * Returns the number of bytes required to store this sketch as an array of bytes.
-   * @return the number of bytes required to store this sketch as an array of bytes.
+   * Returns the number of bytes required to store this sketch as a compact array of bytes.
+   * @return the number of bytes required to store this sketch as a compact array of bytes.
    */
   public int getStorageBytes() {
     if (isEmpty()) { return 8; }
@@ -448,11 +459,11 @@ public abstract class DoublesSketch {
   }
 
   /**
-   * Returns the number of bytes required to store a sketch as an array of bytes with the
+   * Returns the number of bytes required to store a sketch as a compact array of bytes with the
    * given values of <i>k</i> and <i>n</i>.
    * @param k the size configuration parameter for the sketch
    * @param n the number of items input into the sketch
-   * @return the number of bytes required to store this sketch as an array of bytes.
+   * @return the number of bytes required to store this sketch as a compact array of bytes.
    */
   public int getStorageBytes(final int k, final long n) {
     if (n == 0) { return 8; }
@@ -521,6 +532,14 @@ public abstract class DoublesSketch {
     return fractions;
   }
 
+  /**
+   * Returns the Auxiliary data structure, which is only used for getQuantile() and getQuantiles()
+   * queries.
+   * @return the Auxiliary data structure
+   */
+  DoublesAuxiliary constructAuxiliary() {
+    return new DoublesAuxiliary( this );
+  }
 
   //Restricted abstract
 
@@ -543,16 +562,18 @@ public abstract class DoublesSketch {
   abstract int getCombinedBufferItemCapacity();
 
   /**
-   * Returns the combined buffer reference
-   * @return the combined buffer reference
+   * Returns the combined buffer, in non-compact form.
+   * @return the combined buffer, in non-compact form.
    */
   abstract double[] getCombinedBuffer();
 
   /**
-   * Puts the combined buffer.  This must be in non-compact form!
-   * @param combinedBuffer the combined buffer array
+   * Gets the Memory if it exists, otherwise returns null.
+   * @return the Memory if it exists, otherwise returns null.
    */
-  abstract void putCombinedBuffer(double[] combinedBuffer);
+  abstract Memory getMemory();
+
+  //Puts
 
   /**
    * Puts the min value
@@ -571,6 +592,13 @@ public abstract class DoublesSketch {
    * @param n the given value of <i>n</i>
    */
   abstract void putN(long n);
+
+
+  /**
+   * Puts the combined, non-compact buffer.
+   * @param combinedBuffer the combined buffer array
+   */
+  abstract void putCombinedBuffer(double[] combinedBuffer);
 
   /**
    * Puts the combinedBufferItemCapacity
@@ -591,20 +619,10 @@ public abstract class DoublesSketch {
   abstract void putBitPattern(long bitPattern);
 
   /**
-   * Gets the Memory if it exists, otherwise returns null.
-   * @return the Memory if it exists, otherwise returns null.
+   * Grows the combined buffer to the given spaceNeeded
+   * @param spaceNeeded the space needed
+   * @return the enlarged combined buffer
    */
-  abstract Memory getMemory();
-
-  //Other restricted
-
-  /**
-   * Returns the Auxiliary data structure which is only used for getQuantile() and getQuantiles()
-   * queries.
-   * @return the Auxiliary data structure
-   */
-  DoublesAuxiliary constructAuxiliary() {
-    return new DoublesAuxiliary( this );
-  }
+  abstract double[] growCombinedBuffer(int spaceNeeded);
 
 }

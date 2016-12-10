@@ -70,7 +70,8 @@ public final class Space {
 
   //External calls
   private static int elemCapacity(int k, long n) {
-    return (n == 0)? 8 : (Util.computeExpandedCombinedBufferItemCapacity(k, n) + 4) * Double.BYTES;
+    return (n == 0)? 8
+        : (Util.computeCombinedBufferItemCapacity(k, n, true) + 4) * Double.BYTES;
   }
 
   private static double getEpsilon(int k) {

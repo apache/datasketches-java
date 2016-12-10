@@ -5,119 +5,95 @@
 
 package com.yahoo.sketches.quantiles;
 
-import java.util.Arrays;
-
 /**
  * The doubles update algorithms for quantiles.
  *
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-class DoublesUpdateImpl {
+final class DoublesUpdateImpl {
 
-  static void growBaseBuffer(final DoublesSketch sketch) { //n has not been incremented yet
-    final double[] baseBuffer = sketch.getCombinedBuffer(); //in this case it is just the BB
-    final int oldSize = sketch.getCombinedBufferItemCapacity(); //current array size
-    final int k = sketch.getK();
-    assert oldSize < 2 * k;
-    final int newSize = Math.max(Math.min(2 * k, 2 * oldSize), 1);
-    sketch.putCombinedBufferItemCapacity(newSize);
-    sketch.putCombinedBuffer(Arrays.copyOf(baseBuffer, newSize));
-  }
+  private DoublesUpdateImpl() {}
 
   /**
-   * Called when the base buffer has just acquired 2*k elements.
-   * @param sketch the given quantiles sketch
+   * Returns space needed based on new value of n and k, which may or may not be larger that
+   * current space allocated.
+   * @param newN the new value of n
+   * @param k current value of k
+   * @return space needed based on new value of n and k. It may not be different
    */
-  //important: n_ was incremented by update before we got here
-  static void processFullBaseBuffer(final HeapDoublesSketch sketch) {
-    final int bbCount = sketch.getBaseBufferCount();
-    final int k = sketch.getK();
-    final long newN = sketch.getN();
-    assert bbCount == 2 * k; // internal consistency check
-
-    // make sure there will be enough levels for the propagation
-    maybeGrowLevels(newN, sketch);
-
-    // notice that this is acquired after the possible resizing
-    final double[] baseBuffer = sketch.getCombinedBuffer();
-
-    Arrays.sort(baseBuffer, 0, bbCount); //sort the BB
-    inPlacePropagateCarry(
-        0,           //starting level
-        null,        //sizeKbuf,   not needed here
-        0,           //sizeKStart, not needed here
-        baseBuffer,  //size2Kbuf, the base buffer = the Combined Buffer
-        0,           //size2KStart
-        true,        //doUpdateVersion
-        sketch);     //the sketch
-    sketch.baseBufferCount_ = 0;
-    assert newN / (2 * k) == sketch.getBitPattern(); // internal consistency check
-  }
-
   //important: newN might not equal n_
   // This only increases the size and does not touch or move any data.
-  static void maybeGrowLevels(final long newN, final HeapDoublesSketch sketch) {
-    final int k = sketch.getK();
+  static int maybeGrowLevels(final long newN, final int k) {
     final int numLevelsNeeded = Util.computeNumLevelsNeeded(k, newN);
     if (numLevelsNeeded == 0) {
       // don't need any levels yet, and might have small base buffer; this can happen during a merge
-      return;
+      return 2 * k;
     }
     // from here on we need a full-size base buffer and at least one level
     assert newN >= 2L * k;
     assert numLevelsNeeded > 0;
     final int spaceNeeded = (2 + numLevelsNeeded) * k;
-    if (spaceNeeded <= sketch.getCombinedBufferItemCapacity()) {
-      return;
-    }
-    // copies base buffer plus old levels
-    sketch.combinedBuffer_ = Arrays.copyOf(sketch.getCombinedBuffer(), spaceNeeded);
-    sketch.combinedBufferItemCapacity_ = spaceNeeded;
+    return spaceNeeded;
   }
 
-  static void inPlacePropagateCarry(
+  /**
+   *
+   * @param startingLevel 0-based starting level
+   * @param sizeKBuf size k scratch buffer
+   * @param sizeKStart starting offset for sizeKBuf
+   * @param size2KBuf size 2k scratch buffer
+   * @param size2KStart starting offset for size2KBuf
+   * @param doUpdateVersion true if update version
+   * @param k the target value of k
+   * @param combinedBuffer the full combined buffer
+   * @param bitPattern the current bitPattern, prior to this call
+   * @return The updated bit pattern.  The updated combined buffer is output as a side effect.
+   */
+  static long inPlacePropagateCarry( //only operates on parameters
       final int startingLevel,
       final double[] sizeKBuf, final int sizeKStart,
       final double[] size2KBuf, final int size2KStart,
-      final boolean doUpdateVersion, final HeapDoublesSketch sketch
-    ) { // else doMergeIntoVersion
-    final double[] levelsArr = sketch.getCombinedBuffer();
-    final int k = sketch.getK();
-    final long bitPattern = sketch.bitPattern_; //the one prior to the last increment of n_
+      final boolean doUpdateVersion,
+      final int k,
+      final double[] combinedBuffer, //ref to combined buffer, which includes base buffer
+      final long bitPattern //the current bitPattern
+    ) {
+    // else doMergeIntoVersion
+
     final int endingLevel = Util.positionOfLowestZeroBitStartingAt(bitPattern, startingLevel);
 
     if (doUpdateVersion) { // update version of computation
-      // its is okay for sizeKbuf to be null in this case
+      // its is okay for sizeKBuf to be null in this case
       zipSize2KBuffer(
           size2KBuf, size2KStart,
-          levelsArr, (2 + endingLevel) * k,
+          combinedBuffer, (2 + endingLevel) * k,
           k);
     } else { // mergeInto version of computation
       System.arraycopy(
           sizeKBuf, sizeKStart,
-          levelsArr, (2 + endingLevel) * k,
+          combinedBuffer, (2 + endingLevel) * k,
           k);
     }
 
     for (int lvl = startingLevel; lvl < endingLevel; lvl++) {
       assert (bitPattern & (1L << lvl)) > 0; // internal consistency check
       mergeTwoSizeKBuffers(
-          levelsArr, (2 + lvl) * k,
-          levelsArr, (2 + endingLevel) * k,
+          combinedBuffer, (2 + lvl) * k,
+          combinedBuffer, (2 + endingLevel) * k,
           size2KBuf, size2KStart,
           k);
       zipSize2KBuffer(
           size2KBuf, size2KStart,
-          levelsArr, (2 + endingLevel) * k,
+          combinedBuffer, (2 + endingLevel) * k,
           k);
     } // end of loop over lower levels
 
     // update bit pattern with binary-arithmetic ripple carry
-    sketch.bitPattern_ = bitPattern + (1L << startingLevel);
+    return bitPattern + (1L << startingLevel);
   }
 
-  private static void zipSize2KBuffer(
+  private static void zipSize2KBuffer( //only operates on parameters
       final double[] bufA, final int startA, // input
       final double[] bufC, final int startC, // output
       final int k) {
@@ -128,7 +104,7 @@ class DoublesUpdateImpl {
     }
   }
 
-  private static void mergeTwoSizeKBuffers(
+  private static void mergeTwoSizeKBuffers( //only operates on parameters
       final double[] keySrc1, final int arrStart1,
       final double[] keySrc2, final int arrStart2,
       final double[] keyDst,  final int arrStart3,

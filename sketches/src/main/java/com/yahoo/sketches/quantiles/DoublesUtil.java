@@ -32,17 +32,17 @@ final class DoublesUtil {
    * @param sketch the given sketch
    * @return a copy of the given sketch
    */
-  static HeapDoublesSketch copy(final DoublesSketch sketch) {
+  static HeapDoublesSketch copyToHeap(final DoublesSketch sketch) {
     final HeapDoublesSketch qsCopy;
     qsCopy = HeapDoublesSketch.newInstance(sketch.getK());
-    qsCopy.n_ = sketch.getN();
-    qsCopy.minValue_ = sketch.getMinValue();
-    qsCopy.maxValue_ = sketch.getMaxValue();
-    qsCopy.combinedBufferItemCapacity_ = sketch.getCombinedBufferItemCapacity();
-    qsCopy.baseBufferCount_ = sketch.getBaseBufferCount();
-    qsCopy.bitPattern_ = sketch.getBitPattern();
+    qsCopy.putN(sketch.getN());
+    qsCopy.putMinValue(sketch.getMinValue());
+    qsCopy.putMaxValue(sketch.getMaxValue());
+    qsCopy.putBaseBufferCount(sketch.getBaseBufferCount());
+    qsCopy.putBitPattern(sketch.getBitPattern());
     final double[] combBuf = sketch.getCombinedBuffer();
-    qsCopy.combinedBuffer_ = Arrays.copyOf(combBuf, combBuf.length);
+    qsCopy.putCombinedBuffer(Arrays.copyOf(combBuf, combBuf.length));
+    qsCopy.putCombinedBufferItemCapacity(sketch.getCombinedBufferItemCapacity());
     return qsCopy;
   }
 
@@ -100,7 +100,8 @@ final class DoublesUtil {
   static String getDataDetail(final DoublesSketch sketch) {
     final StringBuilder sb = new StringBuilder();
     final String thisSimpleName = sketch.getClass().getSimpleName();
-    sb.append(LS).append("### ").append(thisSimpleName).append(" DATA DETAIL: ").append(LS);
+    sb.append(LS).append("### Quantiles ").append(thisSimpleName).append(" DATA DETAIL: ")
+      .append(LS);
 
     final int k = sketch.getK();
     final long n = sketch.getN();
@@ -139,31 +140,33 @@ final class DoublesUtil {
     final StringBuilder sb = new StringBuilder();
     final String thisSimpleName = sketch.getClass().getSimpleName();
     final int k = sketch.getK();
+    final String kStr = String.format("%,d", k);
     final long n = sketch.getN();
     final String nStr = String.format("%,d", n);
-    final int bbCount = sketch.getBaseBufferCount();
+    final String bbCntStr = String.format("%,d", sketch.getBaseBufferCount());
+    final String combBufCapStr = String.format("%,d", sketch.getCombinedBufferItemCapacity());
     final long bitPattern = sketch.getBitPattern();
-    final int totLevels = Util.computeNumLevelsNeeded(k, n);
+    final int neededLevels = Util.computeNumLevelsNeeded(k, n);
+    final int totalLevels = Util.computeTotalLevels(bitPattern);
     final int validLevels = Util.computeValidLevels(bitPattern);
-    final boolean empty = sketch.isEmpty();
-    final int preBytes = empty ? Long.BYTES : 2 * Long.BYTES;
-    final int retItems = sketch.getRetainedItems();
-    final String retItemsStr = String.format("%,d", retItems);
-    final int bytes = preBytes + (retItems + 2) * Double.BYTES;
+    final String retItemsStr = String.format("%,d", sketch.getRetainedItems());
+    final String bytesStr = String.format("%,d", sketch.getStorageBytes());
     final double eps = Util.EpsilonFromK.getAdjustedEpsilon(k);
-    final String epsPct = String.format("%.3f%%", eps * 100.0);
+    final String epsPctStr = String.format("%.3f%%", eps * 100.0);
 
-    sb.append(Util.LS).append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
-    sb.append("   K                            : ").append(k).append(LS);
+    sb.append(Util.LS).append("### Quantiles ").append(thisSimpleName).append(" SUMMARY: ")
+      .append(LS);
+    sb.append("   K                            : ").append(kStr).append(LS);
     sb.append("   N                            : ").append(nStr).append(LS);
-    sb.append("   Levels (Total, Valid)        : ")
-      .append(totLevels + ", " + validLevels).append(LS);
+    sb.append("   Levels (Needed, Total, Valid): ")
+      .append(neededLevels + ", " + totalLevels + ", " + validLevels).append(LS);
     sb.append("   Level Bit Pattern            : ")
       .append(Long.toBinaryString(bitPattern)).append(LS);
-    sb.append("   BaseBufferCount              : ").append(bbCount).append(LS);
+    sb.append("   BaseBufferCount              : ").append(bbCntStr).append(LS);
+    sb.append("   Combined Buffer Capacity     : ").append(combBufCapStr).append(LS);
     sb.append("   Retained Items               : ").append(retItemsStr).append(LS);
-    sb.append("   Storage Bytes                : ").append(String.format("%,d", bytes)).append(LS);
-    sb.append("   Normalized Rank Error        : ").append(epsPct).append(LS);
+    sb.append("   Storage Bytes                : ").append(bytesStr).append(LS);
+    sb.append("   Normalized Rank Error        : ").append(epsPctStr).append(LS);
     sb.append("   Min Value                    : ")
       .append(String.format("%,.3f", sketch.getMinValue())).append(LS);
     sb.append("   Max Value                    : ")
