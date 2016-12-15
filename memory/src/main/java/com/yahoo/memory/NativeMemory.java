@@ -179,50 +179,6 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public int getAndAddInt(final long offsetBytes, final int delta) {
-    assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
-    final long unsafeRawAddress = getAddress(offsetBytes);
-    int v;
-    do {
-        v = unsafe.getIntVolatile(memArray_, unsafeRawAddress);
-    } while (!unsafe.compareAndSwapInt(memArray_, unsafeRawAddress, v, v + delta));
-    return v;
-  }
-
-  @Override
-  public long getAndAddLong(final long offsetBytes, final long delta) {
-    assertBounds(offsetBytes, ARRAY_LONG_INDEX_SCALE, capacityBytes_);
-    final long unsafeRawAddress = getAddress(offsetBytes);
-    long v;
-    do {
-        v = unsafe.getLongVolatile(memArray_, unsafeRawAddress);
-    } while (!unsafe.compareAndSwapLong(memArray_, unsafeRawAddress, v, v + delta));
-    return v;
-  }
-
-  @Override
-  public int getAndSetInt(final long offsetBytes, final int newValue) {
-    assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
-    final long unsafeRawAddress = getAddress(offsetBytes);
-    int v;
-    do {
-        v = unsafe.getIntVolatile(memArray_, unsafeRawAddress);
-    } while (!unsafe.compareAndSwapInt(memArray_, unsafeRawAddress, v, newValue));
-    return v;
-  }
-
-  @Override
-  public long getAndSetLong(final long offsetBytes, final long newValue) {
-    assertBounds(offsetBytes, ARRAY_LONG_INDEX_SCALE, capacityBytes_);
-    final long unsafeRawAddress = getAddress(offsetBytes);
-    long v;
-    do {
-        v = unsafe.getLongVolatile(memArray_, unsafeRawAddress);
-    } while (!unsafe.compareAndSwapLong(memArray_, unsafeRawAddress, v, newValue));
-    return v;
-  }
-
-  @Override
   public boolean getBoolean(final long offsetBytes) {
     assertBounds(offsetBytes, ARRAY_BOOLEAN_INDEX_SCALE, capacityBytes_);
     return unsafe.getBoolean(memArray_, getAddress(offsetBytes));
@@ -580,7 +536,45 @@ public class NativeMemory implements Memory {
     unsafe.putByte(memArray_, unsafeRawAddress, (byte)(value | bitMask));
   }
 
-  //Non-data Memory interface methods
+  //Atomic methods
+
+  @Override
+  public int addAndGetInt(final long offsetBytes, final int delta) {
+    assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
+    return unsafe.getAndAddInt(memArray_, getAddress(offsetBytes), delta) + delta;
+  }
+
+  @Override
+  public long addAndGetLong(final long offsetBytes, final long delta) {
+    assertBounds(offsetBytes, ARRAY_LONG_INDEX_SCALE, capacityBytes_);
+    return unsafe.getAndAddLong(memArray_, getAddress(offsetBytes), delta) + delta;
+  }
+
+  @Override
+  public boolean compareAndSwapInt(final long offsetBytes, final int expect, final int update) {
+    assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
+    return unsafe.compareAndSwapInt(memArray_, getAddress(offsetBytes), expect, update);
+  }
+
+  @Override
+  public boolean compareAndSwapLong(final long offsetBytes, final long expect, final long update) {
+    assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
+    return unsafe.compareAndSwapLong(memArray_, getAddress(offsetBytes), expect, update);
+  }
+
+  @Override
+  public int getAndSetInt(final long offsetBytes, final int newValue) {
+    assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
+    return unsafe.getAndSetInt(memArray_, getAddress(offsetBytes), newValue);
+  }
+
+  @Override
+  public long getAndSetLong(final long offsetBytes, final long newValue) {
+    assertBounds(offsetBytes, ARRAY_LONG_INDEX_SCALE, capacityBytes_);
+    return unsafe.getAndSetLong(memArray_, getAddress(offsetBytes), newValue);
+  }
+
+  //Non-primitive Memory interface methods
 
   @Override
   public Object array() {

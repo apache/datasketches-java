@@ -141,30 +141,6 @@ public class MemoryRegion implements Memory {
   }
 
   @Override
-  public int getAndAddInt(final long offsetBytes, final int delta) {
-    assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
-    return mem_.getAndAddInt(getAddress(offsetBytes), delta);
-  }
-
-  @Override
-  public long getAndAddLong(final long offsetBytes, final long delta) {
-    assertBounds(offsetBytes, ARRAY_LONG_INDEX_SCALE, capacityBytes_);
-    return mem_.getAndAddLong(getAddress(offsetBytes), delta);
-  }
-
-  @Override
-  public int getAndSetInt(final long offsetBytes, final int newValue) {
-    assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
-    return mem_.getAndSetInt(getAddress(offsetBytes), newValue);
-  }
-
-  @Override
-  public long getAndSetLong(final long offsetBytes, final long newValue) {
-    assertBounds(offsetBytes, ARRAY_LONG_INDEX_SCALE, capacityBytes_);
-    return mem_.getAndSetLong(getAddress(offsetBytes), newValue);
-  }
-
-  @Override
   public boolean getBoolean(final long offsetBytes) {
     assertBounds(offsetBytes, ARRAY_BOOLEAN_INDEX_SCALE, capacityBytes_);
     return mem_.getBoolean(getAddress(offsetBytes));
@@ -440,7 +416,45 @@ public class MemoryRegion implements Memory {
     mem_.putByte(relativeOffset, (byte)(value | bitMask));
   }
 
-  //Non-data Memory interface methods
+  //Atomic methods
+
+  @Override
+  public int addAndGetInt(final long offsetBytes, final int delta) {
+    assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
+    return mem_.addAndGetInt(getAddress(offsetBytes), delta);
+  }
+
+  @Override
+  public long addAndGetLong(final long offsetBytes, final long delta) {
+    assertBounds(offsetBytes, ARRAY_LONG_INDEX_SCALE, capacityBytes_);
+    return mem_.addAndGetLong(getAddress(offsetBytes), delta);
+  }
+
+  @Override
+  public boolean compareAndSwapInt(final long offsetBytes, final int expect, final int update) {
+    assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
+    return mem_.compareAndSwapInt(getAddress(offsetBytes), expect, update);
+  }
+
+  @Override
+  public boolean compareAndSwapLong(final long offsetBytes, final long expect, final long update) {
+    assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
+    return mem_.compareAndSwapLong(getAddress(offsetBytes), expect, update);
+  }
+
+  @Override
+  public int getAndSetInt(final long offsetBytes, final int newValue) {
+    assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
+    return mem_.getAndSetInt(getAddress(offsetBytes), newValue);
+  }
+
+  @Override
+  public long getAndSetLong(final long offsetBytes, final long newValue) {
+    assertBounds(offsetBytes, ARRAY_LONG_INDEX_SCALE, capacityBytes_);
+    return mem_.getAndSetLong(getAddress(offsetBytes), newValue);
+  }
+
+  //Non-primitive Memory interface methods
 
   @Override
   public Object array() {

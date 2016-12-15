@@ -267,6 +267,7 @@ final class IntersectionImpl extends SetOperation implements Intersection {
     //Corner cases
     if (sketchIn == null) { //null -> Th = 1.0, count = 0, empty = true
       //No seedHash to check
+      //Beause of the def of null above and the Empty Rule (which is OR) empty_ must be null.
       empty_ = true;
       thetaLong_ = firstCall ? Long.MAX_VALUE : thetaLong_; //if Nth call, stays the same
       curCount_ = 0;

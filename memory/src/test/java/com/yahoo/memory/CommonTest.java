@@ -219,13 +219,23 @@ public class CommonTest {
     }
   }
 
-  public static void getAndAddSetTests(Memory mem) {
+  public static void atomicMethodTests(Memory mem) {
     mem.putInt(0, 500);
-    mem.getAndAddInt(0, 1);
+    mem.addAndGetInt(0, 1);
     assertEquals(mem.getInt(0), 501);
 
     mem.putLong(0, 500);
-    mem.getAndAddLong(0, 1);
+    mem.addAndGetLong(0, 1);
+    assertEquals(mem.getLong(0), 501);
+
+    mem.putInt(0, 500);
+    boolean b = mem.compareAndSwapInt(0, 500, 501);
+    assertTrue(b);
+    assertEquals(mem.getInt(0), 501);
+
+    mem.putInt(0, 500);
+    b = mem.compareAndSwapLong(0, 500, 501);
+    assertTrue(b);
     assertEquals(mem.getLong(0), 501);
 
     mem.putInt(0, 500);

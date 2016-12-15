@@ -65,38 +65,6 @@ public interface Memory {
   void fill(long offsetBytes, long lengthBytes, byte value);
 
   /**
-   * Atomically adds the given value to the integer located at offsetBytes.
-   * @param offsetBytes offset bytes relative to this Memory start
-   * @param delta the amount to add
-   * @return the modified value
-   */
-  int getAndAddInt(long offsetBytes, int delta);
-
-  /**
-   * Atomically adds the given value to the long located at offsetBytes.
-   * @param offsetBytes offset bytes relative to this Memory start
-   * @param delta the amount to add
-   * @return the modified value
-   */
-  long getAndAddLong(long offsetBytes, long delta);
-
-  /**
-   * Atomically exchanges the given value with the current value located at offsetBytes.
-   * @param offsetBytes offset bytes relative to this Memory start
-   * @param newValue new value
-   * @return the previous value
-   */
-  int getAndSetInt(long offsetBytes, int newValue);
-
-  /**
-   * Atomically exchanges the given value with the current value located at offsetBytes.
-   * @param offsetBytes offset bytes relative to this Memory start
-   * @param newValue new value
-   * @return the previous value
-   */
-  long getAndSetLong(long offsetBytes, long newValue);
-
-  /**
    * Gets the boolean value at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
    * @return the boolean at the given offset
@@ -407,7 +375,64 @@ public interface Memory {
    */
   void setBits(long offsetBytes, byte bitMask);
 
-  //Non-data methods
+  //Atomic methods
+
+  /**
+   * Atomically adds the given value to the integer located at offsetBytes.
+   * @param offsetBytes offset bytes relative to this Memory start
+   * @param delta the amount to add
+   * @return the modified value
+   */
+  int addAndGetInt(long offsetBytes, int delta);
+
+  /**
+   * Atomically adds the given value to the long located at offsetBytes.
+   * @param offsetBytes offset bytes relative to this Memory start
+   * @param delta the amount to add
+   * @return the modified value
+   */
+  long addAndGetLong(long offsetBytes, long delta);
+
+  /**
+   * Atomically sets the current value at the memory location to the given updated value
+   * if and only if the current value {@code ==} the expected value.
+   * @param offsetBytes offset bytes relative to this Memory start
+   * @param expect the expected value
+   * @param update the new value
+   * @return {@code true} if successful. False return indicates that
+   * the current value at the memory location was not equal to the expected value.
+   */
+  boolean compareAndSwapInt(long offsetBytes, int expect, int update);
+
+  /**
+   * Atomically sets the current value at the memory location to the given updated value
+   * if and only if the current value {@code ==} the expected value.
+   * @param offsetBytes offset bytes relative to this Memory start
+   * @param expect the expected value
+   * @param update the new value
+   * @return {@code true} if successful. False return indicates that
+   * the current value at the memory location was not equal to the expected value.
+   */
+  boolean compareAndSwapLong(long offsetBytes, long expect, long update);
+
+  /**
+   * Atomically exchanges the given value with the current value located at offsetBytes.
+   * @param offsetBytes offset bytes relative to this Memory start
+   * @param newValue new value
+   * @return the previous value
+   */
+  int getAndSetInt(long offsetBytes, int newValue);
+
+  /**
+   * Atomically exchanges the given value with the current value located at offsetBytes.
+   * @param offsetBytes offset bytes relative to this Memory start
+   * @param newValue new value
+   * @return the previous value
+   */
+  long getAndSetLong(long offsetBytes, long newValue);
+
+  //Non-primitive Memory interface methods
+
   /**
    * Returns the backing on-heap primitive array if there is one, otherwise returns null
    * @return the backing on-heap primitive array if there is one, otherwise returns null

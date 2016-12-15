@@ -4,7 +4,7 @@
  */
 package com.yahoo.memory;
 
-import static com.yahoo.memory.CommonTest.getAndAddSetTests;
+import static com.yahoo.memory.CommonTest.atomicMethodTests;
 import static com.yahoo.memory.CommonTest.setClearIsBitsTests;
 import static com.yahoo.memory.CommonTest.setClearMemoryRegionsTests;
 import static com.yahoo.memory.CommonTest.setGetArraysTests;
@@ -246,7 +246,7 @@ public class MemoryRegionTest {
 
     assertEquals(region.getCapacity(), memCapacity);
 
-    getAndAddSetTests(region);
+    atomicMethodTests(region);
 
     mem.freeMemory();
   }

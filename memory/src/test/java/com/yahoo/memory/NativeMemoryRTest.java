@@ -75,34 +75,6 @@ public class NativeMemoryRTest {
     }
 
     try {
-      ro.getAndAddInt(L0, I0);
-      fail();
-    } catch (ReadOnlyMemoryException e) {
-      /* pass */
-    }
-
-    try {
-      ro.getAndAddLong(L0, L0);
-      fail();
-    } catch (ReadOnlyMemoryException e) {
-      /* pass */
-    }
-
-    try {
-      ro.getAndSetInt(L0, I0);
-      fail();
-    } catch (ReadOnlyMemoryException e) {
-      /* pass */
-    }
-
-    try {
-      ro.getAndSetLong(L0, L0);
-      fail();
-    } catch (ReadOnlyMemoryException e) {
-      /* pass */
-    }
-
-    try {
       ro.putBoolean(L0, false);
       fail();
     } catch (ReadOnlyMemoryException e) {
@@ -234,6 +206,52 @@ public class NativeMemoryRTest {
     } catch (ReadOnlyMemoryException e) {
       /* pass */
     }
+
+    //Atomic
+
+    try {
+      ro.addAndGetInt(L0, I0);
+      fail();
+    } catch (ReadOnlyMemoryException e) {
+      /* pass */
+    }
+
+    try {
+      ro.addAndGetLong(L0, L0);
+      fail();
+    } catch (ReadOnlyMemoryException e) {
+      /* pass */
+    }
+
+    try {
+      ro.compareAndSwapInt(L0, I0, I0);
+      fail();
+    } catch (ReadOnlyMemoryException e) {
+      /* pass */
+    }
+
+    try {
+      ro.compareAndSwapLong(L0, L0, L0);
+      fail();
+    } catch (ReadOnlyMemoryException e) {
+      /* pass */
+    }
+
+    try {
+      ro.getAndSetInt(L0, I0);
+      fail();
+    } catch (ReadOnlyMemoryException e) {
+      /* pass */
+    }
+
+    try {
+      ro.getAndSetLong(L0, L0);
+      fail();
+    } catch (ReadOnlyMemoryException e) {
+      /* pass */
+    }
+
+    //Non-primitive Memory interface methods
 
     try {
       ro.array();

@@ -50,26 +50,6 @@ class NativeMemoryR extends NativeMemory {
   }
 
   @Override
-  public int getAndAddInt(final long offsetBytes, final int delta) {
-    throw new ReadOnlyMemoryException();
-  }
-
-  @Override
-  public long getAndAddLong(final long offsetBytes, final long delta) {
-    throw new ReadOnlyMemoryException();
-  }
-
-  @Override
-  public int getAndSetInt(final long offsetBytes, final int newValue) {
-    throw new ReadOnlyMemoryException();
-  }
-
-  @Override
-  public long getAndSetLong(final long offsetBytes, final long newValue) {
-    throw new ReadOnlyMemoryException();
-  }
-
-  @Override
   public void putBoolean(final long offsetBytes, final boolean srcValue) {
     throw new ReadOnlyMemoryException();
   }
@@ -162,7 +142,39 @@ class NativeMemoryR extends NativeMemory {
     throw new ReadOnlyMemoryException();
   }
 
-  // Non-data Memory interface methods
+  //Atomic methods
+
+  @Override
+  public int addAndGetInt(final long offsetBytes, final int delta) {
+    throw new ReadOnlyMemoryException();
+  }
+
+  @Override
+  public long addAndGetLong(final long offsetBytes, final long delta) {
+    throw new ReadOnlyMemoryException();
+  }
+
+  @Override
+  public boolean compareAndSwapInt(final long offsetBytes, final int expect, final int update) {
+    throw new ReadOnlyMemoryException();
+  }
+
+  @Override
+  public boolean compareAndSwapLong(final long offsetBytes, final long expect, final long update) {
+    throw new ReadOnlyMemoryException();
+  }
+
+  @Override
+  public int getAndSetInt(final long offsetBytes, final int newValue) {
+    throw new ReadOnlyMemoryException();
+  }
+
+  @Override
+  public long getAndSetLong(final long offsetBytes, final long newValue) {
+    throw new ReadOnlyMemoryException();
+  }
+
+  //Non-primitive Memory interface methods
 
   @Override
   public Object array() {

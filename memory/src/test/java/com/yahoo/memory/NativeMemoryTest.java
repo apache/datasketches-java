@@ -4,7 +4,7 @@
  */
 package com.yahoo.memory;
 
-import static com.yahoo.memory.CommonTest.getAndAddSetTests;
+import static com.yahoo.memory.CommonTest.atomicMethodTests;
 import static com.yahoo.memory.CommonTest.setClearIsBitsTests;
 import static com.yahoo.memory.CommonTest.setClearMemoryRegionsTests;
 import static com.yahoo.memory.CommonTest.setGetArraysTests;
@@ -439,13 +439,13 @@ public class NativeMemoryTest {
   }
 
   @Test
-  public void checkIncrements() {
+  public void checkAtomicMethods() {
     int memCapacity = 8;
     NativeMemory mem = new AllocMemory(memCapacity);
 
     assertEquals(mem.getCapacity(), memCapacity);
 
-    getAndAddSetTests(mem);
+    atomicMethodTests(mem);
 
     mem.freeMemory();
   }

@@ -23,7 +23,7 @@ public class PairwiseSetOperationsTest {
     UpdateSketch usk1 = UpdateSketch.builder().build(k);
     UpdateSketch usk2 = UpdateSketch.builder().build(k);
 
-    for (int i=0; i<k; i++) {
+    for (int i=0; i<k; i++) { //<k so est is exact
       usk1.update(i);
       usk2.update(i + k);
     }
@@ -43,7 +43,7 @@ public class PairwiseSetOperationsTest {
     UpdateSketch usk1 = UpdateSketch.builder().build(k);
     UpdateSketch usk2 = UpdateSketch.builder().build(k);
 
-    for (int i=0; i<k; i++) {
+    for (int i=0; i<k; i++) { //<k so est is exact
       usk1.update(i);
       usk2.update(i);
     }
@@ -181,6 +181,7 @@ public class PairwiseSetOperationsTest {
 
    UpdateSketch usk1 = UpdateSketch.builder().build(k);
    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+   Union union = Sketches.setOperationBuilder().buildUnion(k);
 
    for (int i=0; i<k; i++) {
      usk1.update(i);
@@ -190,8 +191,13 @@ public class PairwiseSetOperationsTest {
    CompactSketch csk1 = usk1.compact(true, null);
    CompactSketch csk2 = usk2.compact(true, null);
 
-   Sketch rsk = PairwiseSetOperations.union(csk1, csk2);
-   assertEquals(rsk.getEstimate(), 2*k, 0.0);
+   union.update(csk1);
+   union.update(csk2);
+   Sketch stdSk = union.getResult(true, null);
+
+   Sketch pwSk = PairwiseSetOperations.union(csk1, csk2, k);
+
+   assertEquals(pwSk.getEstimate(), stdSk.getEstimate(), 0.0);
  }
 
  @Test
@@ -210,7 +216,7 @@ public class PairwiseSetOperationsTest {
    CompactSketch csk1 = usk1.compact(true, null);
    CompactSketch csk2 = usk2.compact(true, null);
 
-   Sketch rsk = PairwiseSetOperations.union(csk1, csk2);
+   Sketch rsk = PairwiseSetOperations.union(csk1, csk2, k);
    assertEquals(rsk.getEstimate(), k, 0.0);
  }
 
@@ -236,15 +242,15 @@ public class PairwiseSetOperationsTest {
      CompactSketch csk1 = usk1.compact(true, null);
      CompactSketch csk2 = usk2.compact(true, null);
 
-     Sketch rsk = PairwiseSetOperations.union(csk1, csk2);
-     double result1 = rsk.getEstimate();
+     Sketch pwSk = PairwiseSetOperations.union(csk1, csk2, 2 * k);
+     double pwEst = pwSk.getEstimate();
 
      union.update(csk1);
      union.update(csk2);
-     CompactSketch csk3 = union.getResult(true, null);
-     double result2 = csk3.getEstimate();
+     CompactSketch stdSk = union.getResult(true, null);
+     double stdEst = stdSk.getEstimate();
 
-     assertEquals(result1, result2, 0.0);
+     assertEquals(pwEst, stdEst, 0.0);
 
      usk1.reset();
      usk2.reset();
@@ -280,7 +286,7 @@ public class PairwiseSetOperationsTest {
    union.update(cskA);
    union.update(cskB);
    cskC = union.getResult();
-   cskR = PairwiseSetOperations.union(cskA, cskB);
+   cskR = PairwiseSetOperations.union(cskA, cskB, k);
    assertEquals(cskC.isEmpty(), cskR.isEmpty());
    union.reset();
 
@@ -303,7 +309,7 @@ public class PairwiseSetOperationsTest {
    union.update(cskA);
    union.update(cskB);
    cskC = union.getResult();
-   cskR = PairwiseSetOperations.union(cskA, cskB);
+   cskR = PairwiseSetOperations.union(cskA, cskB, k);
    assertEquals(cskC.isEmpty(), cskR.isEmpty());
    union.reset();
 
