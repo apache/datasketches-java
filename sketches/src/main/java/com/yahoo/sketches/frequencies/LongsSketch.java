@@ -391,7 +391,7 @@ public class LongsSketch {
   }
 
   /**
-   * Update this sketch with a item and a positive frequency count.
+   * Update this sketch with a item and a positive frequency count (or weight).
    * @param item for which the frequency should be increased. The item can be any long value
    * and is only used by the sketch to determine uniqueness.
    * @param count the amount by which the frequency of the item should be increased.
@@ -669,7 +669,7 @@ public class LongsSketch {
   }
 
   /**
-   * Returns the sum of the frequencies in the stream seen so far by the sketch
+   * Returns the sum of the frequencies (weights or counts) in the stream seen so far by the sketch
    *
    * @return the sum of the frequencies in the stream seen so far by the sketch
    */

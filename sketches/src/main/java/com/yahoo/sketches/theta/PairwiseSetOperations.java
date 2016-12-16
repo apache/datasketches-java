@@ -194,6 +194,22 @@ public class PairwiseSetOperations {
         Arrays.copyOf(outCache, outLen), emptyA, seedHash, outLen, thetaLong);
   }
 
+
+  /**
+   * This implements a stateless, pair-wise union operation on ordered,
+   * CompactSketches that are either Heap-based or Direct.
+   * If both inputs are null a null is returned.
+   * If one is null the other is returned, which can be either Heap-based or Direct.
+   * This is equivalent to union(skA, skB, k) where k is the default of 4096.
+   *
+   * @param skA The first ordered, CompactSketch argument.
+   * @param skB The second ordered, CompactSketch argument
+   * @return the result as an ordered CompactSketch.
+   */
+  public static CompactSketch union(final CompactSketch skA, final CompactSketch skB) {
+    return union(skA, skB, Util.DEFAULT_NOMINAL_ENTRIES);
+  }
+
   /**
    * This implements a stateless, pair-wise union operation on ordered,
    * CompactSketches that are either Heap-based or Direct.
