@@ -389,9 +389,14 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
           final int reqBytes = tgtArrBytes + preBytes;
 
           final MemoryRequest memReq = mem_.getMemoryRequest();
+          if (memReq == null) {
+            throw new SketchesArgumentException(
+                "MemoryRequest callback cannot be null.");
+          }
           final Memory newDstMem = memReq.request(reqBytes);
           if (newDstMem == null) {
-            throw new SketchesArgumentException("MemoryRequest callback cannot be null.");
+            throw new SketchesArgumentException(
+                "Requested memory cannot be null.");
           }
           final long newCap = newDstMem.getCapacity();
           if (newCap < reqBytes) {
