@@ -17,10 +17,12 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.quantiles.Util.computeBaseBufferItems;
 import static com.yahoo.sketches.quantiles.Util.computeBitPattern;
 import static com.yahoo.sketches.quantiles.Util.computeCombinedBufferItemCapacity;
+import static com.yahoo.sketches.quantiles.Util.computeRetainedItems;
 
 import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -29,6 +31,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Lee Rhodes
  */
 final class HeapDoublesSketch extends DoublesSketch {
+  static final int MIN_HEAP_DOUBLES_SER_VER = 1;
 
   /**
    * The smallest value ever seen in the stream.
@@ -81,7 +84,7 @@ final class HeapDoublesSketch extends DoublesSketch {
 
   //**CONSTRUCTORS**********************************************************
   private HeapDoublesSketch(final int k) {
-    super(k);
+    super(k); //Checks k
   }
 
   /**
@@ -93,7 +96,7 @@ final class HeapDoublesSketch extends DoublesSketch {
    */
   static HeapDoublesSketch newInstance(final int k) {
     final HeapDoublesSketch hqs = new HeapDoublesSketch(k);
-    final int bufAlloc = Math.min(Util.MIN_BASE_BUF_SIZE, 2 * k); //the min is important
+    final int bufAlloc = 2 * Math.min(DoublesSketch.MIN_K, k); //the min is important
     hqs.n_ = 0;
     hqs.combinedBufferItemCapacity_ = bufAlloc;
     hqs.combinedBuffer_ = new double[bufAlloc];
@@ -105,7 +108,7 @@ final class HeapDoublesSketch extends DoublesSketch {
   }
 
   /**
-   * Heapifies the given srcMem, which must be a Memory image of a DoublesSketch
+   * Heapifies the given srcMem, which must be a Memory image of a DoublesSketch and may have data.
    * @param srcMem a Memory image of a sketch.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a DoublesSketch on the Java heap.
@@ -126,7 +129,7 @@ final class HeapDoublesSketch extends DoublesSketch {
     final int k = extractK(memObj, memAdd);
 
     //VALIDITY CHECKS
-    DoublesUtil.checkDoublesSerVer(serVer);
+    DoublesUtil.checkDoublesSerVer(serVer, MIN_HEAP_DOUBLES_SER_VER);
 
     final boolean empty = Util.checkPreLongsFlagsCap(preLongs, flags, memCapBytes);
     Util.checkFamilyID(familyID);
@@ -135,21 +138,21 @@ final class HeapDoublesSketch extends DoublesSketch {
     if (empty) { return hds; }
 
     //Not empty, must have valid preamble + min, max, n.
-    //Forward compatibility from SerVer = 2 :
-    final boolean compact = (serVer == 2) | ((flags & COMPACT_FLAG_MASK) > 0);
+    //Forward compatibility from SerVer = 1 :
+    final boolean srcIsCompact = (serVer == 2) | ((flags & COMPACT_FLAG_MASK) > 0);
 
     final long n = extractN(memObj, memAdd); //Second 8 bytes of preamble
-    DoublesUtil.checkMemCapacity(k, n, compact, memCapBytes);
+    HeapDoublesSketch.checkHeapMemCapacity(k, n, srcIsCompact, memCapBytes);
 
     //set class members by computing them
     hds.n_ = n;
-    hds.combinedBufferItemCapacity_ = computeCombinedBufferItemCapacity(k, n, true);
+    final boolean partialBaseBuffer = true; //only relevant when there are no levels.
+    final int combBufCap = computeCombinedBufferItemCapacity(k, n, partialBaseBuffer);
+    hds.combinedBufferItemCapacity_ = combBufCap;
     hds.baseBufferCount_ = computeBaseBufferItems(k, n);
     hds.bitPattern_ = computeBitPattern(k, n);
-    hds.combinedBuffer_ = new double[hds.combinedBufferItemCapacity_];
-
     //Extract min, max, data from srcMem into Combined Buffer
-    hds.srcMemoryToCombinedBuffer(compact, srcMem);
+    hds.srcMemoryToCombinedBuffer(srcMem, serVer, srcIsCompact, combBufCap);
     return hds;
   }
 
@@ -181,7 +184,7 @@ final class HeapDoublesSketch extends DoublesSketch {
 
       if (spaceNeeded > combinedBufferItemCapacity_) {
         // copies base buffer plus old levels, adds space for new level
-        growCombinedBuffer(spaceNeeded);
+        growCombinedBuffer(combinedBufferItemCapacity_, spaceNeeded);
       }
 
       // note that combinedBuffer_ is after the possible resizing above
@@ -225,6 +228,11 @@ final class HeapDoublesSketch extends DoublesSketch {
   }
 
   @Override
+  public boolean isDirect() {
+    return false;
+  }
+
+  @Override
   public double getMinValue() {
     return minValue_;
   }
@@ -237,7 +245,7 @@ final class HeapDoublesSketch extends DoublesSketch {
   @Override
   public void reset() {
     n_ = 0;
-    combinedBufferItemCapacity_ = Math.min(Util.MIN_BASE_BUF_SIZE, 2 * k_); //the min is important
+    combinedBufferItemCapacity_ = 2 * Math.min(DoublesSketch.MIN_K, k_); //the min is important
     combinedBuffer_ = new double[combinedBufferItemCapacity_];
     baseBufferCount_ = 0;
     bitPattern_ = 0;
@@ -247,48 +255,53 @@ final class HeapDoublesSketch extends DoublesSketch {
 
   /**
    * Loads the Combined Buffer, min and max from the given source Memory.
-   * The Combined Buffer is always in non-compact form and must be pre-allocated.
-   * @param compact true if the given source Memory is in compact form
+   * The resulting Combined Buffer is always in non-compact form and must be pre-allocated.
    * @param srcMem the given source Memory
+   * @param serVer the serialization version of the source
+   * @param srcIsCompact true if the given source Memory is in compact form
+   * @param combBufCap total items for the combined buffer (size in doubles)
    */
-  private void srcMemoryToCombinedBuffer(final boolean compact, final Memory srcMem) {
+  private void srcMemoryToCombinedBuffer(final Memory srcMem, final int serVer,
+      final boolean srcIsCompact, final int combBufCap) {
     final Object memArr = srcMem.array(); //may be null
     final long memAdd = srcMem.getCumulativeOffset(0L);
 
     final int preLongs = 2;
-    final int extra = 2; // space for min and max values
+    final int extra = (serVer == 1) ? 3 : 2; // space for min and max values, buf alloc (SerVer 1)
     final int preBytes = (preLongs + extra) << 3;
     final int bbCnt = baseBufferCount_;
     final int k = getK();
     final long n = getN();
-    final double[] combinedBuffer = getCombinedBuffer();
+    final double[] combinedBuffer = new double[combBufCap]; //always non-compact
     //Load min, max
     putMinValue(extractMinDouble(memArr, memAdd));
     putMaxValue(extractMaxDouble(memArr, memAdd));
 
-    if (compact) {
+    if (srcIsCompact) {
       //Load base buffer
       srcMem.getDoubleArray(preBytes, combinedBuffer, 0, bbCnt);
 
       //Load levels from compact srcMem
-      long bits = bitPattern_;
-      if (bits != 0) {
+      long bitPattern = bitPattern_;
+      if (bitPattern != 0) {
         long memOffset = preBytes + (bbCnt << 3);
         int combBufOffset = 2 * k;
-        while (bits != 0L) {
-          if ((bits & 1L) > 0L) {
+        while (bitPattern != 0L) {
+          if ((bitPattern & 1L) > 0L) {
             srcMem.getDoubleArray(memOffset, combinedBuffer, combBufOffset, k);
             memOffset += (k << 3); //bytes, increment compactly
           }
           combBufOffset += k; //doubles, increment every level
-          bits >>>= 1;
+          bitPattern >>>= 1;
         }
+
       }
     } else { //srcMem not compact
       final int levels = Util.computeNumLevelsNeeded(k, n);
       final int totItems = (levels == 0) ? bbCnt : (2 + levels) * k;
       srcMem.getDoubleArray(preBytes, combinedBuffer, 0, totItems);
     }
+    putCombinedBuffer(combinedBuffer);
   }
 
   //Restricted overrides
@@ -357,7 +370,7 @@ final class HeapDoublesSketch extends DoublesSketch {
   }
 
   @Override
-  double[] growCombinedBuffer(final int spaceNeeded) {
+  double[] growCombinedBuffer(final int currentSpace, final int spaceNeeded) {
     combinedBuffer_ = Arrays.copyOf(combinedBuffer_, spaceNeeded);
     combinedBufferItemCapacity_ = spaceNeeded;
     return combinedBuffer_;
@@ -375,9 +388,35 @@ final class HeapDoublesSketch extends DoublesSketch {
     final double[] baseBuffer = combinedBuffer_;
     final int oldSize = combinedBufferItemCapacity_;
     assert oldSize < 2 * k_;
-    final int newSize = Math.max(Math.min(2 * k_, 2 * oldSize), Util.MIN_BASE_BUF_SIZE);
+    final int newSize = 2 * Math.max(Math.min(k_, oldSize), DoublesSketch.MIN_K);
     combinedBufferItemCapacity_ = newSize;
     combinedBuffer_ = Arrays.copyOf(baseBuffer, newSize);
+  }
+
+  /**
+   * Checks the validity of the heap memory capacity assuming n, k and the compact state.
+   * @param k the given value of k
+   * @param n the given value of n
+   * @param compact true if memory is in compact form
+   * @param memCapBytes the current memory capacity in bytes
+   */
+  static void checkHeapMemCapacity(final int k, final long n, final boolean compact,
+      final long memCapBytes) {
+    final int metaPre = Family.QUANTILES.getMaxPreLongs() + 2;
+    final int retainedItems = computeRetainedItems(k, n);
+    final int reqBufBytes;
+    if (compact) {
+      reqBufBytes = (metaPre + retainedItems) << 3;
+    } else { //not compact
+      final int totLevels = Util.computeNumLevelsNeeded(k, n);
+      reqBufBytes = (totLevels == 0)
+          ? (metaPre + retainedItems) << 3
+          : (metaPre + (2 + totLevels) * k) << 3;
+    }
+    if (memCapBytes < reqBufBytes) {
+      throw new SketchesArgumentException("Possible corruption: Memory capacity too small: "
+          + memCapBytes + " < " + reqBufBytes);
+    }
   }
 
 } // End of class HeapDoublesSketch

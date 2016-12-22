@@ -14,13 +14,12 @@ import com.yahoo.memory.NativeMemory;
 
 public class DoublesUnionBuilderTest {
 
-  @SuppressWarnings("deprecation")
   @Test
   public void checkBuilds() {
     DoublesSketch qs1 = DoublesSketch.builder().build();
     for (int i=0; i<1000; i++) qs1.update(i);
 
-    int bytes = qs1.getStorageBytes();
+    int bytes = qs1.getCompactStorageBytes();
     Memory dstMem = new NativeMemory(new byte[bytes]);
     qs1.putMemory(dstMem);
     Memory srcMem = dstMem;
@@ -29,15 +28,48 @@ public class DoublesUnionBuilderTest {
     bldr.setK(128);
     DoublesUnion union = bldr.build(); //virgin union
 
-    union = DoublesUnionBuilder.build(srcMem);
+    union = DoublesUnionBuilder.heapify(srcMem);
     DoublesSketch qs2 = union.getResult();
-    assertEquals(qs1.getStorageBytes(), qs2.getStorageBytes());
+    assertEquals(qs1.getCompactStorageBytes(), qs2.getCompactStorageBytes());
 
-    union = DoublesUnionBuilder.copyBuild(qs2);
+    union = DoublesUnionBuilder.heapify(qs2);
     DoublesSketch qs3 = union.getResult();
-    assertEquals(qs2.getStorageBytes(), qs3.getStorageBytes());
+    assertEquals(qs2.getCompactStorageBytes(), qs3.getCompactStorageBytes());
     assertFalse(qs2 == qs3);
   }
+
+@SuppressWarnings("deprecation")
+@Test
+public void checkDeprecated1() {
+  DoublesSketch qs1 = DoublesSketch.builder().build();
+  for (int i=0; i<1000; i++) qs1.update(i);
+
+  int bytes = qs1.getCompactStorageBytes();
+  Memory dstMem = new NativeMemory(new byte[bytes]);
+  qs1.putMemory(dstMem);
+  Memory srcMem = dstMem;
+
+  DoublesUnionBuilder bldr = new DoublesUnionBuilder();
+  bldr.setK(128);
+  DoublesUnion union = bldr.build(); //virgin union
+
+  union = DoublesUnionBuilder.build(srcMem); //heapify
+  DoublesSketch qs2 = union.getResult();
+  assertEquals(qs1.getCompactStorageBytes(), qs2.getCompactStorageBytes());
+  assertEquals(qs1.getUpdatableStorageBytes(), qs2.getUpdatableStorageBytes());
+
+  union = DoublesUnionBuilder.build(qs2);  //heapify again
+  DoublesSketch qs3 = union.getResult();
+  assertEquals(qs2.getCompactStorageBytes(), qs3.getCompactStorageBytes());
+  assertEquals(qs2.getUpdatableStorageBytes(), qs3.getUpdatableStorageBytes());
+  assertFalse(qs2 == qs3); //different objects
+
+  DoublesUnion union2 = DoublesUnionBuilder.copyBuild(qs3);
+  DoublesSketch qs4 = union2.getResult();
+  assertEquals(qs3.getCompactStorageBytes(), qs4.getCompactStorageBytes());
+  assertEquals(qs3.getUpdatableStorageBytes(), qs4.getUpdatableStorageBytes());
+  assertFalse(qs3 == qs4); //different objects
+}
 
   @Test
   public void printlnTest() {

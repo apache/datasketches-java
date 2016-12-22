@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.quantiles;
 
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
+import static com.yahoo.sketches.quantiles.DoublesSketch.MIN_K;
 import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
@@ -28,19 +30,20 @@ import com.yahoo.sketches.Family;
  *
  * @author Lee Rhodes
  */
-final class DoublesToByteArrayImpl {
+final class DoublesByteArrayImpl {
 
-  private DoublesToByteArrayImpl() {}
+  private DoublesByteArrayImpl() {}
 
   static byte[] toByteArray(final DoublesSketch sketch, final boolean ordered,
       final boolean compact) {
     final boolean empty = sketch.isEmpty();
 
+    //create the flags byte
     final int flags = (empty ? EMPTY_FLAG_MASK : 0)
         | (ordered ? ORDERED_FLAG_MASK : 0)
         | (compact ? COMPACT_FLAG_MASK : 0);
 
-    if (empty) {
+    if (empty && compact) {
       final byte[] outByteArr = new byte[Long.BYTES];
       final Memory memOut = new NativeMemory(outByteArr);
       final Object memObj = memOut.array();
@@ -49,22 +52,22 @@ final class DoublesToByteArrayImpl {
       insertPre0(memObj, memAdd, preLongs, flags, sketch.getK());
       return outByteArr;
     }
-    //not empty
-    return combinedBufferToByteArray(sketch, ordered, compact);
+    //not empty || not compact
+    return convertToByteArray(sketch, flags, ordered, compact);
   }
 
   /**
-   * Returns a byte array, including preamble, min, max and data extracted from the Combined Buffer.
+   * Returns a byte array, including preamble, min, max and data extracted from the sketch.
+   * @param sketch the given DoublesSketch
    * @param ordered true if the desired form of the resulting array has the base buffer sorted.
    * @param compact true if the desired form of the resulting array is in compact form.
    * @return a byte array, including preamble, min, max and data extracted from the Combined Buffer.
    */
-  static byte[] combinedBufferToByteArray(final DoublesSketch sketch, final boolean ordered,
-      final boolean compact) {
+  private static byte[] convertToByteArray(final DoublesSketch sketch, final int flags,
+      final boolean ordered, final boolean compact) {
     final int preLongs = 2;
     final int extra = 2; // extra space for min and max values
-    final int preBytes = (preLongs + extra) << 3;
-    final int flags = (ordered ? ORDERED_FLAG_MASK : 0) | (compact ? COMPACT_FLAG_MASK : 0);
+    final int prePlusExtraBytes = (preLongs + extra) << 3;
     final int k = sketch.getK();
     final long n = sketch.getN();
     final double[] combinedBuffer = sketch.getCombinedBuffer(); //non-compact
@@ -78,9 +81,9 @@ final class DoublesToByteArrayImpl {
     }
     byte[] outByteArr = null;
 
-    if (compact) {
+    if (compact) { //must also be not empty
       final int retainedItems = sketch.getRetainedItems();
-      final int outBytes = (retainedItems << 3) + preBytes;
+      final int outBytes = (retainedItems << 3) + prePlusExtraBytes;
       outByteArr = new byte[outBytes];
 
       final Memory memOut = new NativeMemory(outByteArr);
@@ -95,12 +98,12 @@ final class DoublesToByteArrayImpl {
 
       //insert base buffer
       if (bbCnt > 0) {
-        memOut.putDoubleArray(preBytes, bbItemsArr, 0, bbCnt);
+        memOut.putDoubleArray(prePlusExtraBytes, bbItemsArr, 0, bbCnt);
       }
       //insert levels into compact dstMem (and array)
       long bits = sketch.getBitPattern();
       if (bits != 0) {
-        long memOffset = preBytes + (bbCnt << 3); //bytes
+        long memOffset = prePlusExtraBytes + (bbCnt << 3); //bytes
         int combBufOffset = 2 * k; //doubles
         while (bits != 0L) {
           if ((bits & 1L) > 0L) {
@@ -112,11 +115,15 @@ final class DoublesToByteArrayImpl {
         }
       }
 
-    } else { //not compact
+    } else { //not compact, may or may not be empty
       final int totLevels = Util.computeNumLevelsNeeded(k, n);
-      final int outBytes = (totLevels == 0)
-          ? (bbCnt << 3) + preBytes
-          : (((2 + totLevels) * k) << 3)  + preBytes;
+      final int outBytes;
+      if (totLevels == 0) {
+        final int bbBytes = Math.max(ceilingPowerOf2(bbCnt), 2 * MIN_K) << 3;
+        outBytes = bbBytes + prePlusExtraBytes;  //partial base buffer
+      } else {
+        outBytes = (((2 + totLevels) * k) << 3)  + prePlusExtraBytes; //full base buffer
+      }
       outByteArr = new byte[outBytes];
 
       final Memory memOut = new NativeMemory(outByteArr);
@@ -131,11 +138,11 @@ final class DoublesToByteArrayImpl {
 
       //insert base buffer
       if (bbCnt > 0) {
-        memOut.putDoubleArray(preBytes, bbItemsArr, 0, bbCnt);
+        memOut.putDoubleArray(prePlusExtraBytes, bbItemsArr, 0, bbCnt);
       }
       //insert levels
       if (totLevels > 0) {
-        final long memOffset = preBytes + ((2L * k) << 3);
+        final long memOffset = prePlusExtraBytes + ((2L * k) << 3);
         final int combBufOffset = 2 * k;
         memOut.putDoubleArray(memOffset, combinedBuffer, combBufOffset, totLevels * k);
       }

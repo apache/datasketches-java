@@ -1,9 +1,11 @@
 /*
- * Copyright 2015-16, Yahoo! Inc.
- * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ * Copyright 2016, Yahoo! Inc. Licensed under the terms of the
+ * Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
 package com.yahoo.sketches.quantiles;
+
+import static com.yahoo.sketches.quantiles.DoublesUtil.copyToHeap;
 
 import com.yahoo.memory.Memory;
 
@@ -11,39 +13,107 @@ import com.yahoo.memory.Memory;
  * Union operation for on-heap.
  *
  * @author Lee Rhodes
+ * @author Kevin Lang
  */
-final class HeapDoublesUnion extends DoublesUnion {
-  private final int k_;
-  private HeapDoublesSketch gadget_;
+public class DoublesUnionImpl extends DoublesUnion {
+  private int k_;
+  private DoublesSketch gadget_ = null;
 
-  HeapDoublesUnion(final int k) {
+  private DoublesUnionImpl(final int k) {
     k_ = k;
   }
 
-  HeapDoublesUnion(final DoublesSketch sketch) {
-    k_ = sketch.getK();
-    gadget_ = (HeapDoublesSketch) sketch;
+  /**
+   * Returns a empty Heap DoublesUnion object.
+   * @param k the specified <i>k</i> for the DoublesUnion object
+   */
+  static DoublesUnionImpl heapInstance(final int k) {
+    final DoublesUnionImpl union = new DoublesUnionImpl(k);
+    return union;
   }
 
   /**
-   * Heapify the given srcMem into a HeapUnion object.
-   * @param srcMem the given srcMem.
-   * A reference to srcMem will not be maintained internally.
+   * Returns a empty DoublesUnion object that refers to the given direct, off-heap Memory,
+   * which will be initialized to the empty state.
+   *
+   * @param dstMem the Memory to be used by the sketch
+   * @return a DoublesUnion object
    */
-  HeapDoublesUnion(final Memory srcMem) {
-    gadget_ = HeapDoublesSketch.heapifyInstance(srcMem);
-    k_ = gadget_.getK();
+  static DoublesUnionImpl directInstance(final int k, final Memory dstMem) {
+    DirectDoublesSketch sketch = DirectDoublesSketch.newInstance(k, dstMem);
+    final DoublesUnionImpl union = new DoublesUnionImpl(k);
+    union.k_ = k;
+    union.gadget_ = sketch;
+    return union;
+  }
+
+  /**
+   * Returns a Heap DoublesUnion object that has been initialized with the data from the given
+   * sketch.
+   *
+   * @param sketch A DoublesSketch to be used as a source of data only and will not be modified.
+   * @return a DoublesUnion object
+   */
+  static DoublesUnionImpl heapifyInstance(final DoublesSketch sketch) {
+    int k = sketch.getK();
+    final DoublesUnionImpl union = new DoublesUnionImpl(k);
+    union.k_ = k;
+    union.gadget_ = copyToHeap(sketch);
+    return union;
+  }
+
+  /**
+   * Returns a Heap DoublesUnion object that has been initialized with the data from the given
+   * Memory image of a DoublesSketch. The srcMem object will not be modified and a reference to
+   * it is not retained.
+   *
+   * @param srcMem a Memory image of a quantiles DoublesSketch
+   * @return a DoublesUnion object
+   */
+  static DoublesUnionImpl heapifyInstance(final Memory srcMem) {
+    HeapDoublesSketch sketch = HeapDoublesSketch.heapifyInstance(srcMem);
+    int k = sketch.getK();
+    final DoublesUnionImpl union = new DoublesUnionImpl(k);
+    union.k_ = k;
+    union.gadget_ = sketch;
+    return union;
+  }
+
+  /**
+   * Returns a Union object that wraps off-heap data structure of the given memory image of
+   * a non-compact DoublesSketch. The data structures of the Union remain off-heap.
+   *
+   * @param mem A memory image of a non-compact DoublesSketch to be used as the data
+   * structure for the union and will be modified.
+   * @return a Union object
+   */
+  static DoublesUnionImpl wrapInstance(final Memory mem) {
+    DirectDoublesSketch sketch = DirectDoublesSketch.wrapInstance(mem);
+    int k = sketch.getK();
+    final DoublesUnionImpl union = new DoublesUnionImpl(k);
+    union.k_ = k;
+    union.gadget_ = sketch;
+    return union;
+  }
+
+  @Override
+  public boolean isEmpty() {
+    return (gadget_ == null) ? true : gadget_.isEmpty();
+  }
+
+  @Override
+  public boolean isDirect() {
+    return (gadget_ == null) ? false : gadget_.isDirect();
   }
 
   @Override
   public void update(final DoublesSketch sketchIn) {
-    gadget_ = updateLogic(k_, gadget_, (HeapDoublesSketch)sketchIn);
+    gadget_ = updateLogic(k_, gadget_, sketchIn);
   }
 
   @Override
-  public void update(final Memory srcMem) {
-    final HeapDoublesSketch that = HeapDoublesSketch.heapifyInstance(srcMem);
-    gadget_ = updateLogic(k_, gadget_, that);
+  public void update(final Memory mem) {
+    gadget_ = updateLogic(k_, gadget_, HeapDoublesSketch.heapifyInstance(mem));
   }
 
   @Override
@@ -65,14 +135,23 @@ final class HeapDoublesUnion extends DoublesUnion {
   @Override
   public DoublesSketch getResultAndReset() {
     if (gadget_ == null) { return null; } //Intentionally return null here for speed.
-    final DoublesSketch hqs = gadget_;
+    final DoublesSketch ds = gadget_;
     gadget_ = null;
-    return hqs;
+    return ds;
   }
 
   @Override
   public void reset() {
     gadget_ = null;
+  }
+
+  @Override
+  public byte[] toByteArray() {
+    if (gadget_ == null) {
+      HeapDoublesSketch sketch = HeapDoublesSketch.newInstance(k_);
+      return DoublesByteArrayImpl.toByteArray(sketch, true, false);
+    }
+    return DoublesByteArrayImpl.toByteArray(gadget_, true, false);
   }
 
   @Override
@@ -88,13 +167,12 @@ final class HeapDoublesUnion extends DoublesUnion {
     return gadget_.toString(sketchSummary, dataDetail);
   }
 
-
   //@formatter:off
   @SuppressWarnings("null")
-  static HeapDoublesSketch updateLogic(final int myK, final HeapDoublesSketch myQS,
-      final HeapDoublesSketch other) {
-    int sw1 = ((myQS   == null) ? 0 :   myQS.isEmpty() ? 4 : 8);
-    sw1 |=    ((other  == null) ? 0 :  other.isEmpty() ? 1 : 2);
+  static DoublesSketch updateLogic(final int myK, final DoublesSketch myQS,
+      final DoublesSketch other) {
+    int sw1 = ((myQS  == null) ? 0 :  myQS.isEmpty() ? 4 : 8);
+    sw1 |=    ((other == null) ? 0 : other.isEmpty() ? 1 : 2);
     int outCase = 0; //0=null, 1=NOOP, 2=copy, 3=merge
     switch (sw1) {
       case 0:  outCase = 0; break; //myQS = null,  other = null ; return null
@@ -108,13 +186,13 @@ final class HeapDoublesUnion extends DoublesUnion {
       case 10: outCase = 3; break; //myQS = valid, other = valid; merge
       //default: //This cannot happen and cannot be tested
     }
-    HeapDoublesSketch ret = null;
+    DoublesSketch ret = null;
     switch (outCase) {
-      case 0: ret = null; break;
-      case 1: ret = myQS; break;
-      case 2: {
+      case 0: ret = null; break; //retun null
+      case 1: ret = myQS; break; //no-op
+      case 2: { //myQS = null, other = valid
         if (myK < other.getK()) {
-          ret = (HeapDoublesSketch) other.downSample(other, myK, null);
+          ret = other.downSample(other, myK, null);
         } else {
           ret = DoublesUtil.copyToHeap(other); //required because caller has handle
         }
@@ -122,13 +200,13 @@ final class HeapDoublesUnion extends DoublesUnion {
       }
       case 3: { //must merge
         if (myQS.getK() <= other.getK()) { //I am smaller or equal, thus the target
-          HeapDoublesUnion.mergeInto(other, myQS);
+          DoublesUnionImpl.mergeInto(other, myQS);
           ret = myQS;
         } else {
           //myQS_K > other_K, must reverse roles
           //must copy other as it will become mine and can't have any externally owned handles.
-          final HeapDoublesSketch myNewQS = DoublesUtil.copyToHeap(other);
-          HeapDoublesUnion.mergeInto(myQS, myNewQS);
+          final DoublesSketch myNewQS = DoublesUtil.copyToHeap(other);
+          DoublesUnionImpl.mergeInto(myQS, myNewQS);
           ret = myNewQS;
         }
         break;
@@ -137,7 +215,6 @@ final class HeapDoublesUnion extends DoublesUnion {
         ret = HeapDoublesSketch.newInstance(Math.min(myK, other.getK()));
         break;
       }
-
       //default: //This cannot happen and cannot be tested
     }
     return ret;
@@ -164,13 +241,11 @@ final class HeapDoublesUnion extends DoublesUnion {
    * by making a deep copy of the larger sketch and then merging the smaller one into it.
    * However, it was decided not to do this.
    *
-   * @param source The source sketch
-   * @param target The target sketch
+   * @param src The source sketch
+   * @param tgt The target sketch
    */
 
-  static void mergeInto(final DoublesSketch source, final DoublesSketch target) {
-    final HeapDoublesSketch src = (HeapDoublesSketch)source;
-    final HeapDoublesSketch tgt = (HeapDoublesSketch)target;
+  static void mergeInto(final DoublesSketch src, final DoublesSketch tgt) {
     final int srcK = src.getK();
     final int tgtK = tgt.getK();
     final long srcN = src.getN();
@@ -181,7 +256,7 @@ final class HeapDoublesUnion extends DoublesUnion {
       return;
     }
 
-    final double[] srcCombBuf     = src.getCombinedBuffer();
+    final double[] srcCombBuf = src.getCombinedBuffer();
     final long nFinal = tgtN + srcN;
 
     for (int i = 0; i < src.getBaseBufferCount(); i++) {
@@ -189,9 +264,9 @@ final class HeapDoublesUnion extends DoublesUnion {
     }
 
     final int spaceNeeded = DoublesUpdateImpl.maybeGrowLevels(nFinal, tgtK);
-    if (spaceNeeded > tgt.getCombinedBufferItemCapacity()) {
-      // copies base buffer plus old levels
-      tgt.growCombinedBuffer(spaceNeeded);
+    final int curCombBufCap = tgt.getCombinedBufferItemCapacity();
+    if (spaceNeeded > curCombBufCap) {
+      tgt.growCombinedBuffer(curCombBufCap, spaceNeeded); // copies base buffer plus current levels
     }
 
     final double[] scratch2KBuf = new double[2 * tgtK];
@@ -226,5 +301,6 @@ final class HeapDoublesUnion extends DoublesUnion {
     if (srcMax > tgtMax) { tgt.putMaxValue(srcMax); }
     if (srcMin < tgtMin) { tgt.putMinValue(srcMin); }
   }
+
 
 }

@@ -28,8 +28,6 @@ final class Util {
 
   private Util() {}
 
-  static final int MIN_BASE_BUF_SIZE = 4;
-
   /**
    * The java line separator character as a String.
    */
@@ -45,8 +43,8 @@ final class Util {
    * @param k must be greater than 1 and less than 65536.
    */
   static void checkK(final int k) {
-    if ((k < 2) || (k >= (1 << 16)) || !isPowerOf2(k)) {
-      throw new SketchesArgumentException("K must be > 1 and < 65536");
+    if ((k < DoublesSketch.MIN_K) || (k >= (1 << 16)) || !isPowerOf2(k)) {
+      throw new SketchesArgumentException("K must be > 1 and < 65536 and Power of 2: " + k);
     }
   }
 
@@ -69,17 +67,17 @@ final class Util {
    * @param flags the flags field
    * @param memCapBytes the memory capacity
    * @return the value of the empty state
-   */
+   */ // Used by HeapDoublesSketch, ItemsSketch, Test
   static boolean checkPreLongsFlagsCap(final int preambleLongs, final int flags, final long memCapBytes) {
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0; //Preamble flags empty state
-    final int minPre = Family.QUANTILES.getMinPreLongs();
-    final int maxPre = Family.QUANTILES.getMaxPreLongs();
+    final int minPre = Family.QUANTILES.getMinPreLongs(); //1
+    final int maxPre = Family.QUANTILES.getMaxPreLongs(); //2
     final boolean valid = ((preambleLongs == minPre) && empty) || ((preambleLongs == maxPre) && !empty);
     if (!valid) {
       throw new SketchesArgumentException(
           "Possible corruption: PreambleLongs inconsistent with empty state: " + preambleLongs);
     }
-    checkFlags(flags);
+    checkHeapFlags(flags);
     if (!empty && (memCapBytes < (preambleLongs << 3))) {
       throw new SketchesArgumentException(
           "Possible corruption: Insufficient capacity for preamble: " + memCapBytes);
@@ -91,7 +89,7 @@ final class Util {
    * Checks just the flags field of the preamble
    * @param flags the flags field
    */
-  static void checkFlags(final int flags) {  //only used by checkPreLongsFlagsCap and test
+  static void checkHeapFlags(final int flags) {  //only used by checkPreLongsFlagsCap and test
     final int allowedFlags =
         READ_ONLY_FLAG_MASK | EMPTY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK;
     final int flagsMask = ~allowedFlags;
@@ -153,7 +151,7 @@ final class Util {
   }
 
   /**
-   * Returns the current item capacity of the combined data buffer
+   * Returns the total item capacity of the updatable, non-compact combined buffer
    * given <i>k</i> and <i>n</i>.  If total levels = 0, this returns the ceiling power of 2
    * size for the base buffer or the MIN_BASE_BUF_SIZE, whichever is larger.
    *
@@ -162,7 +160,7 @@ final class Util {
    *
    * @param n The number of items in the input stream
    * @param partialBaseBuffer true if partial base buffer is allowed.
-   * @return the current item capacity of the combined data buffer
+   * @return the current item capacity of the combined buffer
    */
   static int computeCombinedBufferItemCapacity(final int k, final long n,
       final boolean partialBaseBuffer) {
@@ -170,7 +168,7 @@ final class Util {
     if (totLevels == 0) {
       if (partialBaseBuffer) {
         final int bbItems = computeBaseBufferItems(k, n);
-        return Math.max(MIN_BASE_BUF_SIZE, ceilingPowerOf2(bbItems));
+        return Math.max(2 * DoublesSketch.MIN_K, ceilingPowerOf2(bbItems));
       }
     }
     return (2 + totLevels) * k;
@@ -186,21 +184,21 @@ final class Util {
   }
 
   /**
-   * Computes the number of total levels above the base buffer
-   * @param bitPattern the bit pattern
-   * @return the number of total levels above the base buffer
+   * Computes the total number of logarithmic levels above the base buffer given the bitPattern.
+   * @param bitPattern the given bit pattern
+   * @return the total number of logarithmic levels above the base buffer
    */
   static int computeTotalLevels(final long bitPattern) {
     return hiBitPos(bitPattern) + 1;
   }
 
   /**
-   * Computes the number of logarithmic levels needed given k and n.
+   * Computes the total number of logarithmic levels above the base buffer given k and n.
    * This is equivalent to max(floor(lg(n/k), 0).
    * Returns zero if n is less than 2 * k.
    * @param k the configured size of the sketch
    * @param n the total values presented to the sketch.
-   * @return the number of levels needed.
+   * @return the total number of levels needed.
    */
   static int computeNumLevelsNeeded(final int k, final long n) {
     return 1 + hiBitPos(n / (2L * k));

@@ -4,48 +4,49 @@
  */
 package com.yahoo.sketches.quantiles;
 
-import static org.testng.Assert.assertEquals;
 //import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
-//import com.yahoo.memory.Memory;
-//import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.NativeMemory;
 
 
 public class DoublesSketchBuilderTest {
 
   @Test
   public void checkBuilder() {
-    int k = 256;
-//    byte[] byteArr = new byte[k]; //dummy value
-//    Memory mem = new NativeMemory(byteArr);
-    
+    int k = 256; //default is 128
     DoublesSketchBuilder bldr = DoublesSketch.builder();
-    
     bldr.setK(k);
-    assertEquals(bldr.getK(), k);
-    
-//    bldr.initMemory(mem);
-//    assertEquals(bldr.getMemory(), mem);
-    
+    assertEquals(bldr.getK(), k); //confirms new k
+
+    byte[] byteArr = new byte[k]; //dummy value
+    Memory mem = new NativeMemory(byteArr);
+    bldr.initMemory(mem);
+    assertTrue(bldr.getMemory() == mem);
+    DoublesSketch ds = bldr.build(k);
+    assertTrue(ds.isDirect());
     println(bldr.toString());
-    
+
     bldr = DoublesSketch.builder();
     assertEquals(bldr.getK(), DoublesSketch.DEFAULT_K);
-//    assertNull(bldr.getMemory());
+    assertNull(bldr.getMemory());
   }
-  
+
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
-  
+
   /**
-   * @param s value to print 
+   * @param s value to print
    */
   static void println(String s) {
     //System.out.println(s); //disable here
   }
-  
+
 }

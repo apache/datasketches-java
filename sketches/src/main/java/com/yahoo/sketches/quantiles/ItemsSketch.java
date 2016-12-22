@@ -148,7 +148,7 @@ public final class ItemsSketch<T> {
    */
   public static <T> ItemsSketch<T> getInstance(final int k, final Comparator<? super T> comparator) {
     final ItemsSketch<T> qs = new ItemsSketch<T>(k, comparator);
-    final int bufAlloc = Math.min(Util.MIN_BASE_BUF_SIZE, 2 * k); //the min is important
+    final int bufAlloc = 2 * Math.min(DoublesSketch.MIN_K, k); //the min is important
     qs.n_ = 0;
     qs.combinedBufferItemCapacity_ = bufAlloc;
     qs.combinedBuffer_ = new Object[bufAlloc];
@@ -473,7 +473,7 @@ public final class ItemsSketch<T> {
    */
   public void reset() {
     n_ = 0;
-    combinedBufferItemCapacity_ = Math.min(Util.MIN_BASE_BUF_SIZE, 2 * k_); //the min is important
+    combinedBufferItemCapacity_ = 2 * Math.min(DoublesSketch.MIN_K, k_); //the min is important
     combinedBuffer_ = new Object[combinedBufferItemCapacity_];
     baseBufferCount_ = 0;
     bitPattern_ = 0;

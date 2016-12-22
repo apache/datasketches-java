@@ -52,11 +52,11 @@ class DoublesMergeImpl {
 
     final int spaceNeeded = DoublesUpdateImpl.maybeGrowLevels(nFinal, tgtK);
     final double[] tgtCombBuf;
-
-    if (spaceNeeded > tgt.getCombinedBufferItemCapacity()) {
+    final int curCombBufCap = tgt.getCombinedBufferItemCapacity();
+    if (spaceNeeded > curCombBufCap) {
       // heap: copies base buffer plus old levels
       // off-heap: just checks for enough room, for now, and extracts to heap
-      tgtCombBuf = tgt.growCombinedBuffer(spaceNeeded);
+      tgtCombBuf = tgt.growCombinedBuffer(curCombBufCap, spaceNeeded);
     } else {
       tgtCombBuf = tgt.getCombinedBuffer();
     }

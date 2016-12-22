@@ -23,6 +23,18 @@ public abstract class DoublesUnion {
   }
 
   /**
+   * Returns true if this union is empty
+   * @return true if this union is empty
+   */
+  public abstract boolean isEmpty();
+
+  /**
+   * Returns true if this union is direct
+   * @return true if this union is direct
+   */
+  public abstract boolean isDirect();
+
+  /**
    * Iterative union operation, which means this method can be repeatedly called.
    * Merges the given sketch into this union object.
    * The given sketch is not modified.
@@ -78,6 +90,12 @@ public abstract class DoublesUnion {
    * Resets this Union to a virgin state.
    */
   public abstract void reset();
+
+  /**
+   * Serialize this union as an ordered, non-compact byte array of a DoublesSketch.
+   * @return this union as an ordered, non-compact byte array of a DoublesSketch.
+   */
+  public abstract byte[] toByteArray();
 
   /**
    * Returns summary information about the backing sketch.

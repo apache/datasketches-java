@@ -230,4 +230,9 @@ final class PreambleUtil {
   static void insertMaxDouble(final Object memObj, final long memAdd, final double value) {
     unsafe.putDouble(memObj, memAdd + MAX_DOUBLE, value);
   }
+
+  static void insertIntoBaseBuffer(final Object memObj, final long memAdd, final int bbOffset,
+      final double value) {
+    unsafe.putDouble(memObj, memAdd + COMBINED_BUFFER + bbOffset * 8, value);
+  }
 }

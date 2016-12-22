@@ -8,6 +8,7 @@ package com.yahoo.sketches.quantiles;
 import java.util.Random;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
 
@@ -114,7 +115,8 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
  */
 public abstract class DoublesSketch {
   static final int DOUBLES_SER_VER = 3;
-  static final int MIN_DOUBLES_SER_VER = 2;
+  static final int MAX_PRELONGS = Family.QUANTILES.getMaxPreLongs();
+  static final int MIN_K = 2;
 
   /**
    * Parameter that controls space usage of sketch and accuracy of estimates.
@@ -367,6 +369,12 @@ public abstract class DoublesSketch {
   public abstract boolean isEmpty();
 
   /**
+   * Returns true if this sketch is direct
+   * @return true if this sketch is direct
+   */
+  public abstract boolean isDirect();
+
+  /**
    * Resets this sketch to the empty state, but retains the original value of k.
    */
   public abstract void reset();
@@ -399,7 +407,7 @@ public abstract class DoublesSketch {
    * @return this sketch in a byte array form.
    */
   public byte[] toByteArray(final boolean ordered, final boolean compact) {
-    return DoublesToByteArrayImpl.toByteArray(this, ordered, compact);
+    return DoublesByteArrayImpl.toByteArray(this, ordered, compact);
   }
 
   /**
@@ -450,29 +458,81 @@ public abstract class DoublesSketch {
   }
 
   /**
-   * Returns the number of bytes required to store this sketch as a compact array of bytes.
-   * @return the number of bytes required to store this sketch as a compact array of bytes.
+   * Returns the number of bytes this sketch would require to store in compact form, which is not
+   * updatable.
+   * @return the number of bytes this sketch would require to store in compact form.
    */
-  public int getStorageBytes() {
-    if (isEmpty()) { return 8; }
-    return 32 + (Util.computeRetainedItems(getK(), getN()) << 3);
+  public int getCompactStorageBytes() {
+    return getCompactStorageBytes(getK(), getN());
   }
 
   /**
-   * Returns the number of bytes required to store a sketch as a compact array of bytes with the
-   * given values of <i>k</i> and <i>n</i>.
+   * Returns the number of bytes a DoublesSketch would require to store in compact form
+   * given the values of <i>k</i> and <i>n</i>. The compact form is not updatable.
    * @param k the size configuration parameter for the sketch
    * @param n the number of items input into the sketch
-   * @return the number of bytes required to store this sketch as a compact array of bytes.
+   * @return the number of bytes required to store this sketch in compact form.
    */
-  public int getStorageBytes(final int k, final long n) {
+  public static int getCompactStorageBytes(final int k, final long n) {
+    if (n == 0) { return 8; }
+    return 32 + (Util.computeRetainedItems(k, n) << 3);
+  }
+
+
+  /**
+   * Returns the number of bytes this sketch would require to store in compact form, which is not
+   * updatable.
+   * @return the number of bytes this sketch would require to store in compact form.
+   * @deprecated changed name to getCompactStorageBytes to more accurately reflect its intent
+   */
+  @Deprecated
+  public int getStorageBytes() {
+    return getStorageBytes(getK(), getN());
+  }
+
+  /**
+   * Returns the number of bytes a DoublesSketch would require to store in compact form
+   * given the values of <i>k</i> and <i>n</i>. The compact form is not updatable.
+   * @param k the size configuration parameter for the sketch
+   * @param n the number of items input into the sketch
+   * @return the number of bytes required to store this sketch in compact form.
+   * @deprecated changed name to getCompactStorageBytes to more accurately reflect its intent
+   */
+  @Deprecated
+  public static int getStorageBytes(final int k, final long n) {
     if (n == 0) { return 8; }
     return 32 + (Util.computeRetainedItems(k, n) << 3);
   }
 
   /**
-   * Puts the current sketch into the given Memory if there is sufficient space, otherwise,
-   * throws an error. This does not sort the base buffer and loads the memory in compact form.
+   * Returns the number of bytes this sketch would require to store in updatable form.
+   * This uses roughly 2X the storage of the compact form.
+   * @return the number of bytes this sketch would require to store in updatable form.
+   */
+  public int getUpdatableStorageBytes() {
+    return getUpdatableStorageBytes(getK(), getN());
+  }
+
+  /**
+   * Returns the number of bytes this sketch would require to store in updatable form.
+   * This uses roughly 2X the storage of the compact form.
+   * given the values of <i>k</i> and <i>n</i>.
+   * @param k the size configuration parameter for the sketch
+   * @param n the number of items input into the sketch
+   * @return the number of bytes this sketch would require to store in updatable form.
+   */
+  public static int getUpdatableStorageBytes(final int k, final long n) {
+    if (n == 0) {
+      return (4 + 2 * DoublesSketch.MIN_K) * Double.BYTES;
+    }
+    final int preBytes = 16 + 2 * Double.BYTES;
+    final int levelsAndBB = 2 + Util.computeNumLevelsNeeded(k, n);
+    return preBytes + levelsAndBB * k * Double.BYTES;
+  }
+
+  /**
+   * Puts the current sketch into the given Memory in compact form if there is sufficient space,
+   * otherwise, it throws an error. This does not sort the base buffer.
    *
    * @param dstMem the given memory.
    */
@@ -620,9 +680,10 @@ public abstract class DoublesSketch {
 
   /**
    * Grows the combined buffer to the given spaceNeeded
+   * @param currentSpace the current allocated space
    * @param spaceNeeded the space needed
    * @return the enlarged combined buffer
    */
-  abstract double[] growCombinedBuffer(int spaceNeeded);
+  abstract double[] growCombinedBuffer(int currentSpace, int spaceNeeded);
 
 }

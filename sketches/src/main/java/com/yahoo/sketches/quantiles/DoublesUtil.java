@@ -6,12 +6,10 @@
 package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.Util.LS;
-import static com.yahoo.sketches.quantiles.Util.computeRetainedItems;
 
 import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -47,39 +45,12 @@ final class DoublesUtil {
   }
 
   /**
-   * Checks the validity of the memory capacity assuming n, k and compact.
-   * @param k the given value of k
-   * @param n the given value of n
-   * @param compact true if memory is in compact form
-   * @param memCapBytes the memory capacity in bytes
-   */
-  static void checkMemCapacity(final int k, final long n, final boolean compact,
-      final long memCapBytes) {
-    final int metaPre = Family.QUANTILES.getMaxPreLongs() + 2;
-    final int retainedItems = computeRetainedItems(k, n);
-    final int reqBufBytes;
-    if (compact) {
-      reqBufBytes = (metaPre + retainedItems) << 3;
-    } else { //not compact
-      final int totLevels = Util.computeNumLevelsNeeded(k, n);
-      reqBufBytes = (totLevels == 0)
-          ? (metaPre + retainedItems) << 3
-          : (metaPre + (2 + totLevels) * k) << 3;
-    }
-    if (memCapBytes < reqBufBytes) {
-      throw new SketchesArgumentException("Possible corruption: Memory capacity too small: "
-          + memCapBytes + " < " + reqBufBytes);
-    }
-  }
-
-  /**
    * Check the validity of the given serialization version
    * @param serVer the given serialization version
    */
-  static void checkDoublesSerVer(final int serVer) {
+  static void checkDoublesSerVer(final int serVer, final int minSupportedSerVer) {
     final int max = DoublesSketch.DOUBLES_SER_VER;
-    final int min = DoublesSketch.MIN_DOUBLES_SER_VER;
-    if ((serVer > max) || (serVer < min)) {
+    if ((serVer > max) || (serVer < minSupportedSerVer)) {
       throw new SketchesArgumentException(
           "Possible corruption: Unsupported Serialization Version: " + serVer);
     }
@@ -97,7 +68,7 @@ final class DoublesUtil {
     return sb.toString();
   }
 
-  static String getDataDetail(final DoublesSketch sketch) {
+  private static String getDataDetail(final DoublesSketch sketch) {
     final StringBuilder sb = new StringBuilder();
     final String thisSimpleName = sketch.getClass().getSimpleName();
     sb.append(LS).append("### Quantiles ").append(thisSimpleName).append(" DATA DETAIL: ")
@@ -136,7 +107,7 @@ final class DoublesUtil {
     return sb.toString();
   }
 
-  static String getSummary(final DoublesSketch sketch) {
+  private static String getSummary(final DoublesSketch sketch) {
     final StringBuilder sb = new StringBuilder();
     final String thisSimpleName = sketch.getClass().getSimpleName();
     final int k = sketch.getK();
@@ -150,7 +121,8 @@ final class DoublesUtil {
     final int totalLevels = Util.computeTotalLevels(bitPattern);
     final int validLevels = Util.computeValidLevels(bitPattern);
     final String retItemsStr = String.format("%,d", sketch.getRetainedItems());
-    final String bytesStr = String.format("%,d", sketch.getStorageBytes());
+    final String cmptBytesStr = String.format("%,d", sketch.getCompactStorageBytes());
+    final String updtBytesStr = String.format("%,d", sketch.getUpdatableStorageBytes());
     final double eps = Util.EpsilonFromK.getAdjustedEpsilon(k);
     final String epsPctStr = String.format("%.3f%%", eps * 100.0);
 
@@ -165,7 +137,8 @@ final class DoublesUtil {
     sb.append("   BaseBufferCount              : ").append(bbCntStr).append(LS);
     sb.append("   Combined Buffer Capacity     : ").append(combBufCapStr).append(LS);
     sb.append("   Retained Items               : ").append(retItemsStr).append(LS);
-    sb.append("   Storage Bytes                : ").append(bytesStr).append(LS);
+    sb.append("   Compact Storage Bytes        : ").append(cmptBytesStr).append(LS);
+    sb.append("   Updatable Storage Bytes      : ").append(updtBytesStr).append(LS);
     sb.append("   Normalized Rank Error        : ").append(epsPctStr).append(LS);
     sb.append("   Min Value                    : ")
       .append(String.format("%,.3f", sketch.getMinValue())).append(LS);

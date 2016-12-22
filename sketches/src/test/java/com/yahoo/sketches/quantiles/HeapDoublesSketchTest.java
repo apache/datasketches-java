@@ -75,7 +75,7 @@ public class HeapDoublesSketchTest {
       }
     }
     assertEquals(qs.getN()+qs2.getN(), n);
-    DoublesUnion union = DoublesUnionBuilder.build(qs);
+    DoublesUnion union = DoublesUnionBuilder.heapify(qs);
     union.update(qs2);
     DoublesSketch result = union.getResult();
 
@@ -183,11 +183,11 @@ public class HeapDoublesSketchTest {
     assertTrue(resultsA[0] == 1.0);
     assertTrue(resultsA[1] == 999.0);
 
-    DoublesUnion union1 = DoublesUnionBuilder.build(qs1);
+    DoublesUnion union1 = DoublesUnionBuilder.heapify(qs1);
     union1.update(qs2);
     DoublesSketch result1 = union1.getResult();
 
-    DoublesUnion union2 = DoublesUnionBuilder.build(qs2);
+    DoublesUnion union2 = DoublesUnionBuilder.heapify(qs2);
     union2.update(qs3);
     DoublesSketch result2 = union2.getResult();
 
@@ -231,11 +231,11 @@ public class HeapDoublesSketchTest {
     assert (resultsA[1] == 5.0);
     assert (resultsA[2] == 8.0);
 
-    DoublesUnion union1 = DoublesUnionBuilder.build(qs1);
+    DoublesUnion union1 = DoublesUnionBuilder.heapify(qs1);
     union1.update(qs2);
     DoublesSketch result1 = union1.getResult();
 
-    DoublesUnion union2 = DoublesUnionBuilder.build(qs2);
+    DoublesUnion union2 = DoublesUnionBuilder.heapify(qs2);
     union2.update(qs3);
     DoublesSketch result2 = union2.getResult();
 
@@ -253,12 +253,12 @@ public class HeapDoublesSketchTest {
   @Test
   public void checkMisc() {
     int k = DoublesSketch.DEFAULT_K;
-    int n = 1000000;
+    int n = 10000;
     DoublesSketch qs = buildQS(k, n);
-
+    qs.update(Double.NaN);
     int n2 = (int)qs.getN();
     assertEquals(n2, n);
-    qs.update(Double.NaN);
+
     qs.reset();
     assertEquals(qs.getN(), 0);
   }
@@ -350,17 +350,17 @@ public class HeapDoublesSketchTest {
   public void checkGetStorageBytes() {
     int k = DoublesSketch.DEFAULT_K; //128
     DoublesSketch qs = buildQS(k, 0); //k, n
-    int stor = qs.getStorageBytes();
+    int stor = qs.getCompactStorageBytes();
     assertEquals(stor, 8);
 
     qs = buildQS(k, 2*k); //forces one level
-    stor = qs.getStorageBytes();
+    stor = qs.getCompactStorageBytes();
 
     int retItems = Util.computeRetainedItems(k, 2*k);
     assertEquals(stor, 32 + (retItems << 3));
 
     qs = buildQS(k, 2*k-1); //just Base Buffer
-    stor = qs.getStorageBytes();
+    stor = qs.getCompactStorageBytes();
     retItems = Util.computeRetainedItems(k, 2*k-1);
     assertEquals(stor, 32 + (retItems << 3));
   }
@@ -376,7 +376,7 @@ public class HeapDoublesSketchTest {
 //        qs.update(v++);
 //      }
       byte[] byteArr = qs.toByteArray(false);
-      assertEquals(qs.getStorageBytes(), byteArr.length);
+      assertEquals(qs.getCompactStorageBytes(), byteArr.length);
     }
   }
 
@@ -386,7 +386,7 @@ public class HeapDoublesSketchTest {
     int n = 1000000;
     DoublesSketch qs1 = buildQS(k,n,0);
     DoublesSketch qs2 = buildQS(k,0,0); //empty
-    DoublesUnion union = DoublesUnionBuilder.build(qs2);
+    DoublesUnion union = DoublesUnionBuilder.heapify(qs2);
     union.update(qs1);
     DoublesSketch result = union.getResult();
     double med1 = qs1.getQuantile(0.5);
@@ -400,7 +400,7 @@ public class HeapDoublesSketchTest {
     int k = DoublesSketch.DEFAULT_K;
     DoublesSketch qs1 = buildQS(k,  1000, 0);
     DoublesSketch qs2 = buildQS(2*k,1000, 1000);
-    DoublesUnion union = DoublesUnionBuilder.build(qs2);
+    DoublesUnion union = DoublesUnionBuilder.heapify(qs2);
     union.update(qs1); //attempt merge into larger k
     DoublesSketch result = union.getResult();
     assertEquals(result.getK(), k);
@@ -478,7 +478,6 @@ public class HeapDoublesSketchTest {
     for (double f = 0.1; f < 0.95; f += 0.1) {
       assertEquals(qs.getQuantile(f), qs2.getQuantile(f), 0.0);
     }
-
   }
 
   @Test
@@ -498,7 +497,6 @@ public class HeapDoublesSketchTest {
     assertEquals(quantiles[0], Double.POSITIVE_INFINITY);
     assertEquals(quantiles[1], Double.NaN);
     assertEquals(quantiles[2], Double.NEGATIVE_INFINITY);
-
     //println(qs1.toString(true, true));
   }
 
@@ -512,7 +510,7 @@ public class HeapDoublesSketchTest {
   //Corruption tests
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkSerVer() {
-    DoublesUtil.checkDoublesSerVer(0);
+    DoublesUtil.checkDoublesSerVer(0, HeapDoublesSketch.MIN_HEAP_DOUBLES_SER_VER);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -527,7 +525,7 @@ public class HeapDoublesSketchTest {
     int combBufItemCap = computeCombinedBufferItemCapacity(k, n, true);
     int memCapBytes = (combBufItemCap + 4) << 3;
     int badCapBytes = memCapBytes - 1; //corrupt
-    DoublesUtil.checkMemCapacity(k, n, false, badCapBytes);
+    HeapDoublesSketch.checkHeapMemCapacity(k, n, false, badCapBytes);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -536,7 +534,7 @@ public class HeapDoublesSketchTest {
     long n = 1000;
     int combBufItemCap = computeCombinedBufferItemCapacity(k, n, true); //non-compact cap
     int memCapBytes = (combBufItemCap + 4) << 3;
-    DoublesUtil.checkMemCapacity(k, n, false, memCapBytes - 1); //corrupt
+    HeapDoublesSketch.checkHeapMemCapacity(k, n, false, memCapBytes - 1); //corrupt
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -558,7 +556,7 @@ public class HeapDoublesSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkFlags() {
     int flags = 1;
-    Util.checkFlags(flags);
+    Util.checkHeapFlags(flags);
   }
 
   @Test
@@ -583,51 +581,73 @@ public class HeapDoublesSketchTest {
     checksForImproperK(1<<16);
   }
 
-  //Visual only tests
+  //Primarily visual only tests
   static void testDownSampling(int bigK, int smallK) {
-    HeapDoublesSketch origSketch = HeapDoublesSketch.newInstance(bigK);
-    HeapDoublesSketch directSketch = HeapDoublesSketch.newInstance(smallK);
+    HeapDoublesSketch sketch1 = HeapDoublesSketch.newInstance(bigK);
+    HeapDoublesSketch sketch2 = HeapDoublesSketch.newInstance(smallK);
     for (int i = 127; i >= 1; i--) {
-      origSketch.update (i);
-      directSketch.update (i);
+      sketch1.update (i);
+      sketch2.update (i);
     }
     HeapDoublesSketch downSketch =
-        (HeapDoublesSketch)origSketch.downSample(origSketch, smallK, null);
-    println (LS+"Orig+LS");
-    String s = origSketch.toString(true, true);
-    println(s);
-    println (LS+"Down+LS");
-    s = downSketch.toString(true, true);
-    println(s);
-    println(LS+"Direct"+LS);
-    s = directSketch.toString(true, true);
-    println(s);
-  }
-
-  //@Test  //Visual only tests //TODO
-  public void checkDownSampling() {
-    testDownSampling(4,4);
-    testDownSampling(16,4);
-    testDownSampling(12,3);
+        (HeapDoublesSketch)sketch1.downSample(sketch1, smallK, null);
+    println (LS+"Sk1"+LS);
+    String s1, s2, down;
+    s1 = sketch1.toString(true, true);
+    println(s1);
+    println (LS+"Down"+LS);
+    down = downSketch.toString(true, true);
+    println(down);
+    println(LS+"Sk2"+LS);
+    s2 = sketch2.toString(true, true);
+    println(s2);
+    assertEquals(downSketch.getRetainedItems(), sketch2.getRetainedItems());
   }
 
   @Test
-  public void testDownSampling2 () {
-    HeapDoublesSketch origSketch = HeapDoublesSketch.newInstance(8);
-    HeapDoublesSketch directSketch = HeapDoublesSketch.newInstance(2);
+  public void checkDownSampling() {
+    testDownSampling(4,4); //no down sampling
+    testDownSampling(16,4);
+    //testDownSampling(12,3);
+  }
+
+  @Test
+  public void testDownSampling2() {
+    HeapDoublesSketch sketch1 = HeapDoublesSketch.newInstance(8);
+    HeapDoublesSketch sketch2 = HeapDoublesSketch.newInstance(2);
     HeapDoublesSketch downSketch;
-    downSketch = (HeapDoublesSketch)origSketch.downSample(origSketch, 2, null);
-    assertTrue(sameStructurePredicate (directSketch, downSketch));
+    downSketch = (HeapDoublesSketch)sketch1.downSample(sketch1, 2, null);
+    assertTrue(sameStructurePredicate (sketch2, downSketch));
     for (int i = 0; i < 50; i++) {
-      origSketch.update (i);
-      directSketch.update (i);
-      downSketch = (HeapDoublesSketch)origSketch.downSample(origSketch, 2, null);
-      assertTrue (sameStructurePredicate (directSketch, downSketch));
+      sketch1.update (i);
+      sketch2.update (i);
+      downSketch = (HeapDoublesSketch)sketch1.downSample(sketch1, 2, null);
+      assertTrue (sameStructurePredicate(sketch2, downSketch));
     }
   }
 
   @Test
   public void testDownSampling3() {
+    int k1 = 8;
+    int k2 = 2;
+    int n = 50;
+    DoublesSketch sketch1 = DoublesSketch.builder().build(k1);
+    DoublesSketch sketch2 = DoublesSketch.builder().build(k2);
+    DoublesSketch downSketch;
+    downSketch = sketch1.downSample(sketch1, k2, null);
+    assertTrue(sameStructurePredicate (sketch2, downSketch));
+    int bytes = DoublesSketch.getUpdatableStorageBytes(k2, n);
+    Memory mem = new NativeMemory(new byte[bytes]);
+    for (int i = 0; i < n; i++) {
+      sketch1.update (i);
+      sketch2.update (i);
+      downSketch = sketch1.downSample(sketch1, k2, mem);
+      assertTrue (sameStructurePredicate(sketch2, downSketch));
+    }
+  }
+
+  @Test
+  public void testDownSampling4() {
     for (int n1 = 0; n1 < 50; n1++ ) {
       HeapDoublesSketch bigSketch = HeapDoublesSketch.newInstance(8);
       for (int i1 = 1; i1 <= n1; i1++ ) {
@@ -655,21 +675,21 @@ public class HeapDoublesSketchTest {
   public void testDownSamplingExceptions1() {
     DoublesSketch qs1 = DoublesSketch.builder().build(4); // not smaller
     DoublesSketch qs2 = DoublesSketch.builder().build(3);
-    HeapDoublesUnion.mergeInto(qs2, qs1);
+    DoublesUnionImpl.mergeInto(qs2, qs1);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void testDownSamplingExceptions2() {
     DoublesSketch qs1 = DoublesSketch.builder().build(4);
     DoublesSketch qs2 = DoublesSketch.builder().build(7); // 7/4 not pwr of 2
-    HeapDoublesUnion.mergeInto(qs2, qs1);
+    DoublesUnionImpl.mergeInto(qs2, qs1);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void testDownSamplingExceptions3() {
     DoublesSketch qs1 = DoublesSketch.builder().build(4);
     DoublesSketch qs2 = DoublesSketch.builder().build(12); // 12/4 not pwr of 2
-    HeapDoublesUnion.mergeInto(qs2, qs1);
+    DoublesUnionImpl.mergeInto(qs2, qs1);
   }
 
   //@Test  //visual only //TODO
@@ -736,17 +756,33 @@ public class HeapDoublesSketchTest {
     double err = qs1.getNormalizedRankError();
     assertTrue(err < 1.0);
     byte[] arr = qs1.toByteArray(true, true); //8
-    assertEquals(arr.length, qs1.getStorageBytes(k, 0));
+    assertEquals(arr.length, DoublesSketch.getCompactStorageBytes(k, 0));
     qs1.update(1.0);
     arr = qs1.toByteArray(true, true); //40
-    assertEquals(arr.length, qs1.getStorageBytes(k, 1));
+    assertEquals(arr.length, DoublesSketch.getCompactStorageBytes(k, 1));
+  }
+
+  @SuppressWarnings("deprecation")
+  @Test
+  public void checkKisTwoDeprecated() {
+    int k = 2;
+    DoublesSketch qs1 = DoublesSketch.builder().build(k);
+    double err = qs1.getNormalizedRankError();
+    assertTrue(err < 1.0);
+    byte[] arr = qs1.toByteArray(true, true); //8
+    assertEquals(arr.length, DoublesSketch.getStorageBytes(k, 0));
+    assertEquals(arr.length, qs1.getStorageBytes());
+    qs1.update(1.0);
+    arr = qs1.toByteArray(true, true); //40
+    assertEquals(arr.length, DoublesSketch.getStorageBytes(k, 1));
+    assertEquals(arr.length, qs1.getStorageBytes());
   }
 
   @Test
   public void checkPutMemory() {
     DoublesSketch qs1 = DoublesSketch.builder().build(); //k = 128
     for (int i=0; i<1000; i++) qs1.update(i);
-    int bytes = qs1.getStorageBytes();
+    int bytes = qs1.getCompactStorageBytes();
     Memory dstMem = new NativeMemory(new byte[bytes]);
     qs1.putMemory(dstMem, false);
     Memory srcMem = dstMem;
@@ -759,7 +795,7 @@ public class HeapDoublesSketchTest {
   public void checkPutMemoryTooSmall() {
     DoublesSketch qs1 = DoublesSketch.builder().build(); //k = 128
     for (int i=0; i<1000; i++) qs1.update(i);
-    int bytes = qs1.getStorageBytes();
+    int bytes = qs1.getCompactStorageBytes();
     Memory dstMem = new NativeMemory(new byte[bytes-1]); //too small
     qs1.putMemory(dstMem);
   }
@@ -782,9 +818,9 @@ public class HeapDoublesSketchTest {
 
     int k = 1024;
     DoublesSketch qsk = new DoublesSketchBuilder().build(k);
-    DoublesUnion u1 = DoublesUnionBuilder.build(qsk);
+    DoublesUnion u1 = DoublesUnionBuilder.heapify(qsk);
     u1.getResult().putMemory(mem);
-    DoublesUnion u2 = DoublesUnionBuilder.build(mem);
+    DoublesUnion u2 = DoublesUnionBuilder.heapify(mem);
     DoublesSketch qsk2 = u2.getResult();
     assertTrue(qsk2.isEmpty());
   }
@@ -911,7 +947,7 @@ public class HeapDoublesSketchTest {
     return total;
   }
 
-  private static boolean sameStructurePredicate(final HeapDoublesSketch mq1, final HeapDoublesSketch mq2) {
+  private static boolean sameStructurePredicate(final DoublesSketch mq1, final DoublesSketch mq2) {
     return (
             (mq1.getK() == mq2.getK()) &&
             (mq1.getN() == mq2.getN()) &&
