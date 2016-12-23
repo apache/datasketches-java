@@ -299,7 +299,7 @@ final class PreambleUtil {
   }
 
   static void insertPreLongs(final Object memObj, final long memAdd, final int preLongs) {
-    unsafe.putByte(memObj, memAdd + PREAMBLE_LONGS_BYTE, (byte) preLongs);
+    unsafe.putByte(memObj, memAdd + PREAMBLE_LONGS_BYTE, (byte) (preLongs & 0X3F));
   }
 
   static void insertLgResizeFactor(final Object memObj, final long memAdd, final int rf) {

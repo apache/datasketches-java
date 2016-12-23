@@ -102,7 +102,10 @@ public interface Union {
   public void update(long[] data);
 
   /**
-   * Gets the result of this operation as a CompactSketch of the chosen form
+   * Gets the result of this operation as a CompactSketch of the chosen form.
+   * This does not disturb the underlying data structure of the union.
+   * Therefore, it is OK to continue updating the union after this operation.
+   *
    * @param dstOrdered
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
    *
@@ -114,7 +117,9 @@ public interface Union {
   CompactSketch getResult(boolean dstOrdered, Memory dstMem);
 
   /**
-   * Gets the result of this operation as an ordered CompactSketch on the Java heap
+   * Gets the result of this operation as an ordered CompactSketch on the Java heap.
+   * This does not disturb the underlying data structure of the union.
+   * Therefore, it is OK to continue updating the union after this operation.
    * @return the result of this operation as an ordered CompactSketch on the Java heap
    */
   CompactSketch getResult();
