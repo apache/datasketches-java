@@ -334,7 +334,7 @@ public class LongsSketchTest {
         sketches[h].update(item);
     }
 
-    for(int h=0; h<numSketches; h++) {
+    for (int h = 0; h < numSketches; h++) {
       long threshold = sketches[h].getMaximumError();
       Row[] rows = sketches[h].getFrequentItems(ErrorType.NO_FALSE_NEGATIVES);
       for (int i = 0; i < rows.length; i++) {
@@ -345,6 +345,9 @@ public class LongsSketchTest {
       for (int i = 0; i < rows.length; i++) {
         Assert.assertTrue(rows[i].getLowerBound() > threshold);
       }
+
+      rows = sketches[h].getFrequentItems(Long.MAX_VALUE, ErrorType.NO_FALSE_POSITIVES);
+      Assert.assertEquals(rows.length, 0);
     }
   }
 

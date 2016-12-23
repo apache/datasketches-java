@@ -82,6 +82,10 @@ public class ItemsSketchTest {
     ItemsSketch.Row<String>[] items = sketch.getFrequentItems(ErrorType.NO_FALSE_POSITIVES);
     Assert.assertEquals(items.length, 4);
 
+    items = sketch.getFrequentItems(3, ErrorType.NO_FALSE_POSITIVES);
+    Assert.assertEquals(items.length, 1);
+    Assert.assertEquals(items[0].getItem(), "b");
+
     sketch.reset();
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertEquals(sketch.getNumActiveItems(), 0);
@@ -132,7 +136,7 @@ public class ItemsSketchTest {
       }
       Assert.assertEquals(count, 2);
     }
-}
+  }
 
   @Test
   public void serializeStringDeserializeEmpty() {
