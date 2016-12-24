@@ -14,7 +14,7 @@ import static com.yahoo.sketches.BoundsOnRatiosInThetaSketchedSets.getUpperBound
  *
  * @author Lee Rhodes
  */
-public class JaccardSimilarity {
+public final class JaccardSimilarity {
 
   /**
    * Computes the Jaccard similarity ratio with upper and lower bounds. The Jaccard similarity ratio
@@ -30,7 +30,7 @@ public class JaccardSimilarity {
    * @return a double array {LowerBound, Estimate, UpperBound} of the Jaccard ratio.
    * The Upper and Lower bounds are for a confidence interval of 95.4% or +/- 2 standard deviations.
    */
-  public static final double[] jaccard(final Sketch sketchA, final Sketch sketchB, final int minK) {
+  public static double[] jaccard(final Sketch sketchA, final Sketch sketchB, final int minK) {
     double[] ret = {0.0, 0.0, 0.0}; // LB, Estimate, UB
 
     //Corner case checks
