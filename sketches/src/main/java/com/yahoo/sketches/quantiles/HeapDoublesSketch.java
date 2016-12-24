@@ -395,7 +395,7 @@ final class HeapDoublesSketch extends DoublesSketch {
     combinedBuffer_ = Arrays.copyOf(baseBuffer, newSize);
   }
 
-  static void checkPreLongsEmpty(final int preLongs, boolean empty, int serVer) {
+  static void checkPreLongsEmpty(final int preLongs, final boolean empty, final int serVer) {
     final int minPre = Family.QUANTILES.getMinPreLongs(); //1
 
     final int maxPre = (serVer == 1) ? 5 : Family.QUANTILES.getMaxPreLongs(); //2
@@ -432,4 +432,4 @@ final class HeapDoublesSketch extends DoublesSketch {
     }
   }
 
-} // End of class HeapDoublesSketch
+}

@@ -31,7 +31,7 @@ public final class JaccardSimilarity {
    * The Upper and Lower bounds are for a confidence interval of 95.4% or +/- 2 standard deviations.
    */
   public static double[] jaccard(final Sketch sketchA, final Sketch sketchB, final int minK) {
-    double[] ret = {0.0, 0.0, 0.0}; // LB, Estimate, UB
+    final double[] ret = {0.0, 0.0, 0.0}; // LB, Estimate, UB
 
     //Corner case checks
     if ((sketchA == null) || (sketchB == null)) { return ret; } //or throw?

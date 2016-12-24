@@ -338,7 +338,7 @@ public final class DirectDoublesSketch extends DoublesSketch {
     }
   }
 
-  static void checkEmptyAndN(boolean empty, long n) {
+  static void checkEmptyAndN(final boolean empty, final long n) {
     if (empty && (n > 0)) {
       throw new SketchesArgumentException(
           "Possible corruption: Empty Flag = true and N > 0: " + n);

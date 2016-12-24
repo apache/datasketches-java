@@ -15,7 +15,7 @@ import com.yahoo.memory.Memory;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-public class DoublesUnionImpl extends DoublesUnion {
+public final class DoublesUnionImpl extends DoublesUnion {
   private int k_;
   private DoublesSketch gadget_ = null;
 
@@ -40,7 +40,7 @@ public class DoublesUnionImpl extends DoublesUnion {
    * @return a DoublesUnion object
    */
   static DoublesUnionImpl directInstance(final int k, final Memory dstMem) {
-    DirectDoublesSketch sketch = DirectDoublesSketch.newInstance(k, dstMem);
+    final DirectDoublesSketch sketch = DirectDoublesSketch.newInstance(k, dstMem);
     final DoublesUnionImpl union = new DoublesUnionImpl(k);
     union.k_ = k;
     union.gadget_ = sketch;
@@ -55,7 +55,7 @@ public class DoublesUnionImpl extends DoublesUnion {
    * @return a DoublesUnion object
    */
   static DoublesUnionImpl heapifyInstance(final DoublesSketch sketch) {
-    int k = sketch.getK();
+    final int k = sketch.getK();
     final DoublesUnionImpl union = new DoublesUnionImpl(k);
     union.k_ = k;
     union.gadget_ = copyToHeap(sketch);
@@ -71,8 +71,8 @@ public class DoublesUnionImpl extends DoublesUnion {
    * @return a DoublesUnion object
    */
   static DoublesUnionImpl heapifyInstance(final Memory srcMem) {
-    HeapDoublesSketch sketch = HeapDoublesSketch.heapifyInstance(srcMem);
-    int k = sketch.getK();
+    final HeapDoublesSketch sketch = HeapDoublesSketch.heapifyInstance(srcMem);
+    final int k = sketch.getK();
     final DoublesUnionImpl union = new DoublesUnionImpl(k);
     union.k_ = k;
     union.gadget_ = sketch;
@@ -88,8 +88,8 @@ public class DoublesUnionImpl extends DoublesUnion {
    * @return a Union object
    */
   static DoublesUnionImpl wrapInstance(final Memory mem) {
-    DirectDoublesSketch sketch = DirectDoublesSketch.wrapInstance(mem);
-    int k = sketch.getK();
+    final DirectDoublesSketch sketch = DirectDoublesSketch.wrapInstance(mem);
+    final int k = sketch.getK();
     final DoublesUnionImpl union = new DoublesUnionImpl(k);
     union.k_ = k;
     union.gadget_ = sketch;
@@ -148,7 +148,7 @@ public class DoublesUnionImpl extends DoublesUnion {
   @Override
   public byte[] toByteArray() {
     if (gadget_ == null) {
-      HeapDoublesSketch sketch = HeapDoublesSketch.newInstance(k_);
+      final HeapDoublesSketch sketch = HeapDoublesSketch.newInstance(k_);
       return DoublesByteArrayImpl.toByteArray(sketch, true, false);
     }
     return DoublesByteArrayImpl.toByteArray(gadget_, true, false);
@@ -301,6 +301,5 @@ public class DoublesUnionImpl extends DoublesUnion {
     if (srcMax > tgtMax) { tgt.putMaxValue(srcMax); }
     if (srcMin < tgtMin) { tgt.putMinValue(srcMin); }
   }
-
 
 }

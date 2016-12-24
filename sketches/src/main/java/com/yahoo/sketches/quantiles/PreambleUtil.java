@@ -233,6 +233,6 @@ final class PreambleUtil {
 
   static void insertIntoBaseBuffer(final Object memObj, final long memAdd, final int bbOffset,
       final double value) {
-    unsafe.putDouble(memObj, memAdd + COMBINED_BUFFER + bbOffset * 8, value);
+    unsafe.putDouble(memObj, memAdd + COMBINED_BUFFER + bbOffset * 8L, value);
   }
 }

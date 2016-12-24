@@ -33,6 +33,12 @@
     <Class name="com.yahoo.sketches.theta.DirectQuickSelectSketch" />
     <Method name="setHashTableThreshold" />
   </Match>
+
+  <Match>
+    <Bug pattern="DE_MIGHT_IGNORE" />
+    <Class name="com.yahoo.sketches.theta.PairwiseCornerCasesTest" />
+    <Method name="checkNotOrdered" />
+  </Match>
   
 </FindBugsFilter>
 

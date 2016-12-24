@@ -38,9 +38,8 @@ final class Rebuilder {
    * @param mem the Memory the given Memory
    * @param preambleLongs size of preamble in longs
    * @param lgNomLongs the log_base2 of k, the configuration parameter of the sketch
-   * @return updated current count based on number of values in the hash table.
    */
-  static final int quickSelectAndRebuild(final Memory mem, final int preambleLongs,
+  static final void quickSelectAndRebuild(final Memory mem, final int preambleLongs,
       final int lgNomLongs) {
     //Note: This copies the Memory data onto the heap and then at the end copies the result
     // back to Memory. Even if we tried to do this directly into Memory it would require pre-clearing,
@@ -70,7 +69,6 @@ final class Rebuilder {
 
     //put the rebuilt array back into memory
     mem.putLongArray(preBytes, tgtArr, 0, arrLongs);
-    return newCurCount;
   }
 
   /**

@@ -153,9 +153,11 @@ public class DirectDoublesSketchTest {
   public void checkMisc() {
     int k = DoublesSketch.DEFAULT_K;
     int n = 48;
-    Memory mem = new NativeMemory(new byte[32 + ((2 * k) << 3)]);
+    int cap = 32 + ((2 * k) << 3);
+    Memory mem = new NativeMemory(new byte[cap]);
     DoublesSketch qs = DoublesSketch.builder().initMemory(mem).build(k);
     mem = qs.getMemory();
+    assertEquals(mem.getCapacity(), cap);
     double[] combBuf = qs.getCombinedBuffer();
     assertEquals(combBuf.length, 2 * k);
     qs = buildAndLoadDQS(k, n);

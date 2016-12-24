@@ -357,8 +357,8 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
       return RejectedDuplicate; //Duplicate, not inserted
     }
     //insertion occurred, increment curCount
-    int curCount = extractCurCount(memObj_, memAdd_) + 1;
-    insertCurCount(memObj_, memAdd_, curCount);
+    final int curCount = extractCurCount(memObj_, memAdd_) + 1;
+    insertCurCount(memObj_, memAdd_, curCount); //update curCount
 
     if (curCount > hashTableThreshold_) { //we need to do something, we are out of space
 
@@ -367,7 +367,7 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
         assert (lgArrLongs == lgNomLongs_ + 1)
             : "lgArr: " + lgArrLongs + ", lgNom: " + lgNomLongs_;
         //rebuild, refresh curCount based on # values in the hashtable.
-        curCount = quickSelectAndRebuild(mem_, preambleLongs_, lgNomLongs_);
+        quickSelectAndRebuild(mem_, preambleLongs_, lgNomLongs_);
       } //end of rebuild, exit
 
       else { //Not at full size, resize. Should not get here if lgRF = 0 and memCap is too small.
