@@ -42,7 +42,7 @@
  *
  * <p>From our own testing, sketching 100 million IPv4 addresses with such a
  * highly skewed distribution of identifiers per IP uses only 1.6GB of memory. This translates to
- * an average of about 12 bytes per IP allocated to the equivalent of a full k=1024 HLL sketch
+ * an average of about 10 bytes per IP allocated to the equivalent of a full k=1024 HLL sketch
  * and provides an RSE of less than 2.5%.  Your results will vary depending on the actual
  * distribution of identifiers per key.
  * @see com.yahoo.sketches.hll.UniqueCountMap

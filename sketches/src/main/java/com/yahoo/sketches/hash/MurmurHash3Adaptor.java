@@ -16,7 +16,7 @@ import com.yahoo.sketches.SketchesStateException;
 /**
  * A general purpose wrapper for the MurmurHash3.
  * <ul>
- * <li>Inputs can be long, long[], int[], byte[], double or String.</li>
+ * <li>Inputs can be long, long[], int[], char[], byte[], double or String.</li>
  * <li>Returns null if arrays or String is null or empty.</li>
  * <li>Provides methods for returning the 128-bit result as either an array of 2 longs or as a byte
  * array of 16 bytes.</li>

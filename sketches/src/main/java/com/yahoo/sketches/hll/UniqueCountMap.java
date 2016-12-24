@@ -21,7 +21,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  *
  * <p>The space consumed by this map is quite sensitive to the actual distribution of identifiers
  * per key, so you should characterize and or experiment with your typical input streams.
- * Nonetheless, our experiments on live streams of over 100M keys required space less than 2GB.
+ * Nonetheless, our experiments on live streams of over 100M keys required about 1.6GB of space.
  *
  * <p>Given such highly-skewed distributions, using this map is far more efficient space-wise than
  * the alternative of dedicating an HLL sketch per key. Based on our use cases, after
