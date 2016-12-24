@@ -483,21 +483,36 @@ public class LongsSketch {
 
   /**
    * Returns an array of Rows that include frequent items, estimates, upper and lower bounds
-   * given an ErrorCondition.
+   * given a threshold and an ErrorCondition. If the threshold is lower than getMaximumError(),
+   * then getMaximumError() will be used instead.
    *
    * <p>The method first examines all active items in the sketch (items that have a counter).
    *
    * <p>If <i>ErrorType = NO_FALSE_NEGATIVES</i>, this will include an item in the result
-   * list if getUpperBound(item) &gt; getMaximumError().
+   * list if getUpperBound(item) &gt; threshold.
    * There will be no false negatives, i.e., no Type II error.
    * There may be items in the set with true frequencies less than the threshold
    * (false positives).</p>
    *
    * <p>If <i>ErrorType = NO_FALSE_POSITIVES</i>, this will include an item in the result
-   * list if getLowerBound(item) &gt; getMaximumError().
+   * list if getLowerBound(item) &gt; threshold.
    * There will be no false positives, i.e., no Type I error.
    * There may be items omitted from the set with true frequencies greater than the
    * threshold (false negatives). This is a subset of the NO_FALSE_NEGATIVES case.</p>
+   *
+   * @param threshold to include items in the result list
+   * @param errorType determines whether no false positives or no false negatives are
+   * desired.
+   * @return an array of frequent items
+   */
+  public Row[] getFrequentItems(final long threshold, final ErrorType errorType) {
+    return sortItems(threshold > getMaximumError() ? threshold : getMaximumError(), errorType);
+  }
+
+  /**
+   * Returns an array of Rows that include frequent items, estimates, upper and lower bounds
+   * given an ErrorCondition and the default threshold.
+   * This is the same as getFrequentItems(getMaximumError(), errorType)
    *
    * @param errorType determines whether no false positives or no false negatives are
    * desired.
