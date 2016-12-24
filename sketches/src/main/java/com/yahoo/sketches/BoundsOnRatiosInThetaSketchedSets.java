@@ -11,7 +11,7 @@ import com.yahoo.sketches.theta.Sketch;
  * This class is used to compute the bounds on the estimate of the ratio <i>B / A</i>, where:
  * <ul>
  * <li><i>A</i> is a Theta Sketch of population <i>PopA</i>.</li>
- * <li><i>B</i> is a Theta Sketch of population <i>PopB</i> that is a proper subset of <i>A</i>,
+ * <li><i>B</i> is a Theta Sketch of population <i>PopB</i> that is a subset of <i>A</i>,
  * obtained by an intersection of <i>A</i> with some other Theta Sketch <i>C</i>,
  * which acts like a predicate or selection clause.</li>
  * <li>The estimate of the ratio <i>PopB/PopA</i> is
