@@ -522,19 +522,21 @@ public class HeapDoublesSketchTest {
   public void checkMemCapacityException() {
     int k = DoublesSketch.DEFAULT_K;
     long n = 1000;
+    int serVer = 3;
     int combBufItemCap = computeCombinedBufferItemCapacity(k, n, true);
     int memCapBytes = (combBufItemCap + 4) << 3;
     int badCapBytes = memCapBytes - 1; //corrupt
-    HeapDoublesSketch.checkHeapMemCapacity(k, n, false, badCapBytes);
+    HeapDoublesSketch.checkHeapMemCapacity(k, n, false, serVer, badCapBytes);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBufAllocAndCap() {
     int k = DoublesSketch.DEFAULT_K;
     long n = 1000;
+    int serVer = 3;
     int combBufItemCap = computeCombinedBufferItemCapacity(k, n, true); //non-compact cap
     int memCapBytes = (combBufItemCap + 4) << 3;
-    HeapDoublesSketch.checkHeapMemCapacity(k, n, false, memCapBytes - 1); //corrupt
+    HeapDoublesSketch.checkHeapMemCapacity(k, n, false, serVer, memCapBytes - 1); //corrupt
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

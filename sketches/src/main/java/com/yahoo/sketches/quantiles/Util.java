@@ -67,7 +67,7 @@ final class Util {
    * @param flags the flags field
    * @param memCapBytes the memory capacity
    * @return the value of the empty state
-   */ // Used by HeapDoublesSketch, ItemsSketch, Test
+   */ // Used by ItemsSketch, Test;  //TODO Need to Deprecate
   static boolean checkPreLongsFlagsCap(final int preambleLongs, final int flags, final long memCapBytes) {
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0; //Preamble flags empty state
     final int minPre = Family.QUANTILES.getMinPreLongs(); //1

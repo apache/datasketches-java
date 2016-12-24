@@ -6,6 +6,7 @@
 package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFamilyID;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractK;
@@ -127,11 +128,12 @@ final class HeapDoublesSketch extends DoublesSketch {
     final int familyID = extractFamilyID(memObj, memAdd);
     final int flags = extractFlags(memObj, memAdd);
     final int k = extractK(memObj, memAdd);
+    final boolean empty = (flags & EMPTY_FLAG_MASK) > 0; //Preamble flags empty state
 
     //VALIDITY CHECKS
     DoublesUtil.checkDoublesSerVer(serVer, MIN_HEAP_DOUBLES_SER_VER);
-
-    final boolean empty = Util.checkPreLongsFlagsCap(preLongs, flags, memCapBytes);
+    Util.checkHeapFlags(flags);
+    checkPreLongsEmpty(preLongs, empty, serVer);
     Util.checkFamilyID(familyID);
 
     final HeapDoublesSketch hds = newInstance(k); //checks k
@@ -142,7 +144,7 @@ final class HeapDoublesSketch extends DoublesSketch {
     final boolean srcIsCompact = (serVer == 2) | ((flags & COMPACT_FLAG_MASK) > 0);
 
     final long n = extractN(memObj, memAdd); //Second 8 bytes of preamble
-    HeapDoublesSketch.checkHeapMemCapacity(k, n, srcIsCompact, memCapBytes);
+    checkHeapMemCapacity(k, n, srcIsCompact, serVer, memCapBytes);
 
     //set class members by computing them
     hds.n_ = n;
@@ -393,6 +395,17 @@ final class HeapDoublesSketch extends DoublesSketch {
     combinedBuffer_ = Arrays.copyOf(baseBuffer, newSize);
   }
 
+  static void checkPreLongsEmpty(final int preLongs, boolean empty, int serVer) {
+    final int minPre = Family.QUANTILES.getMinPreLongs(); //1
+
+    final int maxPre = (serVer == 1) ? 5 : Family.QUANTILES.getMaxPreLongs(); //2
+    final boolean valid = ((preLongs == minPre) && empty) || ((preLongs == maxPre) && !empty);
+    if (!valid) {
+      throw new SketchesArgumentException(
+          "Possible corruption: PreambleLongs inconsistent with empty state: " + preLongs);
+    }
+  }
+
   /**
    * Checks the validity of the heap memory capacity assuming n, k and the compact state.
    * @param k the given value of k
@@ -401,8 +414,8 @@ final class HeapDoublesSketch extends DoublesSketch {
    * @param memCapBytes the current memory capacity in bytes
    */
   static void checkHeapMemCapacity(final int k, final long n, final boolean compact,
-      final long memCapBytes) {
-    final int metaPre = Family.QUANTILES.getMaxPreLongs() + 2;
+      final int serVer, final long memCapBytes) {
+    final int metaPre = Family.QUANTILES.getMaxPreLongs() + ((serVer == 1) ? 3 : 2);
     final int retainedItems = computeRetainedItems(k, n);
     final int reqBufBytes;
     if (compact) {
