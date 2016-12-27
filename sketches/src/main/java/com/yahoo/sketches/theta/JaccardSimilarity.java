@@ -60,4 +60,50 @@ public final class JaccardSimilarity {
     return ret;
   }
 
+  /**
+   * Tests similarity of a measured Sketch against an expected Sketch.
+   * Computes the lower bound of the Jaccard ratio <i>J<sub>LB</sub></i> of the measured and
+   * expected sketches.
+   * if <i>J<sub>LB</sub> >= threshold</i>, then the sketches are considered to be
+   * similar with a confidence of 97.7%.
+   *
+   * @param measured the sketch to be tested
+   * @param expected the reference sketch that is considered to be correct.
+   * @param minK the minimum value of <i>k</i> used for the given sketches.
+   * @param threshold a real value between zero and one.
+   * @return if true, the similarity of the two sketches is greater than the given threshold
+   * with at least 97.7% confidence.
+   */
+  public static boolean similarityTest(final Sketch measured, final Sketch expected,
+      final int minK, final double threshold) {
+      //index 0: the lower bound
+      //index 1: the mean estimate
+      //index 2: the upper bound
+      final double jRatio = jaccard(measured, expected, minK)[0]; //choosing the lower bound
+    return jRatio >= threshold;
+  }
+
+  /**
+   * Tests dissimilarity of a measured Sketch against an expected Sketch.
+   * Computes the upper bound of the Jaccard ratio <i>J<sub>LB</sub></i> of the measured and
+   * expected sketches.
+   * if <i>J<sub>UB</sub> >= threshold</i>, then the sketches are considered to be
+   * dissimilar with a confidence of 97.7%.
+   *
+   * @param measured the sketch to be tested
+   * @param expected the reference sketch that is considered to be correct.
+   * @param minK the minimum value of <i>k</i> used for the given sketches.
+   * @param threshold a real value between zero and one.
+   * @return if true, the dissimilarity of the two sketches is greater than the given threshold
+   * with at least 97.7% confidence.
+   */
+  public static boolean dissimilarityTest(final Sketch measured, final Sketch expected,
+      final int minK, final double threshold) {
+      //index 0: the lower bound
+      //index 1: the mean estimate
+      //index 2: the upper bound
+      final double jRatio = jaccard(measured, expected, minK)[2]; //choosing the upper bound
+    return jRatio <= threshold;
+  }
+
 }
