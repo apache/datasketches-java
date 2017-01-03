@@ -42,10 +42,12 @@ final class VersionConverter {
     // convert the union preamble
     final Memory converted = perform1to2Changes(srcMem);
 
+    final Object memObj = converted.array(); // may be null
+    final long memAddr = converted.getCumulativeOffset(0L);
+
     // if sketch gadget exists, convert that, too
-    final long pre0 = converted.getLong(0);
-    final int preLongs = extractPreLongs(pre0);
-    final int flags = extractFlags(pre0);
+    final int preLongs = extractPreLongs(memObj, memAddr);
+    final int flags = extractFlags(memObj, memAddr);
     final boolean isEmpty = (flags & EMPTY_FLAG_MASK) > 0;
 
     if (!isEmpty) {
@@ -68,15 +70,16 @@ final class VersionConverter {
       converted = new NativeMemory(data);
     }
 
+    final Object memObj = converted.array(); // may be null
+    final long memAddr = converted.getCumulativeOffset(0L);
+
     // get encoded k, decode, write new value
-    long pre0 = converted.getLong(0);
-    final short encodedK = extractEncodedReservoirSize(pre0);
+    final short encodedK = extractEncodedReservoirSize(memObj, memAddr);
     final int k = ReservoirSize.decodeValue(encodedK);
-    pre0 = insertReservoirSize(k, pre0);
+    insertReservoirSize(memObj, memAddr, k);
 
     // update serialization version
-    pre0 = insertSerVer(SER_VER, pre0);
-    converted.putLong(0, pre0);
+    insertSerVer(memObj, memAddr, SER_VER);
 
     return converted;
   }

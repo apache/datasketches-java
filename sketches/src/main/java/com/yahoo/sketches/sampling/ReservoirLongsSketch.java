@@ -171,11 +171,13 @@ public final class ReservoirLongsSketch {
   public static ReservoirLongsSketch getInstance(Memory srcMem) {
     Family.RESERVOIR.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
 
+    final Object memObj = srcMem.array(); // may be null
+    final long memAddr = srcMem.getCumulativeOffset(0L);
+
     final int numPreLongs = getAndCheckPreLongs(srcMem);
-    long pre0 = srcMem.getLong(0);
-    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(pre0));
-    final int serVer = extractSerVer(pre0);
-    final boolean isEmpty = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0;
+    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(memObj, memAddr));
+    final int serVer = extractSerVer(memObj, memAddr);
+    final boolean isEmpty = (extractFlags(memObj, memAddr) & EMPTY_FLAG_MASK) != 0;
 
     // Check values
     final boolean preLongsEqMin = (numPreLongs == Family.RESERVOIR.getMinPreLongs());
@@ -188,22 +190,20 @@ public final class ReservoirLongsSketch {
     if (serVer != SER_VER) {
       if (serVer == 1) {
         srcMem = VersionConverter.convertSketch1to2(srcMem);
-        pre0 = srcMem.getLong(0);
       } else {
         throw new SketchesArgumentException(
                 "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
       }
     }
 
-    final int k = extractReservoirSize(pre0);
+    final int k = extractReservoirSize(memObj, memAddr);
 
     if (isEmpty) {
       return new ReservoirLongsSketch(k, rf);
     }
 
     // get rest of preamble
-    final long pre1 = srcMem.getLong(8);
-    final long itemsSeen = extractItemsSeenCount(pre1);
+    final long itemsSeen = extractItemsSeenCount(memObj, memAddr);
 
     final int preLongBytes = numPreLongs << 3;
     final int numSketchLongs = (int) Math.min(itemsSeen, k);
@@ -354,27 +354,26 @@ public final class ReservoirLongsSketch {
     final byte[] outArr = new byte[outBytes];
     final Memory mem = new NativeMemory(outArr);
 
+    final Object memObj = mem.array(); // may be null
+    final long memAddr = mem.getCumulativeOffset(0L);
+
     // build first preLong
-    long pre0 = 0L;
-    pre0 = PreambleUtil.insertPreLongs(preLongs, pre0); // Byte 0
-    pre0 = PreambleUtil.insertResizeFactor(rf_.lg(), pre0);
-    pre0 = PreambleUtil.insertSerVer(SER_VER, pre0); // Byte 1
-    pre0 = PreambleUtil.insertFamilyID(Family.RESERVOIR.getID(), pre0); // Byte 2
-    pre0 = (empty) ? PreambleUtil.insertFlags(EMPTY_FLAG_MASK, pre0)
-        : PreambleUtil.insertFlags(0, pre0); // Byte 3
-    pre0 = PreambleUtil.insertReservoirSize(reservoirSize_, pre0); // Bytes 4-7
-
+    PreambleUtil.insertPreLongs(memObj, memAddr, preLongs);                 // Byte 0
+    PreambleUtil.insertLgResizeFactor(memObj, memAddr, rf_.lg());
+    PreambleUtil.insertSerVer(memObj, memAddr, SER_VER);                    // Byte 1
+    PreambleUtil.insertFamilyID(memObj, memAddr, Family.RESERVOIR.getID()); // Byte 2
     if (empty) {
-      mem.putLong(0, pre0);
+      PreambleUtil.insertFlags(memObj, memAddr, EMPTY_FLAG_MASK);           // Byte 3
     } else {
-      // second preLong, only if non-empty
-      long pre1 = 0L;
-      pre1 = PreambleUtil.insertItemsSeenCount(itemsSeen_, pre1);
+      PreambleUtil.insertFlags(memObj, memAddr, 0);
+    }
+    PreambleUtil.insertReservoirSize(memObj, memAddr, reservoirSize_);      // Bytes 4-7
 
-      final long[] preArr = new long[preLongs];
-      preArr[0] = pre0;
-      preArr[1] = pre1;
-      mem.putLongArray(0, preArr, 0, preLongs);
+    if (!empty) {
+      // second preLong, only if non-empty
+      PreambleUtil.insertItemsSeenCount(memObj, memAddr, itemsSeen_);
+
+      // insert the serialized samples, offset by the preamble size
       final int preBytes = preLongs << 3;
       mem.putLongArray(preBytes, data_, 0, numItems);
     }

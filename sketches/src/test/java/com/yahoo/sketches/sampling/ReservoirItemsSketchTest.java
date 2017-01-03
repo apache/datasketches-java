@@ -194,7 +194,7 @@ public class ReservoirItemsSketchTest {
       // expected
     }
 
-    // likewise for toByteArray() (which uses getSamples() internally for type handling)
+    // likewise for toByteArray() (which uses getDataSamples() internally for type handling)
     ArrayOfNumbersSerDe serDe = new ArrayOfNumbersSerDe();
     try {
       ris.toByteArray(serDe);
@@ -286,7 +286,7 @@ public class ReservoirItemsSketchTest {
     ArrayList<Long> rawSamples = ris.getRawSamplesAsList();
     assertEquals(rawSamples.size(), n);
 
-    // change a value and make sure getSamples() reflects that change
+    // change a value and make sure getDataSamples() reflects that change
     assertEquals((long) rawSamples.get(0), 0L);
     rawSamples.set(0, -1L);
 

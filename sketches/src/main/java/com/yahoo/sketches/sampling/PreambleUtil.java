@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.sampling;
 
+import static com.yahoo.memory.UnsafeUtil.unsafe;
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.TAB;
 import static com.yahoo.sketches.Util.zeroPad;
@@ -34,8 +35,8 @@ import com.yahoo.sketches.SketchesArgumentException;
  * floating point format. To ensure meaningful probabilities as the items seen count approaches
  * capacity, we intentionally use slightly fewer bits.</p>
  *
- * <p>An empty sampling sketch only requires 8 bytes. A non-empty sampling sketch requires 16
- * bytes of preamble.</p>
+ * <p>An empty reservoir sampling sketch only requires 8 bytes. A non-empty sampling sketch
+ * requires 16 bytes of preamble.</p>
  *
  * <pre>
  * Long || Start Byte Adr:
@@ -47,10 +48,10 @@ import com.yahoo.sketches.SketchesArgumentException;
  *  1   ||-----(empty)-----|-------------------Items Seen Count------------------------------|
  *  </pre>
  *
- * <p><strong>Union:</strong> The union has fewer internal parameters to track and uses a slightly
- * different preamble structure. The maximum reservoir size intentionally occupies the same byte
- * range as the reservoir size in the sketch preamble, allowing the same methods to be used for
- * reading and writing the values.</p>
+ * <p><strong>Union:</strong> The reservoir union has fewer internal parameters to track and uses
+ * a slightly different preamble structure. The maximum reservoir size intentionally occupies the
+ * same byte range as the reservoir size in the sketch preamble, allowing the same methods to be
+ * used for reading and writing the values.</p>
  *
  * <p>An empty union only requires 8 bytes. A non-empty union requires 8 bytes of preamble.</p>
  *
@@ -59,7 +60,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * Adr:
  *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
  *  0   ||---------Max Res. Size (K)---------|  Flags | FamID  | SerVer |   Preamble_Longs   |
- *  </pre>
+ * </pre>
  *
  *  @author Jon Malkin
  *  @author Lee Rhodes
@@ -78,7 +79,7 @@ final class PreambleUtil {
   static final int RESERVOIR_SIZE_SHORT  = 4; // used in ser_ver 1
   static final int RESERVOIR_SIZE_INT    = 4;
   static final int SERDE_ID_SHORT        = 6; // used in ser_ver 1
-  static final int ITEMS_SEEN_BYTE       = 8;
+  static final int ITEMS_SEEN_LONG       = 8;
 
   //static final int MAX_K_SHORT           = 4; // used in Union only, ser_ver 1
   //static final int MAX_K_INT             = 4; // used in Union only
@@ -120,16 +121,17 @@ final class PreambleUtil {
    * @return the summary preamble string.
    */
   public static String preambleToString(final Memory mem) {
-    // TODO: different path for sketch vs union
+    // TODO: different path for sketch vs union vs varopt based on family flag
+    final Object memObj = mem.array(); //may be null
+    final long memAddr = mem.getCumulativeOffset(0L);
     final int preLongs = getAndCheckPreLongs(mem);  //make sure we can get the assumed preamble
-    final long pre0 = mem.getLong(0);
 
-    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(pre0));
-    final int serVer = extractSerVer(pre0);
-    final Family family = Family.idToFamily(extractFamilyID(pre0));
+    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(memObj, memAddr));
+    final int serVer = extractSerVer(memObj, memAddr);
+    final Family family = Family.idToFamily(extractFamilyID(memObj, memAddr));
 
     //Flags
-    final int flags = extractFlags(pre0);
+    final int flags = extractFlags(memObj, memAddr);
     final String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
     //boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
     final String nativeOrder = ByteOrder.nativeOrder().toString();
@@ -138,12 +140,11 @@ final class PreambleUtil {
     //boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
     final boolean isEmpty = (flags & EMPTY_FLAG_MASK) > 0;
 
-    final int resSize = extractReservoirSize(pre0);
+    final int resSize = extractReservoirSize(memObj, memAddr);
 
     long itemsSeen = 0;
     if (!isEmpty) {
-      final long pre1 = mem.getLong(8);
-      itemsSeen = extractItemsSeenCount(pre1);
+      itemsSeen = extractItemsSeenCount(memObj, memAddr);
     }
 
     final StringBuilder sb = new StringBuilder();
@@ -172,112 +173,89 @@ final class PreambleUtil {
 
   //Extract from long and insert into long methods
 
-  static int extractPreLongs(final long long0) {
-    final long mask = 0X3FL;
-    return (int) (long0 & mask);
+  static int extractPreLongs(final Object memObj, final long memAddr) {
+    return unsafe.getByte(memObj, memAddr + PREAMBLE_LONGS_BYTE) & 0x3F;
   }
 
-  static int extractResizeFactor(final long long0) {
-    final int shift = LG_RESIZE_FACTOR_BITS; // units in bits
-    final long mask = 0X3L;
-    return (int) ((long0 >>> shift) & mask);
+  static int extractResizeFactor(final Object memObj, final long memAddr) {
+    return (unsafe.getByte(memObj, memAddr + PREAMBLE_LONGS_BYTE) >> LG_RESIZE_FACTOR_BITS) & 0x3;
   }
 
-  static int extractSerVer(final long long0) {
-    final int shift = SER_VER_BYTE << 3;
-    final long mask = 0XFFL;
-    return (int) ((long0 >>> shift) & mask);
+  static int extractSerVer(final Object memObj, final long memAddr) {
+    return unsafe.getByte(memObj, memAddr + SER_VER_BYTE) & 0xFF;
   }
 
-  static int extractFamilyID(final long long0) {
-    final int shift = FAMILY_BYTE << 3;
-    final long mask = 0XFFL;
-    return (int) ((long0 >>> shift) & mask);
+  static int extractFamilyID(final Object memObj, final long memAddr) {
+    return unsafe.getByte(memObj, memAddr + FAMILY_BYTE) & 0xFF;
   }
 
-  static int extractFlags(final long long0) {
-    final int shift = FLAGS_BYTE << 3;
-    final long mask = 0XFFL;
-    return (int) ((long0 >>> shift) & mask);
+  static int extractFlags(final Object memObj, final long memAddr) {
+    return unsafe.getByte(memObj, memAddr + FLAGS_BYTE) & 0xFF;
   }
 
-  static short extractEncodedReservoirSize(final long long0) {
-    final int shift = RESERVOIR_SIZE_SHORT << 3;
-    final long mask = 0XFFFFL;
-    return (short) ((long0 >>> shift) & mask);
+  static short extractEncodedReservoirSize(final Object memObj, final long memAddr) {
+    return unsafe.getShort(memObj, memAddr + RESERVOIR_SIZE_SHORT);
   }
 
-  static int extractReservoirSize(final long long0) {
-    final int shift = RESERVOIR_SIZE_INT << 3;
-    final long mask = 0XFFFFFFFFL;
-    return (int) ((long0 >>> shift) & mask);
+  static int extractReservoirSize(final Object memObj, final long memAddr) {
+    return unsafe.getInt(memObj, memAddr + RESERVOIR_SIZE_INT);
   }
 
-  static int extractMaxK(final long long0) {
-    return extractReservoirSize(long0);
+  static int extractMaxK(final Object memObj, final long memAddr) {
+    return extractReservoirSize(memObj, memAddr);
   }
 
   @Deprecated
-  static short extractSerDeId(final long long0) {
-    final int shift = SERDE_ID_SHORT << 3;
-    final long mask = 0XFFFFL;
-    return (short) ((long0 >>> shift) & mask);
+  static short extractSerDeId(final Object memObj, final long memAddr) {
+    return unsafe.getShort(memObj, memAddr + SERDE_ID_SHORT);
   }
 
-  static long extractItemsSeenCount(final long long1) {
-    final long mask = 0XFFFFFFFFFFFFL;
-    return (long1 & mask);
+  static long extractItemsSeenCount(final Object memObj, final long memAddr) {
+    return unsafe.getLong(memObj, memAddr + ITEMS_SEEN_LONG);
   }
 
-  static long insertPreLongs(final int preLongs, final long long0) {
-    final long mask = 0X3FL;
-    return (preLongs & mask) | (~mask & long0);
+  static void insertPreLongs(final Object memObj, final long memAddr, final int preLongs) {
+    final int curByte = unsafe.getByte(memObj, memAddr + PREAMBLE_LONGS_BYTE);
+    final int mask = 0x3F;
+    final byte newByte = (byte) ((preLongs & mask) | (~mask & curByte));
+    unsafe.putByte(memObj, memAddr + PREAMBLE_LONGS_BYTE, newByte);
   }
 
-  static long insertResizeFactor(final int rf, final long long0) {
-    final int shift = LG_RESIZE_FACTOR_BITS; // units in bits
-    final long mask = 3L;
-    return ((rf & mask) << shift) | (~(mask << shift) & long0);
+  static void insertLgResizeFactor(final Object memObj, final long memAddr, final int rf) {
+    final int curByte = unsafe.getByte(memObj, memAddr + PREAMBLE_LONGS_BYTE);
+    final int shift = LG_RESIZE_FACTOR_BITS; // shift in bits
+    final int mask = 3;
+    final byte newByte = (byte) (((rf & mask) << shift) | (~(mask << shift) & curByte));
+    unsafe.putByte(memObj, memAddr + PREAMBLE_LONGS_BYTE, newByte);
   }
 
-  static long insertSerVer(final int serVer, final long long0) {
-    final int shift = SER_VER_BYTE << 3;
-    final long mask = 0XFFL;
-    return ((serVer & mask) << shift) | (~(mask << shift) & long0);
+  static void insertSerVer(final Object memObj, final long memAddr, final int serVer) {
+    unsafe.putByte(memObj, memAddr + SER_VER_BYTE, (byte) serVer);
   }
 
-  static long insertFamilyID(final int familyID, final long long0) {
-    final int shift = FAMILY_BYTE << 3;
-    final long mask = 0XFFL;
-    return ((familyID & mask) << shift) | (~(mask << shift) & long0);
+  static void insertFamilyID(final Object memObj, final long memAddr, final int famId) {
+    unsafe.putByte(memObj, memAddr + FAMILY_BYTE, (byte) famId);
   }
 
-  static long insertFlags(final int flags, final long long0) {
-    final int shift = FLAGS_BYTE << 3;
-    final long mask = 0XFFL;
-    return ((flags & mask) << shift) | (~(mask << shift) & long0);
+  static void insertFlags(final Object memObj, final long memAddr, final int flags) {
+    unsafe.putByte(memObj, memAddr + FLAGS_BYTE, (byte) flags);
   }
 
-  static long insertReservoirSize(final int reservoirSize, final long long0) {
-    final int shift = RESERVOIR_SIZE_INT << 3;
-    final long mask = 0XFFFFFFFFL;
-    return ((reservoirSize & mask) << shift) | (~(mask << shift) & long0);
+  static void insertReservoirSize(final Object memObj, final long memAddr, final int k) {
+    unsafe.putInt(memObj, memAddr + RESERVOIR_SIZE_INT, k);
   }
 
-  static long insertMaxK(final int reservoirSize, final long long0) {
-    return insertReservoirSize(reservoirSize, long0);
+  static void insertMaxK(final Object memObj, final long memAddr, final int maxK) {
+    insertReservoirSize(memObj, memAddr, maxK);
   }
 
   @Deprecated
-  static long insertSerDeId(final int serDeId, final long long0) {
-    final int shift = SERDE_ID_SHORT << 3;
-    final long mask = 0XFFFFL;
-    return ((serDeId & mask) << shift) | (~(mask << shift) & long0);
+  static void insertSerDeId(final Object memObj, final long memAddr, final short serDeId) {
+    unsafe.putShort(memObj, memAddr + SERDE_ID_SHORT, serDeId);
   }
 
-  static long insertItemsSeenCount(final long totalSeen, final long long1) {
-    final long mask = 0XFFFFFFFFFFFFL;
-    return (totalSeen & mask) | (~mask & long1);
+  static void insertItemsSeenCount(final Object memObj, final long memAddr, final long totalSeen) {
+    unsafe.putLong(memObj, memAddr + ITEMS_SEEN_LONG, totalSeen);
   }
 
   /**
@@ -286,10 +264,12 @@ final class PreambleUtil {
    * @return the extracted prelongs value.
    */
   static int getAndCheckPreLongs(final Memory mem) {
+    final Object memObj = mem.array(); //may be null
+    final long memAddr = mem.getCumulativeOffset(0L);
+
     final long cap = mem.getCapacity();
     if (cap < 8) { throwNotBigEnough(cap, 8); }
-    final long pre0 = mem.getLong(0);
-    final int preLongs = extractPreLongs(pre0);
+    final int preLongs = extractPreLongs(memObj, memAddr);
     final int required = Math.max(preLongs << 3, 8);
     if (cap < required) { throwNotBigEnough(cap, required); }
     return preLongs;

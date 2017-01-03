@@ -69,10 +69,12 @@ public final class ReservoirLongsUnion {
   public static ReservoirLongsUnion getInstance(Memory srcMem) {
     Family.RESERVOIR_UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
 
+    final Object memObj = srcMem.array(); // may be null
+    final long memAddr = srcMem.getCumulativeOffset(0L);
+
     final int numPreLongs = getAndCheckPreLongs(srcMem);
-    long pre0 = srcMem.getLong(0);
-    final int serVer = extractSerVer(pre0);
-    final boolean isEmpty = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0;
+    final int serVer = extractSerVer(memObj, memAddr);
+    final boolean isEmpty = (extractFlags(memObj, memAddr) & EMPTY_FLAG_MASK) != 0;
 
     final boolean preLongsEqMin = (numPreLongs == Family.RESERVOIR_UNION.getMinPreLongs());
     final boolean preLongsEqMax = (numPreLongs == Family.RESERVOIR_UNION.getMaxPreLongs());
@@ -84,14 +86,13 @@ public final class ReservoirLongsUnion {
     if (serVer != SER_VER) {
       if (serVer == 1) {
         srcMem = VersionConverter.convertUnion1to2(srcMem);
-        pre0 = srcMem.getLong(0);
       } else {
         throw new SketchesArgumentException(
                 "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
       }
     }
 
-    final int maxK = extractMaxK(pre0);
+    final int maxK = extractMaxK(memObj, memAddr);
     final ReservoirLongsUnion rlu = new ReservoirLongsUnion(maxK);
 
     if (!isEmpty) {
@@ -231,16 +232,20 @@ public final class ReservoirLongsUnion {
     final byte[] outArr = new byte[outBytes];
     final Memory mem = new NativeMemory(outArr);
 
-    // build preLong
-    long pre0 = 0L;
-    pre0 = PreambleUtil.insertPreLongs(preLongs, pre0); // Byte 0
-    pre0 = PreambleUtil.insertSerVer(SER_VER, pre0); // Byte 1
-    pre0 = PreambleUtil.insertFamilyID(Family.RESERVOIR_UNION.getID(), pre0); // Byte 2
-    pre0 = (empty) ? PreambleUtil.insertFlags(EMPTY_FLAG_MASK, pre0)
-        : PreambleUtil.insertFlags(0, pre0); // Byte 3
-    pre0 = PreambleUtil.insertMaxK(maxK_, pre0); // Bytes 4-7
+    final Object memObj = mem.array(); // may be null
+    final long memAddr = mem.getCumulativeOffset(0L);
 
-    mem.putLong(0, pre0);
+    // construct header
+    PreambleUtil.insertPreLongs(memObj, memAddr, preLongs);                       // Byte 0
+    PreambleUtil.insertSerVer(memObj, memAddr, SER_VER);                          // Byte 1
+    PreambleUtil.insertFamilyID(memObj, memAddr, Family.RESERVOIR_UNION.getID()); // Byte 2
+    if (empty) {
+      PreambleUtil.insertFlags(memObj, memAddr, EMPTY_FLAG_MASK);                 // Byte 3
+    } else {
+      PreambleUtil.insertFlags(memObj, memAddr, 0);
+    }
+    PreambleUtil.insertMaxK(memObj, memAddr, maxK_);                              // Bytes 4-7
+
     if (!empty) {
       final int preBytes = preLongs << 3;
       mem.putByteArray(preBytes, gadgetBytes, 0, gadgetBytes.length);
