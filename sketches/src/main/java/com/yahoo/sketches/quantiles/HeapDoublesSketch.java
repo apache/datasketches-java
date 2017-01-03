@@ -182,7 +182,7 @@ final class HeapDoublesSketch extends DoublesSketch {
     if (newBBCount == 2 * k_) { //Propogate
 
       // make sure there will be enough levels for the propagation
-      final int spaceNeeded = DoublesUpdateImpl.maybeGrowLevels(newN, k_);
+      final int spaceNeeded = DoublesUpdateImpl.maybeGrowLevels(k_, newN);
 
       if (spaceNeeded > combinedBufferItemCapacity_) {
         // copies base buffer plus old levels, adds space for new level

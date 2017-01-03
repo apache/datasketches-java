@@ -99,7 +99,7 @@ public class DoublesUnionImplTest {
     union.update(qs2); //case 9
   }
 
-  @Test//(expectedExceptions = SketchesStateException.class)
+  @Test
   public void checkResultAndReset() {
     DoublesSketch qs1 = buildQS(256, 0);
     DoublesUnion union = DoublesUnionBuilder.heapify(qs1);

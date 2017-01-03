@@ -263,7 +263,7 @@ public final class DoublesUnionImpl extends DoublesUnion {
       tgt.update(srcCombBuf[i]);
     }
 
-    final int spaceNeeded = DoublesUpdateImpl.maybeGrowLevels(nFinal, tgtK);
+    final int spaceNeeded = DoublesUpdateImpl.maybeGrowLevels(tgtK, nFinal);
     final int curCombBufCap = tgt.getCombinedBufferItemCapacity();
     if (spaceNeeded > curCombBufCap) {
       tgt.growCombinedBuffer(curCombBufCap, spaceNeeded); // copies base buffer plus current levels

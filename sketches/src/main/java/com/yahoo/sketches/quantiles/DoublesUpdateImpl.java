@@ -18,13 +18,13 @@ final class DoublesUpdateImpl {
   /**
    * Returns space needed based on new value of n and k, which may or may not be larger that
    * current space allocated.
-   * @param newN the new value of n
    * @param k current value of k
+   * @param newN the new value of n
    * @return space needed based on new value of n and k. It may not be different
    */
   //important: newN might not equal n_
   // This only increases the size and does not touch or move any data.
-  static int maybeGrowLevels(final long newN, final int k) {
+  static int maybeGrowLevels(final int k, final long newN) {
     final int numLevelsNeeded = Util.computeNumLevelsNeeded(k, newN);
     if (numLevelsNeeded == 0) {
       // don't need any levels yet, and might have small base buffer; this can happen during a merge

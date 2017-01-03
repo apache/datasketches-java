@@ -23,7 +23,7 @@ public class DoublesSketchBuilderTest {
     DoublesSketchBuilder bldr = DoublesSketch.builder();
     bldr.setK(k);
     assertEquals(bldr.getK(), k); //confirms new k
-
+    println(bldr.toString());
     byte[] byteArr = new byte[k]; //dummy value
     Memory mem = new NativeMemory(byteArr);
     bldr.initMemory(mem);

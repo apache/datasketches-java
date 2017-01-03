@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.quantiles;
 
+import static com.yahoo.sketches.quantiles.DoublesUpdateImpl.maybeGrowLevels;
 import static com.yahoo.sketches.quantiles.Util.LS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -16,6 +17,7 @@ import org.testng.annotations.Test;
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.SketchesException;
 
 //
 //import com.yahoo.memory.Memory;
@@ -209,6 +211,19 @@ public class DirectDoublesSketchTest {
     } catch (SketchesArgumentException e) {} //OK
   }
 
+  @Test
+  public void checkCheckDirectMemCapacity() {
+    int k = 128;
+    DirectDoublesSketch.checkDirectMemCapacity(k, 2 * k - 1, (4 + 2 * k) * 8);
+  }
+
+  @Test(expectedExceptions = SketchesException.class)
+  public void checkGrowCombinedBuffer() {
+    int k = 128;
+    int n = 2 * k -1;
+    DoublesSketch qs = buildDQS(k, n);
+    qs.growCombinedBuffer(qs.getCombinedBufferItemCapacity(), maybeGrowLevels(k, n + 1));
+  }
 
   static DoublesSketch buildAndLoadDQS(int k, int n) {
     return buildAndLoadDQS(k, n, 0);

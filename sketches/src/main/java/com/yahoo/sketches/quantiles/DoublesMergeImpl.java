@@ -50,7 +50,7 @@ class DoublesMergeImpl {
       tgt.update(srcCombBuf[i]);
     }
 
-    final int spaceNeeded = DoublesUpdateImpl.maybeGrowLevels(nFinal, tgtK);
+    final int spaceNeeded = DoublesUpdateImpl.maybeGrowLevels(tgtK, nFinal);
     final double[] tgtCombBuf;
     final int curCombBufCap = tgt.getCombinedBufferItemCapacity();
     if (spaceNeeded > curCombBufCap) {

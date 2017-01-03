@@ -132,15 +132,15 @@ public final class DirectDoublesSketch extends DoublesSketch {
     insertFlags(memObj_, memAdd_, 0); //not compact, not ordered, not empty
 
     if (bbCount == 2 * k_) { //Propogate
-      final int curCombBufCap = getCombinedBufferItemCapacity();
+      final int curCombBufItemCap = getCombinedBufferItemCapacity(); //K, prev N, Direct case
 
       // make sure there will be enough levels for the propagation
-      final int spaceNeeded = DoublesUpdateImpl.maybeGrowLevels(newN, k_);
+      final int itemSpaceNeeded = DoublesUpdateImpl.maybeGrowLevels(k_, newN);
       final double[] combinedBuffer;
 
-      if (spaceNeeded > curCombBufCap) {
+      if (itemSpaceNeeded > curCombBufItemCap) {
         // copies base buffer plus old levels, adds space for new level
-        combinedBuffer = growCombinedBuffer(curCombBufCap, spaceNeeded);
+        combinedBuffer = growCombinedBuffer(curCombBufItemCap, itemSpaceNeeded);
       } else {
         combinedBuffer = getCombinedBuffer();
       }
@@ -277,14 +277,14 @@ public final class DirectDoublesSketch extends DoublesSketch {
   }
 
   @Override
-  double[] growCombinedBuffer(final int curCombBufCap, final int spaceNeeded) {
+  double[] growCombinedBuffer(final int curCombBufItemCap, final int itemSpaceNeeded) {
     final long memBytes = mem_.getCapacity();
-    final int needBytes = (spaceNeeded << 3) + 32; //+ preamble + min, max
+    final int needBytes = (itemSpaceNeeded << 3) + 32; //+ preamble + min, max
     if ((needBytes) > memBytes) { //TODO Change to MemReq model?
       throw new SketchesException("Insufficient Memory: mem: " + memBytes + ", need: " + needBytes);
     }
-    final double[] newCombBuf = new double[spaceNeeded];
-    mem_.getDoubleArray(32, newCombBuf, 0, curCombBufCap);
+    final double[] newCombBuf = new double[itemSpaceNeeded];
+    mem_.getDoubleArray(32, newCombBuf, 0, curCombBufItemCap);
     return newCombBuf;
   }
 
