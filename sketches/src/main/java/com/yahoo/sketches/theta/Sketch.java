@@ -26,6 +26,7 @@ import com.yahoo.memory.Memory;
 import com.yahoo.sketches.BinomialBoundsN;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.Util;
 
 /**
  * The top-level class for all sketches. This class is never constructed directly.
@@ -287,8 +288,9 @@ public abstract class Sketch {
 
   /**
    * Wrap takes the sketch image in Memory and refers to it directly. There is no data copying onto
-   * the java heap.  Only "Direct" sketches that have been explicity stored as direct objects can
-   * be wrapped.  This method assumes the
+   * the java heap.  Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
+   * been explicity stored as direct objects can be wrapped. This method assumes the
+   * {@link Util#DEFAULT_UPDATE_SEED}.
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
    * @param srcMem an image of a Sketch where the image seed hash matches the default seed hash.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
