@@ -15,14 +15,19 @@ import static com.yahoo.sketches.hash.MurmurHash3.hash;
 public final class Util {
 
   /**
-   * The smallest Log2 cache size allowed: 32.
+   * The smallest Log2 cache size allowed: 5.
    */
   public static final int MIN_LG_ARR_LONGS = 5;
 
   /**
-   * The smallest Log2 nom entries allowed: 16.
+   * The smallest Log2 nom entries allowed: 4.
    */
   public static final int MIN_LG_NOM_LONGS = 4;
+
+  /**
+   * The largest Log2 nom entries allowed: 26.
+   */
+  public static final int MAX_LG_NOM_LONGS = 26;
 
   /**
    * The hash table rebuild threshold = 15.0/16.0.

@@ -8,6 +8,8 @@ package com.yahoo.sketches.theta;
 import static com.yahoo.sketches.Util.DEFAULT_NOMINAL_ENTRIES;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.Util.LS;
+import static com.yahoo.sketches.Util.MAX_LG_NOM_LONGS;
+import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
 import static com.yahoo.sketches.Util.TAB;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
@@ -47,13 +49,19 @@ public class SetOperationBuilder {
   }
 
   /**
-   * Sets the Nominal Entries for this set operation.
+   * Sets the Nominal Entries for this set operation. The minimum value is 16 and the maximum value
+   * is 67,108,864, which is 2^26. Be aware that Unions as large as this maximum value have not
+   * been thoroughly tested or characterized for performance.
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
    * This will become the ceiling power of 2 if it is not.
    * @return this SetOperationBuilder
    */
   public SetOperationBuilder setNominalEntries(final int nomEntries) {
     bLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
+    if ((bLgNomLongs > MAX_LG_NOM_LONGS) || (bLgNomLongs < MIN_LG_NOM_LONGS)) {
+      throw new SketchesArgumentException("Nominal Entries must be >= 16 and <= 67108864: "
+        + nomEntries);
+    }
     return this;
   }
 

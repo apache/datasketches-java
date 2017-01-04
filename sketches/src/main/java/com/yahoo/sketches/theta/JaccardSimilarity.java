@@ -64,7 +64,7 @@ public final class JaccardSimilarity {
    * Tests similarity of a measured Sketch against an expected Sketch.
    * Computes the lower bound of the Jaccard ratio <i>J<sub>LB</sub></i> of the measured and
    * expected sketches.
-   * if <i>J<sub>LB</sub> >= threshold</i>, then the sketches are considered to be
+   * if <i>J<sub>LB</sub> &ge; threshold</i>, then the sketches are considered to be
    * similar with a confidence of 97.7%.
    *
    * @param measured the sketch to be tested
@@ -79,15 +79,15 @@ public final class JaccardSimilarity {
       //index 0: the lower bound
       //index 1: the mean estimate
       //index 2: the upper bound
-      final double jRatio = jaccard(measured, expected, minK)[0]; //choosing the lower bound
-    return jRatio >= threshold;
+      final double jRatioLB = jaccard(measured, expected, minK)[0]; //choosing the lower bound
+    return jRatioLB >= threshold;
   }
 
   /**
    * Tests dissimilarity of a measured Sketch against an expected Sketch.
    * Computes the upper bound of the Jaccard ratio <i>J<sub>LB</sub></i> of the measured and
    * expected sketches.
-   * if <i>J<sub>UB</sub> >= threshold</i>, then the sketches are considered to be
+   * if <i>J<sub>UB</sub> &le; threshold</i>, then the sketches are considered to be
    * dissimilar with a confidence of 97.7%.
    *
    * @param measured the sketch to be tested
@@ -102,8 +102,8 @@ public final class JaccardSimilarity {
       //index 0: the lower bound
       //index 1: the mean estimate
       //index 2: the upper bound
-      final double jRatio = jaccard(measured, expected, minK)[2]; //choosing the upper bound
-    return jRatio <= threshold;
+      final double jRatioUB = jaccard(measured, expected, minK)[2]; //choosing the upper bound
+    return jRatioUB <= threshold;
   }
 
 }
