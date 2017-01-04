@@ -69,7 +69,7 @@ public final class ReservoirItemsSketch<T> {
 
     itemsSeen_ = 0;
 
-    final int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize_), "ReservoirLongsSketch");
+    final int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize_), "ReservoirItemsSketch");
     final int initialLgSize =
             SamplingUtil.startingSubMultiple(ceilingLgK, rf_.lg(), MIN_LG_ARR_ITEMS);
 
@@ -134,10 +134,10 @@ public final class ReservoirItemsSketch<T> {
   }
 
   /**
-   * Construct a mergeable sampling sample sketch with up to k samples using the default resize
+   * Construct a mergeable sampling sketch with up to k samples using the default resize
    * factor (8).
    *
-   * @param k   Maximum size of sampling. Allocated size may be smaller until sampling fills.
+   * @param k   Maximum size of sampling. Allocated size may be smaller until reservoir fills.
    *            Unlike many sketches in this package, this value does <em>not</em> need to be a
    *            power of 2.
    * @param <T> The type of object held in the reservoir.
@@ -148,10 +148,9 @@ public final class ReservoirItemsSketch<T> {
   }
 
   /**
-   * Construct a mergeable sampling sample sketch with up to k samples using the default resize
-   * factor (8).
+   * Construct a mergeable sampling sketch with up to k samples using a specified resize factor.
    *
-   * @param k   Maximum size of sampling. Allocated size may be smaller until sampling fills.
+   * @param k   Maximum size of sampling. Allocated size may be smaller until reservoir fills.
    *            Unlike many sketches in this package, this value does <em>not</em> need to be a
    *            power of 2.
    * @param rf  <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
@@ -188,12 +187,14 @@ public final class ReservoirItemsSketch<T> {
    */
   public static <T> ReservoirItemsSketch<T> getInstance(Memory srcMem,
                                                         final ArrayOfItemsSerDe<T> serDe) {
+    final Object memObj = srcMem.array(); // may be null
+    final long memAddr = srcMem.getCumulativeOffset(0L);
+
     final int numPreLongs = getAndCheckPreLongs(srcMem);
-    long pre0 = srcMem.getLong(0);
-    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(pre0));
-    final int serVer = extractSerVer(pre0);
-    final int familyId = extractFamilyID(pre0);
-    final boolean isEmpty = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0;
+    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(memObj, memAddr));
+    final int serVer = extractSerVer(memObj, memAddr);
+    final int familyId = extractFamilyID(memObj, memAddr);
+    final boolean isEmpty = (extractFlags(memObj, memAddr) & EMPTY_FLAG_MASK) != 0;
 
     // Check values
     final boolean preLongsEqMin = (numPreLongs == Family.RESERVOIR.getMinPreLongs());
@@ -202,12 +203,11 @@ public final class ReservoirItemsSketch<T> {
     if (!preLongsEqMin & !preLongsEqMax) {
       throw new SketchesArgumentException(
               "Possible corruption: Non-empty sketch with only "
-                      + Family.RESERVOIR.getMinPreLongs() + "preLongs");
+                      + Family.RESERVOIR.getMinPreLongs() + " preLong(s)");
     }
     if (serVer != SER_VER) {
       if (serVer == 1) {
         srcMem = VersionConverter.convertSketch1to2(srcMem);
-        pre0 = srcMem.getLong(0);
       } else {
         throw new SketchesArgumentException(
                 "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
@@ -219,15 +219,14 @@ public final class ReservoirItemsSketch<T> {
               "Possible Corruption: FamilyID must be " + reqFamilyId + ": " + familyId);
     }
 
-    final int k = extractReservoirSize(pre0);
+    final int k = extractReservoirSize(memObj, memAddr);
 
     if (isEmpty) {
       return new ReservoirItemsSketch<>(k, rf);
     }
 
     // get rest of preamble
-    final long pre1 = srcMem.getLong(8);
-    final long itemsSeen = extractItemsSeenCount(pre1);
+    final long itemsSeen = extractItemsSeenCount(memObj, memAddr);
 
     final int preLongBytes = numPreLongs << 3;
     int allocatedItems = k; // default to full reservoir
@@ -398,7 +397,7 @@ public final class ReservoirItemsSketch<T> {
    * @param serDe An instance of ArrayOfItemsSerDe
    * @return a byte array representation of this sketch
    */
-  public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe<? super T> serDe) {
     if (itemsSeen_ == 0) {
       // null class is ok since empty -- no need to call serDe
       return toByteArray(serDe, null);
@@ -416,7 +415,7 @@ public final class ReservoirItemsSketch<T> {
    * @return a byte array representation of this sketch
    */
   @SuppressWarnings("null") // bytes will be null only if empty == true
-  public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe, final Class<?> clazz) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe<? super T> serDe, final Class<?> clazz) {
     final int preLongs, outBytes;
     final boolean empty = itemsSeen_ == 0;
     byte[] bytes = null; // for serialized data from serDe
@@ -432,28 +431,26 @@ public final class ReservoirItemsSketch<T> {
     final byte[] outArr = new byte[outBytes];
     final Memory mem = new NativeMemory(outArr);
 
-    // build first preLong
-    long pre0 = 0L;
-    pre0 = PreambleUtil.insertPreLongs(preLongs, pre0);                  // Byte 0
-    pre0 = PreambleUtil.insertResizeFactor(rf_.lg(), pre0);
-    pre0 = PreambleUtil.insertSerVer(SER_VER, pre0);                     // Byte 1
-    pre0 = PreambleUtil.insertFamilyID(Family.RESERVOIR.getID(), pre0);  // Byte 2
-    pre0 = (empty)
-            ? PreambleUtil.insertFlags(EMPTY_FLAG_MASK, pre0)
-            : PreambleUtil.insertFlags(0, pre0);                         // Byte 3
-    pre0 = PreambleUtil.insertReservoirSize(reservoirSize_, pre0);       // Bytes 4-7
+    final Object memObj = mem.array(); // may be null
+    final long memAddr = mem.getCumulativeOffset(0L);
 
+    // Common header elements
+    PreambleUtil.insertPreLongs(memObj, memAddr, preLongs);                  // Byte 0
+    PreambleUtil.insertLgResizeFactor(memObj, memAddr, rf_.lg());
+    PreambleUtil.insertSerVer(memObj, memAddr, SER_VER);                     // Byte 1
+    PreambleUtil.insertFamilyID(memObj, memAddr, Family.RESERVOIR.getID());  // Byte 2
     if (empty) {
-      mem.putLong(0, pre0);
+      PreambleUtil.insertFlags(memObj, memAddr, EMPTY_FLAG_MASK);            // Byte 3
     } else {
-      // second preLong, only if non-empty
-      long pre1 = 0L;
-      pre1 = PreambleUtil.insertItemsSeenCount(itemsSeen_, pre1);
+      PreambleUtil.insertFlags(memObj, memAddr,0);
+    }
+    PreambleUtil.insertReservoirSize(memObj, memAddr, reservoirSize_);       // Bytes 4-7
 
-      final long[] preArr = new long[preLongs];
-      preArr[0] = pre0;
-      preArr[1] = pre1;
-      mem.putLongArray(0, preArr, 0, preLongs);
+    // conditional elements
+    if (!empty) {
+      PreambleUtil.insertItemsSeenCount(memObj, memAddr, itemsSeen_);
+
+      // insert the bytearray of serialized samples, offset by the preamble size
       final int preBytes = preLongs << 3;
       mem.putByteArray(preBytes, bytes, 0, bytes.length);
     }
@@ -540,7 +537,7 @@ public final class ReservoirItemsSketch<T> {
   //       temporary violation of maxK, we're avoiding violating it at all.
   ReservoirItemsSketch<T> downsampledCopy(final int maxK) {
     final ReservoirItemsSketch<T> ris = new ReservoirItemsSketch<>(maxK, rf_);
-    for (final T item: getSamples()) {
+    for (final T item : getSamples()) {
       // Pretending old implicit weights are all 1. Not true in general, but they're all
       // equal so update should work properly as long as we update itemsSeen_ at the end.
       ris.update(item);

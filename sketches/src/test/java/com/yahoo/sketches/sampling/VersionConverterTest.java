@@ -2,6 +2,7 @@ package com.yahoo.sketches.sampling;
 
 import static com.yahoo.sketches.sampling.PreambleUtil.RESERVOIR_SIZE_INT;
 import static com.yahoo.sketches.sampling.PreambleUtil.RESERVOIR_SIZE_SHORT;
+import static com.yahoo.sketches.sampling.PreambleUtil.SERDE_ID_SHORT;
 import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER_BYTE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotEquals;
@@ -20,18 +21,18 @@ public class VersionConverterTest {
 
   @Test
   public void checkReadOnlyMemory() {
-    int k = 32768;
-    short encK = ReservoirSize.computeSize(k);
-    ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
+    final int k = 32768;
+    final short encK = ReservoirSize.computeSize(k);
+    final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
 
-    ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(k);
+    final ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(k);
 
     // get a new byte[], manually revert to v1, then reconstruct
-    byte[] sketchBytes = ris.toByteArray(serDe);
-    Memory sketchMem = new NativeMemory(sketchBytes);
+    final byte[] sketchBytes = ris.toByteArray(serDe);
+    final Memory sketchMem = new NativeMemory(sketchBytes);
     revertToV1(sketchMem, encK);
 
-    Memory readOnlyMem = sketchMem.asReadOnlyMemory();
+    final Memory readOnlyMem = sketchMem.asReadOnlyMemory();
 
     // read-only input should generate a new Memory
     Memory convertedSketch = VersionConverter.convertSketch1to2(readOnlyMem);
@@ -45,12 +46,17 @@ public class VersionConverterTest {
   @SuppressWarnings("deprecation")
   @Test
   public void checkDeprecatedPreambleMethods() {
-    long pre0 = 0;
-    ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
+    final byte[] headerBytes = new byte[SERDE_ID_SHORT + Short.BYTES];
+    final Memory headerMem = new NativeMemory(headerBytes);
+    final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
+
+    final Object memObj = headerMem.array(); // may be null
+    final long memAddr = headerMem.getCumulativeOffset(0L);
+
 
     // SerDe ID
-    pre0 = PreambleUtil.insertSerDeId(serDe.getId(), pre0);
-    assertEquals(serDe.getId(), PreambleUtil.extractSerDeId(pre0));
+    PreambleUtil.insertSerDeId(memObj, memAddr, serDe.getId());
+    assertEquals(serDe.getId(), PreambleUtil.extractSerDeId(memObj, memAddr));
   }
 
   private static Memory revertToV1(Memory mem, short encodedK) {
