@@ -1,0 +1,32 @@
+Clover Config for Eclipse:
+
+At Project Level Properties:
+	Instrumentation:
+		Initstring: Default value
+		Output Folder: ...project output dir(s)
+		Flush Policy: At JVM shutdown ...
+		Misc: Fully qualify ... , Instrument and compile at statement level
+	Contexts:
+		Check: assert statements
+		Add Custom Coverage Context Filter:
+			private-constructor: also see link below
+				Method
+				(.* )?private +[a-zA-Z0-9_$]+ *\( *\).*
+	Source Files
+		Only look ...
+			src/main/java[includes=**/*.java][excludes=]
+			src/test/java[includes=**/*.java][excludes=**/Space.java]
+	Test Classes
+		Assume ...
+			Include: **/*Test.java,**/Test*.java
+
+At Clover "down-triangle" menu:
+	Columns:
+		Element
+		% TOTAL Coverage
+		Uncovered Elements: Custom: %UncoveredElements * TotalElements / 100
+		Total Elements
+
+
+
+http://alexruizlog.blogspot.com/2009/04/how-to-make-clover-ignore-private_21.html
