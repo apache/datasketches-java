@@ -15,14 +15,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.MemoryRequest;
 import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.SketchesException;
-
-//
-//import com.yahoo.memory.Memory;
-//import com.yahoo.memory.NativeMemory;
-//import com.yahoo.sketches.SketchesArgumentException;
 
 public class DirectDoublesSketchTest {
 
@@ -217,12 +212,17 @@ public class DirectDoublesSketchTest {
     DirectDoublesSketch.checkDirectMemCapacity(k, 2 * k - 1, (4 + 2 * k) * 8);
   }
 
-  @Test(expectedExceptions = SketchesException.class)
+  @Test//(expectedExceptions = IllegalArgumentException.class) //from MemoryUtil.requestMemoryHandler
   public void checkGrowCombinedBuffer() {
     int k = 128;
     int n = 2 * k -1;
     DoublesSketch qs = buildDQS(k, n);
-    qs.growCombinedBuffer(qs.getCombinedBufferItemCapacity(), maybeGrowLevels(k, n + 1));
+    Memory mem = qs.getMemory();
+    mem.setMemoryRequest(new MemoryManager());
+    int spaceNeeded = maybeGrowLevels(k, n + 1);
+    qs.growCombinedBuffer(qs.getCombinedBufferItemCapacity(), spaceNeeded);
+    long newMemCap = qs.getMemory().getCapacity();
+    assertEquals(newMemCap, spaceNeeded * 8 + 32);
   }
 
   static DoublesSketch buildAndLoadDQS(int k, int n) {
@@ -264,5 +264,33 @@ public class DirectDoublesSketchTest {
    */
   static void print(String s) {
     //System.err.print(s); //disable here
+  }
+
+  //Allocates what was asked
+  private static class MemoryManager implements MemoryRequest {
+
+    @Override
+    public Memory request(long capacityBytes) {
+      Memory newMem = new NativeMemory(new byte[(int)capacityBytes]);
+      //println("ReqCap: "+capacityBytes + ", Granted: "+newMem.getCapacity());
+      return newMem;
+    }
+
+    @Override
+    public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
+      // not used.
+      return null;
+    }
+
+    @Override
+    public void free(Memory mem) {
+     // not used.
+    }
+
+    @Override
+    public void free(Memory memToFree, Memory newMem) {
+      // not used.
+    }
+
   }
 }

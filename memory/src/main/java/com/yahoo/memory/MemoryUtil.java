@@ -64,4 +64,32 @@ public final class MemoryUtil {
     return -(low + 1); // key not found.
   }
 
+  /**
+   * Exception handler for requesting a new Memory allocation using the MemoryRequest callback
+   * interface. This does not touch the internal data of either the original memory or the
+   * newly requested Memory. It only returns the newly requested Memory of the requested capacity.
+   * @param origMem The original Memory that needs to be replaced by a newly allocated Memory.
+   * @param newCapacityBytes The required capacity of the new Memory.
+   * @return the newly requested Memory
+   */
+  public static Memory requestMemoryHandler(final Memory origMem, final long newCapacityBytes) {
+    final MemoryRequest memReq = origMem.getMemoryRequest();
+    if (memReq == null) {
+      throw new IllegalArgumentException(
+          "MemoryRequest callback cannot be null.");
+    }
+    final Memory newDstMem = memReq.request(newCapacityBytes);
+    if (newDstMem == null) {
+      throw new IllegalArgumentException(
+          "Requested memory cannot be null.");
+    }
+    final long newCap = newDstMem.getCapacity();
+    if (newCap < newCapacityBytes) {
+      memReq.free(newDstMem);
+      throw new IllegalArgumentException("Requested memory capacity not granted: "
+          + newCap + " < " + newCapacityBytes);
+    }
+    return newDstMem;
+  }
+
 }

@@ -47,7 +47,7 @@ import static com.yahoo.sketches.theta.UpdateReturnState.RejectedDuplicate;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedOverTheta;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryRequest;
+import com.yahoo.memory.MemoryUtil;
 import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
@@ -388,25 +388,11 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
           final int tgtArrBytes = 8 << tgtLgArrLongs;
           final int reqBytes = tgtArrBytes + preBytes;
 
-          final MemoryRequest memReq = mem_.getMemoryRequest();
-          if (memReq == null) {
-            throw new SketchesArgumentException(
-                "MemoryRequest callback cannot be null.");
-          }
-          final Memory newDstMem = memReq.request(reqBytes);
-          if (newDstMem == null) {
-            throw new SketchesArgumentException(
-                "Requested memory cannot be null.");
-          }
-          final long newCap = newDstMem.getCapacity();
-          if (newCap < reqBytes) {
-            memReq.free(newDstMem);
-            throw new SketchesArgumentException("Requested memory not granted: " + newCap + " < "
-                + reqBytes);
-          }
+          final Memory newDstMem = MemoryUtil.requestMemoryHandler(mem_, reqBytes);
+
           moveAndResize(mem_, preambleLongs_, lgArrLongs, newDstMem, tgtLgArrLongs, thetaLong);
 
-          memReq.free(mem_, newDstMem); //normal free mechanism via MemoryRequest
+          mem_.getMemoryRequest().free(mem_, newDstMem); //normal free mechanism via MemoryRequest
           mem_ = newDstMem;
           memObj_ = newDstMem.array(); //may be null
           memAdd_ = newDstMem.getCumulativeOffset(0L);

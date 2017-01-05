@@ -32,9 +32,10 @@ import static com.yahoo.sketches.quantiles.Util.computeRetainedItems;
 import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.MemoryUtil;
+import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.SketchesException;
 
 /**
  * Implements the DoublesSketch off-heap.
@@ -280,8 +281,10 @@ public final class DirectDoublesSketch extends DoublesSketch {
   double[] growCombinedBuffer(final int curCombBufItemCap, final int itemSpaceNeeded) {
     final long memBytes = mem_.getCapacity();
     final int needBytes = (itemSpaceNeeded << 3) + 32; //+ preamble + min, max
-    if ((needBytes) > memBytes) { //TODO Change to MemReq model?
-      throw new SketchesException("Insufficient Memory: mem: " + memBytes + ", need: " + needBytes);
+    if ((needBytes) > memBytes) {
+      final Memory newMem = MemoryUtil.requestMemoryHandler(mem_, needBytes);
+      NativeMemory.copy(mem_, 0, newMem, 0, memBytes);
+      mem_ = newMem;
     }
     final double[] newCombBuf = new double[itemSpaceNeeded];
     mem_.getDoubleArray(32, newCombBuf, 0, curCombBufItemCap);

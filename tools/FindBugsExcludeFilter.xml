@@ -5,27 +5,6 @@
     <Bug pattern="SF_SWITCH_NO_DEFAULT" />
   </Match>
 
-  <!-- Intentionally set to null to throw an exception during test -->
-  <Match>
-    <Bug pattern="NP_NULL_PARAM_DEREF_NONVIRTUAL" />
-    <Class name="com.yahoo.sketches.tuple.SerializerDeserializerTest" />
-    <Method name="deserializeFromMemoryUsupportedClass" />
-  </Match>
-
-  <!-- Intentionally set to null to throw an exception during test -->
-  <Match>
-    <Bug pattern="NP_NULL_PARAM_DEREF_NONVIRTUAL" />
-    <Class name="com.yahoo.sketches.sampling.ReservoirLongsUnionTest" />
-    <Method name="checkNullMemoryInstantiation" />
-  </Match>
-
-  <!-- Intentionally set to null to throw an exception during test -->
-  <Match>
-    <Bug pattern="NP_NULL_PARAM_DEREF_NONVIRTUAL" />
-    <Class name="com.yahoo.sketches.sampling.ReservoirItemsUnionTest" />
-    <Method name="checkNullMemoryInstantiation" />
-  </Match>
-
   <!-- False positive.  FindBugs complains if DQS_RESIZE_THRESHOLD == REBUILD_THRESHOLD, 
        but this allows us to tune these constants for different sketches. -->
   <Match>
@@ -34,10 +13,16 @@
     <Method name="setHashTableThreshold" />
   </Match>
 
+  <!-- False positive.  In this case we want to ignore the exceptions -->
   <Match>
     <Bug pattern="DE_MIGHT_IGNORE" />
     <Class name="com.yahoo.sketches.theta.PairwiseCornerCasesTest" />
     <Method name="checkNotOrdered" />
+  </Match>
+  
+  <Match>   <!-- Exclude for test classes; too many False Positives. -->
+    <Bug pattern="NP_NULL_PARAM_DEREF_NONVIRTUAL" />
+    <Class name="~.*\.*Test" />
   </Match>
   
 </FindBugsFilter>
