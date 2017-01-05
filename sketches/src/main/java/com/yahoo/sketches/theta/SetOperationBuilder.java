@@ -206,7 +206,7 @@ public class SetOperationBuilder {
    * @return a SetOperation
    */
   public SetOperation build(final int nomEntries, final Family family) {
-    bLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
+    setNominalEntries(nomEntries);
     return build(family);
   }
 

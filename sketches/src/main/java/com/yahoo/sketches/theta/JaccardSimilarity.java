@@ -71,6 +71,42 @@ public final class JaccardSimilarity {
   }
 
   /**
+   * Returns true if the two given sketches have exactly the same hash values and the same
+   * theta values. Thus, they are equivalent.
+   * @param sketchA the given sketch A
+   * @param sketchB the given sketch B
+   * @return true if the two given sketches have exactly the same hash values and the same
+   * theta values.
+   */
+  public static boolean exactlyEqual(final Sketch sketchA, final Sketch sketchB) {
+    //Corner case checks
+    if ((sketchA == null) || (sketchB == null)) { return false; }
+    if (sketchA == sketchB) { return true; }
+    if (sketchA.isEmpty() && sketchB.isEmpty()) { return true; }
+    if (sketchA.isEmpty() || sketchB.isEmpty()) { return false; }
+
+    final int countA = sketchA.getRetainedEntries();
+    final int countB = sketchB.getRetainedEntries();
+
+    //Create the Union
+    final Union union = SetOperation.builder().buildUnion(ceilingPowerOf2(countA + countB));
+    union.update(sketchA);
+    union.update(sketchB);
+    final Sketch unionAB = union.getResult();
+    final long thetaLongUAB = unionAB.getThetaLong();
+    final long thetaLongA = sketchA.getThetaLong();
+    final long thetaLongB = sketchB.getThetaLong();
+    final int countUAB = unionAB.getRetainedEntries();
+
+    //Check for identical counts and thetas
+    if ((countUAB == countA) && (countUAB == countB)
+        && (thetaLongUAB == thetaLongA) && (thetaLongUAB == thetaLongB)) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Tests similarity of a measured Sketch against an expected Sketch.
    * Computes the lower bound of the Jaccard ratio <i>J<sub>LB</sub></i> of the measured and
    * expected sketches.

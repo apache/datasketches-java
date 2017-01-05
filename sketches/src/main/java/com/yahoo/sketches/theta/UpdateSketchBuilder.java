@@ -217,7 +217,7 @@ public class UpdateSketchBuilder {
    * @return an UpdateSketch
    */
   public UpdateSketch build(final int nomEntries) {
-    bLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
+    setNominalEntries(nomEntries);
     return build();
   }
 
