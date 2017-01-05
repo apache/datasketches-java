@@ -65,12 +65,20 @@ public abstract class Sketch {
   }
 
   /**
+   * Returns the number of valid entries that have been retained by the sketch.
+   * @return the number of valid retained entries
+   */
+  public int getRetainedEntries() {
+    return getRetainedEntries(true);
+  }
+
+  /**
    * Returns the number of entries that have been retained by the sketch.
    * @param valid if true, returns the number of valid entries, which are less than theta and used
    * for estimation.
    * Otherwise, return the number of all entries, valid or not, that are currently in the internal
    * sketch cache.
-   * @return the number of valid retained entries
+   * @return the number of retained entries
    */
   public abstract int getRetainedEntries(boolean valid);
 

@@ -8,6 +8,7 @@ package com.yahoo.sketches.theta;
 import static com.yahoo.sketches.BoundsOnRatiosInThetaSketchedSets.getEstimateOfBoverA;
 import static com.yahoo.sketches.BoundsOnRatiosInThetaSketchedSets.getLowerBoundForBoverA;
 import static com.yahoo.sketches.BoundsOnRatiosInThetaSketchedSets.getUpperBoundForBoverA;
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
 /**
  * Jaccard similarity of two Theta Sketches.
@@ -15,6 +16,8 @@ import static com.yahoo.sketches.BoundsOnRatiosInThetaSketchedSets.getUpperBound
  * @author Lee Rhodes
  */
 public final class JaccardSimilarity {
+  private static final double[] ZEROS = {0.0, 0.0, 0.0}; // LB, Estimate, UB
+  private static final double[] ONES = {1.0, 1.0, 1.0};
 
   /**
    * Computes the Jaccard similarity ratio with upper and lower bounds. The Jaccard similarity ratio
@@ -25,27 +28,34 @@ public final class JaccardSimilarity {
    *
    * @param sketchA given sketch A
    * @param sketchB given sketch B
-   * @param minK The minimum value of <i>k</i> or <i>NominalEntries</i> used to create the two
-   * input sketches.
    * @return a double array {LowerBound, Estimate, UpperBound} of the Jaccard ratio.
    * The Upper and Lower bounds are for a confidence interval of 95.4% or +/- 2 standard deviations.
    */
-  public static double[] jaccard(final Sketch sketchA, final Sketch sketchB, final int minK) {
-    final double[] ret = {0.0, 0.0, 0.0}; // LB, Estimate, UB
-
+  public static double[] jaccard(final Sketch sketchA, final Sketch sketchB) {
     //Corner case checks
-    if ((sketchA == null) || (sketchB == null)) { return ret; } //or throw?
-    if (sketchA.isEmpty() && sketchB.isEmpty())  {
-      ret[0] = ret[1] = ret[2] = 1.0;
-      return ret;
-    }
-    if (sketchA.isEmpty() || sketchB.isEmpty())  { return ret; }
+    if ((sketchA == null) || (sketchB == null)) { return ZEROS; }
+    if (sketchA == sketchB) { return ONES; }
+    if (sketchA.isEmpty() && sketchB.isEmpty()) { return ONES; }
+    if (sketchA.isEmpty() || sketchB.isEmpty()) { return ZEROS; }
+
+    final int countA = sketchA.getRetainedEntries();
+    final int countB = sketchB.getRetainedEntries();
 
     //Create the Union
-    final Union union = SetOperation.builder().buildUnion(minK);
+    final Union union = SetOperation.builder().buildUnion(ceilingPowerOf2(countA + countB));
     union.update(sketchA);
     union.update(sketchB);
-    final Sketch unionAB = union.getResult(true, null);
+    final Sketch unionAB = union.getResult();
+    final long thetaLongUAB = unionAB.getThetaLong();
+    final long thetaLongA = sketchA.getThetaLong();
+    final long thetaLongB = sketchB.getThetaLong();
+    final int countUAB = unionAB.getRetainedEntries();
+
+    //Check for identical data
+    if ((countUAB == countA) && (countUAB == countB)
+        && (thetaLongUAB == thetaLongA) && (thetaLongUAB == thetaLongB)) {
+      return ONES;
+    }
 
     //Create the Intersection
     final Intersection inter = SetOperation.builder().buildIntersection();
@@ -54,10 +64,10 @@ public final class JaccardSimilarity {
     inter.update(unionAB); //ensures that intersection is a subset of the union
     final Sketch interABU = inter.getResult(true, null);
 
-    ret[0] = getLowerBoundForBoverA(unionAB, interABU);
-    ret[1] = getEstimateOfBoverA(unionAB, interABU);
-    ret[2] = getUpperBoundForBoverA(unionAB, interABU);
-    return ret;
+    final double lb = getLowerBoundForBoverA(unionAB, interABU);
+    final double est = getEstimateOfBoverA(unionAB, interABU);
+    final double ub = getUpperBoundForBoverA(unionAB, interABU);
+    return new double[] {lb, est, ub};
   }
 
   /**
@@ -69,17 +79,16 @@ public final class JaccardSimilarity {
    *
    * @param measured the sketch to be tested
    * @param expected the reference sketch that is considered to be correct.
-   * @param minK the minimum value of <i>k</i> used for the given sketches.
    * @param threshold a real value between zero and one.
    * @return if true, the similarity of the two sketches is greater than the given threshold
    * with at least 97.7% confidence.
    */
   public static boolean similarityTest(final Sketch measured, final Sketch expected,
-      final int minK, final double threshold) {
+      final double threshold) {
       //index 0: the lower bound
       //index 1: the mean estimate
       //index 2: the upper bound
-      final double jRatioLB = jaccard(measured, expected, minK)[0]; //choosing the lower bound
+      final double jRatioLB = jaccard(measured, expected)[0]; //choosing the lower bound
     return jRatioLB >= threshold;
   }
 
@@ -92,17 +101,16 @@ public final class JaccardSimilarity {
    *
    * @param measured the sketch to be tested
    * @param expected the reference sketch that is considered to be correct.
-   * @param minK the minimum value of <i>k</i> used for the given sketches.
    * @param threshold a real value between zero and one.
    * @return if true, the dissimilarity of the two sketches is greater than the given threshold
    * with at least 97.7% confidence.
    */
   public static boolean dissimilarityTest(final Sketch measured, final Sketch expected,
-      final int minK, final double threshold) {
+      final double threshold) {
       //index 0: the lower bound
       //index 1: the mean estimate
       //index 2: the upper bound
-      final double jRatioUB = jaccard(measured, expected, minK)[2]; //choosing the upper bound
+      final double jRatioUB = jaccard(measured, expected)[2]; //choosing the upper bound
     return jRatioUB <= threshold;
   }
 
