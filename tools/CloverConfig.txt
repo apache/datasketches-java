@@ -15,7 +15,7 @@ At Project Level Properties:
 	Source Files
 		Only look ...
 			src/main/java[includes=**/*.java][excludes=]
-			src/test/java[includes=**/*.java][excludes=**/Space.java]
+			src/test/java[includes=**/*.java][excludes=]
 	Test Classes
 		Assume ...
 			Include: **/*Test.java,**/Test*.java
