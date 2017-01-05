@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.theta.JaccardSimilarity.exactlyEqual;
+import static com.yahoo.sketches.theta.JaccardSimilarity.jaccard;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
@@ -16,36 +18,49 @@ import org.testng.annotations.Test;
 public class JaccardSimilarityTest {
 
   @Test
-  public void checkNullsEmptiesJaccard() {
+  public void checkNullsEmpties() {
     int minK = 1 << 12;
     double threshold = 0.95;
     println("Check nulls & empties, minK: " + minK + "\t Th: " + threshold);
     //check both null
-    double[] jResults = JaccardSimilarity.jaccard(null, null);
+    double[] jResults = jaccard(null, null);
     boolean state = jResults[1] > threshold;
     println("null \t null:\t" + state + "\t" + jaccardString(jResults));
+    assertFalse(state);
+
+    state = exactlyEqual(null, null);
     assertFalse(state);
 
     UpdateSketch measured = UpdateSketch.builder().build(minK);
     UpdateSketch expected = UpdateSketch.builder().build(minK);
 
     //check both empty
-    jResults = JaccardSimilarity.jaccard(measured, expected);
+    jResults = jaccard(measured, expected);
     state = jResults[1] > threshold;
     println("empty\tempty:\t" + state + "\t" + jaccardString(jResults));
     assertTrue(state);
 
+    state = exactlyEqual(measured, expected);
+    assertTrue(state);
+
+    state = exactlyEqual(measured, measured);
+    assertTrue(state);
+
     //adjust one
     expected.update(1);
-    jResults = JaccardSimilarity.jaccard(measured, expected);
+    jResults = jaccard(measured, expected);
     state = jResults[1] > threshold;
     println("empty\t    1:\t" + state + "\t" + jaccardString(jResults));
     assertFalse(state);
+
+    state = exactlyEqual(measured, expected);
+    assertFalse(state);
+
     println("");
   }
 
   @Test
-  public void checkJaccardExactMode() {
+  public void checkExactMode() {
     int k = 1 << 12;
     int u = k;
     double threshold = 0.9999;
@@ -59,22 +74,29 @@ public class JaccardSimilarityTest {
       expected.update(i);
     }
 
-    double[] jResults = JaccardSimilarity.jaccard(measured, expected);
+    double[] jResults = jaccard(measured, expected);
     boolean state = jResults[1] > threshold;
     println(state + "\t" + jaccardString(jResults));
     assertTrue(state);
 
+    state = exactlyEqual(measured, expected);
+    assertTrue(state);
+
     measured.update(u-1); //now exactly k entries
     expected.update(u);   //now exactly k entries but differs by one
-    jResults = JaccardSimilarity.jaccard(measured, expected);
+    jResults = jaccard(measured, expected);
     state = jResults[1] > threshold;
     println(state + "\t" + jaccardString(jResults));
     assertFalse(state);
+
+    state = exactlyEqual(measured, expected);
+    assertFalse(state);
+
     println("");
   }
 
   @Test
-  public void checkJaccardEstMode() {
+  public void checkEstMode() {
     int k = 1 << 12;
     int u = 1 << 20;
     double threshold = 0.9999;
@@ -88,19 +110,26 @@ public class JaccardSimilarityTest {
       expected.update(i);
     }
 
-    double[] jResults = JaccardSimilarity.jaccard(measured, expected);
+    double[] jResults = jaccard(measured, expected);
     boolean state = jResults[1] > threshold;
     println(state + "\t" + jaccardString(jResults));
+    assertTrue(state);
+
+    state = exactlyEqual(measured, expected);
     assertTrue(state);
 
     for (int i = u; i < u + 50; i++) { //empirically determined
       measured.update(i);
     }
 
-    jResults = JaccardSimilarity.jaccard(measured, expected);
+    jResults = jaccard(measured, expected);
     state = jResults[1] >= threshold;
     println(state + "\t" + jaccardString(jResults));
     assertFalse(state);
+
+    state = exactlyEqual(measured, expected);
+    assertFalse(state);
+
     println("");
   }
 
