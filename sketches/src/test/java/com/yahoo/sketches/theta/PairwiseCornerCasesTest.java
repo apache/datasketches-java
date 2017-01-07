@@ -166,6 +166,7 @@ public class PairwiseCornerCasesTest {
     Assert.assertEquals(pwTheta, stdTheta, 0.0);
     Assert.assertEquals(pwEnt, stdEnt);
   }
+
   final static int NULL     = 0;
   final static int EMPTY    = 1;
   final static int EXACT    = 2;
@@ -271,6 +272,16 @@ public class PairwiseCornerCasesTest {
     PairwiseSetOperations.union(skHeap, skNull, k);
     PairwiseSetOperations.union(skNull, skDir, k);
     PairwiseSetOperations.union(skDir, skNull, k);
+    PairwiseSetOperations.union(skDir, skEmpty, k);
+    PairwiseSetOperations.union(skEmpty, skDir, k);
+  }
+
+  @Test
+  public void checkDefaultK() {
+    CompactSketch skHeap1 = generate(EST_HEAP, 4096);
+    CompactSketch skHeap2 = generate(EST_HEAP, 4096);
+    PairwiseSetOperations.union(skHeap1, skHeap2);
+    Assert.assertEquals(skHeap1.getEstimate(), skHeap2.getEstimate());
   }
 
   @Test
