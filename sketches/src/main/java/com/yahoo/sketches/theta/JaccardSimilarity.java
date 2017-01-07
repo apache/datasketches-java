@@ -33,10 +33,10 @@ public final class JaccardSimilarity {
    */
   public static double[] jaccard(final Sketch sketchA, final Sketch sketchB) {
     //Corner case checks
-    if ((sketchA == null) || (sketchB == null)) { return ZEROS; }
-    if (sketchA == sketchB) { return ONES; }
-    if (sketchA.isEmpty() && sketchB.isEmpty()) { return ONES; }
-    if (sketchA.isEmpty() || sketchB.isEmpty()) { return ZEROS; }
+    if ((sketchA == null) || (sketchB == null)) { return ZEROS.clone(); }
+    if (sketchA == sketchB) { return ONES.clone(); }
+    if (sketchA.isEmpty() && sketchB.isEmpty()) { return ONES.clone(); }
+    if (sketchA.isEmpty() || sketchB.isEmpty()) { return ZEROS.clone(); }
 
     final int countA = sketchA.getRetainedEntries();
     final int countB = sketchB.getRetainedEntries();
@@ -54,7 +54,7 @@ public final class JaccardSimilarity {
     //Check for identical data
     if ((countUAB == countA) && (countUAB == countB)
         && (thetaLongUAB == thetaLongA) && (thetaLongUAB == thetaLongB)) {
-      return ONES;
+      return ONES.clone();
     }
 
     //Create the Intersection
