@@ -80,8 +80,8 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
    * Otherwise, it is behaving as a normal QuickSelectSketch.
    * @return instance of this sketch
    */
-  static HeapQuickSelectSketch initNewHeapInstance(final int lgNomLongs, final long seed, final float p,
-      final ResizeFactor rf, final boolean unionGadget) {
+  static HeapQuickSelectSketch initNewHeapInstance(final int lgNomLongs, final long seed,
+      final float p, final ResizeFactor rf, final boolean unionGadget) {
 
     //Choose family, preambleLongs
     final Family family;

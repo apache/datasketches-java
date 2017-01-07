@@ -234,12 +234,14 @@ public final class Util {
    * Check if the two seed hashes are equal. If not, throw an SketchesArgumentException.
    * @param seedHashA the seedHash A
    * @param seedHashB the seedHash B
+   * @return seedHashA if they are equal
    */
-  public static final void checkSeedHashes(final short seedHashA, final short seedHashB) {
+  public static final short checkSeedHashes(final short seedHashA, final short seedHashB) {
     if (seedHashA != seedHashB) {
       throw new SketchesArgumentException(
           "Incompatible Seed Hashes. " + seedHashA + ", " + seedHashB);
     }
+    return seedHashA;
   }
 
   /**

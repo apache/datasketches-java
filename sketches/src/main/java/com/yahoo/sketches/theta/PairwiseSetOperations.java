@@ -7,6 +7,7 @@ package com.yahoo.sketches.theta;
 
 import java.util.Arrays;
 
+import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesException;
 import com.yahoo.sketches.Util;
@@ -32,6 +33,7 @@ public class PairwiseSetOperations {
    */
   public static CompactSketch intersect(final CompactSketch skA, final CompactSketch skB) {
     if ((skA == null) && (skB == null)) { return null; } //no way to construct the seedHash
+
     if (skA == null) {
       return new
           HeapCompactOrderedSketch(new long[0], true, skB.getSeedHash(), 0, skB.getThetaLong());
@@ -41,27 +43,29 @@ public class PairwiseSetOperations {
           HeapCompactOrderedSketch(new long[0], true, skA.getSeedHash(), 0, skA.getThetaLong());
     }
 
+    //Both sketches are valid, check seedHashes and ordered
+    final short seedHash = Util.checkSeedHashes(skA.getSeedHash(), skB.getSeedHash());
+    if (!skB.isOrdered()) {
+      throw new SketchesArgumentException("skB must be ordered!");
+    }
+    if (!skA.isOrdered()) {
+      throw new SketchesArgumentException("skA must be ordered!");
+    }
+
+    //Full Intersection
     final boolean emptyA = skA.isEmpty();
     final boolean emptyB = skB.isEmpty();
-    final boolean bothEmpty = emptyA && emptyB;
     final boolean emptyRule = emptyA || emptyB; //Empty rule is OR
-
-    if (!emptyB && !skB.isOrdered()) {
-      throw new SketchesException("skB must be ordered!");
-    }
-    if (!emptyA && !skA.isOrdered()) {
-      throw new SketchesException("skA must be ordered!");
-    }
-
-    final short seedHash = checkOrderedAndSeedHash(skA, skB);
-
-    if (bothEmpty) { return skA; } //After seedHash check, either one will do.
 
     final long thetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong()); //Theta rule
 
-    final long[] cacheA = skA.getCache();
-    final long[] cacheB = skB.getCache();
+    if (emptyRule) { //even if emptyRule = true, theta can be < 1.0
+      return new HeapCompactOrderedSketch(new long[0], emptyRule, seedHash, 0, thetaLong);
+    }
 
+    //Both sketches are non-empty
+    final long[] cacheA = (skA.isDirect()) ? skA.getCache() : skA.getCache().clone();
+    final long[] cacheB = (skB.isDirect()) ? skB.getCache() : skB.getCache().clone();
     final int aLen = cacheA.length;
     final int bLen = cacheB.length;
 
@@ -103,50 +107,54 @@ public class PairwiseSetOperations {
    * @param skA The first ordered, CompactSketch argument.
    * @param skB The second ordered, CompactSketch argument.
    * @return the result as an ordered CompactSketch.
-   */
+   */ //see HeapAnotB.compute() for return rule table
   public static CompactSketch aNotB(final CompactSketch skA, final CompactSketch skB) {
     if ((skA == null) && (skB == null)) { return null; } //no way to construct the seedHash
+
     if (skA == null) {
-      if (!skB.isEmpty() && !skB.isOrdered()) {
+      if (!skB.isOrdered()) {
         throw new SketchesException("skB must be ordered!");
       }
+      //return rule {ThB, 0, T}
       return new
           HeapCompactOrderedSketch(new long[0], true, skB.getSeedHash(), 0, skB.getThetaLong());
     }
     if (skB == null) {
-      if (!skA.isEmpty() && !skA.isOrdered()) {
+      if (!skA.isOrdered()) {
         throw new SketchesException("skA must be ordered!");
       }
-      return skA;
+      return skA; //return rule {ThA, |A|, E(a)}
     }
 
-    final boolean emptyA = skA.isEmpty(); //Empty rule is whatever A is
+    //Both sketches are valid check seedHashes and ordered
+    final short seedHash = Util.checkSeedHashes(skA.getSeedHash(), skB.getSeedHash());
+    if (!skB.isOrdered()) {
+      throw new SketchesArgumentException("skB must be ordered!");
+    }
+    if (!skA.isOrdered()) {
+      throw new SketchesArgumentException("skA must be ordered!");
+    }
+
+    final boolean emptyA = skA.isEmpty();
     final boolean emptyB = skB.isEmpty();
     final boolean bothEmpty = emptyA && emptyB;
-    if (bothEmpty) { return skA; }
-
-    if (!emptyB && !skB.isOrdered()) {
-      throw new SketchesException("skB must be ordered!");
-    }
-    if (!emptyA && !skA.isOrdered()) {
-      throw new SketchesException("skA must be ordered!");
-    }
-
-    final short seedHash = checkOrderedAndSeedHash(skA, skB);
 
     final long thetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong()); //Theta rule
+    final boolean emptyRule = emptyA; //Empty rule is whatever A is
 
-    if (emptyA) { //B is not empty. Even if A is empty, we need to compute min Theta
-      return new HeapCompactOrderedSketch(
-        Arrays.copyOf(new long[0], 0), emptyA, seedHash, 0, thetaLong);
+    if (emptyA || bothEmpty) { //return rule {minT, 0, T}
+      return new HeapCompactOrderedSketch(new long[0], emptyRule, seedHash, 0, thetaLong);
     }
 
     final long[] cacheA = (skA.isDirect()) ? skA.getCache() : skA.getCache().clone();
 
-    if (emptyB) {
-      return skA; //OK, since if B is empty thetaB = 1.0 and min(thetaA, thetaB) = thetaA
+    if (emptyB) { //return rule {minT, |A| < minT , E(a)}
+      final int curCount = HashOperations.count(cacheA, thetaLong);
+      final long[] cache = CompactSketch.compactCache(cacheA, curCount, thetaLong, true);
+      return new HeapCompactOrderedSketch(cache, emptyRule, seedHash, curCount, thetaLong);
     }
 
+    //Both are non-empty
     final long[] cacheB = (skB.isDirect()) ? skB.getCache() : skB.getCache().clone();
 
     final int aLen = cacheA.length;
@@ -223,11 +231,12 @@ public class PairwiseSetOperations {
    */
   public static CompactSketch union(final CompactSketch skA, final CompactSketch skB, final int k) {
     if ((skA == null) && (skB == null)) { return null; } //no way to construct the seedHash
+
     if (skA == null) {
-      if (!skB.isEmpty() && !skB.isOrdered()) {
+      if (!skB.isOrdered()) { //must be ordered
         throw new SketchesException("skB must be ordered!");
       }
-      if (skB.getRetainedEntries(true) > k) {
+      if (skB.getRetainedEntries(true) > k) { //guarantees cutback to k
         final long[] cacheB = (skB.isDirect()) ? skB.getCache() : skB.getCache().clone();
         final long thetaLong = cacheB[k];
         final long[] arrB = Arrays.copyOf(cacheB, k);
@@ -237,10 +246,10 @@ public class PairwiseSetOperations {
     }
 
     if (skB == null) {
-      if (!skA.isEmpty() && !skA.isOrdered()) {
+      if (!skA.isOrdered()) { //must be ordered
         throw new SketchesException("skA must be ordered!");
       }
-      if (skA.getRetainedEntries(true) > k) {
+      if (skA.getRetainedEntries(true) > k) { //guarantees cutback to k
         final long[] cacheA = (skA.isDirect()) ? skA.getCache() : skA.getCache().clone();
         final long thetaLong = cacheA[k];
         final long[] arrA = Arrays.copyOf(cacheA, k);
@@ -248,45 +257,47 @@ public class PairwiseSetOperations {
       }
       return skA;
     }
+
+    //Both sketches are valid check seedHashes and ordered
+    final short seedHash = Util.checkSeedHashes(skA.getSeedHash(), skB.getSeedHash());
+    if (!skB.isOrdered()) {
+      throw new SketchesArgumentException("skB must be ordered!");
+    }
+    if (!skA.isOrdered()) {
+      throw new SketchesArgumentException("skA must be ordered!");
+    }
+
     final boolean emptyA = skA.isEmpty();
     final boolean emptyB = skB.isEmpty();
     final boolean bothEmptyRule = emptyA && emptyB; //Empty rule is AND
 
-    if (!emptyB && !skB.isOrdered()) {
-      throw new SketchesException("skB must be ordered!");
-    }
-    if (!emptyA && !skA.isOrdered()) {
-      throw new SketchesException("skA must be ordered!");
-    }
-
-    final short seedHash = checkOrderedAndSeedHash(skA, skB);
-
-    if (bothEmptyRule) { return skA; } //After seedHash check, either one will do.
-
-    long thetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong()); //Theta rule
-
-    final long[] cacheA = (skA.isDirect()) ? skA.getCache() : skA.getCache().clone();
+    if (bothEmptyRule) { return skA; } //Empty. After seedHash & ordered check, either one will do.
 
     if (emptyB) {
-      if (skA.getRetainedEntries(true) > k) {
-        thetaLong = cacheA[k];
+      if (skA.getRetainedEntries(true) > k) { //guarantees cutback to k
+        final long[] cacheA = (skA.isDirect()) ? skA.getCache() : skA.getCache().clone();
+        final long thetaLong = cacheA[k];
         final long[] arrA = Arrays.copyOf(cacheA, k);
         return new HeapCompactOrderedSketch(arrA, bothEmptyRule, seedHash, k, thetaLong);
       }
       return skA;
     }
 
-    final long[] cacheB = (skB.isDirect()) ? skB.getCache() : skB.getCache().clone();
-
     if (emptyA) {
-      if (skB.getRetainedEntries(true) > k) {
-        thetaLong = cacheB[k];
+      if (skB.getRetainedEntries(true) > k) { //guarantees cutback to k
+        final long[] cacheB = (skB.isDirect()) ? skB.getCache() : skB.getCache().clone();
+        final long thetaLong = cacheB[k];
         final long[] arrB = Arrays.copyOf(cacheB, k);
         return new HeapCompactOrderedSketch(arrB, bothEmptyRule, seedHash, k, thetaLong);
       }
       return skB;
     }
 
+    //Full Union operation
+    long thetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong()); //Theta rule
+
+    final long[] cacheA = (skA.isDirect()) ? skA.getCache() : skA.getCache().clone();
+    final long[] cacheB = (skB.isDirect()) ? skB.getCache() : skB.getCache().clone();
     final int aLen = cacheA.length;
     final int bLen = cacheB.length;
 
@@ -344,15 +355,4 @@ public class PairwiseSetOperations {
         Arrays.copyOf(outCache, outLen), bothEmptyRule, seedHash, outLen, thetaLong);
   }
 
-  private static final short checkOrderedAndSeedHash(
-      final CompactSketch skA, final CompactSketch skB) {
-    if (!skA.isOrdered() || !skB.isOrdered()) {
-      throw new SketchesArgumentException("Sketch must be ordered, got: "
-          + skA.getClass().getSimpleName() + ", " + skB.getClass().getSimpleName());
-    }
-    final short seedHashA = skA.getSeedHash();
-    final short seedHashB = skB.getSeedHash();
-    Util.checkSeedHashes(seedHashA, seedHashB);
-    return seedHashA;
-  }
 }

@@ -14,6 +14,7 @@ import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.Util;
 
 /**
@@ -112,22 +113,22 @@ final class HeapAnotB extends SetOperation implements AnotB {
     //N    O    0    3    3     Return (ThB, 0, T)
     //N    H    0    4    4     Return (ThB, 0, T)
     //E    N    1    0    8     Return A: (ThA, 0, T)
-    //E    E    1    1    9     Return (min, 0, T)
-    //E    C    1    2    10    Return (min, 0, T)
-    //E    O    1    3    11    Return (min, 0, T)
-    //E    H    1    4    12    Return (min, 0, T)
+    //E    E    1    1    9     Return (minT, 0, T)
+    //E    C    1    2    10    Return (minT, 0, T)
+    //E    O    1    3    11    Return (minT, 0, T)
+    //E    H    1    4    12    Return (minT, 0, T)
     //C    N    2    0    16    Return A: (ThA, |A|, E(a))
-    //C    E    2    1    17    Return (min, |A|, E(a))
+    //C    E    2    1    17    Return (minT, |A| < minT, E(a))
     //C    C    2    2    18    B -> H; => C,H
     //C    O    2    3    19    B -> H; => C,H
     //C    H    2    4    20    scan all A, search B, on nomatch -> list (same as HH)
     //O    N    3    0    24    Return A: (ThA, |A|, E(a))
-    //O    E    3    1    25    Return (min, |A|, E(a))
+    //O    E    3    1    25    Return (minT, |A| < minT, E(a))
     //O    C    3    2    26    B -> H; => O,H
     //O    O    3    3    27    B -> H; => O,H
     //O    H    3    4    28    scan A early stop, search B, on nomatch -> list
     //H    N    4    0    32    Return A: (ThA, |A|, E(a))
-    //H    E    4    1    33    Return (min, |A|, E(a))
+    //H    E    4    1    33    Return (minT, |A|< minT, E(a))
     //H    C    4    2    34    B -> H; => H,H
     //H    O    4    3    35    B -> H; => H,H
     //H    H    4    4    36    scan all A, search B, on nomatch -> list
@@ -161,7 +162,7 @@ final class HeapAnotB extends SetOperation implements AnotB {
         Util.checkSeedHashes(seedHash_, b_.getSeedHash());
         thetaLong_ = min(a_.getThetaLong(), b_.getThetaLong());
         empty_ = true;
-        break; //{min, 0, T}
+        break; //{minT, 0, T}
       }
       case 16:
       case 24:
@@ -172,7 +173,7 @@ final class HeapAnotB extends SetOperation implements AnotB {
         //move A to cache
         curCount_ = a_.getRetainedEntries(true);
         cache_ = compactCache(a_.getCache(), curCount_, thetaLong_, false);
-        break; //(min, 0, Ea)
+        break; //{ThA, |A|, E(a)}
       }
       case 17:
       case 25:
@@ -181,10 +182,11 @@ final class HeapAnotB extends SetOperation implements AnotB {
         Util.checkSeedHashes(seedHash_, b_.getSeedHash());
         thetaLong_ = min(a_.getThetaLong(), b_.getThetaLong());
         empty_ = a_.isEmpty();
-        //move A to cache
-        curCount_ = a_.getRetainedEntries(true);
-        cache_ = compactCache(a_.getCache(), curCount_, thetaLong_, false);
-        break; //(min, 0, Ea)
+        //move A < theta to cache
+        final long[] cache = a_.getCache();
+        curCount_ = HashOperations.count(cache, thetaLong_);
+        cache_ = compactCache(cache, curCount_, thetaLong_, false);
+        break; //{minT, |A| < minT , E(a)}
       }
       case 18:
       case 19:
@@ -197,7 +199,7 @@ final class HeapAnotB extends SetOperation implements AnotB {
         //must convert B to HT
         convertBtoHT(); //builds HT from B
         scanAllAsearchB(); //builds cache, curCount from A, HT
-        break; //(min, n, Ea)
+        break; //{minT, n, E(a)}
       }
       case 26:
       case 27: { //A ordered early stop, B compact or ordered
@@ -207,7 +209,7 @@ final class HeapAnotB extends SetOperation implements AnotB {
         empty_ = a_.isEmpty();
         convertBtoHT(); //builds HT from B
         scanEarlyStopAsearchB();
-        break; //(min, n, Ea)
+        break; //{minT, n, E(a)}
       }
       case 20:
       case 36: { //A compact or HT, B is already HT
@@ -219,7 +221,7 @@ final class HeapAnotB extends SetOperation implements AnotB {
         lgArrLongsHT_ = ((UpdateSketch)b_).getLgArrLongs();
         bHashTable_ = b_.getCache(); //safe as bHashTable is read-only
         scanAllAsearchB(); //builds cache, curCount from A, HT
-        break; //(min, n, Ea)
+        break; //{minT, n, E(a)}
       }
       case 28: { //A ordered early stop, B is already hashtable
         Util.checkSeedHashes(seedHash_, a_.getSeedHash());
@@ -230,7 +232,7 @@ final class HeapAnotB extends SetOperation implements AnotB {
         lgArrLongsHT_ = ((UpdateSketch)b_).getLgArrLongs();
         bHashTable_ = b_.getCache(); //safe as bHashTable is read-only
         scanEarlyStopAsearchB();
-        break; //(min, n, Ea)
+        break; //{minT, n, E(a)}
       }
       //default: //This cannot happen and cannot be tested
     }
