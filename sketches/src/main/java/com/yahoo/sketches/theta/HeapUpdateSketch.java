@@ -89,7 +89,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     final Object memObj = memOut.array(); //may be null
     final long memAdd = memOut.getCumulativeOffset(0L);
 
-    //preamble
+    //preamble first 8 bytes. Note: only compact can be reduced to 8 bytes.
     final int rf = this.getLgResizeFactor() & 3;
     final byte byte0 = (byte) ((rf << 6) | preLongs);
     insertPreLongs(memObj, memAdd, byte0);
@@ -98,6 +98,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     insertLgNomLongs(memObj, memAdd, this.getLgNomLongs());
     insertLgArrLongs(memObj, memAdd, this.getLgArrLongs());
     insertSeedHash(memObj, memAdd, this.getSeedHash());
+
     insertCurCount(memObj, memAdd, this.getRetainedEntries(true));
     insertP(memObj, memAdd, this.getP());
     insertThetaLong(memObj, memAdd, this.getThetaLong());

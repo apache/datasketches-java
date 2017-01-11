@@ -24,8 +24,8 @@ import com.yahoo.sketches.Util;
  * @author Lee Rhodes
  */
 public class ForwardCompatibilityTest {
-  
-  
+
+
   @Test
   public void checkSerVer1_24Bytes() {
     byte[] byteArray = new byte[24];
@@ -41,7 +41,7 @@ public class ForwardCompatibilityTest {
     //byte 7 Not used
     mem.putInt(8, 0); //curCount = 0
     mem.putLong(16, Long.MAX_VALUE);
-    
+
     Memory srcMem = new NativeMemory(byteArray);
     Sketch sketch = Sketch.heapify(srcMem);
     assertEquals(sketch.isEmpty(), true);
@@ -52,7 +52,7 @@ public class ForwardCompatibilityTest {
     String name = sketch.getClass().getSimpleName();
     assertEquals(name, "HeapCompactOrderedSketch");
   }
-  
+
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkSerVer1_32Bytes_tooSmall() {
     byte[] byteArray = new byte[32];
@@ -68,19 +68,12 @@ public class ForwardCompatibilityTest {
     //byte 7 Not used
     mem.putInt(8, 2); //curCount = 2
     mem.putLong(16, Long.MAX_VALUE);
-    
+
     Memory srcMem = new NativeMemory(byteArray);
-    Sketch sketch = Sketch.heapify(srcMem);
-    assertEquals(sketch.isEmpty(), true);
-    assertEquals(sketch.isEstimationMode(), false);
-    assertEquals(sketch.isDirect(), false);
-    assertEquals(sketch.isCompact(), true);
-    assertEquals(sketch.isOrdered(), true);
-    String name = sketch.getClass().getSimpleName();
-    assertEquals(name, "HeapCompactOrderedSketch");
+    Sketch.heapify(srcMem);
   }
-  
-  
+
+
   @Test
   public void checkSerVer1_1Value() {
     byte[] byteArray = new byte[32];
@@ -100,7 +93,7 @@ public class ForwardCompatibilityTest {
     longArrIn[0] = 1;
     long hash = hash(longArrIn, 0)[0] >>> 1;
     mem.putLong(24, hash);
-    
+
     Memory srcMem = new NativeMemory(byteArray);
     Sketch sketch = Sketch.heapify(srcMem);
     assertEquals(sketch.isEmpty(), false);
@@ -112,7 +105,7 @@ public class ForwardCompatibilityTest {
     String name = sketch.getClass().getSimpleName();
     assertEquals(name, "HeapCompactOrderedSketch");
   }
-  
+
   @Test
   public void checkSerVer2_8Bytes() {
     byte[] byteArray = new byte[8];
@@ -128,7 +121,7 @@ public class ForwardCompatibilityTest {
     mem.putShort(6, seedHash);
     //mem.putInt(8, 0); //curCount = 0
     //mem.putLong(16, Long.MAX_VALUE);
-    
+
     Memory srcMem = new NativeMemory(byteArray);
     Sketch sketch = Sketch.heapify(srcMem);
     assertEquals(sketch.isEmpty(), true);
@@ -139,7 +132,7 @@ public class ForwardCompatibilityTest {
     String name = sketch.getClass().getSimpleName();
     assertEquals(name, "HeapCompactOrderedSketch");
   }
-  
+
   @Test
   public void checkSerVer2_24Bytes_1Value() {
     byte[] byteArray = new byte[24];
@@ -155,7 +148,7 @@ public class ForwardCompatibilityTest {
     mem.putShort(6, seedHash);
     mem.putInt(8, 0); //curCount = 0
     //mem.putLong(16, Long.MAX_VALUE);
-    
+
     Memory srcMem = new NativeMemory(byteArray);
     Sketch sketch = Sketch.heapify(srcMem);
     assertEquals(sketch.isEmpty(), false);
@@ -166,7 +159,7 @@ public class ForwardCompatibilityTest {
     String name = sketch.getClass().getSimpleName();
     assertEquals(name, "HeapCompactOrderedSketch");
   }
-  
+
   /**
    * Converts a SerVer3 CompactSketch to a SerVer1 SetSketch.
    * @param v3mem a SerVer3 CompactSketch, ordered and with 24 byte preamble.
@@ -177,7 +170,7 @@ public class ForwardCompatibilityTest {
     int serVer = v3mem.getByte(SER_VER_BYTE);
     int famId = v3mem.getByte(FAMILY_BYTE);
     int flags = v3mem.getByte(FLAGS_BYTE);
-    if ((serVer != 3) || (famId != 3) || ((flags & 24) != 24)) 
+    if ((serVer != 3) || (famId != 3) || ((flags & 24) != 24))
       throw new SketchesArgumentException("Memory must be V3, Compact, Ordered");
     //must convert v3 preamble to a v1 preamble
     int v3preLongs = v3mem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
@@ -220,7 +213,7 @@ public class ForwardCompatibilityTest {
     int serVer = v3mem.getByte(SER_VER_BYTE);
     int famId = v3mem.getByte(FAMILY_BYTE);
     int flags = v3mem.getByte(FLAGS_BYTE);
-    if ((serVer != 3) || (famId != 3) || ((flags & 24) != 24)) 
+    if ((serVer != 3) || (famId != 3) || ((flags & 24) != 24))
       throw new SketchesArgumentException("Memory must be V3, Compact, Ordered");
     //compute size
     int preLongs = v3mem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
@@ -236,18 +229,18 @@ public class ForwardCompatibilityTest {
     v2mem.putByte(FLAGS_BYTE, v2flags);
     return v2mem;
   }
-  
-  
+
+
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
-  
+
   /**
-   * @param s value to print 
+   * @param s value to print
    */
   static void println(String s) {
     //System.out.println(s); //disable here
   }
-  
+
 }

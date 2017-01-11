@@ -9,6 +9,7 @@ import static com.yahoo.sketches.Util.checkSeedHashes;
 import static com.yahoo.sketches.Util.computeSeedHash;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.extractCurCount;
 import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
@@ -56,13 +57,14 @@ final class DirectCompactSketch extends CompactSketch {
     checkSeedHashes(memSeedHash, computedSeedHash);
     final int curCount = (preLongs > 1) ? extractCurCount(memObj, memAdd) : 0;
     final long thetaLong = (preLongs > 2) ? extractThetaLong(memObj, memAdd) : Long.MAX_VALUE;
-    final DirectCompactSketch dcs = new DirectCompactSketch(empty, memSeedHash, curCount, thetaLong);
-    dcs.preLongs_ = extractPreLongs(memObj, memAdd);
+    final DirectCompactSketch dcs =
+        new DirectCompactSketch(empty, memSeedHash, curCount, thetaLong);
+    dcs.preLongs_ = preLongs;
     dcs.mem_ = srcMem;
     return dcs;
   }
 
-  /**
+  /**   //TODO convert to factory
    * Converts the given UpdateSketch to this compact form.
    * @param sketch the given UpdateSketch
    * @param dstMem the given destination Memory.  This clears it before use.
@@ -77,21 +79,24 @@ final class DirectCompactSketch extends CompactSketch {
     final byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK);
     final boolean ordered = false;
     final long[] compactCache =
-        CompactSketch.compactCache(sketch.getCache(), getRetainedEntries(false), getThetaLong(), ordered);
-    mem_ = loadCompactMemory(compactCache, isEmpty(), getSeedHash(), getRetainedEntries(false),
-        getThetaLong(), dstMem, flags);
+        CompactSketch.compactCache(
+            sketch.getCache(), getRetainedEntries(false), getThetaLong(), ordered);
+    mem_ = loadCompactMemory(compactCache, isEmpty(), getSeedHash(),
+        getRetainedEntries(false), getThetaLong(), dstMem, flags);
+    preLongs_ = mem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
   }
 
-  /**
+  /**   //TODO convert to factory
    * Constructs this sketch from correct, valid components.
    * @param compactCache in compact form
    * @param empty The correct <a href="{@docRoot}/resources/dictionary.html#empty">Empty</a>.
-   * @param seedHash The correct <a href="{@docRoot}/resources/dictionary.html#seedHash">Seed Hash</a>.
+   * @param seedHash The correct
+   * <a href="{@docRoot}/resources/dictionary.html#seedHash">Seed Hash</a>.
    * @param curCount correct value
-   * @param thetaLong The correct <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
+   * @param thetaLong The correct
+   * <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
    * @param dstMem the destination Memory. This clears it before use.
    */
-  //TODO convert to factory
   DirectCompactSketch(final long[] compactCache, final boolean empty, final short seedHash,
       final int curCount, final long thetaLong, final Memory dstMem) {
     super(empty, seedHash, curCount, thetaLong);

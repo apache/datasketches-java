@@ -27,6 +27,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
 import static com.yahoo.sketches.theta.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.theta.PreambleUtil.extractThetaLong;
+import static com.yahoo.sketches.theta.PreambleUtil.getMemBytes;
 import static com.yahoo.sketches.theta.PreambleUtil.insertCurCount;
 import static com.yahoo.sketches.theta.PreambleUtil.insertFamilyID;
 import static com.yahoo.sketches.theta.PreambleUtil.insertFlags;
@@ -120,7 +121,7 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
     //Choose RF, minReqBytes, lgArrLongs.
     final int lgRF = rf.lg();
     final int lgArrLongs = (lgRF == 0) ? lgNomLongs + 1 : MIN_LG_ARR_LONGS;
-    final int minReqBytes = PreambleUtil.getMemBytes(lgArrLongs, preambleLongs);
+    final int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
 
     //Make sure Memory is large enough
     final long curMemCapBytes = dstMem.getCapacity();
@@ -224,7 +225,7 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
     Util.checkSeedHashes(seedHash, Util.computeSeedHash(seed));
 
     final long curCapBytes = srcMem.getCapacity();
-    final int minReqBytes = PreambleUtil.getMemBytes(lgArrLongs, preambleLongs);
+    final int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
     if (curCapBytes < minReqBytes) {
       throw new SketchesArgumentException(
           "Possible corruption: Current Memory size < min required size: "
@@ -290,6 +291,7 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
     //clear hash table
     //hash table size and hashTableThreshold stays the same
     //lgArrLongs stays the same
+    //thetaLongs resets to p
     final int arrLongs = 1 << getLgArrLongs();
     final int preBytes = preambleLongs_ << 3;
     mem_.clear(preBytes, arrLongs * 8); //clear data array

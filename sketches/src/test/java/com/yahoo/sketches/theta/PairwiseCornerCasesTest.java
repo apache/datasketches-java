@@ -76,16 +76,19 @@ public class PairwiseCornerCasesTest {
   @Test
   public void checkCornerCases() {
     int k = 64;
-    for (int i = 0; i < 5; i++) {
-      for (int j = 0; j < 5; j++) {
+    for (int i = 0; i < 6; i++) {
+      for (int j = 0; j < 6; j++) {
         cornerCaseChecks(i, j, k);
       }
     }
   }
 
+  public static void main(String[] args) {
+    cornerCaseChecks(2, 5, 64);
+  }
 
   private static void cornerCaseChecks(int stateA, int stateB, int k) {
-    //println("StateA: " + stateA + ", StateB: " + stateB);
+    println("StateA: " + stateA + ", StateB: " + stateB);
     CompactSketch cskA = generate(stateA, k);
     CompactSketch cskB = generate(stateB, k);
     Union union = Sketches.setOperationBuilder().buildUnion(k);
@@ -172,11 +175,19 @@ public class PairwiseCornerCasesTest {
   final static int EXACT    = 2;
   final static int EST_HEAP = 3;
   final static int EST_DIR  = 4;
-  final static int EST_HEAP_UNORDERED = 5;
+  final static int EMPTY_THLT0 = 5;
+  final static int EST_HEAP_UNORDERED = 6;
+
 
   private static CompactSketch generate(int state, int k) {
-    if (state == NULL) return null;
-    if (state == EMPTY) return Sketches.updateSketchBuilder().build(k).compact(true, null);
+    if (state == NULL) { return null; }
+    if (state == EMPTY) {
+      return Sketches.updateSketchBuilder().build(k).compact(true, null);
+    }
+    if (state == EMPTY_THLT0) {
+      CompactSketch csk = Sketches.updateSketchBuilder().setP((float)0.5).build(k).compact(true, null);
+      return csk;
+    }
     if (state == EXACT) {
       UpdateSketch sk = Sketches.updateSketchBuilder().build(k);
       for (int i = 0; i < k; i++) sk.update(i);

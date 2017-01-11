@@ -16,7 +16,8 @@ public interface Union {
 
   /**
    * Union the given on-heap sketch.
-   * Only valid for the all the Open Source, theta sketches.
+   * Valid for the all of the Open Source, Theta Sketches.
+   * Not valid for older (prior to Open Source) Theta Sketches.
    * This method can be repeatedly called.
    * If the given sketch is null it is interpreted as an empty sketch.
    *
@@ -25,9 +26,9 @@ public interface Union {
   void update(Sketch sketchIn);
 
   /**
-   * Union the given Memory image of the OpenSource CompactSketch,
+   * Union the given Memory image of the OpenSource Theta Sketch,
    * which may be ordered or unordered, or the earlier versions of SetSketch,
-   * which is always compact and ordered.
+   * which must be compact and ordered.
    *
    * <p>This method can be repeatedly called.
    * If the given sketch is null it is interpreted as an empty sketch.

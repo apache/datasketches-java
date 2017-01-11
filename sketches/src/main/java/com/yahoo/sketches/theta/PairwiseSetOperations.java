@@ -271,31 +271,16 @@ public class PairwiseSetOperations {
     final boolean emptyB = skB.isEmpty();
     final boolean bothEmptyRule = emptyA && emptyB; //Empty rule is AND
 
-    if (bothEmptyRule) { return skA; } //Empty. After seedHash & ordered check, either one will do.
-
-    if (emptyB) {
-      if (skA.getRetainedEntries(true) > k) { //guarantees cutback to k
-        final long[] cacheA = (skA.isDirect()) ? skA.getCache() : skA.getCache().clone();
-        final long thetaLong = cacheA[k];
-        final long[] arrA = Arrays.copyOf(cacheA, k);
-        return new HeapCompactOrderedSketch(arrA, bothEmptyRule, seedHash, k, thetaLong);
-      }
-      return skA;
+    if (bothEmptyRule) {
+      return (skA.getThetaLong() < skB.getThetaLong()) ? skA : skB;
     }
 
-    if (emptyA) {
-      if (skB.getRetainedEntries(true) > k) { //guarantees cutback to k
-        final long[] cacheB = (skB.isDirect()) ? skB.getCache() : skB.getCache().clone();
-        final long thetaLong = cacheB[k];
-        final long[] arrB = Arrays.copyOf(cacheB, k);
-        return new HeapCompactOrderedSketch(arrB, bothEmptyRule, seedHash, k, thetaLong);
-      }
-      return skB;
-    }
-
-    //Full Union operation
     long thetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong()); //Theta rule
 
+    // Attempting to shortcut this if one of the arguments is "empty" turns out to be complex.
+    // The theta of an empty sketch could be < 1.0 and will empact the other sketch.
+
+    //Full Union operation
     final long[] cacheA = (skA.isDirect()) ? skA.getCache() : skA.getCache().clone();
     final long[] cacheB = (skB.isDirect()) ? skB.getCache() : skB.getCache().clone();
     final int aLen = cacheA.length;
@@ -306,8 +291,8 @@ public class PairwiseSetOperations {
     int indexA = 0;
     int indexB = 0;
     int indexOut = 0;
-    long hashA = cacheA[indexA];
-    long hashB = cacheB[indexB];
+    long hashA = (aLen == 0) ? thetaLong : cacheA[indexA];
+    long hashB = (bLen == 0) ? thetaLong : cacheB[indexB];
 
     while ((indexA < aLen) || (indexB < bLen)) {
       if (hashA == hashB) {
