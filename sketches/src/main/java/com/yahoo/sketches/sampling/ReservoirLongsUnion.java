@@ -137,10 +137,10 @@ public final class ReservoirLongsUnion {
         (sketchIn.getK() <= maxK_ ? sketchIn : sketchIn.downsampledCopy(maxK_));
 
     // can modify the sketch if we downsampled, otherwise may need to copy it
+    final boolean isModifiable = (sketchIn != rls);
     if (gadget_ == null) {
-      gadget_ = (sketchIn == rls ? rls.copy() : rls);
+      createNewGadget(sketchIn, isModifiable);
     } else {
-      final boolean isModifiable = (sketchIn != rls);
       twoWayMergeInternal(rls, isModifiable);
     }
   }
@@ -165,7 +165,7 @@ public final class ReservoirLongsUnion {
     rls = (rls.getK() <= maxK_ ? rls : rls.downsampledCopy(maxK_));
 
     if (gadget_ == null) {
-      gadget_ = rls;
+      createNewGadget(rls, true);
     } else {
       twoWayMergeInternal(rls, true);
     }
@@ -259,18 +259,32 @@ public final class ReservoirLongsUnion {
     return outArr;
   }
 
+  private void createNewGadget(final ReservoirLongsSketch sketchIn,
+                               final boolean isModifiable) {
+    if (sketchIn.getK() < maxK_ && sketchIn.getN() <= sketchIn.getK()) {
+      // incoming sketch is in exact mode with sketch's k < maxK,
+      // so we can create a gadget at size maxK and keep everything
+      // NOTE: assumes twoWayMergeInternal to first checks if sketchIn is in exact mode
+      gadget_ = ReservoirLongsSketch.getInstance(maxK_);
+      twoWayMergeInternal(sketchIn, isModifiable); // isModifiable could be fixed to false here
+    } else {
+      // use the input sketch as gadget, copying if needed
+      gadget_ = (isModifiable ? sketchIn : sketchIn.copy());
+    }
+  }
+
   // We make a three-way classification of sketch states.
   // "uni" when (n < k); source of unit weights, can only accept unit weights
   // "mid" when (n == k); source of unit weights, can accept "light" general weights.
   // "gen" when (n > k); source of general weights, can accept "light" general weights.
 
-  // source target status update notes
-  // ---------------------------------------------------------------------------------------------------------
-  // uni,mid uni okay standard target might transition to mid and gen
-  // uni,mid mid,gen okay standard target might transition to gen
-  // gen uni must swap N/A
-  // gen mid,gen maybe swap weighted N assumes fractional values during merge
-  // ---------------------------------------------------------------------------------------------------------
+  // source   target   status      update     notes
+  // ----------------------------------------------------------------------------------------------
+  // uni,mid  uni      okay        standard   target might transition to mid and gen
+  // uni,mid  mid,gen  okay        standard   target might transition to gen
+  // gen      uni      must swap   N/A
+  // gen      mid,gen  maybe swap  weighted   N assumes fractional values during merge
+  // ----------------------------------------------------------------------------------------------
 
   // Here is why in the (gen, gen) merge case, the items will be light enough in at least one
   // direction:
