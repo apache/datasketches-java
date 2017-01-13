@@ -104,8 +104,7 @@ public final class ReservoirLongsUnion {
       final int preLongBytes = numPreLongs << 3;
       final MemoryRegion sketchMem =
           new MemoryRegion(srcMem, preLongBytes, srcMem.getCapacity() - preLongBytes);
-      final ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(sketchMem);
-      rlu.update(rls);
+      rlu.update(sketchMem);
     }
 
     return rlu;
