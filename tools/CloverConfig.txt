@@ -14,11 +14,11 @@ At Project Level Properties:
 				(.* )?private +[a-zA-Z0-9_$]+ *\( *\).*
 	Source Files
 		Only look ...
-			src/main/java[includes=**/*.java][excludes=]
-			src/test/java[includes=**/*.java][excludes=]
+			[check] src/main/java[includes=**/*.java][excludes=]
+			[check] src/test/java[includes=**/*.java][excludes=]
 	Test Classes
-		Assume ...
-			Include: **/*Test.java,**/Test*.java
+		Assume all source in the specified folders are tests or test utility classes
+			[check] src/test/java
 
 At Clover "down-triangle" menu:
 	Columns:

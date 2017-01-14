@@ -12,6 +12,7 @@ import static com.yahoo.sketches.quantiles.Util.computeNumLevelsNeeded;
 import static com.yahoo.sketches.quantiles.Util.lg;
 import static java.lang.Math.floor;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -162,12 +163,15 @@ public class HeapDoublesSketchTest {
     DoublesSketch qs1 = DoublesSketch.builder().build(k);
     DoublesSketch qs2 = DoublesSketch.builder().build(k);
     DoublesSketch qs3 = DoublesSketch.builder().build(k);
+    assertFalse(qs1.isEstimationMode());
 
     for (int i = 999; i >= 1; i--) {
       qs1.update(i);
       qs2.update(1000+i);
       qs3.update(i);
     }
+    assertTrue(qs1.isEstimationMode());
+
     assertTrue(qs1.getQuantile(0.0) == 1.0);
     assertTrue(qs1.getQuantile(1.0) == 999.0);
 
@@ -203,11 +207,12 @@ public class HeapDoublesSketchTest {
   @Test
   public void checkSmallMinMax () {
     int k = 32;
+    int n = 8;
     DoublesSketch qs1 = DoublesSketch.builder().build(k);
     DoublesSketch qs2 = DoublesSketch.builder().build(k);
     DoublesSketch qs3 = DoublesSketch.builder().build(k);
 
-    for (int i = 8; i >= 1; i--) {
+    for (int i = n; i >= 1; i--) {
       qs1.update(i);
       qs2.update(10+i);
       qs3.update(i);
@@ -287,8 +292,14 @@ public class HeapDoublesSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkConstructorException() {
-    DoublesSketch qs = DoublesSketch.builder().build(0);
-    qs.getQuantile(0.5); //never executed
+    DoublesSketch.builder().build(0);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkPreLongsCheck() {
+    HeapDoublesSketch.checkPreLongsEmpty(5, false, 1);
+
+    HeapDoublesSketch.checkPreLongsEmpty(6, false, 3);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -309,7 +320,7 @@ public class HeapDoublesSketchTest {
     qs.getQuantile(frac);
   }
 
-  //@Test  //visual only  //TODO
+  //@Test  //visual only
   public void summaryCheckViaMemory() {
     DoublesSketch qs = buildQS(256, 1000000);
     String s = qs.toString();
@@ -536,6 +547,8 @@ public class HeapDoublesSketchTest {
     int serVer = 3;
     int combBufItemCap = computeCombinedBufferItemCapacity(k, n, true); //non-compact cap
     int memCapBytes = (combBufItemCap + 4) << 3;
+    int memCapBytesV1 = (combBufItemCap + 5) << 3;
+    HeapDoublesSketch.checkHeapMemCapacity(k, n, false, 1, memCapBytesV1);
     HeapDoublesSketch.checkHeapMemCapacity(k, n, false, serVer, memCapBytes - 1); //corrupt
   }
 
@@ -694,7 +707,7 @@ public class HeapDoublesSketchTest {
     DoublesUnionImpl.mergeInto(qs2, qs1);
   }
 
-  //@Test  //visual only //TODO
+  //@Test  //visual only
   public void quantilesCheckViaMemory() {
     int k = 256;
     int n = 1000000;
@@ -805,7 +818,8 @@ public class HeapDoublesSketchTest {
   @Test
   public void checkAuxPosOfPhi() throws Exception {
     long n = 10;
-    Method privateMethod = DoublesAuxiliary.class.getDeclaredMethod("posOfPhi", double.class, long.class );
+    Method privateMethod =
+        DoublesAuxiliary.class.getDeclaredMethod("posOfPhi", double.class, long.class );
     privateMethod.setAccessible(true);
     long returnValue = (long) privateMethod.invoke(null, Double.valueOf(1.0), Long.valueOf(10));
     //println("" + returnValue);

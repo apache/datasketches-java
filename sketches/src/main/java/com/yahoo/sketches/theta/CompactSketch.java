@@ -61,11 +61,6 @@ public abstract class CompactSketch extends Sketch {
   }
 
   @Override
-  public boolean isEstimationMode() {
-    return Sketch.estMode(getThetaLong(), isEmpty());
-  }
-
-  @Override
   public Family getFamily() {
     return Family.COMPACT;
   }

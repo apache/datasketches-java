@@ -54,7 +54,7 @@ final class DoublesUpdateImpl {
       final int startingLevel,
       final double[] sizeKBuf, final int sizeKStart,
       final double[] size2KBuf, final int size2KStart,
-      final boolean doUpdateVersion,
+      final boolean doUpdateVersion, //false = mergeInto version
       final int k,
       final double[] combinedBuffer, //ref to combined buffer, which includes base buffer
       final long bitPattern //the current bitPattern
@@ -69,7 +69,7 @@ final class DoublesUpdateImpl {
           size2KBuf, size2KStart,
           combinedBuffer, (2 + endingLevel) * k,
           k);
-    } else { // mergeInto version of computation
+    } else { // mergeInto version of computation //TODO ERROR on next
       System.arraycopy(
           sizeKBuf, sizeKStart,
           combinedBuffer, (2 + endingLevel) * k,

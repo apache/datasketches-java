@@ -42,7 +42,7 @@ final class ItemsAuxiliary<T> {
 
     // Sort the first "numSamples" slots of the two arrays in tandem,
     // taking advantage of the already sorted blocks of length k
-    ItemsUtil.blockyTandemMergeSort((T[]) itemsArr, cumWtsArr, numSamples, k, qs.getComparator());
+    ItemsMergeImpl.blockyTandemMergeSort((T[]) itemsArr, cumWtsArr, numSamples, k, qs.getComparator());
 
     // convert the item weights into totals of the weights preceding each item
     long subtot = 0;

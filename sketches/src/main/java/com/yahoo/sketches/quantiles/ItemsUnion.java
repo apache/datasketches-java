@@ -165,7 +165,7 @@ public final class ItemsUnion<T> {
     final long tgtN = target.getN();
 
     if (srcK != tgtK) {
-      ItemsUtil.downSamplingMergeInto(source, target);
+      ItemsMergeImpl.downSamplingMergeInto(source, target);
       return;
     }
 

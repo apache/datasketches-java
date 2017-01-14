@@ -86,7 +86,8 @@ final class Util {
   }
 
   /**
-   * Checks just the flags field of the preamble
+   * Checks just the flags field of the preamble. Allowed flags are Read Only, Empty, Compact, and
+   * ordered.
    * @param flags the flags field
    */
   static void checkHeapFlags(final int flags) {  //only used by checkPreLongsFlagsCap and test
@@ -362,6 +363,4 @@ final class Util {
     }
   } //End of EpsilonFromK
 
-  //static void println(String s) { System.out.println(s); }
-  //static void print(String s) { System.out.print(s); }
 }

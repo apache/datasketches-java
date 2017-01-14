@@ -1,25 +1,17 @@
 /*
- * Copyright 2015-16, Yahoo! Inc.
+ * Copyright 2016, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
 package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFamilyID;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractN;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerVer;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertFamilyID;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertFlags;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertN;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertPreLongs;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerVer;
 import static com.yahoo.sketches.quantiles.Util.computeBaseBufferItems;
 import static com.yahoo.sketches.quantiles.Util.computeBitPattern;
 
@@ -30,9 +22,7 @@ import java.util.Random;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.MemoryRegion;
-import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.ArrayOfItemsSerDe;
-import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -497,38 +487,7 @@ public final class ItemsSketch<T> {
    * @return this sketch in a byte array form.
    */
   public byte[] toByteArray(final boolean ordered, final ArrayOfItemsSerDe<T> serDe) {
-    final boolean empty = isEmpty();
-
-    final int flags = (empty ? EMPTY_FLAG_MASK : 0)
-        | (ordered ? ORDERED_FLAG_MASK : 0)
-        | COMPACT_FLAG_MASK;
-
-    if (empty) {
-      final byte[] outByteArr = new byte[Long.BYTES];
-      final Memory memOut = new NativeMemory(outByteArr);
-      final long cumOffset = memOut.getCumulativeOffset(0L);
-      final int preLongs = 1;
-      insertPre0(outByteArr, cumOffset, preLongs, flags, k_);
-      return outByteArr;
-    }
-
-    //not empty
-    final T[] dataArr = combinedBufferToItemsArray(ordered); //includes min and max
-
-    final int preLongs = 2;
-    final byte[] itemsByteArr = serDe.serializeToByteArray(dataArr);
-    final int numOutBytes = (preLongs << 3) + itemsByteArr.length;
-    final byte[] outByteArr = new byte[numOutBytes];
-    final Memory memOut = new NativeMemory(outByteArr);
-    final long cumOffset = memOut.getCumulativeOffset(0L);
-
-    //insert preamble
-    insertPre0(outByteArr, cumOffset, preLongs, flags, k_);
-    insertN(outByteArr, cumOffset, n_);
-
-    //insert data
-    memOut.putByteArray(preLongs << 3, itemsByteArr, 0, itemsByteArr.length);
-    return outByteArr;
+    return ItemsByteArrayImpl.toByteArray(this, ordered, serDe);
   }
 
   /**
@@ -559,7 +518,7 @@ public final class ItemsSketch<T> {
    */
   public ItemsSketch<T> downSample(final int newK) {
     final ItemsSketch<T> newSketch = ItemsSketch.getInstance(newK, comparator_);
-    ItemsUtil.downSamplingMergeInto(this, newSketch);
+    ItemsMergeImpl.downSamplingMergeInto(this, newSketch);
     return newSketch;
   }
 
@@ -648,52 +607,6 @@ public final class ItemsSketch<T> {
         }
       }
     }
-  }
-
-  /**
-   * Returns an array of items in compact form, including min and max extracted from the
-   * Combined Buffer.
-   * @param ordered true if the desired form of the resulting array has the base buffer sorted.
-   * @return an array of items, including min and max extracted from the Combined Buffer.
-   */
-  @SuppressWarnings("unchecked")
-  private T[] combinedBufferToItemsArray(final boolean ordered) {
-    T[] outArr = null;
-    final int extra = 2; // extra space for min and max values
-    final int outArrCap = getRetainedItems();
-    outArr = (T[]) Array.newInstance(minValue_.getClass(), outArrCap + extra);
-
-    //Load min, max
-    outArr[0] = minValue_;
-    outArr[1] = maxValue_;
-
-    //Load base buffer
-    System.arraycopy(combinedBuffer_, 0, outArr, extra, baseBufferCount_);
-
-    //Load levels
-    long bits = bitPattern_;
-    if (bits > 0) {
-      int index = extra + baseBufferCount_;
-      for (int level = 0; bits != 0L; level++, bits >>>= 1) {
-        if ((bits & 1L) > 0L) {
-          System.arraycopy(combinedBuffer_, (2 + level) * k_, outArr, index, k_);
-          index += k_;
-        }
-      }
-    }
-    if (ordered) {
-      Arrays.sort(outArr, extra, baseBufferCount_ + extra, comparator_);
-    }
-    return outArr;
-  }
-
-  private static final void insertPre0(final byte[] outArr, final long cumOffset, final int preLongs,
-      final int flags, final int k) {
-    insertPreLongs(outArr, cumOffset, preLongs);
-    insertSerVer(outArr, cumOffset, ItemsUtil.ITEMS_SER_VER);
-    insertFamilyID(outArr, cumOffset, Family.QUANTILES.getID());
-    insertFlags(outArr, cumOffset, flags);
-    insertK(outArr, cumOffset, k);
   }
 
   /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Yahoo! Inc. Licensed under the terms of the
+ * Copyright 2017, Yahoo! Inc. Licensed under the terms of the
  * Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
@@ -9,16 +9,18 @@ import static com.yahoo.sketches.Util.checkIfPowerOf2;
 import static java.lang.System.arraycopy;
 
 import java.util.Arrays;
+import java.util.Comparator;
 
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
- * Down-sampling and merge algorithms for doubles quantiles.
+ * Down-sampling and merge algorithms for items quantiles.
  *
  * @author Lee Rhodes
+ * @author Alexander Saydakov
  * @author Kevin Lang
  */
-class DoublesMergeImpl {
+class ItemsMergeImpl {
 
   /**
    * Merges the source sketch into the target sketch that can have a smaller value of K.
@@ -29,87 +31,72 @@ class DoublesMergeImpl {
    * @param src The source sketch
    * @param tgt The target sketch
    */
-  static void downSamplingMergeInto(final DoublesSketch src, final DoublesSketch tgt) {
-    final int srcK = src.getK();
-    final int tgtK = tgt.getK();
+  @SuppressWarnings("unchecked")
+  static <T> void downSamplingMergeInto(final ItemsSketch<T> src, final ItemsSketch<T> tgt) {
+    final int targetK = tgt.getK();
+    final int sourceK = src.getK();
 
-    if ((srcK % tgtK) != 0) {
+    if ((sourceK % targetK) != 0) {
       throw new SketchesArgumentException(
           "source.getK() must equal target.getK() * 2^(nonnegative integer).");
     }
 
-    final int downFactor = srcK / tgtK;
+    final int downFactor = sourceK / targetK;
     checkIfPowerOf2(downFactor, "source.getK()/target.getK() ratio");
     final int lgDownFactor = Integer.numberOfTrailingZeros(downFactor);
 
-    final double[] srcCombBuf = src.getCombinedBuffer();
+    final Object[] sourceLevels     = src.getCombinedBuffer(); // aliasing is a bit dangerous
+    final Object[] sourceBaseBuffer = src.getCombinedBuffer(); // aliasing is a bit dangerous
 
     final long nFinal = tgt.getN() + src.getN();
 
     for (int i = 0; i < src.getBaseBufferCount(); i++) {
-      tgt.update(srcCombBuf[i]);
+      tgt.update((T) sourceBaseBuffer[i]);
     }
 
-    final int spaceNeeded = DoublesUpdateImpl.maybeGrowLevels(tgtK, nFinal);
-    final double[] tgtCombBuf;
-    final int curCombBufCap = tgt.getCombinedBufferItemCapacity();
-    if (spaceNeeded > curCombBufCap) {
-      // heap: copies base buffer plus old levels
-      // off-heap: just checks for enough room, for now, and extracts to heap
-      tgtCombBuf = tgt.growCombinedBuffer(curCombBufCap, spaceNeeded);
-    } else {
-      tgtCombBuf = tgt.getCombinedBuffer();
-    }
+    ItemsUtil.maybeGrowLevels(nFinal, tgt);
 
-    //working scratch buffers
-    final double[] scratch2KBuf = new double [2 * tgtK];
-    final double[] downScratchKBuf = new double [tgtK];
+    final Object[] scratchBuf = new Object[2 * targetK];
+    final Object[] downBuf    = new Object[targetK];
 
     long srcBitPattern = src.getBitPattern();
-    long newTgtBitPattern = tgt.getBitPattern();
     for (int srcLvl = 0; srcBitPattern != 0L; srcLvl++, srcBitPattern >>>= 1) {
       if ((srcBitPattern & 1L) > 0L) {
-        justZipWithStride(
-            srcCombBuf, ((2 + srcLvl) * srcK),
-            downScratchKBuf, 0,
-            tgtK,
-            downFactor
-        );
-        newTgtBitPattern = DoublesUpdateImpl.inPlacePropagateCarry(
-            srcLvl + lgDownFactor,    //starting level
-            downScratchKBuf, 0,       //sizeKBuf, start
-            scratch2KBuf, 0,          //size2KBuf, start
-            false,                    //do mergeInto version
-            tgtK,
-            tgtCombBuf,
-            newTgtBitPattern
-        );
+        ItemsMergeImpl.justZipWithStride(
+            sourceLevels, (2 + srcLvl) * sourceK,
+            downBuf, 0,
+            targetK,
+            downFactor);
+        ItemsUtil.inPlacePropagateCarry(
+            srcLvl + lgDownFactor,
+            (T[]) downBuf, 0,
+            (T[]) scratchBuf, 0,
+            false, tgt);
+        // won't update target.n_ until the very end
       }
     }
-    tgt.putCombinedBuffer(tgtCombBuf);
-    tgt.putBitPattern(newTgtBitPattern); //off-heap is a no-op
-    tgt.putN(nFinal);
+    tgt.n_ = nFinal;
 
-    assert tgt.getN() / (2 * tgtK) == newTgtBitPattern; // internal consistency check
+    assert tgt.getN() / (2 * targetK) == tgt.getBitPattern(); // internal consistency check
 
-    final double srcMax = src.getMaxValue();
-    final double srcMin = src.getMinValue();
-    final double tgtMax = tgt.getMaxValue();
-    final double tgtMin = tgt.getMinValue();
+    final T srcMax = src.getMaxValue();
+    final T srcMin = src.getMinValue();
+    final T tgtMax = tgt.getMaxValue();
+    final T tgtMin = tgt.getMinValue();
 
-    if (srcMax > tgtMax) { tgt.putMaxValue(srcMax); }
-    if (srcMin < tgtMin) { tgt.putMinValue(srcMin); }
+    if (src.getComparator().compare(srcMax, tgtMax) > 0) { tgt.maxValue_ = srcMax; }
+    if (src.getComparator().compare(srcMin, tgtMin) < 0) { tgt.minValue_ = srcMin; }
   }
 
-  private static void justZipWithStride(
-      final double[] bufA, final int startA, // input
-      final double[] bufC, final int startC, // output
+  private static <T> void justZipWithStride(
+      final T[] bufSrc, final int startSrc, // input
+      final T[] bufC, final int startC, // output
       final int kC, // number of items that should be in the output
       final int stride) {
-    final int randomOffset = DoublesSketch.rand.nextInt(stride);
+    final int randomOffset = ItemsSketch.rand.nextInt(stride);
     final int limC = startC + kC;
-    for (int a = startA + randomOffset, c = startC; c < limC; a += stride, c++ ) {
-      bufC[c] = bufA[a];
+    for (int a = startSrc + randomOffset, c = startC; c < limC; a += stride, c++ ) {
+      bufC[c] = bufSrc[a];
     }
   }
 
@@ -124,9 +111,8 @@ class DoublesMergeImpl {
    * @param arrLen length of keyArr and valArr
    * @param blkSize size of internal sorted blocks
    */
-  //also used by DoublesAuxiliary and UtilTest
-  static void blockyTandemMergeSort(final double[] keyArr, final long[] valArr, final int arrLen,
-      final int blkSize) {
+  static <T> void blockyTandemMergeSort(final T[] keyArr, final long[] valArr, final int arrLen,
+      final int blkSize, final Comparator<? super T> comparator) {
     assert blkSize >= 1;
     if (arrLen <= blkSize) { return; }
     int numblks = arrLen / blkSize;
@@ -134,13 +120,13 @@ class DoublesMergeImpl {
     assert (numblks * blkSize >= arrLen);
 
     // duplicate the input is preparation for the "ping-pong" copy reduction strategy.
-    final double[] keyTmp = Arrays.copyOf(keyArr, arrLen);
-    final long[] valTmp   = Arrays.copyOf(valArr, arrLen);
+    final T[] keyTmp = Arrays.copyOf(keyArr, arrLen);
+    final long[] valTmp = Arrays.copyOf(valArr, arrLen);
 
-    DoublesMergeImpl.blockyTandemMergeSortRecursion(keyTmp, valTmp,
+    blockyTandemMergeSortRecursion(keyTmp, valTmp,
                                    keyArr, valArr,
                                    0, numblks,
-                                   blkSize, arrLen);
+                                   blkSize, arrLen, comparator);
   }
 
   /**
@@ -157,10 +143,11 @@ class DoublesMergeImpl {
    * @param grpLen group length, refers to pre-sorted blocks such as block 0, block 1, etc.
    * @param blkSize block size
    * @param arrLim array limit
+   * @param comparator to compare keys
    */
-  private static void blockyTandemMergeSortRecursion(final double[] keySrc, final long[] valSrc,
-      final double[] keyDst, final long[] valDst, final int grpStart, final int grpLen,
-      /* indices of blocks */ final int blkSize, final int arrLim) {
+  static <T> void blockyTandemMergeSortRecursion(final T[] keySrc, final long[] valSrc,
+      final T[] keyDst, final long[] valDst, final int grpStart, final int grpLen, // block indices
+      final int blkSize, final int arrLim, final Comparator<? super T> comparator) {
     // Important note: grpStart and grpLen do NOT refer to positions in the underlying array.
     // Instead, they refer to the pre-sorted blocks, such as block 0, block 1, etc.
 
@@ -177,28 +164,31 @@ class DoublesMergeImpl {
     //swap roles of src and dst
     blockyTandemMergeSortRecursion(keyDst, valDst,
                            keySrc, valSrc,
-                           grpStart1, grpLen1, blkSize, arrLim);
+                           grpStart1, grpLen1, blkSize, arrLim, comparator);
 
     //swap roles of src and dst
     blockyTandemMergeSortRecursion(keyDst, valDst,
                            keySrc, valSrc,
-                           grpStart2, grpLen2, blkSize, arrLim);
+                           grpStart2, grpLen2, blkSize, arrLim, comparator);
 
     // here we convert indices of blocks into positions in the underlying array.
     final int arrStart1 = grpStart1 * blkSize;
     final int arrStart2 = grpStart2 * blkSize;
     final int arrLen1   = grpLen1   * blkSize;
-    int arrLen2         = grpLen2   * blkSize;
+    int arrLen2   = grpLen2   * blkSize;
 
     // special case for the final block which might be shorter than blkSize.
-    if (arrStart2 + arrLen2 > arrLim) { arrLen2 = arrLim - arrStart2; }
+    if (arrStart2 + arrLen2 > arrLim) {
+      arrLen2 = arrLim - arrStart2;
+    }
 
     tandemMerge(keySrc, valSrc,
                 arrStart1, arrLen1,
                 arrStart2, arrLen2,
                 keyDst, valDst,
-                arrStart1); // which will be arrStart3
+                arrStart1, comparator); // which will be arrStart3
   }
+
 
   /**
    *  Performs two merges in tandem. One of them provides the sort keys
@@ -212,12 +202,13 @@ class DoublesMergeImpl {
    * @param keyDst key destination
    * @param valDst value destination
    * @param arrStart3 Array 3 start offset
+   * @param comparator to compare keys
    */
-  private static void tandemMerge(final double[] keySrc, final long[] valSrc,
+  static <T> void tandemMerge(final T[] keySrc, final long[] valSrc,
                                   final int arrStart1, final int arrLen1,
                                   final int arrStart2, final int arrLen2,
-                                  final double[] keyDst, final long[] valDst,
-                                  final int arrStart3) {
+                                  final T[] keyDst, final long[] valDst,
+                                  final int arrStart3, final Comparator<? super T> comparator) {
     final int arrStop1 = arrStart1 + arrLen1;
     final int arrStop2 = arrStart2 + arrLen2;
 
@@ -225,7 +216,7 @@ class DoublesMergeImpl {
     int i2 = arrStart2;
     int i3 = arrStart3;
     while (i1 < arrStop1 && i2 < arrStop2) {
-      if (keySrc[i2] < keySrc[i1]) {
+      if (comparator.compare(keySrc[i2], keySrc[i1]) < 0) {
         keyDst[i3] = keySrc[i2];
         valDst[i3] = valSrc[i2];
         i3++; i2++;

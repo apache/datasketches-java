@@ -81,13 +81,13 @@ public final class DirectDoublesSketch extends DoublesSketch {
   /**
    * Wrap this sketch around the given non-compact Memory image of a DoublesSketch.
    *
-   * @param mem the given non-compact Memory image of a DoublesSketch that may have data,
+   * @param srcMem the given non-compact Memory image of a DoublesSketch that may have data,
    * @return a sketch that wraps the given srcMem
    */
-  static DirectDoublesSketch wrapInstance(final Memory mem) {
-    final long memCap = mem.getCapacity();
-    final Object memObj = mem.array(); //may be null
-    final long memAdd = mem.getCumulativeOffset(0L);
+  static DirectDoublesSketch wrapInstance(final Memory srcMem) {
+    final long memCap = srcMem.getCapacity();
+    final Object memObj = srcMem.array(); //may be null
+    final long memAdd = srcMem.getCumulativeOffset(0L);
 
     //Extract the preamble, assumes at least 8 bytes
     final int preLongs = extractPreLongs(memObj, memAdd);
@@ -111,7 +111,7 @@ public final class DirectDoublesSketch extends DoublesSketch {
     checkEmptyAndN(empty, n);
 
     final DirectDoublesSketch dds = new DirectDoublesSketch(k);
-    dds.mem_ = mem;
+    dds.mem_ = srcMem;
     dds.memObj_ = memObj;
     dds.memAdd_ = memAdd;
     return dds;
@@ -167,18 +167,8 @@ public final class DirectDoublesSketch extends DoublesSketch {
   }
 
   @Override
-  public int getK() {
-    return extractK(memObj_, memAdd_);
-  }
-
-  @Override
   public long getN() {
     return extractN(memObj_, memAdd_);
-  }
-
-  @Override
-  public boolean isEmpty() {
-    return ((extractFlags(memObj_, memAdd_) & EMPTY_FLAG_MASK) > 0);
   }
 
   @Override
@@ -283,9 +273,10 @@ public final class DirectDoublesSketch extends DoublesSketch {
     final int needBytes = (itemSpaceNeeded << 3) + 32; //+ preamble + min, max
     if ((needBytes) > memBytes) {
       final Memory newMem = MemoryUtil.requestMemoryHandler(mem_, needBytes);
-      NativeMemory.copy(mem_, 0, newMem, 0, memBytes);
+      NativeMemory.copy(mem_, 0, newMem, 0, memBytes); //copy old data in
       mem_ = newMem;
     }
+    //mem is large enough and data may already be there
     final double[] newCombBuf = new double[itemSpaceNeeded];
     mem_.getDoubleArray(32, newCombBuf, 0, curCombBufItemCap);
     return newCombBuf;

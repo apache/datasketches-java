@@ -110,7 +110,7 @@ final class HeapDoublesSketch extends DoublesSketch {
 
   /**
    * Heapifies the given srcMem, which must be a Memory image of a DoublesSketch and may have data.
-   * @param srcMem a Memory image of a sketch.
+   * @param srcMem a Memory image of a sketch, which may be in compact or not compact form.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a DoublesSketch on the Java heap.
    */
@@ -215,18 +215,8 @@ final class HeapDoublesSketch extends DoublesSketch {
   }
 
   @Override
-  public int getK() {
-    return k_;
-  }
-
-  @Override
   public long getN() {
     return n_;
-  }
-
-  @Override
-  public boolean isEmpty() {
-    return (n_ == 0);
   }
 
   @Override
@@ -351,6 +341,8 @@ final class HeapDoublesSketch extends DoublesSketch {
     n_ = n;
   }
 
+
+
   @Override
   void putCombinedBuffer(final double[] combinedBuffer) {
     combinedBuffer_ = combinedBuffer;
@@ -371,7 +363,7 @@ final class HeapDoublesSketch extends DoublesSketch {
     bitPattern_ = bitPattern;
   }
 
-  @Override
+  @Override //the return value is not always used
   double[] growCombinedBuffer(final int currentSpace, final int spaceNeeded) {
     combinedBuffer_ = Arrays.copyOf(combinedBuffer_, spaceNeeded);
     combinedBufferItemCapacity_ = spaceNeeded;
@@ -401,8 +393,8 @@ final class HeapDoublesSketch extends DoublesSketch {
     final int maxPre = (serVer == 1) ? 5 : Family.QUANTILES.getMaxPreLongs(); //2
     final boolean valid = ((preLongs == minPre) && empty) || ((preLongs == maxPre) && !empty);
     if (!valid) {
-      throw new SketchesArgumentException(
-          "Possible corruption: PreambleLongs inconsistent with empty state: " + preLongs);
+      throw new SketchesArgumentException("Possible corruption: PreambleLongs = " + preLongs
+          + ", inconsistent with empty = " + empty + ", and SerVer = " + serVer);
     }
   }
 

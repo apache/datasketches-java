@@ -137,17 +137,44 @@ public class ForwardCompatibilityTest {
   public void checkSerVer2_24Bytes_1Value() {
     byte[] byteArray = new byte[24];
     Memory mem = new NativeMemory(byteArray);
-    mem.putByte(0, (byte) 2); //mdLongs, RR = 0
+    mem.putByte(0, (byte) 2); //mdLongs, RF (RR) = 0
     mem.putByte(1, (byte) 2); //SerVer
     mem.putByte(2, (byte) 3); //SketchType = SetSketch
     //byte 3 lgNomLongs not used w SetSketch
     //byte 4 lgArrLongs not used w SetSketch
     //byte 5 Flags: b0: BigEnd, b1: ReadOnly, b2: Empty, b3: NoRebuild, b4, Unordered
-    mem.putByte(5, (byte) 2); //Flags
+    mem.putByte(5, (byte) 2); //Flags = ReadOnly
     short seedHash = Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED);
     mem.putShort(6, seedHash);
     mem.putInt(8, 0); //curCount = 0
     //mem.putLong(16, Long.MAX_VALUE);
+
+    Memory srcMem = new NativeMemory(byteArray);
+    Sketch sketch = Sketch.heapify(srcMem);
+    assertEquals(sketch.isEmpty(), false);
+    assertEquals(sketch.isEstimationMode(), false);
+    assertEquals(sketch.isDirect(), false);
+    assertEquals(sketch.isCompact(), true);
+    assertEquals(sketch.isOrdered(), true);
+    String name = sketch.getClass().getSimpleName();
+    assertEquals(name, "HeapCompactOrderedSketch");
+  }
+
+  @Test
+  public void checkSerVer2_32Bytes_1Value() {
+    byte[] byteArray = new byte[32];
+    Memory mem = new NativeMemory(byteArray);
+    mem.putByte(0, (byte) 3); //mdLongs, RF (RR) = 0
+    mem.putByte(1, (byte) 2); //SerVer
+    mem.putByte(2, (byte) 3); //SketchType = SetSketch
+    //byte 3 lgNomLongs not used w SetSketch
+    //byte 4 lgArrLongs not used w SetSketch
+    //byte 5 Flags: b0: BigEnd, b1: ReadOnly, b2: Empty, b3: NoRebuild, b4, Unordered
+    mem.putByte(5, (byte) 2); //Flags = ReadOnly
+    short seedHash = Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED);
+    mem.putShort(6, seedHash);
+    mem.putInt(8, 0); //curCount = 0
+    mem.putLong(16, Long.MAX_VALUE);
 
     Memory srcMem = new NativeMemory(byteArray);
     Sketch sketch = Sketch.heapify(srcMem);

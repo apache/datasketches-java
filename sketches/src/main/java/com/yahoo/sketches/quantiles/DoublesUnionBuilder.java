@@ -13,7 +13,7 @@ import com.yahoo.memory.Memory;
  * @author Lee Rhodes
  */
 public class DoublesUnionBuilder {
-  private int bK = DoublesSketch.DEFAULT_K;
+  private int bMaxK = DoublesSketch.DEFAULT_K;
   private Memory bMem = null;
 
   /**
@@ -27,18 +27,29 @@ public class DoublesUnionBuilder {
   public DoublesUnionBuilder() {}
 
   /**
-   * Sets the parameter <i>k</i> that determines the accuracy and size of the sketch that
-   * results from a union.
-   * @param k determines the accuracy and size of the union.
-   * It is recommended that <i>k</i> be a power of 2 to enable unioning of sketches with
-   * different values of <i>k</i>. It is only possible to union from
-   * larger values of <i>k</i> to smaller values.
+   * Sets the parameter <i>masK</i> that determines the maximum size of the sketch that
+   * results from a union and its accuracy.
+   * @param maxK determines the accuracy and size of the union and is a maximum value.
+   * The effective <i>k</i> can be smaller due to unions with smaller <i>k</i> sketches.
+   * It is recommended that <i>maxK</i> be a power of 2 to enable unioning of sketches with
+   * different values of <i>k</i>.
    * @return this builder
    */
-  public DoublesUnionBuilder setK(final int k) {
-    Util.checkK(k);
-    bK = k;
+  public DoublesUnionBuilder setMaxK(final int maxK) {
+    Util.checkK(maxK);
+    bMaxK = maxK;
     return this;
+  }
+
+  /**
+   * Deprecated in favor of a clearer method naming. Please use {@link #setMaxK(int)}.
+   * @param maxK See {@link #setMaxK(int)}.
+   * @return this builder
+   * @deprecated please use {@link #setMaxK(int)}.
+   */
+  @Deprecated
+  public DoublesUnionBuilder setK(final int maxK) {
+    return setMaxK(maxK);
   }
 
   /**
@@ -52,11 +63,11 @@ public class DoublesUnionBuilder {
   }
 
   /**
-   * Gets the current configured value of <i>k</i>
-   * @return the current configured value of <i>k</i>
+   * Gets the current configured value of <i>maxK</i>
+   * @return the current configured value of <i>maxK</i>
    */
-  public int getK() {
-    return bK;
+  public int getMaxK() {
+    return bMaxK;
   }
 
   /**
@@ -72,8 +83,8 @@ public class DoublesUnionBuilder {
    * @return a Union object
    */
   public DoublesUnion build() {
-    return (bMem == null) ? DoublesUnionImpl.heapInstance(bK)
-        : DoublesUnionImpl.directInstance(bK, bMem);
+    return (bMem == null) ? DoublesUnionImpl.heapInstance(bMaxK)
+        : DoublesUnionImpl.directInstance(bMaxK, bMem);
   }
 
   /**

@@ -8,6 +8,7 @@ package com.yahoo.sketches.quantiles;
 import static com.yahoo.sketches.quantiles.DoublesUpdateImpl.maybeGrowLevels;
 import static com.yahoo.sketches.quantiles.Util.LS;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -57,12 +58,15 @@ public class DirectDoublesSketchTest {
     DoublesSketch qs1 = DoublesSketch.builder().build(k);
     DoublesSketch qs2 = DoublesSketch.builder().build(k);
     DoublesSketch qs3 = DoublesSketch.builder().build(k);
+    assertFalse(qs1.isEstimationMode());
 
     for (int i = 999; i >= 1; i--) {
       qs1.update(i);
       qs2.update(1000+i);
       qs3.update(i);
     }
+    assertTrue(qs1.isEstimationMode());
+
     assertTrue(qs1.getQuantile(0.0) == 1.0);
     assertTrue(qs1.getQuantile(1.0) == 999.0);
 
@@ -136,6 +140,7 @@ public class DirectDoublesSketchTest {
     DoublesSketch result2 = union2.getResult();
 
     double[] resultsB = result1.getQuantiles(queries);
+    printResults(resultsB);
     assert (resultsB[0] == 1.0);
     assert (resultsB[1] == 11.0);
     assert (resultsB[2] == 18.0);
@@ -144,6 +149,10 @@ public class DirectDoublesSketchTest {
     assert (resultsC[0] == 1.0);
     assert (resultsC[1] == 11.0);
     assert (resultsC[2] == 18.0);
+  }
+
+  static void printResults(double[] results) {
+    println(results[0] + ", " + results[1] + ", " + results[2]);
   }
 
   @Test

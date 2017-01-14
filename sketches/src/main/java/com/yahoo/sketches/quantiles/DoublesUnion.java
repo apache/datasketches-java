@@ -35,6 +35,19 @@ public abstract class DoublesUnion {
   public abstract boolean isDirect();
 
   /**
+   * Returns the configured <i>maxK</i> of this Union.
+   * @return the configured <i>maxK</i> of this Union.
+   */
+  public abstract int getMaxK();
+
+  /**
+   * Returns the effective <i>k</i> of this Union.
+   * @return the effective <i>k</i> of this Union.
+   */
+  public abstract int getEffectiveK();
+
+
+  /**
    * Iterative union operation, which means this method can be repeatedly called.
    * Merges the given sketch into this union object.
    * The given sketch is not modified.

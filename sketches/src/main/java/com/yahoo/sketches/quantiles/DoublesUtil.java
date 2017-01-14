@@ -68,11 +68,62 @@ final class DoublesUtil {
     return sb.toString();
   }
 
+  static String memToString(final boolean sketchSummary, final boolean dataDetail,
+      final Memory mem) {
+    final DoublesSketch ds = DoublesSketch.heapify(mem);
+    return ds.toString(sketchSummary, dataDetail);
+  }
+
+  private static String getSummary(final DoublesSketch sk) {
+    final StringBuilder sb = new StringBuilder();
+    final String thisSimpleName = sk.getClass().getSimpleName();
+    final int k = sk.getK();
+    final String kStr = String.format("%,d", k);
+    final long n = sk.getN();
+    final String nStr = String.format("%,d", n);
+    final String bbCntStr = String.format("%,d", sk.getBaseBufferCount());
+    final String combBufCapStr = String.format("%,d", sk.getCombinedBufferItemCapacity());
+    final long bitPattern = sk.getBitPattern();
+    final int neededLevels = Util.computeNumLevelsNeeded(k, n);
+    final int totalLevels = Util.computeTotalLevels(bitPattern);
+    final int validLevels = Util.computeValidLevels(bitPattern);
+    final String retItemsStr = String.format("%,d", sk.getRetainedItems());
+    final String cmptBytesStr = String.format("%,d", sk.getCompactStorageBytes());
+    final String updtBytesStr = String.format("%,d", sk.getUpdatableStorageBytes());
+    final double eps = Util.EpsilonFromK.getAdjustedEpsilon(k);
+    final String epsPctStr = String.format("%.3f%%", eps * 100.0);
+    final String memCap = sk.isDirect() ? Long.toString(sk.getMemory().getCapacity()) : "";
+
+    sb.append(Util.LS).append("### Quantiles ").append(thisSimpleName).append(" SUMMARY: ")
+      .append(LS);
+    sb.append("   Empty                        : ").append(sk.isEmpty()).append(LS);
+    sb.append("   Direct, Capacity bytes       : ").append(sk.isDirect())
+      .append(", ").append(memCap).append(LS);
+    sb.append("   Estimation Mode              : ").append(sk.isEstimationMode()).append(LS);
+    sb.append("   K                            : ").append(kStr).append(LS);
+    sb.append("   N                            : ").append(nStr).append(LS);
+    sb.append("   Levels (Needed, Total, Valid): ")
+      .append(neededLevels + ", " + totalLevels + ", " + validLevels).append(LS);
+    sb.append("   Level Bit Pattern            : ")
+      .append(Long.toBinaryString(bitPattern)).append(LS);
+    sb.append("   BaseBufferCount              : ").append(bbCntStr).append(LS);
+    sb.append("   Combined Buffer Capacity     : ").append(combBufCapStr).append(LS);
+    sb.append("   Retained Items               : ").append(retItemsStr).append(LS);
+    sb.append("   Compact Storage Bytes        : ").append(cmptBytesStr).append(LS);
+    sb.append("   Updatable Storage Bytes      : ").append(updtBytesStr).append(LS);
+    sb.append("   Normalized Rank Error        : ").append(epsPctStr).append(LS);
+    sb.append("   Min Value                    : ")
+      .append(String.format("%,.3f", sk.getMinValue())).append(LS);
+    sb.append("   Max Value                    : ")
+      .append(String.format("%,.3f", sk.getMaxValue())).append(LS);
+    sb.append("### END SKETCH SUMMARY").append(LS);
+    return sb.toString();
+  }
+
   private static String getDataDetail(final DoublesSketch sketch) {
     final StringBuilder sb = new StringBuilder();
-    final String thisSimpleName = sketch.getClass().getSimpleName();
-    sb.append(LS).append("### Quantiles ").append(thisSimpleName).append(" DATA DETAIL: ")
-      .append(LS);
+    final String skName = sketch.getClass().getSimpleName();
+    sb.append(LS).append("### Quantiles ").append(skName).append(" DATA DETAIL: ").append(LS);
 
     final int k = sketch.getK();
     final long n = sketch.getN();
@@ -97,78 +148,13 @@ final class DoublesUtil {
           final int levelNum = j / k - 2;
           final String validLvl = ((1L << levelNum) & bitPattern) > 0 ? "    T  " : "    F  ";
           final String lvl = String.format("%5d", levelNum);
-          sb.append(Util.LS).append("   ").append(validLvl).append(" ").append(lvl).append(": ");
+          sb.append(LS).append("   ").append(validLvl).append(" ").append(lvl).append(": ");
         }
         sb.append(String.format("%10.1f", combBuf[j]));
       }
       sb.append(LS);
     }
     sb.append("### END DATA DETAIL").append(LS);
-    return sb.toString();
-  }
-
-  private static String getSummary(final DoublesSketch sketch) {
-    final StringBuilder sb = new StringBuilder();
-    final String thisSimpleName = sketch.getClass().getSimpleName();
-    final int k = sketch.getK();
-    final String kStr = String.format("%,d", k);
-    final long n = sketch.getN();
-    final String nStr = String.format("%,d", n);
-    final String bbCntStr = String.format("%,d", sketch.getBaseBufferCount());
-    final String combBufCapStr = String.format("%,d", sketch.getCombinedBufferItemCapacity());
-    final long bitPattern = sketch.getBitPattern();
-    final int neededLevels = Util.computeNumLevelsNeeded(k, n);
-    final int totalLevels = Util.computeTotalLevels(bitPattern);
-    final int validLevels = Util.computeValidLevels(bitPattern);
-    final String retItemsStr = String.format("%,d", sketch.getRetainedItems());
-    final String cmptBytesStr = String.format("%,d", sketch.getCompactStorageBytes());
-    final String updtBytesStr = String.format("%,d", sketch.getUpdatableStorageBytes());
-    final double eps = Util.EpsilonFromK.getAdjustedEpsilon(k);
-    final String epsPctStr = String.format("%.3f%%", eps * 100.0);
-
-    sb.append(Util.LS).append("### Quantiles ").append(thisSimpleName).append(" SUMMARY: ")
-      .append(LS);
-    sb.append("   K                            : ").append(kStr).append(LS);
-    sb.append("   N                            : ").append(nStr).append(LS);
-    sb.append("   Levels (Needed, Total, Valid): ")
-      .append(neededLevels + ", " + totalLevels + ", " + validLevels).append(LS);
-    sb.append("   Level Bit Pattern            : ")
-      .append(Long.toBinaryString(bitPattern)).append(LS);
-    sb.append("   BaseBufferCount              : ").append(bbCntStr).append(LS);
-    sb.append("   Combined Buffer Capacity     : ").append(combBufCapStr).append(LS);
-    sb.append("   Retained Items               : ").append(retItemsStr).append(LS);
-    sb.append("   Compact Storage Bytes        : ").append(cmptBytesStr).append(LS);
-    sb.append("   Updatable Storage Bytes      : ").append(updtBytesStr).append(LS);
-    sb.append("   Normalized Rank Error        : ").append(epsPctStr).append(LS);
-    sb.append("   Min Value                    : ")
-      .append(String.format("%,.3f", sketch.getMinValue())).append(LS);
-    sb.append("   Max Value                    : ")
-      .append(String.format("%,.3f", sketch.getMaxValue())).append(LS);
-    sb.append("### END SKETCH SUMMARY").append(LS);
-    return sb.toString();
-  }
-
-  static String printMemData(final Memory mem, final int k, final int n) {
-    if (n == 0) { return ""; }
-    final StringBuilder sb = new StringBuilder();
-    sb.append(LS).append("### ").append("MEM DATA DETAIL:").append(LS);
-    final String fmt1 = "%n%10.1f, ";
-    final String fmt2 = "%10.1f, ";
-    final int bbCount = Util.computeBaseBufferItems(k, n);
-    final int ret = Util.computeRetainedItems(k, n);
-    sb.append("BaseBuffer Data:");
-    for (int i = 0; i < bbCount; i++) {
-      final double d = mem.getDouble(32 + i * 8);
-      if (i % k != 0) { sb.append(String.format(fmt2, d)); }
-      else { sb.append(String.format(fmt1, d)); }
-    }
-    sb.append(LS + LS + "Level Data:");
-    for (int i = 0; i < ret - bbCount; i++) {
-      final double d = mem.getDouble(32 + i * 8 + bbCount * 8);
-      if (i % k != 0) { sb.append(String.format(fmt2, d)); }
-      else { sb.append(String.format(fmt1, d)); }
-    }
-    sb.append(LS + "### END DATA DETAIL").append(LS);
     return sb.toString();
   }
 

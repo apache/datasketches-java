@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-16, Yahoo! Inc.
+ * Copyright 2016, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
@@ -160,6 +160,16 @@ public abstract class DoublesSketch {
   }
 
   /**
+   * Wrap this sketch around the given non-compact Memory image of a DoublesSketch.
+   *
+   * @param srcMem the given non-compact Memory image of a DoublesSketch that may have data,
+   * @return a sketch that wraps the given srcMem
+   */
+  public static DoublesSketch wrap(final Memory srcMem) {
+    return DirectDoublesSketch.wrapInstance(srcMem);
+  }
+
+  /**
    * Updates this sketch with the given double data item
    * @param dataItem an item from a stream of items.  NaNs are ignored.
    */
@@ -305,7 +315,9 @@ public abstract class DoublesSketch {
    * Returns the configured value of K
    * @return the configured value of K
    */
-  public abstract int getK();
+  public int getK() {
+    return k_;
+  }
 
   /**
    * Returns the min value of the stream.
@@ -366,7 +378,9 @@ public abstract class DoublesSketch {
    * Returns true if this sketch is empty
    * @return true if this sketch is empty
    */
-  public abstract boolean isEmpty();
+  public boolean isEmpty() {
+    return getN() == 0;
+  }
 
   /**
    * Returns true if this sketch is direct
@@ -375,12 +389,20 @@ public abstract class DoublesSketch {
   public abstract boolean isDirect();
 
   /**
+   * Returns true if this sketch is in estimation mode.
+   * @return true if this sketch is in estimation mode.
+   */
+  public boolean isEstimationMode() {
+    return getN() >= 2L * k_;
+  }
+
+  /**
    * Resets this sketch to the empty state, but retains the original value of k.
    */
   public abstract void reset();
 
   /**
-   * Serialize this sketch to a byte array, not-oredered, compact form.
+   * Serialize this sketch to a byte array, not-ordered, compact form.
    * This does not order the base buffer.
    * @return byte array of this sketch
    */
@@ -653,7 +675,6 @@ public abstract class DoublesSketch {
    */
   abstract void putN(long n);
 
-
   /**
    * Puts the combined, non-compact buffer.
    * @param combinedBuffer the combined buffer array
@@ -682,7 +703,7 @@ public abstract class DoublesSketch {
    * Grows the combined buffer to the given spaceNeeded
    * @param currentSpace the current allocated space
    * @param spaceNeeded the space needed
-   * @return the enlarged combined buffer
+   * @return the enlarged combined buffer with data from the original combined buffer.
    */
   abstract double[] growCombinedBuffer(int currentSpace, int spaceNeeded);
 

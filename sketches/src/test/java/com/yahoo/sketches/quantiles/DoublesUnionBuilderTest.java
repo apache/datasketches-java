@@ -25,7 +25,7 @@ public class DoublesUnionBuilderTest {
     Memory srcMem = dstMem;
 
     DoublesUnionBuilder bldr = new DoublesUnionBuilder();
-    bldr.setK(128);
+    bldr.setMaxK(128);
     DoublesUnion union = bldr.build(); //virgin union
 
     union = DoublesUnionBuilder.heapify(srcMem);
@@ -50,7 +50,7 @@ public void checkDeprecated1() {
   Memory srcMem = dstMem;
 
   DoublesUnionBuilder bldr = new DoublesUnionBuilder();
-  bldr.setK(128);
+  bldr.setMaxK(128);
   DoublesUnion union = bldr.build(); //virgin union
 
   union = DoublesUnionBuilder.build(srcMem); //heapify

@@ -78,12 +78,12 @@ final class ForwardCompatibility {
     final short memSeedHash = srcMem.getShort(SEED_HASH_SHORT);
     Util.checkSeedHashes(seedHash, memSeedHash);
 
-    if (memCap == 8) { //return empty
+    if (memCap == 8) { //return empty, theta = 1.0
       return new HeapCompactOrderedSketch(new long[0], true, seedHash, 0, Long.MAX_VALUE);
     }
 
     final int curCount = srcMem.getInt(RETAINED_ENTRIES_INT);
-    //Note: curCount could be zero and theta < 1.0 and be non-empty.
+    //Note: curCount could be zero and theta < 1.0 and be empty or not-empty.
 
     final int mdLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F; //either 2 or 3
     final int reqBytesIn = (curCount + mdLongs) << 3;

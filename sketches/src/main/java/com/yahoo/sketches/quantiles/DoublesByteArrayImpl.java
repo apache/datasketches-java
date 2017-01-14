@@ -52,7 +52,7 @@ final class DoublesByteArrayImpl {
       insertPre0(memObj, memAdd, preLongs, flags, sketch.getK());
       return outByteArr;
     }
-    //not empty || not compact
+    //not empty || not compact;  flags passed for convenience
     return convertToByteArray(sketch, flags, ordered, compact);
   }
 

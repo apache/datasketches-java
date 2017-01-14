@@ -483,13 +483,9 @@ public abstract class Sketch {
    * @return true if given Family id is one of the theta sketches
    */
   static boolean isValidSketchID(final int id) {
-  return (id == Family.ALPHA.getID())
-      || (id == Family.QUICKSELECT.getID())
-      || (id == Family.COMPACT.getID());
-  }
-
-  static final boolean estMode(final long thetaLong, final boolean empty) {
-    return (thetaLong < Long.MAX_VALUE) && !empty;
+    return (id == Family.ALPHA.getID())
+        || (id == Family.QUICKSELECT.getID())
+        || (id == Family.COMPACT.getID());
   }
 
   static final double estimate(final long thetaLong, final int curCount, final boolean empty) {
@@ -510,6 +506,10 @@ public abstract class Sketch {
       final boolean empty) {
     final double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
     return BinomialBoundsN.getUpperBound(curCount, theta, numStdDev, empty);
+  }
+
+  private static final boolean estMode(final long thetaLong, final boolean empty) {
+    return (thetaLong < Long.MAX_VALUE) && !empty;
   }
 
   /**
