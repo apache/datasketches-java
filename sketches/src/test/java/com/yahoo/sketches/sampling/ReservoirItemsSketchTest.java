@@ -16,7 +16,9 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.testng.annotations.Test;
 
@@ -222,6 +224,46 @@ public class ReservoirItemsSketchTest {
 
     for (int i = 0; i < samples1.length; ++i) {
       assertEquals(samples1[i], samples2[i]);
+    }
+  }
+
+  @Test
+  public void checkArrayOfNumbersSerDeErrors() {
+    // Highly debatable whether this belongs here vs a stand-alone test class
+    ReservoirItemsSketch<Number> ris = ReservoirItemsSketch.getInstance(6);
+
+    assertNull(ris.getSamples());
+    assertNull(ris.getSamples(Number.class));
+
+    // using mixed types, but BigDecimal not supported by serde class
+    ris.update(1);
+    ris.update(new BigDecimal(2));
+
+    // this should work since BigDecimal is an instance of Number
+    Number[] data = ris.getSamples(Number.class);
+    assertNotNull(data);
+    assertEquals(data.length, 2);
+
+    // toByteArray() should fail
+    ArrayOfNumbersSerDe serDe = new ArrayOfNumbersSerDe();
+    try {
+      ris.toByteArray(serDe, Number.class);
+      fail();
+    } catch (SketchesArgumentException e) {
+      // expected
+    }
+
+    // force entry to a supported type
+    data[1] = 3.0;
+    byte[] bytes = serDe.serializeToByteArray(data);
+
+    // change first element to indicate something unsupported
+    bytes[0] = 'q';
+    try {
+      Number[] deserialized = serDe.deserializeFromMemory(new NativeMemory(bytes), 2);
+      fail();
+    } catch (SketchesArgumentException e) {
+      // expected
     }
   }
 

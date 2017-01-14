@@ -35,9 +35,7 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
   public byte[] serializeToByteArray(final Number[] items) {
     int length = 0;
     for (final Number item: items) {
-      if (item == null) {
-        length += Byte.BYTES;
-      } else if (item instanceof Long) {
+      if (item instanceof Long) {
         length += Byte.BYTES + Long.BYTES;
       } else if (item instanceof Integer) {
         length += Byte.BYTES + Integer.BYTES;
@@ -51,7 +49,7 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
         length += Byte.BYTES + Float.BYTES;
       } else {
         throw new SketchesArgumentException(
-            "Item must be one of: Long, Integer, Short, Byte, Double, Float, (null)");
+            "Item must be one of: Long, Integer, Short, Byte, Double, Float");
       }
     }
     final byte[] bytes = new byte[length];
@@ -78,13 +76,10 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
         mem.putByte(offsetBytes, DOUBLE_INDICATOR);
         mem.putDouble(offsetBytes + 1, item.doubleValue());
         offsetBytes += Byte.BYTES + Double.BYTES;
-      } else if (item instanceof Float) {
+      } else { // (item instanceof Float) 0- already checked poosibilities above
         mem.putByte(offsetBytes, FLOAT_INDICATOR);
         mem.putFloat(offsetBytes + 1, item.floatValue());
         offsetBytes += Byte.BYTES + Float.BYTES;
-      } else {
-        throw new SketchesArgumentException(
-            "Item must be one of: Long, Integer, Short, Byte, Double, Float");
       }
     }
     return bytes;
