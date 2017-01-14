@@ -113,8 +113,7 @@ public final class ReservoirItemsUnion<T> {
       final int preLongBytes = numPreLongs << 3;
       final MemoryRegion sketchMem =
           new MemoryRegion(srcMem, preLongBytes, srcMem.getCapacity() - preLongBytes);
-      final ReservoirItemsSketch<T> ris = ReservoirItemsSketch.getInstance(sketchMem, serDe);
-      riu.update(ris);
+      riu.update(sketchMem, serDe);
     }
 
     return riu;
@@ -143,10 +142,10 @@ public final class ReservoirItemsUnion<T> {
         (sketchIn.getK() <= maxK_ ? sketchIn : sketchIn.downsampledCopy(maxK_));
 
     // can modify the sketch if we downsampled, otherwise may need to copy it
+    final boolean isModifiable = (sketchIn != ris);
     if (gadget_ == null) {
-      gadget_ = (sketchIn == ris ? ris.copy() : ris);
+      createNewGadget(ris, isModifiable);
     } else {
-      final boolean isModifiable = (sketchIn != ris);
       twoWayMergeInternal(ris, isModifiable);
     }
   }
@@ -154,8 +153,8 @@ public final class ReservoirItemsUnion<T> {
   /**
    * Union the given Memory image of the sketch.
    *
-   *<p>This method can be repeatedly called. If the given sketch is null it is interpreted as an empty
-   * sketch.
+   *<p>This method can be repeatedly called. If the given sketch is null it is interpreted as an
+   * empty sketch.</p>
    *
    * @param mem Memory image of sketch to be merged
    * @param serDe An instance of ArrayOfItemsSerDe
@@ -166,18 +165,17 @@ public final class ReservoirItemsUnion<T> {
     }
 
     ReservoirItemsSketch<T> ris = ReservoirItemsSketch.getInstance(mem, serDe);
-
     ris = (ris.getK() <= maxK_ ? ris : ris.downsampledCopy(maxK_));
 
     if (gadget_ == null) {
-      gadget_ = ris;
+      createNewGadget(ris, true);
     } else {
       twoWayMergeInternal(ris, true);
     }
   }
 
   /**
-   * Present this union with a reservoir item.
+   * Present this union with a single item to be added to the union.
    *
    * @param datum The given datum of type T.
    */
@@ -205,11 +203,10 @@ public final class ReservoirItemsUnion<T> {
   public void update(final long n, final int k, final ArrayList<T> input) {
     ReservoirItemsSketch<T> ris = ReservoirItemsSketch.getInstance(input, n,
             ResizeFactor.X8, k); // forcing a resize factor
-
     ris = (ris.getK() <= maxK_ ? ris : ris.downsampledCopy(maxK_));
 
     if (gadget_ == null) {
-      gadget_ = ris;
+      createNewGadget(ris, true);
     } else {
       twoWayMergeInternal(ris, true);
     }
@@ -308,17 +305,31 @@ public final class ReservoirItemsUnion<T> {
     return outArr;
   }
 
+  private void createNewGadget(final ReservoirItemsSketch<T> sketchIn,
+                               final boolean isModifiable) {
+    if (sketchIn.getK() < maxK_ && sketchIn.getN() <= sketchIn.getK()) {
+      // incoming sketch is in exact mode with sketch's k < maxK,
+      // so we can create a gadget at size maxK and keep everything
+      // NOTE: assumes twoWayMergeInternal to first checks if sketchIn is in exact mode
+      gadget_ = ReservoirItemsSketch.getInstance(maxK_);
+      twoWayMergeInternal(sketchIn, isModifiable); // isModifiable could be fixed to false here
+    } else {
+      // use the input sketch as gadget, copying if needed
+      gadget_ = (isModifiable ? sketchIn : sketchIn.copy());
+    }
+  }
+
   // We make a three-way classification of sketch states.
   // "uni" when (n < k); source of unit weights, can only accept unit weights
   // "mid" when (n == k); source of unit weights, can accept "light" general weights.
   // "gen" when (n > k); source of general weights, can accept "light" general weights.
 
-  // source target status update notes
+  // source   target   status      update     notes
   // ----------------------------------------------------------------------------------------------
-  // uni,mid uni okay standard target might transition to mid and gen
-  // uni,mid mid,gen okay standard target might transition to gen
-  // gen uni must swap N/A
-  // gen mid,gen maybe swap weighted N assumes fractional values during merge
+  // uni,mid  uni      okay        standard   target might transition to mid and gen
+  // uni,mid  mid,gen  okay        standard   target might transition to gen
+  // gen      uni      must swap   N/A
+  // gen      mid,gen  maybe swap  weighted   N assumes fractional values during merge
   // ----------------------------------------------------------------------------------------------
 
   // Here is why in the (gen, gen) merge case, the items will be light enough in at least one
