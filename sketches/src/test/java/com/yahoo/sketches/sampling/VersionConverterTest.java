@@ -58,18 +58,16 @@ public class VersionConverterTest {
     final Object memObj = headerMem.array(); // may be null
     final long memAddr = headerMem.getCumulativeOffset(0L);
 
-
     // SerDe ID
     PreambleUtil.insertSerDeId(memObj, memAddr, serDe.getId());
     assertEquals(serDe.getId(), PreambleUtil.extractSerDeId(memObj, memAddr));
   }
 
-  private static Memory revertToV1(Memory mem, short encodedK) {
+  private static Memory revertToV1(final Memory mem, final short encodedK) {
     mem.putByte(SER_VER_BYTE, (byte) 1);
     mem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
     mem.putShort(RESERVOIR_SIZE_SHORT, encodedK);
 
     return mem;
   }
-
 }

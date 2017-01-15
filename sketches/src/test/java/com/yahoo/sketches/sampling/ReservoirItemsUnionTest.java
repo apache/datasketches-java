@@ -69,8 +69,6 @@ public class ReservoirItemsUnionTest {
     riu = ReservoirItemsUnion.getInstance(ris.getK());
     riu.update(mem, serDe);
     assertNotNull(riu.getResult());
-
-    println(riu.toString());
   }
 
   @Test
@@ -86,6 +84,7 @@ public class ReservoirItemsUnionTest {
     final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     final byte[] unionBytes = riu.toByteArray(serDe);
     final Memory mem = new NativeMemory(unionBytes);
+    println(PreambleUtil.preambleToString(mem));
 
     final ReservoirItemsUnion<Long> rebuiltUnion = ReservoirItemsUnion.getInstance(mem, serDe);
     assertEquals(riu.getMaxK(), rebuiltUnion.getMaxK());
@@ -108,6 +107,7 @@ public class ReservoirItemsUnionTest {
     unionMem.putByte(SER_VER_BYTE, (byte) 1);
     unionMem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
     unionMem.putShort(RESERVOIR_SIZE_SHORT, encK);
+    println(PreambleUtil.preambleToString(unionMem));
 
     final ReservoirItemsUnion<String> rebuilt = ReservoirItemsUnion.getInstance(unionMem, serDe);
     final byte[] rebuiltBytes = rebuilt.toByteArray(serDe);
