@@ -115,6 +115,7 @@ public class ReservoirLongsUnionTest {
     unionMem.putByte(SER_VER_BYTE, (byte) 1);
     unionMem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
     unionMem.putShort(RESERVOIR_SIZE_SHORT, encK);
+    println(PreambleUtil.preambleToString(unionMem));
 
     final ReservoirLongsUnion rebuilt = ReservoirLongsUnion.getInstance(unionMem);
     final byte[] rebuiltBytes = rebuilt.toByteArray();

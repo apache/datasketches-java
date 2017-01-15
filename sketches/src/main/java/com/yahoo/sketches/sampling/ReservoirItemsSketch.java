@@ -416,7 +416,7 @@ public final class ReservoirItemsSketch<T> {
    * specified class for serialization to allow for polymorphic types.
    *
    * @param serDe An instance of ArrayOfItemsSerDe
-   * @param clazz Teh class represented by &lt;T&gt;
+   * @param clazz The class represented by &lt;T&gt;
    * @return a byte array representation of this sketch
    */
   @SuppressWarnings("null") // bytes will be null only if empty == true
