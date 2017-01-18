@@ -20,7 +20,94 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Alexander Saydakov
  * @author Kevin Lang
  */
-class ItemsMergeImpl {
+final class ItemsMergeImpl {
+
+  private ItemsMergeImpl() {}
+
+  /**
+     * Merges the source sketch into the target sketch that can have a smaller value of K.
+     * However, it is required that the ratio of the two K values be a power of 2.
+     * I.e., source.getK() = target.getK() * 2^(nonnegative integer).
+     * The source is not modified.
+     *
+     * <p>Note: It is easy to prove that the following simplified code which launches multiple waves of
+     * carry propagation does exactly the same amount of merging work (including the work of
+     * allocating fresh buffers) as the more complicated and seemingly more efficient approach that
+     * tracks a single carry propagation wave through both sketches.
+     *
+     * <p>This simplified code probably does do slightly more "outer loop" work, but I am pretty
+     * sure that even that is within a constant factor of the more complicated code, plus the
+     * total amount of "outer loop" work is at least a factor of K smaller than the total amount of
+     * merging work, which is identical in the two approaches.
+     *
+     * <p>Note: a two-way merge that doesn't modify either of its two inputs could be implemented
+     * by making a deep copy of the larger sketch and then merging the smaller one into it.
+     * However, it was decided not to do this.
+     *
+     * @param src The source sketch
+     * @param tgt The target sketch
+     */
+  @SuppressWarnings("unchecked")
+  static <T> void mergeInto(final ItemsSketch<T> src, final ItemsSketch<T> tgt) {
+    final int srcK = src.getK();
+    final int tgtK = tgt.getK();
+    final long srcN = src.getN();
+    final long tgtN = tgt.getN();
+
+    if (srcK != tgtK) {
+      downSamplingMergeInto(src, tgt);
+      return;
+    }
+    //The remainder of this code is for the case where the k's are equal
+
+    final Object[] srcCombBuf     = src.getCombinedBuffer();
+    final long nFinal = tgtN + srcN;
+
+    for (int i = 0; i < src.getBaseBufferCount(); i++) { //update only the base buffer
+      tgt.update((T) srcCombBuf[i]);
+    }
+
+    ItemsUpdateImpl.maybeGrowLevels(tgt, nFinal);
+
+    final Object[] scratchBuf = new Object[2 * tgtK];
+
+    long srcBitPattern = src.getBitPattern();
+    assert srcBitPattern == (srcN / (2L * srcK));
+
+    for (int srcLvl = 0; srcBitPattern != 0L; srcLvl++, srcBitPattern >>>= 1) {
+      if ((srcBitPattern & 1L) > 0L) { //only one level above base buffer
+        ItemsUpdateImpl.inPlacePropagateCarry(
+            srcLvl,
+            (T[]) srcCombBuf, (2 + srcLvl) * tgtK,
+            (T[]) scratchBuf, 0,
+            false,
+            tgt);
+      // won't update tgt.n_ until the very end
+      }
+    }
+    tgt.n_ = nFinal;
+
+    assert tgt.getN() / (2 * tgtK) == tgt.getBitPattern(); // internal consistency check
+
+    final T srcMax = src.getMaxValue();
+    final T srcMin = src.getMinValue();
+    final T tgtMax = tgt.getMaxValue();
+    final T tgtMin = tgt.getMinValue();
+
+    if ((srcMax != null) && (tgtMax != null)) {
+      tgt.maxValue_ = (src.getComparator().compare(srcMax, tgtMax) > 0) ? srcMax : tgtMax;
+    } //only one could be null
+    else if (tgtMax == null) { //if srcMax were null we would leave tgt alone
+      tgt.maxValue_ = srcMax;
+    }
+
+    if ((srcMin != null) && (tgtMin != null)) {
+      tgt.minValue_ = (src.getComparator().compare(srcMin, tgtMin) > 0) ? tgtMin : srcMin;
+    } //only one could be null
+    else if (tgtMin == null) { //if srcMin were null we would leave tgt alone
+      tgt.minValue_ = srcMin;
+    }
+  }
 
   /**
    * Merges the source sketch into the target sketch that can have a smaller value of K.
@@ -31,7 +118,7 @@ class ItemsMergeImpl {
    * @param src The source sketch
    * @param tgt The target sketch
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("unchecked") //also used by ItemsSketch and ItemsUnion
   static <T> void downSamplingMergeInto(final ItemsSketch<T> src, final ItemsSketch<T> tgt) {
     final int targetK = tgt.getK();
     final int sourceK = src.getK();
@@ -54,7 +141,7 @@ class ItemsMergeImpl {
       tgt.update((T) sourceBaseBuffer[i]);
     }
 
-    ItemsUtil.maybeGrowLevels(nFinal, tgt);
+    ItemsUpdateImpl.maybeGrowLevels(tgt, nFinal);
 
     final Object[] scratchBuf = new Object[2 * targetK];
     final Object[] downBuf    = new Object[targetK];
@@ -67,7 +154,7 @@ class ItemsMergeImpl {
             downBuf, 0,
             targetK,
             downFactor);
-        ItemsUtil.inPlacePropagateCarry(
+        ItemsUpdateImpl.inPlacePropagateCarry(
             srcLvl + lgDownFactor,
             (T[]) downBuf, 0,
             (T[]) scratchBuf, 0,
@@ -84,8 +171,19 @@ class ItemsMergeImpl {
     final T tgtMax = tgt.getMaxValue();
     final T tgtMin = tgt.getMinValue();
 
-    if (src.getComparator().compare(srcMax, tgtMax) > 0) { tgt.maxValue_ = srcMax; }
-    if (src.getComparator().compare(srcMin, tgtMin) < 0) { tgt.minValue_ = srcMin; }
+    if ((srcMax != null) && (tgtMax != null)) {
+      tgt.maxValue_ = (src.getComparator().compare(srcMax, tgtMax) > 0) ? srcMax : tgtMax;
+    } //only one could be null
+    else if (tgtMax == null) { //if srcMax were null we would leave tgt alone
+      tgt.maxValue_ = srcMax;
+    }
+
+    if ((srcMin != null) && (tgtMin != null)) {
+      tgt.minValue_ = (src.getComparator().compare(srcMin, tgtMin) > 0) ? tgtMin : srcMin;
+    } //only one could be null
+    else if (tgtMin == null) { //if srcMin were null we would leave tgt alone
+      tgt.minValue_ = srcMin;
+    }
   }
 
   private static <T> void justZipWithStride(
@@ -111,6 +209,7 @@ class ItemsMergeImpl {
    * @param arrLen length of keyArr and valArr
    * @param blkSize size of internal sorted blocks
    */
+  //also used by ItemsAuxiliary
   static <T> void blockyTandemMergeSort(final T[] keyArr, final long[] valArr, final int arrLen,
       final int blkSize, final Comparator<? super T> comparator) {
     assert blkSize >= 1;
@@ -145,7 +244,7 @@ class ItemsMergeImpl {
    * @param arrLim array limit
    * @param comparator to compare keys
    */
-  static <T> void blockyTandemMergeSortRecursion(final T[] keySrc, final long[] valSrc,
+  private static <T> void blockyTandemMergeSortRecursion(final T[] keySrc, final long[] valSrc,
       final T[] keyDst, final long[] valDst, final int grpStart, final int grpLen, // block indices
       final int blkSize, final int arrLim, final Comparator<? super T> comparator) {
     // Important note: grpStart and grpLen do NOT refer to positions in the underlying array.
@@ -204,7 +303,7 @@ class ItemsMergeImpl {
    * @param arrStart3 Array 3 start offset
    * @param comparator to compare keys
    */
-  static <T> void tandemMerge(final T[] keySrc, final long[] valSrc,
+  private static <T> void tandemMerge(final T[] keySrc, final long[] valSrc,
                                   final int arrStart1, final int arrLen1,
                                   final int arrStart2, final int arrLen2,
                                   final T[] keyDst, final long[] valDst,

@@ -30,7 +30,8 @@ import com.yahoo.memory.NativeMemory;
  * multi-byte integers (<i>int</i> and <i>long</i>) are stored in native byte order. The
  * <i>byte</i> values are treated as unsigned.</p>
  *
- * <p>An empty QuantilesSketch only requires 8 bytes. All others require 24 bytes of preamble.</p>
+ * <p>An empty DoublesSketch or ItemsSketch only requires 8 bytes.
+ * All others require 24 bytes of preamble.</p>
  *
  * <pre>
  * Long || Start Byte Adr: Common for both DoublesSketch and ItemsSketch
@@ -82,6 +83,14 @@ final class PreambleUtil {
 
   static final boolean NATIVE_ORDER_IS_BIG_ENDIAN  =
       (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
+
+  /**
+   * Default value for about 1.7% normalized rank accuracy
+   */
+  static final int DEFAULT_K = 128;
+
+  // ###### TO HERE.
+
 
   // STRINGS
   /**

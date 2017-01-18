@@ -33,7 +33,7 @@ public class DoublesSketchBuilderTest {
     println(bldr.toString());
 
     bldr = DoublesSketch.builder();
-    assertEquals(bldr.getK(), DoublesSketch.DEFAULT_K);
+    assertEquals(bldr.getK(), PreambleUtil.DEFAULT_K);
     assertNull(bldr.getMemory());
   }
 

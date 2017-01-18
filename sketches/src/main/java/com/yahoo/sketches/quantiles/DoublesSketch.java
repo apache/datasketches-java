@@ -121,7 +121,7 @@ public abstract class DoublesSketch {
   /**
    * Parameter that controls space usage of sketch and accuracy of estimates.
    */
-  protected final int k_;
+  final int k_;
 
   /**
    * Setting the seed makes the results of the sketch deterministic if the input values are
@@ -129,11 +129,6 @@ public abstract class DoublesSketch {
    * otherwise is not recommended.
    */
   public static final Random rand = new Random();
-
-  /**
-   * Default value for about 1.7% normalized rank accuracy
-   */
-  public static final int DEFAULT_K = 128;
 
   DoublesSketch(final int k) {
     Util.checkK(k);

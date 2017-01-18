@@ -16,7 +16,7 @@ final class DoublesUpdateImpl {
   private DoublesUpdateImpl() {}
 
   /**
-   * Returns space needed based on new value of n and k, which may or may not be larger that
+   * Returns space needed based on new value of n and k, which may or may not be larger than
    * current space allocated.
    * @param k current value of k
    * @param newN the new value of n
@@ -69,7 +69,7 @@ final class DoublesUpdateImpl {
           size2KBuf, size2KStart,
           combinedBuffer, (2 + endingLevel) * k,
           k);
-    } else { // mergeInto version of computation //TODO ERROR on next
+    } else { // mergeInto version of computation
       System.arraycopy(
           sizeKBuf, sizeKStart,
           combinedBuffer, (2 + endingLevel) * k,
@@ -93,7 +93,7 @@ final class DoublesUpdateImpl {
     return bitPattern + (1L << startingLevel);
   }
 
-  private static void zipSize2KBuffer( //only operates on parameters
+  private static void zipSize2KBuffer(
       final double[] bufA, final int startA, // input
       final double[] bufC, final int startC, // output
       final int k) {
@@ -104,7 +104,7 @@ final class DoublesUpdateImpl {
     }
   }
 
-  private static void mergeTwoSizeKBuffers( //only operates on parameters
+  private static void mergeTwoSizeKBuffers(
       final double[] keySrc1, final int arrStart1,
       final double[] keySrc2, final int arrStart2,
       final double[] keyDst,  final int arrStart3,

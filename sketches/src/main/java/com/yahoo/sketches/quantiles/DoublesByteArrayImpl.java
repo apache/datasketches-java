@@ -150,8 +150,8 @@ final class DoublesByteArrayImpl {
     return outByteArr;
   }
 
-  static void insertPre0(final Object memObj, final long memAdd, final int preLongs,
-      final int flags, final int k) {
+  private static void insertPre0(final Object memObj, final long memAdd,
+      final int preLongs, final int flags, final int k) {
     insertPreLongs(memObj, memAdd, preLongs);
     insertSerVer(memObj, memAdd, DoublesSketch.DOUBLES_SER_VER);
     insertFamilyID(memObj, memAdd, Family.QUANTILES.getID());

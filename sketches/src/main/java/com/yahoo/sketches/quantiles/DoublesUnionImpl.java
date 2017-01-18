@@ -7,8 +7,6 @@ package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.quantiles.DoublesUtil.copyToHeap;
-import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.FLAGS_BYTE;
 
 import com.yahoo.memory.Memory;
 
@@ -18,7 +16,7 @@ import com.yahoo.memory.Memory;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-public final class DoublesUnionImpl extends DoublesUnion {
+final class DoublesUnionImpl extends DoublesUnion {
   private int maxK_;
   private DoublesSketch gadget_ = null;
 
@@ -112,26 +110,6 @@ public final class DoublesUnionImpl extends DoublesUnion {
   }
 
   @Override
-  public boolean isEmpty() {
-    return (gadget_ == null) ? true : gadget_.isEmpty();
-  }
-
-  @Override
-  public boolean isDirect() {
-    return (gadget_ == null) ? false : gadget_.isDirect();
-  }
-
-  @Override
-  public int getMaxK() {
-    return maxK_;
-  }
-
-  @Override
-  public int getEffectiveK() {
-    return (gadget_ != null) ? gadget_.getK() : maxK_;
-  }
-
-  @Override
   public void update(final DoublesSketch sketchIn) {
     gadget_ = updateLogic(maxK_, gadget_, sketchIn);
   }
@@ -170,13 +148,33 @@ public final class DoublesUnionImpl extends DoublesUnion {
     gadget_ = null;
   }
 
+  //  @Override
+  //  public byte[] toByteArray() {
+  //    if (gadget_ == null) {
+  //      final HeapDoublesSketch sketch = HeapDoublesSketch.newInstance(maxK_);
+  //      return DoublesByteArrayImpl.toByteArray(sketch, true, false);
+  //    }
+  //    return DoublesByteArrayImpl.toByteArray(gadget_, true, false);
+  //  }
+
   @Override
-  public byte[] toByteArray() {
-    if (gadget_ == null) {
-      final HeapDoublesSketch sketch = HeapDoublesSketch.newInstance(maxK_);
-      return DoublesByteArrayImpl.toByteArray(sketch, true, false);
-    }
-    return DoublesByteArrayImpl.toByteArray(gadget_, true, false);
+  public boolean isEmpty() {
+    return (gadget_ == null) ? true : gadget_.isEmpty();
+  }
+
+  @Override
+  public boolean isDirect() {
+    return (gadget_ == null) ? false : gadget_.isDirect();
+  }
+
+  @Override
+  public int getMaxK() {
+    return maxK_;
+  }
+
+  @Override
+  public int getEffectiveK() {
+    return (gadget_ != null) ? gadget_.getK() : maxK_;
   }
 
   @Override
@@ -188,8 +186,8 @@ public final class DoublesUnionImpl extends DoublesUnion {
   public String toString(final boolean sketchSummary, final boolean dataDetail) {
     final StringBuilder sb = new StringBuilder();
     final String thisSimpleName = this.getClass().getSimpleName();
-    final int k = this.getMaxK();
-    final String kStr = String.format("%,d", k);
+    final int maxK = this.getMaxK();
+    final String kStr = String.format("%,d", maxK);
     sb.append(Util.LS).append("### Quantiles ").append(thisSimpleName).append(LS);
     sb.append("   maxK                         : ").append(kStr);
     if (gadget_ == null) {
@@ -250,29 +248,29 @@ public final class DoublesUnionImpl extends DoublesUnion {
         }
         else { //myQS = empty/valid, other = valid and in est mode
           if (myQS.getK() <= other.getK()) { //I am smaller or equal, thus the target
-            mergeInto(other, myQS);
+            DoublesMergeImpl.mergeInto(other, myQS);
             ret = myQS;
           }
-          else { //Bigger: myQS.getK() > other.getK(), must effectively downsize me
+          else { //Bigger: myQS.getK() > other.getK(), must effectively downsize me or swap
             if (myQS.isEmpty()) {
               if (myQS.isDirect()) {
-                final Memory mem = myQS.getMemory();
+                final Memory mem = myQS.getMemory(); //myQS is empty, ok to reconfigure
                 other.putMemory(mem, true, false); //ordered, not compact
                 ret = DoublesSketch.wrap(mem);
               } else { //myQS is empty and on heap
                 ret = DoublesUtil.copyToHeap(other);
               }
             }
-            else { //Not Empty: I have data, downsample to tmp
+            else { //Not Empty: myQS has data, downsample to tmp
               final DoublesSketch tmp = DoublesSketch.builder().build(other.getK());
 
-              DoublesMergeImpl.downSamplingMergeInto(myQS, tmp);
+              DoublesMergeImpl.downSamplingMergeInto(myQS, tmp); //myData -> tmp
               ret = (myQS.isDirect())
                   ? DoublesSketch.builder().initMemory(myQS.getMemory()).build(other.getK())
                   : DoublesSketch.builder().build(other.getK());
 
-              mergeInto(tmp, ret);
-              mergeInto(other, ret);
+              DoublesMergeImpl.mergeInto(tmp, ret);
+              DoublesMergeImpl.mergeInto(other, ret);
             }
           }
         }
@@ -287,93 +285,5 @@ public final class DoublesUnionImpl extends DoublesUnion {
     return ret;
   }
   //@formatter:on
-
-  /**
-   * Merges the source sketch into the target sketch that can have a smaller value of K.
-   * However, it is required that the ratio of the two K values be a power of 2.
-   * I.e., source.getK() = target.getK() * 2^(nonnegative integer).
-   * The source is not modified.
-   *
-   * <p>Note: It is easy to prove that the following simplified code which launches multiple waves of
-   * carry propagation does exactly the same amount of merging work (including the work of
-   * allocating fresh buffers) as the more complicated and seemingly more efficient approach that
-   * tracks a single carry propagation wave through both sketches.
-   *
-   * <p>This simplified code probably does do slightly more "outer loop" work, but I am pretty
-   * sure that even that is within a constant factor of the more complicated code, plus the
-   * total amount of "outer loop" work is at least a factor of K smaller than the total amount of
-   * merging work, which is identical in the two approaches.
-   *
-   * <p>Note: a two-way merge that doesn't modify either of its two inputs could be implemented
-   * by making a deep copy of the larger sketch and then merging the smaller one into it.
-   * However, it was decided not to do this.
-   *
-   * @param src The source sketch
-   * @param tgt The target sketch
-   */
-  static void mergeInto(final DoublesSketch src, final DoublesSketch tgt) {
-    final int srcK = src.getK();
-    final int tgtK = tgt.getK();
-    final long srcN = src.getN();
-    final long tgtN = tgt.getN();
-
-    if (srcK != tgtK) {
-      DoublesMergeImpl.downSamplingMergeInto(src, tgt);
-      return;
-    }
-
-    final double[] srcCombBuf = src.getCombinedBuffer();
-    final long nFinal = tgtN + srcN;
-
-    for (int i = 0; i < src.getBaseBufferCount(); i++) {
-      tgt.update(srcCombBuf[i]);
-    }
-
-    final int spaceNeeded = DoublesUpdateImpl.maybeGrowLevels(tgtK, nFinal);
-    final int tgtCombBufCap = tgt.getCombinedBufferItemCapacity();
-    final double[] newTgtCombBuf;
-    if (spaceNeeded > tgtCombBufCap) { //copies base buffer plus current levels
-      newTgtCombBuf = tgt.growCombinedBuffer(tgtCombBufCap, spaceNeeded);
-    } else {
-      newTgtCombBuf = tgt.getCombinedBuffer();
-    }
-    final double[] scratch2KBuf = new double[2 * tgtK];
-
-    long srcBitPattern = src.getBitPattern();
-    assert srcBitPattern == (srcN / (2L * srcK));
-
-    for (int srcLvl = 0; srcBitPattern != 0L; srcLvl++, srcBitPattern >>>= 1) {
-      if ((srcBitPattern & 1L) > 0L) {
-        final long newTgtBitPattern = DoublesUpdateImpl.inPlacePropagateCarry(
-            srcLvl,
-            srcCombBuf, ((2 + srcLvl) * tgtK),
-            scratch2KBuf, 0,
-            false,
-            tgtK,
-            newTgtCombBuf,
-            tgt.getBitPattern()
-        );
-        tgt.putBitPattern(newTgtBitPattern);
-        // won't update tgt.n_ until the very end
-      }
-    }
-
-    if (tgt.isDirect() && (nFinal > 0)) {
-      tgt.putCombinedBuffer(newTgtCombBuf);
-      final Memory mem = tgt.getMemory();
-      mem.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
-    }
-
-    tgt.putN(nFinal);
-
-    assert tgt.getN() / (2 * tgtK) == tgt.getBitPattern(); // internal consistency check
-
-    final double srcMax = src.getMaxValue();
-    final double srcMin = src.getMinValue();
-    final double tgtMax = tgt.getMaxValue();
-    final double tgtMin = tgt.getMinValue();
-    tgt.putMaxValue(Math.max(srcMax, tgtMax));
-    tgt.putMinValue(Math.min(srcMin, tgtMin));
-  }
 
 }

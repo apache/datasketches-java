@@ -45,27 +45,27 @@ import com.yahoo.sketches.SketchesArgumentException;
  */
 public final class ItemsSketch<T> {
 
+  private final Comparator<? super T> comparator_;
+
   /**
    * Parameter that controls space usage of sketch and accuracy of estimates.
    */
-  protected final int k_;
-
-  private final Comparator<? super T> comparator_;
+  final int k_;
 
   /**
    * Total number of data items in the stream so far. (Uniqueness plays no role in these sketches).
    */
-  protected long n_;
+  long n_;
 
   /**
    * The smallest value ever seen in the stream.
    */
-  protected T minValue_;
+  T minValue_;
 
   /**
    * The largest value ever seen in the stream.
    */
-  protected T maxValue_;
+  T maxValue_;
 
   /**
    * In the initial on-heap version, equals combinedBuffer_.length.
@@ -73,21 +73,21 @@ public final class ItemsSketch<T> {
    * Also, in the off-heap version, combinedBuffer_ won't even be a java array,
    * so it won't know its own length.
    */
-  protected int combinedBufferItemCapacity_;
+  int combinedBufferItemCapacity_;
 
   /**
    * Number of samples currently in base buffer.
    *
    * <p>Count = N % (2*K)
    */
-  protected int baseBufferCount_;
+  int baseBufferCount_;
 
   /**
    * Active levels expressed as a bit pattern.
    *
    * <p>Pattern = N / (2 * K)
    */
-  protected long bitPattern_;
+  long bitPattern_;
 
   /**
    * This single array contains the base buffer plus all levels some of which may not be used.
@@ -98,7 +98,7 @@ public final class ItemsSketch<T> {
    *
    * <p>The levels arrays require quite a bit of explanation, which we defer until later.
    */
-  protected Object[] combinedBuffer_;
+  Object[] combinedBuffer_;
 
   /**
    * Setting the seed makes the results of the sketch deterministic if the input values are
@@ -106,11 +106,6 @@ public final class ItemsSketch<T> {
    * otherwise is not recommended.
    */
   public static final Random rand = new Random();
-
-  /**
-   * Default value for about 1.7% normalized rank accuracy
-   */
-  static final int DEFAULT_K = 128;
 
   private ItemsSketch(final int k, final Comparator<? super T> comparator) {
     Util.checkK(k);
@@ -125,7 +120,7 @@ public final class ItemsSketch<T> {
    * @return a GenericQuantileSketch
    */
   public static <T> ItemsSketch<T> getInstance(final Comparator<? super T> comparator) {
-    return getInstance(DEFAULT_K, comparator);
+    return getInstance(PreambleUtil.DEFAULT_K, comparator);
   }
 
   /**
@@ -237,7 +232,7 @@ public final class ItemsSketch<T> {
     if (minValue_ == null || comparator_.compare(dataItem, minValue_) < 0) { minValue_ = dataItem; }
 
     if (baseBufferCount_ + 1 > combinedBufferItemCapacity_) {
-      ItemsUtil.growBaseBuffer(this);
+      ItemsSketch.growBaseBuffer(this);
     }
     combinedBuffer_[baseBufferCount_++] = dataItem;
     n_++;
@@ -343,7 +338,7 @@ public final class ItemsSketch<T> {
    * splitPoint.
    */
   public double[] getPMF(final T[] splitPoints) {
-    return getPMFOrCDF(splitPoints, false);
+    return ItemsPmfCdfImpl.getPMFOrCDF(this, splitPoints, false);
   }
 
   /**
@@ -359,30 +354,7 @@ public final class ItemsSketch<T> {
    * @return an approximation to the CDF of the input stream given the splitPoints.
    */
   public double[] getCDF(final T[] splitPoints) {
-    return getPMFOrCDF(splitPoints, true);
-  }
-
-  private double[] getPMFOrCDF(final T[] splitPoints, final boolean isCDF) {
-    final long[] counters = ItemsUtil.internalBuildHistogram(splitPoints, this);
-    final int numCounters = counters.length;
-    final double[] result = new double[numCounters];
-    final double n = n_;
-    long subtotal = 0;
-    if (isCDF) {
-      for (int j = 0; j < numCounters; j++) {
-        final long count = counters[j];
-        subtotal += count;
-        result[j] = subtotal / n; //normalize by n
-      }
-    } else { // PMF
-      for (int j = 0; j < numCounters; j++) {
-        final long count = counters[j];
-        subtotal += count;
-        result[j] = count / n; //normalize by n
-      }
-    }
-    assert subtotal == n; //internal consistency check
-    return result;
+    return ItemsPmfCdfImpl.getPMFOrCDF(this, splitPoints, true);
   }
 
   /**
@@ -456,6 +428,15 @@ public final class ItemsSketch<T> {
    */
   public boolean isEmpty() {
    return getN() == 0;
+  }
+
+  @SuppressWarnings("static-method")
+  public boolean isDirect() {
+    return false;
+  }
+
+  public boolean isEstimationMode() {
+    return getN() >= 2L * k_;
   }
 
   /**
@@ -553,7 +534,7 @@ public final class ItemsSketch<T> {
    * Returns the base buffer count
    * @return the base buffer count
    */
-  protected int getBaseBufferCount() {
+  int getBaseBufferCount() {
     return baseBufferCount_;
   }
 
@@ -561,7 +542,7 @@ public final class ItemsSketch<T> {
    * Returns the allocated count for the combined base buffer
    * @return the allocated count for the combined base buffer
    */
-  protected int getCombinedBufferAllocatedCount() {
+  int getCombinedBufferAllocatedCount() {
     return combinedBufferItemCapacity_;
   }
 
@@ -569,7 +550,7 @@ public final class ItemsSketch<T> {
    * Returns the bit pattern for valid log levels
    * @return the bit pattern for valid log levels
    */
-  protected long getBitPattern() {
+  long getBitPattern() {
     return bitPattern_;
   }
 
@@ -577,8 +558,12 @@ public final class ItemsSketch<T> {
    * Returns the combined buffer reference
    * @return the combined buffer reference
    */
-  protected Object[] getCombinedBuffer() {
+  Object[] getCombinedBuffer() {
     return combinedBuffer_;
+  }
+
+  Comparator<? super T> getComparator() {
+    return comparator_;
   }
 
   /**
@@ -633,8 +618,14 @@ public final class ItemsSketch<T> {
     return fractions;
   }
 
-  Comparator<? super T> getComparator() {
-    return comparator_;
+  private static <T> void growBaseBuffer(final ItemsSketch<T> sketch) {
+    final Object[] baseBuffer = sketch.getCombinedBuffer();
+    final int oldSize = sketch.getCombinedBufferAllocatedCount();
+    final int k = sketch.getK();
+    assert oldSize < 2 * k;
+    final int newSize = Math.max(Math.min(2 * k, 2 * oldSize), 1);
+    sketch.combinedBufferItemCapacity_ = newSize;
+    sketch.combinedBuffer_ = Arrays.copyOf(baseBuffer, newSize);
   }
 
 }

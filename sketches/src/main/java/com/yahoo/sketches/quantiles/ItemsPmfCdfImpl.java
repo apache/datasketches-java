@@ -1,23 +1,18 @@
 /*
- * Copyright 2016, Yahoo! Inc. Licensed under the terms of the
+ * Copyright 2017, Yahoo! Inc. Licensed under the terms of the
  * Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
 package com.yahoo.sketches.quantiles;
 
 import java.util.Arrays;
+import java.util.Comparator;
 
-/**
- * The PMF and CDF algorithms for quantiles.
- *
- * @author Lee Rhodes
- * @author Kevin Lang
- */
-class DoublesPmfCdfImpl {
+class ItemsPmfCdfImpl {
 
-  static double[] getPMFOrCDF(final DoublesSketch sketch, final double[] splitPoints,
+  static <T> double[] getPMFOrCDF(final ItemsSketch<T> sketch, final T[] splitPoints,
       final boolean isCDF) {
-    final long[] counters = internalBuildHistogram(sketch, splitPoints);
+    final long[] counters = internalBuildHistogram(splitPoints, sketch);
     final int numCounters = counters.length;
     final double[] result = new double[numCounters];
     final double n = sketch.getN();
@@ -42,16 +37,17 @@ class DoublesPmfCdfImpl {
   /**
    * Shared algorithm for both PMF and CDF functions. The splitPoints must be unique, monotonically
    * increasing values.
-   * @param sketch the given quantiles DoublesSketch
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing doubles
-   * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing values
+   * that divide the ordered domain into <i>m+1</i> consecutive disjoint intervals.
+   * @param sketch the given quantiles sketch
    * @return the unnormalized, accumulated counts of <i>m + 1</i> intervals.
    */
-  private static long[] internalBuildHistogram(final DoublesSketch sketch, final double[] splitPoints) {
-    final double[] levelsArr  = sketch.getCombinedBuffer();
-    final double[] baseBuffer = levelsArr;
+  @SuppressWarnings("unchecked")
+  private static <T> long[] internalBuildHistogram(final T[] splitPoints, final ItemsSketch<T> sketch) {
+    final Object[] levelsArr  = sketch.getCombinedBuffer();
+    final Object[] baseBuffer = levelsArr;
     final int bbCount = sketch.getBaseBufferCount();
-    Util.validateValues(splitPoints);
+    ItemsUtil.validateValues(splitPoints, sketch.getComparator());
 
     final int numSplitPoints = splitPoints.length;
     final int numCounters = numSplitPoints + 1;
@@ -60,13 +56,14 @@ class DoublesPmfCdfImpl {
     long weight = 1;
     if (numSplitPoints < 50) { // empirically determined crossover
       // sort not worth it when few split points
-      DoublesPmfCdfImpl.bilinearTimeIncrementHistogramCounters(
-          baseBuffer, 0, bbCount, weight, splitPoints, counters);
+      ItemsPmfCdfImpl.bilinearTimeIncrementHistogramCounters(
+          (T[]) baseBuffer, 0, bbCount, weight, splitPoints, counters, sketch.getComparator());
     } else {
       Arrays.sort(baseBuffer, 0, bbCount);
       // sort is worth it when many split points
-      DoublesPmfCdfImpl.linearTimeIncrementHistogramCounters(
-          baseBuffer, 0, bbCount, weight, splitPoints, counters);
+      linearTimeIncrementHistogramCounters(
+          (T[]) baseBuffer, 0, bbCount, weight, splitPoints, counters, sketch.getComparator()
+      );
     }
 
     long myBitPattern = sketch.getBitPattern();
@@ -76,8 +73,8 @@ class DoublesPmfCdfImpl {
       weight += weight; // *= 2
       if ((myBitPattern & 1L) > 0L) { //valid level exists
         // the levels are already sorted so we can use the fast version
-        DoublesPmfCdfImpl.linearTimeIncrementHistogramCounters(
-            levelsArr, (2 + lvl) * k, k, weight, splitPoints, counters);
+        linearTimeIncrementHistogramCounters(
+            (T[]) levelsArr, (2 + lvl) * k, k, weight, splitPoints, counters, sketch.getComparator());
       }
     }
     return counters;
@@ -93,15 +90,16 @@ class DoublesPmfCdfImpl {
    * @param splitPoints must be unique and sorted. Number of splitPoints + 1 == counters.length.
    * @param counters array of counters
    */
-  static void bilinearTimeIncrementHistogramCounters(final double[] samples, final int offset,
-      final int numSamples, final long weight, final double[] splitPoints, final long[] counters) {
+  private static <T> void bilinearTimeIncrementHistogramCounters(final T[] samples, final int offset,
+      final int numSamples, final long weight, final T[] splitPoints, final long[] counters,
+      final Comparator<? super T> comparator) {
     assert (splitPoints.length + 1 == counters.length);
     for (int i = 0; i < numSamples; i++) {
-      final double sample = samples[i + offset];
+      final T sample = samples[i + offset];
       int j = 0;
       for (j = 0; j < splitPoints.length; j++) {
-        final double splitpoint = splitPoints[j];
-        if (sample < splitpoint) {
+        final T splitpoint = splitPoints[j];
+        if (comparator.compare(sample, splitpoint) < 0) {
           break;
         }
       }
@@ -125,12 +123,13 @@ class DoublesPmfCdfImpl {
    * @param splitPoints must be unique and sorted. Number of splitPoints + 1 = counters.length.
    * @param counters array of counters
    */
-  static void linearTimeIncrementHistogramCounters(final double[] samples, final int offset,
-      final int numSamples, final long weight, final double[] splitPoints, final long[] counters) {
+  private static <T> void linearTimeIncrementHistogramCounters(final T[] samples, final int offset,
+      final int numSamples, final long weight, final T[] splitPoints, final long[] counters,
+      final Comparator<? super T> comparator) {
     int i = 0;
     int j = 0;
     while (i < numSamples && j < splitPoints.length) {
-      if (samples[i + offset] < splitPoints[j]) {
+      if (comparator.compare(samples[i + offset], splitPoints[j]) < 0) {
         counters[j] += weight; // this sample goes into this bucket
         i++; // move on to next sample and see whether it also goes into this bucket
       } else {

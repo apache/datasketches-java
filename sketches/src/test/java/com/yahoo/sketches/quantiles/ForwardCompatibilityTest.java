@@ -127,11 +127,6 @@ public class ForwardCompatibilityTest {
     }
   }
 
-  public static void main(String[] args) {
-    ForwardCompatibilityTest fct = new ForwardCompatibilityTest();
-    fct.check030_50();
-  }
-
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());

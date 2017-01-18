@@ -8,7 +8,7 @@ package com.yahoo.sketches.quantiles;
 import com.yahoo.memory.Memory;
 
 /**
- * The API for Union operations for QuantilesSketches
+ * The API for Union operations for quantiles DoublesSketches
  *
  * @author Lee Rhodes
  */
@@ -64,7 +64,7 @@ public abstract class DoublesUnion {
 
   /**
    * Iterative union operation, which means this method can be repeatedly called.
-   * Merges the given Memory image of a QuantilesSketch into this union object.
+   * Merges the given Memory image of a DoublesSketch into this union object.
    * The given Memory object is not modified and a link to it is not retained.
    * It is required that the ratio of the two K values be a power of 2.
    * This is easily satisfied if each of the K values is already a power of 2.
@@ -104,11 +104,11 @@ public abstract class DoublesUnion {
    */
   public abstract void reset();
 
-  /**
-   * Serialize this union as an ordered, non-compact byte array of a DoublesSketch.
-   * @return this union as an ordered, non-compact byte array of a DoublesSketch.
-   */
-  public abstract byte[] toByteArray();
+  //  /**
+  //   * Serialize this union as an ordered, non-compact byte array of a DoublesSketch.
+  //   * @return this union as an ordered, non-compact byte array of a DoublesSketch.
+  //   */
+  //  public abstract byte[] toByteArray();
 
   /**
    * Returns summary information about the backing sketch.

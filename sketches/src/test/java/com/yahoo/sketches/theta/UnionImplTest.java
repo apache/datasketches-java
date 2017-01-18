@@ -94,12 +94,6 @@ public class UnionImplTest {
     union.update(v2mem);
   }
 
-
-  public static void main(String[] args) {
-    UnionImplTest test = new UnionImplTest();
-    test.checkUpdateWithSketch();
-  }
-
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());

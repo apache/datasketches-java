@@ -89,11 +89,11 @@ final class HeapDoublesSketch extends DoublesSketch {
   }
 
   /**
-   * Obtains a new instance of a DoublesSketch.
+   * Obtains a new on-heap instance of a DoublesSketch.
    *
    * @param k Parameter that controls space usage of sketch and accuracy of estimates.
    * Must be greater than 1 and less than 65536 and a power of 2.
-   * @return a HeapQuantileSketch
+   * @return a HeapDoublesSketch
    */
   static HeapDoublesSketch newInstance(final int k) {
     final HeapDoublesSketch hqs = new HeapDoublesSketch(k);
@@ -110,6 +110,7 @@ final class HeapDoublesSketch extends DoublesSketch {
 
   /**
    * Heapifies the given srcMem, which must be a Memory image of a DoublesSketch and may have data.
+   *
    * @param srcMem a Memory image of a sketch, which may be in compact or not compact form.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a DoublesSketch on the Java heap.
@@ -189,7 +190,7 @@ final class HeapDoublesSketch extends DoublesSketch {
         growCombinedBuffer(combinedBufferItemCapacity_, spaceNeeded);
       }
 
-      // note that combinedBuffer_ is after the possible resizing above
+      // note that this combinedBuffer_ is after the possible resizing above
       Arrays.sort(combinedBuffer_, 0, k_ << 1); //sort only the BB portion, which is full
 
       final long newBitPattern = DoublesUpdateImpl.inPlacePropagateCarry(
@@ -340,8 +341,6 @@ final class HeapDoublesSketch extends DoublesSketch {
   void putN(final long n) {
     n_ = n;
   }
-
-
 
   @Override
   void putCombinedBuffer(final double[] combinedBuffer) {

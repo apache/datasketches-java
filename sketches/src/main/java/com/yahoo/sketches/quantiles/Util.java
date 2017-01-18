@@ -31,12 +31,12 @@ final class Util {
   /**
    * The java line separator character as a String.
    */
-  public static final String LS = System.getProperty("line.separator");
+  static final String LS = System.getProperty("line.separator");
 
   /**
    * The tab character
    */
-  public static final char TAB = '\t';
+  static final char TAB = '\t';
 
   /**
    * Checks the validity of the given value k

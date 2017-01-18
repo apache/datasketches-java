@@ -13,14 +13,13 @@ import com.yahoo.memory.Memory;
  * @author Lee Rhodes
  */
 public class DoublesUnionBuilder {
-  private int bMaxK = DoublesSketch.DEFAULT_K;
+  private int bMaxK = PreambleUtil.DEFAULT_K;
   private Memory bMem = null;
 
   /**
    * Constructor for a new DoublesUnionBuilder. The default configuration is
    * <ul>
-   * <li>k: {@value DoublesSketch#DEFAULT_K}
-   * This produces a normalized rank error of about 1.7%</li>
+   * <li>k: 128. This produces a normalized rank error of about 1.7%</li>
    * <li>Memory: null</li>
    * </ul>
    */
@@ -136,7 +135,7 @@ public class DoublesUnionBuilder {
    * Returns a heap Union object that has been initialized with the data from the given Memory
    * image of a DoublesSketch. A reference to this Memory image is not retained.
    *
-   * @param srcMem a Memory image of a QuantilesSketch
+   * @param srcMem a Memory image of a DoublesSketch
    * @return a Union object
    * @deprecated changed name to heapify to more accuately reflect its intent
    */
@@ -148,7 +147,7 @@ public class DoublesUnionBuilder {
   /**
    * Returns a Union object that has been initialized with the data from the given sketch.
    *
-   * @param sketch A QuantilesSketch to be used as a source of data, but will not be modified.
+   * @param sketch A DoublesSketch to be used as a source of data, but will not be modified.
    * @return a Union object
    * @deprecated this is a duplicate of heapify(DoublesSketch) and no longer needed.
    */

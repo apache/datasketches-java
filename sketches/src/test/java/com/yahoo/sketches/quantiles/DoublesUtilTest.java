@@ -17,7 +17,7 @@ public class DoublesUtilTest {
 
   @Test
   public void checkPrintMemData() {
-    int k = 16;//DoublesSketch.DEFAULT_K;
+    int k = 16;
     int n = 1000;
     DoublesSketch qs = buildQS(k,n);
 
@@ -32,7 +32,7 @@ public class DoublesUtilTest {
 
   @Test
   public void checkPrintMemData2() {
-    int k = DoublesSketch.DEFAULT_K;
+    int k = PreambleUtil.DEFAULT_K;
     int n = 0;
     DoublesSketch qs = buildQS(k,n);
 

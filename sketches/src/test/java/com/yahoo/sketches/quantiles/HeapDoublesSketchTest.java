@@ -257,7 +257,7 @@ public class HeapDoublesSketchTest {
 
   @Test
   public void checkMisc() {
-    int k = DoublesSketch.DEFAULT_K;
+    int k = PreambleUtil.DEFAULT_K;
     int n = 10000;
     DoublesSketch qs = buildQS(k, n);
     qs.update(Double.NaN);
@@ -271,7 +271,7 @@ public class HeapDoublesSketchTest {
   @SuppressWarnings("unused")
   @Test
   public void checkToStringDetail() {
-    int k = DoublesSketch.DEFAULT_K;
+    int k = PreambleUtil.DEFAULT_K;
     int n = 1000000;
     DoublesSketch qs = buildQS(k, 0);
     String s = qs.toString();
@@ -304,7 +304,7 @@ public class HeapDoublesSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkGetQuantiles() {
-    int k = DoublesSketch.DEFAULT_K;
+    int k = PreambleUtil.DEFAULT_K;
     int n = 1000000;
     DoublesSketch qs = buildQS(k, n);
     double[] frac = {-0.5};
@@ -313,7 +313,7 @@ public class HeapDoublesSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkGetQuantile() {
-    int k = DoublesSketch.DEFAULT_K;
+    int k = PreambleUtil.DEFAULT_K;
     int n = 1000000;
     DoublesSketch qs = buildQS(k, n);
     double frac = -0.5; //negative not allowed
@@ -337,7 +337,7 @@ public class HeapDoublesSketchTest {
   @Test
   public void checkComputeNumLevelsNeeded() {
     int n = 1 << 20;
-    int k = DoublesSketch.DEFAULT_K;
+    int k = PreambleUtil.DEFAULT_K;
     int lvls1 = computeNumLevelsNeeded(k, n);
     int lvls2 = (int)Math.max(floor(lg((double)n/k)),0);
     assertEquals(lvls1, lvls2);
@@ -346,7 +346,7 @@ public class HeapDoublesSketchTest {
   @Test
   public void checkComputeBitPattern() {
     int n = 1 << 20;
-    int k = DoublesSketch.DEFAULT_K;
+    int k = PreambleUtil.DEFAULT_K;
     long bitP = Util.computeBitPattern(k, n);
     assertEquals(bitP, n/(2L*k));
   }
@@ -359,7 +359,7 @@ public class HeapDoublesSketchTest {
 
   @Test
   public void checkGetStorageBytes() {
-    int k = DoublesSketch.DEFAULT_K; //128
+    int k = PreambleUtil.DEFAULT_K; //128
     DoublesSketch qs = buildQS(k, 0); //k, n
     int stor = qs.getCompactStorageBytes();
     assertEquals(stor, 8);
@@ -378,7 +378,7 @@ public class HeapDoublesSketchTest {
 
   @Test
   public void checkGetStorageBytes2() {
-    int k = DoublesSketch.DEFAULT_K;
+    int k = PreambleUtil.DEFAULT_K;
     long v = 1;
     DoublesSketch qs = DoublesSketch.builder().build(k);
     for (int i = 0; i< 1000; i++) {
@@ -393,7 +393,7 @@ public class HeapDoublesSketchTest {
 
   @Test
   public void checkMerge() {
-    int k = DoublesSketch.DEFAULT_K;
+    int k = PreambleUtil.DEFAULT_K;
     int n = 1000000;
     DoublesSketch qs1 = buildQS(k,n,0);
     DoublesSketch qs2 = buildQS(k,0,0); //empty
@@ -408,7 +408,7 @@ public class HeapDoublesSketchTest {
 
   @Test
   public void checkReverseMerge() {
-    int k = DoublesSketch.DEFAULT_K;
+    int k = PreambleUtil.DEFAULT_K;
     DoublesSketch qs1 = buildQS(k,  1000, 0);
     DoublesSketch qs2 = buildQS(2*k,1000, 1000);
     DoublesUnion union = DoublesUnionBuilder.heapify(qs2);
@@ -419,7 +419,7 @@ public class HeapDoublesSketchTest {
 
   @Test
   public void checkInternalBuildHistogram() {
-    int k = DoublesSketch.DEFAULT_K;
+    int k = PreambleUtil.DEFAULT_K;
     int n = 1000000;
     DoublesSketch qs = buildQS(k,n,0);
     double eps = qs.getNormalizedRankError();
@@ -439,7 +439,7 @@ public class HeapDoublesSketchTest {
   @Test
   public void checkComputeBaseBufferCount() {
     int n = 1 << 20;
-    int k = DoublesSketch.DEFAULT_K;
+    int k = PreambleUtil.DEFAULT_K;
     long bbCnt = Util.computeBaseBufferItems(k, n);
     assertEquals(bbCnt, n % (2L*k));
   }
@@ -493,7 +493,7 @@ public class HeapDoublesSketchTest {
 
   @Test
   public void checkEmpty() {
-    int k = DoublesSketch.DEFAULT_K;
+    int k = PreambleUtil.DEFAULT_K;
     DoublesSketch qs1 = buildQS(k, 0);
     byte[] byteArr = qs1.toByteArray();
     Memory mem = new NativeMemory(byteArr);
@@ -531,7 +531,7 @@ public class HeapDoublesSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkMemCapacityException() {
-    int k = DoublesSketch.DEFAULT_K;
+    int k = PreambleUtil.DEFAULT_K;
     long n = 1000;
     int serVer = 3;
     int combBufItemCap = computeCombinedBufferItemCapacity(k, n, true);
@@ -542,7 +542,7 @@ public class HeapDoublesSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBufAllocAndCap() {
-    int k = DoublesSketch.DEFAULT_K;
+    int k = PreambleUtil.DEFAULT_K;
     long n = 1000;
     int serVer = 3;
     int combBufItemCap = computeCombinedBufferItemCapacity(k, n, true); //non-compact cap
@@ -576,7 +576,7 @@ public class HeapDoublesSketchTest {
 
   @Test
   public void checkZeroPatternReturn() {
-    int k = DoublesSketch.DEFAULT_K;
+    int k = PreambleUtil.DEFAULT_K;
     DoublesSketch qs1 = buildQS(k, 64);
     byte[] byteArr = qs1.toByteArray();
     Memory mem = new NativeMemory(byteArr);
@@ -690,21 +690,21 @@ public class HeapDoublesSketchTest {
   public void testDownSamplingExceptions1() {
     DoublesSketch qs1 = DoublesSketch.builder().build(4); // not smaller
     DoublesSketch qs2 = DoublesSketch.builder().build(3);
-    DoublesUnionImpl.mergeInto(qs2, qs1);
+    DoublesMergeImpl.mergeInto(qs2, qs1);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void testDownSamplingExceptions2() {
     DoublesSketch qs1 = DoublesSketch.builder().build(4);
     DoublesSketch qs2 = DoublesSketch.builder().build(7); // 7/4 not pwr of 2
-    DoublesUnionImpl.mergeInto(qs2, qs1);
+    DoublesMergeImpl.mergeInto(qs2, qs1);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void testDownSamplingExceptions3() {
     DoublesSketch qs1 = DoublesSketch.builder().build(4);
     DoublesSketch qs2 = DoublesSketch.builder().build(12); // 12/4 not pwr of 2
-    DoublesUnionImpl.mergeInto(qs2, qs1);
+    DoublesMergeImpl.mergeInto(qs2, qs1);
   }
 
   //@Test  //visual only
@@ -985,11 +985,6 @@ public class HeapDoublesSketchTest {
       qs.update(startV + i);
     }
     return qs;
-  }
-
-  public static void main(String[] args) {
-    //DoublesUtilTest dut = new DoublesUtilTest();
-    buildQS(128, 4, 0);
   }
 
   @Test

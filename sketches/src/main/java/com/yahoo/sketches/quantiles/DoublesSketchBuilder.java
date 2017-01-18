@@ -16,14 +16,13 @@ import com.yahoo.memory.Memory;
  * @author Lee Rhodes
  */
 public class DoublesSketchBuilder {
-  private int bK = DoublesSketch.DEFAULT_K;
+  private int bK = PreambleUtil.DEFAULT_K;
   private Memory bMem = null;
 
   /**
    * Constructor for a new DoublesSketchBuilder. The default configuration is
    * <ul>
-   * <li>k: {@value DoublesSketch#DEFAULT_K}
-   * This produces a normalized rank error of about 1.7%</li>
+   * <li>k: 128. This produces a normalized rank error of about 1.7%</li>
    * <li>Memory: null</li>
    * </ul>
    */
@@ -87,7 +86,7 @@ public class DoublesSketchBuilder {
    * different values of <i>k</i>. However, in this case it is only possible to merge from
    * larger values of <i>k</i> to smaller values.
    *
-   * @return a QuantilesSketch
+   * @return a DoublesSketch
    */
   public DoublesSketch build(final int k) {
     return (bMem == null) ? HeapDoublesSketch.newInstance(k)

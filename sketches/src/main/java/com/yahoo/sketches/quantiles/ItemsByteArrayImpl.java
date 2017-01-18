@@ -29,7 +29,9 @@ import com.yahoo.sketches.Family;
  * @author Lee Rhodes
  * @author Alexander Saydakov
  */
-public class ItemsByteArrayImpl {
+final class ItemsByteArrayImpl {
+
+  private ItemsByteArrayImpl() {}
 
   static <T> byte[] toByteArray(final ItemsSketch<T> sketch, final boolean ordered,
       final ArrayOfItemsSerDe<T> serDe) {
@@ -37,14 +39,15 @@ public class ItemsByteArrayImpl {
 
     final int flags = (empty ? EMPTY_FLAG_MASK : 0)
         | (ordered ? ORDERED_FLAG_MASK : 0)
-        | COMPACT_FLAG_MASK;
+        | COMPACT_FLAG_MASK; //always compact
 
     if (empty) {
       final byte[] outByteArr = new byte[Long.BYTES];
       final Memory memOut = new NativeMemory(outByteArr);
-      final long cumOffset = memOut.getCumulativeOffset(0L);
+      final Object memObj = memOut.array();
+      final long memAdd = memOut.getCumulativeOffset(0L);
       final int preLongs = 1;
-      insertPre0(outByteArr, cumOffset, preLongs, flags, sketch.getK());
+      insertPre0(memObj, memAdd, preLongs, flags, sketch.getK());
       return outByteArr;
     }
 
@@ -109,13 +112,13 @@ public class ItemsByteArrayImpl {
     return outArr;
   }
 
-  private static final void insertPre0(final byte[] outArr, final long cumOffset,
+  private static void insertPre0(final Object memObj, final long memAdd,
       final int preLongs, final int flags, final int k) {
-    insertPreLongs(outArr, cumOffset, preLongs);
-    insertSerVer(outArr, cumOffset, ItemsUtil.ITEMS_SER_VER);
-    insertFamilyID(outArr, cumOffset, Family.QUANTILES.getID());
-    insertFlags(outArr, cumOffset, flags);
-    insertK(outArr, cumOffset, k);
+    insertPreLongs(memObj, memAdd, preLongs);
+    insertSerVer(memObj, memAdd, ItemsUtil.ITEMS_SER_VER);
+    insertFamilyID(memObj, memAdd, Family.QUANTILES.getID());
+    insertFlags(memObj, memAdd, flags);
+    insertK(memObj, memAdd, k);
   }
 
 }

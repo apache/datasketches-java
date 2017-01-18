@@ -157,7 +157,7 @@ public class DirectDoublesSketchTest {
 
   @Test
   public void checkMisc() {
-    int k = DoublesSketch.DEFAULT_K;
+    int k = PreambleUtil.DEFAULT_K;
     int n = 48;
     int cap = 32 + ((2 * k) << 3);
     Memory mem = new NativeMemory(new byte[cap]);

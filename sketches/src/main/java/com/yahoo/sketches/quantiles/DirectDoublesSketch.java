@@ -43,7 +43,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Kevin Lang
  * @author Lee Rhodes
  */
-public final class DirectDoublesSketch extends DoublesSketch {
+final class DirectDoublesSketch extends DoublesSketch {
   private static final int MIN_DIRECT_DOUBLES_SER_VER = 3;
   private Memory mem_;
   private Object memObj_;
@@ -54,6 +54,14 @@ public final class DirectDoublesSketch extends DoublesSketch {
     super(k); //Checks k
   }
 
+  /**
+   * Obtains a new Direct instance of a DoublesSketch, which may be off-heap.
+   *
+   * @param k Parameter that controls space usage of sketch and accuracy of estimates.
+   * Must be greater than 1 and less than 65536 and a power of 2.
+   * @param dstMem the destination Memory that will be initialized to hold the data for this sketch.
+   * @return a DirectDoublesSketch
+   */
   static DirectDoublesSketch newInstance(final int k, final Memory dstMem) {
     checkDirectMemCapacity(k, 0, dstMem.getCapacity());
 
