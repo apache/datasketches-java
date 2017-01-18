@@ -320,9 +320,14 @@ public class ItemsUnionTest {
     skValid1 = buildIS(32, n, 0);
     skValid2 = buildIS(32, 0, 0); //empty
     ItemsMergeImpl.mergeInto(skValid1, skValid2);
+    Assert.assertEquals(skValid2.getMinValue(), 0.0, 0.0);
+    Assert.assertEquals(skValid2.getMaxValue(), n - 1.0, 0.0);
+
     skValid1 = buildIS(32, 0, 0); //empty
     skValid2 = buildIS(32, n, 0);
     ItemsMergeImpl.mergeInto(skValid1, skValid2);
+    Assert.assertEquals(skValid2.getMinValue(), 0.0, 0.0);
+    Assert.assertEquals(skValid2.getMaxValue(), n - 1.0, 0.0);
 
     skValid1 = buildIS(32, n, 0);
     skValid2 = buildIS(32, n, n);
@@ -355,7 +360,6 @@ public class ItemsUnionTest {
     sk1 = buildIS(64, n, 128);
     sk2 = buildIS(32, n, 0);
     ItemsMergeImpl.downSamplingMergeInto(sk1, sk2);
-
   }
 
   private static ItemsSketch<Long> buildIS(int k, int n) {
