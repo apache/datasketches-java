@@ -16,7 +16,9 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.testng.annotations.Test;
 
@@ -42,7 +44,7 @@ public class ReservoirItemsSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
-    Memory mem = getBasicSerializedLongsRIS();
+    final Memory mem = getBasicSerializedLongsRIS();
     mem.putByte(SER_VER_BYTE, (byte) 0); // corrupt the serialization version
 
     ReservoirItemsSketch.getInstance(mem, new ArrayOfLongsSerDe());
@@ -51,8 +53,14 @@ public class ReservoirItemsSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadFamily() {
-    Memory mem = getBasicSerializedLongsRIS();
-    mem.putByte(FAMILY_BYTE, (byte) 0); // corrupt the family ID
+    final Memory mem = getBasicSerializedLongsRIS();
+    mem.putByte(FAMILY_BYTE, (byte) Family.ALPHA.getID()); // corrupt the family ID
+
+    try {
+      PreambleUtil.preambleToString(mem);
+    } catch (final SketchesArgumentException e) {
+      assertTrue(e.getMessage().startsWith("Inspecting preamble with Sampling family"));
+    }
 
     ReservoirItemsSketch.getInstance(mem, new ArrayOfLongsSerDe());
     fail();
@@ -60,7 +68,7 @@ public class ReservoirItemsSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadPreLongs() {
-    Memory mem = getBasicSerializedLongsRIS();
+    final Memory mem = getBasicSerializedLongsRIS();
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 0); // corrupt the preLongs count
 
     ReservoirItemsSketch.getInstance(mem, new ArrayOfLongsSerDe());
@@ -75,7 +83,7 @@ public class ReservoirItemsSketchTest {
     try {
       PreambleUtil.getAndCheckPreLongs(mem);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       // expected
     }
 
@@ -88,16 +96,16 @@ public class ReservoirItemsSketchTest {
 
   @Test
   public void checkEmptySketch() {
-    ReservoirItemsSketch<String> ris = ReservoirItemsSketch.getInstance(5);
+    final ReservoirItemsSketch<String> ris = ReservoirItemsSketch.getInstance(5);
     assertTrue(ris.getSamples() == null);
 
-    byte[] sketchBytes = ris.toByteArray(new ArrayOfStringsSerDe());
-    Memory mem = new NativeMemory(sketchBytes);
+    final byte[] sketchBytes = ris.toByteArray(new ArrayOfStringsSerDe());
+    final Memory mem = new NativeMemory(sketchBytes);
 
     // only minPreLongs bytes and should deserialize to empty
     assertEquals(sketchBytes.length, Family.RESERVOIR.getMinPreLongs() << 3);
-    ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
-    ReservoirItemsSketch<String> loadedRis = ReservoirItemsSketch.getInstance(mem, serDe);
+    final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
+    final ReservoirItemsSketch<String> loadedRis = ReservoirItemsSketch.getInstance(mem, serDe);
     assertEquals(loadedRis.getNumSamples(), 0);
 
     println("Empty sketch:");
@@ -109,20 +117,21 @@ public class ReservoirItemsSketchTest {
 
   @Test
   public void checkUnderFullReservoir() {
-    int k = 128;
-    int n = 64;
+    final int k = 128;
+    final int n = 64;
 
-    ReservoirItemsSketch<String> ris = ReservoirItemsSketch.getInstance(k);
+    final ReservoirItemsSketch<String> ris = ReservoirItemsSketch.getInstance(k);
     int expectedLength = 0;
 
     for (int i = 0; i < n; ++i) {
-      String intStr = Integer.toString(i);
+      final String intStr = Integer.toString(i);
       expectedLength += intStr.length() + Integer.BYTES;
       ris.update(intStr);
     }
     assertEquals(ris.getNumSamples(), n);
 
-    String[] data = ris.getSamples();
+    final String[] data = ris.getSamples();
+    assertNotNull(data);
     assertEquals(ris.getNumSamples(), ris.getN());
     assertEquals(data.length, n);
 
@@ -133,12 +142,12 @@ public class ReservoirItemsSketchTest {
 
     // not using validateSerializeAndDeserialize() to check with a non-Long
     expectedLength += Family.RESERVOIR.getMaxPreLongs() << 3;
-    byte[] sketchBytes = ris.toByteArray(new ArrayOfStringsSerDe());
+    final byte[] sketchBytes = ris.toByteArray(new ArrayOfStringsSerDe());
     assertEquals(sketchBytes.length, expectedLength);
 
     // ensure reservoir rebuilds correctly
-    Memory mem = new NativeMemory(sketchBytes);
-    ReservoirItemsSketch<String> loadedRis = ReservoirItemsSketch.getInstance(mem,
+    final Memory mem = new NativeMemory(sketchBytes);
+    final ReservoirItemsSketch<String> loadedRis = ReservoirItemsSketch.getInstance(mem,
             new ArrayOfStringsSerDe());
 
     validateReservoirEquality(ris, loadedRis);
@@ -152,11 +161,11 @@ public class ReservoirItemsSketchTest {
 
   @Test
   public void checkFullReservoir() {
-    int k = 1000;
-    int n = 2000;
+    final int k = 1000;
+    final int n = 2000;
 
     // specify smaller ResizeFactor to ensure multiple resizes
-    ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(k, ResizeFactor.X2);
+    final ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(k, ResizeFactor.X2);
 
     for (int i = 0; i < n; ++i) {
       ris.update((long) i);
@@ -174,7 +183,7 @@ public class ReservoirItemsSketchTest {
 
   @Test
   public void checkPolymorphicType() {
-    ReservoirItemsSketch<Number> ris = ReservoirItemsSketch.getInstance(6);
+    final ReservoirItemsSketch<Number> ris = ReservoirItemsSketch.getInstance(6);
 
     assertNull(ris.getSamples());
     assertNull(ris.getSamples(Number.class));
@@ -187,7 +196,7 @@ public class ReservoirItemsSketchTest {
     ris.update((byte) (68 & 0xFF));
     ris.update(4.0F);
 
-    Number[] data = ris.getSamples(Number.class);
+    final Number[] data = ris.getSamples(Number.class);
     assertNotNull(data);
     assertEquals(data.length, 6);
 
@@ -195,29 +204,31 @@ public class ReservoirItemsSketchTest {
     try {
       ris.getSamples();
       fail();
-    } catch (ArrayStoreException e) {
+    } catch (final ArrayStoreException e) {
       // expected
     }
 
     // likewise for toByteArray() (which uses getDataSamples() internally for type handling)
-    ArrayOfNumbersSerDe serDe = new ArrayOfNumbersSerDe();
+    final ArrayOfNumbersSerDe serDe = new ArrayOfNumbersSerDe();
     try {
       ris.toByteArray(serDe);
       fail();
-    } catch (ArrayStoreException e) {
+    } catch (final ArrayStoreException e) {
       // expected
     }
 
-    byte[] sketchBytes = ris.toByteArray(serDe, Number.class);
+    final byte[] sketchBytes = ris.toByteArray(serDe, Number.class);
     assertEquals(sketchBytes.length, 49);
 
-    Memory mem = new NativeMemory(sketchBytes);
-    ReservoirItemsSketch<Number> loadedRis = ReservoirItemsSketch.getInstance(mem, serDe);
+    final Memory mem = new NativeMemory(sketchBytes);
+    final ReservoirItemsSketch<Number> loadedRis = ReservoirItemsSketch.getInstance(mem, serDe);
 
     assertEquals(ris.getNumSamples(), loadedRis.getNumSamples());
 
-    Number[] samples1 = ris.getSamples(Number.class);
-    Number[] samples2 = loadedRis.getSamples(Number.class);
+    final Number[] samples1 = ris.getSamples(Number.class);
+    final Number[] samples2 = loadedRis.getSamples(Number.class);
+    assertNotNull(samples1);
+    assertNotNull(samples2);
     assertEquals(samples1.length, samples2.length);
 
     for (int i = 0; i < samples1.length; ++i) {
@@ -226,19 +237,59 @@ public class ReservoirItemsSketchTest {
   }
 
   @Test
+  public void checkArrayOfNumbersSerDeErrors() {
+    // Highly debatable whether this belongs here vs a stand-alone test class
+    ReservoirItemsSketch<Number> ris = ReservoirItemsSketch.getInstance(6);
+
+    assertNull(ris.getSamples());
+    assertNull(ris.getSamples(Number.class));
+
+    // using mixed types, but BigDecimal not supported by serde class
+    ris.update(1);
+    ris.update(new BigDecimal(2));
+
+    // this should work since BigDecimal is an instance of Number
+    Number[] data = ris.getSamples(Number.class);
+    assertNotNull(data);
+    assertEquals(data.length, 2);
+
+    // toByteArray() should fail
+    ArrayOfNumbersSerDe serDe = new ArrayOfNumbersSerDe();
+    try {
+      ris.toByteArray(serDe, Number.class);
+      fail();
+    } catch (SketchesArgumentException e) {
+      // expected
+    }
+
+    // force entry to a supported type
+    data[1] = 3.0;
+    byte[] bytes = serDe.serializeToByteArray(data);
+
+    // change first element to indicate something unsupported
+    bytes[0] = 'q';
+    try {
+      Number[] deserialized = serDe.deserializeFromMemory(new NativeMemory(bytes), 2);
+      fail();
+    } catch (SketchesArgumentException e) {
+      // expected
+    }
+  }
+
+  @Test
   public void checkBadConstructorArgs() {
-    ArrayList<String> data = new ArrayList<>(128);
+    final ArrayList<String> data = new ArrayList<>(128);
     for (int i = 0; i < 128; ++i) {
       data.add(Integer.toString(i));
     }
 
-    ResizeFactor rf = ResizeFactor.X8;
+    final ResizeFactor rf = ResizeFactor.X8;
 
     // no data
     try {
       ReservoirItemsSketch.<Byte>getInstance(null, 128, rf, 128);
       fail();
-    } catch (SketchesException e) {
+    } catch (final SketchesException e) {
       assertTrue(e.getMessage().contains("null reservoir"));
     }
 
@@ -246,7 +297,7 @@ public class ReservoirItemsSketchTest {
     try {
       ReservoirItemsSketch.getInstance(data, 128, rf, 1);
       fail();
-    } catch (SketchesException e) {
+    } catch (final SketchesException e) {
       assertTrue(e.getMessage().contains("size less than 2"));
     }
 
@@ -254,7 +305,7 @@ public class ReservoirItemsSketchTest {
     try {
       ReservoirItemsSketch.getInstance(data, 128, rf, 64);
       fail();
-    } catch (SketchesException e) {
+    } catch (final SketchesException e) {
       assertTrue(e.getMessage().contains("max size less than array length"));
     }
 
@@ -262,7 +313,7 @@ public class ReservoirItemsSketchTest {
     try {
       ReservoirItemsSketch.getInstance(data, 512, rf, 256);
       fail();
-    } catch (SketchesException e) {
+    } catch (final SketchesException e) {
       assertTrue(e.getMessage().contains("too few samples"));
     }
 
@@ -270,25 +321,26 @@ public class ReservoirItemsSketchTest {
     try {
       ReservoirItemsSketch.getInstance(data, 256, rf, 256);
       fail();
-    } catch (SketchesException e) {
+    } catch (final SketchesException e) {
       assertTrue(e.getMessage().contains("too few samples"));
     }
   }
 
   @Test
   public void checkRawSamples() {
-    int  k = 32;
-    long n = 12;
-    ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(k, ResizeFactor.X2);
+    final int  k = 32;
+    final long n = 12;
+    final ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(k, ResizeFactor.X2);
 
     for (long i = 0; i < n; ++i) {
       ris.update(i);
     }
 
     Long[] samples = ris.getSamples();
+    assertNotNull(samples);
     assertEquals(samples.length, n);
 
-    ArrayList<Long> rawSamples = ris.getRawSamplesAsList();
+    final ArrayList<Long> rawSamples = ris.getRawSamplesAsList();
     assertEquals(rawSamples.size(), n);
 
     // change a value and make sure getDataSamples() reflects that change
@@ -303,13 +355,13 @@ public class ReservoirItemsSketchTest {
 
   @Test
   public void checkSketchCapacity() {
-    ArrayList<Long> data = new ArrayList<>(64);
+    final ArrayList<Long> data = new ArrayList<>(64);
     for (long i = 0; i < 64; ++i) {
       data.add(i);
     }
-    long itemsSeen = (1L << 48) - 2;
+    final long itemsSeen = (1L << 48) - 2;
 
-    ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(data, itemsSeen,
+    final ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(data, itemsSeen,
             ResizeFactor.X8, 64);
 
     // this should work, the next should fail
@@ -318,15 +370,15 @@ public class ReservoirItemsSketchTest {
     try {
       ris.update(0L);
       fail();
-    } catch (SketchesStateException e) {
+    } catch (final SketchesStateException e) {
       assertTrue(e.getMessage().contains("Sketch has exceeded capacity for total items seen"));
     }
   }
 
   @Test
   public void checkSampleWeight() {
-    int k = 32;
-    ReservoirItemsSketch<Integer> ris = ReservoirItemsSketch.getInstance(k);
+    final int k = 32;
+    final ReservoirItemsSketch<Integer> ris = ReservoirItemsSketch.getInstance(k);
 
     for (int i = 0; i < (k / 2); ++i) {
       ris.update(i);
@@ -343,23 +395,24 @@ public class ReservoirItemsSketchTest {
   @Test
   public void checkVersionConversion() {
     // version change from 1 to 2 only impact first preamble long, so empty sketch is sufficient
-    int k = 32768;
-    short encK = ReservoirSize.computeSize(k);
-    ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
+    final int k = 32768;
+    final short encK = ReservoirSize.computeSize(k);
+    final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
 
-    ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(k);
-    byte[] sketchBytesOrig = ris.toByteArray(serDe);
+    final ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(k);
+    final byte[] sketchBytesOrig = ris.toByteArray(serDe);
 
     // get a new byte[], manually revert to v1, then reconstruct
-    byte[] sketchBytes = ris.toByteArray(serDe);
-    Memory sketchMem = new NativeMemory(sketchBytes);
+    final byte[] sketchBytes = ris.toByteArray(serDe);
+    final Memory sketchMem = new NativeMemory(sketchBytes);
 
     sketchMem.putByte(SER_VER_BYTE, (byte) 1);
     sketchMem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
     sketchMem.putShort(RESERVOIR_SIZE_SHORT, encK);
+    println(PreambleUtil.preambleToString(sketchMem));
 
-    ReservoirItemsSketch<Long> rebuilt = ReservoirItemsSketch.getInstance(sketchMem, serDe);
-    byte[] rebuiltBytes = rebuilt.toByteArray(serDe);
+    final ReservoirItemsSketch<Long> rebuilt = ReservoirItemsSketch.getInstance(sketchMem, serDe);
+    final byte[] rebuiltBytes = rebuilt.toByteArray(serDe);
 
     assertEquals(sketchBytesOrig.length, rebuiltBytes.length);
     for (int i = 0; i < sketchBytesOrig.length; ++i) {
@@ -369,9 +422,9 @@ public class ReservoirItemsSketchTest {
 
   @Test
   public void checkSetAndGetValue() {
-    int k = 20;
-    short tgtIdx = 5;
-    ReservoirItemsSketch<Short> ris = ReservoirItemsSketch.getInstance(k);
+    final int k = 20;
+    final short tgtIdx = 5;
+    final ReservoirItemsSketch<Short> ris = ReservoirItemsSketch.getInstance(k);
 
     ris.update(null);
     assertEquals(ris.getN(), 0);
@@ -387,14 +440,14 @@ public class ReservoirItemsSketchTest {
 
   @Test
   public void checkBadSetAndGetValue() {
-    int k = 20;
-    int tgtIdx = 5;
-    ReservoirItemsSketch<Integer> ris = ReservoirItemsSketch.getInstance(k);
+    final int k = 20;
+    final int tgtIdx = 5;
+    final ReservoirItemsSketch<Integer> ris = ReservoirItemsSketch.getInstance(k);
 
     try {
       ris.getValueAtPosition(0);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       // expected
     }
 
@@ -406,36 +459,36 @@ public class ReservoirItemsSketchTest {
     try {
       ris.insertValueAtPosition(-1, -1);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       // expected
     }
 
     try {
       ris.insertValueAtPosition(-1, k + 1);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       // expected
     }
 
     try {
       ris.getValueAtPosition(-1);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       // expected
     }
 
     try {
       ris.getValueAtPosition(k + 1);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       // expected
     }
   }
 
   @Test
   public void checkForceIncrement() {
-    int k = 100;
-    ReservoirItemsSketch<Long> rls = ReservoirItemsSketch.getInstance(k);
+    final int k = 100;
+    final ReservoirItemsSketch<Long> rls = ReservoirItemsSketch.getInstance(k);
 
     for (long i = 0; i < 2 * k; ++i) {
       rls.update(i);
@@ -448,16 +501,16 @@ public class ReservoirItemsSketchTest {
     try {
       rls.forceIncrementItemsSeen((1L << 48) - 2);
       fail();
-    } catch (SketchesStateException e) {
+    } catch (final SketchesStateException e) {
       // expected
     }
   }
 
   static Memory getBasicSerializedLongsRIS() {
-    int k = 10;
-    int n = 20;
+    final int k = 10;
+    final int n = 20;
 
-    ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(k);
+    final ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(k);
     assertEquals(ris.getNumSamples(), 0);
 
     for (int i = 0; i < n; ++i) {
@@ -467,30 +520,33 @@ public class ReservoirItemsSketchTest {
     assertEquals(ris.getN(), n);
     assertEquals(ris.getK(), k);
 
-    byte[] sketchBytes = ris.toByteArray(new ArrayOfLongsSerDe());
+    final byte[] sketchBytes = ris.toByteArray(new ArrayOfLongsSerDe());
     return new NativeMemory(sketchBytes);
   }
 
-  static void validateSerializeAndDeserialize(ReservoirItemsSketch<Long> ris) {
-    byte[] sketchBytes = ris.toByteArray(new ArrayOfLongsSerDe());
+  static void validateSerializeAndDeserialize(final ReservoirItemsSketch<Long> ris) {
+    final byte[] sketchBytes = ris.toByteArray(new ArrayOfLongsSerDe());
     assertEquals(sketchBytes.length,
             (Family.RESERVOIR.getMaxPreLongs() + ris.getNumSamples()) << 3);
 
     // ensure full reservoir rebuilds correctly
-    Memory mem = new NativeMemory(sketchBytes);
-    ReservoirItemsSketch<Long> loadedRis = ReservoirItemsSketch.getInstance(mem, new ArrayOfLongsSerDe());
+    final Memory mem = new NativeMemory(sketchBytes);
+    final ReservoirItemsSketch<Long> loadedRis = ReservoirItemsSketch.getInstance(mem,
+            new ArrayOfLongsSerDe());
 
     validateReservoirEquality(ris, loadedRis);
   }
 
-  static <T> void validateReservoirEquality(ReservoirItemsSketch<T> ris1,
-                                            ReservoirItemsSketch<T> ris2) {
+  static <T> void validateReservoirEquality(final ReservoirItemsSketch<T> ris1,
+                                            final ReservoirItemsSketch<T> ris2) {
     assertEquals(ris1.getNumSamples(), ris2.getNumSamples());
 
     if (ris1.getNumSamples() == 0) { return; }
 
-    Object[] samples1 = ris1.getSamples();
-    Object[] samples2 = ris2.getSamples();
+    final Object[] samples1 = ris1.getSamples();
+    final Object[] samples2 = ris2.getSamples();
+    assertNotNull(samples1);
+    assertNotNull(samples2);
     assertEquals(samples1.length, samples2.length);
 
     for (int i = 0; i < samples1.length; ++i) {
@@ -502,7 +558,7 @@ public class ReservoirItemsSketchTest {
    * Wrapper around System.out.println() allowing a simple way to disable logging in tests
    * @param msg The message to print
    */
-  private static void println(String msg) {
+  private static void println(final String msg) {
     //System.out.println(msg);
   }
 }
