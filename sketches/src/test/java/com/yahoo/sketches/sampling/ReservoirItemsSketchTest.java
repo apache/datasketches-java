@@ -18,7 +18,6 @@ import static org.testng.Assert.fail;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.testng.annotations.Test;
 
@@ -269,7 +268,7 @@ public class ReservoirItemsSketchTest {
     // change first element to indicate something unsupported
     bytes[0] = 'q';
     try {
-      Number[] deserialized = serDe.deserializeFromMemory(new NativeMemory(bytes), 2);
+      serDe.deserializeFromMemory(new NativeMemory(bytes), 2);
       fail();
     } catch (SketchesArgumentException e) {
       // expected
