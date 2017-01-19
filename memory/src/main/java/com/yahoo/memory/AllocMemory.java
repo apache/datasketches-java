@@ -17,7 +17,7 @@ import static com.yahoo.memory.UnsafeUtil.unsafe;
  * loading NativeMemory classes that do not use off-heap memory and thus do not require JVM
  * tracking of the finalize() method. The parent MemoryMappedFile acts only as a pass-through to
  * NativeMemory. This design allows leveraging the freeMemory() and finalize() methods of the
- * parents so that these actions occur only in one place for the instance heirarchy.
+ * parents so that these actions occur only in one place for the instance hierarchy.
  *
  * @author Lee Rhodes
  */
