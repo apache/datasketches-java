@@ -127,6 +127,7 @@ public class DoublesUnionBuilder {
    * @return a DoublesUnion object
    * @deprecated changed name to heapify to more accuately reflect its intent
    */
+  @Deprecated
   public static DoublesUnion build(final DoublesSketch sketch) {
     return DoublesUnionImpl.heapifyInstance(sketch);
   }
