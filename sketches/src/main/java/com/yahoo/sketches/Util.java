@@ -6,6 +6,9 @@
 package com.yahoo.sketches;
 
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
+import static java.lang.Math.log;
+import static java.lang.Math.pow;
+import static java.lang.Math.round;
 
 /**
  * Common utility functions.
@@ -38,8 +41,6 @@ public final class Util {
    * The resize threshold = 0.5; tuned for speed.
    */
   public static final double RESIZE_THRESHOLD = 0.5;
-
-  private Util() {}
 
   /**
    * The default nominal entries is provided as a convenience for those cases where the
@@ -77,45 +78,13 @@ public final class Util {
   public static final char TAB = '\t';
 
   /**
-   * Returns a string of spaced hex bytes in Big-Endian order.
-   * @param v the given long
-   * @return string of spaced hex bytes in Big-Endian order.
+   * The natural logarithm of 2.0.
    */
-  public static String longToHexBytes(final long v) {
-    final long mask = 0XFFL;
-    final StringBuilder sb = new StringBuilder();
-    for (int i = 8; i-- > 0; ) {
-      final String s = Long.toHexString((v >>> i * 8) & mask);
-      sb.append(zeroPad(s, 2)).append(" ");
-    }
-    return sb.toString();
-  }
+  public static final double LOG2 = log(2.0);
 
-  /**
-   * Returns an int array of points that will be evenly spaced on a log axis.
-   * This is designed for Log_base2 numbers.
-   * @param lgStart the Log_base2 of the starting value. E.g., for 1 lgStart = 0.
-   * @param lgEnd the Log_base2 of the ending value. E.g. for 1024 lgEnd = 10.
-   * @param points the total number of points including the starting and ending values.
-   * @return an int array of points that will be evenly spaced on a log axis.
-   */
-  public static int[] evenlyLgSpaced(final int lgStart, final int lgEnd, final int points) {
-    if (points <= 0) {
-      throw new SketchesArgumentException("points must be > 0");
-    }
-    if ((lgEnd < 0) || (lgStart < 0)) {
-      throw new SketchesArgumentException("lgStart and lgEnd must be >= 0.");
-    }
-    final int[] out = new int[points];
-    out[0] = 1 << lgStart;
-    if (points == 1) { return out; }
-    final double delta = (lgEnd - lgStart) / (points - 1.0);
-    for (int i = 1; i < points; i++) {
-      final double mXpY = delta * i + lgStart;
-      out[i] = (int)Math.round(Math.pow(2, mXpY));
-    }
-    return out;
-  }
+  private Util() {}
+
+  //Byte Conversions
 
   /**
    * Returns an int extracted from a Little-Endian byte array.
@@ -141,6 +110,51 @@ public final class Util {
       v |= (arr[i] & 0XFFL) << i * 8;
     }
     return v;
+  }
+
+  /**
+   * Returns a Little-Endian byte array extracted from the given int.
+   * @param v the given int
+   * @param arr a given array of 4 bytes that will be returned with the data
+   * @return a Little-Endian byte array extracted from the given int.
+   */
+  public static byte[] intToBytes(int v, final byte[] arr) {
+    for (int i = 0; i < 4; i++) {
+      arr[i] = (byte) (v & 0XFF);
+      v >>>= 8;
+    }
+    return arr;
+  }
+
+  /**
+   * Returns a Little-Endian byte array extracted from the given long.
+   * @param v the given long
+   * @param arr a given array of 8 bytes that will be returned with the data
+   * @return a Little-Endian byte array extracted from the given long.
+   */
+  public static byte[] longToBytes(long v, final byte[] arr) {
+    for (int i = 0; i < 8; i++) {
+      arr[i] = (byte) (v & 0XFFL);
+      v >>>= 8;
+    }
+    return arr;
+  }
+
+  //String Related
+
+  /**
+   * Returns a string of spaced hex bytes in Big-Endian order.
+   * @param v the given long
+   * @return string of spaced hex bytes in Big-Endian order.
+   */
+  public static String longToHexBytes(final long v) {
+    final long mask = 0XFFL;
+    final StringBuilder sb = new StringBuilder();
+    for (int i = 8; i-- > 0; ) {
+      final String s = Long.toHexString((v >>> i * 8) & mask);
+      sb.append(zeroPad(s, 2)).append(" ");
+    }
+    return sb.toString();
   }
 
   /**
@@ -203,32 +217,57 @@ public final class Util {
   }
 
   /**
-   * Returns a Little-Endian byte array extracted from the given int.
-   * @param v the given int
-   * @param arr a given array of 4 bytes that will be returned with the data
-   * @return a Little-Endian byte array extracted from the given int.
+   * Prepend the given string with zeros. If the given string is equal or greater than the given
+   * field length, it will be returned without modification.
+   * @param s the given string
+   * @param fieldLength desired total field length including the given string
+   * @return the given string prepended with zeros.
    */
-  public static byte[] intToBytes(int v, final byte[] arr) {
-    for (int i = 0; i < 4; i++) {
-      arr[i] = (byte) (v & 0XFF);
-      v >>>= 8;
-    }
-    return arr;
+  public static final String zeroPad(final String s, final int fieldLength) {
+    return characterPad(s, fieldLength, '0', false);
   }
 
   /**
-   * Returns a Little-Endian byte array extracted from the given long.
-   * @param v the given long
-   * @param arr a given array of 8 bytes that will be returned with the data
-   * @return a Little-Endian byte array extracted from the given long.
+   * Prepend or postpend the given string with the given character to fill the given field length.
+   * If the given string is equal or greater than the given field length, it will be returned
+   * without modification.
+   * @param s the given string
+   * @param fieldLength the desired field length
+   * @param padChar the desired pad character
+   * @param postpend if true append the pacCharacters to the end of the string.
+   * @return prepended or postpended given string with the given character to fill the given field
+   * length.
    */
-  public static byte[] longToBytes(long v, final byte[] arr) {
-    for (int i = 0; i < 8; i++) {
-      arr[i] = (byte) (v & 0XFFL);
-      v >>>= 8;
+  public static final String characterPad(final String s, final int fieldLength, final char padChar,
+      final boolean postpend) {
+    final char[] chArr = s.toCharArray();
+    final int sLen = chArr.length;
+    if (sLen < fieldLength) {
+      final char[] out = new char[fieldLength];
+      final int blanks = fieldLength - sLen;
+
+      if (postpend) {
+        for (int i = 0; i < sLen; i++) {
+          out[i] = chArr[i];
+        }
+        for (int i = sLen; i < fieldLength; i++) {
+          out[i] = padChar;
+        }
+      } else { //prepend
+        for (int i = 0; i < blanks; i++) {
+          out[i] = padChar;
+        }
+        for (int i = blanks; i < fieldLength; i++) {
+          out[i] = chArr[i - blanks];
+        }
+      }
+
+      return String.valueOf(out);
     }
-    return arr;
+    return s;
   }
+
+  //Seed Hash
 
   /**
    * Check if the two seed hashes are equal. If not, throw an SketchesArgumentException.
@@ -262,6 +301,8 @@ public final class Util {
     return seedHash;
   }
 
+  //Memory byte allignment
+
   /**
    * Checks if parameter v is a multiple of 8 and greater than zero.
    * @param v The parameter to check
@@ -283,6 +324,8 @@ public final class Util {
   public static boolean isMultipleOf8AndGT0(final long v) {
     return (((v & 0X7L) == 0L) && (v > 0L));
   }
+
+  //Powers of 2 related
 
   /**
    * Returns true if argument is exactly a positive power of 2 and greater than zero.
@@ -319,22 +362,6 @@ public final class Util {
   public static int toLog2(final int value, final String argName) {
     checkIfPowerOf2(value, argName);
     return Integer.numberOfTrailingZeros(value);
-  }
-
-  /**
-   * Checks the given parameter to make sure it is positive and between 0.0 inclusive and 1.0
-   * inclusive.
-   *
-   * @param p
-   * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
-   * @param argName Used in the thrown exception.
-   */
-  public static void checkProbability(final double p, final String argName) {
-    if ((p >= 0.0) && (p <= 1.0)) {
-      return;
-    }
-    throw new SketchesArgumentException("The value of the parameter \"" + argName
-        + "\" must be between 0.0 inclusive and 1.0 inclusive: " + p);
   }
 
   /**
@@ -387,13 +414,65 @@ public final class Util {
   }
 
   /**
-   * Unsigned compare with longs.
-   * @param n1 A long to be treated as if unsigned.
-   * @param n2 A long to be treated as if unsigned.
-   * @return true if n1 &gt; n2.
+   * Returns an int array of points that will be evenly spaced on a log axis.
+   * This is designed for Log_base2 numbers.
+   * @param lgStart the Log_base2 of the starting value. E.g., for 1 lgStart = 0.
+   * @param lgEnd the Log_base2 of the ending value. E.g. for 1024 lgEnd = 10.
+   * @param points the total number of points including the starting and ending values.
+   * @return an int array of points that will be evenly spaced on a log axis.
    */
-  public static boolean isLessThanUnsigned(final long n1, final long n2) {
-    return (n1 < n2) ^ ((n1 < 0) != (n2 < 0));
+  public static int[] evenlyLgSpaced(final int lgStart, final int lgEnd, final int points) {
+    if (points <= 0) {
+      throw new SketchesArgumentException("points must be > 0");
+    }
+    if ((lgEnd < 0) || (lgStart < 0)) {
+      throw new SketchesArgumentException("lgStart and lgEnd must be >= 0.");
+    }
+    final int[] out = new int[points];
+    out[0] = 1 << lgStart;
+    if (points == 1) { return out; }
+    final double delta = (lgEnd - lgStart) / (points - 1.0);
+    for (int i = 1; i < points; i++) {
+      final double mXpY = delta * i + lgStart;
+      out[i] = (int)round(pow(2, mXpY));
+    }
+    return out;
+  }
+
+  /**
+   * Computes the next larger integer point in the power series <i>point = 2<sup>(i/ppo)</sup></i>
+   * given the current point in the series.
+   * For illustration, this can be used in a loop as follows:
+   *
+   * <pre>{@code
+   *     for (int i = 1; i <= (1 << 10); i = pwr2LawNext(2, i)) {
+   *       System.out.print(i + " ");
+   *     }
+   *     //generates the following series:
+   *     //  1 2 3 4 6 8 11 16 23 32 45 64 91 128 181 256 362 512 724 1024
+   * }</pre>
+   *
+   * @param ppo Points-Per-Octave, or the number of points per integer powers of 2 in the series.
+   * @param curPoint the current point of the series. Must be &ge; 1.
+   * @return the next point in the power series.
+   */
+  public static final int pwr2LawNext(final int ppo, final int curPoint) {
+    final int cur = (curPoint < 1) ? 1 : curPoint;
+    int gi = (int)round(log2(cur) * ppo); //current generating index
+    int next;
+    do {
+      next = (int)round(pow(2.0, (double) ++gi / ppo));
+    } while ( next <= curPoint);
+    return next;
+  }
+
+  /**
+   * The log base 2 of the value
+   * @param value the given value
+   * @return The log base 2 of the value
+   */
+  public static final double log2(final double value) {
+    return log(value) / LOG2;
   }
 
   /**
@@ -411,54 +490,32 @@ public final class Util {
     return (lgTarget <= lgMin) ? lgMin : (lgRF == 0) ? lgTarget : (lgTarget - lgMin) % lgRF + lgMin;
   }
 
-  /**
-   * Prepend the given string with zeros. If the given string is equal or greater than the given
-   * field length, it will be returned without modification.
-   * @param s the given string
-   * @param fieldLength desired total field length including the given string
-   * @return the given string prepended with zeros.
-   */
-  public static final String zeroPad(final String s, final int fieldLength) {
-    return characterPad(s, fieldLength, '0', false);
-  }
+  //Other checks
 
   /**
-   * Prepend or postpend the given string with the given character to fill the given field length.
-   * If the given string is equal or greater than the given field length, it will be returned
-   * without modification.
-   * @param s the given string
-   * @param fieldLength the desired field length
-   * @param padChar the desired pad character
-   * @param postpend if true append the pacCharacters to the end of the string.
-   * @return prepended or postpended given string with the given character to fill the given field
-   * length.
+   * Checks the given parameter to make sure it is positive and between 0.0 inclusive and 1.0
+   * inclusive.
+   *
+   * @param p
+   * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
+   * @param argName Used in the thrown exception.
    */
-  public static final String characterPad(final String s, final int fieldLength, final char padChar,
-      final boolean postpend) {
-    final char[] chArr = s.toCharArray();
-    final int sLen = chArr.length;
-    if (sLen < fieldLength) {
-      final char[] out = new char[fieldLength];
-      final int blanks = fieldLength - sLen;
-
-      if (postpend) {
-        for (int i = 0; i < sLen; i++) {
-          out[i] = chArr[i];
-        }
-        for (int i = sLen; i < fieldLength; i++) {
-          out[i] = padChar;
-        }
-      } else { //prepend
-        for (int i = 0; i < blanks; i++) {
-          out[i] = padChar;
-        }
-        for (int i = blanks; i < fieldLength; i++) {
-          out[i] = chArr[i - blanks];
-        }
-      }
-
-      return String.valueOf(out);
+  public static void checkProbability(final double p, final String argName) {
+    if ((p >= 0.0) && (p <= 1.0)) {
+      return;
     }
-    return s;
+    throw new SketchesArgumentException("The value of the parameter \"" + argName
+        + "\" must be between 0.0 inclusive and 1.0 inclusive: " + p);
   }
+
+  /**
+   * Unsigned compare with longs.
+   * @param n1 A long to be treated as if unsigned.
+   * @param n2 A long to be treated as if unsigned.
+   * @return true if n1 &gt; n2.
+   */
+  public static boolean isLessThanUnsigned(final long n1, final long n2) {
+    return (n1 < n2) ^ ((n1 < 0) != (n2 < 0));
+  }
+
 }

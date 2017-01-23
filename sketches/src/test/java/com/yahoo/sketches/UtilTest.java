@@ -20,6 +20,7 @@ import static com.yahoo.sketches.Util.isMultipleOf8AndGT0;
 import static com.yahoo.sketches.Util.isPowerOf2;
 import static com.yahoo.sketches.Util.milliSecToString;
 import static com.yahoo.sketches.Util.nanoSecToString;
+import static com.yahoo.sketches.Util.pwr2LawNext;
 import static com.yahoo.sketches.Util.zeroPad;
 
 import org.testng.Assert;
@@ -221,6 +222,12 @@ public class UtilTest {
     String result = milliSecToString(nS);
     String expected = "1:01:01.001";
     Assert.assertEquals(result, expected);
+  }
+
+  @Test
+  public void checkPwr2LawNext() {
+    int next = pwr2LawNext(2, 1);
+    Assert.assertEquals(next, 2);
   }
 
   @Test

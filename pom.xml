@@ -347,7 +347,7 @@
               <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-compiler-plugin</artifactId>
-                  <version>3.6.0</version>
+                  <version>3.6.1</version>
               </plugin>
 
               <plugin>
@@ -426,7 +426,7 @@
               <plugin>
                   <groupId>org.codehaus.mojo</groupId>
                   <artifactId>license-maven-plugin</artifactId>
-                  <version>1.11</version>
+                  <version>1.12</version>
               </plugin>
 
               <plugin>
