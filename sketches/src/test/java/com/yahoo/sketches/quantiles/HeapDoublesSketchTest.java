@@ -909,6 +909,21 @@ public class HeapDoublesSketchTest {
     assertNull(qsk.getMemory());
   }
 
+  @Test
+  public void serializeDeserialize() {
+    DoublesSketch sketch1 = DoublesSketch.builder().build();
+    for (int i = 0; i < 1000; i++) {
+      sketch1.update(i);
+    }
+    DoublesSketch sketch2 = DoublesSketch.heapify(new NativeMemory(sketch1.toByteArray()));
+    for (int i = 0; i < 1000; i++) {
+      sketch2.update(i + 1000);
+    }
+    assertEquals(sketch2.getMinValue(), 0.0);
+    assertEquals(sketch2.getMaxValue(), 1999.0);
+    assertEquals(sketch2.getQuantile(0.5), 1000.0, 10.0);
+  }
+
 
   //private methods
 
