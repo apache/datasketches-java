@@ -910,7 +910,7 @@ public class HeapDoublesSketchTest {
   }
 
   @Test
-  public void serializeDeserialize() {
+  public void serializeDeserializeCompact() {
     DoublesSketch sketch1 = DoublesSketch.builder().build();
     for (int i = 0; i < 1000; i++) {
       sketch1.update(i);
@@ -924,6 +924,17 @@ public class HeapDoublesSketchTest {
     assertEquals(sketch2.getQuantile(0.5), 1000.0, 10.0);
   }
 
+  @Test
+  public void serializeDeserializeEmptyNonCompact() {
+    DoublesSketch sketch1 = DoublesSketch.builder().build();
+    DoublesSketch sketch2 = DoublesSketch.heapify(new NativeMemory(sketch1.toByteArray(true, false)));
+    for (int i = 0; i < 1000; i++) {
+      sketch2.update(i + 1000);
+    }
+    assertEquals(sketch2.getMinValue(), 0.0);
+    assertEquals(sketch2.getMaxValue(), 999.0);
+    assertEquals(sketch2.getQuantile(0.5), 500.0, 4.0);
+  }
 
   //private methods
 
