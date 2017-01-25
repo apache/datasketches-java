@@ -234,6 +234,22 @@ public class DirectDoublesSketchTest {
     assertEquals(newMemCap, spaceNeeded * 8 + 32);
   }
 
+  @Test
+  public void serializeDeserialize() {
+    int sizeBytes = 10000;
+    DoublesSketch sketch1 = DoublesSketch.builder().initMemory(new NativeMemory(new byte[sizeBytes])).build();
+    for (int i = 0; i < 1000; i++) {
+      sketch1.update(i);
+    }
+    DoublesSketch sketch2 = DoublesSketch.wrap(new NativeMemory(sketch1.toByteArray()));
+    for (int i = 0; i < 1000; i++) {
+      sketch2.update(i + 1000);
+    }
+    assertEquals(sketch2.getMinValue(), 0.0);
+    assertEquals(sketch2.getMaxValue(), 1999.0);
+    assertEquals(sketch2.getQuantile(0.5), 1000.0, 10.0);
+  }
+
   static DoublesSketch buildAndLoadDQS(int k, int n) {
     return buildAndLoadDQS(k, n, 0);
   }
