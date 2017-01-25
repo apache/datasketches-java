@@ -13,13 +13,11 @@ public class DoublesSketchTest {
     for (int i = 0; i < 1000; i++) {
       heapSketch.update(i);
     }
-    DoublesSketch directSketch = DoublesSketch.wrap(new NativeMemory(heapSketch.toByteArray()));
-    for (int i = 0; i < 1000; i++) {
-      directSketch.update(i + 1000);
-    }
-    Assert.assertEquals(directSketch.getMinValue(), 0);
-    Assert.assertEquals(directSketch.getMaxValue(), 1999);
-    Assert.assertEquals(directSketch.getQuantile(0.5), 1000.0, 10.0);
+    DoublesSketch directSketch = DoublesSketch.wrap(new NativeMemory(heapSketch.toByteArray(true, false)));
+
+    Assert.assertEquals(directSketch.getMinValue(), 0.0);
+    Assert.assertEquals(directSketch.getMaxValue(), 999.0);
+    Assert.assertEquals(directSketch.getQuantile(0.5), 500.0, 4.0);
   }
 
   @Test

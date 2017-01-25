@@ -336,7 +336,8 @@ final class DirectDoublesSketch extends DoublesSketch {
     final int flagsMask = ~allowedFlags;
     if ((flags & flagsMask) > 0) {
       throw new SketchesArgumentException(
-         "Possible corruption: Invalid flags field: " + Integer.toBinaryString(flags));
+         "Possible corruption: Invalid flags field: Cannot be compact! "
+             + Integer.toBinaryString(flags));
     }
   }
 

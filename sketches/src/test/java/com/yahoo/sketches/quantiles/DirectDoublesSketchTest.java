@@ -236,18 +236,26 @@ public class DirectDoublesSketchTest {
 
   @Test
   public void serializeDeserialize() {
-    int sizeBytes = 10000;
-    DoublesSketch sketch1 = DoublesSketch.builder().initMemory(new NativeMemory(new byte[sizeBytes])).build();
+    int sizeBytes = DoublesSketch.getUpdatableStorageBytes(128, 2000);
+    Memory mem = new NativeMemory(new byte[sizeBytes]);
+    DoublesSketch sketch1 = DoublesSketch.builder().initMemory(mem).build();
     for (int i = 0; i < 1000; i++) {
       sketch1.update(i);
     }
-    DoublesSketch sketch2 = DoublesSketch.wrap(new NativeMemory(sketch1.toByteArray()));
+
+    DoublesSketch sketch2 = DoublesSketch.wrap(mem);
     for (int i = 0; i < 1000; i++) {
       sketch2.update(i + 1000);
     }
     assertEquals(sketch2.getMinValue(), 0.0);
     assertEquals(sketch2.getMaxValue(), 1999.0);
     assertEquals(sketch2.getQuantile(0.5), 1000.0, 10.0);
+
+    byte[] arr2 = sketch2.toByteArray(true, false);
+    DoublesSketch sketch3 = DoublesSketch.wrap(new NativeMemory(arr2));
+    assertEquals(sketch3.getMinValue(), 0.0);
+    assertEquals(sketch3.getMaxValue(), 1999.0);
+    assertEquals(sketch3.getQuantile(0.5), 1000.0, 10.0);
   }
 
   static DoublesSketch buildAndLoadDQS(int k, int n) {
