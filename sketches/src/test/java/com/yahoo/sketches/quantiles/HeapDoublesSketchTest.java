@@ -929,7 +929,7 @@ public class HeapDoublesSketchTest {
     DoublesSketch sketch1 = DoublesSketch.builder().build();
     DoublesSketch sketch2 = DoublesSketch.heapify(new NativeMemory(sketch1.toByteArray(true, false)));
     for (int i = 0; i < 1000; i++) {
-      sketch2.update(i + 1000);
+      sketch2.update(i);
     }
     assertEquals(sketch2.getMinValue(), 0.0);
     assertEquals(sketch2.getMaxValue(), 999.0);
