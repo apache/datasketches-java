@@ -134,7 +134,7 @@ final class HeapDoublesSketch extends DoublesSketch {
     //VALIDITY CHECKS
     DoublesUtil.checkDoublesSerVer(serVer, MIN_HEAP_DOUBLES_SER_VER);
     Util.checkHeapFlags(flags);
-    checkPreLongsEmpty(preLongs, empty, serVer);
+    checkPreLongsFlagsSerVer(flags, serVer, preLongs);
     Util.checkFamilyID(familyID);
 
     final HeapDoublesSketch hds = newInstance(k); //checks k
@@ -386,14 +386,32 @@ final class HeapDoublesSketch extends DoublesSketch {
     combinedBuffer_ = Arrays.copyOf(baseBuffer, newSize);
   }
 
-  static void checkPreLongsEmpty(final int preLongs, final boolean empty, final int serVer) {
-    final int minPre = Family.QUANTILES.getMinPreLongs(); //1
+  static void checkPreLongsFlagsSerVer(final int flags, final int serVer, final int preLongs) {
+    final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
+    final boolean compact = (flags & COMPACT_FLAG_MASK) > 0;
 
-    final int maxPre = (serVer == 1) ? 5 : Family.QUANTILES.getMaxPreLongs(); //2
-    final boolean valid = ((preLongs == minPre) && empty) || ((preLongs == maxPre) && !empty);
+    final int sw = (compact ? 1 : 0) + (2 * (empty ? 1 : 0)) + (4 * (serVer & 0xF))
+        + (32 * (preLongs & 0x3F));
+    boolean valid = true;
+    switch (sw) { //Fall throughs are OK!
+      case 38  : //!compact,  empty, serVer = 1, preLongs = 1; always stored as not compact
+      case 164 : //!compact, !empty, serVer = 1, preLongs = 5; always stored as not compact
+      case 42  : //!compact,  empty, serVer = 2, preLongs = 1; always stored as compact
+      case 72  : //!compact, !empty, serVer = 2, preLongs = 2; always stored as compact
+      case 47  : // compact,  empty, serVer = 3, preLongs = 1;
+      case 79  : // compact,  empty, serVer = 3, preLongs = 2;
+      case 78  : //!compact,  empty, serVer = 3, preLongs = 2;
+      case 77  : // compact, !empty, serVer = 3, preLongs = 2;
+      case 76  : //!compact, !empty, serVer = 3, preLongs = 2;
+        break;
+      default :
+        valid = false;
+    }
+
     if (!valid) {
-      throw new SketchesArgumentException("Possible corruption: PreambleLongs = " + preLongs
-          + ", inconsistent with empty = " + empty + ", and SerVer = " + serVer);
+      throw new SketchesArgumentException("Possible corruption. Inconsistent state: "
+          + "PreambleLongs = " + preLongs + ", empty = " + empty + ", SerVer = " + serVer
+          + ", Compact = " + compact);
     }
   }
 

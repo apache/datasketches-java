@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.quantiles;
 
+import static com.yahoo.sketches.quantiles.HeapDoublesSketch.checkPreLongsFlagsSerVer;
+import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.Util.LS;
 import static com.yahoo.sketches.quantiles.Util.computeCombinedBufferItemCapacity;
@@ -295,11 +297,58 @@ public class HeapDoublesSketchTest {
     DoublesSketch.builder().build(0);
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkPreLongsCheck() {
-    HeapDoublesSketch.checkPreLongsEmpty(5, false, 1);
+  @Test
+  public void checkPreLongsFlagsSerVer1() {
+    byte[] byteArr;
+    DoublesSketch ds = DoublesSketch.builder().build();
+    //empty
+    byteArr = ds.toByteArray(); //compact
+    assertEquals(byteArr.length, 8);
+    byteArr = ds.toByteArray(false, false); //not ordered, not compact
+    assertEquals(byteArr.length, 64); //32 + 32 = 64; baseBuf is 4 values minimum
+    assertEquals(byteArr[3], EMPTY_FLAG_MASK);
 
-    HeapDoublesSketch.checkPreLongsEmpty(6, false, 3);
+    //not empty
+    ds.update(1);
+    byteArr = ds.toByteArray(); //compact
+    assertEquals(byteArr.length, 40); //compact, 1 value
+    byteArr = ds.toByteArray(true, false); //not compact
+    assertEquals(byteArr.length, 64); //32 + 32 = 64; baseBuf is 4 values minimum
+
+    byteArr = new byte[1 << 12]; //big enough
+    NativeMemory mem = new NativeMemory(byteArr);
+    ds = DoublesSketch.builder().initMemory(mem).build(); //DirectDoublesSketch
+
+    byteArr = ds.toByteArray(); //compact
+    assertEquals(byteArr.length, 8);
+    byteArr = ds.toByteArray(false, false); //not ordered, not compact
+    assertEquals(byteArr.length, 64); //32 + 32 = 64; baseBuf is 4 values minimum
+    assertEquals(byteArr[3], EMPTY_FLAG_MASK);
+
+    //not empty
+    ds.update(1);
+    byteArr = ds.toByteArray(); //compact
+    assertEquals(byteArr.length, 40); //compact, 1 value
+    byteArr = ds.toByteArray(true, false); //not compact
+    assertEquals(byteArr.length, 64); //32 + 32 = 64; baseBuf is 4 values minimum
+  }
+
+  @Test
+  public void checkPreLongsFlagsSerVer2() {
+    checkPreLongsFlagsSerVer(EMPTY_FLAG_MASK, 1, 1); //38
+    checkPreLongsFlagsSerVer(0, 1, 5);               //164
+    checkPreLongsFlagsSerVer(EMPTY_FLAG_MASK, 2, 1); //42
+    checkPreLongsFlagsSerVer(0, 2, 2);               //72
+    checkPreLongsFlagsSerVer(EMPTY_FLAG_MASK | COMPACT_FLAG_MASK, 3, 1); //47
+    checkPreLongsFlagsSerVer(EMPTY_FLAG_MASK | COMPACT_FLAG_MASK, 3, 2); //79
+    checkPreLongsFlagsSerVer(EMPTY_FLAG_MASK, 3, 2);  //78
+    checkPreLongsFlagsSerVer(COMPACT_FLAG_MASK, 3, 2);//77
+    checkPreLongsFlagsSerVer(0, 3, 2);                //76
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkPreLongsFlagsSerVer3() {
+    checkPreLongsFlagsSerVer(EMPTY_FLAG_MASK, 1, 2);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -927,7 +976,9 @@ public class HeapDoublesSketchTest {
   @Test
   public void serializeDeserializeEmptyNonCompact() {
     DoublesSketch sketch1 = DoublesSketch.builder().build();
-    DoublesSketch sketch2 = DoublesSketch.heapify(new NativeMemory(sketch1.toByteArray(true, false)));
+    byte[] byteArr = sketch1.toByteArray(true, false); //Ordered, Not Compact, Empty
+    Memory mem = new NativeMemory(byteArr);
+    DoublesSketch sketch2 = DoublesSketch.heapify(mem);
     for (int i = 0; i < 1000; i++) {
       sketch2.update(i);
     }
