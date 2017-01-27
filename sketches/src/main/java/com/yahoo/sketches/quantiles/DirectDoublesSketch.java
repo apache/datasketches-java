@@ -140,7 +140,7 @@ final class DirectDoublesSketch extends DoublesSketch {
     final long newN = getN() + 1;
     insertFlags(memObj_, memAdd_, 0); //not compact, not ordered, not empty
 
-    if (bbCount == 2 * k_) { //Propogate
+    if (bbCount == 2 * k_) { //Propagate
       final int curCombBufItemCap = getCombinedBufferItemCapacity(); //K, prev N, Direct case
 
       // make sure there will be enough levels for the propagation
