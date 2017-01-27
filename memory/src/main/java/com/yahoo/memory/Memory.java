@@ -538,7 +538,7 @@ public interface Memory {
   /**
    * Returns a formatted hex string of an area of this Memory.
    * Used primarily for testing.
-   * @param header decriptive header
+   * @param header descriptive header
    * @param offsetBytes offset bytes relative to this Memory start
    * @param lengthBytes number of bytes to convert to a hex string
    * @return a formatted hex string in a human readable array
