@@ -398,6 +398,7 @@ public abstract class DoublesSketch {
 
   /**
    * Serialize this sketch to a byte array, not-ordered, compact form.
+   * Note that the compact form cannot be used by the Direct DoublesSketches.
    * This does not order the base buffer.
    * @return byte array of this sketch
    */
@@ -407,6 +408,7 @@ public abstract class DoublesSketch {
 
   /**
    * Serialize this sketch in a byte array, compact form.
+   * Note that the compact form cannot be used by the Direct DoublesSketches.
    * @param ordered if true, this sorts the base buffer, which optimizes merge performance at
    * the cost of slightly increased serialization time.
    * In real-time build-and-merge environments, this may not be desirable.
@@ -420,7 +422,8 @@ public abstract class DoublesSketch {
    * Serialize this sketch in a byte array form.
    * @param ordered if true, this sorts the base buffer, which optimizes merge performance at
    * the cost of slightly increased serialization time.
-   * @param compact if true the sketch will be serialized in compact form.
+   * @param compact if true the sketch will be serialized in compact form. Use false to serialize
+   * to the non-compact form, which can be used by the wrap() method of the Direct DoublesSketches.
    * @return this sketch in a byte array form.
    */
   public byte[] toByteArray(final boolean ordered, final boolean compact) {

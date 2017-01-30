@@ -203,11 +203,7 @@ public class MemoryMappedFile extends NativeMemory {
   }
 
   static final int pageCount(final int ps, final long length) {
-    long s = 1;
-    while (s * ps < length) {
-      s++;
-    }
-    return (int) s;
+    return (int) ( (length == 0) ? 0 : (length - 1L) / ps + 1L);
   }
 
   private void createDummyMbbInstance() throws RuntimeException {
@@ -239,8 +235,8 @@ public class MemoryMappedFile extends NativeMemory {
   }
 
   /**
-   * Creates a mapping of the file on disk starting at position and of size length to pages in OS
-   * Will throw OutOfMemory error to indicate you've exhausted memory. force garbage collection and
+   * Creates a mapping of the file on disk starting at position and of size length to pages in OS.
+   * May throw OutOfMemory error if you have exhausted memory. Force garbage collection and
    * re-attempt.
    */
   private long map(final long position, final long len) throws RuntimeException {

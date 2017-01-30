@@ -70,9 +70,9 @@ public class NativeMemory implements Memory {
   protected final Object memArray_;
   //holding on to this to make sure that it is not garbage collected before we are done with it.
   protected final ByteBuffer byteBuf_;
-  protected volatile long nativeRawStartAddress_;
-  protected volatile long capacityBytes_;
-  protected volatile MemoryRequest memReq_ = null; //set via AllocMemory
+  protected long nativeRawStartAddress_;
+  protected long capacityBytes_;
+  protected MemoryRequest memReq_ = null; //set via AllocMemory or NativeMemory
 
   //only sets the finals
   protected NativeMemory(final long objectBaseOffset, final Object memArray,

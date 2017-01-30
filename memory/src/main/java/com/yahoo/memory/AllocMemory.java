@@ -25,10 +25,11 @@ import static com.yahoo.memory.UnsafeUtil.unsafe;
 public class AllocMemory extends MemoryMappedFile {
 
   /**
-   * Constructor for allocate native memory.
+   * Constructor to allocate native memory.
    *
    * <p>Allocates and provides access to capacityBytes directly in native (off-heap) memory
    * leveraging the Memory interface.  The MemoryRequest callback is set to null.
+   * The allocated memory will be 8-byte aligned, but may not be page aligned.
    * @param capacityBytes the size in bytes of the native memory
    */
   public AllocMemory(final long capacityBytes) {
@@ -41,8 +42,9 @@ public class AllocMemory extends MemoryMappedFile {
   /**
    * Constructor for allocate native memory with MemoryRequest.
    *
-   * <p>Allocates and provides access to capacityBytes directly in native (off-heap) memory leveraging
-   * the Memory interface.
+   * <p>Allocates and provides access to capacityBytes directly in native (off-heap) memory
+   * leveraging the Memory interface.
+   * The allocated memory will be 8-byte aligned, but may not be page aligned.
    * @param capacityBytes the size in bytes of the native memory
    * @param memReq The MemoryRequest callback
    */
@@ -60,6 +62,7 @@ public class AllocMemory extends MemoryMappedFile {
    * location and copies the contents of the original given NativeMemory to the new location.
    * Any memory beyond the capacity of the original given NativeMemory will be uninitialized.
    * Dispose of this new memory by calling {@link NativeMemory#freeMemory()}.
+   * The new allocated memory will be 8-byte aligned, but may not be page aligned.
    * @param origMem The original NativeMemory that needs to be reallocated and must not be null.
    * The OS is free to just expand the capacity of the current allocation at the same native
    * address, or reassign a completely different native address in which case the origMem will be
@@ -85,6 +88,7 @@ public class AllocMemory extends MemoryMappedFile {
    *
    * <p>Allocate a new native (off-heap) memory with capacityBytes; copy the contents of origMem
    * from zero to copyToBytes; clear the new memory from copyToBytes to capacityBytes.
+   * The new allocated memory will be 8-byte aligned, but may not be page aligned.
    * @param origMem The original NativeMemory, a portion of which will be copied to the
    * newly allocated Memory.
    * The reference must not be null.
