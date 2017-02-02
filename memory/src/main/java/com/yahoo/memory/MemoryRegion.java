@@ -53,9 +53,9 @@ public class MemoryRegion implements Memory {
    * ensure that its memory isn't freed before we are done with it.
    */
   private final Memory mem_;
-  private volatile long memOffsetBytes_;
-  private volatile long capacityBytes_;
-  private volatile MemoryRequest memReq_ = null;
+  private long memOffsetBytes_;
+  private long capacityBytes_;
+  private MemoryRequest memReq_ = null;
 
   /**
    * Defines a region of the given parent Memory by defining an offset and capacity that are
@@ -496,11 +496,6 @@ public class MemoryRegion implements Memory {
   @Override
   public MemoryRequest getMemoryRequest() {
     return memReq_;
-  }
-
-  @Override
-  public NativeMemory getNativeMemory() {
-    return mem_.getNativeMemory();
   }
 
   @Override

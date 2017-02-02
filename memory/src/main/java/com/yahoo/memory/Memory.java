@@ -488,12 +488,6 @@ public interface Memory {
   MemoryRequest getMemoryRequest();
 
   /**
-   * Returns the root NativeMemory, which could also be the derived MemoryMappedFile or AllocMemory.
-   * @return the root NativeMemory.
-   */
-  NativeMemory getNativeMemory();
-
-  /**
    * Gets the parent Memory or backing array. Used internally.
    * @return the parent Memory.
    */

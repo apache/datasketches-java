@@ -194,11 +194,6 @@ public class MemoryRegionR extends MemoryRegion {
   // getMemoryRequest() //OK
 
   @Override
-  public NativeMemory getNativeMemory() {
-    throw new ReadOnlyMemoryException();
-  }
-
-  @Override
   public Object getParent() {
     throw new ReadOnlyMemoryException();
   }

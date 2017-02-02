@@ -66,6 +66,19 @@ public class NativeMemoryTest {
   }
 
   @Test
+  public void checkIntArray() {
+    int[] srcArray = { 1, -2, 3, -4, 5, -6, 7, -8 };
+    int[] dstArray = new int[8];
+    NativeMemory mem = new NativeMemory(srcArray);
+    mem.getIntArray(0, dstArray, 0, 8);
+
+    for (int i=0; i<8; i++) {
+      assertEquals(dstArray[i], srcArray[i]);
+    }
+    //freeMemory not needed, array is on-heap
+  }
+
+  @Test
   public void checkLongArray() {
     long[] srcArray = { 1, -2, 3, -4, 5, -6, 7, -8 };
     long[] dstArray = new long[8];

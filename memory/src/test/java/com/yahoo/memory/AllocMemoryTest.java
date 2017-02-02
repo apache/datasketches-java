@@ -62,7 +62,9 @@ public class AllocMemoryTest {
   }
 
   private static class DummyMemReq implements MemoryRequest {
-    @Override public Memory request(long capacityBytes) { return null; }
+    @Override public Memory request(long capacityBytes) {
+      return null;
+    }
     @Override public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
       return null;
     }
@@ -73,9 +75,9 @@ public class AllocMemoryTest {
   @Test
   public void checkAllocateWithMemReq() {
     MemoryRequest req = new DummyMemReq();
-    Memory mem = new AllocMemory(8, req);
+    NativeMemory mem = new AllocMemory(8, req);
     assertTrue(req.equals(mem.getMemoryRequest()));
-    mem.getNativeMemory().freeMemory();
+    mem.freeMemory();
   }
 
   @Test

@@ -39,7 +39,8 @@ import java.nio.ByteBuffer;
 
 /**
  * The NativeMemory class implements the Memory interface and is used to access Java byte arrays,
- * long arrays and ByteBuffers by presenting them as arguments to the constructors of this class.
+ * int arrays, long arrays and ByteBuffers by presenting them as arguments to the constructors
+ * of this class.
  *
  * <p>The sub-class AllocMemory is used to allocate direct, off-heap native memory, which is then
  * accessed by the NativeMemory methods.
@@ -60,11 +61,11 @@ import java.nio.ByteBuffer;
 public class NativeMemory implements Memory {
   /* Truth table that distinguishes between Requires Free and actual off-heap Direct mode.
   Class        Case                 ObjBaseOff MemArr byteBuf rawAdd CapacityBytes  ReqFree Direct
-  NativeMemory byteArr                      >0  valid    null      0            >0    FALSE  FALSE
-  NativeMemory longArr                      >0  valid    null      0            >0    FALSE  FALSE
+  NativeMemory byte[], int[], long[]        >0  valid    null      0            >0    FALSE  FALSE
   NativeMemory ByteBuffer Direct             0   null   valid     >0            >0    FALSE   TRUE
   NativeMemory ByteBuffer not Direct        >0  valid   valid      0            >0    FALSE  FALSE
-  AllocMemory  All cases                     0   null    null     >0            >0     TRUE   TRUE
+  AllocMemory                                0   null    null     >0            >0     TRUE   TRUE
+  MemoryMappedFile                           0   null    null     >0            >0     TRUE   TRUE
   */
   protected final long objectBaseOffset_;
   protected final Object memArray_;
@@ -94,6 +95,20 @@ public class NativeMemory implements Memory {
     }
     nativeRawStartAddress_ = 0L;
     capacityBytes_ = byteArray.length;
+  }
+
+  /**
+   * Provides access to the given intArray using Memory interface
+   * @param intArray an on-heap int array
+   */
+  public NativeMemory(final int[] intArray) {
+    this(ARRAY_INT_BASE_OFFSET, intArray, null);
+    if ((intArray == null) || (intArray.length == 0)) {
+      throw new IllegalArgumentException(
+          "Array must must not be null and have a length greater than zero.");
+    }
+    nativeRawStartAddress_ = 0L;
+    capacityBytes_ = intArray.length << INT_SHIFT;
   }
 
   /**
@@ -631,11 +646,6 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public NativeMemory getNativeMemory() {
-    return this;
-  }
-
-  @Override
   public Object getParent() {
     return memArray_;
   }
@@ -711,8 +721,8 @@ public class NativeMemory implements Memory {
 
     long srcAdd = source.getCumulativeOffset(srcOffsetBytes);
     long dstAdd = destination.getCumulativeOffset(dstOffsetBytes);
-    final Object srcParent = (source.isDirect()) ? null : source.getNativeMemory().memArray_;
-    final Object dstParent = (destination.isDirect()) ? null : destination.getNativeMemory().memArray_;
+    final Object srcParent = (source.isDirect()) ? null : source.array();
+    final Object dstParent = (destination.isDirect()) ? null : destination.array();
     long lenBytes = lengthBytes;
 
     while (lenBytes > 0) {

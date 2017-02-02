@@ -25,6 +25,11 @@
     <Class name="~.*\.*Test" />
   </Match>
   
+  <Match>   <!-- Exclude for test classes; too many False Positives. -->
+    <Bug pattern="DLS_DEAD_LOCAL_STORE" />
+    <Class name="~.*\.*Test" />
+  </Match>
+  
 </FindBugsFilter>
 
 

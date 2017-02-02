@@ -194,11 +194,6 @@ class NativeMemoryR extends NativeMemory {
   // getMemoryRequest() //OK
 
   @Override
-  public NativeMemory getNativeMemory() {
-    throw new ReadOnlyMemoryException();
-  }
-
-  @Override
   public Object getParent() {
     throw new ReadOnlyMemoryException();
   }

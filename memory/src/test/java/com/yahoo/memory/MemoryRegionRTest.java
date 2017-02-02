@@ -269,13 +269,6 @@ public class MemoryRegionRTest {
     }
 
     try {
-      ro.getNativeMemory();
-      fail();
-    } catch (ReadOnlyMemoryException e) {
-      /* pass */
-    }
-
-    try {
       ro.getParent();
       fail();
     } catch (ReadOnlyMemoryException e) {
