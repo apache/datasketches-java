@@ -35,6 +35,7 @@ import static com.yahoo.memory.UnsafeUtil.assertBounds;
 import static com.yahoo.memory.UnsafeUtil.checkOverlap;
 import static com.yahoo.memory.UnsafeUtil.unsafe;
 
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 
 /**
@@ -126,16 +127,65 @@ public class NativeMemory implements Memory {
   }
 
   /**
+   * Provides access to the backing store of the given ByteBuffer using Memory interface. This method
+   * will return NativeMemoryR if the underlying ByteBuffer is readonly, otherwise it will return a
+   * NativeMemory object
+   * @param byteBuf the given ByteBuffer
+   */
+  public static Memory wrap(final ByteBuffer byteBuf) {
+    if (byteBuf.isReadOnly()) {
+      long objectBaseOffset;
+      byte[] byteArray;
+      long nativeRawStartAddress;
+
+      if (byteBuf.isDirect()) {
+        objectBaseOffset = 0L;
+        byteArray = null;
+        nativeRawStartAddress = ((sun.nio.ch.DirectBuffer) byteBuf).address();
+      } else {
+        long offset;
+        try {
+          Field field = ByteBuffer.class.getDeclaredField("offset");
+          field.setAccessible(true);
+          offset = (int) field.get(byteBuf);
+
+          field = ByteBuffer.class.getDeclaredField("hb");
+          field.setAccessible(true);
+          byteArray = (byte[]) field.get(byteBuf);
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+          throw new RuntimeException(
+              "Could not get offset/byteArray from OnHeap ByteBuffer instance: " + e.getClass());
+        }
+        objectBaseOffset = ARRAY_BYTE_BASE_OFFSET + offset * ARRAY_BYTE_INDEX_SCALE;
+        nativeRawStartAddress = 0L;
+      }
+
+      NativeMemoryR nmr = new NativeMemoryR(objectBaseOffset, byteArray, byteBuf);
+      nmr.nativeRawStartAddress_ = nativeRawStartAddress;
+      nmr.capacityBytes_ = byteBuf.capacity();
+      nmr.memReq_ = null;
+      return nmr;
+    } else {
+      return new NativeMemory(byteBuf);
+    }
+  }
+
+  /**
    * Provides access to the backing store of the given ByteBuffer using Memory interface
    * @param byteBuf the given ByteBuffer
    */
   public NativeMemory(final ByteBuffer byteBuf) {
+    if (byteBuf.isReadOnly()) {
+      throw new RuntimeException(
+          "Cannot create a NativeMemory object using a ReadOnly ByteBuffer. Please use "
+              + "NativeMemory.wrap(byteBuf) instead");
+    }
+
     if (byteBuf.isDirect()) {
       objectBaseOffset_ = 0L;
       memArray_ = null;
-      nativeRawStartAddress_ = ((sun.nio.ch.DirectBuffer)byteBuf).address();
-    }
-    else { //must have array
+      nativeRawStartAddress_ = ((sun.nio.ch.DirectBuffer) byteBuf).address();
+    } else { //must have array
       objectBaseOffset_ = ARRAY_BYTE_BASE_OFFSET + byteBuf.arrayOffset() * ARRAY_BYTE_INDEX_SCALE;
       memArray_ = byteBuf.array();
       nativeRawStartAddress_ = 0L;
