@@ -131,19 +131,20 @@ public class NativeMemory implements Memory {
    * will return NativeMemoryR if the underlying ByteBuffer is readonly, otherwise it will return a
    * NativeMemory object
    * @param byteBuf the given ByteBuffer
+   * @return a Memory object
    */
   public static Memory wrap(final ByteBuffer byteBuf) {
     if (byteBuf.isReadOnly()) {
-      long objectBaseOffset;
-      byte[] byteArray;
-      long nativeRawStartAddress;
+      final long objectBaseOffset;
+      final byte[] byteArray;
+      final long nativeRawStartAddress;
 
       if (byteBuf.isDirect()) {
         objectBaseOffset = 0L;
         byteArray = null;
         nativeRawStartAddress = ((sun.nio.ch.DirectBuffer) byteBuf).address();
       } else {
-        long offset;
+        final long offset;
         try {
           Field field = ByteBuffer.class.getDeclaredField("offset");
           field.setAccessible(true);
@@ -152,7 +153,7 @@ public class NativeMemory implements Memory {
           field = ByteBuffer.class.getDeclaredField("hb");
           field.setAccessible(true);
           byteArray = (byte[]) field.get(byteBuf);
-        } catch (IllegalAccessException | NoSuchFieldException e) {
+        } catch (final IllegalAccessException | NoSuchFieldException e) {
           throw new RuntimeException(
               "Could not get offset/byteArray from OnHeap ByteBuffer instance: " + e.getClass());
         }
@@ -160,7 +161,7 @@ public class NativeMemory implements Memory {
         nativeRawStartAddress = 0L;
       }
 
-      NativeMemoryR nmr = new NativeMemoryR(objectBaseOffset, byteArray, byteBuf);
+      final NativeMemoryR nmr = new NativeMemoryR(objectBaseOffset, byteArray, byteBuf);
       nmr.nativeRawStartAddress_ = nativeRawStartAddress;
       nmr.capacityBytes_ = byteBuf.capacity();
       nmr.memReq_ = null;
