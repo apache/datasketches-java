@@ -18,6 +18,7 @@ import static org.testng.Assert.fail;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.ReadOnlyBufferException;
 
 import org.testng.annotations.Test;
 
@@ -478,6 +479,81 @@ public class NativeMemoryTest {
     }
 
     println( mem.toHexString("HeapBB", 0, memCapacity));
+  }
+
+  @Test(expectedExceptions = RuntimeException.class)
+  public void checkReadOnlyByteBufferExcep() {
+    int memCapacity = 64;
+    ByteBuffer byteBuf = ByteBuffer.allocate(memCapacity);
+    new NativeMemory(byteBuf.asReadOnlyBuffer());
+  }
+
+  @Test
+  public void checkWrapWithBBReadonly() {
+    int memCapacity = 64;
+    ByteBuffer byteBuf = ByteBuffer.allocate(memCapacity);
+    Memory mem = NativeMemory.wrap(byteBuf.asReadOnlyBuffer());
+
+    for (int i = 0; i < memCapacity; i++) {
+      byteBuf.put(i, (byte) i);
+    }
+
+    for (int i = 0; i < memCapacity; i++) {
+      assertEquals(mem.getByte(i), byteBuf.get(i));
+    }
+
+    println(mem.toHexString("HeapBB", 0, memCapacity));
+  }
+
+  @Test(expectedExceptions = ReadOnlyMemoryException.class)
+  public void checkWrapWithBBReadonlyPut() {
+    int memCapacity = 64;
+    ByteBuffer byteBuf = ByteBuffer.allocate(memCapacity);
+    Memory mem = NativeMemory.wrap(byteBuf.asReadOnlyBuffer());
+
+    for (int i = 0; i < memCapacity; i++) {
+      mem.putByte(i, (byte) i);
+    }
+
+    for (int i = 0; i < memCapacity; i++) {
+      assertEquals(mem.getByte(i), byteBuf.get(i));
+    }
+
+    println(mem.toHexString("HeapBB", 0, memCapacity));
+  }
+
+  @Test
+  public void checkWrapWithDirectBBReadonly() {
+    int memCapacity = 64;
+    ByteBuffer byteBuf = ByteBuffer.allocateDirect(memCapacity);
+    Memory mem = NativeMemory.wrap(byteBuf.asReadOnlyBuffer());
+
+    for (int i = 0; i < memCapacity; i++) {
+      byteBuf.put(i, (byte) i);
+    }
+
+    for (int i = 0; i < memCapacity; i++) {
+      assertEquals(mem.getByte(i), byteBuf.get(i));
+    }
+
+    println(mem.toHexString("HeapBB", 0, memCapacity));
+  }
+
+  @Test(expectedExceptions = ReadOnlyMemoryException.class)
+  public void checkWrapWithDirectBBReadonlyPut() {
+    int memCapacity = 64;
+    ByteBuffer byteBuf = ByteBuffer.allocateDirect(memCapacity);
+    Memory mem = NativeMemory.wrap(byteBuf.asReadOnlyBuffer());
+
+    for (int i = 0; i < memCapacity; i++) {
+      mem.putByte(i, (byte) i);
+    }
+
+    for (int i = 0; i < memCapacity; i++) {
+      assertEquals(mem.getByte(i), byteBuf.get(i));
+    }
+
+    println(mem.toHexString("HeapBB", 0, memCapacity));
   }
 
   @Test
