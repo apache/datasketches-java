@@ -76,18 +76,19 @@ public final class MemoryUtil {
     final MemoryRequest memReq = origMem.getMemoryRequest();
     if (memReq == null) {
       throw new IllegalArgumentException(
-          "MemoryRequest callback cannot be null.");
+          "Insufficient space. MemoryRequest callback cannot be null.");
     }
     final Memory newDstMem = memReq.request(newCapacityBytes);
     if (newDstMem == null) {
       throw new IllegalArgumentException(
-          "Requested memory cannot be null.");
+          "Insufficient space and Memory returned by MemoryRequest cannot be null.");
     }
     final long newCap = newDstMem.getCapacity();
     if (newCap < newCapacityBytes) {
       memReq.free(newDstMem);
-      throw new IllegalArgumentException("Requested memory capacity not granted: "
-          + newCap + " < " + newCapacityBytes);
+      throw new IllegalArgumentException(
+          "Insufficient space and Memory returned by MemoryRequest is not the requested capacity: "
+          + "Returned: " + newCap + " < Requested: " + newCapacityBytes);
     }
     return newDstMem;
   }
