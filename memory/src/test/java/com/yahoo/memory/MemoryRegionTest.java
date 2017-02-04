@@ -251,7 +251,8 @@ public class MemoryRegionTest {
     mem.freeMemory();
   }
 
-  @Test
+  @SuppressWarnings("deprecation")
+  @Test(expectedExceptions = UnsupportedOperationException.class)
   public void checkReassign() {
      long[] arr = new long[2];
      Memory mem = new NativeMemory(arr);
@@ -260,7 +261,6 @@ public class MemoryRegionTest {
      MemoryRegion reg = new MemoryRegion(mem, 0, 8);
      assertEquals(reg.getLong(0), 1L);
      reg.reassign(8, 8);
-     assertEquals(reg.getLong(0), -2L);
   }
 
   //////////////////////////////////////////////////////

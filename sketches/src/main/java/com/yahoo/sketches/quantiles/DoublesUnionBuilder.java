@@ -44,7 +44,7 @@ public class DoublesUnionBuilder {
    * Deprecated in favor of a clearer method naming. Please use {@link #setMaxK(int)}.
    * @param maxK See {@link #setMaxK(int)}.
    * @return this builder
-   * @deprecated please use {@link #setMaxK(int)}.
+   * @deprecated please use {@link #setMaxK(int)}, which more accurately describes its function.
    */
   @Deprecated
   public DoublesUnionBuilder setK(final int maxK) {
@@ -125,7 +125,8 @@ public class DoublesUnionBuilder {
    *
    * @param sketch A DoublesSketch to be used as a source of data only and will not be modified.
    * @return a DoublesUnion object
-   * @deprecated changed name to heapify to more accuately reflect its intent
+   * @deprecated changed name to {@link #heapify(DoublesSketch)} to more accuately reflect
+   * its intent
    */
   @Deprecated
   public static DoublesUnion build(final DoublesSketch sketch) {
@@ -138,7 +139,7 @@ public class DoublesUnionBuilder {
    *
    * @param srcMem a Memory image of a DoublesSketch
    * @return a Union object
-   * @deprecated changed name to heapify to more accuately reflect its intent
+   * @deprecated changed name to {@link #heapify(Memory)} to more accuately reflect its intent
    */
   @Deprecated
   public static DoublesUnion build(final Memory srcMem) {
@@ -150,7 +151,7 @@ public class DoublesUnionBuilder {
    *
    * @param sketch A DoublesSketch to be used as a source of data, but will not be modified.
    * @return a Union object
-   * @deprecated this is a duplicate of heapify(DoublesSketch) and no longer needed.
+   * @deprecated this is a duplicate of {@link #heapify(DoublesSketch)} and no longer needed.
    */
   @Deprecated
   public static DoublesUnion copyBuild(final DoublesSketch sketch) {

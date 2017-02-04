@@ -5,7 +5,6 @@
 
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.quantiles.DoublesUpdateImpl.maybeGrowLevels;
 import static com.yahoo.sketches.quantiles.Util.LS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -16,7 +15,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryRequest;
 import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -221,22 +219,9 @@ public class DirectDoublesSketchTest {
     DirectDoublesSketch.checkDirectMemCapacity(k, 2 * k - 1, (4 + 2 * k) * 8);
   }
 
-  @Test//(expectedExceptions = IllegalArgumentException.class) //from MemoryUtil.requestMemoryHandler
-  public void checkGrowCombinedBuffer() {
-    int k = 128;
-    int n = 2 * k -1;
-    DoublesSketch qs = buildDQS(k, n);
-    Memory mem = qs.getMemory();
-    mem.setMemoryRequest(new MemoryManager());
-    int spaceNeeded = maybeGrowLevels(k, n + 1);
-    qs.growCombinedBuffer(qs.getCombinedBufferItemCapacity(), spaceNeeded);
-    long newMemCap = qs.getMemory().getCapacity();
-    assertEquals(newMemCap, spaceNeeded * 8 + 32);
-  }
-
   @Test
   public void serializeDeserialize() {
-    int sizeBytes = DoublesSketch.getUpdatableStorageBytes(128, 2000);
+    int sizeBytes = DoublesSketch.getUpdatableStorageBytes(128, 2000, true);
     Memory mem = new NativeMemory(new byte[sizeBytes]);
     DoublesSketch sketch1 = DoublesSketch.builder().initMemory(mem).build();
     for (int i = 0; i < 1000; i++) {
@@ -258,6 +243,20 @@ public class DirectDoublesSketchTest {
     assertEquals(sketch3.getQuantile(0.5), 1000.0, 10.0);
   }
 
+  @Test
+  public void mergeTest() {
+    DoublesSketch dqs1 = buildAndLoadDQS(128, 256);
+    DoublesSketch dqs2 = buildAndLoadDQS(128, 256, 256);
+    DoublesUnion union = DoublesUnion.builder().setMaxK(128).build();
+    union.update(dqs1);
+    union.update(dqs2);
+    DoublesSketch result = union.getResult();
+    double median = result.getQuantile(0.5);
+    println("Median: " + median);
+    assertEquals(median, 258.0, .05 * 258);
+  }
+
+
   static DoublesSketch buildAndLoadDQS(int k, int n) {
     return buildAndLoadDQS(k, n, 0);
   }
@@ -271,7 +270,7 @@ public class DirectDoublesSketchTest {
   }
 
   static DoublesSketch buildDQS(int k, long n) {
-    int cap = DoublesSketch.getUpdatableStorageBytes(k, n);
+    int cap = DoublesSketch.getUpdatableStorageBytes(k, n, true);
     DoublesSketchBuilder bldr = new DoublesSketchBuilder();
     bldr.setK(k);
     bldr.initMemory(new NativeMemory(new byte[cap]));
@@ -282,7 +281,6 @@ public class DirectDoublesSketchTest {
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
-    print("PRINTING: "+this.getClass().getName() + LS);
   }
 
   /**
@@ -299,31 +297,4 @@ public class DirectDoublesSketchTest {
     //System.err.print(s); //disable here
   }
 
-  //Allocates what was asked
-  private static class MemoryManager implements MemoryRequest {
-
-    @Override
-    public Memory request(long capacityBytes) {
-      Memory newMem = new NativeMemory(new byte[(int)capacityBytes]);
-      //println("ReqCap: "+capacityBytes + ", Granted: "+newMem.getCapacity());
-      return newMem;
-    }
-
-    @Override
-    public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
-      // not used.
-      return null;
-    }
-
-    @Override
-    public void free(Memory mem) {
-     // not used.
-    }
-
-    @Override
-    public void free(Memory memToFree, Memory newMem) {
-      // not used.
-    }
-
-  }
 }

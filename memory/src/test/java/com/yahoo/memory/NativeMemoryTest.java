@@ -18,7 +18,6 @@ import static org.testng.Assert.fail;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.ReadOnlyBufferException;
 
 import org.testng.annotations.Test;
 
@@ -465,6 +464,24 @@ public class NativeMemoryTest {
   }
 
   @Test
+  public void checkByteBufferWrap() {
+    int memCapacity = 64;
+    ByteBuffer byteBuf = ByteBuffer.allocate(memCapacity);
+    Memory mem = NativeMemory.wrap(byteBuf);
+
+    for (int i=0; i<memCapacity; i++) {
+      byteBuf.put(i, (byte) i);
+    }
+
+    for (int i=0; i<memCapacity; i++) {
+      assertEquals(mem.getByte(i), byteBuf.get(i));
+    }
+
+    println( mem.toHexString("HeapBB", 0, memCapacity));
+  }
+
+
+  @Test
   public void checkByteBufferHeapAccess() {
     int memCapacity = 64;
     ByteBuffer byteBuf = ByteBuffer.allocate(memCapacity);
@@ -481,6 +498,7 @@ public class NativeMemoryTest {
     println( mem.toHexString("HeapBB", 0, memCapacity));
   }
 
+  @SuppressWarnings("unused")
   @Test(expectedExceptions = RuntimeException.class)
   public void checkReadOnlyByteBufferExcep() {
     int memCapacity = 64;
@@ -511,15 +529,7 @@ public class NativeMemoryTest {
     ByteBuffer byteBuf = ByteBuffer.allocate(memCapacity);
     Memory mem = NativeMemory.wrap(byteBuf.asReadOnlyBuffer());
 
-    for (int i = 0; i < memCapacity; i++) {
-      mem.putByte(i, (byte) i);
-    }
-
-    for (int i = 0; i < memCapacity; i++) {
-      assertEquals(mem.getByte(i), byteBuf.get(i));
-    }
-
-    println(mem.toHexString("HeapBB", 0, memCapacity));
+    mem.putByte(0, (byte) 0);
   }
 
   @Test
@@ -545,15 +555,7 @@ public class NativeMemoryTest {
     ByteBuffer byteBuf = ByteBuffer.allocateDirect(memCapacity);
     Memory mem = NativeMemory.wrap(byteBuf.asReadOnlyBuffer());
 
-    for (int i = 0; i < memCapacity; i++) {
-      mem.putByte(i, (byte) i);
-    }
-
-    for (int i = 0; i < memCapacity; i++) {
-      assertEquals(mem.getByte(i), byteBuf.get(i));
-    }
-
-    println(mem.toHexString("HeapBB", 0, memCapacity));
+    mem.putByte(0, (byte) 0);
   }
 
   @Test
@@ -693,7 +695,7 @@ public class NativeMemoryTest {
     assertEquals(2, nm.getInt(0));
   }
 
-  private static class DummyMemReq implements MemoryRequest {
+  private static class DummyMemReq implements MemoryRequest { //returns null Memory
     @Override public Memory request(long capacityBytes) { return null; }
     @Override public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
       return null;
@@ -713,6 +715,20 @@ public class NativeMemoryTest {
     String s = mem.toHexString("Test", 0, 8);
     println(s);
     assertTrue(arr == mem.getParent());
+  }
+
+  @SuppressWarnings("unused")
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkNullIntArray() {
+    int[] intArr = null;
+    new NativeMemory(intArr);
+  }
+
+  @SuppressWarnings("unused")
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkEmptyIntArray() {
+    int[] intArr = new int[0];
+    new NativeMemory(intArr);
   }
 
   @Test

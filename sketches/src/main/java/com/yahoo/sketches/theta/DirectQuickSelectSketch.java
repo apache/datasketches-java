@@ -390,11 +390,11 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
           final int tgtArrBytes = 8 << tgtLgArrLongs;
           final int reqBytes = tgtArrBytes + preBytes;
 
-          final Memory newDstMem = MemoryUtil.requestMemoryHandler(mem_, reqBytes);
+          final Memory newDstMem = MemoryUtil.memoryRequestHandler(mem_, reqBytes, false);
 
           moveAndResize(mem_, preambleLongs_, lgArrLongs, newDstMem, tgtLgArrLongs, thetaLong);
-
           mem_.getMemoryRequest().free(mem_, newDstMem); //normal free mechanism via MemoryRequest
+
           mem_ = newDstMem;
           memObj_ = newDstMem.array(); //may be null
           memAdd_ = newDstMem.getCumulativeOffset(0L);

@@ -29,13 +29,11 @@ import org.testng.annotations.Test;
 
 import com.yahoo.memory.AllocMemory;
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryRequest;
 import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.SketchesStateException;
 
 /**
  * @author Lee Rhodes
@@ -52,7 +50,7 @@ public class DirectQuickSelectSketchTest {
 
     assertTrue(usk.isEmpty());
 
-    for (int i = 0; i< k; i++) usk.update(i);
+    for (int i = 0; i< k; i++) { usk.update(i); }
 
     assertFalse(usk.isEmpty());
     assertEquals(usk.getEstimate(), k, 0.0);
@@ -99,7 +97,7 @@ public class DirectQuickSelectSketchTest {
 
     Memory mem = new NativeMemory(new byte[maxBytes]);
     UpdateSketch sk1 = UpdateSketch.builder().initMemory(mem).build(k);
-    for (int i=0; i<u; i++) sk1.update(i);
+    for (int i=0; i<u; i++) { sk1.update(i); }
 
     double sk1est = sk1.getEstimate();
     double sk1lb  = sk1.getLowerBound(2);
@@ -155,7 +153,6 @@ public class DirectQuickSelectSketchTest {
     DirectQuickSelectSketch.wrapInstance(mem, DEFAULT_UPDATE_SEED);
   }
 
-
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifySeedConflict() {
     int k = 512;
@@ -185,7 +182,7 @@ public class DirectQuickSelectSketchTest {
 
     UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
 
-    for (int i=0; i< k; i++) usk.update(i);
+    for (int i=0; i< k; i++) { usk.update(i); }
 
     int bytes = usk.getCurrentBytes(false);
     byte[] byteArray = usk.toByteArray();
@@ -213,7 +210,7 @@ public class DirectQuickSelectSketchTest {
     Memory mem = makeNativeMemory(k);
     UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
 
-    for (int i=0; i<u; i++) usk.update(i);
+    for (int i=0; i<u; i++) { usk.update(i); }
 
     double uskEst = usk.getEstimate();
     double uskLB  = usk.getLowerBound(2);
@@ -240,7 +237,7 @@ public class DirectQuickSelectSketchTest {
     Memory mem = makeNativeMemory(k);
     UpdateSketch sk1 = UpdateSketch.builder().initMemory(mem).build(k);
     String nameS1 = sk1.getClass().getSimpleName();
-    for (int i=0; i<u; i++) sk1.update(i);
+    for (int i=0; i<u; i++) { sk1.update(i); }
 
     double sk1est = sk1.getEstimate();
     double sk1lb  = sk1.getLowerBound(2);
@@ -272,7 +269,7 @@ public class DirectQuickSelectSketchTest {
     assertFalse(usk.isCompact());
     assertFalse(usk.isOrdered());
 
-    for (int i=0; i<u; i++) usk.update(i);
+    for (int i=0; i<u; i++) { usk.update(i); }
 
     sk1.rebuild(); //forces size back to k
 
@@ -375,7 +372,7 @@ public class DirectQuickSelectSketchTest {
 
     assertTrue(usk.isEmpty());
 
-    for (int i = 0; i< u; i++) usk.update(i);
+    for (int i = 0; i< u; i++) { usk.update(i); }
 
     assertTrue(sk1.getRetainedEntries(false) > k);
   }
@@ -390,7 +387,7 @@ public class DirectQuickSelectSketchTest {
     UpdateSketch usk = UpdateSketch.builder().setP(p).initMemory(mem).build(k);
     DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
 
-    for (int i = 0; i < k; i++ ) usk.update(i);
+    for (int i = 0; i < k; i++ ) { usk.update(i); }
 
     double p2 = sk1.getP();
     double theta = sk1.getTheta();
@@ -412,7 +409,7 @@ public class DirectQuickSelectSketchTest {
     UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
 
     //Exact mode
-    for (int i = 0; i < k; i++ ) usk.update(i);
+    for (int i = 0; i < k; i++ ) { usk.update(i); }
 
     double est = usk.getEstimate();
     double lb = usk.getLowerBound(2);
@@ -479,7 +476,7 @@ public class DirectQuickSelectSketchTest {
 
     UpdateSketch usk = UpdateSketch.builder().initMemory(mem).build(k);
 
-    for (int i = 0; i < u; i++ ) usk.update(i);
+    for (int i = 0; i < u; i++ ) { usk.update(i); }
 
     double est = usk.getEstimate();
     double ub = usk.getUpperBound(1);
@@ -499,7 +496,7 @@ public class DirectQuickSelectSketchTest {
 
     assertTrue(usk.isEmpty());
 
-    for (int i = 0; i< u; i++) usk.update(i);
+    for (int i = 0; i< u; i++) { usk.update(i); }
 
     assertFalse(usk.isEmpty());
     assertTrue(usk.getEstimate() > 0.0);
@@ -524,7 +521,7 @@ public class DirectQuickSelectSketchTest {
 
     assertTrue(usk.isEmpty());
 
-    for (int i = 0; i< u; i++) usk.update(i);
+    for (int i = 0; i< u; i++) { usk.update(i); }
 
     assertFalse(usk.isEmpty());
     assertTrue(sk1.getRetainedEntries(false) > k);
@@ -550,7 +547,7 @@ public class DirectQuickSelectSketchTest {
     DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
     assertTrue(usk.isEmpty());
 
-    for (int i = 0; i< u; i++) usk.update(i);
+    for (int i = 0; i< u; i++) { usk.update(i); }
 
     assertEquals(usk.getEstimate(), u, 0.0);
     assertEquals(sk1.getRetainedEntries(false), u);
@@ -566,7 +563,7 @@ public class DirectQuickSelectSketchTest {
     DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
     assertTrue(usk.isEmpty());
 
-    for (int i = 0; i< u; i++) usk.update(i);
+    for (int i = 0; i< u; i++) { usk.update(i); }
 
     assertEquals(usk.getEstimate(), u, u*.05);
     assertTrue(sk1.getRetainedEntries(false) > k);
@@ -584,7 +581,7 @@ public class DirectQuickSelectSketchTest {
     DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
     assertTrue(usk.isEmpty());
 
-    for (int i = 0; i< u; i++) usk.update(i);
+    for (int i = 0; i< u; i++) { usk.update(i); }
     double est = usk.getEstimate();
     println(""+est);
     assertEquals(usk.getEstimate(), u, u*.05);
@@ -602,7 +599,7 @@ public class DirectQuickSelectSketchTest {
     UpdateSketch usk = UpdateSketch.builder().initMemory(natMem1).build(k);
     assertTrue(usk.isEmpty());
 
-    for (int i = 0; i< u; i++) usk.update(i); //force estimation
+    for (int i = 0; i< u; i++) { usk.update(i); } //force estimation
 
     double est1 = usk.getEstimate();
     int count1 = usk.getRetainedEntries(false);
@@ -629,277 +626,6 @@ public class DirectQuickSelectSketchTest {
     natMem1.freeMemory(); //mem2 is on heap.
   }
 
-  //////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////
-  //this one allocates what was asked from NativeMemory
-  private static class MemoryManager implements MemoryRequest {
-
-    @Override
-    public Memory request(long capacityBytes) {
-      Memory newMem = new AllocMemory(capacityBytes, this);
-      println("ReqCap: "+capacityBytes + ", Granted: "+newMem.getCapacity());
-      return newMem;
-    }
-
-    @Override
-    public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
-      Memory newMem;
-      long origCap = origMem.getCapacity();
-      if (origMem instanceof NativeMemory) {
-        NativeMemory nMem = (NativeMemory)origMem;
-        newMem = new AllocMemory(nMem, capacityBytes, this);
-        println("OldCap: "+origCap+", ReqCap: "+capacityBytes + ", Granted: "+ newMem.getCapacity());
-        nMem.freeMemory(); //free origMem, just to be sure
-        return newMem;
-      }
-      //MemoryRegion. Get a new NativeMemory anyway.
-      newMem = request(capacityBytes);
-      println("OldCap: "+origCap+", ReqCap: "+capacityBytes + ", Granted: "+ newMem.getCapacity());
-      //nothing to free
-      return newMem;
-    }
-
-    @Override
-    public void free(Memory mem) {
-      if (mem instanceof NativeMemory) {
-        long origCap = mem.getCapacity();
-        ((NativeMemory)mem).freeMemory();
-        println("NativeMemory Freed : " + origCap);
-      } else println("The original MemoryRegion can be reassigned.");
-
-    }
-
-    @Override
-    public void free(Memory memToFree, Memory newMem) {
-      long origCap = memToFree.getCapacity();
-      if (memToFree instanceof NativeMemory) {
-        ((NativeMemory)memToFree).freeMemory();
-        println("NativeMemory Freed : " + origCap);
-      } else println("The original MemoryRegion can be reassigned.");
-    }
-  }
-//////////////////////////////////////////////////////
-  @Test
-  public void checkLimitedMemoryScenarios() {
-    int k = 4096;
-    int u = 2*k;
-    MemoryManager memMgr = new MemoryManager();
-
-    Memory mem1 = memMgr.request((k<<3) / 4); //allocate 1/4 size off-heap
-
-    UpdateSketch usk1 = UpdateSketch.builder().initMemory(mem1)
-        .setResizeFactor(ResizeFactor.X8).build(k);
-    assertTrue(usk1.isEmpty());
-
-    for (int i=0; i<u; i++) {
-      usk1.update(i);
-    }
-    assertEquals(usk1.getEstimate(), u, 0.05*u);
-    NativeMemory nMem = (NativeMemory) usk1.getMemory();
-    println("Freed: " + nMem.getCapacity());
-    nMem.freeMemory();
-  }
-
-  @Test
-  public void checkLimitedMemoryWithP() {
-    int k = 4096;
-    int u = 2048; //est mode
-    float p = (float)0.5;
-    MemoryManager memMgr = new MemoryManager();
-
-    Memory mem1 = memMgr.request((k<<3) / 4); //allocate 1/4 size off-heap
-
-    UpdateSketch usk1 = UpdateSketch.builder().initMemory(mem1).setResizeFactor(ResizeFactor.X2).setP(p).build(k);
-    assertTrue(usk1.isEmpty());
-
-    for (int i=0; i<u; i++) {
-      usk1.update(i);
-    }
-    assertEquals(usk1.getEstimate(), u, 0.1*u);
-
-    NativeMemory mem2 = new NativeMemory(usk1.toByteArray());
-    Sketches.wrapSketch(mem2);
-
-    NativeMemory nMem = (NativeMemory) usk1.getMemory();
-    println("Freed: " + nMem.getCapacity());
-    nMem.freeMemory();
-  }
-
-  //////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////
-  //this one allocates twice what was asked
-  private static class MemoryManager2 implements MemoryRequest {
-
-    @Override
-    public Memory request(long capacityBytes) {
-      long newCap = capacityBytes*2;
-      println("ReqCap: "+capacityBytes + ", Granted: "+newCap);
-      Memory newMem = new AllocMemory(newCap);
-      newMem.setMemoryRequest(this);
-      return newMem;
-    }
-
-    @Override
-    public void free(Memory mem) {
-      println("Freed : " + mem.getCapacity());
-      ((NativeMemory)mem).freeMemory();
-    }
-
-    @Override
-    public void free(Memory memToFree, Memory newMem) {
-      if (memToFree instanceof NativeMemory) {
-        NativeMemory nMem = (NativeMemory)memToFree;
-        println("Freed : " + nMem.getCapacity());
-        nMem.freeMemory();
-      } // else reassign the old MemoryRegion
-    }
-
-    @Override
-    public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
-      throw new SketchesStateException("SHOULD NOT BE HERE");
-    }
-  }
-//////////////////////////////////////////////////////
-  @Test
-  public void checkLimitedMemoryScenarios2() {
-    int k = 4096;
-    int u = 2*k;
-
-    MemoryManager2 memMgr = new MemoryManager2(); //allocates 2x what was requested
-
-    Memory mem1 = new AllocMemory((k<<3) / 8, memMgr); //allocate 1/8 size off-heap
-
-    UpdateSketch usk1 = UpdateSketch.builder().initMemory(mem1).setResizeFactor(ResizeFactor.X2).build(k);
-    assertTrue(usk1.isEmpty());
-
-    for (int i=0; i<u; i++) {
-      usk1.update(i);
-    }
-    assertEquals(usk1.getEstimate(), u, 0.05*u);
-    NativeMemory nMem = (NativeMemory) usk1.getMemory();
-    println(nMem.toHexString("TestMemory", 0, 128));
-
-    println("Freed: " + nMem.getCapacity());
-    nMem.freeMemory();
-  }
-
-  //////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////
-  private static class BadMemoryManager implements MemoryRequest {
-
-    @Override
-    public Memory request(long capacityBytes) {
-      long newCap = capacityBytes-1; //Too small
-      println("ReqCap: "+capacityBytes + ", Granted: "+newCap);
-      return new AllocMemory(newCap, this);
-    }
-
-    @Override
-    public void free(Memory mem) {
-      println("Freed : " + mem.getCapacity());
-      ((NativeMemory)mem).freeMemory();
-    }
-
-    @Override
-    public void free(Memory memToFree, Memory newMem) {
-      if (memToFree instanceof NativeMemory) {
-        NativeMemory nMem = (NativeMemory)memToFree;
-        println("Freed : " + nMem.getCapacity());
-        nMem.freeMemory();
-      } // else reassign the old MemoryRegion
-    }
-
-    @Override
-    public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
-      throw new SketchesStateException("SHOULD NOT BE HERE");
-    }
-  }
-  //////////////////////////////////////////////////////
-
-  @Test
-  public void checkBadMemoryAlloc() {
-    int k = 4096;
-    int u = 2*k;
-
-    BadMemoryManager memMgr = new BadMemoryManager();
-
-    NativeMemory mem1 = new AllocMemory((k<<3) / 4 + 24, memMgr); //allocate 1/4 size off-heap
-
-    UpdateSketch usk1 = UpdateSketch.builder().initMemory(mem1).setResizeFactor(ResizeFactor.X2).build(k);
-    assertTrue(usk1.isEmpty());
-    try {
-      for (int i=0; i<u; i++) {
-        usk1.update(i);
-      }
-      fail("Expected IllegalArgumentException");
-    }
-    catch (IllegalArgumentException e) { //from MemoryUtil.requestMemoryHandler
-      //e.printStackTrace();
-      //pass
-    }
-    finally {
-      println("Freed: " + mem1.getCapacity());
-      mem1.freeMemory();
-    }
-  }
-
-  //////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////
-  private static class BadMemoryManager2 implements MemoryRequest {
-
-    @Override
-    public Memory request(long capacityBytes) {
-      println("ReqCap: "+capacityBytes + ", Granted: null");
-      return null;
-    }
-
-    @Override
-    public void free(Memory mem) {
-      println("Freed : " + mem.getCapacity());
-      ((NativeMemory)mem).freeMemory();
-    }
-
-    @Override
-    public void free(Memory memToFree, Memory newMem) {
-      if (memToFree instanceof NativeMemory) {
-        NativeMemory nMem = (NativeMemory)memToFree;
-        println("Freed : " + nMem.getCapacity());
-        nMem.freeMemory();
-      } // else reassign the old MemoryRegion
-    }
-
-    @Override
-    public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
-      throw new SketchesStateException("SHOULD NOT BE HERE");
-    }
-  }
-  //////////////////////////////////////////////////////
-
-  @Test
-  public void checkBadMemoryAlloc2() {
-    int k = 4096;
-    int u = 2*k;
-
-    BadMemoryManager2 memMgr = new BadMemoryManager2();
-
-    NativeMemory mem1 = new AllocMemory((k<<3) / 4 + 24, memMgr); //allocate 1/4 size off-heap
-
-    UpdateSketch usk1 = UpdateSketch.builder().initMemory(mem1).setResizeFactor(ResizeFactor.X2).build(k);
-    assertTrue(usk1.isEmpty());
-    try {
-      for (int i=0; i<u; i++) {
-        usk1.update(i);
-      }
-      fail("Expected IllegalArgumentException");
-    } catch (IllegalArgumentException e) { //from MemoryUtil.requestMemoryHandler
-      //e.printStackTrace();
-      //pass
-    }
-    finally {
-      mem1.freeMemory();
-    }
-  }
-
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkNegativeHashes() {
     int k = 512;
@@ -917,7 +643,7 @@ public class DirectQuickSelectSketchTest {
     Memory mem1 = new NativeMemory(arr1);
     ResizeFactor rf = ResizeFactor.X1; //0
     UpdateSketch usk1 = UpdateSketch.builder().initMemory(mem1).setResizeFactor(rf).build(k);
-    for (int i=0; i<u; i++) usk1.update(i);
+    for (int i=0; i<u; i++) { usk1.update(i); }
     //println(PreambleUtil.toString(mem1));
     @SuppressWarnings("unused")
     UpdateSketch usk2;
@@ -991,7 +717,7 @@ public class DirectQuickSelectSketchTest {
     int u = 1 << 20;
     Memory mem = new NativeMemory(new byte[8*k*16 +24]);
     UpdateSketch sketch = Sketches.updateSketchBuilder().initMemory(mem).build(k);
-    for (int i=0; i<u; i++) sketch.update(i);
+    for (int i=0; i<u; i++) { sketch.update(i); }
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

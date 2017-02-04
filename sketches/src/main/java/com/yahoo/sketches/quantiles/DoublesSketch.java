@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.quantiles;
 
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
+
 import java.util.Random;
 
 import com.yahoo.memory.Memory;
@@ -503,7 +505,8 @@ public abstract class DoublesSketch {
    * Returns the number of bytes this sketch would require to store in compact form, which is not
    * updatable.
    * @return the number of bytes this sketch would require to store in compact form.
-   * @deprecated changed name to getCompactStorageBytes to more accurately reflect its intent
+   * @deprecated changed name to {@link #getCompactStorageBytes()} to more accurately reflect its
+   * intent
    */
   @Deprecated
   public int getStorageBytes() {
@@ -516,7 +519,8 @@ public abstract class DoublesSketch {
    * @param k the size configuration parameter for the sketch
    * @param n the number of items input into the sketch
    * @return the number of bytes required to store this sketch in compact form.
-   * @deprecated changed name to getCompactStorageBytes to more accurately reflect its intent
+   * @deprecated changed name to {@link #getCompactStorageBytes(int, long)} to more accurately
+   * reflect its intent
    */
   @Deprecated
   public static int getStorageBytes(final int k, final long n) {
@@ -530,24 +534,26 @@ public abstract class DoublesSketch {
    * @return the number of bytes this sketch would require to store in updatable form.
    */
   public int getUpdatableStorageBytes() {
-    return getUpdatableStorageBytes(getK(), getN());
+    return getUpdatableStorageBytes(getK(), getN(), this.isDirect());
   }
 
   /**
    * Returns the number of bytes this sketch would require to store in updatable form.
-   * This uses roughly 2X the storage of the compact form.
+   * This uses roughly 2X the storage of the compact form
    * given the values of <i>k</i> and <i>n</i>.
    * @param k the size configuration parameter for the sketch
    * @param n the number of items input into the sketch
+   * @param isDirect set true if the target is a Direct Doubles Sketch (off-heap).
    * @return the number of bytes this sketch would require to store in updatable form.
    */
-  public static int getUpdatableStorageBytes(final int k, final long n) {
-    if (n == 0) {
-      return (4 + 2 * DoublesSketch.MIN_K) * Double.BYTES;
+  public static int getUpdatableStorageBytes(final int k, final long n, final boolean isDirect) {
+    final int metaPre = DoublesSketch.MAX_PRELONGS + 2; //plus min, max
+    final int totLevels = Util.computeNumLevelsNeeded(k, n);
+    if (!isDirect && (n < k)) {
+      final int ceil = Math.max(ceilingPowerOf2((int)n), DoublesSketch.MIN_K * 2);
+      return (metaPre + ceil) << 3;
     }
-    final int preBytes = 16 + 2 * Double.BYTES;
-    final int levelsAndBB = 2 + Util.computeNumLevelsNeeded(k, n);
-    return preBytes + levelsAndBB * k * Double.BYTES;
+    return (metaPre + (2 + totLevels) * k) << 3;
   }
 
   /**

@@ -29,7 +29,7 @@ import java.nio.ByteBuffer;
 /**
  * The MemoryRegion class implements the Memory interface and provides a means of
  * hierarchically partitioning a large block of native memory into
- * smaller regions of memory, each with their own capacity and offsets.
+ * smaller regions of memory, each with their own capacity and offsets. MemoryRegion is immutable.
  *
  * <p>If asserts are enabled in the JVM, the methods in this class perform bounds checking against
  * the region's defined boundaries and then redirect the call to the parent Memory class. If the
@@ -53,8 +53,8 @@ public class MemoryRegion implements Memory {
    * ensure that its memory isn't freed before we are done with it.
    */
   private final Memory mem_;
-  private long memOffsetBytes_;
-  private long capacityBytes_;
+  private final long memOffsetBytes_;
+  private final long capacityBytes_;
   private MemoryRequest memReq_ = null;
 
   /**
@@ -91,14 +91,15 @@ public class MemoryRegion implements Memory {
   }
 
   /**
-   * Reassign the offset and capacity of this MemoryRegion
+   * Reassign the offset and capacity of this MemoryRegion.
+   * This is now deprecated and will throw an exception.  MemoryRegion is now immutable.
    * @param memOffsetBytes the given offset from the parent's start
    * @param capacityBytes the given capacity of this region
+   * @deprecated This could have created difficult to diagnose bugs in MemoryRegion hierarchies.
+   * This is now deprecated and will throw an exception.  MemoryRegion is now immutable.
    */
   public void reassign(final long memOffsetBytes, final long capacityBytes) {
-    assertBounds(memOffsetBytes, capacityBytes, mem_.getCapacity());
-    memOffsetBytes_ = memOffsetBytes;
-    capacityBytes_ = capacityBytes;
+    throw new UnsupportedOperationException("MemoryRegion is immutable.");
   }
 
   @Override

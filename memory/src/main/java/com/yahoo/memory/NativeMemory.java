@@ -127,6 +127,31 @@ public class NativeMemory implements Memory {
   }
 
   /**
+   * Provides access to the backing store of the given writable ByteBuffer using Memory interface.
+   * @param byteBuf the given writable ByteBuffer
+   */
+  public NativeMemory(final ByteBuffer byteBuf) {
+    if (byteBuf.isReadOnly()) {
+      throw new RuntimeException(
+          "Cannot create a NativeMemory object using a ReadOnly ByteBuffer. Please use "
+              + "NativeMemory.wrap(byteBuf) instead");
+    }
+
+    if (byteBuf.isDirect()) {
+      objectBaseOffset_ = 0L;
+      memArray_ = null;
+      nativeRawStartAddress_ = ((sun.nio.ch.DirectBuffer) byteBuf).address();
+    }
+    else { //must have array
+      objectBaseOffset_ = ARRAY_BYTE_BASE_OFFSET + byteBuf.arrayOffset() * ARRAY_BYTE_INDEX_SCALE;
+      memArray_ = byteBuf.array();
+      nativeRawStartAddress_ = 0L;
+    }
+    byteBuf_ = byteBuf;
+    capacityBytes_ = byteBuf.capacity();
+  }
+
+  /**
    * Provides access to the backing store of the given ByteBuffer using Memory interface. This method
    * will return NativeMemoryR if the underlying ByteBuffer is readonly, otherwise it will return a
    * NativeMemory object
@@ -143,7 +168,8 @@ public class NativeMemory implements Memory {
         objectBaseOffset = 0L;
         byteArray = null;
         nativeRawStartAddress = ((sun.nio.ch.DirectBuffer) byteBuf).address();
-      } else {
+      }
+      else { //heap
         final long offset;
         try {
           Field field = ByteBuffer.class.getDeclaredField("offset");
@@ -171,29 +197,7 @@ public class NativeMemory implements Memory {
     }
   }
 
-  /**
-   * Provides access to the backing store of the given ByteBuffer using Memory interface
-   * @param byteBuf the given ByteBuffer
-   */
-  public NativeMemory(final ByteBuffer byteBuf) {
-    if (byteBuf.isReadOnly()) {
-      throw new RuntimeException(
-          "Cannot create a NativeMemory object using a ReadOnly ByteBuffer. Please use "
-              + "NativeMemory.wrap(byteBuf) instead");
-    }
 
-    if (byteBuf.isDirect()) {
-      objectBaseOffset_ = 0L;
-      memArray_ = null;
-      nativeRawStartAddress_ = ((sun.nio.ch.DirectBuffer) byteBuf).address();
-    } else { //must have array
-      objectBaseOffset_ = ARRAY_BYTE_BASE_OFFSET + byteBuf.arrayOffset() * ARRAY_BYTE_INDEX_SCALE;
-      memArray_ = byteBuf.array();
-      nativeRawStartAddress_ = 0L;
-    }
-    byteBuf_ = byteBuf;
-    capacityBytes_ = byteBuf.capacity();
-  }
 
   @Override
   public void clear() {
@@ -748,12 +752,13 @@ public class NativeMemory implements Memory {
   //NativeMemory only methods
 
   /**
-   * Copies bytes from a source Memory to the destination Memory.  If the source and destination
-   * are the same Memory use the single Memory copy method.  Nonetheless, if the source and
-   * destination Memories are derived from the same underlying base Memory, the source and the
-   * destination regions should not overlap within the base Memory region.
-   * This is difficult to check at run time, so be warned that this overlap could cause
-   * unpredictable results.
+   * Copies bytes from the source Memory to the destination Memory using the same low-level system
+   * copy function as found in {@link java.lang.System#arraycopy(Object, int, Object, int, int)}.
+   *
+   * <p>If the source and destination are derived from the same underlying base Memory use
+   * {@link Memory#copy(long, long, long)} instead. Nonetheless, the source and destination regions
+   * should not overlap as it could cause unpredictable results.</p>
+   *
    * @param source the source Memory
    * @param srcOffsetBytes the source offset
    * @param destination the destination Memory

@@ -74,7 +74,7 @@ public class DoublesUnionImplTest {
     int k2 = 256;
     int n2 = 2000;
     DoublesSketch sketchIn1 = buildQS(k1, n1);
-    int bytes = DoublesSketch.getUpdatableStorageBytes(k2, n2);//just for size
+    int bytes = DoublesSketch.getUpdatableStorageBytes(k2, n2, true);//just for size
     Memory mem = new NativeMemory(new byte[bytes]);
     DoublesUnion union = DoublesUnion.builder().initMemory(mem).setMaxK(k2).build(); //virgin 256
     union.update(sketchIn1);
@@ -92,7 +92,7 @@ public class DoublesUnionImplTest {
     int n1 = 2 * k1; //16
     int k2 = 4;
     int n2 = 2 * k2; //8
-    int bytes = DoublesSketch.getUpdatableStorageBytes(256, 50);//just for size
+    int bytes = DoublesSketch.getUpdatableStorageBytes(256, 50, true);//just for size
     Memory skMem = new NativeMemory(new byte[bytes]);
     DoublesSketch sketchIn1 = DoublesSketch.builder().setK(k1).initMemory(skMem).build();
     for (int i = 0; i < n1; i++) { sketchIn1.update(i + 1); }
@@ -119,7 +119,7 @@ public class DoublesUnionImplTest {
   public void checkUnion5() { //Union is direct, valid and with larger K than valid input
     int k2 = 4;
     int n2 = 2 * k2; //8
-    int bytes = DoublesSketch.getUpdatableStorageBytes(256, 50);//big enough
+    int bytes = DoublesSketch.getUpdatableStorageBytes(256, 50, true);//big enough
     Memory skMem = new NativeMemory(new byte[bytes]);
     DoublesSketch.builder().setK(256).initMemory(skMem).build();
 
@@ -281,7 +281,7 @@ public class DoublesUnionImplTest {
     DoublesUnionBuilder bldr = DoublesUnion.builder();
     bldr.setK(k); // check the deprecated version
     Assert.assertEquals(bldr.getMaxK(), k);
-    int bytes = DoublesSketch.getUpdatableStorageBytes(k, n);
+    int bytes = DoublesSketch.getUpdatableStorageBytes(k, n, true);
     byte[] byteArr = new byte[bytes];
     Memory mem = new NativeMemory(byteArr);
     bldr.initMemory(mem);

@@ -700,7 +700,7 @@ public class HeapDoublesSketchTest {
     DoublesSketch downSketch;
     downSketch = sketch1.downSample(sketch1, k2, null);
     assertTrue(sameStructurePredicate (sketch2, downSketch));
-    int bytes = DoublesSketch.getUpdatableStorageBytes(k2, n);
+    int bytes = DoublesSketch.getUpdatableStorageBytes(k2, n, false);
     Memory mem = new NativeMemory(new byte[bytes]);
     for (int i = 0; i < n; i++) {
       sketch1.update (i);

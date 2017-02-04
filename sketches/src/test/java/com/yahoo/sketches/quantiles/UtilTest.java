@@ -227,15 +227,16 @@ public class UtilTest {
    return brr;
  }
 
- @Test
- public void checkBlockyTandemMergeSort() {
-   testBlockyTandemMergeSort(10, 50);
- }
-
  @Test(expectedExceptions = SketchesArgumentException.class)
  public void checkValidateValues() {
    double[] arr = null;
    Util.validateValues(arr);
+ }
+
+
+ @Test
+ public void checkBlockyTandemMergeSort() {
+   testBlockyTandemMergeSort(10, 50);
  }
 
  /**
@@ -252,7 +253,7 @@ public class UtilTest {
          arr = makeMergeTestInput(arrLen, blkSize);
          long [] brr = makeTheTandemArray(arr);
          assertMergeTestPrecondition(arr, brr, arrLen, blkSize);
-         DoublesMergeImpl.blockyTandemMergeSort(arr, brr, arrLen, blkSize);
+         DoublesAuxiliary.blockyTandemMergeSort(arr, brr, arrLen, blkSize);
          /* verify sorted order */
          for (int i = 0; i < arrLen-1; i++) {
            assert arr[i] <= arr[i+1];
@@ -261,32 +262,35 @@ public class UtilTest {
        }
      }
    }
-
    //System.out.printf ("Passed: testBlockyTandemMergeSort%n");
  }
 
+// we are retaining this stand-alone test for now because it can be more exhaustive
 
-// we are retaining this stand-alone test for now because it is more exhaustive
-
-  @SuppressWarnings("unused")
-  private static void exhaustiveMain(String[] args) {
-    assert (args.length == 1);
-    int  numTries = Integer.parseInt (args[0]);
-    System.out.printf ("Testing blockyTandemMergeSort%n");
-    for (int arrLen = 0; true ; arrLen++) {
-      for (int blkSize = 1; blkSize <= arrLen + 100; blkSize++) {
-        System.out.printf (
-            "Testing %d times with arrLen = %d and blkSize = %d%n", numTries, arrLen, blkSize);
-        for (int tryno = 1; tryno <= numTries; tryno++) {
-          double [] arr = makeMergeTestInput (arrLen, blkSize);
-          long [] brr = makeTheTandemArray (arr);
-          assertMergeTestPrecondition (arr, brr, arrLen, blkSize);
-          DoublesMergeImpl.blockyTandemMergeSort (arr, brr, arrLen, blkSize);
-          assertMergeTestPostcondition (arr, brr, arrLen);
-        }
-      }
-    }
-  }
+//  @SuppressWarnings("unused")
+//  private static void exhaustiveMain(String[] args) {
+//    assert (args.length == 2);
+//    int  numTries = Integer.parseInt(args[0]);
+//    int maxArrLen = Integer.parseInt(args[1]);
+//    System.out.printf("Testing blockyTandemMergeSort%n");
+//    for (int arrLen = 0; arrLen < maxArrLen; arrLen++) {
+//      for (int blkSize = 1; blkSize <= arrLen + 100; blkSize++) {
+//        System.out.printf (
+//            "Testing %d times with arrLen = %d and blkSize = %d%n", numTries, arrLen, blkSize);
+//        for (int tryno = 1; tryno <= numTries; tryno++) {
+//          double[] arr = makeMergeTestInput(arrLen, blkSize);
+//          long[] brr = makeTheTandemArray(arr);
+//          assertMergeTestPrecondition(arr, brr, arrLen, blkSize);
+//          DoublesAuxiliary.blockyTandemMergeSort(arr, brr, arrLen, blkSize);
+//          assertMergeTestPostcondition(arr, brr, arrLen);
+//        }
+//      }
+//    }
+//  }
+//
+//  public static void main(String[] args) {
+//    exhaustiveMain(new String[] {"10", "100"});
+//  }
 
   @Test
   public void printlnTest() {

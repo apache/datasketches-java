@@ -148,7 +148,7 @@ final class DoublesUnionImpl extends DoublesUnion {
     gadget_ = null;
   }
 
-  //  @Override
+  //  @Override  //TODO
   //  public byte[] toByteArray() {
   //    if (gadget_ == null) {
   //      final HeapDoublesSketch sketch = HeapDoublesSketch.newInstance(maxK_);

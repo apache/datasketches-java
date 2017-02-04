@@ -20,63 +20,83 @@ public class MemoryUtilTest {
     int k = 128;
     Memory mem = new NativeMemory(new byte[k]);
     mem.setMemoryRequest(new GoodMemoryManager());
-    Memory newMem = MemoryUtil.requestMemoryHandler(mem, 2 * k);
+    Memory newMem = MemoryUtil.memoryRequestHandler(mem, 2 * k, true);
     assertEquals(newMem.getCapacity(), 2 * k);
+    Memory newMem2 = MemoryUtil.memoryRequestHandler(newMem, 4 * k, false);
+    assertEquals(newMem2.getCapacity(), 4 * k);
   }
 
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkNoCallback() {
     int k = 128;
     Memory mem = new NativeMemory(new byte[k]);
-    MemoryUtil.requestMemoryHandler(mem, 2 * k);
+    MemoryUtil.memoryRequestHandler(mem, 2 * k, true); //null MemoryRequest
   }
 
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkBadCallback1() {
     int k = 128;
     Memory mem = new NativeMemory(new byte[k]);
-    mem.setMemoryRequest(new BadMemoryManager1());
-    MemoryUtil.requestMemoryHandler(mem, 2 * k);
+    mem.setMemoryRequest(new BadMemoryManager1()); //returns a null Memory
+    MemoryUtil.memoryRequestHandler(mem, 2 * k, true);
   }
 
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkBadCallback2() {
     int k = 128;
     Memory mem = new NativeMemory(new byte[k]);
-    mem.setMemoryRequest(new BadMemoryManager2());
-    MemoryUtil.requestMemoryHandler(mem, 2 * k);
+    mem.setMemoryRequest(new BadMemoryManager2()); //returns Memory too small
+    MemoryUtil.memoryRequestHandler(mem, 2 * k, false);
   }
 
-  //Allocates what was asked
-  private static class GoodMemoryManager implements MemoryRequest {
+  //////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////
+  private static class GoodMemoryManager implements MemoryRequest { //Allocates what was requested
+    NativeMemory last = null; //simple means of tracking the last Memory allocated
 
     @Override
     public Memory request(long capacityBytes) {
-      Memory newMem = new NativeMemory(new byte[(int)capacityBytes]);
-      println("ReqCap: "+capacityBytes + ", Granted: "+newMem.getCapacity());
+      last = new NativeMemory(new byte[(int)capacityBytes]);
+      last.setMemoryRequest(this);
+      println("\nReqCap: "+capacityBytes + ", Granted: "+last.getCapacity());
+      return last;
+    }
+
+    @Override
+    public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
+      Memory newMem = request(capacityBytes);
+      NativeMemory.copy(origMem, 0, newMem, 0, copyToBytes);
+      println("\nOldCap: " + origMem.getCapacity() + ", ReqCap: " + capacityBytes
+          + ", Granted: "+ newMem.getCapacity());
       return newMem;
     }
 
     @Override
-    public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
-      // not used.
-      return null;
-    }
-
-    @Override
     public void free(Memory mem) {
-     // not used.
+      if (mem instanceof NativeMemory) {
+        println("\nmem Freed bytes : " + mem.getCapacity());
+        ((NativeMemory)mem).freeMemory();
+      } else if (mem instanceof MemoryRegion){
+        println("\nThe original MemoryRegion can be reassigned.");
+      }
     }
 
     @Override
     public void free(Memory memToFree, Memory newMem) {
-      // not used.
+      if (memToFree instanceof NativeMemory) {
+        println("\nmemToFree  Freed bytes: " + memToFree.getCapacity());
+        println("newMem Allocated bytes: " + newMem.getCapacity());
+        ((NativeMemory)memToFree).freeMemory();
+      } else if (memToFree instanceof MemoryRegion){
+        println("\nThe original MemoryRegion can be reassigned.");
+      }
     }
 
   }
 
-  //Returns a null
-  private static class BadMemoryManager1 implements MemoryRequest {
+  //////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////
+  private static class BadMemoryManager1 implements MemoryRequest { //returns a null Memory
 
     @Override
     public Memory request(long capacityBytes) {
@@ -101,18 +121,24 @@ public class MemoryUtilTest {
 
   }
 
-  //Allocates too small
-  private static class BadMemoryManager2 implements MemoryRequest {
+  private static class BadMemoryManager2 implements MemoryRequest { //Allocates too small
+    NativeMemory last = null; //simple means of tracking the last Memory allocated
 
     @Override
     public Memory request(long capacityBytes) {
-      return new NativeMemory(new byte[(int)(capacityBytes - 1)]);
+      last = new NativeMemory(new byte[(int)capacityBytes - 1]); //Too Small
+      last.setMemoryRequest(this);
+      println("\nReqCap: "+capacityBytes + ", Granted: "+last.getCapacity());
+      return last;
     }
 
     @Override
     public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
-      // not used.
-      return null;
+      Memory newMem = request(capacityBytes);
+      NativeMemory.copy(origMem, 0, newMem, 0, copyToBytes);
+      println("\nOldCap: " + origMem.getCapacity() + ", ReqCap: " + capacityBytes
+          + ", Granted: "+ newMem.getCapacity());
+      return newMem;
     }
 
     @Override
@@ -125,6 +151,11 @@ public class MemoryUtilTest {
       // not used.
     }
 
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkBoundsTest() {
+    UnsafeUtil.checkBounds(999, 2, 1000);
   }
 
 

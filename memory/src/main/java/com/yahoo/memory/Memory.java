@@ -42,7 +42,9 @@ public interface Memory {
   void clearBits(long offsetBytes, byte bitMask);
 
   /**
-   * Copies bytes from a source region of this Memory to a destination region of this Memory.
+   * Copies bytes from a source region of this Memory to a destination region of this Memory
+   * using the same low-level system copy function as found in
+   * {@link java.lang.System#arraycopy(Object, int, Object, int, int)}.
    * These regions may not overlap.  This will be checked if asserts are enabled in the JVM.
    * @param srcOffsetBytes the source offset
    * @param dstOffsetBytes the destintaion offset

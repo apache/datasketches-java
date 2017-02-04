@@ -17,14 +17,13 @@ public final class MemoryUtil {
   private MemoryUtil() {}
 
   /**
-   *
-   * @deprecated this method was moved to
-   * {@link NativeMemory#copy(Memory, long, Memory, long, long)}
+   * General purpose copy function between two Memories.
    * @param source the source Memory
    * @param srcOffsetBytes the source offset
    * @param destination the destination Memory
    * @param dstOffsetBytes the destination offset
    * @param lengthBytes the number of bytes to copy
+   * @deprecated this method was moved to {@link NativeMemory#copy(Memory, long, Memory, long, long)}
    */
   @Deprecated
   public static void copy(final Memory source, final long srcOffsetBytes, final Memory destination,
@@ -66,19 +65,26 @@ public final class MemoryUtil {
 
   /**
    * Exception handler for requesting a new Memory allocation using the MemoryRequest callback
-   * interface. This does not touch the internal data of either the original memory or the
-   * newly requested Memory. It only returns the newly requested Memory of the requested capacity.
+   * interface. If successful,
+   *
    * @param origMem The original Memory that needs to be replaced by a newly allocated Memory.
    * @param newCapacityBytes The required capacity of the new Memory.
+   * @param copy if true, data from the origMem will be copied to the new Memory and the origMemory
+   * will be requested to be freed. If false, no copy will occur and the request to free the
+   * origMem will not occur.
    * @return the newly requested Memory
    */
-  public static Memory requestMemoryHandler(final Memory origMem, final long newCapacityBytes) {
+  public static Memory memoryRequestHandler(final Memory origMem, final long newCapacityBytes,
+      final boolean copy) {
     final MemoryRequest memReq = origMem.getMemoryRequest();
     if (memReq == null) {
       throw new IllegalArgumentException(
           "Insufficient space. MemoryRequest callback cannot be null.");
     }
-    final Memory newDstMem = memReq.request(newCapacityBytes);
+    final Memory newDstMem = (copy)
+        ? memReq.request(origMem, origMem.getCapacity(), newCapacityBytes)
+        : memReq.request(newCapacityBytes);
+
     if (newDstMem == null) {
       throw new IllegalArgumentException(
           "Insufficient space and Memory returned by MemoryRequest cannot be null.");
@@ -90,7 +96,11 @@ public final class MemoryUtil {
           "Insufficient space and Memory returned by MemoryRequest is not the requested capacity: "
           + "Returned: " + newCap + " < Requested: " + newCapacityBytes);
     }
+    //Success. Copy if requested
+    if (copy) {
+      NativeMemory.copy(origMem, 0, newDstMem, 0, origMem.getCapacity());
+      memReq.free(origMem, newDstMem);
+    }
     return newDstMem;
   }
-
 }

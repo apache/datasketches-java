@@ -170,11 +170,10 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     keys_ = new long[currentCapacity];
     summaries_ = (S[]) Array.newInstance(summaryFactory_.newSummary().getClass(), currentCapacity);
 
-    final MemoryRegion memRegion = new MemoryRegion(mem, 0, mem.getCapacity());
     for (int i = 0; i < count; i++) {
       final long key = mem.getLong(offset);
       offset += Long.BYTES;
-      memRegion.reassign(offset, mem.getCapacity() - offset);
+      final MemoryRegion memRegion = new MemoryRegion(mem, offset, mem.getCapacity() - offset);
       final DeserializeResult<S> summaryResult = summaryFactory_.summaryFromMemory(memRegion);
       final S summary = summaryResult.getObject();
       offset += summaryResult.getSize();

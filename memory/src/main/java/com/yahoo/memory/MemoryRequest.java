@@ -17,40 +17,48 @@ public interface MemoryRequest {
   /**
    * Request new Memory with the given capacity.
    * @param capacityBytes The capacity being requested
-   * @return new Memory with the given capacity. It may be null.
+   * @return new Memory with the given capacity. If this request is refused it will be null.
    */
   Memory request(long capacityBytes);
 
   /**
-   * Request for allocate, copy and clear.
+   * Request for allocate and copy.
    *
    * <p>Request to allocate new Memory with the capacityBytes; copy the contents of origMem from
-   * zero to copyToBytes; clear the new memory from copyToBytes to capacityBytes.
-   * @param origMem The original Memory, a portion of which will be copied to the
-   * newly allocated Memory.
-   * The reference must not be null.
-   * This origMem is not modified in any way, may be reused and must be freed appropriately.
+   * zero to copyToBytes.</p>
+   *
+   * @param origMem The original Memory, a portion, starting at zero, which will be copied to the
+   * newly allocated Memory. This reference must not be null.
+   * This origMem must not modified in any way, and may be reused or freed by the implementation.
+   * The requesting application may NOT assume anything about the origMem.
+   *
    * @param copyToBytes the upper limit of the region to be copied from origMem to the newly
-   * allocated memory.
-   * @param capacityBytes the desired new capacity of the newly allocated memory in bytes and the
-   * upper limit of the region to be cleared.
-   * @return The new Memory with the given capacity. It may be null.
+   * allocated memory. The upper region of the new Memory may or may not be cleared depending
+   * on the implementation.
+   *
+   * @param capacityBytes the desired new capacity of the newly allocated memory in bytes.
+   * @return The new Memory with the given capacity. If this request is refused it will be null.
    */
   Memory request(Memory origMem, long copyToBytes, long capacityBytes);
 
   /**
-   * The given Memory with its capacity is to be freed
+   * The given Memory with its capacity is to be freed. It is assumed that the implementation of
+   * this interface knows the type of Memory that was created and how to free it.
    * @param mem The Memory to be freed
    */
   void free(Memory mem);
 
   /**
-   * The given memToFree with its capacity is to be freed.  Providing a reference to the
-   * newly granted Memory enables the receiver of the callback to link the Memory to be
-   * freed with this new Memory.
-   * @param memToFree the Memory to be freed.
-   * @param newMem this reference enables the receiver of the callback to link the Memory to be
-   * freed with this new Memory.
+   * The given memToFree with its capacity may be freed by the implementation.
+   * Providing a reference to newMem enables the implementation to link the memToFree to the
+   * newMem, if desired.
+   *
+   * @param memToFree the Memory to be freed. It is assumed that the implementation of
+   * this interface knows the type of Memory that was created and how to free it, if desired.
+   *
+   * @param newMem
+   * Providing a reference to newMem enables the implementation to link the memToFree to the
+   * newMem, if desired.
    */
   void free(Memory memToFree, Memory newMem);
 }

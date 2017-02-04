@@ -182,8 +182,8 @@ final class HeapDoublesSketch extends DoublesSketch {
 
     if (newBBCount == 2 * k_) { //Propogate
 
-      // make sure there will be enough levels for the propagation
-      final int spaceNeeded = DoublesUpdateImpl.maybeGrowLevels(k_, newN);
+      // make sure there will be enough space (levels) for the propagation
+      final int spaceNeeded = DoublesUpdateImpl.getRequiredItemCapacity(k_, newN);
 
       if (spaceNeeded > combinedBufferItemCapacity_) {
         // copies base buffer plus old levels, adds space for new level
@@ -194,15 +194,13 @@ final class HeapDoublesSketch extends DoublesSketch {
       Arrays.sort(combinedBuffer_, 0, k_ << 1); //sort only the BB portion, which is full
 
       final long newBitPattern = DoublesUpdateImpl.inPlacePropagateCarry(
-          0,               //starting level
-          null,            //sizeKbuf,   not needed here
-          0,               //sizeKStart, not needed here
-          combinedBuffer_, //size2Kbuf, the base buffer = the Combined Buffer, possibly resized
-          0,               //size2KStart
-          true,            //doUpdateVersion
-          k_,
-          combinedBuffer_, //the base buffer = the Combined Buffer, possibly resized
-          bitPattern_      //current bitPattern prior to updating n
+        0,                  //starting level
+        null, 0,            //optSrcKBuf, optSrcKBufStrt:  not needed here
+        combinedBuffer_, 0, //size2Kbuf, size2KStart: the base buffer
+        true,               //doUpdateVersion
+        k_,
+        combinedBuffer_,    //the base buffer = the Combined Buffer, possibly resized
+        bitPattern_         //current bitPattern prior to updating n
       );
       assert newBitPattern == computeBitPattern(k_, newN); // internal consistency check
 

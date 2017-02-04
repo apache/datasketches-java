@@ -24,7 +24,8 @@ public class DoublesSketchBuilderTest {
     bldr.setK(k);
     assertEquals(bldr.getK(), k); //confirms new k
     println(bldr.toString());
-    byte[] byteArr = new byte[k]; //dummy value
+    int bytes = DoublesSketch.getUpdatableStorageBytes(k, 0, true);
+    byte[] byteArr = new byte[bytes];
     Memory mem = new NativeMemory(byteArr);
     bldr.initMemory(mem);
     assertTrue(bldr.getMemory() == mem);
