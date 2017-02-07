@@ -78,15 +78,14 @@ public class MemoryMappedFileTest {
   @Test
   public void testMultipleUnMaps() {
     File file = new File(getClass().getClassLoader().getResource("memory_mapped.txt").getFile());
+    MemoryMappedFile mmf = null;
     try {
-      MemoryMappedFile mmf = new MemoryMappedFile(file, 0, file.length());
-      mmf.freeMemory();
-      mmf.freeMemory();
-      fail("Failed: testMultipleUnMaps()");
+      mmf = new MemoryMappedFile(file, 0, file.length());
     } catch (Exception e) {
-      // Expected
-      return;
+      fail("Failed: testMultipleUnMaps()");
     }
+    mmf.freeMemory();
+    mmf.freeMemory();
   }
 
   @Test
