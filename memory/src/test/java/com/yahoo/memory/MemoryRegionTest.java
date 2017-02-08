@@ -28,7 +28,7 @@ public class MemoryRegionTest {
   @Test
   public void checkRegionCapacityAndFree() {
     int memCapacity = 64;
-    NativeMemory mem = new AllocMemory(memCapacity);
+    AllocMemory mem = new AllocMemory(memCapacity);
     assertEquals(memCapacity, mem.getCapacity());
 
     Memory region = new MemoryRegion(mem, 8, 32);
@@ -40,7 +40,7 @@ public class MemoryRegionTest {
   @Test
   public void checkRegionBound() {
     int memCapacity = 64;
-    NativeMemory mem = new AllocMemory(memCapacity);
+    AllocMemory mem = new AllocMemory(memCapacity);
     Memory region = new MemoryRegion(mem, 0, memCapacity);
 
     try {
@@ -58,7 +58,7 @@ public class MemoryRegionTest {
   @Test
   public void checkRegionSrcArrayBound() {
     int memCapacity = 64;
-    NativeMemory mem = new AllocMemory(memCapacity);
+    AllocMemory mem = new AllocMemory(memCapacity);
     Memory region = new MemoryRegion(mem, 0, memCapacity);
     try {
       byte[] srcArray = { 1, -2, 3, -4 };
@@ -76,7 +76,7 @@ public class MemoryRegionTest {
   public void checkCopySmall() {
     int memCapacity = 64;
     int half = memCapacity/2;
-    NativeMemory mem = new AllocMemory(memCapacity);
+    AllocMemory mem = new AllocMemory(memCapacity);
     Memory region = new MemoryRegion(mem, 0, memCapacity);
     region.clear();
 
@@ -99,7 +99,7 @@ public class MemoryRegionTest {
     int memCapLongs = memCapacity / 8;
     int halfBytes = memCapacity / 2;
     int halfLongs = memCapLongs / 2;
-    NativeMemory mem = new AllocMemory(memCapacity);
+    AllocMemory mem = new AllocMemory(memCapacity);
     Memory region = new MemoryRegion(mem, 0, memCapacity);
     region.clear();
 
@@ -119,8 +119,8 @@ public class MemoryRegionTest {
   @Test
   public void checkCrossMemoryCopySmall() {
     int memCapacity = 64;
-    NativeMemory mem1 = new AllocMemory(memCapacity);
-    NativeMemory mem2 = new AllocMemory(memCapacity);
+    AllocMemory mem1 = new AllocMemory(memCapacity);
+    AllocMemory mem2 = new AllocMemory(memCapacity);
     Memory region1 = new MemoryRegion(mem1, 0, memCapacity);
     Memory region2 = new MemoryRegion(mem2, 0, memCapacity);
 
@@ -142,7 +142,7 @@ public class MemoryRegionTest {
   @Test
   public void checkCopyWithinRegionOverlapAssert() {
     int memCapacity = 64;
-    NativeMemory mem = new AllocMemory(memCapacity);
+    AllocMemory mem = new AllocMemory(memCapacity);
     Memory region = new MemoryRegion(mem, 0, memCapacity);
 
     region.clear();
@@ -169,7 +169,7 @@ public class MemoryRegionTest {
   @Test
   public void checkToHexStringAllMem() {
     int memCapacity = 48; //must be 48
-    NativeMemory mem = new AllocMemory(memCapacity);
+    AllocMemory mem = new AllocMemory(memCapacity);
     Memory region = new MemoryRegion(mem, 0, memCapacity);
 
     toHexStringAllMemTests(region); //requires println enabled in CommonTests to visually check
@@ -180,7 +180,7 @@ public class MemoryRegionTest {
   @Test
   public void checkSetClearMemoryRegions() {
     int memCapacity = 64; //must be 64
-    NativeMemory mem = new AllocMemory(memCapacity);
+    AllocMemory mem = new AllocMemory(memCapacity);
     Memory region = new MemoryRegion(mem, 0, memCapacity);
 
     setClearMemoryRegionsTests(region); //requires println enabled to visually check
@@ -191,7 +191,7 @@ public class MemoryRegionTest {
   @Test
   public void checkSetGet() {
     int memCapacity = 16; //must be 16
-    NativeMemory mem = new AllocMemory(memCapacity);
+    AllocMemory mem = new AllocMemory(memCapacity);
     Memory region = new MemoryRegion(mem, 0, memCapacity);
     assertEquals(region.getCapacity(), memCapacity);
 
@@ -203,7 +203,7 @@ public class MemoryRegionTest {
   @Test
   public void checkSetGetArrays() {
     int memCapacity = 32;
-    NativeMemory mem = new AllocMemory(memCapacity);
+    AllocMemory mem = new AllocMemory(memCapacity);
     Memory region = new MemoryRegion(mem, 0, memCapacity);
     assertEquals(memCapacity, region.getCapacity());
 
@@ -215,7 +215,7 @@ public class MemoryRegionTest {
   @Test
   public void checkSetGetPartialArraysWithOffset() {
     int memCapacity = 32;
-    NativeMemory mem = new AllocMemory(memCapacity);
+    AllocMemory mem = new AllocMemory(memCapacity);
     Memory region = new MemoryRegion(mem, 0, memCapacity);
     assertEquals(memCapacity, region.getCapacity());
 
@@ -227,7 +227,7 @@ public class MemoryRegionTest {
   @Test
   public void checkSetClearIsBits() {
     int memCapacity = 8;
-    NativeMemory mem = new AllocMemory(memCapacity);
+    AllocMemory mem = new AllocMemory(memCapacity);
     Memory region = new MemoryRegion(mem, 0, memCapacity);
 
     assertEquals(memCapacity, region.getCapacity());
@@ -241,7 +241,7 @@ public class MemoryRegionTest {
   @Test
   public void checkIncrements() {
     int memCapacity = 8;
-    NativeMemory mem = new AllocMemory(memCapacity);
+    AllocMemory mem = new AllocMemory(memCapacity);
     Memory region = new MemoryRegion(mem, 0, memCapacity);
 
     assertEquals(region.getCapacity(), memCapacity);
@@ -349,7 +349,6 @@ public class MemoryRegionTest {
     for (int i = 0; i < mem.getCapacity(); i++) {
       assertEquals(mem.getByte(i), readOnlyMem.getByte(i));
     }
-    mem.freeMemory();
   }
 
   @Test(expectedExceptions = ReadOnlyMemoryException.class)
@@ -358,12 +357,7 @@ public class MemoryRegionTest {
     NativeMemory mem = new NativeMemory(srcArray);
     MemoryRegion mr = new MemoryRegion(mem, 0, mem.getCapacity());
     Memory readOnlyMem = mr.asReadOnlyMemory();
-    try {
-      readOnlyMem.putLong(0, 10L);
-    }
-    finally {
-      mem.freeMemory();
-    }
+    readOnlyMem.putLong(0, 10L);
   }
 
   @Test
@@ -378,7 +372,6 @@ public class MemoryRegionTest {
     assertFalse(reg.hasByteBuffer());
     assertNull(reg.byteBuffer());
     assertTrue(mem.equals(reg.getParent()));
-
   }
 
   @Test

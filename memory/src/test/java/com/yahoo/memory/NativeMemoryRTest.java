@@ -281,13 +281,6 @@ public class NativeMemoryRTest {
       /* pass */
     }
 
-    try {
-      ro.freeMemory();
-      fail();
-    } catch (ReadOnlyMemoryException e) {
-      /* pass */
-    }
-
   }
 
   @Test

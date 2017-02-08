@@ -12,7 +12,7 @@ import java.nio.ByteBuffer;
  *
  * @author Praveenkumar Venkatesan
  */
-public class MemoryRegionR extends MemoryRegion {
+class MemoryRegionR extends MemoryRegion {
 
   public MemoryRegionR(final Memory memory, final long memOffsetBytes, final long capacityBytes,
       final MemoryRequest memReq) {

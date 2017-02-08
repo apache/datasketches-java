@@ -73,9 +73,9 @@ public class MemoryUtilTest {
 
     @Override
     public void free(Memory mem) {
-      if (mem instanceof NativeMemory) {
+      if (mem instanceof AllocMemory) {
         println("\nmem Freed bytes : " + mem.getCapacity());
-        ((NativeMemory)mem).freeMemory();
+        ((AllocMemory)mem).freeMemory();
       } else if (mem instanceof MemoryRegion){
         println("\nThe original MemoryRegion can be reassigned.");
       }
@@ -83,10 +83,10 @@ public class MemoryUtilTest {
 
     @Override
     public void free(Memory memToFree, Memory newMem) {
-      if (memToFree instanceof NativeMemory) {
+      if (memToFree instanceof AllocMemory) {
         println("\nmemToFree  Freed bytes: " + memToFree.getCapacity());
         println("newMem Allocated bytes: " + newMem.getCapacity());
-        ((NativeMemory)memToFree).freeMemory();
+        ((AllocMemory)memToFree).freeMemory();
       } else if (memToFree instanceof MemoryRegion){
         println("\nThe original MemoryRegion can be reassigned.");
       }

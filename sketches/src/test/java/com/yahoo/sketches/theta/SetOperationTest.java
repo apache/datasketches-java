@@ -209,7 +209,7 @@ public class SetOperationTest {
     // However, if you had created this NM object directly in raw, off-heap "native" memory
     // you would have the responsibility to clear it, and free it to the OS when you
     // are done.  But, since it was allocated via BB, it does the clearing and freeing for you.
-    NativeMemory heapMem = new NativeMemory(heapBuf);
+    Memory heapMem = NativeMemory.wrap(heapBuf);
 
     double result = directUnionTrial1(heapMem, heapLayout, sketchNomEntries, unionNomEntries);
     println("1st est: "+result);
@@ -224,12 +224,6 @@ public class SetOperationTest {
     assertEquals(result, expected, expected*0.05);
     println("2nd est: "+result);
     println("Error %: "+((result/expected -1.0)*100));
-
-    //We are done with this NativeMemory. It is a good habit to free it, even though,
-    // in this specific case, the BB backing memory is managed by the JVM, so it is
-    // not strictly necessary.
-    //Forgetting to do this could lead to segment faults, which are very difficult to troubleshoot.
-    heapMem.freeMemory();
   }
 
   /**

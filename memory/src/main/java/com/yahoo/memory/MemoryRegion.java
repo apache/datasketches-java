@@ -549,4 +549,6 @@ public class MemoryRegion implements Memory {
     return mem_.toHexString(sb.toString(), getAddress(offsetBytes), lengthBytes);
   }
 
+  @Override
+  public void freeMemory() {}
 }

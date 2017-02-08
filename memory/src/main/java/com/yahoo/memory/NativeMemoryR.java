@@ -216,9 +216,4 @@ class NativeMemoryR extends NativeMemory {
   // toHexString OK
 
   // copy Memory to Memory OK, Checks if destination is writable.
-
-  @Override
-  public void freeMemory() {
-    throw new ReadOnlyMemoryException();
-  }
 }

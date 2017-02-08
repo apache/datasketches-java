@@ -31,7 +31,7 @@ public class NativeMemoryTest {
   @Test
   public void checkNativeCapacityAndFree() {
     int memCapacity = 8;
-    NativeMemory mem = new AllocMemory(memCapacity);
+    AllocMemory mem = new AllocMemory(memCapacity);
     assertEquals(memCapacity, mem.getCapacity());
 
     mem.freeMemory(); //intentional
@@ -43,7 +43,7 @@ public class NativeMemoryTest {
   @Test
   public void checkNativeNotAllocatedMemory() {
     long memCapacity = 16;
-    NativeMemory mem = new AllocMemory(memCapacity);
+    AllocMemory mem = new AllocMemory(memCapacity);
 
     mem.freeMemory(); //intential
     assertTrue(mem.getCapacity() == 0);
@@ -94,7 +94,7 @@ public class NativeMemoryTest {
   @Test
   public void checkNativeBaseBound() {
     int memCapacity = 64;
-    NativeMemory mem = new AllocMemory(memCapacity);
+    AllocMemory mem = new AllocMemory(memCapacity);
 
     try {
       mem.toHexString("Force Assertion Error", memCapacity, 8);
@@ -110,7 +110,7 @@ public class NativeMemoryTest {
   @Test
   public void checkNativeSrcArrayBound() {
     long memCapacity = 64;
-    NativeMemory mem = new AllocMemory(memCapacity);
+    AllocMemory mem = new AllocMemory(memCapacity);
 
     try {
       byte[] srcArray = { 1, -2, 3, -4 };
@@ -130,7 +130,7 @@ public class NativeMemoryTest {
   public void checkCopyWithinNativeSmall() {
     int memCapacity = 64;
     int half = memCapacity/2;
-    NativeMemory mem = new AllocMemory(memCapacity);
+    AllocMemory mem = new AllocMemory(memCapacity);
     mem.clear();
 
     for (int i=0; i<half; i++) {
@@ -152,7 +152,7 @@ public class NativeMemoryTest {
     int memCapLongs = memCapacity / 8;
     int halfBytes = memCapacity / 2;
     int halfLongs = memCapLongs / 2;
-    NativeMemory mem = new AllocMemory(memCapacity);
+    AllocMemory mem = new AllocMemory(memCapacity);
     mem.clear();
 
     for (int i=0; i<halfLongs; i++) {
@@ -171,7 +171,7 @@ public class NativeMemoryTest {
   @Test
   public void checkCopyWithinNativeOverlap() {
     int memCapacity = 64;
-    NativeMemory mem = new AllocMemory(memCapacity);
+    AllocMemory mem = new AllocMemory(memCapacity);
     mem.clear();
     println(mem.toHexString("Clear 64", 0, memCapacity));
 
@@ -194,7 +194,7 @@ public class NativeMemoryTest {
   @Test
   public void checkCopyWithinNativeSrcBound() {
     int memCapacity = 64;
-    NativeMemory mem = new AllocMemory(memCapacity);
+    AllocMemory mem = new AllocMemory(memCapacity);
 
     try {
       mem.copy(32, 32, 33);  //hit source bound check
@@ -210,7 +210,7 @@ public class NativeMemoryTest {
   @Test
   public void checkCopyWithinNativeDstBound() {
     int memCapacity = 64;
-    NativeMemory mem = new AllocMemory(memCapacity);
+    AllocMemory mem = new AllocMemory(memCapacity);
 
     try {
       mem.copy(0, 32, 33);  //hit dst bound check
@@ -226,13 +226,13 @@ public class NativeMemoryTest {
   @Test(expectedExceptions = ReadOnlyMemoryException.class)
   public void checkReadOnlyMemoryCopyException() {
     int memCapacity = 64;
-    NativeMemory mem1 = new AllocMemory(memCapacity);
+    AllocMemory mem1 = new AllocMemory(memCapacity);
 
     for (int i=0; i<memCapacity; i++) {
       mem1.putByte(i, (byte) i);
     }
 
-    NativeMemory mem2 = (NativeMemory) mem1.asReadOnlyMemory();
+    Memory mem2 = mem1.asReadOnlyMemory();
     try {
       NativeMemory.copy(mem1, 0, mem2, 0, memCapacity);
     }
@@ -481,6 +481,7 @@ public class NativeMemoryTest {
   }
 
 
+  @SuppressWarnings("deprecation")
   @Test
   public void checkByteBufferHeapAccess() {
     int memCapacity = 64;
@@ -498,7 +499,7 @@ public class NativeMemoryTest {
     println( mem.toHexString("HeapBB", 0, memCapacity));
   }
 
-  @SuppressWarnings("unused")
+  @SuppressWarnings({"unused", "deprecation"})
   @Test(expectedExceptions = RuntimeException.class)
   public void checkReadOnlyByteBufferExcep() {
     int memCapacity = 64;
@@ -558,6 +559,7 @@ public class NativeMemoryTest {
     mem.putByte(0, (byte) 0);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void checkByteBufferDirectAccess() {
     int memCapacity = 64;
@@ -575,6 +577,7 @@ public class NativeMemoryTest {
     println( mem.toHexString("HeapBB", 0, memCapacity));
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void checkHasArrayAndBuffer() {
     byte[] byteArr = new byte[64];
@@ -659,6 +662,7 @@ public class NativeMemoryTest {
     }
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testSliceDirectByteBuffer()
   {
@@ -677,6 +681,7 @@ public class NativeMemoryTest {
     assertEquals(2, nm.getInt(0));
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testSliceHeapByteBuffer()
   {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-16, Yahoo! Inc.
+ * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
@@ -60,13 +60,13 @@ import java.nio.ByteBuffer;
  */
 //@SuppressWarnings("restriction")
 public class NativeMemory implements Memory {
-  /* Truth table that distinguishes between Requires Free and actual off-heap Direct mode.
-  Class        Case                 ObjBaseOff MemArr byteBuf rawAdd CapacityBytes  ReqFree Direct
-  NativeMemory byte[], int[], long[]        >0  valid    null      0            >0    FALSE  FALSE
-  NativeMemory ByteBuffer Direct             0   null   valid     >0            >0    FALSE   TRUE
-  NativeMemory ByteBuffer not Direct        >0  valid   valid      0            >0    FALSE  FALSE
-  AllocMemory                                0   null    null     >0            >0     TRUE   TRUE
-  MemoryMappedFile                           0   null    null     >0            >0     TRUE   TRUE
+  /* Truth table that shows relationship between objectBaseOffset, memArray, byteBuf and Direct.
+  Class        Case                 ObjBaseOff MemArr byteBuf rawAdd CapacityBytes   Direct
+  NativeMemory byte[], int[], long[]        >0  valid    null      0            >0    FALSE
+  NativeMemory ByteBuffer Direct             0   null   valid     >0            >0     TRUE
+  NativeMemory ByteBuffer not Direct        >0  valid   valid      0            >0    FALSE
+  AllocMemory                                0   null    null     >0            >0     TRUE
+  MemoryMappedFile                           0   null    null     >0            >0     TRUE
   */
   protected final long objectBaseOffset_;
   protected final Object memArray_;
@@ -74,7 +74,7 @@ public class NativeMemory implements Memory {
   protected final ByteBuffer byteBuf_;
   protected long nativeRawStartAddress_;
   protected long capacityBytes_;
-  protected MemoryRequest memReq_ = null; //set via AllocMemory or NativeMemory
+  protected MemoryRequest memReq_ = null; //also set via AllocMemory
 
   //only sets the finals
   protected NativeMemory(final long objectBaseOffset, final Object memArray,
@@ -128,6 +128,7 @@ public class NativeMemory implements Memory {
 
   /**
    * Provides access to the backing store of the given writable ByteBuffer using Memory interface.
+   * For read-only ByteBuffers you must use {@link #wrap(ByteBuffer)}.
    * @param byteBuf the given writable ByteBuffer
    *
    * @deprecated Replaced by {@link #wrap(ByteBuffer)}, which supports both writable and
@@ -157,8 +158,8 @@ public class NativeMemory implements Memory {
 
   /**
    * Provides access to the backing store of the given ByteBuffer using Memory interface. This method
-   * will return NativeMemoryR if the underlying ByteBuffer is readonly, otherwise it will return a
-   * NativeMemory object
+   * will return NativeMemoryR if the underlying ByteBuffer is read-only, otherwise it will return
+   * a NativeMemory object
    * @param byteBuf the given ByteBuffer
    * @return a Memory object
    */
@@ -200,8 +201,6 @@ public class NativeMemory implements Memory {
       return new NativeMemory(byteBuf);
     }
   }
-
-
 
   @Override
   public void clear() {
@@ -794,16 +793,8 @@ public class NativeMemory implements Memory {
     }
   }
 
-  /**
-   * This frees this Memory only if it is required. This always sets the capacity to zero
-   * and the reference to MemoryRequest to null, which effectively disables this instance.
-   *
-   * <p>It is always safe to call this method when you are done with this class.
-   */
-  public void freeMemory() {
-    capacityBytes_ = 0L;
-    memReq_ = null;
-  }
+  @Override
+  public void freeMemory() {}
 
   //Restricted methods
 

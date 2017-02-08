@@ -541,4 +541,13 @@ public interface Memory {
    */
   String toHexString(String header, long offsetBytes, int lengthBytes);
 
+  /**
+   * If the backing memory is freeable, calling freeMemory() disables this instance and calls the
+   * JVM Cleaner, which frees any associated native memory. Calling freeMemory() is optional and
+   * may preempt the Garbage Collector, which may reduce the load on the GC.
+   *
+   * <p>If the backing memory is not freeable, calling freeMemory() does little or nothing.
+   * It is always safe to call this method when you are done with this class. </p>
+   */
+  void freeMemory();
 }

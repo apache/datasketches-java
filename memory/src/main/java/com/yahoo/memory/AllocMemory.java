@@ -1,24 +1,20 @@
 /*
- * Copyright 2015-16, Yahoo! Inc.
+ * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
 package com.yahoo.memory;
 
 import static com.yahoo.memory.UnsafeUtil.unsafe;
+
 import sun.misc.Cleaner;
 
 /**
- * The AllocMemory class is a subclass of MemoryMappedFile, which is a subclass of
- * NativeMemory<sup>1</sup>.  AllocMemory is used to allocate direct,
- * off-heap memory, which can then be accessed by the NativeMemory methods.
- * It is the responsibility of the calling class to free this memory using freeMemory() when done.
+ * The AllocMemory class is a subclass of NativeMemory<sup>1</sup>.  AllocMemory is used to
+ * allocate direct, off-heap memory, which can then be accessed by the NativeMemory methods.
  *
- * <p>[1] The task of direct allocation was moved to this sub-class to improve JVM performance of
- * loading NativeMemory classes that do not use off-heap memory and thus do not require JVM
- * tracking of the finalize() method. The parent MemoryMappedFile acts only as a pass-through to
- * NativeMemory. This design allows leveraging the freeMemory() and finalize() methods of the
- * parents so that these actions occur only in one place for the instance hierarchy.
+ * <p>This class leverages the JVM Cleaner class that replaces {@link java.lang.Object#finalize()}
+ * and serves as a back-up if the calling class does not call {@link #freeMemory()}.</p>
  *
  * @author Lee Rhodes
  */
@@ -57,53 +53,56 @@ public class AllocMemory extends NativeMemory {
   }
 
   /**
-   * Constructor for reallocate native memory.
+   * Constructor to allocate new off-heap native memory, copy the contents from the given origMem.
    *
    * <p>Reallocates the given off-heap NativeMemory to a new a new native (off-heap) memory
    * location and copies the contents of the original given NativeMemory to the new location.
    * Any memory beyond the capacity of the original given NativeMemory will be uninitialized.
-   * Dispose of this new memory by calling {@link AllocMemory#freeMemory()}.
    * The new allocated memory will be 8-byte aligned, but may not be page aligned.
-   * @param origMem The original NativeMemory that needs to be reallocated and must not be null.
-   * The OS is free to just expand the capacity of the current allocation at the same native
-   * address, or reassign a completely different native address in which case the origMem will be
-   * freed by the OS.
-   * The origMem capacity will be set to zero and must not be used again.
+   * @param origMem The original NativeMemory that needs its contents to be reallocated.
+   * It must not be null.
    *
    * @param newCapacityBytes the desired new capacity of the newly allocated memory in bytes
    * @param memReq The MemoryRequest callback, which may be null.
    */
   public AllocMemory(final NativeMemory origMem, final long newCapacityBytes,
       final MemoryRequest memReq) {
-    this(origMem, origMem.getCapacity(), newCapacityBytes, memReq);
+    this(origMem, origMem.getCapacity(), newCapacityBytes, false, memReq);
   }
 
   /**
-   * Constructor for allocate native memory, copy and clear.
+   * Constructor to allocate new off-heap NativeMemory, copy from the given origMem,
+   * and optionally clear the remainder.
    *
    * <p>Allocate a new native (off-heap) memory with capacityBytes; copy the contents of origMem
    * from zero to copyToBytes; clear the new memory from copyToBytes to capacityBytes.
    * The new allocated memory will be 8-byte aligned, but may not be page aligned.
-   * @param origMem The original NativeMemory, a portion of which will be copied to the
-   * newly allocated Memory.
-   * The reference must not be null.
-   * This origMem is not modified in any way, may be reused and must be freed appropriately.
+   *
+   * @param origMem The original Memory, a portion of which will be copied to the newly allocated
+   * NativeMemory. The reference must not be null.
+   * This origMem is not modified in any way, and may be reused .
+   *
    * @param copyToBytes the upper limit of the region to be copied from origMem to the newly
-   * allocated memory.
+   * allocated memory, and the lower limit of the region to be cleared, if requested.
+   *
    * @param capacityBytes the desired new capacity of the newly allocated memory in bytes and the
    * upper limit of the region to be cleared.
+   *
+   * @param clear if true the remaining region from copyToBytes to capacityBytes will be cleared.
+   *
    * @param memReq The MemoryRequest callback, which may be null.
    */
   public AllocMemory(final NativeMemory origMem, final long copyToBytes, final long capacityBytes,
-      final MemoryRequest memReq) {
+      final boolean clear, final MemoryRequest memReq) {
     this(capacityBytes, memReq);
     NativeMemory.copy(origMem, 0, this, 0, copyToBytes);
-    this.clear(copyToBytes, capacityBytes - copyToBytes);
+    if (clear) { this.clear(copyToBytes, capacityBytes - copyToBytes); }
   }
 
   @Override
   public void freeMemory() {
-    super.freeMemory();
+    super.capacityBytes_ = 0L;
+    super.memReq_ = null;
     cleaner.clean();
     nativeRawStartAddress_ = 0L;
   }

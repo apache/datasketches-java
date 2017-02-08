@@ -82,10 +82,14 @@ public class MemoryMappedFileTest {
     try {
       mmf = new MemoryMappedFile(file, 0, file.length());
     } catch (Exception e) {
+      if (mmf != null) mmf.freeMemory();
       fail("Failed: testMultipleUnMaps()");
     }
-    mmf.freeMemory();
-    mmf.freeMemory();
+    if (mmf != null) {
+      mmf.freeMemory();
+      mmf.freeMemory();
+    }
+
   }
 
   @Test
@@ -189,12 +193,6 @@ public class MemoryMappedFileTest {
     } catch (Exception e) {
       fail("Failed: testForce()." + e);
     }
-  }
-
-  @Test
-  public void checkPassThrough() {
-    NativeMemory mem = new AllocMemory(1024L);
-    mem.freeMemory();
   }
 
   private static File createFile(String fileName, String text) throws FileNotFoundException {

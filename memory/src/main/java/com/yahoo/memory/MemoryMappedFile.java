@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-16, Yahoo! Inc. Licensed under the terms of the Apache License 2.0. See LICENSE
+ * Copyright 2015, Yahoo! Inc. Licensed under the terms of the Apache License 2.0. See LICENSE
  * file at the project root for terms.
  */
 
@@ -20,7 +20,10 @@ import sun.nio.ch.FileChannelImpl;
 
 /**
  * MemoryMappedFile class extends NativeMemory and is used to memory map files (including those &gt;
- * 2GB) off heap. It is the responsibility of the calling class to free the memory.
+ * 2GB) off heap.
+ *
+ * <p>This class leverages the JVM Cleaner class that replaces {@link java.lang.Object#finalize()}
+ * and serves as a back-up if the calling class does not call {@link #freeMemory()}.</p>
  *
  * @author Praveenkumar Venkatesan
  */
@@ -161,12 +164,14 @@ public class MemoryMappedFile extends NativeMemory {
 
   @Override
   public void freeMemory() {
-    super.freeMemory();
+    super.capacityBytes_ = 0L;
+    super.memReq_ = null;
     cleaner.clean();
     nativeRawStartAddress_ = 0L;
   }
 
   // Restricted methods
+
   static final int pageCount(final int ps, final long length) {
     return (int) ( (length == 0) ? 0 : (length - 1L) / ps + 1L);
   }
@@ -221,9 +226,7 @@ public class MemoryMappedFile extends NativeMemory {
     }
   }
 
-  private static final class Deallocator
-      implements Runnable
-  {
+  private static final class Deallocator implements Runnable {
     private RandomAccessFile randomAccessFile_;
     private FileChannel fileChannel_;
     private long nativeRawStartAddress_;
@@ -263,5 +266,6 @@ public class MemoryMappedFile extends NativeMemory {
 
       nativeRawStartAddress_ = 0L;
     }
-  }
+  } //End of class Deallocator
+
 }

@@ -15,7 +15,7 @@ public class AllocMemoryTest {
   public void checkReallocateNativeMemory() {
     int longs = 1024;
     int bytes = longs << 3;
-    NativeMemory mem1 = new AllocMemory(bytes);
+    AllocMemory mem1 = new AllocMemory(bytes);
     for (int i = 0; i<longs; i++) {
       mem1.putLong(i << 3, i);
     }
@@ -23,7 +23,7 @@ public class AllocMemoryTest {
     println("Add: " + mem1add + ", Cap: " + mem1.getCapacity());
 
     //reallocate at twice the size.
-    NativeMemory mem2 = new AllocMemory(mem1, 2L * bytes, null);
+    AllocMemory mem2 = new AllocMemory(mem1, 2L * bytes, null);
     long mem2add = mem2.getAddress(0);
     boolean equal = (mem1add == mem2add);
     String eqStr = (equal)? ", EQUAL, " : ", NOT EQUAL, ";
@@ -41,7 +41,7 @@ public class AllocMemoryTest {
   public void checkAllocateCopyClear() {
     int longs = 16;
     int bytes = longs << 3;
-    NativeMemory mem1 = new AllocMemory(bytes);
+    AllocMemory mem1 = new AllocMemory(bytes);
     for (int i = 0; i<longs; i++) {
       mem1.putLong(i << 3, i);
     }
@@ -49,7 +49,31 @@ public class AllocMemoryTest {
     println("Add: " + mem1add + ", Cap: " + mem1.getCapacity());
 
     //new allocate at twice the size.
-    NativeMemory mem2 = new AllocMemory(mem1, bytes, 2*bytes, null);
+    AllocMemory mem2 = new AllocMemory(mem1, bytes, 2*bytes, true, null);
+    long mem2add = mem2.getAddress(0);
+    println("Add: " + mem2add + ", Cap: " + mem2.getCapacity());
+
+    //Check the new mem up to copy size
+    for (int i = 0; i<longs; i++) {
+      assertEquals(mem2.getLong(i << 3), i);
+    }
+    mem1.freeMemory();
+    mem2.freeMemory();
+  }
+
+  @Test
+  public void checkAllocateCopyNoClear() {
+    int longs = 16;
+    int bytes = longs << 3;
+    AllocMemory mem1 = new AllocMemory(bytes);
+    for (int i = 0; i<longs; i++) {
+      mem1.putLong(i << 3, i);
+    }
+    long mem1add = mem1.getAddress(0);
+    println("Add: " + mem1add + ", Cap: " + mem1.getCapacity());
+
+    //new allocate at twice the size.
+    AllocMemory mem2 = new AllocMemory(mem1, bytes, 2*bytes, false, null);
     long mem2add = mem2.getAddress(0);
     println("Add: " + mem2add + ", Cap: " + mem2.getCapacity());
 
@@ -75,7 +99,7 @@ public class AllocMemoryTest {
   @Test
   public void checkAllocateWithMemReq() {
     MemoryRequest req = new DummyMemReq();
-    NativeMemory mem = new AllocMemory(8, req);
+    AllocMemory mem = new AllocMemory(8, req);
     assertTrue(req.equals(mem.getMemoryRequest()));
     mem.freeMemory();
   }
