@@ -129,7 +129,11 @@ public class NativeMemory implements Memory {
   /**
    * Provides access to the backing store of the given writable ByteBuffer using Memory interface.
    * @param byteBuf the given writable ByteBuffer
+   *
+   * @deprecated Replaced by {@link #wrap(ByteBuffer)}, which supports both writable and
+   * read-only ByteBuffers
    */
+  @Deprecated
   public NativeMemory(final ByteBuffer byteBuf) {
     if (byteBuf.isReadOnly()) {
       throw new RuntimeException(
@@ -797,10 +801,6 @@ public class NativeMemory implements Memory {
    * <p>It is always safe to call this method when you are done with this class.
    */
   public void freeMemory() {
-    if (requiresFree()) {
-        unsafe.freeMemory(nativeRawStartAddress_);
-        nativeRawStartAddress_ = 0L;
-    }
     capacityBytes_ = 0L;
     memReq_ = null;
   }
@@ -839,16 +839,6 @@ public class NativeMemory implements Memory {
     }
     sb.append(String.format("%n%20s: ", j)).append(sb2).append(LS);
     return sb.toString();
-  }
-
-  /**
-   * Returns true if the object requires being freed.
-   * This method exists to standardize the check between freeMemory() and finalize()
-   *
-   * @return true if the object should be freed when it is no longer needed
-   */
-  protected boolean requiresFree() {
-    return (nativeRawStartAddress_ != 0L) && (byteBuf_ == null);
   }
 
 }
