@@ -12,10 +12,10 @@ import java.io.FileDescriptor;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
+import sun.misc.Cleaner;
 import sun.nio.ch.FileChannelImpl;
 
 /**
@@ -30,6 +30,7 @@ public class MemoryMappedFile extends NativeMemory {
   private FileChannel fileChannel_ = null;
   private RandomAccessFile randomAccessFile_ = null;
   private MappedByteBuffer dummyMbbInstance_ = null;
+  private final Cleaner cleaner;
 
   /**
    * Constructor for memory mapping a file.
@@ -67,11 +68,9 @@ public class MemoryMappedFile extends NativeMemory {
     // len can be more than the file.length
     randomAccessFile_.setLength(len);
     createDummyMbbInstance();
-  }
 
-  // pass-through
-  MemoryMappedFile(final long objectBaseOffset, final Object memArray, final ByteBuffer byteBuf) {
-    super(objectBaseOffset, memArray, byteBuf);
+    this.cleaner = Cleaner.create(this,
+        new Deallocator(randomAccessFile_, nativeRawStartAddress_, capacityBytes_));
   }
 
   /**
@@ -162,46 +161,12 @@ public class MemoryMappedFile extends NativeMemory {
 
   @Override
   public void freeMemory() {
-    if (fileChannel_ != null) {
-      unmap();
-      nativeRawStartAddress_ = 0L;
-    }
     super.freeMemory();
-  }
-
-  /**
-   * If the JVM calls this method and a "freeMemory() has not been called" a <i>System.err</i>
-   * message will be logged.
-   */
-  @Override
-  protected void finalize() {
-    if (requiresFree()) {
-      System.err.println("ERROR: freeMemory() has not been called: Address: "
-          + nativeRawStartAddress_ + ", capacity: " + capacityBytes_);
-      final StackTraceElement[] arr = Thread.currentThread().getStackTrace();
-      for (int i = 0; i < arr.length; i++) {
-        System.err.println(arr[i].toString());
-      }
-    }
+    cleaner.clean();
+    nativeRawStartAddress_ = 0L;
   }
 
   // Restricted methods
-
-  /**
-   * Removes existing mapping
-   */
-  private void unmap() throws RuntimeException {
-    try {
-      final Method method = FileChannelImpl.class.getDeclaredMethod("unmap0", long.class, long.class);
-      method.setAccessible(true);
-      method.invoke(fileChannel_, nativeRawStartAddress_, capacityBytes_);
-      randomAccessFile_.close();
-    } catch (final Exception e) {
-      throw new RuntimeException(
-          String.format("Encountered %s exception while freeing memory", e.getClass()));
-    }
-  }
-
   static final int pageCount(final int ps, final long length) {
     return (int) ( (length == 0) ? 0 : (length - 1L) / ps + 1L);
   }
@@ -253,6 +218,50 @@ public class MemoryMappedFile extends NativeMemory {
     } catch (final Exception e) {
       throw new RuntimeException(
           String.format("Encountered %s exception while mapping", e.getClass()));
+    }
+  }
+
+  private static final class Deallocator
+      implements Runnable
+  {
+    private RandomAccessFile randomAccessFile_;
+    private FileChannel fileChannel_;
+    private long nativeRawStartAddress_;
+    private long capacityBytes_;
+
+    private Deallocator(final RandomAccessFile randomAccessFile,
+        final long nativeRawStartAddress, final long capacityBytes) {
+      assert (randomAccessFile != null);
+      assert (nativeRawStartAddress != 0);
+      assert (capacityBytes != 0);
+      this.randomAccessFile_ = randomAccessFile;
+      this.fileChannel_ = randomAccessFile.getChannel();
+      this.nativeRawStartAddress_ = nativeRawStartAddress;
+      this.capacityBytes_ = capacityBytes;
+    }
+
+    /**
+     * Removes existing mapping
+     */
+    private void unmap() throws RuntimeException {
+      try {
+        final Method method = FileChannelImpl.class.getDeclaredMethod("unmap0", long.class, long.class);
+        method.setAccessible(true);
+        method.invoke(fileChannel_, nativeRawStartAddress_, capacityBytes_);
+        randomAccessFile_.close();
+      } catch (final Exception e) {
+        throw new RuntimeException(
+            String.format("Encountered %s exception while freeing memory", e.getClass()));
+      }
+    }
+
+    @Override
+    public void run() {
+      if (fileChannel_ != null) {
+        unmap();
+      }
+
+      nativeRawStartAddress_ = 0L;
     }
   }
 }

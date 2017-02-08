@@ -6,6 +6,7 @@
 package com.yahoo.memory;
 
 import static com.yahoo.memory.UnsafeUtil.unsafe;
+import sun.misc.Cleaner;
 
 /**
  * The AllocMemory class is a subclass of MemoryMappedFile, which is a subclass of
@@ -22,7 +23,8 @@ import static com.yahoo.memory.UnsafeUtil.unsafe;
  * @author Lee Rhodes
  */
 //@SuppressWarnings("restriction")
-public class AllocMemory extends MemoryMappedFile {
+public class AllocMemory extends NativeMemory {
+  private final Cleaner cleaner;
 
   /**
    * Constructor to allocate native memory.
@@ -33,10 +35,7 @@ public class AllocMemory extends MemoryMappedFile {
    * @param capacityBytes the size in bytes of the native memory
    */
   public AllocMemory(final long capacityBytes) {
-    super(0L, null, null);
-    super.nativeRawStartAddress_ = unsafe.allocateMemory(capacityBytes);
-    super.capacityBytes_ = capacityBytes;
-    super.memReq_ = null;
+    this(capacityBytes, null);
   }
 
   /**
@@ -53,6 +52,8 @@ public class AllocMemory extends MemoryMappedFile {
     super.nativeRawStartAddress_ = unsafe.allocateMemory(capacityBytes);
     super.capacityBytes_ = capacityBytes;
     super.memReq_ = memReq;
+
+    cleaner = Cleaner.create(this, new Deallocator(nativeRawStartAddress_));
   }
 
   /**
@@ -61,7 +62,7 @@ public class AllocMemory extends MemoryMappedFile {
    * <p>Reallocates the given off-heap NativeMemory to a new a new native (off-heap) memory
    * location and copies the contents of the original given NativeMemory to the new location.
    * Any memory beyond the capacity of the original given NativeMemory will be uninitialized.
-   * Dispose of this new memory by calling {@link NativeMemory#freeMemory()}.
+   * Dispose of this new memory by calling {@link AllocMemory#freeMemory()}.
    * The new allocated memory will be 8-byte aligned, but may not be page aligned.
    * @param origMem The original NativeMemory that needs to be reallocated and must not be null.
    * The OS is free to just expand the capacity of the current allocation at the same native
@@ -74,13 +75,7 @@ public class AllocMemory extends MemoryMappedFile {
    */
   public AllocMemory(final NativeMemory origMem, final long newCapacityBytes,
       final MemoryRequest memReq) {
-    super(0L, null, null);
-    super.nativeRawStartAddress_ = unsafe.reallocateMemory(origMem.nativeRawStartAddress_,
-        newCapacityBytes);
-    super.capacityBytes_ = newCapacityBytes;
-    this.memReq_ = memReq;
-    origMem.nativeRawStartAddress_ = 0; //does not require freeMem
-    origMem.capacityBytes_ = 0; //Cannot be used again
+    this(origMem, origMem.getCapacity(), newCapacityBytes, memReq);
   }
 
   /**
@@ -101,10 +96,7 @@ public class AllocMemory extends MemoryMappedFile {
    */
   public AllocMemory(final NativeMemory origMem, final long copyToBytes, final long capacityBytes,
       final MemoryRequest memReq) {
-    super(0L, null, null);
-    super.nativeRawStartAddress_ = unsafe.allocateMemory(capacityBytes);
-    super.capacityBytes_ = capacityBytes;
-    this.memReq_ = memReq;
+    this(capacityBytes, memReq);
     NativeMemory.copy(origMem, 0, this, 0, copyToBytes);
     this.clear(copyToBytes, capacityBytes - copyToBytes);
   }
@@ -112,6 +104,28 @@ public class AllocMemory extends MemoryMappedFile {
   @Override
   public void freeMemory() {
     super.freeMemory();
+    cleaner.clean();
+    nativeRawStartAddress_ = 0L;
   }
 
+  private static final class Deallocator
+      implements Runnable
+  {
+    private long nativeRawStartAddress_;
+
+    private Deallocator(final long nativeRawStartAddress) {
+      assert (nativeRawStartAddress != 0);
+      this.nativeRawStartAddress_ = nativeRawStartAddress;
+    }
+
+    @Override
+    public void run() {
+      if (nativeRawStartAddress_ == 0) {
+        // Paranoia
+        return;
+      }
+
+      unsafe.freeMemory(nativeRawStartAddress_);
+    }
+  }
 }
