@@ -372,6 +372,7 @@ public class MemoryRegionTest {
     assertFalse(reg.hasByteBuffer());
     assertNull(reg.byteBuffer());
     assertTrue(mem.equals(reg.getParent()));
+    reg.freeMemory();
   }
 
   @Test

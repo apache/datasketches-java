@@ -12,7 +12,6 @@ import org.testng.annotations.Test;
 
 import com.yahoo.memory.AllocMemory;
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryRegion;
 import com.yahoo.memory.MemoryRequest;
 import com.yahoo.memory.NativeMemory;
 
@@ -46,23 +45,15 @@ public class DirectQuantilesMemoryRequestTest {
 
     @Override
     public void free(Memory mem) {
-      if (mem instanceof NativeMemory) {
-        println("\nmem Freed bytes : " + mem.getCapacity());
-        ((NativeMemory)mem).freeMemory();
-      } else if (mem instanceof MemoryRegion){
-        println("\nThe original MemoryRegion can be reassigned.");
-      }
+      println("\nmem Freed bytes : " + mem.getCapacity());
+      mem.freeMemory();
     }
 
     @Override
     public void free(Memory memToFree, Memory newMem) {
-      if (memToFree instanceof NativeMemory) {
-        println("\nmemToFree  Freed bytes: " + memToFree.getCapacity());
-        println("newMem Allocated bytes: " + newMem.getCapacity());
-        ((NativeMemory)memToFree).freeMemory();
-      } else if (memToFree instanceof MemoryRegion){
-        println("\nThe original MemoryRegion can be reassigned.");
-      }
+      println("\nmemToFree  Freed bytes: " + memToFree.getCapacity());
+      println("newMem Allocated bytes: " + newMem.getCapacity());
+      memToFree.freeMemory();
     }
   }
 //////////////////////////////////////////////////////
@@ -100,6 +91,26 @@ public class DirectQuantilesMemoryRequestTest {
     println("\nFinal mem size: " + last.getCapacity());
     memMgr.free(last);
   }
+
+  @Test
+  public void checkGrowCombBuf() {
+    int k = 128;
+    int u = 2 * k - 1; //just to fill the BB
+    int initBytes = (2 * k + 4) << 3; //just room for BB
+
+    MemoryManager memMgr = new MemoryManager();
+    Memory mem1 = memMgr.request(initBytes);
+    println("Initial mem size: " + mem1.getCapacity());
+    DoublesSketch usk1 = DoublesSketch.builder().initMemory(mem1).build(k);
+    for (int i = 1; i <= u; i++) { usk1.update(i); }
+    int currentSpace = usk1.getCombinedBufferItemCapacity();
+    println("curCombBufItemCap: " + currentSpace);
+    double[] newCB = usk1.growCombinedBuffer(currentSpace, 3 * k);
+    int newSpace = usk1.getCombinedBufferItemCapacity();
+    println("newCombBurItemCap: " + newSpace);
+    assertEquals(newCB.length, 3 * k);
+  }
+
 
   @Test
   public void printlnTest() {

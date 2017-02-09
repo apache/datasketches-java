@@ -13,7 +13,6 @@ import org.testng.annotations.Test;
 
 import com.yahoo.memory.AllocMemory;
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryRegion;
 import com.yahoo.memory.MemoryRequest;
 import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.ResizeFactor;
@@ -50,23 +49,15 @@ public class DirectThetaMemoryRequestTest {
 
     @Override
     public void free(Memory mem) {
-      if (mem instanceof NativeMemory) {
-        println("\nmem Freed bytes : " + mem.getCapacity());
-        ((NativeMemory)mem).freeMemory();
-      } else if (mem instanceof MemoryRegion){
-        println("\nThe original MemoryRegion can be reassigned.");
-      }
+      println("\nmem Freed bytes : " + mem.getCapacity());
+      mem.freeMemory();
     }
 
     @Override
     public void free(Memory memToFree, Memory newMem) {
-      if (memToFree instanceof NativeMemory) {
-        println("\nmemToFree  Freed bytes: " + memToFree.getCapacity());
-        println("newMem Allocated bytes: " + newMem.getCapacity());
-        ((NativeMemory)memToFree).freeMemory();
-      } else if (memToFree instanceof MemoryRegion){
-        println("\nThe original MemoryRegion can be reassigned.");
-      }
+      println("\nmemToFree  Freed bytes: " + memToFree.getCapacity());
+      println("newMem Allocated bytes: " + newMem.getCapacity());
+      memToFree.freeMemory();
     }
   }
 //////////////////////////////////////////////////////
@@ -144,17 +135,15 @@ public class DirectThetaMemoryRequestTest {
 
     @Override
     public void free(Memory mem) {
-      println("Freed : " + mem.getCapacity());
-      ((NativeMemory)mem).freeMemory();
+      println("\nmem Freed bytes : " + mem.getCapacity());
+      mem.freeMemory();
     }
 
     @Override
     public void free(Memory memToFree, Memory newMem) {
-      if (memToFree instanceof NativeMemory) {
-        NativeMemory nMem = (NativeMemory)memToFree;
-        println("Freed : " + nMem.getCapacity());
-        nMem.freeMemory();
-      } // else reassign the old MemoryRegion
+      println("\nmemToFree  Freed bytes: " + memToFree.getCapacity());
+      println("newMem Allocated bytes: " + newMem.getCapacity());
+      memToFree.freeMemory();
     }
 
     @Override
@@ -199,17 +188,15 @@ public class DirectThetaMemoryRequestTest {
 
     @Override
     public void free(Memory mem) {
-      println("Freed : " + mem.getCapacity());
-      ((NativeMemory)mem).freeMemory();
+      println("\nmem Freed bytes : " + mem.getCapacity());
+      mem.freeMemory();
     }
 
     @Override
     public void free(Memory memToFree, Memory newMem) {
-      if (memToFree instanceof NativeMemory) {
-        NativeMemory nMem = (NativeMemory)memToFree;
-        println("Freed : " + nMem.getCapacity());
-        nMem.freeMemory();
-      } // else reassign the old MemoryRegion
+      println("\nmemToFree  Freed bytes: " + memToFree.getCapacity());
+      println("newMem Allocated bytes: " + newMem.getCapacity());
+      memToFree.freeMemory();
     }
 
     @Override
@@ -258,17 +245,15 @@ public class DirectThetaMemoryRequestTest {
 
     @Override
     public void free(Memory mem) {
-      println("Freed : " + mem.getCapacity());
-      ((NativeMemory)mem).freeMemory();
+      println("\nmem Freed bytes : " + mem.getCapacity());
+      mem.freeMemory();
     }
 
     @Override
     public void free(Memory memToFree, Memory newMem) {
-      if (memToFree instanceof NativeMemory) {
-        NativeMemory nMem = (NativeMemory)memToFree;
-        println("Freed : " + nMem.getCapacity());
-        nMem.freeMemory();
-      } // else reassign the old MemoryRegion
+      println("\nmemToFree  Freed bytes: " + memToFree.getCapacity());
+      println("newMem Allocated bytes: " + newMem.getCapacity());
+      memToFree.freeMemory();
     }
 
     @Override

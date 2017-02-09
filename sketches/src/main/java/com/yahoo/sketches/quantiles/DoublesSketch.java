@@ -467,7 +467,7 @@ public abstract class DoublesSketch {
     final DoublesSketch newSketch = (dstMem == null)
         ? HeapDoublesSketch.newInstance(smallerK)
         : DirectDoublesSketch.newInstance(smallerK, dstMem);
-    DoublesMergeImpl.downSamplingMergeInto(srcSketch, newSketch);
+    DoublesMergeImpl.downSamplingMergeInto(srcSketch, newSketch); //TODO #2
     return newSketch;
   }
 

@@ -139,7 +139,7 @@ final class Util {
   }
 
   /**
-   * Returns the number of retained items in the sketch given k and n.
+   * Returns the number of retained valid items in the sketch given k and n.
    * @param k the given configured k of the sketch
    * @param n the current number of items seen by the sketch
    * @return the number of retained items in the sketch given k and n.
@@ -147,12 +147,12 @@ final class Util {
   static int computeRetainedItems(final int k, final long n) {
     final int bbCnt = computeBaseBufferItems(k, n);
     final long bitPattern = computeBitPattern(k, n);
-    final int validLevels = Long.bitCount(bitPattern);
+    final int validLevels = computeValidLevels(bitPattern);
     return bbCnt + validLevels * k;
   }
 
   /**
-   * Returns the total item capacity of the updatable, non-compact combined buffer
+   * Returns the total item capacity of an updatable, non-compact combined buffer
    * given <i>k</i> and <i>n</i>.  If total levels = 0, this returns the ceiling power of 2
    * size for the base buffer or the MIN_BASE_BUF_SIZE, whichever is larger.
    *
@@ -236,29 +236,31 @@ final class Util {
   }
 
   /**
-   * Zero based position of the highest one-bit of the given long.
+   * Zero-based position of the highest one-bit of the given long.
    * Returns minus one if num is zero.
    * @param num the given long
-   * @return Zero based position of the highest one-bit of the given long
+   * @return Zero-based position of the highest one-bit of the given long
    */
   static int hiBitPos(final long num) {
     return 63 - Long.numberOfLeadingZeros(num);
   }
 
   /**
-   * Returns the zero-based bit position of the lowest zero bit starting at bit startingPos.
-   * @param numIn the input bits as a long
-   * @param startingPos the zero-based starting bit position
-   * @return the zero-based bit position of the lowest zero bit starting at bit startingPos.
+   * Returns the zero-based bit position of the lowest zero bit of <i>bits</i> starting at
+   * <i>startingBit</i>. If input is all ones, this returns 64.
+   * @param bits the input bits as a long
+   * @param startingBit the zero-based starting bit position. Only the low 6 bits are used.
+   * @return the zero-based bit position of the lowest zero bit starting at <i>startingBit</i>.
    */
-  static int positionOfLowestZeroBitStartingAt(final long numIn, final int startingPos) {
-    long num = numIn >>> startingPos;
-    int pos = 0;
-    while ((num & 1L) != 0) {
-      num = num >>> 1;
+  static int lowestZeroBitStartingAt(final long bits, final int startingBit) {
+    int pos = startingBit & 0X3F;
+    long myBits = bits >>> pos;
+
+    while ((myBits & 1L) != 0) {
+      myBits = myBits >>> 1;
       pos++;
     }
-    return (pos + startingPos);
+    return pos;
   }
 
   /**

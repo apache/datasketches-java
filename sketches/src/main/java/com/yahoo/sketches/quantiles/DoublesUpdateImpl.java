@@ -96,19 +96,26 @@ final class DoublesUpdateImpl {
       final long bitPattern //the current bitPattern
     ) {
 
-    final int endingLevel = Util.positionOfLowestZeroBitStartingAt(bitPattern, startingLevel);
-
+    final int endingLevel = Util.lowestZeroBitStartingAt(bitPattern, startingLevel);
+    final int tgtStart = (2 + endingLevel) * k;
+    assert tgtStart + k <= tgtCombinedBuffer.length;
     if (doUpdateVersion) { // update version of computation
       // its is okay for optSrcKBuf to be null in this case
       zipSize2KBuffer(
           size2KBuf, size2KStart,
-          tgtCombinedBuffer, (2 + endingLevel) * k,
+          tgtCombinedBuffer, tgtStart,
           k);
     } else { // mergeInto version of computation
+      try {
       System.arraycopy(
-          optSrcKBuf, optSrcKBufStrt,
-          tgtCombinedBuffer, (2 + endingLevel) * k,
-          k);
+        optSrcKBuf, optSrcKBufStrt, //2, 0
+        tgtCombinedBuffer, tgtStart, //4, 8, k = 2
+        k);
+      } catch (Exception e) {
+        String s = String.format("%d %d %d %d %d", optSrcKBuf.length, optSrcKBufStrt, tgtCombinedBuffer.length, tgtStart, k);
+        System.out.println(s); //2 0 4 8 2
+        throw new RuntimeException(e);
+      }
     }
 
     for (int lvl = startingLevel; lvl < endingLevel; lvl++) {
@@ -180,7 +187,7 @@ final class DoublesUpdateImpl {
       final long bitPattern //the current bitPattern
     ) {
 
-    final int endingLevel = Util.positionOfLowestZeroBitStartingAt(bitPattern, startingLevel);
+    final int endingLevel = Util.lowestZeroBitStartingAt(bitPattern, startingLevel);
 
     if (doUpdateVersion) { // update version of computation
       // its is okay for optSrcKBuf to be null in this case

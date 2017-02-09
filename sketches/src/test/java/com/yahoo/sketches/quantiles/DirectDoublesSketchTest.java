@@ -257,6 +257,7 @@ public class DirectDoublesSketchTest {
   }
 
 
+
   static DoublesSketch buildAndLoadDQS(int k, int n) {
     return buildAndLoadDQS(k, n, 0);
   }

@@ -70,6 +70,7 @@ final class DirectDoublesSketch extends DoublesSketch {
     final long memAdd = dstMem.getCumulativeOffset(0L);
 
     //initialize dstMem
+    dstMem.putLong(0, 0L); //clear pre0
     insertPreLongs(memObj, memAdd, 2);
     insertSerVer(memObj, memAdd, DoublesSketch.DOUBLES_SER_VER);
     insertFamilyID(memObj, memAdd, Family.QUANTILES.getID());
@@ -142,7 +143,7 @@ final class DirectDoublesSketch extends DoublesSketch {
 
     if (bbCount == 2 * k_) { //Propagate
       final int curCombBufItemCap = getCombinedBufferItemCapacity(); //K, prev N, Direct case
-
+      final int curUsedCap = DoublesUpdateImpl.getRequiredItemCapacity(k_, getN());
       // make sure there will be enough levels for the propagation
       final int itemSpaceNeeded = DoublesUpdateImpl.getRequiredItemCapacity(k_, newN);
 
@@ -152,6 +153,9 @@ final class DirectDoublesSketch extends DoublesSketch {
         mem_ = growCombinedMemBuffer(mem_, itemSpaceNeeded);
         memObj_ = mem_.array(); //may be null
         memAdd_ = mem_.getCumulativeOffset(0L);
+      }
+      if (itemSpaceNeeded > curUsedCap) { //clear out the next level
+        mem_.clear(curUsedCap << 3, (itemSpaceNeeded - curUsedCap) << 3);
       }
 
       //sort the base buffer
@@ -211,7 +215,8 @@ final class DirectDoublesSketch extends DoublesSketch {
 
   @Override
   int getCombinedBufferItemCapacity() {
-    return Util.computeCombinedBufferItemCapacity(getK(), getN(), false); //no partial BB allowed
+    int mCap = ((int)mem_.getCapacity() - 32) / 8;
+    return mCap;
   }
 
   @Override

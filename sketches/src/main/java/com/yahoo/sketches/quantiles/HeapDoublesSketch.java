@@ -64,14 +64,6 @@ final class HeapDoublesSketch extends DoublesSketch {
   private long bitPattern_;
 
   /**
-   * In the initial on-heap version, equals combinedBuffer_.length.
-   * May differ in later versions that grow space more aggressively.
-   * Also, in the off-heap version, combinedBuffer_ won't be a java array,
-   * so it won't know its own length.
-   */
-  private int combinedBufferItemCapacity_;
-
-  /**
    * This single array contains the base buffer plus all levels some of which may not be used,
    * i.e, is in non-compact form.
    * A level is of size K and is either full and sorted, or not used. A "not used" buffer may have
@@ -97,10 +89,9 @@ final class HeapDoublesSketch extends DoublesSketch {
    */
   static HeapDoublesSketch newInstance(final int k) {
     final HeapDoublesSketch hqs = new HeapDoublesSketch(k);
-    final int bufAlloc = 2 * Math.min(DoublesSketch.MIN_K, k); //the min is important
+    final int baseBufAlloc = 2 * Math.min(DoublesSketch.MIN_K, k); //the min is important
     hqs.n_ = 0;
-    hqs.combinedBufferItemCapacity_ = bufAlloc;
-    hqs.combinedBuffer_ = new double[bufAlloc];
+    hqs.combinedBuffer_ = new double[baseBufAlloc];
     hqs.baseBufferCount_ = 0;
     hqs.bitPattern_ = 0;
     hqs.minValue_ = Double.POSITIVE_INFINITY;
@@ -151,7 +142,6 @@ final class HeapDoublesSketch extends DoublesSketch {
     hds.n_ = n;
     final boolean partialBaseBuffer = true; //only relevant when there are no levels.
     final int combBufCap = computeCombinedBufferItemCapacity(k, n, partialBaseBuffer);
-    hds.combinedBufferItemCapacity_ = combBufCap;
     hds.baseBufferCount_ = computeBaseBufferItems(k, n);
     hds.bitPattern_ = computeBitPattern(k, n);
     //Extract min, max, data from srcMem into Combined Buffer
@@ -173,8 +163,9 @@ final class HeapDoublesSketch extends DoublesSketch {
     final int newBBCount = curBBCount + 1;
     final long newN = n_ + 1;
 
-    if (newBBCount > combinedBufferItemCapacity_) {
-      growBaseBuffer(); //only changes combinedBuffer,  combinedBufferItemCapacity
+    int combBufItemCap = combinedBuffer_.length;
+    if (newBBCount > combBufItemCap) {
+      growBaseBuffer(); //only changes combinedBuffer when it is only a base buffer
     }
 
     //put the new item in the base buffer
@@ -185,9 +176,9 @@ final class HeapDoublesSketch extends DoublesSketch {
       // make sure there will be enough space (levels) for the propagation
       final int spaceNeeded = DoublesUpdateImpl.getRequiredItemCapacity(k_, newN);
 
-      if (spaceNeeded > combinedBufferItemCapacity_) {
+      if (spaceNeeded > combBufItemCap) {
         // copies base buffer plus old levels, adds space for new level
-        growCombinedBuffer(combinedBufferItemCapacity_, spaceNeeded);
+        growCombinedBuffer(combBufItemCap, spaceNeeded);
       }
 
       // note that this combinedBuffer_ is after the possible resizing above
@@ -236,8 +227,8 @@ final class HeapDoublesSketch extends DoublesSketch {
   @Override
   public void reset() {
     n_ = 0;
-    combinedBufferItemCapacity_ = 2 * Math.min(DoublesSketch.MIN_K, k_); //the min is important
-    combinedBuffer_ = new double[combinedBufferItemCapacity_];
+    int combinedBufferItemCapacity = 2 * Math.min(DoublesSketch.MIN_K, k_); //the min is important
+    combinedBuffer_ = new double[combinedBufferItemCapacity];
     baseBufferCount_ = 0;
     bitPattern_ = 0;
     minValue_ = Double.POSITIVE_INFINITY;
@@ -305,7 +296,7 @@ final class HeapDoublesSketch extends DoublesSketch {
 
   @Override
   int getCombinedBufferItemCapacity() {
-    return combinedBufferItemCapacity_;
+    return combinedBuffer_.length;
   }
 
   @Override
@@ -347,7 +338,7 @@ final class HeapDoublesSketch extends DoublesSketch {
 
   @Override
   void putCombinedBufferItemCapacity(final int combinedBufferItemCapacity) {
-    combinedBufferItemCapacity_ = combinedBufferItemCapacity;
+    //not neccessary
   }
 
   @Override
@@ -363,7 +354,6 @@ final class HeapDoublesSketch extends DoublesSketch {
   @Override //the return value is not always used
   double[] growCombinedBuffer(final int currentSpace, final int spaceNeeded) {
     combinedBuffer_ = Arrays.copyOf(combinedBuffer_, spaceNeeded);
-    combinedBufferItemCapacity_ = spaceNeeded;
     return combinedBuffer_;
   }
 
@@ -376,11 +366,10 @@ final class HeapDoublesSketch extends DoublesSketch {
    */
   //important: n has not been incremented yet
   private final void growBaseBuffer() {
-    final double[] baseBuffer = combinedBuffer_;
-    final int oldSize = combinedBufferItemCapacity_;
+    final int oldSize = combinedBuffer_.length;
     assert oldSize < 2 * k_;
+    final double[] baseBuffer = combinedBuffer_;
     final int newSize = 2 * Math.max(Math.min(k_, oldSize), DoublesSketch.MIN_K);
-    combinedBufferItemCapacity_ = newSize;
     combinedBuffer_ = Arrays.copyOf(baseBuffer, newSize);
   }
 

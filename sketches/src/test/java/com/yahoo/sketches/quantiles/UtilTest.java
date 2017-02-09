@@ -6,6 +6,7 @@
 package com.yahoo.sketches.quantiles;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import java.util.Arrays;
 
@@ -59,13 +60,23 @@ public class UtilTest {
   }
 
   @Test
-  public void testPOLZBSA() {
+  public void testPositionOfLowestZeroBitStartingAt() {
     int [] answers = {9, 8, 7, 7, 7, 4, 4, 4, 1, 1};
+    long v = 109L;
+    //println("IN: " + Long.toBinaryString(v));
     for (int i = 0, j = 9; i < 10; i++, j--) {
-      int result = Util.positionOfLowestZeroBitStartingAt(109L, i);
-      //      System.out.printf ("%d %d%n", i, result);
-      assert (answers[j] == result);
+      int result = Util.lowestZeroBitStartingAt(v, i);
+            //System.out.printf ("%d %d %d%n", i, result, answers[j]);
+      assertTrue (answers[j] == result);
     }
+  }
+
+  @Test
+  public void testPositionOfLowestZeroBitStartingAt2() {
+    long bits = -1L;
+    int startingBit = 70; //only low 6 bits are used
+    int result = Util.lowestZeroBitStartingAt(bits, startingBit);
+    assertEquals(result, 64);
   }
 
   // a couple of basic unit tests for the histogram construction helper functions.
@@ -76,7 +87,8 @@ public class UtilTest {
       double [] splitPoints = {0.25, 0.4};
       long counters [] = {0, 0, 0};
       long answers  [] = {200, 100, 200};
-      DoublesPmfCdfImpl.bilinearTimeIncrementHistogramCounters(samples, 0, 5, 100, splitPoints, counters);
+      DoublesPmfCdfImpl
+        .bilinearTimeIncrementHistogramCounters(samples, 0, 5, 100, splitPoints, counters);
       for (int j = 0; j < counters.length; j++) {
         assert counters[j] == answers[j];
         // System.out.printf ("counter[%d] = %d%n", j, counters[j]);
@@ -232,7 +244,6 @@ public class UtilTest {
    double[] arr = null;
    Util.validateValues(arr);
  }
-
 
  @Test
  public void checkBlockyTandemMergeSort() {

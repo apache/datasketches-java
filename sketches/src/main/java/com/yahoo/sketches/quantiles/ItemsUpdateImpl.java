@@ -45,7 +45,7 @@ final class ItemsUpdateImpl {
     final long bitPattern = sketch.getBitPattern();
     final int k = sketch.getK();
 
-    final int endingLevel = Util.positionOfLowestZeroBitStartingAt(bitPattern, startingLevel);
+    final int endingLevel = Util.lowestZeroBitStartingAt(bitPattern, startingLevel);
 
     if (doUpdateVersion) { // update version of computation
       // its is okay for sizeKbuf to be null in this case

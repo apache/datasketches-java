@@ -5,7 +5,7 @@
 
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.quantiles.HeapDoublesSketchTest.buildQS;
+import static com.yahoo.sketches.quantiles.HeapDoublesSketchTest.buildAndLoadQS;
 import static com.yahoo.sketches.quantiles.Util.LS;
 
 import org.testng.annotations.Test;
@@ -19,7 +19,7 @@ public class DoublesUtilTest {
   public void checkPrintMemData() {
     int k = 16;
     int n = 1000;
-    DoublesSketch qs = buildQS(k,n);
+    DoublesSketch qs = buildAndLoadQS(k,n);
 
     byte[] byteArr = qs.toByteArray(true, false);
     Memory mem = new NativeMemory(byteArr);
@@ -34,7 +34,7 @@ public class DoublesUtilTest {
   public void checkPrintMemData2() {
     int k = PreambleUtil.DEFAULT_K;
     int n = 0;
-    DoublesSketch qs = buildQS(k,n);
+    DoublesSketch qs = buildAndLoadQS(k,n);
 
     byte[] byteArr = qs.toByteArray();
     Memory mem = new NativeMemory(byteArr);
