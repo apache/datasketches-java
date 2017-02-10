@@ -5,7 +5,17 @@
 
 package com.yahoo.memory;
 
+import static com.yahoo.memory.UnsafeUtil.BOOLEAN_SHIFT;
+import static com.yahoo.memory.UnsafeUtil.BYTE_SHIFT;
+import static com.yahoo.memory.UnsafeUtil.CHAR_SHIFT;
+import static com.yahoo.memory.UnsafeUtil.DOUBLE_SHIFT;
+import static com.yahoo.memory.UnsafeUtil.FLOAT_SHIFT;
+import static com.yahoo.memory.UnsafeUtil.INT_SHIFT;
+import static com.yahoo.memory.UnsafeUtil.LONG_SHIFT;
+import static com.yahoo.memory.UnsafeUtil.SHORT_SHIFT;
 import static com.yahoo.memory.UnsafeUtil.assertBounds;
+
+import java.nio.ByteBuffer;
 
 /**
  * Useful utilities that work with Memory.
@@ -104,4 +114,67 @@ public final class MemoryUtil {
     }
     return newDstMem;
   }
+
+
+
+  static final void checkByteBufRO(final ByteBuffer byteBuf) {
+    if (byteBuf.isReadOnly()) {
+      throw new RuntimeException(
+          "Cannot create a NativeMemory object using a ReadOnly ByteBuffer. Please use "
+              + "NativeMemory.wrap(byteBuf) instead");
+    }
+  }
+
+  static final long checkBooleanArr(final boolean[] booleanArray) {
+    if (booleanArray == null) { throw new IllegalArgumentException("Input must not be null."); }
+    if (booleanArray.length == 0) { throwEmpty(); }
+    return booleanArray.length << BOOLEAN_SHIFT;
+  }
+
+  static final long checkByteArr(final byte[] byteArray) {
+    if (byteArray == null) { throw new IllegalArgumentException("Input must not be null."); }
+    if (byteArray.length == 0) { throwEmpty(); }
+    return byteArray.length << BYTE_SHIFT;
+  }
+
+  static final long checkCharArr(final char[] charArray) {
+    if (charArray == null) { throw new IllegalArgumentException("Input must not be null."); }
+    if (charArray.length == 0) { throwEmpty(); }
+    return charArray.length << CHAR_SHIFT;
+  }
+
+  static final long checkShortArr(final short[] shortArray) {
+    if (shortArray == null) { throw new IllegalArgumentException("Input must not be null."); }
+    if (shortArray.length == 0) { throwEmpty(); }
+    return shortArray.length << SHORT_SHIFT;
+  }
+
+  static final long checkIntArr(final int[] intArray) {
+    if (intArray == null) { throw new IllegalArgumentException("Input must not be null."); }
+    if (intArray.length == 0) { throwEmpty(); }
+    return intArray.length << INT_SHIFT;
+  }
+
+  static final long checkLongArr(final long[] longArray) {
+    if (longArray == null) { throw new IllegalArgumentException("Input must not be null."); }
+    if (longArray.length == 0) { throwEmpty(); }
+    return longArray.length << LONG_SHIFT;
+  }
+
+  static final long checkFloatArr(final float[] floatArray) {
+    if (floatArray == null) { throw new IllegalArgumentException("Input must not be null."); }
+    if (floatArray.length == 0) { throwEmpty(); }
+    return floatArray.length << FLOAT_SHIFT;
+  }
+
+  static final long checkDoubleArr(final double[] doubleArray) {
+    if (doubleArray == null) { throw new IllegalArgumentException("Input must not be null."); }
+    if (doubleArray.length == 0) { throwEmpty(); }
+    return doubleArray.length << DOUBLE_SHIFT;
+  }
+
+  private static final void throwEmpty() {
+    throw new IllegalArgumentException("Input primitive array must not be empty.");
+  }
+
 }

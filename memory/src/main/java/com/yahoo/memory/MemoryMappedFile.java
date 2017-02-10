@@ -28,30 +28,69 @@ import sun.nio.ch.FileChannelImpl;
  * @author Praveenkumar Venkatesan
  */
 //@SuppressWarnings("restriction")
-public class MemoryMappedFile extends NativeMemory {
+public final class MemoryMappedFile extends NativeMemory {
 
-  private FileChannel fileChannel_ = null;
   private RandomAccessFile randomAccessFile_ = null;
   private MappedByteBuffer dummyMbbInstance_ = null;
-  private final Cleaner cleaner;
+  private final Cleaner cleaner_;
+
+  private MemoryMappedFile(final RandomAccessFile raf, final MappedByteBuffer mbb,
+      final long nativeBaseAddress, final long capacityBytes) {
+    super(nativeBaseAddress, capacityBytes, 0L, null, null);
+    randomAccessFile_ = raf;
+    dummyMbbInstance_ = mbb;
+    cleaner_ = Cleaner.create(this,
+        new Deallocator(randomAccessFile_, nativeBaseAddress, capacityBytes));
+  }
 
   /**
-   * Constructor for memory mapping a file.
+   * Factory method for creating a memory mapping a file.
    *
-   * <p>
-   * Memory maps a file directly in off heap leveraging native map0 method used in
-   * FileChannelImpl.c. The owner will have read write access to that address space.
-   * </p>
+   * <p>Memory maps a file directly in off heap leveraging native map0 method used in
+   * FileChannelImpl.c. The owner will have read write access to that address space.</p>
    *
-   * @param file - File to be mapped
-   * @param position - memory map starting from this position in the file
-   * @param len - Memory map at most len bytes &gt; 0 starting from {@code position}
-   *
+   * @param file File to be mapped
+   * @param position Memory map starting from this position in the file
+   * @param len Memory map at most len bytes &gt; 0 starting from {@code position}
+   * @return A new MemoryMappedFile
    * @throws Exception file not found or RuntimeException, etc.
    */
-  public MemoryMappedFile(final File file, final long position, final long len) throws Exception {
-    super(0L, null, null);
+  @SuppressWarnings("resource")
+  public static MemoryMappedFile getInstance(final File file, final long position, final long len)
+      throws Exception {
+    checkPositionLen(position, len);
 
+    final RandomAccessFile raf = new RandomAccessFile(file, "rw");
+    final FileChannel fc = raf.getChannel();
+    final long nativeBaseAddress = map(fc, position, len);
+    final long capacityBytes = len;
+
+    // len can be more than the file.length
+    raf.setLength(len);
+    final MappedByteBuffer mbb = createDummyMbbInstance(nativeBaseAddress);
+
+    return new MemoryMappedFile(raf, mbb, nativeBaseAddress, capacityBytes);
+  }
+
+  //  public MemoryMappedFile(final File file, final long position, final long len) throws Exception {
+  //    super(0L, null, null);
+  //
+  //    checkPositionLen(position, len);
+  //
+  //    this.randomAccessFile_ = new RandomAccessFile(file, "rw");
+  //    this.fileChannel_ = randomAccessFile_.getChannel();
+  //    super.nativeBaseAddress_ = map(fileChannel_, position, len);
+  //    super.capacityBytes_ = len;
+  //    super.memReq_ = null;
+  //
+  //    // len can be more than the file.length
+  //    randomAccessFile_.setLength(len);
+  //    createDummyMbbInstance();
+  //
+  //    this.cleaner_ = Cleaner.create(this,
+  //        new Deallocator(randomAccessFile_, nativeBaseAddress_, capacityBytes_));
+
+  private static final void checkPositionLen(final long position, final long len) {
     if (position < 0L) {
       throw new IllegalArgumentException("Negative position");
     }
@@ -61,19 +100,6 @@ public class MemoryMappedFile extends NativeMemory {
     if (position + len < 0) {
       throw new IllegalArgumentException("Position + size overflow");
     }
-
-    this.randomAccessFile_ = new RandomAccessFile(file, "rw");
-    this.fileChannel_ = randomAccessFile_.getChannel();
-    super.nativeRawStartAddress_ = map(position, len);
-    super.capacityBytes_ = len;
-    super.memReq_ = null;
-
-    // len can be more than the file.length
-    randomAccessFile_.setLength(len);
-    createDummyMbbInstance();
-
-    this.cleaner = Cleaner.create(this,
-        new Deallocator(randomAccessFile_, nativeRawStartAddress_, capacityBytes_));
   }
 
   /**
@@ -90,7 +116,7 @@ public class MemoryMappedFile extends NativeMemory {
     // Read a byte from each page to bring it into memory.
     final int ps = unsafe.pageSize();
     final int count = pageCount(ps, capacityBytes_);
-    long a = nativeRawStartAddress_;
+    long a = nativeBaseAddress_;
     for (int i = 0; i < count; i++) {
       unsafe.getByte(a);
       a += ps;
@@ -119,7 +145,7 @@ public class MemoryMappedFile extends NativeMemory {
       final Method method =
           MappedByteBuffer.class.getDeclaredMethod("isLoaded0", long.class, long.class, int.class);
       method.setAccessible(true);
-      return (boolean) method.invoke(dummyMbbInstance_, nativeRawStartAddress_, capacityBytes_,
+      return (boolean) method.invoke(dummyMbbInstance_, nativeBaseAddress_, capacityBytes_,
           pageCount);
     } catch (final Exception e) {
       throw new RuntimeException(
@@ -155,7 +181,7 @@ public class MemoryMappedFile extends NativeMemory {
       final Method method = MappedByteBuffer.class.getDeclaredMethod("force0", FileDescriptor.class,
           long.class, long.class);
       method.setAccessible(true);
-      method.invoke(dummyMbbInstance_, randomAccessFile_.getFD(), nativeRawStartAddress_,
+      method.invoke(dummyMbbInstance_, randomAccessFile_.getFD(), nativeBaseAddress_,
           capacityBytes_);
     } catch (final Exception e) {
       throw new RuntimeException(String.format("Encountered %s exception in force", e.getClass()));
@@ -166,8 +192,8 @@ public class MemoryMappedFile extends NativeMemory {
   public void freeMemory() {
     super.capacityBytes_ = 0L;
     super.memReq_ = null;
-    cleaner.clean();
-    nativeRawStartAddress_ = 0L;
+    cleaner_.clean();
+    nativeBaseAddress_ = 0L;
   }
 
   // Restricted methods
@@ -176,14 +202,16 @@ public class MemoryMappedFile extends NativeMemory {
     return (int) ( (length == 0) ? 0 : (length - 1L) / ps + 1L);
   }
 
-  private void createDummyMbbInstance() throws RuntimeException {
+  private static final MappedByteBuffer createDummyMbbInstance(final long nativeBaseAddress)
+      throws RuntimeException {
     try {
       final Class<?> cl = Class.forName("java.nio.DirectByteBuffer");
       final Constructor<?> ctor =
           cl.getDeclaredConstructor(int.class, long.class, FileDescriptor.class, Runnable.class);
       ctor.setAccessible(true);
-      dummyMbbInstance_ = (MappedByteBuffer) ctor.newInstance(0, // some junk capacity
-          nativeRawStartAddress_, null, null);
+      final MappedByteBuffer mbb = (MappedByteBuffer) ctor.newInstance(0, // some junk capacity
+          nativeBaseAddress, null, null);
+      return mbb;
     } catch (final Exception e) {
       throw new RuntimeException(
           "Could not create Dummy MappedByteBuffer instance: " + e.getClass());
@@ -197,7 +225,7 @@ public class MemoryMappedFile extends NativeMemory {
     try {
       final Method method = MappedByteBuffer.class.getDeclaredMethod("load0", long.class, long.class);
       method.setAccessible(true);
-      method.invoke(dummyMbbInstance_, nativeRawStartAddress_, capacityBytes_);
+      method.invoke(dummyMbbInstance_, nativeBaseAddress_, capacityBytes_);
     } catch (final Exception e) {
       throw new RuntimeException(
           String.format("Encountered %s exception while loading", e.getClass()));
@@ -209,7 +237,8 @@ public class MemoryMappedFile extends NativeMemory {
    * May throw OutOfMemory error if you have exhausted memory. Force garbage collection and
    * re-attempt.
    */
-  private long map(final long position, final long len) throws RuntimeException {
+  private static final long map(final FileChannel fileChannel, final long position, final long len)
+      throws RuntimeException {
     final int pagePosition = (int) (position % unsafe.pageSize());
     final long mapPosition = position - pagePosition;
     final long mapSize = len + pagePosition;
@@ -218,7 +247,7 @@ public class MemoryMappedFile extends NativeMemory {
       final Method method =
           FileChannelImpl.class.getDeclaredMethod("map0", int.class, long.class, long.class);
       method.setAccessible(true);
-      final long addr = (long) method.invoke(fileChannel_, 1, mapPosition, mapSize);
+      final long addr = (long) method.invoke(fileChannel, 1, mapPosition, mapSize);
       return addr;
     } catch (final Exception e) {
       throw new RuntimeException(
@@ -229,17 +258,17 @@ public class MemoryMappedFile extends NativeMemory {
   private static final class Deallocator implements Runnable {
     private RandomAccessFile randomAccessFile_;
     private FileChannel fileChannel_;
-    private long nativeRawStartAddress_;
+    private long nativeBaseAddress_;
     private long capacityBytes_;
 
     private Deallocator(final RandomAccessFile randomAccessFile,
-        final long nativeRawStartAddress, final long capacityBytes) {
+        final long nativeBaseAddress, final long capacityBytes) {
       assert (randomAccessFile != null);
-      assert (nativeRawStartAddress != 0);
+      assert (nativeBaseAddress != 0);
       assert (capacityBytes != 0);
       this.randomAccessFile_ = randomAccessFile;
       this.fileChannel_ = randomAccessFile.getChannel();
-      this.nativeRawStartAddress_ = nativeRawStartAddress;
+      this.nativeBaseAddress_ = nativeBaseAddress;
       this.capacityBytes_ = capacityBytes;
     }
 
@@ -250,7 +279,7 @@ public class MemoryMappedFile extends NativeMemory {
       try {
         final Method method = FileChannelImpl.class.getDeclaredMethod("unmap0", long.class, long.class);
         method.setAccessible(true);
-        method.invoke(fileChannel_, nativeRawStartAddress_, capacityBytes_);
+        method.invoke(fileChannel_, nativeBaseAddress_, capacityBytes_);
         randomAccessFile_.close();
       } catch (final Exception e) {
         throw new RuntimeException(
@@ -263,8 +292,7 @@ public class MemoryMappedFile extends NativeMemory {
       if (fileChannel_ != null) {
         unmap();
       }
-
-      nativeRawStartAddress_ = 0L;
+      nativeBaseAddress_ = 0L;
     }
   } //End of class Deallocator
 

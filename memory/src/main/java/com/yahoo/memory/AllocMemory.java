@@ -44,12 +44,15 @@ public class AllocMemory extends NativeMemory {
    * @param memReq The MemoryRequest callback
    */
   public AllocMemory(final long capacityBytes, final MemoryRequest memReq) {
-    super(0L, null, null);
-    super.nativeRawStartAddress_ = unsafe.allocateMemory(capacityBytes);
-    super.capacityBytes_ = capacityBytes;
+    super(
+        unsafe.allocateMemory(capacityBytes),
+        capacityBytes,
+        0L,
+        null,
+        null);
     super.memReq_ = memReq;
 
-    cleaner = Cleaner.create(this, new Deallocator(nativeRawStartAddress_));
+    cleaner = Cleaner.create(this, new Deallocator(nativeBaseAddress_));
   }
 
   /**
@@ -104,27 +107,27 @@ public class AllocMemory extends NativeMemory {
     super.capacityBytes_ = 0L;
     super.memReq_ = null;
     cleaner.clean();
-    nativeRawStartAddress_ = 0L;
+    nativeBaseAddress_ = 0L;
   }
 
   private static final class Deallocator
       implements Runnable
   {
-    private long nativeRawStartAddress_;
+    private long nativeBaseAddress_;
 
-    private Deallocator(final long nativeRawStartAddress) {
-      assert (nativeRawStartAddress != 0);
-      this.nativeRawStartAddress_ = nativeRawStartAddress;
+    private Deallocator(final long nativeBaseAddress) {
+      assert (nativeBaseAddress != 0);
+      this.nativeBaseAddress_ = nativeBaseAddress;
     }
 
     @Override
     public void run() {
-      if (nativeRawStartAddress_ == 0) {
+      if (nativeBaseAddress_ == 0) {
         // Paranoia
         return;
       }
 
-      unsafe.freeMemory(nativeRawStartAddress_);
+      unsafe.freeMemory(nativeBaseAddress_);
     }
   }
 }

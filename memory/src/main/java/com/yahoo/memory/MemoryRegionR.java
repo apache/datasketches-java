@@ -188,7 +188,7 @@ class MemoryRegionR extends MemoryRegion {
     throw new ReadOnlyMemoryException();
   }
 
-  // getAddress() cannot be overridden, but harmless
+  // getAddress() OK
   // getCapacity() OK
   // getCumulativeOffset() //OK
   // getMemoryRequest() //OK

@@ -454,15 +454,12 @@ public interface Memory {
   ByteBuffer byteBuffer();
 
   /**
-   * Returns the start address of this Memory relative to its parent plus the offset in bytes.
-   * <p>
-   * Note that the precise definition of the returned address is slightly different for
-   * {@link NativeMemory#getAddress(long)} as it is the root of the Memory hierarchy and has no
-   * parent.</p>
+   * Returns the start address of this <i>Memory</i> relative to its parent plus the offset in bytes.
+   * Note that the parent could be native memory or some backing object.
+   *
    * @param offsetBytes the given offset in bytes from the start address of this Memory
    * relative to its parent.
-   * @return the start address of this Memory relative to its parent plus the offset in bytes.
-   * @see NativeMemory#getAddress(long)
+   * @return the start address of this <i>Memory</i> relative to its parent plus the offset in bytes.
    */
   long getAddress(final long offsetBytes);
 
@@ -473,13 +470,12 @@ public interface Memory {
   long getCapacity();
 
   /**
-   * Returns the cumulative offset in bytes of this Memory from the base Memory including the given
-   * offset. If this Memory is derived from Direct memory it will include the raw native address.
-   * If this Memory is derived from a byte or long array it will include the
-   * ARRAY_&lt;TYPE&gt;_BASE_OFFSET.
+   * Returns the cumulative offset in bytes of this Memory from the root of the Memory hierarchy
+   * including the given offsetBytes.
+   *
    * @param offsetBytes the given offset in bytes
-   * @return the cumulative offset in bytes of this Memory from the base Memory including the given
-   * offset.
+   * @return the cumulative offset in bytes of this Memory from the root of the Memory hierarchy
+   * including the given offsetBytes.
    */
   long getCumulativeOffset(final long offsetBytes);
 
@@ -542,12 +538,16 @@ public interface Memory {
   String toHexString(String header, long offsetBytes, int lengthBytes);
 
   /**
-   * If the backing memory is freeable, calling freeMemory() disables this instance and calls the
-   * JVM Cleaner, which frees any associated native memory. Calling freeMemory() is optional and
-   * may preempt the Garbage Collector, which may reduce the load on the GC.
+   * Because the <i>Memory</i> classes now use the JVM <i>Cleaner</i>, calling <i>freeMemory()</i>,
+   * which also calls <i>Cleaner</i>, is optional.
+   * In any case, calling <i>freeMemory()</i> is only relevant for <i>Memory</i> objects that have
+   * actually allocated native memory, which are those that have been allocated using
+   * {@link AllocMemory} or {@link MemoryMappedFile}.
    *
-   * <p>If the backing memory is not freeable, calling freeMemory() does little or nothing.
-   * It is always safe to call this method when you are done with this class. </p>
+   * <p>Preemptively calling <i>freeMemory()</i> may reduce the load on the JVM GarbageCollector,
+   * but the significance of this will have to be verified in the target system environment.
+   * Calling <i>freeMemory()</i> always disables the current instance by setting the capacity to
+   * zero.</p>
    */
   void freeMemory();
 }

@@ -14,9 +14,9 @@ import java.nio.ByteBuffer;
  */
 class NativeMemoryR extends NativeMemory {
 
-  protected NativeMemoryR(final long objectBaseOffset, final Object memArray,
-      final ByteBuffer byteBuf) {
-    super(objectBaseOffset, memArray, byteBuf);
+  protected NativeMemoryR(final long nativeRawStartAddress, final long capacityBytes,
+      final long objectBaseOffset, final Object memArray, final ByteBuffer byteBuf) {
+    super(nativeRawStartAddress, capacityBytes, objectBaseOffset, memArray, byteBuf);
   }
 
   @Override
@@ -188,7 +188,7 @@ class NativeMemoryR extends NativeMemory {
     throw new ReadOnlyMemoryException();
   }
 
-  // getAddress() //cannot be overridden, but harmless
+  // getAddress() //OK
   // getCapacity() //OK
   // getCumulativeOffset() //OK
   // getMemoryRequest() //OK

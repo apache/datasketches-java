@@ -50,45 +50,109 @@ public class NativeMemoryTest {
     assertFalse(mem.isAllocated());
   }
 
-  //Simple Native array
+  //Simple Native arrays
+
+  @Test
+  public void checkBooleanArray() {
+    boolean[] srcArray = { true, false, true, false, false, true, true, false };
+    boolean[] dstArray = new boolean[8];
+    Memory mem = new NativeMemory(srcArray);
+    mem.getBooleanArray(0, dstArray, 0, 8);
+
+    for (int i=0; i<8; i++) {
+      assertEquals(dstArray[i], srcArray[i]);
+    }
+  }
 
   @Test
   public void checkByteArray() {
     byte[] srcArray = { 1, -2, 3, -4, 5, -6, 7, -8 };
     byte[] dstArray = new byte[8];
-    NativeMemory mem = new NativeMemory(srcArray);
+    Memory mem = new NativeMemory(srcArray);
     mem.getByteArray(0, dstArray, 0, 8);
 
     for (int i=0; i<8; i++) {
       assertEquals(dstArray[i], srcArray[i]);
     }
-    //freeMemory not needed, array is on-heap
+  }
+
+  @Test
+  public void checkCharArray() {
+    char[] srcArray = { 1, 2, 3, 4, 5, 6, 7, 8 };
+    char[] dstArray = new char[8];
+    Memory mem = new NativeMemory(srcArray);
+    mem.getCharArray(0, dstArray, 0, 8);
+
+    for (int i=0; i<8; i++) {
+      assertEquals(dstArray[i], srcArray[i]);
+    }
+  }
+
+  @Test
+  public void checkShortArray() {
+    short[] srcArray = { 1, -2, 3, -4, 5, -6, 7, -8 };
+    short[] dstArray = new short[8];
+    Memory mem = new NativeMemory(srcArray);
+    mem.getShortArray(0, dstArray, 0, 8);
+
+    for (int i=0; i<8; i++) {
+      assertEquals(dstArray[i], srcArray[i]);
+    }
   }
 
   @Test
   public void checkIntArray() {
     int[] srcArray = { 1, -2, 3, -4, 5, -6, 7, -8 };
     int[] dstArray = new int[8];
-    NativeMemory mem = new NativeMemory(srcArray);
+    Memory mem = new NativeMemory(srcArray);
     mem.getIntArray(0, dstArray, 0, 8);
 
     for (int i=0; i<8; i++) {
       assertEquals(dstArray[i], srcArray[i]);
     }
-    //freeMemory not needed, array is on-heap
   }
 
   @Test
   public void checkLongArray() {
     long[] srcArray = { 1, -2, 3, -4, 5, -6, 7, -8 };
     long[] dstArray = new long[8];
-    NativeMemory mem = new NativeMemory(srcArray);
+    Memory mem = new NativeMemory(srcArray);
     mem.getLongArray(0, dstArray, 0, 8);
 
     for (int i=0; i<8; i++) {
       assertEquals(dstArray[i], srcArray[i]);
     }
-    //freeMemory not needed, array is on-heap
+  }
+
+  @Test
+  public void checkFloatArray() {
+    float[] srcArray = { 1, -2, 3, -4, 5, -6, 7, -8 };
+    float[] dstArray = new float[8];
+    Memory mem = new NativeMemory(srcArray);
+    mem.getFloatArray(0, dstArray, 0, 8);
+
+    for (int i=0; i<8; i++) {
+      assertEquals(dstArray[i], srcArray[i]);
+    }
+  }
+
+  @Test
+  public void checkDoubleArray() {
+    double[] srcArray = { 1, -2, 3, -4, 5, -6, 7, -8 };
+    double[] dstArray = new double[8];
+    Memory mem = new NativeMemory(srcArray);
+    mem.getDoubleArray(0, dstArray, 0, 8);
+
+    for (int i=0; i<8; i++) {
+      assertEquals(dstArray[i], srcArray[i]);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkNullInput() {
+    byte[] arr = null;
+    new NativeMemory(arr);
   }
 
   @Test

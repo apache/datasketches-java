@@ -26,33 +26,33 @@ import org.testng.annotations.Test;
  */
 public class MemoryMappedFileTest {
 
-  @SuppressWarnings("unused")
+  //@SuppressWarnings("unused")
   @Test(expectedExceptions = RuntimeException.class)
   public void testMapException() throws Exception {
     File dummy = createFile("dummy.txt", "");
-    new MemoryMappedFile(dummy, 0, dummy.length()); //zero length
+    MemoryMappedFile.getInstance(dummy, 0, dummy.length()); //zero length
   }
 
-  @SuppressWarnings("unused")
+  //@SuppressWarnings("unused")
   @Test
   public void testIllegalArgumentException() throws Exception {
     File file = new File(getClass().getClassLoader().getResource("memory_mapped.txt").getFile());
     try {
-      new MemoryMappedFile(file, -1, Integer.MAX_VALUE);
+      MemoryMappedFile.getInstance(file, -1, Integer.MAX_VALUE);
       fail("Failed: testIllegalArgumentException: Position was negative.");
     } catch (Exception e) {
       // Expected;
     }
 
     try {
-      new MemoryMappedFile(file, 0, -1);
+      MemoryMappedFile.getInstance(file, 0, -1);
       fail("Failed: testIllegalArgumentException: Size was negative");
     } catch (Exception e) {
       // Expected;
     }
 
     try {
-      new MemoryMappedFile(file, Long.MAX_VALUE, 2);
+      MemoryMappedFile.getInstance(file, Long.MAX_VALUE, 2);
       fail("Failed: testIllegalArgumentException: Sum of position + size is negative.");
     } catch (Exception e) {
       // Expected;
@@ -65,7 +65,7 @@ public class MemoryMappedFileTest {
     long memCapacity = file.length();
 
     try {
-      MemoryMappedFile mmf = new MemoryMappedFile(file, 0, file.length());
+      MemoryMappedFile mmf = MemoryMappedFile.getInstance(file, 0, file.length());
       assertEquals(memCapacity, mmf.getCapacity());
       mmf.freeMemory();
       assertEquals(0L, mmf.getCapacity());
@@ -80,7 +80,7 @@ public class MemoryMappedFileTest {
     File file = new File(getClass().getClassLoader().getResource("memory_mapped.txt").getFile());
     MemoryMappedFile mmf = null;
     try {
-      mmf = new MemoryMappedFile(file, 0, file.length());
+      mmf = MemoryMappedFile.getInstance(file, 0, file.length());
     } catch (Exception e) {
       if (mmf != null) mmf.freeMemory();
       fail("Failed: testMultipleUnMaps()");
@@ -96,7 +96,7 @@ public class MemoryMappedFileTest {
   public void testReadByAnotherProcess() {
     File file = new File(getClass().getClassLoader().getResource("memory_mapped.txt").getFile());
     try {
-      MemoryMappedFile mmf = new MemoryMappedFile(file, 0, file.length());
+      MemoryMappedFile mmf = MemoryMappedFile.getInstance(file, 0, file.length());
       mmf.load();
       char[] cbuf = new char[500];
       mmf.getCharArray(500, cbuf, 0, 500);
@@ -120,7 +120,7 @@ public class MemoryMappedFileTest {
   public void testReadFailAfterFree() {
     File file = new File(getClass().getClassLoader().getResource("memory_mapped.txt").getFile());
     try {
-      MemoryMappedFile mmf = new MemoryMappedFile(file, 0, file.length());
+      MemoryMappedFile mmf = MemoryMappedFile.getInstance(file, 0, file.length());
       mmf.freeMemory();
       char[] cbuf = new char[500];
       try {
@@ -137,7 +137,7 @@ public class MemoryMappedFileTest {
   public void testLoad() {
     File file = new File(getClass().getClassLoader().getResource("memory_mapped.txt").getFile());
     try {
-      MemoryMappedFile mmf = new MemoryMappedFile(file, 0, file.length());
+      MemoryMappedFile mmf = MemoryMappedFile.getInstance(file, 0, file.length());
       mmf.load();
       assertTrue(mmf.isLoaded());
       mmf.freeMemory();
@@ -153,7 +153,7 @@ public class MemoryMappedFileTest {
     try {
       // extra 5bytes for buffer
       int buf = (int) orgBytes + 5;
-      MemoryMappedFile mmf = new MemoryMappedFile(org, 0, buf);
+      MemoryMappedFile mmf = MemoryMappedFile.getInstance(org, 0, buf);
       mmf.load();
 
       // existing content
@@ -168,7 +168,7 @@ public class MemoryMappedFileTest {
       mmf.force();
       mmf.freeMemory();
 
-      MemoryMappedFile nmf = new MemoryMappedFile(org, 0, buf);
+      MemoryMappedFile nmf = MemoryMappedFile.getInstance(org, 0, buf);
       nmf.load();
 
       // existing content

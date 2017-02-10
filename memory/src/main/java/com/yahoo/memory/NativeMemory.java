@@ -5,6 +5,15 @@
 
 package com.yahoo.memory;
 
+import static com.yahoo.memory.MemoryUtil.checkBooleanArr;
+import static com.yahoo.memory.MemoryUtil.checkByteArr;
+import static com.yahoo.memory.MemoryUtil.checkByteBufRO;
+import static com.yahoo.memory.MemoryUtil.checkCharArr;
+import static com.yahoo.memory.MemoryUtil.checkDoubleArr;
+import static com.yahoo.memory.MemoryUtil.checkFloatArr;
+import static com.yahoo.memory.MemoryUtil.checkIntArr;
+import static com.yahoo.memory.MemoryUtil.checkLongArr;
+import static com.yahoo.memory.MemoryUtil.checkShortArr;
 import static com.yahoo.memory.UnsafeUtil.ARRAY_BOOLEAN_BASE_OFFSET;
 import static com.yahoo.memory.UnsafeUtil.ARRAY_BOOLEAN_INDEX_SCALE;
 import static com.yahoo.memory.UnsafeUtil.ARRAY_BYTE_BASE_OFFSET;
@@ -39,9 +48,8 @@ import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 
 /**
- * The NativeMemory class implements the Memory interface and is used to access Java byte arrays,
- * int arrays, long arrays and ByteBuffers by presenting them as arguments to the constructors
- * of this class.
+ * The NativeMemory class implements the Memory interface and is used to access Java primitive
+ * arrays, and ByteBuffers by presenting them as arguments to the constructors of this class.
  *
  * <p>The sub-class AllocMemory is used to allocate direct, off-heap native memory, which is then
  * accessed by the NativeMemory methods.
@@ -49,8 +57,9 @@ import java.nio.ByteBuffer;
  * <p>These methods extend many of the sun.misc.Unsafe class methods. Unsafe is an internal,
  * low-level class used by many Java library classes for performance reasons. To achieve high
  * performance Unsafe DOES NOT do any bounds checking. And for the same performance reasons, the
- * methods in this class DO NOT do any bounds checking when running in a default-configured JVM.
- * However, the methods in this class will perform bounds checking if the JVM is configured to
+ * methods in this class DO NOT do any bounds checking when running in a default-configured JVM.</p>
+ *
+ * <p>However, the methods in this class will perform bounds checking if the JVM is configured to
  * enable asserts (-ea). Test enviornments such as JUnit and TestNG automatically configure the
  * JVM to enable asserts. Thus, it is incumbent on the user of this class to make sure that their
  * code is thoroughly tested.  Violating memory bounds can cause memory segment faults, which takes
@@ -60,70 +69,193 @@ import java.nio.ByteBuffer;
  */
 //@SuppressWarnings("restriction")
 public class NativeMemory implements Memory {
-  /* Truth table that shows relationship between objectBaseOffset, memArray, byteBuf and Direct.
-  Class        Case                 ObjBaseOff MemArr byteBuf rawAdd CapacityBytes   Direct
-  NativeMemory byte[], int[], long[]        >0  valid    null      0            >0    FALSE
-  NativeMemory ByteBuffer Direct             0   null   valid     >0            >0     TRUE
-  NativeMemory ByteBuffer not Direct        >0  valid   valid      0            >0    FALSE
-  AllocMemory                                0   null    null     >0            >0     TRUE
-  MemoryMappedFile                           0   null    null     >0            >0     TRUE
-  */
-  protected final long objectBaseOffset_;
-  protected final Object memArray_;
-  //holding on to this to make sure that it is not garbage collected before we are done with it.
-  protected final ByteBuffer byteBuf_;
-  protected long nativeRawStartAddress_;
-  protected long capacityBytes_;
-  protected MemoryRequest memReq_ = null; //also set via AllocMemory
+  // Truth table that shows relationship between objectBaseOffset, memArray, byteBuf,
+  // nativeBaseAddress, capacityBytes and Direct.
+  //Class        Case                 ObjBaseOff MemArr ByteBuf RawAdd CapBytes   Direct
+  //NativeMemory primitive arrays             >0  valid    null      0       >0    FALSE
+  //NativeMemory ByteBuffer Direct             0   null   valid     >0       >0     TRUE
+  //NativeMemory ByteBuffer Heap              >0  valid   valid      0       >0    FALSE
+  //AllocMemory                                0   null    null     >0       >0     TRUE
+  //MemoryMappedFile                           0   null    null     >0       >0     TRUE
 
-  //only sets the finals
-  protected NativeMemory(final long objectBaseOffset, final Object memArray,
+  final long objectBaseOffset_; //includes the slice() offset for heap.
+  final Object memArray_;
+  final ByteBuffer byteBuf_; //holding on to this so that it is not GCed before we are done with it.
+  final boolean direct_;
+
+  long nativeBaseAddress_; //includes the slice() offset for direct.
+  long capacityBytes_;
+  private long cumBaseOffset_;
+  MemoryRequest memReq_ = null; //also optionally set via AllocMemory
+
+  protected NativeMemory(
+      final long nativeBaseAddress,
+      final long capacityBytes,
+      final long objectBaseOffset,
+      final Object memArray,
       final ByteBuffer byteBuf) {
+    nativeBaseAddress_ = nativeBaseAddress;
+    capacityBytes_ = capacityBytes;
     objectBaseOffset_ = objectBaseOffset;
     memArray_ = memArray;
     byteBuf_ = byteBuf;
+
+    cumBaseOffset_ = nativeBaseAddress_ + objectBaseOffset_;
+    direct_ = nativeBaseAddress_ > 0L;
+    if (((cumBaseOffset_ - 1) | nativeBaseAddress | objectBaseOffset | (capacityBytes_ - 1)) < 0) {
+      throw new IllegalArgumentException("Illegal constructor arguments.");
+    }
   }
 
   /**
-   * Provides access to the given byteArray using Memory interface
+   * Provides access to the given boolean array using Memory interface
+   * @param booleanArray an on-heap boolean array
+   */
+  public NativeMemory(final boolean[] booleanArray) {
+    this(0L, checkBooleanArr(booleanArray), ARRAY_BOOLEAN_BASE_OFFSET, booleanArray, null);
+  }
+
+  /**
+   * Provides access to the given byte array using Memory interface
    * @param byteArray an on-heap byte array
    */
   public NativeMemory(final byte[] byteArray) {
-    this(ARRAY_BYTE_BASE_OFFSET, byteArray, null);
-    if ((byteArray == null) || (byteArray.length == 0)) {
-      throw new IllegalArgumentException(
-          "Array must must not be null and have a length greater than zero.");
-    }
-    nativeRawStartAddress_ = 0L;
-    capacityBytes_ = byteArray.length;
+    this(0L, checkByteArr(byteArray), ARRAY_BYTE_BASE_OFFSET, byteArray, null);
   }
 
   /**
-   * Provides access to the given intArray using Memory interface
+   * Provides access to the given char array using Memory interface
+   * @param charArray an on-heap char array
+   */
+  public NativeMemory(final char[] charArray) {
+    this(0L, checkCharArr(charArray), ARRAY_CHAR_BASE_OFFSET, charArray, null);
+  }
+
+  /**
+   * Provides access to the given short array using Memory interface
+   * @param shortArray an on-heap short array
+   */
+  public NativeMemory(final short[] shortArray) {
+    this(0L, checkShortArr(shortArray), ARRAY_SHORT_BASE_OFFSET, shortArray, null);
+  }
+
+  /**
+   * Provides access to the given int array using Memory interface
    * @param intArray an on-heap int array
    */
   public NativeMemory(final int[] intArray) {
-    this(ARRAY_INT_BASE_OFFSET, intArray, null);
-    if ((intArray == null) || (intArray.length == 0)) {
-      throw new IllegalArgumentException(
-          "Array must must not be null and have a length greater than zero.");
-    }
-    nativeRawStartAddress_ = 0L;
-    capacityBytes_ = intArray.length << INT_SHIFT;
+    this(0L, checkIntArr(intArray), ARRAY_INT_BASE_OFFSET, intArray, null);
   }
 
   /**
-   * Provides access to the given longArray using Memory interface
+   * Provides access to the given long array using Memory interface
    * @param longArray an on-heap long array
    */
   public NativeMemory(final long[] longArray) {
-    this(ARRAY_LONG_BASE_OFFSET, longArray, null);
-    if ((longArray == null) || (longArray.length == 0)) {
-      throw new IllegalArgumentException(
-          "Array must must not be null and have a length greater than zero.");
+    this(0L, checkLongArr(longArray), ARRAY_LONG_BASE_OFFSET, longArray, null);
+  }
+
+  /**
+   * Provides access to the given float array using Memory interface
+   * @param floatArray an on-heap float array
+   */
+  public NativeMemory(final float[] floatArray) {
+    this(0L, checkFloatArr(floatArray), ARRAY_FLOAT_BASE_OFFSET, floatArray, null);
+  }
+
+  /**
+   * Provides access to the given double array using Memory interface
+   * @param doubleArray an on-heap double array
+   */
+  public NativeMemory(final double[] doubleArray) {
+    this(0L, checkDoubleArr(doubleArray), ARRAY_DOUBLE_BASE_OFFSET, doubleArray, null);
+  }
+
+  /**
+   * Provides access to the backing store of the given ByteBuffer using Memory interface.
+   * If the given <i>ByteBuffer</i> is read-only, the returned <i>Memory</i> will also be a
+   * read-only instance of <i>NativeMemory</i>.
+   * @param byteBuffer the given <i>ByteBuffer</i>
+   * @return a <i>Memory</i> object
+   */
+  public static Memory wrap(final ByteBuffer byteBuffer) {
+    final long nativeBaseAddress;  //includes the slice() offset for direct.
+    final long capacityBytes = byteBuffer.capacity();
+    final long objectBaseOffset;  //includes the slice() offset for heap.
+    final Object memArray;
+    final ByteBuffer byteBuf = byteBuffer;
+
+    final boolean readOnly = byteBuffer.isReadOnly();
+    final boolean direct = byteBuffer.isDirect();
+
+    if (readOnly) {
+
+      //READ-ONLY DIRECT
+      if (direct) {
+        //address() is already adjusted for direct slices, so arrayOffset = 0
+        nativeBaseAddress = ((sun.nio.ch.DirectBuffer) byteBuf).address();
+        objectBaseOffset = 0L;
+        memArray = null;
+
+        final NativeMemoryR nmr = new NativeMemoryR(
+            nativeBaseAddress, capacityBytes, objectBaseOffset, memArray, byteBuf);
+        nmr.memReq_ = null;
+        return nmr;
+      }
+
+      //READ-ONLY HEAP
+      //The messy acquisition of arrayOffset and array
+      final long arrayOffset; //created from a slice();
+      try {
+        Field field = ByteBuffer.class.getDeclaredField("offset");
+        field.setAccessible(true);
+        arrayOffset = (int) field.get(byteBuffer);
+
+        field = ByteBuffer.class.getDeclaredField("hb"); //the backing byte[]
+        field.setAccessible(true);
+        memArray = field.get(byteBuffer);
+      }
+      catch (final IllegalAccessException | NoSuchFieldException e) {
+        throw new RuntimeException(
+            "Could not get offset/byteArray from OnHeap ByteBuffer instance: " + e.getClass());
+      }
+
+      nativeBaseAddress = 0L;
+      //adjust for slice() arrayOffset()
+      objectBaseOffset = ARRAY_BYTE_BASE_OFFSET + arrayOffset * ARRAY_BYTE_INDEX_SCALE;
+
+      final NativeMemoryR nmr = new NativeMemoryR(
+          nativeBaseAddress, capacityBytes, objectBaseOffset, memArray, byteBuf);
+      nmr.memReq_ = null;
+      return nmr;
     }
-    nativeRawStartAddress_ = 0L;
-    capacityBytes_ = longArray.length << LONG_SHIFT;
+
+    //WRITABLE
+    else {
+
+      //WRITABLE-DIRECT
+      if (direct) {
+        nativeBaseAddress = ((sun.nio.ch.DirectBuffer) byteBuf).address();
+        objectBaseOffset = 0L;
+        memArray = null;
+
+        final NativeMemory nm = new NativeMemory(
+            nativeBaseAddress, capacityBytes, objectBaseOffset, memArray, byteBuf);
+        nm.memReq_ = null;
+        return nm;
+      }
+
+      //WRITABLE-HEAP
+      nativeBaseAddress = 0L;
+      //adjust for slice() arrayOffset()
+      objectBaseOffset = ARRAY_BYTE_BASE_OFFSET + byteBuf.arrayOffset() * ARRAY_BYTE_INDEX_SCALE;
+      memArray = byteBuf.array();
+
+      final NativeMemory nm = new NativeMemory(
+          nativeBaseAddress, capacityBytes, objectBaseOffset, memArray, byteBuf);
+      nm.memReq_ = null;
+      return nm;
+    }
   }
 
   /**
@@ -135,71 +267,24 @@ public class NativeMemory implements Memory {
    * read-only ByteBuffers
    */
   @Deprecated
-  public NativeMemory(final ByteBuffer byteBuf) {
-    if (byteBuf.isReadOnly()) {
-      throw new RuntimeException(
-          "Cannot create a NativeMemory object using a ReadOnly ByteBuffer. Please use "
-              + "NativeMemory.wrap(byteBuf) instead");
-    }
+  public NativeMemory(final ByteBuffer byteBuf) { //will eventually be removed
+    checkByteBufRO(byteBuf);
 
     if (byteBuf.isDirect()) {
       objectBaseOffset_ = 0L;
       memArray_ = null;
-      nativeRawStartAddress_ = ((sun.nio.ch.DirectBuffer) byteBuf).address();
+      nativeBaseAddress_ = ((sun.nio.ch.DirectBuffer) byteBuf).address();
+      cumBaseOffset_ = nativeBaseAddress_ + objectBaseOffset_;
     }
-    else { //must have array
+    else { //must have array, but arrayOffset is not accessible when Read-only
       objectBaseOffset_ = ARRAY_BYTE_BASE_OFFSET + byteBuf.arrayOffset() * ARRAY_BYTE_INDEX_SCALE;
       memArray_ = byteBuf.array();
-      nativeRawStartAddress_ = 0L;
+      nativeBaseAddress_ = 0L;
+      cumBaseOffset_ = nativeBaseAddress_ + objectBaseOffset_;
     }
     byteBuf_ = byteBuf;
     capacityBytes_ = byteBuf.capacity();
-  }
-
-  /**
-   * Provides access to the backing store of the given ByteBuffer using Memory interface. This method
-   * will return NativeMemoryR if the underlying ByteBuffer is read-only, otherwise it will return
-   * a NativeMemory object
-   * @param byteBuf the given ByteBuffer
-   * @return a Memory object
-   */
-  public static Memory wrap(final ByteBuffer byteBuf) {
-    if (byteBuf.isReadOnly()) {
-      final long objectBaseOffset;
-      final byte[] byteArray;
-      final long nativeRawStartAddress;
-
-      if (byteBuf.isDirect()) {
-        objectBaseOffset = 0L;
-        byteArray = null;
-        nativeRawStartAddress = ((sun.nio.ch.DirectBuffer) byteBuf).address();
-      }
-      else { //heap
-        final long offset;
-        try {
-          Field field = ByteBuffer.class.getDeclaredField("offset");
-          field.setAccessible(true);
-          offset = (int) field.get(byteBuf);
-
-          field = ByteBuffer.class.getDeclaredField("hb");
-          field.setAccessible(true);
-          byteArray = (byte[]) field.get(byteBuf);
-        } catch (final IllegalAccessException | NoSuchFieldException e) {
-          throw new RuntimeException(
-              "Could not get offset/byteArray from OnHeap ByteBuffer instance: " + e.getClass());
-        }
-        objectBaseOffset = ARRAY_BYTE_BASE_OFFSET + offset * ARRAY_BYTE_INDEX_SCALE;
-        nativeRawStartAddress = 0L;
-      }
-
-      final NativeMemoryR nmr = new NativeMemoryR(objectBaseOffset, byteArray, byteBuf);
-      nmr.nativeRawStartAddress_ = nativeRawStartAddress;
-      nmr.capacityBytes_ = byteBuf.capacity();
-      nmr.memReq_ = null;
-      return nmr;
-    } else {
-      return new NativeMemory(byteBuf);
-    }
+    direct_ = nativeBaseAddress_ > 0L;
   }
 
   @Override
@@ -655,10 +740,9 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public Memory asReadOnlyMemory() {
-    final NativeMemoryR nmr = new NativeMemoryR(objectBaseOffset_, memArray_, byteBuf_);
-    nmr.nativeRawStartAddress_ = nativeRawStartAddress_;
-    nmr.capacityBytes_ = capacityBytes_;
+  public Memory asReadOnlyMemory() { //TODO awkward, will change when MemoryRegion changes.
+    final NativeMemoryR nmr = new NativeMemoryR(
+        nativeBaseAddress_, capacityBytes_, objectBaseOffset_, memArray_, byteBuf_);
     nmr.memReq_ = memReq_;
     return nmr;
   }
@@ -668,24 +752,10 @@ public class NativeMemory implements Memory {
     return byteBuf_;
   }
 
-  /**
-   * Returns the Unsafe address plus the given offsetBytes. The Unsafe address may be either the
-   * raw native memory address when in direct mode, or the objectBaseOffset if the memArray object
-   * is not null.
-   * <p>
-   * Note that the precise definition of the returned address is slightly different for
-   * {@link Memory#getAddress(long)} as it may have a parent in the Memory hierarchy. Also note
-   * that for this class only, the {@link #getCumulativeOffset(long)} will return the same
-   * result as this method.</p>
-   * @param offsetBytes the given offset in bytes from the start address of this Memory.
-   * @return the Unsafe address plus the given offsetBytes.
-   * @see Memory#getAddress(long)
-   */
   @Override
-  public final long getAddress(final long offsetBytes) {
+  public long getAddress(final long offsetBytes) {
     assertBounds(offsetBytes, 0, capacityBytes_);
-    assert (nativeRawStartAddress_ > 0) ^ (objectBaseOffset_ > 0); //only one must be zero
-    return nativeRawStartAddress_ + objectBaseOffset_ + offsetBytes;
+    return cumBaseOffset_ + offsetBytes;
   }
 
   @Override
@@ -725,7 +795,7 @@ public class NativeMemory implements Memory {
 
   @Override
   public boolean isDirect() {
-    return nativeRawStartAddress_ > 0;
+    return direct_;
   }
 
   @Override
@@ -751,6 +821,9 @@ public class NativeMemory implements Memory {
     } else { sb.append("null"); }
     return toHex(sb.toString(), offsetBytes, lengthBytes);
   }
+
+  @Override
+  public void freeMemory() {}
 
   //NativeMemory only methods
 
@@ -793,9 +866,6 @@ public class NativeMemory implements Memory {
     }
   }
 
-  @Override
-  public void freeMemory() {}
-
   //Restricted methods
 
   /**
@@ -811,7 +881,7 @@ public class NativeMemory implements Memory {
     final long unsafeRawAddress = getAddress(offsetBytes);
     final StringBuilder sb = new StringBuilder();
     sb.append(header).append(LS);
-    sb.append("Raw Address         : ").append(nativeRawStartAddress_).append(LS);
+    sb.append("Raw Address         : ").append(nativeBaseAddress_).append(LS);
     sb.append("Object Offset       : ").append(objectBaseOffset_).append(": ");
     sb.append( (memArray_ == null) ? "null" : memArray_.getClass().getSimpleName()).append(LS);
     sb.append("Relative Offset     : ").append(offsetBytes).append(LS);
