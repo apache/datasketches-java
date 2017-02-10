@@ -823,7 +823,9 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public void freeMemory() {}
+  public void freeMemory() {
+    cumBaseOffset_ = 0;
+  }
 
   //NativeMemory only methods
 
@@ -881,7 +883,7 @@ public class NativeMemory implements Memory {
     final long unsafeRawAddress = getAddress(offsetBytes);
     final StringBuilder sb = new StringBuilder();
     sb.append(header).append(LS);
-    sb.append("Raw Address         : ").append(nativeBaseAddress_).append(LS);
+    sb.append("Native Base Address : ").append(nativeBaseAddress_).append(LS);
     sb.append("Object Offset       : ").append(objectBaseOffset_).append(": ");
     sb.append( (memArray_ == null) ? "null" : memArray_.getClass().getSimpleName()).append(LS);
     sb.append("Relative Offset     : ").append(offsetBytes).append(LS);

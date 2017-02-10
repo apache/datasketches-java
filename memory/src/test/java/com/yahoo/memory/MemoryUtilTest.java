@@ -5,8 +5,8 @@
 
 package com.yahoo.memory;
 
-
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
@@ -92,7 +92,7 @@ public class MemoryUtilTest {
       }
     }
 
-  }
+  } //end class GoodMemoryManager
 
   //////////////////////////////////////////////////////
   //////////////////////////////////////////////////////
@@ -119,7 +119,7 @@ public class MemoryUtilTest {
       // not used.
     }
 
-  }
+  } //end class BadMemoryManager1
 
   private static class BadMemoryManager2 implements MemoryRequest { //Allocates too small
     NativeMemory last = null; //simple means of tracking the last Memory allocated
@@ -151,13 +151,56 @@ public class MemoryUtilTest {
       // not used.
     }
 
-  }
+  } //end class BadMemoryManager2
 
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkBoundsTest() {
     UnsafeUtil.checkBounds(999, 2, 1000);
   }
 
+  @SuppressWarnings("unused")
+  @Test
+  public void checkNullEmptyArrays() {
+    try { boolean[] arr = null; new NativeMemory(arr); fail(); }
+    catch (IllegalArgumentException e) {}
+    try { new NativeMemory(new boolean[0]); fail(); }
+    catch (IllegalArgumentException e) {}
+
+    try { byte[] arr = null; new NativeMemory(arr); fail(); }
+    catch (IllegalArgumentException e) {}
+    try { new NativeMemory(new byte[0]); fail(); }
+    catch (IllegalArgumentException e) {}
+
+    try { char[] arr = null; new NativeMemory(arr); fail(); }
+    catch (IllegalArgumentException e) {}
+    try { new NativeMemory(new char[0]); fail(); }
+    catch (IllegalArgumentException e) {}
+
+    try { short[] arr = null; new NativeMemory(arr); fail(); }
+    catch (IllegalArgumentException e) {}
+    try { new NativeMemory(new short[0]); fail(); }
+    catch (IllegalArgumentException e) {}
+
+    try { int[] arr = null; new NativeMemory(arr); fail(); }
+    catch (IllegalArgumentException e) {}
+    try { new NativeMemory(new int[0]); fail(); }
+    catch (IllegalArgumentException e) {}
+
+    try { long[] arr = null; new NativeMemory(arr); fail(); }
+    catch (IllegalArgumentException e) {}
+    try { new NativeMemory(new long[0]); fail(); }
+    catch (IllegalArgumentException e) {}
+
+    try { float[] arr = null; new NativeMemory(arr); fail(); }
+    catch (IllegalArgumentException e) {}
+    try { new NativeMemory(new float[0]); fail(); }
+    catch (IllegalArgumentException e) {}
+
+    try { double[] arr = null; new NativeMemory(arr); fail(); }
+    catch (IllegalArgumentException e) {}
+    try { new NativeMemory(new double[0]); fail(); }
+    catch (IllegalArgumentException e) {}
+  }
 
   @Test
   public void printlnTest() {
@@ -168,7 +211,7 @@ public class MemoryUtilTest {
    * @param s value to print
    */
   static void println(String s) {
-    //System.out.println(s); //disable here
+    System.out.println(s); //disable here
   }
 
 }

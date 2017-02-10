@@ -641,6 +641,24 @@ public class NativeMemoryTest {
     println( mem.toHexString("HeapBB", 0, memCapacity));
   }
 
+  @Test
+  public void checkByteBufferWrapDirectAccess() {
+    int memCapacity = 64;
+    ByteBuffer byteBuf = ByteBuffer.allocateDirect(memCapacity);
+    Memory mem = NativeMemory.wrap(byteBuf);
+
+    for (int i=0; i<memCapacity; i++) {
+      byteBuf.put(i, (byte) i);
+    }
+
+    for (int i=0; i<memCapacity; i++) {
+      assertEquals(mem.getByte(i), byteBuf.get(i));
+    }
+
+    println( mem.toHexString("HeapBB", 0, memCapacity));
+  }
+
+
   @SuppressWarnings("deprecation")
   @Test
   public void checkHasArrayAndBuffer() {
@@ -764,15 +782,6 @@ public class NativeMemoryTest {
     assertEquals(2, nm.getInt(0));
   }
 
-  private static class DummyMemReq implements MemoryRequest { //returns null Memory
-    @Override public Memory request(long capacityBytes) { return null; }
-    @Override public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
-      return null;
-    }
-    @Override public void free(Memory mem) {}
-    @Override public void free(Memory memToFree, Memory newMem) {}
-  }
-
   @Test
   public void checkMemReqPlusMisc() {
     byte[] arr = new byte[8];
@@ -784,6 +793,15 @@ public class NativeMemoryTest {
     String s = mem.toHexString("Test", 0, 8);
     println(s);
     assertTrue(arr == mem.getParent());
+  }
+
+  private static class DummyMemReq implements MemoryRequest { //returns null Memory
+    @Override public Memory request(long capacityBytes) { return null; }
+    @Override public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
+      return null;
+    }
+    @Override public void free(Memory mem) {}
+    @Override public void free(Memory memToFree, Memory newMem) {}
   }
 
   @SuppressWarnings("unused")
@@ -800,6 +818,16 @@ public class NativeMemoryTest {
     new NativeMemory(intArr);
   }
 
+  @SuppressWarnings("unused")
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void checkConstructorException() {
+      new NativeMemory(-1, 0, -1, null, null);
+  }
+
+  @Test
+  public void checkGoodBounds() {
+    UnsafeUtil.checkBounds(50, 50, 100);
+  }
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
