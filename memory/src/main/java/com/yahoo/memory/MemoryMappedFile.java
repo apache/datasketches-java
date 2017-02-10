@@ -190,10 +190,8 @@ public final class MemoryMappedFile extends NativeMemory {
 
   @Override
   public void freeMemory() {
-    super.capacityBytes_ = 0L;
-    super.memReq_ = null;
     cleaner_.clean();
-    nativeBaseAddress_ = 0L;
+    super.freeMemory();
   }
 
   // Restricted methods

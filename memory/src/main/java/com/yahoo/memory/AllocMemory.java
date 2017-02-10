@@ -104,10 +104,8 @@ public class AllocMemory extends NativeMemory {
 
   @Override
   public void freeMemory() {
-    super.capacityBytes_ = 0L;
-    super.memReq_ = null;
     cleaner.clean();
-    nativeBaseAddress_ = 0L;
+    super.freeMemory();
   }
 
   private static final class Deallocator

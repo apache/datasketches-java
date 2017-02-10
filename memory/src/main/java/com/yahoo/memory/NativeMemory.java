@@ -824,7 +824,10 @@ public class NativeMemory implements Memory {
 
   @Override
   public void freeMemory() {
-    cumBaseOffset_ = 0;
+    nativeBaseAddress_ = 0L;
+    capacityBytes_ = 0L;
+    cumBaseOffset_ = 0L;
+    memReq_ = null;
   }
 
   //NativeMemory only methods
