@@ -72,24 +72,6 @@ public final class MemoryMappedFile extends NativeMemory {
     return new MemoryMappedFile(raf, mbb, nativeBaseAddress, capacityBytes);
   }
 
-  //  public MemoryMappedFile(final File file, final long position, final long len) throws Exception {
-  //    super(0L, null, null);
-  //
-  //    checkPositionLen(position, len);
-  //
-  //    this.randomAccessFile_ = new RandomAccessFile(file, "rw");
-  //    this.fileChannel_ = randomAccessFile_.getChannel();
-  //    super.nativeBaseAddress_ = map(fileChannel_, position, len);
-  //    super.capacityBytes_ = len;
-  //    super.memReq_ = null;
-  //
-  //    // len can be more than the file.length
-  //    randomAccessFile_.setLength(len);
-  //    createDummyMbbInstance();
-  //
-  //    this.cleaner_ = Cleaner.create(this,
-  //        new Deallocator(randomAccessFile_, nativeBaseAddress_, capacityBytes_));
-
   private static final void checkPositionLen(final long position, final long len) {
     if (position < 0L) {
       throw new IllegalArgumentException("Negative position");
@@ -254,20 +236,20 @@ public final class MemoryMappedFile extends NativeMemory {
   }
 
   private static final class Deallocator implements Runnable {
-    private RandomAccessFile randomAccessFile_;
-    private FileChannel fileChannel_;
-    private long nativeBaseAddress_;
-    private long capacityBytes_;
+    private RandomAccessFile raf;
+    private FileChannel fc;
+    private long nativeBaseAdd;
+    private long capBytes;
 
     private Deallocator(final RandomAccessFile randomAccessFile,
         final long nativeBaseAddress, final long capacityBytes) {
       assert (randomAccessFile != null);
       assert (nativeBaseAddress != 0);
       assert (capacityBytes != 0);
-      this.randomAccessFile_ = randomAccessFile;
-      this.fileChannel_ = randomAccessFile.getChannel();
-      this.nativeBaseAddress_ = nativeBaseAddress;
-      this.capacityBytes_ = capacityBytes;
+      raf = randomAccessFile;
+      fc = randomAccessFile.getChannel();
+      nativeBaseAdd = nativeBaseAddress;
+      capBytes = capacityBytes;
     }
 
     /**
@@ -277,8 +259,8 @@ public final class MemoryMappedFile extends NativeMemory {
       try {
         final Method method = FileChannelImpl.class.getDeclaredMethod("unmap0", long.class, long.class);
         method.setAccessible(true);
-        method.invoke(fileChannel_, nativeBaseAddress_, capacityBytes_);
-        randomAccessFile_.close();
+        method.invoke(fc, nativeBaseAdd, capBytes);
+        raf.close();
       } catch (final Exception e) {
         throw new RuntimeException(
             String.format("Encountered %s exception while freeing memory", e.getClass()));
@@ -287,10 +269,10 @@ public final class MemoryMappedFile extends NativeMemory {
 
     @Override
     public void run() {
-      if (fileChannel_ != null) {
+      if (fc != null) {
         unmap();
       }
-      nativeBaseAddress_ = 0L;
+      nativeBaseAdd = 0L;
     }
   } //End of class Deallocator
 

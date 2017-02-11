@@ -14,9 +14,14 @@ import java.nio.ByteBuffer;
  */
 class NativeMemoryR extends NativeMemory {
 
-  protected NativeMemoryR(final long nativeRawStartAddress, final long capacityBytes,
-      final long objectBaseOffset, final Object memArray, final ByteBuffer byteBuf) {
-    super(nativeRawStartAddress, capacityBytes, objectBaseOffset, memArray, byteBuf);
+  NativeMemoryR(final NativeMemory nMem) {
+    super(nMem.nativeBaseAddress_, nMem.capacityBytes_, nMem.objectBaseOffset_,
+        nMem.memArray_, nMem.byteBuf_);
+  }
+
+  NativeMemoryR(final long nativeBaseAddress, final long capacityBytes, final long objectBaseOffset,
+      final Object memArray, final ByteBuffer byteBuf) {
+    super(nativeBaseAddress, capacityBytes, objectBaseOffset, memArray, byteBuf);
   }
 
   @Override

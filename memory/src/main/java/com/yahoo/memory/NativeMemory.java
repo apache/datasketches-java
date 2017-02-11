@@ -740,9 +740,8 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public Memory asReadOnlyMemory() { //TODO awkward, will change when MemoryRegion changes.
-    final NativeMemoryR nmr = new NativeMemoryR(
-        nativeBaseAddress_, capacityBytes_, objectBaseOffset_, memArray_, byteBuf_);
+  public Memory asReadOnlyMemory() {
+    final NativeMemoryR nmr = new NativeMemoryR(this);
     nmr.memReq_ = memReq_;
     return nmr;
   }
