@@ -76,7 +76,7 @@ public interface Memory {
   /**
    * Gets the boolean array at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
-   * @param dstArray The destination array.
+   * @param dstArray The preallocated destination array.
    * @param dstOffset offset in array units
    * @param length number of array units to transfer
    */
@@ -92,7 +92,7 @@ public interface Memory {
   /**
    * Gets the byte array at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
-   * @param dstArray The destination array.
+   * @param dstArray The preallocated destination array.
    * @param dstOffset offset in array units
    * @param length number of array units to transfer
    */
@@ -108,7 +108,7 @@ public interface Memory {
   /**
    * Gets the char array at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
-   * @param dstArray The destination array.
+   * @param dstArray The preallocated destination array.
    * @param dstOffset offset in array units
    * @param length number of array units to transfer
    */
@@ -124,7 +124,7 @@ public interface Memory {
   /**
    * Gets the double array at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
-   * @param dstArray The destination array.
+   * @param dstArray The preallocated destination array.
    * @param dstOffset offset in array units
    * @param length number of array units to transfer
    */
@@ -140,7 +140,7 @@ public interface Memory {
   /**
    * Gets the float array at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
-   * @param dstArray The destination array.
+   * @param dstArray The preallocated destination array.
    * @param dstOffset offset in array units
    * @param length number of array units to transfer
    */
@@ -156,7 +156,7 @@ public interface Memory {
   /**
    * Gets the int array at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
-   * @param dstArray The destination array.
+   * @param dstArray The preallocated destination array.
    * @param dstOffset offset in array units
    * @param length number of array units to transfer
    */
@@ -172,7 +172,7 @@ public interface Memory {
   /**
    * Gets the long array at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
-   * @param dstArray The destination array.
+   * @param dstArray The preallocated destination array.
    * @param dstOffset offset in array units
    * @param length number of array units to transfer
    */
@@ -188,7 +188,7 @@ public interface Memory {
   /**
    * Gets the short array at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
-   * @param dstArray The destination array.
+   * @param dstArray The preallocated destination array.
    * @param dstOffset offset in array units
    * @param length number of array units to transfer
    */
