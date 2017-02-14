@@ -79,7 +79,6 @@ public interface Memory {
    * @param dstArray The destination array.
    * @param dstOffset offset in array units
    * @param length number of array units to transfer
-   * The size of this array determines the bytes transferred.
    */
   void getBooleanArray(long offsetBytes, boolean[] dstArray, int dstOffset, int length);
 
@@ -96,7 +95,6 @@ public interface Memory {
    * @param dstArray The destination array.
    * @param dstOffset offset in array units
    * @param length number of array units to transfer
-   * The size of this array determines the bytes transferred.
    */
   void getByteArray(long offsetBytes, byte[] dstArray, int dstOffset, int length);
 
@@ -113,7 +111,6 @@ public interface Memory {
    * @param dstArray The destination array.
    * @param dstOffset offset in array units
    * @param length number of array units to transfer
-   * The size of this array determines the bytes transferred.
    */
   void getCharArray(long offsetBytes, char[] dstArray, int dstOffset, int length);
 
@@ -130,7 +127,6 @@ public interface Memory {
    * @param dstArray The destination array.
    * @param dstOffset offset in array units
    * @param length number of array units to transfer
-   * The size of this array determines the bytes transferred.
    */
   void getDoubleArray(long offsetBytes, double[] dstArray, int dstOffset, int length);
 
@@ -147,7 +143,6 @@ public interface Memory {
    * @param dstArray The destination array.
    * @param dstOffset offset in array units
    * @param length number of array units to transfer
-   * The size of this array determines the bytes transferred.
    */
   void getFloatArray(long offsetBytes, float[] dstArray, int dstOffset, int length);
 
@@ -164,7 +159,6 @@ public interface Memory {
    * @param dstArray The destination array.
    * @param dstOffset offset in array units
    * @param length number of array units to transfer
-   * The size of this array determines the bytes transferred.
    */
   void getIntArray(long offsetBytes, int[] dstArray, int dstOffset, int length);
 
@@ -181,7 +175,6 @@ public interface Memory {
    * @param dstArray The destination array.
    * @param dstOffset offset in array units
    * @param length number of array units to transfer
-   * The size of this array determines the bytes transferred.
    */
   void getLongArray(long offsetBytes, long[] dstArray, int dstOffset, int length);
 
@@ -198,7 +191,6 @@ public interface Memory {
    * @param dstArray The destination array.
    * @param dstOffset offset in array units
    * @param length number of array units to transfer
-   * The size of this array determines the bytes transferred.
    */
   void getShortArray(long offsetBytes, short[] dstArray, int dstOffset, int length);
 
@@ -247,7 +239,6 @@ public interface Memory {
    * @param srcArray The source array.
    * @param srcOffset offset in array units
    * @param length number of array units to transfer
-   * The size of this array determines the bytes transferred.
    */
   void putBooleanArray(long offsetBytes, boolean[] srcArray, int srcOffset, int length);
 
@@ -264,7 +255,6 @@ public interface Memory {
    * @param srcArray The source array.
    * @param srcOffset offset in array units
    * @param length number of array units to transfer
-   * The size of this array determines the bytes transferred.
    */
   void putByteArray(long offsetBytes, byte[] srcArray, int srcOffset, int length);
 
@@ -281,7 +271,6 @@ public interface Memory {
    * @param srcArray The source array.
    * @param srcOffset offset in array units
    * @param length number of array units to transfer
-   * The size of this array determines the bytes transferred.
    */
   void putCharArray(long offsetBytes, char[] srcArray, int srcOffset, int length);
 
@@ -298,7 +287,6 @@ public interface Memory {
    * @param srcArray The source array.
    * @param srcOffset offset in array units
    * @param length number of array units to transfer
-   * The size of this array determines the bytes transferred.
    */
   void putDoubleArray(long offsetBytes, double[] srcArray, int srcOffset, int length);
 
@@ -315,7 +303,6 @@ public interface Memory {
    * @param srcArray The source array.
    * @param srcOffset offset in array units
    * @param length number of array units to transfer
-   * The size of this array determines the bytes transferred.
    */
   void putFloatArray(long offsetBytes, float[] srcArray, int srcOffset, int length);
 
@@ -332,7 +319,6 @@ public interface Memory {
    * @param srcArray The source array.
    * @param srcOffset offset in array units
    * @param length number of array units to transfer
-   * The size of this array determines the bytes transferred.
    */
   void putIntArray(long offsetBytes, int[] srcArray, int srcOffset, int length);
 
@@ -349,7 +335,6 @@ public interface Memory {
    * @param srcArray The source array.
    * @param srcOffset offset in array units
    * @param length number of array units to transfer
-   * The size of this array determines the bytes transferred.
    */
   void putLongArray(long offsetBytes, long[] srcArray, int srcOffset, int length);
 
@@ -366,7 +351,6 @@ public interface Memory {
    * @param srcArray The source array.
    * @param srcOffset offset in array units
    * @param length number of array units to transfer
-   * The size of this array determines the bytes transferred.
    */
   void putShortArray(long offsetBytes, short[] srcArray, int srcOffset, int length);
 
