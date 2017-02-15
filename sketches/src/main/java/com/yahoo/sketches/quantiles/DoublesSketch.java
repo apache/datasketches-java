@@ -538,6 +538,19 @@ public abstract class DoublesSketch {
   }
 
   /**
+   * Returns the number of bytes this on-heap sketch would require to store in updatable form.
+   * This uses roughly 2X the storage of the compact form. Only correct for on-heap sketches.
+   * @param k the size configuration parameter for the sketch.
+   * @param n the number of items input into the sketch.
+   * @return he number of bytes this sketch would require to store in updatable form.
+   * @deprecated please use {@link #getUpdatableStorageBytes(int, long, boolean)}
+   */
+  @Deprecated
+  public static int getUpdatableStorageBytes(final int k, final long n) {
+    return getUpdatableStorageBytes(k, n, false);
+  }
+
+  /**
    * Returns the number of bytes this sketch would require to store in updatable form.
    * This uses roughly 2X the storage of the compact form
    * given the values of <i>k</i> and <i>n</i>.
