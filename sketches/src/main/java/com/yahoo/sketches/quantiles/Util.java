@@ -39,6 +39,90 @@ final class Util {
   static final char TAB = '\t';
 
   /**
+   * Computes the Komologorov-Smirnov Statistic between two quantiles sketches.
+   * @param sketch1 Input DoubleSketch 1
+   * @param sketch2 Input DoubleSketch 2
+   * @param tgtConf Target confidence threshold
+   * @return Boolean indicating whether the two sketches were likely generated from the same
+   * underlying distribution.
+   */
+  public static boolean computeKSStatistic(final DoublesSketch sketch1,
+                                           final DoublesSketch sketch2,
+                                           final double tgtConf) {
+    final DoublesAuxiliary p = sketch1.constructAuxiliary();
+    final DoublesAuxiliary q = sketch2.constructAuxiliary();
+
+    final double n1 = (double) sketch1.getN();
+    final double n2 = (double) sketch2.getN();
+    final double confScale = Math.sqrt(-0.5 * Math.log(0.5 * tgtConf));
+
+    // reject null hypothesis at tgtConf if D_{KS} > thresh
+    final double thresh = confScale * Math.sqrt((n1 + n2) / (n1 * n2));
+
+    double D = 0.0;
+    int i = getNextIndex(p, -1);
+    int j = getNextIndex(q, -1);
+    // We're done if either
+    while (i < p.auxSamplesArr_.length && j < q.auxSamplesArr_.length) {
+      System.out.printf("p[%d]: (%f, %f)\t", i, p.auxSamplesArr_[i], p.auxCumWtsArr_[i] / n1);
+      System.out.printf("q[%d]: (%f, %f)\n", j, q.auxSamplesArr_[j], q.auxCumWtsArr_[j] / n2);
+      System.out.printf("\tD = max(%f, %f)\n", D,
+              Math.abs((p.auxCumWtsArr_[i] / n1) - (q.auxCumWtsArr_[j] / n2)));
+      D = Math.max(D, Math.abs((p.auxCumWtsArr_[i] / n1) - (q.auxCumWtsArr_[j] / n2)));
+
+      if (p.auxSamplesArr_[i] == q.auxSamplesArr_[j]) {
+        System.out.println("\tIncrement both\n");
+        i = getNextIndex(p, i);
+        j = getNextIndex(q, j);
+      } else if (p.auxSamplesArr_[i] < q.auxSamplesArr_[j] && i < p.auxSamplesArr_.length) {
+        System.out.println("\tIncrement p\n");
+        i = getNextIndex(p, i);
+      } else {
+        System.out.println("\tIncrement q\n");
+        j = getNextIndex(q, j);
+      }
+    }
+
+    // One final comparison, with one of the two values at 1.0.
+    // Subsequent values for the smaller CDF will be strictly larger, so the difference for any
+    // later tests cannot be greater.
+    System.out.printf("Final D = max(%f, %f)\n", D,
+            Math.abs((p.auxCumWtsArr_[i] / n1) - (q.auxCumWtsArr_[j] / n2)));
+    D = Math.max(D, Math.abs((p.auxCumWtsArr_[i] / n1) - (q.auxCumWtsArr_[j] / n2)));
+
+    /*
+    System.out.println("N: " + p.auxN_);
+    for (int i = 0; i < p.auxSamplesArr_.length; ++i) {
+      System.out.printf("%5d:\t%d\t%f\t%f\n", i, p.auxCumWtsArr_[i], p.auxSamplesArr_[i],
+              p.auxCumWtsArr_[i] / (double) p.auxN_);
+    }
+    */
+    final double eps1 = Util.EpsilonFromK.getAdjustedEpsilon(sketch1.getK());
+    final double eps2 = Util.EpsilonFromK.getAdjustedEpsilon(sketch2.getK());
+    final double adjustedD = D - eps1 - eps2;
+
+    System.out.printf("D: %f\te1: %f\te2: %f\ttotal: %f\tthresh: %f\tresult: %s\n",
+            D, eps1, eps2, adjustedD, thresh, adjustedD > thresh);
+
+    return adjustedD > thresh;
+  }
+
+  static int getNextIndex(final DoublesAuxiliary aux, final int stIdx) {
+    int idx = stIdx + 1;
+    if (idx >= aux.auxSamplesArr_.length) { return aux.auxSamplesArr_.length; }
+
+    // if we have a bunch of equal values, use the last one
+    final double val = aux.auxSamplesArr_[idx];
+    int nxtIdx = idx + 1;
+    while (nxtIdx < aux.auxSamplesArr_.length && aux.auxSamplesArr_[nxtIdx] == val) {
+      idx = nxtIdx;
+      ++nxtIdx;
+    }
+    return idx;
+  }
+
+
+  /**
    * Checks the validity of the given value k
    * @param k must be greater than 1 and less than 65536.
    */

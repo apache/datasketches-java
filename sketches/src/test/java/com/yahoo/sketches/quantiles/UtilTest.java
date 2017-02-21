@@ -9,6 +9,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import java.util.Arrays;
+import java.util.Random;
 
 import org.testng.annotations.Test;
 
@@ -250,7 +251,7 @@ public class UtilTest {
    testBlockyTandemMergeSort(10, 50);
  }
 
- /**
+  /**
   *
   * @param numTries number of tries
   * @param maxArrLen maximum length of array size
@@ -275,6 +276,30 @@ public class UtilTest {
    }
    //System.out.printf ("Passed: testBlockyTandemMergeSort%n");
  }
+
+  @Test
+  public void computeKomologorovSmirnovStatisticTest() {
+    final int k = 16;
+    final DoublesSketch s1 = DoublesSketch.builder().build(k);
+    final DoublesSketch s2 = DoublesSketch.builder().build(k);
+    final double conf = 0.95;
+
+    final Random rand = new Random();
+
+    //final int n = k * 32;
+    final int n =  3 * k - 1;
+    for (int i = 0; i < n; ++i) {
+      final double x = rand.nextGaussian();
+      //s1.update(i);
+      //s1.update(i);
+      s1.update(x + 0.25);
+      //s2.update(2 * x + 2);
+      s2.update(x);
+    }
+
+    Util.computeKSStatistic(s1, s2, conf);
+  }
+
 
 // we are retaining this stand-alone test for now because it can be more exhaustive
 
