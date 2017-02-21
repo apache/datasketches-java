@@ -135,7 +135,6 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
 
     boolean readOnly = srcMem.isReadOnly();
     boolean direct = srcMem.isDirect();
-    final long memAdd = srcMem.getCumulativeOffset(0L);
 
     if (readOnly && !direct) {
       preambleLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;         //byte 0
@@ -154,6 +153,8 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
 
     else { //!readOnly || direct
       final Object memObj =  (direct) ? null : srcMem.array();
+      final long memAdd = srcMem.getCumulativeOffset(0L);
+
       preambleLongs = extractPreLongs(memObj, memAdd);                    //byte 0
       myRF = ResizeFactor.getRF(extractLgResizeFactor(memObj, memAdd));   //byte 0
       serVer = extractSerVer(memObj, memAdd);                             //byte 1
