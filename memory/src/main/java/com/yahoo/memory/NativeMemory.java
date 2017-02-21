@@ -235,6 +235,7 @@ public class NativeMemory implements Memory {
 
       //WRITABLE-DIRECT
       if (direct) {
+        //address() is already adjusted for direct slices, so arrayOffset = 0
         nativeBaseAddress = ((sun.nio.ch.DirectBuffer) byteBuf).address();
         objectBaseOffset = 0L;
         memArray = null;
