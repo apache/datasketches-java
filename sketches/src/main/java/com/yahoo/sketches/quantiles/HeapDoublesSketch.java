@@ -7,11 +7,17 @@ package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.FAMILY_BYTE;
+import static com.yahoo.sketches.quantiles.PreambleUtil.FLAGS_BYTE;
+import static com.yahoo.sketches.quantiles.PreambleUtil.K_SHORT;
+import static com.yahoo.sketches.quantiles.PreambleUtil.MIN_DOUBLE;
+import static com.yahoo.sketches.quantiles.PreambleUtil.MAX_DOUBLE;
+import static com.yahoo.sketches.quantiles.PreambleUtil.N_LONG;
+import static com.yahoo.sketches.quantiles.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.quantiles.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFamilyID;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.extractMaxDouble;
-import static com.yahoo.sketches.quantiles.PreambleUtil.extractMinDouble;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractN;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerVer;
@@ -111,15 +117,36 @@ final class HeapDoublesSketch extends DoublesSketch {
     if (memCapBytes < 8) {
       throw new SketchesArgumentException("Source Memory too small: " + memCapBytes + " < 8");
     }
-    final Object memObj = srcMem.array(); //may be null
-    final long memAdd = srcMem.getCumulativeOffset(0L);
 
-    //Extract the preamble first 8 bytes
-    final int preLongs = extractPreLongs(memObj, memAdd);
-    final int serVer = extractSerVer(memObj, memAdd);
-    final int familyID = extractFamilyID(memObj, memAdd);
-    final int flags = extractFlags(memObj, memAdd);
-    final int k = extractK(memObj, memAdd);
+    final boolean readOnly = srcMem.isReadOnly();
+    final boolean direct = srcMem.isDirect();
+
+    final int preLongs;
+    final int serVer;
+    final int familyID;
+    final int flags;
+    final int k;
+    final long n;
+
+    if (readOnly && !direct) {
+      preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE);
+      serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
+      familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
+      flags = srcMem.getByte(FLAGS_BYTE) & 0XFF;
+      k = srcMem.getShort(K_SHORT) & 0XFFFF;
+      n = srcMem.getLong(N_LONG);
+    } else {
+      final Object memObj = srcMem.array(); //may be null
+      final long memAdd = srcMem.getCumulativeOffset(0L);
+
+      preLongs = extractPreLongs(memObj, memAdd);
+      serVer = extractSerVer(memObj, memAdd);
+      familyID = extractFamilyID(memObj, memAdd);
+      flags = extractFlags(memObj, memAdd);
+      k = extractK(memObj, memAdd);
+      n = extractN(memObj, memAdd);
+    }
+
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0; //Preamble flags empty state
 
     //VALIDITY CHECKS
@@ -135,7 +162,6 @@ final class HeapDoublesSketch extends DoublesSketch {
     //Forward compatibility from SerVer = 1 :
     final boolean srcIsCompact = (serVer == 2) | ((flags & COMPACT_FLAG_MASK) > 0);
 
-    final long n = extractN(memObj, memAdd); //Second 8 bytes of preamble
     checkHeapMemCapacity(k, n, srcIsCompact, serVer, memCapBytes);
 
     //set class members by computing them
@@ -245,9 +271,6 @@ final class HeapDoublesSketch extends DoublesSketch {
    */
   private void srcMemoryToCombinedBuffer(final Memory srcMem, final int serVer,
       final boolean srcIsCompact, final int combBufCap) {
-    final Object memArr = srcMem.array(); //may be null
-    final long memAdd = srcMem.getCumulativeOffset(0L);
-
     final int preLongs = 2;
     final int extra = (serVer == 1) ? 3 : 2; // space for min and max values, buf alloc (SerVer 1)
     final int preBytes = (preLongs + extra) << 3;
@@ -256,8 +279,8 @@ final class HeapDoublesSketch extends DoublesSketch {
     final long n = getN();
     final double[] combinedBuffer = new double[combBufCap]; //always non-compact
     //Load min, max
-    putMinValue(extractMinDouble(memArr, memAdd));
-    putMaxValue(extractMaxDouble(memArr, memAdd));
+    putMinValue(srcMem.getDouble(MIN_DOUBLE));
+    putMaxValue(srcMem.getDouble(MAX_DOUBLE));
 
     if (srcIsCompact) {
       //Load base buffer
