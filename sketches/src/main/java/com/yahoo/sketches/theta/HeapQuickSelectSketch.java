@@ -133,8 +133,8 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
     final float p;
     final long thetaLong;
 
-    boolean readOnly = srcMem.isReadOnly();
-    boolean direct = srcMem.isDirect();
+    final boolean readOnly = srcMem.isReadOnly();
+    final boolean direct = srcMem.isDirect();
 
     if (readOnly && !direct) {
       preambleLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;         //byte 0

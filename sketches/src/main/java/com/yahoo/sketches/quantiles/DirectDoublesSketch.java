@@ -215,7 +215,7 @@ final class DirectDoublesSketch extends DoublesSketch {
 
   @Override
   int getCombinedBufferItemCapacity() {
-    int mCap = ((int)mem_.getCapacity() - 32) / 8;
+    final int mCap = ((int)mem_.getCapacity() - 32) / 8;
     return mCap;
   }
 

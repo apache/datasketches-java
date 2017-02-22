@@ -163,7 +163,7 @@ final class HeapDoublesSketch extends DoublesSketch {
     final int newBBCount = curBBCount + 1;
     final long newN = n_ + 1;
 
-    int combBufItemCap = combinedBuffer_.length;
+    final int combBufItemCap = combinedBuffer_.length;
     if (newBBCount > combBufItemCap) {
       growBaseBuffer(); //only changes combinedBuffer when it is only a base buffer
     }
@@ -227,7 +227,7 @@ final class HeapDoublesSketch extends DoublesSketch {
   @Override
   public void reset() {
     n_ = 0;
-    int combinedBufferItemCapacity = 2 * Math.min(DoublesSketch.MIN_K, k_); //the min is important
+    final int combinedBufferItemCapacity = 2 * Math.min(DoublesSketch.MIN_K, k_); //min is important
     combinedBuffer_ = new double[combinedBufferItemCapacity];
     baseBufferCount_ = 0;
     bitPattern_ = 0;

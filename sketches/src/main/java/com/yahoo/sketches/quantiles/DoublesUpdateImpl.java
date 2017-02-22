@@ -111,8 +111,9 @@ final class DoublesUpdateImpl {
         optSrcKBuf, optSrcKBufStrt, //2, 0
         tgtCombinedBuffer, tgtStart, //4, 8, k = 2
         k);
-      } catch (Exception e) {
-        String s = String.format("%d %d %d %d %d", optSrcKBuf.length, optSrcKBufStrt, tgtCombinedBuffer.length, tgtStart, k);
+      } catch (final Exception e) {
+        final String s = String.format("%d %d %d %d %d",
+            optSrcKBuf.length, optSrcKBufStrt, tgtCombinedBuffer.length, tgtStart, k);
         System.out.println(s); //2 0 4 8 2
         throw new RuntimeException(e);
       }
