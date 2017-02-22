@@ -5,7 +5,6 @@
 
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.quantiles.DoublesSketch.MIN_K;
 import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
@@ -119,7 +118,7 @@ final class DoublesByteArrayImpl {
       final int totLevels = Util.computeNumLevelsNeeded(k, n);
       final int outBytes;
       if (totLevels == 0) {
-        final int bbBytes = Math.max(ceilingPowerOf2(bbCnt), 2 * MIN_K) << 3;
+        final int bbBytes = Math.max(k, MIN_K) << 4;
         outBytes = bbBytes + prePlusExtraBytes;  //partial base buffer
       } else {
         outBytes = (((2 + totLevels) * k) << 3)  + prePlusExtraBytes; //full base buffer

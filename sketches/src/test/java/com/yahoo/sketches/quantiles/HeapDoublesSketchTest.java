@@ -298,43 +298,28 @@ public class HeapDoublesSketchTest {
   }
 
   @Test
-  public void checkPreLongsFlagsSerVer1() {
+  public void checkPreLongsFlagsAndSize() {
     byte[] byteArr;
-    DoublesSketch ds = DoublesSketch.builder().build();
+    DoublesSketch ds = DoublesSketch.builder().build(); //k = 128
     //empty
     byteArr = ds.toByteArray(); //compact
     assertEquals(byteArr.length, 8);
+
     byteArr = ds.toByteArray(false, false); //not ordered, not compact
-    assertEquals(byteArr.length, 64); //32 + 32 = 64; baseBuf is 4 values minimum
+    assertEquals(byteArr.length, 2080); //32 + 128 * 2 * 8 = 2080
     assertEquals(byteArr[3], EMPTY_FLAG_MASK);
 
     //not empty
     ds.update(1);
     byteArr = ds.toByteArray(); //compact
     assertEquals(byteArr.length, 40); //compact, 1 value
-    byteArr = ds.toByteArray(true, false); //not compact
-    assertEquals(byteArr.length, 64); //32 + 32 = 64; baseBuf is 4 values minimum
 
-    byteArr = new byte[1 << 12]; //big enough
-    NativeMemory mem = new NativeMemory(byteArr);
-    ds = DoublesSketch.builder().initMemory(mem).build(); //DirectDoublesSketch
-
-    byteArr = ds.toByteArray(); //compact
-    assertEquals(byteArr.length, 8);
-    byteArr = ds.toByteArray(false, false); //not ordered, not compact
-    assertEquals(byteArr.length, 64); //32 + 32 = 64; baseBuf is 4 values minimum
-    assertEquals(byteArr[3], EMPTY_FLAG_MASK);
-
-    //not empty
-    ds.update(1);
-    byteArr = ds.toByteArray(); //compact
-    assertEquals(byteArr.length, 40); //compact, 1 value
-    byteArr = ds.toByteArray(true, false); //not compact
-    assertEquals(byteArr.length, 64); //32 + 32 = 64; baseBuf is 4 values minimum
+    byteArr = ds.toByteArray(true, false); //ordered, not compact
+    assertEquals(byteArr.length, 2080); //32 + 128 * 2 * 8 = 2080
   }
 
   @Test
-  public void checkPreLongsFlagsSerVer2() {
+  public void checkPreLongsFlagsSerVerB() {
     checkPreLongsFlagsSerVer(EMPTY_FLAG_MASK, 1, 1); //38
     checkPreLongsFlagsSerVer(0, 1, 5);               //164
     checkPreLongsFlagsSerVer(EMPTY_FLAG_MASK, 2, 1); //42
