@@ -7,14 +7,20 @@ package com.yahoo.sketches.sampling;
 
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.sampling.PreambleUtil.FAMILY_BYTE;
+import static com.yahoo.sketches.sampling.PreambleUtil.FLAGS_BYTE;
+import static com.yahoo.sketches.sampling.PreambleUtil.ITEMS_SEEN_LONG;
+import static com.yahoo.sketches.sampling.PreambleUtil.LG_RESIZE_FACTOR_BIT;
+import static com.yahoo.sketches.sampling.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.sampling.PreambleUtil.RESERVOIR_SIZE_INT;
 import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER;
-import static com.yahoo.sketches.sampling.PreambleUtil.extractFamilyID;
+import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractItemsSeenCount;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractReservoirSize;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractResizeFactor;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractSerVer;
-import static com.yahoo.sketches.sampling.PreambleUtil.getAndCheckPreLongs;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -192,14 +198,35 @@ public final class ReservoirItemsSketch<T> {
    */
   public static <T> ReservoirItemsSketch<T> getInstance(Memory srcMem,
                                                         final ArrayOfItemsSerDe<T> serDe) {
-    final Object memObj = srcMem.array(); // may be null
-    final long memAddr = srcMem.getCumulativeOffset(0L);
+    Family.RESERVOIR.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
 
-    final int numPreLongs = getAndCheckPreLongs(srcMem);
-    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(memObj, memAddr));
-    final int serVer = extractSerVer(memObj, memAddr);
-    final int familyId = extractFamilyID(memObj, memAddr);
-    final boolean isEmpty = (extractFlags(memObj, memAddr) & EMPTY_FLAG_MASK) != 0;
+    final int numPreLongs, serVer;
+    final boolean isEmpty;
+    final ResizeFactor rf;
+    final long itemsSeen;
+    int k;
+
+    // If we have read-only memory on heap (aka not-direct) then the backing array exists but is
+    // not available to us, so srcMem.array() will fail. In that case, we can use the (slower)
+    // Memory interface methods to read values directly.
+    if (srcMem.isReadOnly() && !srcMem.isDirect()) {
+      numPreLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0x3F;
+      rf = ResizeFactor.getRF(srcMem.getByte(PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT);
+      serVer = srcMem.getByte(SER_VER_BYTE) & 0xFF ;
+      isEmpty = (srcMem.getInt(FLAGS_BYTE) & EMPTY_FLAG_MASK) != 0;
+      itemsSeen = (isEmpty ? 0 : srcMem.getLong(ITEMS_SEEN_LONG));
+      k = srcMem.getInt(RESERVOIR_SIZE_INT);
+    } else {
+      final Object memObj = srcMem.array(); // may be null
+      final long memAddr = srcMem.getCumulativeOffset(0L);
+
+      numPreLongs = extractPreLongs(memObj, memAddr);
+      rf = ResizeFactor.getRF(extractResizeFactor(memObj, memAddr));
+      serVer = extractSerVer(memObj, memAddr);
+      isEmpty = (extractFlags(memObj, memAddr) & EMPTY_FLAG_MASK) != 0;
+      itemsSeen = (isEmpty ? 0 : extractItemsSeenCount(memObj, memAddr));
+      k = extractReservoirSize(memObj, memAddr);
+    }
 
     // Check values
     final boolean preLongsEqMin = (numPreLongs == Family.RESERVOIR.getMinPreLongs());
@@ -210,28 +237,22 @@ public final class ReservoirItemsSketch<T> {
               "Possible corruption: Non-empty sketch with only "
                       + Family.RESERVOIR.getMinPreLongs() + " preLong(s)");
     }
+
     if (serVer != SER_VER) {
       if (serVer == 1) {
         srcMem = VersionConverter.convertSketch1to2(srcMem);
+        // refresh value of k based on updated memory
+        // copy of srcMem if original was read only (direct or not) so extract always works
+        k = extractReservoirSize(srcMem.array(), srcMem.getCumulativeOffset(0L));
       } else {
         throw new SketchesArgumentException(
                 "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
       }
     }
-    final int reqFamilyId = Family.RESERVOIR.getID();
-    if (familyId != reqFamilyId) {
-      throw new SketchesArgumentException(
-              "Possible Corruption: FamilyID must be " + reqFamilyId + ": " + familyId);
-    }
-
-    final int k = extractReservoirSize(memObj, memAddr);
 
     if (isEmpty) {
       return new ReservoirItemsSketch<>(k, rf);
     }
-
-    // get rest of preamble
-    final long itemsSeen = extractItemsSeenCount(memObj, memAddr);
 
     final int preLongBytes = numPreLongs << 3;
     int allocatedItems = k; // default to full reservoir

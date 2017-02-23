@@ -66,6 +66,25 @@ public class ReservoirLongsUnionTest {
   }
 
   @Test
+  public void checkReadOnlyInstantiation() {
+    final int k = 100;
+    final ReservoirLongsUnion union = ReservoirLongsUnion.getInstance(k);
+    for (long i = 0; i < 2 * k; ++i) {
+      union.update(i);
+    }
+
+    final byte[] unionBytes = union.toByteArray();
+    final Memory mem = new NativeMemory(unionBytes);
+
+    final ReservoirLongsUnion rlu;
+    rlu = ReservoirLongsUnion.getInstance(mem.asReadOnlyMemory());
+
+    assertNotNull(rlu);
+    assertEquals(rlu.getMaxK(), k);
+    ReservoirLongsSketchTest.validateReservoirEquality(rlu.getResult(), union.getResult());
+  }
+
+  @Test
   public void checkNullUpdate() {
     final ReservoirLongsUnion rlu = ReservoirLongsUnion.getInstance(1024);
     assertNull(rlu.getResult());
@@ -173,7 +192,7 @@ public class ReservoirLongsUnionTest {
     final int smallK = 256;
     final int n = 2048;
     final ReservoirLongsSketch sketch1 = getBasicSketch(n, smallK);
-    final ReservoirLongsSketch sketch2 = getBasicSketch(n, bigK);
+    final ReservoirLongsSketch sketch2 = getBasicSketch(2 * n, bigK);
 
     final ReservoirLongsUnion rlu = ReservoirLongsUnion.getInstance(smallK);
     assertEquals(rlu.getMaxK(), smallK);
@@ -227,7 +246,6 @@ public class ReservoirLongsUnionTest {
     assertEquals(riu.getResult().getK(), maxK);
     assertEquals(riu.getResult().getN(), smallK);
   }
-
 
   @Test
   public void checkStandardMergeNoCopy() {

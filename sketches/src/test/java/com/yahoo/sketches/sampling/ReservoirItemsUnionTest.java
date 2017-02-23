@@ -69,6 +69,49 @@ public class ReservoirItemsUnionTest {
     riu = ReservoirItemsUnion.getInstance(ris.getK());
     riu.update(mem, serDe);
     assertNotNull(riu.getResult());
+
+    println(riu.toString());
+  }
+
+  @Test
+  public void checkReadOnlyInstantiation() {
+    final int k = 100;
+    final ReservoirItemsUnion<Long> union = ReservoirItemsUnion.getInstance(k);
+    for (long i = 0; i < 2 * k; ++i) {
+      union.update(i);
+    }
+
+    final byte[] unionBytes = union.toByteArray(new ArrayOfLongsSerDe());
+    final Memory mem = new NativeMemory(unionBytes);
+
+    final ReservoirItemsUnion<Long> riu;
+    riu = ReservoirItemsUnion.getInstance(mem.asReadOnlyMemory(), new ArrayOfLongsSerDe());
+
+    assertNotNull(riu);
+    assertEquals(riu.getMaxK(), k);
+    ReservoirItemsSketchTest.validateReservoirEquality(riu.getResult(), union.getResult());
+  }
+
+  @Test
+  public void checkNullUpdate() {
+    final ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.getInstance(1024);
+    assertNull(riu.getResult());
+
+    // null sketch
+    riu.update((ReservoirItemsSketch<Long>) null);
+    assertNull(riu.getResult());
+
+    // null memory
+    riu.update(null, new ArrayOfLongsSerDe());
+    assertNull(riu.getResult());
+
+    // null item
+    riu.update((Long) null);
+    assertNull(riu.getResult());
+
+    // valid input
+    riu.update(5L);
+    assertNotNull(riu.getResult());
   }
 
   @Test
@@ -154,28 +197,6 @@ public class ReservoirItemsUnionTest {
     }
   }
 
-  @Test
-  public void checkNullUpdate() {
-    final ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.getInstance(1024);
-    assertNull(riu.getResult());
-
-    // null sketch
-    riu.update((ReservoirItemsSketch<Long>) null);
-    assertNull(riu.getResult());
-
-    // null memory
-    riu.update(null, new ArrayOfLongsSerDe());
-    assertNull(riu.getResult());
-
-    // null item
-    riu.update((Long) null);
-    assertNull(riu.getResult());
-
-    // valid input
-    riu.update(5L);
-    assertNotNull(riu.getResult());
-  }
-
   //@SuppressWarnings("null") // this is the point of the test
   @Test(expectedExceptions = NullPointerException.class)
   public void checkNullMemoryInstantiation() {
@@ -188,7 +209,7 @@ public class ReservoirItemsUnionTest {
     final int smallK = 256;
     final int n = 2048;
     final ReservoirItemsSketch<Long> sketch1 = getBasicSketch(n, smallK);
-    final ReservoirItemsSketch<Long> sketch2 = getBasicSketch(n, bigK);
+    final ReservoirItemsSketch<Long> sketch2 = getBasicSketch(2 * n, bigK);
 
     final ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.getInstance(smallK);
     assertEquals(riu.getMaxK(), smallK);
