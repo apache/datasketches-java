@@ -129,7 +129,7 @@ final class HeapDoublesSketch extends DoublesSketch {
     final long n;
 
     if (readOnly && !direct) {
-      preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE);
+      preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0XFF;
       serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
       familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
       flags = srcMem.getByte(FLAGS_BYTE) & 0XFF;

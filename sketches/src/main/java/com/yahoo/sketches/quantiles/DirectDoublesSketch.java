@@ -97,8 +97,6 @@ final class DirectDoublesSketch extends DoublesSketch {
    * @return a sketch that wraps the given srcMem
    */
   static DirectDoublesSketch wrapInstance(final Memory srcMem) {
-    final boolean readOnly = srcMem.isReadOnly();
-    final boolean direct = srcMem.isDirect();
     final long memCap = srcMem.getCapacity();
 
     final int preLongs;
@@ -108,7 +106,7 @@ final class DirectDoublesSketch extends DoublesSketch {
     final int k;
     final long n;
 
-    if (readOnly && !direct) {
+    if (srcMem.isReadOnly() && !srcMem.isDirect()) {
       preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0XFF;
       serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
       familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;

@@ -11,14 +11,14 @@ import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.Util.zeroPad;
-import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.extractFamilyID;
-import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.theta.PreambleUtil.extractSerVer;
 
@@ -321,14 +321,25 @@ public abstract class Sketch {
    * @return a UpdateSketch backed by the given Memory
    */
   public static Sketch wrap(final Memory srcMem, final long seed) {
-    final Object memObj = srcMem.array(); //may be null
-    final long memAdd = srcMem.getCumulativeOffset(0L);
+    final boolean readOnly = srcMem.isReadOnly();
+    final boolean direct = srcMem.isDirect();
 
     final long pre0 = srcMem.getLong(0);
-    final int preLongs = extractPreLongs(memObj, memAdd);
-    final int serVer = extractSerVer(memObj, memAdd);
-    final int famID = extractFamilyID(memObj, memAdd);
-    final Family family = Family.idToFamily(famID);
+    final int preLongs;
+    final int serVer;
+    final int familyID;
+    if (readOnly && !direct) {
+      preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+      serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
+      familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
+    } else {
+      final Object memObj = srcMem.array(); //may be null
+      final long memAdd = srcMem.getCumulativeOffset(0L);
+      preLongs = extractPreLongs(memObj, memAdd);
+      serVer = extractSerVer(memObj, memAdd);
+      familyID = extractFamilyID(memObj, memAdd);
+    }
+    final Family family = Family.idToFamily(familyID);
     switch (family) {
       case QUICKSELECT: { //Hash Table structure
         if ((serVer == 3) && (preLongs == 3)) {
@@ -345,7 +356,7 @@ public abstract class Sketch {
         else if (serVer == 2) {
           return ForwardCompatibility.heapify2to3(srcMem, seed);
         }
-        final int flags = extractFlags(memObj, memAdd);
+        final int flags = srcMem.getByte(FLAGS_BYTE);
         final boolean compact = (flags & COMPACT_FLAG_MASK) > 0; //used for corruption check
         final boolean ordered = (flags & ORDERED_FLAG_MASK) > 0;
         if (compact) {

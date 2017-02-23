@@ -37,7 +37,16 @@ public class ReadOnlyMemoryTest {
   }
 
   @Test
-  public void wrapCompactSketch() {
+  public void wrapCompactUnorderedSketch() {
+    UpdateSketch updateSketch = UpdateSketch.builder().build();
+    updateSketch.update(1);
+    Memory mem = NativeMemory.wrap(ByteBuffer.wrap(updateSketch.compact(false, null).toByteArray()).asReadOnlyBuffer());
+    Sketch sketch = Sketch.wrap(mem);
+    assertEquals(sketch.getEstimate(), 1.0);
+  }
+
+  @Test
+  public void wrapCompactOrderedSketch() {
     UpdateSketch updateSketch = UpdateSketch.builder().build();
     updateSketch.update(1);
     Memory mem = NativeMemory.wrap(ByteBuffer.wrap(updateSketch.compact().toByteArray()).asReadOnlyBuffer());
@@ -55,7 +64,16 @@ public class ReadOnlyMemoryTest {
   }
 
   @Test
-  public void heapifyCompactSketch() {
+  public void heapifyCompactUnorderedSketch() {
+    UpdateSketch updateSketch = UpdateSketch.builder().build();
+    updateSketch.update(1);
+    Memory mem = NativeMemory.wrap(ByteBuffer.wrap(updateSketch.compact(false, null).toByteArray()).asReadOnlyBuffer());
+    Sketch sketch = Sketch.heapify(mem);
+    assertEquals(sketch.getEstimate(), 1.0);
+  }
+
+  @Test
+  public void heapifyCompactOrderedSketch() {
     UpdateSketch updateSketch = UpdateSketch.builder().build();
     updateSketch.update(1);
     Memory mem = NativeMemory.wrap(ByteBuffer.wrap(updateSketch.compact().toByteArray()).asReadOnlyBuffer());
