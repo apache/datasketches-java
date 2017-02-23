@@ -8,11 +8,15 @@ package com.yahoo.sketches.sampling;
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.sampling.PreambleUtil.FAMILY_BYTE;
+import static com.yahoo.sketches.sampling.PreambleUtil.FLAGS_BYTE;
+import static com.yahoo.sketches.sampling.PreambleUtil.MAX_K_SIZE_INT;
+import static com.yahoo.sketches.sampling.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER;
+import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractMaxK;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractSerVer;
-import static com.yahoo.sketches.sampling.PreambleUtil.getAndCheckPreLongs;
 
 import java.util.ArrayList;
 
@@ -83,12 +87,27 @@ public final class ReservoirItemsUnion<T> {
                                                        final ArrayOfItemsSerDe<T> serDe) {
     Family.RESERVOIR_UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
 
-    final Object memObj = srcMem.array(); // may be null
-    final long memAddr = srcMem.getCumulativeOffset(0L);
+    final int numPreLongs, serVer;
+    final boolean isEmpty;
+    int maxK;
 
-    final int numPreLongs = getAndCheckPreLongs(srcMem);
-    final int serVer = extractSerVer(memObj, memAddr);
-    final boolean isEmpty = (extractFlags(memObj, memAddr) & EMPTY_FLAG_MASK) != 0;
+    // If we have read-only memory on heap (aka not-direct) then the backing array exists but is
+    // not available to us, so srcMem.array() will fail. In that case, we can use the (slower)
+    // Memory interface methods to read values directly.
+    if (srcMem.isReadOnly() && !srcMem.isDirect()) {
+      numPreLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0x3F;
+      serVer = srcMem.getByte(SER_VER_BYTE) & 0xFF;
+      isEmpty = (srcMem.getInt(FLAGS_BYTE) & EMPTY_FLAG_MASK) != 0;
+      maxK = srcMem.getInt(MAX_K_SIZE_INT);
+    } else {
+      final Object memObj = srcMem.array(); // may be null
+      final long memAddr = srcMem.getCumulativeOffset(0L);
+
+      numPreLongs = extractPreLongs(memObj, memAddr);
+      serVer = extractSerVer(memObj, memAddr);
+      isEmpty = (extractFlags(memObj, memAddr) & EMPTY_FLAG_MASK) != 0;
+      maxK = extractMaxK(memObj, memAddr);
+    }
 
     final boolean preLongsEqMin = (numPreLongs == Family.RESERVOIR_UNION.getMinPreLongs());
     final boolean preLongsEqMax = (numPreLongs == Family.RESERVOIR_UNION.getMaxPreLongs());
@@ -97,23 +116,27 @@ public final class ReservoirItemsUnion<T> {
       throw new SketchesArgumentException("Possible corruption: Non-empty union with only "
           + Family.RESERVOIR_UNION.getMinPreLongs() + "preLongs");
     }
+
     if (serVer != SER_VER) {
       if (serVer == 1) {
         srcMem = VersionConverter.convertUnion1to2(srcMem);
+        // refresh value of max k based on updated memory
+        // copy of srcMem if original was read only (direct or not) so extract always works
+        maxK = extractMaxK(srcMem.array(), srcMem.getCumulativeOffset(0L));
       } else {
         throw new SketchesArgumentException(
                 "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
       }
     }
 
-    final int maxK = extractMaxK(memObj, memAddr);
     final ReservoirItemsUnion<T> riu = new ReservoirItemsUnion<>(maxK);
 
     if (!isEmpty) {
       final int preLongBytes = numPreLongs << 3;
       final MemoryRegion sketchMem =
           new MemoryRegion(srcMem, preLongBytes, srcMem.getCapacity() - preLongBytes);
-      riu.update(sketchMem, serDe);
+      // TODO: fix this once memory correctly propagates read-only model
+      riu.update((srcMem.isReadOnly() ? sketchMem.asReadOnlyMemory() : sketchMem), serDe);
     }
 
     return riu;
@@ -310,7 +333,7 @@ public final class ReservoirItemsUnion<T> {
     if (sketchIn.getK() < maxK_ && sketchIn.getN() <= sketchIn.getK()) {
       // incoming sketch is in exact mode with sketch's k < maxK,
       // so we can create a gadget at size maxK and keep everything
-      // NOTE: assumes twoWayMergeInternal to first checks if sketchIn is in exact mode
+      // NOTE: assumes twoWayMergeInternal first checks if sketchIn is in exact mode
       gadget_ = ReservoirItemsSketch.getInstance(maxK_);
       twoWayMergeInternal(sketchIn, isModifiable); // isModifiable could be fixed to false here
     } else {

@@ -72,7 +72,7 @@ final class PreambleUtil {
   // ###### DO NOT MESS WITH THIS FROM HERE ...
   // Preamble byte Addresses
   static final int PREAMBLE_LONGS_BYTE   = 0; // Only low 6 bits used
-  static final int LG_RESIZE_FACTOR_BITS = 6; // upper 2 bits. Not used by compact or direct.
+  static final int LG_RESIZE_FACTOR_BIT  = 6; // upper 2 bits. Not used by compact or direct.
   static final int SER_VER_BYTE          = 1;
   static final int FAMILY_BYTE           = 2;
   static final int FLAGS_BYTE            = 3;
@@ -82,7 +82,7 @@ final class PreambleUtil {
   static final int ITEMS_SEEN_LONG       = 8;
 
   //static final int MAX_K_SHORT           = 4; // used in Union only, ser_ver 1
-  //static final int MAX_K_INT             = 4; // used in Union only
+  static final int MAX_K_SIZE_INT        = 4; // used in Union only
 
   // flag bit masks
   //static final int BIG_ENDIAN_FLAG_MASK = 1;
@@ -247,7 +247,7 @@ final class PreambleUtil {
   }
 
   static int extractResizeFactor(final Object memObj, final long memAddr) {
-    return (unsafe.getByte(memObj, memAddr + PREAMBLE_LONGS_BYTE) >> LG_RESIZE_FACTOR_BITS) & 0x3;
+    return (unsafe.getByte(memObj, memAddr + PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT) & 0x3;
   }
 
   static int extractSerVer(final Object memObj, final long memAddr) {
@@ -271,7 +271,7 @@ final class PreambleUtil {
   }
 
   static int extractMaxK(final Object memObj, final long memAddr) {
-    return extractReservoirSize(memObj, memAddr);
+    return unsafe.getInt(memObj, memAddr + MAX_K_SIZE_INT);
   }
 
   @Deprecated
@@ -292,7 +292,7 @@ final class PreambleUtil {
 
   static void insertLgResizeFactor(final Object memObj, final long memAddr, final int rf) {
     final int curByte = unsafe.getByte(memObj, memAddr + PREAMBLE_LONGS_BYTE);
-    final int shift = LG_RESIZE_FACTOR_BITS; // shift in bits
+    final int shift = LG_RESIZE_FACTOR_BIT; // shift in bits
     final int mask = 3;
     final byte newByte = (byte) (((rf & mask) << shift) | (~(mask << shift) & curByte));
     unsafe.putByte(memObj, memAddr + PREAMBLE_LONGS_BYTE, newByte);
