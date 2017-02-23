@@ -183,7 +183,7 @@ final class DoublesMergeImpl {
             tgtK,
             downFactor
         );
-        newTgtBitPattern = DoublesUpdateImpl.inPlacePropagateCarry( //TODO #3
+        newTgtBitPattern = DoublesUpdateImpl.inPlacePropagateCarry(
             srcLvl + lgDownFactor,    //starting level
             downScratchKBuf, 0,       //optSrcKBuf, optSrcKBufStrt
             scratch2KBuf, 0,          //size2KBuf, size2Kstart
@@ -224,7 +224,5 @@ final class DoublesMergeImpl {
       bufC[c] = bufA[a];
     }
   }
-
-
 
 }
