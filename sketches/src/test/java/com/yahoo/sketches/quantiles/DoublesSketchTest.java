@@ -36,4 +36,25 @@ public class DoublesSketchTest {
     Assert.assertEquals(heapSketch.getQuantile(0.5), 1000.0, 10.0);
   }
 
+  @Test
+  public void checkToByteArray() {
+    DoublesSketch ds = DoublesSketch.builder().build(); //k = 128
+    ds.update(1);
+    ds.update(2);
+    byte[] arr = ds.toByteArray(false, false);
+    Assert.assertEquals(arr.length, 2080);
+  }
+
+  @Test
+  public void printlnTest() {
+    println("PRINTING: "+this.getClass().getName());
+  }
+
+  /**
+   * @param s value to print
+   */
+  static void println(String s) {
+    System.out.println(s); //disable here
+  }
+
 }
