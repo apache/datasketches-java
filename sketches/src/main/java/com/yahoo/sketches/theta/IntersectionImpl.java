@@ -27,7 +27,6 @@ import static com.yahoo.sketches.theta.PreambleUtil.extractFamilyID;
 import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.theta.PreambleUtil.extractLgArrLongs;
 import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
-import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
 import static com.yahoo.sketches.theta.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.theta.PreambleUtil.extractThetaLong;
 import static com.yahoo.sketches.theta.PreambleUtil.insertCurCount;
@@ -36,7 +35,6 @@ import static com.yahoo.sketches.theta.PreambleUtil.insertFlags;
 import static com.yahoo.sketches.theta.PreambleUtil.insertLgArrLongs;
 import static com.yahoo.sketches.theta.PreambleUtil.insertP;
 import static com.yahoo.sketches.theta.PreambleUtil.insertPreLongs;
-import static com.yahoo.sketches.theta.PreambleUtil.insertSeedHash;
 import static com.yahoo.sketches.theta.PreambleUtil.insertSerVer;
 import static com.yahoo.sketches.theta.PreambleUtil.insertThetaLong;
 import static java.lang.Math.min;
@@ -65,9 +63,6 @@ import com.yahoo.sketches.Util;
 final class IntersectionImpl extends SetOperation implements Intersection {
   private final short seedHash_;
   private final Memory mem_;
-  private final Object memObj_;
-  private final long memAdd_;
-  private final boolean memValid_;
 
   //Note: Intersection does not use lgNomLongs or k, per se.
   private int lgArrLongs_; //current size of hash table
@@ -81,20 +76,14 @@ final class IntersectionImpl extends SetOperation implements Intersection {
   private IntersectionImpl(final Memory mem, final long seed, final boolean newMem) {
     mem_ = mem;
     if (mem != null) {
-      memObj_ = mem.array();
-      memAdd_ = mem.getCumulativeOffset(0L);
-      memValid_ = true;
       if (newMem) {
         seedHash_ = computeSeedHash(seed);
-        insertSeedHash(memObj_, memAdd_, seedHash_);
+        mem_.putShort(SEED_HASH_SHORT, seedHash_);
       } else {
-        seedHash_ = (short) extractSeedHash(memObj_, memAdd_);
+        seedHash_ = mem_.getShort(SEED_HASH_SHORT);
         Util.checkSeedHashes(seedHash_, computeSeedHash(seed)); //check for seed hash conflict
       }
     } else {
-      memObj_ = null;
-      memAdd_ = -1L;
-      memValid_ = false;
       seedHash_ = computeSeedHash(seed);
     }
   }
@@ -122,19 +111,37 @@ final class IntersectionImpl extends SetOperation implements Intersection {
    */
   static IntersectionImpl heapifyInstance(final Memory srcMem, final long seed) {
     final IntersectionImpl impl = new IntersectionImpl(null, seed, false);
-    final Object memObj = srcMem.array(); //may be null
-    final long memAdd = srcMem.getCumulativeOffset(0L);
 
     //Get Preamble
-    final int preLongsMem = extractPreLongs(memObj, memAdd);
-    final int serVer = extractSerVer(memObj, memAdd);
-    final int famID = extractFamilyID(memObj, memAdd);
     //Note: Intersection does not use lgNomLongs (or k), per se.
-    final int lgArrLongs = extractLgArrLongs(memObj, memAdd); //current hash table size
-    final int flags = extractFlags(memObj, memAdd);
     //seedHash loaded and checked in private constructor
-    final int curCount = extractCurCount(memObj, memAdd);
-    final long thetaLong = extractThetaLong(memObj, memAdd);
+    final int preLongsMem;
+    final int serVer;
+    final int famID;
+    final int lgArrLongs; //current hash table size
+    final int flags;
+    final int curCount;
+    final long thetaLong;
+    if (srcMem.isReadOnly() && !srcMem.isDirect()) {
+      preLongsMem = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+      serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
+      famID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
+      lgArrLongs = srcMem.getByte(LG_ARR_LONGS_BYTE) & 0XFF;
+      flags = srcMem.getByte(FLAGS_BYTE) & 0XFF;
+      curCount = srcMem.getInt(RETAINED_ENTRIES_INT);
+      thetaLong = srcMem.getLong(THETA_LONG);
+    } else {
+      final Object memObj = srcMem.array(); //may be null
+      final long memAdd = srcMem.getCumulativeOffset(0L);
+
+      preLongsMem = extractPreLongs(memObj, memAdd);
+      serVer = extractSerVer(memObj, memAdd);
+      famID = extractFamilyID(memObj, memAdd);
+      lgArrLongs = extractLgArrLongs(memObj, memAdd);
+      flags = extractFlags(memObj, memAdd);
+      curCount = extractCurCount(memObj, memAdd);
+      thetaLong = extractThetaLong(memObj, memAdd);
+    }
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
 
     //Checks
@@ -182,8 +189,8 @@ final class IntersectionImpl extends SetOperation implements Intersection {
    */
   static IntersectionImpl initNewDirectInstance(final long seed, final Memory dstMem) {
     final IntersectionImpl impl = new IntersectionImpl(dstMem, seed, true);
-    final Object memObj = impl.memObj_;
-    final long memAdd = impl.memAdd_;
+    final Object memObj = dstMem.array();
+    final long memAdd = dstMem.getCumulativeOffset(0L);
 
     //Load Preamble
     insertPreLongs(memObj, memAdd, CONST_PREAMBLE_LONGS); //RF not used = 0
@@ -216,19 +223,37 @@ final class IntersectionImpl extends SetOperation implements Intersection {
    */
   static IntersectionImpl wrapInstance(final Memory srcMem, final long seed) {
     final IntersectionImpl impl = new IntersectionImpl(srcMem, seed, false);
-    final Object memObj = impl.memObj_;
-    final long memAdd = impl.memAdd_;
 
     //Get Preamble
-    final int preLongsMem = extractPreLongs(memObj, memAdd);
-    final int serVer = extractSerVer(memObj, memAdd);
-    final int famID = extractFamilyID(memObj, memAdd);
     //Note: Intersection does not use lgNomLongs (or k), per se.
-    final int lgArrLongs = extractLgArrLongs(memObj, memAdd); //current hash table size
-    final int flags = extractFlags(memObj, memAdd);
     //seedHash loaded and checked in private constructor
-    final int curCount = extractCurCount(memObj, memAdd);
-    final long thetaLong = extractThetaLong(memObj, memAdd);
+    final int preLongsMem;
+    final int serVer;
+    final int famID;
+    final int lgArrLongs; //current hash table size
+    final int flags;
+    final int curCount;
+    final long thetaLong;
+    if (srcMem.isReadOnly() && !srcMem.isDirect()) {
+      preLongsMem = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+      serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
+      famID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
+      lgArrLongs = srcMem.getByte(LG_ARR_LONGS_BYTE) & 0XFF;
+      flags = srcMem.getByte(FLAGS_BYTE) & 0XFF;
+      curCount = srcMem.getInt(RETAINED_ENTRIES_INT);
+      thetaLong = srcMem.getLong(THETA_LONG);
+    } else {
+      final Object memObj = srcMem.array(); //may be null
+      final long memAdd = srcMem.getCumulativeOffset(0L);
+
+      preLongsMem = extractPreLongs(memObj, memAdd);
+      serVer = extractSerVer(memObj, memAdd);
+      famID = extractFamilyID(memObj, memAdd);
+      lgArrLongs = extractLgArrLongs(memObj, memAdd);
+      flags = extractFlags(memObj, memAdd);
+      curCount = extractCurCount(memObj, memAdd);
+      thetaLong = extractThetaLong(memObj, memAdd);
+    }
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
 
     //Checks
@@ -264,6 +289,9 @@ final class IntersectionImpl extends SetOperation implements Intersection {
   public void update(final Sketch sketchIn) {
     final boolean firstCall = curCount_ < 0;
 
+    final Object memObj = mem_ != null ? mem_.array() : null;
+    final long memAdd = mem_ != null ? mem_.getCumulativeOffset(0) : 0;
+
     //Corner cases
     if (sketchIn == null) { //null -> Th = 1.0, count = 0, empty = true
       //No seedHash to check
@@ -271,10 +299,10 @@ final class IntersectionImpl extends SetOperation implements Intersection {
       empty_ = true;
       thetaLong_ = firstCall ? Long.MAX_VALUE : thetaLong_; //if Nth call, stays the same
       curCount_ = 0;
-      if (memValid_) {
-        PreambleUtil.setEmpty(memObj_, memAdd_);
-        insertThetaLong(memObj_, memAdd_, thetaLong_);
-        insertCurCount(memObj_, memAdd_, 0);
+      if (mem_ != null) {
+        PreambleUtil.setEmpty(memObj, memAdd);
+        insertThetaLong(memObj, memAdd, thetaLong_);
+        insertCurCount(memObj, memAdd, 0);
       }
       return;
     }
@@ -285,10 +313,10 @@ final class IntersectionImpl extends SetOperation implements Intersection {
     thetaLong_ = min(thetaLong_, sketchIn.getThetaLong()); //Theta rule
     empty_ = empty_ || sketchIn.isEmpty();  //Empty rule
 
-    if (memValid_) {
-      insertThetaLong(memObj_, memAdd_, thetaLong_);
-      if (empty_) { PreambleUtil.setEmpty(memObj_, memAdd_); }
-      else { clearEmpty(memObj_, memAdd_); }
+    if (mem_ != null) {
+      insertThetaLong(memObj, memAdd, thetaLong_);
+      if (empty_) { PreambleUtil.setEmpty(memObj, memAdd); }
+      else { clearEmpty(memObj, memAdd); }
     }
 
     final int sketchInEntries = sketchIn.getRetainedEntries(true);
@@ -305,7 +333,7 @@ final class IntersectionImpl extends SetOperation implements Intersection {
     if ((curCount_ == 0) || (sketchInEntries == 0)) { //Cases 1,2,3,5
       //All future intersections result in zero data, but theta can still be reduced.
       curCount_ = 0;
-      if (memValid_) { insertCurCount(memObj_, memAdd_, 0); }
+      if (mem_ != null) { insertCurCount(memObj, memAdd, 0); }
       hashTable_ = null; //No need for a HT. Don't bother clearing mem if valid
     }
     else if (firstCall) { //Case 4: Clone the incoming sketch
@@ -314,9 +342,9 @@ final class IntersectionImpl extends SetOperation implements Intersection {
       final int priorLgArrLongs = lgArrLongs_; //prior only used in error message
       lgArrLongs_ = requiredLgArrLongs;
 
-      if (memValid_) { //Off heap, check if current dstMem is large enough
-        insertCurCount(memObj_, memAdd_, curCount_);
-        insertLgArrLongs(memObj_, memAdd_, lgArrLongs_);
+      if (mem_ != null) { //Off heap, check if current dstMem is large enough
+        insertCurCount(memObj, memAdd, curCount_);
+        insertLgArrLongs(memObj, memAdd, lgArrLongs_);
         if (requiredLgArrLongs <= maxLgArrLongs_) { //OK
           mem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_); //clear only what required
         }
@@ -383,7 +411,7 @@ final class IntersectionImpl extends SetOperation implements Intersection {
     final int preBytes = CONST_PREAMBLE_LONGS << 3;
     final int dataBytes = (curCount_ > 0) ? 8 << lgArrLongs_ : 0;
     final byte[] byteArrOut = new byte[preBytes + dataBytes];
-    if (memValid_) {
+    if (mem_ != null) {
       mem_.getByteArray(0, byteArrOut, 0, preBytes + dataBytes);
     }
     else {
@@ -421,10 +449,12 @@ final class IntersectionImpl extends SetOperation implements Intersection {
     empty_ = false;
     hashTable_ = null;
     if (mem_ != null) {
-      insertLgArrLongs(memObj_, memAdd_, lgArrLongs_); //make sure
-      insertCurCount(memObj_, memAdd_, -1);
-      insertThetaLong(memObj_, memAdd_, Long.MAX_VALUE);
-      clearEmpty(memObj_, memAdd_);
+      final Object memObj = mem_.array(); //may be null
+      final long memAdd = mem_.getCumulativeOffset(0);
+      insertLgArrLongs(memObj, memAdd, lgArrLongs_); //make sure
+      insertCurCount(memObj, memAdd, -1);
+      insertThetaLong(memObj, memAdd, Long.MAX_VALUE);
+      clearEmpty(memObj, memAdd);
     }
   }
 
@@ -478,9 +508,11 @@ final class IntersectionImpl extends SetOperation implements Intersection {
     //reduce effective array size to minimum
     curCount_ = matchSetCount;
     lgArrLongs_ = computeMinLgArrLongsFromCount(matchSetCount);
-    if (memValid_) {
-      insertCurCount(memObj_, memAdd_, matchSetCount);
-      insertLgArrLongs(memObj_, memAdd_, lgArrLongs_);
+    if (mem_ != null) {
+      final Object memObj = mem_.array(); //may be null
+      final long memAdd = mem_.getCumulativeOffset(0);
+      insertCurCount(memObj, memAdd, matchSetCount);
+      insertLgArrLongs(memObj, memAdd, lgArrLongs_);
       mem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_); //clear for rebuild
     } else {
       Arrays.fill(hashTable_, 0, 1 << lgArrLongs_, 0L); //clear for rebuild
@@ -492,10 +524,10 @@ final class IntersectionImpl extends SetOperation implements Intersection {
   private void moveDataToTgt(final long[] arr, final int count) {
     final int arrLongsIn = arr.length;
     int tmpCnt = 0;
-    if (memValid_) { //Off Heap puts directly into mem
+    if (mem_ != null) { //Off Heap puts directly into mem
+      final Object memObj = mem_.array(); //may be null
+      final long memAdd = mem_.getCumulativeOffset(0);
       final int preBytes = CONST_PREAMBLE_LONGS << 3;
-      final Object memObj = memObj_;
-      final long memAdd = memAdd_;
       final int lgArrLongs = lgArrLongs_;
       final long thetaLong = thetaLong_;
       for (int i = 0; i < arrLongsIn; i++ ) {
