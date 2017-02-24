@@ -289,55 +289,6 @@ public class NativeMemory implements Memory {
   }
 
   @Override
-  public void clear() {
-    fill(0, capacityBytes_, (byte) 0);
-  }
-
-  @Override
-  public void clear(final long offsetBytes, final long lengthBytes) {
-    fill(offsetBytes, lengthBytes, (byte) 0);
-  }
-
-  @Override
-  public void clearBits(final long offsetBytes, final byte bitMask) {
-    assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
-    final long unsafeRawAddress = getAddress(offsetBytes);
-    int value = unsafe.getByte(memArray_, unsafeRawAddress) & 0XFF;
-    value &= ~bitMask;
-    unsafe.putByte(memArray_, unsafeRawAddress, (byte)value);
-  }
-
-  @Override
-  public void copy(final long srcOffsetBytes, final long dstOffsetBytes, final long lengthBytes) {
-    assertBounds(srcOffsetBytes, lengthBytes, capacityBytes_);
-    assertBounds(dstOffsetBytes, lengthBytes, capacityBytes_);
-    assert checkOverlap(srcOffsetBytes, dstOffsetBytes, lengthBytes) : "regions must not overlap";
-
-    long srcAdd = getAddress(srcOffsetBytes);
-    long dstAdd = getAddress(dstOffsetBytes);
-    long lenBytes = lengthBytes;
-
-    while (lenBytes > 0) {
-      final long size = (lenBytes > UNSAFE_COPY_THRESHOLD) ? UNSAFE_COPY_THRESHOLD : lenBytes;
-      unsafe.copyMemory(memArray_, srcAdd, memArray_, dstAdd, lenBytes);
-      lenBytes -= size;
-      srcAdd += size;
-      dstAdd += size;
-    }
-  }
-
-  @Override
-  public void fill(final byte value) {
-    fill(0, capacityBytes_, value);
-  }
-
-  @Override
-  public void fill(final long offsetBytes, final long lengthBytes, final byte value) {
-    assertBounds(offsetBytes, lengthBytes, capacityBytes_);
-    unsafe.setMemory(memArray_, getAddress(offsetBytes), lengthBytes, value);
-  }
-
-  @Override
   public boolean getBoolean(final long offsetBytes) {
     assertBounds(offsetBytes, ARRAY_BOOLEAN_INDEX_SCALE, capacityBytes_);
     return unsafe.getBoolean(memArray_, getAddress(offsetBytes));
@@ -753,6 +704,68 @@ public class NativeMemory implements Memory {
   }
 
   @Override
+  public void clear() {
+    fill(0, capacityBytes_, (byte) 0);
+  }
+
+  @Override
+  public void clear(final long offsetBytes, final long lengthBytes) {
+    fill(offsetBytes, lengthBytes, (byte) 0);
+  }
+
+  @Override
+  public void clearBits(final long offsetBytes, final byte bitMask) {
+    assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
+    final long unsafeRawAddress = getAddress(offsetBytes);
+    int value = unsafe.getByte(memArray_, unsafeRawAddress) & 0XFF;
+    value &= ~bitMask;
+    unsafe.putByte(memArray_, unsafeRawAddress, (byte)value);
+  }
+
+  @Override
+  @Deprecated
+  public void copy(final long srcOffsetBytes, final long dstOffsetBytes, final long lengthBytes) {
+    copy(srcOffsetBytes, this, dstOffsetBytes, lengthBytes);
+  }
+
+  @Override
+  public void copy(final long srcOffsetBytes, final Memory destination, final long dstOffsetBytes,
+      final long lengthBytes) {
+
+    if (destination.isReadOnly()) {
+      throw new ReadOnlyMemoryException();
+    }
+    assertBounds(srcOffsetBytes, lengthBytes, this.getCapacity());
+    assertBounds(dstOffsetBytes, lengthBytes, destination.getCapacity());
+    assert (this == destination) ? checkOverlap(srcOffsetBytes, dstOffsetBytes, lengthBytes) : true ;
+
+    long srcAdd = this.getCumulativeOffset(srcOffsetBytes);
+    long dstAdd = destination.getCumulativeOffset(dstOffsetBytes);
+    final Object srcParent = (this.isDirect()) ? null : memArray_;
+    final Object dstParent = (destination.isDirect()) ? null : destination.array();
+    long lenBytes = lengthBytes;
+
+    while (lenBytes > 0) {
+      final long chunkBytes = (lenBytes > UNSAFE_COPY_THRESHOLD) ? UNSAFE_COPY_THRESHOLD : lenBytes;
+      unsafe.copyMemory(srcParent, srcAdd, dstParent, dstAdd, lenBytes);
+      lenBytes -= chunkBytes;
+      srcAdd += chunkBytes;
+      dstAdd += chunkBytes;
+    }
+  }
+
+  @Override
+  public void fill(final byte value) {
+    fill(0, capacityBytes_, value);
+  }
+
+  @Override
+  public void fill(final long offsetBytes, final long lengthBytes, final byte value) {
+    assertBounds(offsetBytes, lengthBytes, capacityBytes_);
+    unsafe.setMemory(memArray_, getAddress(offsetBytes), lengthBytes, value);
+  }
+
+  @Override
   public long getAddress(final long offsetBytes) {
     assertBounds(offsetBytes, 0, capacityBytes_);
     return cumBaseOffset_ + offsetBytes;
@@ -845,30 +858,12 @@ public class NativeMemory implements Memory {
    * @param destination the destination Memory
    * @param dstOffsetBytes the destination offset
    * @param lengthBytes the number of bytes to copy
+   * @deprecated Use {@link Memory#copy(long, Memory, long, long)} instead.
    */
+  @Deprecated
   public static final void copy(final Memory source, final long srcOffsetBytes,
       final Memory destination, final long dstOffsetBytes, final long lengthBytes) {
-
-    assertBounds(srcOffsetBytes, lengthBytes, source.getCapacity());
-    assertBounds(dstOffsetBytes, lengthBytes, destination.getCapacity());
-
-    if (destination.isReadOnly()) {
-      throw new ReadOnlyMemoryException();
-    }
-
-    long srcAdd = source.getCumulativeOffset(srcOffsetBytes);
-    long dstAdd = destination.getCumulativeOffset(dstOffsetBytes);
-    final Object srcParent = (source.isDirect()) ? null : source.array();
-    final Object dstParent = (destination.isDirect()) ? null : destination.array();
-    long lenBytes = lengthBytes;
-
-    while (lenBytes > 0) {
-      final long chunkBytes = (lenBytes > UNSAFE_COPY_THRESHOLD) ? UNSAFE_COPY_THRESHOLD : lenBytes;
-      unsafe.copyMemory(srcParent, srcAdd, dstParent, dstAdd, lenBytes);
-      lenBytes -= chunkBytes;
-      srcAdd += chunkBytes;
-      dstAdd += chunkBytes;
-    }
+    source.copy(srcOffsetBytes, destination, dstOffsetBytes, lengthBytes);
   }
 
   //Restricted methods

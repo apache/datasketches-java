@@ -155,7 +155,7 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
     final int sizeBytes = valuesOffset_ + SIZE_OF_VALUE_BYTES * numValues_ * getCurrentCapacity();
     final byte[] byteArray = new byte[sizeBytes];
     final Memory mem = new NativeMemory(byteArray);
-    NativeMemory.copy(mem_, 0, mem, 0, sizeBytes);
+    mem_.copy(0, mem, 0, sizeBytes);
     return byteArray;
   }
 

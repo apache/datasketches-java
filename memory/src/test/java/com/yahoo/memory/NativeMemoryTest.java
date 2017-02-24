@@ -201,7 +201,7 @@ public class NativeMemoryTest {
       mem.putByte(i, (byte) i);
     }
 
-    mem.copy(0, half, half);
+    mem.copy(0, mem, half, half);
 
     for (int i=0; i<half; i++) {
       assertEquals(mem.getByte(i+half), (byte) i);
@@ -223,7 +223,7 @@ public class NativeMemoryTest {
       mem.putLong(i*8,  i);
     }
 
-    mem.copy(0, halfBytes, halfBytes);
+    mem.copy(0, mem, halfBytes, halfBytes);
 
     for (int i=0; i<halfLongs; i++) {
       assertEquals(mem.getLong((i+halfLongs)*8), i);
@@ -245,7 +245,7 @@ public class NativeMemoryTest {
     println(mem.toHexString("Set 1st 32 to ints ", 0, memCapacity));
 
     try {
-      mem.copy(0, memCapacity/4, memCapacity/2);
+      mem.copy(0, mem, memCapacity/4, memCapacity/2);
       fail("Did Not Catch Assertion Error: copy overlap");
     }
     catch (AssertionError e) {
@@ -261,7 +261,7 @@ public class NativeMemoryTest {
     AllocMemory mem = new AllocMemory(memCapacity);
 
     try {
-      mem.copy(32, 32, 33);  //hit source bound check
+      mem.copy(32, mem, 32, 33);  //hit source bound check
       fail("Did Not Catch Assertion Error: source bound");
     }
     catch (AssertionError e) {
@@ -277,7 +277,7 @@ public class NativeMemoryTest {
     AllocMemory mem = new AllocMemory(memCapacity);
 
     try {
-      mem.copy(0, 32, 33);  //hit dst bound check
+      mem.copy(0, mem, 32, 33);  //hit dst bound check
       fail("Did Not Catch Assertion Error: dst bound");
     }
     catch (AssertionError e) {
@@ -298,7 +298,7 @@ public class NativeMemoryTest {
 
     Memory mem2 = mem1.asReadOnlyMemory();
     try {
-      NativeMemory.copy(mem1, 0, mem2, 0, memCapacity);
+      mem1.copy(0, mem2, 0, memCapacity);
     }
     finally {
       mem1.freeMemory();
@@ -317,7 +317,7 @@ public class NativeMemoryTest {
     }
     mem2.clear();
 
-    NativeMemory.copy(mem1, 0, mem2, 0, memCapacity);
+    mem1.copy(0, mem2, 0, memCapacity);
 
     for (int i=0; i<memCapacity; i++) {
       assertEquals(mem2.getByte(i), (byte) i);
@@ -327,7 +327,6 @@ public class NativeMemoryTest {
     mem2.freeMemory();
   }
 
-  @SuppressWarnings("deprecation")
   @Test
   public void checkDeprecatedCopyCrossNativeSmall() {
     int memCapacity = 64;
@@ -339,7 +338,8 @@ public class NativeMemoryTest {
     }
     mem2.clear();
 
-    MemoryUtil.copy(mem1, 0, mem2, 0, memCapacity);
+
+    mem1.copy(0, mem2, 0, memCapacity);
 
     for (int i=0; i<memCapacity; i++) {
       assertEquals(mem2.getByte(i), (byte) i);
@@ -361,7 +361,7 @@ public class NativeMemoryTest {
     }
     mem2.clear();
 
-    NativeMemory.copy(mem1, 0, mem2, 0, memCapacity);
+    mem1.copy(0, mem2, 0, memCapacity);
 
     for (int i=0; i<memCapLongs; i++) {
       assertEquals(mem2.getLong(i*8), i);
@@ -381,7 +381,8 @@ public class NativeMemoryTest {
     byte[] byteArr = new byte[64];
     NativeMemory mem2 = new NativeMemory(byteArr);
     mem2.clear();
-    NativeMemory.copy(mem1, 8, mem2, 16, 16);
+
+    mem1.copy(8, mem2, 16, 16);
 
     for (int i=0; i<16; i++) {
       assertEquals(mem1.getByte(8+i), mem2.getByte(16+i));
@@ -408,7 +409,7 @@ public class NativeMemoryTest {
     Memory reg2 = new MemoryRegion(mem1, 24, 16);
     println(reg2.toHexString("Reg2", 0, (int)reg2.getCapacity()));
 
-    NativeMemory.copy(reg1, 0, reg2, 0, 16);
+    reg1.copy(0, reg2, 0, 16);
 
     for (int i=0; i<16; i++) {
       assertEquals(reg1.getByte(i), reg2.getByte(i));
@@ -438,7 +439,7 @@ public class NativeMemoryTest {
     println(reg1B.toHexString("Reg1B", 0, (int)reg1B.getCapacity()));
 
     Memory reg2 = new MemoryRegion(mem2, 32, 16);
-    NativeMemory.copy(reg1B, 0, reg2, 0, 16);
+    reg1B.copy(0, reg2, 0, 16);
     println(reg2.toHexString("Reg2", 0, (int)reg2.getCapacity()));
 
     println(mem2.toHexString("Mem2", 0, (int)mem2.getCapacity()));

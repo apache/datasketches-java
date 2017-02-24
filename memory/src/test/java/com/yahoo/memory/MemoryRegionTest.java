@@ -84,7 +84,7 @@ public class MemoryRegionTest {
       region.putByte(i, (byte) i);
     }
 
-    region.copy(0, half, half);
+    region.copy(0, region, half, half);
 
     for (int i=0; i<half; i++) {
       assertEquals(region.getByte(i+half), (byte) i);
@@ -107,7 +107,7 @@ public class MemoryRegionTest {
       region.putLong(i*8,  i);
     }
 
-    region.copy(0, halfBytes, halfBytes);
+    region.copy(0, region, halfBytes, halfBytes);
 
     for (int i=0; i<halfLongs; i++) {
       assertEquals(region.getLong((i+halfLongs)*8), i);
@@ -129,7 +129,7 @@ public class MemoryRegionTest {
     }
     region2.clear();
 
-    NativeMemory.copy(region1, 0, region2, 0, memCapacity);
+    region1.copy(0, region2, 0, memCapacity);
 
     for (int i=0; i<memCapacity; i++) {
       assertEquals(mem2.getByte(i), (byte) i);
@@ -154,7 +154,7 @@ public class MemoryRegionTest {
     println(region.toHexString("Set 1st 32 to ints ", 0, memCapacity));
 
     try {
-      region.copy(0, memCapacity/4, memCapacity/2);
+      region.copy(0, region, memCapacity/4, memCapacity/2);
       fail("Did not catch assertion error");
     }
     catch (AssertionError e) {
@@ -290,7 +290,7 @@ public class MemoryRegionTest {
         MemoryRegion newMem = new MemoryRegion(parent_, capUsed_, capacityBytes);
         capUsed_ += capacityBytes;
         long minCopyToBytes = min(min(origMem.getCapacity(), copyToBytes), capacityBytes);
-        NativeMemory.copy(origMem, 0, newMem, 0, minCopyToBytes);
+        origMem.copy(0, newMem, 0, minCopyToBytes);
         if (minCopyToBytes < capacityBytes) {
           newMem.clear(minCopyToBytes, capacityBytes - minCopyToBytes);
         }

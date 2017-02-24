@@ -22,7 +22,10 @@ import static com.yahoo.memory.UnsafeUtil.INT_SHIFT;
 import static com.yahoo.memory.UnsafeUtil.LONG_SHIFT;
 import static com.yahoo.memory.UnsafeUtil.LS;
 import static com.yahoo.memory.UnsafeUtil.SHORT_SHIFT;
+import static com.yahoo.memory.UnsafeUtil.UNSAFE_COPY_THRESHOLD;
 import static com.yahoo.memory.UnsafeUtil.assertBounds;
+import static com.yahoo.memory.UnsafeUtil.checkOverlap;
+import static com.yahoo.memory.UnsafeUtil.unsafe;
 
 import java.nio.ByteBuffer;
 
@@ -100,45 +103,6 @@ public class MemoryRegion implements Memory {
    */
   public void reassign(final long memOffsetBytes, final long capacityBytes) {
     throw new UnsupportedOperationException("MemoryRegion is immutable.");
-  }
-
-  @Override
-  public void clear() {
-    fill(0, capacityBytes_, (byte) 0);
-  }
-
-  @Override
-  public void clear(final long offsetBytes, final long lengthBytes) {
-    fill(offsetBytes, lengthBytes, (byte) 0);
-  }
-
-  @Override
-  public void clearBits(final long offsetBytes, final byte bitMask) {
-    assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
-    mem_.clearBits(getAddress(offsetBytes), bitMask);
-  }
-
-  @Override
-  public void copy(final long srcOffsetBytes, final long dstOffsetBytes, final long lengthBytes) {
-    assertBounds(srcOffsetBytes, lengthBytes, capacityBytes_);
-    assertBounds(srcOffsetBytes, lengthBytes, capacityBytes_);
-    final long min = Math.min(srcOffsetBytes, dstOffsetBytes);
-    final long max = Math.max(srcOffsetBytes, dstOffsetBytes);
-    assertBounds(min, lengthBytes, max); //regions must not overlap
-    final long srcAdd = getAddress(srcOffsetBytes);
-    final long dstAdd = getAddress(dstOffsetBytes);
-    mem_.copy(srcAdd, dstAdd, lengthBytes);
-  }
-
-  @Override
-  public void fill(final byte value) {
-    fill(0, capacityBytes_, value);
-  }
-
-  @Override
-  public void fill(final long offsetBytes, final long lengthBytes, final byte value) {
-    assertBounds(offsetBytes, lengthBytes, capacityBytes_);
-    mem_.fill(getAddress(offsetBytes), lengthBytes, value);
   }
 
   @Override
@@ -471,6 +435,81 @@ public class MemoryRegion implements Memory {
   @Override
   public ByteBuffer byteBuffer() {
     return mem_.byteBuffer();
+  }
+
+  @Override
+  public void clear() {
+    fill(0, capacityBytes_, (byte) 0);
+  }
+
+  @Override
+  public void clear(final long offsetBytes, final long lengthBytes) {
+    fill(offsetBytes, lengthBytes, (byte) 0);
+  }
+
+  @Override
+  public void clearBits(final long offsetBytes, final byte bitMask) {
+    assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
+    mem_.clearBits(getAddress(offsetBytes), bitMask);
+  }
+
+  @Override
+  @Deprecated
+  public void copy(final long srcOffsetBytes, final long dstOffsetBytes, final long lengthBytes) {
+    copy(srcOffsetBytes, this, dstOffsetBytes, lengthBytes);
+  }
+
+  //copy (long, dstMemory, long, long) OK
+
+  @Override
+  public void copy(final long srcOffsetBytes, final Memory destination, final long dstOffsetBytes,
+      final long lengthBytes) {
+
+    if (destination.isReadOnly()) {
+      throw new ReadOnlyMemoryException();
+    }
+    assertBounds(srcOffsetBytes, lengthBytes, this.getCapacity());
+    assertBounds(dstOffsetBytes, lengthBytes, destination.getCapacity());
+    assert (this == destination) ? checkOverlap(srcOffsetBytes, dstOffsetBytes, lengthBytes) : true ;
+
+    long srcAdd = this.getCumulativeOffset(srcOffsetBytes);
+    long dstAdd = destination.getCumulativeOffset(dstOffsetBytes);
+
+    final Object srcParent;
+    if (this.isDirect()) {
+      srcParent = null;
+    }
+    else {
+      Object mem = mem_;
+      while (!(mem instanceof NativeMemory)) {
+        final MemoryRegion mr = (MemoryRegion) mem;
+        mem = mr.mem_;
+      }
+      final NativeMemory nmem = (NativeMemory) mem;
+      srcParent = nmem.memArray_;
+    }
+
+    final Object dstParent = (destination.isDirect()) ? null : destination.array();
+    long lenBytes = lengthBytes;
+
+    while (lenBytes > 0) {
+      final long chunkBytes = (lenBytes > UNSAFE_COPY_THRESHOLD) ? UNSAFE_COPY_THRESHOLD : lenBytes;
+      unsafe.copyMemory(srcParent, srcAdd, dstParent, dstAdd, lenBytes);
+      lenBytes -= chunkBytes;
+      srcAdd += chunkBytes;
+      dstAdd += chunkBytes;
+    }
+  }
+
+  @Override
+  public void fill(final byte value) {
+    fill(0, capacityBytes_, value);
+  }
+
+  @Override
+  public void fill(final long offsetBytes, final long lengthBytes, final byte value) {
+    assertBounds(offsetBytes, lengthBytes, capacityBytes_);
+    mem_.fill(getAddress(offsetBytes), lengthBytes, value);
   }
 
   @Override

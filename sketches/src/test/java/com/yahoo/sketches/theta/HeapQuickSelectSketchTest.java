@@ -558,7 +558,7 @@ public class HeapQuickSelectSketchTest {
     mem.putDouble(16, 1.0); //restore theta
     byte[] byteArray2 = new byte[bytearray1.length -1];
     Memory mem2 = new NativeMemory(byteArray2);
-    NativeMemory.copy(mem, 0, mem2, 0, mem2.getCapacity());
+    mem.copy(0, mem2, 0, mem2.getCapacity());
     try {
       HeapQuickSelectSketch.heapifyInstance(mem2, DEFAULT_UPDATE_SEED);
       fail();

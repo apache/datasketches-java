@@ -23,50 +23,6 @@ import java.nio.ByteBuffer;
 public interface Memory {
 
   /**
-   * Clears all bytes of this Memory to zero
-   */
-  void clear();
-
-  /**
-   * Clears a portion of this Memory to zero.
-   * @param offsetBytes offset bytes relative to this Memory start
-   * @param lengthBytes the length in bytes
-   */
-  void clear(long offsetBytes, long lengthBytes);
-
-  /**
-   * Clears the bits defined by the bitMask
-   * @param offsetBytes offset bytes relative to this Memory start.
-   * @param bitMask the bits set to one will be cleared
-   */
-  void clearBits(long offsetBytes, byte bitMask);
-
-  /**
-   * Copies bytes from a source region of this Memory to a destination region of this Memory
-   * using the same low-level system copy function as found in
-   * {@link java.lang.System#arraycopy(Object, int, Object, int, int)}.
-   * These regions may not overlap.  This will be checked if asserts are enabled in the JVM.
-   * @param srcOffsetBytes the source offset
-   * @param dstOffsetBytes the destintaion offset
-   * @param lengthBytes the number of bytes to copy
-   */
-  void copy(long srcOffsetBytes, long dstOffsetBytes, long lengthBytes);
-
-  /**
-   * Fills all bytes of this Memory region to the given byte value.
-   * @param value the given byte value
-   */
-  void fill(byte value);
-
-  /**
-   * Fills a portion of this Memory region to the given byte value.
-   * @param offsetBytes offset bytes relative to this Memory start
-   * @param lengthBytes the length in bytes
-   * @param value the given byte value
-   */
-  void fill(long offsetBytes, long lengthBytes, byte value);
-
-  /**
    * Gets the boolean value at the given offset
    * @param offsetBytes offset bytes relative to this Memory start
    * @return the boolean at the given offset
@@ -436,6 +392,64 @@ public interface Memory {
    * @return the backing ByteBuffer if there is one, otherwise returns null
    */
   ByteBuffer byteBuffer();
+
+  /**
+   * Clears all bytes of this Memory to zero
+   */
+  void clear();
+
+  /**
+   * Clears a portion of this Memory to zero.
+   * @param offsetBytes offset bytes relative to this Memory start
+   * @param lengthBytes the length in bytes
+   */
+  void clear(long offsetBytes, long lengthBytes);
+
+  /**
+   * Clears the bits defined by the bitMask
+   * @param offsetBytes offset bytes relative to this Memory start.
+   * @param bitMask the bits set to one will be cleared
+   */
+  void clearBits(long offsetBytes, byte bitMask);
+
+  /**
+   * Copies bytes from a source range of this Memory to a destination range of the given Memory
+   * using the same low-level system copy function as found in
+   * {@link java.lang.System#arraycopy(Object, int, Object, int, int)}.
+   * These regions may not overlap.  This will be checked if asserts are enabled in the JVM.
+   * @param srcOffsetBytes the source offset
+   * @param dstOffsetBytes the destintaion offset
+   * @param lengthBytes the number of bytes to copy
+   * @deprecated Use {@link Memory#copy(long, Memory, long, long)} instead.
+   */
+  @Deprecated
+  void copy(long srcOffsetBytes, long dstOffsetBytes, long lengthBytes);
+
+  /**
+   * Copies bytes from a source range of this Memory to a destination range of the given Memory
+   * using the same low-level system copy function as found in
+   * {@link java.lang.System#arraycopy(Object, int, Object, int, int)}.
+   * @param srcOffsetBytes the source offset for this Memory
+   * @param destination the destination Memory, which may not be Read-Only.
+   * @param dstOffsetBytes the destintaion offset
+   * @param lengthBytes the number of bytes to copy
+   */
+  void copy(long srcOffsetBytes, Memory destination, long dstOffsetBytes, long lengthBytes);
+
+  /**
+   * Fills all bytes of this Memory region to the given byte value.
+   * @param value the given byte value
+   */
+  void fill(byte value);
+
+  /**
+   * Fills a portion of this Memory region to the given byte value.
+   * @param offsetBytes offset bytes relative to this Memory start
+   * @param lengthBytes the length in bytes
+   * @param value the given byte value
+   */
+  void fill(long offsetBytes, long lengthBytes, byte value);
+
 
   /**
    * Returns the start address of this <i>Memory</i> relative to its parent plus the offset in bytes.
