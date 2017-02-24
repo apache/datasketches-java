@@ -6,7 +6,6 @@
 package com.yahoo.sketches.quantiles;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
 
 /**
  * The doubles update algorithms for quantiles.
@@ -197,8 +196,8 @@ final class DoublesUpdateImpl {
           tgtCombinedBuffer, (2 + endingLevel) * k,
           k);
     } else { // mergeInto version of computation
-      NativeMemory.copy(
-          optSrcKBuf, optSrcKBufStrt << 3,
+      optSrcKBuf.copy(
+          optSrcKBufStrt << 3,
           tgtCombinedBuffer, ((2 + endingLevel) * k) << 3,
           k << 3);
     }
@@ -255,10 +254,10 @@ final class DoublesUpdateImpl {
     }
 
     if (i1 < stop1) { //copy the remainder
-      NativeMemory.copy(src1, i1 << 3, dst, iDst << 3, (stop1 << 3) - (i1 << 3));
+      src1.copy(i1 << 3, dst, iDst << 3, (stop1 << 3) - (i1 << 3));
     } else {
       assert start2 < stop2;
-      NativeMemory.copy(src2, i2 << 3, dst, iDst << 3, (stop2 << 3) - (i2 << 3));
+      src2.copy(i2 << 3, dst, iDst << 3, (stop2 << 3) - (i2 << 3));
     }
   }
 

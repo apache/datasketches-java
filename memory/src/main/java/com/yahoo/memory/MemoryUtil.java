@@ -33,7 +33,7 @@ public final class MemoryUtil {
    * @param destination the destination Memory
    * @param dstOffsetBytes the destination offset
    * @param lengthBytes the number of bytes to copy
-   * @deprecated this method was moved to {@link NativeMemory#copy(Memory, long, Memory, long, long)}
+   * @deprecated Use {@link Memory#copy(long, Memory, long, long)} instead.
    */
   @Deprecated
   public static void copy(final Memory source, final long srcOffsetBytes, final Memory destination,
@@ -109,7 +109,7 @@ public final class MemoryUtil {
     }
 
     if (copy) { //copy and request free.
-      NativeMemory.copy(origMem, 0, newDstMem, 0, Math.min(origMem.getCapacity(), newCap));
+      origMem.copy(0, newDstMem, 0, Math.min(origMem.getCapacity(), newCap));
       memReq.free(origMem, newDstMem);
     }
     return newDstMem;

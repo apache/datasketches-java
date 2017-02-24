@@ -15,7 +15,6 @@ import static com.yahoo.sketches.theta.PreambleUtil.insertLgArrLongs;
 import static com.yahoo.sketches.theta.PreambleUtil.insertThetaLong;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.Util;
 
@@ -93,16 +92,20 @@ final class Rebuilder {
 
     //Move Preamble to destination memory
     final int preBytes = preambleLongs << 3;
-    NativeMemory.copy(srcMem, 0, dstMem, 0, preBytes); //copy the preamble
+    srcMem.copy(0, dstMem, 0, preBytes); //copy the preamble
+
     //Bulk copy source to on-heap buffer
     final int srcHTLen = 1 << srcLgArrLongs;
     final long[] srcHTArr = new long[srcHTLen];
     srcMem.getLongArray(preBytes, srcHTArr, 0, srcHTLen);
+
     //Create destination buffer
     final int dstHTLen = 1 << dstLgArrLongs;
     final long[] dstHTArr = new long[dstHTLen];
+
     //Rebuild hash table in destination buffer
     HashOperations.hashArrayInsert(srcHTArr, dstHTArr, dstLgArrLongs, thetaLong);
+
     //Bulk copy to destination memory
     dstMem.putLongArray(preBytes, dstHTArr, 0, dstHTLen);
     dstMem.putByte(LG_ARR_LONGS_BYTE, (byte)dstLgArrLongs); //update in dstMem

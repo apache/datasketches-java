@@ -55,7 +55,7 @@ public class MemoryRegionRTest {
     }
 
     try {
-      ro.copy(L0, L0, L0);
+      ro.copy(L0, ro, L0, L0);
       fail();
     } catch (ReadOnlyMemoryException e) {
       /* pass */

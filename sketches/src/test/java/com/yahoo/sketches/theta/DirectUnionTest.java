@@ -533,7 +533,7 @@ public class DirectUnionTest {
 
     Memory v2mem1 = convertSerV3toSerV2(v3mem1);
     Memory v2mem2 = new NativeMemory(new byte[16]);
-    NativeMemory.copy(v2mem1, 0, v2mem2, 0, 8);
+    v2mem1.copy(0, v2mem2, 0, 8);
 
     uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]); //union memory
     union = SetOperation.builder().initMemory(uMem).buildUnion(k);
@@ -685,7 +685,7 @@ public class DirectUnionTest {
     SetOperation setOp = new SetOperationBuilder().initMemory(mem).build(k,Family.UNION);
     println(setOp.toString());
     Memory mem2 = new NativeMemory(new byte[32]); //for just preamble
-    NativeMemory.copy(mem, 0, mem2, 0, 32); //too small
+    mem.copy(0, mem2, 0, 32); //too small
     DirectQuickSelectSketch.wrapInstance(mem2, Util.DEFAULT_UPDATE_SEED);
   }
 

@@ -98,7 +98,7 @@ public class AllocMemory extends NativeMemory {
   public AllocMemory(final NativeMemory origMem, final long copyToBytes, final long capacityBytes,
       final boolean clear, final MemoryRequest memReq) {
     this(capacityBytes, memReq);
-    NativeMemory.copy(origMem, 0, this, 0, copyToBytes);
+    origMem.copy(0, this, 0, copyToBytes);
     if (clear) { this.clear(copyToBytes, capacityBytes - copyToBytes); }
   }
 

@@ -151,8 +151,8 @@ public final class UnsafeUtil {
    * @return true if the given offsets and length do not overlap.
    */
   public static boolean checkOverlap(final long srcOff, final long dstOff, final long length) {
-    final long min = Math.min(srcOff, dstOff);
-    final long max = Math.max(srcOff, dstOff);
+    final long min = (srcOff <= dstOff) ? srcOff : dstOff;
+    final long max = (srcOff >= dstOff) ? srcOff : dstOff;
     return (min + length) <= max;
   }
 

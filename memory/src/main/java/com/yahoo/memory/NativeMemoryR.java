@@ -40,9 +40,12 @@ class NativeMemoryR extends NativeMemory {
   }
 
   @Override
+  @Deprecated
   public void copy(final long srcOffsetBytes, final long dstOffsetBytes, final long lengthBytes) {
     throw new ReadOnlyMemoryException();
   }
+
+  //copy (long, dstMemory, long, long) OK
 
   @Override
   public void fill(final long offsetBytes, final long lengthBytes, final byte value) {

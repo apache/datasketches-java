@@ -266,7 +266,7 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
     final int lengthBytes = (preambleLongs_ + (1 << lgArrLongs)) << 3;
     final byte[] byteArray = new byte[lengthBytes];
     final Memory mem = new NativeMemory(byteArray);
-    NativeMemory.copy(mem_, 0, mem, 0, lengthBytes);
+    mem_.copy(0, mem, 0, lengthBytes);
     return byteArray;
   }
 
@@ -315,7 +315,7 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
     final long lgArrLongs = extractLgArrLongs(memObj_, memAdd_);
     final long[] cacheArr = new long[1 << lgArrLongs];
     final Memory mem = new NativeMemory(cacheArr);
-    NativeMemory.copy(mem_, preambleLongs_ << 3, mem, 0, 8 << lgArrLongs);
+    mem_.copy(preambleLongs_ << 3, mem, 0, 8 << lgArrLongs);
     return cacheArr;
   }
 

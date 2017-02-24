@@ -41,7 +41,7 @@ public class DirectThetaMemoryRequestTest {
     @Override
     public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
       Memory newMem = request(capacityBytes);
-      NativeMemory.copy(origMem, 0, newMem, 0, copyToBytes);
+      origMem.copy(0, newMem, 0, copyToBytes);
       println("\nOldCap: " + origMem.getCapacity() + ", ReqCap: " + capacityBytes
           + ", Granted: "+ newMem.getCapacity());
       return newMem;

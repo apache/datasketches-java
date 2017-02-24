@@ -65,7 +65,7 @@ public class MemoryUtilTest {
     @Override
     public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
       Memory newMem = request(capacityBytes);
-      NativeMemory.copy(origMem, 0, newMem, 0, copyToBytes);
+      origMem.copy(0, newMem, 0, copyToBytes);
       println("\nOldCap: " + origMem.getCapacity() + ", ReqCap: " + capacityBytes
           + ", Granted: "+ newMem.getCapacity());
       return newMem;
@@ -135,7 +135,7 @@ public class MemoryUtilTest {
     @Override
     public Memory request(Memory origMem, long copyToBytes, long capacityBytes) {
       Memory newMem = request(capacityBytes);
-      NativeMemory.copy(origMem, 0, newMem, 0, copyToBytes);
+      origMem.copy(0, newMem, 0, copyToBytes);
       println("\nOldCap: " + origMem.getCapacity() + ", ReqCap: " + capacityBytes
           + ", Granted: "+ newMem.getCapacity());
       return newMem;
@@ -211,7 +211,7 @@ public class MemoryUtilTest {
    * @param s value to print
    */
   static void println(String s) {
-    System.out.println(s); //disable here
+    //System.out.println(s); //disable here
   }
 
 }
