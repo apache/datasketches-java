@@ -13,13 +13,13 @@ import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.LG_RESIZE_FACTOR_BIT;
-import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.P_FLOAT;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.P_FLOAT;
 import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
 import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
@@ -201,7 +201,7 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
     } else {
       final Object memObj = srcMem.array(); //may be null
       final long memAdd = srcMem.getCumulativeOffset(0L);
-  
+
       preambleLongs = extractPreLongs(memObj, memAdd);                  //byte 0
       myRF = ResizeFactor.getRF(extractLgResizeFactor(memObj, memAdd)); //byte 0
       serVer = extractSerVer(memObj, memAdd);                           //byte 1
