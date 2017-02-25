@@ -238,7 +238,7 @@ public class ReservoirItemsSketchTest {
   @Test
   public void checkArrayOfNumbersSerDeErrors() {
     // Highly debatable whether this belongs here vs a stand-alone test class
-    ReservoirItemsSketch<Number> ris = ReservoirItemsSketch.getInstance(6);
+    final ReservoirItemsSketch<Number> ris = ReservoirItemsSketch.getInstance(6);
 
     assertNull(ris.getSamples());
     assertNull(ris.getSamples(Number.class));
@@ -248,29 +248,29 @@ public class ReservoirItemsSketchTest {
     ris.update(new BigDecimal(2));
 
     // this should work since BigDecimal is an instance of Number
-    Number[] data = ris.getSamples(Number.class);
+    final Number[] data = ris.getSamples(Number.class);
     assertNotNull(data);
     assertEquals(data.length, 2);
 
     // toByteArray() should fail
-    ArrayOfNumbersSerDe serDe = new ArrayOfNumbersSerDe();
+    final ArrayOfNumbersSerDe serDe = new ArrayOfNumbersSerDe();
     try {
       ris.toByteArray(serDe, Number.class);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       // expected
     }
 
     // force entry to a supported type
     data[1] = 3.0;
-    byte[] bytes = serDe.serializeToByteArray(data);
+    final byte[] bytes = serDe.serializeToByteArray(data);
 
     // change first element to indicate something unsupported
     bytes[0] = 'q';
     try {
       serDe.deserializeFromMemory(new NativeMemory(bytes), 2);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       // expected
     }
   }
@@ -392,6 +392,27 @@ public class ReservoirItemsSketchTest {
   }
 
   @Test
+  public void checkReadOnlyHeapify() {
+    final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
+    Memory sketchMem = getBasicSerializedLongsRIS();
+
+    // Load from read-only and writable memory to ensure they deserialize identically
+    ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(sketchMem.asReadOnlyMemory(),
+            serDe);
+    ReservoirItemsSketch<Long> fromWritable = ReservoirItemsSketch.getInstance(sketchMem, serDe);
+    validateReservoirEquality(ris, fromWritable);
+
+    // Same with an empty sketch
+    final byte[] sketchBytes = ReservoirItemsSketch.<Long>getInstance(32).toByteArray(serDe);
+    sketchMem = new NativeMemory(sketchBytes);
+
+    ris = ReservoirItemsSketch.getInstance(sketchMem.asReadOnlyMemory(), serDe);
+    fromWritable = ReservoirItemsSketch.getInstance(sketchMem, serDe);
+    validateReservoirEquality(ris, fromWritable);
+  }
+
+
+  @Test
   public void checkVersionConversion() {
     // version change from 1 to 2 only impact first preamble long, so empty sketch is sufficient
     final int k = 32768;
@@ -505,7 +526,7 @@ public class ReservoirItemsSketchTest {
     }
   }
 
-  static Memory getBasicSerializedLongsRIS() {
+  private static Memory getBasicSerializedLongsRIS() {
     final int k = 10;
     final int n = 20;
 
@@ -523,7 +544,7 @@ public class ReservoirItemsSketchTest {
     return new NativeMemory(sketchBytes);
   }
 
-  static void validateSerializeAndDeserialize(final ReservoirItemsSketch<Long> ris) {
+  private static void validateSerializeAndDeserialize(final ReservoirItemsSketch<Long> ris) {
     final byte[] sketchBytes = ris.toByteArray(new ArrayOfLongsSerDe());
     assertEquals(sketchBytes.length,
             (Family.RESERVOIR.getMaxPreLongs() + ris.getNumSamples()) << 3);

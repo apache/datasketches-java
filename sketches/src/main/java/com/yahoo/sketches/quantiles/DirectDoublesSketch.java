@@ -5,21 +5,27 @@
 
 package com.yahoo.sketches.quantiles;
 
+import static com.yahoo.sketches.quantiles.PreambleUtil.COMBINED_BUFFER;
 import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.FAMILY_BYTE;
+import static com.yahoo.sketches.quantiles.PreambleUtil.FLAGS_BYTE;
+import static com.yahoo.sketches.quantiles.PreambleUtil.K_SHORT;
+import static com.yahoo.sketches.quantiles.PreambleUtil.MAX_DOUBLE;
+import static com.yahoo.sketches.quantiles.PreambleUtil.MIN_DOUBLE;
+import static com.yahoo.sketches.quantiles.PreambleUtil.N_LONG;
 import static com.yahoo.sketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.quantiles.PreambleUtil.READ_ONLY_FLAG_MASK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFamilyID;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.extractMaxDouble;
-import static com.yahoo.sketches.quantiles.PreambleUtil.extractMinDouble;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractN;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertFamilyID;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertFlags;
-import static com.yahoo.sketches.quantiles.PreambleUtil.insertIntoBaseBuffer;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertMaxDouble;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertMinDouble;
@@ -45,8 +51,6 @@ import com.yahoo.sketches.SketchesArgumentException;
 final class DirectDoublesSketch extends DoublesSketch {
   private static final int MIN_DIRECT_DOUBLES_SER_VER = 3;
   private Memory mem_;
-  private Object memObj_;
-  private long memAdd_; //
 
   //**CONSTRUCTORS**********************************************************
   private DirectDoublesSketch(final int k) {
@@ -83,8 +87,6 @@ final class DirectDoublesSketch extends DoublesSketch {
 
     final DirectDoublesSketch dds = new DirectDoublesSketch(k);
     dds.mem_ = dstMem;
-    dds.memObj_ = memObj;
-    dds.memAdd_ = memAdd;
     return dds;
   }
 
@@ -96,19 +98,35 @@ final class DirectDoublesSketch extends DoublesSketch {
    */
   static DirectDoublesSketch wrapInstance(final Memory srcMem) {
     final long memCap = srcMem.getCapacity();
-    final Object memObj = srcMem.array(); //may be null
-    final long memAdd = srcMem.getCumulativeOffset(0L);
 
-    //Extract the preamble, assumes at least 8 bytes
-    final int preLongs = extractPreLongs(memObj, memAdd);
-    final int serVer = extractSerVer(memObj, memAdd);
-    final int familyID = extractFamilyID(memObj, memAdd);
-    final int flags = extractFlags(memObj, memAdd);
-    final int k = extractK(memObj, memAdd);
+    final int preLongs;
+    final int serVer;
+    final int familyID;
+    final int flags;
+    final int k;
+    final long n;
+
+    if (srcMem.isReadOnly() && !srcMem.isDirect()) {
+      preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0XFF;
+      serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
+      familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
+      flags = srcMem.getByte(FLAGS_BYTE) & 0XFF;
+      k = srcMem.getShort(K_SHORT) & 0XFFFF;
+      n = srcMem.getLong(N_LONG);
+    } else {
+      final Object memObj = srcMem.array(); //may be null
+      final long memAdd = srcMem.getCumulativeOffset(0L);
+  
+      //Extract the preamble, assumes at least 8 bytes
+      preLongs = extractPreLongs(memObj, memAdd);
+      serVer = extractSerVer(memObj, memAdd);
+      familyID = extractFamilyID(memObj, memAdd);
+      flags = extractFlags(memObj, memAdd);
+      k = extractK(memObj, memAdd);
+      n = extractN(memObj, memAdd);
+    }
+
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
-
-    checkDirectMemCapacity(k, 0, memCap); //check for absolute min memCap
-    final long n = extractN(memObj, memAdd);
 
     //VALIDITY CHECKS
     checkPreLongs(preLongs);
@@ -122,8 +140,6 @@ final class DirectDoublesSketch extends DoublesSketch {
 
     final DirectDoublesSketch dds = new DirectDoublesSketch(k);
     dds.mem_ = srcMem;
-    dds.memObj_ = memObj;
-    dds.memAdd_ = memAdd;
     return dds;
   }
 
@@ -137,9 +153,10 @@ final class DirectDoublesSketch extends DoublesSketch {
     if (dataItem < minValue) { putMinValue(dataItem); }
 
     int bbCount = getBaseBufferCount();
-    insertIntoBaseBuffer(memObj_, memAdd_, bbCount++, dataItem);
+    mem_.putDouble(COMBINED_BUFFER + bbCount * Double.BYTES, dataItem);
+    bbCount++;
     final long newN = getN() + 1;
-    insertFlags(memObj_, memAdd_, 0); //not compact, not ordered, not empty
+    mem_.putByte(FLAGS_BYTE, (byte) 0); //not compact, not ordered, not empty
 
     if (bbCount == 2 * k_) { //Propagate
       final int curCombBufItemCap = getCombinedBufferItemCapacity(); //K, prev N, Direct case
@@ -151,8 +168,6 @@ final class DirectDoublesSketch extends DoublesSketch {
       if (itemSpaceNeeded > curCombBufItemCap) {
         // copies base buffer plus old levels, adds space for new level
         mem_ = growCombinedMemBuffer(mem_, itemSpaceNeeded);
-        memObj_ = mem_.array(); //may be null
-        memAdd_ = mem_.getCumulativeOffset(0L);
       }
       if (itemSpaceNeeded > curUsedCap) { //clear out the next level
         mem_.clear(curUsedCap << 3, (itemSpaceNeeded - curUsedCap) << 3);
@@ -179,7 +194,7 @@ final class DirectDoublesSketch extends DoublesSketch {
 
   @Override
   public long getN() {
-    return extractN(memObj_, memAdd_);
+    return mem_.getLong(N_LONG);
   }
 
   @Override
@@ -189,20 +204,20 @@ final class DirectDoublesSketch extends DoublesSketch {
 
   @Override
   public double getMinValue() {
-    return extractMinDouble(memObj_, memAdd_);
+    return mem_.getDouble(MIN_DOUBLE);
   }
 
   @Override
   public double getMaxValue() {
-    return extractMaxDouble(memObj_, memAdd_);
+    return mem_.getDouble(MAX_DOUBLE);
   }
 
   @Override
   public void reset() {
-    insertN(memObj_, memAdd_, 0L);
-    insertMinDouble(memObj_, memAdd_, Double.POSITIVE_INFINITY);
-    insertMaxDouble(memObj_, memAdd_, Double.NEGATIVE_INFINITY);
-    insertFlags(memObj_, memAdd_, EMPTY_FLAG_MASK); //not compact, not ordered
+    mem_.putLong(N_LONG, 0L);
+    mem_.putDouble(MIN_DOUBLE, Double.POSITIVE_INFINITY);
+    mem_.putDouble(MAX_DOUBLE, Double.NEGATIVE_INFINITY);
+    mem_.putByte(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); //not compact, not ordered
   }
 
   //Restricted overrides
@@ -246,17 +261,17 @@ final class DirectDoublesSketch extends DoublesSketch {
 
   @Override
   void putMinValue(final double minValue) {
-    insertMinDouble(memObj_, memAdd_, minValue);
+    mem_.putDouble(MIN_DOUBLE, minValue);
   }
 
   @Override
   void putMaxValue(final double maxValue) {
-    insertMaxDouble(memObj_, memAdd_, maxValue);
+    mem_.putDouble(MAX_DOUBLE, maxValue);
   }
 
   @Override
   void putN(final long n) {
-    insertN(memObj_, memAdd_, n);
+    mem_.putLong(N_LONG, n);
   }
 
   @Override

@@ -11,6 +11,7 @@ import static com.yahoo.sketches.sampling.PreambleUtil.RESERVOIR_SIZE_INT;
 import static com.yahoo.sketches.sampling.PreambleUtil.RESERVOIR_SIZE_SHORT;
 import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER_BYTE;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -35,7 +36,7 @@ public class ReservoirLongsSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadPreLongs() {
-    Memory mem = getBasicSerializedRLS();
+    final Memory mem = getBasicSerializedRLS();
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 0); // corrupt the preLongs count
 
     ReservoirLongsSketch.getInstance(mem);
@@ -44,7 +45,7 @@ public class ReservoirLongsSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
-    Memory mem = getBasicSerializedRLS();
+    final Memory mem = getBasicSerializedRLS();
     mem.putByte(SER_VER_BYTE, (byte) 0); // corrupt the serialization version
 
     ReservoirLongsSketch.getInstance(mem);
@@ -53,7 +54,7 @@ public class ReservoirLongsSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadFamily() {
-    Memory mem = getBasicSerializedRLS();
+    final Memory mem = getBasicSerializedRLS();
     mem.putByte(FAMILY_BYTE, (byte) 0); // corrupt the family ID
 
     ReservoirLongsSketch.getInstance(mem);
@@ -62,15 +63,15 @@ public class ReservoirLongsSketchTest {
 
   @Test
   public void checkEmptySketch() {
-    ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(5);
+    final ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(5);
     assertTrue(rls.getSamples() == null);
 
-    byte[] sketchBytes = rls.toByteArray();
-    Memory mem = new NativeMemory(sketchBytes);
+    final byte[] sketchBytes = rls.toByteArray();
+    final Memory mem = new NativeMemory(sketchBytes);
 
     // only minPreLongs bytes and should deserialize to empty
     assertEquals(sketchBytes.length, Family.RESERVOIR.getMinPreLongs() << 3);
-    ReservoirLongsSketch loadedRls = ReservoirLongsSketch.getInstance(mem);
+    final ReservoirLongsSketch loadedRls = ReservoirLongsSketch.getInstance(mem);
     assertEquals(loadedRls.getNumSamples(), 0);
 
     println("Empty sketch:");
@@ -79,18 +80,19 @@ public class ReservoirLongsSketchTest {
 
   @Test
   public void checkUnderFullReservoir() {
-    int k = 128;
-    int n = 64;
+    final int k = 128;
+    final int n = 64;
 
-    ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
+    final ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
 
     for (int i = 0; i < n; ++i) {
       rls.update(i);
     }
     assertEquals(rls.getNumSamples(), n);
 
-    long[] data = rls.getSamples();
+    final long[] data = rls.getSamples();
     assertEquals(rls.getNumSamples(), rls.getN());
+    assertNotNull(data);
     assertEquals(data.length, n);
 
     // items in submit order until reservoir at capacity so check
@@ -103,11 +105,11 @@ public class ReservoirLongsSketchTest {
 
   @Test
   public void checkFullReservoir() {
-    int k = 1000;
-    int n = 2000;
+    final int k = 1000;
+    final int n = 2000;
 
     // specify smaller ResizeFactor to ensure multiple resizes
-    ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k, ResizeFactor.X2);
+    final ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k, ResizeFactor.X2);
 
     for (int i = 0; i < n; ++i) {
       rls.update(i);
@@ -122,10 +124,10 @@ public class ReservoirLongsSketchTest {
 
   @Test
   public void checkDownsampledCopy() {
-    int k = 256;
-    int tgtK = 64;
+    final int k = 256;
+    final int tgtK = 64;
 
-    ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
+    final ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
 
     // check status at 3 points:
     // 1. n < encTgtK
@@ -166,18 +168,18 @@ public class ReservoirLongsSketchTest {
 
   @Test
   public void checkBadConstructorArgs() {
-    long[] data = new long[128];
+    final long[] data = new long[128];
     for (int i = 0; i < 128; ++i) {
       data[i] = i;
     }
 
-    ResizeFactor rf = ResizeFactor.X8;
+    final ResizeFactor rf = ResizeFactor.X8;
 
     // no data
     try {
       ReservoirLongsSketch.getInstance(null, 128, rf, 128);
       fail();
-    } catch (SketchesException e) {
+    } catch (final SketchesException e) {
       assertTrue(e.getMessage().contains("null reservoir"));
     }
 
@@ -185,7 +187,7 @@ public class ReservoirLongsSketchTest {
     try {
       ReservoirLongsSketch.getInstance(data, 128, rf, 1);
       fail();
-    } catch (SketchesException e) {
+    } catch (final SketchesException e) {
       assertTrue(e.getMessage().contains("size less than 2"));
     }
 
@@ -193,7 +195,7 @@ public class ReservoirLongsSketchTest {
     try {
       ReservoirLongsSketch.getInstance(data, 128, rf, 64);
       fail();
-    } catch (SketchesException e) {
+    } catch (final SketchesException e) {
       assertTrue(e.getMessage().contains("max size less than array length"));
     }
 
@@ -201,7 +203,7 @@ public class ReservoirLongsSketchTest {
     try {
       ReservoirLongsSketch.getInstance(data, 512, rf, 256);
       fail();
-    } catch (SketchesException e) {
+    } catch (final SketchesException e) {
       assertTrue(e.getMessage().contains("too few samples"));
     }
 
@@ -209,17 +211,17 @@ public class ReservoirLongsSketchTest {
     try {
       ReservoirLongsSketch.getInstance(data, 256, rf, 256);
       fail();
-    } catch (SketchesException e) {
+    } catch (final SketchesException e) {
       assertTrue(e.getMessage().contains("too few samples"));
     }
   }
 
   @Test
   public void checkSketchCapacity() {
-    long[] data = new long[64];
-    long itemsSeen = (1L << 48) - 2;
+    final long[] data = new long[64];
+    final long itemsSeen = (1L << 48) - 2;
 
-    ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(data, itemsSeen,
+    final ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(data, itemsSeen,
             ResizeFactor.X8, data.length);
 
     // this should work, the next should fail
@@ -228,15 +230,15 @@ public class ReservoirLongsSketchTest {
     try {
       rls.update(0);
       fail();
-    } catch (SketchesStateException e) {
+    } catch (final SketchesStateException e) {
       assertTrue(e.getMessage().contains("Sketch has exceeded capacity for total items seen"));
     }
   }
 
   @Test
   public void checkSampleWeight() {
-    int k = 32;
-    ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
+    final int k = 32;
+    final ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
 
     for (int i = 0; i < (k / 2); ++i) {
       rls.update(i);
@@ -251,24 +253,42 @@ public class ReservoirLongsSketchTest {
   }
 
   @Test
+  public void checkReadOnlyHeapify() {
+    Memory sketchMem = getBasicSerializedRLS();
+
+    // Load from read-only and writable memory to ensure they deserialize identically
+    ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(sketchMem.asReadOnlyMemory());
+    ReservoirLongsSketch fromWritable = ReservoirLongsSketch.getInstance(sketchMem);
+    validateReservoirEquality(rls, fromWritable);
+
+    // Same with an empty sketch
+    final byte[] sketchBytes = ReservoirLongsSketch.getInstance(32).toByteArray();
+    sketchMem = new NativeMemory(sketchBytes);
+
+    rls = ReservoirLongsSketch.getInstance(sketchMem.asReadOnlyMemory());
+    fromWritable = ReservoirLongsSketch.getInstance(sketchMem);
+    validateReservoirEquality(rls, fromWritable);
+  }
+
+  @Test
   public void checkVersionConversion() {
     // version change from 1 to 2 only impact first preamble long, so empty sketch is sufficient
-    int k = 32768;
-    short encK = ReservoirSize.computeSize(k);
+    final int k = 32768;
+    final short encK = ReservoirSize.computeSize(k);
 
-    ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
-    byte[] sketchBytesOrig = rls.toByteArray();
+    final ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
+    final byte[] sketchBytesOrig = rls.toByteArray();
 
     // get a new byte[], manually revert to v1, then reconstruct
-    byte[] sketchBytes = rls.toByteArray();
-    Memory sketchMem = new NativeMemory(sketchBytes);
+    final byte[] sketchBytes = rls.toByteArray();
+    final Memory sketchMem = new NativeMemory(sketchBytes);
 
     sketchMem.putByte(SER_VER_BYTE, (byte) 1);
     sketchMem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
     sketchMem.putShort(RESERVOIR_SIZE_SHORT, encK);
 
-    ReservoirLongsSketch rebuilt = ReservoirLongsSketch.getInstance(sketchMem);
-    byte[] rebuiltBytes = rebuilt.toByteArray();
+    final ReservoirLongsSketch rebuilt = ReservoirLongsSketch.getInstance(sketchMem);
+    final byte[] rebuiltBytes = rebuilt.toByteArray();
 
     assertEquals(sketchBytesOrig.length, rebuiltBytes.length);
     for (int i = 0; i < sketchBytesOrig.length; ++i) {
@@ -278,9 +298,9 @@ public class ReservoirLongsSketchTest {
 
   @Test
   public void checkSetAndGetValue() {
-    int k = 20;
-    int tgtIdx = 5;
-    ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
+    final int k = 20;
+    final int tgtIdx = 5;
+    final ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
     for (int i = 0; i < k; ++i) {
       rls.update(i);
     }
@@ -292,14 +312,14 @@ public class ReservoirLongsSketchTest {
 
   @Test
   public void checkBadSetAndGetValue() {
-    int k = 20;
-    int tgtIdx = 5;
-    ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
+    final     int k = 20;
+    final int tgtIdx = 5;
+    final ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
 
     try {
       rls.getValueAtPosition(0);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       // expected
     }
 
@@ -311,36 +331,36 @@ public class ReservoirLongsSketchTest {
     try {
       rls.insertValueAtPosition(-1, -1);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       // expected
     }
 
     try {
       rls.insertValueAtPosition(-1, k + 1);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       // expected
     }
 
     try {
       rls.getValueAtPosition(-1);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       // expected
     }
 
     try {
       rls.getValueAtPosition(k + 1);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       // expected
     }
   }
 
   @Test
   public void checkForceIncrement() {
-    int k = 100;
-    ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
+    final int k = 100;
+    final ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
 
     for (int i = 0; i < 2 * k; ++i) {
       rls.update(i);
@@ -353,16 +373,16 @@ public class ReservoirLongsSketchTest {
     try {
       rls.forceIncrementItemsSeen((1L << 48) - 1);
       fail();
-    } catch (SketchesStateException e) {
+    } catch (final SketchesStateException e) {
       // expected
     }
   }
 
-  static Memory getBasicSerializedRLS() {
-    int k = 10;
-    int n = 20;
+  private static Memory getBasicSerializedRLS() {
+    final int k = 10;
+    final int n = 20;
 
-    ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
+    final ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(k);
     assertEquals(rls.getNumSamples(), 0);
 
     for (int i = 0; i < n; ++i) {
@@ -372,31 +392,34 @@ public class ReservoirLongsSketchTest {
     assertEquals(rls.getN(), n);
     assertEquals(rls.getK(), k);
 
-    byte[] sketchBytes = rls.toByteArray();
+    final byte[] sketchBytes = rls.toByteArray();
     return new NativeMemory(sketchBytes);
   }
 
-  static void validateSerializeAndDeserialize(ReservoirLongsSketch rls) {
-    byte[] sketchBytes = rls.toByteArray();
+  private static void validateSerializeAndDeserialize(final ReservoirLongsSketch rls) {
+    final byte[] sketchBytes = rls.toByteArray();
     assertEquals(sketchBytes.length,
             (Family.RESERVOIR.getMaxPreLongs() + rls.getNumSamples()) << 3);
 
     // ensure full reservoir rebuilds correctly
-    Memory mem = new NativeMemory(sketchBytes);
-    ReservoirLongsSketch loadedRls = ReservoirLongsSketch.getInstance(mem);
+    final Memory mem = new NativeMemory(sketchBytes);
+    final ReservoirLongsSketch loadedRls = ReservoirLongsSketch.getInstance(mem);
 
     validateReservoirEquality(rls, loadedRls);
   }
 
-  static void validateReservoirEquality(ReservoirLongsSketch rls1, ReservoirLongsSketch rls2) {
+  static void validateReservoirEquality(final ReservoirLongsSketch rls1,
+                                        final ReservoirLongsSketch rls2) {
     assertEquals(rls1.getNumSamples(), rls2.getNumSamples());
 
     if (rls1.getNumSamples() == 0) {
       return;
     }
 
-    long[] samples1 = rls1.getSamples();
-    long[] samples2 = rls2.getSamples();
+    final long[] samples1 = rls1.getSamples();
+    final long[] samples2 = rls2.getSamples();
+    assertNotNull(samples1);
+    assertNotNull(samples2);
     assertEquals(samples1.length, samples2.length);
 
     for (int i = 0; i < samples1.length; ++i) {
@@ -404,11 +427,11 @@ public class ReservoirLongsSketchTest {
     }
   }
 
-  static String printBytesAsLongs(byte[] byteArr) {
-    StringBuilder sb = new StringBuilder();
+  static String printBytesAsLongs(final byte[] byteArr) {
+    final StringBuilder sb = new StringBuilder();
     for (int i = 0; i < byteArr.length; i += 8) {
       for (int j = i + 7; j >= i; --j) {
-        String str = Integer.toHexString(byteArr[j] & 0XFF);
+        final String str = Integer.toHexString(byteArr[j] & 0XFF);
         sb.append(com.yahoo.sketches.Util.zeroPad(str, 2));
       }
       sb.append(com.yahoo.sketches.Util.LS);
@@ -423,7 +446,7 @@ public class ReservoirLongsSketchTest {
    *
    * @param msg The message to print
    */
-  private static void println(String msg) {
+  private static void println(final String msg) {
     //System.out.println(msg);
   }
 }

@@ -65,6 +65,11 @@ final class VersionConverter {
     return converted;
   }
 
+  /* This method avoids a potential issue with read-only on-heap memory where srcMem.array()
+   * would fail. By copying in the event of read-only memory, subsequent calls will work properly.
+   * Perhaps not the most elegant solution in that we may not always want to copy a read-only
+   * memory, but the result will be correct.
+   */
   private static Memory perform1to2Changes(final Memory srcMem) {
     final int memCap = (int) srcMem.getCapacity();
 

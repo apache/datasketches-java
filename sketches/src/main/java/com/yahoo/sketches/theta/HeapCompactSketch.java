@@ -9,7 +9,12 @@ import static com.yahoo.sketches.Util.checkSeedHashes;
 import static com.yahoo.sketches.Util.computeSeedHash;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
+import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
+import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
 import static com.yahoo.sketches.theta.PreambleUtil.extractCurCount;
 import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
@@ -40,17 +45,29 @@ final class HeapCompactSketch extends CompactSketch {
    * @return this sketch
    */
   static HeapCompactSketch heapifyInstance(final Memory srcMem, final long seed) {
-    final Object memObj = srcMem.array(); //may be null
-    final long memAdd = srcMem.getCumulativeOffset(0L);
-
-    final int preLongs = extractPreLongs(memObj, memAdd);
-    final int flags = extractFlags(memObj, memAdd);
-    final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
-    final short memSeedHash = (short) extractSeedHash(memObj, memAdd);
+    final int preLongs;
+    final int flags;
+    final short memSeedHash;
+    final int curCount;
+    final long thetaLong;
+    if (srcMem.isReadOnly() && !srcMem.isDirect()) {
+      preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+      flags = srcMem.getByte(FLAGS_BYTE) & 0XFF;
+      memSeedHash = srcMem.getShort(SEED_HASH_SHORT);
+      curCount = (preLongs > 1) ? srcMem.getInt(RETAINED_ENTRIES_INT) : 0;
+      thetaLong = (preLongs > 2) ? srcMem.getLong(THETA_LONG) : Long.MAX_VALUE;
+    } else {
+      final Object memObj = srcMem.array(); //may be null
+      final long memAdd = srcMem.getCumulativeOffset(0L);
+      preLongs = extractPreLongs(memObj, memAdd);
+      flags = extractFlags(memObj, memAdd);
+      memSeedHash = (short) extractSeedHash(memObj, memAdd);
+      curCount = (preLongs > 1) ? extractCurCount(memObj, memAdd) : 0;
+      thetaLong = (preLongs > 2) ? extractThetaLong(memObj, memAdd) : Long.MAX_VALUE;
+    }
     final short computedSeedHash = computeSeedHash(seed);
     checkSeedHashes(memSeedHash, computedSeedHash);
-    final int curCount = (preLongs > 1) ? extractCurCount(memObj, memAdd) : 0;
-    final long thetaLong = (preLongs > 2) ? extractThetaLong(memObj, memAdd) : Long.MAX_VALUE;
+    final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
     final long[] cacheArr = new long[curCount];
     if (curCount > 0) {
       srcMem.getLongArray(preLongs << 3, cacheArr, 0, curCount);
