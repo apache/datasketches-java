@@ -34,7 +34,6 @@ public class ReadOnlyMemoryTest {
       thrown = true;
     }
     Assert.assertTrue(thrown);
-
   }
 
   @Test
