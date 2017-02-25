@@ -62,4 +62,11 @@ public class SerDeCompatibilityTest {
     Assert.assertEquals(sketch2.getEstimate(4L), 1);
   }
 
+  @Test
+  public void checkInsertSerDeId() {
+    long pre0 = 0L;
+    pre0 = PreambleUtil.insertSerDeId((short) -1, pre0);
+    short serDeId = PreambleUtil.extractSerDeId(pre0);
+    Assert.assertEquals(serDeId, -1);
+  }
 }
