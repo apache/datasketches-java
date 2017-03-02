@@ -37,7 +37,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  *
  * @author Lee Rhodes
  */
-final class HeapDoublesSketch extends DoublesSketch {
+final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   static final int MIN_HEAP_DOUBLES_SER_VER = 1;
 
   /**
@@ -82,7 +82,7 @@ final class HeapDoublesSketch extends DoublesSketch {
   private double[] combinedBuffer_;
 
   //**CONSTRUCTORS**********************************************************
-  private HeapDoublesSketch(final int k) {
+  private HeapUpdateDoublesSketch(final int k) {
     super(k); //Checks k
   }
 
@@ -91,10 +91,10 @@ final class HeapDoublesSketch extends DoublesSketch {
    *
    * @param k Parameter that controls space usage of sketch and accuracy of estimates.
    * Must be greater than 1 and less than 65536 and a power of 2.
-   * @return a HeapDoublesSketch
+   * @return a HeapUpdateDoublesSketch
    */
-  static HeapDoublesSketch newInstance(final int k) {
-    final HeapDoublesSketch hqs = new HeapDoublesSketch(k);
+  static HeapUpdateDoublesSketch newInstance(final int k) {
+    final HeapUpdateDoublesSketch hqs = new HeapUpdateDoublesSketch(k);
     final int baseBufAlloc = 2 * Math.min(DoublesSketch.MIN_K, k); //the min is important
     hqs.n_ = 0;
     hqs.combinedBuffer_ = new double[baseBufAlloc];
@@ -112,7 +112,7 @@ final class HeapDoublesSketch extends DoublesSketch {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a DoublesSketch on the Java heap.
    */
-  static HeapDoublesSketch heapifyInstance(final Memory srcMem) {
+  static HeapUpdateDoublesSketch heapifyInstance(final Memory srcMem) {
     final long memCapBytes = srcMem.getCapacity();
     if (memCapBytes < 8) {
       throw new SketchesArgumentException("Source Memory too small: " + memCapBytes + " < 8");
@@ -155,7 +155,7 @@ final class HeapDoublesSketch extends DoublesSketch {
     checkPreLongsFlagsSerVer(flags, serVer, preLongs);
     Util.checkFamilyID(familyID);
 
-    final HeapDoublesSketch hds = newInstance(k); //checks k
+    final HeapUpdateDoublesSketch hds = newInstance(k); //checks k
     if (empty) { return hds; }
 
     //Not empty, must have valid preamble + min, max, n.
@@ -384,8 +384,6 @@ final class HeapDoublesSketch extends DoublesSketch {
    * This is only used for on-heap sketches, and grows the Base Buffer by factors of 2 until it
    * reaches the maximum size of 2 * k. It is only called when there are no levels above the
    * Base Buffer.
-   *
-   * @param sketch the given sketch.
    */
   //important: n has not been incremented yet
   private final void growBaseBuffer() {

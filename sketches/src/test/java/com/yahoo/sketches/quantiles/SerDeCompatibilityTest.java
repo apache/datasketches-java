@@ -24,7 +24,8 @@ public class SerDeCompatibilityTest {
     for (int i = 1; i <= 500; i++) sketch1.update((double) i);
 
     byte[] bytes = sketch1.toByteArray(serDe);
-    DoublesSketch sketch2 = DoublesSketch.heapify(new NativeMemory(bytes));
+    UpdateDoublesSketch sketch2;
+    sketch2 = (UpdateDoublesSketch) DoublesSketch.heapify(new NativeMemory(bytes));
 
     for (int i = 501; i <= 1000; i++) sketch2.update(i);
     Assert.assertEquals(sketch2.getN(), 1000);
@@ -37,7 +38,7 @@ public class SerDeCompatibilityTest {
 
   @Test
   public void doublesToItems() {
-    DoublesSketch sketch1 = DoublesSketch.builder().build(); //SerVer = 3
+    UpdateDoublesSketch sketch1 = DoublesSketch.builder().build(); //SerVer = 3
     for (int i = 1; i <= 500; i++) sketch1.update(i);
 
     byte[] bytes = sketch1.toByteArray(); //unordered, compact

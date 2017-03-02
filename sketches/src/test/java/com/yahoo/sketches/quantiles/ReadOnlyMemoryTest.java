@@ -19,13 +19,13 @@ public class ReadOnlyMemoryTest {
 
   @Test
   public void wrapAndTryUpdatingSparseSketch() {
-    DoublesSketch s1 = DoublesSketch.builder().build();
+    UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
     byte[] bytes = s1.toByteArray(false, false);
     Assert.assertEquals(bytes.length, 2080); // 32 + 128 * 2 * 8 = 2080
     Memory mem = NativeMemory.wrap(ByteBuffer.wrap(bytes).asReadOnlyBuffer());
-    DoublesSketch s2 = DoublesSketch.wrap(mem);
+    UpdateDoublesSketch s2 = (UpdateDoublesSketch) DoublesSketch.wrap(mem);
     Assert.assertEquals(s2.getMinValue(), 1.0);
     Assert.assertEquals(s2.getMaxValue(), 2.0);
 
@@ -40,7 +40,7 @@ public class ReadOnlyMemoryTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void wrapCompactSketch() {
-    DoublesSketch s1 = DoublesSketch.builder().build();
+    UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
     Memory mem = NativeMemory.wrap(ByteBuffer.wrap(s1.toByteArray(true, true)).asReadOnlyBuffer());
@@ -49,7 +49,7 @@ public class ReadOnlyMemoryTest {
 
   @Test
   public void heapifySparseSketch() {
-    DoublesSketch s1 = DoublesSketch.builder().build();
+    UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
     Memory mem = NativeMemory.wrap(ByteBuffer.wrap(s1.toByteArray(false, false)).asReadOnlyBuffer());
@@ -60,11 +60,11 @@ public class ReadOnlyMemoryTest {
 
   @Test
   public void heapifyAndUpdateSparseSketch() {
-    DoublesSketch s1 = DoublesSketch.builder().build();
+    UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
     Memory mem = NativeMemory.wrap(ByteBuffer.wrap(s1.toByteArray(false, false)).asReadOnlyBuffer());
-    DoublesSketch s2 = DoublesSketch.heapify(mem);
+    UpdateDoublesSketch s2 = (UpdateDoublesSketch) DoublesSketch.heapify(mem);
     s2.update(3);
     Assert.assertEquals(s2.getMinValue(), 1.0);
     Assert.assertEquals(s2.getMaxValue(), 3.0);
@@ -72,7 +72,7 @@ public class ReadOnlyMemoryTest {
 
   @Test
   public void heapifyCompactSketch() {
-    DoublesSketch s1 = DoublesSketch.builder().build();
+    UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
     Memory mem = NativeMemory.wrap(ByteBuffer.wrap(s1.toByteArray(true, true)).asReadOnlyBuffer());
@@ -83,7 +83,7 @@ public class ReadOnlyMemoryTest {
 
   @Test
   public void heapifyUinonFromSparse() {
-    DoublesSketch s1 = DoublesSketch.builder().build();
+    UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
     Memory mem = NativeMemory.wrap(ByteBuffer.wrap(s1.toByteArray(false, false)).asReadOnlyBuffer());
@@ -96,7 +96,7 @@ public class ReadOnlyMemoryTest {
 
   @Test
   public void heapifyUinonFromCompact() {
-    DoublesSketch s1 = DoublesSketch.builder().build();
+    UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
     Memory mem = NativeMemory.wrap(ByteBuffer.wrap(s1.toByteArray(true, true)).asReadOnlyBuffer());
@@ -109,7 +109,7 @@ public class ReadOnlyMemoryTest {
 
   @Test
   public void wrapUnionFromSparse() {
-    DoublesSketch s1 = DoublesSketch.builder().build();
+    UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
     Memory mem = NativeMemory.wrap(ByteBuffer.wrap(s1.toByteArray(false, false)).asReadOnlyBuffer());
@@ -129,7 +129,7 @@ public class ReadOnlyMemoryTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void wrapUnionFromCompact() {
-    DoublesSketch s1 = DoublesSketch.builder().build();
+    UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
     Memory mem = NativeMemory.wrap(ByteBuffer.wrap(s1.toByteArray(true, true)).asReadOnlyBuffer());

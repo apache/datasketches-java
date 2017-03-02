@@ -153,7 +153,7 @@ public abstract class DoublesSketch {
    * @return a heap-based Sketch based on the given Memory
    */
   public static DoublesSketch heapify(final Memory srcMem) {
-    return HeapDoublesSketch.heapifyInstance(srcMem);
+    return HeapUpdateDoublesSketch.heapifyInstance(srcMem);
   }
 
   /**
@@ -165,12 +165,6 @@ public abstract class DoublesSketch {
   public static DoublesSketch wrap(final Memory srcMem) {
     return DirectDoublesSketch.wrapInstance(srcMem);
   }
-
-  /**
-   * Updates this sketch with the given double data item
-   * @param dataItem an item from a stream of items.  NaNs are ignored.
-   */
-  public abstract void update(double dataItem);
 
   /**
    * This returns an approximation to the value of the data item
@@ -464,11 +458,7 @@ public abstract class DoublesSketch {
    */
   public DoublesSketch downSample(final DoublesSketch srcSketch, final int smallerK,
       final Memory dstMem) {
-    final DoublesSketch newSketch = (dstMem == null)
-        ? HeapDoublesSketch.newInstance(smallerK)
-        : DirectDoublesSketch.newInstance(smallerK, dstMem);
-    DoublesMergeImpl.downSamplingMergeInto(srcSketch, newSketch); //TODO #2
-    return newSketch;
+    return downSampleInternal(srcSketch, smallerK, dstMem);
   }
 
   /**
@@ -613,6 +603,21 @@ public abstract class DoublesSketch {
 
   //Restricted
 
+  /*
+   * DoublesMergeImpl.downSamplingMergeInto requires the target sketch to implement update(), so
+   * we ensure that the target is an UpdateSketch. The public API, on the other hand, just
+   * specifies a DoublesSketch. This lets us be more specific about the type without changing the
+   * public API.
+   */
+  UpdateDoublesSketch downSampleInternal(final DoublesSketch srcSketch, final int smallerK,
+                                         final Memory dstMem) {
+    final UpdateDoublesSketch newSketch = (dstMem == null)
+            ? HeapUpdateDoublesSketch.newInstance(smallerK)
+            : DirectDoublesSketch.newInstance(smallerK, dstMem);
+    DoublesMergeImpl.downSamplingMergeInto(srcSketch, newSketch); //TODO #2
+    return newSketch;
+  }
+
   static double[] getEvenlySpaced(final int evenlySpaced) {
     final int n = evenlySpaced;
     if (n <= 0) {
@@ -641,6 +646,12 @@ public abstract class DoublesSketch {
   }
 
   //Restricted abstract
+
+  /**
+   * Returns true if this sketch is compact
+   * @return true if this sketch is compact
+   */
+  abstract boolean isCompact();
 
   /**
    * Returns the base buffer count

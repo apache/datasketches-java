@@ -72,7 +72,7 @@ public class DirectQuantilesMemoryRequestTest {
     //########## Receiving Application
     //The receiving application has been given mem1 to use for a sketch,
     // but alas, it is not ultimately large enough.
-    DoublesSketch usk1 = DoublesSketch.builder().initMemory(mem1).build(k); //.initMemory(mem1)
+    UpdateDoublesSketch usk1 = DoublesSketch.builder().initMemory(mem1).build(k); //.initMemory(mem1)
     assertTrue(usk1.isEmpty());
 
     //Load the sketch
@@ -101,7 +101,7 @@ public class DirectQuantilesMemoryRequestTest {
     MemoryManager memMgr = new MemoryManager();
     Memory mem1 = memMgr.request(initBytes);
     println("Initial mem size: " + mem1.getCapacity());
-    DoublesSketch usk1 = DoublesSketch.builder().initMemory(mem1).build(k);
+    UpdateDoublesSketch usk1 = DoublesSketch.builder().initMemory(mem1).build(k);
     for (int i = 1; i <= u; i++) { usk1.update(i); }
     int currentSpace = usk1.getCombinedBufferItemCapacity();
     println("curCombBufItemCap: " + currentSpace);

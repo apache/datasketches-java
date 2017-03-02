@@ -53,9 +53,9 @@ public class DirectDoublesSketchTest {
   @Test
   public void checkBigMinMax () {
     int k = 32;
-    DoublesSketch qs1 = DoublesSketch.builder().build(k);
-    DoublesSketch qs2 = DoublesSketch.builder().build(k);
-    DoublesSketch qs3 = DoublesSketch.builder().build(k);
+    UpdateDoublesSketch qs1 = DoublesSketch.builder().build(k);
+    UpdateDoublesSketch qs2 = DoublesSketch.builder().build(k);
+    UpdateDoublesSketch qs3 = DoublesSketch.builder().build(k);
     assertFalse(qs1.isEstimationMode());
 
     for (int i = 999; i >= 1; i--) {
@@ -101,9 +101,9 @@ public class DirectDoublesSketchTest {
   public void checkSmallMinMax () {
     int k = 32;
     int n = 8;
-    DoublesSketch qs1 = buildDQS(k, n);
-    DoublesSketch qs2 = buildDQS(k, n);
-    DoublesSketch qs3 = buildDQS(k, n);
+    UpdateDoublesSketch qs1 = buildDQS(k, n);
+    UpdateDoublesSketch qs2 = buildDQS(k, n);
+    UpdateDoublesSketch qs3 = buildDQS(k, n);
 
     for (int i = n; i >= 1; i--) {
       qs1.update(i);
@@ -159,7 +159,7 @@ public class DirectDoublesSketchTest {
     int n = 48;
     int cap = 32 + ((2 * k) << 3);
     Memory mem = new NativeMemory(new byte[cap]);
-    DoublesSketch qs = DoublesSketch.builder().initMemory(mem).build(k);
+    UpdateDoublesSketch qs = DoublesSketch.builder().initMemory(mem).build(k);
     mem = qs.getMemory();
     assertEquals(mem.getCapacity(), cap);
     double[] combBuf = qs.getCombinedBuffer();
@@ -223,12 +223,12 @@ public class DirectDoublesSketchTest {
   public void serializeDeserialize() {
     int sizeBytes = DoublesSketch.getUpdatableStorageBytes(128, 2000, true);
     Memory mem = new NativeMemory(new byte[sizeBytes]);
-    DoublesSketch sketch1 = DoublesSketch.builder().initMemory(mem).build();
+    UpdateDoublesSketch sketch1 = DoublesSketch.builder().initMemory(mem).build();
     for (int i = 0; i < 1000; i++) {
       sketch1.update(i);
     }
 
-    DoublesSketch sketch2 = DoublesSketch.wrap(mem);
+    UpdateDoublesSketch sketch2 = (UpdateDoublesSketch) DoublesSketch.wrap(mem);
     for (int i = 0; i < 1000; i++) {
       sketch2.update(i + 1000);
     }
@@ -258,24 +258,24 @@ public class DirectDoublesSketchTest {
 
 
 
-  static DoublesSketch buildAndLoadDQS(int k, int n) {
+  static UpdateDoublesSketch buildAndLoadDQS(int k, int n) {
     return buildAndLoadDQS(k, n, 0);
   }
 
-  static DoublesSketch buildAndLoadDQS(int k, long n, int startV) {
-    DoublesSketch qs = buildDQS(k, n);
+  static UpdateDoublesSketch buildAndLoadDQS(int k, long n, int startV) {
+    UpdateDoublesSketch qs = buildDQS(k, n);
     for (int i=1; i<=n; i++) {
       qs.update(startV + i);
     }
     return qs;
   }
 
-  static DoublesSketch buildDQS(int k, long n) {
+  static UpdateDoublesSketch buildDQS(int k, long n) {
     int cap = DoublesSketch.getUpdatableStorageBytes(k, n, true);
     DoublesSketchBuilder bldr = new DoublesSketchBuilder();
     bldr.setK(k);
     bldr.initMemory(new NativeMemory(new byte[cap]));
-    DoublesSketch dqs = bldr.build();
+    UpdateDoublesSketch dqs = bldr.build();
     return dqs;
   }
 

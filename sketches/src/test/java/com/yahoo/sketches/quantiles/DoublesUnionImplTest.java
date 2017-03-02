@@ -164,7 +164,7 @@ public class DoublesUnionImplTest {
     int n2 = 2 * k2; //8
     int bytes = DoublesSketch.getUpdatableStorageBytes(256, 50, true);//just for size
     Memory skMem = new NativeMemory(new byte[bytes]);
-    DoublesSketch sketchIn1 = DoublesSketch.builder().setK(k1).initMemory(skMem).build();
+    UpdateDoublesSketch sketchIn1 = DoublesSketch.builder().setK(k1).initMemory(skMem).build();
     for (int i = 0; i < n1; i++) { sketchIn1.update(i + 1); }
 
     Memory uMem = new NativeMemory(new byte[bytes]);
@@ -197,7 +197,7 @@ public class DoublesUnionImplTest {
     int n2 = 2 * k2; //8
     int bytes = DoublesSketch.getUpdatableStorageBytes(256, 50, true);//just for size
     Memory skMem = new NativeMemory(new byte[bytes]);
-    DoublesSketch sketchIn1 = DoublesSketch.builder().setK(k1).initMemory(skMem).build();
+    UpdateDoublesSketch sketchIn1 = DoublesSketch.builder().setK(k1).initMemory(skMem).build();
     for (int i = 0; i < n1; i++) { sketchIn1.update(i + 1); }
 
     Memory uMem = new NativeMemory(new byte[bytes]);
@@ -357,8 +357,8 @@ public class DoublesUnionImplTest {
 
   @Test
   public void checkUnionUpdateLogic() {
-    HeapDoublesSketch qs1 = null;
-    HeapDoublesSketch qs2 = (HeapDoublesSketch)buildAndLoadQS(256, 0);
+    HeapUpdateDoublesSketch qs1 = null;
+    HeapUpdateDoublesSketch qs2 = (HeapUpdateDoublesSketch)buildAndLoadQS(256, 0);
     DoublesSketch result = DoublesUnionImpl.updateLogic(256, qs1, qs2); //null, empty
     result = DoublesUnionImpl.updateLogic(256, qs2, qs1); //empty, null
     qs2.update(1); //no longer empty
@@ -368,7 +368,7 @@ public class DoublesUnionImplTest {
 
   @Test
   public void checkUnionUpdateLogicDirect() {
-    HeapDoublesSketch qs1 = null;
+    HeapUpdateDoublesSketch qs1 = null;
     DirectDoublesSketch qs2 = (DirectDoublesSketch)buildAndLoadDQS(256, 0);
     DoublesSketch result = DoublesUnionImpl.updateLogic(256, qs1, qs2); //null, empty
     result = DoublesUnionImpl.updateLogic(256, qs2, qs1); //empty, null
@@ -459,7 +459,7 @@ public class DoublesUnionImplTest {
   @Test
   public void differentLargerK() {
     DoublesUnion union = DoublesUnion.builder().setMaxK(128).build();
-    DoublesSketch sketch1 = buildAndLoadQS(256, 0);
+    UpdateDoublesSketch sketch1 = buildAndLoadQS(256, 0);
     union.update(sketch1);
     Assert.assertEquals(union.getResult().getK(), 128);
     sketch1.update(1.0);
@@ -470,7 +470,7 @@ public class DoublesUnionImplTest {
   @Test
   public void differentLargerKDirect() {
     DoublesUnion union = DoublesUnion.builder().setMaxK(128).build();
-    DoublesSketch sketch1 = buildAndLoadDQS(256, 0);
+    UpdateDoublesSketch sketch1 = buildAndLoadDQS(256, 0);
     union.update(sketch1);
     Assert.assertEquals(union.getResult().getK(), 128);
     sketch1.update(1.0);
@@ -489,7 +489,7 @@ public class DoublesUnionImplTest {
 //    byte[] unionByteArr = union.toByteArray();
 //    Assert.assertEquals(unionByteArr.length, 32 + 32); //empty
 
-    DoublesSketch sketch1 = buildAndLoadQS(k64, 0); //build smaller empty sketch
+    UpdateDoublesSketch sketch1 = buildAndLoadQS(k64, 0); //build smaller empty sketch
     union.update(sketch1);
     Assert.assertTrue(union.isEmpty()); //gadget is valid
     Assert.assertFalse(union.isDirect());
@@ -515,7 +515,7 @@ public class DoublesUnionImplTest {
 //    byte[] unionByteArr = union.toByteArray();
 //    Assert.assertEquals(unionByteArr.length, 32 + 32); //empty
 
-    DoublesSketch sketch1 = buildAndLoadDQS(k64, 0); //build smaller empty sketch
+    UpdateDoublesSketch sketch1 = buildAndLoadDQS(k64, 0); //build smaller empty sketch
     union.update(sketch1);
     Assert.assertTrue(union.isEmpty()); //gadget is valid
     Assert.assertFalse(union.isDirect());
@@ -561,7 +561,7 @@ public class DoublesUnionImplTest {
   public void checkWrapInstance() {
     int k = 128;
     int n = 1000;
-    DoublesSketch sketch = DoublesSketch.builder().build(k);
+    UpdateDoublesSketch sketch = DoublesSketch.builder().build(k);
     for (int i = 1; i <= n; i++) {
       sketch.update(i);
     }

@@ -16,7 +16,7 @@ public class DoublesUnionBuilderTest {
 
   @Test
   public void checkBuilds() {
-    DoublesSketch qs1 = DoublesSketch.builder().build();
+    UpdateDoublesSketch qs1 = DoublesSketch.builder().build();
     for (int i=0; i<1000; i++) qs1.update(i);
 
     int bytes = qs1.getCompactStorageBytes();
@@ -41,7 +41,7 @@ public class DoublesUnionBuilderTest {
 @SuppressWarnings("deprecation")
 @Test
 public void checkDeprecated1() {
-  DoublesSketch qs1 = DoublesSketch.builder().build();
+  UpdateDoublesSketch qs1 = DoublesSketch.builder().build();
   for (int i=0; i<1000; i++) qs1.update(i);
 
   int bytes = qs1.getCompactStorageBytes();

@@ -30,9 +30,9 @@ final class DoublesUtil {
    * @param sketch the given sketch
    * @return a copy of the given sketch
    */
-  static HeapDoublesSketch copyToHeap(final DoublesSketch sketch) {
-    final HeapDoublesSketch qsCopy;
-    qsCopy = HeapDoublesSketch.newInstance(sketch.getK());
+  static HeapUpdateDoublesSketch copyToHeap(final DoublesSketch sketch) {
+    final HeapUpdateDoublesSketch qsCopy;
+    qsCopy = HeapUpdateDoublesSketch.newInstance(sketch.getK());
     qsCopy.putN(sketch.getN());
     qsCopy.putMinValue(sketch.getMinValue());
     qsCopy.putMaxValue(sketch.getMaxValue());

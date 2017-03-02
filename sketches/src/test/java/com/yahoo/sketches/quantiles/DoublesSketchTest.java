@@ -9,7 +9,7 @@ public class DoublesSketchTest {
 
   @Test
   public void heapToDirect() {
-    DoublesSketch heapSketch = DoublesSketch.builder().build();
+    UpdateDoublesSketch heapSketch = DoublesSketch.builder().build();
     for (int i = 0; i < 1000; i++) {
       heapSketch.update(i);
     }
@@ -23,11 +23,12 @@ public class DoublesSketchTest {
   @Test
   public void directToHeap() {
     int sizeBytes = 10000;
-    DoublesSketch directSketch = DoublesSketch.builder().initMemory(new NativeMemory(new byte[sizeBytes])).build();
+    UpdateDoublesSketch directSketch = DoublesSketch.builder().initMemory(new NativeMemory(new byte[sizeBytes])).build();
     for (int i = 0; i < 1000; i++) {
       directSketch.update(i);
     }
-    DoublesSketch heapSketch = DoublesSketch.heapify(new NativeMemory(directSketch.toByteArray()));
+    UpdateDoublesSketch heapSketch;
+    heapSketch = (UpdateDoublesSketch) DoublesSketch.heapify(new NativeMemory(directSketch.toByteArray()));
     for (int i = 0; i < 1000; i++) {
       heapSketch.update(i + 1000);
     }
@@ -38,7 +39,7 @@ public class DoublesSketchTest {
 
   @Test
   public void checkToByteArray() {
-    DoublesSketch ds = DoublesSketch.builder().build(); //k = 128
+    UpdateDoublesSketch ds = DoublesSketch.builder().build(); //k = 128
     ds.update(1);
     ds.update(2);
     byte[] arr = ds.toByteArray(false, false);

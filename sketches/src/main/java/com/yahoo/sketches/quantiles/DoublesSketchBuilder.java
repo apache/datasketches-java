@@ -72,8 +72,8 @@ public class DoublesSketchBuilder {
    * Returns a DoublesSketch with the current configuration of this Builder.
    * @return a DoublesSketch
    */
-  public DoublesSketch build() {
-    return (bMem == null) ? HeapDoublesSketch.newInstance(bK)
+  public UpdateDoublesSketch build() {
+    return (bMem == null) ? HeapUpdateDoublesSketch.newInstance(bK)
         : DirectDoublesSketch.newInstance(bK, bMem);
   }
 
@@ -88,8 +88,8 @@ public class DoublesSketchBuilder {
    *
    * @return a DoublesSketch
    */
-  public DoublesSketch build(final int k) {
-    return (bMem == null) ? HeapDoublesSketch.newInstance(k)
+  public UpdateDoublesSketch build(final int k) {
+    return (bMem == null) ? HeapUpdateDoublesSketch.newInstance(k)
         : DirectDoublesSketch.newInstance(k, bMem);
   }
 

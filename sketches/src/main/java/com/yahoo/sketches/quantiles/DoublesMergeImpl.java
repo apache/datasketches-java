@@ -45,7 +45,7 @@ final class DoublesMergeImpl {
    * @param src The source sketch
    * @param tgt The target sketch
    */
-  static void mergeInto(final DoublesSketch src, final DoublesSketch tgt) {
+  static void mergeInto(final DoublesSketch src, final UpdateDoublesSketch tgt) {
     final int srcK = src.getK();
     final int tgtK = tgt.getK();
     final long srcN = src.getN();
@@ -129,7 +129,7 @@ final class DoublesMergeImpl {
    * @param tgt The target sketch
    */
   //also used by DoublesSketch, DoublesUnionImpl and HeapDoublesSketchTest
-  static void downSamplingMergeInto(final DoublesSketch src, final DoublesSketch tgt) {
+  static void downSamplingMergeInto(final DoublesSketch src, final UpdateDoublesSketch tgt) {
     final int srcK = src.getK();
     final int tgtK = tgt.getK();
     final long tgtN = tgt.getN();

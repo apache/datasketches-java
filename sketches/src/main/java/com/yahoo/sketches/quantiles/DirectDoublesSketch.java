@@ -48,7 +48,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Kevin Lang
  * @author Lee Rhodes
  */
-final class DirectDoublesSketch extends DoublesSketch {
+final class DirectDoublesSketch extends UpdateDoublesSketch {
   private static final int MIN_DIRECT_DOUBLES_SER_VER = 3;
   private Memory mem_;
 
