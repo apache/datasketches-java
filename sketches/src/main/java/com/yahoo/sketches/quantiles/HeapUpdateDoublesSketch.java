@@ -197,7 +197,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     //put the new item in the base buffer
     combinedBuffer_[curBBCount] = dataItem;
 
-    if (newBBCount == 2 * k_) { //Propogate
+    if (newBBCount == k_ << 1) { //Propagate
 
       // make sure there will be enough space (levels) for the propagation
       final int spaceNeeded = DoublesUpdateImpl.getRequiredItemCapacity(k_, newN);
@@ -220,6 +220,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
         bitPattern_         //current bitPattern prior to updating n
       );
       assert newBitPattern == computeBitPattern(k_, newN); // internal consistency check
+      assert newBitPattern == bitPattern_ + 1;
 
       bitPattern_ = newBitPattern;
       baseBufferCount_ = 0;
