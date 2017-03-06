@@ -3,19 +3,16 @@ package com.yahoo.sketches.quantiles;
 import static com.yahoo.sketches.quantiles.PreambleUtil.COMBINED_BUFFER;
 
 import java.nio.ByteBuffer;
-import java.util.AbstractList;
 
 import com.yahoo.memory.AllocMemory;
 import com.yahoo.memory.Memory;
-
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * @author Jon Malkin
  */
-final class DoublesSketchIterator extends AbstractList<Double> implements Iterable<Double> {
-
+final class DoublesSketchAccessor extends DoublesBufferAccessor {
   private static final int BB_LVL_IDX = -1;
 
   private final DoublesSketch ds_;
@@ -26,10 +23,14 @@ final class DoublesSketchIterator extends AbstractList<Double> implements Iterab
   private long n_;
 
 
-  DoublesSketchIterator(final DoublesSketch ds) {
+  DoublesSketchAccessor(final DoublesSketch ds) {
     ds_ = ds;
 
     setLevel(BB_LVL_IDX);
+  }
+
+  public int setBaseBuffer() {
+    return setLevel(BB_LVL_IDX);
   }
 
   public int setLevel(final int lvl) {
@@ -37,7 +38,7 @@ final class DoublesSketchIterator extends AbstractList<Double> implements Iterab
     if (lvl == BB_LVL_IDX) {
       size_ = ds_.getBaseBufferCount();
       offset_ = (ds_.isDirect() ? COMBINED_BUFFER : 0);
-    } else if (lvl < 0) {
+    } else if (lvl < 0 || lvl > 63) {
       throw new SketchesArgumentException("Invalid combined buffer level requested: " + lvl);
     } else {
       long bitPattern = ds_.getBitPattern();
@@ -51,10 +52,10 @@ final class DoublesSketchIterator extends AbstractList<Double> implements Iterab
 
       // determine offset in two parts
       // 1. index into combined buffer (compact vs update)
-      // 2. adjust if byte offset (direct) or array index (heap)
+      // 2. adjust if byte offset (direct) instead of array index (heap)
       final int levelStart;
       if (ds_.isCompact()) {
-        levelStart = ds_.getBaseBufferCount() + countValidLevelBelow(lvl);
+        levelStart = ds_.getBaseBufferCount() + countValidLevelsBelow(lvl);
       } else {
         levelStart = (2 + currLvl_) * ds_.getK();
       }
@@ -82,9 +83,12 @@ final class DoublesSketchIterator extends AbstractList<Double> implements Iterab
 
   /* Uses autoboxing to handle double/Double disparity */
   public Double get(final int index) {
+    /*
     if (index >= size_ || index < 0) {
       throw new IndexOutOfBoundsException("Expected [0, " + (size_ - 1) + "], found: " + index);
     }
+    */
+    assert index > 0 && index < size_;
     assert n_ == ds_.getN();
 
     if (ds_.isDirect()) {
@@ -97,9 +101,12 @@ final class DoublesSketchIterator extends AbstractList<Double> implements Iterab
 
   /* Uses autoboxing to handle double/Double disparity */
   public Double set(final int index, final Double value) {
+    /*
     if (index >= size_ || index < 0) {
       throw new IndexOutOfBoundsException("Expected [0, " + (size_ - 1) + "], found: " + index);
     }
+    */
+    assert index > 0 && index < size_;
     assert n_ == ds_.getN();
 
     final double oldVal;
@@ -127,7 +134,7 @@ final class DoublesSketchIterator extends AbstractList<Double> implements Iterab
    * @param tgtLvl Target level in the sketch
    * @return Number of full levels in the sketch below tgtLvl
    */
-  private int countValidLevelBelow(final int tgtLvl) {
+  private int countValidLevelsBelow(final int tgtLvl) {
     int count = 0;
     long bitPattern = ds_.getBitPattern();
     for (int i = 0; i < tgtLvl && bitPattern > 0; ++i, bitPattern >>>= 1) {
@@ -139,8 +146,8 @@ final class DoublesSketchIterator extends AbstractList<Double> implements Iterab
   }
 
   public static void main(final String[] args) {
-    final int k = 8;
-    final int n = k * 2 + 3;
+    final int k = 16;
+    final int n = k * 15 + 3;
 
     final ByteBuffer bb = ByteBuffer.allocateDirect(100 + n << 3);
     final Memory mem = AllocMemory.wrap(bb);
@@ -155,7 +162,7 @@ final class DoublesSketchIterator extends AbstractList<Double> implements Iterab
 
     System.out.println(ds.toString(true, true));
 
-    final DoublesSketchIterator it = new DoublesSketchIterator(ds);
+    final DoublesSketchAccessor it = new DoublesSketchAccessor(ds);
     for (int i = -1; i < it.getTotalLevels(); ++i) {
       it.setLevel(i);
       System.out.println("Level: " + i + "\t(" + it.size() + ")");
