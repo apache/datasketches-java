@@ -184,7 +184,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     if (dataItem > maxValue) { putMaxValue(dataItem); }
     if (dataItem < minValue) { putMinValue(dataItem); }
 
-    //don't increment n_ and baseBufferCount- yet
+    //don't increment n_ and baseBufferCount_ yet
     final int curBBCount = baseBufferCount_;
     final int newBBCount = curBBCount + 1;
     final long newN = n_ + 1;

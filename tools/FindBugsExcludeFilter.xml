@@ -1,4 +1,4 @@
-<FindBugsFilter>
+<FindBugsFilter> <!-- sketches-core -->
 
   <!-- Too many false positives to be useful.  I could not make it happy :( -->
   <Match>
