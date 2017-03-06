@@ -116,7 +116,7 @@ final class DirectDoublesSketch extends DoublesSketch {
     } else {
       final Object memObj = srcMem.array(); //may be null
       final long memAdd = srcMem.getCumulativeOffset(0L);
-  
+
       //Extract the preamble, assumes at least 8 bytes
       preLongs = extractPreLongs(memObj, memAdd);
       serVer = extractSerVer(memObj, memAdd);
@@ -152,30 +152,34 @@ final class DirectDoublesSketch extends DoublesSketch {
     if (dataItem > maxValue) { putMaxValue(dataItem); }
     if (dataItem < minValue) { putMinValue(dataItem); }
 
-    int bbCount = getBaseBufferCount();
-    mem_.putDouble(COMBINED_BUFFER + bbCount * Double.BYTES, dataItem);
-    bbCount++;
-    final long newN = getN() + 1;
+    final int curBBCount = getBaseBufferCount();
+    final int newBBCount = curBBCount + 1; //derived, not stored
+    final long curN = getN();
+    final long newN = curN + 1;
+
+    mem_.putDouble(COMBINED_BUFFER + curBBCount * Double.BYTES, dataItem); //put the item
+
     mem_.putByte(FLAGS_BYTE, (byte) 0); //not compact, not ordered, not empty
 
-    if (bbCount == 2 * k_) { //Propagate
-      final int curCombBufItemCap = getCombinedBufferItemCapacity(); //K, prev N, Direct case
-      final int curUsedCap = DoublesUpdateImpl.getRequiredItemCapacity(k_, getN());
+    if (newBBCount == 2 * k_) { //Propagate
+      final int curMemItemCap = getCombinedBufferItemCapacity();
+      final int curUsedItemCap = DoublesUpdateImpl.getRequiredItemCapacity(k_, curN);
       // make sure there will be enough levels for the propagation
       final int itemSpaceNeeded = DoublesUpdateImpl.getRequiredItemCapacity(k_, newN);
 
-      //check capacity
-      if (itemSpaceNeeded > curCombBufItemCap) {
+      //check mem has capacity to accommodate new level
+      if (itemSpaceNeeded > curMemItemCap) {
         // copies base buffer plus old levels, adds space for new level
         mem_ = growCombinedMemBuffer(mem_, itemSpaceNeeded);
       }
-      if (itemSpaceNeeded > curUsedCap) { //clear out the next level
-        mem_.clear(curUsedCap << 3, (itemSpaceNeeded - curUsedCap) << 3);
+      if (itemSpaceNeeded > curUsedItemCap) { //clear out the next level
+        mem_.clear(COMBINED_BUFFER + (curUsedItemCap << 3), k_ << 3);
       }
 
       //sort the base buffer
-      sortMemory(mem_, 32L, k_ << 1);
-      final MemoryRegion memRegion = new MemoryRegion(mem_, 32L, mem_.getCapacity() - 32L);
+      sortMemory(mem_, COMBINED_BUFFER, k_ << 1);
+      final MemoryRegion memRegion =
+          new MemoryRegion(mem_, COMBINED_BUFFER, mem_.getCapacity() - COMBINED_BUFFER);
 
       final long newBitPattern = DoublesUpdateImpl.inPlacePropagateMemCarry(
         0,       //starting level
@@ -230,8 +234,7 @@ final class DirectDoublesSketch extends DoublesSketch {
 
   @Override
   int getCombinedBufferItemCapacity() {
-    final int mCap = ((int)mem_.getCapacity() - 32) / 8;
-    return mCap;
+    return ((int)mem_.getCapacity() - COMBINED_BUFFER) / 8;
   }
 
   @Override
@@ -241,7 +244,7 @@ final class DirectDoublesSketch extends DoublesSketch {
     final long n = getN();
     final int itemCap = Util.computeCombinedBufferItemCapacity(k, n, false);
     final double[] combinedBuffer = new double[itemCap];
-    mem_.getDoubleArray(32, combinedBuffer, 0, itemCap);
+    mem_.getDoubleArray(COMBINED_BUFFER, combinedBuffer, 0, itemCap);
     return combinedBuffer;
   }
 
@@ -276,7 +279,7 @@ final class DirectDoublesSketch extends DoublesSketch {
 
   @Override
   void putCombinedBuffer(final double[] combinedBuffer) {
-    mem_.putDoubleArray(32, combinedBuffer, 0, combinedBuffer.length);
+    mem_.putDoubleArray(COMBINED_BUFFER, combinedBuffer, 0, combinedBuffer.length);
   }
 
   @Override
@@ -297,7 +300,7 @@ final class DirectDoublesSketch extends DoublesSketch {
   @Override
   double[] growCombinedBuffer(final int curCombBufItemCap, final int itemSpaceNeeded) {
     final long memBytes = mem_.getCapacity();
-    final int needBytes = (itemSpaceNeeded << 3) + 32; //+ preamble + min, max
+    final int needBytes = (itemSpaceNeeded << 3) + COMBINED_BUFFER; //+ preamble + min, max
     if ((needBytes) > memBytes) {
       final Memory newMem = MemoryUtil.memoryRequestHandler(mem_, needBytes, true);
       //the free has already been handled
@@ -305,7 +308,7 @@ final class DirectDoublesSketch extends DoublesSketch {
     }
     //mem is large enough and data may already be there
     final double[] newCombBuf = new double[itemSpaceNeeded];
-    mem_.getDoubleArray(32, newCombBuf, 0, curCombBufItemCap);
+    mem_.getDoubleArray(COMBINED_BUFFER, newCombBuf, 0, curCombBufItemCap);
     return newCombBuf;
   }
 
@@ -313,7 +316,7 @@ final class DirectDoublesSketch extends DoublesSketch {
 
   static Memory growCombinedMemBuffer(final Memory mem, final int itemSpaceNeeded) {
     final long memBytes = mem.getCapacity();
-    final int needBytes = (itemSpaceNeeded << 3) + 32; //+ preamble + min & max
+    final int needBytes = (itemSpaceNeeded << 3) + COMBINED_BUFFER; //+ preamble + min & max
     if ((needBytes) > memBytes) {
       final Memory newMem = MemoryUtil.memoryRequestHandler(mem, needBytes, true);
       //the free has already been handled
