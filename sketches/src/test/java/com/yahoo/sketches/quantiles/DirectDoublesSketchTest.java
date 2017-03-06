@@ -256,7 +256,28 @@ public class DirectDoublesSketchTest {
     assertEquals(median, 258.0, .05 * 258);
   }
 
+  @Test
+  public void checkSimplePropagateCarryDirect() {
+    final int k = 16;
+    final int n = k * 2;
 
+    final int memBytes = DoublesSketch.getUpdatableStorageBytes(k, n, true);
+    final Memory mem = new NativeMemory(new byte[memBytes]);
+    final DoublesSketchBuilder bldr = DoublesSketch.builder();
+    bldr.initMemory(mem);
+    final DoublesSketch ds = bldr.build(k);
+    for (int i = 1; i <= n; i++) { // 1 ... n
+      ds.update(i);
+    }
+    double last = 0.0;
+    for (int i = 0; i < k; i++) { //check the level 0
+      double d = mem.getDouble((4 + 2*k + i) << 3);
+      assertTrue(d > 0);
+      assertTrue(d > last);
+      last = d;
+    }
+    //println(ds.toString(true, true));
+  }
 
   static DoublesSketch buildAndLoadDQS(int k, int n) {
     return buildAndLoadDQS(k, n, 0);
