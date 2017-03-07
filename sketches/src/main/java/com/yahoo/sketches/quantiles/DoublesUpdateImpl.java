@@ -148,10 +148,10 @@ final class DoublesUpdateImpl {
   }
 
   private static void mergeTwoSizeKBuffers(
-      final double[] src1, final int start1,
-      final double[] src2, final int start2,
-      final double[] dst, final int startDst,
-      final int k) {
+          final double[] src1, final int start1,
+          final double[] src2, final int start2,
+          final double[] dst, final int startDst,
+          final int k) {
     final int stop1 = start1 + k;
     final int stop2 = start2 + k;
 
@@ -173,6 +173,83 @@ final class DoublesUpdateImpl {
       System.arraycopy(src2, i2, dst, iDst, stop2 - i2);
     }
   }
+
+  // Accessor based:
+  static long inPlacePropagateCarry(
+          final int startingLevel,
+          final DoublesBufferAccessor optSrcKBuf,
+          final DoublesBufferAccessor size2KBuf,
+          final boolean doUpdateVersion,
+          final int k,
+          final DoublesSketchAccessor tgtSketchBuf,
+          final long bitPattern
+  ) {
+    final int endingLevel = Util.lowestZeroBitStartingAt(bitPattern, startingLevel);
+    //final int tgtStart = (2 + endingLevel) * k;
+    //assert tgtStart + k <= tgtSketchBuf.size();
+    tgtSketchBuf.setLevel(endingLevel);
+    if (doUpdateVersion) { // update version of computation
+      // its is okay for optSrcKBuf to be null in this case
+      zipSize2KBuffer(size2KBuf, tgtSketchBuf);
+    } else { // mergeInto version of computation
+      try {
+        tgtSketchBuf.putArray(optSrcKBuf.getArray(0, k), 0, 0, k);
+      } catch (final Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    for (int lvl = startingLevel; lvl < endingLevel; lvl++) {
+      assert (bitPattern & (1L << lvl)) > 0; // internal consistency check
+      final DoublesSketchAccessor currLevelBuf = tgtSketchBuf.copyAndSetLevel(lvl);
+      mergeTwoSizeKBuffers(
+              currLevelBuf, // target level: lvl = (2 + lvl) * k,
+              tgtSketchBuf, // target level: endingLevel = (2 + endingLevel) * k,
+              size2KBuf);
+      zipSize2KBuffer(size2KBuf, tgtSketchBuf);
+    } // end of loop over lower levels
+
+    // update bit pattern with binary-arithmetic ripple carry
+    return bitPattern + (1L << startingLevel);
+  }
+
+  private static void zipSize2KBuffer(
+          final DoublesBufferAccessor bufIn,
+          final DoublesBufferAccessor bufOut) {
+    final int randomOffset = DoublesSketch.rand.nextBoolean() ? 1 : 0;
+    final int limOut = bufOut.size();
+    for (int idxIn = randomOffset, idxOut = 0; idxOut < limOut; idxIn += 2, idxOut++) {
+      bufOut.set(idxOut, bufIn.get(idxIn));
+    }
+  }
+
+  private static void mergeTwoSizeKBuffers(
+          final DoublesBufferAccessor src1,
+          final DoublesBufferAccessor src2,
+          final DoublesBufferAccessor dst) {
+    assert src1.size() == src2.size();
+
+    final int k = src1.size();
+    int i1 = 0;
+    int i2 = 0;
+    int iDst = 0;
+    while (i1 < k && i2 < k) {
+      if (src2.get(i2) < src1.get(i1)) {
+        dst.set(iDst++, src2.get(i2++));
+      } else {
+        dst.set(iDst++, src1.get(i1++));
+      }
+    }
+
+    if (i1 < k) {
+      final int numItems = k - i1;
+      dst.putArray(src1.getArray(i1, numItems), 0, iDst, numItems);
+    } else {
+      final int numItems = k - i2;
+      dst.putArray(src2.getArray(i2, numItems), 0, iDst, numItems);
+    }
+  }
+
 
   //Memory based:
 

@@ -181,6 +181,7 @@ final class DirectDoublesSketch extends UpdateDoublesSketch {
       final MemoryRegion memRegion =
           new MemoryRegion(mem_, COMBINED_BUFFER, mem_.getCapacity() - COMBINED_BUFFER);
 
+      /*
       final long newBitPattern = DoublesUpdateImpl.inPlacePropagateMemCarry(
         0,       //starting level
         null, 0, //optSrcKBuf, optSrcKBufStrt:  not needed here
@@ -190,6 +191,17 @@ final class DirectDoublesSketch extends UpdateDoublesSketch {
         memRegion,    //the base buffer = the Combined Buffer
         getBitPattern()    //current bitPattern prior to updating n
       );
+      */
+      final long newBitPattern = DoublesUpdateImpl.inPlacePropagateCarry(
+              0, // starting level
+              null,
+              DoublesSketchAccessor.create(this, true),
+              true,
+              k_,
+              DoublesSketchAccessor.create(this, true),
+              getBitPattern()
+      );
+
       assert newBitPattern == computeBitPattern(k_, newN); // internal consistency check
       //bit pattern on direct is always derived, no need to save it.
     }

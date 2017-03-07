@@ -1,5 +1,7 @@
 package com.yahoo.sketches.quantiles;
 
+import java.util.Arrays;
+
 /**
  * @author Jon Malkin
  */
@@ -12,13 +14,19 @@ final class DoublesArrayAccessor extends DoublesBufferAccessor {
     buffer_ = buffer;
   }
 
+  DoublesArrayAccessor(final int size) {
+    size_ = size;
+    buffer_ = new double[size];
+  }
+
   @Override
   public Double get(final int index) {
     assert index >= 0 && index < size_;
     return buffer_[index];
   }
 
-  public Double set(final int index, final double value) {
+  @Override
+  public Double set(final int index, final Double value) {
     assert index >= 0 && index < size_;
 
     final double retVal = buffer_[index];
@@ -30,4 +38,14 @@ final class DoublesArrayAccessor extends DoublesBufferAccessor {
   public int size() {
     return size_;
   }
+
+  public double[] getArray(final int fromIdx, final int numItems) {
+    return Arrays.copyOfRange(buffer_, fromIdx, fromIdx + numItems);
+  }
+
+  public void putArray(final double[] srcArray, final int srcIndex,
+                       final int dstIndex, final int numItems) {
+    System.arraycopy(srcArray, srcIndex, buffer_, dstIndex, numItems);
+  }
+
 }

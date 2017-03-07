@@ -3,11 +3,11 @@ package com.yahoo.sketches.quantiles;
 import static com.yahoo.sketches.quantiles.PreambleUtil.COMBINED_BUFFER;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 import com.yahoo.memory.AllocMemory;
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.Family;
-import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * @author Jon Malkin
@@ -16,35 +16,43 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
   private static final int BB_LVL_IDX = -1;
 
   private final DoublesSketch ds_;
+  private final boolean forceSize_;
 
+  private long n_;
   private int currLvl_;
   private int size_;
   private int offset_;
-  private long n_;
 
-
-  DoublesSketchAccessor(final DoublesSketch ds) {
+  private DoublesSketchAccessor(final DoublesSketch ds,
+                                final boolean forceSize,
+                                final int level) {
     ds_ = ds;
+    forceSize_ = forceSize;
 
-    setLevel(BB_LVL_IDX);
+    setLevel(level);
   }
 
-  public int setBaseBuffer() {
-    return setLevel(BB_LVL_IDX);
+  public static DoublesSketchAccessor create(final DoublesSketch ds) {
+    return create(ds, false);
+  }
+
+  public static DoublesSketchAccessor create(final DoublesSketch ds,
+                                             final boolean forceSize) {
+    return new DoublesSketchAccessor(ds, forceSize, BB_LVL_IDX);
+  }
+
+  public DoublesSketchAccessor copyAndSetLevel(final int level) {
+    return new DoublesSketchAccessor(ds_, forceSize_, level);
   }
 
   public int setLevel(final int lvl) {
     currLvl_ = lvl;
     if (lvl == BB_LVL_IDX) {
-      size_ = ds_.getBaseBufferCount();
+      size_ = (forceSize_ ? ds_.getK() * 2 : ds_.getBaseBufferCount());
       offset_ = (ds_.isDirect() ? COMBINED_BUFFER : 0);
-    } else if (lvl < 0 || lvl > 63) {
-      throw new SketchesArgumentException("Invalid combined buffer level requested: " + lvl);
     } else {
-      long bitPattern = ds_.getBitPattern();
-      bitPattern >>>= lvl;
-
-      if ((bitPattern & 1L) > 0) {
+      assert lvl >= 0 && lvl <= Util.computeTotalLevels(ds_.getBitPattern());
+      if ((ds_.getBitPattern() & (1L << lvl)) > 0 || forceSize_) {
         size_ = ds_.getK();
       } else {
         size_ = 0;
@@ -82,13 +90,9 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
   }
 
   /* Uses autoboxing to handle double/Double disparity */
+  @Override
   public Double get(final int index) {
-    /*
-    if (index >= size_ || index < 0) {
-      throw new IndexOutOfBoundsException("Expected [0, " + (size_ - 1) + "], found: " + index);
-    }
-    */
-    assert index > 0 && index < size_;
+    assert index >= 0 && index < size_;
     assert n_ == ds_.getN();
 
     if (ds_.isDirect()) {
@@ -100,13 +104,9 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
   }
 
   /* Uses autoboxing to handle double/Double disparity */
+  @Override
   public Double set(final int index, final Double value) {
-    /*
-    if (index >= size_ || index < 0) {
-      throw new IndexOutOfBoundsException("Expected [0, " + (size_ - 1) + "], found: " + index);
-    }
-    */
-    assert index > 0 && index < size_;
+    assert index >= 0 && index < size_;
     assert n_ == ds_.getN();
 
     final double oldVal;
@@ -124,9 +124,36 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
     return oldVal;
   }
 
+  @Override
   public int size() {
     return size_;
   }
+
+  @Override
+  public double[] getArray(final int fromIdx, final int numItems) {
+    if (ds_.isDirect()) {
+      final double[] dstArray = new double[numItems];
+      final int offsetBytes = offset_ + (fromIdx << 3);
+      ds_.getMemory().getDoubleArray(offsetBytes, dstArray, 0, numItems);
+      return dstArray;
+    } else {
+      final int stIdx = offset_ + fromIdx;
+      return Arrays.copyOfRange(ds_.getCombinedBuffer(), stIdx, stIdx + numItems);
+    }
+  }
+
+  @Override
+  public void putArray(final double[] srcArray, final int srcIndex,
+                       final int dstIndex, final int numItems) {
+    if (ds_.isDirect()) {
+      final int offsetBytes = offset_ + (dstIndex << 3);
+      ds_.getMemory().putDoubleArray(offsetBytes, srcArray, srcIndex, numItems);
+    } else {
+      final int tgtIdx = offset_ + dstIndex;
+      System.arraycopy(srcArray, srcIndex, ds_.getCombinedBuffer(), tgtIdx, numItems);
+    }
+  }
+
 
   /**
    * Counts number of full levels in the sketch below tgtLvl. Useful for computing the level
@@ -162,12 +189,12 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
 
     System.out.println(ds.toString(true, true));
 
-    final DoublesSketchAccessor it = new DoublesSketchAccessor(ds);
-    for (int i = -1; i < it.getTotalLevels(); ++i) {
-      it.setLevel(i);
-      System.out.println("Level: " + i + "\t(" + it.size() + ")");
-      for (Double item : it) {
-        //System.out.println("\t" + j + ": " + it.get(j));
+    final DoublesSketchAccessor acc = DoublesSketchAccessor.create(ds, false);
+    for (int i = -1; i < acc.getTotalLevels(); ++i) {
+      acc.setLevel(i);
+      System.out.println("Level: " + i + "\t(" + acc.size() + ")");
+      for (Double item : acc) {
+        //System.out.println("\t" + j + ": " + acc.get(j));
         System.out.print(String.format("%10.1f", item));
       }
       System.out.println("");

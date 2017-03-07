@@ -210,6 +210,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
       // note that this combinedBuffer_ is after the possible resizing above
       Arrays.sort(combinedBuffer_, 0, k_ << 1); //sort only the BB portion, which is full
 
+      /*
       final long newBitPattern = DoublesUpdateImpl.inPlacePropagateCarry(
         0,                  //starting level
         null, 0,            //optSrcKBuf, optSrcKBufStrt:  not needed here
@@ -218,6 +219,16 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
         k_,
         combinedBuffer_,    //the base buffer = the Combined Buffer, possibly resized
         bitPattern_         //current bitPattern prior to updating n
+      );
+      */
+      final long newBitPattern = DoublesUpdateImpl.inPlacePropagateCarry(
+              0, // starting level
+              null,
+              DoublesSketchAccessor.create(this, true),
+              true,
+              k_,
+              DoublesSketchAccessor.create(this, true),
+              bitPattern_
       );
       assert newBitPattern == computeBitPattern(k_, newN); // internal consistency check
       assert newBitPattern == bitPattern_ + 1;

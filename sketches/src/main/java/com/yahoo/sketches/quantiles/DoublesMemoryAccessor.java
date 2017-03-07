@@ -26,7 +26,8 @@ final class DoublesMemoryAccessor extends DoublesBufferAccessor {
     return mem_.getDouble(index << 3);
   }
 
-  public Double set(final int index, final double value) {
+  @Override
+  public Double set(final int index, final Double value) {
     assert index >= 0 && index < size_;
 
     final double retVal = mem_.getDouble(index << 3);
@@ -37,5 +38,18 @@ final class DoublesMemoryAccessor extends DoublesBufferAccessor {
   @Override
   public int size() {
     return size_;
+  }
+
+  @Override
+  public double[] getArray(final int fromIdx, final int numItems) {
+    final double[] dstArray = new double[numItems];
+    mem_.getDoubleArray(fromIdx << 3, dstArray, 0, numItems);
+    return dstArray;
+  }
+
+  @Override
+  public void putArray(final double[] srcArray, final int srcIndex,
+                       final int dstIndex, final int numItems) {
+    mem_.putDoubleArray(dstIndex << 3, srcArray, srcIndex, numItems);
   }
 }

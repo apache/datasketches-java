@@ -265,13 +265,13 @@ public class DirectDoublesSketchTest {
     final Memory mem = new NativeMemory(new byte[memBytes]);
     final DoublesSketchBuilder bldr = DoublesSketch.builder();
     bldr.initMemory(mem);
-    final DoublesSketch ds = bldr.build(k);
+    final UpdateDoublesSketch ds = bldr.build(k);
     for (int i = 1; i <= n; i++) { // 1 ... n
       ds.update(i);
     }
     double last = 0.0;
     for (int i = 0; i < k; i++) { //check the level 0
-      double d = mem.getDouble((4 + 2*k + i) << 3);
+      final double d = mem.getDouble((4 + 2 * k + i) << 3);
       assertTrue(d > 0);
       assertTrue(d > last);
       last = d;
