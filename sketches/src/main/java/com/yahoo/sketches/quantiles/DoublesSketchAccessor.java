@@ -45,13 +45,13 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
     return new DoublesSketchAccessor(ds_, forceSize_, level);
   }
 
-  public int setLevel(final int lvl) {
+  public DoublesSketchAccessor setLevel(final int lvl) {
     currLvl_ = lvl;
     if (lvl == BB_LVL_IDX) {
       size_ = (forceSize_ ? ds_.getK() * 2 : ds_.getBaseBufferCount());
       offset_ = (ds_.isDirect() ? COMBINED_BUFFER : 0);
     } else {
-      assert lvl >= 0 && lvl <= Util.computeTotalLevels(ds_.getBitPattern());
+      assert lvl >= 0;
       if ((ds_.getBitPattern() & (1L << lvl)) > 0 || forceSize_) {
         size_ = ds_.getK();
       } else {
@@ -78,7 +78,7 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
 
     n_ = ds_.getN();
 
-    return size_;
+    return this;
   }
 
   public int getTotalLevels() {

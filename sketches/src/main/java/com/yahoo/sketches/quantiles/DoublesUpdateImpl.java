@@ -76,15 +76,16 @@ final class DoublesUpdateImpl {
    *
    * @param startingLevel 0-based starting level
    * @param optSrcKBuf optional, size k source, read only buffer
-   * @param optSrcKBufStrt starting offset for sizeKBuf
+   //* @param optSrcKBufStrt starting offset for sizeKBuf
    * @param size2KBuf size 2k scratch buffer
-   * @param size2KStart starting offset for size2KBuf
+   //* @param size2KStart starting offset for size2KBuf
    * @param doUpdateVersion true if update version
    * @param k the target value of k
-   * @param tgtCombinedBuffer the full combined buffer
+   //* @param tgtCombinedBuffer the full combined buffer
    * @param bitPattern the current bitPattern, prior to this call
    * @return The updated bit pattern.  The updated combined buffer is output as a side effect.
    */
+  /*
   static long inPlacePropagateCarry( //only operates on parameters
       final int startingLevel,
       final double[] optSrcKBuf, final int optSrcKBufStrt,
@@ -173,6 +174,7 @@ final class DoublesUpdateImpl {
       System.arraycopy(src2, i2, dst, iDst, stop2 - i2);
     }
   }
+  */
 
   // Accessor based:
   static long inPlacePropagateCarry(
@@ -253,6 +255,7 @@ final class DoublesUpdateImpl {
 
   //Memory based:
 
+  /*
   //see javadocs for inPlacePropagateCarry
   static long inPlacePropagateMemCarry( //only operates on parameters
       final int startingLevel,
@@ -337,5 +340,5 @@ final class DoublesUpdateImpl {
       src2.copy(i2 << 3, dst, iDst << 3, (stop2 << 3) - (i2 << 3));
     }
   }
-
+  */
 }
