@@ -67,6 +67,8 @@ final class DoublesMergeImpl {
     final int spaceNeeded = DoublesUpdateImpl.getRequiredItemCapacity(tgtK, nFinal);
 
     final int tgtCombBufItemCap = tgt.getCombinedBufferItemCapacity();
+
+    /*
     final double[] newTgtCombBuf;
 
     if (spaceNeeded > tgtCombBufItemCap) { //copies base buffer plus current levels
@@ -80,8 +82,14 @@ final class DoublesMergeImpl {
         newTgtCombBuf = tgt.getCombinedBuffer();
       }
     }
+    */
+
+    if (spaceNeeded > tgtCombBufItemCap) { //copies base buffer plus current levels
+      tgt.growCombinedBuffer(tgtCombBufItemCap, spaceNeeded);
+    }
+
     //final double[] scratch2KBuf = new double[2 * tgtK];
-    final DoublesArrayAccessor scratch2KBuf = new DoublesArrayAccessor(2 * tgtK);
+    final DoublesArrayAccessor scratch2KAcc = new DoublesArrayAccessor(2 * tgtK);
 
     long srcBitPattern = src.getBitPattern();
     assert srcBitPattern == (srcN / (2L * srcK));
@@ -93,31 +101,34 @@ final class DoublesMergeImpl {
       if ((srcBitPattern & 1L) > 0L) {
         /*
         final long newTgtBitPattern = DoublesUpdateImpl.inPlacePropagateCarry(
-            srcLvl,
-            srcCombBuf, ((2 + srcLvl) * tgtK),
-            scratch2KBuf, 0,
-            false,
-            tgtK,
-            newTgtCombBuf,
-            tgt.getBitPattern()
+                srcLvl,
+                srcCombBuf, ((2 + srcLvl) * tgtK),
+                scratch2KBuf, 0,
+                false,
+                tgtK,
+                newTgtCombBuf,
+                tgt.getBitPattern()
         );
         */
         final long newTgtBitPattern = DoublesUpdateImpl.inPlacePropagateCarry(
                 srcLvl,
                 srcSketchBuf.setLevel(srcLvl),
-                scratch2KBuf,
+                scratch2KAcc,
                 false,
                 tgtK,
                 tgtSketchBuf,
                 tgt.getBitPattern()
         );
+
         tgt.putBitPattern(newTgtBitPattern);
         // won't update tgt.n_ until the very end
       }
     }
 
     if (tgt.isDirect() && (nFinal > 0)) {
-      tgt.putCombinedBuffer(newTgtCombBuf);
+      /*
+      tgt.putCombinedBuffer(newTgtCombBuf); }
+       */
       final Memory mem = tgt.getMemory();
       mem.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
     }
@@ -167,15 +178,14 @@ final class DoublesMergeImpl {
     }
 
     final int spaceNeeded = DoublesUpdateImpl.getRequiredItemCapacity(tgtK, nFinal);
-    //final double[] tgtCombBuf;
     final int curCombBufCap = tgt.getCombinedBufferItemCapacity();
 
-    if (spaceNeeded > curCombBufCap) {
-      // heap: copies base buffer plus old levels
-      // off-heap: just checks for enough room, for now, and extracts to heap
-      //tgtCombBuf = tgt.growCombinedBuffer(curCombBufCap, spaceNeeded);
-      tgt.growCombinedBuffer(curCombBufCap, spaceNeeded);
-    } /*else {
+    /*
+    final double[] tgtCombBuf;
+
+    if (spaceNeeded > curCombBufCap) { //copies base buffer plus current levels
+      tgtCombBuf = tgt.growCombinedBuffer(curCombBufCap, spaceNeeded);
+    } else {
       if (tgt.isDirect()) {
         tgtCombBuf = new double[spaceNeeded];
         final int curUsedCap = DoublesUpdateImpl.getRequiredItemCapacity(tgtK, tgtN);
@@ -183,13 +193,18 @@ final class DoublesMergeImpl {
       } else {
         tgtCombBuf = tgt.getCombinedBuffer();
       }
-    }*/
+    }
+    */
+
+    if (spaceNeeded > curCombBufCap) { //copies base buffer plus current levels
+      tgt.growCombinedBuffer(curCombBufCap, spaceNeeded);
+    }
 
     //working scratch buffers
     //final double[] scratch2KBuf = new double [2 * tgtK];
     //final double[] downScratchKBuf = new double [tgtK];
-    final DoublesArrayAccessor scratch2KBuf = new DoublesArrayAccessor(2 * tgtK);
-    final DoublesArrayAccessor downScratchKBuf = new DoublesArrayAccessor(tgtK);
+    final DoublesArrayAccessor scratch2KAcc = new DoublesArrayAccessor(2 * tgtK);
+    final DoublesArrayAccessor downScratchKAcc = new DoublesArrayAccessor(tgtK);
 
     final DoublesSketchAccessor srcSketchBuf = DoublesSketchAccessor.create(src);
     final DoublesSketchAccessor tgtSketchBuf = DoublesSketchAccessor.create(tgt, true);
@@ -200,41 +215,44 @@ final class DoublesMergeImpl {
       if ((srcBitPattern & 1L) > 0L) {
         /*
         justZipWithStride(
-            srcCombBuf, ((2 + srcLvl) * srcK),
-            downScratchKBuf, 0,
-            tgtK,
-            downFactor
-        );
-        newTgtBitPattern = DoublesUpdateImpl.inPlacePropagateCarry(
-            srcLvl + lgDownFactor,    //starting level
-            downScratchKBuf, 0,       //optSrcKBuf, optSrcKBufStrt
-            scratch2KBuf, 0,          //size2KBuf, size2Kstart
-            false,                    //do mergeInto version
-            tgtK,
-            tgtCombBuf,
-            newTgtBitPattern
-        );
-        */
-        justZipWithStride(
-                srcSketchBuf.setLevel(srcLvl),
-                downScratchKBuf,
+                srcCombBuf, ((2 + srcLvl) * srcK),
+                downScratchKBuf, 0,
                 tgtK,
                 downFactor
         );
         newTgtBitPattern = DoublesUpdateImpl.inPlacePropagateCarry(
                 srcLvl + lgDownFactor,    //starting level
-                downScratchKBuf,       //optSrcKBuf,
-                scratch2KBuf,          //size2KBuf,
+                downScratchKBuf, 0,       //optSrcKBuf, optSrcKBufStrt
+                scratch2KBuf, 0,          //size2KBuf, size2Kstart
+                false,                    //do mergeInto version
+                tgtK,
+                tgtCombBuf,
+                newTgtBitPattern
+        );
+        */
+        justZipWithStride(
+                srcSketchBuf.setLevel(srcLvl),
+                downScratchKAcc,
+                tgtK,
+                downFactor
+        );
+        newTgtBitPattern = DoublesUpdateImpl.inPlacePropagateCarry(
+                srcLvl + lgDownFactor,    //starting level
+                downScratchKAcc,       //optSrcKBuf,
+                scratch2KAcc,          //size2KBuf,
                 false,                    //do mergeInto version
                 tgtK,
                 tgtSketchBuf,
                 newTgtBitPattern
         );
+
         tgt.putBitPattern(newTgtBitPattern); //off-heap is a no-op
       }
     }
     if (tgt.isDirect() && (nFinal > 0)) {
-      //tgt.putCombinedBuffer(tgtCombBuf);
+      /*
+       tgt.putCombinedBuffer(tgtCombBuf);
+      */
       final Memory mem = tgt.getMemory();
       mem.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
     }
@@ -264,6 +282,7 @@ final class DoublesMergeImpl {
     }
   }
   */
+
   private static void justZipWithStride(
           final DoublesBufferAccessor bufA, // input
           final DoublesBufferAccessor bufC, // output

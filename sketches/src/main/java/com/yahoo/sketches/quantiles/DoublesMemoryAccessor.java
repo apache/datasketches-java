@@ -1,5 +1,7 @@
 package com.yahoo.sketches.quantiles;
 
+import java.util.Arrays;
+
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -21,13 +23,13 @@ final class DoublesMemoryAccessor extends DoublesBufferAccessor {
   }
 
   @Override
-  public Double get(final int index) {
+  public double get(final int index) {
     assert index >= 0 && index < size_;
     return mem_.getDouble(index << 3);
   }
 
   @Override
-  public Double set(final int index, final Double value) {
+  public double set(final int index, final Double value) {
     assert index >= 0 && index < size_;
 
     final double retVal = mem_.getDouble(index << 3);
@@ -38,6 +40,15 @@ final class DoublesMemoryAccessor extends DoublesBufferAccessor {
   @Override
   public int size() {
     return size_;
+  }
+
+  @Override
+  public void sort() {
+    final double[] baseBuffer = new double[size_];
+    mem_.getDoubleArray(0, baseBuffer, 0, size_);
+    Arrays.sort(baseBuffer, 0, size_);
+    mem_.putDoubleArray(0, baseBuffer, 0, size_);
+
   }
 
   @Override

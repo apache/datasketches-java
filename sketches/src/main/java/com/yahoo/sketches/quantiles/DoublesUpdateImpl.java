@@ -76,12 +76,12 @@ final class DoublesUpdateImpl {
    *
    * @param startingLevel 0-based starting level
    * @param optSrcKBuf optional, size k source, read only buffer
-   //* @param optSrcKBufStrt starting offset for sizeKBuf
+   * @param optSrcKBufStrt starting offset for sizeKBuf
    * @param size2KBuf size 2k scratch buffer
-   //* @param size2KStart starting offset for size2KBuf
+   * @param size2KStart starting offset for size2KBuf
    * @param doUpdateVersion true if update version
    * @param k the target value of k
-   //* @param tgtCombinedBuffer the full combined buffer
+   * @param tgtCombinedBuffer the full combined buffer
    * @param bitPattern the current bitPattern, prior to this call
    * @return The updated bit pattern.  The updated combined buffer is output as a side effect.
    */

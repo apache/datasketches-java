@@ -91,7 +91,7 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
 
   /* Uses autoboxing to handle double/Double disparity */
   @Override
-  public Double get(final int index) {
+  public double get(final int index) {
     assert index >= 0 && index < size_;
     assert n_ == ds_.getN();
 
@@ -105,7 +105,7 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
 
   /* Uses autoboxing to handle double/Double disparity */
   @Override
-  public Double set(final int index, final Double value) {
+  public double set(final int index, final Double value) {
     assert index >= 0 && index < size_;
     assert n_ == ds_.getN();
 
@@ -127,6 +127,19 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
   @Override
   public int size() {
     return size_;
+  }
+
+  @Override
+  public void sort() {
+    if (ds_.isDirect()) {
+      final double[] tmpBuffer = new double[size_];
+      final Memory mem = ds_.getMemory();
+      mem.getDoubleArray(offset_, tmpBuffer, 0, size_);
+      Arrays.sort(tmpBuffer, 0, size_);
+      mem.putDoubleArray(offset_, tmpBuffer, 0, size_);
+    } else {
+      Arrays.sort(ds_.getCombinedBuffer(), offset_, offset_ + size_);
+    }
   }
 
   @Override
@@ -193,9 +206,8 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
     for (int i = -1; i < acc.getTotalLevels(); ++i) {
       acc.setLevel(i);
       System.out.println("Level: " + i + "\t(" + acc.size() + ")");
-      for (Double item : acc) {
-        //System.out.println("\t" + j + ": " + acc.get(j));
-        System.out.print(String.format("%10.1f", item));
+      for (int j = 0; j < acc.size(); ++j) {
+        System.out.print(String.format("%10.1f", acc.get(j)));
       }
       System.out.println("");
     }

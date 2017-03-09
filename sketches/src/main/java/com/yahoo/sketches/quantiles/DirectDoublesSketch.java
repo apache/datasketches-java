@@ -176,26 +176,32 @@ final class DirectDoublesSketch extends UpdateDoublesSketch {
         mem_.clear(COMBINED_BUFFER + (curUsedItemCap << 3), k_ << 3);
       }
 
+      /*
       //sort the base buffer
       sortMemory(mem_, COMBINED_BUFFER, k_ << 1);
       final MemoryRegion memRegion =
-          new MemoryRegion(mem_, COMBINED_BUFFER, mem_.getCapacity() - COMBINED_BUFFER);
+              new MemoryRegion(mem_, COMBINED_BUFFER, mem_.getCapacity() - COMBINED_BUFFER);
 
-      /*
       final long newBitPattern = DoublesUpdateImpl.inPlacePropagateMemCarry(
-        0,       //starting level
-        null, 0, //optSrcKBuf, optSrcKBufStrt:  not needed here
-        memRegion, 0, //size2Kbuf, size2KStart: the base buffer
-        true,    //doUpdateVersion
-        k_,
-        memRegion,    //the base buffer = the Combined Buffer
-        getBitPattern()    //current bitPattern prior to updating n
+              0,       //starting level
+              null, 0, //optSrcKBuf, optSrcKBufStrt:  not needed here
+              memRegion, 0, //size2Kbuf, size2KStart: <></>he base buffer
+              true,    //doUpdateVersion
+              k_,
+              memRegion,    //the base buffer = the Combined Buffer
+              getBitPattern()    //current bitPattern prior to updating n
       );
       */
+
+      // sort base buffer via accessor which modifies the underlying base buffer,
+      // then use as one of the inputs to propagate-carry
+      final DoublesSketchAccessor accessor = DoublesSketchAccessor.create(this, true);
+      accessor.sort();
+
       final long newBitPattern = DoublesUpdateImpl.inPlacePropagateCarry(
               0, // starting level
               null,
-              DoublesSketchAccessor.create(this, true),
+              accessor,
               true,
               k_,
               DoublesSketchAccessor.create(this, true),

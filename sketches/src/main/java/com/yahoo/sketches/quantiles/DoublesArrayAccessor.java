@@ -20,13 +20,13 @@ final class DoublesArrayAccessor extends DoublesBufferAccessor {
   }
 
   @Override
-  public Double get(final int index) {
+  public double get(final int index) {
     assert index >= 0 && index < size_;
     return buffer_[index];
   }
 
   @Override
-  public Double set(final int index, final Double value) {
+  public double set(final int index, final Double value) {
     assert index >= 0 && index < size_;
 
     final double retVal = buffer_[index];
@@ -39,10 +39,17 @@ final class DoublesArrayAccessor extends DoublesBufferAccessor {
     return size_;
   }
 
+  @Override
+  public void sort() {
+    Arrays.sort(buffer_);
+  }
+
+  @Override
   public double[] getArray(final int fromIdx, final int numItems) {
     return Arrays.copyOfRange(buffer_, fromIdx, fromIdx + numItems);
   }
 
+  @Override
   public void putArray(final double[] srcArray, final int srcIndex,
                        final int dstIndex, final int numItems) {
     System.arraycopy(srcArray, srcIndex, buffer_, dstIndex, numItems);
