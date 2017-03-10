@@ -32,7 +32,7 @@ public class MemoryRegionRTest {
   public void checkIllegalMethods() {
     NativeMemory mem = new NativeMemory(new byte[8]);
     MemoryRegion reg = new MemoryRegion(mem, 0, mem.getCapacity());
-    MemoryRegionR ro = (MemoryRegionR) reg.asReadOnlyMemory();
+    MemoryRegion ro =  reg.asReadOnlyMemory();
     try {
       ro.clear();
       fail();
@@ -287,8 +287,20 @@ public class MemoryRegionRTest {
   public void checkLegalMethods() {
     NativeMemory mem = new NativeMemory(new byte[8]);
     MemoryRegion reg = new MemoryRegion(mem, 0, mem.getCapacity());
-    MemoryRegionR ro = (MemoryRegionR) reg.asReadOnlyMemory();
+    MemoryRegion ro = reg.asReadOnlyMemory();
     assertTrue(ro.isReadOnly());
+    try {
+      ro.putByte(0, (byte) 0);
+    } catch (ReadOnlyMemoryException e) {
+      //ok
+    }
+    MemoryRegion reg2 = new MemoryRegion(ro, 0, ro.getCapacity());
+    assertTrue(reg2.isReadOnly());
+    try {
+      reg2.putByte(0, (byte) 0);
+    } catch (ReadOnlyMemoryException e) {
+      //ok
+    }
   }
 
 }

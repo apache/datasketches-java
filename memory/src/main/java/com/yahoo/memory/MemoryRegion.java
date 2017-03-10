@@ -59,6 +59,7 @@ public class MemoryRegion implements Memory {
   private final long memOffsetBytes_;
   private final long capacityBytes_;
   private MemoryRequest memReq_ = null;
+  private boolean readOnly_;
 
   /**
    * Defines a region of the given parent Memory by defining an offset and capacity that are
@@ -73,6 +74,7 @@ public class MemoryRegion implements Memory {
     mem_ = memory;
     memOffsetBytes_ = memOffsetBytes;
     capacityBytes_ = capacityBytes;
+    readOnly_ = memory.isReadOnly();
   }
 
   /**
@@ -91,6 +93,7 @@ public class MemoryRegion implements Memory {
     memOffsetBytes_ = memOffsetBytes;
     capacityBytes_ = capacityBytes;
     memReq_ = memReq;
+    readOnly_ = memory.isReadOnly();
   }
 
   /**
@@ -256,6 +259,7 @@ public class MemoryRegion implements Memory {
   @Override
   public void putBoolean(final long offsetBytes, final boolean srcValue) {
     assertBounds(offsetBytes, ARRAY_BOOLEAN_INDEX_SCALE, capacityBytes_);
+    checkReadOnly();
     mem_.putBoolean(getAddress(offsetBytes), srcValue);
   }
 
@@ -265,6 +269,7 @@ public class MemoryRegion implements Memory {
     final long copyBytes = length << BOOLEAN_SHIFT;
     assertBounds(srcOffset, length, srcArray.length);
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
+    checkReadOnly();
     mem_.putBooleanArray(getAddress(offsetBytes), srcArray, srcOffset, length);
   }
 
@@ -280,12 +285,14 @@ public class MemoryRegion implements Memory {
     final long copyBytes = length << BYTE_SHIFT;
     assertBounds(srcOffset, length, srcArray.length);
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
+    checkReadOnly();
     mem_.putByteArray(getAddress(offsetBytes), srcArray, srcOffset, length);
   }
 
   @Override
   public void putChar(final long offsetBytes, final char srcValue) {
     assertBounds(offsetBytes, ARRAY_CHAR_INDEX_SCALE, capacityBytes_);
+    checkReadOnly();
     mem_.putChar(getAddress(offsetBytes), srcValue);
   }
 
@@ -295,12 +302,14 @@ public class MemoryRegion implements Memory {
     final long copyBytes = length << CHAR_SHIFT;
     assertBounds(srcOffset, length, srcArray.length);
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
+    checkReadOnly();
     mem_.putCharArray(getAddress(offsetBytes), srcArray, srcOffset, length);
   }
 
   @Override
   public void putDouble(final long offsetBytes, final double srcValue) {
     assertBounds(offsetBytes, ARRAY_DOUBLE_INDEX_SCALE, capacityBytes_);
+    checkReadOnly();
     mem_.putDouble(getAddress(offsetBytes), srcValue);
   }
 
@@ -310,12 +319,14 @@ public class MemoryRegion implements Memory {
     final long copyBytes = length << DOUBLE_SHIFT;
     assertBounds(srcOffset, length, srcArray.length);
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
+    checkReadOnly();
     mem_.putDoubleArray(getAddress(offsetBytes), srcArray, srcOffset, length);
   }
 
   @Override
   public void putFloat(final long offsetBytes, final float srcValue) {
     assertBounds(offsetBytes, ARRAY_FLOAT_INDEX_SCALE, capacityBytes_);
+    checkReadOnly();
     mem_.putFloat(getAddress(offsetBytes), srcValue);
   }
 
@@ -325,12 +336,14 @@ public class MemoryRegion implements Memory {
     final long copyBytes = length << FLOAT_SHIFT;
     assertBounds(srcOffset, length, srcArray.length);
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
+    checkReadOnly();
     mem_.putFloatArray(getAddress(offsetBytes), srcArray, srcOffset, length);
   }
 
   @Override
   public void putInt(final long offsetBytes, final int srcValue) {
     assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
+    checkReadOnly();
     mem_.putInt(getAddress(offsetBytes), srcValue);
   }
 
@@ -340,6 +353,7 @@ public class MemoryRegion implements Memory {
     final long copyBytes = length << INT_SHIFT;
     assertBounds(srcOffset, length, srcArray.length);
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
+    checkReadOnly();
     mem_.putIntArray(getAddress(offsetBytes), srcArray, srcOffset, length);
   }
 
@@ -355,12 +369,14 @@ public class MemoryRegion implements Memory {
     final long copyBytes = length << LONG_SHIFT;
     assertBounds(srcOffset, length, srcArray.length);
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
+    checkReadOnly();
     mem_.putLongArray(getAddress(offsetBytes), srcArray, srcOffset, length);
   }
 
   @Override
   public void putShort(final long offsetBytes, final short srcValue) {
     assertBounds(offsetBytes, ARRAY_SHORT_INDEX_SCALE, capacityBytes_);
+    checkReadOnly();
     mem_.putShort(getAddress(offsetBytes), srcValue);
   }
 
@@ -370,12 +386,14 @@ public class MemoryRegion implements Memory {
     final long copyBytes = length << SHORT_SHIFT;
     assertBounds(srcOffset, length, srcArray.length);
     assertBounds(offsetBytes, copyBytes, capacityBytes_);
+    checkReadOnly();
     mem_.putShortArray(getAddress(offsetBytes), srcArray, srcOffset, length);
   }
 
   @Override
   public void setBits(final long offsetBytes, final byte bitMask) {
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
+    checkReadOnly();
     final long relativeOffset = getAddress(offsetBytes);
     final byte value = mem_.getByte(relativeOffset);
     mem_.putByte(relativeOffset, (byte)(value | bitMask));
@@ -386,36 +404,42 @@ public class MemoryRegion implements Memory {
   @Override
   public int addAndGetInt(final long offsetBytes, final int delta) {
     assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
+    checkReadOnly();
     return mem_.addAndGetInt(getAddress(offsetBytes), delta);
   }
 
   @Override
   public long addAndGetLong(final long offsetBytes, final long delta) {
     assertBounds(offsetBytes, ARRAY_LONG_INDEX_SCALE, capacityBytes_);
+    checkReadOnly();
     return mem_.addAndGetLong(getAddress(offsetBytes), delta);
   }
 
   @Override
   public boolean compareAndSwapInt(final long offsetBytes, final int expect, final int update) {
     assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
+    checkReadOnly();
     return mem_.compareAndSwapInt(getAddress(offsetBytes), expect, update);
   }
 
   @Override
   public boolean compareAndSwapLong(final long offsetBytes, final long expect, final long update) {
     assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
+    checkReadOnly();
     return mem_.compareAndSwapLong(getAddress(offsetBytes), expect, update);
   }
 
   @Override
   public int getAndSetInt(final long offsetBytes, final int newValue) {
     assertBounds(offsetBytes, ARRAY_INT_INDEX_SCALE, capacityBytes_);
+    checkReadOnly();
     return mem_.getAndSetInt(getAddress(offsetBytes), newValue);
   }
 
   @Override
   public long getAndSetLong(final long offsetBytes, final long newValue) {
     assertBounds(offsetBytes, ARRAY_LONG_INDEX_SCALE, capacityBytes_);
+    checkReadOnly();
     return mem_.getAndSetLong(getAddress(offsetBytes), newValue);
   }
 
@@ -423,32 +447,39 @@ public class MemoryRegion implements Memory {
 
   @Override
   public Object array() {
+    checkReadOnly();
     return mem_.array();
   }
 
   @Override
-  public Memory asReadOnlyMemory() {
+  public MemoryRegion asReadOnlyMemory() {
     final Memory readOnlyMem = mem_.asReadOnlyMemory();
-    return new MemoryRegionR(readOnlyMem, memOffsetBytes_, capacityBytes_, memReq_);
+    final MemoryRegion reg = new MemoryRegion(readOnlyMem, memOffsetBytes_, capacityBytes_, memReq_);
+    reg.readOnly_ = true;
+    return reg;
   }
 
   @Override
   public ByteBuffer byteBuffer() {
+    checkReadOnly();
     return mem_.byteBuffer();
   }
 
   @Override
   public void clear() {
+    checkReadOnly();
     fill(0, capacityBytes_, (byte) 0);
   }
 
   @Override
   public void clear(final long offsetBytes, final long lengthBytes) {
+    checkReadOnly();
     fill(offsetBytes, lengthBytes, (byte) 0);
   }
 
   @Override
   public void clearBits(final long offsetBytes, final byte bitMask) {
+    checkReadOnly();
     assertBounds(offsetBytes, ARRAY_BYTE_INDEX_SCALE, capacityBytes_);
     mem_.clearBits(getAddress(offsetBytes), bitMask);
   }
@@ -456,10 +487,9 @@ public class MemoryRegion implements Memory {
   @Override
   @Deprecated
   public void copy(final long srcOffsetBytes, final long dstOffsetBytes, final long lengthBytes) {
+    checkReadOnly();
     copy(srcOffsetBytes, this, dstOffsetBytes, lengthBytes);
   }
-
-  //copy (long, dstMemory, long, long) OK
 
   @Override
   public void copy(final long srcOffsetBytes, final Memory destination, final long dstOffsetBytes,
@@ -503,12 +533,14 @@ public class MemoryRegion implements Memory {
 
   @Override
   public void fill(final byte value) {
+    checkReadOnly();
     fill(0, capacityBytes_, value);
   }
 
   @Override
   public void fill(final long offsetBytes, final long lengthBytes, final byte value) {
     assertBounds(offsetBytes, lengthBytes, capacityBytes_);
+    checkReadOnly();
     mem_.fill(getAddress(offsetBytes), lengthBytes, value);
   }
 
@@ -534,6 +566,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public Object getParent() {
+    checkReadOnly();
     return mem_;
   }
 
@@ -559,11 +592,12 @@ public class MemoryRegion implements Memory {
 
   @Override
   public boolean isReadOnly() {
-    return false;
+    return readOnly_;
   }
 
   @Override
   public void setMemoryRequest(final MemoryRequest memReq) {
+    checkReadOnly();
     memReq_ = memReq;
   }
 
@@ -584,4 +618,10 @@ public class MemoryRegion implements Memory {
 
   @Override
   public void freeMemory() {}
+
+  void checkReadOnly() {
+    if (readOnly_) {
+      throw new ReadOnlyMemoryException("Given Memory is Read Only.");
+    }
+  }
 }

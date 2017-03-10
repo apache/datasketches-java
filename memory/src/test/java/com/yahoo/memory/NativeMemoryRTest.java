@@ -284,10 +284,21 @@ public class NativeMemoryRTest {
   }
 
   @Test
-  public void checkLegalMethods() {
+  public void checkReadOnly() {
     NativeMemory mem = new NativeMemory(new byte[8]);
     NativeMemoryR ro = (NativeMemoryR) mem.asReadOnlyMemory();
     assertTrue(ro.isReadOnly());
+    try {
+      ro.putByte(0, (byte) 0);
+    } catch (ReadOnlyMemoryException e) {
+      //ok
+    }
+    MemoryRegion reg = new MemoryRegion(ro, 0, ro.getCapacity());
+    assertTrue(reg.isReadOnly());
+    try {
+      reg.putByte(0, (byte) 0);
+    } catch (ReadOnlyMemoryException e) {
+      //ok
+    }
   }
-
 }
