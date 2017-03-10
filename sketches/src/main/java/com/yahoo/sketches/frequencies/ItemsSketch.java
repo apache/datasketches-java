@@ -372,7 +372,7 @@ public class ItemsSketch<T> {
 
     final long streamLen = this.streamLength + other.streamLength; //capture before merge
 
-    final ReversePurgeItemHashMap<T>.Iterator iter = other.hashMap.iterator();
+    final ReversePurgeItemHashMap.Iterator<T> iter = other.hashMap.iterator();
     while (iter.next()) { //this may add to offset during rebuilds
       this.update(iter.getKey(), iter.getValue());
     }
@@ -563,7 +563,7 @@ public class ItemsSketch<T> {
 
   Row<T>[] sortItems(final long threshold, final ErrorType errorType) {
     final ArrayList<Row<T>> rowList = new ArrayList<Row<T>>();
-    final ReversePurgeItemHashMap<T>.Iterator iter = hashMap.iterator();
+    final ReversePurgeItemHashMap.Iterator<T> iter = hashMap.iterator();
     if (errorType == ErrorType.NO_FALSE_NEGATIVES) {
       while (iter.next()) {
         final long est = getEstimate(iter.getKey());
