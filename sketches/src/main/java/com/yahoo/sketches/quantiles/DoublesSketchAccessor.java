@@ -2,10 +2,8 @@ package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.PreambleUtil.COMBINED_BUFFER;
 
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import com.yahoo.memory.AllocMemory;
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.Family;
 
@@ -20,7 +18,7 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
 
   private long n_;
   private int currLvl_;
-  private int size_;
+  private int numItems_;
   private int offset_;
 
   private DoublesSketchAccessor(final DoublesSketch ds,
@@ -32,30 +30,30 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
     setLevel(level);
   }
 
-  public static DoublesSketchAccessor create(final DoublesSketch ds) {
-    return create(ds, false);
+  static DoublesSketchAccessor wrap(final DoublesSketch ds) {
+    return wrap(ds, false);
   }
 
-  public static DoublesSketchAccessor create(final DoublesSketch ds,
-                                             final boolean forceSize) {
+  static DoublesSketchAccessor wrap(final DoublesSketch ds,
+                                    final boolean forceSize) {
     return new DoublesSketchAccessor(ds, forceSize, BB_LVL_IDX);
   }
 
-  public DoublesSketchAccessor copyAndSetLevel(final int level) {
+  DoublesSketchAccessor copyAndSetLevel(final int level) {
     return new DoublesSketchAccessor(ds_, forceSize_, level);
   }
 
-  public DoublesSketchAccessor setLevel(final int lvl) {
+  DoublesSketchAccessor setLevel(final int lvl) {
     currLvl_ = lvl;
     if (lvl == BB_LVL_IDX) {
-      size_ = (forceSize_ ? ds_.getK() * 2 : ds_.getBaseBufferCount());
+      numItems_ = (forceSize_ ? ds_.getK() * 2 : ds_.getBaseBufferCount());
       offset_ = (ds_.isDirect() ? COMBINED_BUFFER : 0);
     } else {
       assert lvl >= 0;
       if ((ds_.getBitPattern() & (1L << lvl)) > 0 || forceSize_) {
-        size_ = ds_.getK();
+        numItems_ = ds_.getK();
       } else {
-        size_ = 0;
+        numItems_ = 0;
       }
 
       // determine offset in two parts
@@ -81,18 +79,17 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
     return this;
   }
 
-  public int getTotalLevels() {
+  int getTotalLevels() {
     return Util.computeTotalLevels(ds_.getBitPattern());
   }
 
-  public int getLevel() {
+  int getLevel() {
     return currLvl_;
   }
 
-  /* Uses autoboxing to handle double/Double disparity */
   @Override
-  public double get(final int index) {
-    assert index >= 0 && index < size_;
+  double get(final int index) {
+    assert index >= 0 && index < numItems_;
     assert n_ == ds_.getN();
 
     if (ds_.isDirect()) {
@@ -103,10 +100,9 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
     }
   }
 
-  /* Uses autoboxing to handle double/Double disparity */
   @Override
-  public double set(final int index, final Double value) {
-    assert index >= 0 && index < size_;
+  double set(final int index, final double value) {
+    assert index >= 0 && index < numItems_;
     assert n_ == ds_.getN();
 
     final double oldVal;
@@ -125,25 +121,25 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
   }
 
   @Override
-  public int size() {
-    return size_;
+  int numItems() {
+    return numItems_;
   }
 
   @Override
-  public void sort() {
+  void sort() {
     if (ds_.isDirect()) {
-      final double[] tmpBuffer = new double[size_];
+      final double[] tmpBuffer = new double[numItems_];
       final Memory mem = ds_.getMemory();
-      mem.getDoubleArray(offset_, tmpBuffer, 0, size_);
-      Arrays.sort(tmpBuffer, 0, size_);
-      mem.putDoubleArray(offset_, tmpBuffer, 0, size_);
+      mem.getDoubleArray(offset_, tmpBuffer, 0, numItems_);
+      Arrays.sort(tmpBuffer, 0, numItems_);
+      mem.putDoubleArray(offset_, tmpBuffer, 0, numItems_);
     } else {
-      Arrays.sort(ds_.getCombinedBuffer(), offset_, offset_ + size_);
+      Arrays.sort(ds_.getCombinedBuffer(), offset_, offset_ + numItems_);
     }
   }
 
   @Override
-  public double[] getArray(final int fromIdx, final int numItems) {
+  double[] getArray(final int fromIdx, final int numItems) {
     if (ds_.isDirect()) {
       final double[] dstArray = new double[numItems];
       final int offsetBytes = offset_ + (fromIdx << 3);
@@ -156,7 +152,7 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
   }
 
   @Override
-  public void putArray(final double[] srcArray, final int srcIndex,
+  void putArray(final double[] srcArray, final int srcIndex,
                        final int dstIndex, final int numItems) {
     if (ds_.isDirect()) {
       final int offsetBytes = offset_ + (dstIndex << 3);
@@ -183,33 +179,5 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
       }
     }
     return count;
-  }
-
-  public static void main(final String[] args) {
-    final int k = 16;
-    final int n = k * 15 + 3;
-
-    final ByteBuffer bb = ByteBuffer.allocateDirect(100 + n << 3);
-    final Memory mem = AllocMemory.wrap(bb);
-
-    final DoublesSketchBuilder dsb = DoublesSketch.builder();
-    dsb.initMemory(mem);
-    final UpdateDoublesSketch ds = dsb.build(k);
-
-    for (int i = 0; i < n; ++i) {
-      ds.update(i);
-    }
-
-    System.out.println(ds.toString(true, true));
-
-    final DoublesSketchAccessor acc = DoublesSketchAccessor.create(ds, false);
-    for (int i = -1; i < acc.getTotalLevels(); ++i) {
-      acc.setLevel(i);
-      System.out.println("Level: " + i + "\t(" + acc.size() + ")");
-      for (int j = 0; j < acc.size(); ++j) {
-        System.out.print(String.format("%10.1f", acc.get(j)));
-      }
-      System.out.println("");
-    }
   }
 }

@@ -4,17 +4,16 @@ package com.yahoo.sketches.quantiles;
  * @author Jon Malkin
  */
 abstract class DoublesBufferAccessor {
-  public abstract double[] getArray(int fromIdx, int numItems);
+  abstract double get(final int index);
 
-  public abstract void putArray(double[] srcArray, int srcIndex,
-                                int dstIndex, int numItems);
+  abstract double set(final int index, final double value);
 
-  public abstract void sort();
+  abstract int numItems();
 
-  // These next 3 come from AbstractList, just included here to be explicit
-  public abstract double get(final int index);
+  abstract double[] getArray(int fromIdx, int numItems);
 
-  public abstract double set(final int index, final Double value);
+  abstract void putArray(double[] srcArray, int srcIndex,
+                         int dstIndex, int numItems);
 
-  public abstract int size();
+  abstract void sort();
 }

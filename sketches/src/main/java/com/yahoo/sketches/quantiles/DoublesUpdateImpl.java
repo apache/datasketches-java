@@ -76,107 +76,12 @@ final class DoublesUpdateImpl {
    *
    * @param startingLevel 0-based starting level
    * @param optSrcKBuf optional, size k source, read only buffer
-   * @param optSrcKBufStrt starting offset for sizeKBuf
    * @param size2KBuf size 2k scratch buffer
-   * @param size2KStart starting offset for size2KBuf
    * @param doUpdateVersion true if update version
    * @param k the target value of k
-   * @param tgtCombinedBuffer the full combined buffer
    * @param bitPattern the current bitPattern, prior to this call
    * @return The updated bit pattern.  The updated combined buffer is output as a side effect.
    */
-  /*
-  static long inPlacePropagateCarry( //only operates on parameters
-      final int startingLevel,
-      final double[] optSrcKBuf, final int optSrcKBufStrt,
-      final double[] size2KBuf, final int size2KStart,
-      final boolean doUpdateVersion, //false = mergeInto version
-      final int k,
-      final double[] tgtCombinedBuffer, //ref to combined buffer, which includes base buffer
-      final long bitPattern //the current bitPattern
-    ) {
-
-    final int endingLevel = Util.lowestZeroBitStartingAt(bitPattern, startingLevel);
-    final int tgtStart = (2 + endingLevel) * k;
-    assert tgtStart + k <= tgtCombinedBuffer.length;
-    if (doUpdateVersion) { // update version of computation
-      // its is okay for optSrcKBuf to be null in this case
-      zipSize2KBuffer(
-          size2KBuf, size2KStart,
-          tgtCombinedBuffer, tgtStart,
-          k);
-    } else { // mergeInto version of computation
-      try {
-      System.arraycopy(
-        optSrcKBuf, optSrcKBufStrt, //2, 0
-        tgtCombinedBuffer, tgtStart, //4, 8, k = 2
-        k);
-      } catch (final Exception e) {
-        final String s = String.format("%d %d %d %d %d",
-            optSrcKBuf.length, optSrcKBufStrt, tgtCombinedBuffer.length, tgtStart, k);
-        System.out.println(s); //2 0 4 8 2
-        throw new RuntimeException(e);
-      }
-    }
-
-    for (int lvl = startingLevel; lvl < endingLevel; lvl++) {
-      assert (bitPattern & (1L << lvl)) > 0; // internal consistency check
-      mergeTwoSizeKBuffers(
-          tgtCombinedBuffer, (2 + lvl) * k,
-          tgtCombinedBuffer, (2 + endingLevel) * k,
-          size2KBuf, size2KStart,
-          k);
-      zipSize2KBuffer(
-          size2KBuf, size2KStart,
-          tgtCombinedBuffer, (2 + endingLevel) * k,
-          k);
-    } // end of loop over lower levels
-
-    // update bit pattern with binary-arithmetic ripple carry
-    return bitPattern + (1L << startingLevel);
-  }
-
-  private static void zipSize2KBuffer(
-      final double[] bufIn, final int startIn,
-      final double[] bufOut, final int startOut,
-      final int k) {
-    final int randomOffset = DoublesSketch.rand.nextBoolean() ? 1 : 0;
-    final int limOut = startOut + k;
-    for (int idxIn = startIn + randomOffset, idxOut = startOut; idxOut < limOut;
-        idxIn += 2, idxOut++) {
-      bufOut[idxOut] = bufIn[idxIn];
-    }
-  }
-
-  private static void mergeTwoSizeKBuffers(
-          final double[] src1, final int start1,
-          final double[] src2, final int start2,
-          final double[] dst, final int startDst,
-          final int k) {
-    final int stop1 = start1 + k;
-    final int stop2 = start2 + k;
-
-    int i1 = start1;
-    int i2 = start2;
-    int iDst = startDst;
-    while (i1 < stop1 && i2 < stop2) {
-      if (src2[i2] < src1[i1]) {
-        dst[iDst++] = src2[i2++];
-      } else {
-        dst[iDst++] = src1[i1++];
-      }
-    }
-
-    if (i1 < stop1) {
-      System.arraycopy(src1, i1, dst, iDst, stop1 - i1);
-    } else {
-      assert start2 < stop2;
-      System.arraycopy(src2, i2, dst, iDst, stop2 - i2);
-    }
-  }
-  */
-
-  // Accessor based:
   static long inPlacePropagateCarry(
           final int startingLevel,
           final DoublesBufferAccessor optSrcKBuf,
@@ -187,8 +92,6 @@ final class DoublesUpdateImpl {
           final long bitPattern
   ) {
     final int endingLevel = Util.lowestZeroBitStartingAt(bitPattern, startingLevel);
-    //final int tgtStart = (2 + endingLevel) * k;
-    //assert tgtStart + k <= tgtSketchBuf.size();
     tgtSketchBuf.setLevel(endingLevel);
     if (doUpdateVersion) { // update version of computation
       // its is okay for optSrcKBuf to be null in this case
@@ -205,8 +108,8 @@ final class DoublesUpdateImpl {
       assert (bitPattern & (1L << lvl)) > 0; // internal consistency check
       final DoublesSketchAccessor currLevelBuf = tgtSketchBuf.copyAndSetLevel(lvl);
       mergeTwoSizeKBuffers(
-              currLevelBuf, // target level: lvl = (2 + lvl) * k,
-              tgtSketchBuf, // target level: endingLevel = (2 + endingLevel) * k,
+              currLevelBuf, // target level: lvl
+              tgtSketchBuf, // target level: endingLevel
               size2KBuf);
       zipSize2KBuffer(size2KBuf, tgtSketchBuf);
     } // end of loop over lower levels
@@ -219,7 +122,7 @@ final class DoublesUpdateImpl {
           final DoublesBufferAccessor bufIn,
           final DoublesBufferAccessor bufOut) {
     final int randomOffset = DoublesSketch.rand.nextBoolean() ? 1 : 0;
-    final int limOut = bufOut.size();
+    final int limOut = bufOut.numItems();
     for (int idxIn = randomOffset, idxOut = 0; idxOut < limOut; idxIn += 2, idxOut++) {
       bufOut.set(idxOut, bufIn.get(idxIn));
     }
@@ -229,9 +132,9 @@ final class DoublesUpdateImpl {
           final DoublesBufferAccessor src1,
           final DoublesBufferAccessor src2,
           final DoublesBufferAccessor dst) {
-    assert src1.size() == src2.size();
+    assert src1.numItems() == src2.numItems();
 
-    final int k = src1.size();
+    final int k = src1.numItems();
     int i1 = 0;
     int i2 = 0;
     int iDst = 0;
@@ -251,94 +154,4 @@ final class DoublesUpdateImpl {
       dst.putArray(src2.getArray(i2, numItems), 0, iDst, numItems);
     }
   }
-
-
-  //Memory based:
-
-  /*
-  //see javadocs for inPlacePropagateCarry
-  static long inPlacePropagateMemCarry( //only operates on parameters
-      final int startingLevel,
-      final Memory optSrcKBuf, final int optSrcKBufStrt,
-      final Memory size2KBuf, final int size2KStart,
-      final boolean doUpdateVersion, //false = mergeInto version
-      final int k,
-      final Memory tgtCombinedBuffer, //ref to combined buffer, which includes base buffer
-      final long bitPattern //the current bitPattern
-    ) {
-
-    final int endingLevel = Util.lowestZeroBitStartingAt(bitPattern, startingLevel);
-
-    if (doUpdateVersion) { // update version of computation
-      // its is okay for optSrcKBuf to be null in this case
-      zipSize2KMemBuffer(
-          size2KBuf, size2KStart,
-          tgtCombinedBuffer, (2 + endingLevel) * k,
-          k);
-    } else { // mergeInto version of computation
-      optSrcKBuf.copy(
-          optSrcKBufStrt << 3,
-          tgtCombinedBuffer, ((2 + endingLevel) * k) << 3,
-          k << 3);
-    }
-
-    for (int lvl = startingLevel; lvl < endingLevel; lvl++) {
-      assert (bitPattern & (1L << lvl)) > 0; // internal consistency check
-      mergeTwoSizeKMemBuffers(
-          tgtCombinedBuffer, (2 + lvl) * k,
-          tgtCombinedBuffer, (2 + endingLevel) * k,
-          size2KBuf, size2KStart,
-          k);
-      zipSize2KMemBuffer(
-          size2KBuf, size2KStart,
-          tgtCombinedBuffer, (2 + endingLevel) * k,
-          k);
-    } // end of loop over lower levels
-
-    // update bit pattern with binary-arithmetic ripple carry
-    return bitPattern + (1L << startingLevel);
-  }
-
-
-  private static void zipSize2KMemBuffer(
-      final Memory bufIn, final int startIn,
-      final Memory bufOut, final int startOut,
-      final int k) {
-    final int randomOffset = DoublesSketch.rand.nextBoolean() ? 1 : 0;
-    final int limOut = startOut + k;
-    for (int idxIn = startIn + randomOffset, idxOut = startOut; idxOut < limOut;
-        idxIn += 2, idxOut++) {
-      bufOut.putDouble(idxOut << 3, bufIn.getDouble(idxIn << 3));
-    }
-  }
-
-  private static void mergeTwoSizeKMemBuffers(
-      final Memory src1, final int start1,
-      final Memory src2, final int start2,
-      final Memory dst, final int startDst,
-      final int k) {
-    final int stop1 = start1 + k;
-    final int stop2 = start2 + k;
-
-    int i1 = start1;
-    int i2 = start2;
-    int iDst = startDst;
-    while (i1 < stop1 && i2 < stop2) {
-      if (src2.getDouble(i2 << 3) < src1.getDouble(i1 << 3)) {
-        dst.putDouble(iDst << 3, src2.getDouble(i2 << 3));
-        iDst++; i2++;
-      } else {
-        dst.putDouble(iDst << 3, src1.getDouble(i1 << 3));
-        iDst++; i1++;
-      }
-    }
-
-    if (i1 < stop1) { //copy the remainder
-      src1.copy(i1 << 3, dst, iDst << 3, (stop1 << 3) - (i1 << 3));
-    } else {
-      assert start2 < stop2;
-      src2.copy(i2 << 3, dst, iDst << 3, (stop2 << 3) - (i2 << 3));
-    }
-  }
-  */
 }
