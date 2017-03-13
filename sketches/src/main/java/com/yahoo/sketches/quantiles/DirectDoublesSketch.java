@@ -171,9 +171,10 @@ final class DirectDoublesSketch extends UpdateDoublesSketch {
         // copies base buffer plus old levels, adds space for new level
         mem_ = growCombinedMemBuffer(mem_, itemSpaceNeeded);
       }
-      if (itemSpaceNeeded > curUsedItemCap) { //clear out the next level
-        mem_.clear(COMBINED_BUFFER + (curUsedItemCap << 3), k_ << 3);
-      }
+      // TODO: is this needed?
+      //if (itemSpaceNeeded > curUsedItemCap) { //clear out the next level
+      //  mem_.clear(COMBINED_BUFFER + (curUsedItemCap << 3), k_ << 3);
+      //}
 
       // sort base buffer via accessor which modifies the underlying base buffer,
       // then use as one of the inputs to propagate-carry
