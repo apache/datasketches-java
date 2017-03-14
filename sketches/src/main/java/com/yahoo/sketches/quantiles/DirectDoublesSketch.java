@@ -65,7 +65,13 @@ final class DirectDoublesSketch extends UpdateDoublesSketch {
    * @return a DirectDoublesSketch
    */
   static DirectDoublesSketch newInstance(final int k, final Memory dstMem) {
-    checkDirectMemCapacity(k, 0, dstMem.getCapacity());
+    //checkDirectMemCapacity(k, 0, dstMem.getCapacity());
+
+    // ensure we can hold at least the header
+    if (dstMem.getCapacity() < COMBINED_BUFFER) {
+      throw new SketchesArgumentException("Memory capacity too small to hold sketch header: "
+              + dstMem.getCapacity());
+    }
 
     final Object memObj = dstMem.array();
     final long memAdd = dstMem.getCumulativeOffset(0L);
@@ -153,6 +159,12 @@ final class DirectDoublesSketch extends UpdateDoublesSketch {
     final int newBBCount = curBBCount + 1; //derived, not stored
     final long curN = getN();
     final long newN = curN + 1;
+
+    final int combBufItemCap = getCombinedBufferItemCapacity();
+    if (newBBCount > combBufItemCap) {
+      //only changes combinedBuffer when it is only a base buffer
+      mem_ = growCombinedMemBuffer(mem_, 2 * getK());
+    }
 
     mem_.putDouble(COMBINED_BUFFER + curBBCount * Double.BYTES, dataItem); //put the item
     mem_.putByte(FLAGS_BYTE, (byte) 0); //not compact, not ordered, not empty
@@ -299,7 +311,7 @@ final class DirectDoublesSketch extends UpdateDoublesSketch {
   double[] growCombinedBuffer(final int curCombBufItemCap, final int itemSpaceNeeded) {
     final long memBytes = mem_.getCapacity();
     final int needBytes = (itemSpaceNeeded << 3) + COMBINED_BUFFER; //+ preamble + min, max
-    if ((needBytes) > memBytes) {
+    if (needBytes > memBytes) {
       final Memory newMem = MemoryUtil.memoryRequestHandler(mem_, needBytes, true);
       //the free has already been handled
       mem_ = newMem;
@@ -315,7 +327,7 @@ final class DirectDoublesSketch extends UpdateDoublesSketch {
   static Memory growCombinedMemBuffer(final Memory mem, final int itemSpaceNeeded) {
     final long memBytes = mem.getCapacity();
     final int needBytes = (itemSpaceNeeded << 3) + COMBINED_BUFFER; //+ preamble + min & max
-    if ((needBytes) > memBytes) {
+    if (needBytes > memBytes) {
       final Memory newMem = MemoryUtil.memoryRequestHandler(mem, needBytes, true);
       //the free has already been handled
       return newMem;
