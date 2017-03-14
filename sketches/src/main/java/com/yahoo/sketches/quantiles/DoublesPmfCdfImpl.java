@@ -48,9 +48,7 @@ class DoublesPmfCdfImpl {
    * @return the unnormalized, accumulated counts of <i>m + 1</i> intervals.
    */
   private static long[] internalBuildHistogram(final DoublesSketch sketch, final double[] splitPoints) {
-    final double[] levelsArr  = sketch.getCombinedBuffer();
-    final double[] baseBuffer = levelsArr;
-    final int bbCount = sketch.getBaseBufferCount();
+    final DoublesSketchAccessor sketchAccessor = DoublesSketchAccessor.wrap(sketch);
     Util.validateValues(splitPoints);
 
     final int numSplitPoints = splitPoints.length;
@@ -58,15 +56,16 @@ class DoublesPmfCdfImpl {
     final long[] counters = new long[numCounters];
 
     long weight = 1;
+    sketchAccessor.setLevel(DoublesSketchAccessor.BB_LVL_IDX);
     if (numSplitPoints < 50) { // empirically determined crossover
       // sort not worth it when few split points
       DoublesPmfCdfImpl.bilinearTimeIncrementHistogramCounters(
-          baseBuffer, 0, bbCount, weight, splitPoints, counters);
+              sketchAccessor, weight, splitPoints, counters);
     } else {
-      Arrays.sort(baseBuffer, 0, bbCount);
+      sketchAccessor.sort();
       // sort is worth it when many split points
       DoublesPmfCdfImpl.linearTimeIncrementHistogramCounters(
-          baseBuffer, 0, bbCount, weight, splitPoints, counters);
+              sketchAccessor, weight, splitPoints, counters);
     }
 
     long myBitPattern = sketch.getBitPattern();
@@ -76,29 +75,31 @@ class DoublesPmfCdfImpl {
       weight += weight; // *= 2
       if ((myBitPattern & 1L) > 0L) { //valid level exists
         // the levels are already sorted so we can use the fast version
+        sketchAccessor.setLevel(lvl);
         DoublesPmfCdfImpl.linearTimeIncrementHistogramCounters(
-            levelsArr, (2 + lvl) * k, k, weight, splitPoints, counters);
+                sketchAccessor, weight, splitPoints, counters);
       }
     }
     return counters;
+
   }
 
   /**
    * Because of the nested loop, cost is O(numSamples * numSplitPoints), which is bilinear.
    * This method does NOT require the samples to be sorted.
-   * @param samples array of samples
-   * @param offset into samples array
-   * @param numSamples number of samples in samples array
+   * @param samples DoublesBufferAccessor holding an array of samples
    * @param weight of the samples
    * @param splitPoints must be unique and sorted. Number of splitPoints + 1 == counters.length.
    * @param counters array of counters
    */
-  static void bilinearTimeIncrementHistogramCounters(final double[] samples, final int offset,
-      final int numSamples, final long weight, final double[] splitPoints, final long[] counters) {
+  static void bilinearTimeIncrementHistogramCounters(final DoublesBufferAccessor samples,
+                                                     final long weight,
+                                                     final double[] splitPoints,
+                                                     final long[] counters) {
     assert (splitPoints.length + 1 == counters.length);
-    for (int i = 0; i < numSamples; i++) {
-      final double sample = samples[i + offset];
-      int j = 0;
+    for (int i = 0; i < samples.numItems(); i++) {
+      final double sample = samples.get(i);
+      int j;
       for (j = 0; j < splitPoints.length; j++) {
         final double splitpoint = splitPoints[j];
         if (sample < splitpoint) {
@@ -110,6 +111,7 @@ class DoublesPmfCdfImpl {
     }
   }
 
+
   /**
    * This one does a linear time simultaneous walk of the samples and splitPoints. Because this
    * internal procedure is called multiple times, we require the caller to ensure these 3 properties:
@@ -118,19 +120,19 @@ class DoublesPmfCdfImpl {
    * <li>splitPoints must be unique and sorted</li>
    * <li>number of SplitPoints + 1 == counters.length</li>
    * </ol>
-   * @param samples sorted array of samples
-   * @param offset into samples array
-   * @param numSamples number of samples in samples array
+   * @param samples DoublesBufferAccessor holding an array of samples
    * @param weight of the samples
    * @param splitPoints must be unique and sorted. Number of splitPoints + 1 = counters.length.
    * @param counters array of counters
    */
-  static void linearTimeIncrementHistogramCounters(final double[] samples, final int offset,
-      final int numSamples, final long weight, final double[] splitPoints, final long[] counters) {
+  static void linearTimeIncrementHistogramCounters(final DoublesBufferAccessor samples,
+                                                   final long weight,
+                                                   final double[] splitPoints,
+                                                   final long[] counters) {
     int i = 0;
     int j = 0;
-    while (i < numSamples && j < splitPoints.length) {
-      if (samples[i + offset] < splitPoints[j]) {
+    while (i < samples.numItems() && j < splitPoints.length) {
+      if (samples.get(i) < splitPoints[j]) {
         counters[j] += weight; // this sample goes into this bucket
         i++; // move on to next sample and see whether it also goes into this bucket
       } else {
@@ -142,7 +144,7 @@ class DoublesPmfCdfImpl {
     // j == numSplitPoints(out of buckets, but there are more samples remaining)
     // we only need to do something in the latter case.
     if (j == splitPoints.length) {
-      counters[j] += (weight * (numSamples - i));
+      counters[j] += (weight * (samples.numItems() - i));
     }
   }
 

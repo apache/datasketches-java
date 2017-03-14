@@ -34,8 +34,6 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.insertPreLongs;
 import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerVer;
 import static com.yahoo.sketches.quantiles.Util.computeBitPattern;
 
-import java.util.Arrays;
-
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.MemoryUtil;
 import com.yahoo.sketches.Family;
@@ -157,13 +155,11 @@ final class DirectDoublesSketch extends UpdateDoublesSketch {
     final long newN = curN + 1;
 
     mem_.putDouble(COMBINED_BUFFER + curBBCount * Double.BYTES, dataItem); //put the item
-
     mem_.putByte(FLAGS_BYTE, (byte) 0); //not compact, not ordered, not empty
 
     if (newBBCount == 2 * k_) { //Propagate
-      final int curMemItemCap = getCombinedBufferItemCapacity();
-      final int curUsedItemCap = DoublesUpdateImpl.getRequiredItemCapacity(k_, curN);
       // make sure there will be enough levels for the propagation
+      final int curMemItemCap = getCombinedBufferItemCapacity();
       final int itemSpaceNeeded = DoublesUpdateImpl.getRequiredItemCapacity(k_, newN);
 
       //check mem has capacity to accommodate new level
@@ -172,6 +168,7 @@ final class DirectDoublesSketch extends UpdateDoublesSketch {
         mem_ = growCombinedMemBuffer(mem_, itemSpaceNeeded);
       }
       // TODO: is this needed?
+      //final int curUsedItemCap = DoublesUpdateImpl.getRequiredItemCapacity(k_, curN);
       //if (itemSpaceNeeded > curUsedItemCap) { //clear out the next level
       //  mem_.clear(COMBINED_BUFFER + (curUsedItemCap << 3), k_ << 3);
       //}
@@ -324,13 +321,6 @@ final class DirectDoublesSketch extends UpdateDoublesSketch {
       return newMem;
     }
     return mem;
-  }
-
-  static final void sortMemory(final Memory mem, final long offsetBytes, final int lengthItems) {
-    final double[] baseBuffer = new double[lengthItems];
-    mem.getDoubleArray(offsetBytes, baseBuffer, 0, lengthItems);
-    Arrays.sort(baseBuffer, 0, lengthItems);
-    mem.putDoubleArray(offsetBytes, baseBuffer, 0, lengthItems);
   }
 
   //Checks

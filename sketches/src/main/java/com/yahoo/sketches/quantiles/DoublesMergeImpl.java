@@ -65,13 +65,10 @@ final class DoublesMergeImpl {
     }
 
     final int spaceNeeded = DoublesUpdateImpl.getRequiredItemCapacity(tgtK, nFinal);
-
     final int tgtCombBufItemCap = tgt.getCombinedBufferItemCapacity();
-
     if (spaceNeeded > tgtCombBufItemCap) { //copies base buffer plus current levels
       tgt.growCombinedBuffer(tgtCombBufItemCap, spaceNeeded);
     }
-    // TODO: if direct, check if need allocate more memory
 
     final DoublesArrayAccessor scratch2KAcc = DoublesArrayAccessor.initialize(2 * tgtK);
 
@@ -147,11 +144,9 @@ final class DoublesMergeImpl {
 
     final int spaceNeeded = DoublesUpdateImpl.getRequiredItemCapacity(tgtK, nFinal);
     final int curCombBufCap = tgt.getCombinedBufferItemCapacity();
-
     if (spaceNeeded > curCombBufCap) { //copies base buffer plus current levels
       tgt.growCombinedBuffer(curCombBufCap, spaceNeeded);
     }
-    // TODO: if direct, check if need allocate more memory
 
     //working scratch buffers
     final DoublesArrayAccessor scratch2KAcc = DoublesArrayAccessor.initialize(2 * tgtK);

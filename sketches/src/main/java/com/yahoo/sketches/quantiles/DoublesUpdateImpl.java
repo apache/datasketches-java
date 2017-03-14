@@ -97,11 +97,7 @@ final class DoublesUpdateImpl {
       // its is okay for optSrcKBuf to be null in this case
       zipSize2KBuffer(size2KBuf, tgtSketchBuf);
     } else { // mergeInto version of computation
-      try {
-        tgtSketchBuf.putArray(optSrcKBuf.getArray(0, k), 0, 0, k);
-      } catch (final Exception e) {
-        throw new RuntimeException(e);
-      }
+      tgtSketchBuf.putArray(optSrcKBuf.getArray(0, k), 0, 0, k);
     }
 
     for (int lvl = startingLevel; lvl < endingLevel; lvl++) {

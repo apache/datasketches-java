@@ -11,7 +11,7 @@ import com.yahoo.sketches.Family;
  * @author Jon Malkin
  */
 final class DoublesSketchAccessor extends DoublesBufferAccessor {
-  private static final int BB_LVL_IDX = -1;
+  static final int BB_LVL_IDX = -1;
 
   private final DoublesSketch ds_;
   private final boolean forceSize_;
@@ -77,10 +77,6 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
     n_ = ds_.getN();
 
     return this;
-  }
-
-  int getTotalLevels() {
-    return Util.computeTotalLevels(ds_.getBitPattern());
   }
 
   int getLevel() {
@@ -179,5 +175,9 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
       }
     }
     return count;
+
+    // shorter implementation, testing suggests a tiny bit slower
+    //final long mask = (1 << tgtLvl) - 1;
+    //return Long.bitCount(ds_.getBitPattern() & mask);
   }
 }

@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.quantiles;
 
+import static com.yahoo.sketches.quantiles.DoublesSketchAccessor.BB_LVL_IDX;
 import static java.lang.System.arraycopy;
 
 import java.util.Arrays;
@@ -25,20 +26,23 @@ final class DoublesAuxiliary {
    * @param qs a DoublesSketch
    */
   DoublesAuxiliary(final DoublesSketch qs ) {
+    // TODO: use DoublesSketchAccessor
     final int k = qs.getK();
     final long n = qs.getN();
     final long bitPattern = qs.getBitPattern();
-    final double[] combinedBuffer = qs.getCombinedBuffer();
-    final int baseBufferCount = qs.getBaseBufferCount();
+    //final double[] combinedBuffer = qs.getCombinedBuffer();
+    //final int baseBufferCount = qs.getBaseBufferCount();
     final int numSamples = qs.getRetainedItems();
+    final DoublesSketchAccessor sketchAccessor = DoublesSketchAccessor.wrap(qs);
 
     final double[] itemsArr = new double[numSamples];
     final long[] cumWtsArr = new long[numSamples + 1]; // the extra slot is very important
 
     // Populate from DoublesSketch:
     //  copy over the "levels" and then the base buffer, all with appropriate weights
-    populateFromDoublesSketch(k, n, bitPattern, combinedBuffer, baseBufferCount,
-        numSamples, itemsArr, cumWtsArr);
+    //populateFromDoublesSketch(k, n, bitPattern, combinedBuffer, baseBufferCount,
+    //        numSamples, itemsArr, cumWtsArr);
+    populateFromDoublesSketch(k, n, bitPattern, sketchAccessor, itemsArr, cumWtsArr);
 
     // Sort the first "numSamples" slots of the two arrays in tandem,
     //  taking advantage of the already sorted blocks of length k
@@ -109,16 +113,14 @@ final class DoublesAuxiliary {
    * @param k K value of sketch
    * @param n The current size of the stream
    * @param bitPattern the bit pattern for valid log levels
-   * @param combinedBuffer the combined buffer reference
-   * @param baseBufferCount the count of the base buffer
-   * @param numSamples Total samples in the sketch
+   * @param sketchAccessor A DoublesSketchAccessor around the sketch
    * @param itemsArr the consolidated array of all items from the sketch populated here
    * @param cumWtsArr the cumulative weights for each item from the sketch populated here
    */
   private final static void populateFromDoublesSketch(
-      final int k, final long n, final long bitPattern, final double[] combinedBuffer,
-      final int baseBufferCount, final int numSamples, final double[] itemsArr,
-      final long[] cumWtsArr) {
+          final int k, final long n, final long bitPattern,
+          final DoublesSketchAccessor sketchAccessor,
+          final double[] itemsArr, final long[] cumWtsArr) {
     long weight = 1;
     int nxt = 0;
     long bits = bitPattern;
@@ -126,9 +128,9 @@ final class DoublesAuxiliary {
     for (int lvl = 0; bits != 0L; lvl++, bits >>>= 1) {
       weight *= 2;
       if ((bits & 1L) > 0L) {
-        final int offset = (2 + lvl) * k;
-        for (int i = 0; i < k; i++) {
-          itemsArr[nxt] = combinedBuffer[i + offset];
+        sketchAccessor.setLevel(lvl);
+        for (int i = 0; i < sketchAccessor.numItems(); i++) {
+          itemsArr[nxt] = sketchAccessor.get(i);
           cumWtsArr[nxt] = weight;
           nxt++;
         }
@@ -139,18 +141,21 @@ final class DoublesAuxiliary {
     final int startOfBaseBufferBlock = nxt;
 
     // Copy BaseBuffer over, along with weight = 1
-    for (int i = 0; i < baseBufferCount; i++) {
-      itemsArr[nxt] = combinedBuffer[i];
+    sketchAccessor.setLevel(BB_LVL_IDX);
+    for (int i = 0; i < sketchAccessor.numItems(); i++) {
+      itemsArr[nxt] = sketchAccessor.get(i);
       cumWtsArr[nxt] = weight;
       nxt++;
     }
-    assert nxt == numSamples;
+    assert nxt == itemsArr.length;
 
     // Must sort the items that came from the base buffer.
     // Don't need to sort the corresponding weights because they are all the same.
+    final int numSamples = nxt;
     Arrays.sort(itemsArr, startOfBaseBufferBlock, numSamples);
     cumWtsArr[numSamples] = 0;
   }
+
 
   /**
    * This is written in terms of a plain array to facilitate testing.
