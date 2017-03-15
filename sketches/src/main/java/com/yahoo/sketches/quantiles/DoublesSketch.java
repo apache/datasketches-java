@@ -163,7 +163,7 @@ public abstract class DoublesSketch {
    * @return a sketch that wraps the given srcMem
    */
   public static DoublesSketch wrap(final Memory srcMem) {
-    return DirectDoublesSketch.wrapInstance(srcMem);
+    return DirectUpdateDoublesSketch.wrapInstance(srcMem);
   }
 
   /**
@@ -613,7 +613,7 @@ public abstract class DoublesSketch {
                                          final Memory dstMem) {
     final UpdateDoublesSketch newSketch = (dstMem == null)
             ? HeapUpdateDoublesSketch.newInstance(smallerK)
-            : DirectDoublesSketch.newInstance(smallerK, dstMem);
+            : DirectUpdateDoublesSketch.newInstance(smallerK, dstMem);
     DoublesMergeImpl.downSamplingMergeInto(srcSketch, newSketch); //TODO #2
     return newSketch;
   }

@@ -45,12 +45,12 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Kevin Lang
  * @author Lee Rhodes
  */
-final class DirectDoublesSketch extends UpdateDoublesSketch {
+final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
   private static final int MIN_DIRECT_DOUBLES_SER_VER = 3;
   private Memory mem_;
 
   //**CONSTRUCTORS**********************************************************
-  private DirectDoublesSketch(final int k) {
+  private DirectUpdateDoublesSketch(final int k) {
     super(k); //Checks k
   }
 
@@ -62,9 +62,9 @@ final class DirectDoublesSketch extends UpdateDoublesSketch {
    * @param dstMem the destination Memory that will be initialized to hold the data for this sketch.
    * It must initially be at least (16 * k + 32) bytes. As it grows it will request more memory
    * using the MemoryRequest callback.
-   * @return a DirectDoublesSketch
+   * @return a DirectUpdateDoublesSketch
    */
-  static DirectDoublesSketch newInstance(final int k, final Memory dstMem) {
+  static DirectUpdateDoublesSketch newInstance(final int k, final Memory dstMem) {
     //checkDirectMemCapacity(k, 0, dstMem.getCapacity());
 
     // ensure we can hold at least the header
@@ -88,7 +88,7 @@ final class DirectDoublesSketch extends UpdateDoublesSketch {
     insertMinDouble(memObj, memAdd, Double.POSITIVE_INFINITY);
     insertMaxDouble(memObj, memAdd, Double.NEGATIVE_INFINITY);
 
-    final DirectDoublesSketch dds = new DirectDoublesSketch(k);
+    final DirectUpdateDoublesSketch dds = new DirectUpdateDoublesSketch(k);
     dds.mem_ = dstMem;
     return dds;
   }
@@ -99,7 +99,7 @@ final class DirectDoublesSketch extends UpdateDoublesSketch {
    * @param srcMem the given non-compact Memory image of a DoublesSketch that may have data,
    * @return a sketch that wraps the given srcMem
    */
-  static DirectDoublesSketch wrapInstance(final Memory srcMem) {
+  static DirectUpdateDoublesSketch wrapInstance(final Memory srcMem) {
     final long memCap = srcMem.getCapacity();
 
     final int preLongs;
@@ -141,7 +141,7 @@ final class DirectDoublesSketch extends UpdateDoublesSketch {
     checkCompact(serVer, flags);
     checkEmptyAndN(empty, n);
 
-    final DirectDoublesSketch dds = new DirectDoublesSketch(k);
+    final DirectUpdateDoublesSketch dds = new DirectUpdateDoublesSketch(k);
     dds.mem_ = srcMem;
     return dds;
   }

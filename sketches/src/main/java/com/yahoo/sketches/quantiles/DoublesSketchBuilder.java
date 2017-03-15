@@ -74,7 +74,7 @@ public class DoublesSketchBuilder {
    */
   public UpdateDoublesSketch build() {
     return (bMem == null) ? HeapUpdateDoublesSketch.newInstance(bK)
-        : DirectDoublesSketch.newInstance(bK, bMem);
+        : DirectUpdateDoublesSketch.newInstance(bK, bMem);
   }
 
   /**
@@ -90,7 +90,7 @@ public class DoublesSketchBuilder {
    */
   public UpdateDoublesSketch build(final int k) {
     return (bMem == null) ? HeapUpdateDoublesSketch.newInstance(k)
-        : DirectDoublesSketch.newInstance(k, bMem);
+        : DirectUpdateDoublesSketch.newInstance(k, bMem);
   }
 
   /**

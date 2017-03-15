@@ -49,7 +49,7 @@ final class DoublesUnionImpl extends DoublesUnion {
    * @return a DoublesUnion object
    */
   static DoublesUnionImpl directInstance(final int maxK, final Memory dstMem) {
-    final DirectDoublesSketch sketch = DirectDoublesSketch.newInstance(maxK, dstMem);
+    final DirectUpdateDoublesSketch sketch = DirectUpdateDoublesSketch.newInstance(maxK, dstMem);
     final DoublesUnionImpl union = new DoublesUnionImpl(maxK);
     union.maxK_ = maxK;
     union.gadget_ = sketch;
@@ -101,7 +101,7 @@ final class DoublesUnionImpl extends DoublesUnion {
    * @return a Union object
    */
   static DoublesUnionImpl wrapInstance(final Memory mem) {
-    final DirectDoublesSketch sketch = DirectDoublesSketch.wrapInstance(mem);
+    final DirectUpdateDoublesSketch sketch = DirectUpdateDoublesSketch.wrapInstance(mem);
     final int k = sketch.getK();
     final DoublesUnionImpl union = new DoublesUnionImpl(k);
     union.maxK_ = k;
@@ -256,7 +256,7 @@ final class DoublesUnionImpl extends DoublesUnion {
               if (myQS.isDirect()) {
                 final Memory mem = myQS.getMemory(); //myQS is empty, ok to reconfigure
                 other.putMemory(mem, true, false); //ordered, not compact
-                ret = DirectDoublesSketch.wrapInstance(mem);
+                ret = DirectUpdateDoublesSketch.wrapInstance(mem);
               } else { //myQS is empty and on heap
                 ret = DoublesUtil.copyToHeap(other);
               }

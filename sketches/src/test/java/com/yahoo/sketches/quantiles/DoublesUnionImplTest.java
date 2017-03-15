@@ -4,7 +4,7 @@
  */
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.quantiles.DirectDoublesSketchTest.buildAndLoadDQS;
+import static com.yahoo.sketches.quantiles.DirectUpdateDoublesSketchTest.buildAndLoadDQS;
 import static com.yahoo.sketches.quantiles.HeapDoublesSketchTest.buildAndLoadQS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -369,7 +369,7 @@ public class DoublesUnionImplTest {
   @Test
   public void checkUnionUpdateLogicDirect() {
     HeapUpdateDoublesSketch qs1 = null;
-    DirectDoublesSketch qs2 = (DirectDoublesSketch)buildAndLoadDQS(256, 0);
+    DirectUpdateDoublesSketch qs2 = (DirectUpdateDoublesSketch)buildAndLoadDQS(256, 0);
     DoublesSketch result = DoublesUnionImpl.updateLogic(256, qs1, qs2); //null, empty
     result = DoublesUnionImpl.updateLogic(256, qs2, qs1); //empty, null
     qs2.update(1); //no longer empty
