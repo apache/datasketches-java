@@ -103,6 +103,22 @@ final class UnionImpl extends SetOperation implements Union {
   }
 
   /**
+   * Fast-wrap a Union object around a Union Memory object containing data.
+   * This does NO validity checking of the given Memory.
+   * @param srcMem The source Memory object.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @return this class
+   */
+  static UnionImpl fastWrap(final Memory srcMem, final long seed) {
+    Family.UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
+    final UpdateSketch gadget = DirectQuickSelectSketch.fastWrap(srcMem, seed);
+    final UnionImpl unionImpl = new UnionImpl(gadget, seed);
+    unionImpl.unionThetaLong_ = srcMem.getLong(UNION_THETA_LONG);
+    return unionImpl;
+  }
+
+  /**
    * Wrap a Union object around a Union Memory object containing data.
    * Called by SetOperation.
    * @param srcMem The source Memory object.
@@ -117,6 +133,8 @@ final class UnionImpl extends SetOperation implements Union {
     unionImpl.unionThetaLong_ = srcMem.getLong(UNION_THETA_LONG);
     return unionImpl;
   }
+
+
 
   @Override
   public CompactSketch getResult(final boolean dstOrdered, final Memory dstMem) {

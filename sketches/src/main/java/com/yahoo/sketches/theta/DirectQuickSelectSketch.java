@@ -210,8 +210,8 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
       lgArrLongs = extractLgArrLongs(memObj, memAdd);                   //byte 4
       flags = extractFlags(memObj, memAdd);                             //byte 5
       seedHash = (short)extractSeedHash(memObj, memAdd);                //byte 6,7
-      p = extractP(memObj, memAdd);                                      //bytes 12-15
-      thetaLong = extractThetaLong(memObj, memAdd);                       //bytes 16-23
+      p = extractP(memObj, memAdd);                                     //bytes 12-15
+      thetaLong = extractThetaLong(memObj, memAdd);                     //bytes 16-23
     }
 
     if (serVer != SER_VER) {
@@ -264,6 +264,45 @@ final class DirectQuickSelectSketch extends DirectUpdateSketch {
       throw new SketchesArgumentException(
         "Possible corruption: Theta cannot be < p and lgArrLongs <= lgNomLongs. "
             + lgArrLongs + " <= " + lgNomLongs + ", Theta: " + theta + ", p: " + p);
+    }
+
+    final DirectQuickSelectSketch dqss =
+        new DirectQuickSelectSketch(lgNomLongs, seed, p, myRF, preambleLongs);
+    dqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
+    dqss.mem_ = srcMem;
+    return dqss;
+  }
+
+  /**
+   * Fast-wrap a sketch around the given source Memory containing sketch data that originated from
+   * this sketch.  This does NO validity checking of the given Memory.
+   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * The given Memory object must be in hash table form and not read only.
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
+   * @return instance of this sketch
+   */
+  static DirectQuickSelectSketch fastWrap(final Memory srcMem, final long seed) {
+    final int preambleLongs;
+    final ResizeFactor myRF;
+    final int lgNomLongs;
+    final int lgArrLongs;
+    final float p;
+
+    if (srcMem.isReadOnly() && !srcMem.isDirect()) { //Read-Only Heap
+      preambleLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+      myRF = ResizeFactor.getRF((srcMem.getByte(PREAMBLE_LONGS_BYTE) >> LG_RESIZE_FACTOR_BIT) & 0X3);
+      lgNomLongs = srcMem.getByte(LG_NOM_LONGS_BYTE) & 0XFF;
+      lgArrLongs = srcMem.getByte(LG_ARR_LONGS_BYTE) & 0XFF;
+      p = srcMem.getFloat(P_FLOAT);
+
+    } else {
+      final Object memObj = srcMem.array(); //may be null
+      final long memAdd = srcMem.getCumulativeOffset(0L);
+      preambleLongs = extractPreLongs(memObj, memAdd);                  //byte 0
+      myRF = ResizeFactor.getRF(extractLgResizeFactor(memObj, memAdd)); //byte 0
+      lgNomLongs = extractLgNomLongs(memObj, memAdd);                   //byte 3
+      lgArrLongs = extractLgArrLongs(memObj, memAdd);                   //byte 4
+      p = extractP(memObj, memAdd);                                     //bytes 12-15
     }
 
     final DirectQuickSelectSketch dqss =
