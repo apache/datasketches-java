@@ -186,6 +186,7 @@ class NativeMemoryR extends NativeMemory {
 
   @Override
   public Object array() {
+    if (isDirect()) { return null; }
     throw new ReadOnlyMemoryException();
   }
 
