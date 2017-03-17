@@ -44,6 +44,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  *
  * @author Kevin Lang
  * @author Lee Rhodes
+ * @author Jon Malkin
  */
 final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
   private static final int MIN_DIRECT_DOUBLES_SER_VER = 3;
@@ -96,17 +97,19 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
   /**
    * Wrap this sketch around the given non-compact Memory image of a DoublesSketch.
    *
-   * @param srcMem the given non-compact Memory image of a DoublesSketch that may have data,
+   * @param srcMem the given non-compact Memory image of a DoublesSketch that may have data
    * @return a sketch that wraps the given srcMem
    */
   static DirectUpdateDoublesSketch wrapInstance(final Memory srcMem) {
     final long memCap = srcMem.getCapacity();
+
 
     final int preLongs;
     final int serVer;
     final int familyID;
     final int flags;
     final int k;
+    final boolean empty;
     final long n;
 
     if (srcMem.isReadOnly() && !srcMem.isDirect()) {
@@ -115,21 +118,22 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
       familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
       flags = srcMem.getByte(FLAGS_BYTE) & 0XFF;
       k = srcMem.getShort(K_SHORT) & 0XFFFF;
-      n = srcMem.getLong(N_LONG);
+
+      empty = (flags & EMPTY_FLAG_MASK) > 0; //Preamble flags empty state
+      n = empty ? 0 : srcMem.getLong(N_LONG);
     } else {
       final Object memObj = srcMem.array(); //may be null
       final long memAdd = srcMem.getCumulativeOffset(0L);
 
-      //Extract the preamble, assumes at least 8 bytes
       preLongs = extractPreLongs(memObj, memAdd);
       serVer = extractSerVer(memObj, memAdd);
       familyID = extractFamilyID(memObj, memAdd);
       flags = extractFlags(memObj, memAdd);
       k = extractK(memObj, memAdd);
-      n = extractN(memObj, memAdd);
-    }
 
-    final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
+      empty = (flags & EMPTY_FLAG_MASK) > 0; //Preamble flags empty state
+      n = empty ? 0 : extractN(memObj, memAdd);
+    }
 
     //VALIDITY CHECKS
     checkPreLongs(preLongs);
@@ -179,11 +183,6 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
         // copies base buffer plus old levels, adds space for new level
         mem_ = growCombinedMemBuffer(mem_, itemSpaceNeeded);
       }
-      // TODO: is this needed?
-      //final int curUsedItemCap = DoublesUpdateImpl.getRequiredItemCapacity(k_, curN);
-      //if (itemSpaceNeeded > curUsedItemCap) { //clear out the next level
-      //  mem_.clear(COMBINED_BUFFER + (curUsedItemCap << 3), k_ << 3);
-      //}
 
       // sort base buffer via accessor which modifies the underlying base buffer,
       // then use as one of the inputs to propagate-carry

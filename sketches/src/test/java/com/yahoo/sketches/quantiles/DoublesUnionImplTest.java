@@ -5,7 +5,7 @@
 package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.DirectUpdateDoublesSketchTest.buildAndLoadDQS;
-import static com.yahoo.sketches.quantiles.HeapDoublesSketchTest.buildAndLoadQS;
+import static com.yahoo.sketches.quantiles.HeapUpdateDoublesSketchTest.buildAndLoadQS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;

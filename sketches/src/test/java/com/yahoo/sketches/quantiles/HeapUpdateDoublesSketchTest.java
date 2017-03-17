@@ -6,6 +6,7 @@
 package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.HeapUpdateDoublesSketch.checkPreLongsFlagsSerVer;
+import static com.yahoo.sketches.quantiles.PreambleUtil.COMBINED_BUFFER;
 import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.Util.LS;
@@ -28,7 +29,7 @@ import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
-public class HeapDoublesSketchTest {
+public class HeapUpdateDoublesSketchTest {
 
   @BeforeMethod
   public void setUp() {
@@ -302,7 +303,7 @@ public class HeapDoublesSketchTest {
     byte[] byteArr;
     UpdateDoublesSketch ds = DoublesSketch.builder().build(); //k = 128
     //empty
-    byteArr = ds.toByteArray(); //compact
+    byteArr = ds.toByteArray(true, true); //compact
     assertEquals(byteArr.length, 8);
 
     byteArr = ds.toByteArray(false, false); //not ordered, not compact
@@ -311,7 +312,7 @@ public class HeapDoublesSketchTest {
 
     //not empty
     ds.update(1);
-    byteArr = ds.toByteArray(); //compact
+    byteArr = ds.toByteArray(true, true); //compact
     assertEquals(byteArr.length, 40); //compact, 1 value
 
     byteArr = ds.toByteArray(true, false); //ordered, not compact
@@ -533,7 +534,8 @@ public class HeapDoublesSketchTest {
     Memory mem = new NativeMemory(byteArr);
     DoublesSketch qs2 = DoublesSketch.heapify(mem);
     assertTrue(qs2.isEmpty());
-    assertEquals(byteArr.length, 8);
+    final int expectedSizeBytes = COMBINED_BUFFER + ((2 * k) << 3);
+    assertEquals(byteArr.length, expectedSizeBytes);
     assertEquals(qs2.getQuantile(0.0), Double.POSITIVE_INFINITY);
     assertEquals(qs2.getQuantile(1.0), Double.NEGATIVE_INFINITY);
     assertEquals(qs2.getQuantile(0.5), Double.NaN);
@@ -938,7 +940,7 @@ public class HeapDoublesSketchTest {
   @Test
   public void checkPuts() {
     long n1 = 1001;
-    DoublesSketch qsk = buildAndLoadQS(32, (int)n1);
+    UpdateDoublesSketch qsk = buildAndLoadQS(32, (int)n1);
     long n2 = qsk.getN();
     assertEquals(n2, n1);
 

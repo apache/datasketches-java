@@ -48,7 +48,7 @@ public class DoublesSketchTest {
 
   @Test
   public void printlnTest() {
-    println("PRINTING: "+this.getClass().getName());
+    println("PRINTING: " + this.getClass().getName());
   }
 
   /**

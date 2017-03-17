@@ -5,7 +5,7 @@
 
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.quantiles.HeapDoublesSketchTest.buildAndLoadQS;
+import static com.yahoo.sketches.quantiles.HeapUpdateDoublesSketchTest.buildAndLoadQS;
 import static com.yahoo.sketches.quantiles.Util.LS;
 
 import org.testng.annotations.Test;

@@ -61,7 +61,7 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
       // 2. adjust if byte offset (direct) instead of array index (heap)
       final int levelStart;
       if (ds_.isCompact()) {
-        levelStart = ds_.getBaseBufferCount() + countValidLevelsBelow(lvl);
+        levelStart = ds_.getBaseBufferCount() + (countValidLevelsBelow(lvl) * ds_.getK());
       } else {
         levelStart = (2 + currLvl_) * ds_.getK();
       }
@@ -77,10 +77,6 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
     n_ = ds_.getN();
 
     return this;
-  }
-
-  int getLevel() {
-    return currLvl_;
   }
 
   @Override
@@ -100,6 +96,7 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
   double set(final int index, final double value) {
     assert index >= 0 && index < numItems_;
     assert n_ == ds_.getN();
+    assert !ds_.isCompact(); // can't write to a compact sketch
 
     final double oldVal;
     final int idxOffset;
@@ -123,7 +120,9 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
 
   @Override
   void sort() {
-    if (ds_.isDirect()) {
+    if (ds_.isCompact() || currLvl_ != BB_LVL_IDX) {
+      // nothing to do
+    } else if (ds_.isDirect()) {
       final double[] tmpBuffer = new double[numItems_];
       final Memory mem = ds_.getMemory();
       mem.getDoubleArray(offset_, tmpBuffer, 0, numItems_);
@@ -149,7 +148,8 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
 
   @Override
   void putArray(final double[] srcArray, final int srcIndex,
-                       final int dstIndex, final int numItems) {
+                final int dstIndex, final int numItems) {
+    assert !ds_.isCompact(); // can't write to compact sketch
     if (ds_.isDirect()) {
       final int offsetBytes = offset_ + (dstIndex << 3);
       ds_.getMemory().putDoubleArray(offsetBytes, srcArray, srcIndex, numItems);
@@ -170,7 +170,7 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
     int count = 0;
     long bitPattern = ds_.getBitPattern();
     for (int i = 0; i < tgtLvl && bitPattern > 0; ++i, bitPattern >>>= 1) {
-      if ((bitPattern & 1L) > 0) {
+      if ((bitPattern & 1L) > 0L) {
         ++count;
       }
     }

@@ -9,8 +9,12 @@ import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.Util.isPowerOf2;
 import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.READ_ONLY_FLAG_MASK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
+
+import com.yahoo.memory.Memory;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -98,6 +102,26 @@ final class Util {
       throw new SketchesArgumentException(
          "Possible corruption: Invalid flags field: " + Integer.toBinaryString(flags));
     }
+  }
+
+  /**
+   * Checks just the flags field of an input Memory object. Returns true for a compact
+   * sketch, false for an update sketch. Does not perform additional checks, including sketch
+   * family.
+   * @param srcMem the source Memory containign a sketch
+   * @return true if flags indicate a comapct sketch, otherwise false
+   */
+  static boolean checkIsCompactMemory(final Memory srcMem) {
+    final int flags;
+    if (srcMem.isReadOnly() && !srcMem.isDirect()) {
+      flags = srcMem.getByte(FLAGS_BYTE) & 0XFF;
+    } else {
+      final Object memObj = srcMem.array(); //may be null
+      final long memAdd = srcMem.getCumulativeOffset(0L);
+      flags = extractFlags(memObj, memAdd);
+    }
+    final int compactFlags = READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK;
+    return (flags & compactFlags) > 0;
   }
 
   /**

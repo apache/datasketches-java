@@ -6,6 +6,8 @@
 package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
+import static com.yahoo.sketches.quantiles.PreambleUtil.COMBINED_BUFFER;
+import static com.yahoo.sketches.quantiles.Util.checkIsCompactMemory;
 
 import java.util.Random;
 
@@ -114,6 +116,7 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
  *
  * @author Kevin Lang
  * @author Lee Rhodes
+ * @author Jon Malkin
  */
 public abstract class DoublesSketch {
   static final int DOUBLES_SER_VER = 3;
@@ -153,17 +156,25 @@ public abstract class DoublesSketch {
    * @return a heap-based Sketch based on the given Memory
    */
   public static DoublesSketch heapify(final Memory srcMem) {
-    return HeapUpdateDoublesSketch.heapifyInstance(srcMem);
+    if (checkIsCompactMemory(srcMem)) {
+      return HeapCompactDoublesSketch.heapifyInstance(srcMem);
+    } else {
+      return HeapUpdateDoublesSketch.heapifyInstance(srcMem);
+    }
   }
 
   /**
-   * Wrap this sketch around the given non-compact Memory image of a DoublesSketch.
+   * Wrap this sketch around the given compact Memory image of a DoublesSketch.
    *
-   * @param srcMem the given non-compact Memory image of a DoublesSketch that may have data,
+   * @param srcMem the given Memory image of a DoublesSketch that may have data,
    * @return a sketch that wraps the given srcMem
    */
   public static DoublesSketch wrap(final Memory srcMem) {
-    return DirectUpdateDoublesSketch.wrapInstance(srcMem);
+    if (checkIsCompactMemory(srcMem)) {
+      return DirectCompactDoublesSketch.wrapInstance(srcMem);
+    } else {
+      return DirectUpdateDoublesSketch.wrapInstance(srcMem);
+    }
   }
 
   /**
@@ -388,18 +399,19 @@ public abstract class DoublesSketch {
   }
 
   /**
-   * Resets this sketch to the empty state, but retains the original value of k.
-   */
-  public abstract void reset();
-
-  /**
-   * Serialize this sketch to a byte array, not-ordered, compact form.
-   * Note that the compact form cannot be used by the Direct DoublesSketches.
-   * This does not order the base buffer.
+   * Serialize this sketch to a byte array. An UpdateDoublesSketch will be serialized in
+   * an unordered, non-compact form; a CompactDoublesSketch will be serialized in ordered,
+   * compact form. A DirectUpdateDoublesSketch can only wrap a non-compact array, and a
+   * DirectCompactDoublesSketch can only wrap a compact array.
+   *
    * @return byte array of this sketch
    */
   public byte[] toByteArray() {
-    return toByteArray(false, true);
+    if (isCompact()) {
+      return toByteArray(true, true);
+    } else {
+      return toByteArray(false, false);
+    }
   }
 
   /**
@@ -487,7 +499,8 @@ public abstract class DoublesSketch {
    */
   public static int getCompactStorageBytes(final int k, final long n) {
     if (n == 0) { return 8; }
-    return 32 + (Util.computeRetainedItems(k, n) << 3);
+    final int metaPreLongs = DoublesSketch.MAX_PRELONGS + 2; //plus min, max
+    return ((metaPreLongs + Util.computeRetainedItems(k, n)) << 3);
   }
 
 
@@ -552,6 +565,7 @@ public abstract class DoublesSketch {
   public static int getUpdatableStorageBytes(final int k, final long n, final boolean isDirect) {
     final int metaPre = DoublesSketch.MAX_PRELONGS + 2; //plus min, max
     final int totLevels = Util.computeNumLevelsNeeded(k, n);
+    // TODO: this isn't used in practice
     if (!isDirect && (n < k)) {
       final int ceil = Math.max(ceilingPowerOf2((int)n), DoublesSketch.MIN_K * 2);
       return (metaPre + ceil) << 3;
@@ -682,57 +696,4 @@ public abstract class DoublesSketch {
    * @return the Memory if it exists, otherwise returns null.
    */
   abstract Memory getMemory();
-
-  //Puts
-
-  /**
-   * Puts the min value
-   * @param minValue the given min value
-   */
-  abstract void putMinValue(double minValue);
-
-  /**
-   * Puts the max value
-   * @param maxValue the given max value
-   */
-  abstract void putMaxValue(double maxValue);
-
-  /**
-   * Puts the value of <i>n</i>
-   * @param n the given value of <i>n</i>
-   */
-  abstract void putN(long n);
-
-  /**
-   * Puts the combined, non-compact buffer.
-   * @param combinedBuffer the combined buffer array
-   */
-  abstract void putCombinedBuffer(double[] combinedBuffer);
-
-  /**
-   * Puts the combinedBufferItemCapacity
-   * @param combBufItemCap the given capacity
-   */
-  abstract void putCombinedBufferItemCapacity(int combBufItemCap);
-
-  /**
-   * Puts the base buffer count
-   * @param baseBufCount the given base buffer count
-   */
-  abstract void putBaseBufferCount(int baseBufCount);
-
-  /**
-   * Puts the bit pattern
-   * @param bitPattern the given bit pattern
-   */
-  abstract void putBitPattern(long bitPattern);
-
-  /**
-   * Grows the combined buffer to the given spaceNeeded
-   * @param currentSpace the current allocated space
-   * @param spaceNeeded the space needed
-   * @return the enlarged combined buffer with data from the original combined buffer.
-   */
-  abstract double[] growCombinedBuffer(int currentSpace, int spaceNeeded);
-
 }
