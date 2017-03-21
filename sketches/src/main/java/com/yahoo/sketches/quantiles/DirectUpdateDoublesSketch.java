@@ -134,12 +134,12 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
 
     //VALIDITY CHECKS
     checkPreLongs(preLongs);
-    DoublesUtil.checkDoublesSerVer(serVer, MIN_DIRECT_DOUBLES_SER_VER);
     Util.checkFamilyID(familyID);
+    DoublesUtil.checkDoublesSerVer(serVer, MIN_DIRECT_DOUBLES_SER_VER);
     checkDirectFlags(flags); //Cannot be compact
     Util.checkK(k);
-    checkDirectMemCapacity(k, n, memCap);
     checkCompact(serVer, flags);
+    checkDirectMemCapacity(k, n, memCap);
     checkEmptyAndN(empty, n);
 
     final DirectUpdateDoublesSketch dds = new DirectUpdateDoublesSketch(k);
@@ -237,8 +237,8 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
 
   @Override
   public void reset() {
-    mem_.putByte(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); //not compact, not ordered
     if (mem_.getCapacity() >= COMBINED_BUFFER) {
+      mem_.putByte(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); //not compact, not ordered
       mem_.putLong(N_LONG, 0L);
       mem_.putDouble(MIN_DOUBLE, Double.POSITIVE_INFINITY);
       mem_.putDouble(MAX_DOUBLE, Double.NEGATIVE_INFINITY);
@@ -329,14 +329,8 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
 
   @Override
   double[] growCombinedBuffer(final int curCombBufItemCap, final int itemSpaceNeeded) {
-    final long memBytes = mem_.getCapacity();
-    final int needBytes = (itemSpaceNeeded << 3) + COMBINED_BUFFER; //+ preamble + min, max
-    if (needBytes > memBytes) {
-      final Memory newMem = MemoryUtil.memoryRequestHandler(mem_, needBytes, true);
-      //the free has already been handled
-      mem_ = newMem;
-    }
-    //mem is large enough and data may already be there
+    mem_ = growCombinedMemBuffer(mem_, itemSpaceNeeded);
+    // copy out any data that was there
     final double[] newCombBuf = new double[itemSpaceNeeded];
     mem_.getDoubleArray(COMBINED_BUFFER, newCombBuf, 0, curCombBufItemCap);
     return newCombBuf;
@@ -344,15 +338,14 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
 
   //Direct supporting methods
 
-  static Memory growCombinedMemBuffer(final Memory mem, final int itemSpaceNeeded) {
+  Memory growCombinedMemBuffer(final Memory mem, final int itemSpaceNeeded) {
     final long memBytes = mem.getCapacity();
     final int needBytes = (itemSpaceNeeded << 3) + COMBINED_BUFFER; //+ preamble + min & max
-    if (needBytes > memBytes) {
-      final Memory newMem = MemoryUtil.memoryRequestHandler(mem, needBytes, true);
-      //the free has already been handled
-      return newMem;
-    }
-    return mem;
+    assert needBytes > memBytes;
+
+    final Memory newMem = MemoryUtil.memoryRequestHandler(mem, needBytes, true);
+    //the free has already been handled
+    return newMem;
   }
 
   //Checks
@@ -364,12 +357,6 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
    * @param memCapBytes the current memory capacity in bytes
    */
   static void checkDirectMemCapacity(final int k, final long n, final long memCapBytes) {
-    /*
-    final int metaPre = DoublesSketch.MAX_PRELONGS + 2; //plus min, max
-    final int totLevels = Util.computeNumLevelsNeeded(k, n);
-
-    final int reqBufBytes = (metaPre + (2 + totLevels) * k) << 3;
-    */
     final int reqBufBytes = getUpdatableStorageBytes(k, n, true);
 
     if (memCapBytes < reqBufBytes) {

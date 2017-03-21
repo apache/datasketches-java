@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.quantiles;
 
+import static com.yahoo.sketches.quantiles.PreambleUtil.COMBINED_BUFFER;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -131,6 +132,50 @@ public class DirectQuantilesMemoryRequestTest {
     memMgr.free(mem1);
   }
 
+  @Test
+  public void checkGrowFromWrappedEmptySketch() {
+    final int k = 16;
+    final int n = 0;
+    final int initBytes = DoublesSketch.getUpdatableStorageBytes(k, n, false);
+    final UpdateDoublesSketch usk1 = DoublesSketch.builder().build(k);
+    final Memory origSketchMem = new NativeMemory(usk1.toByteArray());
+
+    final MemoryManager memMgr = new MemoryManager();
+
+    // putN() -- force-increment, check regular update
+    Memory mem = memMgr.request(origSketchMem, initBytes, initBytes);
+    UpdateDoublesSketch usk2 = DirectUpdateDoublesSketch.wrapInstance(mem);
+    assertEquals(usk2.getMemory().getCapacity(), initBytes);
+    assertTrue(usk2.isEmpty());
+    usk2.putN(5);
+    assertEquals(usk2.getN(), 5);
+    // will request a full base buffer
+    usk2.update(1.0);
+    assertEquals(usk2.getN(), 6);
+    final int expectedSize = COMBINED_BUFFER + ((2 * k) << 3);
+    assertEquals(usk2.getMemory().getCapacity(), expectedSize);
+    memMgr.free(memMgr.last);
+
+    // putMinValue()
+    mem = memMgr.request(origSketchMem, initBytes, initBytes);
+    usk2 = DirectUpdateDoublesSketch.wrapInstance(mem);
+    assertEquals(usk2.getMemory().getCapacity(), initBytes);
+    assertEquals(usk2.getMinValue(), Double.POSITIVE_INFINITY);
+    usk2.putMinValue(5.0);
+    assertEquals(usk2.getMinValue(), 5.0);
+    assertEquals(usk2.getMemory().getCapacity(), expectedSize);
+    memMgr.free(memMgr.last);
+
+    // putMaxValue()
+    mem = memMgr.request(origSketchMem, initBytes, initBytes);
+    usk2 = DirectUpdateDoublesSketch.wrapInstance(mem);
+    assertEquals(usk2.getMemory().getCapacity(), initBytes);
+    assertEquals(usk2.getMaxValue(), Double.NEGATIVE_INFINITY);
+    usk2.putMaxValue(5.0);
+    assertEquals(usk2.getMaxValue(), 5.0);
+    assertEquals(usk2.getMemory().getCapacity(), expectedSize);
+    memMgr.free(memMgr.last);
+  }
 
   @Test
   public void printlnTest() {

@@ -159,14 +159,14 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
     }
 
     //VALIDITY CHECKS
-    checkPreLongs(preLongs);
-    DoublesUtil.checkDoublesSerVer(serVer, MIN_DIRECT_DOUBLES_SER_VER);
+    DirectUpdateDoublesSketch.checkPreLongs(preLongs);
     Util.checkFamilyID(familyID);
-    checkDirectFlags(flags); //Cannot be compact
+    DoublesUtil.checkDoublesSerVer(serVer, MIN_DIRECT_DOUBLES_SER_VER);
+    //checkDirectCompactFlags(flags); // Must be compact
+    checkCompact(serVer, flags);
     Util.checkK(k);
     checkDirectMemCapacity(k, n, memCap);
-    checkCompact(serVer, flags);
-    checkEmptyAndN(empty, n);
+    DirectUpdateDoublesSketch.checkEmptyAndN(empty, n);
 
     final DirectCompactDoublesSketch dds = new DirectCompactDoublesSketch(k);
     dds.mem_ = srcMem;
@@ -250,48 +250,28 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
    * @param memCapBytes the current memory capacity in bytes
    */
   static void checkDirectMemCapacity(final int k, final long n, final long memCapBytes) {
-    final int metaPre = DoublesSketch.MAX_PRELONGS + 2; //plus min, max
-    final int totItems = computeRetainedItems(k, n);
+    final int reqBufBytes = getCompactStorageBytes(k, n);
 
-    final int reqBufBytes = (n == 0 ? Double.BYTES : (metaPre + totItems) << 3);
-
-    if (memCapBytes < getCompactStorageBytes(k, n)) {
+    if (memCapBytes < reqBufBytes) {
       throw new SketchesArgumentException("Possible corruption: Memory capacity too small: "
           + memCapBytes + " < " + reqBufBytes);
     }
   }
 
+  /**
+   * Checks a sketch's serial version and flags to see if the sketch can be wrapped as a
+   * DirectCompactDoubleSketch. Throws an exception if the sketch is neither empty nor compact
+   * and ordered, unles the sketch uses serialization version 2.
+   * @param flags Flags from the sketch to evaluate
+   */
   static void checkCompact(final int serVer, final int flags) {
-    final boolean compact
-            = (serVer == 2) | ((flags & (COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK)) > 0);
-    if (!compact) {
-      throw new SketchesArgumentException("CompactDoublesSketch must wrap a compact Memory");
-    }
-  }
-
-  static void checkPreLongs(final int preLongs) {
-    if ((preLongs < 1) || (preLongs > 2)) {
+    final int compactFlagMask = COMPACT_FLAG_MASK | ORDERED_FLAG_MASK;
+    if (serVer != 2
+            && (flags & EMPTY_FLAG_MASK) == 0
+            && (flags & compactFlagMask) != compactFlagMask) {
       throw new SketchesArgumentException(
-          "Possible corruption: PreLongs must be 1 or 2: " + preLongs);
-    }
-  }
-
-  static void checkDirectFlags(final int flags) {
-    // TODO: do we want to force any as required?
-    final int allowedFlags =
-        READ_ONLY_FLAG_MASK | EMPTY_FLAG_MASK | ORDERED_FLAG_MASK | COMPACT_FLAG_MASK;
-    final int flagsMask = ~allowedFlags;
-    if ((flags & flagsMask) > 0) {
-      throw new SketchesArgumentException(
-         "Possible corruption: Invalid flags field: "
-             + Integer.toBinaryString(flags));
-    }
-  }
-
-  static void checkEmptyAndN(final boolean empty, final long n) {
-    if (empty && (n > 0)) {
-      throw new SketchesArgumentException(
-          "Possible corruption: Empty Flag = true and N > 0: " + n);
+              "Possible corruption: Must be v2, empty, or compact and ordered. Flags field: "
+                      + Integer.toBinaryString(flags) + ", SerVer: " + serVer);
     }
   }
 }

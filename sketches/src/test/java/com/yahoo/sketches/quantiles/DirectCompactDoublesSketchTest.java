@@ -7,8 +7,11 @@ package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.Util.LS;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
+
+import java.nio.ByteBuffer;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
@@ -49,39 +52,60 @@ public class DirectCompactDoublesSketchTest {
     final DirectCompactDoublesSketch compactQs = DirectCompactDoublesSketch.wrapInstance(qsMem);
     DoublesSketchTest.testSketchEquality(qs, compactQs);
     assertEquals(qsBytes.length, compactQs.getStorageBytes());
+
+    final double[] combinedBuffer = compactQs.getCombinedBuffer();
+    assertEquals(combinedBuffer.length, compactQs.getCombinedBufferItemCapacity());
+  }
+
+  @Test
+  public void wrapEmptyCompactSketch() {
+    final CompactDoublesSketch s1 = DoublesSketch.builder().build().compact();
+    final Memory mem
+            = NativeMemory.wrap(ByteBuffer.wrap(s1.toByteArray()));
+    final DoublesSketch s2 = DoublesSketch.wrap(mem);
+    assertTrue(s2.isEmpty());
+    assertEquals(s2.getN(), 0);
+    assertEquals(s2.getMinValue(), Double.POSITIVE_INFINITY);
+    assertEquals(s2.getMaxValue(), Double.NEGATIVE_INFINITY);
   }
 
   @Test
   public void checkEmpty() {
     final int k = PreambleUtil.DEFAULT_K;
     final DirectCompactDoublesSketch qs1 = buildAndLoadDCQS(k, 0);
-    final byte[] byteArr = qs1.toByteArray();
-    final byte[] byteArr2 = qs1.toByteArray(true);
-    final Memory mem = new NativeMemory(byteArr);
-    final HeapCompactDoublesSketch qs2 = HeapCompactDoublesSketch.heapifyInstance(mem);
-    assertTrue(qs2.isEmpty());
-    assertEquals(byteArr.length, qs1.getStorageBytes());
-    assertEquals(byteArr, byteArr2);
-    assertEquals(qs2.getQuantile(0.0), Double.POSITIVE_INFINITY);
-    assertEquals(qs2.getQuantile(1.0), Double.NEGATIVE_INFINITY);
-    assertEquals(qs2.getQuantile(0.5), Double.NaN);
-    final double[] quantiles = qs2.getQuantiles(new double[] {0.0, 0.5, 1.0});
+    assertEquals(qs1.getQuantile(0.0), Double.POSITIVE_INFINITY);
+    assertEquals(qs1.getQuantile(1.0), Double.NEGATIVE_INFINITY);
+    assertEquals(qs1.getQuantile(0.5), Double.NaN);
+    final double[] quantiles = qs1.getQuantiles(new double[] {0.0, 0.5, 1.0});
     assertEquals(quantiles.length, 3);
     assertEquals(quantiles[0], Double.POSITIVE_INFINITY);
     assertEquals(quantiles[1], Double.NaN);
     assertEquals(quantiles[2], Double.NEGATIVE_INFINITY);
-    //println(qs1.toString(true, true));
+
+    final double[] combinedBuffer = qs1.getCombinedBuffer();
+    assertEquals(combinedBuffer.length, 2 * k);
+    assertNotEquals(combinedBuffer.length, qs1.getCombinedBufferItemCapacity());
+  }
+
+  @Test
+  public void checkCheckDirectMemCapacity() {
+    final int k = 128;
+    DirectCompactDoublesSketch.checkDirectMemCapacity(k, 2 * k - 1, (4 + 2 * k) * 8);
+    DirectCompactDoublesSketch.checkDirectMemCapacity(k, 2 * k + 1, (4 + 3 * k) * 8);
+    DirectCompactDoublesSketch.checkDirectMemCapacity(k, 0, 8);
+
+    try {
+      DirectCompactDoublesSketch.checkDirectMemCapacity(k, 10000, 64);
+      fail();
+    } catch (final SketchesArgumentException e) {
+      // expected
+    }
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkMemTooSmall() {
     final Memory mem = new NativeMemory(new byte[7]);
     HeapCompactDoublesSketch.heapifyInstance(mem);
-  }
-
-  @Test
-  public void checkMerge() {
-    // most approaches don't use getCombinedBuffer
   }
 
   static DirectCompactDoublesSketch buildAndLoadDCQS(final int k, final int n) {

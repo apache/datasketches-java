@@ -46,7 +46,10 @@ public class ReadOnlyMemoryTest {
     s1.update(1);
     s1.update(2);
     Memory mem = NativeMemory.wrap(ByteBuffer.wrap(s1.compact().toByteArray()).asReadOnlyBuffer());
-    DoublesSketch.wrap(mem); // compact, so this is ok
+    DoublesSketch s2 = DoublesSketch.wrap(mem); // compact, so this is ok
+    Assert.assertEquals(s2.getMinValue(), 1.0);
+    Assert.assertEquals(s2.getMaxValue(), 2.0);
+    Assert.assertEquals(s2.getN(), 2);
   }
 
   @Test
@@ -107,6 +110,15 @@ public class ReadOnlyMemoryTest {
     final Memory mem
             = NativeMemory.wrap(ByteBuffer.wrap(s1.toByteArray()).asReadOnlyBuffer());
     DoublesSketch s2 = DoublesSketch.wrap(mem);
+    Assert.assertTrue(s2.isEmpty());
+  }
+
+  @Test
+  public void wrapEmptyCompactSketch() {
+    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final Memory mem
+            = NativeMemory.wrap(ByteBuffer.wrap(s1.compact().toByteArray()).asReadOnlyBuffer());
+    DoublesSketch s2 = DoublesSketch.wrap(mem); // compact, so this is ok
     Assert.assertTrue(s2.isEmpty());
   }
 

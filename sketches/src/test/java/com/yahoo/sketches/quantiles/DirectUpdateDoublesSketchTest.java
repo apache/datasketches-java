@@ -161,10 +161,24 @@ public class DirectUpdateDoublesSketchTest {
     final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     final Memory mem
             = NativeMemory.wrap(ByteBuffer.wrap(s1.toByteArray()));
-    DoublesSketch s2 = DoublesSketch.wrap(mem);
+    final UpdateDoublesSketch s2 = DirectUpdateDoublesSketch.wrapInstance(mem);
     assertTrue(s2.isEmpty());
-  }
 
+    assertEquals(s2.getN(), 0);
+    assertEquals(s2.getMinValue(), Double.POSITIVE_INFINITY);
+    assertEquals(s2.getMaxValue(), Double.NEGATIVE_INFINITY);
+
+    s2.reset(); // empty: so should be a no-op
+    assertEquals(s2.getN(), 0);
+
+    try {
+      // no memory handler so this should fail
+      s2.update(1.0);
+      fail();
+    } catch (final IllegalArgumentException e) {
+      // expected
+    }
+  }
 
   @Test
   public void checkMisc() {
@@ -194,12 +208,6 @@ public class DirectUpdateDoublesSketchTest {
   @Test
   public void variousExceptions() {
     Memory mem = new NativeMemory(new byte[8]);
-    /*
-    try {
-      DirectUpdateDoublesSketch.newInstance(2, mem);
-      fail();
-    } catch (SketchesArgumentException e) {} //OK
-    */
     try {
       int flags = PreambleUtil.COMPACT_FLAG_MASK;
       DirectUpdateDoublesSketch.checkCompact(2, 0);
@@ -230,8 +238,17 @@ public class DirectUpdateDoublesSketchTest {
 
   @Test
   public void checkCheckDirectMemCapacity() {
-    int k = 128;
+    final int k = 128;
     DirectUpdateDoublesSketch.checkDirectMemCapacity(k, 2 * k - 1, (4 + 2 * k) * 8);
+    DirectUpdateDoublesSketch.checkDirectMemCapacity(k, 2 * k + 1, (4 + 3 * k) * 8);
+    DirectUpdateDoublesSketch.checkDirectMemCapacity(k, 0, 8);
+
+    try {
+      DirectUpdateDoublesSketch.checkDirectMemCapacity(k, 10000, 64);
+      fail();
+    } catch (final SketchesArgumentException e) {
+      // expected
+    }
   }
 
   @Test

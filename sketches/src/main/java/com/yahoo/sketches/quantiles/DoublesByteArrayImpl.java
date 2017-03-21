@@ -43,7 +43,6 @@ final class DoublesByteArrayImpl {
         | (ordered ? ORDERED_FLAG_MASK : 0)
         | (compact ? (COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK) : 0);
 
-    //if (empty && !(sketch.isDirect() && !compact)) {
     if (empty && !sketch.isDirect()) {
       final byte[] outByteArr = new byte[Long.BYTES];
       final Memory memOut = new NativeMemory(outByteArr);
