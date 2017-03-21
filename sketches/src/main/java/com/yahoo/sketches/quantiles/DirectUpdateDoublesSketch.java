@@ -98,7 +98,7 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
    * @param srcMem the given non-compact Memory image of a DoublesSketch that may have data
    * @return a sketch that wraps the given srcMem
    */
-  static DirectUpdateDoublesSketch wrapInstance(Memory srcMem) {
+  static DirectUpdateDoublesSketch wrapInstance(final Memory srcMem) {
     final long memCap = srcMem.getCapacity();
 
     final int preLongs;
@@ -263,7 +263,7 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
     final int k = getK();
     if (isEmpty()) { return new double[k << 1]; } //2K
     final long n = getN();
-    final int itemCap = Util.computeCombinedBufferItemCapacity(k, n, false);
+    final int itemCap = Util.computeCombinedBufferItemCapacity(k, n);
     final double[] combinedBuffer = new double[itemCap];
     mem_.getDoubleArray(COMBINED_BUFFER, combinedBuffer, 0, itemCap);
     return combinedBuffer;
@@ -357,7 +357,7 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
    * @param memCapBytes the current memory capacity in bytes
    */
   static void checkDirectMemCapacity(final int k, final long n, final long memCapBytes) {
-    final int reqBufBytes = getUpdatableStorageBytes(k, n, true);
+    final int reqBufBytes = getUpdatableStorageBytes(k, n);
 
     if (memCapBytes < reqBufBytes) {
       throw new SketchesArgumentException("Possible corruption: Memory capacity too small: "

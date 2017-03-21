@@ -136,7 +136,7 @@ public class DirectQuantilesMemoryRequestTest {
   public void checkGrowFromWrappedEmptySketch() {
     final int k = 16;
     final int n = 0;
-    final int initBytes = DoublesSketch.getUpdatableStorageBytes(k, n, false);
+    final int initBytes = DoublesSketch.getUpdatableStorageBytes(k, n);
     final UpdateDoublesSketch usk1 = DoublesSketch.builder().build(k);
     final Memory origSketchMem = new NativeMemory(usk1.toByteArray());
 

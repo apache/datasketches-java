@@ -1,11 +1,6 @@
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.READ_ONLY_FLAG_MASK;
-
 import com.yahoo.memory.Memory;
-
-import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * @author Jon Malkin

@@ -167,8 +167,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
 
     //set class members by computing them
     hds.n_ = n;
-    final boolean partialBaseBuffer = true; //only relevant when there are no levels.
-    final int combBufCap = computeCombinedBufferItemCapacity(k, n, partialBaseBuffer);
+    final int combBufCap = computeCombinedBufferItemCapacity(k, n);
     hds.baseBufferCount_ = computeBaseBufferItems(k, n);
     hds.bitPattern_ = computeBitPattern(k, n);
     //Extract min, max, data from srcMem into Combined Buffer

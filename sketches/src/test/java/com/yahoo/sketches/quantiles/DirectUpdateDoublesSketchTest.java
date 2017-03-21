@@ -253,7 +253,7 @@ public class DirectUpdateDoublesSketchTest {
 
   @Test
   public void serializeDeserialize() {
-    int sizeBytes = DoublesSketch.getUpdatableStorageBytes(128, 2000, true);
+    int sizeBytes = DoublesSketch.getUpdatableStorageBytes(128, 2000);
     Memory mem = new NativeMemory(new byte[sizeBytes]);
     UpdateDoublesSketch sketch1 = DoublesSketch.builder().initMemory(mem).build();
     for (int i = 0; i < 1000; i++) {
@@ -294,7 +294,7 @@ public class DirectUpdateDoublesSketchTest {
     final int k = 16;
     final int n = k * 2;
 
-    final int memBytes = DoublesSketch.getUpdatableStorageBytes(k, n, true);
+    final int memBytes = DoublesSketch.getUpdatableStorageBytes(k, n);
     final Memory mem = new NativeMemory(new byte[memBytes]);
     final DoublesSketchBuilder bldr = DoublesSketch.builder();
     bldr.initMemory(mem);
@@ -325,7 +325,7 @@ public class DirectUpdateDoublesSketchTest {
   }
 
   static UpdateDoublesSketch buildDQS(int k, long n) {
-    int cap = DoublesSketch.getUpdatableStorageBytes(k, n, true);
+    int cap = DoublesSketch.getUpdatableStorageBytes(k, n);
     if (cap < 2 * k) { cap = 2 * k; }
     DoublesSketchBuilder bldr = new DoublesSketchBuilder();
     bldr.setK(k);

@@ -5,8 +5,6 @@
 
 package com.yahoo.sketches.quantiles;
 
-import com.yahoo.memory.Memory;
-
 /**
  * The doubles update algorithms for quantiles.
  *

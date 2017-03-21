@@ -183,17 +183,13 @@ final class Util {
    * size of the updatable data structure, which is a function of <i>k</i> and <i>n</i>.
    *
    * @param n The number of items in the input stream
-   * @param partialBaseBuffer true if partial base buffer is allowed.
    * @return the current item capacity of the combined buffer
    */
-  static int computeCombinedBufferItemCapacity(final int k, final long n,
-      final boolean partialBaseBuffer) {
+  static int computeCombinedBufferItemCapacity(final int k, final long n) {
     final int totLevels = computeNumLevelsNeeded(k, n);
     if (totLevels == 0) {
-      //if (partialBaseBuffer) {
-        final int bbItems = computeBaseBufferItems(k, n);
-        return Math.max(2 * DoublesSketch.MIN_K, ceilingPowerOf2(bbItems));
-      //}
+      final int bbItems = computeBaseBufferItems(k, n);
+      return Math.max(2 * DoublesSketch.MIN_K, ceilingPowerOf2(bbItems));
     }
     return (2 + totLevels) * k;
   }

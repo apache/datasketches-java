@@ -5,8 +5,6 @@
 
 package com.yahoo.sketches.quantiles;
 
-import java.util.Arrays;
-
 /**
  * The PMF and CDF algorithms for quantiles.
  *

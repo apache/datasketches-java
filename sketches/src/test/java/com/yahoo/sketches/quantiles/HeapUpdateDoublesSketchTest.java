@@ -566,7 +566,7 @@ public class HeapUpdateDoublesSketchTest {
     int k = PreambleUtil.DEFAULT_K;
     long n = 1000;
     int serVer = 3;
-    int combBufItemCap = computeCombinedBufferItemCapacity(k, n, true);
+    int combBufItemCap = computeCombinedBufferItemCapacity(k, n);
     int memCapBytes = (combBufItemCap + 4) << 3;
     int badCapBytes = memCapBytes - 1; //corrupt
     HeapUpdateDoublesSketch.checkHeapMemCapacity(k, n, false, serVer, badCapBytes);
@@ -577,7 +577,7 @@ public class HeapUpdateDoublesSketchTest {
     int k = PreambleUtil.DEFAULT_K;
     long n = 1000;
     int serVer = 3;
-    int combBufItemCap = computeCombinedBufferItemCapacity(k, n, true); //non-compact cap
+    int combBufItemCap = computeCombinedBufferItemCapacity(k, n); //non-compact cap
     int memCapBytes = (combBufItemCap + 4) << 3;
     int memCapBytesV1 = (combBufItemCap + 5) << 3;
     HeapUpdateDoublesSketch.checkHeapMemCapacity(k, n, false, 1, memCapBytesV1);
@@ -697,7 +697,7 @@ public class HeapUpdateDoublesSketchTest {
     UpdateDoublesSketch sketch1 = DoublesSketch.builder().build(k1);
     UpdateDoublesSketch sketch2 = DoublesSketch.builder().build(k2);
     DoublesSketch downSketch;
-    int bytes = DoublesSketch.getUpdatableStorageBytes(k2, n, false);
+    int bytes = DoublesSketch.getUpdatableStorageBytes(k2, n);
     Memory mem = new NativeMemory(new byte[bytes]);
     for (int i = 0; i < n; i++) {
       sketch1.update (i);
@@ -1048,9 +1048,9 @@ public class HeapUpdateDoublesSketchTest {
         (mq1.getK() == mq2.getK())
         && (mq1.getN() == mq2.getN())
         && (mq1.getCombinedBufferItemCapacity()
-            >= Util.computeCombinedBufferItemCapacity(mq1.getK(), mq1.getN(), !mq1.isDirect()))
+            >= Util.computeCombinedBufferItemCapacity(mq1.getK(), mq1.getN()))
         && (mq2.getCombinedBufferItemCapacity()
-            >= Util.computeCombinedBufferItemCapacity(mq2.getK(), mq2.getN(), !mq2.isDirect()))
+            >= Util.computeCombinedBufferItemCapacity(mq2.getK(), mq2.getN()))
         && (mq1.getBaseBufferCount() == mq2.getBaseBufferCount())
         && (mq1.getBitPattern() == mq2.getBitPattern())
         && (mq1.getMinValue() == mq2.getMinValue())

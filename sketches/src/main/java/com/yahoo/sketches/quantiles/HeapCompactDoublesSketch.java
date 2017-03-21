@@ -29,8 +29,6 @@ import static com.yahoo.sketches.quantiles.Util.computeRetainedItems;
 import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
-
-import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
