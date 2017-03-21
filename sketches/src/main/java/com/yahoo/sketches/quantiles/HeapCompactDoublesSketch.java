@@ -188,7 +188,7 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
     //VALIDITY CHECKS
     DoublesUtil.checkDoublesSerVer(serVer, MIN_HEAP_DOUBLES_SER_VER);
     Util.checkHeapFlags(flags);
-    checkPreLongsFlagsSerVer(flags, serVer, preLongs);
+    HeapUpdateDoublesSketch.checkPreLongsFlagsSerVer(flags, serVer, preLongs);
     Util.checkFamilyID(familyID);
 
     final HeapCompactDoublesSketch hds = new HeapCompactDoublesSketch(k); //checks k
@@ -206,7 +206,7 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
     //Forward compatibility from SerVer = 1 :
     final boolean srcIsCompact = (serVer == 2) | ((flags & (COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK)) > 0);
 
-    checkHeapMemCapacity(k, n, srcIsCompact, serVer, memCapBytes);
+    HeapUpdateDoublesSketch.checkHeapMemCapacity(k, n, srcIsCompact, serVer, memCapBytes);
 
     //set class members by computing them
     hds.n_ = n;
@@ -307,61 +307,4 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
   Memory getMemory() {
     return null;
   }
-
-  static void checkPreLongsFlagsSerVer(final int flags, final int serVer, final int preLongs) {
-    final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
-    final boolean compact = (flags & (COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK)) > 0;
-
-    final int sw = (compact ? 1 : 0) + (2 * (empty ? 1 : 0)) + (4 * (serVer & 0xF))
-        + (32 * (preLongs & 0x3F));
-    boolean valid = true;
-    switch (sw) { //Fall throughs are OK!
-      case 38  : //!compact,  empty, serVer = 1, preLongs = 1; always stored as not compact
-      case 164 : //!compact, !empty, serVer = 1, preLongs = 5; always stored as not compact
-      case 42  : //!compact,  empty, serVer = 2, preLongs = 1; always stored as compact
-      case 72  : //!compact, !empty, serVer = 2, preLongs = 2; always stored as compact
-      case 47  : // compact,  empty, serVer = 3, preLongs = 1;
-      case 79  : // compact,  empty, serVer = 3, preLongs = 2;
-      case 78  : //!compact,  empty, serVer = 3, preLongs = 2;
-      case 77  : // compact, !empty, serVer = 3, preLongs = 2;
-      case 76  : //!compact, !empty, serVer = 3, preLongs = 2;
-        break;
-      default :
-        valid = false;
-    }
-
-    if (!valid) {
-      throw new SketchesArgumentException("Possible corruption. Inconsistent state: "
-          + "PreambleLongs = " + preLongs + ", empty = " + empty + ", SerVer = " + serVer
-          + ", Compact = " + compact);
-    }
-  }
-
-  /**
-   * Checks the validity of the heap memory capacity assuming n, k and the compact state.
-   * @param k the given value of k
-   * @param n the given value of n
-   * @param compact true if memory is in compact form
-   * @param serVer serialization version of the source
-   * @param memCapBytes the current memory capacity in bytes
-   */
-  static void checkHeapMemCapacity(final int k, final long n, final boolean compact,
-                                   final int serVer, final long memCapBytes) {
-    final int metaPre = Family.QUANTILES.getMaxPreLongs() + ((serVer == 1) ? 3 : 2);
-    final int retainedItems = computeRetainedItems(k, n);
-    final int reqBufBytes;
-    if (compact) {
-      reqBufBytes = (metaPre + retainedItems) << 3;
-    } else { //not compact
-      final int totLevels = Util.computeNumLevelsNeeded(k, n);
-      reqBufBytes = (totLevels == 0)
-          ? (metaPre + retainedItems) << 3
-          : (metaPre + (2 + totLevels) * k) << 3;
-    }
-    if (memCapBytes < reqBufBytes) {
-      throw new SketchesArgumentException("Possible corruption: Memory capacity too small: "
-          + memCapBytes + " < " + reqBufBytes);
-    }
-  }
-
 }

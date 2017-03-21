@@ -7,6 +7,7 @@ package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.Util.LS;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.BeforeMethod;
@@ -34,6 +35,8 @@ public class HeapCompactDoublesSketchTest {
 
     final HeapCompactDoublesSketch compactQs = HeapCompactDoublesSketch.heapifyInstance(qsMem);
     DoublesSketchTest.testSketchEquality(qs, compactQs);
+
+    assertNull(compactQs.getMemory());
   }
 
   @Test
