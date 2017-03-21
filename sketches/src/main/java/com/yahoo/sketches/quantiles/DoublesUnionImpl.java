@@ -228,13 +228,6 @@ final class DoublesUnionImpl extends DoublesUnion {
           for (int i = 0; i < otherAccessor.numItems(); ++i) {
             ret.update(otherAccessor.get(i));
           }
-          /*
-          final int otherCnt = other.getBaseBufferCount();
-          final double[] combBuf = other.getCombinedBuffer();
-          for (int i = 0; i < otherCnt; i++) {
-            ret.update(combBuf[i]);
-          }
-          */
         }
         else { //myQS = null, other is est mode
           ret = (myMaxK < other.getK())
@@ -250,13 +243,6 @@ final class DoublesUnionImpl extends DoublesUnion {
           for (int i = 0; i < otherAccessor.numItems(); ++i) {
             ret.update(otherAccessor.get(i));
           }
-          /*
-          final int otherCnt = other.getBaseBufferCount();
-          final double[] combBuf = other.getCombinedBuffer();
-          for (int i = 0; i < otherCnt; i++) {
-            ret.update(combBuf[i]);
-          }
-          */
         }
         else { //myQS = empty/valid, other = valid and in est mode
           if (myQS.getK() <= other.getK()) { //I am smaller or equal, thus the target

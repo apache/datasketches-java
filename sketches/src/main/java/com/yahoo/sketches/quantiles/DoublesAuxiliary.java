@@ -26,12 +26,9 @@ final class DoublesAuxiliary {
    * @param qs a DoublesSketch
    */
   DoublesAuxiliary(final DoublesSketch qs ) {
-    // TODO: use DoublesSketchAccessor
     final int k = qs.getK();
     final long n = qs.getN();
     final long bitPattern = qs.getBitPattern();
-    //final double[] combinedBuffer = qs.getCombinedBuffer();
-    //final int baseBufferCount = qs.getBaseBufferCount();
     final int numSamples = qs.getRetainedItems();
     final DoublesSketchAccessor sketchAccessor = DoublesSketchAccessor.wrap(qs);
 
@@ -40,8 +37,6 @@ final class DoublesAuxiliary {
 
     // Populate from DoublesSketch:
     //  copy over the "levels" and then the base buffer, all with appropriate weights
-    //populateFromDoublesSketch(k, n, bitPattern, combinedBuffer, baseBufferCount,
-    //        numSamples, itemsArr, cumWtsArr);
     populateFromDoublesSketch(k, n, bitPattern, sketchAccessor, itemsArr, cumWtsArr);
 
     // Sort the first "numSamples" slots of the two arrays in tandem,
