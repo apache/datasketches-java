@@ -61,11 +61,6 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   }
 
   @Override
-  int getLgResizeFactor() {
-    return rf_.lg();
-  }
-
-  @Override
   long getSeed() {
     return seed_;
   }
@@ -90,8 +85,8 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     final long memAdd = memOut.getCumulativeOffset(0L);
 
     //preamble first 8 bytes. Note: only compact can be reduced to 8 bytes.
-    final int rf = this.getLgResizeFactor() & 3;
-    final byte byte0 = (byte) ((rf << 6) | preLongs);
+    final int lgRf = this.getResizeFactor().lg() & 3;
+    final byte byte0 = (byte) ((lgRf << 6) | preLongs);
     insertPreLongs(memObj, memAdd, byte0);
     insertSerVer(memObj, memAdd, SER_VER);
     insertFamilyID(memObj, memAdd, familyID);

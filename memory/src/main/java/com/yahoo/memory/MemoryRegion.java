@@ -447,6 +447,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public Object array() {
+    if (isDirect()) { return null; }
     checkReadOnly();
     return mem_.array();
   }

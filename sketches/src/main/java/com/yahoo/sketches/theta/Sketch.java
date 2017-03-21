@@ -186,7 +186,7 @@ public abstract class Sketch {
       seed = uis.getSeed();
       arrLongs = 1 << uis.getLgArrLongs();
       p = uis.getP();
-      rf = 1 << uis.getLgResizeFactor();
+      rf = uis.getResizeFactor().getValue();
     }
 
     if (dataDetail) {
