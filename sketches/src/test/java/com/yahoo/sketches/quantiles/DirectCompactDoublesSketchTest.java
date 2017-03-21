@@ -8,53 +8,54 @@ package com.yahoo.sketches.quantiles;
 import static com.yahoo.sketches.quantiles.Util.LS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
-
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import static org.testng.Assert.fail;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
 import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.theta.Sketch;
 
-public class HeapCompactDoublesSketchTest {
-
+public class DirectCompactDoublesSketchTest {
   @BeforeMethod
   public void setUp() {
     DoublesSketch.rand.setSeed(32749); // make sketches deterministic for testing
   }
 
-  @Test
-  public void heapifyFromUpdateSketch() {
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void wrapFromUpdateSketch() {
     final int k = 4;
-    final int n = 45;
-    final UpdateDoublesSketch qs = buildAndLoadQS(k, n); // assuming ordered inserts
+    final int n = 27;
+    final UpdateDoublesSketch qs = HeapUpdateDoublesSketchTest.buildAndLoadQS(k, n);
 
     final byte[] qsBytes = qs.toByteArray();
     final Memory qsMem = new NativeMemory(qsBytes);
 
-    final HeapCompactDoublesSketch compactQs = HeapCompactDoublesSketch.heapifyInstance(qsMem);
-    DoublesSketchTest.testSketchEquality(qs, compactQs);
+    DirectCompactDoublesSketch.wrapInstance(qsMem);
+    fail();
   }
 
   @Test
-  public void heapifyFromCompactSketch() {
+  public void wrapFromCompactSketch() {
     final int k = 8;
     final int n = 177;
-    final UpdateDoublesSketch qs = buildAndLoadQS(k, n); // assuming ordered inserts
+    final DirectCompactDoublesSketch qs = buildAndLoadDCQS(k, n); // assuming ordered inserts
 
-    final byte[] qsBytes = qs.compact().toByteArray();
+    final byte[] qsBytes = qs.toByteArray();
     final Memory qsMem = new NativeMemory(qsBytes);
 
-    final HeapCompactDoublesSketch compactQs = HeapCompactDoublesSketch.heapifyInstance(qsMem);
+    final DirectCompactDoublesSketch compactQs = DirectCompactDoublesSketch.wrapInstance(qsMem);
     DoublesSketchTest.testSketchEquality(qs, compactQs);
+    assertEquals(qsBytes.length, compactQs.getStorageBytes());
   }
-
 
   @Test
   public void checkEmpty() {
     final int k = PreambleUtil.DEFAULT_K;
-    final UpdateDoublesSketch qs1 = buildAndLoadQS(k, 0);
-    final byte[] byteArr = qs1.compact().toByteArray();
+    final DirectCompactDoublesSketch qs1 = buildAndLoadDCQS(k, 0);
+    final byte[] byteArr = qs1.toByteArray();
     final byte[] byteArr2 = qs1.toByteArray(true);
     final Memory mem = new NativeMemory(byteArr);
     final HeapCompactDoublesSketch qs2 = HeapCompactDoublesSketch.heapifyInstance(mem);
@@ -73,22 +74,28 @@ public class HeapCompactDoublesSketchTest {
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkMemTooSmall1() {
+  public void checkMemTooSmall() {
     final Memory mem = new NativeMemory(new byte[7]);
     HeapCompactDoublesSketch.heapifyInstance(mem);
   }
 
-
-  static UpdateDoublesSketch buildAndLoadQS(final int k, final int n) {
-    return buildAndLoadQS(k, n, 0);
+  @Test
+  public void checkMerge() {
+    // most approaches don't use getCombinedBuffer
   }
 
-  static UpdateDoublesSketch buildAndLoadQS(final int k, final int n, final int startV) {
+  static DirectCompactDoublesSketch buildAndLoadDCQS(final int k, final int n) {
+    return buildAndLoadDCQS(k, n, 0);
+  }
+
+  static DirectCompactDoublesSketch buildAndLoadDCQS(final int k, final int n, final int startV) {
     final UpdateDoublesSketch qs = DoublesSketch.builder().build(k);
     for (int i = 1; i <= n; i++) {
       qs.update(startV + i);
     }
-    return qs;
+    final byte[] byteArr = new byte[qs.getCompactStorageBytes()];
+    final NativeMemory mem = new NativeMemory(byteArr);
+    return (DirectCompactDoublesSketch) qs.compact(mem);
   }
 
   @Test
@@ -97,18 +104,11 @@ public class HeapCompactDoublesSketchTest {
     print("PRINTING: " + this.getClass().getName() + LS);
   }
 
-  /**
-   * @param s value to print
-   */
   static void println(final String s) {
     print(s + LS);
   }
 
-  /**
-   * @param s value to print
-   */
   static void print(final String s) {
     //System.err.print(s); //disable here
   }
-
 }

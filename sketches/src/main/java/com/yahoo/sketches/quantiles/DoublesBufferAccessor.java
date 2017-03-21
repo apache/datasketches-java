@@ -14,6 +14,4 @@ abstract class DoublesBufferAccessor {
 
   abstract void putArray(double[] srcArray, int srcIndex,
                          int dstIndex, int numItems);
-
-  abstract void sort();
 }

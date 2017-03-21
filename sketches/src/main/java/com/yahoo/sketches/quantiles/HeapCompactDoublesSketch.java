@@ -24,7 +24,6 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.quantiles.Util.computeBaseBufferItems;
 import static com.yahoo.sketches.quantiles.Util.computeBitPattern;
-import static com.yahoo.sketches.quantiles.Util.computeCombinedBufferItemCapacity;
 import static com.yahoo.sketches.quantiles.Util.computeRetainedItems;
 
 import java.util.Arrays;
@@ -94,8 +93,6 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
    * @param sketch the sketch to convert
    */
   static HeapCompactDoublesSketch createFromUpdateSketch(final UpdateDoublesSketch sketch) {
-    if (sketch == null) { return null; }
-
     final int k = sketch.getK();
     final long n = sketch.getN();
 

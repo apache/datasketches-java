@@ -43,11 +43,6 @@ final class DoublesArrayAccessor extends DoublesBufferAccessor {
   }
 
   @Override
-  void sort() {
-    Arrays.sort(buffer_);
-  }
-
-  @Override
   double[] getArray(final int fromIdx, final int numItems) {
     return Arrays.copyOfRange(buffer_, fromIdx, fromIdx + numItems);
   }

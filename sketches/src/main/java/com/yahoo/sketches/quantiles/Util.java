@@ -142,7 +142,6 @@ final class Util {
           "A fraction cannot be less than zero or greater than 1.0");
     }
     Util.validateValues(fractions);
-    return;
   }
 
   /**
@@ -191,10 +190,10 @@ final class Util {
       final boolean partialBaseBuffer) {
     final int totLevels = computeNumLevelsNeeded(k, n);
     if (totLevels == 0) {
-      if (partialBaseBuffer) {
+      //if (partialBaseBuffer) {
         final int bbItems = computeBaseBufferItems(k, n);
         return Math.max(2 * DoublesSketch.MIN_K, ceilingPowerOf2(bbItems));
-      }
+      //}
     }
     return (2 + totLevels) * k;
   }

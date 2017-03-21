@@ -5,8 +5,6 @@
 
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.Util.ceilingPowerOf2;
-import static com.yahoo.sketches.quantiles.DoublesSketch.MIN_K;
 import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
@@ -37,7 +35,7 @@ final class DoublesByteArrayImpl {
   private DoublesByteArrayImpl() {}
 
   static byte[] toByteArray(final DoublesSketch sketch, final boolean ordered,
-      final boolean compact) {
+                            final boolean compact) {
     final boolean empty = sketch.isEmpty();
 
     //create the flags byte
@@ -45,7 +43,8 @@ final class DoublesByteArrayImpl {
         | (ordered ? ORDERED_FLAG_MASK : 0)
         | (compact ? (COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK) : 0);
 
-    if (empty && compact) {
+    //if (empty && !(sketch.isDirect() && !compact)) {
+    if (empty && !sketch.isDirect()) {
       final byte[] outByteArr = new byte[Long.BYTES];
       final Memory memOut = new NativeMemory(outByteArr);
       final Object memObj = memOut.array();
@@ -72,28 +71,12 @@ final class DoublesByteArrayImpl {
     final int prePlusExtraBytes = (preLongs + extra) << 3;
     final int k = sketch.getK();
     final long n = sketch.getN();
-    //final double[] combinedBuffer = sketch.getCombinedBuffer(); //non-compact
 
     // If not-compact, have accessor always report full levels. Then use level size to determine
     // whether to copy data out.
     final DoublesSketchAccessor dsa = DoublesSketchAccessor.wrap(sketch, !compact);
 
-    final int outBytes;
-    if (compact) { // must also not be empty
-      final int retainedItems = sketch.getRetainedItems();
-      outBytes = (retainedItems << 3) + prePlusExtraBytes;
-    } else { // not compact, may be empty
-      final int totLevels = Util.computeNumLevelsNeeded(k, n);
-      outBytes = (((2 + totLevels) * k) << 3) + prePlusExtraBytes; // always use full base buffer
-      /*
-      if (totLevels == 0) {
-        final int bbBytes = Math.max(ceilingPowerOf2((int) n), MIN_K * 2) << 3;
-        outBytes = bbBytes + prePlusExtraBytes;  //partial base buffer
-      } else {
-        outBytes = (((2 + totLevels) * k) << 3) + prePlusExtraBytes; //full base buffer
-      }
-      */
-    }
+    final int outBytes = (compact ? sketch.getCompactStorageBytes() : sketch.getUpdatableStorageBytes());
 
     final byte[] outByteArr = new byte[outBytes];
     final Memory memOut = new NativeMemory(outByteArr);
@@ -102,6 +85,8 @@ final class DoublesByteArrayImpl {
 
     //insert preamble-0, N, min, max
     insertPre0(memObj, memAdd, preLongs, flags, k);
+    if (sketch.isEmpty()) { return outByteArr; }
+
     insertN(memObj, memAdd, n);
     insertMinDouble(memObj, memAdd, sketch.getMinValue());
     insertMaxDouble(memObj, memAdd, sketch.getMaxValue());
@@ -131,75 +116,6 @@ final class DoublesByteArrayImpl {
     }
 
     return outByteArr;
-
-    /*
-    byte[] outByteArr = null;
-    if (compact) { //must also be not empty
-      final int retainedItems = sketch.getRetainedItems();
-      final int outBytes = (retainedItems << 3) + prePlusExtraBytes;
-      outByteArr = new byte[outBytes];
-
-      final Memory memOut = new NativeMemory(outByteArr);
-      final Object memObj = memOut.array();
-      final long memAdd = memOut.getCumulativeOffset(0L);
-
-      //insert preamble-0, N, min, max
-      insertPre0(memObj, memAdd, preLongs, flags, k);
-      insertN(memObj, memAdd, n);
-      insertMinDouble(memObj, memAdd, sketch.getMinValue());
-      insertMaxDouble(memObj, memAdd, sketch.getMaxValue());
-
-      //insert base buffer
-      if (bbCnt > 0) {
-        memOut.putDoubleArray(prePlusExtraBytes, bbItemsArr, 0, bbCnt);
-      }
-      //insert levels into compact dstMem (and array)
-      long bitPattern = sketch.getBitPattern();
-      if (bitPattern != 0) {
-        long memOffset = prePlusExtraBytes + (bbCnt << 3); // bytes
-        for (int lvl = 0; bitPattern > 0; ++lvl, bitPattern >>>= 1) {
-          if ((bitPattern & 1L) > 0L) {
-            dsa.setLevel(lvl);
-            assert dsa.numItems() == k;
-            memOut.putDoubleArray(memOffset, dsa.getArray(0, k), 0, k);
-            memOffset += (k << 3); // bytes, increment compactly
-          }
-        }
-      }
-    } else { //not compact, may or may not be empty
-      final int totLevels = Util.computeNumLevelsNeeded(k, n);
-      final int outBytes;
-      if (totLevels == 0) {
-        final int bbBytes = Math.max(k, MIN_K) << 4;
-        outBytes = bbBytes + prePlusExtraBytes;  //partial base buffer
-      } else {
-        outBytes = (((2 + totLevels) * k) << 3)  + prePlusExtraBytes; //full base buffer
-      }
-      outByteArr = new byte[outBytes];
-
-      final Memory memOut = new NativeMemory(outByteArr);
-      final Object memObj = memOut.array();
-      final long memAdd = memOut.getCumulativeOffset(0L);
-
-      //insert preamble, min, max
-      insertPre0(memObj, memAdd, preLongs, flags, k);
-      insertN(memObj, memAdd, n);
-      insertMinDouble(memObj, memAdd, sketch.getMinValue());
-      insertMaxDouble(memObj, memAdd, sketch.getMaxValue());
-
-      //insert base buffer
-      if (bbCnt > 0) {
-        memOut.putDoubleArray(prePlusExtraBytes, bbItemsArr, 0, bbCnt);
-      }
-      //insert levels
-      if (totLevels > 0) {
-        final long memOffset = prePlusExtraBytes + ((2L * k) << 3);
-        final int combBufOffset = 2 * k;
-        memOut.putDoubleArray(memOffset, combinedBuffer, combBufOffset, totLevels * k);
-      }
-    }
-    return outByteArr;
-    */
   }
 
   private static void insertPre0(final Object memObj, final long memAdd,

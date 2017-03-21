@@ -1,5 +1,7 @@
 package com.yahoo.sketches.quantiles;
 
+import static org.testng.Assert.assertEquals;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -13,11 +15,11 @@ public class DoublesSketchTest {
     for (int i = 0; i < 1000; i++) {
       heapSketch.update(i);
     }
-    DoublesSketch directSketch = DoublesSketch.wrap(new NativeMemory(heapSketch.toByteArray(true, false)));
+    DoublesSketch directSketch = DoublesSketch.wrap(new NativeMemory(heapSketch.toByteArray(false)));
 
-    Assert.assertEquals(directSketch.getMinValue(), 0.0);
-    Assert.assertEquals(directSketch.getMaxValue(), 999.0);
-    Assert.assertEquals(directSketch.getQuantile(0.5), 500.0, 4.0);
+    assertEquals(directSketch.getMinValue(), 0.0);
+    assertEquals(directSketch.getMaxValue(), 999.0);
+    assertEquals(directSketch.getQuantile(0.5), 500.0, 4.0);
   }
 
   @Test
@@ -32,9 +34,9 @@ public class DoublesSketchTest {
     for (int i = 0; i < 1000; i++) {
       heapSketch.update(i + 1000);
     }
-    Assert.assertEquals(heapSketch.getMinValue(), 0.0);
-    Assert.assertEquals(heapSketch.getMaxValue(), 1999.0);
-    Assert.assertEquals(heapSketch.getQuantile(0.5), 1000.0, 10.0);
+    assertEquals(heapSketch.getMinValue(), 0.0);
+    assertEquals(heapSketch.getMaxValue(), 1999.0);
+    assertEquals(heapSketch.getQuantile(0.5), 1000.0, 10.0);
   }
 
   @Test
@@ -42,13 +44,49 @@ public class DoublesSketchTest {
     UpdateDoublesSketch ds = DoublesSketch.builder().build(); //k = 128
     ds.update(1);
     ds.update(2);
-    byte[] arr = ds.toByteArray(false, false);
-    Assert.assertEquals(arr.length, 2080);
+    byte[] arr = ds.toByteArray(false);
+    assertEquals(arr.length, ds.getUpdatableStorageBytes());
   }
 
   @Test
   public void printlnTest() {
     println("PRINTING: " + this.getClass().getName());
+  }
+
+  /**
+   * Checks 2 DoublesSketches for equality, triggering an assert if unequal. Handles all
+   * input sketches and compares only values on valid levels, allowing it to be used to compare
+   * Update and Compact sketches.
+   * @param sketch1 input sketch 1
+   * @param sketch2 input sketch 2
+   */
+  static void testSketchEquality(final DoublesSketch sketch1,
+                                 final DoublesSketch sketch2) {
+    assertEquals(sketch1.getK(), sketch2.getK());
+    assertEquals(sketch1.getN(), sketch2.getN());
+    assertEquals(sketch1.getBitPattern(), sketch2.getBitPattern());
+    assertEquals(sketch1.getMinValue(), sketch2.getMinValue());
+    assertEquals(sketch1.getMaxValue(), sketch2.getMaxValue());
+
+    final DoublesSketchAccessor accessor1 = DoublesSketchAccessor.wrap(sketch1);
+    final DoublesSketchAccessor accessor2 = DoublesSketchAccessor.wrap(sketch2);
+
+    // Compare base buffers. Already confirmed n and k match.
+    for (int i = 0; i < accessor1.numItems(); ++i) {
+      assertEquals(accessor1.get(i), accessor2.get(i));
+    }
+
+    // Iterate over levels comparing items
+    long bitPattern = sketch1.getBitPattern();
+    for (int lvl = 0; bitPattern != 0; ++lvl, bitPattern >>>= 1) {
+      if ((bitPattern & 1) > 0) {
+        accessor1.setLevel(lvl);
+        accessor2.setLevel(lvl);
+        for (int i = 0; i < accessor1.numItems(); ++i) {
+          assertEquals(accessor1.get(i), accessor2.get(i));
+        }
+      }
+    }
   }
 
   /**

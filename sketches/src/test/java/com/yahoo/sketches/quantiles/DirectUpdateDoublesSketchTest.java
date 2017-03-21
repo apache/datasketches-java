@@ -5,11 +5,14 @@
 
 package com.yahoo.sketches.quantiles;
 
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.quantiles.Util.LS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
+
+import java.nio.ByteBuffer;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -154,6 +157,16 @@ public class DirectUpdateDoublesSketchTest {
   }
 
   @Test
+  public void wrapEmptyUpdateSketch() {
+    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final Memory mem
+            = NativeMemory.wrap(ByteBuffer.wrap(s1.toByteArray()));
+    DoublesSketch s2 = DoublesSketch.wrap(mem);
+    assertTrue(s2.isEmpty());
+  }
+
+
+  @Test
   public void checkMisc() {
     int k = PreambleUtil.DEFAULT_K;
     int n = 48;
@@ -169,7 +182,7 @@ public class DirectUpdateDoublesSketchTest {
     int n2 = (int)qs.getN();
     assertEquals(n2, n);
     combBuf = qs.getCombinedBuffer();
-    assertEquals(combBuf.length, 2 * k);
+    assertEquals(combBuf.length, ceilingPowerOf2(n)); // since n < k
     //println(qs.toString(true, true));
     qs.reset();
     assertEquals(qs.getN(), 0);
@@ -181,10 +194,12 @@ public class DirectUpdateDoublesSketchTest {
   @Test
   public void variousExceptions() {
     Memory mem = new NativeMemory(new byte[8]);
+    /*
     try {
       DirectUpdateDoublesSketch.newInstance(2, mem);
       fail();
     } catch (SketchesArgumentException e) {} //OK
+    */
     try {
       int flags = PreambleUtil.COMPACT_FLAG_MASK;
       DirectUpdateDoublesSketch.checkCompact(2, 0);
@@ -236,7 +251,8 @@ public class DirectUpdateDoublesSketchTest {
     assertEquals(sketch2.getMaxValue(), 1999.0);
     assertEquals(sketch2.getQuantile(0.5), 1000.0, 10.0);
 
-    byte[] arr2 = sketch2.toByteArray(true, false);
+    byte[] arr2 = sketch2.toByteArray(false);
+    assertEquals(arr2.length, sketch2.getStorageBytes());
     DoublesSketch sketch3 = DoublesSketch.wrap(new NativeMemory(arr2));
     assertEquals(sketch3.getMinValue(), 0.0);
     assertEquals(sketch3.getMaxValue(), 1999.0);
@@ -293,6 +309,7 @@ public class DirectUpdateDoublesSketchTest {
 
   static UpdateDoublesSketch buildDQS(int k, long n) {
     int cap = DoublesSketch.getUpdatableStorageBytes(k, n, true);
+    if (cap < 2 * k) { cap = 2 * k; }
     DoublesSketchBuilder bldr = new DoublesSketchBuilder();
     bldr.setK(k);
     bldr.initMemory(new NativeMemory(new byte[cap]));
@@ -302,7 +319,7 @@ public class DirectUpdateDoublesSketchTest {
 
   @Test
   public void printlnTest() {
-    println("PRINTING: "+this.getClass().getName());
+    println("PRINTING: " + this.getClass().getName());
   }
 
   /**

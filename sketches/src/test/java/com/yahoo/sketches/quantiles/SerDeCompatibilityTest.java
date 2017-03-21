@@ -42,7 +42,7 @@ public class SerDeCompatibilityTest {
     for (int i = 1; i <= 500; i++) sketch1.update(i);
 
     CompactDoublesSketch cs = sketch1.compact();
-    HeapCompactDoublesSketchTest.testSketchEquality(sketch1, cs);
+    DoublesSketchTest.testSketchEquality(sketch1, cs);
     //final byte[] bytes = sketch1.compact().toByteArray(); // must be compact
     final byte[] bytes = cs.toByteArray(); // must be compact
     

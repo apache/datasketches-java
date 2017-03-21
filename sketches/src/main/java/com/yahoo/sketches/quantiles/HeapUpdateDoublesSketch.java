@@ -412,6 +412,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
       case 42  : //!compact,  empty, serVer = 2, preLongs = 1; always stored as compact
       case 72  : //!compact, !empty, serVer = 2, preLongs = 2; always stored as compact
       case 47  : // compact,  empty, serVer = 3, preLongs = 1;
+      case 46  : //!compact,  empty, serVer = 3, preLongs = 1;
       case 79  : // compact,  empty, serVer = 3, preLongs = 2;
       case 78  : //!compact,  empty, serVer = 3, preLongs = 2;
       case 77  : // compact, !empty, serVer = 3, preLongs = 2;

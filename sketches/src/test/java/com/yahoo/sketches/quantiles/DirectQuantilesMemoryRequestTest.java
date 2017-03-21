@@ -108,6 +108,7 @@ public class DirectQuantilesMemoryRequestTest {
     final int currentSpace = usk1.getCombinedBufferItemCapacity();
     println("curCombBufItemCap: " + currentSpace);
     assertEquals(currentSpace, 2 * k);
+    memMgr.free(mem1);
   }
 
   @Test
@@ -127,6 +128,7 @@ public class DirectQuantilesMemoryRequestTest {
     final int newSpace = usk1.getCombinedBufferItemCapacity();
     println("newCombBurItemCap: " + newSpace);
     assertEquals(newCB.length, 3 * k);
+    memMgr.free(mem1);
   }
 
 

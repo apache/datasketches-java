@@ -224,11 +224,17 @@ final class DoublesUnionImpl extends DoublesUnion {
       case 2: { //myQS = null,  other = valid; stream or downsample to myMaxK
         if (!other.isEstimationMode()) { //other is exact, stream items in
           ret = HeapUpdateDoublesSketch.newInstance(myMaxK);
+          final DoublesSketchAccessor otherAccessor = DoublesSketchAccessor.wrap(other);
+          for (int i = 0; i < otherAccessor.numItems(); ++i) {
+            ret.update(otherAccessor.get(i));
+          }
+          /*
           final int otherCnt = other.getBaseBufferCount();
           final double[] combBuf = other.getCombinedBuffer();
           for (int i = 0; i < otherCnt; i++) {
             ret.update(combBuf[i]);
           }
+          */
         }
         else { //myQS = null, other is est mode
           ret = (myMaxK < other.getK())
@@ -240,11 +246,17 @@ final class DoublesUnionImpl extends DoublesUnion {
       case 3: { //myQS = empty/valid, other = valid; merge
         if (!other.isEstimationMode()) { //other is exact, stream items in
           ret = myQS;
+          final DoublesSketchAccessor otherAccessor = DoublesSketchAccessor.wrap(other);
+          for (int i = 0; i < otherAccessor.numItems(); ++i) {
+            ret.update(otherAccessor.get(i));
+          }
+          /*
           final int otherCnt = other.getBaseBufferCount();
           final double[] combBuf = other.getCombinedBuffer();
           for (int i = 0; i < otherCnt; i++) {
             ret.update(combBuf[i]);
           }
+          */
         }
         else { //myQS = empty/valid, other = valid and in est mode
           if (myQS.getK() <= other.getK()) { //I am smaller or equal, thus the target
@@ -255,7 +267,7 @@ final class DoublesUnionImpl extends DoublesUnion {
             if (myQS.isEmpty()) {
               if (myQS.isDirect()) {
                 final Memory mem = myQS.getMemory(); //myQS is empty, ok to reconfigure
-                other.putMemory(mem, true, false); //ordered, not compact
+                other.putMemory(mem, false); // not compact, but BB ordered
                 ret = DirectUpdateDoublesSketch.wrapInstance(mem);
               } else { //myQS is empty and on heap
                 ret = DoublesUtil.copyToHeap(other);

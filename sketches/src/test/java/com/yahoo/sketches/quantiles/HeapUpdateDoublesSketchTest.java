@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.quantiles;
 
+import static com.yahoo.sketches.quantiles.DoublesSketch.MIN_K;
 import static com.yahoo.sketches.quantiles.HeapUpdateDoublesSketch.checkPreLongsFlagsSerVer;
 import static com.yahoo.sketches.quantiles.PreambleUtil.COMBINED_BUFFER;
 import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
@@ -303,20 +304,20 @@ public class HeapUpdateDoublesSketchTest {
     byte[] byteArr;
     UpdateDoublesSketch ds = DoublesSketch.builder().build(); //k = 128
     //empty
-    byteArr = ds.toByteArray(true, true); //compact
+    byteArr = ds.toByteArray(true); // compact
     assertEquals(byteArr.length, 8);
 
-    byteArr = ds.toByteArray(false, false); //not ordered, not compact
-    assertEquals(byteArr.length, 2080); //32 + 128 * 2 * 8 = 2080
+    byteArr = ds.toByteArray(false); // not compact
+    assertEquals(byteArr.length, 8);
     assertEquals(byteArr[3], EMPTY_FLAG_MASK);
 
     //not empty
     ds.update(1);
-    byteArr = ds.toByteArray(true, true); //compact
+    byteArr = ds.toByteArray(true); // compact
     assertEquals(byteArr.length, 40); //compact, 1 value
 
-    byteArr = ds.toByteArray(true, false); //ordered, not compact
-    assertEquals(byteArr.length, 2080); //32 + 128 * 2 * 8 = 2080
+    byteArr = ds.toByteArray(false); // not compact
+    assertEquals(byteArr.length, 64); // 32 + MIN_K(=2) * 2 * 8 = 64
   }
 
   @Test
@@ -422,7 +423,7 @@ public class HeapUpdateDoublesSketchTest {
 //        qs.update(v++);
 //      }
       byte[] byteArr = qs.toByteArray(false);
-      assertEquals(qs.getCompactStorageBytes(), byteArr.length);
+      assertEquals(byteArr.length, qs.getUpdatableStorageBytes());
     }
   }
 
@@ -493,32 +494,26 @@ public class HeapUpdateDoublesSketchTest {
     Memory mem;
     DoublesSketch qs2;
 
-    //ordered, compact
-    byteArr = qs.toByteArray(true, true);
+    // from compact
+    byteArr = qs.toByteArray(true);
     mem = new NativeMemory(byteArr);
-    qs2 = DoublesSketch.heapify(mem);
+    qs2 = UpdateDoublesSketch.heapify(mem);
     for (double f = 0.1; f < 0.95; f += 0.1) {
       assertEquals(qs.getQuantile(f), qs2.getQuantile(f), 0.0);
     }
 
-    //ordered, non-compact
-    byteArr = qs.toByteArray(true, false);
+    // ordered, non-compact
+    byteArr = qs.toByteArray(false);
     mem = new NativeMemory(byteArr);
     qs2 = DoublesSketch.heapify(mem);
+    final DoublesSketchAccessor dsa = DoublesSketchAccessor.wrap(qs2);
+    dsa.sort();
     for (double f = 0.1; f < 0.95; f += 0.1) {
       assertEquals(qs.getQuantile(f), qs2.getQuantile(f), 0.0);
     }
 
-    //not ordered, compact
-    byteArr = qs.toByteArray(false, true);
-    mem = new NativeMemory(byteArr);
-    qs2 = DoublesSketch.heapify(mem);
-    for (double f = 0.1; f < 0.95; f += 0.1) {
-      assertEquals(qs.getQuantile(f), qs2.getQuantile(f), 0.0);
-    }
-
-    //Not ordered, not compact
-    byteArr = qs.toByteArray(false, false);
+    // not ordered, not compact
+    byteArr = qs.toByteArray(false);
     mem = new NativeMemory(byteArr);
     qs2 = DoublesSketch.heapify(mem);
     for (double f = 0.1; f < 0.95; f += 0.1) {
@@ -534,7 +529,7 @@ public class HeapUpdateDoublesSketchTest {
     Memory mem = new NativeMemory(byteArr);
     DoublesSketch qs2 = DoublesSketch.heapify(mem);
     assertTrue(qs2.isEmpty());
-    final int expectedSizeBytes = COMBINED_BUFFER + ((2 * k) << 3);
+    final int expectedSizeBytes = 8; //COMBINED_BUFFER + ((2 * MIN_K) << 3);
     assertEquals(byteArr.length, expectedSizeBytes);
     assertEquals(qs2.getQuantile(0.0), Double.POSITIVE_INFINITY);
     assertEquals(qs2.getQuantile(1.0), Double.NEGATIVE_INFINITY);
@@ -551,7 +546,8 @@ public class HeapUpdateDoublesSketchTest {
   public void checkMemTooSmall1() {
     Memory mem = new NativeMemory(new byte[7]);
     HeapUpdateDoublesSketch qs2 = HeapUpdateDoublesSketch.heapifyInstance(mem);
-    qs2.getQuantile(0.5);
+    fail();
+    //qs2.getQuantile(0.5);
   }
 
   //Corruption tests
@@ -823,10 +819,10 @@ public class HeapUpdateDoublesSketchTest {
     UpdateDoublesSketch qs1 = DoublesSketch.builder().build(k);
     double err = qs1.getNormalizedRankError();
     assertTrue(err < 1.0);
-    byte[] arr = qs1.toByteArray(true, true); //8
+    byte[] arr = qs1.toByteArray(true); //8
     assertEquals(arr.length, DoublesSketch.getCompactStorageBytes(k, 0));
     qs1.update(1.0);
-    arr = qs1.toByteArray(true, true); //40
+    arr = qs1.toByteArray(true); //40
     assertEquals(arr.length, DoublesSketch.getCompactStorageBytes(k, 1));
   }
 
@@ -837,20 +833,20 @@ public class HeapUpdateDoublesSketchTest {
     UpdateDoublesSketch qs1 = DoublesSketch.builder().build(k);
     double err = qs1.getNormalizedRankError();
     assertTrue(err < 1.0);
-    byte[] arr = qs1.toByteArray(true, true); //8
-    assertEquals(arr.length, DoublesSketch.getStorageBytes(k, 0));
-    assertEquals(arr.length, qs1.getStorageBytes());
+    byte[] arr = qs1.toByteArray(true); //8
+    assertEquals(arr.length, DoublesSketch.getCompactStorageBytes(k, 0));
+    assertEquals(arr.length, qs1.getCompactStorageBytes());
     qs1.update(1.0);
-    arr = qs1.toByteArray(true, true); //40
-    assertEquals(arr.length, DoublesSketch.getStorageBytes(k, 1));
-    assertEquals(arr.length, qs1.getStorageBytes());
+    arr = qs1.toByteArray(true); //40
+    assertEquals(arr.length, DoublesSketch.getCompactStorageBytes(k, 1));
+    assertEquals(arr.length, qs1.getCompactStorageBytes());
   }
 
   @Test
   public void checkPutMemory() {
     UpdateDoublesSketch qs1 = DoublesSketch.builder().build(); //k = 128
     for (int i=0; i<1000; i++) qs1.update(i);
-    int bytes = qs1.getCompactStorageBytes();
+    int bytes = qs1.getUpdatableStorageBytes();
     Memory dstMem = new NativeMemory(new byte[bytes]);
     qs1.putMemory(dstMem, false);
     Memory srcMem = dstMem;
@@ -981,7 +977,8 @@ public class HeapUpdateDoublesSketchTest {
   @Test
   public void serializeDeserializeEmptyNonCompact() {
     UpdateDoublesSketch sketch1 = DoublesSketch.builder().build();
-    byte[] byteArr = sketch1.toByteArray(true, false); //Ordered, Not Compact, Empty
+    byte[] byteArr = sketch1.toByteArray(false); //Ordered, Not Compact, Empty
+    assertEquals(byteArr.length, sketch1.getStorageBytes());
     Memory mem = new NativeMemory(byteArr);
     UpdateDoublesSketch sketch2 = (UpdateDoublesSketch) DoublesSketch.heapify(mem);
     for (int i = 0; i < 1000; i++) {
@@ -994,8 +991,8 @@ public class HeapUpdateDoublesSketchTest {
 
   //private methods
 
-  private static void checksForImproperK(int k) {
-    String s = "Did not catch improper k: "+k;
+  private static void checksForImproperK(final int k) {
+    final String s = "Did not catch improper k: " + k;
     try {
       DoublesSketch.builder().setK(k);
       fail(s);

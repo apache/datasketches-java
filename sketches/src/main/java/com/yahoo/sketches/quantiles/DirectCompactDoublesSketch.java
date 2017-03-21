@@ -24,12 +24,21 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.extractK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractN;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerVer;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertFamilyID;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertFlags;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertMaxDouble;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertMinDouble;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertN;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertPreLongs;
+import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerVer;
 import static com.yahoo.sketches.quantiles.Util.computeBaseBufferItems;
 import static com.yahoo.sketches.quantiles.Util.computeBitPattern;
 import static com.yahoo.sketches.quantiles.Util.computeRetainedItems;
 
 import com.yahoo.memory.Memory;
 
+import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -55,47 +64,55 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
    */
   static DirectCompactDoublesSketch createFromUpdateSketch(final UpdateDoublesSketch sketch,
                                                            final Memory dstMem) {
-    if (sketch == null) { return null; }
-
     final long memCap = dstMem.getCapacity();
     final int k = sketch.getK();
     final long n = sketch.getN();
     checkDirectMemCapacity(k, n, memCap);
 
-    final DirectCompactDoublesSketch dcds = new DirectCompactDoublesSketch(k);
+    final Object memObj = dstMem.array();
+    final long memAdd = dstMem.getCumulativeOffset(0L);
 
-    dstMem.putLong(N_LONG, n);
-    dstMem.putDouble(MIN_DOUBLE, sketch.getMinValue());
-    dstMem.putDouble(MAX_DOUBLE, sketch.getMaxValue());
+    //initialize dstMem
+    dstMem.putLong(0, 0L); //clear pre0
+    insertPreLongs(memObj, memAdd, 2);
+    insertSerVer(memObj, memAdd, DoublesSketch.DOUBLES_SER_VER);
+    insertFamilyID(memObj, memAdd, Family.QUANTILES.getID());
+    insertK(memObj, memAdd, k);
+
+    final int flags = COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK; // true for all compact sketches
 
     if (sketch.isEmpty()) {
-      return dcds;
-    }
+      insertFlags(memObj, memAdd, flags | EMPTY_FLAG_MASK);
+    } else {
+      insertFlags(memObj, memAdd, flags);
+      insertN(memObj, memAdd, n);
+      insertMinDouble(memObj, memAdd, sketch.getMinValue());
+      insertMaxDouble(memObj, memAdd, sketch.getMaxValue());
 
-    final int bbCount = dcds.getBaseBufferCount();
+      final int bbCount = computeBaseBufferItems(k, n);
 
-    final DoublesSketchAccessor accessor = DoublesSketchAccessor.wrap(sketch);
-    assert bbCount == accessor.numItems();
+      final DoublesSketchAccessor inputAccessor = DoublesSketchAccessor.wrap(sketch);
+      assert bbCount == inputAccessor.numItems();
 
-    long dstMemOffset = COMBINED_BUFFER;
+      long dstMemOffset = COMBINED_BUFFER;
 
-    // copy base buffer
-    dstMem.putDoubleArray(dstMemOffset, accessor.getArray(0, bbCount), 0, bbCount);
-    dstMemOffset += bbCount << 3;
+      // copy base buffer
+      dstMem.putDoubleArray(dstMemOffset, inputAccessor.getArray(0, bbCount),
+              0, bbCount);
+      dstMemOffset += bbCount << 3;
 
-    long bitPattern = dcds.getBitPattern();
-    for (int lvl = 0; bitPattern > 0; ++lvl, bitPattern >>>= 1) {
-      if ((bitPattern & 1L) > 0L) {
-        accessor.setLevel(lvl);
-        dstMem.putDoubleArray(dstMemOffset, accessor.getArray(0, k), 0, k);
-        dstMemOffset += k << 3;
+      long bitPattern = computeBitPattern(k, n);
+      for (int lvl = 0; bitPattern > 0; ++lvl, bitPattern >>>= 1) {
+        if ((bitPattern & 1L) > 0L) {
+          inputAccessor.setLevel(lvl);
+          dstMem.putDoubleArray(dstMemOffset, inputAccessor.getArray(0, k), 0, k);
+          dstMemOffset += k << 3;
+        }
       }
     }
-    dcds.mem_ = dstMem;
 
-    // checks
-    assert dcds.getBitPattern() == sketch.getBitPattern();
-    assert dcds.getBaseBufferCount() == sketch.getBaseBufferCount();
+    final DirectCompactDoublesSketch dcds = new DirectCompactDoublesSketch(k);
+    dcds.mem_ = dstMem;
 
     return dcds;
   }
@@ -158,7 +175,11 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
 
   @Override
   public long getN() {
-    return mem_.getLong(N_LONG);
+    if (mem_.getCapacity() < COMBINED_BUFFER) {
+      return 0;
+    } else {
+      return mem_.getLong(N_LONG);
+    }
   }
 
   @Override
@@ -168,12 +189,20 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
 
   @Override
   public double getMinValue() {
-    return mem_.getDouble(MIN_DOUBLE);
+    if (mem_.getCapacity() < COMBINED_BUFFER) {
+      return Double.POSITIVE_INFINITY;
+    } else {
+      return mem_.getDouble(MIN_DOUBLE);
+    }
   }
 
   @Override
   public double getMaxValue() {
-    return mem_.getDouble(MAX_DOUBLE);
+    if (mem_.getCapacity() < COMBINED_BUFFER) {
+      return Double.NEGATIVE_INFINITY;
+    } else {
+      return mem_.getDouble(MAX_DOUBLE);
+    }
   }
 
   //Restricted overrides
@@ -224,11 +253,19 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
     final int metaPre = DoublesSketch.MAX_PRELONGS + 2; //plus min, max
     final int totItems = computeRetainedItems(k, n);
 
-    final int reqBufBytes = (metaPre + totItems) << 3;
+    final int reqBufBytes = (n == 0 ? Double.BYTES : (metaPre + totItems) << 3);
 
-    if (memCapBytes < reqBufBytes) {
+    if (memCapBytes < getCompactStorageBytes(k, n)) {
       throw new SketchesArgumentException("Possible corruption: Memory capacity too small: "
           + memCapBytes + " < " + reqBufBytes);
+    }
+  }
+
+  static void checkCompact(final int serVer, final int flags) {
+    final boolean compact
+            = (serVer == 2) | ((flags & (COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK)) > 0);
+    if (!compact) {
+      throw new SketchesArgumentException("CompactDoublesSketch must wrap a compact Memory");
     }
   }
 
