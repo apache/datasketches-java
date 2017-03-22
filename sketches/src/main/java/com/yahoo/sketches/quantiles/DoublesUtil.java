@@ -143,7 +143,8 @@ final class DoublesUtil {
     return sb.toString();
   }
 
-  private static String getDataDetail(final DoublesSketch sketch) {
+  private static String getDataDetail(final DoublesSketch sketchIn) {
+    final DoublesSketch sketch = sketchIn.isCompact() ? copyToHeap(sketchIn) : sketchIn;
     final StringBuilder sb = new StringBuilder();
     final String skName = sketch.getClass().getSimpleName();
     sb.append(LS).append("### Quantiles ").append(skName).append(" DATA DETAIL: ").append(LS);
@@ -152,7 +153,7 @@ final class DoublesUtil {
     final long n = sketch.getN();
     final int bbCount = sketch.getBaseBufferCount();
     final long bitPattern = sketch.getBitPattern();
-    final double[] combBuf  = sketch.getCombinedBuffer();
+    final double[] combBuf = sketch.getCombinedBuffer();
 
     //output the base buffer
 

@@ -219,11 +219,12 @@ final class DoublesUnionImpl extends DoublesUnion {
     }
     UpdateDoublesSketch ret = null;
     switch (outCase) {
-      case 0: ret = null; break; //retun null
+      case 0: ret = null; break; //return null
       case 1: ret = myQS; break; //no-op
       case 2: { //myQS = null,  other = valid; stream or downsample to myMaxK
         if (!other.isEstimationMode()) { //other is exact, stream items in
           ret = HeapUpdateDoublesSketch.newInstance(myMaxK);
+          // exact mode, only need copy base buffer
           final DoublesSketchAccessor otherAccessor = DoublesSketchAccessor.wrap(other);
           for (int i = 0; i < otherAccessor.numItems(); ++i) {
             ret.update(otherAccessor.get(i));
@@ -239,6 +240,7 @@ final class DoublesUnionImpl extends DoublesUnion {
       case 3: { //myQS = empty/valid, other = valid; merge
         if (!other.isEstimationMode()) { //other is exact, stream items in
           ret = myQS;
+          // exact mode, only need copy base buffer
           final DoublesSketchAccessor otherAccessor = DoublesSketchAccessor.wrap(other);
           for (int i = 0; i < otherAccessor.numItems(); ++i) {
             ret.update(otherAccessor.get(i));
