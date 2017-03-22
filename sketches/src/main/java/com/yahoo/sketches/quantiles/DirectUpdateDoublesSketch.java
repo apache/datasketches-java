@@ -313,11 +313,6 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
   }
 
   @Override
-  void putCombinedBufferItemCapacity(final int combBufItemCap) {
-    //intentionally a no-op, not kept on-heap, always derived.
-  }
-
-  @Override
   void putBaseBufferCount(final int baseBufferCount) {
     //intentionally a no-op, not kept on-heap, always derived.
   }

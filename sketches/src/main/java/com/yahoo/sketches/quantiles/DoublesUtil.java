@@ -43,7 +43,6 @@ final class DoublesUtil {
       final int combBufItems = Util.computeCombinedBufferItemCapacity(sketch.getK(), sketch.getN());
       final double[] combBuf = new double[combBufItems];
       qsCopy.putCombinedBuffer(combBuf);
-      qsCopy.putCombinedBufferItemCapacity(sketch.getCombinedBufferItemCapacity());
       final DoublesSketchAccessor sketchAccessor = DoublesSketchAccessor.wrap(sketch);
       final DoublesSketchAccessor copyAccessor = DoublesSketchAccessor.wrap(qsCopy);
       // start with BB
@@ -62,7 +61,6 @@ final class DoublesUtil {
     } else {
       final double[] combBuf = sketch.getCombinedBuffer();
       qsCopy.putCombinedBuffer(Arrays.copyOf(combBuf, combBuf.length));
-      qsCopy.putCombinedBufferItemCapacity(sketch.getCombinedBufferItemCapacity());
     }
     return qsCopy;
   }

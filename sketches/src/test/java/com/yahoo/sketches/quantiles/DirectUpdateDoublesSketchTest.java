@@ -200,7 +200,6 @@ public class DirectUpdateDoublesSketchTest {
     //println(qs.toString(true, true));
     qs.reset();
     assertEquals(qs.getN(), 0);
-    qs.putCombinedBufferItemCapacity(0);
     qs.putBaseBufferCount(0);
   }
 

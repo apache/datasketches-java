@@ -81,13 +81,6 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
   abstract void putCombinedBuffer(double[] combinedBuffer);
 
   /**
-   * Puts the combinedBufferItemCapacity
-   *
-   * @param combBufItemCap the given capacity
-   */
-  abstract void putCombinedBufferItemCapacity(int combBufItemCap);
-
-  /**
    * Puts the base buffer count
    *
    * @param baseBufCount the given base buffer count
