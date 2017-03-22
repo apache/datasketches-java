@@ -338,7 +338,7 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
 
   //Direct supporting methods
 
-  Memory growCombinedMemBuffer(final Memory mem, final int itemSpaceNeeded) {
+  static Memory growCombinedMemBuffer(final Memory mem, final int itemSpaceNeeded) {
     final long memBytes = mem.getCapacity();
     final int needBytes = (itemSpaceNeeded << 3) + COMBINED_BUFFER; //+ preamble + min & max
     assert needBytes > memBytes;
