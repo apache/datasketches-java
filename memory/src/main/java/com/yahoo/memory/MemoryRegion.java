@@ -104,6 +104,7 @@ public class MemoryRegion implements Memory {
    * @deprecated This could have created difficult to diagnose bugs in MemoryRegion hierarchies.
    * This is now deprecated and will throw an exception.  MemoryRegion is now immutable.
    */
+  @Deprecated
   public void reassign(final long memOffsetBytes, final long capacityBytes) {
     throw new UnsupportedOperationException("MemoryRegion is immutable.");
   }
