@@ -30,8 +30,9 @@ import com.yahoo.memory.NativeMemory;
  * multi-byte integers (<i>int</i> and <i>long</i>) are stored in native byte order. The
  * <i>byte</i> values are treated as unsigned.</p>
  *
- * <p>An empty DoublesSketch or ItemsSketch only requires 8 bytes.
- * All others require 24 bytes of preamble.</p>
+ * <p>An empty ItemsSketch, on-heap DoublesSketch or compact off-heap DoublesSketch only require 8
+ * bytes. An off-heap UpdateDoublesSketch and all non-empty skethces require at least 16 bytes of
+ * preamble.</p>
  *
  * <pre>
  * Long || Start Byte Adr: Common for both DoublesSketch and ItemsSketch
@@ -51,7 +52,7 @@ import com.yahoo.memory.NativeMemory;
  *  3   ||----------------------------------MAX_DOUBLE-----------------------------------|
  *
  *      ||   39   |   38   |   37   |   36   |   35   |   34   |   33   |    32          |
- *  4   ||---------------------------------REST OF DATA----------------------------------|
+ *  4   ||---------------------------START OF COMBINED BUfFER----------------------------|
  *  </pre>
  *
  *  @author Lee Rhodes

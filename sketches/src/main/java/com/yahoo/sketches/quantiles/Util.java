@@ -9,8 +9,12 @@ import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.Util.isPowerOf2;
 import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.READ_ONLY_FLAG_MASK;
+import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
+
+import com.yahoo.memory.Memory;
 
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -101,6 +105,26 @@ final class Util {
   }
 
   /**
+   * Checks just the flags field of an input Memory object. Returns true for a compact
+   * sketch, false for an update sketch. Does not perform additional checks, including sketch
+   * family.
+   * @param srcMem the source Memory containign a sketch
+   * @return true if flags indicate a comapct sketch, otherwise false
+   */
+  static boolean checkIsCompactMemory(final Memory srcMem) {
+    final int flags;
+    if (srcMem.isReadOnly() && !srcMem.isDirect()) {
+      flags = srcMem.getByte(FLAGS_BYTE) & 0XFF;
+    } else {
+      final Object memObj = srcMem.array(); //may be null
+      final long memAdd = srcMem.getCumulativeOffset(0L);
+      flags = extractFlags(memObj, memAdd);
+    }
+    final int compactFlags = READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK;
+    return (flags & compactFlags) > 0;
+  }
+
+  /**
    * Checks the sequential validity of the given array of fractions.
    * They must be unique, monotonically increasing and not NaN, not &lt; 0 and not &gt; 1.0.
    * @param fractions array
@@ -118,7 +142,6 @@ final class Util {
           "A fraction cannot be less than zero or greater than 1.0");
     }
     Util.validateValues(fractions);
-    return;
   }
 
   /**
@@ -160,17 +183,13 @@ final class Util {
    * size of the updatable data structure, which is a function of <i>k</i> and <i>n</i>.
    *
    * @param n The number of items in the input stream
-   * @param partialBaseBuffer true if partial base buffer is allowed.
    * @return the current item capacity of the combined buffer
    */
-  static int computeCombinedBufferItemCapacity(final int k, final long n,
-      final boolean partialBaseBuffer) {
+  static int computeCombinedBufferItemCapacity(final int k, final long n) {
     final int totLevels = computeNumLevelsNeeded(k, n);
     if (totLevels == 0) {
-      if (partialBaseBuffer) {
-        final int bbItems = computeBaseBufferItems(k, n);
-        return Math.max(2 * DoublesSketch.MIN_K, ceilingPowerOf2(bbItems));
-      }
+      final int bbItems = computeBaseBufferItems(k, n);
+      return Math.max(2 * DoublesSketch.MIN_K, ceilingPowerOf2(bbItems));
     }
     return (2 + totLevels) * k;
   }

@@ -20,11 +20,12 @@ public class SerDeCompatibilityTest {
 
   @Test
   public void itemsToDoubles() {
-    ItemsSketch<Double> sketch1 = ItemsSketch.getInstance(Comparator.naturalOrder());
+    final ItemsSketch<Double> sketch1 = ItemsSketch.getInstance(Comparator.naturalOrder());
     for (int i = 1; i <= 500; i++) sketch1.update((double) i);
 
-    byte[] bytes = sketch1.toByteArray(serDe);
-    DoublesSketch sketch2 = DoublesSketch.heapify(new NativeMemory(bytes));
+    final byte[] bytes = sketch1.toByteArray(serDe);
+    final UpdateDoublesSketch sketch2;
+    sketch2 = UpdateDoublesSketch.heapify(new NativeMemory(bytes));
 
     for (int i = 501; i <= 1000; i++) sketch2.update(i);
     Assert.assertEquals(sketch2.getN(), 1000);
@@ -37,13 +38,16 @@ public class SerDeCompatibilityTest {
 
   @Test
   public void doublesToItems() {
-    DoublesSketch sketch1 = DoublesSketch.builder().build(); //SerVer = 3
+    final UpdateDoublesSketch sketch1 = DoublesSketch.builder().build(); //SerVer = 3
     for (int i = 1; i <= 500; i++) sketch1.update(i);
 
-    byte[] bytes = sketch1.toByteArray(); //unordered, compact
+    CompactDoublesSketch cs = sketch1.compact();
+    DoublesSketchTest.testSketchEquality(sketch1, cs);
+    //final byte[] bytes = sketch1.compact().toByteArray(); // must be compact
+    final byte[] bytes = cs.toByteArray(); // must be compact
     
     //reconstruct with ItemsSketch
-    ItemsSketch<Double> sketch2 = ItemsSketch.getInstance(new NativeMemory(bytes), 
+    final ItemsSketch<Double> sketch2 = ItemsSketch.getInstance(new NativeMemory(bytes),
         Comparator.naturalOrder(), serDe);
 
     for (int i = 501; i <= 1000; i++) sketch2.update((double) i);

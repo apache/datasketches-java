@@ -6,6 +6,7 @@
 package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
+import static com.yahoo.sketches.quantiles.Util.checkIsCompactMemory;
 
 import java.util.Random;
 
@@ -114,6 +115,7 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
  *
  * @author Kevin Lang
  * @author Lee Rhodes
+ * @author Jon Malkin
  */
 public abstract class DoublesSketch {
   static final int DOUBLES_SER_VER = 3;
@@ -153,24 +155,26 @@ public abstract class DoublesSketch {
    * @return a heap-based Sketch based on the given Memory
    */
   public static DoublesSketch heapify(final Memory srcMem) {
-    return HeapDoublesSketch.heapifyInstance(srcMem);
+    if (checkIsCompactMemory(srcMem)) {
+      return CompactDoublesSketch.heapify(srcMem);
+    } else {
+      return UpdateDoublesSketch.heapify(srcMem);
+    }
   }
 
   /**
-   * Wrap this sketch around the given non-compact Memory image of a DoublesSketch.
+   * Wrap this sketch around the given compact Memory image of a DoublesSketch.
    *
-   * @param srcMem the given non-compact Memory image of a DoublesSketch that may have data,
+   * @param srcMem the given Memory image of a DoublesSketch that may have data,
    * @return a sketch that wraps the given srcMem
    */
   public static DoublesSketch wrap(final Memory srcMem) {
-    return DirectDoublesSketch.wrapInstance(srcMem);
+    if (checkIsCompactMemory(srcMem)) {
+      return DirectCompactDoublesSketch.wrapInstance(srcMem);
+    } else {
+      return DirectUpdateDoublesSketch.wrapInstance(srcMem);
+    }
   }
-
-  /**
-   * Updates this sketch with the given double data item
-   * @param dataItem an item from a stream of items.  NaNs are ignored.
-   */
-  public abstract void update(double dataItem);
 
   /**
    * This returns an approximation to the value of the data item
@@ -394,41 +398,39 @@ public abstract class DoublesSketch {
   }
 
   /**
-   * Resets this sketch to the empty state, but retains the original value of k.
-   */
-  public abstract void reset();
-
-  /**
-   * Serialize this sketch to a byte array, not-ordered, compact form.
-   * Note that the compact form cannot be used by the Direct DoublesSketches.
-   * This does not order the base buffer.
+   * Serialize this sketch to a byte array. An UpdateDoublesSketch will be serialized in
+   * an unordered, non-compact form; a CompactDoublesSketch will be serialized in ordered,
+   * compact form. A DirectUpdateDoublesSketch can only wrap a non-compact array, and a
+   * DirectCompactDoublesSketch can only wrap a compact array.
+   *
    * @return byte array of this sketch
    */
   public byte[] toByteArray() {
-    return toByteArray(false, true);
-  }
-
-  /**
-   * Serialize this sketch in a byte array, compact form.
-   * Note that the compact form cannot be used by the Direct DoublesSketches.
-   * @param ordered if true, this sorts the base buffer, which optimizes merge performance at
-   * the cost of slightly increased serialization time.
-   * In real-time build-and-merge environments, this may not be desirable.
-   * @return this sketch in a byte array form.
-   */
-  public byte[] toByteArray(final boolean ordered) {
-    return toByteArray(ordered, true);
+    if (isCompact()) {
+      return toByteArray(true);
+    } else {
+      return toByteArray(false);
+    }
   }
 
   /**
    * Serialize this sketch in a byte array form.
-   * @param ordered if true, this sorts the base buffer, which optimizes merge performance at
-   * the cost of slightly increased serialization time.
-   * @param compact if true the sketch will be serialized in compact form. Use false to serialize
-   * to the non-compact form, which can be used by the wrap() method of the Direct DoublesSketches.
+   * @param compact if true the sketch will be serialized in compact form.
+   *                DirectCompactDoublesSketch can wrap() only a compact byte array;
+   *                DirectUpdateDoublesSketch can wrap() only a non-compact byte array.
    * @return this sketch in a byte array form.
    */
-  public byte[] toByteArray(final boolean ordered, final boolean compact) {
+  public byte[] toByteArray(final boolean compact) {
+    return DoublesByteArrayImpl.toByteArray(this, compact, compact);
+  }
+
+  /**
+   * Private version of toByteArray() to allow
+   * @param ordered
+   * @param compact
+   * @return
+   */
+  private byte[] toByteArray(final boolean ordered, final boolean compact) {
     return DoublesByteArrayImpl.toByteArray(this, ordered, compact);
   }
 
@@ -464,11 +466,7 @@ public abstract class DoublesSketch {
    */
   public DoublesSketch downSample(final DoublesSketch srcSketch, final int smallerK,
       final Memory dstMem) {
-    final DoublesSketch newSketch = (dstMem == null)
-        ? HeapDoublesSketch.newInstance(smallerK)
-        : DirectDoublesSketch.newInstance(smallerK, dstMem);
-    DoublesMergeImpl.downSamplingMergeInto(srcSketch, newSketch); //TODO #2
-    return newSketch;
+    return downSampleInternal(srcSketch, smallerK, dstMem);
   }
 
   /**
@@ -497,35 +495,19 @@ public abstract class DoublesSketch {
    */
   public static int getCompactStorageBytes(final int k, final long n) {
     if (n == 0) { return 8; }
-    return 32 + (Util.computeRetainedItems(k, n) << 3);
+    final int metaPreLongs = DoublesSketch.MAX_PRELONGS + 2; //plus min, max
+    return ((metaPreLongs + Util.computeRetainedItems(k, n)) << 3);
   }
 
 
   /**
-   * Returns the number of bytes this sketch would require to store in compact form, which is not
-   * updatable.
+   * Returns the number of bytes this sketch would require to store in native form: compact for
+   * a CompactDoublesSketch, non-compact for an UpdateDoublesSketch.
    * @return the number of bytes this sketch would require to store in compact form.
-   * @deprecated changed name to {@link #getCompactStorageBytes()} to more accurately reflect its
-   * intent
    */
-  @Deprecated
   public int getStorageBytes() {
-    return getStorageBytes(getK(), getN());
-  }
-
-  /**
-   * Returns the number of bytes a DoublesSketch would require to store in compact form
-   * given the values of <i>k</i> and <i>n</i>. The compact form is not updatable.
-   * @param k the size configuration parameter for the sketch
-   * @param n the number of items input into the sketch
-   * @return the number of bytes required to store this sketch in compact form.
-   * @deprecated changed name to {@link #getCompactStorageBytes(int, long)} to more accurately
-   * reflect its intent
-   */
-  @Deprecated
-  public static int getStorageBytes(final int k, final long n) {
-    if (n == 0) { return 8; }
-    return 32 + (Util.computeRetainedItems(k, n) << 3);
+    if (isCompact()) { return getCompactStorageBytes(); }
+    return getUpdatableStorageBytes();
   }
 
   /**
@@ -534,35 +516,22 @@ public abstract class DoublesSketch {
    * @return the number of bytes this sketch would require to store in updatable form.
    */
   public int getUpdatableStorageBytes() {
-    return getUpdatableStorageBytes(getK(), getN(), this.isDirect());
+    return getUpdatableStorageBytes(getK(), getN());
   }
 
   /**
-   * Returns the number of bytes this on-heap sketch would require to store in updatable form.
-   * This uses roughly 2X the storage of the compact form. Only correct for on-heap sketches.
-   * @param k the size configuration parameter for the sketch.
-   * @param n the number of items input into the sketch.
-   * @return he number of bytes this sketch would require to store in updatable form.
-   * @deprecated please use {@link #getUpdatableStorageBytes(int, long, boolean)}
-   */
-  @Deprecated
-  public static int getUpdatableStorageBytes(final int k, final long n) {
-    return getUpdatableStorageBytes(k, n, false);
-  }
-
-  /**
-   * Returns the number of bytes this sketch would require to store in updatable form.
+   * Returns the number of bytes a sketch would require to store in updatable form.
    * This uses roughly 2X the storage of the compact form
    * given the values of <i>k</i> and <i>n</i>.
    * @param k the size configuration parameter for the sketch
    * @param n the number of items input into the sketch
-   * @param isDirect set true if the target is a Direct Doubles Sketch (off-heap).
    * @return the number of bytes this sketch would require to store in updatable form.
    */
-  public static int getUpdatableStorageBytes(final int k, final long n, final boolean isDirect) {
+  public static int getUpdatableStorageBytes(final int k, final long n) {
+    if (n == 0) { return 8; }
     final int metaPre = DoublesSketch.MAX_PRELONGS + 2; //plus min, max
     final int totLevels = Util.computeNumLevelsNeeded(k, n);
-    if (!isDirect && (n < k)) {
+    if (n <= k) {
       final int ceil = Math.max(ceilingPowerOf2((int)n), DoublesSketch.MIN_K * 2);
       return (metaPre + ceil) << 3;
     }
@@ -571,37 +540,24 @@ public abstract class DoublesSketch {
 
   /**
    * Puts the current sketch into the given Memory in compact form if there is sufficient space,
-   * otherwise, it throws an error. This does not sort the base buffer.
+   * otherwise, it throws an error.
    *
    * @param dstMem the given memory.
    */
   public void putMemory(final Memory dstMem) {
-    putMemory(dstMem, false, true);
+    putMemory(dstMem, true);
   }
 
   /**
    * Puts the current sketch into the given Memory if there is sufficient space, otherwise,
-   * throws an error. This loads the memory in compact form.
+   * throws an error. This loads the memory in compact form based on the given compact flag, but
+   * always sorts the base buffer whether compact or not.
    * @param dstMem the given memory.
-   * @param ordered if true, this sorts the base buffer, which optimizes merge performance at
-   * the cost of slightly increased serialization time. In real-time build-and-merge environments,
-   * ordering may not be desirable.
+   * @param compact if true, this compacts and sorts the base buffer, which optimizes merge
+   *                performance at the cost of slightly increased serialization time.
    */
-  public void putMemory(final Memory dstMem, final boolean ordered) {
-    putMemory(dstMem, ordered, true);
-  }
-
-  /**
-   * Puts the current sketch into the given Memory if there is sufficient space,
-   * 0therwise, throws an error. This sorts the base buffer based on the given sort flag.
-   * @param dstMem the given memory.
-   * @param ordered if true, this sorts the base buffer, which optimizes merge performance at
-   * the cost of slightly increased serialization time. In real-time build-and-merge environments,
-   * ordering may not be desirable.
-   * @param compact if true, loads the memory in compact form.
-   */
-  public void putMemory(final Memory dstMem, final boolean ordered, final boolean compact) {
-    final byte[] byteArr = toByteArray(ordered, compact);
+  public void putMemory(final Memory dstMem, final boolean compact) {
+    final byte[] byteArr = toByteArray(true, compact);
     final int arrLen = byteArr.length;
     final long memCap = dstMem.getCapacity();
     if (memCap < arrLen) {
@@ -612,6 +568,21 @@ public abstract class DoublesSketch {
   }
 
   //Restricted
+
+  /*
+   * DoublesMergeImpl.downSamplingMergeInto requires the target sketch to implement update(), so
+   * we ensure that the target is an UpdateSketch. The public API, on the other hand, just
+   * specifies a DoublesSketch. This lets us be more specific about the type without changing the
+   * public API.
+   */
+  UpdateDoublesSketch downSampleInternal(final DoublesSketch srcSketch, final int smallerK,
+                                         final Memory dstMem) {
+    final UpdateDoublesSketch newSketch = (dstMem == null)
+            ? HeapUpdateDoublesSketch.newInstance(smallerK)
+            : DirectUpdateDoublesSketch.newInstance(smallerK, dstMem);
+    DoublesMergeImpl.downSamplingMergeInto(srcSketch, newSketch); //TODO #2
+    return newSketch;
+  }
 
   static double[] getEvenlySpaced(final int evenlySpaced) {
     final int n = evenlySpaced;
@@ -643,6 +614,12 @@ public abstract class DoublesSketch {
   //Restricted abstract
 
   /**
+   * Returns true if this sketch is compact
+   * @return true if this sketch is compact
+   */
+  abstract boolean isCompact();
+
+  /**
    * Returns the base buffer count
    * @return the base buffer count
    */
@@ -671,57 +648,4 @@ public abstract class DoublesSketch {
    * @return the Memory if it exists, otherwise returns null.
    */
   abstract Memory getMemory();
-
-  //Puts
-
-  /**
-   * Puts the min value
-   * @param minValue the given min value
-   */
-  abstract void putMinValue(double minValue);
-
-  /**
-   * Puts the max value
-   * @param maxValue the given max value
-   */
-  abstract void putMaxValue(double maxValue);
-
-  /**
-   * Puts the value of <i>n</i>
-   * @param n the given value of <i>n</i>
-   */
-  abstract void putN(long n);
-
-  /**
-   * Puts the combined, non-compact buffer.
-   * @param combinedBuffer the combined buffer array
-   */
-  abstract void putCombinedBuffer(double[] combinedBuffer);
-
-  /**
-   * Puts the combinedBufferItemCapacity
-   * @param combBufItemCap the given capacity
-   */
-  abstract void putCombinedBufferItemCapacity(int combBufItemCap);
-
-  /**
-   * Puts the base buffer count
-   * @param baseBufCount the given base buffer count
-   */
-  abstract void putBaseBufferCount(int baseBufCount);
-
-  /**
-   * Puts the bit pattern
-   * @param bitPattern the given bit pattern
-   */
-  abstract void putBitPattern(long bitPattern);
-
-  /**
-   * Grows the combined buffer to the given spaceNeeded
-   * @param currentSpace the current allocated space
-   * @param spaceNeeded the space needed
-   * @return the enlarged combined buffer with data from the original combined buffer.
-   */
-  abstract double[] growCombinedBuffer(int currentSpace, int spaceNeeded);
-
 }

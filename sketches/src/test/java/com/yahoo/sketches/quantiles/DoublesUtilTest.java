@@ -5,7 +5,7 @@
 
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.quantiles.HeapDoublesSketchTest.buildAndLoadQS;
+import static com.yahoo.sketches.quantiles.HeapUpdateDoublesSketchTest.buildAndLoadQS;
 import static com.yahoo.sketches.quantiles.Util.LS;
 
 import org.testng.annotations.Test;
@@ -17,46 +17,46 @@ public class DoublesUtilTest {
 
   @Test
   public void checkPrintMemData() {
-    int k = 16;
-    int n = 1000;
-    DoublesSketch qs = buildAndLoadQS(k,n);
+    final int k = 16;
+    final int n = 1000;
+    final DoublesSketch qs = buildAndLoadQS(k,n);
 
-    byte[] byteArr = qs.toByteArray(true, false);
+    byte[] byteArr = qs.toByteArray(false);
     Memory mem = new NativeMemory(byteArr);
     println(DoublesUtil.memToString(true, true, mem));
 
-    byteArr = qs.toByteArray(true, true);
+    byteArr = qs.toByteArray(true);
     mem = new NativeMemory(byteArr);
     println(DoublesUtil.memToString(true, true, mem));
   }
 
   @Test
   public void checkPrintMemData2() {
-    int k = PreambleUtil.DEFAULT_K;
-    int n = 0;
-    DoublesSketch qs = buildAndLoadQS(k,n);
+    final int k = PreambleUtil.DEFAULT_K;
+    final int n = 0;
+    final DoublesSketch qs = buildAndLoadQS(k,n);
 
-    byte[] byteArr = qs.toByteArray();
-    Memory mem = new NativeMemory(byteArr);
+    final byte[] byteArr = qs.toByteArray();
+    final Memory mem = new NativeMemory(byteArr);
     println(DoublesUtil.memToString(true, true, mem));
   }
 
   @Test
   public void printlnTest() {
-    println("PRINTING: "+this.getClass().getName());
+    println("PRINTING: " + this.getClass().getName());
   }
 
   /**
    * @param s value to print
    */
-  static void println(String s) {
-    print(s+LS);
+  static void println(final String s) {
+    print(s + LS);
   }
 
   /**
    * @param s value to print
    */
-  static void print(String s) {
+  static void print(final String s) {
     //System.out.print(s); //disable here
   }
 

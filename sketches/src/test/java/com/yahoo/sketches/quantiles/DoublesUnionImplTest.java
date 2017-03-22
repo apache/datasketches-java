@@ -4,8 +4,8 @@
  */
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.quantiles.DirectDoublesSketchTest.buildAndLoadDQS;
-import static com.yahoo.sketches.quantiles.HeapDoublesSketchTest.buildAndLoadQS;
+import static com.yahoo.sketches.quantiles.DirectUpdateDoublesSketchTest.buildAndLoadDQS;
+import static com.yahoo.sketches.quantiles.HeapUpdateDoublesSketchTest.buildAndLoadQS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
@@ -125,7 +125,7 @@ public class DoublesUnionImplTest {
     int k2 = 256;
     int n2 = 2000;
     DoublesSketch sketchIn1 = buildAndLoadQS(k1, n1);
-    int bytes = DoublesSketch.getUpdatableStorageBytes(k2, n2, true);//just for size
+    int bytes = DoublesSketch.getUpdatableStorageBytes(k2, n2);//just for size
     Memory mem = new NativeMemory(new byte[bytes]);
     DoublesUnion union = DoublesUnion.builder().initMemory(mem).setMaxK(k2).build(); //virgin 256
     union.update(sketchIn1);
@@ -144,7 +144,7 @@ public class DoublesUnionImplTest {
     int k2 = 256;
     int n2 = 2000;
     DoublesSketch sketchIn1 = buildAndLoadDQS(k1, n1);
-    int bytes = DoublesSketch.getUpdatableStorageBytes(k2, n2, true);//just for size
+    int bytes = DoublesSketch.getUpdatableStorageBytes(k2, n2);//just for size
     Memory mem = new NativeMemory(new byte[bytes]);
     DoublesUnion union = DoublesUnion.builder().initMemory(mem).setMaxK(k2).build(); //virgin 256
     union.update(sketchIn1);
@@ -162,9 +162,9 @@ public class DoublesUnionImplTest {
     int n1 = 2 * k1; //16
     int k2 = 4;
     int n2 = 2 * k2; //8
-    int bytes = DoublesSketch.getUpdatableStorageBytes(256, 50, true);//just for size
+    int bytes = DoublesSketch.getUpdatableStorageBytes(256, 50);//just for size
     Memory skMem = new NativeMemory(new byte[bytes]);
-    DoublesSketch sketchIn1 = DoublesSketch.builder().setK(k1).initMemory(skMem).build();
+    UpdateDoublesSketch sketchIn1 = DoublesSketch.builder().setK(k1).initMemory(skMem).build();
     for (int i = 0; i < n1; i++) { sketchIn1.update(i + 1); }
 
     Memory uMem = new NativeMemory(new byte[bytes]);
@@ -195,9 +195,9 @@ public class DoublesUnionImplTest {
     int n1 = 2 * k1; //16
     int k2 = 4;
     int n2 = 2 * k2; //8
-    int bytes = DoublesSketch.getUpdatableStorageBytes(256, 50, true);//just for size
+    int bytes = DoublesSketch.getUpdatableStorageBytes(256, 50);//just for size
     Memory skMem = new NativeMemory(new byte[bytes]);
-    DoublesSketch sketchIn1 = DoublesSketch.builder().setK(k1).initMemory(skMem).build();
+    UpdateDoublesSketch sketchIn1 = DoublesSketch.builder().setK(k1).initMemory(skMem).build();
     for (int i = 0; i < n1; i++) { sketchIn1.update(i + 1); }
 
     Memory uMem = new NativeMemory(new byte[bytes]);
@@ -225,7 +225,7 @@ public class DoublesUnionImplTest {
   public void checkUnion5() { //Union is direct, valid and with larger K than valid input
     int k2 = 4;
     int n2 = 2 * k2; //8
-    int bytes = DoublesSketch.getUpdatableStorageBytes(256, 50, true);//big enough
+    int bytes = DoublesSketch.getUpdatableStorageBytes(256, 50);//big enough
     Memory skMem = new NativeMemory(new byte[bytes]);
     DoublesSketch.builder().setK(256).initMemory(skMem).build();
 
@@ -246,7 +246,7 @@ public class DoublesUnionImplTest {
   public void checkUnion5Direct() { //Union is direct, valid and with larger K than valid input
     int k2 = 4;
     int n2 = 2 * k2; //8
-    int bytes = DoublesSketch.getUpdatableStorageBytes(256, 50, true);//big enough
+    int bytes = DoublesSketch.getUpdatableStorageBytes(256, 50);//big enough
     Memory skMem = new NativeMemory(new byte[bytes]);
     DoublesSketch.builder().setK(256).initMemory(skMem).build();
 
@@ -357,26 +357,36 @@ public class DoublesUnionImplTest {
 
   @Test
   public void checkUnionUpdateLogic() {
-    HeapDoublesSketch qs1 = null;
-    HeapDoublesSketch qs2 = (HeapDoublesSketch)buildAndLoadQS(256, 0);
-    DoublesSketch result = DoublesUnionImpl.updateLogic(256, qs1, qs2); //null, empty
-    result = DoublesUnionImpl.updateLogic(256, qs2, qs1); //empty, null
+    HeapUpdateDoublesSketch qs1 = null;
+    HeapUpdateDoublesSketch qs2 = (HeapUpdateDoublesSketch)buildAndLoadQS(256, 0);
+    DoublesUnionImpl.updateLogic(256, qs1, qs2); //null, empty
+    DoublesUnionImpl.updateLogic(256, qs2, qs1); //empty, null
     qs2.update(1); //no longer empty
-    result = DoublesUnionImpl.updateLogic(256, qs2, qs1); //valid, null
+    DoublesSketch result = DoublesUnionImpl.updateLogic(256, qs2, qs1); //valid, null
     assertEquals(result.getMaxValue(), result.getMinValue(), 0.0);
   }
 
   @Test
   public void checkUnionUpdateLogicDirect() {
-    HeapDoublesSketch qs1 = null;
-    DirectDoublesSketch qs2 = (DirectDoublesSketch)buildAndLoadDQS(256, 0);
-    DoublesSketch result = DoublesUnionImpl.updateLogic(256, qs1, qs2); //null, empty
-    result = DoublesUnionImpl.updateLogic(256, qs2, qs1); //empty, null
+    HeapUpdateDoublesSketch qs1 = null;
+    DirectUpdateDoublesSketch qs2 = (DirectUpdateDoublesSketch)buildAndLoadDQS(256, 0);
+    DoublesUnionImpl.updateLogic(256, qs1, qs2); //null, empty
+    DoublesUnionImpl.updateLogic(256, qs2, qs1); //empty, null
     qs2.update(1); //no longer empty
-    result = DoublesUnionImpl.updateLogic(256, qs2, qs1); //valid, null
+    DoublesSketch result = DoublesUnionImpl.updateLogic(256, qs2, qs1); //valid, null
     assertEquals(result.getMaxValue(), result.getMinValue(), 0.0);
   }
 
+  @Test
+  public void checkUnionUpdateLogicDirectDownsampled() {
+    final DirectUpdateDoublesSketch qs1 = (DirectUpdateDoublesSketch) buildAndLoadDQS(256, 1000);
+    final DirectUpdateDoublesSketch qs2 = (DirectUpdateDoublesSketch) buildAndLoadDQS(128, 2000);
+    final DoublesSketch result = DoublesUnionImpl.updateLogic(128, qs1, qs2);
+    assertEquals(result.getMaxValue(), 2000.0, 0.0);
+    assertEquals(result.getMinValue(), 1.0, 0.0);
+    assertEquals(result.getN(), 3000);
+    assertEquals(result.getK(), 128);
+  }
 
   @Test
   public void checkUnionUpdateLogic2() {
@@ -459,7 +469,7 @@ public class DoublesUnionImplTest {
   @Test
   public void differentLargerK() {
     DoublesUnion union = DoublesUnion.builder().setMaxK(128).build();
-    DoublesSketch sketch1 = buildAndLoadQS(256, 0);
+    UpdateDoublesSketch sketch1 = buildAndLoadQS(256, 0);
     union.update(sketch1);
     Assert.assertEquals(union.getResult().getK(), 128);
     sketch1.update(1.0);
@@ -470,7 +480,7 @@ public class DoublesUnionImplTest {
   @Test
   public void differentLargerKDirect() {
     DoublesUnion union = DoublesUnion.builder().setMaxK(128).build();
-    DoublesSketch sketch1 = buildAndLoadDQS(256, 0);
+    UpdateDoublesSketch sketch1 = buildAndLoadDQS(256, 0);
     union.update(sketch1);
     Assert.assertEquals(union.getResult().getK(), 128);
     sketch1.update(1.0);
@@ -489,7 +499,7 @@ public class DoublesUnionImplTest {
 //    byte[] unionByteArr = union.toByteArray();
 //    Assert.assertEquals(unionByteArr.length, 32 + 32); //empty
 
-    DoublesSketch sketch1 = buildAndLoadQS(k64, 0); //build smaller empty sketch
+    UpdateDoublesSketch sketch1 = buildAndLoadQS(k64, 0); //build smaller empty sketch
     union.update(sketch1);
     Assert.assertTrue(union.isEmpty()); //gadget is valid
     Assert.assertFalse(union.isDirect());
@@ -515,7 +525,7 @@ public class DoublesUnionImplTest {
 //    byte[] unionByteArr = union.toByteArray();
 //    Assert.assertEquals(unionByteArr.length, 32 + 32); //empty
 
-    DoublesSketch sketch1 = buildAndLoadDQS(k64, 0); //build smaller empty sketch
+    UpdateDoublesSketch sketch1 = buildAndLoadDQS(k64, 0); //build smaller empty sketch
     union.update(sketch1);
     Assert.assertTrue(union.isEmpty()); //gadget is valid
     Assert.assertFalse(union.isDirect());
@@ -530,7 +540,6 @@ public class DoublesUnionImplTest {
     Assert.assertEquals(union.getResult().getK(), 128);
   }
 
-
   @SuppressWarnings("deprecation")
   @Test
   public void checkDirectInstance() {
@@ -539,7 +548,7 @@ public class DoublesUnionImplTest {
     DoublesUnionBuilder bldr = DoublesUnion.builder();
     bldr.setK(k); // check the deprecated version
     Assert.assertEquals(bldr.getMaxK(), k);
-    int bytes = DoublesSketch.getUpdatableStorageBytes(k, n, true);
+    int bytes = DoublesSketch.getUpdatableStorageBytes(k, n);
     byte[] byteArr = new byte[bytes];
     Memory mem = new NativeMemory(byteArr);
     bldr.initMemory(mem);
@@ -561,14 +570,14 @@ public class DoublesUnionImplTest {
   public void checkWrapInstance() {
     int k = 128;
     int n = 1000;
-    DoublesSketch sketch = DoublesSketch.builder().build(k);
+    UpdateDoublesSketch sketch = DoublesSketch.builder().build(k);
     for (int i = 1; i <= n; i++) {
       sketch.update(i);
     }
     double skMedian = sketch.getQuantile(.5);
     Assert.assertEquals(skMedian, 500, 10);
 
-    byte[] byteArr = sketch.toByteArray(true, false);
+    byte[] byteArr = sketch.toByteArray(false);
     Memory mem = new NativeMemory(byteArr);
     DoublesUnion union = DoublesUnionBuilder.wrap(mem);
     Assert.assertFalse(union.isEmpty());
