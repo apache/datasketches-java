@@ -364,11 +364,6 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   }
 
   @Override
-  void putCombinedBufferItemCapacity(final int combinedBufferItemCapacity) {
-    //not neccessary
-  }
-
-  @Override
   void putBaseBufferCount(final int baseBufferCount) {
     baseBufferCount_ = baseBufferCount;
   }
