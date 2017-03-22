@@ -269,7 +269,7 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
       int srcOffset = preBytes + ((2 * k) << 3);
       int dstOffset = baseBufferCount_;
       long bitPattern = bitPattern_;
-      for (int lvl = 0; bitPattern != 0; ++lvl, srcOffset += (k << 3), bitPattern >>>= 1) {
+      for (; bitPattern != 0; srcOffset += (k << 3), bitPattern >>>= 1) {
         if ((bitPattern & 1L) > 0L) {
           srcMem.getDoubleArray(srcOffset, combinedBuffer_, dstOffset, k);
           dstOffset += k;

@@ -425,16 +425,6 @@ public abstract class DoublesSketch {
   }
 
   /**
-   * Private version of toByteArray() to allow
-   * @param ordered
-   * @param compact
-   * @return
-   */
-  private byte[] toByteArray(final boolean ordered, final boolean compact) {
-    return DoublesByteArrayImpl.toByteArray(this, ordered, compact);
-  }
-
-  /**
    * Returns summary information about this sketch.
    */
   @Override
@@ -549,6 +539,16 @@ public abstract class DoublesSketch {
   }
 
   /**
+   * Close variant of toByteArray() to allow DoublesUnion to serialize a sorted, non-compact
+   * sketch that gets wrapped as a gadget.
+   * @param compact If true the sketch will be serialized in compact form.
+   * @return This sketch in byte array form.
+   */
+  private byte[] toSortedByteArray(final boolean compact) {
+    return DoublesByteArrayImpl.toByteArray(this, true, compact);
+  }
+
+  /**
    * Puts the current sketch into the given Memory if there is sufficient space, otherwise,
    * throws an error. This loads the memory in compact form based on the given compact flag, but
    * always sorts the base buffer whether compact or not.
@@ -557,7 +557,7 @@ public abstract class DoublesSketch {
    *                performance at the cost of slightly increased serialization time.
    */
   public void putMemory(final Memory dstMem, final boolean compact) {
-    final byte[] byteArr = toByteArray(true, compact);
+    final byte[] byteArr = toSortedByteArray(compact);
     final int arrLen = byteArr.length;
     final long memCap = dstMem.getCapacity();
     if (memCap < arrLen) {
