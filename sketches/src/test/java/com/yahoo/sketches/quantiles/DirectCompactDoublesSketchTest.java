@@ -13,13 +13,12 @@ import static org.testng.Assert.fail;
 
 import java.nio.ByteBuffer;
 
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.theta.Sketch;
 
 public class DirectCompactDoublesSketchTest {
   @BeforeMethod
@@ -132,6 +131,9 @@ public class DirectCompactDoublesSketchTest {
     print(s + LS);
   }
 
+  /**
+   * @param s value to print
+   */
   static void print(final String s) {
     //System.err.print(s); //disable here
   }

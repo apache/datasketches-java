@@ -5,9 +5,7 @@
 
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.quantiles.DoublesSketch.MIN_K;
 import static com.yahoo.sketches.quantiles.HeapUpdateDoublesSketch.checkPreLongsFlagsSerVer;
-import static com.yahoo.sketches.quantiles.PreambleUtil.COMBINED_BUFFER;
 import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.Util.LS;
@@ -545,7 +543,7 @@ public class HeapUpdateDoublesSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkMemTooSmall1() {
     Memory mem = new NativeMemory(new byte[7]);
-    HeapUpdateDoublesSketch qs2 = HeapUpdateDoublesSketch.heapifyInstance(mem);
+    HeapUpdateDoublesSketch.heapifyInstance(mem);
     fail();
     //qs2.getQuantile(0.5);
   }
@@ -826,7 +824,6 @@ public class HeapUpdateDoublesSketchTest {
     assertEquals(arr.length, DoublesSketch.getCompactStorageBytes(k, 1));
   }
 
-  @SuppressWarnings("deprecation")
   @Test
   public void checkKisTwoDeprecated() {
     int k = 2;

@@ -5,7 +5,6 @@
 
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.quantiles.DoublesSketch.MIN_K;
 import static org.testng.Assert.fail;
 
 import java.nio.ByteBuffer;
@@ -174,7 +173,7 @@ public class ReadOnlyMemoryTest {
     s1.update(1);
     s1.update(2);
     Memory mem = NativeMemory.wrap(ByteBuffer.wrap(s1.toByteArray(true)).asReadOnlyBuffer());
-    DoublesUnion u = DoublesUnionBuilder.wrap(mem);
+    DoublesUnionBuilder.wrap(mem);
     fail();
   }
 

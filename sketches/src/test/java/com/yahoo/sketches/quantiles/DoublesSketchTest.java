@@ -2,7 +2,6 @@ package com.yahoo.sketches.quantiles;
 
 import static org.testng.Assert.assertEquals;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.NativeMemory;
