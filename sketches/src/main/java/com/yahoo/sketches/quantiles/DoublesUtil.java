@@ -38,9 +38,32 @@ final class DoublesUtil {
     qsCopy.putMaxValue(sketch.getMaxValue());
     qsCopy.putBaseBufferCount(sketch.getBaseBufferCount());
     qsCopy.putBitPattern(sketch.getBitPattern());
-    final double[] combBuf = sketch.getCombinedBuffer();
-    qsCopy.putCombinedBuffer(Arrays.copyOf(combBuf, combBuf.length));
-    qsCopy.putCombinedBufferItemCapacity(sketch.getCombinedBufferItemCapacity());
+
+    if (sketch.isCompact()) {
+      final int combBufItems = Util.computeCombinedBufferItemCapacity(sketch.getK(), sketch.getN());
+      final double[] combBuf = new double[combBufItems];
+      qsCopy.putCombinedBuffer(combBuf);
+      qsCopy.putCombinedBufferItemCapacity(sketch.getCombinedBufferItemCapacity());
+      final DoublesSketchAccessor sketchAccessor = DoublesSketchAccessor.wrap(sketch);
+      final DoublesSketchAccessor copyAccessor = DoublesSketchAccessor.wrap(qsCopy);
+      // start with BB
+      copyAccessor.putArray(sketchAccessor.getArray(0, sketchAccessor.numItems()),
+              0, 0, sketchAccessor.numItems());
+
+      long bitPattern = sketch.getBitPattern();
+      for (int lvl = 0; bitPattern != 0L; ++lvl, bitPattern >>>= 1) {
+        if ((bitPattern & 1L) > 0L) {
+          sketchAccessor.setLevel(lvl);
+          copyAccessor.setLevel(lvl);
+          copyAccessor.putArray(sketchAccessor.getArray(0, sketchAccessor.numItems()),
+                  0, 0, sketchAccessor.numItems());
+        }
+      }
+    } else {
+      final double[] combBuf = sketch.getCombinedBuffer();
+      qsCopy.putCombinedBuffer(Arrays.copyOf(combBuf, combBuf.length));
+      qsCopy.putCombinedBufferItemCapacity(sketch.getCombinedBufferItemCapacity());
+    }
     return qsCopy;
   }
 

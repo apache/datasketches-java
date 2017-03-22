@@ -42,6 +42,37 @@ public class DoublesUtilTest {
   }
 
   @Test
+  public void checkCopyToHeap() {
+    final int k = 128;
+    final int n = 400;
+
+    // HeapUpdateDoublesSketch
+    final HeapUpdateDoublesSketch huds = (HeapUpdateDoublesSketch) buildAndLoadQS(k, n);
+    final HeapUpdateDoublesSketch target1 = DoublesUtil.copyToHeap(huds);
+    DoublesSketchTest.testSketchEquality(huds, target1);
+
+    // DirectUpdateDoublesSketch
+    final Memory mem1 = new NativeMemory(huds.toByteArray());
+    final DirectUpdateDoublesSketch duds = (DirectUpdateDoublesSketch) DoublesSketch.wrap(mem1);
+    final HeapUpdateDoublesSketch target2 = DoublesUtil.copyToHeap(duds);
+    DoublesSketchTest.testSketchEquality(huds, duds);
+    DoublesSketchTest.testSketchEquality(duds, target2);
+
+    // HeapCompactDoublesSketch
+    final CompactDoublesSketch hcds = huds.compact();
+    final HeapUpdateDoublesSketch target3  = DoublesUtil.copyToHeap(hcds);
+    DoublesSketchTest.testSketchEquality(huds, hcds);
+    DoublesSketchTest.testSketchEquality(hcds, target3);
+
+    // DirectCompactDoublesSketch
+    final Memory mem2 = new NativeMemory(hcds.toByteArray());
+    final DirectCompactDoublesSketch dcds = (DirectCompactDoublesSketch) DoublesSketch.wrap(mem2);
+    final HeapUpdateDoublesSketch target4 = DoublesUtil.copyToHeap(dcds);
+    DoublesSketchTest.testSketchEquality(huds, dcds);
+    DoublesSketchTest.testSketchEquality(dcds, target4);
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: " + this.getClass().getName());
   }
