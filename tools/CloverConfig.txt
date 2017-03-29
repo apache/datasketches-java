@@ -1,6 +1,7 @@
 Clover Config for Eclipse:
 
 At Project Level Properties:
+Clover:
 	Instrumentation:
 		Initstring: Default value
 		Output Folder: ...project output dir(s)
