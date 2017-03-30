@@ -113,7 +113,7 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
 
   /**
    * Sets the Hip Estimator option
-   * @param hipEstimator true if the Hip Estimater option is to be used
+   * @param hipEstimator true if the Hip Estimator option is to be used
    * @return this builder
    */
   public HllSketchBuilder setHipEstimator(final boolean hipEstimator) {
