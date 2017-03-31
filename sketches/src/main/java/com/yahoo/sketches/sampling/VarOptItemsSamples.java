@@ -137,7 +137,6 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
    * first getter call, copies data arrays from the sketch.
    * @return The number of samples contained in the sketch.
    */
-  @SuppressWarnings("unchecked")
   public T[] items() {
     loadArrays();
     return (sampleLists == null ? null : sampleLists.items);
@@ -149,7 +148,6 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
    * @param i An index into the list of samples
    * @return The sample at array position <tt>i</tt>
    */
-  @SuppressWarnings("unchecked")
   public T items(final int i) {
     loadArrays();
     return (sampleLists == null ? null : sampleLists.items[i]);
