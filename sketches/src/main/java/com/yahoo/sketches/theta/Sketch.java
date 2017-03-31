@@ -343,7 +343,7 @@ public abstract class Sketch {
     switch (family) {
       case QUICKSELECT: { //Hash Table structure
         if ((serVer == 3) && (preLongs == 3)) {
-          return DirectQuickSelectSketch.wrapInstance(srcMem, seed);
+          return DirectQuickSelectSketch.writableWrap(srcMem, seed);
         } else {
           throw new SketchesArgumentException(
               "Corrupted: " + family + " family image: must have SerVer = 3 and preLongs = 3");

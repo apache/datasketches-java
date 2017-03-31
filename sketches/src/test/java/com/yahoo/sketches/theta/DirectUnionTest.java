@@ -675,7 +675,7 @@ public class DirectUnionTest {
     assertEquals(familyID, Family.UNION.getID());
     assertEquals(preLongs, Family.UNION.getMaxPreLongs());
     PreambleUtil.insertPreLongs(memObj, memAdd, 3); //Corrupt with 3; correct value is 4
-    DirectQuickSelectSketch.wrapInstance(mem, Util.DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.writableWrap(mem, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -686,7 +686,7 @@ public class DirectUnionTest {
     println(setOp.toString());
     Memory mem2 = new NativeMemory(new byte[32]); //for just preamble
     mem.copy(0, mem2, 0, 32); //too small
-    DirectQuickSelectSketch.wrapInstance(mem2, Util.DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.writableWrap(mem2, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test
