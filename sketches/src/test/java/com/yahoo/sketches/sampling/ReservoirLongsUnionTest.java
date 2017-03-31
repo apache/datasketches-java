@@ -189,10 +189,11 @@ public class ReservoirLongsUnionTest {
   @Test
   public void checkDownsampledUpdate() {
     final int bigK = 1024;
+    final int bigN = 131072;
     final int smallK = 256;
-    final int n = 2048;
-    final ReservoirLongsSketch sketch1 = getBasicSketch(n, smallK);
-    final ReservoirLongsSketch sketch2 = getBasicSketch(2 * n, bigK);
+    final int smallN = 2048;
+    final ReservoirLongsSketch sketch1 = getBasicSketch(smallN, smallK);
+    final ReservoirLongsSketch sketch2 = getBasicSketch(bigN, bigK);
 
     final ReservoirLongsUnion rlu = ReservoirLongsUnion.getInstance(smallK);
     assertEquals(rlu.getMaxK(), smallK);

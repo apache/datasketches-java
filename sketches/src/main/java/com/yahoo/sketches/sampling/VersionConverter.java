@@ -10,7 +10,7 @@ import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractEncodedReservoirSize;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractPreLongs;
-import static com.yahoo.sketches.sampling.PreambleUtil.insertReservoirSize;
+import static com.yahoo.sketches.sampling.PreambleUtil.insertK;
 import static com.yahoo.sketches.sampling.PreambleUtil.insertSerVer;
 
 import com.yahoo.memory.Memory;
@@ -86,7 +86,7 @@ final class VersionConverter {
     // get encoded k, decode, write new value
     final short encodedK = extractEncodedReservoirSize(memObj, memAddr);
     final int k = ReservoirSize.decodeValue(encodedK);
-    insertReservoirSize(memObj, memAddr, k);
+    insertK(memObj, memAddr, k);
 
     // update serialization version
     insertSerVer(memObj, memAddr, SER_VER);
