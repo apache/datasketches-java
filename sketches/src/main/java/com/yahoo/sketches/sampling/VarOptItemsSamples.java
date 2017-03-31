@@ -32,7 +32,7 @@ import java.util.Iterator;
 public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.WeightedSample> {
 
   private final VarOptItemsSketch<T> sketch_;
-  private VarOptItemsSketch.Result sampleLists;
+  private VarOptItemsSketch<T>.Result sampleLists;
   private final long n_;
   private final double rWeight_;
   private final int h_;
@@ -113,7 +113,7 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
    *
    * @param clazz The class to use when creating the item array result
    */
-  public void setClass(final Class clazz) {
+  public void setClass(final Class<?> clazz) {
     if (sampleLists == null) {
       sampleLists = sketch_.getSamplesAsArrays(clazz);
     }
@@ -140,19 +140,19 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
   @SuppressWarnings("unchecked")
   public T[] items() {
     loadArrays();
-    return (sampleLists == null ? null : (T[]) sampleLists.items);
+    return (sampleLists == null ? null : sampleLists.items);
   }
 
   /**
    * Returns a single item from the samples contained in the sketch. Does not perform bounds
    * checking on the input. If this is the first getter call, copies data arrays from the sketch.
    * @param i An index into the list of samples
-   * @return The sample at array posiiton <tt>i</tt>
+   * @return The sample at array position <tt>i</tt>
    */
   @SuppressWarnings("unchecked")
   public T items(final int i) {
     loadArrays();
-    return (sampleLists == null ? null : (T) sampleLists.items[i]);
+    return (sampleLists == null ? null : sampleLists.items[i]);
   }
 
   /**
@@ -169,7 +169,7 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
    * Returns a single weight from the samples contained in the sketch. Does not perform bounds
    * checking on the input. If this is the first getter call, copies data arrays from the sketch.
    * @param i An index into the list of weights
-   * @return The weight at array posiiton <tt>i</tt>
+   * @return The weight at array position <tt>i</tt>
    */
   public double weights(final int i) {
     loadArrays();
