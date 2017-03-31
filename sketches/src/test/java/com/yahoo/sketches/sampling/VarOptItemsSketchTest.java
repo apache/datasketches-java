@@ -254,7 +254,7 @@ public class VarOptItemsSketchTest {
   public void checkCorruptSerializedWeight() {
     final VarOptItemsSketch<String> vis = VarOptItemsSketch.getInstance(24);
     for (int i = 1; i < 10; ++i) {
-      vis.update(Integer.toString(i), (double) i);
+      vis.update(Integer.toString(i), i);
     }
 
     final byte[] sketchBytes = vis.toByteArray(new ArrayOfStringsSerDe(), String.class);
@@ -428,7 +428,8 @@ public class VarOptItemsSketchTest {
     return sketch;
   }
 
-  private <T> void checkIfEqual(final VarOptItemsSketch<T> s1, final VarOptItemsSketch<T> s2) {
+  private static <T> void checkIfEqual(final VarOptItemsSketch<T> s1,
+                                       final VarOptItemsSketch<T> s2) {
     assertEquals(s1.getK(), s2.getK(), "Sketches have different values of k");
     assertEquals(s1.getNumSamples(), s2.getNumSamples(), "Sketches have different sample counts");
 

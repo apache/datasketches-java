@@ -64,7 +64,7 @@ public class VarOptItemsSamplesTest {
     sketch.update(4.0, 3.14159);
 
     try {
-      final VarOptItemsSamples samples = sketch.getSketchSamples();
+      final VarOptItemsSamples<Number> samples = sketch.getSketchSamples();
       // will try to create array based on type of first item in the array and fail
       samples.items();
       fail();
