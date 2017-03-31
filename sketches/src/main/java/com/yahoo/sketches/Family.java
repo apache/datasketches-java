@@ -50,7 +50,7 @@ public enum Family {
    * The are read-only and cannot be updated, but can participate in any of the Set Operations.
    * The compact sketches are never created directly with a constructor or Builder.
    * Instead they are created as a result of the compact()
-   * method of an UpdateSketch or as a result of a getResult() of a SetOperation.
+   * method of an UpdateSketch or as a result of a getSketchSamples() of a SetOperation.
    */
   COMPACT(3, "Compact", 1, 3),
 
@@ -101,7 +101,12 @@ public enum Family {
   /**
    * The reservoir sampling family of Union operations. (Not part of TSF.)
    */
-  RESERVOIR_UNION(12, "RESERVOIR_UNION", 1, 1);
+  RESERVOIR_UNION(12, "RESERVOIR_UNION", 1, 1),
+
+  /**
+   * The VarOpt family of sketches. (Not part of TSF.)
+   */
+  VAROPT(13, "VAROPT", 1, 4);
 
   private static final Map<Integer, Family> lookupID = new HashMap<Integer, Family>();
   private static final Map<String, Family> lookupFamName = new HashMap<String, Family>();

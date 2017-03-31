@@ -87,7 +87,7 @@ public class ReservoirItemsSketchTest {
     }
 
     bytes = new byte[8];
-    bytes[0] = 2; // only 1 preLong worth of data in bytearray
+    bytes[0] = 2; // only 1 preLong worth of items in bytearray
     mem = new NativeMemory(bytes);
     PreambleUtil.getAndCheckPreLongs(mem);
   }
@@ -284,7 +284,7 @@ public class ReservoirItemsSketchTest {
 
     final ResizeFactor rf = ResizeFactor.X8;
 
-    // no data
+    // no items
     try {
       ReservoirItemsSketch.<Byte>getInstance(null, 128, rf, 128);
       fail();
@@ -300,7 +300,7 @@ public class ReservoirItemsSketchTest {
       assertTrue(e.getMessage().contains("size less than 2"));
     }
 
-    // configured reservoir size smaller than data length
+    // configured reservoir size smaller than items length
     try {
       ReservoirItemsSketch.getInstance(data, 128, rf, 64);
       fail();
@@ -308,7 +308,7 @@ public class ReservoirItemsSketchTest {
       assertTrue(e.getMessage().contains("max size less than array length"));
     }
 
-    // too many items seen vs data length, full sketch
+    // too many items seen vs items length, full sketch
     try {
       ReservoirItemsSketch.getInstance(data, 512, rf, 256);
       fail();
@@ -316,7 +316,7 @@ public class ReservoirItemsSketchTest {
       assertTrue(e.getMessage().contains("too few samples"));
     }
 
-    // too many items seen vs data length, under-full sketch
+    // too many items seen vs items length, under-full sketch
     try {
       ReservoirItemsSketch.getInstance(data, 256, rf, 256);
       fail();

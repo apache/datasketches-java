@@ -161,7 +161,7 @@ public final class ReservoirLongsUnion {
     // can modify the sketch if we downsampled, otherwise may need to copy it
     final boolean isModifiable = (sketchIn != rls);
     if (gadget_ == null) {
-      createNewGadget(sketchIn, isModifiable);
+      createNewGadget(rls, isModifiable);
     } else {
       twoWayMergeInternal(rls, isModifiable);
     }
@@ -215,7 +215,7 @@ public final class ReservoirLongsUnion {
   }
 
   /**
-   * Returns a human-readable summary of the sketch, without data.
+   * Returns a human-readable summary of the sketch, without items.
    *
    * @return A string version of the sketch summary
    */
@@ -337,9 +337,8 @@ public final class ReservoirLongsUnion {
       twoWayMergeInternalWeighted(sketchIn);
     } else {
       // Use next next line for an assert/exception?
-      // gadget_.getImplicitSampleWeight() < sketchIn.getN() / ((double) (sketchIn.getK() - 1))) {
-      // implicit weights in gadget are light enough to merge into sketchIn
-      // merge into sketchIn, so swap first
+      // gadget_.getImplicitSampleWeight() < sketchIn.getN() / ((double) (sketchIn.getK() - 1)))
+      // implicit weights in gadget are light enough to merge into sketchIn, so swap first
       final ReservoirLongsSketch tmpSketch = gadget_;
       gadget_ = (isModifiable ? sketchIn : sketchIn.copy());
       twoWayMergeInternalWeighted(tmpSketch);

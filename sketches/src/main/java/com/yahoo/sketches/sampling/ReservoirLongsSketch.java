@@ -16,9 +16,9 @@ import static com.yahoo.sketches.sampling.PreambleUtil.RESERVOIR_SIZE_INT;
 import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractFlags;
-import static com.yahoo.sketches.sampling.PreambleUtil.extractItemsSeenCount;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractK;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractN;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractPreLongs;
-import static com.yahoo.sketches.sampling.PreambleUtil.extractReservoirSize;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractResizeFactor;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractSerVer;
 
@@ -61,7 +61,7 @@ public final class ReservoirLongsSketch {
   private int currItemsAlloc_;         // currently allocated array size
   private long itemsSeen_;             // number of items presented to sketch
   private final ResizeFactor rf_;      // resize factor
-  private long[] data_;                // stored sampling data
+  private long[] data_;                // stored sampling items
 
   /**
    * The basic constructor for building an empty sketch.
@@ -91,9 +91,9 @@ public final class ReservoirLongsSketch {
 
   /**
    * Creates a fully-populated sketch. Used internally to avoid extraneous array allocation when
-   * deserializing. Uses size of data array to as initial array allocation.
+   * deserializing. Uses size of items array to as initial array allocation.
    *
-   * @param data Reservoir data as long[]
+   * @param data Reservoir items as long[]
    * @param itemsSeen Number of items presented to the sketch so far
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @param k Maximum reservoir size
@@ -116,7 +116,7 @@ public final class ReservoirLongsSketch {
         || (itemsSeen < k && data.length < itemsSeen)) {
       throw new SketchesArgumentException("Instantiating sketch with too few samples. "
           + "Items seen: " + itemsSeen + ", max reservoir size: " + k + ", "
-          + "data array length: " + data.length);
+          + "items array length: " + data.length);
     }
 
     reservoirSize_ = k;
@@ -131,7 +131,7 @@ public final class ReservoirLongsSketch {
    * Used with copy().
    *
    * @param k Maximum reservoir capacity
-   * @param currItemsAlloc Current array size (assumed equal to data.length)
+   * @param currItemsAlloc Current array size (assumed equal to items.length)
    * @param itemsSeen Total items seen by this sketch
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @param data Data array backing the reservoir, will <em>not</em> be copied
@@ -205,8 +205,8 @@ public final class ReservoirLongsSketch {
       rf = ResizeFactor.getRF(extractResizeFactor(memObj, memAddr));
       serVer = extractSerVer(memObj, memAddr);
       isEmpty = (extractFlags(memObj, memAddr) & EMPTY_FLAG_MASK) != 0;
-      itemsSeen = (isEmpty ? 0 : extractItemsSeenCount(memObj, memAddr));
-      k = extractReservoirSize(memObj, memAddr);
+      itemsSeen = (isEmpty ? 0 : extractN(memObj, memAddr));
+      k = extractK(memObj, memAddr);
     }
 
     // Check values
@@ -223,7 +223,7 @@ public final class ReservoirLongsSketch {
         srcMem = VersionConverter.convertSketch1to2(srcMem);
         // refresh value of k based on updated memory
         // copy of srcMem if original was read only (direct or not) so extract always works
-        k = extractReservoirSize(srcMem.array(), srcMem.getCumulativeOffset(0L));
+        k = extractK(srcMem.array(), srcMem.getCumulativeOffset(0L));
       } else {
         throw new SketchesArgumentException(
                 "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
@@ -257,7 +257,7 @@ public final class ReservoirLongsSketch {
   /**
    * Thin wrapper around private constructor
    *
-   * @param data Reservoir data as long[]
+   * @param data Reservoir items as long[]
    * @param itemsSeen Number of items presented to the sketch so far
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @param k Maximum reservoir size
@@ -342,7 +342,7 @@ public final class ReservoirLongsSketch {
   }
 
   /**
-   * Returns a human-readable summary of the sketch, without data.
+   * Returns a human-readable summary of the sketch, without items.
    *
    * @return A string version of the sketch summary
    */
@@ -396,11 +396,11 @@ public final class ReservoirLongsSketch {
     } else {
       PreambleUtil.insertFlags(memObj, memAddr, 0);
     }
-    PreambleUtil.insertReservoirSize(memObj, memAddr, reservoirSize_);      // Bytes 4-7
+    PreambleUtil.insertK(memObj, memAddr, reservoirSize_);      // Bytes 4-7
 
     if (!empty) {
       // second preLong, only if non-empty
-      PreambleUtil.insertItemsSeenCount(memObj, memAddr, itemsSeen_);
+      PreambleUtil.insertN(memObj, memAddr, itemsSeen_);
 
       // insert the serialized samples, offset by the preamble size
       final int preBytes = preLongs << 3;
@@ -419,7 +419,7 @@ public final class ReservoirLongsSketch {
   }
 
   /**
-   * Useful during union operations to avoid copying the data array around if only updating a few
+   * Useful during union operations to avoid copying the items array around if only updating a few
    * points.
    *
    * @param pos The position from which to retrieve the element
@@ -497,7 +497,7 @@ public final class ReservoirLongsSketch {
   }
 
   /**
-   * Increases allocated sampling size by (adjusted) ResizeFactor and copies data from old sampling.
+   * Increases allocated sampling size by (adjusted) ResizeFactor and copies items from old sampling.
    */
   private void growReservoir() {
     currItemsAlloc_ = SamplingUtil.getAdjustedSize(reservoirSize_, currItemsAlloc_ * rf_.getValue());

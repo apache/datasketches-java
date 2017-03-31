@@ -33,6 +33,11 @@ final class SamplingUtil {
     return resizeTarget;
   }
 
+  static double nextDoubleExcludeZero() {
+    final double r = rand.nextDouble();
+    return r == 0.0 ? nextDoubleExcludeZero() : r;
+  }
+
   static int startingSubMultiple(final int lgTarget, final int lgRf, final int lgMin) {
     return (lgTarget <= lgMin)
             ? lgMin : (lgRf == 0) ? lgTarget
