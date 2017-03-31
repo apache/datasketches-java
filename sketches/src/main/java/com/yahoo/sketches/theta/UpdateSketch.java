@@ -14,7 +14,7 @@ import com.yahoo.sketches.ResizeFactor;
 
 /**
  * The parent class for the  Update Sketch families, such as QuickSelect and Alpha.
- * The primary task of an Upeate Sketch is to consider datums presented via the update() methods
+ * The primary task of an Update Sketch is to consider datums presented via the update() methods
  * for inclusion in its internal cache. This is the sketch building process.
  *
  * @author Lee Rhodes
@@ -162,7 +162,7 @@ public abstract class UpdateSketch extends Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final String datum) {
-    if (datum == null || datum.isEmpty()) {
+    if ((datum == null) || datum.isEmpty()) {
       return RejectedNullOrEmpty;
     }
     final byte[] data = datum.getBytes(UTF_8);

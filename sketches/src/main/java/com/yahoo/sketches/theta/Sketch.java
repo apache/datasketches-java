@@ -177,7 +177,7 @@ public abstract class Sketch {
     final boolean updateSketch = (this instanceof UpdateSketch);
 
     //boolean direct = isDirect();
-    final long thetaLong = this.getThetaLong();
+    final long thetaLong = getThetaLong();
     final int curCount = this.getRetainedEntries(true);
 
     if (updateSketch) {
@@ -218,7 +218,7 @@ public abstract class Sketch {
       final double thetaDbl = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
       final String thetaHex = zeroPad(Long.toHexString(thetaLong), 16);
       final String thisSimpleName = this.getClass().getSimpleName();
-      final int seedHash = this.getSeedHash();
+      final int seedHash = getSeedHash();
 
       sb.append(LS);
       sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
@@ -297,7 +297,7 @@ public abstract class Sketch {
   /**
    * Wrap takes the sketch image in Memory and refers to it directly. There is no data copying onto
    * the java heap.  Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
-   * been explicity stored as direct objects can be wrapped. This method assumes the
+   * been explicitly stored as direct objects can be wrapped. This method assumes the
    * {@link Util#DEFAULT_UPDATE_SEED}.
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
    * @param srcMem an image of a Sketch where the image seed hash matches the default seed hash.
@@ -311,7 +311,7 @@ public abstract class Sketch {
   /**
    * Wrap takes the sketch image in Memory and refers to it directly. There is no data copying onto
    * the java heap.  Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
-   * been explicity stored as direct objects can be wrapped.
+   * been explicitly stored as direct objects can be wrapped.
    * An attempt to "wrap" earlier version sketches will result in a "heapified", normal
    * Java Heap version of the sketch where all data will be copied to the heap.
    * @param srcMem an image of a Sketch where the image seed hash matches the given seed hash.
