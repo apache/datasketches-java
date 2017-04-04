@@ -14,4 +14,17 @@ final class DenseCompressedFieldsFactory implements FieldsFactory {
   public Fields make(final Preamble preamble) {
     return new OnHeapCompressedFields(preamble);
   }
+
+  @Override
+  public int intoByteArray(byte[] bytes, int offset)
+  {
+    bytes[offset] = FieldsFactories.DENSE_COMPRESSED;
+    return offset + 1;
+  }
+
+  @Override
+  public int numBytesToSerialize()
+  {
+    return 1;
+  }
 }

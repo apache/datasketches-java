@@ -44,6 +44,28 @@ final class OnHeapImmutableCompactFields implements Fields {
     return new OnHeapImmutableCompactFields(fields.getPreamble(), theFields);
   }
 
+  public static OnHeapImmutableCompactFields fromBytes(Preamble preamble, byte[] bytes, int offset, int numBytes) {
+    if (bytes[offset] != Fields.SORTED_SPARSE_VERSION) {
+      throw new IllegalArgumentException(
+          String.format(
+              "Can only deserialize the sorted, sparse representation[%d] got [%d]",
+              Fields.SORTED_SPARSE_VERSION,
+              bytes[offset]
+          )
+      );
+    }
+
+    Memory mem = new NativeMemory(bytes);
+    int[] fields = new int[(numBytes - 1) / 4];
+    int dataOffset = offset + 1;
+
+    for (int i = 0; i < fields.length; ++i) {
+      fields[i] = mem.getInt(dataOffset + i<<2);
+    }
+
+    return new OnHeapImmutableCompactFields(preamble, fields);
+  }
+
   private final Preamble preamble;
   private final int[] fields;
 

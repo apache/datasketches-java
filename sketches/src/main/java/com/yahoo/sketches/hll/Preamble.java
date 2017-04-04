@@ -105,15 +105,7 @@ public final class Preamble {
       throw new SketchesArgumentException("logK is greater than a byte, make it smaller");
     }
 
-    final byte flags = new PreambleFlags.Builder()
-        .setBigEndian(false)
-        .setReadOnly(true)
-        .setEmpty(true)
-        .setSharedPreambleMode(true)
-        .setSparseMode(true)
-        .setUnionMode(true)
-        .setEightBytePadding(false)
-        .build();
+    final byte flags = 0x0;
 
     final short seedHash = computeSeedHash(Util.DEFAULT_UPDATE_SEED);
     return new Builder()
@@ -202,6 +194,10 @@ public final class Preamble {
    */
   public byte getFlags() {
     return flags;
+  }
+
+  public boolean isHip() {
+    return (flags & 0x1) == 1;
   }
 
   /**

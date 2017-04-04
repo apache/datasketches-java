@@ -80,4 +80,15 @@ final class HipHllSketch extends HllSketch {
   private double eps(final double numStdDevs) {
     return numStdDevs * HIP_REL_ERROR_NUMER / Math.sqrt(numBuckets());
   }
+
+  @Override
+  public byte[] toByteArray()
+  {
+    final byte[] retVal = super.toByteArray();
+
+    // Override isHip flag on preamble
+    retVal[5] |= 0x1;
+
+    return retVal;
+  }
 }

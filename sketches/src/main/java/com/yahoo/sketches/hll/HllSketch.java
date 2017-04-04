@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.hll;
 
+import com.yahoo.memory.NativeMemory;
+
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -24,6 +26,37 @@ public class HllSketch {
    */
   public static HllSketchBuilder builder() {
     return new HllSketchBuilder();
+  }
+
+  public static HllSketch fromBytes(byte[] bytes) {
+    return fromBytes(bytes, 0, bytes.length);
+  }
+
+  public static HllSketch fromBytes(byte[] bytes, int startOffset, int endOffset) {
+    final Preamble preamble = Preamble.fromMemory(new NativeMemory(bytes));
+    return fromBytes(preamble, bytes, preamble.getPreambleLongs() << 3, endOffset);
+  }
+
+  public static HllSketch fromBytes(Preamble preamble, byte[] bytes, int startOffset, int endOffset) {
+    final Fields fields;
+    switch (bytes[startOffset]) {
+      case Fields.NAIVE_DENSE_VERSION:
+        fields = OnHeapFields.fromBytes(preamble, bytes, startOffset, endOffset);
+        break;
+      case Fields.HASH_SPARSE_VERSION:
+        fields = OnHeapHashFields.fromBytes(preamble, bytes, startOffset, endOffset);
+        break;
+      case Fields.SORTED_SPARSE_VERSION:
+        fields = OnHeapImmutableCompactFields.fromBytes(preamble, bytes, startOffset, endOffset);
+        break;
+      case Fields.COMPRESSED_DENSE_VERSION:
+        fields = OnHeapCompressedFields.fromBytes(preamble, bytes, startOffset, endOffset);
+        break;
+      default:
+        throw new IllegalArgumentException(String.format("Unknown field type[%d]", bytes[startOffset]));
+    }
+
+    return preamble.isHip() ? new HipHllSketch(fields) : new HllSketch(fields);
   }
 
   private Fields.UpdateCallback updateCallback;

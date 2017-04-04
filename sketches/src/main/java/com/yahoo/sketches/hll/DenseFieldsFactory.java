@@ -14,4 +14,17 @@ final class DenseFieldsFactory implements FieldsFactory {
   public Fields make(final Preamble preamble) {
     return new OnHeapFields(preamble);
   }
+
+  @Override
+  public int intoByteArray(byte[] bytes, int offset)
+  {
+    bytes[offset] = FieldsFactories.DENSE;
+    return offset + 1;
+  }
+
+  @Override
+  public int numBytesToSerialize()
+  {
+    return 1;
+  }
 }

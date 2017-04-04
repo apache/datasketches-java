@@ -109,7 +109,7 @@ public class FieldsTest
       Collections.shuffle(valsToInsert, rand);
 
       for (Byte val : valsToInsert) {
-        if (bucket == 351 && val == 25) {
+        if (bucket == 1023 && val == 63) {
           println(""+bucket);
         }
         fields = fields.updateBucket(bucket, val, cb);

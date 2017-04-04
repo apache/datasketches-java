@@ -5,28 +5,79 @@
 
 package com.yahoo.sketches.hll;
 
+import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * @author Kevin Lang
  */
 final class OnHeapHashFields implements Fields {
+  public static OnHeapHashFields fromBytes(Preamble preamble, byte[] bytes, int offset, int numBytes) {
+    if (bytes[offset] == Fields.HASH_SPARSE_VERSION) {
+      throw new IllegalArgumentException(
+          String.format(
+              "Can only deserialize the hashed representation[%d] got [%d]",
+              Fields.HASH_SPARSE_VERSION,
+              bytes[offset]
+          )
+      );
+    }
+
+    int bytesRead = 1;
+    NativeMemory mem = new NativeMemory(bytes);
+
+    final int switchToDenseSize = mem.getInt(offset + bytesRead);
+    bytesRead += 4;
+
+    final int growthBound = mem.getInt(offset + bytesRead);
+    bytesRead += 4;
+
+    final int numBytesForFieldsFactory = mem.getInt(offset + bytesRead);
+    bytesRead += 4;
+
+    FieldsFactory denseFactory = FieldsFactories.fromBytes(
+        bytes, offset + bytesRead, offset + bytesRead + numBytesForFieldsFactory
+    );
+    bytesRead += numBytesForFieldsFactory;
+
+    final OnHeapHash hasher = OnHeapHash.fromBytes(bytes, offset, numBytes - bytesRead);
+
+    return new OnHeapHashFields(preamble, denseFactory, switchToDenseSize, hasher, growthBound);
+  }
+
   private final Preamble preamble;
   private final FieldsFactory denseFactory;
   private final int switchToDenseSize;
-
   private final OnHeapHash hasher;
 
   private int growthBound;
 
-  public OnHeapHashFields(final Preamble preamble, final int startSize, final int switchToDenseSize,
-      final FieldsFactory denseFactory) {
+  public OnHeapHashFields(
+      final Preamble preamble,
+      final int startSize,
+      final int switchToDenseSize,
+      final FieldsFactory denseFactory
+  ) {
     this.preamble = preamble;
     this.denseFactory = denseFactory;
     this.hasher = new OnHeapHash(startSize);
     this.switchToDenseSize = switchToDenseSize;
 
     this.growthBound = 3 * (startSize >>> 2);
+  }
+
+  private OnHeapHashFields(
+      final Preamble preamble,
+      final FieldsFactory denseFactory,
+      final int switchToDenseSize,
+      final OnHeapHash hasher,
+      final int growthBound
+  ) {
+    this.preamble = preamble;
+    this.denseFactory = denseFactory;
+    this.switchToDenseSize = switchToDenseSize;
+    this.hasher = hasher;
+    this.growthBound = growthBound;
   }
 
   @Override
@@ -58,7 +109,7 @@ final class OnHeapHashFields implements Fields {
   }
 
   @Override
-  public int intoByteArray(final byte[] array, final int offset) {
+  public int intoByteArray(final byte[] array, int offset) {
     final int numBytesNeeded = numBytesToSerialize();
     if (array.length - offset < numBytesNeeded) {
       throw new SketchesArgumentException(
@@ -66,13 +117,25 @@ final class OnHeapHashFields implements Fields {
       );
     }
 
-    array[offset] = Fields.HASH_SPARSE_VERSION;
-    return hasher.intoByteArray(array, offset + 1);
+    array[offset++] = Fields.HASH_SPARSE_VERSION;
+
+    NativeMemory mem = new NativeMemory(array);
+    offset = Serde.putInt(mem, offset, switchToDenseSize);
+    offset = Serde.putInt(mem, offset, growthBound);
+    offset = Serde.putInt(mem, offset, denseFactory.numBytesToSerialize());
+    offset = denseFactory.intoByteArray(array, offset);
+
+    return hasher.intoByteArray(array, offset);
   }
 
   @Override
   public int numBytesToSerialize() {
-    return 1 + hasher.numBytesToSerialize();
+    return 1 + // type
+           4 + // switchToDenseSize
+           4 + // denseFactoryNumBytes
+           denseFactory.numBytesToSerialize() +
+           4 + // growthBound
+           hasher.numBytesToSerialize();
   }
 
   @Override

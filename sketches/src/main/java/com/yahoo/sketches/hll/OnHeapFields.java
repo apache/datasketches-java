@@ -5,18 +5,41 @@
 
 package com.yahoo.sketches.hll;
 
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.SketchesArgumentException;
+
+import java.util.Arrays;
 
 /**
  * @author Kevin Lang
  */
 final class OnHeapFields implements Fields {
+  public static OnHeapFields fromBytes(Preamble preamble, byte[] bytes, int offset, int endOffset) {
+    if (bytes[offset] == Fields.NAIVE_DENSE_VERSION) {
+      throw new IllegalArgumentException(
+          String.format(
+              "Can only deserialize the uncompressed dense representation[%d] got [%d]",
+              Fields.NAIVE_DENSE_VERSION,
+              bytes[offset]
+          )
+      );
+    }
+
+    return new OnHeapFields(preamble, Arrays.copyOfRange(bytes, offset + 1, endOffset));
+  }
+
   private final Preamble preamble;
   private final byte[] buckets;
 
   public OnHeapFields(final Preamble preamble) {
     this.preamble = preamble;
     buckets = new byte[preamble.getConfigK()];
+  }
+
+  private OnHeapFields(final Preamble preamble, byte[] buckets) {
+    this.preamble = preamble;
+    this.buckets = buckets;
   }
 
   @Override
