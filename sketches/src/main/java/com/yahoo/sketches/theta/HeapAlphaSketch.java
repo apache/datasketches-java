@@ -12,21 +12,21 @@ import static com.yahoo.sketches.Util.RESIZE_THRESHOLD;
 import static com.yahoo.sketches.theta.PreambleUtil.BIG_ENDIAN_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.LG_RESIZE_FACTOR_BIT;
 import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.P_FLOAT;
 import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
+import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
-import static com.yahoo.sketches.theta.PreambleUtil.extractCurCount;
-import static com.yahoo.sketches.theta.PreambleUtil.extractFamilyID;
-import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
-import static com.yahoo.sketches.theta.PreambleUtil.extractLgArrLongs;
-import static com.yahoo.sketches.theta.PreambleUtil.extractLgNomLongs;
-import static com.yahoo.sketches.theta.PreambleUtil.extractLgResizeFactor;
-import static com.yahoo.sketches.theta.PreambleUtil.extractP;
-import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
-import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
-import static com.yahoo.sketches.theta.PreambleUtil.extractSerVer;
-import static com.yahoo.sketches.theta.PreambleUtil.extractThetaLong;
+import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
 import static com.yahoo.sketches.theta.PreambleUtil.getMemBytes;
 import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountIncremented;
 import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountNotIncremented;
@@ -37,6 +37,7 @@ import static java.lang.Math.min;
 import static java.lang.Math.sqrt;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
@@ -115,20 +116,18 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    * @return instance of this sketch
    */
   static HeapAlphaSketch heapifyInstance(final Memory srcMem, final long seed) {
-    final Object memObj = srcMem.array(); //may be null
-    final long memAdd = srcMem.getCumulativeOffset(0L);
-
-    final int preambleLongs = extractPreLongs(memObj, memAdd);                         //byte 0
-    final ResizeFactor myRF = ResizeFactor.getRF(extractLgResizeFactor(memObj, memAdd)); //byte 0
-    final int serVer = extractSerVer(memObj, memAdd);                                  //byte 1
-    final int familyID = extractFamilyID(memObj, memAdd);                              //byte 2
-    final int lgNomLongs = extractLgNomLongs(memObj, memAdd);                          //byte 3
-    final int lgArrLongs = extractLgArrLongs(memObj, memAdd);                          //byte 4
-    final int flags = extractFlags(memObj, memAdd);                                    //byte 5
-    final short seedHash = (short)extractSeedHash(memObj, memAdd);                     //byte 6,7
-    final int curCount = extractCurCount(memObj, memAdd);                              //bytes 8-11
-    final float p = extractP(memObj, memAdd);                                          //bytes 12-15
-    final long thetaLong = extractThetaLong(memObj, memAdd);                           //bytes 16-23
+    final int preambleLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F; //byte 0
+    final ResizeFactor myRF = ResizeFactor.getRF((
+        srcMem.getByte(PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT));   //byte 0
+    final int serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;               //byte 1
+    final int familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;              //byte 2
+    final int lgNomLongs = srcMem.getByte(LG_NOM_LONGS_BYTE) & 0XFF;      //byte 3
+    final int lgArrLongs = srcMem.getByte(LG_ARR_LONGS_BYTE) & 0XFF;      //byte 4
+    final int flags = srcMem.getByte(FLAGS_BYTE) & 0XFF;                  //byte 5
+    final short seedHash = srcMem.getShort(SEED_HASH_SHORT);              //byte 6,7
+    final int curCount = srcMem.getInt(RETAINED_ENTRIES_INT);             //bytes 8-11
+    final float p = srcMem.getFloat(P_FLOAT);                             //bytes 12-15
+    final long thetaLong = srcMem.getLong(THETA_LONG);                    //bytes 16-23
 
     final Family family = Family.idToFamily(familyID);
     if (family.equals(Family.ALPHA)) {
@@ -299,7 +298,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   }
 
   @Override
-  Memory getMemory() {
+  WritableMemory getMemory() {
     return null;
   }
 

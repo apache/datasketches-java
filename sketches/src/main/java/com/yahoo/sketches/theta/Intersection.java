@@ -5,7 +5,7 @@
 
 package com.yahoo.sketches.theta;
 
-import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * The API for intersection operations
@@ -37,7 +37,7 @@ public interface Intersection {
    *
    * @return the result of this operation as a CompactSketch of the chosen form
    */
-  CompactSketch getResult(boolean dstOrdered, Memory dstMem);
+  CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
 
   /**
    * Gets the result of this operation as an ordered CompactSketch on the Java heap.

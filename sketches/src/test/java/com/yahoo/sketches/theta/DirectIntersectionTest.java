@@ -16,7 +16,7 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
@@ -41,7 +41,7 @@ public class DirectIntersectionTest {
 
     int memBytes = getMaxIntersectionBytes(k);
     byte[] memArr = new byte[memBytes];
-    Memory iMem = new NativeMemory(memArr);
+    WritableMemory iMem = WritableMemory.wrap(memArr);
 
     inter = SetOperation.builder().initMemory(iMem).buildIntersection();
 
@@ -61,7 +61,7 @@ public class DirectIntersectionTest {
     boolean compact = true;
     int bytes = rsk1.getCurrentBytes(compact);
     byte[] byteArray = new byte[bytes];
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
 
     rsk1 = inter.getResult(!ordered, mem);
     assertEquals(rsk1.getEstimate(), 0.0);
@@ -84,7 +84,7 @@ public class DirectIntersectionTest {
 
     int memBytes = getMaxIntersectionBytes(k);
     byte[] memArr = new byte[memBytes];
-    Memory iMem = new NativeMemory(memArr);
+    WritableMemory iMem = WritableMemory.wrap(memArr);
 
     inter = SetOperation.builder().initMemory(iMem).buildIntersection();
     inter.update(usk1);
@@ -102,7 +102,7 @@ public class DirectIntersectionTest {
     boolean compact = true;
     int bytes = rsk1.getCurrentBytes(compact);
     byte[] byteArray = new byte[bytes];
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
 
     rsk1 = inter.getResult(!ordered, mem); //executed twice to fully exercise the internal state machine
     assertEquals(rsk1.getEstimate(), (double)k);
@@ -125,7 +125,7 @@ public class DirectIntersectionTest {
 
     int memBytes = getMaxIntersectionBytes(k);
     byte[] memArr = new byte[memBytes];
-    Memory iMem = new NativeMemory(memArr);
+    WritableMemory iMem = WritableMemory.wrap(memArr);
 
     CompactSketch csk1 = usk1.compact(true, null);
     CompactSketch csk2 = usk2.compact(true, null);
@@ -148,7 +148,7 @@ public class DirectIntersectionTest {
 
     int memBytes = getMaxIntersectionBytes(k);
     byte[] memArr = new byte[memBytes];
-    Memory iMem = new NativeMemory(memArr);
+    WritableMemory iMem = WritableMemory.wrap(memArr);
 
     inter = SetOperation.builder().initMemory(iMem).buildIntersection();
     assertFalse(inter.hasResult());
@@ -166,7 +166,7 @@ public class DirectIntersectionTest {
 
     int memBytes = getMaxIntersectionBytes(k);
     byte[] memArr = new byte[memBytes];
-    Memory iMem = new NativeMemory(memArr);
+    WritableMemory iMem = WritableMemory.wrap(memArr);
 
     //1st call = null
     inter = SetOperation.builder().initMemory(iMem).buildIntersection();
@@ -207,7 +207,7 @@ public class DirectIntersectionTest {
 
     int memBytes = getMaxIntersectionBytes(k);
     byte[] memArr = new byte[memBytes];
-    Memory iMem = new NativeMemory(memArr);
+    WritableMemory iMem = WritableMemory.wrap(memArr);
 
     //1st call = null
     inter = SetOperation.builder().initMemory(iMem).buildIntersection();
@@ -254,7 +254,7 @@ public class DirectIntersectionTest {
 
     int memBytes = getMaxIntersectionBytes(k);
     byte[] memArr = new byte[memBytes];
-    Memory iMem = new NativeMemory(memArr);
+    WritableMemory iMem = WritableMemory.wrap(memArr);
 
     //1st call = empty
     sk1 = UpdateSketch.builder().build(); //empty
@@ -304,7 +304,7 @@ public class DirectIntersectionTest {
 
     int memBytes = getMaxIntersectionBytes(k);
     byte[] memArr = new byte[memBytes];
-    Memory iMem = new NativeMemory(memArr);
+    WritableMemory iMem = WritableMemory.wrap(memArr);
 
     //1st call = valid
     sk1 = UpdateSketch.builder().build();
@@ -371,7 +371,7 @@ public class DirectIntersectionTest {
 
     int memBytes = getMaxIntersectionBytes(k);
     byte[] memArr = new byte[memBytes];
-    Memory iMem = new NativeMemory(memArr);
+    WritableMemory iMem = WritableMemory.wrap(memArr);
 
     //1st call = valid
     sk1 = UpdateSketch.builder().build(k);
@@ -405,7 +405,7 @@ public class DirectIntersectionTest {
 
     int reqBytes = getMaxIntersectionBytes(k);
     byte[] memArr = new byte[reqBytes];
-    Memory iMem = new NativeMemory(memArr);
+    WritableMemory iMem = WritableMemory.wrap(memArr);
 
     //1st call = valid
     sk1 = UpdateSketch.builder().build(2*k); // bigger sketch
@@ -428,7 +428,7 @@ public class DirectIntersectionTest {
 
     int memBytes = getMaxIntersectionBytes(k);
     byte[] memArr = new byte[memBytes];
-    Memory iMem = new NativeMemory(memArr);
+    WritableMemory iMem = WritableMemory.wrap(memArr);
 
     //1st call = valid
     sk1 = UpdateSketch.builder().build(k);
@@ -450,7 +450,7 @@ public class DirectIntersectionTest {
     println("Est: "+est);
 
     byte[] byteArray = inter.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    Memory mem = Memory.wrap(byteArray);
     Intersection inter2 = (Intersection) SetOperation.heapify(mem);
     comp2 = inter2.getResult(false, null);
     est2 = comp2.getEstimate();
@@ -465,7 +465,7 @@ public class DirectIntersectionTest {
 
     int memBytes = getMaxIntersectionBytes(k);
     byte[] memArr = new byte[memBytes];
-    Memory iMem = new NativeMemory(memArr);
+    WritableMemory iMem = WritableMemory.wrap(memArr);
 
     inter1 = SetOperation.builder().initMemory(iMem).buildIntersection(); //virgin
     inter2 = Sketches.wrapIntersection(iMem);
@@ -491,7 +491,7 @@ public class DirectIntersectionTest {
 
     int memBytes = getMaxIntersectionBytes(k);
     byte[] memArr = new byte[memBytes];
-    Memory iMem = new NativeMemory(memArr);
+    WritableMemory iMem = WritableMemory.wrap(memArr);
 
     inter1 = SetOperation.builder().initMemory(iMem).buildIntersection(); //virgin
     inter2 = Sketches.wrapIntersection(iMem);
@@ -519,7 +519,7 @@ public class DirectIntersectionTest {
 
     int memBytes = getMaxIntersectionBytes(k);
     byte[] memArr = new byte[memBytes];
-    Memory iMem = new NativeMemory(memArr);
+    WritableMemory iMem = WritableMemory.wrap(memArr);
 
     SetOperation.builder().initMemory(iMem).buildIntersection();
   }
@@ -532,7 +532,7 @@ public class DirectIntersectionTest {
 
     int memBytes = getMaxIntersectionBytes(k/2);
     byte[] memArr = new byte[memBytes];
-    Memory iMem = new NativeMemory(memArr);
+    WritableMemory iMem = WritableMemory.wrap(memArr);
 
     UpdateSketch usk1 = UpdateSketch.builder().build(k);
 
@@ -550,11 +550,11 @@ public class DirectIntersectionTest {
 
     int memBytes = getMaxIntersectionBytes(k);
     byte[] memArr = new byte[memBytes];
-    Memory iMem = new NativeMemory(memArr);
+    WritableMemory iMem = WritableMemory.wrap(memArr);
 
     Intersection inter1 = SetOperation.builder().initMemory(iMem).buildIntersection(); //virgin
     byte[] byteArray = inter1.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     //corrupt:
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 2);//RF not used = 0
     Sketches.wrapIntersection(mem);
@@ -567,11 +567,11 @@ public class DirectIntersectionTest {
 
     int memBytes = getMaxIntersectionBytes(k);
     byte[] memArr = new byte[memBytes];
-    Memory iMem = new NativeMemory(memArr);
+    WritableMemory iMem = WritableMemory.wrap(memArr);
 
     inter1 = SetOperation.builder().initMemory(iMem).buildIntersection(); //virgin
     byte[] byteArray = inter1.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     //corrupt:
     mem.putByte(SER_VER_BYTE, (byte) 2);
     Sketches.wrapIntersection(mem); //throws in SetOperations
@@ -584,7 +584,7 @@ public class DirectIntersectionTest {
 
     union = SetOperation.builder().buildUnion(k);
     byte[] byteArray = union.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     Sketches.wrapIntersection(mem);
   }
 
@@ -599,7 +599,7 @@ public class DirectIntersectionTest {
 
     int memBytes = getMaxIntersectionBytes(k);
     byte[] memArr1 = new byte[memBytes];
-    Memory iMem = new NativeMemory(memArr1);
+    WritableMemory iMem = WritableMemory.wrap(memArr1);
 
     //1st call = valid
     sk1 = UpdateSketch.builder().build(k);
@@ -611,7 +611,7 @@ public class DirectIntersectionTest {
     inter.update(compSkIn1);
 
     byte[] memArr2 = inter.toByteArray();
-    Memory srcMem = new NativeMemory(memArr2);
+    WritableMemory srcMem = WritableMemory.wrap(memArr2);
     inter2 = Sketches.wrapIntersection(srcMem);
 
     //2nd call = valid intersecting
@@ -627,7 +627,7 @@ public class DirectIntersectionTest {
     println("Est: "+est);
 
     byte[] memArr3 = inter2.toByteArray();
-    Memory srcMem2 = new NativeMemory(memArr3);
+    WritableMemory srcMem2 = WritableMemory.wrap(memArr3);
     inter3 = Sketches.wrapIntersection(srcMem2);
     resultComp2 = inter3.getResult(false, null);
     est2 = resultComp2.getEstimate();
@@ -641,14 +641,14 @@ public class DirectIntersectionTest {
   @Test
   public void checkDefaultMinSize() {
     int k = 32;
-    NativeMemory mem = new NativeMemory(new byte[k*8 + PREBYTES]);
+    WritableMemory mem = WritableMemory.wrap(new byte[k*8 + PREBYTES]);
     IntersectionImpl.initNewDirectInstance(DEFAULT_UPDATE_SEED, mem);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkExceptionMinSize() {
     int k = 16;
-    NativeMemory mem = new NativeMemory(new byte[k*8 + PREBYTES]);
+    WritableMemory mem = WritableMemory.wrap(new byte[k*8 + PREBYTES]);
     IntersectionImpl.initNewDirectInstance(DEFAULT_UPDATE_SEED, mem);
   }
 
@@ -659,7 +659,7 @@ public class DirectIntersectionTest {
 
     int memBytes = getMaxIntersectionBytes(k);
     byte[] memArr = new byte[memBytes];
-    Memory iMem = new NativeMemory(memArr);
+    WritableMemory iMem = WritableMemory.wrap(memArr);
 
     Intersection inter = Sketches.setOperationBuilder().initMemory(iMem).buildIntersection();
     inter.update(sk);
@@ -671,31 +671,31 @@ public class DirectIntersectionTest {
   public void checkFamily() {
     //cheap trick
     int k = 16;
-    Memory mem = new NativeMemory(new byte[k*16 + PREBYTES]);
-    IntersectionImpl impl = IntersectionImpl.initNewDirectInstance(DEFAULT_UPDATE_SEED, mem);
+    WritableMemory mem = WritableMemory.wrap(new byte[k*16 + PREBYTES]);
+    IntersectionImplR impl = IntersectionImpl.initNewDirectInstance(DEFAULT_UPDATE_SEED, mem);
     assertEquals(impl.getFamily(), Family.INTERSECTION);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkExceptions1() {
     int k = 16;
-    Memory mem = new NativeMemory(new byte[k*16 + PREBYTES]);
+    WritableMemory mem = WritableMemory.wrap(new byte[k*16 + PREBYTES]);
     IntersectionImpl.initNewDirectInstance(DEFAULT_UPDATE_SEED, mem);
     //corrupt SerVer
     mem.putByte(PreambleUtil.SER_VER_BYTE, (byte) 2);
-    IntersectionImpl.wrapInstance(mem, DEFAULT_UPDATE_SEED);
+    IntersectionImplR.wrapInstance(mem, DEFAULT_UPDATE_SEED);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkExceptions2() {
     int k = 16;
-    Memory mem = new NativeMemory(new byte[k*16 + PREBYTES]);
+    WritableMemory mem = WritableMemory.wrap(new byte[k*16 + PREBYTES]);
     IntersectionImpl.initNewDirectInstance(DEFAULT_UPDATE_SEED, mem);
     //mem now has non-empty intersection
     //corrupt empty and CurCount
     mem.setBits(PreambleUtil.FLAGS_BYTE, (byte) PreambleUtil.EMPTY_FLAG_MASK);
     mem.putInt(PreambleUtil.RETAINED_ENTRIES_INT, 2);
-    IntersectionImpl.wrapInstance(mem, DEFAULT_UPDATE_SEED);
+    IntersectionImplR.wrapInstance(mem, DEFAULT_UPDATE_SEED);
   }
 
   //Check Alex's bug intersecting 2 direct full sketches with only overlap of 2
@@ -710,9 +710,9 @@ public class DirectIntersectionTest {
       sk1.update(i);
       sk2.update(k-2 +i); //overlap by 2
     }
-    Memory memIn1 = new NativeMemory(new byte[memBytes]);
-    Memory memIn2 = new NativeMemory(new byte[memBytes]);
-    Memory memOut = new NativeMemory(new byte[memBytes]);
+    WritableMemory memIn1 = WritableMemory.wrap(new byte[memBytes]);
+    WritableMemory memIn2 = WritableMemory.wrap(new byte[memBytes]);
+    WritableMemory memOut = WritableMemory.wrap(new byte[memBytes]);
     CompactSketch csk1 = sk1.compact(true, memIn1);
     CompactSketch csk2 = sk2.compact(true, memIn2);
     Intersection inter = Sketches.setOperationBuilder().initMemory(memOut).buildIntersection();

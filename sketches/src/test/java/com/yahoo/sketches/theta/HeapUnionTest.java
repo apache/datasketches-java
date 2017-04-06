@@ -16,7 +16,7 @@ import java.util.Arrays;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -110,7 +110,7 @@ public class HeapUnionTest {
 
     testAllCompactForms(union, u, 0.0);
 
-    Union union2 = (Union)SetOperation.heapify(new NativeMemory(union.toByteArray()));
+    Union union2 = (Union)SetOperation.heapify(Memory.wrap(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.0);
   }
@@ -134,7 +134,7 @@ public class HeapUnionTest {
 
     testAllCompactForms(union, u, 0.05);
 
-    Union union2 = (Union)SetOperation.heapify(new NativeMemory(union.toByteArray()));
+    Union union2 = (Union)SetOperation.heapify(Memory.wrap(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.05);
   }
@@ -165,7 +165,7 @@ public class HeapUnionTest {
 
     testAllCompactForms(union, u, 0.05);
 
-    Union union2 = (Union)SetOperation.heapify(new NativeMemory(union.toByteArray()));
+    Union union2 = (Union)SetOperation.heapify(Memory.wrap(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.05);
 
@@ -185,7 +185,7 @@ public class HeapUnionTest {
     for (int i=0; i<u/2; i++) usk1.update(i);  //2k estimating
     for (int i=u/2; i<u; i++) usk2.update(i);  //2k no overlap, exact, will force early stop
 
-    NativeMemory cskMem2 = new NativeMemory(new byte[usk2.getCurrentBytes(true)]);
+    WritableMemory cskMem2 = WritableMemory.wrap(new byte[usk2.getCurrentBytes(true)]);
     CompactSketch cosk2 = usk2.compact(true, cskMem2); //ordered, loads the cskMem2 as ordered
 
     Union union = SetOperation.builder().buildUnion(k);
@@ -200,7 +200,7 @@ public class HeapUnionTest {
 
     testAllCompactForms(union, u, 0.05);
 
-    Union union2 = (Union)SetOperation.heapify(new NativeMemory(union.toByteArray()));
+    Union union2 = (Union)SetOperation.heapify(Memory.wrap(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.05);
 
@@ -220,7 +220,7 @@ public class HeapUnionTest {
     for (int i=0; i<u/2; i++) usk1.update(i);  //2k estimating
     for (int i=u/2; i<u; i++) usk2.update(i);  //2k no overlap, exact, will force early stop
 
-    NativeMemory cskMem2 = new NativeMemory(new byte[usk2.getCurrentBytes(true)]);
+    WritableMemory cskMem2 = WritableMemory.wrap(new byte[usk2.getCurrentBytes(true)]);
     usk2.compact(true, cskMem2); //ordered, loads the cskMem2 as ordered
 
     Union union = SetOperation.builder().buildUnion(k);
@@ -235,7 +235,7 @@ public class HeapUnionTest {
 
     testAllCompactForms(union, u, 0.05);
 
-    Union union2 = (Union)SetOperation.heapify(new NativeMemory(union.toByteArray()));
+    Union union2 = (Union)SetOperation.heapify(Memory.wrap(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.05);
 
@@ -255,7 +255,7 @@ public class HeapUnionTest {
     for (int i=0; i<u/2; i++) usk1.update(i);  //2k estimating
     for (int i=u/2; i<u; i++) usk2.update(i);  //2k no overlap, exact, will force early stop
 
-    NativeMemory cskMem2 = new NativeMemory(new byte[usk2.getCurrentBytes(true)]);
+    WritableMemory cskMem2 = WritableMemory.wrap(new byte[usk2.getCurrentBytes(true)]);
     usk2.compact(false, cskMem2); //unordered, loads the cskMem2 as unordered
 
     Union union = SetOperation.builder().buildUnion(k);
@@ -270,7 +270,7 @@ public class HeapUnionTest {
 
     testAllCompactForms(union, u, 0.05);
 
-    Union union2 = (Union)SetOperation.heapify(new NativeMemory(union.toByteArray()));
+    Union union2 = (Union)SetOperation.heapify(Memory.wrap(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.05);
 
@@ -326,8 +326,8 @@ public class HeapUnionTest {
     for (int i=0; i<u1; i++) usk1.update(i); //2*k
     for (int i=u1; i<totU; i++) usk2.update(i); //2*k + 1024 no overlap
 
-    NativeMemory skMem1 = new NativeMemory(usk1.compact(false, null).toByteArray());
-    NativeMemory skMem2 = new NativeMemory(usk2.compact(true, null).toByteArray());
+    WritableMemory skMem1 = WritableMemory.wrap(usk1.compact(false, null).toByteArray());
+    WritableMemory skMem2 = WritableMemory.wrap(usk2.compact(true, null).toByteArray());
 
     CompactSketch csk1 = (CompactSketch)Sketch.wrap(skMem1);
     CompactSketch csk2 = (CompactSketch)Sketch.wrap(skMem2);
@@ -355,8 +355,8 @@ public class HeapUnionTest {
     for (int i=0; i<u1; i++) usk1.update(i); //2*k
     for (int i=u1; i<totU; i++) usk2.update(i); //2*k + 1024 no overlap
 
-    NativeMemory skMem1 = new NativeMemory(usk1.compact(true, null).toByteArray());
-    NativeMemory skMem2 = new NativeMemory(usk2.compact(true, null).toByteArray());
+    WritableMemory skMem1 = WritableMemory.wrap(usk1.compact(true, null).toByteArray());
+    WritableMemory skMem2 = WritableMemory.wrap(usk2.compact(true, null).toByteArray());
 
     Memory v1mem1 = convertSerV3toSerV1(skMem1);
     Memory v1mem2 = convertSerV3toSerV1(skMem2);
@@ -384,8 +384,8 @@ public class HeapUnionTest {
     for (int i=0; i<u1; i++) usk1.update(i); //2*k
     for (int i=u1; i<totU; i++) usk2.update(i); //2*k + 1024 no overlap
 
-    NativeMemory skMem1 = new NativeMemory(usk1.compact(true, null).toByteArray());
-    NativeMemory skMem2 = new NativeMemory(usk2.compact(true, null).toByteArray());
+    WritableMemory skMem1 = WritableMemory.wrap(usk1.compact(true, null).toByteArray());
+    WritableMemory skMem2 = WritableMemory.wrap(usk2.compact(true, null).toByteArray());
 
     Memory v2mem1 = convertSerV3toSerV2(skMem1);
     Memory v2mem2 = convertSerV3toSerV2(skMem2);
@@ -406,7 +406,7 @@ public class HeapUnionTest {
 
     UpdateSketch usk1 = UpdateSketch.builder().build(k);
     CompactSketch usk1c = usk1.compact(true, null);
-    NativeMemory v3mem1 = new NativeMemory(usk1c.toByteArray());
+    WritableMemory v3mem1 = WritableMemory.wrap(usk1c.toByteArray());
 
     Memory v1mem1 = convertSerV3toSerV1(v3mem1);
 
@@ -443,7 +443,7 @@ public class HeapUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().build(k);
     for (int i=0; i<u; i++) usk1.update(i); //force prelongs to 3
     CompactSketch usk1c = usk1.compact(true, null);
-    NativeMemory v3mem1 = new NativeMemory(usk1c.toByteArray());
+    WritableMemory v3mem1 = WritableMemory.wrap(usk1c.toByteArray());
     //println(PreambleUtil.toString(v3mem1));
     Union union = SetOperation.builder().buildUnion(k);
     union.update(v3mem1);
@@ -456,7 +456,7 @@ public class HeapUnionTest {
 
     UpdateSketch usk1 = UpdateSketch.builder().build(k);
     CompactSketch usk1c = usk1.compact(true, null);
-    NativeMemory v3mem1 = new NativeMemory(usk1c.toByteArray());
+    WritableMemory v3mem1 = WritableMemory.wrap(usk1c.toByteArray());
     //corrupt SerVer
     v3mem1.putByte(SER_VER_BYTE, (byte)0);
 
@@ -471,14 +471,14 @@ public class HeapUnionTest {
     CompactSketch usk1c = usk1.compact(true, null);
     byte[] skArr = usk1c.toByteArray();
     byte[] skArr2 = Arrays.copyOf(skArr, skArr.length * 2);
-    NativeMemory v3mem1 = new NativeMemory(skArr2);
+    WritableMemory v3mem1 = WritableMemory.wrap(skArr2);
 
     Union union = SetOperation.builder().buildUnion();
     union.update(v3mem1);
 
     Memory v2mem1 = convertSerV3toSerV2(v3mem1);
-    Memory v2mem2 = new NativeMemory(new byte[16]);
-    v2mem1.copy(0, v2mem2, 0, 8);
+    WritableMemory v2mem2 = WritableMemory.wrap(new byte[16]);
+    v2mem1.copyTo(0, v2mem2, 0, 8);
 
     union = SetOperation.builder().buildUnion();
     union.update(v2mem2);
@@ -556,7 +556,7 @@ public class HeapUnionTest {
     compEst2 = comp2.getEstimate();
     assertEquals(compEst2, compEst1, 0.0);
 
-    Memory mem = new NativeMemory(new byte[comp2.getCurrentBytes(false)]);
+    WritableMemory mem = WritableMemory.wrap(new byte[comp2.getCurrentBytes(false)]);
 
     compEst2 = union.getResult(false, mem).getEstimate(); //not ordered, mem
     assertEquals(compEst2, compEst1, 0.0);

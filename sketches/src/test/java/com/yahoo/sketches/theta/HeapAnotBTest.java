@@ -10,8 +10,7 @@ import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.Util;
 
@@ -45,7 +44,7 @@ public class HeapAnotBTest {
     //getCurrentBytes( compact )
     int bytes = rsk1.getCurrentBytes(true);
     byte[] byteArray = new byte[bytes];
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     
     aNb.update(usk1, usk2);
     rsk1 = aNb.getResult(false, mem);
@@ -254,8 +253,8 @@ public class HeapAnotBTest {
     
     byte[] memArr1 = new byte[memBytes];
     byte[] memArr2 = new byte[memBytes];
-    Memory mem1 = new NativeMemory(memArr1);
-    Memory mem2 = new NativeMemory(memArr2);
+    WritableMemory mem1 = WritableMemory.wrap(memArr1);
+    WritableMemory mem2 = WritableMemory.wrap(memArr2);
     
     AnotB aNb = SetOperation.builder().buildANotB();
     aNb.update(aU, bU);
@@ -285,7 +284,7 @@ public class HeapAnotBTest {
     int memBytes = Sketch.getMaxCompactSketchBytes(a.getCurrentBytes(true));
     
     byte[] memArr = new byte[memBytes];
-    Memory mem = new NativeMemory(memArr);
+    WritableMemory mem = WritableMemory.wrap(memArr);
     
     CompactSketch r;
     AnotB aNb = SetOperation.builder().buildANotB();

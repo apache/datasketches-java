@@ -19,7 +19,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.insertSeedHash;
 import static com.yahoo.sketches.theta.PreambleUtil.insertSerVer;
 import static com.yahoo.sketches.theta.PreambleUtil.insertThetaLong;
 
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.Util;
 
@@ -80,8 +80,8 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     final int preBytes = (preLongs << 3) & 0X3F;
     final int dataBytes = getCurrentDataLongs(false) << 3;
     final byte[] byteArrOut = new byte[preBytes + dataBytes];
-    final NativeMemory memOut = new NativeMemory(byteArrOut);
-    final Object memObj = memOut.array(); //may be null
+    final WritableMemory memOut = WritableMemory.wrap(byteArrOut);
+    final Object memObj = memOut.getArray(); //may be null
     final long memAdd = memOut.getCumulativeOffset(0L);
 
     //preamble first 8 bytes. Note: only compact can be reduced to 8 bytes.

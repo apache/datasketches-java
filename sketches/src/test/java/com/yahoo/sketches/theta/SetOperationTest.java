@@ -20,8 +20,7 @@ import java.nio.ByteBuffer;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryRegion;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -72,7 +71,7 @@ public class SetOperationTest {
     bldr.setResizeFactor(rf);
     assertEquals(rf, bldr.getResizeFactor());
 
-    Memory mem = new NativeMemory(new byte[16]);
+    WritableMemory mem = WritableMemory.wrap(new byte[16]);
     bldr.initMemory(mem);
     assertEquals(mem, bldr.getMemory());
 
@@ -114,7 +113,7 @@ public class SetOperationTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBuilderAnotB_noMem() {
-    Memory mem = new NativeMemory(new byte[64]);
+    WritableMemory mem = WritableMemory.wrap(new byte[64]);
     SetOperation.builder().initMemory(mem).buildANotB();
   }
 
@@ -150,7 +149,7 @@ public class SetOperationTest {
     UpdateSketch usk1 = UpdateSketch.builder().build(k);
     for (int i=0; i<k; i++) usk1.update(i); //64
     byte[] byteArray = usk1.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    Memory mem = Memory.wrap(byteArray);
     SetOperation.heapify(mem);
   }
 
@@ -160,7 +159,7 @@ public class SetOperationTest {
     UpdateSketch usk1 = UpdateSketch.builder().build(k);
     for (int i=0; i<k; i++) usk1.update(i); //64
     byte[] byteArray = usk1.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    Memory mem = Memory.wrap(byteArray);
     SetOperation.wrap(mem);
   }
 
@@ -209,7 +208,7 @@ public class SetOperationTest {
     // However, if you had created this NM object directly in raw, off-heap "native" memory
     // you would have the responsibility to clear it, and free it to the OS when you
     // are done.  But, since it was allocated via BB, it does the clearing and freeing for you.
-    Memory heapMem = NativeMemory.wrap(heapBuf);
+    WritableMemory heapMem = WritableMemory.wrap(heapBuf);
 
     double result = directUnionTrial1(heapMem, heapLayout, sketchNomEntries, unionNomEntries);
     println("1st est: "+result);
@@ -245,18 +244,18 @@ public class SetOperationTest {
   }
 
   private static double directUnionTrial1(
-      Memory heapMem, int[] heapLayout, int sketchNomEntries, int unionNomEntries) {
+      WritableMemory heapMem, int[] heapLayout, int sketchNomEntries, int unionNomEntries) {
 
     int offset = heapLayout[0];
     int bytes = heapLayout[1] - offset;
-    Memory unionMem = new MemoryRegion(heapMem, offset, bytes);
+    WritableMemory unionMem = heapMem.writableRegion(offset, bytes);
 
     Union union = SetOperation.builder().initMemory(unionMem).buildUnion(unionNomEntries);
 
-    Memory sketch1mem = new MemoryRegion(heapMem, heapLayout[1], heapLayout[2]-heapLayout[1]);
-    Memory sketch2mem = new MemoryRegion(heapMem, heapLayout[2], heapLayout[3]-heapLayout[2]);
-    Memory sketch3mem = new MemoryRegion(heapMem, heapLayout[3], heapLayout[4]-heapLayout[3]);
-    Memory resultMem = new MemoryRegion(heapMem, heapLayout[4], heapLayout[5]-heapLayout[4]);
+    WritableMemory sketch1mem = heapMem.writableRegion(heapLayout[1], heapLayout[2]-heapLayout[1]);
+    WritableMemory sketch2mem = heapMem.writableRegion(heapLayout[2], heapLayout[3]-heapLayout[2]);
+    WritableMemory sketch3mem = heapMem.writableRegion(heapLayout[3], heapLayout[4]-heapLayout[3]);
+    WritableMemory resultMem = heapMem.writableRegion(heapLayout[4], heapLayout[5]-heapLayout[4]);
 
     //Initialize the 3 sketches
     UpdateSketch sk1 = UpdateSketch.builder().initMemory(sketch1mem).build(sketchNomEntries);
@@ -282,8 +281,7 @@ public class SetOperationTest {
 
     //Let's recover the union and the 3rd sketch
     union = Sketches.wrapUnion(unionMem);
-    sk3 = (UpdateSketch) Sketch.wrap(sketch3mem);
-    union.update(sk3);
+    union.update(Sketch.wrap(sketch3mem));
 
     Sketch resSk = union.getResult(true, resultMem);
     double est = resSk.getEstimate();
@@ -292,13 +290,13 @@ public class SetOperationTest {
   }
 
   private static double directUnionTrial2(
-      Memory heapMem, int[] heapLayout, int sketchNomEntries, int unionNomEntries) {
+      WritableMemory heapMem, int[] heapLayout, int sketchNomEntries, int unionNomEntries) {
 
-    Memory unionMem = new MemoryRegion(heapMem, heapLayout[0], heapLayout[1]-heapLayout[0]);
-    Memory sketch1mem = new MemoryRegion(heapMem, heapLayout[1], heapLayout[2]-heapLayout[1]);
-    Memory sketch2mem = new MemoryRegion(heapMem, heapLayout[2], heapLayout[3]-heapLayout[2]);
-    Memory sketch3mem = new MemoryRegion(heapMem, heapLayout[3], heapLayout[4]-heapLayout[3]);
-    Memory resultMem = new MemoryRegion(heapMem, heapLayout[4], heapLayout[5]-heapLayout[4]);
+    WritableMemory unionMem = heapMem.writableRegion(heapLayout[0], heapLayout[1]-heapLayout[0]);
+    WritableMemory sketch1mem = heapMem.writableRegion(heapLayout[1], heapLayout[2]-heapLayout[1]);
+    WritableMemory sketch2mem = heapMem.writableRegion(heapLayout[2], heapLayout[3]-heapLayout[2]);
+    WritableMemory sketch3mem = heapMem.writableRegion(heapLayout[3], heapLayout[4]-heapLayout[3]);
+    WritableMemory resultMem = heapMem.writableRegion(heapLayout[4], heapLayout[5]-heapLayout[4]);
 
     //Recover the 3 sketches
     UpdateSketch sk1 = (UpdateSketch) Sketch.wrap(sketch1mem);

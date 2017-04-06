@@ -5,7 +5,7 @@
 
 package com.yahoo.sketches.theta;
 
-import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * The API for the set difference operation <i>A and not B</i> operations.
@@ -43,7 +43,7 @@ public interface AnotB {
    *
    * @return the result of this operation as a CompactSketch of the chosen form
    */
-  CompactSketch getResult(boolean dstOrdered, Memory dstMem);
+  CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
 
   /**
    * Gets the result of this operation as an ordered CompactSketch on the Java heap

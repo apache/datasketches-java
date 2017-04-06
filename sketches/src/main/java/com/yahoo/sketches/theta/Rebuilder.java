@@ -15,6 +15,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.insertLgArrLongs;
 import static com.yahoo.sketches.theta.PreambleUtil.insertThetaLong;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.Util;
 
@@ -38,13 +39,13 @@ final class Rebuilder {
    * @param preambleLongs size of preamble in longs
    * @param lgNomLongs the log_base2 of k, the configuration parameter of the sketch
    */
-  static final void quickSelectAndRebuild(final Memory mem, final int preambleLongs,
+  static final void quickSelectAndRebuild(final WritableMemory mem, final int preambleLongs,
       final int lgNomLongs) {
     //Note: This copies the Memory data onto the heap and then at the end copies the result
     // back to Memory. Even if we tried to do this directly into Memory it would require pre-clearing,
     // and the internal loops would be slower. The bulk copies are performed at a low level and
     // are quite fast. Measurements reveal that we are not paying much of a penalty.
-    final Object memObj = mem.array(); //may be null
+    final Object memObj = mem.getArray(); //may be null
     final long memAdd = mem.getCumulativeOffset(0L);
 
     //Pull data into tmp arr for QS algo
@@ -84,7 +85,7 @@ final class Rebuilder {
    * @param thetaLong theta as a long
    */
   static final void moveAndResize(final Memory srcMem, final int preambleLongs,
-      final int srcLgArrLongs, final Memory dstMem, final int dstLgArrLongs, final long thetaLong) {
+      final int srcLgArrLongs, final WritableMemory dstMem, final int dstLgArrLongs, final long thetaLong) {
     //Note: This copies the Memory data onto the heap and then at the end copies the result
     // back to Memory. Even if we tried to do this directly into Memory it would require pre-clearing,
     // and the internal loops would be slower. The bulk copies are performed at a low level and
@@ -92,7 +93,7 @@ final class Rebuilder {
 
     //Move Preamble to destination memory
     final int preBytes = preambleLongs << 3;
-    srcMem.copy(0, dstMem, 0, preBytes); //copy the preamble
+    srcMem.copyTo(0, dstMem, 0, preBytes); //copy the preamble
 
     //Bulk copy source to on-heap buffer
     final int srcHTLen = 1 << srcLgArrLongs;
@@ -123,13 +124,13 @@ final class Rebuilder {
    * @param srcLgArrLongs the size of the source hash table
    * @param tgtLgArrLongs the LgArrLongs value for the new hash table
    */
-  static final void resize(final Memory mem, final int preambleLongs,
+  static final void resize(final WritableMemory mem, final int preambleLongs,
       final int srcLgArrLongs, final int tgtLgArrLongs) {
     //Note: This copies the Memory data onto the heap and then at the end copies the result
     // back to Memory. Even if we tried to do this directly into Memory it would require pre-clearing,
     // and the internal loops would be slower. The bulk copies are performed at a low level and
     // are quite fast. Measurements reveal that we are not paying much of a penalty.
-    final Object memObj = mem.array(); //may be null
+    final Object memObj = mem.getArray(); //may be null
     final long memAdd = mem.getCumulativeOffset(0L);
 
     //Preamble stays in place

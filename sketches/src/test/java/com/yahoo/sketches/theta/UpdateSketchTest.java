@@ -9,8 +9,7 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -103,7 +102,7 @@ public class UpdateSketchTest {
     bldr.setFamily(fam);
     assertEquals(fam, bldr.getFamily());
 
-    Memory mem = new NativeMemory(new byte[16]);
+    WritableMemory mem = WritableMemory.wrap(new byte[16]);
     bldr.initMemory(mem);
     assertEquals(mem, bldr.getMemory());
 

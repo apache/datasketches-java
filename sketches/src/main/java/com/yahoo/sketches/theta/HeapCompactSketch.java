@@ -15,14 +15,9 @@ import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
 import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
 import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
-import static com.yahoo.sketches.theta.PreambleUtil.extractCurCount;
-import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
-import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
-import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
-import static com.yahoo.sketches.theta.PreambleUtil.extractThetaLong;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * An on-heap, compact, read-only sketch.
@@ -45,26 +40,11 @@ final class HeapCompactSketch extends CompactSketch {
    * @return this sketch
    */
   static HeapCompactSketch heapifyInstance(final Memory srcMem, final long seed) {
-    final int preLongs;
-    final int flags;
-    final short memSeedHash;
-    final int curCount;
-    final long thetaLong;
-    if (srcMem.isReadOnly() && !srcMem.isDirect()) {
-      preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-      flags = srcMem.getByte(FLAGS_BYTE) & 0XFF;
-      memSeedHash = srcMem.getShort(SEED_HASH_SHORT);
-      curCount = (preLongs > 1) ? srcMem.getInt(RETAINED_ENTRIES_INT) : 0;
-      thetaLong = (preLongs > 2) ? srcMem.getLong(THETA_LONG) : Long.MAX_VALUE;
-    } else {
-      final Object memObj = srcMem.array(); //may be null
-      final long memAdd = srcMem.getCumulativeOffset(0L);
-      preLongs = extractPreLongs(memObj, memAdd);
-      flags = extractFlags(memObj, memAdd);
-      memSeedHash = (short) extractSeedHash(memObj, memAdd);
-      curCount = (preLongs > 1) ? extractCurCount(memObj, memAdd) : 0;
-      thetaLong = (preLongs > 2) ? extractThetaLong(memObj, memAdd) : Long.MAX_VALUE;
-    }
+    final int preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+    final int flags = srcMem.getByte(FLAGS_BYTE) & 0XFF;
+    final short memSeedHash = srcMem.getShort(SEED_HASH_SHORT);
+    final int curCount = (preLongs > 1) ? srcMem.getInt(RETAINED_ENTRIES_INT) : 0;
+    final long thetaLong = (preLongs > 2) ? srcMem.getLong(THETA_LONG) : Long.MAX_VALUE;
     final short computedSeedHash = computeSeedHash(seed);
     checkSeedHashes(memSeedHash, computedSeedHash);
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
@@ -115,7 +95,7 @@ final class HeapCompactSketch extends CompactSketch {
   public byte[] toByteArray() {
     final int bytes = getCurrentBytes(true);
     final byte[] byteArray = new byte[bytes];
-    final Memory dstMem = new NativeMemory(byteArray);
+    final WritableMemory dstMem = WritableMemory.wrap(byteArray);
     final int emptyBit = isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
     final byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK);
     loadCompactMemory(getCache(), isEmpty(), getSeedHash(), getRetainedEntries(true),

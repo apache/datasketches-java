@@ -18,9 +18,6 @@ import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.extractFamilyID;
-import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
-import static com.yahoo.sketches.theta.PreambleUtil.extractSerVer;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.BinomialBoundsN;
@@ -282,7 +279,7 @@ public abstract class Sketch {
     final int serVer = srcMem.getByte(SER_VER_BYTE);
     if (serVer == 3) {
       final byte famID = srcMem.getByte(FAMILY_BYTE);
-      final boolean ordered = srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) ORDERED_FLAG_MASK);
+      final boolean ordered = (srcMem.getByte(FLAGS_BYTE) & ORDERED_FLAG_MASK) != 0;
       return constructHeapSketch(famID, ordered, srcMem, seed);
     }
     if (serVer == 1) {
@@ -321,29 +318,15 @@ public abstract class Sketch {
    * @return a UpdateSketch backed by the given Memory
    */
   public static Sketch wrap(final Memory srcMem, final long seed) {
-    final boolean readOnly = srcMem.isReadOnly();
-    final boolean direct = srcMem.isDirect();
-
     final long pre0 = srcMem.getLong(0);
-    final int preLongs;
-    final int serVer;
-    final int familyID;
-    if (readOnly && !direct) {
-      preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-      serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
-      familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
-    } else {
-      final Object memObj = srcMem.array(); //may be null
-      final long memAdd = srcMem.getCumulativeOffset(0L);
-      preLongs = extractPreLongs(memObj, memAdd);
-      serVer = extractSerVer(memObj, memAdd);
-      familyID = extractFamilyID(memObj, memAdd);
-    }
+    final int  preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+    final int serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
+    final int familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
     final Family family = Family.idToFamily(familyID);
     switch (family) {
       case QUICKSELECT: { //Hash Table structure
         if ((serVer == 3) && (preLongs == 3)) {
-          return DirectQuickSelectSketch.writableWrap(srcMem, seed);
+          return DirectQuickSelectSketchR.readOnlyWrap(srcMem, seed);
         } else {
           throw new SketchesArgumentException(
               "Corrupted: " + family + " family image: must have SerVer = 3 and preLongs = 3");
@@ -482,13 +465,6 @@ public abstract class Sketch {
   abstract long[] getCache();
 
   /**
-   * Gets the <a href="{@docRoot}/resources/dictionary.html#mem">Memory</a>
-   * if available, otherwise returns null.
-   * @return the backing Memory or null.
-   */
-  abstract Memory getMemory();
-
-  /**
    * Returns true if given Family id is one of the theta sketches
    * @param id the given Family id
    * @return true if given Family id is one of the theta sketches
@@ -534,7 +510,7 @@ public abstract class Sketch {
    */
   private static final Sketch constructHeapSketch(final byte famID, final boolean ordered,
       final Memory srcMem, final long seed) {
-    final boolean compact = srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
+    final boolean compact = (srcMem.getByte(FLAGS_BYTE) & COMPACT_FLAG_MASK) != 0;
     final Family family = idToFamily(famID);
     switch (family) {
       case ALPHA: {
