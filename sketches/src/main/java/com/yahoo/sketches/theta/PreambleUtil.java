@@ -12,7 +12,7 @@ import static com.yahoo.sketches.Util.zeroPad;
 import java.nio.ByteOrder;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -116,7 +116,7 @@ final class PreambleUtil {
    * @return the summary preamble string.
    */
   public static String preambleToString(final byte[] byteArr) {
-    final Memory mem = new NativeMemory(byteArr);
+    final WritableMemory mem = WritableMemory.wrap(byteArr);
     return preambleToString(mem);
   }
 
@@ -129,8 +129,8 @@ final class PreambleUtil {
    * @param mem the given Memory.
    * @return the summary preamble string.
    */
-  public static String preambleToString(final Memory mem) {
-    final Object memObj = mem.array(); //may be null
+  public static String preambleToString(final WritableMemory mem) {
+    final Object memObj = mem.getArray(); //may be null
     final long memAdd = mem.getCumulativeOffset(0L);
 
     final int preLongs = getAndCheckPreLongs(memObj, memAdd, mem);

@@ -5,16 +5,23 @@
 
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
+import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedNullOrEmpty;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
+import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.Util;
 
 /**
  * The parent class for the  Update Sketch families, such as QuickSelect and Alpha.
- * The primary task of an Upeate Sketch is to consider datums presented via the update() methods
+ * The primary task of an Update Sketch is to consider datums presented via the update() methods
  * for inclusion in its internal cache. This is the sketch building process.
  *
  * @author Lee Rhodes
@@ -22,6 +29,45 @@ import com.yahoo.sketches.ResizeFactor;
 public abstract class UpdateSketch extends Sketch {
 
   UpdateSketch() {}
+
+  /**
+  * Wrap takes the sketch image in Memory and refers to it directly. There is no data copying onto
+  * the java heap. Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
+  * been explicitly stored as direct objects can be wrapped. This method assumes the
+  * {@link Util#DEFAULT_UPDATE_SEED}.
+  * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
+  * @param srcMem an image of a Sketch where the image seed hash matches the default seed hash.
+  * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+  * @return a Sketch backed by the given Memory
+  */
+  public static UpdateSketch wrap(final WritableMemory srcMem) {
+    return wrap(srcMem, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+  * Wrap takes the sketch image in Memory and refers to it directly. There is no data copying onto
+  * the java heap. Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
+  * been explicitly stored as direct objects can be wrapped.
+  * An attempt to "wrap" earlier version sketches will result in a "heapified", normal
+  * Java Heap version of the sketch where all data will be copied to the heap.
+  * @param srcMem an image of a Sketch where the image seed hash matches the given seed hash.
+  * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+  * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+  * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
+  * @return a UpdateSketch backed by the given Memory
+  */
+  public static UpdateSketch wrap(final WritableMemory srcMem, final long seed) {
+    final int  preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+    final int serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
+    final int familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
+    final Family family = Family.idToFamily(familyID);
+      if ((serVer == 3) && (preLongs == 3)) {
+        return DirectQuickSelectSketch.writableWrap(srcMem, seed);
+      } else {
+        throw new SketchesArgumentException(
+            "Corrupted: " + family + " family image: must have SerVer = 3 and preLongs = 3");
+    }
+  }
 
   //Sketch interface
 
@@ -73,7 +119,7 @@ public abstract class UpdateSketch extends Sketch {
    *
    * @return this sketch as a CompactSketch in the chosen form
    */
-  public CompactSketch compact(final boolean dstOrdered, final Memory dstMem) {
+  public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
     CompactSketch sketchOut = null;
     final int sw = (dstOrdered ? 2 : 0) | ((dstMem != null) ? 1 : 0);
     switch (sw) {
@@ -162,7 +208,7 @@ public abstract class UpdateSketch extends Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final String datum) {
-    if (datum == null || datum.isEmpty()) {
+    if ((datum == null) || datum.isEmpty()) {
       return RejectedNullOrEmpty;
     }
     final byte[] data = datum.getBytes(UTF_8);
@@ -275,5 +321,12 @@ public abstract class UpdateSketch extends Sketch {
    * @return true if the internal cache is dirty.
    */
   abstract boolean isDirty();
+
+  /**
+   * Gets the <a href="{@docRoot}/resources/dictionary.html#mem">Memory</a>
+   * if available, otherwise returns null.
+   * @return the backing Memory or null.
+   */
+  abstract WritableMemory getMemory();
 
 }

@@ -14,6 +14,7 @@ import static com.yahoo.sketches.Util.TAB;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -29,7 +30,7 @@ public class UpdateSketchBuilder {
   private ResizeFactor bRF;
   private Family bFam;
   private float bP;
-  private Memory bDstMem;
+  private WritableMemory bDstMem;
 
   /**
    * Constructor for building a new UpdateSketch. The default configuration is
@@ -162,7 +163,7 @@ public class UpdateSketchBuilder {
    * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
    * @return this UpdateSketchBuilder
    */
-  public UpdateSketchBuilder initMemory(final Memory dstMem) {
+  public UpdateSketchBuilder initMemory(final WritableMemory dstMem) {
     bDstMem = dstMem;
     return this;
   }

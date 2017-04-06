@@ -13,7 +13,7 @@ import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
 import static com.yahoo.sketches.Util.TAB;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
-import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -28,7 +28,7 @@ public class SetOperationBuilder {
   private long bSeed;
   private ResizeFactor bRF;
   private float bP;
-  private Memory bDstMem;
+  private WritableMemory bDstMem;
 
   /**
    * Constructor for building a new SetOperation.  The default configuration is
@@ -140,7 +140,7 @@ public class SetOperationBuilder {
    * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>
    * @return this SetOperationBuilder
    */
-  public SetOperationBuilder initMemory(final Memory dstMem) {
+  public SetOperationBuilder initMemory(final WritableMemory dstMem) {
     bDstMem = dstMem;
     return this;
   }
@@ -150,7 +150,7 @@ public class SetOperationBuilder {
    * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
    * @return the Destination Memory
    */
-  public Memory getMemory() {
+  public WritableMemory getMemory() {
     return bDstMem;
   }
 

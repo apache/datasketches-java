@@ -19,6 +19,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.insertThetaLong;
 import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -88,6 +89,13 @@ public abstract class CompactSketch extends Sketch {
   }
 
   /**
+   * Gets the <a href="{@docRoot}/resources/dictionary.html#mem">Memory</a>
+   * if available, otherwise returns null.
+   * @return the backing Memory or null.
+   */
+  abstract Memory getMemory();
+
+  /**
    * Compact the given array. The source cache can be a hash table with interstitial zeros or
    * "dirty" values.
    * @param srcCache anything
@@ -150,7 +158,7 @@ public abstract class CompactSketch extends Sketch {
 
   static final CompactSketch createCompactSketch(final long[] compactCache, final boolean empty,
       final short seedHash, final int curCount, final long thetaLong, final boolean dstOrdered,
-      final Memory dstMem) {
+      final WritableMemory dstMem) {
     CompactSketch sketchOut = null;
     final int sw = (dstOrdered ? 2 : 0) | ((dstMem != null) ? 1 : 0);
     switch (sw) {
@@ -179,7 +187,7 @@ public abstract class CompactSketch extends Sketch {
   }
 
   static final Memory loadCompactMemory(final long[] compactCache, final boolean empty,
-      final short seedHash, final int curCount, final long thetaLong, final Memory dstMem,
+      final short seedHash, final int curCount, final long thetaLong, final WritableMemory dstMem,
       final byte flags) {
     final int preLongs = compactPreambleLongs(thetaLong, empty);
     final int outLongs = preLongs + curCount;
@@ -191,7 +199,7 @@ public abstract class CompactSketch extends Sketch {
     }
     final byte famID = (byte) stringToFamily("Compact").getID();
 
-    final Object memObj = dstMem.array(); //may be null
+    final Object memObj = dstMem.getArray(); //may be null
     final long memAdd = dstMem.getCumulativeOffset(0L);
 
     insertPreLongs(memObj, memAdd, preLongs); //RF not used = 0

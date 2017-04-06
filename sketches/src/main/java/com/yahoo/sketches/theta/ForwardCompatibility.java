@@ -90,7 +90,7 @@ final class ForwardCompatibility {
     validateInputSize(reqBytesIn, memCap);
 
     final long thetaLong = (mdLongs < 3) ? Long.MAX_VALUE : srcMem.getLong(THETA_LONG);
-    final boolean empty = srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
+    final boolean empty = (srcMem.getByte(FLAGS_BYTE) & EMPTY_FLAG_MASK) != 0;
 
     final long[] compactOrderedCache = new long[curCount];
     srcMem.getLongArray(mdLongs << 3, compactOrderedCache, 0, curCount);

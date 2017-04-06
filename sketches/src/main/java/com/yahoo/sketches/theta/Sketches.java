@@ -14,6 +14,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -112,11 +113,29 @@ public final class Sketches {
   }
 
   /**
+   * Ref: {@link SetOperation#wrap(Memory) SetOperation.wrap(Memory)}
+   * @param srcMem Ref: {@link SetOperation#wrap(Memory) SetOperation.wrap(Memory)} {@code srcMem}
+   * @return {@link SetOperation SetOperation}
+   */
+  public static SetOperation wrapSetOperation(final WritableMemory srcMem) {
+    return SetOperation.wrap(srcMem);
+  }
+
+  /**
    * Convenience method, calls {@link SetOperation#wrap(Memory)} and casts the result to a Union
    * @param srcMem Ref: {@link SetOperation#wrap(Memory)} {@code srcMem}
    * @return a Union backed by the given Memory
    */
   public static Union wrapUnion(final Memory srcMem) {
+    return (Union) SetOperation.wrap(srcMem);
+  }
+
+  /**
+   * Convenience method, calls {@link SetOperation#wrap(Memory)} and casts the result to a Union
+   * @param srcMem Ref: {@link SetOperation#wrap(Memory)} {@code srcMem}
+   * @return a Union backed by the given Memory
+   */
+  public static Union wrapUnion(final WritableMemory srcMem) {
     return (Union) SetOperation.wrap(srcMem);
   }
 
@@ -130,6 +149,15 @@ public final class Sketches {
   }
 
   /**
+   * Convenience method, calls {@link SetOperation#wrap(Memory)} and casts the result to a Intersection
+   * @param srcMem Ref: {@link SetOperation#wrap(Memory)} {@code srcMem}
+   * @return a Intersection backed by the given Memory
+   */
+  public static Intersection wrapIntersection(final WritableMemory srcMem) {
+    return (Intersection) SetOperation.wrap(srcMem);
+  }
+
+  /**
    * Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)}
    * @param srcMem Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)}
    * {@code srcMem}
@@ -138,6 +166,18 @@ public final class Sketches {
    * @return {@link SetOperation SetOperation}
    */
   public static SetOperation wrapSetOperation(final Memory srcMem, final long seed) {
+    return SetOperation.wrap(srcMem, seed);
+  }
+
+  /**
+   * Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)}
+   * @param srcMem Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)}
+   * {@code srcMem}
+   * @param seed Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)}
+   * {@code seed}
+   * @return {@link SetOperation SetOperation}
+   */
+  public static SetOperation wrapSetOperation(final WritableMemory srcMem, final long seed) {
     return SetOperation.wrap(srcMem, seed);
   }
 
@@ -251,7 +291,7 @@ public final class Sketches {
     if (serVer == 1) {
       return ((getThetaLong(srcMem) == Long.MAX_VALUE) && (getRetainedEntries(srcMem) == 0));
     }
-    return srcMem.isAnyBitsSet(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); //for SerVer 2 & 3
+    return (srcMem.getByte(FLAGS_BYTE) & EMPTY_FLAG_MASK) != 0; //for SerVer 2 & 3
   }
 
   static void checkIfValidThetaSketch(final Memory srcMem) {

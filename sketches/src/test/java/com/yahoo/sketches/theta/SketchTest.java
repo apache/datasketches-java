@@ -24,7 +24,7 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -156,7 +156,7 @@ public class SketchTest {
   public void checkWrapBadFamily() {
     UpdateSketch sketch = UpdateSketch.builder().setFamily(Family.ALPHA).build(1024);
     byte[] byteArr = sketch.toByteArray();
-    Memory srcMem = new NativeMemory(byteArr);
+    Memory srcMem = Memory.wrap(byteArr);
     Sketch.wrap(srcMem);
   }
 
@@ -169,7 +169,7 @@ public class SketchTest {
   public void checkSerVer() {
     UpdateSketch sketch = UpdateSketch.builder().build(1024);
     byte[] sketchArray = sketch.toByteArray();
-    Memory mem = new NativeMemory(sketchArray);
+    Memory mem = Memory.wrap(sketchArray);
     int serVer = Sketch.getSerializationVersion(mem);
     assertEquals(serVer, 3);
   }
@@ -179,7 +179,7 @@ public class SketchTest {
     int k = 512;
     Sketch sketch1 = UpdateSketch.builder().setFamily(ALPHA).build(k);
     byte[] byteArray = sketch1.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     //corrupt:
     mem.setBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
     Sketch.heapify(mem);
@@ -190,7 +190,7 @@ public class SketchTest {
     int k = 512;
     Sketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).build(k);
     byte[] byteArray = sketch1.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     //corrupt:
     mem.setBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
     Sketch.heapify(mem);
@@ -202,7 +202,7 @@ public class SketchTest {
     UpdateSketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).build(k);
     int bytes = Sketch.getMaxCompactSketchBytes(0);
     byte[] byteArray = new byte[bytes];
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     sketch1.compact(false, mem);
     //corrupt:
     mem.clearBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
@@ -214,7 +214,7 @@ public class SketchTest {
     int k = 512;
     Union union = SetOperation.builder().buildUnion(k);
     byte[] byteArray = union.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    Memory mem = Memory.wrap(byteArray);
     //Improper use
     Sketch.heapify(mem);
   }
@@ -224,7 +224,7 @@ public class SketchTest {
     int k = 512;
     Sketch sketch1 = UpdateSketch.builder().setFamily(ALPHA).build(k);
     byte[] byteArray = sketch1.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     //corrupt:
     mem.setBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
     Sketch.wrap(mem);
@@ -236,7 +236,7 @@ public class SketchTest {
     int k = 512;
     Sketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).build(k);
     byte[] byteArray = sketch1.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     //corrupt:
     mem.setBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
     Sketch.wrap(mem);
@@ -248,7 +248,7 @@ public class SketchTest {
     UpdateSketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).build(k);
     int bytes = Sketch.getMaxCompactSketchBytes(0);
     byte[] byteArray = new byte[bytes];
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     sketch1.compact(false, mem);
     //corrupt:
     mem.clearBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
@@ -276,7 +276,7 @@ public class SketchTest {
     for (int i=0; i<k; i++) sketch1.update(i);
     double uest1 = sketch1.getEstimate();
     int bytes = sketch1.getCurrentBytes(true);
-    Memory v3mem = new NativeMemory(new byte[bytes]);
+    WritableMemory v3mem = WritableMemory.wrap(new byte[bytes]);
     sketch1.compact(true, v3mem);
 
     Memory v1mem = ForwardCompatibilityTest.convertSerV3toSerV1(v3mem);

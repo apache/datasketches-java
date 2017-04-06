@@ -28,17 +28,6 @@ import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
-import static com.yahoo.sketches.theta.PreambleUtil.extractCurCount;
-import static com.yahoo.sketches.theta.PreambleUtil.extractFamilyID;
-import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
-import static com.yahoo.sketches.theta.PreambleUtil.extractLgArrLongs;
-import static com.yahoo.sketches.theta.PreambleUtil.extractLgNomLongs;
-import static com.yahoo.sketches.theta.PreambleUtil.extractLgResizeFactor;
-import static com.yahoo.sketches.theta.PreambleUtil.extractP;
-import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
-import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
-import static com.yahoo.sketches.theta.PreambleUtil.extractSerVer;
-import static com.yahoo.sketches.theta.PreambleUtil.extractThetaLong;
 import static com.yahoo.sketches.theta.PreambleUtil.getMemBytes;
 import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountIncremented;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedDuplicate;
@@ -47,6 +36,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
@@ -127,46 +117,18 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
    * @return instance of this sketch
    */
   static HeapQuickSelectSketch heapifyInstance(final Memory srcMem, final long seed) {
-    final int preambleLongs, serVer, familyID, lgNomLongs, lgArrLongs, flags, curCount;
-    final ResizeFactor myRF;
-    final short seedHash;
-    final float p;
-    final long thetaLong;
-
-    final boolean readOnly = srcMem.isReadOnly();
-    final boolean direct = srcMem.isDirect();
-
-    if (readOnly && !direct) {
-      preambleLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;         //byte 0
-      myRF = ResizeFactor.getRF((
+    final int preambleLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F; //byte 0
+    final ResizeFactor myRF = ResizeFactor.getRF((
           srcMem.getByte(PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT)); //byte 0
-      serVer = srcMem.getByte(SER_VER_BYTE);                              //byte 1
-      familyID = srcMem.getByte(FAMILY_BYTE);                             //byte 2
-      lgNomLongs = srcMem.getByte(LG_NOM_LONGS_BYTE);                     //byte 3
-      lgArrLongs = srcMem.getByte(LG_ARR_LONGS_BYTE);                     //byte 4
-      flags = srcMem.getByte(FLAGS_BYTE);                                 //byte 5
-      seedHash = srcMem.getShort(SEED_HASH_SHORT);                        //byte 6,7
-      curCount = srcMem.getInt(RETAINED_ENTRIES_INT);                     //bytes 8-11
-      p = srcMem.getFloat(P_FLOAT);                                       //bytes 12-15
-      thetaLong = srcMem.getLong(THETA_LONG);                             //bytes 16-23
-    }
-
-    else { //!readOnly || direct
-      final Object memObj =  (direct) ? null : srcMem.array();
-      final long memAdd = srcMem.getCumulativeOffset(0L);
-
-      preambleLongs = extractPreLongs(memObj, memAdd);                    //byte 0
-      myRF = ResizeFactor.getRF(extractLgResizeFactor(memObj, memAdd));   //byte 0
-      serVer = extractSerVer(memObj, memAdd);                             //byte 1
-      familyID = extractFamilyID(memObj, memAdd);                         //byte 2
-      lgNomLongs = extractLgNomLongs(memObj, memAdd);                     //byte 3
-      lgArrLongs = extractLgArrLongs(memObj, memAdd);                     //byte 4
-      flags = extractFlags(memObj, memAdd);                               //byte 5
-      seedHash = (short)extractSeedHash(memObj, memAdd);                  //byte 6,7
-      curCount = extractCurCount(memObj, memAdd);                         //bytes 8-11
-      p = extractP(memObj, memAdd);                                       //bytes 12-15
-      thetaLong = extractThetaLong(memObj, memAdd);                       //bytes 16-23
-    }
+    final int serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;               //byte 1
+    final int familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;              //byte 2
+    final int lgNomLongs = srcMem.getByte(LG_NOM_LONGS_BYTE) & 0XFF;      //byte 3
+    final int lgArrLongs = srcMem.getByte(LG_ARR_LONGS_BYTE) & 0XFF;      //byte 4
+    final int flags = srcMem.getByte(FLAGS_BYTE) & 0XFF;                  //byte 5
+    final short seedHash = srcMem.getShort(SEED_HASH_SHORT);              //byte 6,7
+    final int curCount = srcMem.getInt(RETAINED_ENTRIES_INT);             //bytes 8-11
+    final float  p = srcMem.getFloat(P_FLOAT);                            //bytes 12-15
+    final long thetaLong = srcMem.getLong(THETA_LONG);                    //bytes 16-23
 
     if (serVer != SER_VER) {
       throw new SketchesArgumentException(
@@ -292,7 +254,7 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
   }
 
   @Override
-  Memory getMemory() {
+  WritableMemory getMemory() {
     return null;
   }
 

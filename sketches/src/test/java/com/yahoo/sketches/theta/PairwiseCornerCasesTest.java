@@ -16,7 +16,7 @@ import java.util.Random;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 
 public class PairwiseCornerCasesTest {
 
@@ -294,7 +294,7 @@ public class PairwiseCornerCasesTest {
         for (int i = 0; i < 4 * k; i++) sk.update(i);
         int bytes = Sketch.getMaxCompactSketchBytes(sk.getRetainedEntries(true));
         byte[] byteArr = new byte[bytes];
-        NativeMemory mem = new NativeMemory(byteArr);
+        WritableMemory mem = WritableMemory.wrap(byteArr);
         csk = sk.compact(true, mem);
         break;
       }
@@ -307,7 +307,7 @@ public class PairwiseCornerCasesTest {
         for (int i = 0; i < 4 * k; i++) sk.update(i);
         int bytes = Sketch.getMaxCompactSketchBytes(sk.getRetainedEntries(true));
         byte[] byteArr = new byte[bytes];
-        NativeMemory mem = new NativeMemory(byteArr);
+        WritableMemory mem = WritableMemory.wrap(byteArr);
         csk = sk.compact(false, mem);
         break;
       }
