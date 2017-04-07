@@ -119,10 +119,11 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
   }
 
   void sort() {
-    assert !ds_.isCompact();
     assert currLvl_ == BB_LVL_IDX;
 
-    if (ds_.isDirect()) {
+    if (ds_.isCompact()) {
+      // already sorted; do nothing
+    } else if (ds_.isDirect()) {
       final double[] tmpBuffer = new double[numItems_];
       final Memory mem = ds_.getMemory();
       mem.getDoubleArray(offset_, tmpBuffer, 0, numItems_);

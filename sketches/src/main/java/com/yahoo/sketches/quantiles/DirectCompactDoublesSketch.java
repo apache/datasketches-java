@@ -36,6 +36,8 @@ import static com.yahoo.sketches.quantiles.Util.computeBaseBufferItems;
 import static com.yahoo.sketches.quantiles.Util.computeBitPattern;
 import static com.yahoo.sketches.quantiles.Util.computeRetainedItems;
 
+import java.util.Arrays;
+
 import com.yahoo.memory.Memory;
 
 import com.yahoo.sketches.Family;
@@ -96,9 +98,10 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
 
       long dstMemOffset = COMBINED_BUFFER;
 
-      // copy base buffer
-      dstMem.putDoubleArray(dstMemOffset, inputAccessor.getArray(0, bbCount),
-              0, bbCount);
+      // copy and sort base buffer
+      final double[] bbArray = inputAccessor.getArray(0, bbCount);
+      Arrays.sort(bbArray);
+      dstMem.putDoubleArray(dstMemOffset, bbArray, 0, bbCount);
       dstMemOffset += bbCount << 3;
 
       long bitPattern = computeBitPattern(k, n);

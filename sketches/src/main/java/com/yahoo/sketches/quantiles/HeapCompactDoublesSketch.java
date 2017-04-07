@@ -116,10 +116,11 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
     final DoublesSketchAccessor accessor = DoublesSketchAccessor.wrap(sketch);
     assert hcds.baseBufferCount_ == accessor.numItems();
 
-    // copy base buffer
+    // copy and sort base buffer
     System.arraycopy(accessor.getArray(0, hcds.baseBufferCount_), 0,
             combinedBuffer, 0,
             hcds.baseBufferCount_);
+    Arrays.sort(combinedBuffer, 0, hcds.baseBufferCount_);
 
     int combinedBufferOffset = hcds.baseBufferCount_;
     long bitPattern = hcds.bitPattern_;
@@ -257,8 +258,11 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
     combinedBuffer_ = new double[combBufCap];
 
     if (srcIsCompact) {
-      // just load the array
+      // just load the array, sort base buffer if serVer 2
       srcMem.getDoubleArray(preBytes, combinedBuffer_, 0, combBufCap);
+      if (serVer == 2) {
+        Arrays.sort(combinedBuffer_, 0, baseBufferCount_);
+      }
     } else {
       // non-compact source
       // load base buffer and ensure it's sorted
