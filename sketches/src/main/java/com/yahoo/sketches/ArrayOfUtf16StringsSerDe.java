@@ -6,7 +6,7 @@
 package com.yahoo.sketches;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.memory.UnsafeUtil;
 
 /**
@@ -27,7 +27,7 @@ public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
       length += items[i].length() * Character.BYTES + Integer.BYTES;
     }
     final byte[] bytes = new byte[length];
-    final Memory mem = new NativeMemory(bytes);
+    final WritableMemory mem = WritableMemory.wrap(bytes);
     long offsetBytes = 0;
     for (int i = 0; i < items.length; i++) {
       mem.putInt(offsetBytes, items[i].length());

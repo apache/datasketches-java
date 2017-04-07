@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
@@ -352,7 +352,7 @@ public class LongsSketch {
       outBytes = (preLongs + 2 * activeItems) << 3; //2 because both keys and values are longs
     }
     final byte[] outArr = new byte[outBytes];
-    final Memory mem = new NativeMemory(outArr);
+    final WritableMemory mem = WritableMemory.wrap(outArr);
 
     // build first preLong empty or not
     long pre0 = 0L;
