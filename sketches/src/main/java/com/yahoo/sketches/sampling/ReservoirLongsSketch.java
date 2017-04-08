@@ -342,6 +342,20 @@ public final class ReservoirLongsSketch {
   }
 
   /**
+   * Resets this sketch to the empty state, but retains the original value of k.
+   */
+  public void reset() {
+    final int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize_),
+            "ReservoirLongsSketch");
+    final int initialLgSize =
+            SamplingUtil.startingSubMultiple(ceilingLgK, rf_.lg(), MIN_LG_ARR_LONGS);
+
+    currItemsAlloc_ = SamplingUtil.getAdjustedSize(reservoirSize_, 1 << initialLgSize);
+    data_ = new long[currItemsAlloc_];
+    itemsSeen_ = 0;
+  }
+
+  /**
    * Returns a human-readable summary of the sketch, without items.
    *
    * @return A string version of the sketch summary

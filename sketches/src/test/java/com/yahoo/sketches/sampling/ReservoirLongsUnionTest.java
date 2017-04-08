@@ -52,9 +52,10 @@ public class ReservoirLongsUnionTest {
       rls.update(i);
     }
 
-    rlu = ReservoirLongsUnion.getInstance(rls.getK());
+    rlu.reset();
+    assertEquals(rlu.getResult().getN(), 0);
     rlu.update(rls);
-    assertNotNull(rlu.getResult());
+    assertEquals(rlu.getResult().getN(), rls.getN());
 
     final byte[] sketchBytes = rls.toByteArray();
     final Memory mem = new NativeMemory(sketchBytes);
