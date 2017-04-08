@@ -233,6 +233,11 @@ public class ReservoirLongsSketchTest {
     } catch (final SketchesStateException e) {
       assertTrue(e.getMessage().contains("Sketch has exceeded capacity for total items seen"));
     }
+
+    rls.reset();
+    assertEquals(rls.getN(), 0);
+    rls.update(1L);
+    assertEquals(rls.getN(), 1L);
   }
 
   @Test

@@ -59,9 +59,10 @@ public class ReservoirItemsUnionTest {
       ris.update(i);
     }
 
-    riu = ReservoirItemsUnion.getInstance(ris.getK());
+    riu.reset();
+    assertEquals(riu.getResult().getN(), 0);
     riu.update(ris);
-    assertNotNull(riu.getResult());
+    assertEquals(riu.getResult().getN(), ris.getN());
 
     final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     final byte[] sketchBytes = ris.toByteArray(serDe); // only the gadget is serialized
@@ -98,7 +99,8 @@ public class ReservoirItemsUnionTest {
     assertNull(riu.getResult());
 
     // null sketch
-    riu.update((ReservoirItemsSketch<Long>) null);
+    final ReservoirItemsSketch<Long> nullSketch = null;
+    riu.update(nullSketch);
     assertNull(riu.getResult());
 
     // null memory
