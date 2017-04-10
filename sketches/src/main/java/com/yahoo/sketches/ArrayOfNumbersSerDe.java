@@ -6,7 +6,7 @@
 package com.yahoo.sketches;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.memory.UnsafeUtil;
 
 /**
@@ -53,7 +53,7 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
       }
     }
     final byte[] bytes = new byte[length];
-    final Memory mem = new NativeMemory(bytes);
+    final WritableMemory mem = WritableMemory.wrap(bytes);
     long offsetBytes = 0;
     for (final Number item: items) {
       if (item instanceof Long) {

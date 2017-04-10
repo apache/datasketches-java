@@ -22,7 +22,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.frequencies.LongsSketch.Row;
@@ -106,7 +106,7 @@ public class LongsSketchTest {
     //Empty Sketch
     LongsSketch sketch = new LongsSketch(16);
     byte[] bytearray0 = sketch.toByteArray();
-    Memory mem0 = new NativeMemory(bytearray0);
+    WritableMemory mem0 = WritableMemory.wrap(bytearray0);
     LongsSketch new_sketch0 = LongsSketch.getInstance(mem0);
     String str0 = PreambleUtil.preambleToString(mem0);
     println(str0);
@@ -122,7 +122,7 @@ public class LongsSketchTest {
     sketch.update(1000002, 1010230);
 
     byte[] bytearray1 = sketch.toByteArray();
-    Memory mem1 = new NativeMemory(bytearray1);
+    Memory mem1 = Memory.wrap(bytearray1);
     LongsSketch new_sketch1 = LongsSketch.getInstance(mem1);
     String str1 = PreambleUtil.preambleToString(mem1);
     println(str1);
@@ -153,7 +153,7 @@ public class LongsSketchTest {
     sketch2.update(208, 12902390);
 
     byte[] bytearray2 = sketch2.toByteArray();
-    Memory mem2 = new NativeMemory(bytearray2);
+    Memory mem2 = Memory.wrap(bytearray2);
     LongsSketch new_sketch2 = LongsSketch.getInstance(mem2);
 
     String string2 = sketch2.serializeToString();
@@ -167,7 +167,7 @@ public class LongsSketchTest {
     LongsSketch merged_sketch = sketch.merge(sketch2);
 
     byte[] bytearray = sketch.toByteArray();
-    Memory mem = new NativeMemory(bytearray);
+    Memory mem = Memory.wrap(bytearray);
     LongsSketch new_sketch = LongsSketch.getInstance(mem);
 
     String string = sketch.serializeToString();
@@ -190,7 +190,7 @@ public class LongsSketchTest {
     sketch.reset();
 
     byte[] bytearray0 = sketch.toByteArray();
-    Memory mem0 = new NativeMemory(bytearray0);
+    Memory mem0 = Memory.wrap(bytearray0);
     LongsSketch new_sketch0 = LongsSketch.getInstance(mem0);
 
     String string0 = sketch.serializeToString();
@@ -211,7 +211,7 @@ public class LongsSketchTest {
     sk1.update(1000002, 1010230); println(sk1.toString());
 
     byte[] bytearray0 = sk1.toByteArray();
-    Memory mem0 = new NativeMemory(bytearray0);
+    Memory mem0 = Memory.wrap(bytearray0);
     LongsSketch sk2 = LongsSketch.getInstance(mem0);
 
     checkEquality(sk1, sk2);
@@ -269,7 +269,7 @@ public class LongsSketchTest {
     sk1.update(1L);
 
     byte[] bytearray0 = sk1.toByteArray();
-    Memory mem = new NativeMemory(bytearray0);
+    WritableMemory mem = WritableMemory.wrap(bytearray0);
     long pre0 = mem.getLong(0);
 
     tryBadMem(mem, PREAMBLE_LONGS_BYTE, 2); //Corrupt
@@ -285,7 +285,7 @@ public class LongsSketchTest {
     mem.putLong(0, pre0); //restore
   }
 
-  private static void tryBadMem(Memory mem, int byteOffset, int byteValue) {
+  private static void tryBadMem(WritableMemory mem, int byteOffset, int byteValue) {
     try {
       mem.putByte(byteOffset, (byte) byteValue); //Corrupt
       LongsSketch.getInstance(mem);
@@ -370,7 +370,7 @@ public class LongsSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkGetInstanceMemory() {
-    NativeMemory mem = new NativeMemory(new byte[4]);
+    WritableMemory mem = WritableMemory.wrap(new byte[4]);
     LongsSketch.getInstance(mem);
   }
 
@@ -486,7 +486,7 @@ public class LongsSketchTest {
   public void checkGetAndCheckPreLongs() {
     byte[] byteArr = new byte[8];
     byteArr[0] = (byte) 2;
-    PreambleUtil.checkPreambleSize(new NativeMemory(byteArr));
+    PreambleUtil.checkPreambleSize(Memory.wrap(byteArr));
   }
 
   @Test

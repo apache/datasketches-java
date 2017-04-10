@@ -8,7 +8,7 @@ package com.yahoo.sketches.frequencies;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 
@@ -25,7 +25,7 @@ public class SerDeCompatibilityTest {
     sketch1.update(4L);
 
     byte[] bytes = sketch1.toByteArray(serDe);
-    LongsSketch sketch2 = LongsSketch.getInstance(new NativeMemory(bytes));
+    LongsSketch sketch2 = LongsSketch.getInstance(WritableMemory.wrap(bytes));
     sketch2.update(2L);
     sketch2.update(3L);
     sketch2.update(2L);
@@ -48,7 +48,7 @@ public class SerDeCompatibilityTest {
     sketch1.update(4L);
 
     byte[] bytes = sketch1.toByteArray();
-    ItemsSketch<Long> sketch2 = ItemsSketch.getInstance(new NativeMemory(bytes), serDe);
+    ItemsSketch<Long> sketch2 = ItemsSketch.getInstance(WritableMemory.wrap(bytes), serDe);
     sketch2.update(2L);
     sketch2.update(3L);
     sketch2.update(2L);

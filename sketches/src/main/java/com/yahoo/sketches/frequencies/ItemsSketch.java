@@ -31,8 +31,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryRegion;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -262,7 +261,7 @@ public class ItemsSketch<T> {
     //Get itemArray
     final int itemsOffset = preBytes + 8 * activeItems;
     final T[] itemArray = serDe.deserializeFromMemory(
-        new MemoryRegion(srcMem, itemsOffset, srcMem.getCapacity() - itemsOffset), activeItems);
+        srcMem.region(itemsOffset, srcMem.getCapacity() - itemsOffset), activeItems);
     //update the sketch
     for (int i = 0; i < activeItems; i++) {
       fis.update(itemArray[i], countArray[i]);
@@ -292,7 +291,7 @@ public class ItemsSketch<T> {
       outBytes = ((preLongs + activeItems) << 3) + bytes.length;
     }
     final byte[] outArr = new byte[outBytes];
-    final Memory mem = new NativeMemory(outArr);
+    final WritableMemory mem = WritableMemory.wrap(outArr);
 
     // build first preLong empty or not
     long pre0 = 0L;
