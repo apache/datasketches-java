@@ -209,6 +209,29 @@ public class ReservoirLongsUnionTest {
   }
 
   @Test
+  public void checkUnionResetWithInitialSmallK() {
+    final int maxK = 25;
+    final int sketchK = 10;
+    final ReservoirLongsUnion rlu = ReservoirLongsUnion.getInstance(maxK);
+
+    ReservoirLongsSketch rls = getBasicSketch(2 * sketchK, sketchK); // in sampling mode
+    rlu.update(rls);
+    assertEquals(rlu.getMaxK(), maxK);
+    assertNotNull(rlu.getResult());
+    assertEquals(rlu.getResult().getK(), sketchK);
+
+    rlu.reset();
+    assertNotNull(rlu.getResult());
+
+    // feed in sketch in sampling mode, with larger k than old gadget
+    rls = getBasicSketch(2 * maxK, maxK + 1);
+    rlu.update(rls);
+    assertEquals(rlu.getMaxK(), maxK);
+    assertNotNull(rlu.getResult());
+    assertEquals(rlu.getResult().getK(), maxK);
+  }
+
+  @Test
   public void checkNewGadget() {
     final int maxK = 1024;
     final int bigK = 1536;
@@ -219,34 +242,34 @@ public class ReservoirLongsUnionTest {
     final byte[] bigKBytes = bigKSketch.toByteArray();
     final Memory bigKMem = new NativeMemory(bigKBytes);
 
-    ReservoirLongsUnion riu = ReservoirLongsUnion.getInstance(maxK);
-    riu.update(bigKMem);
-    assertNotNull(riu.getResult());
-    assertEquals(riu.getResult().getK(), maxK);
-    assertEquals(riu.getResult().getN(), maxK / 2);
+    ReservoirLongsUnion rlu = ReservoirLongsUnion.getInstance(maxK);
+    rlu.update(bigKMem);
+    assertNotNull(rlu.getResult());
+    assertEquals(rlu.getResult().getK(), maxK);
+    assertEquals(rlu.getResult().getN(), maxK / 2);
 
     // sketch k < maxK but in sampling mode
     final ReservoirLongsSketch smallKSketch = getBasicSketch(maxK, smallK);
     final byte[] smallKBytes = smallKSketch.toByteArray();
     final Memory smallKMem = new NativeMemory(smallKBytes);
 
-    riu = ReservoirLongsUnion.getInstance(maxK);
-    riu.update(smallKMem);
-    assertNotNull(riu.getResult());
-    assertTrue(riu.getResult().getK() < maxK);
-    assertEquals(riu.getResult().getK(), smallK);
-    assertEquals(riu.getResult().getN(), maxK);
+    rlu = ReservoirLongsUnion.getInstance(maxK);
+    rlu.update(smallKMem);
+    assertNotNull(rlu.getResult());
+    assertTrue(rlu.getResult().getK() < maxK);
+    assertEquals(rlu.getResult().getK(), smallK);
+    assertEquals(rlu.getResult().getN(), maxK);
 
     // sketch k < maxK and in exact mode
     final ReservoirLongsSketch smallKExactSketch = getBasicSketch(smallK, smallK);
     final byte[] smallKExactBytes = smallKExactSketch.toByteArray();
     final Memory smallKExactMem = new NativeMemory(smallKExactBytes);
 
-    riu = ReservoirLongsUnion.getInstance(maxK);
-    riu.update(smallKExactMem);
-    assertNotNull(riu.getResult());
-    assertEquals(riu.getResult().getK(), maxK);
-    assertEquals(riu.getResult().getN(), smallK);
+    rlu = ReservoirLongsUnion.getInstance(maxK);
+    rlu.update(smallKExactMem);
+    assertNotNull(rlu.getResult());
+    assertEquals(rlu.getResult().getK(), maxK);
+    assertEquals(rlu.getResult().getN(), smallK);
   }
 
   @Test
