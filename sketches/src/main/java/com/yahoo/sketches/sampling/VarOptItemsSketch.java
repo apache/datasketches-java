@@ -47,7 +47,7 @@ import com.yahoo.sketches.Util;
  * @author Jon Malkin
  * @author Kevin Lang
  */
-public final class VarOptItemsSketch<T> {
+final class VarOptItemsSketch<T> {
   /**
    * The smallest sampling array allocated: 16
    */

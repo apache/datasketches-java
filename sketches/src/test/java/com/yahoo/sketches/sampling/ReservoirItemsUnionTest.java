@@ -226,6 +226,29 @@ public class ReservoirItemsUnionTest {
   }
 
   @Test
+  public void checkUnionResetWithInitialSmallK() {
+    final int maxK = 25;
+    final int sketchK = 10;
+    final ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.getInstance(maxK);
+
+    ReservoirItemsSketch<Long> ris = getBasicSketch(2 * sketchK, sketchK); // in sampling mode
+    riu.update(ris);
+    assertEquals(riu.getMaxK(), maxK);
+    assertNotNull(riu.getResult());
+    assertEquals(riu.getResult().getK(), sketchK);
+
+    riu.reset();
+    assertNotNull(riu.getResult());
+
+    // feed in sketch in sampling mode, with larger k than old gadget
+    ris = getBasicSketch(2 * maxK, maxK + 1);
+    riu.update(ris);
+    assertEquals(riu.getMaxK(), maxK);
+    assertNotNull(riu.getResult());
+    assertEquals(riu.getResult().getK(), maxK);
+  }
+
+  @Test
   public void checkNewGadget() {
     final int maxK = 1024;
     final int bigK = 1536;
