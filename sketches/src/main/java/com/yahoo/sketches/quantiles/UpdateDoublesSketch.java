@@ -42,7 +42,7 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
   }
 
   /**
-   * Returns a comapct version of this sketch. If passing in a Memory object, the compact sketch
+   * Returns a compact version of this sketch. If passing in a Memory object, the compact sketch
    * will use that direct memory; otherwise, an on-heap sketch will be returned.
    * @param dstMem An optional target memory to hold the sketch.
    * @return A compact version of this sketch
