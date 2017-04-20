@@ -5,17 +5,16 @@
 
 package com.yahoo.sketches.hll;
 
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
-import com.yahoo.sketches.SketchesArgumentException;
-
 import java.util.Arrays;
+
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * @author Kevin Lang
  */
 final class OnHeapFields implements Fields {
-  public static OnHeapFields fromBytes(Preamble preamble, byte[] bytes, int offset, int endOffset) {
+  public static OnHeapFields fromBytes(final Preamble preamble, final byte[] bytes,
+          final int offset, final int endOffset) {
     if (bytes[offset] == Fields.NAIVE_DENSE_VERSION) {
       throw new IllegalArgumentException(
           String.format(
@@ -37,7 +36,7 @@ final class OnHeapFields implements Fields {
     buckets = new byte[preamble.getConfigK()];
   }
 
-  private OnHeapFields(final Preamble preamble, byte[] buckets) {
+  private OnHeapFields(final Preamble preamble, final byte[] buckets) {
     this.preamble = preamble;
     this.buckets = buckets;
   }
@@ -59,7 +58,7 @@ final class OnHeapFields implements Fields {
   @Override
   public int intoByteArray(final byte[] array, int offset) {
     final int numBytesNeeded = numBytesToSerialize();
-    if (array.length - offset < numBytesNeeded) {
+    if ((array.length - offset) < numBytesNeeded) {
       throw new SketchesArgumentException(
           String.format("array too small[%,d] < [%,d]", array.length - offset, numBytesNeeded)
       );
@@ -90,7 +89,7 @@ final class OnHeapFields implements Fields {
       @Override
       public boolean next() {
         ++i;
-        while (i < buckets.length && buckets[i] == 0) {
+        while ((i < buckets.length) && (buckets[i] == 0)) {
           ++i;
         }
         return i < buckets.length;

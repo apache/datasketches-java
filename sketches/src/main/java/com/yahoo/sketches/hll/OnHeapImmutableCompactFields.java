@@ -44,7 +44,8 @@ final class OnHeapImmutableCompactFields implements Fields {
     return new OnHeapImmutableCompactFields(fields.getPreamble(), theFields);
   }
 
-  public static OnHeapImmutableCompactFields fromBytes(Preamble preamble, byte[] bytes, int offset, int numBytes) {
+  public static OnHeapImmutableCompactFields fromBytes(final Preamble preamble, final byte[] bytes,
+          final int offset, final int numBytes) {
     if (bytes[offset] != Fields.SORTED_SPARSE_VERSION) {
       throw new IllegalArgumentException(
           String.format(
@@ -55,12 +56,12 @@ final class OnHeapImmutableCompactFields implements Fields {
       );
     }
 
-    Memory mem = new NativeMemory(bytes);
-    int[] fields = new int[(numBytes - 1) / 4];
-    int dataOffset = offset + 1;
+    final Memory mem = new NativeMemory(bytes);
+    final int[] fields = new int[(numBytes - 1) / 4];
+    final int dataOffset = offset + 1;
 
     for (int i = 0; i < fields.length; ++i) {
-      fields[i] = mem.getInt(dataOffset + i<<2);
+      fields[i] = mem.getInt((dataOffset + i) << 2);
     }
 
     return new OnHeapImmutableCompactFields(preamble, fields);
@@ -87,7 +88,7 @@ final class OnHeapImmutableCompactFields implements Fields {
   @Override
   public int intoByteArray(final byte[] array, int offset) {
     final int numBytesNeeded = numBytesToSerialize();
-    if (array.length - offset < numBytesNeeded) {
+    if ((array.length - offset) < numBytesNeeded) {
       throw new SketchesArgumentException(
           String.format("array too small[%,d] < [%,d]", array.length - offset, numBytesNeeded)
       );

@@ -15,13 +15,13 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Kevin Lang
  */
 final class OnHeapHash {
-  static OnHeapHash fromBytes(byte[] bytes, int offset, int endOffset) {
-    int[] fields = new int[(endOffset - offset) / 4];
+  static OnHeapHash fromBytes(final byte[] bytes, final int offset, final int endOffset) {
+    final int[] fields = new int[(endOffset - offset) / 4];
     int numElements = 0;
 
-    Memory mem = new NativeMemory(bytes);
+    final Memory mem = new NativeMemory(bytes);
     for (int i = 0; i < fields.length; ++i) {
-      fields[i] = mem.getInt(offset + i<<2);
+      fields[i] = mem.getInt((offset + i) << 2);
       if (fields[i] != -1) {
         ++numElements;
       }
@@ -38,17 +38,17 @@ final class OnHeapHash {
     resetFields(startSize);
   }
 
-  private OnHeapHash (int[] fields, int numElements) {
+  private OnHeapHash(final int[] fields, final int numElements) {
     this.fields = fields;
     this.numElements = numElements;
-    this.mask = fields.length - 1;
+    mask = fields.length - 1;
   }
 
   void resetFields(final int size) {
-    this.fields = new int[size];
-    Arrays.fill(this.fields, -1);
-    this.mask = fields.length - 1;
-    this.numElements = 0;
+    fields = new int[size];
+    Arrays.fill(fields, -1);
+    mask = fields.length - 1;
+    numElements = 0;
   }
 
   int[] getFields() {
@@ -67,7 +67,7 @@ final class OnHeapHash {
       final Fields.UpdateCallback callback) {
     int probe = key & mask;
     int field = fields[probe];
-    while (field != HashUtils.NOT_A_PAIR && key != HashUtils.keyOfPair(field)) {
+    while ((field != HashUtils.NOT_A_PAIR) && (key != HashUtils.keyOfPair(field))) {
       probe = (probe + 1) & mask;
       field = fields[probe];
     }
@@ -90,7 +90,7 @@ final class OnHeapHash {
 
   int intoByteArray(final byte[] array, int offset) {
     final int numBytesNeeded = numBytesToSerialize();
-    if (array.length - offset < numBytesNeeded) {
+    if ((array.length - offset) < numBytesNeeded) {
       throw new SketchesArgumentException(
           String.format("array too small[%,d] < [%,d]", array.length - offset, numBytesNeeded)
       );
@@ -117,7 +117,7 @@ final class OnHeapHash {
       @Override
       public boolean next() {
         ++i;
-        while (i < fields.length && fields[i] == HashUtils.NOT_A_PAIR) {
+        while ((i < fields.length) && (fields[i] == HashUtils.NOT_A_PAIR)) {
           ++i;
         }
         return i < fields.length;
@@ -135,8 +135,8 @@ final class OnHeapHash {
     };
   }
 
-  void boostrap(final int[] fields) {
-    for (int field : fields) {
+  void boostrap(final int[] myFields) {
+    for (int field : myFields) {
       if (field != HashUtils.NOT_A_PAIR) {
         updateBucket(HashUtils.keyOfPair(field), HashUtils.valOfPair(field), field, Fields.NOOP_CB);
       }

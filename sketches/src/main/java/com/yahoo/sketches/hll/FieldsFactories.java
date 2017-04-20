@@ -7,10 +7,11 @@ public class FieldsFactories
   public static final byte DENSE = 0x0;
   public static final byte DENSE_COMPRESSED = 0x1;
 
-  static FieldsFactory fromBytes(byte[] bytes, int offset, int endOffset) {
+  @SuppressWarnings("unused")
+  static FieldsFactory fromBytes(final byte[] bytes, final int offset, final int endOffset) {
     final byte version = bytes[offset];
 
-    switch(version) {
+    switch (version) {
       case DENSE:
         return new DenseFieldsFactory();
       case DENSE_COMPRESSED:

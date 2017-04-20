@@ -4,9 +4,8 @@ import com.yahoo.memory.NativeMemory;
 
 /**
  */
-public class Serde
-{
-  public static int putInt(NativeMemory mem, int offset, int value) {
+public class Serde {
+  public static int putInt(final NativeMemory mem, final int offset, final int value) {
     mem.putInt(offset, value);
     return offset + 4;
   }

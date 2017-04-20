@@ -12,7 +12,8 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Kevin Lang
  */
 final class OnHeapHashFields implements Fields {
-  public static OnHeapHashFields fromBytes(Preamble preamble, byte[] bytes, int offset, int numBytes) {
+  public static OnHeapHashFields fromBytes(final Preamble preamble, final byte[] bytes,
+          final int offset, final int numBytes) {
     if (bytes[offset] == Fields.HASH_SPARSE_VERSION) {
       throw new IllegalArgumentException(
           String.format(
@@ -24,7 +25,7 @@ final class OnHeapHashFields implements Fields {
     }
 
     int bytesRead = 1;
-    NativeMemory mem = new NativeMemory(bytes);
+    final NativeMemory mem = new NativeMemory(bytes);
 
     final int switchToDenseSize = mem.getInt(offset + bytesRead);
     bytesRead += 4;
@@ -35,7 +36,7 @@ final class OnHeapHashFields implements Fields {
     final int numBytesForFieldsFactory = mem.getInt(offset + bytesRead);
     bytesRead += 4;
 
-    FieldsFactory denseFactory = FieldsFactories.fromBytes(
+    final FieldsFactory denseFactory = FieldsFactories.fromBytes(
         bytes, offset + bytesRead, offset + bytesRead + numBytesForFieldsFactory
     );
     bytesRead += numBytesForFieldsFactory;
@@ -60,10 +61,10 @@ final class OnHeapHashFields implements Fields {
   ) {
     this.preamble = preamble;
     this.denseFactory = denseFactory;
-    this.hasher = new OnHeapHash(startSize);
+    hasher = new OnHeapHash(startSize);
     this.switchToDenseSize = switchToDenseSize;
 
-    this.growthBound = 3 * (startSize >>> 2);
+    growthBound = 3 * (startSize >>> 2);
   }
 
   private OnHeapHashFields(
@@ -91,7 +92,7 @@ final class OnHeapHashFields implements Fields {
 
     if (hasher.getNumElements() >= growthBound) {
       final int[] fields = hasher.getFields();
-      this.growthBound = 3 * (fields.length >>> 2);
+      growthBound = 3 * (fields.length >>> 2);
       if (fields.length == switchToDenseSize) {
         final Fields retVal = denseFactory.make(preamble);
         final BucketIterator iter = getBucketIterator();
@@ -111,7 +112,7 @@ final class OnHeapHashFields implements Fields {
   @Override
   public int intoByteArray(final byte[] array, int offset) {
     final int numBytesNeeded = numBytesToSerialize();
-    if (array.length - offset < numBytesNeeded) {
+    if ((array.length - offset) < numBytesNeeded) {
       throw new SketchesArgumentException(
           String.format("array too small[%,d] < [%,d]", array.length - offset, numBytesNeeded)
       );
@@ -119,7 +120,7 @@ final class OnHeapHashFields implements Fields {
 
     array[offset++] = Fields.HASH_SPARSE_VERSION;
 
-    NativeMemory mem = new NativeMemory(array);
+    final NativeMemory mem = new NativeMemory(array);
     offset = Serde.putInt(mem, offset, switchToDenseSize);
     offset = Serde.putInt(mem, offset, growthBound);
     offset = Serde.putInt(mem, offset, denseFactory.numBytesToSerialize());
@@ -130,12 +131,12 @@ final class OnHeapHashFields implements Fields {
 
   @Override
   public int numBytesToSerialize() {
-    return 1 + // type
-           4 + // switchToDenseSize
-           4 + // denseFactoryNumBytes
-           denseFactory.numBytesToSerialize() +
-           4 + // growthBound
-           hasher.numBytesToSerialize();
+    return 1   // type
+         + 4 // switchToDenseSize
+         + 4 // denseFactoryNumBytes
+         + denseFactory.numBytesToSerialize()
+         + 4 // growthBound
+         + hasher.numBytesToSerialize();
   }
 
   @Override

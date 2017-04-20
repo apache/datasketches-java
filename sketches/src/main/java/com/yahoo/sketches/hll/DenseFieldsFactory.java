@@ -16,15 +16,13 @@ final class DenseFieldsFactory implements FieldsFactory {
   }
 
   @Override
-  public int intoByteArray(byte[] bytes, int offset)
-  {
+  public int intoByteArray(final byte[] bytes, final int offset) {
     bytes[offset] = FieldsFactories.DENSE;
     return offset + 1;
   }
 
   @Override
-  public int numBytesToSerialize()
-  {
+  public int numBytesToSerialize() {
     return 1;
   }
 }

@@ -13,7 +13,8 @@ import com.yahoo.sketches.SketchesArgumentException;
  */
 final class OnHeapCompressedFields implements Fields
 {
-  public static OnHeapCompressedFields fromBytes(Preamble preamble, byte[] bytes, int offset, int endOffset)
+  public static OnHeapCompressedFields fromBytes(final Preamble preamble, final byte[] bytes,
+          int offset, final int endOffset)
   {
     if (bytes[offset] == Fields.COMPRESSED_DENSE_VERSION) {
       throw new IllegalArgumentException(
@@ -25,14 +26,14 @@ final class OnHeapCompressedFields implements Fields
       );
     }
 
-    byte currMin = bytes[offset + 1];
+    final byte currMin = bytes[offset + 1];
     offset += 2;
 
-    NativeMemory mem = new NativeMemory(bytes);
-    int numAtCurrMin = mem.getInt(offset + 2);
+    final NativeMemory mem = new NativeMemory(bytes);
+    final int numAtCurrMin = mem.getInt(offset + 2);
     offset += 4;
 
-    byte[] buckets = new byte[mem.getInt(offset)];
+    final byte[] buckets = new byte[mem.getInt(offset)];
     offset += 4;
 
     mem.getByteArray(offset, buckets, 0, buckets.length);
@@ -64,23 +65,23 @@ final class OnHeapCompressedFields implements Fields
     buckets = new byte[preamble.getConfigK() >>> 1];
     exceptions = new OnHeapHash(16);
 
-    this.exceptionGrowthBound = 3 * (exceptions.getFields().length >>> 2);
-    this.numAtCurrMin = preamble.getConfigK();
+    exceptionGrowthBound = 3 * (exceptions.getFields().length >>> 2);
+    numAtCurrMin = preamble.getConfigK();
   }
 
   private OnHeapCompressedFields(
-      Preamble preamble,
-      byte[] buckets,
-      OnHeapHash exceptions,
-      byte currMin,
-      int numAtCurrMin
+      final Preamble preamble,
+      final byte[] buckets,
+      final OnHeapHash exceptions,
+      final byte currMin,
+      final int numAtCurrMin
   )
   {
     this.preamble = preamble;
     this.buckets = buckets;
     this.exceptions = exceptions;
     this.currMin = currMin;
-    this.exceptionGrowthBound = 3 * (exceptions.getFields().length >>> 2);
+    exceptionGrowthBound = 3 * (exceptions.getFields().length >>> 2);
     this.numAtCurrMin = numAtCurrMin;
   }
 
@@ -91,9 +92,8 @@ final class OnHeapCompressedFields implements Fields
   }
 
   @Override
-  public Fields updateBucket(final int index, final byte val, final UpdateCallback callback)
-  {
-    int valDiff = val - currMin;
+  public Fields updateBucket(final int index, final byte val, final UpdateCallback callback) {
+    final int valDiff = val - currMin;
     if (valDiff <= 0) {
       return this;
     }
@@ -111,7 +111,7 @@ final class OnHeapCompressedFields implements Fields
 
       if (exceptions.getNumElements() >= exceptionGrowthBound) {
         final int[] fields = exceptions.getFields();
-        this.exceptionGrowthBound = 3 * (fields.length >>> 2);
+        exceptionGrowthBound = 3 * (fields.length >>> 2);
         exceptions.resetFields(fields.length << 1);
         exceptions.boostrap(fields);
       }
@@ -168,7 +168,7 @@ final class OnHeapCompressedFields implements Fields
   @Override
   public int intoByteArray(final byte[] array, int offset)
   {
-    if (array.length - offset < 6) {
+    if ((array.length - offset) < 6) {
       throw new SketchesArgumentException(
           String.format("array too small[%,d][%,d], need at least 6 bytes", array.length, offset)
       );
@@ -188,12 +188,12 @@ final class OnHeapCompressedFields implements Fields
   @Override
   public int numBytesToSerialize()
   {
-    return 1 + // version
-           1 + // currMin
-           4 + // numAtCurrMin
-           4 + // buckets.length
-           buckets.length +
-           exceptions.numBytesToSerialize();
+    return 1 // version
+           + 1 // currMin
+           + 4 // numAtCurrMin
+           + 4 // buckets.length
+           + buckets.length
+           + exceptions.numBytesToSerialize();
   }
 
   @Override
@@ -222,10 +222,9 @@ final class OnHeapCompressedFields implements Fields
 
   @Override
   public Fields unionCompressedAndExceptions(
-      final byte[] compressed, final int minVal, final OnHeapHash exceptions, final UpdateCallback cb
-  )
-  {
+      final byte[] compressed, final int minVal, final OnHeapHash myExceptions,
+      final UpdateCallback cb ) {
     return unionBucketIterator(
-        CompressedBucketUtils.getBucketIterator(compressed, minVal, exceptions), cb);
+        CompressedBucketUtils.getBucketIterator(compressed, minVal, myExceptions), cb);
   }
 }
