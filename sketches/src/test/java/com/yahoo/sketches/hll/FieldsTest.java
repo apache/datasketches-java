@@ -79,6 +79,16 @@ public class FieldsTest
             Assert.fail(String.format("bucket[%s]: %d != %d", bucketId, iter.getValue(), vals[bucketId]));
           }
         }
+
+        final byte[] ephemeralBytes = new byte[fields.numBytesToSerialize()];
+        fields.intoByteArray(ephemeralBytes, 0);
+        iter = FieldsFactories.fromBytes(fields.getPreamble(), ephemeralBytes).getBucketIterator();
+        while (iter.next()) {
+          int bucketId = iter.getKey();
+          if (iter.getValue() != vals[bucketId]) {
+            Assert.fail(String.format("bucket[%s]: %d != %d", bucketId, iter.getValue(), vals[bucketId]));
+          }
+        }
       }
     }
   }
@@ -126,6 +136,16 @@ public class FieldsTest
         }
 
         BucketIterator iter = fields.getBucketIterator();
+        while (iter.next()) {
+          int bucketId = iter.getKey();
+          if (iter.getValue() != actualVals[bucketId]) {
+            Assert.fail(String.format("bucket[%s]: %d != %d", bucketId, iter.getValue(), actualVals[bucketId]));
+          }
+        }
+
+        final byte[] ephemeralBytes = new byte[fields.numBytesToSerialize()];
+        fields.intoByteArray(ephemeralBytes, 0);
+        iter = FieldsFactories.fromBytes(fields.getPreamble(), ephemeralBytes).getBucketIterator();
         while (iter.next()) {
           int bucketId = iter.getKey();
           if (iter.getValue() != actualVals[bucketId]) {

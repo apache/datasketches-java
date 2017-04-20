@@ -283,26 +283,13 @@ public class HllSketch {
    * @param endOffset the end offset
    * @return HllSketch
    */
-  public static HllSketch fromBytes(final Preamble preamble, final byte[] bytes,
-          final int startOffset, final int endOffset) {
-    final Fields fields;
-    switch (bytes[startOffset]) {
-      case Fields.NAIVE_DENSE_VERSION:
-        fields = OnHeapFields.fromBytes(preamble, bytes, startOffset, endOffset);
-        break;
-      case Fields.HASH_SPARSE_VERSION:
-        fields = OnHeapHashFields.fromBytes(preamble, bytes, startOffset, endOffset);
-        break;
-      case Fields.SORTED_SPARSE_VERSION:
-        fields = OnHeapImmutableCompactFields.fromBytes(preamble, bytes, startOffset, endOffset);
-        break;
-      case Fields.COMPRESSED_DENSE_VERSION:
-        fields = OnHeapCompressedFields.fromBytes(preamble, bytes, startOffset, endOffset);
-        break;
-      default:
-        throw new IllegalArgumentException(String.format("Unknown field type[%d]", bytes[startOffset]));
-    }
-
+  public static HllSketch fromBytes(
+      final Preamble preamble,
+      final byte[] bytes,
+      final int startOffset,
+      final int endOffset
+  ) {
+    final Fields fields = FieldsFactories.fromBytes(preamble, bytes, startOffset, endOffset);
     return preamble.isHip() ? new HipHllSketch(fields) : new HllSketch(fields);
   }
 

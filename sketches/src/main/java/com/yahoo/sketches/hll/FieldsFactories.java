@@ -20,4 +20,29 @@ public class FieldsFactories
         throw new IllegalStateException(String.format("Unknown FieldsFactory version[%s]", version));
     }
   }
+
+  static Fields fromBytes(Preamble preamble, final byte[] bytes) {
+    return fromBytes(preamble, bytes, 0, bytes.length);
+  }
+
+  static Fields fromBytes(Preamble preamble, final byte[] bytes, final int startOffset, final int endOffset) {
+    final Fields fields;
+    switch (bytes[startOffset]) {
+      case Fields.NAIVE_DENSE_VERSION:
+        fields = OnHeapFields.fromBytes(preamble, bytes, startOffset, endOffset);
+        break;
+      case Fields.HASH_SPARSE_VERSION:
+        fields = OnHeapHashFields.fromBytes(preamble, bytes, startOffset, endOffset);
+        break;
+      case Fields.SORTED_SPARSE_VERSION:
+        fields = OnHeapImmutableCompactFields.fromBytes(preamble, bytes, startOffset, endOffset);
+        break;
+      case Fields.COMPRESSED_DENSE_VERSION:
+        fields = OnHeapCompressedFields.fromBytes(preamble, bytes, startOffset, endOffset);
+        break;
+      default:
+        throw new IllegalArgumentException(String.format("Unknown field type[%d]", bytes[startOffset]));
+    }
+    return fields;
+  }
 }
