@@ -60,7 +60,7 @@ import java.nio.ByteBuffer;
  * methods in this class DO NOT do any bounds checking when running in a default-configured JVM.</p>
  *
  * <p>However, the methods in this class will perform bounds checking if the JVM is configured to
- * enable asserts (-ea). Test enviornments such as JUnit and TestNG automatically configure the
+ * enable asserts (-ea). Test environments such as JUnit and TestNG automatically configure the
  * JVM to enable asserts. Thus, it is incumbent on the user of this class to make sure that their
  * code is thoroughly tested.  Violating memory bounds can cause memory segment faults, which takes
  * down the JVM and can be very difficult to debug. </p>
@@ -222,7 +222,7 @@ public class NativeMemory implements Memory {
 
       nativeBaseAddress = 0L;
       //adjust for slice() arrayOffset()
-      objectBaseOffset = ARRAY_BYTE_BASE_OFFSET + arrayOffset * ARRAY_BYTE_INDEX_SCALE;
+      objectBaseOffset = ARRAY_BYTE_BASE_OFFSET + (arrayOffset * ARRAY_BYTE_INDEX_SCALE);
 
       final NativeMemoryR nmr = new NativeMemoryR(
           nativeBaseAddress, capacityBytes, objectBaseOffset, memArray, byteBuf);
@@ -249,7 +249,7 @@ public class NativeMemory implements Memory {
       //WRITABLE-HEAP
       nativeBaseAddress = 0L;
       //adjust for slice() arrayOffset()
-      objectBaseOffset = ARRAY_BYTE_BASE_OFFSET + byteBuf.arrayOffset() * ARRAY_BYTE_INDEX_SCALE;
+      objectBaseOffset = ARRAY_BYTE_BASE_OFFSET + (byteBuf.arrayOffset() * ARRAY_BYTE_INDEX_SCALE);
       memArray = byteBuf.array();
 
       final NativeMemory nm = new NativeMemory(
@@ -278,7 +278,7 @@ public class NativeMemory implements Memory {
       cumBaseOffset_ = nativeBaseAddress_ + objectBaseOffset_;
     }
     else { //must have array, but arrayOffset is not accessible when Read-only
-      objectBaseOffset_ = ARRAY_BYTE_BASE_OFFSET + byteBuf.arrayOffset() * ARRAY_BYTE_INDEX_SCALE;
+      objectBaseOffset_ = ARRAY_BYTE_BASE_OFFSET + (byteBuf.arrayOffset() * ARRAY_BYTE_INDEX_SCALE);
       memArray_ = byteBuf.array();
       nativeBaseAddress_ = 0L;
       cumBaseOffset_ = nativeBaseAddress_ + objectBaseOffset_;
@@ -735,13 +735,13 @@ public class NativeMemory implements Memory {
     if (destination.isReadOnly()) {
       throw new ReadOnlyMemoryException();
     }
-    assertBounds(srcOffsetBytes, lengthBytes, this.getCapacity());
+    assertBounds(srcOffsetBytes, lengthBytes, getCapacity());
     assertBounds(dstOffsetBytes, lengthBytes, destination.getCapacity());
     assert (this == destination) ? checkOverlap(srcOffsetBytes, dstOffsetBytes, lengthBytes) : true ;
 
-    long srcAdd = this.getCumulativeOffset(srcOffsetBytes);
+    long srcAdd = getCumulativeOffset(srcOffsetBytes);
     long dstAdd = destination.getCumulativeOffset(dstOffsetBytes);
-    final Object srcParent = (this.isDirect()) ? null : memArray_;
+    final Object srcParent = (isDirect()) ? null : memArray_;
     final Object dstParent = (destination.isDirect()) ? null : destination.array();
     long lenBytes = lengthBytes;
 
@@ -817,6 +817,11 @@ public class NativeMemory implements Memory {
   }
 
   @Override
+  public boolean isSameResource(final Memory mem) {
+    return MemoryUtil.isSameResource(this, mem);
+  }
+
+  @Override
   public void setMemoryRequest(final MemoryRequest memReq) {
     memReq_ = memReq;
   }
@@ -827,7 +832,7 @@ public class NativeMemory implements Memory {
     sb.append(header).append(LS);
     final String s1 = String.format("(..., %d, %d)", offsetBytes, lengthBytes);
     sb.append(this.getClass().getSimpleName()).append(".toHexString")
-      .append(s1).append(", hash: ").append(this.hashCode()).append(LS);
+      .append(s1).append(", hash: ").append(hashCode()).append(LS);
     sb.append("  MemoryRequest: ");
     if (memReq_ != null) {
       sb.append(memReq_.getClass().getSimpleName()).append(", hash: ").append(memReq_.hashCode());

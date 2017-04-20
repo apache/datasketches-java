@@ -93,6 +93,28 @@ public class MemoryRegionTest {
     mem.freeMemory();
   }
 
+  @SuppressWarnings("deprecation")
+  @Test
+  public void checkDeprecatedCopy() {
+    int memCapacity = 64;
+    int half = memCapacity/2;
+    AllocMemory mem = new AllocMemory(memCapacity);
+    Memory region = new MemoryRegion(mem, 0, memCapacity);
+    region.clear();
+
+    for (int i=0; i<half; i++) {
+      region.putByte(i, (byte) i);
+    }
+
+    region.copy(0, half, half);
+
+    for (int i=0; i<half; i++) {
+      assertEquals(region.getByte(i+half), (byte) i);
+    }
+
+    mem.freeMemory();
+  }
+
   @Test
   public void checkCopyLarge() {
     int memCapacity = (2<<20) + 64;
@@ -148,7 +170,7 @@ public class MemoryRegionTest {
     region.clear();
     println(region.toHexString("Clear 64", 0, memCapacity));
 
-    for (int i=0; i<memCapacity/2; i++) {
+    for (int i=0; i<(memCapacity/2); i++) {
       region.putByte(i, (byte) i);
     }
     println(region.toHexString("Set 1st 32 to ints ", 0, memCapacity));
@@ -320,7 +342,9 @@ public class MemoryRegionTest {
     NativeMemory parent = new NativeMemory(memArr);
     MemoryRequest mr = new MemoryRegionManager(parent);
     //mark the memory so we can see it
-    for (int i=0; i<parentCap; i++) memArr[i] = (byte) i;
+    for (int i=0; i<parentCap; i++) {
+      memArr[i] = (byte) i;
+    }
     println(parent.toHexString("Parent", 0, 256));
 
     Memory reg1 = mr.request(128); //1st request
@@ -373,6 +397,17 @@ public class MemoryRegionTest {
     assertNull(reg.byteBuffer());
     assertTrue(mem.equals(reg.getParent()));
     reg.freeMemory();
+  }
+
+  @Test
+  public void checkHierarchicalReadOnly() {
+    byte[] arr = new byte[64];
+    NativeMemory mem = new NativeMemory(arr);
+    MemoryRegion reg1 = new MemoryRegion(mem, 0, 64);
+    MemoryRegion reg2 = new MemoryRegion(reg1, 0, 64);
+    MemoryRegion reg3 = new MemoryRegion(reg2, 0, 64);
+    MemoryRegion ro = reg3.asReadOnlyMemory();
+    assertTrue(ro.isReadOnly());
   }
 
   @Test
