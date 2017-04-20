@@ -21,7 +21,7 @@ final class OnHeapHash {
 
     final Memory mem = new NativeMemory(bytes);
     for (int i = 0; i < fields.length; ++i) {
-      fields[i] = mem.getInt((offset + i) << 2);
+      fields[i] = mem.getInt(offset + (i << 2));
       if (fields[i] != -1) {
         ++numElements;
       }

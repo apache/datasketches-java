@@ -41,7 +41,7 @@ final class OnHeapHashFields implements Fields {
     );
     bytesRead += numBytesForFieldsFactory;
 
-    final OnHeapHash hasher = OnHeapHash.fromBytes(bytes, offset, numBytes - bytesRead);
+    final OnHeapHash hasher = OnHeapHash.fromBytes(bytes, offset + bytesRead, numBytes);
 
     return new OnHeapHashFields(preamble, denseFactory, switchToDenseSize, hasher, growthBound);
   }
