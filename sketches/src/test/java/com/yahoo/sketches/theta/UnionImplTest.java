@@ -4,6 +4,7 @@
  */
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
@@ -35,20 +36,35 @@ public class UnionImplTest {
   public void checkUpdateWithMem() {
     int k = 16;
     Memory skMem = new NativeMemory(new byte[2*k*8 + 24]);
-    Memory doCskMem = new NativeMemory(new byte[k*8 + 24]);
-    Memory duCskMem = new NativeMemory(new byte[k*8 + 24]);
+    Memory dirOrdCskMem = new NativeMemory(new byte[k*8 + 24]);
+    Memory dirUnordCskMem = new NativeMemory(new byte[k*8 + 24]);
     UpdateSketch udSketch = UpdateSketch.builder().initMemory(skMem).build(k);
     for (int i = 0; i < k; i++) { udSketch.update(i); } //exact
-    udSketch.compact(true, doCskMem);
-    udSketch.compact(false, duCskMem);
+    udSketch.compact(true, dirOrdCskMem);
+    udSketch.compact(false, dirUnordCskMem);
 
     Union union = Sketches.setOperationBuilder().buildUnion(k);
     union.update(skMem);
-    union.update(doCskMem);
-    union.update(duCskMem);
+    union.update(dirOrdCskMem);
+    union.update(dirUnordCskMem);
     assertEquals(union.getResult().getEstimate(), k, 0.0);
   }
 
+  @Test
+  public void checkFastWrap() {
+    int k = 16;
+    long seed = DEFAULT_UPDATE_SEED;
+    int unionSize = Sketches.getMaxUnionBytes(k);
+    NativeMemory srcMem = new NativeMemory(new byte[unionSize]);
+    Union union = Sketches.setOperationBuilder().initMemory(srcMem).buildUnion(k);
+    for (int i = 0; i < k; i++) { union.update(i); } //exact
+    assertEquals(union.getResult().getEstimate(), k, 0.0);
+    Union union2 = UnionImpl.fastWrap(srcMem, seed);
+    assertEquals(union2.getResult().getEstimate(), k, 0.0);
+    Memory srcMemR = srcMem.asReadOnlyMemory();
+    Union union3 = UnionImpl.fastWrap(srcMemR, seed); //TODO Will not work with new memory model
+    assertEquals(union3.getResult().getEstimate(), k, 0.0);
+  }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkCorruptFamilyException() {

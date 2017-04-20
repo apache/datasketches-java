@@ -202,6 +202,19 @@ public class MemoryUtilTest {
     catch (IllegalArgumentException e) {}
   }
 
+  @SuppressWarnings("deprecation")
+  @Test
+  public void checkDeprecatedCopy() {
+    int len = 64;
+    NativeMemory mem1 = new NativeMemory(new byte[len]);
+    NativeMemory mem2 = new NativeMemory(new byte[len]);
+    for (int i = 0; i < (len / 2); i++) { mem1.putByte(i, (byte) (i + 1)); }
+    MemoryUtil.copy(mem1, 0, mem2, 32, 32);
+    for (int i = 0; i < (len / 2); i++) {
+      assertEquals(mem1.getByte(i), mem2.getByte(i + 32));
+    }
+  }
+
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());

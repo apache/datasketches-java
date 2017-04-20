@@ -26,11 +26,15 @@ jarsIn/
 *.jar
 build.xml
 .idea
-*.iml
 *.properties
 *.releaseBackup
 *.next
 *.tag
+
+# IntelliJ project files
+*.iml
+*.ipr
+*.iws
 
 # Jekyll
 Gemfile

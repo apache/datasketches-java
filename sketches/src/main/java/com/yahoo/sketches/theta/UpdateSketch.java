@@ -257,12 +257,6 @@ public abstract class UpdateSketch extends Sketch {
   abstract int getLgNomLongs();
 
   /**
-   * Gets the Log base 2 of the Resize Factor
-   * @return the Log base 2 of the Resize Factor
-   */
-  abstract int getLgResizeFactor();
-
-  /**
    * Gets the configured sampling probability, <i>p</i>.
    * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
    * @return the sampling probability, <i>p</i>

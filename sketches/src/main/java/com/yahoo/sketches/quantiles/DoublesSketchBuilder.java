@@ -69,16 +69,16 @@ public class DoublesSketchBuilder {
   }
 
   /**
-   * Returns a DoublesSketch with the current configuration of this Builder.
-   * @return a DoublesSketch
+   * Returns an UpdateDoublesSketch with the current configuration of this Builder.
+   * @return a UpdateDoublesSketch
    */
-  public DoublesSketch build() {
-    return (bMem == null) ? HeapDoublesSketch.newInstance(bK)
-        : DirectDoublesSketch.newInstance(bK, bMem);
+  public UpdateDoublesSketch build() {
+    return (bMem == null) ? HeapUpdateDoublesSketch.newInstance(bK)
+        : DirectUpdateDoublesSketch.newInstance(bK, bMem);
   }
 
   /**
-   * Returns a quantiles DoublesSketch with the current configuration of this builder and the
+   * Returns a quantiles UpdateDoublesSketch with the current configuration of this builder and the
    * given parameter <i>k</i>.
    * @param k determines the accuracy and size of the sketch.
    * <i>k</i> must be greater than 1 and less than 65536.
@@ -86,11 +86,11 @@ public class DoublesSketchBuilder {
    * different values of <i>k</i>. However, in this case it is only possible to merge from
    * larger values of <i>k</i> to smaller values.
    *
-   * @return a DoublesSketch
+   * @return an UpdateDoublesSketch
    */
-  public DoublesSketch build(final int k) {
-    return (bMem == null) ? HeapDoublesSketch.newInstance(k)
-        : DirectDoublesSketch.newInstance(k, bMem);
+  public UpdateDoublesSketch build(final int k) {
+    return (bMem == null) ? HeapUpdateDoublesSketch.newInstance(k)
+        : DirectUpdateDoublesSketch.newInstance(k, bMem);
   }
 
   /**

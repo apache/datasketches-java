@@ -186,6 +186,7 @@ class NativeMemoryR extends NativeMemory {
 
   @Override
   public Object array() {
+    if (isDirect()) { return null; }
     throw new ReadOnlyMemoryException();
   }
 
@@ -224,4 +225,12 @@ class NativeMemoryR extends NativeMemory {
   // toHexString OK
 
   // copy Memory to Memory OK, Checks if destination is writable.
+
+  Object getArray() {
+    return memArray_;
+  }
+
+  ByteBuffer getByteBuffer() {
+    return byteBuf_;
+  }
 }

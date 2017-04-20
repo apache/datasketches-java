@@ -16,9 +16,9 @@ import static com.yahoo.sketches.sampling.PreambleUtil.RESERVOIR_SIZE_INT;
 import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractFlags;
-import static com.yahoo.sketches.sampling.PreambleUtil.extractItemsSeenCount;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractK;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractN;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractPreLongs;
-import static com.yahoo.sketches.sampling.PreambleUtil.extractReservoirSize;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractResizeFactor;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractSerVer;
 
@@ -67,7 +67,7 @@ public final class ReservoirItemsSketch<T> {
   private int currItemsAlloc_;           // currently allocated array size
   private long itemsSeen_;               // number of items presented to sketch
   private final ResizeFactor rf_;        // resize factor
-  private ArrayList<T> data_;            // stored sampled data
+  private ArrayList<T> data_;            // stored sampled items
 
   private ReservoirItemsSketch(final int k, final ResizeFactor rf) {
     // required due to a theorem about lightness during merging
@@ -91,9 +91,9 @@ public final class ReservoirItemsSketch<T> {
   /**
    * Creates a fully-populated sketch. Used internally to avoid extraneous array allocation
    * when deserializing.
-   * Uses size of data array to as initial array allocation.
+   * Uses size of items array to as initial array allocation.
    *
-   * @param data      Reservoir data as an <tt>ArrayList&lt;T&gt;</tt>
+   * @param data      Reservoir items as an <tt>ArrayList&lt;T&gt;</tt>
    * @param itemsSeen Number of items presented to the sketch so far
    * @param rf        <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @param k         Maximum size of reservoir
@@ -114,7 +114,7 @@ public final class ReservoirItemsSketch<T> {
             || (itemsSeen < k && data.size() < itemsSeen)) {
       throw new SketchesArgumentException("Instantiating sketch with too few samples. Items seen: "
               + itemsSeen + ", max reservoir size: " + k
-              + ", data array length: " + data.size());
+              + ", items array length: " + data.size());
     }
 
     // Should we compute target current allocation to validate?
@@ -130,7 +130,7 @@ public final class ReservoirItemsSketch<T> {
    * validation. Used with copy().
    *
    * @param k              Maximum reservoir capacity
-   * @param currItemsAlloc Current array size (assumed equal to data.length)
+   * @param currItemsAlloc Current array size (assumed equal to items.length)
    * @param itemsSeen      Total items seen by this sketch
    * @param rf             <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @param data           Data ArrayList backing the reservoir, will <em>not</em> be copied
@@ -175,7 +175,7 @@ public final class ReservoirItemsSketch<T> {
   /**
    * Thin wrapper around private constructor
    *
-   * @param data      Reservoir data as ArrayList&lt;T&gt;
+   * @param data      Reservoir items as ArrayList&lt;T&gt;
    * @param itemsSeen Number of items presented to the sketch so far
    * @param rf        <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @param k         Compact encoding of reservoir size
@@ -224,8 +224,8 @@ public final class ReservoirItemsSketch<T> {
       rf = ResizeFactor.getRF(extractResizeFactor(memObj, memAddr));
       serVer = extractSerVer(memObj, memAddr);
       isEmpty = (extractFlags(memObj, memAddr) & EMPTY_FLAG_MASK) != 0;
-      itemsSeen = (isEmpty ? 0 : extractItemsSeenCount(memObj, memAddr));
-      k = extractReservoirSize(memObj, memAddr);
+      itemsSeen = (isEmpty ? 0 : extractN(memObj, memAddr));
+      k = extractK(memObj, memAddr);
     }
 
     // Check values
@@ -243,7 +243,7 @@ public final class ReservoirItemsSketch<T> {
         srcMem = VersionConverter.convertSketch1to2(srcMem);
         // refresh value of k based on updated memory
         // copy of srcMem if original was read only (direct or not) so extract always works
-        k = extractReservoirSize(srcMem.array(), srcMem.getCumulativeOffset(0L));
+        k = extractK(srcMem.array(), srcMem.getCumulativeOffset(0L));
       } else {
         throw new SketchesArgumentException(
                 "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
@@ -343,6 +343,19 @@ public final class ReservoirItemsSketch<T> {
   }
 
   /**
+   * Resets this sketch to the empty state, but retains the original value of k.
+   */
+  public void reset() {
+    final int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize_), "ReservoirItemsSketch");
+    final int initialLgSize =
+            SamplingUtil.startingSubMultiple(ceilingLgK, rf_.lg(), MIN_LG_ARR_ITEMS);
+
+    currItemsAlloc_ = SamplingUtil.getAdjustedSize(reservoirSize_, 1 << initialLgSize);
+    data_ = new ArrayList<>(currItemsAlloc_);
+    itemsSeen_ = 0;
+  }
+
+  /**
    * Returns a copy of the items in the reservoir, or null if empty. The returned array length
    * may be smaller than the reservoir capacity.
    *
@@ -391,12 +404,12 @@ public final class ReservoirItemsSketch<T> {
    *
    * @return The raw array backing this reservoir.
    */
-  public ArrayList<T> getRawSamplesAsList() {
+  ArrayList<T> getRawSamplesAsList() {
     return data_;
   }
 
   /**
-   * Returns a human-readable summary of the sketch, without data.
+   * Returns a human-readable summary of the sketch, without items.
    *
    * @return A string version of the sketch summary
    */
@@ -444,7 +457,7 @@ public final class ReservoirItemsSketch<T> {
   public byte[] toByteArray(final ArrayOfItemsSerDe<? super T> serDe, final Class<?> clazz) {
     final int preLongs, outBytes;
     final boolean empty = itemsSeen_ == 0;
-    byte[] bytes = null; // for serialized data from serDe
+    byte[] bytes = null; // for serialized items from serDe
 
     if (empty) {
       preLongs = 1;
@@ -470,11 +483,11 @@ public final class ReservoirItemsSketch<T> {
     } else {
       PreambleUtil.insertFlags(memObj, memAddr,0);
     }
-    PreambleUtil.insertReservoirSize(memObj, memAddr, reservoirSize_);       // Bytes 4-7
+    PreambleUtil.insertK(memObj, memAddr, reservoirSize_);       // Bytes 4-7
 
     // conditional elements
     if (!empty) {
-      PreambleUtil.insertItemsSeenCount(memObj, memAddr, itemsSeen_);
+      PreambleUtil.insertN(memObj, memAddr, itemsSeen_);
 
       // insert the bytearray of serialized samples, offset by the preamble size
       final int preBytes = preLongs << 3;
@@ -493,7 +506,7 @@ public final class ReservoirItemsSketch<T> {
   }
 
   /**
-   * Useful during union operations to avoid copying the data array around if only updating a
+   * Useful during union operations to avoid copying the items array around if only updating a
    * few points.
    *
    * @param pos The position from which to retrieve the element
@@ -578,7 +591,7 @@ public final class ReservoirItemsSketch<T> {
   }
 
   /**
-   * Increases allocated sampling size by (adjusted) ResizeFactor and copies data from old
+   * Increases allocated sampling size by (adjusted) ResizeFactor and copies items from old
    * sampling.
    */
   private void growReservoir() {

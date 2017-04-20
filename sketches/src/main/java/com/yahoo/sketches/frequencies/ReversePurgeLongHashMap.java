@@ -356,37 +356,52 @@ class ReversePurgeLongHashMap {
   }
 
   Iterator iterator() {
-    return new Iterator(keys, values, states);
+    return new Iterator(keys, values, states, numActive);
   }
 
+  // This iterator uses strides based on golden ratio to avoid clustering during merge
   static class Iterator {
-    private final long[] iKeys;
-    private final long[] iValues;
-    private final short[] iStates;
-    private int i;
+    private static final double GOLDEN_RATIO_RECIPROCAL = (Math.sqrt(5) - 1) / 2;
 
-    Iterator(final long[] keys, final long[] values, final short[] states) {
-      iKeys = keys;
-      iValues = values;
-      iStates = states;
-      i = -1;
+    private final long[] keys_;
+    private final long[] values_;
+    private final short[] states_;
+    private final int numActive_;
+    private final int stride_;
+    private final int mask_;
+    private int i_;
+    private int count_;
+
+    Iterator(final long[] keys, final long[] values, final short[] states, final int numActive) {
+      keys_ = keys;
+      values_ = values;
+      states_ = states;
+      numActive_ = numActive;
+      stride_ = (int) (keys.length * GOLDEN_RATIO_RECIPROCAL) | 1;
+      mask_ = keys.length - 1;
+      i_ = -stride_;
+      count_ = 0;
     }
 
     boolean next() {
-      i++;
-      while (i < iKeys.length) {
-        if (iStates[i] > 0) { return true; }
-        i++;
+      i_ = (i_ + stride_) & mask_;
+      while (count_ < numActive_) {
+        if (states_[i_] > 0) {
+          count_++;
+          return true;
+        }
+        i_ = (i_ + stride_) & mask_;
       }
       return false;
     }
 
     long getKey() {
-      return iKeys[i];
+      return keys_[i_];
     }
 
     long getValue() {
-      return iValues[i];
+      return values_[i_];
     }
   }
+
 }

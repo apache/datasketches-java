@@ -30,17 +30,38 @@ final class DoublesUtil {
    * @param sketch the given sketch
    * @return a copy of the given sketch
    */
-  static HeapDoublesSketch copyToHeap(final DoublesSketch sketch) {
-    final HeapDoublesSketch qsCopy;
-    qsCopy = HeapDoublesSketch.newInstance(sketch.getK());
+  static HeapUpdateDoublesSketch copyToHeap(final DoublesSketch sketch) {
+    final HeapUpdateDoublesSketch qsCopy;
+    qsCopy = HeapUpdateDoublesSketch.newInstance(sketch.getK());
     qsCopy.putN(sketch.getN());
     qsCopy.putMinValue(sketch.getMinValue());
     qsCopy.putMaxValue(sketch.getMaxValue());
     qsCopy.putBaseBufferCount(sketch.getBaseBufferCount());
     qsCopy.putBitPattern(sketch.getBitPattern());
-    final double[] combBuf = sketch.getCombinedBuffer();
-    qsCopy.putCombinedBuffer(Arrays.copyOf(combBuf, combBuf.length));
-    qsCopy.putCombinedBufferItemCapacity(sketch.getCombinedBufferItemCapacity());
+
+    if (sketch.isCompact()) {
+      final int combBufItems = Util.computeCombinedBufferItemCapacity(sketch.getK(), sketch.getN());
+      final double[] combBuf = new double[combBufItems];
+      qsCopy.putCombinedBuffer(combBuf);
+      final DoublesSketchAccessor sketchAccessor = DoublesSketchAccessor.wrap(sketch);
+      final DoublesSketchAccessor copyAccessor = DoublesSketchAccessor.wrap(qsCopy);
+      // start with BB
+      copyAccessor.putArray(sketchAccessor.getArray(0, sketchAccessor.numItems()),
+              0, 0, sketchAccessor.numItems());
+
+      long bitPattern = sketch.getBitPattern();
+      for (int lvl = 0; bitPattern != 0L; ++lvl, bitPattern >>>= 1) {
+        if ((bitPattern & 1L) > 0L) {
+          sketchAccessor.setLevel(lvl);
+          copyAccessor.setLevel(lvl);
+          copyAccessor.putArray(sketchAccessor.getArray(0, sketchAccessor.numItems()),
+                  0, 0, sketchAccessor.numItems());
+        }
+      }
+    } else {
+      final double[] combBuf = sketch.getCombinedBuffer();
+      qsCopy.putCombinedBuffer(Arrays.copyOf(combBuf, combBuf.length));
+    }
     return qsCopy;
   }
 
@@ -120,7 +141,8 @@ final class DoublesUtil {
     return sb.toString();
   }
 
-  private static String getDataDetail(final DoublesSketch sketch) {
+  private static String getDataDetail(final DoublesSketch sketchIn) {
+    final DoublesSketch sketch = sketchIn.isCompact() ? copyToHeap(sketchIn) : sketchIn;
     final StringBuilder sb = new StringBuilder();
     final String skName = sketch.getClass().getSimpleName();
     sb.append(LS).append("### Quantiles ").append(skName).append(" DATA DETAIL: ").append(LS);
@@ -129,7 +151,7 @@ final class DoublesUtil {
     final long n = sketch.getN();
     final int bbCount = sketch.getBaseBufferCount();
     final long bitPattern = sketch.getBitPattern();
-    final double[] combBuf  = sketch.getCombinedBuffer();
+    final double[] combBuf = sketch.getCombinedBuffer();
 
     //output the base buffer
 

@@ -26,14 +26,12 @@ import org.testng.annotations.Test;
  */
 public class MemoryMappedFileTest {
 
-  //@SuppressWarnings("unused")
   @Test(expectedExceptions = RuntimeException.class)
   public void testMapException() throws Exception {
     File dummy = createFile("dummy.txt", "");
     MemoryMappedFile.getInstance(dummy, 0, dummy.length()); //zero length
   }
 
-  //@SuppressWarnings("unused")
   @Test
   public void testIllegalArgumentException() throws Exception {
     File file = new File(getClass().getClassLoader().getResource("memory_mapped.txt").getFile());

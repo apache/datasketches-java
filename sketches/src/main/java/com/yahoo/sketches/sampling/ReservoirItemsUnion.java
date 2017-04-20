@@ -236,6 +236,13 @@ public final class ReservoirItemsUnion<T> {
   }
 
   /**
+   * Resets this Union. MaxK remains intact, otherwise reverts back to its virgin state.
+   */
+  void reset() {
+    gadget_.reset();
+  }
+
+  /**
    * Returns a sketch representing the current state of the union.
    *
    * @return The result of any unions already processed.
@@ -259,7 +266,7 @@ public final class ReservoirItemsUnion<T> {
   }
 
   /**
-   * Returns a human-readable summary of the sketch, without data.
+   * Returns a human-readable summary of the sketch, without items.
    *
    * @return A string version of the sketch summary
    */

@@ -109,9 +109,18 @@ public class ForwardCompatibilityTest {
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
     byte[] byteArr2 = readFile(file);
     Memory srcMem = new NativeMemory(byteArr2);
-    DoublesSketch qs2 = DoublesSketch.heapify(srcMem);
+
+    // heapify as update sketch
+    DoublesSketch qs2 = UpdateDoublesSketch.heapify(srcMem);
     //Test the quantile
     double q2 = qs2.getQuantile(nf);
+    println("New Median: " + q2);
+    Assert.assertEquals(q2, quantile, 0.0);
+
+    // same thing with compact sketch
+    qs2 = CompactDoublesSketch.heapify(srcMem);
+    //Test the quantile
+    q2 = qs2.getQuantile(nf);
     println("New Median: " + q2);
     Assert.assertEquals(q2, quantile, 0.0);
   }

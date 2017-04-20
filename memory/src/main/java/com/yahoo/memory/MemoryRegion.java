@@ -104,6 +104,7 @@ public class MemoryRegion implements Memory {
    * @deprecated This could have created difficult to diagnose bugs in MemoryRegion hierarchies.
    * This is now deprecated and will throw an exception.  MemoryRegion is now immutable.
    */
+  @Deprecated
   public void reassign(final long memOffsetBytes, final long capacityBytes) {
     throw new UnsupportedOperationException("MemoryRegion is immutable.");
   }
@@ -447,6 +448,7 @@ public class MemoryRegion implements Memory {
 
   @Override
   public Object array() {
+    if (isDirect()) { return null; }
     checkReadOnly();
     return mem_.array();
   }
@@ -498,15 +500,15 @@ public class MemoryRegion implements Memory {
     if (destination.isReadOnly()) {
       throw new ReadOnlyMemoryException();
     }
-    assertBounds(srcOffsetBytes, lengthBytes, this.getCapacity());
+    assertBounds(srcOffsetBytes, lengthBytes, getCapacity());
     assertBounds(dstOffsetBytes, lengthBytes, destination.getCapacity());
     assert (this == destination) ? checkOverlap(srcOffsetBytes, dstOffsetBytes, lengthBytes) : true ;
 
-    long srcAdd = this.getCumulativeOffset(srcOffsetBytes);
+    long srcAdd = getCumulativeOffset(srcOffsetBytes);
     long dstAdd = destination.getCumulativeOffset(dstOffsetBytes);
 
     final Object srcParent;
-    if (this.isDirect()) {
+    if (isDirect()) {
       srcParent = null;
     }
     else {
@@ -596,6 +598,11 @@ public class MemoryRegion implements Memory {
   }
 
   @Override
+  public boolean isSameResource(final Memory mem) {
+    return MemoryUtil.isSameResource(this, mem);
+  }
+
+  @Override
   public void setMemoryRequest(final MemoryRequest memReq) {
     checkReadOnly();
     memReq_ = memReq;
@@ -608,7 +615,7 @@ public class MemoryRegion implements Memory {
     sb.append(header).append(LS);
     final String s1 = String.format("(..., %d, %d)", offsetBytes, lengthBytes);
     sb.append(this.getClass().getSimpleName()).append(".toHexString")
-      .append(s1).append(", hash: ").append(this.hashCode()).append(LS);
+      .append(s1).append(", hash: ").append(hashCode()).append(LS);
     sb.append("  MemoryRequest: ");
     if (memReq_ != null) {
       sb.append(memReq_.getClass().getSimpleName()).append(", hash: ").append(memReq_.hashCode());
@@ -624,4 +631,31 @@ public class MemoryRegion implements Memory {
       throw new ReadOnlyMemoryException("Given Memory is Read Only.");
     }
   }
+
+  Object getArray() {
+    final NativeMemory nMem = getNativeMemory(this);
+    if (nMem instanceof NativeMemoryR) {
+      return ((NativeMemoryR) nMem).getArray();
+    }
+    return nMem.array();
+  }
+
+  ByteBuffer getByteBuffer() {
+    final NativeMemory nMem = getNativeMemory(this);
+    if (nMem instanceof NativeMemoryR) {
+      return ((NativeMemoryR) nMem).getByteBuffer();
+    }
+    return nMem.byteBuffer();
+  }
+
+  static NativeMemory getNativeMemory(final MemoryRegion reg) {
+    Object mem = reg.mem_;
+    while (!(mem instanceof NativeMemory)) {
+      final MemoryRegion mr = (MemoryRegion) mem;
+      mem = mr.mem_;
+    }
+    final NativeMemory nMem = (NativeMemory) mem;
+    return nMem;
+  }
+
 }

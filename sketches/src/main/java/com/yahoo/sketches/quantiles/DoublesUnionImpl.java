@@ -18,7 +18,7 @@ import com.yahoo.memory.Memory;
  */
 final class DoublesUnionImpl extends DoublesUnion {
   private int maxK_;
-  private DoublesSketch gadget_ = null;
+  private UpdateDoublesSketch gadget_ = null;
 
   private DoublesUnionImpl(final int maxK) {
     maxK_ = maxK;
@@ -49,7 +49,7 @@ final class DoublesUnionImpl extends DoublesUnion {
    * @return a DoublesUnion object
    */
   static DoublesUnionImpl directInstance(final int maxK, final Memory dstMem) {
-    final DirectDoublesSketch sketch = DirectDoublesSketch.newInstance(maxK, dstMem);
+    final DirectUpdateDoublesSketch sketch = DirectUpdateDoublesSketch.newInstance(maxK, dstMem);
     final DoublesUnionImpl union = new DoublesUnionImpl(maxK);
     union.maxK_ = maxK;
     union.gadget_ = sketch;
@@ -83,9 +83,9 @@ final class DoublesUnionImpl extends DoublesUnion {
   static DoublesUnionImpl heapifyInstance(final Memory srcMem) {
     final long n = srcMem.getLong(PreambleUtil.N_LONG);
     final int k = srcMem.getShort(PreambleUtil.K_SHORT) & 0xFFFF;
-    final HeapDoublesSketch sketch = (n == 0)
-        ? HeapDoublesSketch.newInstance(k)
-        : HeapDoublesSketch.heapifyInstance(srcMem);
+    final HeapUpdateDoublesSketch sketch = (n == 0)
+        ? HeapUpdateDoublesSketch.newInstance(k)
+        : HeapUpdateDoublesSketch.heapifyInstance(srcMem);
     final DoublesUnionImpl union = new DoublesUnionImpl(k);
     union.maxK_ = k;
     union.gadget_ = sketch;
@@ -101,7 +101,7 @@ final class DoublesUnionImpl extends DoublesUnion {
    * @return a Union object
    */
   static DoublesUnionImpl wrapInstance(final Memory mem) {
-    final DirectDoublesSketch sketch = DirectDoublesSketch.wrapInstance(mem);
+    final DirectUpdateDoublesSketch sketch = DirectUpdateDoublesSketch.wrapInstance(mem);
     final int k = sketch.getK();
     final DoublesUnionImpl union = new DoublesUnionImpl(k);
     union.maxK_ = k;
@@ -116,13 +116,13 @@ final class DoublesUnionImpl extends DoublesUnion {
 
   @Override
   public void update(final Memory mem) {
-    gadget_ = updateLogic(maxK_, gadget_, HeapDoublesSketch.heapifyInstance(mem));
+    gadget_ = updateLogic(maxK_, gadget_, HeapUpdateDoublesSketch.heapifyInstance(mem));
   }
 
   @Override
   public void update(final double dataItem) {
     if (gadget_ == null) {
-      gadget_ = HeapDoublesSketch.newInstance(maxK_);
+      gadget_ = HeapUpdateDoublesSketch.newInstance(maxK_);
     }
     gadget_.update(dataItem);
   }
@@ -130,7 +130,7 @@ final class DoublesUnionImpl extends DoublesUnion {
   @Override
   public DoublesSketch getResult() {
     if (gadget_ == null) {
-      return HeapDoublesSketch.newInstance(maxK_);
+      return HeapUpdateDoublesSketch.newInstance(maxK_);
     }
     return DoublesUtil.copyToHeap(gadget_); //can't have any externally owned handles.
   }
@@ -151,7 +151,7 @@ final class DoublesUnionImpl extends DoublesUnion {
   //  @Override  //TODO
   //  public byte[] toByteArray() {
   //    if (gadget_ == null) {
-  //      final HeapDoublesSketch sketch = HeapDoublesSketch.newInstance(maxK_);
+  //      final HeapUpdateDoublesSketch sketch = HeapUpdateDoublesSketch.newInstance(maxK_);
   //      return DoublesByteArrayImpl.toByteArray(sketch, true, false);
   //    }
   //    return DoublesByteArrayImpl.toByteArray(gadget_, true, false);
@@ -191,7 +191,7 @@ final class DoublesUnionImpl extends DoublesUnion {
     sb.append(Util.LS).append("### Quantiles ").append(thisSimpleName).append(LS);
     sb.append("   maxK                         : ").append(kStr);
     if (gadget_ == null) {
-      sb.append(HeapDoublesSketch.newInstance(maxK_).toString());
+      sb.append(HeapUpdateDoublesSketch.newInstance(maxK_).toString());
       return sb.toString();
     }
     sb.append(gadget_.toString(sketchSummary, dataDetail));
@@ -200,8 +200,8 @@ final class DoublesUnionImpl extends DoublesUnion {
 
   //@formatter:off
   @SuppressWarnings("null")
-  static DoublesSketch updateLogic(final int myMaxK, final DoublesSketch myQS,
-      final DoublesSketch other) {
+  static UpdateDoublesSketch updateLogic(final int myMaxK, final UpdateDoublesSketch myQS,
+                                         final DoublesSketch other) {
     int sw1 = ((myQS  == null) ? 0 :  myQS.isEmpty() ? 4 : 8);
     sw1 |=    ((other == null) ? 0 : other.isEmpty() ? 1 : 2);
     int outCase = 0; //0=null, 1=NOOP, 2=copy, 3=merge
@@ -217,22 +217,22 @@ final class DoublesUnionImpl extends DoublesUnion {
       case 10: outCase = 3; break; //myQS = valid, other = valid; merge
       //default: //This cannot happen and cannot be tested
     }
-    DoublesSketch ret = null;
+    UpdateDoublesSketch ret = null;
     switch (outCase) {
-      case 0: ret = null; break; //retun null
+      case 0: ret = null; break; //return null
       case 1: ret = myQS; break; //no-op
       case 2: { //myQS = null,  other = valid; stream or downsample to myMaxK
         if (!other.isEstimationMode()) { //other is exact, stream items in
-          ret = HeapDoublesSketch.newInstance(myMaxK);
-          final int otherCnt = other.getBaseBufferCount();
-          final double[] combBuf = other.getCombinedBuffer();
-          for (int i = 0; i < otherCnt; i++) {
-            ret.update(combBuf[i]);
+          ret = HeapUpdateDoublesSketch.newInstance(myMaxK);
+          // exact mode, only need copy base buffer
+          final DoublesSketchAccessor otherAccessor = DoublesSketchAccessor.wrap(other);
+          for (int i = 0; i < otherAccessor.numItems(); ++i) {
+            ret.update(otherAccessor.get(i));
           }
         }
         else { //myQS = null, other is est mode
           ret = (myMaxK < other.getK())
-              ? other.downSample(other, myMaxK, null) //null mem
+              ? other.downSampleInternal(other, myMaxK, null) //null mem
               : DoublesUtil.copyToHeap(other); //copy required because caller has handle
         }
         break;
@@ -240,10 +240,10 @@ final class DoublesUnionImpl extends DoublesUnion {
       case 3: { //myQS = empty/valid, other = valid; merge
         if (!other.isEstimationMode()) { //other is exact, stream items in
           ret = myQS;
-          final int otherCnt = other.getBaseBufferCount();
-          final double[] combBuf = other.getCombinedBuffer();
-          for (int i = 0; i < otherCnt; i++) {
-            ret.update(combBuf[i]);
+          // exact mode, only need copy base buffer
+          final DoublesSketchAccessor otherAccessor = DoublesSketchAccessor.wrap(other);
+          for (int i = 0; i < otherAccessor.numItems(); ++i) {
+            ret.update(otherAccessor.get(i));
           }
         }
         else { //myQS = empty/valid, other = valid and in est mode
@@ -255,14 +255,14 @@ final class DoublesUnionImpl extends DoublesUnion {
             if (myQS.isEmpty()) {
               if (myQS.isDirect()) {
                 final Memory mem = myQS.getMemory(); //myQS is empty, ok to reconfigure
-                other.putMemory(mem, true, false); //ordered, not compact
-                ret = DoublesSketch.wrap(mem);
+                other.putMemory(mem, false); // not compact, but BB ordered
+                ret = DirectUpdateDoublesSketch.wrapInstance(mem);
               } else { //myQS is empty and on heap
                 ret = DoublesUtil.copyToHeap(other);
               }
             }
             else { //Not Empty: myQS has data, downsample to tmp
-              final DoublesSketch tmp = DoublesSketch.builder().build(other.getK());
+              final UpdateDoublesSketch tmp = DoublesSketch.builder().build(other.getK());
 
               DoublesMergeImpl.downSamplingMergeInto(myQS, tmp); //myData -> tmp
               ret = (myQS.isDirect())
@@ -277,7 +277,7 @@ final class DoublesUnionImpl extends DoublesUnion {
         break;
       }
       case 4: { //myQS = null,  other = empty; create empty-heap(myMaxK)
-        ret = HeapDoublesSketch.newInstance(myMaxK);
+        ret = HeapUpdateDoublesSketch.newInstance(myMaxK);
         break;
       }
       //default: //This cannot happen and cannot be tested

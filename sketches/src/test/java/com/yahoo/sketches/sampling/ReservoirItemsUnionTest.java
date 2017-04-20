@@ -59,9 +59,10 @@ public class ReservoirItemsUnionTest {
       ris.update(i);
     }
 
-    riu = ReservoirItemsUnion.getInstance(ris.getK());
+    riu.reset();
+    assertEquals(riu.getResult().getN(), 0);
     riu.update(ris);
-    assertNotNull(riu.getResult());
+    assertEquals(riu.getResult().getN(), ris.getN());
 
     final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     final byte[] sketchBytes = ris.toByteArray(serDe); // only the gadget is serialized
@@ -98,7 +99,8 @@ public class ReservoirItemsUnionTest {
     assertNull(riu.getResult());
 
     // null sketch
-    riu.update((ReservoirItemsSketch<Long>) null);
+    final ReservoirItemsSketch<Long> nullSketch = null;
+    riu.update(nullSketch);
     assertNull(riu.getResult());
 
     // null memory
@@ -221,6 +223,29 @@ public class ReservoirItemsUnionTest {
     riu.update(sketch2);
     assertEquals(riu.getResult().getK(), smallK);
     assertEquals(riu.getResult().getNumSamples(), smallK);
+  }
+
+  @Test
+  public void checkUnionResetWithInitialSmallK() {
+    final int maxK = 25;
+    final int sketchK = 10;
+    final ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.getInstance(maxK);
+
+    ReservoirItemsSketch<Long> ris = getBasicSketch(2 * sketchK, sketchK); // in sampling mode
+    riu.update(ris);
+    assertEquals(riu.getMaxK(), maxK);
+    assertNotNull(riu.getResult());
+    assertEquals(riu.getResult().getK(), sketchK);
+
+    riu.reset();
+    assertNotNull(riu.getResult());
+
+    // feed in sketch in sampling mode, with larger k than old gadget
+    ris = getBasicSketch(2 * maxK, maxK + 1);
+    riu.update(ris);
+    assertEquals(riu.getMaxK(), maxK);
+    assertNotNull(riu.getResult());
+    assertEquals(riu.getResult().getK(), maxK);
   }
 
   @Test
