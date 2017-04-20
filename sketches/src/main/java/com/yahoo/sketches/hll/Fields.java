@@ -17,14 +17,15 @@ package com.yahoo.sketches.hll;
  * @author Kevin Lang
  */
 public interface Fields {
+  //first byte before the fields start
   /** Naive dense version */
-  byte NAIVE_DENSE_VERSION = 0x0;
+  byte NAIVE_DENSE_VERSION = 0x0; // standard byte array
   /** Hash sparse version */
-  byte HASH_SPARSE_VERSION = 0x1;
+  byte HASH_SPARSE_VERSION = 0x1; //Hash table of int coupons
   /** Sorted sparse version */
-  byte SORTED_SPARSE_VERSION = 0x2;
+  byte SORTED_SPARSE_VERSION = 0x2; //int array of coupons
   /** Compressed dense version */
-  byte COMPRESSED_DENSE_VERSION = 0x3;
+  byte COMPRESSED_DENSE_VERSION = 0x3; //4-bit nibble array
 
   /**
    * Gets  the Preamble
@@ -34,15 +35,15 @@ public interface Fields {
 
   /**
    * Potentially updates a bucket in the underlying storage.  The Fields implementation
-   * is expected to maintain the MAX val for each bucket.  If the val passed in is less
-   * than the currently stored val, this method should do nothing.
+   * is expected to maintain the MAX value for each bucket.  If the value passed in is less
+   * than the currently stored value, this method should do nothing.
    *
-   * <p>A callback *must* be provided which will be called whenever the provided val is
+   * <p>A callback *must* be provided which will be called whenever the provided value is
    * greater than the currently stored value.
    *
    * @param bucket the bucket to update
-   * @param val the val to update to
-   * @param callback the callback to be called if the provided val is greater than the current
+   * @param val the value to update to
+   * @param callback the callback to be called if the provided value is greater than the current
    * @return the Fields object that should be used from this point forward
    */
   Fields updateBucket(int bucket, byte val, UpdateCallback callback);

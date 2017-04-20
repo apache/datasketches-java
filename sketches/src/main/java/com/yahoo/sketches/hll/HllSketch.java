@@ -20,66 +20,8 @@ import com.yahoo.memory.NativeMemory;
  */
 public class HllSketch {
   private static final double HLL_REL_ERROR_NUMER = 1.04;
-
-  /**
-   * Returns an HllSketchBuilder
-   * @return an HllSketchBuilder
-   */
-  public static HllSketchBuilder builder() {
-    return new HllSketchBuilder();
-  }
-
-  public static HllSketch fromBytes(final byte[] bytes) {
-    return fromBytes(bytes, 0, bytes.length);
-  }
-
-  /**
-   * Deserialize HllSketch from bytes
-   * @param bytes the given byte array
-   * @param startOffset the start offset
-   * @param endOffset the end offset
-   * @return HllSketch
-   */
-  public static HllSketch fromBytes(final byte[] bytes, final int startOffset, final int endOffset) {
-    final MemoryRegion reg = new MemoryRegion(new NativeMemory(bytes), startOffset, endOffset - startOffset);
-    final Preamble preamble = Preamble.fromMemory(reg);
-    return fromBytes(preamble, bytes, (startOffset + preamble.getPreambleLongs()) << 3, endOffset);
-  }
-
-  /**
-   * Deserializes a HllSketch from bytes.
-   * @param preamble the given preamble
-   * @param bytes the byte array
-   * @param startOffset the start offset
-   * @param endOffset the end offset
-   * @return HllSketch
-   */
-  public static HllSketch fromBytes(final Preamble preamble, final byte[] bytes,
-          final int startOffset, final int endOffset) {
-    final Fields fields;
-    switch (bytes[startOffset]) {
-      case Fields.NAIVE_DENSE_VERSION:
-        fields = OnHeapFields.fromBytes(preamble, bytes, startOffset, endOffset);
-        break;
-      case Fields.HASH_SPARSE_VERSION:
-        fields = OnHeapHashFields.fromBytes(preamble, bytes, startOffset, endOffset);
-        break;
-      case Fields.SORTED_SPARSE_VERSION:
-        fields = OnHeapImmutableCompactFields.fromBytes(preamble, bytes, startOffset, endOffset);
-        break;
-      case Fields.COMPRESSED_DENSE_VERSION:
-        fields = OnHeapCompressedFields.fromBytes(preamble, bytes, startOffset, endOffset);
-        break;
-      default:
-        throw new IllegalArgumentException(String.format("Unknown field type[%d]", bytes[startOffset]));
-    }
-
-    return preamble.isHip() ? new HipHllSketch(fields) : new HllSketch(fields);
-  }
-
   private Fields.UpdateCallback updateCallback;
   private final Preamble preamble;
-
   private Fields fields;
 
   /**
@@ -144,6 +86,19 @@ public class HllSketch {
    * @param data The given byte array.
    */
   public void update(final byte[] data) {
+    if ((data == null) || (data.length == 0)) {
+      return;
+    }
+    updateWithHash(hash(data, DEFAULT_UPDATE_SEED));
+  }
+
+  /**
+   * Present this sketch with the given char array.
+   * If the char array is null or empty no update attempt is made and the method returns.
+   *
+   * @param data The given char array.
+   */
+  public void update(final char[] data) {
     if ((data == null) || (data.length == 0)) {
       return;
     }
@@ -238,23 +193,6 @@ public class HllSketch {
     return lowerBound;
   }
 
-  private double getRawEstimate() {
-    final int numBuckets = preamble.getConfigK();
-    double correctionFactor = 0.7213 / (1.0 + (1.079 / numBuckets));
-    correctionFactor *= numBuckets * numBuckets;
-    correctionFactor /= inversePowerOf2Sum();
-    return correctionFactor;
-  }
-
-  private double getLinearEstimate() {
-    final int configK = preamble.getConfigK();
-    final long longV = numBucketsAtZero();
-    if (longV == 0) {
-      return configK * Math.log(configK / 0.5);
-    }
-    return (configK * (HarmonicNumbers.harmonicNumber(configK) - HarmonicNumbers.harmonicNumber(longV)));
-  }
-
   /**
    * Union this sketch with that one
    * @param that the other sketch
@@ -263,16 +201,6 @@ public class HllSketch {
   public HllSketch union(final HllSketch that) {
     fields = that.fields.unionInto(fields, updateCallback);
     return this;
-  }
-
-  private void updateWithHash(final long[] hash) {
-    final byte newValue = (byte) (Long.numberOfLeadingZeros(hash[1]) + 1);
-    final int slotno = (int) hash[0] & (preamble.getConfigK() - 1);
-    fields = fields.updateBucket(slotno, newValue, updateCallback);
-  }
-
-  private double eps(final double numStdDevs) {
-    return (numStdDevs * HLL_REL_ERROR_NUMER) / Math.sqrt(preamble.getConfigK());
   }
 
   /**
@@ -323,6 +251,64 @@ public class HllSketch {
   }
 
   /**
+   * Returns an HllSketchBuilder
+   * @return an HllSketchBuilder
+   */
+  public static HllSketchBuilder builder() {
+    return new HllSketchBuilder();
+  }
+
+  public static HllSketch fromBytes(final byte[] bytes) {
+    return fromBytes(bytes, 0, bytes.length);
+  }
+
+  /**
+   * Deserialize HllSketch from bytes
+   * @param bytes the given byte array
+   * @param startOffset the start offset
+   * @param endOffset the end offset
+   * @return HllSketch
+   */
+  public static HllSketch fromBytes(final byte[] bytes, final int startOffset, final int endOffset) {
+    final MemoryRegion reg = new MemoryRegion(new NativeMemory(bytes), startOffset, endOffset - startOffset);
+    final Preamble preamble = Preamble.fromMemory(reg);
+    return fromBytes(preamble, bytes, (startOffset + preamble.getPreambleLongs()) << 3, endOffset);
+  }
+
+  /**
+   * Deserializes a HllSketch from bytes.
+   * @param preamble the given preamble
+   * @param bytes the byte array
+   * @param startOffset the start offset
+   * @param endOffset the end offset
+   * @return HllSketch
+   */
+  public static HllSketch fromBytes(final Preamble preamble, final byte[] bytes,
+          final int startOffset, final int endOffset) {
+    final Fields fields;
+    switch (bytes[startOffset]) {
+      case Fields.NAIVE_DENSE_VERSION:
+        fields = OnHeapFields.fromBytes(preamble, bytes, startOffset, endOffset);
+        break;
+      case Fields.HASH_SPARSE_VERSION:
+        fields = OnHeapHashFields.fromBytes(preamble, bytes, startOffset, endOffset);
+        break;
+      case Fields.SORTED_SPARSE_VERSION:
+        fields = OnHeapImmutableCompactFields.fromBytes(preamble, bytes, startOffset, endOffset);
+        break;
+      case Fields.COMPRESSED_DENSE_VERSION:
+        fields = OnHeapCompressedFields.fromBytes(preamble, bytes, startOffset, endOffset);
+        break;
+      default:
+        throw new IllegalArgumentException(String.format("Unknown field type[%d]", bytes[startOffset]));
+    }
+
+    return preamble.isHip() ? new HipHllSketch(fields) : new HllSketch(fields);
+  }
+
+  //Restricted
+
+  /**
    * Set the update callback. It is final so that it can not be overridden.
    *
    * @param updateCallback the update callback for the HllSketch to use when talking with its Fields
@@ -359,4 +345,32 @@ public class HllSketch {
 
     return retVal;
   }
+
+  private double getRawEstimate() {
+    final int numBuckets = preamble.getConfigK();
+    double correctionFactor = 0.7213 / (1.0 + (1.079 / numBuckets));
+    correctionFactor *= numBuckets * numBuckets;
+    correctionFactor /= inversePowerOf2Sum();
+    return correctionFactor;
+  }
+
+  private double getLinearEstimate() {
+    final int configK = preamble.getConfigK();
+    final long longV = numBucketsAtZero();
+    if (longV == 0) {
+      return configK * Math.log(configK / 0.5);
+    }
+    return (configK * (HarmonicNumbers.harmonicNumber(configK) - HarmonicNumbers.harmonicNumber(longV)));
+  }
+
+  private void updateWithHash(final long[] hash) {
+    final byte newValue = (byte) (Long.numberOfLeadingZeros(hash[1]) + 1);
+    final int slotno = (int) hash[0] & (preamble.getConfigK() - 1);
+    fields = fields.updateBucket(slotno, newValue, updateCallback);
+  }
+
+  private double eps(final double numStdDevs) {
+    return (numStdDevs * HLL_REL_ERROR_NUMER) / Math.sqrt(preamble.getConfigK());
+  }
+
 }

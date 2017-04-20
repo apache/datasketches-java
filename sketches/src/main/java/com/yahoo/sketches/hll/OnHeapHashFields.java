@@ -14,7 +14,7 @@ import com.yahoo.sketches.SketchesArgumentException;
 final class OnHeapHashFields implements Fields {
   public static OnHeapHashFields fromBytes(final Preamble preamble, final byte[] bytes,
           final int offset, final int numBytes) {
-    if (bytes[offset] == Fields.HASH_SPARSE_VERSION) {
+    if (bytes[offset] != Fields.HASH_SPARSE_VERSION) {
       throw new IllegalArgumentException(
           String.format(
               "Can only deserialize the hashed representation[%d] got [%d]",

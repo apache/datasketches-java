@@ -21,6 +21,7 @@ public final class Preamble {
   static final byte PREAMBLE_VERSION = 8;
   static final byte HLL_PREAMBLE_FAMILY_ID = (byte) Family.HLL.getID();
 
+  //max # of ints required for Aux-exceptions array given lg(k) (0 to 26).
   static final int[] AUX_SIZE = new int[] {
       1, 4, 4, 4, 4, 4, 4, 8, 8, 8,
       16, 16, 32, 32, 64, 128, 256, 512, 1024, 2048,
@@ -213,29 +214,28 @@ public final class Preamble {
     if (this == o) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if ((o == null) || (getClass() != o.getClass())) {
       return false;
     }
 
     final Preamble preamble = (Preamble) o;
 
-    return familyId == preamble.familyId
-       && flags == preamble.flags
-       && logConfigK == preamble.logConfigK
-       && preambleLongs == preamble.preambleLongs
-       && seedHash == preamble.seedHash
-       && version == preamble.version;
+    return (familyId == preamble.familyId)
+       && (flags == preamble.flags)
+       && (logConfigK == preamble.logConfigK)
+       && (preambleLongs == preamble.preambleLongs)
+       && (seedHash == preamble.seedHash)
+       && (version == preamble.version);
   }
 
-  @SuppressWarnings("cast")
   @Override
   public int hashCode() {
-    int result = (int) preambleLongs;
-    result = 31 * result + (int) version;
-    result = 31 * result + (int) familyId;
-    result = 31 * result + (int) logConfigK;
-    result = 31 * result + (int) flags;
-    result = 31 * result + (int) seedHash;
+    int result = preambleLongs;
+    result = (31 * result) + version;
+    result = (31 * result) + familyId;
+    result = (31 * result) + logConfigK;
+    result = (31 * result) + flags;
+    result = (31 * result) + seedHash;
     return result;
   }
 

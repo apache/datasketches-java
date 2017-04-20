@@ -15,7 +15,7 @@ import com.yahoo.sketches.SketchesArgumentException;
 final class OnHeapFields implements Fields {
   public static OnHeapFields fromBytes(final Preamble preamble, final byte[] bytes,
           final int offset, final int endOffset) {
-    if (bytes[offset] == Fields.NAIVE_DENSE_VERSION) {
+    if (bytes[offset] != Fields.NAIVE_DENSE_VERSION) {
       throw new IllegalArgumentException(
           String.format(
               "Can only deserialize the uncompressed dense representation[%d] got [%d]",
