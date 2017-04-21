@@ -39,7 +39,7 @@ import static com.yahoo.sketches.quantiles.Util.computeRetainedItems;
 import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
-
+import com.yahoo.memory.MemoryUtil;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -177,6 +177,24 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
   }
 
   @Override
+  public double getMaxValue() {
+    if (mem_.getCapacity() < COMBINED_BUFFER) {
+      return Double.NEGATIVE_INFINITY;
+    } else {
+      return mem_.getDouble(MAX_DOUBLE);
+    }
+  }
+
+  @Override
+  public double getMinValue() {
+    if (mem_.getCapacity() < COMBINED_BUFFER) {
+      return Double.POSITIVE_INFINITY;
+    } else {
+      return mem_.getDouble(MIN_DOUBLE);
+    }
+  }
+
+  @Override
   public long getN() {
     if (mem_.getCapacity() < COMBINED_BUFFER) {
       return 0;
@@ -191,21 +209,8 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
   }
 
   @Override
-  public double getMinValue() {
-    if (mem_.getCapacity() < COMBINED_BUFFER) {
-      return Double.POSITIVE_INFINITY;
-    } else {
-      return mem_.getDouble(MIN_DOUBLE);
-    }
-  }
-
-  @Override
-  public double getMaxValue() {
-    if (mem_.getCapacity() < COMBINED_BUFFER) {
-      return Double.NEGATIVE_INFINITY;
-    } else {
-      return mem_.getDouble(MAX_DOUBLE);
-    }
+  public boolean isSameResource(final Memory mem) {
+    return MemoryUtil.isSameResource(mem_, mem);
   }
 
   //Restricted overrides
@@ -269,9 +274,9 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
    */
   static void checkCompact(final int serVer, final int flags) {
     final int compactFlagMask = COMPACT_FLAG_MASK | ORDERED_FLAG_MASK;
-    if (serVer != 2
-            && (flags & EMPTY_FLAG_MASK) == 0
-            && (flags & compactFlagMask) != compactFlagMask) {
+    if ((serVer != 2)
+            && ((flags & EMPTY_FLAG_MASK) == 0)
+            && ((flags & compactFlagMask) != compactFlagMask)) {
       throw new SketchesArgumentException(
               "Possible corruption: Must be v2, empty, or compact and ordered. Flags field: "
                       + Integer.toBinaryString(flags) + ", SerVer: " + serVer);

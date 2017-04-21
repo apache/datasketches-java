@@ -333,6 +333,11 @@ final class DirectQuickSelectSketch extends UpdateSketch {
   }
 
   @Override
+  public boolean isSameResource(final Memory mem) {
+    return MemoryUtil.isSameResource(mem_, mem);
+  }
+
+  @Override
   public byte[] toByteArray() { //MY_FAMILY is stored in mem_
     final byte lgArrLongs = mem_.getByte(LG_ARR_LONGS_BYTE);
     final int lengthBytes = (preambleLongs_ + (1 << lgArrLongs)) << 3;
@@ -458,7 +463,7 @@ final class DirectQuickSelectSketch extends UpdateSketch {
 
       if (lgArrLongs > lgNomLongs_) { //at full size, rebuild
         //Assumes no dirty values, changes thetaLong, curCount_
-        assert (lgArrLongs == lgNomLongs_ + 1)
+        assert (lgArrLongs == (lgNomLongs_ + 1))
             : "lgArr: " + lgArrLongs + ", lgNom: " + lgNomLongs_;
         //rebuild, refresh curCount based on # values in the hashtable.
         quickSelectAndRebuild(mem_, preambleLongs_, lgNomLongs_);

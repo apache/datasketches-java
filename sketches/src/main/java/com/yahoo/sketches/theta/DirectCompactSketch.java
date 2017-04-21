@@ -22,6 +22,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
 import static com.yahoo.sketches.theta.PreambleUtil.extractThetaLong;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.MemoryUtil;
 
 /**
  * An off-heap (Direct), compact, unordered, read-only sketch.  This sketch can only be associated
@@ -122,6 +123,11 @@ final class DirectCompactSketch extends CompactSketch {
   }
 
   //Sketch interface
+
+  @Override
+  public boolean isSameResource(final Memory mem) {
+    return MemoryUtil.isSameResource(mem_, mem);
+  }
 
   @Override
   public byte[] toByteArray() {

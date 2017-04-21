@@ -101,6 +101,12 @@ public abstract class Sketch {
   }
 
   /**
+   * Returns the Family that this sketch belongs to
+   * @return the Family that this sketch belongs to
+   */
+  public abstract Family getFamily();
+
+  /**
    * Gets the approximate upper error bound given the specified number of Standard Deviations.
    * This will return getEstimate() if isEmpty() is true.
    *
@@ -130,16 +136,22 @@ public abstract class Sketch {
   }
 
   /**
+   * Returns true if the backing resource of this sketch is identical with the backing resource
+   * of mem. If the backing resource is a common array or ByteBuffer, the offset and
+   * capacity must also be identical.
+   * @param mem A given Memory object
+   * @return true if the backing resource of this sketch is identical with the backing resource
+   * of mem.
+   */
+  public boolean isSameResource(final Memory mem) {
+    return false;
+  }
+
+  /**
    * Serialize this sketch to a byte array form.
    * @return byte array of this sketch
    */
   public abstract byte[] toByteArray();
-
-  /**
-   * Returns the Family that this sketch belongs to
-   * @return the Family that this sketch belongs to
-   */
-  public abstract Family getFamily();
 
   /**
    * Returns a human readable summary of the sketch.  This method is equivalent to the parameterized
@@ -177,7 +189,7 @@ public abstract class Sketch {
     final boolean updateSketch = (this instanceof UpdateSketch);
 
     //boolean direct = isDirect();
-    final long thetaLong = this.getThetaLong();
+    final long thetaLong = getThetaLong();
     final int curCount = this.getRetainedEntries(true);
 
     if (updateSketch) {
@@ -218,7 +230,7 @@ public abstract class Sketch {
       final double thetaDbl = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
       final String thetaHex = zeroPad(Long.toHexString(thetaLong), 16);
       final String thisSimpleName = this.getClass().getSimpleName();
-      final int seedHash = this.getSeedHash();
+      final int seedHash = getSeedHash();
 
       sb.append(LS);
       sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
@@ -297,7 +309,7 @@ public abstract class Sketch {
   /**
    * Wrap takes the sketch image in Memory and refers to it directly. There is no data copying onto
    * the java heap.  Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
-   * been explicity stored as direct objects can be wrapped. This method assumes the
+   * been explicitly stored as direct objects can be wrapped. This method assumes the
    * {@link Util#DEFAULT_UPDATE_SEED}.
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
    * @param srcMem an image of a Sketch where the image seed hash matches the default seed hash.
@@ -432,7 +444,7 @@ public abstract class Sketch {
 
   /**
    * Returns true if this sketch accesses its internal data using the Memory package
-   * @return true if this sektch accesses its internal data using the Memory package
+   * @return true if this sketch accesses its internal data using the Memory package
    */
   public abstract boolean isDirect();
 

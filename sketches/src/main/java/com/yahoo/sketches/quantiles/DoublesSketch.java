@@ -202,10 +202,10 @@ public abstract class DoublesSketch {
     if ((fraction < 0.0) || (fraction > 1.0)) {
       throw new SketchesArgumentException("Fraction cannot be less than zero or greater than 1.0");
     }
-    if      (fraction == 0.0) { return this.getMinValue(); }
-    else if (fraction == 1.0) { return this.getMaxValue(); }
+    if      (fraction == 0.0) { return getMinValue(); }
+    else if (fraction == 1.0) { return getMaxValue(); }
     else {
-      final DoublesAuxiliary aux = this.constructAuxiliary();
+      final DoublesAuxiliary aux = constructAuxiliary();
       return aux.getQuantile(fraction);
     }
   }
@@ -239,11 +239,11 @@ public abstract class DoublesSketch {
     final double[] answers = new double[fractions.length];
     for (int i = 0; i < fractions.length; i++) {
       final double fraction = fractions[i];
-      if      (fraction == 0.0) { answers[i] = this.getMinValue(); }
-      else if (fraction == 1.0) { answers[i] = this.getMaxValue(); }
+      if      (fraction == 0.0) { answers[i] = getMinValue(); }
+      else if (fraction == 1.0) { answers[i] = getMaxValue(); }
       else {
         if (aux == null) {
-          aux = this.constructAuxiliary();
+          aux = constructAuxiliary();
         }
         answers[i] = aux.getQuantile(fraction);
       }
@@ -394,7 +394,19 @@ public abstract class DoublesSketch {
    * @return true if this sketch is in estimation mode.
    */
   public boolean isEstimationMode() {
-    return getN() >= 2L * k_;
+    return getN() >= (2L * k_);
+  }
+
+  /**
+   * Returns true if the backing resource of this sketch is identical with the backing resource
+   * of mem. If the backing resource is a common array or ByteBuffer, the offset and
+   * capacity must also be identical.
+   * @param mem A given Memory object
+   * @return true if the backing resource of this sketch is identical with the backing resource
+   * of mem.
+   */
+  public boolean isSameResource(final Memory mem) {
+    return false;
   }
 
   /**
@@ -525,7 +537,7 @@ public abstract class DoublesSketch {
       final int ceil = Math.max(ceilingPowerOf2((int)n), DoublesSketch.MIN_K * 2);
       return (metaPre + ceil) << 3;
     }
-    return (metaPre + (2 + totLevels) * k) << 3;
+    return (metaPre + ((2 + totLevels) * k)) << 3;
   }
 
   /**

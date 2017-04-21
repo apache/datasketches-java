@@ -298,7 +298,7 @@ public class DirectQuickSelectSketchTest {
     assertEquals(csk.getClass().getSimpleName(), "HeapCompactOrderedSketch");
 
     int bytes = usk.getCurrentBytes(true);
-    assertEquals(bytes, k*8 + (Family.COMPACT.getMaxPreLongs() << 3));
+    assertEquals(bytes, (k*8) + (Family.COMPACT.getMaxPreLongs() << 3));
     byte[] memArr2 = new byte[bytes];
     Memory mem2 = new NativeMemory(memArr2);
 
@@ -704,7 +704,7 @@ public class DirectQuickSelectSketchTest {
   @Test
   public void checkFamilyAndRF() {
     int k = 16;
-    Memory mem = new NativeMemory(new byte[k*16 +24]);
+    Memory mem = new NativeMemory(new byte[(k*16) +24]);
     UpdateSketch sketch = Sketches.updateSketchBuilder().initMemory(mem).build(k);
     assertEquals(sketch.getFamily(), Family.QUICKSELECT);
     assertEquals(sketch.getResizeFactor(), ResizeFactor.X8);
@@ -715,7 +715,7 @@ public class DirectQuickSelectSketchTest {
   public void checkResizeInBigMem() {
     int k = 1 << 14;
     int u = 1 << 20;
-    Memory mem = new NativeMemory(new byte[8*k*16 +24]);
+    Memory mem = new NativeMemory(new byte[(8*k*16) +24]);
     UpdateSketch sketch = Sketches.updateSketchBuilder().initMemory(mem).build(k);
     for (int i=0; i<u; i++) { sketch.update(i); }
   }
@@ -723,7 +723,7 @@ public class DirectQuickSelectSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadLgNomLongs() {
     int k = 16;
-    Memory mem = new NativeMemory(new byte[k*16 +24]);
+    Memory mem = new NativeMemory(new byte[(k*16) +24]);
     Sketches.updateSketchBuilder().initMemory(mem).build(k);
     mem.putByte(LG_NOM_LONGS_BYTE, (byte) 3); //Corrupt LgNomLongs byte
     DirectQuickSelectSketch.wrapInstance(mem, DEFAULT_UPDATE_SEED);

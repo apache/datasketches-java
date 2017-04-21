@@ -36,7 +36,7 @@ public class SketchTest {
 
   @Test
   public void checkGetMaxBytesWithEntries() {
-    assertEquals(getMaxCompactSketchBytes(10), 10*8 + (Family.COMPACT.getMaxPreLongs() << 3) );
+    assertEquals(getMaxCompactSketchBytes(10), (10*8) + (Family.COMPACT.getMaxPreLongs() << 3) );
   }
 
   @Test
@@ -49,7 +49,7 @@ public class SketchTest {
     assertEquals(sketch.getCurrentPreambleLongs(true), 1); //compact form
     assertEquals(sketch.getCurrentDataLongs(false), k*2);
     assertEquals(sketch.getCurrentDataLongs(true), 0); //compact form
-    assertEquals(sketch.getCurrentBytes(false), k*2*8 + (lowQSPreLongs << 3));
+    assertEquals(sketch.getCurrentBytes(false), (k*2*8) + (lowQSPreLongs << 3));
     assertEquals(sketch.getCurrentBytes(true), lowCompPreLongs << 3);
 
     CompactSketch compSk = sketch.compact(false, null);
@@ -59,34 +59,39 @@ public class SketchTest {
     int compPreLongs = Sketch.compactPreambleLongs(sketch.getThetaLong(), sketch.isEmpty());
     assertEquals(compPreLongs, 1);
 
-    for (int i=0; i<k; i++) sketch.update(i);
+    for (int i=0; i<k; i++) {
+      sketch.update(i);
+    }
 
     assertEquals(sketch.getCurrentPreambleLongs(false), lowQSPreLongs);
     assertEquals(sketch.getCurrentPreambleLongs(true), 2); //compact form
     assertEquals(sketch.getCurrentDataLongs(false), k*2);
     assertEquals(sketch.getCurrentDataLongs(true), k); //compact form
-    assertEquals(sketch.getCurrentBytes(false), k*2*8 + (lowQSPreLongs << 3));
-    assertEquals(sketch.getCurrentBytes(true), k*8 + 2*8); //compact form  //FAILS HERE
+    assertEquals(sketch.getCurrentBytes(false), (k*2*8) + (lowQSPreLongs << 3));
+    assertEquals(sketch.getCurrentBytes(true), (k*8) + (2*8)); //compact form  //FAILS HERE
 
     compPreLongs = Sketch.compactPreambleLongs(sketch.getThetaLong(), sketch.isEmpty());
     assertEquals(compPreLongs, 2);
 
-    for (int i=k; i<2*k; i++) sketch.update(i); //go estimation mode
+    for (int i=k; i<(2*k); i++)
+     {
+      sketch.update(i); //go estimation mode
+    }
     int curCount = sketch.getRetainedEntries(true);
 
     assertEquals(sketch.getCurrentPreambleLongs(false), lowQSPreLongs);
     assertEquals(sketch.getCurrentPreambleLongs(true), 3); //compact form
     assertEquals(sketch.getCurrentDataLongs(false), k*2);
     assertEquals(sketch.getCurrentDataLongs(true), curCount); //compact form
-    assertEquals(sketch.getCurrentBytes(false), k*2*8 + (lowQSPreLongs << 3));
-    assertEquals(sketch.getCurrentBytes(true), curCount*8 + 3*8); //compact form
+    assertEquals(sketch.getCurrentBytes(false), (k*2*8) + (lowQSPreLongs << 3));
+    assertEquals(sketch.getCurrentBytes(true), (curCount*8) + (3*8)); //compact form
 
     compPreLongs = Sketch.compactPreambleLongs(sketch.getThetaLong(), sketch.isEmpty());
     assertEquals(compPreLongs, 3);
 
     for (int i=0; i<3; i++) {
       int maxCompBytes = Sketch.getMaxCompactSketchBytes(i);
-      assertEquals(maxCompBytes, (Family.COMPACT.getMaxPreLongs() << 3) + i*8);
+      assertEquals(maxCompBytes, (Family.COMPACT.getMaxPreLongs() << 3) + (i*8));
     }
   }
 
@@ -273,7 +278,9 @@ public class SketchTest {
   public void checkWrapToHeapifyConversion1() {
     int k = 512;
     UpdateSketch sketch1 = UpdateSketch.builder().build(k);
-    for (int i=0; i<k; i++) sketch1.update(i);
+    for (int i=0; i<k; i++) {
+      sketch1.update(i);
+    }
     double uest1 = sketch1.getEstimate();
     int bytes = sketch1.getCurrentBytes(true);
     Memory v3mem = new NativeMemory(new byte[bytes]);
@@ -288,6 +295,20 @@ public class SketchTest {
     csk2 = Sketch.wrap(v2mem);
     assertFalse(csk2.isDirect());
     assertEquals(uest1, csk2.getEstimate(), 0.0);
+  }
+
+  @Test
+  public void checkIsSameResource() {
+    int k = 16;
+    Memory mem = new NativeMemory(new byte[(k*16) +24]);
+    Memory cmem = new NativeMemory (new byte[8]);
+    UpdateSketch sketch = Sketches.updateSketchBuilder().initMemory(mem).build(k);
+    assertTrue(sketch.isSameResource(mem));
+    DirectCompactOrderedSketch dcos = (DirectCompactOrderedSketch) sketch.compact(true, cmem);
+    assertTrue(dcos.isSameResource(cmem));
+    //never create 2 sketches with the same memory, so don't do as I do :)
+    DirectCompactSketch dcs = (DirectCompactSketch) sketch.compact(false, cmem);
+    assertTrue(dcs.isSameResource(cmem));
   }
 
   @Test
