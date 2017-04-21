@@ -18,14 +18,17 @@ package com.yahoo.sketches.hll;
  */
 public interface Fields {
   //first byte before the fields start
-  /** Naive dense version */
-  byte NAIVE_DENSE_VERSION = 0x0; // standard byte array
-  /** Hash sparse version */
-  byte HASH_SPARSE_VERSION = 0x1; //Hash table of int coupons
-  /** Sorted sparse version */
-  byte SORTED_SPARSE_VERSION = 0x2; //int array of coupons
-  /** Compressed dense version */
-  byte COMPRESSED_DENSE_VERSION = 0x3; //4-bit nibble array
+  /** Naive dense version: standard (8-bits per bucket) byte array */
+  byte NAIVE_DENSE_VERSION = 0x0;
+
+  /** sparse version: a hash-table of coupons */
+  byte HASH_SPARSE_VERSION = 0x1;
+
+  /** Sorted sparse version aka Compact: an int array of coupons */
+  byte SORTED_SPARSE_VERSION = 0x2;
+
+  /** Compressed dense version: 4-bit nibble array (+ Aux exceptions array) */
+  byte COMPRESSED_DENSE_VERSION = 0x3;
 
   /**
    * Gets  the Preamble

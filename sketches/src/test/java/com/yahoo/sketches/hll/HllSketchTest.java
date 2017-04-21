@@ -51,25 +51,25 @@ public class HllSketchTest {
     HllSketch sketch = HllSketch.builder().setLogBuckets(10).setDenseMode(true).build();
 
     byte[] sketchBytes = sketch.toByteArray();
-    println("sketchBytes: " + sketchBytes.length);
+    //println("sketchBytes: " + sketchBytes.length);
     byte[] preambleBytes = sketch.getPreamble().toByteArray();
-    println("preBytes: "+ preambleBytes.length);
+    //println("preBytes: "+ preambleBytes.length);
 
     Assert.assertEquals(Arrays.copyOfRange(sketchBytes, 0, preambleBytes.length), preambleBytes);
 
     byte[] sketchNoPreambleBytes = Arrays.copyOfRange(sketchBytes, preambleBytes.length, sketchBytes.length);
-    println("sketchNoPre: " + sketchNoPreambleBytes.length);
+    //println("sketchNoPre: " + sketchNoPreambleBytes.length);
     Assert.assertEquals(sketch.toByteArrayNoPreamble(), sketchNoPreambleBytes);
     Assert.assertEquals(sketchNoPreambleBytes, new byte[sketchNoPreambleBytes.length]);
 
     HllSketch compact = sketch.asCompact();
 
     byte[] compactBytes = compact.toByteArray();
-    println("compactBytes: " + compactBytes.length);
+    //println("compactBytes: " + compactBytes.length);
     Assert.assertEquals(Arrays.copyOfRange(compactBytes, 0, preambleBytes.length), preambleBytes);
 
     byte[] compactNoPreambleBytes = Arrays.copyOfRange(compactBytes, preambleBytes.length, compactBytes.length);
-    println("compactNoPre: " + compactNoPreambleBytes.length);
+    //println("compactNoPre: " + compactNoPreambleBytes.length);
     Assert.assertEquals(sketch.toByteArrayNoPreamble(), compactNoPreambleBytes);
     Assert.assertEquals(compactNoPreambleBytes, new byte[compactNoPreambleBytes.length]);
 
@@ -93,17 +93,21 @@ public class HllSketchTest {
   @Test
   public void checkNullEmptyArrays() {
     byte[] barr = null;
+    char[] carr = null;
     int[] iarr = null;
     long[] larr = null;
     int lgK = 12;
     HllSketch hll = HllSketch.builder().setLogBuckets(lgK).build();
     hll.update(barr);
+    hll.update(carr);
     hll.update(iarr);
     hll.update(larr);
     barr = new byte[0];
+    carr = new char[0];
     iarr = new int[0];
     larr = new long[0];
     hll.update(barr);
+    hll.update(carr);
     hll.update(iarr);
     hll.update(larr);
     assertEquals(hll.getEstimate(), 0, 0.0);
@@ -153,20 +157,20 @@ public class HllSketchTest {
   }
 
   //@Test
-  public void simpleTest() {
-    HllSketch sketch = (HllSketch) getSketches()[0][0];
-
-    int numEntries = sketch.numBuckets();
-    for (int i = 0; i < (numEntries * 3); ++i) {
-      if ((i % 4) == 0) {
-        println("");
-      }
-
-      sketch.update(new int[]{i});
-      String s = String.format("%.20fd, ", sketch.inversePowerOf2Sum());
-      println(s);
-    }
-  }
+//  public void simpleTest() {
+//    HllSketch sketch = (HllSketch) getSketches()[0][0];
+//
+//    int numEntries = sketch.numBuckets();
+//    for (int i = 0; i < (numEntries * 3); ++i) {
+//      if ((i % 4) == 0) {
+//        println("");
+//      }
+//
+//      sketch.update(new int[]{i});
+//      String s = String.format("%.20fd, ", sketch.inversePowerOf2Sum());
+//      println(s);
+//    }
+//  }
 
   @Test
   public void printlnTest() {
@@ -177,7 +181,7 @@ public class HllSketchTest {
    * @param s value to print
    */
   static void println(String s) {
-    System.out.println(s); //disable here
+    //System.out.println(s); //disable here
   }
 
   private static final double[] estimatesAtLog10Buckets = new double[]{

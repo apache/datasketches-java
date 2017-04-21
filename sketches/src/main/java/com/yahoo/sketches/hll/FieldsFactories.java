@@ -4,8 +4,8 @@ package com.yahoo.sketches.hll;
  */
 public class FieldsFactories
 {
-  public static final byte DENSE = 0x0; //strategy: promote to dense
-  public static final byte DENSE_COMPRESSED = 0x1; //strategy: promote to compressed
+  public static final byte DENSE = 0x0; //strategy bit: promote to dense
+  public static final byte DENSE_COMPRESSED = 0x1; //strategy bit: promote to compressed
 
   @SuppressWarnings("unused")
   static FieldsFactory fromBytes(final byte[] bytes, final int offset, final int endOffset) {
@@ -21,11 +21,12 @@ public class FieldsFactories
     }
   }
 
-  static Fields fromBytes(Preamble preamble, final byte[] bytes) {
+  static Fields fromBytes(final Preamble preamble, final byte[] bytes) {
     return fromBytes(preamble, bytes, 0, bytes.length);
   }
 
-  static Fields fromBytes(Preamble preamble, final byte[] bytes, final int startOffset, final int endOffset) {
+  static Fields fromBytes(final Preamble preamble, final byte[] bytes, final int startOffset,
+          final int endOffset) {
     final Fields fields;
     switch (bytes[startOffset]) {
       case Fields.NAIVE_DENSE_VERSION:
