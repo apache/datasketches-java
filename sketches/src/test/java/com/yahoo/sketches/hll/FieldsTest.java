@@ -23,7 +23,7 @@ public class FieldsTest
   @DataProvider(name = "updatableFields")
   public Object[][] getFields()
   {
-    Preamble preamble = Preamble.fromLogK(10);
+    Preamble preamble = Preamble.fromLogK(7);
 
     return new Object[][]{
         {new OnHeapFields(preamble)},
