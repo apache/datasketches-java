@@ -115,24 +115,26 @@ public final class MemoryUtil {
     return newDstMem;
   }
 
-  static boolean isSameResource(final Memory mem1, final Memory mem2) {
-    boolean ret = (mem1.getCumulativeOffset(0L) == mem2.getCumulativeOffset(0L))
-      && (mem1.getCapacity() == mem2.getCapacity());
-    final NativeMemory nMem1;
-    final NativeMemory nMem2;
-    if (mem1 instanceof MemoryRegion) {
-      nMem1 = MemoryRegion.getNativeMemory((MemoryRegion) mem1);
-    } else {
-      nMem1 = (NativeMemory) mem1;
-    }
-    if (mem2 instanceof MemoryRegion) {
-      nMem2 = MemoryRegion.getNativeMemory((MemoryRegion) mem2);
-    } else {
-      nMem2 = (NativeMemory) mem2;
-    }
-    ret &= (nMem1.memArray_ == nMem2.memArray_)
+  /**
+   * Returns true if the backing resource of mem1 is identical with the backing resource
+   * of mem2. If the backing resource is a common array or ByteBuffer, the offset and
+   * capacity must also be identical.
+   * @param mem1 A given Memory object
+   * @param mem2 A different given Memory object
+   * @return true if the backing resource of mem1 is identical with the backing resource
+   * of mem2.
+   */
+  public static boolean isSameResource(final Memory mem1, final Memory mem2) {
+    if (mem1 == mem2) { return true; }
+    final NativeMemory nMem1 = (mem1 instanceof MemoryRegion)
+      ? MemoryRegion.getNativeMemory((MemoryRegion) mem1) : (NativeMemory) mem1;
+    final NativeMemory nMem2 = (mem2 instanceof MemoryRegion)
+      ? MemoryRegion.getNativeMemory((MemoryRegion) mem2) : (NativeMemory) mem2;
+
+    return (mem1.getCumulativeOffset(0L) == mem2.getCumulativeOffset(0L))
+            && (mem1.getCapacity() == mem2.getCapacity())
+            && (nMem1.memArray_ == nMem2.memArray_)
             && (nMem1.byteBuf_ == nMem2.byteBuf_);
-    return ret;
   }
 
   static final void checkByteBufRO(final ByteBuffer byteBuf) {

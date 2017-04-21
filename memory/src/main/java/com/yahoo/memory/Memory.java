@@ -520,15 +520,6 @@ public interface Memory {
   boolean isReadOnly();
 
   /**
-   * Returns true if the backing resource of this Memory is identical with the backing resource
-   * of the given Memory
-   * @param mem the given Memory
-   * @return true if the backing resource of this Memory is identical with the backing resource
-   * of the given Memory
-   */
-  boolean isSameResource(Memory mem);
-
-  /**
    * Sets a MemoryRequest
    * @param memReq the MemoryRequest
    */

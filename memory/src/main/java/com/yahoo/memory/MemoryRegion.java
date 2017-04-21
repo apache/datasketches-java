@@ -598,11 +598,6 @@ public class MemoryRegion implements Memory {
   }
 
   @Override
-  public boolean isSameResource(final Memory mem) {
-    return MemoryUtil.isSameResource(this, mem);
-  }
-
-  @Override
   public void setMemoryRequest(final MemoryRequest memReq) {
     checkReadOnly();
     memReq_ = memReq;
