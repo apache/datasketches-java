@@ -44,24 +44,28 @@ final class OnHeapImmutableCompactFields implements Fields {
     return new OnHeapImmutableCompactFields(fields.getPreamble(), theFields);
   }
 
-  public static OnHeapImmutableCompactFields fromBytes(final Preamble preamble, final byte[] bytes,
-          final int offset, final int numBytes) {
-    if (bytes[offset] != Fields.SORTED_SPARSE_VERSION) {
+  public static OnHeapImmutableCompactFields fromBytes(
+      final Preamble preamble,
+      final byte[] bytes,
+      final int startOffset,
+      final int endOffset
+  ) {
+    if (bytes[startOffset] != Fields.SORTED_SPARSE_VERSION) {
       throw new IllegalArgumentException(
           String.format(
               "Can only deserialize the sorted, sparse representation[%d] got [%d]",
               Fields.SORTED_SPARSE_VERSION,
-              bytes[offset]
+              bytes[startOffset]
           )
       );
     }
 
     final Memory mem = new NativeMemory(bytes);
-    final int[] fields = new int[(numBytes - 1) / 4];
-    final int dataOffset = offset + 1;
+    final int[] fields = new int[(endOffset - startOffset) / 4];
+    final int dataOffset = startOffset + 1;
 
     for (int i = 0; i < fields.length; ++i) {
-      fields[i] = mem.getInt((dataOffset + i) << 2);
+      fields[i] = mem.getInt(dataOffset + (i << 2));
     }
 
     return new OnHeapImmutableCompactFields(preamble, fields);
@@ -121,7 +125,11 @@ final class OnHeapImmutableCompactFields implements Fields {
 
       @Override
       public boolean next() {
-        return ++i < fields.length;
+        ++i;
+        while ((i < fields.length) && (fields[i] == HashUtils.NOT_A_PAIR)) {
+          ++i;
+        }
+        return i < fields.length;
       }
 
       @Override

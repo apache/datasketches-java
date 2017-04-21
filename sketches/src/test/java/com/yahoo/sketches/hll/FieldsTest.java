@@ -89,6 +89,17 @@ public class FieldsTest
             Assert.fail(String.format("bucket[%s]: %d != %d", bucketId, iter.getValue(), vals[bucketId]));
           }
         }
+
+        final Fields compactFields = fields.toCompact();
+        final byte[] compactEphemeralBytes = new byte[compactFields.numBytesToSerialize()];
+        compactFields.intoByteArray(compactEphemeralBytes, 0);
+        iter = FieldsFactories.fromBytes(fields.getPreamble(), compactEphemeralBytes).getBucketIterator();
+        while (iter.next()) {
+          int bucketId = iter.getKey();
+          if (iter.getValue() != vals[bucketId]) {
+            Assert.fail(String.format("bucket[%s]: %d != %d", bucketId, iter.getValue(), vals[bucketId]));
+          }
+        }
       }
     }
   }
@@ -146,6 +157,17 @@ public class FieldsTest
         final byte[] ephemeralBytes = new byte[fields.numBytesToSerialize()];
         fields.intoByteArray(ephemeralBytes, 0);
         iter = FieldsFactories.fromBytes(fields.getPreamble(), ephemeralBytes).getBucketIterator();
+        while (iter.next()) {
+          int bucketId = iter.getKey();
+          if (iter.getValue() != actualVals[bucketId]) {
+            Assert.fail(String.format("bucket[%s]: %d != %d", bucketId, iter.getValue(), actualVals[bucketId]));
+          }
+        }
+
+        final Fields compactFields = fields.toCompact();
+        final byte[] compactEphemeralBytes = new byte[compactFields.numBytesToSerialize()];
+        compactFields.intoByteArray(compactEphemeralBytes, 0);
+        iter = FieldsFactories.fromBytes(fields.getPreamble(), compactEphemeralBytes).getBucketIterator();
         while (iter.next()) {
           int bucketId = iter.getKey();
           if (iter.getValue() != actualVals[bucketId]) {
