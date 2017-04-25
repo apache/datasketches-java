@@ -22,6 +22,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.UNION_THETA_LONG;
 import static java.lang.Math.min;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.MemoryUtil;
 import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
@@ -186,6 +187,15 @@ final class UnionImpl extends SetOperation implements Union {
   @Override
   public Family getFamily() {
     return Family.UNION;
+  }
+
+  @Override
+  public boolean isSameResource(final Memory mem) {
+    if (gadget_.isDirect()) {
+      return MemoryUtil.isSameResource(gadget_.getMemory(), mem);
+    } else {
+      return false;
+    }
   }
 
   @Override

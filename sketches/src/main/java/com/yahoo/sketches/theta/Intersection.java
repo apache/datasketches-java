@@ -53,6 +53,16 @@ public interface Intersection {
   boolean hasResult();
 
   /**
+   * Returns true if the backing resource of this sketch is identical with the backing resource
+   * of mem. If the backing resource is a common array or ByteBuffer, the offset and
+   * capacity must also be identical.
+   * @param mem A given Memory object
+   * @return true if the backing resource of this sketch is identical with the backing resource
+   * of mem.
+   */
+  boolean isSameResource(final Memory mem);
+
+  /**
    * Serialize this intersection to a byte array form.
    * @return byte array of this intersection
    */

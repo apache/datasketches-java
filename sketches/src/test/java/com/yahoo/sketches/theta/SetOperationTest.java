@@ -39,8 +39,14 @@ public class SetOperationTest {
     UpdateSketch usk1 = UpdateSketch.builder().setSeed(seed).build(k);
     UpdateSketch usk2 = UpdateSketch.builder().setSeed(seed).build(k);
 
-    for (int i=0; i<k/2; i++) usk1.update(i); //256
-    for (int i=k/2; i<k; i++) usk2.update(i); //256 no overlap
+    for (int i=0; i<(k/2); i++)
+     {
+      usk1.update(i); //256
+    }
+    for (int i=k/2; i<k; i++)
+     {
+      usk2.update(i); //256 no overlap
+    }
 
     ResizeFactor rf = X4;
     //use default size
@@ -126,8 +132,14 @@ public class SetOperationTest {
     UpdateSketch usk1 = UpdateSketch.builder().setSeed(seed).build(k);
     UpdateSketch usk2 = UpdateSketch.builder().build(k);
 
-    for (int i=0; i<k/2; i++) usk1.update(i); //256
-    for (int i=k/2; i<k; i++) usk2.update(i); //256 no overlap
+    for (int i=0; i<(k/2); i++)
+     {
+      usk1.update(i); //256
+    }
+    for (int i=k/2; i<k; i++)
+     {
+      usk2.update(i); //256 no overlap
+    }
 
     ResizeFactor rf = X4;
 
@@ -148,7 +160,10 @@ public class SetOperationTest {
   public void checkIllegalSetOpHeapify() {
     int k = 64;
     UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    for (int i=0; i<k; i++) usk1.update(i); //64
+    for (int i=0; i<k; i++)
+     {
+      usk1.update(i); //64
+    }
     byte[] byteArray = usk1.toByteArray();
     Memory mem = new NativeMemory(byteArray);
     SetOperation.heapify(mem);
@@ -158,7 +173,10 @@ public class SetOperationTest {
   public void checkIllegalSetOpWrap() {
     int k = 64;
     UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    for (int i=0; i<k; i++) usk1.update(i); //64
+    for (int i=0; i<k; i++)
+     {
+      usk1.update(i); //64
+    }
     byte[] byteArray = usk1.toByteArray();
     Memory mem = new NativeMemory(byteArray);
     SetOperation.wrap(mem);
@@ -223,7 +241,80 @@ public class SetOperationTest {
     //intentially loose bounds
     assertEquals(result, expected, expected*0.05);
     println("2nd est: "+result);
-    println("Error %: "+((result/expected -1.0)*100));
+    println("Error %: "+(((result/expected) -1.0)*100));
+  }
+
+  @Test
+  public void checkValidSetOpID() {
+    assertFalse(SetOperation.isValidSetOpID(1)); //Alpha
+    assertTrue(SetOperation.isValidSetOpID(UNION.getID()));
+    assertTrue(SetOperation.isValidSetOpID(INTERSECTION.getID()));
+    assertTrue(SetOperation.isValidSetOpID(A_NOT_B.getID()));
+  }
+
+  @Test
+  public void setOpsExample() {
+    println("Set Operations Example:");
+    int k = 4096;
+    UpdateSketch skA = Sketches.updateSketchBuilder().build(k);
+    UpdateSketch skB = Sketches.updateSketchBuilder().build(k);
+    UpdateSketch skC = Sketches.updateSketchBuilder().build(k);
+
+    for (int i=1;  i<=10; i++) { skA.update(i); }
+    for (int i=1;  i<=20; i++) { skB.update(i); }
+    for (int i=6;  i<=15; i++) { skC.update(i); } //overlapping set
+
+    Union union = Sketches.setOperationBuilder().buildUnion(k);
+    union.update(skA);
+    union.update(skB);
+    // ... continue to iterate on the input sketches to union
+
+    CompactSketch unionSk = union.getResult();   //the result union sketch
+    println("A U B      : "+unionSk.getEstimate());   //the estimate of the union
+
+    //Intersection is similar
+
+    Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    inter.update(unionSk);
+    inter.update(skC);
+    // ... continue to iterate on the input sketches to intersect
+
+    CompactSketch interSk = inter.getResult();  //the result intersection sketch
+    println("(A U B) ^ C: "+interSk.getEstimate());  //the estimate of the intersection
+
+    //The AnotB operation is a little different as it is stateless:
+
+    AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
+    aNotB.update(skA, skC);
+
+    CompactSketch not = aNotB.getResult();
+    println("A \\ C      : "+not.getEstimate()); //the estimate of the AnotB operation
+  }
+
+  @Test
+  public void checkIsSameResource() {
+    int k = 16;
+    Memory mem = new NativeMemory(new byte[(k*16) + 32]);
+    Memory cmem = new NativeMemory (new byte[8]);
+    Union union = Sketches.setOperationBuilder().initMemory(mem).buildUnion(k);
+    assertTrue(union.isSameResource(mem));
+    assertFalse(union.isSameResource(cmem));
+
+    Intersection inter = Sketches.setOperationBuilder().initMemory(mem).buildIntersection();
+    assertTrue(inter.isSameResource(mem));
+    assertFalse(inter.isSameResource(cmem));
+  }
+
+  @Test
+  public void printlnTest() {
+    println("PRINTING: "+this.getClass().getName());
+  }
+
+  /**
+   * @param s value to print
+   */
+  static void println(String s) {
+    //System.out.println(s); //disable here
   }
 
   /**
@@ -238,9 +329,9 @@ public class SetOperationTest {
     heapLayout[0] = 0;                             //offset for Union
     heapLayout[1] = unionBytes;                    //offset for sketch1
     heapLayout[2] = unionBytes + sketchBytes;      //offset for sketch2
-    heapLayout[3] = unionBytes + 2*sketchBytes;    //offset for sketch3
-    heapLayout[4] = unionBytes + 3*sketchBytes;    //offset for result
-    heapLayout[5] = unionBytes + 3*sketchBytes + resultBytes;  //total
+    heapLayout[3] = unionBytes + (2*sketchBytes);    //offset for sketch3
+    heapLayout[4] = unionBytes + (3*sketchBytes);    //offset for result
+    heapLayout[5] = unionBytes + (3*sketchBytes) + resultBytes;  //total
     return heapLayout;
   }
 
@@ -267,7 +358,7 @@ public class SetOperationTest {
     //Build the sketches.
     for (int i=0; i< sketchNomEntries; i++) {
       sk1.update(i);
-      sk2.update(i + sketchNomEntries/2);
+      sk2.update(i + (sketchNomEntries/2));
       sk3.update(i + sketchNomEntries);
     }
 
@@ -321,66 +412,6 @@ public class SetOperationTest {
     double est = resSk.getEstimate();
 
     return est;
-  }
-
-  @Test
-  public void checkValidSetOpID() {
-    assertFalse(SetOperation.isValidSetOpID(1)); //Alpha
-    assertTrue(SetOperation.isValidSetOpID(UNION.getID()));
-    assertTrue(SetOperation.isValidSetOpID(INTERSECTION.getID()));
-    assertTrue(SetOperation.isValidSetOpID(A_NOT_B.getID()));
-  }
-
-  @Test
-  public void setOpsExample() {
-    println("Set Operations Example:");
-    int k = 4096;
-    UpdateSketch skA = Sketches.updateSketchBuilder().build(k);
-    UpdateSketch skB = Sketches.updateSketchBuilder().build(k);
-    UpdateSketch skC = Sketches.updateSketchBuilder().build(k);
-
-    for (int i=1;  i<=10; i++) { skA.update(i); }
-    for (int i=1;  i<=20; i++) { skB.update(i); }
-    for (int i=6;  i<=15; i++) { skC.update(i); } //overlapping set
-
-    Union union = Sketches.setOperationBuilder().buildUnion(k);
-    union.update(skA);
-    union.update(skB);
-    // ... continue to iterate on the input sketches to union
-
-    CompactSketch unionSk = union.getResult();   //the result union sketch
-    println("A U B      : "+unionSk.getEstimate());   //the estimate of the union
-
-    //Intersection is similar
-
-    Intersection inter = Sketches.setOperationBuilder().buildIntersection();
-    inter.update(unionSk);
-    inter.update(skC);
-    // ... continue to iterate on the input sketches to intersect
-
-    CompactSketch interSk = inter.getResult();  //the result intersection sketch
-    println("(A U B) ^ C: "+interSk.getEstimate());  //the estimate of the intersection
-
-    //The AnotB operation is a little different as it is stateless:
-
-    AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
-    aNotB.update(skA, skC);
-
-    CompactSketch not = aNotB.getResult();
-    println("A \\ C      : "+not.getEstimate()); //the estimate of the AnotB operation
-  }
-
-
-  @Test
-  public void printlnTest() {
-    println("PRINTING: "+this.getClass().getName());
-  }
-
-  /**
-   * @param s value to print
-   */
-  static void println(String s) {
-    //System.out.println(s); //disable here
   }
 
 }

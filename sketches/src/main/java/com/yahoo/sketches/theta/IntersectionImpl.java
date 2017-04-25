@@ -42,6 +42,7 @@ import static java.lang.Math.min;
 import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.MemoryUtil;
 import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
@@ -461,6 +462,11 @@ final class IntersectionImpl extends SetOperation implements Intersection {
   @Override
   public Family getFamily() {
     return Family.INTERSECTION;
+  }
+
+  @Override
+  public boolean isSameResource(final Memory mem) {
+    return MemoryUtil.isSameResource(mem_, mem);
   }
 
   //restricted
