@@ -6,7 +6,6 @@
 package com.yahoo.sketches.hll;
 
 /**
- * @author Kevin Lang
  */
 final class DenseCompressedFieldsFactory implements FieldsFactory {
 

@@ -16,13 +16,13 @@ import com.yahoo.memory.NativeMemory;
  * Top-level class for the HLL family of sketches.
  * Use the HllSketchBuilder to construct this class.
  *
- * @author Kevin Lang
  */
 public class HllSketch {
   private static final double HLL_REL_ERROR_NUMER = 1.04;
   private Fields.UpdateCallback updateCallback;
   private final Preamble preamble;
   private Fields fields;
+  static final String LS = System.getProperty("line.separator");
 
   /**
    * Construct this class with the given Fields
@@ -258,6 +258,11 @@ public class HllSketch {
     return new HllSketchBuilder();
   }
 
+  /**
+   * Deserialize HllSketch from bytes.
+   * @param bytes the given byte array
+   * @return HllSketch
+   */
   public static HllSketch fromBytes(final byte[] bytes) {
     return fromBytes(bytes, 0, bytes.length);
   }
@@ -269,9 +274,12 @@ public class HllSketch {
    * @param endOffset the end offset
    * @return HllSketch
    */
-  public static HllSketch fromBytes(final byte[] bytes, final int startOffset, final int endOffset) {
+  public static HllSketch fromBytes( //only called from above. Why is this needed? //TODO
+      final byte[] bytes,
+      final int startOffset,
+      final int endOffset) {
     final MemoryRegion reg = new MemoryRegion(new NativeMemory(bytes), startOffset, endOffset - startOffset);
-    final Preamble preamble = Preamble.fromMemory(reg);
+    final Preamble preamble = Preamble.fromMemory(reg); //extracts the preamble
     return fromBytes(preamble, bytes, (startOffset + preamble.getPreambleLongs()) << 3, endOffset);
   }
 
@@ -283,14 +291,26 @@ public class HllSketch {
    * @param endOffset the end offset
    * @return HllSketch
    */
-  public static HllSketch fromBytes(
+  public static HllSketch fromBytes( //only called from above. Why is this needed? //TODO
       final Preamble preamble,
-      final byte[] bytes,
+      final byte[] bytes, //the whole array including preamble
       final int startOffset,
-      final int endOffset
-  ) {
+      final int endOffset) {
     final Fields fields = FieldsFactories.fromBytes(preamble, bytes, startOffset, endOffset);
     return preamble.isHip() ? new HipHllSketch(fields) : new HllSketch(fields);
+  }
+
+  /**
+   * Returns a simple or detailed summary of this sketch
+   * @param detail if true, lists the detail of the internal arrays.
+   * @return a simple or detailed summary of this sketch
+   */
+  public String toString(final boolean detail) {
+    final String thisSimpleName = this.getClass().getSimpleName();
+    final StringBuilder sb = new StringBuilder();
+    sb.append("## ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
+    sb.append(fields.toString(detail));
+    return sb.toString();
   }
 
   //Restricted

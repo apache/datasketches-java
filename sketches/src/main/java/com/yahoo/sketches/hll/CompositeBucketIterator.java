@@ -6,7 +6,6 @@
 package com.yahoo.sketches.hll;
 
 /**
- * @author Kevin Lang
  */
 public final class CompositeBucketIterator implements BucketIterator {
   private final BucketIterator[] iters;
@@ -23,11 +22,21 @@ public final class CompositeBucketIterator implements BucketIterator {
 
   @Override
   public boolean next() {
-    while (index < iters.length && !iters[index].next()) {
+    while ((index < iters.length) && !iters[index].next()) {
       iters[index] = null; // give up the reference
       ++index;
     }
     return index < iters.length;
+  }
+
+  @Override
+  public boolean nextAll() {
+    while ((index < iters.length) && !iters[index].next()) {
+      iters[index] = null; // give up the reference
+      ++index;
+    }
+    return index < iters.length;
+    //return ++index < iters.length;
   }
 
   @Override

@@ -84,27 +84,27 @@ public class PreambleTest
         .setSeed(Util.DEFAULT_UPDATE_SEED)
         .setFlags((byte) 12).build();
     byte[] bytes = new byte[10];
-    int initOffset = 3;
+    int initOffset = 3;  //allocated space is too small
     preamble.intoByteArray(bytes, initOffset);
   }
-  
+
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSeedHashFromSeed() {
     Builder bldr = new Preamble.Builder();
-    //In the first 64K values 50541 produces a seedHash of 0, 
+    //In the first 64K values 50541 produces a seedHash of 0,
     bldr.setSeed(50541L);
   }
-  
+
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
-  
+
   /**
-   * @param s value to print 
+   * @param s value to print
    */
   static void println(String s) {
     //System.out.println(s); //disable here
   }
-  
+
 }

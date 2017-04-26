@@ -12,9 +12,22 @@ import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
- * @author Kevin Lang
  */
 final class OnHeapHash {
+  private int[] fields;
+  private int mask;
+  private int numElements;
+
+  private OnHeapHash(final int[] fields, final int numElements) { //called by fromBytes()
+    this.fields = fields;
+    this.numElements = numElements;
+    mask = fields.length - 1;
+  }
+
+  OnHeapHash(final int startSize) {
+    resetFields(startSize);
+  }
+
   static OnHeapHash fromBytes(final byte[] bytes, final int offset, final int endOffset) {
     final int[] fields = new int[(endOffset - offset) / 4];
     int numElements = 0;
@@ -30,23 +43,9 @@ final class OnHeapHash {
     return new OnHeapHash(fields, numElements);
   }
 
-  private int[] fields;
-  private int mask;
-  private int numElements;
-
-  OnHeapHash(final int startSize) {
-    resetFields(startSize);
-  }
-
-  private OnHeapHash(final int[] fields, final int numElements) {
-    this.fields = fields;
-    this.numElements = numElements;
-    mask = fields.length - 1;
-  }
-
   void resetFields(final int size) {
     fields = new int[size];
-    Arrays.fill(fields, -1);
+    Arrays.fill(fields, -1); //
     mask = fields.length - 1;
     numElements = 0;
   }
@@ -124,7 +123,13 @@ final class OnHeapHash {
       }
 
       @Override
+      public boolean nextAll() {
+        return ++i < fields.length;
+      }
+
+      @Override
       public int getKey() {
+        //if (fields[i] == -1) { return -1; }
         return HashUtils.keyOfPair(fields[i]);
       }
 

@@ -8,7 +8,6 @@ package com.yahoo.sketches.hll;
 import static com.yahoo.sketches.Util.invPow2;
 
 /**
- * @author Kevin Lang
  */
 final class HipHllSketch extends HllSketch {
   // derived using some formulas from Ting's paper
@@ -20,8 +19,8 @@ final class HipHllSketch extends HllSketch {
   public HipHllSketch(final Fields fields) {
     super(fields);
 
-    this.invPow2Sum = numBuckets();
-    this.hipEstAccum = 0d;
+    invPow2Sum = numBuckets();
+    hipEstAccum = 0d;
 
     setUpdateCallback(
         new Fields.UpdateCallback() {
@@ -78,12 +77,11 @@ final class HipHllSketch extends HllSketch {
   }
 
   private double eps(final double numStdDevs) {
-    return numStdDevs * HIP_REL_ERROR_NUMER / Math.sqrt(numBuckets());
+    return (numStdDevs * HIP_REL_ERROR_NUMER) / Math.sqrt(numBuckets());
   }
 
   @Override
-  public byte[] toByteArray()
-  {
+  public byte[] toByteArray() {
     final byte[] retVal = super.toByteArray();
 
     // Override isHip flag on preamble

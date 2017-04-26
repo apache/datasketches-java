@@ -1,9 +1,11 @@
 /*
- * Copyright 2015-16, Yahoo! Inc.
+ * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
 package com.yahoo.sketches.hll;
+
+import static com.yahoo.sketches.Util.zeroPad;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.MemoryRegion;
@@ -11,29 +13,30 @@ import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
-import com.yahoo.sketches.hash.MurmurHash3;
 
 /**
- * @author Kevin Lang
+ * 8-byte preamble with similar structure to other sketches.
  */
 public final class Preamble {
   static final byte PREAMBLE_LONGS = 1;
   static final byte PREAMBLE_VERSION = 8;
   static final byte HLL_PREAMBLE_FAMILY_ID = (byte) Family.HLL.getID();
+  static final String LS = System.getProperty("line.separator");
 
-  //max # of ints required for Aux-exceptions array given lg(k) (0 to 26).
+  //max # of ints required for Aux-exceptions array given lg(k) (0 to 26), valid is only 7 to 21.
   static final int[] AUX_SIZE = new int[] {
       1, 4, 4, 4, 4, 4, 4, 8, 8, 8,
       16, 16, 32, 32, 64, 128, 256, 512, 1024, 2048,
       4096, 8192, 16384, 32768, 65536, 131072, 262144
   };
 
-  private byte preambleLongs;
-  private byte version;
-  private byte familyId;
-  private byte logConfigK;
-  private byte flags;
-  private short seedHash;
+  private byte preambleLongs; //byte 0
+  private byte version;       //byte 1
+  private byte familyId;      //byte 2
+  private byte logConfigK;    //byte 3
+  //                          //byte 4 unused
+  private byte flags;         //byte 5
+  private short seedHash;     //byte 6-7
 
   private Preamble(final byte preambleLongs, final byte version, final byte familyId,
       final byte logConfigK, final byte flags, final short seedHash) {
@@ -43,16 +46,6 @@ public final class Preamble {
     this.logConfigK = logConfigK;
     this.flags = flags;
     this.seedHash = seedHash;
-
-    if ((logConfigK < Interpolation.INTERPOLATION_MIN_LOG_K)
-        || (logConfigK > Interpolation.INTERPOLATION_MAX_LOG_K)) {
-      throw new SketchesArgumentException(
-          String.format(
-              "logConfigK[%s] is out of bounds, should be between [%s] and [%s]",
-              logConfigK, Interpolation.INTERPOLATION_MIN_LOG_K, Interpolation.INTERPOLATION_MAX_LOG_K
-          )
-      );
-    }
   }
 
   /**
@@ -66,9 +59,7 @@ public final class Preamble {
         .setVersion(memory.getByte(1))
         .setFamilyId(memory.getByte(2))
         .setLogConfigK(memory.getByte(3))
-        // Invert the ++ in order to skip over the unused byte.  Some bits are wasted
-        // instead of packing the preamble so that the semantics of the various parts of the
-        // preamble can be aligned across different types of sketches.
+        // Byte 4 is unused. This allows the preamble to have the same format as other sketches.
         .setFlags(memory.getByte(5));
 
     final short seedHash = memory.getShort(6);
@@ -76,39 +67,16 @@ public final class Preamble {
   }
 
   /**
-   * Computes and checks the 16-bit seed hash from the given long seed.
-   * The seed hash may not be zero in order to maintain compatibility with older serialized
-   * versions that did not have this concept.
-   *
-   * @param seed the given seed.
-   *
-   * @return the seed hash.
-   */
-  private static short computeSeedHash(final long seed) {
-    final long[] seedArr = {seed};
-    final short seedHash = (short) ((MurmurHash3.hash(seedArr, 0L)[0]) & 0xFFFFL);
-    if (seedHash == 0) {
-      throw new SketchesArgumentException(
-          "The given seed: " + seed + " produced a seedHash of zero. "
-              + "You must choose a different seed."
-      );
-    }
-    return seedHash;
-  }
-
-  /**
    * Instantiates a new Preamble with the parameter log_base2 of K.
-   * @param logK log_base2 of the desired K
+   * @param logK log_base2 of the desired K.  Must be between 7 and 21, inclusive.
    * @return a new Preamble with the parameter log_base2 of K.
    */
   public static Preamble fromLogK(final int logK) {
-    if (logK > 255) {
-      throw new SketchesArgumentException("logK is greater than a byte, make it smaller");
-    }
+    checkLogK(logK);
 
     final byte flags = 0x0;
 
-    final short seedHash = computeSeedHash(Util.DEFAULT_UPDATE_SEED);
+    final short seedHash = Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED);
     return new Builder()
         .setLogConfigK((byte) logK)
         .setFlags(flags)
@@ -128,7 +96,8 @@ public final class Preamble {
 
   int intoByteArray(final byte[] bytes, final int offset) {
     if ((bytes.length - offset) < 8) {
-      throw new SketchesArgumentException("bytes too small");
+      throw new SketchesArgumentException("Allocated space must be >= 8 bytes: "
+          + (bytes.length - offset));
     }
 
     final Memory mem = new MemoryRegion(new NativeMemory(bytes), offset, 8);
@@ -214,7 +183,7 @@ public final class Preamble {
     if (this == o) {
       return true;
     }
-    if ((o == null) || (getClass() != o.getClass())) {
+    if ((o == null) || (this.getClass() != o.getClass())) {
       return false;
     }
 
@@ -239,16 +208,42 @@ public final class Preamble {
     return result;
   }
 
+  @Override
+  public String toString() {
+    final String thisSimpleName = this.getClass().getSimpleName();
+    final String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
+    final StringBuilder sb = new StringBuilder();
+    sb.append(LS);
+    sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
+    sb.append("   Preamble longs          : ").append(preambleLongs).append(LS);
+    sb.append("   Preamble version        : ").append(version).append(LS);
+    sb.append("   Family ID               : ").append(familyId).append(LS);
+    sb.append("   LogK                    : ").append(logConfigK).append(LS);
+    sb.append("   Flag bits, value        : ").append(flagsStr).append(LS);
+    sb.append("   SeedHash                : ").append(Integer.toHexString(seedHash)).append(LS);
+    sb.append(LS);
+    return sb.toString();
+  }
+
+  private static final void checkLogK(final int logK) {
+    final int min = Interpolation.INTERPOLATION_MIN_LOG_K;
+    final int max = Interpolation.INTERPOLATION_MAX_LOG_K;
+    if ((logK < min) || (logK > max)) {
+      throw new SketchesArgumentException( String.format(
+        "logConfigK[%s] is out of bounds, should be between [%s] and [%s]", logK, min, max));
+    }
+  }
+
   /**
    * Builder for the Preamble
    */
   public static class Builder {
     private byte preambleLongs = Preamble.PREAMBLE_LONGS;
     private byte version = Preamble.PREAMBLE_VERSION;
-    private byte familyId = Preamble.HLL_PREAMBLE_FAMILY_ID;
+    private byte familyId = Preamble.HLL_PREAMBLE_FAMILY_ID; //derived from sketches.Family
     private byte logConfigK = (byte) Integer.numberOfTrailingZeros(Util.DEFAULT_NOMINAL_ENTRIES);
     private byte flags; //needs defaults?
-    private short seedHash = computeSeedHash(Util.DEFAULT_UPDATE_SEED);
+    private short seedHash = Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED);
 
     /**
      * Sets the preamble longs byte
@@ -282,10 +277,11 @@ public final class Preamble {
 
     /**
      * Sets the value of k by using the log_base2 of K
-     * @param logConfigK the log_base2 of K
+     * @param logConfigK the log_base2 of K. Must be between 7 and 21, inclusive.
      * @return this Builder
      */
     public Builder setLogConfigK(final byte logConfigK) {
+      checkLogK(logConfigK);
       this.logConfigK = logConfigK;
       return this;
     }
@@ -306,7 +302,7 @@ public final class Preamble {
      * @return this Builder
      */
     public Builder setSeed(final long seed) {
-      return setSeedHash(computeSeedHash(seed));
+      return setSeedHash(Util.computeSeedHash(seed));
     }
 
     /**

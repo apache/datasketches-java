@@ -51,7 +51,7 @@ public class HllSketchTest {
     HllSketch sketch = HllSketch.builder().setLogBuckets(10).setDenseMode(true).build();
 
     byte[] sketchBytes = sketch.toByteArray();
-    //println("sketchBytes: " + sketchBytes.length);
+    println("sketchBytes: " + sketchBytes.length);
     byte[] preambleBytes = sketch.getPreamble().toByteArray();
     //println("preBytes: "+ preambleBytes.length);
 

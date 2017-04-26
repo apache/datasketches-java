@@ -10,13 +10,12 @@ import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.TAB;
 
 /**
- * @author Kevin Lang
  */
 public class HllSketchBuilder { // will need to add seed and Memory, etc.
   private Preamble preamble = null;
-  private boolean compressedDense = false;
-  private boolean denseMode = false;
-  private boolean hipEstimator = false;
+  private boolean compressedDense = false; //4-bit nibble array (+ Aux exceptions array)
+  private boolean denseMode = false; //Naive 8-bit byte array, no warmup coupon array
+  private boolean hipEstimator = false; //adds HIP registers
 
   /**
    * Default constructor using default nominal entries (4096).
@@ -45,7 +44,7 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
    * @return this Builder
    */
   public HllSketchBuilder setLogBuckets(final int logBuckets) {
-    this.preamble = Preamble.fromLogK((byte) logBuckets);
+    preamble = Preamble.fromLogK((byte) logBuckets);
     return this;
   }
 
@@ -76,8 +75,8 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
   }
 
   /**
-   * Sets the Dense Mode flag
-   * @param denseMode the state of dense mode
+   * Sets the Dense Mode flag or straight to 8-bit mode, no warmup mode.
+   * @param denseMode the state of dense mode.  Naive one byte per bucket, no warmup coupon cache.
    * @return this builder
    */
   public HllSketchBuilder setDenseMode(final boolean denseMode) {
@@ -86,16 +85,16 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
   }
 
   /**
-   * Gets the Dense Mode flag
-   * @return the Dense Mode flag
+   * Returns true if Dense Mode is selected.
+   * @return true if Dense Mode is selected.
    */
   public boolean isDenseMode() {
     return denseMode;
   }
 
   /**
-   * Sets the Compressed Dense flag
-   * @param compressedDense the state of Compressed Dense
+   * Sets the Compressed Dense flag for 4-bit mode
+   * @param compressedDense the state of Compressed Dense.
    * @return this builder
    */
   public HllSketchBuilder setCompressedDense(final boolean compressedDense) {
@@ -104,15 +103,15 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
   }
 
   /**
-   * Gets the state of Compressed Dense
-   * @return the state of Compressed Dense
+   * Returns true if Compressed Dense Mode (4-bit mode).
+   * @return true if Compressed Dense Mode (4-bit mode).
    */
   public boolean isCompressedDense() {
     return compressedDense;
   }
 
   /**
-   * Sets the Hip Estimator option
+   * Sets the Hip Estimator option. This adds 16 bytes to the sketch size.
    * @param hipEstimator true if the Hip Estimator option is to be used
    * @return this builder
    */
@@ -122,8 +121,8 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
   }
 
   /**
-   * Gets the state of the Hip Estimator option
-   * @return the state of the Hip Estimator option
+   * Returns true if Hip Estimator is selected
+   * @return true if Hip Estimator is selected
    */
   public boolean isHipEstimator() {
     return hipEstimator;
@@ -136,9 +135,9 @@ public class HllSketchBuilder { // will need to add seed and Memory, etc.
   public HllSketch build() {
     final FieldsFactory denseFactory;
     if (compressedDense) {
-      denseFactory = new DenseCompressedFieldsFactory();
+      denseFactory = new DenseCompressedFieldsFactory(); //4 bit
     } else {
-      denseFactory = new DenseFieldsFactory();
+      denseFactory = new DenseFieldsFactory(); //8 bit
     }
 
     final Fields fields;

@@ -8,19 +8,54 @@ package com.yahoo.sketches.hll;
 import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
-/**
- * @author Kevin Lang
- */
+
 final class OnHeapHashFields implements Fields {
-  public static OnHeapHashFields fromBytes(final Preamble preamble, final byte[] bytes,
-          final int offset, final int numBytes) {
-    if (bytes[offset] != Fields.HASH_SPARSE_VERSION) {
+  private final Preamble preamble;
+  private final FieldsFactory denseFactory;
+  private final int switchToDenseSize;
+  private final OnHeapHash hasher;
+  private int growthBound;
+  private static final byte VERSION_ID = Fields.Version.HASH_SPARSE_VERSION.getId();
+
+  private OnHeapHashFields( //for deserialization
+      final Preamble preamble,
+      final FieldsFactory denseFactory,
+      final int switchToDenseSize,
+      final OnHeapHash hasher,
+      final int growthBound
+  ) {
+    this.preamble = preamble;
+    this.denseFactory = denseFactory;
+    this.switchToDenseSize = switchToDenseSize;
+    this.hasher = hasher;
+    this.growthBound = growthBound;
+  }
+
+  public OnHeapHashFields(
+      final Preamble preamble,
+      final int startSize,
+      final int switchToDenseSize,
+      final FieldsFactory denseFactory) {
+    this.preamble = preamble;
+    this.denseFactory = denseFactory;
+    hasher = new OnHeapHash(startSize);
+    this.switchToDenseSize = switchToDenseSize;
+
+    growthBound = 3 * (startSize >>> 2); //.75 fill ratio * size
+  }
+
+  public static OnHeapHashFields fromBytes(
+      final Preamble preamble,
+      final byte[] bytes,
+      final int offset,
+      final int numBytes) {
+    if (bytes[offset] != VERSION_ID) {
       throw new IllegalArgumentException(
-          String.format(
-              "Can only deserialize the hashed representation[%d] got [%d]",
-              Fields.HASH_SPARSE_VERSION,
-              bytes[offset]
-          )
+        String.format(
+          "Can only deserialize the hash table sparse representation[%d] got [%d]",
+          VERSION_ID,
+          bytes[offset]
+        )
       );
     }
 
@@ -46,39 +81,9 @@ final class OnHeapHashFields implements Fields {
     return new OnHeapHashFields(preamble, denseFactory, switchToDenseSize, hasher, growthBound);
   }
 
-  private final Preamble preamble;
-  private final FieldsFactory denseFactory;
-  private final int switchToDenseSize;
-  private final OnHeapHash hasher;
-
-  private int growthBound;
-
-  public OnHeapHashFields(
-      final Preamble preamble,
-      final int startSize,
-      final int switchToDenseSize,
-      final FieldsFactory denseFactory
-  ) {
-    this.preamble = preamble;
-    this.denseFactory = denseFactory;
-    hasher = new OnHeapHash(startSize);
-    this.switchToDenseSize = switchToDenseSize;
-
-    growthBound = 3 * (startSize >>> 2);
-  }
-
-  private OnHeapHashFields(
-      final Preamble preamble,
-      final FieldsFactory denseFactory,
-      final int switchToDenseSize,
-      final OnHeapHash hasher,
-      final int growthBound
-  ) {
-    this.preamble = preamble;
-    this.denseFactory = denseFactory;
-    this.switchToDenseSize = switchToDenseSize;
-    this.hasher = hasher;
-    this.growthBound = growthBound;
+  @Override
+  public Version getFieldsVersion() {
+    return Fields.Version.HASH_SPARSE_VERSION;
   }
 
   @Override
@@ -118,7 +123,7 @@ final class OnHeapHashFields implements Fields {
       );
     }
 
-    array[offset++] = Fields.HASH_SPARSE_VERSION;
+    array[offset++] = VERSION_ID;
 
     final NativeMemory mem = new NativeMemory(array);
     offset = Serde.putInt(mem, offset, switchToDenseSize);
@@ -131,7 +136,7 @@ final class OnHeapHashFields implements Fields {
 
   @Override
   public int numBytesToSerialize() {
-    return 1   // type
+    return 1 // type
          + 4 // switchToDenseSize
          + 4 // denseFactoryNumBytes
          + denseFactory.numBytesToSerialize()
@@ -165,4 +170,5 @@ final class OnHeapHashFields implements Fields {
     return unionBucketIterator(
         CompressedBucketUtils.getBucketIterator(compressed, minVal, exceptions), cb);
   }
+
 }
