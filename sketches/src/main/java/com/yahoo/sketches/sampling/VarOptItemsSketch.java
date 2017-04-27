@@ -26,8 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryRegion;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.Family;
@@ -47,7 +46,7 @@ import com.yahoo.sketches.Util;
  * @author Jon Malkin
  * @author Kevin Lang
  */
-public final class VarOptItemsSketch<T> {
+final class VarOptItemsSketch<T> {
   /**
    * The smallest sampling array allocated: 16
    */
@@ -204,14 +203,11 @@ public final class VarOptItemsSketch<T> {
    */
   public static <T> VarOptItemsSketch<T> getInstance(final Memory srcMem,
                                                      final ArrayOfItemsSerDe<T> serDe) {
-    final Object memObj = srcMem.array(); // may be null
-    final long memAddr = srcMem.getCumulativeOffset(0L);
-
     final int numPreLongs = getAndCheckPreLongs(srcMem);
-    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(memObj, memAddr));
-    final int serVer = extractSerVer(memObj, memAddr);
-    final int familyId = extractFamilyID(memObj, memAddr);
-    final boolean isEmpty = (extractFlags(memObj, memAddr) & EMPTY_FLAG_MASK) != 0;
+    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(srcMem));
+    final int serVer = extractSerVer(srcMem);
+    final int familyId = extractFamilyID(srcMem);
+    final boolean isEmpty = (extractFlags(srcMem) & EMPTY_FLAG_MASK) != 0;
 
     // Check values
     if (numPreLongs != Family.VAROPT.getMinPreLongs()
@@ -232,14 +228,9 @@ public final class VarOptItemsSketch<T> {
               "Possible Corruption: FamilyID must be " + reqFamilyId + ": " + familyId);
     }
 
-    final int k = extractK(memObj, memAddr);
+    final int k = extractK(srcMem);
     if (k < 2) {
       throw new SketchesArgumentException("Possible Corruption: k must be at least 2: " + k);
-    }
-
-    final long n = extractN(memObj, memAddr);
-    if (n < 0) {
-      throw new SketchesArgumentException("Possible Corruption: n cannot be negative: " + n);
     }
 
     if (isEmpty) {
@@ -247,9 +238,14 @@ public final class VarOptItemsSketch<T> {
       return new VarOptItemsSketch<>(k, rf);
     }
 
+    final long n = extractN(srcMem);
+    if (n < 0) {
+      throw new SketchesArgumentException("Possible Corruption: n cannot be negative: " + n);
+    }
+
     // get rest of preamble
-    final int hCount = extractHRegionItemCount(memObj, memAddr);
-    final int rCount = extractRRegionItemCount(memObj, memAddr);
+    final int hCount = extractHRegionItemCount(srcMem);
+    final int rCount = extractRRegionItemCount(srcMem);
 
     if (hCount < 0) {
       throw new SketchesArgumentException("Possible Corruption: H region count cannot be "
@@ -263,7 +259,7 @@ public final class VarOptItemsSketch<T> {
     double totalRWeight = 0.0;
     if (numPreLongs == Family.VAROPT.getMaxPreLongs()) {
       if (rCount > 0) {
-        totalRWeight = extractTotalRWeight(memObj, memAddr);
+        totalRWeight = extractTotalRWeight(srcMem);
       } else {
         throw new SketchesArgumentException(
                 "Possible Corruption: "
@@ -305,8 +301,7 @@ public final class VarOptItemsSketch<T> {
 
     final long offsetBytes = preLongBytes + (hCount * Double.BYTES);
     final T[] data = serDe.deserializeFromMemory(
-            new MemoryRegion(srcMem, offsetBytes, srcMem.getCapacity() - offsetBytes),
-            totalItems);
+            srcMem.region(offsetBytes, srcMem.getCapacity() - offsetBytes), totalItems);
     final List<T> wrappedData = Arrays.asList(data);
     final ArrayList<T> dataList = new ArrayList<>(allocatedItems);
     dataList.addAll(wrappedData.subList(0, hCount));
@@ -460,9 +455,9 @@ public final class VarOptItemsSketch<T> {
       outBytes = (preLongs << 3) + (h_ * Double.BYTES) + bytes.length;
     }
     final byte[] outArr = new byte[outBytes];
-    final Memory mem = new NativeMemory(outArr);
+    final WritableMemory mem = WritableMemory.wrap(outArr);
 
-    final Object memObj = mem.array(); // may be null
+    final Object memObj = mem.getArray(); // may be null
     final long memAddr = mem.getCumulativeOffset(0L);
 
     // build first preLong

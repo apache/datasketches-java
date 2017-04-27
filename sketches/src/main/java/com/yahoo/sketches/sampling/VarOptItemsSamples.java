@@ -29,7 +29,7 @@ import java.util.Iterator;
  *
  * @author Jon Malkin
  */
-public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.WeightedSample> {
+class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.WeightedSample> {
 
   private final VarOptItemsSketch<T> sketch_;
   private VarOptItemsSketch<T>.Result sampleLists;

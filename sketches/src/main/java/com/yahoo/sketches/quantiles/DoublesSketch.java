@@ -11,6 +11,8 @@ import static com.yahoo.sketches.quantiles.Util.checkIsCompactMemory;
 import java.util.Random;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
+
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -163,7 +165,7 @@ public abstract class DoublesSketch {
   }
 
   /**
-   * Wrap this sketch around the given compact Memory image of a DoublesSketch.
+   * Wrap this sketch around the given Memory image of a DoublesSketch, compact or non-compact.
    *
    * @param srcMem the given Memory image of a DoublesSketch that may have data,
    * @return a sketch that wraps the given srcMem
@@ -455,7 +457,7 @@ public abstract class DoublesSketch {
    * @return the new sketch.
    */
   public DoublesSketch downSample(final DoublesSketch srcSketch, final int smallerK,
-      final Memory dstMem) {
+                                  final WritableMemory dstMem) {
     return downSampleInternal(srcSketch, smallerK, dstMem);
   }
 
@@ -534,7 +536,7 @@ public abstract class DoublesSketch {
    *
    * @param dstMem the given memory.
    */
-  public void putMemory(final Memory dstMem) {
+  public void putMemory(final WritableMemory dstMem) {
     putMemory(dstMem, true);
   }
 
@@ -556,7 +558,7 @@ public abstract class DoublesSketch {
    * @param compact if true, this compacts and sorts the base buffer, which optimizes merge
    *                performance at the cost of slightly increased serialization time.
    */
-  public void putMemory(final Memory dstMem, final boolean compact) {
+  public void putMemory(final WritableMemory dstMem, final boolean compact) {
     final byte[] byteArr = toSortedByteArray(compact);
     final int arrLen = byteArr.length;
     final long memCap = dstMem.getCapacity();
@@ -576,7 +578,7 @@ public abstract class DoublesSketch {
    * public API.
    */
   UpdateDoublesSketch downSampleInternal(final DoublesSketch srcSketch, final int smallerK,
-                                         final Memory dstMem) {
+                                         final WritableMemory dstMem) {
     final UpdateDoublesSketch newSketch = (dstMem == null)
             ? HeapUpdateDoublesSketch.newInstance(smallerK)
             : DirectUpdateDoublesSketch.newInstance(smallerK, dstMem);
@@ -643,9 +645,5 @@ public abstract class DoublesSketch {
    */
   abstract double[] getCombinedBuffer();
 
-  /**
-   * Gets the Memory if it exists, otherwise returns null.
-   * @return the Memory if it exists, otherwise returns null.
-   */
-  abstract Memory getMemory();
+  abstract WritableMemory getMemory();
 }

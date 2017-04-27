@@ -19,7 +19,7 @@ import static org.testng.Assert.fail;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -52,12 +52,13 @@ public class ReservoirLongsUnionTest {
       rls.update(i);
     }
 
-    rlu = ReservoirLongsUnion.getInstance(rls.getK());
+    rlu.reset();
+    assertEquals(rlu.getResult().getN(), 0);
     rlu.update(rls);
-    assertNotNull(rlu.getResult());
+    assertEquals(rlu.getResult().getN(), rls.getN());
 
     final byte[] sketchBytes = rls.toByteArray();
-    final Memory mem = new NativeMemory(sketchBytes);
+    final Memory mem = Memory.wrap(sketchBytes);
     rlu = ReservoirLongsUnion.getInstance(rls.getK());
     rlu.update(mem);
     assertNotNull(rlu.getResult());
@@ -65,6 +66,7 @@ public class ReservoirLongsUnionTest {
     println(rlu.toString());
   }
 
+  /*
   @Test
   public void checkReadOnlyInstantiation() {
     final int k = 100;
@@ -74,15 +76,16 @@ public class ReservoirLongsUnionTest {
     }
 
     final byte[] unionBytes = union.toByteArray();
-    final Memory mem = new NativeMemory(unionBytes);
+    final Memory mem = Memory.wrap(unionBytes);
 
     final ReservoirLongsUnion rlu;
-    rlu = ReservoirLongsUnion.getInstance(mem.asReadOnlyMemory());
+    rlu = ReservoirLongsUnion.getInstance(mem);
 
     assertNotNull(rlu);
     assertEquals(rlu.getMaxK(), k);
     ReservoirLongsSketchTest.validateReservoirEquality(rlu.getResult(), union.getResult());
   }
+  */
 
   @Test
   public void checkNullUpdate() {
@@ -113,7 +116,7 @@ public class ReservoirLongsUnionTest {
     }
 
     final byte[] unionBytes = rlu.toByteArray();
-    final Memory mem = new NativeMemory(unionBytes);
+    final Memory mem = Memory.wrap(unionBytes);
 
     final ReservoirLongsUnion rebuiltUnion = ReservoirLongsUnion.getInstance(mem);
     validateUnionEquality(rlu, rebuiltUnion);
@@ -129,7 +132,7 @@ public class ReservoirLongsUnionTest {
 
     // get a new byte[], manually revert to v1, then reconstruct
     final byte[] unionBytes = rlu.toByteArray();
-    final Memory unionMem = new NativeMemory(unionBytes);
+    final WritableMemory unionMem = WritableMemory.wrap(unionBytes);
 
     unionMem.putByte(SER_VER_BYTE, (byte) 1);
     unionMem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
@@ -159,7 +162,7 @@ public class ReservoirLongsUnionTest {
 
     // get a new byte[], manually revert to v1, then reconstruct
     final byte[] unionBytes = rlu.toByteArray();
-    final Memory unionMem = new NativeMemory(unionBytes);
+    final WritableMemory unionMem = WritableMemory.wrap(unionBytes);
 
     unionMem.putByte(SER_VER_BYTE, (byte) 1);
     unionMem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
@@ -208,6 +211,29 @@ public class ReservoirLongsUnionTest {
   }
 
   @Test
+  public void checkUnionResetWithInitialSmallK() {
+    final int maxK = 25;
+    final int sketchK = 10;
+    final ReservoirLongsUnion rlu = ReservoirLongsUnion.getInstance(maxK);
+
+    ReservoirLongsSketch rls = getBasicSketch(2 * sketchK, sketchK); // in sampling mode
+    rlu.update(rls);
+    assertEquals(rlu.getMaxK(), maxK);
+    assertNotNull(rlu.getResult());
+    assertEquals(rlu.getResult().getK(), sketchK);
+
+    rlu.reset();
+    assertNotNull(rlu.getResult());
+
+    // feed in sketch in sampling mode, with larger k than old gadget
+    rls = getBasicSketch(2 * maxK, maxK + 1);
+    rlu.update(rls);
+    assertEquals(rlu.getMaxK(), maxK);
+    assertNotNull(rlu.getResult());
+    assertEquals(rlu.getResult().getK(), maxK);
+  }
+
+  @Test
   public void checkNewGadget() {
     final int maxK = 1024;
     final int bigK = 1536;
@@ -216,36 +242,36 @@ public class ReservoirLongsUnionTest {
     // downsample input sketch, use as gadget (exact mode, but irrelevant here)
     final ReservoirLongsSketch bigKSketch = getBasicSketch(maxK / 2, bigK);
     final byte[] bigKBytes = bigKSketch.toByteArray();
-    final Memory bigKMem = new NativeMemory(bigKBytes);
+    final Memory bigKMem = Memory.wrap(bigKBytes);
 
-    ReservoirLongsUnion riu = ReservoirLongsUnion.getInstance(maxK);
-    riu.update(bigKMem);
-    assertNotNull(riu.getResult());
-    assertEquals(riu.getResult().getK(), maxK);
-    assertEquals(riu.getResult().getN(), maxK / 2);
+    ReservoirLongsUnion rlu = ReservoirLongsUnion.getInstance(maxK);
+    rlu.update(bigKMem);
+    assertNotNull(rlu.getResult());
+    assertEquals(rlu.getResult().getK(), maxK);
+    assertEquals(rlu.getResult().getN(), maxK / 2);
 
     // sketch k < maxK but in sampling mode
     final ReservoirLongsSketch smallKSketch = getBasicSketch(maxK, smallK);
     final byte[] smallKBytes = smallKSketch.toByteArray();
-    final Memory smallKMem = new NativeMemory(smallKBytes);
+    final Memory smallKMem = Memory.wrap(smallKBytes);
 
-    riu = ReservoirLongsUnion.getInstance(maxK);
-    riu.update(smallKMem);
-    assertNotNull(riu.getResult());
-    assertTrue(riu.getResult().getK() < maxK);
-    assertEquals(riu.getResult().getK(), smallK);
-    assertEquals(riu.getResult().getN(), maxK);
+    rlu = ReservoirLongsUnion.getInstance(maxK);
+    rlu.update(smallKMem);
+    assertNotNull(rlu.getResult());
+    assertTrue(rlu.getResult().getK() < maxK);
+    assertEquals(rlu.getResult().getK(), smallK);
+    assertEquals(rlu.getResult().getN(), maxK);
 
     // sketch k < maxK and in exact mode
     final ReservoirLongsSketch smallKExactSketch = getBasicSketch(smallK, smallK);
     final byte[] smallKExactBytes = smallKExactSketch.toByteArray();
-    final Memory smallKExactMem = new NativeMemory(smallKExactBytes);
+    final Memory smallKExactMem = Memory.wrap(smallKExactBytes);
 
-    riu = ReservoirLongsUnion.getInstance(maxK);
-    riu.update(smallKExactMem);
-    assertNotNull(riu.getResult());
-    assertEquals(riu.getResult().getK(), maxK);
-    assertEquals(riu.getResult().getN(), smallK);
+    rlu = ReservoirLongsUnion.getInstance(maxK);
+    rlu.update(smallKExactMem);
+    assertNotNull(rlu.getResult());
+    assertEquals(rlu.getResult().getK(), maxK);
+    assertEquals(rlu.getResult().getN(), smallK);
   }
 
   @Test
@@ -269,7 +295,7 @@ public class ReservoirLongsUnionTest {
     final int n3 = 2048;
     final ReservoirLongsSketch sketch3 = getBasicSketch(n3, k);
     final byte[] sketch3Bytes = sketch3.toByteArray();
-    final Memory mem = new NativeMemory(sketch3Bytes);
+    final Memory mem = Memory.wrap(sketch3Bytes);
     rlu.update(mem);
 
     assertEquals(rlu.getResult().getK(), k);
@@ -329,7 +355,7 @@ public class ReservoirLongsUnionTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadPreLongs() {
     final ReservoirLongsUnion rlu = ReservoirLongsUnion.getInstance(1024);
-    final Memory mem = new NativeMemory(rlu.toByteArray());
+    final WritableMemory mem = WritableMemory.wrap(rlu.toByteArray());
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 0); // corrupt the preLongs count
 
     ReservoirLongsUnion.getInstance(mem);
@@ -339,7 +365,7 @@ public class ReservoirLongsUnionTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
     final ReservoirLongsUnion rlu = ReservoirLongsUnion.getInstance(1024);
-    final Memory mem = new NativeMemory(rlu.toByteArray());
+    final WritableMemory mem = WritableMemory.wrap(rlu.toByteArray());
     mem.putByte(SER_VER_BYTE, (byte) 0); // corrupt the serialization version
 
     ReservoirLongsUnion.getInstance(mem);
@@ -349,7 +375,7 @@ public class ReservoirLongsUnionTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadFamily() {
     final ReservoirLongsUnion rlu = ReservoirLongsUnion.getInstance(1024);
-    final Memory mem = new NativeMemory(rlu.toByteArray());
+    final WritableMemory mem = WritableMemory.wrap(rlu.toByteArray());
     mem.putByte(FAMILY_BYTE, (byte) 0); // corrupt the family ID
 
     ReservoirLongsUnion.getInstance(mem);

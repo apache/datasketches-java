@@ -4,7 +4,7 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 
 public class DoublesSketchTest {
 
@@ -14,7 +14,7 @@ public class DoublesSketchTest {
     for (int i = 0; i < 1000; i++) {
       heapSketch.update(i);
     }
-    DoublesSketch directSketch = DoublesSketch.wrap(new NativeMemory(heapSketch.toByteArray(false)));
+    DoublesSketch directSketch = DoublesSketch.wrap(WritableMemory.wrap(heapSketch.toByteArray(false)));
 
     assertEquals(directSketch.getMinValue(), 0.0);
     assertEquals(directSketch.getMaxValue(), 999.0);
@@ -24,12 +24,12 @@ public class DoublesSketchTest {
   @Test
   public void directToHeap() {
     int sizeBytes = 10000;
-    UpdateDoublesSketch directSketch = DoublesSketch.builder().initMemory(new NativeMemory(new byte[sizeBytes])).build();
+    UpdateDoublesSketch directSketch = DoublesSketch.builder().initMemory(WritableMemory.wrap(new byte[sizeBytes])).build();
     for (int i = 0; i < 1000; i++) {
       directSketch.update(i);
     }
     UpdateDoublesSketch heapSketch;
-    heapSketch = (UpdateDoublesSketch) DoublesSketch.heapify(new NativeMemory(directSketch.toByteArray()));
+    heapSketch = (UpdateDoublesSketch) DoublesSketch.heapify(WritableMemory.wrap(directSketch.toByteArray()));
     for (int i = 0; i < 1000; i++) {
       heapSketch.update(i + 1000);
     }

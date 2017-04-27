@@ -14,7 +14,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 public class HeapCompactDoublesSketchTest {
@@ -31,7 +30,7 @@ public class HeapCompactDoublesSketchTest {
     final UpdateDoublesSketch qs = buildAndLoadQS(k, n); // assuming ordered inserts
 
     final byte[] qsBytes = qs.toByteArray();
-    final Memory qsMem = new NativeMemory(qsBytes);
+    final Memory qsMem = Memory.wrap(qsBytes);
 
     final HeapCompactDoublesSketch compactQs = HeapCompactDoublesSketch.heapifyInstance(qsMem);
     DoublesSketchTest.testSketchEquality(qs, compactQs);
@@ -46,7 +45,7 @@ public class HeapCompactDoublesSketchTest {
     final UpdateDoublesSketch qs = buildAndLoadQS(k, n); // assuming ordered inserts
 
     final byte[] qsBytes = qs.compact().toByteArray();
-    final Memory qsMem = new NativeMemory(qsBytes);
+    final Memory qsMem = Memory.wrap(qsBytes);
 
     final HeapCompactDoublesSketch compactQs = HeapCompactDoublesSketch.heapifyInstance(qsMem);
     DoublesSketchTest.testSketchEquality(qs, compactQs);
@@ -59,7 +58,7 @@ public class HeapCompactDoublesSketchTest {
     final UpdateDoublesSketch qs1 = buildAndLoadQS(k, 0);
     final byte[] byteArr = qs1.compact().toByteArray();
     final byte[] byteArr2 = qs1.toByteArray(true);
-    final Memory mem = new NativeMemory(byteArr);
+    final Memory mem = Memory.wrap(byteArr);
     final HeapCompactDoublesSketch qs2 = HeapCompactDoublesSketch.heapifyInstance(mem);
     assertTrue(qs2.isEmpty());
     assertEquals(byteArr.length, qs1.getStorageBytes());
@@ -77,7 +76,7 @@ public class HeapCompactDoublesSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkMemTooSmall1() {
-    final Memory mem = new NativeMemory(new byte[7]);
+    final Memory mem = Memory.wrap(new byte[7]);
     HeapCompactDoublesSketch.heapifyInstance(mem);
   }
 

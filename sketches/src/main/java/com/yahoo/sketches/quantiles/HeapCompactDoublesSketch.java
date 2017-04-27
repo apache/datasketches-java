@@ -7,15 +7,9 @@ package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.FAMILY_BYTE;
-import static com.yahoo.sketches.quantiles.PreambleUtil.FLAGS_BYTE;
-import static com.yahoo.sketches.quantiles.PreambleUtil.K_SHORT;
 import static com.yahoo.sketches.quantiles.PreambleUtil.MAX_DOUBLE;
 import static com.yahoo.sketches.quantiles.PreambleUtil.MIN_DOUBLE;
-import static com.yahoo.sketches.quantiles.PreambleUtil.N_LONG;
-import static com.yahoo.sketches.quantiles.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.quantiles.PreambleUtil.READ_ONLY_FLAG_MASK;
-import static com.yahoo.sketches.quantiles.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFamilyID;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractK;
@@ -29,6 +23,8 @@ import static com.yahoo.sketches.quantiles.Util.computeRetainedItems;
 import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
+
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -149,39 +145,14 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
       throw new SketchesArgumentException("Source Memory too small: " + memCapBytes + " < 8");
     }
 
-    final boolean readOnly = srcMem.isReadOnly();
-    final boolean direct = srcMem.isDirect();
+    final int preLongs = extractPreLongs(srcMem);
+    final int serVer = extractSerVer(srcMem);
+    final int familyID = extractFamilyID(srcMem);
+    final int flags = extractFlags(srcMem);
+    final int k = extractK(srcMem);
 
-    final int preLongs;
-    final int serVer;
-    final int familyID;
-    final int flags;
-    final int k;
-    final boolean empty;
-    final long n;
-
-    if (readOnly && !direct) {
-      preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0XFF;
-      serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
-      familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
-      flags = srcMem.getByte(FLAGS_BYTE) & 0XFF;
-      k = srcMem.getShort(K_SHORT) & 0XFFFF;
-
-      empty = (flags & EMPTY_FLAG_MASK) > 0; //Preamble flags empty state
-      n = empty ? 0 : srcMem.getLong(N_LONG);
-    } else {
-      final Object memObj = srcMem.array(); //may be null
-      final long memAdd = srcMem.getCumulativeOffset(0L);
-
-      preLongs = extractPreLongs(memObj, memAdd);
-      serVer = extractSerVer(memObj, memAdd);
-      familyID = extractFamilyID(memObj, memAdd);
-      flags = extractFlags(memObj, memAdd);
-      k = extractK(memObj, memAdd);
-
-      empty = (flags & EMPTY_FLAG_MASK) > 0; //Preamble flags empty state
-      n = empty ? 0 : extractN(memObj, memAdd);
-    }
+    final boolean empty = (flags & EMPTY_FLAG_MASK) > 0; //Preamble flags empty state
+    final long n = empty ? 0 : extractN(srcMem);
 
     //VALIDITY CHECKS
     DoublesUtil.checkDoublesSerVer(serVer, MIN_HEAP_DOUBLES_SER_VER);
@@ -302,7 +273,7 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
   }
 
   @Override
-  Memory getMemory() {
+  WritableMemory getMemory() {
     return null;
   }
 }

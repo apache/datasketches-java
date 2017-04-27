@@ -21,7 +21,8 @@ import java.util.Comparator;
 import java.util.Random;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryRegion;
+import com.yahoo.memory.WritableMemory;
+
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -154,19 +155,18 @@ public final class ItemsSketch<T> {
    * @return a ItemsSketch on the Java heap.
    */
   public static <T> ItemsSketch<T> getInstance(final Memory srcMem,
-      final Comparator<? super T> comparator, final ArrayOfItemsSerDe<T> serDe) {
+                                               final Comparator<? super T> comparator,
+                                               final ArrayOfItemsSerDe<T> serDe) {
     final long memCapBytes = srcMem.getCapacity();
     if (memCapBytes < 8) {
       throw new SketchesArgumentException("Memory too small: " + memCapBytes);
     }
-    final long cumOffset = srcMem.getCumulativeOffset(0L);
-    final Object memObj = srcMem.array();
 
-    final int preambleLongs = extractPreLongs(memObj, cumOffset);
-    final int serVer = extractSerVer(memObj, cumOffset);
-    final int familyID = extractFamilyID(memObj, cumOffset);
-    final int flags = extractFlags(memObj, cumOffset);
-    final int k = extractK(memObj, cumOffset);
+    final int preambleLongs = extractPreLongs(srcMem);
+    final int serVer = extractSerVer(srcMem);
+    final int familyID = extractFamilyID(srcMem);
+    final int flags = extractFlags(srcMem);
+    final int k = extractK(srcMem);
 
     ItemsUtil.checkItemsSerVer(serVer);
 
@@ -181,7 +181,7 @@ public final class ItemsSketch<T> {
     if (empty) { return qs; }
 
     //Not empty, must have valid preamble + min, max
-    final long n = extractN(memObj, cumOffset);
+    final long n = extractN(srcMem);
 
     //can't check memory capacity here, not enough information
     final int extra = 2; //for min, max
@@ -195,7 +195,7 @@ public final class ItemsSketch<T> {
     qs.combinedBuffer_ = new Object[qs.combinedBufferItemCapacity_];
 
     final int srcMemItemsOffsetBytes = preambleLongs * Long.BYTES;
-    final MemoryRegion mReg = new MemoryRegion(srcMem, srcMemItemsOffsetBytes,
+    final Memory mReg = srcMem.region(srcMemItemsOffsetBytes,
         srcMem.getCapacity() - srcMemItemsOffsetBytes);
     final T[] itemsArray = serDe.deserializeFromMemory(mReg, numMemItems);
     qs.itemsArrayToCombinedBuffer(itemsArray);
@@ -518,7 +518,7 @@ public final class ItemsSketch<T> {
    * @param dstMem the given memory.
    * @param serDe an instance of ArrayOfItemsSerDe
    */
-  public void putMemory(final Memory dstMem, final ArrayOfItemsSerDe<T> serDe) {
+  public void putMemory(final WritableMemory dstMem, final ArrayOfItemsSerDe<T> serDe) {
     final byte[] byteArr = toByteArray(serDe);
     final long memCap = dstMem.getCapacity();
     if (memCap < byteArr.length) {

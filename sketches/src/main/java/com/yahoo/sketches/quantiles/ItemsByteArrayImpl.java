@@ -18,8 +18,8 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerVer;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
+
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.Family;
 
@@ -43,8 +43,8 @@ final class ItemsByteArrayImpl {
 
     if (empty) {
       final byte[] outByteArr = new byte[Long.BYTES];
-      final Memory memOut = new NativeMemory(outByteArr);
-      final Object memObj = memOut.array();
+      final WritableMemory memOut = WritableMemory.wrap(outByteArr);
+      final Object memObj = memOut.getArray();
       final long memAdd = memOut.getCumulativeOffset(0L);
       final int preLongs = 1;
       insertPre0(memObj, memAdd, preLongs, flags, sketch.getK());
@@ -58,7 +58,7 @@ final class ItemsByteArrayImpl {
     final byte[] itemsByteArr = serDe.serializeToByteArray(dataArr);
     final int numOutBytes = (preLongs << 3) + itemsByteArr.length;
     final byte[] outByteArr = new byte[numOutBytes];
-    final Memory memOut = new NativeMemory(outByteArr);
+    final WritableMemory memOut = WritableMemory.wrap(outByteArr);
     final long cumOffset = memOut.getCumulativeOffset(0L);
 
     //insert preamble

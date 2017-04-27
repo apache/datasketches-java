@@ -1,29 +1,31 @@
+/*
+ * Copyright 2017, Yahoo! Inc. Licensed under the terms of the
+ * Apache License 2.0. See LICENSE file at the project root for terms.
+ */
+
 package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.PreambleUtil.COMBINED_BUFFER;
 
-import java.util.Arrays;
-
-import com.yahoo.memory.Memory;
 import com.yahoo.sketches.Family;
 
 /**
  * @author Jon Malkin
  */
-final class DoublesSketchAccessor extends DoublesBufferAccessor {
+abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
   static final int BB_LVL_IDX = -1;
 
-  private final DoublesSketch ds_;
-  private final boolean forceSize_;
+  final DoublesSketch ds_;
+  final boolean forceSize_;
 
-  private long n_;
-  private int currLvl_;
-  private int numItems_;
-  private int offset_;
+  long n_;
+  int currLvl_;
+  int numItems_;
+  int offset_;
 
-  private DoublesSketchAccessor(final DoublesSketch ds,
-                                final boolean forceSize,
-                                final int level) {
+  DoublesSketchAccessor(final DoublesSketch ds,
+                        final boolean forceSize,
+                        final int level) {
     ds_ = ds;
     forceSize_ = forceSize;
 
@@ -36,12 +38,15 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
 
   static DoublesSketchAccessor wrap(final DoublesSketch ds,
                                     final boolean forceSize) {
-    return new DoublesSketchAccessor(ds, forceSize, BB_LVL_IDX);
+
+    if (ds.isDirect()) {
+      return new DirectDoublesSketchAccessor(ds, forceSize, BB_LVL_IDX);
+    } else {
+      return new HeapDoublesSketchAccessor(ds, forceSize, BB_LVL_IDX);
+    }
   }
 
-  DoublesSketchAccessor copyAndSetLevel(final int level) {
-    return new DoublesSketchAccessor(ds_, forceSize_, level);
-  }
+  abstract DoublesSketchAccessor copyAndSetLevel(final int level);
 
   DoublesSketchAccessor setLevel(final int lvl) {
     currLvl_ = lvl;
@@ -79,86 +84,29 @@ final class DoublesSketchAccessor extends DoublesBufferAccessor {
     return this;
   }
 
-  @Override
-  double get(final int index) {
-    assert index >= 0 && index < numItems_;
-    assert n_ == ds_.getN();
-
-    if (ds_.isDirect()) {
-      final int idxOffset = offset_ + (index << 3);
-      return ds_.getMemory().getDouble(idxOffset);
-    } else {
-      return ds_.getCombinedBuffer()[offset_ + index];
-    }
-  }
-
-  @Override
-  double set(final int index, final double value) {
-    assert index >= 0 && index < numItems_;
-    assert n_ == ds_.getN();
-    assert !ds_.isCompact(); // can't write to a compact sketch
-
-    final double oldVal;
-    final int idxOffset;
-    if (ds_.isDirect()) {
-      idxOffset = offset_ + (index << 3);
-      oldVal = ds_.getMemory().getDouble(idxOffset);
-      ds_.getMemory().putDouble(idxOffset, value);
-    } else {
-      idxOffset = offset_ + index;
-      oldVal = ds_.getCombinedBuffer()[idxOffset];
-      ds_.getCombinedBuffer()[idxOffset] = value;
-    }
-
-    return oldVal;
-  }
+  // getters/queries
 
   @Override
   int numItems() {
     return numItems_;
   }
 
-  void sort() {
-    assert !ds_.isCompact();
-    assert currLvl_ == BB_LVL_IDX;
-
-    if (ds_.isDirect()) {
-      final double[] tmpBuffer = new double[numItems_];
-      final Memory mem = ds_.getMemory();
-      mem.getDoubleArray(offset_, tmpBuffer, 0, numItems_);
-      Arrays.sort(tmpBuffer, 0, numItems_);
-      mem.putDoubleArray(offset_, tmpBuffer, 0, numItems_);
-    } else {
-      Arrays.sort(ds_.getCombinedBuffer(), offset_, offset_ + numItems_);
-    }
-  }
+  @Override
+  abstract double get(final int index);
 
   @Override
-  double[] getArray(final int fromIdx, final int numItems) {
-    if (ds_.isDirect()) {
-      final double[] dstArray = new double[numItems];
-      final int offsetBytes = offset_ + (fromIdx << 3);
-      ds_.getMemory().getDoubleArray(offsetBytes, dstArray, 0, numItems);
-      return dstArray;
-    } else {
-      final int stIdx = offset_ + fromIdx;
-      return Arrays.copyOfRange(ds_.getCombinedBuffer(), stIdx, stIdx + numItems);
-    }
-  }
+  abstract double[] getArray(final int fromIdx, final int numItems);
+
+  // setters/modifying methods
 
   @Override
-  void putArray(final double[] srcArray, final int srcIndex,
-                final int dstIndex, final int numItems) {
-    assert !ds_.isCompact(); // can't write to compact sketch
-    if (ds_.isDirect()) {
-      final int offsetBytes = offset_ + (dstIndex << 3);
-      ds_.getMemory().putDoubleArray(offsetBytes, srcArray, srcIndex, numItems);
-    } else {
-      final int tgtIdx = offset_ + dstIndex;
-      System.arraycopy(srcArray, srcIndex, ds_.getCombinedBuffer(), tgtIdx, numItems);
-    }
-  }
+  abstract double set(final int index, final double value);
 
+  @Override
+  abstract void putArray(final double[] srcArray, final int srcIndex,
+                         final int dstIndex, final int numItems);
+
+  abstract void sort();
 
   /**
    * Counts number of full levels in the sketch below tgtLvl. Useful for computing the level

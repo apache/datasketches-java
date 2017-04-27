@@ -8,7 +8,7 @@ package com.yahoo.sketches.quantiles;
 import static com.yahoo.sketches.quantiles.Util.LS;
 import static com.yahoo.sketches.quantiles.Util.TAB;
 
-import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * For building a new quantiles DoublesSketch.
@@ -17,7 +17,7 @@ import com.yahoo.memory.Memory;
  */
 public class DoublesSketchBuilder {
   private int bK = PreambleUtil.DEFAULT_K;
-  private Memory bMem = null;
+  private WritableMemory bMem = null;
 
   /**
    * Constructor for a new DoublesSketchBuilder. The default configuration is
@@ -47,7 +47,7 @@ public class DoublesSketchBuilder {
    * @param mem the given Memory.
    * @return this builder
    */
-  public DoublesSketchBuilder initMemory(final Memory mem) {
+  public DoublesSketchBuilder initMemory(final WritableMemory mem) {
     bMem = mem;
     return this;
   }
@@ -64,7 +64,7 @@ public class DoublesSketchBuilder {
    * Gets the configured Memory to be initialized by the sketch for off-heap use.
    * @return the configured Memory.
    */
-  public Memory getMemory() {
+  public WritableMemory getMemory() {
     return bMem;
   }
 
