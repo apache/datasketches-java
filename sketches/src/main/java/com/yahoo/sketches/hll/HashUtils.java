@@ -6,7 +6,6 @@
 package com.yahoo.sketches.hll;
 
 /**
- * @author Kevin Lang
  */
 final class HashUtils {
   static int NOT_A_PAIR = -1;
@@ -17,7 +16,7 @@ final class HashUtils {
   private static final int VAL_BITS = 6;
   private static final int VAL_MASK = (1 << VAL_BITS) - 1;
 
-  private static final int[] MAX_HASH_SIZE = new int[] {
+  private static final int[] MAX_HASH_SIZE = new int[] { //0 to 26, switchToDenseSize
       4, 16, 16, 16,
       16, 16, 16, 32,
       32, 32, 64, 64,

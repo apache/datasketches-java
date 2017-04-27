@@ -10,7 +10,6 @@ import static com.yahoo.sketches.Util.invPow2;
 /**
  * Utility functions for the HLL package
  *
- * @author Kevin Lang
  */
 final class HllUtils {
 

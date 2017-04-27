@@ -12,26 +12,46 @@ import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
- * @author Kevin Lang
  */
 final class OnHeapHash {
-  private int[] fields_;
+  private int[] fields;
   private int mask;
   private int numElements;
+
+  private OnHeapHash(final int[] fields, final int numElements) { //called by fromBytes()
+    this.fields = fields;
+    this.numElements = numElements;
+    mask = fields.length - 1;
+  }
 
   OnHeapHash(final int startSize) {
     resetFields(startSize);
   }
 
+  static OnHeapHash fromBytes(final byte[] bytes, final int offset, final int endOffset) {
+    final int[] fields = new int[(endOffset - offset) / 4];
+    int numElements = 0;
+
+    final Memory mem = new NativeMemory(bytes);
+    for (int i = 0; i < fields.length; ++i) {
+      fields[i] = mem.getInt(offset + (i << 2));
+      if (fields[i] != -1) {
+        ++numElements;
+      }
+    }
+
+    return new OnHeapHash(fields, numElements);
+  }
+
   void resetFields(final int size) {
-    this.fields_ = new int[size];
-    Arrays.fill(this.fields_, -1);
-    this.mask = fields_.length - 1;
-    this.numElements = 0;
+    fields = new int[size];
+    Arrays.fill(fields, -1); //
+    mask = fields.length - 1;
+    numElements = 0;
   }
 
   int[] getFields() {
-    return fields_;
+    return fields;
   }
 
   public int getNumElements() {
@@ -45,21 +65,21 @@ final class OnHeapHash {
   private int updateBucket(final int key, final byte val, final int newField,
       final Fields.UpdateCallback callback) {
     int probe = key & mask;
-    int field = fields_[probe];
-    while (field != HashUtils.NOT_A_PAIR && key != HashUtils.keyOfPair(field)) {
+    int field = fields[probe];
+    while ((field != HashUtils.NOT_A_PAIR) && (key != HashUtils.keyOfPair(field))) {
       probe = (probe + 1) & mask;
-      field = fields_[probe];
+      field = fields[probe];
     }
 
     if (field == HashUtils.NOT_A_PAIR) {
-      fields_[probe] = newField;
+      fields[probe] = newField;
       callback.bucketUpdated(key, (byte) 0, val);
       ++numElements;
     }
 
     final byte oldVal = HashUtils.valOfPair(field);
     if (oldVal < val) {
-      fields_[probe] = newField;
+      fields[probe] = newField;
       callback.bucketUpdated(key, oldVal, val);
       ++numElements;
     }
@@ -69,7 +89,7 @@ final class OnHeapHash {
 
   int intoByteArray(final byte[] array, int offset) {
     final int numBytesNeeded = numBytesToSerialize();
-    if (array.length - offset < numBytesNeeded) {
+    if ((array.length - offset) < numBytesNeeded) {
       throw new SketchesArgumentException(
           String.format("array too small[%,d] < [%,d]", array.length - offset, numBytesNeeded)
       );
@@ -77,7 +97,7 @@ final class OnHeapHash {
 
     final Memory mem = new NativeMemory(array);
 
-    for (int field : fields_) {
+    for (int field : fields) {
       mem.putInt(offset, field);
       offset += 4;
     }
@@ -86,7 +106,7 @@ final class OnHeapHash {
   }
 
   int numBytesToSerialize() {
-    return (fields_.length << 2);
+    return (fields.length << 2);
   }
 
   BucketIterator getBucketIterator() {
@@ -96,26 +116,32 @@ final class OnHeapHash {
       @Override
       public boolean next() {
         ++i;
-        while (i < fields_.length && fields_[i] == HashUtils.NOT_A_PAIR) {
+        while ((i < fields.length) && (fields[i] == HashUtils.NOT_A_PAIR)) {
           ++i;
         }
-        return i < fields_.length;
+        return i < fields.length;
+      }
+
+      @Override
+      public boolean nextAll() {
+        return ++i < fields.length;
       }
 
       @Override
       public int getKey() {
-        return HashUtils.keyOfPair(fields_[i]);
+        //if (fields[i] == -1) { return -1; }
+        return HashUtils.keyOfPair(fields[i]);
       }
 
       @Override
       public byte getValue() {
-        return HashUtils.valOfPair(fields_[i]);
+        return HashUtils.valOfPair(fields[i]);
       }
     };
   }
 
-  void boostrap(final int[] fields) {
-    for (int field : fields) {
+  void boostrap(final int[] myFields) {
+    for (int field : myFields) {
       if (field != HashUtils.NOT_A_PAIR) {
         updateBucket(HashUtils.keyOfPair(field), HashUtils.valOfPair(field), field, Fields.NOOP_CB);
       }

@@ -5,9 +5,13 @@
 
 package com.yahoo.sketches.tuple;
 
+import static com.yahoo.sketches.Util.MIN_LG_ARR_LONGS;
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
+import static com.yahoo.sketches.Util.startingSubMultiple;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 
 final class Util {
@@ -47,6 +51,15 @@ final class Util {
           + seedHashB);
     }
 
+  }
+
+  static int getStartingCapacity(final int nomEntries, final int lgResizeFactor) {
+    return 1 << startingSubMultiple(
+      // target table size is twice the number of nominal entries
+      Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries) * 2),
+      ResizeFactor.getRF(lgResizeFactor),
+      MIN_LG_ARR_LONGS
+    );
   }
 
 }

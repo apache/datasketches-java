@@ -45,7 +45,7 @@ public class NativeMemoryTest {
     long memCapacity = 16;
     AllocMemory mem = new AllocMemory(memCapacity);
 
-    mem.freeMemory(); //intential
+    mem.freeMemory(); //intentional
     assertTrue(mem.getCapacity() == 0);
     assertFalse(mem.isAllocated());
   }
@@ -210,6 +210,27 @@ public class NativeMemoryTest {
     mem.freeMemory();
   }
 
+  @SuppressWarnings("deprecation")
+  @Test
+  public void checkDeprecatedCopy() {
+    int memCapacity = 64;
+    int half = memCapacity/2;
+    AllocMemory mem = new AllocMemory(memCapacity);
+    mem.clear();
+
+    for (int i=0; i<half; i++) {
+      mem.putByte(i, (byte) i);
+    }
+
+    mem.copy(0, half, half);
+
+    for (int i=0; i<half; i++) {
+      assertEquals(mem.getByte(i+half), (byte) i);
+    }
+
+    mem.freeMemory();
+  }
+
   @Test
   public void checkCopyWithinNativeLarge() {
     int memCapacity = (2<<20) + 64;
@@ -239,7 +260,7 @@ public class NativeMemoryTest {
     mem.clear();
     println(mem.toHexString("Clear 64", 0, memCapacity));
 
-    for (int i=0; i<memCapacity/2; i++) {
+    for (int i=0; i<(memCapacity/2); i++) {
       mem.putByte(i, (byte) i);
     }
     println(mem.toHexString("Set 1st 32 to ints ", 0, memCapacity));
@@ -680,7 +701,9 @@ public class NativeMemoryTest {
   public void checkBinarySearch() {
     int len = 100;
     long[] arr = new long[len];
-    for (int i=0; i<len; i++) arr[i] = i;
+    for (int i=0; i<len; i++) {
+      arr[i] = i;
+    }
     Memory mem = new NativeMemory(arr);
     mem.putLongArray(0, arr, 0, len);
 

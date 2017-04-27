@@ -1,9 +1,11 @@
 package com.yahoo.sketches.quantiles;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 
 public class DoublesSketchTest {
@@ -47,11 +49,6 @@ public class DoublesSketchTest {
     assertEquals(arr.length, ds.getUpdatableStorageBytes());
   }
 
-  @Test
-  public void printlnTest() {
-    println("PRINTING: " + this.getClass().getName());
-  }
-
   /**
    * Checks 2 DoublesSketches for equality, triggering an assert if unequal. Handles all
    * input sketches and compares only values on valid levels, allowing it to be used to compare
@@ -86,6 +83,23 @@ public class DoublesSketchTest {
         }
       }
     }
+  }
+
+  @Test
+  public void checkIsSameResource() {
+    int k = 16;
+    WritableMemory mem = WritableMemory.wrap(new byte[(k*16) +24]);
+    WritableMemory cmem = WritableMemory.wrap(new byte[8]);
+    DirectUpdateDoublesSketch duds =
+            (DirectUpdateDoublesSketch) DoublesSketch.builder().initMemory(mem).build(k);
+    assertTrue(duds.isSameResource(mem));
+    DirectCompactDoublesSketch dcds = (DirectCompactDoublesSketch) duds.compact(cmem);
+    assertTrue(dcds.isSameResource(cmem));
+  }
+
+  @Test
+  public void printlnTest() {
+    println("PRINTING: " + this.getClass().getName());
   }
 
   /**

@@ -57,7 +57,7 @@ final class HllMap extends Map {
   private HllMap(final int keySizeBytes, final int k) {
     super(keySizeBytes);
     k_ = k;
-    hllArrLongs_ = k / 10 + 1;
+    hllArrLongs_ = (k / 10) + 1;
   }
 
   static HllMap getInstance(final int keySizeBytes, final int k) {
@@ -119,10 +119,7 @@ final class HllMap extends Map {
   /**
    * Returns the entry index for the given key given the array of keys, if found.
    * Otherwise, returns the one's complement of first empty entry found;
-   * @param keyArr the given array of keys
    * @param key the key to search for
-   * @param tableEntries the total number of entries in the table.
-   * @param stateArr the bit vector that holds valid/empty state of each entry
    * @return the entry index of the given key, or the one's complement of the index if not found.
    */
   @Override
@@ -188,12 +185,12 @@ final class HllMap extends Map {
   @Override
   long getMemoryUsageBytes() {
     final long arrays = keysArr_.length
-        + (long)arrOfHllArr_.length * Long.BYTES
-        + invPow2SumLoArr_.length * Double.BYTES
-        + invPow2SumHiArr_.length * Double.BYTES
-        + hipEstAccumArr_.length * Double.BYTES
+        + ((long)arrOfHllArr_.length * Long.BYTES)
+        + (invPow2SumLoArr_.length * Double.BYTES)
+        + (invPow2SumHiArr_.length * Double.BYTES)
+        + (hipEstAccumArr_.length * Double.BYTES)
         + stateArr_.length;
-    final long other = 5 * Integer.BYTES + Float.BYTES + Double.BYTES;
+    final long other = (5 * Integer.BYTES) + Float.BYTES + Double.BYTES;
     return arrays + other;
   }
 
@@ -257,7 +254,7 @@ final class HllMap extends Map {
     final int longIdx = hllIdx / 10;
     final int shift = ((hllIdx % 10) * 6) & SIX_BIT_MASK;
 
-    long hllLong = arrOfHllArr_[entryIndex * hllArrLongs_ + longIdx];
+    long hllLong = arrOfHllArr_[(entryIndex * hllArrLongs_) + longIdx];
     final int oldValue = (int)(hllLong >>> shift) & SIX_BIT_MASK;
     if (newValue <= oldValue) { return false; }
     // newValue > oldValue
@@ -276,7 +273,7 @@ final class HllMap extends Map {
     //insert the new value
     hllLong &= ~(0X3FL << shift);  //zero out the 6-bit field
     hllLong |=  ((long)newValue) << shift; //insert
-    arrOfHllArr_[entryIndex * hllArrLongs_ + longIdx] = hllLong;
+    arrOfHllArr_[(entryIndex * hllArrLongs_) + longIdx] = hllLong;
     return true;
   }
 
@@ -323,7 +320,7 @@ final class HllMap extends Map {
   private static final double updateEntrySizeBytes(final int tableEntries, final int keySizeBytes,
       final int hllArrLongs) {
     final double byteFraction = Math.ceil(tableEntries / 8.0) / tableEntries;
-    return keySizeBytes + hllArrLongs * Long.BYTES + 3 * Double.BYTES + byteFraction;
+    return keySizeBytes + (hllArrLongs * Long.BYTES) + (3 * Double.BYTES) + byteFraction;
   }
 
 }

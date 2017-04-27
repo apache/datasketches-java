@@ -200,6 +200,11 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   }
 
   @Override
+  public boolean isSameResource(final Memory mem) {
+    return mem_.isSameResource(mem);
+  }
+
+  @Override
   public byte[] toByteArray() { //MY_FAMILY is stored in mem_
     final byte lgArrLongs = mem_.getByte(LG_ARR_LONGS_BYTE);
     final int lengthBytes = (preambleLongs_ + (1 << lgArrLongs)) << 3;

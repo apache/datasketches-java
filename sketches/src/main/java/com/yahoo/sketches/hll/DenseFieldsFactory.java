@@ -6,12 +6,22 @@
 package com.yahoo.sketches.hll;
 
 /**
- * @author Kevin Lang
  */
 final class DenseFieldsFactory implements FieldsFactory {
 
   @Override
   public Fields make(final Preamble preamble) {
     return new OnHeapFields(preamble);
+  }
+
+  @Override
+  public int intoByteArray(final byte[] bytes, final int offset) {
+    bytes[offset] = FieldsFactories.DENSE;
+    return offset + 1;
+  }
+
+  @Override
+  public int numBytesToSerialize() {
+    return 1;
   }
 }

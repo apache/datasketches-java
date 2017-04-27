@@ -95,6 +95,11 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
   }
 
   @Override
+  public boolean isSameResource(final Memory mem) {
+    return mem_.isSameResource(mem);
+  }
+
+  @Override
   public double getMinValue() {
     if (mem_.getCapacity() < COMBINED_BUFFER) {
       return Double.POSITIVE_INFINITY;

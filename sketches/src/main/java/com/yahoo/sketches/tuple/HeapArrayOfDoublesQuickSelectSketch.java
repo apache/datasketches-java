@@ -5,9 +5,7 @@
 
 package com.yahoo.sketches.tuple;
 
-import static com.yahoo.sketches.Util.MIN_LG_ARR_LONGS;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
-import static com.yahoo.sketches.Util.startingSubMultiple;
 
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -16,7 +14,6 @@ import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
-import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -55,12 +52,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     lgResizeFactor_ = lgResizeFactor;
     samplingProbability_ = samplingProbability;
     theta_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
-    final int startingCapacity = 1 << startingSubMultiple(
-      // target table size is twice the number of nominal entries
-      Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries) * 2),
-      ResizeFactor.getRF(lgResizeFactor),
-      MIN_LG_ARR_LONGS
-    );
+    final int startingCapacity = Util.getStartingCapacity(nomEntries, lgResizeFactor);
     keys_ = new long[startingCapacity];
     values_ = new double[startingCapacity * numValues];
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(startingCapacity);
@@ -165,6 +157,18 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
           values_.length);
     }
     return byteArray;
+  }
+
+  @Override
+  public void reset() {
+    isEmpty_ = true;
+    count_ = 0;
+    theta_ = (long) (Long.MAX_VALUE * (double) samplingProbability_);
+    final int startingCapacity = Util.getStartingCapacity(nomEntries_, lgResizeFactor_);
+    keys_ = new long[startingCapacity];
+    values_ = new double[startingCapacity * numValues_];
+    lgCurrentCapacity_ = Integer.numberOfTrailingZeros(startingCapacity);
+    setRebuildThreshold();
   }
 
   @Override

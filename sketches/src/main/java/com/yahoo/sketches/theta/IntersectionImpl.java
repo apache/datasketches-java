@@ -235,7 +235,5 @@ class IntersectionImpl extends IntersectionImplR {
       //Sets resulting hashTable, curCount and adjusts lgArrLongs
       performIntersect(sketchIn);
     }
-
   }
-
 }

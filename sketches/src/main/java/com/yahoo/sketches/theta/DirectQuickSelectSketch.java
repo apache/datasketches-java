@@ -49,6 +49,7 @@ import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountIncremente
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedDuplicate;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedOverTheta;
 
+import com.yahoo.memory.MemoryRequestServer;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
@@ -233,6 +234,7 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
 
   //Sketch
 
+
   //UpdateSketch
 
   @Override
@@ -319,7 +321,8 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
           final int tgtArrBytes = 8 << tgtLgArrLongs;
           final int reqBytes = tgtArrBytes + preBytes;
 
-          final WritableMemory newDstMem = mem_.getMemoryRequest().request(reqBytes);
+          final MemoryRequestServer memoryRequestServer = mem_.getMemoryRequestServer();
+          final WritableMemory newDstMem = memoryRequestServer.request(reqBytes);
 
           moveAndResize(mem_, preambleLongs_, lgArrLongs, newDstMem, tgtLgArrLongs, thetaLong);
 

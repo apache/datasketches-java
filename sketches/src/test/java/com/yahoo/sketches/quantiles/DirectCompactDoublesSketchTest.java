@@ -40,6 +40,27 @@ public class DirectCompactDoublesSketchTest {
   }
 
   @Test
+  public void createFromUnsortedUpdateSketch() {
+    final int k = 4;
+    final int n = 13;
+    final UpdateDoublesSketch qs = DoublesSketch.builder().build(k);
+    for (int i = n; i > 0; --i) {
+      qs.update(i);
+    }
+    final Memory dstMem = new NativeMemory(new byte[qs.getCompactStorageBytes()]);
+    final DirectCompactDoublesSketch compactQs
+            = DirectCompactDoublesSketch.createFromUpdateSketch(qs, dstMem);
+
+    // don't expect equal but new base buffer should be sorted
+    final double[] combinedBuffer = compactQs.getCombinedBuffer();
+    final int bbCount = compactQs.getBaseBufferCount();
+
+    for (int i = 1; i < bbCount; ++i) {
+      assert combinedBuffer[i - 1] < combinedBuffer[i];
+    }
+  }
+
+  @Test
   public void wrapFromCompactSketch() {
     final int k = 8;
     final int n = 177;

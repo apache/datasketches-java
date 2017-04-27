@@ -16,17 +16,14 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- */
-public class FieldsTest
-{
+public class FieldsTest {
+
   @DataProvider(name = "updatableFields")
-  public Object[][] getFields()
-  {
-    Preamble preamble = Preamble.fromLogK(10);
+  public Object[][] getFields() {
+    Preamble preamble = Preamble.fromLogK(7);
 
     return new Object[][]{
-        {new OnHeapFields(preamble)},
+        { new OnHeapFields(preamble) },
         { new OnHeapHashFields(preamble, 16, 0x2<<preamble.getLogConfigK(), new DenseFieldsFactory()) },
         { new OnHeapCompressedFields(preamble) }
     };
@@ -36,8 +33,7 @@ public class FieldsTest
   public void testUpdateBucketBreadthFirst(Fields fields)
   {
     final AtomicReference<Integer[]> callbackArgs = new AtomicReference<>(null);
-    Fields.UpdateCallback cb = new Fields.UpdateCallback()
-    {
+    Fields.UpdateCallback cb = new Fields.UpdateCallback() {
       @Override
       public void bucketUpdated(int bucket, byte oldVal, byte newVal)
       {
@@ -79,13 +75,33 @@ public class FieldsTest
             Assert.fail(String.format("bucket[%s]: %d != %d", bucketId, iter.getValue(), vals[bucketId]));
           }
         }
+
+        final byte[] ephemeralBytes = new byte[fields.numBytesToSerialize()];
+        fields.intoByteArray(ephemeralBytes, 0);
+        iter = FieldsFactories.fromBytes(fields.getPreamble(), ephemeralBytes).getBucketIterator();
+        while (iter.next()) {
+          int bucketId = iter.getKey();
+          if (iter.getValue() != vals[bucketId]) {
+            Assert.fail(String.format("bucket[%s]: %d != %d", bucketId, iter.getValue(), vals[bucketId]));
+          }
+        }
+
+        final Fields compactFields = fields.toCompact();
+        final byte[] compactEphemeralBytes = new byte[compactFields.numBytesToSerialize()];
+        compactFields.intoByteArray(compactEphemeralBytes, 0);
+        iter = FieldsFactories.fromBytes(fields.getPreamble(), compactEphemeralBytes).getBucketIterator();
+        while (iter.next()) {
+          int bucketId = iter.getKey();
+          if (iter.getValue() != vals[bucketId]) {
+            Assert.fail(String.format("bucket[%s]: %d != %d", bucketId, iter.getValue(), vals[bucketId]));
+          }
+        }
       }
     }
   }
 
   @Test(dataProvider = "updatableFields")
-  public void testUpdateBucketDepthFirst(Fields fields)
-  {
+  public void testUpdateBucketDepthFirst(Fields fields) {
     final AtomicReference<Integer[]> callbackArgs = new AtomicReference<>(null);
     Fields.UpdateCallback cb = new Fields.UpdateCallback()
     {
@@ -109,7 +125,7 @@ public class FieldsTest
       Collections.shuffle(valsToInsert, rand);
 
       for (Byte val : valsToInsert) {
-        if (bucket == 351 && val == 25) {
+        if ((bucket == 1023) && (val == 63)) {
           println(""+bucket);
         }
         fields = fields.updateBucket(bucket, val, cb);
@@ -132,12 +148,32 @@ public class FieldsTest
             Assert.fail(String.format("bucket[%s]: %d != %d", bucketId, iter.getValue(), actualVals[bucketId]));
           }
         }
+
+        final byte[] ephemeralBytes = new byte[fields.numBytesToSerialize()];
+        fields.intoByteArray(ephemeralBytes, 0);
+        iter = FieldsFactories.fromBytes(fields.getPreamble(), ephemeralBytes).getBucketIterator();
+        while (iter.next()) {
+          int bucketId = iter.getKey();
+          if (iter.getValue() != actualVals[bucketId]) {
+            Assert.fail(String.format("bucket[%s]: %d != %d", bucketId, iter.getValue(), actualVals[bucketId]));
+          }
+        }
+
+        final Fields compactFields = fields.toCompact();
+        final byte[] compactEphemeralBytes = new byte[compactFields.numBytesToSerialize()];
+        compactFields.intoByteArray(compactEphemeralBytes, 0);
+        iter = FieldsFactories.fromBytes(fields.getPreamble(), compactEphemeralBytes).getBucketIterator();
+        while (iter.next()) {
+          int bucketId = iter.getKey();
+          if (iter.getValue() != actualVals[bucketId]) {
+            Assert.fail(String.format("bucket[%s]: %d != %d", bucketId, iter.getValue(), actualVals[bucketId]));
+          }
+        }
       }
     }
   }
 
-  private static void ensureEquals(Integer[] callbackArgs, Integer[] expected)
-  {
+  private static void ensureEquals(Integer[] callbackArgs, Integer[] expected) {
     if (!Arrays.equals(expected, callbackArgs)) {
       Assert.fail(
           String.format(
@@ -153,7 +189,7 @@ public class FieldsTest
   }
 
   /**
-   * @param s value to print 
+   * @param s value to print
    */
   static void println(String s) {
     //System.out.println(s); //disable here

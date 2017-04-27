@@ -135,10 +135,10 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
     if (dataItem > maxValue) { putMaxValue(dataItem); }
     if (dataItem < minValue) { putMinValue(dataItem); }
 
-    mem_.putDouble(COMBINED_BUFFER + curBBCount * Double.BYTES, dataItem); //put the item
+    mem_.putDouble(COMBINED_BUFFER + (curBBCount * Double.BYTES), dataItem); //put the item
     mem_.putByte(FLAGS_BYTE, (byte) 0); //not compact, not ordered, not empty
 
-    if (newBBCount == 2 * k_) { //Propagate
+    if (newBBCount == (2 * k_)) { //Propagate
       // make sure there will be enough levels for the propagation
       final int curMemItemCap = getCombinedBufferItemCapacity();
       final int itemSpaceNeeded = DoublesUpdateImpl.getRequiredItemCapacity(k_, newN);

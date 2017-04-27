@@ -55,7 +55,7 @@ public final class Util {
    * The seed 9001 used in the sketch update methods is a prime number that
    * was chosen very early on in experimental testing. Choosing a seed is somewhat arbitrary, and
    * the author cannot prove that this particular seed is somehow superior to other seeds.  There
-   * was some early internet disussion that a seed of 0 did not produce as clean avalanche diagrams
+   * was some early Internet discussion that a seed of 0 did not produce as clean avalanche diagrams
    * as non-zero seeds, but this may have been more related to the MurmurHash2 release, which did
    * have some issues. As far as the author can determine, MurmurHash3 does not have these problems.
    *
@@ -94,7 +94,7 @@ public final class Util {
   public static int bytesToInt(final byte[] arr) {
     int v = 0;
     for (int i = 0; i < 4; i++) {
-      v |= (arr[i] & 0XFF) << i * 8;
+      v |= (arr[i] & 0XFF) << (i * 8);
     }
     return v;
   }
@@ -107,7 +107,7 @@ public final class Util {
   public static long bytesToLong(final byte[] arr) {
     long v = 0;
     for (int i = 0; i < 8; i++) {
-      v |= (arr[i] & 0XFFL) << i * 8;
+      v |= (arr[i] & 0XFFL) << (i * 8);
     }
     return v;
   }
@@ -151,7 +151,7 @@ public final class Util {
     final long mask = 0XFFL;
     final StringBuilder sb = new StringBuilder();
     for (int i = 8; i-- > 0; ) {
-      final String s = Long.toHexString((v >>> i * 8) & mask);
+      final String s = Long.toHexString((v >>> (i * 8)) & mask);
       sb.append(zeroPad(s, 2)).append(" ");
     }
     return sb.toString();
@@ -171,7 +171,7 @@ public final class Util {
     final int mask = (signed) ? 0XFFFFFFFF : 0XFF;
     final int arrLen = arr.length;
     if (littleEndian) {
-      for (int i = 0; i < arrLen - 1; i++) {
+      for (int i = 0; i < (arrLen - 1); i++) {
         sb.append(arr[i] & mask).append(sep);
       }
       sb.append(arr[arrLen - 1] & mask);
@@ -433,7 +433,7 @@ public final class Util {
     if (points == 1) { return out; }
     final double delta = (lgEnd - lgStart) / (points - 1.0);
     for (int i = 1; i < points; i++) {
-      final double mXpY = delta * i + lgStart;
+      final double mXpY = (delta * i) + lgStart;
       out[i] = (int)round(pow(2, mXpY));
     }
     return out;
@@ -487,7 +487,7 @@ public final class Util {
   public static final int startingSubMultiple(final int lgTarget, final ResizeFactor rf,
       final int lgMin) {
     final int lgRF = rf.lg();
-    return (lgTarget <= lgMin) ? lgMin : (lgRF == 0) ? lgTarget : (lgTarget - lgMin) % lgRF + lgMin;
+    return (lgTarget <= lgMin) ? lgMin : (lgRF == 0) ? lgTarget : ((lgTarget - lgMin) % lgRF) + lgMin;
   }
 
   //Other checks

@@ -98,6 +98,12 @@ public abstract class Sketch {
   }
 
   /**
+   * Returns the Family that this sketch belongs to
+   * @return the Family that this sketch belongs to
+   */
+  public abstract Family getFamily();
+
+  /**
    * Gets the approximate upper error bound given the specified number of Standard Deviations.
    * This will return getEstimate() if isEmpty() is true.
    *
@@ -127,16 +133,22 @@ public abstract class Sketch {
   }
 
   /**
+   * Returns true if the backing resource of this sketch is identical with the backing resource
+   * of mem. If the backing resource is a common array or ByteBuffer, the offset and
+   * capacity must also be identical.
+   * @param mem A given Memory object
+   * @return true if the backing resource of this sketch is identical with the backing resource
+   * of mem.
+   */
+  public boolean isSameResource(final Memory mem) {
+    return false;
+  }
+
+  /**
    * Serialize this sketch to a byte array form.
    * @return byte array of this sketch
    */
   public abstract byte[] toByteArray();
-
-  /**
-   * Returns the Family that this sketch belongs to
-   * @return the Family that this sketch belongs to
-   */
-  public abstract Family getFamily();
 
   /**
    * Returns a human readable summary of the sketch.  This method is equivalent to the parameterized
@@ -415,7 +427,7 @@ public abstract class Sketch {
 
   /**
    * Returns true if this sketch accesses its internal data using the Memory package
-   * @return true if this sektch accesses its internal data using the Memory package
+   * @return true if this sketch accesses its internal data using the Memory package
    */
   public abstract boolean isDirect();
 

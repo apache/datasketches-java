@@ -5,6 +5,7 @@
 
 package com.yahoo.memory;
 
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -281,6 +282,26 @@ public class NativeMemoryRTest {
       /* pass */
     }
 
+  }
+
+  @SuppressWarnings("deprecation")
+  @Test
+  public void checkDeprecatedCopy() {
+    NativeMemory mem = new NativeMemory(new byte[64]);
+    Memory ro = mem.asReadOnlyMemory();
+    try {
+      ro.copy(0, 32, 32);
+    } catch (ReadOnlyMemoryException e) {
+      //ok
+    }
+  }
+
+  @Test
+  public void checkDirect_arrayNull() {
+    NativeMemory mem = new AllocMemory(64);
+    Memory ro = mem.asReadOnlyMemory();
+    assertNull(ro.array());
+    mem.freeMemory();
   }
 
   @Test

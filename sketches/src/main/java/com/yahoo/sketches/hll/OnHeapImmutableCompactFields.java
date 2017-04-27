@@ -15,9 +15,42 @@ import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
- * @author Kevin Lang
  */
 final class OnHeapImmutableCompactFields implements Fields {
+  private final Preamble preamble;
+  private final int[] fields;
+  private static final byte VERSION_ID = Fields.Version.SORTED_SPARSE_VERSION.getId();
+
+  OnHeapImmutableCompactFields(final Preamble preamble, final int[] fields) {
+    this.preamble = preamble;
+    this.fields = fields;
+  }
+
+  public static OnHeapImmutableCompactFields fromBytes(
+      final Preamble preamble,
+      final byte[] bytes,
+      final int startOffset,
+      final int endOffset) {
+    if (bytes[startOffset] != VERSION_ID) {
+      throw new IllegalArgumentException(
+        String.format(
+          "Can only deserialize the sorted, sparse representation[%d] got [%d]",
+          VERSION_ID,
+          bytes[startOffset]
+        )
+      );
+    }
+
+    final Memory mem = new NativeMemory(bytes);
+    final int[] fields = new int[(endOffset - startOffset) / 4];
+    final int dataOffset = startOffset + 1;
+
+    for (int i = 0; i < fields.length; ++i) {
+      fields[i] = mem.getInt(dataOffset + (i << 2));
+    }
+    return new OnHeapImmutableCompactFields(preamble, fields);
+  }
+
   public static OnHeapImmutableCompactFields fromFields(final Fields fields) {
     final List<Integer> vals = new ArrayList<>();
 
@@ -26,13 +59,13 @@ final class OnHeapImmutableCompactFields implements Fields {
       vals.add(HashUtils.pairOfKeyAndVal(iter.getKey(), iter.getValue()));
     }
     Collections.sort(
-        vals,
-        new Comparator<Integer>() {
-          @Override
-          public int compare(final Integer o1, final Integer o2) {
-            return HashUtils.valOfPair(o2) - HashUtils.valOfPair(o1);
-          }
+      vals,
+      new Comparator<Integer>() {
+        @Override
+        public int compare(final Integer o1, final Integer o2) {
+          return HashUtils.valOfPair(o2) - HashUtils.valOfPair(o1);
         }
+      }
     );
 
     final int[] theFields = new int[vals.size()];
@@ -40,16 +73,12 @@ final class OnHeapImmutableCompactFields implements Fields {
     for (Integer val : vals) {
       theFields[count++] = val;
     }
-
     return new OnHeapImmutableCompactFields(fields.getPreamble(), theFields);
   }
 
-  private final Preamble preamble;
-  private final int[] fields;
-
-  OnHeapImmutableCompactFields(final Preamble preamble, final int[] fields) {
-    this.preamble = preamble;
-    this.fields = fields;
+  @Override
+  public Version getFieldsVersion() {
+    return Fields.Version.SORTED_SPARSE_VERSION;
   }
 
   @Override
@@ -65,14 +94,14 @@ final class OnHeapImmutableCompactFields implements Fields {
   @Override
   public int intoByteArray(final byte[] array, int offset) {
     final int numBytesNeeded = numBytesToSerialize();
-    if (array.length - offset < numBytesNeeded) {
+    if ((array.length - offset) < numBytesNeeded) {
       throw new SketchesArgumentException(
           String.format("array too small[%,d] < [%,d]", array.length - offset, numBytesNeeded)
       );
     }
 
     final Memory mem = new NativeMemory(array);
-    mem.putByte(offset++, Fields.SORTED_SPARSE_VERSION);
+    mem.putByte(offset++, VERSION_ID);
 
     for (int field : fields) {
       mem.putInt(offset, field);
@@ -98,6 +127,15 @@ final class OnHeapImmutableCompactFields implements Fields {
 
       @Override
       public boolean next() {
+        ++i;
+        while ((i < fields.length) && (fields[i] == HashUtils.NOT_A_PAIR)) {
+          ++i;
+        }
+        return i < fields.length;
+      }
+
+      @Override
+      public boolean nextAll() {
         return ++i < fields.length;
       }
 
@@ -128,4 +166,5 @@ final class OnHeapImmutableCompactFields implements Fields {
       final OnHeapHash exceptions, final UpdateCallback cb) {
     throw new UnsupportedOperationException("Cannot mutate a compact sketch");
   }
+
 }
