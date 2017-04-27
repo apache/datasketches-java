@@ -23,7 +23,7 @@ public final class CompositeBucketIterator implements BucketIterator {
   @Override
   public boolean next() {
     while ((index < iters.length) && !iters[index].next()) {
-      iters[index] = null; // give up the reference
+      iters[index] = null; // give up the reference for GC
       ++index;
     }
     return index < iters.length;
@@ -31,7 +31,7 @@ public final class CompositeBucketIterator implements BucketIterator {
 
   @Override
   public boolean nextAll() {
-    while ((index < iters.length) && !iters[index].next()) {
+    while ((index < iters.length) && !iters[index].nextAll()) {
       iters[index] = null; // give up the reference
       ++index;
     }

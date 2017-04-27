@@ -83,8 +83,9 @@ final class CompressedBucketUtils {
 
       @Override
       public boolean nextAll() {
-        nibble = CompressedBucketUtils.getNibble(buckets, i);
-        return ++i < size;
+        ++i;
+        if (i < size) { nibble = CompressedBucketUtils.getNibble(buckets, i); }
+        return i < size;
       }
 
       @Override

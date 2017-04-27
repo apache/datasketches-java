@@ -129,7 +129,7 @@ final class OnHeapHash {
 
       @Override
       public int getKey() {
-        //if (fields[i] == -1) { return -1; }
+        if (fields[i] == -1) { return -1; }
         return HashUtils.keyOfPair(fields[i]);
       }
 
