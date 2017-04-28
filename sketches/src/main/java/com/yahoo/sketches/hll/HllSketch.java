@@ -9,8 +9,7 @@ import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.yahoo.memory.MemoryRegion;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * Top-level class for the HLL family of sketches.
@@ -278,7 +277,8 @@ public class HllSketch {
       final byte[] bytes,
       final int startOffset,
       final int endOffset) {
-    final MemoryRegion reg = new MemoryRegion(new NativeMemory(bytes), startOffset, endOffset - startOffset);
+    final WritableMemory reg =
+        WritableMemory.wrap(bytes).writableRegion(startOffset, endOffset - startOffset);
     final Preamble preamble = Preamble.fromMemory(reg); //extracts the preamble
     return fromBytes(preamble, bytes, (startOffset + preamble.getPreambleLongs()) << 3, endOffset);
   }

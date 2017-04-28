@@ -7,8 +7,7 @@ package com.yahoo.sketches.hll;
 
 import java.util.Arrays;
 
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -32,7 +31,7 @@ final class OnHeapHash {
     final int[] fields = new int[(endOffset - offset) / 4];
     int numElements = 0;
 
-    final Memory mem = new NativeMemory(bytes);
+    final WritableMemory mem = WritableMemory.wrap(bytes);
     for (int i = 0; i < fields.length; ++i) {
       fields[i] = mem.getInt(offset + (i << 2));
       if (fields[i] != -1) {
@@ -95,7 +94,7 @@ final class OnHeapHash {
       );
     }
 
-    final Memory mem = new NativeMemory(array);
+    final WritableMemory mem = WritableMemory.wrap(array);
 
     for (int field : fields) {
       mem.putInt(offset, field);
@@ -129,7 +128,7 @@ final class OnHeapHash {
 
       @Override
       public int getKey() {
-        //if (fields[i] == -1) { return -1; }
+        if (fields[i] == -1) { return -1; }
         return HashUtils.keyOfPair(fields[i]);
       }
 

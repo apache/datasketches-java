@@ -8,9 +8,7 @@ package com.yahoo.sketches.hll;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryRegion;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.hll.Preamble.Builder;
@@ -29,7 +27,7 @@ public class PreambleTest
     int newOffset = preamble.intoByteArray(bytes, initOffset);
     Assert.assertEquals(newOffset, initOffset + (Preamble.PREAMBLE_LONGS << 3));
 
-    Memory mem = new MemoryRegion(new NativeMemory(bytes), 1, bytes.length - 1);
+    WritableMemory mem = (WritableMemory.wrap(bytes)).writableRegion(1, bytes.length - 1);
     Preamble serdePreamble = Preamble.fromMemory(mem);
 
     Assert.assertEquals(serdePreamble, preamble);

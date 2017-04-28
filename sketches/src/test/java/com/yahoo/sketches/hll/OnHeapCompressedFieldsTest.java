@@ -12,7 +12,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -74,8 +74,7 @@ public class OnHeapCompressedFieldsTest
   }
 
   @Test
-  public void testIntoByteArray() throws Exception
-  {
+  public void testIntoByteArray() throws Exception {
     // Initialize directly so that we can hard-code and ensure some values below
     preamble = Preamble.fromLogK(10);
     fields = new OnHeapCompressedFields(preamble);
@@ -83,7 +82,7 @@ public class OnHeapCompressedFieldsTest
     byte[] stored = new byte[fields.numBytesToSerialize()];
     byte[] expected = new byte[stored.length];
     expected[0] = 0x3;
-    NativeMemory expectedMem = new NativeMemory(expected);
+    WritableMemory expectedMem = WritableMemory.wrap(expected);
     expectedMem.putInt(2, 1024); // numAtMin
     expectedMem.putInt(6, 512);
     for(int i = 522; i < expected.length; ++i) {

@@ -12,8 +12,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -88,7 +87,7 @@ public class OnHeapHashFieldsTest
   {
     byte[] stored = new byte[fields.numBytesToSerialize()];
     byte[] expected = new byte[stored.length];
-    Memory expectedMem = new NativeMemory(expected);
+    WritableMemory expectedMem = WritableMemory.wrap(expected);
     expectedMem.putByte(0, (byte) 0x1);
     expectedMem.putInt(1, 1024);
     expectedMem.putInt(5, 12);
