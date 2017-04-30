@@ -63,7 +63,7 @@ final class CouponTraverseMap extends Map {
     return map;
   }
 
-  @Override
+  @Override //used for test
   double update(final byte[] key, final short coupon) {
     final int entryIndex = findOrInsertKey(key);
     return update(entryIndex, coupon);
@@ -84,7 +84,7 @@ final class CouponTraverseMap extends Map {
       }
     }
     if (wasFound) { return maxCouponsPerKey_; }
-    return -maxCouponsPerKey_;
+    return -maxCouponsPerKey_; //signal to promote
   }
 
   @Override
