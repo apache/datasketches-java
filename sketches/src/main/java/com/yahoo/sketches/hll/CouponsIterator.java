@@ -24,7 +24,10 @@ class CouponsIterator {
     index_ = -1;
   }
 
-  //This skips over zero values
+  /**
+   * next() must be called before the first getValue(). This skips over zero values.
+   * @return the next coupon in the array.
+   */
   boolean next() {
     index_++;
     while (index_ < maxEntries_) {
@@ -34,6 +37,10 @@ class CouponsIterator {
     return false;
   }
 
+  /**
+   * Returns the value at the current index.
+   * @return the value at the current index.
+   */
   short getValue() {
     return couponsArr_[offset_ + index_];
   }
