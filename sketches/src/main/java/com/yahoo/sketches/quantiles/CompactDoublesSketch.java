@@ -29,5 +29,6 @@ public abstract class CompactDoublesSketch extends DoublesSketch {
    * Gets the Memory if it exists, otherwise returns null.
    * @return the Memory if it exists, otherwise returns null.
    */
+  @Override
   abstract WritableMemory getMemory();
 }
