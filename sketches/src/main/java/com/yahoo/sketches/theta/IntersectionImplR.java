@@ -231,6 +231,11 @@ class IntersectionImplR extends SetOperation implements Intersection {
     return Family.INTERSECTION;
   }
 
+  @Override
+  public boolean isSameResource(final Memory mem) {
+    return mem_.isSameResource(mem);
+  }
+
   //restricted
 
   void performIntersect(final Sketch sketchIn) {

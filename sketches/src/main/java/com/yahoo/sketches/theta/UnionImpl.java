@@ -219,6 +219,15 @@ final class UnionImpl extends SetOperation implements Union {
   }
 
   @Override
+  public boolean isSameResource(final Memory mem) {
+    if (gadget_.isDirect()) {
+      return gadget_.getMemory().isSameResource(mem);
+    } else {
+      return false;
+    }
+  }
+
+  @Override
   public void update(final Sketch sketchIn) { //Only valid for theta Sketches using SerVer = 3
     //UNION Empty Rule: AND the empty states. This does not require separate treatment.
 

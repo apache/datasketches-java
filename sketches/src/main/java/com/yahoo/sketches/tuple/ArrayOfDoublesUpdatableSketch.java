@@ -122,6 +122,11 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
   public abstract void trim();
 
   /**
+   * Resets this sketch an empty state.
+   */
+  public abstract void reset();
+
+  /**
    * Gets an on-heap compact representation of the sketch
    * @return compact sketch
    */

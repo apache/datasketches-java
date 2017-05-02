@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.ArrayOfDoublesSerDe;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.ArrayOfNumbersSerDe;
@@ -59,13 +59,14 @@ public class ReservoirItemsUnionTest {
       ris.update(i);
     }
 
-    riu = ReservoirItemsUnion.getInstance(ris.getK());
+    riu.reset();
+    assertEquals(riu.getResult().getN(), 0);
     riu.update(ris);
-    assertNotNull(riu.getResult());
+    assertEquals(riu.getResult().getN(), ris.getN());
 
     final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     final byte[] sketchBytes = ris.toByteArray(serDe); // only the gadget is serialized
-    final Memory mem = new NativeMemory(sketchBytes);
+    final Memory mem = Memory.wrap(sketchBytes);
     riu = ReservoirItemsUnion.getInstance(ris.getK());
     riu.update(mem, serDe);
     assertNotNull(riu.getResult());
@@ -73,6 +74,7 @@ public class ReservoirItemsUnionTest {
     println(riu.toString());
   }
 
+  /*
   @Test
   public void checkReadOnlyInstantiation() {
     final int k = 100;
@@ -82,15 +84,16 @@ public class ReservoirItemsUnionTest {
     }
 
     final byte[] unionBytes = union.toByteArray(new ArrayOfLongsSerDe());
-    final Memory mem = new NativeMemory(unionBytes);
+    final Memory mem = Memory.wrap(unionBytes);
 
     final ReservoirItemsUnion<Long> riu;
-    riu = ReservoirItemsUnion.getInstance(mem.asReadOnlyMemory(), new ArrayOfLongsSerDe());
+    riu = ReservoirItemsUnion.getInstance(mem, new ArrayOfLongsSerDe());
 
     assertNotNull(riu);
     assertEquals(riu.getMaxK(), k);
     ReservoirItemsSketchTest.validateReservoirEquality(riu.getResult(), union.getResult());
   }
+  */
 
   @Test
   public void checkNullUpdate() {
@@ -98,7 +101,8 @@ public class ReservoirItemsUnionTest {
     assertNull(riu.getResult());
 
     // null sketch
-    riu.update((ReservoirItemsSketch<Long>) null);
+    final ReservoirItemsSketch<Long> nullSketch = null;
+    riu.update(nullSketch);
     assertNull(riu.getResult());
 
     // null memory
@@ -126,7 +130,7 @@ public class ReservoirItemsUnionTest {
 
     final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     final byte[] unionBytes = riu.toByteArray(serDe);
-    final Memory mem = new NativeMemory(unionBytes);
+    final Memory mem = Memory.wrap(unionBytes);
     println(PreambleUtil.preambleToString(mem));
 
     final ReservoirItemsUnion<Long> rebuiltUnion = ReservoirItemsUnion.getInstance(mem, serDe);
@@ -145,7 +149,7 @@ public class ReservoirItemsUnionTest {
 
     // get a new byte[], manually revert to v1, then reconstruct
     final byte[] unionBytes = riu.toByteArray(serDe);
-    final Memory unionMem = new NativeMemory(unionBytes);
+    final WritableMemory unionMem = WritableMemory.wrap(unionBytes);
 
     unionMem.putByte(SER_VER_BYTE, (byte) 1);
     unionMem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
@@ -176,7 +180,7 @@ public class ReservoirItemsUnionTest {
 
     // get a new byte[], manually revert to v1, then reconstruct
     final byte[] unionBytes = rlu.toByteArray(serDe);
-    final Memory unionMem = new NativeMemory(unionBytes);
+    final WritableMemory unionMem = WritableMemory.wrap(unionBytes);
 
     unionMem.putByte(SER_VER_BYTE, (byte) 1);
     unionMem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
@@ -224,6 +228,29 @@ public class ReservoirItemsUnionTest {
   }
 
   @Test
+  public void checkUnionResetWithInitialSmallK() {
+    final int maxK = 25;
+    final int sketchK = 10;
+    final ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.getInstance(maxK);
+
+    ReservoirItemsSketch<Long> ris = getBasicSketch(2 * sketchK, sketchK); // in sampling mode
+    riu.update(ris);
+    assertEquals(riu.getMaxK(), maxK);
+    assertNotNull(riu.getResult());
+    assertEquals(riu.getResult().getK(), sketchK);
+
+    riu.reset();
+    assertNotNull(riu.getResult());
+
+    // feed in sketch in sampling mode, with larger k than old gadget
+    ris = getBasicSketch(2 * maxK, maxK + 1);
+    riu.update(ris);
+    assertEquals(riu.getMaxK(), maxK);
+    assertNotNull(riu.getResult());
+    assertEquals(riu.getResult().getK(), maxK);
+  }
+
+  @Test
   public void checkNewGadget() {
     final int maxK = 1024;
     final int bigK = 1536;
@@ -232,7 +259,7 @@ public class ReservoirItemsUnionTest {
     // downsample input sketch, use as gadget (exact mode, but irrelevant here)
     final ReservoirItemsSketch<Long> bigKSketch = getBasicSketch(maxK / 2, bigK);
     final byte[] bigKBytes = bigKSketch.toByteArray(new ArrayOfLongsSerDe());
-    final Memory bigKMem = new NativeMemory(bigKBytes);
+    final Memory bigKMem = Memory.wrap(bigKBytes);
 
     ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.getInstance(maxK);
     riu.update(bigKMem, new ArrayOfLongsSerDe());
@@ -243,7 +270,7 @@ public class ReservoirItemsUnionTest {
     // sketch k < maxK but in sampling mode
     final ReservoirItemsSketch<Long> smallKSketch = getBasicSketch(maxK, smallK);
     final byte[] smallKBytes = smallKSketch.toByteArray(new ArrayOfLongsSerDe());
-    final Memory smallKMem = new NativeMemory(smallKBytes);
+    final Memory smallKMem = Memory.wrap(smallKBytes);
 
     riu = ReservoirItemsUnion.getInstance(maxK);
     riu.update(smallKMem, new ArrayOfLongsSerDe());
@@ -255,7 +282,7 @@ public class ReservoirItemsUnionTest {
     // sketch k < maxK and in exact mode
     final ReservoirItemsSketch<Long> smallKExactSketch = getBasicSketch(smallK, smallK);
     final byte[] smallKExactBytes = smallKExactSketch.toByteArray(new ArrayOfLongsSerDe());
-    final Memory smallKExactMem = new NativeMemory(smallKExactBytes);
+    final Memory smallKExactMem = Memory.wrap(smallKExactBytes);
 
     riu = ReservoirItemsUnion.getInstance(maxK);
     riu.update(smallKExactMem, new ArrayOfLongsSerDe());
@@ -310,7 +337,7 @@ public class ReservoirItemsUnionTest {
     final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     final ReservoirItemsSketch<Long> sketch3 = getBasicSketch(n3, k);
     final byte[] sketch3Bytes = sketch3.toByteArray(serDe);
-    final Memory mem = new NativeMemory(sketch3Bytes);
+    final Memory mem = Memory.wrap(sketch3Bytes);
     riu.update(mem, serDe);
 
     assertEquals(riu.getResult().getK(), k);
@@ -383,7 +410,7 @@ public class ReservoirItemsUnionTest {
 
     final ArrayOfNumbersSerDe serDe = new ArrayOfNumbersSerDe();
     final byte[] sketchBytes = riu.toByteArray(serDe, Number.class);
-    final Memory mem = new NativeMemory(sketchBytes);
+    final Memory mem = Memory.wrap(sketchBytes);
 
     final ReservoirItemsUnion<Number> rebuiltRiu = ReservoirItemsUnion.getInstance(mem, serDe);
 
@@ -406,7 +433,7 @@ public class ReservoirItemsUnionTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadPreLongs() {
     final ReservoirItemsUnion<Number> riu = ReservoirItemsUnion.getInstance(1024);
-    final Memory mem = new NativeMemory(riu.toByteArray(new ArrayOfNumbersSerDe()));
+    final WritableMemory mem = WritableMemory.wrap(riu.toByteArray(new ArrayOfNumbersSerDe()));
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 0); // corrupt the preLongs count
 
     ReservoirItemsUnion.getInstance(mem, new ArrayOfNumbersSerDe());
@@ -416,7 +443,7 @@ public class ReservoirItemsUnionTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
     final ReservoirItemsUnion<String> riu = ReservoirItemsUnion.getInstance(1024);
-    final Memory mem = new NativeMemory(riu.toByteArray(new ArrayOfStringsSerDe()));
+    final WritableMemory mem = WritableMemory.wrap(riu.toByteArray(new ArrayOfStringsSerDe()));
     mem.putByte(SER_VER_BYTE, (byte) 0); // corrupt the serialization version
 
     ReservoirItemsUnion.getInstance(mem, new ArrayOfStringsSerDe());
@@ -426,7 +453,7 @@ public class ReservoirItemsUnionTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadFamily() {
     final ReservoirItemsUnion<Double> rlu = ReservoirItemsUnion.getInstance(1024);
-    final Memory mem = new NativeMemory(rlu.toByteArray(new ArrayOfDoublesSerDe()));
+    final WritableMemory mem = WritableMemory.wrap(rlu.toByteArray(new ArrayOfDoublesSerDe()));
     mem.putByte(FAMILY_BYTE, (byte) 0); // corrupt the family ID
 
     ReservoirItemsUnion.getInstance(mem, new ArrayOfDoublesSerDe());

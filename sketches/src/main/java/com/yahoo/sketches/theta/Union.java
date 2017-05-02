@@ -101,7 +101,7 @@ public interface Union {
    *
    * @param data The given long array.
    */
-  public void update(long[] data);
+  void update(long[] data);
 
   /**
    * Gets the result of this operation as a CompactSketch of the chosen form.
@@ -125,6 +125,16 @@ public interface Union {
    * @return the result of this operation as an ordered CompactSketch on the Java heap
    */
   CompactSketch getResult();
+
+  /**
+   * Returns true if the backing resource of this sketch is identical with the backing resource
+   * of mem. If the backing resource is a common array or ByteBuffer, the offset and
+   * capacity must also be identical.
+   * @param mem A given Memory object
+   * @return true if the backing resource of this sketch is identical with the backing resource
+   * of mem.
+   */
+  boolean isSameResource(final Memory mem);
 
   /**
    * Returns a byte array image of this Union object

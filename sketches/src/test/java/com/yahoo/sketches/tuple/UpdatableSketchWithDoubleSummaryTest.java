@@ -71,6 +71,15 @@ public class UpdatableSketchWithDoubleSummaryTest {
     for (int i = 0; i < summaries.length; i++) if (summaries[i] != null) count++;
     Assert.assertEquals(count, 4096);
     Assert.assertEquals(summaries[0].getValue(), 1.0);
+
+    sketch.reset();
+    Assert.assertTrue(sketch.isEmpty());
+    Assert.assertFalse(sketch.isEstimationMode());
+    Assert.assertEquals(sketch.getEstimate(), 0.0);
+    Assert.assertEquals(sketch.getUpperBound(1), 0.0);
+    Assert.assertEquals(sketch.getLowerBound(1), 0.0);
+    Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
+    Assert.assertEquals(sketch.getTheta(), 1.0);
   }
 
   @Test
@@ -95,7 +104,16 @@ public class UpdatableSketchWithDoubleSummaryTest {
       }
     }
     Assert.assertEquals(count, summaries.length);
-  }
+
+    sketch.reset();
+    Assert.assertTrue(sketch.isEmpty());
+    Assert.assertFalse(sketch.isEstimationMode());
+    Assert.assertEquals(sketch.getEstimate(), 0.0);
+    Assert.assertEquals(sketch.getUpperBound(1), 0.0);
+    Assert.assertEquals(sketch.getLowerBound(1), 0.0);
+    Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
+    Assert.assertEquals(sketch.getTheta(), 1.0);
+}
 
   @Test
   public void estimationModeWithSamplingNoResizing() {

@@ -29,7 +29,7 @@ import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
-import com.yahoo.memory.WritableMemoryDirectHandler;
+import com.yahoo.memory.WritableDirectHandle;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
@@ -299,7 +299,7 @@ public class DirectQuickSelectSketchTest {
     assertEquals(csk.getClass().getSimpleName(), "HeapCompactOrderedSketch");
 
     int bytes = usk.getCurrentBytes(true);
-    assertEquals(bytes, k*8 + (Family.COMPACT.getMaxPreLongs() << 3));
+    assertEquals(bytes, (k*8) + (Family.COMPACT.getMaxPreLongs() << 3));
     byte[] memArr2 = new byte[bytes];
     WritableMemory mem2 = WritableMemory.wrap(memArr2);
 
@@ -576,7 +576,7 @@ public class DirectQuickSelectSketchTest {
     int u = 2*k;
     int memCapacity = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
 
-    try(WritableMemoryDirectHandler memHandler = WritableMemory.allocateDirect(memCapacity)) {
+    try(WritableDirectHandle memHandler = WritableMemory.allocateDirect(memCapacity)) {
 
       UpdateSketch usk = UpdateSketch.builder().initMemory(memHandler.get()).build(k);
       DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks

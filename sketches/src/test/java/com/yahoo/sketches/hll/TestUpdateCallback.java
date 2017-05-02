@@ -9,8 +9,7 @@ import org.testng.Assert;
 
 /**
  */
-public class TestUpdateCallback implements Fields.UpdateCallback
-{
+public class TestUpdateCallback implements Fields.UpdateCallback {
   public static void assertVals(TestUpdateCallback cb, int count, int oldVal, int newVal) {
     Assert.assertEquals(cb.getCount(), count, "count is off");
     Assert.assertEquals(cb.getOldVal(), (byte) oldVal, "oldVal_ is off");
@@ -28,8 +27,8 @@ public class TestUpdateCallback implements Fields.UpdateCallback
   public void bucketUpdated(int bucket, byte oldVal, byte newVal)
   {
     Assert.assertEquals(bucket, expectedBucket);
-    this.oldVal_ = oldVal;
-    this.newVal_ = newVal;
+    oldVal_ = oldVal;
+    newVal_ = newVal;
     ++count;
   }
 

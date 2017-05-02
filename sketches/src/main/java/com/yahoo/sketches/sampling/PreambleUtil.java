@@ -12,8 +12,6 @@ import static com.yahoo.sketches.Util.zeroPad;
 import java.nio.ByteOrder;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
-
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -21,11 +19,11 @@ import com.yahoo.sketches.SketchesArgumentException;
 //@formatter:off
 
 /**
- * This class defines the preamble data structure and provides basic utilities for some of the key
+ * This class defines the preamble items structure and provides basic utilities for some of the key
  * fields.
  *
  * <p>
- * MAP: Low significance bytes of this <i>long</i> data structure are on the right. However, the
+ * MAP: Low significance bytes of this <i>long</i> items structure are on the right. However, the
  * multi-byte integers (<i>int</i> and <i>long</i>) are stored in native byte order. The
  * <i>byte</i> values are treated as unsigned.</p>
  *
@@ -45,7 +43,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  *  0   ||--------Reservoir Size (K)---------|  Flags | FamID  | SerVer |   Preamble_Longs   |
  *
  *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
- *  1   ||-----(empty)-----|-------------------Items Seen Count------------------------------|
+ *  1   ||------------------------------Items Seen Count (N)---------------------------------|
  *  </pre>
  *
  * <p><strong>Union:</strong> The reservoir union has fewer internal parameters to track and uses
@@ -61,6 +59,29 @@ import com.yahoo.sketches.SketchesArgumentException;
  *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
  *  0   ||---------Max Res. Size (K)---------|  Flags | FamID  | SerVer |   Preamble_Longs   |
  * </pre>
+ *
+ * <p><string>VarOpt:</string> A VarOpt sketch has a more complex internal items structure and
+ * requires a larger preamble. Values serving a similar purpose in both reservoir and varopt sampling
+ * share the same byte ranges, allowing method re-use where practical.</p>
+ *
+ * <p>An empty varopt sample requires 8 bytes. A non-empty sketch requires 16 bytes of preamble
+ * for an under-full sample and otherwise 32 bytes of preamble.</p>
+ *
+ * <pre>
+ * Long || Start Byte Adr:
+ * Adr:
+ *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
+ *  0   ||--------Reservoir Size (K)---------|  Flags | FamID  | SerVer |   Preamble_Longs   |
+ *
+ *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
+ *  1   ||------------------------------Items Seen Count (N)---------------------------------|
+ *
+ *      ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |    16              |
+ *  2   ||---------Item Count in R-----------|-----------Item Count in H---------------------|
+ *
+ *      ||   31   |   30   |   29   |   28   |   27   |   26   |   25   |    24              |
+ *  3   ||--------------------------------Total Weight in R----------------------------------|
+ *  </pre>
  *
  *  @author Jon Malkin
  *  @author Lee Rhodes
@@ -81,15 +102,19 @@ final class PreambleUtil {
   static final int SERDE_ID_SHORT        = 6; // used in ser_ver 1
   static final int ITEMS_SEEN_LONG       = 8;
 
-  //static final int MAX_K_SHORT           = 4; // used in Union only, ser_ver 1
   static final int MAX_K_SIZE_INT        = 4; // used in Union only
+  //static final int MAX_K_SHORT           = 4; // used in Union only, ser_ver 1
+
+  // constants and addresses used in varopt
+  static final int ITEM_COUNT_H_INT      = 16;
+  static final int ITEM_COUNT_R_INT      = 20;
+  static final int TOTAL_WEIGHT_R_DOUBLE = 24;
+  static final int VO_WARMUP_PRELONGS    = 3;   // Doesn't match min or max prelongs in Family
 
   // flag bit masks
   //static final int BIG_ENDIAN_FLAG_MASK = 1;
   //static final int READ_ONLY_FLAG_MASK  = 2;
   static final int EMPTY_FLAG_MASK      = 4;
-  //static final int COMPACT_FLAG_MASK    = 8;
-  //static final int ORDERED_FLAG_MASK    = 16;
 
   //Other constants
   static final int SER_VER                    = 2;
@@ -107,7 +132,7 @@ final class PreambleUtil {
    * @return the summary preamble string.
    */
   public static String preambleToString(final byte[] byteArr) {
-    final Memory mem = new NativeMemory(byteArr);
+    final Memory mem = Memory.wrap(byteArr);
     return preambleToString(mem);
   }
 
@@ -123,12 +148,11 @@ final class PreambleUtil {
   public static String preambleToString(final Memory mem) {
     final int preLongs = getAndCheckPreLongs(mem);  // make sure we can get the assumed preamble
 
-    final Object memObj = mem.array(); // may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
-    final Family family = Family.idToFamily(extractFamilyID(memObj, memAddr));
+    final Family family = Family.idToFamily(mem.getByte(FAMILY_BYTE));
 
     switch (family) {
       case RESERVOIR:
+      case VAROPT:
         return sketchPreambleToString(mem, family, preLongs);
       case RESERVOIR_UNION:
         return unionPreambleToString(mem, family, preLongs);
@@ -141,31 +165,28 @@ final class PreambleUtil {
   private static String sketchPreambleToString(final Memory mem,
                                                final Family family,
                                                final int preLongs) {
-    final Object memObj = mem.array(); // may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
-
-    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(memObj, memAddr));
-    final int serVer = extractSerVer(memObj, memAddr);
+    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(mem));
+    final int serVer = extractSerVer(mem);
 
     // Flags
-    final int flags = extractFlags(memObj, memAddr);
+    final int flags = extractFlags(mem);
     final String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
     //final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
     //final String nativeOrder = ByteOrder.nativeOrder().toString();
     //final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
     final boolean isEmpty = (flags & EMPTY_FLAG_MASK) > 0;
 
-    final int resSize;
+    final int k;
     if (serVer == 1) {
-      final short encResSize = extractEncodedReservoirSize(memObj, memAddr);
-      resSize = ReservoirSize.decodeValue(encResSize);
+      final short encK = extractEncodedReservoirSize(mem);
+      k = ReservoirSize.decodeValue(encK);
     } else {
-      resSize = extractReservoirSize(memObj, memAddr);
+      k = extractK(mem);
     }
 
-    long itemsSeen = 0;
+    long n = 0;
     if (!isEmpty) {
-      itemsSeen = extractItemsSeenCount(memObj, memAddr);
+      n = extractN(mem);
     }
     final long dataBytes = mem.getCapacity() - (preLongs << 3);
 
@@ -183,9 +204,19 @@ final class PreambleUtil {
       //.append("  (Native Byte Order)         : ").append(nativeOrder).append(LS)
       //.append("  READ_ONLY                   : ").append(readOnly).append(LS)
       .append("  EMPTY                       : ").append(isEmpty).append(LS)
-      .append("Bytes  4-7: Sketch Size (k)   : ").append(resSize).append(LS);
+      .append("Bytes  4-7: Sketch Size (k)   : ").append(k).append(LS);
     if (!isEmpty) {
-      sb.append("Bytes 8-13: Items Seen (n)    : ").append(itemsSeen).append(LS);
+      sb.append("Bytes 8-15: Items Seen (n)    : ").append(n).append(LS);
+    }
+    if (family == Family.VAROPT && !isEmpty) {
+      final int hCount = extractHRegionItemCount(mem);
+      final int rCount = extractRRegionItemCount(mem);
+      final double totalRWeight = extractTotalRWeight(mem);
+      sb.append("Bytes 16-19: H region count   : ").append(hCount).append(LS)
+        .append("Bytes 20-23: R region count   : ").append(rCount).append(LS);
+      if (rCount > 0) {
+        sb.append("Bytes 24-31: R region weight  : ").append(totalRWeight).append(LS);
+      }
     }
 
     sb.append("TOTAL Sketch Bytes            : ").append(mem.getCapacity()).append(LS)
@@ -200,26 +231,23 @@ final class PreambleUtil {
   private static String unionPreambleToString(final Memory mem,
                                               final Family family,
                                               final int preLongs) {
-    final Object memObj = mem.array(); // may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
-
-    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(memObj, memAddr));
-    final int serVer = extractSerVer(memObj, memAddr);
+    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(mem));
+    final int serVer = extractSerVer(mem);
 
     // Flags
-    final int flags = extractFlags(memObj, memAddr);
+    final int flags = extractFlags(mem);
     final String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
     //final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
     //final String nativeOrder = ByteOrder.nativeOrder().toString();
     //final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
     final boolean isEmpty = (flags & EMPTY_FLAG_MASK) > 0;
 
-    final int resSize;
+    final int k;
     if (serVer == 1) {
-      final short encResSize = extractEncodedReservoirSize(memObj, memAddr);
-      resSize = ReservoirSize.decodeValue(encResSize);
+      final short encK = extractEncodedReservoirSize(mem);
+      k = ReservoirSize.decodeValue(encK);
     } else {
-      resSize = extractReservoirSize(memObj, memAddr);
+      k = extractK(mem);
     }
 
     final long dataBytes = mem.getCapacity() - (preLongs << 3);
@@ -235,52 +263,59 @@ final class PreambleUtil {
             //+ "  (Native Byte Order)             : " + nativeOrder + LS
             //+ "  READ_ONLY                       : " + readOnly + LS
             + "  EMPTY                           : " + isEmpty + LS
-            + "Bytes  4-7: Max Sketch Size (maxK): " + resSize + LS
+            + "Bytes  4-7: Max Sketch Size (maxK): " + k + LS
             + "TOTAL Sketch Bytes                : " + mem.getCapacity() + LS
             + "  Preamble Bytes                  : " + (preLongs << 3) + LS
             + "  Sketch Bytes                    : " + dataBytes + LS
             + "### END " + family.getFamilyName().toUpperCase() + " PREAMBLE SUMMARY" + LS;
   }
 
-  static int extractPreLongs(final Object memObj, final long memAddr) {
-    return unsafe.getByte(memObj, memAddr + PREAMBLE_LONGS_BYTE) & 0x3F;
+  static int extractPreLongs(final Memory mem) {
+    return mem.getByte(PREAMBLE_LONGS_BYTE) & 0x3F;
   }
 
-  static int extractResizeFactor(final Object memObj, final long memAddr) {
-    return (unsafe.getByte(memObj, memAddr + PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT) & 0x3;
+  static int extractResizeFactor(final Memory mem) {
+    return (mem.getByte(PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT) & 0x3;
   }
 
-  static int extractSerVer(final Object memObj, final long memAddr) {
-    return unsafe.getByte(memObj, memAddr + SER_VER_BYTE) & 0xFF;
+  static int extractSerVer(final Memory mem) {
+    return mem.getByte(SER_VER_BYTE) & 0xFF;
   }
 
-  static int extractFamilyID(final Object memObj, final long memAddr) {
-    return unsafe.getByte(memObj, memAddr + FAMILY_BYTE) & 0xFF;
+  static int extractFamilyID(final Memory mem) {
+    return mem.getByte(FAMILY_BYTE) & 0xFF;
   }
 
-  static int extractFlags(final Object memObj, final long memAddr) {
-    return unsafe.getByte(memObj, memAddr + FLAGS_BYTE) & 0xFF;
+  static int extractFlags(final Memory mem) {
+    return mem.getByte(FLAGS_BYTE) & 0xFF;
   }
 
-  static short extractEncodedReservoirSize(final Object memObj, final long memAddr) {
-    return unsafe.getShort(memObj, memAddr + RESERVOIR_SIZE_SHORT);
+  static short extractEncodedReservoirSize(final Memory mem) {
+    return mem.getShort(RESERVOIR_SIZE_SHORT);
   }
 
-  static int extractReservoirSize(final Object memObj, final long memAddr) {
-    return unsafe.getInt(memObj, memAddr + RESERVOIR_SIZE_INT);
+  static int extractK(final Memory mem) {
+    return mem.getInt(RESERVOIR_SIZE_INT);
   }
 
-  static int extractMaxK(final Object memObj, final long memAddr) {
-    return unsafe.getInt(memObj, memAddr + MAX_K_SIZE_INT);
+  static int extractMaxK(final Memory mem) {
+    return extractK(mem);
   }
 
-  @Deprecated
-  static short extractSerDeId(final Object memObj, final long memAddr) {
-    return unsafe.getShort(memObj, memAddr + SERDE_ID_SHORT);
+  static long extractN(final Memory mem) {
+    return mem.getLong(ITEMS_SEEN_LONG);
   }
 
-  static long extractItemsSeenCount(final Object memObj, final long memAddr) {
-    return unsafe.getLong(memObj, memAddr + ITEMS_SEEN_LONG);
+  static int extractHRegionItemCount(final Memory mem) {
+    return mem.getInt(ITEM_COUNT_H_INT);
+  }
+
+  static int extractRRegionItemCount(final Memory mem) {
+    return mem.getInt(ITEM_COUNT_R_INT);
+  }
+
+  static double extractTotalRWeight(final Memory mem) {
+    return mem.getDouble(TOTAL_WEIGHT_R_DOUBLE);
   }
 
   static void insertPreLongs(final Object memObj, final long memAddr, final int preLongs) {
@@ -310,22 +345,30 @@ final class PreambleUtil {
     unsafe.putByte(memObj, memAddr + FLAGS_BYTE, (byte) flags);
   }
 
-  static void insertReservoirSize(final Object memObj, final long memAddr, final int k) {
+  static void insertK(final Object memObj, final long memAddr, final int k) {
     unsafe.putInt(memObj, memAddr + RESERVOIR_SIZE_INT, k);
   }
 
   static void insertMaxK(final Object memObj, final long memAddr, final int maxK) {
-    insertReservoirSize(memObj, memAddr, maxK);
+    insertK(memObj, memAddr, maxK);
   }
 
-  @Deprecated
-  static void insertSerDeId(final Object memObj, final long memAddr, final short serDeId) {
-    unsafe.putShort(memObj, memAddr + SERDE_ID_SHORT, serDeId);
-  }
-
-  static void insertItemsSeenCount(final Object memObj, final long memAddr, final long totalSeen) {
+  static void insertN(final Object memObj, final long memAddr, final long totalSeen) {
     unsafe.putLong(memObj, memAddr + ITEMS_SEEN_LONG, totalSeen);
   }
+
+  static void insertHRegionItemCount(final Object memObj, final long memAddr, final int hCount) {
+    unsafe.putInt(memObj, memAddr + ITEM_COUNT_H_INT, hCount);
+  }
+
+  static void insertRRegionItemCount(final Object memObj, final long memAddr, final int rCount) {
+    unsafe.putInt(memObj, memAddr + ITEM_COUNT_R_INT, rCount);
+  }
+
+  static void insertTotalRWeight(final Object memObj, final long memAddr, final double weight) {
+    unsafe.putDouble(memObj, memAddr + TOTAL_WEIGHT_R_DOUBLE, weight);
+  }
+
 
   /**
    * Checks Memory for capacity to hold the preamble and returns the extracted preLongs.
@@ -333,12 +376,9 @@ final class PreambleUtil {
    * @return the extracted prelongs value.
    */
   static int getAndCheckPreLongs(final Memory mem) {
-    final Object memObj = mem.array(); //may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
-
     final long cap = mem.getCapacity();
     if (cap < 8) { throwNotBigEnough(cap, 8); }
-    final int preLongs = extractPreLongs(memObj, memAddr);
+    final int preLongs = mem.getByte(0) & 0x3F;
     final int required = Math.max(preLongs << 3, 8);
     if (cap < required) { throwNotBigEnough(cap, required); }
     return preLongs;

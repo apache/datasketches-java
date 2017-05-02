@@ -74,6 +74,19 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
     for (int i = 0; i < values.length; i++) if (values[i] != null) count++;
     Assert.assertEquals(count, 4096);
     for (int i = 0; i < 4096; i++) Assert.assertEquals(values[i][0], 1.0);
+
+    sketch.reset();
+    Assert.assertTrue(sketch.isEmpty());
+    Assert.assertFalse(sketch.isEstimationMode());
+    Assert.assertEquals(sketch.getEstimate(), 0.0);
+    Assert.assertEquals(sketch.getUpperBound(1), 0.0);
+    Assert.assertEquals(sketch.getLowerBound(1), 0.0);
+    Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
+    Assert.assertEquals(sketch.getTheta(), 1.0);
+    ArrayOfDoublesSketchIterator it = sketch.iterator();
+    while (it.next()) {
+      Assert.fail("empty sketch expected");
+    }
   }
 
   @Test
@@ -101,6 +114,19 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
       }
     }
     Assert.assertEquals(count, values.length);
+
+    sketch.reset();
+    Assert.assertTrue(sketch.isEmpty());
+    Assert.assertFalse(sketch.isEstimationMode());
+    Assert.assertEquals(sketch.getEstimate(), 0.0);
+    Assert.assertEquals(sketch.getUpperBound(1), 0.0);
+    Assert.assertEquals(sketch.getLowerBound(1), 0.0);
+    Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
+    Assert.assertEquals(sketch.getTheta(), 1.0);
+    ArrayOfDoublesSketchIterator it = sketch.iterator();
+    while (it.next()) {
+      Assert.fail("empty sketch expected");
+    }
   }
 
   @Test

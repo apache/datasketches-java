@@ -9,7 +9,8 @@ import static com.yahoo.sketches.Util.checkIfPowerOf2;
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.FLAGS_BYTE;
 
-import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
+
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -95,7 +96,7 @@ final class DoublesMergeImpl {
     }
 
     if (tgt.isDirect() && (nFinal > 0)) {
-      final Memory mem = tgt.getMemory();
+      final WritableMemory mem = tgt.getMemory();
       mem.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
     }
 
@@ -178,7 +179,7 @@ final class DoublesMergeImpl {
       }
     }
     if (tgt.isDirect() && (nFinal > 0)) {
-      final Memory mem = tgt.getMemory();
+      final WritableMemory mem = tgt.getMemory();
       mem.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
     }
     tgt.putN(nFinal);

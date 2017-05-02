@@ -1,10 +1,12 @@
 package com.yahoo.sketches.quantiles;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 
 public class DoublesSketchTest {
 
@@ -14,7 +16,7 @@ public class DoublesSketchTest {
     for (int i = 0; i < 1000; i++) {
       heapSketch.update(i);
     }
-    DoublesSketch directSketch = DoublesSketch.wrap(new NativeMemory(heapSketch.toByteArray(false)));
+    DoublesSketch directSketch = DoublesSketch.wrap(WritableMemory.wrap(heapSketch.toByteArray(false)));
 
     assertEquals(directSketch.getMinValue(), 0.0);
     assertEquals(directSketch.getMaxValue(), 999.0);
@@ -24,12 +26,12 @@ public class DoublesSketchTest {
   @Test
   public void directToHeap() {
     int sizeBytes = 10000;
-    UpdateDoublesSketch directSketch = DoublesSketch.builder().initMemory(new NativeMemory(new byte[sizeBytes])).build();
+    UpdateDoublesSketch directSketch = DoublesSketch.builder().initMemory(WritableMemory.wrap(new byte[sizeBytes])).build();
     for (int i = 0; i < 1000; i++) {
       directSketch.update(i);
     }
     UpdateDoublesSketch heapSketch;
-    heapSketch = (UpdateDoublesSketch) DoublesSketch.heapify(new NativeMemory(directSketch.toByteArray()));
+    heapSketch = (UpdateDoublesSketch) DoublesSketch.heapify(WritableMemory.wrap(directSketch.toByteArray()));
     for (int i = 0; i < 1000; i++) {
       heapSketch.update(i + 1000);
     }
@@ -45,11 +47,6 @@ public class DoublesSketchTest {
     ds.update(2);
     byte[] arr = ds.toByteArray(false);
     assertEquals(arr.length, ds.getUpdatableStorageBytes());
-  }
-
-  @Test
-  public void printlnTest() {
-    println("PRINTING: " + this.getClass().getName());
   }
 
   /**
@@ -86,6 +83,23 @@ public class DoublesSketchTest {
         }
       }
     }
+  }
+
+  @Test
+  public void checkIsSameResource() {
+    int k = 16;
+    WritableMemory mem = WritableMemory.wrap(new byte[(k*16) +24]);
+    WritableMemory cmem = WritableMemory.wrap(new byte[8]);
+    DirectUpdateDoublesSketch duds =
+            (DirectUpdateDoublesSketch) DoublesSketch.builder().initMemory(mem).build(k);
+    assertTrue(duds.isSameResource(mem));
+    DirectCompactDoublesSketch dcds = (DirectCompactDoublesSketch) duds.compact(cmem);
+    assertTrue(dcds.isSameResource(cmem));
+  }
+
+  @Test
+  public void printlnTest() {
+    println("PRINTING: " + this.getClass().getName());
   }
 
   /**

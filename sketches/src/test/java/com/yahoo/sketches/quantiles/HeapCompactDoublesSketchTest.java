@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.quantiles;
 
+import static com.yahoo.sketches.quantiles.PreambleUtil.COMBINED_BUFFER;
 import static com.yahoo.sketches.quantiles.Util.LS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -14,7 +15,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 public class HeapCompactDoublesSketchTest {
@@ -28,10 +28,9 @@ public class HeapCompactDoublesSketchTest {
   public void heapifyFromUpdateSketch() {
     final int k = 4;
     final int n = 45;
-    final UpdateDoublesSketch qs = buildAndLoadQS(k, n); // assuming ordered inserts
-
+    final UpdateDoublesSketch qs = buildAndLoadQS(k, n);
     final byte[] qsBytes = qs.toByteArray();
-    final Memory qsMem = new NativeMemory(qsBytes);
+    final Memory qsMem = Memory.wrap(qsBytes);
 
     final HeapCompactDoublesSketch compactQs = HeapCompactDoublesSketch.heapifyInstance(qsMem);
     DoublesSketchTest.testSketchEquality(qs, compactQs);
@@ -40,18 +39,54 @@ public class HeapCompactDoublesSketchTest {
   }
 
   @Test
+  public void createFromUnsortedUpdateSketch() {
+    final int k = 4;
+    final int n = 13;
+    final UpdateDoublesSketch qs = DoublesSketch.builder().build(k);
+    for (int i = n; i > 0; --i) {
+      qs.update(i);
+    }
+    final HeapCompactDoublesSketch compactQs = HeapCompactDoublesSketch.createFromUpdateSketch(qs);
+
+    // don't expect equal but new base buffer should be sorted
+    checkBaseBufferIsSorted(compactQs);
+  }
+
+  @Test
   public void heapifyFromCompactSketch() {
     final int k = 8;
     final int n = 177;
-    final UpdateDoublesSketch qs = buildAndLoadQS(k, n); // assuming ordered inserts
+    final UpdateDoublesSketch qs = buildAndLoadQS(k, n); // assuming reverse ordered inserts
 
     final byte[] qsBytes = qs.compact().toByteArray();
-    final Memory qsMem = new NativeMemory(qsBytes);
+    final Memory qsMem = Memory.wrap(qsBytes);
 
     final HeapCompactDoublesSketch compactQs = HeapCompactDoublesSketch.heapifyInstance(qsMem);
     DoublesSketchTest.testSketchEquality(qs, compactQs);
   }
 
+  @Test
+  public void checkHeapifyUnsortedCompactV2() {
+    final int k = 64;
+    final UpdateDoublesSketch qs = DoublesSketch.builder().build(64);
+    for (int i = 0; i < 3 * k; ++i) {
+      qs.update(i);
+    }
+    assertEquals(qs.getBaseBufferCount(), k);
+    final byte[] sketchBytes = qs.toByteArray(true);
+    final Memory mem = new NativeMemory(sketchBytes);
+
+    // modify to make v2, clear compact flag, and insert a -1 in the middle of the base buffer
+    PreambleUtil.insertSerVer(mem.array(), mem.getCumulativeOffset(0), 2);
+    PreambleUtil.insertFlags(mem.array(), mem.getCumulativeOffset(0), 0);
+    final long tgtAddr = COMBINED_BUFFER + (Double.BYTES * k / 2);
+    mem.putDouble(tgtAddr, -1.0);
+    assert mem.getDouble(tgtAddr - Double.BYTES) > mem.getDouble(tgtAddr);
+
+    // ensure the heapified base buffer is sorted
+    final HeapCompactDoublesSketch qs2 = HeapCompactDoublesSketch.heapifyInstance(mem);
+    checkBaseBufferIsSorted(qs2);
+  }
 
   @Test
   public void checkEmpty() {
@@ -59,7 +94,7 @@ public class HeapCompactDoublesSketchTest {
     final UpdateDoublesSketch qs1 = buildAndLoadQS(k, 0);
     final byte[] byteArr = qs1.compact().toByteArray();
     final byte[] byteArr2 = qs1.toByteArray(true);
-    final Memory mem = new NativeMemory(byteArr);
+    final Memory mem = Memory.wrap(byteArr);
     final HeapCompactDoublesSketch qs2 = HeapCompactDoublesSketch.heapifyInstance(mem);
     assertTrue(qs2.isEmpty());
     assertEquals(byteArr.length, qs1.getStorageBytes());
@@ -77,10 +112,18 @@ public class HeapCompactDoublesSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkMemTooSmall1() {
-    final Memory mem = new NativeMemory(new byte[7]);
+    final Memory mem = Memory.wrap(new byte[7]);
     HeapCompactDoublesSketch.heapifyInstance(mem);
   }
 
+  static void checkBaseBufferIsSorted(HeapCompactDoublesSketch qs) {
+    final double[] combinedBuffer = qs.getCombinedBuffer();
+    final int bbCount = qs.getBaseBufferCount();
+
+    for (int i = 1; i < bbCount; ++i) {
+      assert combinedBuffer[i - 1] <= combinedBuffer[i];
+    }
+  }
 
   static UpdateDoublesSketch buildAndLoadQS(final int k, final int n) {
     return buildAndLoadQS(k, n, 0);

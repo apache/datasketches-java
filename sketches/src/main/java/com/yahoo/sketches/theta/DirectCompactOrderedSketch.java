@@ -112,6 +112,11 @@ final class DirectCompactOrderedSketch extends CompactSketch {
   //Sketch interface
 
   @Override
+  public boolean isSameResource(final Memory mem) {
+    return mem_.isSameResource(mem);
+  }
+
+  @Override
   public byte[] toByteArray() {
     return DirectCompactSketch.compactMemoryToByteArray(mem_, getRetainedEntries(false));
   }

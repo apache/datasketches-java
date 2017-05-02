@@ -5,10 +5,10 @@
 
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.quantiles.DoublesUtil.copyToHeap;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * Union operation for on-heap.
@@ -16,12 +16,9 @@ import com.yahoo.memory.Memory;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-final class DoublesUnionImpl extends DoublesUnion {
-  private int maxK_;
-  private UpdateDoublesSketch gadget_ = null;
-
+final class DoublesUnionImpl extends DoublesUnionImplR {
   private DoublesUnionImpl(final int maxK) {
-    maxK_ = maxK;
+    super(maxK);
   }
 
   /**
@@ -33,8 +30,7 @@ final class DoublesUnionImpl extends DoublesUnion {
 
    */
   static DoublesUnionImpl heapInstance(final int maxK) {
-    final DoublesUnionImpl union = new DoublesUnionImpl(maxK);
-    return union;
+    return new DoublesUnionImpl(maxK);
   }
 
   /**
@@ -48,7 +44,7 @@ final class DoublesUnionImpl extends DoublesUnion {
    * @param dstMem the Memory to be used by the sketch
    * @return a DoublesUnion object
    */
-  static DoublesUnionImpl directInstance(final int maxK, final Memory dstMem) {
+  static DoublesUnionImpl directInstance(final int maxK, final WritableMemory dstMem) {
     final DirectUpdateDoublesSketch sketch = DirectUpdateDoublesSketch.newInstance(maxK, dstMem);
     final DoublesUnionImpl union = new DoublesUnionImpl(maxK);
     union.maxK_ = maxK;
@@ -93,14 +89,14 @@ final class DoublesUnionImpl extends DoublesUnion {
   }
 
   /**
-   * Returns a Union object that wraps off-heap data structure of the given memory image of
-   * a non-compact DoublesSketch. The data structures of the Union remain off-heap.
+   * Returns an updatable Union object that wraps off-heap data structure of the given memory
+   * image of a non-compact DoublesSketch. The data structures of the Union remain off-heap.
    *
    * @param mem A memory image of a non-compact DoublesSketch to be used as the data
    * structure for the union and will be modified.
    * @return a Union object
    */
-  static DoublesUnionImpl wrapInstance(final Memory mem) {
+  static DoublesUnionImpl wrapInstance(final WritableMemory mem) {
     final DirectUpdateDoublesSketch sketch = DirectUpdateDoublesSketch.wrapInstance(mem);
     final int k = sketch.getK();
     final DoublesUnionImpl union = new DoublesUnionImpl(k);
@@ -128,14 +124,6 @@ final class DoublesUnionImpl extends DoublesUnion {
   }
 
   @Override
-  public DoublesSketch getResult() {
-    if (gadget_ == null) {
-      return HeapUpdateDoublesSketch.newInstance(maxK_);
-    }
-    return DoublesUtil.copyToHeap(gadget_); //can't have any externally owned handles.
-  }
-
-  @Override
   public DoublesSketch getResultAndReset() {
     if (gadget_ == null) { return null; } //Intentionally return null here for speed.
     final DoublesSketch ds = gadget_;
@@ -146,56 +134,6 @@ final class DoublesUnionImpl extends DoublesUnion {
   @Override
   public void reset() {
     gadget_ = null;
-  }
-
-  //  @Override  //TODO
-  //  public byte[] toByteArray() {
-  //    if (gadget_ == null) {
-  //      final HeapUpdateDoublesSketch sketch = HeapUpdateDoublesSketch.newInstance(maxK_);
-  //      return DoublesByteArrayImpl.toByteArray(sketch, true, false);
-  //    }
-  //    return DoublesByteArrayImpl.toByteArray(gadget_, true, false);
-  //  }
-
-  @Override
-  public boolean isEmpty() {
-    return (gadget_ == null) ? true : gadget_.isEmpty();
-  }
-
-  @Override
-  public boolean isDirect() {
-    return (gadget_ == null) ? false : gadget_.isDirect();
-  }
-
-  @Override
-  public int getMaxK() {
-    return maxK_;
-  }
-
-  @Override
-  public int getEffectiveK() {
-    return (gadget_ != null) ? gadget_.getK() : maxK_;
-  }
-
-  @Override
-  public String toString() {
-    return toString(true, false);
-  }
-
-  @Override
-  public String toString(final boolean sketchSummary, final boolean dataDetail) {
-    final StringBuilder sb = new StringBuilder();
-    final String thisSimpleName = this.getClass().getSimpleName();
-    final int maxK = this.getMaxK();
-    final String kStr = String.format("%,d", maxK);
-    sb.append(Util.LS).append("### Quantiles ").append(thisSimpleName).append(LS);
-    sb.append("   maxK                         : ").append(kStr);
-    if (gadget_ == null) {
-      sb.append(HeapUpdateDoublesSketch.newInstance(maxK_).toString());
-      return sb.toString();
-    }
-    sb.append(gadget_.toString(sketchSummary, dataDetail));
-    return sb.toString();
   }
 
   //@formatter:off
@@ -254,7 +192,7 @@ final class DoublesUnionImpl extends DoublesUnion {
           else { //Bigger: myQS.getK() > other.getK(), must effectively downsize me or swap
             if (myQS.isEmpty()) {
               if (myQS.isDirect()) {
-                final Memory mem = myQS.getMemory(); //myQS is empty, ok to reconfigure
+                final WritableMemory mem = myQS.getMemory(); //myQS is empty, ok to reconfigure
                 other.putMemory(mem, false); // not compact, but BB ordered
                 ret = DirectUpdateDoublesSketch.wrapInstance(mem);
               } else { //myQS is empty and on heap

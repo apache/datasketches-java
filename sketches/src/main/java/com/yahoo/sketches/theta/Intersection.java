@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.theta;
 
+import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 
 /**
@@ -51,6 +52,16 @@ public interface Intersection {
    * @return true if there is an intersection result available
    */
   boolean hasResult();
+
+  /**
+   * Returns true if the backing resource of this sketch is identical with the backing resource
+   * of mem. If the backing resource is a common array or ByteBuffer, the offset and
+   * capacity must also be identical.
+   * @param mem A given Memory object
+   * @return true if the backing resource of this sketch is identical with the backing resource
+   * of mem.
+   */
+  boolean isSameResource(final Memory mem);
 
   /**
    * Serialize this intersection to a byte array form.

@@ -5,10 +5,6 @@
 
 package com.yahoo.sketches.tuple;
 
-import static com.yahoo.sketches.Util.MIN_LG_ARR_LONGS;
-import static com.yahoo.sketches.Util.ceilingPowerOf2;
-import static com.yahoo.sketches.Util.startingSubMultiple;
-
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
@@ -16,7 +12,6 @@ import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
-import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -53,12 +48,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
       final float samplingProbability, final int numValues, final long seed, final WritableMemory dstMem) {
     super(numValues, seed);
     mem_ = dstMem;
-    final int startingCapacity = 1 << startingSubMultiple(
-      // target table size is twice the number of nominal entries
-      Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries) * 2),
-      ResizeFactor.getRF(lgResizeFactor),
-      MIN_LG_ARR_LONGS
-    );
+    final int startingCapacity = Util.getStartingCapacity(nomEntries, lgResizeFactor);
     checkIfEnoughMemory(dstMem, startingCapacity, numValues);
     mem_.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
     mem_.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
@@ -173,6 +163,26 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   @Override
   void serializeInto(WritableMemory mem) {
     mem_.copyTo(0, mem, 0, mem.getCapacity());
+  }
+
+  @Override
+  public void reset() {
+    if (!isEmpty_) {
+      isEmpty_ = true;
+      mem_.setBits(FLAGS_BYTE, (byte) (1 << Flags.IS_EMPTY.ordinal()));
+    }
+    final int lgResizeFactor = mem_.getByte(LG_RESIZE_FACTOR_BYTE);
+    final float samplingProbability = mem_.getFloat(SAMPLING_P_FLOAT);
+    final int startingCapacity = Util.getStartingCapacity(getNominalEntries(), lgResizeFactor);
+    theta_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
+    mem_.putLong(THETA_LONG, theta_);
+    mem_.putByte(LG_CUR_CAPACITY_BYTE, (byte) Integer.numberOfTrailingZeros(startingCapacity));
+    mem_.putInt(RETAINED_ENTRIES_INT, 0);
+    keysOffset_ = ENTRIES_START;
+    valuesOffset_ = keysOffset_ + SIZE_OF_KEY_BYTES * startingCapacity;
+    mem_.clear(keysOffset_, SIZE_OF_KEY_BYTES * startingCapacity); // clear keys only
+    lgCurrentCapacity_ = Integer.numberOfTrailingZeros(startingCapacity);
+    setRebuildThreshold();
   }
 
   @Override

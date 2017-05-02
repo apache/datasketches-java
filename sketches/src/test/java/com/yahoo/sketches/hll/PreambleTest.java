@@ -8,9 +8,7 @@ package com.yahoo.sketches.hll;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryRegion;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.hll.Preamble.Builder;
@@ -29,7 +27,7 @@ public class PreambleTest
     int newOffset = preamble.intoByteArray(bytes, initOffset);
     Assert.assertEquals(newOffset, initOffset + (Preamble.PREAMBLE_LONGS << 3));
 
-    Memory mem = new MemoryRegion(new NativeMemory(bytes), 1, bytes.length - 1);
+    WritableMemory mem = (WritableMemory.wrap(bytes)).writableRegion(1, bytes.length - 1);
     Preamble serdePreamble = Preamble.fromMemory(mem);
 
     Assert.assertEquals(serdePreamble, preamble);
@@ -84,27 +82,27 @@ public class PreambleTest
         .setSeed(Util.DEFAULT_UPDATE_SEED)
         .setFlags((byte) 12).build();
     byte[] bytes = new byte[10];
-    int initOffset = 3;
+    int initOffset = 3;  //allocated space is too small
     preamble.intoByteArray(bytes, initOffset);
   }
-  
+
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSeedHashFromSeed() {
     Builder bldr = new Preamble.Builder();
-    //In the first 64K values 50541 produces a seedHash of 0, 
+    //In the first 64K values 50541 produces a seedHash of 0,
     bldr.setSeed(50541L);
   }
-  
+
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
-  
+
   /**
-   * @param s value to print 
+   * @param s value to print
    */
   static void println(String s) {
     //System.out.println(s); //disable here
   }
-  
+
 }

@@ -13,7 +13,6 @@ import static com.yahoo.sketches.quantiles.Util.computeRetainedItems;
 import java.nio.ByteOrder;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
 
 //@formatter:off
 
@@ -104,7 +103,7 @@ final class PreambleUtil {
    * @return the summary string.
    */
   static String toString(final byte[] byteArr, final boolean isDoublesSketch) {
-    final Memory mem = new NativeMemory(byteArr);
+    final Memory mem = Memory.wrap(byteArr);
     return toString(mem, isDoublesSketch);
   }
 
@@ -122,29 +121,26 @@ final class PreambleUtil {
     return memoryToString(mem, isDoublesSketch);
   }
 
-  private static String memoryToString(final Memory mem, final boolean isDoublesSketch) {
-    final Object memObj = mem.array(); //may be null
-    final long memAdd = mem.getCumulativeOffset(0L);
-
-    final int preLongs = extractPreLongs(memObj, memAdd); //either 1 or 2
-    final int serVer = extractSerVer(memObj, memAdd);
-    final int familyID = extractFamilyID(memObj, memAdd);
+  private static String memoryToString(final Memory srcMem, final boolean isDoublesSketch) {
+    final int preLongs = extractPreLongs(srcMem); //either 1 or 2
+    final int serVer = extractSerVer(srcMem);
+    final int familyID = extractFamilyID(srcMem);
     final String famName = idToFamily(familyID).toString();
-    final int flags = extractFlags(memObj, memAdd);
+    final int flags = extractFlags(srcMem);
     final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
     final String nativeOrder = ByteOrder.nativeOrder().toString();
     final boolean readOnly  = (flags & READ_ONLY_FLAG_MASK) > 0;
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
     final boolean compact = (flags & COMPACT_FLAG_MASK) > 0;
     final boolean ordered = (flags & ORDERED_FLAG_MASK) > 0;
-    final int k = extractK(memObj, memAdd);
+    final int k = extractK(srcMem);
 
-    final long n = (preLongs == 1) ? 0L : extractN(memObj, memAdd);
+    final long n = (preLongs == 1) ? 0L : extractN(srcMem);
     double minDouble = Double.POSITIVE_INFINITY;
     double maxDouble = Double.NEGATIVE_INFINITY;
     if ((preLongs > 1) && isDoublesSketch) { // preLongs = 2 or 3
-      minDouble = extractMinDouble(memObj, memAdd);
-      maxDouble = extractMaxDouble(memObj, memAdd);
+      minDouble = extractMinDouble(srcMem);
+      maxDouble = extractMaxDouble(srcMem);
     }
 
     final StringBuilder sb = new StringBuilder();
@@ -170,43 +166,42 @@ final class PreambleUtil {
       sb.append("MaxDouble                      : ").append(maxDouble).append(LS);
     }
     sb.append("Retained Items                 : ").append(computeRetainedItems(k, n)).append(LS);
-    sb.append("Total Bytes                    : ").append(mem.getCapacity()).append(LS);
+    sb.append("Total Bytes                    : ").append(srcMem.getCapacity()).append(LS);
     sb.append("### END SKETCH PREAMBLE SUMMARY").append(LS);
     return sb.toString();
   }
 
   //@formatter:on
-
-  static int extractPreLongs(final Object memObj, final long memAdd) {
-    return unsafe.getByte(memObj, memAdd + PREAMBLE_LONGS_BYTE) & 0XFF;
+  static int extractPreLongs(final Memory mem) {
+    return mem.getByte(PREAMBLE_LONGS_BYTE) & 0XFF;
   }
 
-  static int extractSerVer(final Object memObj, final long memAdd) {
-    return unsafe.getByte(memObj, memAdd + SER_VER_BYTE) & 0XFF;
+  static int extractSerVer(final Memory mem) {
+    return mem.getByte(SER_VER_BYTE) & 0XFF;
   }
 
-  static int extractFamilyID(final Object memObj, final long memAdd) {
-    return unsafe.getByte(memObj, memAdd + FAMILY_BYTE) & 0XFF;
+  static int extractFamilyID(final Memory mem) {
+    return mem.getByte(FAMILY_BYTE) & 0XFF;
   }
 
-  static int extractFlags(final Object memObj, final long memAdd) {
-    return unsafe.getByte(memObj, memAdd + FLAGS_BYTE) & 0XFF;
+  static int extractFlags(final Memory mem) {
+    return mem.getByte(FLAGS_BYTE) & 0XFF;
   }
 
-  static int extractK(final Object memObj, final long memAdd) {
-    return unsafe.getShort(memObj, memAdd + K_SHORT) & 0XFFFF;
+  static int extractK(final Memory mem) {
+    return mem.getShort(K_SHORT) & 0XFFFF;
   }
 
-  static long extractN(final Object memObj, final long memAdd) {
-    return unsafe.getLong(memObj, memAdd + N_LONG);
+  static long extractN(final Memory mem) {
+    return mem.getLong(N_LONG);
   }
 
-  static double extractMinDouble(final Object memObj, final long memAdd) {
-    return unsafe.getDouble(memObj, memAdd + MIN_DOUBLE);
+  static double extractMinDouble(final Memory mem) {
+    return mem.getDouble(MIN_DOUBLE);
   }
 
-  static double extractMaxDouble(final Object memObj, final long memAdd) {
-    return unsafe.getDouble(memObj, memAdd + MAX_DOUBLE);
+  static double extractMaxDouble(final Memory mem) {
+    return mem.getDouble(MAX_DOUBLE);
   }
 
   static void insertPreLongs(final Object memObj, final long memAdd, final int value) {
@@ -239,10 +234,5 @@ final class PreambleUtil {
 
   static void insertMaxDouble(final Object memObj, final long memAdd, final double value) {
     unsafe.putDouble(memObj, memAdd + MAX_DOUBLE, value);
-  }
-
-  static void insertIntoBaseBuffer(final Object memObj, final long memAdd, final int bbOffset,
-      final double value) {
-    unsafe.putDouble(memObj, memAdd + COMBINED_BUFFER + bbOffset * 8L, value);
   }
 }

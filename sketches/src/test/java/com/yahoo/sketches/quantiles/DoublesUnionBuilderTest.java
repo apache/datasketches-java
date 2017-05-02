@@ -2,6 +2,7 @@
  * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
+
 package com.yahoo.sketches.quantiles;
 
 import static org.testng.Assert.assertEquals;
@@ -10,17 +11,17 @@ import static org.testng.Assert.assertFalse;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 
 public class DoublesUnionBuilderTest {
 
   @Test
   public void checkBuilds() {
     UpdateDoublesSketch qs1 = DoublesSketch.builder().build();
-    for (int i=0; i<1000; i++) qs1.update(i);
+    for (int i=0; i<1000; i++) { qs1.update(i); }
 
     int bytes = qs1.getCompactStorageBytes();
-    Memory dstMem = new NativeMemory(new byte[bytes]);
+    WritableMemory dstMem = WritableMemory.wrap(new byte[bytes]);
     qs1.putMemory(dstMem);
     Memory srcMem = dstMem;
 
@@ -45,7 +46,7 @@ public void checkDeprecated1() {
   for (int i=0; i<1000; i++) qs1.update(i);
 
   int bytes = qs1.getCompactStorageBytes();
-  Memory dstMem = new NativeMemory(new byte[bytes]);
+  WritableMemory dstMem = WritableMemory.wrap(new byte[bytes]);
   qs1.putMemory(dstMem);
   Memory srcMem = dstMem;
 

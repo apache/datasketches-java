@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.hll;
 
+import com.yahoo.sketches.SketchesArgumentException;
+
 /**
  * An interface that abstracts out the underlying storage of an HLL from the hashing
  * and other activities required to maintain an HLL.
@@ -13,18 +15,60 @@ package com.yahoo.sketches.hll;
  * right to make backwards incompatible changes without pushing up the library's version.</p>
  *
  * <p>Implement at your own risk.</p>
- *
- * @author Kevin Lang
  */
 public interface Fields {
-  /** Naive dense version */
-  byte NAIVE_DENSE_VERSION = 0x0;
-  /** Hash sparse version */
-  byte HASH_SPARSE_VERSION = 0x1;
-  /** Sorted sparse version */
-  byte SORTED_SPARSE_VERSION = 0x2;
-  /** Compressed dense version */
-  byte COMPRESSED_DENSE_VERSION = 0x3;
+  String LS = System.getProperty("line.separator");
+
+  /**
+   * The first byte after the preamble (if it exists) and before the fields' data starts
+   * @author Lee Rhodes
+   */
+  enum Version {
+    /**
+     * Standard (8-bits per bucket) byte array. Used by OnHeapFields.
+     */
+    NAIVE_DENSE_VERSION((byte) 0),
+    /**
+     * An int hash-table of coupons, used during warmup. Used by OnHeapHashFields
+     */
+    HASH_SPARSE_VERSION((byte) 1),
+    /**
+     * A immutable, sorted int array of coupons, used for serialized storage.
+     * Used by OnHeapImmutableCompactFields.
+     */
+    SORTED_SPARSE_VERSION((byte) 2),
+    /**
+     * A 4-bit nibble array (+ Aux exceptions array). Used by OnHeapCompressedFields
+     */
+    COMPRESSED_DENSE_VERSION((byte) 3);
+
+    private final byte id_;
+
+    private Version(final byte id) {
+      id_ = id;
+    }
+
+    public byte getId() {
+      return id_;
+    }
+
+    public static Version idToVersion(final int id) {
+      switch (id) {
+        case 0 : return NAIVE_DENSE_VERSION;
+        case 1 : return HASH_SPARSE_VERSION;
+        case 2 : return SORTED_SPARSE_VERSION;
+        case 3 : return COMPRESSED_DENSE_VERSION;
+        default:
+          throw new SketchesArgumentException("Possible Corruption: Illegal Version ID: " + id);
+      }
+    }
+  }
+
+  /**
+   * Gets the Fields Version
+   * @return the Fields Version
+   */
+  Version getFieldsVersion();
 
   /**
    * Gets  the Preamble
@@ -34,15 +78,15 @@ public interface Fields {
 
   /**
    * Potentially updates a bucket in the underlying storage.  The Fields implementation
-   * is expected to maintain the MAX val for each bucket.  If the val passed in is less
-   * than the currently stored val, this method should do nothing.
+   * is expected to maintain the MAX value for each bucket.  If the value passed in is less
+   * than or equal to the currently stored value, this method should do nothing.
    *
-   * <p>A callback *must* be provided which will be called whenever the provided val is
+   * <p>A callback *must* be provided which will be called whenever the provided value is
    * greater than the currently stored value.
    *
    * @param bucket the bucket to update
-   * @param val the val to update to
-   * @param callback the callback to be called if the provided val is greater than the current
+   * @param val the value to update to
+   * @param callback the callback to be called if the provided value is greater than the current
    * @return the Fields object that should be used from this point forward
    */
   Fields updateBucket(int bucket, byte val, UpdateCallback callback);
@@ -120,6 +164,46 @@ public interface Fields {
    */
   Fields unionCompressedAndExceptions(byte[] compressed, int minVal, OnHeapHash exceptions,
       UpdateCallback cb);
+
+  /**
+   * Returns a readable summary, optionally with detail, of this sketch.
+   * @param detail if true, list all the data detail
+   * @return  a readable summary, optionally with detail, of this sketch.
+   */
+  default String toString(final boolean detail) {
+    final String thisSimpleName = getClass().getSimpleName();
+    final StringBuilder sb = new StringBuilder();
+    final Preamble preamble = getPreamble();
+    final Version version = getFieldsVersion();
+    final String verStr = version.toString() + ", " +  version.getId();
+    int preBytes = 0;
+    if (preamble != null) {
+      sb.append(preamble.toString());
+      preBytes = 8;
+    }
+    final int totBytes = preBytes + numBytesToSerialize();
+    sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
+    sb.append("   Version, ID             : ").append(verStr).append(LS);
+    sb.append("   Total Bytes             : ").append(totBytes).append(LS);
+    sb.append(LS);
+    if (!detail) {
+      return sb.toString();
+    }
+    sb.append("#### HLL DATA DETAIL:").append(LS);
+    final BucketIterator iter = getBucketIterator();
+    int idx = 0;
+    sb.append("  Index  Value").append(LS);
+    while (iter.nextAll()) {
+      final int key = iter.getKey();
+      final int retVal = iter.getValue() & 0XFF; //make positive
+      final String idxStr = String.format("%9s:%4s", key, retVal);
+      if ((idx != 0) && ((idx % 8) == 0)) { sb.append(LS + idxStr); }
+      else { sb.append(idxStr); }
+      idx++;
+    }
+    sb.append(LS);
+    return sb.toString();
+  }
 
   /**
    * An UpdateCallback is a callback provided to calls that potentially update buckets.  It is a

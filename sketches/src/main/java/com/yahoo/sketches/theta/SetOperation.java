@@ -192,6 +192,18 @@ public abstract class SetOperation {
    */
   public abstract Family getFamily();
 
+  /**
+   * Returns true if the backing resource of this sketch is identical with the backing resource
+   * of mem. If the backing resource is a common array or ByteBuffer, the offset and
+   * capacity must also be identical.
+   * @param mem A given Memory object
+   * @return true if the backing resource of this sketch is identical with the backing resource
+   * of mem.
+   */
+  public boolean isSameResource(final Memory mem) {
+    return false;
+  }
+
   //restricted
 
   static short computeSeedHash(final long seed) {

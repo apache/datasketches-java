@@ -46,7 +46,7 @@ public class ReservoirSizeTest {
     try {
       ReservoirSize.computeSize(-1);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       assertTrue(e.getMessage().startsWith("Can only encode strictly positive sketch sizes less than"));
     }
   }
@@ -79,7 +79,7 @@ public class ReservoirSizeTest {
     try {
       ReservoirSize.decodeValue((short) -1);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       assertTrue(e.getMessage().startsWith("Maximum valid encoded value is "));
     }
   }
@@ -94,15 +94,15 @@ public class ReservoirSizeTest {
     final int numIters = 100;
 
     for (int i = 0; i < numIters; ++i) {
-      int input = SamplingUtil.rand.nextInt(maxValue) + 1;
-      int result = ReservoirSize.decodeValue(ReservoirSize.computeSize(input));
+      final int input = SamplingUtil.rand.nextInt(maxValue) + 1;
+      final int result = ReservoirSize.decodeValue(ReservoirSize.computeSize(input));
 
       // result must be no smaller than input
       assertTrue(result >= input, "encoded/decoded result < input: " + result + " vs "
               + input + " (iter " + i + ")");
 
       // cap on max error
-      double relativeError = ((double) result - input) / input;
+      final double relativeError = ((double) result - input) / input;
       assertTrue(relativeError <= eps, "Error exceeds tolerance. Expected relative error <= "
               + eps + "; " + "found " + relativeError);
     }

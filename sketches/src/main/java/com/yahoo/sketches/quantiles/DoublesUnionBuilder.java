@@ -6,6 +6,7 @@
 package com.yahoo.sketches.quantiles;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * For building a new DoublesSketch Union operation.
@@ -14,7 +15,7 @@ import com.yahoo.memory.Memory;
  */
 public class DoublesUnionBuilder {
   private int bMaxK = PreambleUtil.DEFAULT_K;
-  private Memory bMem = null;
+  private WritableMemory bMem = null;
 
   /**
    * Constructor for a new DoublesUnionBuilder. The default configuration is
@@ -56,7 +57,7 @@ public class DoublesUnionBuilder {
    * @param mem the given Memory.
    * @return this builder
    */
-  public DoublesUnionBuilder initMemory(final Memory mem) {
+  public DoublesUnionBuilder initMemory(final WritableMemory mem) {
     bMem = mem;
     return this;
   }
@@ -108,7 +109,7 @@ public class DoublesUnionBuilder {
   }
 
   /**
-   * Returns a Union object that wraps off-heap data of the given memory image of
+   * Returns a read-only Union object that wraps off-heap data of the given memory image of
    * a sketch. The data structures of the Union remain off-heap.
    *
    * @param mem A memory region to be used as the data structure for the sketch
@@ -116,6 +117,18 @@ public class DoublesUnionBuilder {
    * @return a Union object
    */
   public static DoublesUnion wrap(final Memory mem) {
+    return DoublesUnionImplR.wrapInstance(mem);
+  }
+
+  /**
+   * Returns an updatable Union object that wraps off-heap data of the given memory image of
+   * a sketch. The data structures of the Union remain off-heap.
+   *
+   * @param mem A memory region to be used as the data structure for the sketch
+   * and will be modified.
+   * @return a Union object
+   */
+  public static DoublesUnion wrap(final WritableMemory mem) {
     return DoublesUnionImpl.wrapInstance(mem);
   }
 
