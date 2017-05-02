@@ -71,6 +71,16 @@ public abstract class UpdateSketch extends Sketch {
   }
 
   /**
+   * Instantiates an on-heap UpdateSketch from Memory. This method assumes the
+   * {@link Util#DEFAULT_UPDATE_SEED}.
+   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @return an UpdateSketch
+   */
+  public static UpdateSketch heapify(final Memory srcMem) {
+    return HeapQuickSelectSketch.heapifyInstance(srcMem, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
    * Instantiates an on-heap UpdateSketch from Memory.
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
