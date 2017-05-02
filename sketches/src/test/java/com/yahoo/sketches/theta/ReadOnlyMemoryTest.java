@@ -57,6 +57,7 @@ public class ReadOnlyMemoryTest {
     UpdateSketch us1 = UpdateSketch.builder().build();
     us1.update(1);
     Memory mem = Memory.wrap(ByteBuffer.wrap(us1.toByteArray()).asReadOnlyBuffer());
+    // downcasting is not recommended, for testing only
     UpdateSketch us2 = (UpdateSketch) Sketch.heapify(mem);
     us2.update(2);
     assertEquals(us2.getEstimate(), 2.0);

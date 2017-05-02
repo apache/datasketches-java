@@ -115,7 +115,7 @@ public class HeapQuickSelectSketchTest {
     assertEquals(bytes, byteArray.length);
 
     Memory srcMem = Memory.wrap(byteArray);
-    UpdateSketch usk2 = (UpdateSketch)Sketch.heapify(srcMem, seed);
+    UpdateSketch usk2 = UpdateSketch.heapify(srcMem, seed);
     assertEquals(usk2.getEstimate(), u, 0.0);
     assertEquals(usk2.getLowerBound(2), u, 0.0);
     assertEquals(usk2.getUpperBound(2), u, 0.0);
@@ -142,7 +142,7 @@ public class HeapQuickSelectSketchTest {
     byte[] byteArray = usk.toByteArray();
 
     Memory srcMem = Memory.wrap(byteArray);
-    UpdateSketch usk2 = (UpdateSketch)Sketch.heapify(srcMem, seed);
+    UpdateSketch usk2 = UpdateSketch.heapify(srcMem, seed);
     assertEquals(usk2.getEstimate(), uskEst);
     assertEquals(usk2.getLowerBound(2), uskLB);
     assertEquals(usk2.getUpperBound(2), uskUB);
@@ -169,7 +169,7 @@ public class HeapQuickSelectSketchTest {
     byte[] byteArray = sk1.toByteArray();
     Memory mem = Memory.wrap(byteArray);
 
-    UpdateSketch sk2 = (UpdateSketch)Sketch.heapify(mem, DEFAULT_UPDATE_SEED);
+    UpdateSketch sk2 = UpdateSketch.heapify(mem, DEFAULT_UPDATE_SEED);
 
     assertEquals(sk2.getEstimate(), sk1est);
     assertEquals(sk2.getLowerBound(2), sk1lb);

@@ -109,7 +109,7 @@ public class DirectQuickSelectSketchTest {
     assertTrue(sk1.isDirect());
     assertFalse(sk1.isDirty());
 
-    UpdateSketch sk2 = (UpdateSketch)Sketch.heapify(mem);
+    UpdateSketch sk2 = UpdateSketch.heapify(mem);
     assertEquals(sk2.getEstimate(), sk1est);
     assertEquals(sk2.getLowerBound(2), sk1lb);
     assertEquals(sk2.getUpperBound(2), sk1ub);
