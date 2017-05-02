@@ -47,7 +47,7 @@ public class DirectCompactDoublesSketchTest {
     for (int i = n; i > 0; --i) {
       qs.update(i);
     }
-    final Memory dstMem = new NativeMemory(new byte[qs.getCompactStorageBytes()]);
+    final WritableMemory dstMem = WritableMemory.wrap(new byte[qs.getCompactStorageBytes()]);
     final DirectCompactDoublesSketch compactQs
             = DirectCompactDoublesSketch.createFromUpdateSketch(qs, dstMem);
 

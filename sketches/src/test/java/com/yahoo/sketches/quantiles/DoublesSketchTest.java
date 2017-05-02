@@ -5,7 +5,6 @@ import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 
 public class DoublesSketchTest {

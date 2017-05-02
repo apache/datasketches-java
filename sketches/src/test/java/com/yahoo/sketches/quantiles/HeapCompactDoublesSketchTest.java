@@ -15,6 +15,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 public class HeapCompactDoublesSketchTest {
@@ -74,11 +75,11 @@ public class HeapCompactDoublesSketchTest {
     }
     assertEquals(qs.getBaseBufferCount(), k);
     final byte[] sketchBytes = qs.toByteArray(true);
-    final Memory mem = new NativeMemory(sketchBytes);
+    final WritableMemory mem = WritableMemory.wrap(sketchBytes);
 
     // modify to make v2, clear compact flag, and insert a -1 in the middle of the base buffer
-    PreambleUtil.insertSerVer(mem.array(), mem.getCumulativeOffset(0), 2);
-    PreambleUtil.insertFlags(mem.array(), mem.getCumulativeOffset(0), 0);
+    PreambleUtil.insertSerVer(mem.getArray(), mem.getCumulativeOffset(0), 2);
+    PreambleUtil.insertFlags(mem.getArray(), mem.getCumulativeOffset(0), 0);
     final long tgtAddr = COMBINED_BUFFER + (Double.BYTES * k / 2);
     mem.putDouble(tgtAddr, -1.0);
     assert mem.getDouble(tgtAddr - Double.BYTES) > mem.getDouble(tgtAddr);

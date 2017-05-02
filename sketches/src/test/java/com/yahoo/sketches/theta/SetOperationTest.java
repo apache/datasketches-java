@@ -293,8 +293,8 @@ public class SetOperationTest {
   @Test
   public void checkIsSameResource() {
     int k = 16;
-    Memory mem = new NativeMemory(new byte[(k*16) + 32]);
-    Memory cmem = new NativeMemory (new byte[8]);
+    WritableMemory mem = WritableMemory.wrap(new byte[(k*16) + 32]);
+    Memory cmem = Memory.wrap(new byte[8]);
     Union union = Sketches.setOperationBuilder().initMemory(mem).buildUnion(k);
     assertTrue(union.isSameResource(mem));
     assertFalse(union.isSameResource(cmem));

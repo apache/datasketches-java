@@ -17,8 +17,7 @@ import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 
 public class HashOperationsTest {
 
@@ -87,7 +86,7 @@ public class HashOperationsTest {
   @Test
   public void testHashInsertOnlyMemoryNoStride() {
     long[] table = new long[32];
-    Memory mem = new NativeMemory(table);
+    WritableMemory mem = WritableMemory.wrap(table);
     int index = hashInsertOnly(mem, 5, 1, 0);
     assertEquals(index, 1);
     assertEquals(table[1], 1L);
@@ -97,7 +96,7 @@ public class HashOperationsTest {
   public void testHashInsertOnlyMemoryWithStride() {
     long[] table = new long[32];
     table[1] = 1;
-    Memory mem = new NativeMemory(table);
+    WritableMemory mem = WritableMemory.wrap(table);
     int index = hashInsertOnly(mem, 5, 1, 0);
     assertEquals(index, 2);
     assertEquals(table[2], 1L);

@@ -241,7 +241,7 @@ public class ReadOnlyMemoryTest {
     }
 
     try {
-      DoublesSketch result = u.getResultAndReset();
+      u.getResultAndReset();
       fail();
     } catch (SketchesReadOnlyException e) {
       // expected

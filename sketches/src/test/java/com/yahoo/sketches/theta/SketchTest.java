@@ -300,8 +300,8 @@ public class SketchTest {
   @Test
   public void checkIsSameResource() {
     int k = 16;
-    Memory mem = new NativeMemory(new byte[(k*16) +24]);
-    Memory cmem = new NativeMemory (new byte[8]);
+    WritableMemory mem = WritableMemory.wrap(new byte[(k*16) +24]);
+    WritableMemory cmem = WritableMemory.wrap(new byte[8]);
     UpdateSketch sketch = Sketches.updateSketchBuilder().initMemory(mem).build(k);
     assertTrue(sketch.isSameResource(mem));
     DirectCompactOrderedSketch dcos = (DirectCompactOrderedSketch) sketch.compact(true, cmem);
