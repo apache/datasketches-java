@@ -21,8 +21,8 @@ public abstract class ArrayOfDoublesSketch {
   //  entries were retained.
   static enum Flags { IS_BIG_ENDIAN, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES }
 
-  static final int SIZE_OF_KEY_BYTES = 8;
-  static final int SIZE_OF_VALUE_BYTES = 8;
+  static final int SIZE_OF_KEY_BYTES = Long.BYTES;
+  static final int SIZE_OF_VALUE_BYTES = Double.BYTES;
 
   // Common Layout of first 16 bytes:
   // Long || Start Byte Adr:

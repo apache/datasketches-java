@@ -5,7 +5,7 @@
 
 package com.yahoo.sketches.tuple;
 
-import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * Direct Intersection operation for tuple sketches of type ArrayOfDoubles.
@@ -15,7 +15,7 @@ import com.yahoo.memory.Memory;
  */
 final class DirectArrayOfDoublesIntersection extends ArrayOfDoublesIntersection {
 
-  private Memory mem_;
+  private WritableMemory mem_;
 
   /**
    * Creates an instance of a DirectArrayOfDoublesIntersection with a custom update seed
@@ -23,7 +23,7 @@ final class DirectArrayOfDoublesIntersection extends ArrayOfDoublesIntersection 
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @param dstMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
-  DirectArrayOfDoublesIntersection(final int numValues, final long seed, final Memory dstMem) {
+  DirectArrayOfDoublesIntersection(final int numValues, final long seed, final WritableMemory dstMem) {
     super(numValues, seed);
     mem_ = dstMem;
   }

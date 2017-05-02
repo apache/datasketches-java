@@ -15,8 +15,7 @@ import java.lang.reflect.Array;
 import java.nio.ByteOrder;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryRegion;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.QuickSelect;
@@ -173,7 +172,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     for (int i = 0; i < count; i++) {
       final long key = mem.getLong(offset);
       offset += Long.BYTES;
-      final MemoryRegion memRegion = new MemoryRegion(mem, offset, mem.getCapacity() - offset);
+      final Memory memRegion = mem.region(offset, mem.getCapacity() - offset);
       final DeserializeResult<S> summaryResult = summaryFactory_.summaryFromMemory(memRegion);
       final S summary = summaryResult.getObject();
       offset += summaryResult.getSize();
@@ -275,7 +274,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     }
     sizeBytes += Long.BYTES * count_ + summaryFactoryBytes.length + summariesBytesLength;
     final byte[] bytes = new byte[sizeBytes];
-    final Memory mem = new NativeMemory(bytes);
+    final WritableMemory mem = WritableMemory.wrap(bytes);
     int offset = 0;
     mem.putByte(offset++, PREAMBLE_LONGS);
     mem.putByte(offset++, serialVersionUID);

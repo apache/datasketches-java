@@ -13,7 +13,7 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
@@ -135,15 +135,29 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
 
   @Override
   public byte[] toByteArray() {
-    final int sizeBytes = ENTRIES_START
-        + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues_) * getCurrentCapacity();
-    final byte[] byteArray = new byte[sizeBytes];
-    final Memory mem = new NativeMemory(byteArray); // wrap the byte array to use the putX methods
+    final byte[] byteArray = new byte[getSerializedSizeBytes()];
+    final WritableMemory mem = WritableMemory.wrap(byteArray); // wrap the byte array to use the putX methods
+    serializeInto(mem);
+    return byteArray;
+  }
+
+  @Override
+  public ArrayOfDoublesSketchIterator iterator() {
+    return new HeapArrayOfDoublesSketchIterator(keys_, values_, numValues_);
+  }
+
+  @Override
+  int getSerializedSizeBytes() {
+    return ENTRIES_START + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues_) * getCurrentCapacity();
+  }
+
+  @Override
+  void serializeInto(final WritableMemory mem) {
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
     mem.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
     mem.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
     mem.putByte(SKETCH_TYPE_BYTE,
-        (byte)SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch.ordinal());
+        (byte) SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch.ordinal());
     final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
     mem.putByte(FLAGS_BYTE, (byte)(
       (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0)
@@ -164,7 +178,6 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
       mem.putDoubleArray(ENTRIES_START + SIZE_OF_KEY_BYTES * keys_.length, values_, 0,
           values_.length);
     }
-    return byteArray;
   }
 
   @Override
@@ -254,11 +267,6 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     final int index = HashOperations.hashSearch(keys_, lgCurrentCapacity_, key);
     if (index == -1) { return null; }
     return Arrays.copyOfRange(values_, index * numValues_, (index + 1) * numValues_);
-  }
-
-  @Override
-  public ArrayOfDoublesSketchIterator iterator() {
-    return new HeapArrayOfDoublesSketchIterator(keys_, values_, numValues_);
   }
 
 }

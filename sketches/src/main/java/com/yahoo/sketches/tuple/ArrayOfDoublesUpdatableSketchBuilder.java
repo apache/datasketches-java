@@ -8,7 +8,7 @@ package com.yahoo.sketches.tuple;
 import static com.yahoo.sketches.Util.DEFAULT_NOMINAL_ENTRIES;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 
-import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -22,7 +22,6 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
   private int numValues_;
   private float samplingProbability_;
   private long seed_;
-  private Memory dstMem_;
 
   private static final int DEFAULT_NUMBER_OF_VALUES = 1;
   private static final float DEFAULT_SAMPLING_PROBABILITY = 1;
@@ -98,26 +97,22 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
   }
 
   /**
-   * This is to set destination memory to be used by the sketch
-   * @param dstMem instance of Memory
-   * @return this builder
-   */
-  public ArrayOfDoublesUpdatableSketchBuilder setMemory(final Memory dstMem) {
-    dstMem_ = dstMem;
-    return this;
-  }
-
-  /**
    * Returns an ArrayOfDoublesUpdatableSketch with the current configuration of this Builder.
    * @return an ArrayOfDoublesUpdatableSketch
    */
   public ArrayOfDoublesUpdatableSketch build() {
-    if (dstMem_ == null) {
       return new HeapArrayOfDoublesQuickSelectSketch(nomEntries_, resizeFactor_.lg(), 
           samplingProbability_, numValues_, seed_);
-    }
+  }
+
+  /**
+   * Returns an ArrayOfDoublesUpdatableSketch with the current configuration of this Builder.
+   * @param dstMem instance of Memory to be used by the sketch
+   * @return an ArrayOfDoublesUpdatableSketch
+   */
+  public ArrayOfDoublesUpdatableSketch build(final WritableMemory dstMem) {
     return new DirectArrayOfDoublesQuickSelectSketch(nomEntries_, resizeFactor_.lg(), 
-        samplingProbability_, numValues_, seed_, dstMem_);
+        samplingProbability_, numValues_, seed_, dstMem);
   }
 
 }

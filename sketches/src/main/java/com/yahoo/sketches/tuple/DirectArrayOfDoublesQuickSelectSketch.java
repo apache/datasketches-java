@@ -13,7 +13,7 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
@@ -25,10 +25,10 @@ import com.yahoo.sketches.SketchesArgumentException;
  * This Memory can be off-heap, which if managed properly will greatly reduce the need for
  * the JVM to perform garbage collection.</p>
  */
-final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketch {
+class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketch {
 
   // these values exist only on heap, never serialized
-  private Memory mem_;
+  private WritableMemory mem_;
   // these can be derived from the mem_ contents, but are kept here for performance
   private int keysOffset_;
   private int valuesOffset_;
@@ -50,7 +50,7 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
    * @param dstMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
   DirectArrayOfDoublesQuickSelectSketch(final int nomEntries, final int lgResizeFactor,
-      final float samplingProbability, final int numValues, final long seed, final Memory dstMem) {
+      final float samplingProbability, final int numValues, final long seed, final WritableMemory dstMem) {
     super(numValues, seed);
     mem_ = dstMem;
     final int startingCapacity = 1 << startingSubMultiple(
@@ -92,7 +92,7 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed update seed
    */
-  DirectArrayOfDoublesQuickSelectSketch(final Memory mem, final long seed) {
+  DirectArrayOfDoublesQuickSelectSketch(final WritableMemory mem, final long seed) {
     super(mem.getByte(NUM_VALUES_BYTE), seed);
     mem_ = mem;
     SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE),
@@ -105,7 +105,7 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
           + ", actual: " + version);
     }
     final boolean isBigEndian =
-        mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_BIG_ENDIAN.ordinal()));
+        (mem.getByte(FLAGS_BYTE) & (1 << Flags.IS_BIG_ENDIAN.ordinal())) != 0;
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
       throw new SketchesArgumentException("Byte order mismatch");
     }
@@ -115,7 +115,7 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
     // to do: make parent take care of its own parts
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(getCurrentCapacity());
     theta_ = mem_.getLong(THETA_LONG);
-    isEmpty_ = mem_.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_EMPTY.ordinal()));
+    isEmpty_ = (mem_.getByte(FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
     setRebuildThreshold();
   }
 
@@ -152,11 +152,27 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
 
   @Override
   public byte[] toByteArray() {
-    final int sizeBytes = valuesOffset_ + SIZE_OF_VALUE_BYTES * numValues_ * getCurrentCapacity();
+    final int sizeBytes = getSerializedSizeBytes();
     final byte[] byteArray = new byte[sizeBytes];
-    final Memory mem = new NativeMemory(byteArray);
-    mem_.copy(0, mem, 0, sizeBytes);
+    final WritableMemory mem = WritableMemory.wrap(byteArray);
+    serializeInto(mem);
     return byteArray;
+  }
+
+  @Override
+  public ArrayOfDoublesSketchIterator iterator() {
+    return new DirectArrayOfDoublesSketchIterator(mem_, keysOffset_, getCurrentCapacity(),
+        numValues_);
+  }
+
+  @Override
+  int getSerializedSizeBytes() {
+    return valuesOffset_ + SIZE_OF_VALUE_BYTES * numValues_ * getCurrentCapacity();
+  }
+
+  @Override
+  void serializeInto(WritableMemory mem) {
+    mem_.copyTo(0, mem, 0, mem.getCapacity());
   }
 
   @Override
@@ -217,7 +233,7 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
 
   @Override
   protected boolean isInSamplingMode() {
-    return mem_.isAnyBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_IN_SAMPLING_MODE.ordinal()));
+    return (mem_.getByte(FLAGS_BYTE) & (1 << Flags.IS_IN_SAMPLING_MODE.ordinal())) != 0;
   }
 
   // rebuild in the same memory
@@ -262,12 +278,6 @@ final class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSel
     mem_.getDoubleArray(valuesOffset_ + SIZE_OF_VALUE_BYTES * numValues_ * index,
         array, 0, numValues_);
     return array;
-  }
-
-  @Override
-  public ArrayOfDoublesSketchIterator iterator() {
-    return new DirectArrayOfDoublesSketchIterator(mem_, keysOffset_, getCurrentCapacity(),
-        numValues_);
   }
 
   private static void checkIfEnoughMemory(final Memory mem, final int numEntries,

@@ -11,7 +11,7 @@ import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
 import java.util.Arrays;
 
-import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.HashOperations;
 
 /**
@@ -89,7 +89,7 @@ final class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
   }
 
   @Override
-  public ArrayOfDoublesCompactSketch getResult(final Memory mem) {
+  public ArrayOfDoublesCompactSketch getResult(final WritableMemory mem) {
     if (mem == null || count_ == 0) { return getResult(); }
     final ArrayOfDoublesCompactSketch result = new DirectArrayOfDoublesCompactSketch(
       Arrays.copyOfRange(keys_, 0, count_),

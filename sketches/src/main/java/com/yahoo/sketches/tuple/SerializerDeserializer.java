@@ -13,14 +13,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryRegion;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
 final class SerializerDeserializer {
   static enum SketchType { QuickSelectSketch, CompactSketch, ArrayOfDoublesQuickSelectSketch,
-    ArrayOfDoublesCompactSketch }
+    ArrayOfDoublesCompactSketch, ArrayOfDoublesUnion }
 
   static final int TYPE_BYTE_OFFSET = 3;
 
@@ -58,7 +57,7 @@ final class SerializerDeserializer {
       final byte[] objectBytes =
           ((byte[]) object.getClass().getMethod("toByteArray", (Class<?>[])null).invoke(object));
       final byte[] bytes = new byte[1 + className.length() + objectBytes.length];
-      final Memory mem = new NativeMemory(bytes);
+      final WritableMemory mem = WritableMemory.wrap(bytes);
       int offset = 0;
       mem.putByte(offset++, (byte)className.length());
       mem.putByteArray(offset, className.getBytes(UTF_8), 0, className.length());
@@ -91,7 +90,7 @@ final class SerializerDeserializer {
           deserializeMethodCache.put(className, method);
       }
       return (DeserializeResult<T>)
-          method.invoke(null, new MemoryRegion(mem, offset, mem.getCapacity() - offset));
+          method.invoke(null, mem.region(offset, mem.getCapacity() - offset));
     } catch (final IllegalAccessException | SketchesArgumentException | InvocationTargetException
         | NoSuchMethodException | SecurityException | ClassNotFoundException e) {
       throw new SketchesArgumentException("Failed to deserialize class " + className + " " + e);

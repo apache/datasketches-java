@@ -8,7 +8,8 @@ package com.yahoo.sketches.tuple;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 public class ArrayOfDoublesQuickSelectSketchTest {
@@ -29,8 +30,7 @@ public class ArrayOfDoublesQuickSelectSketchTest {
     sketch1.update("d", valuesArr);
     sketch1.update("a", valuesArr);
     noopUpdates(sketch1, valuesArr);
-    ArrayOfDoublesUpdatableSketch sketch2 = (ArrayOfDoublesUpdatableSketch) 
-        ArrayOfDoublesSketches.wrapSketch(new NativeMemory(sketch1.toByteArray()));
+    ArrayOfDoublesUpdatableSketch sketch2 = ArrayOfDoublesUpdatableSketch.wrapSketch(WritableMemory.wrap(sketch1.toByteArray()));
     sketch2.update("b", valuesArr);
     sketch2.update("c", valuesArr);
     sketch2.update("d", valuesArr);
@@ -61,8 +61,7 @@ public class ArrayOfDoublesQuickSelectSketchTest {
     sketch1.update("b", values);
     sketch1.update("c", values);
 
-    ArrayOfDoublesUpdatableSketch sketch2 = (ArrayOfDoublesUpdatableSketch) 
-        ArrayOfDoublesSketches.wrapSketch(new NativeMemory(sketch1.toByteArray()), seed);
+    ArrayOfDoublesUpdatableSketch sketch2 = ArrayOfDoublesUpdatableSketch.wrapSketch(WritableMemory.wrap(sketch1.toByteArray()), seed);
     sketch2.update("b", values);
     sketch2.update("c", values);
     sketch2.update("d", values);
@@ -82,7 +81,7 @@ public class ArrayOfDoublesQuickSelectSketchTest {
     double[] valuesArr = {1.0, 2.0};
     ArrayOfDoublesUpdatableSketch sketch1 = 
         new ArrayOfDoublesUpdatableSketchBuilder().
-        setNumberOfValues(2).setMemory(new NativeMemory(new byte[1000000])).build();
+        setNumberOfValues(2).build(WritableMemory.wrap(new byte[1000000]));
     sketch1.update("a", valuesArr);
     sketch1.update("b", valuesArr);
     sketch1.update("c", valuesArr);
@@ -90,7 +89,7 @@ public class ArrayOfDoublesQuickSelectSketchTest {
     sketch1.update("a", valuesArr);
     noopUpdates(sketch1, valuesArr);
     ArrayOfDoublesUpdatableSketch sketch2 = (ArrayOfDoublesUpdatableSketch) 
-        ArrayOfDoublesSketches.heapifySketch(new NativeMemory(sketch1.toByteArray()));
+        ArrayOfDoublesSketches.heapifySketch(Memory.wrap(sketch1.toByteArray()));
     sketch2.update("b", valuesArr);
     sketch2.update("c", valuesArr);
     sketch2.update("d", valuesArr);
@@ -116,14 +115,14 @@ public class ArrayOfDoublesQuickSelectSketchTest {
     double[] values = {1.0};
 
     ArrayOfDoublesUpdatableSketch sketch1 = 
-        new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed).setMemory(
-            new NativeMemory(new byte[1000000])).build();
+        new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed).build(
+            WritableMemory.wrap(new byte[1000000]));
     sketch1.update("a", values);
     sketch1.update("b", values);
     sketch1.update("c", values);
 
     ArrayOfDoublesUpdatableSketch sketch2 = (ArrayOfDoublesUpdatableSketch) 
-        ArrayOfDoublesSketches.heapifySketch(new NativeMemory(sketch1.toByteArray()), seed);
+        ArrayOfDoublesSketches.heapifySketch(Memory.wrap(sketch1.toByteArray()), seed);
     sketch2.update("b", values);
     sketch2.update("c", values);
     sketch2.update("d", values);

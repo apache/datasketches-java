@@ -5,7 +5,9 @@
 
 package com.yahoo.sketches.tuple;
 
-import com.yahoo.memory.Memory;
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.hash.MurmurHash3;
 
 /**
@@ -18,6 +20,25 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
   ArrayOfDoublesUpdatableSketch(final int numValues, final long seed) {
     super(numValues);
     seed_ = seed;
+  }
+
+  /**
+   * Wrap the given WritableMemory as an ArrayOfDoublesUpdatableSketch
+   * @param mem the given Memory
+   * @return an ArrayOfDoublesUpdatableSketch
+   */
+  public static ArrayOfDoublesUpdatableSketch wrapSketch(final WritableMemory mem) {
+    return wrapSketch(mem, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Wrap the given WritableMemory and seed as a ArrayOfDoublesUpdatableSketch
+   * @param mem the given Memory
+   * @param seed the given seed
+   * @return an ArrayOfDoublesUpdatableSketch
+   */
+  public static ArrayOfDoublesUpdatableSketch wrapSketch(final WritableMemory mem, final long seed) {
+    return new DirectArrayOfDoublesQuickSelectSketch(mem, seed);
   }
 
   /**
@@ -113,7 +134,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @param dstMem memory for the compact sketch (can be null)
    * @return compact sketch (off-heap if memory is provided)
    */
-  public ArrayOfDoublesCompactSketch compact(final Memory dstMem) {
+  public ArrayOfDoublesCompactSketch compact(final WritableMemory dstMem) {
     if (dstMem == null) {
       return new HeapArrayOfDoublesCompactSketch(this);
     }

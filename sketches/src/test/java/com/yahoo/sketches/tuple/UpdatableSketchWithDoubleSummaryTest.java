@@ -7,7 +7,7 @@ package com.yahoo.sketches.tuple;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -169,7 +169,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     sketch1.update(1, 1.0);
 
-    UpdatableSketch<Double, DoubleSummary> sketch2 = Sketches.heapifyUpdatableSketch(new NativeMemory(sketch1.toByteArray()));
+    UpdatableSketch<Double, DoubleSummary> sketch2 = Sketches.heapifyUpdatableSketch(WritableMemory.wrap(sketch1.toByteArray()));
 
     Assert.assertEquals(sketch2.getEstimate(), 1.0);
     DoubleSummary[] summaries = sketch2.getSummaries();
@@ -196,7 +196,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     //for visual testing
     //TestUtil.writeBytesToFile(bytes, "TupleSketchWithDoubleSummary4K.data");
 
-    Sketch<DoubleSummary> sketch2 = Sketches.heapifySketch(new NativeMemory(bytes));
+    Sketch<DoubleSummary> sketch2 = Sketches.heapifySketch(WritableMemory.wrap(bytes));
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 8192, 8192 * 0.99);
     Assert.assertEquals(sketch1.getTheta(), sketch2.getTheta());
@@ -211,7 +211,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     int numberOfUniques = sketchSize;
     UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).setNominalEntries(sketchSize).setSamplingProbability(0.5f).build();
     for (int i = 0; i < numberOfUniques; i++) sketch1.update(i, 1.0);
-    Sketch<DoubleSummary> sketch2 = Sketches.heapifySketch(new NativeMemory(sketch1.toByteArray()));
+    Sketch<DoubleSummary> sketch2 = Sketches.heapifySketch(WritableMemory.wrap(sketch1.toByteArray()));
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate() / numberOfUniques, 1.0, 0.01);
     Assert.assertEquals(sketch2.getRetainedEntries() / (double) numberOfUniques, 0.5, 0.01);

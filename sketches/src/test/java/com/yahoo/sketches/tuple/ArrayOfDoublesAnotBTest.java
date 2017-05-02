@@ -7,7 +7,7 @@ package com.yahoo.sketches.tuple;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 public class ArrayOfDoublesAnotBTest {
@@ -224,7 +224,7 @@ public class ArrayOfDoublesAnotBTest {
 
     // same operation, but compact sketches and off-heap result
     aNotB.update(sketchA.compact(), sketchB.compact());
-    result = aNotB.getResult(new NativeMemory(new byte[1000000]));
+    result = aNotB.getResult(WritableMemory.wrap(new byte[1000000]));
     Assert.assertFalse(result.isEmpty());
     Assert.assertEquals(result.getEstimate(), 4096.0, 4096 * 0.03); // crude estimate of RSE(95%) = 2 / sqrt(result.getRetainedEntries())
     Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());

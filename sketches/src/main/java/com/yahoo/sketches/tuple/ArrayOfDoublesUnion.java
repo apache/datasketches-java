@@ -5,12 +5,34 @@
 
 package com.yahoo.sketches.tuple;
 
-import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
+import com.yahoo.sketches.Family;
 
 /**
  * The base class for unions of tuple sketches of type ArrayOfDoubles.
  */
 public abstract class ArrayOfDoublesUnion {
+
+  static final byte serialVersionUID = 1;
+
+  static final int PREAMBLE_SIZE_BYTES = 16;
+  // Layout of first 16 bytes:
+  // Long || Start Byte Adr:
+  // Adr:
+  //      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
+  //  0   ||    Seed Hash    | #Dbls  |  Flags | SkType | FamID  | SerVer |  Preamble_Longs    |
+  //      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
+  //  1   ||------------------------------Theta Long-------------------------------------------|
+
+  static final int PREAMBLE_LONGS_BYTE = 0; // not used, always 1
+  static final int SERIAL_VERSION_BYTE = 1;
+  static final int FAMILY_ID_BYTE = 2;
+  static final int SKETCH_TYPE_BYTE = 3;
+  static final int FLAGS_BYTE = 4;
+  static final int NUM_VALUES_BYTE = 5;
+  static final int SEED_HASH_SHORT = 6;
+  static final int THETA_LONG = 8;
+
   final int nomEntries_;
   final int numValues_;
   final long seed_;
@@ -44,12 +66,17 @@ public abstract class ArrayOfDoublesUnion {
 
   /**
    * Returns the resulting union in the form of a compact sketch
-   * @param mem memory for the result (can be null)
+   * @param dstMem memory for the result (can be null)
    * @return compact sketch representing the union (off-heap if memory is provided)
    */
-  public ArrayOfDoublesCompactSketch getResult(final Memory mem) {
-    trim();
-    return sketch_.compact(mem);
+  public ArrayOfDoublesCompactSketch getResult(final WritableMemory dstMem) {
+    if (sketch_.getRetainedEntries() > sketch_.getNominalEntries()) {
+      theta_ = Math.min(theta_, sketch_.getNewTheta());
+    }
+    if (dstMem == null) {
+      return new HeapArrayOfDoublesCompactSketch(sketch_, theta_);
+    }
+    return new DirectArrayOfDoublesCompactSketch(sketch_, theta_, dstMem);
   }
 
   /**
@@ -69,8 +96,16 @@ public abstract class ArrayOfDoublesUnion {
    * @return a byte array representation of this object
    */
   public byte[] toByteArray() {
-    trim();
-    return sketch_.toByteArray();
+    final int sizeBytes = PREAMBLE_SIZE_BYTES + sketch_.getSerializedSizeBytes();
+    final byte[] byteArray = new byte[sizeBytes];
+    final WritableMemory mem = WritableMemory.wrap(byteArray);
+    mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 1); // unused, always 1
+    mem.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
+    mem.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
+    mem.putByte(SKETCH_TYPE_BYTE, (byte) SerializerDeserializer.SketchType.ArrayOfDoublesUnion.ordinal());
+    mem.putLong(THETA_LONG, theta_);
+    sketch_.serializeInto(mem.writableRegion(PREAMBLE_SIZE_BYTES, mem.getCapacity() - PREAMBLE_SIZE_BYTES));
+    return byteArray;
   }
 
   /**
@@ -83,12 +118,8 @@ public abstract class ArrayOfDoublesUnion {
     return ArrayOfDoublesQuickSelectSketch.getMaxBytes(nomEntries, numValues);
   }
 
-  private void trim() {
-    sketch_.trim();
-    if (theta_ < sketch_.getThetaLong()) {
-      sketch_.setThetaLong(theta_);
-      sketch_.rebuild();
-    }
+  void setThetaLong(final long theta) {
+    theta_ = theta;
   }
 
 }
