@@ -13,6 +13,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedNullOrEmpty;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
@@ -67,6 +68,16 @@ public abstract class UpdateSketch extends Sketch {
         throw new SketchesArgumentException(
             "Corrupted: " + family + " family image: must have SerVer = 3 and preLongs = 3");
     }
+  }
+
+  /**
+   * Instantiates an on-heap UpdateSketch from Memory.
+   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * @return an UpdateSketch
+   */
+  public static UpdateSketch heapify(final Memory srcMem, final long seed) {
+    return HeapQuickSelectSketch.heapifyInstance(srcMem, seed);
   }
 
   //Sketch interface
