@@ -245,7 +245,7 @@ public class DirectQuickSelectSketchTest {
     double sk1ub  = sk1.getUpperBound(2);
     assertEquals(sk1.isEstimationMode(), estimating);
 
-    Sketch sk2 = UpdateSketch.wrap(mem);
+    Sketch sk2 = Sketch.wrap(mem);
 
     assertEquals(sk2.getEstimate(), sk1est);
     assertEquals(sk2.getLowerBound(2), sk1lb);
@@ -615,7 +615,7 @@ public class DirectQuickSelectSketchTest {
     WritableMemory mem2 = WritableMemory.wrap(serArr);
 
     //reconstruct to Native/Direct
-    UpdateSketch usk2 = (UpdateSketch) Sketch.wrap(mem2);
+    UpdateSketch usk2 = UpdateSketch.wrap(mem2);
 
     est2 = usk2.getEstimate();
     count2 = usk2.getRetainedEntries(false);
@@ -627,7 +627,7 @@ public class DirectQuickSelectSketchTest {
   @Test(expectedExceptions = SketchesReadOnlyException.class)
   public void updateAfterReadOnlyWrap() {
     UpdateSketch usk1 = UpdateSketch.builder().build();
-    UpdateSketch usk2 = (UpdateSketch) Sketch.wrap(Memory.wrap(usk1.toByteArray()));
+    UpdateSketch usk2 = UpdateSketch.wrap(WritableMemory.wrap(usk1.toByteArray()));
     usk2.update(0);
   }
 

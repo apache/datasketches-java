@@ -7,6 +7,7 @@ package com.yahoo.sketches.tuple;
 
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 
+import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.hash.MurmurHash3;
 
@@ -23,12 +24,31 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
   }
 
   /**
+   * Heapify the given Memory as an ArrayOfDoublesUpdatableSketch
+   * @param mem the given Memory
+   * @return an ArrayOfDoublesUpdatableSketch
+   */
+  public static ArrayOfDoublesUpdatableSketch heapify(final Memory mem) {
+    return heapify(mem, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Heapify the given Memory and seed as a ArrayOfDoublesUpdatableSketch
+   * @param mem the given Memory
+   * @param seed the given seed
+   * @return an ArrayOfDoublesUpdatableSketch
+   */
+  public static ArrayOfDoublesUpdatableSketch heapify(final Memory mem, final long seed) {
+    return new HeapArrayOfDoublesQuickSelectSketch(mem, seed);
+  }
+
+  /**
    * Wrap the given WritableMemory as an ArrayOfDoublesUpdatableSketch
    * @param mem the given Memory
    * @return an ArrayOfDoublesUpdatableSketch
    */
-  public static ArrayOfDoublesUpdatableSketch wrapSketch(final WritableMemory mem) {
-    return wrapSketch(mem, DEFAULT_UPDATE_SEED);
+  public static ArrayOfDoublesUpdatableSketch wrap(final WritableMemory mem) {
+    return wrap(mem, DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -37,7 +57,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @param seed the given seed
    * @return an ArrayOfDoublesUpdatableSketch
    */
-  public static ArrayOfDoublesUpdatableSketch wrapSketch(final WritableMemory mem, final long seed) {
+  public static ArrayOfDoublesUpdatableSketch wrap(final WritableMemory mem, final long seed) {
     return new DirectArrayOfDoublesQuickSelectSketch(mem, seed);
   }
 

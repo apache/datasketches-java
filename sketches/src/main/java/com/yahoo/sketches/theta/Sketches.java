@@ -56,8 +56,27 @@ public final class Sketches {
   }
 
   /**
-   * Ref: {@link Sketch#wrap(Memory) Sketch.heapify(Memory)}
-   * @param srcMem Ref: {@link Sketch#wrap(Memory) Sketch.heapify(Memory)} {@code srcMem}
+   * Ref: {@link UpdateSketch#heapify(Memory) UpdateSketch.heapify(Memory)}
+   * @param srcMem Ref: {@link UpdateSketch#heapify(Memory) UpdateSketch.heapify(Memory)} {@code srcMem}
+   * @return {@link UpdateSketch UpdateSketch}
+   */
+  public static UpdateSketch heapifyUpdateSketch(final Memory srcMem) {
+    return UpdateSketch.heapify(srcMem);
+  }
+
+  /**
+   * Ref: {@link UpdateSketch#heapify(Memory, long) UpdateSketch.heapify(Memory, long)}
+   * @param srcMem Ref: {@link UpdateSketch#heapify(Memory, long) UpdateSketch.heapify(Memory, long)} {@code srcMem}
+   * @param seed Ref: {@link UpdateSketch#heapify(Memory, long) UpdateSketch.heapify(Memory, long)} {@code seed}
+   * @return {@link UpdateSketch UpdateSketch}
+   */
+  public static UpdateSketch heapifyUpdateSketch(final Memory srcMem, final long seed) {
+    return UpdateSketch.heapify(srcMem, seed);
+  }
+
+  /**
+   * Ref: {@link Sketch#wrap(Memory) Sketch.wrap(Memory)}
+   * @param srcMem Ref: {@link Sketch#wrap(Memory) Sketch.wrap(Memory)} {@code srcMem}
    * @return {@link Sketch Sketch}
    */
   public static Sketch wrapSketch(final Memory srcMem) {
@@ -72,6 +91,25 @@ public final class Sketches {
    */
   public static Sketch wrapSketch(final Memory srcMem, final long seed) {
     return Sketch.wrap(srcMem, seed);
+  }
+
+  /**
+   * Ref: {@link UpdateSketch#wrap(Memory) UpdateSketch.wrap(Memory)}
+   * @param srcMem Ref: {@link UpdateSketch#wrap(Memory) UpdateSketch.wrap(Memory)} {@code srcMem}
+   * @return {@link UpdateSketch UpdateSketch}
+   */
+  public static UpdateSketch wrapUpdateSketch(final WritableMemory srcMem) {
+    return UpdateSketch.wrap(srcMem);
+  }
+
+  /**
+   * Ref: {@link UpdateSketch#wrap(Memory, long) UpdateSketch.wrap(Memory, long)}
+   * @param srcMem Ref: {@link UpdateSketch#wrap(Memory, long) UpdateSketch.wrap(Memory, long)} {@code srcMem}
+   * @param seed Ref: {@link UpdateSketch#wrap(Memory, long) UpdateSketch.wrap(Memory, long)} {@code seed}
+   * @return {@link UpdateSketch UpdateSketch}
+   */
+  public static UpdateSketch wrapUpdateSketch(final WritableMemory srcMem, final long seed) {
+    return UpdateSketch.wrap(srcMem, seed);
   }
 
   /**

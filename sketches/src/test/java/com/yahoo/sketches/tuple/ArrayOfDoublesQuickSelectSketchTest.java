@@ -30,7 +30,7 @@ public class ArrayOfDoublesQuickSelectSketchTest {
     sketch1.update("d", valuesArr);
     sketch1.update("a", valuesArr);
     noopUpdates(sketch1, valuesArr);
-    ArrayOfDoublesUpdatableSketch sketch2 = ArrayOfDoublesUpdatableSketch.wrapSketch(WritableMemory.wrap(sketch1.toByteArray()));
+    ArrayOfDoublesUpdatableSketch sketch2 = ArrayOfDoublesUpdatableSketch.wrap(WritableMemory.wrap(sketch1.toByteArray()));
     sketch2.update("b", valuesArr);
     sketch2.update("c", valuesArr);
     sketch2.update("d", valuesArr);
@@ -61,7 +61,7 @@ public class ArrayOfDoublesQuickSelectSketchTest {
     sketch1.update("b", values);
     sketch1.update("c", values);
 
-    ArrayOfDoublesUpdatableSketch sketch2 = ArrayOfDoublesUpdatableSketch.wrapSketch(WritableMemory.wrap(sketch1.toByteArray()), seed);
+    ArrayOfDoublesUpdatableSketch sketch2 = ArrayOfDoublesUpdatableSketch.wrap(WritableMemory.wrap(sketch1.toByteArray()), seed);
     sketch2.update("b", values);
     sketch2.update("c", values);
     sketch2.update("d", values);
@@ -88,8 +88,7 @@ public class ArrayOfDoublesQuickSelectSketchTest {
     sketch1.update("d", valuesArr);
     sketch1.update("a", valuesArr);
     noopUpdates(sketch1, valuesArr);
-    ArrayOfDoublesUpdatableSketch sketch2 = (ArrayOfDoublesUpdatableSketch) 
-        ArrayOfDoublesSketches.heapifySketch(Memory.wrap(sketch1.toByteArray()));
+    ArrayOfDoublesUpdatableSketch sketch2 = ArrayOfDoublesUpdatableSketch.heapify(Memory.wrap(sketch1.toByteArray()));
     sketch2.update("b", valuesArr);
     sketch2.update("c", valuesArr);
     sketch2.update("d", valuesArr);
@@ -121,8 +120,7 @@ public class ArrayOfDoublesQuickSelectSketchTest {
     sketch1.update("b", values);
     sketch1.update("c", values);
 
-    ArrayOfDoublesUpdatableSketch sketch2 = (ArrayOfDoublesUpdatableSketch) 
-        ArrayOfDoublesSketches.heapifySketch(Memory.wrap(sketch1.toByteArray()), seed);
+    ArrayOfDoublesUpdatableSketch sketch2 = ArrayOfDoublesUpdatableSketch.heapify(Memory.wrap(sketch1.toByteArray()), seed);
     sketch2.update("b", values);
     sketch2.update("c", values);
     sketch2.update("d", values);

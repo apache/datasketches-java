@@ -5,6 +5,10 @@
 
 package com.yahoo.sketches.tuple;
 
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.BinomialBoundsN;
 
 /**
@@ -48,6 +52,52 @@ public abstract class ArrayOfDoublesSketch {
 
   ArrayOfDoublesSketch(final int numValues) {
     numValues_ = numValues;
+  }
+
+  /**
+   * Heapify the given Memory as an ArrayOfDoublesSketch
+   * @param mem the given Memory
+   * @return an ArrayOfDoublesSketch
+   */
+  public static ArrayOfDoublesSketch heapify(final Memory mem) {
+    return heapify(mem, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Heapify the given Memory and seed as a ArrayOfDoublesSketch
+   * @param mem the given Memory
+   * @param seed the given seed
+   * @return an ArrayOfDoublesSketch
+   */
+  public static ArrayOfDoublesSketch heapify(final Memory mem, final long seed) {
+    final SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(mem);
+    if (sketchType == SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch) {
+      return new HeapArrayOfDoublesQuickSelectSketch(mem, seed);
+    }
+    return new HeapArrayOfDoublesCompactSketch(mem, seed);
+  }
+
+  /**
+   * Wrap the given Memory as an ArrayOfDoublesSketch
+   * @param mem the given Memory
+   * @return an ArrayOfDoublesSketch
+   */
+  public static ArrayOfDoublesSketch wrap(final Memory mem) {
+    return wrap(mem, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Wrap the given Memory and seed as a ArrayOfDoublesSketch
+   * @param mem the given Memory
+   * @param seed the given seed
+   * @return an ArrayOfDoublesSketch
+   */
+  public static ArrayOfDoublesSketch wrap(final Memory mem, final long seed) {
+    final SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(mem);
+    if (sketchType == SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch) {
+      return new DirectArrayOfDoublesQuickSelectSketchR((WritableMemory) mem, seed);
+    }
+    return new DirectArrayOfDoublesCompactSketch(mem, seed);
   }
 
   /**

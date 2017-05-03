@@ -185,7 +185,7 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
         build(WritableMemory.wrap(new byte[1000000]));
     sketch1.update(1, new double[] {1.0});
 
-    ArrayOfDoublesUpdatableSketch sketch2 = ArrayOfDoublesUpdatableSketch.wrapSketch(WritableMemory.wrap(sketch1.toByteArray()));
+    ArrayOfDoublesUpdatableSketch sketch2 = ArrayOfDoublesUpdatableSketch.wrap(WritableMemory.wrap(sketch1.toByteArray()));
 
     Assert.assertEquals(sketch2.getEstimate(), 1.0);
     double[][] values = sketch2.getValues();
@@ -213,7 +213,7 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
     //for visual testing
     //TestUtil.writeBytesToFile(byteArray, "ArrayOfDoublesQuickSelectSketch4K.data");
 
-    ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketches.wrapSketch(WritableMemory.wrap(byteArray));
+    ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketch.wrap(WritableMemory.wrap(byteArray));
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 8192, 8192 * 0.99);
     Assert.assertEquals(sketch1.getTheta(), sketch2.getTheta());
@@ -232,7 +232,7 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
         build(WritableMemory.wrap(new byte[1000000]));
     for (int i = 0; i < numberOfUniques; i++) sketch1.update(i, new double[] {1.0});
     ArrayOfDoublesSketch sketch2 = 
-        ArrayOfDoublesSketches.wrapSketch(WritableMemory.wrap(sketch1.toByteArray()));
+        ArrayOfDoublesSketch.wrap(WritableMemory.wrap(sketch1.toByteArray()));
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate() / numberOfUniques, 1.0, 0.01);
     Assert.assertEquals(sketch2.getRetainedEntries() / (double) numberOfUniques, 0.5, 0.01);

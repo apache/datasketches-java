@@ -8,6 +8,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.ResizeFactor;
 
 public class HeapArrayOfDoublesQuickSelectSketchTest {
@@ -160,7 +161,7 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
     ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch1.update(1, new double[] {1.0});
 
-    ArrayOfDoublesUpdatableSketch sketch2 = (ArrayOfDoublesUpdatableSketch) ArrayOfDoublesSketches.heapifySketch(Memory.wrap(sketch1.toByteArray()));
+    ArrayOfDoublesUpdatableSketch sketch2 = ArrayOfDoublesUpdatableSketch.heapify(WritableMemory.wrap(sketch1.toByteArray()));
 
     Assert.assertEquals(sketch2.getEstimate(), 1.0);
     double[][] values = sketch2.getValues();
@@ -187,7 +188,7 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
     //for visual testing
     //TestUtil.writeBytesToFile(byteArray, "ArrayOfDoublesQuickSelectSketch4K.data");
 
-    ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketches.heapifySketch(Memory.wrap(byteArray));
+    ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketch.heapify(Memory.wrap(byteArray));
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 8192, 8192 * 0.99);
     Assert.assertEquals(sketch1.getTheta(), sketch2.getTheta());
@@ -202,7 +203,7 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
     int numberOfUniques = sketchSize;
     ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setNominalEntries(sketchSize).setSamplingProbability(0.5f).build();
     for (int i = 0; i < numberOfUniques; i++) sketch1.update(i, new double[] {1.0});
-    ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketches.heapifySketch(Memory.wrap(sketch1.toByteArray()));
+    ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketch.heapify(Memory.wrap(sketch1.toByteArray()));
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate() / numberOfUniques, 1.0, 0.01);
     Assert.assertEquals(sketch2.getRetainedEntries() / (double) numberOfUniques, 0.5, 0.01);

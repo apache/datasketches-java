@@ -140,7 +140,7 @@ public class ArrayOfDoublesUnionTest {
     union1.update(sketch1);
     union1.update(sketch2);
 
-    ArrayOfDoublesUnion union2 = ArrayOfDoublesSketches.heapifyUnion(Memory.wrap(union1.toByteArray()));
+    ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.heapify(Memory.wrap(union1.toByteArray()));
     ArrayOfDoublesCompactSketch result = union2.getResult();
     Assert.assertEquals(result.getEstimate(), 12288.0, 12288 * 0.01);
   
@@ -159,7 +159,7 @@ public class ArrayOfDoublesUnionTest {
   @Test
   public void heapDeserializeV0_9_1() throws Exception {
     byte[] bytes = TestUtil.readBytesFromFile(getClass().getClassLoader().getResource("ArrayOfDoublesUnion_v0.9.1.bin").getFile());
-    ArrayOfDoublesUnion union2 = ArrayOfDoublesSketches.heapifyUnion(Memory.wrap(bytes));
+    ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.heapify(Memory.wrap(bytes));
     ArrayOfDoublesCompactSketch result = union2.getResult();
     Assert.assertEquals(result.getEstimate(), 12288.0, 12288 * 0.01);
   
@@ -190,7 +190,7 @@ public class ArrayOfDoublesUnionTest {
     union1.update(sketch1);
     union1.update(sketch2);
 
-    ArrayOfDoublesUnion union2 = ArrayOfDoublesSketches.heapifyUnion(Memory.wrap(union1.toByteArray()), seed);
+    ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.heapify(Memory.wrap(union1.toByteArray()), seed);
     ArrayOfDoublesCompactSketch result = union2.getResult();
     Assert.assertEquals(result.getEstimate(), 12288.0, 12288 * 0.01);
   }
@@ -212,8 +212,7 @@ public class ArrayOfDoublesUnionTest {
     union1.update(sketch1);
     union1.update(sketch2);
 
-    ArrayOfDoublesUnion union2 = ArrayOfDoublesSketches.wrapUnion(
-        WritableMemory.wrap(union1.toByteArray()));
+    ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.wrap(WritableMemory.wrap(union1.toByteArray()));
     ArrayOfDoublesCompactSketch result = union2.getResult(WritableMemory.wrap(new byte[1000000]));
     Assert.assertEquals(result.getEstimate(), 12288.0, 12288 * 0.01);
   
@@ -247,8 +246,7 @@ public class ArrayOfDoublesUnionTest {
     union1.update(sketch1);
     union1.update(sketch2);
 
-    ArrayOfDoublesUnion union2 = ArrayOfDoublesSketches.wrapUnion(
-        WritableMemory.wrap(union1.toByteArray()), seed);
+    ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.wrap(WritableMemory.wrap(union1.toByteArray()), seed);
     ArrayOfDoublesCompactSketch result = union2.getResult(WritableMemory.wrap(new byte[1000000]));
     Assert.assertEquals(result.getEstimate(), 12288.0, 12288 * 0.01);
   }
@@ -332,7 +330,7 @@ public class ArrayOfDoublesUnionTest {
     ArrayOfDoublesUnion heapUnion = new ArrayOfDoublesSetOperationBuilder().buildUnion();
     heapUnion.update(sketch1);
 
-    ArrayOfDoublesUnion directUnion = ArrayOfDoublesSketches.wrapUnion(WritableMemory.wrap(heapUnion.toByteArray()));
+    ArrayOfDoublesUnion directUnion = ArrayOfDoublesUnion.wrap(WritableMemory.wrap(heapUnion.toByteArray()));
     directUnion.update(sketch2);
 
     ArrayOfDoublesCompactSketch result = directUnion.getResult(WritableMemory.wrap(new byte[1000000]));
@@ -363,7 +361,7 @@ public class ArrayOfDoublesUnionTest {
     ArrayOfDoublesUnion directUnion = new ArrayOfDoublesSetOperationBuilder().buildUnion(WritableMemory.wrap(new byte[1000000]));
     directUnion.update(sketch1);
 
-    ArrayOfDoublesUnion heapUnion = ArrayOfDoublesSketches.heapifyUnion(Memory.wrap(directUnion.toByteArray()));
+    ArrayOfDoublesUnion heapUnion = ArrayOfDoublesUnion.heapify(Memory.wrap(directUnion.toByteArray()));
     heapUnion.update(sketch2);
 
     ArrayOfDoublesCompactSketch result = heapUnion.getResult();
