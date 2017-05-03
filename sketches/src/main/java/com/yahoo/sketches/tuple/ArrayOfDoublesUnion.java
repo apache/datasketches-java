@@ -188,8 +188,9 @@ public abstract class ArrayOfDoublesUnion {
 
     // compatibility with version 0.9.1 and lower
     if (type == SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch) {
-      final ArrayOfDoublesQuickSelectSketch sketch = new DirectArrayOfDoublesQuickSelectSketch(mem, seed);
-      return new DirectArrayOfDoublesUnion(sketch, mem);
+      final ArrayOfDoublesQuickSelectSketch sketch = isWritable ?
+          new DirectArrayOfDoublesQuickSelectSketch(mem, seed) : new DirectArrayOfDoublesQuickSelectSketchR(mem, seed);
+      return isWritable ? new DirectArrayOfDoublesUnion(sketch, mem) : new DirectArrayOfDoublesUnionR(sketch, mem);
     }
 
     final byte version = mem.getByte(ArrayOfDoublesUnion.SERIAL_VERSION_BYTE);

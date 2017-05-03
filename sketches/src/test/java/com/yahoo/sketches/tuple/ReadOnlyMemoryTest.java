@@ -60,4 +60,39 @@ public class ReadOnlyMemoryTest {
     Assert.assertTrue(thrown);
   }
 
+  @Test
+  public void heapifyAndUpdateUnion() {
+    int numUniques = 10000;
+    int key = 0;
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    for (int i = 0; i < numUniques; i++) sketch1.update(key++, new double[] {1});
+    ArrayOfDoublesUnion union1 = new ArrayOfDoublesSetOperationBuilder().buildUnion();
+    union1.update(sketch1);
+    ArrayOfDoublesUnion union2 = ArrayOfDoublesSketches.heapifyUnion(Memory.wrap(union1.toByteArray()));
+    ArrayOfDoublesSketch resultSketch = union2.getResult();
+    Assert.assertTrue(resultSketch.isEstimationMode());
+    Assert.assertEquals(resultSketch.getEstimate(), numUniques, numUniques * 0.04);
+
+    // make sure union update actually needs to modify the union
+    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    for (int i = 0; i < numUniques; i++) sketch2.update(key++, new double[] {1});
+    union2.update(sketch2);
+  }
+
+  @Test
+  public void wrapAndTryUpdatingUnionV0_9_1() throws Exception {
+    byte[] bytes = TestUtil.readBytesFromFile(getClass().getClassLoader().getResource("ArrayOfDoublesUnion_v0.9.1.bin").getFile());
+    ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.wrap(Memory.wrap(bytes));
+    ArrayOfDoublesCompactSketch result = union2.getResult();
+    Assert.assertEquals(result.getEstimate(), 12288.0, 12288 * 0.01);
+  
+    boolean thrown = false;
+    try {
+      union2.reset();
+    } catch (SketchesReadOnlyException e) {
+      thrown = true;
+    }
+    Assert.assertTrue(thrown);
+  }
+
 }
