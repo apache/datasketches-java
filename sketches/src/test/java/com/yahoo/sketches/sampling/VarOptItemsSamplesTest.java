@@ -57,7 +57,7 @@ public class VarOptItemsSamplesTest {
   @Test
   public void checkPolymorphicBaseClass() {
     // use setClass()
-    final VarOptItemsSketch<Number> sketch = VarOptItemsSketch.getInstance(12);
+    final VarOptItemsSketch<Number> sketch = VarOptItemsSketch.build(12);
     sketch.update(1, 0.5);
     sketch.update(2L, 1.7);
     sketch.update(3.0f, 2.0);
@@ -83,7 +83,7 @@ public class VarOptItemsSamplesTest {
   @Test
   public void checkEmptySketch() {
     // verify what happens when n_ == 0
-    final VarOptItemsSketch<String> sketch = VarOptItemsSketch.getInstance(32);
+    final VarOptItemsSketch<String> sketch = VarOptItemsSketch.build(32);
     assertEquals(sketch.getNumSamples(), 0);
 
     final VarOptItemsSamples<String> samples = sketch.getSketchSamples();

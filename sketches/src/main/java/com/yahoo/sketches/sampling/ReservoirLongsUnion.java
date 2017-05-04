@@ -65,7 +65,7 @@ public final class ReservoirLongsUnion {
    * @param maxK The maximum allowed reservoir capacity for any sketches in the union
    * @return A new ReservoirLongsUnion
    */
-  public static ReservoirLongsUnion getInstance(final int maxK) {
+  public static ReservoirLongsUnion build(final int maxK) {
     return new ReservoirLongsUnion(maxK);
   }
 
@@ -75,7 +75,7 @@ public final class ReservoirLongsUnion {
    * @param srcMem Memory object containing a serialized union
    * @return A ReservoirLongsUnion created from the provided Memory
    */
-  public static ReservoirLongsUnion getInstance(Memory srcMem) {
+  public static ReservoirLongsUnion heapify(Memory srcMem) {
     Family.RESERVOIR_UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
 
     final int numPreLongs, serVer;
@@ -182,7 +182,7 @@ public final class ReservoirLongsUnion {
       return;
     }
 
-    ReservoirLongsSketch rls = ReservoirLongsSketch.getInstance(mem);
+    ReservoirLongsSketch rls = ReservoirLongsSketch.heapify(mem);
 
     rls = (rls.getK() <= maxK_ ? rls : rls.downsampledCopy(maxK_));
 
@@ -200,7 +200,7 @@ public final class ReservoirLongsUnion {
    */
   public void update(final long datum) {
     if (gadget_ == null) {
-      gadget_ = ReservoirLongsSketch.getInstance(maxK_);
+      gadget_ = ReservoirLongsSketch.build(maxK_);
     }
     gadget_.update(datum);
   }
@@ -294,7 +294,7 @@ public final class ReservoirLongsUnion {
       // incoming sketch is in exact mode with sketch's k < maxK,
       // so we can create a gadget at size maxK and keep everything
       // NOTE: assumes twoWayMergeInternal first checks if sketchIn is in exact mode
-      gadget_ = ReservoirLongsSketch.getInstance(maxK_);
+      gadget_ = ReservoirLongsSketch.build(maxK_);
       twoWayMergeInternal(sketchIn, isModifiable); // isModifiable could be fixed to false here
     } else {
       // use the input sketch as gadget, copying if needed

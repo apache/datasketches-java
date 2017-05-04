@@ -30,7 +30,7 @@ public class VersionConverterTest {
     final short encK = ReservoirSize.computeSize(k);
     final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
 
-    final ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.getInstance(k);
+    final ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.build(k);
 
     // get a new byte[], manually revert to v1, then reconstruct
     final byte[] sketchBytes = ris.toByteArray(serDe);

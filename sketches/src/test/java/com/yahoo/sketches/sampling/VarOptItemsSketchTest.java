@@ -29,7 +29,7 @@ public class VarOptItemsSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidK() {
-    VarOptItemsSketch.<Integer>getInstance(0);
+    VarOptItemsSketch.<Integer>build(0);
     fail();
   }
 
@@ -41,7 +41,7 @@ public class VarOptItemsSketchTest {
 
     mem.putByte(SER_VER_BYTE, (byte) 0); // corrupt the serialization version
 
-    VarOptItemsSketch.getInstance(mem, new ArrayOfLongsSerDe());
+    VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
     fail();
   }
 
@@ -53,7 +53,7 @@ public class VarOptItemsSketchTest {
 
     mem.putByte(FAMILY_BYTE, (byte) 0); // corrupt the family ID
 
-    VarOptItemsSketch.getInstance(mem, new ArrayOfLongsSerDe());
+    VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
     fail();
   }
 
@@ -66,7 +66,7 @@ public class VarOptItemsSketchTest {
     // corrupt the preLongs count to 0
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) (Family.VAROPT.getMinPreLongs() - 1));
     try {
-      VarOptItemsSketch.getInstance(mem, new ArrayOfLongsSerDe());
+      VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
       fail();
     } catch (final SketchesArgumentException e) {
       // expected
@@ -74,7 +74,7 @@ public class VarOptItemsSketchTest {
 
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 2); // corrupt the preLongs count to 2
     try {
-      VarOptItemsSketch.getInstance(mem, new ArrayOfLongsSerDe());
+      VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
       fail();
     } catch (final SketchesArgumentException e) {
       // expected
@@ -83,7 +83,7 @@ public class VarOptItemsSketchTest {
     // corrupt the preLongs count to be too large
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) (Family.VAROPT.getMaxPreLongs() + 1));
     try {
-      VarOptItemsSketch.getInstance(mem, new ArrayOfLongsSerDe());
+      VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
       fail();
     } catch (final SketchesArgumentException e) {
       // expected
@@ -129,7 +129,7 @@ public class VarOptItemsSketchTest {
     // no items in R but max preLongs
     try {
       PreambleUtil.insertPreLongs(memObj, memAddr, Family.VAROPT.getMaxPreLongs());
-      VarOptItemsSketch.getInstance(mem, new ArrayOfLongsSerDe());
+      VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
       fail();
     } catch (final SketchesArgumentException e) {
       assertTrue(e.getMessage().startsWith("Possible Corruption: "
@@ -143,7 +143,7 @@ public class VarOptItemsSketchTest {
     // negative H region count
     try {
       PreambleUtil.insertHRegionItemCount(memObj, memAddr, -1);
-      VarOptItemsSketch.getInstance(mem, new ArrayOfLongsSerDe());
+      VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
       fail();
     } catch (final SketchesArgumentException e) {
       assertTrue(e.getMessage().equals("Possible Corruption: H region count cannot be negative: -1"));
@@ -156,7 +156,7 @@ public class VarOptItemsSketchTest {
     // negative R region count
     try {
       PreambleUtil.insertRRegionItemCount(memObj, memAddr, -128);
-      VarOptItemsSketch.getInstance(mem, new ArrayOfLongsSerDe());
+      VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
       fail();
     } catch (final SketchesArgumentException e) {
       assertTrue(e.getMessage().equals("Possible Corruption: R region count cannot be negative: -128"));
@@ -169,7 +169,7 @@ public class VarOptItemsSketchTest {
     // invalid k < 2
     try {
       PreambleUtil.insertK(memObj, memAddr, 0);
-      VarOptItemsSketch.getInstance(mem, new ArrayOfLongsSerDe());
+      VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
       fail();
     } catch (final SketchesArgumentException e) {
       assertTrue(e.getMessage().equals("Possible Corruption: k must be at least 2: 0"));
@@ -182,7 +182,7 @@ public class VarOptItemsSketchTest {
     // invalid n < 0
     try {
       PreambleUtil.insertN(memObj, memAddr, -1024);
-      VarOptItemsSketch.getInstance(mem, new ArrayOfLongsSerDe());
+      VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
       fail();
     } catch (final SketchesArgumentException e) {
       assertTrue(e.getMessage().equals("Possible Corruption: n cannot be negative: -1024"));
@@ -191,7 +191,7 @@ public class VarOptItemsSketchTest {
 
   @Test
   public void checkEmptySketch() {
-    final VarOptItemsSketch<String> vis = VarOptItemsSketch.getInstance(5);
+    final VarOptItemsSketch<String> vis = VarOptItemsSketch.build(5);
     assertEquals(vis.getN(), 0);
     assertEquals(vis.getNumSamples(), 0);
     assertNull(vis.getSamplesAsArrays());
@@ -203,7 +203,7 @@ public class VarOptItemsSketchTest {
     // only minPreLongs bytes and should deserialize to empty
     assertEquals(sketchBytes.length, Family.VAROPT.getMinPreLongs() << 3);
     final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
-    final VarOptItemsSketch<String> loadedVis = VarOptItemsSketch.getInstance(mem, serDe);
+    final VarOptItemsSketch<String> loadedVis = VarOptItemsSketch.heapify(mem, serDe);
     assertEquals(loadedVis.getNumSamples(), 0);
 
     println("Empty sketch:");
@@ -219,7 +219,7 @@ public class VarOptItemsSketchTest {
     // PreambleUtil.VO_WARMUP_PRELONGS-sized byte array
     // so there'll be no items, then clear the empty flag so it will try to load
     // the rest.
-    final VarOptItemsSketch<String> vis = VarOptItemsSketch.getInstance(12, ResizeFactor.X2);
+    final VarOptItemsSketch<String> vis = VarOptItemsSketch.build(12, ResizeFactor.X2);
     final byte[] sketchBytes = vis.toByteArray(new ArrayOfStringsSerDe());
     final byte[] dstByteArr = new byte[PreambleUtil.VO_WARMUP_PRELONGS << 3];
     final Memory mem = new NativeMemory(dstByteArr);
@@ -233,14 +233,14 @@ public class VarOptItemsSketchTest {
     PreambleUtil.insertRRegionItemCount(memObj, memAddr, 0);
 
     final VarOptItemsSketch<String> rebuilt
-            = VarOptItemsSketch.getInstance(mem, new ArrayOfStringsSerDe());
+            = VarOptItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
     assertNotNull(rebuilt);
     assertEquals(rebuilt.getNumSamples(), 0);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidWeight() {
-    final VarOptItemsSketch<String> vis = VarOptItemsSketch.getInstance(5);
+    final VarOptItemsSketch<String> vis = VarOptItemsSketch.build(5);
     try {
       vis.update(null, 1.0); // should work fine
     } catch (final SketchesArgumentException e) {
@@ -252,7 +252,7 @@ public class VarOptItemsSketchTest {
 
   @Test
   public void checkCorruptSerializedWeight() {
-    final VarOptItemsSketch<String> vis = VarOptItemsSketch.getInstance(24);
+    final VarOptItemsSketch<String> vis = VarOptItemsSketch.build(24);
     for (int i = 1; i < 10; ++i) {
       vis.update(Integer.toString(i), i);
     }
@@ -268,11 +268,11 @@ public class VarOptItemsSketchTest {
     mem.putDouble(weightOffset, -1.25); // inject a negative weight
 
     try {
-      VarOptItemsSketch.getInstance(mem, new ArrayOfStringsSerDe());
+      VarOptItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
       fail();
     } catch (final SketchesArgumentException e) {
       assertTrue(e.getMessage().equals("Possible Corruption: Non-positive weight in "
-              + "getInstance(): -1.25"));
+              + "heapify(): -1.25"));
     }
   }
 
@@ -280,7 +280,7 @@ public class VarOptItemsSketchTest {
   public void checkCumulativeWeight() {
     final int k = 256;
     final int n = 10 * k;
-    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.getInstance(k);
+    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.build(k);
 
     double inputSum = 0.0;
     for (long i = 0; i < n; ++i) {
@@ -303,7 +303,7 @@ public class VarOptItemsSketchTest {
 
   @Test
   public void checkUnderFullSketchSerialization() {
-    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.getInstance(2048);
+    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.build(2048);
     for (long i = 0; i < 10; ++i) {
       sketch.update(i, 1.0);
     }
@@ -318,7 +318,7 @@ public class VarOptItemsSketchTest {
     assertEquals(PreambleUtil.extractPreLongs(memObj, memAddr), PreambleUtil.VO_WARMUP_PRELONGS);
 
     final VarOptItemsSketch<Long> rebuilt
-            = VarOptItemsSketch.getInstance(mem, new ArrayOfLongsSerDe());
+            = VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
     checkIfEqual(rebuilt, sketch);
   }
 
@@ -336,13 +336,13 @@ public class VarOptItemsSketchTest {
     assertEquals(PreambleUtil.extractPreLongs(memObj, memAddr), PreambleUtil.VO_WARMUP_PRELONGS);
 
     final VarOptItemsSketch<Long> rebuilt
-            = VarOptItemsSketch.getInstance(mem, new ArrayOfLongsSerDe());
+            = VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
     checkIfEqual(rebuilt, sketch);
   }
 
   @Test
   public void checkFullSketchSerialization() {
-    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.getInstance(32);
+    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.build(32);
     for (long i = 0; i < 32; ++i) {
       sketch.update(i, 1.0);
     }
@@ -368,7 +368,7 @@ public class VarOptItemsSketchTest {
     assertEquals(PreambleUtil.extractPreLongs(memObj, memAddr), Family.VAROPT.getMaxPreLongs());
 
     final VarOptItemsSketch<Long> rebuilt
-            = VarOptItemsSketch.getInstance(mem, new ArrayOfLongsSerDe());
+            = VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
     checkIfEqual(rebuilt, sketch);
   }
 
@@ -389,7 +389,7 @@ public class VarOptItemsSketchTest {
   public void checkPseudoHeavyUpdates() {
     final int k = 1024;
     final double wtScale = 10.0 * k;
-    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.getInstance(k);
+    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.build(k);
     for (long i = 0; i <= k; ++i) {
       sketch.update(i, 1.0);
     }
@@ -420,7 +420,7 @@ public class VarOptItemsSketchTest {
      one of the non-warmup routes.
    */
   static VarOptItemsSketch<Long> getUnweightedLongsVIS(final int k, final int n) {
-    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.getInstance(k);
+    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.build(k);
     for (long i = 0; i < n; ++i) {
       sketch.update(i, 1.0);
     }

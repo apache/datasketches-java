@@ -7,6 +7,7 @@ package com.yahoo.sketches.sampling;
 
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * This class provides access to the samples contained in a VarOptItemsSketch. It provides two
@@ -34,17 +35,24 @@ class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.WeightedSa
   private final VarOptItemsSketch<T> sketch_;
   private VarOptItemsSketch<T>.Result sampleLists;
   private final long n_;
-  private final double rWeight_;
   private final int h_;
+  private final double rWeight_;
 
   /**
    * A convenience class to allow easy iterator access to a VarOpt sample.
    */
   public final class WeightedSample {
     private final int idx_;
+    private double adjustedWeight_;
 
     private WeightedSample(final int i) {
       idx_ = i;
+      adjustedWeight_ = Double.NaN;
+    }
+
+    private WeightedSample(final int i, final double adjustedWeight) {
+      idx_ = i;
+      adjustedWeight_ = adjustedWeight;
     }
 
     /**
@@ -60,26 +68,55 @@ class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.WeightedSa
      * @return A weight from the sketch's data sample
      */
     public double getWeight() {
-      return idx_ > h_ ? rWeight_ : sketch_.getWeight(idx_);
+      if (idx_ > h_) {
+        return Double.isNaN(adjustedWeight_) ? rWeight_ : adjustedWeight_;
+      } else {
+        return sketch_.getWeight(idx_);
+      }
     }
+
+    // only used in resolving union gadget
+    boolean getMark() { return sketch_.getMark(idx_); }
   }
 
+  // standard iterator
   public class VarOptItemsIterator implements Iterator<WeightedSample> {
-    private int currIdx_ = 0;
+    int currIdx_;
+    int finalIdx_; // inclusive final index
+
+    VarOptItemsIterator() {
+      currIdx_ = 0;
+      final int k = sketch_.getK();
+      finalIdx_ = (int) (n_ <= k ? n_ : k);
+    }
+
+    // package private iterator to crawl only H or only R region values
+    VarOptItemsIterator(final boolean useRRegion) {
+      if (useRRegion) {
+        currIdx_ = h_ + 1;                        // to handle the gap
+        finalIdx_ = sketch_.getNumSamples() + 1;  // again, to handle the gap
+      } else {
+        currIdx_ = 0;
+        finalIdx_ = h_ - 1;
+      }
+    }
 
     @Override
     public boolean hasNext() {
       // If sketch is in exact mode, we'll have a next item as long as index < k.
       // If in sampling mode, the last index is k (array length k+1) but there will always be at
       // least one item in R, so no need to check if the last element is null.
-      final int k = sketch_.getK();
-      return (n_ <= k && currIdx_ < n_) || (n_ > k && currIdx_ <= k);
+      //final int k = sketch_.getK();
+      //return (n_ <= k && currIdx_ < n_) || (n_ > k && currIdx_ <= k);
+      return currIdx_ <= finalIdx_;
     }
 
     @Override
     public WeightedSample next() {
       if (n_ != sketch_.getN()) {
         throw new ConcurrentModificationException();
+      } else if (currIdx_ > finalIdx_) {
+        throw new NoSuchElementException();
       }
 
       // grab current index, apply logic to update currIdx_ for the next call
@@ -94,17 +131,58 @@ class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.WeightedSa
     }
   }
 
+  class WeightCorrectingRRegionIterator extends VarOptItemsIterator {
+    private double cumWeight = 0.0;
+
+    WeightCorrectingRRegionIterator() {
+      currIdx_ = h_ + 1;
+      finalIdx_ = sketch_.getNumSamples() + 1;
+    }
+
+    @Override
+    public WeightedSample next() {
+      if (n_ != sketch_.getN()) {
+        throw new ConcurrentModificationException();
+      } else if (currIdx_ > finalIdx_) {
+        throw new NoSuchElementException();
+      }
+
+      // grab current index, apply logic to update currIdx_ for the next call
+      final int tgt = currIdx_;
+
+      ++currIdx_;
+      if (currIdx_ == h_ && h_ != n_) {
+        ++currIdx_;
+      }
+
+      //
+      final WeightedSample sample;
+      if (currIdx_ == finalIdx_) {
+        sample = new WeightedSample(tgt, sketch_.getTau() - cumWeight);
+      } else {
+        sample = new WeightedSample(tgt);
+        cumWeight += rWeight_;
+      }
+
+      return sample;
+    }
+  }
+
   VarOptItemsSamples(final VarOptItemsSketch<T> sketch) {
     sketch_ = sketch;
     n_ = sketch.getN();
     h_ = sketch.getHRegionCount();
-    rWeight_ = sketch.getRRegionWeight();
+    rWeight_ = sketch.getTau();
   }
 
   @Override
   public Iterator<WeightedSample> iterator() {
     return new VarOptItemsIterator();
   }
+
+  Iterator<WeightedSample> iteratorHRegion() { return new VarOptItemsIterator(false); }
+
+  Iterator<WeightedSample> iteratorRRegion() { return new VarOptItemsIterator(true); }
 
   /**
    * Specifies the class to use when copying the item array from the sketch. This method is
