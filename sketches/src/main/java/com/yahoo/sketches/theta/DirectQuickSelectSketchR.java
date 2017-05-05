@@ -88,7 +88,8 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     final float p = srcMem.getFloat(P_FLOAT);
     final long thetaLong = srcMem.getLong(THETA_LONG);
 
-    checkIntegrity(srcMem, seed, preambleLongs, serVer, familyID, lgNomLongs, lgArrLongs, flags, seedHash, p, thetaLong);
+    checkIntegrity(srcMem, seed, preambleLongs, serVer, familyID, lgNomLongs, lgArrLongs, flags,
+        seedHash, p, thetaLong);
 
     final DirectQuickSelectSketchR dqss =
         new DirectQuickSelectSketchR(lgNomLongs, seed, preambleLongs, (WritableMemory) srcMem);
