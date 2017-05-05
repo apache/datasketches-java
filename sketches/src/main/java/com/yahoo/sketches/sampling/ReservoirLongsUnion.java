@@ -59,8 +59,7 @@ public final class ReservoirLongsUnion {
   }
 
   /**
-   * Creates an empty Union with a maximum reservoir capacity of size k, subject to the precision of
-   * ReservoirSize
+   * Creates an empty Union with a maximum reservoir capacity of size k.
    *
    * @param maxK The maximum allowed reservoir capacity for any sketches in the union
    * @return A new ReservoirLongsUnion

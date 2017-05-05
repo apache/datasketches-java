@@ -38,7 +38,8 @@ import com.yahoo.sketches.Util;
 
 /**
  * This sketch provides a variance optimal sample over an input stream of weighted items. The
- * sketch can be used to compute subset sums over predicates with probabilistic bounded accuracy.
+ * sketch can be used to compute subset sums over predicates, producing estimates with optimal
+ * variance for a given sketch size.
  *
  * <p>Using this sketch with uniformly constant item weights (e.g. 1.0) will produce a standard
  * reservoir sample over the steam.</p>
@@ -216,6 +217,44 @@ final class VarOptItemsSketch<T> {
   public static <T> VarOptItemsSketch<T> build(final int k, final ResizeFactor rf) {
     return new VarOptItemsSketch<>(k, rf);
   }
+
+  /**
+   * Construct a varopt sketch for use as a unioning gadget, meaning the array of marked elements
+   * is also initialized.
+   *
+   * @param k   Maximum size of sampling. Allocated size may be smaller until sketch fills.
+   *            Unlike many sketches in this package, this value does <em>not</em> need to be a
+   *            power of 2.
+   * @param <T> The type of object held in the sketch.
+   * @return A VarOptItemsSketch initialized with maximum size k and a valid array of marks.
+   */
+  static <T> VarOptItemsSketch<T> buildAsGadget(final int k) {
+    final VarOptItemsSketch<T> sketch = new VarOptItemsSketch<>(k, DEFAULT_RESIZE_FACTOR);
+    sketch.marks_ = new ArrayList<>(sketch.currItemsAlloc_);
+    return sketch;
+  }
+
+  /**
+   * Construct a varopt sketch as the output of a union's getResult() method. Because this method
+   * is package-private, we do not perform checks on the input values.
+   *
+   * @param k   Maximum size of sampling. Allocated size may be smaller until sketch fills.
+   *            Unlike many sketches in this package, this value does <em>not</em> need to be a
+   *            power of 2.
+   * @param <T> The type of object held in the sketch.
+   * @return A VarOptItemsSketch initialized with maximum size k and a valid array of marks.
+   */
+  static <T> VarOptItemsSketch<T> buildFromUnionResult(final ArrayList<T> dataList,
+                                                       final ArrayList<Double> weightList,
+                                                       final int k,
+                                                       final long n,
+                                                       final int hCount,
+                                                       final int rCount,
+                                                       final double totalWtR) {
+    return new VarOptItemsSketch<T>(dataList, weightList, k, n,
+            DEFAULT_RESIZE_FACTOR, hCount, rCount, totalWtR);
+  }
+
 
   /**
    * Returns a sketch instance of this class from the given srcMem,
@@ -398,6 +437,29 @@ final class VarOptItemsSketch<T> {
   }
 
   /**
+   * Resets this sketch to the empty state, but retains the original value of k.
+   */
+  public void reset() {
+    final int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(k_), "VarOptItemsSketch");
+    final int initialLgSize =
+            SamplingUtil.startingSubMultiple(ceilingLgK, rf_.lg(), MIN_LG_ARR_ITEMS);
+
+    currItemsAlloc_ = SamplingUtil.getAdjustedSize(k_, 1 << initialLgSize);
+    data_    = new ArrayList<>(currItemsAlloc_);
+    weights_ = new ArrayList<>(currItemsAlloc_);
+    if (marks_ != null) {
+      marks_ = new ArrayList<>(currItemsAlloc_);
+    }
+
+    n_ = 0;
+    h_ = 0;
+    m_ = 0;
+    r_ = 0;
+    numMarksInH_ = 0;
+    totalWtR_ = 0.0;
+  }
+
+  /**
    * Returns a human-readable summary of the sketch.
    *
    * @return A string version of the sketch summary
@@ -517,6 +579,35 @@ final class VarOptItemsSketch<T> {
   }
 
   /**
+   * Creates a copy of the sketch, optinally discarding any information about marks that would
+   * indicate the class's use as a union gadget as opposed to a valid sketch.
+   *
+   * @param asSketch If true, copies as a sketch; if false, copies as a union gadget
+   * @return A copy of the sketch.
+   */
+  VarOptItemsSketch<T> copy(final boolean asSketch) {
+    final VarOptItemsSketch<T> sketch;
+    sketch = new VarOptItemsSketch<>(data_, weights_, k_,n_, rf_, h_, r_, totalWtR_);
+
+    if (!asSketch) {
+      sketch.marks_ = this.marks_;
+      sketch.numMarksInH_ = this.numMarksInH_;
+    }
+
+    return sketch;
+  }
+
+  /**
+   * Strips the mark array from the object, making what had been a gadget indistinguishable form
+   * a sketch. Avoids an extra copy.
+   */
+  void stripMarks() {
+    assert marks_ != null;
+    numMarksInH_ = 0;
+    marks_ = null;
+  }
+
+  /**
    * Returns a VarOptItemsSketch.Result structure containing the items and weights in separate
    * lists. The returned list lengths may be smaller than the total capacity.
    *
@@ -575,14 +666,27 @@ final class VarOptItemsSketch<T> {
   // handle a null from the middle of the list.
   boolean getMark(final int idx) { return marks_.get(idx); }
 
-  // Makes iterator more efficient
   int getHRegionCount() {
     return h_;
   }
 
+  int getRRegionCount() { return r_; }
+
+  int getNumMarksInH() { return numMarksInH_; }
+
   // Needed by result object and for unioning
   double getTau() {
     return r_ == 0 ? Double.NaN : (totalWtR_ / r_);
+  }
+
+  double getTotalWtR() {
+    return totalWtR_;
+  }
+
+  // used to resolve gadget into sketch during union
+  void forceSetK(final int k) {
+    assert k > 0;
+    k_ = k;
   }
 
   /**

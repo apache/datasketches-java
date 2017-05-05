@@ -135,8 +135,7 @@ class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.WeightedSa
     private double cumWeight = 0.0;
 
     WeightCorrectingRRegionIterator() {
-      currIdx_ = h_ + 1;
-      finalIdx_ = sketch_.getNumSamples() + 1;
+      super(true);
     }
 
     @Override
@@ -180,9 +179,11 @@ class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.WeightedSa
     return new VarOptItemsIterator();
   }
 
-  Iterator<WeightedSample> iteratorHRegion() { return new VarOptItemsIterator(false); }
+  Iterator<WeightedSample> getHIterator() { return new VarOptItemsIterator(false); }
 
-  Iterator<WeightedSample> iteratorRRegion() { return new VarOptItemsIterator(true); }
+  Iterator<WeightedSample> getRIterator() { return new VarOptItemsIterator(true); }
+
+  Iterator<WeightedSample> getWeightCorrRIter() { return new WeightCorrectingRRegionIterator(); }
 
   /**
    * Specifies the class to use when copying the item array from the sketch. This method is
