@@ -97,7 +97,7 @@ final class PreambleUtil {
   /**
    * Computes the number of bytes required for a non-full sized sketch in hash-table form.
    * This can be used to compute current storage size for heap sketches, or current off-heap memory
-   * requred for off-heap (direct) sketches. This does not apply for compact sketches.
+   * required for off-heap (direct) sketches. This does not apply for compact sketches.
    * @param lgArrLongs log2(current hash-table size)
    * @param preambleLongs current preamble size
    * @return the size in bytes
