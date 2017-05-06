@@ -7,6 +7,7 @@ package com.yahoo.sketches.sampling;
 
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.sampling.PreambleUtil.GADGET_FLAG_MASK;
 import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.sampling.PreambleUtil.TOTAL_WEIGHT_R_DOUBLE;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractFamilyID;
@@ -29,12 +30,14 @@ import com.yahoo.memory.Memory;
 import com.yahoo.memory.MemoryRegion;
 import com.yahoo.memory.NativeMemory;
 
+import com.yahoo.sketches.ArrayOfBooleansSerDe;
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
 import com.yahoo.sketches.Util;
+import com.yahoo.sketches.quantiles.DoublesSketch;
 
 /**
  * This sketch provides a variance optimal sample over an input stream of weighted items. The
@@ -251,7 +254,7 @@ final class VarOptItemsSketch<T> {
                                                        final int hCount,
                                                        final int rCount,
                                                        final double totalWtR) {
-    return new VarOptItemsSketch<T>(dataList, weightList, k, n,
+    return new VarOptItemsSketch<>(dataList, weightList, k, n,
             DEFAULT_RESIZE_FACTOR, hCount, rCount, totalWtR);
   }
 
@@ -275,7 +278,9 @@ final class VarOptItemsSketch<T> {
     final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(memObj, memAddr));
     final int serVer = extractSerVer(memObj, memAddr);
     final int familyId = extractFamilyID(memObj, memAddr);
-    final boolean isEmpty = (extractFlags(memObj, memAddr) & EMPTY_FLAG_MASK) != 0;
+    final int flags = extractFlags(memObj, memAddr);
+    final boolean isEmpty = (flags & EMPTY_FLAG_MASK) != 0;
+    final boolean isGadget = (flags & GADGET_FLAG_MASK) != 0;
 
     // Check values
     if (numPreLongs != Family.VAROPT.getMinPreLongs()
@@ -367,7 +372,28 @@ final class VarOptItemsSketch<T> {
       weightList.add(wts[i]);
     }
 
-    final long offsetBytes = preLongBytes + (hCount * Double.BYTES);
+    // marks, if we have a gadget
+    long markBytes = 0;
+    int markCount = 0;
+    ArrayList<Boolean> markList = null;
+    if (isGadget) {
+      final long markOffsetBytes = preLongBytes + (hCount * Double.BYTES);
+      markBytes = (hCount >> 3) + ((hCount & 0x7) > 0 ? 1 : 0);
+
+      final ArrayOfBooleansSerDe booleansSerDe = new ArrayOfBooleansSerDe();
+      final Boolean[] markArray = booleansSerDe.deserializeFromMemory(
+              new MemoryRegion(srcMem, markOffsetBytes, (hCount >> 3) + 1), hCount);
+      final List<Boolean> wrappedMarks = Arrays.asList(markArray);
+      markList = new ArrayList<>(allocatedItems);
+
+      for (Boolean mark : wrappedMarks) {
+        if (mark) { ++markCount; }
+        markList.add(mark);
+      }
+      markList.addAll(wrappedMarks.subList(0, hCount));
+    }
+
+    final long offsetBytes = preLongBytes + (hCount * Double.BYTES) + markBytes;
     final T[] data = serDe.deserializeFromMemory(
             new MemoryRegion(srcMem, offsetBytes, srcMem.getCapacity() - offsetBytes),
             totalItems);
@@ -386,7 +412,15 @@ final class VarOptItemsSketch<T> {
       dataList.addAll(wrappedData.subList(hCount, totalItems));
     }
 
-    return new VarOptItemsSketch<>(dataList, weightList, k, n, rf, hCount, rCount, totalRWeight);
+    final VarOptItemsSketch<T> sketch =
+            new VarOptItemsSketch<>(dataList, weightList, k, n, rf, hCount, rCount, totalRWeight);
+
+    if (isGadget) {
+      sketch.marks_ = markList;
+      sketch.numMarksInH_ = markCount;
+    }
+
+    return sketch;
   }
 
   /**
@@ -737,8 +771,8 @@ final class VarOptItemsSketch<T> {
   /**
    * Decreases sketch's value of k by 1, updating stored values as needed.
    *
-   * Subject to certain pre-conditions, decreasing k causes tau to increase. This fact is used by
-   * the unioning algorithm to force "marked" items out of H and into the reservoir region.
+   * <p>Subject to certain pre-conditions, decreasing k causes tau to increase. This fact is used by
+   * the unioning algorithm to force "marked" items out of H and into the reservoir region.</p>
    */
   void decreaseKBy1() {
     if (k_ <= 1) {

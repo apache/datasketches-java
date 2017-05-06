@@ -5,14 +5,30 @@
 
 package com.yahoo.sketches.sampling;
 
+import static com.yahoo.sketches.Util.LS;
+import static com.yahoo.sketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
+import static com.yahoo.sketches.sampling.PreambleUtil.FAMILY_BYTE;
+import static com.yahoo.sketches.sampling.PreambleUtil.FLAGS_BYTE;
+import static com.yahoo.sketches.sampling.PreambleUtil.MAX_K_SIZE_INT;
+import static com.yahoo.sketches.sampling.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER;
+import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER_BYTE;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractFlags;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractMaxK;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractPreLongs;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.sampling.VarOptItemsSketch.buildFromUnionResult;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.MemoryRegion;
+import com.yahoo.memory.NativeMemory;
 
 import com.yahoo.sketches.ArrayOfItemsSerDe;
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * Provides a unioning operation over varopt sketches. This union allows the sample size k to float,
@@ -110,9 +126,66 @@ public final class VarOptItemsUnion<T> {
     return new VarOptItemsUnion<>(maxK);
   }
 
-  // TODO: heapify()
-  // TODO: toString()
-  // TODO: toByteArray()
+  /**
+   * Instantiates a Union from Memory
+   *
+   * @param <T> The type of item this sketch contains
+   * @param srcMem Memory object containing a serialized union
+   * @param serDe An instance of ArrayOfItemsSerDe
+   * @return A VarOptItemsUnion created from the provided Memory
+   */
+  public static <T> VarOptItemsUnion<T> heapify(final Memory srcMem,
+                                                final ArrayOfItemsSerDe<T> serDe) {
+    Family.VAROPT_UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
+
+    final int numPreLongs, serVer;
+    final boolean isEmpty;
+    final int maxK;
+
+    // If we have read-only memory on heap (aka not-direct) then the backing array exists but is
+    // not available to us, so srcMem.array() will fail. In that case, we can use the (slower)
+    // Memory interface methods to read values directly.
+    if (srcMem.isReadOnly() && !srcMem.isDirect()) {
+      numPreLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0x3F;
+      serVer = srcMem.getByte(SER_VER_BYTE) & 0xFF;
+      isEmpty = (srcMem.getInt(FLAGS_BYTE) & EMPTY_FLAG_MASK) != 0;
+      maxK = srcMem.getInt(MAX_K_SIZE_INT);
+    } else {
+      final Object memObj = srcMem.array(); // may be null
+      final long memAddr = srcMem.getCumulativeOffset(0L);
+
+      numPreLongs = extractPreLongs(memObj, memAddr);
+      serVer = extractSerVer(memObj, memAddr);
+      isEmpty = (extractFlags(memObj, memAddr) & EMPTY_FLAG_MASK) != 0;
+      maxK = extractMaxK(memObj, memAddr);
+    }
+
+    if (serVer != SER_VER) {
+      throw new SketchesArgumentException(
+              "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
+    }
+
+    final boolean preLongsEqMin = (numPreLongs == Family.VAROPT_UNION.getMinPreLongs());
+    final boolean preLongsEqMax = (numPreLongs == Family.VAROPT_UNION.getMaxPreLongs());
+
+    if (!preLongsEqMin & !preLongsEqMax) {
+      throw new SketchesArgumentException("Possible corruption: Non-empty union with only "
+              + Family.VAROPT_UNION.getMinPreLongs() + "preLongs");
+    }
+
+    final VarOptItemsUnion<T> viu = new VarOptItemsUnion<>(maxK);
+
+    if (isEmpty) {
+      viu.gadget_ = VarOptItemsSketch.buildAsGadget(maxK);
+    } else {
+      final int preLongBytes = numPreLongs << 3;
+      final MemoryRegion sketchMem =
+              new MemoryRegion(srcMem, preLongBytes, srcMem.getCapacity() - preLongBytes);
+      viu.gadget_ = VarOptItemsSketch.heapify(sketchMem, serDe);
+    }
+
+    return viu;
+  }
 
   public void update(final VarOptItemsSketch<T> sketchIn) {
     mergeInto(sketchIn);
@@ -169,6 +242,90 @@ public final class VarOptItemsUnion<T> {
     n_ = 0;
     outerTauNumer = 0.0;
     outerTauDenom = 0;
+  }
+
+  /**
+   * Returns a human-readable summary of the sketch, without items.
+   *
+   * @return A string version of the sketch summary
+   */
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder();
+
+    final String thisSimpleName = this.getClass().getSimpleName();
+
+    sb.append(LS);
+    sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
+    sb.append("   Max k: ").append(maxK_).append(LS);
+    if (gadget_ == null) {
+      sb.append("   Gadget is null").append(LS);
+    } else {
+      sb.append("   Gadget summary: ").append(gadget_.toString());
+    }
+    sb.append("### END UNION SUMMARY").append(LS);
+
+    return sb.toString();
+  }
+
+  /**
+   * Returns a byte array representation of this union
+   *
+   * @param serDe An instance of ArrayOfItemsSerDe
+   * @return a byte array representation of this union
+   */
+  public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
+    if (gadget_ == null || gadget_.getNumSamples() == 0) {
+      return toByteArray(serDe, null);
+    } else {
+      return toByteArray(serDe, gadget_.getItem(0).getClass());
+    }
+  }
+
+  /**
+   * Returns a byte array representation of this union. This method should be used when the array
+   * elements are subclasses of a common base class.
+   *
+   * @param serDe An instance of ArrayOfItemsSerDe
+   * @param clazz A class to which the items are cast before serialization
+   * @return a byte array representation of this union
+   */
+  @SuppressWarnings("null") // gadgetBytes will be null only if gadget_ == null AND empty == true
+  public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe, final Class<?> clazz) {
+    final int preLongs, outBytes;
+    final boolean empty = gadget_ == null || gadget_.getNumSamples() == 0;
+    final byte[] gadgetBytes = (gadget_ != null ? gadget_.toByteArray(serDe, clazz) : null);
+
+    if (empty) {
+      preLongs = Family.VAROPT_UNION.getMinPreLongs();
+      outBytes = 8;
+    } else {
+      preLongs = Family.VAROPT_UNION.getMaxPreLongs();
+      outBytes = (preLongs << 3) + gadgetBytes.length; // for longs, we know the size
+    }
+    final byte[] outArr = new byte[outBytes];
+    final Memory mem = new NativeMemory(outArr);
+
+    final Object memObj = mem.array(); // may be null
+    final long memAddr = mem.getCumulativeOffset(0L);
+
+    // build preLong
+    PreambleUtil.insertPreLongs(memObj, memAddr, preLongs); // Byte 0
+    PreambleUtil.insertSerVer(memObj, memAddr, SER_VER); // Byte 1
+    PreambleUtil.insertFamilyID(memObj, memAddr, Family.VAROPT_UNION.getID()); // Byte 2
+    if (empty) {
+      PreambleUtil.insertFlags(memObj, memAddr, EMPTY_FLAG_MASK);
+    } else {
+      PreambleUtil.insertFlags(memObj, memAddr, 0); // Byte 3
+    }
+    PreambleUtil.insertMaxK(memObj, memAddr, maxK_); // Bytes 4-5
+
+    if (!empty) {
+      final int preBytes = preLongs << 3;
+      mem.putByteArray(preBytes, gadgetBytes, 0, gadgetBytes.length);
+    }
+
+    return outArr;
   }
 
   private double getOuterTau() {
@@ -256,8 +413,9 @@ public final class VarOptItemsUnion<T> {
     int resultR = 0;
     int nextRPos = (resultK + 1) - 1; // filling from back to front
 
-    final ArrayList<T> data         = new ArrayList<>(resultK);
-    final ArrayList<Double> weights = new ArrayList<>(resultK);
+    // TODO: the sets will likely fail since we didn't add items first
+    final ArrayList<T> data         = new ArrayList<>(resultK + 1);
+    final ArrayList<Double> weights = new ArrayList<>(resultK + 1);
 
     final VarOptItemsSamples<T> sketchSamples = gadget_.getSketchSamples();
 

@@ -51,7 +51,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * <p><strong>Union:</strong> The reservoir union has fewer internal parameters to track and uses
  * a slightly different preamble structure. The maximum reservoir size intentionally occupies the
  * same byte range as the reservoir size in the sketch preamble, allowing the same methods to be
- * used for reading and writing the values.</p>
+ * used for reading and writing the values. The varopt union takes advantage of the same format.</p>
  *
  * <p>An empty union only requires 8 bytes. A non-empty union requires 8 bytes of preamble.</p>
  *
@@ -117,6 +117,7 @@ final class PreambleUtil {
   //static final int BIG_ENDIAN_FLAG_MASK = 1;
   //static final int READ_ONLY_FLAG_MASK  = 2;
   static final int EMPTY_FLAG_MASK      = 4;
+  static final int GADGET_FLAG_MASK     = 128;
 
   //Other constants
   static final int SER_VER                    = 2;
@@ -159,6 +160,7 @@ final class PreambleUtil {
       case VAROPT:
         return sketchPreambleToString(mem, family, preLongs);
       case RESERVOIR_UNION:
+      case VAROPT_UNION:
         return unionPreambleToString(mem, family, preLongs);
       default:
         throw new SketchesArgumentException("Inspecting preamble with Sampling family's "
@@ -182,6 +184,7 @@ final class PreambleUtil {
     //final String nativeOrder = ByteOrder.nativeOrder().toString();
     //final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
     final boolean isEmpty = (flags & EMPTY_FLAG_MASK) > 0;
+    final boolean isGadget = (flags & GADGET_FLAG_MASK) > 0;
 
     final int k;
     if (serVer == 1) {
@@ -210,8 +213,11 @@ final class PreambleUtil {
       //.append("  BIG_ENDIAN_STORAGE          : ").append(bigEndian).append(LS)
       //.append("  (Native Byte Order)         : ").append(nativeOrder).append(LS)
       //.append("  READ_ONLY                   : ").append(readOnly).append(LS)
-      .append("  EMPTY                       : ").append(isEmpty).append(LS)
-      .append("Bytes  4-7: Sketch Size (k)   : ").append(k).append(LS);
+      .append("  EMPTY                       : ").append(isEmpty).append(LS);
+    if (family == Family.VAROPT) {
+      sb.append("  GADGET                      : ").append(isGadget).append(LS);
+    }
+    sb.append("Bytes  4-7: Sketch Size (k)   : ").append(k).append(LS);
     if (!isEmpty) {
       sb.append("Bytes 8-15: Items Seen (n)    : ").append(n).append(LS);
     }
