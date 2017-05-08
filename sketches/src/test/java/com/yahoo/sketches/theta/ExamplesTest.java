@@ -16,7 +16,7 @@ public class ExamplesTest {
     int k = 4096;
     int u = 1000000;
     
-    UpdateSketch sketch = UpdateSketch.builder().build(k);
+    UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i = 0; i < u; i++) {
       sketch.update(i);
     }

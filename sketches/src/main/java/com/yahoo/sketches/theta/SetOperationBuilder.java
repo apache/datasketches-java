@@ -28,7 +28,6 @@ public class SetOperationBuilder {
   private long bSeed;
   private ResizeFactor bRF;
   private float bP;
-  private WritableMemory bDstMem;
 
   /**
    * Constructor for building a new SetOperation.  The default configuration is
@@ -45,7 +44,6 @@ public class SetOperationBuilder {
     bSeed = DEFAULT_UPDATE_SEED;
     bP = (float) 1.0;
     bRF = ResizeFactor.X8;
-    bDstMem = null;
   }
 
   /**
@@ -135,53 +133,44 @@ public class SetOperationBuilder {
   }
 
   /**
-   * Initializes the backing Memory store.
-   * @param dstMem  The destination Memory.
-   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>
-   * @return this SetOperationBuilder
-   */
-  public SetOperationBuilder initMemory(final WritableMemory dstMem) {
-    bDstMem = dstMem;
-    return this;
-  }
-
-  /**
-   * Returns the Destination Memory
-   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
-   * @return the Destination Memory
-   */
-  public WritableMemory getMemory() {
-    return bDstMem;
-  }
-
-  /**
    * Returns a SetOperation with the current configuration of this Builder and the given Family.
    * @param family the chosen SetOperation family
    * @return a SetOperation
    */
   public SetOperation build(final Family family) {
+    return build(family, null);
+  }
+
+  /**
+   * Returns a SetOperation with the current configuration of this Builder, the given Family
+   * and the given destination memory. Note that the destination memory cannot be used with AnotB.
+   * @param family the chosen SetOperation family
+   * @param dstMem The destination Memory.
+   * @return a SetOperation
+   */
+  public SetOperation build(final Family family, final WritableMemory dstMem) {
     SetOperation setOp = null;
     switch (family) {
       case UNION: {
-        if (bDstMem == null) {
+        if (dstMem == null) {
           setOp = UnionImpl.initNewHeapInstance(bLgNomLongs, bSeed, bP, bRF);
         }
         else {
-          setOp = UnionImpl.initNewDirectInstance(bLgNomLongs, bSeed, bP, bRF, bDstMem);
+          setOp = UnionImpl.initNewDirectInstance(bLgNomLongs, bSeed, bP, bRF, dstMem);
         }
         break;
       }
       case INTERSECTION: {
-        if (bDstMem == null) {
+        if (dstMem == null) {
           setOp = IntersectionImpl.initNewHeapInstance(bSeed);
         }
         else {
-          setOp = IntersectionImpl.initNewDirectInstance(bSeed, bDstMem);
+          setOp = IntersectionImpl.initNewDirectInstance(bSeed, dstMem);
         }
         break;
       }
       case A_NOT_B: {
-        if (bDstMem == null) {
+        if (dstMem == null) {
           setOp = new HeapAnotB(bSeed);
         }
         else {
@@ -198,19 +187,6 @@ public class SetOperationBuilder {
   }
 
   /**
-   * Returns a SetOperation with the current configuration of this Builder and the given
-   * <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a> and Family.
-   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
-   * This will become the ceiling power of 2 if it is not.
-   * @param family build this SetOperation family
-   * @return a SetOperation
-   */
-  public SetOperation build(final int nomEntries, final Family family) {
-    setNominalEntries(nomEntries);
-    return build(family);
-  }
-
-  /**
    * Convenience method, returns a configured SetOperation Union with
    * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">Default Nominal Entries</a>
    * @return a Union object
@@ -220,13 +196,14 @@ public class SetOperationBuilder {
   }
 
   /**
-   * Convenience method, returns a configured SetOperation Union with the given
-   * <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>.
-   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
+   * Convenience method, returns a configured SetOperation Union with
+   * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">Default Nominal Entries</a>
+   * and the given destination memory.
+   * @param dstMem The destination Memory.
    * @return a Union object
    */
-  public Union buildUnion(final int nomEntries) {
-    return (Union) build(nomEntries, Family.UNION);
+  public Union buildUnion(final WritableMemory dstMem) {
+    return (Union) build(Family.UNION, dstMem);
   }
 
   /**
@@ -236,6 +213,17 @@ public class SetOperationBuilder {
    */
   public Intersection buildIntersection() {
     return (Intersection) build(Family.INTERSECTION);
+  }
+
+  /**
+   * Convenience method, returns a configured SetOperation Intersection with
+   * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">Default Nominal Entries</a>
+   * and the given destination memory.
+   * @param dstMem The destination Memory.
+   * @return an Intersection object
+   */
+  public Intersection buildIntersection(final WritableMemory dstMem) {
+    return (Intersection) build(Family.INTERSECTION, dstMem);
   }
 
   /**
@@ -256,8 +244,7 @@ public class SetOperationBuilder {
       .append("K:").append(TAB).append(1 << bLgNomLongs).append(LS)
       .append("Seed:").append(TAB).append(bSeed).append(LS)
       .append("p:").append(TAB).append(bP).append(LS)
-      .append("ResizeFactor:").append(TAB).append(bRF).append(LS)
-      .append("DstMemory:").append(TAB).append(bDstMem != null).append(LS);
+      .append("ResizeFactor:").append(TAB).append(bRF).append(LS);
     return sb.toString();
   }
 

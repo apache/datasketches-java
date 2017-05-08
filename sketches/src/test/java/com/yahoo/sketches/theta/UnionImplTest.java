@@ -19,13 +19,13 @@ public class UnionImplTest {
   public void checkUpdateWithSketch() {
     int k = 16;
     WritableMemory mem = WritableMemory.wrap(new byte[k*8 + 24]);
-    UpdateSketch sketch = Sketches.updateSketchBuilder().build(k);
+    UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) sketch.update(i); //exact
     CompactSketch sketchInDirectOrd = sketch.compact(true, mem);
     CompactSketch sketchInDirectUnord = sketch.compact(false, mem);
     CompactSketch sketchInHeap = sketch.compact(true, null);
 
-    Union union = Sketches.setOperationBuilder().buildUnion(k);
+    Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
     union.update(sketchInDirectOrd);
     union.update(sketchInHeap);
     union.update(sketchInDirectUnord);
@@ -38,12 +38,12 @@ public class UnionImplTest {
     WritableMemory skMem = WritableMemory.wrap(new byte[2*k*8 + 24]);
     WritableMemory dirOrdCskMem = WritableMemory.wrap(new byte[k*8 + 24]);
     WritableMemory dirUnordCskMem = WritableMemory.wrap(new byte[k*8 + 24]);
-    UpdateSketch udSketch = UpdateSketch.builder().initMemory(skMem).build(k);
+    UpdateSketch udSketch = UpdateSketch.builder().setNominalEntries(k).build(skMem);
     for (int i = 0; i < k; i++) { udSketch.update(i); } //exact
     udSketch.compact(true, dirOrdCskMem);
     udSketch.compact(false, dirUnordCskMem);
 
-    Union union = Sketches.setOperationBuilder().buildUnion(k);
+    Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
     union.update(skMem);
     union.update(dirOrdCskMem);
     union.update(dirUnordCskMem);
@@ -56,7 +56,7 @@ public class UnionImplTest {
     long seed = DEFAULT_UPDATE_SEED;
     int unionSize = Sketches.getMaxUnionBytes(k);
     WritableMemory srcMem = WritableMemory.wrap(new byte[unionSize]);
-    Union union = Sketches.setOperationBuilder().initMemory(srcMem).buildUnion(k);
+    Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion(srcMem);
     for (int i = 0; i < k; i++) { union.update(i); } //exact
     assertEquals(union.getResult().getEstimate(), k, 0.0);
     Union union2 = UnionImpl.fastWrap(srcMem, seed);
@@ -70,13 +70,13 @@ public class UnionImplTest {
   public void checkCorruptFamilyException() {
     int k = 16;
     WritableMemory mem = WritableMemory.wrap(new byte[k*8 + 24]);
-    UpdateSketch sketch = Sketches.updateSketchBuilder().build(k);
+    UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) sketch.update(i);
     sketch.compact(true, mem);
 
     mem.putByte(PreambleUtil.FAMILY_BYTE, (byte)0); //corrupt family
 
-    Union union = Sketches.setOperationBuilder().buildUnion(k);
+    Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
     union.update(mem);
   }
 
@@ -84,14 +84,14 @@ public class UnionImplTest {
   public void checkVer1FamilyException() {
     int k = 16;
     WritableMemory v3mem = WritableMemory.wrap(new byte[k*8 + 24]);
-    UpdateSketch sketch = Sketches.updateSketchBuilder().build(k);
+    UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) sketch.update(i);
     sketch.compact(true, v3mem);
     WritableMemory v1mem = ForwardCompatibilityTest.convertSerV3toSerV1(v3mem);
 
     v1mem.putByte(PreambleUtil.FAMILY_BYTE, (byte)2); //corrupt family
 
-    Union union = Sketches.setOperationBuilder().buildUnion(k);
+    Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
     union.update(v1mem);
   }
 
@@ -99,14 +99,14 @@ public class UnionImplTest {
   public void checkVer2FamilyException() {
     int k = 16;
     WritableMemory v3mem = WritableMemory.wrap(new byte[k*8 + 24]);
-    UpdateSketch sketch = Sketches.updateSketchBuilder().build(k);
+    UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) sketch.update(i);
     sketch.compact(true, v3mem);
     WritableMemory v2mem = ForwardCompatibilityTest.convertSerV3toSerV2(v3mem);
 
     v2mem.putByte(PreambleUtil.FAMILY_BYTE, (byte)2); //corrupt family
 
-    Union union = Sketches.setOperationBuilder().buildUnion(k);
+    Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
     union.update(v2mem);
   }
 

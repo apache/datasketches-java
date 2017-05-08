@@ -42,7 +42,7 @@ public final class JaccardSimilarity {
     final int countB = sketchB.getRetainedEntries();
 
     //Create the Union
-    final Union union = SetOperation.builder().buildUnion(ceilingPowerOf2(countA + countB));
+    final Union union = SetOperation.builder().setNominalEntries(ceilingPowerOf2(countA + countB)).buildUnion();
     union.update(sketchA);
     union.update(sketchB);
     final Sketch unionAB = union.getResult();
@@ -89,7 +89,7 @@ public final class JaccardSimilarity {
     final int countB = sketchB.getRetainedEntries();
 
     //Create the Union
-    final Union union = SetOperation.builder().buildUnion(ceilingPowerOf2(countA + countB));
+    final Union union = SetOperation.builder().setNominalEntries(ceilingPowerOf2(countA + countB)).buildUnion();
     union.update(sketchA);
     union.update(sketchB);
     final Sketch unionAB = union.getResult();

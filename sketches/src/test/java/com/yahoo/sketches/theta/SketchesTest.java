@@ -33,7 +33,7 @@ import com.yahoo.sketches.Util;
 public class SketchesTest {
   
   private static Memory getCompactSketch(int k, int from, int to) {
-    UpdateSketch sk1 = updateSketchBuilder().build(k);
+    UpdateSketch sk1 = updateSketchBuilder().setNominalEntries(k).build();
     for (int i=from; i<to; i++) sk1.update(i);
     CompactSketch csk = sk1.compact(true, null);
     byte[] sk1bytes = csk.toByteArray();
@@ -66,7 +66,7 @@ public class SketchesTest {
     Memory mem2 = getCompactSketch(k, k/2, 3*k/2);
     
     SetOperationBuilder bldr = setOperationBuilder();
-    Union union = bldr.buildUnion(2*k);
+    Union union = bldr.setNominalEntries(2 * k).buildUnion();
     
     union.update(mem1);
     CompactSketch cSk = union.getResult(true, null);

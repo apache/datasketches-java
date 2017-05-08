@@ -31,15 +31,15 @@ public class HeapUnionTest {
     int k = 1 << lgK;
     int u = k;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<u/2; i++) usk1.update(i); //256
     for (int i=u/2; i<u; i++) usk2.update(i); //256 no overlap
 
     assertEquals(u, usk1.getEstimate() + usk2.getEstimate(), 0.0); //exact, no overlap
 
-    Union union = SetOperation.builder().buildUnion(k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
 
     union.update(usk1); //update with heap UpdateSketch
     union.update(usk2); //update with heap UpdateSketch
@@ -53,13 +53,13 @@ public class HeapUnionTest {
     int k = 1 << lgK;
     int u = 4*k;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<u/2; i++) usk1.update(i); //2*k
     for (int i=u/2; i<u; i++) usk2.update(i); //2*k no overlap
 
-    Union union = SetOperation.builder().buildUnion(k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
 
     union.update(usk1); //update with heap UpdateSketch
     union.update(usk2); //update with heap UpdateSketch
@@ -73,15 +73,15 @@ public class HeapUnionTest {
     int k = 1 << lgK;
     int u = k;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<u/2; i++) usk1.update(i); //256
     for (int i=0; i<u  ; i++) usk2.update(i); //512, 256 overlapped
 
     assertEquals(u, usk1.getEstimate() + usk2.getEstimate()/2, 0.0); //exact, overlapped
 
-    Union union = SetOperation.builder().buildUnion(k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
 
     union.update(usk1); //update with heap UpdateSketch
     union.update(usk2); //update with heap UpdateSketch
@@ -95,15 +95,15 @@ public class HeapUnionTest {
     int k = 1 << lgK;
     int u = k;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<u/2; i++) usk1.update(i); //256
     for (int i=u/2; i<u; i++) usk2.update(i); //256 no overlap
 
     assertEquals(u, usk1.getEstimate() + usk2.getEstimate(), 0.0); //exact, no overlap
 
-    Union union = SetOperation.builder().buildUnion(k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
 
     union.update(usk1); //update with heap UpdateSketch
     union.update(usk2); //update with heap UpdateSketch
@@ -121,13 +121,13 @@ public class HeapUnionTest {
     int k = 1 << lgK;
     int u = 4*k;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);   //2k estimating
-    UpdateSketch usk2 = UpdateSketch.builder().build(2*k); //2k exact
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();   //2k estimating
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(2 * k).build(); //2k exact
 
     for (int i=0; i<u/2; i++) usk1.update(i); //2k
     for (int i=u/2; i<u; i++) usk2.update(i); //2k no overlap, exact
 
-    Union union = SetOperation.builder().buildUnion(k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
 
     union.update(usk1); //update with heap UpdateSketch
     union.update(usk2); //update with heap UpdateSketch, early stop not possible
@@ -145,20 +145,20 @@ public class HeapUnionTest {
     int k = 1 << lgK;
     int u = 4*k;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);   //2k estimating
-    UpdateSketch usk2 = UpdateSketch.builder().build(2*k); //2k exact for early stop test
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();   //2k estimating
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(2 * k).build(); //2k exact for early stop test
 
     for (int i=0; i<u/2; i++) usk1.update(i); //2k
     for (int i=u/2; i<u; i++) usk2.update(i); //2k no overlap, exact, will force early stop
 
     CompactSketch cosk2 = usk2.compact(true, null);
 
-    Union union = SetOperation.builder().buildUnion(k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
 
     union.update(usk1);  //update with heap UpdateSketch
     union.update(cosk2); //update with heap Compact, Ordered input, early stop
 
-    UpdateSketch emptySketch = UpdateSketch.builder().build(k);
+    UpdateSketch emptySketch = UpdateSketch.builder().setNominalEntries(k).build();
     union.update(emptySketch); //updates with empty
     emptySketch = null;
     union.update(emptySketch); //updates with null
@@ -179,8 +179,8 @@ public class HeapUnionTest {
     int k = 1 << lgK;
     int u = 4*k;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);   //2k estimating
-    UpdateSketch usk2 = UpdateSketch.builder().build(2*k); //2k exact for early stop test
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();   //2k estimating
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(2 * k).build(); //2k exact for early stop test
 
     for (int i=0; i<u/2; i++) usk1.update(i);  //2k estimating
     for (int i=u/2; i<u; i++) usk2.update(i);  //2k no overlap, exact, will force early stop
@@ -188,12 +188,12 @@ public class HeapUnionTest {
     WritableMemory cskMem2 = WritableMemory.wrap(new byte[usk2.getCurrentBytes(true)]);
     CompactSketch cosk2 = usk2.compact(true, cskMem2); //ordered, loads the cskMem2 as ordered
 
-    Union union = SetOperation.builder().buildUnion(k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
 
     union.update(usk1);        //updates with heap UpdateSketch
     union.update(cosk2);       //updates with direct CompactSketch, ordered, use early stop
 
-    UpdateSketch emptySketch = UpdateSketch.builder().build(k);
+    UpdateSketch emptySketch = UpdateSketch.builder().setNominalEntries(k).build();
     union.update(emptySketch); //updates with empty sketch
     emptySketch = null;
     union.update(emptySketch); //updates with null sketch
@@ -214,8 +214,8 @@ public class HeapUnionTest {
     int k = 1 << lgK;
     int u = 4*k;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);   //2k estimating
-    UpdateSketch usk2 = UpdateSketch.builder().build(2*k); //2k exact for early stop test
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();   //2k estimating
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(2 * k).build(); //2k exact for early stop test
 
     for (int i=0; i<u/2; i++) usk1.update(i);  //2k estimating
     for (int i=u/2; i<u; i++) usk2.update(i);  //2k no overlap, exact, will force early stop
@@ -223,12 +223,12 @@ public class HeapUnionTest {
     WritableMemory cskMem2 = WritableMemory.wrap(new byte[usk2.getCurrentBytes(true)]);
     usk2.compact(true, cskMem2); //ordered, loads the cskMem2 as ordered
 
-    Union union = SetOperation.builder().buildUnion(k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
 
     union.update(usk1);        //updates with heap UpdateSketch
     union.update(cskMem2);     //updates with direct CompactSketch, ordered, use early stop
 
-    UpdateSketch emptySketch = UpdateSketch.builder().build(k);
+    UpdateSketch emptySketch = UpdateSketch.builder().setNominalEntries(k).build();
     union.update(emptySketch); //updates with empty sketch
     emptySketch = null;
     union.update(emptySketch); //updates with null sketch
@@ -249,8 +249,8 @@ public class HeapUnionTest {
     int k = 1 << lgK;
     int u = 4*k;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);   //2k estimating
-    UpdateSketch usk2 = UpdateSketch.builder().build(2*k); //2k exact for early stop test
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();   //2k estimating
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(2 * k).build(); //2k exact for early stop test
 
     for (int i=0; i<u/2; i++) usk1.update(i);  //2k estimating
     for (int i=u/2; i<u; i++) usk2.update(i);  //2k no overlap, exact, will force early stop
@@ -258,12 +258,12 @@ public class HeapUnionTest {
     WritableMemory cskMem2 = WritableMemory.wrap(new byte[usk2.getCurrentBytes(true)]);
     usk2.compact(false, cskMem2); //unordered, loads the cskMem2 as unordered
 
-    Union union = SetOperation.builder().buildUnion(k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
 
     union.update(usk1);        //updates with heap UpdateSketch
     union.update(cskMem2);     //updates with direct CompactSketch, ordered, use early stop
 
-    UpdateSketch emptySketch = UpdateSketch.builder().build(k);
+    UpdateSketch emptySketch = UpdateSketch.builder().setNominalEntries(k).build();
     union.update(emptySketch); //updates with empty sketch
     emptySketch = null;
     union.update(emptySketch); //updates with null sketch
@@ -283,10 +283,10 @@ public class HeapUnionTest {
     int lgK = 13; //8192
     int k = 1 << lgK;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
-    UpdateSketch usk3 = UpdateSketch.builder().build(k);
-    UpdateSketch usk4 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk3 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk4 = UpdateSketch.builder().setNominalEntries(k).build();
 
     int v=0;
     int u = 1000000;
@@ -300,7 +300,7 @@ public class HeapUnionTest {
     for (int i=0; i<u; i++) usk4.update(i+v);
     v += u;
 
-    Union union = SetOperation.builder().buildUnion(k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
 
     union.update(usk1); //updates with heap UpdateSketch
     union.update(usk2); //updates with heap UpdateSketch
@@ -320,8 +320,8 @@ public class HeapUnionTest {
     int u2 = 1024; //smaller exact sketch forces early stop
     int totU = u1+u2;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<u1; i++) usk1.update(i); //2*k
     for (int i=u1; i<totU; i++) usk2.update(i); //2*k + 1024 no overlap
@@ -332,7 +332,7 @@ public class HeapUnionTest {
     CompactSketch csk1 = (CompactSketch)Sketch.wrap(skMem1);
     CompactSketch csk2 = (CompactSketch)Sketch.wrap(skMem2);
 
-    Union union = SetOperation.builder().buildUnion(k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
 
     union.update(csk1);
     union.update(csk2);
@@ -349,8 +349,8 @@ public class HeapUnionTest {
     int u2 = 1024; //smaller exact sketch forces early stop
     int totU = u1+u2;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<u1; i++) usk1.update(i); //2*k
     for (int i=u1; i<totU; i++) usk2.update(i); //2*k + 1024 no overlap
@@ -361,7 +361,7 @@ public class HeapUnionTest {
     Memory v1mem1 = convertSerV3toSerV1(skMem1);
     Memory v1mem2 = convertSerV3toSerV1(skMem2);
 
-    Union union = SetOperation.builder().buildUnion(k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
 
     union.update(v1mem1);
     union.update(v1mem2);
@@ -378,8 +378,8 @@ public class HeapUnionTest {
     int u2 = 1024; //smaller exact sketch forces early stop
     int totU = u1+u2;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<u1; i++) usk1.update(i); //2*k
     for (int i=u1; i<totU; i++) usk2.update(i); //2*k + 1024 no overlap
@@ -390,7 +390,7 @@ public class HeapUnionTest {
     Memory v2mem1 = convertSerV3toSerV2(skMem1);
     Memory v2mem2 = convertSerV3toSerV2(skMem2);
 
-    Union union = SetOperation.builder().buildUnion(k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
 
     union.update(v2mem1);
     union.update(v2mem2);
@@ -404,30 +404,30 @@ public class HeapUnionTest {
     int lgK = 12; //4096
     int k = 1 << lgK;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     CompactSketch usk1c = usk1.compact(true, null);
     WritableMemory v3mem1 = WritableMemory.wrap(usk1c.toByteArray());
 
     Memory v1mem1 = convertSerV3toSerV1(v3mem1);
 
-    Union union = SetOperation.builder().buildUnion(k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
     union.update(v1mem1);
     CompactSketch cOut = union.getResult(true, null);
     assertEquals(cOut.getEstimate(), 0.0, 0.0);
 
     Memory v2mem1 = convertSerV3toSerV2(v3mem1);
 
-    union = SetOperation.builder().buildUnion(k);
+    union = SetOperation.builder().setNominalEntries(k).buildUnion();
     union.update(v2mem1);
     cOut = union.getResult(true, null);
     assertEquals(cOut.getEstimate(), 0.0, 0.0);
 
-    union = SetOperation.builder().buildUnion(k);
+    union = SetOperation.builder().setNominalEntries(k).buildUnion();
     union.update(v3mem1);
     cOut = union.getResult(true, null);
     assertEquals(cOut.getEstimate(), 0.0, 0.0);
 
-    union = SetOperation.builder().buildUnion(k);
+    union = SetOperation.builder().setNominalEntries(k).buildUnion();
     v3mem1 = null;
     union.update(v3mem1);
     cOut = union.getResult(true, null);
@@ -440,12 +440,12 @@ public class HeapUnionTest {
     int k = 1 << lgK;
     int u = 2*k;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<u; i++) usk1.update(i); //force prelongs to 3
     CompactSketch usk1c = usk1.compact(true, null);
     WritableMemory v3mem1 = WritableMemory.wrap(usk1c.toByteArray());
     //println(PreambleUtil.toString(v3mem1));
-    Union union = SetOperation.builder().buildUnion(k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
     union.update(v3mem1);
   }
 
@@ -454,13 +454,13 @@ public class HeapUnionTest {
     int lgK = 12; //4096
     int k = 1 << lgK;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     CompactSketch usk1c = usk1.compact(true, null);
     WritableMemory v3mem1 = WritableMemory.wrap(usk1c.toByteArray());
     //corrupt SerVer
     v3mem1.putByte(SER_VER_BYTE, (byte)0);
 
-    Union union = SetOperation.builder().buildUnion(k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
     union.update(v3mem1);
   }
 
@@ -489,7 +489,7 @@ public class HeapUnionTest {
     int k = 1024;
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
 
-    Union union = Sketches.setOperationBuilder().buildUnion(k);
+    Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
     union.update(sk);
     CompactSketch csk = union.getResult();
     assertEquals(csk.getCurrentBytes(true), 8);
@@ -498,7 +498,7 @@ public class HeapUnionTest {
   @Test
   public void checkPrimitiveUpdates() {
     int k = 32;
-    Union union = Sketches.setOperationBuilder().buildUnion(k);
+    Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
 
     union.update(1L);   //#1 long
     union.update(1.5);  //#2 double
@@ -567,8 +567,7 @@ public class HeapUnionTest {
 
   @Test
   public void checkGetFamily() {
-    int k = 16;
-    SetOperation setOp = new SetOperationBuilder().build(k,Family.UNION);
+    SetOperation setOp = new SetOperationBuilder().build(Family.UNION);
     assertEquals(setOp.getFamily(), Family.UNION);
   }
 

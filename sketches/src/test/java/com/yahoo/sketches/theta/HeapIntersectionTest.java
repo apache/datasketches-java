@@ -30,8 +30,8 @@ public class HeapIntersectionTest {
     int lgK = 9;
     int k = 1<<lgK;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<k/2; i++) usk1.update(i);
     for (int i=k/2; i<k; i++) usk2.update(i);
@@ -68,8 +68,8 @@ public class HeapIntersectionTest {
     int lgK = 9;
     int k = 1<<lgK;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<k; i++) usk1.update(i);
     for (int i=0; i<k; i++) usk2.update(i);
@@ -105,8 +105,8 @@ public class HeapIntersectionTest {
     int k = 1<<lgK;
     int u = 4*k;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<u; i++) usk1.update(i);
     for (int i=u/2; i<u + u/2; i++) usk2.update(i); //inter 512
@@ -151,7 +151,7 @@ public class HeapIntersectionTest {
     println("Est: "+est); // = 0
 
     //1st call = empty
-    sk = UpdateSketch.builder().build(k); //empty
+    sk = UpdateSketch.builder().setNominalEntries(k).build(); //empty
     inter = SetOperation.builder().buildIntersection();
     inter.update(sk);
     rsk1 = inter.getResult(false, null);
@@ -160,7 +160,7 @@ public class HeapIntersectionTest {
     println("Est: "+est); // = 0
 
     //1st call = valid and not empty
-    sk = UpdateSketch.builder().build(k);
+    sk = UpdateSketch.builder().setNominalEntries(k).build();
     sk.update(1);
     inter = SetOperation.builder().buildIntersection();
     inter.update(sk);
@@ -326,7 +326,7 @@ public class HeapIntersectionTest {
     double est;
 
     //1st call = valid
-    sk1 = UpdateSketch.builder().build(k);
+    sk1 = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<2*k; i++) sk1.update(i);  //est mode
     println("sk1: "+sk1.getEstimate());
 
@@ -334,7 +334,7 @@ public class HeapIntersectionTest {
     inter.update(sk1);
 
     //2nd call = valid intersecting
-    sk2 = UpdateSketch.builder().build(k);
+    sk2 = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<2*k; i++) sk2.update(i);  //est mode
     println("sk2: "+sk2.getEstimate());
 
@@ -354,7 +354,7 @@ public class HeapIntersectionTest {
     CompactSketch resultComp1, resultComp2;
     double est, est2;
 
-    sk1 = UpdateSketch.builder().build(k);
+    sk1 = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<2*k; i++) sk1.update(i);  //est mode
     CompactSketch compSkIn1 = sk1.compact(true, null);
     println("compSkIn1: "+compSkIn1.getEstimate());
@@ -364,7 +364,7 @@ public class HeapIntersectionTest {
     inter.update(compSkIn1);
 
     //2nd call = valid intersecting
-    sk2 = UpdateSketch.builder().build(k);
+    sk2 = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<2*k; i++) sk2.update(i);  //est mode
     CompactSketch compSkIn2 = sk2.compact(true, null);
     println("compSkIn2: "+compSkIn2.getEstimate());
@@ -420,7 +420,7 @@ public class HeapIntersectionTest {
     inter2 = (Intersection) SetOperation.heapify(srcMem);
     //inter2 is in virgin state
 
-    sk1 = UpdateSketch.builder().setP((float) .005).setFamily(Family.QUICKSELECT).build(k);
+    sk1 = UpdateSketch.builder().setP((float) .005).setFamily(Family.QUICKSELECT).setNominalEntries(k).build();
     sk1.update(1);
     //A virgin intersection (empty = false) intersected with a not-empty zero cache sketch
     //remains empty = false!
@@ -457,7 +457,7 @@ public class HeapIntersectionTest {
   @Test(expectedExceptions = ClassCastException.class)
   public void checkFamilyID() {
     int k = 32;
-    Union union = SetOperation.builder().buildUnion(k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
     byte[] byteArray = union.toByteArray();
     Memory mem = Memory.wrap(byteArray);
     Intersection inter1 = (Intersection) SetOperation.heapify(mem); //bad cast

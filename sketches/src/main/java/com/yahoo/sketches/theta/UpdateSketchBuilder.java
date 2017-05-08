@@ -13,7 +13,6 @@ import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
 import static com.yahoo.sketches.Util.TAB;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
-import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
@@ -30,7 +29,6 @@ public class UpdateSketchBuilder {
   private ResizeFactor bRF;
   private Family bFam;
   private float bP;
-  private WritableMemory bDstMem;
 
   /**
    * Constructor for building a new UpdateSketch. The default configuration is
@@ -53,7 +51,6 @@ public class UpdateSketchBuilder {
     bP = (float) 1.0;
     bRF = ResizeFactor.X8;
     bFam = Family.QUICKSELECT;
-    bDstMem = null;
   }
 
   /**
@@ -157,35 +154,25 @@ public class UpdateSketchBuilder {
   }
 
   /**
-   * Initialize the specified backing destination Memory store.
-   * Note: this cannot be used with the Alpha Family of sketches.
-   * @param dstMem  The destination Memory.
-   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
-   * @return this UpdateSketchBuilder
-   */
-  public UpdateSketchBuilder initMemory(final WritableMemory dstMem) {
-    bDstMem = dstMem;
-    return this;
-  }
-
-  /**
-   * Returns the Destination Memory
-   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
-   * @return the Destination Memory
-   */
-  public Memory getMemory() {
-    return bDstMem;
-  }
-
-  /**
    * Returns an UpdateSketch with the current configuration of this Builder.
    * @return an UpdateSketch
    */
   public UpdateSketch build() {
+    return build(null);
+  }
+
+  /**
+   * Returns an UpdateSketch with the current configuration of this Builder
+   * with the specified backing destination Memory store.
+   * Note: this cannot be used with the Alpha Family of sketches.
+   * @param dstMem The destination Memory.
+   * @return an UpdateSketch
+   */
+  public UpdateSketch build(final WritableMemory dstMem) {
     UpdateSketch sketch = null;
     switch (bFam) {
       case ALPHA: {
-        if (bDstMem == null) {
+        if (dstMem == null) {
           sketch = HeapAlphaSketch.newHeapInstance(bLgNomLongs, bSeed, bP, bRF);
         }
         else {
@@ -194,11 +181,11 @@ public class UpdateSketchBuilder {
         break;
       }
       case QUICKSELECT: {
-        if (bDstMem == null) {
+        if (dstMem == null) {
           sketch = HeapQuickSelectSketch.initNewHeapInstance(bLgNomLongs, bSeed, bP, bRF, false);
         }
         else {
-          sketch = DirectQuickSelectSketch.initNewDirectInstance(bLgNomLongs, bSeed, bP, bRF, bDstMem, false);
+          sketch = DirectQuickSelectSketch.initNewDirectInstance(bLgNomLongs, bSeed, bP, bRF, dstMem, false);
         }
         break;
       }
@@ -210,18 +197,6 @@ public class UpdateSketchBuilder {
     return sketch;
   }
 
-  /**
-   * Returns an UpdateSketch with the current configuration of this Builder and the given
-   * <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>.
-   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
-   * This will become the ceiling power of 2 if it is not.
-   * @return an UpdateSketch
-   */
-  public UpdateSketch build(final int nomEntries) {
-    setNominalEntries(nomEntries);
-    return build();
-  }
-
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder();
@@ -231,8 +206,7 @@ public class UpdateSketchBuilder {
       .append("Seed:").append(TAB).append(bSeed).append(LS)
       .append("p:").append(TAB).append(bP).append(LS)
       .append("ResizeFactor:").append(TAB).append(bRF).append(LS)
-      .append("Family:").append(TAB).append(bFam).append(LS)
-      .append("DstMemory:").append(TAB).append(bDstMem != null).append(LS);
+      .append("Family:").append(TAB).append(bFam).append(LS);
     return sb.toString();
   }
 

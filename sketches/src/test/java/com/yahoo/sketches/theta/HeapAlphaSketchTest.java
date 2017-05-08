@@ -40,7 +40,7 @@ public class HeapAlphaSketchTest {
     int k = 512;
     int u = k;
     long seed = DEFAULT_UPDATE_SEED;
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed).build(k);
+    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed).setNominalEntries(k).build();
     HeapAlphaSketch sk1 = (HeapAlphaSketch)usk; //for internal checks
 
     assertTrue(usk.isEmpty());
@@ -61,13 +61,13 @@ public class HeapAlphaSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkConstructorKtooSmall() {
     int k = 256;
-    UpdateSketch.builder().setFamily(fam_).build(k);
+    UpdateSketch.builder().setFamily(fam_).setNominalEntries(k).build();
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkAlphaIncompatibleWithMem() {
     WritableMemory mem = WritableMemory.wrap(new byte[512*16+24]);
-    UpdateSketch.builder().setFamily(Family.ALPHA).initMemory(mem).build(512);
+    UpdateSketch.builder().setFamily(Family.ALPHA).setNominalEntries(512).build(mem);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -75,7 +75,7 @@ public class HeapAlphaSketchTest {
     int k = 512;
     int u = k;
     long seed = DEFAULT_UPDATE_SEED;
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed).build(k);
+    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed).setNominalEntries(k).build();
     HeapAlphaSketch sk1 = (HeapAlphaSketch)usk; //for internal checks
     assertTrue(usk.isEmpty());
 
@@ -97,7 +97,7 @@ public class HeapAlphaSketchTest {
     int k = 512;
     long seed1 = 1021;
     long seed2 = DEFAULT_UPDATE_SEED;
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed1).build(k);
+    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed1).setNominalEntries(k).build();
     byte[] byteArray = usk.toByteArray();
     Memory srcMem = Memory.wrap(byteArray);
     Sketch.heapify(srcMem, seed2);
@@ -108,7 +108,7 @@ public class HeapAlphaSketchTest {
     int k = 512;
     int u = k;
     long seed = DEFAULT_UPDATE_SEED;
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed).build(k);
+    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed).setNominalEntries(k).build();
 
     for (int i=0; i<u; i++) usk.update(i);
 
@@ -133,7 +133,7 @@ public class HeapAlphaSketchTest {
     int u = 2*k;
     long seed = DEFAULT_UPDATE_SEED;
 
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed).build(k);
+    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed).setNominalEntries(k).build();
 
     for (int i=0; i<u; i++) usk.update(i);
 
@@ -161,7 +161,7 @@ public class HeapAlphaSketchTest {
     boolean estimating = (u > k);
     //int maxBytes = (k << 4) + (Family.ALPHA.getLowPreLongs());
 
-    UpdateSketch sk1 = UpdateSketch.builder().setFamily(fam_).setSeed(seed).build(k);
+    UpdateSketch sk1 = UpdateSketch.builder().setFamily(fam_).setSeed(seed).setNominalEntries(k).build();
 
     for (int i=0; i<u; i++) sk1.update(i);
 
@@ -189,7 +189,7 @@ public class HeapAlphaSketchTest {
     int u = 4*k;
     boolean estimating = (u > k);
 
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).build(k);
+    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setNominalEntries(k).build();
     HeapAlphaSketch sk1 = (HeapAlphaSketch)usk; //for internal checks
 
     assertEquals(usk.getClass().getSimpleName(), "HeapAlphaSketch");
@@ -263,7 +263,7 @@ public class HeapAlphaSketchTest {
   public void checkAlphaToCompactEmptyForms() {
     int k = 512;
 
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).build(k);
+    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setNominalEntries(k).build();
 
     //empty
     usk.toString(false, true, 0, false);
@@ -303,7 +303,7 @@ public class HeapAlphaSketchTest {
     int k = 4096;
     int u = 4096;
 
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).build(k);
+    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setNominalEntries(k).build();
     HeapAlphaSketch sk1 = (HeapAlphaSketch)usk; //for internal checks
 
     assertTrue(usk.isEmpty());
@@ -318,7 +318,7 @@ public class HeapAlphaSketchTest {
   public void checkEstMode() {
     int k = 4096;
     int u = 2*k;
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setResizeFactor(ResizeFactor.X4).build(k);
+    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setResizeFactor(ResizeFactor.X4).setNominalEntries(k).build();
     HeapAlphaSketch sk1 = (HeapAlphaSketch)usk; //for internal checks
 
     assertTrue(usk.isEmpty());
@@ -334,7 +334,7 @@ public class HeapAlphaSketchTest {
     int u = k;
     float p = (float)0.5;
 
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setP(p).build(k);
+    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setP(p).setNominalEntries(k).build();
     HeapAlphaSketch sk1 = (HeapAlphaSketch)usk; //for internal checks
 
     for (int i = 0; i < u; i++ ) usk.update(i);
@@ -356,7 +356,7 @@ public class HeapAlphaSketchTest {
   public void checkErrorBounds() {
     int k = 512;
 
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setResizeFactor(X1).build(k);
+    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setResizeFactor(X1).setNominalEntries(k).build();
 
     //Exact mode
     for (int i = 0; i < k; i++ ) usk.update(i);
@@ -386,7 +386,7 @@ public class HeapAlphaSketchTest {
     //virgin, p = 1.0
     int k = 1024;
 
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).build(k);
+    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setNominalEntries(k).build();
     HeapAlphaSketch sk1 = (HeapAlphaSketch)usk; //for internal checks
 
     assertTrue(usk.isEmpty());
@@ -395,7 +395,7 @@ public class HeapAlphaSketchTest {
     assertFalse(usk.isEmpty());
 
     //virgin, p = .001
-    UpdateSketch usk2 = UpdateSketch.builder().setFamily(fam_).setP((float)0.001).build(k);
+    UpdateSketch usk2 = UpdateSketch.builder().setFamily(fam_).setP((float)0.001).setNominalEntries(k).build();
     sk1 = (HeapAlphaSketch)usk2;
     assertTrue(usk2.isEmpty());
     usk2.update(1); //will be rejected
@@ -417,7 +417,7 @@ public class HeapAlphaSketchTest {
     int k = 512;
     int u = 2*k;
 
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setResizeFactor(X2).build(k);
+    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setResizeFactor(X2).setNominalEntries(k).build();
 
     for (int i = 0; i < u; i++ ) usk.update(i);
 
@@ -433,7 +433,7 @@ public class HeapAlphaSketchTest {
     int k = 512;
     int u = 4*k;
 
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).build(k);
+    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setNominalEntries(k).build();
     HeapAlphaSketch sk1 = (HeapAlphaSketch)usk; //for internal checks
 
     assertTrue(usk.isEmpty());
@@ -455,7 +455,7 @@ public class HeapAlphaSketchTest {
     int k = 1024;
     int u = 4*k;
 
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setResizeFactor(X8).build(k);
+    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setResizeFactor(X8).setNominalEntries(k).build();
     HeapAlphaSketch sk1 = (HeapAlphaSketch)usk; //for internal checks
 
     assertTrue(usk.isEmpty());
@@ -468,7 +468,7 @@ public class HeapAlphaSketchTest {
     int subMul = Util.startingSubMultiple(11, rf, 5); //messy
     assertEquals(sk1.getLgArrLongs(), subMul);
 
-    UpdateSketch usk2 = UpdateSketch.builder().setFamily(fam_).setResizeFactor(ResizeFactor.X1).build(k);
+    UpdateSketch usk2 = UpdateSketch.builder().setFamily(fam_).setResizeFactor(ResizeFactor.X1).setNominalEntries(k).build();
     sk1 = (HeapAlphaSketch)usk2;
 
     for (int i=0; i<u; i++) usk2.update(i);
@@ -486,35 +486,35 @@ public class HeapAlphaSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkLBlimits0() {
     int k = 512;
-    Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).build(k);
+    Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     alpha.getLowerBound(0);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkUBlimits0() {
     int k = 512;
-    Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).build(k);
+    Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     alpha.getUpperBound(0);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkLBlimits4() {
     int k = 512;
-    Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).build(k);
+    Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     alpha.getLowerBound(4);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkUBlimits4() {
     int k = 512;
-    Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).build(k);
+    Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     alpha.getUpperBound(4);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadPreambleLongs() {
     int k = 512;
-    Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).build(k);
+    Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     byte[] byteArray = alpha.toByteArray();
     WritableMemory mem = WritableMemory.wrap(byteArray);
     //corrupt:
@@ -525,14 +525,14 @@ public class HeapAlphaSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkNegativeHashes() {
     int k = 512;
-    UpdateSketch alpha = UpdateSketch.builder().setFamily(ALPHA).build(k);
+    UpdateSketch alpha = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     alpha.hashUpdate(-1L);
   }
 
   @Test
   public void checkMemDeSerExceptions() {
     int k = 1024;
-    UpdateSketch sk1 = UpdateSketch.builder().setFamily(ALPHA).build(k);
+    UpdateSketch sk1 = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     sk1.update(1L); //forces preLongs to 3
     byte[] bytearray1 = sk1.toByteArray();
     WritableMemory mem = WritableMemory.wrap(bytearray1);

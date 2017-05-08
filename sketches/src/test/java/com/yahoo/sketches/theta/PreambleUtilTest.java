@@ -60,7 +60,7 @@ public class PreambleUtilTest {
     byte[] byteArray = new byte[bytes];
     WritableMemory mem = WritableMemory.wrap(byteArray);
 
-    UpdateSketch quick1 = UpdateSketch.builder().initMemory(mem).build(k);
+    UpdateSketch quick1 = UpdateSketch.builder().setNominalEntries(k).build(mem);
     println(PreambleUtil.preambleToString(byteArray));
 
     Assert.assertTrue(quick1.isEmpty());
@@ -76,7 +76,7 @@ public class PreambleUtilTest {
     println(PreambleUtil.preambleToString(mem));
 
     WritableMemory uMem = WritableMemory.wrap(new byte[getMaxUnionBytes(k)]);
-    Union union = SetOperation.builder().initMemory(uMem).buildUnion(k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uMem);
     union.update(quick1);
     println(PreambleUtil.preambleToString(uMem));
 
@@ -109,7 +109,7 @@ public class PreambleUtilTest {
 
   @Test
   public void checkPreLongs() {
-    UpdateSketch sketch = UpdateSketch.builder().build(16);
+    UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(16).build();
     CompactSketch comp = sketch.compact(false, null);
     byte[] byteArr = comp.toByteArray();
     println(PreambleUtil.preambleToString(byteArr)); //PreLongs = 1

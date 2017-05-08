@@ -9,7 +9,6 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -23,7 +22,7 @@ public class UpdateSketchTest {
   @Test
   public void checkOtherUpdates() {
     int k = 512;
-    UpdateSketch sk1 = UpdateSketch.builder().build(k);
+    UpdateSketch sk1 = UpdateSketch.builder().setNominalEntries(k).build();
     sk1.update(1L);   //#1 long
     sk1.update(1.5);  //#2 double
     sk1.update(0.0);
@@ -101,10 +100,6 @@ public class UpdateSketchTest {
     Family fam = Family.ALPHA;
     bldr.setFamily(fam);
     assertEquals(fam, bldr.getFamily());
-
-    WritableMemory mem = WritableMemory.wrap(new byte[16]);
-    bldr.initMemory(mem);
-    assertEquals(mem, bldr.getMemory());
 
     int lgK = 10;
     int k = 1 << lgK;

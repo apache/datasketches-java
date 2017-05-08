@@ -32,7 +32,7 @@ public class CompactSketchTest {
   
   //test combinations of compact ordered/not ordered and heap/direct
   public void checkHeapifyWrap(int k, int u) {
-    UpdateSketch usk = UpdateSketch.builder().build(k);
+    UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<u; i++) usk.update(i);
     double uskEst = usk.getEstimate();
     assertEquals(uskEst, u, 0.05 * u);
@@ -168,7 +168,7 @@ public class CompactSketchTest {
     int u = k;
     boolean compact = true;
     boolean ordered = false;
-    UpdateSketch usk = UpdateSketch.builder().build(k);
+    UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<u; i++) usk.update(i);
     
     int bytes = usk.getCurrentBytes(compact);
@@ -183,7 +183,7 @@ public class CompactSketchTest {
     int u = k;
     boolean compact = true;
     boolean ordered = true;
-    UpdateSketch usk = UpdateSketch.builder().build(k);
+    UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<u; i++) usk.update(i);
     
     int bytes = usk.getCurrentBytes(compact);
