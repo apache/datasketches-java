@@ -430,7 +430,7 @@ public final class VarOptItemsUnion<T> {
       --nextRPos;
     }
 
-    double transferedWeight = 0;
+    double transferredWeight = 0;
 
     // insert H region items
     sketchIterator = sketchSamples.getHIterator();
@@ -439,7 +439,7 @@ public final class VarOptItemsUnion<T> {
       if (ws.getMark()) {
         data.set(nextRPos, ws.getItem());
         weights.set(nextRPos, -1.0);
-        transferedWeight += ws.getWeight();
+        transferredWeight += ws.getWeight();
         ++resultR;
         --nextRPos;
       } else {
@@ -450,9 +450,9 @@ public final class VarOptItemsUnion<T> {
     }
 
     assert resultH + resultR == resultK;
-    assert Math.abs(transferedWeight - outerTauNumer) < 1e-10;
+    assert Math.abs(transferredWeight - outerTauNumer) < 1e-10;
 
-    final double resultRWeight = gadget_.getTotalWtR() + transferedWeight;
+    final double resultRWeight = gadget_.getTotalWtR() + transferredWeight;
     final long resultN = n_;
 
     // explicitly set values for the gap

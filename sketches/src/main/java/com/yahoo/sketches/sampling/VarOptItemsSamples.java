@@ -87,17 +87,17 @@ class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.WeightedSa
     VarOptItemsIterator() {
       currIdx_ = 0;
       final int k = sketch_.getK();
-      finalIdx_ = (int) (n_ <= k ? n_ : k);
+      finalIdx_ = (int) (n_ <= k ? n_ - 1 : k); // -1 since finalIdx_ is inclusive
     }
 
     // package private iterator to crawl only H or only R region values
     VarOptItemsIterator(final boolean useRRegion) {
       if (useRRegion) {
-        currIdx_ = h_ + 1;                        // to handle the gap
-        finalIdx_ = sketch_.getNumSamples() + 1;  // again, to handle the gap
+        currIdx_ = h_ + 1;                    // to handle the gap
+        finalIdx_ = sketch_.getNumSamples();  // no +1 since inclusive
       } else {
         currIdx_ = 0;
-        finalIdx_ = h_ - 1;
+        finalIdx_ = h_ - 1;                   // need stop before h_ since incluside
       }
     }
 

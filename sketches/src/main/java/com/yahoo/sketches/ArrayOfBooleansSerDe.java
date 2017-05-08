@@ -12,7 +12,7 @@ import com.yahoo.memory.UnsafeUtil;
 /**
  * Methods of serializing and deserializing arrays of Boolean as a bit array.
  *
- * @author Alexander Saydakov
+ * @author Jon Malkin
  */
 public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
   @Override
