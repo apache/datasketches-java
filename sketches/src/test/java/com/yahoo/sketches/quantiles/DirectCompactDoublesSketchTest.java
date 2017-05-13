@@ -43,7 +43,7 @@ public class DirectCompactDoublesSketchTest {
   public void createFromUnsortedUpdateSketch() {
     final int k = 4;
     final int n = 13;
-    final UpdateDoublesSketch qs = DoublesSketch.builder().build(k);
+    final UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build();
     for (int i = n; i > 0; --i) {
       qs.update(i);
     }
@@ -133,7 +133,7 @@ public class DirectCompactDoublesSketchTest {
   }
 
   static DirectCompactDoublesSketch buildAndLoadDCQS(final int k, final int n, final int startV) {
-    final UpdateDoublesSketch qs = DoublesSketch.builder().build(k);
+    final UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build();
     for (int i = 1; i <= n; i++) {
       qs.update(startV + i);
     }

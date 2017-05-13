@@ -54,12 +54,12 @@ public void checkDeprecated1() {
   bldr.setMaxK(128);
   DoublesUnion union = bldr.build(); //virgin union
 
-  union = DoublesUnionBuilder.build(srcMem); //heapify
+  union = DoublesUnionBuilder.heapify(srcMem); //heapify
   DoublesSketch qs2 = union.getResult();
   assertEquals(qs1.getCompactStorageBytes(), qs2.getCompactStorageBytes());
   assertEquals(qs1.getUpdatableStorageBytes(), qs2.getUpdatableStorageBytes());
 
-  union = DoublesUnionBuilder.build(qs2);  //heapify again
+  union = DoublesUnionBuilder.heapify(qs2);  //heapify again
   DoublesSketch qs3 = union.getResult();
   assertEquals(qs2.getCompactStorageBytes(), qs3.getCompactStorageBytes());
   assertEquals(qs2.getUpdatableStorageBytes(), qs3.getUpdatableStorageBytes());

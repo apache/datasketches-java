@@ -25,7 +25,7 @@ public class DoublesSketchTest {
   @Test
   public void directToHeap() {
     int sizeBytes = 10000;
-    UpdateDoublesSketch directSketch = DoublesSketch.builder().initMemory(WritableMemory.wrap(new byte[sizeBytes])).build();
+    UpdateDoublesSketch directSketch = DoublesSketch.builder().build(WritableMemory.wrap(new byte[sizeBytes]));
     for (int i = 0; i < 1000; i++) {
       directSketch.update(i);
     }
@@ -90,7 +90,7 @@ public class DoublesSketchTest {
     WritableMemory mem = WritableMemory.wrap(new byte[(k*16) +24]);
     WritableMemory cmem = WritableMemory.wrap(new byte[8]);
     DirectUpdateDoublesSketch duds =
-            (DirectUpdateDoublesSketch) DoublesSketch.builder().initMemory(mem).build(k);
+            (DirectUpdateDoublesSketch) DoublesSketch.builder().setK(k).build(mem);
     assertTrue(duds.isSameResource(mem));
     DirectCompactDoublesSketch dcds = (DirectCompactDoublesSketch) duds.compact(cmem);
     assertTrue(dcds.isSameResource(cmem));

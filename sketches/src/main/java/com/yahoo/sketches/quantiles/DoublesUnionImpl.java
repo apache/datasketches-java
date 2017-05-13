@@ -200,12 +200,12 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
               }
             }
             else { //Not Empty: myQS has data, downsample to tmp
-              final UpdateDoublesSketch tmp = DoublesSketch.builder().build(other.getK());
+              final UpdateDoublesSketch tmp = DoublesSketch.builder().setK(other.getK()).build();
 
               DoublesMergeImpl.downSamplingMergeInto(myQS, tmp); //myData -> tmp
               ret = (myQS.isDirect())
-                  ? DoublesSketch.builder().initMemory(myQS.getMemory()).build(other.getK())
-                  : DoublesSketch.builder().build(other.getK());
+                  ? DoublesSketch.builder().setK(other.getK()).build(myQS.getMemory())
+                  : DoublesSketch.builder().setK(other.getK()).build();
 
               DoublesMergeImpl.mergeInto(tmp, ret);
               DoublesMergeImpl.mergeInto(other, ret);

@@ -36,7 +36,7 @@ public class DirectQuantilesMemoryRequestTest {
       //########## Receiving Application
       // The receiving application has been given mem1 to use for a sketch,
       // but alas, it is not ultimately large enough.
-      final UpdateDoublesSketch usk1 = DoublesSketch.builder().initMemory(mem1).build(k);
+      final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build(mem1);
       assertTrue(usk1.isEmpty());
 
       //Load the sketch
@@ -66,7 +66,7 @@ public class DirectQuantilesMemoryRequestTest {
       //final WritableMemory mem1 = memMgr.request(initBytes);
       final WritableMemory mem1 = memHandler.get();
       println("Initial mem size: " + mem1.getCapacity());
-      final UpdateDoublesSketch usk1 = DoublesSketch.builder().initMemory(mem1).build(k);
+      final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build(mem1);
       for (int i = 1; i <= u; i++) {
         usk1.update(i);
       }
@@ -87,7 +87,7 @@ public class DirectQuantilesMemoryRequestTest {
       //final WritableMemory mem1 = memMgr.request(initBytes);
       final WritableMemory mem1 = memHandler.get();
       println("Initial mem size: " + mem1.getCapacity());
-      final UpdateDoublesSketch usk1 = DoublesSketch.builder().initMemory(mem1).build(k);
+      final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build(mem1);
       for (int i = 1; i <= u; i++) {
         usk1.update(i);
       }
@@ -106,7 +106,7 @@ public class DirectQuantilesMemoryRequestTest {
     final int k = 16;
     final int n = 0;
     final int initBytes = DoublesSketch.getUpdatableStorageBytes(k, n);
-    final UpdateDoublesSketch usk1 = DoublesSketch.builder().build(k);
+    final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build();
     final Memory origSketchMem = Memory.wrap(usk1.toByteArray());
 
     try (WritableDirectHandle memHandler = WritableMemory.allocateDirect(initBytes)) {

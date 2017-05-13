@@ -152,7 +152,7 @@ public class PreambleUtilTest {
   public void checkToString() {
     int k = PreambleUtil.DEFAULT_K;
     int n = 1000000;
-    UpdateDoublesSketch qs = DoublesSketch.builder().build(k);
+    UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build();
     for (int i=0; i<n; i++) qs.update(i);
     byte[] byteArr = qs.toByteArray();
     println(PreambleUtil.toString(byteArr, true));
@@ -161,7 +161,7 @@ public class PreambleUtilTest {
   @Test
   public void checkToStringEmpty() {
     int k = PreambleUtil.DEFAULT_K;
-    DoublesSketch qs = DoublesSketch.builder().build(k);
+    DoublesSketch qs = DoublesSketch.builder().setK(k).build();
     byte[] byteArr = qs.toByteArray();
     println(PreambleUtil.toString(byteArr, true));
   }

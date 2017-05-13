@@ -44,7 +44,7 @@ public class DirectUpdateDoublesSketchTest {
                  "adjustedFindEpsForK() doesn't match precomputed value");
   }
   for (int i = 0; i < 3; i++) {
-    DoublesSketch qs = DoublesSketch.builder().build(kArr[i]);
+    DoublesSketch qs = DoublesSketch.builder().setK(kArr[i]).build();
     assertEquals(epsArr[i],
                  qs.getNormalizedRankError(),
                  absTol,
@@ -55,9 +55,9 @@ public class DirectUpdateDoublesSketchTest {
   @Test
   public void checkBigMinMax () {
     int k = 32;
-    UpdateDoublesSketch qs1 = DoublesSketch.builder().build(k);
-    UpdateDoublesSketch qs2 = DoublesSketch.builder().build(k);
-    UpdateDoublesSketch qs3 = DoublesSketch.builder().build(k);
+    UpdateDoublesSketch qs1 = DoublesSketch.builder().setK(k).build();
+    UpdateDoublesSketch qs2 = DoublesSketch.builder().setK(k).build();
+    UpdateDoublesSketch qs3 = DoublesSketch.builder().setK(k).build();
     assertFalse(qs1.isEstimationMode());
 
     for (int i = 999; i >= 1; i--) {
@@ -176,7 +176,7 @@ public class DirectUpdateDoublesSketchTest {
     final int k = PreambleUtil.DEFAULT_K;
     final int cap = 32 + ((2 * k) << 3);
     WritableMemory mem = WritableMemory.wrap(new byte[cap]);
-    final UpdateDoublesSketch qs = DoublesSketch.builder().initMemory(mem).build(k);
+    final UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build(mem);
     mem = qs.getMemory();
     assertEquals(mem.getCapacity(), cap);
     assertTrue(qs.isEmpty());
@@ -204,7 +204,7 @@ public class DirectUpdateDoublesSketchTest {
     int n = 48;
     int cap = 32 + ((2 * k) << 3);
     WritableMemory mem = WritableMemory.wrap(new byte[cap]);
-    UpdateDoublesSketch qs = DoublesSketch.builder().initMemory(mem).build(k);
+    UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build(mem);
     mem = qs.getMemory();
     assertEquals(mem.getCapacity(), cap);
     double[] combBuf = qs.getCombinedBuffer();
@@ -272,7 +272,7 @@ public class DirectUpdateDoublesSketchTest {
   public void serializeDeserialize() {
     int sizeBytes = DoublesSketch.getUpdatableStorageBytes(128, 2000);
     WritableMemory mem = WritableMemory.wrap(new byte[sizeBytes]);
-    UpdateDoublesSketch sketch1 = DoublesSketch.builder().initMemory(mem).build();
+    UpdateDoublesSketch sketch1 = DoublesSketch.builder().build(mem);
     for (int i = 0; i < 1000; i++) {
       sketch1.update(i);
     }
@@ -314,8 +314,7 @@ public class DirectUpdateDoublesSketchTest {
     final int memBytes = DoublesSketch.getUpdatableStorageBytes(k, n);
     final WritableMemory mem = WritableMemory.wrap(new byte[memBytes]);
     final DoublesSketchBuilder bldr = DoublesSketch.builder();
-    bldr.initMemory(mem);
-    final UpdateDoublesSketch ds = bldr.build(k);
+    final UpdateDoublesSketch ds = bldr.setK(k).build(mem);
     for (int i = 1; i <= n; i++) { // 1 ... n
       ds.update(i);
     }
@@ -346,8 +345,7 @@ public class DirectUpdateDoublesSketchTest {
     if (cap < 2 * k) { cap = 2 * k; }
     DoublesSketchBuilder bldr = new DoublesSketchBuilder();
     bldr.setK(k);
-    bldr.initMemory(WritableMemory.wrap(new byte[cap]));
-    UpdateDoublesSketch dqs = bldr.build();
+    UpdateDoublesSketch dqs = bldr.build(WritableMemory.wrap(new byte[cap]));
     return dqs;
   }
 
