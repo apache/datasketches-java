@@ -9,12 +9,18 @@ import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.sampling.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.sampling.PreambleUtil.FLAGS_BYTE;
+import static com.yahoo.sketches.sampling.PreambleUtil.ITEMS_SEEN_LONG;
 import static com.yahoo.sketches.sampling.PreambleUtil.MAX_K_SIZE_INT;
+import static com.yahoo.sketches.sampling.PreambleUtil.OUTER_TAU_DENOM_LONG;
+import static com.yahoo.sketches.sampling.PreambleUtil.OUTER_TAU_NUM_DOUBLE;
 import static com.yahoo.sketches.sampling.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractMaxK;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractN;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractOuterTauDenominator;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractOuterTauNumerator;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.sampling.VarOptItemsSketch.buildFromUnionResult;
@@ -141,6 +147,10 @@ public final class VarOptItemsUnion<T> {
     final int numPreLongs, serVer;
     final boolean isEmpty;
     final int maxK;
+    long n = 0;
+    double outerTauNum = 0.0;
+    long outerTauDenom = 0;
+
 
     // If we have read-only memory on heap (aka not-direct) then the backing array exists but is
     // not available to us, so srcMem.array() will fail. In that case, we can use the (slower)
@@ -150,6 +160,11 @@ public final class VarOptItemsUnion<T> {
       serVer = srcMem.getByte(SER_VER_BYTE) & 0xFF;
       isEmpty = (srcMem.getInt(FLAGS_BYTE) & EMPTY_FLAG_MASK) != 0;
       maxK = srcMem.getInt(MAX_K_SIZE_INT);
+      if (!isEmpty) {
+        n = srcMem.getLong(ITEMS_SEEN_LONG);
+        outerTauNum = srcMem.getDouble(OUTER_TAU_NUM_DOUBLE);
+        outerTauDenom = srcMem.getLong(OUTER_TAU_DENOM_LONG);
+      }
     } else {
       final Object memObj = srcMem.array(); // may be null
       final long memAddr = srcMem.getCumulativeOffset(0L);
@@ -158,6 +173,11 @@ public final class VarOptItemsUnion<T> {
       serVer = extractSerVer(memObj, memAddr);
       isEmpty = (extractFlags(memObj, memAddr) & EMPTY_FLAG_MASK) != 0;
       maxK = extractMaxK(memObj, memAddr);
+      if (!isEmpty) {
+        n = extractN(memObj, memAddr);
+        outerTauNum = extractOuterTauNumerator(memObj, memAddr);
+        outerTauDenom = extractOuterTauDenominator(memObj, memAddr);
+      }
     }
 
     if (serVer != SER_VER) {
@@ -178,6 +198,10 @@ public final class VarOptItemsUnion<T> {
     if (isEmpty) {
       viu.gadget_ = VarOptItemsSketch.buildAsGadget(maxK);
     } else {
+      viu.n_ = n;
+      viu.outerTauNumer = outerTauNum;
+      viu.outerTauDenom = outerTauDenom;
+
       final int preLongBytes = numPreLongs << 3;
       final MemoryRegion sketchMem =
               new MemoryRegion(srcMem, preLongBytes, srcMem.getCapacity() - preLongBytes);
@@ -251,19 +275,16 @@ public final class VarOptItemsUnion<T> {
    */
   @Override
   public String toString() {
+    assert gadget_ != null;
     final StringBuilder sb = new StringBuilder();
 
     final String thisSimpleName = this.getClass().getSimpleName();
 
-    sb.append(LS);
-    sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
-    sb.append("   Max k: ").append(maxK_).append(LS);
-    if (gadget_ == null) {
-      sb.append("   Gadget is null").append(LS);
-    } else {
-      sb.append("   Gadget summary: ").append(gadget_.toString());
-    }
-    sb.append("### END UNION SUMMARY").append(LS);
+    sb.append(LS)
+            .append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS)
+            .append("   Max k: ").append(maxK_).append(LS)
+            .append("   Gadget summary: ").append(gadget_.toString())
+            .append("### END UNION SUMMARY").append(LS);
 
     return sb.toString();
   }
@@ -275,7 +296,8 @@ public final class VarOptItemsUnion<T> {
    * @return a byte array representation of this union
    */
   public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
-    if (gadget_ == null || gadget_.getNumSamples() == 0) {
+    assert gadget_ != null;
+    if (gadget_.getNumSamples() == 0) {
       return toByteArray(serDe, null);
     } else {
       return toByteArray(serDe, gadget_.getItem(0).getClass());
@@ -293,8 +315,8 @@ public final class VarOptItemsUnion<T> {
   @SuppressWarnings("null") // gadgetBytes will be null only if gadget_ == null AND empty == true
   public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe, final Class<?> clazz) {
     final int preLongs, outBytes;
-    final boolean empty = gadget_ == null || gadget_.getNumSamples() == 0;
-    final byte[] gadgetBytes = (gadget_ != null ? gadget_.toByteArray(serDe, clazz) : null);
+    final boolean empty = gadget_.getNumSamples() == 0;
+    final byte[] gadgetBytes = (empty ? null : gadget_.toByteArray(serDe, clazz));
 
     if (empty) {
       preLongs = Family.VAROPT_UNION.getMinPreLongs();
@@ -318,9 +340,13 @@ public final class VarOptItemsUnion<T> {
     } else {
       PreambleUtil.insertFlags(memObj, memAddr, 0); // Byte 3
     }
-    PreambleUtil.insertMaxK(memObj, memAddr, maxK_); // Bytes 4-5
+    PreambleUtil.insertMaxK(memObj, memAddr, maxK_); // Bytes 4-7
 
     if (!empty) {
+      PreambleUtil.insertN(memObj, memAddr, n_); // Bytes 8-15
+      PreambleUtil.insertOuterTauNumerator(memObj, memAddr, outerTauNumer); // Bytes 16-23
+      PreambleUtil.insertOuterTauDenominator(memObj, memAddr, outerTauDenom); // Bytes 24-31
+
       final int preBytes = preLongs << 3;
       mem.putByteArray(preBytes, gadgetBytes, 0, gadgetBytes.length);
     }
@@ -328,7 +354,8 @@ public final class VarOptItemsUnion<T> {
     return outArr;
   }
 
-  private double getOuterTau() {
+  // package-private for testing
+  double getOuterTau() {
     if (outerTauDenom == 0) {
       return 0.0;
     } else {
@@ -366,14 +393,14 @@ public final class VarOptItemsUnion<T> {
       final double sketchTau = sketch.getTau();
       final double outerTau = getOuterTau();
 
-      if (outerTauDenom > 0) {
+      if (outerTauDenom == 0) {
         // detect first estimation mode sketch and grab its tau
         outerTauNumer = sketch.getTotalWtR();
         outerTauDenom = sketch.getRRegionCount();
       } else if (sketchTau > outerTau) {
         // switch to a bigger value of outerTau
-        outerTauNumer += sketch.getTotalWtR();
-        outerTauDenom += sketch.getRRegionCount();
+        outerTauNumer = sketch.getTotalWtR();
+        outerTauDenom = sketch.getRRegionCount();
       } else if (sketchTau == outerTau) {
         // Ok if previous equality test isn't quite perfect. Mistakes in either direction should
         // be fairly benign.
@@ -395,30 +422,36 @@ public final class VarOptItemsUnion<T> {
    */
   private VarOptItemsSketch<T> simpleGadgetCoercer() {
     assert gadget_.getNumMarksInH() == 0;
-    return gadget_.copy(true);
+    return gadget_.copyAndSetN(true, n_);
   }
 
   /**
-   * This coercer directly transfers marked items from teh gadget's H into the result's R.
+   * This coercer directly transfers marked items from the gadget's H into the result's R.
    * Deciding whether that is a valid thing to do is the responsibility of the caller. Currently,
    * this is only used for a subcase of pseudo-exact, but later it might be used by other
    * subcases as well.
    *
    * @return A sketch derived from the gadget, with marked items moved to the reservoir
    */
+  @SuppressWarnings("unchecked")
   private VarOptItemsSketch<T> markMovingGadgetCoercer() {
     final int resultK = gadget_.getHRegionCount() + gadget_.getRRegionCount();
 
     int resultH = 0;
     int resultR = 0;
-    int nextRPos = (resultK + 1) - 1; // filling from back to front
+    int nextRPos = resultK; // = (resultK+1)-1, to fill R region from back to front
 
-    // TODO: the sets will likely fail since we didn't add items first
     final ArrayList<T> data         = new ArrayList<>(resultK + 1);
     final ArrayList<Double> weights = new ArrayList<>(resultK + 1);
 
-    final VarOptItemsSamples<T> sketchSamples = gadget_.getSketchSamples();
+    // Need arrays filled to use set() and be able to fill from end forward.
+    // Ideally would create as arrays but trying to avoid forcing user to pass a Class<?>
+    for (int i = 0; i < resultK + 1; ++i) {
+      data.add(null);
+      weights.add(null);
+    }
 
+    final VarOptItemsSamples<T> sketchSamples = gadget_.getSketchSamples();
     // insert R region items, ignoring weights
     Iterator<VarOptItemsSamples<T>.WeightedSample> sketchIterator;
     sketchIterator = sketchSamples.getRIterator();
@@ -429,7 +462,6 @@ public final class VarOptItemsUnion<T> {
       ++resultR;
       --nextRPos;
     }
-
     double transferredWeight = 0;
 
     // insert H region items
@@ -503,7 +535,7 @@ public final class VarOptItemsUnion<T> {
 
   // this is basically a continuation of getResult()
   private VarOptItemsSketch<T> migrateMarkedItemsByDecreasingK() {
-    final VarOptItemsSketch<T> gcopy = gadget_.copy(false);
+    final VarOptItemsSketch<T> gcopy = gadget_.copyAndSetN(false, n_);
 
     final int rCount = gcopy.getRRegionCount();
     final int hCount = gcopy.getHRegionCount();
@@ -524,7 +556,7 @@ public final class VarOptItemsUnion<T> {
     assert gcopy.getK() >= 2;
     gcopy.decreaseKBy1();
 
-    // gcopy is now in estimation mode, just like hte final result must be (due to marked items)
+    // gcopy is now in estimation mode, just like the final result must be (due to marked items)
     assert gcopy.getRRegionCount() > 0;
     assert gcopy.getTau() > 0.0;
 

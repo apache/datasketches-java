@@ -23,9 +23,10 @@ import com.yahoo.sketches.ArrayOfStringsSerDe;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.SketchesStateException;
 
 public class VarOptItemsSketchTest {
-  private static final double EPS = 1e-10;
+  static final double EPS = 1e-10;
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidK() {
@@ -414,6 +415,76 @@ public class VarOptItemsSketchTest {
     assertTrue(Math.abs(wtDiff) < EPS);
   }
 
+  @Test(expectedExceptions = SketchesStateException.class)
+  public void checkDecreaseKWithUnderfullSketch() {
+    final VarOptItemsSketch<Integer> sketch = VarOptItemsSketch.buildAsGadget(5);
+    assertEquals(sketch.getK(), 5);
+
+    // shrink empty sketch
+    sketch.decreaseKBy1();
+    assertEquals(sketch.getK(), 4);
+
+    // insert 3 values
+    sketch.update(1, 1.0);
+    sketch.update(2, 2.0);
+    sketch.update(3, 3.0);
+
+    // shrink to k=3, should do nothing
+    assertEquals(sketch.getTotalWtR(), 0.0);
+    sketch.decreaseKBy1();
+    assertEquals(sketch.getTotalWtR(), 0.0);
+
+    // one more time, to k=2, which exist warmup phase
+    sketch.decreaseKBy1();
+    assertEquals(sketch.getHRegionCount(), 1);
+    assertEquals(sketch.getRRegionCount(), 1);
+    assertEquals(sketch.getTotalWtR(), 3.0);
+
+    // decrease twice more to trigger an exception
+    sketch.decreaseKBy1();
+    sketch.decreaseKBy1();
+  }
+
+  @Test
+  public void checkDecreaseKWithFullSketch() {
+    final int[] itemList = {10, 1, 9, 2, 8, 3, 7, 4, 6, 5};
+
+    final int startK = 7;
+    final int tgtK = 5;
+
+    // Create sketch with k = startK and another with k = tgtK. We'll then decrease k until
+    // they're equal and ensure the results "match"
+    final VarOptItemsSketch<Integer> sketch = VarOptItemsSketch.buildAsGadget(startK);
+    final VarOptItemsSketch<Integer> tgtSketch = VarOptItemsSketch.buildAsGadget(tgtK);
+
+    double totalWeight = 0.0;
+    for (int val : itemList) {
+      sketch.update(val, val);
+      tgtSketch.update(val, val);
+      totalWeight += val;
+    }
+
+    // larger sketch has heavy items, smaller does not
+    assertEquals(sketch.getHRegionCount(), 4);
+    assertEquals(sketch.getRRegionCount(), 3);
+    assertEquals(tgtSketch.getHRegionCount(), 0);
+    assertEquals(tgtSketch.getRRegionCount(), 5);
+
+    while (sketch.getK() > tgtK) {
+      sketch.decreaseKBy1();
+    }
+
+    assertEquals(sketch.getK(), tgtSketch.getK());
+    assertEquals(sketch.getHRegionCount(), 0);
+    assertTrue(Math.abs(sketch.getTau() - tgtSketch.getTau()) < EPS);
+
+    // decrease again from reservoir-only mode
+    sketch.decreaseKBy1();;
+
+    assertEquals(sketch.getK(), tgtK - 1);
+    assertEquals(sketch.getK(), sketch.getRRegionCount());
+    assertEquals(sketch.getTotalWtR(), totalWeight);
+  }
 
   /* Returns a sketch of size k that has been presented with n items. Use n = k+1 to obtain a
      sketch that has just reached the sampling phase, so that the next update() is handled by

@@ -85,7 +85,7 @@ class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.WeightedSa
     int finalIdx_; // inclusive final index
 
     VarOptItemsIterator() {
-      currIdx_ = 0;
+      currIdx_ = h_ == 0 ? 1 : 0;
       final int k = sketch_.getK();
       finalIdx_ = (int) (n_ <= k ? n_ - 1 : k); // -1 since finalIdx_ is inclusive
     }
@@ -154,10 +154,9 @@ class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.WeightedSa
         ++currIdx_;
       }
 
-      //
       final WeightedSample sample;
-      if (currIdx_ == finalIdx_) {
-        sample = new WeightedSample(tgt, sketch_.getTau() - cumWeight);
+      if (tgt == finalIdx_) {
+        sample = new WeightedSample(tgt, sketch_.getTotalWtR() - cumWeight);
       } else {
         sample = new WeightedSample(tgt);
         cumWeight += rWeight_;

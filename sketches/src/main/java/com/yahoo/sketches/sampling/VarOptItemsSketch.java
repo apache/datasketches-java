@@ -37,7 +37,6 @@ import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
 import com.yahoo.sketches.Util;
-import com.yahoo.sketches.quantiles.DoublesSketch;
 
 /**
  * This sketch provides a variance optimal sample over an input stream of weighted items. The
@@ -62,6 +61,8 @@ final class VarOptItemsSketch<T> {
    * Default sampling size multiple when reallocating storage: 8
    */
   private static final ResizeFactor DEFAULT_RESIZE_FACTOR = ResizeFactor.X8;
+
+  private static final ArrayOfBooleansSerDe MARK_SERDE = new ArrayOfBooleansSerDe();
 
   private int k_;                        // max size of sketch, in items
   private int currItemsAlloc_;           // currently allocated array size
@@ -379,18 +380,16 @@ final class VarOptItemsSketch<T> {
     if (isGadget) {
       final long markOffsetBytes = preLongBytes + (hCount * Double.BYTES);
       markBytes = (hCount >> 3) + ((hCount & 0x7) > 0 ? 1 : 0);
+      markList = new ArrayList<>(allocatedItems);
 
       final ArrayOfBooleansSerDe booleansSerDe = new ArrayOfBooleansSerDe();
       final Boolean[] markArray = booleansSerDe.deserializeFromMemory(
               new MemoryRegion(srcMem, markOffsetBytes, (hCount >> 3) + 1), hCount);
-      final List<Boolean> wrappedMarks = Arrays.asList(markArray);
-      markList = new ArrayList<>(allocatedItems);
 
-      for (Boolean mark : wrappedMarks) {
+      for (Boolean mark : markArray) {
         if (mark) { ++markCount; }
-        markList.add(mark);
       }
-      markList.addAll(wrappedMarks.subList(0, hCount));
+      markList.addAll(Arrays.asList(markArray));
     }
 
     final long offsetBytes = preLongBytes + (hCount * Double.BYTES) + markBytes;
@@ -401,14 +400,16 @@ final class VarOptItemsSketch<T> {
     final ArrayList<T> dataList = new ArrayList<>(allocatedItems);
     dataList.addAll(wrappedData.subList(0, hCount));
 
-    // check if we need to add null value between H and R regions and, if so, load items in R
+    // Load items in R as needed
     if (rCount > 0) {
-      weightList.add(null);
+      weightList.add(-1.0); // the gap
+      if (isGadget) { markList.add(false); } // the gap
       for (int i = 0; i < rCount; ++i) {
         weightList.add(-1.0);
+        if (isGadget) { markList.add(false); }
       }
 
-      dataList.add(null);
+      dataList.add(null); // the gap
       dataList.addAll(wrappedData.subList(hCount, totalItems));
     }
 
@@ -544,17 +545,20 @@ final class VarOptItemsSketch<T> {
    */
   @SuppressWarnings("null") // bytes will be null only if empty == true
   public byte[] toByteArray(final ArrayOfItemsSerDe<? super T> serDe, final Class<?> clazz) {
-    final int preLongs, outBytes;
+    final int preLongs, numMarkBytes, outBytes;
     final boolean empty = r_ == 0 && h_ == 0;
-    byte[] bytes = null; // for serialized items from serDe
+    byte[] itemBytes = null; // for serialized items from serDe
+    int flags = marks_ == null ? 0 : GADGET_FLAG_MASK;
 
     if (empty) {
       preLongs = Family.VAROPT.getMinPreLongs();
       outBytes = Family.VAROPT.getMinPreLongs() << 3; // only contains the minimum header info
+      flags |= EMPTY_FLAG_MASK;
     } else {
       preLongs = (r_ == 0 ? PreambleUtil.VO_WARMUP_PRELONGS : Family.VAROPT.getMaxPreLongs());
-      bytes = serDe.serializeToByteArray(getDataSamples(clazz));
-      outBytes = (preLongs << 3) + (h_ * Double.BYTES) + bytes.length;
+      itemBytes = serDe.serializeToByteArray(getDataSamples(clazz));
+      numMarkBytes = marks_ == null ? 0 : ArrayOfBooleansSerDe.computeBytesNeeded(h_);
+      outBytes = (preLongs << 3) + (h_ * Double.BYTES) + numMarkBytes + itemBytes.length;
     }
     final byte[] outArr = new byte[outBytes];
     final Memory mem = new NativeMemory(outArr);
@@ -567,11 +571,7 @@ final class VarOptItemsSketch<T> {
     PreambleUtil.insertLgResizeFactor(memObj, memAddr, rf_.lg());
     PreambleUtil.insertSerVer(memObj, memAddr, SER_VER);                  // Byte 1
     PreambleUtil.insertFamilyID(memObj, memAddr, Family.VAROPT.getID());  // Byte 2
-    if (empty) {
-      PreambleUtil.insertFlags(memObj, memAddr, EMPTY_FLAG_MASK);         // Byte 3
-    } else {
-      PreambleUtil.insertFlags(memObj, memAddr, 0);
-    }
+    PreambleUtil.insertFlags(memObj, memAddr, flags);                     // Byte 3
     PreambleUtil.insertK(memObj, memAddr, k_);                            // Bytes 4-7
     PreambleUtil.insertN(memObj, memAddr, n_);                            // Bytes 8-15
 
@@ -589,8 +589,16 @@ final class VarOptItemsSketch<T> {
         offset += Double.BYTES;
       }
 
+      // write the first h_ marks, iff we have a gadget
+      if (marks_ != null) {
+        final byte[] markBytes;
+        markBytes = MARK_SERDE.serializeToByteArray(marks_.subList(0, h_).toArray(new Boolean[0]));
+        mem.putByteArray(offset, markBytes, 0, markBytes.length);
+        offset += markBytes.length;
+      }
+
       // write the sample items, using offset from earlier
-      mem.putByteArray(offset, bytes, 0, bytes.length);
+      mem.putByteArray(offset, itemBytes, 0, itemBytes.length);
     }
 
     return outArr;
@@ -613,19 +621,24 @@ final class VarOptItemsSketch<T> {
   }
 
   /**
-   * Creates a copy of the sketch, optinally discarding any information about marks that would
+   * Creates a copy of the sketch, optionally discarding any information about marks that would
    * indicate the class's use as a union gadget as opposed to a valid sketch.
    *
    * @param asSketch If true, copies as a sketch; if false, copies as a union gadget
+   * @param adjustedN Target value of n for the resulting sketch. Ignored if negative.
    * @return A copy of the sketch.
    */
-  VarOptItemsSketch<T> copy(final boolean asSketch) {
+  VarOptItemsSketch<T> copyAndSetN(final boolean asSketch, final long adjustedN) {
     final VarOptItemsSketch<T> sketch;
     sketch = new VarOptItemsSketch<>(data_, weights_, k_,n_, rf_, h_, r_, totalWtR_);
 
     if (!asSketch) {
       sketch.marks_ = this.marks_;
       sketch.numMarksInH_ = this.numMarksInH_;
+    }
+
+    if (adjustedN >= 0) {
+      sketch.n_ = adjustedN;
     }
 
     return sketch;
@@ -658,13 +671,15 @@ final class VarOptItemsSketch<T> {
       return null;
     }
 
-    // are 2 Array.asList(data_.subList()) copies better?
-    final T[] prunedItems = (T[]) Array.newInstance(clazz, getNumSamples());
-    final double[] prunedWeights = new double[getNumSamples()];
-    final boolean[] prunedMarks = (marks_ != null ? new boolean[getNumSamples()] : null);
+    // are Array.asList(data_.subList()) copies better?
+    final int numSamples = getNumSamples();
+    final T[] prunedItems = (T[]) Array.newInstance(clazz, numSamples);
+    final double[] prunedWeights = new double[numSamples];
+    final boolean[] prunedMarks = (marks_ != null ? new boolean[numSamples] : null);
     int j = 0;
     final double rWeight = totalWtR_ / r_;
-    for (int i = 0; i < data_.size(); ++i) {
+    //for (int i = 0; i < data_.size(); ++i) {
+    for (int i = 0; j < numSamples; ++i) {
       final T item = data_.get(i);
       if (item != null) {
         prunedItems[j] = item;
@@ -683,6 +698,8 @@ final class VarOptItemsSketch<T> {
 
     return output;
   }
+
+  // package-private getters
 
   // package-private: Relies on ArrayList for bounds checking and assumes caller knows how to handle
   // a null from the middle of the list
@@ -717,13 +734,13 @@ final class VarOptItemsSketch<T> {
     return totalWtR_;
   }
 
-  // used to resolve gadget into sketch during union
+  // package-private setter, used to resolve gadget into sketch during union
   void forceSetK(final int k) {
     assert k > 0;
     k_ = k;
   }
 
-  /**
+   /**
    * Internal implementation of update() which requires the user to know if an item is
    * marked as coming from the reservoir region of a sketch. The marks are used only in
    * merging.
@@ -734,7 +751,7 @@ final class VarOptItemsSketch<T> {
    */
   void update(final T item, final double weight, final boolean mark) {
     if (weight <= 0.0) {
-      throw new SketchesArgumentException("Item weights must be strictly positive: " + weight);
+      throw new SketchesArgumentException("Item weights must be strictly positive: " + weight + ", for item " + item.toString());
     }
     if (item == null) {
       return;
@@ -810,7 +827,7 @@ final class VarOptItemsSketch<T> {
       final boolean pulledMark = marks_.get(pulledIdx);
 
       if (pulledMark) { --numMarksInH_; }
-      weights_.set(pulledIdx, -1.0); // to make bugs easier to sppt
+      weights_.set(pulledIdx, -1.0); // to make bugs easier to spot
 
       --h_;
       --k_;
@@ -902,7 +919,6 @@ final class VarOptItemsSketch<T> {
 
     // check if need to heapify
     if (h_ > k_) {
-      convertToHeap();
       transitionFromWarmup();
     }
   }

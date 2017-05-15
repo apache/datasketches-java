@@ -15,9 +15,20 @@ import com.yahoo.memory.UnsafeUtil;
  * @author Jon Malkin
  */
 public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
+  /**
+   * Computes number of bytes needed for packed bit encoding of the array of booleans. Rounds
+   * partial bytes up to return a whole number of bytes.
+   *
+   * @param arrayLength Number of items in the array to serialize
+   * @return Number of bytes needed to encode the array
+   */
+  public static int computeBytesNeeded(final int arrayLength) {
+    return (arrayLength >> 3) + ((arrayLength & 0x7) > 0 ? 1 : 0);
+  }
+
   @Override
   public byte[] serializeToByteArray(final Boolean[] items) {
-    final int bytesNeeded = (items.length >> 3) + ((items.length & 0x7) > 0 ? 1 : 0);
+    final int bytesNeeded = computeBytesNeeded(items.length);
     final byte[] bytes = new byte[bytesNeeded];
     final Memory mem = new NativeMemory(bytes);
 
@@ -43,7 +54,7 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
 
   @Override
   public Boolean[] deserializeFromMemory(final Memory mem, final int length) {
-    final int numBytes = (length >> 3) + ((length & 0x7) > 0 ? 1 : 0);
+    final int numBytes = computeBytesNeeded(length);
     UnsafeUtil.checkBounds(0, numBytes, mem.getCapacity());
     final Boolean[] array = new Boolean[length];
 
