@@ -18,7 +18,7 @@ import com.yahoo.sketches.ArrayOfItemsSerDe;
  * @param <T> type of item
  *
  * @author Lee Rhodes
- * @author Alex Saydakov
+ * @author Alexander Saydakov
  */
 public final class ItemsUnion<T> {
 
