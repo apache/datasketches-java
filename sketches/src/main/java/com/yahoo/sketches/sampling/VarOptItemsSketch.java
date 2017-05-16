@@ -99,7 +99,6 @@ final class VarOptItemsSketch<T> {
   class Result {
     T[] items;
     double[] weights;
-    boolean[] marks;
   }
 
   private VarOptItemsSketch(final int k, final ResizeFactor rf) {
@@ -150,37 +149,6 @@ final class VarOptItemsSketch<T> {
     assert hCount >= 0;
     assert rCount >= 0;
     assert (rCount == 0 && dataList.size() == hCount) || (rCount > 0 && dataList.size() == k + 1);
-    /* These conditions can never be triggered in this constructor if the only route to this code
-       is through heapify(Memory, SerDe)
-    if (dataList == null) {
-      throw new SketchesArgumentException("Instantiating sketch with null items item list");
-    }
-    if (weightList == null) {
-      throw new SketchesArgumentException("Instantiating sketch with null weight list");
-    }
-    if (dataList.size() != weightList.size()) {
-      throw new SketchesArgumentException("items and weight list lengths must match. items: "
-              + dataList.size() + ", weights: " + weightList.size());
-    }
-    if (hCount < 0 || rCount < 0) {
-      throw new SketchesArgumentException("H and R region sizes cannot be negative: |H| = "
-              + hCount + ", |R| = " + rCount);
-    }
-    if (k < 2) {
-      throw new SketchesArgumentException("Cannot instantiate sketch with size less than 2");
-    }
-    if (rCount == 0) {
-      if (dataList.size() != hCount) {
-        throw new SketchesArgumentException("Instantiating sketch with incorrect number of "
-                + "items. Expected items: " + hCount + ", found: " + dataList.size());
-      }
-    } else { // rCount > 0
-      if (dataList.size() != k + 1) {
-        throw new SketchesArgumentException("Sketch in sampling mode must have array of k+1 "
-                + "elements. k+1 = " + (k + 1) + ", items length = " + dataList.size());
-      }
-    }
-    */
 
     k_ = k;
     n_ = n;
@@ -188,7 +156,6 @@ final class VarOptItemsSketch<T> {
     r_ = rCount;
     m_ = 0;
     totalWtR_ = totalWtR;
-    //currItemsAlloc_ = (dataList.size() == k ? k + 1 : dataList.size());
     currItemsAlloc_ = currItemsAlloc;
     rf_ = rf;
     data_ = dataList;
@@ -682,7 +649,6 @@ final class VarOptItemsSketch<T> {
     final int numSamples = getNumSamples();
     final T[] prunedItems = (T[]) Array.newInstance(clazz, numSamples);
     final double[] prunedWeights = new double[numSamples];
-    final boolean[] prunedMarks = (marks_ != null ? new boolean[numSamples] : null);
     int j = 0;
     final double rWeight = totalWtR_ / r_;
     //for (int i = 0; i < data_.size(); ++i) {
@@ -691,9 +657,6 @@ final class VarOptItemsSketch<T> {
       if (item != null) {
         prunedItems[j] = item;
         prunedWeights[j] = (weights_.get(i) > 0 ? weights_.get(i) : rWeight);
-        if (prunedMarks != null) {
-          prunedMarks[j] = marks_.get(i);
-        }
         ++j;
       }
     }
@@ -701,7 +664,6 @@ final class VarOptItemsSketch<T> {
     final Result output = new Result();
     output.items = prunedItems;
     output.weights = prunedWeights;
-    output.marks = prunedMarks;
 
     return output;
   }
@@ -747,7 +709,7 @@ final class VarOptItemsSketch<T> {
     k_ = k;
   }
 
-   /**
+  /**
    * Internal implementation of update() which requires the user to know if an item is
    * marked as coming from the reservoir region of a sketch. The marks are used only in
    * merging.
@@ -758,7 +720,8 @@ final class VarOptItemsSketch<T> {
    */
   void update(final T item, final double weight, final boolean mark) {
     if (weight <= 0.0) {
-      throw new SketchesArgumentException("Item weights must be strictly positive: " + weight + ", for item " + item.toString());
+      throw new SketchesArgumentException("Item weights must be strictly positive: "
+              + weight + ", for item " + item.toString());
     }
     if (item == null) {
       return;

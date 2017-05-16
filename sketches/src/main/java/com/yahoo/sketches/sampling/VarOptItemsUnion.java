@@ -50,8 +50,9 @@ public final class VarOptItemsUnion<T> {
 
   // outer tau is the largest tau of any input sketch
   private double outerTauNumer; // total weight of all input R-zones where tau = outerTau
-  private long outerTauDenom;   // total cardinality of the same R-zones, or zero if no
-                                // input sketch was in estimation mode
+
+  // total cardinality of the same R-zones, or zero if no input sketch was in estimation mode
+  private long outerTauDenom;
 
   /*
    IMPORTANT NOTE: the "gadget" in the unioner object appears to be a varopt sketch,
@@ -215,7 +216,7 @@ public final class VarOptItemsUnion<T> {
    *
    *<p>This method can be repeatedly called.</p>
    *
-   * @param sketchIn
+   * @param sketchIn The sketch to be merged
    */
   public void update(final VarOptItemsSketch<T> sketchIn) {
     if (sketchIn != null) {

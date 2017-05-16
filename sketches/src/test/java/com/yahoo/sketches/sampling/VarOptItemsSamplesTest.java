@@ -112,7 +112,7 @@ public class VarOptItemsSamplesTest {
     sketch.update(1, 0.5);
     sketch.update(2L, 1.7);
     sketch.update(3.0f, 2.0);
-    sketch.update(4.0, 3.14159);
+    sketch.update(4.0, 3.1);
 
     try {
       final VarOptItemsSamples<Number> samples = sketch.getSketchSamples();
