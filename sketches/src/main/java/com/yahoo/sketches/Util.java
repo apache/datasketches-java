@@ -476,6 +476,18 @@ public final class Util {
   }
 
   /**
+   * Gives the log2 of an integer that is known to be a power of 2.
+   *
+   * @param x number
+   * @return the log2 of an integer that is known to be a power of 2.
+   */
+  public static int simpleIntlog2(final int x) {
+    final int e = Integer.numberOfTrailingZeros(x);
+    assert (x == (1 << e));
+    return e;
+  }
+
+  /**
    * Gets the smallest allowed exponent of 2 that it is a sub-multiple of the target by zero,
    * one or more resize factors.
    *
