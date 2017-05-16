@@ -30,7 +30,7 @@ public class VarOptItemsSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidK() {
-    VarOptItemsSketch.<Integer>build(0);
+    VarOptItemsSketch.<Integer>newInstance(0);
     fail();
   }
 
@@ -192,7 +192,7 @@ public class VarOptItemsSketchTest {
 
   @Test
   public void checkEmptySketch() {
-    final VarOptItemsSketch<String> vis = VarOptItemsSketch.build(5);
+    final VarOptItemsSketch<String> vis = VarOptItemsSketch.newInstance(5);
     assertEquals(vis.getN(), 0);
     assertEquals(vis.getNumSamples(), 0);
     assertNull(vis.getSamplesAsArrays());
@@ -220,7 +220,7 @@ public class VarOptItemsSketchTest {
     // PreambleUtil.VO_WARMUP_PRELONGS-sized byte array
     // so there'll be no items, then clear the empty flag so it will try to load
     // the rest.
-    final VarOptItemsSketch<String> vis = VarOptItemsSketch.build(12, ResizeFactor.X2);
+    final VarOptItemsSketch<String> vis = VarOptItemsSketch.newInstance(12, ResizeFactor.X2);
     final byte[] sketchBytes = vis.toByteArray(new ArrayOfStringsSerDe());
     final byte[] dstByteArr = new byte[PreambleUtil.VO_WARMUP_PRELONGS << 3];
     final Memory mem = new NativeMemory(dstByteArr);
@@ -241,7 +241,7 @@ public class VarOptItemsSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidWeight() {
-    final VarOptItemsSketch<String> vis = VarOptItemsSketch.build(5);
+    final VarOptItemsSketch<String> vis = VarOptItemsSketch.newInstance(5);
     try {
       vis.update(null, 1.0); // should work fine
     } catch (final SketchesArgumentException e) {
@@ -253,7 +253,7 @@ public class VarOptItemsSketchTest {
 
   @Test
   public void checkCorruptSerializedWeight() {
-    final VarOptItemsSketch<String> vis = VarOptItemsSketch.build(24);
+    final VarOptItemsSketch<String> vis = VarOptItemsSketch.newInstance(24);
     for (int i = 1; i < 10; ++i) {
       vis.update(Integer.toString(i), i);
     }
@@ -281,7 +281,7 @@ public class VarOptItemsSketchTest {
   public void checkCumulativeWeight() {
     final int k = 256;
     final int n = 10 * k;
-    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.build(k);
+    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.newInstance(k);
 
     double inputSum = 0.0;
     for (long i = 0; i < n; ++i) {
@@ -304,7 +304,7 @@ public class VarOptItemsSketchTest {
 
   @Test
   public void checkUnderFullSketchSerialization() {
-    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.build(2048);
+    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.newInstance(2048);
     for (long i = 0; i < 10; ++i) {
       sketch.update(i, 1.0);
     }
@@ -343,7 +343,7 @@ public class VarOptItemsSketchTest {
 
   @Test
   public void checkFullSketchSerialization() {
-    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.build(32);
+    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.newInstance(32);
     for (long i = 0; i < 32; ++i) {
       sketch.update(i, 1.0);
     }
@@ -390,7 +390,7 @@ public class VarOptItemsSketchTest {
   public void checkPseudoHeavyUpdates() {
     final int k = 1024;
     final double wtScale = 10.0 * k;
-    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.build(k);
+    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.newInstance(k);
     for (long i = 0; i <= k; ++i) {
       sketch.update(i, 1.0);
     }
@@ -417,7 +417,7 @@ public class VarOptItemsSketchTest {
 
   @Test(expectedExceptions = SketchesStateException.class)
   public void checkDecreaseKWithUnderfullSketch() {
-    final VarOptItemsSketch<Integer> sketch = VarOptItemsSketch.buildAsGadget(5);
+    final VarOptItemsSketch<Integer> sketch = VarOptItemsSketch.newInstanceAsGadget(5);
     assertEquals(sketch.getK(), 5);
 
     // shrink empty sketch
@@ -454,8 +454,8 @@ public class VarOptItemsSketchTest {
 
     // Create sketch with k = startK and another with k = tgtK. We'll then decrease k until
     // they're equal and ensure the results "match"
-    final VarOptItemsSketch<Integer> sketch = VarOptItemsSketch.buildAsGadget(startK);
-    final VarOptItemsSketch<Integer> tgtSketch = VarOptItemsSketch.buildAsGadget(tgtK);
+    final VarOptItemsSketch<Integer> sketch = VarOptItemsSketch.newInstanceAsGadget(startK);
+    final VarOptItemsSketch<Integer> tgtSketch = VarOptItemsSketch.newInstanceAsGadget(tgtK);
 
     double totalWeight = 0.0;
     for (int val : itemList) {
@@ -489,7 +489,7 @@ public class VarOptItemsSketchTest {
   @Test
   public void checkReset() {
     final int k = 25;
-    final VarOptItemsSketch<String> sketch = VarOptItemsSketch.buildAsGadget(k);
+    final VarOptItemsSketch<String> sketch = VarOptItemsSketch.newInstanceAsGadget(k);
     sketch.update("a", 1.0);
     sketch.update("b", 2.0);
     sketch.update("c", 3.0);
@@ -538,7 +538,7 @@ public class VarOptItemsSketchTest {
      one of the non-warmup routes.
    */
   static VarOptItemsSketch<Long> getUnweightedLongsVIS(final int k, final int n) {
-    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.build(k);
+    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.newInstance(k);
     for (long i = 0; i < n; ++i) {
       sketch.update(i, 1.0);
     }

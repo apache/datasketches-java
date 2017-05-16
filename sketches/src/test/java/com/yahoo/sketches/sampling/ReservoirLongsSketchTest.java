@@ -30,7 +30,7 @@ public class ReservoirLongsSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidK() {
-    ReservoirLongsSketch.build(0);
+    ReservoirLongsSketch.newInstance(0);
     fail();
   }
 
@@ -63,7 +63,7 @@ public class ReservoirLongsSketchTest {
 
   @Test
   public void checkEmptySketch() {
-    final ReservoirLongsSketch rls = ReservoirLongsSketch.build(5);
+    final ReservoirLongsSketch rls = ReservoirLongsSketch.newInstance(5);
     assertTrue(rls.getSamples() == null);
 
     final byte[] sketchBytes = rls.toByteArray();
@@ -83,7 +83,7 @@ public class ReservoirLongsSketchTest {
     final int k = 128;
     final int n = 64;
 
-    final ReservoirLongsSketch rls = ReservoirLongsSketch.build(k);
+    final ReservoirLongsSketch rls = ReservoirLongsSketch.newInstance(k);
 
     for (int i = 0; i < n; ++i) {
       rls.update(i);
@@ -109,7 +109,7 @@ public class ReservoirLongsSketchTest {
     final int n = 2000;
 
     // specify smaller ResizeFactor to ensure multiple resizes
-    final ReservoirLongsSketch rls = ReservoirLongsSketch.build(k, ResizeFactor.X2);
+    final ReservoirLongsSketch rls = ReservoirLongsSketch.newInstance(k, ResizeFactor.X2);
 
     for (int i = 0; i < n; ++i) {
       rls.update(i);
@@ -127,7 +127,7 @@ public class ReservoirLongsSketchTest {
     final int k = 256;
     final int tgtK = 64;
 
-    final ReservoirLongsSketch rls = ReservoirLongsSketch.build(k);
+    final ReservoirLongsSketch rls = ReservoirLongsSketch.newInstance(k);
 
     // check status at 3 points:
     // 1. n < encTgtK
@@ -243,7 +243,7 @@ public class ReservoirLongsSketchTest {
   @Test
   public void checkSampleWeight() {
     final int k = 32;
-    final ReservoirLongsSketch rls = ReservoirLongsSketch.build(k);
+    final ReservoirLongsSketch rls = ReservoirLongsSketch.newInstance(k);
 
     for (int i = 0; i < (k / 2); ++i) {
       rls.update(i);
@@ -267,7 +267,7 @@ public class ReservoirLongsSketchTest {
     validateReservoirEquality(rls, fromWritable);
 
     // Same with an empty sketch
-    final byte[] sketchBytes = ReservoirLongsSketch.build(32).toByteArray();
+    final byte[] sketchBytes = ReservoirLongsSketch.newInstance(32).toByteArray();
     sketchMem = new NativeMemory(sketchBytes);
 
     rls = ReservoirLongsSketch.heapify(sketchMem.asReadOnlyMemory());
@@ -281,7 +281,7 @@ public class ReservoirLongsSketchTest {
     final int k = 32768;
     final short encK = ReservoirSize.computeSize(k);
 
-    final ReservoirLongsSketch rls = ReservoirLongsSketch.build(k);
+    final ReservoirLongsSketch rls = ReservoirLongsSketch.newInstance(k);
     final byte[] sketchBytesOrig = rls.toByteArray();
 
     // get a new byte[], manually revert to v1, then reconstruct
@@ -305,7 +305,7 @@ public class ReservoirLongsSketchTest {
   public void checkSetAndGetValue() {
     final int k = 20;
     final int tgtIdx = 5;
-    final ReservoirLongsSketch rls = ReservoirLongsSketch.build(k);
+    final ReservoirLongsSketch rls = ReservoirLongsSketch.newInstance(k);
     for (int i = 0; i < k; ++i) {
       rls.update(i);
     }
@@ -319,7 +319,7 @@ public class ReservoirLongsSketchTest {
   public void checkBadSetAndGetValue() {
     final     int k = 20;
     final int tgtIdx = 5;
-    final ReservoirLongsSketch rls = ReservoirLongsSketch.build(k);
+    final ReservoirLongsSketch rls = ReservoirLongsSketch.newInstance(k);
 
     try {
       rls.getValueAtPosition(0);
@@ -365,7 +365,7 @@ public class ReservoirLongsSketchTest {
   @Test
   public void checkForceIncrement() {
     final int k = 100;
-    final ReservoirLongsSketch rls = ReservoirLongsSketch.build(k);
+    final ReservoirLongsSketch rls = ReservoirLongsSketch.newInstance(k);
 
     for (int i = 0; i < 2 * k; ++i) {
       rls.update(i);
@@ -387,7 +387,7 @@ public class ReservoirLongsSketchTest {
     final int k = 10;
     final int n = 20;
 
-    final ReservoirLongsSketch rls = ReservoirLongsSketch.build(k);
+    final ReservoirLongsSketch rls = ReservoirLongsSketch.newInstance(k);
     assertEquals(rls.getNumSamples(), 0);
 
     for (int i = 0; i < n; ++i) {

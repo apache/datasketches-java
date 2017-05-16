@@ -31,7 +31,7 @@ public class VarOptItemsUnionTest {
   public void checkBadSerVer() {
     final int k = 25;
     final int n = 30;
-    final VarOptItemsUnion<Long> union = VarOptItemsUnion.build(k);
+    final VarOptItemsUnion<Long> union = VarOptItemsUnion.newInstance(k);
     union.update(getUnweightedLongsVIS(k, n));
     final byte[] bytes = union.toByteArray(new ArrayOfLongsSerDe());
     final Memory mem = new NativeMemory(bytes);
@@ -46,7 +46,7 @@ public class VarOptItemsUnionTest {
   public void checkBadPreLongs() {
     final int k = 25;
     final int n = 30;
-    final VarOptItemsUnion<Long> union = VarOptItemsUnion.build(k);
+    final VarOptItemsUnion<Long> union = VarOptItemsUnion.newInstance(k);
     union.update(getUnweightedLongsVIS(k, n));
     final byte[] bytes = union.toByteArray(new ArrayOfLongsSerDe());
     final Memory mem = new NativeMemory(bytes);
@@ -63,10 +63,10 @@ public class VarOptItemsUnionTest {
     final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
     // we'll union from Memory for good measure
-    final byte[] sketchBytes = VarOptItemsSketch.<String>build(k).toByteArray(serDe);
+    final byte[] sketchBytes = VarOptItemsSketch.<String>newInstance(k).toByteArray(serDe);
     final Memory mem = new NativeMemory(sketchBytes);
 
-    final VarOptItemsUnion<String> union = VarOptItemsUnion.build(k);
+    final VarOptItemsUnion<String> union = VarOptItemsUnion.newInstance(k);
     union.update(mem, serDe);
 
     final VarOptItemsSketch<String> result = union.getResult();
@@ -80,15 +80,15 @@ public class VarOptItemsUnionTest {
   public void unionTwoExactSketches() {
     final int n = 4; // 2n < k
     final int k = 10;
-    final VarOptItemsSketch<Integer> sk1 = VarOptItemsSketch.build(k);
-    final VarOptItemsSketch<Integer> sk2 = VarOptItemsSketch.build(k);
+    final VarOptItemsSketch<Integer> sk1 = VarOptItemsSketch.newInstance(k);
+    final VarOptItemsSketch<Integer> sk2 = VarOptItemsSketch.newInstance(k);
 
     for (int i = 1; i <= n; ++i) {
       sk1.update(i, i);
       sk2.update(-i, i);
     }
 
-    final VarOptItemsUnion<Integer> union = VarOptItemsUnion.build(k);
+    final VarOptItemsUnion<Integer> union = VarOptItemsUnion.newInstance(k);
     union.update(sk1);
     union.update(sk2);
 
@@ -104,8 +104,8 @@ public class VarOptItemsUnionTest {
     final int k1 = 10;
     final int n2 = 6;
     final int k2 = 5;
-    final VarOptItemsSketch<Integer> sk1 = VarOptItemsSketch.build(k1);
-    final VarOptItemsSketch<Integer> sk2 = VarOptItemsSketch.build(k2);
+    final VarOptItemsSketch<Integer> sk1 = VarOptItemsSketch.newInstance(k1);
+    final VarOptItemsSketch<Integer> sk2 = VarOptItemsSketch.newInstance(k2);
 
     for (int i = 1; i <= n1; ++i) {
       sk1.update(i, i);
@@ -116,7 +116,7 @@ public class VarOptItemsUnionTest {
     }
     sk2.update(-n2, 1000000.0);
 
-    final VarOptItemsUnion<Integer> union = VarOptItemsUnion.build(k1);
+    final VarOptItemsUnion<Integer> union = VarOptItemsUnion.newInstance(k1);
     union.update(sk1);
     union.update(sk2);
 
@@ -139,7 +139,7 @@ public class VarOptItemsUnionTest {
     final int n = 50;
     VarOptItemsSketch<Long> sketch = getUnweightedLongsVIS(k, n);
 
-    final VarOptItemsUnion<Long> union = VarOptItemsUnion.build(k);
+    final VarOptItemsUnion<Long> union = VarOptItemsUnion.newInstance(k);
     union.update(sketch);
     union.update(sketch);
 
@@ -174,7 +174,7 @@ public class VarOptItemsUnionTest {
     VarOptItemsSketch<Long> sketch = getUnweightedLongsVIS(kSmall, n1);
     sketch.update(-1L, n1 ^ 2); // add a heavy item
 
-    final VarOptItemsUnion<Long> union = VarOptItemsUnion.build(kMax);
+    final VarOptItemsUnion<Long> union = VarOptItemsUnion.newInstance(kMax);
     union.update(sketch);
 
     // another one, but different n to get a different per-item weight
@@ -190,7 +190,7 @@ public class VarOptItemsUnionTest {
   @Test
   public void serializeEmptyUnion() {
     final int k = 100;
-    final VarOptItemsUnion<String> union = VarOptItemsUnion.build(k);
+    final VarOptItemsUnion<String> union = VarOptItemsUnion.newInstance(k);
     // null inputs to update() should leave the union empty
     union.update(null);
     union.update(null, new ArrayOfStringsSerDe());
@@ -216,7 +216,7 @@ public class VarOptItemsUnionTest {
     final VarOptItemsSketch<Long> sketch1 = getUnweightedLongsVIS(k, n1);
     final VarOptItemsSketch<Long> sketch2 = getUnweightedLongsVIS(k, n2);
 
-    final VarOptItemsUnion<Long> union = VarOptItemsUnion.build(k);
+    final VarOptItemsUnion<Long> union = VarOptItemsUnion.newInstance(k);
     union.update(sketch1);
     union.update(sketch2);
 
@@ -244,7 +244,7 @@ public class VarOptItemsUnionTest {
     sketch.update(n + 7L, 1006.0);
     sketch.update(n + 8L, 1007.0);
 
-    final VarOptItemsUnion<Long> union = VarOptItemsUnion.build(k);
+    final VarOptItemsUnion<Long> union = VarOptItemsUnion.newInstance(k);
     union.update(sketch);
 
     final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();

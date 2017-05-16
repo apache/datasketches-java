@@ -64,7 +64,7 @@ public final class ReservoirLongsUnion {
    * @param maxK The maximum allowed reservoir capacity for any sketches in the union
    * @return A new ReservoirLongsUnion
    */
-  public static ReservoirLongsUnion build(final int maxK) {
+  public static ReservoirLongsUnion newInstance(final int maxK) {
     return new ReservoirLongsUnion(maxK);
   }
 
@@ -199,7 +199,7 @@ public final class ReservoirLongsUnion {
    */
   public void update(final long datum) {
     if (gadget_ == null) {
-      gadget_ = ReservoirLongsSketch.build(maxK_);
+      gadget_ = ReservoirLongsSketch.newInstance(maxK_);
     }
     gadget_.update(datum);
   }
@@ -293,7 +293,7 @@ public final class ReservoirLongsUnion {
       // incoming sketch is in exact mode with sketch's k < maxK,
       // so we can create a gadget at size maxK and keep everything
       // NOTE: assumes twoWayMergeInternal first checks if sketchIn is in exact mode
-      gadget_ = ReservoirLongsSketch.build(maxK_);
+      gadget_ = ReservoirLongsSketch.newInstance(maxK_);
       twoWayMergeInternal(sketchIn, isModifiable); // isModifiable could be fixed to false here
     } else {
       // use the input sketch as gadget, copying if needed

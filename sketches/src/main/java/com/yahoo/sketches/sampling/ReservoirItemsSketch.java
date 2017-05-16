@@ -154,7 +154,7 @@ public final class ReservoirItemsSketch<T> {
    * @param <T> The type of object held in the reservoir.
    * @return A ReservoirLongsSketch initialized with maximum size k and the default resize factor.
    */
-  public static <T> ReservoirItemsSketch<T> build(final int k) {
+  public static <T> ReservoirItemsSketch<T> newInstance(final int k) {
     return new ReservoirItemsSketch<>(k, DEFAULT_RESIZE_FACTOR);
   }
 
@@ -168,7 +168,7 @@ public final class ReservoirItemsSketch<T> {
    * @param <T> The type of object held in the reservoir.
    * @return A ReservoirLongsSketch initialized with maximum size k and resize factor rf.
    */
-  public static <T> ReservoirItemsSketch<T> build(final int k, final ResizeFactor rf) {
+  public static <T> ReservoirItemsSketch<T> newInstance(final int k, final ResizeFactor rf) {
     return new ReservoirItemsSketch<>(k, rf);
   }
 
@@ -181,7 +181,7 @@ public final class ReservoirItemsSketch<T> {
    * @param k         Compact encoding of reservoir size
    * @return New sketch built with the provided inputs
    */
-  static <T> ReservoirItemsSketch<T> getInstance(final ArrayList<T> data, final long itemsSeen,
+  static <T> ReservoirItemsSketch<T> newInstance(final ArrayList<T> data, final long itemsSeen,
                                                  final ResizeFactor rf, final int k) {
     return new ReservoirItemsSketch<>(data, itemsSeen, rf, k);
   }

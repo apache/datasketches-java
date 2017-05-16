@@ -174,7 +174,7 @@ final class VarOptItemsSketch<T> {
    * @param <T> The type of object held in the sketch.
    * @return A VarOptItemsSketch initialized with maximum size k and resize factor rf.
    */
-  public static <T> VarOptItemsSketch<T> build(final int k) {
+  public static <T> VarOptItemsSketch<T> newInstance(final int k) {
     return new VarOptItemsSketch<>(k, DEFAULT_RESIZE_FACTOR);
   }
 
@@ -188,7 +188,7 @@ final class VarOptItemsSketch<T> {
    * @param <T> The type of object held in the sketch.
    * @return A VarOptItemsSketch initialized with maximum size k and resize factor rf.
    */
-  public static <T> VarOptItemsSketch<T> build(final int k, final ResizeFactor rf) {
+  public static <T> VarOptItemsSketch<T> newInstance(final int k, final ResizeFactor rf) {
     return new VarOptItemsSketch<>(k, rf);
   }
 
@@ -202,7 +202,7 @@ final class VarOptItemsSketch<T> {
    * @param <T> The type of object held in the sketch.
    * @return A VarOptItemsSketch initialized with maximum size k and a valid array of marks.
    */
-  static <T> VarOptItemsSketch<T> buildAsGadget(final int k) {
+  static <T> VarOptItemsSketch<T> newInstanceAsGadget(final int k) {
     final VarOptItemsSketch<T> sketch = new VarOptItemsSketch<>(k, DEFAULT_RESIZE_FACTOR);
     sketch.marks_ = new ArrayList<>(sketch.currItemsAlloc_);
     return sketch;
@@ -220,13 +220,13 @@ final class VarOptItemsSketch<T> {
    * @param <T> The type of object held in the sketch.
    * @return A VarOptItemsSketch initialized with maximum size k and a valid array of marks.
    */
-  static <T> VarOptItemsSketch<T> buildFromUnionResult(final ArrayList<T> dataList,
-                                                       final ArrayList<Double> weightList,
-                                                       final int k,
-                                                       final long n,
-                                                       final int hCount,
-                                                       final int rCount,
-                                                       final double totalWtR) {
+  static <T> VarOptItemsSketch<T> newInstanceFromUnionResult(final ArrayList<T> dataList,
+                                                             final ArrayList<Double> weightList,
+                                                             final int k,
+                                                             final long n,
+                                                             final int hCount,
+                                                             final int rCount,
+                                                             final double totalWtR) {
     final VarOptItemsSketch<T> sketch =  new VarOptItemsSketch<>(dataList, weightList, k, n,
             dataList.size(), DEFAULT_RESIZE_FACTOR, hCount, rCount, totalWtR);
     sketch.convertToHeap();

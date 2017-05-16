@@ -33,7 +33,7 @@ import com.yahoo.sketches.SketchesArgumentException;
 public class ReservoirItemsUnionTest {
   @Test
   public void checkEmptyUnion() {
-    final ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.build(1024);
+    final ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.newInstance(1024);
     final byte[] unionBytes = riu.toByteArray(new ArrayOfLongsSerDe());
 
     // will intentionally break if changing empty union serialization
@@ -48,13 +48,13 @@ public class ReservoirItemsUnionTest {
     final int k = 25;
 
     // create empty unions
-    ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.build(k);
+    ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.newInstance(k);
     assertNull(riu.getResult());
     riu.update(5L);
     assertNotNull(riu.getResult());
 
     // pass in a sketch, as both an object and memory
-    final ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.build(k);
+    final ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.newInstance(k);
     for (long i = 0; i < n; ++i) {
       ris.update(i);
     }
@@ -67,7 +67,7 @@ public class ReservoirItemsUnionTest {
     final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     final byte[] sketchBytes = ris.toByteArray(serDe); // only the gadget is serialized
     final Memory mem = new NativeMemory(sketchBytes);
-    riu = ReservoirItemsUnion.build(ris.getK());
+    riu = ReservoirItemsUnion.newInstance(ris.getK());
     riu.update(mem, serDe);
     assertNotNull(riu.getResult());
 
@@ -77,7 +77,7 @@ public class ReservoirItemsUnionTest {
   @Test
   public void checkReadOnlyInstantiation() {
     final int k = 100;
-    final ReservoirItemsUnion<Long> union = ReservoirItemsUnion.build(k);
+    final ReservoirItemsUnion<Long> union = ReservoirItemsUnion.newInstance(k);
     for (long i = 0; i < 2 * k; ++i) {
       union.update(i);
     }
@@ -95,7 +95,7 @@ public class ReservoirItemsUnionTest {
 
   @Test
   public void checkNullUpdate() {
-    final ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.build(1024);
+    final ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.newInstance(1024);
     assertNull(riu.getResult());
 
     // null sketch
@@ -121,7 +121,7 @@ public class ReservoirItemsUnionTest {
     final int n = 100;
     final int k = 25;
 
-    final ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.build(k);
+    final ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.newInstance(k);
     for (long i = 0; i < n; ++i) {
       riu.update(i);
     }
@@ -142,7 +142,7 @@ public class ReservoirItemsUnionTest {
     final short encK = ReservoirSize.computeSize(k);
     final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
-    final ReservoirItemsUnion<String> riu = ReservoirItemsUnion.build(k);
+    final ReservoirItemsUnion<String> riu = ReservoirItemsUnion.newInstance(k);
     final byte[] unionBytesOrig = riu.toByteArray(serDe);
 
     // get a new byte[], manually revert to v1, then reconstruct
@@ -170,7 +170,7 @@ public class ReservoirItemsUnionTest {
     final short encK = ReservoirSize.computeSize(k);
     final ArrayOfNumbersSerDe serDe = new ArrayOfNumbersSerDe();
 
-    final ReservoirItemsUnion<Number> rlu = ReservoirItemsUnion.build(k);
+    final ReservoirItemsUnion<Number> rlu = ReservoirItemsUnion.newInstance(k);
     for (long i = 0; i < n; ++i) {
       rlu.update(i);
     }
@@ -213,7 +213,7 @@ public class ReservoirItemsUnionTest {
     final ReservoirItemsSketch<Long> sketch1 = getBasicSketch(n, smallK);
     final ReservoirItemsSketch<Long> sketch2 = getBasicSketch(2 * n, bigK);
 
-    final ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.build(smallK);
+    final ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.newInstance(smallK);
     assertEquals(riu.getMaxK(), smallK);
 
     riu.update(sketch1);
@@ -229,7 +229,7 @@ public class ReservoirItemsUnionTest {
   public void checkUnionResetWithInitialSmallK() {
     final int maxK = 25;
     final int sketchK = 10;
-    final ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.build(maxK);
+    final ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.newInstance(maxK);
 
     ReservoirItemsSketch<Long> ris = getBasicSketch(2 * sketchK, sketchK); // in sampling mode
     riu.update(ris);
@@ -259,7 +259,7 @@ public class ReservoirItemsUnionTest {
     final byte[] bigKBytes = bigKSketch.toByteArray(new ArrayOfLongsSerDe());
     final Memory bigKMem = new NativeMemory(bigKBytes);
 
-    ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.build(maxK);
+    ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.newInstance(maxK);
     riu.update(bigKMem, new ArrayOfLongsSerDe());
     assertNotNull(riu.getResult());
     assertEquals(riu.getResult().getK(), maxK);
@@ -270,7 +270,7 @@ public class ReservoirItemsUnionTest {
     final byte[] smallKBytes = smallKSketch.toByteArray(new ArrayOfLongsSerDe());
     final Memory smallKMem = new NativeMemory(smallKBytes);
 
-    riu = ReservoirItemsUnion.build(maxK);
+    riu = ReservoirItemsUnion.newInstance(maxK);
     riu.update(smallKMem, new ArrayOfLongsSerDe());
     assertNotNull(riu.getResult());
     assertTrue(riu.getResult().getK() < maxK);
@@ -282,7 +282,7 @@ public class ReservoirItemsUnionTest {
     final byte[] smallKExactBytes = smallKExactSketch.toByteArray(new ArrayOfLongsSerDe());
     final Memory smallKExactMem = new NativeMemory(smallKExactBytes);
 
-    riu = ReservoirItemsUnion.build(maxK);
+    riu = ReservoirItemsUnion.newInstance(maxK);
     riu.update(smallKExactMem, new ArrayOfLongsSerDe());
     assertNotNull(riu.getResult());
     assertEquals(riu.getResult().getK(), maxK);
@@ -293,7 +293,7 @@ public class ReservoirItemsUnionTest {
   public void checkListInputUpdate() {
     final int k = 32;
     final int n = 64;
-    final ReservoirItemsUnion<Integer> riu = ReservoirItemsUnion.build(k);
+    final ReservoirItemsUnion<Integer> riu = ReservoirItemsUnion.newInstance(k);
 
     ArrayList<Integer> data = new ArrayList<>(k);
     for (int i = 0; i < k; ++i) {
@@ -321,7 +321,7 @@ public class ReservoirItemsUnionTest {
     final ReservoirItemsSketch<Long> sketch1 = getBasicSketch(n1, k);
     final ReservoirItemsSketch<Long> sketch2 = getBasicSketch(n2, k);
 
-    final ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.build(k);
+    final ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.newInstance(k);
     riu.update(sketch1);
     riu.update(sketch2);
 
@@ -353,7 +353,7 @@ public class ReservoirItemsUnionTest {
     final ReservoirItemsSketch<Long> sketch1 = getBasicSketch(n1, k);
     final ReservoirItemsSketch<Long> sketch2 = getBasicSketch(n2, k);
 
-    final ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.build(k);
+    final ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.newInstance(k);
     riu.update(sketch1);
     riu.update(sketch2);
     riu.update(10L);
@@ -372,7 +372,7 @@ public class ReservoirItemsUnionTest {
     final ReservoirItemsSketch<Long> sketch1 = getBasicSketch(n1, k);
     final ReservoirItemsSketch<Long> sketch2 = getBasicSketch(n2, k);
 
-    ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.build(k);
+    ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.newInstance(k);
     riu.update(sketch1);
     riu.update(sketch2);
 
@@ -382,7 +382,7 @@ public class ReservoirItemsUnionTest {
     assertEquals(riu.getResult().getNumSamples(), k);
 
     // now merge into the sketch for updating -- results should match
-    riu = ReservoirItemsUnion.build(k);
+    riu = ReservoirItemsUnion.newInstance(k);
     riu.update(sketch2);
     riu.update(sketch1);
 
@@ -396,11 +396,11 @@ public class ReservoirItemsUnionTest {
   public void checkPolymorphicType() {
     final int k = 4;
 
-    final ReservoirItemsUnion<Number> riu = ReservoirItemsUnion.build(k);
+    final ReservoirItemsUnion<Number> riu = ReservoirItemsUnion.newInstance(k);
     riu.update(2.2);
     riu.update(6L);
 
-    final ReservoirItemsSketch<Number> ris = ReservoirItemsSketch.build(k);
+    final ReservoirItemsSketch<Number> ris = ReservoirItemsSketch.newInstance(k);
     ris.update(1);
     ris.update(3.7f);
 
@@ -430,7 +430,7 @@ public class ReservoirItemsUnionTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadPreLongs() {
-    final ReservoirItemsUnion<Number> riu = ReservoirItemsUnion.build(1024);
+    final ReservoirItemsUnion<Number> riu = ReservoirItemsUnion.newInstance(1024);
     final Memory mem = new NativeMemory(riu.toByteArray(new ArrayOfNumbersSerDe()));
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 0); // corrupt the preLongs count
 
@@ -440,7 +440,7 @@ public class ReservoirItemsUnionTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
-    final ReservoirItemsUnion<String> riu = ReservoirItemsUnion.build(1024);
+    final ReservoirItemsUnion<String> riu = ReservoirItemsUnion.newInstance(1024);
     final Memory mem = new NativeMemory(riu.toByteArray(new ArrayOfStringsSerDe()));
     mem.putByte(SER_VER_BYTE, (byte) 0); // corrupt the serialization version
 
@@ -450,7 +450,7 @@ public class ReservoirItemsUnionTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadFamily() {
-    final ReservoirItemsUnion<Double> rlu = ReservoirItemsUnion.build(1024);
+    final ReservoirItemsUnion<Double> rlu = ReservoirItemsUnion.newInstance(1024);
     final Memory mem = new NativeMemory(rlu.toByteArray(new ArrayOfDoublesSerDe()));
     mem.putByte(FAMILY_BYTE, (byte) 0); // corrupt the family ID
 
@@ -459,7 +459,7 @@ public class ReservoirItemsUnionTest {
   }
 
   private static ReservoirItemsSketch<Long> getBasicSketch(final int n, final int k) {
-    final ReservoirItemsSketch<Long> rls = ReservoirItemsSketch.build(k);
+    final ReservoirItemsSketch<Long> rls = ReservoirItemsSketch.newInstance(k);
 
     for (long i = 0; i < n; ++i) {
       rls.update(i);

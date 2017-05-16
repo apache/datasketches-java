@@ -23,7 +23,7 @@ import static com.yahoo.sketches.sampling.PreambleUtil.extractOuterTauDenominato
 import static com.yahoo.sketches.sampling.PreambleUtil.extractOuterTauNumerator;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractSerVer;
-import static com.yahoo.sketches.sampling.VarOptItemsSketch.buildFromUnionResult;
+import static com.yahoo.sketches.sampling.VarOptItemsSketch.newInstanceFromUnionResult;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -119,7 +119,7 @@ public final class VarOptItemsUnion<T> {
     n_ = 0;
     outerTauNumer = 0.0;
     outerTauDenom = 0;
-    gadget_ = VarOptItemsSketch.buildAsGadget(maxK);
+    gadget_ = VarOptItemsSketch.newInstanceAsGadget(maxK);
   }
 
   /**
@@ -129,7 +129,7 @@ public final class VarOptItemsUnion<T> {
    * @param maxK The maximum allowed capacity of the unioned result
    * @return A new VarOptItemsUnion
    */
-  public static <T> VarOptItemsUnion<T> build(final int maxK) {
+  public static <T> VarOptItemsUnion<T> newInstance(final int maxK) {
     return new VarOptItemsUnion<>(maxK);
   }
 
@@ -196,7 +196,7 @@ public final class VarOptItemsUnion<T> {
     final VarOptItemsUnion<T> viu = new VarOptItemsUnion<>(maxK);
 
     if (isEmpty) {
-      viu.gadget_ = VarOptItemsSketch.buildAsGadget(maxK);
+      viu.gadget_ = VarOptItemsSketch.newInstanceAsGadget(maxK);
     } else {
       viu.n_ = n;
       viu.outerTauNumer = outerTauNum;
@@ -501,7 +501,7 @@ public final class VarOptItemsUnion<T> {
     weights.set(resultH, -1.0);
 
     // create sketch with the new values
-    return buildFromUnionResult(data, weights, resultK, resultN, resultH, resultR, resultRWeight);
+    return newInstanceFromUnionResult(data, weights, resultK, resultN, resultH, resultR, resultRWeight);
   }
 
   private VarOptItemsSketch<T> detectAndHandleSubcaseOfPseudoExact() {
