@@ -190,7 +190,7 @@ public class VarOptItemsUnionTest {
   public void serializeEmptyUnion() {
     final int k = 100;
     final VarOptItemsUnion<String> union = VarOptItemsUnion.build(k);
-    // null inputs to upadte() should leave the union empty
+    // null inputs to update() should leave the union empty
     union.update(null);
     union.update(null, new ArrayOfStringsSerDe());
 

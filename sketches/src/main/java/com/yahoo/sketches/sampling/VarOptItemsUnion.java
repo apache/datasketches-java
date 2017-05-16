@@ -210,6 +210,13 @@ public final class VarOptItemsUnion<T> {
     return viu;
   }
 
+  /**
+   * Union the given sketch.
+   *
+   *<p>This method can be repeatedly called.</p>
+   *
+   * @param sketchIn
+   */
   public void update(final VarOptItemsSketch<T> sketchIn) {
     if (sketchIn != null) {
       mergeInto(sketchIn);
@@ -219,8 +226,7 @@ public final class VarOptItemsUnion<T> {
   /**
    * Union the given Memory image of the sketch.
    *
-   *<p>This method can be repeatedly called. If the given sketch is null it is interpreted as an
-   * empty sketch.</p>
+   *<p>This method can be repeatedly called.</p>
    *
    * @param mem Memory image of sketch to be merged
    * @param serDe An instance of ArrayOfItemsSerDe
@@ -452,6 +458,9 @@ public final class VarOptItemsUnion<T> {
 
     final VarOptItemsSamples<T> sketchSamples = gadget_.getSketchSamples();
     // insert R region items, ignoring weights
+    // Currently (May 2017) this next block is unreachable; this coercer is used only in teh
+    // pseudo-exact case in which case there are no items natively in R, only marked items in H
+    // that will be moved into R as part of the coercion process.
     Iterator<VarOptItemsSamples<T>.WeightedSample> sketchIterator;
     sketchIterator = sketchSamples.getRIterator();
     while (sketchIterator.hasNext()) {
