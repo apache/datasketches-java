@@ -150,9 +150,7 @@ class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.WeightedSa
       final int tgt = currIdx_;
 
       ++currIdx_;
-      if (currIdx_ == h_ && h_ != n_) {
-        ++currIdx_;
-      }
+      // only covers R region, no need to check for gap
 
       final WeightedSample sample;
       if (tgt == finalIdx_) {

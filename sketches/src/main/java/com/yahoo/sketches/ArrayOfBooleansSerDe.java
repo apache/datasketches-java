@@ -44,8 +44,8 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
       }
     }
 
-    // write out any remaining values
-    if (val != 0) {
+    // write out any remaining values (if val=0, still good to be explicit)
+    if ((items.length & 0x7) > 0) {
       mem.putByte(bytesNeeded - 1, val);
     }
 

@@ -11,6 +11,8 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.util.ConcurrentModificationException;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import org.testng.annotations.Test;
 
@@ -51,6 +53,55 @@ public class VarOptItemsSamplesTest {
         sketch.update(-1L, 1.0);
       }
     }
+    fail();
+  }
+
+  @Test(expectedExceptions = ConcurrentModificationException.class)
+  public void checkWeightCorrectingConcurrentModification() {
+    final int k = 128;
+    // sketch needs to be in sampling mode
+    final VarOptItemsSketch<Long> sketch = VarOptItemsSketchTest.getUnweightedLongsVIS(k, 2 * k);
+
+    final Iterator<VarOptItemsSamples<Long>.WeightedSample> iter;
+    iter = sketch.getSketchSamples().getWeightCorrRIter();
+
+    int i = 0;
+    while (iter.hasNext()) {
+      iter.next();
+      if (++i > (k / 2)) {
+        sketch.update(-1L, 1.0);
+      }
+    }
+    fail();
+  }
+
+  @Test(expectedExceptions = NoSuchElementException.class)
+  public void checkReadingPastEndOfIterator() {
+    final int k = 128;
+    final VarOptItemsSketch<Long> sketch = VarOptItemsSketchTest.getUnweightedLongsVIS(k, k);
+
+    final Iterator<VarOptItemsSamples<Long>.WeightedSample> iter;
+    iter = sketch.getSketchSamples().iterator();
+
+    while (iter.hasNext()) {
+      iter.next();
+    }
+    iter.next(); // no more elements
+    fail();
+  }
+
+  @Test(expectedExceptions = NoSuchElementException.class)
+  public void checkWeightCorrectionReadingPastEndOfIterator() {
+    final int k = 128;
+    final VarOptItemsSketch<Long> sketch = VarOptItemsSketchTest.getUnweightedLongsVIS(k, k);
+
+    final Iterator<VarOptItemsSamples<Long>.WeightedSample> iter;
+    iter = sketch.getSketchSamples().getWeightCorrRIter();
+
+    while (iter.hasNext()) {
+      iter.next();
+    }
+    iter.next(); // no more elements
     fail();
   }
 

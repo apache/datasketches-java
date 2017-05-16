@@ -10,12 +10,9 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.ArrayOfStringsSerDe;
-import com.yahoo.sketches.Family;
-import com.yahoo.sketches.SketchesArgumentException;
 
 
 /**
@@ -157,7 +154,6 @@ public class VarOptItemsUnionTest {
     compareUnions(rebuilt, union);
   }
 
-
   @Test
   public void serializeSamplingUnion() {
     final int n = 256;
@@ -165,6 +161,12 @@ public class VarOptItemsUnionTest {
     final VarOptItemsSketch<Long> sketch = getUnweightedLongsVIS(k, n);
     sketch.update(n + 1L, 1000.0);
     sketch.update(n + 2L, 1001.0);
+    sketch.update(n + 3L, 1002.0);
+    sketch.update(n + 4L, 1003.0);
+    sketch.update(n + 5L, 1004.0);
+    sketch.update(n + 6L, 1005.0);
+    sketch.update(n + 7L, 1006.0);
+    sketch.update(n + 8L, 1007.0);
 
     final VarOptItemsUnion<Long> union = VarOptItemsUnion.build(k);
     union.update(sketch);
