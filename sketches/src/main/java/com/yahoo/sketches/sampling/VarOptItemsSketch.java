@@ -136,6 +136,7 @@ final class VarOptItemsSketch<T> {
                             final ArrayList<Double> weightList,
                             final int k,
                             final long n,
+                            final int currItemsAlloc,
                             final ResizeFactor rf,
                             final int hCount,
                             final int rCount,
@@ -143,6 +144,7 @@ final class VarOptItemsSketch<T> {
     assert dataList != null;
     assert weightList != null;
     assert dataList.size() == weightList.size();
+    assert currItemsAlloc >= dataList.size();
     assert k >= 2;
     assert n >= 0;
     assert hCount >= 0;
@@ -186,7 +188,8 @@ final class VarOptItemsSketch<T> {
     r_ = rCount;
     m_ = 0;
     totalWtR_ = totalWtR;
-    currItemsAlloc_ = (dataList.size() == k ? k + 1 : dataList.size());
+    //currItemsAlloc_ = (dataList.size() == k ? k + 1 : dataList.size());
+    currItemsAlloc_ = currItemsAlloc;
     rf_ = rf;
     data_ = dataList;
     weights_ = weightList;
@@ -242,6 +245,8 @@ final class VarOptItemsSketch<T> {
    * Construct a varopt sketch as the output of a union's getResult() method. Because this method
    * is package-private, we do not perform checks on the input values.
    *
+   * <p>Assumes dataList.size() is the correct allocated size but does not check.</p>
+   *
    * @param k   Maximum size of sampling. Allocated size may be smaller until sketch fills.
    *            Unlike many sketches in this package, this value does <em>not</em> need to be a
    *            power of 2.
@@ -256,7 +261,7 @@ final class VarOptItemsSketch<T> {
                                                        final int rCount,
                                                        final double totalWtR) {
     return new VarOptItemsSketch<>(dataList, weightList, k, n,
-            DEFAULT_RESIZE_FACTOR, hCount, rCount, totalWtR);
+            dataList.size(), DEFAULT_RESIZE_FACTOR, hCount, rCount, totalWtR);
   }
 
 
@@ -414,7 +419,8 @@ final class VarOptItemsSketch<T> {
     }
 
     final VarOptItemsSketch<T> sketch =
-            new VarOptItemsSketch<>(dataList, weightList, k, n, rf, hCount, rCount, totalRWeight);
+            new VarOptItemsSketch<>(dataList, weightList, k, n,
+                    allocatedItems, rf, hCount, rCount, totalRWeight);
 
     if (isGadget) {
       sketch.marks_ = markList;
@@ -630,7 +636,8 @@ final class VarOptItemsSketch<T> {
    */
   VarOptItemsSketch<T> copyAndSetN(final boolean asSketch, final long adjustedN) {
     final VarOptItemsSketch<T> sketch;
-    sketch = new VarOptItemsSketch<>(data_, weights_, k_,n_, rf_, h_, r_, totalWtR_);
+    sketch = new VarOptItemsSketch<>(data_, weights_, k_,n_,
+            currItemsAlloc_, rf_, h_, r_, totalWtR_);
 
     if (!asSketch) {
       sketch.marks_ = this.marks_;

@@ -4,21 +4,77 @@
  */
 package com.yahoo.sketches.sampling;
 
+import static com.yahoo.sketches.sampling.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.sampling.VarOptItemsSketchTest.EPS;
 import static com.yahoo.sketches.sampling.VarOptItemsSketchTest.getUnweightedLongsVIS;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.memory.Memory;
 import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.ArrayOfStringsSerDe;
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 
 
 /**
  * @author Jon Malkin
  */
 public class VarOptItemsUnionTest {
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkBadSerVer() {
+    final int k = 25;
+    final int n = 30;
+    final VarOptItemsUnion<Long> union = VarOptItemsUnion.build(k);
+    union.update(getUnweightedLongsVIS(k, n));
+    final byte[] bytes = union.toByteArray(new ArrayOfLongsSerDe());
+    final Memory mem = new NativeMemory(bytes);
+
+    mem.putByte(SER_VER_BYTE, (byte) 0); // corrupt the serialization version
+
+    VarOptItemsUnion.heapify(mem, new ArrayOfLongsSerDe());
+    fail();
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkBadPreLongs() {
+    final int k = 25;
+    final int n = 30;
+    final VarOptItemsUnion<Long> union = VarOptItemsUnion.build(k);
+    union.update(getUnweightedLongsVIS(k, n));
+    final byte[] bytes = union.toByteArray(new ArrayOfLongsSerDe());
+    final Memory mem = new NativeMemory(bytes);
+
+    // corrupt the preLongs count to 0
+    mem.putByte(PREAMBLE_LONGS_BYTE, (byte) (Family.VAROPT.getMinPreLongs() - 1));
+    VarOptItemsUnion.heapify(mem, new ArrayOfLongsSerDe());
+    fail();
+  }
+
+  @Test
+  public void unionEmptySketch() {
+    final int k = 2048;
+    final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
+
+    // we'll union from Memory for good measure
+    final byte[] sketchBytes = VarOptItemsSketch.<String>build(k).toByteArray(serDe);
+    final Memory mem = new NativeMemory(sketchBytes);
+
+    final VarOptItemsUnion<String> union = VarOptItemsUnion.build(k);
+    union.update(mem, serDe);
+
+    final VarOptItemsSketch<String> result = union.getResult();
+    assertEquals(result.getN(), 0);
+    assertEquals(result.getHRegionCount(), 0);
+    assertEquals(result.getRRegionCount(), 0);
+    assertTrue(Double.isNaN(result.getTau()));
+  }
+
   @Test
   public void unionTwoExactSketches() {
     final int n = 4; // 2n < k
@@ -63,11 +119,17 @@ public class VarOptItemsUnionTest {
     union.update(sk1);
     union.update(sk2);
 
-    final VarOptItemsSketch<Integer> result = union.getResult();
+    VarOptItemsSketch<Integer> result = union.getResult();
     assertEquals(result.getN(), n1 + n2);
     assertEquals(result.getK(), k2); // heavy enough it'll pull back to k2
     assertEquals(result.getHRegionCount(), 1);
     assertEquals(result.getRRegionCount(), k2 - 1);
+
+    union.reset();
+    assertEquals(union.getOuterTau(), 0.0);
+    result = union.getResult();
+    assertEquals(result.getK(), k1);
+    assertEquals(result.getN(), 0);
   }
 
   @Test
@@ -92,6 +154,12 @@ public class VarOptItemsUnionTest {
     expectedWeight = 2.0 * n + k + 1;
     assertEquals(result.getN(), 2 * n + k + 1);
     assertEquals(result.getTotalWtR(), expectedWeight, EPS);
+
+    union.reset();
+    assertEquals(union.getOuterTau(), 0.0);
+    result = union.getResult();
+    assertEquals(result.getK(), k);
+    assertEquals(result.getN(), 0);
   }
 
   @Test
@@ -122,6 +190,9 @@ public class VarOptItemsUnionTest {
   public void serializeEmptyUnion() {
     final int k = 100;
     final VarOptItemsUnion<String> union = VarOptItemsUnion.build(k);
+    // null inputs to upadte() should leave the union empty
+    union.update(null);
+    union.update(null, new ArrayOfStringsSerDe());
 
     final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
     final byte[] bytes = union.toByteArray(serDe);
@@ -132,6 +203,8 @@ public class VarOptItemsUnionTest {
 
     final VarOptItemsSketch<String> sketch = rebuilt.getResult();
     assertEquals(sketch.getN(), 0);
+
+    assertEquals(rebuilt.toString(), union.toString());
   }
 
   @Test
@@ -152,6 +225,8 @@ public class VarOptItemsUnionTest {
 
     final VarOptItemsUnion<Long> rebuilt = VarOptItemsUnion.heapify(mem, serDe);
     compareUnions(rebuilt, union);
+
+    assertEquals(rebuilt.toString(), union.toString());
   }
 
   @Test
@@ -177,8 +252,9 @@ public class VarOptItemsUnionTest {
 
     final VarOptItemsUnion<Long> rebuilt = VarOptItemsUnion.heapify(mem, serDe);
     compareUnions(rebuilt, union);
-  }
 
+    assertEquals(rebuilt.toString(), union.toString());
+  }
 
   static <T> void compareUnions(final VarOptItemsUnion<T> u1,
                                 final VarOptItemsUnion<T> u2) {
@@ -192,4 +268,11 @@ public class VarOptItemsUnionTest {
     assertEquals(s1.weights(), s2.weights());
   }
 
+  /**
+   * Wrapper around System.out.println() allowing a simple way to disable logging in tests
+   * @param msg The message to print
+   */
+  private static void println(final String msg) {
+    //System.out.println(msg);
+  }
 }

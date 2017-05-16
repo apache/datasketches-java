@@ -151,7 +151,6 @@ public final class VarOptItemsUnion<T> {
     double outerTauNum = 0.0;
     long outerTauDenom = 0;
 
-
     // If we have read-only memory on heap (aka not-direct) then the backing array exists but is
     // not available to us, so srcMem.array() will fail. In that case, we can use the (slower)
     // Memory interface methods to read values directly.
@@ -188,7 +187,7 @@ public final class VarOptItemsUnion<T> {
     final boolean preLongsEqMin = (numPreLongs == Family.VAROPT_UNION.getMinPreLongs());
     final boolean preLongsEqMax = (numPreLongs == Family.VAROPT_UNION.getMaxPreLongs());
 
-    if (!preLongsEqMin & !preLongsEqMax) {
+    if (!preLongsEqMin && !preLongsEqMax) {
       throw new SketchesArgumentException("Possible corruption: Non-empty union with only "
               + Family.VAROPT_UNION.getMinPreLongs() + "preLongs");
     }
@@ -212,7 +211,9 @@ public final class VarOptItemsUnion<T> {
   }
 
   public void update(final VarOptItemsSketch<T> sketchIn) {
-    mergeInto(sketchIn);
+    if (sketchIn != null) {
+      mergeInto(sketchIn);
+    }
   }
 
   /**
@@ -225,12 +226,10 @@ public final class VarOptItemsUnion<T> {
    * @param serDe An instance of ArrayOfItemsSerDe
    */
   public void update(final Memory mem, final ArrayOfItemsSerDe<T> serDe) {
-    if (mem == null) {
-      return;
+    if (mem != null) {
+      final VarOptItemsSketch<T> vis = VarOptItemsSketch.heapify(mem, serDe);
+      mergeInto(vis);
     }
-
-    final VarOptItemsSketch<T> vis = VarOptItemsSketch.heapify(mem, serDe);
-    mergeInto(vis);
   }
 
   /**
@@ -262,7 +261,7 @@ public final class VarOptItemsUnion<T> {
    * Resets this sketch to the empty state, but retains the original value of max k.
    */
   public void reset() {
-    gadget_ = VarOptItemsSketch.buildAsGadget(maxK_);
+    gadget_.reset();
     n_ = 0;
     outerTauNumer = 0.0;
     outerTauDenom = 0;
@@ -332,20 +331,20 @@ public final class VarOptItemsUnion<T> {
     final long memAddr = mem.getCumulativeOffset(0L);
 
     // build preLong
-    PreambleUtil.insertPreLongs(memObj, memAddr, preLongs); // Byte 0
-    PreambleUtil.insertSerVer(memObj, memAddr, SER_VER); // Byte 1
+    PreambleUtil.insertPreLongs(memObj, memAddr, preLongs);                    // Byte 0
+    PreambleUtil.insertSerVer(memObj, memAddr, SER_VER);                       // Byte 1
     PreambleUtil.insertFamilyID(memObj, memAddr, Family.VAROPT_UNION.getID()); // Byte 2
     if (empty) {
       PreambleUtil.insertFlags(memObj, memAddr, EMPTY_FLAG_MASK);
     } else {
-      PreambleUtil.insertFlags(memObj, memAddr, 0); // Byte 3
+      PreambleUtil.insertFlags(memObj, memAddr, 0);                      // Byte 3
     }
-    PreambleUtil.insertMaxK(memObj, memAddr, maxK_); // Bytes 4-7
+    PreambleUtil.insertMaxK(memObj, memAddr, maxK_);                           // Bytes 4-7
 
     if (!empty) {
-      PreambleUtil.insertN(memObj, memAddr, n_); // Bytes 8-15
-      PreambleUtil.insertOuterTauNumerator(memObj, memAddr, outerTauNumer); // Bytes 16-23
-      PreambleUtil.insertOuterTauDenominator(memObj, memAddr, outerTauDenom); // Bytes 24-31
+      PreambleUtil.insertN(memObj, memAddr, n_);                               // Bytes 8-15
+      PreambleUtil.insertOuterTauNumerator(memObj, memAddr, outerTauNumer);    // Bytes 16-23
+      PreambleUtil.insertOuterTauDenominator(memObj, memAddr, outerTauDenom);  // Bytes 24-31
 
       final int preBytes = preLongs << 3;
       mem.putByteArray(preBytes, gadgetBytes, 0, gadgetBytes.length);
