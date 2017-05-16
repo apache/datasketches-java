@@ -227,8 +227,10 @@ final class VarOptItemsSketch<T> {
                                                        final int hCount,
                                                        final int rCount,
                                                        final double totalWtR) {
-    return new VarOptItemsSketch<>(dataList, weightList, k, n,
+    final VarOptItemsSketch<T> sketch =  new VarOptItemsSketch<>(dataList, weightList, k, n,
             dataList.size(), DEFAULT_RESIZE_FACTOR, hCount, rCount, totalWtR);
+    sketch.convertToHeap();
+    return sketch;
   }
 
 

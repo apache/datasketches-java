@@ -106,8 +106,6 @@ class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.WeightedSa
       // If sketch is in exact mode, we'll have a next item as long as index < k.
       // If in sampling mode, the last index is k (array length k+1) but there will always be at
       // least one item in R, so no need to check if the last element is null.
-      //final int k = sketch_.getK();
-      //return (n_ <= k && currIdx_ < n_) || (n_ > k && currIdx_ <= k);
       return currIdx_ <= finalIdx_;
     }
 
