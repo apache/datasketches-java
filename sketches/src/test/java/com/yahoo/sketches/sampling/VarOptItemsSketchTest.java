@@ -486,6 +486,53 @@ public class VarOptItemsSketchTest {
     assertEquals(sketch.getTotalWtR(), totalWeight);
   }
 
+  @Test
+  public void checkReset() {
+    final int k = 25;
+    final VarOptItemsSketch<String> sketch = VarOptItemsSketch.buildAsGadget(k);
+    sketch.update("a", 1.0);
+    sketch.update("b", 2.0);
+    sketch.update("c", 3.0);
+    sketch.update("d", 4.0);
+
+    assertEquals(sketch.getN(), 4);
+    assertEquals(sketch.getHRegionCount(), 4);
+    assertEquals(sketch.getRRegionCount(), 0);
+    assertEquals(sketch.getMark(0), false);
+
+    sketch.reset();
+    assertEquals(sketch.getN(), 0);
+    assertEquals(sketch.getHRegionCount(), 0);
+    assertEquals(sketch.getRRegionCount(), 0);
+    try {
+      sketch.getMark(0);
+      fail();
+    } catch (final IndexOutOfBoundsException e) {
+      // expected
+    }
+
+    // strip marks and try again
+    sketch.stripMarks();
+    for (int i = 0; i < 2 * k; ++i) {
+      sketch.update("a", 100.0 + i);
+    }
+
+    assertEquals(sketch.getN(), 2 * k);
+    assertEquals(sketch.getHRegionCount(), 0);
+    assertEquals(sketch.getRRegionCount(), k);
+    try {
+      sketch.getMark(0);
+      fail();
+    } catch (final NullPointerException e) {
+      // expected
+    }
+
+    sketch.reset();
+    assertEquals(sketch.getN(), 0);
+    assertEquals(sketch.getHRegionCount(), 0);
+    assertEquals(sketch.getRRegionCount(), 0);
+  }
+
   /* Returns a sketch of size k that has been presented with n items. Use n = k+1 to obtain a
      sketch that has just reached the sampling phase, so that the next update() is handled by
      one of the non-warmup routes.

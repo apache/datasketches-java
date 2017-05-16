@@ -379,7 +379,7 @@ final class VarOptItemsSketch<T> {
     ArrayList<Boolean> markList = null;
     if (isGadget) {
       final long markOffsetBytes = preLongBytes + (hCount * Double.BYTES);
-      markBytes = (hCount >> 3) + ((hCount & 0x7) > 0 ? 1 : 0);
+      markBytes = ArrayOfBooleansSerDe.computeBytesNeeded(hCount);
       markList = new ArrayList<>(allocatedItems);
 
       final ArrayOfBooleansSerDe booleansSerDe = new ArrayOfBooleansSerDe();
