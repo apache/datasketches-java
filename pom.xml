@@ -171,7 +171,7 @@
     <!-- End of Environment Settings -->
 
     <modules>
-        <module>memory</module>
+        <!--<module>memory</module>-->
         <module>sketches</module>
     </modules>
 

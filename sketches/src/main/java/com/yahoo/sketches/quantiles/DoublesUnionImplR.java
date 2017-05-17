@@ -8,7 +8,9 @@ package com.yahoo.sketches.quantiles;
 import static com.yahoo.sketches.Util.LS;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesReadOnlyException;
 
 /**
@@ -58,7 +60,7 @@ class DoublesUnionImplR extends DoublesUnion {
   }
 
   @Override
-  public DoublesSketch getResult() {
+  public UpdateDoublesSketch getResult() {
     if (gadget_ == null) {
       return HeapUpdateDoublesSketch.newInstance(maxK_);
     }
@@ -66,7 +68,21 @@ class DoublesUnionImplR extends DoublesUnion {
   }
 
   @Override
-  public DoublesSketch getResultAndReset() {
+  public UpdateDoublesSketch getResult(final WritableMemory dstMem) {
+    final long memCapBytes = dstMem.getCapacity();
+    if (gadget_ == null) {
+      if (memCapBytes < DoublesSketch.getUpdatableStorageBytes(0, 0)) {
+        throw new SketchesArgumentException("Insufficient capacity for result: " + memCapBytes);
+      }
+      return DirectUpdateDoublesSketch.newInstance(maxK_, dstMem);
+    }
+
+    gadget_.putMemory(dstMem, false);
+    return DirectUpdateDoublesSketch.wrapInstance(dstMem);
+  }
+
+  @Override
+  public UpdateDoublesSketch getResultAndReset() {
     throw new SketchesReadOnlyException("Call to getResultAndReset() on read-only Union");
   }
 

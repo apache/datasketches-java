@@ -553,32 +553,27 @@ public abstract class DoublesSketch {
   }
 
   /**
-   * Close variant of toByteArray() to allow DoublesUnion to serialize a sorted, non-compact
-   * sketch that gets wrapped as a gadget.
-   * @param compact If true the sketch will be serialized in compact form.
-   * @return This sketch in byte array form.
-   */
-  private byte[] toSortedByteArray(final boolean compact) {
-    return DoublesByteArrayImpl.toByteArray(this, true, compact);
-  }
-
-  /**
    * Puts the current sketch into the given Memory if there is sufficient space, otherwise,
-   * throws an error. This loads the memory in compact form based on the given compact flag, but
-   * always sorts the base buffer whether compact or not.
+   * throws an error.
+   *
    * @param dstMem the given memory.
-   * @param compact if true, this compacts and sorts the base buffer, which optimizes merge
+   * @param compact if true, compacts and sorts the base buffer, which optimizes merge
    *                performance at the cost of slightly increased serialization time.
    */
   public void putMemory(final WritableMemory dstMem, final boolean compact) {
-    final byte[] byteArr = toSortedByteArray(compact);
-    final int arrLen = byteArr.length;
-    final long memCap = dstMem.getCapacity();
-    if (memCap < arrLen) {
-      throw new SketchesArgumentException(
-          "Destination Memory not large enough: " + memCap + " < " + arrLen);
+    if (isDirect() && isCompact() == compact) {
+      final Memory srcMem = getMemory();
+      srcMem.copyTo(0, dstMem, 0, getStorageBytes());
+    } else {
+      final byte[] byteArr = toByteArray(compact);
+      final int arrLen = byteArr.length;
+      final long memCap = dstMem.getCapacity();
+      if (memCap < arrLen) {
+        throw new SketchesArgumentException(
+                "Destination Memory not large enough: " + memCap + " < " + arrLen);
+      }
+      dstMem.putByteArray(0, byteArr, 0, arrLen);
     }
-    dstMem.putByteArray(0, byteArr, 0, arrLen);
   }
 
   //Restricted
@@ -594,7 +589,7 @@ public abstract class DoublesSketch {
     final UpdateDoublesSketch newSketch = (dstMem == null)
             ? HeapUpdateDoublesSketch.newInstance(smallerK)
             : DirectUpdateDoublesSketch.newInstance(smallerK, dstMem);
-    DoublesMergeImpl.downSamplingMergeInto(srcSketch, newSketch); //TODO #2
+    DoublesMergeImpl.downSamplingMergeInto(srcSketch, newSketch);
     return newSketch;
   }
 
