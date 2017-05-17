@@ -29,16 +29,16 @@ public class ReservoirSizeTest {
     enc = ReservoirSize.computeSize(4097);
     assertEquals(enc, (short) 0x6001);
 
+    // NOTE: 0x61C4 is exact but Java seems to have numerical precision issues
     enc = ReservoirSize.computeSize(5000);
-    assertEquals(enc, (short) 0x61C5); // NOTE: 0x61C4 is exact but Java seems to have
-                                       // numerical precision issues
+    assertEquals(enc, (short) 0x61C5);
 
     enc = ReservoirSize.computeSize(25000);
     assertEquals(enc, (short) 0x7436);
 
+    // Encoding cannot represent 32767 with an exponent of 14, so need to go to the next power of 2
     enc = ReservoirSize.computeSize(32767);
-    assertEquals(enc, (short) 0x7800); // Encoding cannot represent 32767 with an exponent of
-                                       // 14, so need to go to the next power of 2
+    assertEquals(enc, (short) 0x7800);
 
     enc = ReservoirSize.computeSize(95342);
     assertEquals(enc, (short) 0x83A4);
@@ -46,7 +46,7 @@ public class ReservoirSizeTest {
     try {
       ReservoirSize.computeSize(-1);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       assertTrue(e.getMessage().startsWith("Can only encode strictly positive sketch sizes less than"));
     }
   }
@@ -79,7 +79,7 @@ public class ReservoirSizeTest {
     try {
       ReservoirSize.decodeValue((short) -1);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       assertTrue(e.getMessage().startsWith("Maximum valid encoded value is "));
     }
   }
@@ -94,15 +94,15 @@ public class ReservoirSizeTest {
     final int numIters = 100;
 
     for (int i = 0; i < numIters; ++i) {
-      int input = SamplingUtil.rand.nextInt(maxValue) + 1;
-      int result = ReservoirSize.decodeValue(ReservoirSize.computeSize(input));
+      final int input = SamplingUtil.rand.nextInt(maxValue) + 1;
+      final int result = ReservoirSize.decodeValue(ReservoirSize.computeSize(input));
 
       // result must be no smaller than input
       assertTrue(result >= input, "encoded/decoded result < input: " + result + " vs "
               + input + " (iter " + i + ")");
 
       // cap on max error
-      double relativeError = ((double) result - input) / input;
+      final double relativeError = ((double) result - input) / input;
       assertTrue(relativeError <= eps, "Error exceeds tolerance. Expected relative error <= "
               + eps + "; " + "found " + relativeError);
     }

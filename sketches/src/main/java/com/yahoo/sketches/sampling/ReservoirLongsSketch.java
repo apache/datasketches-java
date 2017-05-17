@@ -153,7 +153,7 @@ public final class ReservoirLongsSketch {
    *        many sketches in this package, this value does <em>not</em> need to be a power of 2.
    * @return A ReservoirLongsSketch initialized with maximum size k and the default resize factor.
    */
-  public static ReservoirLongsSketch getInstance(final int k) {
+  public static ReservoirLongsSketch newInstance(final int k) {
     return new ReservoirLongsSketch(k, DEFAULT_RESIZE_FACTOR);
   }
 
@@ -166,7 +166,7 @@ public final class ReservoirLongsSketch {
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @return A ReservoirLongsSketch initialized with maximum size k and ResizeFactor rf.
    */
-  public static ReservoirLongsSketch getInstance(final int k, final ResizeFactor rf) {
+  public static ReservoirLongsSketch newInstance(final int k, final ResizeFactor rf) {
     return new ReservoirLongsSketch(k, rf);
   }
 
@@ -178,7 +178,7 @@ public final class ReservoirLongsSketch {
    *        "{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a sketch instance of this class
    */
-  public static ReservoirLongsSketch getInstance(Memory srcMem) {
+  public static ReservoirLongsSketch heapify(Memory srcMem) {
     Family.RESERVOIR.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
 
     final int numPreLongs, serVer;
@@ -240,8 +240,8 @@ public final class ReservoirLongsSketch {
     if (itemsSeen < k) {
       // under-full so determine size to allocate, using ceilingLog2(totalSeen) as minimum
       // casts to int are safe since under-full
-      final int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(k), "getInstance");
-      final int minLgSize = Util.toLog2(Util.ceilingPowerOf2((int) itemsSeen), "getInstance");
+      final int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(k), "heapify");
+      final int minLgSize = Util.toLog2(Util.ceilingPowerOf2((int) itemsSeen), "heapify");
       final int initialLgSize = SamplingUtil.startingSubMultiple(ceilingLgK, rf.lg(),
               Math.max(minLgSize, MIN_LG_ARR_LONGS));
 
