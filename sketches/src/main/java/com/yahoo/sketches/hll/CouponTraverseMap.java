@@ -139,7 +139,7 @@ final class CouponTraverseMap extends Map {
         clearCouponArea(entryIndex);
         numDeletedKeys_--;
       }
-      if (numActiveKeys_ + numDeletedKeys_ + 1 > capacityEntries_) {
+      if ((numActiveKeys_ + numDeletedKeys_ + 1) > capacityEntries_) {
         resize();
         entryIndex = ~findKey(key);
         assert entryIndex >= 0;
@@ -156,8 +156,8 @@ final class CouponTraverseMap extends Map {
     couponsArr_[entryIndex * maxCouponsPerKey_] = 0;
     numActiveKeys_--;
     numDeletedKeys_++;
-    if (numActiveKeys_ > COUPON_MAP_MIN_NUM_ENTRIES
-        && numActiveKeys_ < tableEntries_ * COUPON_MAP_SHRINK_TRIGGER_FACTOR) {
+    if ((numActiveKeys_ > COUPON_MAP_MIN_NUM_ENTRIES)
+        && (numActiveKeys_ < (tableEntries_ * COUPON_MAP_SHRINK_TRIGGER_FACTOR))) {
       resize();
     }
   }
@@ -200,8 +200,8 @@ final class CouponTraverseMap extends Map {
   @Override
   long getMemoryUsageBytes() {
     return keysArr_.length
-        + (long)couponsArr_.length * Short.BYTES
-        + stateArr_.length + 4 * Integer.BYTES;
+        + ((long)couponsArr_.length * Short.BYTES)
+        + stateArr_.length + (4 * Integer.BYTES);
   }
 
   @Override
@@ -244,9 +244,9 @@ final class CouponTraverseMap extends Map {
 
     //move data
     for (int i = 0; i < oldSizeKeys; i++) {
-      if (isBitSet(oldStateArr, i) && oldCouponsArr[i * maxCouponsPerKey_] != 0) {
+      if (isBitSet(oldStateArr, i) && (oldCouponsArr[i * maxCouponsPerKey_] != 0)) {
         final byte[] key =
-            Arrays.copyOfRange(oldKeysArr, i * keySizeBytes_, i * keySizeBytes_ + keySizeBytes_);
+            Arrays.copyOfRange(oldKeysArr, i * keySizeBytes_, (i * keySizeBytes_) + keySizeBytes_);
         final int index = insertKey(key);
         System.arraycopy(oldCouponsArr, i * maxCouponsPerKey_, couponsArr_,
             index * maxCouponsPerKey_, maxCouponsPerKey_);
@@ -281,7 +281,7 @@ final class CouponTraverseMap extends Map {
   private static final double updateEntrySizeBytes(final int tableEntries, final int keySizeBytes,
       final int maxCouponsPerKey) {
     final double byteFraction = Math.ceil(tableEntries / 8.0) / tableEntries;
-    return keySizeBytes + maxCouponsPerKey * Short.BYTES + byteFraction;
+    return keySizeBytes + (maxCouponsPerKey * Short.BYTES) + byteFraction;
   }
 
 }

@@ -61,14 +61,13 @@ public final class ReservoirItemsUnion<T> {
   }
 
   /**
-   * Creates an empty Union with a maximum reservoir capacity of size k, subject to the precision of
-   * ReservoirSize
+   * Creates an empty Union with a maximum reservoir capacity of size k.
    *
    * @param <T> The type of item this sketch contains
    * @param maxK The maximum allowed reservoir capacity for any sketches in the union
    * @return A new ReservoirItemsUnion
    */
-  public static <T> ReservoirItemsUnion<T> getInstance(final int maxK) {
+  public static <T> ReservoirItemsUnion<T> newInstance(final int maxK) {
     return new ReservoirItemsUnion<>(maxK);
   }
 
@@ -80,8 +79,8 @@ public final class ReservoirItemsUnion<T> {
    * @param serDe An instance of ArrayOfItemsSerDe
    * @return A ReservoirItemsUnion created from the provided Memory
    */
-  public static <T> ReservoirItemsUnion<T> getInstance(final Memory srcMem,
-                                                       final ArrayOfItemsSerDe<T> serDe) {
+  public static <T> ReservoirItemsUnion<T> heapify(final Memory srcMem,
+                                                   final ArrayOfItemsSerDe<T> serDe) {
     Family.RESERVOIR_UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
 
     final int numPreLongs = extractPreLongs(srcMem);
@@ -164,7 +163,7 @@ public final class ReservoirItemsUnion<T> {
       return;
     }
 
-    ReservoirItemsSketch<T> ris = ReservoirItemsSketch.getInstance(mem, serDe);
+    ReservoirItemsSketch<T> ris = ReservoirItemsSketch.heapify(mem, serDe);
     ris = (ris.getK() <= maxK_ ? ris : ris.downsampledCopy(maxK_));
 
     if (gadget_ == null) {
@@ -185,7 +184,7 @@ public final class ReservoirItemsUnion<T> {
     }
 
     if (gadget_ == null) {
-      gadget_ = ReservoirItemsSketch.getInstance(maxK_);
+      gadget_ = ReservoirItemsSketch.newInstance(maxK_);
     }
     gadget_.update(datum);
   }
@@ -201,7 +200,7 @@ public final class ReservoirItemsUnion<T> {
    * @param input Reservoir samples
    */
   public void update(final long n, final int k, final ArrayList<T> input) {
-    ReservoirItemsSketch<T> ris = ReservoirItemsSketch.getInstance(input, n,
+    ReservoirItemsSketch<T> ris = ReservoirItemsSketch.newInstance(input, n,
             ResizeFactor.X8, k); // forcing a resize factor
     ris = (ris.getK() <= maxK_ ? ris : ris.downsampledCopy(maxK_));
 
@@ -318,7 +317,7 @@ public final class ReservoirItemsUnion<T> {
       // incoming sketch is in exact mode with sketch's k < maxK,
       // so we can create a gadget at size maxK and keep everything
       // NOTE: assumes twoWayMergeInternal first checks if sketchIn is in exact mode
-      gadget_ = ReservoirItemsSketch.getInstance(maxK_);
+      gadget_ = ReservoirItemsSketch.newInstance(maxK_);
       twoWayMergeInternal(sketchIn, isModifiable); // isModifiable could be fixed to false here
     } else {
       // use the input sketch as gadget, copying if needed

@@ -29,16 +29,16 @@ public class ReservoirSizeTest {
     enc = ReservoirSize.computeSize(4097);
     assertEquals(enc, (short) 0x6001);
 
+    // NOTE: 0x61C4 is exact but Java seems to have numerical precision issues
     enc = ReservoirSize.computeSize(5000);
-    assertEquals(enc, (short) 0x61C5); // NOTE: 0x61C4 is exact but Java seems to have
-                                       // numerical precision issues
+    assertEquals(enc, (short) 0x61C5);
 
     enc = ReservoirSize.computeSize(25000);
     assertEquals(enc, (short) 0x7436);
 
+    // Encoding cannot represent 32767 with an exponent of 14, so need to go to the next power of 2
     enc = ReservoirSize.computeSize(32767);
-    assertEquals(enc, (short) 0x7800); // Encoding cannot represent 32767 with an exponent of
-                                       // 14, so need to go to the next power of 2
+    assertEquals(enc, (short) 0x7800);
 
     enc = ReservoirSize.computeSize(95342);
     assertEquals(enc, (short) 0x83A4);
