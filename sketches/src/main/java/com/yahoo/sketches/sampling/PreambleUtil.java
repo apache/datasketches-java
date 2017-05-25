@@ -51,7 +51,10 @@ import com.yahoo.sketches.SketchesArgumentException;
  * <p><strong>Union:</strong> The reservoir union has fewer internal parameters to track and uses
  * a slightly different preamble structure. The maximum reservoir size intentionally occupies the
  * same byte range as the reservoir size in the sketch preamble, allowing the same methods to be
- * used for reading and writing the values.</p>
+ * used for reading and writing the values. The varopt union takes advantage of the same format.
+ * The items in the union are stored in a reservoir sketch-compatible format after the union
+ * preamble.
+ * </p>
  *
  * <p>An empty union only requires 8 bytes. A non-empty union requires 8 bytes of preamble.</p>
  *
@@ -62,7 +65,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  *  0   ||---------Max Res. Size (K)---------|  Flags | FamID  | SerVer |   Preamble_Longs   |
  * </pre>
  *
- * <p><string>VarOpt:</string> A VarOpt sketch has a more complex internal items structure and
+ * <p><strong>VarOpt:</strong> A VarOpt sketch has a more complex internal items structure and
  * requires a larger preamble. Values serving a similar purpose in both reservoir and varopt sampling
  * share the same byte ranges, allowing method re-use where practical.</p>
  *
@@ -85,6 +88,29 @@ import com.yahoo.sketches.SketchesArgumentException;
  *  3   ||--------------------------------Total Weight in R----------------------------------|
  *  </pre>
  *
+ * <p><strong>VarOpt Union:</strong> VarOpt unions also store more information than a reservoir
+ * sketch. As before, we keep values with similar o hte same meaning in corresponding locations
+ * actoss sketch and union formats. The items in the union are stored in a varopt sketch-compatible
+ * format after the union preamble.</p>
+ *
+ * <p>An empty union only requires 8 bytes. A non-empty union requires 32 bytes of preamble.</p>
+ *
+ * <pre>
+ * Long || Start Byte Adr:
+ * Adr:
+ *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
+ *  0   ||---------Max Res. Size (K)---------|  Flags | FamID  | SerVer |   Preamble_Longs   |
+ *
+ *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
+ *  1   ||------------------------------Items Seen Count (N)---------------------------------|
+ *
+ *      ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |    16              |
+ *  2   ||---------------------------Outer Tau Numerator (double)----------------------------|
+ *
+ *      ||   31   |   30   |   29   |   28   |   27   |   26   |   25   |    24              |
+ *  3   ||---------------------------Outer Tau Denominator (long)----------------------------|
+ *  </pre>
+ *
  *  @author Jon Malkin
  *  @author Lee Rhodes
  */
@@ -105,7 +131,8 @@ final class PreambleUtil {
   static final int ITEMS_SEEN_LONG       = 8;
 
   static final int MAX_K_SIZE_INT        = 4; // used in Union only
-  //static final int MAX_K_SHORT           = 4; // used in Union only, ser_ver 1
+  static final int OUTER_TAU_NUM_DOUBLE  = 16; // used in Varopt Union only
+  static final int OUTER_TAU_DENOM_LONG  = 24; // used in Varopt Union only
 
   // constants and addresses used in varopt
   static final int ITEM_COUNT_H_INT      = 16;
@@ -117,6 +144,7 @@ final class PreambleUtil {
   //static final int BIG_ENDIAN_FLAG_MASK = 1;
   //static final int READ_ONLY_FLAG_MASK  = 2;
   static final int EMPTY_FLAG_MASK      = 4;
+  static final int GADGET_FLAG_MASK     = 128;
 
   //Other constants
   static final int SER_VER                    = 2;
@@ -159,6 +187,7 @@ final class PreambleUtil {
       case VAROPT:
         return sketchPreambleToString(mem, family, preLongs);
       case RESERVOIR_UNION:
+      case VAROPT_UNION:
         return unionPreambleToString(mem, family, preLongs);
       default:
         throw new SketchesArgumentException("Inspecting preamble with Sampling family's "
@@ -182,6 +211,7 @@ final class PreambleUtil {
     //final String nativeOrder = ByteOrder.nativeOrder().toString();
     //final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
     final boolean isEmpty = (flags & EMPTY_FLAG_MASK) > 0;
+    final boolean isGadget = (flags & GADGET_FLAG_MASK) > 0;
 
     final int k;
     if (serVer == 1) {
@@ -210,8 +240,11 @@ final class PreambleUtil {
       //.append("  BIG_ENDIAN_STORAGE          : ").append(bigEndian).append(LS)
       //.append("  (Native Byte Order)         : ").append(nativeOrder).append(LS)
       //.append("  READ_ONLY                   : ").append(readOnly).append(LS)
-      .append("  EMPTY                       : ").append(isEmpty).append(LS)
-      .append("Bytes  4-7: Sketch Size (k)   : ").append(k).append(LS);
+      .append("  EMPTY                       : ").append(isEmpty).append(LS);
+    if (family == Family.VAROPT) {
+      sb.append("  GADGET                      : ").append(isGadget).append(LS);
+    }
+    sb.append("Bytes  4-7: Sketch Size (k)   : ").append(k).append(LS);
     if (!isEmpty) {
       sb.append("Bytes 8-15: Items Seen (n)    : ").append(n).append(LS);
     }
@@ -280,6 +313,8 @@ final class PreambleUtil {
             + "### END " + family.getFamilyName().toUpperCase() + " PREAMBLE SUMMARY" + LS;
   }
 
+  // Extraction methods
+
   static int extractPreLongs(final Object memObj, final long memAddr) {
     return unsafe.getByte(memObj, memAddr + PREAMBLE_LONGS_BYTE) & 0x3F;
   }
@@ -332,6 +367,16 @@ final class PreambleUtil {
   static double extractTotalRWeight(final Object memObj, final long memAddr) {
     return unsafe.getDouble(memObj, memAddr + TOTAL_WEIGHT_R_DOUBLE);
   }
+
+  static double extractOuterTauNumerator(final Object memObj, final long memAddr) {
+    return unsafe.getDouble(memObj, memAddr + OUTER_TAU_NUM_DOUBLE);
+  }
+
+  static long extractOuterTauDenominator(final Object memObj, final long memAddr) {
+    return unsafe.getLong(memObj, memAddr + OUTER_TAU_DENOM_LONG);
+  }
+
+  // Insertion methods
 
   static void insertPreLongs(final Object memObj, final long memAddr, final int preLongs) {
     final int curByte = unsafe.getByte(memObj, memAddr + PREAMBLE_LONGS_BYTE);
@@ -389,6 +434,13 @@ final class PreambleUtil {
     unsafe.putDouble(memObj, memAddr + TOTAL_WEIGHT_R_DOUBLE, weight);
   }
 
+  static void insertOuterTauNumerator(final Object memObj, final long memAddr, final double numer) {
+    unsafe.putDouble(memObj, memAddr + OUTER_TAU_NUM_DOUBLE, numer);
+  }
+
+  static void insertOuterTauDenominator(final Object memObj, final long memAddr, final long denom) {
+    unsafe.putLong(memObj, memAddr + OUTER_TAU_DENOM_LONG, denom);
+  }
 
   /**
    * Checks Memory for capacity to hold the preamble and returns the extracted preLongs.
