@@ -526,6 +526,63 @@ public class VarOptItemsSketchTest {
     assertEquals(sketch.getRRegionCount(), 0);
   }
 
+  @Test
+  public void checkEstimateSubsetSum() {
+    final int k = 10;
+    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.newInstance(k);
+
+    // empty sketch -- all zeros
+    VarOptSubsetSummary ss = sketch.estimateSubsetSum(item -> true);
+    assertEquals(ss.getEstimate(), 0.0);
+    assertEquals(ss.getTotalSketchWeight(), 0.0);
+
+    // add items, keeping in exact mode
+    double totalWeight = 0.0;
+    for (long i = 1; i <= k - 1; ++i) {
+      sketch.update(i, 1.0 * i);
+      totalWeight += 1.0 * i;
+    }
+
+    ss = sketch.estimateSubsetSum(item -> true);
+    assertEquals(ss.getEstimate(), totalWeight);
+    assertEquals(ss.getLowerBound(), totalWeight);
+    assertEquals(ss.getUpperBound(), totalWeight);
+    assertEquals(ss.getTotalSketchWeight(), totalWeight);
+
+    // add a few more items, pushing to sampling mode
+    for (long i = k; i <= k + 1; ++i) {
+      sketch.update(i, 1.0 * i);
+      totalWeight += 1.0 * i;
+    }
+
+    // predicate always true so estimate == upper bound
+    ss = sketch.estimateSubsetSum(item -> true);
+    assertEquals(ss.getEstimate(), totalWeight);
+    assertEquals(ss.getUpperBound(), totalWeight);
+    assertTrue(ss.getLowerBound() < totalWeight);
+    assertEquals(ss.getTotalSketchWeight(), totalWeight);
+
+    // predicate always false so estimate == lower bound == 0.0
+    ss = sketch.estimateSubsetSum(item -> false);
+    assertEquals(ss.getEstimate(), 0.0);
+    assertEquals(ss.getLowerBound(), 0.0);
+    assertTrue(ss.getUpperBound() > 0.0);
+    assertEquals(ss.getTotalSketchWeight(), totalWeight);
+
+    // finally, a non-degenerate predicate
+    // insert negative items with identical weights, filter for negative weights only
+    for (long i = 1; i <= k + 1; ++i) {
+      sketch.update(-i, 1.0 * i);
+      totalWeight += 1.0 * i;
+    }
+
+    ss = sketch.estimateSubsetSum(item -> item < 0);
+    assertTrue(ss.getEstimate() > ss.getLowerBound());
+    assertTrue(ss.getEstimate() < ss.getUpperBound());
+    assertEquals(ss.getTotalSketchWeight(), totalWeight);
+  }
+
+
   /* Returns a sketch of size k that has been presented with n items. Use n = k+1 to obtain a
      sketch that has just reached the sampling phase, so that the next update() is handled by
      one of the non-warmup routes.
