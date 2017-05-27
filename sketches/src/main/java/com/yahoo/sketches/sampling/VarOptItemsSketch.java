@@ -618,8 +618,8 @@ final class VarOptItemsSketch<T> {
     final long numSampled = n_ - h_;
     assert numSampled > 0;
     final double effectiveSamplingRate = r_ / numSampled;
-    assert effectiveSamplingRate > 0.0;
-    assert effectiveSamplingRate < 1.0;
+    assert effectiveSamplingRate >= 0.0;
+    assert effectiveSamplingRate <= 1.0;
 
     int rTrueCount = 0;
     ++idx; // skip the gap
