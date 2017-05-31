@@ -251,6 +251,7 @@ final class VarOptItemsSketch<T> {
    * @param serDe  An instance of ArrayOfItemsSerDe
    * @return a sketch instance of this class
    */
+  @SuppressWarnings("null")
   public static <T> VarOptItemsSketch<T> heapify(final Memory srcMem,
                                                  final ArrayOfItemsSerDe<T> serDe) {
     final int numPreLongs = getAndCheckPreLongs(srcMem);
@@ -587,7 +588,7 @@ final class VarOptItemsSketch<T> {
    * predicate. Provides a lower bound, estimate, and upper bound using a target of 2 standard
    * deviations.
    *
-   * This is technically a heuristic method, and tries to err on the conservative side.
+   * <p>This is technically a heuristic method, and tries to err on the conservative side.
    *
    * @param predicate A predicate to use when identifying items.
    * @return A summary object containing the estimate, upper and lower bounds, and the total
@@ -881,12 +882,12 @@ final class VarOptItemsSketch<T> {
   }
 
 
-  private double pseudoHypergeometricUBonP(final long n, final int k, final double samplingRate) {
+  private static double pseudoHypergeometricUBonP(final long n, final int k, final double samplingRate) {
     final double adjustedKappa = DEFAULT_KAPPA * Math.sqrt(1 - samplingRate);
     return approximateUpperBoundOnP(n, k, adjustedKappa);
   }
 
-  private double pseudoHypergeometricLBonP(final long n, final int k, final double samplingRate) {
+  private static double pseudoHypergeometricLBonP(final long n, final int k, final double samplingRate) {
     final double adjustedKappa = DEFAULT_KAPPA * Math.sqrt(1 - samplingRate);
     return approximateLowerBoundOnP(n, k, adjustedKappa);
   }

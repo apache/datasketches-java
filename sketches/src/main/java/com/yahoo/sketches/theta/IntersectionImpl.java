@@ -32,7 +32,7 @@ import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 
-class IntersectionImpl extends IntersectionImplR {
+final class IntersectionImpl extends IntersectionImplR {
 
   private IntersectionImpl(final WritableMemory mem, final long seed, final boolean newMem) {
     super(mem, seed, newMem);

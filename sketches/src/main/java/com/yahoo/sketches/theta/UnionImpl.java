@@ -112,7 +112,7 @@ final class UnionImpl extends SetOperation implements Union {
    */
   static UnionImpl fastWrap(final Memory srcMem, final long seed) {
     Family.UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
-    final UpdateSketch gadget = DirectQuickSelectSketch.fastReadOnlyWrap(srcMem, seed);
+    final UpdateSketch gadget = DirectQuickSelectSketchR.fastReadOnlyWrap(srcMem, seed);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = srcMem.getLong(UNION_THETA_LONG);
     return unionImpl;
@@ -144,7 +144,7 @@ final class UnionImpl extends SetOperation implements Union {
    */
   static UnionImpl wrapInstance(final Memory srcMem, final long seed) {
     Family.UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
-    final UpdateSketch gadget = DirectQuickSelectSketch.readOnlyWrap(srcMem, seed);
+    final UpdateSketch gadget = DirectQuickSelectSketchR.readOnlyWrap(srcMem, seed);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = srcMem.getLong(UNION_THETA_LONG);
     return unionImpl;

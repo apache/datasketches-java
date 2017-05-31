@@ -273,6 +273,7 @@ public class VarOptItemsUnionTest {
    * Wrapper around System.out.println() allowing a simple way to disable logging in tests
    * @param msg The message to print
    */
+  @SuppressWarnings("unused")
   private static void println(final String msg) {
     //System.out.println(msg);
   }

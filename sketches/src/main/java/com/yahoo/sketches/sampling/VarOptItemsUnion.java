@@ -34,6 +34,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  *
  * @author Jon Malkin
  * @author Kevin Lang
+ * @param <T> Type of items
  */
 public final class VarOptItemsUnion<T> {
   private VarOptItemsSketch<T> gadget_;

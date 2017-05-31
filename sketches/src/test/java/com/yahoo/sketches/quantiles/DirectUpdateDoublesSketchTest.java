@@ -227,28 +227,28 @@ public class DirectUpdateDoublesSketchTest {
     WritableMemory mem = WritableMemory.wrap(new byte[8]);
     try {
       int flags = PreambleUtil.COMPACT_FLAG_MASK;
-      DirectUpdateDoublesSketch.checkCompact(2, 0);
+      DirectUpdateDoublesSketchR.checkCompact(2, 0);
       fail();
     } catch (SketchesArgumentException e) {} //OK
     try {
       int flags = PreambleUtil.COMPACT_FLAG_MASK;
-      DirectUpdateDoublesSketch.checkCompact(3, flags);
+      DirectUpdateDoublesSketchR.checkCompact(3, flags);
       fail();
     } catch (SketchesArgumentException e) {} //OK
     try {
-      DirectUpdateDoublesSketch.checkPreLongs(3);
+      DirectUpdateDoublesSketchR.checkPreLongs(3);
       fail();
     } catch (SketchesArgumentException e) {} //OK
     try {
-      DirectUpdateDoublesSketch.checkPreLongs(0);
+      DirectUpdateDoublesSketchR.checkPreLongs(0);
       fail();
     } catch (SketchesArgumentException e) {} //OK
     try {
-      DirectUpdateDoublesSketch.checkDirectFlags(PreambleUtil.COMPACT_FLAG_MASK);
+      DirectUpdateDoublesSketchR.checkDirectFlags(PreambleUtil.COMPACT_FLAG_MASK);
       fail();
     } catch (SketchesArgumentException e) {} //OK
     try {
-      DirectUpdateDoublesSketch.checkEmptyAndN(true, 1);
+      DirectUpdateDoublesSketchR.checkEmptyAndN(true, 1);
       fail();
     } catch (SketchesArgumentException e) {} //OK
   }
@@ -256,12 +256,12 @@ public class DirectUpdateDoublesSketchTest {
   @Test
   public void checkCheckDirectMemCapacity() {
     final int k = 128;
-    DirectUpdateDoublesSketch.checkDirectMemCapacity(k, 2 * k - 1, (4 + 2 * k) * 8);
-    DirectUpdateDoublesSketch.checkDirectMemCapacity(k, 2 * k + 1, (4 + 3 * k) * 8);
-    DirectUpdateDoublesSketch.checkDirectMemCapacity(k, 0, 8);
+    DirectUpdateDoublesSketchR.checkDirectMemCapacity(k, 2 * k - 1, (4 + 2 * k) * 8);
+    DirectUpdateDoublesSketchR.checkDirectMemCapacity(k, 2 * k + 1, (4 + 3 * k) * 8);
+    DirectUpdateDoublesSketchR.checkDirectMemCapacity(k, 0, 8);
 
     try {
-      DirectUpdateDoublesSketch.checkDirectMemCapacity(k, 10000, 64);
+      DirectUpdateDoublesSketchR.checkDirectMemCapacity(k, 10000, 64);
       fail();
     } catch (final SketchesArgumentException e) {
       // expected

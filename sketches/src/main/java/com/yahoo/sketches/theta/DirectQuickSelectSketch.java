@@ -192,7 +192,8 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
       thetaLong = extractThetaLong(memObj, memAdd);                     //bytes 16-23
     }
 
-    checkIntegrity(srcMem, seed, preambleLongs, serVer, familyID, lgNomLongs, lgArrLongs, flags, seedHash, p, thetaLong);
+    checkIntegrity(srcMem, seed, preambleLongs, serVer, familyID, lgNomLongs, lgArrLongs, flags,
+        seedHash, p, thetaLong);
 
     final DirectQuickSelectSketch dqss =
         new DirectQuickSelectSketch(lgNomLongs, seed, preambleLongs, srcMem);
