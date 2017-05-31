@@ -251,6 +251,7 @@ final class VarOptItemsSketch<T> {
    * @param serDe  An instance of ArrayOfItemsSerDe
    * @return a sketch instance of this class
    */
+  @SuppressWarnings("null")
   public static <T> VarOptItemsSketch<T> heapify(final Memory srcMem,
                                                  final ArrayOfItemsSerDe<T> serDe) {
     final int numPreLongs = getAndCheckPreLongs(srcMem);
@@ -881,12 +882,12 @@ final class VarOptItemsSketch<T> {
   }
 
 
-  private double pseudoHypergeometricUBonP(final long n, final int k, final double samplingRate) {
+  private static double pseudoHypergeometricUBonP(final long n, final int k, final double samplingRate) {
     final double adjustedKappa = DEFAULT_KAPPA * Math.sqrt(1 - samplingRate);
     return approximateUpperBoundOnP(n, k, adjustedKappa);
   }
 
-  private double pseudoHypergeometricLBonP(final long n, final int k, final double samplingRate) {
+  private static double pseudoHypergeometricLBonP(final long n, final int k, final double samplingRate) {
     final double adjustedKappa = DEFAULT_KAPPA * Math.sqrt(1 - samplingRate);
     return approximateLowerBoundOnP(n, k, adjustedKappa);
   }

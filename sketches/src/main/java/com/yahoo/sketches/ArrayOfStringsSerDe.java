@@ -8,8 +8,8 @@ package com.yahoo.sketches;
 import java.nio.charset.StandardCharsets;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.WritableMemory;
 import com.yahoo.memory.UnsafeUtil;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * Methods of serializing and deserializing arrays of String.

@@ -5,8 +5,8 @@ import com.yahoo.sketches.SketchesReadOnlyException;
 
 final class DirectArrayOfDoublesQuickSelectSketchR extends DirectArrayOfDoublesQuickSelectSketch {
 
-  DirectArrayOfDoublesQuickSelectSketchR(int nomEntries, int lgResizeFactor, float samplingProbability, int numValues,
-      long seed, WritableMemory dstMem) {
+  DirectArrayOfDoublesQuickSelectSketchR(final int nomEntries, final int lgResizeFactor,
+      final float samplingProbability, final int numValues, final long seed, final WritableMemory dstMem) {
     super(nomEntries, lgResizeFactor, samplingProbability, numValues, seed, dstMem);
   }
 
