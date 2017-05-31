@@ -587,7 +587,7 @@ final class VarOptItemsSketch<T> {
    * predicate. Provides a lower bound, estimate, and upper bound using a target of 2 standard
    * deviations.
    *
-   * This is technically a heuristic method, and tries to err on the conservative side.
+   * <p>This is technically a heuristic method, and tries to err on the conservative side.</p>
    *
    * @param predicate A predicate to use when identifying items.
    * @return A summary object containing the estimate, upper and lower bounds, and the total
@@ -617,7 +617,7 @@ final class VarOptItemsSketch<T> {
 
     final long numSampled = n_ - h_;
     assert numSampled > 0;
-    final double effectiveSamplingRate = r_ / numSampled;
+    final double effectiveSamplingRate = r_ / (double) numSampled;
     assert effectiveSamplingRate >= 0.0;
     assert effectiveSamplingRate <= 1.0;
 
