@@ -6,6 +6,7 @@
 package com.yahoo.sketches.quantiles;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * The API for Union operations for quantiles DoublesSketches
@@ -18,7 +19,7 @@ public abstract class DoublesUnion {
    * Returns a new UnionBuilder
    * @return a new UnionBuilder
    */
-  public static final DoublesUnionBuilder builder() {
+  public static DoublesUnionBuilder builder() {
     return new DoublesUnionBuilder();
   }
 
@@ -85,30 +86,36 @@ public abstract class DoublesUnion {
   public abstract void update(double dataItem);
 
   /**
-   * Gets the result of this Union operation as a copy of the internal state.
-   * This enables further union update operations on this state.
+   * Gets the result of this Union as an UpdateDoublesSketch, which enables further update
+   * operations on the resulting sketch. The Union state has not been changed, which allows
+   * further union operations.
+   *
    * @return the result of this Union operation
    */
-  public abstract DoublesSketch getResult();
+  public abstract UpdateDoublesSketch getResult();
 
   /**
-   * Gets the result of this Union operation (without a copy) and resets this Union to the
-   * virgin state.
+   * Places the result of this Union into the provided memory as an UpdateDoublesSketch,
+   * which enables further update operations on the resulting sketch. The Union state has not
+   * been changed, which allows further union operations.
+   *
+   * @param dstMem the destination memory for the result
+   * @return the result of this Union operation
+   */
+  public abstract UpdateDoublesSketch getResult(WritableMemory dstMem);
+
+  /**
+   * Gets the result of this Union  as an UpdateDoublesSketch, which enables further update
+   * operations on the resulting sketch. The Union is reset to the virgin state.
    *
    * @return the result of this Union operation and reset.
    */
-  public abstract DoublesSketch getResultAndReset();
+  public abstract UpdateDoublesSketch getResultAndReset();
 
   /**
    * Resets this Union to a virgin state.
    */
   public abstract void reset();
-
-  //  /**
-  //   * Serialize this union as an ordered, non-compact byte array of a DoublesSketch.
-  //   * @return this union as an ordered, non-compact byte array of a DoublesSketch.
-  //   */
-  //  public abstract byte[] toByteArray();
 
   /**
    * Returns summary information about the backing sketch.

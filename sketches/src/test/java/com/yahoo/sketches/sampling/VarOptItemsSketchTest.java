@@ -17,7 +17,7 @@ import static org.testng.Assert.fail;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.ArrayOfStringsSerDe;
 import com.yahoo.sketches.Family;
@@ -38,7 +38,7 @@ public class VarOptItemsSketchTest {
   public void checkBadSerVer() {
     final VarOptItemsSketch<Long> sketch = getUnweightedLongsVIS(16, 16);
     final byte[] bytes = sketch.toByteArray(new ArrayOfLongsSerDe());
-    final Memory mem = new NativeMemory(bytes);
+    final WritableMemory mem = WritableMemory.wrap(bytes);
 
     mem.putByte(SER_VER_BYTE, (byte) 0); // corrupt the serialization version
 
@@ -50,7 +50,7 @@ public class VarOptItemsSketchTest {
   public void checkBadFamily() {
     final VarOptItemsSketch<Long> sketch = getUnweightedLongsVIS(32, 16);
     final byte[] bytes = sketch.toByteArray(new ArrayOfLongsSerDe());
-    final Memory mem = new NativeMemory(bytes);
+    final WritableMemory mem = WritableMemory.wrap(bytes);
 
     mem.putByte(FAMILY_BYTE, (byte) 0); // corrupt the family ID
 
@@ -62,7 +62,7 @@ public class VarOptItemsSketchTest {
   public void checkBadPreLongs() {
     final VarOptItemsSketch<Long> sketch = getUnweightedLongsVIS(32, 33);
     final byte[] bytes = sketch.toByteArray(new ArrayOfLongsSerDe());
-    final Memory mem = new NativeMemory(bytes);
+    final WritableMemory mem = WritableMemory.wrap(bytes);
 
     // corrupt the preLongs count to 0
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) (Family.VAROPT.getMinPreLongs() - 1));
@@ -94,7 +94,7 @@ public class VarOptItemsSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadMemory() {
     byte[] bytes = new byte[4];
-    Memory mem = new NativeMemory(bytes);
+    Memory mem = Memory.wrap(bytes);
 
     try {
       PreambleUtil.getAndCheckPreLongs(mem);
@@ -105,7 +105,7 @@ public class VarOptItemsSketchTest {
 
     bytes = new byte[8];
     bytes[0] = 2; // only 1 preLong worth of items in bytearray
-    mem = new NativeMemory(bytes);
+    mem = Memory.wrap(bytes);
     PreambleUtil.getAndCheckPreLongs(mem);
   }
 
@@ -115,17 +115,17 @@ public class VarOptItemsSketchTest {
     final VarOptItemsSketch<Long> sketch = getUnweightedLongsVIS(k, k);
 
     final byte[] sketchBytes = sketch.toByteArray(new ArrayOfLongsSerDe());
-    final Memory srcMem = new NativeMemory(sketchBytes);
+    final Memory srcMem = Memory.wrap(sketchBytes);
 
     // we'll use the same initial sketch a few times, so grab a copy of it
     final byte[] copyBytes = new byte[sketchBytes.length];
-    final Memory mem = new NativeMemory(copyBytes);
-    final Object memObj = mem.array(); // may be null
+    final WritableMemory mem = WritableMemory.wrap(copyBytes);
+    final Object memObj = mem.getArray(); // may be null
     final long memAddr = mem.getCumulativeOffset(0L);
 
     // copy the bytes
-    srcMem.copy(0, mem, 0, sketchBytes.length);
-    assertEquals(PreambleUtil.extractPreLongs(memObj, memAddr), PreambleUtil.VO_WARMUP_PRELONGS);
+    srcMem.copyTo(0, mem, 0, sketchBytes.length);
+    assertEquals(PreambleUtil.extractPreLongs(mem), PreambleUtil.VO_WARMUP_PRELONGS);
 
     // no items in R but max preLongs
     try {
@@ -138,8 +138,8 @@ public class VarOptItemsSketchTest {
     }
 
     // refresh the copy
-    srcMem.copy(0, mem, 0, sketchBytes.length);
-    assertEquals(PreambleUtil.extractPreLongs(memObj, memAddr), PreambleUtil.VO_WARMUP_PRELONGS);
+    srcMem.copyTo(0, mem, 0, sketchBytes.length);
+    assertEquals(PreambleUtil.extractPreLongs(mem), PreambleUtil.VO_WARMUP_PRELONGS);
 
     // negative H region count
     try {
@@ -151,8 +151,8 @@ public class VarOptItemsSketchTest {
     }
 
     // refresh the copy
-    srcMem.copy(0, mem, 0, sketchBytes.length);
-    assertEquals(PreambleUtil.extractHRegionItemCount(memObj, memAddr), k);
+    srcMem.copyTo(0, mem, 0, sketchBytes.length);
+    assertEquals(PreambleUtil.extractHRegionItemCount(mem), k);
 
     // negative R region count
     try {
@@ -164,8 +164,8 @@ public class VarOptItemsSketchTest {
     }
 
     // refresh the copy
-    srcMem.copy(0, mem, 0, sketchBytes.length);
-    assertEquals(PreambleUtil.extractRRegionItemCount(memObj, memAddr), 0);
+    srcMem.copyTo(0, mem, 0, sketchBytes.length);
+    assertEquals(PreambleUtil.extractRRegionItemCount(mem), 0);
 
     // invalid k < 2
     try {
@@ -177,8 +177,8 @@ public class VarOptItemsSketchTest {
     }
 
     // refresh the copy
-    srcMem.copy(0, mem, 0, sketchBytes.length);
-    assertEquals(PreambleUtil.extractK(memObj, memAddr), k);
+    srcMem.copyTo(0, mem, 0, sketchBytes.length);
+    assertEquals(PreambleUtil.extractK(mem), k);
 
     // invalid n < 0
     try {
@@ -199,9 +199,10 @@ public class VarOptItemsSketchTest {
     assertNull(vis.getSamplesAsArrays(Long.class));
 
     final byte[] sketchBytes = vis.toByteArray(new ArrayOfStringsSerDe());
-    final Memory mem = new NativeMemory(sketchBytes);
+    final Memory mem = Memory.wrap(sketchBytes);
 
     // only minPreLongs bytes and should deserialize to empty
+    assert sketchBytes != null;
     assertEquals(sketchBytes.length, Family.VAROPT.getMinPreLongs() << 3);
     final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
     final VarOptItemsSketch<String> loadedVis = VarOptItemsSketch.heapify(mem, serDe);
@@ -223,11 +224,11 @@ public class VarOptItemsSketchTest {
     final VarOptItemsSketch<String> vis = VarOptItemsSketch.newInstance(12, ResizeFactor.X2);
     final byte[] sketchBytes = vis.toByteArray(new ArrayOfStringsSerDe());
     final byte[] dstByteArr = new byte[PreambleUtil.VO_WARMUP_PRELONGS << 3];
-    final Memory mem = new NativeMemory(dstByteArr);
+    final WritableMemory mem = WritableMemory.wrap(dstByteArr);
     mem.putByteArray(0, sketchBytes, 0, sketchBytes.length);
 
     // ensure non-empty but with H and R region sizes set to 0
-    final Object memObj = mem.array(); // may be null
+    final Object memObj = mem.getArray(); // may be null
     final long memAddr = mem.getCumulativeOffset(0L);
     PreambleUtil.insertFlags(memObj, memAddr, 0); // set not-empty
     PreambleUtil.insertHRegionItemCount(memObj, memAddr, 0);
@@ -259,12 +260,10 @@ public class VarOptItemsSketchTest {
     }
 
     final byte[] sketchBytes = vis.toByteArray(new ArrayOfStringsSerDe(), String.class);
-    final Memory mem = new NativeMemory(sketchBytes);
-    final Object memObj = mem.array(); // may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
+    final WritableMemory mem = WritableMemory.wrap(sketchBytes);
 
     // weights will be stored in the first double after the preamble
-    final int numPreLongs = PreambleUtil.extractPreLongs(memObj, memAddr);
+    final int numPreLongs = PreambleUtil.extractPreLongs(mem);
     final int weightOffset = numPreLongs << 3;
     mem.putDouble(weightOffset, -1.25); // inject a negative weight
 
@@ -311,12 +310,10 @@ public class VarOptItemsSketchTest {
     assertEquals(sketch.getNumSamples(), 10);
 
     final byte[] bytes = sketch.toByteArray(new ArrayOfLongsSerDe());
-    final Memory mem = new NativeMemory(bytes);
+    final Memory mem = Memory.wrap(bytes);
 
     // ensure correct number of preLongs
-    final Object memObj = mem.array(); // may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
-    assertEquals(PreambleUtil.extractPreLongs(memObj, memAddr), PreambleUtil.VO_WARMUP_PRELONGS);
+    assertEquals(PreambleUtil.extractPreLongs(mem), PreambleUtil.VO_WARMUP_PRELONGS);
 
     final VarOptItemsSketch<Long> rebuilt
             = VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
@@ -329,12 +326,10 @@ public class VarOptItemsSketchTest {
     final VarOptItemsSketch<Long> sketch = getUnweightedLongsVIS(k, k);
 
     final byte[] bytes = sketch.toByteArray(new ArrayOfLongsSerDe());
-    final Memory mem = new NativeMemory(bytes);
+    final Memory mem = Memory.wrap(bytes);
 
     // ensure still only 2 preLongs
-    final Object memObj = mem.array(); // may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
-    assertEquals(PreambleUtil.extractPreLongs(memObj, memAddr), PreambleUtil.VO_WARMUP_PRELONGS);
+    assertEquals(PreambleUtil.extractPreLongs(mem), PreambleUtil.VO_WARMUP_PRELONGS);
 
     final VarOptItemsSketch<Long> rebuilt
             = VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
@@ -361,12 +356,10 @@ public class VarOptItemsSketchTest {
     assertEquals((long) data[1], 101L);
 
     final byte[] bytes = sketch.toByteArray(new ArrayOfLongsSerDe());
-    final Memory mem = new NativeMemory(bytes);
+    final Memory mem = Memory.wrap(bytes);
 
     // ensure 3 preLongs
-    final Object memObj = mem.array(); // may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
-    assertEquals(PreambleUtil.extractPreLongs(memObj, memAddr), Family.VAROPT.getMaxPreLongs());
+    assertEquals(PreambleUtil.extractPreLongs(mem), Family.VAROPT.getMaxPreLongs());
 
     final VarOptItemsSketch<Long> rebuilt
             = VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
@@ -479,7 +472,7 @@ public class VarOptItemsSketchTest {
     assertTrue(Math.abs(sketch.getTau() - tgtSketch.getTau()) < EPS);
 
     // decrease again from reservoir-only mode
-    sketch.decreaseKBy1();;
+    sketch.decreaseKBy1();
 
     assertEquals(sketch.getK(), tgtK - 1);
     assertEquals(sketch.getK(), sketch.getRRegionCount());
@@ -532,6 +525,79 @@ public class VarOptItemsSketchTest {
     assertEquals(sketch.getHRegionCount(), 0);
     assertEquals(sketch.getRRegionCount(), 0);
   }
+
+  @Test
+  public void checkEstimateSubsetSum() {
+    final int k = 10;
+    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.newInstance(k);
+
+    // empty sketch -- all zeros
+    SampleSubsetSummary ss = sketch.estimateSubsetSum(item -> true);
+    assertEquals(ss.getEstimate(), 0.0);
+    assertEquals(ss.getTotalSketchWeight(), 0.0);
+
+    // add items, keeping in exact mode
+    double totalWeight = 0.0;
+    for (long i = 1; i <= k - 1; ++i) {
+      sketch.update(i, 1.0 * i);
+      totalWeight += 1.0 * i;
+    }
+
+    ss = sketch.estimateSubsetSum(item -> true);
+    assertEquals(ss.getEstimate(), totalWeight);
+    assertEquals(ss.getLowerBound(), totalWeight);
+    assertEquals(ss.getUpperBound(), totalWeight);
+    assertEquals(ss.getTotalSketchWeight(), totalWeight);
+
+    // add a few more items, pushing to sampling mode
+    for (long i = k; i <= k + 1; ++i) {
+      sketch.update(i, 1.0 * i);
+      totalWeight += 1.0 * i;
+    }
+
+    // predicate always true so estimate == upper bound
+    ss = sketch.estimateSubsetSum(item -> true);
+    assertEquals(ss.getEstimate(), totalWeight);
+    assertEquals(ss.getUpperBound(), totalWeight);
+    assertTrue(ss.getLowerBound() < totalWeight);
+    assertEquals(ss.getTotalSketchWeight(), totalWeight);
+
+    // predicate always false so estimate == lower bound == 0.0
+    ss = sketch.estimateSubsetSum(item -> false);
+    assertEquals(ss.getEstimate(), 0.0);
+    assertEquals(ss.getLowerBound(), 0.0);
+    assertTrue(ss.getUpperBound() > 0.0);
+    assertEquals(ss.getTotalSketchWeight(), totalWeight);
+
+    // finally, a non-degenerate predicate
+    // insert negative items with identical weights, filter for negative weights only
+    for (long i = 1; i <= k + 1; ++i) {
+      sketch.update(-i, 1.0 * i);
+      totalWeight += 1.0 * i;
+    }
+
+    ss = sketch.estimateSubsetSum(item -> item < 0);
+    assertTrue(ss.getEstimate() >= ss.getLowerBound());
+    assertTrue(ss.getEstimate() <= ss.getUpperBound());
+    assertTrue(ss.getLowerBound() < (totalWeight / 2.0));
+
+    assertTrue(ss.getUpperBound() > (totalWeight / 2.0));
+    assertEquals(ss.getTotalSketchWeight(), totalWeight);
+
+    // for good measure, test a different type
+    final VarOptItemsSketch<Boolean> boolSketch = VarOptItemsSketch.newInstance(k);
+    totalWeight = 0.0;
+    for (int i = 1; i <= k - 1; ++i) {
+      boolSketch.update((i % 2) == 0, 1.0 * i);
+      totalWeight += i;
+    }
+
+    ss = boolSketch.estimateSubsetSum(item -> !item);
+    assertTrue(ss.getEstimate() == ss.getLowerBound());
+    assertTrue(ss.getEstimate() == ss.getUpperBound());
+    assertTrue(ss.getEstimate() < totalWeight); // exact mode, so know it must be strictly less
+  }
+
 
   /* Returns a sketch of size k that has been presented with n items. Use n = k+1 to obtain a
      sketch that has just reached the sampling phase, so that the next update() is handled by

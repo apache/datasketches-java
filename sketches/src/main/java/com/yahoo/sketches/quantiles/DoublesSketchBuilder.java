@@ -8,7 +8,7 @@ package com.yahoo.sketches.quantiles;
 import static com.yahoo.sketches.quantiles.Util.LS;
 import static com.yahoo.sketches.quantiles.Util.TAB;
 
-import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * For building a new quantiles DoublesSketch.
@@ -17,7 +17,6 @@ import com.yahoo.memory.Memory;
  */
 public class DoublesSketchBuilder {
   private int bK = PreambleUtil.DEFAULT_K;
-  private Memory bMem = null;
 
   /**
    * Constructor for a new DoublesSketchBuilder. The default configuration is
@@ -43,16 +42,6 @@ public class DoublesSketchBuilder {
   }
 
   /**
-   * Specifies the Memory to be initialized for a new off-heap version of the sketch.
-   * @param mem the given Memory.
-   * @return this builder
-   */
-  public DoublesSketchBuilder initMemory(final Memory mem) {
-    bMem = mem;
-    return this;
-  }
-
-  /**
    * Gets the current configured value of <i>k</i>
    * @return the current configured value of <i>k</i>
    */
@@ -61,36 +50,21 @@ public class DoublesSketchBuilder {
   }
 
   /**
-   * Gets the configured Memory to be initialized by the sketch for off-heap use.
-   * @return the configured Memory.
-   */
-  public Memory getMemory() {
-    return bMem;
-  }
-
-  /**
    * Returns an UpdateDoublesSketch with the current configuration of this Builder.
    * @return a UpdateDoublesSketch
    */
   public UpdateDoublesSketch build() {
-    return (bMem == null) ? HeapUpdateDoublesSketch.newInstance(bK)
-        : DirectUpdateDoublesSketch.newInstance(bK, bMem);
+    return HeapUpdateDoublesSketch.newInstance(bK);
   }
 
   /**
-   * Returns a quantiles UpdateDoublesSketch with the current configuration of this builder and the
-   * given parameter <i>k</i>.
-   * @param k determines the accuracy and size of the sketch.
-   * <i>k</i> must be greater than 1 and less than 65536.
-   * It is recommended that <i>k</i> be a power of 2 to enable merging of sketches with
-   * different values of <i>k</i>. However, in this case it is only possible to merge from
-   * larger values of <i>k</i> to smaller values.
-   *
+   * Returns a quantiles UpdateDoublesSketch with the current configuration of this builder
+   * and the specified backing destination Memory store.
+   * @param dstMem destination memory for use by the sketch
    * @return an UpdateDoublesSketch
    */
-  public UpdateDoublesSketch build(final int k) {
-    return (bMem == null) ? HeapUpdateDoublesSketch.newInstance(k)
-        : DirectUpdateDoublesSketch.newInstance(k, bMem);
+  public UpdateDoublesSketch build(final WritableMemory dstMem) {
+    return DirectUpdateDoublesSketch.newInstance(bK, dstMem);
   }
 
   /**
@@ -101,8 +75,6 @@ public class DoublesSketchBuilder {
     final StringBuilder sb = new StringBuilder();
     sb.append("QuantileSketchBuilder configuration:").append(LS);
     sb.append("K     : ").append(TAB).append(bK).append(LS);
-    final String memStr = (bMem == null) ? "null" : "valid";
-    sb.append("Memory: ").append(TAB).append(memStr);
     return sb.toString();
   }
 

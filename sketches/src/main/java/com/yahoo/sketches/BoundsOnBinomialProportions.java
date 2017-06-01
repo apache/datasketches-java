@@ -40,7 +40,7 @@ package com.yahoo.sketches;
  * delta, and the fraction of batches in which the true <i>p</i> lies above upperBoundOnP
  * would also be at most delta.
  *
- * <p>Setting aside the philophical difficulties attaching to that statement, it isn't quite
+ * <p>Setting aside the philosophical difficulties attaching to that statement, it isn't quite
  * true because we are approximating the Clopper-Pearson interval.</p>
  *
  * <p>Finally, we point out that in this class's interface, the confidence parameter delta is

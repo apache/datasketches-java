@@ -11,7 +11,7 @@ import static com.yahoo.sketches.quantiles.Util.LS;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 
 public class DoublesUtilTest {
 
@@ -22,11 +22,11 @@ public class DoublesUtilTest {
     final DoublesSketch qs = buildAndLoadQS(k,n);
 
     byte[] byteArr = qs.toByteArray(false);
-    Memory mem = new NativeMemory(byteArr);
+    Memory mem = Memory.wrap(byteArr);
     println(DoublesUtil.memToString(true, true, mem));
 
     byteArr = qs.toByteArray(true);
-    mem = new NativeMemory(byteArr);
+    mem = Memory.wrap(byteArr);
     println(DoublesUtil.memToString(true, true, mem));
   }
 
@@ -37,7 +37,7 @@ public class DoublesUtilTest {
     final DoublesSketch qs = buildAndLoadQS(k,n);
 
     final byte[] byteArr = qs.toByteArray();
-    final Memory mem = new NativeMemory(byteArr);
+    final Memory mem = Memory.wrap(byteArr);
     println(DoublesUtil.memToString(true, true, mem));
   }
 
@@ -52,8 +52,8 @@ public class DoublesUtilTest {
     DoublesSketchTest.testSketchEquality(huds, target1);
 
     // DirectUpdateDoublesSketch
-    final Memory mem1 = new NativeMemory(huds.toByteArray());
-    final DirectUpdateDoublesSketch duds = (DirectUpdateDoublesSketch) DoublesSketch.wrap(mem1);
+    final WritableMemory mem1 = WritableMemory.wrap(huds.toByteArray());
+    final DirectUpdateDoublesSketch duds = (DirectUpdateDoublesSketch) UpdateDoublesSketch.wrap(mem1);
     final HeapUpdateDoublesSketch target2 = DoublesUtil.copyToHeap(duds);
     DoublesSketchTest.testSketchEquality(huds, duds);
     DoublesSketchTest.testSketchEquality(duds, target2);
@@ -65,7 +65,7 @@ public class DoublesUtilTest {
     DoublesSketchTest.testSketchEquality(hcds, target3);
 
     // DirectCompactDoublesSketch
-    final Memory mem2 = new NativeMemory(hcds.toByteArray());
+    final Memory mem2 = Memory.wrap(hcds.toByteArray());
     final DirectCompactDoublesSketch dcds = (DirectCompactDoublesSketch) DoublesSketch.wrap(mem2);
     final HeapUpdateDoublesSketch target4 = DoublesUtil.copyToHeap(dcds);
     DoublesSketchTest.testSketchEquality(huds, dcds);

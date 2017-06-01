@@ -13,7 +13,7 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -32,7 +32,7 @@ public class CompactSketchTest {
   
   //test combinations of compact ordered/not ordered and heap/direct
   public void checkHeapifyWrap(int k, int u) {
-    UpdateSketch usk = UpdateSketch.builder().build(k);
+    UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<u; i++) usk.update(i);
     double uskEst = usk.getEstimate();
     assertEquals(uskEst, u, 0.05 * u);
@@ -57,7 +57,7 @@ public class CompactSketchTest {
     //println(PreambleUtil.toString(byteArray));
     
     //put image in memory, check heapify
-    Memory srcMem = new NativeMemory(csk.toByteArray());
+    Memory srcMem = Memory.wrap(csk.toByteArray());
     csk2 = (CompactSketch) Sketch.heapify(srcMem);
     //println(csk2.toString(true, true, 8, true));
     double csk2est = csk2.getEstimate();
@@ -76,7 +76,7 @@ public class CompactSketchTest {
     assertTrue(csk.isCompact());
     assertTrue(csk.isOrdered()); //CHECK ORDERED
     
-    Memory srcMem2 = new NativeMemory(csk.toByteArray());
+    Memory srcMem2 = Memory.wrap(csk.toByteArray());
     csk3 = (CompactSketch)Sketch.heapify(srcMem2);
     double csk3est = csk3.getEstimate();
     assertEquals(csk3est, uskEst, 0.0);
@@ -92,11 +92,11 @@ public class CompactSketchTest {
     //Prepare Memory for direct
     int bytes = usk.getCurrentBytes(compact);
     byte[] memArr = new byte[bytes];
-    Memory mem = new NativeMemory(memArr);
+    WritableMemory mem = WritableMemory.wrap(memArr);
     Memory mem2;
     
     /**Via CompactSketch.compact**/
-    csk = usk.compact( !ordered, mem); //NOT ORDERED, DIRECT
+    csk = usk.compact(!ordered, mem); //NOT ORDERED, DIRECT
     assertEquals(csk.getClass().getSimpleName(), "DirectCompactSketch");
     
     csk2 = (CompactSketch)Sketch.wrap(mem);
@@ -117,7 +117,7 @@ public class CompactSketchTest {
     assertFalse(csk.isOrdered());
     
     byteArray = csk.toByteArray();
-    mem2 = new NativeMemory(byteArray);
+    mem2 = Memory.wrap(byteArray);
     csk2 = (CompactSketch)Sketch.wrap(mem2);
     assertEquals(csk2.getEstimate(), uskEst, 0.0);
 
@@ -150,7 +150,7 @@ public class CompactSketchTest {
     assertEquals(csk.getClass().getSimpleName(), "DirectCompactOrderedSketch");
     
     byteArray = csk.toByteArray();
-    mem2 = new NativeMemory(byteArray);
+    mem2 = Memory.wrap(byteArray);
     csk2 = (CompactSketch)Sketch.wrap(mem2);
     assertEquals(csk2.getEstimate(), uskEst, 0.0);
 
@@ -168,12 +168,12 @@ public class CompactSketchTest {
     int u = k;
     boolean compact = true;
     boolean ordered = false;
-    UpdateSketch usk = UpdateSketch.builder().build(k);
+    UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<u; i++) usk.update(i);
     
     int bytes = usk.getCurrentBytes(compact);
     byte[] byteArray = new byte[bytes -8]; //too small
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     usk.compact(ordered, mem);
   }
   
@@ -183,12 +183,12 @@ public class CompactSketchTest {
     int u = k;
     boolean compact = true;
     boolean ordered = true;
-    UpdateSketch usk = UpdateSketch.builder().build(k);
+    UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<u; i++) usk.update(i);
     
     int bytes = usk.getCurrentBytes(compact);
     byte[] byteArray = new byte[bytes -8]; //too small
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     usk.compact(ordered, mem);
   }
   

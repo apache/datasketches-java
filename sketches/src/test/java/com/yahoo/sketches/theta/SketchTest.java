@@ -24,7 +24,7 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -44,7 +44,7 @@ public class SketchTest {
     int k = 64;
     int lowQSPreLongs = Family.QUICKSELECT.getMinPreLongs();
     int lowCompPreLongs = Family.COMPACT.getMinPreLongs();
-    UpdateSketch sketch = UpdateSketch.builder().build(k); // QS Sketch
+    UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(k).build(); // QS Sketch
     assertEquals(sketch.getCurrentPreambleLongs(false), lowQSPreLongs);
     assertEquals(sketch.getCurrentPreambleLongs(true), 1); //compact form
     assertEquals(sketch.getCurrentDataLongs(false), k*2);
@@ -105,7 +105,7 @@ public class SketchTest {
     Family fam = Family.ALPHA;
 
     UpdateSketch sk1 = UpdateSketch.builder().setSeed(seed)
-        .setP(p).setResizeFactor(rf).setFamily(fam).build(k);
+        .setP(p).setResizeFactor(rf).setFamily(fam).setNominalEntries(k).build();
     String nameS1 = sk1.getClass().getSimpleName();
     assertEquals(nameS1, "HeapAlphaSketch");
     assertEquals(sk1.getLgNomLongs(), lgK);
@@ -126,7 +126,7 @@ public class SketchTest {
   @Test
   public void checkBuilderNonPowerOf2() {
     int k = 1000;
-    UpdateSketch sk = UpdateSketch.builder().build(k);
+    UpdateSketch sk = UpdateSketch.builder().setNominalEntries(k).build();
     assertEquals(sk.getLgNomLongs(), 10);
   }
 
@@ -159,22 +159,22 @@ public class SketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWrapBadFamily() {
-    UpdateSketch sketch = UpdateSketch.builder().setFamily(Family.ALPHA).build(1024);
+    UpdateSketch sketch = UpdateSketch.builder().setFamily(Family.ALPHA).setNominalEntries(1024).build();
     byte[] byteArr = sketch.toByteArray();
-    Memory srcMem = new NativeMemory(byteArr);
+    Memory srcMem = Memory.wrap(byteArr);
     Sketch.wrap(srcMem);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadFamily() {
-    UpdateSketch.builder().setFamily(Family.INTERSECTION).build(1024);
+    UpdateSketch.builder().setFamily(Family.INTERSECTION).setNominalEntries(1024).build();
   }
 
   @Test
   public void checkSerVer() {
-    UpdateSketch sketch = UpdateSketch.builder().build(1024);
+    UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(1024).build();
     byte[] sketchArray = sketch.toByteArray();
-    Memory mem = new NativeMemory(sketchArray);
+    Memory mem = Memory.wrap(sketchArray);
     int serVer = Sketch.getSerializationVersion(mem);
     assertEquals(serVer, 3);
   }
@@ -182,9 +182,9 @@ public class SketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyAlphaCompactExcep() {
     int k = 512;
-    Sketch sketch1 = UpdateSketch.builder().setFamily(ALPHA).build(k);
+    Sketch sketch1 = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     byte[] byteArray = sketch1.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     //corrupt:
     mem.setBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
     Sketch.heapify(mem);
@@ -193,9 +193,9 @@ public class SketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyQSCompactExcep() {
     int k = 512;
-    Sketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).build(k);
+    Sketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
     byte[] byteArray = sketch1.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     //corrupt:
     mem.setBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
     Sketch.heapify(mem);
@@ -204,10 +204,10 @@ public class SketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyNotCompactExcep() {
     int k = 512;
-    UpdateSketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).build(k);
+    UpdateSketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
     int bytes = Sketch.getMaxCompactSketchBytes(0);
     byte[] byteArray = new byte[bytes];
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     sketch1.compact(false, mem);
     //corrupt:
     mem.clearBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
@@ -217,9 +217,9 @@ public class SketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyFamilyExcep() {
     int k = 512;
-    Union union = SetOperation.builder().buildUnion(k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
     byte[] byteArray = union.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    Memory mem = Memory.wrap(byteArray);
     //Improper use
     Sketch.heapify(mem);
   }
@@ -227,9 +227,9 @@ public class SketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWrapAlphaCompactExcep() {
     int k = 512;
-    Sketch sketch1 = UpdateSketch.builder().setFamily(ALPHA).build(k);
+    Sketch sketch1 = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     byte[] byteArray = sketch1.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     //corrupt:
     mem.setBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
     Sketch.wrap(mem);
@@ -239,9 +239,9 @@ public class SketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWrapQSCompactExcep() {
     int k = 512;
-    Sketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).build(k);
+    Sketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
     byte[] byteArray = sketch1.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     //corrupt:
     mem.setBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
     Sketch.wrap(mem);
@@ -250,10 +250,10 @@ public class SketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWrapNotCompactExcep() {
     int k = 512;
-    UpdateSketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).build(k);
+    UpdateSketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
     int bytes = Sketch.getMaxCompactSketchBytes(0);
     byte[] byteArray = new byte[bytes];
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     sketch1.compact(false, mem);
     //corrupt:
     mem.clearBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
@@ -270,20 +270,20 @@ public class SketchTest {
 
   @Test
   public void checkObjectToFamily() {
-    Sketch sk1 = UpdateSketch.builder().setFamily(ALPHA).build(512);
+    Sketch sk1 = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(512).build();
     println(objectToFamily(sk1).toString());
   }
 
   @Test
   public void checkWrapToHeapifyConversion1() {
     int k = 512;
-    UpdateSketch sketch1 = UpdateSketch.builder().build(k);
+    UpdateSketch sketch1 = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) {
       sketch1.update(i);
     }
     double uest1 = sketch1.getEstimate();
     int bytes = sketch1.getCurrentBytes(true);
-    Memory v3mem = new NativeMemory(new byte[bytes]);
+    WritableMemory v3mem = WritableMemory.wrap(new byte[bytes]);
     sketch1.compact(true, v3mem);
 
     Memory v1mem = ForwardCompatibilityTest.convertSerV3toSerV1(v3mem);
@@ -300,9 +300,9 @@ public class SketchTest {
   @Test
   public void checkIsSameResource() {
     int k = 16;
-    Memory mem = new NativeMemory(new byte[(k*16) +24]);
-    Memory cmem = new NativeMemory (new byte[8]);
-    UpdateSketch sketch = Sketches.updateSketchBuilder().initMemory(mem).build(k);
+    WritableMemory mem = WritableMemory.wrap(new byte[(k*16) +24]);
+    WritableMemory cmem = WritableMemory.wrap(new byte[8]);
+    UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(mem);
     assertTrue(sketch.isSameResource(mem));
     DirectCompactOrderedSketch dcos = (DirectCompactOrderedSketch) sketch.compact(true, cmem);
     assertTrue(dcos.isSameResource(cmem));

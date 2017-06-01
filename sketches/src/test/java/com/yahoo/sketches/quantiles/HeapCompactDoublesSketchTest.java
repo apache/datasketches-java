@@ -15,7 +15,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 public class HeapCompactDoublesSketchTest {
@@ -31,7 +31,7 @@ public class HeapCompactDoublesSketchTest {
     final int n = 45;
     final UpdateDoublesSketch qs = buildAndLoadQS(k, n);
     final byte[] qsBytes = qs.toByteArray();
-    final Memory qsMem = new NativeMemory(qsBytes);
+    final Memory qsMem = Memory.wrap(qsBytes);
 
     final HeapCompactDoublesSketch compactQs = HeapCompactDoublesSketch.heapifyInstance(qsMem);
     DoublesSketchTest.testSketchEquality(qs, compactQs);
@@ -43,7 +43,7 @@ public class HeapCompactDoublesSketchTest {
   public void createFromUnsortedUpdateSketch() {
     final int k = 4;
     final int n = 13;
-    final UpdateDoublesSketch qs = DoublesSketch.builder().build(k);
+    final UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build();
     for (int i = n; i > 0; --i) {
       qs.update(i);
     }
@@ -60,7 +60,7 @@ public class HeapCompactDoublesSketchTest {
     final UpdateDoublesSketch qs = buildAndLoadQS(k, n); // assuming reverse ordered inserts
 
     final byte[] qsBytes = qs.compact().toByteArray();
-    final Memory qsMem = new NativeMemory(qsBytes);
+    final Memory qsMem = Memory.wrap(qsBytes);
 
     final HeapCompactDoublesSketch compactQs = HeapCompactDoublesSketch.heapifyInstance(qsMem);
     DoublesSketchTest.testSketchEquality(qs, compactQs);
@@ -69,17 +69,17 @@ public class HeapCompactDoublesSketchTest {
   @Test
   public void checkHeapifyUnsortedCompactV2() {
     final int k = 64;
-    final UpdateDoublesSketch qs = DoublesSketch.builder().build(64);
+    final UpdateDoublesSketch qs = DoublesSketch.builder().setK(64).build();
     for (int i = 0; i < 3 * k; ++i) {
       qs.update(i);
     }
     assertEquals(qs.getBaseBufferCount(), k);
     final byte[] sketchBytes = qs.toByteArray(true);
-    final Memory mem = new NativeMemory(sketchBytes);
+    final WritableMemory mem = WritableMemory.wrap(sketchBytes);
 
     // modify to make v2, clear compact flag, and insert a -1 in the middle of the base buffer
-    PreambleUtil.insertSerVer(mem.array(), mem.getCumulativeOffset(0), 2);
-    PreambleUtil.insertFlags(mem.array(), mem.getCumulativeOffset(0), 0);
+    PreambleUtil.insertSerVer(mem.getArray(), mem.getCumulativeOffset(0), 2);
+    PreambleUtil.insertFlags(mem.getArray(), mem.getCumulativeOffset(0), 0);
     final long tgtAddr = COMBINED_BUFFER + (Double.BYTES * k / 2);
     mem.putDouble(tgtAddr, -1.0);
     assert mem.getDouble(tgtAddr - Double.BYTES) > mem.getDouble(tgtAddr);
@@ -95,7 +95,7 @@ public class HeapCompactDoublesSketchTest {
     final UpdateDoublesSketch qs1 = buildAndLoadQS(k, 0);
     final byte[] byteArr = qs1.compact().toByteArray();
     final byte[] byteArr2 = qs1.toByteArray(true);
-    final Memory mem = new NativeMemory(byteArr);
+    final Memory mem = Memory.wrap(byteArr);
     final HeapCompactDoublesSketch qs2 = HeapCompactDoublesSketch.heapifyInstance(mem);
     assertTrue(qs2.isEmpty());
     assertEquals(byteArr.length, qs1.getStorageBytes());
@@ -113,7 +113,7 @@ public class HeapCompactDoublesSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkMemTooSmall1() {
-    final Memory mem = new NativeMemory(new byte[7]);
+    final Memory mem = Memory.wrap(new byte[7]);
     HeapCompactDoublesSketch.heapifyInstance(mem);
   }
 
@@ -131,7 +131,7 @@ public class HeapCompactDoublesSketchTest {
   }
 
   static UpdateDoublesSketch buildAndLoadQS(final int k, final int n, final int startV) {
-    final UpdateDoublesSketch qs = DoublesSketch.builder().build(k);
+    final UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build();
     for (int i = 1; i <= n; i++) {
       qs.update(startV + i);
     }

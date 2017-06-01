@@ -8,11 +8,8 @@ package com.yahoo.sketches.sampling;
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.sampling.PreambleUtil.FAMILY_BYTE;
-import static com.yahoo.sketches.sampling.PreambleUtil.FLAGS_BYTE;
-import static com.yahoo.sketches.sampling.PreambleUtil.MAX_K_SIZE_INT;
-import static com.yahoo.sketches.sampling.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER;
-import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER_BYTE;
+import static com.yahoo.sketches.sampling.PreambleUtil.extractEncodedReservoirSize;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractMaxK;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractPreLongs;
@@ -21,8 +18,8 @@ import static com.yahoo.sketches.sampling.PreambleUtil.extractSerVer;
 import java.util.ArrayList;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryRegion;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
+
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
@@ -82,31 +79,14 @@ public final class ReservoirItemsUnion<T> {
    * @param serDe An instance of ArrayOfItemsSerDe
    * @return A ReservoirItemsUnion created from the provided Memory
    */
-  public static <T> ReservoirItemsUnion<T> heapify(Memory srcMem,
+  public static <T> ReservoirItemsUnion<T> heapify(final Memory srcMem,
                                                    final ArrayOfItemsSerDe<T> serDe) {
     Family.RESERVOIR_UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
 
-    final int numPreLongs, serVer;
-    final boolean isEmpty;
-    int maxK;
-
-    // If we have read-only memory on heap (aka not-direct) then the backing array exists but is
-    // not available to us, so srcMem.array() will fail. In that case, we can use the (slower)
-    // Memory interface methods to read values directly.
-    if (srcMem.isReadOnly() && !srcMem.isDirect()) {
-      numPreLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0x3F;
-      serVer = srcMem.getByte(SER_VER_BYTE) & 0xFF;
-      isEmpty = (srcMem.getInt(FLAGS_BYTE) & EMPTY_FLAG_MASK) != 0;
-      maxK = srcMem.getInt(MAX_K_SIZE_INT);
-    } else {
-      final Object memObj = srcMem.array(); // may be null
-      final long memAddr = srcMem.getCumulativeOffset(0L);
-
-      numPreLongs = extractPreLongs(memObj, memAddr);
-      serVer = extractSerVer(memObj, memAddr);
-      isEmpty = (extractFlags(memObj, memAddr) & EMPTY_FLAG_MASK) != 0;
-      maxK = extractMaxK(memObj, memAddr);
-    }
+    final int numPreLongs = extractPreLongs(srcMem);
+    final int serVer = extractSerVer(srcMem);
+    final boolean isEmpty = (extractFlags(srcMem) & EMPTY_FLAG_MASK) != 0;
+    int maxK = extractMaxK(srcMem);
 
     final boolean preLongsEqMin = (numPreLongs == Family.RESERVOIR_UNION.getMinPreLongs());
     final boolean preLongsEqMax = (numPreLongs == Family.RESERVOIR_UNION.getMaxPreLongs());
@@ -118,10 +98,8 @@ public final class ReservoirItemsUnion<T> {
 
     if (serVer != SER_VER) {
       if (serVer == 1) {
-        srcMem = VersionConverter.convertUnion1to2(srcMem);
-        // refresh value of max k based on updated memory
-        // copy of srcMem if original was read only (direct or not) so extract always works
-        maxK = extractMaxK(srcMem.array(), srcMem.getCumulativeOffset(0L));
+        final short encMaxK = extractEncodedReservoirSize(srcMem);
+        maxK = ReservoirSize.decodeValue(encMaxK);
       } else {
         throw new SketchesArgumentException(
                 "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
@@ -132,10 +110,9 @@ public final class ReservoirItemsUnion<T> {
 
     if (!isEmpty) {
       final int preLongBytes = numPreLongs << 3;
-      final MemoryRegion sketchMem =
-          new MemoryRegion(srcMem, preLongBytes, srcMem.getCapacity() - preLongBytes);
-      // TODO: fix this once memory correctly propagates read-only model
-      riu.update((srcMem.isReadOnly() ? sketchMem.asReadOnlyMemory() : sketchMem), serDe);
+      final Memory sketchMem =
+              srcMem.region(preLongBytes, srcMem.getCapacity() - preLongBytes);
+      riu.update(sketchMem, serDe);
     }
 
     return riu;
@@ -310,9 +287,9 @@ public final class ReservoirItemsUnion<T> {
       outBytes = (preLongs << 3) + gadgetBytes.length; // for longs, we know the size
     }
     final byte[] outArr = new byte[outBytes];
-    final Memory mem = new NativeMemory(outArr);
+    final WritableMemory mem = WritableMemory.wrap(outArr);
 
-    final Object memObj = mem.array(); // may be null
+    final Object memObj = mem.getArray(); // may be null
     final long memAddr = mem.getCumulativeOffset(0L);
 
     // build preLong

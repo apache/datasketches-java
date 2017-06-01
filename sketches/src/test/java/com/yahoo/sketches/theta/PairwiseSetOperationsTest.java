@@ -20,8 +20,8 @@ public class PairwiseSetOperationsTest {
     int lgK = 9;
     int k = 1<<lgK;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<k; i++) { //<k so est is exact
       usk1.update(i);
@@ -40,8 +40,8 @@ public class PairwiseSetOperationsTest {
     int lgK = 9;
     int k = 1<<lgK;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<k; i++) { //<k so est is exact
       usk1.update(i);
@@ -63,8 +63,8 @@ public class PairwiseSetOperationsTest {
     long v = 0;
     int trials = 10;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
     Intersection inter = SetOperation.builder().buildIntersection();
 
     for (int t = 0; t < trials; t++) {
@@ -100,8 +100,8 @@ public class PairwiseSetOperationsTest {
     int lgK = 9;
     int k = 1<<lgK;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<k; i++) {
       usk1.update(i);
@@ -120,8 +120,8 @@ public class PairwiseSetOperationsTest {
     int lgK = 9;
     int k = 1<<lgK;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<k; i++) {
       usk1.update(i);
@@ -143,8 +143,8 @@ public class PairwiseSetOperationsTest {
     long v = 0;
     int trials = 10;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
     AnotB aNotB = SetOperation.builder().buildANotB();
 
     for (int t = 0; t < trials; t++) {
@@ -179,9 +179,9 @@ public class PairwiseSetOperationsTest {
    int lgK = 9;
    int k = 1<<lgK;
 
-   UpdateSketch usk1 = UpdateSketch.builder().build(k);
-   UpdateSketch usk2 = UpdateSketch.builder().build(k);
-   Union union = Sketches.setOperationBuilder().buildUnion(k);
+   UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+   UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
+   Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
 
    for (int i=0; i<k; i++) {
      usk1.update(i);
@@ -205,8 +205,8 @@ public class PairwiseSetOperationsTest {
    int lgK = 9;
    int k = 1<<lgK;
 
-   UpdateSketch usk1 = UpdateSketch.builder().build(k);
-   UpdateSketch usk2 = UpdateSketch.builder().build(k);
+   UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+   UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
    for (int i=0; i<k; i++) {
      usk1.update(i);
@@ -228,9 +228,9 @@ public class PairwiseSetOperationsTest {
    long v = 0;
    int trials = 10;
 
-   UpdateSketch usk1 = UpdateSketch.builder().build(k);
-   UpdateSketch usk2 = UpdateSketch.builder().build(k);
-   Union union = SetOperation.builder().buildUnion(2 * k);
+   UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+   UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
+   Union union = SetOperation.builder().setNominalEntries(2 * k).buildUnion();
 
    for (int t = 0; t < trials; t++) {
      for (int i=0; i<u; i++) {
@@ -263,8 +263,8 @@ public class PairwiseSetOperationsTest {
    int lgK = 10;
    int k = 1<<lgK;
 
-   UpdateSketch usk1 = UpdateSketch.builder().build(k);
-   UpdateSketch usk2 = UpdateSketch.builder().build(k);
+   UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+   UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
    CompactSketch csk1 = usk1.compact(false, null);
    CompactSketch csk2 = usk2.compact(false, null);
    PairwiseSetOperations.intersect(csk1, csk2);
@@ -273,11 +273,11 @@ public class PairwiseSetOperationsTest {
  @Test
  public void checkEmptyRules() {
    int k = 16;
-   UpdateSketch uskA = UpdateSketch.builder().build(k);
-   UpdateSketch uskB = UpdateSketch.builder().build(k);
+   UpdateSketch uskA = UpdateSketch.builder().setNominalEntries(k).build();
+   UpdateSketch uskB = UpdateSketch.builder().setNominalEntries(k).build();
    CompactSketch cskA = uskA.compact();
    CompactSketch cskB = uskB.compact();
-   Union union = SetOperation.builder().buildUnion(k);
+   Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
    AnotB aNotB = SetOperation.builder().buildANotB();
    Intersection inter = SetOperation.builder().buildIntersection();
    CompactSketch cskC, cskR;

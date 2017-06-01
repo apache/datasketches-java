@@ -12,8 +12,6 @@ import static com.yahoo.sketches.Util.zeroPad;
 import java.nio.ByteOrder;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
-
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -162,7 +160,7 @@ final class PreambleUtil {
    * @return the summary preamble string.
    */
   public static String preambleToString(final byte[] byteArr) {
-    final Memory mem = new NativeMemory(byteArr);
+    final Memory mem = Memory.wrap(byteArr);
     return preambleToString(mem);
   }
 
@@ -178,9 +176,7 @@ final class PreambleUtil {
   public static String preambleToString(final Memory mem) {
     final int preLongs = getAndCheckPreLongs(mem);  // make sure we can get the assumed preamble
 
-    final Object memObj = mem.array(); // may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
-    final Family family = Family.idToFamily(extractFamilyID(memObj, memAddr));
+    final Family family = Family.idToFamily(mem.getByte(FAMILY_BYTE));
 
     switch (family) {
       case RESERVOIR:
@@ -198,14 +194,11 @@ final class PreambleUtil {
   private static String sketchPreambleToString(final Memory mem,
                                                final Family family,
                                                final int preLongs) {
-    final Object memObj = mem.array(); // may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
-
-    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(memObj, memAddr));
-    final int serVer = extractSerVer(memObj, memAddr);
+    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(mem));
+    final int serVer = extractSerVer(mem);
 
     // Flags
-    final int flags = extractFlags(memObj, memAddr);
+    final int flags = extractFlags(mem);
     final String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
     //final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
     //final String nativeOrder = ByteOrder.nativeOrder().toString();
@@ -215,15 +208,15 @@ final class PreambleUtil {
 
     final int k;
     if (serVer == 1) {
-      final short encK = extractEncodedReservoirSize(memObj, memAddr);
+      final short encK = extractEncodedReservoirSize(mem);
       k = ReservoirSize.decodeValue(encK);
     } else {
-      k = extractK(memObj, memAddr);
+      k = extractK(mem);
     }
 
     long n = 0;
     if (!isEmpty) {
-      n = extractN(memObj, memAddr);
+      n = extractN(mem);
     }
     final long dataBytes = mem.getCapacity() - (preLongs << 3);
 
@@ -248,10 +241,10 @@ final class PreambleUtil {
     if (!isEmpty) {
       sb.append("Bytes 8-15: Items Seen (n)    : ").append(n).append(LS);
     }
-    if (family == Family.VAROPT) {
-      final int hCount = extractHRegionItemCount(memObj, memAddr);
-      final int rCount = extractRRegionItemCount(memObj, memAddr);
-      final double totalRWeight = extractTotalRWeight(memObj, memAddr);
+    if (family == Family.VAROPT && !isEmpty) {
+      final int hCount = extractHRegionItemCount(mem);
+      final int rCount = extractRRegionItemCount(mem);
+      final double totalRWeight = extractTotalRWeight(mem);
       sb.append("Bytes 16-19: H region count   : ").append(hCount).append(LS)
         .append("Bytes 20-23: R region count   : ").append(rCount).append(LS);
       if (rCount > 0) {
@@ -271,14 +264,11 @@ final class PreambleUtil {
   private static String unionPreambleToString(final Memory mem,
                                               final Family family,
                                               final int preLongs) {
-    final Object memObj = mem.array(); // may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
-
-    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(memObj, memAddr));
-    final int serVer = extractSerVer(memObj, memAddr);
+    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(mem));
+    final int serVer = extractSerVer(mem);
 
     // Flags
-    final int flags = extractFlags(memObj, memAddr);
+    final int flags = extractFlags(mem);
     final String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
     //final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
     //final String nativeOrder = ByteOrder.nativeOrder().toString();
@@ -287,10 +277,10 @@ final class PreambleUtil {
 
     final int k;
     if (serVer == 1) {
-      final short encK = extractEncodedReservoirSize(memObj, memAddr);
+      final short encK = extractEncodedReservoirSize(mem);
       k = ReservoirSize.decodeValue(encK);
     } else {
-      k = extractK(memObj, memAddr);
+      k = extractK(mem);
     }
 
     final long dataBytes = mem.getCapacity() - (preLongs << 3);
@@ -315,65 +305,60 @@ final class PreambleUtil {
 
   // Extraction methods
 
-  static int extractPreLongs(final Object memObj, final long memAddr) {
-    return unsafe.getByte(memObj, memAddr + PREAMBLE_LONGS_BYTE) & 0x3F;
+  static int extractPreLongs(final Memory mem) {
+    return mem.getByte(PREAMBLE_LONGS_BYTE) & 0x3F;
   }
 
-  static int extractResizeFactor(final Object memObj, final long memAddr) {
-    return (unsafe.getByte(memObj, memAddr + PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT) & 0x3;
+  static int extractResizeFactor(final Memory mem) {
+    return (mem.getByte(PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT) & 0x3;
   }
 
-  static int extractSerVer(final Object memObj, final long memAddr) {
-    return unsafe.getByte(memObj, memAddr + SER_VER_BYTE) & 0xFF;
+  static int extractSerVer(final Memory mem) {
+    return mem.getByte(SER_VER_BYTE) & 0xFF;
   }
 
-  static int extractFamilyID(final Object memObj, final long memAddr) {
-    return unsafe.getByte(memObj, memAddr + FAMILY_BYTE) & 0xFF;
+  static int extractFamilyID(final Memory mem) {
+    return mem.getByte(FAMILY_BYTE) & 0xFF;
   }
 
-  static int extractFlags(final Object memObj, final long memAddr) {
-    return unsafe.getByte(memObj, memAddr + FLAGS_BYTE) & 0xFF;
+  static int extractFlags(final Memory mem) {
+    return mem.getByte(FLAGS_BYTE) & 0xFF;
   }
 
-  static short extractEncodedReservoirSize(final Object memObj, final long memAddr) {
-    return unsafe.getShort(memObj, memAddr + RESERVOIR_SIZE_SHORT);
+  static short extractEncodedReservoirSize(final Memory mem) {
+    return mem.getShort(RESERVOIR_SIZE_SHORT);
   }
 
-  static int extractK(final Object memObj, final long memAddr) {
-    return unsafe.getInt(memObj, memAddr + RESERVOIR_SIZE_INT);
+  static int extractK(final Memory mem) {
+    return mem.getInt(RESERVOIR_SIZE_INT);
   }
 
-  static int extractMaxK(final Object memObj, final long memAddr) {
-    return extractK(memObj, memAddr);
+  static int extractMaxK(final Memory mem) {
+    return extractK(mem);
   }
 
-  @Deprecated
-  static short extractSerDeId(final Object memObj, final long memAddr) {
-    return unsafe.getShort(memObj, memAddr + SERDE_ID_SHORT);
+  static long extractN(final Memory mem) {
+    return mem.getLong(ITEMS_SEEN_LONG);
   }
 
-  static long extractN(final Object memObj, final long memAddr) {
-    return unsafe.getLong(memObj, memAddr + ITEMS_SEEN_LONG);
+  static int extractHRegionItemCount(final Memory mem) {
+    return mem.getInt(ITEM_COUNT_H_INT);
   }
 
-  static int extractHRegionItemCount(final Object memObj, final long memAddr) {
-    return unsafe.getInt(memObj, memAddr + ITEM_COUNT_H_INT);
+  static int extractRRegionItemCount(final Memory mem) {
+    return mem.getInt(ITEM_COUNT_R_INT);
   }
 
-  static int extractRRegionItemCount(final Object memObj, final long memAddr) {
-    return unsafe.getInt(memObj, memAddr + ITEM_COUNT_R_INT);
+  static double extractTotalRWeight(final Memory mem) {
+    return mem.getDouble(TOTAL_WEIGHT_R_DOUBLE);
   }
 
-  static double extractTotalRWeight(final Object memObj, final long memAddr) {
-    return unsafe.getDouble(memObj, memAddr + TOTAL_WEIGHT_R_DOUBLE);
+  static double extractOuterTauNumerator(final Memory mem) {
+    return mem.getDouble(OUTER_TAU_NUM_DOUBLE);
   }
 
-  static double extractOuterTauNumerator(final Object memObj, final long memAddr) {
-    return unsafe.getDouble(memObj, memAddr + OUTER_TAU_NUM_DOUBLE);
-  }
-
-  static long extractOuterTauDenominator(final Object memObj, final long memAddr) {
-    return unsafe.getLong(memObj, memAddr + OUTER_TAU_DENOM_LONG);
+  static long extractOuterTauDenominator(final Memory mem) {
+    return mem.getLong(OUTER_TAU_DENOM_LONG);
   }
 
   // Insertion methods
@@ -413,11 +398,6 @@ final class PreambleUtil {
     insertK(memObj, memAddr, maxK);
   }
 
-  @Deprecated
-  static void insertSerDeId(final Object memObj, final long memAddr, final short serDeId) {
-    unsafe.putShort(memObj, memAddr + SERDE_ID_SHORT, serDeId);
-  }
-
   static void insertN(final Object memObj, final long memAddr, final long totalSeen) {
     unsafe.putLong(memObj, memAddr + ITEMS_SEEN_LONG, totalSeen);
   }
@@ -448,12 +428,9 @@ final class PreambleUtil {
    * @return the extracted prelongs value.
    */
   static int getAndCheckPreLongs(final Memory mem) {
-    final Object memObj = mem.array(); //may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
-
     final long cap = mem.getCapacity();
     if (cap < 8) { throwNotBigEnough(cap, 8); }
-    final int preLongs = extractPreLongs(memObj, memAddr);
+    final int preLongs = mem.getByte(0) & 0x3F;
     final int required = Math.max(preLongs << 3, 8);
     if (cap < required) { throwNotBigEnough(cap, required); }
     return preLongs;

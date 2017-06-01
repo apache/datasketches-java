@@ -12,7 +12,7 @@ import java.util.Comparator;
  * Auxiliary data structure for answering generic quantile queries
  *
  * @author Kevin Lang
- * @author Alex Saydakov
+ * @author Alexander Saydakov
  */
 final class ItemsAuxiliary<T> {
   final long auxN_;

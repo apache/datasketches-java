@@ -5,6 +5,10 @@
 
 package com.yahoo.sketches.tuple;
 
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.BinomialBoundsN;
 
 /**
@@ -21,8 +25,8 @@ public abstract class ArrayOfDoublesSketch {
   //  entries were retained.
   static enum Flags { IS_BIG_ENDIAN, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES }
 
-  static final int SIZE_OF_KEY_BYTES = 8;
-  static final int SIZE_OF_VALUE_BYTES = 8;
+  static final int SIZE_OF_KEY_BYTES = Long.BYTES;
+  static final int SIZE_OF_VALUE_BYTES = Double.BYTES;
 
   // Common Layout of first 16 bytes:
   // Long || Start Byte Adr:
@@ -48,6 +52,52 @@ public abstract class ArrayOfDoublesSketch {
 
   ArrayOfDoublesSketch(final int numValues) {
     numValues_ = numValues;
+  }
+
+  /**
+   * Heapify the given Memory as an ArrayOfDoublesSketch
+   * @param mem the given Memory
+   * @return an ArrayOfDoublesSketch
+   */
+  public static ArrayOfDoublesSketch heapify(final Memory mem) {
+    return heapify(mem, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Heapify the given Memory and seed as a ArrayOfDoublesSketch
+   * @param mem the given Memory
+   * @param seed the given seed
+   * @return an ArrayOfDoublesSketch
+   */
+  public static ArrayOfDoublesSketch heapify(final Memory mem, final long seed) {
+    final SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(mem);
+    if (sketchType == SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch) {
+      return new HeapArrayOfDoublesQuickSelectSketch(mem, seed);
+    }
+    return new HeapArrayOfDoublesCompactSketch(mem, seed);
+  }
+
+  /**
+   * Wrap the given Memory as an ArrayOfDoublesSketch
+   * @param mem the given Memory
+   * @return an ArrayOfDoublesSketch
+   */
+  public static ArrayOfDoublesSketch wrap(final Memory mem) {
+    return wrap(mem, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Wrap the given Memory and seed as a ArrayOfDoublesSketch
+   * @param mem the given Memory
+   * @param seed the given seed
+   * @return an ArrayOfDoublesSketch
+   */
+  public static ArrayOfDoublesSketch wrap(final Memory mem, final long seed) {
+    final SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(mem);
+    if (sketchType == SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch) {
+      return new DirectArrayOfDoublesQuickSelectSketchR((WritableMemory) mem, seed);
+    }
+    return new DirectArrayOfDoublesCompactSketch(mem, seed);
   }
 
   /**

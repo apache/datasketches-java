@@ -5,7 +5,7 @@
 
 package com.yahoo.sketches.hll;
 
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -63,7 +63,7 @@ final class OnHeapCompressedFields implements Fields {
     final byte currMin = bytes[offset + 1];
     offset += 2;
 
-    final NativeMemory mem = new NativeMemory(bytes);
+    final WritableMemory mem = WritableMemory.wrap(bytes);
     final int numAtCurrMin = mem.getInt(offset + 2);
     offset += 4;
 
@@ -175,7 +175,7 @@ final class OnHeapCompressedFields implements Fields {
 
     array[offset++] = VERSION_ID;
     array[offset++] = currMin;
-    final NativeMemory mem = new NativeMemory(array);
+    final WritableMemory mem = WritableMemory.wrap(array);
     offset = Serde.putInt(mem, offset, numAtCurrMin);
     offset = Serde.putInt(mem, offset, buckets.length);
     for (byte bucket : buckets) {

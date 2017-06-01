@@ -19,7 +19,7 @@
         <dependency>
             <groupId>com.yahoo.datasketches</groupId>
             <artifactId>memory</artifactId>
-            <version>${project.parent.version}</version>
+            <version>0.10.0</version>
         </dependency>
     </dependencies>
 

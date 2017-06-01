@@ -13,7 +13,6 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
 
 public class ForwardCompatibilityTest {
 
@@ -108,7 +107,7 @@ public class ForwardCompatibilityTest {
     //create & Read File
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
     byte[] byteArr2 = readFile(file);
-    Memory srcMem = new NativeMemory(byteArr2);
+    Memory srcMem = Memory.wrap(byteArr2);
 
     // heapify as update sketch
     DoublesSketch qs2 = UpdateDoublesSketch.heapify(srcMem);

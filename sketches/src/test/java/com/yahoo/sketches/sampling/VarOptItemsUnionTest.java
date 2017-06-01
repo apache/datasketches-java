@@ -16,7 +16,7 @@ import static org.testng.Assert.fail;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.ArrayOfStringsSerDe;
 import com.yahoo.sketches.Family;
@@ -34,7 +34,7 @@ public class VarOptItemsUnionTest {
     final VarOptItemsUnion<Long> union = VarOptItemsUnion.newInstance(k);
     union.update(getUnweightedLongsVIS(k, n));
     final byte[] bytes = union.toByteArray(new ArrayOfLongsSerDe());
-    final Memory mem = new NativeMemory(bytes);
+    final WritableMemory mem = WritableMemory.wrap(bytes);
 
     mem.putByte(SER_VER_BYTE, (byte) 0); // corrupt the serialization version
 
@@ -49,7 +49,7 @@ public class VarOptItemsUnionTest {
     final VarOptItemsUnion<Long> union = VarOptItemsUnion.newInstance(k);
     union.update(getUnweightedLongsVIS(k, n));
     final byte[] bytes = union.toByteArray(new ArrayOfLongsSerDe());
-    final Memory mem = new NativeMemory(bytes);
+    final WritableMemory mem = WritableMemory.wrap(bytes);
 
     // corrupt the preLongs count to 0
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) (Family.VAROPT.getMinPreLongs() - 1));
@@ -64,7 +64,7 @@ public class VarOptItemsUnionTest {
 
     // we'll union from Memory for good measure
     final byte[] sketchBytes = VarOptItemsSketch.<String>newInstance(k).toByteArray(serDe);
-    final Memory mem = new NativeMemory(sketchBytes);
+    final Memory mem = Memory.wrap(sketchBytes);
 
     final VarOptItemsUnion<String> union = VarOptItemsUnion.newInstance(k);
     union.update(mem, serDe);
@@ -199,7 +199,7 @@ public class VarOptItemsUnionTest {
     final byte[] bytes = union.toByteArray(serDe);
     assertEquals(bytes.length, 8);
 
-    final NativeMemory mem = new NativeMemory(bytes);
+    final Memory mem = Memory.wrap(bytes);
     final VarOptItemsUnion<String> rebuilt = VarOptItemsUnion.heapify(mem, serDe);
 
     final VarOptItemsSketch<String> sketch = rebuilt.getResult();
@@ -222,7 +222,7 @@ public class VarOptItemsUnionTest {
 
     final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     final byte[] unionBytes = union.toByteArray(serDe);
-    final NativeMemory mem = new NativeMemory(unionBytes);
+    final Memory mem = Memory.wrap(unionBytes);
 
     final VarOptItemsUnion<Long> rebuilt = VarOptItemsUnion.heapify(mem, serDe);
     compareUnions(rebuilt, union);
@@ -249,7 +249,7 @@ public class VarOptItemsUnionTest {
 
     final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     final byte[] unionBytes = union.toByteArray(serDe);
-    final NativeMemory mem = new NativeMemory(unionBytes);
+    final Memory mem = Memory.wrap(unionBytes);
 
     final VarOptItemsUnion<Long> rebuilt = VarOptItemsUnion.heapify(mem, serDe);
     compareUnions(rebuilt, union);
@@ -273,6 +273,7 @@ public class VarOptItemsUnionTest {
    * Wrapper around System.out.println() allowing a simple way to disable logging in tests
    * @param msg The message to print
    */
+  @SuppressWarnings("unused")
   private static void println(final String msg) {
     //System.out.println(msg);
   }

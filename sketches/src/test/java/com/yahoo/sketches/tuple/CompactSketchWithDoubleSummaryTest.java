@@ -7,7 +7,7 @@ package com.yahoo.sketches.tuple;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.Memory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 public class CompactSketchWithDoubleSummaryTest {
@@ -86,7 +86,7 @@ public class CompactSketchWithDoubleSummaryTest {
     us.update("b", 1.0);
     us.update("c", 1.0);
     CompactSketch<DoubleSummary> sketch1 = us.compact();
-    Sketch<DoubleSummary> sketch2 = Sketches.heapifySketch(new NativeMemory(sketch1.toByteArray()));
+    Sketch<DoubleSummary> sketch2 = Sketches.heapifySketch(Memory.wrap(sketch1.toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertFalse(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 3.0);
@@ -105,7 +105,7 @@ public class CompactSketchWithDoubleSummaryTest {
     UpdatableSketch<Double, DoubleSummary> us = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     for (int i = 0; i < 8192; i++) us.update(i, 1.0);
     CompactSketch<DoubleSummary> sketch1 = us.compact();
-    Sketch<DoubleSummary> sketch2 = Sketches.heapifySketch(new NativeMemory(sketch1.toByteArray()));
+    Sketch<DoubleSummary> sketch2 = Sketches.heapifySketch(Memory.wrap(sketch1.toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), sketch1.getEstimate());
@@ -121,6 +121,6 @@ public class CompactSketchWithDoubleSummaryTest {
     UpdatableSketch<Double, DoubleSummary> us = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     for (int i = 0; i < 8192; i++) us.update(i, 1.0);
     CompactSketch<DoubleSummary> sketch1 = us.compact();
-    Sketches.heapifyUpdatableSketch(new NativeMemory(sketch1.toByteArray()));
+    Sketches.heapifyUpdatableSketch(Memory.wrap(sketch1.toByteArray()));
   }
 }

@@ -13,7 +13,6 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.ArrayOfStringsSerDe;
@@ -119,7 +118,7 @@ public class ItemsUnionTest {
     ItemsUnion<String> union = ItemsUnion.getInstance(sketch);
     union.reset();
     byte[] byteArr = sketch.toByteArray(serDe);
-    Memory mem = new NativeMemory(byteArr);
+    Memory mem = Memory.wrap(byteArr);
     union = ItemsUnion.getInstance(mem, comp, serDe);
     Assert.assertEquals(byteArr.length, 8);
     union.reset();
@@ -152,7 +151,7 @@ public class ItemsUnionTest {
     ItemsSketch<Long> sketch2 = ItemsSketch.getInstance(Comparator.naturalOrder());
     for (int i = 2001; i <= 3000; i++) sketch2.update((long) i);
     ArrayOfItemsSerDe<Long> serDe = new ArrayOfLongsSerDe();
-    union.update(new NativeMemory(sketch2.toByteArray(serDe)), serDe);
+    union.update(Memory.wrap(sketch2.toByteArray(serDe)), serDe);
     result = union.getResultAndReset();
     Assert.assertEquals(result.getN(), 3000);
     Assert.assertEquals(result.getMinValue(), Long.valueOf(1));
@@ -194,7 +193,7 @@ public class ItemsUnionTest {
     ItemsSketch<Long> sketch2 = ItemsSketch.getInstance(128, Comparator.naturalOrder());
     for (int i = 20001; i <= 30000; i++) sketch2.update((long) i);
     ArrayOfItemsSerDe<Long> serDe = new ArrayOfLongsSerDe();
-    union.update(new NativeMemory(sketch2.toByteArray(serDe)), serDe);
+    union.update(Memory.wrap(sketch2.toByteArray(serDe)), serDe);
     result = union.getResultAndReset();
     Assert.assertEquals(result.getK(), 128);
     Assert.assertEquals(result.getN(), 30000);

@@ -17,7 +17,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 public class DirectCompactDoublesSketchTest {
@@ -33,7 +33,7 @@ public class DirectCompactDoublesSketchTest {
     final UpdateDoublesSketch qs = HeapUpdateDoublesSketchTest.buildAndLoadQS(k, n);
 
     final byte[] qsBytes = qs.toByteArray();
-    final Memory qsMem = new NativeMemory(qsBytes);
+    final Memory qsMem = Memory.wrap(qsBytes);
 
     DirectCompactDoublesSketch.wrapInstance(qsMem);
     fail();
@@ -43,11 +43,11 @@ public class DirectCompactDoublesSketchTest {
   public void createFromUnsortedUpdateSketch() {
     final int k = 4;
     final int n = 13;
-    final UpdateDoublesSketch qs = DoublesSketch.builder().build(k);
+    final UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build();
     for (int i = n; i > 0; --i) {
       qs.update(i);
     }
-    final Memory dstMem = new NativeMemory(new byte[qs.getCompactStorageBytes()]);
+    final WritableMemory dstMem = WritableMemory.wrap(new byte[qs.getCompactStorageBytes()]);
     final DirectCompactDoublesSketch compactQs
             = DirectCompactDoublesSketch.createFromUpdateSketch(qs, dstMem);
 
@@ -67,7 +67,7 @@ public class DirectCompactDoublesSketchTest {
     final DirectCompactDoublesSketch qs = buildAndLoadDCQS(k, n); // assuming ordered inserts
 
     final byte[] qsBytes = qs.toByteArray();
-    final Memory qsMem = new NativeMemory(qsBytes);
+    final Memory qsMem = Memory.wrap(qsBytes);
 
     final DirectCompactDoublesSketch compactQs = DirectCompactDoublesSketch.wrapInstance(qsMem);
     DoublesSketchTest.testSketchEquality(qs, compactQs);
@@ -81,7 +81,7 @@ public class DirectCompactDoublesSketchTest {
   public void wrapEmptyCompactSketch() {
     final CompactDoublesSketch s1 = DoublesSketch.builder().build().compact();
     final Memory mem
-            = NativeMemory.wrap(ByteBuffer.wrap(s1.toByteArray()));
+            = Memory.wrap(ByteBuffer.wrap(s1.toByteArray()));
     final DoublesSketch s2 = DoublesSketch.wrap(mem);
     assertTrue(s2.isEmpty());
     assertEquals(s2.getN(), 0);
@@ -124,7 +124,7 @@ public class DirectCompactDoublesSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkMemTooSmall() {
-    final Memory mem = new NativeMemory(new byte[7]);
+    final Memory mem = Memory.wrap(new byte[7]);
     HeapCompactDoublesSketch.heapifyInstance(mem);
   }
 
@@ -133,12 +133,12 @@ public class DirectCompactDoublesSketchTest {
   }
 
   static DirectCompactDoublesSketch buildAndLoadDCQS(final int k, final int n, final int startV) {
-    final UpdateDoublesSketch qs = DoublesSketch.builder().build(k);
+    final UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build();
     for (int i = 1; i <= n; i++) {
       qs.update(startV + i);
     }
     final byte[] byteArr = new byte[qs.getCompactStorageBytes()];
-    final NativeMemory mem = new NativeMemory(byteArr);
+    final WritableMemory mem = WritableMemory.wrap(byteArr);
     return (DirectCompactDoublesSketch) qs.compact(mem);
   }
 

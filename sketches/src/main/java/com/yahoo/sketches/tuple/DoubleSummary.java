@@ -6,7 +6,7 @@
 package com.yahoo.sketches.tuple;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.sketches.ByteArrayUtil;
 
 /**
  * Summary for generic tuple sketches of type Double.
@@ -110,9 +110,8 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
   @Override
   public byte[] toByteArray() {
     final byte[] bytes = new byte[SERIALIZED_SIZE_BYTES];
-    final Memory mem = new NativeMemory(bytes);
-    mem.putDouble(VALUE_DOUBLE, value_);
-    mem.putByte(MODE_BYTE, (byte) mode_.ordinal());
+    ByteArrayUtil.putDouble(bytes, VALUE_DOUBLE, value_);
+    bytes[MODE_BYTE] = (byte) mode_.ordinal();
     return bytes;
   }
 

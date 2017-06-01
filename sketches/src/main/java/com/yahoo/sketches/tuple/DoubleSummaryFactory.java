@@ -6,7 +6,7 @@
 package com.yahoo.sketches.tuple;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.tuple.DoubleSummary.Mode;
 
 /**
@@ -48,7 +48,7 @@ public final class DoubleSummaryFactory implements SummaryFactory<DoubleSummary>
   @Override
   public byte[] toByteArray() {
     final byte[] bytes = new byte[SERIALIZED_SIZE_BYTES];
-    final Memory mem = new NativeMemory(bytes);
+    final WritableMemory mem = WritableMemory.wrap(bytes);
     mem.putByte(MODE_BYTE, (byte) summaryMode_.ordinal());
     return bytes;
   }

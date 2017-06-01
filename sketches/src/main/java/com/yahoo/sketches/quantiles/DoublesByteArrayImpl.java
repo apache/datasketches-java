@@ -20,8 +20,8 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.insertSerVer;
 
 import java.util.Arrays;
 
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
+
 import com.yahoo.sketches.Family;
 
 /**
@@ -45,8 +45,8 @@ final class DoublesByteArrayImpl {
 
     if (empty && !sketch.isDirect()) {
       final byte[] outByteArr = new byte[Long.BYTES];
-      final Memory memOut = new NativeMemory(outByteArr);
-      final Object memObj = memOut.array();
+      final WritableMemory memOut = WritableMemory.wrap(outByteArr);
+      final Object memObj = memOut.getArray();
       final long memAdd = memOut.getCumulativeOffset(0L);
       final int preLongs = 1;
       insertPre0(memObj, memAdd, preLongs, flags, sketch.getK());
@@ -78,8 +78,8 @@ final class DoublesByteArrayImpl {
     final int outBytes = (compact ? sketch.getCompactStorageBytes() : sketch.getUpdatableStorageBytes());
 
     final byte[] outByteArr = new byte[outBytes];
-    final Memory memOut = new NativeMemory(outByteArr);
-    final Object memObj = memOut.array();
+    final WritableMemory memOut = WritableMemory.wrap(outByteArr);
+    final Object memObj = memOut.getArray();
     final long memAdd = memOut.getCumulativeOffset(0L);
 
     //insert preamble-0, N, min, max

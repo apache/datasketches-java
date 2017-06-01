@@ -8,6 +8,7 @@ package com.yahoo.sketches;
 import static com.yahoo.memory.UnsafeUtil.unsafe;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * Helper class for the common hash table methods.
@@ -224,7 +225,7 @@ public final class HashOperations {
    * @param memOffsetBytes offset in the memory where the hash array starts
    * @return index of insertion.  Always positive or zero.
    */
-  public static int hashInsertOnly(final Memory mem, final int lgArrLongs, final long hash,
+  public static int hashInsertOnly(final WritableMemory mem, final int lgArrLongs, final long hash,
       final int memOffsetBytes) {
     final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
     final int stride = getStride(hash, lgArrLongs);
@@ -254,7 +255,7 @@ public final class HashOperations {
    * @param memOffsetBytes offset in the memory where the hash array starts
    * @return index &ge; 0 if found (duplicate); &lt; 0 if inserted, inserted at -(index + 1).
    */
-  public static int hashSearchOrInsert(final Memory mem, final int lgArrLongs, final long hash,
+  public static int hashSearchOrInsert(final WritableMemory mem, final int lgArrLongs, final long hash,
       final int memOffsetBytes) {
     final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
     final int stride = getStride(hash, lgArrLongs);

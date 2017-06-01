@@ -8,8 +8,7 @@ package com.yahoo.sketches.hll;
 import static com.yahoo.sketches.Util.zeroPad;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryRegion;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
@@ -100,7 +99,7 @@ public final class Preamble {
           + (bytes.length - offset));
     }
 
-    final Memory mem = new MemoryRegion(new NativeMemory(bytes), offset, 8);
+    final WritableMemory mem = WritableMemory.wrap(bytes).writableRegion(offset, 8);
     mem.putByte(0, getPreambleLongs());
     mem.putByte(1, getVersion());
     mem.putByte(2, getFamilyId());

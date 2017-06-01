@@ -8,14 +8,7 @@ package com.yahoo.sketches.sampling;
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.sampling.PreambleUtil.FAMILY_BYTE;
-import static com.yahoo.sketches.sampling.PreambleUtil.FLAGS_BYTE;
-import static com.yahoo.sketches.sampling.PreambleUtil.ITEMS_SEEN_LONG;
-import static com.yahoo.sketches.sampling.PreambleUtil.MAX_K_SIZE_INT;
-import static com.yahoo.sketches.sampling.PreambleUtil.OUTER_TAU_DENOM_LONG;
-import static com.yahoo.sketches.sampling.PreambleUtil.OUTER_TAU_NUM_DOUBLE;
-import static com.yahoo.sketches.sampling.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER;
-import static com.yahoo.sketches.sampling.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractMaxK;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractN;
@@ -29,8 +22,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryRegion;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.Family;
@@ -42,6 +34,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  *
  * @author Jon Malkin
  * @author Kevin Lang
+ * @param <T> Type of items
  */
 public final class VarOptItemsUnion<T> {
   private VarOptItemsSketch<T> gadget_;
@@ -145,9 +138,6 @@ public final class VarOptItemsUnion<T> {
                                                 final ArrayOfItemsSerDe<T> serDe) {
     Family.VAROPT_UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
 
-    final int numPreLongs, serVer;
-    final boolean isEmpty;
-    final int maxK;
     long n = 0;
     double outerTauNum = 0.0;
     long outerTauDenom = 0;
@@ -155,29 +145,14 @@ public final class VarOptItemsUnion<T> {
     // If we have read-only memory on heap (aka not-direct) then the backing array exists but is
     // not available to us, so srcMem.array() will fail. In that case, we can use the (slower)
     // Memory interface methods to read values directly.
-    if (srcMem.isReadOnly() && !srcMem.isDirect()) {
-      numPreLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0x3F;
-      serVer = srcMem.getByte(SER_VER_BYTE) & 0xFF;
-      isEmpty = (srcMem.getInt(FLAGS_BYTE) & EMPTY_FLAG_MASK) != 0;
-      maxK = srcMem.getInt(MAX_K_SIZE_INT);
-      if (!isEmpty) {
-        n = srcMem.getLong(ITEMS_SEEN_LONG);
-        outerTauNum = srcMem.getDouble(OUTER_TAU_NUM_DOUBLE);
-        outerTauDenom = srcMem.getLong(OUTER_TAU_DENOM_LONG);
-      }
-    } else {
-      final Object memObj = srcMem.array(); // may be null
-      final long memAddr = srcMem.getCumulativeOffset(0L);
-
-      numPreLongs = extractPreLongs(memObj, memAddr);
-      serVer = extractSerVer(memObj, memAddr);
-      isEmpty = (extractFlags(memObj, memAddr) & EMPTY_FLAG_MASK) != 0;
-      maxK = extractMaxK(memObj, memAddr);
-      if (!isEmpty) {
-        n = extractN(memObj, memAddr);
-        outerTauNum = extractOuterTauNumerator(memObj, memAddr);
-        outerTauDenom = extractOuterTauDenominator(memObj, memAddr);
-      }
+    final int numPreLongs = extractPreLongs(srcMem);
+    final int serVer = extractSerVer(srcMem);
+    final boolean isEmpty = (extractFlags(srcMem) & EMPTY_FLAG_MASK) != 0;
+    final int maxK = extractMaxK(srcMem);
+    if (!isEmpty) {
+      n = extractN(srcMem);
+      outerTauNum = extractOuterTauNumerator(srcMem);
+      outerTauDenom = extractOuterTauDenominator(srcMem);
     }
 
     if (serVer != SER_VER) {
@@ -203,8 +178,7 @@ public final class VarOptItemsUnion<T> {
       viu.outerTauDenom = outerTauDenom;
 
       final int preLongBytes = numPreLongs << 3;
-      final MemoryRegion sketchMem =
-              new MemoryRegion(srcMem, preLongBytes, srcMem.getCapacity() - preLongBytes);
+      final Memory sketchMem = srcMem.region(preLongBytes, srcMem.getCapacity() - preLongBytes);
       viu.gadget_ = VarOptItemsSketch.heapify(sketchMem, serDe);
     }
 
@@ -332,9 +306,9 @@ public final class VarOptItemsUnion<T> {
       outBytes = (preLongs << 3) + gadgetBytes.length; // for longs, we know the size
     }
     final byte[] outArr = new byte[outBytes];
-    final Memory mem = new NativeMemory(outArr);
+    final WritableMemory mem = WritableMemory.wrap(outArr);
 
-    final Object memObj = mem.array(); // may be null
+    final Object memObj = mem.getArray(); // may be null
     final long memAddr = mem.getCumulativeOffset(0L);
 
     // build preLong

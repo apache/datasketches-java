@@ -20,15 +20,17 @@ import static com.yahoo.sketches.sampling.PreambleUtil.extractResizeFactor;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractTotalRWeight;
 import static com.yahoo.sketches.sampling.PreambleUtil.getAndCheckPreLongs;
+import static com.yahoo.sketches.sampling.SamplingUtil.pseudoHypergeometricLBonP;
+import static com.yahoo.sketches.sampling.SamplingUtil.pseudoHypergeometricUBonP;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryRegion;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 
 import com.yahoo.sketches.ArrayOfBooleansSerDe;
 import com.yahoo.sketches.ArrayOfItemsSerDe;
@@ -244,16 +246,14 @@ final class VarOptItemsSketch<T> {
    * @param serDe  An instance of ArrayOfItemsSerDe
    * @return a sketch instance of this class
    */
+  @SuppressWarnings("null")
   public static <T> VarOptItemsSketch<T> heapify(final Memory srcMem,
                                                  final ArrayOfItemsSerDe<T> serDe) {
-    final Object memObj = srcMem.array(); // may be null
-    final long memAddr = srcMem.getCumulativeOffset(0L);
-
     final int numPreLongs = getAndCheckPreLongs(srcMem);
-    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(memObj, memAddr));
-    final int serVer = extractSerVer(memObj, memAddr);
-    final int familyId = extractFamilyID(memObj, memAddr);
-    final int flags = extractFlags(memObj, memAddr);
+    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(srcMem));
+    final int serVer = extractSerVer(srcMem);
+    final int familyId = extractFamilyID(srcMem);
+    final int flags = extractFlags(srcMem);
     final boolean isEmpty = (flags & EMPTY_FLAG_MASK) != 0;
     final boolean isGadget = (flags & GADGET_FLAG_MASK) != 0;
 
@@ -276,14 +276,9 @@ final class VarOptItemsSketch<T> {
               "Possible Corruption: FamilyID must be " + reqFamilyId + ": " + familyId);
     }
 
-    final int k = extractK(memObj, memAddr);
+    final int k = extractK(srcMem);
     if (k < 2) {
       throw new SketchesArgumentException("Possible Corruption: k must be at least 2: " + k);
-    }
-
-    final long n = extractN(memObj, memAddr);
-    if (n < 0) {
-      throw new SketchesArgumentException("Possible Corruption: n cannot be negative: " + n);
     }
 
     if (isEmpty) {
@@ -291,9 +286,14 @@ final class VarOptItemsSketch<T> {
       return new VarOptItemsSketch<>(k, rf);
     }
 
+    final long n = extractN(srcMem);
+    if (n < 0) {
+      throw new SketchesArgumentException("Possible Corruption: n cannot be negative: " + n);
+    }
+
     // get rest of preamble
-    final int hCount = extractHRegionItemCount(memObj, memAddr);
-    final int rCount = extractRRegionItemCount(memObj, memAddr);
+    final int hCount = extractHRegionItemCount(srcMem);
+    final int rCount = extractRRegionItemCount(srcMem);
 
     if (hCount < 0) {
       throw new SketchesArgumentException("Possible Corruption: H region count cannot be "
@@ -307,7 +307,7 @@ final class VarOptItemsSketch<T> {
     double totalRWeight = 0.0;
     if (numPreLongs == Family.VAROPT.getMaxPreLongs()) {
       if (rCount > 0) {
-        totalRWeight = extractTotalRWeight(memObj, memAddr);
+        totalRWeight = extractTotalRWeight(srcMem);
       } else {
         throw new SketchesArgumentException(
                 "Possible Corruption: "
@@ -358,7 +358,7 @@ final class VarOptItemsSketch<T> {
 
       final ArrayOfBooleansSerDe booleansSerDe = new ArrayOfBooleansSerDe();
       final Boolean[] markArray = booleansSerDe.deserializeFromMemory(
-              new MemoryRegion(srcMem, markOffsetBytes, (hCount >> 3) + 1), hCount);
+              srcMem.region(markOffsetBytes, (hCount >> 3) + 1), hCount);
 
       for (Boolean mark : markArray) {
         if (mark) { ++markCount; }
@@ -368,8 +368,7 @@ final class VarOptItemsSketch<T> {
 
     final long offsetBytes = preLongBytes + (hCount * Double.BYTES) + markBytes;
     final T[] data = serDe.deserializeFromMemory(
-            new MemoryRegion(srcMem, offsetBytes, srcMem.getCapacity() - offsetBytes),
-            totalItems);
+            srcMem.region(offsetBytes, srcMem.getCapacity() - offsetBytes), totalItems);
     final List<T> wrappedData = Arrays.asList(data);
     final ArrayList<T> dataList = new ArrayList<>(allocatedItems);
     dataList.addAll(wrappedData.subList(0, hCount));
@@ -536,9 +535,9 @@ final class VarOptItemsSketch<T> {
       outBytes = (preLongs << 3) + (h_ * Double.BYTES) + numMarkBytes + itemBytes.length;
     }
     final byte[] outArr = new byte[outBytes];
-    final Memory mem = new NativeMemory(outArr);
+    final WritableMemory mem = WritableMemory.wrap(outArr);
 
-    final Object memObj = mem.array(); // may be null
+    final Object memObj = mem.getArray(); // may be null
     final long memAddr = mem.getCumulativeOffset(0L);
 
     // build first preLong
@@ -577,6 +576,63 @@ final class VarOptItemsSketch<T> {
     }
 
     return outArr;
+  }
+
+  /**
+   * Computes an estimated subset sum from the entire stream for objects matching a given
+   * predicate. Provides a lower bound, estimate, and upper bound using a target of 2 standard
+   * deviations.
+   *
+   * <p>This is technically a heuristic method, and tries to err on the conservative side.</p>
+   *
+   * @param predicate A predicate to use when identifying items.
+   * @return A summary object containing the estimate, upper and lower bounds, and the total
+   * sketch weight.
+   */
+  public SampleSubsetSummary estimateSubsetSum(final Predicate<T> predicate) {
+
+    if (n_ == 0) {
+      return new SampleSubsetSummary(0.0, 0.0, 0.0, 0.0);
+    }
+
+    double totalWtH = 0.0;
+    double hTrueWeight = 0.0;
+    int idx = 0;
+    for (; idx < h_; ++idx) {
+      final double wt = weights_.get(idx);
+      totalWtH += wt;
+      if (predicate.test(data_.get(idx))) {
+        hTrueWeight += wt;
+      }
+    }
+
+    // if only heavy items, we have an exact answer
+    if (r_ == 0) {
+      return new SampleSubsetSummary(hTrueWeight, hTrueWeight, hTrueWeight, hTrueWeight);
+    }
+
+    final long numSampled = n_ - h_;
+    assert numSampled > 0;
+    final double effectiveSamplingRate = r_ / (double) numSampled;
+    assert effectiveSamplingRate >= 0.0;
+    assert effectiveSamplingRate <= 1.0;
+
+    int rTrueCount = 0;
+    ++idx; // skip the gap
+    for (; idx < k_ + 1; ++idx) {
+      if (predicate.test(data_.get(idx))) {
+        ++rTrueCount;
+      }
+    }
+
+    final double lbTrueFraction = pseudoHypergeometricLBonP(r_, rTrueCount, effectiveSamplingRate);
+    final double estimatedTrueFraction = (1.0 * rTrueCount) / r_;
+    final double ubTrueFraction = pseudoHypergeometricUBonP(r_, rTrueCount, effectiveSamplingRate);
+    return new SampleSubsetSummary(
+            hTrueWeight + totalWtR_ * lbTrueFraction,
+            hTrueWeight + totalWtR_ * estimatedTrueFraction,
+            hTrueWeight + totalWtR_ * ubTrueFraction,
+            totalWtH + totalWtR_);
   }
 
   /**

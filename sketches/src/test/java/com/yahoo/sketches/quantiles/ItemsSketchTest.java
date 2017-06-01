@@ -14,7 +14,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.ArrayOfDoublesSerDe;
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
@@ -192,7 +192,7 @@ public class ItemsSketchTest {
 
     ArrayOfItemsSerDe<Long> serDe = new ArrayOfLongsSerDe();
     byte[] bytes = sketch1.toByteArray(serDe);
-    ItemsSketch<Long> sketch2 = ItemsSketch.getInstance(new NativeMemory(bytes), Comparator.naturalOrder(), serDe);
+    ItemsSketch<Long> sketch2 = ItemsSketch.getInstance(Memory.wrap(bytes), Comparator.naturalOrder(), serDe);
 
     for (int i = 501; i <= 1000; i++) sketch2.update((long) i);
     Assert.assertEquals(sketch2.getN(), 1000);
@@ -210,7 +210,7 @@ public class ItemsSketchTest {
 
     ArrayOfItemsSerDe<Double> serDe = new ArrayOfDoublesSerDe();
     byte[] bytes = sketch1.toByteArray(serDe);
-    ItemsSketch<Double> sketch2 = ItemsSketch.getInstance(new NativeMemory(bytes), Comparator.naturalOrder(), serDe);
+    ItemsSketch<Double> sketch2 = ItemsSketch.getInstance(Memory.wrap(bytes), Comparator.naturalOrder(), serDe);
 
     for (int i = 501; i <= 1000; i++) sketch2.update((double) i);
     Assert.assertEquals(sketch2.getN(), 1000);
@@ -237,7 +237,7 @@ public class ItemsSketchTest {
 
     ArrayOfItemsSerDe<String> serDe = new ArrayOfStringsSerDe();
     byte[] bytes = sketch1.toByteArray(serDe);
-    ItemsSketch<String> sketch2 = ItemsSketch.getInstance(new NativeMemory(bytes), numericOrder, serDe);
+    ItemsSketch<String> sketch2 = ItemsSketch.getInstance(Memory.wrap(bytes), numericOrder, serDe);
 
     for (int i = 501; i <= 1000; i++) sketch2.update(Integer.toBinaryString(i << 10));
     Assert.assertEquals(sketch2.getN(), 1000);
@@ -265,8 +265,8 @@ public class ItemsSketchTest {
     ArrayOfItemsSerDe<String> serDe = new ArrayOfStringsSerDe();
     byte[] bytes = sketch.toByteArray(serDe);
     PreambleUtil.toString(bytes, false);
-    PreambleUtil.toString(bytes, true);
-    //ItemsSketch<String> sketch2 = ItemsSketch.getInstance(new NativeMemory(bytes), Comparator.naturalOrder(), serDe);
+    //PreambleUtil.toString(bytes, true); // not a DoublesSketch so this will fail
+    //ItemsSketch<String> sketch2 = ItemsSketch.getInstance(Memory.wrap(bytes), Comparator.naturalOrder(), serDe);
   }
 
   @Test
@@ -305,13 +305,13 @@ public class ItemsSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkGetInstanceExcep1() {
-    Memory mem = new NativeMemory(new byte[4]);
+    Memory mem = Memory.wrap(new byte[4]);
     ItemsSketch.getInstance(mem, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkGetInstanceExcep2() {
-    Memory mem = new NativeMemory(new byte[8]);
+    Memory mem = Memory.wrap(new byte[8]);
     ItemsSketch.getInstance(mem, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
   }
 
@@ -319,7 +319,7 @@ public class ItemsSketchTest {
   public void checkGoodSerDeId() {
     ItemsSketch<String> sketch = ItemsSketch.getInstance(Comparator.naturalOrder());
     byte[] byteArr = sketch.toByteArray(new ArrayOfStringsSerDe());
-    Memory mem = new NativeMemory(byteArr);
+    Memory mem = Memory.wrap(byteArr);
     //println(PreambleUtil.toString(mem));
     ItemsSketch.getInstance(mem, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
   }
@@ -357,7 +357,7 @@ public class ItemsSketchTest {
     ArrayOfDoublesSerDe serDe = new ArrayOfDoublesSerDe();
     ItemsSketch<Double> sketch = ItemsSketch.getInstance(Comparator.naturalOrder());
     byte[] byteArr = sketch.toByteArray(serDe);
-    Memory mem = new NativeMemory(byteArr);
+    WritableMemory mem = WritableMemory.wrap(byteArr);
     mem.clearBits(PreambleUtil.FLAGS_BYTE, (byte) PreambleUtil.COMPACT_FLAG_MASK);
     println(PreambleUtil.toString(mem, false));
     ItemsSketch.getInstance(mem, Comparator.naturalOrder(), serDe);
@@ -370,7 +370,7 @@ public class ItemsSketchTest {
       sketch.update(Integer.toString(i));
     }
     byte[] byteArr = new byte[200];
-    Memory mem = new NativeMemory(byteArr);
+    WritableMemory mem = WritableMemory.wrap(byteArr);
     sketch.putMemory(mem, new ArrayOfStringsSerDe());
   }
 
@@ -381,7 +381,7 @@ public class ItemsSketchTest {
       sketch.update(Integer.toString(i));
     }
     byte[] byteArr = new byte[100];
-    Memory mem = new NativeMemory(byteArr);
+    WritableMemory mem = WritableMemory.wrap(byteArr);
     sketch.putMemory(mem, new ArrayOfStringsSerDe());
   }
 
@@ -414,7 +414,7 @@ public class ItemsSketchTest {
 
     //ordered
     byteArr = is.toByteArray(true, serDe);
-    mem = new NativeMemory(byteArr);
+    mem = Memory.wrap(byteArr);
     is2 = ItemsSketch.getInstance(mem, Comparator.naturalOrder(), serDe);
     for (double f = 0.1; f < 0.95; f += 0.1) {
       assertEquals(is.getQuantile(f), is2.getQuantile(f));
@@ -422,7 +422,7 @@ public class ItemsSketchTest {
 
     //Not-ordered
     byteArr = is.toByteArray(false, serDe);
-    mem = new NativeMemory(byteArr);
+    mem = Memory.wrap(byteArr);
     is2 = ItemsSketch.getInstance(mem, Comparator.naturalOrder(), serDe);
     for (double f = 0.1; f < 0.95; f += 0.1) {
       assertEquals(is.getQuantile(f), is2.getQuantile(f));

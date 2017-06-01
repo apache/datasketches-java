@@ -18,7 +18,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * functions.</p>
  *
  * @author Kevin Lang
- * @author Alexander Saydadov
+ * @author Alexander Saydakov
  */
 final class ItemsUtil {
 

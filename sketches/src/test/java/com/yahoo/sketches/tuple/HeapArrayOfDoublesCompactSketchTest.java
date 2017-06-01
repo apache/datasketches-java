@@ -7,7 +7,7 @@ package com.yahoo.sketches.tuple;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.Memory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 public class HeapArrayOfDoublesCompactSketchTest {
@@ -62,7 +62,7 @@ public class HeapArrayOfDoublesCompactSketchTest {
     us.update("c", new double[] {1.0});
     ArrayOfDoublesCompactSketch sketch1 = us.compact();
     ArrayOfDoublesSketch sketch2 = 
-        ArrayOfDoublesSketches.heapifySketch(new NativeMemory(sketch1.toByteArray()));
+        ArrayOfDoublesSketches.heapifySketch(Memory.wrap(sketch1.toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertFalse(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 3.0);
@@ -82,7 +82,7 @@ public class HeapArrayOfDoublesCompactSketchTest {
     for (int i = 0; i < 8192; i++) us.update(i, new double[] {1.0});
     ArrayOfDoublesCompactSketch sketch1 = us.compact();
     ArrayOfDoublesSketch sketch2 = 
-        ArrayOfDoublesSketches.heapifySketch(new NativeMemory(sketch1.toByteArray()));
+        ArrayOfDoublesSketches.heapifySketch(Memory.wrap(sketch1.toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), sketch1.getEstimate());
@@ -94,6 +94,6 @@ public class HeapArrayOfDoublesCompactSketchTest {
     ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) us.update(i, new double[] {1.0});
     ArrayOfDoublesCompactSketch sketch1 = us.compact();
-    ArrayOfDoublesSketches.heapifySketch(new NativeMemory(sketch1.toByteArray()), 123);
+    ArrayOfDoublesSketches.heapifySketch(Memory.wrap(sketch1.toByteArray()), 123);
   }
 }

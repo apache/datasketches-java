@@ -10,8 +10,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -41,7 +40,7 @@ final class OnHeapImmutableCompactFields implements Fields {
       );
     }
 
-    final Memory mem = new NativeMemory(bytes);
+    final WritableMemory mem = WritableMemory.wrap(bytes);
     final int[] fields = new int[(endOffset - startOffset) / 4];
     final int dataOffset = startOffset + 1;
 
@@ -100,7 +99,7 @@ final class OnHeapImmutableCompactFields implements Fields {
       );
     }
 
-    final Memory mem = new NativeMemory(array);
+    final WritableMemory mem = WritableMemory.wrap(array);
     mem.putByte(offset++, VERSION_ID);
 
     for (int field : fields) {

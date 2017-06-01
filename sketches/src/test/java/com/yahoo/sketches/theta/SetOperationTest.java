@@ -20,8 +20,7 @@ import java.nio.ByteBuffer;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryRegion;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -36,8 +35,8 @@ public class SetOperationTest {
     int k = 2048;
     long seed = 1021;
 
-    UpdateSketch usk1 = UpdateSketch.builder().setSeed(seed).build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().setSeed(seed).build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setSeed(seed).setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setSeed(seed).setNominalEntries(k).build();
 
     for (int i=0; i<(k/2); i++)
      {
@@ -78,10 +77,6 @@ public class SetOperationTest {
     bldr.setResizeFactor(rf);
     assertEquals(rf, bldr.getResizeFactor());
 
-    Memory mem = new NativeMemory(new byte[16]);
-    bldr.initMemory(mem);
-    assertEquals(mem, bldr.getMemory());
-
     int lgK = 10;
     int k = 1 << lgK;
     bldr.setNominalEntries(k);
@@ -92,7 +87,7 @@ public class SetOperationTest {
 
   @Test
   public void checkBuilderNonPowerOf2() {
-    SetOperation.builder().buildUnion(1000);
+    SetOperation.builder().setNominalEntries(1000).buildUnion();
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -120,8 +115,8 @@ public class SetOperationTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBuilderAnotB_noMem() {
-    Memory mem = new NativeMemory(new byte[64]);
-    SetOperation.builder().initMemory(mem).buildANotB();
+    WritableMemory mem = WritableMemory.wrap(new byte[64]);
+    SetOperation.builder().build(Family.A_NOT_B, mem);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -129,8 +124,8 @@ public class SetOperationTest {
     int k = 2048;
     long seed = 1021;
 
-    UpdateSketch usk1 = UpdateSketch.builder().setSeed(seed).build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setSeed(seed).setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<(k/2); i++)
      {
@@ -143,7 +138,7 @@ public class SetOperationTest {
 
     ResizeFactor rf = X4;
 
-    Union union = SetOperation.builder().setSeed(seed).setResizeFactor(rf).buildUnion(k);
+    Union union = SetOperation.builder().setSeed(seed).setResizeFactor(rf).setNominalEntries(k).buildUnion();
 
     union.update(usk1);
     union.update(usk2); //throws seed exception here
@@ -159,26 +154,26 @@ public class SetOperationTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkIllegalSetOpHeapify() {
     int k = 64;
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<k; i++)
      {
       usk1.update(i); //64
     }
     byte[] byteArray = usk1.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    Memory mem = Memory.wrap(byteArray);
     SetOperation.heapify(mem);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkIllegalSetOpWrap() {
     int k = 64;
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<k; i++)
      {
       usk1.update(i); //64
     }
     byte[] byteArray = usk1.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    Memory mem = Memory.wrap(byteArray);
     SetOperation.wrap(mem);
   }
 
@@ -227,7 +222,7 @@ public class SetOperationTest {
     // However, if you had created this NM object directly in raw, off-heap "native" memory
     // you would have the responsibility to clear it, and free it to the OS when you
     // are done.  But, since it was allocated via BB, it does the clearing and freeing for you.
-    Memory heapMem = NativeMemory.wrap(heapBuf);
+    WritableMemory heapMem = WritableMemory.wrap(heapBuf);
 
     double result = directUnionTrial1(heapMem, heapLayout, sketchNomEntries, unionNomEntries);
     println("1st est: "+result);
@@ -256,15 +251,15 @@ public class SetOperationTest {
   public void setOpsExample() {
     println("Set Operations Example:");
     int k = 4096;
-    UpdateSketch skA = Sketches.updateSketchBuilder().build(k);
-    UpdateSketch skB = Sketches.updateSketchBuilder().build(k);
-    UpdateSketch skC = Sketches.updateSketchBuilder().build(k);
+    UpdateSketch skA = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+    UpdateSketch skB = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+    UpdateSketch skC = Sketches.updateSketchBuilder().setNominalEntries(k).build();
 
     for (int i=1;  i<=10; i++) { skA.update(i); }
     for (int i=1;  i<=20; i++) { skB.update(i); }
     for (int i=6;  i<=15; i++) { skC.update(i); } //overlapping set
 
-    Union union = Sketches.setOperationBuilder().buildUnion(k);
+    Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
     union.update(skA);
     union.update(skB);
     // ... continue to iterate on the input sketches to union
@@ -294,13 +289,13 @@ public class SetOperationTest {
   @Test
   public void checkIsSameResource() {
     int k = 16;
-    Memory mem = new NativeMemory(new byte[(k*16) + 32]);
-    Memory cmem = new NativeMemory (new byte[8]);
-    Union union = Sketches.setOperationBuilder().initMemory(mem).buildUnion(k);
+    WritableMemory mem = WritableMemory.wrap(new byte[(k*16) + 32]);
+    Memory cmem = Memory.wrap(new byte[8]);
+    Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion(mem);
     assertTrue(union.isSameResource(mem));
     assertFalse(union.isSameResource(cmem));
 
-    Intersection inter = Sketches.setOperationBuilder().initMemory(mem).buildIntersection();
+    Intersection inter = Sketches.setOperationBuilder().buildIntersection(mem);
     assertTrue(inter.isSameResource(mem));
     assertFalse(inter.isSameResource(cmem));
   }
@@ -336,23 +331,23 @@ public class SetOperationTest {
   }
 
   private static double directUnionTrial1(
-      Memory heapMem, int[] heapLayout, int sketchNomEntries, int unionNomEntries) {
+      WritableMemory heapMem, int[] heapLayout, int sketchNomEntries, int unionNomEntries) {
 
     int offset = heapLayout[0];
     int bytes = heapLayout[1] - offset;
-    Memory unionMem = new MemoryRegion(heapMem, offset, bytes);
+    WritableMemory unionMem = heapMem.writableRegion(offset, bytes);
 
-    Union union = SetOperation.builder().initMemory(unionMem).buildUnion(unionNomEntries);
+    Union union = SetOperation.builder().setNominalEntries(unionNomEntries).buildUnion(unionMem);
 
-    Memory sketch1mem = new MemoryRegion(heapMem, heapLayout[1], heapLayout[2]-heapLayout[1]);
-    Memory sketch2mem = new MemoryRegion(heapMem, heapLayout[2], heapLayout[3]-heapLayout[2]);
-    Memory sketch3mem = new MemoryRegion(heapMem, heapLayout[3], heapLayout[4]-heapLayout[3]);
-    Memory resultMem = new MemoryRegion(heapMem, heapLayout[4], heapLayout[5]-heapLayout[4]);
+    WritableMemory sketch1mem = heapMem.writableRegion(heapLayout[1], heapLayout[2]-heapLayout[1]);
+    WritableMemory sketch2mem = heapMem.writableRegion(heapLayout[2], heapLayout[3]-heapLayout[2]);
+    WritableMemory sketch3mem = heapMem.writableRegion(heapLayout[3], heapLayout[4]-heapLayout[3]);
+    WritableMemory resultMem = heapMem.writableRegion(heapLayout[4], heapLayout[5]-heapLayout[4]);
 
     //Initialize the 3 sketches
-    UpdateSketch sk1 = UpdateSketch.builder().initMemory(sketch1mem).build(sketchNomEntries);
-    UpdateSketch sk2 = UpdateSketch.builder().initMemory(sketch2mem).build(sketchNomEntries);
-    UpdateSketch sk3 = UpdateSketch.builder().initMemory(sketch3mem).build(sketchNomEntries);
+    UpdateSketch sk1 = UpdateSketch.builder().setNominalEntries(sketchNomEntries).build(sketch1mem);
+    UpdateSketch sk2 = UpdateSketch.builder().setNominalEntries(sketchNomEntries).build(sketch2mem);
+    UpdateSketch sk3 = UpdateSketch.builder().setNominalEntries(sketchNomEntries).build(sketch3mem);
 
     //This little trial has sk1 and sk2 distinct and sk2 overlap both.
     //Build the sketches.
@@ -373,8 +368,7 @@ public class SetOperationTest {
 
     //Let's recover the union and the 3rd sketch
     union = Sketches.wrapUnion(unionMem);
-    sk3 = (UpdateSketch) Sketch.wrap(sketch3mem);
-    union.update(sk3);
+    union.update(Sketch.wrap(sketch3mem));
 
     Sketch resSk = union.getResult(true, resultMem);
     double est = resSk.getEstimate();
@@ -383,13 +377,13 @@ public class SetOperationTest {
   }
 
   private static double directUnionTrial2(
-      Memory heapMem, int[] heapLayout, int sketchNomEntries, int unionNomEntries) {
+      WritableMemory heapMem, int[] heapLayout, int sketchNomEntries, int unionNomEntries) {
 
-    Memory unionMem = new MemoryRegion(heapMem, heapLayout[0], heapLayout[1]-heapLayout[0]);
-    Memory sketch1mem = new MemoryRegion(heapMem, heapLayout[1], heapLayout[2]-heapLayout[1]);
-    Memory sketch2mem = new MemoryRegion(heapMem, heapLayout[2], heapLayout[3]-heapLayout[2]);
-    Memory sketch3mem = new MemoryRegion(heapMem, heapLayout[3], heapLayout[4]-heapLayout[3]);
-    Memory resultMem = new MemoryRegion(heapMem, heapLayout[4], heapLayout[5]-heapLayout[4]);
+    WritableMemory unionMem = heapMem.writableRegion(heapLayout[0], heapLayout[1]-heapLayout[0]);
+    WritableMemory sketch1mem = heapMem.writableRegion(heapLayout[1], heapLayout[2]-heapLayout[1]);
+    WritableMemory sketch2mem = heapMem.writableRegion(heapLayout[2], heapLayout[3]-heapLayout[2]);
+    WritableMemory sketch3mem = heapMem.writableRegion(heapLayout[3], heapLayout[4]-heapLayout[3]);
+    WritableMemory resultMem = heapMem.writableRegion(heapLayout[4], heapLayout[5]-heapLayout[4]);
 
     //Recover the 3 sketches
     UpdateSketch sk1 = (UpdateSketch) Sketch.wrap(sketch1mem);
@@ -403,7 +397,7 @@ public class SetOperationTest {
 
     //Create a new union in the same space with a smaller size.
     unionMem.clear();
-    Union union = SetOperation.builder().initMemory(unionMem).buildUnion(unionNomEntries);
+    Union union = SetOperation.builder().setNominalEntries(unionNomEntries).buildUnion(unionMem);
     union.update(sk1);
     union.update(sk2);
     union.update(sk3);

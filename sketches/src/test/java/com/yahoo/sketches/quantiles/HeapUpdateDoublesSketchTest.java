@@ -25,7 +25,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 public class HeapUpdateDoublesSketchTest {
@@ -52,7 +52,7 @@ public class HeapUpdateDoublesSketchTest {
                    "adjustedFindEpsForK() doesn't match precomputed value");
     }
     for (int i = 0; i < 3; i++) {
-      DoublesSketch qs = DoublesSketch.builder().build(kArr[i]);
+      DoublesSketch qs = DoublesSketch.builder().setK(kArr[i]).build();
       assertEquals(epsArr[i],
                    qs.getNormalizedRankError(),
                    absTol,
@@ -66,8 +66,8 @@ public class HeapUpdateDoublesSketchTest {
   @Test
   public void checkEndToEnd() {
     int k = 256;
-    UpdateDoublesSketch qs = DoublesSketch.builder().build(k);
-    UpdateDoublesSketch qs2 = DoublesSketch.builder().build(k);
+    UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build();
+    UpdateDoublesSketch qs2 = DoublesSketch.builder().setK(k).build();
     int n = 1000000;
     for (int item = n; item >= 1; item--) {
       if (item % 4 == 0) {
@@ -162,9 +162,9 @@ public class HeapUpdateDoublesSketchTest {
   @Test
   public void checkBigMinMax () {
     int k = 32;
-    UpdateDoublesSketch qs1 = DoublesSketch.builder().build(k);
-    UpdateDoublesSketch qs2 = DoublesSketch.builder().build(k);
-    UpdateDoublesSketch qs3 = DoublesSketch.builder().build(k);
+    UpdateDoublesSketch qs1 = DoublesSketch.builder().setK(k).build();
+    UpdateDoublesSketch qs2 = DoublesSketch.builder().setK(k).build();
+    UpdateDoublesSketch qs3 = DoublesSketch.builder().setK(k).build();
     assertFalse(qs1.isEstimationMode());
 
     for (int i = 999; i >= 1; i--) {
@@ -210,9 +210,9 @@ public class HeapUpdateDoublesSketchTest {
   public void checkSmallMinMax () {
     int k = 32;
     int n = 8;
-    UpdateDoublesSketch qs1 = DoublesSketch.builder().build(k);
-    UpdateDoublesSketch qs2 = DoublesSketch.builder().build(k);
-    UpdateDoublesSketch qs3 = DoublesSketch.builder().build(k);
+    UpdateDoublesSketch qs1 = DoublesSketch.builder().setK(k).build();
+    UpdateDoublesSketch qs2 = DoublesSketch.builder().setK(k).build();
+    UpdateDoublesSketch qs3 = DoublesSketch.builder().setK(k).build();
 
     for (int i = n; i >= 1; i--) {
       qs1.update(i);
@@ -294,7 +294,7 @@ public class HeapUpdateDoublesSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkConstructorException() {
-    DoublesSketch.builder().build(0);
+    DoublesSketch.builder().setK(0).build();
   }
 
   @Test
@@ -361,7 +361,7 @@ public class HeapUpdateDoublesSketchTest {
     println(s);
     println("");
 
-    NativeMemory srcMem = new NativeMemory(qs.toByteArray());
+    Memory srcMem = WritableMemory.wrap(qs.toByteArray());
 
     HeapUpdateDoublesSketch qs2 = HeapUpdateDoublesSketch.heapifyInstance(srcMem);
     s = qs2.toString();
@@ -414,7 +414,7 @@ public class HeapUpdateDoublesSketchTest {
   public void checkGetStorageBytes2() {
     int k = PreambleUtil.DEFAULT_K;
     long v = 1;
-    UpdateDoublesSketch qs = DoublesSketch.builder().build(k);
+    UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build();
     for (int i = 0; i< 1000; i++) {
       qs.update(v++);
 //      for (int j = 0; j < 1000; j++) {
@@ -494,7 +494,7 @@ public class HeapUpdateDoublesSketchTest {
 
     // from compact
     byteArr = qs.toByteArray(true);
-    mem = new NativeMemory(byteArr);
+    mem = Memory.wrap(byteArr);
     qs2 = UpdateDoublesSketch.heapify(mem);
     for (double f = 0.1; f < 0.95; f += 0.1) {
       assertEquals(qs.getQuantile(f), qs2.getQuantile(f), 0.0);
@@ -502,7 +502,7 @@ public class HeapUpdateDoublesSketchTest {
 
     // ordered, non-compact
     byteArr = qs.toByteArray(false);
-    mem = new NativeMemory(byteArr);
+    mem = Memory.wrap(byteArr);
     qs2 = DoublesSketch.heapify(mem);
     final DoublesSketchAccessor dsa = DoublesSketchAccessor.wrap(qs2);
     dsa.sort();
@@ -512,7 +512,7 @@ public class HeapUpdateDoublesSketchTest {
 
     // not ordered, not compact
     byteArr = qs.toByteArray(false);
-    mem = new NativeMemory(byteArr);
+    mem = Memory.wrap(byteArr);
     qs2 = DoublesSketch.heapify(mem);
     for (double f = 0.1; f < 0.95; f += 0.1) {
       assertEquals(qs.getQuantile(f), qs2.getQuantile(f), 0.0);
@@ -524,7 +524,7 @@ public class HeapUpdateDoublesSketchTest {
     int k = PreambleUtil.DEFAULT_K;
     DoublesSketch qs1 = buildAndLoadQS(k, 0);
     byte[] byteArr = qs1.toByteArray();
-    Memory mem = new NativeMemory(byteArr);
+    Memory mem = Memory.wrap(byteArr);
     DoublesSketch qs2 = DoublesSketch.heapify(mem);
     assertTrue(qs2.isEmpty());
     final int expectedSizeBytes = 8; //COMBINED_BUFFER + ((2 * MIN_K) << 3);
@@ -542,7 +542,7 @@ public class HeapUpdateDoublesSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkMemTooSmall1() {
-    Memory mem = new NativeMemory(new byte[7]);
+    Memory mem = Memory.wrap(new byte[7]);
     HeapUpdateDoublesSketch.heapifyInstance(mem);
     fail();
     //qs2.getQuantile(0.5);
@@ -609,7 +609,7 @@ public class HeapUpdateDoublesSketchTest {
     int k = PreambleUtil.DEFAULT_K;
     DoublesSketch qs1 = buildAndLoadQS(k, 64);
     byte[] byteArr = qs1.toByteArray();
-    Memory mem = new NativeMemory(byteArr);
+    Memory mem = Memory.wrap(byteArr);
     HeapUpdateDoublesSketch.heapifyInstance(mem);
   }
 
@@ -676,8 +676,8 @@ public class HeapUpdateDoublesSketchTest {
     int k1 = 8;
     int k2 = 2;
     int n = 50;
-    UpdateDoublesSketch sketch1 = DoublesSketch.builder().build(k1);
-    UpdateDoublesSketch sketch2 = DoublesSketch.builder().build(k2);
+    UpdateDoublesSketch sketch1 = DoublesSketch.builder().setK(k1).build();
+    UpdateDoublesSketch sketch2 = DoublesSketch.builder().setK(k2).build();
     DoublesSketch downSketch;
     for (int i = 0; i < n; i++) {
       sketch1.update (i);
@@ -692,11 +692,11 @@ public class HeapUpdateDoublesSketchTest {
     int k1 = 8;
     int k2 = 2;
     int n = 50;
-    UpdateDoublesSketch sketch1 = DoublesSketch.builder().build(k1);
-    UpdateDoublesSketch sketch2 = DoublesSketch.builder().build(k2);
+    UpdateDoublesSketch sketch1 = DoublesSketch.builder().setK(k1).build();
+    UpdateDoublesSketch sketch2 = DoublesSketch.builder().setK(k2).build();
     DoublesSketch downSketch;
     int bytes = DoublesSketch.getUpdatableStorageBytes(k2, n);
-    Memory mem = new NativeMemory(new byte[bytes]);
+    WritableMemory mem = WritableMemory.wrap(new byte[bytes]);
     for (int i = 0; i < n; i++) {
       sketch1.update (i);
       sketch2.update (i);
@@ -735,22 +735,22 @@ public class HeapUpdateDoublesSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void testDownSamplingExceptions1() {
-    UpdateDoublesSketch qs1 = DoublesSketch.builder().build(4); // not smaller
-    DoublesSketch qs2 = DoublesSketch.builder().build(3);
+    UpdateDoublesSketch qs1 = DoublesSketch.builder().setK(4).build(); // not smaller
+    DoublesSketch qs2 = DoublesSketch.builder().setK(3).build();
     DoublesMergeImpl.mergeInto(qs2, qs1);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void testDownSamplingExceptions2() {
-    UpdateDoublesSketch qs1 = DoublesSketch.builder().build(4);
-    DoublesSketch qs2 = DoublesSketch.builder().build(7); // 7/4 not pwr of 2
+    UpdateDoublesSketch qs1 = DoublesSketch.builder().setK(4).build();
+    DoublesSketch qs2 = DoublesSketch.builder().setK(7).build(); // 7/4 not pwr of 2
     DoublesMergeImpl.mergeInto(qs2, qs1);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void testDownSamplingExceptions3() {
-    UpdateDoublesSketch qs1 = DoublesSketch.builder().build(4);
-    DoublesSketch qs2 = DoublesSketch.builder().build(12); // 12/4 not pwr of 2
+    UpdateDoublesSketch qs1 = DoublesSketch.builder().setK(4).build();
+    DoublesSketch qs2 = DoublesSketch.builder().setK(12).build(); // 12/4 not pwr of 2
     DoublesMergeImpl.mergeInto(qs2, qs1);
   }
 
@@ -764,7 +764,7 @@ public class HeapUpdateDoublesSketchTest {
     println(s);
     println("");
 
-    NativeMemory srcMem = new NativeMemory(qs.toByteArray());
+    Memory srcMem = Memory.wrap(qs.toByteArray());
 
     HeapUpdateDoublesSketch qs2 = HeapUpdateDoublesSketch.heapifyInstance(srcMem);
     println(getRanksTable(qs2, ranks));
@@ -814,7 +814,7 @@ public class HeapUpdateDoublesSketchTest {
   @Test
   public void checkKisTwo() {
     int k = 2;
-    UpdateDoublesSketch qs1 = DoublesSketch.builder().build(k);
+    UpdateDoublesSketch qs1 = DoublesSketch.builder().setK(k).build();
     double err = qs1.getNormalizedRankError();
     assertTrue(err < 1.0);
     byte[] arr = qs1.toByteArray(true); //8
@@ -827,7 +827,7 @@ public class HeapUpdateDoublesSketchTest {
   @Test
   public void checkKisTwoDeprecated() {
     int k = 2;
-    UpdateDoublesSketch qs1 = DoublesSketch.builder().build(k);
+    UpdateDoublesSketch qs1 = DoublesSketch.builder().setK(k).build();
     double err = qs1.getNormalizedRankError();
     assertTrue(err < 1.0);
     byte[] arr = qs1.toByteArray(true); //8
@@ -844,7 +844,7 @@ public class HeapUpdateDoublesSketchTest {
     UpdateDoublesSketch qs1 = DoublesSketch.builder().build(); //k = 128
     for (int i=0; i<1000; i++) qs1.update(i);
     int bytes = qs1.getUpdatableStorageBytes();
-    Memory dstMem = new NativeMemory(new byte[bytes]);
+    WritableMemory dstMem = WritableMemory.wrap(new byte[bytes]);
     qs1.putMemory(dstMem, false);
     Memory srcMem = dstMem;
     DoublesSketch qs2 = DoublesSketch.heapify(srcMem);
@@ -857,7 +857,7 @@ public class HeapUpdateDoublesSketchTest {
     UpdateDoublesSketch qs1 = DoublesSketch.builder().build(); //k = 128
     for (int i=0; i<1000; i++) qs1.update(i);
     int bytes = qs1.getCompactStorageBytes();
-    Memory dstMem = new NativeMemory(new byte[bytes-1]); //too small
+    WritableMemory dstMem = WritableMemory.wrap(new byte[bytes-1]); //too small
     qs1.putMemory(dstMem);
   }
 
@@ -876,10 +876,10 @@ public class HeapUpdateDoublesSketchTest {
   @Test
   public void testIt() {
     java.nio.ByteBuffer bb = java.nio.ByteBuffer.allocate(1<<20);
-    Memory mem = NativeMemory.wrap(bb);
+    WritableMemory mem = WritableMemory.wrap(bb);
 
     int k = 1024;
-    DoublesSketch qsk = new DoublesSketchBuilder().build(k);
+    DoublesSketch qsk = new DoublesSketchBuilder().setK(k).build();
     DoublesUnion u1 = DoublesUnionBuilder.heapify(qsk);
     u1.getResult().putMemory(mem);
     DoublesUnion u2 = DoublesUnionBuilder.heapify(mem);
@@ -962,7 +962,7 @@ public class HeapUpdateDoublesSketchTest {
       sketch1.update(i);
     }
     UpdateDoublesSketch sketch2;
-    sketch2 = (UpdateDoublesSketch) DoublesSketch.heapify(new NativeMemory(sketch1.toByteArray()));
+    sketch2 = (UpdateDoublesSketch) DoublesSketch.heapify(Memory.wrap(sketch1.toByteArray()));
     for (int i = 0; i < 1000; i++) {
       sketch2.update(i + 1000);
     }
@@ -976,7 +976,7 @@ public class HeapUpdateDoublesSketchTest {
     UpdateDoublesSketch sketch1 = DoublesSketch.builder().build();
     byte[] byteArr = sketch1.toByteArray(false); //Ordered, Not Compact, Empty
     assertEquals(byteArr.length, sketch1.getStorageBytes());
-    Memory mem = new NativeMemory(byteArr);
+    Memory mem = Memory.wrap(byteArr);
     UpdateDoublesSketch sketch2 = (UpdateDoublesSketch) DoublesSketch.heapify(mem);
     for (int i = 0; i < 1000; i++) {
       sketch2.update(i);
@@ -997,7 +997,7 @@ public class HeapUpdateDoublesSketchTest {
       //pass
     }
     try {
-      DoublesSketch.builder().build(k);
+      DoublesSketch.builder().setK(k).build();
       fail(s);
     } catch (SketchesArgumentException e) {
       //pass
@@ -1060,7 +1060,7 @@ public class HeapUpdateDoublesSketchTest {
   }
 
   static UpdateDoublesSketch buildAndLoadQS(int k, int n, int startV) {
-    UpdateDoublesSketch qs = DoublesSketch.builder().build(k);
+    UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build();
     for (int i=1; i<=n; i++) {
       qs.update(startV + i);
     }

@@ -6,6 +6,7 @@
 package com.yahoo.sketches.theta;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * The API for Union operations
@@ -100,7 +101,7 @@ public interface Union {
    *
    * @param data The given long array.
    */
-  public void update(long[] data);
+  void update(long[] data);
 
   /**
    * Gets the result of this operation as a CompactSketch of the chosen form.
@@ -115,7 +116,7 @@ public interface Union {
    *
    * @return the result of this operation as a CompactSketch of the chosen form
    */
-  CompactSketch getResult(boolean dstOrdered, Memory dstMem);
+  CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
 
   /**
    * Gets the result of this operation as an ordered CompactSketch on the Java heap.

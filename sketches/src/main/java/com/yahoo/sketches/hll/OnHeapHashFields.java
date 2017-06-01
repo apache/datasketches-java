@@ -5,7 +5,7 @@
 
 package com.yahoo.sketches.hll;
 
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 
@@ -60,7 +60,7 @@ final class OnHeapHashFields implements Fields {
     }
 
     int bytesRead = 1;
-    final NativeMemory mem = new NativeMemory(bytes);
+    final WritableMemory mem = WritableMemory.wrap(bytes);
 
     final int switchToDenseSize = mem.getInt(offset + bytesRead);
     bytesRead += 4;
@@ -125,7 +125,7 @@ final class OnHeapHashFields implements Fields {
 
     array[offset++] = VERSION_ID;
 
-    final NativeMemory mem = new NativeMemory(array);
+    final WritableMemory mem = WritableMemory.wrap(array);
     offset = Serde.putInt(mem, offset, switchToDenseSize);
     offset = Serde.putInt(mem, offset, growthBound);
     offset = Serde.putInt(mem, offset, denseFactory.numBytesToSerialize());

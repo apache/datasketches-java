@@ -7,7 +7,8 @@ package com.yahoo.sketches.tuple;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 
 public class ArrayOfDoublesCompactSketchTest {
   @Test
@@ -21,7 +22,7 @@ public class ArrayOfDoublesCompactSketchTest {
     sketch1.update("b", new double[] {1, 2});
     sketch1.update("c", new double[] {1, 2});
     sketch1.update("d", new double[] {1, 2});
-    ArrayOfDoublesSketch sketch2 = new DirectArrayOfDoublesCompactSketch(new NativeMemory(sketch1.compact().toByteArray()));
+    ArrayOfDoublesSketch sketch2 = new DirectArrayOfDoublesCompactSketch(Memory.wrap(sketch1.compact().toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertFalse(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 4.0);
@@ -40,7 +41,7 @@ public class ArrayOfDoublesCompactSketchTest {
 
   @Test
   public void directToHeapExactTwoDoubles() {
-    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).setMemory(new NativeMemory(new byte[1000000])).build();
+    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).build(WritableMemory.wrap(new byte[1000000]));
     sketch1.update("a", new double[] {1, 2});
     sketch1.update("b", new double[] {1, 2});
     sketch1.update("c", new double[] {1, 2});
@@ -49,7 +50,7 @@ public class ArrayOfDoublesCompactSketchTest {
     sketch1.update("b", new double[] {1, 2});
     sketch1.update("c", new double[] {1, 2});
     sketch1.update("d", new double[] {1, 2});
-    ArrayOfDoublesSketch sketch2 = new HeapArrayOfDoublesCompactSketch(new NativeMemory(sketch1.compact(new NativeMemory(new byte[1000000])).toByteArray()));
+    ArrayOfDoublesSketch sketch2 = new HeapArrayOfDoublesCompactSketch(Memory.wrap(sketch1.compact(WritableMemory.wrap(new byte[1000000])).toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertFalse(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 4.0);

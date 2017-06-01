@@ -23,7 +23,7 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 
@@ -33,11 +33,11 @@ import com.yahoo.sketches.Util;
 public class SketchesTest {
   
   private static Memory getCompactSketch(int k, int from, int to) {
-    UpdateSketch sk1 = updateSketchBuilder().build(k);
+    UpdateSketch sk1 = updateSketchBuilder().setNominalEntries(k).build();
     for (int i=from; i<to; i++) sk1.update(i);
     CompactSketch csk = sk1.compact(true, null);
     byte[] sk1bytes = csk.toByteArray();
-    NativeMemory mem = new NativeMemory(sk1bytes);
+    Memory mem = Memory.wrap(sk1bytes);
     return mem;
   }
   
@@ -66,7 +66,7 @@ public class SketchesTest {
     Memory mem2 = getCompactSketch(k, k/2, 3*k/2);
     
     SetOperationBuilder bldr = setOperationBuilder();
-    Union union = bldr.buildUnion(2*k);
+    Union union = bldr.setNominalEntries(2 * k).buildUnion();
     
     union.update(mem1);
     CompactSketch cSk = union.getResult(true, null);
@@ -76,7 +76,7 @@ public class SketchesTest {
     assertEquals((int)cSk.getEstimate(), 3*k/2);
     
     byte[] ubytes = union.toByteArray();
-    NativeMemory uMem = new NativeMemory(ubytes);
+    WritableMemory uMem = WritableMemory.wrap(ubytes);
     
     Union union2 = (Union)heapifySetOperation(uMem);
     cSk = union2.getResult(true, null);
@@ -142,7 +142,7 @@ public class SketchesTest {
   public void checkBadSketchFamily() {
     Union union = setOperationBuilder().buildUnion();
     byte[] byteArr = union.toByteArray();
-    Memory srcMem = new NativeMemory(byteArr);
+    Memory srcMem = Memory.wrap(byteArr);
     Sketches.getEstimate(srcMem);
   }
   

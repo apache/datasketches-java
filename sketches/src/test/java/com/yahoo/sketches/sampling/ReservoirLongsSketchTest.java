@@ -18,7 +18,7 @@ import static org.testng.Assert.fail;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -36,7 +36,7 @@ public class ReservoirLongsSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadPreLongs() {
-    final Memory mem = getBasicSerializedRLS();
+    final WritableMemory mem = getBasicSerializedRLS();
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 0); // corrupt the preLongs count
 
     ReservoirLongsSketch.heapify(mem);
@@ -45,7 +45,7 @@ public class ReservoirLongsSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
-    final Memory mem = getBasicSerializedRLS();
+    final WritableMemory mem = getBasicSerializedRLS();
     mem.putByte(SER_VER_BYTE, (byte) 0); // corrupt the serialization version
 
     ReservoirLongsSketch.heapify(mem);
@@ -54,7 +54,7 @@ public class ReservoirLongsSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadFamily() {
-    final Memory mem = getBasicSerializedRLS();
+    final WritableMemory mem = getBasicSerializedRLS();
     mem.putByte(FAMILY_BYTE, (byte) 0); // corrupt the family ID
 
     ReservoirLongsSketch.heapify(mem);
@@ -67,7 +67,7 @@ public class ReservoirLongsSketchTest {
     assertTrue(rls.getSamples() == null);
 
     final byte[] sketchBytes = rls.toByteArray();
-    final Memory mem = new NativeMemory(sketchBytes);
+    final Memory mem = Memory.wrap(sketchBytes);
 
     // only minPreLongs bytes and should deserialize to empty
     assertEquals(sketchBytes.length, Family.RESERVOIR.getMinPreLongs() << 3);
@@ -257,6 +257,7 @@ public class ReservoirLongsSketchTest {
     assertTrue(Math.abs(rls.getImplicitSampleWeight() - 1.5) < EPS);
   }
 
+  /*
   @Test
   public void checkReadOnlyHeapify() {
     Memory sketchMem = getBasicSerializedRLS();
@@ -274,6 +275,7 @@ public class ReservoirLongsSketchTest {
     fromWritable = ReservoirLongsSketch.heapify(sketchMem);
     validateReservoirEquality(rls, fromWritable);
   }
+  */
 
   @Test
   public void checkVersionConversion() {
@@ -286,7 +288,7 @@ public class ReservoirLongsSketchTest {
 
     // get a new byte[], manually revert to v1, then reconstruct
     final byte[] sketchBytes = rls.toByteArray();
-    final Memory sketchMem = new NativeMemory(sketchBytes);
+    final WritableMemory sketchMem = WritableMemory.wrap(sketchBytes);
 
     sketchMem.putByte(SER_VER_BYTE, (byte) 1);
     sketchMem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
@@ -383,7 +385,66 @@ public class ReservoirLongsSketchTest {
     }
   }
 
-  private static Memory getBasicSerializedRLS() {
+  @Test
+  public void checkEstimateSubsetSum() {
+    final int k = 10;
+    final ReservoirLongsSketch sketch = ReservoirLongsSketch.newInstance(k);
+
+    // empty sketch -- all zeros
+    SampleSubsetSummary ss = sketch.estimateSubsetSum(item -> true);
+    assertEquals(ss.getEstimate(), 0.0);
+    assertEquals(ss.getTotalSketchWeight(), 0.0);
+
+    // add items, keeping in exact mode
+    double itemCount = 0.0;
+    for (long i = 1; i <= k - 1; ++i) {
+      sketch.update(i);
+      itemCount += 1.0;
+    }
+
+    ss = sketch.estimateSubsetSum(item -> true);
+    assertEquals(ss.getEstimate(), itemCount);
+    assertEquals(ss.getLowerBound(), itemCount);
+    assertEquals(ss.getUpperBound(), itemCount);
+    assertEquals(ss.getTotalSketchWeight(), itemCount);
+
+    // add a few more items, pushing to sampling mode
+    for (long i = k; i <= k + 1; ++i) {
+      sketch.update(i);
+      itemCount += 1.0;
+    }
+
+    // predicate always true so estimate == upper bound
+    ss = sketch.estimateSubsetSum(item -> true);
+    assertEquals(ss.getEstimate(), itemCount);
+    assertEquals(ss.getUpperBound(), itemCount);
+    assertTrue(ss.getLowerBound() < itemCount);
+    assertEquals(ss.getTotalSketchWeight(), itemCount);
+
+    // predicate always false so estimate == lower bound == 0.0
+    ss = sketch.estimateSubsetSum(item -> false);
+    assertEquals(ss.getEstimate(), 0.0);
+    assertEquals(ss.getLowerBound(), 0.0);
+    assertTrue(ss.getUpperBound() > 0.0);
+    assertEquals(ss.getTotalSketchWeight(), itemCount);
+
+    // finally, a non-degenerate predicate
+    // insert negative items with identical weights, filter for negative weights only
+    for (long i = 1; i <= k + 1; ++i) {
+      sketch.update(-i);
+      itemCount += 1.0;
+    }
+
+    ss = sketch.estimateSubsetSum(item -> item < 0);
+    assertTrue(ss.getEstimate() >= ss.getLowerBound());
+    assertTrue(ss.getEstimate() <= ss.getUpperBound());
+    assertTrue(ss.getLowerBound() < (itemCount / 2.0));
+
+    assertTrue(ss.getUpperBound() > (itemCount / 2.0));
+    assertEquals(ss.getTotalSketchWeight(), itemCount);
+  }
+
+  private static WritableMemory getBasicSerializedRLS() {
     final int k = 10;
     final int n = 20;
 
@@ -398,7 +459,7 @@ public class ReservoirLongsSketchTest {
     assertEquals(rls.getK(), k);
 
     final byte[] sketchBytes = rls.toByteArray();
-    return new NativeMemory(sketchBytes);
+    return WritableMemory.wrap(sketchBytes);
   }
 
   private static void validateSerializeAndDeserialize(final ReservoirLongsSketch rls) {
@@ -407,7 +468,7 @@ public class ReservoirLongsSketchTest {
             (Family.RESERVOIR.getMaxPreLongs() + rls.getNumSamples()) << 3);
 
     // ensure full reservoir rebuilds correctly
-    final Memory mem = new NativeMemory(sketchBytes);
+    final Memory mem = Memory.wrap(sketchBytes);
     final ReservoirLongsSketch loadedRls = ReservoirLongsSketch.heapify(mem);
 
     validateReservoirEquality(rls, loadedRls);

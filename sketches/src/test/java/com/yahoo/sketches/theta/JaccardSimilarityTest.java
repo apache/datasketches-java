@@ -31,8 +31,8 @@ public class JaccardSimilarityTest {
     state = exactlyEqual(null, null);
     assertFalse(state);
 
-    UpdateSketch measured = UpdateSketch.builder().build(minK);
-    UpdateSketch expected = UpdateSketch.builder().build(minK);
+    UpdateSketch measured = UpdateSketch.builder().setNominalEntries(minK).build();
+    UpdateSketch expected = UpdateSketch.builder().setNominalEntries(minK).build();
 
     //check both empty
     jResults = jaccard(measured, expected);
@@ -66,8 +66,8 @@ public class JaccardSimilarityTest {
     double threshold = 0.9999;
     println("Exact Mode, minK: " + k + "\t Th: " + threshold);
 
-    UpdateSketch measured = UpdateSketch.builder().build(k);
-    UpdateSketch expected = UpdateSketch.builder().build(k);
+    UpdateSketch measured = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch expected = UpdateSketch.builder().setNominalEntries(k).build();
 
     for (int i = 0; i < u-1; i++) { //one short
       measured.update(i);
@@ -102,8 +102,8 @@ public class JaccardSimilarityTest {
     double threshold = 0.9999;
     println("Estimation Mode, minK: " + k + "\t Th: " + threshold);
 
-    UpdateSketch measured = UpdateSketch.builder().build(k);
-    UpdateSketch expected = UpdateSketch.builder().build(k);
+    UpdateSketch measured = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch expected = UpdateSketch.builder().setNominalEntries(k).build();
 
     for (int i = 0; i < u; i++) {
       measured.update(i);
@@ -146,8 +146,8 @@ public class JaccardSimilarityTest {
     double threshold = 0.943;
     println("Estimation Mode, minK: " + minK + "\t Th: " + threshold);
 
-    UpdateSketch expected = UpdateSketch.builder().build(minK);
-    UpdateSketch measured = UpdateSketch.builder().build(minK);
+    UpdateSketch expected = UpdateSketch.builder().setNominalEntries(minK).build();
+    UpdateSketch measured = UpdateSketch.builder().setNominalEntries(minK).build();
 
     for (int i = 0; i < u1; i++) {
       expected.update(i);
@@ -179,8 +179,8 @@ public class JaccardSimilarityTest {
     double threshold = 0.061;
     println("Estimation Mode, minK: " + minK + "\t Th: " + threshold);
 
-    UpdateSketch expected = UpdateSketch.builder().build(minK);
-    UpdateSketch measured = UpdateSketch.builder().build(minK);
+    UpdateSketch expected = UpdateSketch.builder().setNominalEntries(minK).build();
+    UpdateSketch measured = UpdateSketch.builder().setNominalEntries(minK).build();
 
     for (int i = 0; i < u1; i++) {
       expected.update(i);

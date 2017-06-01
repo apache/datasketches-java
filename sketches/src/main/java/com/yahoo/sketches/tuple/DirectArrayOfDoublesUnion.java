@@ -5,7 +5,7 @@
 
 package com.yahoo.sketches.tuple;
 
-import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * Direct Union operation for tuple sketches of type ArrayOfDoubles.
@@ -13,9 +13,9 @@ import com.yahoo.memory.Memory;
  * This Memory can be off-heap, which if managed properly will greatly reduce the need for
  * the JVM to perform garbage collection.</p>
  */
-final class DirectArrayOfDoublesUnion extends ArrayOfDoublesUnion {
+class DirectArrayOfDoublesUnion extends ArrayOfDoublesUnion {
 
-  private final Memory mem_;
+  final WritableMemory mem_;
 
   /**
    * Creates an instance of DirectArrayOfDoublesUnion
@@ -26,25 +26,26 @@ final class DirectArrayOfDoublesUnion extends ArrayOfDoublesUnion {
    * @param dstMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
   DirectArrayOfDoublesUnion(final int nomEntries, final int numValues, final long seed, 
-      final Memory dstMem) {
+      final WritableMemory dstMem) {
     super(new DirectArrayOfDoublesQuickSelectSketch(nomEntries, 3, 1f, numValues, seed, dstMem));
     mem_ = dstMem;
   }
 
-  /**
-   * Wraps the given Memory.
-   * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
-   */
-  DirectArrayOfDoublesUnion(final Memory mem, final long seed) {
-    super(new DirectArrayOfDoublesQuickSelectSketch(mem, seed));
+  DirectArrayOfDoublesUnion(final ArrayOfDoublesQuickSelectSketch sketch, final WritableMemory mem) {
+    super(sketch);
     mem_ = mem;
   }
 
   @Override
   public void reset() {
     sketch_ = new DirectArrayOfDoublesQuickSelectSketch(nomEntries_, 3, 1f, numValues_, seed_, mem_);
-    theta_ = sketch_.getThetaLong();
+    setThetaLong(sketch_.getThetaLong());
+  }
+
+  @Override
+  void setThetaLong(final long theta) {
+    super.setThetaLong(theta);
+    mem_.putLong(THETA_LONG, theta);
   }
 
 }

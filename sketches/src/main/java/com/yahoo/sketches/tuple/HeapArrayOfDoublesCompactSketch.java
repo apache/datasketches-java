@@ -11,7 +11,7 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -29,9 +29,19 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
    * @param sketch the given UpdatableArrayOfDoublesSketch
    */
   HeapArrayOfDoublesCompactSketch(final ArrayOfDoublesUpdatableSketch sketch) {
+    this(sketch, sketch.getThetaLong());
+  }
+
+  /**
+   * Converts the given UpdatableArrayOfDoublesSketch to this compact form
+   * trimming if necessary according to given theta
+   * @param sketch the given UpdatableArrayOfDoublesSketch
+   * @param theta new value of theta
+   */
+  HeapArrayOfDoublesCompactSketch(final ArrayOfDoublesUpdatableSketch sketch, final long theta) {
     super(sketch.getNumValues());
     isEmpty_ = sketch.isEmpty();
-    theta_ = sketch.getThetaLong();
+    theta_ = Math.min(sketch.getThetaLong(), theta);
     seedHash_ = Util.computeSeedHash(sketch.getSeed());
     final int count = sketch.getRetainedEntries();
     if (count > 0) {
@@ -40,9 +50,22 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
       final ArrayOfDoublesSketchIterator it = sketch.iterator();
       int i = 0;
       while (it.next()) {
-        keys_[i] = it.getKey();
-        System.arraycopy(it.getValues(), 0, values_, i * numValues_, numValues_);
-        i++;
+        final long key = it.getKey();
+        if (key < theta_) {
+          keys_[i] = key;
+          System.arraycopy(it.getValues(), 0, values_, i * numValues_, numValues_);
+          i++;
+        }
+      }
+      // trim if necessary
+      if (i < count) {
+        if (i == 0) {
+          keys_ = null;
+          values_ = null;
+        } else {
+          keys_ = Arrays.copyOf(keys_, i);
+          values_ = Arrays.copyOf(values_, i * numValues_); 
+        }
       }
     }
   }
@@ -86,15 +109,15 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
           "Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
     }
     final boolean isBigEndian =
-        mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_BIG_ENDIAN.ordinal()));
+        (mem.getByte(FLAGS_BYTE) & (1 << Flags.IS_BIG_ENDIAN.ordinal())) != 0;
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
       throw new SketchesArgumentException("Byte order mismatch");
     }
     Util.checkSeedHashes(seedHash_, Util.computeSeedHash(seed));
-    isEmpty_ = mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.IS_EMPTY.ordinal()));
+    isEmpty_ = (mem.getByte(FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
     theta_ = mem.getLong(THETA_LONG);
     final boolean hasEntries =
-        mem.isAllBitsSet(FLAGS_BYTE, (byte) (1 << Flags.HAS_ENTRIES.ordinal()));
+        (mem.getByte(FLAGS_BYTE) & (1 << Flags.HAS_ENTRIES.ordinal())) != 0;
     if (hasEntries) {
       final int count = mem.getInt(RETAINED_ENTRIES_INT);
       keys_ = new long[count];
@@ -118,7 +141,7 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
           ENTRIES_START + SIZE_OF_KEY_BYTES * count + SIZE_OF_VALUE_BYTES * numValues_ * count;
     }
     final byte[] bytes = new byte[sizeBytes];
-    final Memory mem = new NativeMemory(bytes);
+    final WritableMemory mem = WritableMemory.wrap(bytes);
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
     mem.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
     mem.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());

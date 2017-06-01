@@ -15,7 +15,7 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
@@ -30,8 +30,8 @@ public class HeapIntersectionTest {
     int lgK = 9;
     int k = 1<<lgK;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<k/2; i++) usk1.update(i);
     for (int i=k/2; i<k; i++) usk2.update(i);
@@ -54,7 +54,7 @@ public class HeapIntersectionTest {
     boolean compact = true;
     int bytes = rsk1.getCurrentBytes(compact);
     byte[] byteArray = new byte[bytes];
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
 
     rsk1 = inter.getResult(!ordered, mem);
     assertEquals(rsk1.getEstimate(), 0.0);
@@ -68,8 +68,8 @@ public class HeapIntersectionTest {
     int lgK = 9;
     int k = 1<<lgK;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<k; i++) usk1.update(i);
     for (int i=0; i<k; i++) usk2.update(i);
@@ -90,7 +90,7 @@ public class HeapIntersectionTest {
     boolean compact = true;
     int bytes = rsk1.getCurrentBytes(compact);
     byte[] byteArray = new byte[bytes];
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
 
     rsk1 = inter.getResult(!ordered, mem); //executed twice to fully exercise the internal state machine
     assertEquals(rsk1.getEstimate(), (double)k);
@@ -105,8 +105,8 @@ public class HeapIntersectionTest {
     int k = 1<<lgK;
     int u = 4*k;
 
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<u; i++) usk1.update(i);
     for (int i=u/2; i<u + u/2; i++) usk2.update(i); //inter 512
@@ -151,7 +151,7 @@ public class HeapIntersectionTest {
     println("Est: "+est); // = 0
 
     //1st call = empty
-    sk = UpdateSketch.builder().build(k); //empty
+    sk = UpdateSketch.builder().setNominalEntries(k).build(); //empty
     inter = SetOperation.builder().buildIntersection();
     inter.update(sk);
     rsk1 = inter.getResult(false, null);
@@ -160,7 +160,7 @@ public class HeapIntersectionTest {
     println("Est: "+est); // = 0
 
     //1st call = valid and not empty
-    sk = UpdateSketch.builder().build(k);
+    sk = UpdateSketch.builder().setNominalEntries(k).build();
     sk.update(1);
     inter = SetOperation.builder().buildIntersection();
     inter.update(sk);
@@ -326,7 +326,7 @@ public class HeapIntersectionTest {
     double est;
 
     //1st call = valid
-    sk1 = UpdateSketch.builder().build(k);
+    sk1 = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<2*k; i++) sk1.update(i);  //est mode
     println("sk1: "+sk1.getEstimate());
 
@@ -334,7 +334,7 @@ public class HeapIntersectionTest {
     inter.update(sk1);
 
     //2nd call = valid intersecting
-    sk2 = UpdateSketch.builder().build(k);
+    sk2 = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<2*k; i++) sk2.update(i);  //est mode
     println("sk2: "+sk2.getEstimate());
 
@@ -354,7 +354,7 @@ public class HeapIntersectionTest {
     CompactSketch resultComp1, resultComp2;
     double est, est2;
 
-    sk1 = UpdateSketch.builder().build(k);
+    sk1 = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<2*k; i++) sk1.update(i);  //est mode
     CompactSketch compSkIn1 = sk1.compact(true, null);
     println("compSkIn1: "+compSkIn1.getEstimate());
@@ -364,7 +364,7 @@ public class HeapIntersectionTest {
     inter.update(compSkIn1);
 
     //2nd call = valid intersecting
-    sk2 = UpdateSketch.builder().build(k);
+    sk2 = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<2*k; i++) sk2.update(i);  //est mode
     CompactSketch compSkIn2 = sk2.compact(true, null);
     println("compSkIn2: "+compSkIn2.getEstimate());
@@ -376,7 +376,7 @@ public class HeapIntersectionTest {
     println("Est: "+est);
 
     byte[] byteArray = inter.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    Memory mem = Memory.wrap(byteArray);
     inter2 = (Intersection) SetOperation.heapify(mem);
     //inter2 = new Intersection(mem, seed);
     resultComp2 = inter2.getResult(false, null);
@@ -393,14 +393,14 @@ public class HeapIntersectionTest {
 
     inter1 = SetOperation.builder().buildIntersection(); //virgin
     byte[] byteArray = inter1.toByteArray();
-    Memory srcMem = new NativeMemory(byteArray);
+    Memory srcMem = Memory.wrap(byteArray);
     inter2 = (Intersection) SetOperation.heapify(srcMem);
     //inter2 is in virgin state, empty = false
 
     inter1.update(null);  //A virgin intersection intersected with null => empty = true;
     byteArray = inter1.toByteArray(); //update the byteArray
 
-    srcMem = new NativeMemory(byteArray);
+    srcMem = Memory.wrap(byteArray);
     inter2 = (Intersection) SetOperation.heapify(srcMem);
     CompactSketch comp = inter2.getResult(true, null);
     assertEquals(comp.getRetainedEntries(false), 0);
@@ -416,18 +416,18 @@ public class HeapIntersectionTest {
 
     inter1 = SetOperation.builder().buildIntersection(); //virgin
     byte[] byteArray = inter1.toByteArray();
-    Memory srcMem = new NativeMemory(byteArray);
+    Memory srcMem = Memory.wrap(byteArray);
     inter2 = (Intersection) SetOperation.heapify(srcMem);
     //inter2 is in virgin state
 
-    sk1 = UpdateSketch.builder().setP((float) .005).setFamily(Family.QUICKSELECT).build(k);
+    sk1 = UpdateSketch.builder().setP((float) .005).setFamily(Family.QUICKSELECT).setNominalEntries(k).build();
     sk1.update(1);
     //A virgin intersection (empty = false) intersected with a not-empty zero cache sketch
     //remains empty = false!
 
     inter1.update(sk1);
     byteArray = inter1.toByteArray();
-    srcMem = new NativeMemory(byteArray);
+    srcMem = Memory.wrap(byteArray);
     inter2 = (Intersection) SetOperation.heapify(srcMem);
     CompactSketch comp = inter2.getResult(true, null);
     assertEquals(comp.getRetainedEntries(false), 0);
@@ -438,7 +438,7 @@ public class HeapIntersectionTest {
   public void checkBadPreambleLongs() {
     Intersection inter1 = SetOperation.builder().buildIntersection(); //virgin
     byte[] byteArray = inter1.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     //corrupt:
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 2); //RF not used = 0
     SetOperation.heapify(mem);
@@ -448,7 +448,7 @@ public class HeapIntersectionTest {
   public void checkBadSerVer() {
     Intersection inter1 = SetOperation.builder().buildIntersection(); //virgin
     byte[] byteArray = inter1.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     //corrupt:
     mem.putByte(SER_VER_BYTE, (byte) 2);
     SetOperation.heapify(mem);
@@ -457,9 +457,9 @@ public class HeapIntersectionTest {
   @Test(expectedExceptions = ClassCastException.class)
   public void checkFamilyID() {
     int k = 32;
-    Union union = SetOperation.builder().buildUnion(k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
     byte[] byteArray = union.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    Memory mem = Memory.wrap(byteArray);
     Intersection inter1 = (Intersection) SetOperation.heapify(mem); //bad cast
     println(inter1.toString());
   }
@@ -470,7 +470,7 @@ public class HeapIntersectionTest {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
     inter1.update(sk); //initializes to a true empty intersection.
     byte[] byteArray = inter1.toByteArray();
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     //corrupt:
     mem.putInt(RETAINED_ENTRIES_INT, 1);
     SetOperation.heapify(mem);

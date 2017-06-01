@@ -16,7 +16,7 @@ import java.util.Random;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 
 public class PairwiseCornerCasesTest {
 
@@ -34,9 +34,9 @@ public class PairwiseCornerCasesTest {
   }
 
   private static void compareSetOps(int k, int loA, int hiA, int loB, int hiB) {
-    UpdateSketch skA = Sketches.updateSketchBuilder().build(k);
-    UpdateSketch skB = Sketches.updateSketchBuilder().build(k);
-    Union union = Sketches.setOperationBuilder().buildUnion(k);
+    UpdateSketch skA = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+    UpdateSketch skB = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+    Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
     Intersection inter = Sketches.setOperationBuilder().buildIntersection();
     AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
 
@@ -94,7 +94,7 @@ public class PairwiseCornerCasesTest {
     println("StateA: " + stateA + ", StateB: " + stateB);
     CompactSketch cskA = generate(stateA, k);
     CompactSketch cskB = generate(stateB, k);
-    Union union = Sketches.setOperationBuilder().buildUnion(k);
+    Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
     Intersection inter = Sketches.setOperationBuilder().buildIntersection();
     AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
 
@@ -274,40 +274,40 @@ public class PairwiseCornerCasesTest {
         break;
       }
       case EMPTY : {
-        csk = Sketches.updateSketchBuilder().build(k).compact(true, null);
+        csk = Sketches.updateSketchBuilder().setNominalEntries(k).build().compact(true, null);
         break;
       }
       case EXACT : {
-        sk = Sketches.updateSketchBuilder().build(k);
+        sk = Sketches.updateSketchBuilder().setNominalEntries(k).build();
         for (int i = 0; i < k; i++) sk.update(i);
         csk = sk.compact(true, null);
         break;
       }
       case EST_HEAP : {
-        sk = Sketches.updateSketchBuilder().build(k);
+        sk = Sketches.updateSketchBuilder().setNominalEntries(k).build();
         for (int i = 0; i < 4*k; i++) sk.update(i);
         csk = sk.compact(true, null);
         break;
       }
       case EST_DIR : {
-        sk = Sketches.updateSketchBuilder().build(k);
+        sk = Sketches.updateSketchBuilder().setNominalEntries(k).build();
         for (int i = 0; i < 4 * k; i++) sk.update(i);
         int bytes = Sketch.getMaxCompactSketchBytes(sk.getRetainedEntries(true));
         byte[] byteArr = new byte[bytes];
-        NativeMemory mem = new NativeMemory(byteArr);
+        WritableMemory mem = WritableMemory.wrap(byteArr);
         csk = sk.compact(true, mem);
         break;
       }
       case EMPTY_THLT0 : {
-        csk = Sketches.updateSketchBuilder().setP((float)0.5).build(k).compact(true, null);
+        csk = Sketches.updateSketchBuilder().setP((float)0.5).setNominalEntries(k).build().compact(true, null);
         break;
       }
       case EST_HEAP_UNORDERED : {
-        sk = Sketches.updateSketchBuilder().build(k);
+        sk = Sketches.updateSketchBuilder().setNominalEntries(k).build();
         for (int i = 0; i < 4 * k; i++) sk.update(i);
         int bytes = Sketch.getMaxCompactSketchBytes(sk.getRetainedEntries(true));
         byte[] byteArr = new byte[bytes];
-        NativeMemory mem = new NativeMemory(byteArr);
+        WritableMemory mem = WritableMemory.wrap(byteArr);
         csk = sk.compact(false, mem);
         break;
       }

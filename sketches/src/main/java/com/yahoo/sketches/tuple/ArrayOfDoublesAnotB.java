@@ -5,7 +5,7 @@
 
 package com.yahoo.sketches.tuple;
 
-import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * Computes a set difference of two tuple sketches of type ArrayOfDoubles
@@ -37,6 +37,6 @@ public abstract class ArrayOfDoublesAnotB {
    * @return compact sketch representing the result of the operation (off-heap if memory is 
    * provided)
    */
-  public abstract ArrayOfDoublesCompactSketch getResult(Memory mem);
+  public abstract ArrayOfDoublesCompactSketch getResult(WritableMemory mem);
 
 }

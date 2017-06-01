@@ -16,7 +16,7 @@ import static org.testng.Assert.assertEquals;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 
@@ -29,7 +29,7 @@ public class ForwardCompatibilityTest {
   @Test
   public void checkSerVer1_24Bytes() {
     byte[] byteArray = new byte[24];
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     mem.putByte(0, (byte) 3); //mdLongs
     mem.putByte(1, (byte) 1); //SerVer
     mem.putByte(2, (byte) 3); //SketchType = SetSketch
@@ -42,7 +42,7 @@ public class ForwardCompatibilityTest {
     mem.putInt(8, 0); //curCount = 0
     mem.putLong(16, Long.MAX_VALUE);
 
-    Memory srcMem = new NativeMemory(byteArray);
+    Memory srcMem = Memory.wrap(byteArray);
     Sketch sketch = Sketch.heapify(srcMem);
     assertEquals(sketch.isEmpty(), true);
     assertEquals(sketch.isEstimationMode(), false);
@@ -56,7 +56,7 @@ public class ForwardCompatibilityTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkSerVer1_32Bytes_tooSmall() {
     byte[] byteArray = new byte[32];
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     mem.putByte(0, (byte) 3); //mdLongs
     mem.putByte(1, (byte) 1); //SerVer
     mem.putByte(2, (byte) 3); //SketchType = SetSketch
@@ -69,7 +69,7 @@ public class ForwardCompatibilityTest {
     mem.putInt(8, 2); //curCount = 2
     mem.putLong(16, Long.MAX_VALUE);
 
-    Memory srcMem = new NativeMemory(byteArray);
+    Memory srcMem = Memory.wrap(byteArray);
     Sketch.heapify(srcMem);
   }
 
@@ -77,7 +77,7 @@ public class ForwardCompatibilityTest {
   @Test
   public void checkSerVer1_1Value() {
     byte[] byteArray = new byte[32];
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     mem.putByte(0, (byte) 3);
     mem.putByte(1, (byte) 1); //SerVer
     //byte 2 Sketch Type, now Family
@@ -94,7 +94,7 @@ public class ForwardCompatibilityTest {
     long hash = hash(longArrIn, 0)[0] >>> 1;
     mem.putLong(24, hash);
 
-    Memory srcMem = new NativeMemory(byteArray);
+    Memory srcMem = Memory.wrap(byteArray);
     Sketch sketch = Sketch.heapify(srcMem);
     assertEquals(sketch.isEmpty(), false);
     assertEquals(sketch.isEstimationMode(), false);
@@ -109,7 +109,7 @@ public class ForwardCompatibilityTest {
   @Test
   public void checkSerVer2_8Bytes() {
     byte[] byteArray = new byte[8];
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     mem.putByte(0, (byte) 1); //mdLongs, RR = 0
     mem.putByte(1, (byte) 2); //SerVer
     mem.putByte(2, (byte) 3); //SketchType = SetSketch
@@ -122,7 +122,7 @@ public class ForwardCompatibilityTest {
     //mem.putInt(8, 0); //curCount = 0
     //mem.putLong(16, Long.MAX_VALUE);
 
-    Memory srcMem = new NativeMemory(byteArray);
+    Memory srcMem = Memory.wrap(byteArray);
     Sketch sketch = Sketch.heapify(srcMem);
     assertEquals(sketch.isEmpty(), true);
     assertEquals(sketch.isEstimationMode(), false);
@@ -136,7 +136,7 @@ public class ForwardCompatibilityTest {
   @Test
   public void checkSerVer2_24Bytes_1Value() {
     byte[] byteArray = new byte[24];
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     mem.putByte(0, (byte) 2); //mdLongs, RF (RR) = 0
     mem.putByte(1, (byte) 2); //SerVer
     mem.putByte(2, (byte) 3); //SketchType = SetSketch
@@ -149,7 +149,7 @@ public class ForwardCompatibilityTest {
     mem.putInt(8, 0); //curCount = 0
     //mem.putLong(16, Long.MAX_VALUE);
 
-    Memory srcMem = new NativeMemory(byteArray);
+    Memory srcMem = Memory.wrap(byteArray);
     Sketch sketch = Sketch.heapify(srcMem);
     assertEquals(sketch.isEmpty(), false);
     assertEquals(sketch.isEstimationMode(), false);
@@ -163,7 +163,7 @@ public class ForwardCompatibilityTest {
   @Test
   public void checkSerVer2_32Bytes_1Value() {
     byte[] byteArray = new byte[32];
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     mem.putByte(0, (byte) 3); //mdLongs, RF (RR) = 0
     mem.putByte(1, (byte) 2); //SerVer
     mem.putByte(2, (byte) 3); //SketchType = SetSketch
@@ -176,7 +176,7 @@ public class ForwardCompatibilityTest {
     mem.putInt(8, 0); //curCount = 0
     mem.putLong(16, Long.MAX_VALUE);
 
-    Memory srcMem = new NativeMemory(byteArray);
+    Memory srcMem = Memory.wrap(byteArray);
     Sketch sketch = Sketch.heapify(srcMem);
     assertEquals(sketch.isEmpty(), false);
     assertEquals(sketch.isEstimationMode(), false);
@@ -192,7 +192,7 @@ public class ForwardCompatibilityTest {
    * @param v3mem a SerVer3 CompactSketch, ordered and with 24 byte preamble.
    * @return a SerVer1 SetSketch as Memory object
    */
-  public static Memory convertSerV3toSerV1(Memory v3mem) {
+  public static WritableMemory convertSerV3toSerV1(Memory v3mem) {
     //validate that v3mem is in the right form
     int serVer = v3mem.getByte(SER_VER_BYTE);
     int famId = v3mem.getByte(FAMILY_BYTE);
@@ -219,7 +219,7 @@ public class ForwardCompatibilityTest {
     int v1preLongs = 3;
     int v1bytes = (v1preLongs+entries) << 3;
     //create new mem and place the fields for SerVer1
-    Memory v1mem = new NativeMemory(new byte[v1bytes]);
+    WritableMemory v1mem = WritableMemory.wrap(new byte[v1bytes]);
     v1mem.putByte(0, (byte)3); //Preamble = 3
     v1mem.putByte(1, (byte)1); //SerVer
     v1mem.putByte(2, (byte)3); //SketchType SetSketch = Family CompactSketch
@@ -227,7 +227,7 @@ public class ForwardCompatibilityTest {
     v1mem.putInt(RETAINED_ENTRIES_INT, entries);
     v1mem.putLong(THETA_LONG, thetaLong);
     //copy data
-    v3mem.copy(v3preLongs << 3, v1mem, v1preLongs << 3, entries << 3);
+    v3mem.copyTo(v3preLongs << 3, v1mem, v1preLongs << 3, entries << 3);
     return v1mem;
   }
   /**
@@ -235,7 +235,7 @@ public class ForwardCompatibilityTest {
    * @param v3mem a SerVer3 Compact, Ordered Sketch.
    * @return a SerVer2 SetSketch as Memory object
    */
-  public static Memory convertSerV3toSerV2(Memory v3mem) {
+  public static WritableMemory convertSerV3toSerV2(Memory v3mem) {
     //validate that v3mem is in the right form
     int serVer = v3mem.getByte(SER_VER_BYTE);
     int famId = v3mem.getByte(FAMILY_BYTE);
@@ -247,8 +247,8 @@ public class ForwardCompatibilityTest {
     int entries = (preLongs == 1)? 0 : v3mem.getInt(RETAINED_ENTRIES_INT);
     int v2bytes = (preLongs+entries) << 3;
     //create new mem and do complete copy
-    Memory v2mem = new NativeMemory(new byte[v2bytes]);
-    v3mem.copy(0, v2mem, 0, v2bytes);
+    WritableMemory v2mem = WritableMemory.wrap(new byte[v2bytes]);
+    v3mem.copyTo(0, v2mem, 0, v2bytes);
     //set serVer2
     v2mem.putByte(SER_VER_BYTE, (byte) 2);
     //adjust the flags

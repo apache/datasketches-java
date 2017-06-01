@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-16, Yahoo! Inc.
+ * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
@@ -9,8 +9,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -59,7 +58,7 @@ public class OnHeapImmutableCompactFieldsTest
     byte[] stored = new byte[9];
     byte[] expected = new byte[9];
 
-    Memory expectedMemory = new NativeMemory(expected);
+    WritableMemory expectedMemory = WritableMemory.wrap(expected);
     expectedMemory.putByte(0, (byte) 0x2);
     expectedMemory.putInt(1, vals[0]);
     expectedMemory.putInt(5, vals[1]);

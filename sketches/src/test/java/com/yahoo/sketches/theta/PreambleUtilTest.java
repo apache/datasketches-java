@@ -42,8 +42,7 @@ import static org.testng.Assert.fail;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
@@ -59,9 +58,9 @@ public class PreambleUtilTest {
     int u = 2*k;
     int bytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
     byte[] byteArray = new byte[bytes];
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
 
-    UpdateSketch quick1 = UpdateSketch.builder().initMemory(mem).build(k);
+    UpdateSketch quick1 = UpdateSketch.builder().setNominalEntries(k).build(mem);
     println(PreambleUtil.preambleToString(byteArray));
 
     Assert.assertTrue(quick1.isEmpty());
@@ -76,8 +75,8 @@ public class PreambleUtilTest {
     println(quick1.toString());
     println(PreambleUtil.preambleToString(mem));
 
-    Memory uMem = new NativeMemory(new byte[getMaxUnionBytes(k)]);
-    Union union = SetOperation.builder().initMemory(uMem).buildUnion(k);
+    WritableMemory uMem = WritableMemory.wrap(new byte[getMaxUnionBytes(k)]);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uMem);
     union.update(quick1);
     println(PreambleUtil.preambleToString(uMem));
 
@@ -110,7 +109,7 @@ public class PreambleUtilTest {
 
   @Test
   public void checkPreLongs() {
-    UpdateSketch sketch = UpdateSketch.builder().build(16);
+    UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(16).build();
     CompactSketch comp = sketch.compact(false, null);
     byte[] byteArr = comp.toByteArray();
     println(PreambleUtil.preambleToString(byteArr)); //PreLongs = 1
@@ -129,8 +128,8 @@ public class PreambleUtilTest {
   @Test
   public void checkInsertsAndExtracts() {
     byte[] arr = new byte[32];
-    Memory mem = new NativeMemory(arr);
-    Object memObj = mem.array(); //may be null
+    WritableMemory mem = WritableMemory.wrap(arr);
+    Object memObj = mem.getArray(); //may be null
     long memAdd = mem.getCumulativeOffset(0L);
 
     int v = 0;

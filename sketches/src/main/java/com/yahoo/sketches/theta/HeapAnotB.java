@@ -12,7 +12,7 @@ import static java.lang.Math.min;
 
 import java.util.Arrays;
 
-import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.Util;
@@ -56,7 +56,7 @@ final class HeapAnotB extends SetOperation implements AnotB {
   }
 
   @Override
-  public CompactSketch getResult(final boolean dstOrdered, final Memory dstMem) {
+  public CompactSketch getResult(final boolean dstOrdered, final WritableMemory dstMem) {
     final long[] compactCache = (curCount_ <= 0)
         ? new long[0]
         : Arrays.copyOfRange(cache_, 0, curCount_);

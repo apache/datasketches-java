@@ -20,7 +20,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.ArrayOfStringsSerDe;
 import com.yahoo.sketches.ArrayOfUtf16StringsSerDe;
@@ -143,7 +143,7 @@ public class ItemsSketchTest {
     ItemsSketch<String> sketch1 = new ItemsSketch<String>(1 << LG_MIN_MAP_SIZE);
     byte[] bytes = sketch1.toByteArray(new ArrayOfStringsSerDe());
     ItemsSketch<String> sketch2 = 
-        ItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfStringsSerDe());
+        ItemsSketch.getInstance(Memory.wrap(bytes), new ArrayOfStringsSerDe());
     Assert.assertTrue(sketch2.isEmpty());
     Assert.assertEquals(sketch2.getNumActiveItems(), 0);
     Assert.assertEquals(sketch2.getStreamLength(), 0);
@@ -159,7 +159,7 @@ public class ItemsSketchTest {
 
     byte[] bytes = sketch1.toByteArray(new ArrayOfStringsSerDe());
     ItemsSketch<String> sketch2 = 
-        ItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfStringsSerDe());
+        ItemsSketch.getInstance(Memory.wrap(bytes), new ArrayOfStringsSerDe());
     sketch2.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
     sketch2.update("ccccccccccccccccccccccccccccc");
     sketch2.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
@@ -183,7 +183,7 @@ public class ItemsSketchTest {
 
     byte[] bytes = sketch1.toByteArray(new ArrayOfUtf16StringsSerDe());
     ItemsSketch<String> sketch2 = 
-        ItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfUtf16StringsSerDe());
+        ItemsSketch.getInstance(Memory.wrap(bytes), new ArrayOfUtf16StringsSerDe());
     sketch2.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
     sketch2.update("ccccccccccccccccccccccccccccc");
     sketch2.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
@@ -225,7 +225,7 @@ public class ItemsSketchTest {
     
     byte[] bytes = sketch1.toByteArray(new ArrayOfLongsSerDe());
     ItemsSketch<Long> sketch2 = 
-        ItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfLongsSerDe());
+        ItemsSketch.getInstance(Memory.wrap(bytes), new ArrayOfLongsSerDe());
     sketch2.update(2L);
     sketch2.update(3L);
     sketch2.update(2L);
@@ -318,7 +318,7 @@ public class ItemsSketchTest {
     sk1.update(Long.valueOf(1), 1);
     ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     byte[] byteArr = sk1.toByteArray(serDe);
-    Memory mem = new NativeMemory(byteArr);
+    WritableMemory mem = WritableMemory.wrap(byteArr);
     //FrequentItemsSketch<Long> sk2 = FrequentItemsSketch.getInstance(mem, serDe);
     //println(sk2.toString());
     long pre0 = mem.getLong(0); //The correct first 8 bytes.
@@ -347,14 +347,14 @@ public class ItemsSketchTest {
 
     byte[] bytes = sketch1.toByteArray(new ArrayOfStringsSerDe());
     ItemsSketch<String> sketch2 = 
-        ItemsSketch.getInstance(new NativeMemory(bytes), new ArrayOfStringsSerDe());
+        ItemsSketch.getInstance(Memory.wrap(bytes), new ArrayOfStringsSerDe());
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertEquals(sketch2.getNumActiveItems(), 1);
     Assert.assertEquals(sketch2.getStreamLength(), 1);
     Assert.assertEquals(sketch2.getEstimate("\u5fb5"), 1);
   }
 
-  private static void tryBadMem(Memory mem, int byteOffset, int byteValue) {
+  private static void tryBadMem(WritableMemory mem, int byteOffset, int byteValue) {
     ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     try {
       mem.putByte(byteOffset, (byte) byteValue); //Corrupt

@@ -1,11 +1,12 @@
 /*
- * Copyright 2017, Yahoo! Inc.
- * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ * Copyright 2017, Yahoo! Inc. Licensed under the terms of the
+ * Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
 package com.yahoo.sketches.quantiles;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * @author Jon Malkin
@@ -13,6 +14,16 @@ import com.yahoo.memory.Memory;
 public abstract class UpdateDoublesSketch extends DoublesSketch {
   UpdateDoublesSketch(final int k) {
     super(k);
+  }
+
+  /**
+   * Wrap this sketch around the given non-compact Memory image of a DoublesSketch.
+   *
+   * @param srcMem the given Memory image of a DoublesSketch that may have data,
+   * @return a sketch that wraps the given srcMem
+   */
+  public static UpdateDoublesSketch wrap(final WritableMemory srcMem) {
+    return DirectUpdateDoublesSketch.wrapInstance(srcMem);
   }
 
   /**
@@ -26,12 +37,6 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
    * Resets this sketch to the empty state, but retains the original value of k.
    */
   public abstract void reset();
-
-  @Override
-  boolean isCompact() {
-    return false;
-  }
-
 
   public static UpdateDoublesSketch heapify(final Memory srcMem) {
     return HeapUpdateDoublesSketch.heapifyInstance(srcMem);
@@ -47,13 +52,25 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
    * @param dstMem An optional target memory to hold the sketch.
    * @return A compact version of this sketch
    */
-  public CompactDoublesSketch compact(final Memory dstMem) {
+  public CompactDoublesSketch compact(final WritableMemory dstMem) {
     if (dstMem == null) {
       return HeapCompactDoublesSketch.createFromUpdateSketch(this);
     } else {
       return DirectCompactDoublesSketch.createFromUpdateSketch(this, dstMem);
     }
   }
+
+  @Override
+  boolean isCompact() {
+    return false;
+  }
+
+  /**
+   * Gets the Memory if it exists, otherwise returns null.
+   * @return the Memory if it exists, otherwise returns null.
+   */
+  @Override
+  abstract WritableMemory getMemory();
 
   //Puts
 

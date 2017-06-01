@@ -13,8 +13,7 @@ import java.lang.reflect.Array;
 import java.nio.ByteOrder;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryRegion;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.sketches.ByteArrayUtil;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.QuickSelect;
@@ -165,7 +164,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     for (int i = 0; i < count; i++) {
       final long key = mem.getLong(offset);
       offset += Long.BYTES;
-      final MemoryRegion memRegion = new MemoryRegion(mem, offset, mem.getCapacity() - offset);
+      final Memory memRegion = mem.region(offset, mem.getCapacity() - offset);
       final DeserializeResult<S> summaryResult = summaryFactory_.summaryFromMemory(memRegion);
       final S summary = summaryResult.getObject();
       offset += summaryResult.getSize();
@@ -282,44 +281,43 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     }
     sizeBytes += Long.BYTES * count_ + summaryFactoryBytes.length + summariesBytesLength;
     final byte[] bytes = new byte[sizeBytes];
-    final Memory mem = new NativeMemory(bytes);
     int offset = 0;
-    mem.putByte(offset++, PREAMBLE_LONGS);
-    mem.putByte(offset++, serialVersionUID);
-    mem.putByte(offset++, (byte) Family.TUPLE.getID());
-    mem.putByte(offset++, (byte) SerializerDeserializer.SketchType.QuickSelectSketch.ordinal());
+    bytes[offset++] = PREAMBLE_LONGS;
+    bytes[offset++] = serialVersionUID;
+    bytes[offset++] = (byte) Family.TUPLE.getID();
+    bytes[offset++] = (byte) SerializerDeserializer.SketchType.QuickSelectSketch.ordinal();
     final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
-    mem.putByte(offset++, (byte) (
+    bytes[offset++] = (byte) (
       (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0)
       | (isInSamplingMode() ? 1 << Flags.IS_IN_SAMPLING_MODE.ordinal() : 0)
       | (isEmpty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0)
       | (count_ > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
       | (isThetaIncluded ? 1 << Flags.IS_THETA_INCLUDED.ordinal() : 0)
-    ));
-    mem.putByte(offset++, (byte) Integer.numberOfTrailingZeros(nomEntries_));
-    mem.putByte(offset++, (byte) lgCurrentCapacity_);
-    mem.putByte(offset++, (byte) lgResizeFactor_);
+    );
+    bytes[offset++] = (byte) Integer.numberOfTrailingZeros(nomEntries_);
+    bytes[offset++] = (byte) lgCurrentCapacity_;
+    bytes[offset++] = (byte) lgResizeFactor_;
     if (samplingProbability_ < 1f) {
-      mem.putFloat(offset, samplingProbability_);
+      ByteArrayUtil.putFloat(bytes, offset, samplingProbability_);
       offset += Float.BYTES;
     }
     if (isThetaIncluded) {
-      mem.putLong(offset, theta_);
+      ByteArrayUtil.putLong(bytes, offset, theta_);
       offset += Long.BYTES;
     }
     if (count_ > 0) {
-      mem.putInt(offset, count_);
+      ByteArrayUtil.putInt(bytes, offset, count_);
       offset += Integer.BYTES;
     }
-    mem.putByteArray(offset, summaryFactoryBytes, 0, summaryFactoryBytes.length);
+    System.arraycopy(summaryFactoryBytes, 0, bytes, offset, summaryFactoryBytes.length);
     offset += summaryFactoryBytes.length;
     if (count_ > 0) {
       int i = 0;
       for (int j = 0; j < keys_.length; j++) {
         if (summaries_[j] != null) {
-          mem.putLong(offset, keys_[j]);
+          ByteArrayUtil.putLong(bytes, offset, keys_[j]);
           offset += Long.BYTES;
-          mem.putByteArray(offset, summariesBytes[i], 0, summariesBytes[i].length);
+          System.arraycopy(summariesBytes[i], 0, bytes, offset, summariesBytes[i].length);
           offset += summariesBytes[i].length;
           i++;
         }

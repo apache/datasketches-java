@@ -6,8 +6,8 @@
 package com.yahoo.sketches;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
 import com.yahoo.memory.UnsafeUtil;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * Methods of serializing and deserializing arrays of Boolean as a bit array.
@@ -30,7 +30,7 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
   public byte[] serializeToByteArray(final Boolean[] items) {
     final int bytesNeeded = computeBytesNeeded(items.length);
     final byte[] bytes = new byte[bytesNeeded];
-    final Memory mem = new NativeMemory(bytes);
+    final WritableMemory mem = WritableMemory.wrap(bytes);
 
     byte val = 0;
     for (int i = 0; i < items.length; ++i) {

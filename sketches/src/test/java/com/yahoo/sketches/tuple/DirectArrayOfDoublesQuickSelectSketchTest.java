@@ -8,7 +8,7 @@ package com.yahoo.sketches.tuple;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -17,7 +17,7 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
   public void isEmpty() {
     ArrayOfDoublesUpdatableSketch sketch = 
         new ArrayOfDoublesUpdatableSketchBuilder().
-        setMemory(new NativeMemory(new byte[1000000])).build();
+        build(WritableMemory.wrap(new byte[1000000]));
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 0.0);
@@ -37,7 +37,7 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
     ArrayOfDoublesUpdatableSketch sketch = 
         new ArrayOfDoublesUpdatableSketchBuilder().
         setSamplingProbability(samplingProbability).
-        setMemory(new NativeMemory(new byte[1000000])).build();
+        build(WritableMemory.wrap(new byte[1000000]));
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertTrue(((DirectArrayOfDoublesQuickSelectSketch)sketch).isInSamplingMode());
     Assert.assertFalse(sketch.isEstimationMode());
@@ -58,7 +58,7 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
     ArrayOfDoublesUpdatableSketch sketch = 
         new ArrayOfDoublesUpdatableSketchBuilder().
         setSamplingProbability(samplingProbability).
-        setMemory(new NativeMemory(new byte[1000000])).build();
+        build(WritableMemory.wrap(new byte[1000000]));
     sketch.update("a", new double[] {1.0});
     Assert.assertFalse(sketch.isEmpty());
     Assert.assertTrue(sketch.isEstimationMode());
@@ -74,7 +74,7 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
   public void exactMode() {
     ArrayOfDoublesUpdatableSketch sketch = 
         new ArrayOfDoublesUpdatableSketchBuilder().
-        setMemory(new NativeMemory(new byte[1000000])).build();
+        build(WritableMemory.wrap(new byte[1000000]));
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertEquals(sketch.getEstimate(), 0.0);
     for (int i = 0; i < 4096; i++) sketch.update(i, new double[] {1.0});
@@ -114,7 +114,7 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
   public void estimationMode() {
     ArrayOfDoublesUpdatableSketch sketch = 
         new ArrayOfDoublesUpdatableSketchBuilder().
-        setMemory(new NativeMemory(new byte[4096 * 2 * 16 + 32])).build();
+        build(WritableMemory.wrap(new byte[4096 * 2 * 16 + 32]));
     Assert.assertEquals(sketch.getEstimate(), 0.0);
     for (int i = 1; i <= 8192; i++) sketch.update(i, new double[] {1.0});
     Assert.assertTrue(sketch.isEstimationMode());
@@ -152,7 +152,7 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
   public void updatesOfAllKeyTypes() {
     ArrayOfDoublesUpdatableSketch sketch = 
         new ArrayOfDoublesUpdatableSketchBuilder().
-        setMemory(new NativeMemory(new byte[1000000])).build();
+        build(WritableMemory.wrap(new byte[1000000]));
     sketch.update(1L, new double[] {1.0});
     sketch.update(2.0, new double[] {1.0});
     sketch.update(new byte[] {3}, new double[] {1.0});
@@ -166,7 +166,7 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
   public void doubleSum() {
     ArrayOfDoublesUpdatableSketch sketch = 
         new ArrayOfDoublesUpdatableSketchBuilder().
-        setMemory(new NativeMemory(new byte[1000000])).build();
+        build(WritableMemory.wrap(new byte[1000000]));
     sketch.update(1, new double[] {1.0});
     Assert.assertEquals(sketch.getRetainedEntries(), 1);
     Assert.assertEquals(sketch.getValues()[0][0], 1.0);
@@ -182,11 +182,10 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
   public void serializeDeserializeExact() throws Exception {
     ArrayOfDoublesUpdatableSketch sketch1 = 
         new ArrayOfDoublesUpdatableSketchBuilder().
-        setMemory(new NativeMemory(new byte[1000000])).build();
+        build(WritableMemory.wrap(new byte[1000000]));
     sketch1.update(1, new double[] {1.0});
 
-    ArrayOfDoublesUpdatableSketch sketch2 = (ArrayOfDoublesUpdatableSketch) 
-        ArrayOfDoublesSketches.wrapSketch(new NativeMemory(sketch1.toByteArray()));
+    ArrayOfDoublesUpdatableSketch sketch2 = ArrayOfDoublesUpdatableSketch.wrap(WritableMemory.wrap(sketch1.toByteArray()));
 
     Assert.assertEquals(sketch2.getEstimate(), 1.0);
     double[][] values = sketch2.getValues();
@@ -205,7 +204,7 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
   public void serializeDeserializeEstimationNoResize() throws Exception {
     ArrayOfDoublesUpdatableSketch sketch1 = 
         new ArrayOfDoublesUpdatableSketchBuilder().setResizeFactor(ResizeFactor.X1).
-        setMemory(new NativeMemory(new byte[1000000])).build();
+        build(WritableMemory.wrap(new byte[1000000]));
     for (int j = 0; j < 10; j++) {
       for (int i = 0; i < 8192; i++) sketch1.update(i, new double[] {1.0});
     }
@@ -214,7 +213,7 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
     //for visual testing
     //TestUtil.writeBytesToFile(byteArray, "ArrayOfDoublesQuickSelectSketch4K.data");
 
-    ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketches.wrapSketch(new NativeMemory(byteArray));
+    ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketch.wrap(WritableMemory.wrap(byteArray));
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 8192, 8192 * 0.99);
     Assert.assertEquals(sketch1.getTheta(), sketch2.getTheta());
@@ -230,10 +229,10 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
     ArrayOfDoublesUpdatableSketch sketch1 = 
         new ArrayOfDoublesUpdatableSketchBuilder().
         setNominalEntries(sketchSize).setSamplingProbability(0.5f).
-        setMemory(new NativeMemory(new byte[1000000])).build();
+        build(WritableMemory.wrap(new byte[1000000]));
     for (int i = 0; i < numberOfUniques; i++) sketch1.update(i, new double[] {1.0});
     ArrayOfDoublesSketch sketch2 = 
-        ArrayOfDoublesSketches.wrapSketch(new NativeMemory(sketch1.toByteArray()));
+        ArrayOfDoublesSketch.wrap(WritableMemory.wrap(sketch1.toByteArray()));
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate() / numberOfUniques, 1.0, 0.01);
     Assert.assertEquals(sketch2.getRetainedEntries() / (double) numberOfUniques, 0.5, 0.01);
@@ -243,6 +242,6 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void notEnoughMemory() {
     new ArrayOfDoublesUpdatableSketchBuilder().
-    setNominalEntries(32).setMemory(new NativeMemory(new byte[1055])).build();
+    setNominalEntries(32).build(WritableMemory.wrap(new byte[1055]));
   }
 }

@@ -8,7 +8,7 @@ package com.yahoo.sketches.tuple;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.Memory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -18,19 +18,19 @@ public class SerializerDeserializerTest {
   public void validSketchType() {
     byte[] bytes = new byte[4];
     bytes[SerializerDeserializer.TYPE_BYTE_OFFSET] = (byte) SerializerDeserializer.SketchType.CompactSketch.ordinal();
-    Assert.assertEquals(SerializerDeserializer.getSketchType(new NativeMemory(bytes)), SerializerDeserializer.SketchType.CompactSketch);
+    Assert.assertEquals(SerializerDeserializer.getSketchType(Memory.wrap(bytes)), SerializerDeserializer.SketchType.CompactSketch);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void invalidSketchType() {
     byte[] bytes = new byte[4];
     bytes[SerializerDeserializer.TYPE_BYTE_OFFSET] = 33;
-    SerializerDeserializer.getSketchType(new NativeMemory(bytes));
+    SerializerDeserializer.getSketchType(Memory.wrap(bytes));
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void deserializeFromMemoryUsupportedClass() {
-    NativeMemory mem = null;
+    Memory mem = null;
     SerializerDeserializer.deserializeFromMemory(mem, 0, "bogus");
   }
 

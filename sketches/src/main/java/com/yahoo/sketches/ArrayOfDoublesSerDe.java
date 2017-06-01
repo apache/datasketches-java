@@ -6,8 +6,8 @@
 package com.yahoo.sketches;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
 import com.yahoo.memory.UnsafeUtil;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * Methods of serializing and deserializing arrays of Double.
@@ -19,7 +19,7 @@ public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
   @Override
   public byte[] serializeToByteArray(final Double[] items) {
     final byte[] bytes = new byte[Double.BYTES * items.length];
-    final Memory mem = new NativeMemory(bytes);
+    final WritableMemory mem = WritableMemory.wrap(bytes);
     long offsetBytes = 0;
     for (int i = 0; i < items.length; i++) {
       mem.putDouble(offsetBytes, items[i]);

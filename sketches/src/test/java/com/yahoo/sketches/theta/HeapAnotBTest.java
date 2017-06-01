@@ -10,8 +10,7 @@ import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.Util;
 
@@ -24,8 +23,8 @@ public class HeapAnotBTest {
   public void checkExactAnotB_AvalidNoOverlap() {
     int k = 512;
     
-    UpdateSketch usk1 = UpdateSketch.builder().build(k);
-    UpdateSketch usk2 = UpdateSketch.builder().build(k);
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
     
     for (int i=0; i<k/2; i++) usk1.update(i);
     for (int i=k/2; i<k; i++) usk2.update(i);
@@ -45,7 +44,7 @@ public class HeapAnotBTest {
     //getCurrentBytes( compact )
     int bytes = rsk1.getCurrentBytes(true);
     byte[] byteArray = new byte[bytes];
-    Memory mem = new NativeMemory(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     
     aNb.update(usk1, usk2);
     rsk1 = aNb.getResult(false, mem);
@@ -61,15 +60,15 @@ public class HeapAnotBTest {
     int k = 512;
     UpdateSketch aNull = null;
     UpdateSketch bNull = null;
-    UpdateSketch aEmpty = UpdateSketch.builder().build(k);
-    UpdateSketch bEmpty = UpdateSketch.builder().build(k);
+    UpdateSketch aEmpty = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdateSketch bEmpty = UpdateSketch.builder().setNominalEntries(k).build();
     
-    UpdateSketch aHT = UpdateSketch.builder().build(k);
+    UpdateSketch aHT = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) aHT.update(i);
     CompactSketch aC = aHT.compact(false, null);
     CompactSketch aO = aHT.compact(true,  null);
     
-    UpdateSketch bHT = UpdateSketch.builder().build(k);
+    UpdateSketch bHT = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=k/2; i<(k+k/2); i++) bHT.update(i); //overlap is k/2
     CompactSketch bC = bHT.compact(false, null);
     CompactSketch bO = bHT.compact(true,  null);
@@ -240,13 +239,13 @@ public class HeapAnotBTest {
     int k = 1024;
     boolean ordered = true;
     
-    UpdateSketch aU = UpdateSketch.builder().build(k);
+    UpdateSketch aU = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) aU.update(i);        //All 1024
     
-    UpdateSketch bU = UpdateSketch.builder().build(k);
+    UpdateSketch bU = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<k/2; i++) bU.update(i);      //512
     
-    UpdateSketch cU = UpdateSketch.builder().build(k);
+    UpdateSketch cU = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=k/2; i<3*k/4; i++) cU.update(i);  //256
     
     int memBytes = Sketch.getMaxUpdateSketchBytes(k);
@@ -254,8 +253,8 @@ public class HeapAnotBTest {
     
     byte[] memArr1 = new byte[memBytes];
     byte[] memArr2 = new byte[memBytes];
-    Memory mem1 = new NativeMemory(memArr1);
-    Memory mem2 = new NativeMemory(memArr2);
+    WritableMemory mem1 = WritableMemory.wrap(memArr1);
+    WritableMemory mem2 = WritableMemory.wrap(memArr2);
     
     AnotB aNb = SetOperation.builder().buildANotB();
     aNb.update(aU, bU);
@@ -273,19 +272,19 @@ public class HeapAnotBTest {
     int k = 1024;
     boolean ordered = true;
     
-    UpdateSketch a = UpdateSketch.builder().build(k);
+    UpdateSketch a = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) a.update(i);        //All 1024
     
-    UpdateSketch b = UpdateSketch.builder().build(k);
+    UpdateSketch b = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<k/2; i++) b.update(i);      //512
     
-    UpdateSketch c = UpdateSketch.builder().build(k);
+    UpdateSketch c = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=k/2; i<3*k/4; i++) c.update(i);  //256
     
     int memBytes = Sketch.getMaxCompactSketchBytes(a.getCurrentBytes(true));
     
     byte[] memArr = new byte[memBytes];
-    Memory mem = new NativeMemory(memArr);
+    WritableMemory mem = WritableMemory.wrap(memArr);
     
     CompactSketch r;
     AnotB aNb = SetOperation.builder().buildANotB();

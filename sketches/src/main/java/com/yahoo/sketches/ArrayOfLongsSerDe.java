@@ -6,8 +6,8 @@
 package com.yahoo.sketches;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
 import com.yahoo.memory.UnsafeUtil;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * Methods of serializing and deserializing arrays of Long.
@@ -19,7 +19,7 @@ public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
   @Override
   public byte[] serializeToByteArray(final Long[] items) {
     final byte[] bytes = new byte[Long.BYTES * items.length];
-    final Memory mem = new NativeMemory(bytes);
+    final WritableMemory mem = WritableMemory.wrap(bytes);
     long offsetBytes = 0;
     for (int i = 0; i < items.length; i++) {
       mem.putLong(offsetBytes, items[i]);

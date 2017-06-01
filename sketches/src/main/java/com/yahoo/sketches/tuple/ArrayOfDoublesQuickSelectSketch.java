@@ -9,6 +9,7 @@ import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
 import static com.yahoo.sketches.Util.RESIZE_THRESHOLD;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.QuickSelect;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -73,10 +74,14 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
 
   abstract double[] find(long key);
 
+  abstract int getSerializedSizeBytes();
+
+  abstract void serializeInto(WritableMemory mem);
+
   @Override
   public void trim() {
     if (getRetainedEntries() > getNominalEntries()) {
-      updateTheta();
+      setThetaLong(getNewTheta());
       rebuild();
     }
   }
@@ -113,7 +118,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   void rebuildIfNeeded() {
     if (getRetainedEntries() < rebuildThreshold_) { return; }
     if (getCurrentCapacity() > getNominalEntries()) {
-      updateTheta();
+      setThetaLong(getNewTheta());
       rebuild();
     } else {
       rebuild(getCurrentCapacity() * getResizeFactor());
@@ -156,14 +161,14 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
     rebuildIfNeeded();
   }
 
-  void updateTheta() {
+  long getNewTheta() {
     final long[] keys = new long[getRetainedEntries()];
     int i = 0;
     for (int j = 0; j < getCurrentCapacity(); j++) {
       final long key = getKey(j);
       if (key != 0) { keys[i++] = key; }
     }
-    setThetaLong(QuickSelect.select(keys, 0, getRetainedEntries() - 1, getNominalEntries()));
+    return QuickSelect.select(keys, 0, getRetainedEntries() - 1, getNominalEntries());
   }
 
 }

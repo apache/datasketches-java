@@ -22,8 +22,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.UNION_THETA_LONG;
 import static java.lang.Math.min;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.MemoryUtil;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
@@ -78,7 +77,7 @@ final class UnionImpl extends SetOperation implements Union {
    * @return this class
    */
   static UnionImpl initNewDirectInstance(final int lgNomLongs, final long seed, final float p,
-          final ResizeFactor rf, final Memory dstMem) {
+          final ResizeFactor rf, final WritableMemory dstMem) {
     final UpdateSketch gadget = DirectQuickSelectSketch.initNewDirectInstance(
         lgNomLongs, seed, p, rf, dstMem, true); //create with UNION family
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
@@ -113,7 +112,23 @@ final class UnionImpl extends SetOperation implements Union {
    */
   static UnionImpl fastWrap(final Memory srcMem, final long seed) {
     Family.UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
-    final UpdateSketch gadget = DirectQuickSelectSketch.fastWrap(srcMem, seed);
+    final UpdateSketch gadget = DirectQuickSelectSketchR.fastReadOnlyWrap(srcMem, seed);
+    final UnionImpl unionImpl = new UnionImpl(gadget, seed);
+    unionImpl.unionThetaLong_ = srcMem.getLong(UNION_THETA_LONG);
+    return unionImpl;
+  }
+
+  /**
+   * Fast-wrap a Union object around a Union Memory object containing data.
+   * This does NO validity checking of the given Memory.
+   * @param srcMem The source Memory object.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @return this class
+   */
+  static UnionImpl fastWrap(final WritableMemory srcMem, final long seed) {
+    Family.UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
+    final UpdateSketch gadget = DirectQuickSelectSketch.fastWritableWrap(srcMem, seed);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = srcMem.getLong(UNION_THETA_LONG);
     return unionImpl;
@@ -129,16 +144,30 @@ final class UnionImpl extends SetOperation implements Union {
    */
   static UnionImpl wrapInstance(final Memory srcMem, final long seed) {
     Family.UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
-    final UpdateSketch gadget = DirectQuickSelectSketch.wrapInstance(srcMem, seed);
+    final UpdateSketch gadget = DirectQuickSelectSketchR.readOnlyWrap(srcMem, seed);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = srcMem.getLong(UNION_THETA_LONG);
     return unionImpl;
   }
 
-
+  /**
+   * Wrap a Union object around a Union Memory object containing data.
+   * Called by SetOperation.
+   * @param srcMem The source Memory object.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @return this class
+   */
+  static UnionImpl wrapInstance(final WritableMemory srcMem, final long seed) {
+    Family.UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
+    final UpdateSketch gadget = DirectQuickSelectSketch.writableWrap(srcMem, seed);
+    final UnionImpl unionImpl = new UnionImpl(gadget, seed);
+    unionImpl.unionThetaLong_ = srcMem.getLong(UNION_THETA_LONG);
+    return unionImpl;
+  }
 
   @Override
-  public CompactSketch getResult(final boolean dstOrdered, final Memory dstMem) {
+  public CompactSketch getResult(final boolean dstOrdered, final WritableMemory dstMem) {
     final int gadgetCurCount = gadget_.getRetainedEntries(true);
     final int k = 1 << gadget_.getLgNomLongs();
     final long[] gadgetCacheCopy =
@@ -179,7 +208,7 @@ final class UnionImpl extends SetOperation implements Union {
   @Override
   public byte[] toByteArray() {
     final byte[] gadgetByteArr = gadget_.toByteArray();
-    final Memory mem = new NativeMemory(gadgetByteArr);
+    final WritableMemory mem = WritableMemory.wrap(gadgetByteArr);
     mem.putLong(UNION_THETA_LONG, unionThetaLong_); // union theta
     return gadgetByteArr;
   }
@@ -192,7 +221,7 @@ final class UnionImpl extends SetOperation implements Union {
   @Override
   public boolean isSameResource(final Memory mem) {
     if (gadget_.isDirect()) {
-      return MemoryUtil.isSameResource(gadget_.getMemory(), mem);
+      return gadget_.getMemory().isSameResource(mem);
     } else {
       return false;
     }
@@ -215,7 +244,7 @@ final class UnionImpl extends SetOperation implements Union {
     if (sketchIn.isOrdered()) { //Only true if Compact. Use early stop
 
       if (sketchIn.isDirect()) { //ordered, direct thus compact
-        final Memory skMem = sketchIn.getMemory();
+        final Memory skMem = ((CompactSketch) sketchIn).getMemory();
         final int preambleLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
         for (int i = 0; i < curCountIn; i++ ) {
           final int offsetBytes = (preambleLongs + i) << 3;
@@ -386,7 +415,7 @@ final class UnionImpl extends SetOperation implements Union {
       thetaLongIn = skMem.getLong(THETA_LONG);
     }
     unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule
-    final boolean ordered = skMem.isAnyBitsSet(FLAGS_BYTE, (byte) ORDERED_FLAG_MASK);
+    final boolean ordered = (skMem.getByte(FLAGS_BYTE) & ORDERED_FLAG_MASK) != 0;
     if (ordered) { //must be compact
       for (int i = 0; i < curCount; i++ ) {
         final int offsetBytes = (preLongs + i) << 3;
@@ -396,7 +425,7 @@ final class UnionImpl extends SetOperation implements Union {
       }
     }
     else { //not-ordered, could be compact or hash-table form
-      final boolean compact = skMem.isAnyBitsSet(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
+      final boolean compact = (skMem.getByte(FLAGS_BYTE) & COMPACT_FLAG_MASK) != 0;
       final int size = (compact) ? curCount : 1 << skMem.getByte(LG_ARR_LONGS_BYTE);
       for (int i = 0; i < size; i++ ) {
         final int offsetBytes = (preLongs + i) << 3;

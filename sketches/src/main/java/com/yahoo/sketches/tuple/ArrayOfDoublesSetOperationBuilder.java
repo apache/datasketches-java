@@ -7,7 +7,7 @@ package com.yahoo.sketches.tuple;
 
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 
-import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * Builds set operations object for tuple sketches of type ArrayOfDoubles.
@@ -17,7 +17,6 @@ public class ArrayOfDoublesSetOperationBuilder {
   private int nomEntries_;
   private int numValues_;
   private long seed_;
-  private Memory dstMem_;
 
   private static final int DEFAULT_NOMINAL_ENTRIES = 4096;
   private static final int DEFAULT_NUMBER_OF_VALUES = 1;
@@ -63,25 +62,22 @@ public class ArrayOfDoublesSetOperationBuilder {
   }
 
   /**
-   * This is to set destination memory to be used by the sketch
-   * @param dstMem instance of Memory
-   * @return this builder
-   */
-  public ArrayOfDoublesSetOperationBuilder setMemory(final Memory dstMem) {
-    dstMem_ = dstMem;
-    return this;
-  }
-
-  /**
    * Creates an instance of ArrayOfDoublesUnion based on the current configuration of the builder.
    * The new instance is allocated on the heap if the memory is not provided.
    * @return an instance of ArrayOfDoublesUnion
    */
   public ArrayOfDoublesUnion buildUnion() {
-    if (dstMem_ == null) {
-      return new HeapArrayOfDoublesUnion(nomEntries_, numValues_, seed_);
-    }
-    return new DirectArrayOfDoublesUnion(nomEntries_, numValues_, seed_, dstMem_);
+    return new HeapArrayOfDoublesUnion(nomEntries_, numValues_, seed_);
+  }
+
+  /**
+   * Creates an instance of ArrayOfDoublesUnion based on the current configuration of the builder
+   * and the given memory.
+   * @param dstMem destination memory to be used by the sketch
+   * @return an instance of ArrayOfDoublesUnion
+   */
+  public ArrayOfDoublesUnion buildUnion(final WritableMemory dstMem) {
+    return new DirectArrayOfDoublesUnion(nomEntries_, numValues_, seed_, dstMem);
   }
 
   /**
@@ -92,10 +88,19 @@ public class ArrayOfDoublesSetOperationBuilder {
    * @return an instance of ArrayOfDoublesIntersection
    */
   public ArrayOfDoublesIntersection buildIntersection() {
-    if (dstMem_ == null) {
-      return new HeapArrayOfDoublesIntersection(numValues_, seed_);
-    }
-    return new DirectArrayOfDoublesIntersection(numValues_, seed_, dstMem_);
+    return new HeapArrayOfDoublesIntersection(numValues_, seed_);
+  }
+
+  /**
+   * Creates an instance of ArrayOfDoublesIntersection based on the current configuration of the 
+   * builder.
+   * The new instance is allocated on the heap if the memory is not provided.
+   * The number of nominal entries is not relevant to this, so it is ignored.
+   * @param dstMem destination memory to be used by the sketch
+   * @return an instance of ArrayOfDoublesIntersection
+   */
+  public ArrayOfDoublesIntersection buildIntersection(final WritableMemory dstMem) {
+    return new DirectArrayOfDoublesIntersection(numValues_, seed_, dstMem);
   }
 
   /**

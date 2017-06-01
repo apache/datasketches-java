@@ -11,7 +11,7 @@ import java.lang.reflect.Array;
 import java.nio.ByteOrder;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.NativeMemory;
+import com.yahoo.sketches.ByteArrayUtil;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -153,35 +153,35 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
         + Long.BYTES * count + summariesBytesLength;
     }
     final byte[] bytes = new byte[sizeBytes];
-    final Memory mem = new NativeMemory(bytes);
+    //final WritableMemory mem = WritableMemory.wrap(bytes);
     int offset = 0;
-    mem.putByte(offset++, PREAMBLE_LONGS);
-    mem.putByte(offset++, serialVersionUID);
-    mem.putByte(offset++, (byte) Family.TUPLE.getID());
-    mem.putByte(offset++, (byte) SerializerDeserializer.SketchType.CompactSketch.ordinal());
+    bytes[offset++] = PREAMBLE_LONGS;
+    bytes[offset++] = serialVersionUID;
+    bytes[offset++] = (byte) Family.TUPLE.getID();
+    bytes[offset++] = (byte) SerializerDeserializer.SketchType.CompactSketch.ordinal();
     final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
-    mem.putByte(offset++, (byte) (
+    bytes[offset++] = (byte) (
       (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0)
       | (isEmpty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0)
       | (count > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
       | (isThetaIncluded ? 1 << Flags.IS_THETA_INCLUDED.ordinal() : 0)
-    ));
+    );
     if (isThetaIncluded) { //TODO check byte allignment to 8 bytes.
-      mem.putLong(offset, theta_);
+      ByteArrayUtil.putLong(bytes, offset, theta_);
       offset += Long.BYTES;
     }
     if (count > 0) {
-      mem.putByte(offset++, (byte) summaryClassName.length());
-      mem.putInt(offset, getRetainedEntries());
+      bytes[offset++] = (byte) summaryClassName.length();
+      ByteArrayUtil.putInt(bytes, offset, getRetainedEntries());
       offset += Integer.BYTES;
-      mem.putByteArray(offset, summaryClassName.getBytes(UTF_8), 0, summaryClassName.length());
+      System.arraycopy(summaryClassName.getBytes(UTF_8), 0, bytes, offset, summaryClassName.length());
       offset += summaryClassName.length();
       for (int i = 0; i < count; i++) {
-        mem.putLong(offset, keys_[i]);
+        ByteArrayUtil.putLong(bytes, offset, keys_[i]);
         offset += Long.BYTES;
       }
       for (int i = 0; i < count; i++) {
-        mem.putByteArray(offset, summariesBytes[i], 0, summariesBytes[i].length);
+        System.arraycopy(summariesBytes[i], 0, bytes, offset, summariesBytes[i].length);
         offset += summariesBytes[i].length;
       }
     }
