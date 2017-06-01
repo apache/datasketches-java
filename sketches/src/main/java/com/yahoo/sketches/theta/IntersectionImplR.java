@@ -85,11 +85,10 @@ class IntersectionImplR extends SetOperation implements Intersection {
    */
   static IntersectionImplR wrapInstance(final Memory srcMem, final long seed) {
     final IntersectionImplR impl = new IntersectionImplR((WritableMemory) srcMem, seed, false);
-    return internalWrapInstance(srcMem, seed, impl);
+    return internalWrapInstance(srcMem, impl);
   }
 
-  static IntersectionImplR internalWrapInstance(final Memory srcMem, final long seed,
-      final IntersectionImplR impl) {
+  static IntersectionImplR internalWrapInstance(final Memory srcMem, final IntersectionImplR impl) {
     //Get Preamble
     //Note: Intersection does not use lgNomLongs (or k), per se.
     //seedHash loaded and checked in private constructor

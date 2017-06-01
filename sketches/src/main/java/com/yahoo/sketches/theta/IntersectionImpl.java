@@ -153,7 +153,7 @@ final class IntersectionImpl extends IntersectionImplR {
    */
   static IntersectionImpl wrapInstance(final WritableMemory srcMem, final long seed) {
     final IntersectionImpl impl = new IntersectionImpl(srcMem, seed, false);
-    return (IntersectionImpl) internalWrapInstance(srcMem, seed, impl);
+    return (IntersectionImpl) internalWrapInstance(srcMem, impl);
   }
 
   @Override
