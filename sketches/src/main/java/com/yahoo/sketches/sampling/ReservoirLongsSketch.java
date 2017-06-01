@@ -16,8 +16,11 @@ import static com.yahoo.sketches.sampling.PreambleUtil.extractN;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractResizeFactor;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractSerVer;
+import static com.yahoo.sketches.sampling.SamplingUtil.pseudoHypergeometricLBonP;
+import static com.yahoo.sketches.sampling.SamplingUtil.pseudoHypergeometricUBonP;
 
 import java.util.Arrays;
+import java.util.function.Predicate;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
@@ -394,6 +397,49 @@ public final class ReservoirLongsSketch {
     }
 
     return outArr;
+  }
+
+  /**
+   * Computes an estimated subset sum from the entire stream for objects matching a given
+   * predicate. Provides a lower bound, estimate, and upper bound using a target of 2 standard
+   * deviations.
+   *
+   * <p>This is technically a heuristic method, and tries to err on the conservative side.</p>
+   *
+   * @param predicate A predicate to use when identifying items.
+   * @return A summary object containing the estimate, upper and lower bounds, and the total
+   * sketch weight.
+   */
+  public SampleSubsetSummary estimateSubsetSum(final Predicate<Long> predicate) {
+    if (itemsSeen_ == 0) {
+      return new SampleSubsetSummary(0.0, 0.0, 0.0, 0.0);
+    }
+
+    final long numSamples = getNumSamples();
+    final double samplingRate = numSamples / (double) itemsSeen_;
+    assert samplingRate >= 0.0;
+    assert samplingRate <= 1.0;
+
+    int trueCount = 0;
+    for (int i = 0; i < numSamples; ++i) {
+      if (predicate.test(data_[i])) {
+        ++trueCount;
+      }
+    }
+
+    // if in exact mode, we can return an exact answer
+    if (itemsSeen_ <= reservoirSize_) {
+      return new SampleSubsetSummary(trueCount, trueCount, trueCount, numSamples);
+    }
+
+    final double lbTrueFraction = pseudoHypergeometricLBonP(numSamples, trueCount, samplingRate);
+    final double estimatedTrueFraction = (1.0 * trueCount) / numSamples;
+    final double ubTrueFraction = pseudoHypergeometricUBonP(numSamples, trueCount, samplingRate);
+    return new SampleSubsetSummary(
+            itemsSeen_ * lbTrueFraction,
+            itemsSeen_ * estimatedTrueFraction,
+            itemsSeen_ * ubTrueFraction,
+            itemsSeen_);
   }
 
   double getImplicitSampleWeight() {

@@ -5,8 +5,6 @@
 
 package com.yahoo.sketches.sampling;
 
-import static com.yahoo.sketches.BoundsOnBinomialProportions.approximateLowerBoundOnP;
-import static com.yahoo.sketches.BoundsOnBinomialProportions.approximateUpperBoundOnP;
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.sampling.PreambleUtil.GADGET_FLAG_MASK;
@@ -22,6 +20,8 @@ import static com.yahoo.sketches.sampling.PreambleUtil.extractResizeFactor;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.sampling.PreambleUtil.extractTotalRWeight;
 import static com.yahoo.sketches.sampling.PreambleUtil.getAndCheckPreLongs;
+import static com.yahoo.sketches.sampling.SamplingUtil.pseudoHypergeometricLBonP;
+import static com.yahoo.sketches.sampling.SamplingUtil.pseudoHypergeometricUBonP;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -63,11 +63,6 @@ final class VarOptItemsSketch<T> {
    * Default sampling size multiple when reallocating storage: 8
    */
   private static final ResizeFactor DEFAULT_RESIZE_FACTOR = ResizeFactor.X8;
-
-  /**
-   * Number of standard deviations to use for error bounds
-   */
-  private static final double DEFAULT_KAPPA = 2.0;
 
   private static final ArrayOfBooleansSerDe MARK_SERDE = new ArrayOfBooleansSerDe();
 
@@ -594,10 +589,10 @@ final class VarOptItemsSketch<T> {
    * @return A summary object containing the estimate, upper and lower bounds, and the total
    * sketch weight.
    */
-  public VarOptSubsetSummary estimateSubsetSum(final Predicate<T> predicate) {
+  public SampleSubsetSummary estimateSubsetSum(final Predicate<T> predicate) {
 
     if (n_ == 0) {
-      return new VarOptSubsetSummary(0.0, 0.0, 0.0, 0.0);
+      return new SampleSubsetSummary(0.0, 0.0, 0.0, 0.0);
     }
 
     double totalWtH = 0.0;
@@ -613,7 +608,7 @@ final class VarOptItemsSketch<T> {
 
     // if only heavy items, we have an exact answer
     if (r_ == 0) {
-      return new VarOptSubsetSummary(hTrueWeight, hTrueWeight, hTrueWeight, hTrueWeight);
+      return new SampleSubsetSummary(hTrueWeight, hTrueWeight, hTrueWeight, hTrueWeight);
     }
 
     final long numSampled = n_ - h_;
@@ -633,7 +628,7 @@ final class VarOptItemsSketch<T> {
     final double lbTrueFraction = pseudoHypergeometricLBonP(r_, rTrueCount, effectiveSamplingRate);
     final double estimatedTrueFraction = (1.0 * rTrueCount) / r_;
     final double ubTrueFraction = pseudoHypergeometricUBonP(r_, rTrueCount, effectiveSamplingRate);
-    return new VarOptSubsetSummary(
+    return new SampleSubsetSummary(
             hTrueWeight + totalWtR_ * lbTrueFraction,
             hTrueWeight + totalWtR_ * estimatedTrueFraction,
             hTrueWeight + totalWtR_ * ubTrueFraction,
@@ -879,17 +874,6 @@ final class VarOptItemsSketch<T> {
       --k_;
       --r_;
     }
-  }
-
-
-  private static double pseudoHypergeometricUBonP(final long n, final int k, final double samplingRate) {
-    final double adjustedKappa = DEFAULT_KAPPA * Math.sqrt(1 - samplingRate);
-    return approximateUpperBoundOnP(n, k, adjustedKappa);
-  }
-
-  private static double pseudoHypergeometricLBonP(final long n, final int k, final double samplingRate) {
-    final double adjustedKappa = DEFAULT_KAPPA * Math.sqrt(1 - samplingRate);
-    return approximateLowerBoundOnP(n, k, adjustedKappa);
   }
 
   /* In the "light" case the new item has weight <= old_tau, so

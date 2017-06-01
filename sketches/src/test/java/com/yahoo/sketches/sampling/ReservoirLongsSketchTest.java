@@ -385,6 +385,65 @@ public class ReservoirLongsSketchTest {
     }
   }
 
+  @Test
+  public void checkEstimateSubsetSum() {
+    final int k = 10;
+    final ReservoirLongsSketch sketch = ReservoirLongsSketch.newInstance(k);
+
+    // empty sketch -- all zeros
+    SampleSubsetSummary ss = sketch.estimateSubsetSum(item -> true);
+    assertEquals(ss.getEstimate(), 0.0);
+    assertEquals(ss.getTotalSketchWeight(), 0.0);
+
+    // add items, keeping in exact mode
+    double itemCount = 0.0;
+    for (long i = 1; i <= k - 1; ++i) {
+      sketch.update(i);
+      itemCount += 1.0;
+    }
+
+    ss = sketch.estimateSubsetSum(item -> true);
+    assertEquals(ss.getEstimate(), itemCount);
+    assertEquals(ss.getLowerBound(), itemCount);
+    assertEquals(ss.getUpperBound(), itemCount);
+    assertEquals(ss.getTotalSketchWeight(), itemCount);
+
+    // add a few more items, pushing to sampling mode
+    for (long i = k; i <= k + 1; ++i) {
+      sketch.update(i);
+      itemCount += 1.0;
+    }
+
+    // predicate always true so estimate == upper bound
+    ss = sketch.estimateSubsetSum(item -> true);
+    assertEquals(ss.getEstimate(), itemCount);
+    assertEquals(ss.getUpperBound(), itemCount);
+    assertTrue(ss.getLowerBound() < itemCount);
+    assertEquals(ss.getTotalSketchWeight(), itemCount);
+
+    // predicate always false so estimate == lower bound == 0.0
+    ss = sketch.estimateSubsetSum(item -> false);
+    assertEquals(ss.getEstimate(), 0.0);
+    assertEquals(ss.getLowerBound(), 0.0);
+    assertTrue(ss.getUpperBound() > 0.0);
+    assertEquals(ss.getTotalSketchWeight(), itemCount);
+
+    // finally, a non-degenerate predicate
+    // insert negative items with identical weights, filter for negative weights only
+    for (long i = 1; i <= k + 1; ++i) {
+      sketch.update(-i);
+      itemCount += 1.0;
+    }
+
+    ss = sketch.estimateSubsetSum(item -> item < 0);
+    assertTrue(ss.getEstimate() >= ss.getLowerBound());
+    assertTrue(ss.getEstimate() <= ss.getUpperBound());
+    assertTrue(ss.getLowerBound() < (itemCount / 2.0));
+
+    assertTrue(ss.getUpperBound() > (itemCount / 2.0));
+    assertEquals(ss.getTotalSketchWeight(), itemCount);
+  }
+
   private static WritableMemory getBasicSerializedRLS() {
     final int k = 10;
     final int n = 20;

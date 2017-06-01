@@ -532,7 +532,7 @@ public class VarOptItemsSketchTest {
     final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.newInstance(k);
 
     // empty sketch -- all zeros
-    VarOptSubsetSummary ss = sketch.estimateSubsetSum(item -> true);
+    SampleSubsetSummary ss = sketch.estimateSubsetSum(item -> true);
     assertEquals(ss.getEstimate(), 0.0);
     assertEquals(ss.getTotalSketchWeight(), 0.0);
 
@@ -583,6 +583,19 @@ public class VarOptItemsSketchTest {
 
     assertTrue(ss.getUpperBound() > (totalWeight / 2.0));
     assertEquals(ss.getTotalSketchWeight(), totalWeight);
+
+    // for good measure, test a different type
+    final VarOptItemsSketch<Boolean> boolSketch = VarOptItemsSketch.newInstance(k);
+    totalWeight = 0.0;
+    for (int i = 1; i <= k - 1; ++i) {
+      boolSketch.update((i % 2) == 0, 1.0 * i);
+      totalWeight += i;
+    }
+
+    ss = boolSketch.estimateSubsetSum(item -> !item);
+    assertTrue(ss.getEstimate() == ss.getLowerBound());
+    assertTrue(ss.getEstimate() == ss.getUpperBound());
+    assertTrue(ss.getEstimate() < totalWeight); // exact mode, so know it must be strictly less
   }
 
 
