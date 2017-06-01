@@ -49,7 +49,8 @@ final class HeapArrayOfDoublesUnion extends ArrayOfDoublesUnion {
         + serialVersionUID + ", actual: " + version);
     }
     SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE), mem.getByte(PREAMBLE_LONGS_BYTE));
-    SerializerDeserializer.validateType(mem.getByte(SKETCH_TYPE_BYTE), SerializerDeserializer.SketchType.ArrayOfDoublesUnion);
+    SerializerDeserializer.validateType(mem.getByte(SKETCH_TYPE_BYTE),
+        SerializerDeserializer.SketchType.ArrayOfDoublesUnion);
 
     final long unionTheta = mem.getLong(THETA_LONG);
     final Memory sketchMem = mem.region(PREAMBLE_SIZE_BYTES, mem.getCapacity() - PREAMBLE_SIZE_BYTES);

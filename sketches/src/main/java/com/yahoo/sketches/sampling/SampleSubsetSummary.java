@@ -1,17 +1,17 @@
 package com.yahoo.sketches.sampling;
 
 /**
- * A simple object o capture the results of a subset sum query on a varopt sketch.
+ * A simple object o capture the results of a subset sum query on a sampling sketch.
  *
  * @author Jon Malkin
  */
-public class VarOptSubsetSummary {
+public class SampleSubsetSummary {
   private double lowerBound;
   private double estimate;
   private double upperBound;
   private double totalSketchWeight;
 
-  VarOptSubsetSummary(final double lowerBound,
+  SampleSubsetSummary(final double lowerBound,
                       final double estimate,
                       final double upperBound,
                       final double totalSketchWeight) {

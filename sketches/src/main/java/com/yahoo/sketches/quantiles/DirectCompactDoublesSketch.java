@@ -134,13 +134,13 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
     final long n = empty ? 0 : extractN(srcMem);
 
     //VALIDITY CHECKS
-    DirectUpdateDoublesSketch.checkPreLongs(preLongs);
+    DirectUpdateDoublesSketchR.checkPreLongs(preLongs);
     Util.checkFamilyID(familyID);
     DoublesUtil.checkDoublesSerVer(serVer, MIN_DIRECT_DOUBLES_SER_VER);
     checkCompact(serVer, flags);
     Util.checkK(k);
     checkDirectMemCapacity(k, n, memCap);
-    DirectUpdateDoublesSketch.checkEmptyAndN(empty, n);
+    DirectUpdateDoublesSketchR.checkEmptyAndN(empty, n);
 
     final DirectCompactDoublesSketch dds = new DirectCompactDoublesSketch(k);
     dds.mem_ = (WritableMemory) srcMem;

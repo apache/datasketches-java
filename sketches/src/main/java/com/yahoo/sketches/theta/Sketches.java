@@ -66,8 +66,10 @@ public final class Sketches {
 
   /**
    * Ref: {@link UpdateSketch#heapify(Memory, long) UpdateSketch.heapify(Memory, long)}
-   * @param srcMem Ref: {@link UpdateSketch#heapify(Memory, long) UpdateSketch.heapify(Memory, long)} {@code srcMem}
-   * @param seed Ref: {@link UpdateSketch#heapify(Memory, long) UpdateSketch.heapify(Memory, long)} {@code seed}
+   * @param srcMem Ref: {@link UpdateSketch#heapify(Memory, long) UpdateSketch.heapify(Memory, long)}
+   *   {@code srcMem}
+   * @param seed Ref: {@link UpdateSketch#heapify(Memory, long) UpdateSketch.heapify(Memory, long)}
+   *   {@code seed}
    * @return {@link UpdateSketch UpdateSketch}
    */
   public static UpdateSketch heapifyUpdateSketch(final Memory srcMem, final long seed) {

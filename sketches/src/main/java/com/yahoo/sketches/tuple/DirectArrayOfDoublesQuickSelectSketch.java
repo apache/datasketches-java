@@ -161,7 +161,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   }
 
   @Override
-  void serializeInto(WritableMemory mem) {
+  void serializeInto(final WritableMemory mem) {
     mem_.copyTo(0, mem, 0, mem.getCapacity());
   }
 

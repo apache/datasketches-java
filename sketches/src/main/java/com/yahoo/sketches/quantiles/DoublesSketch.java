@@ -174,7 +174,7 @@ public abstract class DoublesSketch {
     if (checkIsCompactMemory(srcMem)) {
       return DirectCompactDoublesSketch.wrapInstance(srcMem);
     } else {
-      return DirectUpdateDoublesSketch.wrapInstance(srcMem);
+      return DirectUpdateDoublesSketchR.wrapInstance(srcMem);
     }
   }
 

@@ -5,6 +5,9 @@
 
 package com.yahoo.sketches.sampling;
 
+import static com.yahoo.sketches.BoundsOnBinomialProportions.approximateLowerBoundOnP;
+import static com.yahoo.sketches.BoundsOnBinomialProportions.approximateUpperBoundOnP;
+
 import java.util.Random;
 
 /**
@@ -13,6 +16,11 @@ import java.util.Random;
  * @author Jon Malkin
  */
 final class SamplingUtil {
+
+  /**
+   * Number of standard deviations to use for subset sum error bounds
+   */
+  private static final double DEFAULT_KAPPA = 2.0;
 
   public static final Random rand = new Random();
 
@@ -34,13 +42,26 @@ final class SamplingUtil {
   }
 
   static double nextDoubleExcludeZero() {
-    final double r = rand.nextDouble();
-    return r == 0.0 ? nextDoubleExcludeZero() : r;
+    double r = rand.nextDouble();
+    while (r == 0.0) {
+      r = rand.nextDouble();
+    }
+    return r;
   }
 
   static int startingSubMultiple(final int lgTarget, final int lgRf, final int lgMin) {
     return (lgTarget <= lgMin)
             ? lgMin : (lgRf == 0) ? lgTarget
             : (lgTarget - lgMin) % lgRf + lgMin;
+  }
+
+  static double pseudoHypergeometricUBonP(final long n, final int k, final double samplingRate) {
+    final double adjustedKappa = DEFAULT_KAPPA * Math.sqrt(1 - samplingRate);
+    return approximateUpperBoundOnP(n, k, adjustedKappa);
+  }
+
+  static double pseudoHypergeometricLBonP(final long n, final int k, final double samplingRate) {
+    final double adjustedKappa = DEFAULT_KAPPA * Math.sqrt(1 - samplingRate);
+    return approximateLowerBoundOnP(n, k, adjustedKappa);
   }
 }

@@ -5,7 +5,8 @@ import com.yahoo.sketches.SketchesReadOnlyException;
 
 final class DirectArrayOfDoublesUnionR extends DirectArrayOfDoublesUnion {
 
-  DirectArrayOfDoublesUnionR(int nomEntries, int numValues, long seed, WritableMemory dstMem) {
+  DirectArrayOfDoublesUnionR(final int nomEntries, final int numValues, final long seed,
+      final WritableMemory dstMem) {
     super(nomEntries, numValues, seed, dstMem);
   }
 
