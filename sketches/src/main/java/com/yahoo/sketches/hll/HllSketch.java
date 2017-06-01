@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-16, Yahoo! Inc.
+ * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
@@ -371,9 +371,10 @@ public class HllSketch {
   }
 
   private void updateWithHash(final long[] hash) {
-    final byte newValue = (byte) (Long.numberOfLeadingZeros(hash[1]) + 1);
     final int slotno = (int) hash[0] & (preamble.getConfigK() - 1);
-    fields = fields.updateBucket(slotno, newValue, updateCallback);
+    final int lz = Long.numberOfLeadingZeros(hash[1]);
+    final byte value = (byte) ((lz > 62 ? 62 : lz) + 1);
+    fields = fields.updateBucket(slotno, value, updateCallback);
   }
 
   private double eps(final double numStdDevs) {

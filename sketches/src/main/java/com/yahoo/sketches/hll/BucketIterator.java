@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-16, Yahoo! Inc.
+ * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
@@ -14,14 +14,16 @@ package com.yahoo.sketches.hll;
  */
 public interface BucketIterator {
   /**
-   * Should be called before each step of iteration (as well as immediately after initialization)
+   * Should be called before each step of iteration (as well as immediately after initialization).
+   * Depending on the implementation, this method may skip over empty or dirty values.
    *
    * @return true if there is a valid bucket to return, false if iteration is complete
    */
   boolean next();
 
   /**
-   * Should be called before each step of iteration (as well as immediately after initialization)
+   * Should be called before each step of iteration (as well as immediately after initialization).
+   * This method will not skip over empty or dirty values, thus primarily used for debugging.
    *
    * @return true if there is a bucket to return, false if iteration is complete
    */
