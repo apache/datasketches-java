@@ -23,7 +23,6 @@ import java.util.Iterator;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
-
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -413,7 +412,6 @@ public final class VarOptItemsUnion<T> {
    *
    * @return A sketch derived from the gadget, with marked items moved to the reservoir
    */
-  @SuppressWarnings("unchecked")
   private VarOptItemsSketch<T> markMovingGadgetCoercer() {
     final int resultK = gadget_.getHRegionCount() + gadget_.getRRegionCount();
 
@@ -426,7 +424,7 @@ public final class VarOptItemsUnion<T> {
 
     // Need arrays filled to use set() and be able to fill from end forward.
     // Ideally would create as arrays but trying to avoid forcing user to pass a Class<?>
-    for (int i = 0; i < resultK + 1; ++i) {
+    for (int i = 0; i < (resultK + 1); ++i) {
       data.add(null);
       weights.add(null);
     }
@@ -464,7 +462,7 @@ public final class VarOptItemsUnion<T> {
       }
     }
 
-    assert resultH + resultR == resultK;
+    assert (resultH + resultR) == resultK;
     assert Math.abs(transferredWeight - outerTauNumer) < 1e-10;
 
     final double resultRWeight = gadget_.getTotalWtR() + transferredWeight;
@@ -508,7 +506,7 @@ public final class VarOptItemsUnion<T> {
   // this is a condition checked in detectAndHandleSubcaseOfPseudoExact()
   private boolean thereExistUnmarkedHItemsLighterThanTarget(final double threshold) {
     for (int i = 0; i < gadget_.getHRegionCount(); ++i) {
-      if (gadget_.getWeight(i) < threshold && !gadget_.getMark(i)) {
+      if ((gadget_.getWeight(i) < threshold) && !gadget_.getMark(i)) {
         return true;
       }
     }
@@ -526,10 +524,10 @@ public final class VarOptItemsUnion<T> {
 
     assert gcopy.getNumMarksInH() > 0; // ensured by caller
     // either full (of samples), or in pseudo-exact mode, or both
-    assert rCount == 0 || k == hCount + rCount;
+    assert (rCount == 0) || (k == (hCount + rCount));
 
     // if non-full and pseudo-exact, change k so that gcopy is full
-    if (rCount == 0 && hCount < k) {
+    if ((rCount == 0) && (hCount < k)) {
       gcopy.forceSetK(hCount);
     }
 
