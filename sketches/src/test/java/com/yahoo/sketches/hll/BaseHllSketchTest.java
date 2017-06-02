@@ -42,7 +42,7 @@ public class BaseHllSketchTest {
     sk.update(s);
     sk.update("1234");
 
-    Unioner u = new Unioner(10);
+    Union u = new Union(10);
     byte[] byteArr1 = null;
     u.update(byteArr1);
     u.update(new byte[] {});

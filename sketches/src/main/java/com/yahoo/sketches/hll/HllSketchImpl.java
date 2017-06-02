@@ -62,13 +62,6 @@ abstract class HllSketchImpl {
 
   abstract HllSketchImpl copyAs(TgtHllType tgtHllType);
 
-  /**
-   * Update with given coupon if not a duplicate. Used when source is this sketch in stand-alone
-   * operation, or in a unioner where the source hash is coordinated and the coupon is a true
-   * coupon with full 26 bits of address. The incoming oooFlag could be true or false.
-   * @param coupon the given coupon
-   * @return possibly new AbstractHllSketch.
-   */
   abstract HllSketchImpl couponUpdate(int coupon);
 
   abstract PairIterator getAuxIterator();

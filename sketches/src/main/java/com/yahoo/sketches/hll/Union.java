@@ -10,41 +10,40 @@ import static com.yahoo.sketches.hll.TgtHllType.HLL_8;
 import static java.lang.Math.min;
 
 /**
- * This performs union operations for HLL sketches. This unioner is configured with a <i>lgMaxK</i>
- * instead of the normal <i>lgConfigK</i>.  If this unioner is presented with sketches that have
- * a different <i>lgConfigK</i> than <i>lgMaxK</i>, the internal state of the unioner will
- * assume the smaller of the two values.
+ * This performs union operations for HLL sketches. This union operator is configured with a
+ * <i>lgMaxK</i> instead of the normal <i>lgConfigK</i>.  If this union operator is presented with
+ * sketches that have a different <i>lgConfigK</i> than <i>lgMaxK</i>, the internal state of the
+ * union will assume the smaller of the two values.
  *
- * <p>This unioner, therefore, does permit the unioning of sketches with different values of
+ * <p>This union operator, therefore, does permit the unioning of sketches with different values of
  * <i>lgConfigK</i>.  The user should be aware that the resulting accuracy of a sketch returned
  * at the end of the unioning process will be a function of the smallest <i>lgConfigK</i> that
- * the unioner has seen.
+ * the union operator has seen.
  *
- * <p>This unioner also permits unioning of any of the three different target HllSketch types.
+ * <p>This union operator also permits unioning of any of the three different target HllSketch types.
  *
- * <p>Although the API for this unioner parallels many of the methods of the <i>HllSketch</i>,
- * the behavior of the unioner has some fundamental differences.
+ * <p>Although the API for this union operator parallels many of the methods of the <i>HllSketch</i>,
+ * the behavior of the union operator has some fundamental differences.
  *
- * <p>First, the user cannot specify the {@link TgtHllType} for the unioner.
- * It is specified for the sketch returned with {@link #getResult(TgtHllType)}.
+ * <p>First, the user cannot specify the {@link TgtHllType} as an input parameter.
+ * Instead, it is specified for the sketch returned with {@link #getResult(TgtHllType)}.
  *
- * <p>Second, the internal effective value of log-base-2 of <i>K</i> for the unioner can change
- * dynamically based on the smallest <i>lgConfigK</i> that the unioner has been presented so far.
- *
+ * <p>Second, the internal effective value of log-base-2 of <i>K</i> for the union operation can
+ * change dynamically based on the smallest <i>lgConfigK</i> that the union operation has seen.
  *
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-public class Unioner extends BaseHllSketch {
+public class Union extends BaseHllSketch {
   final int lgMaxK;
   private final HllSketch gadget;
 
   /**
-   * Construct this Unioner with a given maximum log-base-2 of <i>K</i>.
+   * Construct this Union operator with a given maximum log-base-2 of <i>K</i>.
    * @param lgMaxK the desired maximum log-base-2 of <i>K</i>.  This value must be
    * between 7 and 21 inclusively.
    */
-  public Unioner(final int lgMaxK) {
+  public Union(final int lgMaxK) {
     this.lgMaxK = lgMaxK;
     gadget = new HllSketch(lgMaxK, HLL_8);
   }
@@ -70,11 +69,11 @@ public class Unioner extends BaseHllSketch {
   }
 
   /**
-   * Returns the maximum size in bytes that this unioner can grow to given lgMaxK.
+   * Returns the maximum size in bytes that this union operator can grow to given lgMaxK.
    *
-   * @param lgMaxK The maximum Log2 of K for this unioner. This value must be
+   * @param lgMaxK The maximum Log2 of K for this union operator. This value must be
    * between 7 and 21 inclusively.
-   * @return the maximum size in bytes that this unioner can grow to.
+   * @return the maximum size in bytes that this union operator can grow to.
    */
   public static int getMaxSerializationBytes(final int lgMaxK) {
     return HllSketch.getMaxSerializationBytes(lgMaxK, TgtHllType.HLL_8);
@@ -86,7 +85,7 @@ public class Unioner extends BaseHllSketch {
   }
 
   /**
-   * Return the result of this unioner with the specified {@link TgtHllType}
+   * Return the result of this union operator with the specified {@link TgtHllType}
    * @param tgtHllType the TgtHllType enum
    * @return a copy of this sketch with the specified TgtHllType
    */
@@ -130,7 +129,7 @@ public class Unioner extends BaseHllSketch {
   }
 
   /**
-   * Update this unioner with the given sketch.
+   * Update this union operator with the given sketch.
    * @param sketch the given sketch.
    */
   public void update(final HllSketch sketch) {
@@ -142,7 +141,7 @@ public class Unioner extends BaseHllSketch {
     gadget.hllSketchImpl = gadget.hllSketchImpl.couponUpdate(coupon);
   }
 
-  // Union OPERATIONS
+  // Union operator logic
 
   /**
    * Union the given source and destination sketches.

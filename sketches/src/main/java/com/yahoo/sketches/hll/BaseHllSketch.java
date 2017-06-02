@@ -37,7 +37,7 @@ abstract class BaseHllSketch {
   public abstract double getEstimate();
 
   /**
-   * Gets the <i>lgConfigK</i>. For the unioner, the returned value is the
+   * Gets the <i>lgConfigK</i>. For the union operator, the returned value is the
    * current effective <i>lgK</i>, which may be less than <i>lgMaxK</i>.
    * @return the <i>lgConfigK</i>.
    */
@@ -91,8 +91,8 @@ abstract class BaseHllSketch {
 
   /**
    * Gets the serialization of this sketch as a byte array.
-   * For the Unioner, this is the serialization of the internal state of
-   * the unioner as a sketch.
+   * For the Union operator, this is the serialization of the internal state of
+   * the union operator as a sketch.
    * @return the serialization of this sketch as a byte array.
    */
   public abstract byte[] toByteArray();

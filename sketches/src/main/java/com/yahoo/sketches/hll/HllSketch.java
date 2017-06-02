@@ -240,13 +240,7 @@ public class HllSketch extends BaseHllSketch {
     return sb.toString();
   }
 
-  //public void merge(final HllSketch sketch) {
-  //  hllSketchImpl = Unioner.unionImpl(sketch.hllSketchImpl, hllSketchImpl, lgMaxK);
-  //}
-
   //restricted methods
-
-
 
   /**
    * Gets a PairIterator over the key, value pairs of the HLL array.
@@ -272,8 +266,6 @@ public class HllSketch extends BaseHllSketch {
     return hllSketchImpl.getNumAtCurMin();
   }
 
-  //restricted write methods
-
   @Override
   void couponUpdate(final int coupon) {
     hllSketchImpl = hllSketchImpl.couponUpdate(coupon);
@@ -282,5 +274,4 @@ public class HllSketch extends BaseHllSketch {
   void putOutOfOrderFlag(final boolean value) {
     hllSketchImpl.putOooFlag(value);
   }
-
 }

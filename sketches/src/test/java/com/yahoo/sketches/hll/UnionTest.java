@@ -160,7 +160,7 @@ public class UnionTest {
     String h1SketchStr = ("H1 SKETCH: \n" + h1.toString());
     String h2SketchStr = ("H2 SKETCH: \n" + h2.toString());
 
-    Unioner union = new Unioner(lgMaxK);
+    Union union = new Union(lgMaxK);
     union.update(h1);
 
     String uH1SketchStr = ("Union after H1: \n" + union.getResult(resultType).toString());

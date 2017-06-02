@@ -32,7 +32,7 @@ public class Union2Test {
     int n2 = 5;
     int n3 = 5;
     int sum = n1 + n2 + n3;
-    Unioner u = buildUnion(12, n1);
+    Union u = buildUnion(12, n1);
     HllSketch h2 = build(11, HLL_6, n2);
     HllSketch h3 = build(10, HLL_8, n3);
     u.update(h2);
@@ -54,7 +54,7 @@ public class Union2Test {
     int n2 = 5;
     int n3 = 16;
     int sum = n1 + n2 + n3;
-    Unioner u = buildUnion(12, n1);
+    Union u = buildUnion(12, n1);
     HllSketch h2 = build(11, HLL_6, n1);
     HllSketch h3 = build(10, HLL_8, n3);
     u.update(h2);
@@ -77,7 +77,7 @@ public class Union2Test {
     int n2 = 5;
     int n3 = 97;
     int sum = n1 + n2 + n3;
-    Unioner u = buildUnion(12, n1);
+    Union u = buildUnion(12, n1);
     HllSketch h2 = build(11, HLL_8, n2);
     HllSketch h3 = build(10, HLL_4, n3);
     u.update(h2);
@@ -99,7 +99,7 @@ public class Union2Test {
     int n2 = 5;
     int n3 = 769;
     int sum = n1 + n2 + n3;
-    Unioner u = buildUnion(12, n1);
+    Union u = buildUnion(12, n1);
     HllSketch h2 = build(11, HLL_8, n2);
     HllSketch h3 = build(13, HLL_4, n3);
     u.update(h2);
@@ -121,7 +121,7 @@ public class Union2Test {
     int n2 = 10;
     int n3 = 15;
     int sum = n1 + n2 + n3;
-    Unioner u = buildUnion(12, n1);
+    Union u = buildUnion(12, n1);
     HllSketch h2 = build(11, HLL_6, n2);
     HllSketch h3 = build(10, HLL_8, n3);
     u.update(h2);
@@ -143,7 +143,7 @@ public class Union2Test {
     int n2 = 10;
     int n3 = 16;
     int sum = n1 + n2 + n3;
-    Unioner u = buildUnion(12, n1);
+    Union u = buildUnion(12, n1);
     HllSketch h2 = build(11, HLL_6, n2);
     HllSketch h3 = build(10, HLL_8, n3);
     u.update(h2);
@@ -165,7 +165,7 @@ public class Union2Test {
     int n2 = 192;
     int n3 = 97;
     int sum = n1 + n2 + n3;
-    Unioner u = buildUnion(12, n1);
+    Union u = buildUnion(12, n1);
     HllSketch h2 = build(11, HLL_8, n2);
     HllSketch h3 = build(10, HLL_4, n3);
     u.update(h2);
@@ -187,7 +187,7 @@ public class Union2Test {
     int n2 = 20;
     int n3 = 769;
     int sum = n1 + n2 + n3;
-    Unioner u = buildUnion(12, n1);
+    Union u = buildUnion(12, n1);
     HllSketch h2 = build(11, HLL_8, n2);
     HllSketch h3 = build(13, HLL_4, n3);
     u.update(h2);
@@ -209,7 +209,7 @@ public class Union2Test {
     int n2 = 193;
     int n3 = 15;
     int sum = n1 + n2 + n3;
-    Unioner u = buildUnion(12, n1); //LIST
+    Union u = buildUnion(12, n1); //LIST
     HllSketch h2 = build(11, HLL_6, n2); //HLL
     HllSketch h3 = build(10, HLL_8, n3);
     u.update(h2);
@@ -231,7 +231,7 @@ public class Union2Test {
     int n2 = 193;
     int n3 = 16;
     int sum = n1 + n2 + n3;
-    Unioner u = buildUnion(12, n1); //LIST
+    Union u = buildUnion(12, n1); //LIST
     HllSketch h2 = build(11, HLL_6, n2); //HLL
     HllSketch h3 = build(10, HLL_8, n3);
     u.update(h2);
@@ -253,7 +253,7 @@ public class Union2Test {
     int n2 = 193;
     int n3 = 97;
     int sum = n1 + n2 + n3;
-    Unioner u = buildUnion(12, n1); //LIST
+    Union u = buildUnion(12, n1); //LIST
     HllSketch h2 = build(11, HLL_6, n2); //HLL
     HllSketch h3 = build(10, HLL_8, n3);
     u.update(h2);
@@ -275,7 +275,7 @@ public class Union2Test {
     int n2 = 193;
     int n3 = 193;
     int sum = n1 + n2 + n3;
-    Unioner u = buildUnion(12, n1); //LIST
+    Union u = buildUnion(12, n1); //LIST
     HllSketch h2 = build(11, HLL_6, n2); //HLL_6
     HllSketch h3 = build(11, HLL_8, n3);
     u.update(h2);
@@ -297,7 +297,7 @@ public class Union2Test {
     int n2 = 0;
     int n3 = 15;
     int sum = n1 + n2 + n3;
-    Unioner u = buildUnion(12, n1);   //LIST empty
+    Union u = buildUnion(12, n1);   //LIST empty
     HllSketch h2 = build(11, HLL_6, n2);   //LIST empty, ignored
     HllSketch h3 = build(10, HLL_8, n3);   //Src LIST
     u.update(h2);
@@ -319,7 +319,7 @@ public class Union2Test {
     int n2 = 0;
     int n3 = 16;
     int sum = n1 + n2 + n3;
-    Unioner u = buildUnion(12, n1);        //LIST empty
+    Union u = buildUnion(12, n1);        //LIST empty
     HllSketch h2 = build(11, HLL_6, n2);   //LIST empty, ignored
     HllSketch h3 = build(10, HLL_8, n3);   // Src Set
     u.update(h2);
@@ -341,7 +341,7 @@ public class Union2Test {
     int n2 = 0;
     int n3 = 97;
     int sum = n1 + n2 + n3;
-    Unioner u = buildUnion(12, n1);        //LIST empty
+    Union u = buildUnion(12, n1);        //LIST empty
     HllSketch h2 = build(11, HLL_6, n2);   //LIST empty
     HllSketch h3 = build(10, HLL_8, n3);   // Src HLL
     u.update(h2);
@@ -363,7 +363,7 @@ public class Union2Test {
     int n2 = 0;
     int n3 = 385;
     int sum = n1 + n2 + n3;
-    Unioner u = buildUnion(12, n1);        //LIST empty
+    Union u = buildUnion(12, n1);        //LIST empty
     HllSketch h2 = build(11, HLL_6, n2);   //LIST empty
     HllSketch h3 = build(12, HLL_8, n3);
     u.update(h2);
@@ -390,8 +390,8 @@ public class Union2Test {
     return f;
   }
 
-  private Unioner buildUnion(int lgMaxK, int n) {
-    Unioner u = new Unioner(lgMaxK);
+  private Union buildUnion(int lgMaxK, int n) {
+    Union u = new Union(lgMaxK);
     for (int i = 0; i < n; i++) { u.update(i + v); }
     v += n;
     return u;

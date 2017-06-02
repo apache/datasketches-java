@@ -39,7 +39,7 @@ final class HllUtil {
   }
 
   //This is ONLY called when src is not in HLL mode and creating a new tgt HLL
-  //Src can be either list or set.  Used by CouponHashSet and Unioner
+  //Src can be either list or set.  Used by CouponHashSet and the Union operator
   //When called from CouponHashSet, tgtLgK == lgConfigK
   static final HllSketchImpl makeHllFromCoupons(final CouponList src, final int tgtLgK,
       final TgtHllType tgtHllType) {
@@ -53,7 +53,7 @@ final class HllUtil {
     return tgtHllArr;
   }
 
-  //Used by unioner and HllSketch pairUpdate.  Always copies or downsamples to HLL_8.
+  //Used by union operator and HllSketch pairUpdate.  Always copies or downsamples to HLL_8.
   //Caller must ultimately manage oooFlag, as caller has more info
   static final HllSketchImpl copyOrDownsampleHll(
       final HllSketchImpl srcSketch, final int tgtLgK) {
