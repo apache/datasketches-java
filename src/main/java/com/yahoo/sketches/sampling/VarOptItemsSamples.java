@@ -30,7 +30,7 @@ import java.util.NoSuchElementException;
  *
  * @author Jon Malkin
  */
-class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.WeightedSample> {
+public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.WeightedSample> {
 
   private final VarOptItemsSketch<T> sketch_;
   private VarOptItemsSketch<T>.Result sampleLists;
