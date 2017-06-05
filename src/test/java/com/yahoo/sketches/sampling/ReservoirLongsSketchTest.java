@@ -438,9 +438,10 @@ public class ReservoirLongsSketchTest {
     ss = sketch.estimateSubsetSum(item -> item < 0);
     assertTrue(ss.getEstimate() >= ss.getLowerBound());
     assertTrue(ss.getEstimate() <= ss.getUpperBound());
-    assertTrue(ss.getLowerBound() < (itemCount / 2.0));
 
-    assertTrue(ss.getUpperBound() > (itemCount / 2.0));
+    // allow pretty generous bounds when testing
+    assertTrue(ss.getLowerBound() < (itemCount / 1.4));
+    assertTrue(ss.getUpperBound() > (itemCount / 2.6));
     assertEquals(ss.getTotalSketchWeight(), itemCount);
   }
 

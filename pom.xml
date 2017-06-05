@@ -7,9 +7,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.yahoo.datasketches</groupId>
-    <artifactId>sketches</artifactId>
+    <artifactId>sketches-core</artifactId>
     <version>0.9.1-SNAPSHOT</version>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
     <!-- Project Information -->
     <name>${project.groupId}:${project.artifactId}</name>
@@ -170,12 +170,13 @@
     </profiles>
     <!-- End of Environment Settings -->
 
-    <modules>
-        <!--<module>memory</module>-->
-        <module>sketches</module>
-    </modules>
-
     <dependencies>
+        <dependency>
+            <groupId>com.yahoo.datasketches</groupId>
+            <artifactId>memory</artifactId>
+            <version>0.10.0</version>
+        </dependency>
+
         <!-- Test Scope -->
         <dependency>
             <groupId>org.testng</groupId>
@@ -198,12 +199,35 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.yahoo.memory</pattern>
+                                    <shadedPattern>shaded.com.yahoo.memory</shadedPattern>
+                                </relocation>
+                            </relocations>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>with-shaded-memory</shadedClassifierName>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
                   <!--
                     <show>private</show>
                   -->
-                  <stylesheetfile>sketches/src/main/javadoc/stylesheet.css</stylesheetfile>
+                  <stylesheetfile>src/main/javadoc/stylesheet.css</stylesheetfile>
                   <docfilessubdirs>true</docfilessubdirs>
                 </configuration>
                 <executions>
