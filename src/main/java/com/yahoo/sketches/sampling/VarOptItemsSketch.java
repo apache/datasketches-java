@@ -105,8 +105,8 @@ public final class VarOptItemsSketch<T> {
 
   private VarOptItemsSketch(final int k, final ResizeFactor rf) {
     // required due to a theorem about lightness during merging
-    if (k < 2) {
-      throw new SketchesArgumentException("k must be at least 2");
+    if (k < 1) {
+      throw new SketchesArgumentException("k must be at least 1");
     }
 
     k_ = k;
@@ -277,7 +277,7 @@ public final class VarOptItemsSketch<T> {
     }
 
     final int k = extractK(srcMem);
-    if (k < 2) {
+    if (k < 1) {
       throw new SketchesArgumentException("Possible Corruption: k must be at least 2: " + k);
     }
 
@@ -709,7 +709,6 @@ public final class VarOptItemsSketch<T> {
     final double[] prunedWeights = new double[numSamples];
     int j = 0;
     final double rWeight = totalWtR_ / r_;
-    //for (int i = 0; i < data_.size(); ++i) {
     for (int i = 0; j < numSamples; ++i) {
       final T item = data_.get(i);
       if (item != null) {
@@ -740,7 +739,7 @@ public final class VarOptItemsSketch<T> {
     return weights_.get(idx);
   }
 
-  // package-private: Relieso n ArrayList for bounds checking and assumes caller knows how to
+  // package-private: Relies on ArrayList for bounds checking and assumes caller knows how to
   // handle a null from the middle of the list.
   boolean getMark(final int idx) { return marks_.get(idx); }
 

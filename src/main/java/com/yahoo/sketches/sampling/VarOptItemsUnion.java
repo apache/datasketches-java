@@ -141,9 +141,6 @@ public final class VarOptItemsUnion<T> {
     double outerTauNum = 0.0;
     long outerTauDenom = 0;
 
-    // If we have read-only memory on heap (aka not-direct) then the backing array exists but is
-    // not available to us, so srcMem.array() will fail. In that case, we can use the (slower)
-    // Memory interface methods to read values directly.
     final int numPreLongs = extractPreLongs(srcMem);
     final int serVer = extractSerVer(srcMem);
     final boolean isEmpty = (extractFlags(srcMem) & EMPTY_FLAG_MASK) != 0;
@@ -431,7 +428,7 @@ public final class VarOptItemsUnion<T> {
 
     final VarOptItemsSamples<T> sketchSamples = gadget_.getSketchSamples();
     // insert R region items, ignoring weights
-    // Currently (May 2017) this next block is unreachable; this coercer is used only in teh
+    // Currently (May 2017) this next block is unreachable; this coercer is used only in the
     // pseudo-exact case in which case there are no items natively in R, only marked items in H
     // that will be moved into R as part of the coercion process.
     Iterator<VarOptItemsSamples<T>.WeightedSample> sketchIterator;
