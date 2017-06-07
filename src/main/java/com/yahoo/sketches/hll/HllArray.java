@@ -30,11 +30,11 @@ abstract class HllArray extends HllSketchImpl {
 
   int curMin; //only changed by Hll4Array
   int numAtCurMin;
-  double hipAccum; //init to 0;
-  double kxq0; //invPow2SumHi //init to configK
-  double kxq1; //invPow2SumLo //init to 0
-  byte[] hllByteArr;
-  AuxHashMap auxHashMap;
+  double hipAccum;
+  double kxq0;
+  double kxq1;
+  byte[] hllByteArr = null; //init by sub-classes
+  AuxHashMap auxHashMap = null; //init only by Hll4Array
 
   /**
    * Standard constructor
@@ -49,8 +49,6 @@ abstract class HllArray extends HllSketchImpl {
     hipAccum = 0;
     kxq0 = configK;
     kxq1 = 0;
-    hllByteArr = null;
-    auxHashMap = null;
   }
 
   /**
@@ -64,7 +62,7 @@ abstract class HllArray extends HllSketchImpl {
     hipAccum = that.hipAccum;
     kxq0 = that.kxq0;
     kxq1 = that.kxq1;
-    hllByteArr = (that.hllByteArr != null) ? that.hllByteArr.clone() : null;
+    hllByteArr = that.hllByteArr.clone(); //that.hllByteArr should never be null.
     auxHashMap = (that.auxHashMap != null) ? that.auxHashMap.copy() : null;
   }
 

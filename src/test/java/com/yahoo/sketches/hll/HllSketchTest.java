@@ -15,6 +15,8 @@ import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.sketches.SketchesArgumentException;
+
 /**
  * @author Lee Rhodes
  */
@@ -159,6 +161,11 @@ public class HllSketchTest {
     assertNull(sk.getAuxIterator());
   }
 
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkNumStdDev() {
+    HllUtil.checkNumStdDev(-1.0);
+  }
+
   @Test
   public void checkSerSizes() {
     final int lgConfigK = 8;
@@ -182,14 +189,17 @@ public class HllSketchTest {
     assertEquals(HllSketch.getMaxSerializationBytes(lgConfigK, HLL_4), hllBytes);
   }
 
+  /**
+   * @param s value to print
+   */
   static void print(String s) {
-    System.out.print(s);
+    //System.out.print(s);
   }
 
   /**
    * @param s value to print
    */
   static void println(String s) {
-    System.out.println(s); //disable here
+    //System.out.println(s); //disable here
   }
 }

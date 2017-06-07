@@ -102,8 +102,10 @@ public class CrossCountingTest {
   private static int computeChecksum(HllSketch sketch) {
     PairIterator itr = sketch.getIterator();
     int checksum = 0;
+    int key  = 0;
     while (itr.nextAll()) {
       checksum += itr.getPair();
+      key = itr.getKey(); //dummy
     }
     return checksum;
   }

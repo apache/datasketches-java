@@ -363,7 +363,7 @@ class CouponList extends HllSketchImpl {
     return (curMode == CurMode.LIST) ? ((lgConfigK == 7) ? 3 : 4) : (lgConfigK - 3);
   }
 
-  private static final void checkPreamble(final Memory mem, final Object memArr, final long memAdd,
+  static final void checkPreamble(final Memory mem, final Object memArr, final long memAdd,
       final CurMode curMode) {
     final int memPreInts = extractPreInts(memArr, memAdd);
     final int expPreInts = (curMode == CurMode.LIST) ? LIST_PREINTS : HASH_SET_PREINTS;

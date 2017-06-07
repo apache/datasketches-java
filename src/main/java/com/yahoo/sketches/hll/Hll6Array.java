@@ -169,18 +169,6 @@ class Hll6Array extends HllArray {
     return ((numSlots * 3) >> 2) + 1;
   }
 
-  //For test only
-  static final int startByte(final int slotIdx) {
-    final int startBit = slotIdx * 6;
-    return startBit / 8;
-  }
-
-  //for test only
-  static final int shift(final int slotIdx) {
-    final int startBit = slotIdx * 6;
-    return (startBit % 8) & 0X7;
-  }
-
   //Iterator
 
   final class Hll6Iterator implements PairIterator {

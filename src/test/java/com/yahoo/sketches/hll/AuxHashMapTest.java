@@ -6,6 +6,7 @@
 package com.yahoo.sketches.hll;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
@@ -66,6 +67,13 @@ public class AuxHashMapTest {
     map.mustReplace(100, 10);
     val = map.mustFindValueFor(100);
     assertEquals(val, 10);
+
+    try {
+      map.mustReplace(101, 5);
+      fail();
+    } catch (SketchesStateException e) {
+      //expected
+    }
   }
 
   @Test

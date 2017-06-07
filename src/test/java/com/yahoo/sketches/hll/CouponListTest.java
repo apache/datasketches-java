@@ -5,8 +5,15 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.sketches.hll.PreambleUtil.FAMILY_ID;
+import static com.yahoo.sketches.hll.PreambleUtil.LIST_PREINTS;
+import static com.yahoo.sketches.hll.PreambleUtil.SER_VER;
+import static org.testng.Assert.fail;
+
 import org.testng.annotations.Test;
 
+import com.yahoo.memory.WritableMemory;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
 
 /**
@@ -34,6 +41,37 @@ public class CouponListTest {
     HllSketch sk = new HllSketch(8);
     for (int i = 0; i < 15; i++) { sk.update(i); }
     sk.hllSketchImpl.putHipAccum(0);
+  }
+
+  @Test
+  public void checkCheckPreamble() {
+    HllSketch sk = new HllSketch(8, TgtHllType.HLL_6);
+    for (int i = 0; i < 15; i++) { sk.update(i); }
+    byte[] byteArr = sk.toByteArray();
+    WritableMemory wmem = WritableMemory.wrap(byteArr);
+    final long memAdd = wmem.getCumulativeOffset(0);
+    CouponList.checkPreamble(wmem, byteArr, memAdd, CurMode.LIST);
+    try {
+      wmem.putByte(PreambleUtil.PREAMBLE_INTS_BYTE, (byte) 0);
+      CouponList.checkPreamble(wmem, byteArr, memAdd, CurMode.LIST);
+      fail();
+    } catch (SketchesArgumentException e) {
+      wmem.putByte(PreambleUtil.PREAMBLE_INTS_BYTE, (byte) LIST_PREINTS);
+    }
+    try {
+      wmem.putByte(PreambleUtil.SER_VER_BYTE, (byte) 0);
+      CouponList.checkPreamble(wmem, byteArr, memAdd, CurMode.LIST);
+      fail();
+    } catch (SketchesArgumentException e) {
+      wmem.putByte(PreambleUtil.SER_VER_BYTE, (byte) SER_VER);
+    }
+    try {
+      wmem.putByte(PreambleUtil.FAMILY_BYTE, (byte) 0);
+      CouponList.checkPreamble(wmem, byteArr, memAdd, CurMode.LIST);
+      fail();
+    } catch (SketchesArgumentException e) {
+      wmem.putByte(PreambleUtil.FAMILY_BYTE, (byte) FAMILY_ID);
+    }
   }
 
 

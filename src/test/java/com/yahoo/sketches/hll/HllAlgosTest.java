@@ -7,8 +7,6 @@ package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.hll.Hll6Array.get6Bit;
 import static com.yahoo.sketches.hll.Hll6Array.put6Bit;
-import static com.yahoo.sketches.hll.Hll6Array.shift;
-import static com.yahoo.sketches.hll.Hll6Array.startByte;
 import static org.testng.Assert.assertEquals;
 
 import com.yahoo.memory.WritableMemory;
@@ -57,11 +55,24 @@ public class HllAlgosTest {
     return ((numSlots * 3) >> 2) + 1;
   }
 
+  //For Hll6Array test only
+  static final int startByte(final int slotIdx) {
+    final int startBit = slotIdx * 6;
+    return startBit / 8;
+  }
+
+  //for Hll6Array test only
+  static final int shift(final int slotIdx) {
+    final int startBit = slotIdx * 6;
+    return (startBit % 8) & 0X7;
+  }
+
+
 
   /**
    * @param s value to print
    */
   static void println(String s) {
-    System.out.println(s); //disable here
+    //System.out.println(s); //disable here
   }
 }
