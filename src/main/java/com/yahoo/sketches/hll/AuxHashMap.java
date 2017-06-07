@@ -6,20 +6,17 @@
 package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
-import static com.yahoo.sketches.Util.simpleIntLog2;
 import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.KEY_BITS_26;
 import static com.yahoo.sketches.hll.HllUtil.KEY_MASK_26;
 import static com.yahoo.sketches.hll.HllUtil.RESIZE_DENOM;
 import static com.yahoo.sketches.hll.HllUtil.RESIZE_NUMER;
-import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARRAY_START;
-import static com.yahoo.sketches.hll.PreambleUtil.extractAuxCount;
-import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
+import com.yahoo.sketches.Util;
 
 /**
  * @author Lee Rhodes
@@ -27,17 +24,7 @@ import com.yahoo.sketches.SketchesStateException;
  */
 class AuxHashMap {
 
-  /**
-   * Log2 table sizes for exceptions based on lgK from 0 to 26.
-   * However, only lgK from 7 to 21 are used.
-   */
-  private static final int[] LG_AUX_SIZE = new int[] {
-    0, 2, 2, 2, 2, 2, 2, 3, 3, 3,   //0 - 9
-    4, 4, 5, 5, 6, 7, 8, 9, 10, 11, //10 - 19
-    12, 13, 14, 15, 16, 17, 18      //20 - 26
-  };
-
-  final int lgConfigK;
+  final int lgConfigK; //required for #slot bits
   int lgAuxArrSize;
   int auxCount;
   int[] auxIntArr; //used by Hll4Array
@@ -46,9 +33,9 @@ class AuxHashMap {
    * Standard constructor
    * @param lgConfigK must be 7 to 21
    */
-  AuxHashMap(final int lgConfigK) {
+  AuxHashMap(final int lgAuxArrSize, final int lgConfigK) {
     this.lgConfigK = lgConfigK;
-    lgAuxArrSize = getExpectedLgAuxInts(lgConfigK);
+    this.lgAuxArrSize = lgAuxArrSize;
     auxIntArr = new int[1 << lgAuxArrSize];
   }
 
@@ -67,29 +54,20 @@ class AuxHashMap {
     return new AuxHashMap(this);
   }
 
-  static final AuxHashMap heapify(final Memory mem, final Object memArr, final long memAdd) {
-    final int lgConfigK = extractLgK(memArr, memAdd);
-    final int auxCount = extractAuxCount(memArr, memAdd);
+  static final AuxHashMap heapify(final Memory mem, final long offset, final int lgConfigK,
+      final int auxCount) {
+    final int auxArrInts = ceilingPowerOf2((auxCount << 2) / 3);
+    final int lgAuxArrInts = Util.simpleIntLog2(auxArrInts);
+    final AuxHashMap auxMap = new AuxHashMap(lgAuxArrInts, lgConfigK);
 
-    final AuxHashMap auxMap = new AuxHashMap(lgConfigK);
-    final int expectedLgSize = getExpectedLgAuxInts(lgConfigK);
-    final int expectedFill = ((1 << expectedLgSize) * 3) >> 2;
-    if (auxCount > expectedFill) {
-      final int reqFill = (int) ((auxCount << 2) / 3.0);
-      final int newSize = ceilingPowerOf2(reqFill);
-      auxMap.lgAuxArrSize = simpleIntLog2(newSize);
-      auxMap.auxIntArr = new int[newSize];
-    }
-    final int hllArrLen = 1 << (lgConfigK - 1);
-    final int auxStart = HLL_BYTE_ARRAY_START + hllArrLen;
     final int[] packedArr = new int[auxCount];
     final int configKmask = (1 << lgConfigK) - 1;
-    mem.getIntArray(auxStart, packedArr, 0, auxCount);
+    mem.getIntArray(offset, packedArr, 0, auxCount);
     for (int i = 0; i < auxCount; i++) {
       final int pair = packedArr[i];
       final int slotNo = BaseHllSketch.getLow26(pair) & configKmask;
       final int value = BaseHllSketch.getValue(pair);
-      auxMap.update(slotNo, value);
+      auxMap.mustAdd(slotNo, value);
     }
     return auxMap;
   }
@@ -98,21 +76,19 @@ class AuxHashMap {
    * Returns value given slotNo. If this fails an exception is thrown.
    * @param slotNo the index from the HLL array
    * @return value the HLL value at the slotNo
+   * @throws SketchesStateException if valid slotNo and value is not found.
    */
-  int findValueFor(final int slotNo) { //was mustFind
+  //In C: two-registers.c Line 205
+  int mustFindValueFor(final int slotNo) {
     final int index = find(auxIntArr, lgAuxArrSize, lgConfigK, slotNo);
-    if (index < 0) {
-      throw new SketchesStateException("SlotNo not found: " + slotNo);
+    if (index >= 0) {
+      return BaseHllSketch.getValue(auxIntArr[index]);
     }
-    return BaseHllSketch.getValue(auxIntArr[index]);
+    throw new SketchesStateException("SlotNo not found: " + slotNo);
   }
 
   PairIterator getIterator() {
     return new AuxIterator();
-  }
-
-  static final int getExpectedLgAuxInts(final int lgConfigK) {
-    return LG_AUX_SIZE[lgConfigK];
   }
 
   int getCompactedSizeBytes() {
@@ -131,34 +107,39 @@ class AuxHashMap {
   }
 
   /**
-   * Replaces the entry at slotNo with the given value
+   * Replaces the entry at slotNo with the given value.
    * @param slotNo the index from the HLL array
    * @param value the HLL value at the slotNo
+   * @throws SketchesStateException if a valid slotNo, value is not found.
    */
-  void replace(final int slotNo, final int value) { //was mustReplace
+  //In C: two-registers.c Line 321.
+  void mustReplace(final int slotNo, final int value) {
     final int idx = find(auxIntArr, lgAuxArrSize, lgConfigK, slotNo);
-    if (auxIntArr[idx] == EMPTY) {
-      final String pairStr = pairString(pair(slotNo, value));
-      throw new SketchesStateException("Pair not found: " + pairStr);
-    }
-    auxIntArr[idx] = pair(slotNo, value);
-  }
-
-  /**
-   * Adds the slotNo and value to the aux array. If this fails an exception is thrown.
-   * @param slotNo the index from the HLL array
-   * @param value the HLL value at the slotNo
-   */
-  void update(final int slotNo, final int value) { //was mustAdd
-    final int idx = find(auxIntArr, lgAuxArrSize, lgConfigK, slotNo);
-    if (idx < 0) {
-      auxIntArr[~idx] = pair(slotNo, value);
-      auxCount++;
-      checkGrow();
+    if (idx >= 0) {
+      auxIntArr[idx] = pair(slotNo, value); //replace
       return;
     }
     final String pairStr = pairString(pair(slotNo, value));
-    throw new SketchesStateException("Found a valid Aux pair that should not be there: " + pairStr);
+    throw new SketchesStateException("Pair not found: " + pairStr);
+  }
+
+  /**
+   * Adds the slotNo and value to the aux array.
+   * @param slotNo the index from the HLL array
+   * @param value the HLL value at the slotNo.
+   * @throws SketchesStateException if this slotNo already exists in the aux array.
+   */
+  //In C: two-registers.c Line 300.
+  void mustAdd(final int slotNo, final int value) {
+    final int index = find(auxIntArr, lgAuxArrSize, lgConfigK, slotNo);
+    if (index >= 0) {
+      final String pairStr = pairString(pair(slotNo, value));
+      throw new SketchesStateException("Found a slotNo that should not be there: " + pairStr);
+    }
+      //Found empty entry
+      auxIntArr[~index] = pair(slotNo, value);
+      auxCount++;
+      checkGrow();
   }
 
   final class AuxIterator implements PairIterator {
@@ -209,19 +190,26 @@ class AuxHashMap {
     }
   }
 
-  //returns one's complement if slot is empty.
-  private static final int find(final int[] array, final int lgArr, final int lgConfigK,
+  //Searches the Aux arr hash table
+  //If entry is empty, returns one's complement of aux index.
+  //If entry contains given slotNo, returns its aux array index.
+  //Else throws an exception.
+  private static final int find(final int[] auxArr, final int lgAuxInts, final int lgConfigK,
       final int slotNo) {
-    final int auxArrMask = (1 << lgArr) - 1;
+    assert lgAuxInts < lgConfigK;
+    final int auxInts = 1 << lgAuxInts;
+    final int auxArrMask = auxInts - 1;
     final int configKmask = (1 << lgConfigK) - 1;
     int probe = slotNo & auxArrMask;
     final int loopIndex = probe;
     do {
-      if (array[probe] == EMPTY) {
+      if (auxArr[probe] == EMPTY) {
         return ~probe; //empty
       }
-      else if (slotNo == (array[probe] & configKmask)) { return probe; }
-      final int stride = (slotNo >>> lgArr) | 1;
+      else if (slotNo == (auxArr[probe] & configKmask)) { //found given slotNo
+        return probe; //return aux array index
+      }
+      final int stride = (slotNo >>> lgAuxInts) | 1;
       probe = (probe + stride) & auxArrMask;
     } while (probe != loopIndex);
     throw new SketchesArgumentException("Key not found and no empty slots!");
@@ -243,7 +231,7 @@ class AuxHashMap {
       final int fetched = oldArray[i];
       if (fetched != EMPTY) {
         final int idx = find(auxIntArr, lgAuxArrSize, lgConfigK, fetched & configKmask);
-        auxIntArr[idx] = fetched;
+        auxIntArr[~idx] = fetched;
       }
     }
   }

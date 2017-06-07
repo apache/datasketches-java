@@ -379,6 +379,26 @@ public class Union2Test {
     assertEquals(u.getEstimate(), sum, err);
   }
 
+  @Test
+  public void checkMisc() {
+    Union u = buildUnion(12, 0);
+    int bytes = u.getCurrentSerializationBytes();
+    assertEquals(bytes, 8);
+    bytes = Union.getMaxSerializationBytes(7);
+    assertEquals(bytes, 40 + 128);
+    double v = u.getEstimate();
+    assertEquals(v, 0.0, 0.0);
+    v = u.getLowerBound(1.0);
+    assertEquals(v, 0.0, 0.0);
+    v = u.getUpperBound(1.0);
+    assertEquals(v, 0.0, 0.0);
+    assertTrue(u.isEmpty());
+    u.reset();
+    assertTrue(u.isEmpty());
+    println(u.toString(false));
+    byte[] bArr = u.toByteArray();
+    assertEquals(bArr.length, 8);
+  }
 
   private static double errorFactor(int lgK, boolean oooFlag, double numStdDev) {
     double f;

@@ -445,9 +445,9 @@ public final class Util {
    * For illustration, this can be used in a loop as follows:
    *
    * <pre>{@code
-   *     for (int i = 1; i <= (1 << 10); i = pwr2LawNext(2, i)) {
+   *     for (int i = 1; i &le; (1 << 10); i = pwr2LawNext(2, i)) &#123;
    *       System.out.print(i + " ");
-   *     }
+   *     &#125;
    *     //generates the following series:
    *     //  1 2 3 4 6 8 11 16 23 32 45 64 91 128 181 256 362 512 724 1024
    * }</pre>

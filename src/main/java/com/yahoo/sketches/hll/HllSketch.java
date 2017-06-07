@@ -160,7 +160,7 @@ public class HllSketch extends BaseHllSketch {
       final TgtHllType tgtHllType) {
     final int bytes;
     if (tgtHllType == TgtHllType.HLL_4) {
-      final int auxBytes = 4 << AuxHashMap.getExpectedLgAuxInts(lgConfigK);
+      final int auxBytes = 4 << Hll4Array.getExpectedLgAuxInts(lgConfigK);
       bytes =  HLL_BYTE_ARRAY_START + (1 << (lgConfigK - 1)) + auxBytes;
     } else if (tgtHllType == TgtHllType.HLL_6) {
       bytes = HLL_BYTE_ARRAY_START + Hll6Array.byteArrBytes(lgConfigK);

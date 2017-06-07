@@ -272,7 +272,7 @@ abstract class HllArray extends HllSketchImpl {
       hll4Array.hipAndKxQIncrementalUpdate(0, actualValue);
       if (actualValue >= (curMin + 15)) {
         Hll4Array.setNibble(hll4Array.hllByteArr, slotNo, AUX_TOKEN);
-        hll4Array.auxHashMap.update(slotNo, actualValue);
+        hll4Array.auxHashMap.mustAdd(slotNo, actualValue);
       } else {
         Hll4Array.setNibble(hll4Array.hllByteArr, slotNo, actualValue - curMin);
       }

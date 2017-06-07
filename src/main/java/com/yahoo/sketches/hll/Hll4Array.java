@@ -10,6 +10,7 @@ import static com.yahoo.sketches.hll.HllUtil.KEY_BITS_26;
 import static com.yahoo.sketches.hll.HllUtil.KEY_MASK_26;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARRAY_START;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_PREINTS;
+import static com.yahoo.sketches.hll.PreambleUtil.extractAuxCount;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCurMin;
 import static com.yahoo.sketches.hll.PreambleUtil.extractHipAccum;
 import static com.yahoo.sketches.hll.PreambleUtil.extractKxQ0;
@@ -46,6 +47,16 @@ class Hll4Array extends HllArray {
   private static final int loNibbleMask = 0x0f;
   private static final int hiNibbleMask = 0xf0;
 
+  /**
+   * Log2 table sizes for exceptions based on lgK from 0 to 26.
+   * However, only lgK from 7 to 21 are used.
+   */
+  private static final int[] LG_AUX_SIZE = new int[] {
+    0, 2, 2, 2, 2, 2, 2, 3, 3, 3,   //0 - 9
+    4, 4, 5, 5, 6, 7, 8, 9, 10, 11, //10 - 19
+    12, 13, 14, 15, 16, 17, 18      //20 - 26
+  };
+
 
   /**
    * Standard constructor
@@ -54,7 +65,8 @@ class Hll4Array extends HllArray {
   Hll4Array(final int lgConfigK) {
     super(lgConfigK, TgtHllType.HLL_4);
     hllByteArr = new byte[1 << (lgConfigK - 1)];
-    auxHashMap = new AuxHashMap(lgConfigK);
+
+    auxHashMap = new AuxHashMap(LG_AUX_SIZE[lgConfigK], lgConfigK);
   }
 
   /**
@@ -84,7 +96,9 @@ class Hll4Array extends HllArray {
     mem.getByteArray(HLL_BYTE_ARRAY_START, hll4Array.hllByteArr, 0, hllArrLen);
 
     //load AuxHashMap
-    hll4Array.auxHashMap = AuxHashMap.heapify(mem, memArr, memAdd);
+    final int offset = HLL_BYTE_ARRAY_START + hllArrLen;
+    final int auxCount = extractAuxCount(memArr, memAdd);
+    hll4Array.auxHashMap = AuxHashMap.heapify(mem, offset, lgConfigK, auxCount);
     return hll4Array;
   }
 
@@ -103,6 +117,10 @@ class Hll4Array extends HllArray {
     final int slotNo = BaseHllSketch.getLow26(coupon) & configKmask;
     internalUpdate(slotNo, newValue);
     return this;
+  }
+
+  static final int getExpectedLgAuxInts(final int lgConfigK) {
+    return LG_AUX_SIZE[lgConfigK];
   }
 
   @Override
@@ -193,7 +211,7 @@ class Hll4Array extends HllArray {
     public int getValue() {
       final int nib = getNibble(hllByteArr, slotNum);
       if (nib == AUX_TOKEN) {
-        return auxHashMap.findValueFor(slotNum);
+        return auxHashMap.mustFindValueFor(slotNum);
       }
       return nib + curMin;
     }
@@ -234,7 +252,7 @@ class Hll4Array extends HllArray {
     if (newValue > lbOnOldValue) { //842 //newValue <= lbOnOldValue -> return no need to update array
       final int actualOldValue = (rawStoredOldValue < AUX_TOKEN)
           ? lbOnOldValue
-          : auxHashMap.findValueFor(slotNo); //846 rawStoredOldValue == AUX_TOKEN
+          : auxHashMap.mustFindValueFor(slotNo); //846 rawStoredOldValue == AUX_TOKEN
 
 
       if (newValue > actualOldValue) { //848 //actualOldValue could still be 0; newValue > 0
@@ -261,7 +279,7 @@ class Hll4Array extends HllArray {
             //the byte array already contains aux token
             //This is the case where old and new values are both exceptions.
             //Therefore, the 4-bit array already is AUX_TOKEN. Only need to update auxMap
-            auxHashMap.replace(slotNo, newValue);
+            auxHashMap.mustReplace(slotNo, newValue);
           }
           else {                              //CASE 2: //885
             //This is the (hypothetical) case where old value is an exception and the new one is not.
@@ -277,7 +295,7 @@ class Hll4Array extends HllArray {
             //Therefore the AUX_TOKEN must be stored in the 4-bit array and the new value
             // added to the exception table.
             setNibble(hllByteArr, slotNo, AUX_TOKEN);
-            auxHashMap.update(slotNo, newValue);
+            auxHashMap.mustAdd(slotNo, newValue);
           }
           else {                             // CASE 4: //897
             //This is the case where neither the old value nor the new value is an exception.
@@ -333,8 +351,7 @@ class Hll4Array extends HllArray {
     }
 
     // walk through old AuxMap updating some slots and building new AuxMap
-
-    final AuxHashMap newAuxMap = new AuxHashMap(lgConfigK);
+    final AuxHashMap newAuxMap = new AuxHashMap(LG_AUX_SIZE[lgConfigK], lgConfigK);
     final int[] auxArr = auxHashMap.auxIntArr;
     final int auxArrLen = auxHashMap.auxIntArr.length;
 
@@ -360,7 +377,7 @@ class Hll4Array extends HllArray {
       else {
         // we just verified this above
         // setNibble(hllByteArr, slotNo, AUX_TOKEN);
-        newAuxMap.update(slotNo, actualValue);
+        newAuxMap.mustAdd(slotNo, actualValue);
       }
     } //end for
     auxHashMap = newAuxMap;

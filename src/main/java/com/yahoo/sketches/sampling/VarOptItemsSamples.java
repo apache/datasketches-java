@@ -28,6 +28,8 @@ import java.util.NoSuchElementException;
  * <p>The class also implements <tt>Iterable</tt> to allow the use of forEach loops for
  * convenience.</p>
  *
+ * @param <T> an item of type T
+ *
  * @author Jon Malkin
  */
 public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.WeightedSample> {
@@ -121,7 +123,7 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
       final int tgt = currIdx_;
 
       ++currIdx_;
-      if (currIdx_ == h_ && h_ != n_) {
+      if ((currIdx_ == h_) && (h_ != n_)) {
         ++currIdx_;
       }
 

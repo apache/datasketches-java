@@ -178,10 +178,9 @@ public class HllSketchTest {
     for (int i = 0; i < 25; i++) { sk.update(i); }
     hllBytes = PreambleUtil.HLL_BYTE_ARRAY_START + (1 << (lgConfigK - 1));
     assertEquals(sk.getCurrentSerializationBytes(), hllBytes);
-    hllBytes += (4 << AuxHashMap.getExpectedLgAuxInts(lgConfigK));
+    hllBytes += (4 << Hll4Array.getExpectedLgAuxInts(lgConfigK));
     assertEquals(HllSketch.getMaxSerializationBytes(lgConfigK, HLL_4), hllBytes);
   }
-
 
   static void print(String s) {
     System.out.print(s);

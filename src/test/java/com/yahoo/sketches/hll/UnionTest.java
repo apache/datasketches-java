@@ -209,6 +209,11 @@ public class UnionTest {
     assertTrue(uLb >= h3Lb,  uLb + " !>= " + h3Lb);
   }
 
+  @Test
+  public void checkMisc() {
+
+  }
+
   /**
    * @param s value to print
    */
