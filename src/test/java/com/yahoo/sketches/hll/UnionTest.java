@@ -5,12 +5,17 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.sketches.hll.TgtHllType.HLL_4;
+import static com.yahoo.sketches.hll.TgtHllType.HLL_6;
+import static com.yahoo.sketches.hll.TgtHllType.HLL_8;
 import static java.lang.Math.min;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.memory.Memory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -19,6 +24,8 @@ import com.yahoo.sketches.SketchesArgumentException;
 @SuppressWarnings("unused")
 public class UnionTest {
   static final String LS = System.getProperty("line.separator");
+
+  static final int[] nArr = new int[] {1, 3, 10, 30, 100, 300, 1000, 3000, 10000};
 
   @Test
   public void checkUnions() {
@@ -212,6 +219,66 @@ public class UnionTest {
     assertTrue(uUb <= h3Ub,  uUb + " !<= " + h3Ub);
     assertTrue(uLb >= h3Lb,  uLb + " !>= " + h3Lb);
   }
+
+  @Test
+  public void checkToFromUnion1() {
+    for (int i = 0; i < 9; i++) {
+      int n = nArr[i];
+      for (int lgK = 7; lgK <= 12; lgK++) {
+        toFrom1(lgK, HLL_4, n);
+        toFrom1(lgK, HLL_6, n);
+        toFrom1(lgK, HLL_8, n);
+      }
+      println("=======");
+    }
+  }
+
+  private static void toFrom1(int lgK, TgtHllType tgtHllType, int n) {
+    Union srcU = new Union(lgK);
+    HllSketch srcSk = new HllSketch(lgK, tgtHllType);
+    for (int i = 0; i < n; i++) {
+      srcSk.update(i);
+    }
+    println("n: " + n + ", lgK: " + lgK + ", type: " + tgtHllType);
+    //printSketch(src, "SRC");
+    srcU.update(srcSk);
+
+    byte[] byteArr = srcU.toByteArray();
+    Memory mem = Memory.wrap(byteArr);
+    Union dstU = Union.heapify(mem);
+
+    assertEquals(dstU.getEstimate(), srcU.getEstimate(), 0.0);
+  }
+
+  @Test
+  public void checkToFromUnion2() {
+    for (int i = 0; i < 9; i++) {
+      int n = nArr[i];
+      for (int lgK = 7; lgK <= 12; lgK++) {
+        toFrom2(lgK, HLL_4, n);
+        toFrom2(lgK, HLL_6, n);
+        toFrom2(lgK, HLL_8, n);
+      }
+      println("=======");
+    }
+  }
+
+  private static void toFrom2(int lgK, TgtHllType tgtHllType, int n) {
+    Union srcU = new Union(lgK);
+    HllSketch srcSk = new HllSketch(lgK, tgtHllType);
+    for (int i = 0; i < n; i++) {
+      srcSk.update(i);
+    }
+    println("n: " + n + ", lgK: " + lgK + ", type: " + tgtHllType);
+    //printSketch(src, "SRC");
+    srcU.update(srcSk);
+
+    byte[] byteArr = srcU.toByteArray();
+    Union dstU = Union.heapify(byteArr);
+
+    assertEquals(dstU.getEstimate(), srcU.getEstimate(), 0.0);
+  }
+
 
   @Test
   public void checkMisc() {

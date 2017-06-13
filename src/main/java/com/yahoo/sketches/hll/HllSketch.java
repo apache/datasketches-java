@@ -41,13 +41,13 @@ public class HllSketch extends BaseHllSketch {
   HllSketchImpl hllSketchImpl = null;
 
   /**
-   * Standard constructor configures an HLL_8 sketch.
+   * Standard constructor configures an HLL_4 sketch as the default.
    * @param lgConfigK The Log2 of K for the target HLL sketch. This value must be
    * between 7 and 21 inclusively.
    */
   public HllSketch(final int lgConfigK) {
     this.lgConfigK = HllUtil.checkLgK(lgConfigK);
-    hllSketchImpl = new CouponList(lgConfigK, TgtHllType.HLL_8, CurMode.LIST);
+    hllSketchImpl = new CouponList(lgConfigK, TgtHllType.HLL_4, CurMode.LIST);
   }
 
   /**

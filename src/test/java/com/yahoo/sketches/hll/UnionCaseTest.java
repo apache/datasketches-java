@@ -23,7 +23,7 @@ import org.testng.annotations.Test;
  * @author Lee Rhodes
  *
  */
-public class Union2Test {
+public class UnionCaseTest {
   long v = 0;
 
   @Test

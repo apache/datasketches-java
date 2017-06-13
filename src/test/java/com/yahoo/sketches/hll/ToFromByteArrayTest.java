@@ -20,23 +20,23 @@ import com.yahoo.memory.Memory;
  */
 public class ToFromByteArrayTest {
 
-  int[] nArr = new int[] {1, 3, 10, 30, 100, 300, 1000, 3000, 10000};
+  static final int[] nArr = new int[] {1, 3, 10, 30, 100, 300, 1000, 3000, 10000};
 
 
   @Test
-  public void checkToFrom() {
+  public void checkToFromSketch1() {
     for (int i = 0; i < 9; i++) {
       int n = nArr[i];
       for (int lgK = 7; lgK <= 12; lgK++) {
-        toFrom(lgK, HLL_4, n);
-        toFrom(lgK, HLL_6, n);
-        toFrom(lgK, HLL_8, n);
+        toFrom1(lgK, HLL_4, n);
+        toFrom1(lgK, HLL_6, n);
+        toFrom1(lgK, HLL_8, n);
       }
       println("=======");
     }
   }
 
-  public void toFrom(int lgK, TgtHllType tgtHllType, int n) {
+  private static void toFrom1(int lgK, TgtHllType tgtHllType, int n) {
     HllSketch src = new HllSketch(lgK, tgtHllType);
     for (int i = 0; i < n; i++) {
       src.update(i);
@@ -47,6 +47,34 @@ public class ToFromByteArrayTest {
     byte[] byteArr = src.toByteArray();
     Memory mem = Memory.wrap(byteArr);
     HllSketch dst = HllSketch.heapify(mem);
+    //printSketch(dst, "DST");
+
+    assertEquals(dst.getEstimate(), src.getEstimate(), 0.0);
+  }
+
+  @Test
+  public void checkToFromSketch2() {
+    for (int i = 0; i < 9; i++) {
+      int n = nArr[i];
+      for (int lgK = 7; lgK <= 12; lgK++) {
+        toFrom2(lgK, HLL_4, n);
+        toFrom2(lgK, HLL_6, n);
+        toFrom2(lgK, HLL_8, n);
+      }
+      println("=======");
+    }
+  }
+
+  private static void toFrom2(int lgK, TgtHllType tgtHllType, int n) {
+    HllSketch src = new HllSketch(lgK, tgtHllType);
+    for (int i = 0; i < n; i++) {
+      src.update(i);
+    }
+    println("n: " + n + ", lgK: " + lgK + ", type: " + tgtHllType);
+    //printSketch(src, "SRC");
+
+    byte[] byteArr = src.toByteArray();
+    HllSketch dst = HllSketch.heapify(byteArr);
     //printSketch(dst, "DST");
 
     assertEquals(dst.getEstimate(), src.getEstimate(), 0.0);

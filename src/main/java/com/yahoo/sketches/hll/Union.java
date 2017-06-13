@@ -109,9 +109,17 @@ public class Union extends BaseHllSketch {
   }
 
   /**
+   * Return the result of this union operator as an HLL_4 sketch.
+   * @return the result of this union operator as an HLL_4 sketch.
+   */
+  public HllSketch getResult() {
+    return gadget.copy();
+  }
+
+  /**
    * Return the result of this union operator with the specified {@link TgtHllType}
    * @param tgtHllType the TgtHllType enum
-   * @return a copy of this sketch with the specified TgtHllType
+   * @return the result of this union operator with the specified TgtHllType
    */
   public HllSketch getResult(final TgtHllType tgtHllType) {
     return gadget.copyAs(tgtHllType);
