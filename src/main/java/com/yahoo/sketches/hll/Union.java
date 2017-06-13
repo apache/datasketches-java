@@ -9,6 +9,8 @@ import static com.yahoo.sketches.hll.CurMode.HLL;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_8;
 import static java.lang.Math.min;
 
+import com.yahoo.memory.Memory;
+
 /**
  * This performs union operations for HLL sketches. This union operator is configured with a
  * <i>lgMaxK</i> instead of the normal <i>lgConfigK</i>.  If this union operator is presented with
@@ -44,8 +46,30 @@ public class Union extends BaseHllSketch {
    * between 7 and 21 inclusively.
    */
   public Union(final int lgMaxK) {
-    this.lgMaxK = lgMaxK;
+    this.lgMaxK = HllUtil.checkLgK(lgMaxK);
     gadget = new HllSketch(lgMaxK, HLL_8);
+  }
+
+  /**
+   * Construct a union operator populated with the given byte array image of an HllSketch.
+   * @param byteArray the given byte array
+   * @return a union operator populated with the given byte array image of an HllSketch.
+   */
+  public static final Union heapify(final byte[] byteArray) {
+    return heapify(Memory.wrap(byteArray));
+  }
+
+  /**
+   * Construct a union operator populated with the given Memory image of an HllSketch.
+   * @param mem the given Memory
+   * @return a union operator populated with the given Memory image of an HllSketch.
+   */
+  public static final Union heapify(final Memory mem) {
+    final int lgK = HllUtil.checkLgK(mem.getByte(PreambleUtil.LG_K_BYTE));
+    final HllSketch sk = HllSketch.heapify(mem);
+    final Union union = new Union(lgK);
+    union.update(sk);
+    return union;
   }
 
   @Override

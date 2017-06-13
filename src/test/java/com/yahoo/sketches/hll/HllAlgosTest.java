@@ -9,6 +9,8 @@ import static com.yahoo.sketches.hll.Hll6Array.get6Bit;
 import static com.yahoo.sketches.hll.Hll6Array.put6Bit;
 import static org.testng.Assert.assertEquals;
 
+import org.testng.annotations.Test;
+
 import com.yahoo.memory.WritableMemory;
 
 /**
@@ -67,7 +69,10 @@ public class HllAlgosTest {
     return (startBit % 8) & 0X7;
   }
 
-
+  @Test
+  public void printlnTest() {
+    println("PRINTING: "+this.getClass().getName());
+  }
 
   /**
    * @param s value to print

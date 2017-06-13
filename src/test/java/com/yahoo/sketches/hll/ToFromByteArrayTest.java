@@ -64,6 +64,11 @@ public class ToFromByteArrayTest {
     }
   }
 
+  @Test
+  public void printlnTest() {
+    println("PRINTING: "+this.getClass().getName());
+  }
+
   /**
    * @param s value to print
    */

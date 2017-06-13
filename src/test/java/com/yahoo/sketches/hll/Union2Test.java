@@ -424,6 +424,11 @@ public class Union2Test {
     return sk;
   }
 
+  @Test
+  public void printlnTest() {
+    println("PRINTING: "+this.getClass().getName());
+  }
+
   /**
    * @param s value to print
    */

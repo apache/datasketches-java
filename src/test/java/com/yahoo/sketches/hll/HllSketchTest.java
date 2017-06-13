@@ -12,6 +12,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
@@ -187,6 +188,23 @@ public class HllSketchTest {
     assertEquals(sk.getCurrentSerializationBytes(), hllBytes);
     hllBytes += (4 << Hll4Array.getExpectedLgAuxInts(lgConfigK));
     assertEquals(HllSketch.getMaxSerializationBytes(lgConfigK, HLL_4), hllBytes);
+  }
+
+  @SuppressWarnings("unused")
+  @Test
+  public void checkMisc() {
+    try {
+      HllSketch sk = new HllSketch(6);
+      fail();
+    } catch (SketchesArgumentException e) {
+      //expected
+    }
+    try {
+      HllSketch sk = new HllSketch(22);
+      fail();
+    } catch (SketchesArgumentException e) {
+      //expected
+    }
   }
 
   /**

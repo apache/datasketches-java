@@ -53,12 +53,12 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     return rf_;
   }
 
-  //restricted methods
-
   @Override
-  int getLgNomLongs() {
+  public int getLgNomLongs() {
     return lgNomLongs_;
   }
+
+  //restricted methods
 
   @Override
   long getSeed() {
@@ -85,26 +85,26 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     final long memAdd = memOut.getCumulativeOffset(0L);
 
     //preamble first 8 bytes. Note: only compact can be reduced to 8 bytes.
-    final int lgRf = this.getResizeFactor().lg() & 3;
+    final int lgRf = getResizeFactor().lg() & 3;
     final byte byte0 = (byte) ((lgRf << 6) | preLongs);
     insertPreLongs(memObj, memAdd, byte0);
     insertSerVer(memObj, memAdd, SER_VER);
     insertFamilyID(memObj, memAdd, familyID);
-    insertLgNomLongs(memObj, memAdd, this.getLgNomLongs());
-    insertLgArrLongs(memObj, memAdd, this.getLgArrLongs());
-    insertSeedHash(memObj, memAdd, this.getSeedHash());
+    insertLgNomLongs(memObj, memAdd, getLgNomLongs());
+    insertLgArrLongs(memObj, memAdd, getLgArrLongs());
+    insertSeedHash(memObj, memAdd, getSeedHash());
 
     insertCurCount(memObj, memAdd, this.getRetainedEntries(true));
-    insertP(memObj, memAdd, this.getP());
-    insertThetaLong(memObj, memAdd, this.getThetaLong());
+    insertP(memObj, memAdd, getP());
+    insertThetaLong(memObj, memAdd, getThetaLong());
 
     //Flags: BigEnd=0, ReadOnly=0, Empty=X, compact=0, ordered=0
-    final byte flags = this.isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
+    final byte flags = isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
     insertFlags(memObj, memAdd, flags);
 
     //Data
-    final int arrLongs = 1 << this.getLgArrLongs();
-    final long[] cache = this.getCache();
+    final int arrLongs = 1 << getLgArrLongs();
+    final long[] cache = getCache();
     memOut.putLongArray(preBytes, cache, 0, arrLongs); //load byteArrOut
 
     return byteArrOut;

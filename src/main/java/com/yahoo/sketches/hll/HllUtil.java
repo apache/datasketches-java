@@ -81,6 +81,11 @@ final class HllUtil {
     }
   }
 
+  static final int checkLgK(final int lgK) {
+    if ((lgK >= 7) && (lgK <= 21)) { return lgK; }
+    throw new SketchesArgumentException(
+      "Log K must be between 7 and 21, inclusive: " + lgK);
+  }
 
   private static final HllArray newHll(final int tgtLgK, final TgtHllType tgtHllType) {
     if (tgtHllType == HLL_4) { return new Hll4Array(tgtLgK); }

@@ -321,7 +321,7 @@ public abstract class UpdateSketch extends Sketch {
    * Gets the Log base 2 of the configured nominal entries
    * @return the Log base 2 of the configured nominal entries
    */
-  abstract int getLgNomLongs();
+  public abstract int getLgNomLongs();
 
   /**
    * Gets the configured sampling probability, <i>p</i>.

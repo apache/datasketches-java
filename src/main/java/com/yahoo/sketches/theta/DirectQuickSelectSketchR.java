@@ -227,6 +227,11 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     throw new SketchesReadOnlyException();
   }
 
+  @Override
+  public int getLgNomLongs() {
+    return lgNomLongs_;
+  }
+
   //restricted methods
 
   @Override
@@ -241,11 +246,6 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     final WritableMemory mem = WritableMemory.wrap(cacheArr);
     mem_.copyTo(preambleLongs_ << 3, mem, 0, 8 << lgArrLongs);
     return cacheArr;
-  }
-
-  @Override
-  int getLgNomLongs() {
-    return lgNomLongs_;
   }
 
   @Override

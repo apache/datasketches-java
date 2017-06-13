@@ -78,6 +78,11 @@ public class BaseHllSketchTest {
     sk.reset();
   }
 
+  @Test
+  public void printlnTest() {
+    println("PRINTING: " + this.getClass().getName());
+  }
+
   /**
    * @param s value to print
    */

@@ -41,9 +41,8 @@ import com.yahoo.sketches.SketchesStateException;
  * @author Kevin Lang
  */
 class CouponList extends HllSketchImpl {
-  private static final int COUPON_K = 1 << 26;
   // This RSE is computed at the transition point from coupons to HLL and not for the asymptote.
-  private static final double TRIPLE_ESTIMATOR_RSE = .4084 / (1 << 13); //=.4084 / sqrt(2^26)
+  private static final double COUPON_ESTIMATOR_RSE = .409 / (1 << 13); //=.409 / sqrt(2^26)
   private static final int LG_INIT_LIST_SIZE = 2;
 
   final int lgMaxArrInts;
@@ -179,9 +178,21 @@ class CouponList extends HllSketchImpl {
     return dataStart +  (couponCount << 2);
   }
 
+  /**
+   * This is the estimator for the Coupon List and Hash Set mode.
+   *
+   * <p>Note: This is an approximation to the true mapping from numCoupons to N,
+   * which has a range of validity roughly from 0 to 6 million coupons.</p>
+   *
+   * <p>The k of the implied coupon sketch, which must not be confused with the k of the HLL
+   * sketch.  In this application k is always 2^26, which is the number of address bits of the
+   * 32-bit coupon.</p>
+   * @return the unique count estimate.
+   */
   @Override
   double getEstimate() {
-    final double est = tripleEstimator(COUPON_K, couponCount);
+    final double est = Tables.cubicInterpolateUsingTable(Tables.couponMappingXarr,
+        Tables.couponMappingYarr, couponCount);
     return Math.max(est, couponCount);
   }
 
@@ -197,8 +208,9 @@ class CouponList extends HllSketchImpl {
 
   @Override
   double getLowerBound(final double numStdDev) {
-    final double est = tripleEstimator(COUPON_K, couponCount);
-    final double tmp = est / (1.0 + tripleEstimatorEps(numStdDev));
+    final double est = Tables.cubicInterpolateUsingTable(Tables.couponMappingXarr,
+        Tables.couponMappingYarr, couponCount);
+    final double tmp = est / (1.0 + couponEstimatorEps(numStdDev));
     return Math.max(tmp, couponCount);
   }
 
@@ -214,8 +226,9 @@ class CouponList extends HllSketchImpl {
 
   @Override
   double getUpperBound(final double numStdDev) {
-    final double est = tripleEstimator(COUPON_K, couponCount);
-    return est / (1.0 - tripleEstimatorEps(numStdDev));
+    final double est = Tables.cubicInterpolateUsingTable(Tables.couponMappingXarr,
+        Tables.couponMappingYarr, couponCount);
+    return est / (1.0 - couponEstimatorEps(numStdDev));
   }
 
   @Override
@@ -324,26 +337,9 @@ class CouponList extends HllSketchImpl {
   }
   //END Iterators
 
-  /**
-   * This is the Triple Estimator for the Coupon List and Hash Set mode.
-   *
-   * <p>Note: The built-in factor of 3 comes from the math. This is an approximation to the true
-   * mapping from numCoupons to N, which has a range of validity roughly from 0 to 6 * k^(2/3)
-   * coupons.</p>
-   *
-   * @param k the k of the implied coupon sketch, which must not be confused with the k of the HLL
-   * sketch.  In this application k is always 2^26, which is the number of address bits of the
-   * 32-bit coupon.
-   * @param numCoupons the number of valid coupons in hand.
-   * @return the unique count estimate.
-   */
-  private static final double tripleEstimator(final int k, final int numCoupons) {
-    return Tables.getBitMapEstimate(3 * k, numCoupons);
-  }
-
-  private static final double tripleEstimatorEps(final double numStdDev) {
+  private static final double couponEstimatorEps(final double numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
-    return (numStdDev * TRIPLE_ESTIMATOR_RSE);
+    return (numStdDev * COUPON_ESTIMATOR_RSE);
   }
 
   private static final int[] growList(final int[] oldArr) {

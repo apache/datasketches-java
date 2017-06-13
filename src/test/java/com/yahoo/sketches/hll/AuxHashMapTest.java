@@ -18,6 +18,7 @@ import com.yahoo.sketches.SketchesStateException;
  * @author Lee Rhodes
  */
 public class AuxHashMapTest {
+  static final String LS = System.getProperty("line.separator");
 
   @Test
   public void exerciseAux() {
@@ -103,6 +104,11 @@ public class AuxHashMapTest {
     AuxHashMap map = new AuxHashMap(3, 7);
     map.mustAdd(100, 5);
     map.mustAdd(100, 6);
+  }
+
+  @Test
+  public void printlnTest() {
+    println("PRINTING: " + this.getClass().getName());
   }
 
   /**

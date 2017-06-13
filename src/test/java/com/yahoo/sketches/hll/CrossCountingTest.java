@@ -17,6 +17,7 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("unused")
 public class CrossCountingTest {
+  static final String LS = System.getProperty("line.separator");
 
   @Test
   public void crossCountingCheck() {
@@ -146,15 +147,23 @@ public class CrossCountingTest {
     println(tgtHllTypeStr + " CheckSum: " + checksum);
   }
 
-  static void print(String s) {
-    System.out.print(s);
+
+  @Test
+  public void printlnTest() {
+    println("PRINTING: "+this.getClass().getName());
   }
 
   /**
    * @param s value to print
    */
   static void println(String s) {
-    System.out.println(s); //disable here
+    print(s + LS);
   }
 
+  /**
+   * @param s value to print
+   */
+  static void print(String s) {
+    System.out.print(s); //disable here
+  }
 }

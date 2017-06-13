@@ -7,14 +7,18 @@ package com.yahoo.sketches.hll;
 
 import static java.lang.Math.min;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
+
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * @author Lee Rhodes
  */
 @SuppressWarnings("unused")
 public class UnionTest {
+  static final String LS = System.getProperty("line.separator");
 
   @Test
   public void checkUnions() {
@@ -211,7 +215,30 @@ public class UnionTest {
 
   @Test
   public void checkMisc() {
+    try {
+      Union u = new Union(6);
+      fail();
+    } catch (SketchesArgumentException e) {
+      //expected
+    }
+    try {
+      Union u = new Union(22);
+      fail();
+    } catch (SketchesArgumentException e) {
+      //expected
+    }
+  }
 
+  @Test
+  public void printlnTest() {
+    println("PRINTING: "+this.getClass().getName());
+  }
+
+  /**
+   * @param s value to print
+   */
+  static void println(String s) {
+    print(s + LS);
   }
 
   /**
@@ -219,13 +246,6 @@ public class UnionTest {
    */
   static void print(String s) {
     //System.out.print(s); //disable here
-  }
-
-  /**
-   * @param s value to print
-   */
-  static void println(String s) {
-    //System.out.println(s); //disable here
   }
 
 }

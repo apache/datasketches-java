@@ -46,7 +46,7 @@ public class HllSketch extends BaseHllSketch {
    * between 7 and 21 inclusively.
    */
   public HllSketch(final int lgConfigK) {
-    this.lgConfigK = lgConfigK;
+    this.lgConfigK = HllUtil.checkLgK(lgConfigK);
     hllSketchImpl = new CouponList(lgConfigK, TgtHllType.HLL_8, CurMode.LIST);
   }
 
@@ -62,21 +62,30 @@ public class HllSketch extends BaseHllSketch {
   }
 
   /**
-   * Special constructor
-   * @param that another HllSketchImpl
-   */ //also used by Union
+   * Special constructor used by copyAs, heapify
+   * @param that another HllSketchImpl, which must already be a copy
+   */
   HllSketch(final HllSketchImpl that) {
     lgConfigK = that.getLgConfigK();
-    hllSketchImpl = that; //must already be a copy
+    hllSketchImpl = that;
   }
 
   /**
-   * Copy constructor
+   * Copy constructor used by copy().
    * @param that another HllSketch
    */
   HllSketch(final HllSketch that) {
     lgConfigK = that.getLgConfigK();
     hllSketchImpl = that.hllSketchImpl.copy();
+  }
+
+  /**
+   * Heapify the given byte array, which must be a valid HllSketch image.
+   * @param byteArray the given byte array
+   * @return an HllSketch
+   */
+  public static final HllSketch heapify(final byte[] byteArray) {
+    return heapify(Memory.wrap(byteArray));
   }
 
   /**

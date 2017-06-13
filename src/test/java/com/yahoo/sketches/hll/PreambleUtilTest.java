@@ -47,6 +47,11 @@ public class PreambleUtilTest {
     println("Serialization Bytes: " + byteArr.length);
   }
 
+  @Test
+  public void printlnTest() {
+    println("PRINTING: "+this.getClass().getName());
+  }
+
   /**
    * @param s value to print
    */
