@@ -90,12 +90,13 @@ abstract class BaseHllSketch {
   public abstract void reset();
 
   /**
-   * Gets the serialization of this sketch as a byte array.
+   * Gets the serialization of this sketch as a byte array in compact form, which is designed
+   * to be read-only and is not directly updatable.
    * For the Union operator, this is the serialization of the internal state of
    * the union operator as a sketch.
    * @return the serialization of this sketch as a byte array.
    */
-  public abstract byte[] toByteArray();
+  public abstract byte[] toCompactByteArray();
 
   /**
    * Human readable summary as a string.

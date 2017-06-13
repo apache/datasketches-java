@@ -208,8 +208,8 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
-  public byte[] toByteArray() {
-    return hllSketchImpl.toByteArray();
+  public byte[] toCompactByteArray() {
+    return hllSketchImpl.toCompactByteArray();
   }
 
   @Override

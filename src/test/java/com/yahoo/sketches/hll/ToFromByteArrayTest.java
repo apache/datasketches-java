@@ -44,7 +44,7 @@ public class ToFromByteArrayTest {
     println("n: " + n + ", lgK: " + lgK + ", type: " + tgtHllType);
     //printSketch(src, "SRC");
 
-    byte[] byteArr = src.toByteArray();
+    byte[] byteArr = src.toCompactByteArray();
     Memory mem = Memory.wrap(byteArr);
     HllSketch dst = HllSketch.heapify(mem);
     //printSketch(dst, "DST");
@@ -73,7 +73,7 @@ public class ToFromByteArrayTest {
     println("n: " + n + ", lgK: " + lgK + ", type: " + tgtHllType);
     //printSketch(src, "SRC");
 
-    byte[] byteArr = src.toByteArray();
+    byte[] byteArr = src.toCompactByteArray();
     HllSketch dst = HllSketch.heapify(byteArr);
     //printSketch(dst, "DST");
 

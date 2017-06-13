@@ -162,7 +162,7 @@ abstract class HllArray extends HllSketchImpl {
   }
 
   @Override
-  abstract byte[] toByteArray();
+  abstract byte[] toCompactByteArray();
 
   /**
    * HIP and KxQ incremental update.
@@ -217,7 +217,8 @@ abstract class HllArray extends HllSketchImpl {
       return 0;
     }
     if (rawEst > x_arr[x_arr.length - 1]) {
-      return rawEst;
+      final double factor = y_arr[y_arr.length - 1] / x_arr[x_arr.length - 1];
+      return (rawEst * factor);
     }
     final double adjEst = Tables.cubicInterpolateUsingTable(x_arr, y_arr, rawEst);
     if (adjEst > (3.0 * configK)) {

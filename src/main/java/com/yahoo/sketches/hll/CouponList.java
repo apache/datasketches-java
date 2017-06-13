@@ -20,8 +20,9 @@ import static com.yahoo.sketches.hll.PreambleUtil.extractOooFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.extractPreInts;
 import static com.yahoo.sketches.hll.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.hll.PreambleUtil.extractTgtHllType;
+import static com.yahoo.sketches.hll.PreambleUtil.insertCompactFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.insertCurMode;
-import static com.yahoo.sketches.hll.PreambleUtil.insertEmpty;
+import static com.yahoo.sketches.hll.PreambleUtil.insertEmptyFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.insertFamilyId;
 import static com.yahoo.sketches.hll.PreambleUtil.insertHashSetCount;
 import static com.yahoo.sketches.hll.PreambleUtil.insertLgArr;
@@ -242,13 +243,13 @@ class CouponList extends HllSketchImpl {
   }
 
   @Override
-  byte[] toByteArray() {
+  byte[] toCompactByteArray() {
     final byte[] memArr;
     final WritableMemory wmem;
     final long memAdd;
 
     if (curMode == CurMode.LIST) {
-      memArr = new byte[ 8 + (4 * couponCount)];
+      memArr = new byte[8 + (4 * couponCount)]; //unique to LIST
       wmem = WritableMemory.wrap(memArr);
       memAdd = wmem.getCumulativeOffset(0);
       insertPreInts(memArr, memAdd, LIST_PREINTS); //unique to LIST
@@ -256,7 +257,8 @@ class CouponList extends HllSketchImpl {
       insertFamilyId(memArr, memAdd);
       insertLgK(memArr, memAdd, lgConfigK);
       insertLgArr(memArr, memAdd, lgCouponArrInts);
-      insertEmpty(memArr, memAdd, isEmpty());
+      insertEmptyFlag(memArr, memAdd, isEmpty());
+      insertCompactFlag(memArr, memAdd, true);
       insertOooFlag(memArr, memAdd, oooFlag);
       insertListCount(memArr, memAdd, couponCount); //unique to LIST
       insertCurMode(memArr, memAdd, curMode);
@@ -264,7 +266,7 @@ class CouponList extends HllSketchImpl {
       wmem.putIntArray(LIST_INT_ARR_START, couponIntArr, 0, couponCount); //unique to LIST
 
     } else { //SET
-      memArr = new byte[12 + (4 * couponCount)];
+      memArr = new byte[12 + (4 * couponCount)]; //unique to SET
       wmem = WritableMemory.wrap(memArr);
       memAdd = wmem.getCumulativeOffset(0);
       insertPreInts(memArr, memAdd, HASH_SET_PREINTS); //unique to SET
@@ -272,7 +274,8 @@ class CouponList extends HllSketchImpl {
       insertFamilyId(memArr, memAdd);
       insertLgK(memArr, memAdd, lgConfigK);
       insertLgArr(memArr, memAdd, lgCouponArrInts);
-      insertEmpty(memArr, memAdd, isEmpty());
+      insertEmptyFlag(memArr, memAdd, isEmpty());
+      insertCompactFlag(memArr, memAdd, true);
       insertOooFlag(memArr, memAdd, oooFlag);
       insertCurMode(memArr, memAdd, curMode);
       insertTgtHllType(memArr, memAdd, tgtHllType);

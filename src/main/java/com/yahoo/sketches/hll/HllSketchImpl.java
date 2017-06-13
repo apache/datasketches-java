@@ -118,7 +118,7 @@ abstract class HllSketchImpl {
     this.oooFlag = oooFlag;
   }
 
-  abstract byte[] toByteArray();
+  abstract byte[] toCompactByteArray();
 
   static final void badPreambleState(final Memory mem) {
     throw new SketchesArgumentException("Possible Corruption, Invalid Preamble:"

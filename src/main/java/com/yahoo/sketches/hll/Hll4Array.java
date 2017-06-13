@@ -19,9 +19,10 @@ import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
 import static com.yahoo.sketches.hll.PreambleUtil.extractNumAtCurMin;
 import static com.yahoo.sketches.hll.PreambleUtil.extractOooFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.insertAuxCount;
+import static com.yahoo.sketches.hll.PreambleUtil.insertCompactFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.insertCurMin;
 import static com.yahoo.sketches.hll.PreambleUtil.insertCurMode;
-import static com.yahoo.sketches.hll.PreambleUtil.insertEmpty;
+import static com.yahoo.sketches.hll.PreambleUtil.insertEmptyFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.insertFamilyId;
 import static com.yahoo.sketches.hll.PreambleUtil.insertHipAccum;
 import static com.yahoo.sketches.hll.PreambleUtil.insertKxQ0;
@@ -134,7 +135,7 @@ class Hll4Array extends HllArray {
   }
 
   @Override
-  byte[] toByteArray() {
+  byte[] toCompactByteArray() {
     final int hllBytes = hllByteArr.length;
     final int auxBytes = auxHashMap.getCompactedSizeBytes();            //Hll4
     final int totBytes = HLL_BYTE_ARRAY_START + hllBytes + auxBytes;    //Hll4
@@ -147,7 +148,8 @@ class Hll4Array extends HllArray {
     insertFamilyId(memArr, memAdd);
     insertLgK(memArr, memAdd, lgConfigK);
     insertLgArr(memArr, memAdd, 0); //not used by HLL
-    insertEmpty(memArr, memAdd, isEmpty());
+    insertEmptyFlag(memArr, memAdd, isEmpty());
+    insertCompactFlag(memArr, memAdd, true);
     insertOooFlag(memArr, memAdd, oooFlag);
     insertCurMin(memArr, memAdd, curMin);
     insertCurMode(memArr, memAdd, curMode);
@@ -260,11 +262,9 @@ class Hll4Array extends HllArray {
         //We know that the array will be changed
         hipAndKxQIncrementalUpdate(actualOldValue, newValue); //haven't actually updated hllByteArr yet
 
-        if (newValue < curMin) { //change to assert
-          //something seriously wrong here!
-          throw new SketchesStateException("New value " + newValue
-              + " is less than current minimum " + curMin);
-        }
+        assert (newValue >= curMin)
+          : "New value " + newValue + " is less than current minimum " + curMin;
+
         //newValue >= curMin
 
         final int shiftedNewValue = newValue - curMin; //874

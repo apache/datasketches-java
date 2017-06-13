@@ -362,16 +362,28 @@ final class PreambleUtil {
   }
 
   //Flags
-  static void insertEmpty(final Object memObj, final long memAdd, final boolean empty) {
+  static void insertEmptyFlag(final Object memObj, final long memAdd, final boolean empty) {
     int flags = unsafe.getByte(memObj, memAdd + FLAGS_BYTE);
     if (empty) { flags |= EMPTY_FLAG_MASK; }
     else { flags &= ~EMPTY_FLAG_MASK; }
     unsafe.putByte(memObj, memAdd + FLAGS_BYTE, (byte) flags);
   }
 
-  static boolean extractEmpty(final Object memObj, final long memAdd) {
+  static boolean extractEmptyFlag(final Object memObj, final long memAdd) {
     final int flags = unsafe.getByte(memObj, memAdd + FLAGS_BYTE);
     return (flags & EMPTY_FLAG_MASK) > 0;
+  }
+
+  static void insertCompactFlag(final Object memObj, final long memAdd, final boolean compact) {
+    int flags = unsafe.getByte(memObj, memAdd + FLAGS_BYTE);
+    if (compact) { flags |= COMPACT_FLAG_MASK; }
+    else { flags &= ~COMPACT_FLAG_MASK; }
+    unsafe.putByte(memObj, memAdd + FLAGS_BYTE, (byte) flags);
+  }
+
+  static boolean extractCompactFlag(final Object memObj, final long memAdd) {
+    final int flags = unsafe.getByte(memObj, memAdd + FLAGS_BYTE);
+    return (flags & COMPACT_FLAG_MASK) > 0;
   }
 
   static void insertOooFlag(final Object memObj, final long memAdd, final boolean oooFlag) {

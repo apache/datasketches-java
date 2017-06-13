@@ -243,7 +243,7 @@ public class UnionTest {
     //printSketch(src, "SRC");
     srcU.update(srcSk);
 
-    byte[] byteArr = srcU.toByteArray();
+    byte[] byteArr = srcU.toCompactByteArray();
     Memory mem = Memory.wrap(byteArr);
     Union dstU = Union.heapify(mem);
 
@@ -273,7 +273,7 @@ public class UnionTest {
     //printSketch(src, "SRC");
     srcU.update(srcSk);
 
-    byte[] byteArr = srcU.toByteArray();
+    byte[] byteArr = srcU.toCompactByteArray();
     Union dstU = Union.heapify(byteArr);
 
     assertEquals(dstU.getEstimate(), srcU.getEstimate(), 0.0);
@@ -294,6 +294,9 @@ public class UnionTest {
     } catch (SketchesArgumentException e) {
       //expected
     }
+    Union u = new Union(7);
+    HllSketch sk = u.getResult();
+    assertTrue(sk.isEmpty());
   }
 
   @Test

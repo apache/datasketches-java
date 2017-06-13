@@ -35,7 +35,7 @@ public class AuxHashMapTest {
     while (itr.nextValid()) {
       println(itr.getString());
     }
-    byte[] byteArr = sk.toByteArray();
+    byte[] byteArr = sk.toCompactByteArray();
     HllSketch sk2 = HllSketch.heapify(Memory.wrap(byteArr));
     assertEquals(sk.getEstimate(), sk2.getEstimate());
 

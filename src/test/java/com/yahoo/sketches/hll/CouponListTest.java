@@ -47,7 +47,7 @@ public class CouponListTest {
   public void checkCheckPreamble() {
     HllSketch sk = new HllSketch(8, TgtHllType.HLL_6);
     for (int i = 0; i < 15; i++) { sk.update(i); }
-    byte[] byteArr = sk.toByteArray();
+    byte[] byteArr = sk.toCompactByteArray();
     WritableMemory wmem = WritableMemory.wrap(byteArr);
     final long memAdd = wmem.getCumulativeOffset(0);
     CouponList.checkPreamble(wmem, byteArr, memAdd, CurMode.LIST);

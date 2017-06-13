@@ -27,6 +27,7 @@ public class BaseHllSketchTest {
     sk.update(new char[] {});
     sk.update(new char[] {0, 1, 2, 3});
     sk.update(1.0);
+    sk.update(-0.0);
     int[] intArr = null;
     sk.update(intArr);
     sk.update(new int[] {});
@@ -52,6 +53,7 @@ public class BaseHllSketchTest {
     u.update(new char[] {});
     u.update(new char[] {0, 1, 2, 3});
     u.update(1.0);
+    u.update(-0.0);
     int[] intArr1 = null;
     u.update(intArr1);
     u.update(new int[] {});

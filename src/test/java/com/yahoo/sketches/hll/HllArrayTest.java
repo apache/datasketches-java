@@ -25,7 +25,7 @@ public class HllArrayTest {
   public void checkCheckPreamble() {
     HllSketch sk = new HllSketch(7, TgtHllType.HLL_6);
     for (int i = 0; i < 100; i++) { sk.update(i); }
-    byte[] byteArr = sk.toByteArray();
+    byte[] byteArr = sk.toCompactByteArray();
     WritableMemory wmem = WritableMemory.wrap(byteArr);
     final long memAdd = wmem.getCumulativeOffset(0);
     HllArray.checkPreamble(wmem, byteArr, memAdd);

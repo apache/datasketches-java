@@ -146,8 +146,8 @@ public class Union extends BaseHllSketch {
   }
 
   @Override
-  public byte[] toByteArray() {
-    return gadget.toByteArray();
+  public byte[] toCompactByteArray() {
+    return gadget.toCompactByteArray();
   }
 
   @Override

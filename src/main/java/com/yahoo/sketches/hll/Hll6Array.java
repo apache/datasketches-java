@@ -18,9 +18,10 @@ import static com.yahoo.sketches.hll.PreambleUtil.extractKxQ1;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
 import static com.yahoo.sketches.hll.PreambleUtil.extractNumAtCurMin;
 import static com.yahoo.sketches.hll.PreambleUtil.extractOooFlag;
+import static com.yahoo.sketches.hll.PreambleUtil.insertCompactFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.insertCurMin;
 import static com.yahoo.sketches.hll.PreambleUtil.insertCurMode;
-import static com.yahoo.sketches.hll.PreambleUtil.insertEmpty;
+import static com.yahoo.sketches.hll.PreambleUtil.insertEmptyFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.insertFamilyId;
 import static com.yahoo.sketches.hll.PreambleUtil.insertHipAccum;
 import static com.yahoo.sketches.hll.PreambleUtil.insertKxQ0;
@@ -115,7 +116,7 @@ class Hll6Array extends HllArray {
   }
 
   @Override
-  byte[] toByteArray() {
+  byte[] toCompactByteArray() {
     final int hllBytes = hllByteArr.length;
     final int totBytes = HLL_BYTE_ARRAY_START + hllBytes;
     final byte[] memArr = new byte[totBytes];
@@ -126,8 +127,9 @@ class Hll6Array extends HllArray {
     insertSerVer(memArr, memAdd);
     insertFamilyId(memArr, memAdd);
     insertLgK(memArr, memAdd, lgConfigK);
-    insertLgArr(memArr, memAdd, 0); //not used by HLL
-    insertEmpty(memArr, memAdd, isEmpty());
+    insertLgArr(memArr, memAdd, 0); //not used by HLL mode
+    insertEmptyFlag(memArr, memAdd, isEmpty());
+    insertCompactFlag(memArr, memAdd, true);
     insertOooFlag(memArr, memAdd, oooFlag);
     insertCurMin(memArr, memAdd, curMin);
     insertCurMode(memArr, memAdd, curMode);
