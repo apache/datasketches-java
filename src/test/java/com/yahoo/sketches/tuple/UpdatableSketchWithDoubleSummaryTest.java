@@ -357,7 +357,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(result.getEstimate(), 0.0);
     Assert.assertEquals(result.getLowerBound(1), 0.0);
     Assert.assertEquals(result.getUpperBound(1), 0.0);
-}
+  }
 
   @Test
   public void intersectionExactWithEmpty() {
