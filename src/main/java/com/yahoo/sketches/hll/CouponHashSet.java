@@ -75,7 +75,8 @@ class CouponHashSet extends CouponList {
       if (len == (1 << lgMaxArrInts)) {
         return true; // promote
       }
-      couponIntArr = growHashSet(couponIntArr, lgCouponArrInts); //TODO ask for more memory
+      //TODO if direct, ask for more memory
+      couponIntArr = growHashSet(couponIntArr, lgCouponArrInts);
       lgCouponArrInts++;
     }
     return false;

@@ -219,7 +219,7 @@ final class IntersectionImpl extends IntersectionImplR {
         if (requiredLgArrLongs <= maxLgArrLongs_) { //OK
           mem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_); //clear only what required
         }
-        else { //not enough space in dstMem //TODO move to request model?
+        else { //not enough space in dstMem
           throw new SketchesArgumentException(
               "Insufficient dstMem hash table space: "
                   + (1 << requiredLgArrLongs) + " > " + (1 << priorLgArrLongs));

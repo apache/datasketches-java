@@ -31,90 +31,92 @@ import com.yahoo.sketches.Util;
  * @author Lee Rhodes
  */
 public class SketchesTest {
-  
+
   private static Memory getCompactSketch(int k, int from, int to) {
     UpdateSketch sk1 = updateSketchBuilder().setNominalEntries(k).build();
-    for (int i=from; i<to; i++) sk1.update(i);
+    for (int i=from; i<to; i++) {
+      sk1.update(i);
+    }
     CompactSketch csk = sk1.compact(true, null);
     byte[] sk1bytes = csk.toByteArray();
     Memory mem = Memory.wrap(sk1bytes);
     return mem;
   }
-  
+
   @Test
   public void checkSketchMethods() {
     int k = 1024;
     Memory mem = getCompactSketch(k, 0, k);
-    
+
     CompactSketch csk2 = (CompactSketch)heapifySketch(mem);
     assertEquals((int)csk2.getEstimate(), k);
-    
+
     csk2 = (CompactSketch)heapifySketch(mem, Util.DEFAULT_UPDATE_SEED);
     assertEquals((int)csk2.getEstimate(), k);
-    
+
     csk2 = (CompactSketch)wrapSketch(mem);
-    assertEquals((int)csk2.getEstimate(), k); //TODO fails
-    
+    assertEquals((int)csk2.getEstimate(), k);
+
     csk2 = (CompactSketch)wrapSketch(mem, Util.DEFAULT_UPDATE_SEED);
     assertEquals((int)csk2.getEstimate(), k);
   }
-  
+
   @Test
   public void checkSetOpMethods() {
     int k = 1024;
     Memory mem1 = getCompactSketch(k, 0, k);
-    Memory mem2 = getCompactSketch(k, k/2, 3*k/2);
-    
+    Memory mem2 = getCompactSketch(k, k/2, (3*k)/2);
+
     SetOperationBuilder bldr = setOperationBuilder();
     Union union = bldr.setNominalEntries(2 * k).buildUnion();
-    
+
     union.update(mem1);
     CompactSketch cSk = union.getResult(true, null);
     assertEquals((int)cSk.getEstimate(), k);
     union.update(mem2);
     cSk = union.getResult(true, null);
-    assertEquals((int)cSk.getEstimate(), 3*k/2);
-    
+    assertEquals((int)cSk.getEstimate(), (3*k)/2);
+
     byte[] ubytes = union.toByteArray();
     WritableMemory uMem = WritableMemory.wrap(ubytes);
-    
+
     Union union2 = (Union)heapifySetOperation(uMem);
     cSk = union2.getResult(true, null);
-    assertEquals((int)cSk.getEstimate(), 3*k/2);
-    
+    assertEquals((int)cSk.getEstimate(), (3*k)/2);
+
     union2 = (Union)heapifySetOperation(uMem, Util.DEFAULT_UPDATE_SEED);
     cSk = union2.getResult(true, null);
-    assertEquals((int)cSk.getEstimate(), 3*k/2);
-    
+    assertEquals((int)cSk.getEstimate(), (3*k)/2);
+
     union2 = (Union)wrapSetOperation(uMem);
     cSk = union2.getResult(true, null);
-    assertEquals((int)cSk.getEstimate(), 3*k/2);
-    
+    assertEquals((int)cSk.getEstimate(), (3*k)/2);
+
     union2 = (Union)wrapSetOperation(uMem, Util.DEFAULT_UPDATE_SEED);
     cSk = union2.getResult(true, null);
-    assertEquals((int)cSk.getEstimate(), 3*k/2);
-    
+    assertEquals((int)cSk.getEstimate(), (3*k)/2);
+
     int serVer = getSerializationVersion(uMem);
     assertEquals(serVer, 3);
   }
-  
+
   @Test
   public void checkUtilMethods() {
     int k = 1024;
-    
+
     int maxUnionBytes = getMaxUnionBytes(k);
-    assertEquals(2*k*8+32, maxUnionBytes);
-    
+    assertEquals((2*k*8)+32, maxUnionBytes);
+
     int maxInterBytes = getMaxIntersectionBytes(k);
-    assertEquals(2*k*8+24, maxInterBytes);
-    
+    assertEquals((2*k*8)+24, maxInterBytes);
+
     int maxCompSkBytes = getMaxCompactSketchBytes(k+1);
-    assertEquals(24+(k+1)*8, maxCompSkBytes);
-    
+    assertEquals(24+((k+1)*8), maxCompSkBytes);
+
     int maxSkBytes = getMaxUpdateSketchBytes(k);
-    assertEquals(24+2*k*8, maxSkBytes);
+    assertEquals(24+(2*k*8), maxSkBytes);
   }
-  
+
   @Test
   public void checkStaticEstimators() {
     int k = 4096;
@@ -137,7 +139,7 @@ public class SketchesTest {
     empty = Sketches.getEmpty(emptyMemV1);
     assertTrue(empty);
   }
-  
+
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSketchFamily() {
     Union union = setOperationBuilder().buildUnion();
@@ -145,17 +147,17 @@ public class SketchesTest {
     Memory srcMem = Memory.wrap(byteArr);
     Sketches.getEstimate(srcMem);
   }
-  
+
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
-  
+
   /**
-   * @param s value to print 
+   * @param s value to print
    */
   static void println(String s) {
     //System.out.println(s); //disable here
   }
-  
+
 }

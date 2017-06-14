@@ -96,7 +96,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
 
   @Override
   public S[] getSummaries() {
-    if (keys_ == null || keys_.length == 0) {
+    if ((keys_ == null) || (keys_.length == 0)) {
       return null;
     }
 
@@ -150,7 +150,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
           Byte.BYTES // summary class name length
         + Integer.BYTES // count
         + summaryClassName.length()
-        + Long.BYTES * count + summariesBytesLength;
+        + (Long.BYTES * count) + summariesBytesLength;
     }
     final byte[] bytes = new byte[sizeBytes];
     //final WritableMemory mem = WritableMemory.wrap(bytes);
@@ -166,7 +166,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
       | (count > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
       | (isThetaIncluded ? 1 << Flags.IS_THETA_INCLUDED.ordinal() : 0)
     );
-    if (isThetaIncluded) { //TODO check byte allignment to 8 bytes.
+    if (isThetaIncluded) { //TODO check byte alignment to 8 bytes.
       ByteArrayUtil.putLong(bytes, offset, theta_);
       offset += Long.BYTES;
     }

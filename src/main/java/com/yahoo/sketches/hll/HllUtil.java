@@ -27,7 +27,7 @@ final class HllUtil {
   //when called from CouponList, tgtLgK == lgConfigK
   static final CouponHashSet makeSetFromList(final CouponList list, final int tgtLgK,
       final TgtHllType tgtHllType) {
-    assert tgtLgK <= list.getLgConfigK(); //TODO so why do I need this?
+    assert tgtLgK <= list.getLgConfigK();
     final int cnt = list.couponCount;
     final int[] arr = list.couponIntArr;
     final CouponHashSet chSet = new CouponHashSet(tgtLgK, tgtHllType);

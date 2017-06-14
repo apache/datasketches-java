@@ -70,7 +70,7 @@ public class HeapUpdateDoublesSketchTest {
     UpdateDoublesSketch qs2 = DoublesSketch.builder().setK(k).build();
     int n = 1000000;
     for (int item = n; item >= 1; item--) {
-      if (item % 4 == 0) {
+      if ((item % 4) == 0) {
         qs.update(item);
       }
       else {
@@ -95,10 +95,10 @@ public class HeapUpdateDoublesSketchTest {
 //    }
 
     for (int q = 1; q <= 99; q++) {
-      double nominal = 1e6 * q / 100.0;
+      double nominal = (1e6 * q) / 100.0;
       double reported = splitPoints[q-1];
-      assertTrue(reported >= nominal - 10000.0);
-      assertTrue(reported <= nominal + 10000.0);
+      assertTrue(reported >= (nominal - 10000.0));
+      assertTrue(reported <= (nominal + 10000.0));
     }
 
     double[] pmfResult = result.getPMF(splitPoints);
@@ -106,8 +106,8 @@ public class HeapUpdateDoublesSketchTest {
     for (int q = 1; q <= 99; q++) {
       double phi = q / 100.0;
       subtotal += pmfResult[q-1];
-      assertTrue(subtotal >= phi - 0.01);
-      assertTrue(subtotal <= phi + 0.01);
+      assertTrue(subtotal >= (phi - 0.01));
+      assertTrue(subtotal <= (phi + 0.01));
     }
     // should probably assert that the pmf sums to 1.0
 
@@ -115,8 +115,8 @@ public class HeapUpdateDoublesSketchTest {
     for (int q = 1; q <= 99; q++) {
       double phi = q / 100.0;
       subtotal = cdfResult[q-1];
-      assertTrue(subtotal >= phi - 0.01);
-      assertTrue(subtotal <= phi + 0.01);
+      assertTrue(subtotal >= (phi - 0.01));
+      assertTrue(subtotal <= (phi + 0.01));
     }
     // should probably assert that the final cdf value is 1.0
   }
@@ -135,7 +135,7 @@ public class HeapUpdateDoublesSketchTest {
         assertTrue(numItemsSoFar == aux.auxN_);
 
         assertTrue(auxItems.length == numSamples);
-        assertTrue(auxAccum.length == numSamples + 1);
+        assertTrue(auxAccum.length == (numSamples + 1));
 
         double mqSumOfSamples = sumOfSamplesInSketch(qs);
         double auSumOfSamples = sumOfDoublesInSubArray(auxItems, 0, numSamples);
@@ -147,7 +147,7 @@ public class HeapUpdateDoublesSketchTest {
         // the following test might be able to detect errors in handling the sample weights
         assertTrue(auxAccum[numSamples] == numItemsSoFar);
 
-        for (int i = 0; i < numSamples-1; i++) {
+        for (int i = 0; i < (numSamples-1); i++) {
           assertTrue(auxItems[i] <= auxItems[i+1]); // assert sorted order
           assertTrue(auxAccum[i] <  auxAccum[i+1]); // assert cumulative property
         }
@@ -404,9 +404,9 @@ public class HeapUpdateDoublesSketchTest {
     int retItems = Util.computeRetainedItems(k, 2*k);
     assertEquals(stor, 32 + (retItems << 3));
 
-    qs = buildAndLoadQS(k, 2*k-1); //just Base Buffer
+    qs = buildAndLoadQS(k, (2*k)-1); //just Base Buffer
     stor = qs.getCompactStorageBytes();
-    retItems = Util.computeRetainedItems(k, 2*k-1);
+    retItems = Util.computeRetainedItems(k, (2*k)-1);
     assertEquals(stor, 32 + (retItems << 3));
   }
 
@@ -701,7 +701,7 @@ public class HeapUpdateDoublesSketchTest {
       sketch1.update (i);
       sketch2.update (i);
 
-      downSketch = sketch1.downSample(sketch1, k2, mem); //TODO start #1
+      downSketch = sketch1.downSample(sketch1, k2, mem);
       assertTrue (sameStructurePredicate(sketch2, downSketch));
     }
 
@@ -795,14 +795,14 @@ public class HeapUpdateDoublesSketchTest {
       else if (rank == 1.0) { assertEquals(value, maxV, 0.0); }
       else {
         double rankUB = rank + rankError;
-        double valueUB = minV + delta*rankUB;
+        double valueUB = minV + (delta*rankUB);
         double rankLB = Math.max(rank - rankError, 0.0);
-        double valueLB = minV + delta*rankLB;
+        double valueLB = minV + (delta*rankLB);
         assertTrue(value < valueUB);
         assertTrue(value > valueLB);
 
-        double valRelPctErrUB = valueUB/ value -1.0;
-        double valRelPctErrLB = valueLB/ value -1.0;
+        double valRelPctErrUB = (valueUB/ value) -1.0;
+        double valRelPctErrLB = (valueLB/ value) -1.0;
         String row = String.format(
             formatStr2,rank, valueLB, value, valueUB, valRelPctErrLB, valRelPctErrUB);
         sb.append(row).append(LS);
@@ -842,7 +842,9 @@ public class HeapUpdateDoublesSketchTest {
   @Test
   public void checkPutMemory() {
     UpdateDoublesSketch qs1 = DoublesSketch.builder().build(); //k = 128
-    for (int i=0; i<1000; i++) qs1.update(i);
+    for (int i=0; i<1000; i++) {
+      qs1.update(i);
+    }
     int bytes = qs1.getUpdatableStorageBytes();
     WritableMemory dstMem = WritableMemory.wrap(new byte[bytes]);
     qs1.putMemory(dstMem, false);
@@ -855,7 +857,9 @@ public class HeapUpdateDoublesSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkPutMemoryTooSmall() {
     UpdateDoublesSketch qs1 = DoublesSketch.builder().build(); //k = 128
-    for (int i=0; i<1000; i++) qs1.update(i);
+    for (int i=0; i<1000; i++) {
+      qs1.update(i);
+    }
     int bytes = qs1.getCompactStorageBytes();
     WritableMemory dstMem = WritableMemory.wrap(new byte[bytes-1]); //too small
     qs1.putMemory(dstMem);
@@ -1021,7 +1025,7 @@ public class HeapUpdateDoublesSketchTest {
     double total = sumOfDoublesInSubArray(combinedBuffer, 0, bbCount);
     long bits = sketch.getBitPattern();
     int k = sketch.getK();
-    assert bits == sketch.getN() / (2L * k); // internal consistency check
+    assert bits == (sketch.getN() / (2L * k)); // internal consistency check
     for (int lvl = 0; bits != 0L; lvl++, bits >>>= 1) {
       if ((bits & 1L) > 0L) {
         total += sumOfDoublesInSubArray(combinedBuffer, ((2+lvl) * k), k);

@@ -218,7 +218,7 @@ class AuxHashMap {
   private void checkGrow() {
     if ((RESIZE_DENOM * auxCount) > (RESIZE_NUMER * auxIntArr.length)) {
       growAuxSpace();
-      //TODO ask for more memory
+      //TODO if direct, ask for more memory
     }
   }
 
