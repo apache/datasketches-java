@@ -153,7 +153,6 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
         + (Long.BYTES * count) + summariesBytesLength;
     }
     final byte[] bytes = new byte[sizeBytes];
-    //final WritableMemory mem = WritableMemory.wrap(bytes);
     int offset = 0;
     bytes[offset++] = PREAMBLE_LONGS;
     bytes[offset++] = serialVersionUID;
@@ -166,7 +165,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
       | (count > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
       | (isThetaIncluded ? 1 << Flags.IS_THETA_INCLUDED.ordinal() : 0)
     );
-    if (isThetaIncluded) { //TODO check byte alignment to 8 bytes.
+    if (isThetaIncluded) {
       ByteArrayUtil.putLong(bytes, offset, theta_);
       offset += Long.BYTES;
     }
