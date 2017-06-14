@@ -278,7 +278,7 @@ public final class VarOptItemsSketch<T> {
 
     final int k = extractK(srcMem);
     if (k < 1) {
-      throw new SketchesArgumentException("Possible Corruption: k must be at least 2: " + k);
+      throw new SketchesArgumentException("Possible Corruption: k must be at least 1: " + k);
     }
 
     if (isEmpty) {
