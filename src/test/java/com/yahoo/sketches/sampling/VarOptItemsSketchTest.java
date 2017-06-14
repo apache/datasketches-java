@@ -167,13 +167,13 @@ public class VarOptItemsSketchTest {
     srcMem.copyTo(0, mem, 0, sketchBytes.length);
     assertEquals(PreambleUtil.extractRRegionItemCount(mem), 0);
 
-    // invalid k < 2
+    // invalid k < 1
     try {
       PreambleUtil.insertK(memObj, memAddr, 0);
       VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
       fail();
     } catch (final SketchesArgumentException e) {
-      assertTrue(e.getMessage().equals("Possible Corruption: k must be at least 2: 0"));
+      assertTrue(e.getMessage().equals("Possible Corruption: k must be at least 1: 0"));
     }
 
     // refresh the copy
