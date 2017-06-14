@@ -167,22 +167,22 @@ final class PreambleUtil {
     final StringBuilder sb = new StringBuilder();
     sb.append(LS);
     sb.append("### HLL SKETCH PREAMBLE:").append(LS);
-    sb.append("Byte  0: Preamble Ints        : ").append(preInts).append(LS);
-    sb.append("Byte  1: SerVer               : ").append(serVer).append(LS);
-    sb.append("Byte  2: Family               : ").append(family).append(LS);
-    sb.append("Byte  3: lgK                  : ").append(lgK).append(LS);
+    sb.append("Byte 0: Preamble Ints         : ").append(preInts).append(LS);
+    sb.append("Byte 1: SerVer                : ").append(serVer).append(LS);
+    sb.append("Byte 2: Family                : ").append(family).append(LS);
+    sb.append("Byte 3: lgK                   : ").append(lgK).append(LS);
     //expand byte 4: LgArr
     if (curMode == CurMode.LIST) {
-      sb.append("Byte  4: LgArr: List Arr      : ").append(lgArr).append(LS);
+      sb.append("Byte 4: LgArr: List Arr       : ").append(lgArr).append(LS);
     }
     if (curMode == CurMode.SET) {
-      sb.append("Byte  4: LgArr: Hash Set Arr  : ").append(lgArr).append(LS);
+      sb.append("Byte 4: LgArr: Hash Set Arr   : ").append(lgArr).append(LS);
     }
     if (curMode == CurMode.HLL) {
-      sb.append("Byte  4: LgArr: Except Arr    : ").append(lgArr).append(LS);
+      sb.append("Byte 4: LgArr: Except Arr     : ").append(lgArr).append(LS);
     }
     //expand byte 5: Flags
-    sb.append("Byte  5: Flags:               : ").append(flagsStr).append(LS);
+    sb.append("Byte 5: Flags:                : ").append(flagsStr).append(LS);
     sb.append("  BIG_ENDIAN_STORAGE          : ").append(bigEndian).append(LS);
     sb.append("  (Native Byte Order)         : ").append(nativeOrder).append(LS);
     sb.append("  READ_ONLY                   : ").append(readOnly).append(LS);
@@ -191,13 +191,13 @@ final class PreambleUtil {
     sb.append("  OUT_OF_ORDER                : ").append(oooFlag).append(LS);
     //expand byte 6: ListCount, CurMin
     if (curMode == CurMode.LIST) {
-      sb.append("Byte  6: List Count           : ").append(listCount).append(LS);
+      sb.append("Byte 6: List Count/CurMin     : ").append(listCount).append(LS);
     }
     if (curMode == CurMode.SET) {
-      sb.append("Byte  6: (not used)           : ").append(LS);
+      sb.append("Byte 6: (not used)            : ").append(LS);
     }
     if (curMode == CurMode.HLL) {
-      sb.append("Byte  6: Cur Min Count        : ").append(curMinCount).append(LS);
+      sb.append("Byte 6: Cur Min               : ").append(curMinCount).append(LS);
     }
     final String modes = curMode.toString() + ", " + tgtHllType.toString();
     sb.append("Byte 7: Mode                  : ").append(modes).append(LS);
@@ -208,7 +208,7 @@ final class PreambleUtil {
       sb.append("HIP Accum                     : ").append(hipAccum).append(LS);
       sb.append("KxQ0                          : ").append(kxq0).append(LS);
       sb.append("KxQ1                          : ").append(kxq1).append(LS);
-      sb.append("Cur Min Count                 : ").append(curMinCount).append(LS);
+      sb.append("Num At Cur Min                : ").append(curMinCount).append(LS);
       sb.append("Exception Count               : ").append(exceptionCount).append(LS);
     }
     sb.append("### END HLL SKETCH PREAMBLE").append(LS);
