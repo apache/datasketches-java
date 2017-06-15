@@ -65,6 +65,9 @@ public class Intersection<S extends Summary> {
         sketch_.insert(it.getKey(), summary);
       }
     } else {
+      if (sketch_ == null) {
+        return;
+      }
       final int matchSize = min(sketch_.getRetainedEntries(), sketchIn.getRetainedEntries());
       final long[] matchKeys = new long[matchSize];
       @SuppressWarnings("unchecked")

@@ -435,6 +435,16 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(result.getLowerBound(1), 0.0);
     Assert.assertTrue(result.getUpperBound(1) > 0);
     Assert.assertNull(result.getSummaries());
+
+    // an intersection with no entries must survive more updates
+    intersection.update(sketch1);
+    result = intersection.getResult();
+    Assert.assertEquals(result.getRetainedEntries(), 0);
+    Assert.assertFalse(result.isEmpty());
+    Assert.assertEquals(result.getEstimate(), 0.0);
+    Assert.assertEquals(result.getLowerBound(1), 0.0);
+    Assert.assertTrue(result.getUpperBound(1) > 0);
+    Assert.assertNull(result.getSummaries());
   }
 
   @Test
