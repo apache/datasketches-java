@@ -182,10 +182,8 @@ public abstract class Sketch {
     long seed = 0;
     float p = 0;
     int rf = 0;
-    //int preLongs = getPreambleLongs();
     final boolean updateSketch = (this instanceof UpdateSketch);
 
-    //boolean direct = isDirect();
     final long thetaLong = getThetaLong();
     final int curCount = this.getRetainedEntries(true);
 
@@ -227,7 +225,7 @@ public abstract class Sketch {
       final double thetaDbl = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
       final String thetaHex = zeroPad(Long.toHexString(thetaLong), 16);
       final String thisSimpleName = this.getClass().getSimpleName();
-      final int seedHash = getSeedHash();
+      final int seedHash = getSeedHash() & 0XFFFF;
 
       sb.append(LS);
       sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
@@ -255,7 +253,7 @@ public abstract class Sketch {
           .append(Long.toHexString(seed)).append(" | ")
           .append(Long.toString(seed)).append(LS);
       }
-      sb.append("   Seed Hash               : ").append(seedHash).append(LS);
+      sb.append("   Seed Hash               : ").append(Integer.toHexString(seedHash)).append(LS);
       sb.append("### END SKETCH SUMMARY").append(LS);
 
     }
