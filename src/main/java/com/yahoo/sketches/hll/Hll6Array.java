@@ -106,11 +106,6 @@ class Hll6Array extends HllArray {
   }
 
   @Override
-  int getCurrentSerializationBytes() {
-    return HLL_BYTE_ARRAY_START + byteArrBytes(lgConfigK);
-  }
-
-  @Override
   PairIterator getIterator() {
     return new Hll6Iterator();
   }
@@ -162,6 +157,7 @@ class Hll6Array extends HllArray {
 
   private static final long byteIdxAndShift(final int slotIdx) {
     final long startBit = slotIdx * 6;
+    //shift in upper 32, byte index in lower 32
     return (startBit >> 3) | ((startBit & 0X7L) << 32);
   }
 

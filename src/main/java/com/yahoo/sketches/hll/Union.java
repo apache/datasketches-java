@@ -13,14 +13,12 @@ import com.yahoo.memory.Memory;
 
 /**
  * This performs union operations for HLL sketches. This union operator is configured with a
- * <i>lgMaxK</i> instead of the normal <i>lgConfigK</i>.  If this union operator is presented with
- * sketches that have a different <i>lgConfigK</i> than <i>lgMaxK</i>, the internal state of the
- * union will assume the smaller of the two values.
+ * <i>lgMaxK</i> instead of the normal <i>lgConfigK</i>.
  *
- * <p>This union operator, therefore, does permit the unioning of sketches with different values of
+ * <p>This union operator does permit the unioning of sketches with different values of
  * <i>lgConfigK</i>.  The user should be aware that the resulting accuracy of a sketch returned
- * at the end of the unioning process will be a function of the smallest <i>lgConfigK</i> that
- * the union operator has seen.
+ * at the end of the unioning process will be a function of the smallest of <i>lgMaxK</i> and
+ * <i>lgConfigK</i> that the union operator has seen.
  *
  * <p>This union operator also permits unioning of any of the three different target HllSketch types.
  *
@@ -78,8 +76,8 @@ public class Union extends BaseHllSketch {
   }
 
   @Override
-  public int getCurrentSerializationBytes() {
-    return gadget.getCurrentSerializationBytes();
+  public int getCompactSerializationBytes() {
+    return gadget.getCompactSerializationBytes();
   }
 
   @Override
@@ -87,20 +85,25 @@ public class Union extends BaseHllSketch {
     return gadget.getEstimate();
   }
 
+  /**
+   * Gets the effective <i>lgConfigK</i> for the union operator, which may be less than
+   * <i>lgMaxK</i>.
+   * @return the <i>lgConfigK</i>.
+   */
   @Override
   public int getLgConfigK() {
     return gadget.getLgConfigK();
   }
 
   /**
-   * Returns the maximum size in bytes that this union operator can grow to given lgMaxK.
+   * Returns the maximum size in bytes that this union operator can grow to given a lgK.
    *
-   * @param lgMaxK The maximum Log2 of K for this union operator. This value must be
-   * between 7 and 21 inclusively.
+   * @param lgK The maximum Log2 of K for this union operator. This value must be
+   * between 4 and 21 inclusively.
    * @return the maximum size in bytes that this union operator can grow to.
    */
-  public static int getMaxSerializationBytes(final int lgMaxK) {
-    return HllSketch.getMaxSerializationBytes(lgMaxK, TgtHllType.HLL_8);
+  public static int getMaxSerializationBytes(final int lgK) {
+    return HllSketch.getMaxSerializationBytes(lgK, TgtHllType.HLL_8);
   }
 
   @Override
@@ -140,11 +143,21 @@ public class Union extends BaseHllSketch {
     return gadget.isOutOfOrderFlag();
   }
 
+  /**
+   * Resets to empty, but does not change the configured value of lgMaxK.
+   */
   @Override
   public void reset() {
     gadget.reset();
   }
 
+  /**
+   * Gets the serialization of this union operator as a byte array in compact form, which is designed
+   * to be read-only and is not directly updatable.
+   * For the Union operator, this is the serialization of the internal state of
+   * the union operator as a sketch.
+   * @return the serialization of this union operator as a byte array.
+   */
   @Override
   public byte[] toCompactByteArray() {
     return gadget.toCompactByteArray();
@@ -156,8 +169,8 @@ public class Union extends BaseHllSketch {
   }
 
   @Override
-  public String toString(final boolean detail) {
-    return gadget.toString(detail);
+  public String toString(final boolean summary, final boolean hllDetail, final boolean auxDetail) {
+    return gadget.toString(summary, hllDetail, auxDetail);
   }
 
   /**

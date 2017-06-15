@@ -22,7 +22,7 @@ public class AuxHashMapTest {
 
   @Test
   public void exerciseAux() {
-    int lgK = 15;
+    int lgK = 15; //this combination should create an Aux
     int lgU = 20;
     HllSketch sk = new HllSketch(lgK, TgtHllType.HLL_4);
     for (int i = 0; i < (1 << lgU); i++) { sk.update(i); }
@@ -35,6 +35,7 @@ public class AuxHashMapTest {
     while (itr.nextValid()) {
       println(itr.getString());
     }
+
     byte[] byteArr = sk.toCompactByteArray();
     HllSketch sk2 = HllSketch.heapify(Memory.wrap(byteArr));
     assertEquals(sk.getEstimate(), sk2.getEstimate());
@@ -55,7 +56,7 @@ public class AuxHashMapTest {
         println(h4itr.getString());
       }
     }
-    sk.toString(true);
+    sk.toString(true, true, true);
   }
 
   @Test

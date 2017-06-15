@@ -28,9 +28,9 @@ public class UnionCaseTest {
 
   @Test
   public void checkCase0() { //src: LIST, gadget: LIST, cases 0, 0
-    int n1 = 5;
-    int n2 = 5;
-    int n3 = 5;
+    int n1 = 2;
+    int n2 = 3;
+    int n3 = 2;
     int sum = n1 + n2 + n3;
     Union u = buildUnion(12, n1);
     HllSketch h2 = build(11, HLL_6, n2);
@@ -51,12 +51,12 @@ public class UnionCaseTest {
   @Test
   public void checkCase1() { //src: SET, gadget: LIST, cases 0, 1
     int n1 = 5;
-    int n2 = 5;
+    int n2 = 2;
     int n3 = 16;
     int sum = n1 + n2 + n3;
-    Union u = buildUnion(12, n1);
-    HllSketch h2 = build(11, HLL_6, n1);
-    HllSketch h3 = build(10, HLL_8, n3);
+    Union u = buildUnion(12, n1);        //LIST, 5
+    HllSketch h2 = build(11, HLL_6, n2); //LIST, 2
+    HllSketch h3 = build(10, HLL_8, n3); //SET
     u.update(h2);
     println(u.toString());
     assertEquals(u.getCurMode(), LIST);
@@ -74,7 +74,7 @@ public class UnionCaseTest {
   @Test
   public void checkCase2() { //src: HLL, gadget: LIST, swap, cases 0, 2
     int n1 = 5;
-    int n2 = 5;
+    int n2 = 2;
     int n3 = 97;
     int sum = n1 + n2 + n3;
     Union u = buildUnion(12, n1);
@@ -94,9 +94,9 @@ public class UnionCaseTest {
   }
 
   @Test
-  public void checkCase2B() { //src: HLL, gadget: LIST, swap, cases 0, 2
+  public void checkCase2B() { //src: HLL, gadget: LIST, swap, cases 0, 2; different lgKs
     int n1 = 5;
-    int n2 = 5;
+    int n2 = 2;
     int n3 = 769;
     int sum = n1 + n2 + n3;
     Union u = buildUnion(12, n1);
@@ -119,10 +119,10 @@ public class UnionCaseTest {
   public void checkCase4() { //src: LIST, gadget: SET, cases 0, 4
     int n1 = 6;
     int n2 = 10;
-    int n3 = 15;
+    int n3 = 6;
     int sum = n1 + n2 + n3;
     Union u = buildUnion(12, n1);
-    HllSketch h2 = build(11, HLL_6, n2);
+    HllSketch h2 = build(11, HLL_6, n2); //SET
     HllSketch h3 = build(10, HLL_8, n3);
     u.update(h2);
     println(u.toString());
@@ -207,12 +207,12 @@ public class UnionCaseTest {
   public void checkCase8() { //src: LIST, gadget: HLL, cases 2 (swap), 8
     int n1 = 6;
     int n2 = 193;
-    int n3 = 15;
+    int n3 = 7;
     int sum = n1 + n2 + n3;
     Union u = buildUnion(12, n1); //LIST
     HllSketch h2 = build(11, HLL_6, n2); //HLL
-    HllSketch h3 = build(10, HLL_8, n3);
-    u.update(h2);
+    HllSketch h3 = build(10, HLL_8, n3); //LIST
+    u.update(h2); //SET
     println(u.toString());
     assertEquals(u.getCurMode(), HLL);
     u.update(h3);
@@ -295,7 +295,7 @@ public class UnionCaseTest {
   public void checkCase12() { //src: LIST, gadget: empty, case 12
     int n1 = 0;
     int n2 = 0;
-    int n3 = 15;
+    int n3 = 7;
     int sum = n1 + n2 + n3;
     Union u = buildUnion(12, n1);   //LIST empty
     HllSketch h2 = build(11, HLL_6, n2);   //LIST empty, ignored
@@ -382,7 +382,7 @@ public class UnionCaseTest {
   @Test
   public void checkMisc() {
     Union u = buildUnion(12, 0);
-    int bytes = u.getCurrentSerializationBytes();
+    int bytes = u.getCompactSerializationBytes();
     assertEquals(bytes, 8);
     bytes = Union.getMaxSerializationBytes(7);
     assertEquals(bytes, 40 + 128);
@@ -395,7 +395,7 @@ public class UnionCaseTest {
     assertTrue(u.isEmpty());
     u.reset();
     assertTrue(u.isEmpty());
-    println(u.toString(false));
+    println(u.toString(true, false, false));
     byte[] bArr = u.toCompactByteArray();
     assertEquals(bArr.length, 8);
   }

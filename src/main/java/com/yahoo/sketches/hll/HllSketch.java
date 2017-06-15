@@ -43,7 +43,7 @@ public class HllSketch extends BaseHllSketch {
   /**
    * Standard constructor configures an HLL_4 sketch as the default.
    * @param lgConfigK The Log2 of K for the target HLL sketch. This value must be
-   * between 7 and 21 inclusively.
+   * between 4 and 21 inclusively.
    */
   public HllSketch(final int lgConfigK) {
     this.lgConfigK = HllUtil.checkLgK(lgConfigK);
@@ -53,7 +53,7 @@ public class HllSketch extends BaseHllSketch {
   /**
    * Standard constructor with the type of HLL sketch to configure.
    * @param lgConfigK The Log2 of K for the target HLL sketch. This value must be
-   * between 7 and 21 inclusively.
+   * between 4 and 21 inclusively.
    * @param tgtHllType the desired Hll type.
    */
   public HllSketch(final int lgConfigK, final TgtHllType tgtHllType) {
@@ -146,7 +146,7 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
-  public int getCurrentSerializationBytes() {
+  public int getCompactSerializationBytes() {
     return hllSketchImpl.getCurrentSerializationBytes();
   }
 
@@ -161,7 +161,7 @@ public class HllSketch extends BaseHllSketch {
    * If exceeded, it will be larger by only a few percent.
    *
    * @param lgConfigK The Log2 of K for the target HLL sketch. This value must be
-   * between 7 and 21 inclusively.
+   * between 4 and 21 inclusively.
    * @param tgtHllType the desired Hll type
    * @return the maximum size in bytes that this sketch can grow to.
    */
@@ -202,11 +202,19 @@ public class HllSketch extends BaseHllSketch {
     return hllSketchImpl.oooFlag;
   }
 
+  /**
+   * Resets to empty, but does not change the configured values of lgConfigK and tgtHllType.
+   */
   @Override
   public void reset() {
     hllSketchImpl = new CouponList(hllSketchImpl.lgConfigK, hllSketchImpl.tgtHllType, CurMode.LIST);
   }
 
+  /**
+   * Gets the serialization of this sketch as a byte array in compact form, which is designed
+   * to be read-only and is not directly updatable.
+   * @return the serialization of this sketch as a byte array.
+   */
   @Override
   public byte[] toCompactByteArray() {
     return hllSketchImpl.toCompactByteArray();
@@ -214,35 +222,43 @@ public class HllSketch extends BaseHllSketch {
 
   @Override
   public String toString() {
-    return toString(false);
+    return toString(true, false, false);
   }
 
   @Override
-  public String toString(final boolean detail) {
+  public String toString(final boolean summary, final boolean hllDetail, final boolean auxDetail) {
     final StringBuilder sb = new StringBuilder();
-    sb.append("### HLL SKETCH SUMMARY: ").append(LS);
-    sb.append("  Log Config K   : ").append(getLgConfigK()).append(LS);
-    sb.append("  Hll Target     : ").append(getTgtHllType()).append(LS);
-    sb.append("  Current Mode   : ").append(getCurrentMode()).append(LS);
-    sb.append("  LB             : ").append(getLowerBound(1.0)).append(LS);
-    sb.append("  Estimate       : ").append(getEstimate()).append(LS);
-    sb.append("  UB             : ").append(getUpperBound(1.0)).append(LS);
-    sb.append("  OutOfOrder Flag: ").append(isOutOfOrderFlag()).append(LS);
-    if (getCurrentMode() == CurMode.HLL) {
-      final double hipAccum = hllSketchImpl.getHipAccum();
-      sb.append("  CurMin         : ").append(getCurMin()).append(LS);
-      sb.append("  NumAtCurMin    : ").append(getNumAtCurMin()).append(LS);
-      sb.append("  HipAccum       : ").append(hipAccum).append(LS);
+    if (summary) {
+      sb.append("### HLL SKETCH SUMMARY: ").append(LS);
+      sb.append("  Log Config K   : ").append(getLgConfigK()).append(LS);
+      sb.append("  Hll Target     : ").append(getTgtHllType()).append(LS);
+      sb.append("  Current Mode   : ").append(getCurrentMode()).append(LS);
+      sb.append("  LB             : ").append(getLowerBound(1.0)).append(LS);
+      sb.append("  Estimate       : ").append(getEstimate()).append(LS);
+      sb.append("  UB             : ").append(getUpperBound(1.0)).append(LS);
+      sb.append("  OutOfOrder Flag: ").append(isOutOfOrderFlag()).append(LS);
+      if (getCurrentMode() == CurMode.HLL) {
+        final double hipAccum = hllSketchImpl.getHipAccum();
+        sb.append("  CurMin         : ").append(getCurMin()).append(LS);
+        sb.append("  NumAtCurMin    : ").append(getNumAtCurMin()).append(LS);
+        sb.append("  HipAccum       : ").append(hipAccum).append(LS);
+      }
     }
-    if (detail) {
+    if (hllDetail) {
+      sb.append("### HLL SKETCH HLL DETAIL: ").append(LS);
       final PairIterator pitr = getIterator();
       while (pitr.nextValid()) {
         sb.append(pitr.getString()).append(LS);
       }
+    }
+    if (auxDetail) {
+      sb.append("### HLL SKETCH AUX DETAIL: ").append(LS);
       if ((getCurrentMode() == CurMode.HLL) && (getTgtHllType() == TgtHllType.HLL_4)) {
         final PairIterator auxItr = getAuxIterator();
-        while (auxItr.nextValid()) {
-          sb.append(auxItr.getString()).append(LS);
+        if (auxItr != null) {
+          while (auxItr.nextValid()) {
+            sb.append(auxItr.getString()).append(LS);
+          }
         }
       }
     }
