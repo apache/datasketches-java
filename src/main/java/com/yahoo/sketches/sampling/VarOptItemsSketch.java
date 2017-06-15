@@ -988,10 +988,9 @@ public final class VarOptItemsSketch<T> {
      Memory package.
    */
   private void convertToHeap() {
-    assert h_ >= 2;
-    //if (h_ < 2) {
-    //  return; // nothing to do
-    //}
+    if (h_ < 2) {
+      return; // nothing to do
+    }
 
     final int lastSlot = h_ - 1;
     final int lastNonLeaf = ((lastSlot + 1) / 2) - 1;
