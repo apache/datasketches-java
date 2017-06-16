@@ -202,7 +202,6 @@ public class VarOptItemsSketchTest {
     final Memory mem = Memory.wrap(sketchBytes);
 
     // only minPreLongs bytes and should deserialize to empty
-    assert sketchBytes != null;
     assertEquals(sketchBytes.length, Family.VAROPT.getMinPreLongs() << 3);
     final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
     final VarOptItemsSketch<String> loadedVis = VarOptItemsSketch.heapify(mem, serDe);
