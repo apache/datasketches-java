@@ -210,6 +210,18 @@ public final class VarOptItemsUnion<T> {
   }
 
   /**
+   * Union a reservoir sketch. The reservoir sample is treated as if all items were added with a
+   * weight of 1.0.
+   *
+   * @param reservoirIn The reservoir sketch to be merged
+   */
+  public void update(final ReservoirItemsSketch<T> reservoirIn) {
+    if (reservoirIn != null) {
+      mergeReservoirInto(reservoirIn);
+    }
+  }
+
+  /**
    * Gets the varopt sketch resulting from the union of any input sketches.
    *
    * @return A varopt sketch
@@ -387,6 +399,61 @@ public final class VarOptItemsUnion<T> {
       }
 
       // do nothing if sketch's tau is smaller than outerTau
+    }
+  }
+
+  /**
+   * Used to merge a reservoir sample into varopt, assuming the reservoir was built with items
+   * of weight 1.0. Logic is very similar to mergeInto() for a sketch with no heavy items.
+   * @param reservoir Reservoir sketch to merge into this union
+   */
+  private void mergeReservoirInto(final ReservoirItemsSketch<T> reservoir) {
+    final long reservoirN = reservoir.getN();
+    if (reservoirN == 0) {
+      return;
+    }
+
+    n_ += reservoirN;
+
+    final int reservoirK = reservoir.getK();
+    if (reservoir.getN() <= reservoirK) {
+      // exact mode, so just insert and be done
+      for (T item : reservoir.getRawSamplesAsList()) {
+        gadget_.update(item, 1.0, false);
+      }
+    } else {
+      // sampling mode. We'll replicate a weight-correcting iterator
+      final double reservoirTau = reservoir.getImplicitSampleWeight();
+
+      double cumWeight = 0.0;
+      final ArrayList<T> samples = reservoir.getRawSamplesAsList();
+      for (int i = 0; i < reservoirK - 1; ++i) {
+        gadget_.update(samples.get(i), reservoirTau, true);
+        cumWeight += reservoirTau;
+      }
+      // correct for any numerical discrepancies with the last item
+      gadget_.update(samples.get(reservoirK - 1), reservoir.getN() - cumWeight, true);
+
+      // resolve tau
+      final double outerTau = getOuterTau();
+
+      if (outerTauDenom == 0) {
+        // detect first estimation mode sketch and grab its tau
+        outerTauNumer = reservoirN;
+        outerTauDenom = reservoirK;
+      } else if (reservoirTau > outerTau) {
+        // switch to a bigger value of outerTau
+        outerTauNumer = reservoirN;
+        outerTauDenom = reservoirK;
+      } else if (reservoirTau == outerTau) {
+        // Ok if previous equality test isn't quite perfect. Mistakes in either direction should
+        // be fairly benign.
+        // Without conceptually changing outerTau, update number and denominator. In particular,
+        // add the total weight of the incoming reservoir to the running total.
+        outerTauNumer += reservoirN;
+        outerTauDenom += reservoirK;
+      }
+      // do nothing if reservoir "tau" is no smaller than outerTau
     }
   }
 
