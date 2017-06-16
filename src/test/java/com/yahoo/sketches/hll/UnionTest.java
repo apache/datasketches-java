@@ -283,13 +283,13 @@ public class UnionTest {
   @Test
   public void checkMisc() {
     try {
-      Union u = new Union(6);
+      Union u = new Union(HllUtil.MIN_LOG_K - 1);
       fail();
     } catch (SketchesArgumentException e) {
       //expected
     }
     try {
-      Union u = new Union(22);
+      Union u = new Union(HllUtil.MAX_LOG_K + 1);
       fail();
     } catch (SketchesArgumentException e) {
       //expected

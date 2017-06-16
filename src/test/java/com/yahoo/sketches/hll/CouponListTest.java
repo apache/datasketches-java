@@ -8,6 +8,7 @@ package com.yahoo.sketches.hll;
 import static com.yahoo.sketches.hll.PreambleUtil.FAMILY_ID;
 import static com.yahoo.sketches.hll.PreambleUtil.LIST_PREINTS;
 import static com.yahoo.sketches.hll.PreambleUtil.SER_VER;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
@@ -46,7 +47,7 @@ public class CouponListTest {
   @Test
   public void checkCheckPreamble() {
     HllSketch sk = new HllSketch(8, TgtHllType.HLL_6);
-    for (int i = 0; i < 15; i++) { sk.update(i); }
+    for (int i = 0; i < 7; i++) { sk.update(i); }
     byte[] byteArr = sk.toCompactByteArray();
     WritableMemory wmem = WritableMemory.wrap(byteArr);
     final long memAdd = wmem.getCumulativeOffset(0);
@@ -73,6 +74,20 @@ public class CouponListTest {
       wmem.putByte(PreambleUtil.FAMILY_BYTE, (byte) FAMILY_ID);
     }
   }
+
+  @Test
+  public void checkDuplicates() {
+    HllSketch sk = new HllSketch(8);
+    for (int i = 0; i < 7; i++) {
+      sk.update(i);
+      sk.update(i);
+    }
+    assertEquals(sk.getCurrentMode(), CurMode.LIST);
+    sk.update(7);
+    sk.update(7);
+    assertEquals(sk.getCurrentMode(), CurMode.SET);
+  }
+
 
   @Test
   public void printlnTest() {

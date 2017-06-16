@@ -103,11 +103,6 @@ class Hll8Array extends HllArray {
   }
 
   @Override
-  int getCurrentSerializationBytes() {
-    return HLL_BYTE_ARRAY_START + (1 << lgConfigK);
-  }
-
-  @Override
   PairIterator getIterator() {
     return new Hll8Iterator();
   }

@@ -5,9 +5,9 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hll.Tables.couponMappingXarr;
-import static com.yahoo.sketches.hll.Tables.couponMappingYarr;
-import static com.yahoo.sketches.hll.Tables.cubicInterpolateUsingTable;
+import static com.yahoo.sketches.hll.CouponMapping.xArr;
+import static com.yahoo.sketches.hll.CouponMapping.yArr;
+import static com.yahoo.sketches.hll.Interpolation.cubicInterpolateUsingTable;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
@@ -23,13 +23,13 @@ public class TablesTest {
   @Test
   public void checkInterpolationExceptions() {
     try {
-      cubicInterpolateUsingTable(couponMappingXarr, couponMappingYarr, -1);
+      cubicInterpolateUsingTable(xArr, yArr, -1);
       fail();
     } catch (SketchesArgumentException e) {
       //expected
     }
     try {
-      cubicInterpolateUsingTable(couponMappingXarr, couponMappingYarr, 11000000.0);
+      cubicInterpolateUsingTable(xArr, yArr, 11000000.0);
       fail();
     } catch (SketchesArgumentException e) {
       //expected
@@ -38,10 +38,10 @@ public class TablesTest {
 
   @Test
   public void checkCornerCases() {
-    int len = couponMappingXarr.length;
-    double x = couponMappingXarr[len - 1];
-    double y = cubicInterpolateUsingTable(couponMappingXarr, couponMappingYarr, x);
-    double yExp = couponMappingYarr[len - 1];
+    int len = xArr.length;
+    double x = xArr[len - 1];
+    double y = cubicInterpolateUsingTable(xArr, yArr, x);
+    double yExp = yArr[len - 1];
     assertEquals(y, yExp, 0.0);
   }
 

@@ -25,27 +25,27 @@ abstract class BaseHllSketch {
   abstract CurMode getCurMode();
 
   /**
-   * Gets the size in bytes of the current sketch when serialized using <i>toByteArray()</i>.
-   * @return the size in bytes of the current sketch when serialized using <i>toByteArray()</i>.
+   * Gets the size in bytes of the current sketch when serialized using
+   * <i>toCompactByteArray()</i>.
+   * @return the size in bytes of the current sketch when serialized using
+   * <i>toCompactByteArray()</i>.
    */
-  public abstract int getCurrentSerializationBytes();
+  public abstract int getCompactSerializationBytes();
 
   /**
-   * Return the current cardinality estimate
-   * @return the current cardinality estimate
+   * Return the cardinality estimate
+   * @return the cardinality estimate
    */
   public abstract double getEstimate();
 
   /**
-   * Gets the <i>lgConfigK</i>. For the union operator, the returned value is the
-   * current effective <i>lgK</i>, which may be less than <i>lgMaxK</i>.
+   * Gets the <i>lgConfigK</i>.
    * @return the <i>lgConfigK</i>.
    */
   public abstract int getLgConfigK();
 
   /**
    * Gets the approximate upper error bound given the specified number of Standard Deviations.
-   * This will return getEstimate() if isEmpty() is true.
    *
    * @param numStdDev
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
@@ -55,7 +55,6 @@ abstract class BaseHllSketch {
 
   /**
    * Gets the approximate lower error bound given the specified number of Standard Deviations.
-   * This will return getEstimate() if isEmpty() is true.
    *
    * @param numStdDev
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
@@ -84,18 +83,8 @@ abstract class BaseHllSketch {
    */
   abstract boolean isOutOfOrderFlag();
 
-  /**
-   * Resets to empty, but does not change the configured values of lgK and tgtHllType.
-   */
   public abstract void reset();
 
-  /**
-   * Gets the serialization of this sketch as a byte array in compact form, which is designed
-   * to be read-only and is not directly updatable.
-   * For the Union operator, this is the serialization of the internal state of
-   * the union operator as a sketch.
-   * @return the serialization of this sketch as a byte array.
-   */
   public abstract byte[] toCompactByteArray();
 
   /**
@@ -107,10 +96,12 @@ abstract class BaseHllSketch {
 
   /**
    * Human readable summary with optional detail
-   * @param detail if true, list out the internal arrays
+   * @param summary if true, output the sketch summary
+   * @param hllDetail if true, output the internal HLL array
+   * @param auxDetail if true, output the internal Aux array, if it exists.
    * @return human readable string
    */
-  public abstract String toString(boolean detail);
+  public abstract String toString(boolean summary, boolean hllDetail, boolean auxDetail);
 
   /**
    * Present the given long as a potential unique item.
@@ -142,8 +133,11 @@ abstract class BaseHllSketch {
    * The string is converted to a byte array using UTF8 encoding.
    * If the string is null or empty no update attempt is made and the method returns.
    *
-   * <p>Note: this will not produce the same output hash values as the {@link #update(char[])}
-   * method and will generally be a little slower due to the complexity of the UTF8 encoding.
+   * <p>Note: About 2X faster performance can be obtained by first converting the String to a
+   * char[] and updating the sketch with that. This bypasses the complexity of the Java UTF_8
+   * encoding. This, of course, will not produce the same internal hash values as updating directly
+   * with a String. So be consistent!  Unioning two sketches, one fed with strings and the other
+   * fed with char[] will be meaningless.
    * </p>
    *
    * @param datum The given String.

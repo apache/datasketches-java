@@ -59,8 +59,8 @@ class CouponHashSet extends CouponList {
   HllSketchImpl couponUpdate(final int coupon) {
     final int index = find(couponIntArr, lgCouponArrInts, coupon);
     if (index >= 0) {
-      return this;
-    } //found duplicate, ignore
+      return this; //found duplicate, ignore
+    }
     couponIntArr[~index] = coupon;
     couponCount++;
     super.oooFlag = true; //could be moved out

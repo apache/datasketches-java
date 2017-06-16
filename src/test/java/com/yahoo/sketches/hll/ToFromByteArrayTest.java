@@ -27,7 +27,7 @@ public class ToFromByteArrayTest {
   public void checkToFromSketch1() {
     for (int i = 0; i < 9; i++) {
       int n = nArr[i];
-      for (int lgK = 7; lgK <= 12; lgK++) {
+      for (int lgK = 4; lgK <= 12; lgK++) {
         toFrom1(lgK, HLL_4, n);
         toFrom1(lgK, HLL_6, n);
         toFrom1(lgK, HLL_8, n);
@@ -56,7 +56,7 @@ public class ToFromByteArrayTest {
   public void checkToFromSketch2() {
     for (int i = 0; i < 9; i++) {
       int n = nArr[i];
-      for (int lgK = 7; lgK <= 12; lgK++) {
+      for (int lgK = 4; lgK <= 12; lgK++) {
         toFrom2(lgK, HLL_4, n);
         toFrom2(lgK, HLL_6, n);
         toFrom2(lgK, HLL_8, n);
@@ -81,15 +81,7 @@ public class ToFromByteArrayTest {
   }
 
   static void printSketch(HllSketch sketch, String name) {
-    println(name +":\n" + sketch.toString());
-    if (sketch.getTgtHllType() == TgtHllType.HLL_4) {
-      PairIterator itr = sketch.getAuxIterator();
-      if (itr != null) {
-        while (itr.nextValid()) {
-          println(itr.getString());
-        }
-      }
-    }
+    println(name +":\n" + sketch.toString(true, false, true)); //summary + aux only
   }
 
   @Test

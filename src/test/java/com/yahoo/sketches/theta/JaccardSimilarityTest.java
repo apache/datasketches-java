@@ -69,7 +69,7 @@ public class JaccardSimilarityTest {
     UpdateSketch measured = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch expected = UpdateSketch.builder().setNominalEntries(k).build();
 
-    for (int i = 0; i < u-1; i++) { //one short
+    for (int i = 0; i < (u-1); i++) { //one short
       measured.update(i);
       expected.update(i);
     }
@@ -118,7 +118,7 @@ public class JaccardSimilarityTest {
     state = exactlyEqual(measured, expected);
     assertTrue(state);
 
-    for (int i = u; i < u + 50; i++) { //empirically determined
+    for (int i = u; i < (u + 50); i++) { //empirically determined
       measured.update(i);
     }
 
@@ -200,7 +200,23 @@ public class JaccardSimilarityTest {
     double lb = jResults[0];
     double est = jResults[1];
     double ub = jResults[2];
-    return lb + "\t" + est + "\t" + ub + "\t" + (lb/est - 1.0) + "\t" + (ub/est - 1.0);
+    return lb + "\t" + est + "\t" + ub + "\t" + ((lb/est) - 1.0) + "\t" + ((ub/est) - 1.0);
+  }
+
+  @Test
+  public void checkMinK() {
+    UpdateSketch skA = UpdateSketch.builder().build(); //4096
+    UpdateSketch skB = UpdateSketch.builder().build(); //4096
+    skA.update(1);
+    skB.update(1);
+    double[] result = JaccardSimilarity.jaccard(skA, skB);
+    println(result[0] + ", " + result[1] + ", " + result[2]);
+    for (int i = 1; i < 4096; i++) {
+      skA.update(i);
+      skB.update(i);
+    }
+    result = JaccardSimilarity.jaccard(skA, skB);
+    println(result[0] + ", " + result[1] + ", " + result[2]);
   }
 
   @Test

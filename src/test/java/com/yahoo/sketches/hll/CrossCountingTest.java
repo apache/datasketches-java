@@ -164,6 +164,6 @@ public class CrossCountingTest {
    * @param s value to print
    */
   static void print(String s) {
-    System.out.print(s); //disable here
+    //System.out.print(s); //disable here
   }
 }

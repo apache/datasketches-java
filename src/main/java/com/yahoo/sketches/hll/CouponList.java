@@ -44,7 +44,8 @@ import com.yahoo.sketches.SketchesStateException;
 class CouponList extends HllSketchImpl {
   // This RSE is computed at the transition point from coupons to HLL and not for the asymptote.
   private static final double COUPON_ESTIMATOR_RSE = .409 / (1 << 13); //=.409 / sqrt(2^26)
-  private static final int LG_INIT_LIST_SIZE = 2;
+  private static final int LG_INIT_LIST_SIZE = 3;
+  private static final int LG_INIT_SET_SIZE = 5;
 
   final int lgMaxArrInts;
   int lgCouponArrInts;
@@ -61,10 +62,10 @@ class CouponList extends HllSketchImpl {
       final TgtHllType tgtHllType,
       final CurMode curMode) {
     super(lgConfigK, tgtHllType, curMode);
-    lgCouponArrInts = initialLgCouponArrInts(curMode, lgConfigK);
+    lgCouponArrInts = (curMode == CurMode.LIST) ? LG_INIT_LIST_SIZE : LG_INIT_SET_SIZE;
     couponIntArr = new int[1 << lgCouponArrInts];
     couponCount = 0;
-    lgMaxArrInts = computeLgMaxArrInts(curMode, lgConfigK);
+    lgMaxArrInts = (curMode == CurMode.LIST) ? LG_INIT_LIST_SIZE : (lgConfigK - 3);
   }
 
   /**
@@ -135,21 +136,18 @@ class CouponList extends HllSketchImpl {
 
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
-    final boolean atMax = (lgCouponArrInts >= lgMaxArrInts);
-
     final int len = couponIntArr.length;
     for (int i = 0; i < len; i++) { //search for empty slot
       if (couponIntArr[i] == EMPTY) {
         couponIntArr[i] = coupon; //update
         couponCount++;
-        if (couponCount >= len) {
-          if (atMax) { //array full and at MAX_SIZE
-            return HllUtil.makeSetFromList(this, lgConfigK, tgtHllType); //sets oooFlag true
+        if (couponCount >= len) { //array full
+          if (lgConfigK < 8) {
+            return HllUtil.makeHllFromCoupons(this, lgConfigK, tgtHllType); //sets oooFlag false
           }
-          couponIntArr = growList(couponIntArr);
-          lgCouponArrInts++;
+          return HllUtil.makeSetFromList(this, lgConfigK, tgtHllType); //sets oooFlag true
         }
-        return this; //updated AND (not full OR was full and made bigger)
+        return this;
       }
       //cell not empty
       if (couponIntArr[i] == coupon) { return this; } //duplicate
@@ -160,7 +158,7 @@ class CouponList extends HllSketchImpl {
 
   @Override
   PairIterator getAuxIterator() {
-    return null;
+    return null; //always null from LIST or SET
   }
 
   @Override
@@ -192,8 +190,8 @@ class CouponList extends HllSketchImpl {
    */
   @Override
   double getEstimate() {
-    final double est = Tables.cubicInterpolateUsingTable(Tables.couponMappingXarr,
-        Tables.couponMappingYarr, couponCount);
+    final double est = Interpolation.cubicInterpolateUsingTable(CouponMapping.xArr,
+        CouponMapping.yArr, couponCount);
     return Math.max(est, couponCount);
   }
 
@@ -209,8 +207,8 @@ class CouponList extends HllSketchImpl {
 
   @Override
   double getLowerBound(final double numStdDev) {
-    final double est = Tables.cubicInterpolateUsingTable(Tables.couponMappingXarr,
-        Tables.couponMappingYarr, couponCount);
+    final double est = Interpolation.cubicInterpolateUsingTable(CouponMapping.xArr,
+        CouponMapping.yArr, couponCount);
     final double tmp = est / (1.0 + couponEstimatorEps(numStdDev));
     return Math.max(tmp, couponCount);
   }
@@ -227,8 +225,8 @@ class CouponList extends HllSketchImpl {
 
   @Override
   double getUpperBound(final double numStdDev) {
-    final double est = Tables.cubicInterpolateUsingTable(Tables.couponMappingXarr,
-        Tables.couponMappingYarr, couponCount);
+    final double est = Interpolation.cubicInterpolateUsingTable(CouponMapping.xArr,
+        CouponMapping.yArr, couponCount);
     return est / (1.0 - couponEstimatorEps(numStdDev));
   }
 
@@ -343,23 +341,6 @@ class CouponList extends HllSketchImpl {
   private static final double couponEstimatorEps(final double numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
     return (numStdDev * COUPON_ESTIMATOR_RSE);
-  }
-
-  private static final int[] growList(final int[] oldArr) {
-    final int oldLen = oldArr.length;
-    final int[] newArr = new int[oldLen << 1]; //X2
-    for (int i = 0; i < oldLen; i++) {
-      newArr[i] = oldArr[i];
-    }
-    return newArr;
-  }
-
-  private static final int initialLgCouponArrInts(final CurMode curMode, final int lgConfigK) {
-    return (curMode == CurMode.LIST) ? LG_INIT_LIST_SIZE : ((lgConfigK == 7) ? 4 : 5);
-  }
-
-  private static final int computeLgMaxArrInts(final CurMode curMode, final int lgConfigK) {
-    return (curMode == CurMode.LIST) ? ((lgConfigK == 7) ? 3 : 4) : (lgConfigK - 3);
   }
 
   static final void checkPreamble(final Memory mem, final Object memArr, final long memAdd,

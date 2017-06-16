@@ -20,9 +20,17 @@ final class HllUtil {
   static final int KEY_MASK_26 = (1 << KEY_BITS_26) - 1;
   static final int VAL_MASK_6 = (1 << VAL_BITS_6) - 1;
   static final int EMPTY = 0;
+  static final int MIN_LOG_K = 4;
+  static final int MAX_LOG_K = 21;
 
   static final int RESIZE_NUMER = 3;
   static final int RESIZE_DENOM = 4;
+
+  static final int checkLgK(final int lgK) {
+    if ((lgK >= MIN_LOG_K) && (lgK <= MAX_LOG_K)) { return lgK; }
+    throw new SketchesArgumentException(
+      "Log K must be between 4 and 21, inclusive: " + lgK);
+  }
 
   //when called from CouponList, tgtLgK == lgConfigK
   static final CouponHashSet makeSetFromList(final CouponList list, final int tgtLgK,
@@ -39,8 +47,8 @@ final class HllUtil {
   }
 
   //This is ONLY called when src is not in HLL mode and creating a new tgt HLL
-  //Src can be either list or set.  Used by CouponHashSet and the Union operator
-  //When called from CouponHashSet, tgtLgK == lgConfigK
+  //Src can be either list or set.
+  //Used by CouponList, CouponHashSet and the Union operator
   static final HllSketchImpl makeHllFromCoupons(final CouponList src, final int tgtLgK,
       final TgtHllType tgtHllType) {
     final HllArray tgtHllArr = newHll(tgtLgK, tgtHllType);
@@ -79,12 +87,6 @@ final class HllUtil {
       throw new SketchesArgumentException(
           "NumStdDev may not be negative or greater than 3.0.");
     }
-  }
-
-  static final int checkLgK(final int lgK) {
-    if ((lgK >= 7) && (lgK <= 21)) { return lgK; }
-    throw new SketchesArgumentException(
-      "Log K must be between 7 and 21, inclusive: " + lgK);
   }
 
   private static final HllArray newHll(final int tgtLgK, final TgtHllType tgtHllType) {

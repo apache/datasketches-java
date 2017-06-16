@@ -7,6 +7,7 @@ package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.Util.invPow2;
 import static com.yahoo.sketches.hll.PreambleUtil.FAMILY_ID;
+import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARRAY_START;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_PREINTS;
 import static com.yahoo.sketches.hll.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.hll.PreambleUtil.extractFamilyId;
@@ -34,7 +35,7 @@ abstract class HllArray extends HllSketchImpl {
   double kxq0;
   double kxq1;
   byte[] hllByteArr = null; //init by sub-classes
-  AuxHashMap auxHashMap = null; //init only by Hll4Array
+  AuxHashMap auxHashMap = null; //used only by Hll4Array
 
   /**
    * Standard constructor
@@ -72,7 +73,7 @@ abstract class HllArray extends HllSketchImpl {
       return (HllArray)copy();
     }
     if (tgtHllType == HLL_4) {
-      return convertToHll4(this);
+      return Hll4Array.convertToHll4(this);
     }
     if (tgtHllType == HLL_6) {
       return convertToHll6(this);
@@ -97,7 +98,10 @@ abstract class HllArray extends HllSketchImpl {
   }
 
   @Override
-  abstract int getCurrentSerializationBytes();
+  int getCurrentSerializationBytes() {
+    final int auxBytes = (auxHashMap == null) ? 0 : auxHashMap.auxCount << 2;
+    return HLL_BYTE_ARRAY_START + hllByteArr.length + auxBytes;
+  }
 
   @Override
   double getEstimate() {
@@ -194,7 +198,11 @@ abstract class HllArray extends HllSketchImpl {
   //In C: two-registers.c Lines: 1156
   private double getRawEstimate() {
     final int configK = 1 << lgConfigK;
-    final double correctionFactor = 0.7213 / (1.0 + (1.079 / configK));
+    final double correctionFactor;
+    if (configK == 16) { correctionFactor = 0.673; }
+    else if (configK == 32) { correctionFactor = 0.697; }
+    else if (configK == 64) { correctionFactor = 0.709; }
+    else { correctionFactor = 0.7213 / (1.0 + (1.079 / configK)); }
     return (correctionFactor * configK * configK) / (kxq0 + kxq1);
   }
 
@@ -208,10 +216,10 @@ abstract class HllArray extends HllSketchImpl {
     final double rawEst = getRawEstimate();
     final int configK = 1 << lgConfigK;
 
-    Tables.checkK(lgConfigK);
+    HllUtil.checkLgK(lgConfigK);
 
-    final double[] x_arr = Tables.getXarr(lgConfigK);
-    final double[] y_arr = Tables.getYarr(lgConfigK);
+    final double[] x_arr = Interpolation.getXarr(lgConfigK);
+    final double[] y_arr = Interpolation.getYarr(lgConfigK);
 
     if (rawEst < x_arr[0]) {
       return 0;
@@ -220,25 +228,27 @@ abstract class HllArray extends HllSketchImpl {
       final double factor = y_arr[y_arr.length - 1] / x_arr[x_arr.length - 1];
       return (rawEst * factor);
     }
-    final double adjEst = Tables.cubicInterpolateUsingTable(x_arr, y_arr, rawEst);
+    final double adjEst = Interpolation.cubicInterpolateUsingTable(x_arr, y_arr, rawEst);
     if (adjEst > (3.0 * configK)) {
       return adjEst;
     }
     final double linEst = getHllBitMapEstimate();
     final double avgEst = (adjEst + linEst) / 2.0;
-    // The following constant 0.64 comes from empirical measurements of the crossover
-    //    point between the average error of the linear estimator and the adjusted hll estimator
-    if (avgEst > (0.64 * configK)) {
-      return adjEst;
-    }
-    return linEst;
+
+    // The following constants comes from empirical measurements of the crossover point
+    // between the average error of the linear estimator and the adjusted hll estimator
+    double crossOver = 0.64;
+    if (configK == 16)      { crossOver = 0.718; }
+    else if (configK == 32) { crossOver = 0.672; }
+
+    return (avgEst > (crossOver * configK)) ? adjEst : linEst;
   }
 
   private double getHllBitMapEstimate() { //estimator for when N is small
     final int configK = 1 << lgConfigK;
     return ((curMin != 0) || (numAtCurMin == 0))
         ? configK * Math.log(configK / 0.5)
-        : Tables.getBitMapEstimate(configK, configK - numAtCurMin);
+        : HarmonicNumbers.getBitMapEstimate(configK, configK - numAtCurMin);
   }
 
   //In C: two-registers.c lines 1136-1137
@@ -251,36 +261,7 @@ abstract class HllArray extends HllSketchImpl {
     return (numStdDevs * HLL_NON_HIP_RSE_FACTOR) / Math.sqrt(1 << lgConfigK);
   }
 
-  private static final Hll4Array convertToHll4(final HllArray srcHllArr) {
-    final Hll4Array hll4Array = new Hll4Array(srcHllArr.getLgConfigK());
-    hll4Array.putOooFlag(srcHllArr.getOooFlag());
-    final int[] hist = new int[64];
-    PairIterator itr = srcHllArr.getIterator();
-    while (itr.nextAll()) {
-      hist[itr.getValue()]++;
-    }
-    int curMin = 0;
-    while (hist[curMin] == 0) {
-      curMin++;
-    }
-    final int numAtCurMin = hist[curMin];
-    itr = srcHllArr.getIterator();
-    while (itr.nextValid()) {
-      final int slotNo = itr.getIndex();
-      final int actualValue = itr.getValue();
-      hll4Array.hipAndKxQIncrementalUpdate(0, actualValue);
-      if (actualValue >= (curMin + 15)) {
-        Hll4Array.setNibble(hll4Array.hllByteArr, slotNo, AUX_TOKEN);
-        hll4Array.auxHashMap.mustAdd(slotNo, actualValue);
-      } else {
-        Hll4Array.setNibble(hll4Array.hllByteArr, slotNo, actualValue - curMin);
-      }
-    }
-    hll4Array.curMin = curMin;
-    hll4Array.numAtCurMin = numAtCurMin;
-    hll4Array.putHipAccum(srcHllArr.getHipAccum());
-    return hll4Array;
-  }
+
 
   private static final Hll6Array convertToHll6(final HllArray srcHllArr) {
     final Hll6Array hll6Array = new Hll6Array(srcHllArr.getLgConfigK());

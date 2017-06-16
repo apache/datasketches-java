@@ -67,7 +67,7 @@ class Hll4Array extends HllArray {
     super(lgConfigK, TgtHllType.HLL_4);
     hllByteArr = new byte[1 << (lgConfigK - 1)];
 
-    auxHashMap = new AuxHashMap(LG_AUX_SIZE[lgConfigK], lgConfigK);
+    auxHashMap = null;
   }
 
   /**
@@ -99,7 +99,9 @@ class Hll4Array extends HllArray {
     //load AuxHashMap
     final int offset = HLL_BYTE_ARRAY_START + hllArrLen;
     final int auxCount = extractAuxCount(memArr, memAdd);
-    hll4Array.auxHashMap = AuxHashMap.heapify(mem, offset, lgConfigK, auxCount);
+    hll4Array.auxHashMap = (auxCount == 0)
+        ? null
+        : AuxHashMap.heapify(mem, offset, lgConfigK, auxCount);
     return hll4Array;
   }
 
@@ -125,11 +127,6 @@ class Hll4Array extends HllArray {
   }
 
   @Override
-  int getCurrentSerializationBytes() {
-    return HLL_BYTE_ARRAY_START + (1 << (lgConfigK - 1)) + ((auxHashMap.auxCount) << 2);
-  }
-
-  @Override
   PairIterator getIterator() {
     return new Hll4Iterator();
   }
@@ -137,7 +134,7 @@ class Hll4Array extends HllArray {
   @Override
   byte[] toCompactByteArray() {
     final int hllBytes = hllByteArr.length;
-    final int auxBytes = auxHashMap.getCompactedSizeBytes();            //Hll4
+    final int auxBytes = (auxHashMap != null) ? auxHashMap.getCompactedSizeBytes() : 0; //Hll4
     final int totBytes = HLL_BYTE_ARRAY_START + hllBytes + auxBytes;    //Hll4
     final byte[] memArr = new byte[totBytes];
     final WritableMemory wmem = WritableMemory.wrap(memArr);
@@ -161,7 +158,7 @@ class Hll4Array extends HllArray {
     wmem.putByteArray(HLL_BYTE_ARRAY_START, hllByteArr, 0, hllBytes);
 
     //remainder only for Hll4
-    final int auxCount = auxHashMap.auxCount;
+    final int auxCount = (auxHashMap != null) ? auxHashMap.auxCount : 0;
     insertAuxCount(memArr, memAdd, auxCount);
     if (auxCount > 0) {
       final int auxStart = HLL_BYTE_ARRAY_START + hllBytes;
@@ -213,7 +210,7 @@ class Hll4Array extends HllArray {
     public int getValue() {
       final int nib = getNibble(hllByteArr, slotNum);
       if (nib == AUX_TOKEN) {
-        return auxHashMap.mustFindValueFor(slotNum);
+        return auxHashMap.mustFindValueFor(slotNum); //auxHashMap cannot be null here
       }
       return nib + curMin;
     }
@@ -256,7 +253,6 @@ class Hll4Array extends HllArray {
           ? lbOnOldValue
           : auxHashMap.mustFindValueFor(slotNo); //846 rawStoredOldValue == AUX_TOKEN
 
-
       if (newValue > actualOldValue) { //848 //actualOldValue could still be 0; newValue > 0
 
         //We know that the array will be changed
@@ -295,6 +291,9 @@ class Hll4Array extends HllArray {
             //Therefore the AUX_TOKEN must be stored in the 4-bit array and the new value
             // added to the exception table.
             setNibble(hllByteArr, slotNo, AUX_TOKEN);
+            if (auxHashMap == null) {
+              auxHashMap = new AuxHashMap(LG_AUX_SIZE[lgConfigK], lgConfigK);
+            }
             auxHashMap.mustAdd(slotNo, newValue);
           }
           else {                             // CASE 4: //897
@@ -330,7 +329,6 @@ class Hll4Array extends HllArray {
     assert numAtCurMin == 0;
 
     // walk through the slots decrementing stored values of 4-bit array
-
     for (int i = 0; i < configK; i++) { //723
       final int oldStoredValue = getNibble(hllByteArr, i);
       if (oldStoredValue < 1) {
@@ -350,39 +348,82 @@ class Hll4Array extends HllArray {
       // else oldStoredValue == AUX_TOKEN, we leave it in place
     }
 
-    // walk through old AuxMap updating some slots and building new AuxMap
-    final AuxHashMap newAuxMap = new AuxHashMap(LG_AUX_SIZE[lgConfigK], lgConfigK);
-    final int[] auxArr = auxHashMap.auxIntArr;
-    final int auxArrLen = auxHashMap.auxIntArr.length;
+    // if old AuxHashMap exists, walk through it updating some slots and
+    //   building new AuxHashMap if needed.
+    AuxHashMap newAuxMap = null;
+    if (auxHashMap != null ) {
+      final int[] oldAuxArr = auxHashMap.auxIntArr;
+      final int oldAuxArrLen = auxHashMap.auxIntArr.length;
 
-    for (int i = 0; i < auxArrLen; i++) {
-      final int pair = auxArr[i];
-      if (pair == 0) { continue; } //not a valid pair
-      final int slotNo = BaseHllSketch.getLow26(pair) & configKmask;
-      final int actualValue = BaseHllSketch.getValue(pair);
-      final int shiftedValue = actualValue - newCurMin;
+      for (int i = 0; i < oldAuxArrLen; i++) {
+        final int oldPair = oldAuxArr[i];
+        if (oldPair == 0) { continue; } //not a valid pair
+        final int slotNo = BaseHllSketch.getLow26(oldPair) & configKmask;
+        final int oldActualValue = BaseHllSketch.getValue(oldPair);
+        final int newShiftedValue = oldActualValue - newCurMin;
 
-      assert shiftedValue >= 0;
+        assert newShiftedValue >= 0;
 
-      assert getNibble(hllByteArr, slotNo) == AUX_TOKEN : "Nibble: " + getNibble(hllByteArr, slotNo);
+        assert getNibble(hllByteArr, slotNo) == AUX_TOKEN : "Nibble: " + getNibble(hllByteArr, slotNo);
 
-      if (shiftedValue < AUX_TOKEN) { //756
-        assert (shiftedValue == 14);
-        // this former exception value isn't one anymore, so it stays out of new AuxMap
-        setNibble(hllByteArr, slotNo, shiftedValue);
-        // the following actually cannot happen since shifted value == 14
-        // if (shifted_value == 0) {numAtNewCurmin += 1;}
-      }
-
-      else {
-        // we just verified this above
-        // setNibble(hllByteArr, slotNo, AUX_TOKEN);
-        newAuxMap.mustAdd(slotNo, actualValue);
-      }
-    } //end for
+        if (newShiftedValue < AUX_TOKEN) { //756
+          assert (newShiftedValue == 14);
+          // the former exception value isn't one anymore, so it stays out of new AuxHashMap;
+          // so set it in the HLL array.
+          setNibble(hllByteArr, slotNo, newShiftedValue);
+          // the following actually cannot happen since new shifted value == 14
+          //   if (shifted_value == 0) {numAtNewCurmin += 1;}
+        }
+        else { //newShiftedValue >= AUX_TOKEN
+          // we just verified this above
+          // setNibble(hllByteArr, slotNo, AUX_TOKEN);
+          if (newAuxMap == null) {
+            newAuxMap = new AuxHashMap(LG_AUX_SIZE[lgConfigK], lgConfigK);
+          }
+          newAuxMap.mustAdd(slotNo, oldActualValue);
+        }
+      } //end for
+    } //end if (auxHashMap != null)
     auxHashMap = newAuxMap;
+
     curMin = newCurMin;
     numAtCurMin = numAtNewCurMin;
+  }
+
+  static final Hll4Array convertToHll4(final HllArray srcHllArr) {
+    final int lgConfigK = srcHllArr.getLgConfigK();
+    final Hll4Array hll4Array = new Hll4Array(lgConfigK);
+    hll4Array.putOooFlag(srcHllArr.getOooFlag());
+    final int[] hist = new int[64];
+
+    PairIterator itr = srcHllArr.getIterator();
+    while (itr.nextAll()) {
+      hist[itr.getValue()]++;
+    }
+    int curMin = 0;
+    while (hist[curMin] == 0) {
+      curMin++;
+    }
+    final int numAtCurMin = hist[curMin];
+    itr = srcHllArr.getIterator();
+    while (itr.nextValid()) {
+      final int slotNo = itr.getIndex();
+      final int actualValue = itr.getValue();
+      hll4Array.hipAndKxQIncrementalUpdate(0, actualValue);
+      if (actualValue >= (curMin + 15)) {
+        Hll4Array.setNibble(hll4Array.hllByteArr, slotNo, AUX_TOKEN);
+        if (hll4Array.auxHashMap == null) {
+          hll4Array.auxHashMap = new AuxHashMap(LG_AUX_SIZE[lgConfigK], lgConfigK);
+        }
+        hll4Array.auxHashMap.mustAdd(slotNo, actualValue);
+      } else {
+        Hll4Array.setNibble(hll4Array.hllByteArr, slotNo, actualValue - curMin);
+      }
+    }
+    hll4Array.curMin = curMin;
+    hll4Array.numAtCurMin = numAtCurMin;
+    hll4Array.putHipAccum(srcHllArr.getHipAccum());
+    return hll4Array;
   }
 
 }
