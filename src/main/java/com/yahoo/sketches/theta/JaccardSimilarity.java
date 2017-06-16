@@ -8,7 +8,11 @@ package com.yahoo.sketches.theta;
 import static com.yahoo.sketches.BoundsOnRatiosInThetaSketchedSets.getEstimateOfBoverA;
 import static com.yahoo.sketches.BoundsOnRatiosInThetaSketchedSets.getLowerBoundForBoverA;
 import static com.yahoo.sketches.BoundsOnRatiosInThetaSketchedSets.getUpperBoundForBoverA;
+import static com.yahoo.sketches.Util.MAX_LG_NOM_LONGS;
+import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 /**
  * Jaccard similarity of two Theta Sketches.
@@ -26,6 +30,9 @@ public final class JaccardSimilarity {
    * distinct from each other. A Jaccard of .95 means the overlap between the two
    * populations is 95% of the union of the two populations.
    *
+   * <p>Note: For very large pairs of sketches, where the configured nominal entries of the sketches
+   * are 2^25 or 2^26, this method may produce unpredictable results.
+   *
    * @param sketchA given sketch A
    * @param sketchB given sketch B
    * @return a double array {LowerBound, Estimate, UpperBound} of the Jaccard ratio.
@@ -42,8 +49,11 @@ public final class JaccardSimilarity {
     final int countB = sketchB.getRetainedEntries();
 
     //Create the Union
+    final int minK = 1 << MIN_LG_NOM_LONGS;
+    final int maxK = 1 << MAX_LG_NOM_LONGS;
+    final int newK = max(min(ceilingPowerOf2(countA + countB), maxK), minK);
     final Union union =
-        SetOperation.builder().setNominalEntries(ceilingPowerOf2(countA + countB)).buildUnion();
+        SetOperation.builder().setNominalEntries(newK).buildUnion();
     union.update(sketchA);
     union.update(sketchB);
     final Sketch unionAB = union.getResult();

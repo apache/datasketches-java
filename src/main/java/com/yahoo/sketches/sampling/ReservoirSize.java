@@ -25,7 +25,7 @@ import com.yahoo.sketches.Util;
  *
  * @author Jon Malkin
  */
-public final class ReservoirSize {
+final class ReservoirSize {
   /**
    * Number of bins per power of two.
    */
@@ -57,7 +57,7 @@ public final class ReservoirSize {
    * @return reservoir size as 16-bit encoded value
    */
   public static short computeSize(final int k) {
-    if (k < 1 || k > MAX_ABS_VALUE) {
+    if ((k < 1) || (k > MAX_ABS_VALUE)) {
       throw new SketchesArgumentException("Can only encode strictly positive sketch sizes "
               + "less than " + MAX_ABS_VALUE + ", found: " + k);
     }
@@ -70,11 +70,11 @@ public final class ReservoirSize {
     }
 
     // mantissa is scalar in range [1,2); can reconstruct k as m * 2^p
-    final double m = Math.pow(2.0, Math.log(k) * INV_LN_2 - p);
+    final double m = Math.pow(2.0, (Math.log(k) * INV_LN_2) - p);
 
     // Convert to index offset: ceil(m * BPO) - BPO
     // Typically in range range 0-(BINS_PER_OCTAVE-1) (but see note below)
-    final int i = (int) Math.floor(m * BINS_PER_OCTAVE) - BINS_PER_OCTAVE + 1;
+    final int i = ((int) Math.floor(m * BINS_PER_OCTAVE) - BINS_PER_OCTAVE) + 1;
 
     // Due to ceiling, possible to overflow BINS_PER_OCTAVE
     // E.g., if BPO = 2048 then for k=32767 we have p=14. Except that 32767 > decodeValue
@@ -83,7 +83,7 @@ public final class ReservoirSize {
       return (short) ((((p + 1) & EXPONENT_MASK) << EXPONENT_SHIFT) & OUTPUT_MASK);
     }
 
-    return (short) (((p & EXPONENT_MASK) << EXPONENT_SHIFT) | (i & INDEX_MASK) & OUTPUT_MASK);
+    return (short) (((p & EXPONENT_MASK) << EXPONENT_SHIFT) | ((i & INDEX_MASK) & OUTPUT_MASK));
   }
 
   /**
@@ -103,6 +103,6 @@ public final class ReservoirSize {
     final int p = (value >> EXPONENT_SHIFT) & EXPONENT_MASK;
     final int i = value & INDEX_MASK;
 
-    return (int) ((1 << p) * (i * INV_BINS_PER_OCTAVE + 1.0));
+    return (int) ((1 << p) * ((i * INV_BINS_PER_OCTAVE) + 1.0));
   }
 }
