@@ -149,7 +149,6 @@ abstract class HllArray extends HllSketchImpl {
   double getUpperBound(final double numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
     if (oooFlag) {
-      //In C: two-registers.c Line 1495
       return getCompositeEstimate() / (1.0 - hllNonHipEps(numStdDev));
     }
     return hipAccum / (1.0 - hllHipEps(numStdDev));
@@ -173,7 +172,7 @@ abstract class HllArray extends HllSketchImpl {
    * @param oldValue old value
    * @param newValue new value
    */
-  //In C: two-registers.c Lines 851 to 871
+  //In C: again-two-registers.c Lines 851 to 871
   void hipAndKxQIncrementalUpdate(final int oldValue, final int newValue) {
     assert newValue > oldValue;
     final int configK = 1 << lgConfigK;
@@ -195,13 +194,13 @@ abstract class HllArray extends HllSketchImpl {
     }
   }
 
-  //In C: two-registers.c Lines: 1156
+  //In C: again-two-registers.c hhb_get_raw_estimate Lines: 1167
   private double getRawEstimate() {
     final int configK = 1 << lgConfigK;
     final double correctionFactor;
-    if (configK == 16) { correctionFactor = 0.673; }
-    else if (configK == 32) { correctionFactor = 0.697; }
-    else if (configK == 64) { correctionFactor = 0.709; }
+    if (lgConfigK == 4) { correctionFactor = 0.673; }
+    else if (lgConfigK == 5) { correctionFactor = 0.697; }
+    else if (lgConfigK == 6) { correctionFactor = 0.709; }
     else { correctionFactor = 0.7213 / (1.0 + (1.079 / configK)); }
     return (correctionFactor * configK * configK) / (kxq0 + kxq1);
   }
@@ -211,7 +210,7 @@ abstract class HllArray extends HllSketchImpl {
    * It is called "composite" because multiple estimators are pasted together.
    * @return the composite estimate
    */
-  //In C: two-registers.c Line 1433
+  //In C: again-two-registers.c hhb_get_composite_estimate Line 1489
   private double getCompositeEstimate() {
     final double rawEst = getRawEstimate();
     final int configK = 1 << lgConfigK;
@@ -251,7 +250,7 @@ abstract class HllArray extends HllSketchImpl {
         : HarmonicNumbers.getBitMapEstimate(configK, configK - numAtCurMin);
   }
 
-  //In C: two-registers.c lines 1136-1137
+  //In C: again-two-registers.c lines hhb_get_hip_estimate_and_bounds L1136-1137
   private double hllHipEps(final double numStdDevs) {
     return (numStdDevs * HLL_HIP_RSE_FACTOR) / Math.sqrt(1 << lgConfigK);
   }

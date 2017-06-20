@@ -24,6 +24,7 @@ final class Interpolation {
    * @param x x
    * @return cubic interpolation
    */
+  //In C: again-two-registers cubic_interpolate_using_table L1377
   static double cubicInterpolateUsingTable(final double[] xArr, final double[] yArr,
       final double x) {
     assert (xArr.length >= 4) && (xArr.length == yArr.length);
@@ -44,15 +45,16 @@ final class Interpolation {
     return cubicInterpolateAux(xArr, yArr, offset - 1, x);
   }
 
+  // In C: again-two-registers cubic_interpolate_aux L1368
   private static double cubicInterpolateAux(final double[] xArr, final double[] yArr,
       final int offset, final double x) {
     return cubicInterpolateAuxAux(xArr[offset], yArr[offset], xArr[offset + 1], yArr[offset + 1],
         xArr[offset + 2], yArr[offset + 2], xArr[offset + 3], yArr[offset + 3], x);
   }
 
-  // Interpolate using the cubic curve that passes through the four given
-  // points, using the
-  // Lagrange interpolation formula
+  // Interpolate using the cubic curve that passes through the four given points, using the
+  // Lagrange interpolation formula.
+  // In C: again-two-registers cubic_interpolate_aux_aux L1346
   private static double cubicInterpolateAuxAux(final double x0, final double y0, final double x1,
       final double y1, final double x2, final double y2, final double x3, final double y3,
       final double x) {
@@ -74,11 +76,13 @@ final class Interpolation {
     return term0 + term1 + term2 + term3;
   }
 
+  //In C: again-two-registers.c find_straddle L1335
   static int findStraddle(final double[] xArr, final double x) {
     assert ((xArr.length >= 2) && (x >= xArr[0]) && (x <= xArr[xArr.length - 1]));
     return (findStraddleAux(xArr, 0, xArr.length - 1, x));
   }
 
+  //In C: again-two-registers.c find_straddle_aux L1322
   private static int findStraddleAux(final double[] xArr, final int left, final int right,
       final double x) {
     final int middle;
@@ -96,6 +100,13 @@ final class Interpolation {
   }
 
   //CHECKSTYLE.OFF: LineLength
+  /**
+   * 18 Values, index 0 is LgK = 4, index 17 is LgK = 21.
+   */
+  static final int[] yStrides =
+    {1, 2, 3, 5, 10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120, 10240, 20480, 40960, 81920 };
+
+
   private static final double xArrs[][] = {
   // log K = 4
   {
