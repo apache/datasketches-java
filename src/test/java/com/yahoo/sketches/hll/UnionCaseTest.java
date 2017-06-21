@@ -8,8 +8,6 @@ package com.yahoo.sketches.hll;
 import static com.yahoo.sketches.hll.CurMode.HLL;
 import static com.yahoo.sketches.hll.CurMode.LIST;
 import static com.yahoo.sketches.hll.CurMode.SET;
-import static com.yahoo.sketches.hll.HllArray.HLL_HIP_RSE_FACTOR;
-import static com.yahoo.sketches.hll.HllArray.HLL_NON_HIP_RSE_FACTOR;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_4;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_6;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_8;
@@ -403,9 +401,9 @@ public class UnionCaseTest {
   private static double errorFactor(int lgK, boolean oooFlag, double numStdDev) {
     double f;
     if (oooFlag) {
-      f = (HLL_NON_HIP_RSE_FACTOR * numStdDev) / Math.sqrt(1 << lgK);
+      f = (1.2 * numStdDev) / Math.sqrt(1 << lgK);
     } else {
-      f = (HLL_HIP_RSE_FACTOR * numStdDev) / Math.sqrt(1 << lgK);
+      f = (0.9 * numStdDev) / Math.sqrt(1 << lgK);
     }
     return f;
   }
