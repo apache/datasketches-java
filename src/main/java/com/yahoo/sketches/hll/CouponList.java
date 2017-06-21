@@ -32,6 +32,7 @@ import static com.yahoo.sketches.hll.PreambleUtil.insertOooFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.insertPreInts;
 import static com.yahoo.sketches.hll.PreambleUtil.insertSerVer;
 import static com.yahoo.sketches.hll.PreambleUtil.insertTgtHllType;
+import static java.lang.Math.max;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
@@ -178,7 +179,7 @@ class CouponList extends HllSketchImpl {
   }
 
   /**
-   * This is the estimator for the Coupon List and Hash Set mode.
+   * This is the estimator for the Coupon List mode and Coupon Hash Set mode.
    *
    * <p>Note: This is an approximation to the true mapping from numCoupons to N,
    * which has a range of validity roughly from 0 to 6 million coupons.</p>
@@ -192,7 +193,7 @@ class CouponList extends HllSketchImpl {
   double getEstimate() {
     final double est = Interpolation.cubicInterpolateUsingTable(CouponMapping.xArr,
         CouponMapping.yArr, couponCount);
-    return Math.max(est, couponCount);
+    return max(est, couponCount);
   }
 
   @Override
@@ -210,7 +211,7 @@ class CouponList extends HllSketchImpl {
     final double est = Interpolation.cubicInterpolateUsingTable(CouponMapping.xArr,
         CouponMapping.yArr, couponCount);
     final double tmp = est / (1.0 + couponEstimatorEps(numStdDev));
-    return Math.max(tmp, couponCount);
+    return max(tmp, couponCount);
   }
 
   @Override
@@ -227,7 +228,8 @@ class CouponList extends HllSketchImpl {
   double getUpperBound(final double numStdDev) {
     final double est = Interpolation.cubicInterpolateUsingTable(CouponMapping.xArr,
         CouponMapping.yArr, couponCount);
-    return est / (1.0 - couponEstimatorEps(numStdDev));
+    final double tmp = est / (1.0 - couponEstimatorEps(numStdDev));
+    return max(tmp, couponCount);
   }
 
   @Override
@@ -338,7 +340,7 @@ class CouponList extends HllSketchImpl {
   }
   //END Iterators
 
-  private static final double couponEstimatorEps(final double numStdDev) {
+  static final double couponEstimatorEps(final double numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
     return (numStdDev * COUPON_ESTIMATOR_RSE);
   }

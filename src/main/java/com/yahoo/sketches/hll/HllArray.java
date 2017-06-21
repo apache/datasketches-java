@@ -23,12 +23,11 @@ import com.yahoo.memory.Memory;
  * @author Kevin Lang
  */
 abstract class HllArray extends HllSketchImpl {
-  //Derived using some formulas in Ting's paper. In C: giant-file.c 1077
-  static final double HLL_HIP_RSE_FACTOR = 0.836083874576235;
-  //In C: giant-file.c Line 1421
-  static final double HLL_NON_HIP_RSE_FACTOR = 1.04; //From Flajolet
-  static final int AUX_TOKEN = 0xf;
-
+  //From Kevin's extensive analysis for low values of lgConfigK.
+  private static final double[] HLL_HIP_RSE_FACTORS = {0.862, 0.8467, 0.8397, 0.8360};
+  private static final double[] HLL_NON_HIP_RSE_FACTORS = {1.1059, 1.0706, 1.0545, 1.0464};
+  final double HLL_HIP_RSE_FACTOR;
+  final double HLL_NON_HIP_RSE_FACTOR;
   int curMin; //only changed by Hll4Array
   int numAtCurMin;
   double hipAccum;
@@ -44,11 +43,16 @@ abstract class HllArray extends HllSketchImpl {
    */
   HllArray(final int lgConfigK, final TgtHllType tgtHllType) {
     super(lgConfigK, tgtHllType, CurMode.HLL);
-    final int configK = 1 << lgConfigK;
+    HLL_HIP_RSE_FACTOR = (lgConfigK < 7)
+        ? HLL_HIP_RSE_FACTORS[lgConfigK - 4]
+        : HLL_HIP_RSE_FACTORS[3];
+    HLL_NON_HIP_RSE_FACTOR = (lgConfigK < 7)
+        ? HLL_NON_HIP_RSE_FACTORS[lgConfigK - 4]
+        : HLL_NON_HIP_RSE_FACTORS[3];
     curMin = 0;
-    numAtCurMin = configK;
+    numAtCurMin = 1 << lgConfigK;
     hipAccum = 0;
-    kxq0 = configK;
+    kxq0 = 1 << lgConfigK;
     kxq1 = 0;
   }
 
@@ -58,6 +62,12 @@ abstract class HllArray extends HllSketchImpl {
    */
   HllArray(final HllArray that) {
     super(that);
+    HLL_HIP_RSE_FACTOR = (lgConfigK < 7)
+        ? HLL_HIP_RSE_FACTORS[lgConfigK - 4]
+        : HLL_HIP_RSE_FACTORS[3];
+    HLL_NON_HIP_RSE_FACTOR = (lgConfigK < 7)
+        ? HLL_NON_HIP_RSE_FACTORS[lgConfigK - 4]
+        : HLL_NON_HIP_RSE_FACTORS[3];
     curMin = that.curMin;
     numAtCurMin = that.numAtCurMin;
     hipAccum = that.hipAccum;
