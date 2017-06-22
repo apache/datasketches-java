@@ -191,7 +191,7 @@ class CouponList extends HllSketchImpl {
    */
   @Override
   double getEstimate() {
-    final double est = Interpolation.cubicInterpolateUsingTable(CouponMapping.xArr,
+    final double est = CubicInterpolation.usingXAndYTables(CouponMapping.xArr,
         CouponMapping.yArr, couponCount);
     return max(est, couponCount);
   }
@@ -208,7 +208,7 @@ class CouponList extends HllSketchImpl {
 
   @Override
   double getLowerBound(final double numStdDev) {
-    final double est = Interpolation.cubicInterpolateUsingTable(CouponMapping.xArr,
+    final double est = CubicInterpolation.usingXAndYTables(CouponMapping.xArr,
         CouponMapping.yArr, couponCount);
     final double tmp = est / (1.0 + couponEstimatorEps(numStdDev));
     return max(tmp, couponCount);
@@ -226,7 +226,7 @@ class CouponList extends HllSketchImpl {
 
   @Override
   double getUpperBound(final double numStdDev) {
-    final double est = Interpolation.cubicInterpolateUsingTable(CouponMapping.xArr,
+    final double est = CubicInterpolation.usingXAndYTables(CouponMapping.xArr,
         CouponMapping.yArr, couponCount);
     final double tmp = est / (1.0 - couponEstimatorEps(numStdDev));
     return max(tmp, couponCount);

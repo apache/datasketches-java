@@ -184,4 +184,15 @@ class Hll8Array extends HllArray {
     }
   }
 
+  static final Hll8Array convertToHll8(final HllArray srcHllArr) {
+    final Hll8Array hll8Array = new Hll8Array(srcHllArr.getLgConfigK());
+    hll8Array.putOooFlag(srcHllArr.getOooFlag());
+    final PairIterator itr = srcHllArr.getIterator();
+    while (itr.nextValid()) {
+      hll8Array.couponUpdate(itr.getPair());
+    }
+    hll8Array.putHipAccum(srcHllArr.getHipAccum());
+    return hll8Array;
+  }
+
 }

@@ -1,103 +1,15 @@
-package com.yahoo.sketches.hll;
+/*
+ * Copyright 2017, Yahoo! Inc. Licensed under the terms of the
+ * Apache License 2.0. See LICENSE file at the project root for terms.
+ */
 
-import com.yahoo.sketches.SketchesArgumentException;
+package com.yahoo.sketches.hll;
 
 /**
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-final class Interpolation {
-
-  static final double[] getXarr(final int lgConfigK) {
-    return xArrs[lgConfigK - HllUtil.MIN_LOG_K];
-  }
-
-  static final double[] getYarr(final int lgConfigK) {
-    return InterpolationY.yArrs[lgConfigK - HllUtil.MIN_LOG_K];
-  }
-
-  /**
-   * Cubic interpolation using interpolation tables.
-   *
-   * @param xArr xArr
-   * @param yArr yArr
-   * @param x x
-   * @return cubic interpolation
-   */
-  //In C: again-two-registers cubic_interpolate_using_table L1377
-  static double cubicInterpolateUsingTable(final double[] xArr, final double[] yArr,
-      final double x) {
-    assert (xArr.length >= 4) && (xArr.length == yArr.length);
-    if ((x < xArr[0]) || (x > xArr[xArr.length - 1])) {
-      throw new SketchesArgumentException("X value out of range: " + x);
-    }
-    if (x == xArr[xArr.length - 1]) {
-      return yArr[yArr.length - 1]; // corner case
-    }
-    final int offset = findStraddle(xArr, x);
-    assert (offset >= 0) && (offset <= (xArr.length - 2));
-    if (offset == 0) {
-      return cubicInterpolateAux(xArr, yArr, offset, x); // corner case
-    }
-    if (offset == (xArr.length - 2)) {
-      return cubicInterpolateAux(xArr, yArr, offset - 2, x); // corner case
-    }
-    return cubicInterpolateAux(xArr, yArr, offset - 1, x);
-  }
-
-  // In C: again-two-registers cubic_interpolate_aux L1368
-  private static double cubicInterpolateAux(final double[] xArr, final double[] yArr,
-      final int offset, final double x) {
-    return cubicInterpolateAuxAux(xArr[offset], yArr[offset], xArr[offset + 1], yArr[offset + 1],
-        xArr[offset + 2], yArr[offset + 2], xArr[offset + 3], yArr[offset + 3], x);
-  }
-
-  // Interpolate using the cubic curve that passes through the four given points, using the
-  // Lagrange interpolation formula.
-  // In C: again-two-registers cubic_interpolate_aux_aux L1346
-  private static double cubicInterpolateAuxAux(final double x0, final double y0, final double x1,
-      final double y1, final double x2, final double y2, final double x3, final double y3,
-      final double x) {
-    final double l0Numer = (x - x1) * (x - x2) * (x - x3);
-    final double l1Numer = (x - x0) * (x - x2) * (x - x3);
-    final double l2Numer = (x - x0) * (x - x1) * (x - x3);
-    final double l3Numer = (x - x0) * (x - x1) * (x - x2);
-
-    final double l0Denom = (x0 - x1) * (x0 - x2) * (x0 - x3);
-    final double l1Denom = (x1 - x0) * (x1 - x2) * (x1 - x3);
-    final double l2Denom = (x2 - x0) * (x2 - x1) * (x2 - x3);
-    final double l3Denom = (x3 - x0) * (x3 - x1) * (x3 - x2);
-
-    final double term0 = (y0 * l0Numer) / l0Denom;
-    final double term1 = (y1 * l1Numer) / l1Denom;
-    final double term2 = (y2 * l2Numer) / l2Denom;
-    final double term3 = (y3 * l3Numer) / l3Denom;
-
-    return term0 + term1 + term2 + term3;
-  }
-
-  //In C: again-two-registers.c find_straddle L1335
-  static int findStraddle(final double[] xArr, final double x) {
-    assert ((xArr.length >= 2) && (x >= xArr[0]) && (x <= xArr[xArr.length - 1]));
-    return (findStraddleAux(xArr, 0, xArr.length - 1, x));
-  }
-
-  //In C: again-two-registers.c find_straddle_aux L1322
-  private static int findStraddleAux(final double[] xArr, final int left, final int right,
-      final double x) {
-    final int middle;
-    assert (left < right);
-    assert ((xArr[left] <= x) && (x < xArr[right])); /* the invariant */
-    if ((left + 1) == right) {
-      return (left);
-    }
-    middle = left + ((right - left) / 2);
-    if (xArr[middle] <= x) {
-      return (findStraddleAux(xArr, middle, right, x));
-    } else {
-      return (findStraddleAux(xArr, left, middle, x));
-    }
-  }
+final class CompositeInterpolationXTable {
 
   //CHECKSTYLE.OFF: LineLength
   /**
@@ -107,7 +19,7 @@ final class Interpolation {
     {1, 2, 3, 5, 10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120, 10240, 20480, 40960, 81920 };
 
 
-  private static final double xArrs[][] = {
+  static final double xArrs[][] = {
   // log K = 4
   {
     10.767999803534, 11.237701481774, 11.722738717438, 12.223246391222,
@@ -853,6 +765,5 @@ final class Interpolation {
     20970344.006053
   }
   };
-
   //CHECKSTYLE.ON: LineLength
 }

@@ -6,6 +6,7 @@
 package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.hll.CurMode.HLL;
+import static com.yahoo.sketches.hll.TgtHllType.HLL_4;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_8;
 import static java.lang.Math.min;
 
@@ -116,7 +117,7 @@ public class Union extends BaseHllSketch {
    * @return the result of this union operator as an HLL_4 sketch.
    */
   public HllSketch getResult() {
-    return gadget.copy();
+    return gadget.copyAs(HLL_4);
   }
 
   /**

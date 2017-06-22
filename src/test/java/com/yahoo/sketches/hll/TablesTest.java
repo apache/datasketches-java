@@ -7,7 +7,7 @@ package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.hll.CouponMapping.xArr;
 import static com.yahoo.sketches.hll.CouponMapping.yArr;
-import static com.yahoo.sketches.hll.Interpolation.cubicInterpolateUsingTable;
+import static com.yahoo.sketches.hll.CubicInterpolation.usingXAndYTables;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
@@ -23,13 +23,13 @@ public class TablesTest {
   @Test
   public void checkInterpolationExceptions() {
     try {
-      cubicInterpolateUsingTable(xArr, yArr, -1);
+      usingXAndYTables(xArr, yArr, -1);
       fail();
     } catch (SketchesArgumentException e) {
       //expected
     }
     try {
-      cubicInterpolateUsingTable(xArr, yArr, 11000000.0);
+      usingXAndYTables(xArr, yArr, 11000000.0);
       fail();
     } catch (SketchesArgumentException e) {
       //expected
@@ -40,7 +40,7 @@ public class TablesTest {
   public void checkCornerCases() {
     int len = xArr.length;
     double x = xArr[len - 1];
-    double y = cubicInterpolateUsingTable(xArr, yArr, x);
+    double y = usingXAndYTables(xArr, yArr, x);
     double yExp = yArr[len - 1];
     assertEquals(y, yExp, 0.0);
   }
