@@ -53,6 +53,25 @@ public class HllArrayTest {
   }
 
   @Test
+  public void checkLowLgKCompositeEst() {
+    testComposite(4, TgtHllType.HLL_8, 1000);
+    testComposite(5, TgtHllType.HLL_8, 1000);
+    testComposite(6, TgtHllType.HLL_8, 1000);
+  }
+
+  private static void testComposite(int lgK, TgtHllType tgtHllType, int n) {
+    Union u = new Union(lgK);
+    HllSketch sk = new HllSketch(lgK, tgtHllType);
+    for (int i = 0; i < n; i++) {
+      u.update(i);
+      sk.update(i);
+    }
+    u.update(sk); //merge
+    HllSketch res = u.getResult(TgtHllType.HLL_8);
+    res.hllSketchImpl.getCompositeEstimate();
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }

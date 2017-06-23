@@ -180,6 +180,16 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
+  public double getRse() {
+    return hllSketchImpl.getRse();
+  }
+
+  @Override
+  public double getRseFactor() {
+    return hllSketchImpl.getRseFactor();
+  }
+
+  @Override
   public double getUpperBound(final double numStdDev) {
     return hllSketchImpl.getUpperBound(numStdDev);
   }
@@ -237,6 +247,8 @@ public class HllSketch extends BaseHllSketch {
       sb.append("  Estimate       : ").append(getEstimate()).append(LS);
       sb.append("  UB             : ").append(getUpperBound(1.0)).append(LS);
       sb.append("  OutOfOrder Flag: ").append(isOutOfOrderFlag()).append(LS);
+      sb.append("  RSE Factor     : ").append(getRseFactor()).append(LS);
+      sb.append("  RSE            : ").append(getRse()).append(LS);
       if (getCurrentMode() == CurMode.HLL) {
         final double hipAccum = hllSketchImpl.getHipAccum();
         sb.append("  CurMin         : ").append(getCurMin()).append(LS);

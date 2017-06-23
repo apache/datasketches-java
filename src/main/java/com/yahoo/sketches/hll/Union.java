@@ -130,6 +130,16 @@ public class Union extends BaseHllSketch {
   }
 
   @Override
+  public double getRse() {
+    return gadget.getRse();
+  }
+
+  @Override
+  public double getRseFactor() {
+    return gadget.getRseFactor();
+  }
+
+  @Override
   public double getUpperBound(final double numStdDev) {
     return gadget.getUpperBound(numStdDev);
   }
@@ -145,7 +155,7 @@ public class Union extends BaseHllSketch {
   }
 
   /**
-   * Resets to empty, but does not change the configured value of lgMaxK.
+   * Resets to empty and retains the current lgK, but does not change the configured value of lgMaxK.
    */
   @Override
   public void reset() {

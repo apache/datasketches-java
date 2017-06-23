@@ -102,6 +102,10 @@ abstract class HllSketchImpl {
     return tgtHllType;
   }
 
+  abstract double getRse();
+
+  abstract double getRseFactor();
+
   abstract double getUpperBound(double numStdDev);
 
   abstract boolean isEmpty();

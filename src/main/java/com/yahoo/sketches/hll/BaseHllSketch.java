@@ -55,6 +55,35 @@ abstract class BaseHllSketch {
   public abstract double getLowerBound(double numStdDev);
 
   /**
+   * Returns the current serialization version.
+   * @return the current serialization version.
+   */
+  public static final int getSerializationVersion() {
+    return PreambleUtil.SER_VER;
+  }
+
+  /**
+   * Returns the current serialization version of the given Memory.
+   * @param mem the given Memory containing a serialized HllSketch image.
+   * @return the current serialization version.
+   */
+  public static final int getSerializationVersion(final Memory mem) {
+    return mem.getByte(PreambleUtil.SER_VER_BYTE) & 0XFF;
+  }
+
+  /**
+   * Gets the current (approximate) RSE
+   * @return the current (approximate) RSE
+   */
+  public abstract double getRse();
+
+  /**
+   * Returns the current RSE factor
+   * @return the current RSE factor
+   */
+  public abstract double getRseFactor();
+
+  /**
    * Gets the approximate upper error bound given the specified number of Standard Deviations.
    *
    * @param numStdDev
@@ -64,30 +93,13 @@ abstract class BaseHllSketch {
   public abstract double getUpperBound(double numStdDev);
 
   /**
-   * Returns the current serialization version.
-   * @return the current serialization version.
-   */
-  public int getSerializationVersion() {
-    return PreambleUtil.SER_VER;
-  }
-
-  /**
-   * Returns the current serialization version of the given Memory.
-   * @param mem the given Memory containing a serialized HllSketch image.
-   * @return the current serialization version.
-   */
-  public int getSerializationVersion(final Memory mem) {
-    return mem.getByte(PreambleUtil.SER_VER_BYTE) & 0XFF;
-  }
-
-  /**
    * Return true if empty
    * @return true if empty
    */
   public abstract boolean isEmpty();
 
   /**
-   * This HLL family of sketches is always estimating, even for very small values.
+   * This HLL family of sketches and operators is always estimating, even for very small values.
    * @return true
    */
   public boolean isEstimationMode() {
@@ -102,7 +114,7 @@ abstract class BaseHllSketch {
   abstract boolean isOutOfOrderFlag();
 
   /**
-   * Resets this sketch to its virgin state, but retains the lgConfigK and the TgtHllType.
+   * Resets to empty and retains the lgConfigK and the TgtHllType.
    */
   public abstract void reset();
 

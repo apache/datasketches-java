@@ -81,9 +81,9 @@ public class BaseHllSketchTest {
     HllSketch sk = new HllSketch(10, TgtHllType.HLL_4);
     assertTrue(sk.isEstimationMode());
     sk.reset();
-    assertEquals(sk.getSerializationVersion(), PreambleUtil.SER_VER);
+    assertEquals(BaseHllSketch.getSerializationVersion(), PreambleUtil.SER_VER);
     WritableMemory wmem = WritableMemory.wrap(sk.toCompactByteArray());
-    assertEquals(sk.getSerializationVersion(wmem), PreambleUtil.SER_VER);
+    assertEquals(BaseHllSketch.getSerializationVersion(wmem), PreambleUtil.SER_VER);
   }
 
   @Test

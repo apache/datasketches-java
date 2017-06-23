@@ -44,9 +44,10 @@ import com.yahoo.sketches.SketchesStateException;
  */
 class CouponList extends HllSketchImpl {
   // This RSE is computed at the transition point from coupons to HLL and not for the asymptote.
-  private static final double COUPON_ESTIMATOR_RSE = .409 / (1 << 13); //=.409 / sqrt(2^26)
+  private static final double COUPON_RSE_FACTOR = .409;
   private static final int LG_INIT_LIST_SIZE = 3;
   private static final int LG_INIT_SET_SIZE = 5;
+  private static final double COUPON_RSE = COUPON_RSE_FACTOR / (1 << 13);
 
   final int lgMaxArrInts;
   int lgCouponArrInts;
@@ -230,6 +231,16 @@ class CouponList extends HllSketchImpl {
   }
 
   @Override
+  double getRse() {
+    return COUPON_RSE;
+  }
+
+  @Override
+  double getRseFactor() {
+    return COUPON_RSE_FACTOR;
+  }
+
+  @Override
   double getUpperBound(final double numStdDev) {
     final double est = CubicInterpolation.usingXAndYTables(CouponMapping.xArr,
         CouponMapping.yArr, couponCount);
@@ -347,7 +358,7 @@ class CouponList extends HllSketchImpl {
 
   static final double couponEstimatorEps(final double numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
-    return (numStdDev * COUPON_ESTIMATOR_RSE);
+    return (numStdDev * COUPON_RSE);
   }
 
   static final void checkPreamble(final Memory mem, final Object memArr, final long memAdd,

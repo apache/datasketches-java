@@ -63,12 +63,8 @@ abstract class HllArray extends HllSketchImpl {
    */
   HllArray(final HllArray that) {
     super(that);
-    hllHipRseFactor = (lgConfigK < 7)
-        ? HLL_HIP_RSE_FACTORS[lgConfigK - 4]
-        : HLL_HIP_RSE_FACTORS[3];
-    hllNonHipRseFactor = (lgConfigK < 7)
-        ? HLL_NON_HIP_RSE_FACTORS[lgConfigK - 4]
-        : HLL_NON_HIP_RSE_FACTORS[3];
+    hllHipRseFactor = that.hllHipRseFactor;
+    hllNonHipRseFactor = that.hllNonHipRseFactor;
     curMin = that.curMin;
     numAtCurMin = that.numAtCurMin;
     hipAccum = that.hipAccum;
@@ -154,6 +150,16 @@ abstract class HllArray extends HllSketchImpl {
   @Override
   int getNumAtCurMin() {
     return numAtCurMin;
+  }
+
+  @Override
+  double getRse() {
+    return getRseFactor() / Math.sqrt(1 << lgConfigK);
+  }
+
+  @Override
+  double getRseFactor() {
+    return (oooFlag) ? hllNonHipRseFactor : hllHipRseFactor;
   }
 
   @Override
@@ -276,18 +282,6 @@ abstract class HllArray extends HllSketchImpl {
    * @return the very low range estimate
    */
   //In C: again-two-registers.c hhb_get_improved_linear_counting_estimate L1274
-
-  //  private static final double getHllBitMapEstimate(
-  //      final int lgConfigK, final int curMin, final int numAtCurMin) {
-  //    final int configK = 1 << lgConfigK;
-  //    return ((curMin == 0) && (numAtCurMin != 0)) // == !((curMin != 0) || (numAtCurMin == 0))
-  //        //Note: getBitMapEstimate(bitVectorLength, numBitsSet) while numAtCurMin is numBinsNotSet
-  //        ? HarmonicNumbers.getBitMapEstimate(configK, configK - numAtCurMin)
-  //        //Set v to to a non-zero value to avoid infinity.
-  //        // Works fine now. We may revisit this approximation later.
-  //        : configK * Math.log(configK / 0.5);
-  //  }
-
   private static final double getHllBitMapEstimate(
       final int lgConfigK, final int curMin, final int numAtCurMin) {
     final int configK = 1 << lgConfigK;
