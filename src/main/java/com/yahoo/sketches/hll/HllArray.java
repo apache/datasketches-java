@@ -224,6 +224,7 @@ abstract class HllArray extends HllSketchImpl {
    */
   //In C: again-two-registers.c hhb_get_composite_estimate L1489
   // Make package private to allow testing.
+  @Override
   double getCompositeEstimate() {
     final double rawEst = getRawEstimate(lgConfigK, kxq0 + kxq1);
 
@@ -248,6 +249,8 @@ abstract class HllArray extends HllSketchImpl {
     // Empirical evidence suggests that the threshold 3*k will keep us safe if 2^4 <= k <= 2^21.
 
     if (adjEst > (3 << lgConfigK)) { return adjEst; }
+    //Alternate call
+    //if ((adjEst > (3 << lgConfigK)) || ((curMin != 0) || (numAtCurMin == 0)) ) { return adjEst; }
 
     final double linEst = getHllBitMapEstimate(lgConfigK, curMin, numAtCurMin);
 
@@ -273,15 +276,30 @@ abstract class HllArray extends HllSketchImpl {
    * @return the very low range estimate
    */
   //In C: again-two-registers.c hhb_get_improved_linear_counting_estimate L1274
+
+  //  private static final double getHllBitMapEstimate(
+  //      final int lgConfigK, final int curMin, final int numAtCurMin) {
+  //    final int configK = 1 << lgConfigK;
+  //    return ((curMin == 0) && (numAtCurMin != 0)) // == !((curMin != 0) || (numAtCurMin == 0))
+  //        //Note: getBitMapEstimate(bitVectorLength, numBitsSet) while numAtCurMin is numBinsNotSet
+  //        ? HarmonicNumbers.getBitMapEstimate(configK, configK - numAtCurMin)
+  //        //Set v to to a non-zero value to avoid infinity.
+  //        // Works fine now. We may revisit this approximation later.
+  //        : configK * Math.log(configK / 0.5);
+  //  }
+
   private static final double getHllBitMapEstimate(
       final int lgConfigK, final int curMin, final int numAtCurMin) {
     final int configK = 1 << lgConfigK;
-    return ((curMin == 0) && (numAtCurMin != 0)) // == !((curMin != 0) || (numAtCurMin == 0))
-        //Note: getBitMapEstimate(bitVectorLength, numBitsSet) while numAtCurMin is numBinsNotSet
-        ? HarmonicNumbers.getBitMapEstimate(configK, configK - numAtCurMin)
-        //Set v to to a non-zero value to avoid infinity.
-        // Works fine now. We may revisit this approximation later.
-        : configK * Math.log(configK / 0.5);
+    final int numUnhitBuckets =  (curMin == 0) ? numAtCurMin : 0;
+
+    //This will eventually go away.
+    if (numUnhitBuckets == 0) {
+      return configK * Math.log(configK / 0.5);
+    }
+
+    final int numHitBuckets = configK - numUnhitBuckets;
+    return HarmonicNumbers.getBitMapEstimate(configK, numHitBuckets);
   }
 
   //In C: again-two-registers.c lines hhb_get_hip_estimate_and_bounds L1136-1137

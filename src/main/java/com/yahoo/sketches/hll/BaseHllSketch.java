@@ -11,18 +11,13 @@ import static com.yahoo.sketches.hll.HllUtil.KEY_BITS_26;
 import static com.yahoo.sketches.hll.HllUtil.KEY_MASK_26;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.yahoo.memory.Memory;
+
 /**
  * @author Lee Rhodes
  * @author Kevin Lang
  */
 abstract class BaseHllSketch {
-
-
-  /**
-   * Returns the current mode of the sketch: LIST, SET, HLL
-   * @return the current mode of the sketch: LIST, SET, HLL
-   */
-  abstract CurMode getCurMode();
 
   /**
    * Gets the size in bytes of the current sketch when serialized using
@@ -31,6 +26,12 @@ abstract class BaseHllSketch {
    * <i>toCompactByteArray()</i>.
    */
   public abstract int getCompactSerializationBytes();
+
+  /**
+   * Returns the current mode of the sketch: LIST, SET, HLL
+   * @return the current mode of the sketch: LIST, SET, HLL
+   */
+  abstract CurMode getCurMode();
 
   /**
    * Return the cardinality estimate
@@ -45,6 +46,15 @@ abstract class BaseHllSketch {
   public abstract int getLgConfigK();
 
   /**
+   * Gets the approximate lower error bound given the specified number of Standard Deviations.
+   *
+   * @param numStdDev
+   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
+   * @return the lower bound.
+   */
+  public abstract double getLowerBound(double numStdDev);
+
+  /**
    * Gets the approximate upper error bound given the specified number of Standard Deviations.
    *
    * @param numStdDev
@@ -54,13 +64,21 @@ abstract class BaseHllSketch {
   public abstract double getUpperBound(double numStdDev);
 
   /**
-   * Gets the approximate lower error bound given the specified number of Standard Deviations.
-   *
-   * @param numStdDev
-   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @return the lower bound.
+   * Returns the current serialization version.
+   * @return the current serialization version.
    */
-  public abstract double getLowerBound(double numStdDev);
+  public int getSerializationVersion() {
+    return PreambleUtil.SER_VER;
+  }
+
+  /**
+   * Returns the current serialization version of the given Memory.
+   * @param mem the given Memory containing a serialized HllSketch image.
+   * @return the current serialization version.
+   */
+  public int getSerializationVersion(final Memory mem) {
+    return mem.getByte(PreambleUtil.SER_VER_BYTE) & 0XFF;
+  }
 
   /**
    * Return true if empty
@@ -83,8 +101,15 @@ abstract class BaseHllSketch {
    */
   abstract boolean isOutOfOrderFlag();
 
+  /**
+   * Resets this sketch to its virgin state, but retains the lgConfigK and the TgtHllType.
+   */
   public abstract void reset();
 
+  /**
+   * Serializes this sketch as a compact byte array.
+   * @return this sketch as a compact byte array.
+   */
   public abstract byte[] toCompactByteArray();
 
   /**

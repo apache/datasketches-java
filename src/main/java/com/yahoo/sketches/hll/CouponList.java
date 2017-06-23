@@ -197,6 +197,11 @@ class CouponList extends HllSketchImpl {
   }
 
   @Override
+  double getCompositeEstimate() {
+    return getEstimate();
+  }
+
+  @Override
   double getHipAccum() {
     return couponCount;
   }

@@ -78,6 +78,8 @@ abstract class HllSketchImpl {
 
   abstract double getEstimate();
 
+  abstract double getCompositeEstimate();
+
   abstract double getHipAccum();
 
   abstract PairIterator getIterator();
