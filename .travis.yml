@@ -2,6 +2,8 @@
 
 language: java
 
+sudo: false # faster builds
+
 jdk:
  - oraclejdk8
 
@@ -12,7 +14,7 @@ script:
  - mvn clean compile test -Dgpg.skip=true
 
 after_success: 
-  - mvn clean test jacoco:report coveralls:report -DrepoToken=$coveralls_token
+- bash <(curl -s https://codecov.io/bash)
 
 notifications:
   email: false
