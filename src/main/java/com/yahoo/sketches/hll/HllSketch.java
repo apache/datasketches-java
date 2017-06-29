@@ -131,6 +131,11 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
+  public double getCompositeEstimate() {
+    return hllSketchImpl.getCompositeEstimate();
+  }
+
+  @Override
   CurMode getCurMode() {
     return hllSketchImpl.curMode;
   }

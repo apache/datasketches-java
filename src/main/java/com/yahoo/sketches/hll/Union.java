@@ -73,6 +73,11 @@ public class Union extends BaseHllSketch {
   }
 
   @Override
+  public double getCompositeEstimate() {
+    return gadget.hllSketchImpl.getCompositeEstimate();
+  }
+
+  @Override
   CurMode getCurMode() {
     return gadget.getCurMode();
   }

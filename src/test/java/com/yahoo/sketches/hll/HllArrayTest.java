@@ -68,7 +68,7 @@ public class HllArrayTest {
     }
     u.update(sk); //merge
     HllSketch res = u.getResult(TgtHllType.HLL_8);
-    res.hllSketchImpl.getCompositeEstimate();
+    res.getCompositeEstimate();
   }
 
   @Test

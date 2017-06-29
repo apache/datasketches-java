@@ -28,6 +28,16 @@ abstract class BaseHllSketch {
   public abstract int getCompactSerializationBytes();
 
   /**
+   * This is less accurate than the {@link #getEstimate()} method and is automatically used
+   * when the sketch has gone through union operations where the more accurate HIP estimator
+   * cannot be used.
+   * This is made public only for error characterization software that exists in separate
+   * packages and is not intended for normal use.
+   * @return the composite estimate
+   */
+  public abstract double getCompositeEstimate();
+
+  /**
    * Returns the current mode of the sketch: LIST, SET, HLL
    * @return the current mode of the sketch: LIST, SET, HLL
    */

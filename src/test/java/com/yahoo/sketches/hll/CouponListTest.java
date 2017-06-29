@@ -85,11 +85,11 @@ public class CouponListTest {
     assertEquals(sk.getCurrentMode(), CurMode.LIST);
     sk.getRse();
     sk.getRseFactor();
-    assertEquals(sk.hllSketchImpl.getCompositeEstimate(), 7.0, 7 * .01);
+    assertEquals(sk.getCompositeEstimate(), 7.0, 7 * .01);
     sk.update(8);
     sk.update(8);
     assertEquals(sk.getCurrentMode(), CurMode.SET);
-    assertEquals(sk.hllSketchImpl.getCompositeEstimate(), 8.0, 8 * .01);
+    assertEquals(sk.getCompositeEstimate(), 8.0, 8 * .01);
     sk.getRse();
     sk.getRseFactor();
     for (int i = 9; i <= 25; i++) {
@@ -97,7 +97,7 @@ public class CouponListTest {
       sk.update(i);
     }
     assertEquals(sk.getCurrentMode(), CurMode.HLL);
-    assertEquals(sk.hllSketchImpl.getCompositeEstimate(), 25.0, 25 * .1);
+    assertEquals(sk.getCompositeEstimate(), 25.0, 25 * .1);
     sk.getRse();
     sk.getRseFactor();
   }
