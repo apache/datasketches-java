@@ -48,11 +48,15 @@ abstract class BaseHllSketch {
   /**
    * Gets the approximate lower error bound given the specified number of Standard Deviations.
    *
+   * <p>The bound estimates for <i>LgConfigK</i> &lt; 12 and <i>numStdDev</i> &gt; 1 are not
+   * very accurate. Improved bounds models for these small sketches are planned for a future
+   * release.</p>
+   *
    * @param numStdDev
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the lower bound.
    */
-  public abstract double getLowerBound(double numStdDev);
+  public abstract double getLowerBound(int numStdDev);
 
   /**
    * Returns the current serialization version.
@@ -86,11 +90,15 @@ abstract class BaseHllSketch {
   /**
    * Gets the approximate upper error bound given the specified number of Standard Deviations.
    *
+   * <p>The bound estimates for <i>LgConfigK</i> &lt; 12 and <i>numStdDev</i> &gt; 1 are not
+   * very accurate. Improved bounds models for these small sketches are planned for a future
+   * release.</p>
+   *
    * @param numStdDev
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the upper bound.
    */
-  public abstract double getUpperBound(double numStdDev);
+  public abstract double getUpperBound(int numStdDev);
 
   /**
    * Return true if empty

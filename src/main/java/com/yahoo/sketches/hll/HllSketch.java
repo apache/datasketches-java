@@ -14,10 +14,10 @@ import com.yahoo.memory.WritableMemory;
 
 /**
  * This is a high performance implementation of Phillipe Flajolet&#8217;s HLL sketch but with
- * significantly improved error behavior.  If the ONLY use case for sketching is counting uniques
- * and merging, the HLL sketch is the highest performing in terms of accuracy for storage space
- * consumed. For large enough counts, this HLL version (with HLL_4) can be 32 times smaller
- * than the Theta sketch family for the same accuracy .
+ * significantly improved error behavior.  If the ONLY use case for sketching is counting
+ * uniques and merging, the HLL sketch is the highest performing in terms of accuracy for
+ * storage space consumed. For large enough counts, this HLL version (with HLL_4) can be 2 to
+ * 16 times smaller than the Theta sketch family for the same accuracy.
  *
  * <p>This implementation offers three different types of HLL sketch, each with different
  * trade-offs with accuracy, space and performance. These types are specified with the
@@ -29,8 +29,8 @@ import com.yahoo.memory.WritableMemory;
  * where <i>K</i> is the number of buckets or slots for the sketch.
  *
  * <p>During warmup, when the sketch has only received a small number of unique items
- * (up to about 10% of <i>K</i>), this implementation leverages a new class of estimator algorithms
- * with significantly better accuracy.
+ * (up to about 10% of <i>K</i>), this implementation leverages a new class of estimator
+ * algorithms with significantly better accuracy.
  *
  * @author Lee Rhodes
  * @author Kevin Lang
@@ -151,7 +151,7 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
-  public double getLowerBound(final double numStdDev) {
+  public double getLowerBound(final int numStdDev) {
     return hllSketchImpl.getLowerBound(numStdDev);
   }
 
@@ -190,7 +190,7 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
-  public double getUpperBound(final double numStdDev) {
+  public double getUpperBound(final int numStdDev) {
     return hllSketchImpl.getUpperBound(numStdDev);
   }
 
@@ -243,9 +243,9 @@ public class HllSketch extends BaseHllSketch {
       sb.append("  Log Config K   : ").append(getLgConfigK()).append(LS);
       sb.append("  Hll Target     : ").append(getTgtHllType()).append(LS);
       sb.append("  Current Mode   : ").append(getCurrentMode()).append(LS);
-      sb.append("  LB             : ").append(getLowerBound(1.0)).append(LS);
+      sb.append("  LB             : ").append(getLowerBound(1)).append(LS);
       sb.append("  Estimate       : ").append(getEstimate()).append(LS);
-      sb.append("  UB             : ").append(getUpperBound(1.0)).append(LS);
+      sb.append("  UB             : ").append(getUpperBound(1)).append(LS);
       sb.append("  OutOfOrder Flag: ").append(isOutOfOrderFlag()).append(LS);
       sb.append("  RSE Factor     : ").append(getRseFactor()).append(LS);
       sb.append("  RSE            : ").append(getRse()).append(LS);

@@ -24,7 +24,6 @@ import com.yahoo.memory.Memory;
  * @author Kevin Lang
  */
 abstract class HllArray extends HllSketchImpl {
-  //From Kevin's extensive analysis for low values of lgConfigK.
   private static final double[] HLL_HIP_RSE_FACTORS = {0.862, 0.8467, 0.8397, 0.8360};
   private static final double[] HLL_NON_HIP_RSE_FACTORS = {1.1059, 1.0706, 1.0545, 1.0464};
   final double hllHipRseFactor;

@@ -388,9 +388,9 @@ public class UnionCaseTest {
     assertEquals(bytes, 40 + 128);
     double v = u.getEstimate();
     assertEquals(v, 0.0, 0.0);
-    v = u.getLowerBound(1.0);
+    v = u.getLowerBound(1);
     assertEquals(v, 0.0, 0.0);
-    v = u.getUpperBound(1.0);
+    v = u.getUpperBound(1);
     assertEquals(v, 0.0, 0.0);
     assertTrue(u.isEmpty());
     u.reset();

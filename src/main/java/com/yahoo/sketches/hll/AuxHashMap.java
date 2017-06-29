@@ -243,7 +243,8 @@ class AuxHashMap {
 
   //used for thrown exceptions
   private static final String pairString(final int pair) {
-    return "SlotNo: " + BaseHllSketch.getLow26(pair) + ", Value: " + BaseHllSketch.getValue(pair);
+    return "SlotNo: " + BaseHllSketch.getLow26(pair) + ", Value: "
+        + BaseHllSketch.getValue(pair);
   }
   //End Basic Pairs
 

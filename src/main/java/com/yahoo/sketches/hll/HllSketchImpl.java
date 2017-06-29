@@ -14,7 +14,6 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Lee Rhodes
  */
 abstract class HllSketchImpl {
-
   final int lgConfigK;
   final TgtHllType tgtHllType;
   final CurMode curMode;

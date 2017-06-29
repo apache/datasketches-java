@@ -184,8 +184,8 @@ public class UnionTest {
     String uSketchStr =("UNION SKETCH: \n" + result.toString());
 
     double uEst = result.getEstimate();
-    double uUb = result.getUpperBound(2.0);
-    double uLb = result.getLowerBound(2.0);
+    double uUb = result.getUpperBound(2);
+    double uLb = result.getLowerBound(2);
     double err = ((uEst/tot) - 1.0) * 100;
     String mode1 = h1.getCurrentMode().toString();
     String mode2 = h2.getCurrentMode().toString();
@@ -195,8 +195,8 @@ public class UnionTest {
     control.putOutOfOrderFlag(true);
     String cSketchStr = ("CONTROL SKETCH: \n" + control.toString());
     double h3Est = control.getEstimate();
-    double h3Ub = control.getUpperBound(2.0);
-    double h3Lb = control.getLowerBound(2.0);
+    double h3Ub = control.getUpperBound(2);
+    double h3Lb = control.getLowerBound(2);
     String h1f = h1.isOutOfOrderFlag() ? "T" : "F";
     String h2f = h2.isOutOfOrderFlag() ? "T" : "F";
     String hrf = result.isOutOfOrderFlag() ?  "T" : "F";
