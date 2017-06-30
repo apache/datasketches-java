@@ -60,6 +60,15 @@ class DoublesUnionImplR extends DoublesUnion {
   }
 
   @Override
+  public byte[] toByteArray() {
+    if (gadget_ == null) {
+      return UpdateDoublesSketch.builder().setK(maxK_).build().toByteArray();
+    } else {
+      return gadget_.toByteArray();
+    }
+  }
+
+  @Override
   public UpdateDoublesSketch getResult() {
     if (gadget_ == null) {
       return HeapUpdateDoublesSketch.newInstance(maxK_);
