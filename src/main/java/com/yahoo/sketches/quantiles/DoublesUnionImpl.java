@@ -160,6 +160,7 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
       case 0: ret = null; break; //return null
       case 1: ret = myQS; break; //no-op
       case 2: { //myQS = null,  other = valid; stream or downsample to myMaxK
+        assert other != null;
         if (!other.isEstimationMode()) { //other is exact, stream items in
           ret = HeapUpdateDoublesSketch.newInstance(myMaxK);
           // exact mode, only need copy base buffer
@@ -176,6 +177,8 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
         break;
       }
       case 3: { //myQS = empty/valid, other = valid; merge
+        assert other != null;
+        assert myQS != null;
         if (!other.isEstimationMode()) { //other is exact, stream items in
           ret = myQS;
           // exact mode, only need copy base buffer

@@ -133,5 +133,4 @@ public class DoublesUnionBuilder {
   public static DoublesUnion copyBuild(final DoublesSketch sketch) {
     return DoublesUnionImpl.heapifyInstance(DoublesUtil.copyToHeap(sketch));
   }
-
 }
