@@ -81,7 +81,7 @@ final class PreambleUtil {
   static int FLAGS_BYTE                     = 5;
   static int LIST_COUNT_BYTE                = 6;
   static int HLL_CUR_MIN_BYTE               = 6;
-  static int MODE_BYTE                      = 7; //lo2bits = curMode, next 2 bits = tgtHllMode
+  static int MODE_BYTE                      = 7; //lo2bits = curMode, next 2 bits = tgtHllType
 
   //Coupon List
   static int LIST_INT_ARR_START             = 8;

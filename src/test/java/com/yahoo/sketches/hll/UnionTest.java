@@ -279,6 +279,15 @@ public class UnionTest {
     assertEquals(dstU.getEstimate(), srcU.getEstimate(), 0.0);
   }
 
+  @Test
+  public void checkCompositeEst() {
+    Union u = new Union(12);
+    assertEquals(u.getCompositeEstimate(), 0, .03);
+    for (int i = 1; i <= 15; i++) { u.update(i); }
+    assertEquals(u.getCompositeEstimate(), 15, 15 *.03);
+    for (int i = 15; i <= 1000; i++) { u.update(i); }
+    assertEquals(u.getCompositeEstimate(), 1000, 1000 * .03);
+  }
 
   @Test
   public void checkMisc() {

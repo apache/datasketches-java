@@ -7,10 +7,15 @@ package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARRAY_START;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCurMode;
+import static com.yahoo.sketches.hll.PreambleUtil.extractFamilyId;
+import static com.yahoo.sketches.hll.PreambleUtil.extractPreInts;
+import static com.yahoo.sketches.hll.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.hll.PreambleUtil.extractTgtHllType;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * This is a high performance implementation of Phillipe Flajolet&#8217;s HLL sketch but with
@@ -94,12 +99,12 @@ public class HllSketch extends BaseHllSketch {
    * @return an HllSketch
    */
   public static final HllSketch heapify(final Memory mem) {
-    final Object memArr = ((WritableMemory) mem).getArray();
+    final Object memObj = ((WritableMemory) mem).getArray();
     final long memAdd = mem.getCumulativeOffset(0);
-    final CurMode curMode = extractCurMode(memArr, memAdd);
+    final CurMode curMode = checkPreamble(mem, memObj, memAdd);
     final HllSketch heapSketch;
     if (curMode == CurMode.HLL) {
-      final TgtHllType tgtHllType = extractTgtHllType(memArr, memAdd);
+      final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
       if (tgtHllType == TgtHllType.HLL_4) {
         heapSketch = new HllSketch(Hll4Array.heapify(mem));
       } else if (tgtHllType == TgtHllType.HLL_6) {
@@ -316,4 +321,24 @@ public class HllSketch extends BaseHllSketch {
   void putOutOfOrderFlag(final boolean value) {
     hllSketchImpl.putOooFlag(value);
   }
+
+  private static CurMode checkPreamble(final Memory mem, final Object memObj, final long memAdd) {
+    final int preInts = extractPreInts(memObj, memAdd);
+    final int serVer = extractSerVer(memObj, memAdd);
+    final int famId = extractFamilyId(memObj, memAdd);
+    final CurMode curMode = extractCurMode(memObj, memAdd);
+    boolean error = false;
+    if (famId != Family.HLL.getID()) { error = true; }
+    if (serVer != 1) { error = true; }
+    if ((preInts != 2) && (preInts != 3) && (preInts != 10)) { error = true; }
+    if ((curMode == CurMode.LIST) && (preInts != 2)) { error = true; }
+    if ((curMode == CurMode.SET) && (preInts != 3)) { error = true; }
+    if ((curMode == CurMode.HLL) && (preInts != 10)) { error = true; }
+    if (error) {
+      throw new SketchesArgumentException(
+          "Corrupt HLL Sketch image:\n" + PreambleUtil.toString(mem));
+    }
+    return curMode;
+  }
+
 }
