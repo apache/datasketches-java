@@ -136,13 +136,13 @@ public class Union extends BaseHllSketch {
   }
 
   @Override
-  public double getRse(final int numStdDev) {
-    return gadget.getRse(numStdDev);
+  public double getRelErr(final int numStdDev) {
+    return gadget.getRelErr(numStdDev);
   }
 
   @Override
-  public double getRseFactor(final int numStdDev) {
-    return gadget.getRseFactor(numStdDev);
+  public double getRelErrFactor(final int numStdDev) {
+    return gadget.getRelErrFactor(numStdDev);
   }
 
   @Override

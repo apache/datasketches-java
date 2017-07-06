@@ -287,8 +287,8 @@ public class UnionCaseTest {
     double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 2.0);
     println("ErrToll: " + err);
     assertEquals(u.getEstimate(), sum, err);
-    u.getRse(1);
-    u.getRseFactor(1);
+    u.getRelErr(1);
+    u.getRelErrFactor(1);
   }
 
   @Test

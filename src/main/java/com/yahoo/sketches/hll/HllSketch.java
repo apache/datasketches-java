@@ -190,13 +190,13 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
-  public double getRse(final int numStdDev) {
-    return hllSketchImpl.getRse(numStdDev);
+  public double getRelErr(final int numStdDev) {
+    return hllSketchImpl.getRelErr(numStdDev);
   }
 
   @Override
-  public double getRseFactor(final int numStdDev) {
-    return hllSketchImpl.getRseFactor(numStdDev);
+  public double getRelErrFactor(final int numStdDev) {
+    return hllSketchImpl.getRelErrFactor(numStdDev);
   }
 
   @Override

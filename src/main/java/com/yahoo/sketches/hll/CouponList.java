@@ -231,13 +231,13 @@ class CouponList extends HllSketchImpl {
   }
 
   @Override
-  double getRse(final int numStdDev) {
+  double getRelErr(final int numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
     return numStdDev * COUPON_RSE;
   }
 
   @Override
-  double getRseFactor(final int numStdDev) {
+  double getRelErrFactor(final int numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
     return numStdDev * COUPON_RSE_FACTOR;
   }

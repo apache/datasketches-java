@@ -66,8 +66,8 @@ public class HllArrayTest {
     for (int i = 0; i < 10000; i++) {
       sk.update(i);
     }
-    sk.getRse(1);
-    sk.getRseFactor(1);
+    sk.getRelErr(1);
+    sk.getRelErrFactor(1);
   }
 
   private static void testComposite(int lgK, TgtHllType tgtHllType, int n) {
@@ -80,8 +80,8 @@ public class HllArrayTest {
     u.update(sk); //merge
     HllSketch res = u.getResult(TgtHllType.HLL_8);
     res.getCompositeEstimate();
-    res.getRse(1);
-    res.getRseFactor(1);
+    res.getRelErr(1);
+    res.getRelErrFactor(1);
   }
 
   @Test

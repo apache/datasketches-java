@@ -150,7 +150,7 @@ abstract class HllArray extends HllSketchImpl {
   }
 
   @Override
-  double getRse(final int numStdDev) {
+  double getRelErr(final int numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
     if (lgConfigK <= 12) {
       return RelativeErrorTables.getRelErr(true, oooFlag, lgConfigK, numStdDev);
@@ -160,7 +160,7 @@ abstract class HllArray extends HllSketchImpl {
   }
 
   @Override
-  double getRseFactor(final int numStdDev) {
+  double getRelErrFactor(final int numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
     if (lgConfigK <= 12) {
       return RelativeErrorTables.getRelErr(true, oooFlag, lgConfigK, numStdDev)

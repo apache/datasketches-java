@@ -82,28 +82,28 @@ abstract class BaseHllSketch {
   }
 
   /**
-   * Gets the current (approximate) RSE given the number of Standard Deviations.
+   * Gets the current (approximate) Relative Error given the number of Standard Deviations.
    * Used for testing.
    * @param numStdDev the given number of Standard Deviations
-   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @return the current (approximate) RSE
+   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">Number of Standard Deviations</a>
+   * @return the current (approximate) RelativeError
    */
-  public abstract double getRse(int numStdDev);
+  public abstract double getRelErr(int numStdDev);
 
   /**
-   * Returns the current (approximate) RSE factor given the number of Standard Deviations.
-   * Used for testing.
+   * Returns the current (approximate) Relative Error Factor given the number of Standard
+   * Deviations. Used for testing.
    * @param numStdDev the given number of Standard Deviations
-   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @return the current (approximate) RSE factor
+   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">Number of Standard Deviations</a>
+   * @return the current (approximate) Relative Error Factor
    */
-  public abstract double getRseFactor(int numStdDev);
+  public abstract double getRelErrFactor(int numStdDev);
 
   /**
    * Gets the approximate upper error bound given the specified number of Standard Deviations.
    *
    * @param numStdDev
-   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
+   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">Number of Standard Deviations</a>
    * @return the upper bound.
    */
   public abstract double getUpperBound(int numStdDev);

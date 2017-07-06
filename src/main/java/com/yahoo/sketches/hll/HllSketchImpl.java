@@ -101,9 +101,9 @@ abstract class HllSketchImpl {
     return tgtHllType;
   }
 
-  abstract double getRse(int numStdDev);
+  abstract double getRelErr(int numStdDev);
 
-  abstract double getRseFactor(int numStdDev);
+  abstract double getRelErrFactor(int numStdDev);
 
   abstract double getUpperBound(int numStdDev);
 
