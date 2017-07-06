@@ -58,10 +58,6 @@ abstract class BaseHllSketch {
   /**
    * Gets the approximate lower error bound given the specified number of Standard Deviations.
    *
-   * <p>The bound estimates for <i>LgConfigK</i> &lt; 12 and <i>numStdDev</i> &gt; 1 are not
-   * very accurate. Improved bounds models for these small sketches are planned for a future
-   * release.</p>
-   *
    * @param numStdDev
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the lower bound.
@@ -86,23 +82,25 @@ abstract class BaseHllSketch {
   }
 
   /**
-   * Gets the current (approximate) RSE
+   * Gets the current (approximate) RSE given the number of Standard Deviations.
+   * Used for testing.
+   * @param numStdDev the given number of Standard Deviations
+   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the current (approximate) RSE
    */
-  public abstract double getRse();
+  public abstract double getRse(int numStdDev);
 
   /**
-   * Returns the current RSE factor
-   * @return the current RSE factor
+   * Returns the current (approximate) RSE factor given the number of Standard Deviations.
+   * Used for testing.
+   * @param numStdDev the given number of Standard Deviations
+   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
+   * @return the current (approximate) RSE factor
    */
-  public abstract double getRseFactor();
+  public abstract double getRseFactor(int numStdDev);
 
   /**
    * Gets the approximate upper error bound given the specified number of Standard Deviations.
-   *
-   * <p>The bound estimates for <i>LgConfigK</i> &lt; 12 and <i>numStdDev</i> &gt; 1 are not
-   * very accurate. Improved bounds models for these small sketches are planned for a future
-   * release.</p>
    *
    * @param numStdDev
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>

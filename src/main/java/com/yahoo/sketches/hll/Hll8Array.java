@@ -98,6 +98,7 @@ class Hll8Array extends HllArray {
       hllByteArr[slotNo] = (byte) (newVal & VAL_MASK_6);
       hipAndKxQIncrementalUpdate(curVal, newVal);
       if (curVal == 0) { numAtCurMin--; } //overloaded as num zeros
+      assert numAtCurMin >= 0;
     }
     return this;
   }

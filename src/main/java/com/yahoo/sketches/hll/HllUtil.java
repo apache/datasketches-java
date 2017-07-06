@@ -82,10 +82,10 @@ final class HllUtil {
     return tgtHllArr;
   }
 
-  static final void checkNumStdDev(final double numStdDev) {
-    if ((numStdDev < 0.0) || (numStdDev > 3.0)) {
+  static final void checkNumStdDev(final int numStdDev) {
+    if ((numStdDev < 1) || (numStdDev > 3)) {
       throw new SketchesArgumentException(
-          "NumStdDev may not be negative or greater than 3.0.");
+          "NumStdDev may not be less than 1 or greater than 3.");
     }
   }
 

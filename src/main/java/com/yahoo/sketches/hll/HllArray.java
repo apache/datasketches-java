@@ -24,10 +24,8 @@ import com.yahoo.memory.Memory;
  * @author Kevin Lang
  */
 abstract class HllArray extends HllSketchImpl {
-  private static final double[] HLL_HIP_RSE_FACTORS = {0.862, 0.8467, 0.8397, 0.8360};
-  private static final double[] HLL_NON_HIP_RSE_FACTORS = {1.1059, 1.0706, 1.0545, 1.0464};
-  final double hllHipRseFactor;
-  final double hllNonHipRseFactor;
+  private static final double HLL_HIP_RSE_FACTOR = 0.8360;
+  private static final double HLL_NON_HIP_RSE_FACTOR = 1.0464;
   int curMin; //only changed by Hll4Array
   int numAtCurMin;
   double hipAccum;
@@ -43,12 +41,6 @@ abstract class HllArray extends HllSketchImpl {
    */
   HllArray(final int lgConfigK, final TgtHllType tgtHllType) {
     super(lgConfigK, tgtHllType, CurMode.HLL);
-    hllHipRseFactor = (lgConfigK < 7)
-        ? HLL_HIP_RSE_FACTORS[lgConfigK - 4]
-        : HLL_HIP_RSE_FACTORS[3];
-    hllNonHipRseFactor = (lgConfigK < 7)
-        ? HLL_NON_HIP_RSE_FACTORS[lgConfigK - 4]
-        : HLL_NON_HIP_RSE_FACTORS[3];
     curMin = 0;
     numAtCurMin = 1 << lgConfigK;
     hipAccum = 0;
@@ -62,8 +54,6 @@ abstract class HllArray extends HllSketchImpl {
    */
   HllArray(final HllArray that) {
     super(that);
-    hllHipRseFactor = that.hllHipRseFactor;
-    hllNonHipRseFactor = that.hllNonHipRseFactor;
     curMin = that.curMin;
     numAtCurMin = that.numAtCurMin;
     hipAccum = that.hipAccum;
@@ -126,19 +116,27 @@ abstract class HllArray extends HllSketchImpl {
   abstract PairIterator getIterator();
 
   @Override
-  double getLowerBound(final double numStdDev) {
+  double getLowerBound(final int numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
-    final double tmp;
-    if (oooFlag) {
-      tmp = getCompositeEstimate() / (1.0 + hllNonHipEps(numStdDev));
-    } else {
-      tmp =  hipAccum / (1.0 + hllHipEps(numStdDev));
+    if (lgConfigK > 12) {
+      final double tmp;
+      if (oooFlag) {
+        final double hllNonHipEps =
+            (numStdDev * HLL_NON_HIP_RSE_FACTOR) / Math.sqrt(1 << lgConfigK);
+        tmp = getCompositeEstimate() / (1.0 + hllNonHipEps);
+      } else {
+        final double hllHipEps = (numStdDev * HLL_HIP_RSE_FACTOR) / Math.sqrt(1 << lgConfigK);
+        tmp =  hipAccum / (1.0 + hllHipEps);
+      }
+      double numNonZeros = 1 << lgConfigK;
+      if (curMin == 0) {
+        numNonZeros -= numAtCurMin;
+      }
+      return Math.max(tmp, numNonZeros);
     }
-    double numNonZeros = 1 << lgConfigK;
-    if (curMin == 0) {
-      numNonZeros -= numAtCurMin;
-    }
-    return Math.max(tmp, numNonZeros);
+    //lgConfigK <= 12
+    final double re = RelativeErrorTables.getRelErr(false, oooFlag, lgConfigK, numStdDev);
+    return ((oooFlag) ? getCompositeEstimate() : hipAccum) / (1.0 + re);
   }
 
   @Override
@@ -152,22 +150,41 @@ abstract class HllArray extends HllSketchImpl {
   }
 
   @Override
-  double getRse() {
-    return getRseFactor() / Math.sqrt(1 << lgConfigK);
-  }
-
-  @Override
-  double getRseFactor() {
-    return (oooFlag) ? hllNonHipRseFactor : hllHipRseFactor;
-  }
-
-  @Override
-  double getUpperBound(final double numStdDev) {
+  double getRse(final int numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
-    if (oooFlag) {
-      return getCompositeEstimate() / (1.0 - hllNonHipEps(numStdDev));
+    if (lgConfigK <= 12) {
+      return RelativeErrorTables.getRelErr(true, oooFlag, lgConfigK, numStdDev);
     }
-    return hipAccum / (1.0 - hllHipEps(numStdDev));
+    final double rseFactor =  (oooFlag) ? HLL_NON_HIP_RSE_FACTOR : HLL_HIP_RSE_FACTOR;
+    return (rseFactor * numStdDev) / Math.sqrt(1 << lgConfigK);
+  }
+
+  @Override
+  double getRseFactor(final int numStdDev) {
+    HllUtil.checkNumStdDev(numStdDev);
+    if (lgConfigK <= 12) {
+      return RelativeErrorTables.getRelErr(true, oooFlag, lgConfigK, numStdDev)
+          * Math.sqrt(1 << lgConfigK);
+    }
+    final double rseFactor =  (oooFlag) ? HLL_NON_HIP_RSE_FACTOR : HLL_HIP_RSE_FACTOR;
+    return rseFactor * numStdDev;
+  }
+
+  @Override
+  double getUpperBound(final int numStdDev) {
+    HllUtil.checkNumStdDev(numStdDev);
+    if (lgConfigK > 12) {
+      if (oooFlag) {
+        final double hllNonHipEps =
+            (numStdDev * HLL_NON_HIP_RSE_FACTOR) / Math.sqrt(1 << lgConfigK);
+        return getCompositeEstimate() / (1.0 - hllNonHipEps);
+      }
+      final double hllHipEps = (numStdDev * HLL_HIP_RSE_FACTOR) / Math.sqrt(1 << lgConfigK);
+      return hipAccum / (1.0 - hllHipEps);
+    }
+    //lgConfigK <= 12
+    final double re = RelativeErrorTables.getRelErr(true, oooFlag, lgConfigK, numStdDev);
+    return ((oooFlag) ? getCompositeEstimate() : hipAccum) / (1.0 + re);
   }
 
   @Override
@@ -293,16 +310,6 @@ abstract class HllArray extends HllSketchImpl {
 
     final int numHitBuckets = configK - numUnhitBuckets;
     return HarmonicNumbers.getBitMapEstimate(configK, numHitBuckets);
-  }
-
-  //In C: again-two-registers.c lines hhb_get_hip_estimate_and_bounds L1136-1137
-  private double hllHipEps(final double numStdDevs) {
-    return (numStdDevs * hllHipRseFactor) / Math.sqrt(1 << lgConfigK);
-  }
-
-  //In C: giant-file.c lines 1500-1501
-  private double hllNonHipEps(final double numStdDevs) {
-    return (numStdDevs * hllNonHipRseFactor) / Math.sqrt(1 << lgConfigK);
   }
 
 }

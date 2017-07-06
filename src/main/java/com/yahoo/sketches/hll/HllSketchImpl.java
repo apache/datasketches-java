@@ -87,7 +87,7 @@ abstract class HllSketchImpl {
     return lgConfigK;
   }
 
-  abstract double getLowerBound(double numStdDev);
+  abstract double getLowerBound(int numStdDev);
 
   abstract int getMaxCouponArrInts();
 
@@ -101,11 +101,11 @@ abstract class HllSketchImpl {
     return tgtHllType;
   }
 
-  abstract double getRse();
+  abstract double getRse(int numStdDev);
 
-  abstract double getRseFactor();
+  abstract double getRseFactor(int numStdDev);
 
-  abstract double getUpperBound(double numStdDev);
+  abstract double getUpperBound(int numStdDev);
 
   abstract boolean isEmpty();
 

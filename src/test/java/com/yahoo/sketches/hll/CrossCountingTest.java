@@ -23,9 +23,8 @@ public class CrossCountingTest {
   public void crossCountingCheck() {
     int n = 10000; //16 & 1537
     int lgK = 14;
-    boolean setOooFlag = false;
 
-    HllSketch sk4 = buildSketch(n, lgK, HLL_4, setOooFlag);
+    HllSketch sk4 = buildSketch(n, lgK, HLL_4);
     int s4csum = computeChecksum(sk4);
 //    printSketchSummary(sk4, s4csum);
 //    printSketchData(sk4);
@@ -33,13 +32,13 @@ public class CrossCountingTest {
 
     int csum;
 
-    HllSketch sk6 = buildSketch(n, lgK, HLL_6, setOooFlag);
+    HllSketch sk6 = buildSketch(n, lgK, HLL_6);
     csum = computeChecksum(sk6);
     assertEquals(csum, s4csum);
 //    printSketchSummary(sk6, csum);
 //    printSketchData(sk6);
 
-    HllSketch sk8 = buildSketch(n, lgK, HLL_8, setOooFlag);
+    HllSketch sk8 = buildSketch(n, lgK, HLL_8);
     csum = computeChecksum(sk8);
     assertEquals(csum, s4csum);
 //    printSketchSummary(sk8, csum);
@@ -91,12 +90,11 @@ public class CrossCountingTest {
 //    printSketchData(sk6to8);
   }
 
-  private static HllSketch buildSketch(int n, int lgK, TgtHllType tgtHllType, boolean setOooFlag) {
+  private static HllSketch buildSketch(int n, int lgK, TgtHllType tgtHllType) {
     HllSketch sketch = new HllSketch(lgK, tgtHllType);
     for (int i = 0; i < n; i++) {
       sketch.update(i);
     }
-    if (setOooFlag) { sketch.putOutOfOrderFlag(true); }
     return sketch;
   }
 

@@ -100,7 +100,8 @@ class Hll6Array extends HllArray {
     if (newVal > curVal) {
       put6Bit(mem, 0, slotNo, newVal);
       hipAndKxQIncrementalUpdate(curVal, newVal);
-      if (curVal == 0) { numAtCurMin--; }
+      if (curVal == 0) { numAtCurMin--; } //overloaded as num zeros
+      assert numAtCurMin >= 0;
     }
     return this;
   }

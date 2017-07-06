@@ -213,7 +213,7 @@ class CouponList extends HllSketchImpl {
   }
 
   @Override
-  double getLowerBound(final double numStdDev) {
+  double getLowerBound(final int numStdDev) {
     final double est = CubicInterpolation.usingXAndYTables(CouponMapping.xArr,
         CouponMapping.yArr, couponCount);
     final double tmp = est / (1.0 + couponEstimatorEps(numStdDev));
@@ -231,17 +231,19 @@ class CouponList extends HllSketchImpl {
   }
 
   @Override
-  double getRse() {
-    return COUPON_RSE;
+  double getRse(final int numStdDev) {
+    HllUtil.checkNumStdDev(numStdDev);
+    return numStdDev * COUPON_RSE;
   }
 
   @Override
-  double getRseFactor() {
-    return COUPON_RSE_FACTOR;
+  double getRseFactor(final int numStdDev) {
+    HllUtil.checkNumStdDev(numStdDev);
+    return numStdDev * COUPON_RSE_FACTOR;
   }
 
   @Override
-  double getUpperBound(final double numStdDev) {
+  double getUpperBound(final int numStdDev) {
     final double est = CubicInterpolation.usingXAndYTables(CouponMapping.xArr,
         CouponMapping.yArr, couponCount);
     final double tmp = est / (1.0 - couponEstimatorEps(numStdDev));
@@ -356,7 +358,7 @@ class CouponList extends HllSketchImpl {
   }
   //END Iterators
 
-  static final double couponEstimatorEps(final double numStdDev) {
+  static final double couponEstimatorEps(final int numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
     return (numStdDev * COUPON_RSE);
   }

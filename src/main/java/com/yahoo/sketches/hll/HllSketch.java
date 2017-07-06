@@ -190,13 +190,13 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
-  public double getRse() {
-    return hllSketchImpl.getRse();
+  public double getRse(final int numStdDev) {
+    return hllSketchImpl.getRse(numStdDev);
   }
 
   @Override
-  public double getRseFactor() {
-    return hllSketchImpl.getRseFactor();
+  public double getRseFactor(final int numStdDev) {
+    return hllSketchImpl.getRseFactor(numStdDev);
   }
 
   @Override
@@ -257,8 +257,6 @@ public class HllSketch extends BaseHllSketch {
       sb.append("  Estimate       : ").append(getEstimate()).append(LS);
       sb.append("  UB             : ").append(getUpperBound(1)).append(LS);
       sb.append("  OutOfOrder Flag: ").append(isOutOfOrderFlag()).append(LS);
-      sb.append("  RSE Factor     : ").append(getRseFactor()).append(LS);
-      sb.append("  RSE            : ").append(getRse()).append(LS);
       if (getCurrentMode() == CurMode.HLL) {
         final double hipAccum = hllSketchImpl.getHipAccum();
         sb.append("  CurMin         : ").append(getCurMin()).append(LS);
@@ -316,10 +314,6 @@ public class HllSketch extends BaseHllSketch {
   @Override
   void couponUpdate(final int coupon) {
     hllSketchImpl = hllSketchImpl.couponUpdate(coupon);
-  }
-
-  void putOutOfOrderFlag(final boolean value) {
-    hllSketchImpl.putOooFlag(value);
   }
 
   private static CurMode checkPreamble(final Memory mem, final Object memObj, final long memAdd) {
