@@ -103,23 +103,32 @@ public class CouponListTest {
   }
 
   @Test
-  public void checkGrowHashSet() {
-    int lgK = 21;
-    HllSketch sk = new HllSketch(lgK);
-    int u = ((1 << (lgK - 3))/4) * 3;
-    println("U: " + u);
+  public void toByteArray_Heapify() {
+    toByteArrayHeapify(7);
+    toByteArrayHeapify(21);
+  }
+
+  private static void toByteArrayHeapify(int lgK) {
+    HllSketch sk1 = new HllSketch(lgK);
+
+    int u = (lgK < 8) ? 7 : ((1 << (lgK - 3))/4) * 3;
     for (int i = 0; i < u; i++) {
-      sk.update(i);
+      sk1.update(i);
     }
-    double est1 = sk.getEstimate();
-    double re1 = (est1 / u) - 1.0;
-    println("Est1: " + est1 + ", u: " + u + ", re1: " + re1);
-    assertEquals(sk.getEstimate(), u, u * 100.0E-6);
-    byte[] byteArray = sk.toCompactByteArray();
+    double est1 = sk1.getEstimate();
+    assertEquals(est1, u, u * 100.0E-6);
+    println("Original\n" + sk1.toString());
+
+    byte[] byteArray = sk1.toCompactByteArray();
     HllSketch sk2 = HllSketch.heapify(byteArray);
     double est2 = sk2.getEstimate();
-    double re2 = (est2 / est1) - 1.0;
-    println("Est2: " + est2 + ", Est1: " + est1 + ", re2: " + re2);
+    println("Heapify Compact\n" + sk2.toString());
+    assertEquals(est2, est1, 0.0);
+
+    byteArray = sk1.toUpdatableByteArray();
+    sk2 = HllSketch.heapify(byteArray);
+    est2 = sk2.getEstimate();
+    println("Heapify Updatable\n" + sk2.toString());
     assertEquals(est2, est1, 0.0);
   }
 
@@ -132,6 +141,6 @@ public class CouponListTest {
    * @param s value to print
    */
   static void println(String s) {
-    System.out.println(s); //disable here
+    //System.out.println(s); //disable here
   }
 }

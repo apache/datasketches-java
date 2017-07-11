@@ -9,30 +9,7 @@ import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.KEY_BITS_26;
 import static com.yahoo.sketches.hll.HllUtil.KEY_MASK_26;
 import static com.yahoo.sketches.hll.HllUtil.VAL_MASK_6;
-import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARRAY_START;
-import static com.yahoo.sketches.hll.PreambleUtil.HLL_PREINTS;
-import static com.yahoo.sketches.hll.PreambleUtil.extractCurMin;
-import static com.yahoo.sketches.hll.PreambleUtil.extractHipAccum;
-import static com.yahoo.sketches.hll.PreambleUtil.extractKxQ0;
-import static com.yahoo.sketches.hll.PreambleUtil.extractKxQ1;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
-import static com.yahoo.sketches.hll.PreambleUtil.extractNumAtCurMin;
-import static com.yahoo.sketches.hll.PreambleUtil.extractOooFlag;
-import static com.yahoo.sketches.hll.PreambleUtil.insertCompactFlag;
-import static com.yahoo.sketches.hll.PreambleUtil.insertCurMin;
-import static com.yahoo.sketches.hll.PreambleUtil.insertCurMode;
-import static com.yahoo.sketches.hll.PreambleUtil.insertEmptyFlag;
-import static com.yahoo.sketches.hll.PreambleUtil.insertFamilyId;
-import static com.yahoo.sketches.hll.PreambleUtil.insertHipAccum;
-import static com.yahoo.sketches.hll.PreambleUtil.insertKxQ0;
-import static com.yahoo.sketches.hll.PreambleUtil.insertKxQ1;
-import static com.yahoo.sketches.hll.PreambleUtil.insertLgArr;
-import static com.yahoo.sketches.hll.PreambleUtil.insertLgK;
-import static com.yahoo.sketches.hll.PreambleUtil.insertNumAtCurMin;
-import static com.yahoo.sketches.hll.PreambleUtil.insertOooFlag;
-import static com.yahoo.sketches.hll.PreambleUtil.insertPreInts;
-import static com.yahoo.sketches.hll.PreambleUtil.insertSerVer;
-import static com.yahoo.sketches.hll.PreambleUtil.insertTgtHllType;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
@@ -67,21 +44,9 @@ class Hll6Array extends HllArray {
   static final Hll6Array heapify(final Memory mem) {
     final Object memArr = ((WritableMemory) mem).getArray();
     final long memAdd = mem.getCumulativeOffset(0);
-    checkPreamble(mem, memArr, memAdd);
     final int lgConfigK = extractLgK(memArr, memAdd);
     final Hll6Array hll6Array = new Hll6Array(lgConfigK);
-
-    hll6Array.oooFlag = extractOooFlag(memArr, memAdd);
-    hll6Array.curMin = extractCurMin(memArr, memAdd);
-    hll6Array.hipAccum = extractHipAccum(memArr, memAdd);
-    hll6Array.kxq0 = extractKxQ0(memArr, memAdd);
-    hll6Array.kxq1 = extractKxQ1(memArr, memAdd);
-    hll6Array.numAtCurMin = extractNumAtCurMin(memArr, memAdd);
-
-    //load Hll array
-    final int hllArrLen = hll6Array.hllByteArr.length;
-    mem.getByteArray(HLL_BYTE_ARRAY_START, hll6Array.hllByteArr, 0, hllArrLen);
-
+    hll6Array.extractCommon(hll6Array, mem, memArr, memAdd);
     return hll6Array;
   }
 
@@ -109,38 +74,6 @@ class Hll6Array extends HllArray {
   @Override
   PairIterator getIterator() {
     return new Hll6Iterator();
-  }
-
-  @Override
-  byte[] toCompactByteArray() {
-    final int hllBytes = hllByteArr.length;
-    final int totBytes = HLL_BYTE_ARRAY_START + hllBytes;
-    final byte[] memArr = new byte[totBytes];
-    final WritableMemory wmem = WritableMemory.wrap(memArr);
-    final long memAdd = wmem.getCumulativeOffset(0);
-
-    insertPreInts(memArr, memAdd, HLL_PREINTS);
-    insertSerVer(memArr, memAdd);
-    insertFamilyId(memArr, memAdd);
-    insertLgK(memArr, memAdd, lgConfigK);
-    insertLgArr(memArr, memAdd, 0); //not used by HLL mode
-    insertEmptyFlag(memArr, memAdd, isEmpty());
-    insertCompactFlag(memArr, memAdd, true); //
-    insertOooFlag(memArr, memAdd, oooFlag);
-    insertCurMin(memArr, memAdd, curMin);
-    insertCurMode(memArr, memAdd, curMode);
-    insertTgtHllType(memArr, memAdd, tgtHllType);
-    insertHipAccum(memArr, memAdd, hipAccum);
-    insertKxQ0(memArr, memAdd, kxq0);
-    insertKxQ1(memArr, memAdd, kxq1);
-    insertNumAtCurMin(memArr, memAdd, numAtCurMin);
-    wmem.putByteArray(HLL_BYTE_ARRAY_START, hllByteArr, 0, hllBytes);
-    return memArr;
-  }
-
-  @Override
-  byte[] toUpdatableByteArray() {
-    return toCompactByteArray(); //For HLL_6, it is the same
   }
 
   static final void put6Bit(final WritableMemory mem, final long offsetBytes,

@@ -11,15 +11,37 @@ import static com.yahoo.sketches.hll.PreambleUtil.FAMILY_ID;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARRAY_START;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_PREINTS;
 import static com.yahoo.sketches.hll.PreambleUtil.SER_VER;
+import static com.yahoo.sketches.hll.PreambleUtil.extractCurMin;
 import static com.yahoo.sketches.hll.PreambleUtil.extractFamilyId;
+import static com.yahoo.sketches.hll.PreambleUtil.extractHipAccum;
+import static com.yahoo.sketches.hll.PreambleUtil.extractKxQ0;
+import static com.yahoo.sketches.hll.PreambleUtil.extractKxQ1;
+import static com.yahoo.sketches.hll.PreambleUtil.extractNumAtCurMin;
+import static com.yahoo.sketches.hll.PreambleUtil.extractOooFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.extractPreInts;
 import static com.yahoo.sketches.hll.PreambleUtil.extractSerVer;
+import static com.yahoo.sketches.hll.PreambleUtil.insertCompactFlag;
+import static com.yahoo.sketches.hll.PreambleUtil.insertCurMin;
+import static com.yahoo.sketches.hll.PreambleUtil.insertCurMode;
+import static com.yahoo.sketches.hll.PreambleUtil.insertEmptyFlag;
+import static com.yahoo.sketches.hll.PreambleUtil.insertFamilyId;
+import static com.yahoo.sketches.hll.PreambleUtil.insertHipAccum;
+import static com.yahoo.sketches.hll.PreambleUtil.insertKxQ0;
+import static com.yahoo.sketches.hll.PreambleUtil.insertKxQ1;
+import static com.yahoo.sketches.hll.PreambleUtil.insertLgArr;
+import static com.yahoo.sketches.hll.PreambleUtil.insertLgK;
+import static com.yahoo.sketches.hll.PreambleUtil.insertNumAtCurMin;
+import static com.yahoo.sketches.hll.PreambleUtil.insertOooFlag;
+import static com.yahoo.sketches.hll.PreambleUtil.insertPreInts;
+import static com.yahoo.sketches.hll.PreambleUtil.insertSerVer;
+import static com.yahoo.sketches.hll.PreambleUtil.insertTgtHllType;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_4;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_6;
 import static java.lang.Math.log;
 import static java.lang.Math.sqrt;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * @author Lee Rhodes
@@ -84,6 +106,59 @@ abstract class HllArray extends HllSketchImpl {
   PairIterator getAuxIterator() {
     if (auxHashMap != null) { return auxHashMap.getIterator(); }
     return null;
+  }
+
+  /**
+   * This is the (non-HIP) estimator.
+   * It is called "composite" because multiple estimators are pasted together.
+   * @return the composite estimate
+   */
+  //In C: again-two-registers.c hhb_get_composite_estimate L1489
+  // Make package private to allow testing.
+  @Override
+  double getCompositeEstimate() {
+    final double rawEst = getRawEstimate(lgConfigK, kxq0 + kxq1);
+
+    final double[] xArr = CompositeInterpolationXTable.xArrs[lgConfigK - MIN_LOG_K];
+    final double yStride = CompositeInterpolationXTable.yStrides[lgConfigK - MIN_LOG_K];
+    final int xArrLen = xArr.length;
+
+    if (rawEst < xArr[0]) { return 0; }
+
+    final int xArrLenM1 = xArrLen - 1;
+
+    if (rawEst > xArr[xArrLenM1]) {
+      final double finalY = yStride * (xArrLenM1);
+      final double factor = finalY / xArr[xArrLenM1];
+      return rawEst * factor;
+    }
+
+    final double adjEst =
+        CubicInterpolation.usingXArrAndYStride(xArr, yStride, rawEst);
+
+    // We need to completely avoid the linear_counting estimator if it might have a crazy value.
+    // Empirical evidence suggests that the threshold 3*k will keep us safe if 2^4 <= k <= 2^21.
+
+    if (adjEst > (3 << lgConfigK)) { return adjEst; }
+    //Alternate call
+    //if ((adjEst > (3 << lgConfigK)) || ((curMin != 0) || (numAtCurMin == 0)) ) { return adjEst; }
+
+    final double linEst = getHllBitMapEstimate(lgConfigK, curMin, numAtCurMin);
+
+    // Bias is created when the value of an estimator is compared with a threshold to decide whether
+    // to use that estimator or a different one.
+    // We conjecture that less bias is created when the average of the two estimators
+    // is compared with the threshold. Empirical measurements support this conjecture.
+
+    final double avgEst = (adjEst + linEst) / 2.0;
+
+    // The following constants comes from empirical measurements of the crossover point
+    // between the average error of the linear estimator and the adjusted hll estimator
+    double crossOver = 0.64;
+    if (lgConfigK == 4)      { crossOver = 0.718; }
+    else if (lgConfigK == 5) { crossOver = 0.672; }
+
+    return (avgEst > (crossOver * (1 << lgConfigK))) ? adjEst : linEst;
   }
 
   @Override
@@ -200,6 +275,60 @@ abstract class HllArray extends HllSketchImpl {
     hipAccum = value;
   }
 
+  @Override
+  byte[] toCompactByteArray() {
+    return toByteArray(true);
+  }
+
+  @Override
+  byte[] toUpdatableByteArray() {
+    return toByteArray(false);
+  }
+
+  void extractCommon(final HllArray hllArray, final Memory mem, final Object memArr,
+      final long memAdd) {
+    checkPreamble(mem, memArr, memAdd);
+    hllArray.oooFlag = extractOooFlag(memArr, memAdd);
+    hllArray.curMin = extractCurMin(memArr, memAdd);
+    hllArray.hipAccum = extractHipAccum(memArr, memAdd);
+    hllArray.kxq0 = extractKxQ0(memArr, memAdd);
+    hllArray.kxq1 = extractKxQ1(memArr, memAdd);
+    hllArray.numAtCurMin = extractNumAtCurMin(memArr, memAdd);
+
+    //load Hll array
+    final int hllArrLen = hllArray.hllByteArr.length;
+    mem.getByteArray(HLL_BYTE_ARRAY_START, hllArray.hllByteArr, 0, hllArrLen);
+  }
+
+  void insertCommon(final byte[] memArr, final long memAdd, final boolean compact) {
+    insertPreInts(memArr, memAdd, HLL_PREINTS);
+    insertSerVer(memArr, memAdd);
+    insertFamilyId(memArr, memAdd);
+    insertLgK(memArr, memAdd, lgConfigK);
+    insertLgArr(memArr, memAdd, 0); //not used for HLL mode
+    insertEmptyFlag(memArr, memAdd, isEmpty());
+    insertCompactFlag(memArr, memAdd, compact);
+    insertOooFlag(memArr, memAdd, oooFlag);
+    insertCurMin(memArr, memAdd, curMin);
+    insertCurMode(memArr, memAdd, curMode);
+    insertTgtHllType(memArr, memAdd, tgtHllType);
+    insertHipAccum(memArr, memAdd, hipAccum);
+    insertKxQ0(memArr, memAdd, kxq0);
+    insertKxQ1(memArr, memAdd, kxq1);
+    insertNumAtCurMin(memArr, memAdd, numAtCurMin);
+  }
+
+  byte[] toByteArray(final boolean compact) {
+    final int hllBytes = hllByteArr.length;
+    final int totBytes = HLL_BYTE_ARRAY_START + hllBytes;
+    final byte[] memArr = new byte[totBytes];
+    final WritableMemory wmem = WritableMemory.wrap(memArr);
+    final long memAdd = wmem.getCumulativeOffset(0);
+    insertCommon(memArr, memAdd, compact);
+    wmem.putByteArray(HLL_BYTE_ARRAY_START, hllByteArr, 0, hllBytes);
+    return memArr;
+  }
+
   /**
    * HIP and KxQ incremental update.
    * @param oldValue old value
@@ -239,58 +368,7 @@ abstract class HllArray extends HllSketchImpl {
     return hyperEst;
   }
 
-  /**
-   * This is the (non-HIP) estimator.
-   * It is called "composite" because multiple estimators are pasted together.
-   * @return the composite estimate
-   */
-  //In C: again-two-registers.c hhb_get_composite_estimate L1489
-  // Make package private to allow testing.
-  @Override
-  double getCompositeEstimate() {
-    final double rawEst = getRawEstimate(lgConfigK, kxq0 + kxq1);
 
-    final double[] xArr = CompositeInterpolationXTable.xArrs[lgConfigK - MIN_LOG_K];
-    final double yStride = CompositeInterpolationXTable.yStrides[lgConfigK - MIN_LOG_K];
-    final int xArrLen = xArr.length;
-
-    if (rawEst < xArr[0]) { return 0; }
-
-    final int xArrLenM1 = xArrLen - 1;
-
-    if (rawEst > xArr[xArrLenM1]) {
-      final double finalY = yStride * (xArrLenM1);
-      final double factor = finalY / xArr[xArrLenM1];
-      return rawEst * factor;
-    }
-
-    final double adjEst =
-        CubicInterpolation.usingXArrAndYStride(xArr, yStride, rawEst);
-
-    // We need to completely avoid the linear_counting estimator if it might have a crazy value.
-    // Empirical evidence suggests that the threshold 3*k will keep us safe if 2^4 <= k <= 2^21.
-
-    if (adjEst > (3 << lgConfigK)) { return adjEst; }
-    //Alternate call
-    //if ((adjEst > (3 << lgConfigK)) || ((curMin != 0) || (numAtCurMin == 0)) ) { return adjEst; }
-
-    final double linEst = getHllBitMapEstimate(lgConfigK, curMin, numAtCurMin);
-
-    // Bias is created when the value of an estimator is compared with a threshold to decide whether
-    // to use that estimator or a different one.
-    // We conjecture that less bias is created when the average of the two estimators
-    // is compared with the threshold. Empirical measurements support this conjecture.
-
-    final double avgEst = (adjEst + linEst) / 2.0;
-
-    // The following constants comes from empirical measurements of the crossover point
-    // between the average error of the linear estimator and the adjusted hll estimator
-    double crossOver = 0.64;
-    if (lgConfigK == 4)      { crossOver = 0.718; }
-    else if (lgConfigK == 5) { crossOver = 0.672; }
-
-    return (avgEst > (crossOver * (1 << lgConfigK))) ? adjEst : linEst;
-  }
 
   /**
    * Estimator when N is small, roughly less than k log(k).

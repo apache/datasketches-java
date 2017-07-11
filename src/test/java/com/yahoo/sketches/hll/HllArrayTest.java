@@ -8,6 +8,7 @@ package com.yahoo.sketches.hll;
 import static com.yahoo.sketches.hll.PreambleUtil.FAMILY_ID;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_PREINTS;
 import static com.yahoo.sketches.hll.PreambleUtil.SER_VER;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
@@ -82,6 +83,38 @@ public class HllArrayTest {
     res.getCompositeEstimate();
     res.getRelErr(1);
     res.getRelErrFactor(1);
+  }
+
+  @Test
+  public void toByteArray_Heapify() {
+    toByteArrayHeapify(4, TgtHllType.HLL_4);
+    toByteArrayHeapify(4, TgtHllType.HLL_6);
+    toByteArrayHeapify(4, TgtHllType.HLL_8);
+    toByteArrayHeapify(18, TgtHllType.HLL_4);
+    toByteArrayHeapify(21, TgtHllType.HLL_6);
+    toByteArrayHeapify(21, TgtHllType.HLL_8);
+  }
+
+  private static void toByteArrayHeapify(int lgK, TgtHllType tgtHllType) {
+    HllSketch sk1 = new HllSketch(lgK, tgtHllType);
+
+    int u = (lgK < 8) ? 8 : (((1 << (lgK - 3))/4) * 3) + 1000;
+    for (int i = 0; i < u; i++) {
+      sk1.update(i);
+    }
+    //sk1.update(u);
+    double est1 = sk1.getEstimate();
+    assertEquals(est1, u, u * 100.0E-6);
+
+    byte[] byteArray = sk1.toCompactByteArray();
+    HllSketch sk2 = HllSketch.heapify(byteArray);
+    double est2 = sk2.getEstimate();
+    assertEquals(est2, est1, 0.0);
+
+    byteArray = sk1.toUpdatableByteArray();
+    sk2 = HllSketch.heapify(byteArray);
+    est2 = sk2.getEstimate();
+    assertEquals(est2, est1, 0.0);
   }
 
   @Test

@@ -129,12 +129,17 @@ class CouponList extends HllSketchImpl {
     // else SET
     final CouponHashSet set = new CouponHashSet(lgConfigK, tgtHllType);
     final int couponCount = extractHashSetCount(memArr, memAdd);
-    final int len = (compact) ? couponCount : 1 << lgCouponArrInts;
-
-    for (int i = 0; i < len; i++) {
-      final int coupon = extractInt(memArr, memAdd, i << 2);
-      if (coupon == EMPTY) { continue; }
-      set.couponUpdate(extractInt(memArr, memAdd, i << 2));
+    if (compact) {
+      for (int i = 0; i < couponCount; i++) {
+        final int coupon = extractInt(memArr, memAdd, HASH_SET_INT_ARR_START + (i << 2));
+        if (coupon == EMPTY) { continue; }
+        set.couponUpdate(coupon);
+      }
+    } else { //updatable
+      set.couponCount = couponCount;
+      set.lgCouponArrInts = lgCouponArrInts;
+      set.couponIntArr = new int[1 << lgCouponArrInts];
+      mem.getIntArray(HASH_SET_INT_ARR_START, set.couponIntArr, 0, 1 << lgCouponArrInts);
     }
 
     set.putOooFlag(true);
@@ -277,98 +282,61 @@ class CouponList extends HllSketchImpl {
 
   @Override
   byte[] toCompactByteArray() {
+    return toByteArray(true);
+  }
+
+  @Override
+  byte[] toUpdatableByteArray() {
+    return toByteArray(false);
+  }
+
+  private byte[] toByteArray(final boolean compact) {
     final byte[] memArr;
     final WritableMemory wmem;
     final long memAdd;
 
     if (curMode == CurMode.LIST) {
-      memArr = new byte[8 + (4 * couponCount)]; //unique to LIST
+      memArr = new byte[LIST_INT_ARR_START + (couponCount << 2)];
       wmem = WritableMemory.wrap(memArr);
       memAdd = wmem.getCumulativeOffset(0);
-      insertPreInts(memArr, memAdd, LIST_PREINTS); //unique to LIST
-      insertSerVer(memArr, memAdd);
-      insertFamilyId(memArr, memAdd);
-      insertLgK(memArr, memAdd, lgConfigK);
-      insertLgArr(memArr, memAdd, lgCouponArrInts);
-      insertEmptyFlag(memArr, memAdd, isEmpty());
-      insertCompactFlag(memArr, memAdd, true);
-      insertOooFlag(memArr, memAdd, oooFlag);
-      insertListCount(memArr, memAdd, couponCount); //unique to LIST
-      insertCurMode(memArr, memAdd, curMode);
-      insertTgtHllType(memArr, memAdd, tgtHllType);
-      wmem.putIntArray(LIST_INT_ARR_START, couponIntArr, 0, couponCount); //unique to LIST
+      insertPreInts(memArr, memAdd, LIST_PREINTS);
+      insertListCount(memArr, memAdd, couponCount);
+      insertCompactFlag(memArr, memAdd, compact);
+      insertCommon(memArr, memAdd);
+      wmem.putIntArray(LIST_INT_ARR_START, couponIntArr, 0, couponCount);
 
     } else { //SET
-      memArr = new byte[12 + (4 * couponCount)]; //unique to SET
+      final int len = (compact) ? couponCount << 2 : 4 << lgCouponArrInts;
+      memArr = new byte[HASH_SET_INT_ARR_START + len];
       wmem = WritableMemory.wrap(memArr);
       memAdd = wmem.getCumulativeOffset(0);
-      insertPreInts(memArr, memAdd, HASH_SET_PREINTS); //unique to SET
-      insertSerVer(memArr, memAdd);
-      insertFamilyId(memArr, memAdd);
-      insertLgK(memArr, memAdd, lgConfigK);
-      insertLgArr(memArr, memAdd, lgCouponArrInts);
-      insertEmptyFlag(memArr, memAdd, isEmpty());
-      insertCompactFlag(memArr, memAdd, true);
-      insertOooFlag(memArr, memAdd, oooFlag);
-      insertCurMode(memArr, memAdd, curMode);
-      insertTgtHllType(memArr, memAdd, tgtHllType);
-      insertHashSetCount(memArr, memAdd, couponCount); //unique to SET
+      insertPreInts(memArr, memAdd, HASH_SET_PREINTS);
+      insertHashSetCount(memArr, memAdd, couponCount);
+      insertCompactFlag(memArr, memAdd, compact);
+      insertCommon(memArr, memAdd);
 
-      final PairIterator itr = getIterator(); //unique to SET
-      int cnt = 0;
-      while (itr.nextValid()) {
-        wmem.putInt(HASH_SET_INT_ARR_START + (4 * cnt++), itr.getPair());
+      if (compact) {
+        final PairIterator itr = getIterator();
+        int cnt = 0;
+        while (itr.nextValid()) {
+          wmem.putInt(HASH_SET_INT_ARR_START + (cnt++ << 2), itr.getPair());
+        }
+      } else { //updatable
+        wmem.putIntArray(HASH_SET_INT_ARR_START, couponIntArr, 0, 1 << lgCouponArrInts);
       }
     }
     return memArr;
   }
 
-  @Override
-  byte[] toUpdatableByteArray() {
-    final byte[] memArr;
-    final WritableMemory wmem;
-    final long memAdd;
-
-    if (curMode == CurMode.LIST) {
-      memArr = new byte[8 + (4 * (1 << lgCouponArrInts))]; //unique to LIST
-      wmem = WritableMemory.wrap(memArr);
-      memAdd = wmem.getCumulativeOffset(0);
-      insertPreInts(memArr, memAdd, LIST_PREINTS); //unique to LIST
-      insertSerVer(memArr, memAdd);
-      insertFamilyId(memArr, memAdd);
-      insertLgK(memArr, memAdd, lgConfigK);
-      insertLgArr(memArr, memAdd, lgCouponArrInts);
-      insertEmptyFlag(memArr, memAdd, isEmpty());
-      insertCompactFlag(memArr, memAdd, false);
-      insertOooFlag(memArr, memAdd, oooFlag);
-      insertListCount(memArr, memAdd, couponCount); //unique to LIST
-      insertCurMode(memArr, memAdd, curMode);
-      insertTgtHllType(memArr, memAdd, tgtHllType);
-      wmem.putIntArray(LIST_INT_ARR_START, couponIntArr, 0, 1 << lgCouponArrInts); //unique to LIST
-
-    } else { //SET
-      memArr = new byte[12 + (4 * (1 << lgCouponArrInts))]; //unique to SET
-      wmem = WritableMemory.wrap(memArr);
-      memAdd = wmem.getCumulativeOffset(0);
-      insertPreInts(memArr, memAdd, HASH_SET_PREINTS); //unique to SET
-      insertSerVer(memArr, memAdd);
-      insertFamilyId(memArr, memAdd);
-      insertLgK(memArr, memAdd, lgConfigK);
-      insertLgArr(memArr, memAdd, lgCouponArrInts);
-      insertEmptyFlag(memArr, memAdd, isEmpty());
-      insertCompactFlag(memArr, memAdd, true);
-      insertOooFlag(memArr, memAdd, oooFlag);
-      insertCurMode(memArr, memAdd, curMode);
-      insertTgtHllType(memArr, memAdd, tgtHllType);
-      insertHashSetCount(memArr, memAdd, couponCount); //unique to SET
-
-      final PairIterator itr = getIterator(); //unique to SET
-      int cnt = 0;
-      while (itr.nextAll()) {
-        wmem.putInt(HASH_SET_INT_ARR_START + (4 * cnt++), itr.getPair());
-      }
-    }
-    return memArr;
+  private void insertCommon(final byte[] memArr, final long memAdd) {
+    insertSerVer(memArr, memAdd);
+    insertFamilyId(memArr, memAdd);
+    insertLgK(memArr, memAdd, lgConfigK);
+    insertLgArr(memArr, memAdd, lgCouponArrInts);
+    insertEmptyFlag(memArr, memAdd, isEmpty());
+    insertOooFlag(memArr, memAdd, oooFlag);
+    insertCurMode(memArr, memAdd, curMode);
+    insertTgtHllType(memArr, memAdd, tgtHllType);
   }
 
   //Iterator

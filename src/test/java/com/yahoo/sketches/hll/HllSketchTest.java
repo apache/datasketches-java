@@ -102,28 +102,20 @@ public class HllSketchTest {
     int n1 = 15;
     int n2 = 24;
     int n3 = 1000;
-
     int base = 0;
 
     HllSketch src = new HllSketch(lgK, srcType);
     for (int i = 0; i < n1; i++) { src.update(i + base); }
     HllSketch dst = src.copyAs(dstType);
     assertEquals(dst.getEstimate(), src.getEstimate(), 0.0);
-//    println(src.getTgtHllType() + " " + src.getEstimate()
-//      + ", " + dst.getTgtHllType() + " " + dst.getEstimate());
 
     for (int i = n1; i < n2; i++) { src.update(i); }
     dst = src.copyAs(dstType);
     assertEquals(dst.getEstimate(), src.getEstimate(), 0.0);
-//    println(src.getTgtHllType() + " " + src.getEstimate()
-//    + ", " + dst.getTgtHllType() + " " + dst.getEstimate());
 
     for (int i = n2; i < n3; i++) { src.update(i); }
     dst = src.copyAs(dstType);
     assertEquals(dst.getEstimate(), src.getEstimate(), 0.0);
-//    println(src.getTgtHllType() + " " + src.getEstimate()
-//    + ", " + dst.getTgtHllType() + " " + dst.getEstimate());
-//    println("");
   }
 
   @Test
