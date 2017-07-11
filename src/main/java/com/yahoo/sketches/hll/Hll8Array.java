@@ -135,6 +135,11 @@ class Hll8Array extends HllArray {
     return memArr;
   }
 
+  @Override
+  byte[] toUpdatableByteArray() {
+    return toCompactByteArray(); //For HLL_8 it is the same
+  }
+
   final class Hll8Iterator implements PairIterator {
     byte[] array;
     int slots;

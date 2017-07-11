@@ -125,6 +125,8 @@ abstract class HllSketchImpl {
 
   abstract byte[] toCompactByteArray();
 
+  abstract byte[] toUpdatableByteArray();
+
   static final void badPreambleState(final Memory mem) {
     throw new SketchesArgumentException("Possible Corruption, Invalid Preamble:"
         + PreambleUtil.toString(mem));

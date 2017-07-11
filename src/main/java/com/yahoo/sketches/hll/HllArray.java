@@ -16,6 +16,8 @@ import static com.yahoo.sketches.hll.PreambleUtil.extractPreInts;
 import static com.yahoo.sketches.hll.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_4;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_6;
+import static java.lang.Math.log;
+import static java.lang.Math.sqrt;
 
 import com.yahoo.memory.Memory;
 
@@ -24,8 +26,9 @@ import com.yahoo.memory.Memory;
  * @author Kevin Lang
  */
 abstract class HllArray extends HllSketchImpl {
-  private static final double HLL_HIP_RSE_FACTOR = 0.8360;
-  private static final double HLL_NON_HIP_RSE_FACTOR = 1.0464;
+  private static final double HLL_HIP_RSE_FACTOR = sqrt(log(2.0)); //.8325546
+  private static final double HLL_NON_HIP_RSE_FACTOR = sqrt((3.0 * log(2.0)) - 1.0); //1.03896
+
   int curMin; //only changed by Hll4Array
   int numAtCurMin;
   double hipAccum;
@@ -196,9 +199,6 @@ abstract class HllArray extends HllSketchImpl {
   void putHipAccum(final double value) {
     hipAccum = value;
   }
-
-  @Override
-  abstract byte[] toCompactByteArray();
 
   /**
    * HIP and KxQ incremental update.

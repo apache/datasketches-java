@@ -125,7 +125,7 @@ class Hll6Array extends HllArray {
     insertLgK(memArr, memAdd, lgConfigK);
     insertLgArr(memArr, memAdd, 0); //not used by HLL mode
     insertEmptyFlag(memArr, memAdd, isEmpty());
-    insertCompactFlag(memArr, memAdd, true);
+    insertCompactFlag(memArr, memAdd, true); //
     insertOooFlag(memArr, memAdd, oooFlag);
     insertCurMin(memArr, memAdd, curMin);
     insertCurMode(memArr, memAdd, curMode);
@@ -136,6 +136,11 @@ class Hll6Array extends HllArray {
     insertNumAtCurMin(memArr, memAdd, numAtCurMin);
     wmem.putByteArray(HLL_BYTE_ARRAY_START, hllByteArr, 0, hllBytes);
     return memArr;
+  }
+
+  @Override
+  byte[] toUpdatableByteArray() {
+    return toCompactByteArray(); //For HLL_6, it is the same
   }
 
   static final void put6Bit(final WritableMemory mem, final long offsetBytes,

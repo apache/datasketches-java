@@ -57,6 +57,9 @@ class CouponHashSet extends CouponList {
 
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
+    if (coupon == EMPTY) {
+      return this; //empty coupon, ignore
+    }
     final int index = find(couponIntArr, lgCouponArrInts, coupon);
     if (index >= 0) {
       return this; //found duplicate, ignore
@@ -85,13 +88,12 @@ class CouponHashSet extends CouponList {
   private static final int[] growHashSet(final int[] coupIntArr, final int lgCoupArrSize) {
     final int newLgCoupArrSize = lgCoupArrSize + 1;
     final int newArrSize = 1 << newLgCoupArrSize;
-    final int newArrMask = newArrSize - 1;
     final int[] newCoupIntArr = new int[newArrSize];
     final int len = coupIntArr.length;
     for (int i = 0; i < len; i++) {
       final int fetched = coupIntArr[i];
       if (fetched != EMPTY) {
-        final int idx = find(newCoupIntArr, newLgCoupArrSize, fetched & newArrMask);
+        final int idx = find(newCoupIntArr, newLgCoupArrSize, fetched);
         if (idx < 0) { //found EMPTY
           newCoupIntArr[~idx] = fetched; //insert
           continue;

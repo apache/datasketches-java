@@ -11,6 +11,7 @@ import static com.yahoo.sketches.hll.HllUtil.KEY_BITS_26;
 import static com.yahoo.sketches.hll.HllUtil.KEY_MASK_26;
 import static com.yahoo.sketches.hll.HllUtil.RESIZE_DENOM;
 import static com.yahoo.sketches.hll.HllUtil.RESIZE_NUMER;
+import static com.yahoo.sketches.hll.PreambleUtil.extractInt;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
@@ -55,19 +56,30 @@ class AuxHashMap {
   }
 
   static final AuxHashMap heapify(final Memory mem, final long offset, final int lgConfigK,
-      final int auxCount) {
-    final int auxArrInts = ceilingPowerOf2((auxCount << 2) / 3);
+      final int auxCount, final boolean compact) {
+    final int auxArrInts =
+        Math.max(4, ceilingPowerOf2((auxCount * RESIZE_DENOM) / RESIZE_NUMER));
     final int lgAuxArrInts = Util.simpleIntLog2(auxArrInts);
     final AuxHashMap auxMap = new AuxHashMap(lgAuxArrInts, lgConfigK);
-
-    final int[] packedArr = new int[auxCount];
+    final Object memArr = ((WritableMemory) mem).getArray();
+    final long memAdd = mem.getCumulativeOffset(0);
     final int configKmask = (1 << lgConfigK) - 1;
-    mem.getIntArray(offset, packedArr, 0, auxCount);
-    for (int i = 0; i < auxCount; i++) {
-      final int pair = packedArr[i];
-      final int slotNo = BaseHllSketch.getLow26(pair) & configKmask;
-      final int value = BaseHllSketch.getValue(pair);
-      auxMap.mustAdd(slotNo, value);
+
+    if (compact) {
+      for (int i = 0; i < auxCount; i++) {
+        final int pair = extractInt(memArr, memAdd, offset + (i << 2));
+        final int slotNo = BaseHllSketch.getLow26(pair) & configKmask;
+        final int value = BaseHllSketch.getValue(pair);
+        auxMap.mustAdd(slotNo, value);
+      }
+    } else { //updatable
+      for (int i = 0; i < auxArrInts; i++) {
+        final int pair = extractInt(memArr, memAdd, offset + (i << 2));
+        if (pair == EMPTY) { continue; }
+        final int slotNo = BaseHllSketch.getLow26(pair) & configKmask;
+        final int value = BaseHllSketch.getValue(pair);
+        auxMap.mustAdd(slotNo, value);
+      }
     }
     return auxMap;
   }
@@ -95,12 +107,27 @@ class AuxHashMap {
     return auxCount << 2;
   }
 
-  byte[] toByteArray() {
+  int getUpdatableSizeBytes() {
+    return 4 << lgAuxArrSize;
+  }
+
+  byte[] toCompactByteArray() {
     final byte[] out = new byte[auxCount << 2];
     final WritableMemory wmem = WritableMemory.wrap(out);
     final PairIterator itr = getIterator();
     int cnt = 0;
     while (itr.nextValid()) {
+      wmem.putInt(cnt++ << 2, itr.getPair());
+    }
+    return out;
+  }
+
+  byte[] toUpdatableByteArray() {
+    final byte[] out = new byte[4 << lgAuxArrSize];
+    final WritableMemory wmem = WritableMemory.wrap(out);
+    final PairIterator itr = getIterator();
+    int cnt = 0;
+    while (itr.nextAll()) {
       wmem.putInt(cnt++ << 2, itr.getPair());
     }
     return out;

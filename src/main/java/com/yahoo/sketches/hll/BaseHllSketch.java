@@ -141,6 +141,12 @@ abstract class BaseHllSketch {
   public abstract byte[] toCompactByteArray();
 
   /**
+   * Serializes this sketch as an updatable byte array.
+   * @return this sketch as an updatable byte array.
+   */
+  public abstract byte[] toUpdatableByteArray();
+
+  /**
    * Human readable summary as a string.
    * @return Human readable summary as a string.
    */

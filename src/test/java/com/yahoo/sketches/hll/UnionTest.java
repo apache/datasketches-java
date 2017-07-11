@@ -25,7 +25,7 @@ import com.yahoo.sketches.SketchesArgumentException;
 public class UnionTest {
   static final String LS = System.getProperty("line.separator");
 
-  static final int[] nArr = new int[] {1, 3, 10, 30, 100, 300, 1000, 3000, 10000};
+  static final int[] nArr = new int[] {1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000};
 
   @Test
   public void checkUnions() {
@@ -51,7 +51,7 @@ public class UnionTest {
     int lgMaxK = 7;
     int n1 = 7;
     int n2 = 7;
-    basicUnion(n1, n2, lgK1, lgK2, lgMaxK, t1, t2, rt); //TODO Fails here
+    basicUnion(n1, n2, lgK1, lgK2, lgMaxK, t1, t2, rt);
     n1 = 8;
     n2 = 7;
     basicUnion(n1, n2, lgK1, lgK2, lgMaxK, t1, t2, rt);
@@ -221,9 +221,9 @@ public class UnionTest {
 
   @Test
   public void checkToFromUnion1() {
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < 10; i++) {
       int n = nArr[i];
-      for (int lgK = 7; lgK <= 12; lgK++) {
+      for (int lgK = 4; lgK <= 13; lgK++) {
         toFrom1(lgK, HLL_4, n);
         toFrom1(lgK, HLL_6, n);
         toFrom1(lgK, HLL_8, n);
@@ -251,9 +251,9 @@ public class UnionTest {
 
   @Test
   public void checkToFromUnion2() {
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < 10; i++) {
       int n = nArr[i];
-      for (int lgK = 7; lgK <= 12; lgK++) {
+      for (int lgK = 4; lgK <= 13; lgK++) {
         toFrom2(lgK, HLL_4, n);
         toFrom2(lgK, HLL_6, n);
         toFrom2(lgK, HLL_8, n);

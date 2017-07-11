@@ -11,6 +11,7 @@ import static com.yahoo.sketches.hll.HllUtil.KEY_MASK_26;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARRAY_START;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_PREINTS;
 import static com.yahoo.sketches.hll.PreambleUtil.extractAuxCount;
+import static com.yahoo.sketches.hll.PreambleUtil.extractCompactFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCurMin;
 import static com.yahoo.sketches.hll.PreambleUtil.extractHipAccum;
 import static com.yahoo.sketches.hll.PreambleUtil.extractKxQ0;
@@ -25,6 +26,7 @@ import static com.yahoo.sketches.hll.PreambleUtil.insertCurMode;
 import static com.yahoo.sketches.hll.PreambleUtil.insertEmptyFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.insertFamilyId;
 import static com.yahoo.sketches.hll.PreambleUtil.insertHipAccum;
+import static com.yahoo.sketches.hll.PreambleUtil.insertInt;
 import static com.yahoo.sketches.hll.PreambleUtil.insertKxQ0;
 import static com.yahoo.sketches.hll.PreambleUtil.insertKxQ1;
 import static com.yahoo.sketches.hll.PreambleUtil.insertLgArr;
@@ -99,9 +101,10 @@ class Hll4Array extends HllArray {
     //load AuxHashMap
     final int offset = HLL_BYTE_ARRAY_START + hllArrLen;
     final int auxCount = extractAuxCount(memArr, memAdd);
+    final boolean compact = extractCompactFlag(memArr, memAdd);
     hll4Array.auxHashMap = (auxCount == 0)
         ? null
-        : AuxHashMap.heapify(mem, offset, lgConfigK, auxCount);
+        : AuxHashMap.heapify(mem, offset, lgConfigK, auxCount, compact);
     return hll4Array;
   }
 
@@ -133,9 +136,92 @@ class Hll4Array extends HllArray {
 
   @Override
   byte[] toCompactByteArray() {
+    return toByteArray(true);
+    //    final int hllBytes = hllByteArr.length;
+    //    final int auxBytes = (auxHashMap != null) ? auxHashMap.getCompactedSizeBytes() : 0; //Hll4
+    //    final int totBytes = HLL_BYTE_ARRAY_START + hllBytes + auxBytes;    //Hll4
+    //    final byte[] memArr = new byte[totBytes];
+    //    final WritableMemory wmem = WritableMemory.wrap(memArr);
+    //    final long memAdd = wmem.getCumulativeOffset(0);
+    //
+    //    insertPreInts(memArr, memAdd, HLL_PREINTS);
+    //    insertSerVer(memArr, memAdd);
+    //    insertFamilyId(memArr, memAdd);
+    //    insertLgK(memArr, memAdd, lgConfigK);
+    //    insertLgArr(memArr, memAdd, 0); //not used in HLL mode
+    //    insertEmptyFlag(memArr, memAdd, isEmpty());
+    //    insertCompactFlag(memArr, memAdd, true);
+    //    insertOooFlag(memArr, memAdd, oooFlag);
+    //    insertCurMin(memArr, memAdd, curMin);
+    //    insertCurMode(memArr, memAdd, curMode);
+    //    insertTgtHllType(memArr, memAdd, tgtHllType);
+    //    insertHipAccum(memArr, memAdd, hipAccum);
+    //    insertKxQ0(memArr, memAdd, kxq0);
+    //    insertKxQ1(memArr, memAdd, kxq1);
+    //    insertNumAtCurMin(memArr, memAdd, numAtCurMin);
+    //    wmem.putByteArray(HLL_BYTE_ARRAY_START, hllByteArr, 0, hllBytes);
+    //
+    //    //The auxHashMap is only for Hll4
+    //    final int auxCount = (auxHashMap != null) ? auxHashMap.auxCount : 0;
+    //    insertAuxCount(memArr, memAdd, auxCount);
+    //
+    //    if (auxCount > 0) {
+    //      final PairIterator itr = auxHashMap.getIterator();
+    //      int cnt = 0;
+    //      final long auxStart = memAdd + HLL_BYTE_ARRAY_START + hllBytes;
+    //      while (itr.nextValid()) {
+    //        insertInt(memArr, auxStart + (cnt++ << 2), itr.getPair());
+    //      }
+    //      assert cnt == auxCount;
+    //    }
+    //    return memArr;
+  }
+
+  @Override
+  byte[] toUpdatableByteArray() {
+    return toByteArray(false);
+    //    final int hllBytes = hllByteArr.length;
+    //    final int auxBytes = (auxHashMap != null) ? auxHashMap.getUpdatableSizeBytes() : 0; //Hll4
+    //    final int totBytes = HLL_BYTE_ARRAY_START + hllBytes + auxBytes;    //Hll4
+    //    final byte[] memArr = new byte[totBytes];
+    //    final WritableMemory wmem = WritableMemory.wrap(memArr);
+    //    final long memAdd = wmem.getCumulativeOffset(0);
+    //
+    //    insertPreInts(memArr, memAdd, HLL_PREINTS);
+    //    insertSerVer(memArr, memAdd);
+    //    insertFamilyId(memArr, memAdd);
+    //    insertLgK(memArr, memAdd, lgConfigK);
+    //    insertLgArr(memArr, memAdd, 0); //not used in HLL mode
+    //    insertEmptyFlag(memArr, memAdd, isEmpty());
+    //    insertCompactFlag(memArr, memAdd, false);
+    //    insertOooFlag(memArr, memAdd, oooFlag);
+    //    insertCurMin(memArr, memAdd, curMin);
+    //    insertCurMode(memArr, memAdd, curMode);
+    //    insertTgtHllType(memArr, memAdd, tgtHllType);
+    //    insertHipAccum(memArr, memAdd, hipAccum);
+    //    insertKxQ0(memArr, memAdd, kxq0);
+    //    insertKxQ1(memArr, memAdd, kxq1);
+    //    insertNumAtCurMin(memArr, memAdd, numAtCurMin);
+    //    wmem.putByteArray(HLL_BYTE_ARRAY_START, hllByteArr, 0, hllBytes);
+    //
+    //    //The auxHashMap is only for Hll4
+    //    final int auxCount = (auxHashMap != null) ? auxHashMap.auxCount : 0;
+    //    insertAuxCount(memArr, memAdd, auxCount);
+    //
+    //    if (auxCount > 0) {
+    //      final int[] arr = auxHashMap.auxIntArr;
+    //      final int len = auxHashMap.auxIntArr.length;
+    //      wmem.putIntArray(HLL_BYTE_ARRAY_START + hllBytes, arr, 0, len);
+    //    }
+    //    return memArr;
+  }
+
+  byte[] toByteArray(final boolean compact) {
     final int hllBytes = hllByteArr.length;
-    final int auxBytes = (auxHashMap != null) ? auxHashMap.getCompactedSizeBytes() : 0; //Hll4
-    final int totBytes = HLL_BYTE_ARRAY_START + hllBytes + auxBytes;    //Hll4
+    final int auxBytes = (auxHashMap == null) //HLL_4
+        ? 0
+        : (compact) ? auxHashMap.getCompactedSizeBytes() : auxHashMap.getUpdatableSizeBytes();
+    final int totBytes = HLL_BYTE_ARRAY_START + hllBytes + auxBytes; //HLL_4
     final byte[] memArr = new byte[totBytes];
     final WritableMemory wmem = WritableMemory.wrap(memArr);
     final long memAdd = wmem.getCumulativeOffset(0);
@@ -144,9 +230,9 @@ class Hll4Array extends HllArray {
     insertSerVer(memArr, memAdd);
     insertFamilyId(memArr, memAdd);
     insertLgK(memArr, memAdd, lgConfigK);
-    insertLgArr(memArr, memAdd, 0); //not used by HLL
+    insertLgArr(memArr, memAdd, 0); //optionally used only for HLL_4
     insertEmptyFlag(memArr, memAdd, isEmpty());
-    insertCompactFlag(memArr, memAdd, true);
+    insertCompactFlag(memArr, memAdd, compact);
     insertOooFlag(memArr, memAdd, oooFlag);
     insertCurMin(memArr, memAdd, curMin);
     insertCurMode(memArr, memAdd, curMode);
@@ -157,12 +243,24 @@ class Hll4Array extends HllArray {
     insertNumAtCurMin(memArr, memAdd, numAtCurMin);
     wmem.putByteArray(HLL_BYTE_ARRAY_START, hllByteArr, 0, hllBytes);
 
-    //remainder only for Hll4
+    //AuxHashMap
     final int auxCount = (auxHashMap != null) ? auxHashMap.auxCount : 0;
     insertAuxCount(memArr, memAdd, auxCount);
+
     if (auxCount > 0) {
-      final int auxStart = HLL_BYTE_ARRAY_START + hllBytes;
-      wmem.putByteArray(auxStart, auxHashMap.toByteArray(), 0, auxCount << 2);
+      if (compact) {
+        final PairIterator itr = auxHashMap.getIterator();
+        int cnt = 0;
+        final long auxStart = HLL_BYTE_ARRAY_START + hllBytes;
+        while (itr.nextValid()) {
+          insertInt(memArr, memAdd, auxStart + (cnt++ << 2), itr.getPair());
+        }
+        assert cnt == auxCount;
+      } else { //updatable
+        final int[] arr = auxHashMap.auxIntArr;
+        final int len = auxHashMap.auxIntArr.length;
+        wmem.putIntArray(HLL_BYTE_ARRAY_START + hllBytes, arr, 0, len);
+      }
     }
     return memArr;
   }

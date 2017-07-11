@@ -77,7 +77,7 @@ final class PreambleUtil {
   static int SER_VER_BYTE                   = 1;
   static int FAMILY_BYTE                    = 2;
   static int LG_K_BYTE                      = 3;
-  static int LG_ARR_BYTE                    = 4;
+  static int LG_ARR_BYTE                    = 4; //used for LIST, SET & HLL_4
   static int FLAGS_BYTE                     = 5;
   static int LIST_COUNT_BYTE                = 6;
   static int HLL_CUR_MIN_BYTE               = 6;
@@ -396,6 +396,16 @@ final class PreambleUtil {
   static boolean extractOooFlag(final Object memObj, final long memAdd) {
     final int flags = unsafe.getByte(memObj, memAdd + FLAGS_BYTE);
     return (flags & OUT_OF_ORDER_FLAG_MASK) > 0;
+  }
+
+  //Other
+  static int extractInt(final Object memObj, final long memAdd, final long byteOffset) {
+    return unsafe.getInt(memObj, memAdd + byteOffset);
+  }
+
+  static void insertInt(final Object memObj, final long memAdd, final long byteOffset,
+      final int value) {
+    unsafe.putInt(memObj, memAdd + byteOffset, value);
   }
 
 }

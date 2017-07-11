@@ -171,7 +171,7 @@ public class Union extends BaseHllSketch {
 
   /**
    * Gets the serialization of this union operator as a byte array in compact form, which is
-   * designed to be read-only and is not directly updatable.
+   * designed to be heapified only. It is not directly updatable.
    * For the Union operator, this is the serialization of the internal state of
    * the union operator as a sketch.
    * @return the serialization of this union operator as a byte array.
@@ -179,6 +179,11 @@ public class Union extends BaseHllSketch {
   @Override
   public byte[] toCompactByteArray() {
     return gadget.toCompactByteArray();
+  }
+
+  @Override
+  public byte[] toUpdatableByteArray() {
+    return gadget.toUpdatableByteArray();
   }
 
   @Override

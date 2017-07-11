@@ -232,12 +232,17 @@ public class HllSketch extends BaseHllSketch {
 
   /**
    * Gets the serialization of this sketch as a byte array in compact form, which is designed
-   * to be read-only and is not directly updatable.
+   * to be heapified only. It is not directly updatable.
    * @return the serialization of this sketch as a byte array.
    */
   @Override
   public byte[] toCompactByteArray() {
     return hllSketchImpl.toCompactByteArray();
+  }
+
+  @Override
+  public byte[] toUpdatableByteArray() {
+    return hllSketchImpl.toUpdatableByteArray();
   }
 
   @Override

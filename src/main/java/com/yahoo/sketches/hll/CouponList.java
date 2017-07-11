@@ -12,8 +12,11 @@ import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_PREINTS;
 import static com.yahoo.sketches.hll.PreambleUtil.LIST_INT_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.LIST_PREINTS;
 import static com.yahoo.sketches.hll.PreambleUtil.SER_VER;
+import static com.yahoo.sketches.hll.PreambleUtil.extractCompactFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.extractFamilyId;
 import static com.yahoo.sketches.hll.PreambleUtil.extractHashSetCount;
+import static com.yahoo.sketches.hll.PreambleUtil.extractInt;
+import static com.yahoo.sketches.hll.PreambleUtil.extractLgArr;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
 import static com.yahoo.sketches.hll.PreambleUtil.extractListCount;
 import static com.yahoo.sketches.hll.PreambleUtil.extractOooFlag;
@@ -64,10 +67,14 @@ class CouponList extends HllSketchImpl {
       final TgtHllType tgtHllType,
       final CurMode curMode) {
     super(lgConfigK, tgtHllType, curMode);
-    lgCouponArrInts = (curMode == CurMode.LIST) ? LG_INIT_LIST_SIZE : LG_INIT_SET_SIZE;
+    if (curMode == CurMode.LIST) {
+      lgCouponArrInts = lgMaxArrInts = LG_INIT_LIST_SIZE;
+    } else { //SET
+      lgCouponArrInts = LG_INIT_SET_SIZE;
+      lgMaxArrInts = lgConfigK - 3;
+    }
     couponIntArr = new int[1 << lgCouponArrInts];
     couponCount = 0;
-    lgMaxArrInts = (curMode == CurMode.LIST) ? LG_INIT_LIST_SIZE : (lgConfigK - 3);
   }
 
   /**
@@ -102,26 +109,34 @@ class CouponList extends HllSketchImpl {
     checkPreamble(mem, memArr, memAdd, curMode);
     final int lgConfigK = extractLgK(memArr, memAdd);
     final TgtHllType tgtHllType = extractTgtHllType(memArr, memAdd);
+    final int lgCouponArrInts = extractLgArr(memArr, memAdd);
+    final boolean compact = extractCompactFlag(memArr, memAdd);
 
     if (curMode == CurMode.LIST) {
       final CouponList list = new CouponList(lgConfigK, tgtHllType, curMode);
       final int couponCount = extractListCount(memArr, memAdd);
       final int[] data = new int[couponCount];
       mem.getIntArray(LIST_INT_ARR_START, data, 0, couponCount);
-      for (int i = 0; i < couponCount; i++) {
+
+      for (int i = 0; i < couponCount; i++) { //LIST is always stored compact
         list.couponUpdate(data[i]);
       }
+
       list.putOooFlag(extractOooFlag(memArr, memAdd));
       return list;
     }
+
     // else SET
     final CouponHashSet set = new CouponHashSet(lgConfigK, tgtHllType);
     final int couponCount = extractHashSetCount(memArr, memAdd);
-    final int[] data = new int[couponCount];
-    mem.getIntArray(HASH_SET_INT_ARR_START, data, 0, couponCount);
-    for (int i = 0; i < couponCount; i++) {
-      set.couponUpdate(data[i]);
+    final int len = (compact) ? couponCount : 1 << lgCouponArrInts;
+
+    for (int i = 0; i < len; i++) {
+      final int coupon = extractInt(memArr, memAdd, i << 2);
+      if (coupon == EMPTY) { continue; }
+      set.couponUpdate(extractInt(memArr, memAdd, i << 2));
     }
+
     set.putOooFlag(true);
     return set;
   }
@@ -302,6 +317,54 @@ class CouponList extends HllSketchImpl {
       final PairIterator itr = getIterator(); //unique to SET
       int cnt = 0;
       while (itr.nextValid()) {
+        wmem.putInt(HASH_SET_INT_ARR_START + (4 * cnt++), itr.getPair());
+      }
+    }
+    return memArr;
+  }
+
+  @Override
+  byte[] toUpdatableByteArray() {
+    final byte[] memArr;
+    final WritableMemory wmem;
+    final long memAdd;
+
+    if (curMode == CurMode.LIST) {
+      memArr = new byte[8 + (4 * (1 << lgCouponArrInts))]; //unique to LIST
+      wmem = WritableMemory.wrap(memArr);
+      memAdd = wmem.getCumulativeOffset(0);
+      insertPreInts(memArr, memAdd, LIST_PREINTS); //unique to LIST
+      insertSerVer(memArr, memAdd);
+      insertFamilyId(memArr, memAdd);
+      insertLgK(memArr, memAdd, lgConfigK);
+      insertLgArr(memArr, memAdd, lgCouponArrInts);
+      insertEmptyFlag(memArr, memAdd, isEmpty());
+      insertCompactFlag(memArr, memAdd, false);
+      insertOooFlag(memArr, memAdd, oooFlag);
+      insertListCount(memArr, memAdd, couponCount); //unique to LIST
+      insertCurMode(memArr, memAdd, curMode);
+      insertTgtHllType(memArr, memAdd, tgtHllType);
+      wmem.putIntArray(LIST_INT_ARR_START, couponIntArr, 0, 1 << lgCouponArrInts); //unique to LIST
+
+    } else { //SET
+      memArr = new byte[12 + (4 * (1 << lgCouponArrInts))]; //unique to SET
+      wmem = WritableMemory.wrap(memArr);
+      memAdd = wmem.getCumulativeOffset(0);
+      insertPreInts(memArr, memAdd, HASH_SET_PREINTS); //unique to SET
+      insertSerVer(memArr, memAdd);
+      insertFamilyId(memArr, memAdd);
+      insertLgK(memArr, memAdd, lgConfigK);
+      insertLgArr(memArr, memAdd, lgCouponArrInts);
+      insertEmptyFlag(memArr, memAdd, isEmpty());
+      insertCompactFlag(memArr, memAdd, true);
+      insertOooFlag(memArr, memAdd, oooFlag);
+      insertCurMode(memArr, memAdd, curMode);
+      insertTgtHllType(memArr, memAdd, tgtHllType);
+      insertHashSetCount(memArr, memAdd, couponCount); //unique to SET
+
+      final PairIterator itr = getIterator(); //unique to SET
+      int cnt = 0;
+      while (itr.nextAll()) {
         wmem.putInt(HASH_SET_INT_ARR_START + (4 * cnt++), itr.getPair());
       }
     }

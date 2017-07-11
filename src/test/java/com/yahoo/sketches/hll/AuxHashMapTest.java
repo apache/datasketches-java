@@ -87,9 +87,9 @@ public class AuxHashMapTest {
     }
     assertEquals(map.lgAuxArrSize, 4);
 
-    byte[] byteArr = map.toByteArray();
+    byte[] byteArr = map.toCompactByteArray();
     WritableMemory wmem = WritableMemory.wrap(byteArr);
-    AuxHashMap map2 = AuxHashMap.heapify(wmem, 0, 7, 7);
+    AuxHashMap map2 = AuxHashMap.heapify(wmem, 0, 7, 7, true);
     assertEquals(map2.lgAuxArrSize, 4);
   }
 

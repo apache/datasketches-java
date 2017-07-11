@@ -20,14 +20,14 @@ import com.yahoo.memory.Memory;
  */
 public class ToFromByteArrayTest {
 
-  static final int[] nArr = new int[] {1, 3, 10, 30, 100, 300, 1000, 3000, 10000};
+  static final int[] nArr = new int[] {1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000};
 
 
   @Test
   public void checkToFromSketch1() {
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < 10; i++) {
       int n = nArr[i];
-      for (int lgK = 4; lgK <= 12; lgK++) {
+      for (int lgK = 4; lgK <= 13; lgK++) {
         toFrom1(lgK, HLL_4, n);
         toFrom1(lgK, HLL_6, n);
         toFrom1(lgK, HLL_8, n);
@@ -41,7 +41,7 @@ public class ToFromByteArrayTest {
     for (int i = 0; i < n; i++) {
       src.update(i);
     }
-    println("n: " + n + ", lgK: " + lgK + ", type: " + tgtHllType);
+    //println("n: " + n + ", lgK: " + lgK + ", type: " + tgtHllType);
     //printSketch(src, "SRC");
 
     byte[] byteArr = src.toCompactByteArray();
@@ -54,9 +54,9 @@ public class ToFromByteArrayTest {
 
   @Test
   public void checkToFromSketch2() {
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < 10; i++) {
       int n = nArr[i];
-      for (int lgK = 4; lgK <= 12; lgK++) {
+      for (int lgK = 4; lgK <= 13; lgK++) {
         toFrom2(lgK, HLL_4, n);
         toFrom2(lgK, HLL_6, n);
         toFrom2(lgK, HLL_8, n);
@@ -70,7 +70,7 @@ public class ToFromByteArrayTest {
     for (int i = 0; i < n; i++) {
       src.update(i);
     }
-    println("n: " + n + ", lgK: " + lgK + ", type: " + tgtHllType);
+    //println("n: " + n + ", lgK: " + lgK + ", type: " + tgtHllType);
     //printSketch(src, "SRC");
 
     byte[] byteArr = src.toCompactByteArray();
