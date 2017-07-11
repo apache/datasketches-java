@@ -103,8 +103,24 @@ public class CouponListTest {
   }
 
   @Test
-  public void checkMisc() {
-
+  public void checkGrowHashSet() {
+    int lgK = 21;
+    HllSketch sk = new HllSketch(lgK);
+    int u = ((1 << (lgK - 3))/4) * 3;
+    println("U: " + u);
+    for (int i = 0; i < u; i++) {
+      sk.update(i);
+    }
+    double est1 = sk.getEstimate();
+    double re1 = (est1 / u) - 1.0;
+    println("Est1: " + est1 + ", u: " + u + ", re1: " + re1);
+    assertEquals(sk.getEstimate(), u, u * 100.0E-6);
+    byte[] byteArray = sk.toCompactByteArray();
+    HllSketch sk2 = HllSketch.heapify(byteArray);
+    double est2 = sk2.getEstimate();
+    double re2 = (est2 / est1) - 1.0;
+    println("Est2: " + est2 + ", Est1: " + est1 + ", re2: " + re2);
+    assertEquals(est2, est1, 0.0);
   }
 
   @Test
@@ -116,6 +132,6 @@ public class CouponListTest {
    * @param s value to print
    */
   static void println(String s) {
-    //System.out.println(s); //disable here
+    System.out.println(s); //disable here
   }
 }
