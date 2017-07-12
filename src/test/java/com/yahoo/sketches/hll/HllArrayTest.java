@@ -87,24 +87,34 @@ public class HllArrayTest {
 
   @Test
   public void toByteArray_Heapify() {
-    toByteArrayHeapify(4, TgtHllType.HLL_4);
-    toByteArrayHeapify(4, TgtHllType.HLL_6);
-    toByteArrayHeapify(4, TgtHllType.HLL_8);
-    toByteArrayHeapify(18, TgtHllType.HLL_4);
-    toByteArrayHeapify(21, TgtHllType.HLL_6);
-    toByteArrayHeapify(21, TgtHllType.HLL_8);
+    int lgK = 4;
+    int u = 8;
+    toByteArrayHeapify(lgK, TgtHllType.HLL_4, u);
+    toByteArrayHeapify(lgK, TgtHllType.HLL_6, u);
+    toByteArrayHeapify(lgK, TgtHllType.HLL_8, u);
+
+    lgK = 16;
+    u = (((1 << (lgK - 3))/4) * 3) + (1 << 20);
+    toByteArrayHeapify(lgK, TgtHllType.HLL_4, u);
+    toByteArrayHeapify(lgK, TgtHllType.HLL_6, u);
+    toByteArrayHeapify(lgK, TgtHllType.HLL_8, u);
+
+    lgK = 21;
+    u = (((1 << (lgK - 3))/4) * 3) + 1000;
+    toByteArrayHeapify(lgK, TgtHllType.HLL_4, u);
+    toByteArrayHeapify(lgK, TgtHllType.HLL_6, u);
+    toByteArrayHeapify(lgK, TgtHllType.HLL_8, u);
   }
 
-  private static void toByteArrayHeapify(int lgK, TgtHllType tgtHllType) {
+  private static void toByteArrayHeapify(int lgK, TgtHllType tgtHllType, int u) {
     HllSketch sk1 = new HllSketch(lgK, tgtHllType);
 
-    int u = (lgK < 8) ? 8 : (((1 << (lgK - 3))/4) * 3) + 1000;
     for (int i = 0; i < u; i++) {
       sk1.update(i);
     }
     //sk1.update(u);
     double est1 = sk1.getEstimate();
-    assertEquals(est1, u, u * 100.0E-6);
+    assertEquals(est1, u, u * .03);
 
     byte[] byteArray = sk1.toCompactByteArray();
     HllSketch sk2 = HllSketch.heapify(byteArray);

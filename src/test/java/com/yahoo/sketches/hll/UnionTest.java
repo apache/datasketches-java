@@ -307,6 +307,18 @@ public class UnionTest {
     assertTrue(sk.isEmpty());
   }
 
+  @Test
+  public void checkHeapify() {
+    Union u = new Union(16);
+    for (int i = 0; i < (1 << 20); i++) {
+      u.update(i);
+    }
+    double est1 = u.getEstimate();
+    byte[] byteArray = u.toUpdatableByteArray();
+    Union u2 = Union.heapify(byteArray);
+    assertEquals(u2.getEstimate(), est1, 0.0);
+  }
+
   @Test //for lgK <= 12
   public void checkUbLb() {
     int lgK = 4;

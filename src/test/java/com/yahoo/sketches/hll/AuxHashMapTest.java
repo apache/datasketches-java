@@ -11,7 +11,6 @@ import static org.testng.Assert.fail;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesStateException;
 
 /**
@@ -86,11 +85,6 @@ public class AuxHashMapTest {
       map.mustAdd(i, i);
     }
     assertEquals(map.lgAuxArrSize, 4);
-
-    byte[] byteArr = map.toCompactByteArray();
-    WritableMemory wmem = WritableMemory.wrap(byteArr);
-    AuxHashMap map2 = AuxHashMap.heapify(wmem, 0, 7, 7, true);
-    assertEquals(map2.lgAuxArrSize, 4);
   }
 
   @Test(expectedExceptions = SketchesStateException.class)

@@ -111,28 +111,6 @@ class AuxHashMap {
     return 4 << lgAuxArrSize;
   }
 
-  byte[] toCompactByteArray() {
-    final byte[] out = new byte[auxCount << 2];
-    final WritableMemory wmem = WritableMemory.wrap(out);
-    final PairIterator itr = getIterator();
-    int cnt = 0;
-    while (itr.nextValid()) {
-      wmem.putInt(cnt++ << 2, itr.getPair());
-    }
-    return out;
-  }
-
-  byte[] toUpdatableByteArray() {
-    final byte[] out = new byte[4 << lgAuxArrSize];
-    final WritableMemory wmem = WritableMemory.wrap(out);
-    final PairIterator itr = getIterator();
-    int cnt = 0;
-    while (itr.nextAll()) {
-      wmem.putInt(cnt++ << 2, itr.getPair());
-    }
-    return out;
-  }
-
   /**
    * Replaces the entry at slotNo with the given value.
    * @param slotNo the index from the HLL array
