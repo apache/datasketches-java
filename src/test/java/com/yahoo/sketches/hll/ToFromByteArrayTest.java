@@ -81,7 +81,7 @@ public class ToFromByteArrayTest {
   }
 
   static void printSketch(HllSketch sketch, String name) {
-    println(name +":\n" + sketch.toString(true, false, true)); //summary + aux only
+    println(name +":\n" + sketch.toString(true, false, true, false)); //summary + aux only
   }
 
   @Test

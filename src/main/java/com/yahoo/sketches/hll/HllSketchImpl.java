@@ -39,10 +39,10 @@ abstract class HllSketchImpl {
    * @param that another HllSketchImpl
    */
   HllSketchImpl(final HllSketchImpl that) {
-    lgConfigK = that.lgConfigK;
-    tgtHllType = that.tgtHllType;
-    curMode = that.curMode;
-    oooFlag = that.oooFlag;
+    lgConfigK = that.getLgConfigK();
+    tgtHllType = that.getTgtHllType();
+    curMode = that.getCurMode();
+    oooFlag = that.isOutOfOrderFlag();
   }
 
   /**
@@ -51,7 +51,7 @@ abstract class HllSketchImpl {
    * @param tgtHllType the new target Hll type
    */
   HllSketchImpl(final HllSketchImpl that, final TgtHllType tgtHllType) {
-    lgConfigK = that.lgConfigK;
+    lgConfigK = that.getLgConfigK();
     this.tgtHllType = tgtHllType;
     curMode = that.curMode;
     oooFlag = that.oooFlag;
@@ -65,7 +65,7 @@ abstract class HllSketchImpl {
 
   abstract PairIterator getAuxIterator();
 
-  abstract int getCount();
+  abstract int getCouponCount(); //for test
 
   abstract int getCurMin();
 
@@ -89,13 +89,9 @@ abstract class HllSketchImpl {
 
   abstract double getLowerBound(int numStdDev);
 
-  abstract int getMaxCouponArrInts();
+  abstract int getLgMaxCouponArrInts(); //for test
 
   abstract int getNumAtCurMin();
-
-  boolean getOooFlag() {
-    return oooFlag;
-  }
 
   TgtHllType getTgtHllType() {
     return tgtHllType;
@@ -111,12 +107,6 @@ abstract class HllSketchImpl {
 
   boolean isOutOfOrderFlag() {
     return oooFlag;
-  }
-
-  abstract void putHipAccum(double value);
-
-  void putOooFlag(final boolean value) {
-    oooFlag = value;
   }
 
   void putOutOfOrderFlag(final boolean oooFlag) {

@@ -158,9 +158,11 @@ abstract class BaseHllSketch {
    * @param summary if true, output the sketch summary
    * @param hllDetail if true, output the internal HLL array
    * @param auxDetail if true, output the internal Aux array, if it exists.
+   * @param all if true, list all values including zeros
    * @return human readable string
    */
-  public abstract String toString(boolean summary, boolean hllDetail, boolean auxDetail);
+  public abstract String toString(boolean summary, boolean hllDetail, boolean auxDetail,
+      boolean all);
 
   /**
    * Present the given long as a potential unique item.

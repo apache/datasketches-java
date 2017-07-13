@@ -395,7 +395,7 @@ public class UnionCaseTest {
     assertTrue(u.isEmpty());
     u.reset();
     assertTrue(u.isEmpty());
-    println(u.toString(true, false, false));
+    println(u.toString(true, false, false, false));
     byte[] bArr = u.toCompactByteArray();
     assertEquals(bArr.length, 8);
   }

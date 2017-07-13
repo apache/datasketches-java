@@ -60,27 +60,26 @@ class CouponHashSet extends CouponList {
     if (coupon == EMPTY) {
       return this; //empty coupon, ignore
     }
-    final int index = find(couponIntArr, lgCouponArrInts, coupon);
+    final int index = find(getCouponIntArr(), getLgCouponArrInts(), coupon);
     if (index >= 0) {
       return this; //found duplicate, ignore
     }
-    couponIntArr[~index] = coupon;
-    couponCount++;
-    super.oooFlag = true; //could be moved out
+    putIntoCouponIntArr(~index, coupon);
+    incCouponCount();
+    super.putOutOfOrderFlag(true); //could be moved out
     final boolean promote = checkGrowOrPromote();
     if (!promote) { return this; }
-    return HllUtil.makeHllFromCoupons(this, lgConfigK, tgtHllType);
+    return HllUtil.makeHllFromCoupons(this, getLgConfigK(), getTgtHllType());
   }
 
   private boolean checkGrowOrPromote() {
-    final int len = 1 << lgCouponArrInts;
-    if ((RESIZE_DENOM * couponCount) > (RESIZE_NUMER * len)) {
-      if (len == (1 << lgMaxArrInts)) {
+    int lgCouponArrInts = getLgCouponArrInts();
+    if ((RESIZE_DENOM * getCouponCount()) > (RESIZE_NUMER * (1 << lgCouponArrInts))) {
+      if (lgCouponArrInts == getLgMaxCouponArrInts()) {
         return true; // promote
       }
       //TODO if direct, ask for more memory
-      couponIntArr = growHashSet(couponIntArr, lgCouponArrInts);
-      lgCouponArrInts++;
+      putCouponIntArr(growHashSet(getCouponIntArr(), lgCouponArrInts), ++lgCouponArrInts);
     }
     return false;
   }

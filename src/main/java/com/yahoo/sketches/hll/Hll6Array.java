@@ -57,7 +57,7 @@ class Hll6Array extends HllArray {
 
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
-    final int configKmask = (1 << lgConfigK) - 1;
+    final int configKmask = (1 << getLgConfigK()) - 1;
     final int slotNo = BaseHllSketch.getLow26(coupon) & configKmask;
     final int newVal = BaseHllSketch.getValue(coupon);
     assert newVal > 0;
@@ -65,8 +65,10 @@ class Hll6Array extends HllArray {
     if (newVal > curVal) {
       put6Bit(mem, 0, slotNo, newVal);
       hipAndKxQIncrementalUpdate(curVal, newVal);
-      if (curVal == 0) { numAtCurMin--; } //overloaded as num zeros
-      assert numAtCurMin >= 0;
+      if (curVal == 0) {
+        decNumAtCurMin(); //overloaded as num zeros
+        assert getNumAtCurMin() >= 0;
+      }
     }
     return this;
   }
@@ -109,15 +111,13 @@ class Hll6Array extends HllArray {
   //Iterator
 
   final class Hll6Iterator implements PairIterator {
-    byte[] array;
     int lengthBits;
     int slotNum;
     int bitOffset;
 
     Hll6Iterator() {
-      array = hllByteArr;
-      lengthBits = (1 << lgConfigK) * 6;
-      assert lengthBits <= (array.length * 8);
+      lengthBits = (1 << getLgConfigK()) * 6;
+      assert lengthBits <= (getHllByteArr().length * 8);
       slotNum = -1;
       bitOffset = -6;
     }
@@ -168,7 +168,7 @@ class Hll6Array extends HllArray {
 
   static final Hll6Array convertToHll6(final HllArray srcHllArr) {
     final Hll6Array hll6Array = new Hll6Array(srcHllArr.getLgConfigK());
-    hll6Array.putOooFlag(srcHllArr.getOooFlag());
+    hll6Array.putOutOfOrderFlag(srcHllArr.isOutOfOrderFlag());
     final PairIterator itr = srcHllArr.getIterator();
     while (itr.nextValid()) {
       hll6Array.couponUpdate(itr.getPair());

@@ -15,7 +15,6 @@ import org.testng.annotations.Test;
 
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.SketchesStateException;
 
 /**
  * @author Lee Rhodes
@@ -35,13 +34,6 @@ public class CouponListTest {
       int idx = itr.getIndex();
       println("Idx: " + idx + ", Key: " + key + ", Val: " + val);
     }
-  }
-
-  @Test(expectedExceptions = SketchesStateException.class)
-  public void checkPutHipAccum() {
-    HllSketch sk = new HllSketch(8);
-    for (int i = 0; i < 15; i++) { sk.update(i); }
-    sk.hllSketchImpl.putHipAccum(0);
   }
 
   @Test

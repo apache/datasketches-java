@@ -28,7 +28,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * trade-offs with accuracy, space and performance. These types are specified with the
  * {@link TgtHllType} parameter.
  *
- * <p>In terms of accuracy, all three types,for the same <i>lgConfigK</i>, have the same error
+ * <p>In terms of accuracy, all three types, for the same <i>lgConfigK</i>, have the same error
  * distribution as a function of <i>n</i>, the number of unique values fed to the sketch.
  * The configuration parameter <i>lgConfigK</i> is the log-base-2 of <i>K</i>,
  * where <i>K</i> is the number of buckets or slots for the sketch.
@@ -42,7 +42,6 @@ import com.yahoo.sketches.SketchesArgumentException;
  */
 public class HllSketch extends BaseHllSketch {
   private static final String LS = System.getProperty("line.separator");
-  final int lgConfigK;
   HllSketchImpl hllSketchImpl = null;
 
   /**
@@ -51,8 +50,7 @@ public class HllSketch extends BaseHllSketch {
    * between 4 and 21 inclusively.
    */
   public HllSketch(final int lgConfigK) {
-    this.lgConfigK = HllUtil.checkLgK(lgConfigK);
-    hllSketchImpl = new CouponList(lgConfigK, TgtHllType.HLL_4, CurMode.LIST);
+    hllSketchImpl = new CouponList(HllUtil.checkLgK(lgConfigK), TgtHllType.HLL_4, CurMode.LIST);
   }
 
   /**
@@ -62,8 +60,7 @@ public class HllSketch extends BaseHllSketch {
    * @param tgtHllType the desired Hll type.
    */
   public HllSketch(final int lgConfigK, final TgtHllType tgtHllType) {
-    hllSketchImpl = new CouponList(lgConfigK, tgtHllType, CurMode.LIST);
-    this.lgConfigK = lgConfigK;
+    hllSketchImpl = new CouponList(HllUtil.checkLgK(lgConfigK), tgtHllType, CurMode.LIST);
   }
 
   /**
@@ -71,7 +68,6 @@ public class HllSketch extends BaseHllSketch {
    * @param that another HllSketchImpl, which must already be a copy
    */
   HllSketch(final HllSketchImpl that) {
-    lgConfigK = that.getLgConfigK();
     hllSketchImpl = that;
   }
 
@@ -80,7 +76,6 @@ public class HllSketch extends BaseHllSketch {
    * @param that another HllSketch
    */
   HllSketch(final HllSketch that) {
-    lgConfigK = that.getLgConfigK();
     hllSketchImpl = that.hllSketchImpl.copy();
   }
 
@@ -142,7 +137,7 @@ public class HllSketch extends BaseHllSketch {
 
   @Override
   CurMode getCurMode() {
-    return hllSketchImpl.curMode;
+    return hllSketchImpl.getCurMode();
   }
 
   @Override
@@ -209,7 +204,7 @@ public class HllSketch extends BaseHllSketch {
    * @return the TgtHllType enum value
    */
   public TgtHllType getTgtHllType() {
-    return hllSketchImpl.tgtHllType;
+    return hllSketchImpl.getTgtHllType();
   }
 
   @Override
@@ -219,7 +214,7 @@ public class HllSketch extends BaseHllSketch {
 
   @Override
   boolean isOutOfOrderFlag() {
-    return hllSketchImpl.oooFlag;
+    return hllSketchImpl.isOutOfOrderFlag();
   }
 
   /**
@@ -227,7 +222,8 @@ public class HllSketch extends BaseHllSketch {
    */
   @Override
   public void reset() {
-    hllSketchImpl = new CouponList(hllSketchImpl.lgConfigK, hllSketchImpl.tgtHllType, CurMode.LIST);
+    hllSketchImpl = new CouponList(hllSketchImpl.getLgConfigK(), hllSketchImpl.getTgtHllType(),
+        CurMode.LIST);
   }
 
   /**
@@ -247,11 +243,12 @@ public class HllSketch extends BaseHllSketch {
 
   @Override
   public String toString() {
-    return toString(true, false, false);
+    return toString(true, false, false, false);
   }
 
   @Override
-  public String toString(final boolean summary, final boolean hllDetail, final boolean auxDetail) {
+  public String toString(final boolean summary, final boolean hllDetail, final boolean auxDetail,
+      final boolean all) {
     final StringBuilder sb = new StringBuilder();
     if (summary) {
       sb.append("### HLL SKETCH SUMMARY: ").append(LS);
@@ -263,17 +260,22 @@ public class HllSketch extends BaseHllSketch {
       sb.append("  UB             : ").append(getUpperBound(1)).append(LS);
       sb.append("  OutOfOrder Flag: ").append(isOutOfOrderFlag()).append(LS);
       if (getCurrentMode() == CurMode.HLL) {
-        final double hipAccum = hllSketchImpl.getHipAccum();
-        sb.append("  CurMin         : ").append(getCurMin()).append(LS);
-        sb.append("  NumAtCurMin    : ").append(getNumAtCurMin()).append(LS);
-        sb.append("  HipAccum       : ").append(hipAccum).append(LS);
+        sb.append("  CurMin         : ").append(hllSketchImpl.getCurMin()).append(LS);
+        sb.append("  NumAtCurMin    : ").append(hllSketchImpl.getNumAtCurMin()).append(LS);
+        sb.append("  HipAccum       : ").append(hllSketchImpl.getHipAccum()).append(LS);
       }
     }
     if (hllDetail) {
       sb.append("### HLL SKETCH HLL DETAIL: ").append(LS);
       final PairIterator pitr = getIterator();
-      while (pitr.nextValid()) {
-        sb.append(pitr.getString()).append(LS);
+      if (all) {
+        while (pitr.nextAll()) {
+          sb.append(pitr.getString()).append(LS);
+        }
+      } else {
+        while (pitr.nextValid()) {
+          sb.append(pitr.getString()).append(LS);
+        }
       }
     }
     if (auxDetail) {
@@ -281,8 +283,14 @@ public class HllSketch extends BaseHllSketch {
       if ((getCurrentMode() == CurMode.HLL) && (getTgtHllType() == TgtHllType.HLL_4)) {
         final PairIterator auxItr = getAuxIterator();
         if (auxItr != null) {
-          while (auxItr.nextValid()) {
-            sb.append(auxItr.getString()).append(LS);
+          if (all) {
+            while (auxItr.nextAll()) {
+              sb.append(auxItr.getString()).append(LS);
+            }
+          } else {
+            while (auxItr.nextValid()) {
+              sb.append(auxItr.getString()).append(LS);
+            }
           }
         }
       }
@@ -305,15 +313,7 @@ public class HllSketch extends BaseHllSketch {
   }
 
   CurMode getCurrentMode() {
-    return hllSketchImpl.curMode;
-  }
-
-  int getCurMin() { //for HLL 4
-    return hllSketchImpl.getCurMin();
-  }
-
-  int getNumAtCurMin() { //For all HLL
-    return hllSketchImpl.getNumAtCurMin();
+    return hllSketchImpl.getCurMode();
   }
 
   @Override

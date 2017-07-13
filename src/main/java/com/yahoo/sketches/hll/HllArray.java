@@ -79,18 +79,19 @@ abstract class HllArray extends HllSketchImpl {
    */
   HllArray(final HllArray that) {
     super(that);
-    curMin = that.curMin;
-    numAtCurMin = that.numAtCurMin;
-    hipAccum = that.hipAccum;
+    curMin = that.getCurMin();
+    numAtCurMin = that.getNumAtCurMin();
+    hipAccum = that.getHipAccum();
     kxq0 = that.kxq0;
     kxq1 = that.kxq1;
     hllByteArr = that.hllByteArr.clone(); //that.hllByteArr should never be null.
-    auxHashMap = (that.auxHashMap != null) ? that.auxHashMap.copy() : null;
+    final AuxHashMap thatAuxMap = that.getAuxHashMap();
+    auxHashMap = (thatAuxMap != null) ? thatAuxMap.copy() : null;
   }
 
   @Override
   HllArray copyAs(final TgtHllType tgtHllType) {
-    if (tgtHllType == this.tgtHllType) {
+    if (tgtHllType == getTgtHllType()) {
       return (HllArray)copy();
     }
     if (tgtHllType == HLL_4) {
@@ -102,8 +103,21 @@ abstract class HllArray extends HllSketchImpl {
     return Hll8Array.convertToHll8(this);
   }
 
+  void addToHipAccum(final double delta) {
+    hipAccum += delta;
+  }
+
+  void decNumAtCurMin() {
+    numAtCurMin--;
+  }
+
+  AuxHashMap getAuxHashMap() {
+    return auxHashMap;
+  }
+
   @Override
   PairIterator getAuxIterator() {
+    final AuxHashMap auxHashMap = getAuxHashMap();
     if (auxHashMap != null) { return auxHashMap.getIterator(); }
     return null;
   }
@@ -117,7 +131,8 @@ abstract class HllArray extends HllSketchImpl {
   // Make package private to allow testing.
   @Override
   double getCompositeEstimate() {
-    final double rawEst = getRawEstimate(lgConfigK, kxq0 + kxq1);
+    final int lgConfigK = getLgConfigK();
+    final double rawEst = getRawEstimate(lgConfigK, getKxQ0() + getKxQ1());
 
     final double[] xArr = CompositeInterpolationXTable.xArrs[lgConfigK - MIN_LOG_K];
     final double yStride = CompositeInterpolationXTable.yStrides[lgConfigK - MIN_LOG_K];
@@ -143,7 +158,7 @@ abstract class HllArray extends HllSketchImpl {
     //Alternate call
     //if ((adjEst > (3 << lgConfigK)) || ((curMin != 0) || (numAtCurMin == 0)) ) { return adjEst; }
 
-    final double linEst = getHllBitMapEstimate(lgConfigK, curMin, numAtCurMin);
+    final double linEst = getHllBitMapEstimate(lgConfigK, getCurMin(), getNumAtCurMin());
 
     // Bias is created when the value of an estimator is compared with a threshold to decide whether
     // to use that estimator or a different one.
@@ -162,7 +177,7 @@ abstract class HllArray extends HllSketchImpl {
   }
 
   @Override
-  int getCount() {
+  int getCouponCount() {
     return -1;
   }
 
@@ -173,21 +188,26 @@ abstract class HllArray extends HllSketchImpl {
 
   @Override
   int getCurrentSerializationBytes() {
+    final AuxHashMap auxHashMap = getAuxHashMap();
     final int auxBytes = (auxHashMap == null) ? 0 : auxHashMap.auxCount << 2;
-    return HLL_BYTE_ARRAY_START + hllByteArr.length + auxBytes;
+    return HLL_BYTE_ARRAY_START + getHllByteArr().length + auxBytes;
   }
 
   @Override
   double getEstimate() {
-    if (oooFlag) {
+    if (isOutOfOrderFlag()) {
       return getCompositeEstimate();
     }
-    return hipAccum;
+    return getHipAccum();
   }
 
   @Override
   double getHipAccum() {
     return hipAccum;
+  }
+
+  byte[] getHllByteArr() {
+    return hllByteArr;
   }
 
   @Override
@@ -196,30 +216,41 @@ abstract class HllArray extends HllSketchImpl {
   @Override
   double getLowerBound(final int numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
+    final int lgConfigK = getLgConfigK();
+    final int configK = 1 << lgConfigK;
+    final boolean oooFlag = isOutOfOrderFlag();
     if (lgConfigK > 12) {
       final double tmp;
-      if (oooFlag) {
+      if (isOutOfOrderFlag()) {
         final double hllNonHipEps =
-            (numStdDev * HLL_NON_HIP_RSE_FACTOR) / Math.sqrt(1 << lgConfigK);
+            (numStdDev * HLL_NON_HIP_RSE_FACTOR) / Math.sqrt(configK);
         tmp = getCompositeEstimate() / (1.0 + hllNonHipEps);
       } else {
-        final double hllHipEps = (numStdDev * HLL_HIP_RSE_FACTOR) / Math.sqrt(1 << lgConfigK);
-        tmp =  hipAccum / (1.0 + hllHipEps);
+        final double hllHipEps = (numStdDev * HLL_HIP_RSE_FACTOR) / Math.sqrt(configK);
+        tmp =  getHipAccum() / (1.0 + hllHipEps);
       }
-      double numNonZeros = 1 << lgConfigK;
-      if (curMin == 0) {
-        numNonZeros -= numAtCurMin;
+      double numNonZeros = configK;
+      if (getCurMin() == 0) {
+        numNonZeros -= getNumAtCurMin();
       }
       return Math.max(tmp, numNonZeros);
     }
     //lgConfigK <= 12
     final double re = RelativeErrorTables.getRelErr(false, oooFlag, lgConfigK, numStdDev);
-    return ((oooFlag) ? getCompositeEstimate() : hipAccum) / (1.0 + re);
+    return ((oooFlag) ? getCompositeEstimate() : getHipAccum()) / (1.0 + re);
+  }
+
+  double getKxQ0() {
+    return kxq0;
+  }
+
+  double getKxQ1() {
+    return kxq1;
   }
 
   @Override
-  int getMaxCouponArrInts() {
-    return -1;
+  int getLgMaxCouponArrInts() {
+    return -1; //intentionally illegal value
   }
 
   @Override
@@ -230,6 +261,8 @@ abstract class HllArray extends HllSketchImpl {
   @Override
   double getRelErr(final int numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
+    final int lgConfigK = getLgConfigK();
+    final boolean oooFlag = isOutOfOrderFlag();
     if (lgConfigK <= 12) {
       return RelativeErrorTables.getRelErr(true, oooFlag, lgConfigK, numStdDev);
     }
@@ -240,6 +273,8 @@ abstract class HllArray extends HllSketchImpl {
   @Override
   double getRelErrFactor(final int numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
+    final int lgConfigK = getLgConfigK();
+    final boolean oooFlag = isOutOfOrderFlag();
     if (lgConfigK <= 12) {
       return RelativeErrorTables.getRelErr(true, oooFlag, lgConfigK, numStdDev)
           * Math.sqrt(1 << lgConfigK);
@@ -251,6 +286,8 @@ abstract class HllArray extends HllSketchImpl {
   @Override
   double getUpperBound(final int numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
+    final int lgConfigK = getLgConfigK();
+    final boolean oooFlag = isOutOfOrderFlag();
     if (lgConfigK > 12) {
       if (oooFlag) {
         final double hllNonHipEps =
@@ -258,21 +295,45 @@ abstract class HllArray extends HllSketchImpl {
         return getCompositeEstimate() / (1.0 - hllNonHipEps);
       }
       final double hllHipEps = (numStdDev * HLL_HIP_RSE_FACTOR) / Math.sqrt(1 << lgConfigK);
-      return hipAccum / (1.0 - hllHipEps);
+      return getHipAccum() / (1.0 - hllHipEps);
     }
     //lgConfigK <= 12
     final double re = RelativeErrorTables.getRelErr(true, oooFlag, lgConfigK, numStdDev);
-    return ((oooFlag) ? getCompositeEstimate() : hipAccum) / (1.0 + re);
+    return ((oooFlag) ? getCompositeEstimate() : getHipAccum()) / (1.0 + re);
   }
 
   @Override
   boolean isEmpty() {
-    return (curMin == 0) && (numAtCurMin == (1 << lgConfigK));
+    final int configK = 1 << getLgConfigK();
+    return (getCurMin() == 0) && (getNumAtCurMin() == configK);
   }
 
-  @Override
+  void putAuxHashMap(final AuxHashMap auxHashMap) {
+    this.auxHashMap = auxHashMap;
+  }
+
+  void putCurMin(final int curMin) {
+    this.curMin = curMin;
+  }
+
   void putHipAccum(final double value) {
     hipAccum = value;
+  }
+
+  void putHllByteArr(final byte[] hllByteArr) {
+    this.hllByteArr = hllByteArr;
+  }
+
+  void putKxQ0(final double kxq0) {
+    this.kxq0 = kxq0;
+  }
+
+  void putKxQ1(final double kxq1) {
+    this.kxq1 = kxq1;
+  }
+
+  void putNumAtCurMin(final int numAtCurMin) {
+    this.numAtCurMin = numAtCurMin;
   }
 
   @Override
@@ -288,37 +349,39 @@ abstract class HllArray extends HllSketchImpl {
   void extractCommon(final HllArray hllArray, final Memory mem, final Object memArr,
       final long memAdd) {
     checkPreamble(mem, memArr, memAdd);
-    hllArray.oooFlag = extractOooFlag(memArr, memAdd);
-    hllArray.curMin = extractCurMin(memArr, memAdd);
-    hllArray.hipAccum = extractHipAccum(memArr, memAdd);
-    hllArray.kxq0 = extractKxQ0(memArr, memAdd);
-    hllArray.kxq1 = extractKxQ1(memArr, memAdd);
-    hllArray.numAtCurMin = extractNumAtCurMin(memArr, memAdd);
+    hllArray.putOutOfOrderFlag(extractOooFlag(memArr, memAdd));
+    hllArray.putCurMin(extractCurMin(memArr, memAdd));
+    hllArray.putHipAccum(extractHipAccum(memArr, memAdd));
+    hllArray.putKxQ0(extractKxQ0(memArr, memAdd));
+    hllArray.putKxQ1(extractKxQ1(memArr, memAdd));
+    hllArray.putNumAtCurMin(extractNumAtCurMin(memArr, memAdd));
 
     //load Hll array
-    final int hllArrLen = hllArray.hllByteArr.length;
-    mem.getByteArray(HLL_BYTE_ARRAY_START, hllArray.hllByteArr, 0, hllArrLen);
+    final byte[] hllByteArr = getHllByteArr();
+    final int hllArrLen = hllByteArr.length;
+    mem.getByteArray(HLL_BYTE_ARRAY_START, hllByteArr, 0, hllArrLen);
   }
 
   void insertCommon(final byte[] memArr, final long memAdd, final boolean compact) {
     insertPreInts(memArr, memAdd, HLL_PREINTS);
     insertSerVer(memArr, memAdd);
     insertFamilyId(memArr, memAdd);
-    insertLgK(memArr, memAdd, lgConfigK);
+    insertLgK(memArr, memAdd, getLgConfigK());
     insertLgArr(memArr, memAdd, 0); //not used for HLL mode
     insertEmptyFlag(memArr, memAdd, isEmpty());
     insertCompactFlag(memArr, memAdd, compact);
-    insertOooFlag(memArr, memAdd, oooFlag);
-    insertCurMin(memArr, memAdd, curMin);
-    insertCurMode(memArr, memAdd, curMode);
-    insertTgtHllType(memArr, memAdd, tgtHllType);
-    insertHipAccum(memArr, memAdd, hipAccum);
-    insertKxQ0(memArr, memAdd, kxq0);
-    insertKxQ1(memArr, memAdd, kxq1);
-    insertNumAtCurMin(memArr, memAdd, numAtCurMin);
+    insertOooFlag(memArr, memAdd, isOutOfOrderFlag());
+    insertCurMin(memArr, memAdd, getCurMin());
+    insertCurMode(memArr, memAdd, getCurMode());
+    insertTgtHllType(memArr, memAdd, getTgtHllType());
+    insertHipAccum(memArr, memAdd, getHipAccum());
+    insertKxQ0(memArr, memAdd, getKxQ0());
+    insertKxQ1(memArr, memAdd, getKxQ1());
+    insertNumAtCurMin(memArr, memAdd, getNumAtCurMin());
   }
 
   byte[] toByteArray(final boolean compact) {
+    final byte[] hllByteArr = getHllByteArr();
     final int hllBytes = hllByteArr.length;
     final int totBytes = HLL_BYTE_ARRAY_START + hllBytes;
     final byte[] memArr = new byte[totBytes];
@@ -337,14 +400,16 @@ abstract class HllArray extends HllSketchImpl {
   //In C: again-two-registers.c Lines 851 to 871
   void hipAndKxQIncrementalUpdate(final int oldValue, final int newValue) {
     assert newValue > oldValue;
-    final int configK = 1 << lgConfigK;
+    final int configK = 1 << getLgConfigK();
     //update hipAccum BEFORE updating kxq0 and kxq1
-    hipAccum += configK / (kxq0 + kxq1);
+    double kxq0 = getKxQ0();
+    double kxq1 = getKxQ1();
+    addToHipAccum(configK / (kxq0 + kxq1));
     //update kxq0 and kxq1; subtract first, then add.
-    if (oldValue < 32) { kxq0 -= invPow2(oldValue); }
-    else               { kxq1 -= invPow2(oldValue); }
-    if (newValue < 32) { kxq0 += invPow2(newValue); }
-    else               { kxq1 += invPow2(newValue); }
+    if (oldValue < 32) { putKxQ0(kxq0 -= invPow2(oldValue)); }
+    else               { putKxQ1(kxq1 -= invPow2(oldValue)); }
+    if (newValue < 32) { putKxQ0(kxq0 += invPow2(newValue)); }
+    else               { putKxQ1(kxq1 += invPow2(newValue)); }
   }
 
   static final void checkPreamble(final Memory mem, final Object memArr, final long memAdd) {

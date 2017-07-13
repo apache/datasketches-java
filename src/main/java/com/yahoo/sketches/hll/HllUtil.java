@@ -36,13 +36,13 @@ final class HllUtil {
   static final CouponHashSet makeSetFromList(final CouponList list, final int tgtLgK,
       final TgtHllType tgtHllType) {
     assert tgtLgK <= list.getLgConfigK();
-    final int cnt = list.couponCount;
-    final int[] arr = list.couponIntArr;
+    final int couponCount = list.getCouponCount();
+    final int[] arr = list.getCouponIntArr();
     final CouponHashSet chSet = new CouponHashSet(tgtLgK, tgtHllType);
-    for (int i = 0; i < cnt; i++) {
+    for (int i = 0; i < couponCount; i++) {
       chSet.couponUpdate(arr[i]);
     }
-    chSet.putOooFlag(true);
+    chSet.putOutOfOrderFlag(true);
     return chSet;
   }
 
@@ -57,7 +57,7 @@ final class HllUtil {
       tgtHllArr.couponUpdate(srcItr.getPair());
     }
     tgtHllArr.putHipAccum(src.getEstimate());
-    tgtHllArr.putOooFlag(false);
+    tgtHllArr.putOutOfOrderFlag(false);
     return tgtHllArr;
   }
 
@@ -66,7 +66,7 @@ final class HllUtil {
   static final HllSketchImpl copyOrDownsampleHll(
       final HllSketchImpl srcSketch, final int tgtLgK) {
     final HllArray src = (HllArray) srcSketch;
-    final int srcLgK = src.lgConfigK;
+    final int srcLgK = src.getLgConfigK();
     if ((srcLgK <= tgtLgK) && (src.getTgtHllType() == TgtHllType.HLL_8)) {
       return src.copy();
     }
@@ -78,7 +78,7 @@ final class HllUtil {
     }
     //both of these are required for isomorphism
     tgtHllArr.putHipAccum(src.getHipAccum());
-    tgtHllArr.putOooFlag(src.getOooFlag());
+    tgtHllArr.putOutOfOrderFlag(src.isOutOfOrderFlag());
     return tgtHllArr;
   }
 

@@ -54,16 +54,20 @@ class Hll8Array extends HllArray {
 
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
-    final int configKmask = (1 << lgConfigK) - 1;
+    final int configKmask = (1 << getLgConfigK()) - 1;
     final int slotNo = BaseHllSketch.getLow26(coupon) & configKmask;
     final int newVal = BaseHllSketch.getValue(coupon);
+    final byte[] hllByteArr = getHllByteArr();
     assert newVal > 0;
     final int curVal = hllByteArr[slotNo] & VAL_MASK_6;
     if (newVal > curVal) {
       hllByteArr[slotNo] = (byte) (newVal & VAL_MASK_6);
       hipAndKxQIncrementalUpdate(curVal, newVal);
-      if (curVal == 0) { numAtCurMin--; } //overloaded as num zeros
-      assert numAtCurMin >= 0;
+      if (curVal == 0) {
+        decNumAtCurMin(); //overloaded as num zeros
+        assert getNumAtCurMin() >= 0;
+      }
+
     }
     return this;
   }
@@ -79,8 +83,8 @@ class Hll8Array extends HllArray {
     int slotNum;
 
     Hll8Iterator() {
-      array = hllByteArr;
-      slots = hllByteArr.length;
+      array = getHllByteArr();
+      slots = array.length;
       slotNum = -1;
     }
 
@@ -125,7 +129,7 @@ class Hll8Array extends HllArray {
 
   static final Hll8Array convertToHll8(final HllArray srcHllArr) {
     final Hll8Array hll8Array = new Hll8Array(srcHllArr.getLgConfigK());
-    hll8Array.putOooFlag(srcHllArr.getOooFlag());
+    hll8Array.putOutOfOrderFlag(srcHllArr.isOutOfOrderFlag());
     final PairIterator itr = srcHllArr.getIterator();
     while (itr.nextValid()) {
       hll8Array.couponUpdate(itr.getPair());

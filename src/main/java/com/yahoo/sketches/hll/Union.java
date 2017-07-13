@@ -193,8 +193,8 @@ public class Union extends BaseHllSketch {
 
   @Override
   public String toString(final boolean summary, final boolean hllDetail,
-      final boolean auxDetail) {
-    return gadget.toString(summary, hllDetail, auxDetail);
+      final boolean auxDetail, final boolean all) {
+    return gadget.toString(summary, hllDetail, auxDetail, all);
   }
 
   /**

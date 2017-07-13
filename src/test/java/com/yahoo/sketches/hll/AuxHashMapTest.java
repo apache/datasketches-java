@@ -21,7 +21,7 @@ public class AuxHashMapTest {
 
   @Test
   public void exerciseAux() {
-    int lgK = 15; //this combination should create an Aux
+    int lgK = 15; //this combination should create an Aux with ~18 exceptions
     int lgU = 20;
     HllSketch sk = new HllSketch(lgK, TgtHllType.HLL_4);
     for (int i = 0; i < (1 << lgU); i++) { sk.update(i); }
@@ -55,7 +55,7 @@ public class AuxHashMapTest {
         println(h4itr.getString());
       }
     }
-    sk.toString(true, true, true);
+    sk.toString(true, true, true, false);
   }
 
   @Test

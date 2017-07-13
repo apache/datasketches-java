@@ -21,73 +21,60 @@ public class CrossCountingTest {
 
   @Test
   public void crossCountingCheck() {
-    int n = 10000; //16 & 1537
-    int lgK = 14;
+    int n = 100; //16 & 1537
+    int lgK = 4; //14
 
     HllSketch sk4 = buildSketch(n, lgK, HLL_4);
     int s4csum = computeChecksum(sk4);
-//    printSketchSummary(sk4, s4csum);
-//    printSketchData(sk4);
-//    printAuxData(sk4);
-
+//    println(sk4.toString(true, true, true, true));
     int csum;
 
     HllSketch sk6 = buildSketch(n, lgK, HLL_6);
     csum = computeChecksum(sk6);
     assertEquals(csum, s4csum);
-//    printSketchSummary(sk6, csum);
-//    printSketchData(sk6);
+//    println(sk6.toString(true, true, true, true));
 
     HllSketch sk8 = buildSketch(n, lgK, HLL_8);
     csum = computeChecksum(sk8);
     assertEquals(csum, s4csum);
-//    printSketchSummary(sk8, csum);
-//    printSketchData(sk8);
+//    println(sk8.toString(true, true, true, true));
 
     //Conversions
 //    println("\nConverted HLL_6 to HLL_4:");
     HllSketch sk6to4 = sk6.copyAs(HLL_4);
     csum = computeChecksum(sk6to4);
     assertEquals(csum, s4csum);
-//    printSketchSummary(sk6to4, csum);
-//    printSketchData(sk6to4);
-//    printAuxData(sk4);
+//    println(sk6to4.toString(true, true, true, true));
 
 //    println("\nConverted HLL_8 to HLL_4:");
     HllSketch sk8to4 = sk8.copyAs(HLL_4);
     csum = computeChecksum(sk8to4);
     assertEquals(csum, s4csum);
-//    printSketchSummary(sk8to4, csum);
-//    printSketchData(sk8to4);
-//    printAuxData(sk4);
+//    println(sk8to4.toString(true, true, true, true));
 
 //    println("\nConverted HLL_4 to HLL_6:");
     HllSketch sk4to6 = sk4.copyAs(HLL_6);
     csum = computeChecksum(sk4to6);
     assertEquals(csum, s4csum);
-//    printSketchSummary(sk4to6, csum);
-//    printSketchData(sk4to6);
+//    println(sk4to6.toString(true, true, true, true));
 
 //    println("\nConverted HLL_8 to HLL_6:");
     HllSketch sk8to6 = sk8.copyAs(HLL_6);
     csum = computeChecksum(sk8to6);
     assertEquals(csum, s4csum);
-//    printSketchSummary(sk8to6, csum);
-//    printSketchData(sk8to6);
+//    println(sk8to6.toString(true, true, true, true));
 
 //    println("\nConverted HLL_4 to HLL_8:");
     HllSketch sk4to8 = sk4.copyAs(HLL_8);
     csum = computeChecksum(sk4to8);
     assertEquals(csum, s4csum);
-//    printSketchSummary(sk4to8, csum);
-//    printSketchData(sk4to8);
+//    println(sk4to8.toString(true, true, true, true));
 
 //    println("\nConverted HLL_6 to HLL_8:");
     HllSketch sk6to8 = sk6.copyAs(HLL_8);
     csum = computeChecksum(sk6to8);
     assertEquals(csum, s4csum);
-//    printSketchSummary(sk6to8, csum);
-//    printSketchData(sk6to8);
+//    println(sk6to8.toString(true, true, true, true));
   }
 
   private static HllSketch buildSketch(int n, int lgK, TgtHllType tgtHllType) {
@@ -109,43 +96,6 @@ public class CrossCountingTest {
     return checksum;
   }
 
-
-  private static void printSketchData(HllSketch sketch) {
-    TgtHllType tgtHllType = sketch.getTgtHllType();
-    println("Data for " + tgtHllType.toString());
-    PairIterator itr = sketch.getIterator();
-    println(itr.getHeader());
-    while (itr.nextAll()) {
-      println(itr.getString());
-    }
-  }
-
-  private static void printAuxData(HllSketch sketch) {
-    TgtHllType tgtHllType = sketch.getTgtHllType();
-    assertEquals(tgtHllType, HLL_4);
-    PairIterator auxItr = sketch.getAuxIterator();
-    if (auxItr == null) {
-      return;
-    }
-    println("Aux Data for " + tgtHllType.toString());
-    println("\nAux Array:");
-    println(auxItr.getHeader());
-    while (auxItr.nextValid()) {
-      println(auxItr.getString());
-    }
-  }
-
-  private static void printSketchSummary(HllSketch sketch, int checksum) {
-    String tgtHllTypeStr = sketch.getTgtHllType().toString();
-    println("");
-    println(tgtHllTypeStr + " Est: " + sketch.getEstimate());
-    println(tgtHllTypeStr + " CurMin: " + sketch.getCurMin());
-    println(tgtHllTypeStr + " NumAtCurMin: " + sketch.getNumAtCurMin());
-    println(tgtHllTypeStr + " OooFlag    : " + sketch.isOutOfOrderFlag());
-    println(tgtHllTypeStr + " CheckSum: " + checksum);
-  }
-
-
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
@@ -162,6 +112,6 @@ public class CrossCountingTest {
    * @param s value to print
    */
   static void print(String s) {
-    //System.out.print(s); //disable here
+    System.out.print(s); //disable here
   }
 }
