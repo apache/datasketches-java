@@ -5,9 +5,7 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hll.TgtHllType.HLL_4;
-import static com.yahoo.sketches.hll.TgtHllType.HLL_6;
-
+import com.yahoo.memory.Memory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -23,6 +21,12 @@ final class HllUtil {
   static final int MIN_LOG_K = 4;
   static final int MAX_LOG_K = 21;
 
+  // This RSE is computed at the transition point from coupons to HLL and not for the asymptote.
+  static final double COUPON_RSE_FACTOR = .409;
+  static final int LG_INIT_LIST_SIZE = 3;
+  static final int LG_INIT_SET_SIZE = 5;
+  static final double COUPON_RSE = COUPON_RSE_FACTOR / (1 << 13);
+
   static final int RESIZE_NUMER = 3;
   static final int RESIZE_DENOM = 4;
 
@@ -32,56 +36,6 @@ final class HllUtil {
       "Log K must be between 4 and 21, inclusive: " + lgK);
   }
 
-  //when called from CouponList, tgtLgK == lgConfigK
-  static final CouponHashSet makeSetFromList(final CouponList list, final int tgtLgK,
-      final TgtHllType tgtHllType) {
-    assert tgtLgK <= list.getLgConfigK();
-    final int couponCount = list.getCouponCount();
-    final int[] arr = list.getCouponIntArr();
-    final CouponHashSet chSet = new CouponHashSet(tgtLgK, tgtHllType);
-    for (int i = 0; i < couponCount; i++) {
-      chSet.couponUpdate(arr[i]);
-    }
-    chSet.putOutOfOrderFlag(true);
-    return chSet;
-  }
-
-  //This is ONLY called when src is not in HLL mode and creating a new tgt HLL
-  //Src can be either list or set.
-  //Used by CouponList, CouponHashSet and the Union operator
-  static final HllSketchImpl makeHllFromCoupons(final CouponList src, final int tgtLgK,
-      final TgtHllType tgtHllType) {
-    final HllArray tgtHllArr = newHll(tgtLgK, tgtHllType);
-    final PairIterator srcItr = src.getIterator();
-    while (srcItr.nextValid()) {
-      tgtHllArr.couponUpdate(srcItr.getPair());
-    }
-    tgtHllArr.putHipAccum(src.getEstimate());
-    tgtHllArr.putOutOfOrderFlag(false);
-    return tgtHllArr;
-  }
-
-  //Used by union operator and HllSketch pairUpdate.  Always copies or downsamples to HLL_8.
-  //Caller must ultimately manage oooFlag, as caller has more info
-  static final HllSketchImpl copyOrDownsampleHll(
-      final HllSketchImpl srcSketch, final int tgtLgK) {
-    final HllArray src = (HllArray) srcSketch;
-    final int srcLgK = src.getLgConfigK();
-    if ((srcLgK <= tgtLgK) && (src.getTgtHllType() == TgtHllType.HLL_8)) {
-      return src.copy();
-    }
-    final int minLgK = Math.min(srcLgK, tgtLgK);
-    final HllArray tgtHllArr = newHll(minLgK, TgtHllType.HLL_8);
-    final PairIterator srcItr = src.getIterator();
-    while (srcItr.nextValid()) {
-      tgtHllArr.couponUpdate(srcItr.getPair());
-    }
-    //both of these are required for isomorphism
-    tgtHllArr.putHipAccum(src.getHipAccum());
-    tgtHllArr.putOutOfOrderFlag(src.isOutOfOrderFlag());
-    return tgtHllArr;
-  }
-
   static final void checkNumStdDev(final int numStdDev) {
     if ((numStdDev < 1) || (numStdDev > 3)) {
       throw new SketchesArgumentException(
@@ -89,10 +43,21 @@ final class HllUtil {
     }
   }
 
-  private static final HllArray newHll(final int tgtLgK, final TgtHllType tgtHllType) {
-    if (tgtHllType == HLL_4) { return new Hll4Array(tgtLgK); }
-    if (tgtHllType == HLL_6) { return new Hll6Array(tgtLgK); }
-    return new Hll8Array(tgtLgK);
+  static final void noWriteAccess() {
+    throw new SketchesArgumentException(
+        "This sketch does not have write access to the underlying resource.");
+  }
+
+  static final void badPreambleState(final Memory mem) {
+    throw new SketchesArgumentException("Possible Corruption, Invalid Preamble:"
+        + PreambleUtil.toString(mem));
+  }
+
+  static void checkMemSize(final long minBytes, final long capBytes) {
+    if (capBytes < minBytes) {
+      throw new SketchesArgumentException(
+          "Given WritableMemory is not large enough: " + capBytes);
+    }
   }
 
 }

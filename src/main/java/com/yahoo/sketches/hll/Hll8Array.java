@@ -43,7 +43,7 @@ class Hll8Array extends HllArray {
     final long memAdd = mem.getCumulativeOffset(0);
     final int lgConfigK = extractLgK(memArr, memAdd);
     final Hll8Array hll8Array = new Hll8Array(lgConfigK);
-    hll8Array.extractCommon(hll8Array, mem, memArr, memAdd);
+    HllArray.extractCommonHll(hll8Array, mem, memArr, memAdd);
     return hll8Array;
   }
 

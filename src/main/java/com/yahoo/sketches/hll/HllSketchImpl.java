@@ -5,57 +5,12 @@
 
 package com.yahoo.sketches.hll;
 
-import com.yahoo.memory.Memory;
-import com.yahoo.sketches.SketchesArgumentException;
-
 /**
  * The HllSketch implementation
  *
  * @author Lee Rhodes
  */
 abstract class HllSketchImpl {
-  final int lgConfigK;
-  final TgtHllType tgtHllType;
-  final CurMode curMode;
-  boolean oooFlag = false; //Out-Of-Order Flag
-
-  /**
-   * Standard constructor.
-   * @param lgConfigK the configured Lg K
-   * @param tgtHllType the type of target HLL sketch
-   * @param curMode the current mode of the sketch LIST, SET, or HLL
-   */
-  HllSketchImpl(final int lgConfigK,
-      final TgtHllType tgtHllType,
-      final CurMode curMode) {
-    this.lgConfigK = lgConfigK;
-    this.tgtHllType = tgtHllType;
-    this.curMode = curMode;
-    oooFlag = (curMode == CurMode.SET) ? true : false;
-  }
-
-  /**
-   * Copy constructor
-   * @param that another HllSketchImpl
-   */
-  HllSketchImpl(final HllSketchImpl that) {
-    lgConfigK = that.getLgConfigK();
-    tgtHllType = that.getTgtHllType();
-    curMode = that.getCurMode();
-    oooFlag = that.isOutOfOrderFlag();
-  }
-
-  /**
-   * Copy As constructor. Performs an isomorphic transformation.
-   * @param that another HllSketchImpl
-   * @param tgtHllType the new target Hll type
-   */
-  HllSketchImpl(final HllSketchImpl that, final TgtHllType tgtHllType) {
-    lgConfigK = that.getLgConfigK();
-    this.tgtHllType = tgtHllType;
-    curMode = that.curMode;
-    oooFlag = that.oooFlag;
-  }
 
   abstract HllSketchImpl copy();
 
@@ -63,29 +18,37 @@ abstract class HllSketchImpl {
 
   abstract HllSketchImpl couponUpdate(int coupon);
 
+  abstract AuxHashMap getAuxHashMap();
+
   abstract PairIterator getAuxIterator();
 
   abstract int getCouponCount(); //for test
 
+  abstract int[] getCouponIntArr();
+
   abstract int getCurMin();
 
-  abstract int getCurrentSerializationBytes();
+  abstract CurMode getCurMode();
 
-  CurMode getCurMode() {
-    return curMode;
-  }
-
-  abstract double getEstimate();
+  abstract int getCompactSerializationBytes();
 
   abstract double getCompositeEstimate();
 
+  abstract double getEstimate();
+
   abstract double getHipAccum();
+
+  abstract byte[] getHllByteArr();
 
   abstract PairIterator getIterator();
 
-  int getLgConfigK() {
-    return lgConfigK;
-  }
+  abstract double getKxQ0();
+
+  abstract double getKxQ1();
+
+  abstract int getLgConfigK();
+
+  abstract int getLgCouponArrInts();
 
   abstract double getLowerBound(int numStdDev);
 
@@ -93,33 +56,26 @@ abstract class HllSketchImpl {
 
   abstract int getNumAtCurMin();
 
-  TgtHllType getTgtHllType() {
-    return tgtHllType;
-  }
+  abstract TgtHllType getTgtHllType();
 
   abstract double getRelErr(int numStdDev);
 
   abstract double getRelErrFactor(int numStdDev);
 
+  abstract int getUpdatableSerializationBytes();
+
   abstract double getUpperBound(int numStdDev);
 
   abstract boolean isEmpty();
 
-  boolean isOutOfOrderFlag() {
-    return oooFlag;
-  }
+  abstract boolean isOutOfOrderFlag();
 
-  void putOutOfOrderFlag(final boolean oooFlag) {
-    this.oooFlag = oooFlag;
-  }
+  abstract void putCouponCount(int couponCount);
+
+  abstract void putOutOfOrderFlag(boolean oooFlag);
 
   abstract byte[] toCompactByteArray();
 
   abstract byte[] toUpdatableByteArray();
-
-  static final void badPreambleState(final Memory mem) {
-    throw new SketchesArgumentException("Possible Corruption, Invalid Preamble:"
-        + PreambleUtil.toString(mem));
-  }
 
 }

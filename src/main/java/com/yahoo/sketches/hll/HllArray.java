@@ -6,26 +6,31 @@
 package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.Util.invPow2;
+import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.MIN_LOG_K;
-import static com.yahoo.sketches.hll.PreambleUtil.FAMILY_ID;
+import static com.yahoo.sketches.hll.PreambleUtil.AUX_COUNT_INT;
+import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_INT_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARRAY_START;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_PREINTS;
-import static com.yahoo.sketches.hll.PreambleUtil.SER_VER;
+import static com.yahoo.sketches.hll.PreambleUtil.LIST_INT_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCurMin;
-import static com.yahoo.sketches.hll.PreambleUtil.extractFamilyId;
+import static com.yahoo.sketches.hll.PreambleUtil.extractCurMode;
 import static com.yahoo.sketches.hll.PreambleUtil.extractHipAccum;
+import static com.yahoo.sketches.hll.PreambleUtil.extractInt;
 import static com.yahoo.sketches.hll.PreambleUtil.extractKxQ0;
 import static com.yahoo.sketches.hll.PreambleUtil.extractKxQ1;
+import static com.yahoo.sketches.hll.PreambleUtil.extractLgArr;
+import static com.yahoo.sketches.hll.PreambleUtil.extractListCount;
 import static com.yahoo.sketches.hll.PreambleUtil.extractNumAtCurMin;
 import static com.yahoo.sketches.hll.PreambleUtil.extractOooFlag;
-import static com.yahoo.sketches.hll.PreambleUtil.extractPreInts;
-import static com.yahoo.sketches.hll.PreambleUtil.extractSerVer;
+import static com.yahoo.sketches.hll.PreambleUtil.insertAuxCount;
 import static com.yahoo.sketches.hll.PreambleUtil.insertCompactFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.insertCurMin;
 import static com.yahoo.sketches.hll.PreambleUtil.insertCurMode;
 import static com.yahoo.sketches.hll.PreambleUtil.insertEmptyFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.insertFamilyId;
 import static com.yahoo.sketches.hll.PreambleUtil.insertHipAccum;
+import static com.yahoo.sketches.hll.PreambleUtil.insertInt;
 import static com.yahoo.sketches.hll.PreambleUtil.insertKxQ0;
 import static com.yahoo.sketches.hll.PreambleUtil.insertKxQ1;
 import static com.yahoo.sketches.hll.PreambleUtil.insertLgArr;
@@ -50,7 +55,10 @@ import com.yahoo.memory.WritableMemory;
 abstract class HllArray extends HllSketchImpl {
   private static final double HLL_HIP_RSE_FACTOR = sqrt(log(2.0)); //.8325546
   private static final double HLL_NON_HIP_RSE_FACTOR = sqrt((3.0 * log(2.0)) - 1.0); //1.03896
-
+  final int lgConfigK;
+  final TgtHllType tgtHllType;
+  final CurMode curMode;
+  boolean oooFlag = false; //Out-Of-Order Flag
   int curMin; //only changed by Hll4Array
   int numAtCurMin;
   double hipAccum;
@@ -65,7 +73,9 @@ abstract class HllArray extends HllSketchImpl {
    * @param tgtHllType the type of target HLL sketch
    */
   HllArray(final int lgConfigK, final TgtHllType tgtHllType) {
-    super(lgConfigK, tgtHllType, CurMode.HLL);
+    this.lgConfigK = lgConfigK;
+    this.tgtHllType = tgtHllType;
+    curMode = CurMode.HLL;
     curMin = 0;
     numAtCurMin = 1 << lgConfigK;
     hipAccum = 0;
@@ -78,21 +88,49 @@ abstract class HllArray extends HllSketchImpl {
    * @param that another HllArray
    */
   HllArray(final HllArray that) {
-    super(that);
+    lgConfigK = that.getLgConfigK();
+    tgtHllType = that.getTgtHllType();
+    curMode = that.getCurMode();
+    oooFlag = that.isOutOfOrderFlag();
     curMin = that.getCurMin();
     numAtCurMin = that.getNumAtCurMin();
     hipAccum = that.getHipAccum();
-    kxq0 = that.kxq0;
-    kxq1 = that.kxq1;
-    hllByteArr = that.hllByteArr.clone(); //that.hllByteArr should never be null.
+    kxq0 = that.getKxQ0();
+    kxq1 = that.getKxQ1();
+    hllByteArr = that.getHllByteArr().clone(); //that.hllByteArr should never be null.
     final AuxHashMap thatAuxMap = that.getAuxHashMap();
     auxHashMap = (thatAuxMap != null) ? thatAuxMap.copy() : null;
+  }
+
+  static final void heapifyFromListOrSet(final Memory mem, final HllArray hllArray) {
+    final Object memObj = ((WritableMemory) mem).getArray();
+    final long memAdd = mem.getCumulativeOffset(0);
+    final CurMode curMode = extractCurMode(memObj, memAdd);
+    final int couponCount = extractListCount(memObj, memAdd);
+    final int couponArrInts = 1 << extractLgArr(memObj, memAdd);
+    final int start = (curMode == CurMode.LIST) ? LIST_INT_ARR_START : HASH_SET_INT_ARR_START;
+    int cnt = 0;
+    for (int i = 0; i < couponArrInts; i++) {
+      final int coupon = extractInt(memObj, memAdd, start + (i << 2));
+      if (coupon == EMPTY) { continue; }
+      hllArray.couponUpdate(coupon);
+      cnt++;
+    }
+    hllArray.putHipAccum(CouponList.getEstimate(couponCount));
+    hllArray.putOutOfOrderFlag(false);
+    assert cnt == couponCount;
+  }
+
+  static final HllArray newHll(final int lgConfigK, final TgtHllType tgtHllType) {
+    if (tgtHllType == HLL_4) { return new Hll4Array(lgConfigK); }
+    if (tgtHllType == HLL_6) { return new Hll6Array(lgConfigK); }
+    return new Hll8Array(lgConfigK);
   }
 
   @Override
   HllArray copyAs(final TgtHllType tgtHllType) {
     if (tgtHllType == getTgtHllType()) {
-      return (HllArray)copy();
+      return (HllArray) copy();
     }
     if (tgtHllType == HLL_4) {
       return Hll4Array.convertToHll4(this);
@@ -111,6 +149,7 @@ abstract class HllArray extends HllSketchImpl {
     numAtCurMin--;
   }
 
+  @Override
   AuxHashMap getAuxHashMap() {
     return auxHashMap;
   }
@@ -182,12 +221,22 @@ abstract class HllArray extends HllSketchImpl {
   }
 
   @Override
+  int[] getCouponIntArr() {
+    return null;
+  }
+
+  @Override
   int getCurMin() {
     return curMin;
   }
 
   @Override
-  int getCurrentSerializationBytes() {
+  CurMode getCurMode() {
+    return curMode;
+  }
+
+  @Override
+  int getCompactSerializationBytes() {
     final AuxHashMap auxHashMap = getAuxHashMap();
     final int auxBytes = (auxHashMap == null) ? 0 : auxHashMap.auxCount << 2;
     return HLL_BYTE_ARRAY_START + getHllByteArr().length + auxBytes;
@@ -206,12 +255,28 @@ abstract class HllArray extends HllSketchImpl {
     return hipAccum;
   }
 
+  @Override
   byte[] getHllByteArr() {
     return hllByteArr;
   }
 
   @Override
   abstract PairIterator getIterator();
+
+  @Override
+  double getKxQ0() {
+    return kxq0;
+  }
+
+  @Override
+  double getKxQ1() {
+    return kxq1;
+  }
+
+  @Override
+  int getLgConfigK() {
+    return lgConfigK;
+  }
 
   @Override
   double getLowerBound(final int numStdDev) {
@@ -240,12 +305,9 @@ abstract class HllArray extends HllSketchImpl {
     return ((oooFlag) ? getCompositeEstimate() : getHipAccum()) / (1.0 + re);
   }
 
-  double getKxQ0() {
-    return kxq0;
-  }
-
-  double getKxQ1() {
-    return kxq1;
+  @Override
+  int getLgCouponArrInts() {
+    return -1; //intentionally illegal value
   }
 
   @Override
@@ -284,6 +346,18 @@ abstract class HllArray extends HllSketchImpl {
   }
 
   @Override
+  TgtHllType getTgtHllType() {
+    return tgtHllType;
+  }
+
+  @Override
+  int getUpdatableSerializationBytes() {
+    final AuxHashMap auxHashMap = getAuxHashMap();
+    final int auxBytes = (auxHashMap == null) ? 0 : 4 << auxHashMap.lgAuxArrSize;
+    return HLL_BYTE_ARRAY_START + hllByteArr.length + auxBytes;
+  }
+
+  @Override
   double getUpperBound(final int numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
     final int lgConfigK = getLgConfigK();
@@ -308,8 +382,18 @@ abstract class HllArray extends HllSketchImpl {
     return (getCurMin() == 0) && (getNumAtCurMin() == configK);
   }
 
+  @Override
+  boolean isOutOfOrderFlag() {
+    return oooFlag;
+  }
+
   void putAuxHashMap(final AuxHashMap auxHashMap) {
     this.auxHashMap = auxHashMap;
+  }
+
+  @Override
+  void putCouponCount(final int couponCount) {
+    // TODO Auto-generated method stub
   }
 
   void putCurMin(final int curMin) {
@@ -337,18 +421,91 @@ abstract class HllArray extends HllSketchImpl {
   }
 
   @Override
+  void putOutOfOrderFlag(final boolean oooFlag) {
+    this.oooFlag = oooFlag;
+  }
+
+  @Override
   byte[] toCompactByteArray() {
-    return toByteArray(true);
+    return toByteArray(this, true);
   }
 
   @Override
   byte[] toUpdatableByteArray() {
-    return toByteArray(false);
+    return toByteArray(this, false);
   }
 
-  void extractCommon(final HllArray hllArray, final Memory mem, final Object memArr,
-      final long memAdd) {
-    checkPreamble(mem, memArr, memAdd);
+  static final byte[] toByteArray(final HllSketchImpl impl, final boolean compact) {
+    int auxBytes = 0;
+    final AuxHashMap auxHashMap = impl.getAuxHashMap();
+    if (auxHashMap != null) { //only relevant for HLL_4
+      auxBytes = (compact) ? auxHashMap.getCompactedSizeBytes()
+          : auxHashMap.getUpdatableSizeBytes();
+    }
+    final int totBytes = HLL_BYTE_ARRAY_START + impl.getHllByteArr().length + auxBytes;
+    final byte[] byteArr = new byte[totBytes];
+    final WritableMemory wmem = WritableMemory.wrap(byteArr);
+    insertHll(impl, wmem, compact);
+    return byteArr;
+  }
+
+  // used by toByteArray and DirectHllArray
+  static final void insertHll(final HllSketchImpl impl, final WritableMemory wmem,
+      final boolean compact) {
+    insertCommonHll(impl, wmem, compact);
+    final byte[] hllByteArr = impl.getHllByteArr();
+    wmem.putByteArray(HLL_BYTE_ARRAY_START, hllByteArr, 0, hllByteArr.length);
+
+    if (impl.getAuxHashMap() != null) {
+      insertAux(impl, wmem, compact);
+    } else {
+      wmem.putInt(AUX_COUNT_INT, 0);
+    }
+  }
+
+  static final void insertAux(final HllSketchImpl impl, final WritableMemory wmem,
+      final boolean compact) {
+    final Object memObj = wmem.getArray();
+    final long memAdd = wmem.getCumulativeOffset(0L);
+    final AuxHashMap auxHashMap = impl.getAuxHashMap();
+    final int auxCount = auxHashMap.auxCount;
+    insertAuxCount(memObj, memAdd, auxCount);
+    final long auxStart = HLL_BYTE_ARRAY_START + impl.getHllByteArr().length;
+    if (compact) {
+      final PairIterator itr = auxHashMap.getIterator();
+      int cnt = 0;
+      while (itr.nextValid()) {
+        insertInt(memObj, memAdd, auxStart + (cnt++ << 2), itr.getPair());
+      }
+      assert cnt == auxCount;
+    } else { //updatable
+      wmem.putIntArray(auxStart, auxHashMap.auxIntArr, 0, auxHashMap.auxIntArr.length);
+    }
+  }
+
+  static final void insertCommonHll(final HllSketchImpl impl, final WritableMemory wmem,
+      final boolean compact) {
+    final Object memObj = wmem.getArray();
+    final long memAdd = wmem.getCumulativeOffset(0L);
+    insertPreInts(memObj, memAdd, HLL_PREINTS);
+    insertSerVer(memObj, memAdd);
+    insertFamilyId(memObj, memAdd);
+    insertLgK(memObj, memAdd, impl.getLgConfigK());
+    insertLgArr(memObj, memAdd, 0); //not used for HLL mode
+    insertEmptyFlag(memObj, memAdd, impl.isEmpty());
+    insertCompactFlag(memObj, memAdd, compact);
+    insertOooFlag(memObj, memAdd, impl.isOutOfOrderFlag());
+    insertCurMin(memObj, memAdd, impl.getCurMin());
+    insertCurMode(memObj, memAdd, impl.getCurMode());
+    insertTgtHllType(memObj, memAdd, impl.getTgtHllType());
+    insertHipAccum(memObj, memAdd, impl.getHipAccum());
+    insertKxQ0(memObj, memAdd, impl.getKxQ0());
+    insertKxQ1(memObj, memAdd, impl.getKxQ1());
+    insertNumAtCurMin(memObj, memAdd, impl.getNumAtCurMin());
+  }
+
+  static final void extractCommonHll(final HllArray hllArray, final Memory srcMem,
+      final Object memArr, final long memAdd) {
     hllArray.putOutOfOrderFlag(extractOooFlag(memArr, memAdd));
     hllArray.putCurMin(extractCurMin(memArr, memAdd));
     hllArray.putHipAccum(extractHipAccum(memArr, memAdd));
@@ -357,39 +514,9 @@ abstract class HllArray extends HllSketchImpl {
     hllArray.putNumAtCurMin(extractNumAtCurMin(memArr, memAdd));
 
     //load Hll array
-    final byte[] hllByteArr = getHllByteArr();
+    final byte[] hllByteArr = hllArray.getHllByteArr();
     final int hllArrLen = hllByteArr.length;
-    mem.getByteArray(HLL_BYTE_ARRAY_START, hllByteArr, 0, hllArrLen);
-  }
-
-  void insertCommon(final byte[] memArr, final long memAdd, final boolean compact) {
-    insertPreInts(memArr, memAdd, HLL_PREINTS);
-    insertSerVer(memArr, memAdd);
-    insertFamilyId(memArr, memAdd);
-    insertLgK(memArr, memAdd, getLgConfigK());
-    insertLgArr(memArr, memAdd, 0); //not used for HLL mode
-    insertEmptyFlag(memArr, memAdd, isEmpty());
-    insertCompactFlag(memArr, memAdd, compact);
-    insertOooFlag(memArr, memAdd, isOutOfOrderFlag());
-    insertCurMin(memArr, memAdd, getCurMin());
-    insertCurMode(memArr, memAdd, getCurMode());
-    insertTgtHllType(memArr, memAdd, getTgtHllType());
-    insertHipAccum(memArr, memAdd, getHipAccum());
-    insertKxQ0(memArr, memAdd, getKxQ0());
-    insertKxQ1(memArr, memAdd, getKxQ1());
-    insertNumAtCurMin(memArr, memAdd, getNumAtCurMin());
-  }
-
-  byte[] toByteArray(final boolean compact) {
-    final byte[] hllByteArr = getHllByteArr();
-    final int hllBytes = hllByteArr.length;
-    final int totBytes = HLL_BYTE_ARRAY_START + hllBytes;
-    final byte[] memArr = new byte[totBytes];
-    final WritableMemory wmem = WritableMemory.wrap(memArr);
-    final long memAdd = wmem.getCumulativeOffset(0);
-    insertCommon(memArr, memAdd, compact);
-    wmem.putByteArray(HLL_BYTE_ARRAY_START, hllByteArr, 0, hllBytes);
-    return memArr;
+    srcMem.getByteArray(HLL_BYTE_ARRAY_START, hllByteArr, 0, hllArrLen);
   }
 
   /**
@@ -412,13 +539,25 @@ abstract class HllArray extends HllSketchImpl {
     else               { putKxQ1(kxq1 += invPow2(newValue)); }
   }
 
-  static final void checkPreamble(final Memory mem, final Object memArr, final long memAdd) {
-    final int memPreInts = extractPreInts(memArr, memAdd);
-    final int serVer = extractSerVer(memArr, memAdd);
-    final int famId = extractFamilyId(memArr, memAdd);
-    if ( (memPreInts != HLL_PREINTS) || (serVer != SER_VER) || (famId != FAMILY_ID) ) {
-      badPreambleState(mem);
+  //Used by union operator.  Always copies or downsamples to HLL_8.
+  //Caller must ultimately manage oooFlag, as caller has more info
+  static final HllSketchImpl copyOrDownsampleHll(
+      final HllSketchImpl srcSketch, final int tgtLgK) {
+    final HllArray src = (HllArray) srcSketch;
+    final int srcLgK = src.getLgConfigK();
+    if ((srcLgK <= tgtLgK) && (src.getTgtHllType() == TgtHllType.HLL_8)) {
+      return src.copy();
     }
+    final int minLgK = Math.min(srcLgK, tgtLgK);
+    final HllArray tgtHllArr = HllArray.newHll(minLgK, TgtHllType.HLL_8);
+    final PairIterator srcItr = src.getIterator();
+    while (srcItr.nextValid()) {
+      tgtHllArr.couponUpdate(srcItr.getPair());
+    }
+    //both of these are required for isomorphism
+    tgtHllArr.putHipAccum(src.getHipAccum());
+    tgtHllArr.putOutOfOrderFlag(src.isOutOfOrderFlag());
+    return tgtHllArr;
   }
 
   //In C: again-two-registers.c hhb_get_raw_estimate L1167
@@ -432,8 +571,6 @@ abstract class HllArray extends HllSketchImpl {
     final double hyperEst = (correctionFactor * configK * configK) / kxqSum;
     return hyperEst;
   }
-
-
 
   /**
    * Estimator when N is small, roughly less than k log(k).

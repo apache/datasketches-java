@@ -42,7 +42,7 @@ import com.yahoo.sketches.Family;
  * Long || Start Byte Adr, Big Endian Illustration
  * Adr:
  *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |    0   |
- *  0   ||  Mode  | CurMin | Flags  |  LgArr |   lgK  | FamID  | SerVer | PI=10   |
+ *  0   ||  Mode  | CurMin | Flags  |  LgArr |   lgK  | FamID  | SerVer | PI=10  |
  *
  *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |    8   |
  *  1   ||-------------------------------HIP Accum-------------------------------|
@@ -57,10 +57,12 @@ import com.yahoo.sketches.Family;
  *  4   ||-------------Aux Count-------------|----------Num At Cur Min-----------|
  *
  *      ||   47   |   46   |   45   |   44   |   43   |   42   |   41   |   40   |
- *  5   ||                                   <------HLL Byte Array-Start---------|
+ *  5   ||.....................................<----Start of HLL_X Byte Array----|
+ *
+ *  N   ||----End of Byte Array for HLL_4-->.....................................|
+ *  N+1 ||.....................................<---Start of Aux Array for HLL_4--|
  * </pre>
- * lgArr may be used for exceptions array. If in compact form exceptions array will
- * be compacted.
+ * If in compact form exceptions array will be compacted.
  *
  * @author Lee Rhodes
  */
@@ -220,8 +222,8 @@ final class PreambleUtil {
     return unsafe.getByte(memObj, memAdd + PREAMBLE_INTS_BYTE) & 0X3F;
   }
 
-  static void insertPreInts(final Object memObj, final long memAdd, final int preLongs) {
-    unsafe.putByte(memObj, memAdd + PREAMBLE_INTS_BYTE, (byte) (preLongs & 0X3F));
+  static void insertPreInts(final Object memObj, final long memAdd, final int preInts) {
+    unsafe.putByte(memObj, memAdd + PREAMBLE_INTS_BYTE, (byte) (preInts & 0X3F));
   }
 
   static int extractSerVer(final Object memObj, final long memAdd) {
@@ -256,14 +258,6 @@ final class PreambleUtil {
     unsafe.putByte(memObj, memAdd + LG_ARR_BYTE, (byte) lgArr);
   }
 
-  //  static int extractFlags(final Object memObj, final long memAdd) {
-  //    return unsafe.getByte(memObj, memAdd + FLAGS_BYTE) & 0XFF;
-  //  }
-  //
-  //  static void insertFlags(final Object memObj, final long memAdd, final int flags) {
-  //    unsafe.putByte(memObj, memAdd + FLAGS_BYTE, (byte) flags);
-  //  }
-
   static int extractListCount(final Object memObj, final long memAdd) {
     return unsafe.getByte(memObj, memAdd + LIST_COUNT_BYTE) & 0XFF;
   }
@@ -279,14 +273,6 @@ final class PreambleUtil {
   static void insertCurMin(final Object memObj, final long memAdd, final int curMin) {
     unsafe.putByte(memObj, memAdd + HLL_CUR_MIN_BYTE, (byte) curMin);
   }
-
-  //  static int extractMode(final Object memObj, final long memAdd) {
-  //    return unsafe.getByte(memObj, memAdd + MODE_BYTE) & 0XFF;
-  //  }
-  //
-  //  static void insertMode(final Object memObj, final long memAdd, final int mode) {
-  //    unsafe.putByte(memObj, memAdd + MODE_BYTE, (byte) mode);
-  //  }
 
   static double extractHipAccum(final Object memObj, final long memAdd) {
     return unsafe.getDouble(memObj, memAdd + HIP_ACCUM_DOUBLE);
@@ -349,7 +335,13 @@ final class PreambleUtil {
     return CurMode.fromOrdinal(curModeId);
   }
 
-  static void insertTgtHllType(final Object memObj, final long memAdd, final TgtHllType tgtHllType) {
+  static CurMode extractCurMode(final Memory mem) {
+    final int curModeId = mem.getByte(MODE_BYTE) & CUR_MODE_MASK;
+    return CurMode.fromOrdinal(curModeId);
+  }
+
+  static void insertTgtHllType(final Object memObj, final long memAdd,
+      final TgtHllType tgtHllType) {
     final int typeId = tgtHllType.ordinal();
     int mode = unsafe.getByte(memObj, memAdd + MODE_BYTE) & ~TGT_HLL_TYPE_MASK; //strip bits 2, 3
     mode |= (typeId << 2) & TGT_HLL_TYPE_MASK;
@@ -359,6 +351,20 @@ final class PreambleUtil {
   static TgtHllType extractTgtHllType(final Object memObj, final long memAdd) {
     final int typeId = unsafe.getByte(memObj, memAdd + MODE_BYTE) & TGT_HLL_TYPE_MASK;
     return TgtHllType.fromOrdinal(typeId >>> 2);
+  }
+
+  static TgtHllType extractTgtHllType(final Memory mem) {
+    final int typeId = mem.getByte(MODE_BYTE) & TGT_HLL_TYPE_MASK;
+    return TgtHllType.fromOrdinal(typeId >>> 2);
+  }
+
+
+  static void insertModes(final Object memObj, final long memAdd, final TgtHllType tgtHllType,
+      final CurMode curMode) {
+    final int curModeId = curMode.ordinal() & 3;
+    final int typeId = (tgtHllType.ordinal() & 3) << 2;
+    final int mode = typeId | curModeId;
+    unsafe.putByte(memObj, memAdd + MODE_BYTE, (byte) mode);
   }
 
   //Flags
@@ -396,6 +402,14 @@ final class PreambleUtil {
   static boolean extractOooFlag(final Object memObj, final long memAdd) {
     final int flags = unsafe.getByte(memObj, memAdd + FLAGS_BYTE);
     return (flags & OUT_OF_ORDER_FLAG_MASK) > 0;
+  }
+
+  static void insertFlags(final Object memObj, final long memAdd, final int flags) {
+    unsafe.putByte(memObj, memAdd + FLAGS_BYTE, (byte) flags);
+  }
+
+  static int extractFlags(final Object memObj, final long memAdd) {
+    return unsafe.getByte(memObj, memAdd + FLAGS_BYTE);
   }
 
   //Other

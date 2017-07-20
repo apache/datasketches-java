@@ -12,8 +12,6 @@ import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARRAY_START;
 import static com.yahoo.sketches.hll.PreambleUtil.extractAuxCount;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCompactFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
-import static com.yahoo.sketches.hll.PreambleUtil.insertAuxCount;
-import static com.yahoo.sketches.hll.PreambleUtil.insertInt;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
@@ -63,7 +61,7 @@ class Hll4Array extends HllArray {
     final long memAdd = mem.getCumulativeOffset(0);
     final int lgConfigK = extractLgK(memArr, memAdd);
     final Hll4Array hll4Array = new Hll4Array(lgConfigK);
-    hll4Array.extractCommon(hll4Array, mem, memArr, memAdd);
+    HllArray.extractCommonHll(hll4Array, mem, memArr, memAdd);
 
     //load AuxHashMap
     final int offset = HLL_BYTE_ARRAY_START + hll4Array.getHllByteArr().length;
@@ -101,47 +99,6 @@ class Hll4Array extends HllArray {
   @Override
   PairIterator getIterator() {
     return new Hll4Iterator();
-  }
-
-  @Override
-  byte[] toByteArray(final boolean compact) {
-    final AuxHashMap auxHashMap = getAuxHashMap();
-    final byte[] hllByteArr = getHllByteArr();
-    final int hllBytes = hllByteArr.length;
-    final int auxBytes = (auxHashMap == null) //HLL_4
-        ? 0
-        : (compact) ? auxHashMap.getCompactedSizeBytes() : auxHashMap.getUpdatableSizeBytes();
-    final int totBytes = HLL_BYTE_ARRAY_START + hllBytes + auxBytes; //HLL_4
-    final byte[] memArr = new byte[totBytes];
-    final WritableMemory wmem = WritableMemory.wrap(memArr);
-    final long memAdd = wmem.getCumulativeOffset(0);
-    insertCommon(memArr, memAdd, compact);
-    wmem.putByteArray(HLL_BYTE_ARRAY_START, hllByteArr, 0, hllBytes);
-
-    //AuxHashMap
-    if (auxHashMap != null) {
-      final int auxCount = auxHashMap.auxCount;
-      insertAuxCount(memArr, memAdd, auxCount);
-
-      if (auxCount > 0) {
-        if (compact) {
-          final PairIterator itr = auxHashMap.getIterator();
-          int cnt = 0;
-          final long auxStart = HLL_BYTE_ARRAY_START + hllBytes;
-          while (itr.nextValid()) {
-            insertInt(memArr, memAdd, auxStart + (cnt++ << 2), itr.getPair());
-          }
-          assert cnt == auxCount;
-        } else { //updatable
-          final int[] arr = auxHashMap.auxIntArr;
-          final int len = auxHashMap.auxIntArr.length;
-          wmem.putIntArray(HLL_BYTE_ARRAY_START + hllBytes, arr, 0, len);
-        }
-      }
-    } else {
-      insertAuxCount(memArr, memAdd, 0);
-    }
-    return memArr;
   }
 
   //Iterator
@@ -233,15 +190,15 @@ class Hll4Array extends HllArray {
     //This is provably a LB:
     final int lbOnOldValue =  rawStoredOldValue + curMin; //lower bound, could be 0
 
-    if (newValue > lbOnOldValue) { //842 //newValue <= lbOnOldValue -> return no need to update array
+    if (newValue > lbOnOldValue) { //842: newValue <= lbOnOldValue -> return no need to update array
       final int actualOldValue = (rawStoredOldValue < AUX_TOKEN)
           ? lbOnOldValue
           : auxHashMap.mustFindValueFor(slotNo); //846 rawStoredOldValue == AUX_TOKEN
 
-      if (newValue > actualOldValue) { //848 //actualOldValue could still be 0; newValue > 0
+      if (newValue > actualOldValue) { //848: actualOldValue could still be 0; newValue > 0
 
         //We know that the array will be changed
-        hipAndKxQIncrementalUpdate(actualOldValue, newValue); //haven't actually updated hllByteArr yet
+        hipAndKxQIncrementalUpdate(actualOldValue, newValue); //haven't actually updated yet
 
         assert (newValue >= curMin)
           : "New value " + newValue + " is less than current minimum " + curMin;

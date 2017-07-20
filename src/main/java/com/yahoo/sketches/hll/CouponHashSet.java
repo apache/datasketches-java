@@ -9,7 +9,18 @@ import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.KEY_MASK_26;
 import static com.yahoo.sketches.hll.HllUtil.RESIZE_DENOM;
 import static com.yahoo.sketches.hll.HllUtil.RESIZE_NUMER;
+import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_INT_ARR_START;
+import static com.yahoo.sketches.hll.PreambleUtil.LIST_INT_ARR_START;
+import static com.yahoo.sketches.hll.PreambleUtil.extractCompactFlag;
+import static com.yahoo.sketches.hll.PreambleUtil.extractCurMode;
+import static com.yahoo.sketches.hll.PreambleUtil.extractHashSetCount;
+import static com.yahoo.sketches.hll.PreambleUtil.extractInt;
+import static com.yahoo.sketches.hll.PreambleUtil.extractLgArr;
+import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
+import static com.yahoo.sketches.hll.PreambleUtil.extractTgtHllType;
 
+import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
 
@@ -20,9 +31,9 @@ import com.yahoo.sketches.SketchesStateException;
 class CouponHashSet extends CouponList {
 
   /**
-   * Standard constructor
+   * Constructs this sketch with the intent of loading it with data
    * @param lgConfigK the configured Lg K
-   * @param curMode SET
+   * @param tgtHllType the new target Hll type
    */
   CouponHashSet(final int lgConfigK, final TgtHllType tgtHllType) {
     super(lgConfigK, tgtHllType, CurMode.SET);
@@ -37,13 +48,43 @@ class CouponHashSet extends CouponList {
   }
 
   /**
-   * Copy As constructor. Performs an isomorphic transformation.
-   * @param that another CouponHasSet
+   * Copy As constructor.
+   * @param that another CouponHashSet
    * @param tgtHllType the new target Hll type
    */
-  private CouponHashSet(final CouponHashSet that, final TgtHllType tgtHllType) {
+  CouponHashSet(final CouponHashSet that, final TgtHllType tgtHllType) {
     super(that, tgtHllType);
   }
+
+  //will also accept List, but results in a Set
+  static final CouponHashSet heapifySet(final Memory mem) {
+    final Object memObj = ((WritableMemory) mem).getArray();
+    final long memAdd = mem.getCumulativeOffset(0);
+    final int lgConfigK = extractLgK(memObj, memAdd);
+    final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
+    final int lgCouponArrInts = extractLgArr(memObj, memAdd);
+    final boolean compact = extractCompactFlag(memObj, memAdd);
+    final CurMode curMode = extractCurMode(memObj, memAdd);
+    final int arrStart = (curMode == CurMode.LIST) ? LIST_INT_ARR_START : HASH_SET_INT_ARR_START;
+    final CouponHashSet set = new CouponHashSet(lgConfigK, tgtHllType);
+    final int couponCount = extractHashSetCount(memObj, memAdd);
+    if (compact) {
+      for (int i = 0; i < couponCount; i++) {
+        final int coupon = extractInt(memObj, memAdd, arrStart + (i << 2));
+        if (coupon == EMPTY) { continue; }
+        set.couponUpdate(coupon); //increments set.couponCount
+      }
+    } else { //updatable
+      set.putCouponCount(couponCount);
+      final int couponArrInts = 1 << lgCouponArrInts;
+      final int[] newCouponIntArr = new int[couponArrInts];
+      mem.getIntArray(HASH_SET_INT_ARR_START, newCouponIntArr, 0, couponArrInts);
+      set.putCouponIntArr(newCouponIntArr, lgCouponArrInts);
+    }
+    set.putOutOfOrderFlag(true);
+    return set;
+  }
+
 
   @Override
   CouponHashSet copy() {
@@ -60,57 +101,54 @@ class CouponHashSet extends CouponList {
     if (coupon == EMPTY) {
       return this; //empty coupon, ignore
     }
-    final int index = find(getCouponIntArr(), getLgCouponArrInts(), coupon);
+    final int index = find(couponIntArr, lgCouponArrInts, coupon);
     if (index >= 0) {
       return this; //found duplicate, ignore
     }
-    putIntoCouponIntArr(~index, coupon);
-    incCouponCount();
-    super.putOutOfOrderFlag(true); //could be moved out
+    couponIntArr[~index] = coupon;
+    couponCount++;
+    oooFlag = true; //could be moved out
     final boolean promote = checkGrowOrPromote();
     if (!promote) { return this; }
-    return HllUtil.makeHllFromCoupons(this, getLgConfigK(), getTgtHllType());
+    return morphFromCouponsToHll(this);
   }
 
   private boolean checkGrowOrPromote() {
-    int lgCouponArrInts = getLgCouponArrInts();
-    if ((RESIZE_DENOM * getCouponCount()) > (RESIZE_NUMER * (1 << lgCouponArrInts))) {
-      if (lgCouponArrInts == getLgMaxCouponArrInts()) {
+    if ((RESIZE_DENOM * couponCount) > (RESIZE_NUMER * (1 << lgCouponArrInts))) {
+      if (lgCouponArrInts == lgMaxCouponArrInts) {
         return true; // promote
       }
       //TODO if direct, ask for more memory
-      putCouponIntArr(growHashSet(getCouponIntArr(), lgCouponArrInts), ++lgCouponArrInts);
+      couponIntArr = growHashSet(couponIntArr, ++lgCouponArrInts);
     }
     return false;
   }
 
-  private static final int[] growHashSet(final int[] coupIntArr, final int lgCoupArrSize) {
-    final int newLgCoupArrSize = lgCoupArrSize + 1;
-    final int newArrSize = 1 << newLgCoupArrSize;
-    final int[] newCoupIntArr = new int[newArrSize];
+  private static final int[] growHashSet(final int[] coupIntArr, final int tgtLgCoupArrSize) {
+    final int tgtArrSize = 1 << tgtLgCoupArrSize;
+    final int[] tgtCouponIntArr = new int[tgtArrSize];
     final int len = coupIntArr.length;
     for (int i = 0; i < len; i++) {
       final int fetched = coupIntArr[i];
       if (fetched != EMPTY) {
-        final int idx = find(newCoupIntArr, newLgCoupArrSize, fetched);
+        final int idx = find(tgtCouponIntArr, tgtLgCoupArrSize, fetched);
         if (idx < 0) { //found EMPTY
-          newCoupIntArr[~idx] = fetched; //insert
+          tgtCouponIntArr[~idx] = fetched; //insert
           continue;
         }
         throw new SketchesStateException("Error: found duplicate.");
       }
     }
-    return newCoupIntArr;
+    return tgtCouponIntArr;
   }
 
-  private static final int find(final int[] array, final int lgArr, final int coupon) {
+  static final int find(final int[] array, final int lgArr, final int coupon) {
     final int arrMask = (1 << lgArr) - 1;
     int probe = coupon & arrMask;
     final int loopIndex = probe;
     do {
-      if (array[probe] == EMPTY) {
-        return ~probe; //empty
-      } else if (coupon == array[probe]) { return probe; } //duplicate
+      if (array[probe] == EMPTY) { return ~probe; } //empty
+      else if (coupon == array[probe]) { return probe; } //duplicate
       final int stride = ((coupon & KEY_MASK_26) >>> lgArr) | 1;
       probe = (probe + stride) & arrMask;
     } while (probe != loopIndex);

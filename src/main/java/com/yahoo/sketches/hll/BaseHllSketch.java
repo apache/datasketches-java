@@ -100,6 +100,14 @@ abstract class BaseHllSketch {
   public abstract double getRelErrFactor(int numStdDev);
 
   /**
+   * Gets the size in bytes of the current sketch when serialized using
+   * <i>toUpdatableByteArray()</i>.
+   * @return the size in bytes of the current sketch when serialized using
+   * <i>toUpdatableByteArray()</i>.
+   */
+  public abstract int getUpdatableSerializationBytes();
+
+  /**
    * Gets the approximate upper error bound given the specified number of Standard Deviations.
    *
    * @param numStdDev

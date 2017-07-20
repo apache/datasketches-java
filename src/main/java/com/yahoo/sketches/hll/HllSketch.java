@@ -15,7 +15,6 @@ import static com.yahoo.sketches.hll.PreambleUtil.extractTgtHllType;
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
-import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * This is a high performance implementation of Phillipe Flajolet&#8217;s HLL sketch but with
@@ -45,22 +44,34 @@ public class HllSketch extends BaseHllSketch {
   HllSketchImpl hllSketchImpl = null;
 
   /**
-   * Standard constructor configures an HLL_4 sketch as the default.
+   * Constructs a new sketch with a HLL_4 sketch as the default.
    * @param lgConfigK The Log2 of K for the target HLL sketch. This value must be
    * between 4 and 21 inclusively.
    */
   public HllSketch(final int lgConfigK) {
-    hllSketchImpl = new CouponList(HllUtil.checkLgK(lgConfigK), TgtHllType.HLL_4, CurMode.LIST);
+    this(lgConfigK, TgtHllType.HLL_4);
   }
 
   /**
-   * Standard constructor with the type of HLL sketch to configure.
+   * Constructs a new sketch with the type of HLL sketch to configure.
    * @param lgConfigK The Log2 of K for the target HLL sketch. This value must be
    * between 4 and 21 inclusively.
    * @param tgtHllType the desired Hll type.
    */
   public HllSketch(final int lgConfigK, final TgtHllType tgtHllType) {
     hllSketchImpl = new CouponList(HllUtil.checkLgK(lgConfigK), tgtHllType, CurMode.LIST);
+  }
+
+  /**
+   * Constructs a new direct sketch with the type of HLL sketch to configure and the given
+   * WritableMemory as the destination for the sketch.
+   * @param lgConfigK The Log2 of K for the target HLL sketch. This value must be
+   * between 4 and 21 inclusively.
+   * @param tgtHllType the desired Hll type.
+   * @param dstMem the destination memory for the sketch.
+   */
+  public HllSketch(final int lgConfigK, final TgtHllType tgtHllType, final WritableMemory dstMem) {
+    hllSketchImpl = DirectCouponList.newInstance(lgConfigK, tgtHllType, CurMode.LIST, dstMem);
   }
 
   /**
@@ -80,7 +91,7 @@ public class HllSketch extends BaseHllSketch {
   }
 
   /**
-   * Heapify the given byte array, which must be a valid HllSketch image.
+   * Heapify the given byte array, which must be a valid HllSketch image, and may be read-only.
    * @param byteArray the given byte array
    * @return an HllSketch
    */
@@ -89,42 +100,95 @@ public class HllSketch extends BaseHllSketch {
   }
 
   /**
-   * Heapify the given Memory.
-   * @param mem the given Memory
+   * Heapify the given Memory, which may be read-only.
+   * @param srcMem the given Memory
    * @return an HllSketch
    */
-  public static final HllSketch heapify(final Memory mem) {
-    final Object memObj = ((WritableMemory) mem).getArray();
-    final long memAdd = mem.getCumulativeOffset(0);
-    final CurMode curMode = checkPreamble(mem, memObj, memAdd);
+  public static final HllSketch heapify(final Memory srcMem) {
+    final Object memObj = ((WritableMemory) srcMem).getArray();
+    final long memAdd = srcMem.getCumulativeOffset(0);
+    final CurMode curMode = checkPreamble(srcMem, memObj, memAdd);
     final HllSketch heapSketch;
     if (curMode == CurMode.HLL) {
       final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
       if (tgtHllType == TgtHllType.HLL_4) {
-        heapSketch = new HllSketch(Hll4Array.heapify(mem));
+        heapSketch = new HllSketch(Hll4Array.heapify(srcMem));
       } else if (tgtHllType == TgtHllType.HLL_6) {
-        heapSketch = new HllSketch(Hll6Array.heapify(mem));
+        heapSketch = new HllSketch(Hll6Array.heapify(srcMem));
       } else { //Hll_8
-        heapSketch = new HllSketch(Hll8Array.heapify(mem));
+        heapSketch = new HllSketch(Hll8Array.heapify(srcMem));
       }
-    } else { //LIST or SET
-      heapSketch = new HllSketch(CouponList.heapify(mem, curMode));
+    } else if (curMode == CurMode.LIST) {
+      heapSketch = new HllSketch(CouponList.heapifyList(srcMem));
+    } else {
+      heapSketch = new HllSketch(CouponHashSet.heapifySet(srcMem));
     }
     return heapSketch;
   }
 
   /**
-   * Return a copy of this sketch.
-   * @return a copy of this sketch
+   * Wraps the given read-only Memory that is an image of a valid sketch with data.
+   * @param srcMem an image of a valid sketch with data.
+   * @return a DirectCouponList
+   */
+  public static final HllSketch wrap(final Memory srcMem) {
+    final Object memObj = ((WritableMemory) srcMem).getArray();
+    final long memAdd = srcMem.getCumulativeOffset(0);
+    final CurMode curMode = checkPreamble(srcMem, memObj, memAdd);
+    final HllSketch directSketch;
+    if (curMode == CurMode.HLL) {
+      final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
+      if (tgtHllType == TgtHllType.HLL_4) {
+        directSketch = null; //new HllSketch(Hll4Array.heapify(srcMem)); //TODO
+      } else if (tgtHllType == TgtHllType.HLL_6) {
+        directSketch = null; //new HllSketch(Hll6Array.heapify(srcMem));
+      } else { //Hll_8
+        directSketch = null; //new HllSketch(Hll8Array.heapify(srcMem));
+      }
+    } else { //LIST or SET
+      directSketch = new HllSketch(DirectCouponList.wrap(srcMem, curMode));
+    }
+    return directSketch;
+  }
+
+  /**
+   * Wraps the given WritableMemory that is an image of a valid sketch with data.
+   * @param srcMem an image of a valid sketch with data.
+   * @return a DirectCouponList
+   */
+  public static final HllSketch writableWrap(final WritableMemory srcMem) {
+    final Object memObj = srcMem.getArray();
+    final long memAdd = srcMem.getCumulativeOffset(0);
+    final CurMode curMode = checkPreamble(srcMem, memObj, memAdd);
+    final HllSketch directSketch;
+    if (curMode == CurMode.HLL) {
+      final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
+      if (tgtHllType == TgtHllType.HLL_4) {
+        directSketch = null; //new HllSketch(Hll4Array.heapify(srcMem)); //TODO
+      } else if (tgtHllType == TgtHllType.HLL_6) {
+        directSketch = null; //new HllSketch(Hll6Array.heapify(srcMem));
+      } else { //Hll_8
+        directSketch = null; //new HllSketch(Hll8Array.heapify(srcMem));
+      }
+    } else { //LIST or SET
+      directSketch = new HllSketch(DirectCouponList.writableWrap(srcMem, curMode));
+    }
+    return directSketch;
+  }
+
+
+  /**
+   * Return a copy of this sketch onto the Java heap.
+   * @return a copy of this sketch onto the Java heap.
    */
   public HllSketch copy() {
     return new HllSketch(this);
   }
 
   /**
-   * Return a copy of this sketch with the specified TgtHllType
+   * Return a deep copy of this sketch onto the Java heap with the specified TgtHllType.
    * @param tgtHllType the TgtHllType enum
-   * @return a copy of this sketch with the specified TgtHllType
+   * @return a deep copy of this sketch with the specified TgtHllType.
    */
   public HllSketch copyAs(final TgtHllType tgtHllType) {
     return new HllSketch(hllSketchImpl.copyAs(tgtHllType));
@@ -152,7 +216,7 @@ public class HllSketch extends BaseHllSketch {
 
   @Override
   public int getCompactSerializationBytes() {
-    return hllSketchImpl.getCurrentSerializationBytes();
+    return hllSketchImpl.getCompactSerializationBytes();
   }
 
   @Override
@@ -192,6 +256,11 @@ public class HllSketch extends BaseHllSketch {
   @Override
   public double getRelErrFactor(final int numStdDev) {
     return hllSketchImpl.getRelErrFactor(numStdDev);
+  }
+
+  @Override
+  public int getUpdatableSerializationBytes() {
+    return hllSketchImpl.getUpdatableSerializationBytes();
   }
 
   @Override
@@ -321,7 +390,7 @@ public class HllSketch extends BaseHllSketch {
     hllSketchImpl = hllSketchImpl.couponUpdate(coupon);
   }
 
-  private static CurMode checkPreamble(final Memory mem, final Object memObj, final long memAdd) {
+  static CurMode checkPreamble(final Memory mem, final Object memObj, final long memAdd) {
     final int preInts = extractPreInts(memObj, memAdd);
     final int serVer = extractSerVer(memObj, memAdd);
     final int famId = extractFamilyId(memObj, memAdd);
@@ -334,8 +403,7 @@ public class HllSketch extends BaseHllSketch {
     if ((curMode == CurMode.SET) && (preInts != 3)) { error = true; }
     if ((curMode == CurMode.HLL) && (preInts != 10)) { error = true; }
     if (error) {
-      throw new SketchesArgumentException(
-          "Corrupt HLL Sketch image:\n" + PreambleUtil.toString(mem));
+      HllUtil.badPreambleState(mem);
     }
     return curMode;
   }

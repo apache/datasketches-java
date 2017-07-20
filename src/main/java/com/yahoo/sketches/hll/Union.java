@@ -136,13 +136,18 @@ public class Union extends BaseHllSketch {
   }
 
   @Override
-  public double getRelErr(final int numStdDev) {
+  public double getRelErr(final int numStdDev) { //TODO
     return gadget.getRelErr(numStdDev);
   }
 
   @Override
-  public double getRelErrFactor(final int numStdDev) {
+  public double getRelErrFactor(final int numStdDev) { //TODO
     return gadget.getRelErrFactor(numStdDev);
+  }
+
+  @Override
+  public int getUpdatableSerializationBytes() {
+    return gadget.getUpdatableSerializationBytes();
   }
 
   @Override
@@ -259,7 +264,7 @@ public class Union extends BaseHllSketch {
         //lgMaxK because LIST has effective K of 2^26
         final HllSketchImpl newSrcImplList = outImpl;
         final HllSketchImpl newDstImplHll = srcImpl;
-        outImpl = HllUtil.copyOrDownsampleHll(newDstImplHll, lgMaxK);
+        outImpl = HllArray.copyOrDownsampleHll(newDstImplHll, lgMaxK);
         assert outImpl.getCurMode() == HLL;
         final PairIterator srcItr = newSrcImplList.getIterator();
         while (srcItr.nextValid()) {
@@ -290,7 +295,7 @@ public class Union extends BaseHllSketch {
         //lgMaxK because LIST has effective K of 2^26
         final HllSketchImpl newSrcSet = outImpl;
         final HllSketchImpl newDstImplHll = srcImpl;
-        outImpl = HllUtil.copyOrDownsampleHll(newDstImplHll, lgMaxK);
+        outImpl = HllArray.copyOrDownsampleHll(newDstImplHll, lgMaxK);
         final PairIterator srcItr = newSrcSet.getIterator();
         assert outImpl.getCurMode() == HLL;
         while (srcItr.nextValid()) {
@@ -323,7 +328,7 @@ public class Union extends BaseHllSketch {
         final int dstLgK = outImpl.getLgConfigK();
         if ((srcLgK < dstLgK) || (outImpl.getTgtHllType() != HLL_8)) {
           final int newLgConfigK = min(outImpl.getLgConfigK(), srcImpl.getLgConfigK());
-          outImpl = HllUtil.copyOrDownsampleHll(outImpl, newLgConfigK);
+          outImpl = HllArray.copyOrDownsampleHll(outImpl, newLgConfigK);
         }
         assert outImpl.getCurMode() == HLL;
         final PairIterator srcItr = srcImpl.getIterator();
@@ -350,7 +355,7 @@ public class Union extends BaseHllSketch {
         break;
       }
       case 14: { //src: HLL, gadget: empty
-        outImpl = HllUtil.copyOrDownsampleHll(srcImpl, lgMaxK);
+        outImpl = HllArray.copyOrDownsampleHll(srcImpl, lgMaxK);
         outImpl.putOutOfOrderFlag(srcImpl.isOutOfOrderFlag()); //whatever source is.
         break;
       }
