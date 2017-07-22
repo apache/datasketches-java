@@ -37,6 +37,7 @@ class CouponHashSet extends CouponList {
    */
   CouponHashSet(final int lgConfigK, final TgtHllType tgtHllType) {
     super(lgConfigK, tgtHllType, CurMode.SET);
+    assert lgConfigK > 7;
   }
 
   /**
@@ -60,6 +61,7 @@ class CouponHashSet extends CouponList {
   static final CouponHashSet heapifySet(final Memory mem) {
     final Object memObj = ((WritableMemory) mem).getArray();
     final long memAdd = mem.getCumulativeOffset(0);
+
     final int lgConfigK = extractLgK(memObj, memAdd);
     final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
     final int lgCouponArrInts = extractLgArr(memObj, memAdd);
@@ -79,10 +81,22 @@ class CouponHashSet extends CouponList {
       final int couponArrInts = 1 << lgCouponArrInts;
       final int[] newCouponIntArr = new int[couponArrInts];
       mem.getIntArray(HASH_SET_INT_ARR_START, newCouponIntArr, 0, couponArrInts);
-      set.putCouponIntArr(newCouponIntArr, lgCouponArrInts);
+      set.putCouponIntArr(newCouponIntArr);
+      set.putLgCouponArrInts(lgCouponArrInts);
     }
     set.putOutOfOrderFlag(true);
     return set;
+  }
+
+  static final HllSketchImpl morphHeapListToSet(final CouponList list) {
+    final int couponCount = list.couponCount;
+    final int[] arr = list.couponIntArr;
+    final CouponHashSet chSet = new CouponHashSet(list.lgConfigK, list.tgtHllType);
+    for (int i = 0; i < couponCount; i++) {
+      chSet.couponUpdate(arr[i]);
+    }
+    chSet.putOutOfOrderFlag(true);
+    return chSet;
   }
 
 
@@ -107,15 +121,24 @@ class CouponHashSet extends CouponList {
     }
     couponIntArr[~index] = coupon;
     couponCount++;
-    oooFlag = true; //could be moved out
     final boolean promote = checkGrowOrPromote();
     if (!promote) { return this; }
-    return morphFromCouponsToHll(this);
+    return HllArray.morphHeapCouponsToHll(this);
+  }
+
+  @Override
+  void populateCouponIntArrFromMem(final Memory srcMem, final int lenInts) {
+    srcMem.getIntArray(HASH_SET_INT_ARR_START, couponIntArr, 0, lenInts);
+  }
+
+  @Override
+  void populateMemFromCouponIntArr(final WritableMemory dstWmem, final int lenInts) {
+    dstWmem.putIntArray(HASH_SET_INT_ARR_START, couponIntArr, 0, lenInts);
   }
 
   private boolean checkGrowOrPromote() {
     if ((RESIZE_DENOM * couponCount) > (RESIZE_NUMER * (1 << lgCouponArrInts))) {
-      if (lgCouponArrInts == lgMaxCouponArrInts) {
+      if (lgCouponArrInts == (lgConfigK - 3)) {
         return true; // promote
       }
       //TODO if direct, ask for more memory

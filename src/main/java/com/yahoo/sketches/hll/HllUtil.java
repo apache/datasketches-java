@@ -5,6 +5,9 @@
 
 package com.yahoo.sketches.hll;
 
+import static java.lang.Math.log;
+import static java.lang.Math.sqrt;
+
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -21,12 +24,14 @@ final class HllUtil {
   static final int MIN_LOG_K = 4;
   static final int MAX_LOG_K = 21;
 
-  // This RSE is computed at the transition point from coupons to HLL and not for the asymptote.
-  static final double COUPON_RSE_FACTOR = .409;
-  static final int LG_INIT_LIST_SIZE = 3;
-  static final int LG_INIT_SET_SIZE = 5;
+  static final double HLL_HIP_RSE_FACTOR = sqrt(log(2.0)); //.8325546
+  static final double HLL_NON_HIP_RSE_FACTOR = sqrt((3.0 * log(2.0)) - 1.0); //1.03896
+  static final double COUPON_RSE_FACTOR = .409; //at transition point not the asymptote
+
   static final double COUPON_RSE = COUPON_RSE_FACTOR / (1 << 13);
 
+  static final int LG_INIT_LIST_SIZE = 3;
+  static final int LG_INIT_SET_SIZE = 5;
   static final int RESIZE_NUMER = 3;
   static final int RESIZE_DENOM = 4;
 

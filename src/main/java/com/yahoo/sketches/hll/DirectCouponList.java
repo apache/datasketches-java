@@ -9,12 +9,10 @@ import static com.yahoo.sketches.hll.HllUtil.COUPON_RSE;
 import static com.yahoo.sketches.hll.HllUtil.COUPON_RSE_FACTOR;
 import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.LG_INIT_LIST_SIZE;
-import static com.yahoo.sketches.hll.HllUtil.LG_INIT_SET_SIZE;
 import static com.yahoo.sketches.hll.HllUtil.noWriteAccess;
 import static com.yahoo.sketches.hll.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_INT_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_PREINTS;
-import static com.yahoo.sketches.hll.PreambleUtil.LG_K_BYTE;
 import static com.yahoo.sketches.hll.PreambleUtil.LIST_INT_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.LIST_PREINTS;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCurMode;
@@ -46,100 +44,55 @@ import com.yahoo.sketches.SketchesStateException;
 /**
  * @author Lee Rhodes
  */
-class DirectCouponList extends HllSketchImpl {
-  final int lgMaxCouponArrInts;
+class DirectCouponList extends AbstractCoupons {
   WritableMemory wmem;
   Memory mem;
   Object memObj;
   long memAdd;
 
   //called from newInstance, writableWrap and DirectCouponHashSet
-  DirectCouponList(final WritableMemory wmem, final int lgMaxCouponArrInts) {
+  DirectCouponList(final WritableMemory wmem) {
     super();
-    this.lgMaxCouponArrInts = lgMaxCouponArrInts;
     this.wmem = wmem;
     mem = wmem;
     memObj = wmem.getArray();
     memAdd = wmem.getCumulativeOffset(0L);
-    HllSketch.checkPreamble(mem, memObj, memAdd); //TODO place earlier?
   }
 
   //called from local wrap and from DirectCouponHashSet
-  DirectCouponList(final Memory mem, final int lgMaxCouponArrInts) {
+  DirectCouponList(final Memory mem) {
     super();
-    this.lgMaxCouponArrInts = lgMaxCouponArrInts;
     wmem = null;
     this.mem = mem;
     memObj = ((WritableMemory) mem).getArray();
     memAdd = mem.getCumulativeOffset(0L);
-    HllSketch.checkPreamble(mem, memObj, memAdd); //TODO place earlier?
   }
 
   /**
-   * Standard factory for new Direct LIST or SET.
+   * Standard factory for new DirectCouponList.
    * This initializes the given WritableMemory.
    * @param lgConfigK the configured Lg K
    * @param tgtHllType the configured HLL target
-   * @param curMode LIST or SET
    * @param dstMem the destination memory for the sketch.
    */
   static DirectCouponList newInstance(final int lgConfigK, final TgtHllType tgtHllType,
-      final CurMode curMode, final WritableMemory dstMem) {
+      final WritableMemory dstMem) {
+    final long capBytes = dstMem.getCapacity();
+    final int minBytes = LIST_INT_ARR_START + (4 << LG_INIT_LIST_SIZE);
+    HllUtil.checkMemSize(minBytes, capBytes);
+
     final Object memObj = dstMem.getArray();
     final long memAdd = dstMem.getCumulativeOffset(0L);
 
+    insertPreInts(memObj, memAdd, LIST_PREINTS);
     insertSerVer(memObj, memAdd);
     insertFamilyId(memObj, memAdd);
     insertLgK(memObj, memAdd, lgConfigK);
+    insertLgArr(memObj, memAdd, LG_INIT_LIST_SIZE);
     insertFlags(memObj, memAdd, EMPTY_FLAG_MASK);
-    insertListCount(memObj, memAdd, 0); //zero out for SET also
-    insertModes(memObj, memAdd, tgtHllType, curMode);
-
-    final long capBytes = dstMem.getCapacity();
-    if (curMode == CurMode.LIST) {
-      final int minBytes = LIST_INT_ARR_START + (4 << LG_INIT_LIST_SIZE);
-      HllUtil.checkMemSize(minBytes, capBytes);
-      insertPreInts(memObj, memAdd, LIST_PREINTS);
-      insertLgArr(memObj, memAdd, LG_INIT_LIST_SIZE);
-      return new DirectCouponList(dstMem, LG_INIT_LIST_SIZE);
-    }
-    //else SET
-    final int minBytes = HASH_SET_INT_ARR_START + (4 << LG_INIT_SET_SIZE);
-    HllUtil.checkMemSize(minBytes, capBytes);
-    insertPreInts(memObj, memAdd, HASH_SET_PREINTS);
-
-    insertLgArr(memObj, memAdd, LG_INIT_SET_SIZE);
-    insertHashSetCount(memObj, memAdd, 0);
-    return new DirectCouponHashSet(dstMem, lgConfigK);
-  }
-
-  /**
-   * Wraps the given WritableMemory that is an image of a valid sketch with data.
-   * @param srcMem an image of a valid sketch with data.
-   * @return a DirectCouponList
-   */
-  static final DirectCouponList writableWrap(final WritableMemory srcMem, final CurMode curMode) {
-    if (curMode == CurMode.LIST) {
-      return new DirectCouponList(srcMem, LG_INIT_LIST_SIZE);
-    }
-    return new DirectCouponHashSet(srcMem, srcMem.getByte(LG_K_BYTE));
-  }
-
-  /**
-   * Wraps the given Memory that is an image of a valid sketch with data.
-   * @param srcMem an image of a valid sketch with data.
-   * @return a DirectCouponList
-   */
-  static final DirectCouponList wrap(final Memory srcMem, final CurMode curMode) {
-    if (curMode == CurMode.LIST) {
-      return new DirectCouponList(srcMem, LG_INIT_LIST_SIZE);
-    }
-    return new DirectCouponHashSet(srcMem, srcMem.getByte(LG_K_BYTE));
-  }
-
-  @Override
-  AuxHashMap getAuxHashMap() {
-    return null;
+    insertListCount(memObj, memAdd, 0);
+    insertModes(memObj, memAdd, tgtHllType, CurMode.LIST);
+    return new DirectCouponList(dstMem);
   }
 
   @Override //returns on-heap List
@@ -168,9 +121,9 @@ class DirectCouponList extends HllSketchImpl {
         if (couponCount >= len) { //array full
           if (lgConfigK < 8) {
             return DirectCouponHashSet
-                .morphFromCouponsToHll(this, lgConfigK, getTgtHllType());//oooFlag = false
+                .morphMemCouponsToHll(this, lgConfigK, getTgtHllType());//oooFlag = false
           }
-          return DirectCouponHashSet.morphFromListToSet(this); //oooFlag = true
+          return DirectCouponHashSet.morphMemListToSet(this); //oooFlag = true
         }
         return this;
       }
@@ -182,26 +135,8 @@ class DirectCouponList extends HllSketchImpl {
   }
 
   @Override
-  PairIterator getAuxIterator() {
-    return null; //always null from LIST or SET
-  }
-
-  @Override
   int getCouponCount() {
     return extractListCount(memObj, memAdd);
-  }
-
-  @Override
-  int[] getCouponIntArr() { //expensive, use sparingly
-    final int len = 1 << getLgCouponArrInts();
-    final int[] intArr = new int[len];
-    mem.getIntArray(LIST_INT_ARR_START, intArr, 0, len);
-    return intArr;
-  }
-
-  @Override
-  int getCurMin() {
-    return -1;
   }
 
   @Override
@@ -220,6 +155,11 @@ class DirectCouponList extends HllSketchImpl {
   }
 
   @Override
+  int getCouponIntArrLen() {
+    return 1 << extractLgArr(memObj, memAdd);
+  }
+
+  @Override
   double getEstimate() {
     final int couponCount = getCouponCount();
     final double est = CubicInterpolation.usingXAndYTables(CouponMapping.xArr,
@@ -228,28 +168,8 @@ class DirectCouponList extends HllSketchImpl {
   }
 
   @Override
-  double getHipAccum() {
-    return getCouponCount();
-  }
-
-  @Override
-  byte[] getHllByteArr() {
-    return null;
-  }
-
-  @Override
   PairIterator getIterator() {
     return new DirectCouponIterator();
-  }
-
-  @Override
-  double getKxQ0() {
-    return 0;
-  }
-
-  @Override
-  double getKxQ1() {
-    return 0;
   }
 
   @Override
@@ -263,22 +183,12 @@ class DirectCouponList extends HllSketchImpl {
   }
 
   @Override
-  int getLgMaxCouponArrInts() {
-    return lgMaxCouponArrInts;
-  }
-
-  @Override
   double getLowerBound(final int numStdDev) {
     final int couponCount = getCouponCount();
     final double est = CubicInterpolation.usingXAndYTables(CouponMapping.xArr,
         CouponMapping.yArr, couponCount);
     final double tmp = est / (1.0 + CouponList.couponEstimatorEps(numStdDev));
     return max(tmp, couponCount);
-  }
-
-  @Override
-  int getNumAtCurMin() {
-    return -1;
   }
 
   @Override
@@ -326,15 +236,31 @@ class DirectCouponList extends HllSketchImpl {
   }
 
   @Override
+  void populateCouponIntArrFromMem(final Memory srcMem, final int lenInts) {
+    srcMem.copyTo(LIST_INT_ARR_START, wmem, LIST_INT_ARR_START, lenInts << 2);
+  }
+
+  @Override
+  void populateMemFromCouponIntArr(final WritableMemory dstWmem, final int lenInts) {
+    mem.copyTo(LIST_INT_ARR_START, dstWmem, LIST_INT_ARR_START, lenInts << 2);
+  }
+
+  @Override
   void putCouponCount(final int couponCount) {
     assert wmem != null;
     insertListCount(memObj, memAdd, couponCount);
   }
 
-  void putCouponIntArr(final int[] couponIntArr, final int lgCouponArrInts) {
+  @Override
+  void putCouponIntArr(final int[] couponIntArr) {
     assert wmem != null;
-    final int len = 1 << lgCouponArrInts;
-    wmem.putIntArray(LIST_INT_ARR_START, couponIntArr, 0, len);
+    final int lenInts = 1 << extractLgArr(memObj, memAdd);
+    wmem.putIntArray(LIST_INT_ARR_START, couponIntArr, 0, lenInts);
+  }
+
+  @Override
+  void putLgCouponArrInts(final int lgCouponArrInts) {
+    assert wmem != null;
     insertLgArr(memObj, memAdd, lgCouponArrInts);
   }
 
@@ -451,5 +377,4 @@ class DirectCouponList extends HllSketchImpl {
     }
   }
   //END Iterators
-
 }

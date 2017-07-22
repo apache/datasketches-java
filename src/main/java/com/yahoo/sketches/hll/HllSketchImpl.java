@@ -6,7 +6,7 @@
 package com.yahoo.sketches.hll;
 
 /**
- * The HllSketch implementation
+ * The Abstract HllSketch implementation
  *
  * @author Lee Rhodes
  */
@@ -18,16 +18,6 @@ abstract class HllSketchImpl {
 
   abstract HllSketchImpl couponUpdate(int coupon);
 
-  abstract AuxHashMap getAuxHashMap();
-
-  abstract PairIterator getAuxIterator();
-
-  abstract int getCouponCount(); //for test
-
-  abstract int[] getCouponIntArr();
-
-  abstract int getCurMin();
-
   abstract CurMode getCurMode();
 
   abstract int getCompactSerializationBytes();
@@ -36,25 +26,11 @@ abstract class HllSketchImpl {
 
   abstract double getEstimate();
 
-  abstract double getHipAccum();
-
-  abstract byte[] getHllByteArr();
-
   abstract PairIterator getIterator();
-
-  abstract double getKxQ0();
-
-  abstract double getKxQ1();
 
   abstract int getLgConfigK();
 
-  abstract int getLgCouponArrInts();
-
   abstract double getLowerBound(int numStdDev);
-
-  abstract int getLgMaxCouponArrInts(); //for test
-
-  abstract int getNumAtCurMin();
 
   abstract TgtHllType getTgtHllType();
 
@@ -69,8 +45,6 @@ abstract class HllSketchImpl {
   abstract boolean isEmpty();
 
   abstract boolean isOutOfOrderFlag();
-
-  abstract void putCouponCount(int couponCount);
 
   abstract void putOutOfOrderFlag(boolean oooFlag);
 

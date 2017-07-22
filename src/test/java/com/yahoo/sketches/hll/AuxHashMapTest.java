@@ -25,10 +25,11 @@ public class AuxHashMapTest {
     int lgU = 20;
     HllSketch sk = new HllSketch(lgK, TgtHllType.HLL_4);
     for (int i = 0; i < (1 << lgU); i++) { sk.update(i); }
-    int curMin = sk.hllSketchImpl.getCurMin();
+    AbstractHllArray absHll = (AbstractHllArray) sk.hllSketchImpl;
+    int curMin = absHll.getCurMin();
     println("HLL_4, lgK: " + lgK + ", lgU: " + lgU);
     println("CurMin: " + curMin);
-    PairIterator itr = sk.getAuxIterator();
+    PairIterator itr = absHll.getAuxIterator();
     println("Aux Array before SerDe.");
     println(itr.getHeader());
     while (itr.nextValid()) {
@@ -47,7 +48,7 @@ public class AuxHashMapTest {
         println(h4itr.getString());
       }
     }
-    h4itr = sk.getAuxIterator();
+    h4itr = absHll.getAuxIterator();
     println("\nAux Array after SerDe: should match above.");
     println(h4itr.getHeader());
     while (h4itr.nextAll()) {

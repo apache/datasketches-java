@@ -40,11 +40,10 @@ import com.yahoo.sketches.SketchesStateException;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-class CouponList extends HllSketchImpl {
+class CouponList extends AbstractCoupons {
   final int lgConfigK;
   final TgtHllType tgtHllType;
   final CurMode curMode;
-  final int lgMaxCouponArrInts;
   boolean oooFlag = false; //Out-Of-Order Flag
   int lgCouponArrInts;
   int couponCount;
@@ -58,15 +57,16 @@ class CouponList extends HllSketchImpl {
    */
   CouponList(final int lgConfigK, final TgtHllType tgtHllType,
       final CurMode curMode) {
+    super();
     this.lgConfigK = lgConfigK;
     this.tgtHllType = tgtHllType;
     this.curMode = curMode;
     if (curMode == CurMode.LIST) {
-      lgCouponArrInts = lgMaxCouponArrInts = LG_INIT_LIST_SIZE;
+      lgCouponArrInts = LG_INIT_LIST_SIZE;
       oooFlag = false;
     } else { //SET
       lgCouponArrInts = LG_INIT_SET_SIZE;
-      lgMaxCouponArrInts = lgConfigK - 3;
+      assert lgConfigK > 7;
       oooFlag = true;
     }
     couponIntArr = new int[1 << lgCouponArrInts];
@@ -78,14 +78,14 @@ class CouponList extends HllSketchImpl {
    * @param that another CouponArray
    */
   CouponList(final CouponList that) {
-    lgConfigK = that.getLgConfigK();
-    tgtHllType = that.getTgtHllType();
-    curMode = that.getCurMode();
-    oooFlag = that.isOutOfOrderFlag();
-    lgCouponArrInts = that.getLgCouponArrInts();
-    couponCount = that.getCouponCount();
-    couponIntArr = that.getCouponIntArr().clone();
-    lgMaxCouponArrInts = that.getLgMaxCouponArrInts();
+    super();
+    lgConfigK = that.lgConfigK;
+    tgtHllType = that.tgtHllType;
+    curMode = that.curMode;
+    oooFlag = that.oooFlag;
+    lgCouponArrInts = that.lgCouponArrInts;
+    couponCount = that.couponCount;
+    couponIntArr = that.couponIntArr.clone();
   }
 
   /**
@@ -95,17 +95,15 @@ class CouponList extends HllSketchImpl {
    */ //also used by CouponHashSet
   CouponList(final CouponList that, final TgtHllType tgtHllType) {
     super();
-    lgConfigK = that.getLgConfigK();
+    lgConfigK = that.lgConfigK;
     this.tgtHllType = tgtHllType;
-    curMode = that.getCurMode();
-    oooFlag = that.isOutOfOrderFlag();
-    lgCouponArrInts = that.getLgCouponArrInts();
-    couponCount = that.getCouponCount();
-    couponIntArr = that.getCouponIntArr().clone();
-    lgMaxCouponArrInts = that.getLgMaxCouponArrInts();
+    curMode = that.curMode;
+    oooFlag = that.oooFlag;
+    lgCouponArrInts = that.lgCouponArrInts;
+    couponCount = that.couponCount;
+    couponIntArr = that.couponIntArr.clone();
   }
 
-  //only does list
   static final CouponList heapifyList(final Memory mem) {
     final Object memArr = ((WritableMemory) mem).getArray();
     final long memAdd = mem.getCumulativeOffset(0);
@@ -120,35 +118,8 @@ class CouponList extends HllSketchImpl {
     for (int i = 0; i < couponCount; i++) { //LIST is always stored compact
       list.couponUpdate(data[i]);
     }
-
     list.putOutOfOrderFlag(extractOooFlag(memArr, memAdd));
     return list;
-  }
-
-  //when called from CouponList, tgtLgK == lgConfigK
-  static final HllSketchImpl morphFromListToSet(final CouponList list) {
-    final int couponCount = list.couponCount;
-    final int[] arr = list.couponIntArr;
-    final CouponHashSet chSet = new CouponHashSet(list.lgConfigK, list.tgtHllType);
-    for (int i = 0; i < couponCount; i++) {
-      chSet.couponUpdate(arr[i]);
-    }
-    chSet.putOutOfOrderFlag(true);
-    return chSet;
-  }
-
-  //This is ONLY called when src is not in HLL mode and creating a new tgt HLL
-  //Src can be either list or set.
-  //Used by CouponList, CouponHashSet
-  static final HllSketchImpl morphFromCouponsToHll(final CouponList src) {
-    final HllArray tgtHllArr = HllArray.newHll(src.lgConfigK, src.tgtHllType);
-    final PairIterator srcItr = src.getIterator();
-    while (srcItr.nextValid()) {
-      tgtHllArr.couponUpdate(srcItr.getPair());
-    }
-    tgtHllArr.putHipAccum(src.getEstimate());
-    tgtHllArr.putOutOfOrderFlag(false);
-    return tgtHllArr;
   }
 
   @Override
@@ -163,8 +134,7 @@ class CouponList extends HllSketchImpl {
 
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
-    final int len = 1 << getLgCouponArrInts();
-    final int lgConfigK = getLgConfigK();
+    final int len = 1 << lgCouponArrInts;
     for (int i = 0; i < len; i++) { //search for empty slot
       final int couponAtIdx = couponIntArr[i];
       if (couponAtIdx == EMPTY) {
@@ -172,9 +142,9 @@ class CouponList extends HllSketchImpl {
         couponCount++;
         if (couponCount >= len) { //array full
           if (lgConfigK < 8) {
-            return morphFromCouponsToHll(this);//oooFlag = false
+            return HllArray.morphHeapCouponsToHll(this);//oooFlag = false
           }
-          return morphFromListToSet(this); //oooFlag = true
+          return CouponHashSet.morphHeapListToSet(this); //oooFlag = true
         }
         return this;
       }
@@ -186,28 +156,13 @@ class CouponList extends HllSketchImpl {
   }
 
   @Override
-  AuxHashMap getAuxHashMap() {
-    return null;
-  }
-
-  @Override
-  PairIterator getAuxIterator() {
-    return null; //always null from LIST or SET
-  }
-
-  @Override
   int getCouponCount() {
     return couponCount;
   }
 
   @Override
-  int[] getCouponIntArr() {
-    return couponIntArr;
-  }
-
-  @Override
-  int getCurMin() {
-    return -1;
+  int getCouponIntArrLen() {
+    return couponIntArr.length;
   }
 
   @Override
@@ -217,9 +172,14 @@ class CouponList extends HllSketchImpl {
 
   @Override
   int getCompactSerializationBytes() {
-    final int dataStart = (getCurMode() == CurMode.LIST) ? LIST_INT_ARR_START
+    final int dataStart = (curMode == CurMode.LIST) ? LIST_INT_ARR_START
         : HASH_SET_INT_ARR_START;
-    return dataStart +  (getCouponCount() << 2);
+    return dataStart +  (couponCount << 2);
+  }
+
+  @Override
+  double getCompositeEstimate() {
+    return getEstimate();
   }
 
   /**
@@ -235,7 +195,7 @@ class CouponList extends HllSketchImpl {
    */
   @Override
   double getEstimate() {
-    return getEstimate(getCouponCount());
+    return getEstimate(couponCount);
   }
 
   static final double getEstimate(final int couponCount) {
@@ -245,33 +205,8 @@ class CouponList extends HllSketchImpl {
   }
 
   @Override
-  double getCompositeEstimate() {
-    return getEstimate();
-  }
-
-  @Override
-  double getHipAccum() {
-    return getCouponCount();
-  }
-
-  @Override
-  byte[] getHllByteArr() {
-    return null;
-  }
-
-  @Override
   PairIterator getIterator() {
     return new CouponIterator();
-  }
-
-  @Override
-  double getKxQ0() {
-    return -1.0;
-  }
-
-  @Override
-  double getKxQ1() {
-    return -1.0;
   }
 
   @Override
@@ -285,22 +220,12 @@ class CouponList extends HllSketchImpl {
   }
 
   @Override
-  int getLgMaxCouponArrInts() {
-    return lgMaxCouponArrInts;
-  }
-
-  @Override
   double getLowerBound(final int numStdDev) {
     final int couponCount = getCouponCount();
     final double est = CubicInterpolation.usingXAndYTables(CouponMapping.xArr,
         CouponMapping.yArr, couponCount);
     final double tmp = est / (1.0 + couponEstimatorEps(numStdDev));
     return max(tmp, couponCount);
-  }
-
-  @Override
-  int getNumAtCurMin() {
-    return -1;
   }
 
   @Override
@@ -338,10 +263,6 @@ class CouponList extends HllSketchImpl {
     return max(tmp, couponCount);
   }
 
-  void incCouponCount() {
-    couponCount++;
-  }
-
   @Override
   boolean isEmpty() {
     return getCouponCount() == 0;
@@ -353,12 +274,27 @@ class CouponList extends HllSketchImpl {
   }
 
   @Override
+  void populateCouponIntArrFromMem(final Memory mem, final int lenInts) {
+    mem.getIntArray(LIST_INT_ARR_START, couponIntArr, 0, lenInts);
+  }
+
+  @Override
+  void populateMemFromCouponIntArr(final WritableMemory wmem, final int lenInts) {
+    wmem.putIntArray(LIST_INT_ARR_START, couponIntArr, 0, lenInts);
+  }
+
+  @Override
   void putCouponCount(final int couponCount) {
     this.couponCount = couponCount;
   }
 
-  void putCouponIntArr(final int[] couponIntArr, final int lgCouponArrInts) {
+  @Override
+  void putCouponIntArr(final int[] couponIntArr) {
     this.couponIntArr = couponIntArr;
+  }
+
+  @Override
+  void putLgCouponArrInts(final int lgCouponArrInts) {
     this.lgCouponArrInts = lgCouponArrInts;
   }
 
@@ -377,11 +313,13 @@ class CouponList extends HllSketchImpl {
     return toByteArray(this, false);
   }
 
-  private static final byte[] toByteArray(final HllSketchImpl impl, final boolean compact) {
+  private static final byte[] toByteArray(final AbstractCoupons impl, final boolean compact) {
     final byte[] byteArr;
 
     if (impl.getCurMode() == CurMode.LIST) {
-      byteArr = new byte[LIST_INT_ARR_START + (impl.getCouponCount() << 2)];
+      final int arrLenBytes = (compact) ? impl.getCouponCount() << 2
+          : 4 << impl.getLgCouponArrInts();
+      byteArr = new byte[LIST_INT_ARR_START + arrLenBytes];
       final WritableMemory wmem = WritableMemory.wrap(byteArr);
       insertList(impl, wmem, compact);
 
@@ -395,27 +333,28 @@ class CouponList extends HllSketchImpl {
   }
 
   //also used by DirectCouponList. wmem must be clear
-  static final void insertList(final HllSketchImpl impl, final WritableMemory wmem,
+  static final void insertList(final AbstractCoupons impl, final WritableMemory wmem,
       final boolean compact) {
     final Object memObj = wmem.getArray();
     final long memAdd = wmem.getCumulativeOffset(0L);
     final int couponCount = impl.getCouponCount();
-    final int[] couponIntArr = impl.getCouponIntArr();
     insertPreInts(memObj, memAdd, LIST_PREINTS);
     insertListCount(memObj, memAdd, couponCount);
     insertCompactFlag(memObj, memAdd, compact);
     insertCommonList(impl, memObj, memAdd);
-
-    wmem.putIntArray(LIST_INT_ARR_START, couponIntArr, 0, couponCount);
+    if (compact) {
+      impl.populateMemFromCouponIntArr(wmem, couponCount);
+    } else {
+      impl.populateMemFromCouponIntArr(wmem, impl.getLgCouponArrInts());
+    }
   }
 
   //also used by DirectCouponList. wmem must be clear
-  static final void insertSet(final HllSketchImpl impl, final WritableMemory wmem,
+  static final void insertSet(final AbstractCoupons impl, final WritableMemory wmem,
       final boolean compact) {
     final Object memObj = wmem.getArray();
     final long memAdd = wmem.getCumulativeOffset(0L);
     final int couponCount = impl.getCouponCount();
-    final int[] couponIntArr = impl.getCouponIntArr();
     insertPreInts(memObj, memAdd, HASH_SET_PREINTS);
     insertHashSetCount(memObj, memAdd, couponCount);
     insertCompactFlag(memObj, memAdd, compact);
@@ -428,11 +367,11 @@ class CouponList extends HllSketchImpl {
         wmem.putInt(HASH_SET_INT_ARR_START + (cnt++ << 2), itr.getPair());
       }
     } else { //updatable
-      wmem.putIntArray(HASH_SET_INT_ARR_START, couponIntArr, 0, 1 << impl.getLgCouponArrInts());
+      impl.populateMemFromCouponIntArr(wmem, impl.getLgCouponArrInts());
     }
   }
 
-  static final void insertCommonList(final HllSketchImpl impl, final Object memObj,
+  static final void insertCommonList(final AbstractCoupons impl, final Object memObj,
       final long memAdd) {
     insertSerVer(memObj, memAdd);
     insertFamilyId(memObj, memAdd);
@@ -453,7 +392,7 @@ class CouponList extends HllSketchImpl {
     final int[] array;
 
     CouponIterator() {
-      array = getCouponIntArr();
+      array = couponIntArr;
       len = array.length;
       index = - 1;
     }

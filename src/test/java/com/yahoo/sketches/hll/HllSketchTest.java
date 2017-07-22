@@ -51,7 +51,9 @@ public class HllSketchTest {
     HllSketchImpl impl1 = sk1.hllSketchImpl;
 
     HllSketchImpl impl2 = sk2.hllSketchImpl;
-    assertEquals(impl1.getCouponCount(), impl2.getCouponCount());
+    AbstractCoupons absCoupons1 = (AbstractCoupons) sk1.hllSketchImpl;
+    AbstractCoupons absCoupons2 = (AbstractCoupons) sk2.hllSketchImpl;
+    assertEquals(absCoupons1.getCouponCount(), absCoupons2.getCouponCount());
     assertEquals(impl1.getEstimate(), impl2.getEstimate(), 0.0);
     assertFalse(impl1 == impl2);
 
@@ -65,7 +67,9 @@ public class HllSketchTest {
     impl1 = sk1.hllSketchImpl;
 
     impl2 = sk2.hllSketchImpl;
-    assertEquals(impl1.getCouponCount(), impl2.getCouponCount());
+    absCoupons1 = (AbstractCoupons) sk1.hllSketchImpl;
+    absCoupons2 = (AbstractCoupons) sk2.hllSketchImpl;
+    assertEquals(absCoupons1.getCouponCount(), absCoupons2.getCouponCount());
     assertEquals(impl1.getEstimate(), impl2.getEstimate(), 0.0);
     assertFalse(impl1 == impl2);
     final int u = (sk1.getTgtHllType() == TgtHllType.HLL_4) ? 100000 : 25;
@@ -123,30 +127,22 @@ public class HllSketchTest {
     final int lgConfigK = 8;
     HllSketch sk = new HllSketch(lgConfigK, TgtHllType.HLL_8);
     for (int i = 0; i < 7; i++) { sk.update(i); } //LIST
-    assertNull(sk.getAuxIterator());
-    assertEquals(sk.hllSketchImpl.getCurMin(), -1);
-    assertEquals(sk.hllSketchImpl.getHipAccum(), 7.0, .001);
-    assertEquals(sk.hllSketchImpl.getLgMaxCouponArrInts(), 3);
-    assertEquals(sk.hllSketchImpl.getNumAtCurMin(), -1);
-    assertEquals(sk.hllSketchImpl.getCouponCount(), 7);
+    AbstractCoupons absCoupons = (AbstractCoupons) sk.hllSketchImpl;
+    assertEquals(absCoupons.getCouponCount(), 7);
     assertEquals(sk.getCompactSerializationBytes(), 36);
 
     for (int i = 7; i < 24; i++) { sk.update(i); } //SET
-    assertNull(sk.getAuxIterator());
-    assertEquals(sk.hllSketchImpl.getCurMin(), -1);
-    assertEquals(sk.hllSketchImpl.getHipAccum(), 24.0, .001);
-    assertEquals(sk.hllSketchImpl.getLgMaxCouponArrInts(), 5);
-    assertEquals(sk.hllSketchImpl.getNumAtCurMin(), -1);
-    assertEquals(sk.hllSketchImpl.getCouponCount(), 24);
+    absCoupons = (AbstractCoupons) sk.hllSketchImpl;
+    assertEquals(absCoupons.getCouponCount(), 24);
     assertEquals(sk.getCompactSerializationBytes(), 108);
 
     sk.update(24); //HLL
-    assertNull(sk.getAuxIterator());
-    assertEquals(sk.hllSketchImpl.getCurMin(), 0);
-    assertEquals(sk.hllSketchImpl.getHipAccum(), 25.0, 25 * .02);
-    assertEquals(sk.hllSketchImpl.getLgMaxCouponArrInts(), -1);
-    assertTrue(sk.hllSketchImpl.getNumAtCurMin() >= 0);
-    assertEquals(sk.hllSketchImpl.getCouponCount(), -1);
+    AbstractHllArray absHll = (AbstractHllArray) sk.hllSketchImpl;
+    assertNull(absHll.getAuxIterator());
+    assertEquals(absHll.getCurMin(), 0);
+    assertEquals(absHll.getHipAccum(), 25.0, 25 * .02);
+    assertTrue(absHll.getNumAtCurMin() >= 0);
+
     final int hllBytes = PreambleUtil.HLL_BYTE_ARRAY_START + (1 << lgConfigK);
     assertEquals(sk.getCompactSerializationBytes(), hllBytes);
     assertEquals(HllSketch.getMaxSerializationBytes(lgConfigK, TgtHllType.HLL_8), hllBytes);

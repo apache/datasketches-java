@@ -71,7 +71,7 @@ public class HllSketch extends BaseHllSketch {
    * @param dstMem the destination memory for the sketch.
    */
   public HllSketch(final int lgConfigK, final TgtHllType tgtHllType, final WritableMemory dstMem) {
-    hllSketchImpl = DirectCouponList.newInstance(lgConfigK, tgtHllType, CurMode.LIST, dstMem);
+    hllSketchImpl = DirectCouponList.newInstance(lgConfigK, tgtHllType, dstMem);
   }
 
   /**
@@ -107,7 +107,7 @@ public class HllSketch extends BaseHllSketch {
   public static final HllSketch heapify(final Memory srcMem) {
     final Object memObj = ((WritableMemory) srcMem).getArray();
     final long memAdd = srcMem.getCumulativeOffset(0);
-    final CurMode curMode = checkPreamble(srcMem, memObj, memAdd);
+    final CurMode curMode = checkPreamble(srcMem);
     final HllSketch heapSketch;
     if (curMode == CurMode.HLL) {
       final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
@@ -127,31 +127,6 @@ public class HllSketch extends BaseHllSketch {
   }
 
   /**
-   * Wraps the given read-only Memory that is an image of a valid sketch with data.
-   * @param srcMem an image of a valid sketch with data.
-   * @return a DirectCouponList
-   */
-  public static final HllSketch wrap(final Memory srcMem) {
-    final Object memObj = ((WritableMemory) srcMem).getArray();
-    final long memAdd = srcMem.getCumulativeOffset(0);
-    final CurMode curMode = checkPreamble(srcMem, memObj, memAdd);
-    final HllSketch directSketch;
-    if (curMode == CurMode.HLL) {
-      final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
-      if (tgtHllType == TgtHllType.HLL_4) {
-        directSketch = null; //new HllSketch(Hll4Array.heapify(srcMem)); //TODO
-      } else if (tgtHllType == TgtHllType.HLL_6) {
-        directSketch = null; //new HllSketch(Hll6Array.heapify(srcMem));
-      } else { //Hll_8
-        directSketch = null; //new HllSketch(Hll8Array.heapify(srcMem));
-      }
-    } else { //LIST or SET
-      directSketch = new HllSketch(DirectCouponList.wrap(srcMem, curMode));
-    }
-    return directSketch;
-  }
-
-  /**
    * Wraps the given WritableMemory that is an image of a valid sketch with data.
    * @param srcMem an image of a valid sketch with data.
    * @return a DirectCouponList
@@ -159,7 +134,7 @@ public class HllSketch extends BaseHllSketch {
   public static final HllSketch writableWrap(final WritableMemory srcMem) {
     final Object memObj = srcMem.getArray();
     final long memAdd = srcMem.getCumulativeOffset(0);
-    final CurMode curMode = checkPreamble(srcMem, memObj, memAdd);
+    final CurMode curMode = checkPreamble(srcMem);
     final HllSketch directSketch;
     if (curMode == CurMode.HLL) {
       final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
@@ -170,12 +145,44 @@ public class HllSketch extends BaseHllSketch {
       } else { //Hll_8
         directSketch = null; //new HllSketch(Hll8Array.heapify(srcMem));
       }
-    } else { //LIST or SET
-      directSketch = new HllSketch(DirectCouponList.writableWrap(srcMem, curMode));
+    } else if (curMode == CurMode.LIST) {
+      directSketch =
+          new HllSketch(new DirectCouponList(srcMem));
+    } else {
+      directSketch =
+          new HllSketch(new DirectCouponHashSet(srcMem));
     }
     return directSketch;
   }
 
+  /**
+   * Wraps the given read-only Memory that is an image of a valid sketch with data.
+   * @param srcMem an image of a valid sketch with data.
+   * @return a DirectCouponList
+   */
+  public static final HllSketch wrap(final Memory srcMem) {
+    final Object memObj = ((WritableMemory) srcMem).getArray();
+    final long memAdd = srcMem.getCumulativeOffset(0);
+    final CurMode curMode = checkPreamble(srcMem);
+    final HllSketch directSketch;
+    if (curMode == CurMode.HLL) {
+      final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
+      if (tgtHllType == TgtHllType.HLL_4) {
+        directSketch = null; //new HllSketch(Hll4Array.heapify(srcMem)); //TODO
+      } else if (tgtHllType == TgtHllType.HLL_6) {
+        directSketch = null; //new HllSketch(Hll6Array.heapify(srcMem));
+      } else { //Hll_8
+        directSketch = null; //new HllSketch(Hll8Array.heapify(srcMem));
+      }
+    } else if (curMode == CurMode.LIST) {
+      directSketch =
+          new HllSketch(new DirectCouponList(srcMem));
+    } else { //SET
+      directSketch =
+          new HllSketch(new DirectCouponHashSet(srcMem));
+    }
+    return directSketch;
+  }
 
   /**
    * Return a copy of this sketch onto the Java heap.
@@ -329,9 +336,10 @@ public class HllSketch extends BaseHllSketch {
       sb.append("  UB             : ").append(getUpperBound(1)).append(LS);
       sb.append("  OutOfOrder Flag: ").append(isOutOfOrderFlag()).append(LS);
       if (getCurrentMode() == CurMode.HLL) {
-        sb.append("  CurMin         : ").append(hllSketchImpl.getCurMin()).append(LS);
-        sb.append("  NumAtCurMin    : ").append(hllSketchImpl.getNumAtCurMin()).append(LS);
-        sb.append("  HipAccum       : ").append(hllSketchImpl.getHipAccum()).append(LS);
+        final AbstractHllArray absHll = (AbstractHllArray) hllSketchImpl;
+        sb.append("  CurMin         : ").append(absHll.getCurMin()).append(LS);
+        sb.append("  NumAtCurMin    : ").append(absHll.getNumAtCurMin()).append(LS);
+        sb.append("  HipAccum       : ").append(absHll.getHipAccum()).append(LS);
       }
     }
     if (hllDetail) {
@@ -350,7 +358,8 @@ public class HllSketch extends BaseHllSketch {
     if (auxDetail) {
       sb.append("### HLL SKETCH AUX DETAIL: ").append(LS);
       if ((getCurrentMode() == CurMode.HLL) && (getTgtHllType() == TgtHllType.HLL_4)) {
-        final PairIterator auxItr = getAuxIterator();
+        final AbstractHllArray absHll = (AbstractHllArray) hllSketchImpl;
+        final PairIterator auxItr = absHll.getAuxIterator();
         if (auxItr != null) {
           if (all) {
             while (auxItr.nextAll()) {
@@ -377,10 +386,6 @@ public class HllSketch extends BaseHllSketch {
     return hllSketchImpl.getIterator();
   }
 
-  PairIterator getAuxIterator() {
-    return hllSketchImpl.getAuxIterator();
-  }
-
   CurMode getCurrentMode() {
     return hllSketchImpl.getCurMode();
   }
@@ -390,7 +395,9 @@ public class HllSketch extends BaseHllSketch {
     hllSketchImpl = hllSketchImpl.couponUpdate(coupon);
   }
 
-  static CurMode checkPreamble(final Memory mem, final Object memObj, final long memAdd) {
+  static CurMode checkPreamble(final Memory mem) {
+    final Object memObj = ((WritableMemory) mem).getArray();
+    final long memAdd = mem.getCumulativeOffset(0L);
     final int preInts = extractPreInts(memObj, memAdd);
     final int serVer = extractSerVer(memObj, memAdd);
     final int famId = extractFamilyId(memObj, memAdd);

@@ -30,12 +30,11 @@ class Hll4Array extends HllArray {
    * Log2 table sizes for exceptions based on lgK from 0 to 26.
    * However, only lgK from 7 to 21 are used.
    */
-  private static final int[] LG_AUX_SIZE = new int[] {
+  static final int[] LG_AUX_SIZE = new int[] {
     0, 2, 2, 2, 2, 2, 2, 3, 3, 3,   //0 - 9
     4, 4, 5, 5, 6, 7, 8, 9, 10, 11, //10 - 19
     12, 13, 14, 15, 16, 17, 18      //20 - 26
   };
-
 
   /**
    * Standard constructor
