@@ -368,6 +368,11 @@ abstract class HllArray extends AbstractHllArray {
   }
 
   @Override
+  boolean isDirect() {
+    return false;
+  }
+
+  @Override
   boolean isEmpty() {
     final int configK = 1 << getLgConfigK();
     return (getCurMin() == 0) && (getNumAtCurMin() == configK);

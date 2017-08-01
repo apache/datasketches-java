@@ -226,6 +226,11 @@ class DirectCouponList extends AbstractCoupons {
   }
 
   @Override
+  boolean isDirect() {
+    return mem.isDirect();
+  }
+
+  @Override
   boolean isEmpty() {
     return getCouponCount() == 0;
   }

@@ -172,6 +172,11 @@ class DirectHllArray extends AbstractHllArray {
   }
 
   @Override
+  boolean isDirect() {
+    return mem.isDirect();
+  }
+
+  @Override
   boolean isEmpty() {
     // TODO Auto-generated method stub
     return false;

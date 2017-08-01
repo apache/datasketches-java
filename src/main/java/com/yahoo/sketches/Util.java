@@ -440,8 +440,8 @@ public final class Util {
   }
 
   /**
-   * Computes the next larger integer point in the power series <i>point = 2<sup>(i/ppo)</sup></i>
-   * given the current point in the series.
+   * Computes the next larger integer point in the power series
+   * <i>point = 2<sup>(i/ppo)</sup></i> given the current point in the series.
    * For illustration, this can be used in a loop as follows:
    *
    * <pre>{@code
@@ -465,6 +465,38 @@ public final class Util {
     } while ( next <= curPoint);
     return next;
   }
+
+  /**
+   * Computes the previous, smaller integer point in the power series
+   * <i>point = 2<sup>(i/ppo)</sup></i> given the current point in the series.
+   * For illustration, this can be used in a loop as follows:
+   *
+   * <pre>{@code
+   *     int p = 1024;
+   *     int ppo = 2;
+   *     while (p >= 1) &#123;
+   *       System.out.print(p + " ");
+   *       p = pwr2LawPrev(ppo, p);
+   *     &#125;
+   *     //generates the following series:
+   *     //  1024 724 512 362 256 181 128 91 64 45 32 23 16 11 8 6 4 3 2 1
+   * }</pre>
+   *
+   * @param ppo Points-Per-Octave, or the number of points per integer powers of 2 in the series.
+   * @param curPoint the current point of the series. Must be &ge; 1.
+   * @return the previous, smaller point in the power series.
+   * A returned value of zero terminates the series.
+   */
+  public static final int pwr2LawPrev(final int ppo, final int curPoint) {
+    if (curPoint <= 1) { return 0; }
+    int gi = (int)round(log2(curPoint) * ppo); //current generating index
+    int prev;
+    do {
+      prev = (int)round(pow(2.0, (double) --gi / ppo));
+    } while ( (prev >= curPoint) && (prev > 1));
+    return prev;
+  }
+
 
   /**
    * The log base 2 of the value

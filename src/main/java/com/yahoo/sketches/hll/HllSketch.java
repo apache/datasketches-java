@@ -284,6 +284,11 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
+  public boolean isDirect() {
+    return hllSketchImpl.isDirect();
+  }
+
+  @Override
   public boolean isEmpty() {
     return hllSketchImpl.isEmpty();
   }

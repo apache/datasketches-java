@@ -264,6 +264,11 @@ class CouponList extends AbstractCoupons {
   }
 
   @Override
+  boolean isDirect() {
+    return false;
+  }
+
+  @Override
   boolean isEmpty() {
     return getCouponCount() == 0;
   }

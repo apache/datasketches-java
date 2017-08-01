@@ -42,6 +42,8 @@ abstract class HllSketchImpl {
 
   abstract double getUpperBound(int numStdDev);
 
+  abstract boolean isDirect();
+
   abstract boolean isEmpty();
 
   abstract boolean isOutOfOrderFlag();

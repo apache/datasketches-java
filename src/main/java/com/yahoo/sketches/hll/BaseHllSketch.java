@@ -117,6 +117,12 @@ abstract class BaseHllSketch {
   public abstract double getUpperBound(int numStdDev);
 
   /**
+   * Returns true if the backing memory for this sketch is direct (off-heap) memory.
+   * @return true if the backing memory for this sketch is direct (off-heap) memory.
+   */
+  public abstract boolean isDirect();
+
+  /**
    * Return true if empty
    * @return true if empty
    */
