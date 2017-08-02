@@ -100,7 +100,8 @@ class Hll6Array extends HllArray {
     if (newVal > curVal) {
       put6Bit(mem, 0, slotNo, newVal);
       hipAndKxQIncrementalUpdate(curVal, newVal);
-      if (curVal == 0) { numAtCurMin--; }
+      if (curVal == 0) { numAtCurMin--; } //overloaded as num zeros
+      assert numAtCurMin >= 0;
     }
     return this;
   }
@@ -226,4 +227,16 @@ class Hll6Array extends HllArray {
       return slotNum;
     }
   }
+
+  static final Hll6Array convertToHll6(final HllArray srcHllArr) {
+    final Hll6Array hll6Array = new Hll6Array(srcHllArr.getLgConfigK());
+    hll6Array.putOooFlag(srcHllArr.getOooFlag());
+    final PairIterator itr = srcHllArr.getIterator();
+    while (itr.nextValid()) {
+      hll6Array.couponUpdate(itr.getPair());
+    }
+    hll6Array.putHipAccum(srcHllArr.getHipAccum());
+    return hll6Array;
+  }
+
 }

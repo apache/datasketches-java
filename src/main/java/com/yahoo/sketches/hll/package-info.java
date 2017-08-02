@@ -9,7 +9,7 @@
  *
  * <p>If the ONLY use case for sketching is counting uniques and merging, the
  * HLL sketch is the highest performing in terms of accuracy for space
- * consumed. For large counts, this HLL version will be 16 to 32 times
+ * consumed. For large counts, this HLL version will be 2 to 16 times
  * smaller for the same accuracy than the Theta Sketches.
  *
  * <p>HLL sketches do not retain any of the hash values of the associated unique identifiers,

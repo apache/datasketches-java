@@ -32,6 +32,7 @@ import static com.yahoo.sketches.hll.PreambleUtil.insertOooFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.insertPreInts;
 import static com.yahoo.sketches.hll.PreambleUtil.insertSerVer;
 import static com.yahoo.sketches.hll.PreambleUtil.insertTgtHllType;
+import static java.lang.Math.max;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
@@ -43,9 +44,10 @@ import com.yahoo.sketches.SketchesStateException;
  */
 class CouponList extends HllSketchImpl {
   // This RSE is computed at the transition point from coupons to HLL and not for the asymptote.
-  private static final double COUPON_ESTIMATOR_RSE = .409 / (1 << 13); //=.409 / sqrt(2^26)
+  private static final double COUPON_RSE_FACTOR = .409;
   private static final int LG_INIT_LIST_SIZE = 3;
   private static final int LG_INIT_SET_SIZE = 5;
+  private static final double COUPON_RSE = COUPON_RSE_FACTOR / (1 << 13);
 
   final int lgMaxArrInts;
   int lgCouponArrInts;
@@ -178,7 +180,7 @@ class CouponList extends HllSketchImpl {
   }
 
   /**
-   * This is the estimator for the Coupon List and Hash Set mode.
+   * This is the estimator for the Coupon List mode and Coupon Hash Set mode.
    *
    * <p>Note: This is an approximation to the true mapping from numCoupons to N,
    * which has a range of validity roughly from 0 to 6 million coupons.</p>
@@ -190,9 +192,14 @@ class CouponList extends HllSketchImpl {
    */
   @Override
   double getEstimate() {
-    final double est = Interpolation.cubicInterpolateUsingTable(CouponMapping.xArr,
+    final double est = CubicInterpolation.usingXAndYTables(CouponMapping.xArr,
         CouponMapping.yArr, couponCount);
-    return Math.max(est, couponCount);
+    return max(est, couponCount);
+  }
+
+  @Override
+  double getCompositeEstimate() {
+    return getEstimate();
   }
 
   @Override
@@ -206,11 +213,11 @@ class CouponList extends HllSketchImpl {
   }
 
   @Override
-  double getLowerBound(final double numStdDev) {
-    final double est = Interpolation.cubicInterpolateUsingTable(CouponMapping.xArr,
+  double getLowerBound(final int numStdDev) {
+    final double est = CubicInterpolation.usingXAndYTables(CouponMapping.xArr,
         CouponMapping.yArr, couponCount);
     final double tmp = est / (1.0 + couponEstimatorEps(numStdDev));
-    return Math.max(tmp, couponCount);
+    return max(tmp, couponCount);
   }
 
   @Override
@@ -224,10 +231,23 @@ class CouponList extends HllSketchImpl {
   }
 
   @Override
-  double getUpperBound(final double numStdDev) {
-    final double est = Interpolation.cubicInterpolateUsingTable(CouponMapping.xArr,
+  double getRelErr(final int numStdDev) {
+    HllUtil.checkNumStdDev(numStdDev);
+    return numStdDev * COUPON_RSE;
+  }
+
+  @Override
+  double getRelErrFactor(final int numStdDev) {
+    HllUtil.checkNumStdDev(numStdDev);
+    return numStdDev * COUPON_RSE_FACTOR;
+  }
+
+  @Override
+  double getUpperBound(final int numStdDev) {
+    final double est = CubicInterpolation.usingXAndYTables(CouponMapping.xArr,
         CouponMapping.yArr, couponCount);
-    return est / (1.0 - couponEstimatorEps(numStdDev));
+    final double tmp = est / (1.0 - couponEstimatorEps(numStdDev));
+    return max(tmp, couponCount);
   }
 
   @Override
@@ -338,9 +358,9 @@ class CouponList extends HllSketchImpl {
   }
   //END Iterators
 
-  private static final double couponEstimatorEps(final double numStdDev) {
+  static final double couponEstimatorEps(final int numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
-    return (numStdDev * COUPON_ESTIMATOR_RSE);
+    return (numStdDev * COUPON_RSE);
   }
 
   static final void checkPreamble(final Memory mem, final Object memArr, final long memAdd,

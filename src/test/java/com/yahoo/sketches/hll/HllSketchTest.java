@@ -162,7 +162,7 @@ public class HllSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkNumStdDev() {
-    HllUtil.checkNumStdDev(-1.0);
+    HllUtil.checkNumStdDev(0);
   }
 
   @Test

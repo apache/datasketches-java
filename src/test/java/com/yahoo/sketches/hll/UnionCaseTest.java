@@ -8,8 +8,6 @@ package com.yahoo.sketches.hll;
 import static com.yahoo.sketches.hll.CurMode.HLL;
 import static com.yahoo.sketches.hll.CurMode.LIST;
 import static com.yahoo.sketches.hll.CurMode.SET;
-import static com.yahoo.sketches.hll.HllArray.HLL_HIP_RSE_FACTOR;
-import static com.yahoo.sketches.hll.HllArray.HLL_NON_HIP_RSE_FACTOR;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_4;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_6;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_8;
@@ -289,6 +287,8 @@ public class UnionCaseTest {
     double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 2.0);
     println("ErrToll: " + err);
     assertEquals(u.getEstimate(), sum, err);
+    u.getRelErr(1);
+    u.getRelErrFactor(1);
   }
 
   @Test
@@ -388,9 +388,9 @@ public class UnionCaseTest {
     assertEquals(bytes, 40 + 128);
     double v = u.getEstimate();
     assertEquals(v, 0.0, 0.0);
-    v = u.getLowerBound(1.0);
+    v = u.getLowerBound(1);
     assertEquals(v, 0.0, 0.0);
-    v = u.getUpperBound(1.0);
+    v = u.getUpperBound(1);
     assertEquals(v, 0.0, 0.0);
     assertTrue(u.isEmpty());
     u.reset();
@@ -403,9 +403,9 @@ public class UnionCaseTest {
   private static double errorFactor(int lgK, boolean oooFlag, double numStdDev) {
     double f;
     if (oooFlag) {
-      f = (HLL_NON_HIP_RSE_FACTOR * numStdDev) / Math.sqrt(1 << lgK);
+      f = (1.2 * numStdDev) / Math.sqrt(1 << lgK);
     } else {
-      f = (HLL_HIP_RSE_FACTOR * numStdDev) / Math.sqrt(1 << lgK);
+      f = (0.9 * numStdDev) / Math.sqrt(1 << lgK);
     }
     return f;
   }

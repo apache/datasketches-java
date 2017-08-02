@@ -14,7 +14,6 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Lee Rhodes
  */
 abstract class HllSketchImpl {
-
   final int lgConfigK;
   final TgtHllType tgtHllType;
   final CurMode curMode;
@@ -78,6 +77,8 @@ abstract class HllSketchImpl {
 
   abstract double getEstimate();
 
+  abstract double getCompositeEstimate();
+
   abstract double getHipAccum();
 
   abstract PairIterator getIterator();
@@ -86,7 +87,7 @@ abstract class HllSketchImpl {
     return lgConfigK;
   }
 
-  abstract double getLowerBound(double numStdDev);
+  abstract double getLowerBound(int numStdDev);
 
   abstract int getMaxCouponArrInts();
 
@@ -100,7 +101,11 @@ abstract class HllSketchImpl {
     return tgtHllType;
   }
 
-  abstract double getUpperBound(double numStdDev);
+  abstract double getRelErr(int numStdDev);
+
+  abstract double getRelErrFactor(int numStdDev);
+
+  abstract double getUpperBound(int numStdDev);
 
   abstract boolean isEmpty();
 

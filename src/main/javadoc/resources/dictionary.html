@@ -106,17 +106,29 @@ Alpha Sketches this value is 512.  Specifying a value less than this minimum val
 <h3><a name="numStdDev">Number of Standard Deviations</a></h3>
 This is a positive number, which may be either an integer (1, 2, or 3) or a double &le; 3.0. 
 This value is used in the getUpperBounds(int numStdDev) and 
-getLowerBounds(int numStdDev) methods and represents the +/- standard deviation from the center of the 
-Standard Normal Gaussian Distribution.<br>
-A value of 1 will produce 68.3% confidence bounds.<br>
-A value of 2 will produce 95.4% confidence bounds.<br>
-A value of 3 will produce 99.7% confidence bounds.<br>
+getLowerBounds(int numStdDev) methods and represents (theoretically) the +/- standard deviation from the center of the 
+Standard Normal Gaussian Distribution.  For example:
 
-<p>However, for Theta Sketches with very small counts (&lt; 100) and (theta &lt; 1.0) the error distribution of the sketch is no longer Gaussian
-and becomes quite asymmetric as the counts approach one.  
-Nonetheless, special mathematical approximation methods are used to
-estimate the value of the upper and lower bounds such that they are accurate to within one percent of the estimation of the mean.
-See <a href="#accuracy">Sketch Accuracy</a>.
+<p>getUpperBound(1) returns the estimated quantile(0.841) of the distribution.<br>
+getLowerBound(1) returns the estimated quantile(0.158) of the distribution.<br>
+getUpperBound(2) returns the estimated quantile(0.977) of the distribution.<br>
+getLowerBound(2) returns the estimated quantile(0.023) of the distribution.<br>
+getUpperBound(3) returns the estimated quantile(0.9986) of the distribution.<br>
+getLowerBound(3) returns the estimated quantile(0.0013) of the distribution.<br>
+</p>
+
+<p>However, for sketches with small configured values of <i>Nominal Entries &lt; 4096</i> for Theta or <i>lgConfigK &lt; 12</i> for HLL, 
+the error distribution of the sketch becomes quite asymmetric and cannot be approximated with a Gaussian. In these cases the interpretation of 
+<i>numStdDev</i> is that of an index that returns the quantile of the sketch error distribution that corresponds to fractional normalized rank 
+of the standard normal distribution at the specified <i>numStdDev</i>.
+
+<p>Thus, getUpperBound(1) and getLowerBound(2) represent the 68.3% confidence bounds, 
+getUpperBound(2) and getLowerBound(2) represent the 95.4% confidence bounds, and
+getUpperBound(3) and getLowerBound(3) represent the 99.7% confidence bounds.
+<br>
+
+<p>For some sketches where the error distribution is not Gaussian, special mathematical approximation methods are used. 
+See <a href="#accuracy">Sketch Accuracy</a>.</p>
 
 <h3><a name="p">Sampling Probability <i>p</i></a></h3>
 For Theta Sketches, the uniform random pre-sketching sampling probability.

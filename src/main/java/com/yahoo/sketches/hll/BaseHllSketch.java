@@ -11,18 +11,13 @@ import static com.yahoo.sketches.hll.HllUtil.KEY_BITS_26;
 import static com.yahoo.sketches.hll.HllUtil.KEY_MASK_26;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.yahoo.memory.Memory;
+
 /**
  * @author Lee Rhodes
  * @author Kevin Lang
  */
 abstract class BaseHllSketch {
-
-
-  /**
-   * Returns the current mode of the sketch: LIST, SET, HLL
-   * @return the current mode of the sketch: LIST, SET, HLL
-   */
-  abstract CurMode getCurMode();
 
   /**
    * Gets the size in bytes of the current sketch when serialized using
@@ -31,6 +26,22 @@ abstract class BaseHllSketch {
    * <i>toCompactByteArray()</i>.
    */
   public abstract int getCompactSerializationBytes();
+
+  /**
+   * This is less accurate than the {@link #getEstimate()} method and is automatically used
+   * when the sketch has gone through union operations where the more accurate HIP estimator
+   * cannot be used.
+   * This is made public only for error characterization software that exists in separate
+   * packages and is not intended for normal use.
+   * @return the composite estimate
+   */
+  public abstract double getCompositeEstimate();
+
+  /**
+   * Returns the current mode of the sketch: LIST, SET, HLL
+   * @return the current mode of the sketch: LIST, SET, HLL
+   */
+  abstract CurMode getCurMode();
 
   /**
    * Return the cardinality estimate
@@ -45,22 +56,57 @@ abstract class BaseHllSketch {
   public abstract int getLgConfigK();
 
   /**
-   * Gets the approximate upper error bound given the specified number of Standard Deviations.
-   *
-   * @param numStdDev
-   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @return the upper bound.
-   */
-  public abstract double getUpperBound(double numStdDev);
-
-  /**
    * Gets the approximate lower error bound given the specified number of Standard Deviations.
    *
    * @param numStdDev
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the lower bound.
    */
-  public abstract double getLowerBound(double numStdDev);
+  public abstract double getLowerBound(int numStdDev);
+
+  /**
+   * Returns the current serialization version.
+   * @return the current serialization version.
+   */
+  public static final int getSerializationVersion() {
+    return PreambleUtil.SER_VER;
+  }
+
+  /**
+   * Returns the current serialization version of the given Memory.
+   * @param mem the given Memory containing a serialized HllSketch image.
+   * @return the current serialization version.
+   */
+  public static final int getSerializationVersion(final Memory mem) {
+    return mem.getByte(PreambleUtil.SER_VER_BYTE) & 0XFF;
+  }
+
+  /**
+   * Gets the current (approximate) Relative Error given the number of Standard Deviations.
+   * Used for testing.
+   * @param numStdDev the given number of Standard Deviations
+   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">Number of Standard Deviations</a>
+   * @return the current (approximate) RelativeError
+   */
+  public abstract double getRelErr(int numStdDev);
+
+  /**
+   * Returns the current (approximate) Relative Error Factor given the number of Standard
+   * Deviations. Used for testing.
+   * @param numStdDev the given number of Standard Deviations
+   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">Number of Standard Deviations</a>
+   * @return the current (approximate) Relative Error Factor
+   */
+  public abstract double getRelErrFactor(int numStdDev);
+
+  /**
+   * Gets the approximate upper error bound given the specified number of Standard Deviations.
+   *
+   * @param numStdDev
+   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">Number of Standard Deviations</a>
+   * @return the upper bound.
+   */
+  public abstract double getUpperBound(int numStdDev);
 
   /**
    * Return true if empty
@@ -69,7 +115,7 @@ abstract class BaseHllSketch {
   public abstract boolean isEmpty();
 
   /**
-   * This HLL family of sketches is always estimating, even for very small values.
+   * This HLL family of sketches and operators is always estimating, even for very small values.
    * @return true
    */
   public boolean isEstimationMode() {
@@ -83,8 +129,15 @@ abstract class BaseHllSketch {
    */
   abstract boolean isOutOfOrderFlag();
 
+  /**
+   * Resets to empty and retains the lgConfigK and the TgtHllType.
+   */
   public abstract void reset();
 
+  /**
+   * Serializes this sketch as a compact byte array.
+   * @return this sketch as a compact byte array.
+   */
   public abstract byte[] toCompactByteArray();
 
   /**

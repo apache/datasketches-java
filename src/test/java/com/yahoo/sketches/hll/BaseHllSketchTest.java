@@ -5,9 +5,12 @@
 
 package com.yahoo.sketches.hll;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
+
+import com.yahoo.memory.WritableMemory;
 
 /**
  * @author Lee Rhodes
@@ -78,6 +81,9 @@ public class BaseHllSketchTest {
     HllSketch sk = new HllSketch(10, TgtHllType.HLL_4);
     assertTrue(sk.isEstimationMode());
     sk.reset();
+    assertEquals(BaseHllSketch.getSerializationVersion(), PreambleUtil.SER_VER);
+    WritableMemory wmem = WritableMemory.wrap(sk.toCompactByteArray());
+    assertEquals(BaseHllSketch.getSerializationVersion(wmem), PreambleUtil.SER_VER);
   }
 
   @Test

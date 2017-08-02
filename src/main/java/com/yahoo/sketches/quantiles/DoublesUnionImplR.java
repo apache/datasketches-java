@@ -9,7 +9,6 @@ import static com.yahoo.sketches.Util.LS;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
-
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesReadOnlyException;
 
@@ -60,6 +59,15 @@ class DoublesUnionImplR extends DoublesUnion {
   }
 
   @Override
+  public byte[] toByteArray() {
+    if (gadget_ == null) {
+      return DoublesSketch.builder().setK(maxK_).build().toByteArray();
+    } else {
+      return gadget_.toByteArray();
+    }
+  }
+
+  @Override
   public UpdateDoublesSketch getResult() {
     if (gadget_ == null) {
       return HeapUpdateDoublesSketch.newInstance(maxK_);
@@ -98,7 +106,7 @@ class DoublesUnionImplR extends DoublesUnion {
 
   @Override
   public boolean isDirect() {
-    return gadget_ != null && gadget_.isDirect();
+    return (gadget_ != null) && gadget_.isDirect();
   }
 
   @Override
@@ -120,7 +128,7 @@ class DoublesUnionImplR extends DoublesUnion {
   public String toString(final boolean sketchSummary, final boolean dataDetail) {
     final StringBuilder sb = new StringBuilder();
     final String thisSimpleName = this.getClass().getSimpleName();
-    final int maxK = this.getMaxK();
+    final int maxK = getMaxK();
     final String kStr = String.format("%,d", maxK);
     sb.append(Util.LS).append("### Quantiles ").append(thisSimpleName).append(LS);
     sb.append("   maxK                         : ").append(kStr);

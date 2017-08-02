@@ -76,18 +76,36 @@ public class CouponListTest {
   }
 
   @Test
-  public void checkDuplicates() {
+  public void checkDuplicatesAndMisc() {
     HllSketch sk = new HllSketch(8);
-    for (int i = 0; i < 7; i++) {
+    for (int i = 1; i <= 7; i++) {
       sk.update(i);
       sk.update(i);
     }
     assertEquals(sk.getCurrentMode(), CurMode.LIST);
-    sk.update(7);
-    sk.update(7);
+    sk.getRelErr(1);
+    sk.getRelErrFactor(1);
+    assertEquals(sk.getCompositeEstimate(), 7.0, 7 * .01);
+    sk.update(8);
+    sk.update(8);
     assertEquals(sk.getCurrentMode(), CurMode.SET);
+    assertEquals(sk.getCompositeEstimate(), 8.0, 8 * .01);
+    sk.getRelErr(1);
+    sk.getRelErrFactor(1);
+    for (int i = 9; i <= 25; i++) {
+      sk.update(i);
+      sk.update(i);
+    }
+    assertEquals(sk.getCurrentMode(), CurMode.HLL);
+    assertEquals(sk.getCompositeEstimate(), 25.0, 25 * .1);
+    sk.getRelErr(1);
+    sk.getRelErrFactor(1);
   }
 
+  @Test
+  public void checkMisc() {
+
+  }
 
   @Test
   public void printlnTest() {

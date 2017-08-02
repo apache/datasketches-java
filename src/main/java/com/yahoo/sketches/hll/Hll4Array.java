@@ -47,7 +47,7 @@ import com.yahoo.sketches.SketchesStateException;
 class Hll4Array extends HllArray {
   private static final int loNibbleMask = 0x0f;
   private static final int hiNibbleMask = 0xf0;
-
+  private static final int AUX_TOKEN = 0xf;
   /**
    * Log2 table sizes for exceptions based on lgK from 0 to 26.
    * However, only lgK from 7 to 21 are used.

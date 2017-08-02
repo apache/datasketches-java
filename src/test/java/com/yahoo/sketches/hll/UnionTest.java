@@ -42,7 +42,7 @@ public class UnionTest {
 
     int t1 = 2;
     int t2 = 2;
-    int rt = 2;
+    int rt = 2; //result type
     println("TgtR: " + TgtHllType.values()[rt].toString());
     println(hdr);
 
@@ -51,7 +51,7 @@ public class UnionTest {
     int lgMaxK = 7;
     int n1 = 7;
     int n2 = 7;
-    basicUnion(n1, n2, lgK1, lgK2, lgMaxK, t1, t2, rt);
+    basicUnion(n1, n2, lgK1, lgK2, lgMaxK, t1, t2, rt); //TODO Fails here
     n1 = 8;
     n2 = 7;
     basicUnion(n1, n2, lgK1, lgK2, lgMaxK, t1, t2, rt);
@@ -137,8 +137,8 @@ public class UnionTest {
   }
 
   @Test
-  public void check() {
-    basicUnion(8, 7, 7, 7, 7, 2, 2, 2);
+  public void check() { //n1=8, n2=7, lgK1=lgK2=lgMaxK=7, all HLL_8
+    basicUnion(8, 7,   7, 7, 7,  2, 2,  2);
   }
 
   private static void basicUnion(int n1, int n2, int lgK1, int lgK2,
@@ -151,11 +151,13 @@ public class UnionTest {
     String t2str = type2.toString();
     TgtHllType resultType = TgtHllType.values()[rt];
     String rtStr = resultType.toString();
+
     HllSketch h1 = new HllSketch(lgK1, type1);
     HllSketch h2 = new HllSketch(lgK2, type2);
-    int lgControlK = min(min(lgK1, lgK2), lgMaxK);
+    int lgControlK = min(min(lgK1, lgK2), lgMaxK); //min of all 3
     HllSketch control = new HllSketch(lgControlK, resultType);
-    String fmt = "%6d%6d%6d" + "%7d%5d%5d%5d" + "%6s%6s" + "%6s%6s%6s" +"%2s%1s%1s" + "%12f%12f";
+    String fmt = "%6d%6d%6d," + "%7d%5d%5d%5d," + "%6s%6s," + "%6s%6s%6s,"
+        +"%2s%2s%2s," + "%12f%12f%%";
 
     for (long i = 0; i < n1; i++) {
       h1.update(v + i);
@@ -181,43 +183,40 @@ public class UnionTest {
     HllSketch result = union.getResult(resultType);
     int lgKR = result.getLgConfigK();
 
-    String uSketchStr =("UNION SKETCH: \n" + result.toString());
+    String uSketchStr =("Union after H2: \n" + result.toString());
 
     double uEst = result.getEstimate();
-    double uUb = result.getUpperBound(2.0);
-    double uLb = result.getLowerBound(2.0);
-    double err = ((uEst/tot) - 1.0) * 100;
+    double uUb = result.getUpperBound(2);
+    double uLb = result.getLowerBound(2);
+    double rerr = ((uEst/tot) - 1.0) * 100;
     String mode1 = h1.getCurrentMode().toString();
     String mode2 = h2.getCurrentMode().toString();
     String modeR = result.getCurrentMode().toString();
 
     //Control
-    control.putOutOfOrderFlag(true);
     String cSketchStr = ("CONTROL SKETCH: \n" + control.toString());
-    double h3Est = control.getEstimate();
-    double h3Ub = control.getUpperBound(2.0);
-    double h3Lb = control.getLowerBound(2.0);
-    String h1f = h1.isOutOfOrderFlag() ? "T" : "F";
-    String h2f = h2.isOutOfOrderFlag() ? "T" : "F";
-    String hrf = result.isOutOfOrderFlag() ?  "T" : "F";
+    double controlEst = control.getEstimate();
+    double controlUb = control.getUpperBound(2);
+    double controlLb = control.getLowerBound(2);
+    String h1ooo = h1.isOutOfOrderFlag() ? "T" : "F";
+    String h2ooo = h2.isOutOfOrderFlag() ? "T" : "F";
+    String resultooo = result.isOutOfOrderFlag() ?  "T" : "F";
     String row = String.format(fmt,
         n1, n2, tot,
         lgMaxK, lgK1, lgK2, lgKR,
         t1str, t2str,
         mode1, mode2, modeR,
-        h1f, h2f, hrf,
-        uEst, err);
+        h1ooo, h2ooo, resultooo,
+        uEst, rerr);
     println(row);
-    //    println(h1SketchStr);
-    //    println(h2SketchStr);
-    //    println(uH1SketchStr);
-    //    println(uSketchStr);
-    //    println(cSketchStr);
+    println(h1SketchStr);
+    println(h2SketchStr);
+    println(uH1SketchStr);
+    println(uSketchStr);
+    println(cSketchStr);
 
-    assertTrue(uEst <= h3Ub, uEst + " !<= " + h3Ub);
-    assertTrue(uEst >= h3Lb, uEst + " !>= " + h3Lb);
-    assertTrue(uUb <= h3Ub,  uUb + " !<= " + h3Ub);
-    assertTrue(uLb >= h3Lb,  uLb + " !>= " + h3Lb);
+    assertTrue((controlUb - controlEst) <= (uUb - uEst));
+    assertTrue((controlEst - controlLb) <= (uEst - uLb));
   }
 
   @Test
@@ -279,6 +278,15 @@ public class UnionTest {
     assertEquals(dstU.getEstimate(), srcU.getEstimate(), 0.0);
   }
 
+  @Test
+  public void checkCompositeEst() {
+    Union u = new Union(12);
+    assertEquals(u.getCompositeEstimate(), 0, .03);
+    for (int i = 1; i <= 15; i++) { u.update(i); }
+    assertEquals(u.getCompositeEstimate(), 15, 15 *.03);
+    for (int i = 15; i <= 1000; i++) { u.update(i); }
+    assertEquals(u.getCompositeEstimate(), 1000, 1000 * .03);
+  }
 
   @Test
   public void checkMisc() {
@@ -298,6 +306,25 @@ public class UnionTest {
     HllSketch sk = u.getResult();
     assertTrue(sk.isEmpty());
   }
+
+  @Test //for lgK <= 12
+  public void checkUbLb() {
+    int lgK = 4;
+    int n = 1 << 20;
+    boolean oooFlag = false;
+    println("LgK="+lgK+", UB3, " + ((getBound(lgK, true, oooFlag, 3, n) / n) - 1));
+    println("LgK="+lgK+", UB2, " + ((getBound(lgK, true, oooFlag, 2, n) / n) - 1));
+    println("LgK="+lgK+", UB1, " + ((getBound(lgK, true, oooFlag, 1, n) / n) - 1));
+    println("LgK="+lgK+", LB1, " + ((getBound(lgK, false, oooFlag, 1, n) / n) - 1));
+    println("LgK="+lgK+", LB2, " + ((getBound(lgK, false, oooFlag, 2, n) / n) - 1));
+    println("LgK="+lgK+", LB3, " + ((getBound(lgK, false, oooFlag, 3, n) / n) - 1));
+  }
+
+  private static double getBound(int lgK, boolean ub, boolean oooFlag, int numStdDev, double est) {
+    double re = RelativeErrorTables.getRelErr(ub, oooFlag, lgK, numStdDev);
+    return (ub) ? est / (1.0 + re) : est / (1.0 +re);
+  }
+
 
   @Test
   public void printlnTest() {

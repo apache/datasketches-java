@@ -53,6 +53,38 @@ public class HllArrayTest {
   }
 
   @Test
+  public void checkCompositeEst() {
+    testComposite(4, TgtHllType.HLL_8, 1000);
+    testComposite(5, TgtHllType.HLL_8, 1000);
+    testComposite(6, TgtHllType.HLL_8, 1000);
+    testComposite(13, TgtHllType.HLL_8, 10000);
+  }
+
+  @Test
+  public void checkBigHipGetRse() {
+    HllSketch sk = new HllSketch(13, TgtHllType.HLL_8);
+    for (int i = 0; i < 10000; i++) {
+      sk.update(i);
+    }
+    sk.getRelErr(1);
+    sk.getRelErrFactor(1);
+  }
+
+  private static void testComposite(int lgK, TgtHllType tgtHllType, int n) {
+    Union u = new Union(lgK);
+    HllSketch sk = new HllSketch(lgK, tgtHllType);
+    for (int i = 0; i < n; i++) {
+      u.update(i);
+      sk.update(i);
+    }
+    u.update(sk); //merge
+    HllSketch res = u.getResult(TgtHllType.HLL_8);
+    res.getCompositeEstimate();
+    res.getRelErr(1);
+    res.getRelErrFactor(1);
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }

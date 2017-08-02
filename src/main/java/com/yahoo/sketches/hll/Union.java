@@ -6,6 +6,7 @@
 package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.hll.CurMode.HLL;
+import static com.yahoo.sketches.hll.TgtHllType.HLL_4;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_8;
 import static java.lang.Math.min;
 
@@ -20,10 +21,11 @@ import com.yahoo.memory.Memory;
  * at the end of the unioning process will be a function of the smallest of <i>lgMaxK</i> and
  * <i>lgConfigK</i> that the union operator has seen.
  *
- * <p>This union operator also permits unioning of any of the three different target HllSketch types.
+ * <p>This union operator also permits unioning of any of the three different target HllSketch
+ * types.
  *
- * <p>Although the API for this union operator parallels many of the methods of the <i>HllSketch</i>,
- * the behavior of the union operator has some fundamental differences.
+ * <p>Although the API for this union operator parallels many of the methods of the
+ * <i>HllSketch</i>, the behavior of the union operator has some fundamental differences.
  *
  * <p>First, the user cannot specify the {@link TgtHllType} as an input parameter.
  * Instead, it is specified for the sketch returned with {@link #getResult(TgtHllType)}.
@@ -71,6 +73,11 @@ public class Union extends BaseHllSketch {
   }
 
   @Override
+  public double getCompositeEstimate() {
+    return gadget.hllSketchImpl.getCompositeEstimate();
+  }
+
+  @Override
   CurMode getCurMode() {
     return gadget.getCurMode();
   }
@@ -107,7 +114,7 @@ public class Union extends BaseHllSketch {
   }
 
   @Override
-  public double getLowerBound(final double numStdDev) {
+  public double getLowerBound(final int numStdDev) {
     return gadget.getLowerBound(numStdDev);
   }
 
@@ -116,7 +123,7 @@ public class Union extends BaseHllSketch {
    * @return the result of this union operator as an HLL_4 sketch.
    */
   public HllSketch getResult() {
-    return gadget.copy();
+    return gadget.copyAs(HLL_4);
   }
 
   /**
@@ -129,7 +136,17 @@ public class Union extends BaseHllSketch {
   }
 
   @Override
-  public double getUpperBound(final double numStdDev) {
+  public double getRelErr(final int numStdDev) {
+    return gadget.getRelErr(numStdDev);
+  }
+
+  @Override
+  public double getRelErrFactor(final int numStdDev) {
+    return gadget.getRelErrFactor(numStdDev);
+  }
+
+  @Override
+  public double getUpperBound(final int numStdDev) {
     return gadget.getUpperBound(numStdDev);
   }
 
@@ -144,7 +161,8 @@ public class Union extends BaseHllSketch {
   }
 
   /**
-   * Resets to empty, but does not change the configured value of lgMaxK.
+   * Resets to empty and retains the current lgK, but does not change the configured value of
+   * lgMaxK.
    */
   @Override
   public void reset() {
@@ -152,8 +170,8 @@ public class Union extends BaseHllSketch {
   }
 
   /**
-   * Gets the serialization of this union operator as a byte array in compact form, which is designed
-   * to be read-only and is not directly updatable.
+   * Gets the serialization of this union operator as a byte array in compact form, which is
+   * designed to be read-only and is not directly updatable.
    * For the Union operator, this is the serialization of the internal state of
    * the union operator as a sketch.
    * @return the serialization of this union operator as a byte array.
@@ -169,7 +187,8 @@ public class Union extends BaseHllSketch {
   }
 
   @Override
-  public String toString(final boolean summary, final boolean hllDetail, final boolean auxDetail) {
+  public String toString(final boolean summary, final boolean hllDetail,
+      final boolean auxDetail) {
     return gadget.toString(summary, hllDetail, auxDetail);
   }
 
@@ -189,15 +208,20 @@ public class Union extends BaseHllSketch {
   // Union operator logic
 
   /**
-   * Union the given source and destination sketches.
-   * @param srcImpl the given source sketch
-   * @param dstImpl the given destination sketch this must have a target of HLL_8 and may be
+   * Union the given source and destination sketches. This static method examines the state of
+   * the current internal gadget and the incoming sketch and determines the optimum way to
+   * perform the union. This may involve swapping, down-sampling, transforming, and / or
+   * copying one of the arguments and may completely replace the internals of the union.
+   *
+   * @param srcImpl the given source sketch, which may not be modified.
+   * @param dstImpl the given destination sketch, which must have a target of HLL_8 and may be
    * modified.
    * @param lgMaxK the maximum value of log2 K for this union.
-   * @return the union of the two sketches.
+   * @return the union of the two sketches in the form of the internal HllSketchImpl, which for
+   * the union is always in HLL_8 form.
    */
-  static HllSketchImpl unionImpl(final HllSketchImpl srcImpl, final HllSketchImpl dstImpl,
-      final int lgMaxK) {
+  private static HllSketchImpl unionImpl(final HllSketchImpl srcImpl,
+      final HllSketchImpl dstImpl, final int lgMaxK) {
     assert dstImpl.getTgtHllType() == HLL_8;
     HllSketchImpl outImpl = dstImpl;
     if ((srcImpl == null) || srcImpl.isEmpty()) { return outImpl; }

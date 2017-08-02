@@ -118,11 +118,19 @@ public abstract class DoublesUnion {
   public abstract void reset();
 
   /**
+   * Serialize this union to a byte array. Result is an UpdateDoublesSketch, serialized in an
+   * unordered, non-compact form. The resulting byte[] can be heapified or wrapped  as either a
+   * sketch or a union.
+   *
+   * @return byte array of this union
+   */
+  public abstract byte[] toByteArray();
+
+  /**
    * Returns summary information about the backing sketch.
    */
   @Override
   public abstract String toString();
-
 
   /**
    * Returns summary information about the backing sketch. Used for debugging.

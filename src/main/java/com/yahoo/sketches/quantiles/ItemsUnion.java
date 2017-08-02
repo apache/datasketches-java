@@ -54,7 +54,7 @@ public final class ItemsUnion<T> {
    * @return an instance of ItemsUnion
    */
   public static <T> ItemsUnion<T> getInstance(final int maxK, final Comparator<? super T> comparator) {
-    return new ItemsUnion<T>(maxK, comparator, null);
+    return new ItemsUnion<>(maxK, comparator, null);
   }
 
   /**
@@ -69,7 +69,7 @@ public final class ItemsUnion<T> {
   public static <T> ItemsUnion<T> getInstance(final Memory srcMem,
       final Comparator<? super T> comparator, final ArrayOfItemsSerDe<T> serDe) {
     final ItemsSketch<T> gadget = ItemsSketch.getInstance(srcMem, comparator, serDe);
-    return new ItemsUnion<T>(gadget.getK(), gadget.getComparator(), gadget);
+    return new ItemsUnion<>(gadget.getK(), gadget.getComparator(), gadget);
   }
 
   /**
@@ -79,7 +79,7 @@ public final class ItemsUnion<T> {
    * @return an instance of ItemsUnion
    */
   public static <T> ItemsUnion<T> getInstance(final ItemsSketch<T> sketch) {
-    return new ItemsUnion<T>(sketch.getK(), sketch.getComparator(), ItemsSketch.copy(sketch));
+    return new ItemsUnion<>(sketch.getK(), sketch.getComparator(), ItemsSketch.copy(sketch));
   }
 
   /**
@@ -162,14 +162,12 @@ public final class ItemsUnion<T> {
     gadget_ = null;
   }
 
-  //toByteArray not necessary
-
   /**
    * Returns true if this union is empty
    * @return true if this union is empty
    */
   public boolean isEmpty() {
-    return (gadget_ == null) ? true : gadget_.isEmpty();
+    return (gadget_ == null) || gadget_.isEmpty();
   }
 
   /**
@@ -177,7 +175,7 @@ public final class ItemsUnion<T> {
    * @return true if this union is direct
    */
   public boolean isDirect() {
-    return (gadget_ == null) ? false : gadget_.isDirect();
+    return (gadget_ != null) && gadget_.isDirect();
   }
 
   /**
@@ -225,6 +223,22 @@ public final class ItemsUnion<T> {
     return sb.toString();
   }
 
+  /**
+   * Serialize this union to a byte array. Result is an ItemsSketch, serialized in an
+   * unordered, non-compact form. The resulting byte[] can be passed to getInstance for either a
+   * sketch or union.
+   *
+   * @param serDe an instance of ArrayOfItemsSerDe
+   * @return byte array of this union
+   */
+  public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
+    if (gadget_ == null) {
+      final ItemsSketch<T> sketch = ItemsSketch.getInstance(maxK_, comparator_);
+      return sketch.toByteArray(serDe);
+    } else {
+      return gadget_.toByteArray(serDe);
+    }
+  }
 
   //@formatter:off
   @SuppressWarnings({"null", "unchecked"})
@@ -250,6 +264,7 @@ public final class ItemsUnion<T> {
       case 0: ret = null; break;
       case 1: ret = myQS; break;
       case 2: { //myQS = null,  other = valid; stream or downsample to myMaxK
+        assert other != null;
         if (!other.isEstimationMode()) { //other is exact, stream items in
           ret = ItemsSketch.getInstance(myMaxK, comparator);
           final int otherCnt = other.getBaseBufferCount();
@@ -266,6 +281,8 @@ public final class ItemsUnion<T> {
         break;
       }
       case 3: { //myQS = empty/valid, other = valid; merge
+        assert other != null;
+        assert myQS != null;
         if (!other.isEstimationMode()) { //other is exact, stream items in
           ret = myQS;
           final int otherCnt = other.getBaseBufferCount();
@@ -288,6 +305,7 @@ public final class ItemsUnion<T> {
         break;
       }
       case 4: {
+        assert other != null;
         ret = ItemsSketch.getInstance(Math.min(myMaxK, other.getK()), comparator);
         break;
       }

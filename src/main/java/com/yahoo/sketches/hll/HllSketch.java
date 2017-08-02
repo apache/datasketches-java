@@ -7,17 +7,22 @@ package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARRAY_START;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCurMode;
+import static com.yahoo.sketches.hll.PreambleUtil.extractFamilyId;
+import static com.yahoo.sketches.hll.PreambleUtil.extractPreInts;
+import static com.yahoo.sketches.hll.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.hll.PreambleUtil.extractTgtHllType;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * This is a high performance implementation of Phillipe Flajolet&#8217;s HLL sketch but with
- * significantly improved error behavior.  If the ONLY use case for sketching is counting uniques
- * and merging, the HLL sketch is the highest performing in terms of accuracy for storage space
- * consumed. For large enough counts, this HLL version (with HLL_4) can be 32 times smaller
- * than the Theta sketch family for the same accuracy .
+ * significantly improved error behavior.  If the ONLY use case for sketching is counting
+ * uniques and merging, the HLL sketch is the highest performing in terms of accuracy for
+ * storage space consumed. For large enough counts, this HLL version (with HLL_4) can be 2 to
+ * 16 times smaller than the Theta sketch family for the same accuracy.
  *
  * <p>This implementation offers three different types of HLL sketch, each with different
  * trade-offs with accuracy, space and performance. These types are specified with the
@@ -29,8 +34,8 @@ import com.yahoo.memory.WritableMemory;
  * where <i>K</i> is the number of buckets or slots for the sketch.
  *
  * <p>During warmup, when the sketch has only received a small number of unique items
- * (up to about 10% of <i>K</i>), this implementation leverages a new class of estimator algorithms
- * with significantly better accuracy.
+ * (up to about 10% of <i>K</i>), this implementation leverages a new class of estimator
+ * algorithms with significantly better accuracy.
  *
  * @author Lee Rhodes
  * @author Kevin Lang
@@ -94,12 +99,12 @@ public class HllSketch extends BaseHllSketch {
    * @return an HllSketch
    */
   public static final HllSketch heapify(final Memory mem) {
-    final Object memArr = ((WritableMemory) mem).getArray();
+    final Object memObj = ((WritableMemory) mem).getArray();
     final long memAdd = mem.getCumulativeOffset(0);
-    final CurMode curMode = extractCurMode(memArr, memAdd);
+    final CurMode curMode = checkPreamble(mem, memObj, memAdd);
     final HllSketch heapSketch;
     if (curMode == CurMode.HLL) {
-      final TgtHllType tgtHllType = extractTgtHllType(memArr, memAdd);
+      final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
       if (tgtHllType == TgtHllType.HLL_4) {
         heapSketch = new HllSketch(Hll4Array.heapify(mem));
       } else if (tgtHllType == TgtHllType.HLL_6) {
@@ -131,6 +136,11 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
+  public double getCompositeEstimate() {
+    return hllSketchImpl.getCompositeEstimate();
+  }
+
+  @Override
   CurMode getCurMode() {
     return hllSketchImpl.curMode;
   }
@@ -151,7 +161,7 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
-  public double getLowerBound(final double numStdDev) {
+  public double getLowerBound(final int numStdDev) {
     return hllSketchImpl.getLowerBound(numStdDev);
   }
 
@@ -180,7 +190,17 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
-  public double getUpperBound(final double numStdDev) {
+  public double getRelErr(final int numStdDev) {
+    return hllSketchImpl.getRelErr(numStdDev);
+  }
+
+  @Override
+  public double getRelErrFactor(final int numStdDev) {
+    return hllSketchImpl.getRelErrFactor(numStdDev);
+  }
+
+  @Override
+  public double getUpperBound(final int numStdDev) {
     return hllSketchImpl.getUpperBound(numStdDev);
   }
 
@@ -233,9 +253,9 @@ public class HllSketch extends BaseHllSketch {
       sb.append("  Log Config K   : ").append(getLgConfigK()).append(LS);
       sb.append("  Hll Target     : ").append(getTgtHllType()).append(LS);
       sb.append("  Current Mode   : ").append(getCurrentMode()).append(LS);
-      sb.append("  LB             : ").append(getLowerBound(1.0)).append(LS);
+      sb.append("  LB             : ").append(getLowerBound(1)).append(LS);
       sb.append("  Estimate       : ").append(getEstimate()).append(LS);
-      sb.append("  UB             : ").append(getUpperBound(1.0)).append(LS);
+      sb.append("  UB             : ").append(getUpperBound(1)).append(LS);
       sb.append("  OutOfOrder Flag: ").append(isOutOfOrderFlag()).append(LS);
       if (getCurrentMode() == CurMode.HLL) {
         final double hipAccum = hllSketchImpl.getHipAccum();
@@ -296,7 +316,23 @@ public class HllSketch extends BaseHllSketch {
     hllSketchImpl = hllSketchImpl.couponUpdate(coupon);
   }
 
-  void putOutOfOrderFlag(final boolean value) {
-    hllSketchImpl.putOooFlag(value);
+  private static CurMode checkPreamble(final Memory mem, final Object memObj, final long memAdd) {
+    final int preInts = extractPreInts(memObj, memAdd);
+    final int serVer = extractSerVer(memObj, memAdd);
+    final int famId = extractFamilyId(memObj, memAdd);
+    final CurMode curMode = extractCurMode(memObj, memAdd);
+    boolean error = false;
+    if (famId != Family.HLL.getID()) { error = true; }
+    if (serVer != 1) { error = true; }
+    if ((preInts != 2) && (preInts != 3) && (preInts != 10)) { error = true; }
+    if ((curMode == CurMode.LIST) && (preInts != 2)) { error = true; }
+    if ((curMode == CurMode.SET) && (preInts != 3)) { error = true; }
+    if ((curMode == CurMode.HLL) && (preInts != 10)) { error = true; }
+    if (error) {
+      throw new SketchesArgumentException(
+          "Corrupt HLL Sketch image:\n" + PreambleUtil.toString(mem));
+    }
+    return curMode;
   }
+
 }
