@@ -6,8 +6,6 @@
 package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.hll.HllUtil.EMPTY;
-import static com.yahoo.sketches.hll.HllUtil.KEY_BITS_26;
-import static com.yahoo.sketches.hll.HllUtil.KEY_MASK_26;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARRAY_START;
 import static com.yahoo.sketches.hll.PreambleUtil.extractAuxCount;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCompactFlag;
@@ -81,12 +79,12 @@ class Hll4Array extends HllArray {
 
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
-    final int newValue = BaseHllSketch.getValue(coupon);
+    final int newValue = HllUtil.getValue(coupon);
     if (newValue <= getCurMin()) {
       return this; // super quick rejection; only works for large N
     }
     final int configKmask = (1 << getLgConfigK()) - 1;
-    final int slotNo = BaseHllSketch.getLow26(coupon) & configKmask;
+    final int slotNo = HllUtil.getLow26(coupon) & configKmask;
     internalUpdate(slotNo, newValue);
     return this;
   }
@@ -97,64 +95,43 @@ class Hll4Array extends HllArray {
 
   @Override
   PairIterator getIterator() {
-    return new Hll4Iterator();
+    return new HeapHll4Iterator(hllByteArr, 1 << lgConfigK);
   }
 
   //Iterator
 
-  final class Hll4Iterator implements PairIterator {
-    byte[] myHllByteArr;
-    AuxHashMap myAuxHashMap;
-    int slots;
-    int slotNum;
+  final class HeapHll4Iterator extends ByteArrayPairIterator {
 
-    Hll4Iterator() {
-      myHllByteArr = getHllByteArr();
-      myAuxHashMap = getAuxHashMap();
-      slots = myHllByteArr.length << 1; //X2
-      slotNum = -1;
+    HeapHll4Iterator(final byte[] array, final int lengthPairs) {
+      super(array, lengthPairs);
     }
 
     @Override
     public boolean nextValid() {
-      slotNum++;
-      while (slotNum < slots) {
-        if (getValue() != EMPTY) {
+      while (++index < lengthPairs) {
+        final int nib = getNibble(array, index);
+        if (nib != EMPTY) {
+          value = value(nib);
           return true;
         }
-        slotNum++;
       }
       return false;
     }
 
     @Override
     public boolean nextAll() {
-      slotNum++;
-      return slotNum < slots;
-    }
-
-    @Override
-    public int getPair() {
-      return (getValue() << KEY_BITS_26) | (slotNum & KEY_MASK_26);
-    }
-
-    @Override
-    public int getKey() {
-      return slotNum;
-    }
-
-    @Override
-    public int getValue() {
-      final int nib = getNibble(myHllByteArr, slotNum);
-      if (nib == AUX_TOKEN) {
-        return myAuxHashMap.mustFindValueFor(slotNum); //myAuxHashMap cannot be null here
+      if (++index < lengthPairs) {
+        final int nib = getNibble(array, index);
+        value = value(nib);
+        return true;
       }
-      return nib + getCurMin();
+      return false;
     }
 
-    @Override
-    public int getIndex() {
-      return slotNum;
+    private int value(final int nib) {
+      return (nib == AUX_TOKEN)
+          ? auxHashMap.mustFindValueFor(index) //auxHashMap cannot be null here
+          : nib + getCurMin();
     }
   }
 

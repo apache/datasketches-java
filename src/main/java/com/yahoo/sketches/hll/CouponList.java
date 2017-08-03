@@ -206,7 +206,7 @@ class CouponList extends AbstractCoupons {
 
   @Override
   PairIterator getIterator() {
-    return new CouponIterator();
+    return new IntArrayPairIterator(couponIntArr);
   }
 
   @Override
@@ -387,63 +387,6 @@ class CouponList extends AbstractCoupons {
     insertCurMode(memObj, memAdd, impl.getCurMode());
     insertTgtHllType(memObj, memAdd, impl.getTgtHllType());
   }
-
-  //Iterator for SET and LIST
-
-  final class CouponIterator implements PairIterator {
-    final int len;
-    int index;
-    int coupon;
-    final int[] array;
-
-    CouponIterator() {
-      array = couponIntArr;
-      len = array.length;
-      index = - 1;
-    }
-
-    @Override
-    public boolean nextValid() {
-      while (++index < len) {
-        final int coupon = array[index];
-        if (array[index] != EMPTY) {
-          this.coupon = coupon;
-          return true;
-        }
-      }
-      return false;
-    }
-
-    @Override
-    public boolean nextAll() {
-      if (++index < len) {
-        coupon = array[index];
-        return true;
-      }
-      return false;
-    }
-
-    @Override
-    public int getPair() {
-      return array[index];
-    }
-
-    @Override
-    public int getKey() {
-      return BaseHllSketch.getLow26(coupon);
-    }
-
-    @Override
-    public int getValue() {
-      return BaseHllSketch.getValue(coupon);
-    }
-
-    @Override
-    public int getIndex() {
-      return index;
-    }
-  }
-  //END Iterators
 
   static final double couponEstimatorEps(final int numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);

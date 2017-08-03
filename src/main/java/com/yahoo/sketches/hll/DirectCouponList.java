@@ -368,12 +368,12 @@ class DirectCouponList extends AbstractCoupons {
 
     @Override
     public int getKey() {
-      return BaseHllSketch.getLow26(coupon);
+      return HllUtil.getLow26(coupon);
     }
 
     @Override
     public int getValue() {
-      return BaseHllSketch.getValue(coupon);
+      return HllUtil.getValue(coupon);
     }
 
     @Override

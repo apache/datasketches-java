@@ -41,8 +41,7 @@ class DirectHll6Array extends DirectHllArray {
   }
 
   @Override
-  PairIterator getAuxIterator() {
-    // TODO Auto-generated method stub
+  PairIterator getIterator() {
     return null;
   }
 

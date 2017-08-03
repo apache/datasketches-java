@@ -26,18 +26,18 @@ public class CrossCountingTest {
 
     HllSketch sk4 = buildSketch(n, lgK, HLL_4);
     int s4csum = computeChecksum(sk4);
-//    println(sk4.toString(true, true, true, true));
+    println(sk4.toString(true, true, true, true));
     int csum;
 
     HllSketch sk6 = buildSketch(n, lgK, HLL_6);
     csum = computeChecksum(sk6);
     assertEquals(csum, s4csum);
-//    println(sk6.toString(true, true, true, true));
+    println(sk6.toString(true, true, true, true));
 
     HllSketch sk8 = buildSketch(n, lgK, HLL_8);
     csum = computeChecksum(sk8);
     assertEquals(csum, s4csum);
-//    println(sk8.toString(true, true, true, true));
+    println(sk8.toString(true, true, true, true));
 
     //Conversions
 //    println("\nConverted HLL_6 to HLL_4:");
@@ -55,8 +55,8 @@ public class CrossCountingTest {
 //    println("\nConverted HLL_4 to HLL_6:");
     HllSketch sk4to6 = sk4.copyAs(HLL_6);
     csum = computeChecksum(sk4to6);
+    println(sk4to6.toString(true, true, true, true));
     assertEquals(csum, s4csum);
-//    println(sk4to6.toString(true, true, true, true));
 
 //    println("\nConverted HLL_8 to HLL_6:");
     HllSketch sk8to6 = sk8.copyAs(HLL_6);

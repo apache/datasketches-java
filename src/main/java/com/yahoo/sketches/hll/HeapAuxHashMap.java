@@ -6,8 +6,6 @@
 package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
-import static com.yahoo.sketches.hll.AuxHashMap.pair;
-import static com.yahoo.sketches.hll.AuxHashMap.pairString;
 import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.RESIZE_DENOM;
 import static com.yahoo.sketches.hll.HllUtil.RESIZE_NUMER;
@@ -63,16 +61,16 @@ class HeapAuxHashMap implements AuxHashMap {
     if (compact) {
       for (int i = 0; i < auxCount; i++) {
         final int pair = extractInt(memArr, memAdd, offset + (i << 2));
-        final int slotNo = BaseHllSketch.getLow26(pair) & configKmask;
-        final int value = BaseHllSketch.getValue(pair);
+        final int slotNo = HllUtil.getLow26(pair) & configKmask;
+        final int value = HllUtil.getValue(pair);
         auxMap.mustAdd(slotNo, value);
       }
     } else { //updatable
       for (int i = 0; i < auxArrInts; i++) {
         final int pair = extractInt(memArr, memAdd, offset + (i << 2));
         if (pair == EMPTY) { continue; }
-        final int slotNo = BaseHllSketch.getLow26(pair) & configKmask;
-        final int value = BaseHllSketch.getValue(pair);
+        final int slotNo = HllUtil.getLow26(pair) & configKmask;
+        final int value = HllUtil.getValue(pair);
         auxMap.mustAdd(slotNo, value);
       }
     }
@@ -101,7 +99,7 @@ class HeapAuxHashMap implements AuxHashMap {
 
   @Override
   public PairIterator getIterator() {
-    return new AuxIterator();
+    return new IntArrayPairIterator(auxIntArr);
   }
 
   @Override
@@ -118,9 +116,9 @@ class HeapAuxHashMap implements AuxHashMap {
   @Override
   public void mustAdd(final int slotNo, final int value) {
     final int index = find(auxIntArr, lgAuxArrInts, lgConfigK, slotNo);
-    final int pair = pair(slotNo, value);
+    final int pair = HllUtil.pair(slotNo, value);
     if (index >= 0) {
-      final String pairStr = pairString(pair);
+      final String pairStr = HllUtil.pairString(pair);
       throw new SketchesStateException("Found a slotNo that should not be there: " + pairStr);
     }
       //Found empty entry
@@ -134,7 +132,7 @@ class HeapAuxHashMap implements AuxHashMap {
   public int mustFindValueFor(final int slotNo) {
     final int index = find(auxIntArr, lgAuxArrInts, lgConfigK, slotNo);
     if (index >= 0) {
-      return BaseHllSketch.getValue(auxIntArr[index]);
+      return HllUtil.getValue(auxIntArr[index]);
     }
     throw new SketchesStateException("SlotNo not found: " + slotNo);
   }
@@ -144,59 +142,11 @@ class HeapAuxHashMap implements AuxHashMap {
   public void mustReplace(final int slotNo, final int value) {
     final int idx = find(auxIntArr, lgAuxArrInts, lgConfigK, slotNo);
     if (idx >= 0) {
-      auxIntArr[idx] = pair(slotNo, value); //replace
+      auxIntArr[idx] = HllUtil.pair(slotNo, value); //replace
       return;
     }
-    final String pairStr = pairString(pair(slotNo, value));
+    final String pairStr = HllUtil.pairString(HllUtil.pair(slotNo, value));
     throw new SketchesStateException("Pair not found: " + pairStr);
-  }
-
-  final class AuxIterator implements PairIterator {
-    final int len;
-    int index;
-    final int[] array;
-
-    AuxIterator() {
-      array = auxIntArr;
-      len = array.length;
-
-      index = - 1;
-    }
-
-    @Override
-    public boolean nextValid() {
-      while (++index < len) {
-        if (array[index] != EMPTY) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    @Override
-    public boolean nextAll() {
-      return ++index < len;
-    }
-
-    @Override
-    public int getPair() {
-      return array[index];
-    }
-
-    @Override
-    public int getKey() {
-      return BaseHllSketch.getLow26(array[index]);
-    }
-
-    @Override
-    public int getValue() {
-      return BaseHllSketch.getValue(array[index]);
-    }
-
-    @Override
-    public int getIndex() {
-      return index;
-    }
   }
 
   //Searches the Aux arr hash table

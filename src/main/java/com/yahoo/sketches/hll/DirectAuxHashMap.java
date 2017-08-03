@@ -6,8 +6,6 @@
 package com.yahoo.sketches.hll;
 
 import static com.yahoo.memory.UnsafeUtil.unsafe;
-import static com.yahoo.sketches.hll.AuxHashMap.pair;
-import static com.yahoo.sketches.hll.AuxHashMap.pairString;
 import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.RESIZE_DENOM;
 import static com.yahoo.sketches.hll.HllUtil.RESIZE_NUMER;
@@ -29,10 +27,19 @@ class DirectAuxHashMap extends DirectHll4Array implements AuxHashMap {
   private final int auxArrOffset;
   private long unsafeAuxArrOffset;
 
-  DirectAuxHashMap(final WritableMemory wmem) {
+  DirectAuxHashMap(final WritableMemory wmem, final boolean initialize) {
     super(wmem);
     auxArrOffset = HLL_BYTE_ARRAY_START + (1 << (lgConfigK - 1));
     unsafeAuxArrOffset = memAdd + auxArrOffset;
+    directAuxHashMap = this;
+    final int initLgArrInts = Hll4Array.LG_AUX_ARR_INTS[lgConfigK];
+    final int memLgArrInts = extractLgArr(memObj, memAdd);
+    if (initialize) {
+      insertLgArr(memObj, memAdd, initLgArrInts);
+      wmem.clear(auxArrOffset, 4 << initLgArrInts);
+    } else {
+      assert memLgArrInts >= initLgArrInts;
+    }
   }
 
   @Override
@@ -57,8 +64,7 @@ class DirectAuxHashMap extends DirectHll4Array implements AuxHashMap {
 
   @Override
   public PairIterator getIterator() {
-    // TODO Auto-generated method stub
-    return null;
+    return new MemoryPairIterator(wmem, auxArrOffset, 1 << getLgAuxArrInts());
   }
 
   @Override
@@ -74,9 +80,9 @@ class DirectAuxHashMap extends DirectHll4Array implements AuxHashMap {
   @Override
   public void mustAdd(final int slotNo, final int value) {
     final int index = find(slotNo);
-    final int pair = pair(slotNo, value);
+    final int pair = HllUtil.pair(slotNo, value);
     if (index >= 0) {
-      final String pairStr = pairString(pair);
+      final String pairStr = HllUtil.pairString(pair);
       throw new SketchesStateException("Found a slotNo that should not be there: " + pairStr);
     }
     //Found empty entry
@@ -91,7 +97,7 @@ class DirectAuxHashMap extends DirectHll4Array implements AuxHashMap {
     final int index = find(slotNo);
     if (index >= 0) {
       final int pair = unsafe.getInt(memObj, unsafeAuxArrOffset + (index << 2));
-      return BaseHllSketch.getValue(pair);
+      return HllUtil.getValue(pair);
     }
     throw new SketchesStateException("SlotNo not found: " + slotNo);
   }
@@ -100,16 +106,16 @@ class DirectAuxHashMap extends DirectHll4Array implements AuxHashMap {
   public void mustReplace(final int slotNo, final int value) {
     final int index = find(slotNo);
     if (index >= 0) {
-      unsafe.putInt(memObj, unsafeAuxArrOffset + (index << 2), pair(slotNo, value));
+      unsafe.putInt(memObj, unsafeAuxArrOffset + (index << 2), HllUtil.pair(slotNo, value));
       return;
     }
-    final String pairStr = pairString(pair(slotNo, value));
+    final String pairStr = HllUtil.pairString(HllUtil.pair(slotNo, value));
     throw new SketchesStateException("Pair not found: " + pairStr);
   }
 
   private final int find(final int slotNo) {
     final int lgAuxArrInts = extractLgArr(memObj, memAdd);
-    assert lgAuxArrInts < lgConfigK;
+    assert lgAuxArrInts < lgConfigK : lgAuxArrInts;
     final int auxInts = 1 << lgAuxArrInts;
     final int auxArrMask = auxInts - 1;
     final int configKmask = (1 << lgConfigK) - 1;
@@ -139,6 +145,7 @@ class DirectAuxHashMap extends DirectHll4Array implements AuxHashMap {
         final MemoryRequestServer svr = wmem.getMemoryRequestServer();
         final WritableMemory newWmem = svr.request(requestBytes);
         wmem.copyTo(0, newWmem, 0, oldCapBytes); //also copies old auxArr
+        svr.requestClose(wmem, newWmem);
         super.updateMemory(newWmem);
         unsafeAuxArrOffset = memAdd + auxArrOffset; //memAdd may be different!
       }
@@ -146,7 +153,7 @@ class DirectAuxHashMap extends DirectHll4Array implements AuxHashMap {
     }
   }
 
-  //lgArr has been incremented and there is sufficient space.
+  //lgArr must have been incremented and there must be sufficient space.
   final void growAuxSpace() {
     final int auxArrInts = 1 << extractLgArr(memObj, memAdd);
     final int[] oldArray = new int[auxArrInts];
@@ -163,4 +170,5 @@ class DirectAuxHashMap extends DirectHll4Array implements AuxHashMap {
     }
   }
 
+  //static void println(final String s) { System.out.println(s); }
 }

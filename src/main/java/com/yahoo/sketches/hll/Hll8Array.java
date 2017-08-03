@@ -6,8 +6,6 @@
 package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.hll.HllUtil.EMPTY;
-import static com.yahoo.sketches.hll.HllUtil.KEY_BITS_26;
-import static com.yahoo.sketches.hll.HllUtil.KEY_MASK_26;
 import static com.yahoo.sketches.hll.HllUtil.VAL_MASK_6;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
 
@@ -55,8 +53,8 @@ class Hll8Array extends HllArray {
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
     final int configKmask = (1 << getLgConfigK()) - 1;
-    final int slotNo = BaseHllSketch.getLow26(coupon) & configKmask;
-    final int newVal = BaseHllSketch.getValue(coupon);
+    final int slotNo = HllUtil.getLow26(coupon) & configKmask;
+    final int newVal = HllUtil.getValue(coupon);
     assert newVal > 0;
     final byte[] hllByteArr = getHllByteArr();
     final int curVal = hllByteArr[slotNo] & VAL_MASK_6;
@@ -73,58 +71,36 @@ class Hll8Array extends HllArray {
 
   @Override
   PairIterator getIterator() {
-    return new Hll8Iterator();
+    return new HeapHll8Iterator(hllByteArr, 1 << lgConfigK);
   }
 
-  final class Hll8Iterator implements PairIterator {
-    byte[] array;
-    int slots;
-    int slotNum;
+  final class HeapHll8Iterator extends ByteArrayPairIterator {
 
-    Hll8Iterator() {
-      array = getHllByteArr();
-      slots = array.length;
-      slotNum = -1;
+    HeapHll8Iterator(final byte[] array, final int lengthPairs) {
+      super(array, lengthPairs);
     }
 
     @Override
     public boolean nextValid() {
-      slotNum++;
-      while (slotNum < slots) {
-        if (getValue() != EMPTY) {
+      while (++index < lengthPairs) {
+        value = array[index] & 0XFF;
+        if (value != EMPTY) {
           return true;
         }
-        slotNum++;
       }
       return false;
     }
 
     @Override
     public boolean nextAll() {
-      slotNum++;
-      return slotNum < slots;
-    }
-
-    @Override
-    public int getPair() {
-      return (getValue() << KEY_BITS_26) | (slotNum & KEY_MASK_26);
-    }
-
-    @Override
-    public int getKey() {
-      return slotNum;
-    }
-
-    @Override
-    public int getValue() {
-      return array[slotNum] & VAL_MASK_6;
-    }
-
-    @Override
-    public int getIndex() {
-      return slotNum;
+      if (++index < lengthPairs) {
+        value = array[index] & 0XFF;
+        return true;
+      }
+      return false;
     }
   }
+
 
   static final Hll8Array convertToHll8(final HllArray srcHllArr) {
     final Hll8Array hll8Array = new Hll8Array(srcHllArr.getLgConfigK());

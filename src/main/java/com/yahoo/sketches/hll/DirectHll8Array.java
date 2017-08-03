@@ -34,8 +34,8 @@ class DirectHll8Array extends DirectHllArray {
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
     final int configKmask = (1 << getLgConfigK()) - 1;
-    final int slotNo = BaseHllSketch.getLow26(coupon) & configKmask;
-    final int newVal = BaseHllSketch.getValue(coupon);
+    final int slotNo = HllUtil.getLow26(coupon) & configKmask;
+    final int newVal = HllUtil.getValue(coupon);
     assert newVal > 0;
     final long byteOffset = HLL_BYTE_ARRAY_START + slotNo;
     final int curVal = unsafe.getByte(memObj, memAdd + byteOffset);
@@ -56,10 +56,8 @@ class DirectHll8Array extends DirectHllArray {
   }
 
   @Override
-  PairIterator getAuxIterator() {
-    // TODO Auto-generated method stub
+  PairIterator getIterator() {
     return null;
   }
-
 
 }

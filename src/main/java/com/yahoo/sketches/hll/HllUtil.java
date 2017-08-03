@@ -35,10 +35,22 @@ final class HllUtil {
   static final int RESIZE_NUMER = 3;
   static final int RESIZE_DENOM = 4;
 
+  static final void badPreambleState(final Memory mem) {
+    throw new SketchesArgumentException("Possible Corruption, Invalid Preamble:"
+        + PreambleUtil.toString(mem));
+  }
+
   static final int checkLgK(final int lgK) {
     if ((lgK >= MIN_LOG_K) && (lgK <= MAX_LOG_K)) { return lgK; }
     throw new SketchesArgumentException(
       "Log K must be between 4 and 21, inclusive: " + lgK);
+  }
+
+  static void checkMemSize(final long minBytes, final long capBytes) {
+    if (capBytes < minBytes) {
+      throw new SketchesArgumentException(
+          "Given WritableMemory is not large enough: " + capBytes);
+    }
   }
 
   static final void checkNumStdDev(final int numStdDev) {
@@ -53,16 +65,24 @@ final class HllUtil {
         "This sketch does not have write access to the underlying resource.");
   }
 
-  static final void badPreambleState(final Memory mem) {
-    throw new SketchesArgumentException("Possible Corruption, Invalid Preamble:"
-        + PreambleUtil.toString(mem));
+  //Pairs
+
+  public static int pair(final int slotNo, final int value) {
+    return (value << KEY_BITS_26) | (slotNo & KEY_MASK_26);
   }
 
-  static void checkMemSize(final long minBytes, final long capBytes) {
-    if (capBytes < minBytes) {
-      throw new SketchesArgumentException(
-          "Given WritableMemory is not large enough: " + capBytes);
-    }
+  //used for thrown exceptions
+  public static String pairString(final int pair) {
+    return "SlotNo: " + getLow26(pair) + ", Value: "
+        + getValue(pair);
+  }
+
+  static final int getLow26(final int coupon) {
+    return coupon & KEY_MASK_26;
+  }
+
+  static final int getValue(final int coupon) {
+    return coupon >>> KEY_BITS_26;
   }
 
 }

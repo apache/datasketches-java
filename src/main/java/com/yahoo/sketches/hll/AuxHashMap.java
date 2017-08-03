@@ -5,9 +5,6 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hll.HllUtil.KEY_BITS_26;
-import static com.yahoo.sketches.hll.HllUtil.KEY_MASK_26;
-
 import com.yahoo.sketches.SketchesStateException;
 
 /**
@@ -52,15 +49,5 @@ interface AuxHashMap {
    * @throws SketchesStateException if a valid slotNo, value is not found.
    */
   void mustReplace(int slotNo, int value);
-
-  static int pair(final int slotNo, final int value) {
-    return (value << KEY_BITS_26) | (slotNo & KEY_MASK_26);
-  }
-
-  //used for thrown exceptions
-  static String pairString(final int pair) {
-    return "SlotNo: " + BaseHllSketch.getLow26(pair) + ", Value: "
-        + BaseHllSketch.getValue(pair);
-  }
 
 }

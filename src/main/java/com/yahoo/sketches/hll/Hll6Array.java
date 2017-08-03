@@ -6,8 +6,6 @@
 package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.hll.HllUtil.EMPTY;
-import static com.yahoo.sketches.hll.HllUtil.KEY_BITS_26;
-import static com.yahoo.sketches.hll.HllUtil.KEY_MASK_26;
 import static com.yahoo.sketches.hll.HllUtil.VAL_MASK_6;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
 
@@ -58,8 +56,8 @@ class Hll6Array extends HllArray {
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
     final int configKmask = (1 << getLgConfigK()) - 1;
-    final int slotNo = BaseHllSketch.getLow26(coupon) & configKmask;
-    final int newVal = BaseHllSketch.getValue(coupon);
+    final int slotNo = HllUtil.getLow26(coupon) & configKmask;
+    final int newVal = HllUtil.getValue(coupon);
     assert newVal > 0;
     final int curVal = get6Bit(mem, 0, slotNo);
     if (newVal > curVal) {
@@ -73,10 +71,7 @@ class Hll6Array extends HllArray {
     return this;
   }
 
-  @Override
-  PairIterator getIterator() {
-    return new Hll6Iterator();
-  }
+
 
   static final void put6Bit(final WritableMemory mem, final long offsetBytes,
       final int slotNo, final int val) {
@@ -102,64 +97,45 @@ class Hll6Array extends HllArray {
     return (startBit >>> 3) | ((startBit & 0X7L) << 32);
   }
 
+  @Override
+  PairIterator getIterator() {
+    return new HeapHll6Iterator(hllByteArr, 1 << lgConfigK);
+  }
 
-
-
-  //Iterator
-
-  final class Hll6Iterator implements PairIterator {
-    int lengthBits;
-    int slotNum;
+  final class HeapHll6Iterator extends ByteArrayPairIterator {
     int bitOffset;
 
-    Hll6Iterator() {
-      lengthBits = (1 << getLgConfigK()) * 6;
-      assert lengthBits <= (getHllByteArr().length * 8);
-      slotNum = -1;
-      bitOffset = -6;
+    HeapHll6Iterator(final byte[] array, final int lengthPairs) {
+      super(array, lengthPairs);
+      bitOffset = - 6;
     }
 
     @Override
     public boolean nextValid() {
-      slotNum++;
-      bitOffset += 6;
-      while (bitOffset < lengthBits) {
-        if (getValue() != EMPTY) {
+      while (++index < lengthPairs) {
+        bitOffset += 6;
+        value = value();
+        if (value != EMPTY) {
           return true;
         }
-        slotNum++;
-        bitOffset += 6;
       }
       return false;
     }
 
     @Override
     public boolean nextAll() {
-      slotNum++;
-      bitOffset += 6;
-      return bitOffset < lengthBits;
+      if (++index < lengthPairs) {
+        bitOffset += 6;
+        value = value();
+        return true;
+      }
+      return false;
     }
 
-    @Override
-    public int getPair() {
-      return (getValue() << KEY_BITS_26) | (slotNum & KEY_MASK_26);
-    }
-
-    @Override
-    public int getKey() {
-      return slotNum;
-    }
-
-    @Override
-    public int getValue() {
+    private int value() {
       final int tmp = mem.getShort(bitOffset / 8);
       final int shift = (bitOffset % 8) & 0X7;
       return (tmp >>> shift) & VAL_MASK_6;
-    }
-
-    @Override
-    public int getIndex() {
-      return slotNum;
     }
   }
 

@@ -9,6 +9,7 @@ import static com.yahoo.memory.UnsafeUtil.unsafe;
 import static com.yahoo.sketches.Util.invPow2;
 import static com.yahoo.sketches.hll.PreambleUtil.CUR_MIN_COUNT_INT;
 import static com.yahoo.sketches.hll.PreambleUtil.HIP_ACCUM_DOUBLE;
+import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARRAY_START;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCurMin;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCurMode;
 import static com.yahoo.sketches.hll.PreambleUtil.extractEmptyFlag;
@@ -42,6 +43,7 @@ abstract class DirectHllArray extends AbstractHllArray {
   long memAdd;
   AuxHashMap directAuxHashMap = null;
 
+  //Memory must be initialized
   DirectHllArray(final WritableMemory wmem) {
     super();
     this.wmem = wmem;
@@ -95,13 +97,14 @@ abstract class DirectHllArray extends AbstractHllArray {
   }
 
   @Override
-  HeapAuxHashMap getAuxHashMap() {
-    // TODO Auto-generated method stub
-    return null;
+  AuxHashMap getAuxHashMap() {
+    return directAuxHashMap;
   }
 
   @Override
-  abstract PairIterator getAuxIterator();
+  PairIterator getAuxIterator() {
+    return (directAuxHashMap == null) ? null : directAuxHashMap.getIterator();
+  }
 
   @Override
   int getCurMin() {
@@ -115,8 +118,8 @@ abstract class DirectHllArray extends AbstractHllArray {
 
   @Override
   int getCompactSerializationBytes() {
-    // TODO Auto-generated method stub
-    return 0;
+    final int auxBytes = (directAuxHashMap == null) ? 0 : 4 << directAuxHashMap.getAuxCount();
+    return HLL_BYTE_ARRAY_START + getHllByteArrBytes() + auxBytes;
   }
 
   @Override
@@ -137,16 +140,15 @@ abstract class DirectHllArray extends AbstractHllArray {
   }
 
   @Override
-  byte[] getHllByteArr() {
-    // TODO Auto-generated method stub
+  byte[] getHllByteArr() { //not allowed
     return null;
   }
 
   @Override
-  PairIterator getIterator() {
-    // TODO Auto-generated method stub
-    return null;
-  }
+  abstract int getHllByteArrBytes();
+
+  @Override
+  abstract PairIterator getIterator();
 
   @Override
   double getKxQ0() {
@@ -193,8 +195,8 @@ abstract class DirectHllArray extends AbstractHllArray {
 
   @Override
   int getUpdatableSerializationBytes() {
-    // TODO Auto-generated method stub
-    return 0;
+    final int auxBytes = (directAuxHashMap == null) ? 0 : 4 << directAuxHashMap.getLgAuxArrInts();
+    return HLL_BYTE_ARRAY_START + getHllByteArrBytes() + auxBytes;
   }
 
   @Override

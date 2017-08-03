@@ -277,18 +277,6 @@ abstract class BaseHllSketch {
     return (value << KEY_BITS_26) | addr26;
   }
 
-  static final int getLow26(final int coupon) {
-    return coupon & KEY_MASK_26;
-  }
-
-  static final int getValue(final int coupon) {
-    return coupon >>> KEY_BITS_26;
-  }
-
-  static final String couponString(final int coupon) {
-    return "Key: " + getLow26(coupon) + ", Value: " + getValue(coupon);
-  }
-
   abstract void couponUpdate(int coupon);
 
 }
