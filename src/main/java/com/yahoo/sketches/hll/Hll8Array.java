@@ -57,8 +57,8 @@ class Hll8Array extends HllArray {
     final int configKmask = (1 << getLgConfigK()) - 1;
     final int slotNo = BaseHllSketch.getLow26(coupon) & configKmask;
     final int newVal = BaseHllSketch.getValue(coupon);
-    final byte[] hllByteArr = getHllByteArr();
     assert newVal > 0;
+    final byte[] hllByteArr = getHllByteArr();
     final int curVal = hllByteArr[slotNo] & VAL_MASK_6;
     if (newVal > curVal) {
       hllByteArr[slotNo] = (byte) (newVal & VAL_MASK_6);
@@ -67,7 +67,6 @@ class Hll8Array extends HllArray {
         decNumAtCurMin(); //overloaded as num zeros
         assert getNumAtCurMin() >= 0;
       }
-
     }
     return this;
   }

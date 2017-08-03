@@ -28,7 +28,7 @@ class Hll6Array extends HllArray {
    */
   Hll6Array(final int lgConfigK) {
     super(lgConfigK, TgtHllType.HLL_6);
-    hllByteArr = new byte[byteArrBytes(lgConfigK)];
+    hllByteArr = new byte[hll6ByteArrBytes(lgConfigK)];
     mem = WritableMemory.wrap(hllByteArr);
   }
 
@@ -93,20 +93,17 @@ class Hll6Array extends HllArray {
     final long idxAndShift = byteIdxAndShift(slotNo);
     final long byteIdx = idxAndShift & (0XFFFFFFFFL + offsetBytes);
     final int shift = (int)(idxAndShift >>> 32);
-    return (byte) ((mem.getShort(byteIdx) >> shift) & 0X3F);
+    return (byte) ((mem.getShort(byteIdx) >>> shift) & 0X3F);
   }
 
   private static final long byteIdxAndShift(final int slotIdx) {
     final long startBit = slotIdx * 6;
     //shift in upper 32, byte index in lower 32
-    return (startBit >> 3) | ((startBit & 0X7L) << 32);
+    return (startBit >>> 3) | ((startBit & 0X7L) << 32);
   }
 
 
-  static final int byteArrBytes(final int lgConfigK) {
-    final int numSlots = 1 << lgConfigK;
-    return ((numSlots * 3) >> 2) + 1;
-  }
+
 
   //Iterator
 

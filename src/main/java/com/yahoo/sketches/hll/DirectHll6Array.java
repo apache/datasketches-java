@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
+
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 
@@ -19,6 +21,29 @@ class DirectHll6Array extends DirectHllArray {
 
   DirectHll6Array(final Memory mem) {
     super(mem);
+  }
+
+  @Override
+  HllSketchImpl copy() {
+    return Hll6Array.heapify(mem);
+  }
+
+  @Override
+  HllSketchImpl couponUpdate(final int coupon) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  int getHllByteArrBytes() {
+    final int lgK = 1 << extractLgK(memObj, memAdd);
+    return hll6ByteArrBytes(lgK);
+  }
+
+  @Override
+  PairIterator getAuxIterator() {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

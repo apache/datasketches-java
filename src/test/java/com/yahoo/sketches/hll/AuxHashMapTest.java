@@ -61,7 +61,7 @@ public class AuxHashMapTest {
 
   @Test
   public void checkMustReplace() {
-    AuxHashMap map = new AuxHashMap(3, 7);
+    HeapAuxHashMap map = new HeapAuxHashMap(3, 7);
     map.mustAdd(100, 5);
     int val = map.mustFindValueFor(100);
     assertEquals(val, 5);
@@ -80,24 +80,34 @@ public class AuxHashMapTest {
 
   @Test
   public void checkGrowSpace() {
-    AuxHashMap map = new AuxHashMap(3, 7);
-    assertEquals(map.lgAuxArrSize, 3);
+    HeapAuxHashMap map = new HeapAuxHashMap(3, 7);
+    assertEquals(map.getLgAuxArrInts(), 3);
     for (int i = 1; i <= 7; i++) {
       map.mustAdd(i, i);
     }
-    assertEquals(map.lgAuxArrSize, 4);
+    assertEquals(map.getLgAuxArrInts(), 4);
+    PairIterator itr = map.getIterator();
+    int count1 = 0;
+    int count2 = 0;
+    while (itr.nextAll()) {
+      count2++;
+      int pair = itr.getPair();
+      if (pair != 0) { count1++; }
+    }
+    assertEquals(count1, 7);
+    assertEquals(count2, 16);
   }
 
   @Test(expectedExceptions = SketchesStateException.class)
   public void checkExceptions1() {
-    AuxHashMap map = new AuxHashMap(3, 7);
+    HeapAuxHashMap map = new HeapAuxHashMap(3, 7);
     map.mustAdd(100, 5);
     map.mustFindValueFor(101);
   }
 
   @Test(expectedExceptions = SketchesStateException.class)
   public void checkExceptions2() {
-    AuxHashMap map = new AuxHashMap(3, 7);
+    HeapAuxHashMap map = new HeapAuxHashMap(3, 7);
     map.mustAdd(100, 5);
     map.mustAdd(100, 6);
   }

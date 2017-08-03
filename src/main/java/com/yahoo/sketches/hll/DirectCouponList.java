@@ -131,7 +131,7 @@ class DirectCouponList extends AbstractCoupons {
       if (couponAtIdx == coupon) { return this; } //duplicate
       //cell not empty & not a duplicate, continue
     } //end for
-    throw new SketchesStateException("Array invalid: no empties & no duplicates");
+    throw new SketchesStateException("Invalid State: no empties & no duplicates");
   }
 
   @Override

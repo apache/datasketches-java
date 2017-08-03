@@ -146,7 +146,7 @@ final class PreambleUtil {
     final int listCount = hllCurMin;
     final int modeByte = mem.getByte(MODE_BYTE);
     final CurMode curMode = CurMode.fromOrdinal(modeByte & 3);
-    final TgtHllType tgtHllType = TgtHllType.fromOrdinal((modeByte >> 2) & 3);
+    final TgtHllType tgtHllType = TgtHllType.fromOrdinal((modeByte >>> 2) & 3);
 
     double hipAccum = 0;
     double kxq0 = 0;
@@ -310,8 +310,8 @@ final class PreambleUtil {
     return unsafe.getInt(memObj, memAdd + CUR_MIN_COUNT_INT);
   }
 
-  static void insertNumAtCurMin(final Object memObj, final long memAdd, final int curMinCnt) {
-    unsafe.putInt(memObj, memAdd + CUR_MIN_COUNT_INT, curMinCnt);
+  static void insertNumAtCurMin(final Object memObj, final long memAdd, final int numAtCurMin) {
+    unsafe.putInt(memObj, memAdd + CUR_MIN_COUNT_INT, numAtCurMin);
   }
 
   static int extractAuxCount(final Object memObj, final long memAdd) {

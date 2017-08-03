@@ -164,7 +164,7 @@ public class HllSketchTest {
 
     sk = new HllSketch(lgConfigK, HLL_6);
     for (int i = 0; i < 25; i++) { sk.update(i); }
-    hllBytes = PreambleUtil.HLL_BYTE_ARRAY_START + Hll6Array.byteArrBytes(lgConfigK);
+    hllBytes = PreambleUtil.HLL_BYTE_ARRAY_START + AbstractHllArray.hll6ByteArrBytes(lgConfigK);
     assertEquals(sk.getCompactSerializationBytes(), hllBytes);
     assertEquals(HllSketch.getMaxSerializationBytes(lgConfigK, HLL_6), hllBytes);
 

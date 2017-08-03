@@ -13,6 +13,10 @@ import com.yahoo.memory.WritableMemory;
  */
 abstract class AbstractHllArray extends HllSketchImpl {
 
+  abstract void addToHipAccum(double delta);
+
+  abstract void decNumAtCurMin();
+
   abstract AuxHashMap getAuxHashMap();
 
   abstract PairIterator getAuxIterator();
@@ -29,8 +33,26 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   abstract byte[] getHllByteArr();
 
+  abstract int getHllByteArrBytes();
+
   abstract void populateHllByteArrFromMem(Memory srcMem, int lenBytes); //TODO ??
 
   abstract void populateMemFromHllByteArr(WritableMemory dstWmem, int lenBytes);
 
+  abstract void putAuxHashMap(AuxHashMap auxHashMap);
+
+  abstract void putCurMin(int curMin);
+
+  abstract void putHipAccum(double hipAccum);
+
+  abstract void putKxQ0(double kxq0);
+
+  abstract void putKxQ1(double kxq1);
+
+  abstract void putNumAtCurMin(int numAtCurMin);
+
+  static final int hll6ByteArrBytes(final int lgConfigK) {
+    final int numSlots = 1 << lgConfigK;
+    return ((numSlots * 3) >>> 2) + 1;
+  }
 }

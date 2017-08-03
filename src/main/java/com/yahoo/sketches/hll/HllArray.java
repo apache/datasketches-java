@@ -152,10 +152,12 @@ abstract class HllArray extends AbstractHllArray {
     return Hll8Array.convertToHll8(this);
   }
 
+  @Override
   void addToHipAccum(final double delta) {
     hipAccum += delta;
   }
 
+  @Override
   void decNumAtCurMin() {
     numAtCurMin--;
   }
@@ -239,7 +241,7 @@ abstract class HllArray extends AbstractHllArray {
   @Override
   int getCompactSerializationBytes() {
     final AuxHashMap auxHashMap = getAuxHashMap();
-    final int auxBytes = (auxHashMap == null) ? 0 : auxHashMap.auxCount << 2;
+    final int auxBytes = (auxHashMap == null) ? 0 : auxHashMap.getAuxCount() << 2;
     return HLL_BYTE_ARRAY_START + getHllByteArr().length + auxBytes;
   }
 
@@ -259,6 +261,11 @@ abstract class HllArray extends AbstractHllArray {
   @Override
   byte[] getHllByteArr() {
     return hllByteArr;
+  }
+
+  @Override
+  int getHllByteArrBytes() {
+    return hllByteArr.length;
   }
 
   @Override
@@ -344,7 +351,7 @@ abstract class HllArray extends AbstractHllArray {
   @Override
   int getUpdatableSerializationBytes() {
     final AuxHashMap auxHashMap = getAuxHashMap();
-    final int auxBytes = (auxHashMap == null) ? 0 : 4 << auxHashMap.lgAuxArrSize;
+    final int auxBytes = (auxHashMap == null) ? 0 : 4 << auxHashMap.getLgAuxArrInts();
     return HLL_BYTE_ARRAY_START + hllByteArr.length + auxBytes;
   }
 
@@ -393,14 +400,17 @@ abstract class HllArray extends AbstractHllArray {
     //TODO
   }
 
+  @Override
   void putAuxHashMap(final AuxHashMap auxHashMap) {
     this.auxHashMap = auxHashMap;
   }
 
+  @Override
   void putCurMin(final int curMin) {
     this.curMin = curMin;
   }
 
+  @Override
   void putHipAccum(final double value) {
     hipAccum = value;
   }
@@ -409,14 +419,17 @@ abstract class HllArray extends AbstractHllArray {
     this.hllByteArr = hllByteArr;
   }
 
+  @Override
   void putKxQ0(final double kxq0) {
     this.kxq0 = kxq0;
   }
 
+  @Override
   void putKxQ1(final double kxq1) {
     this.kxq1 = kxq1;
   }
 
+  @Override
   void putNumAtCurMin(final int numAtCurMin) {
     this.numAtCurMin = numAtCurMin;
   }
@@ -440,7 +453,8 @@ abstract class HllArray extends AbstractHllArray {
     int auxBytes = 0;
     final AuxHashMap auxHashMap = impl.getAuxHashMap();
     if (auxHashMap != null) { //only relevant for HLL_4
-      auxBytes = (compact) ? auxHashMap.getCompactedSizeBytes()
+      auxBytes = (compact)
+          ? auxHashMap.getCompactedSizeBytes()
           : auxHashMap.getUpdatableSizeBytes();
     }
     final int totBytes = HLL_BYTE_ARRAY_START + impl.getHllByteArr().length + auxBytes;
@@ -469,8 +483,9 @@ abstract class HllArray extends AbstractHllArray {
     final Object memObj = wmem.getArray();
     final long memAdd = wmem.getCumulativeOffset(0L);
     final AuxHashMap auxHashMap = impl.getAuxHashMap();
-    final int auxCount = auxHashMap.auxCount;
+    final int auxCount = auxHashMap.getAuxCount();
     insertAuxCount(memObj, memAdd, auxCount);
+    insertLgArr(memObj, memAdd, auxHashMap.getLgAuxArrInts()); //only used for direct HLL
     final long auxStart = HLL_BYTE_ARRAY_START + impl.getHllByteArr().length;
     if (compact) {
       final PairIterator itr = auxHashMap.getIterator();
@@ -480,7 +495,9 @@ abstract class HllArray extends AbstractHllArray {
       }
       assert cnt == auxCount;
     } else { //updatable
-      wmem.putIntArray(auxStart, auxHashMap.auxIntArr, 0, auxHashMap.auxIntArr.length);
+      final int auxInts = 1 << auxHashMap.getLgAuxArrInts();
+      final int[] auxArr = auxHashMap.getAuxIntArr(); //do copy for direct
+      wmem.putIntArray(auxStart, auxArr, 0, auxInts);
     }
   }
 
@@ -492,7 +509,6 @@ abstract class HllArray extends AbstractHllArray {
     insertSerVer(memObj, memAdd);
     insertFamilyId(memObj, memAdd);
     insertLgK(memObj, memAdd, impl.getLgConfigK());
-    insertLgArr(memObj, memAdd, 0); //not used for HLL mode
     insertEmptyFlag(memObj, memAdd, impl.isEmpty());
     insertCompactFlag(memObj, memAdd, compact);
     insertOooFlag(memObj, memAdd, impl.isOutOfOrderFlag());

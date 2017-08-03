@@ -30,7 +30,7 @@ class Hll4Array extends HllArray {
    * Log2 table sizes for exceptions based on lgK from 0 to 26.
    * However, only lgK from 7 to 21 are used.
    */
-  static final int[] LG_AUX_SIZE = new int[] {
+  static final int[] LG_AUX_ARR_INTS = new int[] {
     0, 2, 2, 2, 2, 2, 2, 3, 3, 3,   //0 - 9
     4, 4, 5, 5, 6, 7, 8, 9, 10, 11, //10 - 19
     12, 13, 14, 15, 16, 17, 18      //20 - 26
@@ -63,12 +63,12 @@ class Hll4Array extends HllArray {
     HllArray.extractCommonHll(hll4Array, mem, memArr, memAdd);
 
     //load AuxHashMap
-    final int offset = HLL_BYTE_ARRAY_START + hll4Array.getHllByteArr().length;
+    final int offset = HLL_BYTE_ARRAY_START + hll4Array.getHllByteArrBytes();
     final int auxCount = extractAuxCount(memArr, memAdd);
     final boolean compact = extractCompactFlag(memArr, memAdd);
-    AuxHashMap auxHashMap = null;
+    HeapAuxHashMap auxHashMap = null;
     if (auxCount > 0) {
-      auxHashMap = AuxHashMap.heapify(mem, offset, lgConfigK, auxCount, compact);
+      auxHashMap = HeapAuxHashMap.heapify(mem, offset, lgConfigK, auxCount, compact);
     }
     hll4Array.putAuxHashMap(auxHashMap);
     return hll4Array;
@@ -92,7 +92,7 @@ class Hll4Array extends HllArray {
   }
 
   static final int getExpectedLgAuxInts(final int lgConfigK) {
-    return LG_AUX_SIZE[lgConfigK];
+    return LG_AUX_ARR_INTS[lgConfigK];
   }
 
   @Override
@@ -159,7 +159,7 @@ class Hll4Array extends HllArray {
   }
 
   static final int getNibble(final byte[] array, final int slotNo) {
-    int theByte = array[slotNo >> 1];
+    int theByte = array[slotNo >>> 1];
     if ((slotNo & 1) > 0) { //odd?
       theByte >>>= 4;
     }
@@ -167,7 +167,7 @@ class Hll4Array extends HllArray {
   }
 
   static final void setNibble(final byte[] array, final int slotNo , final int newValue) {
-    final int byteno = slotNo >> 1;
+    final int byteno = slotNo >>> 1;
     final int oldValue = array[byteno];
     if ((slotNo & 1) == 0) { // set low nibble
       array[byteno] = (byte) ((oldValue & hiNibbleMask) | (newValue & loNibbleMask));
@@ -233,7 +233,7 @@ class Hll4Array extends HllArray {
             // added to the exception table.
             setNibble(hllByteArr, slotNo, AUX_TOKEN);
             if (auxHashMap == null) {
-              auxHashMap = new AuxHashMap(LG_AUX_SIZE[lgConfigK], lgConfigK);
+              auxHashMap = new HeapAuxHashMap(LG_AUX_ARR_INTS[lgConfigK], lgConfigK);
               putAuxHashMap(auxHashMap);
             }
             auxHashMap.mustAdd(slotNo, newValue);
@@ -295,7 +295,7 @@ class Hll4Array extends HllArray {
 
     //If old AuxHashMap exists, walk through it updating some slots and build a new AuxHashMap
     // if needed.
-    AuxHashMap newAuxMap = null;
+    HeapAuxHashMap newAuxMap = null;
     final AuxHashMap oldAuxMap = getAuxHashMap();
     if (oldAuxMap != null) {
       int slotNum;
@@ -321,7 +321,7 @@ class Hll4Array extends HllArray {
         else { //newShiftedVal >= AUX_TOKEN
           // the former exception remains an exception, so must be added to the newAuxMap
           if (newAuxMap == null) {
-            newAuxMap = new AuxHashMap(LG_AUX_SIZE[lgConfigK], lgConfigK);
+            newAuxMap = new HeapAuxHashMap(LG_AUX_ARR_INTS[lgConfigK], lgConfigK);
           }
           newAuxMap.mustAdd(slotNum, oldActualVal);
         }
@@ -332,7 +332,7 @@ class Hll4Array extends HllArray {
     }
 
     if (newAuxMap != null) {
-      assert newAuxMap.auxCount == numAuxTokens;
+      assert newAuxMap.getAuxCount() == numAuxTokens;
     }
     putAuxHashMap(newAuxMap);
 
@@ -364,7 +364,7 @@ class Hll4Array extends HllArray {
       if (actualValue >= (curMin + 15)) {
         Hll4Array.setNibble(hll4Array.getHllByteArr(), slotNo, AUX_TOKEN);
         if (auxHashMap == null) {
-          auxHashMap = new AuxHashMap(LG_AUX_SIZE[lgConfigK], lgConfigK);
+          auxHashMap = new HeapAuxHashMap(LG_AUX_ARR_INTS[lgConfigK], lgConfigK);
           hll4Array.putAuxHashMap(auxHashMap);
         }
         auxHashMap.mustAdd(slotNo, actualValue);

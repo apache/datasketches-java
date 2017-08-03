@@ -248,7 +248,7 @@ public class HllSketch extends BaseHllSketch {
       final int auxBytes = 4 << Hll4Array.getExpectedLgAuxInts(lgConfigK);
       bytes =  HLL_BYTE_ARRAY_START + (1 << (lgConfigK - 1)) + auxBytes;
     } else if (tgtHllType == TgtHllType.HLL_6) {
-      bytes = HLL_BYTE_ARRAY_START + Hll6Array.byteArrBytes(lgConfigK);
+      bytes = HLL_BYTE_ARRAY_START + AbstractHllArray.hll6ByteArrBytes(lgConfigK);
     } else { //HLL_8
       bytes = HLL_BYTE_ARRAY_START + (1 << lgConfigK);
     }

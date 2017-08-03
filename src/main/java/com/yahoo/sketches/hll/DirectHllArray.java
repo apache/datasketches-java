@@ -5,17 +5,42 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.memory.UnsafeUtil.unsafe;
+import static com.yahoo.sketches.Util.invPow2;
+import static com.yahoo.sketches.hll.PreambleUtil.CUR_MIN_COUNT_INT;
+import static com.yahoo.sketches.hll.PreambleUtil.HIP_ACCUM_DOUBLE;
+import static com.yahoo.sketches.hll.PreambleUtil.extractCurMin;
+import static com.yahoo.sketches.hll.PreambleUtil.extractCurMode;
+import static com.yahoo.sketches.hll.PreambleUtil.extractEmptyFlag;
+import static com.yahoo.sketches.hll.PreambleUtil.extractHipAccum;
+import static com.yahoo.sketches.hll.PreambleUtil.extractKxQ0;
+import static com.yahoo.sketches.hll.PreambleUtil.extractKxQ1;
+import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
+import static com.yahoo.sketches.hll.PreambleUtil.extractNumAtCurMin;
+import static com.yahoo.sketches.hll.PreambleUtil.extractOooFlag;
+import static com.yahoo.sketches.hll.PreambleUtil.extractTgtHllType;
+import static com.yahoo.sketches.hll.PreambleUtil.insertCurMin;
+import static com.yahoo.sketches.hll.PreambleUtil.insertHipAccum;
+import static com.yahoo.sketches.hll.PreambleUtil.insertKxQ0;
+import static com.yahoo.sketches.hll.PreambleUtil.insertKxQ1;
+import static com.yahoo.sketches.hll.PreambleUtil.insertNumAtCurMin;
+import static com.yahoo.sketches.hll.PreambleUtil.insertOooFlag;
+import static com.yahoo.sketches.hll.TgtHllType.HLL_4;
+import static com.yahoo.sketches.hll.TgtHllType.HLL_6;
+
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 
 /**
  * @author Lee Rhodes
  */
-class DirectHllArray extends AbstractHllArray {
+abstract class DirectHllArray extends AbstractHllArray {
+  final int lgConfigK;
   WritableMemory wmem;
   Memory mem;
   Object memObj;
   long memAdd;
+  AuxHashMap directAuxHashMap = null;
 
   DirectHllArray(final WritableMemory wmem) {
     super();
@@ -23,6 +48,7 @@ class DirectHllArray extends AbstractHllArray {
     mem = wmem;
     memObj = wmem.getArray();
     memAdd = wmem.getCumulativeOffset(0L);
+    lgConfigK = extractLgK(memObj, memAdd);
   }
 
   DirectHllArray(final Memory mem) {
@@ -31,48 +57,60 @@ class DirectHllArray extends AbstractHllArray {
     this.mem = mem;
     memObj = ((WritableMemory) mem).getArray();
     memAdd = mem.getCumulativeOffset(0L);
+    lgConfigK = extractLgK(memObj, memAdd);
+  }
+
+  //only called by DirectAuxHashMap
+  final void updateMemory(final WritableMemory newWmem) {
+    wmem = newWmem;
+    mem = newWmem;
+    memObj = wmem.getArray();
+    memAdd = wmem.getCumulativeOffset(0L);
   }
 
   @Override
-  HllSketchImpl copy() {
+  HllArray copyAs(final TgtHllType tgtHllType) {
+    if (tgtHllType == getTgtHllType()) {
+      return (HllArray) copy();
+    }
+    if (tgtHllType == HLL_4) {
+      return Hll4Array.convertToHll4(Hll4Array.heapify(mem));
+    }
+    if (tgtHllType == HLL_6) {
+      return Hll6Array.convertToHll6(Hll6Array.heapify(mem));
+    }
+    return Hll8Array.convertToHll8(Hll8Array.heapify(mem));
+  }
+
+  @Override
+  void addToHipAccum(final double delta) {
+    final double hipAccum = unsafe.getDouble(memObj, memAdd + HIP_ACCUM_DOUBLE);
+    unsafe.putDouble(memObj, memAdd + HIP_ACCUM_DOUBLE, hipAccum + delta);
+  }
+
+  @Override
+  void decNumAtCurMin() {
+    int numAtCurMin = unsafe.getInt(memObj, memAdd + CUR_MIN_COUNT_INT);
+    unsafe.putInt(memObj, memAdd + CUR_MIN_COUNT_INT, --numAtCurMin);
+  }
+
+  @Override
+  HeapAuxHashMap getAuxHashMap() {
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
-  HllSketchImpl copyAs(final TgtHllType tgtHllType) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  HllSketchImpl couponUpdate(final int coupon) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  AuxHashMap getAuxHashMap() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  PairIterator getAuxIterator() {
-    // TODO Auto-generated method stub
-    return null;
-  }
+  abstract PairIterator getAuxIterator();
 
   @Override
   int getCurMin() {
-    // TODO Auto-generated method stub
-    return 0;
+    return extractCurMin(memObj, memAdd);
   }
 
   @Override
   CurMode getCurMode() {
-    // TODO Auto-generated method stub
-    return null;
+    return extractCurMode(memObj, memAdd);
   }
 
   @Override
@@ -95,8 +133,7 @@ class DirectHllArray extends AbstractHllArray {
 
   @Override
   double getHipAccum() {
-    // TODO Auto-generated method stub
-    return 0;
+    return extractHipAccum(memObj, memAdd);
   }
 
   @Override
@@ -113,20 +150,17 @@ class DirectHllArray extends AbstractHllArray {
 
   @Override
   double getKxQ0() {
-    // TODO Auto-generated method stub
-    return 0;
+    return extractKxQ0(memObj, memAdd);
   }
 
   @Override
   double getKxQ1() {
-    // TODO Auto-generated method stub
-    return 0;
+    return extractKxQ1(memObj, memAdd);
   }
 
   @Override
   int getLgConfigK() {
-    // TODO Auto-generated method stub
-    return 0;
+    return extractLgK(memObj, memAdd);
   }
 
   @Override
@@ -137,14 +171,12 @@ class DirectHllArray extends AbstractHllArray {
 
   @Override
   int getNumAtCurMin() {
-    // TODO Auto-generated method stub
-    return 0;
+    return extractNumAtCurMin(memObj, memAdd);
   }
 
   @Override
   TgtHllType getTgtHllType() {
-    // TODO Auto-generated method stub
-    return null;
+    return extractTgtHllType(memObj, memAdd);
   }
 
   @Override
@@ -178,14 +210,12 @@ class DirectHllArray extends AbstractHllArray {
 
   @Override
   boolean isEmpty() {
-    // TODO Auto-generated method stub
-    return false;
+    return extractEmptyFlag(memObj, memAdd);
   }
 
   @Override
   boolean isOutOfOrderFlag() {
-    // TODO Auto-generated method stub
-    return false;
+    return extractOooFlag(memObj, memAdd);
   }
 
   @Override
@@ -199,8 +229,38 @@ class DirectHllArray extends AbstractHllArray {
   }
 
   @Override
+  void putAuxHashMap(final AuxHashMap auxHashMap) {
+    directAuxHashMap = auxHashMap;
+  }
+
+  @Override
+  void putCurMin(final int curMin) {
+    insertCurMin(memObj, memAdd, curMin);
+  }
+
+  @Override
+  void putHipAccum(final double hipAccum) {
+    insertHipAccum(memObj, memAdd, hipAccum);
+  }
+
+  @Override
+  void putKxQ0(final double kxq0) {
+    insertKxQ0(memObj, memAdd, kxq0);
+  }
+
+  @Override
+  void putKxQ1(final double kxq1) {
+    insertKxQ1(memObj, memAdd, kxq1);
+  }
+
+  @Override
+  void putNumAtCurMin(final int numAtCurMin) {
+    insertNumAtCurMin(memObj, memAdd, numAtCurMin);
+  }
+
+  @Override
   void putOutOfOrderFlag(final boolean oooFlag) {
-    // TODO Auto-generated method stub
+    insertOooFlag(memObj, memAdd, oooFlag);
   }
 
   @Override
@@ -211,8 +271,25 @@ class DirectHllArray extends AbstractHllArray {
 
   @Override
   byte[] toUpdatableByteArray() {
-    // TODO Auto-generated method stub
+    //    final byte[] byteArr = new byte[];
+    //    return mem.getByteArray(0, byteArr, 0, length);
     return null;
   }
+
+  void hipAndKxQIncrementalUpdate(final int oldValue, final int newValue) {
+    assert newValue > oldValue;
+    final int configK = 1 << getLgConfigK();
+    //update hipAccum BEFORE updating kxq0 and kxq1
+    double kxq0 = getKxQ0();
+    double kxq1 = getKxQ1();
+    addToHipAccum(configK / (kxq0 + kxq1));
+    //update kxq0 and kxq1; subtract first, then add.
+    if (oldValue < 32) { putKxQ0(kxq0 -= invPow2(oldValue)); }
+    else               { putKxQ1(kxq1 -= invPow2(oldValue)); }
+    if (newValue < 32) { putKxQ0(kxq0 += invPow2(newValue)); }
+    else               { putKxQ1(kxq1 += invPow2(newValue)); }
+  }
+
+
 
 }
