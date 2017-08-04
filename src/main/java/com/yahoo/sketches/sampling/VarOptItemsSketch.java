@@ -358,7 +358,7 @@ public final class VarOptItemsSketch<T> {
 
       final ArrayOfBooleansSerDe booleansSerDe = new ArrayOfBooleansSerDe();
       final Boolean[] markArray = booleansSerDe.deserializeFromMemory(
-              srcMem.region(markOffsetBytes, (hCount >> 3) + 1), hCount);
+              srcMem.region(markOffsetBytes, (hCount >>> 3) + 1), hCount);
 
       for (Boolean mark : markArray) {
         if (mark) { ++markCount; }
