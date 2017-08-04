@@ -71,8 +71,6 @@ class Hll6Array extends HllArray {
     return this;
   }
 
-
-
   static final void put6Bit(final WritableMemory mem, final long offsetBytes,
       final int slotNo, final int val) {
     final long idxAndShift = byteIdxAndShift(slotNo);

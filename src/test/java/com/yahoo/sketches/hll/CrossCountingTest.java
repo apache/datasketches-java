@@ -20,24 +20,29 @@ public class CrossCountingTest {
   static final String LS = System.getProperty("line.separator");
 
   @Test
-  public void crossCountingCheck() {
-    int n = 100; //16 & 1537
-    int lgK = 4; //14
+  public void crossCountingChecks() {
+    crossCountingCheck(4, 100);
+    crossCountingCheck(4, 10000);
+    crossCountingCheck(12, 7);
+    crossCountingCheck(12, 384);
+    crossCountingCheck(12, 10000);
+  }
 
+  void crossCountingCheck(int lgK, int n) {
     HllSketch sk4 = buildSketch(n, lgK, HLL_4);
     int s4csum = computeChecksum(sk4);
-    println(sk4.toString(true, true, true, true));
+    //println(sk4.toString(true, true, true, true));
     int csum;
 
     HllSketch sk6 = buildSketch(n, lgK, HLL_6);
     csum = computeChecksum(sk6);
     assertEquals(csum, s4csum);
-    println(sk6.toString(true, true, true, true));
+    //println(sk6.toString(true, true, true, true));
 
     HllSketch sk8 = buildSketch(n, lgK, HLL_8);
     csum = computeChecksum(sk8);
     assertEquals(csum, s4csum);
-    println(sk8.toString(true, true, true, true));
+    //println(sk8.toString(true, true, true, true));
 
     //Conversions
 //    println("\nConverted HLL_6 to HLL_4:");
@@ -55,7 +60,7 @@ public class CrossCountingTest {
 //    println("\nConverted HLL_4 to HLL_6:");
     HllSketch sk4to6 = sk4.copyAs(HLL_6);
     csum = computeChecksum(sk4to6);
-    println(sk4to6.toString(true, true, true, true));
+    //println(sk4to6.toString(true, true, true, true));
     assertEquals(csum, s4csum);
 
 //    println("\nConverted HLL_8 to HLL_6:");
@@ -112,6 +117,6 @@ public class CrossCountingTest {
    * @param s value to print
    */
   static void print(String s) {
-    System.out.print(s); //disable here
+    //System.out.print(s); //disable here
   }
 }

@@ -109,9 +109,8 @@ class Hll4Array extends HllArray {
     @Override
     public boolean nextValid() {
       while (++index < lengthPairs) {
-        final int nib = getNibble(array, index);
-        if (nib != EMPTY) {
-          value = value(nib);
+        value = value();
+        if (value != EMPTY) {
           return true;
         }
       }
@@ -121,14 +120,14 @@ class Hll4Array extends HllArray {
     @Override
     public boolean nextAll() {
       if (++index < lengthPairs) {
-        final int nib = getNibble(array, index);
-        value = value(nib);
+        value = value();
         return true;
       }
       return false;
     }
 
-    private int value(final int nib) {
+    private int value() {
+      final int nib = getNibble(array, index);
       return (nib == AUX_TOKEN)
           ? auxHashMap.mustFindValueFor(index) //auxHashMap cannot be null here
           : nib + getCurMin();
