@@ -5,30 +5,47 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.pair;
 
 /**
- * Iterates over pairs given an on-heap byte array.
+ * Iterates over an on-heap HLL byte array producing pairs of index, value.
  *
  * @author Lee Rhodes
  */
-abstract class ByteArrayPairIterator implements PairIterator {
+abstract class HllArrayPairIterator implements PairIterator {
   final byte[] array;
   final int lengthPairs;
   int index;
   int value;
 
-  ByteArrayPairIterator(final byte[] array, final int lengthPairs) {
+  HllArrayPairIterator(final byte[] array, final int lengthPairs) {
     this.array = array;
     this.lengthPairs = lengthPairs;
     index = - 1;
   }
 
   @Override
-  abstract public boolean nextValid();
+  public boolean nextValid() {
+    while (++index < lengthPairs) {
+      value = value();
+      if (value != EMPTY) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   @Override
-  abstract public boolean nextAll();
+  public boolean nextAll() {
+    if (++index < lengthPairs) {
+      value = value();
+      return true;
+    }
+    return false;
+  }
+
+  abstract int value();
 
   @Override
   public int getPair() {

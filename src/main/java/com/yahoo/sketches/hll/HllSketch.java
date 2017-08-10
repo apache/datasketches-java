@@ -5,16 +5,13 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARRAY_START;
-import static com.yahoo.sketches.hll.PreambleUtil.extractCurMode;
-import static com.yahoo.sketches.hll.PreambleUtil.extractFamilyId;
-import static com.yahoo.sketches.hll.PreambleUtil.extractPreInts;
-import static com.yahoo.sketches.hll.PreambleUtil.extractSerVer;
+import static com.yahoo.sketches.hll.HllUtil.checkPreamble;
+import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
+import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
 import static com.yahoo.sketches.hll.PreambleUtil.extractTgtHllType;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
-import com.yahoo.sketches.Family;
 
 /**
  * This is a high performance implementation of Phillipe Flajolet&#8217;s HLL sketch but with
@@ -65,21 +62,18 @@ public class HllSketch extends BaseHllSketch {
   /**
    * Constructs a new direct sketch with the type of HLL sketch to configure and the given
    * WritableMemory as the destination for the sketch.
+   * This checks that the given <i>dstMem</i> has the required capacity as determined by
+   * {@link #getMaxUpdatableSerializationBytes(int, TgtHllType)}.
    * @param lgConfigK The Log2 of K for the target HLL sketch. This value must be
    * between 4 and 21 inclusively.
    * @param tgtHllType the desired Hll type.
    * @param dstMem the destination memory for the sketch.
    */
   public HllSketch(final int lgConfigK, final TgtHllType tgtHllType, final WritableMemory dstMem) {
+    final long minBytes = getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    final long capBytes = dstMem.getCapacity();
+    HllUtil.checkMemSize(minBytes, capBytes);
     hllSketchImpl = DirectCouponList.newInstance(lgConfigK, tgtHllType, dstMem);
-  }
-
-  /**
-   * Special constructor used by copyAs, heapify
-   * @param that another HllSketchImpl, which must already be a copy
-   */
-  HllSketch(final HllSketchImpl that) {
-    hllSketchImpl = that;
   }
 
   /**
@@ -91,7 +85,16 @@ public class HllSketch extends BaseHllSketch {
   }
 
   /**
-   * Heapify the given byte array, which must be a valid HllSketch image, and may be read-only.
+   * Special constructor used by copyAs, heapify
+   * @param that another HllSketchImpl, which must already be a copy
+   */
+  HllSketch(final HllSketchImpl that) {
+    hllSketchImpl = that;
+  }
+
+  /**
+   * Heapify the given byte array as read-only.
+   * The byte-array must be a valid HllSketch image and may have data.
    * @param byteArray the given byte array
    * @return an HllSketch
    */
@@ -100,7 +103,7 @@ public class HllSketch extends BaseHllSketch {
   }
 
   /**
-   * Heapify the given Memory, which may be read-only.
+   * Heapify the given read-only Memory, which must be a valid HllSketch image and may have data.
    * @param srcMem the given Memory
    * @return an HllSketch
    */
@@ -127,59 +130,87 @@ public class HllSketch extends BaseHllSketch {
   }
 
   /**
-   * Wraps the given WritableMemory that is an image of a valid sketch with data.
-   * @param srcMem an image of a valid sketch with data.
-   * @return a DirectCouponList
+   * Wraps the given WritableMemory that will be initialized with a new instance of an HllSketch.
+   * @param lgConfigK The Log2 of K for the target HLL sketch. This value must be
+   * between 4 and 21 inclusively.
+   * @param tgtHllType the desired Hll type.
+   * @param wmem the given WritableMemory of sufficient size. Refer to
+   * {@link #getMaxUpdatableSerializationBytes(int, TgtHllType)}.
+   * @return a wrapped new instance of an HllSketch.
    */
-  public static final HllSketch writableWrap(final WritableMemory srcMem) {
-    final Object memObj = srcMem.getArray();
-    final long memAdd = srcMem.getCumulativeOffset(0);
-    final CurMode curMode = checkPreamble(srcMem);
+  public static final HllSketch writableWrap(final int lgConfigK, final TgtHllType tgtHllType,
+      final WritableMemory wmem) {
+    final long minBytes = getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    final long capBytes = wmem.getCapacity();
+    HllUtil.checkMemSize(minBytes, capBytes);
+    final HllSketch directSketch =
+        new HllSketch(new DirectCouponList(lgConfigK, tgtHllType, CurMode.LIST, wmem));
+    return directSketch;
+  }
+
+  /**
+   * Wraps the given WritableMemory that must be a image of a valid sketch, and may have data.
+   * @param wmem an image of a valid sketch with data that will also be written to.
+   * @return an HllSketch
+   */
+  public static final HllSketch writableWrap(final WritableMemory wmem) {
+    final Object memObj = wmem.getArray();
+    final long memAdd = wmem.getCumulativeOffset(0);
+    final int lgConfigK = extractLgK(memObj, memAdd);
+    final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
+    final long minBytes = getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    final long capBytes = wmem.getCapacity();
+    HllUtil.checkMemSize(minBytes, capBytes);
+    HllUtil.checkPreamble(wmem);
+
+    final CurMode curMode = checkPreamble(wmem);
     final HllSketch directSketch;
     if (curMode == CurMode.HLL) {
-      final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
       if (tgtHllType == TgtHllType.HLL_4) {
-        directSketch = null; //new HllSketch(Hll4Array.heapify(srcMem)); //TODO
+        directSketch = new HllSketch(new DirectHll4Array(lgConfigK, wmem));
       } else if (tgtHllType == TgtHllType.HLL_6) {
-        directSketch = null; //new HllSketch(Hll6Array.heapify(srcMem));
+        directSketch = new HllSketch(new DirectHll6Array(lgConfigK, wmem));
       } else { //Hll_8
-        directSketch = null; //new HllSketch(Hll8Array.heapify(srcMem));
+        directSketch = new HllSketch(new DirectHll8Array(lgConfigK, wmem));
       }
     } else if (curMode == CurMode.LIST) {
       directSketch =
-          new HllSketch(new DirectCouponList(srcMem));
+          new HllSketch(new DirectCouponList(lgConfigK, tgtHllType, curMode, wmem));
     } else {
       directSketch =
-          new HllSketch(new DirectCouponHashSet(srcMem));
+          new HllSketch(new DirectCouponHashSet(lgConfigK, tgtHllType, wmem));
     }
     return directSketch;
   }
 
   /**
-   * Wraps the given read-only Memory that is an image of a valid sketch with data.
+   * Wraps the given read-only Memory that must be a image of a valid sketch, and may have data.
    * @param srcMem an image of a valid sketch with data.
-   * @return a DirectCouponList
+   * @return an HllSketch
    */
   public static final HllSketch wrap(final Memory srcMem) {
     final Object memObj = ((WritableMemory) srcMem).getArray();
     final long memAdd = srcMem.getCumulativeOffset(0);
+    final int lgConfigK = extractLgK(memObj, memAdd);
+    final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
+    HllUtil.checkPreamble(srcMem);
+
     final CurMode curMode = checkPreamble(srcMem);
     final HllSketch directSketch;
     if (curMode == CurMode.HLL) {
-      final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
       if (tgtHllType == TgtHllType.HLL_4) {
-        directSketch = null; //new HllSketch(Hll4Array.heapify(srcMem)); //TODO
+        directSketch = new HllSketch(new DirectHll4Array(lgConfigK, srcMem));
       } else if (tgtHllType == TgtHllType.HLL_6) {
-        directSketch = null; //new HllSketch(Hll6Array.heapify(srcMem));
+        directSketch = new HllSketch(new DirectHll6Array(lgConfigK, srcMem));
       } else { //Hll_8
-        directSketch = null; //new HllSketch(Hll8Array.heapify(srcMem));
+        directSketch = new HllSketch(new DirectHll8Array(lgConfigK, srcMem));
       }
     } else if (curMode == CurMode.LIST) {
       directSketch =
-          new HllSketch(new DirectCouponList(srcMem));
+          new HllSketch(new DirectCouponList(lgConfigK, tgtHllType, curMode, srcMem));
     } else { //SET
       directSketch =
-          new HllSketch(new DirectCouponHashSet(srcMem));
+          new HllSketch(new DirectCouponHashSet(lgConfigK, tgtHllType, srcMem));
     }
     return directSketch;
   }
@@ -241,18 +272,20 @@ public class HllSketch extends BaseHllSketch {
    * @param tgtHllType the desired Hll type
    * @return the maximum size in bytes that this sketch can grow to.
    */
-  public static final int getMaxSerializationBytes(final int lgConfigK,
+  public static final int getMaxUpdatableSerializationBytes(final int lgConfigK,
       final TgtHllType tgtHllType) {
-    final int bytes;
+    final int arrBytes;
     if (tgtHllType == TgtHllType.HLL_4) {
-      final int auxBytes = 4 << Hll4Array.getExpectedLgAuxInts(lgConfigK);
-      bytes =  HLL_BYTE_ARRAY_START + (1 << (lgConfigK - 1)) + auxBytes;
-    } else if (tgtHllType == TgtHllType.HLL_6) {
-      bytes = HLL_BYTE_ARRAY_START + AbstractHllArray.hll6ByteArrBytes(lgConfigK);
-    } else { //HLL_8
-      bytes = HLL_BYTE_ARRAY_START + (1 << lgConfigK);
+      final int auxBytes = 4 << AbstractHllArray.getExpectedLgAuxInts(lgConfigK);
+      arrBytes =  AbstractHllArray.hll4ArrBytes(lgConfigK) + auxBytes;
     }
-    return bytes;
+    else if (tgtHllType == TgtHllType.HLL_6) {
+      arrBytes = AbstractHllArray.hll6ArrBytes(lgConfigK);
+    }
+    else { //HLL_8
+      arrBytes = AbstractHllArray.hll8ArrBytes(lgConfigK);
+    }
+    return HLL_BYTE_ARR_START + arrBytes;
   }
 
   @Override
@@ -398,26 +431,6 @@ public class HllSketch extends BaseHllSketch {
   @Override
   void couponUpdate(final int coupon) {
     hllSketchImpl = hllSketchImpl.couponUpdate(coupon);
-  }
-
-  static CurMode checkPreamble(final Memory mem) {
-    final Object memObj = ((WritableMemory) mem).getArray();
-    final long memAdd = mem.getCumulativeOffset(0L);
-    final int preInts = extractPreInts(memObj, memAdd);
-    final int serVer = extractSerVer(memObj, memAdd);
-    final int famId = extractFamilyId(memObj, memAdd);
-    final CurMode curMode = extractCurMode(memObj, memAdd);
-    boolean error = false;
-    if (famId != Family.HLL.getID()) { error = true; }
-    if (serVer != 1) { error = true; }
-    if ((preInts != 2) && (preInts != 3) && (preInts != 10)) { error = true; }
-    if ((curMode == CurMode.LIST) && (preInts != 2)) { error = true; }
-    if ((curMode == CurMode.SET) && (preInts != 3)) { error = true; }
-    if ((curMode == CurMode.HLL) && (preInts != 10)) { error = true; }
-    if (error) {
-      HllUtil.badPreambleState(mem);
-    }
-    return curMode;
   }
 
 }

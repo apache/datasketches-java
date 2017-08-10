@@ -5,10 +5,19 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_PREINTS;
+import static com.yahoo.sketches.hll.PreambleUtil.HLL_PREINTS;
+import static com.yahoo.sketches.hll.PreambleUtil.LIST_PREINTS;
+import static com.yahoo.sketches.hll.PreambleUtil.extractCurMode;
+import static com.yahoo.sketches.hll.PreambleUtil.extractFamilyId;
+import static com.yahoo.sketches.hll.PreambleUtil.extractPreInts;
+import static com.yahoo.sketches.hll.PreambleUtil.extractSerVer;
 import static java.lang.Math.log;
 import static java.lang.Math.sqrt;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
+import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -35,11 +44,21 @@ final class HllUtil {
   static final int RESIZE_NUMER = 3;
   static final int RESIZE_DENOM = 4;
 
-  static final void badPreambleState(final Memory mem) {
-    throw new SketchesArgumentException("Possible Corruption, Invalid Preamble:"
-        + PreambleUtil.toString(mem));
-  }
+  static final int loNibbleMask = 0x0f;
+  static final int hiNibbleMask = 0xf0;
+  static final int AUX_TOKEN = 0xf;
 
+  /**
+   * Log2 table sizes for exceptions based on lgK from 0 to 26.
+   * However, only lgK from 7 to 21 are used.
+   */
+  static final int[] LG_AUX_ARR_INTS = new int[] {
+    0, 2, 2, 2, 2, 2, 2, 3, 3, 3,   //0 - 9
+    4, 4, 5, 5, 6, 7, 8, 9, 10, 11, //10 - 19
+    12, 13, 14, 15, 16, 17, 18      //20 - 26
+  };
+
+  //Checks
   static final int checkLgK(final int lgK) {
     if ((lgK >= MIN_LOG_K) && (lgK <= MAX_LOG_K)) { return lgK; }
     throw new SketchesArgumentException(
@@ -60,21 +79,46 @@ final class HllUtil {
     }
   }
 
+  static CurMode checkPreamble(final Memory mem) {
+    final Object memObj = ((WritableMemory) mem).getArray();
+    final long memAdd = mem.getCumulativeOffset(0L);
+    final int preInts = extractPreInts(memObj, memAdd);
+    final int serVer = extractSerVer(memObj, memAdd);
+    final int famId = extractFamilyId(memObj, memAdd);
+    final CurMode curMode = extractCurMode(memObj, memAdd);
+    if (
+      (famId != Family.HLL.getID())
+      || (serVer != 1)
+      || ((preInts != LIST_PREINTS) && (preInts != HASH_SET_PREINTS) && (preInts != HLL_PREINTS))
+      || ((curMode == CurMode.LIST) && (preInts != LIST_PREINTS))
+      || ((curMode == CurMode.SET) && (preInts != HASH_SET_PREINTS))
+      || ((curMode == CurMode.HLL) && (preInts != HLL_PREINTS))
+    ) {
+      HllUtil.badPreambleState(mem);
+    }
+    return curMode;
+  }
+
+  //Exceptions
   static final void noWriteAccess() {
     throw new SketchesArgumentException(
         "This sketch does not have write access to the underlying resource.");
   }
 
-  //Pairs
-
-  public static int pair(final int slotNo, final int value) {
-    return (value << KEY_BITS_26) | (slotNo & KEY_MASK_26);
+  static final void badPreambleState(final Memory mem) {
+    throw new SketchesArgumentException("Possible Corruption, Invalid Preamble:"
+        + PreambleUtil.toString(mem));
   }
 
-  //used for thrown exceptions
-  public static String pairString(final int pair) {
+  //Used for thrown exceptions
+  static String pairString(final int pair) {
     return "SlotNo: " + getLow26(pair) + ", Value: "
         + getValue(pair);
+  }
+
+  //Pairs
+  static int pair(final int slotNo, final int value) {
+    return (value << KEY_BITS_26) | (slotNo & KEY_MASK_26);
   }
 
   static final int getLow26(final int coupon) {

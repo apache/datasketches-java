@@ -5,8 +5,11 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hll.HllUtil.EMPTY;
-import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARRAY_START;
+import static com.yahoo.sketches.hll.HllUtil.AUX_TOKEN;
+import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
+import static com.yahoo.sketches.hll.HllUtil.hiNibbleMask;
+import static com.yahoo.sketches.hll.HllUtil.loNibbleMask;
+import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.extractAuxCount;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCompactFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
@@ -21,19 +24,6 @@ import com.yahoo.sketches.SketchesStateException;
  * @author Kevin Lang
  */
 class Hll4Array extends HllArray {
-  private static final int loNibbleMask = 0x0f;
-  private static final int hiNibbleMask = 0xf0;
-  private static final int AUX_TOKEN = 0xf;
-  /**
-   * Log2 table sizes for exceptions based on lgK from 0 to 26.
-   * However, only lgK from 7 to 21 are used.
-   */
-  static final int[] LG_AUX_ARR_INTS = new int[] {
-    0, 2, 2, 2, 2, 2, 2, 3, 3, 3,   //0 - 9
-    4, 4, 5, 5, 6, 7, 8, 9, 10, 11, //10 - 19
-    12, 13, 14, 15, 16, 17, 18      //20 - 26
-  };
-
   /**
    * Standard constructor
    * @param lgConfigK the configured Lg K
@@ -41,7 +31,6 @@ class Hll4Array extends HllArray {
   Hll4Array(final int lgConfigK) {
     super(lgConfigK, TgtHllType.HLL_4);
     hllByteArr = new byte[1 << (lgConfigK - 1)];
-
     auxHashMap = null;
   }
 
@@ -61,7 +50,7 @@ class Hll4Array extends HllArray {
     HllArray.extractCommonHll(hll4Array, mem, memArr, memAdd);
 
     //load AuxHashMap
-    final int offset = HLL_BYTE_ARRAY_START + hll4Array.getHllByteArrBytes();
+    final int offset = HLL_BYTE_ARR_START + hll4Array.getHllByteArrBytes();
     final int auxCount = extractAuxCount(memArr, memAdd);
     final boolean compact = extractCompactFlag(memArr, memAdd);
     HeapAuxHashMap auxHashMap = null;
@@ -87,51 +76,6 @@ class Hll4Array extends HllArray {
     final int slotNo = HllUtil.getLow26(coupon) & configKmask;
     internalUpdate(slotNo, newValue);
     return this;
-  }
-
-  static final int getExpectedLgAuxInts(final int lgConfigK) {
-    return LG_AUX_ARR_INTS[lgConfigK];
-  }
-
-  @Override
-  PairIterator getIterator() {
-    return new HeapHll4Iterator(hllByteArr, 1 << lgConfigK);
-  }
-
-  //Iterator
-
-  final class HeapHll4Iterator extends ByteArrayPairIterator {
-
-    HeapHll4Iterator(final byte[] array, final int lengthPairs) {
-      super(array, lengthPairs);
-    }
-
-    @Override
-    public boolean nextValid() {
-      while (++index < lengthPairs) {
-        value = value();
-        if (value != EMPTY) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    @Override
-    public boolean nextAll() {
-      if (++index < lengthPairs) {
-        value = value();
-        return true;
-      }
-      return false;
-    }
-
-    private int value() {
-      final int nib = getNibble(array, index);
-      return (nib == AUX_TOKEN)
-          ? auxHashMap.mustFindValueFor(index) //auxHashMap cannot be null here
-          : nib + getCurMin();
-    }
   }
 
   static final int getNibble(final byte[] array, final int slotNo) {
@@ -160,7 +104,7 @@ class Hll4Array extends HllArray {
     final int lgConfigK = getLgConfigK();
     final int curMin = getCurMin();
     final byte[] hllByteArr = getHllByteArr();
-    AuxHashMap auxHashMap = getAuxHashMap();
+    AuxHashMap auxHashMap = getAuxHashMap(); //may be null
     final int rawStoredOldValue = getNibble(hllByteArr, slotNo);  //could be 0
     //This is provably a LB:
     final int lbOnOldValue =  rawStoredOldValue + curMin; //lower bound, could be 0
@@ -316,7 +260,7 @@ class Hll4Array extends HllArray {
     putNumAtCurMin(numAtNewCurMin);
   } //end of shiftToBiggerCurMin
 
-  static final Hll4Array convertToHll4(final HllArray srcHllArr) {
+  static final Hll4Array convertToHll4(final AbstractHllArray srcHllArr) {
     final int lgConfigK = srcHllArr.getLgConfigK();
     final Hll4Array hll4Array = new Hll4Array(lgConfigK);
     hll4Array.putOutOfOrderFlag(srcHllArr.isOutOfOrderFlag());
@@ -352,6 +296,27 @@ class Hll4Array extends HllArray {
     hll4Array.putNumAtCurMin(numAtCurMin);
     hll4Array.putHipAccum(srcHllArr.getHipAccum());
     return hll4Array;
+  }
+
+  //ITERATOR
+  @Override
+  PairIterator getIterator() {
+    return new HeapHll4Iterator(hllByteArr, 1 << lgConfigK);
+  }
+
+  final class HeapHll4Iterator extends HllArrayPairIterator {
+
+    HeapHll4Iterator(final byte[] array, final int lengthPairs) {
+      super(array, lengthPairs);
+    }
+
+    @Override
+    int value() {
+      final int nib = getNibble(array, index);
+      return (nib == AUX_TOKEN)
+          ? auxHashMap.mustFindValueFor(index) //auxHashMap cannot be null here
+          : nib + getCurMin();
+    }
   }
 
 }

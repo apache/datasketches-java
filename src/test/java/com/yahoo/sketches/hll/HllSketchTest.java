@@ -143,9 +143,9 @@ public class HllSketchTest {
     assertEquals(absHll.getHipAccum(), 25.0, 25 * .02);
     assertTrue(absHll.getNumAtCurMin() >= 0);
 
-    final int hllBytes = PreambleUtil.HLL_BYTE_ARRAY_START + (1 << lgConfigK);
+    final int hllBytes = PreambleUtil.HLL_BYTE_ARR_START + (1 << lgConfigK);
     assertEquals(sk.getCompactSerializationBytes(), hllBytes);
-    assertEquals(HllSketch.getMaxSerializationBytes(lgConfigK, TgtHllType.HLL_8), hllBytes);
+    assertEquals(HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, TgtHllType.HLL_8), hllBytes);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -158,22 +158,22 @@ public class HllSketchTest {
     final int lgConfigK = 8;
     HllSketch sk = new HllSketch(lgConfigK, HLL_8);
     for (int i = 0; i < 25; i++) { sk.update(i); }
-    int hllBytes = PreambleUtil.HLL_BYTE_ARRAY_START + (1 << lgConfigK);
+    int hllBytes = PreambleUtil.HLL_BYTE_ARR_START + (1 << lgConfigK);
     assertEquals(sk.getCompactSerializationBytes(), hllBytes);
-    assertEquals(HllSketch.getMaxSerializationBytes(lgConfigK, HLL_8), hllBytes);
+    assertEquals(HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, HLL_8), hllBytes);
 
     sk = new HllSketch(lgConfigK, HLL_6);
     for (int i = 0; i < 25; i++) { sk.update(i); }
-    hllBytes = PreambleUtil.HLL_BYTE_ARRAY_START + AbstractHllArray.hll6ByteArrBytes(lgConfigK);
+    hllBytes = PreambleUtil.HLL_BYTE_ARR_START + AbstractHllArray.hll6ArrBytes(lgConfigK);
     assertEquals(sk.getCompactSerializationBytes(), hllBytes);
-    assertEquals(HllSketch.getMaxSerializationBytes(lgConfigK, HLL_6), hllBytes);
+    assertEquals(HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, HLL_6), hllBytes);
 
     sk = new HllSketch(lgConfigK, HLL_4);
     for (int i = 0; i < 25; i++) { sk.update(i); }
-    hllBytes = PreambleUtil.HLL_BYTE_ARRAY_START + (1 << (lgConfigK - 1));
+    hllBytes = PreambleUtil.HLL_BYTE_ARR_START + (1 << (lgConfigK - 1));
     assertEquals(sk.getCompactSerializationBytes(), hllBytes);
-    hllBytes += (4 << Hll4Array.getExpectedLgAuxInts(lgConfigK));
-    assertEquals(HllSketch.getMaxSerializationBytes(lgConfigK, HLL_4), hllBytes);
+    hllBytes += (4 << AbstractHllArray.getExpectedLgAuxInts(lgConfigK));
+    assertEquals(HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, HLL_4), hllBytes);
   }
 
   @SuppressWarnings("unused")

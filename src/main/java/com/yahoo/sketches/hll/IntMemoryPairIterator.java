@@ -5,25 +5,25 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.memory.UnsafeUtil.unsafe;
 import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 
 /**
- * Iterates over pairs given a Memory, byte offset and length in pairs.
+ * Iterates within a given Memory extracting integer pairs.
+ *
  * @author Lee Rhodes
  */
-class MemoryPairIterator implements PairIterator {
-  private final Object memObj;
-  private final long memAdd;
-  private final long offsetBytes;
-  private final int lengthPairs;
-  private int index;
-  private int pair;
+abstract class IntMemoryPairIterator implements PairIterator {
+  final Object memObj;
+  final long memAdd;
+  final long offsetBytes;
+  final int lengthPairs;
+  int index;
+  int pair;
 
-  MemoryPairIterator(final Memory mem, final long offsetBytes, final int lengthPairs) {
+  IntMemoryPairIterator(final Memory mem, final long offsetBytes, final int lengthPairs) {
     memObj = ((WritableMemory) mem).getArray();
     memAdd = mem.getCumulativeOffset(0L);
     this.offsetBytes = offsetBytes;
@@ -34,7 +34,7 @@ class MemoryPairIterator implements PairIterator {
   @Override
   public boolean nextValid() {
     while (++index < lengthPairs) {
-      final int pair = unsafe.getInt(memObj, memAdd + offsetBytes + (index << 2));
+      final int pair = pair();
       if (pair != EMPTY) {
         this.pair = pair;
         return true;
@@ -46,11 +46,13 @@ class MemoryPairIterator implements PairIterator {
   @Override
   public boolean nextAll() {
     if (++index < lengthPairs) {
-      pair = unsafe.getInt(memObj, memAdd + offsetBytes + (index << 2));
+      pair = pair();
       return true;
     }
     return false;
   }
+
+  abstract int pair();
 
   @Override
   public int getPair() {

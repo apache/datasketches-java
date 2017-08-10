@@ -7,23 +7,25 @@ package com.yahoo.sketches.hll;
 
 import static com.yahoo.memory.UnsafeUtil.unsafe;
 import static com.yahoo.sketches.hll.HllUtil.VAL_MASK_6;
-import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARRAY_START;
+import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 
 /**
+ * Uses 8 bits per slot in a byte array.
  * @author Lee Rhodes
+ * @author Kevin Lang
  */
 class DirectHll8Array extends DirectHllArray {
 
-  DirectHll8Array(final WritableMemory wmem) {
-    super(wmem);
+  DirectHll8Array(final int lgConfigK, final WritableMemory wmem) {
+    super(lgConfigK, TgtHllType.HLL_8, wmem);
   }
 
-  DirectHll8Array(final Memory mem) {
-    super(mem);
+  DirectHll8Array(final int lgConfigK, final Memory mem) {
+    super(lgConfigK, TgtHllType.HLL_8, mem);
   }
 
   @Override
@@ -37,7 +39,8 @@ class DirectHll8Array extends DirectHllArray {
     final int slotNo = HllUtil.getLow26(coupon) & configKmask;
     final int newVal = HllUtil.getValue(coupon);
     assert newVal > 0;
-    final long byteOffset = HLL_BYTE_ARRAY_START + slotNo;
+
+    final long byteOffset = HLL_BYTE_ARR_START + slotNo;
     final int curVal = unsafe.getByte(memObj, memAdd + byteOffset);
     if (newVal > curVal) {
       unsafe.putByte(memObj, memAdd + byteOffset, (byte) (newVal & VAL_MASK_6));
@@ -55,9 +58,23 @@ class DirectHll8Array extends DirectHllArray {
     return 1 << extractLgK(memObj, memAdd);
   }
 
+  //ITERATOR
   @Override
   PairIterator getIterator() {
-    return null;
+    return new DirectHll8Iterator(mem, HLL_BYTE_ARR_START, 1 << lgConfigK);
+  }
+
+  final class DirectHll8Iterator extends HllMemoryPairIterator {
+
+    DirectHll8Iterator(final Memory mem, final long offsetBytes, final int lengthPairs) {
+      super(mem, offsetBytes, lengthPairs);
+    }
+
+    @Override
+    int value() {
+      final int tmp = unsafe.getByte(memObj, memAdd + offsetBytes + index);
+      return tmp & VAL_MASK_6;
+    }
   }
 
 }

@@ -98,7 +98,7 @@ final class PreambleUtil {
   static int KXQ1_DOUBLE                    = 24;
   static int CUR_MIN_COUNT_INT              = 32;
   static int AUX_COUNT_INT                  = 36;
-  static int HLL_BYTE_ARRAY_START           = 40;
+  static int HLL_BYTE_ARR_START             = 40;
 
   //Flag bit masks
   static final int BIG_ENDIAN_FLAG_MASK     = 1; //Set but not read. Reserved.

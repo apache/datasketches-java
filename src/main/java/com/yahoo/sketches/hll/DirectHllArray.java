@@ -9,7 +9,7 @@ import static com.yahoo.memory.UnsafeUtil.unsafe;
 import static com.yahoo.sketches.Util.invPow2;
 import static com.yahoo.sketches.hll.PreambleUtil.CUR_MIN_COUNT_INT;
 import static com.yahoo.sketches.hll.PreambleUtil.HIP_ACCUM_DOUBLE;
-import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARRAY_START;
+import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCurMin;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCurMode;
 import static com.yahoo.sketches.hll.PreambleUtil.extractEmptyFlag;
@@ -36,30 +36,31 @@ import com.yahoo.memory.WritableMemory;
  * @author Lee Rhodes
  */
 abstract class DirectHllArray extends AbstractHllArray {
-  final int lgConfigK;
+  final long auxArrOffset;
   WritableMemory wmem;
   Memory mem;
   Object memObj;
   long memAdd;
   AuxHashMap directAuxHashMap = null;
 
+
   //Memory must be initialized
-  DirectHllArray(final WritableMemory wmem) {
-    super();
+  DirectHllArray(final int lgConfigK, final TgtHllType tgtHllType, final WritableMemory wmem) {
+    super(lgConfigK, tgtHllType, CurMode.HLL);
     this.wmem = wmem;
     mem = wmem;
     memObj = wmem.getArray();
     memAdd = wmem.getCumulativeOffset(0L);
-    lgConfigK = extractLgK(memObj, memAdd);
+    auxArrOffset = HLL_BYTE_ARR_START + (1 << (lgConfigK - 1));
   }
 
-  DirectHllArray(final Memory mem) {
-    super();
+  DirectHllArray(final int lgConfigK, final TgtHllType tgtHllType, final Memory mem) {
+    super(lgConfigK, tgtHllType, CurMode.HLL);
     wmem = null;
     this.mem = mem;
     memObj = ((WritableMemory) mem).getArray();
     memAdd = mem.getCumulativeOffset(0L);
-    lgConfigK = extractLgK(memObj, memAdd);
+    auxArrOffset = HLL_BYTE_ARR_START + (1 << (lgConfigK - 1));
   }
 
   //only called by DirectAuxHashMap
@@ -114,12 +115,6 @@ abstract class DirectHllArray extends AbstractHllArray {
   @Override
   CurMode getCurMode() {
     return extractCurMode(memObj, memAdd);
-  }
-
-  @Override
-  int getCompactSerializationBytes() {
-    final int auxBytes = (directAuxHashMap == null) ? 0 : 4 << directAuxHashMap.getAuxCount();
-    return HLL_BYTE_ARRAY_START + getHllByteArrBytes() + auxBytes;
   }
 
   @Override
@@ -179,24 +174,6 @@ abstract class DirectHllArray extends AbstractHllArray {
   @Override
   TgtHllType getTgtHllType() {
     return extractTgtHllType(memObj, memAdd);
-  }
-
-  @Override
-  double getRelErr(final int numStdDev) {
-    // TODO Auto-generated method stub
-    return 0;
-  }
-
-  @Override
-  double getRelErrFactor(final int numStdDev) {
-    // TODO Auto-generated method stub
-    return 0;
-  }
-
-  @Override
-  int getUpdatableSerializationBytes() {
-    final int auxBytes = (directAuxHashMap == null) ? 0 : 4 << directAuxHashMap.getLgAuxArrInts();
-    return HLL_BYTE_ARRAY_START + getHllByteArrBytes() + auxBytes;
   }
 
   @Override
@@ -278,6 +255,8 @@ abstract class DirectHllArray extends AbstractHllArray {
     return null;
   }
 
+
+
   void hipAndKxQIncrementalUpdate(final int oldValue, final int newValue) {
     assert newValue > oldValue;
     final int configK = 1 << getLgConfigK();
@@ -291,7 +270,5 @@ abstract class DirectHllArray extends AbstractHllArray {
     if (newValue < 32) { putKxQ0(kxq0 += invPow2(newValue)); }
     else               { putKxQ1(kxq1 += invPow2(newValue)); }
   }
-
-
 
 }

@@ -8,7 +8,7 @@ package com.yahoo.sketches.hll;
 import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 
 /**
- * Iterates over pairs given an on-heap integer array.
+ * Iterates over an on-heap integer array extracting pairs.
  *
  * @author Lee Rhodes
  */

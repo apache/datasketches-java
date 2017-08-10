@@ -11,6 +11,15 @@ package com.yahoo.sketches.hll;
  * @author Lee Rhodes
  */
 abstract class HllSketchImpl {
+  final int lgConfigK;
+  final TgtHllType tgtHllType;
+  final CurMode curMode;
+
+  HllSketchImpl(final int lgConfigK, final TgtHllType tgtHllType, final CurMode curMode) {
+    this.lgConfigK = lgConfigK;
+    this.tgtHllType = tgtHllType;
+    this.curMode = curMode;
+  }
 
   abstract HllSketchImpl copy();
 
@@ -18,7 +27,9 @@ abstract class HllSketchImpl {
 
   abstract HllSketchImpl couponUpdate(int coupon);
 
-  abstract CurMode getCurMode();
+ CurMode getCurMode() {
+   return curMode;
+ }
 
   abstract int getCompactSerializationBytes();
 
@@ -28,15 +39,23 @@ abstract class HllSketchImpl {
 
   abstract PairIterator getIterator();
 
-  abstract int getLgConfigK();
+  int getLgConfigK() {
+    return lgConfigK;
+  }
 
   abstract double getLowerBound(int numStdDev);
 
-  abstract TgtHllType getTgtHllType();
+  abstract int getMemArrStart();
 
-  abstract double getRelErr(int numStdDev);
+  abstract int getPreInts();
 
-  abstract double getRelErrFactor(int numStdDev);
+  abstract double getRelErr(int numStdDev); //TODO ??
+
+  abstract double getRelErrFactor(int numStdDev); //TODO ??
+
+  TgtHllType getTgtHllType() {
+    return tgtHllType;
+  }
 
   abstract int getUpdatableSerializationBytes();
 

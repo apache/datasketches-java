@@ -49,7 +49,7 @@ class HeapAuxHashMap implements AuxHashMap {
   }
 
   static final HeapAuxHashMap heapify(final Memory mem, final long offset, final int lgConfigK,
-      final int auxCount, final boolean compact) {
+      final int auxCount, final boolean srcCompact) {
     final int auxArrInts =
         Math.max(4, ceilingPowerOf2((auxCount * RESIZE_DENOM) / RESIZE_NUMER));
     final int lgAuxArrInts = Util.simpleIntLog2(auxArrInts);
@@ -58,12 +58,12 @@ class HeapAuxHashMap implements AuxHashMap {
     final long memAdd = mem.getCumulativeOffset(0);
     final int configKmask = (1 << lgConfigK) - 1;
 
-    if (compact) {
+    if (srcCompact) {
       for (int i = 0; i < auxCount; i++) {
         final int pair = extractInt(memArr, memAdd, offset + (i << 2));
         final int slotNo = HllUtil.getLow26(pair) & configKmask;
         final int value = HllUtil.getValue(pair);
-        auxMap.mustAdd(slotNo, value);
+        auxMap.mustAdd(slotNo, value); //increments count
       }
     } else { //updatable
       for (int i = 0; i < auxArrInts; i++) {
@@ -71,7 +71,7 @@ class HeapAuxHashMap implements AuxHashMap {
         if (pair == EMPTY) { continue; }
         final int slotNo = HllUtil.getLow26(pair) & configKmask;
         final int value = HllUtil.getValue(pair);
-        auxMap.mustAdd(slotNo, value);
+        auxMap.mustAdd(slotNo, value); //increments count
       }
     }
     return auxMap;
@@ -149,25 +149,25 @@ class HeapAuxHashMap implements AuxHashMap {
     throw new SketchesStateException("Pair not found: " + pairStr);
   }
 
-  //Searches the Aux arr hash table
-  //If entry is empty, returns one's complement of aux index.
-  //If entry contains given slotNo, returns its aux array index.
-  //Else throws an exception.
+  //Searches the Aux arr hash table for an empty or a matching slotNo depending on the context.
+  //If entire entry is empty, returns one's complement of index = found empty.
+  //If entry contains given slotNo, returns its index = found slotNo.
+  //Continues searching.
+  //If the probe comes back to original index, throws an exception.
   private static final int find(final int[] auxArr, final int lgAuxArrInts, final int lgConfigK,
       final int slotNo) {
     assert lgAuxArrInts < lgConfigK;
-    final int auxInts = 1 << lgAuxArrInts;
-    final int auxArrMask = auxInts - 1;
+    final int auxArrMask = (1 << lgAuxArrInts) - 1;
     final int configKmask = (1 << lgConfigK) - 1;
     int probe = slotNo & auxArrMask;
     final int loopIndex = probe;
     do {
       final int arrVal = auxArr[probe];
-      if (arrVal == EMPTY) {
+      if (arrVal == EMPTY) { //Compares on entire entry
         return ~probe; //empty
       }
-      else if (slotNo == (arrVal & configKmask)) { //found given slotNo
-        return probe; //return aux array index
+      else if (slotNo == (arrVal & configKmask)) { //Compares only on slotNo
+        return probe; //found given slotNo, return probe = index into aux array
       }
       final int stride = (slotNo >>> lgAuxArrInts) | 1;
       probe = (probe + stride) & auxArrMask;
@@ -185,8 +185,7 @@ class HeapAuxHashMap implements AuxHashMap {
   private void growAuxSpace() {
     final int[] oldArray = auxIntArr;
     final int configKmask = (1 << lgConfigK) - 1;
-    final int size = 1 << ++lgAuxArrInts;
-    auxIntArr = new int[size];
+    auxIntArr = new int[1 << ++lgAuxArrInts];
     for (int i = 0; i < oldArray.length; i++) {
       final int fetched = oldArray[i];
       if (fetched != EMPTY) {

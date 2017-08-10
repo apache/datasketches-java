@@ -5,7 +5,6 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.VAL_MASK_6;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
 
@@ -26,7 +25,7 @@ class Hll6Array extends HllArray {
    */
   Hll6Array(final int lgConfigK) {
     super(lgConfigK, TgtHllType.HLL_6);
-    hllByteArr = new byte[hll6ByteArrBytes(lgConfigK)];
+    hllByteArr = new byte[hll6ArrBytes(lgConfigK)];
     mem = WritableMemory.wrap(hllByteArr);
   }
 
@@ -71,73 +70,25 @@ class Hll6Array extends HllArray {
     return this;
   }
 
-  static final void put6Bit(final WritableMemory mem, final long offsetBytes,
+  static final void put6Bit(final WritableMemory mem, final int offsetBytes,
       final int slotNo, final int val) {
-    final long idxAndShift = byteIdxAndShift(slotNo);
-    final long byteIdx = idxAndShift & (0XFFFFFFFFL + offsetBytes);
-    final int shift = (int)(idxAndShift >>> 32);
+    final int startBit = slotNo * 6;
+    final int shift = (startBit & 0X7) << 32;
+    final int byteIdx = (startBit >>> 3) + offsetBytes;
     final int valShifted = (val & 0X3F) << shift;
     final int curMasked = mem.getShort(byteIdx) & (~(VAL_MASK_6 << shift));
     final short insert = (short) (curMasked | valShifted);
     mem.putShort(byteIdx, insert);
   }
 
-  static final int get6Bit(final Memory mem, final long offsetBytes, final int slotNo) {
-    final long idxAndShift = byteIdxAndShift(slotNo);
-    final long byteIdx = idxAndShift & (0XFFFFFFFFL + offsetBytes);
-    final int shift = (int)(idxAndShift >>> 32);
+  static final int get6Bit(final Memory mem, final int offsetBytes, final int slotNo) {
+    final int startBit = slotNo * 6;
+    final int shift = (startBit & 0X7) << 32;
+    final int byteIdx = (startBit >>> 3) + offsetBytes;
     return (byte) ((mem.getShort(byteIdx) >>> shift) & 0X3F);
   }
 
-  private static final long byteIdxAndShift(final int slotIdx) {
-    final long startBit = slotIdx * 6;
-    //shift in upper 32, byte index in lower 32
-    return (startBit >>> 3) | ((startBit & 0X7L) << 32);
-  }
-
-  @Override
-  PairIterator getIterator() {
-    return new HeapHll6Iterator(hllByteArr, 1 << lgConfigK);
-  }
-
-  final class HeapHll6Iterator extends ByteArrayPairIterator {
-    int bitOffset;
-
-    HeapHll6Iterator(final byte[] array, final int lengthPairs) {
-      super(array, lengthPairs);
-      bitOffset = - 6;
-    }
-
-    @Override
-    public boolean nextValid() {
-      while (++index < lengthPairs) {
-        bitOffset += 6;
-        value = value();
-        if (value != EMPTY) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    @Override
-    public boolean nextAll() {
-      if (++index < lengthPairs) {
-        bitOffset += 6;
-        value = value();
-        return true;
-      }
-      return false;
-    }
-
-    private int value() {
-      final int tmp = mem.getShort(bitOffset / 8);
-      final int shift = (bitOffset % 8) & 0X7;
-      return (tmp >>> shift) & VAL_MASK_6;
-    }
-  }
-
-  static final Hll6Array convertToHll6(final HllArray srcHllArr) {
+  static final Hll6Array convertToHll6(final AbstractHllArray srcHllArr) {
     final Hll6Array hll6Array = new Hll6Array(srcHllArr.getLgConfigK());
     hll6Array.putOutOfOrderFlag(srcHllArr.isOutOfOrderFlag());
     final PairIterator itr = srcHllArr.getIterator();
@@ -146,6 +97,29 @@ class Hll6Array extends HllArray {
     }
     hll6Array.putHipAccum(srcHllArr.getHipAccum());
     return hll6Array;
+  }
+
+  //ITERATOR
+  @Override
+  PairIterator getIterator() {
+    return new HeapHll6Iterator(hllByteArr, 1 << lgConfigK);
+  }
+
+  final class HeapHll6Iterator extends HllArrayPairIterator {
+    int bitOffset;
+
+    HeapHll6Iterator(final byte[] array, final int lengthPairs) {
+      super(array, lengthPairs);
+      bitOffset = - 6;
+    }
+
+    @Override
+    int value() {
+      bitOffset += 6;
+      final int tmp = mem.getShort(bitOffset / 8);
+      final int shift = (bitOffset % 8) & 0X7;
+      return (tmp >>> shift) & VAL_MASK_6;
+    }
   }
 
 }

@@ -6,23 +6,16 @@
 package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.Util.invPow2;
-import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.HLL_HIP_RSE_FACTOR;
 import static com.yahoo.sketches.hll.HllUtil.HLL_NON_HIP_RSE_FACTOR;
 import static com.yahoo.sketches.hll.HllUtil.MIN_LOG_K;
 import static com.yahoo.sketches.hll.PreambleUtil.AUX_COUNT_INT;
-import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_INT_ARR_START;
-import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARRAY_START;
+import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_PREINTS;
-import static com.yahoo.sketches.hll.PreambleUtil.LIST_INT_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCurMin;
-import static com.yahoo.sketches.hll.PreambleUtil.extractCurMode;
 import static com.yahoo.sketches.hll.PreambleUtil.extractHipAccum;
-import static com.yahoo.sketches.hll.PreambleUtil.extractInt;
 import static com.yahoo.sketches.hll.PreambleUtil.extractKxQ0;
 import static com.yahoo.sketches.hll.PreambleUtil.extractKxQ1;
-import static com.yahoo.sketches.hll.PreambleUtil.extractLgArr;
-import static com.yahoo.sketches.hll.PreambleUtil.extractListCount;
 import static com.yahoo.sketches.hll.PreambleUtil.extractNumAtCurMin;
 import static com.yahoo.sketches.hll.PreambleUtil.extractOooFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.insertAuxCount;
@@ -53,9 +46,6 @@ import com.yahoo.memory.WritableMemory;
  * @author Kevin Lang
  */
 abstract class HllArray extends AbstractHllArray {
-  final int lgConfigK;
-  final TgtHllType tgtHllType;
-  final CurMode curMode;
   boolean oooFlag = false; //Out-Of-Order Flag
   int curMin; //only changed by Hll4Array
   int numAtCurMin;
@@ -66,14 +56,12 @@ abstract class HllArray extends AbstractHllArray {
   AuxHashMap auxHashMap = null; //used only by Hll4Array
 
   /**
-   * Standard constructor
+   * Standard constructor for new instance
    * @param lgConfigK the configured Lg K
    * @param tgtHllType the type of target HLL sketch
    */
   HllArray(final int lgConfigK, final TgtHllType tgtHllType) {
-    this.lgConfigK = lgConfigK;
-    this.tgtHllType = tgtHllType;
-    curMode = CurMode.HLL;
+    super(lgConfigK, tgtHllType, CurMode.HLL);
     curMin = 0;
     numAtCurMin = 1 << lgConfigK;
     hipAccum = 0;
@@ -86,9 +74,7 @@ abstract class HllArray extends AbstractHllArray {
    * @param that another HllArray
    */
   HllArray(final HllArray that) {
-    lgConfigK = that.getLgConfigK();
-    tgtHllType = that.getTgtHllType();
-    curMode = that.getCurMode();
+    super(that.getLgConfigK(), that.getTgtHllType(), CurMode.HLL);
     oooFlag = that.isOutOfOrderFlag();
     curMin = that.getCurMin();
     numAtCurMin = that.getNumAtCurMin();
@@ -98,38 +84,6 @@ abstract class HllArray extends AbstractHllArray {
     hllByteArr = that.getHllByteArr().clone(); //that.hllByteArr should never be null.
     final AuxHashMap thatAuxMap = that.getAuxHashMap();
     auxHashMap = (thatAuxMap != null) ? thatAuxMap.copy() : null;
-  }
-
-  static final void heapifyMemCouponsToHll(final Memory mem, final HllArray hllArray) {
-    final Object memObj = ((WritableMemory) mem).getArray();
-    final long memAdd = mem.getCumulativeOffset(0);
-    final CurMode curMode = extractCurMode(memObj, memAdd);
-    final int couponCount = extractListCount(memObj, memAdd);
-    final int couponArrInts = 1 << extractLgArr(memObj, memAdd);
-    final int start = (curMode == CurMode.LIST) ? LIST_INT_ARR_START : HASH_SET_INT_ARR_START;
-    int cnt = 0;
-    for (int i = 0; i < couponArrInts; i++) {
-      final int coupon = extractInt(memObj, memAdd, start + (i << 2));
-      if (coupon == EMPTY) { continue; }
-      hllArray.couponUpdate(coupon);
-      cnt++;
-    }
-    hllArray.putHipAccum(CouponList.getEstimate(couponCount));
-    hllArray.putOutOfOrderFlag(false);
-    assert cnt == couponCount;
-  }
-
-  //Src can be either list or set.
-  //Used by CouponList, CouponHashSet
-  static final HllSketchImpl morphHeapCouponsToHll(final CouponList src) {
-    final HllArray tgtHllArr = HllArray.newHll(src.lgConfigK, src.tgtHllType);
-    final PairIterator srcItr = src.getIterator();
-    while (srcItr.nextValid()) {
-      tgtHllArr.couponUpdate(srcItr.getPair());
-    }
-    tgtHllArr.putHipAccum(src.getEstimate());
-    tgtHllArr.putOutOfOrderFlag(false);
-    return tgtHllArr;
   }
 
   static final HllArray newHll(final int lgConfigK, final TgtHllType tgtHllType) {
@@ -239,13 +193,6 @@ abstract class HllArray extends AbstractHllArray {
   }
 
   @Override
-  int getCompactSerializationBytes() {
-    final AuxHashMap auxHashMap = getAuxHashMap();
-    final int auxBytes = (auxHashMap == null) ? 0 : auxHashMap.getAuxCount() << 2;
-    return HLL_BYTE_ARRAY_START + getHllByteArr().length + auxBytes;
-  }
-
-  @Override
   double getEstimate() {
     if (isOutOfOrderFlag()) {
       return getCompositeEstimate();
@@ -319,43 +266,6 @@ abstract class HllArray extends AbstractHllArray {
   }
 
   @Override
-  double getRelErr(final int numStdDev) {
-    HllUtil.checkNumStdDev(numStdDev);
-    final int lgConfigK = getLgConfigK();
-    final boolean oooFlag = isOutOfOrderFlag();
-    if (lgConfigK <= 12) {
-      return RelativeErrorTables.getRelErr(true, oooFlag, lgConfigK, numStdDev);
-    }
-    final double rseFactor =  (oooFlag) ? HLL_NON_HIP_RSE_FACTOR : HLL_HIP_RSE_FACTOR;
-    return (rseFactor * numStdDev) / Math.sqrt(1 << lgConfigK);
-  }
-
-  @Override
-  double getRelErrFactor(final int numStdDev) {
-    HllUtil.checkNumStdDev(numStdDev);
-    final int lgConfigK = getLgConfigK();
-    final boolean oooFlag = isOutOfOrderFlag();
-    if (lgConfigK <= 12) {
-      return RelativeErrorTables.getRelErr(true, oooFlag, lgConfigK, numStdDev)
-          * Math.sqrt(1 << lgConfigK);
-    }
-    final double rseFactor =  (oooFlag) ? HLL_NON_HIP_RSE_FACTOR : HLL_HIP_RSE_FACTOR;
-    return rseFactor * numStdDev;
-  }
-
-  @Override
-  TgtHllType getTgtHllType() {
-    return tgtHllType;
-  }
-
-  @Override
-  int getUpdatableSerializationBytes() {
-    final AuxHashMap auxHashMap = getAuxHashMap();
-    final int auxBytes = (auxHashMap == null) ? 0 : 4 << auxHashMap.getLgAuxArrInts();
-    return HLL_BYTE_ARRAY_START + hllByteArr.length + auxBytes;
-  }
-
-  @Override
   double getUpperBound(final int numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
     final int lgConfigK = getLgConfigK();
@@ -392,12 +302,12 @@ abstract class HllArray extends AbstractHllArray {
 
   @Override
   void populateHllByteArrFromMem(final Memory srcMem, final int lenBytes) {
-    //TODO
+    //TODO ??
   }
 
   @Override
   void populateMemFromHllByteArr(final WritableMemory dstWmem, final int lenBytes) {
-    //TODO
+    //TODO ??
   }
 
   @Override
@@ -457,7 +367,7 @@ abstract class HllArray extends AbstractHllArray {
           ? auxHashMap.getCompactedSizeBytes()
           : auxHashMap.getUpdatableSizeBytes();
     }
-    final int totBytes = HLL_BYTE_ARRAY_START + impl.getHllByteArr().length + auxBytes;
+    final int totBytes = HLL_BYTE_ARR_START + impl.getHllByteArr().length + auxBytes;
     final byte[] byteArr = new byte[totBytes];
     final WritableMemory wmem = WritableMemory.wrap(byteArr);
     insertHll(impl, wmem, compact);
@@ -469,7 +379,7 @@ abstract class HllArray extends AbstractHllArray {
       final boolean compact) {
     insertCommonHll(impl, wmem, compact);
     final byte[] hllByteArr = impl.getHllByteArr();
-    wmem.putByteArray(HLL_BYTE_ARRAY_START, hllByteArr, 0, hllByteArr.length);
+    wmem.putByteArray(HLL_BYTE_ARR_START, hllByteArr, 0, hllByteArr.length);
 
     if (impl.getAuxHashMap() != null) {
       insertAux(impl, wmem, compact);
@@ -486,7 +396,7 @@ abstract class HllArray extends AbstractHllArray {
     final int auxCount = auxHashMap.getAuxCount();
     insertAuxCount(memObj, memAdd, auxCount);
     insertLgArr(memObj, memAdd, auxHashMap.getLgAuxArrInts()); //only used for direct HLL
-    final long auxStart = HLL_BYTE_ARRAY_START + impl.getHllByteArr().length;
+    final long auxStart = HLL_BYTE_ARR_START + impl.getHllByteArr().length;
     if (compact) {
       final PairIterator itr = auxHashMap.getIterator();
       int cnt = 0;
@@ -533,7 +443,7 @@ abstract class HllArray extends AbstractHllArray {
     //load Hll array
     final byte[] hllByteArr = hllArray.getHllByteArr();
     final int hllArrLen = hllByteArr.length;
-    srcMem.getByteArray(HLL_BYTE_ARRAY_START, hllByteArr, 0, hllArrLen);
+    srcMem.getByteArray(HLL_BYTE_ARR_START, hllByteArr, 0, hllArrLen);
   }
 
   /**

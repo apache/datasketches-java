@@ -10,6 +10,7 @@ import static com.yahoo.sketches.hll.HllUtil.KEY_MASK_26;
 import static com.yahoo.sketches.hll.HllUtil.RESIZE_DENOM;
 import static com.yahoo.sketches.hll.HllUtil.RESIZE_NUMER;
 import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_INT_ARR_START;
+import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_PREINTS;
 import static com.yahoo.sketches.hll.PreambleUtil.LIST_INT_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCompactFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCurMode;
@@ -65,10 +66,14 @@ class CouponHashSet extends CouponList {
     final int lgConfigK = extractLgK(memObj, memAdd);
     final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
     final int lgCouponArrInts = extractLgArr(memObj, memAdd);
-    final boolean compact = extractCompactFlag(memObj, memAdd);
     final CurMode curMode = extractCurMode(memObj, memAdd);
     final int arrStart = (curMode == CurMode.LIST) ? LIST_INT_ARR_START : HASH_SET_INT_ARR_START;
+
     final CouponHashSet set = new CouponHashSet(lgConfigK, tgtHllType);
+    set.putLgCouponArrInts(lgCouponArrInts);
+    set.putOutOfOrderFlag(true);
+
+    final boolean compact = extractCompactFlag(memObj, memAdd);
     final int couponCount = extractHashSetCount(memObj, memAdd);
     if (compact) {
       for (int i = 0; i < couponCount; i++) {
@@ -79,26 +84,11 @@ class CouponHashSet extends CouponList {
     } else { //updatable
       set.putCouponCount(couponCount);
       final int couponArrInts = 1 << lgCouponArrInts;
-      final int[] newCouponIntArr = new int[couponArrInts];
-      mem.getIntArray(HASH_SET_INT_ARR_START, newCouponIntArr, 0, couponArrInts);
-      set.putCouponIntArr(newCouponIntArr);
-      set.putLgCouponArrInts(lgCouponArrInts);
+      set.couponIntArr = new int[couponArrInts];
+      mem.getIntArray(HASH_SET_INT_ARR_START, set.couponIntArr, 0, couponArrInts);
     }
-    set.putOutOfOrderFlag(true);
     return set;
   }
-
-  static final HllSketchImpl morphHeapListToSet(final CouponList list) {
-    final int couponCount = list.couponCount;
-    final int[] arr = list.couponIntArr;
-    final CouponHashSet chSet = new CouponHashSet(list.lgConfigK, list.tgtHllType);
-    for (int i = 0; i < couponCount; i++) {
-      chSet.couponUpdate(arr[i]);
-    }
-    chSet.putOutOfOrderFlag(true);
-    return chSet;
-  }
-
 
   @Override
   CouponHashSet copy() {
@@ -110,6 +100,19 @@ class CouponHashSet extends CouponList {
     return new CouponHashSet(this, tgtHllType);
   }
 
+  @Override //get coupons from internal int[] to dstMem
+  //Called by CouponList.insertList()
+  //Called by CouponList.insertSet()
+  void getCouponsToMemoryInts(final WritableMemory dstWmem, final int lenInts) {
+    dstWmem.putIntArray(HASH_SET_INT_ARR_START, couponIntArr, 0, lenInts);
+  }
+
+  @Override //put coupons from srcMem to internal int[]
+  //Called by CouponList.heapifyList()
+  void putCouponsFromMemoryInts(final Memory srcMem, final int lenInts) {
+    srcMem.getIntArray(HASH_SET_INT_ARR_START, couponIntArr, 0, lenInts);
+  }
+
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
     if (coupon == EMPTY) {
@@ -119,21 +122,21 @@ class CouponHashSet extends CouponList {
     if (index >= 0) {
       return this; //found duplicate, ignore
     }
-    couponIntArr[~index] = coupon;
+    couponIntArr[~index] = coupon; //found empty
     couponCount++;
     final boolean promote = checkGrowOrPromote();
     if (!promote) { return this; }
-    return HllArray.morphHeapCouponsToHll(this);
+    return promoteHeapListOrSetToHll(this);
   }
 
   @Override
-  void populateCouponIntArrFromMem(final Memory srcMem, final int lenInts) {
-    srcMem.getIntArray(HASH_SET_INT_ARR_START, couponIntArr, 0, lenInts);
+  int getMemArrStart() {
+    return HASH_SET_INT_ARR_START;
   }
 
   @Override
-  void populateMemFromCouponIntArr(final WritableMemory dstWmem, final int lenInts) {
-    dstWmem.putIntArray(HASH_SET_INT_ARR_START, couponIntArr, 0, lenInts);
+  int getPreInts() {
+    return HASH_SET_PREINTS;
   }
 
   private boolean checkGrowOrPromote() {
@@ -149,12 +152,12 @@ class CouponHashSet extends CouponList {
 
   private static final int[] growHashSet(final int[] coupIntArr, final int tgtLgCoupArrSize) {
     final int tgtArrSize = 1 << tgtLgCoupArrSize;
-    final int[] tgtCouponIntArr = new int[tgtArrSize];
+    final int[] tgtCouponIntArr = new int[tgtArrSize]; //create tgt
     final int len = coupIntArr.length;
-    for (int i = 0; i < len; i++) {
+    for (int i = 0; i < len; i++) { //scan input arr for non-zero values
       final int fetched = coupIntArr[i];
       if (fetched != EMPTY) {
-        final int idx = find(tgtCouponIntArr, tgtLgCoupArrSize, fetched);
+        final int idx = find(tgtCouponIntArr, tgtLgCoupArrSize, fetched); //find empty in tgt
         if (idx < 0) { //found EMPTY
           tgtCouponIntArr[~idx] = fetched; //insert
           continue;
@@ -165,14 +168,27 @@ class CouponHashSet extends CouponList {
     return tgtCouponIntArr;
   }
 
-  static final int find(final int[] array, final int lgArr, final int coupon) {
-    final int arrMask = (1 << lgArr) - 1;
+  //Searches the Coupon hash table for an empty slot or a duplicate depending on the context.
+  //If entire entry is empty, returns one's complement of index = found empty.
+  //If entry equals given coupon, returns its index = found duplicate coupon
+  //Continues searching
+  //If the probe comes back to original index, throws an exception.
+  //Called by CouponHashSet.couponUpdate()
+  //Called by CouponHashSet.growHashSet()
+  //Called by DirectCouponHashSet.growHashSet()
+  static final int find(final int[] array, final int lgArrInts, final int coupon) {
+    final int arrMask = (1 << lgArrInts) - 1;
     int probe = coupon & arrMask;
     final int loopIndex = probe;
     do {
-      if (array[probe] == EMPTY) { return ~probe; } //empty
-      else if (coupon == array[probe]) { return probe; } //duplicate
-      final int stride = ((coupon & KEY_MASK_26) >>> lgArr) | 1;
+      final int arrVal = array[probe];
+      if (arrVal == EMPTY) { //Compares on entire coupon
+        return ~probe; //empty
+      }
+      else if (coupon == arrVal) { //Compares on entire coupon
+        return probe; //duplicate
+      }
+      final int stride = ((coupon & KEY_MASK_26) >>> lgArrInts) | 1;
       probe = (probe + stride) & arrMask;
     } while (probe != loopIndex);
     throw new SketchesArgumentException("Key not found and no empty slots!");

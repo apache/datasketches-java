@@ -110,7 +110,7 @@ public class Union extends BaseHllSketch {
    * @return the maximum size in bytes that this union operator can grow to.
    */
   public static int getMaxSerializationBytes(final int lgK) {
-    return HllSketch.getMaxSerializationBytes(lgK, TgtHllType.HLL_8);
+    return HllSketch.getMaxUpdatableSerializationBytes(lgK, TgtHllType.HLL_8);
   }
 
   @Override

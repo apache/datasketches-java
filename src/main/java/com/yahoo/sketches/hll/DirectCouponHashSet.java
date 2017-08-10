@@ -40,14 +40,16 @@ import com.yahoo.sketches.SketchesStateException;
 class DirectCouponHashSet extends DirectCouponList {
 
   //Constructs this sketch with data.
-  DirectCouponHashSet(final WritableMemory wmem) {
-    super(wmem);
+  DirectCouponHashSet(final int lgConfigK, final TgtHllType tgtHllType,
+      final WritableMemory wmem) {
+    super(lgConfigK, tgtHllType, CurMode.SET, wmem);
     assert wmem.getByte(LG_K_BYTE) > 7;
   }
 
   //Constructs this sketch with read-only data.
-  DirectCouponHashSet(final Memory mem) {
-    super(mem);
+  DirectCouponHashSet(final int lgConfigK, final TgtHllType tgtHllType,
+      final Memory mem) {
+    super(lgConfigK, tgtHllType, CurMode.SET, mem);
     assert wmem.getByte(LG_K_BYTE) > 7;
   }
 
@@ -76,32 +78,7 @@ class DirectCouponHashSet extends DirectCouponList {
     insertListCount(memObj, memAdd, 0); //zero out for SET also
     insertModes(memObj, memAdd, tgtHllType, CurMode.SET);
     insertHashSetCount(memObj, memAdd, 0);
-    return new DirectCouponHashSet(dstMem);
-  }
-
-  static final HllSketchImpl morphMemListToSet(final DirectCouponList src) {
-    final CouponHashSet chSet = CouponHashSet.heapifySet(src.mem); //sets oooFlag
-    final int minBytes = chSet.getUpdatableSerializationBytes();
-    HllUtil.checkMemSize(minBytes, src.wmem.getCapacity());
-    src.wmem.clear();
-    CouponList.insertSet(chSet, src.wmem, false); //not compact
-    final DirectCouponHashSet dchSet = new DirectCouponHashSet(src.wmem);
-    return dchSet;
-  }
-
-  //Move to DirectHllArray
-  static final HllSketchImpl morphMemCouponsToHll(final DirectCouponList src,
-      final int lgConfigK, final TgtHllType tgtHllType) {
-    final HllArray hllArray = HllArray.newHll(lgConfigK, tgtHllType);
-    //temp storage, sets oooFlag & hipAccum
-    HllArray.heapifyMemCouponsToHll(src.mem, hllArray);
-
-    final int minBytes = hllArray.getUpdatableSerializationBytes();
-    HllUtil.checkMemSize(minBytes, src.mem.getCapacity());
-
-    src.wmem.clear();
-    HllArray.insertHll(hllArray, src.wmem, false);
-    return hllArray; //TODO this must return a DirectHllArray
+    return new DirectCouponHashSet(lgConfigK, tgtHllType, dstMem);
   }
 
   @Override //returns on-heap Set
@@ -115,13 +92,26 @@ class DirectCouponHashSet extends DirectCouponList {
     return new CouponHashSet(clist, tgtHllType);
   }
 
+  @Override //get Coupons from internal Mem to dstMem
+  //Called by CouponList.insertList()
+  //Called by CouponList.insertSet()
+  void getCouponsToMemoryInts(final WritableMemory dstWmem, final int lenInts) {
+    mem.copyTo(HASH_SET_INT_ARR_START, dstWmem, HASH_SET_INT_ARR_START, lenInts << 2);
+  }
+
+  @Override //put Coupons from srcMem to internal memory
+  //TODO Not used
+  void putCouponsFromMemoryInts(final Memory srcMem, final int lenInts) {
+    srcMem.copyTo(HASH_SET_INT_ARR_START, wmem, HASH_SET_INT_ARR_START, lenInts << 2);
+  }
+
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
     if (wmem == null) { noWriteAccess(); }
     if (coupon == EMPTY) {
       return this; //empty coupon, ignore
     }
-    //final int[] couponIntArr = getCouponIntArr();
+    //avoid array copy
     final int index = find(memObj, memAdd, getLgCouponArrInts(), coupon);
     if (index >= 0) {
       return this; //found duplicate, ignore
@@ -130,7 +120,7 @@ class DirectCouponHashSet extends DirectCouponList {
     incCouponCount();
     final boolean promote = checkGrowOrPromote();
     if (!promote) { return this; }
-    return morphMemCouponsToHll(this, getLgConfigK(), getTgtHllType());
+    return promoteListOrSetToHll(this);
   }
 
   @Override
@@ -143,20 +133,20 @@ class DirectCouponHashSet extends DirectCouponList {
     return HASH_SET_INT_ARR_START +  (getCouponCount() << 2);
   }
 
+  @Override
+  int getMemArrStart() {
+    return HASH_SET_INT_ARR_START;
+  }
+
+  @Override
+  int getPreInts() {
+    return HASH_SET_PREINTS;
+  }
+
   void incCouponCount() {
     assert wmem != null;
     int count = extractHashSetCount(memObj, memAdd);
     insertHashSetCount(memObj, memAdd, ++count);
-  }
-
-  @Override
-  void populateCouponIntArrFromMem(final Memory srcMem, final int lenInts) {
-    srcMem.copyTo(HASH_SET_INT_ARR_START, wmem, HASH_SET_INT_ARR_START, lenInts << 2);
-  }
-
-  @Override
-  void populateMemFromCouponIntArr(final WritableMemory tgtWmem, final int lenInts) {
-    mem.copyTo(HASH_SET_INT_ARR_START, tgtWmem, HASH_SET_INT_ARR_START, lenInts << 2);
   }
 
   @Override
@@ -166,7 +156,7 @@ class DirectCouponHashSet extends DirectCouponList {
   }
 
   @Override
-  void putCouponIntArr(final int[] couponIntArr) {
+  void putCouponIntArr(final int[] couponIntArr) { //TODO ??
     assert wmem != null;
     final int lenInts = 1 << extractLgArr(memObj, memAdd);
     wmem.putIntArray(HASH_SET_INT_ARR_START, couponIntArr, 0, lenInts);
@@ -205,6 +195,12 @@ class DirectCouponHashSet extends DirectCouponList {
     wmem.putIntArray(HASH_SET_INT_ARR_START, tgtCouponIntArr, 0, tgtArrSize);
   }
 
+  //Searches the Coupon hash table (embedded in Memory) for an empty slot
+  // or a duplicate depending on the context.
+  //If entire entry is empty, returns one's complement of index = found empty.
+  //If entry equals given coupon, returns its index = found duplicate coupon
+  //Continues searching
+  //If the probe comes back to original index, throws an exception.
   private static final int find(final Object memObj, final long memAdd, final int lgArr,
       final int coupon) {
     final int arrMask = (1 << lgArr) - 1;
