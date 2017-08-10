@@ -247,7 +247,7 @@ final class PreambleUtil {
   }
 
   static int extractLgResizeFactor(final Object memObj, final long memAdd) {
-    return (unsafe.getByte(memObj, memAdd + PREAMBLE_LONGS_BYTE) >> LG_RESIZE_FACTOR_BIT) & 0X3;
+    return (unsafe.getByte(memObj, memAdd + PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT) & 0X3;
   }
 
   static int extractLgResizeRatioV1(final Object memObj, final long memAdd) {

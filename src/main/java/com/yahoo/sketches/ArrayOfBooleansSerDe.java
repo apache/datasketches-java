@@ -23,7 +23,7 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
    * @return Number of bytes needed to encode the array
    */
   public static int computeBytesNeeded(final int arrayLength) {
-    return (arrayLength >> 3) + ((arrayLength & 0x7) > 0 ? 1 : 0);
+    return (arrayLength >>> 3) + ((arrayLength & 0x7) > 0 ? 1 : 0);
   }
 
   @Override
@@ -39,7 +39,7 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
       }
 
       if ((i & 0x7) == 0x7) {
-        mem.putByte(i >> 3, val);
+        mem.putByte(i >>> 3, val);
         val = 0;
       }
     }
@@ -63,7 +63,7 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
       if ((i & 0x7) == 0x0) { // should trigger on first iteration
         srcVal = mem.getByte(b++);
       }
-      array[i] = (srcVal >> (i & 0x7) & 0x1) == 1;
+      array[i] = ((srcVal >>> (i & 0x7)) & 0x1) == 1;
     }
 
     return array;
