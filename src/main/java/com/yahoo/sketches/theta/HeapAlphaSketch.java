@@ -94,7 +94,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
 
     final double nomLongs = (1L << lgNomLongs);
     final double alpha = nomLongs / (nomLongs + 1.0);
-    final long split1 = (long) ((p * (alpha + 1.0) / 2.0) * MAX_THETA_LONG_AS_DOUBLE);
+    final long split1 = (long) (((p * (alpha + 1.0)) / 2.0) * MAX_THETA_LONG_AS_DOUBLE);
 
     final HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, seed, p, rf, alpha, split1);
 
@@ -172,7 +172,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
 
     final double nomLongs = (1L << lgNomLongs);
     final double alpha = nomLongs / (nomLongs + 1.0);
-    final long split1 = (long) ((p * (alpha + 1.0) / 2.0) * MAX_THETA_LONG_AS_DOUBLE);
+    final long split1 = (long) (((p * (alpha + 1.0)) / 2.0) * MAX_THETA_LONG_AS_DOUBLE);
 
     final HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, seed, p, myRF, alpha, split1);
     has.lgArrLongs_ = lgArrLongs;
@@ -208,7 +208,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
       if (validCount > 0) {
         final double est = getEstimate();
         final double var = getVariance(1 << lgNomLongs_, getP(), alpha_, getTheta(), validCount);
-        lb = est - numStdDev * sqrt(var);
+        lb = est - (numStdDev * sqrt(var));
         lb = max(lb, 0.0);
       }
       else {
@@ -240,7 +240,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     if (isEstimationMode()) {
       final double var =
           getVariance(1 << lgNomLongs_, getP(), alpha_, getTheta(), getRetainedEntries(true));
-      return getEstimate() + numStdDev * sqrt(var);
+      return getEstimate() + (numStdDev * sqrt(var));
     }
     return curCount_;
   }
@@ -390,7 +390,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   private final UpdateReturnState enhancedHashInsert(final long[] hashTable, final long hash) {
     final int arrayMask = (1 << lgArrLongs_) - 1; // arrayLongs -1
     // make odd and independent of curProbe:
-    final int stride = (2 * (int) ((hash >> lgArrLongs_) & STRIDE_MASK)) + 1;
+    final int stride = (2 * (int) ((hash >>> lgArrLongs_) & STRIDE_MASK)) + 1;
     int curProbe = (int) (hash & arrayMask);
     long curTableHash = hashTable[curProbe];
 
@@ -544,8 +544,8 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
       final double xSq = x * x;
       final double term1 = kPlus1 * ySqMinusY;
       final double term2 = y / (1.0 - bSq);
-      final double term3 = (y * bSq - y * xSq - b - bSq + x + x * b);
-      result = term1 + term2 * term3;
+      final double term3 = (((y * bSq) - (y * xSq) - b - bSq) + x + (x * b));
+      result = term1 + (term2 * term3);
     }
     final double term4 = (1 - theta) / (theta * theta);
     return result + term4;
@@ -560,7 +560,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    * @return R.
    */
   private static final int getR(final double theta, final double alpha, final double p) {
-    final double split1 = p * (alpha + 1.0) / 2.0;
+    final double split1 = (p * (alpha + 1.0)) / 2.0;
     if (theta > split1) { return 0; }
     if (theta > (alpha * split1)) { return 1; }
     return 2;

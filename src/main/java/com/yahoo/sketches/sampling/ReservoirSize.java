@@ -100,7 +100,7 @@ final class ReservoirSize {
               + Integer.toHexString(MAX_ENC_VALUE) + ", found: " + value);
     }
 
-    final int p = (value >> EXPONENT_SHIFT) & EXPONENT_MASK;
+    final int p = (value >>> EXPONENT_SHIFT) & EXPONENT_MASK;
     final int i = value & INDEX_MASK;
 
     return (int) ((1 << p) * ((i * INV_BINS_PER_OCTAVE) + 1.0));
