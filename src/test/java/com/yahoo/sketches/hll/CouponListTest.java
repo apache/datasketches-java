@@ -11,7 +11,6 @@ import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
- *
  */
 public class CouponListTest {
 
@@ -71,18 +70,19 @@ public class CouponListTest {
     }
     double est1 = sk1.getEstimate();
     assertEquals(est1, u, u * 100.0E-6);
-    println("Original\n" + sk1.toString());
+    //println("Original\n" + sk1.toString());
 
     byte[] byteArray = sk1.toCompactByteArray();
+    //println("Preamble: " + PreambleUtil.toString(byteArray));
     HllSketch sk2 = HllSketch.heapify(byteArray);
     double est2 = sk2.getEstimate();
-    println("Heapify Compact\n" + sk2.toString());
+    //println("Heapify Compact\n" + sk2.toString(true, true, true, true));
     assertEquals(est2, est1, 0.0);
 
     byteArray = sk1.toUpdatableByteArray();
     sk2 = HllSketch.heapify(byteArray);
     est2 = sk2.getEstimate();
-    println("Heapify Updatable\n" + sk2.toString());
+    //println("Heapify Updatable\n" + sk2.toString());
     assertEquals(est2, est1, 0.0);
   }
 

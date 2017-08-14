@@ -70,19 +70,18 @@ class CouponHashSet extends CouponList {
     final int arrStart = (curMode == CurMode.LIST) ? LIST_INT_ARR_START : HASH_SET_INT_ARR_START;
 
     final CouponHashSet set = new CouponHashSet(lgConfigK, tgtHllType);
-    set.putLgCouponArrInts(lgCouponArrInts);
     set.putOutOfOrderFlag(true);
-
     final boolean compact = extractCompactFlag(memObj, memAdd);
     final int couponCount = extractHashSetCount(memObj, memAdd);
     if (compact) {
       for (int i = 0; i < couponCount; i++) {
         final int coupon = extractInt(memObj, memAdd, arrStart + (i << 2));
         if (coupon == EMPTY) { continue; }
-        set.couponUpdate(coupon); //increments set.couponCount
+        set.couponUpdate(coupon);
       }
     } else { //updatable
       set.putCouponCount(couponCount);
+      set.putLgCouponArrInts(lgCouponArrInts);
       final int couponArrInts = 1 << lgCouponArrInts;
       set.couponIntArr = new int[couponArrInts];
       mem.getIntArray(HASH_SET_INT_ARR_START, set.couponIntArr, 0, couponArrInts);
@@ -177,7 +176,7 @@ class CouponHashSet extends CouponList {
   //Called by CouponHashSet.growHashSet()
   //Called by DirectCouponHashSet.growHashSet()
   static final int find(final int[] array, final int lgArrInts, final int coupon) {
-    final int arrMask = (1 << lgArrInts) - 1;
+    final int arrMask = array.length - 1;
     int probe = coupon & arrMask;
     final int loopIndex = probe;
     do {

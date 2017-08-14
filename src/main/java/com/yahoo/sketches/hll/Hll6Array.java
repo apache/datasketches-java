@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.VAL_MASK_6;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
 
@@ -20,7 +21,7 @@ class Hll6Array extends HllArray {
   final WritableMemory mem;
 
   /**
-   * Standard constructor
+   * Standard constructor for new instance
    * @param lgConfigK the configured Lg K
    */
   Hll6Array(final int lgConfigK) {
@@ -89,12 +90,18 @@ class Hll6Array extends HllArray {
   }
 
   static final Hll6Array convertToHll6(final AbstractHllArray srcHllArr) {
-    final Hll6Array hll6Array = new Hll6Array(srcHllArr.getLgConfigK());
+    final int lgConfigK = srcHllArr.lgConfigK;
+    final Hll6Array hll6Array = new Hll6Array(lgConfigK);
     hll6Array.putOutOfOrderFlag(srcHllArr.isOutOfOrderFlag());
+    int numZeros = 1 << lgConfigK;
     final PairIterator itr = srcHllArr.getIterator();
-    while (itr.nextValid()) {
-      hll6Array.couponUpdate(itr.getPair());
+    while (itr.nextAll()) {
+      if (itr.getValue() != EMPTY) {
+        numZeros--;
+        hll6Array.couponUpdate(itr.getPair()); //creates KxQ registers
+      }
     }
+    hll6Array.putNumAtCurMin(numZeros);
     hll6Array.putHipAccum(srcHllArr.getHipAccum());
     return hll6Array;
   }
@@ -109,7 +116,7 @@ class Hll6Array extends HllArray {
     int bitOffset;
 
     HeapHll6Iterator(final byte[] array, final int lengthPairs) {
-      super(array, lengthPairs);
+      super(array, lengthPairs, lgConfigK);
       bitOffset = - 6;
     }
 

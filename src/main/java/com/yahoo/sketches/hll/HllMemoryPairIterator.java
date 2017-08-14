@@ -33,14 +33,28 @@ abstract class HllMemoryPairIterator implements PairIterator {
   }
 
   @Override
-  public boolean nextValid() {
-    while (++index < lengthPairs) {
-      value = value();
-      if (value != EMPTY) {
-        return true;
-      }
-    }
-    return false;
+  public int getIndex() {
+    return index;
+  }
+
+  @Override
+  public int getKey() {
+    return index;
+  }
+
+  @Override
+  public int getPair() {
+    return pair(index, value);
+  }
+
+  @Override
+  public int getSlot() {
+    return index;
+  }
+
+  @Override
+  public int getValue() {
+    return value;
   }
 
   @Override
@@ -52,28 +66,17 @@ abstract class HllMemoryPairIterator implements PairIterator {
     return false;
   }
 
+  @Override
+  public boolean nextValid() {
+    while (++index < lengthPairs) {
+      value = value();
+      if (value != EMPTY) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   abstract int value();
-
-  @Override
-  public int getPair() {
-    return pair(index, value);
-  }
-
-  @Override
-  public int getKey() {
-    return index;
-  }
-
-  @Override
-  public int getValue() {
-    return value;
-  }
-
-  @Override
-  public int getIndex() {
-    return index;
-  }
-
-
 
 }

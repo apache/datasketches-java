@@ -12,7 +12,6 @@ import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_PREINTS;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.WritableMemory;
 
 /**
  * @author Lee Rhodes
@@ -46,9 +45,13 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   abstract int getHllByteArrBytes();
 
+  //abstract void getHllBytesToMemory(WritableMemory dstWmem, int lenBytes);
+
   abstract double getKxQ0();
 
   abstract double getKxQ1();
+
+  abstract Memory getMemory();
 
   abstract int getNumAtCurMin();
 
@@ -94,15 +97,13 @@ abstract class AbstractHllArray extends HllSketchImpl {
     return HLL_BYTE_ARR_START + getHllByteArrBytes() + auxBytes;
   }
 
-  abstract void populateHllByteArrFromMem(Memory srcMem, int lenBytes); //TODO ??
-
-  abstract void populateMemFromHllByteArr(WritableMemory dstWmem, int lenBytes);
-
   abstract void putAuxHashMap(AuxHashMap auxHashMap);
 
   abstract void putCurMin(int curMin);
 
   abstract void putHipAccum(double hipAccum);
+
+  //abstract void putHllBytesFromMemory(Memory srcMem, int lenBytes); //TODO ??
 
   abstract void putKxQ0(double kxq0);
 
@@ -125,5 +126,22 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   static final int hll8ArrBytes(final int lgConfigK) {
     return 1 << lgConfigK;
+  }
+
+  static final int curMinAndNum(final AbstractHllArray hllArr) {
+    int curMin = 64;
+    int numAtCurMin = 0;
+    final PairIterator itr = hllArr.getIterator();
+    while (itr.nextAll()) {
+      final int v = itr.getValue();
+      if (v < curMin) {
+        curMin = v;
+        numAtCurMin = 1;
+      }
+      if (v == curMin) {
+        numAtCurMin++;
+      }
+    }
+    return HllUtil.pair(numAtCurMin, curMin);
   }
 }

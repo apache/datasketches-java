@@ -84,6 +84,17 @@ final class PreambleUtil {
   static int LIST_COUNT_BYTE                = 6;
   static int HLL_CUR_MIN_BYTE               = 6;
   static int MODE_BYTE                      = 7; //lo2bits = curMode, next 2 bits = tgtHllType
+  //mode encoding of combined CurMode and TgtHllType:
+  // Dec  Lo4Bits TgtHllType, CurMode
+  //   0     0000      HLL_4,    LIST
+  //   1     0001      HLL_4,     SET
+  //   2     0010      HLL_4,     HLL
+  //   4     0100      HLL_6,    LIST
+  //   5     0101      HLL_6,     SET
+  //   6     0110      HLL_6,     HLL
+  //   8     1000      HLL_8,    LIST
+  //   9     1001      HLL_8,     SET
+  //  10     1010      HLL_8,     HLL
 
   //Coupon List
   static int LIST_INT_ARR_START             = 8;
@@ -181,7 +192,7 @@ final class PreambleUtil {
       sb.append("Byte 4: LgArr: Hash Set Arr   : ").append(lgArr).append(LS);
     }
     if (curMode == CurMode.HLL) {
-      sb.append("Byte 4: LgArr: Except Arr     : ").append(lgArr).append(LS);
+      sb.append("Byte 4: LgArr or Aux LgArr    : ").append(lgArr).append(LS);
     }
     //expand byte 5: Flags
     sb.append("Byte 5: Flags:                : ").append(flagsStr).append(LS);
@@ -211,7 +222,7 @@ final class PreambleUtil {
       sb.append("KxQ0                          : ").append(kxq0).append(LS);
       sb.append("KxQ1                          : ").append(kxq1).append(LS);
       sb.append("Num At Cur Min                : ").append(curMinCount).append(LS);
-      sb.append("Exception Count               : ").append(exceptionCount).append(LS);
+      sb.append("Aux Count                     : ").append(exceptionCount).append(LS);
     }
     sb.append("### END HLL SKETCH PREAMBLE").append(LS);
     return sb.toString();

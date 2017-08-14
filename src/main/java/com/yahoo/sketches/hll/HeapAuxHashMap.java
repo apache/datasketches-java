@@ -99,7 +99,7 @@ class HeapAuxHashMap implements AuxHashMap {
 
   @Override
   public PairIterator getIterator() {
-    return new IntArrayPairIterator(auxIntArr);
+    return new IntArrayPairIterator(auxIntArr, lgConfigK);
   }
 
   @Override

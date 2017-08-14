@@ -143,8 +143,9 @@ public class HllSketch extends BaseHllSketch {
     final long minBytes = getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     final long capBytes = wmem.getCapacity();
     HllUtil.checkMemSize(minBytes, capBytes);
+    wmem.clear(0L, minBytes);
     final HllSketch directSketch =
-        new HllSketch(new DirectCouponList(lgConfigK, tgtHllType, CurMode.LIST, wmem));
+        new HllSketch(DirectCouponList.newInstance(lgConfigK, tgtHllType, wmem));
     return directSketch;
   }
 
@@ -317,13 +318,18 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
-  public boolean isDirect() {
-    return hllSketchImpl.isDirect();
+  public boolean isEmpty() {
+    return hllSketchImpl.isEmpty();
   }
 
   @Override
-  public boolean isEmpty() {
-    return hllSketchImpl.isEmpty();
+  public boolean isMemory() {
+    return hllSketchImpl.isMemory();
+  }
+
+  @Override
+  public boolean isOffHeap() {
+    return hllSketchImpl.isOffHeap();
   }
 
   @Override
@@ -361,7 +367,7 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
-  public String toString(final boolean summary, final boolean hllDetail, final boolean auxDetail,
+  public String toString(final boolean summary, final boolean detail, final boolean auxDetail,
       final boolean all) {
     final StringBuilder sb = new StringBuilder();
     if (summary) {
@@ -378,11 +384,15 @@ public class HllSketch extends BaseHllSketch {
         sb.append("  CurMin         : ").append(absHll.getCurMin()).append(LS);
         sb.append("  NumAtCurMin    : ").append(absHll.getNumAtCurMin()).append(LS);
         sb.append("  HipAccum       : ").append(absHll.getHipAccum()).append(LS);
+      } else {
+        sb.append("  Coupon Count   : ")
+          .append(((AbstractCoupons)hllSketchImpl).getCouponCount()).append(LS);
       }
     }
-    if (hllDetail) {
-      sb.append("### HLL SKETCH HLL DETAIL: ").append(LS);
+    if (detail) {
+      sb.append("### HLL SKETCH DATA DETAIL: ").append(LS);
       final PairIterator pitr = getIterator();
+      sb.append(pitr.getHeader()).append(LS);
       if (all) {
         while (pitr.nextAll()) {
           sb.append(pitr.getString()).append(LS);
@@ -394,11 +404,12 @@ public class HllSketch extends BaseHllSketch {
       }
     }
     if (auxDetail) {
-      sb.append("### HLL SKETCH AUX DETAIL: ").append(LS);
       if ((getCurrentMode() == CurMode.HLL) && (getTgtHllType() == TgtHllType.HLL_4)) {
         final AbstractHllArray absHll = (AbstractHllArray) hllSketchImpl;
         final PairIterator auxItr = absHll.getAuxIterator();
         if (auxItr != null) {
+          sb.append("### HLL SKETCH AUX DETAIL: ").append(LS);
+          sb.append(auxItr.getHeader()).append(LS);
           if (all) {
             while (auxItr.nextAll()) {
               sb.append(auxItr.getString()).append(LS);

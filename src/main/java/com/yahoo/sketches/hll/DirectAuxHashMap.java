@@ -63,7 +63,8 @@ class DirectAuxHashMap implements AuxHashMap {
 
   @Override
   public PairIterator getIterator() {
-    return new DirectAuxIterator(host.wmem, host.auxArrOffset, 1 << getLgAuxArrInts());
+    return new DirectAuxIterator(host.wmem, host.auxArrOffset, 1 << getLgAuxArrInts(),
+        host.lgConfigK);
   }
 
   @Override
@@ -177,8 +178,9 @@ class DirectAuxHashMap implements AuxHashMap {
   //ITERATOR
   final class DirectAuxIterator extends IntMemoryPairIterator {
 
-    DirectAuxIterator(final Memory mem, final long offsetBytes, final int lengthPairs) {
-      super(mem, offsetBytes, lengthPairs);
+    DirectAuxIterator(final Memory mem, final long offsetBytes, final int lengthPairs,
+        final int lgConfigK) {
+      super(mem, offsetBytes, lengthPairs, lgConfigK);
     }
 
     @Override

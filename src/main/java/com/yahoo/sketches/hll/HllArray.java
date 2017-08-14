@@ -134,11 +134,14 @@ abstract class HllArray extends AbstractHllArray {
    * @return the composite estimate
    */
   //In C: again-two-registers.c hhb_get_composite_estimate L1489
-  // Make package private to allow testing.
   @Override
   double getCompositeEstimate() {
-    final int lgConfigK = getLgConfigK();
-    final double rawEst = getRawEstimate(lgConfigK, getKxQ0() + getKxQ1());
+    return compositeEstimate(this);
+  }
+
+  static double compositeEstimate(final AbstractHllArray absHllArr) {
+    final int lgConfigK = absHllArr.getLgConfigK();
+    final double rawEst = getRawEstimate(lgConfigK, absHllArr.getKxQ0() + absHllArr.getKxQ1());
 
     final double[] xArr = CompositeInterpolationXTable.xArrs[lgConfigK - MIN_LOG_K];
     final double yStride = CompositeInterpolationXTable.yStrides[lgConfigK - MIN_LOG_K];
@@ -164,7 +167,8 @@ abstract class HllArray extends AbstractHllArray {
     //Alternate call
     //if ((adjEst > (3 << lgConfigK)) || ((curMin != 0) || (numAtCurMin == 0)) ) { return adjEst; }
 
-    final double linEst = getHllBitMapEstimate(lgConfigK, getCurMin(), getNumAtCurMin());
+    final double linEst =
+        getHllBitMapEstimate(lgConfigK, absHllArr.getCurMin(), absHllArr.getNumAtCurMin());
 
     // Bias is created when the value of an estimator is compared with a threshold to decide whether
     // to use that estimator or a different one.
@@ -261,6 +265,11 @@ abstract class HllArray extends AbstractHllArray {
   }
 
   @Override
+  Memory getMemory() {
+    return null;
+  }
+
+  @Override
   int getNumAtCurMin() {
     return numAtCurMin;
   }
@@ -285,14 +294,19 @@ abstract class HllArray extends AbstractHllArray {
   }
 
   @Override
-  boolean isDirect() {
+  boolean isEmpty() {
+    final int configK = 1 << getLgConfigK();
+    return (getCurMin() == 0) && (getNumAtCurMin() == configK);
+  }
+
+  @Override
+  boolean isMemory() {
     return false;
   }
 
   @Override
-  boolean isEmpty() {
-    final int configK = 1 << getLgConfigK();
-    return (getCurMin() == 0) && (getNumAtCurMin() == configK);
+  boolean isOffHeap() {
+    return false;
   }
 
   @Override
@@ -300,15 +314,15 @@ abstract class HllArray extends AbstractHllArray {
     return oooFlag;
   }
 
-  @Override
-  void populateHllByteArrFromMem(final Memory srcMem, final int lenBytes) {
-    //TODO ??
-  }
-
-  @Override
-  void populateMemFromHllByteArr(final WritableMemory dstWmem, final int lenBytes) {
-    //TODO ??
-  }
+  //  @Override
+  //  void putHllBytesFromMemory(final Memory srcMem, final int lenBytes) {
+  //    //TODO ??
+  //  }
+  //
+  //  @Override
+  //  void getHllBytesToMemory(final WritableMemory dstWmem, final int lenBytes) {
+  //    //TODO ??
+  //  }
 
   @Override
   void putAuxHashMap(final AuxHashMap auxHashMap) {
@@ -367,7 +381,7 @@ abstract class HllArray extends AbstractHllArray {
           ? auxHashMap.getCompactedSizeBytes()
           : auxHashMap.getUpdatableSizeBytes();
     }
-    final int totBytes = HLL_BYTE_ARR_START + impl.getHllByteArr().length + auxBytes;
+    final int totBytes = HLL_BYTE_ARR_START + impl.getHllByteArrBytes() + auxBytes;
     final byte[] byteArr = new byte[totBytes];
     final WritableMemory wmem = WritableMemory.wrap(byteArr);
     insertHll(impl, wmem, compact);
@@ -378,8 +392,14 @@ abstract class HllArray extends AbstractHllArray {
   static final void insertHll(final AbstractHllArray impl, final WritableMemory wmem,
       final boolean compact) {
     insertCommonHll(impl, wmem, compact);
-    final byte[] hllByteArr = impl.getHllByteArr();
-    wmem.putByteArray(HLL_BYTE_ARR_START, hllByteArr, 0, hllByteArr.length);
+
+    if (impl.isMemory()) {
+      final Memory mem = impl.getMemory();
+      mem.copyTo(HLL_BYTE_ARR_START, wmem, HLL_BYTE_ARR_START, impl.getHllByteArrBytes());
+    } else {
+      final byte[] hllByteArr = impl.getHllByteArr();
+      wmem.putByteArray(HLL_BYTE_ARR_START, hllByteArr, 0, hllByteArr.length);
+    }
 
     if (impl.getAuxHashMap() != null) {
       insertAux(impl, wmem, compact);
@@ -396,7 +416,7 @@ abstract class HllArray extends AbstractHllArray {
     final int auxCount = auxHashMap.getAuxCount();
     insertAuxCount(memObj, memAdd, auxCount);
     insertLgArr(memObj, memAdd, auxHashMap.getLgAuxArrInts()); //only used for direct HLL
-    final long auxStart = HLL_BYTE_ARR_START + impl.getHllByteArr().length;
+    final long auxStart = HLL_BYTE_ARR_START + impl.getHllByteArrBytes();
     if (compact) {
       final PairIterator itr = auxHashMap.getIterator();
       int cnt = 0;
@@ -431,6 +451,7 @@ abstract class HllArray extends AbstractHllArray {
     insertNumAtCurMin(memObj, memAdd, impl.getNumAtCurMin());
   }
 
+  //used by heapify
   static final void extractCommonHll(final HllArray hllArray, final Memory srcMem,
       final Object memArr, final long memAdd) {
     hllArray.putOutOfOrderFlag(extractOooFlag(memArr, memAdd));

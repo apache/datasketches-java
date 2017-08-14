@@ -44,7 +44,7 @@ abstract class DirectHllArray extends AbstractHllArray {
   AuxHashMap directAuxHashMap = null;
 
 
-  //Memory must be initialized
+  //Memory must be initialized, may have data
   DirectHllArray(final int lgConfigK, final TgtHllType tgtHllType, final WritableMemory wmem) {
     super(lgConfigK, tgtHllType, CurMode.HLL);
     this.wmem = wmem;
@@ -54,6 +54,7 @@ abstract class DirectHllArray extends AbstractHllArray {
     auxArrOffset = HLL_BYTE_ARR_START + (1 << (lgConfigK - 1));
   }
 
+  //Memory must be initialized, should have data
   DirectHllArray(final int lgConfigK, final TgtHllType tgtHllType, final Memory mem) {
     super(lgConfigK, tgtHllType, CurMode.HLL);
     wmem = null;
@@ -119,14 +120,15 @@ abstract class DirectHllArray extends AbstractHllArray {
 
   @Override
   double getCompositeEstimate() {
-    // TODO Auto-generated method stub
-    return 0;
+    return HllArray.compositeEstimate(this);
   }
 
   @Override
   double getEstimate() {
-    // TODO Auto-generated method stub
-    return 0;
+    if (isOutOfOrderFlag()) {
+      return getCompositeEstimate();
+    }
+    return getHipAccum();
   }
 
   @Override
@@ -167,6 +169,11 @@ abstract class DirectHllArray extends AbstractHllArray {
   }
 
   @Override
+  Memory getMemory() {
+    return mem;
+  }
+
+  @Override
   int getNumAtCurMin() {
     return extractNumAtCurMin(memObj, memAdd);
   }
@@ -183,13 +190,18 @@ abstract class DirectHllArray extends AbstractHllArray {
   }
 
   @Override
-  boolean isDirect() {
-    return mem.isDirect();
+  boolean isEmpty() {
+    return extractEmptyFlag(memObj, memAdd);
   }
 
   @Override
-  boolean isEmpty() {
-    return extractEmptyFlag(memObj, memAdd);
+  boolean isMemory() {
+    return true;
+  }
+
+  @Override
+  boolean isOffHeap() {
+    return mem.isDirect();
   }
 
   @Override
@@ -197,15 +209,15 @@ abstract class DirectHllArray extends AbstractHllArray {
     return extractOooFlag(memObj, memAdd);
   }
 
-  @Override
-  void populateHllByteArrFromMem(final Memory srcMem, final int lenBytes) {
-    // TODO Auto-generated method stub
-  }
-
-  @Override
-  void populateMemFromHllByteArr(final WritableMemory dstWmem, final int lenBytes) {
-    // TODO Auto-generated method stub
-  }
+  //  @Override
+  //  void putHllBytesFromMemory(final Memory srcMem, final int lenBytes) {
+  //    // TODO Auto-generated method stub
+  //  }
+  //
+  //  @Override
+  //  void getHllBytesToMemory(final WritableMemory dstWmem, final int lenBytes) {
+  //    // TODO Auto-generated method stub
+  //  }
 
   @Override
   void putAuxHashMap(final AuxHashMap auxHashMap) {
@@ -244,18 +256,13 @@ abstract class DirectHllArray extends AbstractHllArray {
 
   @Override
   byte[] toCompactByteArray() {
-    // TODO Auto-generated method stub
-    return null;
+    return HllArray.toByteArray(this, true);
   }
 
   @Override
   byte[] toUpdatableByteArray() {
-    //    final byte[] byteArr = new byte[];
-    //    return mem.getByteArray(0, byteArr, 0, length);
-    return null;
+    return HllArray.toByteArray(this, false);
   }
-
-
 
   void hipAndKxQIncrementalUpdate(final int oldValue, final int newValue) {
     assert newValue > oldValue;

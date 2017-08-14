@@ -24,8 +24,9 @@ import com.yahoo.sketches.SketchesStateException;
  * @author Kevin Lang
  */
 class Hll4Array extends HllArray {
+
   /**
-   * Standard constructor
+   * Standard constructor for new instance
    * @param lgConfigK the configured Lg K
    */
   Hll4Array(final int lgConfigK) {
@@ -264,19 +265,15 @@ class Hll4Array extends HllArray {
     final int lgConfigK = srcHllArr.getLgConfigK();
     final Hll4Array hll4Array = new Hll4Array(lgConfigK);
     hll4Array.putOutOfOrderFlag(srcHllArr.isOutOfOrderFlag());
-    final int[] hist = new int[64];
 
-    PairIterator itr = srcHllArr.getIterator();
-    while (itr.nextAll()) {
-      hist[itr.getValue()]++;
-    }
-    int curMin = 0;
-    while (hist[curMin] == 0) {
-      curMin++;
-    }
-    final int numAtCurMin = hist[curMin];
-    itr = srcHllArr.getIterator();
-    AuxHashMap auxHashMap = hll4Array.getAuxHashMap();
+    //1st pass: compute starting curMin and numAtCurMin:
+    final int pair = curMinAndNum(srcHllArr);
+    final int curMin = HllUtil.getValue(pair);
+    final int numAtCurMin = HllUtil.getLow26(pair);
+
+    //2nd pass: Populate KxQ registers, build AuxHashMap if needed
+    final PairIterator itr = srcHllArr.getIterator();
+    AuxHashMap auxHashMap = hll4Array.getAuxHashMap(); //may be null
     while (itr.nextValid()) {
       final int slotNo = itr.getIndex();
       final int actualValue = itr.getValue();
@@ -292,6 +289,7 @@ class Hll4Array extends HllArray {
         Hll4Array.setNibble(hll4Array.getHllByteArr(), slotNo, actualValue - curMin);
       }
     }
+
     hll4Array.putCurMin(curMin);
     hll4Array.putNumAtCurMin(numAtCurMin);
     hll4Array.putHipAccum(srcHllArr.getHipAccum());
@@ -307,7 +305,7 @@ class Hll4Array extends HllArray {
   final class HeapHll4Iterator extends HllArrayPairIterator {
 
     HeapHll4Iterator(final byte[] array, final int lengthPairs) {
-      super(array, lengthPairs);
+      super(array, lengthPairs, lgConfigK);
     }
 
     @Override

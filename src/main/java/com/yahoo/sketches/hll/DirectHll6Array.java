@@ -8,7 +8,6 @@ package com.yahoo.sketches.hll;
 import static com.yahoo.memory.UnsafeUtil.unsafe;
 import static com.yahoo.sketches.hll.HllUtil.VAL_MASK_6;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
-import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
@@ -51,11 +50,8 @@ class DirectHll6Array extends DirectHllArray {
 
   @Override
   int getHllByteArrBytes() {
-    final int lgK = 1 << extractLgK(memObj, memAdd);
-    return hll6ArrBytes(lgK);
+    return hll6ArrBytes(lgConfigK);
   }
-
-
 
   //ITERATOR
   @Override

@@ -96,6 +96,7 @@ class CouponList extends AbstractCoupons {
     final CouponList list = new CouponList(lgConfigK, tgtHllType, CurMode.LIST);
     final int couponCount = extractListCount(memArr, memAdd);
     list.putCouponsFromMemoryInts(mem, couponCount);
+    list.putCouponCount(couponCount);
     list.putOutOfOrderFlag(extractOooFlag(memArr, memAdd));
     return list;
   }
@@ -153,7 +154,7 @@ class CouponList extends AbstractCoupons {
 
   @Override
   PairIterator getIterator() {
-    return new IntArrayPairIterator(couponIntArr);
+    return new IntArrayPairIterator(couponIntArr, lgConfigK);
   }
 
   @Override
@@ -172,7 +173,12 @@ class CouponList extends AbstractCoupons {
   }
 
   @Override
-  boolean isDirect() {
+  boolean isMemory() {
+    return false;
+  }
+
+  @Override
+  boolean isOffHeap() {
     return false;
   }
 
@@ -239,13 +245,12 @@ class CouponList extends AbstractCoupons {
     insertListCount(memObj, memAdd, couponCount);
     insertCompactFlag(memObj, memAdd, compact);
     insertCommonList(impl, memObj, memAdd);
-    final int lenInts = (compact) ? couponCount : impl.getLgCouponArrInts();
+    final int lenInts = (compact) ? couponCount : 1 << impl.getLgCouponArrInts();
     impl.getCouponsToMemoryInts(wmem, lenInts);
   }
 
-  //wmem must be clear.
+  //wmem must be clear.  impl must be a set
   //Called by CouponList.toByteArray()
-  //Called by DirectCouponList.morphMemListToSet()
   static final void insertSet(final AbstractCoupons impl, final WritableMemory wmem,
       final boolean compact) {
     final Object memObj = wmem.getArray();
@@ -262,7 +267,7 @@ class CouponList extends AbstractCoupons {
         wmem.putInt(HASH_SET_INT_ARR_START + (cnt++ << 2), itr.getPair());
       }
     } else { //updatable
-      impl.getCouponsToMemoryInts(wmem, impl.getLgCouponArrInts());
+      impl.getCouponsToMemoryInts(wmem, 1 << impl.getLgCouponArrInts());
     }
   }
 
@@ -285,10 +290,12 @@ class CouponList extends AbstractCoupons {
   static final HllSketchImpl promoteHeapListOrSetToHll(final CouponList src) {
     final HllArray tgtHllArr = HllArray.newHll(src.lgConfigK, src.tgtHllType);
     final PairIterator srcItr = src.getIterator();
+    tgtHllArr.putKxQ0(1 << src.lgConfigK);
     while (srcItr.nextValid()) {
       tgtHllArr.couponUpdate(srcItr.getPair());
     }
     tgtHllArr.putHipAccum(src.getEstimate());
+
     tgtHllArr.putOutOfOrderFlag(false);
     return tgtHllArr;
   }

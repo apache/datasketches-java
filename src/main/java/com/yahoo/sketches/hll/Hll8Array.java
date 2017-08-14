@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.VAL_MASK_6;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
 
@@ -19,7 +20,7 @@ import com.yahoo.memory.WritableMemory;
 class Hll8Array extends HllArray {
 
   /**
-   * Standard constructor.
+   * Standard constructor for new instance
    * @param lgConfigK the configured Lg K
    */
   Hll8Array(final int lgConfigK) {
@@ -69,12 +70,18 @@ class Hll8Array extends HllArray {
   }
 
   static final Hll8Array convertToHll8(final HllArray srcHllArr) {
-    final Hll8Array hll8Array = new Hll8Array(srcHllArr.getLgConfigK());
+    final int lgConfigK = srcHllArr.lgConfigK;
+    final Hll8Array hll8Array = new Hll8Array(lgConfigK);
     hll8Array.putOutOfOrderFlag(srcHllArr.isOutOfOrderFlag());
+    int numZeros = 1 << lgConfigK;
     final PairIterator itr = srcHllArr.getIterator();
-    while (itr.nextValid()) {
-      hll8Array.couponUpdate(itr.getPair());
+    while (itr.nextAll()) {
+      if (itr.getValue() != EMPTY) {
+        numZeros--;
+        hll8Array.couponUpdate(itr.getPair());
+      }
     }
+    hll8Array.putNumAtCurMin(numZeros);
     hll8Array.putHipAccum(srcHllArr.getHipAccum());
     return hll8Array;
   }
@@ -88,7 +95,7 @@ class Hll8Array extends HllArray {
   final class HeapHll8Iterator extends HllArrayPairIterator {
 
     HeapHll8Iterator(final byte[] array, final int lengthPairs) {
-      super(array, lengthPairs);
+      super(array, lengthPairs, lgConfigK);
     }
 
     @Override

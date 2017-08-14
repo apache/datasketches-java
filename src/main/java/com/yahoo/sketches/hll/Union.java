@@ -156,13 +156,18 @@ public class Union extends BaseHllSketch {
   }
 
   @Override
-  public boolean isDirect() {
-    return gadget.isDirect();
+  public boolean isEmpty() {
+    return gadget.isEmpty();
   }
 
   @Override
-  public boolean isEmpty() {
-    return gadget.isEmpty();
+  public boolean isMemory() {
+    return gadget.isMemory();
+  }
+
+  @Override
+  public boolean isOffHeap() {
+    return gadget.isOffHeap();
   }
 
   @Override

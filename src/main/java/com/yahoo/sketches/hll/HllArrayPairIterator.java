@@ -15,14 +15,50 @@ import static com.yahoo.sketches.hll.HllUtil.pair;
  */
 abstract class HllArrayPairIterator implements PairIterator {
   final byte[] array;
+  final int slotMask;
   final int lengthPairs;
   int index;
   int value;
 
-  HllArrayPairIterator(final byte[] array, final int lengthPairs) {
+  HllArrayPairIterator(final byte[] array, final int lengthPairs, final int lgConfigK) {
     this.array = array;
+    slotMask = (1 << lgConfigK) - 1;
     this.lengthPairs = lengthPairs;
     index = - 1;
+  }
+
+  @Override
+  public int getIndex() {
+    return index;
+  }
+
+  @Override
+  public int getKey() {
+    return index;
+  }
+
+  @Override
+  public int getPair() {
+    return pair(index, value);
+  }
+
+  @Override
+  public int getValue() {
+    return value;
+  }
+
+  @Override
+  public int getSlot() {
+    return getKey() & slotMask;
+  }
+
+  @Override
+  public boolean nextAll() {
+    if (++index < lengthPairs) {
+      value = value();
+      return true;
+    }
+    return false;
   }
 
   @Override
@@ -36,34 +72,6 @@ abstract class HllArrayPairIterator implements PairIterator {
     return false;
   }
 
-  @Override
-  public boolean nextAll() {
-    if (++index < lengthPairs) {
-      value = value();
-      return true;
-    }
-    return false;
-  }
-
   abstract int value();
 
-  @Override
-  public int getPair() {
-    return pair(index, value);
-  }
-
-  @Override
-  public int getKey() {
-    return index;
-  }
-
-  @Override
-  public int getValue() {
-    return value;
-  }
-
-  @Override
-  public int getIndex() {
-    return index;
-  }
 }

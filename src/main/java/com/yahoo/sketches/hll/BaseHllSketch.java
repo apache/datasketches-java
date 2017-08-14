@@ -117,12 +117,6 @@ abstract class BaseHllSketch {
   public abstract double getUpperBound(int numStdDev);
 
   /**
-   * Returns true if the backing memory for this sketch is direct (off-heap) memory.
-   * @return true if the backing memory for this sketch is direct (off-heap) memory.
-   */
-  public abstract boolean isDirect();
-
-  /**
    * Return true if empty
    * @return true if empty
    */
@@ -135,6 +129,18 @@ abstract class BaseHllSketch {
   public boolean isEstimationMode() {
     return true;
   }
+
+  /**
+   * Returns true if this sketch was created using Memory.
+   * @return true if this sketch was created using Memory.
+   */
+  public abstract boolean isMemory();
+
+  /**
+   * Returns true if the backing memory for this sketch is off-heap.
+   * @return true if the backing memory for this sketch is off-heap.
+   */
+  public abstract boolean isOffHeap();
 
   /**
    * Gets the Out-of-order flag.
@@ -170,12 +176,12 @@ abstract class BaseHllSketch {
   /**
    * Human readable summary with optional detail
    * @param summary if true, output the sketch summary
-   * @param hllDetail if true, output the internal HLL array
+   * @param detail if true, output the internal data array
    * @param auxDetail if true, output the internal Aux array, if it exists.
    * @param all if true, list all values including zeros
    * @return human readable string
    */
-  public abstract String toString(boolean summary, boolean hllDetail, boolean auxDetail,
+  public abstract String toString(boolean summary, boolean detail, boolean auxDetail,
       boolean all);
 
   /**
