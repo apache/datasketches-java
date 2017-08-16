@@ -46,12 +46,6 @@ interface PairIterator {
   int getSlot();
 
   /**
-   * Gets the value
-   * @return the value
-   */
-  int getValue();
-
-  /**
    * Gets the current pair as a string
    * @return the current pair as a string
    */
@@ -62,6 +56,12 @@ interface PairIterator {
     final int value = getValue();
     return String.format("%10d%10d%10d%6d", index, key, slot, value);
   }
+
+  /**
+   * Gets the value
+   * @return the value
+   */
+  int getValue();
 
   /**
    * Returns true at the next pair in sequence.

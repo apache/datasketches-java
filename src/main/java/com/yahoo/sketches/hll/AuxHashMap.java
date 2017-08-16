@@ -18,13 +18,17 @@ interface AuxHashMap {
 
   int[] getAuxIntArr();
 
-  int getCompactedSizeBytes();
+  int getCompactSizeBytes();
 
   PairIterator getIterator();
 
   int getLgAuxArrInts();
 
   int getUpdatableSizeBytes();
+
+  boolean isMemory();
+
+  boolean isOffHeap();
 
   /**
    * Adds the slotNo and value to the aux array.

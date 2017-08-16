@@ -164,8 +164,7 @@ abstract class DirectHllArray extends AbstractHllArray {
 
   @Override
   double getLowerBound(final int numStdDev) {
-    // TODO Auto-generated method stub
-    return 0;
+    return HllArray.lowerBound(this, numStdDev);
   }
 
   @Override
@@ -185,8 +184,7 @@ abstract class DirectHllArray extends AbstractHllArray {
 
   @Override
   double getUpperBound(final int numStdDev) {
-    // TODO Auto-generated method stub
-    return 0;
+    return HllArray.upperBound(this, numStdDev);
   }
 
   @Override

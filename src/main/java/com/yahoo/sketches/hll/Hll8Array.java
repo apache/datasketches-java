@@ -60,13 +60,23 @@ class Hll8Array extends HllArray {
     final int curVal = hllByteArr[slotNo] & VAL_MASK_6;
     if (newVal > curVal) {
       hllByteArr[slotNo] = (byte) (newVal & VAL_MASK_6);
-      hipAndKxQIncrementalUpdate(curVal, newVal);
+      hipAndKxQIncrementalUpdate(this, curVal, newVal);
       if (curVal == 0) {
         decNumAtCurMin(); //overloaded as num zeros
         assert getNumAtCurMin() >= 0;
       }
     }
     return this;
+  }
+
+  @Override
+  int getSlot(final int slotNo) {
+    return hllByteArr[slotNo];
+  }
+
+  @Override
+  void putSlot(final int slotNo, final int newValue) {
+    hllByteArr[slotNo] = (byte) newValue;
   }
 
   static final Hll8Array convertToHll8(final HllArray srcHllArr) {
@@ -89,18 +99,18 @@ class Hll8Array extends HllArray {
   //ITERATOR
   @Override
   PairIterator getIterator() {
-    return new HeapHll8Iterator(hllByteArr, 1 << lgConfigK);
+    return new HeapHll8Iterator(1 << lgConfigK);
   }
 
-  final class HeapHll8Iterator extends HllArrayPairIterator {
+  final class HeapHll8Iterator extends HllPairIterator {
 
-    HeapHll8Iterator(final byte[] array, final int lengthPairs) {
-      super(array, lengthPairs, lgConfigK);
+    HeapHll8Iterator(final int lengthPairs) {
+      super(lengthPairs);
     }
 
     @Override
     int value() {
-      return array[index] & VAL_MASK_6;
+      return hllByteArr[index] & VAL_MASK_6;
     }
   }
 

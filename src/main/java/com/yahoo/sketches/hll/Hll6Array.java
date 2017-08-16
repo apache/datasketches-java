@@ -62,7 +62,7 @@ class Hll6Array extends HllArray {
     final int curVal = get6Bit(mem, 0, slotNo);
     if (newVal > curVal) {
       put6Bit(mem, 0, slotNo, newVal);
-      hipAndKxQIncrementalUpdate(curVal, newVal);
+      hipAndKxQIncrementalUpdate(this, curVal, newVal);
       if (curVal == 0) {
         decNumAtCurMin(); //overloaded as num zeros
         assert getNumAtCurMin() >= 0;
@@ -71,15 +71,25 @@ class Hll6Array extends HllArray {
     return this;
   }
 
-  static final void put6Bit(final WritableMemory mem, final int offsetBytes,
-      final int slotNo, final int val) {
+  @Override
+  int getSlot(final int slotNo) {
+    return get6Bit(mem, 0, slotNo);
+  }
+
+  @Override
+  void putSlot(final int slotNo, final int newValue) {
+    put6Bit(mem, 0, slotNo, newValue);
+  }
+
+  static final void put6Bit(final WritableMemory wmem, final int offsetBytes,
+      final int slotNo, final int newValue) {
     final int startBit = slotNo * 6;
     final int shift = (startBit & 0X7) << 32;
     final int byteIdx = (startBit >>> 3) + offsetBytes;
-    final int valShifted = (val & 0X3F) << shift;
-    final int curMasked = mem.getShort(byteIdx) & (~(VAL_MASK_6 << shift));
+    final int valShifted = (newValue & 0X3F) << shift;
+    final int curMasked = wmem.getShort(byteIdx) & (~(VAL_MASK_6 << shift));
     final short insert = (short) (curMasked | valShifted);
-    mem.putShort(byteIdx, insert);
+    wmem.putShort(byteIdx, insert);
   }
 
   static final int get6Bit(final Memory mem, final int offsetBytes, final int slotNo) {
@@ -109,14 +119,14 @@ class Hll6Array extends HllArray {
   //ITERATOR
   @Override
   PairIterator getIterator() {
-    return new HeapHll6Iterator(hllByteArr, 1 << lgConfigK);
+    return new HeapHll6Iterator(1 << lgConfigK);
   }
 
-  final class HeapHll6Iterator extends HllArrayPairIterator {
+  final class HeapHll6Iterator extends HllPairIterator {
     int bitOffset;
 
-    HeapHll6Iterator(final byte[] array, final int lengthPairs) {
-      super(array, lengthPairs, lgConfigK);
+    HeapHll6Iterator(final int lengthPairs) {
+      super(lengthPairs);
       bitOffset = - 6;
     }
 

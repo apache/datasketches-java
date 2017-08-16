@@ -5,7 +5,14 @@
 
 package com.yahoo.sketches.hll;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
+
 import org.testng.annotations.Test;
+
+import com.yahoo.memory.WritableDirectHandle;
+import com.yahoo.memory.WritableMemory;
 
 
 /**
@@ -13,48 +20,54 @@ import org.testng.annotations.Test;
  */
 public class DirectAuxHashMapTest {
 
-//  @Test
-//  public void checkGrow() {
-//    try (WritableDirectHandle handle = WritableMemory.allocateDirect(48 + 16)) {
-//      WritableMemory wmem = handle.get();
-//      Object memObj = wmem.getArray();
-//      long memAdd = wmem.getCumulativeOffset(0L);
-//      wmem.clear();
-//      insertPreInts(memObj, memAdd, HLL_PREINTS);
-//      insertSerVer(memObj, memAdd);
-//      insertFamilyId(memObj, memAdd);
-//      insertLgK(memObj, memAdd, 4);
-//      insertLgArr(memObj, memAdd, 2);
-//      insertFlags(memObj, memAdd, (byte) 0);
-//      insertListCount(memObj, memAdd, (byte) 0);
-//      insertCurMode(memObj, memAdd, CurMode.HLL);
-//      insertTgtHllType(memObj, memAdd, TgtHllType.HLL_4);
-//      DirectAuxHashMap map = new DirectAuxHashMap(wmem, false);
-//      map.mustAdd(2, 1);
-//      map.mustAdd(4, 2);
-//      map.mustAdd(6, 3);
-//      println("Direct: " + map.isDirect()); //Before grow
-//      PairIterator itr = map.getAuxIterator();
-//      println(itr.getHeader());
-//      while (itr.nextAll()) {
-//        println(itr.getString());
-//      }
-//
-//      map.mustAdd(8, 4);
-//      println("Direct: " + map.isDirect()); //After grow
-//      itr = map.getAuxIterator();
-//      println(itr.getHeader());
-//      while (itr.nextAll()) {
-//        println(itr.getString());
-//      }
-//    }
-//  }
-
   @Test
-  public void checkGrow2() {
+  public void checkGrow() {
+    int lgConfigK = 4;
+    TgtHllType tgtHllType = TgtHllType.HLL_4;
+    int n = 8; //put lgConfigK == 4 into HLL mode
+    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    HllSketch hllSketch;
+    try (WritableDirectHandle handle = WritableMemory.allocateDirect(bytes)) {
+      WritableMemory wmem = handle.get();
+      hllSketch = HllSketch.writableWrap(lgConfigK, tgtHllType, wmem);
+      for (int i = 0; i < n; i++) {
+        hllSketch.update(i);
+      }
+      hllSketch.couponUpdate(HllUtil.pair(7, 15)); //mock extreme values
+      hllSketch.couponUpdate(HllUtil.pair(8, 15));
+      hllSketch.couponUpdate(HllUtil.pair(9, 15));
+      //println(hllSketch.toString(true, true, true, true));
+      DirectHllArray dha = (DirectHllArray) hllSketch.hllSketchImpl;
+      assertEquals(dha.getAuxHashMap().getLgAuxArrInts(), 2);
+      assertTrue(hllSketch.isMemory());
+      assertTrue(hllSketch.isOffHeap());
 
+      //Check heapify
+      byte[] byteArray = hllSketch.toCompactByteArray();
+      HllSketch hllSketch2 = HllSketch.heapify(byteArray);
+      HllArray ha = (HllArray) hllSketch2.hllSketchImpl;
+      assertEquals(ha.getAuxHashMap().getLgAuxArrInts(), 2);
+      assertEquals(ha.getAuxHashMap().getAuxCount(), 3);
+
+      //Check wrap
+      byteArray = hllSketch.toUpdatableByteArray();
+      WritableMemory wmem2 = WritableMemory.wrap(byteArray);
+      hllSketch2 = HllSketch.writableWrap(wmem2);
+      //println(hllSketch2.toString(true, true, true, true));
+      dha = (DirectHllArray) hllSketch2.hllSketchImpl;
+      assertEquals(dha.getAuxHashMap().getLgAuxArrInts(), 2);
+      assertEquals(dha.getAuxHashMap().getAuxCount(), 3);
+
+      //Check grow to on-heap
+      hllSketch.couponUpdate(HllUtil.pair(10, 15));
+      //println(hllSketch.toString(true, true, true, true));
+      dha = (DirectHllArray) hllSketch.hllSketchImpl;
+      assertEquals(dha.getAuxHashMap().getLgAuxArrInts(), 3);
+      assertEquals(dha.getAuxHashMap().getAuxCount(), 4);
+      assertTrue(hllSketch.isMemory());
+      assertFalse(hllSketch.isOffHeap());
+    }
   }
-
 
   /**
    * @param s value to print

@@ -130,7 +130,7 @@ public class HllSketch extends BaseHllSketch {
   }
 
   /**
-   * Wraps the given WritableMemory that will be initialized with a new instance of an HllSketch.
+   * Wraps the given WritableMemory, which will be initialized with a new instance of an HllSketch.
    * @param lgConfigK The Log2 of K for the target HLL sketch. This value must be
    * between 4 and 21 inclusively.
    * @param tgtHllType the desired Hll type.
@@ -150,7 +150,7 @@ public class HllSketch extends BaseHllSketch {
   }
 
   /**
-   * Wraps the given WritableMemory that must be a image of a valid sketch, and may have data.
+   * Wraps the given WritableMemory, which must be a image of a valid sketch, and may have data.
    * @param wmem an image of a valid sketch with data that will also be written to.
    * @return an HllSketch
    */
@@ -384,6 +384,8 @@ public class HllSketch extends BaseHllSketch {
         sb.append("  CurMin         : ").append(absHll.getCurMin()).append(LS);
         sb.append("  NumAtCurMin    : ").append(absHll.getNumAtCurMin()).append(LS);
         sb.append("  HipAccum       : ").append(absHll.getHipAccum()).append(LS);
+        sb.append("  KxQ0           : ").append(absHll.getKxQ0()).append(LS);
+        sb.append("  KxQ1           : ").append(absHll.getKxQ1()).append(LS);
       } else {
         sb.append("  Coupon Count   : ")
           .append(((AbstractCoupons)hllSketchImpl).getCouponCount()).append(LS);

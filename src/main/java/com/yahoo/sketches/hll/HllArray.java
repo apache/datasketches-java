@@ -5,7 +5,6 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.Util.invPow2;
 import static com.yahoo.sketches.hll.HllUtil.HLL_HIP_RSE_FACTOR;
 import static com.yahoo.sketches.hll.HllUtil.HLL_NON_HIP_RSE_FACTOR;
 import static com.yahoo.sketches.hll.HllUtil.MIN_LOG_K;
@@ -239,29 +238,35 @@ abstract class HllArray extends AbstractHllArray {
 
   @Override
   double getLowerBound(final int numStdDev) {
+    return lowerBound(this, numStdDev);
+  }
+
+  static final double lowerBound(final AbstractHllArray absHllArr, final int numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
-    final int lgConfigK = getLgConfigK();
+    final int lgConfigK = absHllArr.lgConfigK;
     final int configK = 1 << lgConfigK;
-    final boolean oooFlag = isOutOfOrderFlag();
+    final boolean oooFlag = absHllArr.isOutOfOrderFlag();
+    final double compositeEstimate = absHllArr.getCompositeEstimate();
+    final double hipAccum = absHllArr.getHipAccum();
     if (lgConfigK > 12) {
       final double tmp;
-      if (isOutOfOrderFlag()) {
+      if (oooFlag) {
         final double hllNonHipEps =
             (numStdDev * HLL_NON_HIP_RSE_FACTOR) / Math.sqrt(configK);
-        tmp = getCompositeEstimate() / (1.0 + hllNonHipEps);
+        tmp = compositeEstimate / (1.0 + hllNonHipEps);
       } else {
         final double hllHipEps = (numStdDev * HLL_HIP_RSE_FACTOR) / Math.sqrt(configK);
-        tmp =  getHipAccum() / (1.0 + hllHipEps);
+        tmp =  hipAccum / (1.0 + hllHipEps);
       }
       double numNonZeros = configK;
-      if (getCurMin() == 0) {
-        numNonZeros -= getNumAtCurMin();
+      if (absHllArr.getCurMin() == 0) {
+        numNonZeros -= absHllArr.getNumAtCurMin();
       }
       return Math.max(tmp, numNonZeros);
     }
     //lgConfigK <= 12
     final double re = RelativeErrorTables.getRelErr(false, oooFlag, lgConfigK, numStdDev);
-    return ((oooFlag) ? getCompositeEstimate() : getHipAccum()) / (1.0 + re);
+    return ((oooFlag) ? compositeEstimate : hipAccum) / (1.0 + re);
   }
 
   @Override
@@ -276,21 +281,28 @@ abstract class HllArray extends AbstractHllArray {
 
   @Override
   double getUpperBound(final int numStdDev) {
+    return upperBound(this, numStdDev);
+  }
+
+  static final double upperBound(final AbstractHllArray absHllArr, final int numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
-    final int lgConfigK = getLgConfigK();
-    final boolean oooFlag = isOutOfOrderFlag();
+    final int lgConfigK = absHllArr.lgConfigK;
+    final int configK = 1 << lgConfigK;
+    final boolean oooFlag = absHllArr.isOutOfOrderFlag();
+    final double compositeEstimate = absHllArr.getCompositeEstimate();
+    final double hipAccum = absHllArr.getHipAccum();
     if (lgConfigK > 12) {
       if (oooFlag) {
         final double hllNonHipEps =
-            (numStdDev * HLL_NON_HIP_RSE_FACTOR) / Math.sqrt(1 << lgConfigK);
-        return getCompositeEstimate() / (1.0 - hllNonHipEps);
+            (numStdDev * HLL_NON_HIP_RSE_FACTOR) / Math.sqrt(configK);
+        return compositeEstimate / (1.0 - hllNonHipEps);
       }
-      final double hllHipEps = (numStdDev * HLL_HIP_RSE_FACTOR) / Math.sqrt(1 << lgConfigK);
-      return getHipAccum() / (1.0 - hllHipEps);
+      final double hllHipEps = (numStdDev * HLL_HIP_RSE_FACTOR) / Math.sqrt(configK);
+      return hipAccum / (1.0 - hllHipEps);
     }
     //lgConfigK <= 12
     final double re = RelativeErrorTables.getRelErr(true, oooFlag, lgConfigK, numStdDev);
-    return ((oooFlag) ? getCompositeEstimate() : getHipAccum()) / (1.0 + re);
+    return ((oooFlag) ? compositeEstimate : hipAccum) / (1.0 + re);
   }
 
   @Override
@@ -378,7 +390,7 @@ abstract class HllArray extends AbstractHllArray {
     final AuxHashMap auxHashMap = impl.getAuxHashMap();
     if (auxHashMap != null) { //only relevant for HLL_4
       auxBytes = (compact)
-          ? auxHashMap.getCompactedSizeBytes()
+          ? auxHashMap.getCompactSizeBytes()
           : auxHashMap.getUpdatableSizeBytes();
     }
     final int totBytes = HLL_BYTE_ARR_START + impl.getHllByteArrBytes() + auxBytes;
@@ -426,8 +438,12 @@ abstract class HllArray extends AbstractHllArray {
       assert cnt == auxCount;
     } else { //updatable
       final int auxInts = 1 << auxHashMap.getLgAuxArrInts();
-      final int[] auxArr = auxHashMap.getAuxIntArr(); //do copy for direct
-      wmem.putIntArray(auxStart, auxArr, 0, auxInts);
+      if (impl.isMemory()) {
+        impl.getMemory().copyTo(auxStart, wmem, auxStart, auxInts << 2);
+      } else {
+        final int[] auxArr = auxHashMap.getAuxIntArr();
+        wmem.putIntArray(auxStart, auxArr, 0, auxInts);
+      }
     }
   }
 
@@ -467,25 +483,7 @@ abstract class HllArray extends AbstractHllArray {
     srcMem.getByteArray(HLL_BYTE_ARR_START, hllByteArr, 0, hllArrLen);
   }
 
-  /**
-   * HIP and KxQ incremental update.
-   * @param oldValue old value
-   * @param newValue new value
-   */
-  //In C: again-two-registers.c Lines 851 to 871
-  void hipAndKxQIncrementalUpdate(final int oldValue, final int newValue) {
-    assert newValue > oldValue;
-    final int configK = 1 << getLgConfigK();
-    //update hipAccum BEFORE updating kxq0 and kxq1
-    double kxq0 = getKxQ0();
-    double kxq1 = getKxQ1();
-    addToHipAccum(configK / (kxq0 + kxq1));
-    //update kxq0 and kxq1; subtract first, then add.
-    if (oldValue < 32) { putKxQ0(kxq0 -= invPow2(oldValue)); }
-    else               { putKxQ1(kxq1 -= invPow2(oldValue)); }
-    if (newValue < 32) { putKxQ0(kxq0 += invPow2(newValue)); }
-    else               { putKxQ1(kxq1 += invPow2(newValue)); }
-  }
+
 
   //Used by union operator.  Always copies or downsamples to HLL_8.
   //Caller must ultimately manage oooFlag, as caller has more info

@@ -75,38 +75,39 @@ class Hll4Array extends HllArray {
     }
     final int configKmask = (1 << getLgConfigK()) - 1;
     final int slotNo = HllUtil.getLow26(coupon) & configKmask;
-    internalUpdate(slotNo, newValue);
+    internalUpdate(this, slotNo, newValue);
     return this;
   }
 
-  static final int getNibble(final byte[] array, final int slotNo) {
-    int theByte = array[slotNo >>> 1];
+  @Override
+  int getSlot(final int slotNo) {
+    int theByte = hllByteArr[slotNo >>> 1];
     if ((slotNo & 1) > 0) { //odd?
       theByte >>>= 4;
     }
     return theByte & loNibbleMask;
   }
 
-  static final void setNibble(final byte[] array, final int slotNo , final int newValue) {
+  @Override
+  void putSlot(final int slotNo, final int newValue) {
     final int byteno = slotNo >>> 1;
-    final int oldValue = array[byteno];
+    final int oldValue = hllByteArr[byteno];
     if ((slotNo & 1) == 0) { // set low nibble
-      array[byteno] = (byte) ((oldValue & hiNibbleMask) | (newValue & loNibbleMask));
+      hllByteArr[byteno] = (byte) ((oldValue & hiNibbleMask) | (newValue & loNibbleMask));
     } else { //set high nibble
-      array[byteno] = (byte) ((oldValue & loNibbleMask) | ((newValue << 4) & hiNibbleMask));
+      hllByteArr[byteno] = (byte) ((oldValue & loNibbleMask) | ((newValue << 4) & hiNibbleMask));
     }
   }
 
   // in C: two-registers.c Line 836 in "hhb_abstract_set_slot_if_new_value_bigger" non-sparse
   //Uses lgConfigK, curMin, numAtCurMin, auxMap,
-  private void internalUpdate(final int slotNo, final int newValue) {
-    assert ((0 <= slotNo) && (slotNo < (1 << getLgConfigK())));
+  private static void internalUpdate(final AbstractHllArray host, final int slotNo, final int newValue) {
+    assert ((0 <= slotNo) && (slotNo < (1 << host.getLgConfigK())));
     assert (newValue > 0);
-    final int lgConfigK = getLgConfigK();
-    final int curMin = getCurMin();
-    final byte[] hllByteArr = getHllByteArr();
-    AuxHashMap auxHashMap = getAuxHashMap(); //may be null
-    final int rawStoredOldValue = getNibble(hllByteArr, slotNo);  //could be 0
+    final int lgConfigK = host.getLgConfigK();
+    final int curMin = host.getCurMin();
+    AuxHashMap auxHashMap = host.getAuxHashMap(); //may be null
+    final int rawStoredOldValue = host.getSlot(slotNo);  //could be 0
     //This is provably a LB:
     final int lbOnOldValue =  rawStoredOldValue + curMin; //lower bound, could be 0
 
@@ -118,7 +119,7 @@ class Hll4Array extends HllArray {
       if (newValue > actualOldValue) { //848: actualOldValue could still be 0; newValue > 0
 
         //We know that the array will be changed
-        hipAndKxQIncrementalUpdate(actualOldValue, newValue); //haven't actually updated yet
+        hipAndKxQIncrementalUpdate(host, actualOldValue, newValue); //haven't actually updated yet
 
         assert (newValue >= curMin)
           : "New value " + newValue + " is less than current minimum " + curMin;
@@ -152,26 +153,26 @@ class Hll4Array extends HllArray {
             //This is the case where the old value is not an exception and the new value is.
             //Therefore the AUX_TOKEN must be stored in the 4-bit array and the new value
             // added to the exception table.
-            setNibble(hllByteArr, slotNo, AUX_TOKEN);
+            host.putSlot(slotNo, AUX_TOKEN);
             if (auxHashMap == null) {
               auxHashMap = new HeapAuxHashMap(LG_AUX_ARR_INTS[lgConfigK], lgConfigK);
-              putAuxHashMap(auxHashMap);
+              host.putAuxHashMap(auxHashMap);
             }
             auxHashMap.mustAdd(slotNo, newValue);
           }
           else {                             // CASE 4: //897
             //This is the case where neither the old value nor the new value is an exception.
             //Therefore we just overwrite the 4-bit array with the shifted new value.
-            setNibble(hllByteArr, slotNo, shiftedNewValue);
+            host.putSlot(slotNo, shiftedNewValue);
           }
         }
 
         // we just increased a pair value, so it might be time to change curMin
         if (actualOldValue == curMin) { //908
-          assert (getNumAtCurMin() >= 1);
-          decNumAtCurMin();
-          while (getNumAtCurMin() == 0) {
-            shiftToBiggerCurMin(); //increases curMin by 1, and builds a new aux table,
+          assert (host.getNumAtCurMin() >= 1);
+          host.decNumAtCurMin();
+          while (host.getNumAtCurMin() == 0) {
+            shiftToBiggerCurMin(host); //increases curMin by 1, and builds a new aux table,
             //shifts values in 4-bit table, and recounts curMin
           }
         }
@@ -185,13 +186,13 @@ class Hll4Array extends HllArray {
   //Entering this routine assumes that all slots have valid values > 0 and <= 15.
   //An AuxHashMap must exist if any values in the current hllByteArray are already 15.
   //In C: again-two-registers.c Lines 710 "hhb_shift_to_bigger_curmin"
-  private void shiftToBiggerCurMin() {
-    final int oldCurMin = getCurMin();
+  private static final void shiftToBiggerCurMin(final AbstractHllArray host) {
+    final int oldCurMin = host.getCurMin();
     final int newCurMin = oldCurMin + 1;
-    final int lgConfigK = getLgConfigK();
+    final int lgConfigK = host.getLgConfigK();
     final int configK = 1 << lgConfigK;
     final int configKmask = configK - 1;
-    final byte[] hllByteArr = getHllByteArr();
+
     int numAtNewCurMin = 0;
     int numAuxTokens = 0;
 
@@ -201,23 +202,23 @@ class Hll4Array extends HllArray {
     // If the decremented value is 0, we increment numAtNewCurMin.
     // Because getNibble is masked to 4 bits oldStoredValue can never be > 15 or negative
     for (int i = 0; i < configK; i++) { //724
-      int oldStoredValue = getNibble(hllByteArr, i);
+      int oldStoredValue = host.getSlot(i);
       if (oldStoredValue == 0) {
         throw new SketchesStateException("Array slots cannot be 0 at this point.");
       }
       if (oldStoredValue < AUX_TOKEN) {
-        setNibble(hllByteArr, i, --oldStoredValue);
+        host.putSlot(i, --oldStoredValue);
         if (oldStoredValue == 0) { numAtNewCurMin++; }
       } else { //oldStoredValue == AUX_TOKEN
         numAuxTokens++;
-        assert getAuxHashMap() != null : "AuxHashMap cannot be null at this point.";
+        assert host.getAuxHashMap() != null : "AuxHashMap cannot be null at this point.";
       }
     }
 
     //If old AuxHashMap exists, walk through it updating some slots and build a new AuxHashMap
     // if needed.
     HeapAuxHashMap newAuxMap = null;
-    final AuxHashMap oldAuxMap = getAuxHashMap();
+    final AuxHashMap oldAuxMap = host.getAuxHashMap();
     if (oldAuxMap != null) {
       int slotNum;
       int oldActualVal;
@@ -230,13 +231,13 @@ class Hll4Array extends HllArray {
         newShiftedVal = oldActualVal - newCurMin;
         assert newShiftedVal >= 0;
 
-        assert getNibble(hllByteArr, slotNum) == AUX_TOKEN
-            : "Array slot != AUX_TOKEN: " + getNibble(hllByteArr, slotNum);
+        assert host.getSlot(slotNum) == AUX_TOKEN
+            : "Array slot != AUX_TOKEN: " + host.getSlot(slotNum);
         if (newShiftedVal < AUX_TOKEN) { //756
           assert (newShiftedVal == 14);
           // The former exception value isn't one anymore, so it stays out of new AuxHashMap.
           // Correct the AUX_TOKEN value in the HLL array to the newShiftedVal (14).
-          setNibble(hllByteArr, slotNum, newShiftedVal);
+          host.putSlot(slotNum, newShiftedVal);
           numAuxTokens--;
         }
         else { //newShiftedVal >= AUX_TOKEN
@@ -255,10 +256,10 @@ class Hll4Array extends HllArray {
     if (newAuxMap != null) {
       assert newAuxMap.getAuxCount() == numAuxTokens;
     }
-    putAuxHashMap(newAuxMap);
+    host.putAuxHashMap(newAuxMap);
 
-    putCurMin(newCurMin);
-    putNumAtCurMin(numAtNewCurMin);
+    host.putCurMin(newCurMin);
+    host.putNumAtCurMin(numAtNewCurMin);
   } //end of shiftToBiggerCurMin
 
   static final Hll4Array convertToHll4(final AbstractHllArray srcHllArr) {
@@ -277,16 +278,16 @@ class Hll4Array extends HllArray {
     while (itr.nextValid()) {
       final int slotNo = itr.getIndex();
       final int actualValue = itr.getValue();
-      hll4Array.hipAndKxQIncrementalUpdate(0, actualValue);
+      hipAndKxQIncrementalUpdate(srcHllArr, 0, actualValue);
       if (actualValue >= (curMin + 15)) {
-        Hll4Array.setNibble(hll4Array.getHllByteArr(), slotNo, AUX_TOKEN);
+        hll4Array.putSlot(slotNo, AUX_TOKEN);
         if (auxHashMap == null) {
           auxHashMap = new HeapAuxHashMap(LG_AUX_ARR_INTS[lgConfigK], lgConfigK);
           hll4Array.putAuxHashMap(auxHashMap);
         }
         auxHashMap.mustAdd(slotNo, actualValue);
       } else {
-        Hll4Array.setNibble(hll4Array.getHllByteArr(), slotNo, actualValue - curMin);
+        hll4Array.putSlot(slotNo, actualValue - curMin);
       }
     }
 
@@ -299,18 +300,18 @@ class Hll4Array extends HllArray {
   //ITERATOR
   @Override
   PairIterator getIterator() {
-    return new HeapHll4Iterator(hllByteArr, 1 << lgConfigK);
+    return new HeapHll4Iterator(1 << lgConfigK);
   }
 
-  final class HeapHll4Iterator extends HllArrayPairIterator {
+  final class HeapHll4Iterator extends HllPairIterator {
 
-    HeapHll4Iterator(final byte[] array, final int lengthPairs) {
-      super(array, lengthPairs, lgConfigK);
+    HeapHll4Iterator(final int lengthPairs) {
+      super(lengthPairs);
     }
 
     @Override
     int value() {
-      final int nib = getNibble(array, index);
+      final int nib = Hll4Array.this.getSlot(index);
       return (nib == AUX_TOKEN)
           ? auxHashMap.mustFindValueFor(index) //auxHashMap cannot be null here
           : nib + getCurMin();

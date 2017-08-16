@@ -57,7 +57,7 @@ class DirectAuxHashMap implements AuxHashMap {
   }
 
   @Override
-  public int getCompactedSizeBytes() {
+  public int getCompactSizeBytes() {
     return getAuxCount() << 2;
   }
 
@@ -78,6 +78,16 @@ class DirectAuxHashMap implements AuxHashMap {
   }
 
   @Override
+  public boolean isMemory() {
+    return true;
+  }
+
+  @Override
+  public boolean isOffHeap() {
+    return host.isOffHeap();
+  }
+
+  @Override
   public void mustAdd(final int slotNo, final int value) {
     final int index = find(host, slotNo);
     final int pair = HllUtil.pair(slotNo, value);
@@ -89,7 +99,10 @@ class DirectAuxHashMap implements AuxHashMap {
     unsafe.putInt(host.memObj, host.memAdd + host.auxArrOffset + (~index << 2), pair);
     int auxCount = extractAuxCount(host.memObj, host.memAdd);
     insertAuxCount(host.memObj, host.memAdd, ++auxCount);
-    checkGrow(host, auxCount);
+    final int lgAuxArrInts = extractLgArr(host.memObj, host.memAdd);
+    if ((RESIZE_DENOM * auxCount) > (RESIZE_NUMER * (1 << lgAuxArrInts))) {
+      grow(host, lgAuxArrInts);
+    }
   }
 
   @Override
@@ -141,32 +154,30 @@ class DirectAuxHashMap implements AuxHashMap {
     throw new SketchesArgumentException("Key not found and no empty slots!");
   }
 
-  private static final void checkGrow(final DirectHllArray host, final int auxCount) {
-    int lgAuxArrInts = extractLgArr(host.memObj, host.memAdd);
-    if ((RESIZE_DENOM * auxCount) > (RESIZE_NUMER * (1 << lgAuxArrInts))) {
-      insertLgArr(host.memObj, host.memAdd, ++lgAuxArrInts);
-      final long requestBytes = host.auxArrOffset + (4 << lgAuxArrInts);
-      final long oldCapBytes = host.wmem.getCapacity();
-      if (requestBytes > oldCapBytes) {
-        final MemoryRequestServer svr = host.wmem.getMemoryRequestServer();
-        final WritableMemory newWmem = svr.request(requestBytes);
-        host.wmem.copyTo(0, newWmem, 0, oldCapBytes); //also copies old auxArr
-        svr.requestClose(host.wmem, newWmem);
-        host.updateMemory(newWmem);
-      }
-      growAuxSpace(host);
-    }
-  }
+  private static final void grow(final DirectHllArray host, final int oldLgAuxArrInts) {
+    final int oldAuxArrInts = 1 << oldLgAuxArrInts;
+    final int[] oldIntArray = new int[oldAuxArrInts]; //buffer old aux data
+    host.wmem.getIntArray(host.auxArrOffset, oldIntArray, 0, oldAuxArrInts);
 
-  //lgArr must have been incremented and there must be sufficient space.
-  private static final void growAuxSpace(final DirectHllArray host) {
-    final int auxArrInts = 1 << extractLgArr(host.memObj, host.memAdd);
-    final int[] oldArray = new int[auxArrInts];
-    host.wmem.getIntArray(host.auxArrOffset, oldArray, 0, auxArrInts);
+    insertLgArr(host.memObj, host.memAdd, oldLgAuxArrInts + 1); //update LgArr field
+
+    final long newAuxBytes = oldAuxArrInts << 3;
+    final long requestBytes = host.auxArrOffset + newAuxBytes;
+    final long oldCapBytes = host.wmem.getCapacity();
+
+    if (requestBytes > oldCapBytes) {
+      final MemoryRequestServer svr = host.wmem.getMemoryRequestServer();
+      final WritableMemory newWmem = svr.request(requestBytes);
+      host.wmem.copyTo(0, newWmem, 0, host.auxArrOffset);
+      newWmem.clear(host.auxArrOffset, newAuxBytes); //clear space for new aux data
+      svr.requestClose(host.wmem, newWmem); //old host.wmem is now invalid
+      host.updateMemory(newWmem);
+    }
+    //rehash into larger aux array
     final int configKmask = (1 << host.lgConfigK) - 1;
-    host.wmem.clear(host.auxArrOffset, auxArrInts << 2);
-    for (int i = 0; i < auxArrInts; i++) {
-      final int fetched = oldArray[i];
+
+    for (int i = 0; i < oldAuxArrInts; i++) {
+      final int fetched = oldIntArray[i];
       if (fetched != EMPTY) {
         //find empty in new array
         final int index = find(host, fetched & configKmask);

@@ -5,17 +5,16 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.RESIZE_DENOM;
 import static com.yahoo.sketches.hll.HllUtil.RESIZE_NUMER;
 import static com.yahoo.sketches.hll.PreambleUtil.extractInt;
+import static com.yahoo.sketches.hll.PreambleUtil.extractLgArr;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
-import com.yahoo.sketches.Util;
 
 /**
  * @author Lee Rhodes
@@ -50,24 +49,37 @@ class HeapAuxHashMap implements AuxHashMap {
 
   static final HeapAuxHashMap heapify(final Memory mem, final long offset, final int lgConfigK,
       final int auxCount, final boolean srcCompact) {
-    final int auxArrInts =
-        Math.max(4, ceilingPowerOf2((auxCount * RESIZE_DENOM) / RESIZE_NUMER));
-    final int lgAuxArrInts = Util.simpleIntLog2(auxArrInts);
-    final HeapAuxHashMap auxMap = new HeapAuxHashMap(lgAuxArrInts, lgConfigK);
-    final Object memArr = ((WritableMemory) mem).getArray();
+    final Object memObj = ((WritableMemory) mem).getArray();
     final long memAdd = mem.getCumulativeOffset(0);
+
+    final int lgAuxArrInts;
+    final HeapAuxHashMap auxMap;
+    if (srcCompact) { //prior versions did not use LgArr byte field
+      final int tryLgAuxArrInts = HllUtil.LG_AUX_ARR_INTS[lgConfigK];
+      if ((RESIZE_DENOM * auxCount) > (RESIZE_NUMER * (1 << tryLgAuxArrInts))) {
+        lgAuxArrInts = tryLgAuxArrInts + 1;
+      } else {
+        lgAuxArrInts = tryLgAuxArrInts;
+      }
+    } else { //updatable
+      lgAuxArrInts = extractLgArr(memObj, memAdd);
+    }
+    auxMap = new HeapAuxHashMap(lgAuxArrInts, lgConfigK);
+
+
     final int configKmask = (1 << lgConfigK) - 1;
 
     if (srcCompact) {
       for (int i = 0; i < auxCount; i++) {
-        final int pair = extractInt(memArr, memAdd, offset + (i << 2));
+        final int pair = extractInt(memObj, memAdd, offset + (i << 2));
         final int slotNo = HllUtil.getLow26(pair) & configKmask;
         final int value = HllUtil.getValue(pair);
         auxMap.mustAdd(slotNo, value); //increments count
       }
     } else { //updatable
+      final int auxArrInts = 1 << lgAuxArrInts;
       for (int i = 0; i < auxArrInts; i++) {
-        final int pair = extractInt(memArr, memAdd, offset + (i << 2));
+        final int pair = extractInt(memObj, memAdd, offset + (i << 2));
         if (pair == EMPTY) { continue; }
         final int slotNo = HllUtil.getLow26(pair) & configKmask;
         final int value = HllUtil.getValue(pair);
@@ -93,7 +105,7 @@ class HeapAuxHashMap implements AuxHashMap {
   }
 
   @Override
-  public int getCompactedSizeBytes() {
+  public int getCompactSizeBytes() {
     return auxCount << 2;
   }
 
@@ -110,6 +122,16 @@ class HeapAuxHashMap implements AuxHashMap {
   @Override
   public int getUpdatableSizeBytes() {
     return 4 << lgAuxArrInts;
+  }
+
+  @Override
+  public boolean isMemory() {
+    return false;
+  }
+
+  @Override
+  public boolean isOffHeap() {
+    return false;
   }
 
   //In C: two-registers.c Line 300.

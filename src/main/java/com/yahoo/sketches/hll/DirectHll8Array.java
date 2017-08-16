@@ -46,7 +46,6 @@ class DirectHll8Array extends DirectHllArray {
       unsafe.putByte(memObj, memAdd + byteOffset, (byte) (newVal & VAL_MASK_6));
       hipAndKxQIncrementalUpdate(curVal, newVal);
       if (curVal == 0) {
-        final int numAtCurMin = getNumAtCurMin();
         decNumAtCurMin(); //overloaded as num zeros
         assert getNumAtCurMin() >= 0;
       }
@@ -59,21 +58,31 @@ class DirectHll8Array extends DirectHllArray {
     return 1 << extractLgK(memObj, memAdd);
   }
 
+  @Override
+  int getSlot(final int slotNo) {
+    return unsafe.getByte(memObj, memAdd + HLL_BYTE_ARR_START + slotNo);
+  }
+
+  @Override
+  void putSlot(final int slotNo, final int newValue) {
+    unsafe.putByte(memObj,  memAdd + HLL_BYTE_ARR_START + slotNo, (byte) newValue);
+  }
+
   //ITERATOR
   @Override
   PairIterator getIterator() {
-    return new DirectHll8Iterator(mem, HLL_BYTE_ARR_START, 1 << lgConfigK);
+    return new DirectHll8Iterator(1 << lgConfigK);
   }
 
-  final class DirectHll8Iterator extends HllMemoryPairIterator {
+  final class DirectHll8Iterator extends HllPairIterator {
 
-    DirectHll8Iterator(final Memory mem, final long offsetBytes, final int lengthPairs) {
-      super(mem, offsetBytes, lengthPairs);
+    DirectHll8Iterator(final int lengthPairs) {
+      super(lengthPairs);
     }
 
     @Override
     int value() {
-      final int tmp = unsafe.getByte(memObj, memAdd + offsetBytes + index);
+      final int tmp = unsafe.getByte(memObj, memAdd + HLL_BYTE_ARR_START + index);
       return tmp & VAL_MASK_6;
     }
   }

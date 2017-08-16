@@ -31,6 +31,18 @@ public class DirectCouponListTest {
     promotions(8, 25, TgtHllType.HLL_6, false, CurMode.HLL);
     promotions(8, 25, TgtHllType.HLL_4, true, CurMode.HLL);
     promotions(8, 25, TgtHllType.HLL_4, false, CurMode.HLL);
+
+    promotions(4, 7, TgtHllType.HLL_8, true, CurMode.LIST);
+    promotions(4, 7, TgtHllType.HLL_8, false, CurMode.LIST);
+    promotions(4, 8, TgtHllType.HLL_8, true, CurMode.HLL);
+    promotions(4, 8, TgtHllType.HLL_8, false, CurMode.HLL);
+    promotions(4, 8, TgtHllType.HLL_6, true, CurMode.HLL);
+    promotions(4, 8, TgtHllType.HLL_6, false, CurMode.HLL);
+    promotions(4, 8, TgtHllType.HLL_4, true, CurMode.HLL);
+    promotions(4, 8, TgtHllType.HLL_4, false, CurMode.HLL);
+    promotions(4, 25, TgtHllType.HLL_4, true, CurMode.HLL);
+    promotions(4, 25, TgtHllType.HLL_4, false, CurMode.HLL);
+
   }
 
   private static void promotions(int lgConfigK, int n, TgtHllType tgtHllType, boolean compact,
@@ -46,8 +58,7 @@ public class DirectCouponListTest {
       hllSketch = HllSketch.writableWrap(lgConfigK, tgtHllType, wmem);
       for (int i = 0; i < n; i++) {
         hllSketch.update(i);
-        //println(i + "\n" + hllSketch.toString(true, true, false, false));
-
+        //println(i + "\n" + hllSketch.toString(true, true, true, true));
       }
       barr1 = (compact) ? hllSketch.toCompactByteArray() : hllSketch.toUpdatableByteArray();
       //println(hllSketch.toString(true, true, false, false));
@@ -62,7 +73,7 @@ public class DirectCouponListTest {
     HllSketch hllSketch2 = new HllSketch(lgConfigK, tgtHllType);
     for (int i = 0; i < n; i++) {
       hllSketch2.update(i);
-      //println(i + "\n" + hllSketch2.toString(true, true, false, false));
+      //println(i + "\n" + hllSketch2.toString(true, true, true, true));
     }
     byte[] barr2 = (compact) ? hllSketch2.toCompactByteArray() : hllSketch2.toUpdatableByteArray();
     //println(hllSketch2.toString(true, true, false, false));
@@ -96,14 +107,14 @@ public class DirectCouponListTest {
    * @param s value to print
    */
   static void print(String s) {
-    System.out.print(s); //disable here
+    //System.out.print(s); //disable here
   }
 
   /**
    * @param s value to print
    */
   static void println(String s) {
-    System.out.println(s); //disable here
+    //System.out.println(s); //disable here
   }
 
 }

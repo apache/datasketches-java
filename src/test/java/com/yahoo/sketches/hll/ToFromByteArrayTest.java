@@ -13,6 +13,7 @@ import static org.testng.Assert.assertEquals;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * @author Lee Rhodes
@@ -36,20 +37,29 @@ public class ToFromByteArrayTest {
     }
   }
 
-  private static void toFrom1(int lgK, TgtHllType tgtHllType, int n) {
-    HllSketch src = new HllSketch(lgK, tgtHllType);
+  private static void toFrom1(int lgConfigK, TgtHllType tgtHllType, int n) {
+    HllSketch src = new HllSketch(lgConfigK, tgtHllType);
     for (int i = 0; i < n; i++) {
       src.update(i);
     }
     //println("n: " + n + ", lgK: " + lgK + ", type: " + tgtHllType);
     //printSketch(src, "SRC");
 
-    byte[] byteArr = src.toCompactByteArray();
-    Memory mem = Memory.wrap(byteArr);
-    HllSketch dst = HllSketch.heapify(mem);
+    byte[] byteArr1 = src.toCompactByteArray(); //compact
+    HllSketch dst = HllSketch.heapify(byteArr1);  //using byte[] interface
     //printSketch(dst, "DST");
-
     assertEquals(dst.getEstimate(), src.getEstimate(), 0.0);
+
+    byte[] byteArr2 = src.toUpdatableByteArray(); //updatable
+    Memory mem2 = Memory.wrap(byteArr2);
+    HllSketch dst2 = HllSketch.heapify(mem2); //using Memory interface
+    //printSketch(dst, "DST");
+    assertEquals(dst2.getEstimate(), src.getEstimate(), 0.0);
+
+    WritableMemory mem3 = WritableMemory.wrap(byteArr2);
+    HllSketch dst3 = HllSketch.heapify(mem3); //using WritableMemory interface
+    //printSketch(dst, "DST");
+    assertEquals(dst3.getEstimate(), src.getEstimate(), 0.0);
   }
 
   @Test
@@ -65,23 +75,42 @@ public class ToFromByteArrayTest {
     }
   }
 
-  private static void toFrom2(int lgK, TgtHllType tgtHllType, int n) {
-    HllSketch src = new HllSketch(lgK, tgtHllType);
+  //Test direct
+  private static void toFrom2(int lgConfigK, TgtHllType tgtHllType, int n) {
+    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    byte[] byteArray = new byte[bytes];
+    WritableMemory wmem = WritableMemory.wrap(byteArray);
+    HllSketch src = new HllSketch(lgConfigK, tgtHllType, wmem);
     for (int i = 0; i < n; i++) {
       src.update(i);
     }
-    //println("n: " + n + ", lgK: " + lgK + ", type: " + tgtHllType);
-    //printSketch(src, "SRC");
+    //println("n: " + n + ", lgK: " + lgConfigK + ", type: " + tgtHllType);
+    //printSketch(src, "Source");
 
-    byte[] byteArr = src.toCompactByteArray();
-    HllSketch dst = HllSketch.heapify(byteArr);
-    //printSketch(dst, "DST");
-
+    //Heapify compact
+    byte[] compactByteArr = src.toCompactByteArray(); //compact
+    HllSketch dst = HllSketch.heapify(compactByteArr);  //using byte[] interface
+    //printSketch(dst, "Heapify From Compact");
     assertEquals(dst.getEstimate(), src.getEstimate(), 0.0);
+
+    //Heapify updatable
+    byte[] updatableByteArr = src.toUpdatableByteArray();
+    WritableMemory wmem2 = WritableMemory.wrap(updatableByteArr);
+    HllSketch dst2 = HllSketch.heapify(wmem2); //using Memory interface
+    //printSketch(dst2, "Heapify From Updatable");
+    assertEquals(dst2.getEstimate(), src.getEstimate(), 0.0);
+
+    //Wrap updatable
+    WritableMemory wmem3 = WritableMemory.allocate(bytes);
+    wmem2.copyTo(0, wmem3, 0, wmem2.getCapacity());
+    HllSketch dst3 = HllSketch.writableWrap(wmem3);
+    //printSketch(dst3, "WritableWrap From Updatable");
+    assertEquals(dst3.getEstimate(), src.getEstimate(), 0.0);
+
   }
 
   static void printSketch(HllSketch sketch, String name) {
-    println(name +":\n" + sketch.toString(true, false, true, false)); //summary + aux only
+    println(name +":\n" + sketch.toString(true, true, true, false));
   }
 
   @Test

@@ -53,24 +53,34 @@ class DirectHll6Array extends DirectHllArray {
     return hll6ArrBytes(lgConfigK);
   }
 
+  @Override
+  int getSlot(final int slotNo) {
+    return Hll6Array.get6Bit(mem, HLL_BYTE_ARR_START, slotNo);
+  }
+
+  @Override
+  void putSlot(final int slotNo, final int newValue) {
+    Hll6Array.put6Bit(wmem, HLL_BYTE_ARR_START, slotNo, newValue);
+  }
+
   //ITERATOR
   @Override
   PairIterator getIterator() {
-    return new DirectHll6Iterator(mem, HLL_BYTE_ARR_START, 1 << lgConfigK);
+    return new DirectHll6Iterator(1 << lgConfigK);
   }
 
-  final class DirectHll6Iterator extends HllMemoryPairIterator {
+  final class DirectHll6Iterator extends HllPairIterator {
     int bitOffset;
 
-    DirectHll6Iterator(final Memory mem, final long offsetBytes, final int lengthPairs) {
-      super(mem, offsetBytes, lengthPairs);
+    DirectHll6Iterator(final int lengthPairs) {
+      super(lengthPairs);
       bitOffset = -6;
     }
 
     @Override
     int value() {
       bitOffset += 6;
-      final int tmp = unsafe.getShort(memObj, memAdd + offsetBytes + (bitOffset / 8));
+      final int tmp = unsafe.getShort(memObj, memAdd + HLL_BYTE_ARR_START + (bitOffset / 8));
       final int shift = (bitOffset % 8) & 0X7;
       return (tmp >>> shift) & VAL_MASK_6;
     }

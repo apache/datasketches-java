@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.sketches.Util.invPow2;
 import static com.yahoo.sketches.hll.HllUtil.HLL_HIP_RSE_FACTOR;
 import static com.yahoo.sketches.hll.HllUtil.HLL_NON_HIP_RSE_FACTOR;
 import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
@@ -51,14 +52,14 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   abstract double getKxQ1();
 
-  abstract Memory getMemory();
-
-  abstract int getNumAtCurMin();
-
   @Override
   int getMemArrStart() {
     return HLL_BYTE_ARR_START;
   }
+
+  abstract Memory getMemory();
+
+  abstract int getNumAtCurMin();
 
   @Override
   int getPreInts() {
@@ -90,6 +91,8 @@ abstract class AbstractHllArray extends HllSketchImpl {
     return rseFactor * numStdDev;
   }
 
+  abstract int getSlot(int slotNo);
+
   @Override
   int getUpdatableSerializationBytes() {
     final AuxHashMap auxHashMap = getAuxHashMap();
@@ -103,13 +106,13 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   abstract void putHipAccum(double hipAccum);
 
-  //abstract void putHllBytesFromMemory(Memory srcMem, int lenBytes); //TODO ??
-
   abstract void putKxQ0(double kxq0);
 
   abstract void putKxQ1(double kxq1);
 
   abstract void putNumAtCurMin(int numAtCurMin);
+
+  abstract void putSlot(int slotNo, int value);
 
   static final int getExpectedLgAuxInts(final int lgConfigK) {
     return LG_AUX_ARR_INTS[lgConfigK];
@@ -144,4 +147,27 @@ abstract class AbstractHllArray extends HllSketchImpl {
     }
     return HllUtil.pair(numAtCurMin, curMin);
   }
+
+  /**
+   * HIP and KxQ incremental update.
+   * @param oldValue old value
+   * @param newValue new value
+   */
+  //In C: again-two-registers.c Lines 851 to 871
+  static final void hipAndKxQIncrementalUpdate(final AbstractHllArray host, final int oldValue,
+      final int newValue) {
+    assert newValue > oldValue;
+    final int configK = 1 << host.getLgConfigK();
+    //update hipAccum BEFORE updating kxq0 and kxq1
+    double kxq0 = host.getKxQ0();
+    double kxq1 = host.getKxQ1();
+    host.addToHipAccum(configK / (kxq0 + kxq1));
+    //update kxq0 and kxq1; subtract first, then add.
+    if (oldValue < 32) { host.putKxQ0(kxq0 -= invPow2(oldValue)); }
+    else               { host.putKxQ1(kxq1 -= invPow2(oldValue)); }
+    if (newValue < 32) { host.putKxQ0(kxq0 += invPow2(newValue)); }
+    else               { host.putKxQ1(kxq1 += invPow2(newValue)); }
+  }
+
+
 }

@@ -8,28 +8,24 @@ package com.yahoo.sketches.hll;
 import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.pair;
 
-import com.yahoo.memory.Memory;
-import com.yahoo.memory.WritableMemory;
-
 /**
- * Iterates over an HLL Memory producing pairs of index, value.
+ * Iterates over an on-heap HLL byte array producing pairs of index, value.
  *
  * @author Lee Rhodes
  */
-abstract class HllMemoryPairIterator implements PairIterator {
-  final Object memObj;
-  final long memAdd;
-  final long offsetBytes;
+abstract class HllPairIterator implements PairIterator {
   final int lengthPairs;
   int index;
   int value;
 
-  HllMemoryPairIterator(final Memory mem, final long offsetBytes, final int lengthPairs) {
-    memObj = ((WritableMemory) mem).getArray();
-    memAdd = mem.getCumulativeOffset(0L);
-    this.offsetBytes = offsetBytes;
+  HllPairIterator(final int lengthPairs) {
     this.lengthPairs = lengthPairs;
-    index = -1;
+    index = - 1;
+  }
+
+  @Override
+  public String getHeader() {
+    return String.format("%10s%6s", "Slot", "Value");
   }
 
   @Override
@@ -50,6 +46,13 @@ abstract class HllMemoryPairIterator implements PairIterator {
   @Override
   public int getSlot() {
     return index;
+  }
+
+  @Override
+  public String getString() {
+    final int slot = getSlot();
+    final int value = getValue();
+    return String.format("%10d%6d", slot, value);
   }
 
   @Override
