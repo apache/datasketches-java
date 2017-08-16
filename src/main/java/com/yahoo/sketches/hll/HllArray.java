@@ -7,6 +7,7 @@ package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.hll.HllUtil.HLL_HIP_RSE_FACTOR;
 import static com.yahoo.sketches.hll.HllUtil.HLL_NON_HIP_RSE_FACTOR;
+import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static com.yahoo.sketches.hll.HllUtil.MIN_LOG_K;
 import static com.yahoo.sketches.hll.PreambleUtil.AUX_COUNT_INT;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
@@ -275,6 +276,11 @@ abstract class HllArray extends AbstractHllArray {
   }
 
   @Override
+  AuxHashMap getNewAuxHashMap() {
+    return new HeapAuxHashMap(LG_AUX_ARR_INTS[lgConfigK], lgConfigK);
+  }
+
+  @Override
   int getNumAtCurMin() {
     return numAtCurMin;
   }
@@ -482,8 +488,6 @@ abstract class HllArray extends AbstractHllArray {
     final int hllArrLen = hllByteArr.length;
     srcMem.getByteArray(HLL_BYTE_ARR_START, hllByteArr, 0, hllArrLen);
   }
-
-
 
   //Used by union operator.  Always copies or downsamples to HLL_8.
   //Caller must ultimately manage oooFlag, as caller has more info

@@ -39,7 +39,7 @@ class DirectHll6Array extends DirectHllArray {
     final int curVal = Hll6Array.get6Bit(mem, HLL_BYTE_ARR_START, slotNo);
     if (newVal > curVal) {
       Hll6Array.put6Bit(wmem, HLL_BYTE_ARR_START, slotNo, newVal);
-      hipAndKxQIncrementalUpdate(curVal, newVal);
+      hipAndKxQIncrementalUpdate(this, curVal, newVal);
       if (curVal == 0) {
         decNumAtCurMin(); //overloaded as num zeros
         assert getNumAtCurMin() >= 0;

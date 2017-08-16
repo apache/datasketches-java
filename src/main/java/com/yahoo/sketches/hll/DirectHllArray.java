@@ -6,7 +6,6 @@
 package com.yahoo.sketches.hll;
 
 import static com.yahoo.memory.UnsafeUtil.unsafe;
-import static com.yahoo.sketches.Util.invPow2;
 import static com.yahoo.sketches.hll.PreambleUtil.CUR_MIN_COUNT_INT;
 import static com.yahoo.sketches.hll.PreambleUtil.HIP_ACCUM_DOUBLE;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
@@ -173,6 +172,11 @@ abstract class DirectHllArray extends AbstractHllArray {
   }
 
   @Override
+  AuxHashMap getNewAuxHashMap() {
+    return new DirectAuxHashMap(this, true);
+  }
+
+  @Override
   int getNumAtCurMin() {
     return extractNumAtCurMin(memObj, memAdd);
   }
@@ -206,16 +210,6 @@ abstract class DirectHllArray extends AbstractHllArray {
   boolean isOutOfOrderFlag() {
     return extractOooFlag(memObj, memAdd);
   }
-
-  //  @Override
-  //  void putHllBytesFromMemory(final Memory srcMem, final int lenBytes) {
-  //    // TODO Auto-generated method stub
-  //  }
-  //
-  //  @Override
-  //  void getHllBytesToMemory(final WritableMemory dstWmem, final int lenBytes) {
-  //    // TODO Auto-generated method stub
-  //  }
 
   @Override
   void putAuxHashMap(final AuxHashMap auxHashMap) {
@@ -260,20 +254,6 @@ abstract class DirectHllArray extends AbstractHllArray {
   @Override
   byte[] toUpdatableByteArray() {
     return HllArray.toByteArray(this, false);
-  }
-
-  void hipAndKxQIncrementalUpdate(final int oldValue, final int newValue) {
-    assert newValue > oldValue;
-    final int configK = 1 << getLgConfigK();
-    //update hipAccum BEFORE updating kxq0 and kxq1
-    double kxq0 = getKxQ0();
-    double kxq1 = getKxQ1();
-    addToHipAccum(configK / (kxq0 + kxq1));
-    //update kxq0 and kxq1; subtract first, then add.
-    if (oldValue < 32) { putKxQ0(kxq0 -= invPow2(oldValue)); }
-    else               { putKxQ1(kxq1 -= invPow2(oldValue)); }
-    if (newValue < 32) { putKxQ0(kxq0 += invPow2(newValue)); }
-    else               { putKxQ1(kxq1 += invPow2(newValue)); }
   }
 
 }

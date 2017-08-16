@@ -44,7 +44,7 @@ class DirectHll8Array extends DirectHllArray {
     final int curVal = unsafe.getByte(memObj, memAdd + byteOffset);
     if (newVal > curVal) {
       unsafe.putByte(memObj, memAdd + byteOffset, (byte) (newVal & VAL_MASK_6));
-      hipAndKxQIncrementalUpdate(curVal, newVal);
+      hipAndKxQIncrementalUpdate(this, curVal, newVal);
       if (curVal == 0) {
         decNumAtCurMin(); //overloaded as num zeros
         assert getNumAtCurMin() >= 0;
