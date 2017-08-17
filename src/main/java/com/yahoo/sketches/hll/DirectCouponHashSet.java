@@ -99,12 +99,6 @@ class DirectCouponHashSet extends DirectCouponList {
     mem.copyTo(HASH_SET_INT_ARR_START, dstWmem, HASH_SET_INT_ARR_START, lenInts << 2);
   }
 
-  @Override //put Coupons from srcMem to internal memory
-  //TODO Not used
-  void putCouponsFromMemoryInts(final Memory srcMem, final int lenInts) {
-    srcMem.copyTo(HASH_SET_INT_ARR_START, wmem, HASH_SET_INT_ARR_START, lenInts << 2);
-  }
-
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
     if (wmem == null) { noWriteAccess(); }
@@ -147,19 +141,6 @@ class DirectCouponHashSet extends DirectCouponList {
     assert wmem != null;
     int count = extractHashSetCount(memObj, memAdd);
     insertHashSetCount(memObj, memAdd, ++count);
-  }
-
-  @Override
-  void putCouponCount(final int couponCount) {
-    assert wmem != null;
-    insertHashSetCount(memObj, memAdd, couponCount);
-  }
-
-  @Override
-  void putCouponIntArr(final int[] couponIntArr) { //TODO ??
-    assert wmem != null;
-    final int lenInts = 1 << extractLgArr(memObj, memAdd);
-    wmem.putIntArray(HASH_SET_INT_ARR_START, couponIntArr, 0, lenInts);
   }
 
   private boolean checkGrowOrPromote() {

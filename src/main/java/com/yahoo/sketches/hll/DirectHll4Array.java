@@ -49,13 +49,18 @@ class DirectHll4Array extends DirectHllArray {
     }
     final int configKmask = (1 << getLgConfigK()) - 1;
     final int slotNo = HllUtil.getLow26(coupon) & configKmask;
-    internalUpdate(this, slotNo, newValue);
+    internalHll4Update(this, slotNo, newValue);
     return this;
   }
 
   @Override
   int getHllByteArrBytes() {
     return hll4ArrBytes(lgConfigK);
+  }
+
+  @Override
+  PairIterator getIterator() {
+    return new DirectHll4Iterator(1 << lgConfigK);
   }
 
   @Override
@@ -78,12 +83,8 @@ class DirectHll4Array extends DirectHllArray {
     unsafe.putByte(memObj, unsafeOffset, value);
   }
 
-  @Override
-  PairIterator getIterator() {
-    return new DirectHll4Iterator(1 << lgConfigK);
-  }
-
   //ITERATOR
+
   final class DirectHll4Iterator extends HllPairIterator {
 
     DirectHll4Iterator(final int lengthPairs) {

@@ -5,7 +5,6 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.VAL_MASK_6;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
 
@@ -72,6 +71,11 @@ class Hll6Array extends HllArray {
   }
 
   @Override
+  PairIterator getIterator() {
+    return new HeapHll6Iterator(1 << lgConfigK);
+  }
+
+  @Override
   int getSlot(final int slotNo) {
     return get6Bit(mem, 0, slotNo);
   }
@@ -99,28 +103,7 @@ class Hll6Array extends HllArray {
     return (byte) ((mem.getShort(byteIdx) >>> shift) & 0X3F);
   }
 
-  static final Hll6Array convertToHll6(final AbstractHllArray srcHllArr) {
-    final int lgConfigK = srcHllArr.lgConfigK;
-    final Hll6Array hll6Array = new Hll6Array(lgConfigK);
-    hll6Array.putOutOfOrderFlag(srcHllArr.isOutOfOrderFlag());
-    int numZeros = 1 << lgConfigK;
-    final PairIterator itr = srcHllArr.getIterator();
-    while (itr.nextAll()) {
-      if (itr.getValue() != EMPTY) {
-        numZeros--;
-        hll6Array.couponUpdate(itr.getPair()); //creates KxQ registers
-      }
-    }
-    hll6Array.putNumAtCurMin(numZeros);
-    hll6Array.putHipAccum(srcHllArr.getHipAccum());
-    return hll6Array;
-  }
-
   //ITERATOR
-  @Override
-  PairIterator getIterator() {
-    return new HeapHll6Iterator(1 << lgConfigK);
-  }
 
   final class HeapHll6Iterator extends HllPairIterator {
     int bitOffset;

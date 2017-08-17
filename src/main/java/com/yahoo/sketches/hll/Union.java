@@ -110,7 +110,7 @@ public class Union extends BaseHllSketch {
    * @return the maximum size in bytes that this union operator can grow to.
    */
   public static int getMaxSerializationBytes(final int lgK) {
-    return HllSketch.getMaxUpdatableSerializationBytes(lgK, TgtHllType.HLL_8);
+    return BaseHllSketch.getMaxUpdatableSerializationBytes(lgK, TgtHllType.HLL_8);
   }
 
   @Override
@@ -133,6 +133,11 @@ public class Union extends BaseHllSketch {
    */
   public HllSketch getResult(final TgtHllType tgtHllType) {
     return gadget.copyAs(tgtHllType);
+  }
+
+  @Override
+  public TgtHllType getTgtHllType() {
+    return TgtHllType.HLL_8;
   }
 
   @Override
@@ -374,7 +379,7 @@ public class Union extends BaseHllSketch {
       return src.copy();
     }
     final int minLgK = Math.min(srcLgK, tgtLgK);
-    final HllArray tgtHllArr = HllArray.newHll(minLgK, TgtHllType.HLL_8);
+    final HllArray tgtHllArr = HllArray.newHeapHll(minLgK, TgtHllType.HLL_8);
     final PairIterator srcItr = src.getIterator();
     while (srcItr.nextValid()) {
       tgtHllArr.couponUpdate(srcItr.getPair());

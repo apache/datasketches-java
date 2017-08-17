@@ -47,7 +47,7 @@ public class DirectCouponListTest {
 
   private static void promotions(int lgConfigK, int n, TgtHllType tgtHllType, boolean compact,
       CurMode tgtMode) {
-    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    int bytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     HllSketch hllSketch;
     //println("DIRECT");
     byte[] barr1;

@@ -95,8 +95,8 @@ class CouponList extends AbstractCoupons {
 
     final CouponList list = new CouponList(lgConfigK, tgtHllType, CurMode.LIST);
     final int couponCount = extractListCount(memArr, memAdd);
-    list.putCouponsFromMemoryInts(mem, couponCount);
-    list.putCouponCount(couponCount);
+    mem.getIntArray(LIST_INT_ARR_START, list.couponIntArr, 0, couponCount);
+    list.couponCount = couponCount;
     list.putOutOfOrderFlag(extractOooFlag(memArr, memAdd));
     return list;
   }
@@ -116,12 +116,6 @@ class CouponList extends AbstractCoupons {
   //Called by CouponList.insertSet
   void getCouponsToMemoryInts(final WritableMemory dstWmem, final int lenInts) {
     dstWmem.putIntArray(LIST_INT_ARR_START, couponIntArr, 0, lenInts);
-  }
-
-  @Override //put coupons from srcMem to internal int[]
-  //Called by CouponList.heapifyList(Memory)
-  void putCouponsFromMemoryInts(final Memory srcMem, final int lenInts) {
-    srcMem.getIntArray(LIST_INT_ARR_START, couponIntArr, 0, lenInts);
   }
 
   @Override
@@ -185,21 +179,6 @@ class CouponList extends AbstractCoupons {
   @Override
   boolean isOutOfOrderFlag() {
     return oooFlag;
-  }
-
-  @Override
-  void putCouponCount(final int couponCount) {
-    this.couponCount = couponCount;
-  }
-
-  @Override
-  void putCouponIntArr(final int[] couponIntArr) {
-    this.couponIntArr = couponIntArr;
-  }
-
-  @Override
-  void putLgCouponArrInts(final int lgCouponArrInts) {
-    this.lgCouponArrInts = lgCouponArrInts;
   }
 
   @Override
@@ -288,7 +267,7 @@ class CouponList extends AbstractCoupons {
   //called by CouponHashSet.couponUpdate()
   //called by CouponList.couponUpdate()
   static final HllSketchImpl promoteHeapListOrSetToHll(final CouponList src) {
-    final HllArray tgtHllArr = HllArray.newHll(src.lgConfigK, src.tgtHllType);
+    final HllArray tgtHllArr = HllArray.newHeapHll(src.lgConfigK, src.tgtHllType);
     final PairIterator srcItr = src.getIterator();
     tgtHllArr.putKxQ0(1 << src.lgConfigK);
     while (srcItr.nextValid()) {

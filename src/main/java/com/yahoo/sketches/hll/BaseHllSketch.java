@@ -9,11 +9,15 @@ import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static com.yahoo.sketches.hll.HllUtil.KEY_BITS_26;
 import static com.yahoo.sketches.hll.HllUtil.KEY_MASK_26;
+import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
+import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.yahoo.memory.Memory;
 
 /**
+ * Although this class is package-private, it provides a single place to define and document
+ * the common public API for both HllSketch and Union.
  * @author Lee Rhodes
  * @author Kevin Lang
  */
@@ -50,6 +54,12 @@ abstract class BaseHllSketch {
   public abstract double getEstimate();
 
   /**
+   * Gets the {@link TgtHllType}
+   * @return the TgtHllType enum value
+   */
+  public abstract TgtHllType getTgtHllType();
+
+  /**
    * Gets the <i>lgConfigK</i>.
    * @return the <i>lgConfigK</i>.
    */
@@ -63,6 +73,32 @@ abstract class BaseHllSketch {
    * @return the lower bound.
    */
   public abstract double getLowerBound(int numStdDev);
+
+  /**
+   * Returns the maximum size in bytes that this sketch can grow to given lgConfigK.
+   * However, for the HLL_4 sketch type, this value can be exceeded in extremely rare cases.
+   * If exceeded, it will be larger by only a few percent.
+   *
+   * @param lgConfigK The Log2 of K for the target HLL sketch. This value must be
+   * between 4 and 21 inclusively.
+   * @param tgtHllType the desired Hll type
+   * @return the maximum size in bytes that this sketch can grow to.
+   */
+  public static final int getMaxUpdatableSerializationBytes(final int lgConfigK,
+      final TgtHllType tgtHllType) {
+    final int arrBytes;
+    if (tgtHllType == TgtHllType.HLL_4) {
+      final int auxBytes = 4 << LG_AUX_ARR_INTS[lgConfigK];
+      arrBytes =  AbstractHllArray.hll4ArrBytes(lgConfigK) + auxBytes;
+    }
+    else if (tgtHllType == TgtHllType.HLL_6) {
+      arrBytes = AbstractHllArray.hll6ArrBytes(lgConfigK);
+    }
+    else { //HLL_8
+      arrBytes = AbstractHllArray.hll8ArrBytes(lgConfigK);
+    }
+    return HLL_BYTE_ARR_START + arrBytes;
+  }
 
   /**
    * Returns the current serialization version.
@@ -148,13 +184,14 @@ abstract class BaseHllSketch {
   abstract boolean isOutOfOrderFlag();
 
   /**
-   * Resets to empty and retains the lgConfigK and the TgtHllType.
+   * Resets to empty, but does not change the configured values of lgConfigK and tgtHllType.
    */
   public abstract void reset();
 
   /**
-   * Serializes this sketch as a compact byte array.
-   * @return this sketch as a compact byte array.
+   * Gets the serialization of this sketch as a byte array in compact form, which is designed
+   * to be heapified only. It is not directly updatable.
+   * @return the serialization of this sketch as a byte array.
    */
   public abstract byte[] toCompactByteArray();
 

@@ -25,7 +25,7 @@ public class DirectAuxHashMapTest {
     int lgConfigK = 4;
     TgtHllType tgtHllType = TgtHllType.HLL_4;
     int n = 8; //put lgConfigK == 4 into HLL mode
-    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    int bytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     HllSketch hllSketch;
     try (WritableDirectHandle handle = WritableMemory.allocateDirect(bytes)) {
       WritableMemory wmem = handle.get();

@@ -62,7 +62,7 @@ abstract class HllArray extends AbstractHllArray {
     auxHashMap = (thatAuxMap != null) ? thatAuxMap.copy() : null;
   }
 
-  static final HllArray newHll(final int lgConfigK, final TgtHllType tgtHllType) {
+  static final HllArray newHeapHll(final int lgConfigK, final TgtHllType tgtHllType) {
     if (tgtHllType == HLL_4) { return new Hll4Array(lgConfigK); }
     if (tgtHllType == HLL_6) { return new Hll6Array(lgConfigK); }
     return new Hll8Array(lgConfigK);
@@ -193,7 +193,7 @@ abstract class HllArray extends AbstractHllArray {
     this.oooFlag = oooFlag;
   }
 
-  //used by heapify
+  //used by heapify by all Heap HLL
   static final void extractCommonHll(final HllArray hllArray, final Memory srcMem,
       final Object memArr, final long memAdd) {
     hllArray.putOutOfOrderFlag(extractOooFlag(memArr, memAdd));

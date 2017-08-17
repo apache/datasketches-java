@@ -49,6 +49,11 @@ class DirectHll6Array extends DirectHllArray {
   }
 
   @Override
+  PairIterator getIterator() {
+    return new DirectHll6Iterator(1 << lgConfigK);
+  }
+
+  @Override
   int getHllByteArrBytes() {
     return hll6ArrBytes(lgConfigK);
   }
@@ -64,10 +69,6 @@ class DirectHll6Array extends DirectHllArray {
   }
 
   //ITERATOR
-  @Override
-  PairIterator getIterator() {
-    return new DirectHll6Iterator(1 << lgConfigK);
-  }
 
   final class DirectHll6Iterator extends HllPairIterator {
     int bitOffset;

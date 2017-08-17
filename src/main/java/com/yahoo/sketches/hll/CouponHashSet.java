@@ -80,8 +80,8 @@ class CouponHashSet extends CouponList {
         set.couponUpdate(coupon);
       }
     } else { //updatable
-      set.putCouponCount(couponCount);
-      set.putLgCouponArrInts(lgCouponArrInts);
+      set.couponCount = couponCount;
+      set.lgCouponArrInts = lgCouponArrInts;
       final int couponArrInts = 1 << lgCouponArrInts;
       set.couponIntArr = new int[couponArrInts];
       mem.getIntArray(HASH_SET_INT_ARR_START, set.couponIntArr, 0, couponArrInts);
@@ -104,12 +104,6 @@ class CouponHashSet extends CouponList {
   //Called by CouponList.insertSet()
   void getCouponsToMemoryInts(final WritableMemory dstWmem, final int lenInts) {
     dstWmem.putIntArray(HASH_SET_INT_ARR_START, couponIntArr, 0, lenInts);
-  }
-
-  @Override //put coupons from srcMem to internal int[]
-  //Called by CouponList.heapifyList()
-  void putCouponsFromMemoryInts(final Memory srcMem, final int lenInts) {
-    srcMem.getIntArray(HASH_SET_INT_ARR_START, couponIntArr, 0, lenInts);
   }
 
   @Override
@@ -143,7 +137,7 @@ class CouponHashSet extends CouponList {
       if (lgCouponArrInts == (lgConfigK - 3)) {
         return true; // promote
       }
-      //TODO if direct, ask for more memory
+      //TODO if direct, ask for more memory?
       couponIntArr = growHashSet(couponIntArr, ++lgCouponArrInts);
     }
     return false;

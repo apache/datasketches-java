@@ -11,7 +11,6 @@ import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_INT_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.LIST_INT_ARR_START;
 import static java.lang.Math.max;
 
-import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 
 /**
@@ -56,12 +55,6 @@ abstract class AbstractCoupons extends HllSketchImpl {
     return getEstimate(getCouponCount());
   }
 
-  static final double getEstimate(final int couponCount) {
-    final double est = CubicInterpolation.usingXAndYTables(CouponMapping.xArr,
-        CouponMapping.yArr, couponCount);
-    return max(est, couponCount);
-  }
-
   abstract int getLgCouponArrInts();
 
   @Override
@@ -96,15 +89,13 @@ abstract class AbstractCoupons extends HllSketchImpl {
     return getCouponCount() == 0;
   }
 
-  abstract void putCouponCount(int couponCount);
+  private static final double getEstimate(final int couponCount) {
+    final double est = CubicInterpolation.usingXAndYTables(CouponMapping.xArr,
+        CouponMapping.yArr, couponCount);
+    return max(est, couponCount);
+  }
 
-  abstract void putCouponsFromMemoryInts(Memory srcMem, int lenInts);
-
-  abstract void putCouponIntArr(int[] couponIntArr);
-
-  abstract void putLgCouponArrInts(int lgCouponArrInts);
-
-  static final double couponEstimatorEps(final int numStdDev) {
+  private static final double couponEstimatorEps(final int numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
     return (numStdDev * COUPON_RSE);
   }

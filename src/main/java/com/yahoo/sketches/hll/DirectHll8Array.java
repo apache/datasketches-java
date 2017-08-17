@@ -58,6 +58,11 @@ class DirectHll8Array extends DirectHllArray {
   }
 
   @Override
+  PairIterator getIterator() {
+    return new DirectHll8Iterator(1 << lgConfigK);
+  }
+
+  @Override
   int getSlot(final int slotNo) {
     return unsafe.getByte(memObj, memAdd + HLL_BYTE_ARR_START + slotNo);
   }
@@ -68,10 +73,6 @@ class DirectHll8Array extends DirectHllArray {
   }
 
   //ITERATOR
-  @Override
-  PairIterator getIterator() {
-    return new DirectHll8Iterator(1 << lgConfigK);
-  }
 
   final class DirectHll8Iterator extends HllPairIterator {
 

@@ -113,12 +113,6 @@ class DirectCouponList extends AbstractCoupons {
     mem.copyTo(LIST_INT_ARR_START, dstWmem, LIST_INT_ARR_START, lenInts << 2);
   }
 
-  @Override //put Coupons from srcMem to internal memory
-  //TODO not used
-  void putCouponsFromMemoryInts(final Memory srcMem, final int lenInts) {
-    srcMem.copyTo(LIST_INT_ARR_START, wmem, LIST_INT_ARR_START, lenInts << 2);
-  }
-
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
     if (wmem == null) { noWriteAccess(); }
@@ -185,25 +179,6 @@ class DirectCouponList extends AbstractCoupons {
   @Override
   boolean isOutOfOrderFlag() {
     return extractOooFlag(memObj, memAdd);
-  }
-
-  @Override
-  void putCouponCount(final int couponCount) {
-    assert wmem != null;
-    insertListCount(memObj, memAdd, couponCount);
-  }
-
-  @Override //TODO not used
-  void putCouponIntArr(final int[] couponIntArr) {
-    assert wmem != null;
-    final int lenInts = 1 << extractLgArr(memObj, memAdd);
-    wmem.putIntArray(LIST_INT_ARR_START, couponIntArr, 0, lenInts);
-  }
-
-  @Override
-  void putLgCouponArrInts(final int lgCouponArrInts) {
-    assert wmem != null;
-    insertLgArr(memObj, memAdd, lgCouponArrInts);
   }
 
   @Override
@@ -285,7 +260,7 @@ class DirectCouponList extends AbstractCoupons {
     insertCurMin(memObj, memAdd, 0); //was list count
     insertCurMode(memObj,memAdd, CurMode.SET);
     //tgtHllType should already be set
-    final int maxBytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    final int maxBytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     wmem.clear(LIST_INT_ARR_START, maxBytes - LIST_INT_ARR_START); //clears the hash set count
 
     //create the tgt
@@ -327,7 +302,7 @@ class DirectCouponList extends AbstractCoupons {
     //tgtHllType should already be set
     //we update HipAccum at the end
     //clear KxQ0, KxQ1, NumAtCurMin, AuxCount, hllArray, auxArr
-    final int maxBytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    final int maxBytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     wmem.clear(LIST_INT_ARR_START, maxBytes - LIST_INT_ARR_START);
     insertNumAtCurMin(memObj, memAdd, 1 << lgConfigK); //set numAtCurMin
     insertKxQ0(memObj, memAdd, 1 << lgConfigK);
