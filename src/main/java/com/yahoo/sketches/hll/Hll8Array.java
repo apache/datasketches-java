@@ -79,7 +79,7 @@ class Hll8Array extends HllArray {
     hllByteArr[slotNo] = (byte) newValue;
   }
 
-  static final Hll8Array convertToHll8(final HllArray srcHllArr) {
+  static final Hll8Array convertToHll8(final AbstractHllArray srcHllArr) {
     final int lgConfigK = srcHllArr.lgConfigK;
     final Hll8Array hll8Array = new Hll8Array(lgConfigK);
     hll8Array.putOutOfOrderFlag(srcHllArr.isOutOfOrderFlag());

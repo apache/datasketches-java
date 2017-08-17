@@ -11,7 +11,6 @@ import static com.yahoo.sketches.hll.HllUtil.hiNibbleMask;
 import static com.yahoo.sketches.hll.HllUtil.loNibbleMask;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.extractAuxCount;
-import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
@@ -25,7 +24,7 @@ class DirectHll4Array extends DirectHllArray {
   DirectHll4Array(final int lgConfigK, final WritableMemory wmem) {
     super(lgConfigK, TgtHllType.HLL_4, wmem);
     if (extractAuxCount(memObj, memAdd) > 0) {
-      directAuxHashMap = new DirectAuxHashMap(this, false);
+      auxHashMap = new DirectAuxHashMap(this, false);
     }
   }
 
@@ -33,7 +32,7 @@ class DirectHll4Array extends DirectHllArray {
   DirectHll4Array(final int lgConfigK, final Memory mem) {
     super(lgConfigK, TgtHllType.HLL_4, mem);
     if (extractAuxCount(memObj, memAdd) > 0) {
-      directAuxHashMap = new DirectAuxHashMap(this, false);
+      auxHashMap = new DirectAuxHashMap(this, false);
     }
   }
 
@@ -56,7 +55,7 @@ class DirectHll4Array extends DirectHllArray {
 
   @Override
   int getHllByteArrBytes() {
-    return 1 << (extractLgK(memObj, memAdd) - 1);
+    return hll4ArrBytes(lgConfigK);
   }
 
   @Override
@@ -95,7 +94,7 @@ class DirectHll4Array extends DirectHllArray {
     int value() {
       final int nib = DirectHll4Array.this.getSlot(index);
       return (nib == AUX_TOKEN)
-          ? directAuxHashMap.mustFindValueFor(index) //directAuxHashMap cannot be null here
+          ? auxHashMap.mustFindValueFor(index) //directAuxHashMap cannot be null here
           : nib + getCurMin();
     }
   }

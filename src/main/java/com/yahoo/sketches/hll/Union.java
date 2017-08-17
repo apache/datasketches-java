@@ -264,7 +264,7 @@ public class Union extends BaseHllSketch {
         //lgMaxK because LIST has effective K of 2^26
         final HllSketchImpl newSrcImplList = outImpl;
         final HllSketchImpl newDstImplHll = srcImpl;
-        outImpl = HllArray.copyOrDownsampleHll(newDstImplHll, lgMaxK);
+        outImpl = copyOrDownsampleHll(newDstImplHll, lgMaxK);
         assert outImpl.getCurMode() == HLL;
         final PairIterator srcItr = newSrcImplList.getIterator();
         while (srcItr.nextValid()) {
@@ -295,7 +295,7 @@ public class Union extends BaseHllSketch {
         //lgMaxK because LIST has effective K of 2^26
         final HllSketchImpl newSrcSet = outImpl;
         final HllSketchImpl newDstImplHll = srcImpl;
-        outImpl = HllArray.copyOrDownsampleHll(newDstImplHll, lgMaxK);
+        outImpl = copyOrDownsampleHll(newDstImplHll, lgMaxK);
         final PairIterator srcItr = newSrcSet.getIterator();
         assert outImpl.getCurMode() == HLL;
         while (srcItr.nextValid()) {
@@ -328,7 +328,7 @@ public class Union extends BaseHllSketch {
         final int dstLgK = outImpl.getLgConfigK();
         if ((srcLgK < dstLgK) || (outImpl.getTgtHllType() != HLL_8)) {
           final int newLgConfigK = min(outImpl.getLgConfigK(), srcImpl.getLgConfigK());
-          outImpl = HllArray.copyOrDownsampleHll(outImpl, newLgConfigK);
+          outImpl = copyOrDownsampleHll(outImpl, newLgConfigK);
         }
         assert outImpl.getCurMode() == HLL;
         final PairIterator srcItr = srcImpl.getIterator();
@@ -355,12 +355,35 @@ public class Union extends BaseHllSketch {
         break;
       }
       case 14: { //src: HLL, gadget: empty
-        outImpl = HllArray.copyOrDownsampleHll(srcImpl, lgMaxK);
+        outImpl = copyOrDownsampleHll(srcImpl, lgMaxK);
         outImpl.putOutOfOrderFlag(srcImpl.isOutOfOrderFlag()); //whatever source is.
         break;
       }
     }
     return outImpl;
   }
+
+
+  //Used by union operator.  Always copies or downsamples to HLL_8.
+  //Caller must ultimately manage oooFlag, as caller has more info
+  private static final HllSketchImpl copyOrDownsampleHll(
+      final HllSketchImpl srcSketch, final int tgtLgK) {
+    final HllArray src = (HllArray) srcSketch;
+    final int srcLgK = src.getLgConfigK();
+    if ((srcLgK <= tgtLgK) && (src.getTgtHllType() == TgtHllType.HLL_8)) {
+      return src.copy();
+    }
+    final int minLgK = Math.min(srcLgK, tgtLgK);
+    final HllArray tgtHllArr = HllArray.newHll(minLgK, TgtHllType.HLL_8);
+    final PairIterator srcItr = src.getIterator();
+    while (srcItr.nextValid()) {
+      tgtHllArr.couponUpdate(srcItr.getPair());
+    }
+    //both of these are required for isomorphism
+    tgtHllArr.putHipAccum(src.getHipAccum());
+    tgtHllArr.putOutOfOrderFlag(src.isOutOfOrderFlag());
+    return tgtHllArr;
+  }
+
 
 }

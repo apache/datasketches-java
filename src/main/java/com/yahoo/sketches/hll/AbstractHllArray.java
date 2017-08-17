@@ -11,16 +11,38 @@ import static com.yahoo.sketches.hll.HllUtil.HLL_HIP_RSE_FACTOR;
 import static com.yahoo.sketches.hll.HllUtil.HLL_NON_HIP_RSE_FACTOR;
 import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static com.yahoo.sketches.hll.HllUtil.MIN_LOG_K;
+import static com.yahoo.sketches.hll.PreambleUtil.AUX_COUNT_INT;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_PREINTS;
+import static com.yahoo.sketches.hll.PreambleUtil.insertAuxCount;
+import static com.yahoo.sketches.hll.PreambleUtil.insertCompactFlag;
+import static com.yahoo.sketches.hll.PreambleUtil.insertCurMin;
+import static com.yahoo.sketches.hll.PreambleUtil.insertCurMode;
+import static com.yahoo.sketches.hll.PreambleUtil.insertEmptyFlag;
+import static com.yahoo.sketches.hll.PreambleUtil.insertFamilyId;
+import static com.yahoo.sketches.hll.PreambleUtil.insertHipAccum;
+import static com.yahoo.sketches.hll.PreambleUtil.insertInt;
+import static com.yahoo.sketches.hll.PreambleUtil.insertKxQ0;
+import static com.yahoo.sketches.hll.PreambleUtil.insertKxQ1;
+import static com.yahoo.sketches.hll.PreambleUtil.insertLgArr;
+import static com.yahoo.sketches.hll.PreambleUtil.insertLgK;
+import static com.yahoo.sketches.hll.PreambleUtil.insertNumAtCurMin;
+import static com.yahoo.sketches.hll.PreambleUtil.insertOooFlag;
+import static com.yahoo.sketches.hll.PreambleUtil.insertPreInts;
+import static com.yahoo.sketches.hll.PreambleUtil.insertSerVer;
+import static com.yahoo.sketches.hll.PreambleUtil.insertTgtHllType;
+import static com.yahoo.sketches.hll.TgtHllType.HLL_4;
+import static com.yahoo.sketches.hll.TgtHllType.HLL_6;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesStateException;
 
 /**
  * @author Lee Rhodes
  */
 abstract class AbstractHllArray extends HllSketchImpl {
+  AuxHashMap auxHashMap = null;
 
   AbstractHllArray(final int lgConfigK, final TgtHllType tgtHllType, final CurMode curMode) {
     super(lgConfigK, tgtHllType, curMode);
@@ -28,11 +50,30 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   abstract void addToHipAccum(double delta);
 
+  @Override
+  HllArray copyAs(final TgtHllType tgtHllType) {
+    if (tgtHllType == getTgtHllType()) {
+      return (HllArray) copy();
+    }
+    if (tgtHllType == HLL_4) {
+      return Hll4Array.convertToHll4(this);
+    }
+    if (tgtHllType == HLL_6) {
+      return Hll6Array.convertToHll6(this);
+    }
+    return Hll8Array.convertToHll8(this);
+  }
+
+
   abstract void decNumAtCurMin();
 
-  abstract AuxHashMap getAuxHashMap();
+  AuxHashMap getAuxHashMap() {
+    return auxHashMap;
+  }
 
-  abstract PairIterator getAuxIterator();
+  PairIterator getAuxIterator() {
+    return (auxHashMap == null) ? null : auxHashMap.getIterator();
+  }
 
   @Override
   int getCompactSerializationBytes() {
@@ -41,13 +82,35 @@ abstract class AbstractHllArray extends HllSketchImpl {
     return HLL_BYTE_ARR_START + getHllByteArrBytes() + auxBytes;
   }
 
+  /**
+   * This is the (non-HIP) estimator.
+   * It is called "composite" because multiple estimators are pasted together.
+   * @return the composite estimate
+   */
+  //In C: again-two-registers.c hhb_get_composite_estimate L1489
+  @Override
+  double getCompositeEstimate() {
+    return compositeEstimate(this);
+  }
+
   abstract int getCurMin();
+
+  @Override
+  double getEstimate() {
+    if (isOutOfOrderFlag()) {
+      return getCompositeEstimate();
+    }
+    return getHipAccum();
+  }
 
   abstract double getHipAccum();
 
   abstract byte[] getHllByteArr();
 
   abstract int getHllByteArrBytes();
+
+  @Override
+  abstract PairIterator getIterator();
 
   abstract double getKxQ0();
 
@@ -83,6 +146,11 @@ abstract class AbstractHllArray extends HllSketchImpl {
     return HLL_BYTE_ARR_START + getHllByteArrBytes() + auxBytes;
   }
 
+  @Override
+  double getUpperBound(final int numStdDev) {
+    return upperBound(this, numStdDev);
+  }
+
   abstract void putAuxHashMap(AuxHashMap auxHashMap);
 
   abstract void putCurMin(int curMin);
@@ -96,6 +164,99 @@ abstract class AbstractHllArray extends HllSketchImpl {
   abstract void putNumAtCurMin(int numAtCurMin);
 
   abstract void putSlot(int slotNo, int value);
+
+  @Override
+  byte[] toCompactByteArray() {
+    return toByteArray(this, true);
+  }
+
+  @Override
+  byte[] toUpdatableByteArray() {
+    return toByteArray(this, false);
+  }
+
+
+  static final byte[] toByteArray(final AbstractHllArray impl, final boolean compact) {
+    int auxBytes = 0;
+    final AuxHashMap auxHashMap = impl.getAuxHashMap();
+    if (auxHashMap != null) { //only relevant for HLL_4
+      auxBytes = (compact)
+          ? auxHashMap.getCompactSizeBytes()
+          : auxHashMap.getUpdatableSizeBytes();
+    }
+    final int totBytes = HLL_BYTE_ARR_START + impl.getHllByteArrBytes() + auxBytes;
+    final byte[] byteArr = new byte[totBytes];
+    final WritableMemory wmem = WritableMemory.wrap(byteArr);
+    insertHll(impl, wmem, compact);
+    return byteArr;
+  }
+
+  // used by toByteArray and DirectHllArray
+  static final void insertHll(final AbstractHllArray impl, final WritableMemory wmem,
+      final boolean compact) {
+    insertCommonHll(impl, wmem, compact);
+
+    if (impl.isMemory()) {
+      final Memory mem = impl.getMemory();
+      mem.copyTo(HLL_BYTE_ARR_START, wmem, HLL_BYTE_ARR_START, impl.getHllByteArrBytes());
+    } else {
+      final byte[] hllByteArr = impl.getHllByteArr();
+      wmem.putByteArray(HLL_BYTE_ARR_START, hllByteArr, 0, hllByteArr.length);
+    }
+
+    if (impl.getAuxHashMap() != null) {
+      insertAux(impl, wmem, compact);
+    } else {
+      wmem.putInt(AUX_COUNT_INT, 0);
+    }
+  }
+
+  static final void insertAux(final AbstractHllArray impl, final WritableMemory wmem,
+      final boolean compact) {
+    final Object memObj = wmem.getArray();
+    final long memAdd = wmem.getCumulativeOffset(0L);
+    final AuxHashMap auxHashMap = impl.getAuxHashMap();
+    final int auxCount = auxHashMap.getAuxCount();
+    insertAuxCount(memObj, memAdd, auxCount);
+    insertLgArr(memObj, memAdd, auxHashMap.getLgAuxArrInts()); //only used for direct HLL
+    final long auxStart = HLL_BYTE_ARR_START + impl.getHllByteArrBytes();
+    if (compact) {
+      final PairIterator itr = auxHashMap.getIterator();
+      int cnt = 0;
+      while (itr.nextValid()) {
+        insertInt(memObj, memAdd, auxStart + (cnt++ << 2), itr.getPair());
+      }
+      assert cnt == auxCount;
+    } else { //updatable
+      final int auxInts = 1 << auxHashMap.getLgAuxArrInts();
+      if (impl.isMemory()) {
+        impl.getMemory().copyTo(auxStart, wmem, auxStart, auxInts << 2);
+      } else {
+        final int[] auxArr = auxHashMap.getAuxIntArr();
+        wmem.putIntArray(auxStart, auxArr, 0, auxInts);
+      }
+    }
+  }
+
+  static final void insertCommonHll(final AbstractHllArray impl, final WritableMemory wmem,
+      final boolean compact) {
+    final Object memObj = wmem.getArray();
+    final long memAdd = wmem.getCumulativeOffset(0L);
+    insertPreInts(memObj, memAdd, HLL_PREINTS);
+    insertSerVer(memObj, memAdd);
+    insertFamilyId(memObj, memAdd);
+    insertLgK(memObj, memAdd, impl.getLgConfigK());
+    insertEmptyFlag(memObj, memAdd, impl.isEmpty());
+    insertCompactFlag(memObj, memAdd, compact);
+    insertOooFlag(memObj, memAdd, impl.isOutOfOrderFlag());
+    insertCurMin(memObj, memAdd, impl.getCurMin());
+    insertCurMode(memObj, memAdd, impl.getCurMode());
+    insertTgtHllType(memObj, memAdd, impl.getTgtHllType());
+    insertHipAccum(memObj, memAdd, impl.getHipAccum());
+    insertKxQ0(memObj, memAdd, impl.getKxQ0());
+    insertKxQ1(memObj, memAdd, impl.getKxQ1());
+    insertNumAtCurMin(memObj, memAdd, impl.getNumAtCurMin());
+  }
 
   static final int getExpectedLgAuxInts(final int lgConfigK) {
     return LG_AUX_ARR_INTS[lgConfigK];
@@ -152,7 +313,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
     else               { host.putKxQ1(kxq1 += invPow2(newValue)); }
   }
 
-  // in C: two-registers.c Line 836 in "hhb_abstract_set_slot_if_new_value_bigger" non-sparse
+  //In C: two-registers.c Line 836 in "hhb_abstract_set_slot_if_new_value_bigger" non-sparse
   //Uses lgConfigK, curMin, numAtCurMin, auxMap,
   static final void internalUpdate(final AbstractHllArray host, final int slotNo, final int newValue) {
     assert ((0 <= slotNo) && (slotNo < (1 << host.getLgConfigK())));
@@ -239,7 +400,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
   //Entering this routine assumes that all slots have valid values > 0 and <= 15.
   //An AuxHashMap must exist if any values in the current hllByteArray are already 15.
   //In C: again-two-registers.c Lines 710 "hhb_shift_to_bigger_curmin"
-  static final void shiftToBiggerCurMin(final AbstractHllArray host) {
+  private static final void shiftToBiggerCurMin(final AbstractHllArray host) {
     final int oldCurMin = host.getCurMin();
     final int newCurMin = oldCurMin + 1;
     final int lgConfigK = host.getLgConfigK();
@@ -315,7 +476,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
     host.putNumAtCurMin(numAtNewCurMin);
   } //end of shiftToBiggerCurMin
 
-  static final double lowerBound(final AbstractHllArray absHllArr, final int numStdDev) {
+  private static final double lowerBound(final AbstractHllArray absHllArr, final int numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
     final int lgConfigK = absHllArr.lgConfigK;
     final int configK = 1 << lgConfigK;
@@ -343,6 +504,27 @@ abstract class AbstractHllArray extends HllSketchImpl {
     return ((oooFlag) ? compositeEstimate : hipAccum) / (1.0 + re);
   }
 
+  private static final double upperBound(final AbstractHllArray absHllArr, final int numStdDev) {
+    HllUtil.checkNumStdDev(numStdDev);
+    final int lgConfigK = absHllArr.lgConfigK;
+    final int configK = 1 << lgConfigK;
+    final boolean oooFlag = absHllArr.isOutOfOrderFlag();
+    final double compositeEstimate = absHllArr.getCompositeEstimate();
+    final double hipAccum = absHllArr.getHipAccum();
+    if (lgConfigK > 12) {
+      if (oooFlag) {
+        final double hllNonHipEps =
+            (numStdDev * HLL_NON_HIP_RSE_FACTOR) / Math.sqrt(configK);
+        return compositeEstimate / (1.0 - hllNonHipEps);
+      }
+      final double hllHipEps = (numStdDev * HLL_HIP_RSE_FACTOR) / Math.sqrt(configK);
+      return hipAccum / (1.0 - hllHipEps);
+    }
+    //lgConfigK <= 12
+    final double re = RelativeErrorTables.getRelErr(true, oooFlag, lgConfigK, numStdDev);
+    return ((oooFlag) ? compositeEstimate : hipAccum) / (1.0 + re);
+  }
+
   /**
    * This is the (non-HIP) estimator.
    * It is called "composite" because multiple estimators are pasted together.
@@ -350,7 +532,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
    * @return the composite estimate
    */
   //In C: again-two-registers.c hhb_get_composite_estimate L1489
-  static double compositeEstimate(final AbstractHllArray absHllArr) {
+  private static double compositeEstimate(final AbstractHllArray absHllArr) {
     final int lgConfigK = absHllArr.getLgConfigK();
     final double rawEst = getRawEstimate(lgConfigK, absHllArr.getKxQ0() + absHllArr.getKxQ1());
 

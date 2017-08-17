@@ -25,8 +25,6 @@ import static com.yahoo.sketches.hll.PreambleUtil.insertKxQ0;
 import static com.yahoo.sketches.hll.PreambleUtil.insertKxQ1;
 import static com.yahoo.sketches.hll.PreambleUtil.insertNumAtCurMin;
 import static com.yahoo.sketches.hll.PreambleUtil.insertOooFlag;
-import static com.yahoo.sketches.hll.TgtHllType.HLL_4;
-import static com.yahoo.sketches.hll.TgtHllType.HLL_6;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
@@ -40,8 +38,6 @@ abstract class DirectHllArray extends AbstractHllArray {
   Memory mem;
   Object memObj;
   long memAdd;
-  AuxHashMap directAuxHashMap = null;
-
 
   //Memory must be initialized, may have data
   DirectHllArray(final int lgConfigK, final TgtHllType tgtHllType, final WritableMemory wmem) {
@@ -72,20 +68,6 @@ abstract class DirectHllArray extends AbstractHllArray {
   }
 
   @Override
-  HllArray copyAs(final TgtHllType tgtHllType) {
-    if (tgtHllType == getTgtHllType()) {
-      return (HllArray) copy();
-    }
-    if (tgtHllType == HLL_4) {
-      return Hll4Array.convertToHll4(Hll4Array.heapify(mem));
-    }
-    if (tgtHllType == HLL_6) {
-      return Hll6Array.convertToHll6(Hll6Array.heapify(mem));
-    }
-    return Hll8Array.convertToHll8(Hll8Array.heapify(mem));
-  }
-
-  @Override
   void addToHipAccum(final double delta) {
     final double hipAccum = unsafe.getDouble(memObj, memAdd + HIP_ACCUM_DOUBLE);
     unsafe.putDouble(memObj, memAdd + HIP_ACCUM_DOUBLE, hipAccum + delta);
@@ -95,16 +77,6 @@ abstract class DirectHllArray extends AbstractHllArray {
   void decNumAtCurMin() {
     int numAtCurMin = unsafe.getInt(memObj, memAdd + CUR_MIN_COUNT_INT);
     unsafe.putInt(memObj, memAdd + CUR_MIN_COUNT_INT, --numAtCurMin);
-  }
-
-  @Override
-  AuxHashMap getAuxHashMap() {
-    return directAuxHashMap;
-  }
-
-  @Override
-  PairIterator getAuxIterator() {
-    return (directAuxHashMap == null) ? null : directAuxHashMap.getIterator();
   }
 
   @Override
@@ -118,19 +90,6 @@ abstract class DirectHllArray extends AbstractHllArray {
   }
 
   @Override
-  double getCompositeEstimate() {
-    return HllArray.compositeEstimate(this);
-  }
-
-  @Override
-  double getEstimate() {
-    if (isOutOfOrderFlag()) {
-      return getCompositeEstimate();
-    }
-    return getHipAccum();
-  }
-
-  @Override
   double getHipAccum() {
     return extractHipAccum(memObj, memAdd);
   }
@@ -139,12 +98,6 @@ abstract class DirectHllArray extends AbstractHllArray {
   byte[] getHllByteArr() { //not allowed
     return null;
   }
-
-  @Override
-  abstract int getHllByteArrBytes();
-
-  @Override
-  abstract PairIterator getIterator();
 
   @Override
   double getKxQ0() {
@@ -159,11 +112,6 @@ abstract class DirectHllArray extends AbstractHllArray {
   @Override
   int getLgConfigK() {
     return extractLgK(memObj, memAdd);
-  }
-
-  @Override
-  double getLowerBound(final int numStdDev) {
-    return HllArray.lowerBound(this, numStdDev);
   }
 
   @Override
@@ -184,11 +132,6 @@ abstract class DirectHllArray extends AbstractHllArray {
   @Override
   TgtHllType getTgtHllType() {
     return extractTgtHllType(memObj, memAdd);
-  }
-
-  @Override
-  double getUpperBound(final int numStdDev) {
-    return HllArray.upperBound(this, numStdDev);
   }
 
   @Override
@@ -213,7 +156,7 @@ abstract class DirectHllArray extends AbstractHllArray {
 
   @Override
   void putAuxHashMap(final AuxHashMap auxHashMap) {
-    directAuxHashMap = auxHashMap;
+    this.auxHashMap = auxHashMap;
   }
 
   @Override
@@ -245,15 +188,4 @@ abstract class DirectHllArray extends AbstractHllArray {
   void putOutOfOrderFlag(final boolean oooFlag) {
     insertOooFlag(memObj, memAdd, oooFlag);
   }
-
-  @Override
-  byte[] toCompactByteArray() {
-    return HllArray.toByteArray(this, true);
-  }
-
-  @Override
-  byte[] toUpdatableByteArray() {
-    return HllArray.toByteArray(this, false);
-  }
-
 }

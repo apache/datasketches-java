@@ -193,8 +193,8 @@ class DirectCouponList extends AbstractCoupons {
     insertListCount(memObj, memAdd, couponCount);
   }
 
-  @Override
-  void putCouponIntArr(final int[] couponIntArr) { //TODO not used
+  @Override //TODO not used
+  void putCouponIntArr(final int[] couponIntArr) {
     assert wmem != null;
     final int lenInts = 1 << extractLgArr(memObj, memAdd);
     wmem.putIntArray(LIST_INT_ARR_START, couponIntArr, 0, lenInts);
