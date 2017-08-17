@@ -6,7 +6,6 @@
 package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.hll.HllUtil.COUPON_RSE;
-import static com.yahoo.sketches.hll.HllUtil.COUPON_RSE_FACTOR;
 import static com.yahoo.sketches.hll.HllUtil.LG_INIT_LIST_SIZE;
 import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_INT_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.LIST_INT_ARR_START;
@@ -81,18 +80,6 @@ abstract class AbstractCoupons extends HllSketchImpl {
         CouponMapping.yArr, couponCount);
     final double tmp = est / (1.0 - couponEstimatorEps(numStdDev));
     return max(tmp, couponCount);
-  }
-
-  @Override
-  double getRelErr(final int numStdDev) {
-    HllUtil.checkNumStdDev(numStdDev);
-    return numStdDev * COUPON_RSE;
-  }
-
-  @Override
-  double getRelErrFactor(final int numStdDev) {
-    HllUtil.checkNumStdDev(numStdDev);
-    return numStdDev * COUPON_RSE_FACTOR;
   }
 
   @Override

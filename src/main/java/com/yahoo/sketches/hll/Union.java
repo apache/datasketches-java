@@ -136,16 +136,6 @@ public class Union extends BaseHllSketch {
   }
 
   @Override
-  public double getRelErr(final int numStdDev) { //TODO
-    return gadget.getRelErr(numStdDev);
-  }
-
-  @Override
-  public double getRelErrFactor(final int numStdDev) { //TODO
-    return gadget.getRelErrFactor(numStdDev);
-  }
-
-  @Override
   public int getUpdatableSerializationBytes() {
     return gadget.getUpdatableSerializationBytes();
   }

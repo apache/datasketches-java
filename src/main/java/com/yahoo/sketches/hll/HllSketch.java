@@ -290,16 +290,6 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
-  public double getRelErr(final int numStdDev) {
-    return hllSketchImpl.getRelErr(numStdDev);
-  }
-
-  @Override
-  public double getRelErrFactor(final int numStdDev) {
-    return hllSketchImpl.getRelErrFactor(numStdDev);
-  }
-
-  @Override
   public int getUpdatableSerializationBytes() {
     return hllSketchImpl.getUpdatableSerializationBytes();
   }

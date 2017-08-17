@@ -49,10 +49,6 @@ abstract class HllSketchImpl {
 
   abstract int getPreInts();
 
-  abstract double getRelErr(int numStdDev); //TODO ??
-
-  abstract double getRelErrFactor(int numStdDev); //TODO ??
-
   TgtHllType getTgtHllType() {
     return tgtHllType;
   }

@@ -58,7 +58,7 @@ abstract class BaseHllSketch {
   /**
    * Gets the approximate lower error bound given the specified number of Standard Deviations.
    *
-   * @param numStdDev
+   * @param numStdDev This must be an integer between 1 and 3, inclusive.
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the lower bound.
    */
@@ -82,22 +82,20 @@ abstract class BaseHllSketch {
   }
 
   /**
-   * Gets the current (approximate) Relative Error given the number of Standard Deviations.
-   * Used for testing.
-   * @param numStdDev the given number of Standard Deviations
+   * Gets the current (approximate) Relative Error (RE) asymptotic values given several
+   * parameters. This is used primarily for testing.
+   * @param upperBound return the RE for the Upper Bound, otherwise for the Lower Bound.
+   * @param unioned set true if the sketch is the result of a union operation.
+   * @param lgConfigK the configured value for the sketch.
+   * @param numStdDev the given number of Standard Deviations. This must be an integer between
+   * 1 and 3, inclusive.
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">Number of Standard Deviations</a>
    * @return the current (approximate) RelativeError
    */
-  public abstract double getRelErr(int numStdDev);
-
-  /**
-   * Returns the current (approximate) Relative Error Factor given the number of Standard
-   * Deviations. Used for testing.
-   * @param numStdDev the given number of Standard Deviations
-   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">Number of Standard Deviations</a>
-   * @return the current (approximate) Relative Error Factor
-   */
-  public abstract double getRelErrFactor(int numStdDev);
+  public double getRelErr(final boolean upperBound, final boolean unioned,
+      final int lgConfigK, final int numStdDev) {
+    return RelativeErrorTables.getRelErr(upperBound, unioned, lgConfigK, numStdDev);
+  }
 
   /**
    * Gets the size in bytes of the current sketch when serialized using
@@ -110,7 +108,7 @@ abstract class BaseHllSketch {
   /**
    * Gets the approximate upper error bound given the specified number of Standard Deviations.
    *
-   * @param numStdDev
+   * @param numStdDev This must be an integer between 1 and 3, inclusive.
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">Number of Standard Deviations</a>
    * @return the upper bound.
    */

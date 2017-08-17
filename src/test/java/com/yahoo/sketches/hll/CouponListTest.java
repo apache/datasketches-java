@@ -36,23 +36,19 @@ public class CouponListTest {
       sk.update(i);
     }
     assertEquals(sk.getCurrentMode(), CurMode.LIST);
-    sk.getRelErr(1);
-    sk.getRelErrFactor(1);
     assertEquals(sk.getCompositeEstimate(), 7.0, 7 * .01);
     sk.update(8);
     sk.update(8);
     assertEquals(sk.getCurrentMode(), CurMode.SET);
     assertEquals(sk.getCompositeEstimate(), 8.0, 8 * .01);
-    sk.getRelErr(1);
-    sk.getRelErrFactor(1);
     for (int i = 9; i <= 25; i++) {
       sk.update(i);
       sk.update(i);
     }
     assertEquals(sk.getCurrentMode(), CurMode.HLL);
     assertEquals(sk.getCompositeEstimate(), 25.0, 25 * .1);
-    sk.getRelErr(1);
-    sk.getRelErrFactor(1);
+
+    sk.getRelErr(true, true, 4, 1);
   }
 
   @Test
