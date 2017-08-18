@@ -5,7 +5,13 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.sketches.hll.BaseHllSketch.getMaxUpdatableSerializationBytes;
 import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
+import static com.yahoo.sketches.hll.HllUtil.LG_INIT_LIST_SIZE;
+import static com.yahoo.sketches.hll.HllUtil.LG_INIT_SET_SIZE;
+import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_INT_ARR_START;
+import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
+import static com.yahoo.sketches.hll.PreambleUtil.LIST_INT_ARR_START;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_4;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_6;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_8;
@@ -17,6 +23,7 @@ import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -27,89 +34,105 @@ public class HllSketchTest {
 
   @Test
   public void checkCopies() {
-    checkCopy(HLL_4);
-    checkCopy(HLL_6);
-    checkCopy(HLL_8);
+    runCheckCopy(14, HLL_4, null);
+    runCheckCopy(8, HLL_6, null);
+    runCheckCopy(8, HLL_8, null);
+
+    int bytes = BaseHllSketch.getMaxUpdatableSerializationBytes(14, TgtHllType.HLL_8);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+
+    runCheckCopy(14, HLL_4, wmem);
+    runCheckCopy(8, HLL_6, wmem);
+    runCheckCopy(8, HLL_8, wmem);
   }
 
-  public void checkCopy(TgtHllType tgtHllType) {
-    HllSketch sk1;
-    if (tgtHllType == HLL_4) {
-      sk1 = new HllSketch(14, HLL_4);
-    } else if (tgtHllType == HLL_6) {
-      sk1 = new HllSketch(8, HLL_6);
-    } else {
-      sk1 = new HllSketch(8, HLL_8);
+  private static void runCheckCopy(int lgConfigK, TgtHllType tgtHllType, WritableMemory wmem) {
+    HllSketch sk;
+    if (wmem == null) { //heap
+      sk = new HllSketch(lgConfigK, tgtHllType);
+    } else { //direct
+      sk = new HllSketch(lgConfigK, tgtHllType, wmem);
     }
 
     for (int i = 0; i < 7; i++) {
-      sk1.update(i);
+      sk.update(i);
     }
-    assertEquals(sk1.getCurrentMode(), CurMode.LIST);
+    assertEquals(sk.getCurrentMode(), CurMode.LIST);
 
-    HllSketch sk2 = sk1.copy();
-    assertEquals(sk2.getCurrentMode(), CurMode.LIST);
-    HllSketchImpl impl1 = sk1.hllSketchImpl;
+    HllSketch skCopy = sk.copy();
+    assertEquals(skCopy.getCurrentMode(), CurMode.LIST);
+    HllSketchImpl impl1 = sk.hllSketchImpl;
 
-    HllSketchImpl impl2 = sk2.hllSketchImpl;
-    AbstractCoupons absCoupons1 = (AbstractCoupons) sk1.hllSketchImpl;
-    AbstractCoupons absCoupons2 = (AbstractCoupons) sk2.hllSketchImpl;
+    HllSketchImpl impl2 = skCopy.hllSketchImpl;
+    AbstractCoupons absCoupons1 = (AbstractCoupons) sk.hllSketchImpl;
+    AbstractCoupons absCoupons2 = (AbstractCoupons) skCopy.hllSketchImpl;
     assertEquals(absCoupons1.getCouponCount(), absCoupons2.getCouponCount());
     assertEquals(impl1.getEstimate(), impl2.getEstimate(), 0.0);
     assertFalse(impl1 == impl2);
 
     for (int i = 7; i < 24; i++) {
-      sk1.update(i);
+      sk.update(i);
     }
-    assertEquals(sk1.getCurrentMode(), CurMode.SET);
+    assertEquals(sk.getCurrentMode(), CurMode.SET);
 
-    sk2 = sk1.copy();
-    assertEquals(sk2.getCurrentMode(), CurMode.SET);
-    impl1 = sk1.hllSketchImpl;
+    skCopy = sk.copy();
+    assertEquals(skCopy.getCurrentMode(), CurMode.SET);
+    impl1 = sk.hllSketchImpl;
 
-    impl2 = sk2.hllSketchImpl;
-    absCoupons1 = (AbstractCoupons) sk1.hllSketchImpl;
-    absCoupons2 = (AbstractCoupons) sk2.hllSketchImpl;
+    impl2 = skCopy.hllSketchImpl;
+    absCoupons1 = (AbstractCoupons) sk.hllSketchImpl;
+    absCoupons2 = (AbstractCoupons) skCopy.hllSketchImpl;
     assertEquals(absCoupons1.getCouponCount(), absCoupons2.getCouponCount());
     assertEquals(impl1.getEstimate(), impl2.getEstimate(), 0.0);
     assertFalse(impl1 == impl2);
-    final int u = (sk1.getTgtHllType() == TgtHllType.HLL_4) ? 100000 : 25;
+    final int u = (sk.getTgtHllType() == TgtHllType.HLL_4) ? 100000 : 25;
     for (int i = 24; i < u; i++) {
-      sk1.update(i);
+      sk.update(i);
     }
-    sk1.getCompactSerializationBytes();
-    assertEquals(sk1.getCurrentMode(), CurMode.HLL);
+    sk.getCompactSerializationBytes();
+    assertEquals(sk.getCurrentMode(), CurMode.HLL);
 
-    sk2 = sk1.copy();
-    assertEquals(sk2.getCurrentMode(), CurMode.HLL);
-    impl1 = sk1.hllSketchImpl;
+    skCopy = sk.copy();
+    assertEquals(skCopy.getCurrentMode(), CurMode.HLL);
+    impl1 = sk.hllSketchImpl;
 
-    impl2 = sk2.hllSketchImpl;
+    impl2 = skCopy.hllSketchImpl;
     assertEquals(impl1.getEstimate(), impl2.getEstimate(), 0.0);
     assertFalse(impl1 == impl2);
   }
 
   @Test
   public void checkCopyAs() {
-    copyAs(HLL_4, HLL_4);
-    copyAs(HLL_4, HLL_6);
-    copyAs(HLL_4, HLL_8);
-    copyAs(HLL_6, HLL_4);
-    copyAs(HLL_6, HLL_6);
-    copyAs(HLL_6, HLL_8);
-    copyAs(HLL_8, HLL_4);
-    copyAs(HLL_8, HLL_6);
-    copyAs(HLL_8, HLL_8);
+    copyAs(HLL_4, HLL_4, false);
+    copyAs(HLL_4, HLL_6, false);
+    copyAs(HLL_4, HLL_8, false);
+    copyAs(HLL_6, HLL_4, false);
+    copyAs(HLL_6, HLL_6, false);
+    copyAs(HLL_6, HLL_8, false);
+    copyAs(HLL_8, HLL_4, false);
+    copyAs(HLL_8, HLL_6, false);
+    copyAs(HLL_8, HLL_8, false);
+    copyAs(HLL_4, HLL_4, true);
+    copyAs(HLL_4, HLL_6, true);
+    copyAs(HLL_4, HLL_8, true);
+    copyAs(HLL_6, HLL_4, true);
+    copyAs(HLL_6, HLL_6, true);
+    copyAs(HLL_6, HLL_8, true);
+    copyAs(HLL_8, HLL_4, true);
+    copyAs(HLL_8, HLL_6, true);
+    copyAs(HLL_8, HLL_8, true);
   }
 
-  public void copyAs(TgtHllType srcType, TgtHllType dstType) {
+  public void copyAs(TgtHllType srcType, TgtHllType dstType, boolean direct) {
     int lgK = 8;
     int n1 = 15;
     int n2 = 24;
     int n3 = 1000;
     int base = 0;
+    int bytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgK, srcType);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
 
-    HllSketch src = new HllSketch(lgK, srcType);
+    HllSketch src = (direct) ? new HllSketch(lgK, srcType, wmem) : new HllSketch(lgK, srcType);
     for (int i = 0; i < n1; i++) { src.update(i + base); }
     HllSketch dst = src.copyAs(dstType);
     assertEquals(dst.getEstimate(), src.getEstimate(), 0.0);
@@ -124,18 +147,31 @@ public class HllSketchTest {
   }
 
   @Test
-  public void misc() {
-    final int lgConfigK = 8;
-    HllSketch sk = new HllSketch(lgConfigK, TgtHllType.HLL_8);
+  public void checkMisc1() {
+    misc(false);
+    misc(true);
+  }
+
+  public void misc(boolean direct) {
+    int lgConfigK = 8;
+    TgtHllType srcType = TgtHllType.HLL_8;
+    int bytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, srcType);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+
+    HllSketch sk = (direct)
+        ? new HllSketch(lgConfigK, srcType, wmem) : new HllSketch(lgConfigK, srcType);
+
     for (int i = 0; i < 7; i++) { sk.update(i); } //LIST
     AbstractCoupons absCoupons = (AbstractCoupons) sk.hllSketchImpl;
     assertEquals(absCoupons.getCouponCount(), 7);
     assertEquals(sk.getCompactSerializationBytes(), 36);
+    assertEquals(sk.getUpdatableSerializationBytes(), 40);
 
     for (int i = 7; i < 24; i++) { sk.update(i); } //SET
     absCoupons = (AbstractCoupons) sk.hllSketchImpl;
     assertEquals(absCoupons.getCouponCount(), 24);
     assertEquals(sk.getCompactSerializationBytes(), 108);
+    assertEquals(sk.getUpdatableSerializationBytes(), 140);
 
     sk.update(24); //HLL
     AbstractHllArray absHll = (AbstractHllArray) sk.hllSketchImpl;
@@ -143,6 +179,7 @@ public class HllSketchTest {
     assertEquals(absHll.getCurMin(), 0);
     assertEquals(absHll.getHipAccum(), 25.0, 25 * .02);
     assertTrue(absHll.getNumAtCurMin() >= 0);
+    assertEquals(sk.getUpdatableSerializationBytes(), 40 + 256);
 
     final int hllBytes = PreambleUtil.HLL_BYTE_ARR_START + (1 << lgConfigK);
     assertEquals(sk.getCompactSerializationBytes(), hllBytes);
@@ -156,30 +193,66 @@ public class HllSketchTest {
 
   @Test
   public void checkSerSizes() {
-    final int lgConfigK = 8;
-    HllSketch sk = new HllSketch(lgConfigK, HLL_8);
-    for (int i = 0; i < 25; i++) { sk.update(i); }
-    int hllBytes = PreambleUtil.HLL_BYTE_ARR_START + (1 << lgConfigK);
-    assertEquals(sk.getCompactSerializationBytes(), hllBytes);
-    assertEquals(BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, HLL_8), hllBytes);
+    checkSerSizes(8, TgtHllType.HLL_8, false);
+    checkSerSizes(8, TgtHllType.HLL_8, true);
+    checkSerSizes(8, TgtHllType.HLL_6, false);
+    checkSerSizes(8, TgtHllType.HLL_6, true);
+    checkSerSizes(8, TgtHllType.HLL_4, false);
+    checkSerSizes(8, TgtHllType.HLL_4, true);
+  }
 
-    sk = new HllSketch(lgConfigK, HLL_6);
-    for (int i = 0; i < 25; i++) { sk.update(i); }
-    hllBytes = PreambleUtil.HLL_BYTE_ARR_START + AbstractHllArray.hll6ArrBytes(lgConfigK);
-    assertEquals(sk.getCompactSerializationBytes(), hllBytes);
-    assertEquals(BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, HLL_6), hllBytes);
 
-    sk = new HllSketch(lgConfigK, HLL_4);
-    for (int i = 0; i < 25; i++) { sk.update(i); }
-    hllBytes = PreambleUtil.HLL_BYTE_ARR_START + (1 << (lgConfigK - 1));
-    assertEquals(sk.getCompactSerializationBytes(), hllBytes);
-    hllBytes += (4 << LG_AUX_ARR_INTS[lgConfigK]);
-    assertEquals(BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, HLL_4), hllBytes);
+  public void checkSerSizes(int lgConfigK, TgtHllType tgtHllType, boolean direct) { //START HERE
+    int bytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+    HllSketch sk = (direct)
+        ? new HllSketch(lgConfigK, tgtHllType, wmem) : new HllSketch(lgConfigK, tgtHllType);
+    int i;
+    for (i = 0; i < 7; i++) { sk.update(i); }
+
+    int expected = LIST_INT_ARR_START + (i << 2);
+    assertEquals(sk.getCompactSerializationBytes(), expected);
+    expected = LIST_INT_ARR_START + (4 << LG_INIT_LIST_SIZE);
+    assertEquals(sk.getUpdatableSerializationBytes(), expected);
+
+    for (i = 7; i < 24; i++) { sk.update(i); }
+    expected = HASH_SET_INT_ARR_START + (i << 2);
+    assertEquals(sk.getCompactSerializationBytes(), expected);
+    expected = HASH_SET_INT_ARR_START + (4 << LG_INIT_SET_SIZE);
+    assertEquals(sk.getUpdatableSerializationBytes(), expected);
+
+    sk.update(i);
+    AbstractHllArray absHll = (AbstractHllArray) sk.hllSketchImpl;
+    AuxHashMap map =  absHll.auxHashMap;
+    int auxCountBytes = 0;
+    int auxArrBytes = 0;
+    if (map != null) {
+      auxCountBytes = map.getAuxCount() << 2;
+      auxArrBytes = 4 << map.getLgAuxArrInts();
+    }
+    int hllArrBytes = hllArrBytes(lgConfigK, tgtHllType);
+    expected = HLL_BYTE_ARR_START + hllArrBytes + auxCountBytes;
+    assertEquals(sk.getCompactSerializationBytes(), expected);
+    expected = HLL_BYTE_ARR_START + hllArrBytes + auxArrBytes;
+    assertEquals(sk.getUpdatableSerializationBytes(), expected);
+    int fullAuxBytes = (tgtHllType == TgtHllType.HLL_4) ? (4 << LG_AUX_ARR_INTS[lgConfigK]) : 0;
+    expected = HLL_BYTE_ARR_START + hllArrBytes + fullAuxBytes;
+    assertEquals(getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType), expected);
+  }
+
+  private static int hllArrBytes(int lgConfigK, TgtHllType tgtHllType) {
+    if (tgtHllType == TgtHllType.HLL_4) {
+      return AbstractHllArray.hll4ArrBytes(lgConfigK);
+    }
+    if (tgtHllType == TgtHllType.HLL_6) {
+      return AbstractHllArray.hll6ArrBytes(lgConfigK);
+    }
+    return AbstractHllArray.hll8ArrBytes(lgConfigK);
   }
 
   @SuppressWarnings("unused")
   @Test
-  public void checkMisc() {
+  public void checkMisc2() {
     try {
       HllSketch sk = new HllSketch(HllUtil.MIN_LOG_K - 1);
       fail();

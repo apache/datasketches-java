@@ -72,6 +72,7 @@ public class HllSketch extends BaseHllSketch {
     final long minBytes = getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     final long capBytes = dstMem.getCapacity();
     HllUtil.checkMemSize(minBytes, capBytes);
+    dstMem.clear(0, minBytes);
     hllSketchImpl = DirectCouponList.newInstance(lgConfigK, tgtHllType, dstMem);
   }
 

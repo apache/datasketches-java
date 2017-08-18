@@ -107,6 +107,9 @@ public class ToFromByteArrayTest {
     //printSketch(dst3, "WritableWrap From Updatable");
     assertEquals(dst3.getEstimate(), src.getEstimate(), 0.0);
 
+    //Wrap updatable as Read-Only
+    HllSketch dst4 = HllSketch.wrap(wmem3);
+    assertEquals(dst4.getEstimate(), src.getEstimate(), 0.0);
   }
 
   static void printSketch(HllSketch sketch, String name) {

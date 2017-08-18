@@ -21,13 +21,11 @@ import static com.yahoo.sketches.hll.PreambleUtil.extractInt;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgArr;
 import static com.yahoo.sketches.hll.PreambleUtil.extractListCount;
 import static com.yahoo.sketches.hll.PreambleUtil.extractOooFlag;
-import static com.yahoo.sketches.hll.PreambleUtil.insertCompactFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.insertCurMin;
 import static com.yahoo.sketches.hll.PreambleUtil.insertCurMode;
 import static com.yahoo.sketches.hll.PreambleUtil.insertEmptyFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.insertFamilyId;
 import static com.yahoo.sketches.hll.PreambleUtil.insertFlags;
-import static com.yahoo.sketches.hll.PreambleUtil.insertHashSetCount;
 import static com.yahoo.sketches.hll.PreambleUtil.insertInt;
 import static com.yahoo.sketches.hll.PreambleUtil.insertKxQ0;
 import static com.yahoo.sketches.hll.PreambleUtil.insertLgArr;
@@ -106,13 +104,6 @@ class DirectCouponList extends AbstractCoupons {
     return new CouponList(clist, tgtHllType);
   }
 
-  @Override //get Coupons from internal Mem to dstMem
-  //Called by CouponList.insertList()
-  //Called by CouponList.insertSet()
-  void getCouponsToMemoryInts(final WritableMemory dstWmem, final int lenInts) {
-    mem.copyTo(LIST_INT_ARR_START, dstWmem, LIST_INT_ARR_START, lenInts << 2);
-  }
-
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
     if (wmem == null) { noWriteAccess(); }
@@ -137,6 +128,13 @@ class DirectCouponList extends AbstractCoupons {
       //cell not empty & not a duplicate, continue
     } //end for
     throw new SketchesStateException("Invalid State: no empties & no duplicates");
+  }
+
+  @Override //get Coupons from internal Mem to dstMem
+  //Called by CouponList.insertList()
+  //Called by CouponList.insertSet()
+  void getCouponsToMemoryInts(final WritableMemory dstWmem, final int lenInts) {
+    mem.copyTo(LIST_INT_ARR_START, dstWmem, LIST_INT_ARR_START, lenInts << 2);
   }
 
   @Override
@@ -185,56 +183,6 @@ class DirectCouponList extends AbstractCoupons {
   void putOutOfOrderFlag(final boolean oooFlag) {
     assert wmem != null;
     insertOooFlag(memObj, memAdd, oooFlag);
-  }
-
-  @Override //for both List and Set
-  byte[] toCompactByteArray() {
-    return toByteArray(true);
-  }
-
-  @Override //for both List and Set
-  byte[] toUpdatableByteArray() {
-    return toByteArray(false);
-  }
-
-  private byte[] toByteArray(final boolean compact) {
-    final byte[] memObjOut;
-    final WritableMemory wmemOut;
-    final long memAddOut;
-    final int couponCount = getCouponCount();
-    final int couponArrBytes = 4 << getLgCouponArrInts();
-    final int dataBytes = (compact) ? couponCount << 2 : couponArrBytes;
-
-    if (getCurMode() == CurMode.LIST) {
-      memObjOut = new byte[LIST_INT_ARR_START + dataBytes];
-      wmemOut = WritableMemory.wrap(memObjOut);
-      memAddOut = wmemOut.getCumulativeOffset(0);
-      insertPreInts(memObjOut, memAddOut, LIST_PREINTS);
-      insertListCount(memObjOut, memAddOut, couponCount);
-      insertCompactFlag(memObjOut, memAddOut, compact);
-      CouponList.insertCommonList(this, memObjOut, memAddOut);
-      mem.copyTo(LIST_INT_ARR_START, wmemOut, LIST_INT_ARR_START, dataBytes);
-
-    } else { //SET
-      memObjOut = new byte[HASH_SET_INT_ARR_START + dataBytes];
-      wmemOut = WritableMemory.wrap(memObjOut);
-      memAddOut = wmemOut.getCumulativeOffset(0);
-      insertPreInts(memObjOut, memAddOut, HASH_SET_PREINTS);
-      insertHashSetCount(memObjOut, memAddOut, couponCount);
-      insertCompactFlag(memObjOut, memAddOut, compact);
-      CouponList.insertCommonList(this, memObjOut, memAddOut);
-
-      if (compact) {
-        final PairIterator itr = getIterator();
-        int cnt = 0;
-        while (itr.nextValid()) {
-          wmemOut.putInt(HASH_SET_INT_ARR_START + (cnt++ << 2), itr.getPair());
-        }
-      } else { //updatable
-        mem.copyTo(HASH_SET_INT_ARR_START, wmemOut, HASH_SET_INT_ARR_START, couponArrBytes);
-      }
-    }
-    return memObjOut;
   }
 
   //Called by DirectCouponList.couponUpdate()

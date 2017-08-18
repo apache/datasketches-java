@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
@@ -39,6 +40,9 @@ public class AuxHashMapTest {
     byte[] byteArr = sk.toCompactByteArray();
     HllSketch sk2 = HllSketch.heapify(Memory.wrap(byteArr));
     assertEquals(sk.getEstimate(), sk2.getEstimate());
+
+    assertEquals(sk.getUpdatableSerializationBytes(), 40 + (1 << (lgK - 1))
+        + (4 << LG_AUX_ARR_INTS[lgK]));
 
     PairIterator h4itr = sk.getIterator();
     println("\nMain Array: where (value - curMin) > 14. key/vals should match above.");

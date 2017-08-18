@@ -8,25 +8,12 @@ package com.yahoo.sketches.hll;
 import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.LG_INIT_LIST_SIZE;
 import static com.yahoo.sketches.hll.HllUtil.LG_INIT_SET_SIZE;
-import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_INT_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.LIST_INT_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.LIST_PREINTS;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
 import static com.yahoo.sketches.hll.PreambleUtil.extractListCount;
 import static com.yahoo.sketches.hll.PreambleUtil.extractOooFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.extractTgtHllType;
-import static com.yahoo.sketches.hll.PreambleUtil.insertCompactFlag;
-import static com.yahoo.sketches.hll.PreambleUtil.insertCurMode;
-import static com.yahoo.sketches.hll.PreambleUtil.insertEmptyFlag;
-import static com.yahoo.sketches.hll.PreambleUtil.insertFamilyId;
-import static com.yahoo.sketches.hll.PreambleUtil.insertHashSetCount;
-import static com.yahoo.sketches.hll.PreambleUtil.insertLgArr;
-import static com.yahoo.sketches.hll.PreambleUtil.insertLgK;
-import static com.yahoo.sketches.hll.PreambleUtil.insertListCount;
-import static com.yahoo.sketches.hll.PreambleUtil.insertOooFlag;
-import static com.yahoo.sketches.hll.PreambleUtil.insertPreInts;
-import static com.yahoo.sketches.hll.PreambleUtil.insertSerVer;
-import static com.yahoo.sketches.hll.PreambleUtil.insertTgtHllType;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
@@ -186,81 +173,15 @@ class CouponList extends AbstractCoupons {
     this.oooFlag = oooFlag;
   }
 
-  @Override
-  byte[] toCompactByteArray() {
-    return toByteArray(this, true);
-  }
-
-  @Override
-  byte[] toUpdatableByteArray() {
-    return toByteArray(this, false);
-  }
-
-  private static final byte[] toByteArray(final AbstractCoupons impl, final boolean compact) {
-    final byte[] byteArr;
-    final int arrLenBytes;
-    arrLenBytes = (compact)
-        ? impl.getCouponCount() << 2
-        : 4 << impl.getLgCouponArrInts();
-    byteArr = new byte[impl.getMemArrStart() + arrLenBytes];
-    final WritableMemory wmem = WritableMemory.wrap(byteArr);
-
-    if (impl.getCurMode() == CurMode.LIST) {
-      insertList(impl, wmem, compact);
-    } else { //SET
-      insertSet(impl, wmem, compact);
+  static final HllSketchImpl promoteHeapListToSet(final CouponList list) {
+    final int couponCount = list.couponCount;
+    final int[] arr = list.couponIntArr;
+    final CouponHashSet chSet = new CouponHashSet(list.lgConfigK, list.tgtHllType);
+    for (int i = 0; i < couponCount; i++) {
+      chSet.couponUpdate(arr[i]);
     }
-    return byteArr;
-  }
-
-  //wmem must be clear.
-  //Called by CouponList.toByteArray()
-  static final void insertList(final AbstractCoupons impl, final WritableMemory wmem,
-      final boolean compact) {
-    final Object memObj = wmem.getArray();
-    final long memAdd = wmem.getCumulativeOffset(0L);
-
-    final int couponCount = impl.getCouponCount();
-    insertListCount(memObj, memAdd, couponCount);
-    insertCompactFlag(memObj, memAdd, compact);
-    insertCommonList(impl, memObj, memAdd);
-    final int lenInts = (compact) ? couponCount : 1 << impl.getLgCouponArrInts();
-    impl.getCouponsToMemoryInts(wmem, lenInts);
-  }
-
-  //wmem must be clear.  impl must be a set
-  //Called by CouponList.toByteArray()
-  static final void insertSet(final AbstractCoupons impl, final WritableMemory wmem,
-      final boolean compact) {
-    final Object memObj = wmem.getArray();
-    final long memAdd = wmem.getCumulativeOffset(0L);
-
-    insertHashSetCount(memObj, memAdd, impl.getCouponCount());
-    insertCompactFlag(memObj, memAdd, compact);
-    insertCommonList(impl, memObj, memAdd);
-
-    if (compact) {
-      final PairIterator itr = impl.getIterator();
-      int cnt = 0;
-      while (itr.nextValid()) {
-        wmem.putInt(HASH_SET_INT_ARR_START + (cnt++ << 2), itr.getPair());
-      }
-    } else { //updatable
-      impl.getCouponsToMemoryInts(wmem, 1 << impl.getLgCouponArrInts());
-    }
-  }
-
-  static final void insertCommonList(final AbstractCoupons impl, final Object memObj,
-      final long memAdd) {
-    insertPreInts(memObj, memAdd, impl.getPreInts());
-    insertSerVer(memObj, memAdd);
-    insertFamilyId(memObj, memAdd);
-    insertLgK(memObj, memAdd, impl.getLgConfigK());
-    insertLgArr(memObj, memAdd, impl.getLgCouponArrInts());
-    insertEmptyFlag(memObj, memAdd, impl.isEmpty());
-    insertOooFlag(memObj, memAdd, impl.isOutOfOrderFlag());
-    insertCurMode(memObj, memAdd, impl.getCurMode());
-    insertTgtHllType(memObj, memAdd, impl.getTgtHllType());
+    chSet.putOutOfOrderFlag(true);
+    return chSet;
   }
 
   //Promotional move of coupons to an HllSketch from either List or Set.
@@ -279,14 +200,4 @@ class CouponList extends AbstractCoupons {
     return tgtHllArr;
   }
 
-  static final HllSketchImpl promoteHeapListToSet(final CouponList list) {
-    final int couponCount = list.couponCount;
-    final int[] arr = list.couponIntArr;
-    final CouponHashSet chSet = new CouponHashSet(list.lgConfigK, list.tgtHllType);
-    for (int i = 0; i < couponCount; i++) {
-      chSet.couponUpdate(arr[i]);
-    }
-    chSet.putOutOfOrderFlag(true);
-    return chSet;
-  }
 }

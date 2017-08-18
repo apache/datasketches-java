@@ -45,9 +45,9 @@ abstract class HllSketchImpl {
 
   abstract double getLowerBound(int numStdDev);
 
-  abstract int getMemArrStart();
+  abstract int getMemArrStart(); //TODO not used
 
-  abstract int getPreInts();
+  abstract int getPreInts(); //TODO not used
 
   TgtHllType getTgtHllType() {
     return tgtHllType;

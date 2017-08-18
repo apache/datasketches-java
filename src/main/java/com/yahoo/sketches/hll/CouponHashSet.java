@@ -6,7 +6,6 @@
 package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.hll.HllUtil.EMPTY;
-import static com.yahoo.sketches.hll.HllUtil.KEY_MASK_26;
 import static com.yahoo.sketches.hll.HllUtil.RESIZE_DENOM;
 import static com.yahoo.sketches.hll.HllUtil.RESIZE_NUMER;
 import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_INT_ARR_START;
@@ -22,7 +21,6 @@ import static com.yahoo.sketches.hll.PreambleUtil.extractTgtHllType;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
-import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
 
 /**
@@ -159,32 +157,6 @@ class CouponHashSet extends CouponList {
       }
     }
     return tgtCouponIntArr;
-  }
-
-  //Searches the Coupon hash table for an empty slot or a duplicate depending on the context.
-  //If entire entry is empty, returns one's complement of index = found empty.
-  //If entry equals given coupon, returns its index = found duplicate coupon
-  //Continues searching
-  //If the probe comes back to original index, throws an exception.
-  //Called by CouponHashSet.couponUpdate()
-  //Called by CouponHashSet.growHashSet()
-  //Called by DirectCouponHashSet.growHashSet()
-  static final int find(final int[] array, final int lgArrInts, final int coupon) {
-    final int arrMask = array.length - 1;
-    int probe = coupon & arrMask;
-    final int loopIndex = probe;
-    do {
-      final int arrVal = array[probe];
-      if (arrVal == EMPTY) { //Compares on entire coupon
-        return ~probe; //empty
-      }
-      else if (coupon == arrVal) { //Compares on entire coupon
-        return probe; //duplicate
-      }
-      final int stride = ((coupon & KEY_MASK_26) >>> lgArrInts) | 1;
-      probe = (probe + stride) & arrMask;
-    } while (probe != loopIndex);
-    throw new SketchesArgumentException("Key not found and no empty slots!");
   }
 
 }

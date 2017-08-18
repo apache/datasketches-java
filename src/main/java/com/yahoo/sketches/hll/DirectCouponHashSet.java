@@ -50,7 +50,7 @@ class DirectCouponHashSet extends DirectCouponList {
   DirectCouponHashSet(final int lgConfigK, final TgtHllType tgtHllType,
       final Memory mem) {
     super(lgConfigK, tgtHllType, CurMode.SET, mem);
-    assert wmem.getByte(LG_K_BYTE) > 7;
+    assert mem.getByte(LG_K_BYTE) > 7;
   }
 
   /**
@@ -164,7 +164,7 @@ class DirectCouponHashSet extends DirectCouponList {
     for (int i = 0; i < oldLen; i++) {
       final int fetched = extractInt(memObj, memAdd, HASH_SET_INT_ARR_START + (i << 2));
       if (fetched != EMPTY) {
-        final int idx = CouponHashSet.find(tgtCouponIntArr, tgtLgCouponArrSize, fetched);
+        final int idx = find(tgtCouponIntArr, tgtLgCouponArrSize, fetched);
         if (idx < 0) { //found EMPTY
           tgtCouponIntArr[~idx] = fetched; //insert
           continue;
