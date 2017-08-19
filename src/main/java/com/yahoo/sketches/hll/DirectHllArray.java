@@ -28,6 +28,7 @@ import static com.yahoo.sketches.hll.PreambleUtil.insertOooFlag;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * @author Lee Rhodes
@@ -182,5 +183,15 @@ abstract class DirectHllArray extends AbstractHllArray {
   @Override
   void putOutOfOrderFlag(final boolean oooFlag) {
     insertOooFlag(memObj, memAdd, oooFlag);
+  }
+
+  @Override
+  HllSketchImpl reset() {
+    if (wmem == null) {
+      throw new SketchesArgumentException("Cannot reset a read-only sketch");
+    }
+    final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    wmem.clear(0, bytes);
+    return DirectCouponList.newInstance(lgConfigK, tgtHllType, wmem);
   }
 }

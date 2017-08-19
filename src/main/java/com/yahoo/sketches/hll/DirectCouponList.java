@@ -39,6 +39,7 @@ import static com.yahoo.sketches.hll.PreambleUtil.insertSerVer;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
 
 /**
@@ -185,6 +186,16 @@ class DirectCouponList extends AbstractCoupons {
     insertOooFlag(memObj, memAdd, oooFlag);
   }
 
+  @Override
+  DirectCouponList reset() {
+    if (wmem == null) {
+      throw new SketchesArgumentException("Cannot reset a read-only sketch");
+    }
+    final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    wmem.clear(0, bytes);
+    return DirectCouponList.newInstance(lgConfigK, tgtHllType, wmem);
+  }
+
   //Called by DirectCouponList.couponUpdate()
   static final DirectCouponHashSet promoteListToSet(final DirectCouponList src) {
     final WritableMemory wmem = src.wmem;
@@ -208,7 +219,7 @@ class DirectCouponList extends AbstractCoupons {
     insertCurMin(memObj, memAdd, 0); //was list count
     insertCurMode(memObj,memAdd, CurMode.SET);
     //tgtHllType should already be set
-    final int maxBytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    final int maxBytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     wmem.clear(LIST_INT_ARR_START, maxBytes - LIST_INT_ARR_START); //clears the hash set count
 
     //create the tgt
@@ -250,7 +261,7 @@ class DirectCouponList extends AbstractCoupons {
     //tgtHllType should already be set
     //we update HipAccum at the end
     //clear KxQ0, KxQ1, NumAtCurMin, AuxCount, hllArray, auxArr
-    final int maxBytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    final int maxBytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     wmem.clear(LIST_INT_ARR_START, maxBytes - LIST_INT_ARR_START);
     insertNumAtCurMin(memObj, memAdd, 1 << lgConfigK); //set numAtCurMin
     insertKxQ0(memObj, memAdd, 1 << lgConfigK);

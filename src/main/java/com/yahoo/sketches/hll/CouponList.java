@@ -30,7 +30,7 @@ class CouponList extends AbstractCoupons {
   int[] couponIntArr;
 
   /**
-   * Standard constructor for LIST or SET.
+   * New instance constructor for LIST or SET.
    * @param lgConfigK the configured Lg K
    * @param tgtHllType the configured HLL target
    * @param curMode LIST or SET
@@ -171,6 +171,11 @@ class CouponList extends AbstractCoupons {
   @Override
   void putOutOfOrderFlag(final boolean oooFlag) {
     this.oooFlag = oooFlag;
+  }
+
+  @Override
+  CouponList reset() {
+    return new CouponList(lgConfigK, tgtHllType, CurMode.LIST);
   }
 
   static final HllSketchImpl promoteHeapListToSet(final CouponList list) {

@@ -110,7 +110,7 @@ public class Union extends BaseHllSketch {
    * @return the maximum size in bytes that this union operator can grow to.
    */
   public static int getMaxSerializationBytes(final int lgK) {
-    return BaseHllSketch.getMaxUpdatableSerializationBytes(lgK, TgtHllType.HLL_8);
+    return HllSketch.getMaxUpdatableSerializationBytes(lgK, TgtHllType.HLL_8);
   }
 
   @Override
@@ -368,7 +368,6 @@ public class Union extends BaseHllSketch {
     return outImpl;
   }
 
-
   //Used by union operator.  Always copies or downsamples to HLL_8.
   //Caller must ultimately manage oooFlag, as caller has more info
   private static final HllSketchImpl copyOrDownsampleHll(
@@ -389,6 +388,5 @@ public class Union extends BaseHllSketch {
     tgtHllArr.putOutOfOrderFlag(src.isOutOfOrderFlag());
     return tgtHllArr;
   }
-
 
 }

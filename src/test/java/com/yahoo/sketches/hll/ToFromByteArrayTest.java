@@ -77,7 +77,7 @@ public class ToFromByteArrayTest {
 
   //Test direct
   private static void toFrom2(int lgConfigK, TgtHllType tgtHllType, int n) {
-    int bytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     byte[] byteArray = new byte[bytes];
     WritableMemory wmem = WritableMemory.wrap(byteArray);
     HllSketch src = new HllSketch(lgConfigK, tgtHllType, wmem);

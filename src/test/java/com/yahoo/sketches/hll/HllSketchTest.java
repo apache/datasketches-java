@@ -5,7 +5,7 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hll.BaseHllSketch.getMaxUpdatableSerializationBytes;
+import static com.yahoo.sketches.hll.HllSketch.getMaxUpdatableSerializationBytes;
 import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static com.yahoo.sketches.hll.HllUtil.LG_INIT_LIST_SIZE;
 import static com.yahoo.sketches.hll.HllUtil.LG_INIT_SET_SIZE;
@@ -38,7 +38,7 @@ public class HllSketchTest {
     runCheckCopy(8, HLL_6, null);
     runCheckCopy(8, HLL_8, null);
 
-    int bytes = BaseHllSketch.getMaxUpdatableSerializationBytes(14, TgtHllType.HLL_8);
+    int bytes = getMaxUpdatableSerializationBytes(14, TgtHllType.HLL_8);
     WritableMemory wmem = WritableMemory.allocate(bytes);
 
     runCheckCopy(14, HLL_4, wmem);
@@ -129,7 +129,7 @@ public class HllSketchTest {
     int n2 = 24;
     int n3 = 1000;
     int base = 0;
-    int bytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgK, srcType);
+    int bytes = getMaxUpdatableSerializationBytes(lgK, srcType);
     WritableMemory wmem = WritableMemory.allocate(bytes);
 
     HllSketch src = (direct) ? new HllSketch(lgK, srcType, wmem) : new HllSketch(lgK, srcType);
@@ -155,7 +155,7 @@ public class HllSketchTest {
   private static void misc(boolean direct) {
     int lgConfigK = 8;
     TgtHllType srcType = TgtHllType.HLL_8;
-    int bytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, srcType);
+    int bytes = getMaxUpdatableSerializationBytes(lgConfigK, srcType);
     WritableMemory wmem = WritableMemory.allocate(bytes);
 
     HllSketch sk = (direct)
@@ -183,7 +183,7 @@ public class HllSketchTest {
 
     final int hllBytes = PreambleUtil.HLL_BYTE_ARR_START + (1 << lgConfigK);
     assertEquals(sk.getCompactSerializationBytes(), hllBytes);
-    assertEquals(BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, TgtHllType.HLL_8), hllBytes);
+    assertEquals(getMaxUpdatableSerializationBytes(lgConfigK, TgtHllType.HLL_8), hllBytes);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -202,7 +202,7 @@ public class HllSketchTest {
   }
 
   private static void checkSerSizes(int lgConfigK, TgtHllType tgtHllType, boolean direct) { //START HERE
-    int bytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    int bytes = getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     WritableMemory wmem = WritableMemory.allocate(bytes);
     HllSketch sk = (direct)
         ? new HllSketch(lgConfigK, tgtHllType, wmem) : new HllSketch(lgConfigK, tgtHllType);

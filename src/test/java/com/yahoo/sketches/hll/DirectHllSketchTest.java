@@ -28,7 +28,7 @@ public class DirectHllSketchTest {
 
   private static void noWriteAccess(TgtHllType tgtHllType, int n) {
     int lgConfigK = 8;
-    int bytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     WritableMemory wmem = WritableMemory.allocate(bytes);
     HllSketch sk = new HllSketch(lgConfigK, tgtHllType, wmem);
 

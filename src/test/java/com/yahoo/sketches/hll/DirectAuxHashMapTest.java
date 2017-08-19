@@ -30,7 +30,7 @@ public class DirectAuxHashMapTest {
     int lgConfigK = 4;
     TgtHllType tgtHllType = TgtHllType.HLL_4;
     int n = 8; //put lgConfigK == 4 into HLL mode
-    int bytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     HllSketch hllSketch;
     try (WritableDirectHandle handle = WritableMemory.allocateDirect(bytes)) {
       WritableMemory wmem = handle.get();
@@ -78,7 +78,7 @@ public class DirectAuxHashMapTest {
   public void exerciseDirectAux() {
     int lgK = 15; //this combination should create an Aux with ~18 exceptions
     int lgU = 20;
-    int bytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgK, TgtHllType.HLL_4);
+    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, TgtHllType.HLL_4);
     WritableMemory wmem = WritableMemory.allocate(bytes);
     HllSketch sk = new HllSketch(lgK, TgtHllType.HLL_4, wmem);
     for (int i = 0; i < (1 << lgU); i++) { sk.update(i); }
@@ -125,7 +125,7 @@ public class DirectAuxHashMapTest {
   @Test
   public void checkMustReplace() {
     int lgK = 7;
-    int bytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgK, TgtHllType.HLL_4);
+    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, TgtHllType.HLL_4);
     WritableMemory wmem = WritableMemory.allocate(bytes);
     HllSketch sk = new HllSketch(lgK, TgtHllType.HLL_4, wmem);
     for (int i = 0; i < 25; i++) { sk.update(i); }

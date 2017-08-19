@@ -25,7 +25,7 @@ public class CouponListTest {
   private static void checkIterator(boolean direct) {
     int lgConfigK = 8;
     TgtHllType tgtHllType = TgtHllType.HLL_4;
-    int bytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     WritableMemory wmem = WritableMemory.allocate(bytes);
     HllSketch sk = (direct) ? new HllSketch(lgConfigK, tgtHllType, wmem) : new HllSketch(8);
     for (int i = 0; i < 7; i++) { sk.update(i); }
@@ -49,7 +49,7 @@ public class CouponListTest {
   private static void checkDuplicatesAndMisc(boolean direct) {
     int lgConfigK = 8;
     TgtHllType tgtHllType = TgtHllType.HLL_4;
-    int bytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     WritableMemory wmem = WritableMemory.allocate(bytes);
     HllSketch sk = (direct) ? new HllSketch(lgConfigK, tgtHllType, wmem) : new HllSketch(8);
 

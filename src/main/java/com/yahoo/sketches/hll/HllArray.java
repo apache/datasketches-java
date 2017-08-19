@@ -184,6 +184,11 @@ abstract class HllArray extends AbstractHllArray {
     this.oooFlag = oooFlag;
   }
 
+  @Override
+  HllSketchImpl reset() {
+    return new CouponList(lgConfigK, tgtHllType, CurMode.LIST);
+  }
+
   //used by heapify by all Heap HLL
   static final void extractCommonHll(final Memory srcMem, final Object memArr,
       final long memAdd, final HllArray hllArray) {

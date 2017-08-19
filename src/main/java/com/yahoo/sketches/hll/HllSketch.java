@@ -5,7 +5,9 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static com.yahoo.sketches.hll.HllUtil.checkPreamble;
+import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
 import static com.yahoo.sketches.hll.PreambleUtil.extractTgtHllType;
 
@@ -263,6 +265,37 @@ public class HllSketch extends BaseHllSketch {
     return hllSketchImpl.getLowerBound(numStdDev);
   }
 
+  /**
+   * Returns the maximum size in bytes that this sketch can grow to given lgConfigK.
+   * However, for the HLL_4 sketch type, this value can be exceeded in extremely rare cases.
+   * If exceeded, it will be larger by only a few percent.
+   *
+   * @param lgConfigK The Log2 of K for the target HLL sketch. This value must be
+   * between 4 and 21 inclusively.
+   * @param tgtHllType the desired Hll type
+   * @return the maximum size in bytes that this sketch can grow to.
+   */
+  public static final int getMaxUpdatableSerializationBytes(final int lgConfigK,
+      final TgtHllType tgtHllType) {
+    final int arrBytes;
+    if (tgtHllType == TgtHllType.HLL_4) {
+      final int auxBytes = 4 << LG_AUX_ARR_INTS[lgConfigK];
+      arrBytes =  AbstractHllArray.hll4ArrBytes(lgConfigK) + auxBytes;
+    }
+    else if (tgtHllType == TgtHllType.HLL_6) {
+      arrBytes = AbstractHllArray.hll6ArrBytes(lgConfigK);
+    }
+    else { //HLL_8
+      arrBytes = AbstractHllArray.hll8ArrBytes(lgConfigK);
+    }
+    return HLL_BYTE_ARR_START + arrBytes;
+  }
+
+  @Override
+  public TgtHllType getTgtHllType() {
+    return hllSketchImpl.getTgtHllType();
+  }
+
   @Override
   public int getUpdatableSerializationBytes() {
     return hllSketchImpl.getUpdatableSerializationBytes();
@@ -271,11 +304,6 @@ public class HllSketch extends BaseHllSketch {
   @Override
   public double getUpperBound(final int numStdDev) {
     return hllSketchImpl.getUpperBound(numStdDev);
-  }
-
-  @Override
-  public TgtHllType getTgtHllType() {
-    return hllSketchImpl.getTgtHllType();
   }
 
   @Override
@@ -300,8 +328,7 @@ public class HllSketch extends BaseHllSketch {
 
   @Override
   public void reset() {
-    hllSketchImpl = new CouponList(hllSketchImpl.getLgConfigK(), hllSketchImpl.getTgtHllType(),
-        CurMode.LIST);
+    hllSketchImpl = hllSketchImpl.reset();
   }
 
   @Override

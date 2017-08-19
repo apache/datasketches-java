@@ -45,9 +45,9 @@ abstract class HllSketchImpl {
 
   abstract double getLowerBound(int numStdDev);
 
-  abstract int getMemArrStart(); //TODO not used
+  abstract int getMemArrStart();
 
-  abstract int getPreInts(); //TODO not used
+  abstract int getPreInts();
 
   TgtHllType getTgtHllType() {
     return tgtHllType;
@@ -66,6 +66,8 @@ abstract class HllSketchImpl {
   abstract boolean isOutOfOrderFlag();
 
   abstract void putOutOfOrderFlag(boolean oooFlag);
+
+  abstract HllSketchImpl reset();
 
   abstract byte[] toCompactByteArray();
 
