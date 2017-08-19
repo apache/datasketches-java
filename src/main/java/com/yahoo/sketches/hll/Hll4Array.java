@@ -46,7 +46,7 @@ class Hll4Array extends HllArray {
     final long memAdd = mem.getCumulativeOffset(0);
     final int lgConfigK = extractLgK(memArr, memAdd);
     final Hll4Array hll4Array = new Hll4Array(lgConfigK);
-    HllArray.extractCommonHll(hll4Array, mem, memArr, memAdd);
+    HllArray.extractCommonHll(mem, memArr, memAdd, hll4Array);
 
     //load AuxHashMap
     final int offset = HLL_BYTE_ARR_START + hll4Array.getHllByteArrBytes();

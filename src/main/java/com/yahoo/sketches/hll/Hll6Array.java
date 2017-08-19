@@ -43,7 +43,7 @@ class Hll6Array extends HllArray {
     final long memAdd = mem.getCumulativeOffset(0);
     final int lgConfigK = extractLgK(memObj, memAdd);
     final Hll6Array hll6Array = new Hll6Array(lgConfigK);
-    HllArray.extractCommonHll(hll6Array, mem, memObj, memAdd);
+    HllArray.extractCommonHll(mem, memObj, memAdd, hll6Array);
     return hll6Array;
   }
 
@@ -75,16 +75,7 @@ class Hll6Array extends HllArray {
     return new HeapHll6Iterator(1 << lgConfigK);
   }
 
-  @Override
-  int getSlot(final int slotNo) {
-    return get6Bit(mem, 0, slotNo);
-  }
-
-  @Override
-  void putSlot(final int slotNo, final int newValue) {
-    put6Bit(mem, 0, slotNo, newValue);
-  }
-
+  //works for both heap and direct
   static final void put6Bit(final WritableMemory wmem, final int offsetBytes,
       final int slotNo, final int newValue) {
     final int startBit = slotNo * 6;
@@ -96,6 +87,7 @@ class Hll6Array extends HllArray {
     wmem.putShort(byteIdx, insert);
   }
 
+  //works for both heap and direct
   static final int get6Bit(final Memory mem, final int offsetBytes, final int slotNo) {
     final int startBit = slotNo * 6;
     final int shift = (startBit & 0X7) << 32;

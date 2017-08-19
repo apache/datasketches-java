@@ -7,6 +7,7 @@ package com.yahoo.sketches.hll;
 
 import static com.yahoo.memory.UnsafeUtil.unsafe;
 import static com.yahoo.sketches.hll.HllUtil.VAL_MASK_6;
+import static com.yahoo.sketches.hll.HllUtil.noWriteAccess;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 
 import com.yahoo.memory.Memory;
@@ -32,6 +33,7 @@ class DirectHll6Array extends DirectHllArray {
 
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
+    if (wmem == null) { noWriteAccess(); }
     final int configKmask = (1 << getLgConfigK()) - 1;
     final int slotNo = HllUtil.getLow26(coupon) & configKmask;
     final int newVal = HllUtil.getValue(coupon);
@@ -56,16 +58,6 @@ class DirectHll6Array extends DirectHllArray {
   @Override
   int getHllByteArrBytes() {
     return hll6ArrBytes(lgConfigK);
-  }
-
-  @Override
-  int getSlot(final int slotNo) {
-    return Hll6Array.get6Bit(mem, HLL_BYTE_ARR_START, slotNo);
-  }
-
-  @Override
-  void putSlot(final int slotNo, final int newValue) {
-    Hll6Array.put6Bit(wmem, HLL_BYTE_ARR_START, slotNo, newValue);
   }
 
   //ITERATOR

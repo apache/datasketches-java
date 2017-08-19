@@ -57,7 +57,7 @@ abstract class HllArray extends AbstractHllArray {
     hipAccum = that.getHipAccum();
     kxq0 = that.getKxQ0();
     kxq1 = that.getKxQ1();
-    hllByteArr = that.getHllByteArr().clone(); //that.hllByteArr should never be null.
+    hllByteArr = that.hllByteArr.clone(); //that.hllByteArr should never be null.
     final AuxHashMap thatAuxMap = that.getAuxHashMap();
     auxHashMap = (thatAuxMap != null) ? thatAuxMap.copy() : null;
   }
@@ -91,11 +91,6 @@ abstract class HllArray extends AbstractHllArray {
   @Override
   double getHipAccum() {
     return hipAccum;
-  }
-
-  @Override
-  byte[] getHllByteArr() {
-    return hllByteArr;
   }
 
   @Override
@@ -169,10 +164,6 @@ abstract class HllArray extends AbstractHllArray {
     hipAccum = value;
   }
 
-  void putHllByteArr(final byte[] hllByteArr) {
-    this.hllByteArr = hllByteArr;
-  }
-
   @Override
   void putKxQ0(final double kxq0) {
     this.kxq0 = kxq0;
@@ -194,8 +185,8 @@ abstract class HllArray extends AbstractHllArray {
   }
 
   //used by heapify by all Heap HLL
-  static final void extractCommonHll(final HllArray hllArray, final Memory srcMem,
-      final Object memArr, final long memAdd) {
+  static final void extractCommonHll(final Memory srcMem, final Object memArr,
+      final long memAdd, final HllArray hllArray) {
     hllArray.putOutOfOrderFlag(extractOooFlag(memArr, memAdd));
     hllArray.putCurMin(extractCurMin(memArr, memAdd));
     hllArray.putHipAccum(extractHipAccum(memArr, memAdd));
@@ -204,9 +195,7 @@ abstract class HllArray extends AbstractHllArray {
     hllArray.putNumAtCurMin(extractNumAtCurMin(memArr, memAdd));
 
     //load Hll array
-    final byte[] hllByteArr = hllArray.getHllByteArr();
-    final int hllArrLen = hllByteArr.length;
-    srcMem.getByteArray(HLL_BYTE_ARR_START, hllByteArr, 0, hllArrLen);
+    srcMem.getByteArray(HLL_BYTE_ARR_START, hllArray.hllByteArr, 0, hllArray.hllByteArr.length);
   }
 
 }

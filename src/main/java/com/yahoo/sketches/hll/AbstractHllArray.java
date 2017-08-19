@@ -106,8 +106,6 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   abstract double getHipAccum();
 
-  abstract byte[] getHllByteArr();
-
   abstract int getHllByteArrBytes();
 
   @Override
@@ -138,7 +136,10 @@ abstract class AbstractHllArray extends HllSketchImpl {
     return HLL_PREINTS;
   }
 
-  abstract int getSlot(int slotNo);
+  @SuppressWarnings("unused")
+  int getSlot(final int slotNo) {
+    return -1;//intentional, overridden only by heap and direct HLL4
+  }
 
   @Override
   int getUpdatableSerializationBytes() {
@@ -164,7 +165,10 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   abstract void putNumAtCurMin(int numAtCurMin);
 
-  abstract void putSlot(int slotNo, int value);
+  @SuppressWarnings("unused")
+  void putSlot(final int slotNo, final int value) {
+    //intentional no-op, overridden only by heap and direct HLL4
+  }
 
   @Override
   byte[] toCompactByteArray() {
@@ -215,8 +219,8 @@ abstract class AbstractHllArray extends HllSketchImpl {
     if (impl.isMemory()) {
       final Memory mem = impl.getMemory();
       mem.copyTo(HLL_BYTE_ARR_START, wmem, HLL_BYTE_ARR_START, impl.getHllByteArrBytes());
-    } else {
-      final byte[] hllByteArr = impl.getHllByteArr();
+    } else { //Heap
+      final byte[] hllByteArr = ((HllArray)impl).hllByteArr;
       wmem.putByteArray(HLL_BYTE_ARR_START, hllByteArr, 0, hllByteArr.length);
     }
 

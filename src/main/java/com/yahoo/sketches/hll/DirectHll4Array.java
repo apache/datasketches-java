@@ -9,6 +9,7 @@ import static com.yahoo.memory.UnsafeUtil.unsafe;
 import static com.yahoo.sketches.hll.HllUtil.AUX_TOKEN;
 import static com.yahoo.sketches.hll.HllUtil.hiNibbleMask;
 import static com.yahoo.sketches.hll.HllUtil.loNibbleMask;
+import static com.yahoo.sketches.hll.HllUtil.noWriteAccess;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.extractAuxCount;
 
@@ -43,6 +44,7 @@ class DirectHll4Array extends DirectHllArray {
 
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
+    if (wmem == null) { noWriteAccess(); }
     final int newValue = HllUtil.getValue(coupon);
     if (newValue <= getCurMin()) {
       return this; // super quick rejection; only works for large N

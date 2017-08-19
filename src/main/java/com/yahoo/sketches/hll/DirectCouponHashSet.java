@@ -7,27 +7,18 @@ package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.KEY_MASK_26;
-import static com.yahoo.sketches.hll.HllUtil.LG_INIT_SET_SIZE;
 import static com.yahoo.sketches.hll.HllUtil.RESIZE_DENOM;
 import static com.yahoo.sketches.hll.HllUtil.RESIZE_NUMER;
 import static com.yahoo.sketches.hll.HllUtil.noWriteAccess;
-import static com.yahoo.sketches.hll.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_INT_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_PREINTS;
 import static com.yahoo.sketches.hll.PreambleUtil.LG_K_BYTE;
 import static com.yahoo.sketches.hll.PreambleUtil.extractHashSetCount;
 import static com.yahoo.sketches.hll.PreambleUtil.extractInt;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgArr;
-import static com.yahoo.sketches.hll.PreambleUtil.insertFamilyId;
-import static com.yahoo.sketches.hll.PreambleUtil.insertFlags;
 import static com.yahoo.sketches.hll.PreambleUtil.insertHashSetCount;
 import static com.yahoo.sketches.hll.PreambleUtil.insertInt;
 import static com.yahoo.sketches.hll.PreambleUtil.insertLgArr;
-import static com.yahoo.sketches.hll.PreambleUtil.insertLgK;
-import static com.yahoo.sketches.hll.PreambleUtil.insertListCount;
-import static com.yahoo.sketches.hll.PreambleUtil.insertModes;
-import static com.yahoo.sketches.hll.PreambleUtil.insertPreInts;
-import static com.yahoo.sketches.hll.PreambleUtil.insertSerVer;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
@@ -53,33 +44,33 @@ class DirectCouponHashSet extends DirectCouponList {
     assert mem.getByte(LG_K_BYTE) > 7;
   }
 
-  /**
-   * Standard factory for new DirectCouponHashSet. Primarily used in test.
-   * This initializes the given WritableMemory.
-   * @param lgConfigK the configured Lg K, must be greater than 7
-   * @param tgtHllType the configured HLL target
-   * @param dstMem the destination memory for the sketch.
-   */
-  static DirectCouponHashSet newInstance(final int lgConfigK, final TgtHllType tgtHllType,
-      final WritableMemory dstMem) {
-    final long capBytes = dstMem.getCapacity();
-    final int minBytes = HASH_SET_INT_ARR_START + (4 << LG_INIT_SET_SIZE);
-    HllUtil.checkMemSize(minBytes, capBytes);
-
-    final Object memObj = dstMem.getArray();
-    final long memAdd = dstMem.getCumulativeOffset(0L);
-
-    insertPreInts(memObj, memAdd, HASH_SET_PREINTS);
-    insertSerVer(memObj, memAdd);
-    insertFamilyId(memObj, memAdd);
-    insertLgK(memObj, memAdd, lgConfigK);
-    insertLgArr(memObj, memAdd, LG_INIT_SET_SIZE);
-    insertFlags(memObj, memAdd, EMPTY_FLAG_MASK);
-    insertListCount(memObj, memAdd, 0); //zero out for SET also
-    insertModes(memObj, memAdd, tgtHllType, CurMode.SET);
-    insertHashSetCount(memObj, memAdd, 0);
-    return new DirectCouponHashSet(lgConfigK, tgtHllType, dstMem);
-  }
+  //  /**
+  //   * Standard factory for new DirectCouponHashSet. Primarily used in test.
+  //   * This initializes the given WritableMemory.
+  //   * @param lgConfigK the configured Lg K, must be greater than 7
+  //   * @param tgtHllType the configured HLL target
+  //   * @param dstMem the destination memory for the sketch.
+  //   */
+  //  static DirectCouponHashSet newInstance(final int lgConfigK, final TgtHllType tgtHllType,
+  //      final WritableMemory dstMem) {
+  //    final long capBytes = dstMem.getCapacity();
+  //    final int minBytes = HASH_SET_INT_ARR_START + (4 << LG_INIT_SET_SIZE);
+  //    HllUtil.checkMemSize(minBytes, capBytes);
+  //
+  //    final Object memObj = dstMem.getArray();
+  //    final long memAdd = dstMem.getCumulativeOffset(0L);
+  //
+  //    insertPreInts(memObj, memAdd, HASH_SET_PREINTS);
+  //    insertSerVer(memObj, memAdd);
+  //    insertFamilyId(memObj, memAdd);
+  //    insertLgK(memObj, memAdd, lgConfigK);
+  //    insertLgArr(memObj, memAdd, LG_INIT_SET_SIZE);
+  //    insertFlags(memObj, memAdd, EMPTY_FLAG_MASK);
+  //    insertListCount(memObj, memAdd, 0); //zero out for SET also
+  //    insertModes(memObj, memAdd, tgtHllType, CurMode.SET);
+  //    insertHashSetCount(memObj, memAdd, 0);
+  //    return new DirectCouponHashSet(lgConfigK, tgtHllType, dstMem);
+  //  }
 
   @Override //returns on-heap Set
   CouponHashSet copy() {

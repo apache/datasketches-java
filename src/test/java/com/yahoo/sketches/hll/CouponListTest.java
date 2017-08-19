@@ -9,6 +9,8 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.memory.WritableMemory;
+
 /**
  * @author Lee Rhodes
  */
@@ -16,21 +18,41 @@ public class CouponListTest {
 
   @Test
   public void checkIterator() {
-    HllSketch sk = new HllSketch(8);
-    for (int i = 0; i < 15; i++) { sk.update(i); }
+    checkIterator(false);
+    checkIterator(true);
+  }
+
+  private static void checkIterator(boolean direct) {
+    int lgConfigK = 8;
+    TgtHllType tgtHllType = TgtHllType.HLL_4;
+    int bytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+    HllSketch sk = (direct) ? new HllSketch(lgConfigK, tgtHllType, wmem) : new HllSketch(8);
+    for (int i = 0; i < 7; i++) { sk.update(i); }
     PairIterator itr = sk.getIterator();
     println(itr.getHeader());
     while (itr.nextAll()) {
       int key = itr.getKey();
       int val = itr.getValue();
       int idx = itr.getIndex();
-      println("Idx: " + idx + ", Key: " + key + ", Val: " + val);
+      int slot = itr.getSlot();
+      println("Idx: " + idx + ", Key: " + key + ", Val: " + val + ", Slot: " + slot);
     }
   }
 
   @Test
   public void checkDuplicatesAndMisc() {
-    HllSketch sk = new HllSketch(8);
+    checkDuplicatesAndMisc(false);
+    checkDuplicatesAndMisc(true);
+  }
+
+  private static void checkDuplicatesAndMisc(boolean direct) {
+    int lgConfigK = 8;
+    TgtHllType tgtHllType = TgtHllType.HLL_4;
+    int bytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+    HllSketch sk = (direct) ? new HllSketch(lgConfigK, tgtHllType, wmem) : new HllSketch(8);
+
     for (int i = 1; i <= 7; i++) {
       sk.update(i);
       sk.update(i);

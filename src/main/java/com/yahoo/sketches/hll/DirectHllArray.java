@@ -95,11 +95,6 @@ abstract class DirectHllArray extends AbstractHllArray {
   }
 
   @Override
-  byte[] getHllByteArr() { //not allowed
-    return null;
-  }
-
-  @Override
   double getKxQ0() {
     return extractKxQ0(memObj, memAdd);
   }

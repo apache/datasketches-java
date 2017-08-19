@@ -123,9 +123,9 @@ public class HllSketchTest {
     copyAs(HLL_8, HLL_8, true);
   }
 
-  public void copyAs(TgtHllType srcType, TgtHllType dstType, boolean direct) {
+  private static void copyAs(TgtHllType srcType, TgtHllType dstType, boolean direct) {
     int lgK = 8;
-    int n1 = 15;
+    int n1 = 7;
     int n2 = 24;
     int n3 = 1000;
     int base = 0;
@@ -152,7 +152,7 @@ public class HllSketchTest {
     misc(true);
   }
 
-  public void misc(boolean direct) {
+  private static void misc(boolean direct) {
     int lgConfigK = 8;
     TgtHllType srcType = TgtHllType.HLL_8;
     int bytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, srcType);
@@ -201,8 +201,7 @@ public class HllSketchTest {
     checkSerSizes(8, TgtHllType.HLL_4, true);
   }
 
-
-  public void checkSerSizes(int lgConfigK, TgtHllType tgtHllType, boolean direct) { //START HERE
+  private static void checkSerSizes(int lgConfigK, TgtHllType tgtHllType, boolean direct) { //START HERE
     int bytes = BaseHllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     WritableMemory wmem = WritableMemory.allocate(bytes);
     HllSketch sk = (direct)
@@ -252,7 +251,7 @@ public class HllSketchTest {
 
   @SuppressWarnings("unused")
   @Test
-  public void checkMisc2() {
+  public void checkConfigKLimits() {
     try {
       HllSketch sk = new HllSketch(HllUtil.MIN_LOG_K - 1);
       fail();
@@ -265,20 +264,26 @@ public class HllSketchTest {
     } catch (SketchesArgumentException e) {
       //expected
     }
-    HllSketch sk = new HllSketch(HllUtil.MAX_LOG_K);
-    println(sk.toString(false, false, true, false));
   }
 
   @Test
-  public void checkSizes() {
-    int lgK = 6;
-    HllSketch sk = new HllSketch(lgK, TgtHllType.HLL_4);
-    for (int i = 0; i < (1 << lgK); i++ ) {
-      sk.update(i);
+  public void checkToString() {
+    HllSketch sk = new HllSketch(15, TgtHllType.HLL_4);
+    for (int i = 0; i < (1 << 20); i++) { sk.update(i); }
+    sk.toString(false, true, true, true);
+  }
+
+  @SuppressWarnings("unused")
+  @Test
+  public void checkMemoryNotLargeEnough() {
+    int bytes = getMaxUpdatableSerializationBytes(8, TgtHllType.HLL_8);
+    WritableMemory wmem = WritableMemory.allocate(bytes -1);
+    try {
+      HllSketch sk = new HllSketch(8, TgtHllType.HLL_8, wmem);
+      fail();
+    } catch (SketchesArgumentException e) {
+      //OK
     }
-    println(sk.toString(true, true, true, false));
-    int bytes = sk.getCompactSerializationBytes();
-    println("Size: " + bytes);
   }
 
   @Test
@@ -290,7 +295,7 @@ public class HllSketchTest {
    * @param s value to print
    */
   static void print(String s) {
-    System.out.print(s); //disable here
+    //System.out.print(s); //disable here
   }
 
   /**

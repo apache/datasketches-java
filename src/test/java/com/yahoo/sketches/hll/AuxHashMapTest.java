@@ -7,6 +7,7 @@ package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
@@ -85,6 +86,8 @@ public class AuxHashMapTest {
   @Test
   public void checkGrowSpace() {
     HeapAuxHashMap map = new HeapAuxHashMap(3, 7);
+    assertFalse(map.isMemory());
+    assertFalse(map.isOffHeap());
     assertEquals(map.getLgAuxArrInts(), 3);
     for (int i = 1; i <= 7; i++) {
       map.mustAdd(i, i);

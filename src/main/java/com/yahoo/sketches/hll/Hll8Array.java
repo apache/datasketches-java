@@ -40,7 +40,7 @@ class Hll8Array extends HllArray {
     final long memAdd = mem.getCumulativeOffset(0);
     final int lgConfigK = extractLgK(memArr, memAdd);
     final Hll8Array hll8Array = new Hll8Array(lgConfigK);
-    HllArray.extractCommonHll(hll8Array, mem, memArr, memAdd);
+    HllArray.extractCommonHll(mem, memArr, memAdd, hll8Array);
     return hll8Array;
   }
 
@@ -55,7 +55,6 @@ class Hll8Array extends HllArray {
     final int slotNo = HllUtil.getLow26(coupon) & configKmask;
     final int newVal = HllUtil.getValue(coupon);
     assert newVal > 0;
-    final byte[] hllByteArr = getHllByteArr();
     final int curVal = hllByteArr[slotNo] & VAL_MASK_6;
     if (newVal > curVal) {
       hllByteArr[slotNo] = (byte) (newVal & VAL_MASK_6);
@@ -71,16 +70,6 @@ class Hll8Array extends HllArray {
   @Override
   PairIterator getIterator() {
     return new HeapHll8Iterator(1 << lgConfigK);
-  }
-
-  @Override
-  int getSlot(final int slotNo) {
-    return hllByteArr[slotNo];
-  }
-
-  @Override
-  void putSlot(final int slotNo, final int newValue) {
-    hllByteArr[slotNo] = (byte) newValue;
   }
 
   //ITERATOR
