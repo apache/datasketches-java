@@ -76,11 +76,15 @@ abstract class AbstractHllArray extends HllSketchImpl {
     return (auxHashMap == null) ? null : auxHashMap.getIterator();
   }
 
+  public int getAuxStart() {
+    return HLL_BYTE_ARR_START + hll4ArrBytes(lgConfigK);
+  }
+
   @Override
   int getCompactSerializationBytes() {
     final AuxHashMap auxHashMap = getAuxHashMap();
-    final int auxBytes = (auxHashMap == null) ? 0 : auxHashMap.getAuxCount() << 2;
-    return HLL_BYTE_ARR_START + getHllByteArrBytes() + auxBytes;
+    final int auxCountBytes = (auxHashMap == null) ? 0 : auxHashMap.getAuxCount() << 2;
+    return HLL_BYTE_ARR_START + getHllByteArrBytes() + auxCountBytes;
   }
 
   /**
@@ -153,7 +157,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
     return upperBound(this, numStdDev);
   }
 
-  abstract void putAuxHashMap(AuxHashMap auxHashMap);
+  abstract void putAuxHashMap(AuxHashMap auxHashMap, boolean compact);
 
   abstract void putCurMin(int curMin);
 
@@ -259,7 +263,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
     final int auxCount = auxHashMap.getAuxCount();
     insertAuxCount(memObj, memAdd, auxCount);
     insertLgArr(memObj, memAdd, auxHashMap.getLgAuxArrInts()); //only used for direct HLL
-    final long auxStart = HLL_BYTE_ARR_START + impl.getHllByteArrBytes();
+    final long auxStart = impl.getAuxStart();
     if (compact) {
       final PairIterator itr = auxHashMap.getIterator();
       int cnt = 0;
@@ -318,6 +322,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
     final int lbOnOldValue =  rawStoredOldValue + curMin; //lower bound, could be 0
 
     if (newValue > lbOnOldValue) { //842:
+      //Note: if an AUX_TOKEN exists, then auxHashMap must already exist
       final int actualOldValue = (rawStoredOldValue < AUX_TOKEN)
           ? lbOnOldValue
           : auxHashMap.mustFindValueFor(slotNo); //846 rawStoredOldValue == AUX_TOKEN
@@ -362,7 +367,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
             host.putSlot(slotNo, AUX_TOKEN);
             if (auxHashMap == null) {
               auxHashMap = host.getNewAuxHashMap();
-              host.putAuxHashMap(auxHashMap);
+              host.putAuxHashMap(auxHashMap, false);
             }
             auxHashMap.mustAdd(slotNo, newValue);
           }
@@ -423,7 +428,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
     //If old AuxHashMap exists, walk through it updating some slots and build a new AuxHashMap
     // if needed.
-    HeapAuxHashMap newAuxMap = null;
+    AuxHashMap newAuxMap = null;
     final AuxHashMap oldAuxMap = host.getAuxHashMap();
     if (oldAuxMap != null) {
       int slotNum;
@@ -449,6 +454,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
         else { //newShiftedVal >= AUX_TOKEN
           // the former exception remains an exception, so must be added to the newAuxMap
           if (newAuxMap == null) {
+            //Note: even in the direct case we use a heap aux map temporarily
             newAuxMap = new HeapAuxHashMap(LG_AUX_ARR_INTS[lgConfigK], lgConfigK);
           }
           newAuxMap.mustAdd(slotNum, oldActualVal);
@@ -456,13 +462,14 @@ abstract class AbstractHllArray extends HllSketchImpl {
       } //end scan of oldAuxMap
     } //end if (auxHashMap != null)
     else { //oldAuxMap == null
-      assert numAuxTokens == 0;
+      assert numAuxTokens == 0 : "auxTokens: " + numAuxTokens;
     }
 
     if (newAuxMap != null) {
-      assert newAuxMap.getAuxCount() == numAuxTokens;
+      assert newAuxMap.getAuxCount() == numAuxTokens : "auxCount: " + newAuxMap.getAuxCount()
+        + ", HLL tokens: " + numAuxTokens;
     }
-    host.putAuxHashMap(newAuxMap);
+    host.putAuxHashMap(newAuxMap, false); //if we are direct, this will do the right thing
 
     host.putCurMin(newCurMin);
     host.putNumAtCurMin(numAtNewCurMin);
@@ -630,7 +637,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
         hll4Array.putSlot(slotNo, AUX_TOKEN);
         if (auxHashMap == null) {
           auxHashMap = new HeapAuxHashMap(LG_AUX_ARR_INTS[lgConfigK], lgConfigK);
-          hll4Array.putAuxHashMap(auxHashMap);
+          hll4Array.putAuxHashMap(auxHashMap, false);
         }
         auxHashMap.mustAdd(slotNo, actualValue);
       } else {

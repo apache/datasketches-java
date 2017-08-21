@@ -59,7 +59,11 @@ abstract class HllArray extends AbstractHllArray {
     kxq1 = that.getKxQ1();
     hllByteArr = that.hllByteArr.clone(); //that.hllByteArr should never be null.
     final AuxHashMap thatAuxMap = that.getAuxHashMap();
-    auxHashMap = (thatAuxMap != null) ? thatAuxMap.copy() : null;
+    if (thatAuxMap != null) {
+      putAuxHashMap(thatAuxMap.copy(), false);
+    } else {
+      putAuxHashMap(null, false);
+    }
   }
 
   static final HllArray newHeapHll(final int lgConfigK, final TgtHllType tgtHllType) {
@@ -150,7 +154,7 @@ abstract class HllArray extends AbstractHllArray {
   }
 
   @Override
-  void putAuxHashMap(final AuxHashMap auxHashMap) {
+  void putAuxHashMap(final AuxHashMap auxHashMap, final boolean compact) {
     this.auxHashMap = auxHashMap;
   }
 

@@ -12,6 +12,7 @@ import static com.yahoo.sketches.hll.HllUtil.loNibbleMask;
 import static com.yahoo.sketches.hll.HllUtil.noWriteAccess;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.extractAuxCount;
+import static com.yahoo.sketches.hll.PreambleUtil.extractCompactFlag;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
@@ -25,15 +26,24 @@ class DirectHll4Array extends DirectHllArray {
   DirectHll4Array(final int lgConfigK, final WritableMemory wmem) {
     super(lgConfigK, TgtHllType.HLL_4, wmem);
     if (extractAuxCount(memObj, memAdd) > 0) {
-      auxHashMap = new DirectAuxHashMap(this, false);
+      putAuxHashMap(new DirectAuxHashMap(this, false), false);
     }
   }
 
   //Called by HllSketch.wrap(Memory)
   DirectHll4Array(final int lgConfigK, final Memory mem) {
     super(lgConfigK, TgtHllType.HLL_4, mem);
-    if (extractAuxCount(memObj, memAdd) > 0) {
-      auxHashMap = new DirectAuxHashMap(this, false);
+    final int auxCount = extractAuxCount(memObj, memAdd);
+    if (auxCount > 0) {
+      final boolean compact = extractCompactFlag(memObj, memAdd);
+      final AuxHashMap auxHashMap;
+      if (compact) {
+        final int auxStart = getAuxStart();
+        auxHashMap = HeapAuxHashMap.heapify(mem, auxStart, lgConfigK, auxCount, compact);
+      } else {
+        auxHashMap =  new DirectAuxHashMap(this, false); //not compact
+      }
+      putAuxHashMap(auxHashMap, compact);
     }
   }
 
@@ -96,9 +106,12 @@ class DirectHll4Array extends DirectHllArray {
     @Override
     int value() {
       final int nib = DirectHll4Array.this.getSlot(index);
-      return (nib == AUX_TOKEN)
-          ? auxHashMap.mustFindValueFor(index) //directAuxHashMap cannot be null here
-          : nib + getCurMin();
+      if (nib == AUX_TOKEN) {
+        final AuxHashMap auxHashMap = getAuxHashMap();
+        return auxHashMap.mustFindValueFor(index); //auxHashMap cannot be null here
+      } else {
+        return nib + getCurMin();
+      }
     }
   }
 

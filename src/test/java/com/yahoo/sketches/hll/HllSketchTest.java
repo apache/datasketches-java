@@ -222,7 +222,7 @@ public class HllSketchTest {
 
     sk.update(i);
     AbstractHllArray absHll = (AbstractHllArray) sk.hllSketchImpl;
-    AuxHashMap map =  absHll.auxHashMap;
+    AuxHashMap map =  absHll.getAuxHashMap();
     int auxCountBytes = 0;
     int auxArrBytes = 0;
     if (map != null) {

@@ -28,16 +28,12 @@ class DirectAuxHashMap implements AuxHashMap {
 
   DirectAuxHashMap(final DirectHllArray host, final boolean initialize) {
     this.host = host;
-    final int lgConfigK = host.lgConfigK;
-    final Object memObj = host.memObj;
-    final long memAdd = host.memAdd;
-    final int initLgArrInts = HllUtil.LG_AUX_ARR_INTS[lgConfigK];
-    final int memLgArrInts = extractLgArr(memObj, memAdd);
+    final int initLgArrInts = HllUtil.LG_AUX_ARR_INTS[host.lgConfigK];
     if (initialize) {
-      insertLgArr(memObj, memAdd, initLgArrInts);
+      insertLgArr(host.memObj, host.memAdd, initLgArrInts);
       host.wmem.clear(host.auxArrOffset, 4 << initLgArrInts);
     } else {
-      assert memLgArrInts >= initLgArrInts;
+      assert extractLgArr(host.memObj, host.memAdd) >= initLgArrInts;
     }
   }
 
@@ -63,7 +59,7 @@ class DirectAuxHashMap implements AuxHashMap {
 
   @Override
   public PairIterator getIterator() {
-    return new DirectAuxIterator(host.wmem, host.auxArrOffset, 1 << getLgAuxArrInts(),
+    return new DirectAuxIterator(host.mem, host.auxArrOffset, 1 << getLgAuxArrInts(),
         host.lgConfigK);
   }
 

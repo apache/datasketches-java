@@ -95,8 +95,7 @@ public class HllSketch extends BaseHllSketch {
   }
 
   /**
-   * Heapify the given byte array as read-only.
-   * The byte-array must be a valid HllSketch image and may have data.
+   * Heapify the given byte array, which must be a valid HllSketch image and may have data.
    * @param byteArray the given byte array
    * @return an HllSketch
    */
@@ -105,7 +104,7 @@ public class HllSketch extends BaseHllSketch {
   }
 
   /**
-   * Heapify the given read-only Memory, which must be a valid HllSketch image and may have data.
+   * Heapify the given Memory, which must be a valid HllSketch image and may have data.
    * @param srcMem the given Memory
    * @return an HllSketch
    */
@@ -132,7 +131,8 @@ public class HllSketch extends BaseHllSketch {
   }
 
   /**
-   * Wraps the given WritableMemory, which will be initialized with a new instance of an HllSketch.
+   * Wraps the given WritableMemory, which will be initialized with a new instance of an
+   * HllSketch.
    * @param lgConfigK The Log2 of K for the target HLL sketch. This value must be
    * between 4 and 21 inclusively.
    * @param tgtHllType the desired Hll type.
@@ -152,7 +152,8 @@ public class HllSketch extends BaseHllSketch {
   }
 
   /**
-   * Wraps the given WritableMemory, which must be a image of a valid sketch, and may have data.
+   * Wraps the given WritableMemory, which must be a image of a valid updatable sketch,
+   * and may have data.
    * @param wmem an image of a valid sketch with data that will also be written to.
    * @return an HllSketch
    */
@@ -187,8 +188,9 @@ public class HllSketch extends BaseHllSketch {
   }
 
   /**
-   * Wraps the given read-only Memory that must be a image of a valid sketch, and may have data.
-   * @param srcMem an image of a valid sketch with data.
+   * Wraps the given read-only Memory that must be a image of a valid sketch,
+   * which may be in compact or updatable form, and should have data.
+   * @param srcMem an image of a valid sketch.
    * @return an HllSketch
    */
   public static final HllSketch wrap(final Memory srcMem) {
@@ -196,7 +198,6 @@ public class HllSketch extends BaseHllSketch {
     final long memAdd = srcMem.getCumulativeOffset(0);
     final int lgConfigK = extractLgK(memObj, memAdd);
     final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
-    HllUtil.checkPreamble(srcMem);
 
     final CurMode curMode = checkPreamble(srcMem);
     final HllSketch directSketch;

@@ -25,11 +25,18 @@ public class AuxHashMapTest {
   public void exerciseAux() {
     int lgK = 15; //this combination should create an Aux with ~18 exceptions
     int lgU = 20;
-    HllSketch sk = new HllSketch(lgK, TgtHllType.HLL_4);
-    for (int i = 0; i < (1 << lgU); i++) { sk.update(i); }
-    AbstractHllArray absHll = (AbstractHllArray) sk.hllSketchImpl;
-    int curMin = absHll.getCurMin();
     println("HLL_4, lgK: " + lgK + ", lgU: " + lgU);
+
+    HllSketch sketch = new HllSketch(lgK, TgtHllType.HLL_4);
+    for (int i = 0; i < (1 << lgU); i++) { sketch.update(i); }
+
+    //check Ser Bytes
+    assertEquals(sketch.getUpdatableSerializationBytes(), 40 + (1 << (lgK - 1))
+        + (4 << LG_AUX_ARR_INTS[lgK]) );
+
+    AbstractHllArray absHll = (AbstractHllArray) sketch.hllSketchImpl;
+    int curMin = absHll.getCurMin();
+
     println("CurMin: " + curMin);
     PairIterator itr = absHll.getAuxIterator();
     println("Aux Array before SerDe.");
@@ -38,14 +45,14 @@ public class AuxHashMapTest {
       println(itr.getString());
     }
 
-    byte[] byteArr = sk.toCompactByteArray();
+    byte[] byteArr = sketch.toUpdatableByteArray();
     HllSketch sk2 = HllSketch.heapify(Memory.wrap(byteArr));
-    assertEquals(sk.getEstimate(), sk2.getEstimate());
+    assertEquals(sketch.getEstimate(), sk2.getEstimate());
 
-    assertEquals(sk.getUpdatableSerializationBytes(), 40 + (1 << (lgK - 1))
+    assertEquals(sketch.getUpdatableSerializationBytes(), 40 + (1 << (lgK - 1))
         + (4 << LG_AUX_ARR_INTS[lgK]));
 
-    PairIterator h4itr = sk.getIterator();
+    PairIterator h4itr = sketch.getIterator();
     println("\nMain Array: where (value - curMin) > 14. key/vals should match above.");
     println(h4itr.getHeader());
     while (h4itr.nextValid()) {
@@ -61,7 +68,7 @@ public class AuxHashMapTest {
         println(h4itr.getString());
       }
     }
-    sk.toString(true, true, true, false);
+    sketch.toString(true, true, true, false);
   }
 
   @Test

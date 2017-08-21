@@ -8,7 +8,6 @@ package com.yahoo.sketches.hll;
 import static com.yahoo.memory.UnsafeUtil.unsafe;
 import static com.yahoo.sketches.hll.PreambleUtil.CUR_MIN_COUNT_INT;
 import static com.yahoo.sketches.hll.PreambleUtil.HIP_ACCUM_DOUBLE;
-import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCurMin;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCurMode;
 import static com.yahoo.sketches.hll.PreambleUtil.extractEmptyFlag;
@@ -19,10 +18,12 @@ import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
 import static com.yahoo.sketches.hll.PreambleUtil.extractNumAtCurMin;
 import static com.yahoo.sketches.hll.PreambleUtil.extractOooFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.extractTgtHllType;
+import static com.yahoo.sketches.hll.PreambleUtil.insertAuxCount;
 import static com.yahoo.sketches.hll.PreambleUtil.insertCurMin;
 import static com.yahoo.sketches.hll.PreambleUtil.insertHipAccum;
 import static com.yahoo.sketches.hll.PreambleUtil.insertKxQ0;
 import static com.yahoo.sketches.hll.PreambleUtil.insertKxQ1;
+import static com.yahoo.sketches.hll.PreambleUtil.insertLgArr;
 import static com.yahoo.sketches.hll.PreambleUtil.insertNumAtCurMin;
 import static com.yahoo.sketches.hll.PreambleUtil.insertOooFlag;
 
@@ -47,7 +48,7 @@ abstract class DirectHllArray extends AbstractHllArray {
     mem = wmem;
     memObj = wmem.getArray();
     memAdd = wmem.getCumulativeOffset(0L);
-    auxArrOffset = HLL_BYTE_ARR_START + (1 << (lgConfigK - 1));
+    auxArrOffset = getAuxStart();
   }
 
   //Memory must be initialized, should have data
@@ -57,7 +58,7 @@ abstract class DirectHllArray extends AbstractHllArray {
     this.mem = mem;
     memObj = ((WritableMemory) mem).getArray();
     memAdd = mem.getCumulativeOffset(0L);
-    auxArrOffset = HLL_BYTE_ARR_START + (1 << (lgConfigK - 1));
+    auxArrOffset = getAuxStart();
   }
 
   //only called by DirectAuxHashMap
@@ -151,8 +152,22 @@ abstract class DirectHllArray extends AbstractHllArray {
   }
 
   @Override
-  void putAuxHashMap(final AuxHashMap auxHashMap) {
-    this.auxHashMap = auxHashMap;
+  void putAuxHashMap(final AuxHashMap auxHashMap, final boolean compact) {
+    if (auxHashMap instanceof HeapAuxHashMap) {
+      if (compact) {
+        this.auxHashMap = auxHashMap; //heap and compact
+      } else { //heap and not compact
+        final int auxStart = getAuxStart();
+        final int[] auxArr = auxHashMap.getAuxIntArr();
+        wmem.putIntArray(auxStart, auxArr, 0, auxArr.length);
+        insertLgArr(memObj, memAdd, auxHashMap.getLgAuxArrInts());
+        insertAuxCount(memObj, memAdd, auxHashMap.getAuxCount());
+        this.auxHashMap = new DirectAuxHashMap(this, false);
+      }
+    } else { //DirectAuxHashMap
+      assert !compact; //must not be compact
+      this.auxHashMap = auxHashMap;
+    }
   }
 
   @Override

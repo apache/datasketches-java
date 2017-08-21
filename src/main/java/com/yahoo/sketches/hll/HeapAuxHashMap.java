@@ -66,7 +66,6 @@ class HeapAuxHashMap implements AuxHashMap {
     }
     auxMap = new HeapAuxHashMap(lgAuxArrInts, lgConfigK);
 
-
     final int configKmask = (1 << lgConfigK) - 1;
 
     if (srcCompact) {

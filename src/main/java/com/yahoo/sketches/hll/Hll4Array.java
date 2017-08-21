@@ -8,7 +8,6 @@ package com.yahoo.sketches.hll;
 import static com.yahoo.sketches.hll.HllUtil.AUX_TOKEN;
 import static com.yahoo.sketches.hll.HllUtil.hiNibbleMask;
 import static com.yahoo.sketches.hll.HllUtil.loNibbleMask;
-import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.extractAuxCount;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCompactFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
@@ -30,7 +29,6 @@ class Hll4Array extends HllArray {
   Hll4Array(final int lgConfigK) {
     super(lgConfigK, TgtHllType.HLL_4);
     hllByteArr = new byte[hll4ArrBytes(lgConfigK)];
-    auxHashMap = null;
   }
 
   /**
@@ -49,14 +47,14 @@ class Hll4Array extends HllArray {
     HllArray.extractCommonHll(mem, memArr, memAdd, hll4Array);
 
     //load AuxHashMap
-    final int offset = HLL_BYTE_ARR_START + hll4Array.getHllByteArrBytes();
+    final int auxStart = hll4Array.getAuxStart();
     final int auxCount = extractAuxCount(memArr, memAdd);
     final boolean compact = extractCompactFlag(memArr, memAdd);
     HeapAuxHashMap auxHashMap = null;
     if (auxCount > 0) {
-      auxHashMap = HeapAuxHashMap.heapify(mem, offset, lgConfigK, auxCount, compact);
+      auxHashMap = HeapAuxHashMap.heapify(mem, auxStart, lgConfigK, auxCount, compact);
     }
-    hll4Array.putAuxHashMap(auxHashMap);
+    hll4Array.putAuxHashMap(auxHashMap, false);
     return hll4Array;
   }
 
@@ -113,9 +111,12 @@ class Hll4Array extends HllArray {
     @Override
     int value() {
       final int nib = Hll4Array.this.getSlot(index);
-      return (nib == AUX_TOKEN)
-          ? auxHashMap.mustFindValueFor(index) //auxHashMap cannot be null here
-          : nib + getCurMin();
+      if (nib == AUX_TOKEN) {
+        final AuxHashMap auxHashMap = getAuxHashMap();
+        return auxHashMap.mustFindValueFor(index); //auxHashMap cannot be null here
+      } else {
+        return nib + getCurMin();
+      }
     }
   }
 
