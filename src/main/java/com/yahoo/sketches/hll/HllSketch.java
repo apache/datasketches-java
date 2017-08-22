@@ -43,7 +43,7 @@ public class HllSketch extends BaseHllSketch {
   HllSketchImpl hllSketchImpl = null;
 
   /**
-   * Constructs a new sketch with a HLL_4 sketch as the default.
+   * Constructs a new on-heap sketch with a HLL_4 sketch as the default.
    * @param lgConfigK The Log2 of K for the target HLL sketch. This value must be
    * between 4 and 21 inclusively.
    */
@@ -52,7 +52,7 @@ public class HllSketch extends BaseHllSketch {
   }
 
   /**
-   * Constructs a new sketch with the type of HLL sketch to configure.
+   * Constructs a new on-heap sketch with the type of HLL sketch to configure.
    * @param lgConfigK The Log2 of K for the target HLL sketch. This value must be
    * between 4 and 21 inclusively.
    * @param tgtHllType the desired Hll type.
@@ -63,8 +63,11 @@ public class HllSketch extends BaseHllSketch {
 
   /**
    * Constructs a new direct sketch with the type of HLL sketch to configure and the given
-   * WritableMemory as the destination for the sketch.
-   * This checks that the given <i>dstMem</i> has the required capacity as determined by
+   * WritableMemory as the destination for the sketch.  What remains on the java heap is a
+   * thin wrapper object that reads and writes to the given WritableMemory, which, depending on
+   * how the user configures the WritableMemory, may actually reside on the Java heap or off-heap.
+   *
+   * <p>The given <i>dstMem</i> is checked for the required capacity as determined by
    * {@link #getMaxUpdatableSerializationBytes(int, TgtHllType)}.
    * @param lgConfigK The Log2 of K for the target HLL sketch. This value must be
    * between 4 and 21 inclusively.
@@ -97,8 +100,9 @@ public class HllSketch extends BaseHllSketch {
 
   /**
    * Heapify the given byte array, which must be a valid HllSketch image and may have data.
-   * @param byteArray the given byte array
-   * @return an HllSketch
+   * @param byteArray the given byte array.  This byteArray is not modified and is not retained
+   * by the on-heap sketch.
+   * @return an HllSketch on the java heap.
    */
   public static final HllSketch heapify(final byte[] byteArray) {
     return heapify(Memory.wrap(byteArray));
@@ -106,8 +110,8 @@ public class HllSketch extends BaseHllSketch {
 
   /**
    * Heapify the given Memory, which must be a valid HllSketch image and may have data.
-   * @param srcMem the given Memory
-   * @return an HllSketch
+   * @param srcMem the given Memory, which is read-only.
+   * @return an HllSketch on the java heap.
    */
   public static final HllSketch heapify(final Memory srcMem) {
     final Object memObj = ((WritableMemory) srcMem).getArray();
@@ -133,44 +137,51 @@ public class HllSketch extends BaseHllSketch {
 
   /**
    * Wraps the given WritableMemory, which must be a image of a valid updatable sketch,
-   * and may have data.
-   * @param wmem an image of a valid sketch with data that will also be written to.
-   * @return an HllSketch
+   * and may have data. What remains on the java heap is a
+   * thin wrapper object that reads and writes to the given WritableMemory, which, depending on
+   * how the user configures the WritableMemory, may actually reside on the Java heap or off-heap.
+   *
+   * <p>The given <i>dstMem</i> is checked for the required capacity as determined by
+   * {@link #getMaxUpdatableSerializationBytes(int, TgtHllType)}.
+   * @param dstMem an writable image of a valid sketch with data.
+   * @return an HllSketch where the sketch data is in the given dstMem.
    */
-  public static final HllSketch writableWrap(final WritableMemory wmem) {
-    final Object memObj = wmem.getArray();
-    final long memAdd = wmem.getCumulativeOffset(0);
+  public static final HllSketch writableWrap(final WritableMemory dstMem) {
+    final Object memObj = dstMem.getArray();
+    final long memAdd = dstMem.getCumulativeOffset(0);
     final int lgConfigK = extractLgK(memObj, memAdd);
     final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
     final long minBytes = getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
-    final long capBytes = wmem.getCapacity();
+    final long capBytes = dstMem.getCapacity();
     HllUtil.checkMemSize(minBytes, capBytes);
 
-    final CurMode curMode = checkPreamble(wmem);
+    final CurMode curMode = checkPreamble(dstMem);
     final HllSketch directSketch;
     if (curMode == CurMode.HLL) {
       if (tgtHllType == TgtHllType.HLL_4) {
-        directSketch = new HllSketch(new DirectHll4Array(lgConfigK, wmem));
+        directSketch = new HllSketch(new DirectHll4Array(lgConfigK, dstMem));
       } else if (tgtHllType == TgtHllType.HLL_6) {
-        directSketch = new HllSketch(new DirectHll6Array(lgConfigK, wmem));
+        directSketch = new HllSketch(new DirectHll6Array(lgConfigK, dstMem));
       } else { //Hll_8
-        directSketch = new HllSketch(new DirectHll8Array(lgConfigK, wmem));
+        directSketch = new HllSketch(new DirectHll8Array(lgConfigK, dstMem));
       }
     } else if (curMode == CurMode.LIST) {
       directSketch =
-          new HllSketch(new DirectCouponList(lgConfigK, tgtHllType, curMode, wmem));
+          new HllSketch(new DirectCouponList(lgConfigK, tgtHllType, curMode, dstMem));
     } else {
       directSketch =
-          new HllSketch(new DirectCouponHashSet(lgConfigK, tgtHllType, wmem));
+          new HllSketch(new DirectCouponHashSet(lgConfigK, tgtHllType, dstMem));
     }
     return directSketch;
   }
 
   /**
    * Wraps the given read-only Memory that must be a image of a valid sketch,
-   * which may be in compact or updatable form, and should have data.
-   * @param srcMem an image of a valid sketch.
-   * @return an HllSketch
+   * which may be in compact or updatable form, and should have data. Any attempt to update this
+   * sketch will throw an exception.
+   * @param srcMem a read-only image of a valid sketch.
+   * @return an HllSketch, where the read-only data of the sketch is in the given srcMem.
+   *
    */
   public static final HllSketch wrap(final Memory srcMem) {
     final Object memObj = ((WritableMemory) srcMem).getArray();
