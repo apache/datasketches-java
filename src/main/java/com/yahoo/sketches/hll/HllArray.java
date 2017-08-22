@@ -193,6 +193,17 @@ abstract class HllArray extends AbstractHllArray {
     return new CouponList(lgConfigK, tgtHllType, CurMode.LIST);
   }
 
+  @Override //used by HLL6 and HLL8, overridden by HLL4
+  byte[] toCompactByteArray() {
+    return toUpdatableByteArray(); //indistinguishable for HLL6 and HLL8
+  }
+
+  @Override //used by HLL4, HLL6 and HLL8
+  byte[] toUpdatableByteArray() {
+    return toByteArray(this, false);
+  }
+
+
   //used by heapify by all Heap HLL
   static final void extractCommonHll(final Memory srcMem, final Object memArr,
       final long memAdd, final HllArray hllArray) {

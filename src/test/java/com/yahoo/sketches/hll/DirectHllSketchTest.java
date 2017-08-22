@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.hll;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
@@ -39,20 +40,24 @@ public class DirectHllSketchTest {
       sk2.update(1);
       fail();
     } catch (SketchesArgumentException e) {
-      //println("Caught!");
+      //expected
     }
+  }
+
+  @Test
+  public void checkPutSlotGetSlotDummies() {
+    int bytes = HllSketch.getMaxUpdatableSerializationBytes(4, TgtHllType.HLL_8);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+    HllSketch sk = new HllSketch(4, TgtHllType.HLL_8, wmem);
+    for (int i = 0; i < 25; i++) { sk.update(i); }
+    AbstractHllArray absArr = (AbstractHllArray) sk.hllSketchImpl;
+    assertEquals(absArr.getSlot(0), -1);
+    absArr.putSlot(0, -1); //a no-op
   }
 
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
-  }
-
-  /**
-   * @param s value to print
-   */
-  static void print(String s) {
-    //System.out.print(s); //disable here
   }
 
   /**

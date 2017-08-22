@@ -93,9 +93,6 @@ class DirectCouponHashSet extends DirectCouponList {
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
     if (wmem == null) { noWriteAccess(); }
-    if (coupon == EMPTY) {
-      return this; //empty coupon, ignore
-    }
     //avoid array copy
     final int index = find(memObj, memAdd, getLgCouponArrInts(), coupon);
     if (index >= 0) {
@@ -109,13 +106,13 @@ class DirectCouponHashSet extends DirectCouponList {
   }
 
   @Override
-  int getCouponCount() {
-    return extractHashSetCount(memObj, memAdd);
+  int getCompactSerializationBytes() {
+    return HASH_SET_INT_ARR_START +  (getCouponCount() << 2);
   }
 
   @Override
-  int getCompactSerializationBytes() {
-    return HASH_SET_INT_ARR_START +  (getCouponCount() << 2);
+  int getCouponCount() {
+    return extractHashSetCount(memObj, memAdd);
   }
 
   @Override

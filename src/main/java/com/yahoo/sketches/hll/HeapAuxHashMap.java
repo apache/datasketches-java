@@ -5,7 +5,10 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
+import static com.yahoo.sketches.Util.simpleIntLog2;
 import static com.yahoo.sketches.hll.HllUtil.EMPTY;
+import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static com.yahoo.sketches.hll.HllUtil.RESIZE_DENOM;
 import static com.yahoo.sketches.hll.HllUtil.RESIZE_NUMER;
 import static com.yahoo.sketches.hll.PreambleUtil.extractInt;
@@ -55,12 +58,11 @@ class HeapAuxHashMap implements AuxHashMap {
     final int lgAuxArrInts;
     final HeapAuxHashMap auxMap;
     if (srcCompact) { //prior versions did not use LgArr byte field
-      final int tryLgAuxArrInts = HllUtil.LG_AUX_ARR_INTS[lgConfigK];
-      if ((RESIZE_DENOM * auxCount) > (RESIZE_NUMER * (1 << tryLgAuxArrInts))) {
-        lgAuxArrInts = tryLgAuxArrInts + 1;
-      } else {
-        lgAuxArrInts = tryLgAuxArrInts;
+      int ceilInts = ceilingPowerOf2(auxCount);
+      if ((RESIZE_DENOM * auxCount) > (RESIZE_NUMER * ceilInts)) {
+        ceilInts <<= 1;
       }
+      lgAuxArrInts = simpleIntLog2(Math.max(ceilInts, 1 << LG_AUX_ARR_INTS[lgConfigK]));
     } else { //updatable
       lgAuxArrInts = extractLgArr(memObj, memAdd);
     }

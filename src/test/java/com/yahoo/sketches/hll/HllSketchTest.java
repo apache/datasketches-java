@@ -180,6 +180,9 @@ public class HllSketchTest {
     assertEquals(absHll.getHipAccum(), 25.0, 25 * .02);
     assertTrue(absHll.getNumAtCurMin() >= 0);
     assertEquals(sk.getUpdatableSerializationBytes(), 40 + 256);
+    assertEquals(absHll.getMemArrStart(), 40);
+    assertEquals(absHll.getPreInts(), 10);
+
 
     final int hllBytes = PreambleUtil.HLL_BYTE_ARR_START + (1 << lgConfigK);
     assertEquals(sk.getCompactSerializationBytes(), hllBytes);
@@ -267,10 +270,16 @@ public class HllSketchTest {
   }
 
   @Test
-  public void checkToString() {
+  public void exerciseToString() {
     HllSketch sk = new HllSketch(15, TgtHllType.HLL_4);
-    for (int i = 0; i < (1 << 20); i++) { sk.update(i); }
-    sk.toString(false, true, true, true);
+    for (int i = 0; i < 25; i++) { sk.update(i); }
+    println(sk.toString(false, true, true, true));
+    for (int i = 25; i < (1 << 20); i++) { sk.update(i); }
+    println(sk.toString(false, true, true, true));
+    println(sk.toString(false, true, true, false));
+    sk = new HllSketch(8, TgtHllType.HLL_6);
+    for (int i = 0; i < 25; i++) { sk.update(i); }
+    println(sk.toString(false, true, true, true));
   }
 
   @SuppressWarnings("unused")
@@ -285,6 +294,17 @@ public class HllSketchTest {
       //OK
     }
   }
+
+  @Test
+  public void checkEmptyCoupon() {
+    int lgK = 8;
+    TgtHllType type = TgtHllType.HLL_8;
+    HllSketch sk = new HllSketch(lgK, type);
+    for (int i = 0; i < 20; i++) { sk.update(i); } //SET mode
+    sk.couponUpdate(0);
+    assertEquals(sk.getEstimate(), 20.0, 0.001);
+  }
+
 
   @Test
   public void printlnTest() {

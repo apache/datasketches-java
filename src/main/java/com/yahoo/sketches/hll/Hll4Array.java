@@ -100,6 +100,11 @@ class Hll4Array extends HllArray {
     }
   }
 
+  @Override
+  byte[] toCompactByteArray() {
+    return toByteArray(this, true);
+  }
+
   //ITERATOR
 
   final class HeapHll4Iterator extends HllPairIterator {

@@ -6,8 +6,12 @@
 package com.yahoo.sketches.hll;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
+
+import com.yahoo.memory.WritableMemory;
 
 /**
  * @author Lee Rhodes
@@ -47,29 +51,43 @@ public class HllArrayTest {
   public void toByteArray_Heapify() {
     int lgK = 4;
     int u = 8;
-    toByteArrayHeapify(lgK, TgtHllType.HLL_4, u);
-    toByteArrayHeapify(lgK, TgtHllType.HLL_6, u);
-    toByteArrayHeapify(lgK, TgtHllType.HLL_8, u);
+    toByteArrayHeapify(lgK, TgtHllType.HLL_4, u, true);
+    toByteArrayHeapify(lgK, TgtHllType.HLL_6, u, false);
+    toByteArrayHeapify(lgK, TgtHllType.HLL_8, u, true);
 
     lgK = 16;
-    u = (((1 << (lgK - 3))/4) * 3) + (1 << 20);
-    toByteArrayHeapify(lgK, TgtHllType.HLL_4, u);
-    toByteArrayHeapify(lgK, TgtHllType.HLL_6, u);
-    toByteArrayHeapify(lgK, TgtHllType.HLL_8, u);
+    u = (((1 << (lgK - 3))*3)/4) + 100;
+    toByteArrayHeapify(lgK, TgtHllType.HLL_4, u, false);
+    toByteArrayHeapify(lgK, TgtHllType.HLL_6, u, true);
+    toByteArrayHeapify(lgK, TgtHllType.HLL_8, u, false);
 
     lgK = 21;
-    u = (((1 << (lgK - 3))/4) * 3) + 1000;
-    toByteArrayHeapify(lgK, TgtHllType.HLL_4, u);
-    toByteArrayHeapify(lgK, TgtHllType.HLL_6, u);
-    toByteArrayHeapify(lgK, TgtHllType.HLL_8, u);
+    u = (((1 << (lgK - 3))*3)/4) + 1000;
+    toByteArrayHeapify(lgK, TgtHllType.HLL_4, u, true);
+    toByteArrayHeapify(lgK, TgtHllType.HLL_6, u, false);
+    toByteArrayHeapify(lgK, TgtHllType.HLL_8, u, true);
   }
 
-  private static void toByteArrayHeapify(int lgK, TgtHllType tgtHllType, int u) {
-    HllSketch sk1 = new HllSketch(lgK, tgtHllType);
+  private static void toByteArrayHeapify(int lgK, TgtHllType tgtHllType, int u, boolean direct) {
+    HllSketch sk1;
+    if (direct) {
+      int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, tgtHllType);
+      WritableMemory wmem = WritableMemory.allocate(bytes);
+      sk1 = new HllSketch(lgK, tgtHllType, wmem);
+    } else {
+      sk1 = new HllSketch(lgK, tgtHllType);
+    }
 
     for (int i = 0; i < u; i++) {
       sk1.update(i);
     }
+    assert sk1.hllSketchImpl instanceof AbstractHllArray;
+    if (sk1.hllSketchImpl instanceof HllArray) {
+      assertFalse(sk1.hllSketchImpl.isMemory());
+    } else {
+      assertTrue(sk1.hllSketchImpl.isMemory());
+    }
+
     //sk1.update(u);
     double est1 = sk1.getEstimate();
     assertEquals(est1, u, u * .03);
@@ -83,6 +101,9 @@ public class HllArrayTest {
     sk2 = HllSketch.heapify(byteArray);
     est2 = sk2.getEstimate();
     assertEquals(est2, est1, 0.0);
+
+    sk1.reset();
+    assertEquals(sk1.getEstimate(), 0.0, 0.0);
   }
 
   @Test

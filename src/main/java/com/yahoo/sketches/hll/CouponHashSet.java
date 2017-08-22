@@ -97,18 +97,8 @@ class CouponHashSet extends CouponList {
     return new CouponHashSet(this, tgtHllType);
   }
 
-  @Override //get coupons from internal int[] to dstMem
-  //Called by CouponList.insertList()
-  //Called by CouponList.insertSet()
-  void getCouponsToMemoryInts(final WritableMemory dstWmem, final int lenInts) {
-    dstWmem.putIntArray(HASH_SET_INT_ARR_START, couponIntArr, 0, lenInts);
-  }
-
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
-    if (coupon == EMPTY) {
-      return this; //empty coupon, ignore
-    }
     final int index = find(couponIntArr, lgCouponArrInts, coupon);
     if (index >= 0) {
       return this; //found duplicate, ignore
@@ -118,6 +108,18 @@ class CouponHashSet extends CouponList {
     final boolean promote = checkGrowOrPromote();
     if (!promote) { return this; }
     return promoteHeapListOrSetToHll(this);
+  }
+
+  @Override //get coupons from internal int[] to dstMem
+  //Called by CouponList.insertList()
+  //Called by CouponList.insertSet()
+  void getCouponsToMemoryInts(final WritableMemory dstWmem, final int lenInts) {
+    dstWmem.putIntArray(HASH_SET_INT_ARR_START, couponIntArr, 0, lenInts);
+  }
+
+  @Override
+  int getCompactSerializationBytes() {
+    return HASH_SET_INT_ARR_START + (couponCount << 2);
   }
 
   @Override

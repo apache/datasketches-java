@@ -98,13 +98,6 @@ class CouponList extends AbstractCoupons {
     return new CouponList(this, tgtHllType);
   }
 
-  @Override //get coupons from internal int[] to dstMem
-  //Called by CouponList.insertList
-  //Called by CouponList.insertSet
-  void getCouponsToMemoryInts(final WritableMemory dstWmem, final int lenInts) {
-    dstWmem.putIntArray(LIST_INT_ARR_START, couponIntArr, 0, lenInts);
-  }
-
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
     final int len = 1 << lgCouponArrInts;
@@ -126,6 +119,18 @@ class CouponList extends AbstractCoupons {
       //cell not empty & not a duplicate, continue
     } //end for
     throw new SketchesStateException("Array invalid: no empties & no duplicates");
+  }
+
+  @Override
+  int getCompactSerializationBytes() {
+    return LIST_INT_ARR_START + (couponCount << 2);
+  }
+
+  @Override //get coupons from internal int[] to dstMem
+  //Called by CouponList.insertList
+  //Called by CouponList.insertSet
+  void getCouponsToMemoryInts(final WritableMemory dstWmem, final int lenInts) {
+    dstWmem.putIntArray(LIST_INT_ARR_START, couponIntArr, 0, lenInts);
   }
 
   @Override
@@ -171,6 +176,16 @@ class CouponList extends AbstractCoupons {
   @Override
   void putOutOfOrderFlag(final boolean oooFlag) {
     this.oooFlag = oooFlag;
+  }
+
+  @Override
+  byte[] toCompactByteArray() {
+    return toByteArray(this, true);
+  }
+
+  @Override
+  byte[] toUpdatableByteArray() {
+    return toByteArray(this, false);
   }
 
   @Override

@@ -159,7 +159,7 @@ public class DirectAuxHashMapTest {
   }
 
   @Test
-  public void exerciseDirectAux() {
+  public void exerciseHeapAndDirectAux() {
     initSketchAndMap(true, true);  //direct, compact
     initSketchAndMap(false, true); //heap, compact
     initSketchAndMap(true, false); //direct, updatable
@@ -192,6 +192,12 @@ public class DirectAuxHashMapTest {
     AbstractHllArray absDirectHllArr = (AbstractHllArray) sketch.hllSketchImpl;
 
     //the auxHashMap must exist for this test
+    AuxHashMap auxMap = absDirectHllArr.getAuxHashMap();
+    int auxCount = auxMap.getAuxCount();
+    assertEquals(auxMap.getCompactSizeBytes(), auxCount << 2);
+    int auxArrInts = 1 << auxMap.getLgAuxArrInts();
+    assertEquals(auxMap.getUpdatableSizeBytes(), auxArrInts << 2);
+
     PairIterator itr = absDirectHllArr.getAuxIterator();
 
     println("Source Aux Array.");
@@ -222,6 +228,8 @@ public class DirectAuxHashMapTest {
     checkAux(wrapSk, map);
     println("\nHLL Array of wrapped RO serialized sketch.");
     checkHllArr(wrapSk, map);
+
+    println(wrapSk.toString(false, false, true, true));
   }
 
   //check HLL array consistencies with the map

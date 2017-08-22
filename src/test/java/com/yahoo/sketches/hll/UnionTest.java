@@ -10,6 +10,7 @@ import static com.yahoo.sketches.hll.TgtHllType.HLL_6;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_8;
 import static java.lang.Math.min;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -332,11 +333,25 @@ public class UnionTest {
     println("LgK="+lgK+", LB3, " + ((getBound(lgK, false, oooFlag, 3, n) / n) - 1));
   }
 
+  @Test
+  public void checkEmptyCouponMisc() {
+    int lgK = 8;
+    Union union = new Union(lgK);
+    for (int i = 0; i < 20; i++) { union.update(i); } //SET mode
+    union.couponUpdate(0);
+    assertEquals(union.getEstimate(), 20.0, 0.001);
+    assertEquals(union.getTgtHllType(), TgtHllType.HLL_8);
+    assertFalse(union.isMemory());
+    assertFalse(union.isOffHeap());
+    int bytes = union.getUpdatableSerializationBytes();
+    assertTrue(bytes  <= Union.getMaxSerializationBytes(lgK));
+
+  }
+
   private static double getBound(int lgK, boolean ub, boolean oooFlag, int numStdDev, double est) {
     double re = RelativeErrorTables.getRelErr(ub, oooFlag, lgK, numStdDev);
     return (ub) ? est / (1.0 + re) : est / (1.0 +re);
   }
-
 
   @Test
   public void printlnTest() {

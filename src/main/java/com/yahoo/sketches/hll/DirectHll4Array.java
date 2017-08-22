@@ -13,6 +13,7 @@ import static com.yahoo.sketches.hll.HllUtil.noWriteAccess;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.extractAuxCount;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCompactFlag;
+import static com.yahoo.sketches.hll.PreambleUtil.insertCompactFlag;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
@@ -22,7 +23,7 @@ import com.yahoo.memory.WritableMemory;
  */
 class DirectHll4Array extends DirectHllArray {
 
-  //Called by HllSketch.writableWrap()
+  //Called by HllSketch.writableWrap(), DirectCouponList.promoteListOrSetToHll
   DirectHll4Array(final int lgConfigK, final WritableMemory wmem) {
     super(lgConfigK, TgtHllType.HLL_4, wmem);
     if (extractAuxCount(memObj, memAdd) > 0) {
@@ -93,6 +94,53 @@ class DirectHll4Array extends DirectHllArray {
         ? (byte) ((oldValue & hiNibbleMask) | (newValue & loNibbleMask)) //set low nibble
         : (byte) ((oldValue & loNibbleMask) | ((newValue << 4) & hiNibbleMask)); //set high nibble
     unsafe.putByte(memObj, unsafeOffset, value);
+  }
+
+
+  @Override
+  byte[] toCompactByteArray() {
+    final boolean memIsCompact = extractCompactFlag(memObj, memAdd);
+    final int totBytes = getCompactSerializationBytes();
+    final byte[] byteArr = new byte[totBytes];
+    final WritableMemory memOut = WritableMemory.wrap(byteArr);
+    if (memIsCompact) {
+      mem.copyTo(0, memOut, 0, totBytes);
+      return byteArr;
+    } else {
+      final int auxStart = getAuxStart();
+      mem.copyTo(0, memOut, 0, auxStart);
+      if (auxHashMap != null) {
+        insertAux(this, memOut, true);
+      }
+      //set the compact flag
+      final Object memOutObj = memOut.getArray();
+      final long memOutAdd = memOut.getCumulativeOffset(0L);
+      insertCompactFlag(memOutObj, memOutAdd, true);
+      return byteArr;
+    }
+  }
+
+  @Override
+  byte[] toUpdatableByteArray() {
+    final boolean memIsCompact = extractCompactFlag(memObj, memAdd);
+    final int totBytes = getUpdatableSerializationBytes();
+    final byte[] byteArr = new byte[totBytes];
+    final WritableMemory memOut = WritableMemory.wrap(byteArr);
+    if (memIsCompact) {
+      final int auxStart = getAuxStart();
+      mem.copyTo(0, memOut, 0, auxStart);
+      if (auxHashMap != null) {
+        insertAux(this, memOut, false);
+      }
+      //clear the compact flag
+      final Object memOutObj = memOut.getArray();
+      final long memOutAdd = memOut.getCumulativeOffset(0L);
+      insertCompactFlag(memOutObj, memOutAdd, false);
+      return byteArr;
+    } else {
+      mem.copyTo(0, memOut, 0, totBytes);
+      return byteArr;
+    }
   }
 
   //ITERATOR

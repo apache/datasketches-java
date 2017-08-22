@@ -346,11 +346,6 @@ final class PreambleUtil {
     return CurMode.fromOrdinal(curModeId);
   }
 
-  static CurMode extractCurMode(final Memory mem) {
-    final int curModeId = mem.getByte(MODE_BYTE) & CUR_MODE_MASK;
-    return CurMode.fromOrdinal(curModeId);
-  }
-
   static void insertTgtHllType(final Object memObj, final long memAdd,
       final TgtHllType tgtHllType) {
     final int typeId = tgtHllType.ordinal();
@@ -363,12 +358,6 @@ final class PreambleUtil {
     final int typeId = unsafe.getByte(memObj, memAdd + MODE_BYTE) & TGT_HLL_TYPE_MASK;
     return TgtHllType.fromOrdinal(typeId >>> 2);
   }
-
-  static TgtHllType extractTgtHllType(final Memory mem) {
-    final int typeId = mem.getByte(MODE_BYTE) & TGT_HLL_TYPE_MASK;
-    return TgtHllType.fromOrdinal(typeId >>> 2);
-  }
-
 
   static void insertModes(final Object memObj, final long memAdd, final TgtHllType tgtHllType,
       final CurMode curMode) {

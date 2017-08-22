@@ -174,16 +174,6 @@ abstract class AbstractHllArray extends HllSketchImpl {
     //intentional no-op, overridden only by heap and direct HLL4
   }
 
-  @Override
-  byte[] toCompactByteArray() {
-    return toByteArray(this, true);
-  }
-
-  @Override
-  byte[] toUpdatableByteArray() {
-    return toByteArray(this, false);
-  }
-
   //COMPUTING HLL BYTE ARRAY LENGTHS
 
   static final int hll4ArrBytes(final int lgConfigK) {
@@ -199,9 +189,8 @@ abstract class AbstractHllArray extends HllSketchImpl {
     return 1 << lgConfigK;
   }
 
-  //TO BYTE ARRAY PROCESS FOR ALL HLL
-
-  private static final byte[] toByteArray(final AbstractHllArray impl, final boolean compact) {
+  //To byte array for Heap HLL
+  static final byte[] toByteArray(final AbstractHllArray impl, final boolean compact) {
     int auxBytes = 0;
     final AuxHashMap auxHashMap = impl.getAuxHashMap();
     if (auxHashMap != null) { //only relevant for HLL_4
@@ -255,15 +244,16 @@ abstract class AbstractHllArray extends HllSketchImpl {
     insertNumAtCurMin(memObj, memAdd, impl.getNumAtCurMin());
   }
 
-  private static final void insertAux(final AbstractHllArray impl, final WritableMemory wmem,
+  //used by insertHll and by DirectHll4Array
+  static final void insertAux(final AbstractHllArray srcImpl, final WritableMemory tgtWmem,
       final boolean compact) {
-    final Object memObj = wmem.getArray();
-    final long memAdd = wmem.getCumulativeOffset(0L);
-    final AuxHashMap auxHashMap = impl.getAuxHashMap();
+    final Object memObj = tgtWmem.getArray();
+    final long memAdd = tgtWmem.getCumulativeOffset(0L);
+    final AuxHashMap auxHashMap = srcImpl.getAuxHashMap();
     final int auxCount = auxHashMap.getAuxCount();
     insertAuxCount(memObj, memAdd, auxCount);
     insertLgArr(memObj, memAdd, auxHashMap.getLgAuxArrInts()); //only used for direct HLL
-    final long auxStart = impl.getAuxStart();
+    final long auxStart = srcImpl.getAuxStart();
     if (compact) {
       final PairIterator itr = auxHashMap.getIterator();
       int cnt = 0;
@@ -273,11 +263,11 @@ abstract class AbstractHllArray extends HllSketchImpl {
       assert cnt == auxCount;
     } else { //updatable
       final int auxInts = 1 << auxHashMap.getLgAuxArrInts();
-      if (impl.isMemory()) {
-        impl.getMemory().copyTo(auxStart, wmem, auxStart, auxInts << 2);
+      if (srcImpl.isMemory()) {
+        srcImpl.getMemory().copyTo(auxStart, tgtWmem, auxStart, auxInts << 2);
       } else {
         final int[] auxArr = auxHashMap.getAuxIntArr();
-        wmem.putIntArray(auxStart, auxArr, 0, auxInts);
+        tgtWmem.putIntArray(auxStart, auxArr, 0, auxInts);
       }
     }
   }

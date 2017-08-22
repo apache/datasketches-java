@@ -18,10 +18,12 @@ import com.yahoo.memory.WritableMemory;
  */
 class DirectHll6Array extends DirectHllArray {
 
+  //Called by HllSketch.writableWrap(), DirectCouponList.promoteListOrSetToHll
   DirectHll6Array(final int lgConfigK, final WritableMemory wmem) {
     super(lgConfigK, TgtHllType.HLL_6, wmem);
   }
 
+  //Called by HllSketch.wrap(Memory)
   DirectHll6Array(final int lgConfigK, final Memory mem) {
     super(lgConfigK, TgtHllType.HLL_6, mem);
   }

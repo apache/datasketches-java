@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static com.yahoo.sketches.hll.HllUtil.checkPreamble;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
@@ -165,7 +166,6 @@ public class HllSketch extends BaseHllSketch {
     final long minBytes = getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     final long capBytes = wmem.getCapacity();
     HllUtil.checkMemSize(minBytes, capBytes);
-    HllUtil.checkPreamble(wmem);
 
     final CurMode curMode = checkPreamble(wmem);
     final HllSketch directSketch;
@@ -424,6 +424,7 @@ public class HllSketch extends BaseHllSketch {
 
   @Override
   void couponUpdate(final int coupon) {
+    if (coupon == EMPTY) { return; }
     hllSketchImpl = hllSketchImpl.couponUpdate(coupon);
   }
 

@@ -6,6 +6,7 @@
 package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.hll.CurMode.HLL;
+import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_4;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_8;
 import static java.lang.Math.min;
@@ -217,6 +218,7 @@ public class Union extends BaseHllSketch {
 
   @Override
   void couponUpdate(final int coupon) {
+    if (coupon == EMPTY) { return; }
     gadget.hllSketchImpl = gadget.hllSketchImpl.couponUpdate(coupon);
   }
 

@@ -19,6 +19,7 @@ import static com.yahoo.sketches.hll.PreambleUtil.extractNumAtCurMin;
 import static com.yahoo.sketches.hll.PreambleUtil.extractOooFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.extractTgtHllType;
 import static com.yahoo.sketches.hll.PreambleUtil.insertAuxCount;
+import static com.yahoo.sketches.hll.PreambleUtil.insertCompactFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.insertCurMin;
 import static com.yahoo.sketches.hll.PreambleUtil.insertHipAccum;
 import static com.yahoo.sketches.hll.PreambleUtil.insertKxQ0;
@@ -41,7 +42,7 @@ abstract class DirectHllArray extends AbstractHllArray {
   Object memObj;
   long memAdd;
 
-  //Memory must be initialized, may have data
+  //Memory must be already initialized and may have data
   DirectHllArray(final int lgConfigK, final TgtHllType tgtHllType, final WritableMemory wmem) {
     super(lgConfigK, tgtHllType, CurMode.HLL);
     this.wmem = wmem;
@@ -51,7 +52,7 @@ abstract class DirectHllArray extends AbstractHllArray {
     auxArrOffset = getAuxStart();
   }
 
-  //Memory must be initialized, should have data
+  //Memory must already be initialized and should have data
   DirectHllArray(final int lgConfigK, final TgtHllType tgtHllType, final Memory mem) {
     super(lgConfigK, tgtHllType, CurMode.HLL);
     wmem = null;
@@ -185,7 +186,7 @@ abstract class DirectHllArray extends AbstractHllArray {
     insertKxQ0(memObj, memAdd, kxq0);
   }
 
-  @Override
+  @Override //called very very very rarely
   void putKxQ1(final double kxq1) {
     insertKxQ1(memObj, memAdd, kxq1);
   }
@@ -195,9 +196,26 @@ abstract class DirectHllArray extends AbstractHllArray {
     insertNumAtCurMin(memObj, memAdd, numAtCurMin);
   }
 
-  @Override
+  @Override //not used on the direct side
   void putOutOfOrderFlag(final boolean oooFlag) {
     insertOooFlag(memObj, memAdd, oooFlag);
+  }
+
+  @Override //used by HLL6 and HLL8, overridden by HLL4
+  byte[] toCompactByteArray() {
+    return toUpdatableByteArray(); //indistinguishable for HLL6 and HLL8
+  }
+
+  @Override //used by HLL6 and HLL8, overridden by HLL4
+  byte[] toUpdatableByteArray() {
+    final int totBytes = getCompactSerializationBytes();
+    final byte[] byteArr = new byte[totBytes];
+    final WritableMemory memOut = WritableMemory.wrap(byteArr);
+    final Object memOutObj = memOut.getArray();
+    final long memOutAdd = memOut.getCumulativeOffset(0L);
+    mem.copyTo(0, memOut, 0, totBytes);
+    insertCompactFlag(memOutObj, memOutAdd, false);
+    return byteArr;
   }
 
   @Override

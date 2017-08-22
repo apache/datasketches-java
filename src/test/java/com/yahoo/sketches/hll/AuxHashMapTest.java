@@ -5,14 +5,12 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.Memory;
 import com.yahoo.sketches.SketchesStateException;
 
 /**
@@ -20,56 +18,6 @@ import com.yahoo.sketches.SketchesStateException;
  */
 public class AuxHashMapTest {
   static final String LS = System.getProperty("line.separator");
-
-  @Test
-  public void exerciseAux() {
-    int lgK = 15; //this combination should create an Aux with ~18 exceptions
-    int lgU = 20;
-    println("HLL_4, lgK: " + lgK + ", lgU: " + lgU);
-
-    HllSketch sketch = new HllSketch(lgK, TgtHllType.HLL_4);
-    for (int i = 0; i < (1 << lgU); i++) { sketch.update(i); }
-
-    //check Ser Bytes
-    assertEquals(sketch.getUpdatableSerializationBytes(), 40 + (1 << (lgK - 1))
-        + (4 << LG_AUX_ARR_INTS[lgK]) );
-
-    AbstractHllArray absHll = (AbstractHllArray) sketch.hllSketchImpl;
-    int curMin = absHll.getCurMin();
-
-    println("CurMin: " + curMin);
-    PairIterator itr = absHll.getAuxIterator();
-    println("Aux Array before SerDe.");
-    println(itr.getHeader());
-    while (itr.nextValid()) {
-      println(itr.getString());
-    }
-
-    byte[] byteArr = sketch.toUpdatableByteArray();
-    HllSketch sk2 = HllSketch.heapify(Memory.wrap(byteArr));
-    assertEquals(sketch.getEstimate(), sk2.getEstimate());
-
-    assertEquals(sketch.getUpdatableSerializationBytes(), 40 + (1 << (lgK - 1))
-        + (4 << LG_AUX_ARR_INTS[lgK]));
-
-    PairIterator h4itr = sketch.getIterator();
-    println("\nMain Array: where (value - curMin) > 14. key/vals should match above.");
-    println(h4itr.getHeader());
-    while (h4itr.nextValid()) {
-      if ((h4itr.getValue() - curMin) > 14) {
-        println(h4itr.getString());
-      }
-    }
-    h4itr = absHll.getAuxIterator();
-    println("\nAux Array after SerDe: should match above.");
-    println(h4itr.getHeader());
-    while (h4itr.nextAll()) {
-      if (h4itr.getValue() > 14) {
-        println(h4itr.getString());
-      }
-    }
-    sketch.toString(true, true, true, false);
-  }
 
   @Test
   public void checkMustReplace() {

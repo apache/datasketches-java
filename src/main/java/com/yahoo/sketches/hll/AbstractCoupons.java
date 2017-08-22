@@ -38,14 +38,6 @@ abstract class AbstractCoupons extends HllSketchImpl {
   }
 
   @Override
-  int getCompactSerializationBytes() {
-    final int dataStart = (getCurMode() == CurMode.LIST)
-        ? LIST_INT_ARR_START
-        : HASH_SET_INT_ARR_START;
-    return dataStart +  (getCouponCount() << 2);
-  }
-
-  @Override
   double getCompositeEstimate() {
     return getEstimate();
   }
@@ -104,18 +96,7 @@ abstract class AbstractCoupons extends HllSketchImpl {
     return getCouponCount() == 0;
   }
 
-  @Override
-  byte[] toCompactByteArray() {
-    return toByteArray(this, true);
-  }
-
-  @Override
-  byte[] toUpdatableByteArray() {
-    return toByteArray(this, false);
-  }
-
-  //TO BYTE ARRAY
-
+  //To byte array for Heap and when direct memory is different from compact request
   static final byte[] toByteArray(final AbstractCoupons impl, final boolean compact) {
     final byte[] byteArr;
     final int arrLenBytes;

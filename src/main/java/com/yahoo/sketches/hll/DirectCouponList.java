@@ -17,6 +17,7 @@ import static com.yahoo.sketches.hll.PreambleUtil.HLL_PREINTS;
 import static com.yahoo.sketches.hll.PreambleUtil.LIST_INT_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.LIST_PREINTS;
 import static com.yahoo.sketches.hll.PreambleUtil.OUT_OF_ORDER_FLAG_MASK;
+import static com.yahoo.sketches.hll.PreambleUtil.extractCompactFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.extractInt;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgArr;
 import static com.yahoo.sketches.hll.PreambleUtil.extractListCount;
@@ -131,6 +132,11 @@ class DirectCouponList extends AbstractCoupons {
     throw new SketchesStateException("Invalid State: no empties & no duplicates");
   }
 
+  @Override
+  int getCompactSerializationBytes() {
+    return LIST_INT_ARR_START + (getCouponCount() << 2);
+  }
+
   @Override //get Coupons from internal Mem to dstMem
   //Called by CouponList.insertList()
   //Called by CouponList.insertSet()
@@ -180,10 +186,38 @@ class DirectCouponList extends AbstractCoupons {
     return extractOooFlag(memObj, memAdd);
   }
 
-  @Override
+  @Override //not used on the direct side
   void putOutOfOrderFlag(final boolean oooFlag) {
     assert wmem != null;
     insertOooFlag(memObj, memAdd, oooFlag);
+  }
+
+  @Override
+  byte[] toCompactByteArray() {
+    final boolean memIsCompact = extractCompactFlag(memObj, memAdd);
+    final int totBytes = getCompactSerializationBytes();
+    final byte[] byteArr = new byte[totBytes];
+    final WritableMemory memOut = WritableMemory.wrap(byteArr);
+    if (memIsCompact) {
+      mem.copyTo(0, memOut, 0, totBytes);
+      return byteArr;
+    } else {
+      return toByteArray(this, true);
+    }
+  }
+
+  @Override
+  byte[] toUpdatableByteArray() {
+    final boolean memIsCompact = extractCompactFlag(memObj, memAdd);
+    final int totBytes = getUpdatableSerializationBytes();
+    final byte[] byteArr = new byte[totBytes];
+    final WritableMemory memOut = WritableMemory.wrap(byteArr);
+    if (!memIsCompact) {
+      mem.copyTo(0, memOut, 0, totBytes);
+      return byteArr;
+    } else {
+      return toByteArray(this, true);
+    }
   }
 
   @Override
