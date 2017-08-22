@@ -132,27 +132,6 @@ public class HllSketch extends BaseHllSketch {
   }
 
   /**
-   * Wraps the given WritableMemory, which will be initialized with a new instance of an
-   * HllSketch.
-   * @param lgConfigK The Log2 of K for the target HLL sketch. This value must be
-   * between 4 and 21 inclusively.
-   * @param tgtHllType the desired Hll type.
-   * @param wmem the given WritableMemory of sufficient size. Refer to
-   * {@link #getMaxUpdatableSerializationBytes(int, TgtHllType)}.
-   * @return a wrapped new instance of an HllSketch.
-   */
-  public static final HllSketch writableWrap(final int lgConfigK, final TgtHllType tgtHllType,
-      final WritableMemory wmem) {
-    final long minBytes = getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
-    final long capBytes = wmem.getCapacity();
-    HllUtil.checkMemSize(minBytes, capBytes);
-    wmem.clear(0L, minBytes);
-    final HllSketch directSketch =
-        new HllSketch(DirectCouponList.newInstance(lgConfigK, tgtHllType, wmem));
-    return directSketch;
-  }
-
-  /**
    * Wraps the given WritableMemory, which must be a image of a valid updatable sketch,
    * and may have data.
    * @param wmem an image of a valid sketch with data that will also be written to.

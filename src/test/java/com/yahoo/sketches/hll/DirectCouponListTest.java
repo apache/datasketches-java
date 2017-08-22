@@ -56,7 +56,7 @@ public class DirectCouponListTest {
       WritableMemory wmem = hand.get();
       //byte[] byteArr = new byte[bytes];
       //WritableMemory wmem = WritableMemory.wrap(byteArr);
-      hllSketch = HllSketch.writableWrap(lgConfigK, tgtHllType, wmem);
+      hllSketch = new HllSketch(lgConfigK, tgtHllType, wmem);
       assertTrue(hllSketch.isEmpty());
 
       for (int i = 0; i < n; i++) {

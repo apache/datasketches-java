@@ -36,7 +36,7 @@ public class DirectAuxHashMapTest {
     HllSketch hllSketch;
     try (WritableDirectHandle handle = WritableMemory.allocateDirect(bytes)) {
       WritableMemory wmem = handle.get();
-      hllSketch = HllSketch.writableWrap(lgConfigK, tgtHllType, wmem);
+      hllSketch = new HllSketch(lgConfigK, tgtHllType, wmem);
       for (int i = 0; i < n; i++) {
         hllSketch.update(i);
       }
