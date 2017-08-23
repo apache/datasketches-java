@@ -330,8 +330,9 @@ public class LongsSketchTest {
     double prob = .001;
     for (int i = 0; i < n; i++) {
       item = randomGeometricDist(prob) + 1;
-      for (int h = 0; h < numSketches; h++)
+      for (int h = 0; h < numSketches; h++) {
         sketches[h].update(item);
+      }
     }
 
     for (int h = 0; h < numSketches; h++) {
@@ -396,10 +397,11 @@ public class LongsSketchTest {
     Row[] rowArr = fis.getFrequentItems(ErrorType.NO_FALSE_POSITIVES);
     assertEquals(rowArr[0].est, 1);
     Row row = rowArr[0];
-    assertTrue(row.hashCode() > 0);
-    assertTrue(row.equals(row));
     assertNotNull(row);
-    assertFalse(row.equals(Integer.valueOf(0)));
+    assertEquals(row.est, 1L);
+    assertEquals(row.item, 1L);
+    assertEquals(row.lb, 1L);
+    assertEquals(row.ub, 1L);
     Row newRow = new Row(row.item, row.est+1, row.ub, row.lb);
     assertFalse(row.equals(newRow));
     newRow = new Row(row.item, row.est, row.ub, row.lb);
@@ -459,8 +461,9 @@ public class LongsSketchTest {
     double prob = .001;
     for (int i = 0; i < n; i++) {
       item = randomGeometricDist(prob) + 1;
-      for (int h = 0; h < numSketches; h++)
+      for (int h = 0; h < numSketches; h++) {
         sketches[h].update(item);
+      }
     }
 
     for(int h=0; h<numSketches; h++) {
