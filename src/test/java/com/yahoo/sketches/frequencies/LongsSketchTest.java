@@ -395,7 +395,6 @@ public class LongsSketchTest {
     LongsSketch fis = new LongsSketch(minSize);
     fis.update(1);
     Row[] rowArr = fis.getFrequentItems(ErrorType.NO_FALSE_POSITIVES);
-    assertEquals(rowArr[0].est, 1);
     Row row = rowArr[0];
     assertNotNull(row);
     assertEquals(row.est, 1L);
