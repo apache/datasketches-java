@@ -76,10 +76,10 @@ class Hll6Array extends HllArray {
   }
 
   //works for both heap and direct
-  static final void put6Bit(final WritableMemory wmem, final int offsetBytes,
-      final int slotNo, final int newValue) {
+  static final void put6Bit(final WritableMemory wmem, final int offsetBytes, final int slotNo,
+      final int newValue) {
     final int startBit = slotNo * 6;
-    final int shift = (startBit & 0X7) << 32;
+    final int shift = startBit & 0X7;
     final int byteIdx = (startBit >>> 3) + offsetBytes;
     final int valShifted = (newValue & 0X3F) << shift;
     final int curMasked = wmem.getShort(byteIdx) & (~(VAL_MASK_6 << shift));
@@ -90,7 +90,7 @@ class Hll6Array extends HllArray {
   //works for both heap and direct
   static final int get6Bit(final Memory mem, final int offsetBytes, final int slotNo) {
     final int startBit = slotNo * 6;
-    final int shift = (startBit & 0X7) << 32;
+    final int shift = startBit & 0X7;
     final int byteIdx = (startBit >>> 3) + offsetBytes;
     return (byte) ((mem.getShort(byteIdx) >>> shift) & 0X3F);
   }
