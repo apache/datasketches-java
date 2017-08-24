@@ -43,10 +43,9 @@ class DirectHll8Array extends DirectHllArray {
     final int newVal = HllUtil.getValue(coupon);
     assert newVal > 0;
 
-    final long byteOffset = HLL_BYTE_ARR_START + slotNo;
-    final int curVal = unsafe.getByte(memObj, memAdd + byteOffset);
+    final int curVal = getSlot(slotNo);
     if (newVal > curVal) {
-      unsafe.putByte(memObj, memAdd + byteOffset, (byte) (newVal & VAL_MASK_6));
+      putSlot(slotNo, newVal);
       hipAndKxQIncrementalUpdate(this, curVal, newVal);
       if (curVal == 0) {
         decNumAtCurMin(); //overloaded as num zeros
@@ -64,6 +63,16 @@ class DirectHll8Array extends DirectHllArray {
   @Override
   PairIterator getIterator() {
     return new DirectHll8Iterator(1 << lgConfigK);
+  }
+
+  @Override
+  final int getSlot(final int slotNo) {
+    return (unsafe.getByte(memObj, memAdd + HLL_BYTE_ARR_START + slotNo)) & VAL_MASK_6;
+  }
+
+  @Override
+  final void putSlot(final int slotNo, final int value) {
+    unsafe.putByte(memObj, memAdd + HLL_BYTE_ARR_START + slotNo, (byte) (value & VAL_MASK_6));
   }
 
   //ITERATOR

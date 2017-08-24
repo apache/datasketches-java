@@ -41,9 +41,9 @@ class DirectHll6Array extends DirectHllArray {
     final int newVal = HllUtil.getValue(coupon);
     assert newVal > 0;
 
-    final int curVal = Hll6Array.get6Bit(mem, HLL_BYTE_ARR_START, slotNo);
+    final int curVal = getSlot(slotNo);
     if (newVal > curVal) {
-      Hll6Array.put6Bit(wmem, HLL_BYTE_ARR_START, slotNo, newVal);
+      putSlot(slotNo, newVal);
       hipAndKxQIncrementalUpdate(this, curVal, newVal);
       if (curVal == 0) {
         decNumAtCurMin(); //overloaded as num zeros
@@ -61,6 +61,16 @@ class DirectHll6Array extends DirectHllArray {
   @Override
   PairIterator getIterator() {
     return new DirectHll6Iterator(1 << lgConfigK);
+  }
+
+  @Override
+  final int getSlot(final int slotNo) {
+    return Hll6Array.get6Bit(mem, HLL_BYTE_ARR_START, slotNo);
+  }
+
+  @Override
+  final void putSlot(final int slotNo, final int value) {
+    Hll6Array.put6Bit(wmem, HLL_BYTE_ARR_START, slotNo, value);
   }
 
   //ITERATOR

@@ -55,9 +55,9 @@ class Hll8Array extends HllArray {
     final int newVal = HllUtil.getValue(coupon);
     assert newVal > 0;
 
-    final int curVal = hllByteArr[slotNo] & VAL_MASK_6;
+    final int curVal = getSlot(slotNo);
     if (newVal > curVal) {
-      hllByteArr[slotNo] = (byte) (newVal & VAL_MASK_6);
+      putSlot(slotNo, newVal);
       hipAndKxQIncrementalUpdate(this, curVal, newVal);
       if (curVal == 0) {
         decNumAtCurMin(); //overloaded as num zeros
@@ -70,6 +70,16 @@ class Hll8Array extends HllArray {
   @Override
   PairIterator getIterator() {
     return new HeapHll8Iterator(1 << lgConfigK);
+  }
+
+  @Override
+  final int getSlot(final int slotNo) {
+    return hllByteArr[slotNo] & VAL_MASK_6;
+  }
+
+  @Override
+  final void putSlot(final int slotNo, final int value) {
+    hllByteArr[slotNo] = (byte) (value & VAL_MASK_6);
   }
 
   //ITERATOR

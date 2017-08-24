@@ -48,17 +48,6 @@ public class DirectHllSketchTest {
   }
 
   @Test
-  public void checkPutSlotGetSlotDummies() {
-    int bytes = HllSketch.getMaxUpdatableSerializationBytes(4, TgtHllType.HLL_8);
-    WritableMemory wmem = WritableMemory.allocate(bytes);
-    HllSketch sk = new HllSketch(4, TgtHllType.HLL_8, wmem);
-    for (int i = 0; i < 25; i++) { sk.update(i); }
-    AbstractHllArray absArr = (AbstractHllArray) sk.hllSketchImpl;
-    assertEquals(absArr.getSlot(0), -1);
-    absArr.putSlot(0, -1); //a no-op
-  }
-
-  @Test
   public void checkCompactToUpdatable() {
     int lgConfigK = 15;
     int n = 1 << 20;

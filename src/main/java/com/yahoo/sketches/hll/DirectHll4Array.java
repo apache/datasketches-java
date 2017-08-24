@@ -79,7 +79,7 @@ class DirectHll4Array extends DirectHllArray {
   }
 
   @Override
-  int getSlot(final int slotNo) {
+  final int getSlot(final int slotNo) {
     final long unsafeOffset = memAdd + HLL_BYTE_ARR_START + (slotNo >>> 1);
     int theByte = unsafe.getByte(memObj, unsafeOffset);
     if ((slotNo & 1) > 0) { //odd?
@@ -89,7 +89,7 @@ class DirectHll4Array extends DirectHllArray {
   }
 
   @Override
-  void putSlot(final int slotNo, final int newValue) {
+  final void putSlot(final int slotNo, final int newValue) {
     final long unsafeOffset = memAdd + HLL_BYTE_ARR_START + (slotNo >>> 1);
     final int oldValue = unsafe.getByte(memObj, unsafeOffset);
     final byte value = ((slotNo & 1) == 0) //even?

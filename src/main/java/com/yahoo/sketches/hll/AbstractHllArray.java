@@ -63,7 +63,6 @@ abstract class AbstractHllArray extends HllSketchImpl {
     return convertToHll8(this);
   }
 
-
   abstract void decNumAtCurMin();
 
   AuxHashMap getAuxHashMap() {
@@ -135,10 +134,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
     return HLL_PREINTS;
   }
 
-  @SuppressWarnings("unused")
-  int getSlot(final int slotNo) {
-    return -1;//intentional, overridden only by heap and direct HLL4
-  }
+  abstract int getSlot(int slotNo);
 
   @Override
   int getUpdatableSerializationBytes() {
@@ -165,10 +161,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   abstract void putNumAtCurMin(int numAtCurMin);
 
-  @SuppressWarnings("unused")
-  void putSlot(final int slotNo, final int value) {
-    //intentional no-op, overridden only by heap and direct HLL4
-  }
+  abstract void putSlot(final int slotNo, final int value);
 
   //COMPUTING HLL BYTE ARRAY LENGTHS
 
