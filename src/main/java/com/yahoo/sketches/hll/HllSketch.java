@@ -35,6 +35,14 @@ import com.yahoo.memory.WritableMemory;
  * (up to about 10% of <i>K</i>), this implementation leverages a new class of estimator
  * algorithms with significantly better accuracy.
  *
+ * <p>This sketch also offers the capability of operating off-heap. Given a WritableMemory object
+ * created by the user, the sketch will perform all of its updates and internal phase transitions
+ * in that object, which can actually reside either on-heap or off-heap based on how it is
+ * configured. In large systems that must update and merge many millions of sketches, having the
+ * sketch operate off-heap avoids the serialization and deserialization costs of moving sketches
+ * to and from off-heap memory-mapped files, for example, and eliminates big garbage collection
+ * delays.
+ *
  * @author Lee Rhodes
  * @author Kevin Lang
  */
@@ -62,10 +70,10 @@ public class HllSketch extends BaseHllSketch {
   }
 
   /**
-   * Constructs a new direct sketch with the type of HLL sketch to configure and the given
-   * WritableMemory as the destination for the sketch.  What remains on the java heap is a
-   * thin wrapper object that reads and writes to the given WritableMemory, which, depending on
-   * how the user configures the WritableMemory, may actually reside on the Java heap or off-heap.
+   * Constructs a new sketch with the type of HLL sketch to configure and the given
+   * WritableMemory as the destination for the sketch. This WritableMemory is usually configured
+   * for off-heap memory. What remains on the java heap is a thin wrapper object that reads and
+   * writes to the given WritableMemory.
    *
    * <p>The given <i>dstMem</i> is checked for the required capacity as determined by
    * {@link #getMaxUpdatableSerializationBytes(int, TgtHllType)}.
