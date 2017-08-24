@@ -15,7 +15,7 @@ import com.yahoo.sketches.SketchesStateException;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-public class Hll4Update {
+class Hll4Update {
 
   //In C: two-registers.c Line 836 in "hhb_abstract_set_slot_if_new_value_bigger" non-sparse
   //Uses lgConfigK, curMin, numAtCurMin, auxMap
