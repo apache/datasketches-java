@@ -10,7 +10,6 @@ import static com.yahoo.sketches.hll.HllUtil.LG_INIT_LIST_SIZE;
 import static com.yahoo.sketches.hll.HllUtil.LG_INIT_SET_SIZE;
 import static com.yahoo.sketches.hll.HllUtil.noWriteAccess;
 import static com.yahoo.sketches.hll.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_INT_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_PREINTS;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_PREINTS;
 import static com.yahoo.sketches.hll.PreambleUtil.LIST_INT_ARR_START;
@@ -133,14 +132,15 @@ class DirectCouponList extends AbstractCoupons {
 
   @Override
   int getCompactSerializationBytes() {
-    return LIST_INT_ARR_START + (getCouponCount() << 2);
+    return getMemDataStart() + (getCouponCount() << 2);
   }
 
   @Override //get Coupons from internal Mem to dstMem
   //Called by CouponList.insertList()
   //Called by CouponList.insertSet()
   void getCouponsToMemoryInts(final WritableMemory dstWmem, final int lenInts) {
-    mem.copyTo(LIST_INT_ARR_START, dstWmem, LIST_INT_ARR_START, lenInts << 2);
+    final int memDataStart = getMemDataStart();
+    mem.copyTo(memDataStart, dstWmem, memDataStart, lenInts << 2);
   }
 
   @Override
@@ -252,7 +252,7 @@ class DirectCouponList extends AbstractCoupons {
     insertCurMode(memObj,memAdd, CurMode.SET);
     //tgtHllType should already be set
     final int maxBytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
-    wmem.clear(LIST_INT_ARR_START, maxBytes - LIST_INT_ARR_START); //clears the hash set count
+    wmem.clear(LIST_INT_ARR_START, maxBytes - LIST_INT_ARR_START); //clear all past first 8
 
     //create the tgt
     final DirectCouponHashSet dchSet
@@ -274,14 +274,14 @@ class DirectCouponList extends AbstractCoupons {
     final long memAdd = wmem.getCumulativeOffset(0L);
 
     //get the data from the current list or set memory
-    final CurMode curMode = HllUtil.checkPreamble(wmem); //sanity check
+    HllUtil.checkPreamble(wmem); //sanity check
     final int lgConfigK = src.lgConfigK;
     final TgtHllType tgtHllType = src.tgtHllType;
-    final int srcOffset = (curMode == CurMode.LIST) ? LIST_INT_ARR_START : HASH_SET_INT_ARR_START;
+    final int srcMemDataStart = src.getMemDataStart();
     final double est = src.getEstimate();
     final int couponArrInts = 1 << src.getLgCouponArrInts();
     final int[] couponArr = new int[couponArrInts]; //buffer
-    wmem.getIntArray(srcOffset, couponArr, 0, couponArrInts);
+    wmem.getIntArray(srcMemDataStart, couponArr, 0, couponArrInts);
 
     //rewrite the memory image as an HLL
     insertPreInts(memObj, memAdd, HLL_PREINTS);
@@ -294,7 +294,7 @@ class DirectCouponList extends AbstractCoupons {
     //we update HipAccum at the end
     //clear KxQ0, KxQ1, NumAtCurMin, AuxCount, hllArray, auxArr
     final int maxBytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
-    wmem.clear(LIST_INT_ARR_START, maxBytes - LIST_INT_ARR_START);
+    wmem.clear(LIST_INT_ARR_START, maxBytes - LIST_INT_ARR_START); //clear all past first 8
     insertNumAtCurMin(memObj, memAdd, 1 << lgConfigK); //set numAtCurMin
     insertKxQ0(memObj, memAdd, 1 << lgConfigK);
 
@@ -308,7 +308,7 @@ class DirectCouponList extends AbstractCoupons {
       dirHllArr = new DirectHll8Array(lgConfigK, wmem);
     }
 
-    //now reload the coupon data into HLL
+    //now load the coupon data into HLL
     for (int i = 0; i < couponArrInts; i++) {
       final int coupon = couponArr[i];
       if (coupon != EMPTY) {

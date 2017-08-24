@@ -9,6 +9,7 @@ import static com.yahoo.sketches.hll.HllSketch.getMaxUpdatableSerializationBytes
 import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static com.yahoo.sketches.hll.HllUtil.LG_INIT_LIST_SIZE;
 import static com.yahoo.sketches.hll.HllUtil.LG_INIT_SET_SIZE;
+import static com.yahoo.sketches.hll.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_INT_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.LIST_INT_ARR_START;
@@ -305,6 +306,78 @@ public class HllSketchTest {
     assertEquals(sk.getEstimate(), 20.0, 0.001);
   }
 
+  @Test
+  public void checkCompactFlag() {
+    int lgK = 8;
+    //follows the toByteArray request
+    assertEquals(checkCompact(lgK, 7, HLL_8, false, false), false);
+    assertEquals(checkCompact(lgK, 7, HLL_8, false, true), true);
+    assertEquals(checkCompact(lgK, 7, HLL_8, false, false), false);
+    assertEquals(checkCompact(lgK, 7, HLL_8, false, true), true);
+    assertEquals(checkCompact(lgK, 7, HLL_8, true, false), false);
+    assertEquals(checkCompact(lgK, 7, HLL_8, true, true), true);
+    assertEquals(checkCompact(lgK, 7, HLL_8, true, false), false);
+    assertEquals(checkCompact(lgK, 7, HLL_8, true, true), true);
+
+    //follows the toByteArray request
+    assertEquals(checkCompact(lgK, 24, HLL_8, false, false), false);
+    assertEquals(checkCompact(lgK, 24, HLL_8, false, true), true);
+    assertEquals(checkCompact(lgK, 24, HLL_8, false, false), false);
+    assertEquals(checkCompact(lgK, 24, HLL_8, false, true), true);
+    assertEquals(checkCompact(lgK, 24, HLL_8, true, false), false);
+    assertEquals(checkCompact(lgK, 24, HLL_8, true, true), true);
+    assertEquals(checkCompact(lgK, 24, HLL_8, true, false), false);
+    assertEquals(checkCompact(lgK, 24, HLL_8, true, true), true);
+
+    //always updatable
+    assertEquals(checkCompact(lgK, 25, HLL_8, false, false), false);
+    assertEquals(checkCompact(lgK, 25, HLL_8, false, true), false);
+    assertEquals(checkCompact(lgK, 25, HLL_8, false, false), false);
+    assertEquals(checkCompact(lgK, 25, HLL_8, false, true), false);
+    assertEquals(checkCompact(lgK, 25, HLL_8, true, false), false);
+    assertEquals(checkCompact(lgK, 25, HLL_8, true, true), false);
+    assertEquals(checkCompact(lgK, 25, HLL_8, true, false), false);
+    assertEquals(checkCompact(lgK, 25, HLL_8, true, true), false);
+
+    //always updatable
+    assertEquals(checkCompact(lgK, 25, HLL_6, false, false), false);
+    assertEquals(checkCompact(lgK, 25, HLL_6, false, true), false);
+    assertEquals(checkCompact(lgK, 25, HLL_6, false, false), false);
+    assertEquals(checkCompact(lgK, 25, HLL_6, false, true), false);
+    assertEquals(checkCompact(lgK, 25, HLL_6, true, false), false);
+    assertEquals(checkCompact(lgK, 25, HLL_6, true, true), false);
+    assertEquals(checkCompact(lgK, 25, HLL_6, true, false), false);
+    assertEquals(checkCompact(lgK, 25, HLL_6, true, true), false);
+
+    //follows the toByteArray request
+    assertEquals(checkCompact(lgK, 25, HLL_4, false, false), false);
+    assertEquals(checkCompact(lgK, 25, HLL_4, false, true), true);
+    assertEquals(checkCompact(lgK, 25, HLL_4, false, false), false);
+    assertEquals(checkCompact(lgK, 25, HLL_4, false, true), true);
+    assertEquals(checkCompact(lgK, 25, HLL_4, true, false), false);
+    assertEquals(checkCompact(lgK, 25, HLL_4, true, true), true);
+    assertEquals(checkCompact(lgK, 25, HLL_4, true, false), false);
+    assertEquals(checkCompact(lgK, 25, HLL_4, true, true), true);
+  }
+
+  private static boolean checkCompact(int lgK, int n, TgtHllType type, boolean direct,
+      boolean compact) {
+    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, type);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+    HllSketch sk = (direct) ? new HllSketch(lgK, type, wmem) : new HllSketch(lgK, type);
+    assertEquals(sk.isMemory(), direct);
+    assertFalse(sk.isOffHeap());
+    for (int i = 0; i < n; i++) { sk.update(i); }
+    byte[] byteArr = (compact) ? sk.toCompactByteArray() : sk.toUpdatableByteArray();
+    int len = byteArr.length;
+    if (compact) {
+      assertEquals(len, sk.getCompactSerializationBytes());
+    } else {
+      assertEquals(len, sk.getUpdatableSerializationBytes());
+    }
+    return (byteArr[5] & COMPACT_FLAG_MASK) > 0;
+
+  }
 
   @Test
   public void printlnTest() {

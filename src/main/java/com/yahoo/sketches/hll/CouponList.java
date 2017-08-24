@@ -123,14 +123,14 @@ class CouponList extends AbstractCoupons {
 
   @Override
   int getCompactSerializationBytes() {
-    return LIST_INT_ARR_START + (couponCount << 2);
+    return getMemDataStart() + (couponCount << 2);
   }
 
   @Override //get coupons from internal int[] to dstMem
   //Called by CouponList.insertList
   //Called by CouponList.insertSet
   void getCouponsToMemoryInts(final WritableMemory dstWmem, final int lenInts) {
-    dstWmem.putIntArray(LIST_INT_ARR_START, couponIntArr, 0, lenInts);
+    dstWmem.putIntArray(getMemDataStart(), couponIntArr, 0, lenInts);
   }
 
   @Override

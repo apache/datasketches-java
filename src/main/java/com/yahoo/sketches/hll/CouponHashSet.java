@@ -65,15 +65,15 @@ class CouponHashSet extends CouponList {
     final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
     final int lgCouponArrInts = extractLgArr(memObj, memAdd);
     final CurMode curMode = extractCurMode(memObj, memAdd);
-    final int arrStart = (curMode == CurMode.LIST) ? LIST_INT_ARR_START : HASH_SET_INT_ARR_START;
+    final int memArrStart = (curMode == CurMode.LIST) ? LIST_INT_ARR_START : HASH_SET_INT_ARR_START;
 
     final CouponHashSet set = new CouponHashSet(lgConfigK, tgtHllType);
     set.putOutOfOrderFlag(true);
-    final boolean compact = extractCompactFlag(memObj, memAdd);
+    final boolean memIsCompact = extractCompactFlag(memObj, memAdd);
     final int couponCount = extractHashSetCount(memObj, memAdd);
-    if (compact) {
+    if (memIsCompact) {
       for (int i = 0; i < couponCount; i++) {
-        final int coupon = extractInt(memObj, memAdd, arrStart + (i << 2));
+        final int coupon = extractInt(memObj, memAdd, memArrStart + (i << 2));
         if (coupon == EMPTY) { continue; }
         set.couponUpdate(coupon);
       }
@@ -108,18 +108,6 @@ class CouponHashSet extends CouponList {
     final boolean promote = checkGrowOrPromote();
     if (!promote) { return this; }
     return promoteHeapListOrSetToHll(this);
-  }
-
-  @Override //get coupons from internal int[] to dstMem
-  //Called by CouponList.insertList()
-  //Called by CouponList.insertSet()
-  void getCouponsToMemoryInts(final WritableMemory dstWmem, final int lenInts) {
-    dstWmem.putIntArray(HASH_SET_INT_ARR_START, couponIntArr, 0, lenInts);
-  }
-
-  @Override
-  int getCompactSerializationBytes() {
-    return HASH_SET_INT_ARR_START + (couponCount << 2);
   }
 
   @Override

@@ -44,34 +44,6 @@ class DirectCouponHashSet extends DirectCouponList {
     assert mem.getByte(LG_K_BYTE) > 7;
   }
 
-  //  /**
-  //   * Standard factory for new DirectCouponHashSet. Primarily used in test.
-  //   * This initializes the given WritableMemory.
-  //   * @param lgConfigK the configured Lg K, must be greater than 7
-  //   * @param tgtHllType the configured HLL target
-  //   * @param dstMem the destination memory for the sketch.
-  //   */
-  //  static DirectCouponHashSet newInstance(final int lgConfigK, final TgtHllType tgtHllType,
-  //      final WritableMemory dstMem) {
-  //    final long capBytes = dstMem.getCapacity();
-  //    final int minBytes = HASH_SET_INT_ARR_START + (4 << LG_INIT_SET_SIZE);
-  //    HllUtil.checkMemSize(minBytes, capBytes);
-  //
-  //    final Object memObj = dstMem.getArray();
-  //    final long memAdd = dstMem.getCumulativeOffset(0L);
-  //
-  //    insertPreInts(memObj, memAdd, HASH_SET_PREINTS);
-  //    insertSerVer(memObj, memAdd);
-  //    insertFamilyId(memObj, memAdd);
-  //    insertLgK(memObj, memAdd, lgConfigK);
-  //    insertLgArr(memObj, memAdd, LG_INIT_SET_SIZE);
-  //    insertFlags(memObj, memAdd, EMPTY_FLAG_MASK);
-  //    insertListCount(memObj, memAdd, 0); //zero out for SET also
-  //    insertModes(memObj, memAdd, tgtHllType, CurMode.SET);
-  //    insertHashSetCount(memObj, memAdd, 0);
-  //    return new DirectCouponHashSet(lgConfigK, tgtHllType, dstMem);
-  //  }
-
   @Override //returns on-heap Set
   CouponHashSet copy() {
     return CouponHashSet.heapifySet(mem);
@@ -81,13 +53,6 @@ class DirectCouponHashSet extends DirectCouponList {
   CouponHashSet copyAs(final TgtHllType tgtHllType) {
     final CouponHashSet clist = CouponHashSet.heapifySet(mem);
     return new CouponHashSet(clist, tgtHllType);
-  }
-
-  @Override //get Coupons from internal Mem to dstMem
-  //Called by CouponList.insertList()
-  //Called by CouponList.insertSet()
-  void getCouponsToMemoryInts(final WritableMemory dstWmem, final int lenInts) {
-    mem.copyTo(HASH_SET_INT_ARR_START, dstWmem, HASH_SET_INT_ARR_START, lenInts << 2);
   }
 
   @Override
@@ -103,11 +68,6 @@ class DirectCouponHashSet extends DirectCouponList {
     final boolean promote = checkGrowOrPromote();
     if (!promote) { return this; }
     return promoteListOrSetToHll(this);
-  }
-
-  @Override
-  int getCompactSerializationBytes() {
-    return HASH_SET_INT_ARR_START +  (getCouponCount() << 2);
   }
 
   @Override
