@@ -13,7 +13,10 @@ import static com.yahoo.sketches.hll.HllUtil.noWriteAccess;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.extractAuxCount;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCompactFlag;
+import static com.yahoo.sketches.hll.PreambleUtil.insertAuxCount;
 import static com.yahoo.sketches.hll.PreambleUtil.insertCompactFlag;
+import static com.yahoo.sketches.hll.PreambleUtil.insertInt;
+import static com.yahoo.sketches.hll.PreambleUtil.insertLgArr;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
@@ -39,7 +42,6 @@ class DirectHll4Array extends DirectHllArray {
       final boolean compact = extractCompactFlag(memObj, memAdd);
       final AuxHashMap auxHashMap;
       if (compact) {
-        final int auxStart = getAuxStart();
         auxHashMap = HeapAuxHashMap.heapify(mem, auxStart, lgConfigK, auxCount, compact);
       } else {
         auxHashMap =  new DirectAuxHashMap(this, false); //not compact
@@ -58,11 +60,11 @@ class DirectHll4Array extends DirectHllArray {
     if (wmem == null) { noWriteAccess(); }
     final int newValue = HllUtil.getValue(coupon);
     if (newValue <= getCurMin()) {
-      return this; // super quick rejection; only works for large N
+      return this; // super quick rejection; only works for large N, HLL4
     }
     final int configKmask = (1 << getLgConfigK()) - 1;
     final int slotNo = HllUtil.getLow26(coupon) & configKmask;
-    internalHll4Update(this, slotNo, newValue);
+    Hll4Update.internalHll4Update(this, slotNo, newValue);
     return this;
   }
 
@@ -99,25 +101,31 @@ class DirectHll4Array extends DirectHllArray {
 
   @Override
   byte[] toCompactByteArray() {
-    final boolean memIsCompact = extractCompactFlag(memObj, memAdd);
+    final boolean srcMemIsCompact = extractCompactFlag(memObj, memAdd);
     final int totBytes = getCompactSerializationBytes();
     final byte[] byteArr = new byte[totBytes];
     final WritableMemory memOut = WritableMemory.wrap(byteArr);
-    if (memIsCompact) {
+    final Object memOutObj = memOut.getArray();
+    final long memOutAdd = memOut.getCumulativeOffset(0L);
+    if (srcMemIsCompact) { //mem is already consistent with result
       mem.copyTo(0, memOut, 0, totBytes);
       return byteArr;
-    } else {
-      final int auxStart = getAuxStart();
-      mem.copyTo(0, memOut, 0, auxStart);
-      if (auxHashMap != null) {
-        insertAux(this, memOut, true);
-      }
-      //set the compact flag
-      final Object memOutObj = memOut.getArray();
-      final long memOutAdd = memOut.getCumulativeOffset(0L);
-      insertCompactFlag(memOutObj, memOutAdd, true);
-      return byteArr;
     }
+    //everything but the aux array is consistent
+    mem.copyTo(0, memOut, 0, auxStart);
+    if (auxHashMap != null) {
+      final int auxCount = auxHashMap.getAuxCount();
+      insertAuxCount(memOutObj, memOutAdd, auxCount);
+      insertLgArr(memOutObj, memOutAdd, auxHashMap.getLgAuxArrInts()); //only used for direct HLL
+      final PairIterator itr = auxHashMap.getIterator();
+      int cnt = 0;
+      while (itr.nextValid()) { //works whether src has compact memory or not
+        insertInt(memOutObj, memOutAdd, auxStart + (cnt++ << 2), itr.getPair());
+      }
+      assert cnt == auxCount;
+    }
+    insertCompactFlag(memOutObj, memOutAdd, true);
+    return byteArr;
   }
 
   @Override
@@ -126,21 +134,18 @@ class DirectHll4Array extends DirectHllArray {
     final int totBytes = getUpdatableSerializationBytes();
     final byte[] byteArr = new byte[totBytes];
     final WritableMemory memOut = WritableMemory.wrap(byteArr);
-    if (memIsCompact) {
-      final int auxStart = getAuxStart();
-      mem.copyTo(0, memOut, 0, auxStart);
-      if (auxHashMap != null) {
-        insertAux(this, memOut, false);
-      }
-      //clear the compact flag
-      final Object memOutObj = memOut.getArray();
-      final long memOutAdd = memOut.getCumulativeOffset(0L);
-      insertCompactFlag(memOutObj, memOutAdd, false);
-      return byteArr;
-    } else {
+    if (!memIsCompact) { //mem is already consistent with result
       mem.copyTo(0, memOut, 0, totBytes);
       return byteArr;
     }
+    //everything but perhaps aux array is consistent
+    if (auxHashMap != null) {
+      final HllSketch heapSk = HllSketch.heapify(mem);
+      return heapSk.toUpdatableByteArray();
+    }
+    //no aux array
+    mem.copyTo(0, memOut, 0, totBytes);
+    return byteArr;
   }
 
   //ITERATOR

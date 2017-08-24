@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.memory.UnsafeUtil.unsafe;
 import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 
 import com.yahoo.memory.Memory;
@@ -15,7 +16,7 @@ import com.yahoo.memory.WritableMemory;
  *
  * @author Lee Rhodes
  */
-abstract class IntMemoryPairIterator implements PairIterator {
+class IntMemoryPairIterator implements PairIterator {
   final Object memObj;
   final long memAdd;
   final long offsetBytes;
@@ -32,6 +33,11 @@ abstract class IntMemoryPairIterator implements PairIterator {
     this.lengthPairs = lengthPairs;
     slotMask = (1 << lgConfigK) - 1;
     index = -1;
+  }
+
+  IntMemoryPairIterator(final byte[] byteArr, final long offsetBytes, final int lengthPairs,
+      final int lgConfigK) {
+    this(Memory.wrap(byteArr), offsetBytes, lengthPairs, lgConfigK);
   }
 
   @Override
@@ -80,6 +86,8 @@ abstract class IntMemoryPairIterator implements PairIterator {
     return false;
   }
 
-  abstract int pair();
+  int pair() {
+    return unsafe.getInt(memObj, memAdd + offsetBytes + (index << 2));
+  }
 
 }

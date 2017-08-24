@@ -8,9 +8,7 @@ package com.yahoo.sketches.hll;
 import static com.yahoo.sketches.hll.HllUtil.COUPON_RSE;
 import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.KEY_MASK_26;
-import static com.yahoo.sketches.hll.HllUtil.LG_INIT_LIST_SIZE;
 import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_INT_ARR_START;
-import static com.yahoo.sketches.hll.PreambleUtil.LIST_INT_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.insertCompactFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.insertCurMode;
 import static com.yahoo.sketches.hll.PreambleUtil.insertEmptyFlag;
@@ -59,36 +57,37 @@ abstract class AbstractCoupons extends HllSketchImpl {
    */
   @Override
   double getEstimate() {
-    return getEstimate(getCouponCount());
+    final int couponCount = getCouponCount();
+    final double est = CubicInterpolation.usingXAndYTables(CouponMapping.xArr,
+        CouponMapping.yArr, couponCount);
+    return max(est, couponCount);
   }
 
   abstract int getLgCouponArrInts();
 
   @Override
   double getLowerBound(final int numStdDev) {
+    HllUtil.checkNumStdDev(numStdDev);
     final int couponCount = getCouponCount();
     final double est = CubicInterpolation.usingXAndYTables(CouponMapping.xArr,
         CouponMapping.yArr, couponCount);
-    final double tmp = est / (1.0 + couponEstimatorEps(numStdDev));
+    final double tmp = est / (1.0 + (numStdDev * COUPON_RSE));
     return max(tmp, couponCount);
   }
 
   @Override
   double getUpperBound(final int numStdDev) {
+    HllUtil.checkNumStdDev(numStdDev);
     final int couponCount = getCouponCount();
     final double est = CubicInterpolation.usingXAndYTables(CouponMapping.xArr,
         CouponMapping.yArr, couponCount);
-    final double tmp = est / (1.0 - couponEstimatorEps(numStdDev));
+    final double tmp = est / (1.0 - (numStdDev * COUPON_RSE));
     return max(tmp, couponCount);
   }
 
   @Override
   int getUpdatableSerializationBytes() {
-    if (getCurMode() == CurMode.LIST) {
-      return LIST_INT_ARR_START + (4 << LG_INIT_LIST_SIZE);
-    } else {
-      return HASH_SET_INT_ARR_START + (4 << getLgCouponArrInts());
-    }
+    return getMemDataStart() + (4 << getLgCouponArrInts());
   }
 
   @Override
@@ -100,55 +99,41 @@ abstract class AbstractCoupons extends HllSketchImpl {
   static final byte[] toByteArray(final AbstractCoupons impl, final boolean compact) {
     final byte[] byteArr;
     final int arrLenBytes;
+    final int couponCount = impl.getCouponCount();
+    final int couponArrInts = 1 << impl.getLgCouponArrInts();
     arrLenBytes = (compact)
-        ? impl.getCouponCount() << 2
-        : 4 << impl.getLgCouponArrInts();
-    byteArr = new byte[impl.getMemArrStart() + arrLenBytes];
-    final WritableMemory wmem = WritableMemory.wrap(byteArr);
+        ? couponCount << 2
+        : couponArrInts << 2;
+    byteArr = new byte[impl.getMemDataStart() + arrLenBytes];
+    final WritableMemory tgtWmem = WritableMemory.wrap(byteArr);
+    final Object memObj = tgtWmem.getArray();
+    final long memAdd = tgtWmem.getCumulativeOffset(0L);
+
+    insertCompactFlag(memObj, memAdd, compact);
+    insertCommonListAndSet(impl, memObj, memAdd);
 
     if (impl.getCurMode() == CurMode.LIST) {
-      insertList(impl, wmem, compact);
-    } else { //SET
-      insertSet(impl, wmem, compact);
+      final int lenInts = (compact) ? couponCount : couponArrInts;
+      insertListCount(memObj, memAdd, couponCount);
+      impl.getCouponsToMemoryInts(tgtWmem, lenInts);
+    }
+    else { //SET
+      insertHashSetCount(memObj, memAdd, couponCount);
+      if (compact) {
+        final PairIterator itr = impl.getIterator();
+        int cnt = 0;
+        while (itr.nextValid()) {
+          tgtWmem.putInt(HASH_SET_INT_ARR_START + (cnt++ << 2), itr.getPair());
+        }
+      } else { //updatable
+        impl.getCouponsToMemoryInts(tgtWmem, couponArrInts);
+      }
     }
     return byteArr;
   }
 
-  private static final void insertList(final AbstractCoupons impl, final WritableMemory wmem,
-      final boolean compact) {
-    final Object memObj = wmem.getArray();
-    final long memAdd = wmem.getCumulativeOffset(0L);
-
-    final int couponCount = impl.getCouponCount();
-    insertListCount(memObj, memAdd, couponCount);
-    insertCompactFlag(memObj, memAdd, compact);
-    insertCommonList(impl, memObj, memAdd);
-    final int lenInts = (compact) ? couponCount : 1 << impl.getLgCouponArrInts();
-    impl.getCouponsToMemoryInts(wmem, lenInts);
-  }
-
-  private static final void insertSet(final AbstractCoupons impl, final WritableMemory wmem,
-      final boolean compact) {
-    final Object memObj = wmem.getArray();
-    final long memAdd = wmem.getCumulativeOffset(0L);
-
-    insertHashSetCount(memObj, memAdd, impl.getCouponCount());
-    insertCompactFlag(memObj, memAdd, compact);
-    insertCommonList(impl, memObj, memAdd);
-
-    if (compact) {
-      final PairIterator itr = impl.getIterator();
-      int cnt = 0;
-      while (itr.nextValid()) {
-        wmem.putInt(HASH_SET_INT_ARR_START + (cnt++ << 2), itr.getPair());
-      }
-    } else { //updatable
-      impl.getCouponsToMemoryInts(wmem, 1 << impl.getLgCouponArrInts());
-    }
-  }
-
-  private static final void insertCommonList(final AbstractCoupons impl, final Object memObj,
-      final long memAdd) {
+  private static final void insertCommonListAndSet(final AbstractCoupons impl,
+      final Object memObj, final long memAdd) {
     insertPreInts(memObj, memAdd, impl.getPreInts());
     insertSerVer(memObj, memAdd);
     insertFamilyId(memObj, memAdd);
@@ -158,19 +143,6 @@ abstract class AbstractCoupons extends HllSketchImpl {
     insertOooFlag(memObj, memAdd, impl.isOutOfOrderFlag());
     insertCurMode(memObj, memAdd, impl.getCurMode());
     insertTgtHllType(memObj, memAdd, impl.getTgtHllType());
-  }
-
-  //ESTIMATE RELATED
-
-  private static final double getEstimate(final int couponCount) {
-    final double est = CubicInterpolation.usingXAndYTables(CouponMapping.xArr,
-        CouponMapping.yArr, couponCount);
-    return max(est, couponCount);
-  }
-
-  private static final double couponEstimatorEps(final int numStdDev) {
-    HllUtil.checkNumStdDev(numStdDev);
-    return (numStdDev * COUPON_RSE);
   }
 
   //FIND for Heap and Direct

@@ -18,7 +18,6 @@ import com.yahoo.memory.WritableMemory;
 /**
  * Uses 4 bits per slot in a packed byte array.
  * @author Lee Rhodes
- * @author Kevin Lang
  */
 class Hll4Array extends HllArray {
 
@@ -47,7 +46,7 @@ class Hll4Array extends HllArray {
     HllArray.extractCommonHll(mem, memArr, memAdd, hll4Array);
 
     //load AuxHashMap
-    final int auxStart = hll4Array.getAuxStart();
+    final int auxStart = hll4Array.auxStart;
     final int auxCount = extractAuxCount(memArr, memAdd);
     final boolean compact = extractCompactFlag(memArr, memAdd);
     HeapAuxHashMap auxHashMap = null;
@@ -71,7 +70,7 @@ class Hll4Array extends HllArray {
     }
     final int configKmask = (1 << getLgConfigK()) - 1;
     final int slotNo = HllUtil.getLow26(coupon) & configKmask;
-    internalHll4Update(this, slotNo, newValue);
+    Hll4Update.internalHll4Update(this, slotNo, newValue);
     return this;
   }
 

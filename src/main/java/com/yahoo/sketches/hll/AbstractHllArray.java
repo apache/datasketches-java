@@ -8,10 +8,7 @@ package com.yahoo.sketches.hll;
 import static com.yahoo.sketches.Util.invPow2;
 import static com.yahoo.sketches.hll.HllUtil.AUX_TOKEN;
 import static com.yahoo.sketches.hll.HllUtil.EMPTY;
-import static com.yahoo.sketches.hll.HllUtil.HLL_HIP_RSE_FACTOR;
-import static com.yahoo.sketches.hll.HllUtil.HLL_NON_HIP_RSE_FACTOR;
 import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
-import static com.yahoo.sketches.hll.HllUtil.MIN_LOG_K;
 import static com.yahoo.sketches.hll.PreambleUtil.AUX_COUNT_INT;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_PREINTS;
@@ -37,16 +34,17 @@ import static com.yahoo.sketches.hll.TgtHllType.HLL_6;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
-import com.yahoo.sketches.SketchesStateException;
 
 /**
  * @author Lee Rhodes
  */
 abstract class AbstractHllArray extends HllSketchImpl {
-  AuxHashMap auxHashMap = null;
+  AuxHashMap auxHashMap = null; //used for both heap and direct HLL4
+  final int auxStart; //used for direct HLL4
 
   AbstractHllArray(final int lgConfigK, final TgtHllType tgtHllType, final CurMode curMode) {
     super(lgConfigK, tgtHllType, curMode);
+    auxStart = HLL_BYTE_ARR_START + hll4ArrBytes(lgConfigK);
   }
 
   abstract void addToHipAccum(double delta);
@@ -76,10 +74,6 @@ abstract class AbstractHllArray extends HllSketchImpl {
     return (auxHashMap == null) ? null : auxHashMap.getIterator();
   }
 
-  public int getAuxStart() {
-    return HLL_BYTE_ARR_START + hll4ArrBytes(lgConfigK);
-  }
-
   @Override
   int getCompactSerializationBytes() {
     final AuxHashMap auxHashMap = getAuxHashMap();
@@ -95,7 +89,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
   //In C: again-two-registers.c hhb_get_composite_estimate L1489
   @Override
   double getCompositeEstimate() {
-    return compositeEstimate(this);
+    return HllEstimators.hllCompositeEstimate(this);
   }
 
   abstract int getCurMin();
@@ -121,11 +115,12 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   @Override
   double getLowerBound(final int numStdDev) {
-    return lowerBound(this, numStdDev);
+    HllUtil.checkNumStdDev(numStdDev);
+    return HllEstimators.hllLowerBound(this, numStdDev);
   }
 
   @Override
-  int getMemArrStart() {
+  int getMemDataStart() {
     return HLL_BYTE_ARR_START;
   }
 
@@ -154,7 +149,8 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   @Override
   double getUpperBound(final int numStdDev) {
-    return upperBound(this, numStdDev);
+    HllUtil.checkNumStdDev(numStdDev);
+    return HllEstimators.hllUpperBound(this, numStdDev);
   }
 
   abstract void putAuxHashMap(AuxHashMap auxHashMap, boolean compact);
@@ -208,15 +204,8 @@ abstract class AbstractHllArray extends HllSketchImpl {
   private static final void insertHll(final AbstractHllArray impl, final WritableMemory wmem,
       final boolean compact) {
     insertCommonHll(impl, wmem, compact);
-
-    if (impl.isMemory()) {
-      final Memory mem = impl.getMemory();
-      mem.copyTo(HLL_BYTE_ARR_START, wmem, HLL_BYTE_ARR_START, impl.getHllByteArrBytes());
-    } else { //Heap
-      final byte[] hllByteArr = ((HllArray)impl).hllByteArr;
-      wmem.putByteArray(HLL_BYTE_ARR_START, hllByteArr, 0, hllByteArr.length);
-    }
-
+    final byte[] hllByteArr = ((HllArray)impl).hllByteArr;
+    wmem.putByteArray(HLL_BYTE_ARR_START, hllByteArr, 0, hllByteArr.length);
     if (impl.getAuxHashMap() != null) {
       insertAux(impl, wmem, compact);
     } else {
@@ -224,58 +213,52 @@ abstract class AbstractHllArray extends HllSketchImpl {
     }
   }
 
-  private static final void insertCommonHll(final AbstractHllArray impl, final WritableMemory wmem,
-      final boolean compact) {
-    final Object memObj = wmem.getArray();
-    final long memAdd = wmem.getCumulativeOffset(0L);
-    insertPreInts(memObj, memAdd, HLL_PREINTS);
-    insertSerVer(memObj, memAdd);
-    insertFamilyId(memObj, memAdd);
-    insertLgK(memObj, memAdd, impl.getLgConfigK());
-    insertEmptyFlag(memObj, memAdd, impl.isEmpty());
-    insertCompactFlag(memObj, memAdd, compact);
-    insertOooFlag(memObj, memAdd, impl.isOutOfOrderFlag());
-    insertCurMin(memObj, memAdd, impl.getCurMin());
-    insertCurMode(memObj, memAdd, impl.getCurMode());
-    insertTgtHllType(memObj, memAdd, impl.getTgtHllType());
-    insertHipAccum(memObj, memAdd, impl.getHipAccum());
-    insertKxQ0(memObj, memAdd, impl.getKxQ0());
-    insertKxQ1(memObj, memAdd, impl.getKxQ1());
-    insertNumAtCurMin(memObj, memAdd, impl.getNumAtCurMin());
+  private static final void insertCommonHll(final AbstractHllArray srcImpl,
+      final WritableMemory tgtWmem, final boolean compact) {
+    final Object tgtMemObj = tgtWmem.getArray();
+    final long tgtMemAdd = tgtWmem.getCumulativeOffset(0L);
+    insertPreInts(tgtMemObj, tgtMemAdd, HLL_PREINTS);
+    insertSerVer(tgtMemObj, tgtMemAdd);
+    insertFamilyId(tgtMemObj, tgtMemAdd);
+    insertLgK(tgtMemObj, tgtMemAdd, srcImpl.getLgConfigK());
+    insertEmptyFlag(tgtMemObj, tgtMemAdd, srcImpl.isEmpty());
+    insertCompactFlag(tgtMemObj, tgtMemAdd, compact);
+    insertOooFlag(tgtMemObj, tgtMemAdd, srcImpl.isOutOfOrderFlag());
+    insertCurMin(tgtMemObj, tgtMemAdd, srcImpl.getCurMin());
+    insertCurMode(tgtMemObj, tgtMemAdd, srcImpl.getCurMode());
+    insertTgtHllType(tgtMemObj, tgtMemAdd, srcImpl.getTgtHllType());
+    insertHipAccum(tgtMemObj, tgtMemAdd, srcImpl.getHipAccum());
+    insertKxQ0(tgtMemObj, tgtMemAdd, srcImpl.getKxQ0());
+    insertKxQ1(tgtMemObj, tgtMemAdd, srcImpl.getKxQ1());
+    insertNumAtCurMin(tgtMemObj, tgtMemAdd, srcImpl.getNumAtCurMin());
   }
 
-  //used by insertHll and by DirectHll4Array
-  static final void insertAux(final AbstractHllArray srcImpl, final WritableMemory tgtWmem,
-      final boolean compact) {
+  //used by insertHll for heap
+  private static final void insertAux(final AbstractHllArray srcImpl, final WritableMemory tgtWmem,
+      final boolean tgtCompact) {
     final Object memObj = tgtWmem.getArray();
     final long memAdd = tgtWmem.getCumulativeOffset(0L);
     final AuxHashMap auxHashMap = srcImpl.getAuxHashMap();
     final int auxCount = auxHashMap.getAuxCount();
     insertAuxCount(memObj, memAdd, auxCount);
     insertLgArr(memObj, memAdd, auxHashMap.getLgAuxArrInts()); //only used for direct HLL
-    final long auxStart = srcImpl.getAuxStart();
-    if (compact) {
+    final long auxStart = srcImpl.auxStart;
+    if (tgtCompact) {
       final PairIterator itr = auxHashMap.getIterator();
       int cnt = 0;
-      while (itr.nextValid()) {
+      while (itr.nextValid()) { //works whether src has compact memory or not
         insertInt(memObj, memAdd, auxStart + (cnt++ << 2), itr.getPair());
       }
       assert cnt == auxCount;
     } else { //updatable
       final int auxInts = 1 << auxHashMap.getLgAuxArrInts();
-      if (srcImpl.isMemory()) {
-        srcImpl.getMemory().copyTo(auxStart, tgtWmem, auxStart, auxInts << 2);
-      } else {
-        final int[] auxArr = auxHashMap.getAuxIntArr();
-        tgtWmem.putIntArray(auxStart, auxArr, 0, auxInts);
-      }
+      final int[] auxArr = auxHashMap.getAuxIntArr();
+      tgtWmem.putIntArray(auxStart, auxArr, 0, auxInts);
     }
   }
 
-  //UPDATE HIP AND KXQ COMMON TO ALL HLL
-
   /**
-   * HIP and KxQ incremental update.
+   * Common HIP and KxQ incremental update for all heap and direct Hll.
    * @param oldValue old value
    * @param newValue new value
    */
@@ -294,314 +277,6 @@ abstract class AbstractHllArray extends HllSketchImpl {
     else               { host.putKxQ1(kxq1 -= invPow2(oldValue)); }
     if (newValue < 32) { host.putKxQ0(kxq0 += invPow2(newValue)); }
     else               { host.putKxQ1(kxq1 += invPow2(newValue)); }
-  }
-
-  //UPDATE PROCESS COMMON TO HEAP AND DIRECT HLL_4
-
-  //In C: two-registers.c Line 836 in "hhb_abstract_set_slot_if_new_value_bigger" non-sparse
-  //Uses lgConfigK, curMin, numAtCurMin, auxMap
-  //Only called by Hll4Array and DirectHll4Array
-  static final void internalHll4Update(final AbstractHllArray host, final int slotNo, final int newValue) {
-    assert ((0 <= slotNo) && (slotNo < (1 << host.getLgConfigK())));
-    assert (newValue > 0);
-    final int curMin = host.getCurMin();
-
-    AuxHashMap auxHashMap = host.getAuxHashMap(); //may be null
-    final int rawStoredOldValue = host.getSlot(slotNo);  //could be 0
-    //This is provably a LB:
-    final int lbOnOldValue =  rawStoredOldValue + curMin; //lower bound, could be 0
-
-    if (newValue > lbOnOldValue) { //842:
-      //Note: if an AUX_TOKEN exists, then auxHashMap must already exist
-      final int actualOldValue = (rawStoredOldValue < AUX_TOKEN)
-          ? lbOnOldValue
-          : auxHashMap.mustFindValueFor(slotNo); //846 rawStoredOldValue == AUX_TOKEN
-
-      if (newValue > actualOldValue) { //848: actualOldValue could still be 0; newValue > 0
-
-        //We know that the array will be changed
-        hipAndKxQIncrementalUpdate(host, actualOldValue, newValue); //haven't actually updated yet
-
-        assert (newValue >= curMin)
-          : "New value " + newValue + " is less than current minimum " + curMin;
-
-        //newValue >= curMin
-
-        final int shiftedNewValue = newValue - curMin; //874
-        assert (shiftedNewValue >= 0);
-
-        if (rawStoredOldValue == AUX_TOKEN) { //879
-
-          //Given that we have an AUX_TOKEN, there are four cases for how to
-          //  actually modify the data structure
-
-          if (shiftedNewValue >= AUX_TOKEN) { //CASE 1: //881
-            //the byte array already contains aux token
-            //This is the case where old and new values are both exceptions.
-            //Therefore, the 4-bit array already is AUX_TOKEN. Only need to update auxMap
-            auxHashMap.mustReplace(slotNo, newValue);
-          }
-          else {                              //CASE 2: //885
-            //This is the (hypothetical) case where old value is an exception and the new one is not.
-            // which is impossible given that curMin has not changed here and the newValue > oldValue.
-            throw new SketchesStateException("Impossible case");
-          }
-        }
-
-        else { //rawStoredOldValue != AUX_TOKEN
-
-          if (shiftedNewValue >= AUX_TOKEN) { //CASE 3: //892
-            //This is the case where the old value is not an exception and the new value is.
-            //Therefore the AUX_TOKEN must be stored in the 4-bit array and the new value
-            // added to the exception table.
-            host.putSlot(slotNo, AUX_TOKEN);
-            if (auxHashMap == null) {
-              auxHashMap = host.getNewAuxHashMap();
-              host.putAuxHashMap(auxHashMap, false);
-            }
-            auxHashMap.mustAdd(slotNo, newValue);
-          }
-          else {                             // CASE 4: //897
-            //This is the case where neither the old value nor the new value is an exception.
-            //Therefore we just overwrite the 4-bit array with the shifted new value.
-            host.putSlot(slotNo, shiftedNewValue);
-          }
-        }
-
-        // we just increased a pair value, so it might be time to change curMin
-        if (actualOldValue == curMin) { //908
-          assert (host.getNumAtCurMin() >= 1);
-          host.decNumAtCurMin();
-          while (host.getNumAtCurMin() == 0) {
-            shiftToBiggerCurMin(host); //increases curMin by 1, and builds a new aux table,
-            //shifts values in 4-bit table, and recounts curMin
-          }
-        }
-      } //end newValue <= actualOldValue
-    } //end newValue <= lbOnOldValue -> return, no need to update array
-  }
-
-  //This scheme only works with two double registers (2 kxq values).
-  //  HipAccum, kxq0 and kxq1 remain untouched.
-  //  This changes curMin, numAtCurMin, hllByteArr and auxMap.
-  //Entering this routine assumes that all slots have valid values > 0 and <= 15.
-  //An AuxHashMap must exist if any values in the current hllByteArray are already 15.
-  //In C: again-two-registers.c Lines 710 "hhb_shift_to_bigger_curmin"
-  private static final void shiftToBiggerCurMin(final AbstractHllArray host) {
-    final int oldCurMin = host.getCurMin();
-    final int newCurMin = oldCurMin + 1;
-    final int lgConfigK = host.getLgConfigK();
-    final int configK = 1 << lgConfigK;
-    final int configKmask = configK - 1;
-
-    int numAtNewCurMin = 0;
-    int numAuxTokens = 0;
-
-    // Walk through the slots of 4-bit array decrementing stored values by one unless it
-    // equals AUX_TOKEN, where it is left alone but counted to be checked later.
-    // If oldStoredValue is 0 it is an error.
-    // If the decremented value is 0, we increment numAtNewCurMin.
-    // Because getNibble is masked to 4 bits oldStoredValue can never be > 15 or negative
-    for (int i = 0; i < configK; i++) { //724
-      int oldStoredValue = host.getSlot(i);
-      if (oldStoredValue == 0) {
-        throw new SketchesStateException("Array slots cannot be 0 at this point.");
-      }
-      if (oldStoredValue < AUX_TOKEN) {
-        host.putSlot(i, --oldStoredValue);
-        if (oldStoredValue == 0) { numAtNewCurMin++; }
-      } else { //oldStoredValue == AUX_TOKEN
-        numAuxTokens++;
-        assert host.getAuxHashMap() != null : "AuxHashMap cannot be null at this point.";
-      }
-    }
-
-    //If old AuxHashMap exists, walk through it updating some slots and build a new AuxHashMap
-    // if needed.
-    AuxHashMap newAuxMap = null;
-    final AuxHashMap oldAuxMap = host.getAuxHashMap();
-    if (oldAuxMap != null) {
-      int slotNum;
-      int oldActualVal;
-      int newShiftedVal;
-
-      final PairIterator itr = oldAuxMap.getIterator();
-      while (itr.nextValid()) {
-        slotNum = itr.getKey() & configKmask;
-        oldActualVal = itr.getValue();
-        newShiftedVal = oldActualVal - newCurMin;
-        assert newShiftedVal >= 0;
-
-        assert host.getSlot(slotNum) == AUX_TOKEN
-            : "Array slot != AUX_TOKEN: " + host.getSlot(slotNum);
-        if (newShiftedVal < AUX_TOKEN) { //756
-          assert (newShiftedVal == 14);
-          // The former exception value isn't one anymore, so it stays out of new AuxHashMap.
-          // Correct the AUX_TOKEN value in the HLL array to the newShiftedVal (14).
-          host.putSlot(slotNum, newShiftedVal);
-          numAuxTokens--;
-        }
-        else { //newShiftedVal >= AUX_TOKEN
-          // the former exception remains an exception, so must be added to the newAuxMap
-          if (newAuxMap == null) {
-            //Note: even in the direct case we use a heap aux map temporarily
-            newAuxMap = new HeapAuxHashMap(LG_AUX_ARR_INTS[lgConfigK], lgConfigK);
-          }
-          newAuxMap.mustAdd(slotNum, oldActualVal);
-        }
-      } //end scan of oldAuxMap
-    } //end if (auxHashMap != null)
-    else { //oldAuxMap == null
-      assert numAuxTokens == 0 : "auxTokens: " + numAuxTokens;
-    }
-
-    if (newAuxMap != null) {
-      assert newAuxMap.getAuxCount() == numAuxTokens : "auxCount: " + newAuxMap.getAuxCount()
-        + ", HLL tokens: " + numAuxTokens;
-    }
-    host.putAuxHashMap(newAuxMap, false); //if we are direct, this will do the right thing
-
-    host.putCurMin(newCurMin);
-    host.putNumAtCurMin(numAtNewCurMin);
-  } //end of shiftToBiggerCurMin
-
-  //UPPER AND LOWER BOUNDS
-
-  private static final double lowerBound(final AbstractHllArray absHllArr, final int numStdDev) {
-    HllUtil.checkNumStdDev(numStdDev);
-    final int lgConfigK = absHllArr.lgConfigK;
-    final int configK = 1 << lgConfigK;
-    final boolean oooFlag = absHllArr.isOutOfOrderFlag();
-    final double compositeEstimate = absHllArr.getCompositeEstimate();
-    final double hipAccum = absHllArr.getHipAccum();
-    if (lgConfigK > 12) {
-      final double tmp;
-      if (oooFlag) {
-        final double hllNonHipEps =
-            (numStdDev * HLL_NON_HIP_RSE_FACTOR) / Math.sqrt(configK);
-        tmp = compositeEstimate / (1.0 + hllNonHipEps);
-      } else {
-        final double hllHipEps = (numStdDev * HLL_HIP_RSE_FACTOR) / Math.sqrt(configK);
-        tmp =  hipAccum / (1.0 + hllHipEps);
-      }
-      double numNonZeros = configK;
-      if (absHllArr.getCurMin() == 0) {
-        numNonZeros -= absHllArr.getNumAtCurMin();
-      }
-      return Math.max(tmp, numNonZeros);
-    }
-    //lgConfigK <= 12
-    final double re = RelativeErrorTables.getRelErr(false, oooFlag, lgConfigK, numStdDev);
-    return ((oooFlag) ? compositeEstimate : hipAccum) / (1.0 + re);
-  }
-
-  private static final double upperBound(final AbstractHllArray absHllArr, final int numStdDev) {
-    HllUtil.checkNumStdDev(numStdDev);
-    final int lgConfigK = absHllArr.lgConfigK;
-    final int configK = 1 << lgConfigK;
-    final boolean oooFlag = absHllArr.isOutOfOrderFlag();
-    final double compositeEstimate = absHllArr.getCompositeEstimate();
-    final double hipAccum = absHllArr.getHipAccum();
-    if (lgConfigK > 12) {
-      if (oooFlag) {
-        final double hllNonHipEps =
-            (numStdDev * HLL_NON_HIP_RSE_FACTOR) / Math.sqrt(configK);
-        return compositeEstimate / (1.0 - hllNonHipEps);
-      }
-      final double hllHipEps = (numStdDev * HLL_HIP_RSE_FACTOR) / Math.sqrt(configK);
-      return hipAccum / (1.0 - hllHipEps);
-    }
-    //lgConfigK <= 12
-    final double re = RelativeErrorTables.getRelErr(true, oooFlag, lgConfigK, numStdDev);
-    return ((oooFlag) ? compositeEstimate : hipAccum) / (1.0 + re);
-  }
-
-  //THE COMPOSITE ESTIMATOR
-
-  /**
-   * This is the (non-HIP) estimator.
-   * It is called "composite" because multiple estimators are pasted together.
-   * @param absHllArr an instance of the AbstractHllArray class.
-   * @return the composite estimate
-   */
-  //In C: again-two-registers.c hhb_get_composite_estimate L1489
-  private static final double compositeEstimate(final AbstractHllArray absHllArr) {
-    final int lgConfigK = absHllArr.getLgConfigK();
-    final double rawEst = getRawEstimate(lgConfigK, absHllArr.getKxQ0() + absHllArr.getKxQ1());
-
-    final double[] xArr = CompositeInterpolationXTable.xArrs[lgConfigK - MIN_LOG_K];
-    final double yStride = CompositeInterpolationXTable.yStrides[lgConfigK - MIN_LOG_K];
-    final int xArrLen = xArr.length;
-
-    if (rawEst < xArr[0]) { return 0; }
-
-    final int xArrLenM1 = xArrLen - 1;
-
-    if (rawEst > xArr[xArrLenM1]) {
-      final double finalY = yStride * (xArrLenM1);
-      final double factor = finalY / xArr[xArrLenM1];
-      return rawEst * factor;
-    }
-
-    final double adjEst =
-        CubicInterpolation.usingXArrAndYStride(xArr, yStride, rawEst);
-
-    // We need to completely avoid the linear_counting estimator if it might have a crazy value.
-    // Empirical evidence suggests that the threshold 3*k will keep us safe if 2^4 <= k <= 2^21.
-
-    if (adjEst > (3 << lgConfigK)) { return adjEst; }
-    //Alternate call
-    //if ((adjEst > (3 << lgConfigK)) || ((curMin != 0) || (numAtCurMin == 0)) ) { return adjEst; }
-
-    final double linEst =
-        getHllBitMapEstimate(lgConfigK, absHllArr.getCurMin(), absHllArr.getNumAtCurMin());
-
-    // Bias is created when the value of an estimator is compared with a threshold to decide whether
-    // to use that estimator or a different one.
-    // We conjecture that less bias is created when the average of the two estimators
-    // is compared with the threshold. Empirical measurements support this conjecture.
-
-    final double avgEst = (adjEst + linEst) / 2.0;
-
-    // The following constants comes from empirical measurements of the crossover point
-    // between the average error of the linear estimator and the adjusted hll estimator
-    double crossOver = 0.64;
-    if (lgConfigK == 4)      { crossOver = 0.718; }
-    else if (lgConfigK == 5) { crossOver = 0.672; }
-
-    return (avgEst > (crossOver * (1 << lgConfigK))) ? adjEst : linEst;
-  }
-
-  /**
-   * Estimator when N is small, roughly less than k log(k).
-   * Refer to Wikipedia: Coupon Collector Problem
-   * @return the very low range estimate
-   */
-  //In C: again-two-registers.c hhb_get_improved_linear_counting_estimate L1274
-  private static final double getHllBitMapEstimate(
-      final int lgConfigK, final int curMin, final int numAtCurMin) {
-    final int configK = 1 << lgConfigK;
-    final int numUnhitBuckets =  (curMin == 0) ? numAtCurMin : 0;
-
-    //This will eventually go away.
-    if (numUnhitBuckets == 0) {
-      return configK * Math.log(configK / 0.5);
-    }
-
-    final int numHitBuckets = configK - numUnhitBuckets;
-    return HarmonicNumbers.getBitMapEstimate(configK, numHitBuckets);
-  }
-
-  //In C: again-two-registers.c hhb_get_raw_estimate L1167
-  private static final double getRawEstimate(final int lgConfigK, final double kxqSum) {
-    final int configK = 1 << lgConfigK;
-    final double correctionFactor;
-    if (lgConfigK == 4) { correctionFactor = 0.673; }
-    else if (lgConfigK == 5) { correctionFactor = 0.697; }
-    else if (lgConfigK == 6) { correctionFactor = 0.709; }
-    else { correctionFactor = 0.7213 / (1.0 + (1.079 / configK)); }
-    final double hyperEst = (correctionFactor * configK * configK) / kxqSum;
-    return hyperEst;
   }
 
   //CONVERSIONS

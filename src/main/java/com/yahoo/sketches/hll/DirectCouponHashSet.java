@@ -116,7 +116,7 @@ class DirectCouponHashSet extends DirectCouponList {
   }
 
   @Override
-  int getMemArrStart() {
+  int getMemDataStart() {
     return HASH_SET_INT_ARR_START;
   }
 

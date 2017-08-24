@@ -149,7 +149,7 @@ class CouponList extends AbstractCoupons {
   }
 
   @Override
-  int getMemArrStart() {
+  int getMemDataStart() {
     return LIST_INT_ARR_START;
   }
 

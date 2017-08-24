@@ -40,6 +40,7 @@ class DirectHll6Array extends DirectHllArray {
     final int slotNo = HllUtil.getLow26(coupon) & configKmask;
     final int newVal = HllUtil.getValue(coupon);
     assert newVal > 0;
+
     final int curVal = Hll6Array.get6Bit(mem, HLL_BYTE_ARR_START, slotNo);
     if (newVal > curVal) {
       Hll6Array.put6Bit(wmem, HLL_BYTE_ARR_START, slotNo, newVal);
@@ -53,13 +54,13 @@ class DirectHll6Array extends DirectHllArray {
   }
 
   @Override
-  PairIterator getIterator() {
-    return new DirectHll6Iterator(1 << lgConfigK);
+  int getHllByteArrBytes() {
+    return hll6ArrBytes(lgConfigK);
   }
 
   @Override
-  int getHllByteArrBytes() {
-    return hll6ArrBytes(lgConfigK);
+  PairIterator getIterator() {
+    return new DirectHll6Iterator(1 << lgConfigK);
   }
 
   //ITERATOR

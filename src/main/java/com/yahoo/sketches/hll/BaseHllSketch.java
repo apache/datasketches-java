@@ -181,15 +181,28 @@ abstract class BaseHllSketch {
    * @return Human readable summary as a string.
    */
   @Override
-  public abstract String toString();
+  public String toString() {
+    return toString(true, false, false, false);
+  }
+
+  /**
+   * Human readable summary with optional detail. Does not list empty entries.
+   * @param summary if true, output the sketch summary
+   * @param detail if true, output the internal data array
+   * @param auxDetail if true, output the internal Aux array, if it exists.
+   * @return human readable string with optional detail.
+   */
+  public String toString(final boolean summary, final boolean detail, final boolean auxDetail) {
+    return toString(summary, detail, auxDetail, false);
+  }
 
   /**
    * Human readable summary with optional detail
    * @param summary if true, output the sketch summary
    * @param detail if true, output the internal data array
    * @param auxDetail if true, output the internal Aux array, if it exists.
-   * @param all if true, list all values including zeros
-   * @return human readable string
+   * @param all if true, outputs all entries including empty ones
+   * @return human readable string with optional detail.
    */
   public abstract String toString(boolean summary, boolean detail, boolean auxDetail,
       boolean all);

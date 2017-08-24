@@ -36,7 +36,6 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Lee Rhodes
  */
 abstract class DirectHllArray extends AbstractHllArray {
-  final long auxArrOffset;
   WritableMemory wmem;
   Memory mem;
   Object memObj;
@@ -49,7 +48,6 @@ abstract class DirectHllArray extends AbstractHllArray {
     mem = wmem;
     memObj = wmem.getArray();
     memAdd = wmem.getCumulativeOffset(0L);
-    auxArrOffset = getAuxStart();
   }
 
   //Memory must already be initialized and should have data
@@ -59,7 +57,6 @@ abstract class DirectHllArray extends AbstractHllArray {
     this.mem = mem;
     memObj = ((WritableMemory) mem).getArray();
     memAdd = mem.getCumulativeOffset(0L);
-    auxArrOffset = getAuxStart();
   }
 
   //only called by DirectAuxHashMap
@@ -158,7 +155,6 @@ abstract class DirectHllArray extends AbstractHllArray {
       if (compact) {
         this.auxHashMap = auxHashMap; //heap and compact
       } else { //heap and not compact
-        final int auxStart = getAuxStart();
         final int[] auxArr = auxHashMap.getAuxIntArr();
         wmem.putIntArray(auxStart, auxArr, 0, auxArr.length);
         insertLgArr(memObj, memAdd, auxHashMap.getLgAuxArrInts());

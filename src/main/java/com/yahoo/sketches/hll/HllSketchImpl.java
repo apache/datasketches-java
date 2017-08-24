@@ -45,7 +45,7 @@ abstract class HllSketchImpl {
 
   abstract double getLowerBound(int numStdDev);
 
-  abstract int getMemArrStart();
+  abstract int getMemDataStart();
 
   abstract int getPreInts();
 

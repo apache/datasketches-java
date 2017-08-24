@@ -333,11 +333,6 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
-  public String toString() {
-    return toString(true, false, false, false);
-  }
-
-  @Override
   public String toString(final boolean summary, final boolean detail, final boolean auxDetail,
       final boolean all) {
     final StringBuilder sb = new StringBuilder();

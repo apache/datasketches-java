@@ -14,7 +14,6 @@ import com.yahoo.memory.WritableMemory;
 /**
  * Uses 6 bits per slot in a packed byte array.
  * @author Lee Rhodes
- * @author Kevin Lang
  */
 class Hll6Array extends HllArray {
   final WritableMemory mem;
@@ -58,6 +57,7 @@ class Hll6Array extends HllArray {
     final int slotNo = HllUtil.getLow26(coupon) & configKmask;
     final int newVal = HllUtil.getValue(coupon);
     assert newVal > 0;
+
     final int curVal = get6Bit(mem, 0, slotNo);
     if (newVal > curVal) {
       put6Bit(mem, 0, slotNo, newVal);

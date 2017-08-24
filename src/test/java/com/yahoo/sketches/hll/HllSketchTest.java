@@ -180,7 +180,7 @@ public class HllSketchTest {
     assertEquals(absHll.getHipAccum(), 25.0, 25 * .02);
     assertTrue(absHll.getNumAtCurMin() >= 0);
     assertEquals(sk.getUpdatableSerializationBytes(), 40 + 256);
-    assertEquals(absHll.getMemArrStart(), 40);
+    assertEquals(absHll.getMemDataStart(), 40);
     assertEquals(absHll.getPreInts(), 10);
 
 

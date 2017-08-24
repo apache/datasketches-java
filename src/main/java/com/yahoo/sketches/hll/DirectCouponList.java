@@ -5,7 +5,6 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.memory.UnsafeUtil.unsafe;
 import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.LG_INIT_LIST_SIZE;
 import static com.yahoo.sketches.hll.HllUtil.LG_INIT_SET_SIZE;
@@ -151,9 +150,8 @@ class DirectCouponList extends AbstractCoupons {
 
   @Override
   PairIterator getIterator() {
-    final long offsetBytes = (curMode == CurMode.LIST) ? LIST_INT_ARR_START
-        : HASH_SET_INT_ARR_START;
-    return new DirectListSetIterator(mem, offsetBytes, 1 << getLgCouponArrInts());
+    final long dataStart = getMemDataStart();
+    return new IntMemoryPairIterator(mem, dataStart, 1 << getLgCouponArrInts(), lgConfigK);
   }
 
   @Override
@@ -162,7 +160,7 @@ class DirectCouponList extends AbstractCoupons {
   }
 
   @Override
-  int getMemArrStart() {
+  int getMemDataStart() {
     return LIST_INT_ARR_START;
   }
 
@@ -319,19 +317,6 @@ class DirectCouponList extends AbstractCoupons {
     }
     dirHllArr.putHipAccum(est);
     return dirHllArr;
-  }
-
-  //ITERATOR
-  final class DirectListSetIterator extends IntMemoryPairIterator {
-
-    DirectListSetIterator(final Memory mem, final long offsetBytes, final int lengthPairs) {
-      super(mem, offsetBytes, lengthPairs, lgConfigK);
-    }
-
-    @Override
-    int pair() {
-      return unsafe.getInt(memObj, memAdd + offsetBytes + (index << 2));
-    }
   }
 
 }

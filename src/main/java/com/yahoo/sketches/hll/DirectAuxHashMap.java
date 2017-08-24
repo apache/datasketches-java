@@ -14,7 +14,6 @@ import static com.yahoo.sketches.hll.PreambleUtil.extractLgArr;
 import static com.yahoo.sketches.hll.PreambleUtil.insertAuxCount;
 import static com.yahoo.sketches.hll.PreambleUtil.insertLgArr;
 
-import com.yahoo.memory.Memory;
 import com.yahoo.memory.MemoryRequestServer;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -24,14 +23,14 @@ import com.yahoo.sketches.SketchesStateException;
  * @author Lee Rhodes
  */
 class DirectAuxHashMap implements AuxHashMap {
-  private final DirectHllArray host; //hosts the working Memory
+  private final DirectHllArray host; //hosts the Updatable Memory
 
   DirectAuxHashMap(final DirectHllArray host, final boolean initialize) {
     this.host = host;
     final int initLgArrInts = HllUtil.LG_AUX_ARR_INTS[host.lgConfigK];
     if (initialize) {
       insertLgArr(host.memObj, host.memAdd, initLgArrInts);
-      host.wmem.clear(host.auxArrOffset, 4 << initLgArrInts);
+      host.wmem.clear(host.auxStart, 4 << initLgArrInts);
     } else {
       assert extractLgArr(host.memObj, host.memAdd) >= initLgArrInts;
     }
@@ -59,7 +58,7 @@ class DirectAuxHashMap implements AuxHashMap {
 
   @Override
   public PairIterator getIterator() {
-    return new DirectAuxIterator(host.mem, host.auxArrOffset, 1 << getLgAuxArrInts(),
+    return new IntMemoryPairIterator(host.mem, host.auxStart, 1 << getLgAuxArrInts(),
         host.lgConfigK);
   }
 
@@ -92,7 +91,7 @@ class DirectAuxHashMap implements AuxHashMap {
       throw new SketchesStateException("Found a slotNo that should not be there: " + pairStr);
     }
     //Found empty entry
-    unsafe.putInt(host.memObj, host.memAdd + host.auxArrOffset + (~index << 2), pair);
+    unsafe.putInt(host.memObj, host.memAdd + host.auxStart + (~index << 2), pair);
     int auxCount = extractAuxCount(host.memObj, host.memAdd);
     insertAuxCount(host.memObj, host.memAdd, ++auxCount);
     final int lgAuxArrInts = extractLgArr(host.memObj, host.memAdd);
@@ -105,7 +104,7 @@ class DirectAuxHashMap implements AuxHashMap {
   public int mustFindValueFor(final int slotNo) {
     final int index = find(host, slotNo);
     if (index >= 0) {
-      final int pair = unsafe.getInt(host.memObj, host.memAdd + host.auxArrOffset + (index << 2));
+      final int pair = unsafe.getInt(host.memObj, host.memAdd + host.auxStart + (index << 2));
       return HllUtil.getValue(pair);
     }
     throw new SketchesStateException("SlotNo not found: " + slotNo);
@@ -115,7 +114,7 @@ class DirectAuxHashMap implements AuxHashMap {
   public void mustReplace(final int slotNo, final int value) {
     final int index = find(host, slotNo);
     if (index >= 0) {
-      unsafe.putInt(host.memObj, host.memAdd + host.auxArrOffset + (index << 2), HllUtil.pair(slotNo, value));
+      unsafe.putInt(host.memObj, host.memAdd + host.auxStart + (index << 2), HllUtil.pair(slotNo, value));
       return;
     }
     final String pairStr = HllUtil.pairString(HllUtil.pair(slotNo, value));
@@ -137,7 +136,7 @@ class DirectAuxHashMap implements AuxHashMap {
     int probe = slotNo & auxArrMask;
     final int loopIndex = probe;
     do {
-      final int arrVal = unsafe.getInt(host.memObj, host.memAdd + host.auxArrOffset + (probe << 2));
+      final int arrVal = unsafe.getInt(host.memObj, host.memAdd + host.auxStart + (probe << 2));
       if (arrVal == EMPTY) {
         return ~probe; //empty
       }
@@ -153,19 +152,19 @@ class DirectAuxHashMap implements AuxHashMap {
   private static final void grow(final DirectHllArray host, final int oldLgAuxArrInts) {
     final int oldAuxArrInts = 1 << oldLgAuxArrInts;
     final int[] oldIntArray = new int[oldAuxArrInts]; //buffer old aux data
-    host.wmem.getIntArray(host.auxArrOffset, oldIntArray, 0, oldAuxArrInts);
+    host.wmem.getIntArray(host.auxStart, oldIntArray, 0, oldAuxArrInts);
 
     insertLgArr(host.memObj, host.memAdd, oldLgAuxArrInts + 1); //update LgArr field
 
     final long newAuxBytes = oldAuxArrInts << 3;
-    final long requestBytes = host.auxArrOffset + newAuxBytes;
+    final long requestBytes = host.auxStart + newAuxBytes;
     final long oldCapBytes = host.wmem.getCapacity();
 
     if (requestBytes > oldCapBytes) {
       final MemoryRequestServer svr = host.wmem.getMemoryRequestServer();
       final WritableMemory newWmem = svr.request(requestBytes);
-      host.wmem.copyTo(0, newWmem, 0, host.auxArrOffset);
-      newWmem.clear(host.auxArrOffset, newAuxBytes); //clear space for new aux data
+      host.wmem.copyTo(0, newWmem, 0, host.auxStart);
+      newWmem.clear(host.auxStart, newAuxBytes); //clear space for new aux data
       svr.requestClose(host.wmem, newWmem); //old host.wmem is now invalid
       host.updateMemory(newWmem);
     }
@@ -177,25 +176,10 @@ class DirectAuxHashMap implements AuxHashMap {
       if (fetched != EMPTY) {
         //find empty in new array
         final int index = find(host, fetched & configKmask);
-        unsafe.putInt(host.memObj, host.memAdd + host.auxArrOffset + (~index << 2), fetched);
+        unsafe.putInt(host.memObj, host.memAdd + host.auxStart + (~index << 2), fetched);
       }
     }
   }
-
-  //ITERATOR
-  final class DirectAuxIterator extends IntMemoryPairIterator {
-
-    DirectAuxIterator(final Memory mem, final long offsetBytes, final int lengthPairs,
-        final int lgConfigK) {
-      super(mem, offsetBytes, lengthPairs, lgConfigK);
-    }
-
-    @Override
-    int pair() {
-      return unsafe.getInt(memObj, memAdd + offsetBytes + (index << 2));
-    }
-  }
-
 
   //static void println(final String s) { System.out.println(s); }
 }

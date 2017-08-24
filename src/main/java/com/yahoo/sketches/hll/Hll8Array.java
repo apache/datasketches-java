@@ -14,7 +14,6 @@ import com.yahoo.memory.WritableMemory;
 /**
  * Uses 8 bits per slot in a byte array.
  * @author Lee Rhodes
- * @author Kevin Lang
  */
 class Hll8Array extends HllArray {
 
@@ -55,6 +54,7 @@ class Hll8Array extends HllArray {
     final int slotNo = HllUtil.getLow26(coupon) & configKmask;
     final int newVal = HllUtil.getValue(coupon);
     assert newVal > 0;
+
     final int curVal = hllByteArr[slotNo] & VAL_MASK_6;
     if (newVal > curVal) {
       hllByteArr[slotNo] = (byte) (newVal & VAL_MASK_6);

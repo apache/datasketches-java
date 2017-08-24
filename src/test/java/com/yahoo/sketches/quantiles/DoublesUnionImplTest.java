@@ -18,7 +18,6 @@ import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
-
 import com.yahoo.sketches.SketchesArgumentException;
 
 public class DoublesUnionImplTest {
@@ -349,7 +348,7 @@ public class DoublesUnionImplTest {
   public void checkUnionQuantiles() {
     final int k = 128;
     final int n1 = k * 13;
-    final int n2 = k * 8 + k / 2;
+    final int n2 = (k * 8) + (k / 2);
     final int n = n1 + n2;
     final double errorTolerance = 0.0175 * n; // assuming k = 128
     final UpdateDoublesSketch sketch1 = buildAndLoadQS(k, n1);
@@ -630,7 +629,6 @@ public class DoublesUnionImplTest {
     Assert.assertEquals(union.getResult().getK(), 128);
   }
 
-  @SuppressWarnings("deprecation")
   @Test
   public void checkDirectInstance() {
     final int k = 128;
