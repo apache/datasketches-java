@@ -123,10 +123,16 @@ abstract class BaseHllSketch {
   public abstract double getUpperBound(int numStdDev);
 
   /**
-   * Return true if empty
+   * Returns true if empty
    * @return true if empty
    */
   public abstract boolean isEmpty();
+
+  /**
+   * Returns true if the backing memory of this sketch is in compact form.
+   * @return true if the backing memory of this sketch is in compact form.
+   */
+  public abstract boolean isCompact();
 
   /**
    * This HLL family of sketches and operators is always estimating, even for very small values.

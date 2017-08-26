@@ -9,11 +9,13 @@ import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static com.yahoo.sketches.hll.HllUtil.checkPreamble;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
+import static com.yahoo.sketches.hll.PreambleUtil.extractCompactFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
 import static com.yahoo.sketches.hll.PreambleUtil.extractTgtHllType;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * This is a high performance implementation of Phillipe Flajolet&#8217;s HLL sketch but with
@@ -162,6 +164,11 @@ public class HllSketch extends BaseHllSketch {
     final long minBytes = getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     final long capBytes = dstMem.getCapacity();
     HllUtil.checkMemSize(minBytes, capBytes);
+    final boolean compact = extractCompactFlag(memObj, memAdd);
+    if (compact) {
+      throw new SketchesArgumentException(
+          "Cannot perform a writableWrap of a writable sketch image that is in compact form.");
+    }
 
     final CurMode curMode = checkPreamble(dstMem);
     final HllSketch directSketch;
@@ -303,6 +310,11 @@ public class HllSketch extends BaseHllSketch {
   @Override
   public double getUpperBound(final int numStdDev) {
     return hllSketchImpl.getUpperBound(numStdDev);
+  }
+
+  @Override
+  public boolean isCompact() {
+    return hllSketchImpl.isCompact();
   }
 
   @Override

@@ -152,6 +152,11 @@ public class Union extends BaseHllSketch {
   }
 
   @Override
+  public boolean isCompact() {
+    return gadget.isCompact();
+  }
+
+  @Override
   public boolean isEmpty() {
     return gadget.isEmpty();
   }

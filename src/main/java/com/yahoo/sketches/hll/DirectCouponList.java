@@ -60,10 +60,6 @@ class DirectCouponList extends AbstractCoupons {
     memObj = wmem.getArray();
     memAdd = wmem.getCumulativeOffset(0L);
     compact = extractCompactFlag(memObj, memAdd);
-    if (compact) {
-      throw new SketchesArgumentException(
-          "Cannot create a writable instance from a compact sketch image.");
-    }
   }
 
   //called from HllSketch.wrap and from DirectCouponHashSet constructor, may be compact
