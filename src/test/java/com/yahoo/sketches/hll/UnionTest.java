@@ -345,7 +345,24 @@ public class UnionTest {
     assertFalse(union.isOffHeap());
     int bytes = union.getUpdatableSerializationBytes();
     assertTrue(bytes  <= Union.getMaxSerializationBytes(lgK));
+  }
 
+  @Test
+  public void checkUnionWithWrap() {
+    int lgConfigK = 4;
+    TgtHllType type = TgtHllType.HLL_4;
+    int n = 2;
+    HllSketch sk = new HllSketch(lgConfigK, type);
+    for (int i = 0; i < n; i++) { sk.update(i); }
+    double est = sk.getEstimate();
+    byte[] skByteArr = sk.toCompactByteArray();
+
+    HllSketch sk2 = HllSketch.wrap(Memory.wrap(skByteArr));
+    assertEquals(sk2.getEstimate(), est, 0.0);
+
+    Union union = new Union(lgConfigK);
+    union.update(HllSketch.wrap(Memory.wrap(skByteArr)));
+    assertEquals(union.getEstimate(), est, 0.0);
   }
 
   private static double getBound(int lgK, boolean ub, boolean oooFlag, int numStdDev, double est) {

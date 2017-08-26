@@ -159,6 +159,11 @@ class CouponList extends AbstractCoupons {
   }
 
   @Override
+  boolean isCompact() {
+    return false;
+  }
+
+  @Override
   boolean isMemory() {
     return false;
   }

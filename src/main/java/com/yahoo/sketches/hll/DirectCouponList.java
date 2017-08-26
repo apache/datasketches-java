@@ -49,6 +49,7 @@ class DirectCouponList extends AbstractCoupons {
   Memory mem;
   Object memObj;
   long memAdd;
+  final boolean compact;
 
   //called from newInstance, writableWrap and DirectCouponHashSet
   DirectCouponList(final int lgConfigK, final TgtHllType tgtHllType, final CurMode curMode,
@@ -58,9 +59,14 @@ class DirectCouponList extends AbstractCoupons {
     mem = wmem;
     memObj = wmem.getArray();
     memAdd = wmem.getCumulativeOffset(0L);
+    compact = extractCompactFlag(memObj, memAdd);
+    if (compact) {
+      throw new SketchesArgumentException(
+          "Cannot create a writable instance from a compact sketch image.");
+    }
   }
 
-  //called from HllSketch.wrap and from DirectCouponHashSet constructor
+  //called from HllSketch.wrap and from DirectCouponHashSet constructor, may be compact
   DirectCouponList(final int lgConfigK, final TgtHllType tgtHllType, final CurMode curMode,
       final Memory mem) {
     super(lgConfigK, tgtHllType, curMode);
@@ -68,6 +74,7 @@ class DirectCouponList extends AbstractCoupons {
     this.mem = mem;
     memObj = ((WritableMemory) mem).getArray();
     memAdd = mem.getCumulativeOffset(0L);
+    compact = extractCompactFlag(memObj, memAdd);
   }
 
   /**
@@ -87,7 +94,7 @@ class DirectCouponList extends AbstractCoupons {
     insertFamilyId(memObj, memAdd);
     insertLgK(memObj, memAdd, lgConfigK);
     insertLgArr(memObj, memAdd, LG_INIT_LIST_SIZE);
-    insertFlags(memObj, memAdd, EMPTY_FLAG_MASK);
+    insertFlags(memObj, memAdd, EMPTY_FLAG_MASK); //empty and not compact
     insertListCount(memObj, memAdd, 0);
     insertModes(memObj, memAdd, tgtHllType, CurMode.LIST);
     return new DirectCouponList(lgConfigK, tgtHllType, CurMode.LIST, dstMem);
@@ -151,7 +158,8 @@ class DirectCouponList extends AbstractCoupons {
   @Override
   PairIterator getIterator() {
     final long dataStart = getMemDataStart();
-    return new IntMemoryPairIterator(mem, dataStart, 1 << getLgCouponArrInts(), lgConfigK);
+    final int lenInts = (compact) ? getCouponCount() : 1 << getLgCouponArrInts();
+    return new IntMemoryPairIterator(mem, dataStart, lenInts, lgConfigK);
   }
 
   @Override
@@ -167,6 +175,11 @@ class DirectCouponList extends AbstractCoupons {
   @Override
   int getPreInts() {
     return LIST_PREINTS;
+  }
+
+  @Override
+  boolean isCompact() {
+    return compact;
   }
 
   @Override

@@ -8,6 +8,7 @@ package com.yahoo.sketches.hll;
 import static com.yahoo.memory.UnsafeUtil.unsafe;
 import static com.yahoo.sketches.hll.PreambleUtil.CUR_MIN_COUNT_INT;
 import static com.yahoo.sketches.hll.PreambleUtil.HIP_ACCUM_DOUBLE;
+import static com.yahoo.sketches.hll.PreambleUtil.extractCompactFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCurMin;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCurMode;
 import static com.yahoo.sketches.hll.PreambleUtil.extractEmptyFlag;
@@ -40,6 +41,7 @@ abstract class DirectHllArray extends AbstractHllArray {
   Memory mem;
   Object memObj;
   long memAdd;
+  final boolean compact;
 
   //Memory must be already initialized and may have data
   DirectHllArray(final int lgConfigK, final TgtHllType tgtHllType, final WritableMemory wmem) {
@@ -48,6 +50,11 @@ abstract class DirectHllArray extends AbstractHllArray {
     mem = wmem;
     memObj = wmem.getArray();
     memAdd = wmem.getCumulativeOffset(0L);
+    compact = extractCompactFlag(memObj, memAdd);
+    if (compact) {
+      throw new SketchesArgumentException(
+          "Cannot create a writable instance from a compact sketch image.");
+    }
   }
 
   //Memory must already be initialized and should have data
@@ -57,6 +64,7 @@ abstract class DirectHllArray extends AbstractHllArray {
     this.mem = mem;
     memObj = ((WritableMemory) mem).getArray();
     memAdd = mem.getCumulativeOffset(0L);
+    compact = extractCompactFlag(memObj, memAdd);
   }
 
   //only called by DirectAuxHashMap
@@ -127,6 +135,11 @@ abstract class DirectHllArray extends AbstractHllArray {
   @Override
   TgtHllType getTgtHllType() {
     return extractTgtHllType(memObj, memAdd);
+  }
+
+  @Override
+  boolean isCompact() {
+    return false;
   }
 
   @Override

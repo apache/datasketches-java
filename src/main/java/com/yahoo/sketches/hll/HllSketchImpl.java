@@ -57,6 +57,8 @@ abstract class HllSketchImpl {
 
   abstract double getUpperBound(int numStdDev);
 
+  abstract boolean isCompact();
+
   abstract boolean isEmpty();
 
   abstract boolean isMemory();

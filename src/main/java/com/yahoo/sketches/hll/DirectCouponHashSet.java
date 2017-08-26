@@ -37,7 +37,7 @@ class DirectCouponHashSet extends DirectCouponList {
     assert wmem.getByte(LG_K_BYTE) > 7;
   }
 
-  //Constructs this sketch with read-only data.
+  //Constructs this sketch with read-only data, may be compact.
   DirectCouponHashSet(final int lgConfigK, final TgtHllType tgtHllType,
       final Memory mem) {
     super(lgConfigK, tgtHllType, CurMode.SET, mem);
