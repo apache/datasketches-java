@@ -51,6 +51,7 @@ abstract class DirectHllArray extends AbstractHllArray {
     memObj = wmem.getArray();
     memAdd = wmem.getCumulativeOffset(0L);
     compact = extractCompactFlag(memObj, memAdd);
+    assert !compact;
   }
 
   //Memory must already be initialized and should have data

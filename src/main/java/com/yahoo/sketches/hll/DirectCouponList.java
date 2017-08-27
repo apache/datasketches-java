@@ -60,6 +60,7 @@ class DirectCouponList extends AbstractCoupons {
     memObj = wmem.getArray();
     memAdd = wmem.getCumulativeOffset(0L);
     compact = extractCompactFlag(memObj, memAdd);
+    assert !compact;
   }
 
   //called from HllSketch.wrap and from DirectCouponHashSet constructor, may be compact
