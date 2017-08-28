@@ -9,11 +9,13 @@ import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static com.yahoo.sketches.hll.HllUtil.checkPreamble;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
+import static com.yahoo.sketches.hll.PreambleUtil.extractCompactFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
 import static com.yahoo.sketches.hll.PreambleUtil.extractTgtHllType;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * This is a high performance implementation of Phillipe Flajolet&#8217;s HLL sketch but with
@@ -151,34 +153,39 @@ public class HllSketch extends BaseHllSketch {
    *
    * <p>The given <i>dstMem</i> is checked for the required capacity as determined by
    * {@link #getMaxUpdatableSerializationBytes(int, TgtHllType)}.
-   * @param dstMem an writable image of a valid sketch with data.
+   * @param wmem an writable image of a valid sketch with data.
    * @return an HllSketch where the sketch data is in the given dstMem.
    */
-  public static final HllSketch writableWrap(final WritableMemory dstMem) {
-    final Object memObj = dstMem.getArray();
-    final long memAdd = dstMem.getCumulativeOffset(0);
+  public static final HllSketch writableWrap(final WritableMemory wmem) {
+    final Object memObj = wmem.getArray();
+    final long memAdd = wmem.getCumulativeOffset(0);
     final int lgConfigK = extractLgK(memObj, memAdd);
     final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
     final long minBytes = getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
-    final long capBytes = dstMem.getCapacity();
+    final long capBytes = wmem.getCapacity();
     HllUtil.checkMemSize(minBytes, capBytes);
+    final boolean compact = extractCompactFlag(memObj, memAdd);
+    if (compact) {
+      throw new SketchesArgumentException(
+          "Cannot perform a writableWrap of a writable sketch image that is in compact form.");
+    }
 
-    final CurMode curMode = checkPreamble(dstMem);
+    final CurMode curMode = checkPreamble(wmem);
     final HllSketch directSketch;
     if (curMode == CurMode.HLL) {
       if (tgtHllType == TgtHllType.HLL_4) {
-        directSketch = new HllSketch(new DirectHll4Array(lgConfigK, dstMem));
+        directSketch = new HllSketch(new DirectHll4Array(lgConfigK, wmem));
       } else if (tgtHllType == TgtHllType.HLL_6) {
-        directSketch = new HllSketch(new DirectHll6Array(lgConfigK, dstMem));
+        directSketch = new HllSketch(new DirectHll6Array(lgConfigK, wmem));
       } else { //Hll_8
-        directSketch = new HllSketch(new DirectHll8Array(lgConfigK, dstMem));
+        directSketch = new HllSketch(new DirectHll8Array(lgConfigK, wmem));
       }
     } else if (curMode == CurMode.LIST) {
       directSketch =
-          new HllSketch(new DirectCouponList(lgConfigK, tgtHllType, curMode, dstMem));
+          new HllSketch(new DirectCouponList(lgConfigK, tgtHllType, curMode, wmem));
     } else {
       directSketch =
-          new HllSketch(new DirectCouponHashSet(lgConfigK, tgtHllType, dstMem));
+          new HllSketch(new DirectCouponHashSet(lgConfigK, tgtHllType, wmem));
     }
     return directSketch;
   }
@@ -303,6 +310,11 @@ public class HllSketch extends BaseHllSketch {
   @Override
   public double getUpperBound(final int numStdDev) {
     return hllSketchImpl.getUpperBound(numStdDev);
+  }
+
+  @Override
+  public boolean isCompact() {
+    return hllSketchImpl.isCompact();
   }
 
   @Override

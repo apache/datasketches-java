@@ -51,10 +51,7 @@ abstract class DirectHllArray extends AbstractHllArray {
     memObj = wmem.getArray();
     memAdd = wmem.getCumulativeOffset(0L);
     compact = extractCompactFlag(memObj, memAdd);
-    if (compact) {
-      throw new SketchesArgumentException(
-          "Cannot create a writable instance from a compact sketch image.");
-    }
+    assert !compact;
   }
 
   //Memory must already be initialized and should have data
@@ -139,7 +136,7 @@ abstract class DirectHllArray extends AbstractHllArray {
 
   @Override
   boolean isCompact() {
-    return false;
+    return compact;
   }
 
   @Override

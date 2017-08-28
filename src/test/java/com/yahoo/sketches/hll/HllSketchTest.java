@@ -9,7 +9,6 @@ import static com.yahoo.sketches.hll.HllSketch.getMaxUpdatableSerializationBytes
 import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static com.yahoo.sketches.hll.HllUtil.LG_INIT_LIST_SIZE;
 import static com.yahoo.sketches.hll.HllUtil.LG_INIT_SET_SIZE;
-import static com.yahoo.sketches.hll.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_INT_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.LIST_INT_ARR_START;
@@ -24,6 +23,7 @@ import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -309,7 +309,7 @@ public class HllSketchTest {
   @Test
   public void checkCompactFlag() {
     int lgK = 8;
-    //follows the toByteArray request
+    //LIST: follows the toByteArray request
     assertEquals(checkCompact(lgK, 7, HLL_8, false, false), false);
     assertEquals(checkCompact(lgK, 7, HLL_8, false, true), true);
     assertEquals(checkCompact(lgK, 7, HLL_8, false, false), false);
@@ -319,7 +319,7 @@ public class HllSketchTest {
     assertEquals(checkCompact(lgK, 7, HLL_8, true, false), false);
     assertEquals(checkCompact(lgK, 7, HLL_8, true, true), true);
 
-    //follows the toByteArray request
+    //SET: follows the toByteArray request
     assertEquals(checkCompact(lgK, 24, HLL_8, false, false), false);
     assertEquals(checkCompact(lgK, 24, HLL_8, false, true), true);
     assertEquals(checkCompact(lgK, 24, HLL_8, false, false), false);
@@ -329,7 +329,7 @@ public class HllSketchTest {
     assertEquals(checkCompact(lgK, 24, HLL_8, true, false), false);
     assertEquals(checkCompact(lgK, 24, HLL_8, true, true), true);
 
-    //always updatable
+    //HLL8: always updatable
     assertEquals(checkCompact(lgK, 25, HLL_8, false, false), false);
     assertEquals(checkCompact(lgK, 25, HLL_8, false, true), false);
     assertEquals(checkCompact(lgK, 25, HLL_8, false, false), false);
@@ -339,7 +339,7 @@ public class HllSketchTest {
     assertEquals(checkCompact(lgK, 25, HLL_8, true, false), false);
     assertEquals(checkCompact(lgK, 25, HLL_8, true, true), false);
 
-    //always updatable
+    //HLL6: always updatable
     assertEquals(checkCompact(lgK, 25, HLL_6, false, false), false);
     assertEquals(checkCompact(lgK, 25, HLL_6, false, true), false);
     assertEquals(checkCompact(lgK, 25, HLL_6, false, false), false);
@@ -349,7 +349,7 @@ public class HllSketchTest {
     assertEquals(checkCompact(lgK, 25, HLL_6, true, false), false);
     assertEquals(checkCompact(lgK, 25, HLL_6, true, true), false);
 
-    //follows the toByteArray request
+    //HLL:4 follows the toByteArray request
     assertEquals(checkCompact(lgK, 25, HLL_4, false, false), false);
     assertEquals(checkCompact(lgK, 25, HLL_4, false, true), true);
     assertEquals(checkCompact(lgK, 25, HLL_4, false, false), false);
@@ -360,6 +360,11 @@ public class HllSketchTest {
     assertEquals(checkCompact(lgK, 25, HLL_4, true, true), true);
   }
 
+  //Creates either a direct or heap sketch,
+  // Serializes to either compact or updatable form.
+  // Confirms the isMemory() for direct, isOffHeap(), and the
+  // get compact or updatable serialization bytes.
+  // Returns true if the compact flag is set.
   private static boolean checkCompact(int lgK, int n, TgtHllType type, boolean direct,
       boolean compact) {
     int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, type);
@@ -367,7 +372,7 @@ public class HllSketchTest {
     HllSketch sk = (direct) ? new HllSketch(lgK, type, wmem) : new HllSketch(lgK, type);
     assertEquals(sk.isMemory(), direct);
     assertFalse(sk.isOffHeap());
-    for (int i = 0; i < n; i++) { sk.update(i); }
+    for (int i = 0; i < n; i++) { sk.update(i); } //LOAD
     byte[] byteArr = (compact) ? sk.toCompactByteArray() : sk.toUpdatableByteArray();
     int len = byteArr.length;
     if (compact) {
@@ -375,7 +380,20 @@ public class HllSketchTest {
     } else {
       assertEquals(len, sk.getUpdatableSerializationBytes());
     }
-    return (byteArr[5] & COMPACT_FLAG_MASK) > 0;
+    HllSketch sk2 = HllSketch.wrap(Memory.wrap(byteArr));
+    assertEquals(sk2.getEstimate(), n, .01);
+    boolean resourceCompact = sk2.isCompact();
+    if (resourceCompact) {
+      try {
+        HllSketch.writableWrap(WritableMemory.wrap(byteArr));
+        fail();
+      } catch (SketchesArgumentException e) {
+        //OK
+      }
+    }
+
+    return resourceCompact;
+    //return (byteArr[5] & COMPACT_FLAG_MASK) > 0;
 
   }
 
