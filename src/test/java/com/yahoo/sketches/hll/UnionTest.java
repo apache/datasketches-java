@@ -365,6 +365,22 @@ public class UnionTest {
     assertEquals(union.getEstimate(), est, 0.0);
   }
 
+  @Test
+  public void checkUnionWithWrap2() {
+    int lgConfigK = 10;
+    int n = 128;
+    HllSketch sk1 = new HllSketch(lgConfigK);
+    for (int i = 0; i < n; i++) { sk1.update(i); }
+    double est1 = sk1.getEstimate();
+    byte[] byteArr1 = sk1.toCompactByteArray();
+
+    Union union = new Union(lgConfigK);
+    union.update(HllSketch.wrap(Memory.wrap(byteArr1)));
+    double est2 = union.getEstimate();
+    assertEquals(est2, est1);
+  }
+
+
   private static double getBound(int lgK, boolean ub, boolean oooFlag, int numStdDev, double est) {
     double re = RelativeErrorTables.getRelErr(ub, oooFlag, lgK, numStdDev);
     return (ub) ? est / (1.0 + re) : est / (1.0 +re);

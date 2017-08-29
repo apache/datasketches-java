@@ -374,7 +374,7 @@ public class Union extends BaseHllSketch {
   //Caller must ultimately manage oooFlag, as caller has more info
   private static final HllSketchImpl copyOrDownsampleHll(
       final HllSketchImpl srcSketch, final int tgtLgK) {
-    final HllArray src = (HllArray) srcSketch;
+    final AbstractHllArray src = (AbstractHllArray) srcSketch;
     final int srcLgK = src.getLgConfigK();
     if ((srcLgK <= tgtLgK) && (src.getTgtHllType() == TgtHllType.HLL_8)) {
       return src.copy();
