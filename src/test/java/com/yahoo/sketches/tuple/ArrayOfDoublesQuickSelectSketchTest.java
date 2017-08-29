@@ -127,7 +127,12 @@ public class ArrayOfDoublesQuickSelectSketchTest {
 
     Assert.assertEquals(sketch2.getEstimate(), 4.0);
   }
-  
+
+  @Test
+  public void maxBytes() {
+    Assert.assertEquals(ArrayOfDoublesQuickSelectSketch.getMaxBytes(1024, 2), 49184);
+  }
+
   private static void noopUpdates(ArrayOfDoublesUpdatableSketch sketch, double[] valuesArr) {
     byte[] byteArr = null;
     sketch.update(byteArr, valuesArr);
@@ -142,4 +147,5 @@ public class ArrayOfDoublesQuickSelectSketchTest {
     longArr = new long[0];
     sketch.update(longArr, valuesArr);
   }
+
 }
