@@ -139,4 +139,10 @@ class DoublesUnionImplR extends DoublesUnion {
     sb.append(gadget_.toString(sketchSummary, dataDetail));
     return sb.toString();
   }
+
+  @Override
+  public boolean isSameResource(final Memory mem) {
+    return (gadget_ == null) ? false : gadget_.isSameResource(mem);
+  }
+
 }
