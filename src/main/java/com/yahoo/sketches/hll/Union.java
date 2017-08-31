@@ -60,7 +60,7 @@ public class Union extends BaseHllSketch {
    * writes to the given WritableMemory.
    *
    * <p>The given <i>dstMem</i> is checked for the required capacity as determined by
-   * {@link #getMaxUpdatableSerializationBytes(int, TgtHllType)}.
+   * {@link HllSketch#getMaxUpdatableSerializationBytes(int, TgtHllType)}.
    * @param lgMaxK the desired maximum log-base-2 of <i>K</i>.  This value must be
    * between 7 and 21 inclusively.
    * @param dstMem the destination memory for the sketch.
@@ -108,7 +108,7 @@ public class Union extends BaseHllSketch {
    * how the user configures the WritableMemory, may actually reside on the Java heap or off-heap.
    *
    * <p>The given <i>dstMem</i> is checked for the required capacity as determined by
-   * {@link #getMaxUpdatableSerializationBytes(int, TgtHllType)}, and for the correct type.
+   * {@link HllSketch#getMaxUpdatableSerializationBytes(int, TgtHllType)}, and for the correct type.
    * @param wmem an writable image of a valid sketch with data.
    * @return a Union operator where the sketch data is in the given dstMem.
    */
