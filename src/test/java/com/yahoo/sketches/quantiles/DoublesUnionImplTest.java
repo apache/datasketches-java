@@ -679,7 +679,13 @@ public class DoublesUnionImplTest {
   }
 
   @Test
-  public void isSameResource() {
+  public void isSameResourceHeap() {
+    DoublesUnion union = DoublesUnion.builder().build();
+    Assert.assertFalse(union.isSameResource(null));
+  }
+
+  @Test
+  public void isSameResourceDirect() {
     WritableMemory mem1 = WritableMemory.wrap(new byte[1000000]);
     DoublesUnion union = DoublesUnion.builder().build(mem1);
     Assert.assertTrue(union.isSameResource(mem1));
