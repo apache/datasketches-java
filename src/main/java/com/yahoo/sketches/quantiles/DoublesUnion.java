@@ -139,4 +139,15 @@ public abstract class DoublesUnion {
    * @return summary information about the sketch.
    */
   public abstract String toString(boolean sketchSummary, boolean dataDetail);
+
+  /**
+   * Returns true if the backing resource of this union is identical with the backing resource
+   * of input parameter mem. If the backing resource is a common array or ByteBuffer, the offset and
+   * capacity must also be identical.
+   * @param mem A given Memory object
+   * @return true if the backing resource of this union is identical with the backing resource
+   * of mem.
+   */
+  public abstract boolean isSameResource(final Memory mem);
+
 }
