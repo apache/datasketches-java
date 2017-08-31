@@ -17,6 +17,7 @@ import static com.yahoo.sketches.hll.TgtHllType.HLL_4;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_6;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * @author Lee Rhodes
@@ -118,11 +119,6 @@ abstract class HllArray extends AbstractHllArray {
   }
 
   @Override
-  Memory getMemory() {
-    return null;
-  }
-
-  @Override
   AuxHashMap getNewAuxHashMap() {
     return new HeapAuxHashMap(LG_AUX_ARR_INTS[lgConfigK], lgConfigK);
   }
@@ -130,6 +126,11 @@ abstract class HllArray extends AbstractHllArray {
   @Override
   int getNumAtCurMin() {
     return numAtCurMin;
+  }
+
+  @Override
+  WritableMemory getWritableMemory() {
+    return null;
   }
 
   @Override

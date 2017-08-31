@@ -175,6 +175,11 @@ class DirectCouponList extends AbstractCoupons {
   }
 
   @Override
+  WritableMemory getWritableMemory() {
+    return wmem;
+  }
+
+  @Override
   boolean isCompact() {
     return compact;
   }

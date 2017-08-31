@@ -39,9 +39,9 @@ package com.yahoo.sketches.hll;
  */
 public enum TgtHllType { HLL_4, HLL_6, HLL_8;
 
-  public static final TgtHllType values[] = values();
+  static final TgtHllType values[] = values();
 
-  public static TgtHllType fromOrdinal(final int typeId) {
+  static final TgtHllType fromOrdinal(final int typeId) {
     return values[typeId];
   }
 }

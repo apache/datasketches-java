@@ -6,6 +6,7 @@
 package com.yahoo.sketches.hll;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
@@ -70,7 +71,8 @@ public class CouponListTest {
     assertEquals(sk.getCurrentMode(), CurMode.HLL);
     assertEquals(sk.getCompositeEstimate(), 25.0, 25 * .1);
 
-    sk.getRelErr(true, true, 4, 1);
+    double re = sk.getRelErr(true, true, 4, 1);
+    assertTrue(re < 0.0);
   }
 
   @Test

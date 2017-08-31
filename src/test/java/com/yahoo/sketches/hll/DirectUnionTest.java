@@ -17,13 +17,13 @@ import static org.testng.Assert.fail;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("unused")
-public class UnionTest {
+public class DirectUnionTest {
   static final String LS = System.getProperty("line.separator");
 
   static final int[] nArr = new int[] {1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000};
@@ -289,6 +289,7 @@ public class UnionTest {
     assertEquals(u.getCompositeEstimate(), 1000, 1000 * .03);
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void checkMisc() {
     try {
@@ -341,7 +342,7 @@ public class UnionTest {
     union.couponUpdate(0);
     assertEquals(union.getEstimate(), 20.0, 0.001);
     assertEquals(union.getTgtHllType(), TgtHllType.HLL_8);
-    assertFalse(union.isMemory());
+    assertTrue(union.isMemory());
     assertFalse(union.isOffHeap());
     int bytes = union.getUpdatableSerializationBytes();
     assertTrue(bytes  <= Union.getMaxSerializationBytes(lgK));
@@ -381,8 +382,31 @@ public class UnionTest {
     assertEquals(est2, est1);
   }
 
+  @Test
+  public void checkWritableWrap() {
+    int lgConfigK = 10;
+    int n = 128;
+    Union union = newUnion(lgConfigK);
+    for (int i = 0; i < n; i++) { union.update(i); }
+    double est = union.getEstimate();
+    Union union2 = Union.writableWrap(WritableMemory.wrap(union.toUpdatableByteArray()));
+    double est2 = union2.getEstimate();
+    assertEquals(est2, est, 0.0);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkWritableWrapThrows() {
+    int lgConfigK = 10;
+    int n = 128;
+    HllSketch sk = new HllSketch(lgConfigK, HLL_6);
+    for (int i = 0; i < n; i++) {sk.update(i); }
+    Union.writableWrap(WritableMemory.wrap(sk.toUpdatableByteArray()));
+  }
+
   private static Union newUnion(int lgK) {
-    return new Union(lgK);
+    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, TgtHllType.HLL_8);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+    return new Union(lgK, wmem);
   }
 
   private static double getBound(int lgK, boolean ub, boolean oooFlag, int numStdDev, double est) {
@@ -406,7 +430,7 @@ public class UnionTest {
    * @param s value to print
    */
   static void print(String s) {
-    System.out.print(s); //disable here
+    //System.out.print(s); //disable here
   }
 
 }

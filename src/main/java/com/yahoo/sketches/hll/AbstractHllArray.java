@@ -11,8 +11,6 @@ import static com.yahoo.sketches.hll.PreambleUtil.HLL_PREINTS;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_4;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_6;
 
-import com.yahoo.memory.Memory;
-
 /**
  * @author Lee Rhodes
  */
@@ -100,8 +98,6 @@ abstract class AbstractHllArray extends HllSketchImpl {
   int getMemDataStart() {
     return HLL_BYTE_ARR_START;
   }
-
-  abstract Memory getMemory();
 
   abstract AuxHashMap getNewAuxHashMap();
 

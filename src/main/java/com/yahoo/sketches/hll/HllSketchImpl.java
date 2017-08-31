@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.hll;
 
+import com.yahoo.memory.WritableMemory;
+
 /**
  * The Abstract HllSketch implementation
  *
@@ -56,6 +58,8 @@ abstract class HllSketchImpl {
   abstract int getUpdatableSerializationBytes();
 
   abstract double getUpperBound(int numStdDev);
+
+  abstract WritableMemory getWritableMemory();
 
   abstract boolean isCompact();
 

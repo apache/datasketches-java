@@ -12,6 +12,8 @@ import static com.yahoo.sketches.hll.TgtHllType.HLL_8;
 import static java.lang.Math.min;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * This performs union operations for HLL sketches. This union operator is configured with a
@@ -52,6 +54,32 @@ public class Union extends BaseHllSketch {
   }
 
   /**
+   * Construct this Union operator with a given maximum log-base-2 of <i>K</i> and the given
+   * WritableMemory as the destination for this Union. This WritableMemory is usually configured
+   * for off-heap memory. What remains on the java heap is a thin wrapper object that reads and
+   * writes to the given WritableMemory.
+   *
+   * <p>The given <i>dstMem</i> is checked for the required capacity as determined by
+   * {@link #getMaxUpdatableSerializationBytes(int, TgtHllType)}.
+   * @param lgMaxK the desired maximum log-base-2 of <i>K</i>.  This value must be
+   * between 7 and 21 inclusively.
+   * @param dstMem the destination memory for the sketch.
+   */
+  public Union(final int lgMaxK, final WritableMemory dstMem) {
+    this.lgMaxK = HllUtil.checkLgK(lgMaxK);
+    gadget = new HllSketch(lgMaxK, HLL_8, dstMem);
+  }
+
+  Union(final HllSketch sketch) {
+    lgMaxK = sketch.getLgConfigK();
+    final TgtHllType tgtHllType = sketch.getTgtHllType();
+    if (tgtHllType != TgtHllType.HLL_8) {
+      throw new SketchesArgumentException("Union can only wrap HLL_8 sketches.");
+    }
+    gadget = sketch;
+  }
+
+  /**
    * Construct a union operator populated with the given byte array image of an HllSketch.
    * @param byteArray the given byte array
    * @return a union operator populated with the given byte array image of an HllSketch.
@@ -71,6 +99,21 @@ public class Union extends BaseHllSketch {
     final Union union = new Union(lgK);
     union.update(sk);
     return union;
+  }
+
+  /**
+   * Wraps the given WritableMemory, which must be a image of a valid updatable HLL_8 sketch,
+   * and may have data. What remains on the java heap is a
+   * thin wrapper object that reads and writes to the given WritableMemory, which, depending on
+   * how the user configures the WritableMemory, may actually reside on the Java heap or off-heap.
+   *
+   * <p>The given <i>dstMem</i> is checked for the required capacity as determined by
+   * {@link #getMaxUpdatableSerializationBytes(int, TgtHllType)}, and for the correct type.
+   * @param wmem an writable image of a valid sketch with data.
+   * @return a Union operator where the sketch data is in the given dstMem.
+   */
+  public static final Union writableWrap(final WritableMemory wmem) {
+    return new Union(HllSketch.writableWrap(wmem));
   }
 
   @Override
@@ -230,151 +273,160 @@ public class Union extends BaseHllSketch {
    * perform the union. This may involve swapping, down-sampling, transforming, and / or
    * copying one of the arguments and may completely replace the internals of the union.
    *
-   * @param srcImpl the given source sketch, which may not be modified.
-   * @param dstImpl the given destination sketch, which must have a target of HLL_8 and may be
+   * @param incomingImpl the given incoming sketch, which may not be modified.
+   * @param gadgetImpl the given gadget sketch, which must have a target of HLL_8 and may be
    * modified.
    * @param lgMaxK the maximum value of log2 K for this union.
    * @return the union of the two sketches in the form of the internal HllSketchImpl, which for
    * the union is always in HLL_8 form.
    */
-  private static HllSketchImpl unionImpl(final HllSketchImpl srcImpl,
-      final HllSketchImpl dstImpl, final int lgMaxK) {
-    assert dstImpl.getTgtHllType() == HLL_8;
-    HllSketchImpl outImpl = dstImpl;
-    if ((srcImpl == null) || srcImpl.isEmpty()) { return outImpl; }
+  private static final HllSketchImpl unionImpl(final HllSketchImpl incomingImpl,
+      final HllSketchImpl gadgetImpl, final int lgMaxK) {
+    assert gadgetImpl.getTgtHllType() == HLL_8;
+    HllSketchImpl srcImpl = incomingImpl; //default
+    HllSketchImpl dstImpl = gadgetImpl; //default
+    if ((incomingImpl == null) || incomingImpl.isEmpty()) { return gadgetImpl; }
 
-    final int hi2bits = (outImpl.isEmpty()) ? 3 : outImpl.getCurMode().ordinal();
-    final int lo2bits = srcImpl.getCurMode().ordinal();
+    final int hi2bits = (gadgetImpl.isEmpty()) ? 3 : gadgetImpl.getCurMode().ordinal();
+    final int lo2bits = incomingImpl.getCurMode().ordinal();
 
     final int sw = (hi2bits << 2) | lo2bits;
     //System.out.println("SW: " + sw);
     switch (sw) {
       case 0: { //src: LIST, gadget: LIST
-        final PairIterator srcItr = srcImpl.getIterator();
+        final PairIterator srcItr = srcImpl.getIterator(); //LIST
         while (srcItr.nextValid()) {
-          outImpl = outImpl.couponUpdate(srcItr.getPair());
+          dstImpl = dstImpl.couponUpdate(srcItr.getPair()); //assignment required
         }
         //whichever is True wins:
-        outImpl.putOutOfOrderFlag(outImpl.isOutOfOrderFlag() | srcImpl.isOutOfOrderFlag());
+        dstImpl.putOutOfOrderFlag(dstImpl.isOutOfOrderFlag() | srcImpl.isOutOfOrderFlag());
         break;
       }
       case 1: { //src: SET, gadget: LIST
-        final PairIterator srcItr = srcImpl.getIterator();
+        //consider a swap here
+        final PairIterator srcItr = srcImpl.getIterator(); //SET
         while (srcItr.nextValid()) {
-          outImpl = outImpl.couponUpdate(srcItr.getPair());
+          dstImpl = dstImpl.couponUpdate(srcItr.getPair()); //assignment required
         }
-        outImpl.putOutOfOrderFlag(true); //SET oooFlag is always true
+        dstImpl.putOutOfOrderFlag(true); //SET oooFlag is always true
         break;
       }
       case 2: { //src: HLL, gadget: LIST
         //swap so that src is gadget-LIST, tgt is HLL
-        //lgMaxK because LIST has effective K of 2^26
-        final HllSketchImpl newSrcImplList = outImpl;
-        final HllSketchImpl newDstImplHll = srcImpl;
-        outImpl = copyOrDownsampleHll(newDstImplHll, lgMaxK);
-        assert outImpl.getCurMode() == HLL;
-        final PairIterator srcItr = newSrcImplList.getIterator();
+        //use lgMaxK because LIST has effective K of 2^26
+        srcImpl = gadgetImpl;
+        dstImpl = copyOrDownsampleHll(incomingImpl, lgMaxK);
+        final PairIterator srcItr = srcImpl.getIterator();
         while (srcItr.nextValid()) {
-          outImpl = outImpl.couponUpdate(srcItr.getPair());
+          dstImpl = dstImpl.couponUpdate(srcItr.getPair()); //assignment required
         }
         //whichever is True wins:
-        outImpl.putOutOfOrderFlag(outImpl.isOutOfOrderFlag() | srcImpl.isOutOfOrderFlag());
+        dstImpl.putOutOfOrderFlag(srcImpl.isOutOfOrderFlag() | dstImpl.isOutOfOrderFlag());
         break;
       }
       case 4: { //src: LIST, gadget: SET
-        final PairIterator srcItr = srcImpl.getIterator();
+        final PairIterator srcItr = srcImpl.getIterator(); //LIST
         while (srcItr.nextValid()) {
-          outImpl = outImpl.couponUpdate(srcItr.getPair());
+          dstImpl = dstImpl.couponUpdate(srcItr.getPair()); //assignment required
         }
-        outImpl.putOutOfOrderFlag(true); //SET oooFlag is always true
+        dstImpl.putOutOfOrderFlag(true); //SET oooFlag is always true
         break;
       }
       case 5: { //src: SET, gadget: SET
-        final PairIterator srcItr = srcImpl.getIterator();
+        final PairIterator srcItr = srcImpl.getIterator(); //SET
         while (srcItr.nextValid()) {
-          outImpl = outImpl.couponUpdate(srcItr.getPair());
+          dstImpl = dstImpl.couponUpdate(srcItr.getPair()); //assignment required
         }
-        outImpl.putOutOfOrderFlag(true); //SET oooFlag is always true
+        dstImpl.putOutOfOrderFlag(true); //SET oooFlag is always true
         break;
       }
       case 6: { //src: HLL, gadget: SET
         //swap so that src is gadget-SET, tgt is HLL
-        //lgMaxK because LIST has effective K of 2^26
-        final HllSketchImpl newSrcSet = outImpl;
-        final HllSketchImpl newDstImplHll = srcImpl;
-        outImpl = copyOrDownsampleHll(newDstImplHll, lgMaxK);
-        final PairIterator srcItr = newSrcSet.getIterator();
-        assert outImpl.getCurMode() == HLL;
+        //use lgMaxK because LIST has effective K of 2^26
+        srcImpl = gadgetImpl;
+        dstImpl = copyOrDownsampleHll(incomingImpl, lgMaxK);
+        final PairIterator srcItr = srcImpl.getIterator(); //LIST
+        assert dstImpl.getCurMode() == HLL;
         while (srcItr.nextValid()) {
-          outImpl = outImpl.couponUpdate(srcItr.getPair());
+          dstImpl = dstImpl.couponUpdate(srcItr.getPair()); //assignment required
         }
-        outImpl.putOutOfOrderFlag(true); //merging SET into non-empty HLL -> true
+        dstImpl.putOutOfOrderFlag(true); //merging SET into non-empty HLL -> true
         break;
       }
       case 8: { //src: LIST, gadget: HLL
-        assert outImpl.getCurMode() == HLL;
-        final PairIterator srcItr = srcImpl.getIterator();
+        assert dstImpl.getCurMode() == HLL;
+        final PairIterator srcItr = srcImpl.getIterator(); //LIST
         while (srcItr.nextValid()) {
-          outImpl = outImpl.couponUpdate(srcItr.getPair());
+          dstImpl = dstImpl.couponUpdate(srcItr.getPair()); //assignment required
         }
         //whichever is True wins:
-        outImpl.putOutOfOrderFlag(outImpl.isOutOfOrderFlag() | srcImpl.isOutOfOrderFlag());
+        dstImpl.putOutOfOrderFlag(dstImpl.isOutOfOrderFlag() | srcImpl.isOutOfOrderFlag());
         break;
       }
       case 9: { //src: SET, gadget: HLL
-        assert outImpl.getCurMode() == HLL;
-        final PairIterator srcItr = srcImpl.getIterator();
+        assert dstImpl.getCurMode() == HLL;
+        final PairIterator srcItr = srcImpl.getIterator(); //SET
         while (srcItr.nextValid()) {
-          outImpl = outImpl.couponUpdate(srcItr.getPair());
+          dstImpl = dstImpl.couponUpdate(srcItr.getPair()); //assignment required
         }
-        outImpl.putOutOfOrderFlag(true); //merging SET into existing HLL -> true
+        dstImpl.putOutOfOrderFlag(true); //merging SET into existing HLL -> true
         break;
       }
       case 10: { //src: HLL, gadget: HLL
         final int srcLgK = srcImpl.getLgConfigK();
-        final int dstLgK = outImpl.getLgConfigK();
-        if ((srcLgK < dstLgK) || (outImpl.getTgtHllType() != HLL_8)) {
-          final int newLgConfigK = min(outImpl.getLgConfigK(), srcImpl.getLgConfigK());
-          outImpl = copyOrDownsampleHll(outImpl, newLgConfigK);
+        final int dstLgK = dstImpl.getLgConfigK();
+        if ((srcLgK < dstLgK) || (dstImpl.getTgtHllType() != HLL_8)) {
+          dstImpl = copyOrDownsampleHll(dstImpl, min(dstLgK, srcLgK)); //TODO Fix for off-heap
         }
-        assert outImpl.getCurMode() == HLL;
-        final PairIterator srcItr = srcImpl.getIterator();
+        final PairIterator srcItr = srcImpl.getIterator(); //HLL
         while (srcItr.nextValid()) {
-          outImpl = outImpl.couponUpdate(srcItr.getPair());
+          dstImpl = dstImpl.couponUpdate(srcItr.getPair()); //assignment required
         }
-        outImpl.putOutOfOrderFlag(true); //union of two HLL modes is always true
+        dstImpl.putOutOfOrderFlag(true); //union of two HLL modes is always true
         break;
       }
       case 12: { //src: LIST, gadget: empty
-        final PairIterator srcItr = srcImpl.getIterator();
+        final PairIterator srcItr = srcImpl.getIterator(); //LIST
         while (srcItr.nextValid()) {
-          outImpl = outImpl.couponUpdate(srcItr.getPair());
+          dstImpl = dstImpl.couponUpdate(srcItr.getPair()); //assignment required
         }
-        outImpl.putOutOfOrderFlag(srcImpl.isOutOfOrderFlag()); //whatever source is
+        dstImpl.putOutOfOrderFlag(srcImpl.isOutOfOrderFlag()); //whatever source is
         break;
       }
       case 13: { //src: SET, gadget: empty
-        final PairIterator srcItr = srcImpl.getIterator();
+        final PairIterator srcItr = srcImpl.getIterator(); //SET
         while (srcItr.nextValid()) {
-          outImpl = outImpl.couponUpdate(srcItr.getPair());
+          dstImpl = dstImpl.couponUpdate(srcItr.getPair()); //assignment required
         }
-        outImpl.putOutOfOrderFlag(true); //SET oooFlag is always true
+        dstImpl.putOutOfOrderFlag(true); //SET oooFlag is always true
         break;
       }
       case 14: { //src: HLL, gadget: empty
-        outImpl = copyOrDownsampleHll(srcImpl, lgMaxK);
-        outImpl.putOutOfOrderFlag(srcImpl.isOutOfOrderFlag()); //whatever source is.
+        dstImpl = copyOrDownsampleHll(srcImpl, lgMaxK);
+        dstImpl.putOutOfOrderFlag(srcImpl.isOutOfOrderFlag()); //whatever source is.
         break;
       }
     }
-    return outImpl;
+    if (gadgetImpl.isMemory() && !dstImpl.isMemory()) {
+      //dstImpl is on heap, gadget is Memory; we have to put dstImpl back into the gadget
+      final WritableMemory gadgetWmem = gadgetImpl.getWritableMemory();
+      assert gadgetWmem != null;
+      final int bytes =
+          HllSketch.getMaxUpdatableSerializationBytes(dstImpl.getLgConfigK(), HLL_8);
+      gadgetWmem.clear(0, bytes);
+      final byte[] dstByteArr = dstImpl.toUpdatableByteArray();
+      gadgetWmem.putByteArray(0, dstByteArr, 0, dstByteArr.length);
+      dstImpl = HllSketch.writableWrap(gadgetWmem).hllSketchImpl;
+    }
+    return dstImpl;
   }
 
-  //Used by union operator.  Always copies or downsamples to HLL_8.
+  //Used by union operator.  Always copies or downsamples to Heap HLL_8.
   //Caller must ultimately manage oooFlag, as caller has more info
   private static final HllSketchImpl copyOrDownsampleHll(
-      final HllSketchImpl srcSketch, final int tgtLgK) {
-    final AbstractHllArray src = (AbstractHllArray) srcSketch;
+      final HllSketchImpl srcImpl, final int tgtLgK) {
+    assert srcImpl.getCurMode() == HLL;
+    final AbstractHllArray src = (AbstractHllArray) srcImpl;
     final int srcLgK = src.getLgConfigK();
     if ((srcLgK <= tgtLgK) && (src.getTgtHllType() == TgtHllType.HLL_8)) {
       return src.copy();

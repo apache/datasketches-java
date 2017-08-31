@@ -7,7 +7,6 @@ package com.yahoo.sketches.hll;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
@@ -50,6 +49,7 @@ public class DirectCouponListTest {
       CurMode tgtMode) {
     int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     HllSketch hllSketch;
+
     //println("DIRECT");
     byte[] barr1;
     try (WritableDirectHandle hand = WritableMemory.allocateDirect(bytes)) {
@@ -64,9 +64,6 @@ public class DirectCouponListTest {
       }
       //println(hllSketch.toString(true, true, false, false));
       assertFalse(hllSketch.isEmpty());
-      if (hllSketch.getCurMode() == CurMode.HLL) {
-        assertNotNull(((DirectHllArray) (hllSketch.hllSketchImpl)).getMemory());
-      }
       assertEquals(hllSketch.getCurMode(), tgtMode);
       assertTrue(hllSketch.isMemory());
       assertTrue(hllSketch.isOffHeap());
@@ -78,7 +75,6 @@ public class DirectCouponListTest {
       assertTrue(hllSketch.isEmpty());
     }
 
-    //HEAP
     //println("HEAP");
     HllSketch hllSketch2 = new HllSketch(lgConfigK, tgtHllType);
     for (int i = 0; i < n; i++) {
