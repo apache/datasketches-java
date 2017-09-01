@@ -174,7 +174,7 @@
         <dependency>
             <groupId>com.yahoo.datasketches</groupId>
             <artifactId>memory</artifactId>
-            <version>0.10.2</version>
+            <version>0.10.3</version>
         </dependency>
 
         <!-- Test Scope -->
