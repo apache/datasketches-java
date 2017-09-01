@@ -199,10 +199,25 @@ class DirectCouponList extends AbstractCoupons {
     return extractOooFlag(memObj, memAdd);
   }
 
+  @Override
+  boolean isSameResource(final Memory mem) {
+    return this.mem.isSameResource(mem);
+  }
+
   @Override //not used on the direct side
   void putOutOfOrderFlag(final boolean oooFlag) {
     assert wmem != null;
     insertOooFlag(memObj, memAdd, oooFlag);
+  }
+
+  @Override
+  DirectCouponList reset() {
+    if (wmem == null) {
+      throw new SketchesArgumentException("Cannot reset a read-only sketch");
+    }
+    final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    wmem.clear(0, bytes);
+    return DirectCouponList.newInstance(lgConfigK, tgtHllType, wmem);
   }
 
   @Override
@@ -231,16 +246,6 @@ class DirectCouponList extends AbstractCoupons {
     } else {
       return toByteArray(this, true);
     }
-  }
-
-  @Override
-  DirectCouponList reset() {
-    if (wmem == null) {
-      throw new SketchesArgumentException("Cannot reset a read-only sketch");
-    }
-    final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
-    wmem.clear(0, bytes);
-    return DirectCouponList.newInstance(lgConfigK, tgtHllType, wmem);
   }
 
   //Called by DirectCouponList.couponUpdate()

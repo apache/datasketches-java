@@ -184,6 +184,11 @@ class CouponList extends AbstractCoupons {
   }
 
   @Override
+  boolean isSameResource(final Memory mem) {
+    return false;
+  }
+
+  @Override
   void putOutOfOrderFlag(final boolean oooFlag) {
     this.oooFlag = oooFlag;
   }

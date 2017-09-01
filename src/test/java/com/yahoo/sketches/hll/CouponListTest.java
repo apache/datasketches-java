@@ -6,6 +6,8 @@
 package com.yahoo.sketches.hll;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
@@ -60,16 +62,33 @@ public class CouponListTest {
     }
     assertEquals(sk.getCurrentMode(), CurMode.LIST);
     assertEquals(sk.getCompositeEstimate(), 7.0, 7 * .01);
+    if (direct) {
+      assertNotNull(sk.hllSketchImpl.getWritableMemory());
+    } else {
+      assertNull(sk.hllSketchImpl.getWritableMemory());
+    }
+
     sk.update(8);
     sk.update(8);
     assertEquals(sk.getCurrentMode(), CurMode.SET);
     assertEquals(sk.getCompositeEstimate(), 8.0, 8 * .01);
+    if (direct) {
+      assertNotNull(sk.hllSketchImpl.getWritableMemory());
+    } else {
+      assertNull(sk.hllSketchImpl.getWritableMemory());
+    }
+
     for (int i = 9; i <= 25; i++) {
       sk.update(i);
       sk.update(i);
     }
     assertEquals(sk.getCurrentMode(), CurMode.HLL);
     assertEquals(sk.getCompositeEstimate(), 25.0, 25 * .1);
+    if (direct) {
+      assertNotNull(sk.hllSketchImpl.getWritableMemory());
+    } else {
+      assertNull(sk.hllSketchImpl.getWritableMemory());
+    }
 
     double re = sk.getRelErr(true, true, 4, 1);
     assertTrue(re < 0.0);
@@ -105,9 +124,6 @@ public class CouponListTest {
     //println("Heapify Updatable\n" + sk2.toString());
     assertEquals(est2, est1, 0.0);
   }
-
-
-
 
   @Test
   public void printlnTest() {

@@ -278,6 +278,7 @@ public class HllSketchTest {
     for (int i = 25; i < (1 << 20); i++) { sk.update(i); }
     println(sk.toString(false, true, true, true));
     println(sk.toString(false, true, true, false));
+    println(sk.toString(false, true, true));
     sk = new HllSketch(8, TgtHllType.HLL_6);
     for (int i = 0; i < 25; i++) { sk.update(i); }
     println(sk.toString(false, true, true, true));

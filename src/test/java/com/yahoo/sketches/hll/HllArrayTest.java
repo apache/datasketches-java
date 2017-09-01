@@ -70,9 +70,10 @@ public class HllArrayTest {
 
   private static void toByteArrayHeapify(int lgK, TgtHllType tgtHllType, int u, boolean direct) {
     HllSketch sk1;
+    WritableMemory wmem = null;
     if (direct) {
       int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, tgtHllType);
-      WritableMemory wmem = WritableMemory.allocate(bytes);
+      wmem = WritableMemory.allocate(bytes);
       sk1 = new HllSketch(lgK, tgtHllType, wmem);
     } else {
       sk1 = new HllSketch(lgK, tgtHllType);
@@ -84,8 +85,10 @@ public class HllArrayTest {
     assert sk1.hllSketchImpl instanceof AbstractHllArray;
     if (sk1.hllSketchImpl instanceof HllArray) {
       assertFalse(sk1.hllSketchImpl.isMemory());
+      assertFalse(sk1.isSameResource(wmem));
     } else {
       assertTrue(sk1.hllSketchImpl.isMemory());
+      assertTrue(sk1.isSameResource(wmem));
     }
 
     //sk1.update(u);

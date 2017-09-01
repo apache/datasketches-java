@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.hll;
 
+import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 
 /**
@@ -70,6 +71,8 @@ abstract class HllSketchImpl {
   abstract boolean isOffHeap();
 
   abstract boolean isOutOfOrderFlag();
+
+  abstract boolean isSameResource(Memory mem);
 
   abstract void putOutOfOrderFlag(boolean oooFlag);
 

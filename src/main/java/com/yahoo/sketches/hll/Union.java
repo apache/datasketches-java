@@ -219,6 +219,11 @@ public class Union extends BaseHllSketch {
     return gadget.isOutOfOrderFlag();
   }
 
+  @Override
+  boolean isSameResource(final Memory mem) {
+    return gadget.isSameResource(mem);
+  }
+
   /**
    * Resets to empty and retains the current lgK, but does not change the configured value of
    * lgMaxK.

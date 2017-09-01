@@ -162,6 +162,22 @@ abstract class BaseHllSketch {
   abstract boolean isOutOfOrderFlag();
 
   /**
+   * Returns true if the given Memory refers to the same underlying resource as this sketch.
+   * This is only relevant for HLL_4 sketches that have been configured for off-heap
+   * using WritableMemory or Memory.  For on-heap sketches or unions this will return false.
+   *
+   * <p>It is rare, but possible, the the off-heap memory that has been allocated to an HLL_4
+   * sketch may not be large enough. If this should happen, the sketch makes a request for more
+   * memory from the owner of the resource and then moves itself to this new location. This all
+   * happens transparently to the user. This method provides a means for the user to
+   * inquire of the sketch if it has, in fact, moved itself.
+   * @param mem the given Memory
+   * @return true if the given Memory refers to the same underlying resource as this sketch or
+   * union.
+   */
+  abstract boolean isSameResource(Memory mem);
+
+  /**
    * Resets to empty, but does not change the configured values of lgConfigK and tgtHllType.
    */
   public abstract void reset();

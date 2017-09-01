@@ -160,6 +160,11 @@ abstract class DirectHllArray extends AbstractHllArray {
   }
 
   @Override
+  boolean isSameResource(final Memory mem) {
+    return this.mem.isSameResource(mem);
+  }
+
+  @Override
   void putAuxHashMap(final AuxHashMap auxHashMap, final boolean compact) {
     if (auxHashMap instanceof HeapAuxHashMap) {
       if (compact) {

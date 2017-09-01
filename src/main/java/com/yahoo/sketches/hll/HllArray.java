@@ -160,6 +160,11 @@ abstract class HllArray extends AbstractHllArray {
   }
 
   @Override
+  boolean isSameResource(final Memory mem) {
+    return false;
+  }
+
+  @Override
   void putAuxHashMap(final AuxHashMap auxHashMap, final boolean compact) {
     this.auxHashMap = auxHashMap;
   }

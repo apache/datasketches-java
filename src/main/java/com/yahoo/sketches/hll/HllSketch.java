@@ -338,6 +338,11 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
+  boolean isSameResource(final Memory mem) {
+    return hllSketchImpl.isSameResource(mem);
+  }
+
+  @Override
   public void reset() {
     hllSketchImpl = hllSketchImpl.reset();
   }

@@ -48,6 +48,7 @@ public class DirectAuxHashMapTest {
       assertEquals(dha.getAuxHashMap().getLgAuxArrInts(), 2);
       assertTrue(hllSketch.isMemory());
       assertTrue(hllSketch.isOffHeap());
+      assertTrue(hllSketch.isSameResource(wmem));
 
       //Check heapify
       byte[] byteArray = hllSketch.toCompactByteArray();
@@ -61,18 +62,19 @@ public class DirectAuxHashMapTest {
       WritableMemory wmem2 = WritableMemory.wrap(byteArray);
       hllSketch2 = HllSketch.writableWrap(wmem2);
       //println(hllSketch2.toString(true, true, true, true));
-      dha = (DirectHllArray) hllSketch2.hllSketchImpl;
-      assertEquals(dha.getAuxHashMap().getLgAuxArrInts(), 2);
-      assertEquals(dha.getAuxHashMap().getAuxCount(), 3);
+      DirectHllArray dha2 = (DirectHllArray) hllSketch2.hllSketchImpl;
+      assertEquals(dha2.getAuxHashMap().getLgAuxArrInts(), 2);
+      assertEquals(dha2.getAuxHashMap().getAuxCount(), 3);
 
       //Check grow to on-heap
-      hllSketch.couponUpdate(HllUtil.pair(10, 15));
+      hllSketch.couponUpdate(HllUtil.pair(10, 15)); //puts it over the edge, must grow
       //println(hllSketch.toString(true, true, true, true));
       dha = (DirectHllArray) hllSketch.hllSketchImpl;
       assertEquals(dha.getAuxHashMap().getLgAuxArrInts(), 3);
       assertEquals(dha.getAuxHashMap().getAuxCount(), 4);
       assertTrue(hllSketch.isMemory());
       assertFalse(hllSketch.isOffHeap());
+      assertFalse(hllSketch.isSameResource(wmem));
     }
   }
 
