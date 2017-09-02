@@ -115,7 +115,9 @@ class CouponList extends AbstractCoupons {
         return this;
       }
       //cell not empty
-      if (couponAtIdx == coupon) { return this; } //duplicate
+      if (couponAtIdx == coupon) {
+        return this; //duplicate
+      }
       //cell not empty & not a duplicate, continue
     } //end for
     throw new SketchesStateException("Array invalid: no empties & no duplicates");

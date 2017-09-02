@@ -125,7 +125,6 @@ class CouponHashSet extends CouponList {
       if (lgCouponArrInts == (lgConfigK - 3)) {
         return true; // promote
       }
-      //TODO if direct, ask for more memory?
       couponIntArr = growHashSet(couponIntArr, ++lgCouponArrInts);
     }
     return false;
