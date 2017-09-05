@@ -160,11 +160,11 @@ abstract class AbstractCoupons extends HllSketchImpl {
     int probe = coupon & arrMask;
     final int loopIndex = probe;
     do {
-      final int arrVal = array[probe];
-      if (arrVal == EMPTY) { //Compares on entire coupon
+      final int couponAtIdx = array[probe];
+      if (couponAtIdx == EMPTY) {
         return ~probe; //empty
       }
-      else if (coupon == arrVal) { //Compares on entire coupon
+      else if (coupon == couponAtIdx) {
         return probe; //duplicate
       }
       final int stride = ((coupon & KEY_MASK_26) >>> lgArrInts) | 1;

@@ -105,9 +105,10 @@ class CouponHashSet extends CouponList {
     }
     couponIntArr[~index] = coupon; //found empty
     couponCount++;
-    final boolean promote = checkGrowOrPromote();
-    if (!promote) { return this; }
-    return promoteHeapListOrSetToHll(this);
+    if (checkGrowOrPromote()) {
+      return promoteHeapListOrSetToHll(this);
+    }
+    return this;
   }
 
   @Override
@@ -122,8 +123,8 @@ class CouponHashSet extends CouponList {
 
   private boolean checkGrowOrPromote() {
     if ((RESIZE_DENOM * couponCount) > (RESIZE_NUMER * (1 << lgCouponArrInts))) {
-      if (lgCouponArrInts == (lgConfigK - 3)) {
-        return true; // promote
+      if (lgCouponArrInts == (lgConfigK - 3)) { //at max size
+        return true; // promote to HLL
       }
       couponIntArr = growHashSet(couponIntArr, ++lgCouponArrInts);
     }
@@ -131,8 +132,7 @@ class CouponHashSet extends CouponList {
   }
 
   private static final int[] growHashSet(final int[] coupIntArr, final int tgtLgCoupArrSize) {
-    final int tgtArrSize = 1 << tgtLgCoupArrSize;
-    final int[] tgtCouponIntArr = new int[tgtArrSize]; //create tgt
+    final int[] tgtCouponIntArr = new int[1 << tgtLgCoupArrSize]; //create tgt
     final int len = coupIntArr.length;
     for (int i = 0; i < len; i++) { //scan input arr for non-zero values
       final int fetched = coupIntArr[i];

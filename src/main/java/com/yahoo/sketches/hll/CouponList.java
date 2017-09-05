@@ -108,7 +108,7 @@ class CouponList extends AbstractCoupons {
         couponCount++;
         if (couponCount >= len) { //array full
           if (lgConfigK < 8) {
-            return promoteHeapListOrSetToHll(this);//oooFlag = false
+            return promoteHeapListOrSetToHll(this); //oooFlag = false
           }
           return promoteHeapListToSet(this); //oooFlag = true
         }

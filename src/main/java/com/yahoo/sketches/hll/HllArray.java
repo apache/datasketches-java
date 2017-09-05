@@ -78,6 +78,25 @@ abstract class HllArray extends AbstractHllArray {
     hipAccum += delta;
   }
 
+  @Override //used by HLL6 and HLL8, overridden by HLL4
+  HllSketchImpl couponUpdate(final int coupon) {
+    final int configKmask = (1 << getLgConfigK()) - 1;
+    final int slotNo = HllUtil.getLow26(coupon) & configKmask;
+    final int newVal = HllUtil.getValue(coupon);
+    assert newVal > 0;
+
+    final int curVal = getSlot(slotNo);
+    if (newVal > curVal) {
+      putSlot(slotNo, newVal);
+      hipAndKxQIncrementalUpdate(this, curVal, newVal);
+      if (curVal == 0) {
+        decNumAtCurMin(); //overloaded as num zeros
+        assert getNumAtCurMin() >= 0;
+      }
+    }
+    return this;
+  }
+
   @Override
   void decNumAtCurMin() {
     numAtCurMin--;
