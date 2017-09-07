@@ -101,7 +101,7 @@ class Hll4Array extends HllArray {
 
   @Override
   byte[] toCompactByteArray() {
-    return HeapHllToByteArray.toByteArray(this, true);
+    return ToByteArrayImpl.toHllByteArray(this, true);
   }
 
   //ITERATOR

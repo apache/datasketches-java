@@ -230,7 +230,7 @@ abstract class HllArray extends AbstractHllArray {
 
   @Override //used by HLL4, HLL6 and HLL8
   byte[] toUpdatableByteArray() {
-    return HeapHllToByteArray.toByteArray(this, false);
+    return ToByteArrayImpl.toHllByteArray(this, false);
   }
 
 

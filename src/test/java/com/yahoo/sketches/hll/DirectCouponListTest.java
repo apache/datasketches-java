@@ -11,6 +11,7 @@ import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableDirectHandle;
 import com.yahoo.memory.WritableMemory;
 
@@ -94,17 +95,42 @@ public class DirectCouponListTest {
     assertEquals(barr1, barr2);
   }
 
-  //    private static void printDiffs(byte[] arr1, byte[] arr2) {
-  //      int len1 = arr1.length;
-  //      int len2 = arr2.length;
-  //      int minLen = Math.min(len1,  len2);
-  //      for (int i = 0; i < minLen; i++) {
-  //        int v1 = arr1[i] & 0XFF;
-  //        int v2 = arr2[i] & 0XFF;
-  //        if (v1 == v2) { continue; }
-  //        println(i + ", " + v1 + ", " + v2);
-  //      }
-  //    }
+  @SuppressWarnings("unused") //only used when above printlns are enabled.
+  private static void printDiffs(byte[] arr1, byte[] arr2) {
+    int len1 = arr1.length;
+    int len2 = arr2.length;
+    int minLen = Math.min(len1,  len2);
+    for (int i = 0; i < minLen; i++) {
+      int v1 = arr1[i] & 0XFF;
+      int v2 = arr2[i] & 0XFF;
+      if (v1 == v2) { continue; }
+      println(i + ", " + v1 + ", " + v2);
+    }
+  }
+
+  @Test
+  public void checkToByteArray() {
+    int lgK = 8;
+    TgtHllType type = TgtHllType.HLL_8;
+    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, type);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+    HllSketch sk = new HllSketch(lgK, type, wmem);
+    for (int i = 0; i < 7; i++) { sk.update(i); }
+
+    //toCompactMemArr from compact mem
+    byte[] compactByteArr = sk.toCompactByteArray();
+    Memory compactMem = Memory.wrap(compactByteArr);
+    HllSketch sk2 = HllSketch.wrap(compactMem);
+    byte[] compactByteArr2 = sk2.toCompactByteArray();
+    assertEquals(compactByteArr2, compactByteArr);
+
+    //now check to UpdatableByteArr from compact mem
+    byte[] updatableByteArr = sk.toUpdatableByteArray();
+    byte[] updatableByteArr2 = sk2.toUpdatableByteArray();
+    assertEquals(updatableByteArr2.length, updatableByteArr.length);
+    assertEquals(sk2.getEstimate(), sk.getEstimate());
+
+  }
 
   @Test
   public void printlnTest() {

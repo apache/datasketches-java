@@ -128,16 +128,14 @@ class CouponList extends AbstractCoupons {
     return getMemDataStart() + (couponCount << 2);
   }
 
-  @Override //get coupons from internal int[] to dstMem
-  //Called by CouponList.insertList
-  //Called by CouponList.insertSet
-  void getCouponsToMemoryInts(final WritableMemory dstWmem, final int lenInts) {
-    dstWmem.putIntArray(getMemDataStart(), couponIntArr, 0, lenInts);
-  }
-
   @Override
   int getCouponCount() {
     return couponCount;
+  }
+
+  @Override
+  int[] getCouponIntArr() {
+    return couponIntArr;
   }
 
   @Override
@@ -153,6 +151,11 @@ class CouponList extends AbstractCoupons {
   @Override
   int getMemDataStart() {
     return LIST_INT_ARR_START;
+  }
+
+  @Override
+  Memory getMemory() {
+    return null;
   }
 
   @Override
@@ -193,16 +196,6 @@ class CouponList extends AbstractCoupons {
   @Override
   void putOutOfOrderFlag(final boolean oooFlag) {
     this.oooFlag = oooFlag;
-  }
-
-  @Override
-  byte[] toCompactByteArray() {
-    return toByteArray(this, true);
-  }
-
-  @Override
-  byte[] toUpdatableByteArray() {
-    return toByteArray(this, false);
   }
 
   @Override

@@ -5,25 +5,18 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.hll.HllUtil.COUPON_RSE;
 import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.KEY_MASK_26;
-import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_INT_ARR_START;
-import static com.yahoo.sketches.hll.PreambleUtil.insertCompactFlag;
-import static com.yahoo.sketches.hll.PreambleUtil.insertCurMode;
-import static com.yahoo.sketches.hll.PreambleUtil.insertEmptyFlag;
-import static com.yahoo.sketches.hll.PreambleUtil.insertFamilyId;
-import static com.yahoo.sketches.hll.PreambleUtil.insertHashSetCount;
-import static com.yahoo.sketches.hll.PreambleUtil.insertLgArr;
-import static com.yahoo.sketches.hll.PreambleUtil.insertLgK;
-import static com.yahoo.sketches.hll.PreambleUtil.insertListCount;
-import static com.yahoo.sketches.hll.PreambleUtil.insertOooFlag;
-import static com.yahoo.sketches.hll.PreambleUtil.insertPreInts;
-import static com.yahoo.sketches.hll.PreambleUtil.insertSerVer;
-import static com.yahoo.sketches.hll.PreambleUtil.insertTgtHllType;
+import static com.yahoo.sketches.hll.HllUtil.LG_INIT_LIST_SIZE;
+import static com.yahoo.sketches.hll.HllUtil.LG_INIT_SET_SIZE;
+import static com.yahoo.sketches.hll.HllUtil.RESIZE_DENOM;
+import static com.yahoo.sketches.hll.HllUtil.RESIZE_NUMER;
+import static com.yahoo.sketches.hll.ToByteArrayImpl.toCouponByteArray;
 import static java.lang.Math.max;
 
-import com.yahoo.memory.WritableMemory;
+import com.yahoo.memory.Memory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -42,7 +35,7 @@ abstract class AbstractCoupons extends HllSketchImpl {
 
   abstract int getCouponCount();
 
-  abstract void getCouponsToMemoryInts(WritableMemory dstWmem, int lenInts);
+  abstract int[] getCouponIntArr();
 
   /**
    * This is the estimator for the Coupon List mode and Coupon Hash Set mode.
@@ -75,6 +68,8 @@ abstract class AbstractCoupons extends HllSketchImpl {
     return max(tmp, couponCount);
   }
 
+  abstract Memory getMemory();
+
   @Override
   double getUpperBound(final int numStdDev) {
     HllUtil.checkNumStdDev(numStdDev);
@@ -95,58 +90,17 @@ abstract class AbstractCoupons extends HllSketchImpl {
     return getCouponCount() == 0;
   }
 
-  //To byte array for Heap and when direct memory is different from compact request
-  static final byte[] toByteArray(final AbstractCoupons impl, final boolean compact) {
-    final byte[] byteArr;
-    final int arrLenBytes;
-    final int couponCount = impl.getCouponCount();
-    final int couponArrInts = 1 << impl.getLgCouponArrInts();
-    arrLenBytes = (compact)
-        ? couponCount << 2
-        : couponArrInts << 2;
-    byteArr = new byte[impl.getMemDataStart() + arrLenBytes];
-    final WritableMemory tgtWmem = WritableMemory.wrap(byteArr);
-    final Object memObj = tgtWmem.getArray();
-    final long memAdd = tgtWmem.getCumulativeOffset(0L);
-
-    insertCompactFlag(memObj, memAdd, compact);
-    insertCommonListAndSet(impl, memObj, memAdd);
-
-    if (impl.getCurMode() == CurMode.LIST) {
-      final int lenInts = (compact) ? couponCount : couponArrInts;
-      insertListCount(memObj, memAdd, couponCount);
-      impl.getCouponsToMemoryInts(tgtWmem, lenInts);
-    }
-    else { //SET
-      insertHashSetCount(memObj, memAdd, couponCount);
-      if (compact) {
-        final PairIterator itr = impl.getIterator();
-        int cnt = 0;
-        while (itr.nextValid()) {
-          tgtWmem.putInt(HASH_SET_INT_ARR_START + (cnt++ << 2), itr.getPair());
-        }
-      } else { //updatable
-        impl.getCouponsToMemoryInts(tgtWmem, couponArrInts);
-      }
-    }
-    return byteArr;
+  @Override
+  byte[] toCompactByteArray() {
+    return toCouponByteArray(this, true);
   }
 
-  private static final void insertCommonListAndSet(final AbstractCoupons impl,
-      final Object memObj, final long memAdd) {
-    insertPreInts(memObj, memAdd, impl.getPreInts());
-    insertSerVer(memObj, memAdd);
-    insertFamilyId(memObj, memAdd);
-    insertLgK(memObj, memAdd, impl.getLgConfigK());
-    insertLgArr(memObj, memAdd, impl.getLgCouponArrInts());
-    insertEmptyFlag(memObj, memAdd, impl.isEmpty());
-    insertOooFlag(memObj, memAdd, impl.isOutOfOrderFlag());
-    insertCurMode(memObj, memAdd, impl.getCurMode());
-    insertTgtHllType(memObj, memAdd, impl.getTgtHllType());
+  @Override
+  byte[] toUpdatableByteArray() {
+    return toCouponByteArray(this, false);
   }
 
   //FIND for Heap and Direct
-
   //Searches the Coupon hash table for an empty slot or a duplicate depending on the context.
   //If entire entry is empty, returns one's complement of index = found empty.
   //If entry equals given coupon, returns its index = found duplicate coupon
@@ -171,6 +125,16 @@ abstract class AbstractCoupons extends HllSketchImpl {
       probe = (probe + stride) & arrMask;
     } while (probe != loopIndex);
     throw new SketchesArgumentException("Key not found and no empty slots!");
+  }
+
+  //just in case the LgArr is missing
+  static int getLgCouponArrInts(final AbstractCoupons impl, final int lgArr) {
+    if (lgArr >= 2) { return lgArr; } // < 2 is invalid
+    final int coupons = impl.getCouponCount();
+    int ceilPwr2 = ceilingPowerOf2(coupons);
+    final int minLgArr = (impl.curMode == CurMode.LIST) ? LG_INIT_LIST_SIZE : LG_INIT_SET_SIZE;
+    if ((RESIZE_DENOM * coupons) > (RESIZE_NUMER * ceilPwr2)) { ceilPwr2 <<= 1; }
+    return Math.max(minLgArr, ceilPwr2 << 1);
   }
 
 }

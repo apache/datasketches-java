@@ -139,17 +139,14 @@ class DirectCouponList extends AbstractCoupons {
     return getMemDataStart() + (getCouponCount() << 2);
   }
 
-  @Override //get Coupons from internal Mem to dstMem
-  //Called by CouponList.insertList()
-  //Called by CouponList.insertSet()
-  void getCouponsToMemoryInts(final WritableMemory dstWmem, final int lenInts) {
-    final int memDataStart = getMemDataStart();
-    mem.copyTo(memDataStart, dstWmem, memDataStart, lenInts << 2);
-  }
-
   @Override
   int getCouponCount() {
     return extractListCount(memObj, memAdd);
+  }
+
+  @Override
+  int[] getCouponIntArr() { //here only to satisfy the abstract, should not be used
+    return null;
   }
 
   @Override
@@ -161,12 +158,18 @@ class DirectCouponList extends AbstractCoupons {
 
   @Override
   int getLgCouponArrInts() {
-    return extractLgArr(memObj, memAdd);
+    final int lgArr = extractLgArr(memObj, memAdd);
+    return getLgCouponArrInts(this, lgArr);
   }
 
   @Override
   int getMemDataStart() {
     return LIST_INT_ARR_START;
+  }
+
+  @Override
+  Memory getMemory() {
+    return mem;
   }
 
   @Override
@@ -218,34 +221,6 @@ class DirectCouponList extends AbstractCoupons {
     final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     wmem.clear(0, bytes);
     return DirectCouponList.newInstance(lgConfigK, tgtHllType, wmem);
-  }
-
-  @Override
-  byte[] toCompactByteArray() {
-    final boolean memIsCompact = extractCompactFlag(memObj, memAdd);
-    final int totBytes = getCompactSerializationBytes();
-    final byte[] byteArr = new byte[totBytes];
-    final WritableMemory memOut = WritableMemory.wrap(byteArr);
-    if (memIsCompact) {
-      mem.copyTo(0, memOut, 0, totBytes);
-      return byteArr;
-    } else {
-      return toByteArray(this, true);
-    }
-  }
-
-  @Override
-  byte[] toUpdatableByteArray() {
-    final boolean memIsCompact = extractCompactFlag(memObj, memAdd);
-    final int totBytes = getUpdatableSerializationBytes();
-    final byte[] byteArr = new byte[totBytes];
-    final WritableMemory memOut = WritableMemory.wrap(byteArr);
-    if (!memIsCompact) {
-      mem.copyTo(0, memOut, 0, totBytes);
-      return byteArr;
-    } else {
-      return toByteArray(this, true);
-    }
   }
 
   //Called by DirectCouponList.couponUpdate()
@@ -338,5 +313,7 @@ class DirectCouponList extends AbstractCoupons {
     dirHllArr.putHipAccum(est);
     return dirHllArr;
   }
+
+
 
 }

@@ -64,7 +64,7 @@ class DirectCouponHashSet extends DirectCouponList {
       return this; //found duplicate, ignore
     }
     insertInt(memObj, memAdd, HASH_SET_INT_ARR_START + (~index << 2), coupon);
-    incCouponCount();
+    insertHashSetCount(memObj, memAdd, getCouponCount() + 1);
     final boolean promote = checkGrowOrPromote();
     if (!promote) { return this; }
     return promoteListOrSetToHll(this);
@@ -83,12 +83,6 @@ class DirectCouponHashSet extends DirectCouponList {
   @Override
   int getPreInts() {
     return HASH_SET_PREINTS;
-  }
-
-  void incCouponCount() {
-    assert wmem != null;
-    int count = extractHashSetCount(memObj, memAdd);
-    insertHashSetCount(memObj, memAdd, ++count);
   }
 
   private boolean checkGrowOrPromote() {
