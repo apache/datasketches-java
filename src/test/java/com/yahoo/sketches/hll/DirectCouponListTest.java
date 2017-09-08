@@ -7,6 +7,7 @@ package com.yahoo.sketches.hll;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
@@ -109,27 +110,53 @@ public class DirectCouponListTest {
   }
 
   @Test
-  public void checkToByteArray() {
+  public void checkCouponToByteArray() {
     int lgK = 8;
     TgtHllType type = TgtHllType.HLL_8;
     int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, type);
     WritableMemory wmem = WritableMemory.allocate(bytes);
     HllSketch sk = new HllSketch(lgK, type, wmem);
-    for (int i = 0; i < 7; i++) { sk.update(i); }
+    int i;
+    for (i = 0; i < 7; i++) { sk.update(i); } //LIST
 
     //toCompactMemArr from compact mem
     byte[] compactByteArr = sk.toCompactByteArray();
     Memory compactMem = Memory.wrap(compactByteArr);
-    HllSketch sk2 = HllSketch.wrap(compactMem);
-    byte[] compactByteArr2 = sk2.toCompactByteArray();
+    HllSketch skCompact = HllSketch.wrap(compactMem);
+    byte[] compactByteArr2 = skCompact.toCompactByteArray();
     assertEquals(compactByteArr2, compactByteArr);
 
     //now check to UpdatableByteArr from compact mem
     byte[] updatableByteArr = sk.toUpdatableByteArray();
-    byte[] updatableByteArr2 = sk2.toUpdatableByteArray();
+    byte[] updatableByteArr2 = skCompact.toUpdatableByteArray();
     assertEquals(updatableByteArr2.length, updatableByteArr.length);
-    assertEquals(sk2.getEstimate(), sk.getEstimate());
+    assertEquals(skCompact.getEstimate(), sk.getEstimate());
 
+
+    sk.update(i); //SET
+    //toCompactMemArr from compact mem
+    compactByteArr = sk.toCompactByteArray();
+    compactMem = Memory.wrap(compactByteArr);
+    skCompact = HllSketch.wrap(compactMem);
+    compactByteArr2 = skCompact.toCompactByteArray();
+    assertEquals(compactByteArr2, compactByteArr);
+
+    //now check to UpdatableByteArr from compact mem
+    updatableByteArr = sk.toUpdatableByteArray();
+    updatableByteArr2 = skCompact.toUpdatableByteArray();
+    assertEquals(updatableByteArr2.length, updatableByteArr.length);
+    assertEquals(skCompact.getEstimate(), sk.getEstimate());
+  }
+
+  @Test
+  public void checkDirectGetCouponIntArr() {
+    int lgK = 8;
+    TgtHllType type = TgtHllType.HLL_8;
+    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, type);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+    HllSketch sk = new HllSketch(lgK, type, wmem);
+    AbstractCoupons absCoup = (AbstractCoupons)sk.hllSketchImpl;
+    assertNull(absCoup.getCouponIntArr());
   }
 
   @Test

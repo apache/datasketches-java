@@ -6,8 +6,10 @@
 package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.hll.HllUtil.AUX_TOKEN;
+import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static com.yahoo.sketches.hll.HllUtil.hiNibbleMask;
 import static com.yahoo.sketches.hll.HllUtil.loNibbleMask;
+import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static com.yahoo.sketches.hll.PreambleUtil.extractAuxCount;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCompactFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
@@ -86,6 +88,18 @@ class Hll4Array extends HllArray {
       theByte >>>= 4;
     }
     return theByte & loNibbleMask;
+  }
+
+  @Override
+  int getUpdatableSerializationBytes() {
+    final AuxHashMap auxHashMap = getAuxHashMap();
+    final int auxBytes;
+    if (auxHashMap == null) {
+      auxBytes = 4 << LG_AUX_ARR_INTS[lgConfigK];
+    } else {
+      auxBytes = 4 << auxHashMap.getLgAuxArrInts();
+    }
+    return HLL_BYTE_ARR_START + getHllByteArrBytes() + auxBytes;
   }
 
   @Override

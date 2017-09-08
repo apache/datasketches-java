@@ -126,6 +126,13 @@ public class CouponListTest {
   }
 
   @Test
+  public void checkGetMemory() {
+    HllSketch sk1 = new HllSketch(4);
+    AbstractCoupons absCoup = (AbstractCoupons) sk1.hllSketchImpl;
+    assertNull(absCoup.getMemory());
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }

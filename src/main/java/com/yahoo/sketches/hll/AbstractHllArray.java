@@ -110,11 +110,9 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   abstract int getSlot(int slotNo);
 
-  @Override
+  @Override //used by HLL6 and HLL8, Overridden by HLL4
   int getUpdatableSerializationBytes() {
-    final AuxHashMap auxHashMap = getAuxHashMap();
-    final int auxBytes = (auxHashMap == null) ? 0 : 4 << auxHashMap.getLgAuxArrInts();
-    return HLL_BYTE_ARR_START + getHllByteArrBytes() + auxBytes;
+    return HLL_BYTE_ARR_START + getHllByteArrBytes();
   }
 
   @Override

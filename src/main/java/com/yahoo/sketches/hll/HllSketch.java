@@ -159,16 +159,16 @@ public class HllSketch extends BaseHllSketch {
   public static final HllSketch writableWrap(final WritableMemory wmem) {
     final Object memObj = wmem.getArray();
     final long memAdd = wmem.getCumulativeOffset(0);
-    final int lgConfigK = extractLgK(memObj, memAdd);
-    final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
-    final long minBytes = getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
-    final long capBytes = wmem.getCapacity();
-    HllUtil.checkMemSize(minBytes, capBytes);
     final boolean compact = extractCompactFlag(memObj, memAdd);
     if (compact) {
       throw new SketchesArgumentException(
           "Cannot perform a writableWrap of a writable sketch image that is in compact form.");
     }
+    final int lgConfigK = extractLgK(memObj, memAdd);
+    final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
+    final long minBytes = getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    final long capBytes = wmem.getCapacity();
+    HllUtil.checkMemSize(minBytes, capBytes);
 
     final CurMode curMode = checkPreamble(wmem);
     final HllSketch directSketch;

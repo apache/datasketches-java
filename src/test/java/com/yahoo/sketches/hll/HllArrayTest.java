@@ -110,6 +110,13 @@ public class HllArrayTest {
   }
 
   @Test
+  public void checkIsCompact() {
+    HllSketch sk = new HllSketch(4);
+    for (int i = 0; i < 8; i++) { sk.update(i); }
+    assertFalse(sk.isCompact());
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }

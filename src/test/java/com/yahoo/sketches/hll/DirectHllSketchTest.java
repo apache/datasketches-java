@@ -6,6 +6,7 @@
 package com.yahoo.sketches.hll;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.util.HashSet;
@@ -92,6 +93,55 @@ public class DirectHllSketchTest {
       //println(itr2.getString());
     }
     assertEquals(validCount, validCount2);
+  }
+
+  @Test
+  public void checkPutKxQ1_Misc() {
+    int bytes = HllSketch.getMaxUpdatableSerializationBytes(4, TgtHllType.HLL_4);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+    HllSketch sk = new HllSketch(4, TgtHllType.HLL_4, wmem);
+    for (int i = 0; i < 8; i++) { sk.update(i); }
+    assertTrue(sk.getCurMode() == CurMode.HLL);
+    AbstractHllArray absArr = (AbstractHllArray)sk.hllSketchImpl;
+    absArr.putKxQ1(1.0);
+    assertEquals(absArr.getKxQ1(), 1.0);
+    absArr.putKxQ1(0.0);
+
+    Memory mem = wmem;
+    HllSketch sk2 = HllSketch.wrap(mem);
+    try {
+      sk2.reset();
+      fail();
+    } catch (SketchesArgumentException e) {
+      //expected
+    }
+  }
+
+  @Test
+  public void checkToCompactByteArr() {
+    int bytes = HllSketch.getMaxUpdatableSerializationBytes(4, TgtHllType.HLL_4);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+    HllSketch sk = new HllSketch(4, TgtHllType.HLL_4, wmem);
+    for (int i = 0; i < 8; i++) { sk.update(i); }
+    byte[] compByteArr = sk.toCompactByteArray();
+    Memory compMem = Memory.wrap(compByteArr);
+    HllSketch sk2 = HllSketch.wrap(compMem);
+    byte[] compByteArr2 = sk2.toCompactByteArray();
+    assertEquals(compByteArr2, compByteArr);
+  }
+
+  @Test
+  public void checkToUpdatableByteArr() {
+    int bytes = HllSketch.getMaxUpdatableSerializationBytes(4, TgtHllType.HLL_4);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+    HllSketch sk = new HllSketch(4, TgtHllType.HLL_4, wmem);
+    for (int i = 0; i < 8; i++) { sk.update(i); }
+    byte[] udByteArr = sk.toUpdatableByteArray();
+    byte[] compByteArr = sk.toCompactByteArray();
+    Memory compMem = Memory.wrap(compByteArr);
+    HllSketch sk2 = HllSketch.wrap(compMem);
+    byte[] udByteArr2 = sk2.toUpdatableByteArray();
+    assertEquals(udByteArr2, udByteArr);
   }
 
   @Test

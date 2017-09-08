@@ -5,8 +5,10 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.sketches.hll.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.hll.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.hll.PreambleUtil.SER_VER_BYTE;
+import static com.yahoo.sketches.hll.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.hll.PreambleUtil.insertFamilyId;
 import static com.yahoo.sketches.hll.PreambleUtil.insertPreInts;
 import static com.yahoo.sketches.hll.PreambleUtil.insertSerVer;
@@ -148,6 +150,18 @@ public class PreambleUtilTest {
       fail();
     } catch (SketchesArgumentException e) { /* OK */ }
     insertPreInts(memObj, memAdd, 10); //corrected
+  }
+
+  @SuppressWarnings("unused")
+  @Test
+  public void checkExtractFlags() {
+    int bytes = HllSketch.getMaxUpdatableSerializationBytes(4, TgtHllType.HLL_4);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+    Object memObj = wmem.getArray();
+    long memAdd = wmem.getCumulativeOffset(0L);
+    HllSketch sk = new HllSketch(4, TgtHllType.HLL_4, wmem);
+    int flags = extractFlags(memObj, memAdd);
+    assertEquals(flags, EMPTY_FLAG_MASK);
   }
 
   @Test

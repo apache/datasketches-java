@@ -6,9 +6,9 @@
 package com.yahoo.sketches.hll;
 
 import static com.yahoo.sketches.hll.AbstractCoupons.find;
+import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static com.yahoo.sketches.hll.PreambleUtil.AUX_COUNT_INT;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
-import static com.yahoo.sketches.hll.PreambleUtil.HLL_PREINTS;
 import static com.yahoo.sketches.hll.PreambleUtil.insertAuxCount;
 import static com.yahoo.sketches.hll.PreambleUtil.insertCompactFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.insertCurMin;
@@ -41,11 +41,15 @@ class ToByteArrayImpl {
   // To byte array used by the heap HLL types.
   static final byte[] toHllByteArray(final AbstractHllArray impl, final boolean compact) {
     int auxBytes = 0;
-    final AuxHashMap auxHashMap = impl.getAuxHashMap();
-    if (auxHashMap != null) { //only relevant for HLL_4
-      auxBytes = (compact)
-          ? auxHashMap.getCompactSizeBytes()
-          : auxHashMap.getUpdatableSizeBytes();
+    if (impl.tgtHllType == TgtHllType.HLL_4) {
+      final AuxHashMap auxHashMap = impl.getAuxHashMap();
+      if (auxHashMap != null) {
+        auxBytes = (compact)
+            ? auxHashMap.getCompactSizeBytes()
+            : auxHashMap.getUpdatableSizeBytes();
+      } else {
+        auxBytes = (compact) ? 0 : 4 << LG_AUX_ARR_INTS[impl.lgConfigK];
+      }
     }
     final int totBytes = HLL_BYTE_ARR_START + impl.getHllByteArrBytes() + auxBytes;
     final byte[] byteArr = new byte[totBytes];
@@ -70,7 +74,7 @@ class ToByteArrayImpl {
       final WritableMemory tgtWmem, final boolean compact) {
     final Object tgtMemObj = tgtWmem.getArray();
     final long tgtMemAdd = tgtWmem.getCumulativeOffset(0L);
-    insertPreInts(tgtMemObj, tgtMemAdd, HLL_PREINTS);
+    insertPreInts(tgtMemObj, tgtMemAdd, srcImpl.getPreInts());
     insertSerVer(tgtMemObj, tgtMemAdd);
     insertFamilyId(tgtMemObj, tgtMemAdd);
     insertLgK(tgtMemObj, tgtMemAdd, srcImpl.getLgConfigK());

@@ -205,35 +205,44 @@ public class HllSketchTest {
     checkSerSizes(8, TgtHllType.HLL_4, true);
   }
 
-  private static void checkSerSizes(int lgConfigK, TgtHllType tgtHllType, boolean direct) { //START HERE
+  private static void checkSerSizes(int lgConfigK, TgtHllType tgtHllType, boolean direct) {
     int bytes = getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     WritableMemory wmem = WritableMemory.allocate(bytes);
     HllSketch sk = (direct)
         ? new HllSketch(lgConfigK, tgtHllType, wmem) : new HllSketch(lgConfigK, tgtHllType);
     int i;
-    for (i = 0; i < 7; i++) { sk.update(i); }
 
+    //LIST
+    for (i = 0; i < 7; i++) { sk.update(i); }
     int expected = LIST_INT_ARR_START + (i << 2);
     assertEquals(sk.getCompactSerializationBytes(), expected);
     expected = LIST_INT_ARR_START + (4 << LG_INIT_LIST_SIZE);
     assertEquals(sk.getUpdatableSerializationBytes(), expected);
 
+    //SET
     for (i = 7; i < 24; i++) { sk.update(i); }
     expected = HASH_SET_INT_ARR_START + (i << 2);
     assertEquals(sk.getCompactSerializationBytes(), expected);
     expected = HASH_SET_INT_ARR_START + (4 << LG_INIT_SET_SIZE);
     assertEquals(sk.getUpdatableSerializationBytes(), expected);
 
+    //HLL
     sk.update(i);
+    assertEquals(sk.getCurMode(), CurMode.HLL);
     AbstractHllArray absHll = (AbstractHllArray) sk.hllSketchImpl;
-    AuxHashMap map =  absHll.getAuxHashMap();
+
     int auxCountBytes = 0;
     int auxArrBytes = 0;
-    if (map != null) {
-      auxCountBytes = map.getAuxCount() << 2;
-      auxArrBytes = 4 << map.getLgAuxArrInts();
+    if (absHll.tgtHllType == HLL_4) {
+      AuxHashMap auxMap =  absHll.getAuxHashMap();
+      if (auxMap != null) {
+        auxCountBytes = auxMap.getAuxCount() << 2;
+        auxArrBytes = 4 << auxMap.getLgAuxArrInts();
+      } else {
+        auxArrBytes = 4 << LG_AUX_ARR_INTS[lgConfigK];
+      }
     }
-    int hllArrBytes = hllArrBytes(lgConfigK, tgtHllType);
+    int hllArrBytes = absHll.getHllByteArrBytes();
     expected = HLL_BYTE_ARR_START + hllArrBytes + auxCountBytes;
     assertEquals(sk.getCompactSerializationBytes(), expected);
     expected = HLL_BYTE_ARR_START + hllArrBytes + auxArrBytes;
@@ -241,16 +250,6 @@ public class HllSketchTest {
     int fullAuxBytes = (tgtHllType == TgtHllType.HLL_4) ? (4 << LG_AUX_ARR_INTS[lgConfigK]) : 0;
     expected = HLL_BYTE_ARR_START + hllArrBytes + fullAuxBytes;
     assertEquals(getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType), expected);
-  }
-
-  private static int hllArrBytes(int lgConfigK, TgtHllType tgtHllType) {
-    if (tgtHllType == TgtHllType.HLL_4) {
-      return AbstractHllArray.hll4ArrBytes(lgConfigK);
-    }
-    if (tgtHllType == TgtHllType.HLL_6) {
-      return AbstractHllArray.hll6ArrBytes(lgConfigK);
-    }
-    return AbstractHllArray.hll8ArrBytes(lgConfigK);
   }
 
   @SuppressWarnings("unused")
@@ -392,10 +391,17 @@ public class HllSketchTest {
         //OK
       }
     }
-
     return resourceCompact;
     //return (byteArr[5] & COMPACT_FLAG_MASK) > 0;
+  }
 
+  @SuppressWarnings("unused")
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkWritableWrapOfCompact() {
+    HllSketch sk = new HllSketch(4);
+    byte[] byteArr = sk.toCompactByteArray();
+    WritableMemory wmem = WritableMemory.wrap(byteArr);
+    HllSketch sk2 = HllSketch.writableWrap(wmem);
   }
 
   @Test

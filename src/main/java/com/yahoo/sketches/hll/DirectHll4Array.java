@@ -7,6 +7,7 @@ package com.yahoo.sketches.hll;
 
 import static com.yahoo.memory.UnsafeUtil.unsafe;
 import static com.yahoo.sketches.hll.HllUtil.AUX_TOKEN;
+import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static com.yahoo.sketches.hll.HllUtil.hiNibbleMask;
 import static com.yahoo.sketches.hll.HllUtil.loNibbleMask;
 import static com.yahoo.sketches.hll.HllUtil.noWriteAccess;
@@ -89,6 +90,18 @@ class DirectHll4Array extends DirectHllArray {
   }
 
   @Override
+  int getUpdatableSerializationBytes() {
+    final AuxHashMap auxHashMap = getAuxHashMap();
+    final int auxBytes;
+    if (auxHashMap == null) {
+      auxBytes = 4 << LG_AUX_ARR_INTS[lgConfigK];
+    } else {
+      auxBytes = 4 << auxHashMap.getLgAuxArrInts();
+    }
+    return HLL_BYTE_ARR_START + getHllByteArrBytes() + auxBytes;
+  }
+
+  @Override
   final void putSlot(final int slotNo, final int newValue) {
     final long unsafeOffset = memAdd + HLL_BYTE_ARR_START + (slotNo >>> 1);
     final int oldValue = unsafe.getByte(memObj, unsafeOffset);
@@ -134,18 +147,14 @@ class DirectHll4Array extends DirectHllArray {
     final int totBytes = getUpdatableSerializationBytes();
     final byte[] byteArr = new byte[totBytes];
     final WritableMemory memOut = WritableMemory.wrap(byteArr);
-    if (!memIsCompact) { //mem is already consistent with result
+
+    if (!memIsCompact) { //both mem and target are updatable
       mem.copyTo(0, memOut, 0, totBytes);
       return byteArr;
     }
-    //everything but perhaps aux array is consistent
-    if (auxHashMap != null) {
-      final HllSketch heapSk = HllSketch.heapify(mem);
-      return heapSk.toUpdatableByteArray();
-    }
-    //no aux array
-    mem.copyTo(0, memOut, 0, totBytes);
-    return byteArr;
+    //mem is compact, need to handle auxArr. Easiest way:
+    final HllSketch heapSk = HllSketch.heapify(mem);
+    return heapSk.toUpdatableByteArray();
   }
 
   //ITERATOR

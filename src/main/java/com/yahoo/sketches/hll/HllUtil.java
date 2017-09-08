@@ -50,7 +50,7 @@ final class HllUtil {
 
   /**
    * Log2 table sizes for exceptions based on lgK from 0 to 26.
-   * However, only lgK from 7 to 21 are used.
+   * However, only lgK from 4 to 21 are used.
    */
   static final int[] LG_AUX_ARR_INTS = new int[] {
     0, 2, 2, 2, 2, 2, 2, 3, 3, 3,   //0 - 9
