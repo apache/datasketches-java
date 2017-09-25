@@ -9,25 +9,15 @@ import static com.yahoo.sketches.HashOperations.STRIDE_MASK;
 import static com.yahoo.sketches.Util.MIN_LG_ARR_LONGS;
 import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
 import static com.yahoo.sketches.Util.RESIZE_THRESHOLD;
-import static com.yahoo.sketches.theta.PreambleUtil.BIG_ENDIAN_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.LG_RESIZE_FACTOR_BIT;
 import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
-import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.P_FLOAT;
-import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
-import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
-import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
-import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
-import static com.yahoo.sketches.theta.PreambleUtil.getMemBytes;
+import static com.yahoo.sketches.theta.PreambleUtil.extractCurCount;
+import static com.yahoo.sketches.theta.PreambleUtil.extractFamilyID;
+import static com.yahoo.sketches.theta.PreambleUtil.extractLgArrLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractLgNomLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractLgResizeFactor;
+import static com.yahoo.sketches.theta.PreambleUtil.extractP;
+import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractThetaLong;
 import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountIncremented;
 import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountNotIncremented;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedDuplicate;
@@ -116,59 +106,19 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    * @return instance of this sketch
    */
   static HeapAlphaSketch heapifyInstance(final Memory srcMem, final long seed) {
-    final int preambleLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F; //byte 0
-    final ResizeFactor myRF = ResizeFactor.getRF((
-        srcMem.getByte(PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT));   //byte 0
-    final int serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;               //byte 1
-    final int familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;              //byte 2
-    final int lgNomLongs = srcMem.getByte(LG_NOM_LONGS_BYTE) & 0XFF;      //byte 3
-    final int lgArrLongs = srcMem.getByte(LG_ARR_LONGS_BYTE) & 0XFF;      //byte 4
-    final int flags = srcMem.getByte(FLAGS_BYTE) & 0XFF;                  //byte 5
-    final short seedHash = srcMem.getShort(SEED_HASH_SHORT);              //byte 6,7
-    final int curCount = srcMem.getInt(RETAINED_ENTRIES_INT);             //bytes 8-11
-    final float p = srcMem.getFloat(P_FLOAT);                             //bytes 12-15
-    final long thetaLong = srcMem.getLong(THETA_LONG);                    //bytes 16-23
+    final Object memObj = ((WritableMemory)srcMem).getArray(); //may be null
+    final long memAdd = srcMem.getCumulativeOffset(0L);
 
-    final Family family = Family.idToFamily(familyID);
-    if (family.equals(Family.ALPHA)) {
-      if (preambleLongs != Family.ALPHA.getMinPreLongs()) {
-        throw new SketchesArgumentException(
-            "Possible corruption: Invalid PreambleLongs value for ALPHA: " + preambleLongs);
-      }
-    }
-    else {
-      throw new SketchesArgumentException(
-          "Possible corruption: Invalid Family: " + family.toString());
-    }
+    final int preambleLongs = extractPreLongs(memObj, memAdd);            //byte 0
+    final int lgNomLongs = extractLgNomLongs(memObj, memAdd);             //byte 3
+    final int lgArrLongs = extractLgArrLongs(memObj, memAdd);             //byte 4
 
-    if (serVer != SER_VER) {
-      throw new SketchesArgumentException(
-          "Possible corruption: Invalid Serialization Version: " + serVer);
-    }
+    checkAlphaFamily(memObj, memAdd, preambleLongs, lgNomLongs);
+    checkMemIntegrity(srcMem, memObj, memAdd, seed, preambleLongs, lgNomLongs, lgArrLongs);
 
-    final int flagsMask =
-        ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
-    if ((flags & flagsMask) > 0) {
-      throw new SketchesArgumentException(
-          "Possible corruption: Input srcMem cannot be: big-endian, compact, ordered, or read-only");
-    }
-
-    Util.checkSeedHashes(seedHash, Util.computeSeedHash(seed));
-
-    final long curCapBytes = srcMem.getCapacity();
-    final int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
-    if (curCapBytes < minReqBytes) {
-      throw new SketchesArgumentException(
-          "Possible corruption: Current Memory size < min required size: "
-              + curCapBytes + " < " + minReqBytes);
-    }
-
-    final double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
-    if ((lgArrLongs <= lgNomLongs) && (theta < p) ) {
-      throw new SketchesArgumentException(
-        "Possible corruption: Theta cannot be < p and lgArrLongs <= lgNomLongs. "
-            + lgArrLongs + " <= " + lgNomLongs + ", Theta: " + theta + ", p: " + p);
-    }
+    final float p = extractP(memObj, memAdd);                             //bytes 12-15
+    final int lgRF = extractLgResizeFactor(memObj, memAdd);               //byte 0
+    final ResizeFactor myRF = ResizeFactor.getRF(lgRF);
 
     final double nomLongs = (1L << lgNomLongs);
     final double alpha = nomLongs / (nomLongs + 1.0);
@@ -177,9 +127,9 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     final HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, seed, p, myRF, alpha, split1);
     has.lgArrLongs_ = lgArrLongs;
     has.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
-    has.curCount_ = curCount;
-    has.thetaLong_ = thetaLong;
-    has.empty_ = (flags & EMPTY_FLAG_MASK) > 0;
+    has.curCount_ = extractCurCount(memObj, memAdd);
+    has.thetaLong_ = extractThetaLong(memObj, memAdd);
+    has.empty_ = PreambleUtil.isEmpty(memObj, memAdd);
     has.cache_ = new long[1 << lgArrLongs];
     srcMem.getLongArray(preambleLongs << 3, has.cache_, 0, 1 << lgArrLongs); //read in as hash table
     return has;
@@ -576,6 +526,29 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   private static final int setHashTableThreshold(final int lgNomLongs, final int lgArrLongs) {
     final double fraction = (lgArrLongs <= lgNomLongs) ? RESIZE_THRESHOLD : REBUILD_THRESHOLD;
     return (int) Math.floor(fraction * (1 << lgArrLongs));
+  }
+
+  static void checkAlphaFamily(final Object memObj, final long memAdd,
+      final int preambleLongs, final int lgNomLongs) {
+    //Check Family
+    final int familyID = extractFamilyID(memObj, memAdd);                       //byte 2
+    final Family family = Family.idToFamily(familyID);
+    if (family.equals(Family.ALPHA)) {
+      if (preambleLongs != Family.ALPHA.getMinPreLongs()) {
+        throw new SketchesArgumentException(
+            "Possible corruption: Invalid PreambleLongs value for ALPHA: " + preambleLongs);
+      }
+    }
+    else {
+      throw new SketchesArgumentException(
+          "Possible corruption: Invalid Family: " + family.toString());
+    }
+
+    //Check lgNomLongs
+    if (lgNomLongs < ALPHA_MIN_LG_NOM_LONGS) {
+      throw new SketchesArgumentException(
+        "This sketch requires a minimum nominal entries of " + (1 << ALPHA_MIN_LG_NOM_LONGS));
+    }
   }
 
 }

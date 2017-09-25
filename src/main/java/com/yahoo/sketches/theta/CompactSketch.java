@@ -28,7 +28,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * They are created as a result of the compact() method of an UpdateSketch or as a result of a
  * getResult() of a SetOperation.
  *
- * <p>A CompactSketch is the simplist form of a Theta Sketch. It consists of a compact list
+ * <p>A CompactSketch is the simplest form of a Theta Sketch. It consists of a compact list
  * (i.e., no intervening spaces) of hash values, which may be ordered or not, a value for theta
  * and a seed hash.  A CompactSketch is read-only,
  * and the space required when stored is only the space required for the hash values and 8 to 24

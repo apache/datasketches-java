@@ -7,31 +7,24 @@ package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
 import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
-import static com.yahoo.sketches.theta.PreambleUtil.BIG_ENDIAN_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.LG_RESIZE_FACTOR_BIT;
-import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
-import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.P_FLOAT;
-import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
-import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
-import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
-import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
-import static com.yahoo.sketches.theta.PreambleUtil.getMemBytes;
+import static com.yahoo.sketches.theta.PreambleUtil.extractLgArrLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractLgNomLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
-import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesReadOnlyException;
 import com.yahoo.sketches.Util;
 
@@ -48,7 +41,7 @@ import com.yahoo.sketches.Util;
  */
 class DirectQuickSelectSketchR extends UpdateSketch {
   static final double DQS_RESIZE_THRESHOLD  = 15.0 / 16.0; //tuned for space
-  //These values are also in Memory and are also kept on-heap for speed.
+  //These values are also in Memory image and are also kept on-heap for speed.
   final int lgNomLongs_;
   final int preambleLongs_;
 
@@ -57,7 +50,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   int hashTableThreshold_; //computed, kept only on heap, never serialized.
 
-  WritableMemory mem_; //Becomes WritableMemory, but no write methods
+  WritableMemory mem_; //A WritableMemory for child class, but no write methods here
 
   //only called by DirectQuickSelectSketch
   DirectQuickSelectSketchR(final int lgNomLongs, final long seed, final int preambleLongs,
@@ -78,80 +71,22 @@ class DirectQuickSelectSketchR extends UpdateSketch {
    * @return instance of this sketch
    */
   static DirectQuickSelectSketchR readOnlyWrap(final Memory srcMem, final long seed) {
-    final int preambleLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    final int serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
-    final int familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
-    final int lgNomLongs = srcMem.getByte(LG_NOM_LONGS_BYTE) & 0XFF;
-    final int lgArrLongs = srcMem.getByte(LG_ARR_LONGS_BYTE) & 0XFF;
-    final int flags = srcMem.getByte(FLAGS_BYTE) & 0XFF;
-    final short seedHash = srcMem.getShort(SEED_HASH_SHORT);
-    final float p = srcMem.getFloat(P_FLOAT);
-    final long thetaLong = srcMem.getLong(THETA_LONG);
+    final Object memObj = ((WritableMemory)srcMem).getArray(); //may be null
+    final long memAdd = srcMem.getCumulativeOffset(0L);
 
-    checkIntegrity(srcMem, seed, preambleLongs, serVer, familyID, lgNomLongs, lgArrLongs, flags,
-        seedHash, p, thetaLong);
+    final int preambleLongs = extractPreLongs(memObj, memAdd);                  //byte 0
+    final int lgNomLongs = extractLgNomLongs(memObj, memAdd);                   //byte 3
+    final int lgArrLongs = extractLgArrLongs(memObj, memAdd);                   //byte 4
 
-    final DirectQuickSelectSketchR dqss =
+    UpdateSketch.checkUnionQuickSelectFamily(memObj, memAdd, preambleLongs, lgNomLongs);
+    checkMemIntegrity(srcMem, memObj, memAdd, seed, preambleLongs, lgNomLongs, lgArrLongs);
+
+    final DirectQuickSelectSketchR dqssr =
         new DirectQuickSelectSketchR(lgNomLongs, seed, preambleLongs, (WritableMemory) srcMem);
-    dqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
-    return dqss;
+    dqssr.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
+    return dqssr;
   }
 
-  static void checkIntegrity(final Memory srcMem, final long seed, final int preambleLongs, final int serVer,
-      final int familyID, final int lgNomLongs, final int lgArrLongs, final int flags, final short seedHash,
-      final float p, final long thetaLong) {
-    if (serVer != SER_VER) {
-      throw new SketchesArgumentException(
-          "Possible corruption: Invalid Serialization Version: " + serVer);
-    }
-
-    final Family family = Family.idToFamily(familyID);
-    if (family.equals(Family.UNION)) {
-      if (preambleLongs != Family.UNION.getMinPreLongs()) {
-        throw new SketchesArgumentException(
-            "Possible corruption: Invalid PreambleLongs value for UNION: " + preambleLongs);
-      }
-    }
-    else if (family.equals(Family.QUICKSELECT)) {
-      if (preambleLongs != Family.QUICKSELECT.getMinPreLongs()) {
-        throw new SketchesArgumentException(
-            "Possible corruption: Invalid PreambleLongs value for QUICKSELECT: " + preambleLongs);
-      }
-    } else {
-      throw new SketchesArgumentException(
-          "Possible corruption: Invalid Family: " + family.toString());
-    }
-
-    if (lgNomLongs < MIN_LG_NOM_LONGS) {
-      throw new SketchesArgumentException(
-          "Possible corruption: Current Memory lgNomLongs < min required size: "
-              + lgNomLongs + " < " + MIN_LG_NOM_LONGS);
-    }
-
-    final int flagsMask =
-        ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
-    if ((flags & flagsMask) > 0) {
-      throw new SketchesArgumentException(
-        "Possible corruption: Input srcMem cannot be: big-endian, compact, ordered, or read-only");
-    }
-
-    Util.checkSeedHashes(seedHash, Util.computeSeedHash(seed));
-
-    final long curCapBytes = srcMem.getCapacity();
-    final int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
-    if (curCapBytes < minReqBytes) {
-      throw new SketchesArgumentException(
-          "Possible corruption: Current Memory size < min required size: "
-              + curCapBytes + " < " + minReqBytes);
-    }
-
-    final double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
-    if ((lgArrLongs <= lgNomLongs) && (theta < p) ) {
-      throw new SketchesArgumentException(
-        "Possible corruption: Theta cannot be < p and lgArrLongs <= lgNomLongs. "
-            + lgArrLongs + " <= " + lgNomLongs + ", Theta: " + theta + ", p: " + p);
-    }
-  }
 
   /**
    * Fast-wrap a sketch around the given source Memory containing sketch data that originated from

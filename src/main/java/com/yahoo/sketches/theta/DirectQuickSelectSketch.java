@@ -8,27 +8,15 @@ package com.yahoo.sketches.theta;
 import static com.yahoo.sketches.Util.MIN_LG_ARR_LONGS;
 import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
-import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.P_FLOAT;
 import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
-import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
-import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
-import static com.yahoo.sketches.theta.PreambleUtil.extractFamilyID;
-import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
 import static com.yahoo.sketches.theta.PreambleUtil.extractLgArrLongs;
 import static com.yahoo.sketches.theta.PreambleUtil.extractLgNomLongs;
-import static com.yahoo.sketches.theta.PreambleUtil.extractP;
 import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
-import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
-import static com.yahoo.sketches.theta.PreambleUtil.extractSerVer;
-import static com.yahoo.sketches.theta.PreambleUtil.extractThetaLong;
 import static com.yahoo.sketches.theta.PreambleUtil.getMemBytes;
 import static com.yahoo.sketches.theta.PreambleUtil.insertCurCount;
 import static com.yahoo.sketches.theta.PreambleUtil.insertFamilyID;
@@ -158,42 +146,15 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
    * @return instance of this sketch
    */
   static DirectQuickSelectSketch writableWrap(final WritableMemory srcMem, final long seed) {
-    final int preambleLongs;
-    final int serVer;
-    final int familyID;
-    final int lgNomLongs;
-    final int lgArrLongs;
-    final int flags;
-    final short seedHash;
-    final float p;
-    final long thetaLong;
-    if (srcMem.isResourceReadOnly() && !srcMem.isDirect()) {
-      preambleLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-      serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
-      familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
-      lgNomLongs = srcMem.getByte(LG_NOM_LONGS_BYTE) & 0XFF;
-      lgArrLongs = srcMem.getByte(LG_ARR_LONGS_BYTE) & 0XFF;
-      flags = srcMem.getByte(FLAGS_BYTE) & 0XFF;
-      seedHash = srcMem.getShort(SEED_HASH_SHORT);
-      p = srcMem.getFloat(P_FLOAT);
-      thetaLong = srcMem.getLong(THETA_LONG);
-    } else {
-      final Object memObj = srcMem.getArray(); //may be null
-      final long memAdd = srcMem.getCumulativeOffset(0L);
+    final Object memObj = srcMem.getArray(); //may be null
+    final long memAdd = srcMem.getCumulativeOffset(0L);
 
-      preambleLongs = extractPreLongs(memObj, memAdd);                  //byte 0
-      serVer = extractSerVer(memObj, memAdd);                           //byte 1
-      familyID = extractFamilyID(memObj, memAdd);                       //byte 2
-      lgNomLongs = extractLgNomLongs(memObj, memAdd);                   //byte 3
-      lgArrLongs = extractLgArrLongs(memObj, memAdd);                   //byte 4
-      flags = extractFlags(memObj, memAdd);                             //byte 5
-      seedHash = (short)extractSeedHash(memObj, memAdd);                //byte 6,7
-      p = extractP(memObj, memAdd);                                     //bytes 12-15
-      thetaLong = extractThetaLong(memObj, memAdd);                     //bytes 16-23
-    }
+    final int preambleLongs = extractPreLongs(memObj, memAdd);                  //byte 0
+    final int lgNomLongs = extractLgNomLongs(memObj, memAdd);                   //byte 3
+    final int lgArrLongs = extractLgArrLongs(memObj, memAdd);                   //byte 4
 
-    checkIntegrity(srcMem, seed, preambleLongs, serVer, familyID, lgNomLongs, lgArrLongs, flags,
-        seedHash, p, thetaLong);
+    UpdateSketch.checkUnionQuickSelectFamily(memObj, memAdd, preambleLongs, lgNomLongs);
+    checkMemIntegrity(srcMem, memObj, memAdd, seed, preambleLongs, lgNomLongs, lgArrLongs);
 
     final DirectQuickSelectSketch dqss =
         new DirectQuickSelectSketch(lgNomLongs, seed, preambleLongs, srcMem);
@@ -210,22 +171,12 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
    * @return instance of this sketch
    */
   static DirectQuickSelectSketch fastWritableWrap(final WritableMemory srcMem, final long seed) {
-    final int preambleLongs;
-    final int lgNomLongs;
-    final int lgArrLongs;
+    final Object memObj = srcMem.getArray();
+    final long memAdd = srcMem.getCumulativeOffset(0L);
 
-    if (srcMem.isResourceReadOnly() && !srcMem.isDirect()) { //Read-Only Heap
-      preambleLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-      lgNomLongs = srcMem.getByte(LG_NOM_LONGS_BYTE) & 0XFF;
-      lgArrLongs = srcMem.getByte(LG_ARR_LONGS_BYTE) & 0XFF;
-
-    } else {
-      final Object memObj = srcMem.getArray(); //may be null
-      final long memAdd = srcMem.getCumulativeOffset(0L);
-      preambleLongs = extractPreLongs(memObj, memAdd);                  //byte 0
-      lgNomLongs = extractLgNomLongs(memObj, memAdd);                   //byte 3
-      lgArrLongs = extractLgArrLongs(memObj, memAdd);                   //byte 4
-    }
+    final int preambleLongs = extractPreLongs(memObj, memAdd);                  //byte 0
+    final int lgNomLongs = extractLgNomLongs(memObj, memAdd);                   //byte 3
+    final int lgArrLongs = extractLgArrLongs(memObj, memAdd);                   //byte 4
 
     final DirectQuickSelectSketch dqss =
         new DirectQuickSelectSketch(lgNomLongs, seed, preambleLongs, srcMem);

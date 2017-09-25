@@ -6,10 +6,24 @@
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
+import static com.yahoo.sketches.theta.PreambleUtil.BIG_ENDIAN_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
+import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.extractFamilyID;
+import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
+import static com.yahoo.sketches.theta.PreambleUtil.extractP;
+import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
+import static com.yahoo.sketches.theta.PreambleUtil.extractSerVer;
+import static com.yahoo.sketches.theta.PreambleUtil.extractThetaLong;
+import static com.yahoo.sketches.theta.PreambleUtil.getMemBytes;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedNullOrEmpty;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -349,5 +363,76 @@ public abstract class UpdateSketch extends Sketch {
    * @return the backing Memory or null.
    */
   abstract WritableMemory getMemory();
+
+  static void checkUnionQuickSelectFamily(final Object memObj, final long memAdd,
+      final int preambleLongs, final int lgNomLongs) {
+    //Check Family
+    final int familyID = extractFamilyID(memObj, memAdd);                       //byte 2
+    final Family family = Family.idToFamily(familyID);
+    if (family.equals(Family.UNION)) {
+      if (preambleLongs != Family.UNION.getMinPreLongs()) {
+        throw new SketchesArgumentException(
+            "Possible corruption: Invalid PreambleLongs value for UNION: " + preambleLongs);
+      }
+    }
+    else if (family.equals(Family.QUICKSELECT)) {
+      if (preambleLongs != Family.QUICKSELECT.getMinPreLongs()) {
+        throw new SketchesArgumentException(
+            "Possible corruption: Invalid PreambleLongs value for QUICKSELECT: " + preambleLongs);
+      }
+    } else {
+      throw new SketchesArgumentException(
+          "Possible corruption: Invalid Family: " + family.toString());
+    }
+
+    //Check lgNomLongs
+    if (lgNomLongs < MIN_LG_NOM_LONGS) {
+      throw new SketchesArgumentException(
+          "Possible corruption: Current Memory lgNomLongs < min required size: "
+              + lgNomLongs + " < " + MIN_LG_NOM_LONGS);
+    }
+  }
+
+  static void checkMemIntegrity(final Memory srcMem, final Object memObj, final long memAdd,
+      final long seed, final int preambleLongs, final int lgNomLongs, final int lgArrLongs) {
+
+    //Check SerVer
+    final int serVer = extractSerVer(memObj, memAdd);                           //byte 1
+    if (serVer != SER_VER) {
+      throw new SketchesArgumentException(
+          "Possible corruption: Invalid Serialization Version: " + serVer);
+    }
+
+    //Check flags
+    final int flags = extractFlags(memObj, memAdd);                             //byte 5
+    final int flagsMask =
+        ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
+    if ((flags & flagsMask) > 0) {
+      throw new SketchesArgumentException(
+        "Possible corruption: Input srcMem cannot be: big-endian, compact, ordered, or read-only");
+    }
+
+    //Check seed hashes
+    final short seedHash = (short)extractSeedHash(memObj, memAdd);              //byte 6,7
+    Util.checkSeedHashes(seedHash, Util.computeSeedHash(seed));
+
+    //Check mem capacity, lgArrLongs
+    final long curCapBytes = srcMem.getCapacity();
+    final int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
+    if (curCapBytes < minReqBytes) {
+      throw new SketchesArgumentException(
+          "Possible corruption: Current Memory size < min required size: "
+              + curCapBytes + " < " + minReqBytes);
+    }
+    //check Theta, p
+    final float p = extractP(memObj, memAdd);                                   //bytes 12-15
+    final long thetaLong = extractThetaLong(memObj, memAdd);                    //bytes 16-23
+    final double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
+    if ((lgArrLongs <= lgNomLongs) && (theta < p) ) {
+      throw new SketchesArgumentException(
+        "Possible corruption: Theta cannot be < p and lgArrLongs <= lgNomLongs. "
+            + lgArrLongs + " <= " + lgNomLongs + ", Theta: " + theta + ", p: " + p);
+    }
+  }
 
 }
