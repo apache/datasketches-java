@@ -220,7 +220,7 @@ public class Union extends BaseHllSketch {
   }
 
   @Override
-  boolean isSameResource(final Memory mem) {
+  public boolean isSameResource(final Memory mem) {
     return gadget.isSameResource(mem);
   }
 

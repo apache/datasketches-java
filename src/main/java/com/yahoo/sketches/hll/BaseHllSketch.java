@@ -175,7 +175,7 @@ abstract class BaseHllSketch {
    * @return true if the given Memory refers to the same underlying resource as this sketch or
    * union.
    */
-  abstract boolean isSameResource(Memory mem);
+  public abstract boolean isSameResource(Memory mem);
 
   /**
    * Resets to empty, but does not change the configured values of lgConfigK and tgtHllType.
