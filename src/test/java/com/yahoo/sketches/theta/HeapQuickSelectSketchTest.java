@@ -122,6 +122,7 @@ public class HeapQuickSelectSketchTest {
     assertEquals(usk2.isEmpty(), false);
     assertEquals(usk2.isEstimationMode(), false);
     assertEquals(usk2.getClass().getSimpleName(), usk.getClass().getSimpleName());
+    assertEquals(usk2.getResizeFactor(), usk.getResizeFactor());
     usk2.toString(true, true, 8, true);
   }
 
@@ -149,6 +150,7 @@ public class HeapQuickSelectSketchTest {
     assertEquals(usk2.isEmpty(), false);
     assertEquals(usk2.isEstimationMode(), true);
     assertEquals(usk2.getClass().getSimpleName(), usk.getClass().getSimpleName());
+    assertEquals(usk2.getResizeFactor(), usk.getResizeFactor());
   }
 
   @Test
