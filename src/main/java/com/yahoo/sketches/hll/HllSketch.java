@@ -338,7 +338,7 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
-  boolean isSameResource(final Memory mem) {
+  public boolean isSameResource(final Memory mem) {
     return hllSketchImpl.isSameResource(mem);
   }
 
