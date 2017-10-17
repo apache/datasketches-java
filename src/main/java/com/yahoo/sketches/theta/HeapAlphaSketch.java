@@ -343,6 +343,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     final int stride = (2 * (int) ((hash >>> lgArrLongs_) & STRIDE_MASK)) + 1;
     int curProbe = (int) (hash & arrayMask);
     long curTableHash = hashTable[curProbe];
+    final int loopIndex = curProbe;
 
     // This is the enhanced part
     // Search for duplicate or zero, or opportunity to replace garbage.
@@ -377,6 +378,11 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
       assert (curTableHash < thetaLong_);
       curProbe = (curProbe + stride) & arrayMask;
       curTableHash = hashTable[curProbe];
+
+      // ensure no infinite loop
+      if (curProbe == loopIndex) {
+        throw new SketchesArgumentException("No empty slot in table!");
+      }
       // end of Enhanced insert
     } // end while and search
 
