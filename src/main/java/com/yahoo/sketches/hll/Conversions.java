@@ -31,7 +31,7 @@ class Conversions {
     while (itr.nextValid()) {
       final int slotNo = itr.getIndex();
       final int actualValue = itr.getValue();
-      AbstractHllArray.hipAndKxQIncrementalUpdate(srcHllArr, 0, actualValue);
+      AbstractHllArray.hipAndKxQIncrementalUpdate(hll4Array, 0, actualValue); //was srcHllArr
       if (actualValue >= (curMin + 15)) {
         hll4Array.putSlot(slotNo, AUX_TOKEN);
         if (auxHashMap == null) {
@@ -59,8 +59,7 @@ class Conversions {
       if (v < curMin) {
         curMin = v;
         numAtCurMin = 1;
-      }
-      if (v == curMin) {
+      } else if (v == curMin) { //missing else
         numAtCurMin++;
       }
     }
