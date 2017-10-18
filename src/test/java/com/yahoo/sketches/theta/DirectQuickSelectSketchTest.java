@@ -17,6 +17,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
+import static com.yahoo.sketches.theta.PreambleUtil.insertLgResizeFactor;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -707,6 +708,26 @@ public class DirectQuickSelectSketchTest {
       fail("Expected SketchesArgumentException");
     } catch (SketchesArgumentException e) {
       //pass
+    }
+  }
+
+  @Test
+  public void checkCorruptRFWithInsufficientArray() {
+    int k = 1024; //lgNomLongs = 10
+
+    int bytes = Sketches.getMaxUpdateSketchBytes(k);
+    byte[] arr = new byte[bytes];
+    WritableMemory mem = WritableMemory.wrap(arr);
+    ResizeFactor rf = ResizeFactor.X8; // 3
+    UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setResizeFactor(rf).build(mem);
+    usk.update(0);
+
+    insertLgResizeFactor(mem.getArray(), mem.getCumulativeOffset(0L), 0); // corrupt RF: X1
+    try {
+      DirectQuickSelectSketch.writableWrap(mem, DEFAULT_UPDATE_SEED);
+      fail("Expected SketchesArgumentException");
+    } catch (SketchesArgumentException e) {
+      //Pass
     }
   }
 

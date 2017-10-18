@@ -124,6 +124,12 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     final double alpha = nomLongs / (nomLongs + 1.0);
     final long split1 = (long) (((p * (alpha + 1.0)) / 2.0) * MAX_THETA_LONG_AS_DOUBLE);
 
+    if (myRF == ResizeFactor.X1
+            && lgArrLongs != Util.startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS)) {
+      throw new SketchesArgumentException("Possible corruption: ResizeFactor X1, but provided "
+              + "array too small for sketch size");
+    }
+
     final HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, seed, p, myRF, alpha, split1);
     has.lgArrLongs_ = lgArrLongs;
     has.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
@@ -343,6 +349,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     final int stride = (2 * (int) ((hash >>> lgArrLongs_) & STRIDE_MASK)) + 1;
     int curProbe = (int) (hash & arrayMask);
     long curTableHash = hashTable[curProbe];
+    final int loopIndex = curProbe;
 
     // This is the enhanced part
     // Search for duplicate or zero, or opportunity to replace garbage.
@@ -377,6 +384,11 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
       assert (curTableHash < thetaLong_);
       curProbe = (curProbe + stride) & arrayMask;
       curTableHash = hashTable[curProbe];
+
+      // ensure no infinite loop
+      if (curProbe == loopIndex) {
+        throw new SketchesArgumentException("No empty slot in table!");
+      }
       // end of Enhanced insert
     } // end while and search
 
@@ -459,7 +471,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    *
    * Theta P    Count  Empty  EstMode Est   UB  LB   Comments
    * 1.0   1.0  0      T      F       0     0   0    Empty Sketch-mode only sketch
-   * 1.0   1.0  N      F      F       N     N   N    Degenrate Sketch-mode only sketch
+   * 1.0   1.0  N      F      F       N     N   N    Degenerate Sketch-mode only sketch
    * &lt;1.0  1.0  -      F      T       est   HIP HIP  Normal Sketch-mode only sketch
    *  P    &lt;1.0 0      T      F       0     0   0    Virgin sampling sketch
    *  P    &lt;1.0 N      F      T       est   HIP HIP  Degenerate sampling sketch

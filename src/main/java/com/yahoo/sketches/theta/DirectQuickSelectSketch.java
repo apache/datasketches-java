@@ -16,6 +16,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
 import static com.yahoo.sketches.theta.PreambleUtil.extractLgArrLongs;
 import static com.yahoo.sketches.theta.PreambleUtil.extractLgNomLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractLgResizeFactor;
 import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.theta.PreambleUtil.getMemBytes;
 import static com.yahoo.sketches.theta.PreambleUtil.insertCurCount;
@@ -155,6 +156,14 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
 
     UpdateSketch.checkUnionQuickSelectFamily(memObj, memAdd, preambleLongs, lgNomLongs);
     checkMemIntegrity(srcMem, memObj, memAdd, seed, preambleLongs, lgNomLongs, lgArrLongs);
+
+    final int lgRF = extractLgResizeFactor(memObj, memAdd);               //byte 0
+    final ResizeFactor myRF = ResizeFactor.getRF(lgRF);
+    if (myRF == ResizeFactor.X1
+            && lgArrLongs != Util.startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS)) {
+      throw new SketchesArgumentException("Possible corruption: ResizeFactor X1, but provided "
+              + "array too small for sketch size");
+    }
 
     final DirectQuickSelectSketch dqss =
         new DirectQuickSelectSketch(lgNomLongs, seed, preambleLongs, srcMem);

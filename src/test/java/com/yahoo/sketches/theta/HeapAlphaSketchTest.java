@@ -13,6 +13,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.insertLgResizeFactor;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
@@ -550,6 +551,7 @@ public class HeapAlphaSketchTest {
     tryBadMem(mem, FLAGS_BYTE, 2); //Corrupt READ_ONLY to true
     mem.putLong(0, pre0); //restore
 
+    final double origTheta = mem.getDouble(16);
     try {
       mem.putDouble(16, 0.5); //Corrupt the theta value
       HeapAlphaSketch.heapifyInstance(mem, DEFAULT_UPDATE_SEED);
@@ -557,12 +559,21 @@ public class HeapAlphaSketchTest {
     } catch (SketchesArgumentException e) {
       //expected
     }
-    mem.putDouble(16, 1.0); //restore theta
+    mem.putDouble(16, origTheta); //restore theta
     byte[] byteArray2 = new byte[bytearray1.length -1];
     WritableMemory mem2 = WritableMemory.wrap(byteArray2);
     mem.copyTo(0, mem2, 0, mem2.getCapacity());
     try {
       HeapAlphaSketch.heapifyInstance(mem2, DEFAULT_UPDATE_SEED);
+      fail();
+    } catch (SketchesArgumentException e) {
+      //expected
+    }
+
+    // force ResizeFactor.X1, but allocated capacity too small
+    insertLgResizeFactor(mem.getArray(), mem.getCumulativeOffset(0L), ResizeFactor.X1.lg());
+    try {
+      HeapAlphaSketch.heapifyInstance(mem, DEFAULT_UPDATE_SEED);
       fail();
     } catch (SketchesArgumentException e) {
       //expected
