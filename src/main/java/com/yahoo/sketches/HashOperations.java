@@ -113,6 +113,7 @@ public final class HashOperations {
    * Useful for rebuilding tables to avoid unnecessary comparisons.
    * Returns the index of insertion, which is always positive or zero. Throws an exception if the
    * table is full with no empty slot.
+   * Throws an exception if table has no empty slot.
    *
    * @param hashTable the hash table to insert into.
    * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
@@ -140,6 +141,7 @@ public final class HashOperations {
   /**
    * This is a classical Knuth-style Open Addressing, Double Hash insert scheme for on-heap.
    * Returns index &ge; 0 if found (duplicate); &lt; 0 if inserted, inserted at -(index + 1).
+   * Throws an exception if the value is not found and table has no empty slot.
    *
    * @param hashTable the hash table to insert into.
    * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
@@ -238,6 +240,7 @@ public final class HashOperations {
    * This method assumes that the input hash is not a duplicate.
    * Useful for rebuilding tables to avoid unnecessary comparisons.
    * Returns the index of insertion, which is always positive or zero.
+   * Throws an exception if the table has no empty slot.
    *
    * @param mem The Memory hash table to insert into.
    * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
@@ -269,6 +272,7 @@ public final class HashOperations {
    * This is a classical Knuth-style Open Addressing, Double Hash insert scheme for off-heap,
    * but inserts values directly into a Memory.
    * Returns index &ge; 0 if found (duplicate); &lt; 0 if inserted, inserted at -(index + 1).
+   * Throws an exception if the value is not found and table has no empty slot.
    *
    * @param mem The Memory hash table to insert into.
    * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
@@ -305,6 +309,7 @@ public final class HashOperations {
    * This method assumes that the input hash is not a duplicate.
    * Useful for rebuilding tables to avoid unnecessary comparisons.
    * Returns the index of insertion, which is always positive or zero.
+   * Throws an exception if table has no empty slot.
    *
    * @param memObj The internal Memory object or null.
    * @param memAdd The absolute starting address of the Memory or java object header offset if
@@ -338,6 +343,7 @@ public final class HashOperations {
    * This is a classical Knuth-style Open Addressing, Double Hash insert scheme, but inserts
    * values directly into a Memory.
    * Returns index &ge; 0 if found (duplicate); &lt; 0 if inserted, inserted at -(index + 1).
+   * Throws an exception if the value is not found and table has no empty slot.
    *
    * @param memObj The internal Memory object or null.
    * @param memAdd The absolute starting address of the Memory or java object header offset if
