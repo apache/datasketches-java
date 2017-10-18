@@ -382,6 +382,35 @@ public class UnionTest {
     assertEquals(est2, est1);
   }
 
+  @Test
+  public void checkConversions() {
+    int lgK = 4;
+    HllSketch sk1 = new HllSketch(lgK, TgtHllType.HLL_8);
+    HllSketch sk2 = new HllSketch(lgK, TgtHllType.HLL_8);
+    int u = 1 << 20;
+    for (int i = 0; i < u; i++) {
+      sk1.update(i);
+      sk2.update(i + u);
+    }
+    Union union = new Union(lgK);
+    union.update(sk1);
+    union.update(sk2);
+    HllSketch rsk1 = union.getResult(TgtHllType.HLL_8);
+    HllSketch rsk2 = union.getResult(TgtHllType.HLL_6);
+    HllSketch rsk3 = union.getResult(TgtHllType.HLL_4);
+    double est1 = rsk1.getEstimate();
+    double est2 = rsk2.getEstimate();
+    double est3 = rsk3.getEstimate();
+    println("Est1: " + est1);
+    println("Est2: " + est2);
+    println("Est3: " + est3);
+    println("Result HLL8: " + rsk1.toString(true, true, true, false));
+    println("Result HLL4: " + rsk3.toString(true, true, true, false));
+
+    assertEquals(est2, est1, 0.0);
+    assertEquals(est3, est1, 0.0);
+  }
+
   private static Union newUnion(int lgK) {
     return new Union(lgK);
   }
@@ -407,7 +436,7 @@ public class UnionTest {
    * @param s value to print
    */
   static void print(String s) {
-    //System.out.print(s); //disable here
+    System.out.print(s); //disable here
   }
 
 }
