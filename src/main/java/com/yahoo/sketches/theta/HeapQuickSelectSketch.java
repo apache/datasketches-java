@@ -29,6 +29,7 @@ import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 
 /**
@@ -117,6 +118,11 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
     final ResizeFactor myRF = ResizeFactor.getRF(lgRF);
     final int familyID = extractFamilyID(memObj, memAdd);
     final Family family = Family.idToFamily(familyID);
+
+    if (myRF == ResizeFactor.X1 && lgArrLongs != 2 * lgNomLongs) {
+      throw new SketchesArgumentException("Possible corruption: ResizeFactor X1, but provided "
+              + "array too small for sketch size");
+    }
 
     final HeapQuickSelectSketch hqss = new HeapQuickSelectSketch(lgNomLongs, seed, p, myRF,
         preambleLongs, family);
