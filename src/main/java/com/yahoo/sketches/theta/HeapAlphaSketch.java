@@ -124,6 +124,12 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     final double alpha = nomLongs / (nomLongs + 1.0);
     final long split1 = (long) (((p * (alpha + 1.0)) / 2.0) * MAX_THETA_LONG_AS_DOUBLE);
 
+    if (myRF == ResizeFactor.X1
+            && lgArrLongs != Util.startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS)) {
+      throw new SketchesArgumentException("Possible corruption: ResizeFactor X1, but provided "
+              + "array too small for sketch size");
+    }
+
     final HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, seed, p, myRF, alpha, split1);
     has.lgArrLongs_ = lgArrLongs;
     has.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
