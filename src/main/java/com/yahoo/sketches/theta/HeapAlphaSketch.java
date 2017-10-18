@@ -465,7 +465,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    *
    * Theta P    Count  Empty  EstMode Est   UB  LB   Comments
    * 1.0   1.0  0      T      F       0     0   0    Empty Sketch-mode only sketch
-   * 1.0   1.0  N      F      F       N     N   N    Degenrate Sketch-mode only sketch
+   * 1.0   1.0  N      F      F       N     N   N    Degenerate Sketch-mode only sketch
    * &lt;1.0  1.0  -      F      T       est   HIP HIP  Normal Sketch-mode only sketch
    *  P    &lt;1.0 0      T      F       0     0   0    Virgin sampling sketch
    *  P    &lt;1.0 N      F      T       est   HIP HIP  Degenerate sampling sketch
