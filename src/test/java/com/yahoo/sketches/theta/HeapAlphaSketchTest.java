@@ -591,6 +591,24 @@ public class HeapAlphaSketchTest {
   }
 
   @Test
+  public void checkEnhancedHashInsertOnFullHashTable() {
+    final HeapAlphaSketch alpha = (HeapAlphaSketch) UpdateSketch.builder().setFamily(ALPHA).build();
+    final int n = 1 << alpha.getLgArrLongs();
+
+    final long[] hashTable = new long[n];
+    for (int i = 1; i <= n; ++i) {
+      alpha.enhancedHashInsert(hashTable, i);
+    }
+
+    try {
+      alpha.enhancedHashInsert(hashTable, n + 1);
+      fail();
+    } catch (SketchesArgumentException e) {
+      // expected
+    }
+  }
+
+  @Test
   public void checkFamily() {
     UpdateSketch sketch = Sketches.updateSketchBuilder().setFamily(ALPHA).build();
     assertEquals(sketch.getFamily(), Family.ALPHA);

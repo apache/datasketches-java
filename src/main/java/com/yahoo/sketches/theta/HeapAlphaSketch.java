@@ -343,7 +343,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    * @param hash must not be 0. If not a duplicate, it will be inserted into the hash array
    * @return <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
-  private final UpdateReturnState enhancedHashInsert(final long[] hashTable, final long hash) {
+  final UpdateReturnState enhancedHashInsert(final long[] hashTable, final long hash) {
     final int arrayMask = (1 << lgArrLongs_) - 1; // arrayLongs -1
     // make odd and independent of curProbe:
     final int stride = (2 * (int) ((hash >>> lgArrLongs_) & STRIDE_MASK)) + 1;
