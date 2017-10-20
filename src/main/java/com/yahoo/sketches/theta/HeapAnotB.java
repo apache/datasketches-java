@@ -12,6 +12,7 @@ import static java.lang.Math.min;
 
 import java.util.Arrays;
 
+import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
@@ -21,7 +22,7 @@ import com.yahoo.sketches.Util;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-final class HeapAnotB extends SetOperation implements AnotB {
+final class HeapAnotB extends AnotB {
   private final short seedHash_;
   private Sketch a_;
   private Sketch b_;
@@ -34,7 +35,7 @@ final class HeapAnotB extends SetOperation implements AnotB {
   private long[] bHashTable_; //may not need to be member after refactoring.
 
   /**
-   * Construct a new Union SetOperation on the java heap.  Called by SetOperation.Builder.
+   * Construct a new AnotB SetOperation on the java heap.  Called by SetOperation.Builder.
    *
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
@@ -78,6 +79,11 @@ final class HeapAnotB extends SetOperation implements AnotB {
   @Override
   public Family getFamily() {
     return Family.A_NOT_B;
+  }
+
+  @Override
+  public boolean isSameResource(final Memory mem) {
+    return false;
   }
 
   //restricted

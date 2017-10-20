@@ -29,8 +29,8 @@ import java.util.Arrays;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.WritableMemory;
 import com.yahoo.memory.WritableDirectHandle;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
@@ -110,7 +110,7 @@ public class DirectQuickSelectSketchTest {
     assertTrue(sk1.isDirect());
     assertFalse(sk1.isDirty());
 
-    UpdateSketch sk2 = UpdateSketch.heapify(mem);
+    UpdateSketch sk2 = Sketches.heapifyUpdateSketch(mem);
     assertEquals(sk2.getEstimate(), sk1est);
     assertEquals(sk2.getLowerBound(2), sk1lb);
     assertEquals(sk2.getUpperBound(2), sk1ub);
@@ -614,7 +614,7 @@ public class DirectQuickSelectSketchTest {
     WritableMemory mem2 = WritableMemory.wrap(serArr);
 
     //reconstruct to Native/Direct
-    UpdateSketch usk2 = UpdateSketch.wrap(mem2);
+    UpdateSketch usk2 = Sketches.wrapUpdateSketch(mem2);
 
     est2 = usk2.getEstimate();
     count2 = usk2.getRetainedEntries(false);
@@ -734,7 +734,7 @@ public class DirectQuickSelectSketchTest {
   @Test
   public void checkFamilyAndRF() {
     int k = 16;
-    WritableMemory mem = WritableMemory.wrap(new byte[k*16 +24]);
+    WritableMemory mem = WritableMemory.wrap(new byte[(k*16) +24]);
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(mem);
     assertEquals(sketch.getFamily(), Family.QUICKSELECT);
     assertEquals(sketch.getResizeFactor(), ResizeFactor.X8);
@@ -745,7 +745,7 @@ public class DirectQuickSelectSketchTest {
   public void checkResizeInBigMem() {
     int k = 1 << 14;
     int u = 1 << 20;
-    WritableMemory mem = WritableMemory.wrap(new byte[8*k*16 +24]);
+    WritableMemory mem = WritableMemory.wrap(new byte[(8*k*16) +24]);
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(mem);
     for (int i=0; i<u; i++) { sketch.update(i); }
   }
@@ -753,11 +753,53 @@ public class DirectQuickSelectSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadLgNomLongs() {
     int k = 16;
-    WritableMemory mem = WritableMemory.wrap(new byte[k*16 +24]);
+    WritableMemory mem = WritableMemory.wrap(new byte[(k*16) +24]);
     Sketches.updateSketchBuilder().setNominalEntries(k).build(mem);
     mem.putByte(LG_NOM_LONGS_BYTE, (byte) 3); //Corrupt LgNomLongs byte
     DirectQuickSelectSketch.writableWrap(mem, DEFAULT_UPDATE_SEED);
   }
+
+  @Test
+  public void checkMoveAndResize() {
+    int k = 1 << 12;
+    int u = 2 * k;
+    int bytes = Sketches.getMaxUpdateSketchBytes(k);
+    WritableMemory wmem = WritableMemory.allocate(bytes/2);
+    UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
+    assertTrue(sketch.isSameResource(wmem));
+    for (int i = 0; i < u; i++) { sketch.update(i); }
+    assertFalse(sketch.isSameResource(wmem));
+  }
+
+  @Test
+  public void checkReadOnlyRebuildResize() {
+    int k = 1 << 12;
+    int u = 2 * k;
+    int bytes = Sketches.getMaxUpdateSketchBytes(k);
+    WritableMemory wmem = WritableMemory.allocate(bytes/2);
+    UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
+    for (int i = 0; i < u; i++) { sketch.update(i); }
+    double est1 = sketch.getEstimate();
+    byte[] ser = sketch.toByteArray();
+    Memory mem = Memory.wrap(ser);
+    UpdateSketch roSketch = (UpdateSketch) Sketches.wrapSketch(mem);
+    double est2 = roSketch.getEstimate();
+    assertEquals(est2, est1);
+    try {
+      roSketch.rebuild();
+      fail();
+    } catch (SketchesReadOnlyException e) {
+      //expected
+    }
+    try {
+      roSketch.reset();
+      fail();
+    } catch (SketchesReadOnlyException e) {
+      //expected
+    }
+
+  }
+
 
   @Test
   public void printlnTest() {
@@ -772,7 +814,7 @@ public class DirectQuickSelectSketchTest {
   }
 
   private static WritableMemory makeNativeMemory(int k) {
-    int bytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs()<< 3);
+    int bytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
     return WritableMemory.wrap(new byte[bytes]);
   }
 

@@ -174,7 +174,7 @@ public class SetOperationTest {
     }
     byte[] byteArray = usk1.toByteArray();
     Memory mem = Memory.wrap(byteArray);
-    SetOperation.wrap(mem);
+    Sketches.wrapIntersection(mem);
   }
 
   @Test
@@ -233,7 +233,7 @@ public class SetOperationTest {
     unionNomEntries = 1 << 14; //16K
     result = directUnionTrial2(heapMem, heapLayout, sketchNomEntries, unionNomEntries);
 
-    //intentially loose bounds
+    //intentionally loose bounds
     assertEquals(result, expected, expected*0.05);
     println("2nd est: "+result);
     println("Error %: "+(((result/expected) -1.0)*100));
@@ -289,15 +289,19 @@ public class SetOperationTest {
   @Test
   public void checkIsSameResource() {
     int k = 16;
-    WritableMemory mem = WritableMemory.wrap(new byte[(k*16) + 32]);
-    Memory cmem = Memory.wrap(new byte[8]);
-    Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion(mem);
-    assertTrue(union.isSameResource(mem));
-    assertFalse(union.isSameResource(cmem));
+    WritableMemory wmem = WritableMemory.wrap(new byte[(k*16) + 32]);
+    Memory roCompactMem = Memory.wrap(new byte[8]);
+    Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion(wmem);
+    assertTrue(union.isSameResource(wmem));
+    assertFalse(union.isSameResource(roCompactMem));
 
-    Intersection inter = Sketches.setOperationBuilder().buildIntersection(mem);
-    assertTrue(inter.isSameResource(mem));
-    assertFalse(inter.isSameResource(cmem));
+    Intersection inter = Sketches.setOperationBuilder().buildIntersection(wmem);
+    assertTrue(inter.isSameResource(wmem));
+    assertFalse(inter.isSameResource(roCompactMem));
+
+    AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
+
+    assertFalse(aNotB.isSameResource(roCompactMem));
   }
 
   @Test

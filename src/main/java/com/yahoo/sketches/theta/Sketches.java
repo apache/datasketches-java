@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
@@ -101,7 +102,7 @@ public final class Sketches {
    * @return {@link UpdateSketch UpdateSketch}
    */
   public static UpdateSketch wrapUpdateSketch(final WritableMemory srcMem) {
-    return UpdateSketch.wrap(srcMem);
+    return wrapUpdateSketch(srcMem, DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -149,7 +150,7 @@ public final class Sketches {
    * @return {@link SetOperation SetOperation}
    */
   public static SetOperation wrapSetOperation(final Memory srcMem) {
-    return SetOperation.wrap(srcMem);
+    return wrapSetOperation(srcMem, DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -158,7 +159,7 @@ public final class Sketches {
    * @return {@link SetOperation SetOperation}
    */
   public static SetOperation wrapSetOperation(final WritableMemory srcMem) {
-    return SetOperation.wrap(srcMem);
+    return wrapSetOperation(srcMem, DEFAULT_UPDATE_SEED);
   }
 
   /**

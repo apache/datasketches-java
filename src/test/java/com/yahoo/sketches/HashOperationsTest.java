@@ -91,7 +91,7 @@ public class HashOperationsTest {
   public void testHashInsertOnlyMemoryNoStride() {
     long[] table = new long[32];
     WritableMemory mem = WritableMemory.wrap(table);
-    int index = hashInsertOnly(mem, 5, 1, 0);
+    int index = fastHashInsertOnly(mem, 5, 1, 0);
     assertEquals(index, 1);
     assertEquals(table[1], 1L);
   }
@@ -101,7 +101,7 @@ public class HashOperationsTest {
     long[] table = new long[32];
     table[1] = 1;
     WritableMemory mem = WritableMemory.wrap(table);
-    int index = hashInsertOnly(mem, 5, 1, 0);
+    int index = fastHashInsertOnly(mem, 5, 1, 0);
     assertEquals(index, 2);
     assertEquals(table[2], 1L);
   }
@@ -137,7 +137,7 @@ public class HashOperationsTest {
     long[] table = new long[32];
     WritableMemory mem = WritableMemory.wrap(table);
     for (int i = 1; i <= 32; ++i) {
-      hashInsertOnly(mem, 5, i, 0);
+      fastHashInsertOnly(mem, 5, i, 0);
     }
 
     // table full; search returns not found, others throw exception
@@ -145,14 +145,14 @@ public class HashOperationsTest {
     assertEquals(retVal, -1);
 
     try {
-      hashInsertOnly(mem, 5, 33, 0);
+      fastHashInsertOnly(mem, 5, 33, 0);
       fail();
     } catch (final SketchesArgumentException e) {
       // expected
     }
 
     try {
-      hashSearchOrInsert(mem, 5, 33, 0);
+      fastHashSearchOrInsert(mem, 5, 33, 0);
       fail();
     } catch (final SketchesArgumentException e) {
       // expected
@@ -162,24 +162,22 @@ public class HashOperationsTest {
   @Test
   public void checkFullFastDirectTableCatchesInfiniteLoop() {
     long[] table = new long[32];
-    WritableMemory mem = WritableMemory.wrap(table);
-    Object memObj = mem.getArray();
-    long memAddr = mem.getCumulativeOffset(0L);
+    WritableMemory wmem = WritableMemory.wrap(table);
 
     for (int i = 1; i <= 32; ++i) {
-      fastHashInsertOnly(memObj, memAddr, 5, i, 0);
+      fastHashInsertOnly(wmem, 5, i, 0);
     }
 
     // table full; throws exception
     try {
-      fastHashInsertOnly(memObj, memAddr, 5, 33, 0);
+      fastHashInsertOnly(wmem, 5, 33, 0);
       fail();
     } catch (final SketchesArgumentException e) {
       // expected
     }
 
     try {
-      fastHashSearchOrInsert(memObj, memAddr, 5, 33, 0);
+      fastHashSearchOrInsert(wmem, 5, 33, 0);
       fail();
     } catch (final SketchesArgumentException e) {
       // expected

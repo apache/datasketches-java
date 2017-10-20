@@ -81,7 +81,7 @@ public abstract class SetOperation {
   /**
    * Wrap takes the SetOperation image in Memory and refers to it directly.
    * There is no data copying onto the java heap.
-   * Only "Direct" SetOperations that have been explicity stored as direct can be wrapped.
+   * Only "Direct" SetOperations that have been explicitly stored as direct can be wrapped.
    * This method assumes the
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
    * @param srcMem an image of a SetOperation where the image seed hash matches the default seed hash.
@@ -95,7 +95,7 @@ public abstract class SetOperation {
   /**
    * Wrap takes the SetOperation image in Memory and refers to it directly.
    * There is no data copying onto the java heap.
-   * Only "Direct" SetOperations that have been explicity stored as direct can be wrapped.
+   * Only "Direct" SetOperations that have been explicitly stored as direct can be wrapped.
    * @param srcMem an image of a SetOperation where the hash of the given seed matches the image seed hash.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
@@ -123,7 +123,7 @@ public abstract class SetOperation {
   /**
    * Wrap takes the SetOperation image in Memory and refers to it directly.
    * There is no data copying onto the java heap.
-   * Only "Direct" SetOperations that have been explicity stored as direct can be wrapped.
+   * Only "Direct" SetOperations that have been explicitly stored as direct can be wrapped.
    * This method assumes the
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
    * @param srcMem an image of a SetOperation where the image seed hash matches the default seed hash.
@@ -137,7 +137,7 @@ public abstract class SetOperation {
   /**
    * Wrap takes the SetOperation image in Memory and refers to it directly.
    * There is no data copying onto the java heap.
-   * Only "Direct" SetOperations that have been explicity stored as direct can be wrapped.
+   * Only "Direct" SetOperations that have been explicitly stored as direct can be wrapped.
    * @param srcMem an image of a SetOperation where the hash of the given seed matches the image seed hash.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
@@ -158,7 +158,8 @@ public abstract class SetOperation {
         return IntersectionImpl.wrapInstance(srcMem, seed);
       }
       default:
-        throw new SketchesArgumentException("SetOperation cannot wrap family: " + family.toString());
+        throw new SketchesArgumentException("SetOperation cannot wrap family: "
+            + family.toString());
     }
   }
 
@@ -200,9 +201,7 @@ public abstract class SetOperation {
    * @return true if the backing resource of this sketch is identical with the backing resource
    * of mem.
    */
-  public boolean isSameResource(final Memory mem) {
-    return false;
-  }
+  public abstract boolean isSameResource(Memory mem);
 
   //restricted
 

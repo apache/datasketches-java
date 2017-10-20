@@ -401,11 +401,11 @@ public class UnionTest {
     double est1 = rsk1.getEstimate();
     double est2 = rsk2.getEstimate();
     double est3 = rsk3.getEstimate();
-    println("Est1: " + est1);
-    println("Est2: " + est2);
-    println("Est3: " + est3);
-    println("Result HLL8: " + rsk1.toString(true, true, true, false));
-    println("Result HLL4: " + rsk3.toString(true, true, true, false));
+    //println("Est1: " + est1);
+    //println("Est2: " + est2);
+    //println("Est3: " + est3);
+    //println("Result HLL8: " + rsk1.toString(true, true, true, false));
+    //println("Result HLL4: " + rsk3.toString(true, true, true, false));
 
     assertEquals(est2, est1, 0.0);
     assertEquals(est3, est1, 0.0);
@@ -436,7 +436,7 @@ public class UnionTest {
    * @param s value to print
    */
   static void print(String s) {
-    System.out.print(s); //disable here
+    //System.out.print(s); //disable here
   }
 
 }

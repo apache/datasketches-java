@@ -6,6 +6,8 @@ package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
@@ -18,9 +20,12 @@ public class UnionImplTest {
   @Test
   public void checkUpdateWithSketch() {
     int k = 16;
-    WritableMemory mem = WritableMemory.wrap(new byte[k*8 + 24]);
+    WritableMemory mem = WritableMemory.wrap(new byte[(k*8) + 24]);
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
-    for (int i=0; i<k; i++) sketch.update(i); //exact
+    for (int i=0; i<k; i++)
+     {
+      sketch.update(i); //exact
+    }
     CompactSketch sketchInDirectOrd = sketch.compact(true, mem);
     CompactSketch sketchInDirectUnord = sketch.compact(false, mem);
     CompactSketch sketchInHeap = sketch.compact(true, null);
@@ -35,9 +40,9 @@ public class UnionImplTest {
   @Test
   public void checkUpdateWithMem() {
     int k = 16;
-    WritableMemory skMem = WritableMemory.wrap(new byte[2*k*8 + 24]);
-    WritableMemory dirOrdCskMem = WritableMemory.wrap(new byte[k*8 + 24]);
-    WritableMemory dirUnordCskMem = WritableMemory.wrap(new byte[k*8 + 24]);
+    WritableMemory skMem = WritableMemory.wrap(new byte[(2*k*8) + 24]);
+    WritableMemory dirOrdCskMem = WritableMemory.wrap(new byte[(k*8) + 24]);
+    WritableMemory dirUnordCskMem = WritableMemory.wrap(new byte[(k*8) + 24]);
     UpdateSketch udSketch = UpdateSketch.builder().setNominalEntries(k).build(skMem);
     for (int i = 0; i < k; i++) { udSketch.update(i); } //exact
     udSketch.compact(true, dirOrdCskMem);
@@ -69,9 +74,11 @@ public class UnionImplTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkCorruptFamilyException() {
     int k = 16;
-    WritableMemory mem = WritableMemory.wrap(new byte[k*8 + 24]);
+    WritableMemory mem = WritableMemory.wrap(new byte[(k*8) + 24]);
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
-    for (int i=0; i<k; i++) sketch.update(i);
+    for (int i=0; i<k; i++) {
+      sketch.update(i);
+    }
     sketch.compact(true, mem);
 
     mem.putByte(PreambleUtil.FAMILY_BYTE, (byte)0); //corrupt family
@@ -83,9 +90,11 @@ public class UnionImplTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkVer1FamilyException() {
     int k = 16;
-    WritableMemory v3mem = WritableMemory.wrap(new byte[k*8 + 24]);
+    WritableMemory v3mem = WritableMemory.wrap(new byte[(k*8) + 24]);
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
-    for (int i=0; i<k; i++) sketch.update(i);
+    for (int i=0; i<k; i++) {
+      sketch.update(i);
+    }
     sketch.compact(true, v3mem);
     WritableMemory v1mem = ForwardCompatibilityTest.convertSerV3toSerV1(v3mem);
 
@@ -98,9 +107,11 @@ public class UnionImplTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkVer2FamilyException() {
     int k = 16;
-    WritableMemory v3mem = WritableMemory.wrap(new byte[k*8 + 24]);
+    WritableMemory v3mem = WritableMemory.wrap(new byte[(k*8) + 24]);
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
-    for (int i=0; i<k; i++) sketch.update(i);
+    for (int i=0; i<k; i++) {
+      sketch.update(i);
+    }
     sketch.compact(true, v3mem);
     WritableMemory v2mem = ForwardCompatibilityTest.convertSerV3toSerV2(v3mem);
 
@@ -108,6 +119,26 @@ public class UnionImplTest {
 
     Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
     union.update(v2mem);
+  }
+
+  @Test
+  public void checkMoveAndResize() {
+    int k = 1 << 12;
+    int u = 2 * k;
+    int bytes = Sketches.getMaxUpdateSketchBytes(k);
+    WritableMemory wmem = WritableMemory.allocate(bytes/2);
+    UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
+    assertTrue(sketch.isSameResource(wmem));
+
+    WritableMemory wmem2 = WritableMemory.allocate(bytes/2);
+    Union union = SetOperation.builder().buildUnion(wmem2);
+    assertTrue(union.isSameResource(wmem2));
+
+    for (int i = 0; i < u; i++) { union.update(i); }
+    assertFalse(union.isSameResource(wmem));
+
+    Union union2 = SetOperation.builder().buildUnion(); //on-heap union
+    assertFalse(union2.isSameResource(wmem2));  //obviously not
   }
 
   @Test

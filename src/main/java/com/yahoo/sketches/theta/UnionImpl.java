@@ -36,7 +36,7 @@ import com.yahoo.sketches.Util;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-final class UnionImpl extends SetOperation implements Union {
+final class UnionImpl extends Union {
   private final UpdateSketch gadget_;
   private final short seedHash_; //eliminates having to compute the seedHash on every update.
   private long unionThetaLong_; //when on-heap, this is the only copy

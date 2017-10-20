@@ -170,12 +170,17 @@ public class SketchTest {
     UpdateSketch.builder().setFamily(Family.INTERSECTION).setNominalEntries(1024).build();
   }
 
+  @SuppressWarnings("static-access")
   @Test
   public void checkSerVer() {
     UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(1024).build();
     byte[] sketchArray = sketch.toByteArray();
     Memory mem = Memory.wrap(sketchArray);
     int serVer = Sketch.getSerializationVersion(mem);
+    assertEquals(serVer, 3);
+    WritableMemory wmem = WritableMemory.wrap(sketchArray);
+    UpdateSketch sk2 = UpdateSketch.wrap(wmem);
+    serVer = sk2.getSerializationVersion(wmem);
     assertEquals(serVer, 3);
   }
 
@@ -309,6 +314,20 @@ public class SketchTest {
     //never create 2 sketches with the same memory, so don't do as I do :)
     DirectCompactSketch dcs = (DirectCompactSketch) sketch.compact(false, cmem);
     assertTrue(dcs.isSameResource(cmem));
+
+    Sketch sk = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+    assertFalse(sk.isSameResource(mem));
+  }
+
+  @Test
+  public void checkCountLessThanTheta() {
+    int k = 512;
+    UpdateSketch sketch1 = UpdateSketch.builder().setNominalEntries(k).build();
+    for (int i = 0; i < (2*k); i++) { sketch1.update(i); }
+
+    double theta = sketch1.rebuild().getTheta();
+    int count = sketch1.getCountLessThanTheta(theta);
+    assertEquals(count, k);
   }
 
   @Test

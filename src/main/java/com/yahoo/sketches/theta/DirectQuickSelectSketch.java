@@ -159,8 +159,8 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
 
     final int lgRF = extractLgResizeFactor(memObj, memAdd);               //byte 0
     final ResizeFactor myRF = ResizeFactor.getRF(lgRF);
-    if (myRF == ResizeFactor.X1
-            && lgArrLongs != Util.startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS)) {
+    if ((myRF == ResizeFactor.X1)
+            && (lgArrLongs != Util.startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS))) {
       throw new SketchesArgumentException("Possible corruption: ResizeFactor X1, but provided "
               + "array too small for sketch size");
     }
@@ -240,13 +240,8 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     final int lgArrLongs = getLgArrLongs();
 
     //The duplicate test
-    final int index;
-    if (mem_.isResourceReadOnly() && !mem_.isDirect()) {
-      index = HashOperations.hashSearchOrInsert(mem_, lgArrLongs, hash, preambleLongs_ << 3);
-    } else {
-      index = HashOperations.fastHashSearchOrInsert(
-          mem_.getArray(), mem_.getCumulativeOffset(0L), lgArrLongs, hash, preambleLongs_ << 3);
-    }
+    final int index =
+        HashOperations.fastHashSearchOrInsert(mem_, lgArrLongs, hash, preambleLongs_ << 3);
     if (index >= 0) {
       return RejectedDuplicate; //Duplicate, not inserted
     }
