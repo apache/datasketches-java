@@ -40,7 +40,7 @@ public abstract class AnotB extends SetOperation {
    * @param a The incoming sketch for the first argument
    * @param b The incoming sketch for the second argument
    */
-  abstract void update(Sketch a, Sketch b);
+  public abstract void update(Sketch a, Sketch b);
 
   /**
    * Gets the result of this operation as a CompactSketch of the chosen form
@@ -52,11 +52,11 @@ public abstract class AnotB extends SetOperation {
    *
    * @return the result of this operation as a CompactSketch of the chosen form
    */
-  abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
+  public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
 
   /**
    * Gets the result of this operation as an ordered CompactSketch on the Java heap
    * @return the result of this operation as an ordered CompactSketch on the Java heap
    */
-  abstract CompactSketch getResult();
+  public abstract CompactSketch getResult();
 }
