@@ -312,7 +312,7 @@ public class SketchTest {
     DirectCompactOrderedSketch dcos = (DirectCompactOrderedSketch) sketch.compact(true, cmem);
     assertTrue(dcos.isSameResource(cmem));
     //never create 2 sketches with the same memory, so don't do as I do :)
-    DirectCompactSketch dcs = (DirectCompactSketch) sketch.compact(false, cmem);
+    DirectCompactUnorderedSketch dcs = (DirectCompactUnorderedSketch) sketch.compact(false, cmem);
     assertTrue(dcs.isSameResource(cmem));
 
     Sketch sk = Sketches.updateSketchBuilder().setNominalEntries(k).build();

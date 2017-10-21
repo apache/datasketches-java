@@ -79,6 +79,7 @@ final class PreambleUtil {
   static final int EMPTY_FLAG_MASK      = 4; //SerVer 2, 3
   static final int COMPACT_FLAG_MASK    = 8; //SerVer 2 was NO_REBUILD_FLAG_MASK
   static final int ORDERED_FLAG_MASK    = 16;//SerVer 2 was UNORDERED_FLAG_MASK
+  static final int SINGLETON_FLAG_MASK  = 32;//SerVer 3. Reserved
 
   //Backward compatibility: SerVer1 preamble always 3 longs, SerVer2 preamble: 1, 2, 3 longs
   //               SKETCH_TYPE_BYTE             2  //SerVer1, SerVer2
@@ -143,28 +144,24 @@ final class PreambleUtil {
     //Flags
     final int flags = extractFlags(memObj, memAdd);
     final String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
-    final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
     final String nativeOrder = ByteOrder.nativeOrder().toString();
-    final boolean compact = (flags & COMPACT_FLAG_MASK) > 0;
-    final boolean ordered = (flags & ORDERED_FLAG_MASK) > 0;
+    final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
     final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
+    final boolean compact = (flags & COMPACT_FLAG_MASK) > 0;
+    final boolean ordered = (flags & ORDERED_FLAG_MASK) > 0;
+    final boolean singleton = !empty && (preLongs == 1);
 
     final int seedHash = extractSeedHash(memObj, memAdd);
 
-    //Assumed if preLongs == 1
-    int curCount = 0;
-    float p = (float)1.0;
-    //Assumed if preLongs == 1 or 2
-    long thetaLong = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
-    //Assumed if preLongs == 1 or 2 or 3
-    long thetaULong = thetaLong;
+    int curCount = singleton ? 1 : 0; //preLongs 1 empty or singleton
+    float p = (float) 1.0;            //preLongs 1 or 2
+    long thetaLong = Long.MAX_VALUE;  //preLongs 1 or 2
+    long thetaULong = thetaLong;      //preLongs 1, 2 or 3
 
     if (preLongs == 2) {
       curCount = extractCurCount(memObj, memAdd);
       p = extractP(memObj, memAdd);
-      thetaLong = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
-      thetaULong = thetaLong;
     }
     else if (preLongs == 3) {
       curCount = extractCurCount(memObj, memAdd);
@@ -177,66 +174,69 @@ final class PreambleUtil {
       p = extractP(memObj, memAdd);
       thetaLong = extractThetaLong(memObj, memAdd);
       thetaULong = extractUnionThetaLong(memObj, memAdd);
-    } //else: the same as preLongs == 1
+    }
+    //else the same as an empty sketch or singleton
+
     final double thetaDbl = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
     final String thetaHex = zeroPad(Long.toHexString(thetaLong), 16);
     final double thetaUDbl = thetaULong / MAX_THETA_LONG_AS_DOUBLE;
     final String thetaUHex = zeroPad(Long.toHexString(thetaULong), 16);
 
     final StringBuilder sb = new StringBuilder();
-    sb.append(LS)
-      .append("### SKETCH PREAMBLE SUMMARY:").append(LS)
-      .append("Byte  0: Preamble Longs       : ").append(preLongs).append(LS)
-      .append("Byte  0: ResizeFactor         : ").append(rf.toString()).append(LS)
-      .append("Byte  1: Serialization Version: ").append(serVer).append(LS)
-      .append("Byte  2: Family               : ").append(family.toString()).append(LS)
-      .append("Byte  3: LgNomLongs           : ").append(lgNomLongs).append(LS)
-      .append("Byte  4: LgArrLongs           : ").append(lgArrLongs).append(LS)
-      .append("Byte  5: Flags Field          : ").append(flagsStr).append(LS)
-      .append("  BIG_ENDIAN_STORAGE          : ").append(bigEndian).append(LS)
-      .append("  (Native Byte Order)         : ").append(nativeOrder).append(LS)
-      .append("  READ_ONLY                   : ").append(readOnly).append(LS)
-      .append("  EMPTY                       : ").append(empty).append(LS)
-      .append("  COMPACT                     : ").append(compact).append(LS)
-      .append("  ORDERED                     : ").append(ordered).append(LS)
-      .append("Bytes 6-7  : Seed Hash        : ").append(Integer.toHexString(seedHash)).append(LS);
+    sb.append(LS);
+    sb.append("### SKETCH PREAMBLE SUMMARY:").append(LS);
+    sb.append("Byte  0: Preamble Longs       : ").append(preLongs).append(LS);
+    sb.append("Byte  0: ResizeFactor         : ").append(rf.toString()).append(LS);
+    sb.append("Byte  1: Serialization Version: ").append(serVer).append(LS);
+    sb.append("Byte  2: Family               : ").append(family.toString()).append(LS);
+    sb.append("Byte  3: LgNomLongs           : ").append(lgNomLongs).append(LS);
+    sb.append("Byte  4: LgArrLongs           : ").append(lgArrLongs).append(LS);
+    sb.append("Byte  5: Flags Field          : ").append(flagsStr).append(LS);
+    sb.append("  (Native Byte Order)         : ").append(nativeOrder).append(LS);
+    sb.append("  BIG_ENDIAN_STORAGE          : ").append(bigEndian).append(LS);
+    sb.append("  READ_ONLY                   : ").append(readOnly).append(LS);
+    sb.append("  EMPTY                       : ").append(empty).append(LS);
+    sb.append("  COMPACT                     : ").append(compact).append(LS);
+    sb.append("  ORDERED                     : ").append(ordered).append(LS);
+    sb.append("  SINGLETON                   : ").append(singleton).append(LS);
+    sb.append("Bytes 6-7  : Seed Hash        : ").append(Integer.toHexString(seedHash)).append(LS);
     if (preLongs == 1) {
       sb.append(" --ABSENT, ASSUMED:").append(LS);
-      sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS)
-        .append("Bytes 12-15: P                : ").append(p).append(LS);
-      sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS)
-        .append("             Theta (long)     : ").append(thetaLong).append(LS)
-        .append("             Theta (long,hex) : ").append(thetaHex).append(LS);
+      sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS);
+      sb.append("Bytes 12-15: P                : ").append(p).append(LS);
+      sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS);
+      sb.append("             Theta (long)     : ").append(thetaLong).append(LS);
+      sb.append("             Theta (long,hex) : ").append(thetaHex).append(LS);
     }
-    if (preLongs == 2) {
-      sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS)
-        .append("Bytes 12-15: P                : ").append(p).append(LS);
+    else if (preLongs == 2) {
+      sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS);
+      sb.append("Bytes 12-15: P                : ").append(p).append(LS);
       sb.append(" --ABSENT, ASSUMED:").append(LS);
-      sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS)
-        .append("             Theta (long)     : ").append(thetaLong).append(LS)
-        .append("             Theta (long,hex) : ").append(thetaHex).append(LS);
+      sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS);
+      sb.append("             Theta (long)     : ").append(thetaLong).append(LS);
+      sb.append("             Theta (long,hex) : ").append(thetaHex).append(LS);
     }
-    if (preLongs == 3) {
-      sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS)
-        .append("Bytes 12-15: P                : ").append(p).append(LS);
-      sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS)
-        .append("             Theta (long)     : ").append(thetaLong).append(LS)
-        .append("             Theta (long,hex) : ").append(thetaHex).append(LS);
+    else if (preLongs == 3) {
+      sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS);
+      sb.append("Bytes 12-15: P                : ").append(p).append(LS);
+      sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS);
+      sb.append("             Theta (long)     : ").append(thetaLong).append(LS);
+      sb.append("             Theta (long,hex) : ").append(thetaHex).append(LS);
     }
-    if (preLongs == 4) {
-      sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS)
-        .append("Bytes 12-15: P                : ").append(p).append(LS);
-      sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS)
-        .append("             Theta (long)     : ").append(thetaLong).append(LS)
-        .append("             Theta (long,hex) : ").append(thetaHex).append(LS);
-      sb.append("Bytes 25-31: ThetaU (double)  : ").append(thetaUDbl).append(LS)
-        .append("             ThetaU (long)    : ").append(thetaULong).append(LS)
-        .append("             ThetaU (long,hex): ").append(thetaUHex).append(LS);
+    else if (preLongs == 4) {
+      sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS);
+      sb.append("Bytes 12-15: P                : ").append(p).append(LS);
+      sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS);
+      sb.append("             Theta (long)     : ").append(thetaLong).append(LS);
+      sb.append("             Theta (long,hex) : ").append(thetaHex).append(LS);
+      sb.append("Bytes 25-31: ThetaU (double)  : ").append(thetaUDbl).append(LS);
+      sb.append("             ThetaU (long)    : ").append(thetaULong).append(LS);
+      sb.append("             ThetaU (long,hex): ").append(thetaUHex).append(LS);
     }
     sb.append(  "Preamble Bytes                : ").append(preLongs * 8).append(LS);
     sb.append(  "Data Bytes                    : ").append(curCount * 8).append(LS);
-    sb.append(  "TOTAL Sketch Bytes            : ").append(mem.getCapacity()).append(LS)
-      .append("### END SKETCH PREAMBLE SUMMARY").append(LS);
+    sb.append(  "TOTAL Sketch Bytes            : ").append(mem.getCapacity()).append(LS);
+    sb.append("### END SKETCH PREAMBLE SUMMARY").append(LS);
     return sb.toString();
   }
 
@@ -351,6 +351,7 @@ final class PreambleUtil {
     unsafe.putLong(memObj, memAdd + UNION_THETA_LONG, unionThetaLong);
   }
 
+  //TODO convert to set/clear/any bits
   static void setEmpty(final Object memObj, final long memAdd) {
     int flags = unsafe.getByte(memObj, memAdd + FLAGS_BYTE);
     flags |= EMPTY_FLAG_MASK;

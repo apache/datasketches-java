@@ -24,7 +24,7 @@ import com.yahoo.memory.WritableMemory;
  *
  * @author Lee Rhodes
  */
-final class HeapCompactOrderedSketch extends CompactSketch {
+final class HeapCompactOrderedSketch extends HeapCompactSketch {
   private final long[] cache_;
 
   private HeapCompactOrderedSketch(final boolean empty, final short seedHash, final int curCount,
@@ -101,8 +101,9 @@ final class HeapCompactOrderedSketch extends CompactSketch {
     final WritableMemory dstMem = WritableMemory.wrap(byteArray);
     final int emptyBit = isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
     final byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK);
+    final int preLongs = compactPreambleLongs(getThetaLong(), isEmpty());
     loadCompactMemory(getCache(), isEmpty(), getSeedHash(), getRetainedEntries(true),
-        getThetaLong(), dstMem, flags);
+        getThetaLong(), dstMem, flags, preLongs);
     return byteArray;
   }
 

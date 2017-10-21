@@ -7,6 +7,7 @@ package com.yahoo.sketches.theta;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
+import com.yahoo.sketches.Family;
 
 /**
  * The API for Union operations
@@ -14,6 +15,34 @@ import com.yahoo.memory.WritableMemory;
  * @author Lee Rhodes
  */
 public abstract class Union extends SetOperation {
+
+  @Override
+  public Family getFamily() {
+    return Family.UNION;
+  }
+
+  /**
+   * Gets the result of this operation as a CompactSketch of the chosen form.
+   * This does not disturb the underlying data structure of the union.
+   * Therefore, it is OK to continue updating the union after this operation.
+   *
+   * @param dstOrdered
+   * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
+   *
+   * @param dstMem
+   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
+   *
+   * @return the result of this operation as a CompactSketch of the chosen form
+   */
+  public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
+
+  /**
+   * Gets the result of this operation as an ordered CompactSketch on the Java heap.
+   * This does not disturb the underlying data structure of the union.
+   * Therefore, it is OK to continue updating the union after this operation.
+   * @return the result of this operation as an ordered CompactSketch on the Java heap
+   */
+  public abstract CompactSketch getResult();
 
   /**
    * Union the given on-heap sketch.
@@ -102,30 +131,6 @@ public abstract class Union extends SetOperation {
    * @param data The given long array.
    */
   public abstract void update(long[] data);
-
-  /**
-   * Gets the result of this operation as a CompactSketch of the chosen form.
-   * This does not disturb the underlying data structure of the union.
-   * Therefore, it is OK to continue updating the union after this operation.
-   *
-   * @param dstOrdered
-   * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
-   *
-   * @param dstMem
-   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
-   *
-   * @return the result of this operation as a CompactSketch of the chosen form
-   */
-  public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
-
-  /**
-   * Gets the result of this operation as an ordered CompactSketch on the Java heap.
-   * This does not disturb the underlying data structure of the union.
-   * Therefore, it is OK to continue updating the union after this operation.
-   * @return the result of this operation as an ordered CompactSketch on the Java heap
-   */
-  public abstract CompactSketch getResult();
-
 
   /**
    * Returns a byte array image of this Union object

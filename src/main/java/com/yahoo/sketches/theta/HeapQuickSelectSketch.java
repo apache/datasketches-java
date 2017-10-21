@@ -119,8 +119,8 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
     final int familyID = extractFamilyID(memObj, memAdd);
     final Family family = Family.idToFamily(familyID);
 
-    if (myRF == ResizeFactor.X1
-            && lgArrLongs != Util.startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS)) {
+    if ((myRF == ResizeFactor.X1)
+            && (lgArrLongs != Util.startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS))) {
       throw new SketchesArgumentException("Possible corruption: ResizeFactor X1, but provided "
               + "array too small for sketch size");
     }
@@ -191,7 +191,7 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
   //restricted methods
 
   @Override
-  int getPreambleLongs() {
+  int getCurrentPreambleLongs() {
     return preambleLongs_;
   }
 

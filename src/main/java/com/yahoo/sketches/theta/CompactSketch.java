@@ -5,7 +5,6 @@
 
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.Family.stringToFamily;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.theta.PreambleUtil.insertCurCount;
 import static com.yahoo.sketches.theta.PreambleUtil.insertFamilyID;
@@ -37,29 +36,8 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Lee Rhodes
  */
 public abstract class CompactSketch extends Sketch {
-  private final short seedHash_;
-  private final boolean empty_;
-  private final int curCount_;
-  private final long thetaLong_;
-
-  CompactSketch(final boolean empty, final short seedHash, final int curCount, final long thetaLong) {
-    empty_ = empty;
-    seedHash_ = seedHash;
-    curCount_ = curCount;
-    thetaLong_ = thetaLong;
-  }
 
   //Sketch
-
-  @Override
-  public int getRetainedEntries(final boolean valid) {
-    return curCount_;
-  }
-
-  @Override
-  public boolean isEmpty() {
-    return empty_;
-  }
 
   @Override
   public Family getFamily() {
@@ -72,21 +50,6 @@ public abstract class CompactSketch extends Sketch {
   }
 
   //restricted methods
-
-  @Override
-  short getSeedHash() {
-    return seedHash_;
-  }
-
-  @Override
-  long getThetaLong() {
-    return thetaLong_;
-  }
-
-  @Override
-  int getPreambleLongs() {
-    return compactPreambleLongs(getThetaLong(), isEmpty());
-  }
 
   /**
    * Gets the <a href="{@docRoot}/resources/dictionary.html#mem">Memory</a>
@@ -105,8 +68,8 @@ public abstract class CompactSketch extends Sketch {
    * @param dstOrdered true if output array must be sorted
    * @return the compacted array
    */
-  static final long[] compactCache(
-      final long[] srcCache, final int curCount, final long thetaLong, final boolean dstOrdered) {
+  static final long[] compactCache(final long[] srcCache, final int curCount,
+      final long thetaLong, final boolean dstOrdered) {
     if (curCount == 0) {
       return new long[0];
     }
@@ -163,12 +126,12 @@ public abstract class CompactSketch extends Sketch {
     final int sw = (dstOrdered ? 2 : 0) | ((dstMem != null) ? 1 : 0);
     switch (sw) {
       case 0: { //dst not ordered, dstMem == null
-        sketchOut = new HeapCompactSketch(compactCache, empty, seedHash, curCount, thetaLong);
+        sketchOut = new HeapCompactUnorderedSketch(compactCache, empty, seedHash, curCount, thetaLong);
         break;
       }
       case 1: { //dst not ordered, dstMem == valid
         sketchOut =
-            new DirectCompactSketch(compactCache, empty, seedHash, curCount, thetaLong, dstMem);
+            new DirectCompactUnorderedSketch(compactCache, empty, seedHash, curCount, thetaLong, dstMem);
         break;
       }
       case 2: { //dst ordered, dstMem == null
@@ -186,10 +149,10 @@ public abstract class CompactSketch extends Sketch {
     return sketchOut;
   }
 
-  static final Memory loadCompactMemory(final long[] compactCache, final boolean empty,
-      final short seedHash, final int curCount, final long thetaLong, final WritableMemory dstMem,
-      final byte flags) {
-    final int preLongs = compactPreambleLongs(thetaLong, empty);
+  static final Memory loadCompactMemory(final long[] compactCache, final short seedHash,
+      final int curCount, final long thetaLong, final WritableMemory dstMem,
+      final byte flags, final int preLongs) {
+
     final int outLongs = preLongs + curCount;
     final int outBytes = outLongs << 3;
     final int dstBytes = (int) dstMem.getCapacity();
@@ -197,7 +160,7 @@ public abstract class CompactSketch extends Sketch {
       throw new SketchesArgumentException("Insufficient Memory: " + dstBytes
         + ", Need: " + outBytes);
     }
-    final byte famID = (byte) stringToFamily("Compact").getID();
+    final byte famID = (byte) Family.COMPACT.getID();
 
     final Object memObj = dstMem.getArray(); //may be null
     final long memAdd = dstMem.getCumulativeOffset(0L);

@@ -214,11 +214,6 @@ final class UnionImpl extends Union {
   }
 
   @Override
-  public Family getFamily() {
-    return Family.UNION;
-  }
-
-  @Override
   public boolean isSameResource(final Memory mem) {
     if (gadget_.isDirect()) {
       return gadget_.getMemory().isSameResource(mem);

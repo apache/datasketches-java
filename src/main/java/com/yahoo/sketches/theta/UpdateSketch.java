@@ -159,11 +159,11 @@ public abstract class UpdateSketch extends Sketch {
     final int sw = (dstOrdered ? 2 : 0) | ((dstMem != null) ? 1 : 0);
     switch (sw) {
       case 0: { //dst not ordered, dstMem == null
-        sketchOut = new HeapCompactSketch(this);
+        sketchOut = HeapCompactUnorderedSketch.compact(this);
         break;
       }
       case 1: { //dst not ordered, dstMem == valid
-        sketchOut = new DirectCompactSketch(this, dstMem);
+        sketchOut = new DirectCompactUnorderedSketch(this, dstMem);
         break;
       }
       case 2: { //dst ordered, dstMem == null
@@ -314,6 +314,11 @@ public abstract class UpdateSketch extends Sketch {
   }
 
   //restricted methods
+
+//  @Override
+//  int compactPreambleLongs(final long thetaLong, final boolean empty) {
+//    return (thetaLong < Long.MAX_VALUE) ? 3 : empty ? 1 : 2;
+//  }
 
   /**
    * All potential updates converge here.

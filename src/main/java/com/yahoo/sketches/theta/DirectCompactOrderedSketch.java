@@ -5,17 +5,11 @@
 
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.Util.checkSeedHashes;
-import static com.yahoo.sketches.Util.computeSeedHash;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.extractCurCount;
-import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
-import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
-import static com.yahoo.sketches.theta.PreambleUtil.extractThetaLong;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
@@ -30,41 +24,32 @@ import com.yahoo.memory.WritableMemory;
  *
  * @author Lee Rhodes
  */
-final class DirectCompactOrderedSketch extends CompactSketch {
-  private Memory mem_;
-  private int preLongs_; //1, 2, or 3.
+final class DirectCompactOrderedSketch extends DirectCompactSketch {
 
-  private DirectCompactOrderedSketch(final boolean empty, final short seedHash, final int curCount,
-      final long thetaLong) {
-    super(empty, seedHash, curCount, thetaLong);
+  private DirectCompactOrderedSketch(final Memory mem, final long seed) {
+    super(mem, seed);
   }
 
   /**
    * Wraps the given Memory, which may be a SerVer 1, 2, or 3 sketch.
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param pre0 the first 8 bytes of the preamble
    * @param seed the update seed
    * @return this sketch
    */
-  static DirectCompactOrderedSketch wrapInstance(final Memory srcMem, final long pre0,
-      final long seed) {
-    final Object memObj = ((WritableMemory)srcMem).getArray(); //may be null
-    final long memAdd = srcMem.getCumulativeOffset(0L);
+  static DirectCompactOrderedSketch wrapInstance(final Memory srcMem, final long seed) {
+    return new DirectCompactOrderedSketch(srcMem, seed);
+  }
 
-    final int preambleLongs = extractPreLongs(memObj, memAdd);
-    final short memSeedHash = (short) extractSeedHash(memObj, memAdd);
-    final int curCount = (preambleLongs > 1) ? extractCurCount(memObj, memAdd) : 0;
-    final long thetaLong = (preambleLongs > 2) ? extractThetaLong(memObj, memAdd) : Long.MAX_VALUE;
+  static DirectCompactOrderedSketch compactInstance(final UpdateSketch sketch,
+      final WritableMemory dstMem) {
+    final int emptyBit = sketch.isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
+    final byte flags =
+        (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK);
+    final boolean ordered = true;
+    final long[] compactOrderedCache = CompactSketch.compactCache(
+        sketch.getCache(), sketch.getRetainedEntries(false), sketch.getThetaLong(), ordered);
 
-    final short computedSeedHash = computeSeedHash(seed);
-    checkSeedHashes(memSeedHash, computedSeedHash);
-
-    final boolean empty = PreambleUtil.isEmpty(memObj, memAdd);
-    final DirectCompactOrderedSketch dcos =
-        new DirectCompactOrderedSketch(empty, memSeedHash, curCount, thetaLong);
-    dcos.preLongs_ = preambleLongs;
-    dcos.mem_ = srcMem;
-    return dcos;
+    return null;
   }
 
   /**   //TODO convert to factory
@@ -73,19 +58,15 @@ final class DirectCompactOrderedSketch extends CompactSketch {
    * @param dstMem the given destination Memory. This clears it before use.
    */
   DirectCompactOrderedSketch(final UpdateSketch sketch, final WritableMemory dstMem) {
-    super(sketch.isEmpty(),
-        sketch.getSeedHash(),
-        sketch.getRetainedEntries(true), //curCount_  set here
-        sketch.getThetaLong()            //thetaLong_ set here
-        );
-    final int emptyBit = isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
+
+    final int emptyBit = sketch.isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
     final byte flags =
         (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK);
     final boolean ordered = true;
     final long[] compactOrderedCache =
         CompactSketch.compactCache(
             sketch.getCache(), getRetainedEntries(false), getThetaLong(), ordered);
-
+    final int preLongs =
     mem_ = loadCompactMemory(compactOrderedCache, isEmpty(), getSeedHash(),
         getRetainedEntries(false), getThetaLong(), dstMem, flags);
     preLongs_ = mem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
@@ -122,7 +103,7 @@ final class DirectCompactOrderedSketch extends CompactSketch {
 
   @Override
   public byte[] toByteArray() {
-    return DirectCompactSketch.compactMemoryToByteArray(mem_, getRetainedEntries(false));
+    return DirectCompactUnorderedSketch.compactMemoryToByteArray(mem_, getRetainedEntries(false));
   }
 
   //restricted methods

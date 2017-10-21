@@ -37,7 +37,128 @@ public abstract class Sketch {
 
   Sketch() {}
 
-  //Sketch, defined here with Javadocs
+  //public static factory constructor-type methods
+
+  /**
+   * Heapify takes the sketch image in Memory and instantiates an on-heap
+   * Sketch using the
+   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
+   * The resulting sketch will not retain any link to the source Memory.
+   * @param srcMem an image of a Sketch where the image seed hash matches the default seed hash.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @return a Heap-based Sketch from the given Memory
+   */
+  public static Sketch heapify(final Memory srcMem) {
+    return heapify(srcMem, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Heapify takes the sketch image in Memory and instantiates an on-heap
+   * Sketch using the given seed.
+   * The resulting sketch will not retain any link to the source Memory.
+   * @param srcMem an image of a Sketch where the image seed hash matches the given seed hash.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
+   * @return a Heap-based Sketch from the given Memory
+   */
+  public static Sketch heapify(final Memory srcMem, final long seed) {
+    final int serVer = srcMem.getByte(SER_VER_BYTE);
+    if (serVer == 3) {
+      final byte famID = srcMem.getByte(FAMILY_BYTE);
+      final boolean ordered = (srcMem.getByte(FLAGS_BYTE) & ORDERED_FLAG_MASK) != 0;
+      return constructHeapSketch(famID, ordered, srcMem, seed);
+    }
+    if (serVer == 1) {
+      return ForwardCompatibility.heapify1to3(srcMem, seed);
+    }
+    if (serVer == 2) {
+      return ForwardCompatibility.heapify2to3(srcMem, seed);
+    }
+    throw new SketchesArgumentException("Unknown Serialization Version: " + serVer);
+  }
+
+  /**
+   * Wrap takes the sketch image in Memory and refers to it directly. There is no data copying onto
+   * the java heap.  Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
+   * been explicitly stored as direct objects can be wrapped. This method assumes the
+   * {@link Util#DEFAULT_UPDATE_SEED}.
+   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
+   * @param srcMem an image of a Sketch where the image seed hash matches the default seed hash.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @return a Sketch backed by the given Memory
+   */
+  public static Sketch wrap(final Memory srcMem) {
+    return wrap(srcMem, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Wrap takes the sketch image in Memory and refers to it directly. There is no data copying onto
+   * the java heap.  Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
+   * been explicitly stored as direct objects can be wrapped.
+   * An attempt to "wrap" earlier version sketches will result in a "heapified", normal
+   * Java Heap version of the sketch where all data will be copied to the heap.
+   * @param srcMem an image of a Sketch where the image seed hash matches the given seed hash.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
+   * @return a UpdateSketch backed by the given Memory
+   */
+  public static Sketch wrap(final Memory srcMem, final long seed) {
+    final int  preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+    final int serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
+    final int familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
+    final Family family = Family.idToFamily(familyID);
+    switch (family) {
+      case QUICKSELECT: { //Hash Table structure
+        if ((serVer == 3) && (preLongs == 3)) {
+          return DirectQuickSelectSketchR.readOnlyWrap(srcMem, seed);
+        } else {
+          throw new SketchesArgumentException(
+              "Corrupted: " + family + " family image: must have SerVer = 3 and preLongs = 3");
+        }
+      }
+      case COMPACT: { //serVer 1, 2, or 3, preLongs = 1, 2, or 3
+        if (serVer == 1) {
+          return ForwardCompatibility.heapify1to3(srcMem, seed);
+        }
+        else if (serVer == 2) {
+          return ForwardCompatibility.heapify2to3(srcMem, seed);
+        }
+        final int flags = srcMem.getByte(FLAGS_BYTE);
+        final boolean compact = (flags & COMPACT_FLAG_MASK) > 0; //used for corruption check
+        final boolean ordered = (flags & ORDERED_FLAG_MASK) > 0;
+        if (compact) {
+            return ordered ? DirectCompactOrderedSketch.wrapInstance(srcMem, seed)
+                           : DirectCompactUnorderedSketch.wrapInstance(srcMem, seed);
+        }
+        throw new SketchesArgumentException(
+            "Corrupted: " + family + " family image must have compact flag set");
+      }
+      default: throw new SketchesArgumentException(
+          "Sketch cannot wrap family: " + family + " as a Sketch");
+    }
+  }
+
+  //Sketch interface, defined here with Javadocs
+
+  /**
+   * Gets the number of hash values less than the given theta.
+   * @param theta the given theta as a double between zero and one.
+   * @return the number of hash values less than the given theta.
+   */
+  public int getCountLessThanTheta(final double theta) {
+    final long thetaLong = (long) (MAX_THETA_LONG_AS_DOUBLE * theta);
+    return count(getCache(), thetaLong);
+  }
+
+  /**
+   * Returns the number of storage bytes required for this Sketch in its current state.
+   * @param compact if true, returns the bytes required for compact form.
+   * If this sketch is already in compact form this parameter is ignored.
+   * @return the number of storage bytes required for this sketch
+   */
+  public abstract int getCurrentBytes(boolean compact);
 
   /**
    * Gets the unique count estimate.
@@ -46,6 +167,12 @@ public abstract class Sketch {
   public double getEstimate() {
     return estimate(getThetaLong(), getRetainedEntries(true), isEmpty());
   }
+
+  /**
+   * Returns the Family that this sketch belongs to
+   * @return the Family that this sketch belongs to
+   */
+  public abstract Family getFamily();
 
   /**
    * Gets the approximate lower error bound given the specified number of Standard Deviations.
@@ -59,6 +186,30 @@ public abstract class Sketch {
     return (isEstimationMode())
         ? lowerBound(getRetainedEntries(true), getThetaLong(), numStdDev, isEmpty())
         : getRetainedEntries(true);
+  }
+
+  /**
+   * Returns the maximum number of storage bytes required for a CompactSketch with the given
+   * number of actual entries.
+   * @param numberOfEntries the actual number of entries stored with the CompactSketch.
+   * @return the maximum number of storage bytes required for a CompactSketch with the given number
+   * of entries.
+   */
+  public static int getMaxCompactSketchBytes(final int numberOfEntries) {
+    return (numberOfEntries << 3) + (Family.COMPACT.getMaxPreLongs() << 3);
+  }
+
+  /**
+   * Returns the maximum number of storage bytes required for an UpdateSketch with the given
+   * number of nominal entries (power of 2).
+   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
+   * This will become the ceiling power of 2 if it is not.
+   * @return the maximum number of storage bytes required for a UpdateSketch with the given
+   * nomEntries
+   */
+  public static int getMaxUpdateSketchBytes(final int nomEntries) {
+    final int nomEnt = ceilingPowerOf2(nomEntries);
+    return (nomEnt << 4) + (Family.QUICKSELECT.getMaxPreLongs() << 3);
   }
 
   /**
@@ -80,28 +231,21 @@ public abstract class Sketch {
   public abstract int getRetainedEntries(boolean valid);
 
   /**
+   * Returns the serialization version from the given Memory
+   * @param mem the sketch Memory
+   * @return the serialization version from the Memory
+   */
+  public static int getSerializationVersion(final Memory mem) {
+    return mem.getByte(SER_VER_BYTE);
+  }
+
+  /**
    * Gets the value of theta as a double with a value between zero and one
    * @return the value of theta as a double
    */
   public double getTheta() {
     return getThetaLong() / MAX_THETA_LONG_AS_DOUBLE;
   }
-
-  /**
-   * Gets the number of hash values less than the given theta.
-   * @param theta the given theta as a double between zero and one.
-   * @return the number of hash values less than the given theta.
-   */
-  public int getCountLessThanTheta(final double theta) {
-    final long thetaLong = (long) (MAX_THETA_LONG_AS_DOUBLE * theta);
-    return count(getCache(), thetaLong);
-  }
-
-  /**
-   * Returns the Family that this sketch belongs to
-   * @return the Family that this sketch belongs to
-   */
-  public abstract Family getFamily();
 
   /**
    * Gets the approximate upper error bound given the specified number of Standard Deviations.
@@ -118,6 +262,18 @@ public abstract class Sketch {
   }
 
   /**
+   * Returns true if this sketch is in compact form.
+   * @return true if this sketch is in compact form.
+   */
+  public abstract boolean isCompact();
+
+  /**
+   * Returns true if this sketch accesses its internal data using the Memory package
+   * @return true if this sketch accesses its internal data using the Memory package
+   */
+  public abstract boolean isDirect();
+
+  /**
    * <a href="{@docRoot}/resources/dictionary.html#empty">See Empty</a>
    * @return true if empty.
    */
@@ -131,6 +287,12 @@ public abstract class Sketch {
   public boolean isEstimationMode() {
     return estMode(getThetaLong(), isEmpty());
   }
+
+  /**
+   * Returns true if internal cache is ordered
+   * @return true if internal cache is ordered
+   */
+  public abstract boolean isOrdered();
 
   /**
    * Returns true if the backing resource of this sketch is identical with the backing resource
@@ -260,201 +422,41 @@ public abstract class Sketch {
     return sb.toString();
   }
 
-  //public static methods
-
-  /**
-   * Heapify takes the sketch image in Memory and instantiates an on-heap
-   * Sketch using the
-   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
-   * The resulting sketch will not retain any link to the source Memory.
-   * @param srcMem an image of a Sketch where the image seed hash matches the default seed hash.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @return a Heap-based Sketch from the given Memory
-   */
-  public static Sketch heapify(final Memory srcMem) {
-    return heapify(srcMem, DEFAULT_UPDATE_SEED);
-  }
-
-  /**
-   * Heapify takes the sketch image in Memory and instantiates an on-heap
-   * Sketch using the given seed.
-   * The resulting sketch will not retain any link to the source Memory.
-   * @param srcMem an image of a Sketch where the image seed hash matches the given seed hash.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
-   * @return a Heap-based Sketch from the given Memory
-   */
-  public static Sketch heapify(final Memory srcMem, final long seed) {
-    final int serVer = srcMem.getByte(SER_VER_BYTE);
-    if (serVer == 3) {
-      final byte famID = srcMem.getByte(FAMILY_BYTE);
-      final boolean ordered = (srcMem.getByte(FLAGS_BYTE) & ORDERED_FLAG_MASK) != 0;
-      return constructHeapSketch(famID, ordered, srcMem, seed);
-    }
-    if (serVer == 1) {
-      return ForwardCompatibility.heapify1to3(srcMem, seed);
-    }
-    if (serVer == 2) {
-      return ForwardCompatibility.heapify2to3(srcMem, seed);
-    }
-    throw new SketchesArgumentException("Unknown Serialization Version: " + serVer);
-  }
-
-  /**
-   * Wrap takes the sketch image in Memory and refers to it directly. There is no data copying onto
-   * the java heap.  Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
-   * been explicitly stored as direct objects can be wrapped. This method assumes the
-   * {@link Util#DEFAULT_UPDATE_SEED}.
-   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
-   * @param srcMem an image of a Sketch where the image seed hash matches the default seed hash.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @return a Sketch backed by the given Memory
-   */
-  public static Sketch wrap(final Memory srcMem) {
-    return wrap(srcMem, DEFAULT_UPDATE_SEED);
-  }
-
-  /**
-   * Wrap takes the sketch image in Memory and refers to it directly. There is no data copying onto
-   * the java heap.  Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
-   * been explicitly stored as direct objects can be wrapped.
-   * An attempt to "wrap" earlier version sketches will result in a "heapified", normal
-   * Java Heap version of the sketch where all data will be copied to the heap.
-   * @param srcMem an image of a Sketch where the image seed hash matches the given seed hash.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
-   * @return a UpdateSketch backed by the given Memory
-   */
-  public static Sketch wrap(final Memory srcMem, final long seed) {
-    final long pre0 = srcMem.getLong(0);
-    final int  preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    final int serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
-    final int familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
-    final Family family = Family.idToFamily(familyID);
-    switch (family) {
-      case QUICKSELECT: { //Hash Table structure
-        if ((serVer == 3) && (preLongs == 3)) {
-          return DirectQuickSelectSketchR.readOnlyWrap(srcMem, seed);
-        } else {
-          throw new SketchesArgumentException(
-              "Corrupted: " + family + " family image: must have SerVer = 3 and preLongs = 3");
-        }
-      }
-      case COMPACT: { //serVer 1, 2, or 3, preLongs = 1, 2, or 3
-        if (serVer == 1) {
-          return ForwardCompatibility.heapify1to3(srcMem, seed);
-        }
-        else if (serVer == 2) {
-          return ForwardCompatibility.heapify2to3(srcMem, seed);
-        }
-        final int flags = srcMem.getByte(FLAGS_BYTE);
-        final boolean compact = (flags & COMPACT_FLAG_MASK) > 0; //used for corruption check
-        final boolean ordered = (flags & ORDERED_FLAG_MASK) > 0;
-        if (compact) {
-            return ordered ? DirectCompactOrderedSketch.wrapInstance(srcMem, pre0, seed)
-                           : DirectCompactSketch.wrapInstance(srcMem, pre0, seed);
-        }
-        throw new SketchesArgumentException(
-            "Corrupted: " + family + " family image must have compact flag set");
-      }
-      default: throw new SketchesArgumentException(
-          "Sketch cannot wrap family: " + family + " as a Sketch");
-    }
-  }
-
-  //Sizing methods
-
-  /**
-   * Returns the number of storage bytes required for this Sketch in its current state.
-   * @param compact if true, returns the bytes required for compact form.
-   * If this sketch is already in compact form this parameter is ignored.
-   * @return the number of storage bytes required for this sketch
-   */
-  public int getCurrentBytes(final boolean compact) {
-    final int preBytes = getCurrentPreambleLongs(compact) << 3;
-    final int dataBytes = getCurrentDataLongs(compact) << 3;
-    return preBytes + dataBytes;
-  }
-
-  /**
-   * Returns the maximum number of storage bytes required for a CompactSketch with the given
-   * number of actual entries.
-   * @param numberOfEntries the actual number of entries stored with the CompactSketch.
-   * @return the maximum number of storage bytes required for a CompactSketch with the given number
-   * of entries.
-   */
-  public static int getMaxCompactSketchBytes(final int numberOfEntries) {
-    return (numberOfEntries << 3) + (Family.COMPACT.getMaxPreLongs() << 3);
-  }
-
-  /**
-   * Returns the maximum number of storage bytes required for an UpdateSketch with the given
-   * number of nominal entries (power of 2).
-   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
-   * This will become the ceiling power of 2 if it is not.
-   * @return the maximum number of storage bytes required for a UpdateSketch with the given
-   * nomEntries
-   */
-  public static int getMaxUpdateSketchBytes(final int nomEntries) {
-    final int nomEnt = ceilingPowerOf2(nomEntries);
-    return (nomEnt << 4) + (Family.QUICKSELECT.getMaxPreLongs() << 3);
-  }
-
-  /**
-   * Returns the serialization version from the given Memory
-   * @param mem the sketch Memory
-   * @return the serialization version from the Memory
-   */
-  public static int getSerializationVersion(final Memory mem) {
-    return mem.getByte(SER_VER_BYTE);
-  }
-
-  /**
-   * Returns true if this sketch is in compact form.
-   * @return true if this sketch is in compact form.
-   */
-  public abstract boolean isCompact();
-
-  /**
-   * Returns true if internal cache is ordered
-   * @return true if internal cache is ordered
-   */
-  public abstract boolean isOrdered();
-
-  /**
-   * Returns true if this sketch accesses its internal data using the Memory package
-   * @return true if this sketch accesses its internal data using the Memory package
-   */
-  public abstract boolean isDirect();
-
   //Restricted methods
 
-  final int getCurrentDataLongs(final boolean compact) {
-    final int longs;
-    if ((this instanceof CompactSketch) || compact) {
-      longs = getRetainedEntries(true);
-    }
-    else { //must be update sketch
-      longs = (1 << ((UpdateSketch)this).getLgArrLongs());
-    }
-    return longs;
-  }
+  /**
+   * Gets the internal cache array.
+   * @return the internal cache array.
+   */
+  abstract long[] getCache();
 
-  final int getCurrentPreambleLongs(final boolean compact) {
-    return compact ? compactPreambleLongs(getThetaLong(), isEmpty()) : getPreambleLongs();
-  }
-
-  final static int compactPreambleLongs(final long thetaLong, final boolean empty) {
-    return (thetaLong < Long.MAX_VALUE) ? 3 : empty ? 1 : 2;
-  }
+  //  final static int compactPreambleLongs(final long thetaLong, final int curCount,
+  //      final boolean empty) {
+  //    return (thetaLong < Long.MAX_VALUE) ? 3 : empty ? 1 : curCount;
+  //  }
+  //
+  //  final int getCurrentDataLongs(final boolean compact) {
+  //    final int longs;
+  //    if ((this instanceof CompactSketch) || compact) {
+  //      longs = getRetainedEntries(true);
+  //    }
+  //    else { //must be update sketch
+  //      longs = (1 << ((UpdateSketch)this).getLgArrLongs());
+  //    }
+  //    return longs;
+  //  }
 
   /**
    * Returns preamble longs if stored in current state
    * @return preamble longs if stored in current state
    */
-  abstract int getPreambleLongs();
+  abstract int getCurrentPreambleLongs();
+  //  final int getCurrentPreambleLongs(final boolean compact) {
+  //    return compact ? compactPreambleLongs(getThetaLong(), isEmpty()) : getPreambleLongs();
+  //  }
+
+
+  //  abstract int getPreambleLongs();
 
   /**
    * Gets the 16-bit seed hash
@@ -467,12 +469,6 @@ public abstract class Sketch {
    * @return the value of theta as a long
    */
   abstract long getThetaLong();
-
-  /**
-   * Gets the internal cache array.
-   * @return the internal cache array.
-   */
-  abstract long[] getCache();
 
   /**
    * Returns true if given Family id is one of the theta sketches
@@ -539,7 +535,7 @@ public abstract class Sketch {
               + " image: must be compact");
         }
         return ordered ? HeapCompactOrderedSketch.heapifyInstance(srcMem, seed)
-                       : HeapCompactSketch.heapifyInstance(srcMem, seed);
+                       : HeapCompactUnorderedSketch.heapifyInstance(srcMem, seed);
       }
       default: {
         throw new SketchesArgumentException("Sketch cannot heapify family: " + family
