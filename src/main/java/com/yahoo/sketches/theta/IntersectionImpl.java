@@ -169,7 +169,7 @@ final class IntersectionImpl extends IntersectionImplR {
     //Corner cases
     if (sketchIn == null) { //null -> Th = 1.0, count = 0, empty = true
       //No seedHash to check
-      //Because of the def of null above and the Empty Rule (which is OR) empty_ must be null.
+      //Because of the def of null above and the Empty Rule (which is OR) empty_ must be true.
       empty_ = true;
       thetaLong_ = firstCall ? Long.MAX_VALUE : thetaLong_; //if Nth call, stays the same
       curCount_ = 0;
@@ -292,8 +292,14 @@ final class IntersectionImpl extends IntersectionImplR {
     } else {
       Arrays.fill(hashTable_, 0, 1 << lgArrLongs_, 0L); //clear for rebuild
     }
-    //move matchSet to target
-    moveDataToTgt(matchSet, matchSetCount);
+
+    if (curCount_ > 0) {
+      moveDataToTgt(matchSet, matchSetCount); //move matchSet to target
+    } else {
+      if (thetaLong_ == Long.MAX_VALUE) {
+        empty_ = true;
+      }
+    }
   }
 
   void moveDataToTgt(final long[] arr, final int count) {

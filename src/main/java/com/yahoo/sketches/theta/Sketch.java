@@ -296,7 +296,7 @@ public abstract class Sketch {
 
   /**
    * Returns true if the backing resource of this sketch is identical with the backing resource
-   * of mem. If the backing resource is a common array or ByteBuffer, the offset and
+   * of mem. If the backing resource is a primitive array or ByteBuffer, the offset and
    * capacity must also be identical.
    * @param mem A given Memory object
    * @return true if the backing resource of this sketch is identical with the backing resource
@@ -430,33 +430,24 @@ public abstract class Sketch {
    */
   abstract long[] getCache();
 
-  //  final static int compactPreambleLongs(final long thetaLong, final int curCount,
-  //      final boolean empty) {
-  //    return (thetaLong < Long.MAX_VALUE) ? 3 : empty ? 1 : curCount;
-  //  }
-  //
-  //  final int getCurrentDataLongs(final boolean compact) {
-  //    final int longs;
-  //    if ((this instanceof CompactSketch) || compact) {
-  //      longs = getRetainedEntries(true);
-  //    }
-  //    else { //must be update sketch
-  //      longs = (1 << ((UpdateSketch)this).getLgArrLongs());
-  //    }
-  //    return longs;
-  //  }
+  int getCurrentDataLongs(final boolean compact) {
+    return (isCompact() || compact)
+        ? getRetainedEntries(true)
+        : (1 << ((UpdateSketch) this).getLgArrLongs());
+  }
 
   /**
-   * Returns preamble longs if stored in current state
-   * @return preamble longs if stored in current state
+   * Returns preamble longs if stored in current state.
+   * @param compact if true, returns the preamble longs required for compact form.
+   * If this sketch is already in compact form this parameter is ignored.
+   * @return preamble longs if stored.
    */
-  abstract int getCurrentPreambleLongs();
-  //  final int getCurrentPreambleLongs(final boolean compact) {
-  //    return compact ? compactPreambleLongs(getThetaLong(), isEmpty()) : getPreambleLongs();
-  //  }
+  abstract int getCurrentPreambleLongs(boolean compact);
 
-
-  //  abstract int getPreambleLongs();
+  static final int computeCompactPreLongs(final long thetaLong, final boolean empty,
+      final int curCount) {
+    return (thetaLong < Long.MAX_VALUE) ? 3 : empty ? 1 : (curCount > 1) ? 2 : 1;
+  }
 
   /**
    * Gets the 16-bit seed hash

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-16, Yahoo! Inc.
+ * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
@@ -7,9 +7,6 @@ package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.Util.checkSeedHashes;
 import static com.yahoo.sketches.Util.computeSeedHash;
-import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.extractCurCount;
 import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
@@ -27,7 +24,7 @@ final class HeapCompactUnorderedSketch extends HeapCompactSketch {
 
   /**
    * Constructs this sketch from correct, valid components.
-   * @param compactCache in compact form
+   * @param cache in compact form
    * @param empty The correct <a href="{@docRoot}/resources/dictionary.html#empty">Empty</a>.
    * @param seedHash The correct
    * <a href="{@docRoot}/resources/dictionary.html#seedHash">Seed Hash</a>.
@@ -35,8 +32,8 @@ final class HeapCompactUnorderedSketch extends HeapCompactSketch {
    * @param thetaLong The correct
    * <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
    */
-  HeapCompactUnorderedSketch(final long[] cache, final boolean empty,
-      final short seedHash, final int curCount, final long thetaLong) {
+  private HeapCompactUnorderedSketch(final long[] cache, final boolean empty, final short seedHash,
+      final int curCount, final long thetaLong) {
     super(cache, empty, seedHash, curCount, thetaLong);
   }
 
@@ -49,8 +46,6 @@ final class HeapCompactUnorderedSketch extends HeapCompactSketch {
   static HeapCompactUnorderedSketch heapifyInstance(final Memory srcMem, final long seed) {
     final Object memObj = ((WritableMemory)srcMem).getArray(); //may be null
     final long memAdd = srcMem.getCumulativeOffset(0L);
-
-    //check Family, SerVer, valid preLongs, ordered
 
     final short memSeedHash = (short) extractSeedHash(memObj, memAdd);
     final short computedSeedHash = computeSeedHash(seed);
@@ -81,32 +76,42 @@ final class HeapCompactUnorderedSketch extends HeapCompactSketch {
   }
 
   /**
-   * Compacts the given UpdateSketch.
+   * Converts the given UpdateSketch to this compact form.
    * @param sketch the given UpdateSketch
    */
   static HeapCompactUnorderedSketch compact(final UpdateSketch sketch) {
-    final boolean ordered = false;
-    final int curCount = sketch.getRetainedEntries(true);
     final long thetaLong = sketch.getThetaLong();
-    final long[] cache = CompactSketch.compactCache(sketch.getCache(), curCount,
-        thetaLong, ordered);
-    return new HeapCompactUnorderedSketch(cache, sketch.isEmpty(), sketch.getSeedHash(),
-        curCount, thetaLong);
+    final boolean empty = sketch.isEmpty();
+    final int curCount = sketch.getRetainedEntries(true);
+
+    final short seedHash = sketch.getSeedHash();
+    final long[] cache = sketch.getCache();
+    final boolean ordered = false;
+    final long[] cacheOut = CompactSketch.compactCache(cache, curCount, thetaLong, ordered);
+    return new HeapCompactUnorderedSketch(cacheOut, empty, seedHash, curCount, thetaLong);
+  }
+
+  /**
+   * Constructs this sketch from correct, valid arguments.
+   * @param cache in compact form
+   * @param empty The correct <a href="{@docRoot}/resources/dictionary.html#empty">Empty</a>.
+   * @param seedHash The correct
+   * <a href="{@docRoot}/resources/dictionary.html#seedHash">Seed Hash</a>.
+   * @param curCount correct value
+   * @param thetaLong The correct
+   * <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
+   * @return this sketch
+   */
+  static HeapCompactUnorderedSketch compact(final long[] cache, final boolean empty,
+      final short seedHash, final int curCount, final long thetaLong) {
+    return new HeapCompactUnorderedSketch(cache, empty, seedHash, curCount, thetaLong);
   }
 
   //Sketch interface
 
   @Override
   public byte[] toByteArray() {
-    final int bytes = getCurrentBytes(true);
-    final byte[] byteArray = new byte[bytes];
-    final WritableMemory dstMem = WritableMemory.wrap(byteArray);
-    final int emptyBit = isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
-    final byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK);
-    final int preLongs = getCurrentPreambleLongs();
-    loadCompactMemory(getCache(), getSeedHash(), getRetainedEntries(true),
-        getThetaLong(), dstMem, flags, preLongs);
-    return byteArray;
+    return toByteArray(false);
   }
 
   //restricted methods

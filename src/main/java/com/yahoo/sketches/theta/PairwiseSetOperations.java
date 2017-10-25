@@ -35,12 +35,12 @@ public class PairwiseSetOperations {
     if ((skA == null) && (skB == null)) { return null; } //no way to construct the seedHash
 
     if (skA == null) {
-      return new
-          HeapCompactOrderedSketch(new long[0], true, skB.getSeedHash(), 0, skB.getThetaLong());
+      return HeapCompactOrderedSketch
+          .compact(new long[0], true, skB.getSeedHash(), 0, skB.getThetaLong());
     }
     if (skB == null) {
-      return new
-          HeapCompactOrderedSketch(new long[0], true, skA.getSeedHash(), 0, skA.getThetaLong());
+      return HeapCompactOrderedSketch
+          .compact(new long[0], true, skA.getSeedHash(), 0, skA.getThetaLong());
     }
 
     //Both sketches are valid, check seedHashes and ordered
@@ -60,7 +60,8 @@ public class PairwiseSetOperations {
     final long thetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong()); //Theta rule
 
     if (emptyRule) { //even if emptyRule = true, theta can be < 1.0
-      return new HeapCompactOrderedSketch(new long[0], emptyRule, seedHash, 0, thetaLong);
+      return HeapCompactOrderedSketch
+          .compact(new long[0], emptyRule, seedHash, 0, thetaLong);
     }
 
     //Both sketches are non-empty
@@ -79,7 +80,7 @@ public class PairwiseSetOperations {
       final long hashA = cacheA[indexA];
       final long hashB = cacheB[indexB];
 
-      if (hashA >= thetaLong || hashB >= thetaLong) {
+      if ((hashA >= thetaLong) || (hashB >= thetaLong)) {
         break;
       }
 
@@ -94,8 +95,8 @@ public class PairwiseSetOperations {
       }
     }
 
-    return new HeapCompactOrderedSketch(
-        Arrays.copyOf(outCache, outCount), emptyRule, seedHash, outCount, thetaLong);
+    return HeapCompactOrderedSketch
+        .compact(Arrays.copyOf(outCache, outCount), emptyRule, seedHash, outCount, thetaLong);
   }
 
   /**
@@ -116,8 +117,8 @@ public class PairwiseSetOperations {
         throw new SketchesException("skB must be ordered!");
       }
       //return rule {ThB, 0, T}
-      return new
-          HeapCompactOrderedSketch(new long[0], true, skB.getSeedHash(), 0, skB.getThetaLong());
+      return HeapCompactOrderedSketch
+          .compact(new long[0], true, skB.getSeedHash(), 0, skB.getThetaLong());
     }
     if (skB == null) {
       if (!skA.isOrdered()) {
@@ -143,7 +144,8 @@ public class PairwiseSetOperations {
     final boolean emptyRule = emptyA; //Empty rule is whatever A is
 
     if (emptyA || bothEmpty) { //return rule {minT, 0, T}
-      return new HeapCompactOrderedSketch(new long[0], emptyRule, seedHash, 0, thetaLong);
+      return HeapCompactOrderedSketch
+          .compact(new long[0], emptyRule, seedHash, 0, thetaLong);
     }
 
     final long[] cacheA = (skA.isDirect()) ? skA.getCache() : skA.getCache().clone();
@@ -151,7 +153,8 @@ public class PairwiseSetOperations {
     if (emptyB) { //return rule {minT, |A| < minT , E(a)}
       final int curCount = HashOperations.count(cacheA, thetaLong);
       final long[] cache = CompactSketch.compactCache(cacheA, curCount, thetaLong, true);
-      return new HeapCompactOrderedSketch(cache, emptyRule, seedHash, curCount, thetaLong);
+      return HeapCompactOrderedSketch
+          .compact(cache, emptyRule, seedHash, curCount, thetaLong);
     }
 
     //Both are non-empty
@@ -198,8 +201,8 @@ public class PairwiseSetOperations {
 
     final int outLen = indexOut;
 
-    return new HeapCompactOrderedSketch(
-        Arrays.copyOf(outCache, outLen), emptyA, seedHash, outLen, thetaLong);
+    return HeapCompactOrderedSketch
+        .compact(Arrays.copyOf(outCache, outLen), emptyA, seedHash, outLen, thetaLong);
   }
 
 
@@ -240,7 +243,8 @@ public class PairwiseSetOperations {
         final long[] cacheB = (skB.isDirect()) ? skB.getCache() : skB.getCache().clone();
         final long thetaLong = cacheB[k];
         final long[] arrB = Arrays.copyOf(cacheB, k);
-        return new HeapCompactOrderedSketch(arrB, skB.isEmpty(), skB.getSeedHash(), k, thetaLong);
+        return HeapCompactOrderedSketch
+            .compact(arrB, skB.isEmpty(), skB.getSeedHash(), k, thetaLong);
       }
       return skB;
     }
@@ -253,7 +257,8 @@ public class PairwiseSetOperations {
         final long[] cacheA = (skA.isDirect()) ? skA.getCache() : skA.getCache().clone();
         final long thetaLong = cacheA[k];
         final long[] arrA = Arrays.copyOf(cacheA, k);
-        return new HeapCompactOrderedSketch(arrA, skA.isEmpty(), skA.getSeedHash(), k, thetaLong);
+        return HeapCompactOrderedSketch
+            .compact(arrA, skA.isEmpty(), skA.getSeedHash(), k, thetaLong);
       }
       return skA;
     }
@@ -336,8 +341,8 @@ public class PairwiseSetOperations {
 
     final int outLen = indexOut;
 
-    return new HeapCompactOrderedSketch(
-        Arrays.copyOf(outCache, outLen), bothEmptyRule, seedHash, outLen, thetaLong);
+    return HeapCompactOrderedSketch
+        .compact(Arrays.copyOf(outCache, outLen), bothEmptyRule, seedHash, outLen, thetaLong);
   }
 
 }

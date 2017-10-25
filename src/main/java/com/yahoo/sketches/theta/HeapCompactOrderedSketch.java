@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-16, Yahoo! Inc.
+ * Copyright 2015, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
@@ -7,10 +7,6 @@ package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.Util.checkSeedHashes;
 import static com.yahoo.sketches.Util.computeSeedHash;
-import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.extractCurCount;
 import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
@@ -25,12 +21,20 @@ import com.yahoo.memory.WritableMemory;
  * @author Lee Rhodes
  */
 final class HeapCompactOrderedSketch extends HeapCompactSketch {
-  private final long[] cache_;
 
-  private HeapCompactOrderedSketch(final boolean empty, final short seedHash, final int curCount,
-      final long thetaLong, final long[] cache) {
-    super(empty, seedHash, curCount, thetaLong);
-    cache_ = cache;
+  /**
+   * Constructs this sketch from correct, valid components.
+   * @param cache in compact form
+   * @param empty The correct <a href="{@docRoot}/resources/dictionary.html#empty">Empty</a>.
+   * @param seedHash The correct
+   * <a href="{@docRoot}/resources/dictionary.html#seedHash">Seed Hash</a>.
+   * @param curCount correct value
+   * @param thetaLong The correct
+   * <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
+   */
+  private HeapCompactOrderedSketch(final long[] cache, final boolean empty, final short seedHash,
+      final int curCount, final long thetaLong) {
+    super(cache, empty, seedHash, curCount, thetaLong);
   }
 
   /**
@@ -43,86 +47,75 @@ final class HeapCompactOrderedSketch extends HeapCompactSketch {
     final Object memObj = ((WritableMemory)srcMem).getArray(); //may be null
     final long memAdd = srcMem.getCumulativeOffset(0L);
 
-    final int preambleLongs = extractPreLongs(memObj, memAdd);
     final short memSeedHash = (short) extractSeedHash(memObj, memAdd);
-    final int curCount = (preambleLongs > 1) ? extractCurCount(memObj, memAdd) : 0;
-    final long thetaLong = (preambleLongs > 2) ? extractThetaLong(memObj, memAdd) : Long.MAX_VALUE;
-
     final short computedSeedHash = computeSeedHash(seed);
     checkSeedHashes(memSeedHash, computedSeedHash);
 
+    final int preLongs = extractPreLongs(memObj, memAdd);
     final boolean empty = PreambleUtil.isEmpty(memObj, memAdd);
-    final long[] cacheArr = new long[curCount];
-    if (curCount > 0) {
-      srcMem.getLongArray(preambleLongs << 3, cacheArr, 0, curCount);
+    int curCount = 0;
+    long thetaLong = Long.MAX_VALUE;
+    long[] cache = new long[0];
+
+    if (preLongs == 1) {
+      if (!empty) { //singleton
+        curCount = 1;
+        cache = new long[] { srcMem.getLong(8) };
+      } //else empty
+    } else { //preLongs > 1
+      curCount = extractCurCount(memObj, memAdd);
+      cache = new long[curCount];
+      if (preLongs == 2) {
+        srcMem.getLongArray(16, cache, 0, curCount);
+      } else { //preLongs == 3
+        srcMem.getLongArray(24, cache, 0, curCount);
+        thetaLong = extractThetaLong(memObj, memAdd);
+      }
     }
-    final HeapCompactOrderedSketch hcs =
-        new HeapCompactOrderedSketch(empty, memSeedHash, curCount, thetaLong, cacheArr);
-    return hcs;
+    return new HeapCompactOrderedSketch(cache, empty, memSeedHash, curCount, thetaLong);
   }
 
   /**
    * Converts the given UpdateSketch to this compact form.
    * @param sketch the given UpdateSketch
    */
-  HeapCompactOrderedSketch(final UpdateSketch sketch) {
-    super(sketch.isEmpty(),
-        sketch.getSeedHash(),
-        sketch.getRetainedEntries(true), //curCount_  set here
-        sketch.getThetaLong()            //thetaLong_ set here
-        );
+  static HeapCompactOrderedSketch compact(final UpdateSketch sketch) {
+    final long thetaLong = sketch.getThetaLong();
+    final boolean empty = sketch.isEmpty();
+    final int curCount = sketch.getRetainedEntries(true);
+
+    final short seedHash = sketch.getSeedHash();
+    final long[] cache = sketch.getCache();
     final boolean ordered = true;
-    cache_ = CompactSketch.compactCache(sketch.getCache(), getRetainedEntries(false),
-        getThetaLong(), ordered);
+    final long[] cacheOut = CompactSketch.compactCache(cache, curCount, thetaLong, ordered);
+    return new HeapCompactOrderedSketch(cacheOut, empty, seedHash, curCount, thetaLong);
   }
 
+
   /**
-   * Constructs this sketch from correct, valid components.
-   * @param compactOrderedCache in compact, ordered form
+   * Constructs this sketch from correct, valid arguments.
+   * @param cache in compact, ordered form
    * @param empty The correct <a href="{@docRoot}/resources/dictionary.html#empty">Empty</a>.
    * @param seedHash The correct
    * <a href="{@docRoot}/resources/dictionary.html#seedHash">Seed Hash</a>.
    * @param curCount correct value
    * @param thetaLong The correct
    * <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
+   * @return this sketch
    */
-  HeapCompactOrderedSketch(final long[] compactOrderedCache, final boolean empty,
+  static HeapCompactOrderedSketch compact(final long[] cache, final boolean empty,
       final short seedHash, final int curCount, final long thetaLong) {
-    super(empty, seedHash, curCount, thetaLong);
-    assert compactOrderedCache != null;
-    cache_ = (curCount == 0) ? new long[0] : compactOrderedCache;
+    return new HeapCompactOrderedSketch(cache, empty, seedHash, curCount, thetaLong);
   }
 
   //Sketch interface
 
   @Override
   public byte[] toByteArray() {
-    final byte[] byteArray = new byte[getCurrentBytes(true)];
-    final WritableMemory dstMem = WritableMemory.wrap(byteArray);
-    final int emptyBit = isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
-    final byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK);
-    final int preLongs = compactPreambleLongs(getThetaLong(), isEmpty());
-    loadCompactMemory(getCache(), isEmpty(), getSeedHash(), getRetainedEntries(true),
-        getThetaLong(), dstMem, flags, preLongs);
-    return byteArray;
-  }
-
-  @Override
-  public boolean isDirect() {
-    return false;
+    return toByteArray(true);
   }
 
   //restricted methods
-
-  @Override
-  long[] getCache() {
-    return cache_;
-  }
-
-  @Override
-  Memory getMemory() {
-    return null;
-  }
 
   @Override
   public boolean isOrdered() {

@@ -119,36 +119,6 @@ public abstract class CompactSketch extends Sketch {
     return cacheOut;
   }
 
-  static final CompactSketch createCompactSketch(final long[] compactCache, final boolean empty,
-      final short seedHash, final int curCount, final long thetaLong, final boolean dstOrdered,
-      final WritableMemory dstMem) {
-    CompactSketch sketchOut = null;
-    final int sw = (dstOrdered ? 2 : 0) | ((dstMem != null) ? 1 : 0);
-    switch (sw) {
-      case 0: { //dst not ordered, dstMem == null
-        sketchOut = new HeapCompactUnorderedSketch(compactCache, empty, seedHash, curCount, thetaLong);
-        break;
-      }
-      case 1: { //dst not ordered, dstMem == valid
-        sketchOut =
-            new DirectCompactUnorderedSketch(compactCache, empty, seedHash, curCount, thetaLong, dstMem);
-        break;
-      }
-      case 2: { //dst ordered, dstMem == null
-        sketchOut =
-            new HeapCompactOrderedSketch(compactCache, empty, seedHash, curCount, thetaLong);
-        break;
-      }
-      case 3: { //dst ordered, dstMem == valid
-        sketchOut =
-        new DirectCompactOrderedSketch(compactCache, empty, seedHash, curCount, thetaLong, dstMem);
-        break;
-      }
-      //default: //This cannot happen and cannot be tested
-    }
-    return sketchOut;
-  }
-
   static final Memory loadCompactMemory(final long[] compactCache, final short seedHash,
       final int curCount, final long thetaLong, final WritableMemory dstMem,
       final byte flags, final int preLongs) {
@@ -172,6 +142,10 @@ public abstract class CompactSketch extends Sketch {
     insertFlags(memObj, memAdd, flags);
     insertSeedHash(memObj, memAdd, seedHash);
 
+    if ((preLongs == 1) && (curCount == 1)) { //singleton
+      dstMem.putLong(8, compactCache[0]);
+      return dstMem;
+    }
     if (preLongs > 1) {
       insertCurCount(memObj, memAdd, curCount);
       insertP(memObj, memAdd, (float) 1.0);

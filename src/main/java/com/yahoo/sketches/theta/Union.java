@@ -45,6 +45,17 @@ public abstract class Union extends SetOperation {
   public abstract CompactSketch getResult();
 
   /**
+   * Resets this Union. The seed remains intact, otherwise reverts back to its virgin state.
+   */
+  public abstract void reset();
+
+  /**
+   * Returns a byte array image of this Union object
+   * @return a byte array image of this Union object
+   */
+  public abstract byte[] toByteArray();
+
+  /**
    * Union the given on-heap sketch.
    * Valid for the all of the Open Source, Theta Sketches.
    * Not valid for older (prior to Open Source) Theta Sketches.
@@ -132,14 +143,4 @@ public abstract class Union extends SetOperation {
    */
   public abstract void update(long[] data);
 
-  /**
-   * Returns a byte array image of this Union object
-   * @return a byte array image of this Union object
-   */
-  public abstract byte[] toByteArray();
-
-  /**
-   * Resets this Union. The seed remains intact, otherwise reverts back to its virgin state.
-   */
-  public abstract void reset();
 }

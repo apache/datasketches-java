@@ -93,8 +93,6 @@ class IntersectionImplR extends Intersection {
     final int famID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
     final int lgArrLongs = srcMem.getByte(LG_ARR_LONGS_BYTE) & 0XFF;
     final int flags = srcMem.getByte(FLAGS_BYTE) & 0XFF;
-    final int curCount = srcMem.getInt(RETAINED_ENTRIES_INT);
-    final long thetaLong = srcMem.getLong(THETA_LONG);
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
 
     //Checks
@@ -108,6 +106,9 @@ class IntersectionImplR extends Intersection {
     }
 
     Family.INTERSECTION.checkFamilyID(famID);
+
+    final int curCount = srcMem.getInt(RETAINED_ENTRIES_INT);
+    final long thetaLong = srcMem.getLong(THETA_LONG);
 
     if (empty) {
       if (curCount != 0) {
@@ -127,11 +128,6 @@ class IntersectionImplR extends Intersection {
   }
 
   @Override
-  public void update(final Sketch sketchIn) {
-    throw new SketchesReadOnlyException();
-  }
-
-  @Override
   public CompactSketch getResult(final boolean dstOrdered, final WritableMemory dstMem) {
     if (curCount_ < 0) {
       throw new SketchesStateException(
@@ -141,7 +137,7 @@ class IntersectionImplR extends Intersection {
 
     if (curCount_ == 0) {
       compactCacheR = new long[0];
-      return CompactSketch.createCompactSketch(
+      return createCompactSketch(
           compactCacheR, empty_, seedHash_, curCount_, thetaLong_, dstOrdered, dstMem);
     }
     //else curCount > 0
@@ -156,7 +152,7 @@ class IntersectionImplR extends Intersection {
     compactCacheR = compactCachePart(hashTable, lgArrLongs_, curCount_, thetaLong_, dstOrdered);
 
     //Create the CompactSketch
-    return CompactSketch.createCompactSketch(
+    return createCompactSketch(
         compactCacheR, empty_, seedHash_, curCount_, thetaLong_, dstOrdered, dstMem);
   }
 
@@ -165,9 +161,44 @@ class IntersectionImplR extends Intersection {
     return getResult(true, null);
   }
 
+  /**
+   * Gets the number of retained entries from this operation. If negative, it is interpreted
+   * as the infinite <i>Universal Set</i>.
+   */
+  @Override
+  int getRetainedEntries(final boolean valid) {
+    return curCount_;
+  }
+
   @Override
   public boolean hasResult() {
     return (mem_ != null) ? mem_.getInt(RETAINED_ENTRIES_INT) >= 0 : curCount_ >= 0;
+  }
+
+  @Override
+  boolean isEmpty() {
+    return empty_;
+  }
+
+  @Override
+  public boolean isSameResource(final Memory mem) {
+    return (mem_ != null) ? mem_.isSameResource(mem) : false;
+  }
+
+  @Override
+  public void reset() {
+    curCount_ = -1;
+    thetaLong_ = Long.MAX_VALUE;
+    empty_ = false;
+    hashTable_ = null;
+    if (mem_ != null) {
+      final Object memObj = mem_.getArray(); //may be null
+      final long memAdd = mem_.getCumulativeOffset(0);
+      insertLgArrLongs(memObj, memAdd, lgArrLongs_); //make sure
+      insertCurCount(memObj, memAdd, -1);
+      insertThetaLong(memObj, memAdd, Long.MAX_VALUE);
+      clearEmpty(memObj, memAdd);
+    }
   }
 
   @Override
@@ -207,33 +238,34 @@ class IntersectionImplR extends Intersection {
   }
 
   @Override
-  public void reset() {
-    curCount_ = -1;
-    thetaLong_ = Long.MAX_VALUE;
-    empty_ = false;
-    hashTable_ = null;
-    if (mem_ != null) {
-      final Object memObj = mem_.getArray(); //may be null
-      final long memAdd = mem_.getCumulativeOffset(0);
-      insertLgArrLongs(memObj, memAdd, lgArrLongs_); //make sure
-      insertCurCount(memObj, memAdd, -1);
-      insertThetaLong(memObj, memAdd, Long.MAX_VALUE);
-      clearEmpty(memObj, memAdd);
-    }
-  }
-
-  @Override
-  public Family getFamily() {
-    return Family.INTERSECTION;
-  }
-
-  @Override
-  public boolean isSameResource(final Memory mem) {
-    return mem_.isSameResource(mem);
+  public void update(final Sketch sketchIn) {
+    throw new SketchesReadOnlyException();
   }
 
   //restricted
-  //special handlers for Off Heap
+
+  @Override
+  long[] getCache() {
+    if (mem_ != null) {
+      return (hashTable_ != null) ? hashTable_ : new long[0];
+    }
+    //off-heap
+    final int arrLongs = 1 << lgArrLongs_;
+    final long[] outArr = new long[arrLongs];
+    mem_.getLongArray(CONST_PREAMBLE_LONGS << 3, outArr, 0, arrLongs);
+    return outArr;
+  }
+
+  @Override
+  short getSeedHash() {
+    return seedHash_;
+  }
+
+  @Override
+  long getThetaLong() {
+    return thetaLong_;
+  }
+
   /**
    * Returns the correct maximum lgArrLongs given the capacity of the Memory. Checks that the
    * capacity is large enough for the minimum sized hash table.

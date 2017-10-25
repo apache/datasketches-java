@@ -56,7 +56,8 @@ public class SketchTest {
     assertEquals(compSk.getCurrentBytes(true), 8);
     assertEquals(compSk.getCurrentBytes(false), 8);
 
-    int compPreLongs = Sketch.compactPreambleLongs(sketch.getThetaLong(), sketch.isEmpty());
+    int compPreLongs = Sketch.computeCompactPreLongs(sketch.getThetaLong(), sketch.isEmpty(),
+        sketch.getRetainedEntries(true));
     assertEquals(compPreLongs, 1);
 
     for (int i=0; i<k; i++) {
@@ -70,7 +71,8 @@ public class SketchTest {
     assertEquals(sketch.getCurrentBytes(false), (k*2*8) + (lowQSPreLongs << 3));
     assertEquals(sketch.getCurrentBytes(true), (k*8) + (2*8)); //compact form  //FAILS HERE
 
-    compPreLongs = Sketch.compactPreambleLongs(sketch.getThetaLong(), sketch.isEmpty());
+    compPreLongs = Sketch.computeCompactPreLongs(sketch.getThetaLong(), sketch.isEmpty(),
+        sketch.getRetainedEntries(true));
     assertEquals(compPreLongs, 2);
 
     for (int i=k; i<(2*k); i++)
@@ -86,7 +88,8 @@ public class SketchTest {
     assertEquals(sketch.getCurrentBytes(false), (k*2*8) + (lowQSPreLongs << 3));
     assertEquals(sketch.getCurrentBytes(true), (curCount*8) + (3*8)); //compact form
 
-    compPreLongs = Sketch.compactPreambleLongs(sketch.getThetaLong(), sketch.isEmpty());
+    compPreLongs = Sketch.computeCompactPreLongs(sketch.getThetaLong(), sketch.isEmpty(),
+        sketch.getRetainedEntries(true));
     assertEquals(compPreLongs, 3);
 
     for (int i=0; i<3; i++) {

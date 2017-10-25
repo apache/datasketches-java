@@ -110,6 +110,19 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   //Sketch
 
   @Override
+  public int getCurrentBytes(final boolean compact) {
+    if (!compact) {
+      final byte lgArrLongs = mem_.getByte(LG_ARR_LONGS_BYTE);
+      final int lengthBytes = (preambleLongs_ + (1 << lgArrLongs)) << 3;
+      return lengthBytes;
+    }
+    final int preLongs = getCurrentPreambleLongs(true);
+    final int curCount = getRetainedEntries(true);
+
+    return (preLongs + curCount) << 3;
+  }
+
+  @Override
   public Family getFamily() {
     final int familyID = mem_.getByte(FAMILY_BYTE) & 0XFF;
     return Family.idToFamily(familyID);
@@ -121,7 +134,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   }
 
   @Override
-  public int getRetainedEntries(final boolean valid) {
+  public int getRetainedEntries(final boolean valid) { //always valid
     return mem_.getInt(RETAINED_ENTRIES_INT);
   }
 
@@ -170,8 +183,9 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   //restricted methods
 
   @Override
-  int getPreambleLongs() {
-    return preambleLongs_;
+  int getCurrentPreambleLongs(final boolean compact) {
+    if (!compact) { return preambleLongs_; }
+    return computeCompactPreLongs(getThetaLong(), isEmpty(), getRetainedEntries(true));
   }
 
   @Override
