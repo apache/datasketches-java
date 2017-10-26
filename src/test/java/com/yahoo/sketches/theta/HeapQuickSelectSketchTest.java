@@ -602,12 +602,8 @@ public class HeapQuickSelectSketchTest {
 
     // force ResizeFactor.X1, but allocated capacity too small
     insertLgResizeFactor(mem.getArray(), mem.getCumulativeOffset(0L), ResizeFactor.X1.lg());
-    try {
-      HeapQuickSelectSketch.heapifyInstance(mem, DEFAULT_UPDATE_SEED);
-      fail();
-    } catch (SketchesArgumentException e) {
-      //expected
-    }
+    UpdateSketch hqss = HeapQuickSelectSketch.heapifyInstance(mem, DEFAULT_UPDATE_SEED);
+    assertEquals(hqss.getResizeFactor(), ResizeFactor.X2); // force-promote to X2
   }
 
   private static void tryBadMem(WritableMemory mem, int byteOffset, int byteValue) {
