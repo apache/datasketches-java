@@ -115,14 +115,13 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
 
     final float p = extractP(memObj, memAdd);                             //bytes 12-15
     final int lgRF = extractLgResizeFactor(memObj, memAdd);               //byte 0
-    final ResizeFactor myRF = ResizeFactor.getRF(lgRF);
+    ResizeFactor myRF = ResizeFactor.getRF(lgRF);
     final int familyID = extractFamilyID(memObj, memAdd);
     final Family family = Family.idToFamily(familyID);
 
     if (myRF == ResizeFactor.X1
             && lgArrLongs != Util.startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS)) {
-      throw new SketchesArgumentException("Possible corruption: ResizeFactor X1, but provided "
-              + "array too small for sketch size");
+      myRF = ResizeFactor.X2;
     }
 
     final HeapQuickSelectSketch hqss = new HeapQuickSelectSketch(lgNomLongs, seed, p, myRF,

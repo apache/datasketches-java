@@ -161,8 +161,7 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     final ResizeFactor myRF = ResizeFactor.getRF(lgRF);
     if ((myRF == ResizeFactor.X1)
             && (lgArrLongs != Util.startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS))) {
-      throw new SketchesArgumentException("Possible corruption: ResizeFactor X1, but provided "
-              + "array too small for sketch size");
+      insertLgResizeFactor(memObj, memAdd, ResizeFactor.X2.lg());
     }
 
     final DirectQuickSelectSketch dqss =
