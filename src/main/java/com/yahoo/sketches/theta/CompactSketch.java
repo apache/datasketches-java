@@ -142,7 +142,7 @@ public abstract class CompactSketch extends Sketch {
     insertFlags(memObj, memAdd, flags);
     insertSeedHash(memObj, memAdd, seedHash);
 
-    if ((preLongs == 1) && (curCount == 1)) { //singleton
+    if ((preLongs == 1) && (curCount == 1)) { //singleItem
       dstMem.putLong(8, compactCache[0]);
       return dstMem;
     }

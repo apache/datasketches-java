@@ -36,7 +36,7 @@ abstract class DirectCompactSketch extends CompactSketch {
     final int preLongs = getCurrentPreambleLongs(true);
     final boolean empty = PreambleUtil.isEmpty(memObj_, memAdd_);
     if (preLongs == 1) {
-      return (empty) ? 8 : 16; //empty or singleton
+      return (empty) ? 8 : 16; //empty or singleItem
     }
     //preLongs > 1
     final int curCount = extractCurCount(memObj_, memAdd_);

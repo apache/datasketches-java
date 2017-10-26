@@ -58,7 +58,7 @@ final class HeapCompactUnorderedSketch extends HeapCompactSketch {
     long[] cache = new long[0];
 
     if (preLongs == 1) {
-      if (!empty) { //singleton
+      if (!empty) { //singleItem
         curCount = 1;
         cache = new long[] { srcMem.getLong(8) };
       } //else empty

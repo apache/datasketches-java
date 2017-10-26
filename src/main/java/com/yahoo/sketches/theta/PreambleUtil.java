@@ -79,7 +79,7 @@ final class PreambleUtil {
   static final int EMPTY_FLAG_MASK      = 4; //SerVer 2, 3
   static final int COMPACT_FLAG_MASK    = 8; //SerVer 2 was NO_REBUILD_FLAG_MASK
   static final int ORDERED_FLAG_MASK    = 16;//SerVer 2 was UNORDERED_FLAG_MASK
-  static final int SINGLETON_FLAG_MASK  = 32;//SerVer 3. Reserved
+  static final int SINGLEITEM_FLAG_MASK  = 32;//SerVer 3. Reserved
 
   //Backward compatibility: SerVer1 preamble always 3 longs, SerVer2 preamble: 1, 2, 3 longs
   //               SKETCH_TYPE_BYTE             2  //SerVer1, SerVer2
@@ -150,12 +150,12 @@ final class PreambleUtil {
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
     final boolean compact = (flags & COMPACT_FLAG_MASK) > 0;
     final boolean ordered = (flags & ORDERED_FLAG_MASK) > 0;
-    final boolean singleton = !empty && (preLongs == 1);
+    final boolean singleItem = !empty && (preLongs == 1);
 
     final int seedHash = extractSeedHash(memObj, memAdd);
 
     //assumes preLongs == 1
-    int curCount = singleton ? 1 : 0; //preLongs 1 empty or singleton
+    int curCount = singleItem ? 1 : 0; //preLongs 1 empty or singleItem
     float p = (float) 1.0;            //preLongs 1 or 2
     long thetaLong = Long.MAX_VALUE;  //preLongs 1 or 2
     long thetaULong = thetaLong;      //preLongs 1, 2 or 3
@@ -176,7 +176,7 @@ final class PreambleUtil {
       thetaLong = extractThetaLong(memObj, memAdd);
       thetaULong = extractUnionThetaLong(memObj, memAdd);
     }
-    //else the same as an empty sketch or singleton
+    //else the same as an empty sketch or singleItem
 
     final double thetaDbl = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
     final String thetaHex = zeroPad(Long.toHexString(thetaLong), 16);
@@ -199,7 +199,7 @@ final class PreambleUtil {
     sb.append("  EMPTY                       : ").append(empty).append(LS);
     sb.append("  COMPACT                     : ").append(compact).append(LS);
     sb.append("  ORDERED                     : ").append(ordered).append(LS);
-    sb.append("  SINGLETON  (derived)        : ").append(singleton).append(LS);
+    sb.append("  SINGLEITEM  (derived)       : ").append(singleItem).append(LS);
     sb.append("Bytes 6-7  : Seed Hash        : ").append(Integer.toHexString(seedHash)).append(LS);
     if (preLongs == 1) {
       sb.append(" --ABSENT, ASSUMED:").append(LS);
