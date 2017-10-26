@@ -16,16 +16,15 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
-import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * @author Lee Rhodes
  */
-public class SingletonSketch extends CompactSketch {
-  static final long defaultPreamble;
-  private long[] arr = new long[] {defaultPreamble, 0L };
-  private WritableMemory wmem = WritableMemory.wrap(arr);
+public final class SingletonSketch extends CompactSketch {
+  private static final long defaultPreamble;
+  private final long[] arr = new long[] {defaultPreamble, 0L };
+  private final WritableMemory wmem = WritableMemory.wrap(arr);
 
   static {
     final byte[] sArr = new byte[8];
@@ -39,11 +38,11 @@ public class SingletonSketch extends CompactSketch {
     defaultPreamble = smem.getLong(0);
   }
 
-  SingletonSketch(final long hash) {
+  private SingletonSketch(final long hash) {
     arr[1] = hash;
   }
 
-  SingletonSketch(final long hash, final long seed) {
+  private SingletonSketch(final long hash, final long seed) {
     arr[1] = hash;
     wmem.putShort(6, computeSeedHash(seed));
   }
@@ -55,7 +54,7 @@ public class SingletonSketch extends CompactSketch {
    */
   public static SingletonSketch heapify(final Memory mem) {
     final long memPre0 = mem.getLong(0);
-    checkDefaultPre0to7(memPre0);
+    checkDefaultBytes0to7(memPre0);
     return new SingletonSketch(mem.getLong(8));
   }
 
@@ -68,12 +67,14 @@ public class SingletonSketch extends CompactSketch {
    */
   public static SingletonSketch heapify(final Memory mem, final long seed) {
     final long memPre0 = mem.getLong(0);
-    checkDefaultPre0to5(memPre0);
+    checkDefaultBytes0to5(memPre0);
     final short seedHashIn = mem.getShort(6);
     final short seedHashCk = computeSeedHash(seed);
     checkSeedHashes(seedHashIn, seedHashCk);
     return new SingletonSketch(mem.getLong(8), seed);
   }
+
+  //Updates using the default update seed
 
   /**
    * Present this sketch with a long.
@@ -86,92 +87,190 @@ public class SingletonSketch extends CompactSketch {
     return new SingletonSketch(hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1);
   }
 
-/**
- * Present this sketch with the given double (or float) datum.
- * The double will be converted to a long using Double.doubleToLongBits(datum),
- * which normalizes all NaN values to a single NaN representation.
- * Plus and minus zero will be normalized to plus zero.
- * The special floating-point values NaN and +/- Infinity are treated as distinct.
- *
- * @param datum The given double datum.
- * @return a SingletonSketch
- */
-public static SingletonSketch update(final double datum) {
-  final double d = (datum == 0.0) ? 0.0 : datum; // canonicalize -0.0, 0.0
-  final long[] data = { Double.doubleToLongBits(d) };// canonicalize all NaN forms
-  return new SingletonSketch(hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1);
-}
+  /**
+   * Present this sketch with the given double (or float) datum.
+   * The double will be converted to a long using Double.doubleToLongBits(datum),
+   * which normalizes all NaN values to a single NaN representation.
+   * Plus and minus zero will be normalized to plus zero.
+   * The special floating-point values NaN and +/- Infinity are treated as distinct.
+   *
+   * @param datum The given double datum.
+   * @return a SingletonSketch
+   */
+  public static SingletonSketch update(final double datum) {
+    final double d = (datum == 0.0) ? 0.0 : datum; // canonicalize -0.0, 0.0
+    final long[] data = { Double.doubleToLongBits(d) };// canonicalize all NaN forms
+    return new SingletonSketch(hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1);
+  }
 
-/**
- * Present this sketch with the given String.
- * The string is converted to a byte array using UTF8 encoding.
- * If the string is null or empty no update attempt is made and the method returns.
- *
- * <p>Note: this will not produce the same output hash values as the {@link #update(char[])}
- * method and will generally be a little slower depending on the complexity of the UTF8 encoding.
- * </p>
- *
- * @param datum The given String.
- * @return a SingletonSketch or null
- */
-public static SingletonSketch update(final String datum) {
-  if ((datum == null) || datum.isEmpty()) { return null; }
-  final byte[] data = datum.getBytes(UTF_8);
-  return new SingletonSketch(hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1);
-}
+  /**
+   * Present this sketch with the given String.
+   * The string is converted to a byte array using UTF8 encoding.
+   * If the string is null or empty no update attempt is made and the method returns.
+   *
+   * <p>Note: this will not produce the same output hash values as the {@link #update(char[])}
+   * method and will generally be a little slower depending on the complexity of the UTF8 encoding.
+   * </p>
+   *
+   * @param datum The given String.
+   * @return a SingletonSketch or null
+   */
+  public static SingletonSketch update(final String datum) {
+    if ((datum == null) || datum.isEmpty()) { return null; }
+    final byte[] data = datum.getBytes(UTF_8);
+    return new SingletonSketch(hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1);
+  }
 
-/**
- * Present this sketch with the given byte array.
- * If the byte array is null or empty no update attempt is made and the method returns.
- *
- * @param data The given byte array.
- * @return a SingletonSketch or null
- */
-public static SingletonSketch update(final byte[] data) {
-  if ((data == null) || (data.length == 0)) { return null; }
-  return new SingletonSketch(hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1);
-}
+  /**
+   * Present this sketch with the given byte array.
+   * If the byte array is null or empty no update attempt is made and the method returns.
+   *
+   * @param data The given byte array.
+   * @return a SingletonSketch or null
+   */
+  public static SingletonSketch update(final byte[] data) {
+    if ((data == null) || (data.length == 0)) { return null; }
+    return new SingletonSketch(hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1);
+  }
 
-/**
- * Present this sketch with the given char array.
- * If the char array is null or empty no update attempt is made and the method returns.
- *
- * <p>Note: this will not produce the same output hash values as the {@link #update(String)}
- * method but will be a little faster as it avoids the complexity of the UTF8 encoding.</p>
- *
- * @param data The given char array.
- * @return a SingletonSketch or null
- */
-public static SingletonSketch update(final char[] data) {
-  if ((data == null) || (data.length == 0)) { return null; }
-  return new SingletonSketch(hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1);
-}
+  /**
+   * Present this sketch with the given char array.
+   * If the char array is null or empty no update attempt is made and the method returns.
+   *
+   * <p>Note: this will not produce the same output hash values as the {@link #update(String)}
+   * method but will be a little faster as it avoids the complexity of the UTF8 encoding.</p>
+   *
+   * @param data The given char array.
+   * @return a SingletonSketch or null
+   */
+  public static SingletonSketch update(final char[] data) {
+    if ((data == null) || (data.length == 0)) { return null; }
+    return new SingletonSketch(hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1);
+  }
 
-/**
- * Present this sketch with the given integer array.
- * If the integer array is null or empty no update attempt is made and the method returns.
- *
- * @param data The given int array.
- * @return a SingletonSketch or null
- */
-public static SingletonSketch update(final int[] data) {
-  if ((data == null) || (data.length == 0)) { return null; }
-  return new SingletonSketch(hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1);
-}
+  /**
+   * Present this sketch with the given integer array.
+   * If the integer array is null or empty no update attempt is made and the method returns.
+   *
+   * @param data The given int array.
+   * @return a SingletonSketch or null
+   */
+  public static SingletonSketch update(final int[] data) {
+    if ((data == null) || (data.length == 0)) { return null; }
+    return new SingletonSketch(hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1);
+  }
 
-/**
- * Present this sketch with the given long array.
- * If the long array is null or empty no update attempt is made and the method returns.
- *
- * @param data The given long array.
- * @return a SingletonSketch or null
- */
-public static SingletonSketch update(final long[] data) {
-  if ((data == null) || (data.length == 0)) { return null; }
-  return new SingletonSketch(hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1);
-}
+  /**
+   * Present this sketch with the given long array.
+   * If the long array is null or empty no update attempt is made and the method returns.
+   *
+   * @param data The given long array.
+   * @return a SingletonSketch or null
+   */
+  public static SingletonSketch update(final long[] data) {
+    if ((data == null) || (data.length == 0)) { return null; }
+    return new SingletonSketch(hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1);
+  }
+
+  //Updates with a user specified seed
+
+  /**
+   * Present this sketch with the given double (or float) datum and a seed.
+   * The double will be converted to a long using Double.doubleToLongBits(datum),
+   * which normalizes all NaN values to a single NaN representation.
+   * Plus and minus zero will be normalized to plus zero.
+   * The special floating-point values NaN and +/- Infinity are treated as distinct.
+   *
+   * @param datum The given double datum.
+   * @param seed the update seed used to hash the given value.
+   * @return a SingletonSketch
+   */
+  public static SingletonSketch update(final double datum, final long seed) {
+    final double d = (datum == 0.0) ? 0.0 : datum; // canonicalize -0.0, 0.0
+    final long[] data = { Double.doubleToLongBits(d) };// canonicalize all NaN forms
+    return new SingletonSketch(hash(data, seed)[0] >>> 1, seed);
+  }
+
+  /**
+   * Present this sketch with the given String and a seed.
+   * The string is converted to a byte array using UTF8 encoding.
+   * If the string is null or empty no update attempt is made and the method returns.
+   *
+   * <p>Note: this will not produce the same output hash values as the {@link #update(char[])}
+   * method and will generally be a little slower depending on the complexity of the UTF8 encoding.
+   * </p>
+   *
+   * @param datum The given String.
+   * @param seed the update seed used to hash the given value.
+   * @return a SingletonSketch or null
+   */
+  public static SingletonSketch update(final String datum, final long seed) {
+    if ((datum == null) || datum.isEmpty()) { return null; }
+    final byte[] data = datum.getBytes(UTF_8);
+    return new SingletonSketch(hash(data, seed)[0] >>> 1, seed);
+  }
+
+  /**
+   * Present this sketch with the given byte array and a seed.
+   * If the byte array is null or empty no update attempt is made and the method returns.
+   *
+   * @param data The given byte array.
+   * @param seed the update seed used to hash the given value.
+   * @return a SingletonSketch or null
+   */
+  public static SingletonSketch update(final byte[] data, final long seed) {
+    if ((data == null) || (data.length == 0)) { return null; }
+    return new SingletonSketch(hash(data, seed)[0] >>> 1, seed);
+  }
+
+  /**
+   * Present this sketch with the given char array and a seed.
+   * If the char array is null or empty no update attempt is made and the method returns.
+   *
+   * <p>Note: this will not produce the same output hash values as the {@link #update(String)}
+   * method but will be a little faster as it avoids the complexity of the UTF8 encoding.</p>
+   *
+   * @param data The given char array.
+   * @param seed the update seed used to hash the given value.
+   * @return a SingletonSketch or null
+   */
+  public static SingletonSketch update(final char[] data, final long seed) {
+    if ((data == null) || (data.length == 0)) { return null; }
+    return new SingletonSketch(hash(data, seed)[0] >>> 1, seed);
+  }
+
+  /**
+   * Present this sketch with the given integer array and a seed.
+   * If the integer array is null or empty no update attempt is made and the method returns.
+   *
+   * @param data The given int array.
+   * @param seed the update seed used to hash the given value.
+   * @return a SingletonSketch or null
+   */
+  public static SingletonSketch update(final int[] data, final long seed) {
+    if ((data == null) || (data.length == 0)) { return null; }
+    return new SingletonSketch(hash(data, seed)[0] >>> 1, seed);
+  }
+
+  /**
+   * Present this sketch with the given long array and a seed.
+   * If the long array is null or empty no update attempt is made and the method returns.
+   *
+   * @param data The given long array.
+   * @param seed the update seed used to hash the given value.
+   * @return a SingletonSketch or null
+   */
+  public static SingletonSketch update(final long[] data, final long seed) {
+    if ((data == null) || (data.length == 0)) { return null; }
+    return new SingletonSketch(hash(data, seed)[0] >>> 1, seed);
+  }
 
   //Sketch
+
+  @Override
+  public int getCountLessThanTheta(final double theta) {
+    return 1;
+  }
 
   @Override
   public int getCurrentBytes(final boolean compact) {
@@ -179,8 +278,13 @@ public static SingletonSketch update(final long[] data) {
   }
 
   @Override
-  public Family getFamily() {
-    return Family.COMPACT;
+  public double getEstimate() {
+    return 1.0;
+  }
+
+  @Override
+  public double getLowerBound(final int numStdDev) {
+    return 1.0;
   }
 
   @Override
@@ -189,13 +293,13 @@ public static SingletonSketch update(final long[] data) {
   }
 
   @Override
-  public boolean isCompact() {
-    return true;
+  public double getUpperBound(final int numStdDev) {
+    return 1.0;
   }
 
   @Override
   public boolean isDirect() {
-    return wmem.isDirect();
+    return false;
   }
 
   @Override
@@ -219,7 +323,7 @@ public static SingletonSketch update(final long[] data) {
 
   @Override
   long[] getCache() {
-    return new long[] { wmem.getLong(8) };
+    return new long[] { arr[1] };
   }
 
   @Override
@@ -229,7 +333,7 @@ public static SingletonSketch update(final long[] data) {
 
   @Override
   Memory getMemory() {
-    return wmem;
+    return null;
   }
 
   @Override
@@ -242,14 +346,14 @@ public static SingletonSketch update(final long[] data) {
     return Long.MAX_VALUE;
   }
 
-  static void checkDefaultPre0to7(final long memPre0) {
+  static void checkDefaultBytes0to7(final long memPre0) {
     if (memPre0 != defaultPreamble) {
       throw new SketchesArgumentException(
         "Input Memory does not match defualt Preamble bytes 0 through 7.");
     }
   }
 
-  static void checkDefaultPre0to5(final long memPre0) {
+  static void checkDefaultBytes0to5(final long memPre0) {
     final long mask = (1L << 48) - 1L;
     if ((memPre0 & mask) != (defaultPreamble & mask)) {
       throw new SketchesArgumentException(

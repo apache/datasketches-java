@@ -154,6 +154,7 @@ final class PreambleUtil {
 
     final int seedHash = extractSeedHash(memObj, memAdd);
 
+    //assumes preLongs == 1
     int curCount = singleton ? 1 : 0; //preLongs 1 empty or singleton
     float p = (float) 1.0;            //preLongs 1 or 2
     long thetaLong = Long.MAX_VALUE;  //preLongs 1 or 2
@@ -198,7 +199,7 @@ final class PreambleUtil {
     sb.append("  EMPTY                       : ").append(empty).append(LS);
     sb.append("  COMPACT                     : ").append(compact).append(LS);
     sb.append("  ORDERED                     : ").append(ordered).append(LS);
-    sb.append("  SINGLETON                   : ").append(singleton).append(LS);
+    sb.append("  SINGLETON  (derived)        : ").append(singleton).append(LS);
     sb.append("Bytes 6-7  : Seed Hash        : ").append(Integer.toHexString(seedHash)).append(LS);
     if (preLongs == 1) {
       sb.append(" --ABSENT, ASSUMED:").append(LS);
