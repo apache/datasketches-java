@@ -29,7 +29,6 @@ import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
-import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 
 /**
@@ -119,8 +118,8 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
     final int familyID = extractFamilyID(memObj, memAdd);
     final Family family = Family.idToFamily(familyID);
 
-    if (myRF == ResizeFactor.X1
-            && lgArrLongs != Util.startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS)) {
+    if ((myRF == ResizeFactor.X1)
+            && (lgArrLongs != Util.startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS))) {
       myRF = ResizeFactor.X2;
     }
 
