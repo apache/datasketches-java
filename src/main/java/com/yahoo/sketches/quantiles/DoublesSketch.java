@@ -12,7 +12,6 @@ import java.util.Random;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
-
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -561,7 +560,7 @@ public abstract class DoublesSketch {
    *                performance at the cost of slightly increased serialization time.
    */
   public void putMemory(final WritableMemory dstMem, final boolean compact) {
-    if (isDirect() && isCompact() == compact) {
+    if (isDirect() && (isCompact() == compact)) {
       final Memory srcMem = getMemory();
       srcMem.copyTo(0, dstMem, 0, getStorageBytes());
     } else {

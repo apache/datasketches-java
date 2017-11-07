@@ -3,6 +3,7 @@ package com.yahoo.sketches.quantiles;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.WritableMemory;
@@ -94,6 +95,17 @@ public class DoublesSketchTest {
     assertTrue(duds.isSameResource(mem));
     DirectCompactDoublesSketch dcds = (DirectCompactDoublesSketch) duds.compact(cmem);
     assertTrue(dcds.isSameResource(cmem));
+  }
+
+  @Test
+  public void directSketchSouldMoveOntoHeapEventually() {
+    WritableMemory mem = WritableMemory.wrap(new byte[1000]);
+    UpdateDoublesSketch sketch = DoublesSketch.builder().build(mem);
+    Assert.assertTrue(sketch.isSameResource(mem));
+    for (int i = 0; i < 1000; i++) {
+      sketch.update(i);
+    }
+    Assert.assertFalse(sketch.isSameResource(mem));
   }
 
   @Test

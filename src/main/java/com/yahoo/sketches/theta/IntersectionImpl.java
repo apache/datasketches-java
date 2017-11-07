@@ -26,16 +26,19 @@ import static com.yahoo.sketches.theta.PreambleUtil.insertSerVer;
 import static com.yahoo.sketches.theta.PreambleUtil.insertThetaLong;
 import static java.lang.Math.min;
 
+import java.util.Arrays;
+
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 
 final class IntersectionImpl extends IntersectionImplR {
 
-  private IntersectionImpl(final WritableMemory mem, final long seed, final boolean newMem) {
-    super(mem, seed, newMem);
+  private IntersectionImpl(final WritableMemory wmem, final long seed, final boolean newMem) {
+    super(wmem, seed, newMem);
   }
 
   /**
@@ -160,7 +163,7 @@ final class IntersectionImpl extends IntersectionImplR {
   public void update(final Sketch sketchIn) {
     final boolean firstCall = curCount_ < 0;
 
-    final Object memObj = mem_ != null ? mem_.getArray() : null;
+    final Object memObj = (mem_ != null) ? mem_.getArray() : null;
     final long memAdd = mem_ != null ? mem_.getCumulativeOffset(0) : 0;
 
     //Corner cases
@@ -236,4 +239,85 @@ final class IntersectionImpl extends IntersectionImplR {
       performIntersect(sketchIn);
     }
   }
+
+  void performIntersect(final Sketch sketchIn) {
+    // curCount and input data are nonzero, match against HT
+    assert ((curCount_ > 0) && (!empty_));
+    final long[] cacheIn = sketchIn.getCache();
+    final int arrLongsIn = cacheIn.length;
+    final long[] hashTable;
+    if (mem_ != null) {
+      final int htLen = 1 << lgArrLongs_;
+      hashTable = new long[htLen];
+      mem_.getLongArray(CONST_PREAMBLE_LONGS << 3, hashTable, 0, htLen);
+    } else {
+      hashTable = hashTable_;
+    }
+    //allocate space for matching
+    final long[] matchSet = new long[ min(curCount_, sketchIn.getRetainedEntries(true)) ];
+
+    int matchSetCount = 0;
+    if (sketchIn.isOrdered()) {
+      //ordered compact, which enables early stop
+      for (int i = 0; i < arrLongsIn; i++ ) {
+        final long hashIn = cacheIn[i];
+        //if (hashIn <= 0L) continue;  //<= 0 should not happen
+        if (hashIn >= thetaLong_) {
+          break; //early stop assumes that hashes in input sketch are ordered!
+        }
+        final int foundIdx = HashOperations.hashSearch(hashTable, lgArrLongs_, hashIn);
+        if (foundIdx == -1) { continue; }
+        matchSet[matchSetCount++] = hashIn;
+      }
+    }
+    else {
+      //either unordered compact or hash table
+      for (int i = 0; i < arrLongsIn; i++ ) {
+        final long hashIn = cacheIn[i];
+        if ((hashIn <= 0L) || (hashIn >= thetaLong_)) { continue; }
+        final int foundIdx = HashOperations.hashSearch(hashTable, lgArrLongs_, hashIn);
+        if (foundIdx == -1) { continue; }
+        matchSet[matchSetCount++] = hashIn;
+      }
+    }
+    //reduce effective array size to minimum
+    curCount_ = matchSetCount;
+    lgArrLongs_ = computeMinLgArrLongsFromCount(matchSetCount);
+    if (mem_ != null) {
+      final Object memObj = mem_.getArray(); //may be null
+      final long memAdd = mem_.getCumulativeOffset(0);
+      insertCurCount(memObj, memAdd, matchSetCount);
+      insertLgArrLongs(memObj, memAdd, lgArrLongs_);
+      mem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_); //clear for rebuild
+    } else {
+      Arrays.fill(hashTable_, 0, 1 << lgArrLongs_, 0L); //clear for rebuild
+    }
+    //move matchSet to target
+    moveDataToTgt(matchSet, matchSetCount);
+  }
+
+  void moveDataToTgt(final long[] arr, final int count) {
+    final int arrLongsIn = arr.length;
+    int tmpCnt = 0;
+    if (mem_ != null) { //Off Heap puts directly into mem
+      final int preBytes = CONST_PREAMBLE_LONGS << 3;
+      final int lgArrLongs = lgArrLongs_;
+      final long thetaLong = thetaLong_;
+      for (int i = 0; i < arrLongsIn; i++ ) {
+        final long hashIn = arr[i];
+        if (HashOperations.continueCondition(thetaLong, hashIn)) { continue; }
+        HashOperations.fastHashInsertOnly(mem_, lgArrLongs, hashIn, preBytes);
+        tmpCnt++;
+      }
+    } else { //On Heap. Assumes HT exists and is large enough
+      for (int i = 0; i < arrLongsIn; i++ ) {
+        final long hashIn = arr[i];
+        if (HashOperations.continueCondition(thetaLong_, hashIn)) { continue; }
+        HashOperations.hashInsertOnly(hashTable_, lgArrLongs_, hashIn);
+        tmpCnt++;
+      }
+    }
+    assert (tmpCnt == count) : "Intersection Count Check: got: " + tmpCnt + ", expected: " + count;
+  }
+
 }

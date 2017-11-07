@@ -39,11 +39,13 @@ public class DoublesUnionBuilderTest {
     assertFalse(qs2 == qs3);
   }
 
-@SuppressWarnings("deprecation")
+
 @Test
 public void checkDeprecated1() {
   UpdateDoublesSketch qs1 = DoublesSketch.builder().build();
-  for (int i=0; i<1000; i++) qs1.update(i);
+  for (int i=0; i<1000; i++) {
+    qs1.update(i);
+  }
 
   int bytes = qs1.getCompactStorageBytes();
   WritableMemory dstMem = WritableMemory.wrap(new byte[bytes]);

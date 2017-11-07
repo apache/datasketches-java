@@ -5,7 +5,6 @@
 
 package com.yahoo.sketches.theta;
 
-import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 
 /**
@@ -13,7 +12,7 @@ import com.yahoo.memory.WritableMemory;
  *
  * @author Lee Rhodes
  */
-public interface Intersection {
+public abstract class Intersection extends SetOperation {
 
   /**
    * Intersect the given sketch with the internal state.
@@ -22,7 +21,7 @@ public interface Intersection {
    * Theta will become the minimum of thetas seen so far.
    * @param sketchIn the given sketch
    */
-  void update(Sketch sketchIn);
+  public abstract void update(Sketch sketchIn);
 
   /**
    * Gets the result of this operation as a CompactSketch of the chosen form.
@@ -38,40 +37,30 @@ public interface Intersection {
    *
    * @return the result of this operation as a CompactSketch of the chosen form
    */
-  CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
+  public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
 
   /**
    * Gets the result of this operation as an ordered CompactSketch on the Java heap.
    * The update method must have been called at least once.
    * @return the result of this operation as an ordered CompactSketch on the Java heap
    */
-  CompactSketch getResult();
+  public abstract CompactSketch getResult();
 
   /**
    * Returns true if there is an intersection result available
    * @return true if there is an intersection result available
    */
-  boolean hasResult();
-
-  /**
-   * Returns true if the backing resource of this sketch is identical with the backing resource
-   * of mem. If the backing resource is a common array or ByteBuffer, the offset and
-   * capacity must also be identical.
-   * @param mem A given Memory object
-   * @return true if the backing resource of this sketch is identical with the backing resource
-   * of mem.
-   */
-  boolean isSameResource(final Memory mem);
+  public abstract boolean hasResult();
 
   /**
    * Serialize this intersection to a byte array form.
    * @return byte array of this intersection
    */
-  byte[] toByteArray();
+  public abstract byte[] toByteArray();
 
   /**
    * Resets this Intersection. The seed remains intact, otherwise reverts to
    * the Universal Set, theta of 1.0 and empty = false.
    */
-  void reset();
+  public abstract void reset();
 }

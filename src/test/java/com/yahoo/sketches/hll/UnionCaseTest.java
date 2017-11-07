@@ -287,8 +287,6 @@ public class UnionCaseTest {
     double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 2.0);
     println("ErrToll: " + err);
     assertEquals(u.getEstimate(), sum, err);
-    u.getRelErr(1);
-    u.getRelErrFactor(1);
   }
 
   @Test
@@ -395,7 +393,7 @@ public class UnionCaseTest {
     assertTrue(u.isEmpty());
     u.reset();
     assertTrue(u.isEmpty());
-    println(u.toString(true, false, false));
+    println(u.toString(true, false, false, false));
     byte[] bArr = u.toCompactByteArray();
     assertEquals(bArr.length, 8);
   }

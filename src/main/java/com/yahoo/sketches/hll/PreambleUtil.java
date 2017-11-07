@@ -42,7 +42,7 @@ import com.yahoo.sketches.Family;
  * Long || Start Byte Adr, Big Endian Illustration
  * Adr:
  *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |    0   |
- *  0   ||  Mode  | CurMin | Flags  |  LgArr |   lgK  | FamID  | SerVer | PI=10   |
+ *  0   ||  Mode  | CurMin | Flags  |  LgArr |   lgK  | FamID  | SerVer | PI=10  |
  *
  *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |    8   |
  *  1   ||-------------------------------HIP Accum-------------------------------|
@@ -57,10 +57,12 @@ import com.yahoo.sketches.Family;
  *  4   ||-------------Aux Count-------------|----------Num At Cur Min-----------|
  *
  *      ||   47   |   46   |   45   |   44   |   43   |   42   |   41   |   40   |
- *  5   ||                                   <------HLL Byte Array-Start---------|
+ *  5   ||.....................................<----Start of HLL_X Byte Array----|
+ *
+ *  N   ||----End of Byte Array for HLL_4-->.....................................|
+ *  N+1 ||.....................................<---Start of Aux Array for HLL_4--|
  * </pre>
- * lgArr may be used for exceptions array. If in compact form exceptions array will
- * be compacted.
+ * If in compact form exceptions array will be compacted.
  *
  * @author Lee Rhodes
  */
@@ -77,11 +79,22 @@ final class PreambleUtil {
   static int SER_VER_BYTE                   = 1;
   static int FAMILY_BYTE                    = 2;
   static int LG_K_BYTE                      = 3;
-  static int LG_ARR_BYTE                    = 4;
+  static int LG_ARR_BYTE                    = 4; //used for LIST, SET & HLL_4
   static int FLAGS_BYTE                     = 5;
   static int LIST_COUNT_BYTE                = 6;
   static int HLL_CUR_MIN_BYTE               = 6;
   static int MODE_BYTE                      = 7; //lo2bits = curMode, next 2 bits = tgtHllType
+  //mode encoding of combined CurMode and TgtHllType:
+  // Dec  Lo4Bits TgtHllType, CurMode
+  //   0     0000      HLL_4,    LIST
+  //   1     0001      HLL_4,     SET
+  //   2     0010      HLL_4,     HLL
+  //   4     0100      HLL_6,    LIST
+  //   5     0101      HLL_6,     SET
+  //   6     0110      HLL_6,     HLL
+  //   8     1000      HLL_8,    LIST
+  //   9     1001      HLL_8,     SET
+  //  10     1010      HLL_8,     HLL
 
   //Coupon List
   static int LIST_INT_ARR_START             = 8;
@@ -96,7 +109,7 @@ final class PreambleUtil {
   static int KXQ1_DOUBLE                    = 24;
   static int CUR_MIN_COUNT_INT              = 32;
   static int AUX_COUNT_INT                  = 36;
-  static int HLL_BYTE_ARRAY_START           = 40;
+  static int HLL_BYTE_ARR_START             = 40;
 
   //Flag bit masks
   static final int BIG_ENDIAN_FLAG_MASK     = 1; //Set but not read. Reserved.
@@ -144,7 +157,7 @@ final class PreambleUtil {
     final int listCount = hllCurMin;
     final int modeByte = mem.getByte(MODE_BYTE);
     final CurMode curMode = CurMode.fromOrdinal(modeByte & 3);
-    final TgtHllType tgtHllType = TgtHllType.fromOrdinal((modeByte >> 2) & 3);
+    final TgtHllType tgtHllType = TgtHllType.fromOrdinal((modeByte >>> 2) & 3);
 
     double hipAccum = 0;
     double kxq0 = 0;
@@ -179,7 +192,7 @@ final class PreambleUtil {
       sb.append("Byte 4: LgArr: Hash Set Arr   : ").append(lgArr).append(LS);
     }
     if (curMode == CurMode.HLL) {
-      sb.append("Byte 4: LgArr: Except Arr     : ").append(lgArr).append(LS);
+      sb.append("Byte 4: LgArr or Aux LgArr    : ").append(lgArr).append(LS);
     }
     //expand byte 5: Flags
     sb.append("Byte 5: Flags:                : ").append(flagsStr).append(LS);
@@ -209,7 +222,7 @@ final class PreambleUtil {
       sb.append("KxQ0                          : ").append(kxq0).append(LS);
       sb.append("KxQ1                          : ").append(kxq1).append(LS);
       sb.append("Num At Cur Min                : ").append(curMinCount).append(LS);
-      sb.append("Exception Count               : ").append(exceptionCount).append(LS);
+      sb.append("Aux Count                     : ").append(exceptionCount).append(LS);
     }
     sb.append("### END HLL SKETCH PREAMBLE").append(LS);
     return sb.toString();
@@ -220,8 +233,8 @@ final class PreambleUtil {
     return unsafe.getByte(memObj, memAdd + PREAMBLE_INTS_BYTE) & 0X3F;
   }
 
-  static void insertPreInts(final Object memObj, final long memAdd, final int preLongs) {
-    unsafe.putByte(memObj, memAdd + PREAMBLE_INTS_BYTE, (byte) (preLongs & 0X3F));
+  static void insertPreInts(final Object memObj, final long memAdd, final int preInts) {
+    unsafe.putByte(memObj, memAdd + PREAMBLE_INTS_BYTE, (byte) (preInts & 0X3F));
   }
 
   static int extractSerVer(final Object memObj, final long memAdd) {
@@ -256,14 +269,6 @@ final class PreambleUtil {
     unsafe.putByte(memObj, memAdd + LG_ARR_BYTE, (byte) lgArr);
   }
 
-  //  static int extractFlags(final Object memObj, final long memAdd) {
-  //    return unsafe.getByte(memObj, memAdd + FLAGS_BYTE) & 0XFF;
-  //  }
-  //
-  //  static void insertFlags(final Object memObj, final long memAdd, final int flags) {
-  //    unsafe.putByte(memObj, memAdd + FLAGS_BYTE, (byte) flags);
-  //  }
-
   static int extractListCount(final Object memObj, final long memAdd) {
     return unsafe.getByte(memObj, memAdd + LIST_COUNT_BYTE) & 0XFF;
   }
@@ -279,14 +284,6 @@ final class PreambleUtil {
   static void insertCurMin(final Object memObj, final long memAdd, final int curMin) {
     unsafe.putByte(memObj, memAdd + HLL_CUR_MIN_BYTE, (byte) curMin);
   }
-
-  //  static int extractMode(final Object memObj, final long memAdd) {
-  //    return unsafe.getByte(memObj, memAdd + MODE_BYTE) & 0XFF;
-  //  }
-  //
-  //  static void insertMode(final Object memObj, final long memAdd, final int mode) {
-  //    unsafe.putByte(memObj, memAdd + MODE_BYTE, (byte) mode);
-  //  }
 
   static double extractHipAccum(final Object memObj, final long memAdd) {
     return unsafe.getDouble(memObj, memAdd + HIP_ACCUM_DOUBLE);
@@ -324,8 +321,8 @@ final class PreambleUtil {
     return unsafe.getInt(memObj, memAdd + CUR_MIN_COUNT_INT);
   }
 
-  static void insertNumAtCurMin(final Object memObj, final long memAdd, final int curMinCnt) {
-    unsafe.putInt(memObj, memAdd + CUR_MIN_COUNT_INT, curMinCnt);
+  static void insertNumAtCurMin(final Object memObj, final long memAdd, final int numAtCurMin) {
+    unsafe.putInt(memObj, memAdd + CUR_MIN_COUNT_INT, numAtCurMin);
   }
 
   static int extractAuxCount(final Object memObj, final long memAdd) {
@@ -349,7 +346,8 @@ final class PreambleUtil {
     return CurMode.fromOrdinal(curModeId);
   }
 
-  static void insertTgtHllType(final Object memObj, final long memAdd, final TgtHllType tgtHllType) {
+  static void insertTgtHllType(final Object memObj, final long memAdd,
+      final TgtHllType tgtHllType) {
     final int typeId = tgtHllType.ordinal();
     int mode = unsafe.getByte(memObj, memAdd + MODE_BYTE) & ~TGT_HLL_TYPE_MASK; //strip bits 2, 3
     mode |= (typeId << 2) & TGT_HLL_TYPE_MASK;
@@ -359,6 +357,14 @@ final class PreambleUtil {
   static TgtHllType extractTgtHllType(final Object memObj, final long memAdd) {
     final int typeId = unsafe.getByte(memObj, memAdd + MODE_BYTE) & TGT_HLL_TYPE_MASK;
     return TgtHllType.fromOrdinal(typeId >>> 2);
+  }
+
+  static void insertModes(final Object memObj, final long memAdd, final TgtHllType tgtHllType,
+      final CurMode curMode) {
+    final int curModeId = curMode.ordinal() & 3;
+    final int typeId = (tgtHllType.ordinal() & 3) << 2;
+    final int mode = typeId | curModeId;
+    unsafe.putByte(memObj, memAdd + MODE_BYTE, (byte) mode);
   }
 
   //Flags
@@ -396,6 +402,24 @@ final class PreambleUtil {
   static boolean extractOooFlag(final Object memObj, final long memAdd) {
     final int flags = unsafe.getByte(memObj, memAdd + FLAGS_BYTE);
     return (flags & OUT_OF_ORDER_FLAG_MASK) > 0;
+  }
+
+  static void insertFlags(final Object memObj, final long memAdd, final int flags) {
+    unsafe.putByte(memObj, memAdd + FLAGS_BYTE, (byte) flags);
+  }
+
+  static int extractFlags(final Object memObj, final long memAdd) {
+    return unsafe.getByte(memObj, memAdd + FLAGS_BYTE);
+  }
+
+  //Other
+  static int extractInt(final Object memObj, final long memAdd, final long byteOffset) {
+    return unsafe.getInt(memObj, memAdd + byteOffset);
+  }
+
+  static void insertInt(final Object memObj, final long memAdd, final long byteOffset,
+      final int value) {
+    unsafe.putInt(memObj, memAdd + byteOffset, value);
   }
 
 }

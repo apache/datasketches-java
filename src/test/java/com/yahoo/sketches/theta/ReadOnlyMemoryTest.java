@@ -6,6 +6,7 @@
 package com.yahoo.sketches.theta;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
 
 import java.nio.ByteBuffer;
 
@@ -96,16 +97,25 @@ public class ReadOnlyMemoryTest {
     Union u1 = SetOperation.builder().buildUnion();
     u1.update(1);
     Memory mem = Memory.wrap(ByteBuffer.wrap(u1.toByteArray()).asReadOnlyBuffer());
-    Union u2 = (Union) SetOperation.wrap(mem);
-    Assert.assertEquals(u2.getResult().getEstimate(), 1.0);
 
-    boolean thrown = false;
+    Union u2 = (Union) Sketches.wrapSetOperation(mem);
+    Union u3 = Sketches.wrapUnion(mem);
+    Assert.assertEquals(u2.getResult().getEstimate(), 1.0);
+    Assert.assertEquals(u3.getResult().getEstimate(), 1.0);
+
     try {
       u2.update(2);
+      fail();
     } catch (SketchesReadOnlyException e) {
-      thrown = true;
+      //expected
     }
-    Assert.assertTrue(thrown);
+
+    try {
+      u3.update(2);
+      fail();
+    } catch (SketchesReadOnlyException e) {
+      //expected
+    }
   }
 
   @Test
@@ -116,7 +126,7 @@ public class ReadOnlyMemoryTest {
     UpdateSketch us2 = UpdateSketch.builder().build();
     us2.update(2);
     us2.update(3);
-    
+
     Intersection i1 = SetOperation.builder().buildIntersection();
     i1.update(us1);
     i1.update(us2);
@@ -134,7 +144,7 @@ public class ReadOnlyMemoryTest {
     UpdateSketch us2 = UpdateSketch.builder().build();
     us2.update(2);
     us2.update(3);
-    
+
     Intersection i1 = SetOperation.builder().buildIntersection();
     i1.update(us1);
     i1.update(us2);

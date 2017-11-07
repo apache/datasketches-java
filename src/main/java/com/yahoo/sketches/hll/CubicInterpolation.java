@@ -16,6 +16,7 @@ final class CubicInterpolation {
    * @param x x
    * @return cubic interpolation
    */
+  //Used by AbstractCoupons
   //In C: again-two-registers cubic_interpolate_using_table L1377
   static double usingXAndYTables(final double[] xArr, final double[] yArr,
       final double x) {
@@ -56,6 +57,7 @@ final class CubicInterpolation {
    * @return cubic interpolation
    */
   //In C: again-two-registers cubic_interpolate_with_x_arr_and_y_stride L1411
+  // Used by HllEstimators
   static double usingXArrAndYStride(
       final double[] xArr, final double yStride, final double x) {
     final int xArrLen = xArr.length;

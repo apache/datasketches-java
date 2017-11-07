@@ -75,9 +75,6 @@ public class BaseHllSketchTest {
 
   @Test
   public void misc() {
-    int coupon = (15 << 26) | 1024;
-    String s = BaseHllSketch.couponString(coupon);
-    println(s);
     HllSketch sk = new HllSketch(10, TgtHllType.HLL_4);
     assertTrue(sk.isEstimationMode());
     sk.reset();

@@ -13,6 +13,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.insertFamilyID;
 import static com.yahoo.sketches.theta.PreambleUtil.insertFlags;
 import static com.yahoo.sketches.theta.PreambleUtil.insertLgArrLongs;
 import static com.yahoo.sketches.theta.PreambleUtil.insertLgNomLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.insertLgResizeFactor;
 import static com.yahoo.sketches.theta.PreambleUtil.insertP;
 import static com.yahoo.sketches.theta.PreambleUtil.insertPreLongs;
 import static com.yahoo.sketches.theta.PreambleUtil.insertSeedHash;
@@ -85,9 +86,9 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     final long memAdd = memOut.getCumulativeOffset(0L);
 
     //preamble first 8 bytes. Note: only compact can be reduced to 8 bytes.
-    final int lgRf = getResizeFactor().lg() & 3;
-    final byte byte0 = (byte) ((lgRf << 6) | preLongs);
-    insertPreLongs(memObj, memAdd, byte0);
+    final int lgRf = getResizeFactor().lg() & 0x3;
+    insertPreLongs(memObj, memAdd, preLongs);
+    insertLgResizeFactor(memObj, memAdd, lgRf);
     insertSerVer(memObj, memAdd, SER_VER);
     insertFamilyID(memObj, memAdd, familyID);
     insertLgNomLongs(memObj, memAdd, getLgNomLongs());

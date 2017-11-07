@@ -17,6 +17,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
+import static com.yahoo.sketches.theta.PreambleUtil.insertLgResizeFactor;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -28,8 +29,8 @@ import java.util.Arrays;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.WritableMemory;
 import com.yahoo.memory.WritableDirectHandle;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
@@ -109,7 +110,7 @@ public class DirectQuickSelectSketchTest {
     assertTrue(sk1.isDirect());
     assertFalse(sk1.isDirty());
 
-    UpdateSketch sk2 = UpdateSketch.heapify(mem);
+    UpdateSketch sk2 = Sketches.heapifyUpdateSketch(mem);
     assertEquals(sk2.getEstimate(), sk1est);
     assertEquals(sk2.getLowerBound(2), sk1lb);
     assertEquals(sk2.getUpperBound(2), sk1ub);
@@ -613,7 +614,7 @@ public class DirectQuickSelectSketchTest {
     WritableMemory mem2 = WritableMemory.wrap(serArr);
 
     //reconstruct to Native/Direct
-    UpdateSketch usk2 = UpdateSketch.wrap(mem2);
+    UpdateSketch usk2 = Sketches.wrapUpdateSketch(mem2);
 
     est2 = usk2.getEstimate();
     count2 = usk2.getRetainedEntries(false);
@@ -711,9 +712,25 @@ public class DirectQuickSelectSketchTest {
   }
 
   @Test
+  public void checkCorruptRFWithInsufficientArray() {
+    int k = 1024; //lgNomLongs = 10
+
+    int bytes = Sketches.getMaxUpdateSketchBytes(k);
+    byte[] arr = new byte[bytes];
+    WritableMemory mem = WritableMemory.wrap(arr);
+    ResizeFactor rf = ResizeFactor.X8; // 3
+    UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setResizeFactor(rf).build(mem);
+    usk.update(0);
+
+    insertLgResizeFactor(mem.getArray(), mem.getCumulativeOffset(0L), 0); // corrupt RF: X1
+    UpdateSketch dqss = DirectQuickSelectSketch.writableWrap(mem, DEFAULT_UPDATE_SEED);
+    assertEquals(dqss.getResizeFactor(), ResizeFactor.X2); // force-promote to X2
+  }
+
+  @Test
   public void checkFamilyAndRF() {
     int k = 16;
-    WritableMemory mem = WritableMemory.wrap(new byte[k*16 +24]);
+    WritableMemory mem = WritableMemory.wrap(new byte[(k*16) +24]);
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(mem);
     assertEquals(sketch.getFamily(), Family.QUICKSELECT);
     assertEquals(sketch.getResizeFactor(), ResizeFactor.X8);
@@ -724,7 +741,7 @@ public class DirectQuickSelectSketchTest {
   public void checkResizeInBigMem() {
     int k = 1 << 14;
     int u = 1 << 20;
-    WritableMemory mem = WritableMemory.wrap(new byte[8*k*16 +24]);
+    WritableMemory mem = WritableMemory.wrap(new byte[(8*k*16) +24]);
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(mem);
     for (int i=0; i<u; i++) { sketch.update(i); }
   }
@@ -732,11 +749,53 @@ public class DirectQuickSelectSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadLgNomLongs() {
     int k = 16;
-    WritableMemory mem = WritableMemory.wrap(new byte[k*16 +24]);
+    WritableMemory mem = WritableMemory.wrap(new byte[(k*16) +24]);
     Sketches.updateSketchBuilder().setNominalEntries(k).build(mem);
     mem.putByte(LG_NOM_LONGS_BYTE, (byte) 3); //Corrupt LgNomLongs byte
     DirectQuickSelectSketch.writableWrap(mem, DEFAULT_UPDATE_SEED);
   }
+
+  @Test
+  public void checkMoveAndResize() {
+    int k = 1 << 12;
+    int u = 2 * k;
+    int bytes = Sketches.getMaxUpdateSketchBytes(k);
+    WritableMemory wmem = WritableMemory.allocate(bytes/2);
+    UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
+    assertTrue(sketch.isSameResource(wmem));
+    for (int i = 0; i < u; i++) { sketch.update(i); }
+    assertFalse(sketch.isSameResource(wmem));
+  }
+
+  @Test
+  public void checkReadOnlyRebuildResize() {
+    int k = 1 << 12;
+    int u = 2 * k;
+    int bytes = Sketches.getMaxUpdateSketchBytes(k);
+    WritableMemory wmem = WritableMemory.allocate(bytes/2);
+    UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
+    for (int i = 0; i < u; i++) { sketch.update(i); }
+    double est1 = sketch.getEstimate();
+    byte[] ser = sketch.toByteArray();
+    Memory mem = Memory.wrap(ser);
+    UpdateSketch roSketch = (UpdateSketch) Sketches.wrapSketch(mem);
+    double est2 = roSketch.getEstimate();
+    assertEquals(est2, est1);
+    try {
+      roSketch.rebuild();
+      fail();
+    } catch (SketchesReadOnlyException e) {
+      //expected
+    }
+    try {
+      roSketch.reset();
+      fail();
+    } catch (SketchesReadOnlyException e) {
+      //expected
+    }
+
+  }
+
 
   @Test
   public void printlnTest() {
@@ -751,7 +810,7 @@ public class DirectQuickSelectSketchTest {
   }
 
   private static WritableMemory makeNativeMemory(int k) {
-    int bytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs()<< 3);
+    int bytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
     return WritableMemory.wrap(new byte[bytes]);
   }
 

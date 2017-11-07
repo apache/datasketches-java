@@ -161,7 +161,7 @@ final class Rebuilder {
    */
   static final int actLgResizeFactor(final long capBytes, final int lgArrLongs, final int preLongs,
       final int lgRF) {
-    final int maxHTLongs = Util.floorPowerOf2(((int)(capBytes >> 3) - preLongs));
+    final int maxHTLongs = Util.floorPowerOf2(((int)(capBytes >>> 3) - preLongs));
     final int lgFactor = Math.max(Integer.numberOfTrailingZeros(maxHTLongs) - lgArrLongs, 0);
     return (lgFactor >= lgRF) ? lgRF : lgFactor;
   }

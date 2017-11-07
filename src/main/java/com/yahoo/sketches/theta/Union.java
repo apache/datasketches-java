@@ -13,7 +13,7 @@ import com.yahoo.memory.WritableMemory;
  *
  * @author Lee Rhodes
  */
-public interface Union {
+public abstract class Union extends SetOperation {
 
   /**
    * Union the given on-heap sketch.
@@ -24,7 +24,7 @@ public interface Union {
    *
    * @param sketchIn The incoming sketch.
    */
-  void update(Sketch sketchIn);
+  public abstract void update(Sketch sketchIn);
 
   /**
    * Union the given Memory image of the OpenSource Theta Sketch,
@@ -35,14 +35,14 @@ public interface Union {
    * If the given sketch is null it is interpreted as an empty sketch.
    * @param mem Memory image of sketch to be merged
    */
-  void update(Memory mem);
+  public abstract void update(Memory mem);
 
   /**
    * Present this union with a long.
    *
    * @param datum The given long datum.
    */
-  void update(long datum);
+  public abstract void update(long datum);
 
   /**
    * Present this union with the given double (or float) datum.
@@ -53,7 +53,7 @@ public interface Union {
    *
    * @param datum The given double datum.
    */
-  void update(double datum);
+  public abstract void update(double datum);
 
   /**
    * Present this union with the given String.
@@ -66,7 +66,7 @@ public interface Union {
    *
    * @param datum The given String.
    */
-  void update(String datum);
+  public abstract void update(String datum);
 
   /**
    * Present this union with the given byte array.
@@ -74,7 +74,7 @@ public interface Union {
    *
    * @param data The given byte array.
    */
-  void update(byte[] data);
+  public abstract void update(byte[] data);
 
   /**
    * Present this union with the given integer array.
@@ -82,7 +82,7 @@ public interface Union {
    *
    * @param data The given int array.
    */
-  void update(int[] data);
+  public abstract void update(int[] data);
 
   /**
    * Present this union with the given char array.
@@ -93,7 +93,7 @@ public interface Union {
    *
    * @param data The given char array.
    */
-  void update(char[] data);
+  public abstract void update(char[] data);
 
   /**
    * Present this union with the given long array.
@@ -101,7 +101,7 @@ public interface Union {
    *
    * @param data The given long array.
    */
-  void update(long[] data);
+  public abstract void update(long[] data);
 
   /**
    * Gets the result of this operation as a CompactSketch of the chosen form.
@@ -116,7 +116,7 @@ public interface Union {
    *
    * @return the result of this operation as a CompactSketch of the chosen form
    */
-  CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
+  public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
 
   /**
    * Gets the result of this operation as an ordered CompactSketch on the Java heap.
@@ -124,26 +124,17 @@ public interface Union {
    * Therefore, it is OK to continue updating the union after this operation.
    * @return the result of this operation as an ordered CompactSketch on the Java heap
    */
-  CompactSketch getResult();
+  public abstract CompactSketch getResult();
 
-  /**
-   * Returns true if the backing resource of this sketch is identical with the backing resource
-   * of mem. If the backing resource is a common array or ByteBuffer, the offset and
-   * capacity must also be identical.
-   * @param mem A given Memory object
-   * @return true if the backing resource of this sketch is identical with the backing resource
-   * of mem.
-   */
-  boolean isSameResource(final Memory mem);
 
   /**
    * Returns a byte array image of this Union object
    * @return a byte array image of this Union object
    */
-  byte[] toByteArray();
+  public abstract byte[] toByteArray();
 
   /**
    * Resets this Union. The seed remains intact, otherwise reverts back to its virgin state.
    */
-  void reset();
+  public abstract void reset();
 }

@@ -61,23 +61,23 @@ public final class MurmurHash3 implements Serializable {
 
     // Number of full 128-bit blocks of 2 longs (the body).
     // Possible exclusion of a remainder of 1 long.
-    final int nblocks = longs >> 1; //longs / 2
+    final int nblocks = longs >>> 1; //longs / 2
 
     // Process the 128-bit blocks (the body) into the hash
     for (int i = 0; i < nblocks; i++ ) {
-      final long k1 = key[2 * i]; //0, 2, 4, ...
-      final long k2 = key[(2 * i) + 1]; //1, 3, 5, ...
+      final long k1 = key[i << 1]; //0, 2, 4, ...
+      final long k2 = key[(i << 1) + 1]; //1, 3, 5, ...
       hashState.blockMix128(k1, k2);
     }
 
     // Get the tail index, remainder length
-    final int tail = nblocks * 2; // 2 longs / block
+    final int tail = nblocks << 1; // 2 longs / block
     final int rem = longs - tail; // remainder longs: 0,1
 
     // Get the tail
     final long k1 = (rem == 0) ? 0 : key[tail]; //k2 -> 0
     // Mix the tail into the hash and return
-    return hashState.finalMix128(k1, 0, longs * Long.BYTES); //convert to bytes
+    return hashState.finalMix128(k1, 0, longs << 3); //convert to bytes
   }
 
   //--Hash of int[]----------------------------------------------------
@@ -94,17 +94,17 @@ public final class MurmurHash3 implements Serializable {
 
     // Number of full 128-bit blocks of 4 ints.
     // Possible exclusion of a remainder of up to 3 ints.
-    final int nblocks = ints >> 2; //ints / 4
+    final int nblocks = ints >>> 2; //ints / 4
 
     // Process the 128-bit blocks (the body) into the hash
     for (int i = 0; i < nblocks; i++ ) { //4 ints per block
-      final long k1 = getLong(key, 4 * i, 2); //0, 4, 8, ...
-      final long k2 = getLong(key, (4 * i) + 2, 2); //2, 6, 10, ...
+      final long k1 = getLong(key, i << 2, 2); //0, 4, 8, ...
+      final long k2 = getLong(key, (i << 2) + 2, 2); //2, 6, 10, ...
       hashState.blockMix128(k1, k2);
     }
 
     // Get the tail index, remainder length
-    final int tail = nblocks * 4; // 4 ints per block
+    final int tail = nblocks << 2; // 4 ints per block
     final int rem = ints - tail; // remainder ints: 0,1,2,3
 
     // Get the tail
@@ -119,7 +119,7 @@ public final class MurmurHash3 implements Serializable {
       k2 = 0;
     }
     // Mix the tail into the hash and return
-    return hashState.finalMix128(k1, k2, ints * Integer.BYTES); //convert to bytes
+    return hashState.finalMix128(k1, k2, ints << 2); //convert to bytes
   }
 
   //--Hash of char[]----------------------------------------------------
@@ -136,17 +136,17 @@ public final class MurmurHash3 implements Serializable {
 
     // Number of full 128-bit blocks of 8 chars.
     // Possible exclusion of a remainder of up to 7 chars.
-    final int nblocks = chars >> 3; //chars / 8
+    final int nblocks = chars >>> 3; //chars / 8
 
     // Process the 128-bit blocks (the body) into the hash
     for (int i = 0; i < nblocks; i++ ) { //8 chars per block
-      final long k1 = getLong(key, 8 * i, 4); //0, 8, 16, ...
-      final long k2 = getLong(key, (8 * i) + 4, 4); //4, 12, 20, ...
+      final long k1 = getLong(key, i << 3, 4); //0, 8, 16, ...
+      final long k2 = getLong(key, (i << 3) + 4, 4); //4, 12, 20, ...
       hashState.blockMix128(k1, k2);
     }
 
     // Get the tail index, remainder length
-    final int tail = nblocks * 8; // 8 chars per block
+    final int tail = nblocks << 3; // 8 chars per block
     final int rem = chars - tail; // remainder chars: 0,1,2,3,4,5,6,7
 
     // Get the tail
@@ -161,7 +161,7 @@ public final class MurmurHash3 implements Serializable {
       k2 = 0;
     }
     // Mix the tail into the hash and return
-    return hashState.finalMix128(k1, k2, chars * Character.BYTES); //convert to bytes
+    return hashState.finalMix128(k1, k2, chars << 1); //convert to bytes
   }
 
   //--Hash of byte[]----------------------------------------------------
@@ -178,17 +178,17 @@ public final class MurmurHash3 implements Serializable {
 
     // Number of full 128-bit blocks of 16 bytes.
     // Possible exclusion of a remainder of up to 15 bytes.
-    final int nblocks = bytes >> 4; //bytes / 16
+    final int nblocks = bytes >>> 4; //bytes / 16
 
     // Process the 128-bit blocks (the body) into the hash
     for (int i = 0; i < nblocks; i++ ) { //16 bytes per block
-      final long k1 = getLong(key, 16 * i, 8); //0, 16, 32, ...
-      final long k2 = getLong(key, (16 * i) + 8, 8); //8, 24, 40, ...
+      final long k1 = getLong(key, i << 4, 8); //0, 16, 32, ...
+      final long k2 = getLong(key, (i << 4) + 8, 8); //8, 24, 40, ...
       hashState.blockMix128(k1, k2);
     }
 
     // Get the tail index, remainder length
-    final int tail = nblocks * 16; //16 bytes per block
+    final int tail = nblocks << 4; //16 bytes per block
     final int rem = bytes - tail; // remainder bytes: 0,1,...,15
 
     // Get the tail

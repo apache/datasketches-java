@@ -11,7 +11,7 @@ public final class ByteArrayUtil {
    */
   public static void putInt(final byte[] bytes, final int offset, final int value) {
     for (int i = 0; i < Integer.BYTES; i++) {
-      bytes[offset + i] = (byte) ((value >> 8 * i) & 0xff);
+      bytes[offset + i] = (byte) ((value >>> (8 * i)) & 0xff);
     }
   }
 
@@ -24,7 +24,7 @@ public final class ByteArrayUtil {
    */
   public static void putLong(final byte[] bytes, final int offset, final long value) {
     for (int i = 0; i < Long.BYTES; i++) {
-      bytes[offset + i] = (byte) ((value >> 8 * i) & 0xff);
+      bytes[offset + i] = (byte) ((value >>> (8 * i)) & 0xff);
     }
   }
 

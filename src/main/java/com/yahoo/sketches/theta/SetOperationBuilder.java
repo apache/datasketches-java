@@ -228,7 +228,7 @@ public class SetOperationBuilder {
 
   /**
    * Convenience method, returns a configured SetOperation ANotB with
-   * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">Default Nominal Entries</a>
+   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>
    * @return an ANotB object
    */
   public AnotB buildANotB() {

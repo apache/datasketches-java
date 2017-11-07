@@ -6,6 +6,8 @@
 package com.yahoo.sketches.hllmap;
 
 import static com.yahoo.sketches.Util.invPow2;
+import static java.lang.Math.log;
+import static java.lang.Math.sqrt;
 
 import java.util.Arrays;
 
@@ -31,7 +33,7 @@ final class HllMap extends Map {
   private static final double LOAD_FACTOR = 15.0 / 16.0;
   private static final int HLL_INIT_NUM_ENTRIES = 157;
   private static final float HLL_RESIZE_FACTOR = 2.0F;
-  private static final double RSE = 0.836 / Math.sqrt(1024);
+  private static final double RSE = sqrt(log(2.0)) / 32.0;
   private final int k_;
   private final int hllArrLongs_; //# of longs required to store the HLL array
 

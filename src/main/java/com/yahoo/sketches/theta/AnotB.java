@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.theta;
 
+import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 
 /**
@@ -22,7 +23,15 @@ import com.yahoo.memory.WritableMemory;
  *
  * @author Lee Rhodes
  */
-public interface AnotB {
+public abstract class AnotB extends SetOperation {
+
+  /**
+   * Returns false because the AnotB operator is a stateless operation.
+   * @param mem A given Memory object
+   * @return false
+   */
+  @Override
+  public abstract boolean isSameResource(final Memory mem);
 
   /**
    * Perform A-and-not-B set operation on the two given sketches.
@@ -31,7 +40,7 @@ public interface AnotB {
    * @param a The incoming sketch for the first argument
    * @param b The incoming sketch for the second argument
    */
-  void update(Sketch a, Sketch b);
+  public abstract void update(Sketch a, Sketch b);
 
   /**
    * Gets the result of this operation as a CompactSketch of the chosen form
@@ -43,11 +52,11 @@ public interface AnotB {
    *
    * @return the result of this operation as a CompactSketch of the chosen form
    */
-  CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
+  public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
 
   /**
    * Gets the result of this operation as an ordered CompactSketch on the Java heap
    * @return the result of this operation as an ordered CompactSketch on the Java heap
    */
-  CompactSketch getResult();
+  public abstract CompactSketch getResult();
 }

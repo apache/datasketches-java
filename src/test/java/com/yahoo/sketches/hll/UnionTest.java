@@ -10,6 +10,7 @@ import static com.yahoo.sketches.hll.TgtHllType.HLL_6;
 import static com.yahoo.sketches.hll.TgtHllType.HLL_8;
 import static java.lang.Math.min;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -25,7 +26,7 @@ import com.yahoo.sketches.SketchesArgumentException;
 public class UnionTest {
   static final String LS = System.getProperty("line.separator");
 
-  static final int[] nArr = new int[] {1, 3, 10, 30, 100, 300, 1000, 3000, 10000};
+  static final int[] nArr = new int[] {1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000};
 
   @Test
   public void checkUnions() {
@@ -51,7 +52,7 @@ public class UnionTest {
     int lgMaxK = 7;
     int n1 = 7;
     int n2 = 7;
-    basicUnion(n1, n2, lgK1, lgK2, lgMaxK, t1, t2, rt); //TODO Fails here
+    basicUnion(n1, n2, lgK1, lgK2, lgMaxK, t1, t2, rt);
     n1 = 8;
     n2 = 7;
     basicUnion(n1, n2, lgK1, lgK2, lgMaxK, t1, t2, rt);
@@ -150,7 +151,7 @@ public class UnionTest {
     TgtHllType type2 = TgtHllType.values()[t2];
     String t2str = type2.toString();
     TgtHllType resultType = TgtHllType.values()[rt];
-    String rtStr = resultType.toString();
+    //String rtStr = resultType.toString();
 
     HllSketch h1 = new HllSketch(lgK1, type1);
     HllSketch h2 = new HllSketch(lgK2, type2);
@@ -173,7 +174,7 @@ public class UnionTest {
     String h1SketchStr = ("H1 SKETCH: \n" + h1.toString());
     String h2SketchStr = ("H2 SKETCH: \n" + h2.toString());
 
-    Union union = new Union(lgMaxK);
+    Union union = newUnion(lgMaxK);
     union.update(h1);
 
     String uH1SketchStr = ("Union after H1: \n" + union.getResult(resultType).toString());
@@ -221,9 +222,9 @@ public class UnionTest {
 
   @Test
   public void checkToFromUnion1() {
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < 10; i++) {
       int n = nArr[i];
-      for (int lgK = 7; lgK <= 12; lgK++) {
+      for (int lgK = 4; lgK <= 13; lgK++) {
         toFrom1(lgK, HLL_4, n);
         toFrom1(lgK, HLL_6, n);
         toFrom1(lgK, HLL_8, n);
@@ -233,7 +234,7 @@ public class UnionTest {
   }
 
   private static void toFrom1(int lgK, TgtHllType tgtHllType, int n) {
-    Union srcU = new Union(lgK);
+    Union srcU = newUnion(lgK);
     HllSketch srcSk = new HllSketch(lgK, tgtHllType);
     for (int i = 0; i < n; i++) {
       srcSk.update(i);
@@ -245,15 +246,16 @@ public class UnionTest {
     byte[] byteArr = srcU.toCompactByteArray();
     Memory mem = Memory.wrap(byteArr);
     Union dstU = Union.heapify(mem);
+    assertFalse(dstU.isSameResource(mem));
 
     assertEquals(dstU.getEstimate(), srcU.getEstimate(), 0.0);
   }
 
   @Test
   public void checkToFromUnion2() {
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < 10; i++) {
       int n = nArr[i];
-      for (int lgK = 7; lgK <= 12; lgK++) {
+      for (int lgK = 4; lgK <= 13; lgK++) {
         toFrom2(lgK, HLL_4, n);
         toFrom2(lgK, HLL_6, n);
         toFrom2(lgK, HLL_8, n);
@@ -263,7 +265,7 @@ public class UnionTest {
   }
 
   private static void toFrom2(int lgK, TgtHllType tgtHllType, int n) {
-    Union srcU = new Union(lgK);
+    Union srcU = newUnion(lgK);
     HllSketch srcSk = new HllSketch(lgK, tgtHllType);
     for (int i = 0; i < n; i++) {
       srcSk.update(i);
@@ -280,7 +282,7 @@ public class UnionTest {
 
   @Test
   public void checkCompositeEst() {
-    Union u = new Union(12);
+    Union u = newUnion(12);
     assertEquals(u.getCompositeEstimate(), 0, .03);
     for (int i = 1; i <= 15; i++) { u.update(i); }
     assertEquals(u.getCompositeEstimate(), 15, 15 *.03);
@@ -291,20 +293,32 @@ public class UnionTest {
   @Test
   public void checkMisc() {
     try {
-      Union u = new Union(HllUtil.MIN_LOG_K - 1);
+      Union u = newUnion(HllUtil.MIN_LOG_K - 1);
       fail();
     } catch (SketchesArgumentException e) {
       //expected
     }
     try {
-      Union u = new Union(HllUtil.MAX_LOG_K + 1);
+      Union u = newUnion(HllUtil.MAX_LOG_K + 1);
       fail();
     } catch (SketchesArgumentException e) {
       //expected
     }
-    Union u = new Union(7);
+    Union u = newUnion(7);
     HllSketch sk = u.getResult();
     assertTrue(sk.isEmpty());
+  }
+
+  @Test
+  public void checkHeapify() {
+    Union u = newUnion(16);
+    for (int i = 0; i < (1 << 20); i++) {
+      u.update(i);
+    }
+    double est1 = u.getEstimate();
+    byte[] byteArray = u.toUpdatableByteArray();
+    Union u2 = Union.heapify(byteArray);
+    assertEquals(u2.getEstimate(), est1, 0.0);
   }
 
   @Test //for lgK <= 12
@@ -320,11 +334,91 @@ public class UnionTest {
     println("LgK="+lgK+", LB3, " + ((getBound(lgK, false, oooFlag, 3, n) / n) - 1));
   }
 
-  private static double getBound(int lgK, boolean ub, boolean oooFlag, int numStdDev, double est) {
-    double re = RelativeErrorTables.getRelErr(ub, oooFlag, lgK, numStdDev);
-    return (ub) ? est / (1.0 + re) : est / (1.0 +re);
+  @Test
+  public void checkEmptyCouponMisc() {
+    int lgK = 8;
+    Union union = newUnion(lgK);
+    for (int i = 0; i < 20; i++) { union.update(i); } //SET mode
+    union.couponUpdate(0);
+    assertEquals(union.getEstimate(), 20.0, 0.001);
+    assertEquals(union.getTgtHllType(), TgtHllType.HLL_8);
+    assertFalse(union.isMemory());
+    assertFalse(union.isOffHeap());
+    int bytes = union.getUpdatableSerializationBytes();
+    assertTrue(bytes  <= Union.getMaxSerializationBytes(lgK));
+    assertFalse(union.isCompact());
   }
 
+  @Test
+  public void checkUnionWithWrap() {
+    int lgConfigK = 4;
+    TgtHllType type = TgtHllType.HLL_4;
+    int n = 2;
+    HllSketch sk = new HllSketch(lgConfigK, type);
+    for (int i = 0; i < n; i++) { sk.update(i); }
+    double est = sk.getEstimate();
+    byte[] skByteArr = sk.toCompactByteArray();
+
+    HllSketch sk2 = HllSketch.wrap(Memory.wrap(skByteArr));
+    assertEquals(sk2.getEstimate(), est, 0.0);
+
+    Union union = newUnion(lgConfigK);
+    union.update(HllSketch.wrap(Memory.wrap(skByteArr)));
+    assertEquals(union.getEstimate(), est, 0.0);
+  }
+
+  @Test
+  public void checkUnionWithWrap2() {
+    int lgConfigK = 10;
+    int n = 128;
+    HllSketch sk1 = new HllSketch(lgConfigK);
+    for (int i = 0; i < n; i++) { sk1.update(i); }
+    double est1 = sk1.getEstimate();
+    byte[] byteArr1 = sk1.toCompactByteArray();
+
+    Union union = newUnion(lgConfigK);
+    union.update(HllSketch.wrap(Memory.wrap(byteArr1)));
+    double est2 = union.getEstimate();
+    assertEquals(est2, est1);
+  }
+
+  @Test
+  public void checkConversions() {
+    int lgK = 4;
+    HllSketch sk1 = new HllSketch(lgK, TgtHllType.HLL_8);
+    HllSketch sk2 = new HllSketch(lgK, TgtHllType.HLL_8);
+    int u = 1 << 20;
+    for (int i = 0; i < u; i++) {
+      sk1.update(i);
+      sk2.update(i + u);
+    }
+    Union union = new Union(lgK);
+    union.update(sk1);
+    union.update(sk2);
+    HllSketch rsk1 = union.getResult(TgtHllType.HLL_8);
+    HllSketch rsk2 = union.getResult(TgtHllType.HLL_6);
+    HllSketch rsk3 = union.getResult(TgtHllType.HLL_4);
+    double est1 = rsk1.getEstimate();
+    double est2 = rsk2.getEstimate();
+    double est3 = rsk3.getEstimate();
+    //println("Est1: " + est1);
+    //println("Est2: " + est2);
+    //println("Est3: " + est3);
+    //println("Result HLL8: " + rsk1.toString(true, true, true, false));
+    //println("Result HLL4: " + rsk3.toString(true, true, true, false));
+
+    assertEquals(est2, est1, 0.0);
+    assertEquals(est3, est1, 0.0);
+  }
+
+  private static Union newUnion(int lgK) {
+    return new Union(lgK);
+  }
+
+  private static double getBound(int lgK, boolean ub, boolean oooFlag, int numStdDev, double est) {
+    double re = RelativeErrorTables.getRelErr(ub, oooFlag, lgK, numStdDev);
+    return est / (1.0 + re);
+  }
 
   @Test
   public void printlnTest() {

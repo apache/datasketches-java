@@ -9,7 +9,7 @@
        but this allows us to tune these constants for different sketches. -->
   <Match>
     <Bug pattern="DB_DUPLICATE_BRANCHES" />
-    <Class name="com.yahoo.sketches.theta.DirectQuickSelectSketch" />
+    <Class name="com.yahoo.sketches.theta.DirectQuickSelectSketchR" />
     <Method name="setHashTableThreshold" />
   </Match>
 
@@ -26,8 +26,12 @@
   </Match>
   
   <Match>   <!-- Exclude for test classes; too many False Positives. -->
-    <Bug pattern="DLS_DEAD_LOCAL_STORE" />
+    <Bug pattern="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT" />
     <Class name="~.*\.*Test" />
+  </Match>
+  
+  <Match>   <!-- Too many False Positives. -->
+    <Bug pattern="DLS_DEAD_LOCAL_STORE" />
   </Match>
   
 </FindBugsFilter>

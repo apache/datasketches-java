@@ -7,13 +7,17 @@ package com.yahoo.sketches;
 import static com.yahoo.sketches.HashOperations.checkHashCorruption;
 import static com.yahoo.sketches.HashOperations.checkThetaCorruption;
 import static com.yahoo.sketches.HashOperations.continueCondition;
+import static com.yahoo.sketches.HashOperations.fastHashInsertOnly;
+import static com.yahoo.sketches.HashOperations.fastHashSearchOrInsert;
 import static com.yahoo.sketches.HashOperations.hashArrayInsert;
 import static com.yahoo.sketches.HashOperations.hashInsertOnly;
 import static com.yahoo.sketches.HashOperations.hashSearch;
+import static com.yahoo.sketches.HashOperations.hashSearchOrInsert;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
@@ -87,7 +91,7 @@ public class HashOperationsTest {
   public void testHashInsertOnlyMemoryNoStride() {
     long[] table = new long[32];
     WritableMemory mem = WritableMemory.wrap(table);
-    int index = hashInsertOnly(mem, 5, 1, 0);
+    int index = fastHashInsertOnly(mem, 5, 1, 0);
     assertEquals(index, 1);
     assertEquals(table[1], 1L);
   }
@@ -97,10 +101,89 @@ public class HashOperationsTest {
     long[] table = new long[32];
     table[1] = 1;
     WritableMemory mem = WritableMemory.wrap(table);
-    int index = hashInsertOnly(mem, 5, 1, 0);
+    int index = fastHashInsertOnly(mem, 5, 1, 0);
     assertEquals(index, 2);
     assertEquals(table[2], 1L);
   }
+
+  @Test
+  public void checkFullHeapTableCatchesInfiniteLoop() {
+    long[] table = new long[32];
+    for (int i = 1; i <= 32; ++i) {
+      hashInsertOnly(table, 5, i);
+    }
+
+    // table full; search returns not found, others throw exception
+    final int retVal = hashSearch(table, 5, 33);
+    assertEquals(retVal, -1);
+
+    try {
+      hashInsertOnly(table, 5, 33);
+      fail();
+    } catch (final SketchesArgumentException e) {
+      // expected
+    }
+
+    try {
+      hashSearchOrInsert(table, 5, 33);
+      fail();
+    } catch (final SketchesArgumentException e) {
+      // expected
+    }
+  }
+
+  @Test
+  public void checkFullDirectTableCatchesInfiniteLoop() {
+    long[] table = new long[32];
+    WritableMemory mem = WritableMemory.wrap(table);
+    for (int i = 1; i <= 32; ++i) {
+      fastHashInsertOnly(mem, 5, i, 0);
+    }
+
+    // table full; search returns not found, others throw exception
+    final int retVal = hashSearch(mem, 5, 33, 0);
+    assertEquals(retVal, -1);
+
+    try {
+      fastHashInsertOnly(mem, 5, 33, 0);
+      fail();
+    } catch (final SketchesArgumentException e) {
+      // expected
+    }
+
+    try {
+      fastHashSearchOrInsert(mem, 5, 33, 0);
+      fail();
+    } catch (final SketchesArgumentException e) {
+      // expected
+    }
+  }
+
+  @Test
+  public void checkFullFastDirectTableCatchesInfiniteLoop() {
+    long[] table = new long[32];
+    WritableMemory wmem = WritableMemory.wrap(table);
+
+    for (int i = 1; i <= 32; ++i) {
+      fastHashInsertOnly(wmem, 5, i, 0);
+    }
+
+    // table full; throws exception
+    try {
+      fastHashInsertOnly(wmem, 5, 33, 0);
+      fail();
+    } catch (final SketchesArgumentException e) {
+      // expected
+    }
+
+    try {
+      fastHashSearchOrInsert(wmem, 5, 33, 0);
+      fail();
+    } catch (final SketchesArgumentException e) {
+      // expected
+    }
+  }
+
 
   @Test
   public void printlnTest() {
