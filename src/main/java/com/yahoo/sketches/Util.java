@@ -441,15 +441,19 @@ public final class Util {
 
   /**
    * Computes the next larger integer point in the power series
-   * <i>point = 2<sup>(i/ppo)</sup></i> given the current point in the series.
+   * <i>point = 2<sup>( i / ppo )</sup></i> given the current point in the series.
    * For illustration, this can be used in a loop as follows:
    *
    * <pre>{@code
-   *     for (int i = 1; i &le; (1 << 10); i = pwr2LawNext(2, i)) &#123;
-   *       System.out.print(i + " ");
-   *     &#125;
+   *     int maxP = 1024;
+   *     int minP = 1;
+   *     int ppo = 2;
+   *
+   *     for (int p = minP; p <= maxP; p = pwr2LawNext(ppo, p)) {
+   *       System.out.print(p + " ");
+   *     }
    *     //generates the following series:
-   *     //  1 2 3 4 6 8 11 16 23 32 45 64 91 128 181 256 362 512 724 1024
+   *     //1 2 3 4 6 8 11 16 23 32 45 64 91 128 181 256 362 512 724 1024
    * }</pre>
    *
    * @param ppo Points-Per-Octave, or the number of points per integer powers of 2 in the series.
@@ -468,18 +472,19 @@ public final class Util {
 
   /**
    * Computes the previous, smaller integer point in the power series
-   * <i>point = 2<sup>(i/ppo)</sup></i> given the current point in the series.
+   * <i>point = 2<sup>( i / ppo )</sup></i> given the current point in the series.
    * For illustration, this can be used in a loop as follows:
    *
    * <pre>{@code
-   *     int p = 1024;
+   *     int maxP = 1024;
+   *     int minP = 1;
    *     int ppo = 2;
-   *     while (p >= 1) &#123;
+   *
+   *     for (int p = maxP; p >= minP; p = pwr2LawPrev(ppo, p)) {
    *       System.out.print(p + " ");
-   *       p = pwr2LawPrev(ppo, p);
-   *     &#125;
+   *     }
    *     //generates the following series:
-   *     //  1024 724 512 362 256 181 128 91 64 45 32 23 16 11 8 6 4 3 2 1
+   *     //1024 724 512 362 256 181 128 91 64 45 32 23 16 11 8 6 4 3 2 1
    * }</pre>
    *
    * @param ppo Points-Per-Octave, or the number of points per integer powers of 2 in the series.
