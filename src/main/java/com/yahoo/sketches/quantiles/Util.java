@@ -14,7 +14,6 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
 
 import com.yahoo.memory.Memory;
-
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -55,8 +54,8 @@ final class Util {
     final DoublesAuxiliary p = sketch1.constructAuxiliary();
     final DoublesAuxiliary q = sketch2.constructAuxiliary();
 
-    final double n1 = (double) sketch1.getN();
-    final double n2 = (double) sketch2.getN();
+    final double n1 = sketch1.getN();
+    final double n2 = sketch2.getN();
     final double confScale = Math.sqrt(-0.5 * Math.log(0.5 * tgtConf));
 
     // reject null hypothesis at tgtConf if D_{KS} > thresh
@@ -66,7 +65,7 @@ final class Util {
     int i = getNextIndex(p, -1);
     int j = getNextIndex(q, -1);
     // We're done if either
-    while (i < p.auxSamplesArr_.length && j < q.auxSamplesArr_.length) {
+    while ((i < p.auxSamplesArr_.length) && (j < q.auxSamplesArr_.length)) {
       System.out.printf("p[%d]: (%f, %f)\t", i, p.auxSamplesArr_[i], p.auxCumWtsArr_[i] / n1);
       System.out.printf("q[%d]: (%f, %f)\n", j, q.auxSamplesArr_[j], q.auxCumWtsArr_[j] / n2);
       System.out.printf("\tD = max(%f, %f)\n", D,
@@ -77,7 +76,7 @@ final class Util {
         System.out.println("\tIncrement both\n");
         i = getNextIndex(p, i);
         j = getNextIndex(q, j);
-      } else if (p.auxSamplesArr_[i] < q.auxSamplesArr_[j] && i < p.auxSamplesArr_.length) {
+      } else if ((p.auxSamplesArr_[i] < q.auxSamplesArr_[j]) && (i < p.auxSamplesArr_.length)) {
         System.out.println("\tIncrement p\n");
         i = getNextIndex(p, i);
       } else {
@@ -104,7 +103,7 @@ final class Util {
     final double eps2 = Util.EpsilonFromK.getAdjustedEpsilon(sketch2.getK());
     final double adjustedD = D - eps1 - eps2;
 
-    System.out.printf("D: %f\te1: %f\te2: %f\ttotal: %f\tthresh: %f\tresult: %s\n",
+    System.out.printf("D: %f\te1: %f\te2: %f\ttotal: %f \tthresh: %f \tresult: %s\n",
             D, eps1, eps2, adjustedD, thresh, adjustedD > thresh);
 
     return adjustedD > thresh;
@@ -117,7 +116,7 @@ final class Util {
     // if we have a bunch of equal values, use the last one
     final double val = aux.auxSamplesArr_[idx];
     int nxtIdx = idx + 1;
-    while (nxtIdx < aux.auxSamplesArr_.length && aux.auxSamplesArr_[nxtIdx] == val) {
+    while ((nxtIdx < aux.auxSamplesArr_.length) && (aux.auxSamplesArr_[nxtIdx] == val)) {
       idx = nxtIdx;
       ++nxtIdx;
     }
@@ -248,7 +247,7 @@ final class Util {
     final int bbCnt = computeBaseBufferItems(k, n);
     final long bitPattern = computeBitPattern(k, n);
     final int validLevels = computeValidLevels(bitPattern);
-    return bbCnt + validLevels * k;
+    return bbCnt + (validLevels * k);
   }
 
   /**
@@ -446,7 +445,7 @@ final class Util {
       assert lo < hi;
       assert epsForKPredicate(lo, kf);
       assert !epsForKPredicate(hi, kf);
-      if ((hi - lo) / lo < bracketedBinarySearchForEpsTol) {
+      if (((hi - lo) / lo) < bracketedBinarySearchForEpsTol) {
         return lo;
       }
       final double mid = (lo + hi) / 2.0;

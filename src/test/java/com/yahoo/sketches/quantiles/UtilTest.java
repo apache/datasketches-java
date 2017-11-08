@@ -179,13 +179,17 @@ public class UtilTest {
 
  private static void assertMergeTestPrecondition(double [] arr, long [] brr, int arrLen, int blkSize) {
    int violationsCount = 0;
-   for (int i = 0; i < arrLen-1; i++) {
-     if (((i+1) % blkSize) == 0) continue;
+   for (int i = 0; i < (arrLen-1); i++) {
+     if (((i+1) % blkSize) == 0) {
+      continue;
+    }
      if (arr[i] > arr[i+1]) { violationsCount++; }
    }
 
    for (int i = 0; i < arrLen; i++) {
-     if (brr[i] != (long) (1e12 * (1.0 - arr[i]))) violationsCount++;
+     if (brr[i] != (long) (1e12 * (1.0 - arr[i]))) {
+      violationsCount++;
+    }
    }
    if (brr[arrLen] != 0) { violationsCount++; }
 
@@ -194,12 +198,14 @@ public class UtilTest {
 
  private static void  assertMergeTestPostcondition(double [] arr, long [] brr, int arrLen) {
    int violationsCount = 0;
-   for (int i = 0; i < arrLen-1; i++) {
+   for (int i = 0; i < (arrLen-1); i++) {
      if (arr[i] > arr[i+1]) { violationsCount++; }
    }
 
    for (int i = 0; i < arrLen; i++) {
-     if (brr[i] != (long) (1e12 * (1.0 - arr[i]))) violationsCount++;
+     if (brr[i] != (long) (1e12 * (1.0 - arr[i]))) {
+      violationsCount++;
+    }
    }
    if (brr[arrLen] != 0) { violationsCount++; }
 
@@ -267,14 +273,14 @@ public class UtilTest {
    int arrLen = 0;
    double[] arr = null;
    for (arrLen = 0; arrLen <= maxArrLen; arrLen++) {
-     for (int blkSize = 1; blkSize <= arrLen + 100; blkSize++) {
+     for (int blkSize = 1; blkSize <= (arrLen + 100); blkSize++) {
        for (int tryno = 1; tryno <= numTries; tryno++) {
          arr = makeMergeTestInput(arrLen, blkSize);
          long [] brr = makeTheTandemArray(arr);
          assertMergeTestPrecondition(arr, brr, arrLen, blkSize);
          DoublesAuxiliary.blockyTandemMergeSort(arr, brr, arrLen, blkSize);
          /* verify sorted order */
-         for (int i = 0; i < arrLen-1; i++) {
+         for (int i = 0; i < (arrLen-1); i++) {
            assert arr[i] <= arr[i+1];
          }
          assertMergeTestPostcondition(arr, brr, arrLen);
@@ -287,14 +293,14 @@ public class UtilTest {
   @Test
   public void computeKomologorovSmirnovStatisticTest() {
     final int k = 16;
-    final DoublesSketch s1 = DoublesSketch.builder().build(k);
-    final DoublesSketch s2 = DoublesSketch.builder().build(k);
+    final UpdateDoublesSketch s1 = DoublesSketch.builder().setK(k).build();
+    final UpdateDoublesSketch s2 = DoublesSketch.builder().setK(k).build();
     final double conf = 0.95;
 
     final Random rand = new Random();
 
     //final int n = k * 32;
-    final int n =  3 * k - 1;
+    final int n =  (3 * k) - 1;
     for (int i = 0; i < n; ++i) {
       final double x = rand.nextGaussian();
       //s1.update(i);
