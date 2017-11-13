@@ -54,34 +54,52 @@ final class Util {
     final DoublesAuxiliary p = sketch1.constructAuxiliary();
     final DoublesAuxiliary q = sketch2.constructAuxiliary();
 
+    final double[] pSamplesArr = p.auxSamplesArr_;
+    final double[] qSamplesArr = q.auxSamplesArr_;
+    final long[] pCumWtsArr = p.auxCumWtsArr_;
+    final long[] qCumWtsArr = q.auxCumWtsArr_;
+    final int pSamplesArrLen = pSamplesArr.length;
+    final int qSamplesArrLen = qSamplesArr.length;
+
     final double n1 = sketch1.getN();
     final double n2 = sketch2.getN();
     final double confScale = Math.sqrt(-0.5 * Math.log(0.5 * tgtConf));
 
     // reject null hypothesis at tgtConf if D_{KS} > thresh
     final double thresh = confScale * Math.sqrt((n1 + n2) / (n1 * n2));
-
     double D = 0.0;
-    int i = getNextIndex(p, -1);
-    int j = getNextIndex(q, -1);
-    // We're done if either
-    while ((i < p.auxSamplesArr_.length) && (j < q.auxSamplesArr_.length)) {
-      System.out.printf("p[%d]: (%f, %f)\t", i, p.auxSamplesArr_[i], p.auxCumWtsArr_[i] / n1);
-      System.out.printf("q[%d]: (%f, %f)\n", j, q.auxSamplesArr_[j], q.auxCumWtsArr_[j] / n2);
-      System.out.printf("\tD = max(%f, %f)\n", D,
-              Math.abs((p.auxCumWtsArr_[i] / n1) - (q.auxCumWtsArr_[j] / n2)));
-      D = Math.max(D, Math.abs((p.auxCumWtsArr_[i] / n1) - (q.auxCumWtsArr_[j] / n2)));
+    int i = getNextIndex(pSamplesArr, -1);
+    int j = getNextIndex(qSamplesArr, -1);
 
-      if (p.auxSamplesArr_[i] == q.auxSamplesArr_[j]) {
+    // We're done if either array reaches the end
+    while ((i < pSamplesArrLen) && (j < qSamplesArrLen)) {
+      final double pSample = pSamplesArr[i];
+      final double qSample = qSamplesArr[j];
+      final long pWt = pCumWtsArr[i];
+      final long qWt = qCumWtsArr[j];
+      final double pNormWt = pWt / n1;
+      final double qNormWt = qWt / n2;
+      final double pMinusQ = Math.abs(pNormWt - qNormWt);
+      final double curD = D;
+      D = Math.max(curD, pMinusQ);
+
+      System.out.printf("p[%d]: (%f, %f)\t", i, pSample, pNormWt);
+      System.out.printf("q[%d]: (%f, %f)\n", j, qSample, qNormWt);
+      System.out.printf("\tpCumWt = %d \tqCumWt = %d\n", pWt, qWt);
+      System.out.printf("\tD = max(D, pNormWt - qNormWt) = max(%f, %f) = %f\n",
+          curD, pMinusQ, D);
+
+      //Increment i or j or both
+      if (pSample == qSample) {
         System.out.println("\tIncrement both\n");
-        i = getNextIndex(p, i);
-        j = getNextIndex(q, j);
-      } else if ((p.auxSamplesArr_[i] < q.auxSamplesArr_[j]) && (i < p.auxSamplesArr_.length)) {
+        i = getNextIndex(pSamplesArr, i);
+        j = getNextIndex(qSamplesArr, j);
+      } else if ((pSample < qSample) && (i < pSamplesArrLen)) {
         System.out.println("\tIncrement p\n");
-        i = getNextIndex(p, i);
+        i = getNextIndex(pSamplesArr, i);
       } else {
         System.out.println("\tIncrement q\n");
-        j = getNextIndex(q, j);
+        j = getNextIndex(qSamplesArr, j);
       }
     }
 
@@ -89,8 +107,8 @@ final class Util {
     // Subsequent values for the smaller CDF will be strictly larger, so the difference for any
     // later tests cannot be greater.
     System.out.printf("Final D = max(%f, %f)\n", D,
-            Math.abs((p.auxCumWtsArr_[i] / n1) - (q.auxCumWtsArr_[j] / n2)));
-    D = Math.max(D, Math.abs((p.auxCumWtsArr_[i] / n1) - (q.auxCumWtsArr_[j] / n2)));
+            Math.abs((pCumWtsArr[i] / n1) - (qCumWtsArr[j] / n2)));
+    D = Math.max(D, Math.abs((pCumWtsArr[i] / n1) - (qCumWtsArr[j] / n2)));
 
     /*
     System.out.println("N: " + p.auxN_);
@@ -109,14 +127,16 @@ final class Util {
     return adjustedD > thresh;
   }
 
-  static int getNextIndex(final DoublesAuxiliary aux, final int stIdx) {
+  private static final int getNextIndex(final double[] samplesArr, final int stIdx) {
     int idx = stIdx + 1;
-    if (idx >= aux.auxSamplesArr_.length) { return aux.auxSamplesArr_.length; }
+    final int samplesArrLen = samplesArr.length;
 
-    // if we have a bunch of equal values, use the last one
-    final double val = aux.auxSamplesArr_[idx];
+    if (idx >= samplesArrLen) { return samplesArrLen; }
+
+    // if we have a sequence of equal values, use the last one of the sequence
+    final double val = samplesArr[idx];
     int nxtIdx = idx + 1;
-    while ((nxtIdx < aux.auxSamplesArr_.length) && (aux.auxSamplesArr_[nxtIdx] == val)) {
+    while ((nxtIdx < samplesArrLen) && (samplesArr[nxtIdx] == val)) {
       idx = nxtIdx;
       ++nxtIdx;
     }
