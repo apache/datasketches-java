@@ -210,8 +210,8 @@ final class Util {
    * Checks just the flags field of an input Memory object. Returns true for a compact
    * sketch, false for an update sketch. Does not perform additional checks, including sketch
    * family.
-   * @param srcMem the source Memory containign a sketch
-   * @return true if flags indicate a comapct sketch, otherwise false
+   * @param srcMem the source Memory containing a sketch
+   * @return true if flags indicate a compact sketch, otherwise false
    */
   static boolean checkIsCompactMemory(final Memory srcMem) {
     // only reading so downcast is ok
