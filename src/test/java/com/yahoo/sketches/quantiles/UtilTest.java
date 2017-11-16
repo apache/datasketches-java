@@ -6,6 +6,7 @@
 package com.yahoo.sketches.quantiles;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.Arrays;
@@ -179,17 +180,13 @@ public class UtilTest {
 
  private static void assertMergeTestPrecondition(double [] arr, long [] brr, int arrLen, int blkSize) {
    int violationsCount = 0;
-   for (int i = 0; i < (arrLen-1); i++) {
-     if (((i+1) % blkSize) == 0) {
-      continue;
-    }
+   for (int i = 0; i < arrLen-1; i++) {
+     if (((i+1) % blkSize) == 0) continue;
      if (arr[i] > arr[i+1]) { violationsCount++; }
    }
 
    for (int i = 0; i < arrLen; i++) {
-     if (brr[i] != (long) (1e12 * (1.0 - arr[i]))) {
-      violationsCount++;
-    }
+     if (brr[i] != (long) (1e12 * (1.0 - arr[i]))) violationsCount++;
    }
    if (brr[arrLen] != 0) { violationsCount++; }
 
@@ -198,14 +195,12 @@ public class UtilTest {
 
  private static void  assertMergeTestPostcondition(double [] arr, long [] brr, int arrLen) {
    int violationsCount = 0;
-   for (int i = 0; i < (arrLen-1); i++) {
+   for (int i = 0; i < arrLen-1; i++) {
      if (arr[i] > arr[i+1]) { violationsCount++; }
    }
 
    for (int i = 0; i < arrLen; i++) {
-     if (brr[i] != (long) (1e12 * (1.0 - arr[i]))) {
-      violationsCount++;
-    }
+     if (brr[i] != (long) (1e12 * (1.0 - arr[i]))) violationsCount++;
    }
    if (brr[arrLen] != 0) { violationsCount++; }
 
@@ -264,7 +259,7 @@ public class UtilTest {
    testBlockyTandemMergeSort(10, 50);
  }
 
-  /**
+ /**
   *
   * @param numTries number of tries
   * @param maxArrLen maximum length of array size
@@ -273,14 +268,14 @@ public class UtilTest {
    int arrLen = 0;
    double[] arr = null;
    for (arrLen = 0; arrLen <= maxArrLen; arrLen++) {
-     for (int blkSize = 1; blkSize <= (arrLen + 100); blkSize++) {
+     for (int blkSize = 1; blkSize <= arrLen + 100; blkSize++) {
        for (int tryno = 1; tryno <= numTries; tryno++) {
          arr = makeMergeTestInput(arrLen, blkSize);
          long [] brr = makeTheTandemArray(arr);
          assertMergeTestPrecondition(arr, brr, arrLen, blkSize);
          DoublesAuxiliary.blockyTandemMergeSort(arr, brr, arrLen, blkSize);
          /* verify sorted order */
-         for (int i = 0; i < (arrLen-1); i++) {
+         for (int i = 0; i < arrLen-1; i++) {
            assert arr[i] <= arr[i+1];
          }
          assertMergeTestPostcondition(arr, brr, arrLen);
@@ -295,7 +290,7 @@ public class UtilTest {
     final int k = 16;
     final UpdateDoublesSketch s1 = DoublesSketch.builder().setK(k).build();
     final UpdateDoublesSketch s2 = DoublesSketch.builder().setK(k).build();
-    final double conf = 0.95;
+    final double tgtPvalue = .05;
 
     final Random rand = new Random();
 
@@ -303,16 +298,12 @@ public class UtilTest {
     final int n =  (3 * k) - 1;
     for (int i = 0; i < n; ++i) {
       final double x = rand.nextGaussian();
-      //s1.update(i);
-      //s1.update(i);
-      s1.update(x + 0.25);
-      //s2.update(2 * x + 2);
+      s1.update(x + .5);
       s2.update(x);
     }
-
-    Util.computeKSStatistic(s1, s2, conf);
+    final boolean rejectNullHypoth = Util.computeKSStatistic(s1, s2, tgtPvalue);
+    assertFalse(rejectNullHypoth);
   }
-
 
 // we are retaining this stand-alone test for now because it can be more exhaustive
 

@@ -14,6 +14,7 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
 
 import com.yahoo.memory.Memory;
+
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -42,15 +43,18 @@ final class Util {
 
   /**
    * Computes the Komologorov-Smirnov Statistic between two quantiles sketches.
+   * Note: if the given sketches have insufficient data or if the sketch sizes are too small,
+   * this will return false.
    * @param sketch1 Input DoubleSketch 1
    * @param sketch2 Input DoubleSketch 2
-   * @param tgtConf Target confidence threshold
-   * @return Boolean indicating whether the two sketches were likely generated from the same
-   * underlying distribution.
+   * @param tgtPvalue Target p-value. Typically .001 to .1, e.g., .05.
+   * @return Boolean indicating whether we can reject the null hypothesis (that the sketches
+   * reflect the same underlying distribution) using the provided tgtPValue.
    */
   public static boolean computeKSStatistic(final DoublesSketch sketch1,
                                            final DoublesSketch sketch2,
-                                           final double tgtConf) {
+                                           final double tgtPvalue) {
+
     final DoublesAuxiliary p = sketch1.constructAuxiliary();
     final DoublesAuxiliary q = sketch2.constructAuxiliary();
 
@@ -61,12 +65,12 @@ final class Util {
     final int pSamplesArrLen = pSamplesArr.length;
     final int qSamplesArrLen = qSamplesArr.length;
 
-    final double n1 = sketch1.getN();
-    final double n2 = sketch2.getN();
-    final double confScale = Math.sqrt(-0.5 * Math.log(0.5 * tgtConf));
+    final double r1 = sketch1.getRetainedItems();
+    final double r2 = sketch2.getRetainedItems();
+    final double confScale = Math.sqrt(-0.5 * Math.log(0.5 * tgtPvalue));
 
     // reject null hypothesis at tgtConf if D_{KS} > thresh
-    final double thresh = confScale * Math.sqrt((n1 + n2) / (n1 * n2));
+    final double thresh = confScale * Math.sqrt((r1 + r2) / (r1 * r2));
     double D = 0.0;
     int i = getNextIndex(pSamplesArr, -1);
     int j = getNextIndex(qSamplesArr, -1);
@@ -77,28 +81,28 @@ final class Util {
       final double qSample = qSamplesArr[j];
       final long pWt = pCumWtsArr[i];
       final long qWt = qCumWtsArr[j];
-      final double pNormWt = pWt / n1;
-      final double qNormWt = qWt / n2;
+      final double pNormWt = pWt / r1;
+      final double qNormWt = qWt / r2;
       final double pMinusQ = Math.abs(pNormWt - qNormWt);
       final double curD = D;
       D = Math.max(curD, pMinusQ);
 
-      System.out.printf("p[%d]: (%f, %f)\t", i, pSample, pNormWt);
-      System.out.printf("q[%d]: (%f, %f)\n", j, qSample, qNormWt);
-      System.out.printf("\tpCumWt = %d \tqCumWt = %d\n", pWt, qWt);
-      System.out.printf("\tD = max(D, pNormWt - qNormWt) = max(%f, %f) = %f\n",
-          curD, pMinusQ, D);
+      //System.out.printf("p[%d]: (%f, %f)\t", i, pSample, pNormWt);
+      //System.out.printf("q[%d]: (%f, %f)\n", j, qSample, qNormWt);
+      //System.out.printf("\tpCumWt = %d \tqCumWt = %d\n", pWt, qWt);
+      //System.out.printf("\tD = max(D, pNormWt - qNormWt) = max(%f, %f) = %f\n",
+      //   curD, pMinusQ, D);
 
       //Increment i or j or both
       if (pSample == qSample) {
-        System.out.println("\tIncrement both\n");
+        //System.out.println("\tIncrement both\n");
         i = getNextIndex(pSamplesArr, i);
         j = getNextIndex(qSamplesArr, j);
       } else if ((pSample < qSample) && (i < pSamplesArrLen)) {
-        System.out.println("\tIncrement p\n");
+        //System.out.println("\tIncrement p\n");
         i = getNextIndex(pSamplesArr, i);
       } else {
-        System.out.println("\tIncrement q\n");
+        //System.out.println("\tIncrement q\n");
         j = getNextIndex(qSamplesArr, j);
       }
     }
@@ -106,9 +110,9 @@ final class Util {
     // One final comparison, with one of the two values at 1.0.
     // Subsequent values for the smaller CDF will be strictly larger, so the difference for any
     // later tests cannot be greater.
-    System.out.printf("Final D = max(%f, %f)\n", D,
-            Math.abs((pCumWtsArr[i] / n1) - (qCumWtsArr[j] / n2)));
-    D = Math.max(D, Math.abs((pCumWtsArr[i] / n1) - (qCumWtsArr[j] / n2)));
+    //    System.out.printf("Final D = max(%f, %f)\n", D,
+    //            Math.abs((pCumWtsArr[i] / n1) - (qCumWtsArr[j] / n2)));
+    D = Math.max(D, Math.abs((pCumWtsArr[i] / r1) - (qCumWtsArr[j] / r2)));
 
     /*
     System.out.println("N: " + p.auxN_);
@@ -121,8 +125,8 @@ final class Util {
     final double eps2 = Util.EpsilonFromK.getAdjustedEpsilon(sketch2.getK());
     final double adjustedD = D - eps1 - eps2;
 
-    System.out.printf("D: %f\te1: %f\te2: %f\ttotal: %f \tthresh: %f \tresult: %s\n",
-            D, eps1, eps2, adjustedD, thresh, adjustedD > thresh);
+    //System.out.printf("TgtP: %f\tD: %f\te1: %f\te2: %f\ttotal: %f \tthresh: %f \tresult: %s\n",
+    //       tgtPvalue, D, eps1, eps2, adjustedD, thresh, adjustedD > thresh);
 
     return adjustedD > thresh;
   }
@@ -267,7 +271,7 @@ final class Util {
     final int bbCnt = computeBaseBufferItems(k, n);
     final long bitPattern = computeBitPattern(k, n);
     final int validLevels = computeValidLevels(bitPattern);
-    return bbCnt + (validLevels * k);
+    return bbCnt + validLevels * k;
   }
 
   /**
@@ -465,7 +469,7 @@ final class Util {
       assert lo < hi;
       assert epsForKPredicate(lo, kf);
       assert !epsForKPredicate(hi, kf);
-      if (((hi - lo) / lo) < bracketedBinarySearchForEpsTol) {
+      if ((hi - lo) / lo < bracketedBinarySearchForEpsTol) {
         return lo;
       }
       final double mid = (lo + hi) / 2.0;
