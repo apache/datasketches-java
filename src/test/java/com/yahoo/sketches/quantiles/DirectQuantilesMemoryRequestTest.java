@@ -7,6 +7,7 @@ package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.PreambleUtil.COMBINED_BUFFER;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
@@ -105,36 +106,28 @@ public class DirectQuantilesMemoryRequestTest {
   public void checkGrowFromWrappedEmptySketch() {
     final int k = 16;
     final int n = 0;
-    final int initBytes = DoublesSketch.getUpdatableStorageBytes(k, n);
+    final int initBytes = DoublesSketch.getUpdatableStorageBytes(k, n); //8 bytes
     final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build();
     final Memory origSketchMem = Memory.wrap(usk1.toByteArray());
 
-    try (WritableDirectHandle memHandler = WritableMemory.allocateDirect(initBytes)) {
-      // putN() -- force-increment, check regular update
-      final WritableMemory mem = memHandler.get();
+    try (WritableDirectHandle memHandle = WritableMemory.allocateDirect(initBytes)) {
+      WritableMemory mem = memHandle.get();
       origSketchMem.copyTo(0, mem, 0, initBytes);
       UpdateDoublesSketch usk2 = DirectUpdateDoublesSketch.wrapInstance(mem);
-      assertEquals(usk2.getMemory().getCapacity(), initBytes);
+      assertTrue(mem.isSameResource(usk2.getMemory()));
+      assertEquals(mem.getCapacity(), initBytes);
+      assertTrue(mem.isDirect());
       assertTrue(usk2.isEmpty());
-      usk2.putN(5);
-      assertEquals(usk2.getN(), 5);
-      // will request a full base buffer
-      usk2.update(1.0);
-      assertEquals(usk2.getN(), 6);
-      final int expectedSize = COMBINED_BUFFER + ((2 * k) << 3);
-      assertEquals(usk2.getMemory().getCapacity(), expectedSize);
 
-      //update
-      origSketchMem.copyTo(0, mem, 0, initBytes);
-      usk2 = DirectUpdateDoublesSketch.wrapInstance(mem);
-      assertEquals(usk2.getMemory().getCapacity(), initBytes);
-      assertEquals(usk2.getMinValue(), Double.NaN);
-      usk2.update(5.0);
-      double minV = usk2.getMinValue();
-      assertEquals(minV, 5.0);
-      double maxV = usk2.getMaxValue();
-      assertEquals(maxV, 5.0);
-      assertEquals(usk2.getMemory().getCapacity(), expectedSize);
+      //update the sketch forcing it to grow on-heap
+      for (int i = 1; i <= 5; i++) { usk2.update(i); }
+      assertEquals(usk2.getN(), 5);
+      WritableMemory mem2 = usk2.getMemory();
+      assertFalse(mem.isSameResource(mem2));
+      assertFalse(mem2.isDirect()); //should now be on-heap
+
+      final int expectedSize = COMBINED_BUFFER + ((2 * k) << 3);
+      assertEquals(mem2.getCapacity(), expectedSize);
     }
   }
 

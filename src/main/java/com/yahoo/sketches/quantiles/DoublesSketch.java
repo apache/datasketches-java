@@ -399,7 +399,7 @@ public abstract class DoublesSketch {
    * @return true if the backing resource of this sketch is identical with the backing resource
    * of mem.
    */
-  public boolean isSameResource(final Memory mem) {
+  public boolean isSameResource(final Memory mem) { //Overridden by direct sketches
     return false;
   }
 
