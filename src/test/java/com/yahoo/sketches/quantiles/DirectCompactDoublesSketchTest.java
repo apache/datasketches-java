@@ -8,6 +8,7 @@ package com.yahoo.sketches.quantiles;
 import static com.yahoo.sketches.quantiles.Util.LS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -85,22 +86,19 @@ public class DirectCompactDoublesSketchTest {
     final DoublesSketch s2 = DoublesSketch.wrap(mem);
     assertTrue(s2.isEmpty());
     assertEquals(s2.getN(), 0);
-    assertEquals(s2.getMinValue(), Double.POSITIVE_INFINITY);
-    assertEquals(s2.getMaxValue(), Double.NEGATIVE_INFINITY);
+    assertEquals(s2.getMinValue(), Double.NaN);
+    assertEquals(s2.getMaxValue(), Double.NaN);
   }
 
   @Test
   public void checkEmpty() {
     final int k = PreambleUtil.DEFAULT_K;
     final DirectCompactDoublesSketch qs1 = buildAndLoadDCQS(k, 0);
-    assertEquals(qs1.getQuantile(0.0), Double.POSITIVE_INFINITY);
-    assertEquals(qs1.getQuantile(1.0), Double.NEGATIVE_INFINITY);
+    assertEquals(qs1.getQuantile(0.0), Double.NaN);
+    assertEquals(qs1.getQuantile(1.0), Double.NaN);
     assertEquals(qs1.getQuantile(0.5), Double.NaN);
     final double[] quantiles = qs1.getQuantiles(new double[] {0.0, 0.5, 1.0});
-    assertEquals(quantiles.length, 3);
-    assertEquals(quantiles[0], Double.POSITIVE_INFINITY);
-    assertEquals(quantiles[1], Double.NaN);
-    assertEquals(quantiles[2], Double.NEGATIVE_INFINITY);
+    assertNull(quantiles);
 
     final double[] combinedBuffer = qs1.getCombinedBuffer();
     assertEquals(combinedBuffer.length, 2 * k);
@@ -110,8 +108,8 @@ public class DirectCompactDoublesSketchTest {
   @Test
   public void checkCheckDirectMemCapacity() {
     final int k = 128;
-    DirectCompactDoublesSketch.checkDirectMemCapacity(k, 2 * k - 1, (4 + 2 * k) * 8);
-    DirectCompactDoublesSketch.checkDirectMemCapacity(k, 2 * k + 1, (4 + 3 * k) * 8);
+    DirectCompactDoublesSketch.checkDirectMemCapacity(k, (2 * k) - 1, (4 + (2 * k)) * 8);
+    DirectCompactDoublesSketch.checkDirectMemCapacity(k, (2 * k) + 1, (4 + (3 * k)) * 8);
     DirectCompactDoublesSketch.checkDirectMemCapacity(k, 0, 8);
 
     try {

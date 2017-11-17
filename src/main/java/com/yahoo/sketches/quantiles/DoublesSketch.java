@@ -186,11 +186,7 @@ public abstract class DoublesSketch {
    * so it should not be called multiple times to get different quantiles from the same
    * sketch. Instead use getQuantiles(), which pays the overhead only once.
    *
-   * <p>If the sketch is empty:
-   * <ul><li>getQuantile(0.0) returns Double.POSITIVE_INFINITY</li>
-   * <li>getQuantile(1.0) returns Double.NEGATIVE_INFINITY</li>
-   * <li>getQuantile(0.0 &lt;rank&gt; 1.0) returns Double.NaN</li>
-   * </ul>
+   * <p>If the sketch is empty this returns Double.NaN.
    *
    * @param fraction the specified fractional position in the hypothetical sorted stream.
    * These are also called normalized ranks or fractional ranks.
@@ -200,6 +196,7 @@ public abstract class DoublesSketch {
    * @return the approximation to the value at the above fraction
    */
   public double getQuantile(final double fraction) {
+    if (isEmpty()) { return Double.NaN; }
     if ((fraction < 0.0) || (fraction > 1.0)) {
       throw new SketchesArgumentException("Fraction cannot be less than zero or greater than 1.0");
     }
@@ -220,11 +217,7 @@ public abstract class DoublesSketch {
    * a single query.  It is strongly recommend that this method be used instead of multiple calls
    * to getQuantile().
    *
-   * <p>If the sketch is empty:
-   * <ul><li>getQuantiles(0.0, ...) returns Double.POSITIVE_INFINITY</li>
-   * <li>getQuantiles(..., 1.0) returns Double.NEGATIVE_INFINITY</li>
-   * <li>getQuantiles(..., 0.0 &lt;rank&gt; 1.0, ...) returns Double.NaN</li>
-   * </ul>
+   * <p>If the sketch is empty this returns null.
    *
    * @param fractions given array of fractional positions in the hypothetical sorted stream.
    * These are also called normalized ranks or fractional ranks.
@@ -235,6 +228,7 @@ public abstract class DoublesSketch {
    * array.
    */
   public double[] getQuantiles(final double[] fractions) {
+    if (isEmpty()) { return null; }
     Util.validateFractions(fractions);
     DoublesAuxiliary aux = null;
     final double[] answers = new double[fractions.length];
@@ -256,11 +250,7 @@ public abstract class DoublesSketch {
    * This is also a more efficient multiple-query version of getQuantile() and allows the caller to
    * specify the number of evenly spaced fractional ranks.
    *
-   * <p>If the sketch is empty:
-   * <ul><li>getQuantiles(0.0, ...) returns Double.POSITIVE_INFINITY</li>
-   * <li>getQuantiles(..., 1.0) returns Double.NEGATIVE_INFINITY</li>
-   * <li>getQuantiles(..., 0.0 &lt;rank&gt; 1.0, ...) returns Double.NaN</li>
-   * </ul>
+   * <p>If the sketch is empty this returns null.
    *
    * @param evenlySpaced an integer that specifies the number of evenly spaced fractional ranks.
    * This must be a positive integer greater than 0. A value of 1 will return the min value.
@@ -271,6 +261,7 @@ public abstract class DoublesSketch {
    * array.
    */
   public double[] getQuantiles(final int evenlySpaced) {
+    if (isEmpty()) { return null; }
     return getQuantiles(getEvenlySpaced(evenlySpaced));
   }
 
@@ -281,7 +272,7 @@ public abstract class DoublesSketch {
    * <p>The resulting approximations have a probabilistic guarantee that be obtained from the
    * getNormalizedRankError() function.
    *
-   * <p>If the sketch is empty this returns Double.NaN for all values.</p>
+   * <p>If the sketch is empty this returns null.</p>
    *
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing doubles
    * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
@@ -292,6 +283,7 @@ public abstract class DoublesSketch {
    * splitPoint.
    */
   public double[] getPMF(final double[] splitPoints) {
+    if (isEmpty()) { return null; }
     return DoublesPmfCdfImpl.getPMFOrCDF(this, splitPoints, false);
   }
 
@@ -302,7 +294,7 @@ public abstract class DoublesSketch {
    * <p>More specifically, the value at array position j of the CDF is the
    * sum of the values in positions 0 through j of the PMF.
    *
-   * <p>If the sketch is empty this returns Double.NaN for all values.</p>
+   * <p>If the sketch is empty this returns null.</p>
    *
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing doubles
    * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
@@ -310,6 +302,7 @@ public abstract class DoublesSketch {
    * @return an approximation to the CDF of the input stream given the splitPoints.
    */
   public double[] getCDF(final double[] splitPoints) {
+    if (isEmpty()) { return null; }
     return DoublesPmfCdfImpl.getPMFOrCDF(this, splitPoints, true);
   }
 
@@ -323,7 +316,7 @@ public abstract class DoublesSketch {
 
   /**
    * Returns the min value of the stream.
-   * If the sketch is empty this returns Double.POSITIVE_INFINITY.
+   * If the sketch is empty this returns Double.NaN.
    *
    * @return the min value of the stream
    */
@@ -331,7 +324,7 @@ public abstract class DoublesSketch {
 
   /**
    * Returns the max value of the stream.
-   * If the sketch is empty this returns Double.NEGATIVE_INFINITY.
+   * If the sketch is empty this returns Double.NaN.
    *
    * @return the max value of the stream
    */
@@ -588,6 +581,7 @@ public abstract class DoublesSketch {
     final UpdateDoublesSketch newSketch = (dstMem == null)
             ? HeapUpdateDoublesSketch.newInstance(smallerK)
             : DirectUpdateDoublesSketch.newInstance(smallerK, dstMem);
+    if (srcSketch.isEmpty()) { return newSketch; }
     DoublesMergeImpl.downSamplingMergeInto(srcSketch, newSketch);
     return newSketch;
   }
@@ -651,5 +645,9 @@ public abstract class DoublesSketch {
    */
   abstract double[] getCombinedBuffer();
 
+  /**
+   * Gets the Memory if it exists, otherwise returns null.
+   * @return the Memory if it exists, otherwise returns null.
+   */
   abstract WritableMemory getMemory();
 }

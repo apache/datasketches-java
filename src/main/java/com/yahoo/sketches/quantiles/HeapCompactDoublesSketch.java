@@ -24,7 +24,6 @@ import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
-
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -167,8 +166,8 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
       hds.combinedBuffer_ = null;
       hds.baseBufferCount_ = 0;
       hds.bitPattern_ = 0;
-      hds.minValue_ = Double.POSITIVE_INFINITY;
-      hds.maxValue_ = Double.NEGATIVE_INFINITY;
+      hds.minValue_ = Double.NaN;
+      hds.maxValue_ = Double.NaN;
       return hds;
     }
 

@@ -65,13 +65,6 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
     return false;
   }
 
-  /**
-   * Gets the Memory if it exists, otherwise returns null.
-   * @return the Memory if it exists, otherwise returns null.
-   */
-  @Override
-  abstract WritableMemory getMemory();
-
   //Puts
 
   /**

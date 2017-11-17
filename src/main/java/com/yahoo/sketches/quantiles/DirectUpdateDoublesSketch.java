@@ -72,8 +72,8 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
 
     if (memCap >= COMBINED_BUFFER) {
       insertN(memObj, memAdd, 0L);
-      insertMinDouble(memObj, memAdd, Double.POSITIVE_INFINITY);
-      insertMaxDouble(memObj, memAdd, Double.NEGATIVE_INFINITY);
+      insertMinDouble(memObj, memAdd, Double.NaN);
+      insertMaxDouble(memObj, memAdd, Double.NaN);
     }
 
     final DirectUpdateDoublesSketch dds = new DirectUpdateDoublesSketch(k);
@@ -120,20 +120,24 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
 
     final int curBBCount = getBaseBufferCount();
     final int newBBCount = curBBCount + 1; //derived, not stored
-    final long curN = getN();
-    final long newN = curN + 1;
 
+    //must check memory capacity before we put anything in it
     final int combBufItemCap = getCombinedBufferItemCapacity();
     if (newBBCount > combBufItemCap) {
       //only changes combinedBuffer when it is only a base buffer
       mem_ = growCombinedMemBuffer(mem_, 2 * getK());
     }
 
-    final double maxValue = getMaxValue();
-    final double minValue = getMinValue();
+    final long curN = getN();
+    final long newN = curN + 1;
 
-    if (dataItem > maxValue) { putMaxValue(dataItem); }
-    if (dataItem < minValue) { putMinValue(dataItem); }
+    if (curN == 0) { //set min and max values
+      putMaxValue(dataItem);
+      putMinValue(dataItem);
+    } else {
+      if (dataItem > getMaxValue()) { putMaxValue(dataItem); }
+      if (dataItem < getMinValue()) { putMinValue(dataItem); }
+    }
 
     mem_.putDouble(COMBINED_BUFFER + (curBBCount * Double.BYTES), dataItem); //put the item
     mem_.putByte(FLAGS_BYTE, (byte) 0); //not compact, not ordered, not empty
@@ -175,19 +179,12 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
     if (mem_.getCapacity() >= COMBINED_BUFFER) {
       mem_.putByte(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); //not compact, not ordered
       mem_.putLong(N_LONG, 0L);
-      mem_.putDouble(MIN_DOUBLE, Double.POSITIVE_INFINITY);
-      mem_.putDouble(MAX_DOUBLE, Double.NEGATIVE_INFINITY);
+      mem_.putDouble(MIN_DOUBLE, Double.NaN);
+      mem_.putDouble(MAX_DOUBLE, Double.NaN);
     }
   }
 
   //Restricted overrides
-  //Gets
-
-  @Override
-  WritableMemory getMemory() {
-    return mem_;
-  }
-
   //Puts
 
   @Override
