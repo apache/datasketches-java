@@ -189,25 +189,19 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
 
   @Override
   void putMinValue(final double minValue) {
-    if (mem_.getCapacity() < COMBINED_BUFFER) {
-      mem_ = growCombinedMemBuffer(mem_, 2 * getK());
-    }
+    assert (mem_.getCapacity() >= COMBINED_BUFFER);
     mem_.putDouble(MIN_DOUBLE, minValue);
   }
 
   @Override
   void putMaxValue(final double maxValue) {
-    if (mem_.getCapacity() < COMBINED_BUFFER) {
-      mem_ = growCombinedMemBuffer(mem_, 2 * getK());
-    }
+    assert (mem_.getCapacity() >= COMBINED_BUFFER);
     mem_.putDouble(MAX_DOUBLE, maxValue);
   }
 
   @Override
   void putN(final long n) {
-    if (mem_.getCapacity() < COMBINED_BUFFER) {
-      mem_ = growCombinedMemBuffer(mem_, 2 * getK());
-    }
+    assert (mem_.getCapacity() >= COMBINED_BUFFER);
     mem_.putLong(N_LONG, n);
   }
 
