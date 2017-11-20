@@ -24,7 +24,6 @@ import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
-
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -97,8 +96,8 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     hqs.combinedBuffer_ = new double[baseBufAlloc];
     hqs.baseBufferCount_ = 0;
     hqs.bitPattern_ = 0;
-    hqs.minValue_ = Double.POSITIVE_INFINITY;
-    hqs.maxValue_ = Double.NEGATIVE_INFINITY;
+    hqs.minValue_ = Double.NaN;
+    hqs.maxValue_ = Double.NaN;
     return hqs;
   }
 
@@ -150,13 +149,47 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   }
 
   @Override
+  public double getMaxValue() {
+    return maxValue_;
+  }
+
+  @Override
+  public double getMinValue() {
+    return minValue_;
+  }
+
+  @Override
+  public long getN() {
+    return n_;
+  }
+
+  @Override
+  public boolean isDirect() {
+    return false;
+  }
+
+  @Override
+  public void reset() {
+    n_ = 0;
+    final int combinedBufferItemCapacity = 2 * Math.min(DoublesSketch.MIN_K, k_); //min is important
+    combinedBuffer_ = new double[combinedBufferItemCapacity];
+    baseBufferCount_ = 0;
+    bitPattern_ = 0;
+    minValue_ = Double.NaN;
+    maxValue_ = Double.NaN;
+  }
+
+  @Override
   public void update(final double dataItem) {
     if (Double.isNaN(dataItem)) { return; }
-    final double maxValue = getMaxValue();
-    final double minValue = getMinValue();
 
-    if (dataItem > maxValue) { putMaxValue(dataItem); }
-    if (dataItem < minValue) { putMinValue(dataItem); }
+    if (n_ == 0) {
+      putMaxValue(dataItem);
+      putMinValue(dataItem);
+    } else {
+      if (dataItem > getMaxValue()) { putMaxValue(dataItem); }
+      if (dataItem < getMinValue()) { putMinValue(dataItem); }
+    }
 
     //don't increment n_ and baseBufferCount_ yet
     final int curBBCount = baseBufferCount_;
@@ -171,7 +204,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     //put the new item in the base buffer
     combinedBuffer_[curBBCount] = dataItem;
 
-    if (newBBCount == k_ << 1) { //Propagate
+    if (newBBCount == (k_ << 1)) { //Propagate
 
       // make sure there will be enough space (levels) for the propagation
       final int spaceNeeded = DoublesUpdateImpl.getRequiredItemCapacity(k_, newN);
@@ -197,7 +230,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
       );
 
       assert newBitPattern == computeBitPattern(k_, newN); // internal consistency check
-      assert newBitPattern == bitPattern_ + 1;
+      assert newBitPattern == (bitPattern_ + 1);
 
       bitPattern_ = newBitPattern;
       baseBufferCount_ = 0;
@@ -206,37 +239,6 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
       baseBufferCount_ = newBBCount;
     }
     n_ = newN;
-  }
-
-  @Override
-  public long getN() {
-    return n_;
-  }
-
-  @Override
-  public boolean isDirect() {
-    return false;
-  }
-
-  @Override
-  public double getMinValue() {
-    return minValue_;
-  }
-
-  @Override
-  public double getMaxValue() {
-    return maxValue_;
-  }
-
-  @Override
-  public void reset() {
-    n_ = 0;
-    final int combinedBufferItemCapacity = 2 * Math.min(DoublesSketch.MIN_K, k_); //min is important
-    combinedBuffer_ = new double[combinedBufferItemCapacity];
-    baseBufferCount_ = 0;
-    bitPattern_ = 0;
-    minValue_ = Double.POSITIVE_INFINITY;
-    maxValue_ = Double.NEGATIVE_INFINITY;
   }
 
   /**
@@ -361,7 +363,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   //important: n has not been incremented yet
   private void growBaseBuffer() {
     final int oldSize = combinedBuffer_.length;
-    assert oldSize < 2 * k_;
+    assert oldSize < (2 * k_);
     final double[] baseBuffer = combinedBuffer_;
     final int newSize = 2 * Math.max(Math.min(k_, oldSize), DoublesSketch.MIN_K);
     combinedBuffer_ = Arrays.copyOf(baseBuffer, newSize);
@@ -374,19 +376,18 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     final int sw = (compact ? 1 : 0) + (2 * (empty ? 1 : 0)) + (4 * (serVer & 0xF))
         + (32 * (preLongs & 0x3F));
     boolean valid = true;
-    switch (sw) { //Fall throughs are OK!
-      case 38  : //!compact,  empty, serVer = 1, preLongs = 1; always stored as not compact
-      case 164 : //!compact, !empty, serVer = 1, preLongs = 5; always stored as not compact
-      case 42  : //!compact,  empty, serVer = 2, preLongs = 1; always stored as compact
-      case 72  : //!compact, !empty, serVer = 2, preLongs = 2; always stored as compact
-      case 47  : // compact,  empty, serVer = 3, preLongs = 1;
-      case 46  : //!compact,  empty, serVer = 3, preLongs = 1;
-      case 79  : // compact,  empty, serVer = 3, preLongs = 2;
-      case 78  : //!compact,  empty, serVer = 3, preLongs = 2;
-      case 77  : // compact, !empty, serVer = 3, preLongs = 2;
-      case 76  : //!compact, !empty, serVer = 3, preLongs = 2;
-        break;
-      default :
+    switch (sw) { //These are the valid cases.
+      case 38  : break; //!compact,  empty, serVer = 1, preLongs = 1; always stored as not compact
+      case 164 : break; //!compact, !empty, serVer = 1, preLongs = 5; always stored as not compact
+      case 42  : break; //!compact,  empty, serVer = 2, preLongs = 1; always stored as compact
+      case 72  : break; //!compact, !empty, serVer = 2, preLongs = 2; always stored as compact
+      case 47  : break; // compact,  empty, serVer = 3, preLongs = 1;
+      case 46  : break; //!compact,  empty, serVer = 3, preLongs = 1;
+      case 79  : break; // compact,  empty, serVer = 3, preLongs = 2;
+      case 78  : break; //!compact,  empty, serVer = 3, preLongs = 2;
+      case 77  : break; // compact, !empty, serVer = 3, preLongs = 2;
+      case 76  : break; //!compact, !empty, serVer = 3, preLongs = 2;
+      default : //all other case values are invalid
         valid = false;
     }
 
@@ -416,7 +417,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
       final int totLevels = Util.computeNumLevelsNeeded(k, n);
       reqBufBytes = (totLevels == 0)
           ? (metaPre + retainedItems) << 3
-          : (metaPre + (2 + totLevels) * k) << 3;
+          : (metaPre + ((2 + totLevels) * k)) << 3;
     }
     if (memCapBytes < reqBufBytes) {
       throw new SketchesArgumentException("Possible corruption: Memory capacity too small: "

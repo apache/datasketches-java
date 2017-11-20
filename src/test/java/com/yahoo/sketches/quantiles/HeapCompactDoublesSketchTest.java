@@ -70,7 +70,7 @@ public class HeapCompactDoublesSketchTest {
   public void checkHeapifyUnsortedCompactV2() {
     final int k = 64;
     final UpdateDoublesSketch qs = DoublesSketch.builder().setK(64).build();
-    for (int i = 0; i < 3 * k; ++i) {
+    for (int i = 0; i < (3 * k); ++i) {
       qs.update(i);
     }
     assertEquals(qs.getBaseBufferCount(), k);
@@ -80,7 +80,7 @@ public class HeapCompactDoublesSketchTest {
     // modify to make v2, clear compact flag, and insert a -1 in the middle of the base buffer
     PreambleUtil.insertSerVer(mem.getArray(), mem.getCumulativeOffset(0), 2);
     PreambleUtil.insertFlags(mem.getArray(), mem.getCumulativeOffset(0), 0);
-    final long tgtAddr = COMBINED_BUFFER + (Double.BYTES * k / 2);
+    final long tgtAddr = COMBINED_BUFFER + ((Double.BYTES * k) / 2);
     mem.putDouble(tgtAddr, -1.0);
     assert mem.getDouble(tgtAddr - Double.BYTES) > mem.getDouble(tgtAddr);
 
@@ -100,14 +100,11 @@ public class HeapCompactDoublesSketchTest {
     assertTrue(qs2.isEmpty());
     assertEquals(byteArr.length, qs1.getStorageBytes());
     assertEquals(byteArr, byteArr2);
-    assertEquals(qs2.getQuantile(0.0), Double.POSITIVE_INFINITY);
-    assertEquals(qs2.getQuantile(1.0), Double.NEGATIVE_INFINITY);
-    assertEquals(qs2.getQuantile(0.5), Double.NaN);
+    assertTrue(Double.isNaN(qs2.getQuantile(0.0)));
+    assertTrue(Double.isNaN(qs2.getQuantile(1.0)));
+    assertTrue(Double.isNaN(qs2.getQuantile(0.5)));
     final double[] quantiles = qs2.getQuantiles(new double[] {0.0, 0.5, 1.0});
-    assertEquals(quantiles.length, 3);
-    assertEquals(quantiles[0], Double.POSITIVE_INFINITY);
-    assertEquals(quantiles[1], Double.NaN);
-    assertEquals(quantiles[2], Double.NEGATIVE_INFINITY);
+    assertNull(quantiles);
     //println(qs1.toString(true, true));
   }
 

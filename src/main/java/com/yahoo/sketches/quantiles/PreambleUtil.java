@@ -136,8 +136,8 @@ final class PreambleUtil {
     final int k = extractK(srcMem);
 
     final long n = (preLongs == 1) ? 0L : extractN(srcMem);
-    double minDouble = Double.POSITIVE_INFINITY;
-    double maxDouble = Double.NEGATIVE_INFINITY;
+    double minDouble = Double.NaN;
+    double maxDouble = Double.NaN;
     if ((preLongs > 1) && isDoublesSketch) { // preLongs = 2 or 3
       minDouble = extractMinDouble(srcMem);
       maxDouble = extractMaxDouble(srcMem);

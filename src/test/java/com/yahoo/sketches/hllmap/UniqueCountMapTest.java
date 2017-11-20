@@ -13,7 +13,6 @@ import org.testng.annotations.Test;
 
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
-import com.yahoo.sketches.hllmap.UniqueCountMap;
 
 public class UniqueCountMapTest {
   private final static int INIT_ENTRIES = 211;
@@ -21,10 +20,10 @@ public class UniqueCountMapTest {
   public void nullKey() {
     UniqueCountMap map = new UniqueCountMap(4);
     double estimate = map.update(null, null);
-    Assert.assertEquals(estimate, Double.NaN);
-    Assert.assertEquals(map.getEstimate(null), Double.NaN);
-    Assert.assertEquals(map.getUpperBound(null), Double.NaN);
-    Assert.assertEquals(map.getLowerBound(null), Double.NaN);
+    Assert.assertTrue(Double.isNaN(estimate));
+    Assert.assertTrue(Double.isNaN(map.getEstimate(null)));
+    Assert.assertTrue(Double.isNaN(map.getUpperBound(null)));
+    Assert.assertTrue(Double.isNaN(map.getLowerBound(null)));
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -102,8 +101,8 @@ public class UniqueCountMapTest {
     for (int i = 1; i <= 1000; i++) {
       id = Util.intToBytes(i, id);
       double estimate = map.update(key, id);
-      if (i % 100 == 0) {
-        double err = (estimate/i -1.0) * 100;
+      if ((i % 100) == 0) {
+        double err = ((estimate/i) -1.0) * 100;
         String eStr = String.format("%.3f%%", err);
         println("i: "+i + "\t Est: " + estimate + "\t" + eStr);
       }
@@ -158,7 +157,7 @@ public class UniqueCountMapTest {
     for (int v = 1; v <= 200; v++) {
       long h = (int) hash(new long[]{v}, 0L)[0];
       id = Util.longToBytes(h, id);
-      for(int k = 1+147; k <= 2 * 147; k++) {
+      for(int k = 1+147; k <= (2 * 147); k++) {
         key = Util.intToBytes(k, key);
         map.update(key, id);
       }
