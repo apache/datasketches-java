@@ -1,6 +1,8 @@
 package com.yahoo.sketches.quantiles;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 import org.testng.Assert;
@@ -95,6 +97,18 @@ public class DoublesSketchTest {
     assertTrue(duds.isSameResource(mem));
     DirectCompactDoublesSketch dcds = (DirectCompactDoublesSketch) duds.compact(cmem);
     assertTrue(dcds.isSameResource(cmem));
+
+    UpdateDoublesSketch uds = DoublesSketch.builder().setK(k).build();
+    assertFalse(uds.isSameResource(mem));
+  }
+
+  @Test
+  public void checkEmptyNullReturns() {
+    int k = 16;
+    UpdateDoublesSketch uds = DoublesSketch.builder().setK(k).build();
+    assertNull(uds.getQuantiles(5));
+    assertNull(uds.getPMF(new double[] { 0, 0.5, 1.0 }));
+    assertNull(uds.getCDF(new double[] { 0, 0.5, 1.0 }));
   }
 
   @Test

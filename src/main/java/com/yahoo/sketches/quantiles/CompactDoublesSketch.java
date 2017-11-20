@@ -6,7 +6,6 @@
 package com.yahoo.sketches.quantiles;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.WritableMemory;
 
 /**
  * @author Jon Malkin
@@ -25,10 +24,4 @@ public abstract class CompactDoublesSketch extends DoublesSketch {
     return true;
   }
 
-  /**
-   * Gets the Memory if it exists, otherwise returns null.
-   * @return the Memory if it exists, otherwise returns null.
-   */
-  @Override
-  abstract WritableMemory getMemory();
 }

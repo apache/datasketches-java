@@ -22,7 +22,6 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerVer;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
-
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesReadOnlyException;
 
@@ -76,17 +75,18 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
   }
 
   @Override
-  public void update(final double dataItem) {
-    throw new SketchesReadOnlyException("Call to update() on read-only buffer");
+  public double getMaxValue() {
+    return isEmpty() ? Double.NaN : mem_.getDouble(MAX_DOUBLE);
+  }
+
+  @Override
+  public double getMinValue() {
+    return isEmpty() ? Double.NaN : mem_.getDouble(MIN_DOUBLE);
   }
 
   @Override
   public long getN() {
-    if (mem_.getCapacity() < COMBINED_BUFFER) {
-      return 0;
-    } else {
-      return mem_.getLong(N_LONG);
-    }
+    return (mem_.getCapacity() < COMBINED_BUFFER) ? 0 : mem_.getLong(N_LONG);
   }
 
   @Override
@@ -100,26 +100,13 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
   }
 
   @Override
-  public double getMinValue() {
-    if (mem_.getCapacity() < COMBINED_BUFFER) {
-      return Double.POSITIVE_INFINITY;
-    } else {
-      return mem_.getDouble(MIN_DOUBLE);
-    }
-  }
-
-  @Override
-  public double getMaxValue() {
-    if (mem_.getCapacity() < COMBINED_BUFFER) {
-      return Double.NEGATIVE_INFINITY;
-    } else {
-      return mem_.getDouble(MAX_DOUBLE);
-    }
-  }
-
-  @Override
   public void reset() {
     throw new SketchesReadOnlyException("Call to reset() on read-only buffer");
+  }
+
+  @Override
+  public void update(final double dataItem) {
+    throw new SketchesReadOnlyException("Call to update() on read-only buffer");
   }
 
   //Restricted overrides

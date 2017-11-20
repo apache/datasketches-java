@@ -7,6 +7,7 @@ package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.PreambleUtil.COMBINED_BUFFER;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
@@ -25,7 +26,7 @@ public class DirectQuantilesMemoryRequestTest {
   public void checkLimitedMemoryScenarios() { //Requesting application
     final int k = 128;
     final int u = 40 * k;
-    final int initBytes = (2 * k + 4) << 3; //just the BB
+    final int initBytes = ((2 * k) + 4) << 3; //just the BB
 
     //########## Owning Implementation
     // This part would actually be part of the Memory owning implemention so it is faked here
@@ -59,7 +60,7 @@ public class DirectQuantilesMemoryRequestTest {
   public void checkGrowBaseBuf() {
     final int k = 128;
     final int u = 32; // don't need the BB to fill here
-    final int initBytes = (4 + u / 2) << 3; // not enough to hold everything
+    final int initBytes = (4 + (u / 2)) << 3; // not enough to hold everything
 
     try (WritableDirectHandle memHandler = WritableMemory.allocateDirect(initBytes)) {
       //final MemoryManager memMgr = new MemoryManager();
@@ -79,8 +80,8 @@ public class DirectQuantilesMemoryRequestTest {
   @Test
   public void checkGrowCombBuf() {
     final int k = 128;
-    final int u = 2 * k - 1; //just to fill the BB
-    final int initBytes = (2 * k + 4) << 3; //just room for BB
+    final int u = (2 * k) - 1; //just to fill the BB
+    final int initBytes = ((2 * k) + 4) << 3; //just room for BB
 
     try (WritableDirectHandle memHandler = WritableMemory.allocateDirect(initBytes)) {
       //final MemoryManager memMgr = new MemoryManager();
@@ -105,42 +106,28 @@ public class DirectQuantilesMemoryRequestTest {
   public void checkGrowFromWrappedEmptySketch() {
     final int k = 16;
     final int n = 0;
-    final int initBytes = DoublesSketch.getUpdatableStorageBytes(k, n);
+    final int initBytes = DoublesSketch.getUpdatableStorageBytes(k, n); //8 bytes
     final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build();
     final Memory origSketchMem = Memory.wrap(usk1.toByteArray());
 
-    try (WritableDirectHandle memHandler = WritableMemory.allocateDirect(initBytes)) {
-      // putN() -- force-increment, check regular update
-      final WritableMemory mem = memHandler.get();
+    try (WritableDirectHandle memHandle = WritableMemory.allocateDirect(initBytes)) {
+      WritableMemory mem = memHandle.get();
       origSketchMem.copyTo(0, mem, 0, initBytes);
       UpdateDoublesSketch usk2 = DirectUpdateDoublesSketch.wrapInstance(mem);
-      assertEquals(usk2.getMemory().getCapacity(), initBytes);
+      assertTrue(mem.isSameResource(usk2.getMemory()));
+      assertEquals(mem.getCapacity(), initBytes);
+      assertTrue(mem.isDirect());
       assertTrue(usk2.isEmpty());
-      usk2.putN(5);
+
+      //update the sketch forcing it to grow on-heap
+      for (int i = 1; i <= 5; i++) { usk2.update(i); }
       assertEquals(usk2.getN(), 5);
-      // will request a full base buffer
-      usk2.update(1.0);
-      assertEquals(usk2.getN(), 6);
+      WritableMemory mem2 = usk2.getMemory();
+      assertFalse(mem.isSameResource(mem2));
+      assertFalse(mem2.isDirect()); //should now be on-heap
+
       final int expectedSize = COMBINED_BUFFER + ((2 * k) << 3);
-      assertEquals(usk2.getMemory().getCapacity(), expectedSize);
-
-      // putMinValue()
-      origSketchMem.copyTo(0, mem, 0, initBytes);
-      usk2 = DirectUpdateDoublesSketch.wrapInstance(mem);
-      assertEquals(usk2.getMemory().getCapacity(), initBytes);
-      assertEquals(usk2.getMinValue(), Double.POSITIVE_INFINITY);
-      usk2.putMinValue(5.0);
-      assertEquals(usk2.getMinValue(), 5.0);
-      assertEquals(usk2.getMemory().getCapacity(), expectedSize);
-
-      // putMaxValue()
-      origSketchMem.copyTo(0, mem, 0, initBytes);
-      usk2 = DirectUpdateDoublesSketch.wrapInstance(mem);
-      assertEquals(usk2.getMemory().getCapacity(), initBytes);
-      assertEquals(usk2.getMaxValue(), Double.NEGATIVE_INFINITY);
-      usk2.putMaxValue(5.0);
-      assertEquals(usk2.getMaxValue(), 5.0);
-      assertEquals(usk2.getMemory().getCapacity(), expectedSize);
+      assertEquals(mem2.getCapacity(), expectedSize);
     }
   }
 

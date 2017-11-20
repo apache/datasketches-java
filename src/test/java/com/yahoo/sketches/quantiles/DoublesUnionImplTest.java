@@ -337,11 +337,11 @@ public class DoublesUnionImplTest {
     final DoublesUnion union = DoublesUnionImpl.heapInstance(16);
     final DoublesSketch skEst = buildAndLoadQS(32, 64); //other is bigger, est
     union.update(skEst);
+    println(skEst.toString(true, true));
+    println(union.toString(true, true));
     final DoublesSketch result = union.getResult();
     assertEquals(result.getMaxValue(), 64, 0.0);
     assertEquals(result.getMinValue(), 1.0, 0.0);
-    //    println(skEst.toString(true, true));
-    //    println(union.toString(true, true));
   }
 
   @Test

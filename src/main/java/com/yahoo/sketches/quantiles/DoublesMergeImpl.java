@@ -10,7 +10,6 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.FLAGS_BYTE;
 
 import com.yahoo.memory.WritableMemory;
-
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -102,12 +101,18 @@ final class DoublesMergeImpl {
 
     tgt.putN(nFinal);
 
-    assert tgt.getN() / (2 * tgtK) == tgt.getBitPattern(); // internal consistency check
+    assert (tgt.getN() / (2 * tgtK)) == tgt.getBitPattern(); // internal consistency check
 
-    final double srcMax = src.getMaxValue();
-    final double srcMin = src.getMinValue();
-    final double tgtMax = tgt.getMaxValue();
-    final double tgtMin = tgt.getMinValue();
+    double srcMax = src.getMaxValue();
+    srcMax = Double.isNaN(srcMax) ? Double.NEGATIVE_INFINITY : srcMax;
+    double srcMin = src.getMinValue();
+    srcMin = Double.isNaN(srcMin) ? Double.POSITIVE_INFINITY : srcMin;
+
+    double tgtMax = tgt.getMaxValue();
+    tgtMax = Double.isNaN(tgtMax) ? Double.NEGATIVE_INFINITY : tgtMax;
+    double tgtMin = tgt.getMinValue();
+    tgtMin = Double.isNaN(tgtMin) ? Double.POSITIVE_INFINITY : tgtMin;
+
     tgt.putMaxValue(Math.max(srcMax, tgtMax));
     tgt.putMinValue(Math.min(srcMin, tgtMin));
   }
@@ -135,6 +140,8 @@ final class DoublesMergeImpl {
     final int downFactor = srcK / tgtK;
     checkIfPowerOf2(downFactor, "source.getK()/target.getK() ratio");
     final int lgDownFactor = Integer.numberOfTrailingZeros(downFactor);
+
+    if (src.isEmpty()) { return; }
 
     final DoublesSketchAccessor srcSketchBuf = DoublesSketchAccessor.wrap(src);
     final long nFinal = tgtN + src.getN();
@@ -184,12 +191,17 @@ final class DoublesMergeImpl {
     }
     tgt.putN(nFinal);
 
-    assert tgt.getN() / (2 * tgtK) == newTgtBitPattern; // internal consistency check
+    assert (tgt.getN() / (2 * tgtK)) == newTgtBitPattern; // internal consistency check
 
-    final double srcMax = src.getMaxValue();
-    final double srcMin = src.getMinValue();
-    final double tgtMax = tgt.getMaxValue();
-    final double tgtMin = tgt.getMinValue();
+    double srcMax = src.getMaxValue();
+    srcMax = Double.isNaN(srcMax) ? Double.NEGATIVE_INFINITY : srcMax;
+    double srcMin = src.getMinValue();
+    srcMin = Double.isNaN(srcMin) ? Double.POSITIVE_INFINITY : srcMin;
+
+    double tgtMax = tgt.getMaxValue();
+    tgtMax = Double.isNaN(tgtMax) ? Double.NEGATIVE_INFINITY : tgtMax;
+    double tgtMin = tgt.getMinValue();
+    tgtMin = Double.isNaN(tgtMin) ? Double.POSITIVE_INFINITY : tgtMin;
 
     if (srcMax > tgtMax) { tgt.putMaxValue(srcMax); }
     if (srcMin < tgtMin) { tgt.putMinValue(srcMin); }

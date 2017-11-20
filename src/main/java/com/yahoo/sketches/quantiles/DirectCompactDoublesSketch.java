@@ -149,29 +149,17 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
 
   @Override
   public double getMaxValue() {
-    if (mem_.getCapacity() < COMBINED_BUFFER) {
-      return Double.NEGATIVE_INFINITY;
-    } else {
-      return mem_.getDouble(MAX_DOUBLE);
-    }
+    return isEmpty() ? Double.NaN : mem_.getDouble(MAX_DOUBLE);
   }
 
   @Override
   public double getMinValue() {
-    if (mem_.getCapacity() < COMBINED_BUFFER) {
-      return Double.POSITIVE_INFINITY;
-    } else {
-      return mem_.getDouble(MIN_DOUBLE);
-    }
+    return isEmpty() ? Double.NaN : mem_.getDouble(MIN_DOUBLE);
   }
 
   @Override
   public long getN() {
-    if (mem_.getCapacity() < COMBINED_BUFFER) {
-      return 0;
-    } else {
-      return mem_.getLong(N_LONG);
-    }
+    return (mem_.getCapacity() < COMBINED_BUFFER) ? 0 : mem_.getLong(N_LONG);
   }
 
   @Override
