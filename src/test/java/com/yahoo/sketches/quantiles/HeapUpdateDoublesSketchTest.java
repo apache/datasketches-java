@@ -262,7 +262,7 @@ public class HeapUpdateDoublesSketchTest {
     int k = PreambleUtil.DEFAULT_K;
     int n = 10000;
     UpdateDoublesSketch qs = buildAndLoadQS(k, n);
-    qs.update(Double.NaN);
+    qs.update(Double.NaN); //ignore
     int n2 = (int)qs.getN();
     assertEquals(n2, n);
 
@@ -529,9 +529,9 @@ public class HeapUpdateDoublesSketchTest {
     assertTrue(qs2.isEmpty());
     final int expectedSizeBytes = 8; //COMBINED_BUFFER + ((2 * MIN_K) << 3);
     assertEquals(byteArr.length, expectedSizeBytes);
-    assertEquals(qs2.getQuantile(0.0), Double.NaN);
-    assertEquals(qs2.getQuantile(1.0), Double.NaN);
-    assertEquals(qs2.getQuantile(0.5), Double.NaN);
+    assertTrue(Double.isNaN(qs2.getQuantile(0.0)));
+    assertTrue(Double.isNaN(qs2.getQuantile(1.0)));
+    assertTrue(Double.isNaN(qs2.getQuantile(0.5)));
     double[] quantiles = qs2.getQuantiles(new double[] {0.0, 0.5, 1.0});
     assertNull(quantiles);
     //println(qs1.toString(true, true));

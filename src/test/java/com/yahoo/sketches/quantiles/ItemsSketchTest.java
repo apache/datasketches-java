@@ -45,27 +45,27 @@ public class ItemsSketchTest {
     {
       double[] pmf = sketch.getPMF(new String[0]);
       Assert.assertEquals(pmf.length, 1);
-      Assert.assertEquals(pmf[0], Double.NaN);
+      Assert.assertTrue(Double.isNaN(pmf[0]));
     }
 
     {
       double[] pmf = sketch.getPMF(new String[] {"a"});
       Assert.assertEquals(pmf.length, 2);
-      Assert.assertEquals(pmf[0], Double.NaN);
-      Assert.assertEquals(pmf[1], Double.NaN);
+      Assert.assertTrue(Double.isNaN(pmf[0]));
+      Assert.assertTrue(Double.isNaN(pmf[1]));
     }
 
     {
       double[] cdf = sketch.getCDF(new String[0]);
       Assert.assertEquals(cdf.length, 1);
-      Assert.assertEquals(cdf[0], Double.NaN);
+      Assert.assertTrue(Double.isNaN(cdf[0]));
     }
 
     {
       double[] cdf = sketch.getCDF(new String[] {"a"});
       Assert.assertEquals(cdf.length, 2);
-      Assert.assertEquals(cdf[0], Double.NaN);
-      Assert.assertEquals(cdf[1], Double.NaN);
+      Assert.assertTrue(Double.isNaN(cdf[0]));
+      Assert.assertTrue(Double.isNaN(cdf[1]));
     }
   }
 
@@ -117,7 +117,9 @@ public class ItemsSketchTest {
   @Test
   public void estimation() {
     ItemsSketch<Integer> sketch = ItemsSketch.getInstance(128, Comparator.naturalOrder());
-    for (int i = 1; i <= 1000; i++) sketch.update(i);
+    for (int i = 1; i <= 1000; i++) {
+      sketch.update(i);
+    }
     Assert.assertEquals(sketch.getN(), 1000);
     Assert.assertTrue(sketch.getRetainedItems() < 1000);
     Assert.assertEquals(sketch.getMinValue(), Integer.valueOf(1));
@@ -166,7 +168,9 @@ public class ItemsSketchTest {
 
     {
       Integer[] intArr = new Integer[50];
-      for (int i= 0; i<50; i++) intArr[i] = 20*i +10;
+      for (int i= 0; i<50; i++) {
+        intArr[i] = (20*i) +10;
+      }
       double[] pmf = sketch.getPMF(intArr);
       Assert.assertEquals(pmf.length, 51);
     }
@@ -188,13 +192,17 @@ public class ItemsSketchTest {
   @Test
   public void serializeDeserializeLong() {
     ItemsSketch<Long> sketch1 = ItemsSketch.getInstance(128, Comparator.naturalOrder());
-    for (int i = 1; i <= 500; i++) sketch1.update((long) i);
+    for (int i = 1; i <= 500; i++) {
+      sketch1.update((long) i);
+    }
 
     ArrayOfItemsSerDe<Long> serDe = new ArrayOfLongsSerDe();
     byte[] bytes = sketch1.toByteArray(serDe);
     ItemsSketch<Long> sketch2 = ItemsSketch.getInstance(Memory.wrap(bytes), Comparator.naturalOrder(), serDe);
 
-    for (int i = 501; i <= 1000; i++) sketch2.update((long) i);
+    for (int i = 501; i <= 1000; i++) {
+      sketch2.update((long) i);
+    }
     Assert.assertEquals(sketch2.getN(), 1000);
     Assert.assertTrue(sketch2.getRetainedItems() < 1000);
     Assert.assertEquals(sketch2.getMinValue(), Long.valueOf(1));
@@ -206,13 +214,17 @@ public class ItemsSketchTest {
   @Test
   public void serializeDeserializeDouble() {
     ItemsSketch<Double> sketch1 = ItemsSketch.getInstance(128, Comparator.naturalOrder());
-    for (int i = 1; i <= 500; i++) sketch1.update((double) i);
+    for (int i = 1; i <= 500; i++) {
+      sketch1.update((double) i);
+    }
 
     ArrayOfItemsSerDe<Double> serDe = new ArrayOfDoublesSerDe();
     byte[] bytes = sketch1.toByteArray(serDe);
     ItemsSketch<Double> sketch2 = ItemsSketch.getInstance(Memory.wrap(bytes), Comparator.naturalOrder(), serDe);
 
-    for (int i = 501; i <= 1000; i++) sketch2.update((double) i);
+    for (int i = 501; i <= 1000; i++) {
+      sketch2.update((double) i);
+    }
     Assert.assertEquals(sketch2.getN(), 1000);
     Assert.assertTrue(sketch2.getRetainedItems() < 1000);
     Assert.assertEquals(sketch2.getMinValue(), Double.valueOf(1));
@@ -233,13 +245,18 @@ public class ItemsSketchTest {
       }
     };
     ItemsSketch<String> sketch1 = ItemsSketch.getInstance(128, numericOrder);
-    for (int i = 1; i <= 500; i++) sketch1.update(Integer.toBinaryString(i << 10)); // to make strings longer
+    for (int i = 1; i <= 500; i++)
+     {
+      sketch1.update(Integer.toBinaryString(i << 10)); // to make strings longer
+    }
 
     ArrayOfItemsSerDe<String> serDe = new ArrayOfStringsSerDe();
     byte[] bytes = sketch1.toByteArray(serDe);
     ItemsSketch<String> sketch2 = ItemsSketch.getInstance(Memory.wrap(bytes), numericOrder, serDe);
 
-    for (int i = 501; i <= 1000; i++) sketch2.update(Integer.toBinaryString(i << 10));
+    for (int i = 501; i <= 1000; i++) {
+      sketch2.update(Integer.toBinaryString(i << 10));
+    }
     Assert.assertEquals(sketch2.getN(), 1000);
     Assert.assertTrue(sketch2.getRetainedItems() < 1000);
     Assert.assertEquals(sketch2.getMinValue(), Integer.toBinaryString(1 << 10));

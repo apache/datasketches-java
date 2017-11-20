@@ -143,11 +143,6 @@ final class DoublesMergeImpl {
 
     if (src.isEmpty()) { return; }
 
-    if (tgt.isEmpty()) {
-      tgt.putMinValue(Double.POSITIVE_INFINITY);
-      tgt.putMaxValue(Double.NEGATIVE_INFINITY);
-    }
-
     final DoublesSketchAccessor srcSketchBuf = DoublesSketchAccessor.wrap(src);
     final long nFinal = tgtN + src.getN();
 

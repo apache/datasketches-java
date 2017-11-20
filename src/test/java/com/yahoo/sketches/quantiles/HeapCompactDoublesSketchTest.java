@@ -100,9 +100,9 @@ public class HeapCompactDoublesSketchTest {
     assertTrue(qs2.isEmpty());
     assertEquals(byteArr.length, qs1.getStorageBytes());
     assertEquals(byteArr, byteArr2);
-    assertEquals(qs2.getQuantile(0.0), Double.NaN);
-    assertEquals(qs2.getQuantile(1.0), Double.NaN);
-    assertEquals(qs2.getQuantile(0.5), Double.NaN);
+    assertTrue(Double.isNaN(qs2.getQuantile(0.0)));
+    assertTrue(Double.isNaN(qs2.getQuantile(2.0)));
+    assertTrue(Double.isNaN(qs2.getQuantile(0.5)));
     final double[] quantiles = qs2.getQuantiles(new double[] {0.0, 0.5, 1.0});
     assertNull(quantiles);
     //println(qs1.toString(true, true));

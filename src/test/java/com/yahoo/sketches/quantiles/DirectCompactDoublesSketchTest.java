@@ -86,17 +86,17 @@ public class DirectCompactDoublesSketchTest {
     final DoublesSketch s2 = DoublesSketch.wrap(mem);
     assertTrue(s2.isEmpty());
     assertEquals(s2.getN(), 0);
-    assertEquals(s2.getMinValue(), Double.NaN);
-    assertEquals(s2.getMaxValue(), Double.NaN);
+    assertTrue(Double.isNaN(s2.getMinValue()));
+    assertTrue(Double.isNaN(s2.getMaxValue()));
   }
 
   @Test
   public void checkEmpty() {
     final int k = PreambleUtil.DEFAULT_K;
     final DirectCompactDoublesSketch qs1 = buildAndLoadDCQS(k, 0);
-    assertEquals(qs1.getQuantile(0.0), Double.NaN);
-    assertEquals(qs1.getQuantile(1.0), Double.NaN);
-    assertEquals(qs1.getQuantile(0.5), Double.NaN);
+    assertTrue(Double.isNaN(qs1.getQuantile(0.0)));
+    assertTrue(Double.isNaN(qs1.getQuantile(1.0)));
+    assertTrue(Double.isNaN(qs1.getQuantile(0.5)));
     final double[] quantiles = qs1.getQuantiles(new double[] {0.0, 0.5, 1.0});
     assertNull(quantiles);
 

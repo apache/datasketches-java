@@ -164,8 +164,8 @@ public class DirectUpdateDoublesSketchTest {
     assertTrue(s2.isEmpty());
 
     assertEquals(s2.getN(), 0);
-    assertEquals(s2.getMinValue(), Double.NaN);
-    assertEquals(s2.getMaxValue(), Double.NaN);
+    assertTrue(Double.isNaN(s2.getMinValue()));
+    assertTrue(Double.isNaN(s2.getMaxValue()));
 
     s2.reset(); // empty: so should be a no-op
     assertEquals(s2.getN(), 0);
@@ -194,8 +194,8 @@ public class DirectUpdateDoublesSketchTest {
     assertEquals(combBuf, data);
 
     // shouldn't have changed min/max values
-    assertEquals(qs.getMinValue(), Double.NaN);
-    assertEquals(qs.getMaxValue(), Double.NaN);
+    assertTrue(Double.isNaN(qs.getMinValue()));
+    assertTrue(Double.isNaN(qs.getMaxValue()));
   }
 
   @Test
