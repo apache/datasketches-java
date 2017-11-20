@@ -142,7 +142,7 @@ public class VarOptItemsSamplesTest {
     assertNull(samples.items());
     assertNull(samples.items(0));
     assertNull(samples.weights());
-    assertEquals(samples.weights(0), Double.NaN);
+    assertTrue(Double.isNaN(samples.weights(0)));
   }
 
   @Test
@@ -154,7 +154,7 @@ public class VarOptItemsSamplesTest {
     final VarOptItemsSamples<Long> samples = sketch.getSketchSamples();
 
     for (VarOptItemsSamples<Long>.WeightedSample ws : samples) {
-      assertTrue(ws.getItem() >= 0 && ws.getItem() < (k / 2));
+      assertTrue((ws.getItem() >= 0) && (ws.getItem() < (k / 2)));
     }
   }
 }
