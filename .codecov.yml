@@ -1,3 +1,4 @@
+# validate: curl --data-binary @.codecov.yml https://codecov.io/validate
 coverage:
   precision: 2
   round: up
