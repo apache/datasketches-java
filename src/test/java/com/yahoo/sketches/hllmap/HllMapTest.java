@@ -83,7 +83,7 @@ public class HllMapTest {
       double est = map.getEstimate(key);
       Assert.assertTrue(map.getUpperBound(key) > est);
       Assert.assertTrue(map.getLowerBound(key) < est);
-      double err = (est/u -1.0) * 100;
+      double err = ((est/u) -1.0) * 100;
       String eStr = String.format("%.3f%%", err);
       println("key: " + j + "\tu: "+u + "\t Est: " + est + "\t" + eStr);
     }
@@ -95,7 +95,7 @@ public class HllMapTest {
     for (j=1; j<=keys; j++) {
       key = Util.intToBytes(j, key);
       double est = map.getEstimate(key);
-      double err = (est/u -1.0) * 100;
+      double err = ((est/u) -1.0) * 100;
       String eStr = String.format("%.3f%%", err);
       println("key: " + j + "\tu: "+u + "\t Est: " + est + "\t" + eStr);
     }

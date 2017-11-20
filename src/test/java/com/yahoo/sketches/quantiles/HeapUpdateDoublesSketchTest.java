@@ -262,7 +262,7 @@ public class HeapUpdateDoublesSketchTest {
     int k = PreambleUtil.DEFAULT_K;
     int n = 10000;
     UpdateDoublesSketch qs = buildAndLoadQS(k, n);
-    qs.update(Double.NaN);
+    qs.update(Double.NaN); //ignore
     int n2 = (int)qs.getN();
     assertEquals(n2, n);
 
@@ -529,14 +529,11 @@ public class HeapUpdateDoublesSketchTest {
     assertTrue(qs2.isEmpty());
     final int expectedSizeBytes = 8; //COMBINED_BUFFER + ((2 * MIN_K) << 3);
     assertEquals(byteArr.length, expectedSizeBytes);
-    assertEquals(qs2.getQuantile(0.0), Double.POSITIVE_INFINITY);
-    assertEquals(qs2.getQuantile(1.0), Double.NEGATIVE_INFINITY);
-    assertEquals(qs2.getQuantile(0.5), Double.NaN);
+    assertTrue(Double.isNaN(qs2.getQuantile(0.0)));
+    assertTrue(Double.isNaN(qs2.getQuantile(1.0)));
+    assertTrue(Double.isNaN(qs2.getQuantile(0.5)));
     double[] quantiles = qs2.getQuantiles(new double[] {0.0, 0.5, 1.0});
-    assertEquals(quantiles.length, 3);
-    assertEquals(quantiles[0], Double.POSITIVE_INFINITY);
-    assertEquals(quantiles[1], Double.NaN);
-    assertEquals(quantiles[2], Double.NEGATIVE_INFINITY);
+    assertNull(quantiles);
     //println(qs1.toString(true, true));
   }
 
@@ -1044,19 +1041,24 @@ public class HeapUpdateDoublesSketchTest {
   }
 
   private static boolean sameStructurePredicate(final DoublesSketch mq1, final DoublesSketch mq2) {
-    return
-      (
-        (mq1.getK() == mq2.getK())
+    final boolean b1 =
+      ( (mq1.getK() == mq2.getK())
         && (mq1.getN() == mq2.getN())
         && (mq1.getCombinedBufferItemCapacity()
             >= Util.computeCombinedBufferItemCapacity(mq1.getK(), mq1.getN()))
         && (mq2.getCombinedBufferItemCapacity()
             >= Util.computeCombinedBufferItemCapacity(mq2.getK(), mq2.getN()))
         && (mq1.getBaseBufferCount() == mq2.getBaseBufferCount())
-        && (mq1.getBitPattern() == mq2.getBitPattern())
-        && (mq1.getMinValue() == mq2.getMinValue())
-        && (mq1.getMaxValue() == mq2.getMaxValue())
-      );
+        && (mq1.getBitPattern() == mq2.getBitPattern()) );
+
+    final boolean b2;
+    if (mq1.isEmpty()) {
+      b2 = (Double.isNaN(mq1.getMinValue())) && (Double.isNaN(mq2.getMinValue())
+        &&  Double.isNaN(mq1.getMaxValue())) && (Double.isNaN(mq2.getMaxValue()));
+    } else {
+      b2 =  (mq1.getMinValue() == mq2.getMinValue()) && (mq1.getMaxValue() == mq2.getMaxValue());
+    }
+    return b1 && b2;
   }
 
   static UpdateDoublesSketch buildAndLoadQS(int k, int n) {

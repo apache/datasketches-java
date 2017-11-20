@@ -164,8 +164,8 @@ public class DirectUpdateDoublesSketchTest {
     assertTrue(s2.isEmpty());
 
     assertEquals(s2.getN(), 0);
-    assertEquals(s2.getMinValue(), Double.POSITIVE_INFINITY);
-    assertEquals(s2.getMaxValue(), Double.NEGATIVE_INFINITY);
+    assertTrue(Double.isNaN(s2.getMinValue()));
+    assertTrue(Double.isNaN(s2.getMaxValue()));
 
     s2.reset(); // empty: so should be a no-op
     assertEquals(s2.getN(), 0);
@@ -194,8 +194,8 @@ public class DirectUpdateDoublesSketchTest {
     assertEquals(combBuf, data);
 
     // shouldn't have changed min/max values
-    assertEquals(qs.getMinValue(), Double.POSITIVE_INFINITY);
-    assertEquals(qs.getMaxValue(), Double.NEGATIVE_INFINITY);
+    assertTrue(Double.isNaN(qs.getMinValue()));
+    assertTrue(Double.isNaN(qs.getMaxValue()));
   }
 
   @Test
@@ -256,8 +256,8 @@ public class DirectUpdateDoublesSketchTest {
   @Test
   public void checkCheckDirectMemCapacity() {
     final int k = 128;
-    DirectUpdateDoublesSketchR.checkDirectMemCapacity(k, 2 * k - 1, (4 + 2 * k) * 8);
-    DirectUpdateDoublesSketchR.checkDirectMemCapacity(k, 2 * k + 1, (4 + 3 * k) * 8);
+    DirectUpdateDoublesSketchR.checkDirectMemCapacity(k, (2 * k) - 1, (4 + (2 * k)) * 8);
+    DirectUpdateDoublesSketchR.checkDirectMemCapacity(k, (2 * k) + 1, (4 + (3 * k)) * 8);
     DirectUpdateDoublesSketchR.checkDirectMemCapacity(k, 0, 8);
 
     try {
@@ -320,7 +320,7 @@ public class DirectUpdateDoublesSketchTest {
     }
     double last = 0.0;
     for (int i = 0; i < k; i++) { //check the level 0
-      final double d = mem.getDouble((4 + 2 * k + i) << 3);
+      final double d = mem.getDouble((4 + (2 * k) + i) << 3);
       assertTrue(d > 0);
       assertTrue(d > last);
       last = d;
@@ -342,7 +342,7 @@ public class DirectUpdateDoublesSketchTest {
 
   static UpdateDoublesSketch buildDQS(int k, long n) {
     int cap = DoublesSketch.getUpdatableStorageBytes(k, n);
-    if (cap < 2 * k) { cap = 2 * k; }
+    if (cap < (2 * k)) { cap = 2 * k; }
     DoublesSketchBuilder bldr = new DoublesSketchBuilder();
     bldr.setK(k);
     UpdateDoublesSketch dqs = bldr.build(WritableMemory.wrap(new byte[cap]));
