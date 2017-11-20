@@ -1,0 +1,18 @@
+coverage:
+  precision: 2
+  round: up
+  range: 70...100
+
+  status:
+    # Learn more at http://docs.codecov.io/docs/codecov-yaml
+    project: 
+      default:
+        enabled: true
+        target: 90%
+        threshold: 2%
+    patch: true
+    changes: false
+
+comment:
+  layout: "header, diff"
+  behavior: default  # update if exists else create new
