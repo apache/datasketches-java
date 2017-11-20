@@ -9,8 +9,6 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.yahoo.sketches.Util;
-import com.yahoo.sketches.hllmap.HllMap;
-import com.yahoo.sketches.hllmap.Map;
 
 public class HllMapTest {
 
@@ -20,7 +18,7 @@ public class HllMapTest {
     int u = 1000;
     int keySize = 4;
     HllMap map = HllMap.getInstance(keySize, k);
-    Assert.assertEquals(map.getEstimate(null), Double.NaN);
+    Assert.assertTrue(Double.isNaN(map.getEstimate(null)));
     Assert.assertTrue(map.getEntrySizeBytes() > 800);
     Assert.assertEquals(map.getCapacityEntries(), 147);
     Assert.assertEquals(map.getTableEntries(), 157);
@@ -39,8 +37,8 @@ public class HllMapTest {
       id = Util.intToBytes(i, id);
       short coupon = (short) Map.coupon16(id);
       est = map.update(key, coupon);
-      if (i % 100 == 0) {
-        double err = (est/i -1.0) * 100;
+      if ((i % 100) == 0) {
+        double err = ((est/i) -1.0) * 100;
         String eStr = String.format("%.3f%%", err);
         println("i: "+i + "\t Est: " + est + "\t" + eStr);
       }
