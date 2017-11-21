@@ -224,7 +224,7 @@ final class PreambleUtil {
       sb.append("             Theta (long)     : ").append(thetaLong).append(LS);
       sb.append("             Theta (long,hex) : ").append(thetaHex).append(LS);
     }
-    else if (preLongs == 4) {
+    else { //preLongs == 4
       sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS);
       sb.append("Bytes 12-15: P                : ").append(p).append(LS);
       sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS);

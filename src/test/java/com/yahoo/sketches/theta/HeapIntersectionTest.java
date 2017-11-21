@@ -33,8 +33,12 @@ public class HeapIntersectionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
-    for (int i=0; i<k/2; i++) usk1.update(i);
-    for (int i=k/2; i<k; i++) usk2.update(i);
+    for (int i=0; i<(k/2); i++) {
+      usk1.update(i);
+    }
+    for (int i=k/2; i<k; i++) {
+      usk2.update(i);
+    }
 
     Intersection inter = SetOperation.builder().buildIntersection();
 
@@ -61,6 +65,8 @@ public class HeapIntersectionTest {
 
     rsk1 = inter.getResult(ordered, mem); //executed twice to fully exercise the internal state machine
     assertEquals(rsk1.getEstimate(), 0.0);
+
+    assertFalse(inter.isSameResource(mem));
   }
 
   @Test
@@ -71,8 +77,12 @@ public class HeapIntersectionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
-    for (int i=0; i<k; i++) usk1.update(i);
-    for (int i=0; i<k; i++) usk2.update(i);
+    for (int i=0; i<k; i++) {
+      usk1.update(i);
+    }
+    for (int i=0; i<k; i++) {
+      usk2.update(i);
+    }
 
     Intersection inter = SetOperation.builder().buildIntersection();
     inter.update(usk1);
@@ -108,8 +118,13 @@ public class HeapIntersectionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
-    for (int i=0; i<u; i++) usk1.update(i);
-    for (int i=u/2; i<u + u/2; i++) usk2.update(i); //inter 512
+    for (int i=0; i<u; i++) {
+      usk1.update(i);
+    }
+    for (int i=u/2; i<(u + (u/2)); i++)
+     {
+      usk2.update(i); //inter 512
+    }
 
     CompactSketch csk1 = usk1.compact(true, null);
     CompactSketch csk2 = usk2.compact(true, null);
@@ -120,7 +135,7 @@ public class HeapIntersectionTest {
 
     CompactSketch rsk1 = inter.getResult(true, null);
     double result = rsk1.getEstimate();
-    double sd2err = 2048 * 2.0/Math.sqrt(k);
+    double sd2err = (2048 * 2.0)/Math.sqrt(k);
     //println("2048 = " + rsk1.getEstimate() + " +/- " + sd2err);
     assertEquals(result, 2048.0, sd2err);
   }
@@ -327,7 +342,10 @@ public class HeapIntersectionTest {
 
     //1st call = valid
     sk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=0; i<2*k; i++) sk1.update(i);  //est mode
+    for (int i=0; i<(2*k); i++)
+     {
+      sk1.update(i);  //est mode
+    }
     println("sk1: "+sk1.getEstimate());
 
     inter = SetOperation.builder().buildIntersection();
@@ -335,7 +353,10 @@ public class HeapIntersectionTest {
 
     //2nd call = valid intersecting
     sk2 = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=0; i<2*k; i++) sk2.update(i);  //est mode
+    for (int i=0; i<(2*k); i++)
+     {
+      sk2.update(i);  //est mode
+    }
     println("sk2: "+sk2.getEstimate());
 
     inter.update(sk2);
@@ -355,7 +376,10 @@ public class HeapIntersectionTest {
     double est, est2;
 
     sk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=0; i<2*k; i++) sk1.update(i);  //est mode
+    for (int i=0; i<(2*k); i++)
+     {
+      sk1.update(i);  //est mode
+    }
     CompactSketch compSkIn1 = sk1.compact(true, null);
     println("compSkIn1: "+compSkIn1.getEstimate());
 
@@ -365,7 +389,10 @@ public class HeapIntersectionTest {
 
     //2nd call = valid intersecting
     sk2 = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=0; i<2*k; i++) sk2.update(i);  //est mode
+    for (int i=0; i<(2*k); i++)
+     {
+      sk2.update(i);  //est mode
+    }
     CompactSketch compSkIn2 = sk2.compact(true, null);
     println("compSkIn2: "+compSkIn2.getEstimate());
 
@@ -474,6 +501,33 @@ public class HeapIntersectionTest {
     //corrupt:
     mem.putInt(RETAINED_ENTRIES_INT, 1);
     SetOperation.heapify(mem);
+  }
+
+  @Test
+  public void checkEmpty() {
+    UpdateSketch usk = Sketches.updateSketchBuilder().build();
+    Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    inter.update(usk);
+    assertTrue(inter.isEmpty());
+    assertEquals(inter.getRetainedEntries(true), 0);
+    assertTrue(inter.getSeedHash() != 0);
+    assertEquals(inter.getThetaLong(), Long.MAX_VALUE);
+    long[] longArr = inter.getCache();
+    assertEquals(longArr.length, 0);
+  }
+
+  @Test
+  public void checkOne() {
+    UpdateSketch usk = Sketches.updateSketchBuilder().build();
+    usk.update(1);
+    Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    inter.update(usk);
+    assertFalse(inter.isEmpty());
+    assertEquals(inter.getRetainedEntries(true), 1);
+    assertTrue(inter.getSeedHash() != 0);
+    assertEquals(inter.getThetaLong(), Long.MAX_VALUE);
+    long[] longArr = inter.getCache();
+    assertEquals(longArr.length, 32);
   }
 
   @Test

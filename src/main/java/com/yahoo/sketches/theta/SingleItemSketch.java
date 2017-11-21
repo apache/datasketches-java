@@ -10,6 +10,7 @@ import static com.yahoo.sketches.Util.checkSeedHashes;
 import static com.yahoo.sketches.Util.computeSeedHash;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -175,6 +176,18 @@ public final class SingleItemSketch extends CompactSketch {
   //Updates with a user specified seed
 
   /**
+   * Create this sketch with a long and a seed.
+   *
+   * @param datum The given long datum.
+   * @param seed used to hash the given value.
+   * @return a SingleItemSketch
+   */
+  public static SingleItemSketch create(final long datum, final long seed) {
+    final long[] data = { datum };
+    return new SingleItemSketch(hash(data, seed)[0] >>> 1);
+  }
+
+  /**
    * Create this sketch with the given double (or float) datum and a seed.
    * The double will be converted to a long using Double.doubleToLongBits(datum),
    * which normalizes all NaN values to a single NaN representation.
@@ -182,7 +195,7 @@ public final class SingleItemSketch extends CompactSketch {
    * The special floating-point values NaN and +/- Infinity are treated as distinct.
    *
    * @param datum The given double datum.
-   * @param seed the create seed used to hash the given value.
+   * @param seed used to hash the given value.
    * @return a SingleItemSketch
    */
   public static SingleItemSketch create(final double datum, final long seed) {
@@ -201,7 +214,7 @@ public final class SingleItemSketch extends CompactSketch {
    * </p>
    *
    * @param datum The given String.
-   * @param seed the create seed used to hash the given value.
+   * @param seed used to hash the given value.
    * @return a SingleItemSketch or null
    */
   public static SingleItemSketch create(final String datum, final long seed) {
@@ -215,7 +228,7 @@ public final class SingleItemSketch extends CompactSketch {
    * If the byte array is null or empty no create attempt is made and the method returns null.
    *
    * @param data The given byte array.
-   * @param seed the create seed used to hash the given value.
+   * @param seed used to hash the given value.
    * @return a SingleItemSketch or null
    */
   public static SingleItemSketch create(final byte[] data, final long seed) {
@@ -231,7 +244,7 @@ public final class SingleItemSketch extends CompactSketch {
    * method but will be a little faster as it avoids the complexity of the UTF8 encoding.</p>
    *
    * @param data The given char array.
-   * @param seed the create seed used to hash the given value.
+   * @param seed used to hash the given value.
    * @return a SingleItemSketch or null
    */
   public static SingleItemSketch create(final char[] data, final long seed) {
@@ -244,7 +257,7 @@ public final class SingleItemSketch extends CompactSketch {
    * If the integer array is null or empty no create attempt is made and the method returns null.
    *
    * @param data The given int array.
-   * @param seed the create seed used to hash the given value.
+   * @param seed used to hash the given value.
    * @return a SingleItemSketch or null
    */
   public static SingleItemSketch create(final int[] data, final long seed) {
@@ -257,7 +270,7 @@ public final class SingleItemSketch extends CompactSketch {
    * If the long array is null or empty no create attempt is made and the method returns null.
    *
    * @param data The given long array.
-   * @param seed the create seed used to hash the given value.
+   * @param seed used to hash the given value.
    * @return a SingleItemSketch or null
    */
   public static SingleItemSketch create(final long[] data, final long seed) {
@@ -269,7 +282,7 @@ public final class SingleItemSketch extends CompactSketch {
 
   @Override
   public int getCountLessThanTheta(final double theta) {
-    return 1;
+    return (arr[1] < (theta * MAX_THETA_LONG_AS_DOUBLE)) ? 1 : 0;
   }
 
   @Override

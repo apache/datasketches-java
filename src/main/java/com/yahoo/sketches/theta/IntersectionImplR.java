@@ -246,10 +246,10 @@ class IntersectionImplR extends Intersection {
 
   @Override
   long[] getCache() {
-    if (mem_ != null) {
+    if (mem_ == null) {
       return (hashTable_ != null) ? hashTable_ : new long[0];
     }
-    //off-heap
+    //Direct
     final int arrLongs = 1 << lgArrLongs_;
     final long[] outArr = new long[arrLongs];
     mem_.getLongArray(CONST_PREAMBLE_LONGS << 3, outArr, 0, arrLongs);
