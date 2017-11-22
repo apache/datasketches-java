@@ -159,19 +159,19 @@ public abstract class UpdateSketch extends Sketch {
     final int sw = (dstOrdered ? 2 : 0) | ((dstMem != null) ? 1 : 0);
     switch (sw) {
       case 0: { //dst not ordered, dstMem == null
-        sketchOut = new HeapCompactSketch(this);
+        sketchOut = HeapCompactUnorderedSketch.compact(this);
         break;
       }
       case 1: { //dst not ordered, dstMem == valid
-        sketchOut = new DirectCompactSketch(this, dstMem);
+        sketchOut = DirectCompactUnorderedSketch.compact(this, dstMem);
         break;
       }
       case 2: { //dst ordered, dstMem == null
-        sketchOut = new HeapCompactOrderedSketch(this);
+        sketchOut = HeapCompactOrderedSketch.compact(this);
         break;
       }
       case 3: { //dst ordered, dstMem == valid
-        sketchOut = new DirectCompactOrderedSketch(this, dstMem);
+        sketchOut = DirectCompactOrderedSketch.compact(this, dstMem);
         break;
       }
       //default: //This cannot happen and cannot be tested

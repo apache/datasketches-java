@@ -7,13 +7,13 @@ package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.QuickSelect.selectExcludingZeros;
 import static com.yahoo.sketches.theta.CompactSketch.compactCache;
-import static com.yahoo.sketches.theta.CompactSketch.createCompactSketch;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
 import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
@@ -28,7 +28,6 @@ import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
-
 
 /**
  * Shared code for the HeapUnion and DirectUnion implementations.
@@ -188,10 +187,11 @@ final class UnionImpl extends Union {
         : gadgetCurCount;
 
     //Compact the cache
-    final long[] compactCacheOut = compactCache(gadgetCacheCopy, curCountOut, minThetaLong, dstOrdered);
-
-    return createCompactSketch(compactCacheOut, gadget_.isEmpty(), seedHash_, curCountOut, minThetaLong,
-        dstOrdered, dstMem);
+    final long[] compactCacheOut =
+        compactCache(gadgetCacheCopy, curCountOut, minThetaLong, dstOrdered);
+    final boolean empty = gadget_.isEmpty();
+    return createCompactSketch(
+        compactCacheOut, empty, seedHash_, curCountOut, minThetaLong, dstOrdered, dstMem);
   }
 
   @Override
@@ -214,17 +214,8 @@ final class UnionImpl extends Union {
   }
 
   @Override
-  public Family getFamily() {
-    return Family.UNION;
-  }
-
-  @Override
   public boolean isSameResource(final Memory mem) {
-    if (gadget_.isDirect()) {
-      return gadget_.getMemory().isSameResource(mem);
-    } else {
-      return false;
-    }
+    return gadget_.isDirect() ? gadget_.getMemory().isSameResource(mem) : false;
   }
 
   @Override
@@ -349,7 +340,34 @@ final class UnionImpl extends Union {
     gadget_.update(data);
   }
 
-  //no seedhash, assumes given seed is correct. No p, no empty flag, no concept of direct
+  //Restricted
+
+  @Override
+  long[] getCache() {
+    return gadget_.getCache();
+  }
+
+  @Override
+  int getRetainedEntries(final boolean valid) {
+    return gadget_.getRetainedEntries(valid);
+  }
+
+  @Override
+  short getSeedHash() {
+    return gadget_.getSeedHash();
+  }
+
+  @Override
+  long getThetaLong() {
+    return min(unionThetaLong_, gadget_.getThetaLong());
+  }
+
+  @Override
+  boolean isEmpty() {
+    return gadget_.isEmpty();
+  }
+
+  //no seedHash, assumes given seed is correct. No p, no empty flag, no concept of direct
   // can only be compact, ordered, size > 24
   private void processVer1(final Memory skMem) {
     final long thetaLongIn = skMem.getLong(THETA_LONG);
@@ -368,7 +386,7 @@ final class UnionImpl extends Union {
     }
   }
 
-  //has seedhash and p, could have 0 entries & theta,
+  //has seedHash and p, could have 0 entries & theta,
   // can only be compact, ordered, size >= 8
   private void processVer2(final Memory skMem) {
     Util.checkSeedHashes(seedHash_, skMem.getShort(SEED_HASH_SHORT));
@@ -397,21 +415,30 @@ final class UnionImpl extends Union {
     }
   }
 
-  //has seedhash, p, could have 0 entries & theta,
+  //has seedHash, p, could have 0 entries & theta,
   // could be unordered, ordered, compact, or not, size >= 8
   private void processVer3(final Memory skMem) {
     Util.checkSeedHashes(seedHash_, skMem.getShort(SEED_HASH_SHORT));
     final int preLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    final int curCount = skMem.getInt(RETAINED_ENTRIES_INT);
+    final int curCount;
     final long thetaLongIn;
-    if (preLongs == 1) {
-      return;
+    if (preLongs == 1) { //SingleItemSketch if not empty, Read-Only, Compact and Ordered
+      final int flags = skMem.getByte(FLAGS_BYTE);
+      if (flags == (READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK)) {
+        curCount = 1;
+        thetaLongIn = Long.MAX_VALUE;
+      } else {
+        return; //otherwise an empty sketch
+      }
     }
-    if (preLongs == 2) { //curCount has to be > 0 and exact mode. Cannot be from intersection.
+    else if (preLongs == 2) { //curCount has to be > 0 and exact mode. Cannot be from intersection.
+      curCount = skMem.getInt(RETAINED_ENTRIES_INT);
       assert curCount > 0;
       thetaLongIn = Long.MAX_VALUE;
     }
     else { //prelongs == 3, curCount may be 0 (e.g., from intersection).
+      curCount = skMem.getInt(RETAINED_ENTRIES_INT);
+      assert curCount > 0;
       thetaLongIn = skMem.getLong(THETA_LONG);
     }
     unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule
@@ -434,7 +461,7 @@ final class UnionImpl extends Union {
         gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
       }
     }
-    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //sync ext vs internal thetas
+    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //sync thetaLongs
     if (gadget_.isDirect()) {
       gadget_.getMemory().putLong(UNION_THETA_LONG, unionThetaLong_);
     }

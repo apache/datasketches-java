@@ -45,6 +45,13 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   //Sketch
 
   @Override
+  public int getCurrentBytes(final boolean compact) {
+    final int preLongs = getCurrentPreambleLongs(compact);
+    final int dataLongs = getCurrentDataLongs(compact);
+    return (preLongs + dataLongs) << 3;
+  }
+
+  @Override
   public boolean isDirect() {
     return false;
   }
@@ -62,13 +69,13 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   //restricted methods
 
   @Override
-  long getSeed() {
-    return seed_;
+  float getP() {
+    return p_;
   }
 
   @Override
-  float getP() {
-    return p_;
+  long getSeed() {
+    return seed_;
   }
 
   @Override

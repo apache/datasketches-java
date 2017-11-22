@@ -45,7 +45,8 @@ final class ForwardCompatibility {
     final short seedHash = Util.computeSeedHash(seed);
 
     if (memCap <= 24) { //return empty
-      return new HeapCompactOrderedSketch(new long[0], true, seedHash, 0, Long.MAX_VALUE);
+      return HeapCompactOrderedSketch
+          .compact(new long[0], true, seedHash, 0, Long.MAX_VALUE);
     }
 
     final int curCount = srcMem.getInt(RETAINED_ENTRIES_INT);
@@ -59,7 +60,8 @@ final class ForwardCompatibility {
     final long[] compactOrderedCache = new long[curCount];
     srcMem.getLongArray(24, compactOrderedCache, 0, curCount);
 
-    return new HeapCompactOrderedSketch(compactOrderedCache, false, seedHash, curCount, thetaLong);
+    return HeapCompactOrderedSketch
+        .compact(compactOrderedCache, false, seedHash, curCount, thetaLong);
   }
 
   /**
@@ -79,7 +81,8 @@ final class ForwardCompatibility {
     Util.checkSeedHashes(seedHash, memSeedHash);
 
     if (memCap == 8) { //return empty, theta = 1.0
-      return new HeapCompactOrderedSketch(new long[0], true, seedHash, 0, Long.MAX_VALUE);
+      return HeapCompactOrderedSketch
+          .compact(new long[0], true, seedHash, 0, Long.MAX_VALUE);
     }
 
     final int curCount = srcMem.getInt(RETAINED_ENTRIES_INT);
@@ -95,7 +98,8 @@ final class ForwardCompatibility {
     final long[] compactOrderedCache = new long[curCount];
     srcMem.getLongArray(mdLongs << 3, compactOrderedCache, 0, curCount);
 
-    return new HeapCompactOrderedSketch(compactOrderedCache, empty, seedHash, curCount, thetaLong);
+    return HeapCompactOrderedSketch
+        .compact(compactOrderedCache, empty, seedHash, curCount, thetaLong);
   }
 
   private static final void validateInputSize(final int reqBytesIn, final int memCap) {

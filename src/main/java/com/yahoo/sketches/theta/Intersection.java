@@ -6,6 +6,7 @@
 package com.yahoo.sketches.theta;
 
 import com.yahoo.memory.WritableMemory;
+import com.yahoo.sketches.Family;
 
 /**
  * The API for intersection operations
@@ -14,14 +15,10 @@ import com.yahoo.memory.WritableMemory;
  */
 public abstract class Intersection extends SetOperation {
 
-  /**
-   * Intersect the given sketch with the internal state.
-   * This method can be repeatedly called.
-   * If the given sketch is null the internal state becomes the empty sketch.
-   * Theta will become the minimum of thetas seen so far.
-   * @param sketchIn the given sketch
-   */
-  public abstract void update(Sketch sketchIn);
+  @Override
+  public Family getFamily() {
+    return Family.INTERSECTION;
+  }
 
   /**
    * Gets the result of this operation as a CompactSketch of the chosen form.
@@ -53,14 +50,24 @@ public abstract class Intersection extends SetOperation {
   public abstract boolean hasResult();
 
   /**
+   * Resets this Intersection. The seed remains intact, otherwise reverts to
+   * the Universal Set, theta of 1.0 and empty = false.
+   */
+  public abstract void reset();
+
+  /**
    * Serialize this intersection to a byte array form.
    * @return byte array of this intersection
    */
   public abstract byte[] toByteArray();
 
   /**
-   * Resets this Intersection. The seed remains intact, otherwise reverts to
-   * the Universal Set, theta of 1.0 and empty = false.
+   * Intersect the given sketch with the internal state.
+   * This method can be repeatedly called.
+   * If the given sketch is null the internal state becomes the empty sketch.
+   * Theta will become the minimum of thetas seen so far.
+   * @param sketchIn the given sketch
    */
-  public abstract void reset();
+  public abstract void update(Sketch sketchIn);
+
 }
