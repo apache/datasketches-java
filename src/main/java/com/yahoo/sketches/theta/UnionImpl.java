@@ -13,6 +13,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
 import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
@@ -419,16 +420,25 @@ final class UnionImpl extends Union {
   private void processVer3(final Memory skMem) {
     Util.checkSeedHashes(seedHash_, skMem.getShort(SEED_HASH_SHORT));
     final int preLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    final int curCount = skMem.getInt(RETAINED_ENTRIES_INT);
+    final int curCount;
     final long thetaLongIn;
-    if (preLongs == 1) {
-      return;
+    if (preLongs == 1) { //SingleItemSketch if not empty, Read-Only, Compact and Ordered
+      final int flags = skMem.getByte(FLAGS_BYTE);
+      if (flags == (READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK)) {
+        curCount = 1;
+        thetaLongIn = Long.MAX_VALUE;
+      } else {
+        return; //otherwise an empty sketch
+      }
     }
-    if (preLongs == 2) { //curCount has to be > 0 and exact mode. Cannot be from intersection.
+    else if (preLongs == 2) { //curCount has to be > 0 and exact mode. Cannot be from intersection.
+      curCount = skMem.getInt(RETAINED_ENTRIES_INT);
       assert curCount > 0;
       thetaLongIn = Long.MAX_VALUE;
     }
     else { //prelongs == 3, curCount may be 0 (e.g., from intersection).
+      curCount = skMem.getInt(RETAINED_ENTRIES_INT);
+      assert curCount > 0;
       thetaLongIn = skMem.getLong(THETA_LONG);
     }
     unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule
