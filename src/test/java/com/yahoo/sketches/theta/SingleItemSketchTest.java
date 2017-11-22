@@ -146,14 +146,6 @@ public class SingleItemSketchTest {
   }
 
   @Test
-  public void unionWrapped() {
-    Sketch sketch = SingleItemSketch.create(1);
-    Union union = Sketches.setOperationBuilder().buildUnion();
-    union.update(Memory.wrap(sketch.toByteArray()));
-    assertEquals(union.getResult().getEstimate(), 1, 0);
-  }
-
-  @Test
   public void checkRestricted() {
     SingleItemSketch sis = SingleItemSketch.create(1);
     assertNull(sis.getMemory());
