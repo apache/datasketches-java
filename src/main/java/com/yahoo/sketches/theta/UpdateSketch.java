@@ -91,7 +91,7 @@ public abstract class UpdateSketch extends Sketch {
    * @return an UpdateSketch
    */
   public static UpdateSketch heapify(final Memory srcMem) {
-    return HeapQuickSelectSketch.heapifyInstance(srcMem, DEFAULT_UPDATE_SEED);
+    return heapify(srcMem, DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -101,6 +101,10 @@ public abstract class UpdateSketch extends Sketch {
    * @return an UpdateSketch
    */
   public static UpdateSketch heapify(final Memory srcMem, final long seed) {
+    final Family family = Family.idToFamily(srcMem.getByte(FAMILY_BYTE));
+    if (family.equals(Family.ALPHA)) {
+      return HeapAlphaSketch.heapifyInstance(srcMem, seed);
+    }
     return HeapQuickSelectSketch.heapifyInstance(srcMem, seed);
   }
 

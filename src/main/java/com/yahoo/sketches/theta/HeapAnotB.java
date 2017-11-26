@@ -40,6 +40,14 @@ final class HeapAnotB extends AnotB {
    */
   HeapAnotB(final long seed) {
     seedHash_ = Util.computeSeedHash(seed);
+    a_ = null;
+    b_ = null;
+    thetaLong_ = Long.MAX_VALUE;
+    empty_ = true;
+    cache_ = null;
+    curCount_ = 0;
+    lgArrLongsHT_ = 5;
+    bHashTable_ = null;
   }
 
   @Override
@@ -297,12 +305,8 @@ final class HeapAnotB extends AnotB {
     bHashTable_ = null;
   }
 
-  /* (non-Javadoc)
-   * @see com.yahoo.sketches.theta.SetOperation#getCache()
-   */
   @Override
   long[] getCache() {
-    // TODO Auto-generated method stub
     return null;
   }
 
