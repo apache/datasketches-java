@@ -103,7 +103,7 @@ public class ForwardCompatibilityTest {
     assertEquals(sketch.isOrdered(), true);
     assertEquals(sketch.getEstimate(), 1.0);
     String name = sketch.getClass().getSimpleName();
-    assertEquals(name, "HeapCompactOrderedSketch");
+    assertEquals(name, "SingleItemSketch");
   }
 
   @Test
@@ -197,8 +197,9 @@ public class ForwardCompatibilityTest {
     int serVer = v3mem.getByte(SER_VER_BYTE);
     int famId = v3mem.getByte(FAMILY_BYTE);
     int flags = v3mem.getByte(FLAGS_BYTE);
-    if ((serVer != 3) || (famId != 3) || ((flags & 24) != 24))
+    if ((serVer != 3) || (famId != 3) || ((flags & 24) != 24)) {
       throw new SketchesArgumentException("Memory must be V3, Compact, Ordered");
+    }
     //must convert v3 preamble to a v1 preamble
     int v3preLongs = v3mem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
     int entries;
@@ -240,8 +241,9 @@ public class ForwardCompatibilityTest {
     int serVer = v3mem.getByte(SER_VER_BYTE);
     int famId = v3mem.getByte(FAMILY_BYTE);
     int flags = v3mem.getByte(FLAGS_BYTE);
-    if ((serVer != 3) || (famId != 3) || ((flags & 24) != 24))
+    if ((serVer != 3) || (famId != 3) || ((flags & 24) != 24)) {
       throw new SketchesArgumentException("Memory must be V3, Compact, Ordered");
+    }
     //compute size
     int preLongs = v3mem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
     int entries = (preLongs == 1)? 0 : v3mem.getInt(RETAINED_ENTRIES_INT);

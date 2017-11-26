@@ -48,6 +48,11 @@ public final class SingleItemSketch extends CompactSketch {
     wmem.putShort(6, computeSeedHash(seed));
   }
 
+  SingleItemSketch(final long hash, final short seedHash) {
+    arr[1] = hash;
+    wmem.putShort(6, seedHash);
+  }
+
   /**
    * Creates a SingleItemSketch on the heap given a Memory
    * @param mem the Memory to be heapified.  It must be a least 16 bytes.

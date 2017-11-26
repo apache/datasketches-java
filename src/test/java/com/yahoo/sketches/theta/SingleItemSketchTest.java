@@ -16,6 +16,7 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -169,6 +170,113 @@ public class SingleItemSketchTest {
     union.update(Memory.wrap(sketch.toByteArray()));
     assertEquals(union.getResult().getEstimate(), 1, 0);
   }
+
+  @Test
+  public void buildAndCompact() {
+    UpdateSketch sk1;
+    CompactSketch csk;
+    int bytes;
+    //On-heap
+    sk1 = Sketches.updateSketchBuilder().setNominalEntries(32).build();
+    sk1.update(1);
+    csk = sk1.compact(true, null);
+    assertTrue(csk instanceof SingleItemSketch);
+    csk = sk1.compact(false, null);
+    assertTrue(csk instanceof SingleItemSketch);
+
+    //Off-heap
+    bytes = Sketches.getMaxUpdateSketchBytes(32);
+    WritableMemory wmem = WritableMemory.wrap(new byte[bytes]);
+    sk1= Sketches.updateSketchBuilder().setNominalEntries(32).build(wmem);
+    sk1.update(1);
+    csk = sk1.compact(true, null);
+    assertTrue(csk instanceof SingleItemSketch);
+    csk = sk1.compact(false, null);
+    assertTrue(csk instanceof SingleItemSketch);
+
+    //SingleItemSketch has no off-heap form.
+    bytes = Sketches.getMaxCompactSketchBytes(1);
+    wmem = WritableMemory.wrap(new byte[bytes]);
+    csk = sk1.compact(true, wmem);
+    assertFalse(csk instanceof SingleItemSketch);
+    csk = sk1.compact(false, wmem);
+    assertFalse(csk instanceof SingleItemSketch);
+  }
+
+  @Test
+  public void intersection() {
+    UpdateSketch sk1, sk2;
+    CompactSketch csk;
+    int bytes;
+    //Intersection on-heap
+    sk1 = Sketches.updateSketchBuilder().setNominalEntries(32).build();
+    sk2 = Sketches.updateSketchBuilder().setNominalEntries(32).build();
+    sk1.update(1);
+    sk1.update(2);
+    sk2.update(1);
+    Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    inter.update(sk1);
+    inter.update(sk2);
+    csk = inter.getResult(true, null);
+    assertTrue(csk instanceof SingleItemSketch);
+
+    //Intersection off-heap
+    bytes = Sketches.getMaxIntersectionBytes(32);
+    WritableMemory wmem = WritableMemory.wrap(new byte[bytes]);
+    inter = Sketches.setOperationBuilder().buildIntersection(wmem);
+    inter.update(sk1);
+    inter.update(sk2);
+    csk = inter.getResult(true, null);
+    assertTrue(csk instanceof SingleItemSketch);
+    csk = inter.getResult(false, null);
+    assertTrue(csk instanceof SingleItemSketch);
+  }
+
+  @Test
+  public void union() {
+    UpdateSketch sk1, sk2;
+    CompactSketch csk;
+    int bytes;
+    //Union on-heap
+    sk1 = Sketches.updateSketchBuilder().setNominalEntries(32).build();
+    sk2 = Sketches.updateSketchBuilder().setNominalEntries(32).build();
+    sk1.update(1);
+    sk2.update(1);
+    Union union = Sketches.setOperationBuilder().buildUnion();
+    union.update(sk1);
+    union.update(sk2);
+    csk = union.getResult(true, null);
+    assertTrue(csk instanceof SingleItemSketch);
+
+    //Union off-heap
+    bytes = Sketches.getMaxUnionBytes(32);
+    WritableMemory wmem = WritableMemory.wrap(new byte[bytes]);
+    union = Sketches.setOperationBuilder().buildUnion(wmem);
+    union.update(sk1);
+    union.update(sk2);
+    csk = union.getResult(true, null);
+    assertTrue(csk instanceof SingleItemSketch);
+    csk = union.getResult(false, null);
+    assertTrue(csk instanceof SingleItemSketch);
+  }
+
+  @Test
+  public void aNotB() {
+    UpdateSketch sk1, sk2;
+    CompactSketch csk;
+    //AnotB on-heap
+    sk1 = Sketches.updateSketchBuilder().setNominalEntries(32).build();
+    sk2 = Sketches.updateSketchBuilder().setNominalEntries(32).build();
+    sk1.update(1);
+    sk2.update(2);
+    AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
+    aNotB.update(sk1, sk2);
+    csk = aNotB.getResult(true, null);
+    assertTrue(csk instanceof SingleItemSketch);
+
+    //not AnotB off-heap form
+  }
+
 
   @Test
   public void printlnTest() {
