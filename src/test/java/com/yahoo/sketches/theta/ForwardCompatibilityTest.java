@@ -189,8 +189,9 @@ public class ForwardCompatibilityTest {
 
   /**
    * Converts a SerVer3 CompactSketch to a SerVer1 SetSketch.
+   * Note: SerVer1 does not support SingleItemSketch, so entries will equal zero.
    * @param v3mem a SerVer3 CompactSketch, ordered and with 24 byte preamble.
-   * @return a SerVer1 SetSketch as Memory object
+   * @return a SerVer1 SetSketch as Memory object.
    */
   public static WritableMemory convertSerV3toSerV1(Memory v3mem) {
     //validate that v3mem is in the right form
@@ -205,6 +206,7 @@ public class ForwardCompatibilityTest {
     int entries;
     long thetaLong;
     if (v3preLongs == 1) {
+      //Note: there is no way to safely convert to a SingleItemSketch if empty is false.
       entries = 0;
       thetaLong = Long.MAX_VALUE;
     }
@@ -246,6 +248,7 @@ public class ForwardCompatibilityTest {
     }
     //compute size
     int preLongs = v3mem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+    //Note: there is no way to safely convert to a SingleItemSketch if empty is false.
     int entries = (preLongs == 1)? 0 : v3mem.getInt(RETAINED_ENTRIES_INT);
     int v2bytes = (preLongs+entries) << 3;
     //create new mem and do complete copy

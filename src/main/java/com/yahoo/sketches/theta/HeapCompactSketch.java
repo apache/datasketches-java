@@ -108,5 +108,4 @@ abstract class HeapCompactSketch extends CompactSketch {
     return byteArray;
   }
 
-
 }

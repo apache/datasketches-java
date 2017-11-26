@@ -318,8 +318,22 @@ public final class Sketches {
   }
 
   static int getRetainedEntries(final Memory srcMem) {
+    final int serVer = srcMem.getByte(SER_VER_BYTE);
+    if (serVer == 1) {
+      final int entries = srcMem.getInt(RETAINED_ENTRIES_INT);
+      if ((getThetaLong(srcMem) == Long.MAX_VALUE) && (entries == 0)) {
+        return 0;
+      }
+      return entries;
+    }
+    //SerVer 2 or 3
     final int preLongs = getPreambleLongs(srcMem);
-    return (preLongs == 1) ? 0 : srcMem.getInt(RETAINED_ENTRIES_INT); //for SerVer 1,2,3
+    final boolean empty = (srcMem.getByte(FLAGS_BYTE) & EMPTY_FLAG_MASK) != 0; //for SerVer 2 & 3
+    if (preLongs == 1) {
+      return empty ? 0 : 1;
+    }
+    //preLongs > 1
+    return srcMem.getInt(RETAINED_ENTRIES_INT); //for SerVer 1,2,3
   }
 
   static long getThetaLong(final Memory srcMem) {
