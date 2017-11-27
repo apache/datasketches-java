@@ -145,7 +145,7 @@ public class SketchesTest {
     Union union = setOperationBuilder().buildUnion();
     byte[] byteArr = union.toByteArray();
     Memory srcMem = Memory.wrap(byteArr);
-    Sketches.getEstimate(srcMem);
+    Sketches.getEstimate(srcMem); //Union is not a Theta Sketch, it is an operation
   }
 
   @Test

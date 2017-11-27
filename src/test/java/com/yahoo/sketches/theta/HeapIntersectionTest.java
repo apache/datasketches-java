@@ -63,7 +63,8 @@ public class HeapIntersectionTest {
     rsk1 = inter.getResult(!ordered, mem);
     assertEquals(rsk1.getEstimate(), 0.0);
 
-    rsk1 = inter.getResult(ordered, mem); //executed twice to fully exercise the internal state machine
+    //executed twice to fully exercise the internal state machine
+    rsk1 = inter.getResult(ordered, mem);
     assertEquals(rsk1.getEstimate(), 0.0);
 
     assertFalse(inter.isSameResource(mem));
@@ -367,51 +368,58 @@ public class HeapIntersectionTest {
   }
 
   @Test
-  public void checkHeapify() {
+  public void checkHeapifyAndWrap() {
     int lgK = 9;
     int k = 1<<lgK;
-    Intersection inter, inter2;
-    UpdateSketch sk1, sk2;
-    CompactSketch resultComp1, resultComp2;
-    double est, est2;
 
-    sk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=0; i<(2*k); i++)
-     {
+    UpdateSketch sk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    for (int i = 0; i < (2 * k); i++) {
       sk1.update(i);  //est mode
     }
-    CompactSketch compSkIn1 = sk1.compact(true, null);
-    println("compSkIn1: "+compSkIn1.getEstimate());
+    CompactSketch cSk1 = sk1.compact(true, null);
+    double cSk1Est = cSk1.getEstimate();
+    println("cSk1Est: " + cSk1Est);
 
-    //1st call = valid
-    inter = SetOperation.builder().buildIntersection();
-    inter.update(compSkIn1);
+    Intersection inter = SetOperation.builder().buildIntersection();
+    //1st call with a valid sketch
+    inter.update(cSk1);
 
-    //2nd call = valid intersecting
-    sk2 = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=0; i<(2*k); i++)
-     {
+    UpdateSketch sk2 = UpdateSketch.builder().setNominalEntries(k).build();
+    for (int i = 0; i < (2 * k); i++) {
       sk2.update(i);  //est mode
     }
-    CompactSketch compSkIn2 = sk2.compact(true, null);
-    println("compSkIn2: "+compSkIn2.getEstimate());
+    CompactSketch cSk2 = sk2.compact(true, null);
+    double cSk2Est = cSk2.getEstimate();
+    println("cSk2Est: " + cSk2Est);
+    assertEquals(cSk2Est, cSk1Est, 0.0);
 
-    inter.update(compSkIn2);
-    resultComp1 = inter.getResult(false, null);
-    est = resultComp1.getEstimate();
-    assertTrue(est > k);
-    println("Est: "+est);
+    //2nd call with identical valid sketch
+    inter.update(cSk2);
+    CompactSketch interResultCSk1 = inter.getResult(false, null);
+    double inter1est = interResultCSk1.getEstimate();
+    assertEquals(inter1est, cSk1Est, 0.0);
+    println("Inter1Est: " + inter1est);
 
+    //Put the intersection into memory
     byte[] byteArray = inter.toByteArray();
     Memory mem = Memory.wrap(byteArray);
-    inter2 = (Intersection) SetOperation.heapify(mem);
-    //inter2 = new Intersection(mem, seed);
-    resultComp2 = inter2.getResult(false, null);
-    est2 = resultComp2.getEstimate();
-    println("Est2: "+est2);
+    //Heapify
+    Intersection inter2 = (Intersection) SetOperation.heapify(mem);
+    CompactSketch heapifiedSk = inter2.getResult(false, null);
+    double heapifiedEst = heapifiedSk.getEstimate();
+    assertEquals(heapifiedEst, cSk1Est, 0.0);
+    println("HeapifiedEst: "+heapifiedEst);
+
+    //Wrap
+    Intersection inter3 = Sketches.wrapIntersection(mem);
+    CompactSketch wrappedSk = inter3.getResult(false, null);
+    double wrappedEst = wrappedSk.getEstimate();
+    assertEquals(wrappedEst, cSk1Est, 0.0);
+    println("WrappedEst: "+ wrappedEst);
 
     inter.reset();
     inter2.reset();
+    inter3.reset();
   }
 
   @Test
@@ -555,7 +563,7 @@ public class HeapIntersectionTest {
    * @param s value to print
    */
   static void println(String s) {
-    //System.out.println(s); //disable here
+    System.out.println(s); //disable here
   }
 
 }
