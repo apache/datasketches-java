@@ -22,6 +22,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(sketch.getLowerBound(1), 0.0);
     Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
     Assert.assertEquals(sketch.getTheta(), 1.0);
+    Assert.assertNotNull(sketch.toString());
   }
 
   @Test

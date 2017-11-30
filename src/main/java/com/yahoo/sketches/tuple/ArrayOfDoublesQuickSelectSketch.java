@@ -54,10 +54,6 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
 
   abstract boolean isInSamplingMode();
 
-  abstract int getResizeFactor();
-
-  abstract int getCurrentCapacity();
-
   abstract void rebuild(int newCapacity);
 
   abstract long getKey(int index);
@@ -121,7 +117,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
       setThetaLong(getNewTheta());
       rebuild();
     } else {
-      rebuild(getCurrentCapacity() * getResizeFactor());
+      rebuild(getCurrentCapacity() * getResizeFactor().getValue());
     }
   }
 

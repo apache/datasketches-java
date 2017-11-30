@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.tuple;
 
+import static com.yahoo.sketches.Util.LS;
+
 import com.yahoo.sketches.BinomialBoundsN;
 
 /**
@@ -110,6 +112,30 @@ public abstract class Sketch<S extends Summary> {
 
   long getThetaLong() {
     return theta_;
+  }
+
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("### ").append(this.getClass().getSimpleName()).append(" SUMMARY: ").append(LS);
+    sb.append("   Estimate                : ").append(getEstimate()).append(LS);
+    sb.append("   Upper Bound, 95% conf   : ").append(getUpperBound(2)).append(LS);
+    sb.append("   Lower Bound, 95% conf   : ").append(getLowerBound(2)).append(LS);
+    sb.append("   Theta (double)          : ").append(this.getTheta()).append(LS);
+    sb.append("   Theta (long)            : ").append(this.getThetaLong()).append(LS);
+    sb.append("   EstMode?                : ").append(isEstimationMode()).append(LS);
+    sb.append("   Empty?                  : ").append(isEmpty()).append(LS);
+    sb.append("   Retained Entries        : ").append(this.getRetainedEntries()).append(LS);
+    if (this instanceof UpdatableSketch) {
+      @SuppressWarnings("rawtypes")
+      final UpdatableSketch updatable = (UpdatableSketch) this;
+      sb.append("   Nominal Entries (k)     : ").append(updatable.getNominalEntries()).append(LS);
+      sb.append("   Current Capacity        : ").append(updatable.getCurrentCapacity()).append(LS);
+      sb.append("   Resize Factor           : ").append(updatable.getResizeFactor().getValue()).append(LS);
+      sb.append("   Sampling Probability (p): ").append(updatable.getSamplingProbability()).append(LS);
+    }
+    sb.append("### END SKETCH SUMMARY").append(LS);
+    return sb.toString();
   }
 
 }

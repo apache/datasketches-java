@@ -347,7 +347,7 @@ public class HeapQuickSelectSketchTest {
       usk.update(i);
     }
 
-    assertTrue(sk1.getRetainedEntries(false) > k);
+    assertTrue(sk1.getRetainedEntries(false) > k); // in general it might be exactly k, but in this case must be greater
   }
 
   @Test
