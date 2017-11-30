@@ -556,7 +556,8 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     //Check lgNomLongs
     if (lgNomLongs < ALPHA_MIN_LG_NOM_LONGS) {
       throw new SketchesArgumentException(
-        "This sketch requires a minimum nominal entries of " + (1 << ALPHA_MIN_LG_NOM_LONGS));
+        "Possible corruption: This sketch requires a minimum nominal entries of "
+            + (1 << ALPHA_MIN_LG_NOM_LONGS));
     }
   }
 

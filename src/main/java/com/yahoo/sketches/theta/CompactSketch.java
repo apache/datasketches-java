@@ -82,7 +82,7 @@ public abstract class CompactSketch extends Sketch {
       cacheOut[j++] = v;
     }
     assert curCount == j;
-    if (dstOrdered) {
+    if (dstOrdered && (curCount > 1)) {
       Arrays.sort(cacheOut);
     }
     return cacheOut;

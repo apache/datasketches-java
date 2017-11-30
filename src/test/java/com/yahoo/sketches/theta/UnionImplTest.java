@@ -14,6 +14,7 @@ import org.testng.annotations.Test;
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.Util;
 
 public class UnionImplTest {
 
@@ -139,6 +140,16 @@ public class UnionImplTest {
 
     Union union2 = SetOperation.builder().buildUnion(); //on-heap union
     assertFalse(union2.isSameResource(wmem2));  //obviously not
+  }
+
+  @Test
+  public void checkRestricted() {
+    Union union = Sketches.setOperationBuilder().buildUnion();
+    assertTrue(union.isEmpty());
+    assertEquals(union.getThetaLong(), Long.MAX_VALUE);
+    assertEquals(union.getSeedHash(), Util.computeSeedHash(DEFAULT_UPDATE_SEED));
+    assertEquals(union.getRetainedEntries(true), 0);
+    assertEquals(union.getCache().length, 128);
   }
 
   @Test

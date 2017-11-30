@@ -103,7 +103,7 @@ public class ForwardCompatibilityTest {
     assertEquals(sketch.isOrdered(), true);
     assertEquals(sketch.getEstimate(), 1.0);
     String name = sketch.getClass().getSimpleName();
-    assertEquals(name, "HeapCompactOrderedSketch");
+    assertEquals(name, "SingleItemSketch");
   }
 
   @Test
