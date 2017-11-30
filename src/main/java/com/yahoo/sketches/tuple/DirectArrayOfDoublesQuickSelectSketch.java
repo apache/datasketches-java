@@ -12,6 +12,7 @@ import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -141,6 +142,16 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   }
 
   @Override
+  public ResizeFactor getResizeFactor() {
+    return ResizeFactor.getRF(mem_.getByte(LG_RESIZE_FACTOR_BYTE));
+  }
+
+  @Override
+  public float getSamplingProbability() {
+    return mem_.getFloat(SAMPLING_P_FLOAT);
+  }
+
+  @Override
   public byte[] toByteArray() {
     final int sizeBytes = getSerializedSizeBytes();
     final byte[] byteArray = new byte[sizeBytes];
@@ -208,11 +219,6 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   protected void setThetaLong(final long theta) {
     theta_ = theta;
     mem_.putLong(THETA_LONG, theta_);
-  }
-
-  @Override
-  protected int getResizeFactor() {
-    return 1 << mem_.getByte(LG_RESIZE_FACTOR_BYTE);
   }
 
   @Override
