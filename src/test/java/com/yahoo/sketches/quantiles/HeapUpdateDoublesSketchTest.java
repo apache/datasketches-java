@@ -103,22 +103,20 @@ public class HeapUpdateDoublesSketchTest {
 
     double[] pmfResult = result.getPMF(splitPoints);
     double subtotal = 0.0;
-    for (int q = 1; q <= 99; q++) {
+    for (int q = 1; q <= 100; q++) {
       double phi = q / 100.0;
       subtotal += pmfResult[q-1];
       assertTrue(subtotal >= (phi - 0.01));
       assertTrue(subtotal <= (phi + 0.01));
     }
-    // should probably assert that the pmf sums to 1.0
 
     double[] cdfResult = result.getCDF(splitPoints);
-    for (int q = 1; q <= 99; q++) {
+    for (int q = 1; q <= 100; q++) {
       double phi = q / 100.0;
       subtotal = cdfResult[q-1];
       assertTrue(subtotal >= (phi - 0.01));
       assertTrue(subtotal <= (phi + 0.01));
     }
-    // should probably assert that the final cdf value is 1.0
   }
 
   @Test
