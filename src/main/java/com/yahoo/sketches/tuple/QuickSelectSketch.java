@@ -17,6 +17,7 @@ import com.yahoo.sketches.ByteArrayUtil;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.QuickSelect;
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -190,6 +191,38 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   @Override
   public int getRetainedEntries() {
     return count_;
+  }
+
+  /**
+   * Get configured nominal number of entries
+   * @return nominal number of entries
+   */
+  public int getNominalEntries() {
+    return nomEntries_;
+  }
+
+  /**
+   * Get configured sampling probability
+   * @return sampling probability
+   */
+  public float getSamplingProbability() {
+    return samplingProbability_;
+  }
+
+  /**
+   * Get current capacity
+   * @return current capacity
+   */
+  public int getCurrentCapacity() {
+    return 1 << lgCurrentCapacity_;
+  }
+
+  /**
+   * Get configured resize factor
+   * @return resize factor
+   */
+  public ResizeFactor getResizeFactor() {
+    return ResizeFactor.getRF(lgResizeFactor_);
   }
 
   /**
