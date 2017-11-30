@@ -8,12 +8,11 @@
 
     <groupId>com.yahoo.datasketches</groupId>
     <artifactId>sketches-core</artifactId>
+    <packaging>jar</packaging> <!-- jar is the default -->
     <version>0.10.4-SNAPSHOT</version>
-    <packaging>jar</packaging>
 
-    <!-- Project Information -->
     <name>${project.groupId}:${project.artifactId}</name>
-    <description>Sketches contains the core algorithms used by other repositories in the DataSketches library.</description>
+    <description>Core sketch algorithms used alone and by other repositories in the DataSketches library.</description>
     <url>https://datasketches.github.io/</url>
     <inceptionYear>2015</inceptionYear>
 
@@ -24,82 +23,18 @@
         </license>
     </licenses>
 
-    <organization>
-        <name>Yahoo! Inc.</name>
-        <url>https://www.yahoo.com</url>
-    </organization>
-
     <developers>
         <developer>
-            <name>Lee Rhodes</name>
-            <roles>
-                <role>founder, project admin, lead developer</role>
-            </roles>
-            <url>https://github.com/leerho</url>
+            <name>DataSketchesDevelopers</name>
+            <organization>DataSketches</organization>
+            <organizationUrl>https://github.com/orgs/DataSketches/people</organizationUrl>
         </developer>
         <developer>
-            <name>Kevin Lang</name>
-            <roles>
-                <role>co-founder, lead research scientist, developer</role>
-            </roles>
-            <url>https://github.com/kevinjlang</url>
-        </developer>
-        <developer>
-            <name>Alexander Saydakov</name>
-            <roles>
-                <role>developer</role>
-            </roles>
-            <url>https://github.com/AlexanderSaydakov</url>
-        </developer>
-        <developer>
-            <name>Justin Thaler</name>
-            <roles>
-                <role>research scientist, developer</role>
-            </roles>
-            <url>https://github.com/Justin8712</url>
-        </developer>
-        <developer>
-            <name>Edo Liberty</name>
-            <roles>
-                <role>research scientist, developer</role>
-            </roles>
-            <url>https://github.com/edoliberty</url>
-        </developer>
-        <developer>
-            <name>Jon Malkin</name>
-            <roles>
-                <role>developer</role>
-            </roles>
-            <url>https://github.com/jmalkin</url>
+            <name>DataSketchesCollaborators</name>
+            <organization>DataSketches</organization>
+            <organizationUrl>https://github.com/orgs/DataSketches/outside-collaborators</organizationUrl>
         </developer>
     </developers>
-
-    <contributors>
-        <contributor>
-            <url>https://github.com/DataSketches/sketches-core/graphs/contributors</url>
-        </contributor>
-    </contributors>
-    <!-- End Project Information -->
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.build.resourceEncoding>UTF-8</project.build.resourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <argLine>-Xmx1024m -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8</argLine>
-    </properties>
-
-    <!-- Environment Settings -->
-    <issueManagement>
-        <system>GitHub Issues</system>
-        <url>https://github.com/DataSketches/sketches-core/issues</url>
-    </issueManagement>
-
-    <ciManagement>
-        <system>travis</system>
-        <url>https://travis-ci.org/DataSketches/sketches-core</url>
-    </ciManagement>
 
     <mailingLists>
         <mailingList>
@@ -111,6 +46,58 @@
         </mailingList>
     </mailingLists>
 
+    <properties>
+        <!-- System-wide properties -->
+        <argLine>-Xmx1024m -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8</argLine>
+        <charset.encoding>UTF-8</charset.encoding>
+        <project.build.sourceEncoding>${charset.encoding}</project.build.sourceEncoding>
+        <project.build.resourceEncoding>${charset.encoding}</project.build.resourceEncoding>
+        <project.reporting.outputEncoding>${charset.encoding}</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        
+        <!-- Dependencies -->
+        <memory.version>0.10.3</memory.version>
+        <testng.version>6.11</testng.version>
+        
+        <!-- Maven Plugins -->
+        <maven-assembly-plugin.version>3.1.0</maven-assembly-plugin.version>
+        <maven-clean-plugin.version>3.0.0</maven-clean-plugin.version>
+        <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
+        <maven-dependency-plugin.version>3.0.2</maven-dependency-plugin.version>
+        <maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
+        <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+        <maven-help-plugin.version>2.2</maven-help-plugin.version>
+        <maven-install-plugin.version>2.5.2</maven-install-plugin.version>
+        <maven-javadoc-plugin.version>2.10.4</maven-javadoc-plugin.version>
+        <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
+        <maven-resources-plugin.version>3.0.2</maven-resources-plugin.version>
+        <maven-shade-plugin.version>3.1.0</maven-shade-plugin.version>
+        <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
+        <maven-surefire-plugin.version>2.20.1</maven-surefire-plugin.version>
+        
+        <!-- Codehaus.org Plugins -->
+        <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
+        <license-maven-plugin.version>1.14</license-maven-plugin.version>
+        <plexus-compiler-javac-errorprone.version>2.8.2</plexus-compiler-javac-errorprone.version>
+        
+        <!-- Jacoco.org Plugins -->
+        <jacoco-maven-plugin.version>0.7.9</jacoco-maven-plugin.version>
+        
+        <!-- Sonatype.org Plugins -->
+        <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
+        
+        <!-- Versioneye.com Plugins -->
+        <versioneye-maven-plugin.version>3.11.4</versioneye-maven-plugin.version>
+
+
+    </properties>
+
+    <prerequisites>
+        <maven>3.0.4</maven>
+    </prerequisites>
+
     <scm>
         <connection>scm:git:ssh://git@github.com/DataSketches/sketches-core.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/DataSketches/sketches-core.git</developerConnection>
@@ -118,17 +105,15 @@
         <tag>HEAD</tag>
     </scm>
 
-    <prerequisites>
-        <maven>3.0.4</maven>
-    </prerequisites>
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/DataSketches/sketches-core/issues</url>
+    </issueManagement>
 
-    <repositories>
-        <repository>
-            <id>jcenter</id>
-            <name>bintray</name>
-            <url>https://jcenter.bintray.com</url>
-        </repository>
-    </repositories>
+    <ciManagement>
+        <system>travis</system>
+        <url>https://travis-ci.org/DataSketches/sketches-core</url>
+    </ciManagement>
 
     <distributionManagement>
         <repository>
@@ -137,62 +122,29 @@
         </repository>
     </distributionManagement>
 
-    <!-- This is optional -->
-    <profiles>
-        <profile>
-            <id>strict</id>
-            <build>
-                <pluginManagement>
-                    <plugins>
-
-                        <plugin>
-                            <groupId>org.apache.maven.plugins</groupId>
-                            <artifactId>maven-compiler-plugin</artifactId>
-                            <configuration>
-                                <source>${maven.compiler.source}</source>
-                                <target>${maven.compiler.target}</target>
-                                <compilerId>javac-with-errorprone</compilerId>
-                                <forceJavacCompilerUse>true</forceJavacCompilerUse>
-                            </configuration>
-                            <dependencies>
-                                <dependency>
-                                    <groupId>org.codehaus.plexus</groupId>
-                                    <artifactId>plexus-compiler-javac-errorprone</artifactId>
-                                    <version>2.8.2</version>
-                                </dependency>
-                            </dependencies>
-                        </plugin>
-
-                    </plugins>
-                </pluginManagement>
-            </build>
-        </profile>
-    </profiles>
-    <!-- End of Environment Settings -->
-
     <dependencies>
         <dependency>
             <groupId>com.yahoo.datasketches</groupId>
             <artifactId>memory</artifactId>
-            <version>0.10.3</version>
+            <version>${memory.version}</version>
         </dependency>
 
         <!-- Test Scope -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>6.11</version>
+            <version>${testng.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- run locally for now
-        <dependency>
-          <groupId>com.google.code.findbugs</groupId>
-          <artifactId>findbugs</artifactId>
-          <version>3.0.1</version>
-          <scope>test</scope>
-        </dependency>
-        -->
     </dependencies>
+
+    <repositories>
+        <repository>
+            <id>jcenter</id>
+            <name>bintray</name>
+            <url>https://jcenter.bintray.com</url>
+        </repository>
+    </repositories>
 
     <build>
         <plugins>
@@ -259,7 +211,7 @@
                 <artifactId>nexus-staging-maven-plugin</artifactId>
                 <extensions>true</extensions>
                 <configuration>
-                    <serverId>sonatype-nexus-staging</serverId>
+                    <serverId>sonatype-nexus-staging</serverId> <!-- from ~/.m2/settings.xml -->
                     <nexusUrl>https://oss.sonatype.org/</nexusUrl>
                     <autoReleaseAfterClose>false</autoReleaseAfterClose>
                 </configuration>
@@ -272,16 +224,31 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>pre-unit-test</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
+                        <configuration>
+                            <destFile>
+                                ${project.build.directory}/coverage-reports/jacoco-ut.exec
+                            </destFile>
+                            <propertyName>surefireArgLine</propertyName>
+                        </configuration>
                     </execution>
                     <execution>
-                        <id>report</id>
+                        <id>post-unit-test</id>
                         <phase>test</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <configuration>
+                            <dataFile>
+                                ${project.build.directory}/coverage-reports/jacoco-ut.exec
+                            </dataFile>
+                            <outputDirectory>
+                                ${project.reporting.outputDirectory}/jacoco-ut
+                            </outputDirectory>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -289,6 +256,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>${surefireArgLine}</argLine>
+                </configuration>
             </plugin>
             
             <plugin>
@@ -313,119 +283,152 @@
               <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-assembly-plugin</artifactId>
-                  <version>3.1.0</version>
+                  <version>${maven-assembly-plugin.version}</version>
               </plugin>
 
               <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-clean-plugin</artifactId>
-                  <version>3.0.0</version>
+                  <version>${maven-clean-plugin.version}</version>
               </plugin>
 
               <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-compiler-plugin</artifactId>
-                  <version>3.7.0</version>
+                  <version>${maven-compiler-plugin.version}</version>
               </plugin>
 
               <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-dependency-plugin</artifactId>
-                  <version>3.0.2</version>
+                  <version>${maven-dependency-plugin.version}</version>
               </plugin>
 
               <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-deploy-plugin</artifactId>
-                  <version>2.8.2</version>
+                  <version>${maven-deploy-plugin.version}</version>
               </plugin>
 
               <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-gpg-plugin</artifactId>
-                  <version>1.6</version>
+                  <version>${maven-gpg-plugin.version}</version>
               </plugin>
 
               <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-help-plugin</artifactId>
-                  <version>2.2</version>
+                  <version>${maven-help-plugin.version}</version>
               </plugin>
 
               <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-install-plugin</artifactId>
-                  <version>2.5.2</version>
+                  <version>${maven-install-plugin.version}</version>
               </plugin>
 
               <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-javadoc-plugin</artifactId>
-                  <version>2.10.4</version>
+                  <version>${maven-javadoc-plugin.version}</version>
               </plugin>
 
               <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-release-plugin</artifactId>
-                  <version>2.5.3</version>
+                  <version>${maven-release-plugin.version}</version>
               </plugin>
 
               <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-resources-plugin</artifactId>
-                  <version>3.0.2</version>
+                  <version>${maven-resources-plugin.version}</version>
               </plugin>
 
               <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-shade-plugin</artifactId>
-                  <version>3.1.0</version>
+                  <version>${maven-shade-plugin.version}</version>
               </plugin>
 
               <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-source-plugin</artifactId>
-                  <version>3.0.1</version>
+                  <version>${maven-source-plugin.version}</version>
               </plugin>
 
               <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-surefire-plugin</artifactId>
-                  <version>2.20.1</version>
+                  <version>${maven-surefire-plugin.version}</version>
               </plugin>
 
               <!-- OTHER -->
               <plugin>
                   <groupId>org.codehaus.mojo</groupId>
                   <artifactId>exec-maven-plugin</artifactId>
-                  <version>1.6.0</version>
+                  <version>${exec-maven-plugin.version}</version>
               </plugin>
 
               <plugin>
                   <groupId>org.codehaus.mojo</groupId>
                   <artifactId>license-maven-plugin</artifactId>
-                  <version>1.14</version>
+                  <version>${license-maven-plugin.version}</version>
               </plugin>
 
               <plugin>
                   <groupId>org.jacoco</groupId>
                   <artifactId>jacoco-maven-plugin</artifactId>
-                  <version>0.7.9</version>
+                  <version>${jacoco-maven-plugin.version}</version>
               </plugin>
 
               <plugin>
                   <groupId>org.sonatype.plugins</groupId>
                   <artifactId>nexus-staging-maven-plugin</artifactId>
-                  <version>1.6.8</version>
+                  <version>${nexus-staging-maven-plugin.version}</version>
               </plugin>
 
               <plugin>
                 <groupId>com.versioneye</groupId>
                 <artifactId>versioneye-maven-plugin</artifactId>
-                <version>3.11.4</version>
+                <version>${versioneye-maven-plugin.version}</version>
               </plugin>
 
             </plugins>
         </pluginManagement>
     </build>
+
+    <reporting></reporting>
+
+    <profiles>
+        <profile>
+            <id>strict</id>
+            <build>
+                <pluginManagement>
+                    <plugins>
+
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-compiler-plugin</artifactId>
+                            <configuration>
+                                <source>${java.version}</source>
+                                <target>${java.version}</target>
+                                <compilerId>javac-with-errorprone</compilerId>
+                                <forceJavacCompilerUse>true</forceJavacCompilerUse>
+                            </configuration>
+                            <dependencies>
+                                <dependency>
+                                    <groupId>org.codehaus.plexus</groupId>
+                                    <artifactId>plexus-compiler-javac-errorprone</artifactId>
+                                    <version>${plexus-compiler-javac-errorprone.version}</version>
+                                </dependency>
+                            </dependencies>
+                        </plugin>
+
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+    </profiles>
 </project>
