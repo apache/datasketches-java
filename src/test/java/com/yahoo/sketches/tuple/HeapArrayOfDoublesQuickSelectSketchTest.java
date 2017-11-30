@@ -26,6 +26,7 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
     while (it.next()) {
       Assert.fail("empty sketch expected");
     }
+    Assert.assertNotNull(sketch.toString());
   }
 
   @Test

@@ -14,6 +14,7 @@ import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -126,6 +127,16 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
   }
 
   @Override
+  public float getSamplingProbability() {
+    return samplingProbability_;
+  }
+
+  @Override
+  public ResizeFactor getResizeFactor() {
+    return ResizeFactor.getRF(lgResizeFactor_);
+  }
+
+  @Override
   public byte[] toByteArray() {
     final byte[] byteArray = new byte[getSerializedSizeBytes()];
     final WritableMemory mem = WritableMemory.wrap(byteArray); // wrap the byte array to use the putX methods
@@ -228,11 +239,6 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
   @Override
   protected void setThetaLong(final long theta) {
     theta_ = theta;
-  }
-
-  @Override
-  protected int getResizeFactor() {
-    return 1 << lgResizeFactor_;
   }
 
   @Override

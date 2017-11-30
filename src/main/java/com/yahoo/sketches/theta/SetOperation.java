@@ -165,7 +165,7 @@ public abstract class SetOperation {
 
   /**
    * Returns the maximum required storage bytes given a nomEntries parameter for Union operations
-   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
+   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
    * This will become the ceiling power of 2 if it is not.
    * @return the maximum required storage bytes given a nomEntries parameter
    */
@@ -177,7 +177,7 @@ public abstract class SetOperation {
   /**
    * Returns the maximum required storage bytes given a nomEntries parameter for Intersection
    * operations
-   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
+   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
    * This will become the ceiling power of 2 if it is not.
    * @return the maximum required storage bytes given a nomEntries parameter
    */
@@ -195,9 +195,9 @@ public abstract class SetOperation {
 
   /**
    * Returns true if the backing resource of this sketch is identical with the backing resource
-   * of mem. If the backing resource is a common array or ByteBuffer, the offset and
+   * of mem. If the backing resource is a primitive array or ByteBuffer, the offset and
    * capacity must also be identical.
-   * @param mem A given Memory object
+   * @param mem the given Memory object
    * @return true if the backing resource of this sketch is identical with the backing resource
    * of mem.
    */
@@ -205,9 +205,55 @@ public abstract class SetOperation {
 
   //restricted
 
+  abstract long[] getCache();
+
+  //intentionally not made public because behavior will be confusing to end user.
+  abstract int getRetainedEntries(boolean valid);
+
+  abstract short getSeedHash();
+
+  abstract long getThetaLong();
+
   static short computeSeedHash(final long seed) {
     return Util.computeSeedHash(seed);
   }
+
+  //intentionally not made public because behavior will be confusing to end user.
+  abstract boolean isEmpty();
+
+  //used only by the set operations
+  static final CompactSketch createCompactSketch(final long[] compactCache, final boolean empty,
+      final short seedHash, final int curCount, final long thetaLong, final boolean dstOrdered,
+      final WritableMemory dstMem) {
+    CompactSketch sketchOut = null;
+    final int sw = (dstOrdered ? 2 : 0) | ((dstMem != null) ? 1 : 0);
+    switch (sw) {
+      case 0: { //dst not ordered, dstMem == null
+        sketchOut = HeapCompactUnorderedSketch.compact(compactCache, empty, seedHash, curCount,
+            thetaLong);
+        break;
+      }
+      case 1: { //dst not ordered, dstMem == valid
+        sketchOut = DirectCompactUnorderedSketch.compact(compactCache, empty, seedHash, curCount,
+            thetaLong, dstMem);
+        break;
+      }
+      case 2: { //dst ordered, dstMem == null
+        sketchOut = HeapCompactOrderedSketch.compact(compactCache, empty, seedHash, curCount,
+            thetaLong);
+        break;
+      }
+      case 3: { //dst ordered, dstMem == valid
+        sketchOut = DirectCompactOrderedSketch.compact(compactCache, empty, seedHash, curCount,
+            thetaLong, dstMem);
+        break;
+      }
+      //default: //This cannot happen and cannot be tested
+    }
+    return sketchOut;
+  }
+
+
 
   /**
    * Computes minimum lgArrLongs from a current count.

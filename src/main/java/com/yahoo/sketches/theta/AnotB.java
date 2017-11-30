@@ -5,8 +5,8 @@
 
 package com.yahoo.sketches.theta;
 
-import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
+import com.yahoo.sketches.Family;
 
 /**
  * The API for the set difference operation <i>A and not B</i> operations.
@@ -25,13 +25,28 @@ import com.yahoo.memory.WritableMemory;
  */
 public abstract class AnotB extends SetOperation {
 
-  /**
-   * Returns false because the AnotB operator is a stateless operation.
-   * @param mem A given Memory object
-   * @return false
-   */
   @Override
-  public abstract boolean isSameResource(final Memory mem);
+  public Family getFamily() {
+    return Family.A_NOT_B;
+  }
+
+  /**
+   * Gets the result of this set operation as a CompactSketch of the chosen form
+   * @param dstOrdered
+   * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
+   *
+   * @param dstMem
+   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
+   *
+   * @return the result of this set operation as a CompactSketch of the chosen form
+   */
+  public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
+
+  /**
+   * Gets the result of this operation as an ordered CompactSketch on the Java heap
+   * @return the result of this operation as an ordered CompactSketch on the Java heap
+   */
+  public abstract CompactSketch getResult();
 
   /**
    * Perform A-and-not-B set operation on the two given sketches.
@@ -42,21 +57,4 @@ public abstract class AnotB extends SetOperation {
    */
   public abstract void update(Sketch a, Sketch b);
 
-  /**
-   * Gets the result of this operation as a CompactSketch of the chosen form
-   * @param dstOrdered
-   * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
-   *
-   * @param dstMem
-   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
-   *
-   * @return the result of this operation as a CompactSketch of the chosen form
-   */
-  public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
-
-  /**
-   * Gets the result of this operation as an ordered CompactSketch on the Java heap
-   * @return the result of this operation as an ordered CompactSketch on the Java heap
-   */
-  public abstract CompactSketch getResult();
 }

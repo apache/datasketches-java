@@ -14,7 +14,6 @@ import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
-import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.Util;
 
@@ -40,7 +39,15 @@ final class HeapAnotB extends AnotB {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
   HeapAnotB(final long seed) {
-    seedHash_ = computeSeedHash(seed);
+    seedHash_ = Util.computeSeedHash(seed);
+    a_ = null;
+    b_ = null;
+    thetaLong_ = Long.MAX_VALUE;
+    empty_ = true;
+    cache_ = null;
+    curCount_ = 0;
+    lgArrLongsHT_ = 5;
+    bHashTable_ = null;
   }
 
   @Override
@@ -65,8 +72,8 @@ final class HeapAnotB extends AnotB {
       Arrays.sort(compactCache);
     }
     //Create the CompactSketch
-    final CompactSketch comp = CompactSketch.createCompactSketch(compactCache, empty_, seedHash_,
-        curCount_, thetaLong_, dstOrdered, dstMem);
+    final CompactSketch comp = createCompactSketch(
+        compactCache, empty_, seedHash_, curCount_, thetaLong_, dstOrdered, dstMem);
     reset();
     return comp;
   }
@@ -77,8 +84,13 @@ final class HeapAnotB extends AnotB {
   }
 
   @Override
-  public Family getFamily() {
-    return Family.A_NOT_B;
+  int getRetainedEntries(final boolean valid) {
+    return curCount_;
+  }
+
+  @Override
+  boolean isEmpty() {
+    return empty_;
   }
 
   @Override
@@ -291,6 +303,21 @@ final class HeapAnotB extends AnotB {
     curCount_ = 0;
     lgArrLongsHT_ = 5;
     bHashTable_ = null;
+  }
+
+  @Override
+  long[] getCache() {
+    return null;
+  }
+
+  @Override
+  short getSeedHash() {
+    return seedHash_;
+  }
+
+  @Override
+  long getThetaLong() {
+    return thetaLong_;
   }
 
 }

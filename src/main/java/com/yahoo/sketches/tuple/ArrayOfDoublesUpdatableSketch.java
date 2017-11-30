@@ -9,6 +9,7 @@ import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.hash.MurmurHash3;
 
 /**
@@ -137,6 +138,18 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
   public abstract int getNominalEntries();
 
   /**
+   * Gets the configured resize factor
+   * @return resize factor
+   */
+  public abstract ResizeFactor getResizeFactor();
+
+  /**
+   * Gets the configured sampling probability
+   * @return sampling probability
+   */
+  public abstract float getSamplingProbability();
+
+  /**
    * Rebuilds reducing the actual number of entries to the nominal number of entries if needed
    */
   public abstract void trim();
@@ -165,6 +178,8 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
     }
     return new DirectArrayOfDoublesCompactSketch(this, dstMem);
   }
+
+  abstract int getCurrentCapacity();
 
   long getSeed() {
     return seed_;

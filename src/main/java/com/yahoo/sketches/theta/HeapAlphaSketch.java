@@ -45,7 +45,7 @@ import com.yahoo.sketches.Util;
  * @author Kevin Lang
  */
 final class HeapAlphaSketch extends HeapUpdateSketch {
-  private static final int ALPHA_MIN_LG_NOM_LONGS = 9; //The smallest Log2 nom entries allowed => 512.
+  private static final int ALPHA_MIN_LG_NOM_LONGS = 9; //The smallest Log2 k allowed => 512.
   private final double alpha_;  // computed from lgNomLongs
   private final long split1_;   // computed from alpha and p
 
@@ -124,8 +124,8 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     final double alpha = nomLongs / (nomLongs + 1.0);
     final long split1 = (long) (((p * (alpha + 1.0)) / 2.0) * MAX_THETA_LONG_AS_DOUBLE);
 
-    if (myRF == ResizeFactor.X1
-            && lgArrLongs != Util.startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS)) {
+    if ((myRF == ResizeFactor.X1)
+            && (lgArrLongs != Util.startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS))) {
       throw new SketchesArgumentException("Possible corruption: ResizeFactor X1, but provided "
               + "array too small for sketch size");
     }
@@ -249,8 +249,9 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   //restricted methods
 
   @Override
-  int getPreambleLongs() {
-    return Family.ALPHA.getMinPreLongs();
+  int getCurrentPreambleLongs(final boolean compact) {
+    if (!compact) { return Family.ALPHA.getMinPreLongs(); }
+    return computeCompactPreLongs(thetaLong_, empty_, curCount_);
   }
 
   @Override
@@ -258,7 +259,10 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     return null;
   }
 
-  //SetArgument "interface"
+  @Override
+  long[] getCache() {
+    return cache_;
+  }
 
   @Override
   long getThetaLong() {
@@ -269,13 +273,6 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   boolean isDirty() {
     return dirty_;
   }
-
-  @Override
-  long[] getCache() {
-    return cache_;
-  }
-
-  //UpdateInternal "interface"
 
   @Override
   int getLgArrLongs() {
@@ -559,7 +556,8 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     //Check lgNomLongs
     if (lgNomLongs < ALPHA_MIN_LG_NOM_LONGS) {
       throw new SketchesArgumentException(
-        "This sketch requires a minimum nominal entries of " + (1 << ALPHA_MIN_LG_NOM_LONGS));
+        "Possible corruption: This sketch requires a minimum nominal entries of "
+            + (1 << ALPHA_MIN_LG_NOM_LONGS));
     }
   }
 

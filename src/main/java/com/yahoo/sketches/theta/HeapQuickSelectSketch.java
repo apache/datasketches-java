@@ -189,8 +189,9 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
   //restricted methods
 
   @Override
-  int getPreambleLongs() {
-    return preambleLongs_;
+  int getCurrentPreambleLongs(final boolean compact) {
+    if (!compact) { return preambleLongs_; }
+    return computeCompactPreLongs(thetaLong_, empty_, curCount_);
   }
 
   @Override

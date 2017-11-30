@@ -21,6 +21,7 @@ import static com.yahoo.sketches.Util.isPowerOf2;
 import static com.yahoo.sketches.Util.milliSecToString;
 import static com.yahoo.sketches.Util.nanoSecToString;
 import static com.yahoo.sketches.Util.pwr2LawNext;
+import static com.yahoo.sketches.Util.pwr2LawPrev;
 import static com.yahoo.sketches.Util.zeroPad;
 
 import org.testng.Assert;
@@ -153,7 +154,7 @@ public class UtilTest {
     int lgStart = 0;
     int lgEnd = 4;
     int ppo = 1;
-    int points = ppo * (lgEnd - lgStart) +1;
+    int points = (ppo * (lgEnd - lgStart)) +1;
     int[] pts = evenlyLgSpaced(lgStart, lgEnd, points);
     Assert.assertEquals(pts[0], 1);
     Assert.assertEquals(pts[1], 2);
@@ -218,7 +219,7 @@ public class UtilTest {
 
   @Test
   public void checkMsecToString() {
-    long nS = 60L * 60L * 1000L + 60L * 1000L + 1000L + 1L;
+    long nS = (60L * 60L * 1000L) + (60L * 1000L) + 1000L + 1L;
     String result = milliSecToString(nS);
     String expected = "1:01:01.001";
     Assert.assertEquals(result, expected);
@@ -228,6 +229,23 @@ public class UtilTest {
   public void checkPwr2LawNext() {
     int next = pwr2LawNext(2, 1);
     Assert.assertEquals(next, 2);
+  }
+
+  @Test
+  public void checkPwr2LawExamples() {
+    int maxP = 1024;
+    int minP = 1;
+    int ppo = 2;
+
+    for (int p = minP; p <= maxP; p = pwr2LawNext(ppo, p)) {
+      print(p + " ");
+    }
+    println("");
+
+    for (int p = maxP; p >= minP; p = pwr2LawPrev(ppo, p)) {
+      print(p + " ");
+    }
+    println("");
   }
 
   @Test
@@ -255,7 +273,7 @@ public class UtilTest {
    * @param s value to print
    */
   static void print(String s) {
-    //System.out.println(s); //disable here
+    //System.out.print(s); //disable here
   }
 
   /**

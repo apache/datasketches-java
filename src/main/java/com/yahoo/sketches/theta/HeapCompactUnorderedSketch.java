@@ -16,11 +16,11 @@ import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 
 /**
- * An on-heap, compact, ordered, read-only sketch.
+ * An on-heap, compact, read-only sketch.
  *
  * @author Lee Rhodes
  */
-final class HeapCompactOrderedSketch extends HeapCompactSketch {
+final class HeapCompactUnorderedSketch extends HeapCompactSketch {
 
   /**
    * Constructs this sketch from correct, valid components.
@@ -32,7 +32,7 @@ final class HeapCompactOrderedSketch extends HeapCompactSketch {
    * @param thetaLong The correct
    * <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
    */
-  private HeapCompactOrderedSketch(final long[] cache, final boolean empty, final short seedHash,
+  private HeapCompactUnorderedSketch(final long[] cache, final boolean empty, final short seedHash,
       final int curCount, final long thetaLong) {
     super(cache, empty, seedHash, curCount, thetaLong);
   }
@@ -72,7 +72,7 @@ final class HeapCompactOrderedSketch extends HeapCompactSketch {
         thetaLong = extractThetaLong(memObj, memAdd);
       }
     }
-    return new HeapCompactOrderedSketch(cache, empty, memSeedHash, curCount, thetaLong);
+    return new HeapCompactUnorderedSketch(cache, empty, memSeedHash, curCount, thetaLong);
   }
 
   /**
@@ -87,18 +87,17 @@ final class HeapCompactOrderedSketch extends HeapCompactSketch {
 
     final short seedHash = sketch.getSeedHash();
     final long[] cache = sketch.getCache();
-    final boolean ordered = true;
+    final boolean ordered = false;
     final long[] cacheOut = CompactSketch.compactCache(cache, curCount, thetaLong, ordered);
     if ((curCount == 1) && (thetaLong == Long.MAX_VALUE)) {
       return new SingleItemSketch(cacheOut[0], seedHash);
     }
-    return new HeapCompactOrderedSketch(cacheOut, empty, seedHash, curCount, thetaLong);
+    return new HeapCompactUnorderedSketch(cacheOut, empty, seedHash, curCount, thetaLong);
   }
-
 
   /**
    * Constructs this sketch from correct, valid arguments.
-   * @param cache in compact, ordered form
+   * @param cache in compact form
    * @param empty The correct <a href="{@docRoot}/resources/dictionary.html#empty">Empty</a>.
    * @param seedHash The correct
    * <a href="{@docRoot}/resources/dictionary.html#seedHash">Seed Hash</a>.
@@ -112,21 +111,21 @@ final class HeapCompactOrderedSketch extends HeapCompactSketch {
     if ((curCount == 1) && (thetaLong == Long.MAX_VALUE)) {
       return new SingleItemSketch(cache[0], seedHash);
     }
-    return new HeapCompactOrderedSketch(cache, empty, seedHash, curCount, thetaLong);
+    return new HeapCompactUnorderedSketch(cache, empty, seedHash, curCount, thetaLong);
   }
 
   //Sketch interface
 
   @Override
   public byte[] toByteArray() {
-    return toByteArray(true);
+    return toByteArray(false);
   }
 
   //restricted methods
 
   @Override
   public boolean isOrdered() {
-    return true;
+    return false;
   }
 
 }

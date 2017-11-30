@@ -79,7 +79,18 @@ public class PreambleUtilTest {
     Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uMem);
     union.update(quick1);
     println(PreambleUtil.preambleToString(uMem));
+  }
 
+  @Test
+  public void checkToStringWithPrelongsOf2() {
+    int k = 16;
+    int u = k;
+    UpdateSketch quick1 = UpdateSketch.builder().setNominalEntries(k).build();
+    for (int i = 0; i< u; i++) {
+      quick1.update(i);
+    }
+    byte[] bytes = quick1.compact().toByteArray();
+    println(PreambleUtil.preambleToString(bytes));
   }
 
   @Test
@@ -119,7 +130,9 @@ public class PreambleUtilTest {
     byteArr = comp.toByteArray();
     println(PreambleUtil.preambleToString(byteArr)); //PreLongs = 2
 
-    for (int i=2; i<=32; i++) sketch.update(i);
+    for (int i=2; i<=32; i++) {
+      sketch.update(i);
+    }
     comp = sketch.compact(false, null);
     byteArr = comp.toByteArray();
     println(PreambleUtil.preambleToString(byteArr)); //PreLongs = 3

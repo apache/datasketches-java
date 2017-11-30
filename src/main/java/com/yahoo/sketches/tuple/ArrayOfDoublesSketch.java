@@ -6,6 +6,7 @@
 package com.yahoo.sketches.tuple;
 
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+import static com.yahoo.sketches.Util.LS;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
@@ -195,5 +196,34 @@ public abstract class ArrayOfDoublesSketch {
    * @return iterator over the sketch
    */
   public abstract ArrayOfDoublesSketchIterator iterator();
+
+
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("### ").append(this.getClass().getSimpleName()).append(" SUMMARY: ").append(LS);
+    sb.append("   Estimate                : ").append(getEstimate()).append(LS);
+    sb.append("   Upper Bound, 95% conf   : ").append(getUpperBound(2)).append(LS);
+    sb.append("   Lower Bound, 95% conf   : ").append(getLowerBound(2)).append(LS);
+    sb.append("   Theta (double)          : ").append(getTheta()).append(LS);
+    sb.append("   Theta (long)            : ").append(getThetaLong()).append(LS);
+    sb.append("   EstMode?                : ").append(isEstimationMode()).append(LS);
+    sb.append("   Empty?                  : ").append(isEmpty()).append(LS);
+    sb.append("   Retained Entries        : ").append(getRetainedEntries()).append(LS);
+    if (this instanceof ArrayOfDoublesUpdatableSketch) {
+      final ArrayOfDoublesUpdatableSketch updatable = (ArrayOfDoublesUpdatableSketch) this;
+      sb.append("   Nominal Entries (k)     : ").append(updatable.getNominalEntries()).append(LS);
+      sb.append("   Current Capacity        : ").append(updatable.getCurrentCapacity()).append(LS);
+      sb.append("   Resize Factor           : ").append(updatable.getResizeFactor().getValue()).append(LS);
+      sb.append("   Sampling Probability (p): ").append(updatable.getSamplingProbability()).append(LS);
+      sb.append("   Update Seed             : ")
+      .append(Long.toHexString(updatable.getSeed())).append(" | ")
+      .append(Long.toString(updatable.getSeed())).append(LS);
+    }
+    sb.append("   Seed Hash               : ")
+      .append(Integer.toHexString(Short.toUnsignedInt(getSeedHash()))).append(LS);
+    sb.append("### END SKETCH SUMMARY").append(LS);
+    return sb.toString();
+  }
 
 }
