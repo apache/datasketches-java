@@ -205,11 +205,11 @@ public abstract class ArrayOfDoublesSketch {
     sb.append("   Estimate                : ").append(getEstimate()).append(LS);
     sb.append("   Upper Bound, 95% conf   : ").append(getUpperBound(2)).append(LS);
     sb.append("   Lower Bound, 95% conf   : ").append(getLowerBound(2)).append(LS);
-    sb.append("   Theta (double)          : ").append(this.getTheta()).append(LS);
-    sb.append("   Theta (long)            : ").append(this.getThetaLong()).append(LS);
+    sb.append("   Theta (double)          : ").append(getTheta()).append(LS);
+    sb.append("   Theta (long)            : ").append(getThetaLong()).append(LS);
     sb.append("   EstMode?                : ").append(isEstimationMode()).append(LS);
     sb.append("   Empty?                  : ").append(isEmpty()).append(LS);
-    sb.append("   Retained Entries        : ").append(this.getRetainedEntries()).append(LS);
+    sb.append("   Retained Entries        : ").append(getRetainedEntries()).append(LS);
     if (this instanceof ArrayOfDoublesUpdatableSketch) {
       final ArrayOfDoublesUpdatableSketch updatable = (ArrayOfDoublesUpdatableSketch) this;
       sb.append("   Nominal Entries (k)     : ").append(updatable.getNominalEntries()).append(LS);
@@ -220,7 +220,8 @@ public abstract class ArrayOfDoublesSketch {
       .append(Long.toHexString(updatable.getSeed())).append(" | ")
       .append(Long.toString(updatable.getSeed())).append(LS);
     }
-    sb.append("   Seed Hash               : ").append(Integer.toHexString(Short.toUnsignedInt(getSeedHash()))).append(LS);
+    sb.append("   Seed Hash               : ")
+      .append(Integer.toHexString(Short.toUnsignedInt(getSeedHash()))).append(LS);
     sb.append("### END SKETCH SUMMARY").append(LS);
     return sb.toString();
   }
