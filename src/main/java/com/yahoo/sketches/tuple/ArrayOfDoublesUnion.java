@@ -117,6 +117,10 @@ public abstract class ArrayOfDoublesUnion {
   public void update(final ArrayOfDoublesSketch sketchIn) {
     if (sketchIn == null) { return; }
     Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
+    if (sketch_.getNumValues() != sketchIn.getNumValues()) {
+      throw new SketchesArgumentException("Incompatible sketches: number of values mismatch "
+          + sketch_.getNumValues() + " and " + sketchIn.getNumValues());
+    }
     if (sketchIn.isEmpty()) { return; }
     if (sketchIn.getThetaLong() < theta_) { theta_ = sketchIn.getThetaLong(); }
     final ArrayOfDoublesSketchIterator it = sketchIn.iterator();

@@ -381,4 +381,18 @@ public class ArrayOfDoublesUnionTest {
     union.update(sketch);
   }
 
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void incompatibleInputSketchFewerValues() {
+    ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().setNumberOfValues(2).buildUnion();
+    union.update(sketch);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void incompatibleInputSketchMoreValues() {
+    ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).build();
+    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion();
+    union.update(sketch);
+  }
+
 }
