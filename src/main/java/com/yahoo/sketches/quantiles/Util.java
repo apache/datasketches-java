@@ -14,7 +14,6 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
 
 import com.yahoo.memory.Memory;
-
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -40,6 +39,124 @@ final class Util {
    * The tab character
    */
   static final char TAB = '\t';
+
+  /**
+   * Computes the raw delta area between two quantile sketches for the
+   * {@link #komologorovSmirnovTest(DoubleSketch, DoubleSketch, double) komologorovSmirnovTest}
+   * method.
+   * @param sketch1 Input DoubleSketch 1
+   * @param sketch2 Input DoubleSketch 2
+   * @return the raw delta area between two quantile sketches
+   */
+  public static double computeKSDelta(final DoublesSketch sketch1,
+      final DoublesSketch sketch2) {
+    final DoublesAuxiliary p = sketch1.constructAuxiliary();
+    final DoublesAuxiliary q = sketch2.constructAuxiliary();
+
+    final double[] pSamplesArr = p.auxSamplesArr_;
+    final double[] qSamplesArr = q.auxSamplesArr_;
+    final long[] pCumWtsArr = p.auxCumWtsArr_;
+    final long[] qCumWtsArr = q.auxCumWtsArr_;
+    final int pSamplesArrLen = pSamplesArr.length;
+    final int qSamplesArrLen = qSamplesArr.length;
+
+    final double n1 = sketch1.getN();
+    final double n2 = sketch2.getN();
+
+    //Compute D from the two distributions
+    double deltaArea = 0.0;
+    int i = getNextIndex(pSamplesArr, -1);
+    int j = getNextIndex(qSamplesArr, -1);
+
+    // We're done if either array reaches the end
+    while ((i < pSamplesArrLen) && (j < qSamplesArrLen)) {
+      final double pSample = pSamplesArr[i];
+      final double qSample = qSamplesArr[j];
+      final long pWt = pCumWtsArr[i];
+      final long qWt = qCumWtsArr[j];
+      final double pNormWt = pWt / n1;
+      final double qNormWt = qWt / n2;
+      final double pMinusQ = Math.abs(pNormWt - qNormWt);
+      final double curD = deltaArea;
+      deltaArea = Math.max(curD, pMinusQ);
+
+      //Increment i or j or both
+      if (pSample == qSample) {
+        i = getNextIndex(pSamplesArr, i);
+        j = getNextIndex(qSamplesArr, j);
+      } else if ((pSample < qSample) && (i < pSamplesArrLen)) {
+        i = getNextIndex(pSamplesArr, i);
+      } else {
+        j = getNextIndex(qSamplesArr, j);
+      }
+    }
+
+    //This is D, the delta difference in area of the two distributions
+    deltaArea = Math.max(deltaArea, Math.abs((pCumWtsArr[i] / n1) - (qCumWtsArr[j] / n2)));
+    return deltaArea;
+  }
+
+  /**
+   * Computes the adjusted delta area threshold for the
+   * {@link #komologorovSmirnovTest(DoubleSketch, DoubleSketch, double) komologorovSmirnovTest}
+   * method.
+   * This adjusts the computed threshold by the error epsilons of the two given sketches.
+   * See <a href="https://en.wikipedia.org/wiki/Kolmogorov–Smirnov_test">Kolmogorov–Smirnov Test</a>
+   * @param sketch1 Input DoubleSketch 1
+   * @param sketch2 Input DoubleSketch 2
+   * @param tgtPvalue Target p-value. Typically .001 to .1, e.g., .05.
+   * @return the adjusted threshold to be compared with the raw delta area.
+   */
+  public static double computeKSThreshold(final DoublesSketch sketch1,
+                                           final DoublesSketch sketch2,
+                                           final double tgtPvalue) {
+    final double r1 = sketch1.getRetainedItems();
+    final double r2 = sketch2.getRetainedItems();
+    final double alpha = tgtPvalue;
+    final double alphaFactor = Math.sqrt(-0.5 * Math.log(0.5 * alpha));
+    final double deltaAreaThreshold = alphaFactor * Math.sqrt((r1 + r2) / (r1 * r2));
+    final double eps1 = Util.EpsilonFromK.getAdjustedEpsilon(sketch1.getK());
+    final double eps2 = Util.EpsilonFromK.getAdjustedEpsilon(sketch2.getK());
+
+    final double adjDeltaAreaThreshold = deltaAreaThreshold + eps1 + eps2;
+    return adjDeltaAreaThreshold;
+  }
+
+  /**
+   * Performs the Kolmogorov-Smirnov Test between two quantiles sketches.
+   * Note: if the given sketches have insufficient data or if the sketch sizes are too small,
+   * this will return false.
+   * @param sketch1 Input DoubleSketch 1
+   * @param sketch2 Input DoubleSketch 2
+   * @param tgtPvalue Target p-value. Typically .001 to .1, e.g., .05.
+   * @return Boolean indicating whether we can reject the null hypothesis (that the sketches
+   * reflect the same underlying distribution) using the provided tgtPValue.
+   */
+  public static boolean komologorovSmirnovTest(final DoublesSketch sketch1,
+      final DoublesSketch sketch2, final double tgtPvalue) {
+    final double delta = computeKSDelta(sketch1, sketch2);
+    final double thresh = computeKSThreshold(sketch1, sketch2, tgtPvalue);
+    return delta > thresh;
+  }
+
+  private static final int getNextIndex(final double[] samplesArr, final int stIdx) {
+    int idx = stIdx + 1;
+    final int samplesArrLen = samplesArr.length;
+
+    if (idx >= samplesArrLen) { return samplesArrLen; }
+
+    // if we have a sequence of equal values, use the last one of the sequence
+    final double val = samplesArr[idx];
+    int nxtIdx = idx + 1;
+    while ((nxtIdx < samplesArrLen) && (samplesArr[nxtIdx] == val)) {
+      idx = nxtIdx;
+      ++nxtIdx;
+    }
+    return idx;
+  }
+
+
+
 
   /**
    * Checks the validity of the given value k
@@ -107,8 +224,8 @@ final class Util {
    * Checks just the flags field of an input Memory object. Returns true for a compact
    * sketch, false for an update sketch. Does not perform additional checks, including sketch
    * family.
-   * @param srcMem the source Memory containign a sketch
-   * @return true if flags indicate a comapct sketch, otherwise false
+   * @param srcMem the source Memory containing a sketch
+   * @return true if flags indicate a compact sketch, otherwise false
    */
   static boolean checkIsCompactMemory(final Memory srcMem) {
     // only reading so downcast is ok
@@ -164,7 +281,7 @@ final class Util {
     final int bbCnt = computeBaseBufferItems(k, n);
     final long bitPattern = computeBitPattern(k, n);
     final int validLevels = computeValidLevels(bitPattern);
-    return bbCnt + validLevels * k;
+    return bbCnt + (validLevels * k);
   }
 
   /**
@@ -362,7 +479,7 @@ final class Util {
       assert lo < hi;
       assert epsForKPredicate(lo, kf);
       assert !epsForKPredicate(hi, kf);
-      if ((hi - lo) / lo < bracketedBinarySearchForEpsTol) {
+      if (((hi - lo) / lo) < bracketedBinarySearchForEpsTol) {
         return lo;
       }
       final double mid = (lo + hi) / 2.0;
