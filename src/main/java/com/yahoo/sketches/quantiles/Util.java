@@ -14,7 +14,6 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
 
 import com.yahoo.memory.Memory;
-
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -42,19 +41,15 @@ final class Util {
   static final char TAB = '\t';
 
   /**
-   * Computes the Komologorov-Smirnov Statistic between two quantiles sketches.
-   * Note: if the given sketches have insufficient data or if the sketch sizes are too small,
-   * this will return false.
+   * Computes the raw delta area between two quantile sketches for the
+   * {@link #komologorovSmirnovTest(DoubleSketch, DoubleSketch, double) komologorovSmirnovTest}
+   * method.
    * @param sketch1 Input DoubleSketch 1
    * @param sketch2 Input DoubleSketch 2
-   * @param tgtPvalue Target p-value. Typically .001 to .1, e.g., .05.
-   * @return Boolean indicating whether we can reject the null hypothesis (that the sketches
-   * reflect the same underlying distribution) using the provided tgtPValue.
+   * @return the raw delta area between two quantile sketches
    */
-  public static boolean computeKSStatistic(final DoublesSketch sketch1,
-                                           final DoublesSketch sketch2,
-                                           final double tgtPvalue) {
-
+  public static double computeKSDelta(final DoublesSketch sketch1,
+      final DoublesSketch sketch2) {
     final DoublesAuxiliary p = sketch1.constructAuxiliary();
     final DoublesAuxiliary q = sketch2.constructAuxiliary();
 
@@ -65,13 +60,11 @@ final class Util {
     final int pSamplesArrLen = pSamplesArr.length;
     final int qSamplesArrLen = qSamplesArr.length;
 
-    final double r1 = sketch1.getRetainedItems();
-    final double r2 = sketch2.getRetainedItems();
-    final double confScale = Math.sqrt(-0.5 * Math.log(0.5 * tgtPvalue));
+    final double n1 = sketch1.getN();
+    final double n2 = sketch2.getN();
 
-    // reject null hypothesis at tgtConf if D_{KS} > thresh
-    final double thresh = confScale * Math.sqrt((r1 + r2) / (r1 * r2));
-    double D = 0.0;
+    //Compute D from the two distributions
+    double deltaArea = 0.0;
     int i = getNextIndex(pSamplesArr, -1);
     int j = getNextIndex(qSamplesArr, -1);
 
@@ -81,54 +74,69 @@ final class Util {
       final double qSample = qSamplesArr[j];
       final long pWt = pCumWtsArr[i];
       final long qWt = qCumWtsArr[j];
-      final double pNormWt = pWt / r1;
-      final double qNormWt = qWt / r2;
+      final double pNormWt = pWt / n1;
+      final double qNormWt = qWt / n2;
       final double pMinusQ = Math.abs(pNormWt - qNormWt);
-      final double curD = D;
-      D = Math.max(curD, pMinusQ);
-
-      //System.out.printf("p[%d]: (%f, %f)\t", i, pSample, pNormWt);
-      //System.out.printf("q[%d]: (%f, %f)\n", j, qSample, qNormWt);
-      //System.out.printf("\tpCumWt = %d \tqCumWt = %d\n", pWt, qWt);
-      //System.out.printf("\tD = max(D, pNormWt - qNormWt) = max(%f, %f) = %f\n",
-      //   curD, pMinusQ, D);
+      final double curD = deltaArea;
+      deltaArea = Math.max(curD, pMinusQ);
 
       //Increment i or j or both
       if (pSample == qSample) {
-        //System.out.println("\tIncrement both\n");
         i = getNextIndex(pSamplesArr, i);
         j = getNextIndex(qSamplesArr, j);
       } else if ((pSample < qSample) && (i < pSamplesArrLen)) {
-        //System.out.println("\tIncrement p\n");
         i = getNextIndex(pSamplesArr, i);
       } else {
-        //System.out.println("\tIncrement q\n");
         j = getNextIndex(qSamplesArr, j);
       }
     }
 
-    // One final comparison, with one of the two values at 1.0.
-    // Subsequent values for the smaller CDF will be strictly larger, so the difference for any
-    // later tests cannot be greater.
-    //    System.out.printf("Final D = max(%f, %f)\n", D,
-    //            Math.abs((pCumWtsArr[i] / n1) - (qCumWtsArr[j] / n2)));
-    D = Math.max(D, Math.abs((pCumWtsArr[i] / r1) - (qCumWtsArr[j] / r2)));
+    //This is D, the delta difference in area of the two distributions
+    deltaArea = Math.max(deltaArea, Math.abs((pCumWtsArr[i] / n1) - (qCumWtsArr[j] / n2)));
+    return deltaArea;
+  }
 
-    /*
-    System.out.println("N: " + p.auxN_);
-    for (int i = 0; i < p.auxSamplesArr_.length; ++i) {
-      System.out.printf("%5d:\t%d\t%f\t%f\n", i, p.auxCumWtsArr_[i], p.auxSamplesArr_[i],
-              p.auxCumWtsArr_[i] / (double) p.auxN_);
-    }
-    */
+  /**
+   * Computes the adjusted delta area threshold for the
+   * {@link #komologorovSmirnovTest(DoubleSketch, DoubleSketch, double) komologorovSmirnovTest}
+   * method.
+   * This adjusts the computed threshold by the error epsilons of the two given sketches.
+   * See <a href="https://en.wikipedia.org/wiki/Kolmogorov–Smirnov_test">Kolmogorov–Smirnov Test</a>
+   * @param sketch1 Input DoubleSketch 1
+   * @param sketch2 Input DoubleSketch 2
+   * @param tgtPvalue Target p-value. Typically .001 to .1, e.g., .05.
+   * @return the adjusted threshold to be compared with the raw delta area.
+   */
+  public static double computeKSThreshold(final DoublesSketch sketch1,
+                                           final DoublesSketch sketch2,
+                                           final double tgtPvalue) {
+    final double r1 = sketch1.getRetainedItems();
+    final double r2 = sketch2.getRetainedItems();
+    final double alpha = tgtPvalue;
+    final double alphaFactor = Math.sqrt(-0.5 * Math.log(0.5 * alpha));
+    final double deltaAreaThreshold = alphaFactor * Math.sqrt((r1 + r2) / (r1 * r2));
     final double eps1 = Util.EpsilonFromK.getAdjustedEpsilon(sketch1.getK());
     final double eps2 = Util.EpsilonFromK.getAdjustedEpsilon(sketch2.getK());
-    final double adjustedD = D - eps1 - eps2;
 
-    //System.out.printf("TgtP: %f\tD: %f\te1: %f\te2: %f\ttotal: %f \tthresh: %f \tresult: %s\n",
-    //       tgtPvalue, D, eps1, eps2, adjustedD, thresh, adjustedD > thresh);
+    final double adjDeltaAreaThreshold = deltaAreaThreshold + eps1 + eps2;
+    return adjDeltaAreaThreshold;
+  }
 
-    return adjustedD > thresh;
+  /**
+   * Performs the Kolmogorov-Smirnov Test between two quantiles sketches.
+   * Note: if the given sketches have insufficient data or if the sketch sizes are too small,
+   * this will return false.
+   * @param sketch1 Input DoubleSketch 1
+   * @param sketch2 Input DoubleSketch 2
+   * @param tgtPvalue Target p-value. Typically .001 to .1, e.g., .05.
+   * @return Boolean indicating whether we can reject the null hypothesis (that the sketches
+   * reflect the same underlying distribution) using the provided tgtPValue.
+   */
+  public static boolean komologorovSmirnovTest(final DoublesSketch sketch1,
+      final DoublesSketch sketch2, final double tgtPvalue) {
+    final double delta = computeKSDelta(sketch1, sketch2);
+    final double thresh = computeKSThreshold(sketch1, sketch2, tgtPvalue);
+    return delta > thresh;
   }
 
   private static final int getNextIndex(final double[] samplesArr, final int stIdx) {
@@ -146,6 +154,8 @@ final class Util {
     }
     return idx;
   }
+
+
 
 
   /**
@@ -271,7 +281,7 @@ final class Util {
     final int bbCnt = computeBaseBufferItems(k, n);
     final long bitPattern = computeBitPattern(k, n);
     final int validLevels = computeValidLevels(bitPattern);
-    return bbCnt + validLevels * k;
+    return bbCnt + (validLevels * k);
   }
 
   /**
@@ -469,7 +479,7 @@ final class Util {
       assert lo < hi;
       assert epsForKPredicate(lo, kf);
       assert !epsForKPredicate(hi, kf);
-      if ((hi - lo) / lo < bracketedBinarySearchForEpsTol) {
+      if (((hi - lo) / lo) < bracketedBinarySearchForEpsTol) {
         return lo;
       }
       final double mid = (lo + hi) / 2.0;

@@ -180,13 +180,17 @@ public class UtilTest {
 
  private static void assertMergeTestPrecondition(double [] arr, long [] brr, int arrLen, int blkSize) {
    int violationsCount = 0;
-   for (int i = 0; i < arrLen-1; i++) {
-     if (((i+1) % blkSize) == 0) continue;
+   for (int i = 0; i < (arrLen-1); i++) {
+     if (((i+1) % blkSize) == 0) {
+      continue;
+    }
      if (arr[i] > arr[i+1]) { violationsCount++; }
    }
 
    for (int i = 0; i < arrLen; i++) {
-     if (brr[i] != (long) (1e12 * (1.0 - arr[i]))) violationsCount++;
+     if (brr[i] != (long) (1e12 * (1.0 - arr[i]))) {
+      violationsCount++;
+    }
    }
    if (brr[arrLen] != 0) { violationsCount++; }
 
@@ -195,12 +199,14 @@ public class UtilTest {
 
  private static void  assertMergeTestPostcondition(double [] arr, long [] brr, int arrLen) {
    int violationsCount = 0;
-   for (int i = 0; i < arrLen-1; i++) {
+   for (int i = 0; i < (arrLen-1); i++) {
      if (arr[i] > arr[i+1]) { violationsCount++; }
    }
 
    for (int i = 0; i < arrLen; i++) {
-     if (brr[i] != (long) (1e12 * (1.0 - arr[i]))) violationsCount++;
+     if (brr[i] != (long) (1e12 * (1.0 - arr[i]))) {
+      violationsCount++;
+    }
    }
    if (brr[arrLen] != 0) { violationsCount++; }
 
@@ -268,14 +274,14 @@ public class UtilTest {
    int arrLen = 0;
    double[] arr = null;
    for (arrLen = 0; arrLen <= maxArrLen; arrLen++) {
-     for (int blkSize = 1; blkSize <= arrLen + 100; blkSize++) {
+     for (int blkSize = 1; blkSize <= (arrLen + 100); blkSize++) {
        for (int tryno = 1; tryno <= numTries; tryno++) {
          arr = makeMergeTestInput(arrLen, blkSize);
          long [] brr = makeTheTandemArray(arr);
          assertMergeTestPrecondition(arr, brr, arrLen, blkSize);
          DoublesAuxiliary.blockyTandemMergeSort(arr, brr, arrLen, blkSize);
          /* verify sorted order */
-         for (int i = 0; i < arrLen-1; i++) {
+         for (int i = 0; i < (arrLen-1); i++) {
            assert arr[i] <= arr[i+1];
          }
          assertMergeTestPostcondition(arr, brr, arrLen);
@@ -285,27 +291,7 @@ public class UtilTest {
    //System.out.printf ("Passed: testBlockyTandemMergeSort%n");
  }
 
-  @Test
-  public void computeKomologorovSmirnovStatisticTest() {
-    final int k = 16;
-    final UpdateDoublesSketch s1 = DoublesSketch.builder().setK(k).build();
-    final UpdateDoublesSketch s2 = DoublesSketch.builder().setK(k).build();
-    final double tgtPvalue = .05;
-
-    final Random rand = new Random();
-
-    //final int n = k * 32;
-    final int n =  (3 * k) - 1;
-    for (int i = 0; i < n; ++i) {
-      final double x = rand.nextGaussian();
-      s1.update(x + .5);
-      s2.update(x);
-    }
-    final boolean rejectNullHypoth = Util.computeKSStatistic(s1, s2, tgtPvalue);
-    assertFalse(rejectNullHypoth);
-  }
-
-// we are retaining this stand-alone test for now because it can be more exhaustive
+// we are retaining this stand-alone test because it can be more exhaustive
 
 //  @SuppressWarnings("unused")
 //  private static void exhaustiveMain(String[] args) {
@@ -331,6 +317,93 @@ public class UtilTest {
 //  public static void main(String[] args) {
 //    exhaustiveMain(new String[] {"10", "100"});
 //  }
+
+ @Test
+ public void checkKomologorovSmirnovStatistic1() {
+   final int k = 256;
+   final UpdateDoublesSketch s1 = DoublesSketch.builder().setK(k).build();
+   final UpdateDoublesSketch s2 = DoublesSketch.builder().setK(k).build();
+
+   final Random rand = new Random();
+
+   final int n =  (3 * k) - 1;
+   for (int i = 0; i < n; ++i) {
+     final double x = rand.nextGaussian();
+     s1.update(x + 100);
+     s2.update(x);
+   }
+
+   assertEquals(Util.computeKSDelta(s1, s2), 1.0, 1.0 + 1E-6);
+   //println("D = " + Util.computeKSDelta(s1, s2));
+ }
+
+ @Test
+ public void checkKomologorovSmirnovStatistic2() {
+   final int k = 256;
+   final UpdateDoublesSketch s1 = DoublesSketch.builder().setK(k).build();
+   final UpdateDoublesSketch s2 = DoublesSketch.builder().setK(k).build();
+
+   final Random rand = new Random();
+
+   final int n =  (3 * k) - 1;
+   for (int i = 0; i < n; ++i) {
+     final double x = rand.nextGaussian();
+     s1.update(x);
+     s2.update(x);
+   }
+
+   assertEquals(Util.computeKSDelta(s1, s2), 0, .01);
+   //println("D = " + Util.computeKSDelta(s1, s2));
+ }
+
+ @Test
+ public void checkKomologorovSmirnovStatistic3() {
+   final int k = 2048;
+   final UpdateDoublesSketch s1 = DoublesSketch.builder().setK(k).build();
+   final UpdateDoublesSketch s2 = DoublesSketch.builder().setK(k).build();
+   final double tgtPvalue = .05;
+
+   final Random rand = new Random();
+
+   final int n =  (3 * k) - 1;
+   for (int i = 0; i < n; ++i) {
+     final double x = rand.nextGaussian();
+     s1.update(x + .05);
+     s2.update(x);
+   }
+
+   double D = Util.computeKSDelta(s1, s2);
+   double thresh = Util.computeKSThreshold(s1, s2, tgtPvalue);
+   final boolean reject = Util.komologorovSmirnovTest(s1, s2, tgtPvalue);
+   println("pVal = " + tgtPvalue + "\nK = " + k + "\nD = " + D + "\nTh = " + thresh
+       + "\nNull Hypoth Rejected = " + reject);
+   assertFalse(reject);
+ }
+
+ @Test
+ public void checkKomologorovSmirnovStatistic4() {
+   final int k = 8192;
+   final UpdateDoublesSketch s1 = DoublesSketch.builder().setK(k).build();
+   final UpdateDoublesSketch s2 = DoublesSketch.builder().setK(k).build();
+   final double tgtPvalue = .05;
+
+   final Random rand = new Random();
+
+   final int n =  (3 * k) - 1;
+   for (int i = 0; i < n; ++i) {
+     final double x = rand.nextGaussian();
+     s1.update(x + .05);
+     s2.update(x);
+   }
+
+   double D = Util.computeKSDelta(s1, s2);
+   double thresh = Util.computeKSThreshold(s1, s2, tgtPvalue);
+   final boolean reject = Util.komologorovSmirnovTest(s1, s2, tgtPvalue);
+   println("pVal = " + tgtPvalue + "\nK = " + k + "\nD = " + D + "\nTh = " + thresh
+       + "\nNull Hypoth Rejected = " + reject);
+   assertTrue(reject);
+ }
+
 
   @Test
   public void printlnTest() {
