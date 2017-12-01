@@ -224,31 +224,16 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>pre-unit-test</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
-                        <configuration>
-                            <destFile>
-                                ${project.build.directory}/coverage-reports/jacoco-ut.exec
-                            </destFile>
-                            <propertyName>surefireArgLine</propertyName>
-                        </configuration>
                     </execution>
                     <execution>
-                        <id>post-unit-test</id>
+                        <id>report</id>
                         <phase>test</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
-                        <configuration>
-                            <dataFile>
-                                ${project.build.directory}/coverage-reports/jacoco-ut.exec
-                            </dataFile>
-                            <outputDirectory>
-                                ${project.reporting.outputDirectory}/jacoco-ut
-                            </outputDirectory>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -256,9 +241,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <!-- <argLine>${surefireArgLine}</argLine> (Eclipse complains)-->
-                </configuration>
             </plugin>
             
             <plugin>
