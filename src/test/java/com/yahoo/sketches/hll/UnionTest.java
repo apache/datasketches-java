@@ -28,24 +28,31 @@ public class UnionTest {
 
   static final int[] nArr = new int[] {1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000};
 
+  //   n1,...        lgK,...          tgtHll,    Mode         Ooo          Est
+  static final String hdrFmt =
+      "%6s%6s%6s" + "%8s%5s%5s%5s" + "%7s%6s" + "%7s%6s%6s" +"%3s%2s%2s"+ "%13s%12s";
+  static final String hdr = String.format(hdrFmt,
+      "n1", "n2", "tot",
+      "lgMaxK", "lgK1", "lgK2", "lgKR",
+      "tgt1", "tgt2",
+      "Mode1", "Mode2", "ModeR",
+      "1", "2", "R",
+      "Est", "Err%");
+
+  /**
+   * The task here is to check the transition boundaries as the sketch morphs between LIST to
+   * SET to HLL modes. The transition points vary as a function of lgConfigK. In addition,
+   * this checks that the union operation is operating properly based on the order the
+   * sketches are presented to the union.
+   */
   @Test
   public void checkUnions() {
-    //HLL_4=0,  HLL_6=1, HLL_8=2
-    //              n1,...        lgK,...          tgtHll,    Mode         Ooo           Est
-    String hdrFmt = "%6s%6s%6s" + "%7s%5s%5s%5s" + "%6s%6s" + "%6s%6s%6s" +"%2s%1s%1s"+ "%12s%12s";
-    String hdr = String.format(hdrFmt,
-        "n1", "n2", "tot",
-        "lgMaxK", "lgK1", "lgK2", "lgKR",
-        "tgt1", "tgt2",
-        "Mode1", "Mode2", "ModeR",
-        "1", "2", "R",
-        "Est", "Err%");
 
-    int t1 = 2;
+    //HLL_4: t=0,  HLL_6: t=1, HLL_8: t=2
+    int t1 = 2; //type = HLL_8
     int t2 = 2;
     int rt = 2; //result type
     println("TgtR: " + TgtHllType.values()[rt].toString());
-    println(hdr);
 
     int lgK1 = 7;
     int lgK2 = 7;
@@ -65,7 +72,7 @@ public class UnionTest {
     n1 = 7;
     n2 = 14;
     basicUnion(n1, n2, lgK1, lgK2, lgMaxK, t1, t2, rt);
-    println("++");
+    println("++END BASE GROUP++");
 
     int i = 0;
     for (i = 7; i <= 13; i++)
@@ -74,7 +81,7 @@ public class UnionTest {
       lgK2 = i;
       lgMaxK = i;
       {
-        n1 = ((1 << (i - 3)) * 3)/4;
+        n1 = ((1 << (i - 3)) * 3)/4; //compute the transition point
         n2 = n1;
         basicUnion(n1, n2, lgK1, lgK2, lgMaxK, t1, t2, rt);
         n1 += 2;
@@ -85,9 +92,9 @@ public class UnionTest {
         n1 += 2;
         basicUnion(n1, n2, lgK1, lgK2, lgMaxK, t1, t2, rt);
       }
-      println("-");
+      println("--END MINOR GROUP--");
       lgK1 = i;
-      lgK2 = i+1;
+      lgK2 = i + 1;
       lgMaxK = i;
       {
         n1 = ((1 << (i - 3)) * 3)/4;
@@ -101,7 +108,7 @@ public class UnionTest {
         n1 += 2;
         basicUnion(n1, n2, lgK1, lgK2, lgMaxK, t1, t2, rt);
       }
-      println("-");
+      println("--END MINOR GROUP--");
       lgK1 = i + 1;
       lgK2 = i;
       lgMaxK = i;
@@ -117,7 +124,7 @@ public class UnionTest {
         n1 += 2;
         basicUnion(n1, n2, lgK1, lgK2, lgMaxK, t1, t2, rt);
       }
-      println("-");
+      println("--END MINOR GROUP--");
       lgK1 = i + 1;
       lgK2 = i + 1;
       lgMaxK = i;
@@ -133,8 +140,8 @@ public class UnionTest {
         n1 += 2;
         basicUnion(n1, n2, lgK1, lgK2, lgMaxK, t1, t2, rt);
       }
-      println("++");
-    }
+      println("++END MAJOR GROUP++");
+    } //End for
   }
 
   @Test
@@ -157,7 +164,7 @@ public class UnionTest {
     HllSketch h2 = new HllSketch(lgK2, type2);
     int lgControlK = min(min(lgK1, lgK2), lgMaxK); //min of all 3
     HllSketch control = new HllSketch(lgControlK, resultType);
-    String fmt = "%6d%6d%6d," + "%7d%5d%5d%5d," + "%6s%6s," + "%6s%6s%6s,"
+    String dataFmt = "%6d%6d%6d," + "%7d%5d%5d%5d," + "%6s%6s," + "%6s%6s%6s,"
         +"%2s%2s%2s," + "%12f%12f%%";
 
     for (long i = 0; i < n1; i++) {
@@ -202,20 +209,20 @@ public class UnionTest {
     String h1ooo = h1.isOutOfOrderFlag() ? "T" : "F";
     String h2ooo = h2.isOutOfOrderFlag() ? "T" : "F";
     String resultooo = result.isOutOfOrderFlag() ?  "T" : "F";
-    String row = String.format(fmt,
+    String row = String.format(dataFmt,
         n1, n2, tot,
         lgMaxK, lgK1, lgK2, lgKR,
         t1str, t2str,
         mode1, mode2, modeR,
         h1ooo, h2ooo, resultooo,
         uEst, rerr);
-    println(row);
     println(h1SketchStr);
     println(h2SketchStr);
     println(uH1SketchStr);
     println(uSketchStr);
     println(cSketchStr);
-
+    println(hdr);
+    println(row);
     assertTrue((controlUb - controlEst) <= (uUb - uEst));
     assertTrue((controlEst - controlLb) <= (uEst - uLb));
   }
