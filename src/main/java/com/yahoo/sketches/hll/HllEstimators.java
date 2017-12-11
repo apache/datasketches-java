@@ -54,7 +54,7 @@ class HllEstimators {
 
     final double relErr = (lgConfigK > 12)
         ? ((-1.0) * (numStdDev * rseFactor)) / Math.sqrt(configK)
-        : RelativeErrorTables.getRelErr(false, oooFlag, lgConfigK, numStdDev);
+        : RelativeErrorTables.getRelErr(true, oooFlag, lgConfigK, numStdDev);
     return estimate / (1.0 + relErr);
   }
 

@@ -224,6 +224,7 @@ public class UnionTest {
     println(hdr);
     println(row);
     assertTrue((controlUb - controlEst) <= (uUb - uEst));
+    boolean b = (controlEst - controlLb) <= (uEst - uLb);
     assertTrue((controlEst - controlLb) <= (uEst - uLb));
   }
 
