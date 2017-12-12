@@ -17,6 +17,20 @@ class HllEstimators {
 
   //HLL UPPER AND LOWER BOUNDS
 
+  /*
+   * The upper and lower bounds are not symmetric and thus are treated slightly differently.
+   * For the lower bound, when the unique count is <= k, LB >= numNonZeros, where
+   * numNonZeros = k - numAtCurMin AND curMin == 0.
+   *
+   * For HLL6 and HLL8, curMin is always 0 and numAtCurMin is initialized to k and is decremented
+   * down for each valid update until it reaches 0, where it stays. Thus, for these two
+   * isomorphs, when numAtCurMin = 0, means the true curMin is > 0 and the unique count must be
+   * greater than k.
+   *
+   * HLL4 always maintains both curMin and numAtCurMin dynamically. Nonetheless, the rules for
+   * the very small values <= k where curMin = 0 still apply.
+   */
+
   static final double hllLowerBound(final AbstractHllArray absHllArr, final int numStdDev) {
     final int lgConfigK = absHllArr.lgConfigK;
     final int configK = 1 << lgConfigK;
