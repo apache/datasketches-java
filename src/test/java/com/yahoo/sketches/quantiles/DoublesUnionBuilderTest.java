@@ -66,12 +66,6 @@ public void checkDeprecated1() {
   assertEquals(qs2.getCompactStorageBytes(), qs3.getCompactStorageBytes());
   assertEquals(qs2.getUpdatableStorageBytes(), qs3.getUpdatableStorageBytes());
   assertFalse(qs2 == qs3); //different objects
-
-  DoublesUnion union2 = DoublesUnionBuilder.copyBuild(qs3);
-  DoublesSketch qs4 = union2.getResult();
-  assertEquals(qs3.getCompactStorageBytes(), qs4.getCompactStorageBytes());
-  assertEquals(qs3.getUpdatableStorageBytes(), qs4.getUpdatableStorageBytes());
-  assertFalse(qs3 == qs4); //different objects
 }
 
   @Test
