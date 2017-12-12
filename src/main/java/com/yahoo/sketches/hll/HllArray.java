@@ -25,8 +25,8 @@ import com.yahoo.memory.WritableMemory;
  */
 abstract class HllArray extends AbstractHllArray {
   boolean oooFlag = false; //Out-Of-Order Flag
-  int curMin; //only changed by Hll4Array
-  int numAtCurMin;
+  int curMin; //always zero for Hll6 and Hll8, only used / tracked by Hll4Array
+  int numAtCurMin; //interpreted as num zeros when curMin == 0
   double hipAccum;
   double kxq0;
   double kxq1;
@@ -90,7 +90,7 @@ abstract class HllArray extends AbstractHllArray {
       putSlot(slotNo, newVal);
       hipAndKxQIncrementalUpdate(this, curVal, newVal);
       if (curVal == 0) {
-        decNumAtCurMin(); //overloaded as num zeros
+        decNumAtCurMin(); //interpret numAtCurMin as num Zeros
         assert getNumAtCurMin() >= 0;
       }
     }
