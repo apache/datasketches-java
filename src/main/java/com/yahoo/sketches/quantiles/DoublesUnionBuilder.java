@@ -41,17 +41,6 @@ public class DoublesUnionBuilder {
   }
 
   /**
-   * Deprecated in favor of a clearer method naming. Please use {@link #setMaxK(int)}.
-   * @param maxK See {@link #setMaxK(int)}.
-   * @return this builder
-   * @deprecated please use {@link #setMaxK(int)}, which more accurately describes its function.
-   */
-  @Deprecated
-  public DoublesUnionBuilder setK(final int maxK) {
-    return setMaxK(maxK);
-  }
-
-  /**
    * Gets the current configured value of <i>maxK</i>
    * @return the current configured value of <i>maxK</i>
    */
@@ -122,15 +111,4 @@ public class DoublesUnionBuilder {
     return DoublesUnionImpl.wrapInstance(mem);
   }
 
-  /**
-   * Returns a Union object that has been initialized with the data from the given sketch.
-   *
-   * @param sketch A DoublesSketch to be used as a source of data, but will not be modified.
-   * @return a Union object
-   * @deprecated this is a duplicate of {@link #heapify(DoublesSketch)} and no longer needed.
-   */
-  @Deprecated
-  public static DoublesUnion copyBuild(final DoublesSketch sketch) {
-    return DoublesUnionImpl.heapifyInstance(DoublesUtil.copyToHeap(sketch));
-  }
 }
