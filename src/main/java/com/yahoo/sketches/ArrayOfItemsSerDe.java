@@ -35,29 +35,4 @@ public abstract class ArrayOfItemsSerDe<T> {
    */
   public abstract T[] deserializeFromMemory(Memory mem, int numItems);
 
-  /**
-   * Provides a simple mechanism to check compatibility between SerDe implementations.
-   *
-   * <p>You will need to override this in the following cases:
-   * <ul><li>If you want to rename the class or change its package hierarchy and keep the ID the
-   * same. This enables compatible deserialization of binary images that were serialized with a
-   * different class name or package hierarchy.</li>
-   * <li>If you wish to change the binary layout of the serialization and don't want to change the
-   * class name or package hierarchy, you will need to change the returned code.</li>
-   * </ul>
-   * @return a unique identifier of this SerDe
-   */
-  @Deprecated
-  public short getId() {
-
-    /*
-     * Note that the hashCode() of a String is strictly a function of the content of the String
-     * and will be the same across different JVMs. This is not the case for Object.hashCode(),
-     * which generally computes the hash code from the native internal address of the object and
-     * will be DIFFERENT when computed on different JVMs. So if you override this method, make
-     * sure it will be repeatable across JVMs.
-     */
-    return (short) getClass().getName().hashCode();
-  }
-
 }

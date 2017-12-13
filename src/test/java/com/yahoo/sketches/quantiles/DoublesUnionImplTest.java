@@ -634,7 +634,7 @@ public class DoublesUnionImplTest {
     final int k = 128;
     final int n = 1000;
     final DoublesUnionBuilder bldr = DoublesUnion.builder();
-    bldr.setK(k); // check the deprecated version
+    bldr.setMaxK(k);
     Assert.assertEquals(bldr.getMaxK(), k);
     final int bytes = DoublesSketch.getUpdatableStorageBytes(k, n);
     final byte[] byteArr = new byte[bytes];
