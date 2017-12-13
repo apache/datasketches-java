@@ -47,7 +47,6 @@ public class UnionTest {
    */
   @Test
   public void checkUnions() {
-
     //HLL_4: t=0,  HLL_6: t=1, HLL_8: t=2
     int t1 = 2; //type = HLL_8
     int t2 = 2;
@@ -223,9 +222,10 @@ public class UnionTest {
     println(cSketchStr);
     println(hdr);
     println(row);
-    assertTrue((controlUb - controlEst) <= (uUb - uEst));
-    boolean b = (controlEst - controlLb) <= (uEst - uLb);
-    assertTrue((controlEst - controlLb) <= (uEst - uLb));
+    assertTrue((controlUb - controlEst) >= 0);
+    assertTrue((uUb - uEst) >= 0);
+    assertTrue((controlEst - controlLb) >= 0);
+    assertTrue((uEst -uLb) >= 0);
   }
 
   @Test
@@ -444,7 +444,7 @@ public class UnionTest {
    * @param s value to print
    */
   static void print(String s) {
-    System.out.print(s); //disable here
+    //System.out.print(s); //disable here
   }
 
 }
