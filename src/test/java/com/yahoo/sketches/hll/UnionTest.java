@@ -22,7 +22,6 @@ import com.yahoo.sketches.SketchesArgumentException;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("unused")
 public class UnionTest {
   static final String LS = System.getProperty("line.separator");
 
@@ -298,6 +297,7 @@ public class UnionTest {
     assertEquals(u.getCompositeEstimate(), 1000, 1000 * .03);
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void checkMisc() {
     try {
