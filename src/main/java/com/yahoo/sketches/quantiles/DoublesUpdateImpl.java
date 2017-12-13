@@ -31,7 +31,7 @@ final class DoublesUpdateImpl {
       return 2 * k;
     }
     // from here on we need a full-size base buffer and at least one level
-    assert newN >= 2L * k;
+    assert newN >= (2L * k);
     assert numLevelsNeeded > 0;
     final int spaceNeeded = (2 + numLevelsNeeded) * k;
     return spaceNeeded;
@@ -112,10 +112,17 @@ final class DoublesUpdateImpl {
     return bitPattern + (1L << startingLevel);
   }
 
+  private static boolean isOdd;
+  private static boolean alternate;
+
   private static void zipSize2KBuffer(
           final DoublesBufferAccessor bufIn,
           final DoublesBufferAccessor bufOut) {
-    final int randomOffset = DoublesSketch.rand.nextBoolean() ? 1 : 0;
+    //    final int randomOffset = DoublesSketch.rand.nextBoolean() ? 1 : 0;
+    isOdd = alternate ? !isOdd : DoublesSketch.rand.nextBoolean();
+    alternate = !alternate;
+
+    final int randomOffset = isOdd ? 1 : 0;
     final int limOut = bufOut.numItems();
     for (int idxIn = randomOffset, idxOut = 0; idxOut < limOut; idxIn += 2, idxOut++) {
       bufOut.set(idxOut, bufIn.get(idxIn));
@@ -132,7 +139,7 @@ final class DoublesUpdateImpl {
     int i1 = 0;
     int i2 = 0;
     int iDst = 0;
-    while (i1 < k && i2 < k) {
+    while ((i1 < k) && (i2 < k)) {
       if (src2.get(i2) < src1.get(i1)) {
         dst.set(iDst++, src2.get(i2++));
       } else {
