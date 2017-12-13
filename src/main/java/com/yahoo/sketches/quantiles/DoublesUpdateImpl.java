@@ -112,6 +112,7 @@ final class DoublesUpdateImpl {
     return bitPattern + (1L << startingLevel);
   }
 
+  //TODO This should be a per sketch state and cannot be left like this.
   private static boolean isOdd;
   private static boolean alternate;
 
