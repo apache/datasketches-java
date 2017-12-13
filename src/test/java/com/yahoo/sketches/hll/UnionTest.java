@@ -22,7 +22,6 @@ import com.yahoo.sketches.SketchesArgumentException;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("unused")
 public class UnionTest {
   static final String LS = System.getProperty("line.separator");
 
@@ -47,7 +46,6 @@ public class UnionTest {
    */
   @Test
   public void checkUnions() {
-
     //HLL_4: t=0,  HLL_6: t=1, HLL_8: t=2
     int t1 = 2; //type = HLL_8
     int t2 = 2;
@@ -223,8 +221,10 @@ public class UnionTest {
     println(cSketchStr);
     println(hdr);
     println(row);
-    assertTrue((controlUb - controlEst) <= (uUb - uEst));
-    assertTrue((controlEst - controlLb) <= (uEst - uLb));
+    assertTrue((controlUb - controlEst) >= 0);
+    assertTrue((uUb - uEst) >= 0);
+    assertTrue((controlEst - controlLb) >= 0);
+    assertTrue((uEst -uLb) >= 0);
   }
 
   @Test
@@ -297,6 +297,7 @@ public class UnionTest {
     assertEquals(u.getCompositeEstimate(), 1000, 1000 * .03);
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void checkMisc() {
     try {

@@ -17,51 +17,59 @@ class HllEstimators {
 
   //HLL UPPER AND LOWER BOUNDS
 
+  /*
+   * The upper and lower bounds are not symmetric and thus are treated slightly differently.
+   * For the lower bound, when the unique count is <= k, LB >= numNonZeros, where
+   * numNonZeros = k - numAtCurMin AND curMin == 0.
+   *
+   * For HLL6 and HLL8, curMin is always 0 and numAtCurMin is initialized to k and is decremented
+   * down for each valid update until it reaches 0, where it stays. Thus, for these two
+   * isomorphs, when numAtCurMin = 0, means the true curMin is > 0 and the unique count must be
+   * greater than k.
+   *
+   * HLL4 always maintains both curMin and numAtCurMin dynamically. Nonetheless, the rules for
+   * the very small values <= k where curMin = 0 still apply.
+   */
+
   static final double hllLowerBound(final AbstractHllArray absHllArr, final int numStdDev) {
     final int lgConfigK = absHllArr.lgConfigK;
     final int configK = 1 << lgConfigK;
+    final double numNonZeros =
+        (absHllArr.getCurMin() == 0) ? configK - absHllArr.getNumAtCurMin() : configK;
+    final double estimate;
+    final double rseFactor;
     final boolean oooFlag = absHllArr.isOutOfOrderFlag();
-    final double compositeEstimate = absHllArr.getCompositeEstimate();
-    final double hipAccum = absHllArr.getHipAccum();
-    if (lgConfigK > 12) {
-      final double tmp;
-      if (oooFlag) {
-        final double hllNonHipEps =
-            (numStdDev * HLL_NON_HIP_RSE_FACTOR) / Math.sqrt(configK);
-        tmp = compositeEstimate / (1.0 + hllNonHipEps);
-      } else {
-        final double hllHipEps = (numStdDev * HLL_HIP_RSE_FACTOR) / Math.sqrt(configK);
-        tmp =  hipAccum / (1.0 + hllHipEps);
-      }
-      double numNonZeros = configK;
-      if (absHllArr.getCurMin() == 0) {
-        numNonZeros -= absHllArr.getNumAtCurMin();
-      }
-      return Math.max(tmp, numNonZeros);
+    if (oooFlag) {
+      estimate = absHllArr.getCompositeEstimate();
+      rseFactor = HLL_NON_HIP_RSE_FACTOR;
+    } else {
+      estimate = absHllArr.getHipAccum();
+      rseFactor = HLL_HIP_RSE_FACTOR;
     }
-    //lgConfigK <= 12
-    final double re = RelativeErrorTables.getRelErr(false, oooFlag, lgConfigK, numStdDev);
-    return ((oooFlag) ? compositeEstimate : hipAccum) / (1.0 + re);
+    final double relErr = (lgConfigK > 12)
+        ? (numStdDev * rseFactor) / Math.sqrt(configK)
+        : RelativeErrorTables.getRelErr(false, oooFlag, lgConfigK, numStdDev);
+    return Math.max(estimate / (1.0 + relErr), numNonZeros);
   }
 
   static final double hllUpperBound(final AbstractHllArray absHllArr, final int numStdDev) {
     final int lgConfigK = absHllArr.lgConfigK;
     final int configK = 1 << lgConfigK;
+    final double estimate;
+    final double rseFactor;
     final boolean oooFlag = absHllArr.isOutOfOrderFlag();
-    final double compositeEstimate = absHllArr.getCompositeEstimate();
-    final double hipAccum = absHllArr.getHipAccum();
-    if (lgConfigK > 12) {
-      if (oooFlag) {
-        final double hllNonHipEps =
-            (numStdDev * HLL_NON_HIP_RSE_FACTOR) / Math.sqrt(configK);
-        return compositeEstimate / (1.0 - hllNonHipEps);
-      }
-      final double hllHipEps = (numStdDev * HLL_HIP_RSE_FACTOR) / Math.sqrt(configK);
-      return hipAccum / (1.0 - hllHipEps);
+    if (oooFlag) {
+      estimate = absHllArr.getCompositeEstimate();
+      rseFactor = HLL_NON_HIP_RSE_FACTOR;
+    } else {
+      estimate = absHllArr.getHipAccum();
+      rseFactor = HLL_HIP_RSE_FACTOR;
     }
-    //lgConfigK <= 12
-    final double re = RelativeErrorTables.getRelErr(true, oooFlag, lgConfigK, numStdDev);
-    return ((oooFlag) ? compositeEstimate : hipAccum) / (1.0 + re);
+
+    final double relErr = (lgConfigK > 12)
+        ? ((-1.0) * (numStdDev * rseFactor)) / Math.sqrt(configK)
+        : RelativeErrorTables.getRelErr(true, oooFlag, lgConfigK, numStdDev);
+    return estimate / (1.0 + relErr);
   }
 
   //THE HLL COMPOSITE ESTIMATOR
