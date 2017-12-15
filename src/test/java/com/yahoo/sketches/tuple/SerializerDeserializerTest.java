@@ -35,11 +35,6 @@ public class SerializerDeserializerTest {
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void toByteArrayUnsupportedObject() {
-    SerializerDeserializer.toByteArray(Integer.valueOf(0));
-  }
-
-  @Test(expectedExceptions = SketchesArgumentException.class)
   public void validateFamilyNotTuple() {
     SerializerDeserializer.validateFamily((byte) 1, (byte) 0); 
   }

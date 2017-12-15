@@ -8,12 +8,18 @@ package com.yahoo.sketches.tuple;
 import com.yahoo.sketches.tuple.DoubleSummary.Mode;
 
 /**
- * Methods for producing unions and intersections of two generic tuple sketches of type Double,
- * where the Summary is of type DoubleSummary.
+ * Methods for producing unions and intersections of two objects of type DoubleSummary.
  */
 public final class DoubleSummarySetOperations implements SummarySetOperations<DoubleSummary> {
 
   private final Mode summaryMode_;
+
+  /**
+   * Creates an instance with default mode.
+   */
+  public DoubleSummarySetOperations() {
+    summaryMode_ = DoubleSummary.Mode.Sum;
+  }
 
   /**
    * Creates an instance given a DoubleSummary update mode.

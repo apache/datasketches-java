@@ -5,8 +5,6 @@
 
 package com.yahoo.sketches.tuple;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import java.lang.reflect.Array;
 import java.nio.ByteOrder;
 
@@ -26,7 +24,8 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @param <S> type of Summary
  */
 public class CompactSketch<S extends Summary> extends Sketch<S> {
-  private static final byte serialVersionUID = 1;
+  private static final byte serialVersionWithSummaryClassNameUID = 1;
+  private static final byte serialVersionUID = 2;
 
   private enum Flags { IS_BIG_ENDIAN, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
 
@@ -42,13 +41,13 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
    * @param mem Memory object with serialized CompactSketch
    */
   @SuppressWarnings({"unchecked"})
-  CompactSketch(final Memory mem) {
+  CompactSketch(final Memory mem, final SummaryDeserializer<S> deserializer) {
     int offset = 0;
     final byte preambleLongs = mem.getByte(offset++);
     final byte version = mem.getByte(offset++);
     final byte familyId = mem.getByte(offset++);
     SerializerDeserializer.validateFamily(familyId, preambleLongs);
-    if (version != serialVersionUID) {
+    if (version > serialVersionUID) {
       throw new SketchesArgumentException("Serial version mismatch. Expected: " + serialVersionUID
           + ", actual: " + version);
     }
@@ -69,21 +68,23 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     }
     final boolean hasEntries = (flags & (1 << Flags.HAS_ENTRIES.ordinal())) > 0;
     if (hasEntries) {
-      final int classNameLength = mem.getByte(offset++);
+      int classNameLength = 0;
+      if (version == serialVersionWithSummaryClassNameUID) {
+        classNameLength = mem.getByte(offset++);
+      }
       final int count = mem.getInt(offset);
       offset += Integer.BYTES;
-      final byte[] classNameBuffer = new byte[classNameLength];
-      mem.getByteArray(offset, classNameBuffer, 0, classNameLength);
-      offset += classNameLength;
-      final String className = new String(classNameBuffer, UTF_8);
+      if (version == serialVersionWithSummaryClassNameUID) {
+        offset += classNameLength;
+      }
       keys_ = new long[count];
       for (int i = 0; i < count; i++) {
         keys_[i] = mem.getLong(offset);
         offset += Long.BYTES;
       }
       for (int i = 0; i < count; i++) {
-        final DeserializeResult<S> result =
-            SerializerDeserializer.deserializeFromMemory(mem, offset, className);
+        final Memory memRegion = mem.region(offset, mem.getCapacity() - offset);
+        final DeserializeResult<S> result = deserializer.heapifySummary(memRegion);
         final S summary = result.getObject();
         offset += result.getSize();
         if (summaries_ == null) {
@@ -92,21 +93,6 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
         summaries_[i] = summary;
       }
     }
-  }
-
-  @Override
-  public S[] getSummaries() {
-    if ((keys_ == null) || (keys_.length == 0)) {
-      return null;
-    }
-
-    @SuppressWarnings("unchecked")
-    final S[] summaries =
-      (S[]) Array.newInstance(summaries_.getClass().getComponentType(), summaries_.length);
-    for (int i = 0; i < summaries_.length; ++i) {
-      summaries[i] = summaries_[i].copy();
-    }
-    return summaries;
   }
 
   @Override
@@ -143,13 +129,9 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     if (isThetaIncluded) {
       sizeBytes += Long.BYTES; // theta
     }
-    String summaryClassName = null;
     if (count > 0) {
-      summaryClassName = summaries_[0].getClass().getName();
       sizeBytes +=
-          Byte.BYTES // summary class name length
         + Integer.BYTES // count
-        + summaryClassName.length()
         + (Long.BYTES * count) + summariesBytesLength;
     }
     final byte[] bytes = new byte[sizeBytes];
@@ -170,11 +152,8 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
       offset += Long.BYTES;
     }
     if (count > 0) {
-      bytes[offset++] = (byte) summaryClassName.length();
       ByteArrayUtil.putInt(bytes, offset, getRetainedEntries());
       offset += Integer.BYTES;
-      System.arraycopy(summaryClassName.getBytes(UTF_8), 0, bytes, offset, summaryClassName.length());
-      offset += summaryClassName.length();
       for (int i = 0; i < count; i++) {
         ByteArrayUtil.putLong(bytes, offset, keys_[i]);
         offset += Long.BYTES;
