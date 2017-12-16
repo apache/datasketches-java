@@ -48,8 +48,8 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     final byte familyId = mem.getByte(offset++);
     SerializerDeserializer.validateFamily(familyId, preambleLongs);
     if (version > serialVersionUID) {
-      throw new SketchesArgumentException("Serial version mismatch. Expected: " + serialVersionUID
-          + ", actual: " + version);
+      throw new SketchesArgumentException(
+          "Unsupported serial version. Expected: " + serialVersionUID + " or lower, actual: " + version);
     }
     SerializerDeserializer
       .validateType(mem.getByte(offset++), SerializerDeserializer.SketchType.CompactSketch);
