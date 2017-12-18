@@ -420,21 +420,21 @@ public final class ReservoirLongsSketch {
     assert samplingRate >= 0.0;
     assert samplingRate <= 1.0;
 
-    int trueCount = 0;
+    int predTrueCount = 0;
     for (int i = 0; i < numSamples; ++i) {
       if (predicate.test(data_[i])) {
-        ++trueCount;
+        ++predTrueCount;
       }
     }
 
     // if in exact mode, we can return an exact answer
     if (itemsSeen_ <= reservoirSize_) {
-      return new SampleSubsetSummary(trueCount, trueCount, trueCount, numSamples);
+      return new SampleSubsetSummary(predTrueCount, predTrueCount, predTrueCount, numSamples);
     }
 
-    final double lbTrueFraction = pseudoHypergeometricLBonP(numSamples, trueCount, samplingRate);
-    final double estimatedTrueFraction = (1.0 * trueCount) / numSamples;
-    final double ubTrueFraction = pseudoHypergeometricUBonP(numSamples, trueCount, samplingRate);
+    final double lbTrueFraction = pseudoHypergeometricLBonP(numSamples, predTrueCount, samplingRate);
+    final double estimatedTrueFraction = (1.0 * predTrueCount) / numSamples;
+    final double ubTrueFraction = pseudoHypergeometricUBonP(numSamples, predTrueCount, samplingRate);
     return new SampleSubsetSummary(
             itemsSeen_ * lbTrueFraction,
             itemsSeen_ * estimatedTrueFraction,
