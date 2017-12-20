@@ -358,6 +358,16 @@ public final class ItemsSketch<T> {
   }
 
   /**
+   * Returns an approximation to the normalized (fractional) rank of the given value from 0 to 1 inclusive.
+   * @param value to be ranked
+   * @return an approximate rank of the given value
+   */
+  @SuppressWarnings("unchecked")
+  public double getRank(final T value) {
+    return getCDF((T[]) new Object[] {value})[0];
+  }
+
+  /**
    * Returns the configured value of K
    * @return the configured value of K
    */
