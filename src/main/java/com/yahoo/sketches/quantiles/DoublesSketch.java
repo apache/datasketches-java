@@ -307,6 +307,16 @@ public abstract class DoublesSketch {
   }
 
   /**
+   * Returns an approximation to the normalized (fractional) rank of the given value from 0 to 1 inclusive.
+   * @param value to be ranked
+   * @return an approximate rank of the given value
+   */
+  public double getRank(final double value) {
+    if (isEmpty()) { return Double.NaN; }
+    return getCDF(new double[] {value})[0];
+  }
+
+  /**
    * Returns the configured value of K
    * @return the configured value of K
    */
