@@ -79,11 +79,10 @@ final class ItemsByteArrayImpl {
   @SuppressWarnings("unchecked")
   private static <T> T[] combinedBufferToItemsArray(final ItemsSketch<T> sketch,
       final boolean ordered) {
-    T[] outArr = null;
     final int extra = 2; // extra space for min and max values
     final int outArrCap = sketch.getRetainedItems();
     final T minValue = sketch.getMinValue();
-    outArr = (T[]) Array.newInstance(minValue.getClass(), outArrCap + extra);
+    final T[] outArr = (T[]) Array.newInstance(minValue.getClass(), outArrCap + extra);
 
     //Load min, max
     outArr[0] = minValue;
