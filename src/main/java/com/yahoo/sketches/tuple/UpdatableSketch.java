@@ -52,7 +52,8 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    * @param deserializer instance of SummaryDeserializer
    * @param summaryFactory instance of SummaryFactory
    */
-  UpdatableSketch(final Memory mem, final SummaryDeserializer<S> deserializer, final SummaryFactory<S> summaryFactory) {
+  UpdatableSketch(final Memory mem, final SummaryDeserializer<S> deserializer,
+      final SummaryFactory<S> summaryFactory) {
     super(mem, deserializer, summaryFactory);
   }
 
@@ -97,7 +98,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    * @param value The given U value
    */
   public void update(final byte[] key, final U value) {
-    if (key == null || key.length == 0) { return; }
+    if ((key == null) || (key.length == 0)) { return; }
     insertOrIgnore(MurmurHash3.hash(key, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
   }
 
@@ -109,7 +110,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    * @param value The given U value
    */
   public void update(final int[] key, final U value) {
-    if (key == null || key.length == 0) { return; }
+    if ((key == null) || (key.length == 0)) { return; }
     insertOrIgnore(MurmurHash3.hash(key, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
   }
 
@@ -121,7 +122,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    * @param value The given U value
    */
   public void update(final long[] key, final U value) {
-    if (key == null || key.length == 0) { return; }
+    if ((key == null) || (key.length == 0)) { return; }
     insertOrIgnore(MurmurHash3.hash(key, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
   }
 

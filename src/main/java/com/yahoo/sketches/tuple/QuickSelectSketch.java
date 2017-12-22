@@ -111,7 +111,8 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * This is to create an instance of a QuickSelectSketch given a serialized form
    * @param mem Memory object with serialized QukckSelectSketch
    */
-  QuickSelectSketch(final Memory mem, final SummaryDeserializer<S> deserializer, final SummaryFactory<S> summaryFactory) {
+  QuickSelectSketch(final Memory mem, final SummaryDeserializer<S> deserializer,
+      final SummaryFactory<S> summaryFactory) {
     summaryFactory_ = summaryFactory;
     int offset = 0;
     final byte preambleLongs = mem.getByte(offset++);
@@ -120,7 +121,8 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     SerializerDeserializer.validateFamily(familyId, preambleLongs);
     if (version > serialVersionUID) {
       throw new SketchesArgumentException(
-          "Unsupported serial version. Expected: " + serialVersionUID + " or lower, actual: " + version);
+          "Unsupported serial version. Expected: " + serialVersionUID + " or lower, actual: "
+              + version);
     }
     SerializerDeserializer.validateType(mem.getByte(offset++),
         SerializerDeserializer.SketchType.QuickSelectSketch);
@@ -240,7 +242,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    */
   public CompactSketch<S> compact() {
     if (getRetainedEntries() == 0) {
-      return new CompactSketch<S>(null, null, theta_, isEmpty_);
+      return new CompactSketch<>(null, null, theta_, isEmpty_);
     }
     final long[] keys = new long[getRetainedEntries()];
     @SuppressWarnings("unchecked")
@@ -254,7 +256,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
         i++;
       }
     }
-    return new CompactSketch<S>(keys, summaries, theta_, isEmpty_);
+    return new CompactSketch<>(keys, summaries, theta_, isEmpty_);
   }
 
   // Layout of first 8 bytes:
@@ -298,7 +300,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     if (count_ > 0) {
       sizeBytes += Integer.BYTES; // count
     }
-    sizeBytes += Long.BYTES * count_ + summariesBytesLength;
+    sizeBytes += (Long.BYTES * count_) + summariesBytesLength;
     final byte[] bytes = new byte[sizeBytes];
     int offset = 0;
     bytes[offset++] = PREAMBLE_LONGS;
@@ -433,7 +435,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(newSize);
     count_ = 0;
     for (int i = 0; i < oldKeys.length; i++) {
-      if (oldSummaries[i] != null && oldKeys[i] < theta_) {
+      if ((oldSummaries[i] != null) && (oldKeys[i] < theta_)) {
         insert(oldKeys[i], oldSummaries[i]);
       }
     }

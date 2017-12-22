@@ -5,7 +5,7 @@ import com.yahoo.memory.Memory;
 public class DoubleSummaryDeserializer implements SummaryDeserializer<DoubleSummary> {
 
   @Override
-  public DeserializeResult<DoubleSummary> heapifySummary(Memory mem) {
+  public DeserializeResult<DoubleSummary> heapifySummary(final Memory mem) {
     return DoubleSummary.fromMemory(mem);
   }
 
