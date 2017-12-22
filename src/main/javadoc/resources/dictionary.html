@@ -59,9 +59,11 @@ See <a href="#validHash">Valid Hash</a>.
 
 <h3><a name="empty">Empty</a></h3>
 In Theta Sketches, the state <i>Empty</i> for a sketch means that the sketch cache has zero hash values and that none of the
-update methods have been called with valid data.  The internal <i>empty flag</i> is one of the state variables
-within the sketch and is accessed with the <i>isEmpty()</i> method, which is useful for rejecting empty 
-sketches from a set operation.
+update methods have been called with valid data.  In other words, the sketch has never seen any data.
+However, if the P sampling mode is used, a virgin sketch will have a theta &lt; 1.0, and a set operation could be
+(and should be) impacted by this lower theta. This is by design. 
+It is only safe to exclude empty sketches from set operations if isEmpty() == true and getTheta() == 1.0.
+
 
 <p>Note that <i>Empty</i> does not mean that theta is 1.0 because if <i>p</i> &lt; 1.0, theta will be set 
 equal to <i>p</i> during construction. 

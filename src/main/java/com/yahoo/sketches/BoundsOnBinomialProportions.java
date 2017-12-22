@@ -12,7 +12,7 @@ package com.yahoo.sketches;
  * for a binomial proportion. Exact Clopper-Pearson intervals are strictly
  * conservative, but these approximations are not.</p>
  *
- * <p>The main inputs are numbers <i>n</i> and <i>k</i> which are not the same as other things
+ * <p>The main inputs are numbers <i>n</i> and <i>k</i>, which are not the same as other things
  * that are called <i>n</i> and <i>k</i> in our sketching library. There is also a third
  * parameter, numStdDev, that specifies the desired confidence level.</p>
  * <ul>
@@ -97,7 +97,7 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
     else if (k == 1) { return (exactLowerBoundOnPForKequalsOne(n, deltaOfNumStdevs(numStdDevs))); }
     else if (k == n) { return (exactLowerBoundOnPForKequalsN(n, deltaOfNumStdevs(numStdDevs))); }
     else {
-      final double x = abramowitzStegunFormula26p5p22(n - k + 1, k, (-1.0 * numStdDevs));
+      final double x = abramowitzStegunFormula26p5p22((n - k) + 1, k, (-1.0 * numStdDevs));
       return (1.0 - x); // which is p
     }
   }
@@ -129,7 +129,7 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
     checkInputs(n, k);
     if (n == 0) { return 1.0; } // the coin was never flipped, so we know nothing
     else if (k == n) { return 1.0; }
-    else if (k == n - 1) {
+    else if (k == (n - 1)) {
       return (exactUpperBoundOnPForKequalsNminusOne(n, deltaOfNumStdevs(numStdDevs)));
     }
     else if (k == 0) {
@@ -200,12 +200,12 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
     final double x5 = x2 * x3;
     final double x6 = x3 * x3;
     final double sum = ( 1.0
-                 + a1 * x
-                 + a2 * x2
-                 + a3 * x3
-                 + a4 * x4
-                 + a5 * x5
-                 + a6 * x6 );
+                 + (a1 * x)
+                 + (a2 * x2)
+                 + (a3 * x3)
+                 + (a4 * x4)
+                 + (a5 * x5)
+                 + (a6 * x6) );
     final double sum2 = sum * sum; // raise the sum to the 16th power
     final double sum4 = sum2 * sum2;
     final double sum8 = sum4 * sum4;
@@ -223,7 +223,7 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
   // viewed as a scalar function of x.
   // In other words, we specify delta, and it gives us x (with a and b held constant).
   // However, delta is specified in an indirect way through yp which
-  // is the number of stdevs that leaves delta probability in the right
+  // is the number of stdDevs that leaves delta probability in the right
   // tail of a standard gaussian distribution.
 
   // We point out that the variable names correspond to those in the book,
@@ -232,14 +232,14 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
 
   private static double abramowitzStegunFormula26p5p22(final double a, final double b,
       final double yp) {
-    final double b2m1 = 2.0 * b - 1.0;
-    final double a2m1 = 2.0 * a - 1.0;
+    final double b2m1 = (2.0 * b) - 1.0;
+    final double a2m1 = (2.0 * a) - 1.0;
     final double lambda = ((yp * yp) - 3.0) / 6.0;
     final double htmp = (1.0 / a2m1) + (1.0 / b2m1);
     final double h = 2.0 / htmp;
-    final double term1 = yp * (Math.sqrt(h + lambda)) / h;
+    final double term1 = (yp * (Math.sqrt(h + lambda))) / h;
     final double term2 = (1.0 / b2m1) - (1.0 / a2m1);
-    final double term3 = lambda + (5.0 / 6.0) - (2.0 / (3.0 * h));
+    final double term3 = (lambda + (5.0 / 6.0)) - (2.0 / (3.0 * h));
     final double w = term1 - (term2 * term3);
     final double xp = a / (a + (b * (Math.exp(2.0 * w))));
     return xp;
