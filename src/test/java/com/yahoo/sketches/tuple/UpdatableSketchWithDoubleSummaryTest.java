@@ -7,7 +7,7 @@ package com.yahoo.sketches.tuple;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.memory.WritableMemory;
+import com.yahoo.memory.Memory;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -23,6 +23,9 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
     Assert.assertEquals(sketch.getTheta(), 1.0);
     Assert.assertNotNull(sketch.toString());
+    SketchIterator<DoubleSummary> it = sketch.iterator();
+    Assert.assertNotNull(it);
+    Assert.assertFalse(it.next());
   }
 
   @Test
@@ -66,12 +69,13 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
     Assert.assertEquals(sketch.getTheta(), 1.0);
 
-    DoubleSummary[] summaries = sketch.getSummaries();
-    Assert.assertEquals(summaries.length, 4096);
     int count = 0;
-    for (int i = 0; i < summaries.length; i++) if (summaries[i] != null) count++;
+    SketchIterator<DoubleSummary> it = sketch.iterator();
+    while (it.next()) {
+      Assert.assertEquals(it.getSummary().getValue(), 1.0);
+      count++;
+    }
     Assert.assertEquals(count, 4096);
-    Assert.assertEquals(summaries[0].getValue(), 1.0);
 
     sketch.reset();
     Assert.assertTrue(sketch.isEmpty());
@@ -95,16 +99,13 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertTrue(sketch.getEstimate() >= sketch.getLowerBound(1));
     Assert.assertTrue(sketch.getEstimate() < sketch.getUpperBound(1));
 
-    DoubleSummary[] summaries = sketch.getSummaries();
-    Assert.assertTrue(summaries.length >= 4096);
     int count = 0;
-    for (DoubleSummary summary: summaries) {
-      if (summary != null) {
-        count++;
-        Assert.assertEquals(summary.getValue(), 1.0);
-      }
+    SketchIterator<DoubleSummary> it = sketch.iterator();
+    while (it.next()) {
+      Assert.assertEquals(it.getSummary().getValue(), 1.0);
+      count++;
     }
-    Assert.assertEquals(count, summaries.length);
+    Assert.assertTrue(count >= 4096);
 
     sketch.reset();
     Assert.assertTrue(sketch.isEmpty());
@@ -144,56 +145,105 @@ public class UpdatableSketchWithDoubleSummaryTest {
   @Test
   public void doubleSummaryDefaultSumMode() {
     UpdatableSketch<Double, DoubleSummary> sketch = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
-    sketch.update(1, 1.0);
-    Assert.assertEquals(sketch.getRetainedEntries(), 1);
-    Assert.assertEquals(sketch.getSummaries()[0].getValue(), 1.0);
-    sketch.update(1, 0.7);
-    Assert.assertEquals(sketch.getRetainedEntries(), 1);
-    Assert.assertEquals(sketch.getSummaries()[0].getValue(), 1.7);
-    sketch.update(1, 0.8);
-    Assert.assertEquals(sketch.getRetainedEntries(), 1);
-    Assert.assertEquals(sketch.getSummaries()[0].getValue(), 2.5);
+    {
+      sketch.update(1, 1.0);
+      Assert.assertEquals(sketch.getRetainedEntries(), 1);
+      SketchIterator<DoubleSummary> it = sketch.iterator();
+      Assert.assertTrue(it.next());
+      Assert.assertEquals(it.getSummary().getValue(), 1.0);
+      Assert.assertFalse(it.next());
+    }
+    {
+      sketch.update(1, 0.7);
+      Assert.assertEquals(sketch.getRetainedEntries(), 1);
+      SketchIterator<DoubleSummary> it = sketch.iterator();
+      Assert.assertTrue(it.next());
+      Assert.assertEquals(it.getSummary().getValue(), 1.7);
+      Assert.assertFalse(it.next());
+    }
+    {
+      sketch.update(1, 0.8);
+      Assert.assertEquals(sketch.getRetainedEntries(), 1);
+      SketchIterator<DoubleSummary> it = sketch.iterator();
+      Assert.assertTrue(it.next());
+      Assert.assertEquals(it.getSummary().getValue(), 2.5);
+      Assert.assertFalse(it.next());
+    }
   }
 
   @Test
   public void doubleSummaryMinMode() {
     UpdatableSketch<Double, DoubleSummary> sketch = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory(DoubleSummary.Mode.Min)).build();
-    sketch.update(1, 1.0);
-    Assert.assertEquals(sketch.getRetainedEntries(), 1);
-    Assert.assertEquals(sketch.getSummaries()[0].getValue(), 1.0);
-    sketch.update(1, 0.7);
-    Assert.assertEquals(sketch.getRetainedEntries(), 1);
-    Assert.assertEquals(sketch.getSummaries()[0].getValue(), 0.7);
-    sketch.update(1, 0.8);
-    Assert.assertEquals(sketch.getRetainedEntries(), 1);
-    Assert.assertEquals(sketch.getSummaries()[0].getValue(), 0.7);
+    {
+      sketch.update(1, 1.0);
+      Assert.assertEquals(sketch.getRetainedEntries(), 1);
+      SketchIterator<DoubleSummary> it = sketch.iterator();
+      Assert.assertTrue(it.next());
+      Assert.assertEquals(it.getSummary().getValue(), 1.0);
+      Assert.assertFalse(it.next());
+    }
+    {
+      sketch.update(1, 0.7);
+      Assert.assertEquals(sketch.getRetainedEntries(), 1);
+      SketchIterator<DoubleSummary> it = sketch.iterator();
+      Assert.assertTrue(it.next());
+      Assert.assertEquals(it.getSummary().getValue(), 0.7);
+      Assert.assertFalse(it.next());
+    }
+    {
+      sketch.update(1, 0.8);
+      Assert.assertEquals(sketch.getRetainedEntries(), 1);
+      SketchIterator<DoubleSummary> it = sketch.iterator();
+      Assert.assertTrue(it.next());
+      Assert.assertEquals(it.getSummary().getValue(), 0.7);
+      Assert.assertFalse(it.next());
+    }
   }
   @Test
 
   public void doubleSummaryMaxMode() {
-    UpdatableSketch<Double, DoubleSummary> sketch = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory(DoubleSummary.Mode.Max)).build();
-    sketch.update(1, 1.0);
-    Assert.assertEquals(sketch.getRetainedEntries(), 1);
-    Assert.assertEquals(sketch.getSummaries()[0].getValue(), 1.0);
-    sketch.update(1, 0.7);
-    Assert.assertEquals(sketch.getRetainedEntries(), 1);
-    Assert.assertEquals(sketch.getSummaries()[0].getValue(), 1.0);
-    sketch.update(1, 2.0);
-    Assert.assertEquals(sketch.getRetainedEntries(), 1);
-    Assert.assertEquals(sketch.getSummaries()[0].getValue(), 2.0);
+    UpdatableSketch<Double, DoubleSummary> sketch =
+        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(DoubleSummary.Mode.Max)).build();
+    {
+      sketch.update(1, 1.0);
+      Assert.assertEquals(sketch.getRetainedEntries(), 1);
+      SketchIterator<DoubleSummary> it = sketch.iterator();
+      Assert.assertTrue(it.next());
+      Assert.assertEquals(it.getSummary().getValue(), 1.0);
+      Assert.assertFalse(it.next());
+    }
+    {
+      sketch.update(1, 0.7);
+      Assert.assertEquals(sketch.getRetainedEntries(), 1);
+      SketchIterator<DoubleSummary> it = sketch.iterator();
+      Assert.assertTrue(it.next());
+      Assert.assertEquals(it.getSummary().getValue(), 1.0);
+      Assert.assertFalse(it.next());
+    }
+    {
+      sketch.update(1, 2.0);
+      Assert.assertEquals(sketch.getRetainedEntries(), 1);
+      SketchIterator<DoubleSummary> it = sketch.iterator();
+      Assert.assertTrue(it.next());
+      Assert.assertEquals(it.getSummary().getValue(), 2.0);
+      Assert.assertFalse(it.next());
+    }
   }
 
   @Test
   public void serializeDeserializeExact() throws Exception {
-    UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
+    UpdatableSketch<Double, DoubleSummary> sketch1 =
+        new UpdatableSketchBuilder<>(new DoubleSummaryFactory()).build();
     sketch1.update(1, 1.0);
 
-    UpdatableSketch<Double, DoubleSummary> sketch2 = Sketches.heapifyUpdatableSketch(WritableMemory.wrap(sketch1.toByteArray()));
+    UpdatableSketch<Double, DoubleSummary> sketch2 = Sketches.heapifyUpdatableSketch(
+        Memory.wrap(sketch1.toByteArray()), new DoubleSummaryDeserializer(), new DoubleSummaryFactory());
 
     Assert.assertEquals(sketch2.getEstimate(), 1.0);
-    DoubleSummary[] summaries = sketch2.getSummaries();
-    Assert.assertEquals(summaries.length, 1);
-    Assert.assertEquals(summaries[0].getValue(), 1.0);
+    SketchIterator<DoubleSummary> it = sketch2.iterator();
+    Assert.assertTrue(it.next());
+    Assert.assertEquals(it.getSummary().getValue(), 1.0);
+    Assert.assertFalse(it.next());
 
     // the same key, so still one unique
     sketch2.update(1, 1.0);
@@ -205,7 +255,8 @@ public class UpdatableSketchWithDoubleSummaryTest {
 
   @Test
   public void serializeDeserializeEstimationNoResizing() throws Exception {
-    UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).setResizeFactor(ResizeFactor.X1).build();
+    UpdatableSketch<Double, DoubleSummary> sketch1 =
+        new UpdatableSketchBuilder<>(new DoubleSummaryFactory()).setResizeFactor(ResizeFactor.X1).build();
     for (int j = 0; j < 10; j++) {
       for (int i = 0; i < 8192; i++) sketch1.update(i, 1.0);
     }
@@ -213,24 +264,29 @@ public class UpdatableSketchWithDoubleSummaryTest {
     byte[] bytes = sketch1.toByteArray();
     
     //for visual testing
-    //TestUtil.writeBytesToFile(bytes, "TupleSketchWithDoubleSummary4K.data");
+    //TestUtil.writeBytesToFile(bytes, "UpdatableSketchWithDoubleSummary4K.bin");
 
-    Sketch<DoubleSummary> sketch2 = Sketches.heapifySketch(WritableMemory.wrap(bytes));
+    Sketch<DoubleSummary> sketch2 = Sketches.heapifySketch(Memory.wrap(bytes), new DoubleSummaryDeserializer());
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 8192, 8192 * 0.99);
     Assert.assertEquals(sketch1.getTheta(), sketch2.getTheta());
-    DoubleSummary[] summaries = sketch2.getSummaries();
-    Assert.assertEquals(summaries.length, 4096);
-    for (DoubleSummary summary: summaries) Assert.assertEquals(summary.getValue(), 10.0);
+    SketchIterator<DoubleSummary> it = sketch2.iterator();
+    int count = 0;
+    while (it.next()) {
+      Assert.assertEquals(it.getSummary().getValue(), 10.0);
+      count++;
+    }
+    Assert.assertEquals(count, 4096);
   }
 
   @Test
   public void serializeDeserializeSampling() throws Exception {
     int sketchSize = 16384;
     int numberOfUniques = sketchSize;
-    UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).setNominalEntries(sketchSize).setSamplingProbability(0.5f).build();
+    UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<>(new DoubleSummaryFactory())
+        .setNominalEntries(sketchSize).setSamplingProbability(0.5f).build();
     for (int i = 0; i < numberOfUniques; i++) sketch1.update(i, 1.0);
-    Sketch<DoubleSummary> sketch2 = Sketches.heapifySketch(WritableMemory.wrap(sketch1.toByteArray()));
+    Sketch<DoubleSummary> sketch2 = Sketches.heapifySketch(Memory.wrap(sketch1.toByteArray()), new DoubleSummaryDeserializer());
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate() / numberOfUniques, 1.0, 0.01);
     Assert.assertEquals(sketch2.getRetainedEntries() / (double) numberOfUniques, 0.5, 0.01);
@@ -239,28 +295,33 @@ public class UpdatableSketchWithDoubleSummaryTest {
 
   @Test
   public void unionExactMode() {
-    UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
+    UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<>(new DoubleSummaryFactory()).build();
     sketch1.update(1, 1.0);
     sketch1.update(1, 1.0);
     sketch1.update(1, 1.0);
     sketch1.update(2, 1.0);
 
-    UpdatableSketch<Double, DoubleSummary> sketch2 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
+    UpdatableSketch<Double, DoubleSummary> sketch2 = new UpdatableSketchBuilder<>(new DoubleSummaryFactory()).build();
     sketch2.update(2, 1.0);
     sketch2.update(2, 1.0);
     sketch2.update(3, 1.0);
     sketch2.update(3, 1.0);
     sketch2.update(3, 1.0);
 
-    Union<DoubleSummary> union = new Union<DoubleSummary>(new DoubleSummaryFactory());
+    Union<DoubleSummary> union = new Union<DoubleSummary>(new DoubleSummarySetOperations());
     union.update(sketch1);
     union.update(sketch2);
     CompactSketch<DoubleSummary> result = union.getResult();
     Assert.assertEquals(result.getEstimate(), 3.0);
-    DoubleSummary[] summaries = result.getSummaries();
-    Assert.assertEquals(summaries[0].getValue(), 3.0);
-    Assert.assertEquals(summaries[1].getValue(), 3.0);
-    Assert.assertEquals(summaries[2].getValue(), 3.0);
+
+    SketchIterator<DoubleSummary> it = result.iterator();
+    Assert.assertTrue(it.next());
+    Assert.assertEquals(it.getSummary().getValue(), 3.0);
+    Assert.assertTrue(it.next());
+    Assert.assertEquals(it.getSummary().getValue(), 3.0);
+    Assert.assertTrue(it.next());
+    Assert.assertEquals(it.getSummary().getValue(), 3.0);
+    Assert.assertFalse(it.next());
   
     union.reset();
     result = union.getResult();
@@ -283,7 +344,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     UpdatableSketch<Double, DoubleSummary> sketch2 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     for (int i = 0; i < 8192; i++) sketch2.update(key++, 1.0);
 
-    Union<DoubleSummary> union = new Union<DoubleSummary>(4096, new DoubleSummaryFactory());
+    Union<DoubleSummary> union = new Union<DoubleSummary>(4096, new DoubleSummarySetOperations());
     union.update(sketch1);
     union.update(sketch2);
     CompactSketch<DoubleSummary> result = union.getResult();
@@ -304,7 +365,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     for (int i = 0; i < 20000; i++) sketch2.update(key++, 1.0);
     //System.out.println("theta2=" + sketch2.getTheta() + " " + sketch2.getThetaLong());
 
-    Union<DoubleSummary> union = new Union<DoubleSummary>(4096, new DoubleSummaryFactory());
+    Union<DoubleSummary> union = new Union<DoubleSummary>(4096, new DoubleSummarySetOperations());
     union.update(sketch1);
     union.update(sketch2);
     CompactSketch<DoubleSummary> result = union.getResult();
@@ -316,7 +377,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
   @Test
   public void intersectionEmpty() {
     UpdatableSketch<Double, DoubleSummary> sketch = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
-    Intersection<DoubleSummary> intersection = new Intersection<DoubleSummary>(new DoubleSummaryFactory());
+    Intersection<DoubleSummary> intersection = new Intersection<DoubleSummary>(new DoubleSummarySetOperations());
     intersection.update(sketch);
     CompactSketch<DoubleSummary> result = intersection.getResult();
     Assert.assertEquals(result.getRetainedEntries(), 0);
@@ -324,14 +385,13 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(result.getEstimate(), 0.0);
     Assert.assertEquals(result.getLowerBound(1), 0.0);
     Assert.assertEquals(result.getUpperBound(1), 0.0);
-    Assert.assertNull(result.getSummaries());
   }
 
   @Test
   public void intersectionNotEmptyNoEntries() {
     UpdatableSketch<Double, DoubleSummary> sketch1 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).setSamplingProbability(0.01f).build();
     sketch1.update("a", 1.0); // this happens to get rejected because of sampling with low probability
-    Intersection<DoubleSummary> intersection = new Intersection<DoubleSummary>(new DoubleSummaryFactory());
+    Intersection<DoubleSummary> intersection = new Intersection<DoubleSummary>(new DoubleSummarySetOperations());
     intersection.update(sketch1);
     CompactSketch<DoubleSummary> result = intersection.getResult();
     Assert.assertEquals(result.getRetainedEntries(), 0);
@@ -339,7 +399,6 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(result.getEstimate(), 0.0);
     Assert.assertEquals(result.getLowerBound(1), 0.0, 0.0001);
     Assert.assertTrue(result.getUpperBound(1) > 0);
-    Assert.assertNull(result.getSummaries());
   }
 
   @Test
@@ -349,7 +408,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     sketch1.update(2, 1.0);
     sketch1.update(3, 1.0);
 
-    Intersection<DoubleSummary> intersection = new Intersection<DoubleSummary>(new DoubleSummaryFactory());
+    Intersection<DoubleSummary> intersection = new Intersection<DoubleSummary>(new DoubleSummarySetOperations());
     intersection.update(sketch1);
     intersection.update(null);
     CompactSketch<DoubleSummary> result = intersection.getResult();
@@ -369,7 +428,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
 
     Sketch<DoubleSummary> sketch2 = Sketches.createEmptySketch();
 
-    Intersection<DoubleSummary> intersection = new Intersection<DoubleSummary>(new DoubleSummaryFactory());
+    Intersection<DoubleSummary> intersection = new Intersection<DoubleSummary>(new DoubleSummarySetOperations());
     intersection.update(sketch1);
     intersection.update(sketch2);
     CompactSketch<DoubleSummary> result = intersection.getResult();
@@ -394,7 +453,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     sketch2.update(3, 1.0);
     sketch2.update(3, 1.0);
 
-    Intersection<DoubleSummary> intersection = new Intersection<DoubleSummary>(new DoubleSummaryFactory());
+    Intersection<DoubleSummary> intersection = new Intersection<DoubleSummary>(new DoubleSummarySetOperations());
     intersection.update(sketch1);
     intersection.update(sketch2);
     CompactSketch<DoubleSummary> result = intersection.getResult();
@@ -403,8 +462,10 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(result.getEstimate(), 1.0);
     Assert.assertEquals(result.getLowerBound(1), 1.0);
     Assert.assertEquals(result.getUpperBound(1), 1.0);
-    DoubleSummary[] summaries = result.getSummaries();
-    Assert.assertEquals(summaries[0].getValue(), 4.0);
+    SketchIterator<DoubleSummary> it = result.iterator();
+    Assert.assertTrue(it.next());
+    Assert.assertEquals(it.getSummary().getValue(), 4.0);
+    Assert.assertFalse(it.next());
 
     intersection.reset();
     intersection.update(null);
@@ -426,7 +487,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     UpdatableSketch<Double, DoubleSummary> sketch2 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     for (int i = 0; i < 8192; i++) sketch2.update(key++, 1.0);
 
-    Intersection<DoubleSummary> intersection = new Intersection<DoubleSummary>(new DoubleSummaryFactory());
+    Intersection<DoubleSummary> intersection = new Intersection<DoubleSummary>(new DoubleSummarySetOperations());
     intersection.update(sketch1);
     intersection.update(sketch2);
     CompactSketch<DoubleSummary> result = intersection.getResult();
@@ -435,7 +496,6 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(result.getEstimate(), 0.0);
     Assert.assertEquals(result.getLowerBound(1), 0.0);
     Assert.assertTrue(result.getUpperBound(1) > 0);
-    Assert.assertNull(result.getSummaries());
 
     // an intersection with no entries must survive more updates
     intersection.update(sketch1);
@@ -445,7 +505,6 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(result.getEstimate(), 0.0);
     Assert.assertEquals(result.getLowerBound(1), 0.0);
     Assert.assertTrue(result.getUpperBound(1) > 0);
-    Assert.assertNull(result.getSummaries());
   }
 
   @Test
@@ -458,7 +517,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     UpdatableSketch<Double, DoubleSummary> sketch2 = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     for (int i = 0; i < 8192; i++) sketch2.update(key++, 1.0);
 
-    Intersection<DoubleSummary> intersection = new Intersection<DoubleSummary>(new DoubleSummaryFactory());
+    Intersection<DoubleSummary> intersection = new Intersection<DoubleSummary>(new DoubleSummarySetOperations());
     intersection.update(sketch1);
     intersection.update(sketch2);
     CompactSketch<DoubleSummary> result = intersection.getResult();
@@ -466,8 +525,10 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(result.getEstimate(), 4096.0, 4096 * 0.03); // crude estimate of RSE(95%) = 2 / sqrt(result.getRetainedEntries())
     Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());
     Assert.assertTrue(result.getUpperBound(1) > result.getEstimate());
-    DoubleSummary[] summaries = sketch2.getSummaries();
-    for (DoubleSummary summary: summaries) Assert.assertEquals(summary.getValue(), 1.0);
+    SketchIterator<DoubleSummary> it = result.iterator();
+    while (it.next()) {
+      Assert.assertEquals(it.getSummary().getValue(), 2.0);
+    }
   }
 
   @Test
@@ -480,7 +541,6 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(result.getEstimate(), 0.0);
     Assert.assertEquals(result.getLowerBound(1), 0.0);
     Assert.assertEquals(result.getUpperBound(1), 0.0);
-    Assert.assertNull(result.getSummaries());
 
     aNotB.update(null, null);
     result = aNotB.getResult();
@@ -489,7 +549,6 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(result.getEstimate(), 0.0);
     Assert.assertEquals(result.getLowerBound(1), 0.0);
     Assert.assertEquals(result.getUpperBound(1), 0.0);
-    Assert.assertNull(result.getSummaries());
 
     UpdatableSketch<Double, DoubleSummary> sketch = new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).build();
     aNotB.update(sketch, sketch);
@@ -499,7 +558,6 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(result.getEstimate(), 0.0);
     Assert.assertEquals(result.getLowerBound(1), 0.0);
     Assert.assertEquals(result.getUpperBound(1), 0.0);
-    Assert.assertNull(result.getSummaries());
   }
 
   @Test
@@ -518,7 +576,6 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(result.getEstimate(), 0.0);
     Assert.assertEquals(result.getLowerBound(1), 0.0);
     Assert.assertEquals(result.getUpperBound(1), 0.0);
-    Assert.assertNull(result.getSummaries());
   }
 
   @Test
@@ -570,8 +627,10 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(result.getEstimate(), 1.0);
     Assert.assertEquals(result.getLowerBound(1), 1.0);
     Assert.assertEquals(result.getUpperBound(1), 1.0);
-    DoubleSummary[] summaries = result.getSummaries();
-    Assert.assertEquals(summaries[0].getValue(), 2.0);
+    SketchIterator<DoubleSummary> it = result.iterator();
+    Assert.assertTrue(it.next());
+    Assert.assertEquals(it.getSummary().getValue(), 2.0);
+    Assert.assertFalse(it.next());
   }
 
   @Test
@@ -591,8 +650,10 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(result.getEstimate(), 4096.0, 4096 * 0.03); // crude estimate of RSE(95%) = 2 / sqrt(result.getRetainedEntries())
     Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());
     Assert.assertTrue(result.getUpperBound(1) > result.getEstimate());
-    DoubleSummary[] summaries = sketchB.getSummaries();
-    for (DoubleSummary summary: summaries) Assert.assertEquals(summary.getValue(), 1.0);
+    SketchIterator<DoubleSummary> it = result.iterator();
+    while (it.next()) {
+      Assert.assertEquals(it.getSummary().getValue(), 1.0);
+    }
 
     // same thing, but compact sketches
     aNotB.update(sketchA.compact(), sketchB.compact());
@@ -601,13 +662,33 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(result.getEstimate(), 4096.0, 4096 * 0.03); // crude estimate of RSE(95%) = 2 / sqrt(result.getRetainedEntries())
     Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());
     Assert.assertTrue(result.getUpperBound(1) > result.getEstimate());
-    summaries = sketchB.getSummaries();
-    for (DoubleSummary summary: summaries) Assert.assertEquals(summary.getValue(), 1.0);
+    it = result.iterator();
+    while (it.next()) {
+      Assert.assertEquals(it.getSummary().getValue(), 1.0);
+    }
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void invalidSamplingProbability() {
     new UpdatableSketchBuilder<Double, DoubleSummary>(new DoubleSummaryFactory()).setSamplingProbability(2f).build();
+  }
+
+  @Test
+  public void serialVersion1Compatibility() throws Exception {
+    byte[] bytes = TestUtil.readBytesFromFile(getClass().getClassLoader()
+        .getResource("UpdatableSketchWithDoubleSummary4K_serialVersion1.bin").getFile());
+    UpdatableSketch<Double, DoubleSummary> sketch =
+        Sketches.heapifyUpdatableSketch(Memory.wrap(bytes), new DoubleSummaryDeserializer(), new DoubleSummaryFactory());
+    Assert.assertTrue(sketch.isEstimationMode());
+    Assert.assertEquals(sketch.getEstimate(), 8192, 8192 * 0.99);
+    Assert.assertEquals(sketch.getRetainedEntries(), 4096);
+    int count = 0;
+    SketchIterator<DoubleSummary> it = sketch.iterator();
+    while (it.next()) {
+      Assert.assertEquals(it.getSummary().getValue(), 10.0);
+      count++;
+    }
+    Assert.assertEquals(count, 4096);
   }
 
 }

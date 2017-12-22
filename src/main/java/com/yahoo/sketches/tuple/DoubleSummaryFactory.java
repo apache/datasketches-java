@@ -6,7 +6,6 @@
 package com.yahoo.sketches.tuple;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.tuple.DoubleSummary.Mode;
 
 /**
@@ -37,23 +36,12 @@ public final class DoubleSummaryFactory implements SummaryFactory<DoubleSummary>
     return new DoubleSummary(summaryMode_);
   }
 
-  @Override
-  public DoubleSummarySetOperations getSummarySetOperations() {
-    return new DoubleSummarySetOperations(summaryMode_);
-  }
-
   private static final int SERIALIZED_SIZE_BYTES = 1;
   private static final int MODE_BYTE = 0;
 
-  @Override
-  public byte[] toByteArray() {
-    final byte[] bytes = new byte[SERIALIZED_SIZE_BYTES];
-    final WritableMemory mem = WritableMemory.wrap(bytes);
-    mem.putByte(MODE_BYTE, (byte) summaryMode_.ordinal());
-    return bytes;
-  }
-
   /**
+   * This is deprecated and exists here just to test compatibility with previous serialization format.
+   * In the current serial version of sketches factories are not serialized.
    * Creates an instance of the DoubleSummaryFactory given a serialized representation
    * @param mem Memory object with serialized DoubleSummaryFactory
    * @return DeserializedResult object, which contains a DoubleSummaryFactory object and number of 
@@ -62,11 +50,6 @@ public final class DoubleSummaryFactory implements SummaryFactory<DoubleSummary>
   public static DeserializeResult<DoubleSummaryFactory> fromMemory(final Memory mem) {
     return new DeserializeResult<DoubleSummaryFactory>(
         new DoubleSummaryFactory(Mode.values()[mem.getByte(MODE_BYTE)]), SERIALIZED_SIZE_BYTES);
-  }
-
-  @Override
-  public DeserializeResult<DoubleSummary> summaryFromMemory(final Memory mem) {
-    return DoubleSummary.fromMemory(mem);
   }
 
 }

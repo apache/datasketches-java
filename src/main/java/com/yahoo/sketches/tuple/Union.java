@@ -16,28 +16,28 @@ import static com.yahoo.sketches.Util.DEFAULT_NOMINAL_ENTRIES;
  */
 public class Union<S extends Summary> {
   private final int nomEntries_;
-  private final SummaryFactory<S> summaryFactory_;
+  private final SummarySetOperations<S> summarySetOps_;
   private QuickSelectSketch<S> sketch_;
   private long theta_; // need to maintain outside of the sketch
 
   /**
    * Creates new instance with default nominal entries
-   * @param summaryFactory the summary factory
+   * @param summarySetOps instance of SummarySetOperations
    */
-  public Union(final SummaryFactory<S> summaryFactory) {
-    this(DEFAULT_NOMINAL_ENTRIES, summaryFactory);
+  public Union(final SummarySetOperations<S> summarySetOps) {
+    this(DEFAULT_NOMINAL_ENTRIES, summarySetOps);
   }
 
   /**
    * Creates new instance
    * @param nomEntries nominal number of entries. Forced to the nearest power of 2 greater than
    * given value.
-   * @param summaryFactory the summary factory
+   * @param summarySetOps instance of SummarySetOperations
    */
-  public Union(final int nomEntries, final SummaryFactory<S> summaryFactory) {
+  public Union(final int nomEntries, final SummarySetOperations<S> summarySetOps) {
     nomEntries_ = nomEntries;
-    summaryFactory_ = summaryFactory;
-    sketch_ = new QuickSelectSketch<S>(nomEntries, summaryFactory);
+    summarySetOps_ = summarySetOps;
+    sketch_ = new QuickSelectSketch<S>(nomEntries, null);
     theta_ = sketch_.getThetaLong();
   }
 
@@ -50,7 +50,7 @@ public class Union<S extends Summary> {
     if (sketchIn.theta_ < theta_) { theta_ = sketchIn.theta_; }
     final SketchIterator<S> it = sketchIn.iterator();
     while (it.next()) {
-      sketch_.merge(it.getKey(), it.getSummary());
+      sketch_.merge(it.getKey(), it.getSummary(), summarySetOps_);
     }
   }
 
@@ -71,6 +71,6 @@ public class Union<S extends Summary> {
    * Resets the internal set to the initial state, which represents an empty set
    */
   public void reset() {
-    sketch_ = new QuickSelectSketch<S>(nomEntries_, summaryFactory_);
+    sketch_ = new QuickSelectSketch<S>(nomEntries_, null);
   }
 }

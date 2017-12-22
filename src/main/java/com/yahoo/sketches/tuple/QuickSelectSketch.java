@@ -26,12 +26,12 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @param <S> type of Summary
  */
 class QuickSelectSketch<S extends Summary> extends Sketch<S> {
-  private static final byte serialVersionUID = 1;
+  private static final byte serialVersionWithSummaryFactoryUID = 1;
+  private static final byte serialVersionUID = 2;
 
-  private enum Flags { IS_BIG_ENDIAN, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES,
-    IS_THETA_INCLUDED }
+  private enum Flags { IS_BIG_ENDIAN, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
 
-  static final int DEFAULT_LG_RESIZE_FACTOR = 3;
+  static final int DEFAULT_LG_RESIZE_FACTOR = ResizeFactor.X8.lg();
   private final int nomEntries_;
   private int lgCurrentCapacity_;
   private final int lgResizeFactor_;
@@ -94,7 +94,6 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     );
   }
 
-  @SuppressWarnings("unchecked")
   QuickSelectSketch(final int nomEntries, final int lgResizeFactor, final float samplingProbability,
       final SummaryFactory<S> summaryFactory, final int startingSize) {
     nomEntries_ = ceilingPowerOf2(nomEntries);
@@ -104,7 +103,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     theta_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(startingSize);
     keys_ = new long[startingSize];
-    summaries_ = (S[]) Array.newInstance(summaryFactory_.newSummary().getClass(), startingSize);
+    summaries_ = null; // wait for the first summary to call Array.newInstance()
     setRebuildThreshold();
   }
 
@@ -112,16 +111,16 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * This is to create an instance of a QuickSelectSketch given a serialized form
    * @param mem Memory object with serialized QukckSelectSketch
    */
-  @SuppressWarnings("unchecked")
-  QuickSelectSketch(final Memory mem) {
+  QuickSelectSketch(final Memory mem, final SummaryDeserializer<S> deserializer, final SummaryFactory<S> summaryFactory) {
+    summaryFactory_ = summaryFactory;
     int offset = 0;
     final byte preambleLongs = mem.getByte(offset++);
     final byte version = mem.getByte(offset++);
     final byte familyId = mem.getByte(offset++);
     SerializerDeserializer.validateFamily(familyId, preambleLongs);
-    if (version != serialVersionUID) {
+    if (version > serialVersionUID) {
       throw new SketchesArgumentException(
-          "Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
+          "Unsupported serial version. Expected: " + serialVersionUID + " or lower, actual: " + version);
     }
     SerializerDeserializer.validateType(mem.getByte(offset++),
         SerializerDeserializer.SketchType.QuickSelectSketch);
@@ -154,38 +153,24 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       count = mem.getInt(offset);
       offset += Integer.BYTES;
     }
-    final DeserializeResult<SummaryFactory<S>> factoryResult =
-        SerializerDeserializer.deserializeFromMemory(mem, offset);
-    summaryFactory_ = factoryResult.getObject();
-    offset += factoryResult.getSize();
+    if (version == serialVersionWithSummaryFactoryUID) {
+      final DeserializeResult<SummaryFactory<S>> factoryResult =
+          SerializerDeserializer.deserializeFromMemory(mem, offset);
+      offset += factoryResult.getSize();
+    }
     final int currentCapacity = 1 << lgCurrentCapacity_;
     keys_ = new long[currentCapacity];
-    summaries_ = (S[]) Array.newInstance(summaryFactory_.newSummary().getClass(), currentCapacity);
-
     for (int i = 0; i < count; i++) {
       final long key = mem.getLong(offset);
       offset += Long.BYTES;
       final Memory memRegion = mem.region(offset, mem.getCapacity() - offset);
-      final DeserializeResult<S> summaryResult = summaryFactory_.summaryFromMemory(memRegion);
+      final DeserializeResult<S> summaryResult = deserializer.heapifySummary(memRegion);
       final S summary = summaryResult.getObject();
       offset += summaryResult.getSize();
       insert(key, summary);
     }
     isEmpty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
     setRebuildThreshold();
-  }
-
-  @Override
-  public S[] getSummaries() {
-    @SuppressWarnings("unchecked")
-    final S[] summaries = (S[]) Array.newInstance(summaryFactory_.newSummary().getClass(), count_);
-    int i = 0;
-    for (int j = 0; j < summaries_.length; j++) {
-      if (summaries_[j] != null) {
-        summaries[i++] = summaries_[j].copy();
-      }
-    }
-    return summaries;
   }
 
   @Override
@@ -238,7 +223,6 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   /**
    * Resets this sketch an empty state.
    */
-  @SuppressWarnings("unchecked")
   public void reset() {
     isEmpty_ = true;
     count_ = 0;
@@ -246,7 +230,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     final int startingCapacity = Util.getStartingCapacity(nomEntries_, lgResizeFactor_);
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(startingCapacity);
     keys_ = new long[startingCapacity];
-    summaries_ = (S[]) Array.newInstance(summaryFactory_.newSummary().getClass(), startingCapacity);
+    summaries_ = null; // wait for the first summary to call Array.newInstance()
     setRebuildThreshold();
   }
 
@@ -255,6 +239,9 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * @return compact sketch
    */
   public CompactSketch<S> compact() {
+    if (getRetainedEntries() == 0) {
+      return new CompactSketch<S>(null, null, theta_, isEmpty_);
+    }
     final long[] keys = new long[getRetainedEntries()];
     @SuppressWarnings("unchecked")
     final S[] summaries = (S[])
@@ -278,7 +265,6 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   @SuppressWarnings("null")
   @Override
   public byte[] toByteArray() {
-    final byte[] summaryFactoryBytes = SerializerDeserializer.toByteArray(summaryFactory_);
     byte[][] summariesBytes = null;
     int summariesBytesLength = 0;
     if (count_ > 0) {
@@ -312,7 +298,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     if (count_ > 0) {
       sizeBytes += Integer.BYTES; // count
     }
-    sizeBytes += Long.BYTES * count_ + summaryFactoryBytes.length + summariesBytesLength;
+    sizeBytes += Long.BYTES * count_ + summariesBytesLength;
     final byte[] bytes = new byte[sizeBytes];
     int offset = 0;
     bytes[offset++] = PREAMBLE_LONGS;
@@ -342,8 +328,6 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       ByteArrayUtil.putInt(bytes, offset, count_);
       offset += Integer.BYTES;
     }
-    System.arraycopy(summaryFactoryBytes, 0, bytes, offset, summaryFactoryBytes.length);
-    offset += summaryFactoryBytes.length;
     if (count_ > 0) {
       int i = 0;
       for (int j = 0; j < keys_.length; j++) {
@@ -363,15 +347,14 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
 
   // this is a special back door insert for merging
   // not sufficient by itself without keeping track of theta of another sketch
-  void merge(final long key, final S summary) {
+  void merge(final long key, final S summary, final SummarySetOperations<S> summarySetOps) {
     isEmpty_ = false;
     if (key < theta_) {
       final int index = findOrInsert(key);
       if (index < 0) {
-        summaries_[~index] = summary.copy();
+        insertSummary(~index, summary.copy());
       } else {
-        summaries_[index] =
-            summaryFactory_.getSummarySetOperations().union(summaries_[index], summary);
+        insertSummary(index, summarySetOps.union(summaries_[index], summary));
       }
       rebuildIfNeeded();
     }
@@ -426,7 +409,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
 
   void insert(final long key, final S summary) {
     final int index = HashOperations.hashInsertOnly(keys_, lgCurrentCapacity_, key);
-    summaries_[index] = summary;
+    insertSummary(index, summary);
     count_++;
   }
 
@@ -463,6 +446,14 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     } else {
       rebuildThreshold_ = (int) (keys_.length * RESIZE_THRESHOLD);
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  protected void insertSummary(final int index, final S summary) {
+    if (summaries_ == null) {
+      summaries_ = (S[]) Array.newInstance(summary.getClass(), keys_.length);
+    }
+    summaries_[index] = summary;
   }
 
 }
