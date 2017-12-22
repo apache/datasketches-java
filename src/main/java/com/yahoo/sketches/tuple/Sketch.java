@@ -16,6 +16,7 @@ import com.yahoo.sketches.BinomialBoundsN;
  * @param <S> Type of Summary
  */
 public abstract class Sketch<S extends Summary> {
+
   protected static final byte PREAMBLE_LONGS = 1;
 
   long[] keys_;
@@ -91,13 +92,7 @@ public abstract class Sketch<S extends Summary> {
   }
 
   /**
-   * @return an array of Summary objects from the sketch
-   */
-  public abstract S[] getSummaries();
-
-  /**
    * This is to serialize an instance to a byte array.
-   * For deserialization there must be a constructor, which takes a Memory object
    * @return serialized representation of the sketch
    */
   public abstract byte[] toByteArray();

@@ -24,14 +24,16 @@ public final class Sketches {
    * Instantiate Sketch from a given Memory
    * @param <S> Type of Summary
    * @param mem Memory object representing a Sketch
+   * @param deserializer instance of SummaryDeserializer
    * @return Sketch created from its Memory representation
    */
-  public static <S extends Summary> Sketch<S> heapifySketch(final Memory mem) {
+  public static <S extends Summary> Sketch<S> heapifySketch(final Memory mem,
+      final SummaryDeserializer<S> deserializer) {
     final SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(mem);
     if (sketchType == SerializerDeserializer.SketchType.QuickSelectSketch) {
-      return new QuickSelectSketch<S>(mem);
+      return new QuickSelectSketch<S>(mem, deserializer, null);
     }
-    return new CompactSketch<S>(mem);
+    return new CompactSketch<S>(mem, deserializer);
   }
 
   /**
@@ -39,11 +41,14 @@ public final class Sketches {
    * @param <U> Type of update value
    * @param <S> Type of Summary
    * @param mem Memory object representing a Sketch
+   * @param deserializer instance of SummaryDeserializer
+   * @param summaryFactory instance of SummaryFactory
    * @return Sketch created from its Memory representation
    */
   public static <U, S extends 
-      UpdatableSummary<U>> UpdatableSketch<U, S> heapifyUpdatableSketch(final Memory mem) {
-    return new UpdatableSketch<U, S>(mem);
+      UpdatableSummary<U>> UpdatableSketch<U, S> heapifyUpdatableSketch(final Memory mem,
+          final SummaryDeserializer<S> deserializer, final SummaryFactory<S> summaryFactory) {
+    return new UpdatableSketch<U, S>(mem, deserializer, summaryFactory);
   }
 
 }

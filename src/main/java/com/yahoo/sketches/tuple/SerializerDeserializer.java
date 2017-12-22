@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -51,24 +50,14 @@ final class SerializerDeserializer {
     return getSketchType(sketchTypeByte);
   }
 
-  static byte[] toByteArray(final Object object) {
-    try {
-      final String className = object.getClass().getName();
-      final byte[] objectBytes =
-          ((byte[]) object.getClass().getMethod("toByteArray", (Class<?>[])null).invoke(object));
-      final byte[] bytes = new byte[1 + className.length() + objectBytes.length];
-      final WritableMemory mem = WritableMemory.wrap(bytes);
-      int offset = 0;
-      mem.putByte(offset++, (byte)className.length());
-      mem.putByteArray(offset, className.getBytes(UTF_8), 0, className.length());
-      offset += className.length();
-      mem.putByteArray(offset, objectBytes, 0, objectBytes.length);
-      return bytes;
-    } catch (final NoSuchMethodException | SecurityException | IllegalAccessException
-        | SketchesArgumentException | InvocationTargetException e) {
-      throw new SketchesArgumentException("Failed to serialize given object: " + e);
+  private static SketchType getSketchType(final byte sketchTypeByte) {
+    if (sketchTypeByte < 0 || sketchTypeByte >= SketchType.values().length) {
+      throw new SketchesArgumentException("Invalid Sketch Type " + sketchTypeByte);
     }
+    return SketchType.values()[sketchTypeByte];
   }
+
+  // Deprecated methods below. Retained here to support reading legacy data.
 
   static <T> DeserializeResult<T> deserializeFromMemory(final Memory mem, final int offset) {
     final int classNameLength = mem.getByte(offset);
@@ -97,10 +86,4 @@ final class SerializerDeserializer {
     }
   }
 
-  private static SketchType getSketchType(final byte sketchTypeByte) {
-    if (sketchTypeByte < 0 || sketchTypeByte >= SketchType.values().length) {
-      throw new SketchesArgumentException("Invalid Sketch Type " + sketchTypeByte);
-    }
-    return SketchType.values()[sketchTypeByte];
-  }
 }

@@ -48,10 +48,12 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
 
   /**
    * This is to create an instance of a sketch given a serialized form
-   * @param mem Memory object with serialized UpdatableQukckSelectSketch
+   * @param mem Memory object with serialized UpdatableSketch
+   * @param deserializer instance of SummaryDeserializer
+   * @param summaryFactory instance of SummaryFactory
    */
-  UpdatableSketch(final Memory mem) {
-    super(mem);
+  UpdatableSketch(final Memory mem, final SummaryDeserializer<S> deserializer, final SummaryFactory<S> summaryFactory) {
+    super(mem, deserializer, summaryFactory);
   }
 
   /**
@@ -129,7 +131,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
     int index = findOrInsert(key);
     if (index < 0) {
       index = ~index;
-      summaries_[index] = getSummaryFactory().newSummary();
+      insertSummary(index, getSummaryFactory().newSummary());
     }
     summaries_[index].update(value);
     rebuildIfNeeded();

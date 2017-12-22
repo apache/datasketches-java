@@ -117,6 +117,8 @@ public class HeapUpdateDoublesSketchTest {
       assertTrue(subtotal >= (phi - 0.01));
       assertTrue(subtotal <= (phi + 0.01));
     }
+
+    assertEquals(result.getRank(500000), 0.5, 0.01);
   }
 
   @Test
@@ -532,6 +534,7 @@ public class HeapUpdateDoublesSketchTest {
     assertTrue(Double.isNaN(qs2.getQuantile(0.5)));
     double[] quantiles = qs2.getQuantiles(new double[] {0.0, 0.5, 1.0});
     assertNull(quantiles);
+    assertTrue(Double.isNaN(qs2.getRank(0)));
     //println(qs1.toString(true, true));
   }
 
