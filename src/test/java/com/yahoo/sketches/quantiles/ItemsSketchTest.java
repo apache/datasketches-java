@@ -67,6 +67,7 @@ public class ItemsSketchTest {
       Assert.assertTrue(Double.isNaN(cdf[0]));
       Assert.assertTrue(Double.isNaN(cdf[1]));
     }
+    Assert.assertTrue(Double.isNaN(sketch.getRank("a")));
   }
 
   @Test
@@ -78,6 +79,7 @@ public class ItemsSketchTest {
     Assert.assertEquals(sketch.getMinValue(), "a");
     Assert.assertEquals(sketch.getMaxValue(), "a");
     Assert.assertEquals(sketch.getQuantile(0.5), "a");
+    Assert.assertEquals(sketch.getRank("a"), 0.0);
 
     {
       double[] pmf = sketch.getPMF(new String[0]);
@@ -187,6 +189,8 @@ public class ItemsSketchTest {
       Assert.assertEquals(cdf[0], 0.5, 0.05);
       Assert.assertEquals(cdf[1], 1.0, 0.05);
     }
+
+    Assert.assertEquals(sketch.getRank(500), 0.5, 0.01);
   }
 
   @Test
