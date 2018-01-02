@@ -42,31 +42,8 @@ public class ItemsSketchTest {
     Assert.assertNull(sketch.getQuantiles(new double[] {0.0, 1.0}));
     byte[] byteArr = sketch.toByteArray(new ArrayOfStringsSerDe());
     Assert.assertEquals(byteArr.length, 8);
-    {
-      double[] pmf = sketch.getPMF(new String[0]);
-      Assert.assertEquals(pmf.length, 1);
-      Assert.assertTrue(Double.isNaN(pmf[0]));
-    }
-
-    {
-      double[] pmf = sketch.getPMF(new String[] {"a"});
-      Assert.assertEquals(pmf.length, 2);
-      Assert.assertTrue(Double.isNaN(pmf[0]));
-      Assert.assertTrue(Double.isNaN(pmf[1]));
-    }
-
-    {
-      double[] cdf = sketch.getCDF(new String[0]);
-      Assert.assertEquals(cdf.length, 1);
-      Assert.assertTrue(Double.isNaN(cdf[0]));
-    }
-
-    {
-      double[] cdf = sketch.getCDF(new String[] {"a"});
-      Assert.assertEquals(cdf.length, 2);
-      Assert.assertTrue(Double.isNaN(cdf[0]));
-      Assert.assertTrue(Double.isNaN(cdf[1]));
-    }
+    Assert.assertNull(sketch.getPMF(new String[0]));
+    Assert.assertNull(sketch.getCDF(new String[0]));
     Assert.assertTrue(Double.isNaN(sketch.getRank("a")));
   }
 
@@ -312,13 +289,14 @@ public class ItemsSketchTest {
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkEvenlySpacedExcep() {
+  public void zeroEvenlySpacedMustThrow() {
     ItemsSketch<String> sketch = ItemsSketch.getInstance(16, Comparator.naturalOrder());
+    sketch.update("a");
     sketch.getQuantiles(0);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkFraction() {
+  public void negativeQuantileMustThrow() {
     ItemsSketch<String> sketch = ItemsSketch.getInstance(16, Comparator.naturalOrder());
     sketch.update(null);
     sketch.getQuantile(-0.1);
@@ -358,18 +336,21 @@ public class ItemsSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void unorderedSplitPoints() {
     ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Comparator.naturalOrder());
+    sketch.update(1);
     sketch.getPMF(new Integer[] {2, 1});
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void nonUniqueSplitPoints() {
     ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Comparator.naturalOrder());
+    sketch.update(1);
     sketch.getPMF(new Integer[] {1, 1});
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void nullInSplitPoints() {
     ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Comparator.naturalOrder());
+    sketch.update(1);
     sketch.getPMF(new Integer[] {1, null});
   }
 

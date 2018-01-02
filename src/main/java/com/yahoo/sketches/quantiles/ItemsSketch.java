@@ -319,6 +319,7 @@ public final class ItemsSketch<T> {
    * array.
    */
   public T[] getQuantiles(final int evenlySpaced) {
+    if (isEmpty()) { return null; }
     return getQuantiles(getEvenlySpaced(evenlySpaced));
   }
 
@@ -338,6 +339,7 @@ public final class ItemsSketch<T> {
    * splitPoint.
    */
   public double[] getPMF(final T[] splitPoints) {
+    if (isEmpty()) { return null; }
     return ItemsPmfCdfImpl.getPMFOrCDF(this, splitPoints, false);
   }
 
@@ -354,6 +356,7 @@ public final class ItemsSketch<T> {
    * @return an approximation to the CDF of the input stream given the splitPoints.
    */
   public double[] getCDF(final T[] splitPoints) {
+    if (isEmpty()) { return null; }
     return ItemsPmfCdfImpl.getPMFOrCDF(this, splitPoints, true);
   }
 
@@ -364,6 +367,7 @@ public final class ItemsSketch<T> {
    */
   @SuppressWarnings("unchecked")
   public double getRank(final T value) {
+    if (isEmpty()) { return Double.NaN; }
     return getCDF((T[]) new Object[] {value})[0];
   }
 
