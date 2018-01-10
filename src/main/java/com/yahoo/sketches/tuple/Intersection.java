@@ -42,7 +42,7 @@ public class Intersection<S extends Summary> {
    * Updates the internal set by intersecting it with the given sketch
    * @param sketchIn input sketch to intersect with the internal set
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "unchecked", "null" })
   public void update(final Sketch<S> sketchIn) {
     final boolean isFirstCall = isFirstCall_;
     isFirstCall_ = false;
@@ -53,13 +53,13 @@ public class Intersection<S extends Summary> {
     }
     theta_ = min(theta_, sketchIn.getThetaLong());
     isEmpty_ |= sketchIn.isEmpty();
-    if (isEmpty_ || sketchIn.getRetainedEntries() == 0) {
+    if (isEmpty_ || (sketchIn.getRetainedEntries() == 0)) {
       sketch_ = null;
       return;
     }
     // assumes that constructor of QuickSelectSketch bumps the requested size up to the nearest power of 2
     if (isFirstCall) {
-      sketch_ = new QuickSelectSketch<S>(sketchIn.getRetainedEntries(), ResizeFactor.X1.lg(), null);
+      sketch_ = new QuickSelectSketch<>(sketchIn.getRetainedEntries(), ResizeFactor.X1.lg(), null);
       final SketchIterator<S> it = sketchIn.iterator();
       while (it.next()) {
         final S summary = it.getSummary().copy();
@@ -88,7 +88,7 @@ public class Intersection<S extends Summary> {
       }
       sketch_ = null;
       if (matchCount > 0) {
-        sketch_ = new QuickSelectSketch<S>(matchCount, ResizeFactor.X1.lg(), null);
+        sketch_ = new QuickSelectSketch<>(matchCount, ResizeFactor.X1.lg(), null);
         for (int i = 0; i < matchCount; i++) {
           sketch_.insert(matchKeys[i], matchSummaries[i]);
         }
@@ -110,7 +110,7 @@ public class Intersection<S extends Summary> {
         "getResult() with no intervening intersections is not a legal result.");
     }
     if (sketch_ == null) {
-      return new CompactSketch<S>(null, null, theta_, isEmpty_);
+      return new CompactSketch<>(null, null, theta_, isEmpty_);
     }
     return sketch_.compact();
   }
