@@ -24,12 +24,13 @@ import com.yahoo.memory.WritableMemory;
  */
 public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
 
-  private static final byte LONG_INDICATOR    = 'L' & 0x8F;
-  private static final byte INTEGER_INDICATOR = 'I' & 0x8F;
-  private static final byte SHORT_INDICATOR   = 'S' & 0x8F;
-  private static final byte BYTE_INDICATOR    = 'B' & 0x8F;
-  private static final byte DOUBLE_INDICATOR  = 'D' & 0x8F;
-  private static final byte FLOAT_INDICATOR   = 'F' & 0x8F;
+  // values selected to enable backwards compatibility
+  private static final byte LONG_INDICATOR    = 12;
+  private static final byte INTEGER_INDICATOR = 9;
+  private static final byte SHORT_INDICATOR   = 3;
+  private static final byte BYTE_INDICATOR    = 2;
+  private static final byte DOUBLE_INDICATOR  = 4;
+  private static final byte FLOAT_INDICATOR   = 6;
 
   @Override
   public byte[] serializeToByteArray(final Number[] items) {
@@ -133,5 +134,4 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
 
     return array;
   }
-
 }
