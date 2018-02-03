@@ -10,28 +10,21 @@ import java.util.Comparator;
 
 class ItemsPmfCdfImpl {
 
-  static <T> double[] getPMFOrCDF(final ItemsSketch<T> sketch, final T[] splitPoints,
-      final boolean isCDF) {
-    final long[] counters = internalBuildHistogram(splitPoints, sketch);
-    final int numCounters = counters.length;
-    final double[] result = new double[numCounters];
-    final double n = sketch.getN();
-    long subtotal = 0;
+  static <T> double[] getPMFOrCDF(final ItemsSketch<T> sketch, final T[] splitPoints, final boolean isCDF) {
+    final double[] buckets = internalBuildHistogram(splitPoints, sketch);
+    final long n = sketch.getN();
     if (isCDF) {
-      for (int j = 0; j < numCounters; j++) {
-        final long count = counters[j];
-        subtotal += count;
-        result[j] = subtotal / n; //normalize by n
+      double subtotal = 0;
+      for (int j = 0; j < buckets.length; j++) {
+        subtotal += buckets[j];
+        buckets[j] = subtotal / n; //normalize by n
       }
     } else { // PMF
-      for (int j = 0; j < numCounters; j++) {
-        final long count = counters[j];
-        subtotal += count;
-        result[j] = count / n; //normalize by n
+      for (int j = 0; j < buckets.length; j++) {
+        buckets[j] /= n; //normalize by n
       }
     }
-    assert subtotal == n; //internal consistency check
-    return result;
+    return buckets;
   }
 
   /**
@@ -43,26 +36,25 @@ class ItemsPmfCdfImpl {
    * @return the unnormalized, accumulated counts of <i>m + 1</i> intervals.
    */
   @SuppressWarnings("unchecked")
-  private static <T> long[] internalBuildHistogram(final T[] splitPoints, final ItemsSketch<T> sketch) {
-    final Object[] levelsArr  = sketch.getCombinedBuffer();
-    final Object[] baseBuffer = levelsArr;
+  private static <T> double[] internalBuildHistogram(final T[] splitPoints, final ItemsSketch<T> sketch) {
+    final Object[] samples  = sketch.getCombinedBuffer();
     final int bbCount = sketch.getBaseBufferCount();
     ItemsUtil.validateValues(splitPoints, sketch.getComparator());
 
     final int numSplitPoints = splitPoints.length;
     final int numCounters = numSplitPoints + 1;
-    final long[] counters = new long[numCounters];
+    final double[] counters = new double[numCounters];
 
     long weight = 1;
     if (numSplitPoints < 50) { // empirically determined crossover
       // sort not worth it when few split points
       ItemsPmfCdfImpl.bilinearTimeIncrementHistogramCounters(
-          (T[]) baseBuffer, 0, bbCount, weight, splitPoints, counters, sketch.getComparator());
+          (T[]) samples, 0, bbCount, weight, splitPoints, counters, sketch.getComparator());
     } else {
-      Arrays.sort(baseBuffer, 0, bbCount);
+      Arrays.sort(samples, 0, bbCount);
       // sort is worth it when many split points
       linearTimeIncrementHistogramCounters(
-          (T[]) baseBuffer, 0, bbCount, weight, splitPoints, counters, sketch.getComparator()
+          (T[]) samples, 0, bbCount, weight, splitPoints, counters, sketch.getComparator()
       );
     }
 
@@ -70,11 +62,11 @@ class ItemsPmfCdfImpl {
     final int k = sketch.getK();
     assert myBitPattern == sketch.getN() / (2L * k); // internal consistency check
     for (int lvl = 0; myBitPattern != 0L; lvl++, myBitPattern >>>= 1) {
-      weight += weight; // *= 2
+      weight <<= 1; // double the weight
       if ((myBitPattern & 1L) > 0L) { //valid level exists
         // the levels are already sorted so we can use the fast version
         linearTimeIncrementHistogramCounters(
-            (T[]) levelsArr, (2 + lvl) * k, k, weight, splitPoints, counters, sketch.getComparator());
+            (T[]) samples, (2 + lvl) * k, k, weight, splitPoints, counters, sketch.getComparator());
       }
     }
     return counters;
@@ -91,7 +83,7 @@ class ItemsPmfCdfImpl {
    * @param counters array of counters
    */
   private static <T> void bilinearTimeIncrementHistogramCounters(final T[] samples, final int offset,
-      final int numSamples, final long weight, final T[] splitPoints, final long[] counters,
+      final int numSamples, final long weight, final T[] splitPoints, final double[] counters,
       final Comparator<? super T> comparator) {
     assert (splitPoints.length + 1 == counters.length);
     for (int i = 0; i < numSamples; i++) {
@@ -124,7 +116,7 @@ class ItemsPmfCdfImpl {
    * @param counters array of counters
    */
   private static <T> void linearTimeIncrementHistogramCounters(final T[] samples, final int offset,
-      final int numSamples, final long weight, final T[] splitPoints, final long[] counters,
+      final int numSamples, final long weight, final T[] splitPoints, final double[] counters,
       final Comparator<? super T> comparator) {
     int i = 0;
     int j = 0;

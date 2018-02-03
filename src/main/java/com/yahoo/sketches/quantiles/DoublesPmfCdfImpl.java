@@ -13,28 +13,21 @@ package com.yahoo.sketches.quantiles;
  */
 class DoublesPmfCdfImpl {
 
-  static double[] getPMFOrCDF(final DoublesSketch sketch, final double[] splitPoints,
-      final boolean isCDF) {
-    final long[] counters = internalBuildHistogram(sketch, splitPoints);
-    final int numCounters = counters.length;
-    final double[] result = new double[numCounters];
-    final double n = sketch.getN();
-    long subtotal = 0;
+  static double[] getPMFOrCDF(final DoublesSketch sketch, final double[] splitPoints, final boolean isCDF) {
+    final double[] buckets = internalBuildHistogram(sketch, splitPoints);
+    final long n = sketch.getN();
     if (isCDF) {
-      for (int j = 0; j < numCounters; j++) {
-        final long count = counters[j];
-        subtotal += count;
-        result[j] = subtotal / n; //normalize by n
+      double subtotal = 0;
+      for (int j = 0; j < buckets.length; j++) {
+        subtotal += buckets[j];
+        buckets[j] = subtotal / n; //normalize by n
       }
     } else { // PMF
-      for (int j = 0; j < numCounters; j++) {
-        final long count = counters[j];
-        subtotal += count;
-        result[j] = count / n; //normalize by n
+      for (int j = 0; j < buckets.length; j++) {
+        buckets[j] /= n; //normalize by n
       }
     }
-    assert subtotal == n; //internal consistency check
-    return result;
+    return buckets;
   }
 
   /**
@@ -45,13 +38,13 @@ class DoublesPmfCdfImpl {
    * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
    * @return the unnormalized, accumulated counts of <i>m + 1</i> intervals.
    */
-  private static long[] internalBuildHistogram(final DoublesSketch sketch, final double[] splitPoints) {
+  private static double[] internalBuildHistogram(final DoublesSketch sketch, final double[] splitPoints) {
     final DoublesSketchAccessor sketchAccessor = DoublesSketchAccessor.wrap(sketch);
     Util.validateValues(splitPoints);
 
     final int numSplitPoints = splitPoints.length;
     final int numCounters = numSplitPoints + 1;
-    final long[] counters = new long[numCounters];
+    final double[] counters = new double[numCounters];
 
     long weight = 1;
     sketchAccessor.setLevel(DoublesSketchAccessor.BB_LVL_IDX);
@@ -70,7 +63,7 @@ class DoublesPmfCdfImpl {
     final int k = sketch.getK();
     assert myBitPattern == sketch.getN() / (2L * k); // internal consistency check
     for (int lvl = 0; myBitPattern != 0L; lvl++, myBitPattern >>>= 1) {
-      weight += weight; // *= 2
+      weight <<= 1; // double the weight
       if ((myBitPattern & 1L) > 0L) { //valid level exists
         // the levels are already sorted so we can use the fast version
         sketchAccessor.setLevel(lvl);
@@ -93,7 +86,7 @@ class DoublesPmfCdfImpl {
   static void bilinearTimeIncrementHistogramCounters(final DoublesBufferAccessor samples,
                                                      final long weight,
                                                      final double[] splitPoints,
-                                                     final long[] counters) {
+                                                     final double[] counters) {
     assert (splitPoints.length + 1 == counters.length);
     for (int i = 0; i < samples.numItems(); i++) {
       final double sample = samples.get(i);
@@ -126,7 +119,7 @@ class DoublesPmfCdfImpl {
   static void linearTimeIncrementHistogramCounters(final DoublesBufferAccessor samples,
                                                    final long weight,
                                                    final double[] splitPoints,
-                                                   final long[] counters) {
+                                                   final double[] counters) {
     int i = 0;
     int j = 0;
     while (i < samples.numItems() && j < splitPoints.length) {

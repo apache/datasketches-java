@@ -328,6 +328,24 @@ public class DirectUpdateDoublesSketchTest {
     //println(ds.toString(true, true));
   }
 
+  @Test
+  public void getRankAndGetCdfConsistency() {
+    final int k = 128;
+    final int n = 1_000_000;
+    final int memBytes = DoublesSketch.getUpdatableStorageBytes(k, n);
+    final WritableMemory mem = WritableMemory.wrap(new byte[memBytes]);
+    final UpdateDoublesSketch sketch = DoublesSketch.builder().build(mem);
+    final double[] values = new double[n];
+    for (int i = 0; i < n; i++) {
+      sketch.update(i);
+      values[i] = i;
+    }
+    final double[] ranks = sketch.getCDF(values);
+    for (int i = 0; i < n; i++) {
+      assertEquals(ranks[i], sketch.getRank(values[i]));
+    }
+  }
+
   static UpdateDoublesSketch buildAndLoadDQS(int k, int n) {
     return buildAndLoadDQS(k, n, 0);
   }
