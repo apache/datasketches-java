@@ -407,6 +407,21 @@ public class ItemsSketchTest {
     checkToFromByteArray2(4, 9);
   }
 
+  @Test
+  public void getRankAndGetCdfConsistency() {
+    ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Comparator.naturalOrder());
+    final int n = 1_000_000;
+    final Integer[] values = new Integer[n];
+    for (int i = 0; i < n; i++) {
+      sketch.update(i);
+      values[i] = i;
+    }
+    final double[] ranks = sketch.getCDF(values);
+    for (int i = 0; i < n; i++) {
+      Assert.assertEquals(ranks[i], sketch.getRank(values[i]), 0.00001, "CDF vs rank for value " + i);
+    }
+  }
+
   private static void checkToFromByteArray2(int k, int n) {
     ItemsSketch<String> is = buildStringIS(k, n);
     byte[] byteArr;

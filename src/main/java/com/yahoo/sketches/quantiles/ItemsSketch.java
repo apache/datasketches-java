@@ -368,7 +368,28 @@ public final class ItemsSketch<T> {
   @SuppressWarnings("unchecked")
   public double getRank(final T value) {
     if (isEmpty()) { return Double.NaN; }
-    return getCDF((T[]) new Object[] {value})[0];
+    long total = 0;
+    int weight = 1;
+    for (int i = 0; i < baseBufferCount_; i++) {
+      if (comparator_.compare((T) combinedBuffer_[i], value) < 0) {
+        total += weight;
+      }
+    }
+    long bitPattern = bitPattern_;
+    for (int lvl = 0; bitPattern != 0L; lvl++, bitPattern >>>= 1) {
+      weight *= 2;
+      if ((bitPattern & 1L) > 0) { // level is not empty
+        final int offset = (2 + lvl) * k_;
+        for (int i = 0; i < k_; i++) {
+          if (comparator_.compare((T) combinedBuffer_[i + offset], value) < 0) {
+            total += weight;
+          } else {
+            break; // levels are sorted, no point comparing further
+          }
+        }
+      }
+    }
+    return (double) total / n_;
   }
 
   /**

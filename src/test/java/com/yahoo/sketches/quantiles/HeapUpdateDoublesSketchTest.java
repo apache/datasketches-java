@@ -988,6 +988,21 @@ public class HeapUpdateDoublesSketchTest {
     assertEquals(sketch2.getQuantile(0.5), 500.0, 4.0);
   }
 
+  @Test
+  public void getRankAndGetCdfConsistency() {
+    final UpdateDoublesSketch sketch = DoublesSketch.builder().build();
+    final int n = 1_000_000;
+    final double[] values = new double[n];
+    for (int i = 0; i < n; i++) {
+      sketch.update(i);
+      values[i] = i;
+    }
+    final double[] ranks = sketch.getCDF(values);
+    for (int i = 0; i < n; i++) {
+      assertEquals(ranks[i], sketch.getRank(values[i]), 0.00001, "CDF vs rank for value " + i);
+    }
+  }
+
   //private methods
 
   private static void checksForImproperK(final int k) {

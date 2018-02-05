@@ -313,7 +313,30 @@ public abstract class DoublesSketch {
    */
   public double getRank(final double value) {
     if (isEmpty()) { return Double.NaN; }
-    return getCDF(new double[] {value})[0];
+    final DoublesSketchAccessor samples = DoublesSketchAccessor.wrap(this);
+    long total = 0;
+    int weight = 1;
+    samples.setLevel(DoublesSketchAccessor.BB_LVL_IDX);
+    for (int i = 0; i < samples.numItems(); i++) {
+      if (samples.get(i) < value) {
+        total += weight;
+      }
+    }
+    long bitPattern = getBitPattern();
+    for (int lvl = 0; bitPattern != 0L; lvl++, bitPattern >>>= 1) {
+      weight *= 2;
+      if ((bitPattern & 1L) > 0) { // level is not empty
+        samples.setLevel(lvl);
+        for (int i = 0; i < samples.numItems(); i++) {
+          if (samples.get(i) < value) {
+            total += weight;
+          } else {
+            break; // levels are sorted, no point comparing further
+          }
+        }
+      }
+    }
+    return (double) total / getN();
   }
 
   /**
