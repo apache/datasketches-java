@@ -83,10 +83,8 @@ class DoublesPmfCdfImpl {
    * @param splitPoints must be unique and sorted. Number of splitPoints + 1 == counters.length.
    * @param counters array of counters
    */
-  static void bilinearTimeIncrementHistogramCounters(final DoublesBufferAccessor samples,
-                                                     final long weight,
-                                                     final double[] splitPoints,
-                                                     final double[] counters) {
+  static void bilinearTimeIncrementHistogramCounters(final DoublesBufferAccessor samples, final long weight,
+      final double[] splitPoints, final double[] counters) {
     assert (splitPoints.length + 1 == counters.length);
     for (int i = 0; i < samples.numItems(); i++) {
       final double sample = samples.get(i);
@@ -116,10 +114,8 @@ class DoublesPmfCdfImpl {
    * @param splitPoints must be unique and sorted. Number of splitPoints + 1 = counters.length.
    * @param counters array of counters
    */
-  static void linearTimeIncrementHistogramCounters(final DoublesBufferAccessor samples,
-                                                   final long weight,
-                                                   final double[] splitPoints,
-                                                   final double[] counters) {
+  static void linearTimeIncrementHistogramCounters(final DoublesBufferAccessor samples, final long weight,
+      final double[] splitPoints, final double[] counters) {
     int i = 0;
     int j = 0;
     while (i < samples.numItems() && j < splitPoints.length) {
