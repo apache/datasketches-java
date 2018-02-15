@@ -581,16 +581,43 @@ public class KllFloatsSketch {
     return total;
   }
 
-  // from IntGeneralCompress
-
-  private static final double gloC = 2.0 / 3.0;
+  // from intCaps
 
   private static int levelCapacity(final int k, final int numLevels, final int height, final int minWid) {
     assert height >= 0;
     assert height < numLevels;
-    final int d = numLevels - height - 1;
-    return Math.max(minWid, (int) Math.ceil(k * Math.pow(gloC, d)));
+    final int depth = numLevels - height - 1;
+    return Math.max(minWid, intCapAux(k, depth));
   }
+
+  static int intCapAux(final int k, final int depth) {
+    assert (k <= (1 << 30));  
+    assert (depth <= 60);
+    if (depth <= 30) { return intCapAuxAux(k, depth); }
+    final int half = depth / 2;
+    final int rest = depth - half;
+    final int tmp = intCapAuxAux(k, half);
+    return intCapAuxAux(tmp, rest);
+  }
+
+  // 0 <= power <= 30
+  private static final long[] powersOfThree = new long[] {1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441,
+  1594323, 4782969, 14348907, 43046721, 129140163, 387420489, 1162261467,
+  3486784401L, 10460353203L, 31381059609L, 94143178827L, 282429536481L,
+  847288609443L, 2541865828329L, 7625597484987L, 22876792454961L, 68630377364883L,
+  205891132094649L};
+
+  private static int intCapAuxAux(final int k, final int depth) {
+    assert (k <= (1 << 30));
+    assert (depth <= 30);
+    final int twok = k << 1; // for rounding, we pre-multiply by 2
+    final int tmp = (int) (((long) twok << depth) / powersOfThree[depth]);
+    final int result = ((tmp + 1) >> 1); // then here we add 1 and divide by 2
+    assert (result <= k);
+    return result;
+  }
+
+  // from IntGeneralCompress
 
   /*
      Here is what we do for each level:
