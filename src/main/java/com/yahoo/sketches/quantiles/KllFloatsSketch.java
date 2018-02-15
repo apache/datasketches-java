@@ -37,6 +37,7 @@ public class KllFloatsSketch {
   private final int k_;
   private final int m_; // minimum buffer "width"
 
+  private int minK_; // for error estimation after merging with different k
   private long n_;
   private int numLevels_;
   private int[] levels_;
@@ -63,6 +64,7 @@ public class KllFloatsSketch {
     minValue_ = Float.NaN;
     maxValue_ = Float.NaN;
     isLevelZeroSorted_ = false;
+    minK_ = k;
   }
 
   public long getN() {
@@ -118,6 +120,7 @@ public class KllFloatsSketch {
     assert_correct_total_weight();
     minValue_ = Math.min(minValue_, other.minValue_);
     maxValue_ = Math.max(maxValue_, other.maxValue_);
+    minK_ = Math.min(minK_, other.minK_);
   }
 
   public float getMinValue() {
@@ -188,7 +191,7 @@ public class KllFloatsSketch {
   }
 
   public double getNormalizedRankError() {
-    return getNormalizedRankError(k_);
+    return getNormalizedRankError(minK_);
   }
 
   // constants were derived as the best fit to 99 percentile empirically measured max error in thousands of trials
@@ -210,6 +213,7 @@ public class KllFloatsSketch {
     final StringBuilder sb = new StringBuilder();
     sb.append(Util.LS).append("### KLL sketch summary:").append(Util.LS);
     sb.append("   K                    : ").append(k_).append(Util.LS);
+    sb.append("   min K                : ").append(minK_).append(Util.LS);
     sb.append("   Normalized Rank Error: ").append(epsilonPct).append(Util.LS);
     sb.append("   M                    : ").append(m_).append(Util.LS);
     sb.append("   Empty                : ").append(isEmpty()).append(Util.LS);

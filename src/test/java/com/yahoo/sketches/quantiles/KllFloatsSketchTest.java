@@ -9,6 +9,7 @@ import org.testng.annotations.Test;
 
 public class KllFloatsSketchTest {
 
+  private static final double EPS_FOR_K_128 = 0.025; // rank error (epsilon) for k=128
   private static final double EPS_FOR_K_256 = 0.013; // rank error (epsilon) for k=256
   private static final double NUMERIC_NOISE_TOLERANCE = 0.000001;
 
@@ -142,6 +143,41 @@ public class KllFloatsSketchTest {
     Assert.assertEquals(sketch1.getMinValue(), 0f);
     Assert.assertEquals(sketch1.getMaxValue(), (float) (2 * n - 1));
     Assert.assertEquals(sketch1.getQuantile(0.5), n, n * EPS_FOR_K_256);
+  }
+
+  @Test
+  public void mergeDifferentK() {
+    final KllFloatsSketch sketch1 = new KllFloatsSketch(256);
+    final KllFloatsSketch sketch2 = new KllFloatsSketch(128);
+    final int n = 10000;
+    for (int i = 0; i < n; i++) {
+      sketch1.update(i);
+      sketch2.update(2 * n - i - 1);
+    }
+
+    System.out.println(sketch1.toString(true, true));
+    System.out.println(sketch2.toString(true, true));
+
+    Assert.assertEquals(sketch2.getMinValue(), (float) n);
+    Assert.assertEquals(sketch2.getMaxValue(), (float) (2 * n - 1));
+
+    Assert.assertEquals(sketch2.getMinValue(), (float) n);
+    Assert.assertEquals(sketch2.getMaxValue(), (float) (2 * n - 1));
+
+    Assert.assertTrue(sketch1.getNormalizedRankError() < sketch2.getNormalizedRankError());
+
+    sketch1.merge(sketch2);
+
+    // sketch1 must get "contaminated" by the lower K in sketch2
+    Assert.assertEquals(sketch1.getNormalizedRankError(), sketch2.getNormalizedRankError());
+
+    System.out.println(sketch1.toString(true, true));
+
+    Assert.assertFalse(sketch1.isEmpty());
+    Assert.assertEquals(sketch1.getN(), 2 * n);
+    Assert.assertEquals(sketch1.getMinValue(), 0f);
+    Assert.assertEquals(sketch1.getMaxValue(), (float) (2 * n - 1));
+    Assert.assertEquals(sketch1.getQuantile(0.5), n, n * EPS_FOR_K_128);
   }
 
   // for animation
