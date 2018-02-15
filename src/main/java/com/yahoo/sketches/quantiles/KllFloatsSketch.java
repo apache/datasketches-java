@@ -698,7 +698,7 @@ public class KllFloatsSketch {
 
   private static int computeTargetItemCount(int k, int m, int numLevels) {
     int total = 0;
-    for (int h = 0; h < numLevels - 1; h++) {
+    for (int h = 0; h < numLevels; h++) {
       total += levelCapacity(k, numLevels, h, m);
     }
     return total;
