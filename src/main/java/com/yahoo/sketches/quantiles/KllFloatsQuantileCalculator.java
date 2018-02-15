@@ -107,7 +107,7 @@ final class KllFloatsQuantileCalculator {
       System.arraycopy(itemsSrc, iSrc1, itemsDst, iDst, toIndex1 - iSrc1);
       System.arraycopy(weightsSrc, iSrc1, weightsDst, iDst, toIndex1 - iSrc1);
     } else if (iSrc2 < toIndex2) {
-      System.arraycopy(itemsSrc, iSrc2, itemsDst, iDst, toIndex2 - iSrc1);
+      System.arraycopy(itemsSrc, iSrc2, itemsDst, iDst, toIndex2 - iSrc2);
       System.arraycopy(weightsSrc, iSrc2, weightsDst, iDst, toIndex2 - iSrc2);
     }
   }
