@@ -476,7 +476,7 @@ public class KllFloatsSketch {
   private void mergeHigherLevels(final KllFloatsSketch other, final long final_n) {
     int tmp_space_needed = getNumRetained() + other.getNumRetainedAboveLevelZero();
     final float[] workbuf = new float[tmp_space_needed];
-    final int ub = ub_on_num_levels(k_, final_n);
+    final int ub = ub_on_num_levels(final_n);
     final int[] worklevels = new int[ub + 2]; // ub+1 does not work
     final int[] outlevels  = new int[ub + 2];
 
@@ -491,7 +491,7 @@ public class KllFloatsSketch {
     final int final_capacity = result[1];
     final int final_pop = result[2];
 
-    assert (final_num_levels <= ub); // can sometimes be 3 bigger, which is a bit surprising
+    assert (final_num_levels <= ub); // can sometimes be much bigger
 
     // now we need to transfer the results back into the "self" sketch
     final float[] newbuf = final_capacity == items_.length ? items_ : new float[final_capacity];
@@ -500,9 +500,7 @@ public class KllFloatsSketch {
     final int the_shift = free_space_at_bottom - outlevels[0];
 
     if (levels_.length < (final_num_levels + 1)) {
-      // either of the following lines of code should work
-      levels_ = outlevels;
-      // levels_ = new int[final_num_levels + 1];
+      levels_ = new int[final_num_levels + 1];
     }
 
     for (int lvl = 0; lvl < final_num_levels + 1; lvl++) { // includes the "extra" index
@@ -541,9 +539,8 @@ public class KllFloatsSketch {
     return levels_[level + 1] - levels_[level];
   }
 
-  private static int ub_on_num_levels(final int k, final long n) {
-    if (n < k) { return 1; }
-    return 2 + floor_of_log2_of_fraction(n, k);
+  private static int ub_on_num_levels(final long n) {
+    return 1 + floor_of_log2_of_fraction(n, 1);
   }
 
   static int floor_of_log2_of_fraction(final long numer, long denom) {
