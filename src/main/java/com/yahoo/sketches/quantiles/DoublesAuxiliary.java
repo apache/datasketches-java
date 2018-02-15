@@ -43,19 +43,23 @@ final class DoublesAuxiliary {
     //  taking advantage of the already sorted blocks of length k
     blockyTandemMergeSort(itemsArr, cumWtsArr, numSamples, k);
 
-    // convert the item weights into totals of the weights preceding each item
-    long subtot = 0;
-    for (int i = 0; i < numSamples + 1; i++ ) {
-      final long newSubtot = subtot + cumWtsArr[i];
-      cumWtsArr[i] = subtot;
-      subtot = newSubtot;
-    }
-
-    assert subtot == n;
+    final long total = convertToPrecedingCummulative(cumWtsArr);
+    assert total == n;
 
     auxN_ = n;
     auxSamplesArr_ = itemsArr;
     auxCumWtsArr_ = cumWtsArr;
+  }
+
+  // convert the item weights into totals of the weights preceding each item
+  static long convertToPrecedingCummulative(final long[] array) {
+    long subtotal = 0;
+    for (int i = 0; i < array.length; i++) {
+      final long newSubtotal = subtotal + array[i];
+      array[i] = subtotal;
+      subtotal = newSubtotal;
+    }
+    return subtotal;
   }
 
   /**
@@ -323,12 +327,13 @@ final class DoublesAuxiliary {
       if (keySrc[i2] < keySrc[i1]) {
         keyDst[i3] = keySrc[i2];
         valDst[i3] = valSrc[i2];
-        i3++; i2++;
+        i2++;
       } else {
         keyDst[i3] = keySrc[i1];
         valDst[i3] = valSrc[i1];
-        i3++; i1++;
+        i1++;
       }
+      i3++;
     }
 
     if (i1 < arrStop1) {

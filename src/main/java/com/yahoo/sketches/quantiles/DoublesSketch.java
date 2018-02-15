@@ -203,7 +203,7 @@ public abstract class DoublesSketch {
     if      (fraction == 0.0) { return getMinValue(); }
     else if (fraction == 1.0) { return getMaxValue(); }
     else {
-      final DoublesAuxiliary aux = constructAuxiliary();
+      final DoublesAuxiliary aux = new DoublesAuxiliary(this);
       return aux.getQuantile(fraction);
     }
   }
@@ -238,7 +238,7 @@ public abstract class DoublesSketch {
       else if (fraction == 1.0) { answers[i] = getMaxValue(); }
       else {
         if (aux == null) {
-          aux = constructAuxiliary();
+          aux = new DoublesAuxiliary(this);
         }
         answers[i] = aux.getQuantile(fraction);
       }
@@ -635,15 +635,6 @@ public abstract class DoublesSketch {
       fractions[n - 1] = 1.0;
     }
     return fractions;
-  }
-
-  /**
-   * Returns the Auxiliary data structure, which is only used for getQuantile() and getQuantiles()
-   * queries.
-   * @return the Auxiliary data structure
-   */
-  DoublesAuxiliary constructAuxiliary() {
-    return new DoublesAuxiliary( this );
   }
 
   //Restricted abstract

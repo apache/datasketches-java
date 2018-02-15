@@ -126,7 +126,7 @@ public class HeapUpdateDoublesSketchTest {
     for (int k = 2; k <= 32; k *= 2) {
       HeapUpdateDoublesSketch qs = HeapUpdateDoublesSketch.newInstance(k);
       for (int numItemsSoFar = 0; numItemsSoFar < 1000; numItemsSoFar++) {
-        DoublesAuxiliary aux = qs.constructAuxiliary();
+        DoublesAuxiliary aux = new DoublesAuxiliary(qs);
         int numSamples = qs.getRetainedItems();
         double[] auxItems = aux.auxSamplesArr_;
         long[] auxAccum = aux.auxCumWtsArr_;
