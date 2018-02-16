@@ -540,6 +540,7 @@ public class KllFloatsSketch {
   }
 
   private static int ub_on_num_levels(final long n) {
+    if (n == 0) { return 1; }
     return 1 + floor_of_log2_of_fraction(n, 1);
   }
 
