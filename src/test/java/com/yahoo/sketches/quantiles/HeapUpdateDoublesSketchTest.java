@@ -21,6 +21,7 @@ import static org.testng.Assert.fail;
 
 import java.lang.reflect.Method;
 
+import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -1001,6 +1002,12 @@ public class HeapUpdateDoublesSketchTest {
     for (int i = 0; i < n; i++) {
       assertEquals(ranks[i], sketch.getRank(values[i]), 0.00001, "CDF vs rank for value " + i);
     }
+  }
+
+  @Test
+  public void maxK() {
+    final UpdateDoublesSketch sketch = DoublesSketch.builder().setK(32768).build();
+    Assert.assertEquals(sketch.getK(), 32768);
   }
 
   //private methods
