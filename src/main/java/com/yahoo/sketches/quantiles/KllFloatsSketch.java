@@ -3,6 +3,9 @@ package com.yahoo.sketches.quantiles;
 import java.util.Arrays;
 import java.util.Random;
 
+import com.yahoo.memory.Memory;
+import com.yahoo.sketches.ByteArrayUtil;
+import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -33,6 +36,8 @@ public class KllFloatsSketch {
 
   public static final int DEFAULT_K = 256;
   public static final int DEFAULT_M = 8;
+  public static final int MIN_K = 8;
+  public static final int MAX_K = (1 << 16) - 1;
 
   private final int k_;
   private final int m_; // minimum buffer "width"
@@ -55,9 +60,11 @@ public class KllFloatsSketch {
   }
 
   private KllFloatsSketch(final int k, final int m) {
+    if (k < MIN_K || k > MAX_K) {
+      throw new SketchesArgumentException("K must be >= " + MIN_K + " and < " + MAX_K + ": " + k);
+    }
     k_ = k;
     m_ = m;
-    // TODO: check k
     numLevels_ = 1;
     levels_ = new int[] {k, k};
     items_ = new float[k];
@@ -85,7 +92,7 @@ public class KllFloatsSketch {
 
   public void update(final float value) {
     if (Float.isNaN(value)) { return; }
-    if (n_ == 0) {
+    if (isEmpty()) {
       minValue_ = value;
       maxValue_ = value;
     } else {
@@ -107,6 +114,14 @@ public class KllFloatsSketch {
   }
 
   public void merge(final KllFloatsSketch other) {
+    if (other == null || other.isEmpty()) { return; }
+    if (isEmpty()) {
+      minValue_ = other.minValue_;
+      maxValue_ = other.maxValue_;
+    } else {
+      if (other.minValue_ < minValue_) { minValue_ = other.minValue_; }
+      if (other.maxValue_ > maxValue_) { maxValue_ = other.maxValue_; }
+    }
     final long finalN = n_ + other.n_;
     if (other.numLevels_ >= 1) {
       for (int i = other.levels_[0]; i < other.levels_[1]; i++) {
@@ -118,8 +133,6 @@ public class KllFloatsSketch {
     }
     n_ = finalN;
     assert_correct_total_weight();
-    minValue_ = Math.min(minValue_, other.minValue_);
-    maxValue_ = Math.max(maxValue_, other.maxValue_);
     minK_ = Math.min(minK_, other.minK_);
   }
 
@@ -200,7 +213,8 @@ public class KllFloatsSketch {
   }
 
   public int getSerializedSizeBytes() {
-    return 16 + getNumRetained() * Float.BYTES + (numLevels_ + 1) * Integer.BYTES;
+    if (isEmpty()) return N_LONG;
+    return DATA_START + (numLevels_ + 1) * Integer.BYTES + (getNumRetained() + 2) * Float.BYTES; // + 2 for min and max
   }
 
   @Override
@@ -241,6 +255,117 @@ public class KllFloatsSketch {
     // withData is not implemented yet
 
     return sb.toString();
+  }
+
+  /* Adr:
+   *      ||    7    |   6   |    5   |    4   |    3   |    2   |    1   |       0       |
+   *  0   ||       Min K     |        K        |  Flags | FamID  | SerVer | PreambleLongs |
+   *      ||   15    |   14  |   13   |   12   |   11   |   10   |    9   |       8       |
+   *  1   ||-----------------------------------N_LONG-------------------------------------|
+   *      ||   23    |   22  |   21   |   20   |   19   |   18   |   17   |      16       |
+   *  2   ||---------------data----------------|----------unused----------|   numLevels   |
+   */
+
+  private static final int PREAMBLE_LONGS_BYTE = 0;
+  private static final int SER_VER_BYTE        = 1;
+  private static final int FAMILY_BYTE         = 2;
+  private static final int FLAGS_BYTE          = 3;
+  private static final int K_SHORT             = 4;  // to 5
+  private static final int MIN_K_SHORT         = 6;  // to 7
+  private static final int N_LONG              = 8;  // to 15
+  private static final int NUM_LEVELS_BYTE     = 16;
+  private static final int DATA_START          = 20;
+
+  private static final byte serialVersionUID = 1;
+
+  private enum Flags { IS_EMPTY, IS_LEVEL_ZERO_SORTED }
+
+  public byte[] toByteArray() {
+    final byte[] bytes = new byte[getSerializedSizeBytes()];
+    bytes[PREAMBLE_LONGS_BYTE] = (byte) (isEmpty() ? 1 : 2);
+    bytes[SER_VER_BYTE] = serialVersionUID;
+    bytes[FAMILY_BYTE] = (byte) Family.KLL.getID();
+    bytes[FLAGS_BYTE] = (byte) (
+        (isEmpty() ? 1 << Flags.IS_EMPTY.ordinal() : 0)
+      | (isLevelZeroSorted_ ? 1 << Flags.IS_LEVEL_ZERO_SORTED.ordinal() : 0)
+    );
+    ByteArrayUtil.putShort(bytes, K_SHORT, (short) k_);
+    ByteArrayUtil.putShort(bytes, MIN_K_SHORT, (short) minK_);
+    if (isEmpty()) { return bytes; }
+    ByteArrayUtil.putLong(bytes, N_LONG, n_);
+    bytes[NUM_LEVELS_BYTE] = (byte) numLevels_;
+    int offset = DATA_START;
+    for (int i = 0; i < numLevels_ + 1; i++) {
+      ByteArrayUtil.putInt(bytes, offset, levels_[i]);
+      offset += Integer.BYTES;
+    }
+    ByteArrayUtil.putFloat(bytes, offset, minValue_);
+    offset += Float.BYTES;
+    ByteArrayUtil.putFloat(bytes, offset, maxValue_);
+    offset += Float.BYTES;
+    final int numItems = getNumRetained();
+    for (int i = 0; i < numItems; i++) {
+      ByteArrayUtil.putFloat(bytes, offset, items_[levels_[0] + i]);
+      offset += Float.BYTES;
+    }
+    return bytes;
+  }
+
+  public static KllFloatsSketch heapify(final Memory mem) {
+    final int preambleLongs = mem.getByte(PREAMBLE_LONGS_BYTE) & 0xff;
+    final int serialVersion = mem.getByte(SER_VER_BYTE) & 0xff;
+    final int family = mem.getByte(FAMILY_BYTE) & 0xff;
+    final int flags = mem.getByte(FLAGS_BYTE) & 0xff;
+    final boolean isEmpty = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
+    if (isEmpty) {
+      if (preambleLongs != 1) {
+        throw new SketchesArgumentException(
+            "Possible corruption: preambleLongs must be 1 for an empty sketch: " + preambleLongs);
+      }
+    } else {
+      if (preambleLongs != 2) {
+        throw new SketchesArgumentException(
+            "Possible corruption: preambleLongs must be 2 for a non-empty sketch: " + preambleLongs);
+      }
+    }
+    if (serialVersion != serialVersionUID) {
+      throw new SketchesArgumentException(
+          "Possible corruption: serial version mismatch: expected " + serialVersionUID + ", got " + serialVersion);
+    }
+    if (family != Family.KLL.getID()) {
+      throw new SketchesArgumentException(
+          "Possible corruption: family mismatch: expected " + Family.KLL.getID() + ", got " + family);
+    }
+    return new KllFloatsSketch(mem);
+  }
+
+  private KllFloatsSketch(final Memory mem) {
+    m_ = DEFAULT_M;
+    k_ = mem.getShort(K_SHORT) & 0xffff;
+    minK_ = mem.getShort(MIN_K_SHORT) & 0xffff;
+    final int flags = mem.getByte(FLAGS_BYTE) & 0xff;
+    isLevelZeroSorted_ = (flags & (1 << Flags.IS_LEVEL_ZERO_SORTED.ordinal())) > 0;
+    final boolean isEmpty = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
+    if (isEmpty) {
+      numLevels_ = 1;
+      levels_ = new int[] {k_, k_};
+      items_ = new float[k_];
+      minValue_ = Float.NaN;
+      maxValue_ = Float.NaN;
+    } else {
+      n_ = mem.getLong(N_LONG);
+      numLevels_ = mem.getByte(NUM_LEVELS_BYTE) & 0xff;
+      levels_ = new int[numLevels_ + 1];
+      int offset = DATA_START;
+      mem.getIntArray(offset, levels_, 0, numLevels_ + 1);
+      offset += (numLevels_ + 1) * Integer.BYTES;
+      minValue_ = mem.getFloat(offset);
+      offset += Float.BYTES;
+      maxValue_ = mem.getFloat(offset);
+      offset += Float.BYTES;
+      items_ = new float[computeTotalCapacity(k_, m_, numLevels_)];
+      mem.getFloatArray(offset, items_, levels_[0], getNumRetained());
+    }
   }
 
   private KllFloatsQuantileCalculator getQuantileCalculator() {
@@ -646,7 +771,7 @@ public class KllFloatsSketch {
     assert numLevelsIn > 0; // things are too weird if zero levels are allowed
     int numLevels = numLevelsIn;
     int currentItemCount = inLevels[numLevels] - inLevels[0]; // decreases with each compaction
-    int targetItemCount = computeTargetItemCount(k, m, numLevels); // increases if we add levels
+    int targetItemCount = computeTotalCapacity(k, m, numLevels); // increases if we add levels
     boolean done_yet = false;
     outLevels[0] = 0;
     int curLevel = -1;
@@ -725,29 +850,12 @@ public class KllFloatsSketch {
     return new int[] {numLevels, targetItemCount, currentItemCount};
   }
 
-  private static int computeTargetItemCount(int k, int m, int numLevels) {
+  private static int computeTotalCapacity(int k, int m, int numLevels) {
     int total = 0;
     for (int h = 0; h < numLevels; h++) {
       total += levelCapacity(k, numLevels, h, m);
     }
     return total;
-  }
-
-  // for debugging
-  int[] getLevelSizes() {
-    final int[] levels = new int[numLevels_];
-    for (int i = 0; i < numLevels_; i++) {
-      levels[i] = levels_[i + 1] - levels_[i];
-    }
-    return levels;
-  }
-
-  int[] getNominalLevelCapacities() {
-    final int[] caps = new int[numLevels_];
-    for (int i = 0; i < numLevels_; i++) {
-      caps[i] = levelCapacity(k_, numLevels_, i, m_);
-    }
-    return caps;
   }
 
 }

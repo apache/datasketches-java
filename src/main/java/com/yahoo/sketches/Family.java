@@ -111,8 +111,12 @@ public enum Family {
   /**
    * The VarOpt family of sketches. (Not part of TSF.)
    */
-  VAROPT_UNION(14, "VAROPT_UNION", 1, 4);
+  VAROPT_UNION(14, "VAROPT_UNION", 1, 4),
 
+  /**
+   * KLL quanliles sketch
+   */
+  KLL(15, "KLL", 1, 2);
 
   private static final Map<Integer, Family> lookupID = new HashMap<Integer, Family>();
   private static final Map<String, Family> lookupFamName = new HashMap<String, Family>();

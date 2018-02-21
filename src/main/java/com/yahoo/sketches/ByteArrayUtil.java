@@ -3,6 +3,19 @@ package com.yahoo.sketches;
 public final class ByteArrayUtil {
 
   /**
+   * Put a given short value into a given byte array at a given offset.
+   * Assumes little-endian byte order.
+   * @param bytes destination byte array
+   * @param offset destination offset
+   * @param value source value
+   */
+  public static void putShort(final byte[] bytes, final int offset, final short value) {
+    for (int i = 0; i < Short.BYTES; i++) {
+      bytes[offset + i] = (byte) ((value >>> (8 * i)) & 0xff);
+    }
+  }
+
+  /**
    * Put a given integer value into a given byte array at a given offset.
    * Assumes little-endian byte order.
    * @param bytes destination byte array
