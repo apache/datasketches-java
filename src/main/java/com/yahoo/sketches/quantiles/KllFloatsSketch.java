@@ -115,6 +115,9 @@ public class KllFloatsSketch {
 
   public void merge(final KllFloatsSketch other) {
     if (other == null || other.isEmpty()) { return; }
+    if (m_ != other.m_) {
+      throw new SketchesArgumentException("incompatible M: " + m_ + " and " + other.m_);
+    }
     if (isEmpty()) {
       minValue_ = other.minValue_;
       maxValue_ = other.maxValue_;
@@ -258,31 +261,35 @@ public class KllFloatsSketch {
   }
 
   /* Adr:
-   *      ||    7    |   6   |    5   |    4   |    3   |    2   |    1   |       0       |
-   *  0   ||       Min K     |        K        |  Flags | FamID  | SerVer | PreambleLongs |
-   *      ||   15    |   14  |   13   |   12   |   11   |   10   |    9   |       8       |
-   *  1   ||-----------------------------------N_LONG-------------------------------------|
-   *      ||   23    |   22  |   21   |   20   |   19   |   18   |   17   |      16       |
-   *  2   ||---------------data----------------|----------unused----------|   numLevels   |
+   *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
+   *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
+   *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
+   *  1   ||---------------------------------N_LONG---------------------------------------|
+   *      ||   23    |   22  |   21   |   20   |   19   |    18   |   17   |      16      |
+   *  2   ||---------------data----------------|--------|numLevels|-------min K-----------|
    */
 
-  private static final int PREAMBLE_LONGS_BYTE = 0;
-  private static final int SER_VER_BYTE        = 1;
-  private static final int FAMILY_BYTE         = 2;
-  private static final int FLAGS_BYTE          = 3;
-  private static final int K_SHORT             = 4;  // to 5
-  private static final int MIN_K_SHORT         = 6;  // to 7
-  private static final int N_LONG              = 8;  // to 15
-  private static final int NUM_LEVELS_BYTE     = 16;
-  private static final int DATA_START          = 20;
+  private static final int PREAMBLE_INTS_BYTE = 0;
+  private static final int SER_VER_BYTE       = 1;
+  private static final int FAMILY_BYTE        = 2;
+  private static final int FLAGS_BYTE         = 3;
+  private static final int K_SHORT            = 4;  // to 5
+  private static final int M_BYTE             = 6;
+  private static final int N_LONG             = 8;  // to 15
+  private static final int MIN_K_SHORT        = 16;  // to 17
+  private static final int NUM_LEVELS_BYTE    = 18;
+  private static final int DATA_START         = 20;
 
   private static final byte serialVersionUID = 1;
 
   private enum Flags { IS_EMPTY, IS_LEVEL_ZERO_SORTED }
 
+  private static final int PREAMBLE_INTS_EMPTY = 2;
+  private static final int PREAMBLE_INTS_NONEMPTY = 5;
+
   public byte[] toByteArray() {
     final byte[] bytes = new byte[getSerializedSizeBytes()];
-    bytes[PREAMBLE_LONGS_BYTE] = (byte) (isEmpty() ? 1 : 2);
+    bytes[PREAMBLE_INTS_BYTE] = (byte) (isEmpty() ? PREAMBLE_INTS_EMPTY : PREAMBLE_INTS_NONEMPTY);
     bytes[SER_VER_BYTE] = serialVersionUID;
     bytes[FAMILY_BYTE] = (byte) Family.KLL.getID();
     bytes[FLAGS_BYTE] = (byte) (
@@ -290,9 +297,10 @@ public class KllFloatsSketch {
       | (isLevelZeroSorted_ ? 1 << Flags.IS_LEVEL_ZERO_SORTED.ordinal() : 0)
     );
     ByteArrayUtil.putShort(bytes, K_SHORT, (short) k_);
-    ByteArrayUtil.putShort(bytes, MIN_K_SHORT, (short) minK_);
+    bytes[M_BYTE] = (byte) m_;
     if (isEmpty()) { return bytes; }
     ByteArrayUtil.putLong(bytes, N_LONG, n_);
+    ByteArrayUtil.putShort(bytes, MIN_K_SHORT, (short) minK_);
     bytes[NUM_LEVELS_BYTE] = (byte) numLevels_;
     int offset = DATA_START;
     for (int i = 0; i < numLevels_ + 1; i++) {
@@ -312,20 +320,24 @@ public class KllFloatsSketch {
   }
 
   public static KllFloatsSketch heapify(final Memory mem) {
-    final int preambleLongs = mem.getByte(PREAMBLE_LONGS_BYTE) & 0xff;
+    final int preambleInts = mem.getByte(PREAMBLE_INTS_BYTE) & 0xff;
     final int serialVersion = mem.getByte(SER_VER_BYTE) & 0xff;
     final int family = mem.getByte(FAMILY_BYTE) & 0xff;
     final int flags = mem.getByte(FLAGS_BYTE) & 0xff;
+    final int m = mem.getByte(M_BYTE) & 0xff;
+    if (m != DEFAULT_M) {
+      throw new SketchesArgumentException("Possible corruption: M must be " + DEFAULT_M + ": " + m);
+    }
     final boolean isEmpty = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
     if (isEmpty) {
-      if (preambleLongs != 1) {
-        throw new SketchesArgumentException(
-            "Possible corruption: preambleLongs must be 1 for an empty sketch: " + preambleLongs);
+      if (preambleInts != PREAMBLE_INTS_EMPTY) {
+        throw new SketchesArgumentException("Possible corruption: preambleInts must be "
+            + PREAMBLE_INTS_EMPTY + " for an empty sketch: " + preambleInts);
       }
     } else {
-      if (preambleLongs != 2) {
-        throw new SketchesArgumentException(
-            "Possible corruption: preambleLongs must be 2 for a non-empty sketch: " + preambleLongs);
+      if (preambleInts != PREAMBLE_INTS_NONEMPTY) {
+        throw new SketchesArgumentException("Possible corruption: preambleInts must be "
+            + PREAMBLE_INTS_NONEMPTY + " for a non-empty sketch: " + preambleInts);
       }
     }
     if (serialVersion != serialVersionUID) {
@@ -342,9 +354,7 @@ public class KllFloatsSketch {
   private KllFloatsSketch(final Memory mem) {
     m_ = DEFAULT_M;
     k_ = mem.getShort(K_SHORT) & 0xffff;
-    minK_ = mem.getShort(MIN_K_SHORT) & 0xffff;
     final int flags = mem.getByte(FLAGS_BYTE) & 0xff;
-    isLevelZeroSorted_ = (flags & (1 << Flags.IS_LEVEL_ZERO_SORTED.ordinal())) > 0;
     final boolean isEmpty = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
     if (isEmpty) {
       numLevels_ = 1;
@@ -352,8 +362,11 @@ public class KllFloatsSketch {
       items_ = new float[k_];
       minValue_ = Float.NaN;
       maxValue_ = Float.NaN;
+      isLevelZeroSorted_ = false;
+      minK_ = k_;
     } else {
       n_ = mem.getLong(N_LONG);
+      minK_ = mem.getShort(MIN_K_SHORT) & 0xffff;
       numLevels_ = mem.getByte(NUM_LEVELS_BYTE) & 0xff;
       levels_ = new int[numLevels_ + 1];
       int offset = DATA_START;
@@ -365,6 +378,7 @@ public class KllFloatsSketch {
       offset += Float.BYTES;
       items_ = new float[computeTotalCapacity(k_, m_, numLevels_)];
       mem.getFloatArray(offset, items_, levels_[0], getNumRetained());
+      isLevelZeroSorted_ = (flags & (1 << Flags.IS_LEVEL_ZERO_SORTED.ordinal())) > 0;
     }
   }
 

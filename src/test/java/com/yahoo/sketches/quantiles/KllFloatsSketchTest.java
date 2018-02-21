@@ -232,7 +232,6 @@ public class KllFloatsSketchTest {
     Assert.assertTrue(Float.isNaN(sketch2.getMinValue()));
     Assert.assertTrue(Float.isNaN(sketch2.getMaxValue()));
     Assert.assertEquals(sketch2.getSerializedSizeBytes(), sketch1.getSerializedSizeBytes());
-    System.out.println(sketch2.toString(true, true));
   }
 
   @Test
