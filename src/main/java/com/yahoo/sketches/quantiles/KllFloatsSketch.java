@@ -160,7 +160,6 @@ public class KllFloatsSketch {
 
   public float[] getQuantiles(final double[] fractions) {
     if (isEmpty()) { return null; }
-    Util.validateFractions(fractions);
     KllFloatsQuantileCalculator quant = null;
     final float[] quantiles = new float[fractions.length];
     for (int i = 0; i < fractions.length; i++) {
@@ -389,6 +388,7 @@ public class KllFloatsSketch {
 
   private double[] getPmfOrCdf(final float[] splitPoints, boolean isCdf) {
     if (isEmpty()) { return null; }
+    validateValues(splitPoints);
     final double[] buckets = new double[splitPoints.length + 1];
     int level = 0;
     int weight = 1;
@@ -416,6 +416,23 @@ public class KllFloatsSketch {
       }
     }
     return buckets;
+  }
+
+  /**
+   * Checks the sequential validity of the given array of float values.
+   * They must be unique, monotonically increasing and not NaN.
+   * @param values the given array of values
+   */
+  static final void validateValues(final float[] values) {
+    for (int i = 0; i < values.length ; i++) {
+      if (Float.isNaN(values[i])) {
+        throw new SketchesArgumentException("Values must not be NaN");
+      }
+      if (i < values.length - 1 && values[i] >= values[i + 1]) {
+        throw new SketchesArgumentException(
+          "Values must be unique and monotonically increasing");
+      }
+    }
   }
 
   private void incrementBucketsUnsortedLevel(final int fromIndex, final int toIndex, final int weight, final float[] splitPoints, final double[] buckets) {

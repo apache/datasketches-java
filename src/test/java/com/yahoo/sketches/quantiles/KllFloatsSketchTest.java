@@ -67,14 +67,18 @@ public class KllFloatsSketchTest {
 
     // check at every 0.1 percentage point
     final double[] fractions = new double[1001];
+    final double[] reverseFractions = new double[1001]; // check that ordering doesn't matter
     for (int i = 0; i <= 1000; i++) {
       fractions[i] = (double) i / 1000;
+      reverseFractions[1000 - i] = fractions[i];
     }
     final float[] quantiles = sketch.getQuantiles(fractions);
+    final float[] reverseQuantiles = sketch.getQuantiles(reverseFractions);
     float previousQuantile = 0;
     for (int i = 0; i <= 1000; i++) {
       final float quantile = sketch.getQuantile(fractions[i]);
       Assert.assertEquals(quantile, quantiles[i]);
+      Assert.assertEquals(quantile, reverseQuantiles[1000 - i]);
       Assert.assertTrue(previousQuantile <= quantile);
       previousQuantile = quantile;
     }
@@ -251,6 +255,20 @@ public class KllFloatsSketchTest {
     Assert.assertEquals(sketch2.getMinValue(), sketch1.getMinValue());
     Assert.assertEquals(sketch2.getMaxValue(), sketch1.getMaxValue());
     Assert.assertEquals(sketch2.getSerializedSizeBytes(), sketch1.getSerializedSizeBytes());
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void outOfOrderSplitPoints() {
+    final KllFloatsSketch sketch = new KllFloatsSketch();
+    sketch.update(0);
+    sketch.getCDF(new float[] {1, 0});
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void nanSplitPoint() {
+    final KllFloatsSketch sketch = new KllFloatsSketch();
+    sketch.update(0);
+    sketch.getCDF(new float[] {Float.NaN});
   }
 
 }
