@@ -8,6 +8,8 @@ package com.yahoo.sketches.quantiles;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import com.yahoo.sketches.QuantilesHelper;
+
 /**
  * Auxiliary data structure for answering generic quantile queries
  *
@@ -68,7 +70,7 @@ final class ItemsAuxiliary<T> {
     assert 0.0 <= phi;
     assert phi <= 1.0;
     if (auxN_ <= 0) { return null; }
-    final long pos = DoublesAuxiliary.posOfPhi(phi, auxN_);
+    final long pos = QuantilesHelper.posOfPhi(phi, auxN_);
     return (approximatelyAnswerPositionalQuery(pos));
   }
 
@@ -88,7 +90,7 @@ final class ItemsAuxiliary<T> {
   private T approximatelyAnswerPositionalQuery(final long pos) {
     assert 0 <= pos;
     assert pos < auxN_;
-    final int index = DoublesAuxiliary.chunkContainingPos(auxCumWtsArr_, pos);
+    final int index = QuantilesHelper.chunkContainingPos(auxCumWtsArr_, pos);
     return (T) this.auxSamplesArr_[index];
   }
 

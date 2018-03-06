@@ -1,10 +1,11 @@
-package com.yahoo.sketches.quantiles;
+package com.yahoo.sketches.kll;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.kll.KllFloatsSketch;
 
 public class KllFloatsSketchTest {
 

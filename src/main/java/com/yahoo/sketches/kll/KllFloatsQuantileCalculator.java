@@ -1,6 +1,8 @@
-package com.yahoo.sketches.quantiles;
+package com.yahoo.sketches.kll;
 
 import java.util.Arrays;
+
+import com.yahoo.sketches.QuantilesHelper;
 
 final class KllFloatsQuantileCalculator {
 
@@ -19,18 +21,18 @@ final class KllFloatsQuantileCalculator {
     levels_ = new int[numLevels + 1];
     populateFromSketch(items, levels, numLevels, numItems);
     blockyTandemMergeSort(items_, weights_, levels_, numLevels_);
-    DoublesAuxiliary.convertToPrecedingCummulative(weights_);
+    QuantilesHelper.convertToPrecedingCummulative(weights_);
   }
 
   float getQuantile(final double phi) {
-    final long pos = DoublesAuxiliary.posOfPhi(phi, n_);
+    final long pos = QuantilesHelper.posOfPhi(phi, n_);
     return approximatelyAnswerPositonalQuery(pos);
   }
   
   private float approximatelyAnswerPositonalQuery(long pos) {
     assert pos >= 0;
     assert pos < n_;
-    final int index = DoublesAuxiliary.chunkContainingPos(weights_, pos);
+    final int index = QuantilesHelper.chunkContainingPos(weights_, pos);
     return items_[index];
   }
 

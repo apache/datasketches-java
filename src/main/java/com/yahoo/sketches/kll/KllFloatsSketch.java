@@ -1,4 +1,4 @@
-package com.yahoo.sketches.quantiles;
+package com.yahoo.sketches.kll;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -7,6 +7,7 @@ import com.yahoo.memory.Memory;
 import com.yahoo.sketches.ByteArrayUtil;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.Util;
 
 /**
  * Implementation of a very compact quantiles sketch with lazy compaction scheme
