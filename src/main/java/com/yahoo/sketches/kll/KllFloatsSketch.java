@@ -466,7 +466,8 @@ public class KllFloatsSketch {
     ByteArrayUtil.putShort(bytes, MIN_K_SHORT, (short) minK_);
     bytes[NUM_LEVELS_BYTE] = (byte) numLevels_;
     int offset = DATA_START;
-    for (int i = 0; i < numLevels_ + 1; i++) {
+    // the last integer in levels_ is not serialized because it can be derived
+    for (int i = 0; i < numLevels_; i++) {
       ByteArrayUtil.putInt(bytes, offset, levels_[i]);
       offset += Integer.BYTES;
     }
@@ -540,13 +541,16 @@ public class KllFloatsSketch {
       numLevels_ = mem.getByte(NUM_LEVELS_BYTE) & 0xff;
       levels_ = new int[numLevels_ + 1];
       int offset = DATA_START;
-      mem.getIntArray(offset, levels_, 0, numLevels_ + 1);
-      offset += (numLevels_ + 1) * Integer.BYTES;
+      // the last integer in levels_ is not serialized because it can be derived
+      mem.getIntArray(offset, levels_, 0, numLevels_);
+      offset += numLevels_ * Integer.BYTES;
+      final int capacity = KllHelper.computeTotalCapacity(k_, m_, numLevels_);
+      levels_[numLevels_] = capacity;
       minValue_ = mem.getFloat(offset);
       offset += Float.BYTES;
       maxValue_ = mem.getFloat(offset);
       offset += Float.BYTES;
-      items_ = new float[KllHelper.computeTotalCapacity(k_, m_, numLevels_)];
+      items_ = new float[capacity];
       mem.getFloatArray(offset, items_, levels_[0], getNumRetained());
       isLevelZeroSorted_ = (flags & (1 << Flags.IS_LEVEL_ZERO_SORTED.ordinal())) > 0;
     }
@@ -815,8 +819,9 @@ public class KllFloatsSketch {
     assert total == n_;
   }
 
+  // the last integer in levels_ is not serialized because it can be derived
   private static int getSerializedSizeBytes(final int numLevels, final int numRetained) {
-    return DATA_START + (numLevels + 1) * Integer.BYTES + (numRetained + 2) * Float.BYTES; // + 2 for min and max
+    return DATA_START + numLevels * Integer.BYTES + (numRetained + 2) * Float.BYTES; // + 2 for min and max
   }
 
 }
