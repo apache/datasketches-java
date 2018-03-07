@@ -109,15 +109,15 @@ public class KllFloatsSketchTest {
 
   @Test
   public void floorLog2() {
-    Assert.assertEquals(KllFloatsSketch.floor_of_log2_of_fraction(0, 1), 0);
-    Assert.assertEquals(KllFloatsSketch.floor_of_log2_of_fraction(1, 2), 0);
-    Assert.assertEquals(KllFloatsSketch.floor_of_log2_of_fraction(2, 2), 0);
-    Assert.assertEquals(KllFloatsSketch.floor_of_log2_of_fraction(3, 2), 0);
-    Assert.assertEquals(KllFloatsSketch.floor_of_log2_of_fraction(4, 2), 1);
-    Assert.assertEquals(KllFloatsSketch.floor_of_log2_of_fraction(5, 2), 1);
-    Assert.assertEquals(KllFloatsSketch.floor_of_log2_of_fraction(6, 2), 1);
-    Assert.assertEquals(KllFloatsSketch.floor_of_log2_of_fraction(7, 2), 1);
-    Assert.assertEquals(KllFloatsSketch.floor_of_log2_of_fraction(8, 2), 2);
+    Assert.assertEquals(KllHelper.floorOfLog2OfFraction(0, 1), 0);
+    Assert.assertEquals(KllHelper.floorOfLog2OfFraction(1, 2), 0);
+    Assert.assertEquals(KllHelper.floorOfLog2OfFraction(2, 2), 0);
+    Assert.assertEquals(KllHelper.floorOfLog2OfFraction(3, 2), 0);
+    Assert.assertEquals(KllHelper.floorOfLog2OfFraction(4, 2), 1);
+    Assert.assertEquals(KllHelper.floorOfLog2OfFraction(5, 2), 1);
+    Assert.assertEquals(KllHelper.floorOfLog2OfFraction(6, 2), 1);
+    Assert.assertEquals(KllHelper.floorOfLog2OfFraction(7, 2), 1);
+    Assert.assertEquals(KllHelper.floorOfLog2OfFraction(8, 2), 2);
   }
 
   @Test

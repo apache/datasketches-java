@@ -4,6 +4,12 @@ import java.util.Arrays;
 
 import com.yahoo.sketches.QuantilesHelper;
 
+/**
+ * Data structure for answering quantile queries based on the samples from KllSketch
+ * @author Kevin Lang
+ * @author Lee Rhodes
+ * @author Alexander Saydakov
+ */
 final class KllFloatsQuantileCalculator {
 
   private long n_;
