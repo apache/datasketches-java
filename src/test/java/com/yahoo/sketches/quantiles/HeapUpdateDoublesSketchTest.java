@@ -19,14 +19,13 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import java.lang.reflect.Method;
-
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
+import com.yahoo.sketches.QuantilesHelper;
 import com.yahoo.sketches.SketchesArgumentException;
 
 public class HeapUpdateDoublesSketchTest {
@@ -867,10 +866,7 @@ public class HeapUpdateDoublesSketchTest {
   @Test
   public void checkAuxPosOfPhi() throws Exception {
     long n = 10;
-    Method privateMethod =
-        DoublesAuxiliary.class.getDeclaredMethod("posOfPhi", double.class, long.class );
-    privateMethod.setAccessible(true);
-    long returnValue = (long) privateMethod.invoke(null, Double.valueOf(1.0), Long.valueOf(10));
+    long returnValue = QuantilesHelper.posOfPhi(1.0, 10);
     //println("" + returnValue);
     assertEquals(returnValue, n-1);
   }
