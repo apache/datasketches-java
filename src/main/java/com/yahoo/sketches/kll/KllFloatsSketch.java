@@ -18,6 +18,41 @@ import com.yahoo.sketches.Util;
  */
 public class KllFloatsSketch {
 
+  private static final Random random = new Random();
+
+  public static final int DEFAULT_K = 256;
+  public static final int DEFAULT_M = 8;
+  public static final int MIN_K = 8;
+  public static final int MAX_K = (1 << 16) - 1; // serialized as an unsigned short
+
+  /* Serialized sketch layout:
+   *  Adr:
+   *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
+   *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
+   *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
+   *  1   ||---------------------------------N_LONG---------------------------------------|
+   *      ||   23    |   22  |   21   |   20   |   19   |    18   |   17   |      16      |
+   *  2   ||---------------data----------------|--------|numLevels|-------min K-----------|
+   */
+
+  private static final int PREAMBLE_INTS_BYTE = 0;
+  private static final int SER_VER_BYTE       = 1;
+  private static final int FAMILY_BYTE        = 2;
+  private static final int FLAGS_BYTE         = 3;
+  private static final int K_SHORT            = 4;  // to 5
+  private static final int M_BYTE             = 6;
+  private static final int N_LONG             = 8;  // to 15
+  private static final int MIN_K_SHORT        = 16;  // to 17
+  private static final int NUM_LEVELS_BYTE    = 18;
+  private static final int DATA_START         = 20;
+
+  private static final byte serialVersionUID = 1;
+
+  private enum Flags { IS_EMPTY, IS_LEVEL_ZERO_SORTED }
+
+  private static final int PREAMBLE_INTS_EMPTY = 2;
+  private static final int PREAMBLE_INTS_NONEMPTY = 5;
+
   /*
    * Data is stored in items_.
    * The data for level i lies in positions levels_[i] through levels_[i + 1] - 1 inclusive.
@@ -33,13 +68,6 @@ public class KllFloatsSketch {
    *  the sketch is exactly filled to capacity and must be compacted.
    */
 
-  private static final Random random = new Random();
-
-  public static final int DEFAULT_K = 256;
-  public static final int DEFAULT_M = 8;
-  public static final int MIN_K = 8;
-  public static final int MAX_K = (1 << 16) - 1;
-
   private final int k_;
   private final int m_; // minimum buffer "width"
 
@@ -52,45 +80,58 @@ public class KllFloatsSketch {
   private float maxValue_;
   private boolean isLevelZeroSorted_;
 
+  /**
+   * Constructor with the default K (rank error of about 1.3%)
+   */
   public KllFloatsSketch() {
     this(DEFAULT_K);
   }
 
+  /**
+   * Constructor with a given parameter K
+   * @param k parameter that controls size of the sketch and accuracy of estimates
+   */
   public KllFloatsSketch(final int k) {
     this(k, DEFAULT_M);
   }
 
-  private KllFloatsSketch(final int k, final int m) {
-    if (k < MIN_K || k > MAX_K) {
-      throw new SketchesArgumentException("K must be >= " + MIN_K + " and < " + MAX_K + ": " + k);
-    }
-    k_ = k;
-    m_ = m;
-    numLevels_ = 1;
-    levels_ = new int[] {k, k};
-    items_ = new float[k];
-    minValue_ = Float.NaN;
-    maxValue_ = Float.NaN;
-    isLevelZeroSorted_ = false;
-    minK_ = k;
-  }
-
+  /**
+   * Returns the length of the input stream.
+   * @return stream length
+   */
   public long getN() {
     return n_;
   }
 
+  /**
+   * Returns true if this sketch is empty
+   * @return empty flag
+   */
   public boolean isEmpty() {
     return n_ == 0;
   }
 
+  /**
+   * Returns the number of retained items (samples) in the sketch
+   * @return the number of retained items (samples) in the sketch
+   */
   public int getNumRetained() {
     return levels_[numLevels_] - levels_[0];
   }
 
+  /**
+   * Returns true if this sketch is in estimation mode.
+   * @return estimation mode flag
+   */
   public boolean isEstimationMode() {
     return numLevels_ > 1;
   }
 
+  /**
+   * Updates this sketch with the given data item
+   *
+   * @param value an item from a stream of items. NaNs are ignored.
+   */
   public void update(final float value) {
     if (Float.isNaN(value)) { return; }
     if (isEmpty()) {
@@ -109,11 +150,12 @@ public class KllFloatsSketch {
     assert levels_[0] >= 0;
     levels_[0] = nextPos;
     items_[nextPos] = value;
-    //if (nextPos == 0) {
-    //  compressWhileUpdating();
-    //}
   }
 
+  /**
+   * Merges another sketch into this one.
+   * @param other sketch to merge into this one
+   */
   public void merge(final KllFloatsSketch other) {
     if (other == null || other.isEmpty()) { return; }
     if (m_ != other.m_) {
@@ -140,14 +182,44 @@ public class KllFloatsSketch {
     minK_ = Math.min(minK_, other.minK_);
   }
 
+  /**
+   * Returns the min value of the stream.
+   * If the sketch is empty this returns NaN.
+   *
+   * @return the min value of the stream
+   */
   public float getMinValue() {
     return minValue_;
   }
 
+  /**
+   * Returns the max value of the stream.
+   * If the sketch is empty this returns NaN.
+   *
+   * @return the max value of the stream
+   */
   public float getMaxValue() {
     return maxValue_;
   }
 
+  /**
+   * Returns an approximation to the value of the data item
+   * that would be preceded by the given fraction of a hypothetical sorted
+   * version of the input stream so far.
+   *
+   * <p>We note that this method has a fairly large overhead (microseconds instead of nanoseconds)
+   * so it should not be called multiple times to get different quantiles from the same
+   * sketch. Instead use getQuantiles(), which pays the overhead only once.
+   *
+   * <p>If the sketch is empty this returns NaN.
+   *
+   * @param fraction the specified fractional position in the hypothetical sorted stream.
+   * These are also called normalized ranks or fractional ranks.
+   * If fraction = 0.0, the true minimum value of the stream is returned.
+   * If fraction = 1.0, the true maximum value of the stream is returned.
+   *
+   * @return the approximation to the value at the given fraction
+   */
   public float getQuantile(final double fraction) {
     if (isEmpty()) { return Float.NaN; }
     if (fraction == 0.0) { return minValue_; }
@@ -159,6 +231,24 @@ public class KllFloatsSketch {
     return quant.getQuantile(fraction);
   }
 
+  /**
+   * This is a more efficient multiple-query version of getQuantile().
+   *
+   * <p>This returns an array that could have been generated by using getQuantile() with many different
+   * fractional ranks, but would be very inefficient.
+   * This method incurs the internal set-up overhead once and obtains multiple quantile values in
+   * a single query. It is strongly recommend that this method be used instead of multiple calls
+   * to getQuantile().
+   *
+   * <p>If the sketch is empty this returns null.
+   *
+   * @param fractions given array of fractional positions in the hypothetical sorted stream.
+   * These are also called normalized ranks or fractional ranks.
+   * These fractions must be in the interval [0.0, 1.0] inclusive.
+   *
+   * @return array of approximations to the given fractions in the same order as given fractions
+   * array.
+   */
   public float[] getQuantiles(final double[] fractions) {
     if (isEmpty()) { return null; }
     KllFloatsQuantileCalculator quant = null;
@@ -177,6 +267,11 @@ public class KllFloatsSketch {
     return quantiles;
   }
 
+  /**
+   * Returns an approximation to the normalized (fractional) rank of the given value from 0 to 1 inclusive.
+   * @param value to be ranked
+   * @return an approximate rank of the given value
+   */
   public double getRank(final float value) {
     if (isEmpty()) { return Double.NaN; }
     int level = 0;
@@ -198,33 +293,113 @@ public class KllFloatsSketch {
     return (double) total / n_;
   }
 
+  /**
+   * Returns an approximation to the Probability Mass Function (PMF) of the input stream
+   * given a set of splitPoints (values).
+   *
+   * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
+   * getNormalizedRankError() function.
+   *
+   * <p>If the sketch is empty this returns null.</p>
+   *
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing values
+   * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
+   *
+   * @return an array of m+1 doubles each of which is an approximation
+   * to the fraction of the input stream values that fell into one of those intervals.
+   * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
+   * splitPoint.
+   */
   public double[] getPMF(final float[] splitPoints) {
     return getPmfOrCdf(splitPoints, false);
   }
 
+  /**
+   * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
+   * cumulative analog of the PMF, of the input stream given a set of splitPoint (values).
+   *
+   * <p>More specifically, the value at array position j of the CDF is the
+   * sum of the values in positions 0 through j of the PMF (rank of the splitPoint j).
+   *
+   * <p>If the sketch is empty this returns null.</p>
+   *
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing values
+   * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
+   *
+   * @return an approximation to the CDF of the input stream given the splitPoints.
+   */
   public double[] getCDF(final float[] splitPoints) {
     return getPmfOrCdf(splitPoints, true);
   }
 
+  /**
+   * Get the rank error normalized as a fraction between zero and one.
+   * The error of this sketch is specified as a fraction of the normalized rank of the hypothetical
+   * sorted stream of items presented to the sketch.
+   *
+   * <p>Suppose the sketch is presented with N values. The raw rank (0 to N-1) of an item
+   * would be its index position in the sorted version of the input stream. If we divide the
+   * raw rank by N, it becomes the normalized rank, which is between 0 and 1.0.
+   *
+   * <p>For example, choosing a K of 256 yields a normalized rank error of about 1.3%.
+   * The upper bound on the median value obtained by getQuantile(0.5) would be the value in the
+   * hypothetical ordered stream of values at the normalized rank of 0.513.
+   * The lower bound would be the value in the hypothetical ordered stream of values at the
+   * normalized rank of 0.487.
+   *
+   * <p>The error of this sketch cannot be translated into an error (relative or absolute) of the
+   * returned quantile values.
+   *
+   * @return the rank error normalized as a fraction between zero and one.
+   */
   public double getNormalizedRankError() {
     return getNormalizedRankError(minK_);
   }
 
+  /**
+   * Static method version of {@link #getNormalizedRankError()}
+   * @param k the configuration parameter
+   * @return the rank error normalized as a fraction between zero and one.
+   */
   // constants were derived as the best fit to 99 percentile empirically measured max error in thousands of trials
   public static double getNormalizedRankError(final int k) {
     return 2.446 / Math.pow(k, 0.943);
   }
 
+  /**
+   * Returns the number of bytes this sketch would require to store.
+   * @return the number of bytes this sketch would require to store.
+   */
   public int getSerializedSizeBytes() {
     if (isEmpty()) return N_LONG;
-    return DATA_START + (numLevels_ + 1) * Integer.BYTES + (getNumRetained() + 2) * Float.BYTES; // + 2 for min and max
+    return getSerializedSizeBytes(numLevels_, getNumRetained());
+  }
+
+  /**
+   * Returns upper bound on the serialized size of a sketch given a parameter K and stream length.
+   * The resulting size is an overestimate to make sure actual sketches don't exceed it.
+   * This method can be used if allocation of storage is necessary beforehand, but it is not optimal. 
+   * @param k
+   * @param n
+   * @return upper bound on the serialized size
+   */
+  public static int getMaxSerializedSizeBytes(final int k, final long n) {
+    final int numLevels = ub_on_num_levels(n);
+    final int maxNumItems = computeTotalCapacity(k, DEFAULT_M, numLevels);
+    return getSerializedSizeBytes(numLevels, maxNumItems);
   }
 
   @Override
   public String toString() {
     return toString(false, false);
   }
-  
+
+  /**
+   * Returns a summary of the sketch as a string
+   * @param withLevels if true include information about levels
+   * @param withData if true include sketch data
+   * @return string representation of sketch summary
+   */
   public String toString(final boolean withLevels, final boolean withData) {
     final String epsilonPct = String.format("%.3f%%", getNormalizedRankError() * 100);
     final StringBuilder sb = new StringBuilder();
@@ -260,33 +435,10 @@ public class KllFloatsSketch {
     return sb.toString();
   }
 
-  /* Adr:
-   *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
-   *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
-   *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
-   *  1   ||---------------------------------N_LONG---------------------------------------|
-   *      ||   23    |   22  |   21   |   20   |   19   |    18   |   17   |      16      |
-   *  2   ||---------------data----------------|--------|numLevels|-------min K-----------|
+  /**
+   * Returns serialized sketch in a byte array form.
+   * @return serialized sketch in a byte array form.
    */
-
-  private static final int PREAMBLE_INTS_BYTE = 0;
-  private static final int SER_VER_BYTE       = 1;
-  private static final int FAMILY_BYTE        = 2;
-  private static final int FLAGS_BYTE         = 3;
-  private static final int K_SHORT            = 4;  // to 5
-  private static final int M_BYTE             = 6;
-  private static final int N_LONG             = 8;  // to 15
-  private static final int MIN_K_SHORT        = 16;  // to 17
-  private static final int NUM_LEVELS_BYTE    = 18;
-  private static final int DATA_START         = 20;
-
-  private static final byte serialVersionUID = 1;
-
-  private enum Flags { IS_EMPTY, IS_LEVEL_ZERO_SORTED }
-
-  private static final int PREAMBLE_INTS_EMPTY = 2;
-  private static final int PREAMBLE_INTS_NONEMPTY = 5;
-
   public byte[] toByteArray() {
     final byte[] bytes = new byte[getSerializedSizeBytes()];
     bytes[PREAMBLE_INTS_BYTE] = (byte) (isEmpty() ? PREAMBLE_INTS_EMPTY : PREAMBLE_INTS_NONEMPTY);
@@ -319,6 +471,13 @@ public class KllFloatsSketch {
     return bytes;
   }
 
+  /**
+   * Heapify takes the sketch image in Memory and instantiates an on-heap sketch.
+   * The resulting sketch will not retain any link to the source Memory.
+   * @param mem a Memory image of a sketch.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @return a heap-based sketch based on the given Memory
+   */
   public static KllFloatsSketch heapify(final Memory mem) {
     final int preambleInts = mem.getByte(PREAMBLE_INTS_BYTE) & 0xff;
     final int serialVersion = mem.getByte(SER_VER_BYTE) & 0xff;
@@ -382,6 +541,21 @@ public class KllFloatsSketch {
     }
   }
 
+  private KllFloatsSketch(final int k, final int m) {
+    if (k < MIN_K || k > MAX_K) {
+      throw new SketchesArgumentException("K must be >= " + MIN_K + " and < " + MAX_K + ": " + k);
+    }
+    k_ = k;
+    m_ = m;
+    numLevels_ = 1;
+    levels_ = new int[] {k, k};
+    items_ = new float[k];
+    minValue_ = Float.NaN;
+    maxValue_ = Float.NaN;
+    isLevelZeroSorted_ = false;
+    minK_ = k;
+  }
+
   private KllFloatsQuantileCalculator getQuantileCalculator() {
     sortLevelZero(); // sort in the sketch to reuse if possible
     return new KllFloatsQuantileCalculator(items_, levels_, numLevels_, n_); 
@@ -424,7 +598,7 @@ public class KllFloatsSketch {
    * They must be unique, monotonically increasing and not NaN.
    * @param values the given array of values
    */
-  static final void validateValues(final float[] values) {
+  private static final void validateValues(final float[] values) {
     for (int i = 0; i < values.length ; i++) {
       if (Float.isNaN(values[i])) {
         throw new SketchesArgumentException("Values must not be NaN");
@@ -739,8 +913,6 @@ public class KllFloatsSketch {
     return total;
   }
 
-  // from intCaps
-
   private static int levelCapacity(final int k, final int numLevels, final int height, final int minWid) {
     assert height >= 0;
     assert height < numLevels;
@@ -774,8 +946,6 @@ public class KllFloatsSketch {
     assert (result <= k);
     return result;
   }
-
-  // from IntGeneralCompress
 
   /*
      Here is what we do for each level:
@@ -888,6 +1058,10 @@ public class KllFloatsSketch {
       total += levelCapacity(k, numLevels, h, m);
     }
     return total;
+  }
+
+  private static int getSerializedSizeBytes(final int numLevels, final int numRetained) {
+    return DATA_START + (numLevels + 1) * Integer.BYTES + (numRetained + 2) * Float.BYTES; // + 2 for min and max
   }
 
 }
