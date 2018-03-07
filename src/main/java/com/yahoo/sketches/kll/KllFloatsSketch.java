@@ -13,6 +13,16 @@ import com.yahoo.sketches.Util;
  * Implementation of a very compact quantiles sketch with lazy compaction scheme
  * and nearly optimal accuracy per bit.
  * See https://arxiv.org/abs/1603.05346v2
+ * 
+ * <p>This is a stochastic streaming sketch that enables near-real time analysis of the
+ * approximate distribution of real values from a very large stream in a single pass.
+ * The analysis is obtained using getQuantile() or getQuantiles() functions or inverse functions
+ * getRank(), Probability Mass Function from getPMF() and Cumulative Distribution Function from getCDF().
+ * 
+ * <p>The accuracy of this sketch is a function of the configured parameter <i>K</i>, which also affects
+ * the overall size of the sketch. Accuracy of this quantile sketch is always with respect to
+ * the normalized rank.
+ * 
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
@@ -20,7 +30,7 @@ public class KllFloatsSketch {
 
   private static final Random random = new Random();
 
-  public static final int DEFAULT_K = 256;
+  public static final int DEFAULT_K = 200;
   public static final int DEFAULT_M = 8;
   public static final int MIN_K = 8;
   public static final int MAX_K = (1 << 16) - 1; // serialized as an unsigned short
@@ -178,7 +188,7 @@ public class KllFloatsSketch {
       mergeHigherLevels(other, finalN);
     }
     n_ = finalN;
-    assert_correct_total_weight();
+    assertCorrectTotalWeight();
     minK_ = Math.min(minK_, other.minK_);
   }
 
@@ -347,6 +357,10 @@ public class KllFloatsSketch {
    * The lower bound would be the value in the hypothetical ordered stream of values at the
    * normalized rank of 0.487.
    *
+   * <p>The returned error is for so-called "two-sided"queries corresponding to histogram bins of getPMF().
+   * "One-sided" queries (getRank() and getCDF()) are expected to have slightly lower error (factor of 0.85 for
+   * small K=16 to 0.75 for large K=4096).
+   *
    * <p>The error of this sketch cannot be translated into an error (relative or absolute) of the
    * returned quantile values.
    *
@@ -384,7 +398,7 @@ public class KllFloatsSketch {
    * @return upper bound on the serialized size
    */
   public static int getMaxSerializedSizeBytes(final int k, final long n) {
-    final int numLevels = ub_on_num_levels(n);
+    final int numLevels = ubOnNumLevels(n);
     final int maxNumItems = computeTotalCapacity(k, DEFAULT_M, numLevels);
     return getSerializedSizeBytes(numLevels, maxNumItems);
   }
@@ -425,7 +439,7 @@ public class KllFloatsSketch {
       .append("index: nominal capacity, actual size").append(Util.LS);
       for (int i = 0; i < numLevels_; i++) {
         sb.append("   ").append(i).append(": ").append(levelCapacity(k_, numLevels_, i, m_))
-        .append(", ").append(safe_level_size(i)).append(Util.LS);
+        .append(", ").append(safeLevelSize(i)).append(Util.LS);
       }
       sb.append("### End sketch levels").append(Util.LS);
     }
@@ -656,7 +670,7 @@ public class KllFloatsSketch {
     final int rawLim = levels_[level + 1];
     final int popAbove = levels_[level + 2] - rawLim; // +2 is OK because we already added a new top level if necessary
     final int rawPop = rawLim - rawBeg;
-    final boolean oddPop = is_odd(rawPop);
+    final boolean oddPop = isOdd(rawPop);
     final int adjBeg = oddPop ? rawBeg + 1 : rawBeg;
     final int adjPop = oddPop ? rawPop - 1 : rawPop;
     final int halfAdjPop = adjPop / 2;
@@ -693,37 +707,37 @@ public class KllFloatsSketch {
     }
   }
 
-  private static void mergeSortedArrays(final float[] buf_a, final int start_a, final int len_a, final float[] buf_b,
-      final int start_b, final int len_b, final float[] buf_c, final int start_c) {
-    final int len_c = len_a + len_b;
-    final int lim_a = start_a + len_a;
-    final int lim_b = start_b + len_b;
-    final int lim_c = start_c + len_c;
+  private static void mergeSortedArrays(final float[] bufA, final int startA, final int lenA, final float[] bufB,
+      final int startB, final int lenB, final float[] bufC, final int startC) {
+    final int lenC = lenA + lenB;
+    final int limA = startA + lenA;
+    final int limB = startB + lenB;
+    final int limC = startC + lenC;
 
-    int a = start_a;
-    int b = start_b;
+    int a = startA;
+    int b = startB;
 
-    for (int c = start_c; c < lim_c; c++) {
-      if (a == lim_a) {
-        buf_c[c] = buf_b[b];
+    for (int c = startC; c < limC; c++) {
+      if (a == limA) {
+        bufC[c] = bufB[b];
         b++;
-      } else if (b == lim_b) {
-        buf_c[c] = buf_a[a];
+      } else if (b == limB) {
+        bufC[c] = bufA[a];
         a++;
-      } else if (buf_a[a] < buf_b[b]) { 
-        buf_c[c] = buf_a[a];
+      } else if (bufA[a] < bufB[b]) { 
+        bufC[c] = bufA[a];
         a++;
       } else {
-        buf_c[c] = buf_b[b];
+        bufC[c] = bufB[b];
         b++;
       }
     }
-    assert a == lim_a;
-    assert b == lim_b;
+    assert a == limA;
+    assert b == limB;
   }
 
   private static void randomlyHalveDown(final float[] buf, final int start, final int length) {
-    assert is_even(length);
+    assert isEven(length);
     final int half_length = length / 2;
     final int offset = random.nextInt(2);
     int j = start + offset;
@@ -734,7 +748,7 @@ public class KllFloatsSketch {
   }
 
   private static void randomlyHalveUp(final float[] buf, final int start, final int length) {
-    assert is_even(length);
+    assert isEven(length);
     final int half_length = length / 2;
     final int offset = random.nextInt(2);
     int j = start + length - 1 - offset;
@@ -744,11 +758,11 @@ public class KllFloatsSketch {
     }
   }
 
-  private static boolean is_even(final int value) {
+  private static boolean isEven(final int value) {
     return (value & 1) == 0;
   }
 
-  private static boolean is_odd(final int value) {
+  private static boolean isOdd(final int value) {
     return (value & 1) > 0;
   }
 
@@ -774,27 +788,27 @@ public class KllFloatsSketch {
 
     // note that merging MIGHT over-grow levels_, in which case we might not have to grow it here
     if (levels_.length < numLevels_ + 2) {
-      levels_ = grow_int_array(levels_, numLevels_ + 2);
+      levels_ = growIntArray(levels_, numLevels_ + 2);
     }
 
-    final int delta_cap = levelCapacity(k_, numLevels_ + 1, 0, m_);
-    final int new_total_cap = cur_total_cap + delta_cap;
+    final int deltaCap = levelCapacity(k_, numLevels_ + 1, 0, m_);
+    final int newTotalCap = cur_total_cap + deltaCap;
 
-    final float[] new_buf = new float[new_total_cap];
+    final float[] newBuf = new float[newTotalCap];
 
     // copy (and shift) the current data into the new buffer
-    System.arraycopy(items_, levels_[0], new_buf, levels_[0] + delta_cap, cur_total_cap);
-    items_ = new_buf;
+    System.arraycopy(items_, levels_[0], newBuf, levels_[0] + deltaCap, cur_total_cap);
+    items_ = newBuf;
 
     // this loop includes the old "extra" index at the top
     for (int i = 0; i <= numLevels_; i++) {
-      levels_[i] += delta_cap;
+      levels_[i] += deltaCap;
     }
 
-    assert levels_[numLevels_] == new_total_cap;
+    assert levels_[numLevels_] == newTotalCap;
 
     numLevels_++;
-    levels_[numLevels_] = new_total_cap; // initialize the new "extra" index at the top
+    levels_[numLevels_] = newTotalCap; // initialize the new "extra" index at the top
   }
 
   private void sortLevelZero() {
@@ -804,78 +818,78 @@ public class KllFloatsSketch {
     }
   }
 
-  private void mergeHigherLevels(final KllFloatsSketch other, final long final_n) {
-    int tmp_space_needed = getNumRetained() + other.getNumRetainedAboveLevelZero();
-    final float[] workbuf = new float[tmp_space_needed];
-    final int ub = ub_on_num_levels(final_n);
+  private void mergeHigherLevels(final KllFloatsSketch other, final long finalN) {
+    int tmpSpaceNeeded = getNumRetained() + other.getNumRetainedAboveLevelZero();
+    final float[] workbuf = new float[tmpSpaceNeeded];
+    final int ub = ubOnNumLevels(finalN);
     final int[] worklevels = new int[ub + 2]; // ub+1 does not work
     final int[] outlevels  = new int[ub + 2];
 
-    final int provisional_num_levels = Math.max(numLevels_, other.numLevels_);
+    final int provisionalNumLevels = Math.max(numLevels_, other.numLevels_);
 
-    populate_work_arrays(other, workbuf, worklevels, provisional_num_levels);
+    populateWorkArrays(other, workbuf, worklevels, provisionalNumLevels);
 
     // notice that workbuf is being used as both the input and output here
-    final int[] result = generalCompress(k_, m_, provisional_num_levels, workbuf, worklevels, workbuf,
+    final int[] result = generalCompress(k_, m_, provisionalNumLevels, workbuf, worklevels, workbuf,
         outlevels, isLevelZeroSorted_);
-    final int final_num_levels = result[0];
-    final int final_capacity = result[1];
-    final int final_pop = result[2];
+    final int finalNumLevels = result[0];
+    final int finalCapacity = result[1];
+    final int finalPop = result[2];
 
-    assert (final_num_levels <= ub); // can sometimes be much bigger
+    assert (finalNumLevels <= ub); // can sometimes be much bigger
 
     // now we need to transfer the results back into the "self" sketch
-    final float[] newbuf = final_capacity == items_.length ? items_ : new float[final_capacity];
-    final int free_space_at_bottom = final_capacity - final_pop;
-    System.arraycopy(workbuf, outlevels[0], newbuf, free_space_at_bottom, final_pop);
-    final int the_shift = free_space_at_bottom - outlevels[0];
+    final float[] newbuf = finalCapacity == items_.length ? items_ : new float[finalCapacity];
+    final int freeSpaceAtBottom = finalCapacity - finalPop;
+    System.arraycopy(workbuf, outlevels[0], newbuf, freeSpaceAtBottom, finalPop);
+    final int theShift = freeSpaceAtBottom - outlevels[0];
 
-    if (levels_.length < (final_num_levels + 1)) {
-      levels_ = new int[final_num_levels + 1];
+    if (levels_.length < (finalNumLevels + 1)) {
+      levels_ = new int[finalNumLevels + 1];
     }
 
-    for (int lvl = 0; lvl < final_num_levels + 1; lvl++) { // includes the "extra" index
-      levels_[lvl] = outlevels[lvl] + the_shift;
+    for (int lvl = 0; lvl < finalNumLevels + 1; lvl++) { // includes the "extra" index
+      levels_[lvl] = outlevels[lvl] + theShift;
     }
 
     items_ = newbuf;
-    numLevels_ = final_num_levels;
+    numLevels_ = finalNumLevels;
   }
 
-  private void populate_work_arrays(final KllFloatsSketch other, final float[] workbuf, final int[] worklevels, final int provisional_num_levels) {
+  private void populateWorkArrays(final KllFloatsSketch other, final float[] workbuf, final int[] worklevels, final int provisionalNumLevels) {
     worklevels[0] = 0;
 
     // Note: the level zero data from "other" was already inserted into "self"
-    final int self_pop_zero = safe_level_size(0);
-    System.arraycopy(items_, levels_[0], workbuf, worklevels[0], self_pop_zero);
-    worklevels[1] = worklevels[0] + self_pop_zero;
+    final int selfPopZero = safeLevelSize(0);
+    System.arraycopy(items_, levels_[0], workbuf, worklevels[0], selfPopZero);
+    worklevels[1] = worklevels[0] + selfPopZero;
 
-    for (int lvl = 1; lvl < provisional_num_levels; lvl++) {
-      final int self_pop = safe_level_size(lvl);
-      final int other_pop = other.safe_level_size(lvl);
-      worklevels[lvl + 1] = worklevels[lvl] + self_pop + other_pop;
+    for (int lvl = 1; lvl < provisionalNumLevels; lvl++) {
+      final int selfPop = safeLevelSize(lvl);
+      final int otherPop = other.safeLevelSize(lvl);
+      worklevels[lvl + 1] = worklevels[lvl] + selfPop + otherPop;
 
-      if (self_pop > 0 && other_pop == 0) {
-        System.arraycopy(items_, levels_[lvl], workbuf, worklevels[lvl], self_pop);
-      } else if (self_pop == 0 && other_pop > 0) {
-        System.arraycopy(other.items_, other.levels_[lvl], workbuf, worklevels[lvl], other_pop);
-      } else if (self_pop > 0 && other_pop > 0) {
-        mergeSortedArrays(items_, levels_[lvl], self_pop, other.items_, other.levels_[lvl], other_pop, workbuf, worklevels[lvl]);
+      if (selfPop > 0 && otherPop == 0) {
+        System.arraycopy(items_, levels_[lvl], workbuf, worklevels[lvl], selfPop);
+      } else if (selfPop == 0 && otherPop > 0) {
+        System.arraycopy(other.items_, other.levels_[lvl], workbuf, worklevels[lvl], otherPop);
+      } else if (selfPop > 0 && otherPop > 0) {
+        mergeSortedArrays(items_, levels_[lvl], selfPop, other.items_, other.levels_[lvl], otherPop, workbuf, worklevels[lvl]);
       }
     }
   }
 
-  private int safe_level_size(final int level) {
+  private int safeLevelSize(final int level) {
     if (level >= numLevels_) { return 0; }
     return levels_[level + 1] - levels_[level];
   }
 
-  private static int ub_on_num_levels(final long n) {
+  private static int ubOnNumLevels(final long n) {
     if (n == 0) { return 1; }
-    return 1 + floor_of_log2_of_fraction(n, 1);
+    return 1 + floorOfLog2OfFraction(n, 1);
   }
 
-  static int floor_of_log2_of_fraction(final long numer, long denom) {
+  static int floorOfLog2OfFraction(final long numer, long denom) {
     if (denom > numer) { return 0; }
     int count = 0;
     while (true) {
@@ -890,20 +904,20 @@ public class KllFloatsSketch {
     return levels_[numLevels_] - levels_[1];
   }
 
-  private static int[] grow_int_array(final int[] old_arr, final int new_len) {
-    final int old_len = old_arr.length;
-    assert new_len > old_len;
-    final int[] new_arr = new int[new_len];
-    System.arraycopy(old_arr, 0, new_arr, 0, old_len);
-    return new_arr;
+  private static int[] growIntArray(final int[] oldArr, final int newLen) {
+    final int oldLen = oldArr.length;
+    assert newLen > oldLen;
+    final int[] newArr = new int[newLen];
+    System.arraycopy(oldArr, 0, newArr, 0, oldLen);
+    return newArr;
   }
 
-  private void assert_correct_total_weight() {
-    long total = sum_the_sample_weights(numLevels_, levels_);
+  private void assertCorrectTotalWeight() {
+    long total = sumTheSampleWeights(numLevels_, levels_);
     assert total == n_;
   }
 
-  private static long sum_the_sample_weights(final int num_levels, final int[] levels) {
+  private static long sumTheSampleWeights(final int num_levels, final int[] levels) {
     long total = 0;
     long weight = 1;
     for (int lvl = 0; lvl < num_levels; lvl++) {
@@ -974,10 +988,10 @@ public class KllFloatsSketch {
     int numLevels = numLevelsIn;
     int currentItemCount = inLevels[numLevels] - inLevels[0]; // decreases with each compaction
     int targetItemCount = computeTotalCapacity(k, m, numLevels); // increases if we add levels
-    boolean done_yet = false;
+    boolean doneYet = false;
     outLevels[0] = 0;
     int curLevel = -1;
-    while (!done_yet) {
+    while (!doneYet) {
       curLevel++; // start out at level 0
 
       // If we are at the current top level, add an empty level above it for convenience,
@@ -1002,7 +1016,7 @@ public class KllFloatsSketch {
         // Note: this can add a level and thus change the sketches capacities
 
         final int popAbove = inLevels[curLevel + 2] - rawLim;
-        final boolean oddPop = is_odd(rawPop);
+        final boolean oddPop = isOdd(rawPop);
         final int adjBeg = oddPop ? 1 + rawBeg : rawBeg;
         final int adjPop = oddPop ? rawPop - 1 : rawPop;
         final int halfAdjPop = adjPop / 2;
@@ -1043,7 +1057,7 @@ public class KllFloatsSketch {
 
       // determine whether we have processed all levels yet (including any new levels that we created)
 
-      if (curLevel == numLevels - 1) { done_yet = true; }
+      if (curLevel == numLevels - 1) { doneYet = true; }
 
     } // end of loop over levels
 
