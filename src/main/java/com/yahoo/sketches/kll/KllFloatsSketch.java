@@ -290,7 +290,7 @@ public class KllFloatsSketch {
       for (int i = fromIndex; i < toIndex; i++) {
         if (items_[i] < value) {
           total += weight;
-        } else if (level > 0) {
+        } else if (level > 0 || isLevelZeroSorted_) {
           break; // levels above 0 are sorted, no point comparing further
         }
       }
