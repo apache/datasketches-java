@@ -88,7 +88,7 @@ public class KllFloatsSketch {
   private boolean isLevelZeroSorted_;
 
   /**
-   * Constructor with the default K (rank error of about 1.3%)
+   * Constructor with the default K (rank error of about 1.65%)
    */
   public KllFloatsSketch() {
     this(DEFAULT_K);
@@ -348,7 +348,7 @@ public class KllFloatsSketch {
    * would be its index position in the sorted version of the input stream. If we divide the
    * raw rank by N, it becomes the normalized rank, which is between 0 and 1.0.
    *
-   * <p>For example, choosing a K of 256 yields a normalized rank error of about 1.3%.
+   * <p>For example, choosing a K of 200 (default) yields a normalized rank error of about 1.65%.
    * The upper bound on the median value obtained by getQuantile(0.5) would be the value in the
    * hypothetical ordered stream of values at the normalized rank of 0.513.
    * The lower bound would be the value in the hypothetical ordered stream of values at the
