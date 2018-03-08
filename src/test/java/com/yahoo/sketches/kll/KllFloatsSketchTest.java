@@ -24,6 +24,7 @@ public class KllFloatsSketchTest {
     Assert.assertTrue(Float.isNaN(sketch.getMinValue()));
     Assert.assertTrue(Float.isNaN(sketch.getMaxValue()));
     Assert.assertTrue(Float.isNaN(sketch.getQuantile(0.5)));
+    Assert.assertNotNull(sketch.toString(true, true));
   }
 
   @Test

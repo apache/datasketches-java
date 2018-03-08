@@ -433,7 +433,7 @@ public class KllFloatsSketch {
 
     if (withLevels) {
       sb.append("### KLL sketch levels:").append(Util.LS)
-      .append("index: nominal capacity, actual size").append(Util.LS);
+      .append("   index: nominal capacity, actual size").append(Util.LS);
       for (int i = 0; i < numLevels_; i++) {
         sb.append("   ").append(i).append(": ").append(KllHelper.levelCapacity(k_, numLevels_, i, m_))
         .append(", ").append(safeLevelSize(i)).append(Util.LS);
@@ -441,7 +441,22 @@ public class KllFloatsSketch {
       sb.append("### End sketch levels").append(Util.LS);
     }
 
-    // withData is not implemented yet
+    if (withData) {
+      sb.append("### KLL sketch data:").append(Util.LS);
+      int level = 0;
+      while (level < numLevels_) {
+        final int fromIndex = levels_[level];
+        final int toIndex = levels_[level + 1]; // exclusive
+        if (fromIndex < toIndex) {
+          sb.append(" level ").append(level).append(":").append(Util.LS);
+        }
+        for (int i = fromIndex; i < toIndex; i++) {
+          sb.append("   ").append(items_[i]).append(Util.LS);
+        }
+        level++;
+      }
+      sb.append("### End sketch data").append(Util.LS);
+    }
 
     return sb.toString();
   }
