@@ -6,7 +6,9 @@
 package com.yahoo.sketches.quantiles;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
 class ItemsPmfCdfImpl {
 
@@ -51,7 +53,8 @@ class ItemsPmfCdfImpl {
       ItemsPmfCdfImpl.bilinearTimeIncrementHistogramCounters(
           (T[]) samples, 0, bbCount, weight, splitPoints, counters, sketch.getComparator());
     } else {
-      Arrays.sort(samples, 0, bbCount);
+      final List targets = Arrays.asList(samples).subList(0, bbCount);
+      Collections.sort(targets, sketch.getComparator());
       // sort is worth it when many split points
       linearTimeIncrementHistogramCounters(
           (T[]) samples, 0, bbCount, weight, splitPoints, counters, sketch.getComparator()

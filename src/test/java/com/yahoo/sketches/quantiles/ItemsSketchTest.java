@@ -12,6 +12,7 @@ import java.util.Comparator;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.testng.internal.collections.Ints;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
@@ -20,6 +21,11 @@ import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.ArrayOfStringsSerDe;
 import com.yahoo.sketches.SketchesArgumentException;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Function;
 
 public class ItemsSketchTest {
 
@@ -461,6 +467,44 @@ public class ItemsSketchTest {
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
+  }
+
+  @Test
+  public void testOrdering()
+  {
+    int[] values = new int[]{
+        78869, 17849, 132555, 139420, 16217, 25090, 134177, 131703, 53982, 95489, 159307, 90105, 177803, 82039, 188156,
+        56678, 154290, 127743, 180511, 5314, 100874, 25662, 124156, 196617, 85012, 65248, 101036, 158508, 44842, 31571,
+        43711, 11215, 82015, 140972, 55217, 85062, 73756, 2598, 36190, 41006, 25721, 159499, 168375, 96018, 15053,
+        116928, 181222, 174024, 56603, 179510, 44492, 113533, 137986, 128010, 163964, 107070, 115580, 125061, 187860,
+        54738, 172461, 82239, 85546, 113631, 60587, 23784, 125430, 52641, 163961, 137911, 80269, 167177, 113808, 51317,
+        194838, 6191, 180273, 159338, 170447, 178944, 198541, 189406, 167269, 79176, 29671, 121272, 120835, 180898,
+        65636, 12481, 140942, 78318, 122904, 101433, 100221, 101279, 128109, 39570, 170976, 112369, 100
+    };
+    final Comparator natural = Comparator.naturalOrder();
+    final Comparator reverse = natural.reversed();
+    final Comparator numeric = natural.thenComparing(
+        new Function()
+        {
+          @Override
+          public Integer apply(Object o)
+          {
+            return Integer.valueOf((String) o);
+          }
+        }
+    );
+    List<Integer> x = Ints.asList(values);
+    for (Comparator c : Arrays.asList(natural, reverse, numeric)) {
+      ItemsSketch<String> sketch = ItemsSketch.getInstance(16, c);
+      Collections.shuffle(x);
+      for (Integer value : x) {
+        sketch.update(String.valueOf(value));
+      }
+      String[] quantiles = sketch.getQuantiles(128);
+      Object[] sorted = Arrays.copyOf(quantiles, quantiles.length);
+      Arrays.sort(sorted, c);
+      Assert.assertEquals(quantiles, sorted, c.toString());
+    }
   }
 
   /**
