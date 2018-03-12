@@ -6,7 +6,9 @@
 package com.yahoo.sketches.quantiles;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -69,8 +71,8 @@ final class ItemsUtil {
 
     // this aliasing is a bit dangerous; notice that we did it after the possible resizing
     final Object[] baseBuffer = sketch.getCombinedBuffer();
-
-    Arrays.sort(baseBuffer, 0, bbCount);
+    final List targets = Arrays.asList(baseBuffer).subList(0, bbCount);
+    Collections.sort(targets, sketch.getComparator());
     ItemsUpdateImpl.inPlacePropagateCarry(
         0,
         null, 0,  // this null is okay
