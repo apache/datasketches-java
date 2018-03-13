@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018, Yahoo! Inc. Licensed under the terms of the
+ * Apache License 2.0. See LICENSE file at the project root for terms.
+ */
+
 package com.yahoo.sketches.kll;
 
 import java.util.Arrays;
@@ -7,7 +12,6 @@ import com.yahoo.sketches.QuantilesHelper;
 /**
  * Data structure for answering quantile queries based on the samples from KllSketch
  * @author Kevin Lang
- * @author Lee Rhodes
  * @author Alexander Saydakov
  */
 final class KllFloatsQuantileCalculator {
@@ -19,7 +23,8 @@ final class KllFloatsQuantileCalculator {
   private int numLevels_;
 
   // assumes that all levels are sorted including level 0
-  KllFloatsQuantileCalculator(final float[] items, final int[] levels, final int numLevels, final long n) {
+  KllFloatsQuantileCalculator(final float[] items, final int[] levels, final int numLevels,
+      final long n) {
     n_ = n;
     final int numItems = levels[numLevels] - levels[0];
     items_ = new float[numItems];
@@ -34,15 +39,16 @@ final class KllFloatsQuantileCalculator {
     final long pos = QuantilesHelper.posOfPhi(phi, n_);
     return approximatelyAnswerPositonalQuery(pos);
   }
-  
-  private float approximatelyAnswerPositonalQuery(long pos) {
+
+  private float approximatelyAnswerPositonalQuery(final long pos) {
     assert pos >= 0;
     assert pos < n_;
     final int index = QuantilesHelper.chunkContainingPos(weights_, pos);
     return items_[index];
   }
 
-  private void populateFromSketch(final float[] srcItems, final int[] srcLevels, final int numLevels, final int numItems) {
+  private void populateFromSketch(final float[] srcItems, final int[] srcLevels,
+      final int numLevels, final int numItems) {
     final int offset = srcLevels[0];
     System.arraycopy(srcItems, offset, items_, 0, numItems);
     int srcLevel = 0;
@@ -64,7 +70,8 @@ final class KllFloatsQuantileCalculator {
     numLevels_ = dstLevel;
   }
 
-  private static void blockyTandemMergeSort(final float[] items, final long[] weights, final int[] levels, final int numLevels) {
+  private static void blockyTandemMergeSort(final float[] items, final long[] weights,
+      final int[] levels, final int numLevels) {
     if (numLevels == 1) { return; }
 
     // duplicate the input in preparation for the "ping-pong" copy reduction strategy.
@@ -75,7 +82,8 @@ final class KllFloatsQuantileCalculator {
   }
 
   private static void blockyTandemMergeSortRecursion(final float[] itemsSrc, final long[] weightsSrc,
-      final float[] itemsDst, final long[] weightsDst, final int[] levels, final int startingLevel, final int numLevels) {
+      final float[] itemsDst, final long[] weightsDst, final int[] levels, final int startingLevel,
+      final int numLevels) {
     if (numLevels == 1) { return; }
     final int numLevels1 = numLevels / 2;
     final int numLevels2 = numLevels - numLevels1;
@@ -84,13 +92,18 @@ final class KllFloatsQuantileCalculator {
     final int startingLevel1 = startingLevel;
     final int startingLevel2 = startingLevel + numLevels1;
     // swap roles of src and dst
-    blockyTandemMergeSortRecursion(itemsDst, weightsDst, itemsSrc, weightsSrc, levels, startingLevel1, numLevels1);
-    blockyTandemMergeSortRecursion(itemsDst, weightsDst, itemsSrc, weightsSrc, levels, startingLevel2, numLevels2);
-    tandemMerge(itemsSrc, weightsSrc, itemsDst, weightsDst, levels, startingLevel1, numLevels1, startingLevel2, numLevels2);
+    blockyTandemMergeSortRecursion(itemsDst, weightsDst, itemsSrc, weightsSrc, levels,
+        startingLevel1, numLevels1);
+    blockyTandemMergeSortRecursion(itemsDst, weightsDst, itemsSrc, weightsSrc, levels,
+        startingLevel2, numLevels2);
+    tandemMerge(itemsSrc, weightsSrc, itemsDst, weightsDst, levels, startingLevel1, numLevels1,
+        startingLevel2, numLevels2);
   }
 
-  private static void tandemMerge(final float[] itemsSrc, final long[] weightsSrc, final float[] itemsDst, final long[] weightsDst,
-      final int[] levelStarts, final int startingLevel1, final int numLevels1, final int startingLevel2, final int numLevels2) {
+  private static void tandemMerge(final float[] itemsSrc, final long[] weightsSrc,
+      final float[] itemsDst, final long[] weightsDst,
+      final int[] levelStarts, final int startingLevel1, final int numLevels1,
+      final int startingLevel2, final int numLevels2) {
     final int fromIndex1 = levelStarts[startingLevel1];
     final int toIndex1 = levelStarts[startingLevel1 + numLevels1]; // exclusive
     final int fromIndex2 = levelStarts[startingLevel2];
@@ -99,7 +112,7 @@ final class KllFloatsQuantileCalculator {
     int iSrc2 = fromIndex2;
     int iDst = fromIndex1;
 
-    while (iSrc1 < toIndex1 && iSrc2 < toIndex2) {
+    while ((iSrc1 < toIndex1) && (iSrc2 < toIndex2)) {
       if (itemsSrc[iSrc1] < itemsSrc[iSrc2]) {
         itemsDst[iDst] = itemsSrc[iSrc1];
         weightsDst[iDst] = weightsSrc[iSrc1];

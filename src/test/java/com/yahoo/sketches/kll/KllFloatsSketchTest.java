@@ -5,7 +5,6 @@ import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.kll.KllFloatsSketch;
 
 public class KllFloatsSketchTest {
 
@@ -99,7 +98,8 @@ public class KllFloatsSketchTest {
     final double[] pmf = sketch.getPMF(values);
     double sumPmf = 0;
     for (int i = 0; i < n; i++) {
-      Assert.assertEquals(ranks[i], sketch.getRank(values[i]), NUMERIC_NOISE_TOLERANCE, "rank vs CDF for value " + i);
+      Assert.assertEquals(ranks[i], sketch.getRank(values[i]), NUMERIC_NOISE_TOLERANCE,
+          "rank vs CDF for value " + i);
       sumPmf += pmf[i];
       Assert.assertEquals(ranks[i], sumPmf, NUMERIC_NOISE_TOLERANCE, "CDF vs PMF for value " + i);
     }
@@ -128,21 +128,21 @@ public class KllFloatsSketchTest {
     final int n = 10000;
     for (int i = 0; i < n; i++) {
       sketch1.update(i);
-      sketch2.update(2 * n - i - 1);
+      sketch2.update((2 * n) - i - 1);
     }
 
     Assert.assertEquals(sketch2.getMinValue(), (float) n);
-    Assert.assertEquals(sketch2.getMaxValue(), (float) (2 * n - 1));
+    Assert.assertEquals(sketch2.getMaxValue(), (float) ((2 * n) - 1));
 
     Assert.assertEquals(sketch2.getMinValue(), (float) n);
-    Assert.assertEquals(sketch2.getMaxValue(), (float) (2 * n - 1));
+    Assert.assertEquals(sketch2.getMaxValue(), (float) ((2 * n) - 1));
 
     sketch1.merge(sketch2);
 
     Assert.assertFalse(sketch1.isEmpty());
     Assert.assertEquals(sketch1.getN(), 2 * n);
     Assert.assertEquals(sketch1.getMinValue(), 0f);
-    Assert.assertEquals(sketch1.getMaxValue(), (float) (2 * n - 1));
+    Assert.assertEquals(sketch1.getMaxValue(), (float) ((2 * n) - 1));
     Assert.assertEquals(sketch1.getQuantile(0.5), n, n * EPS_FOR_K_256);
   }
 
@@ -153,14 +153,14 @@ public class KllFloatsSketchTest {
     final int n = 10000;
     for (int i = 0; i < n; i++) {
       sketch1.update(i);
-      sketch2.update(2 * n - i - 1);
+      sketch2.update((2 * n) - i - 1);
     }
 
     Assert.assertEquals(sketch2.getMinValue(), (float) n);
-    Assert.assertEquals(sketch2.getMaxValue(), (float) (2 * n - 1));
+    Assert.assertEquals(sketch2.getMaxValue(), (float) ((2 * n) - 1));
 
     Assert.assertEquals(sketch2.getMinValue(), (float) n);
-    Assert.assertEquals(sketch2.getMaxValue(), (float) (2 * n - 1));
+    Assert.assertEquals(sketch2.getMaxValue(), (float) ((2 * n) - 1));
 
     Assert.assertTrue(sketch1.getNormalizedRankError() < sketch2.getNormalizedRankError());
 
@@ -172,7 +172,7 @@ public class KllFloatsSketchTest {
     Assert.assertFalse(sketch1.isEmpty());
     Assert.assertEquals(sketch1.getN(), 2 * n);
     Assert.assertEquals(sketch1.getMinValue(), 0f);
-    Assert.assertEquals(sketch1.getMaxValue(), (float) (2 * n - 1));
+    Assert.assertEquals(sketch1.getMaxValue(), (float) ((2 * n) - 1));
     Assert.assertEquals(sketch1.getQuantile(0.5), n, n * EPS_FOR_K_128);
   }
 
@@ -194,14 +194,16 @@ public class KllFloatsSketchTest {
     Assert.assertEquals(sketch1.getN(), n);
     Assert.assertEquals(sketch1.getMinValue(), 0f);
     Assert.assertEquals(sketch1.getMaxValue(), (float) (n - 1));
-    Assert.assertEquals(sketch1.getQuantile(0.5), n / 2, n / 2 * EPS_FOR_K_256);
+    Assert.assertEquals(sketch1.getQuantile(0.5), n / 2, (n / 2) * EPS_FOR_K_256);
 }
 
+  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooSmall() {
     new KllFloatsSketch(KllFloatsSketch.MIN_K - 1);
   }
 
+  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooLarge() {
     new KllFloatsSketch(KllFloatsSketch.MAX_K + 1);

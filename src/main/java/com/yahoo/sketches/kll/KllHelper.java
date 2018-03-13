@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018, Yahoo! Inc. Licensed under the terms of the
+ * Apache License 2.0. See LICENSE file at the project root for terms.
+ */
+
 package com.yahoo.sketches.kll;
 
 import java.util.Arrays;
@@ -42,7 +47,7 @@ class KllHelper {
       if (Float.isNaN(values[i])) {
         throw new SketchesArgumentException("Values must not be NaN");
       }
-      if (i < values.length - 1 && values[i] >= values[i + 1]) {
+      if ((i < (values.length - 1)) && (values[i] >= values[i + 1])) {
         throw new SketchesArgumentException(
           "Values must be unique and monotonically increasing");
       }
@@ -78,7 +83,7 @@ class KllHelper {
   }
 
   private static int intCapAux(final int k, final int depth) {
-    assert (k <= (1 << 30));  
+    assert (k <= (1 << 30));
     assert (depth <= 60);
     if (depth <= 30) { return intCapAuxAux(k, depth); }
     final int half = depth / 2;
@@ -88,7 +93,8 @@ class KllHelper {
   }
 
   // 0 <= power <= 30
-  private static final long[] powersOfThree = new long[] {1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441,
+  private static final long[] powersOfThree =
+      new long[] {1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441,
   1594323, 4782969, 14348907, 43046721, 129140163, 387420489, 1162261467,
   3486784401L, 10460353203L, 31381059609L, 94143178827L, 282429536481L,
   847288609443L, 2541865828329L, 7625597484987L, 22876792454961L, 68630377364883L,
@@ -114,8 +120,8 @@ class KllHelper {
     return total;
   }
 
-  static void mergeSortedArrays(final float[] bufA, final int startA, final int lenA, final float[] bufB,
-      final int startB, final int lenB, final float[] bufC, final int startC) {
+  static void mergeSortedArrays(final float[] bufA, final int startA, final int lenA,
+      final float[] bufB, final int startB, final int lenB, final float[] bufC, final int startC) {
     final int lenC = lenA + lenB;
     final int limA = startA + lenA;
     final int limB = startB + lenB;
@@ -131,7 +137,7 @@ class KllHelper {
       } else if (b == limB) {
         bufC[c] = bufA[a];
         a++;
-      } else if (bufA[a] < bufB[b]) { 
+      } else if (bufA[a] < bufB[b]) {
         bufC[c] = bufA[a];
         a++;
       } else {
@@ -144,24 +150,26 @@ class KllHelper {
   }
 
   /*
-     Here is what we do for each level:
-     If it does not need to be compacted, then simply copy it over.
-
-     Otherwise, it does need to be compacted, so...
-       Copy zero or one guy over.
-       If the level above is empty, halve up.
-       Else the level above is nonempty, so...
-            halve down, then merge up.
-       Adjust the boundaries of the level above.
-
-   * It can be proved that generalCompress returns a sketch that satisfies the space constraints no matter how much data is passed in
+   * Here is what we do for each level:
+   * If it does not need to be compacted, then simply copy it over.
+   *
+   * Otherwise, it does need to be compacted, so...
+   *   Copy zero or one guy over.
+   *   If the level above is empty, halve up.
+   *   Else the level above is nonempty, so...
+   *        halve down, then merge up.
+   *   Adjust the boundaries of the level above.
+   *
+   * It can be proved that generalCompress returns a sketch that satisfies the space constraints
+   * no matter how much data is passed in.
    * We are pretty sure that it works correctly when inBuf and outBuf are the same.
-   * All levels except for level zero must be sorted before calling this, and will still be sorted afterwards.
+   * All levels except for level zero must be sorted before calling this, and will still be
+   * sorted afterwards.
    * Level zero is not required to be sorted before, and may not be sorted afterwards.
-
+   *
    * trashes inBuf and inLevels
    * modifies outBuf and outLevels
-
+   *
    * returns (finalNumLevels, finalCapacity, finalItemCount)
    */
   static int[] generalCompress(final int k, final int m, final int numLevelsIn, final float[] inBuf,
@@ -178,7 +186,7 @@ class KllHelper {
 
       // If we are at the current top level, add an empty level above it for convenience,
       // but do not increment numLevels until later
-      if (curLevel == numLevels - 1) {
+      if (curLevel == (numLevels - 1)) {
         inLevels[curLevel + 2] = inLevels[curLevel + 1];
       }
 
@@ -186,7 +194,7 @@ class KllHelper {
       final int rawLim = inLevels[curLevel + 1];
       final int rawPop = rawLim - rawBeg;
 
-      if (currentItemCount < targetItemCount || rawPop < levelCapacity(k, numLevels, curLevel, m)) {
+      if ((currentItemCount < targetItemCount) || (rawPop < levelCapacity(k, numLevels, curLevel, m))) {
         // copy level over as is
         // because inBuf and outBuf could be the same, make sure we are not moving data upwards!
         assert (rawBeg >= outLevels[curLevel]);
@@ -211,7 +219,7 @@ class KllHelper {
         }
 
         // level zero might not be sorted, so we must sort it if we wish to compact it
-        if (curLevel == 0 && !isLevelZeroSorted) {
+        if ((curLevel == 0) && !isLevelZeroSorted) {
           Arrays.sort(inBuf, adjBeg, adjBeg + adjPop);
         }
 
@@ -230,7 +238,7 @@ class KllHelper {
 
         // Increment numLevels if we just compacted the old top level
         // This creates some more capacity (the size of the new bottom level)
-        if (curLevel == numLevels - 1) {
+        if (curLevel == (numLevels - 1)) {
           numLevels++;
           targetItemCount += levelCapacity(k, numLevels, 0, m);
         }
@@ -239,11 +247,11 @@ class KllHelper {
 
       // determine whether we have processed all levels yet (including any new levels that we created)
 
-      if (curLevel == numLevels - 1) { doneYet = true; }
+      if (curLevel == (numLevels - 1)) { doneYet = true; }
 
     } // end of loop over levels
 
-    assert outLevels[numLevels] - outLevels[0] == currentItemCount;
+    assert (outLevels[numLevels] - outLevels[0]) == currentItemCount;
 
     return new int[] {numLevels, targetItemCount, currentItemCount};
   }
@@ -253,7 +261,7 @@ class KllHelper {
     final int half_length = length / 2;
     final int offset = random.nextInt(2);
     int j = start + offset;
-    for (int i = start; i < start + half_length; i++) {
+    for (int i = start; i < (start + half_length); i++) {
       buf[i] = buf[j];
       j += 2;
     }
@@ -263,8 +271,8 @@ class KllHelper {
     assert isEven(length);
     final int half_length = length / 2;
     final int offset = random.nextInt(2);
-    int j = start + length - 1 - offset;
-    for (int i = start + length - 1; i >= start + half_length; i--) {
+    int j = (start + length) - 1 - offset;
+    for (int i = (start + length) - 1; i >= (start + half_length); i--) {
       buf[i] = buf[j];
       j -= 2;
     }
