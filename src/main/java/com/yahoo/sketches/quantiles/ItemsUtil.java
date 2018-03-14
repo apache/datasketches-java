@@ -70,7 +70,7 @@ final class ItemsUtil {
     // this aliasing is a bit dangerous; notice that we did it after the possible resizing
     final Object[] baseBuffer = sketch.getCombinedBuffer();
 
-    Arrays.sort(baseBuffer, 0, bbCount);
+    Arrays.sort((T[]) baseBuffer, 0, bbCount, sketch.getComparator());
     ItemsUpdateImpl.inPlacePropagateCarry(
         0,
         null, 0,  // this null is okay
