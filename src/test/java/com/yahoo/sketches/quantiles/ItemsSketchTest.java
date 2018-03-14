@@ -7,7 +7,9 @@ package com.yahoo.sketches.quantiles;
 
 import static org.testng.Assert.assertEquals;
 
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.function.Function;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -25,7 +27,7 @@ public class ItemsSketchTest {
 
   @BeforeMethod
   public void setUp() {
-    DoublesSketch.rand.setSeed(32749); // make sketches deterministic for testing
+    ItemsSketch.rand.setSeed(32749); // make sketches deterministic for testing
   }
 
   @Test
@@ -422,6 +424,22 @@ public class ItemsSketchTest {
     }
   }
 
+  @Test
+  public void getRankAndGetCdfConsistencyReverseComparator() {
+    ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Comparator.<Integer>naturalOrder().reversed());
+    final int n = 1_000_000;
+    final Integer[] values = new Integer[n];
+    for (int i = 0; i < n; i++) {
+      sketch.update(i);
+      values[i] = i;
+    }
+    Arrays.sort(values, sketch.getComparator());
+    final double[] ranks = sketch.getCDF(values);
+    for (int i = 0; i < n; i++) {
+      Assert.assertEquals(ranks[i], sketch.getRank(values[i]), 0.00001, "CDF vs rank for value " + i);
+    }
+  }
+
   private static void checkToFromByteArray2(int k, int n) {
     ItemsSketch<String> is = buildStringIS(k, n);
     byte[] byteArr;
@@ -456,6 +474,30 @@ public class ItemsSketchTest {
       sketch.update(Integer.toString(i + start));
     }
     return sketch;
+  }
+
+  @Test
+  public void testOrdering() {
+    final Comparator<String> natural = Comparator.naturalOrder();
+    final Comparator<String> reverse = natural.reversed();
+    final Comparator<String> numeric = natural.thenComparing(
+        new Function<String, Integer>() {
+          @Override
+          public Integer apply(String s) {
+            return Integer.valueOf(s);
+          }
+        }
+    );
+    for (Comparator<String> c : Arrays.asList(natural, reverse, numeric)) {
+      final ItemsSketch<String> sketch = ItemsSketch.getInstance(16, c);
+      for (int i = 0; i < 10000; i++) {
+        sketch.update(String.valueOf(ItemsSketch.rand.nextInt(1000000)));
+      }
+      final String[] quantiles = sketch.getQuantiles(100);
+      final String[] sorted = Arrays.copyOf(quantiles, quantiles.length);
+      Arrays.sort(sorted, c);
+      Assert.assertEquals(quantiles, sorted, c.toString());
+    }
   }
 
   @Test

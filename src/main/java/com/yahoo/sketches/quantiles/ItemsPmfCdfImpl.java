@@ -51,8 +51,8 @@ class ItemsPmfCdfImpl {
       ItemsPmfCdfImpl.bilinearTimeIncrementHistogramCounters(
           (T[]) samples, 0, bbCount, weight, splitPoints, counters, sketch.getComparator());
     } else {
-      Arrays.sort(samples, 0, bbCount);
       // sort is worth it when many split points
+      Arrays.sort((T[]) samples, 0, bbCount, sketch.getComparator());
       linearTimeIncrementHistogramCounters(
           (T[]) samples, 0, bbCount, weight, splitPoints, counters, sketch.getComparator()
       );
