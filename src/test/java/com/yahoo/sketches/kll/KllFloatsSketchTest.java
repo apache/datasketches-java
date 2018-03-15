@@ -16,6 +16,7 @@ public class KllFloatsSketchTest {
   @Test
   public void empty() {
     final KllFloatsSketch sketch = new KllFloatsSketch();
+    sketch.update(Float.NaN); // this must not change anything
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertEquals(sketch.getN(), 0);
     Assert.assertEquals(sketch.getNumRetained(), 0);
@@ -273,6 +274,12 @@ public class KllFloatsSketchTest {
     final KllFloatsSketch sketch = new KllFloatsSketch();
     sketch.update(0);
     sketch.getCDF(new float[] {Float.NaN});
+  }
+
+  @Test
+  public void getMaxSerializedSizeBytes() {
+    final int sizeBytes = KllFloatsSketch.getMaxSerializedSizeBytes(KllFloatsSketch.DEFAULT_K, 1_000_000_000);
+    Assert.assertEquals(sizeBytes, 3160);
   }
 
 }
