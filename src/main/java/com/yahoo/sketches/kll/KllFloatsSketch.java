@@ -16,7 +16,7 @@ import com.yahoo.sketches.Util;
 /**
  * Implementation of a very compact quantiles sketch with lazy compaction scheme
  * and nearly optimal accuracy per bit.
- * See https://arxiv.org/abs/1603.05346v2
+ * See <a href="https://arxiv.org/abs/1603.05346v2">Optimal Quantile Approximation in Streams</a>
  *
  * <p>This is a stochastic streaming sketch that enables near-real time analysis of the
  * approximate distribution of real values from a very large stream in a single pass.
