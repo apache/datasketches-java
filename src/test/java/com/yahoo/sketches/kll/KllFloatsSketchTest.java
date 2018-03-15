@@ -24,7 +24,17 @@ public class KllFloatsSketchTest {
     Assert.assertTrue(Float.isNaN(sketch.getMinValue()));
     Assert.assertTrue(Float.isNaN(sketch.getMaxValue()));
     Assert.assertTrue(Float.isNaN(sketch.getQuantile(0.5)));
+    Assert.assertNull(sketch.getQuantiles(new double[] {0}));
+    Assert.assertNull(sketch.getPMF(new float[] {0}));
     Assert.assertNotNull(sketch.toString(true, true));
+    Assert.assertNotNull(sketch.toString());
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkBadGetQuantiles() {
+    final KllFloatsSketch sketch = new KllFloatsSketch();
+    sketch.update(1);
+    sketch.getQuantile(-1.0);
   }
 
   @Test
@@ -196,7 +206,25 @@ public class KllFloatsSketchTest {
     Assert.assertEquals(sketch1.getMinValue(), 0f);
     Assert.assertEquals(sketch1.getMaxValue(), (float) (n - 1));
     Assert.assertEquals(sketch1.getQuantile(0.5), n / 2, (n / 2) * EPS_FOR_K_256);
-}
+
+    //merge the other way
+    sketch2.merge(sketch1);
+    Assert.assertFalse(sketch1.isEmpty());
+    Assert.assertEquals(sketch1.getN(), n);
+    Assert.assertEquals(sketch1.getMinValue(), 0f);
+    Assert.assertEquals(sketch1.getMaxValue(), (float) (n - 1));
+    Assert.assertEquals(sketch1.getQuantile(0.5), n / 2, (n / 2) * EPS_FOR_K_256);
+  }
+
+  @Test
+  public void checkMergeUseOtherMinValue() {
+    final KllFloatsSketch sketch1 = new KllFloatsSketch();
+    final KllFloatsSketch sketch2 = new KllFloatsSketch();
+    sketch1.update(1);
+    sketch2.update(2);
+    sketch2.merge(sketch1);
+    Assert.assertEquals(sketch2.getMinValue(), 1.0F);
+  }
 
   @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -280,6 +308,17 @@ public class KllFloatsSketchTest {
   public void getMaxSerializedSizeBytes() {
     final int sizeBytes = KllFloatsSketch.getMaxSerializedSizeBytes(KllFloatsSketch.DEFAULT_K, 1_000_000_000);
     Assert.assertEquals(sizeBytes, 3160);
+  }
+
+  @Test
+  public void checkUbOnNumLevels() {
+    Assert.assertEquals(KllHelper.ubOnNumLevels(0), 1);
+  }
+
+  @Test
+  public void checkIntCapAux() {
+    final int lvlCap = KllHelper.levelCapacity(10, 100, 50, 8);
+    Assert.assertEquals(lvlCap, 8);
   }
 
 }
