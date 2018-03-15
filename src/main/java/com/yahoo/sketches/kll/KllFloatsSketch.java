@@ -34,9 +34,9 @@ import com.yahoo.sketches.Util;
 public class KllFloatsSketch {
 
   public static final int DEFAULT_K = 200;
-  public static final int DEFAULT_M = 8;
-  public static final int MIN_K = 8;
-  public static final int MAX_K = (1 << 16) - 1; // serialized as an unsigned short
+  static final int DEFAULT_M = 8;
+  static final int MIN_K = 8;
+  static final int MAX_K = (1 << 16) - 1; // serialized as an unsigned short
 
   /* Serialized sketch layout:
    *  Adr:
@@ -101,7 +101,9 @@ public class KllFloatsSketch {
   }
 
   /**
-   * Constructor with a given parameter K
+   * Constructor with a given parameter K. K can be any value between 8 and 65535, inclusive.
+   * The default K = 200 results in a normalized rank error of about 1.65%. Higher values of K
+   * will have smaller error but the sketch will be larger (and slower).
    * @param k parameter that controls size of the sketch and accuracy of estimates
    */
   public KllFloatsSketch(final int k) {
