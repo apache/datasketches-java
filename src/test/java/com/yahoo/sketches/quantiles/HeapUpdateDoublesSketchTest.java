@@ -19,13 +19,13 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import java.lang.reflect.Method;
-
+import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
+import com.yahoo.sketches.QuantilesHelper;
 import com.yahoo.sketches.SketchesArgumentException;
 
 public class HeapUpdateDoublesSketchTest {
@@ -126,7 +126,7 @@ public class HeapUpdateDoublesSketchTest {
     for (int k = 2; k <= 32; k *= 2) {
       HeapUpdateDoublesSketch qs = HeapUpdateDoublesSketch.newInstance(k);
       for (int numItemsSoFar = 0; numItemsSoFar < 1000; numItemsSoFar++) {
-        DoublesAuxiliary aux = qs.constructAuxiliary();
+        DoublesAuxiliary aux = new DoublesAuxiliary(qs);
         int numSamples = qs.getRetainedItems();
         double[] auxItems = aux.auxSamplesArr_;
         long[] auxAccum = aux.auxCumWtsArr_;
@@ -866,10 +866,7 @@ public class HeapUpdateDoublesSketchTest {
   @Test
   public void checkAuxPosOfPhi() throws Exception {
     long n = 10;
-    Method privateMethod =
-        DoublesAuxiliary.class.getDeclaredMethod("posOfPhi", double.class, long.class );
-    privateMethod.setAccessible(true);
-    long returnValue = (long) privateMethod.invoke(null, Double.valueOf(1.0), Long.valueOf(10));
+    long returnValue = QuantilesHelper.posOfPhi(1.0, 10);
     //println("" + returnValue);
     assertEquals(returnValue, n-1);
   }
@@ -1001,6 +998,12 @@ public class HeapUpdateDoublesSketchTest {
     for (int i = 0; i < n; i++) {
       assertEquals(ranks[i], sketch.getRank(values[i]), 0.00001, "CDF vs rank for value " + i);
     }
+  }
+
+  @Test
+  public void maxK() {
+    final UpdateDoublesSketch sketch = DoublesSketch.builder().setK(32768).build();
+    Assert.assertEquals(sketch.getK(), 32768);
   }
 
   //private methods

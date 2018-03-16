@@ -10,6 +10,8 @@ import static java.lang.System.arraycopy;
 
 import java.util.Arrays;
 
+import com.yahoo.sketches.QuantilesHelper;
+
 /**
  * Auxiliary data structure for answering quantile queries
  *
@@ -43,15 +45,8 @@ final class DoublesAuxiliary {
     //  taking advantage of the already sorted blocks of length k
     blockyTandemMergeSort(itemsArr, cumWtsArr, numSamples, k);
 
-    // convert the item weights into totals of the weights preceding each item
-    long subtot = 0;
-    for (int i = 0; i < numSamples + 1; i++ ) {
-      final long newSubtot = subtot + cumWtsArr[i];
-      cumWtsArr[i] = subtot;
-      subtot = newSubtot;
-    }
-
-    assert subtot == n;
+    final long total = QuantilesHelper.convertToPrecedingCummulative(cumWtsArr);
+    assert total == n;
 
     auxN_ = n;
     auxSamplesArr_ = itemsArr;
@@ -68,20 +63,8 @@ final class DoublesAuxiliary {
     assert phi <= 1.0;
     final long n = this.auxN_;
     if (n <= 0) { return Double.NaN; }
-    final long pos = posOfPhi(phi, n);
+    final long pos = QuantilesHelper.posOfPhi(phi, n);
     return approximatelyAnswerPositionalQuery(pos);
-  }
-
-  /**
-   * Returns the zero-based index (position) of a value in the hypothetical sorted stream of
-   * values of size n. Also used by ItemsAuxiliary.
-   * @param phi the fractional position where: 0 &le; &#966; &le; 1.0.
-   * @param n the size of the stream
-   * @return the index, a value between 0 and n-1.
-   */
-  static long posOfPhi(final double phi, final long n) { //don't tinker with this definition
-    final long pos = (long) Math.floor(phi * n);
-    return (pos == n) ? n - 1 : pos;
   }
 
   /**
@@ -99,7 +82,7 @@ final class DoublesAuxiliary {
   private double approximatelyAnswerPositionalQuery(final long pos) {
     assert 0 <= pos;
     assert pos < this.auxN_;
-    final int index = chunkContainingPos(this.auxCumWtsArr_, pos);
+    final int index = QuantilesHelper.chunkContainingPos(this.auxCumWtsArr_, pos);
     return this.auxSamplesArr_[index];
   }
 
@@ -149,63 +132,6 @@ final class DoublesAuxiliary {
     final int numSamples = nxt;
     Arrays.sort(itemsArr, startOfBaseBufferBlock, numSamples);
     cumWtsArr[numSamples] = 0;
-  }
-
-
-  /**
-   * This is written in terms of a plain array to facilitate testing.
-   * Also used by ItemsAuxiliary.
-   * @param arr the chunk containing the position
-   * @param pos the position
-   * @return the index of the chunk containing the position
-   */
-  static int chunkContainingPos(final long[] arr, final long pos) {
-    final int nominalLength = arr.length - 1; /* remember, arr contains an "extra" position */
-    assert nominalLength > 0;
-    final long n = arr[nominalLength];
-    assert 0 <= pos;
-    assert pos < n;
-    final int l = 0;
-    final int r = nominalLength;
-    // the following three asserts should probably be retained since they ensure
-    // that the necessary invariants hold at the beginning of the search
-    assert l < r;
-    assert arr[l] <= pos;
-    assert pos < arr[r];
-    return searchForChunkContainingPos(arr, pos, l, r);
-  }
-
-  // Let m_i denote the minimum position of the length=n "full" sorted sequence
-  //   that is represented in slot i of the length = n "chunked" sorted sequence.
-  //
-  // Note that m_i is the same thing as auxCumWtsArr_[i]
-  //
-  // Then the answer to a positional query 0 <= q < n is l, where 0 <= l < len,
-  // A)  m_l <= q
-  // B)   q  < m_r
-  // C)   l+1 = r
-  //
-  // A) and B) provide the invariants for our binary search.
-  // Observe that they are satisfied by the initial conditions:  l = 0 and r = len.
-  private static int searchForChunkContainingPos(
-      final long[] arr, final long pos, final int l, final int r) {
-    // the following three asserts can probably go away eventually, since it is fairly clear
-    // that if these invariants hold at the beginning of the search, they will be maintained
-    assert l < r;
-    assert arr[l] <= pos;
-    assert pos < arr[r];
-    if (l + 1 == r) {
-      return l;
-    }
-    else {
-      final int m = l + (r - l) / 2;
-      if (arr[m] <= pos) {
-        return (searchForChunkContainingPos(arr, pos, m, r));
-      }
-      else {
-        return (searchForChunkContainingPos(arr, pos, l, m));
-      }
-    }
   }
 
   /**
@@ -323,12 +249,13 @@ final class DoublesAuxiliary {
       if (keySrc[i2] < keySrc[i1]) {
         keyDst[i3] = keySrc[i2];
         valDst[i3] = valSrc[i2];
-        i3++; i2++;
+        i2++;
       } else {
         keyDst[i3] = keySrc[i1];
         valDst[i3] = valSrc[i1];
-        i3++; i1++;
+        i1++;
       }
+      i3++;
     }
 
     if (i1 < arrStop1) {

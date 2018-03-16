@@ -50,8 +50,8 @@ final class Util {
    */
   public static double computeKSDelta(final DoublesSketch sketch1,
       final DoublesSketch sketch2) {
-    final DoublesAuxiliary p = sketch1.constructAuxiliary();
-    final DoublesAuxiliary q = sketch2.constructAuxiliary();
+    final DoublesAuxiliary p = new DoublesAuxiliary(sketch1);
+    final DoublesAuxiliary q = new DoublesAuxiliary(sketch2);
 
     final double[] pSamplesArr = p.auxSamplesArr_;
     final double[] qSamplesArr = q.auxSamplesArr_;
