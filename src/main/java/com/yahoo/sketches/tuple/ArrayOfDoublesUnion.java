@@ -217,8 +217,7 @@ public abstract class ArrayOfDoublesUnion {
             : new DirectArrayOfDoublesQuickSelectSketchR(sketchMem, seed);
     final ArrayOfDoublesUnion union = isWritable
         ? new DirectArrayOfDoublesUnion(sketch, mem) : new DirectArrayOfDoublesUnionR(sketch, mem);
-    final long unionTheta = mem.getLong(ArrayOfDoublesUnion.THETA_LONG);
-    union.setThetaLong(unionTheta);
+    union.theta_ = mem.getLong(ArrayOfDoublesUnion.THETA_LONG);
     return union;
   }
 
