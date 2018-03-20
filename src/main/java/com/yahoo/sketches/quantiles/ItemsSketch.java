@@ -106,7 +106,14 @@ public final class ItemsSketch<T> {
    * received in exactly the same order. This is only useful when performing test comparisons,
    * otherwise is not recommended.
    */
-  public static final Random rand = new Random();
+  public static final ThreadLocal<Random> rand = new ThreadLocal<Random>()
+  {
+    @Override
+    protected Random initialValue()
+    {
+      return new Random();
+    }
+  };
 
   private ItemsSketch(final int k, final Comparator<? super T> comparator) {
     Util.checkK(k);
