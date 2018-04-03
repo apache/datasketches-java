@@ -4,9 +4,6 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.Random;
-import java.util.function.Predicate;
-
-import static org.testng.Assert.*;
 
 public class FilterTest {
 
@@ -17,7 +14,7 @@ public class FilterTest {
         DoubleSummaryFactory factory = new DoubleSummaryFactory(DoubleSummary.Mode.Sum);
         Sketch<DoubleSummary> sketch = Sketches.createEmptySketch();
 
-        Filter<DoubleSummary> filter = new Filter<>(o -> true, factory);
+        Filter<DoubleSummary> filter = new Filter<>(o -> true);
 
         Sketch<DoubleSummary> filteredSketch = filter.filter(sketch);
 
@@ -33,7 +30,7 @@ public class FilterTest {
 
         fillSketch(sketch, numberOfElements, 0.0d);
 
-        Filter<DoubleSummary> filter = new Filter<>(o -> true, factory);
+        Filter<DoubleSummary> filter = new Filter<>(o -> true);
 
         Sketch<DoubleSummary> filteredSketch = filter.filter(sketch);
 
@@ -50,7 +47,7 @@ public class FilterTest {
         fillSketch(sketch, numberOfElements, 0.0d);
         fillSketch(sketch, 2 * numberOfElements, 1.0d);
 
-        Filter<DoubleSummary> filter = new Filter<>(o -> o.getValue() < 0.5d, factory);
+        Filter<DoubleSummary> filter = new Filter<>(o -> o.getValue() < 0.5d);
 
         Sketch<DoubleSummary> filteredSketch = filter.filter(sketch);
 
