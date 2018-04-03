@@ -29,6 +29,9 @@ public class Filter<T extends Summary> {
      * @return A new Sketch with some of the elements filtered based on the {@link Predicate}
      */
     public CompactSketch<T> filter(Sketch<T> sketchIn) {
+        if (sketchIn == null)
+            return new CompactSketch<>(null, null, Long.MAX_VALUE, true);
+
         QuickSelectSketch<T> sketch = new QuickSelectSketch<>(sketchIn.getRetainedEntries(), ResizeFactor.X1.lg(), null);
         boolean empty = true;
 

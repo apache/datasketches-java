@@ -23,6 +23,17 @@ public class FilterTest {
     }
 
     @Test
+    public void testFilterNullSketch() {
+        Filter<DoubleSummary> filter = new Filter<>(o -> true);
+
+        Sketch<DoubleSummary> filteredSketch = filter.filter(null);
+
+        Assert.assertEquals(filteredSketch.getEstimate(), 0.0d);
+        Assert.assertEquals(filteredSketch.getThetaLong(), Long.MAX_VALUE);
+        Assert.assertTrue(filteredSketch.isEmpty());
+    }
+
+    @Test
     public void testFilterFilledSketchShouldBehaveTheSame() {
         UpdatableSketch<Double, DoubleSummary> sketch = new UpdatableSketchBuilder<>(new DoubleSummaryFactory()).build();
 
