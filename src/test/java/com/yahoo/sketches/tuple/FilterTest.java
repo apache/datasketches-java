@@ -23,6 +23,7 @@ public class FilterTest {
 
         Assert.assertEquals(filteredSketch.getEstimate(), 0.0d);
         Assert.assertEquals(filteredSketch.getThetaLong(), sketch.getThetaLong());
+        Assert.assertTrue(filteredSketch.isEmpty());
     }
 
     @Test
@@ -38,6 +39,7 @@ public class FilterTest {
 
         Assert.assertEquals(filteredSketch.getEstimate(), sketch.getEstimate());
         Assert.assertEquals(filteredSketch.getThetaLong(), sketch.getThetaLong());
+        Assert.assertFalse(filteredSketch.isEmpty());
     }
 
     @Test
@@ -54,6 +56,7 @@ public class FilterTest {
 
         Assert.assertEquals(filteredSketch.getEstimate(), 100.0d);
         Assert.assertEquals(filteredSketch.getThetaLong(), sketch.getThetaLong());
+        Assert.assertFalse(filteredSketch.isEmpty());
     }
 
     private void fillSketch(UpdatableSketch<Double, DoubleSummary> sketch, int numberOfElements, Double sketchValue) {

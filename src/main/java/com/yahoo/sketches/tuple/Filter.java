@@ -31,17 +31,20 @@ public class Filter<T extends Summary> {
      */
     public CompactSketch<T> filter(Sketch<T> sketchIn) {
         QuickSelectSketch<T> sketch = new QuickSelectSketch<>(sketchIn.getRetainedEntries(), 0, summaryFactory);
+        boolean empty = true;
 
         final SketchIterator<T> it = sketchIn.iterator();
         while (it.next()) {
             final T summary = it.getSummary();
             if (predicate.test(summary)) {
                 sketch.insert(it.getKey(), summary.copy());
+                empty = false;
             }
         }
 
         sketch.setThetaLong(sketchIn.getThetaLong());
-        sketch.setNotEmpty();
+        if (!empty)
+            sketch.setNotEmpty();
 
         return sketch.compact();
     }
