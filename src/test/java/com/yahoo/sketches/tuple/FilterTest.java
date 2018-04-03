@@ -11,7 +11,6 @@ public class FilterTest {
 
     @Test
     public void testFilterEmptySketch() {
-        DoubleSummaryFactory factory = new DoubleSummaryFactory(DoubleSummary.Mode.Sum);
         Sketch<DoubleSummary> sketch = Sketches.createEmptySketch();
 
         Filter<DoubleSummary> filter = new Filter<>(o -> true);
@@ -25,7 +24,6 @@ public class FilterTest {
 
     @Test
     public void testFilterFilledSketchShouldBehaveTheSame() {
-        DoubleSummaryFactory factory = new DoubleSummaryFactory(DoubleSummary.Mode.Sum);
         UpdatableSketch<Double, DoubleSummary> sketch = new UpdatableSketchBuilder<>(new DoubleSummaryFactory()).build();
 
         fillSketch(sketch, numberOfElements, 0.0d);
@@ -41,7 +39,6 @@ public class FilterTest {
 
     @Test
     public void testFilterFilledSketchShouldFilterOutElements() {
-        DoubleSummaryFactory factory = new DoubleSummaryFactory(DoubleSummary.Mode.Sum);
         UpdatableSketch<Double, DoubleSummary> sketch = new UpdatableSketchBuilder<>(new DoubleSummaryFactory()).build();
 
         fillSketch(sketch, numberOfElements, 0.0d);
