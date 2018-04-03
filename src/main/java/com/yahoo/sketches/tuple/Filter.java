@@ -1,5 +1,7 @@
 package com.yahoo.sketches.tuple;
 
+import com.yahoo.sketches.ResizeFactor;
+
 import java.util.function.Predicate;
 
 /**
@@ -27,7 +29,7 @@ public class Filter<T extends Summary> {
      * @return A new Sketch with some of the elements filtered based on the {@link Predicate}
      */
     public CompactSketch<T> filter(Sketch<T> sketchIn) {
-        QuickSelectSketch<T> sketch = new QuickSelectSketch<>(sketchIn.getRetainedEntries(), 0, null);
+        QuickSelectSketch<T> sketch = new QuickSelectSketch<>(sketchIn.getRetainedEntries(), ResizeFactor.X1.lg(), null);
         boolean empty = true;
 
         final SketchIterator<T> it = sketchIn.iterator();
