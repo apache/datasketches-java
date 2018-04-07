@@ -5,6 +5,15 @@
 
 package com.yahoo.sketches.kll;
 
+import static java.lang.Math.abs;
+import static java.lang.Math.ceil;
+import static java.lang.Math.exp;
+import static java.lang.Math.log;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.lang.Math.pow;
+import static java.lang.Math.round;
+
 import java.util.Arrays;
 
 import com.yahoo.memory.Memory;
@@ -16,26 +25,104 @@ import com.yahoo.sketches.Util;
 /**
  * Implementation of a very compact quantiles sketch with lazy compaction scheme
  * and nearly optimal accuracy per bit.
- * See <a href="https://arxiv.org/abs/1603.05346v2">Optimal Quantile Approximation in Streams</a>
+ * See <a href="https://arxiv.org/abs/1603.05346v2">Optimal Quantile Approximation in Streams</a>.
  *
  * <p>This is a stochastic streaming sketch that enables near-real time analysis of the
  * approximate distribution of real values from a very large stream in a single pass.
- * The analysis is obtained using getQuantile() or getQuantiles() functions or inverse functions
- * getRank(), Probability Mass Function from getPMF() and Cumulative Distribution Function from
- * getCDF().
+ * The analysis is obtained using <i>getQuantile()</i> or <i>getQuantiles()</i> functions or the
+ * inverse functions getRank(), getPMF() (Probability Mass Function) and getCDF()
+ * (Cumulative Distribution Function).
  *
- * <p>The accuracy of this sketch is a function of the configured parameter <i>K</i>, which also
- * affects the overall size of the sketch. Accuracy of this quantile sketch is always with respect
- * to the normalized rank.
+ * <p>Given an input stream of <i>N</i> numeric values, the <i>absolute rank</i> of any specific
+ * value is defined as its index <i>(0 to N-1)</i> in the hypothetical sorted stream of all
+ * <i>N</i> input values.
+ *
+ * <p>The <i>normalized rank</i> (<i>rank</i>) of any specific value is defined as its
+ * <i>absolute rank</i> divided by <i>N</i>.
+ * Thus, the <i>normalized rank</i> is a value between zero and one.
+ * In the documentation and Javadocs for this sketch <i>absolute rank</i> is never used so any
+ * reference to just <i>rank</i> should be interpreted to mean <i>normalized rank</i>.
+ *
+ * <p>This sketch is configured with a parameter <i>k</i>, which affects the size of the sketch
+ * and its estimation error.
+ *
+ * <p>The estimation error is commonly called <i>epsilon</i> (or <i>eps</i>) and is a fraction
+ * between zero and one. Larger values of <i>k</i> result in smaller values of epsilon.
+ * Epsilon is always with respect to the rank and cannot be applied to the
+ * corresponding values.
+ *
+ * <p>The relationship between the normalized rank and the corresponding values can be viewed
+ * as a two dimensional monotonic plot with the normalized rank on one axis and the
+ * corresponding values on the other axis. If the y-axis is specified as the value-axis and
+ * the normalized rank as the x-axis, then <i>y = getQuantile(x)</i> is a monotonically
+ * increasing function.
+ *
+ * <p>The functions <i>getQuantile(rank)</i> and getQuantiles(...) are "forward" functions
+ * that translate ranks into corrseponding values. The "inverse" functions <i>getRank(value),
+ * getCDF(...) (Cumulative Distribution Function), and getPMF(...)
+ * (Probability Mass Function)</i> translate values into ranks.
+ *
+ * <p>The <i>getPMF(...)</i> function has about 13 to 47% worse rank error (depending
+ * on <i>k</i>) than the other queries because the mass of each "bin" of the PMF has
+ * "double-sided" error from the upper and lower edges of the bin as a result of a subtraction,
+ * as the errors from the two edges can sometimes add.
+ *
+ * <p>The defult <i>k</i> of 200 yields a "single-sided" epsilon of about 1.33% and a
+ * "double-sided" (PMF) epsilon of about 1.65%.
+ *
+ * <p>A "forward" <i>getQuantile(rank)</i> query has the following guarantees:
+ * <ul>
+ * <li>Let <i>v = getQuantile(r)</i> where <i>r</i> is the rank between zero and one.</li>
+ * <li>The value <i>v</i> will be a value from the input stream.</li>
+ * <li>Let <i>trueRank</i> be the true rank of <i>v</i> derived from the hypothetical sorted
+ * stream of all <i>N</i> values.</li>
+ * <li>Let <i>eps = getNormalizedRankError(false)</i>.</li>
+ * <li>Then <i>r - eps &le; trueRank &le; r + eps</i> with a confidence of 99%.</li>
+ * </ul>
+ *
+ * <p>An "inverse" <i>getRank(value)</i> query has the following guarantees:
+ * <ul>
+ * <li>Let <i>r = getRank(v)</i> where <i>v</i> is a value between the min and max values of
+ * the input stream.</li>
+ * <li>Let <i>trueRank</i> be the true rank of <i>v</i> derived from the hypothetical sorted
+ * stream of all <i>N</i> values.</li>
+ * <li>Let <i>eps = getNormalizedRankError(false)</i>.</li>
+ * <li>Then <i>r - eps &le; trueRank &le; r + eps</i> with a confidence of 99%.</li>
+ * </ul>
+ *
+ * <p>An "inverse" <i>getPMF(...)</i> query has the following guarantees;
+ * <ul>
+ * <li>Let <i>{r1, r2} = getPMF(v1, v2)</i> where <i>v1, v2</i> are values between the min and
+ * max values of the input stream.
+ * <li>Let <i>mass = r2 - r1</i>.</li>
+ * <li>Let <i>trueMass</i> be the true mass between the true ranks of <i>v1, v2</i> derived from
+ * the hypothetical sorted stream of all <i>N</i> values.</li>
+ * <li>Let <i>eps = getNormalizedRankError(true)</i>.</li>
+ * <li>then <i>mass - eps &le; trueMass &le; mass + eps</i> with a confidence of 99%.<li>
+ * </ul>
+ *
+ * <p>From the above it would be reasonable to assume the following:
+ * <ul>
+ * <li>Let <i>v = getQuantile(r)</i>, the estimated quantile value of rank <i>r</i>.</li>
+ * <li>Let <i>eps = getNormalizedRankError(false)</i>.</li>
+ * <li>Let <i>v<sub>lo</sub></i> = true quantile value of <i>(r - eps)</i> derived from the
+ * hypothetical sorted stream of all <i>N</i> values.</li>
+ * <li>Let <i>v<sub>hi</sub></i> = true quantile value of <i>(r + eps)</i> derived from the
+ * hypothetical sorted stream of all <i>N</i> values.</li>
+ * <li>Then <i>v<sub>lo</sub> &le; v &le; v<sub>hi</sub></i>, with 99% confidence.</li>
+ * <li>However, this is only a conceptual assertion since <i>v<sub>lo</sub></i> and
+ * <i>v<sub>hi</sub></i> can not be derived from the sketch.</li>
+ * </ul>
  *
  * @author Kevin Lang
  * @author Alexander Saydakov
+ * @author Lee Rhodes
  */
 public class KllFloatsSketch {
 
   public static final int DEFAULT_K = 200;
   static final int DEFAULT_M = 8;
-  static final int MIN_K = 8;
+  static final int MIN_K = DEFAULT_M;
   static final int MAX_K = (1 << 16) - 1; // serialized as an unsigned short
 
   /* Serialized sketch layout:
@@ -92,6 +179,55 @@ public class KllFloatsSketch {
   private float minValue_;
   private float maxValue_;
   private boolean isLevelZeroSorted_;
+
+  private KllFloatsSketch(final Memory mem) {
+    m_ = DEFAULT_M;
+    k_ = mem.getShort(K_SHORT) & 0xffff;
+    final int flags = mem.getByte(FLAGS_BYTE) & 0xff;
+    final boolean isEmpty = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
+    if (isEmpty) {
+      numLevels_ = 1;
+      levels_ = new int[] {k_, k_};
+      items_ = new float[k_];
+      minValue_ = Float.NaN;
+      maxValue_ = Float.NaN;
+      isLevelZeroSorted_ = false;
+      minK_ = k_;
+    } else {
+      n_ = mem.getLong(N_LONG);
+      minK_ = mem.getShort(MIN_K_SHORT) & 0xffff;
+      numLevels_ = mem.getByte(NUM_LEVELS_BYTE) & 0xff;
+      levels_ = new int[numLevels_ + 1];
+      int offset = DATA_START;
+      // the last integer in levels_ is not serialized because it can be derived
+      mem.getIntArray(offset, levels_, 0, numLevels_);
+      offset += numLevels_ * Integer.BYTES;
+      final int capacity = KllHelper.computeTotalCapacity(k_, m_, numLevels_);
+      levels_[numLevels_] = capacity;
+      minValue_ = mem.getFloat(offset);
+      offset += Float.BYTES;
+      maxValue_ = mem.getFloat(offset);
+      offset += Float.BYTES;
+      items_ = new float[capacity];
+      mem.getFloatArray(offset, items_, levels_[0], getNumRetained());
+      isLevelZeroSorted_ = (flags & (1 << Flags.IS_LEVEL_ZERO_SORTED.ordinal())) > 0;
+    }
+  }
+
+  private KllFloatsSketch(final int k, final int m) {
+    if ((k < MIN_K) || (k > MAX_K)) {
+      throw new SketchesArgumentException("K must be >= " + MIN_K + " and < " + MAX_K + ": " + k);
+    }
+    k_ = k;
+    m_ = m;
+    numLevels_ = 1;
+    levels_ = new int[] {k, k};
+    items_ = new float[k];
+    minValue_ = Float.NaN;
+    maxValue_ = Float.NaN;
+    isLevelZeroSorted_ = false;
+    minK_ = k;
+  }
 
   /**
    * Constructor with the default K (rank error of about 1.65%)
@@ -194,7 +330,7 @@ public class KllFloatsSketch {
     }
     n_ = finalN;
     assertCorrectTotalWeight();
-    minK_ = Math.min(minK_, other.minK_);
+    minK_ = min(minK_, other.minK_);
   }
 
   /**
@@ -349,42 +485,78 @@ public class KllFloatsSketch {
   }
 
   /**
-   * Get the rank error normalized as a fraction between zero and one.
-   * The error of this sketch is specified as a fraction of the normalized rank of the
-   * hypothetical sorted stream of items presented to the sketch.
-   *
-   * <p>Suppose the sketch is presented with N values. The raw rank (0 to N-1) of an item
-   * would be its index position in the sorted version of the input stream. If we divide the
-   * raw rank by N, it becomes the normalized rank, which is between 0 and 1.0.
-   *
-   * <p>For example, choosing a K of 200 (default) yields a normalized rank error of about 1.65%.
-   * The upper bound on the median value obtained by getQuantile(0.5) would be the value in the
-   * hypothetical ordered stream of values at the normalized rank of 0.513.
-   * The lower bound would be the value in the hypothetical ordered stream of values at the
-   * normalized rank of 0.487.
-   *
-   * <p>The returned error is for so-called "two-sided"queries corresponding to histogram bins of
-   * getPMF(). "One-sided" queries (getRank() and getCDF()) are expected to have slightly lower
-   * error (factor of 0.85 for small K=16 to 0.75 for large K=4096).
-   *
-   * <p>The error of this sketch cannot be translated into an error (relative or absolute) of the
-   * returned quantile values.
-   *
+   * Gets the approximate "double-sided" rank error for the <i>getPMF()</i> function of this
+   * sketch normalized as a fraction between zero and one.
    * @return the rank error normalized as a fraction between zero and one.
+   * @deprecated replaced by {@link #getNormalizedRankError(boolean)}
+   * @see KllFloatsSketch
    */
+  @Deprecated
   public double getNormalizedRankError() {
-    return getNormalizedRankError(minK_);
+    return getNormalizedRankError(true);
   }
 
   /**
-   * Static method version of {@link #getNormalizedRankError()}
+   * Gets the approximate rank error of this sketch normalized as a fraction between zero and one.
+   * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
+   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
+   * @return if pmf is true, returns the normalized rank error for the getPMF() function.
+   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
+   * @see KllFloatsSketch
+   */
+  public double getNormalizedRankError(final boolean pmf) {
+    return getNormalizedRankError(minK_, pmf);
+  }
+
+  /**
+   * Static method version of the double-sided {@link #getNormalizedRankError()} that
+   * specifies k.
    * @param k the configuration parameter
-   * @return the rank error normalized as a fraction between zero and one.
+   * @return the normalized "double-sided" rank error as a function of k.
+   * @see KllFloatsSketch
+   * @deprecated replaced by {@link #getNormalizedRankError(int, boolean)}
+   */
+  @Deprecated
+  public static double getNormalizedRankError(final int k) {
+    return getNormalizedRankError(k, true);
+  }
+
+  /**
+   * Static method version of the {@link #getNormalizedRankError(boolean)}.
+   * @param k the configuation parameter
+   * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
+   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
+   * @return if pmf is true, the normalized rank error for the getPMF() function.
+   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
+   * @see KllFloatsSketch
    */
   // constants were derived as the best fit to 99 percentile empirically measured max error in
   // thousands of trials
-  public static double getNormalizedRankError(final int k) {
-    return 2.446 / Math.pow(k, 0.943);
+  public static double getNormalizedRankError(final int k, final boolean pmf) {
+    return pmf
+        ? 2.446 / pow(k, 0.9433)
+        : 2.296 / pow(k, 0.9723);
+  }
+
+  /**
+   * Gets the approximate value of k to use given epsilon, the normalized rank error.
+   * @param epsilon the normalized rank error between zero and one.
+   * @param pmf if true, this function returns the value of k assuming the input epsilon is the
+   * desired "double-sided" epsilon for the getPMF() function. Otherwise, this function returns
+   * the value of k assuming the input epsilon is the desired "single-sided" epsilon for all the
+   * other queries.
+   * @return the value of <i>k</i> given a value of epsilon.
+   * @see KllFloatsSketch
+   */
+  public static int getKFromEpsilon(final double epsilon, final boolean pmf) {
+    final double eps = max(epsilon, 4.7E-5);
+    final double kdbl = pmf
+        ? exp(log(2.446 / eps) / 0.9433)
+        : exp(log(2.296 / eps) / 0.9723);
+    final double krnd = round(kdbl);
+    final double del = abs(krnd - kdbl);
+    final int k = (int) ((del < 1E-6) ? krnd : ceil(kdbl));
+    return max(MIN_K, min(MAX_K, k));
   }
 
   /**
@@ -423,16 +595,18 @@ public class KllFloatsSketch {
    * @return string representation of sketch summary
    */
   public String toString(final boolean withLevels, final boolean withData) {
-    final String epsilonPct = String.format("%.3f%%", getNormalizedRankError() * 100);
+    final String epsPct = String.format("%.3f%%", getNormalizedRankError(false) * 100);
+    final String epsPMFPct = String.format("%.3f%%", getNormalizedRankError(true) * 100);
     final StringBuilder sb = new StringBuilder();
     sb.append(Util.LS).append("### KLL sketch summary:").append(Util.LS);
     sb.append("   K                    : ").append(k_).append(Util.LS);
     sb.append("   min K                : ").append(minK_).append(Util.LS);
-    sb.append("   Normalized Rank Error: ").append(epsilonPct).append(Util.LS);
     sb.append("   M                    : ").append(m_).append(Util.LS);
+    sb.append("   N                    : ").append(n_).append(Util.LS);
+    sb.append("   Epsilon              : ").append(epsPct).append(Util.LS);
+    sb.append("   Epsison PMF          : ").append(epsPMFPct).append(Util.LS);
     sb.append("   Empty                : ").append(isEmpty()).append(Util.LS);
     sb.append("   Estimation Mode      : ").append(isEstimationMode()).append(Util.LS);
-    sb.append("   N                    : ").append(n_).append(Util.LS);
     sb.append("   Levels               : ").append(numLevels_).append(Util.LS);
     sb.append("   Sorted               : ").append(isLevelZeroSorted_).append(Util.LS);
     sb.append("   Buffer Capacity Items: ").append(items_.length).append(Util.LS);
@@ -549,55 +723,6 @@ public class KllFloatsSketch {
       "Possible corruption: family mismatch: expected " + Family.KLL.getID() + ", got " + family);
     }
     return new KllFloatsSketch(mem);
-  }
-
-  private KllFloatsSketch(final Memory mem) {
-    m_ = DEFAULT_M;
-    k_ = mem.getShort(K_SHORT) & 0xffff;
-    final int flags = mem.getByte(FLAGS_BYTE) & 0xff;
-    final boolean isEmpty = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
-    if (isEmpty) {
-      numLevels_ = 1;
-      levels_ = new int[] {k_, k_};
-      items_ = new float[k_];
-      minValue_ = Float.NaN;
-      maxValue_ = Float.NaN;
-      isLevelZeroSorted_ = false;
-      minK_ = k_;
-    } else {
-      n_ = mem.getLong(N_LONG);
-      minK_ = mem.getShort(MIN_K_SHORT) & 0xffff;
-      numLevels_ = mem.getByte(NUM_LEVELS_BYTE) & 0xff;
-      levels_ = new int[numLevels_ + 1];
-      int offset = DATA_START;
-      // the last integer in levels_ is not serialized because it can be derived
-      mem.getIntArray(offset, levels_, 0, numLevels_);
-      offset += numLevels_ * Integer.BYTES;
-      final int capacity = KllHelper.computeTotalCapacity(k_, m_, numLevels_);
-      levels_[numLevels_] = capacity;
-      minValue_ = mem.getFloat(offset);
-      offset += Float.BYTES;
-      maxValue_ = mem.getFloat(offset);
-      offset += Float.BYTES;
-      items_ = new float[capacity];
-      mem.getFloatArray(offset, items_, levels_[0], getNumRetained());
-      isLevelZeroSorted_ = (flags & (1 << Flags.IS_LEVEL_ZERO_SORTED.ordinal())) > 0;
-    }
-  }
-
-  private KllFloatsSketch(final int k, final int m) {
-    if ((k < MIN_K) || (k > MAX_K)) {
-      throw new SketchesArgumentException("K must be >= " + MIN_K + " and < " + MAX_K + ": " + k);
-    }
-    k_ = k;
-    m_ = m;
-    numLevels_ = 1;
-    levels_ = new int[] {k, k};
-    items_ = new float[k];
-    minValue_ = Float.NaN;
-    maxValue_ = Float.NaN;
-    isLevelZeroSorted_ = false;
-    minK_ = k;
   }
 
   private KllFloatsQuantileCalculator getQuantileCalculator() {
@@ -784,7 +909,7 @@ public class KllFloatsSketch {
     final int[] worklevels = new int[ub + 2]; // ub+1 does not work
     final int[] outlevels  = new int[ub + 2];
 
-    final int provisionalNumLevels = Math.max(numLevels_, other.numLevels_);
+    final int provisionalNumLevels = max(numLevels_, other.numLevels_);
 
     populateWorkArrays(other, workbuf, worklevels, provisionalNumLevels);
 
