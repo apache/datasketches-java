@@ -153,7 +153,9 @@ public class PreambleUtilTest {
     int k = PreambleUtil.DEFAULT_K;
     int n = 1000000;
     UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build();
-    for (int i=0; i<n; i++) qs.update(i);
+    for (int i=0; i<n; i++) {
+      qs.update(i);
+    }
     byte[] byteArr = qs.toByteArray();
     println(PreambleUtil.toString(byteArr, true));
   }
