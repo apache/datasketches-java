@@ -24,13 +24,13 @@ import com.yahoo.sketches.Util;
 
 /**
  * Implementation of a very compact quantiles sketch with lazy compaction scheme
- * and nearly optimal accuracy per bit.
+ * and nearly optimal accuracy per retained item.
  * See <a href="https://arxiv.org/abs/1603.05346v2">Optimal Quantile Approximation in Streams</a>.
  *
  * <p>This is a stochastic streaming sketch that enables near-real time analysis of the
- * approximate distribution of real values from a very large stream in a single pass.
+ * approximate distribution of ordered values from a very large stream in a single pass.
  * The analysis is obtained using <i>getQuantile()</i> or <i>getQuantiles()</i> functions or the
- * inverse functions getRank(), getPMF() (Probability Mass Function) and getCDF()
+ * inverse functions getRank(), getPMF() (Probability Mass Function), and getCDF()
  * (Cumulative Distribution Function).
  *
  * <p>Given an input stream of <i>N</i> numeric values, the <i>absolute rank</i> of any specific
@@ -54,33 +54,34 @@ import com.yahoo.sketches.Util;
  * <p>The relationship between the normalized rank and the corresponding values can be viewed
  * as a two dimensional monotonic plot with the normalized rank on one axis and the
  * corresponding values on the other axis. If the y-axis is specified as the value-axis and
- * the normalized rank as the x-axis, then <i>y = getQuantile(x)</i> is a monotonically
+ * the x-axis as the normalized rank, then <i>y = getQuantile(x)</i> is a monotonically
  * increasing function.
  *
- * <p>The functions <i>getQuantile(rank)</i> and getQuantiles(...) are "forward" functions
- * that translate ranks into corrseponding values. The "inverse" functions <i>getRank(value),
+ * <p>The functions <i>getQuantile(rank)</i> and getQuantiles(...) translate ranks into
+ * corresponding values. The functions <i>getRank(value),
  * getCDF(...) (Cumulative Distribution Function), and getPMF(...)
- * (Probability Mass Function)</i> translate values into ranks.
+ * (Probability Mass Function)</i> perform the opposite operation and translate values into ranks.
  *
  * <p>The <i>getPMF(...)</i> function has about 13 to 47% worse rank error (depending
  * on <i>k</i>) than the other queries because the mass of each "bin" of the PMF has
  * "double-sided" error from the upper and lower edges of the bin as a result of a subtraction,
  * as the errors from the two edges can sometimes add.
  *
- * <p>The defult <i>k</i> of 200 yields a "single-sided" epsilon of about 1.33% and a
+ * <p>The default <i>k</i> of 200 yields a "single-sided" epsilon of about 1.33% and a
  * "double-sided" (PMF) epsilon of about 1.65%.
  *
- * <p>A "forward" <i>getQuantile(rank)</i> query has the following guarantees:
+ * <p>A <i>getQuantile(rank)</i> query has the following guarantees:
  * <ul>
  * <li>Let <i>v = getQuantile(r)</i> where <i>r</i> is the rank between zero and one.</li>
  * <li>The value <i>v</i> will be a value from the input stream.</li>
  * <li>Let <i>trueRank</i> be the true rank of <i>v</i> derived from the hypothetical sorted
  * stream of all <i>N</i> values.</li>
  * <li>Let <i>eps = getNormalizedRankError(false)</i>.</li>
- * <li>Then <i>r - eps &le; trueRank &le; r + eps</i> with a confidence of 99%.</li>
+ * <li>Then <i>r - eps &le; trueRank &le; r + eps</i> with a confidence of 99%. Note that the
+ * error is on the rank, not the value.</li>
  * </ul>
  *
- * <p>An "inverse" <i>getRank(value)</i> query has the following guarantees:
+ * <p>A <i>getRank(value)</i> query has the following guarantees:
  * <ul>
  * <li>Let <i>r = getRank(v)</i> where <i>v</i> is a value between the min and max values of
  * the input stream.</li>
@@ -90,7 +91,7 @@ import com.yahoo.sketches.Util;
  * <li>Then <i>r - eps &le; trueRank &le; r + eps</i> with a confidence of 99%.</li>
  * </ul>
  *
- * <p>An "inverse" <i>getPMF(...)</i> query has the following guarantees;
+ * <p>A <i>getPMF(...)</i> query has the following guarantees;
  * <ul>
  * <li>Let <i>{r1, r2} = getPMF(v1, v2)</i> where <i>v1, v2</i> are values between the min and
  * max values of the input stream.
@@ -98,10 +99,14 @@ import com.yahoo.sketches.Util;
  * <li>Let <i>trueMass</i> be the true mass between the true ranks of <i>v1, v2</i> derived from
  * the hypothetical sorted stream of all <i>N</i> values.</li>
  * <li>Let <i>eps = getNormalizedRankError(true)</i>.</li>
- * <li>then <i>mass - eps &le; trueMass &le; mass + eps</i> with a confidence of 99%.<li>
+ * <li>then <i>mass - eps &le; trueMass &le; mass + eps</i> with a confidence of 99%.</li>
  * </ul>
  *
- * <p>From the above it would be reasonable to assume the following:
+ * <p>From the above, it might seem like we could make some estimates to bound the
+ * <em>value</em> returned from a call to <em>getQuantile()</em>. The sketch, however, does not
+ * let us derive error bounds or confidences around values. Because errors are independent, we
+ * can approximately bracket a value as shown below, but there are no estimates available
+ * for relative errors; for some distributions, errors will be very large.
  * <ul>
  * <li>Let <i>v = getQuantile(r)</i>, the estimated quantile value of rank <i>r</i>.</li>
  * <li>Let <i>eps = getNormalizedRankError(false)</i>.</li>
@@ -110,9 +115,12 @@ import com.yahoo.sketches.Util;
  * <li>Let <i>v<sub>hi</sub></i> = true quantile value of <i>(r + eps)</i> derived from the
  * hypothetical sorted stream of all <i>N</i> values.</li>
  * <li>Then <i>v<sub>lo</sub> &le; v &le; v<sub>hi</sub></i>, with 99% confidence.</li>
- * <li>However, this is only a conceptual assertion since <i>v<sub>lo</sub></i> and
- * <i>v<sub>hi</sub></i> can not be derived from the sketch.</li>
+ * <li>Replacing the true value <em>v<sub>lo</sub></em> with an estimate from the sketch and
+ * likewise for <em>v<sub>hi</sub></em> also does not carry any value accuracy guarantees.</li>
  * </ul>
+
+ * <p>Again, this is a conceptual assertion since value bounds cannot be
+ * derived from the sketch.</p>
  *
  * @author Kevin Lang
  * @author Alexander Saydakov
@@ -230,16 +238,16 @@ public class KllFloatsSketch {
   }
 
   /**
-   * Constructor with the default K (rank error of about 1.65%)
+   * Constructor with the default <em>k</em> (rank error of about 1.65%)
    */
   public KllFloatsSketch() {
     this(DEFAULT_K);
   }
 
   /**
-   * Constructor with a given parameter K. K can be any value between 8 and 65535, inclusive.
-   * The default K = 200 results in a normalized rank error of about 1.65%. Higher values of K
-   * will have smaller error but the sketch will be larger (and slower).
+   * Constructor with a given parameter <em>k</em>. <em>k</em> can be any value between 8 and
+   * 65535, inclusive. The default <em>k</em> = 200 results in a normalized rank error of about
+   * 1.65%. Higher values of K will have smaller error but the sketch will be larger (and slower).
    * @param k parameter that controls size of the sketch and accuracy of estimates
    */
   public KllFloatsSketch(final int k) {
@@ -255,7 +263,7 @@ public class KllFloatsSketch {
   }
 
   /**
-   * Returns true if this sketch is empty
+   * Returns true if this sketch is empty.
    * @return empty flag
    */
   public boolean isEmpty() {
@@ -263,7 +271,7 @@ public class KllFloatsSketch {
   }
 
   /**
-   * Returns the number of retained items (samples) in the sketch
+   * Returns the number of retained items (samples) in the sketch.
    * @return the number of retained items (samples) in the sketch
    */
   public int getNumRetained() {
@@ -279,7 +287,7 @@ public class KllFloatsSketch {
   }
 
   /**
-   * Updates this sketch with the given data item
+   * Updates this sketch with the given data item.
    *
    * @param value an item from a stream of items. NaNs are ignored.
    */
@@ -395,7 +403,7 @@ public class KllFloatsSketch {
    *
    * @param fractions given array of fractional positions in the hypothetical sorted stream.
    * These are also called normalized ranks or fractional ranks.
-   * These fractions must be in the interval [0.0, 1.0] inclusive.
+   * These fractions must be in the interval [0.0, 1.0], inclusive.
    *
    * @return array of approximations to the given fractions in the same order as given fractions
    * array.
@@ -419,7 +427,7 @@ public class KllFloatsSketch {
   }
 
   /**
-   * Returns an approximation to the normalized (fractional) rank of the given value from 0 to 1
+   * Returns an approximation to the normalized (fractional) rank of the given value from 0 to 1,
    * inclusive.
    * @param value to be ranked
    * @return an approximate rank of the given value
@@ -510,9 +518,9 @@ public class KllFloatsSketch {
 
   /**
    * Static method version of the double-sided {@link #getNormalizedRankError()} that
-   * specifies k.
+   * specifies <em>k</em>.
    * @param k the configuration parameter
-   * @return the normalized "double-sided" rank error as a function of k.
+   * @return the normalized "double-sided" rank error as a function of <em>k</em>.
    * @see KllFloatsSketch
    * @deprecated replaced by {@link #getNormalizedRankError(int, boolean)}
    */
@@ -539,12 +547,12 @@ public class KllFloatsSketch {
   }
 
   /**
-   * Gets the approximate value of k to use given epsilon, the normalized rank error.
+   * Gets the approximate value of <em>k</em> to use given epsilon, the normalized rank error.
    * @param epsilon the normalized rank error between zero and one.
-   * @param pmf if true, this function returns the value of k assuming the input epsilon is the
-   * desired "double-sided" epsilon for the getPMF() function. Otherwise, this function returns
-   * the value of k assuming the input epsilon is the desired "single-sided" epsilon for all the
-   * other queries.
+   * @param pmf if true, this function returns the value of <em>k</em> assuming the input epsilon
+   * is the desired "double-sided" epsilon for the getPMF() function. Otherwise, this function
+   * returns the value of <em>k</em> assuming the input epsilon is the desired "single-sided"
+   * epsilon for all the other queries.
    * @return the value of <i>k</i> given a value of epsilon.
    * @see KllFloatsSketch
    */
@@ -569,8 +577,8 @@ public class KllFloatsSketch {
   }
 
   /**
-   * Returns upper bound on the serialized size of a sketch given a parameter K and stream length.
-   * The resulting size is an overestimate to make sure actual sketches don't exceed it.
+   * Returns upper bound on the serialized size of a sketch given a parameter <em>k</em> and stream
+   * length. The resulting size is an overestimate to make sure actual sketches don't exceed it.
    * This method can be used if allocation of storage is necessary beforehand, but it is not
    * optimal.
    * @param k parameter that controls size of the sketch and accuracy of estimates
@@ -589,7 +597,7 @@ public class KllFloatsSketch {
   }
 
   /**
-   * Returns a summary of the sketch as a string
+   * Returns a summary of the sketch as a string.
    * @param withLevels if true include information about levels
    * @param withData if true include sketch data
    * @return string representation of sketch summary
