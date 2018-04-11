@@ -42,7 +42,7 @@ public class Filter<T extends Summary> {
         }
 
         sketch.setThetaLong(sketchIn.getThetaLong());
-        if (sketch.getRetainedEntries() > 0) {
+        if (!sketchIn.isEmpty()) {
             sketch.setNotEmpty();
         }
 

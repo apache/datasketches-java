@@ -91,6 +91,25 @@ public class FilterTest {
         Assert.assertTrue(filteredSketch.getUpperBound(1) >= filteredSketch.getEstimate());
     }
 
+    @Test
+    public void nonEmptySketchWithNoEntries() {
+      UpdatableSketch<Double, DoubleSummary> sketch = new UpdatableSketchBuilder<>(new DoubleSummaryFactory()).setSamplingProbability(0.0001f).build();
+      sketch.update(0, 0.0);
+
+      Assert.assertFalse(sketch.isEmpty());
+      Assert.assertEquals(sketch.getRetainedEntries(), 0);
+
+      Filter<DoubleSummary> filter = new Filter<>(o -> true);
+
+      Sketch<DoubleSummary> filteredSketch = filter.filter(sketch);
+
+      Assert.assertFalse(filteredSketch.isEmpty());
+      Assert.assertEquals(filteredSketch.getEstimate(), sketch.getEstimate());
+      Assert.assertEquals(filteredSketch.getThetaLong(), sketch.getThetaLong());
+      Assert.assertEquals(filteredSketch.getLowerBound(1), sketch.getLowerBound(1));
+      Assert.assertEquals(filteredSketch.getUpperBound(1), sketch.getUpperBound(1));
+    }
+
     private static void fillSketch(UpdatableSketch<Double, DoubleSummary> sketch, int numberOfElements, Double sketchValue) {
         Random random = new Random();
 
