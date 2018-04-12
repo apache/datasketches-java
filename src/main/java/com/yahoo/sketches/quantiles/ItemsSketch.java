@@ -14,6 +14,14 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.extractPreLongs;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractSerVer;
 import static com.yahoo.sketches.quantiles.Util.computeBaseBufferItems;
 import static com.yahoo.sketches.quantiles.Util.computeBitPattern;
+import static java.lang.Math.abs;
+import static java.lang.Math.ceil;
+import static java.lang.Math.exp;
+import static java.lang.Math.log;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.lang.Math.pow;
+import static java.lang.Math.round;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
@@ -22,9 +30,9 @@ import java.util.Random;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
-
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.kll.KllFloatsSketch;
 
 /**
  * This is a stochastic streaming sketch that enables near-real time analysis of the
@@ -133,7 +141,7 @@ public final class ItemsSketch<T> {
    * @return a GenericQuantileSketch
    */
   public static <T> ItemsSketch<T> getInstance(final int k, final Comparator<? super T> comparator) {
-    final ItemsSketch<T> qs = new ItemsSketch<T>(k, comparator);
+    final ItemsSketch<T> qs = new ItemsSketch<>(k, comparator);
     final int bufAlloc = 2 * Math.min(DoublesSketch.MIN_K, k); //the min is important
     qs.n_ = 0;
     qs.combinedBufferItemCapacity_ = bufAlloc;
@@ -228,15 +236,15 @@ public final class ItemsSketch<T> {
     // this method only uses the base buffer part of the combined buffer
 
     if (dataItem == null) { return; }
-    if (maxValue_ == null || comparator_.compare(dataItem, maxValue_) > 0) { maxValue_ = dataItem; }
-    if (minValue_ == null || comparator_.compare(dataItem, minValue_) < 0) { minValue_ = dataItem; }
+    if ((maxValue_ == null) || (comparator_.compare(dataItem, maxValue_) > 0)) { maxValue_ = dataItem; }
+    if ((minValue_ == null) || (comparator_.compare(dataItem, minValue_) < 0)) { minValue_ = dataItem; }
 
-    if (baseBufferCount_ + 1 > combinedBufferItemCapacity_) {
+    if ((baseBufferCount_ + 1) > combinedBufferItemCapacity_) {
       ItemsSketch.growBaseBuffer(this);
     }
     combinedBuffer_[baseBufferCount_++] = dataItem;
     n_++;
-    if (baseBufferCount_ == 2 * k_) {
+    if (baseBufferCount_ == (2 * k_)) {
       ItemsUtil.processFullBaseBuffer(this);
     }
   }
@@ -267,6 +275,28 @@ public final class ItemsSketch<T> {
       final ItemsAuxiliary<T> aux = constructAuxiliary();
       return aux.getQuantile(fraction);
     }
+  }
+
+  /**
+   * Gets the upper bound of the value interval in which the true quantile of the given rank
+   * exists with a confidence of at least 99%.
+   * @param fraction the given normalized rank as a fraction
+   * @return the upper bound of the value interval in which the true quantile of the given rank
+   * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
+   */
+  public T getQuantileUpperBound(final double fraction) {
+    return getQuantile(min(1.0, fraction + getNormalizedRankError(k_, false)));
+  }
+
+  /**
+   * Gets the lower bound of the value interval in which the true quantile of the given rank
+   * exists with a confidence of at least 99%.
+   * @param fraction the given normalized rank as a fraction
+   * @return the lower bound of the value interval in which the true quantile of the given rank
+   * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
+   */
+  public T getQuantileLowerBound(final double fraction) {
+    return getQuantile(max(0, fraction - getNormalizedRankError(k_, false)));
   }
 
   /**
@@ -324,44 +354,14 @@ public final class ItemsSketch<T> {
   }
 
   /**
-   * Returns an approximation to the Probability Mass Function (PMF) of the input stream
-   * given a set of splitPoints (values).
+   * Returns an approximation to the normalized (fractional) rank of the given value from 0 to 1
+   * inclusive.
    *
-   * <p>The resulting approximations have a probabilistic guarantee that be obtained from the
-   * getNormalizedRankError() function.
+   * <p>The resulting approximation has a probabilistic guarantee that be obtained from the
+   * getNormalizedRankError(false) function.
    *
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing values
-   * that divide the domain into <i>m+1</i> consecutive disjoint intervals.
+   * <p>If the sketch is empty this returns NaN.</p>
    *
-   * @return an array of m+1 doubles each of which is an approximation
-   * to the fraction of the input stream values that fell into one of those intervals.
-   * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
-   * splitPoint.
-   */
-  public double[] getPMF(final T[] splitPoints) {
-    if (isEmpty()) { return null; }
-    return ItemsPmfCdfImpl.getPMFOrCDF(this, splitPoints, false);
-  }
-
-  /**
-   * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
-   * cumulative analog of the PMF, of the input stream given a set of splitPoints (values).
-   *
-   * <p>More specifically, the value at array position j of the CDF is the
-   * sum of the values in positions 0 through j of the PMF.
-   *
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing values
-   * that divide the domain into <i>m+1</i> consecutive disjoint intervals.
-   *
-   * @return an approximation to the CDF of the input stream given the splitPoints.
-   */
-  public double[] getCDF(final T[] splitPoints) {
-    if (isEmpty()) { return null; }
-    return ItemsPmfCdfImpl.getPMFOrCDF(this, splitPoints, true);
-  }
-
-  /**
-   * Returns an approximation to the normalized (fractional) rank of the given value from 0 to 1 inclusive.
    * @param value to be ranked
    * @return an approximate rank of the given value
    */
@@ -390,6 +390,58 @@ public final class ItemsSketch<T> {
       }
     }
     return (double) total / n_;
+  }
+
+  /**
+   * Returns an approximation to the Probability Mass Function (PMF) of the input stream
+   * given a set of splitPoints (values).
+   *
+   * <p>The resulting approximations have a probabilistic guarantee that be obtained from the
+   * getNormalizedRankError(true) function.
+   *
+   * <p>If the sketch is empty this returns null.</p>
+   *
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing item values
+   * that divide the ordered space into <i>m+1</i> consecutive disjoint intervals.
+   * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
+   * exclusive of the right splitPoint, with the exception that the last interval will include
+   * the maximum value.
+   * It is not necessary to include either the min or max values in these splitpoints.
+   *
+   * @return an array of m+1 doubles each of which is an approximation
+   * to the fraction of the input stream values (the mass) that fall into one of those intervals.
+   * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
+   * splitPoint, with the exception that the last interval will include maximum value.
+   */
+  public double[] getPMF(final T[] splitPoints) {
+    if (isEmpty()) { return null; }
+    return ItemsPmfCdfImpl.getPMFOrCDF(this, splitPoints, false);
+  }
+
+  /**
+   * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
+   * cumulative analog of the PMF, of the input stream given a set of splitPoints (values).
+   *
+   * <p>The resulting approximations have a probabilistic guarantee that be obtained from the
+   * getNormalizedRankError(false) function.
+   *
+   * <p>If the sketch is empty this returns null.</p>
+   *
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing item values
+   * that divide the ordered space into <i>m+1</i> consecutive disjoint intervals.
+   * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
+   * exclusive of the right splitPoint, with the exception that the last interval will include
+   * the maximum value.
+   * It is not necessary to include either the min or max values in these splitpoints.
+   *
+   * @return an array of m+1 double values, which are a consecutive approximation to the CDF
+   * of the input stream given the splitPoints. The value at array position j of the returned
+   * CDF array is the sum of the returned values in positions 0 through j of the returned PMF
+   * array.
+   */
+  public double[] getCDF(final T[] splitPoints) {
+    if (isEmpty()) { return null; }
+    return ItemsPmfCdfImpl.getPMFOrCDF(this, splitPoints, true);
   }
 
   /**
@@ -443,18 +495,71 @@ public final class ItemsSketch<T> {
    * returned quantile values.
    *
    * @return the rank error normalized as a fraction between zero and one.
+   * @deprecated replaced by {@link #getNormalizedRankError(boolean)}
    */
+  @Deprecated
   public double getNormalizedRankError() {
     return getNormalizedRankError(getK());
+  }
+
+  /**
+   * Gets the approximate rank error of this sketch normalized as a fraction between zero and one.
+   * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
+   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
+   * @return if pmf is true, returns the normalized rank error for the getPMF() function.
+   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
+   */
+  public double getNormalizedRankError(final boolean pmf) {
+    return getNormalizedRankError(k_, pmf);
   }
 
   /**
    * Static method version of {@link #getNormalizedRankError()}
    * @param k the configuration parameter of a ItemsSketch
    * @return the rank error normalized as a fraction between zero and one.
+   * @deprecated replaced by {@link #getNormalizedRankError(int, boolean)}
    */
+  @Deprecated
   public static double getNormalizedRankError(final int k) {
-    return Util.EpsilonFromK.getAdjustedEpsilon(k);
+    return getNormalizedRankError(k, true);
+  }
+
+  /**
+   * Static method version of the {@link #getNormalizedRankError(boolean)}.
+   * @param k the configuation parameter
+   * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
+   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
+   * @return if pmf is true, the normalized rank error for the getPMF() function.
+   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
+   * @see KllFloatsSketch
+   */
+  // constants were derived as the best fit to 99 percentile empirically measured max error in
+  // thousands of trials
+  public static double getNormalizedRankError(final int k, final boolean pmf) {
+    return pmf
+        ? 2.446 / pow(k, 0.9433)  //TODO
+        : 2.296 / pow(k, 0.9723); ///TODO
+  }
+
+  /**
+   * Gets the approximate value of <em>k</em> to use given epsilon, the normalized rank error.
+   * @param epsilon the normalized rank error between zero and one.
+   * @param pmf if true, this function returns the value of <em>k</em> assuming the input epsilon
+   * is the desired "double-sided" epsilon for the getPMF() function. Otherwise, this function
+   * returns the value of <em>k</em> assuming the input epsilon is the desired "single-sided"
+   * epsilon for all the other queries.
+   * @return the value of <i>k</i> given a value of epsilon.
+   * @see KllFloatsSketch
+   */
+  public static int getKFromEpsilon(final double epsilon, final boolean pmf) {
+    final double eps = max(epsilon, 4.7E-5);
+    final double kdbl = pmf
+        ? exp(log(2.446 / eps) / 0.9433) //TODO
+        : exp(log(2.296 / eps) / 0.9723);//TODO
+    final double krnd = round(kdbl);
+    final double del = abs(krnd - kdbl);
+    final int k = (int) ((del < 1E-6) ? krnd : ceil(kdbl));
+    return k; //
   }
 
   /**
@@ -471,7 +576,7 @@ public final class ItemsSketch<T> {
   }
 
   public boolean isEstimationMode() {
-    return getN() >= 2L * k_;
+    return getN() >= (2L * k_);
   }
 
   /**
@@ -635,7 +740,7 @@ public final class ItemsSketch<T> {
    * @return the Auxiliary data structure
    */
   private ItemsAuxiliary<T> constructAuxiliary() {
-    return new ItemsAuxiliary<T>(this);
+    return new ItemsAuxiliary<>(this);
   }
 
   private static double[] getEvenlySpaced(final int n) {
@@ -657,7 +762,7 @@ public final class ItemsSketch<T> {
     final Object[] baseBuffer = sketch.getCombinedBuffer();
     final int oldSize = sketch.getCombinedBufferAllocatedCount();
     final int k = sketch.getK();
-    assert oldSize < 2 * k;
+    assert oldSize < (2 * k);
     final int newSize = Math.max(Math.min(2 * k, 2 * oldSize), 1);
     sketch.combinedBufferItemCapacity_ = newSize;
     sketch.combinedBuffer_ = Arrays.copyOf(baseBuffer, newSize);
