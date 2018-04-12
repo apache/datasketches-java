@@ -28,7 +28,8 @@ import com.yahoo.sketches.Util;
  * See <a href="https://arxiv.org/abs/1603.05346v2">Optimal Quantile Approximation in Streams</a>.
  *
  * <p>This is a stochastic streaming sketch that enables near-real time analysis of the
- * approximate distribution of ordered values from a very large stream in a single pass.
+ * approximate distribution of values from a very large stream in a single pass, requiring only
+ * that the values are comparable.
  * The analysis is obtained using <i>getQuantile()</i> or <i>getQuantiles()</i> functions or the
  * inverse functions getRank(), getPMF() (Probability Mass Function), and getCDF()
  * (Cumulative Distribution Function).
@@ -102,25 +103,25 @@ import com.yahoo.sketches.Util;
  * <li>then <i>mass - eps &le; trueMass &le; mass + eps</i> with a confidence of 99%.</li>
  * </ul>
  *
+ * <p>As noted above, the sketch error is around the item rank rather than value. Although the
+ * sketch cannot provide an error bound on values, in either an absolute or relative sense, the
+ * error bounds on rank does allow us to use sketch queries to provide a probabilistic
+ * interval in which the true value for a query is likely to be found.
+ *
+ * </p>
+ *
  * <p>From the above, it might seem like we could make some estimates to bound the
  * <em>value</em> returned from a call to <em>getQuantile()</em>. The sketch, however, does not
  * let us derive error bounds or confidences around values. Because errors are independent, we
- * can approximately bracket a value as shown below, but there are no estimates available
- * for relative errors; for some distributions, errors will be very large.
+ * can approximately bracket a value as shown below, but there are no error estimates available.
+ * Additionally, the interval may be quite large for certain distributions.
  * <ul>
  * <li>Let <i>v = getQuantile(r)</i>, the estimated quantile value of rank <i>r</i>.</li>
  * <li>Let <i>eps = getNormalizedRankError(false)</i>.</li>
- * <li>Let <i>v<sub>lo</sub></i> = true quantile value of <i>(r - eps)</i> derived from the
- * hypothetical sorted stream of all <i>N</i> values.</li>
- * <li>Let <i>v<sub>hi</sub></i> = true quantile value of <i>(r + eps)</i> derived from the
- * hypothetical sorted stream of all <i>N</i> values.</li>
+ * <li>Let <i>v<sub>lo</sub></i> = estimated quantile value of rank <i>(r - eps)</i>.</li>
+ * <li>Let <i>v<sub>hi</sub></i> = estimated quantile value of rank <i>(r + eps)</i>.</li>
  * <li>Then <i>v<sub>lo</sub> &le; v &le; v<sub>hi</sub></i>, with 99% confidence.</li>
- * <li>Replacing the true value <em>v<sub>lo</sub></em> with an estimate from the sketch and
- * likewise for <em>v<sub>hi</sub></em> also does not carry any value accuracy guarantees.</li>
  * </ul>
-
- * <p>Again, this is a conceptual assertion since value bounds cannot be
- * derived from the sketch.</p>
  *
  * @author Kevin Lang
  * @author Alexander Saydakov
