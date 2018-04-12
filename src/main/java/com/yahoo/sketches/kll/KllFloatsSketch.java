@@ -92,23 +92,29 @@ import com.yahoo.sketches.Util;
  * <li>Then <i>r - eps &le; trueRank &le; r + eps</i> with a confidence of 99%.</li>
  * </ul>
  *
- * <p>A <i>getPMF(...)</i> query has the following guarantees;
+ * <p>A <i>getPMF()</i> query has the following guarantees:
  * <ul>
- * <li>Let <i>{r1, r2} = getPMF(v1, v2)</i> where <i>v1, v2</i> are values between the min and
- * max values of the input stream.
- * <li>Let <i>mass = r2 - r1</i>.</li>
- * <li>Let <i>trueMass</i> be the true mass between the true ranks of <i>v1, v2</i> derived from
- * the hypothetical sorted stream of all <i>N</i> values.</li>
+ * <li>Let <i>{r1, r2, ..., r(m+1)} = getPMF(v1, v2, ..., vm)</i> where <i>v1, v2</i> are values
+ * between the min and max values of the input stream.
+ * <li>Let <i>mass<sub>i</sub> = estimated mass between v<sub>i</sub> and v<sub>i+1</sub></i>.</li>
+ * <li>Let <i>trueMass</i> be the true mass between the values of <i>v<sub>i</sub>,
+ * v<sub>i+1</sub></i> derived from the hypothetical sorted stream of all <i>N</i> values.</li>
  * <li>Let <i>eps = getNormalizedRankError(true)</i>.</li>
  * <li>then <i>mass - eps &le; trueMass &le; mass + eps</i> with a confidence of 99%.</li>
+ * <li>r(m+1) includes the mass of all points larger than vm.</li>
  * </ul>
  *
- * <p>As noted above, the sketch error is around the item rank rather than value. Although the
- * sketch cannot provide an error bound on values, in either an absolute or relative sense, the
- * error bounds on rank does allow us to use sketch queries to provide a probabilistic
- * interval in which the true value for a query is likely to be found.
- *
- * </p>
+ * <p>A <i>getCDF(...)</i> query has the following guarantees;
+ * <ul>
+ * <li>Let <i>{r1, r2, ..., r(m+1)} = getCDF(v1, v2, ..., vm)</i> where <i>v1, v2</i> are values
+ * between the min and max values of the input stream.
+ * <li>Let <i>mass<sub>i</sub> = r<sub>i+1</sub> - r<sub>i</sub></i>.</li>
+ * <li>Let <i>trueMass</i> be the true mass between the true ranks of <i>v<sub>i</sub>,
+ * v<sub>i+1</sub></i> derived from the hypothetical sorted stream of all <i>N</i> values.</li>
+ * <li>Let <i>eps = getNormalizedRankError(true)</i>.</li>
+ * <li>then <i>mass - eps &le; trueMass &le; mass + eps</i> with a confidence of 99%.</li>
+ * <li>1 - r(m+1) includes the mass of all points larger than vm.</li>
+ * </ul>
  *
  * <p>From the above, it might seem like we could make some estimates to bound the
  * <em>value</em> returned from a call to <em>getQuantile()</em>. The sketch, however, does not
