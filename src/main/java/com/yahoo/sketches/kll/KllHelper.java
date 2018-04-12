@@ -256,14 +256,6 @@ class KllHelper {
     return new int[] {numLevels, targetItemCount, currentItemCount};
   }
 
-  static int nextOffset = 0;
-
-  private static int deterministicOffset() {
-    final int result = nextOffset;
-    nextOffset = 1 - nextOffset;
-    return result;
-  }
-
   static void randomlyHalveDown(final float[] buf, final int start, final int length) {
     assert isEven(length);
     final int half_length = length / 2;
@@ -286,6 +278,16 @@ class KllHelper {
       buf[i] = buf[j];
       j -= 2;
     }
+  }
+
+  // for validation
+
+  static int nextOffset = 0;
+
+  private static int deterministicOffset() {
+    final int result = nextOffset;
+    nextOffset = 1 - nextOffset;
+    return result;
   }
 
 }
