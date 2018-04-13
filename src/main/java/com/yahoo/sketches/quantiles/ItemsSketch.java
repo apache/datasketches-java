@@ -537,8 +537,8 @@ public final class ItemsSketch<T> {
   // thousands of trials
   public static double getNormalizedRankError(final int k, final boolean pmf) {
     return pmf
-        ? 2.446 / pow(k, 0.9433)  //TODO
-        : 2.296 / pow(k, 0.9723); ///TODO
+        ? 1.74289590045312415 / pow(k, 0.954048085817058)
+        : 1.74289590045312415 / pow(k, 0.954048085817058); //TODO
   }
 
   /**
@@ -554,8 +554,8 @@ public final class ItemsSketch<T> {
   public static int getKFromEpsilon(final double epsilon, final boolean pmf) {
     final double eps = max(epsilon, 4.7E-5);
     final double kdbl = pmf
-        ? exp(log(2.446 / eps) / 0.9433) //TODO
-        : exp(log(2.296 / eps) / 0.9723);//TODO
+        ? exp(log(1.74289590045312415 / eps) / 0.954048085817058)
+        : exp(log(1.74289590045312415 / eps) / 0.954048085817058);//TODO
     final double krnd = round(kdbl);
     final double del = abs(krnd - kdbl);
     final int k = (int) ((del < 1E-6) ? krnd : ceil(kdbl));
