@@ -694,7 +694,7 @@ public class KllFloatsSketch {
 
     // level zero might not be sorted, so we must sort it if we wish to compact it
     if (level == 0) {
-      sortLevelZero();
+      Arrays.sort(items_, adjBeg, adjBeg + adjPop);
     }
     if (popAbove == 0) {
       KllHelper.randomlyHalveUp(items_, adjBeg, adjPop);
@@ -859,6 +859,20 @@ public class KllFloatsSketch {
   private static int getSerializedSizeBytes(final int numLevels, final int numRetained) {
     // + 2 for min and max
     return DATA_START + (numLevels * Integer.BYTES) + ((numRetained + 2) * Float.BYTES);
+  }
+
+  // for testing
+
+  float[] getItems() {
+    return items_;
+  }
+
+  int[] getLevels() {
+    return levels_;
+  }
+
+  int getNumLevels() {
+    return numLevels_;
   }
 
 }
