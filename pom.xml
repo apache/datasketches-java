@@ -7,7 +7,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.yahoo.datasketches</groupId>
-    <artifactId>sketches-core</artifactId>
+    <artifactId>sketches-concurrent</artifactId>
     <packaging>jar</packaging> <!-- jar is the default -->
     <version>0.11.1-SNAPSHOT</version>
 
@@ -97,20 +97,20 @@
     </prerequisites>
 
     <scm>
-        <connection>scm:git:ssh://git@github.com/DataSketches/sketches-core.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/DataSketches/sketches-core.git</developerConnection>
-        <url>https://github.com/DataSketches/sketches-core</url>
+        <connection>scm:git:ssh://git@github.com/DataSketches/sketches-concurrent.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/DataSketches/sketches-concurrent.git</developerConnection>
+        <url>https://github.com/DataSketches/sketches-concurrent</url>
         <tag>HEAD</tag>
     </scm>
 
     <issueManagement>
         <system>GitHub Issues</system>
-        <url>https://github.com/DataSketches/sketches-core/issues</url>
+        <url>https://github.com/DataSketches/sketches-concurrent/issues</url>
     </issueManagement>
 
     <ciManagement>
         <system>travis</system>
-        <url>https://travis-ci.org/DataSketches/sketches-core</url>
+        <url>https://travis-ci.org/DataSketches/sketches-concurrent</url>
     </ciManagement>
 
     <distributionManagement>
