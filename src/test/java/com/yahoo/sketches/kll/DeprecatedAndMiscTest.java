@@ -51,7 +51,6 @@ public class DeprecatedAndMiscTest {
     println("Ext     : " + est);
     println("UB      : " + ub);
     println("LB      : " + lb);
-
   }
 
   //@Test //requires visual check
