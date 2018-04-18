@@ -284,10 +284,10 @@ class KllHelper {
 
   static int nextOffset = 0;
 
-//  private static int deterministicOffset() {
-//    final int result = nextOffset;
-//    nextOffset = 1 - nextOffset;
-//    return result;
-//  }
+  //  private static int deterministicOffset() {
+  //    final int result = nextOffset;
+  //    nextOffset = 1 - nextOffset;
+  //    return result;
+  //  }
 
 }
