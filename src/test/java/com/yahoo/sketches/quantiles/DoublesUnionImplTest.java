@@ -695,11 +695,13 @@ public class DoublesUnionImplTest {
 
   @SuppressWarnings("unused")
   @Test
-  public void checkSerDeIssue165() {
+  public void emptyUnionSerDeIssue195() {
     DoublesUnion union = DoublesUnion.builder().build();
     byte[] byteArr = union.toByteArray();
     Memory mem = Memory.wrap(byteArr);
     DoublesUnion union2 = DoublesUnionBuilder.heapify(mem);
+    Assert.assertEquals(mem.getCapacity(), 8L);
+    Assert.assertTrue(union2.isEmpty());
   }
 
   @Test
