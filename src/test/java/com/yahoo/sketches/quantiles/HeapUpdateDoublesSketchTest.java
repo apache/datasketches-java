@@ -1023,6 +1023,18 @@ public class HeapUpdateDoublesSketchTest {
     println("LB      : " + lb);
   }
 
+  @Test
+  public void checkGetKFromEqs() {
+    final UpdateDoublesSketch sketch = DoublesSketch.builder().build();
+    int k = sketch.getK();
+    double eps = DoublesSketch.getNormalizedRankError(k, false);
+    double epsPmf = DoublesSketch.getNormalizedRankError(k, true);
+    int kEps = DoublesSketch.getKFromEpsilon(eps, false);
+    int kEpsPmf = DoublesSketch.getKFromEpsilon(epsPmf, true);
+    assertEquals(kEps, k);
+    assertEquals(kEpsPmf, k);
+  }
+
   //private methods
 
   private static void checksForImproperK(final int k) {
