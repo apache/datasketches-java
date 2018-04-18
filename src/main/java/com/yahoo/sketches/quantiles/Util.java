@@ -12,6 +12,13 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.extractFlags;
+import static java.lang.Math.abs;
+import static java.lang.Math.ceil;
+import static java.lang.Math.exp;
+import static java.lang.Math.log;
+import static java.lang.Math.max;
+import static java.lang.Math.pow;
+import static java.lang.Math.round;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.Family;
@@ -115,8 +122,8 @@ final class Util {
     final double alpha = tgtPvalue;
     final double alphaFactor = Math.sqrt(-0.5 * Math.log(0.5 * alpha));
     final double deltaAreaThreshold = alphaFactor * Math.sqrt((r1 + r2) / (r1 * r2));
-    final double eps1 = Util.EpsilonFromK.getAdjustedEpsilon(sketch1.getK());
-    final double eps2 = Util.EpsilonFromK.getAdjustedEpsilon(sketch2.getK());
+    final double eps1 = Util.getNormalizedRankError(sketch1.getK(), false);
+    final double eps2 = Util.getNormalizedRankError(sketch2.getK(), false);
 
     final double adjDeltaAreaThreshold = deltaAreaThreshold + eps1 + eps2;
     return adjDeltaAreaThreshold;
@@ -155,8 +162,42 @@ final class Util {
     return idx;
   }
 
+  /**
+   * Gets the normalized rank error given k and pmf for the Quantiles DoubleSketch and ItemsSketch.
+   * @param k the configuation parameter
+   * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
+   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
+   * @return if pmf is true, the normalized rank error for the getPMF() function.
+   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
+   */
+  // constants were derived as the best fit to 99 percentile empirically measured max error in
+  // thousands of trials
+  public static double getNormalizedRankError(final int k, final boolean pmf) {
+    return pmf
+        ? 1.854 / pow(k, 0.9657)
+        : 1.576 / pow(k, 0.9726);
+  }
 
-
+  /**
+   * Gets the approximate value of <em>k</em> to use given epsilon, the normalized rank error
+   * for the Quantiles DoubleSketch and ItemsSketch.
+   * @param epsilon the normalized rank error between zero and one.
+   * @param pmf if true, this function returns the value of <em>k</em> assuming the input epsilon
+   * is the desired "double-sided" epsilon for the getPMF() function. Otherwise, this function
+   * returns the value of <em>k</em> assuming the input epsilon is the desired "single-sided"
+   * epsilon for all the other queries.
+   * @return the value of <i>k</i> given a value of epsilon.
+   */
+  public static int getKFromEpsilon(final double epsilon, final boolean pmf) {
+    final double eps = max(epsilon, 4.7E-5);
+    final double kdbl = pmf
+        ? exp(log(1.854 / eps) / 0.9657)
+        : exp(log(1.576 / eps) / 0.9726);
+    final double krnd = round(kdbl);
+    final double del = abs(krnd - kdbl);
+    final int k = (int) ((del < 1E-6) ? krnd : ceil(kdbl));
+    return k;
+  }
 
   /**
    * Checks the validity of the given value k
@@ -391,107 +432,5 @@ final class Util {
     }
     return pos;
   }
-
-  /**
-   * Computes epsilon from K. The following table are examples.
-   * <code>
-   *           eps      eps from inverted
-   *     K   empirical  adjusted formula
-   *  -------------------------------------
-   *    16   0.121094   0.121454102233560
-   *    32   0.063477   0.063586601346532
-   *    64   0.033081   0.033169048393679
-   *   128   0.017120   0.017248096847308
-   *   256   0.008804   0.008944835012965
-   *   512   0.004509   0.004627803568920
-   *  1024   0.002303   0.002389303789572
-   *
-   *  these could be used in a unit test
-   *  2   0.821714930853465
-   *  16   0.12145410223356
-   *  1024   0.00238930378957284
-   *  1073741824   3.42875166500824e-09
-   * </code>
-   */
-  static class EpsilonFromK {
-    /**
-     *  Used while crunching down the empirical results. If this value is changed the adjustKForEps
-     *  value will be incorrect and must also be recomputed. Don't touch this!
-     */
-    private static final double deltaForEps = 0.01;
-
-    /**
-     *  A heuristic fudge factor that causes the inverted formula to better match the empirical.
-     *  The value of 4/3 is directly associated with the deltaForEps value of 0.01.
-     *  Don't touch this!
-     */
-    private static final double adjustKForEps = 4.0 / 3.0;  // fudge factor
-
-    /**
-     *  Ridiculously fine tolerance given the fudge factor; 1e-3 would probably suffice
-     */
-    private static final double bracketedBinarySearchForEpsTol = 1e-15;
-
-    /**
-     * From extensive empirical testing we recommend most users use this method for deriving
-     * epsilon. This uses a fudge factor of 4/3 times the theoretical calculation of epsilon.
-     * @param k the given k that must be greater than one.
-     * @return the resulting epsilon
-     */
-    static double getAdjustedEpsilon(final int k) { //used by HeapQS, so far
-      return getTheoreticalEpsilon(k, adjustKForEps);
-    }
-
-    /**
-     * Finds the epsilon given K and a fudge factor.
-     * See Cormode's Mergeable Summaries paper, Journal version, Theorem 3.6.
-     * This has a good fit between values of k between 16 and 1024.
-     * Beyond that has not been empirically tested.
-     * @param k The given value of k
-     * @param ff The given fudge factor. No fudge factor = 1.0.
-     * @return the resulting epsilon
-     */
-    //used only by getAdjustedEpsilon()
-    private static double getTheoreticalEpsilon(final int k, final double ff) {
-      if (k < 2) {
-        throw new SketchesArgumentException("K must be greater than one.");
-      }
-      // don't need to check in the other direction because an int is very small
-      final double kf = k * ff;
-      assert kf >= 2.15; // ensures that the bracketing succeeds
-      assert kf < 1e12;  // ditto, but could actually be bigger
-      final double lo = 1e-16;
-      final double hi = 1.0 - 1e-16;
-      assert epsForKPredicate(lo, kf);
-      assert !epsForKPredicate(hi, kf);
-      return bracketedBinarySearchForEps(kf, lo, hi);
-    }
-
-    private static double kOfEpsFormula(final double eps) {
-      return (1.0 / eps) * (Math.sqrt(Math.log(1.0 / (eps * deltaForEps))));
-    }
-
-    private static boolean epsForKPredicate(final double eps, final double kf) {
-      return kOfEpsFormula(eps) >= kf;
-    }
-
-    private static double bracketedBinarySearchForEps(final double kf, final double lo, final double hi) {
-      assert lo < hi;
-      assert epsForKPredicate(lo, kf);
-      assert !epsForKPredicate(hi, kf);
-      if (((hi - lo) / lo) < bracketedBinarySearchForEpsTol) {
-        return lo;
-      }
-      final double mid = (lo + hi) / 2.0;
-      assert mid > lo;
-      assert mid < hi;
-      if (epsForKPredicate(mid, kf)) {
-        return bracketedBinarySearchForEps(kf, mid, hi);
-      }
-      else {
-        return bracketedBinarySearchForEps(kf, lo, mid);
-      }
-    }
-  } //End of EpsilonFromK
 
 }

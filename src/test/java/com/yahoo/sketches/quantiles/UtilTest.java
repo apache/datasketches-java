@@ -15,7 +15,6 @@ import java.util.Random;
 import org.testng.annotations.Test;
 
 import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.quantiles.Util.EpsilonFromK;
 
 public class UtilTest {
 
@@ -24,17 +23,6 @@ public class UtilTest {
     int k = 227;
     int capEl = Util.computeCombinedBufferItemCapacity(k, 0);
     assertEquals(capEl, 2 * DoublesSketch.MIN_K);
-  }
-
-  @Test
-  public void checkGetAdjustedEpsilon() {
-    double eps = EpsilonFromK.getAdjustedEpsilon(227);
-    assertEquals(eps, .01, .005);
-  }
-
-  @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkGetAdjustedEpsilonException() {
-    EpsilonFromK.getAdjustedEpsilon(0);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

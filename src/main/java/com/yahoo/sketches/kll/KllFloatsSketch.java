@@ -577,6 +577,7 @@ public class KllFloatsSketch {
   }
 
   /**
+   * Gets the normalized rank error given k and pmf.
    * Static method version of the {@link #getNormalizedRankError(boolean)}.
    * @param k the configuation parameter
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
