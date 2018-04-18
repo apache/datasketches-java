@@ -36,7 +36,25 @@ public class DeprecatedAndMiscTest {
     assertEquals(kEpsPmf, k);
   }
 
-  @Test //requires visual check
+  @Test
+  public void checkBounds() {
+    KllFloatsSketch kll = new KllFloatsSketch(); //default k = 200
+    for (int i = 0; i < 1000; i++) {
+      kll.update(i);
+    }
+    double eps = kll.getNormalizedRankError(false);
+    double est = kll.getQuantile(0.5);
+    double ub = kll.getQuantileUpperBound(0.5);
+    double lb = kll.getQuantileLowerBound(0.5);
+    assertEquals(ub, (double)kll.getQuantile(.5 + eps));
+    assertEquals(lb, (double)kll.getQuantile(0.5 - eps));
+    println("Ext     : " + est);
+    println("UB      : " + ub);
+    println("LB      : " + lb);
+
+  }
+
+  //@Test //requires visual check
   public void checkNumRetainedAboveLevelZero() {
     KllFloatsSketch sketch = new KllFloatsSketch(20);
     for (int i = 0; i < 10; i++) { sketch.update(i + 1); }
