@@ -693,6 +693,15 @@ public class DoublesUnionImplTest {
     Assert.assertFalse(union.isSameResource(mem2));
   }
 
+  @SuppressWarnings("unused")
+  @Test
+  public void checkSerDeIssue165() {
+    DoublesUnion union = DoublesUnion.builder().build();
+    byte[] byteArr = union.toByteArray();
+    Memory mem = Memory.wrap(byteArr);
+    DoublesUnion union2 = DoublesUnionBuilder.heapify(mem);
+  }
+
   @Test
   public void printlnTest() {
     println("PRINTING: " + this.getClass().getName());
