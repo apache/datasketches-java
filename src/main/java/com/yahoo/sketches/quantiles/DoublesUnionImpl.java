@@ -77,9 +77,9 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
    * @return a DoublesUnion object
    */
   static DoublesUnionImpl heapifyInstance(final Memory srcMem) {
-    final long n = srcMem.getLong(PreambleUtil.N_LONG);
+    final int preLongs = srcMem.getByte(PreambleUtil.PREAMBLE_LONGS_BYTE) & 0xFF;
     final int k = srcMem.getShort(PreambleUtil.K_SHORT) & 0xFFFF;
-    final HeapUpdateDoublesSketch sketch = (n == 0)
+    final HeapUpdateDoublesSketch sketch = (preLongs == 1)
         ? HeapUpdateDoublesSketch.newInstance(k)
         : HeapUpdateDoublesSketch.heapifyInstance(srcMem);
     final DoublesUnionImpl union = new DoublesUnionImpl(k);
