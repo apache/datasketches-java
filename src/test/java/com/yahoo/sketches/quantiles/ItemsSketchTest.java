@@ -440,6 +440,35 @@ public class ItemsSketchTest {
     }
   }
 
+  @Test
+  public void checkBounds() {
+    ItemsSketch<Double> sketch = ItemsSketch.getInstance(Comparator.naturalOrder());
+    for (int i = 0; i < 1000; i++) {
+      sketch.update((double)i);
+    }
+    double eps = sketch.getNormalizedRankError(false);
+    double est = sketch.getQuantile(0.5);
+    double ub = sketch.getQuantileUpperBound(0.5);
+    double lb = sketch.getQuantileLowerBound(0.5);
+    assertEquals(ub, sketch.getQuantile(.5 + eps));
+    assertEquals(lb, sketch.getQuantile(0.5 - eps));
+    println("Ext     : " + est);
+    println("UB      : " + ub);
+    println("LB      : " + lb);
+  }
+
+  @Test
+  public void checkGetKFromEqs() {
+    ItemsSketch<Double> sketch = ItemsSketch.getInstance(Comparator.naturalOrder());
+    int k = sketch.getK();
+    double eps = ItemsSketch.getNormalizedRankError(k, false);
+    double epsPmf = ItemsSketch.getNormalizedRankError(k, true);
+    int kEps = ItemsSketch.getKFromEpsilon(eps, false);
+    int kEpsPmf = ItemsSketch.getKFromEpsilon(epsPmf, true);
+    assertEquals(kEps, k);
+    assertEquals(kEpsPmf, k);
+  }
+
   private static void checkToFromByteArray2(int k, int n) {
     ItemsSketch<String> is = buildStringIS(k, n);
     byte[] byteArr;

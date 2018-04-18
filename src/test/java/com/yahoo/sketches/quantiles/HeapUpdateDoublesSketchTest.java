@@ -1006,6 +1006,35 @@ public class HeapUpdateDoublesSketchTest {
     Assert.assertEquals(sketch.getK(), 32768);
   }
 
+  @Test
+  public void checkBounds() {
+    final UpdateDoublesSketch sketch = DoublesSketch.builder().build();
+    for (int i = 0; i < 1000; i++) {
+      sketch.update(i);
+    }
+    double eps = sketch.getNormalizedRankError(false);
+    double est = sketch.getQuantile(0.5);
+    double ub = sketch.getQuantileUpperBound(0.5);
+    double lb = sketch.getQuantileLowerBound(0.5);
+    assertEquals(ub, sketch.getQuantile(.5 + eps));
+    assertEquals(lb, sketch.getQuantile(0.5 - eps));
+    println("Ext     : " + est);
+    println("UB      : " + ub);
+    println("LB      : " + lb);
+  }
+
+  @Test
+  public void checkGetKFromEqs() {
+    final UpdateDoublesSketch sketch = DoublesSketch.builder().build();
+    int k = sketch.getK();
+    double eps = DoublesSketch.getNormalizedRankError(k, false);
+    double epsPmf = DoublesSketch.getNormalizedRankError(k, true);
+    int kEps = DoublesSketch.getKFromEpsilon(eps, false);
+    int kEpsPmf = DoublesSketch.getKFromEpsilon(epsPmf, true);
+    assertEquals(kEps, k);
+    assertEquals(kEpsPmf, k);
+  }
+
   //private methods
 
   private static void checksForImproperK(final int k) {
