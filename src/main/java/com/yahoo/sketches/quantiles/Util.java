@@ -208,7 +208,7 @@ final class Util {
 
   /**
    * Checks the validity of the given value k
-   * @param k must be greater than 1 and less than 65536.
+   * @param k must be greater than 1 and less than 65536 and a power of 2.
    */
   static void checkK(final int k) {
     if ((k < MIN_K) || (k > MAX_K) || !isPowerOf2(k)) {

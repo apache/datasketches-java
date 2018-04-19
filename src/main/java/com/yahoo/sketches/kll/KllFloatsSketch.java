@@ -5,7 +5,6 @@
 
 package com.yahoo.sketches.kll;
 
-import static com.yahoo.sketches.Util.isPowerOf2;
 import static java.lang.Math.abs;
 import static java.lang.Math.ceil;
 import static java.lang.Math.exp;
@@ -785,12 +784,12 @@ public class KllFloatsSketch {
 
   /**
    * Checks the validity of the given value k
-   * @param k must be greater than 1 and less than 65536.
+   * @param k must be greater than 7 and less than 65536.
    */
   static void checkK(final int k) {
-    if ((k < MIN_K) || (k > MAX_K) || !isPowerOf2(k)) {
+    if ((k < MIN_K) || (k > MAX_K)) {
       throw new SketchesArgumentException(
-          "K must be >= " + MIN_K + " and <= " + MAX_K + " and a power of 2: " + k);
+          "K must be >= " + MIN_K + " and <= " + MAX_K + ": " + k);
     }
   }
 
