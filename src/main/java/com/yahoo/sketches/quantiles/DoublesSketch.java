@@ -125,6 +125,7 @@ public abstract class DoublesSketch {
   static final int DOUBLES_SER_VER = 3;
   static final int MAX_PRELONGS = Family.QUANTILES.getMaxPreLongs();
   static final int MIN_K = 2;
+  static final int MAX_K = 1 << 15;
 
   /**
    * Parameter that controls space usage of sketch and accuracy of estimates.

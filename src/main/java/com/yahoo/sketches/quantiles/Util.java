@@ -7,6 +7,8 @@ package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.Util.isPowerOf2;
+import static com.yahoo.sketches.quantiles.DoublesSketch.MAX_K;
+import static com.yahoo.sketches.quantiles.DoublesSketch.MIN_K;
 import static com.yahoo.sketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
@@ -17,6 +19,7 @@ import static java.lang.Math.ceil;
 import static java.lang.Math.exp;
 import static java.lang.Math.log;
 import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static java.lang.Math.pow;
 import static java.lang.Math.round;
 
@@ -188,15 +191,19 @@ final class Util {
    * epsilon for all the other queries.
    * @return the value of <i>k</i> given a value of epsilon.
    */
+  // constants were derived as the best fit to 99 percentile empirically measured max error in
+  // thousands of trials
   public static int getKFromEpsilon(final double epsilon, final boolean pmf) {
-    final double eps = max(epsilon, 4.7E-5);
+    //Ensure that eps is >= than the lowest possible eps given MAX_K and pmf=false.
+    final double eps = max(epsilon, 6.395E-5);
     final double kdbl = pmf
         ? exp(log(1.854 / eps) / 0.9657)
         : exp(log(1.576 / eps) / 0.9726);
     final double krnd = round(kdbl);
     final double del = abs(krnd - kdbl);
+    //round to closest int if within 1 ppm of the int, otherwise use the ceiling.
     final int k = (int) ((del < 1E-6) ? krnd : ceil(kdbl));
-    return k;
+    return max(MIN_K, min(MAX_K, k));
   }
 
   /**
@@ -204,8 +211,9 @@ final class Util {
    * @param k must be greater than 1 and less than 65536.
    */
   static void checkK(final int k) {
-    if ((k < DoublesSketch.MIN_K) || (k >= (1 << 16)) || !isPowerOf2(k)) {
-      throw new SketchesArgumentException("K must be > 1 and < 65536 and Power of 2: " + k);
+    if ((k < MIN_K) || (k > MAX_K) || !isPowerOf2(k)) {
+      throw new SketchesArgumentException(
+          "K must be >= " + MIN_K + " and <= " + MAX_K + " and a power of 2: " + k);
     }
   }
 
