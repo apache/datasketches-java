@@ -62,9 +62,9 @@ public class AccuracyTest {
 
   //@Test
   public void getEpsilon() {
-    for (int lgK = 4; lgK < 22; lgK++) {
+    for (int lgK = 4; lgK < 15; lgK++) {
       int k = 1 << lgK;
-      double eps = Util.EpsilonFromK.getAdjustedEpsilon(k);
+      double eps = Util.getNormalizedRankError(k, false);
       println(k + "\t" + eps);
     }
   }

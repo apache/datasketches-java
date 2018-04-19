@@ -28,31 +28,6 @@ public class DirectUpdateDoublesSketchTest {
   }
 
   @Test
-  public void checkGetAdjustedEpsilon() {
-  // note: there is a big fudge factor in these numbers, so they don't need to be computed exactly
-  double absTol = 1e-14; // we just want to catch gross bugs
-  int[] kArr = {2,16,1024,1 << 30};
-  double[] epsArr = { // these were computed by an earlier ocaml version of the function
-    0.821714930853465,
-    0.12145410223356,
-    0.00238930378957284,
-    3.42875166500824e-09 };
-  for (int i = 0; i < 4; i++) {
-    assertEquals(epsArr[i],
-                 Util.EpsilonFromK.getAdjustedEpsilon(kArr[i]),
-                 absTol,
-                 "adjustedFindEpsForK() doesn't match precomputed value");
-  }
-  for (int i = 0; i < 3; i++) {
-    DoublesSketch qs = DoublesSketch.builder().setK(kArr[i]).build();
-    assertEquals(epsArr[i],
-                 qs.getNormalizedRankError(),
-                 absTol,
-                 "getNormalizedCountError() doesn't match precomputed value");
-  }
-}
-
-  @Test
   public void checkBigMinMax () {
     int k = 32;
     UpdateDoublesSketch qs1 = DoublesSketch.builder().setK(k).build();

@@ -17,6 +17,7 @@ import com.yahoo.memory.WritableMemory;
  * @author Kevin Lang
  */
 final class DoublesUnionImpl extends DoublesUnionImplR {
+
   private DoublesUnionImpl(final int maxK) {
     super(maxK);
   }
@@ -77,13 +78,8 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
    * @return a DoublesUnion object
    */
   static DoublesUnionImpl heapifyInstance(final Memory srcMem) {
-    final int preLongs = srcMem.getByte(PreambleUtil.PREAMBLE_LONGS_BYTE) & 0xFF;
-    final int k = srcMem.getShort(PreambleUtil.K_SHORT) & 0xFFFF;
-    final HeapUpdateDoublesSketch sketch = (preLongs == 1)
-        ? HeapUpdateDoublesSketch.newInstance(k)
-        : HeapUpdateDoublesSketch.heapifyInstance(srcMem);
-    final DoublesUnionImpl union = new DoublesUnionImpl(k);
-    union.maxK_ = k;
+    final HeapUpdateDoublesSketch sketch = HeapUpdateDoublesSketch.heapifyInstance(srcMem);
+    final DoublesUnionImpl union = new DoublesUnionImpl(sketch.getK());
     union.gadget_ = sketch;
     return union;
   }
@@ -98,9 +94,7 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
    */
   static DoublesUnionImpl wrapInstance(final WritableMemory mem) {
     final DirectUpdateDoublesSketch sketch = DirectUpdateDoublesSketch.wrapInstance(mem);
-    final int k = sketch.getK();
-    final DoublesUnionImpl union = new DoublesUnionImpl(k);
-    union.maxK_ = k;
+    final DoublesUnionImpl union = new DoublesUnionImpl(sketch.getK());
     union.gadget_ = sketch;
     return union;
   }

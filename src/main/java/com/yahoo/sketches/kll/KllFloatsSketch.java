@@ -230,9 +230,7 @@ public class KllFloatsSketch {
   }
 
   private KllFloatsSketch(final int k, final int m) {
-    if ((k < MIN_K) || (k > MAX_K)) {
-      throw new SketchesArgumentException("K must be >= " + MIN_K + " and < " + MAX_K + ": " + k);
-    }
+    checkK(k);
     k_ = k;
     m_ = m;
     numLevels_ = 1;
@@ -577,6 +575,7 @@ public class KllFloatsSketch {
   }
 
   /**
+   * Gets the normalized rank error given k and pmf.
    * Static method version of the {@link #getNormalizedRankError(boolean)}.
    * @param k the configuation parameter
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
@@ -603,8 +602,11 @@ public class KllFloatsSketch {
    * @return the value of <i>k</i> given a value of epsilon.
    * @see KllFloatsSketch
    */
+  // constants were derived as the best fit to 99 percentile empirically measured max error in
+  // thousands of trials
   public static int getKFromEpsilon(final double epsilon, final boolean pmf) {
-    final double eps = max(epsilon, 4.7E-5);
+    //Ensure that eps is >= than the lowest possible eps given MAX_K and pmf=false.
+    final double eps = max(epsilon, 4.7634E-5);
     final double kdbl = pmf
         ? exp(log(2.446 / eps) / 0.9433)
         : exp(log(2.296 / eps) / 0.9723);
@@ -778,6 +780,17 @@ public class KllFloatsSketch {
       "Possible corruption: family mismatch: expected " + Family.KLL.getID() + ", got " + family);
     }
     return new KllFloatsSketch(mem);
+  }
+
+  /**
+   * Checks the validity of the given value k
+   * @param k must be greater than 7 and less than 65536.
+   */
+  static void checkK(final int k) {
+    if ((k < MIN_K) || (k > MAX_K)) {
+      throw new SketchesArgumentException(
+          "K must be >= " + MIN_K + " and <= " + MAX_K + ": " + k);
+    }
   }
 
   private KllFloatsQuantileCalculator getQuantileCalculator() {

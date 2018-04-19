@@ -111,7 +111,9 @@ final class DoublesUtil {
     final String retItemsStr = String.format("%,d", sk.getRetainedItems());
     final String cmptBytesStr = String.format("%,d", sk.getCompactStorageBytes());
     final String updtBytesStr = String.format("%,d", sk.getUpdatableStorageBytes());
-    final double eps = Util.EpsilonFromK.getAdjustedEpsilon(k);
+    final double epsPmf = Util.getNormalizedRankError(k, true);
+    final String epsPmfPctStr = String.format("%.3f%%", epsPmf * 100.0);
+    final double eps =  Util.getNormalizedRankError(k, false);
     final String epsPctStr = String.format("%.3f%%", eps * 100.0);
     final String memCap = sk.isDirect() ? Long.toString(sk.getMemory().getCapacity()) : "";
 
@@ -133,6 +135,7 @@ final class DoublesUtil {
     sb.append("   Compact Storage Bytes        : ").append(cmptBytesStr).append(LS);
     sb.append("   Updatable Storage Bytes      : ").append(updtBytesStr).append(LS);
     sb.append("   Normalized Rank Error        : ").append(epsPctStr).append(LS);
+    sb.append("   Normalized Rank Error (PMF)  : ").append(epsPmfPctStr).append(LS);
     sb.append("   Min Value                    : ")
       .append(String.format("%,.3f", sk.getMinValue())).append(LS);
     sb.append("   Max Value                    : ")
@@ -163,11 +166,11 @@ final class DoublesUtil {
 
     //output all the levels
     final int combBufSize = combBuf.length;
-    if (n >= 2 * k) {
+    if (n >= (2 * k)) {
       sb.append("   Valid | Level");
       for (int j = 2 * k; j < combBufSize; j++) { //output level data starting at 2K
-        if (j % k == 0) { //start output of new level
-          final int levelNum = j / k - 2;
+        if ((j % k) == 0) { //start output of new level
+          final int levelNum = (j / k) - 2;
           final String validLvl = ((1L << levelNum) & bitPattern) > 0 ? "    T  " : "    F  ";
           final String lvl = String.format("%5d", levelNum);
           sb.append(LS).append("   ").append(validLvl).append(" ").append(lvl).append(": ");

@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.quantiles;
 
+import static com.yahoo.sketches.Util.LS;
+
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -45,8 +47,8 @@ final class ItemsUtil {
   static final <T> void validateValues(final T[] values, final Comparator<? super T> comparator) {
     final int lenM1 = values.length - 1;
     for (int j = 0; j < lenM1; j++) {
-      if (values[j] != null && values[j + 1] != null
-          && comparator.compare(values[j], values[j + 1]) < 0) {
+      if ((values[j] != null) && (values[j + 1] != null)
+          && (comparator.compare(values[j], values[j + 1]) < 0)) {
         continue;
       }
       throw new SketchesArgumentException(
@@ -62,7 +64,7 @@ final class ItemsUtil {
   static <T> void processFullBaseBuffer(final ItemsSketch<T> sketch) {
     final int bbCount = sketch.getBaseBufferCount();
     final long n = sketch.getN();
-    assert bbCount == 2 * sketch.getK(); // internal consistency check
+    assert bbCount == (2 * sketch.getK()); // internal consistency check
 
     // make sure there will be enough levels for the propagation
     ItemsUpdateImpl.maybeGrowLevels(sketch, n); // important: n_ was incremented by update before we got here
@@ -78,7 +80,7 @@ final class ItemsUtil {
         true, sketch);
     sketch.baseBufferCount_ = 0;
     Arrays.fill(baseBuffer, 0, 2 * sketch.getK(), null); // to release the discarded objects
-    assert n / (2 * sketch.getK()) == sketch.getBitPattern();  // internal consistency check
+    assert (n / (2 * sketch.getK())) == sketch.getBitPattern();  // internal consistency check
   }
 
   static <T> String toString(final boolean sketchSummary, final boolean dataDetail,
@@ -104,11 +106,11 @@ final class ItemsUtil {
       sb.append(Util.LS);
       //output all the levels
       final int numItems = combAllocCount;
-      if (numItems > 2 * k) {
+      if (numItems > (2 * k)) {
         sb.append("   Valid | Level");
         for (int j = 2 * k; j < numItems; j++) { //output level data starting at 2K
-          if (j % k == 0) { //start output of new level
-            final int levelNum = j > 2 * k ? (j - 2 * k) / k : 0;
+          if ((j % k) == 0) { //start output of new level
+            final int levelNum = j > (2 * k) ? (j - (2 * k)) / k : 0;
             final String validLvl = ((1L << levelNum) & bitPattern) > 0 ? "    T  " : "    F  ";
             final String lvl = String.format("%5d", levelNum);
             sb.append(Util.LS).append("   ").append(validLvl).append(" ").append(lvl).append(":");
@@ -126,8 +128,10 @@ final class ItemsUtil {
       final int numLevels = Util.computeNumLevelsNeeded(k, n);
       final String bufCntStr = String.format("%,d", combAllocCount);
       final int preBytes = sketch.isEmpty() ? Long.BYTES : 2 * Long.BYTES;
-      final double eps = Util.EpsilonFromK.getAdjustedEpsilon(k);
-      final String epsPct = String.format("%.3f%%", eps * 100.0);
+      final double epsPmf = Util.getNormalizedRankError(k, true);
+      final String epsPmfPctStr = String.format("%.3f%%", epsPmf * 100.0);
+      final double eps =  Util.getNormalizedRankError(k, false);
+      final String epsPctStr = String.format("%.3f%%", eps * 100.0);
       final int numSamples = sketch.getRetainedItems();
       final String numSampStr = String.format("%,d", numSamples);
       sb.append(Util.LS).append("### ").append(thisSimpleName).append(" SUMMARY: ").append(Util.LS);
@@ -142,7 +146,8 @@ final class ItemsUtil {
         .append(Util.LS);
       sb.append("   Valid Samples                : ").append(numSampStr).append(Util.LS);
       sb.append("   Preamble Bytes               : ").append(preBytes).append(Util.LS);
-      sb.append("   Normalized Rank Error        : ").append(epsPct).append(Util.LS);
+      sb.append("   Normalized Rank Error        : ").append(epsPctStr).append(LS);
+      sb.append("   Normalized Rank Error (PMF)  : ").append(epsPmfPctStr).append(LS);
       sb.append("   Min Value                    : ").append(sketch.getMinValue()).append(Util.LS);
       sb.append("   Max Value                    : ").append(sketch.getMaxValue()).append(Util.LS);
       sb.append("### END SKETCH SUMMARY").append(Util.LS);

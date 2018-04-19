@@ -35,31 +35,6 @@ public class HeapUpdateDoublesSketchTest {
     DoublesSketch.rand.setSeed(32749); // make sketches deterministic for testing
   }
 
-  @Test
-    public void checkGetAdjustedEpsilon() {
-    // note: there is a big fudge factor in these numbers, so they don't need to be computed exactly
-    double absTol = 1e-14; // we just want to catch gross bugs
-    int[] kArr = {2,16,1024,1 << 30};
-    double[] epsArr = { // these were computed by an earlier ocaml version of the function
-      0.821714930853465,
-      0.12145410223356,
-      0.00238930378957284,
-      3.42875166500824e-09 };
-    for (int i = 0; i < 4; i++) {
-      assertEquals(epsArr[i],
-                   Util.EpsilonFromK.getAdjustedEpsilon(kArr[i]),
-                   absTol,
-                   "adjustedFindEpsForK() doesn't match precomputed value");
-    }
-    for (int i = 0; i < 3; i++) {
-      DoublesSketch qs = DoublesSketch.builder().setK(kArr[i]).build();
-      assertEquals(epsArr[i],
-                   qs.getNormalizedRankError(),
-                   absTol,
-                   "getNormalizedCountError() doesn't match precomputed value");
-    }
-  }
-
   // Please note that this is a randomized test that could probabilistically fail
   // if we didn't set the seed. (The probability of failure could be reduced by increasing k.)
   // Setting the seed has now made it deterministic.

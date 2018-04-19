@@ -7,14 +7,8 @@ package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.quantiles.Util.checkIsCompactMemory;
-import static java.lang.Math.abs;
-import static java.lang.Math.ceil;
-import static java.lang.Math.exp;
-import static java.lang.Math.log;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static java.lang.Math.pow;
-import static java.lang.Math.round;
 
 import java.util.Random;
 
@@ -131,6 +125,7 @@ public abstract class DoublesSketch {
   static final int DOUBLES_SER_VER = 3;
   static final int MAX_PRELONGS = Family.QUANTILES.getMaxPreLongs();
   static final int MIN_K = 2;
+  static final int MAX_K = 1 << 15;
 
   /**
    * Parameter that controls space usage of sketch and accuracy of estimates.
@@ -225,7 +220,7 @@ public abstract class DoublesSketch {
    * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
    */
   public double getQuantileUpperBound(final double fraction) {
-    return getQuantile(min(1.0, fraction + getNormalizedRankError(k_, false)));
+    return getQuantile(min(1.0, fraction + Util.getNormalizedRankError(k_, false)));
   }
 
   /**
@@ -236,7 +231,7 @@ public abstract class DoublesSketch {
    * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
    */
   public double getQuantileLowerBound(final double fraction) {
-    return getQuantile(max(0, fraction - getNormalizedRankError(k_, false)));
+    return getQuantile(max(0, fraction - Util.getNormalizedRankError(k_, false)));
   }
 
   /**
@@ -441,7 +436,7 @@ public abstract class DoublesSketch {
    */
   @Deprecated
   public double getNormalizedRankError() {
-    return getNormalizedRankError(getK());
+    return Util.getNormalizedRankError(getK(), true);
   }
 
   /**
@@ -452,7 +447,7 @@ public abstract class DoublesSketch {
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
    */
   public double getNormalizedRankError(final boolean pmf) {
-    return getNormalizedRankError(k_, pmf);
+    return Util.getNormalizedRankError(k_, pmf);
   }
 
   /**
@@ -463,10 +458,11 @@ public abstract class DoublesSketch {
    */
   @Deprecated
   public static double getNormalizedRankError(final int k) {
-    return Util.EpsilonFromK.getAdjustedEpsilon(k);
+    return Util.getNormalizedRankError(k, true);
   }
 
   /**
+   * Gets the normalized rank error given k and pmf.
    * Static method version of the {@link #getNormalizedRankError(boolean)}.
    * @param k the configuation parameter
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
@@ -475,12 +471,8 @@ public abstract class DoublesSketch {
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
    * @see KllFloatsSketch
    */
-  // constants were derived as the best fit to 99 percentile empirically measured max error in
-  // thousands of trials
   public static double getNormalizedRankError(final int k, final boolean pmf) {
-    return pmf
-        ? 1.74289590045312415 / pow(k, 0.954048085817058)
-        : 1.74289590045312415 / pow(k, 0.954048085817058); ///TODO
+    return Util.getNormalizedRankError(k, pmf);
   }
 
   /**
@@ -494,14 +486,7 @@ public abstract class DoublesSketch {
    * @see KllFloatsSketch
    */
   public static int getKFromEpsilon(final double epsilon, final boolean pmf) {
-    final double eps = max(epsilon, 4.7E-5);
-    final double kdbl = pmf
-        ? exp(log(1.74289590045312415 / eps) / 0.954048085817058)
-        : exp(log(1.74289590045312415 / eps) / 0.954048085817058);//TODO
-    final double krnd = round(kdbl);
-    final double del = abs(krnd - kdbl);
-    final int k = (int) ((del < 1E-6) ? krnd : ceil(kdbl));
-    return k; //
+    return Util.getKFromEpsilon(epsilon, pmf);
   }
 
   /**
