@@ -53,7 +53,7 @@ public class HeapUpdateDoublesSketchTest {
       }
     }
     assertEquals(qs.getN() + qs2.getN(), n);
-    DoublesUnion union = DoublesUnionBuilder.heapify(qs);
+    DoublesUnion union = DoublesUnion.heapify(qs);
     union.update(qs2);
     DoublesSketch result = union.getResult();
 
@@ -164,11 +164,11 @@ public class HeapUpdateDoublesSketchTest {
     assertTrue(resultsA[0] == 1.0);
     assertTrue(resultsA[1] == 999.0);
 
-    DoublesUnion union1 = DoublesUnionBuilder.heapify(qs1);
+    DoublesUnion union1 = DoublesUnion.heapify(qs1);
     union1.update(qs2);
     DoublesSketch result1 = union1.getResult();
 
-    DoublesUnion union2 = DoublesUnionBuilder.heapify(qs2);
+    DoublesUnion union2 = DoublesUnion.heapify(qs2);
     union2.update(qs3);
     DoublesSketch result2 = union2.getResult();
 
@@ -213,11 +213,11 @@ public class HeapUpdateDoublesSketchTest {
     assert (resultsA[1] == 5.0);
     assert (resultsA[2] == 8.0);
 
-    DoublesUnion union1 = DoublesUnionBuilder.heapify(qs1);
+    DoublesUnion union1 = DoublesUnion.heapify(qs1);
     union1.update(qs2);
     DoublesSketch result1 = union1.getResult();
 
-    DoublesUnion union2 = DoublesUnionBuilder.heapify(qs2);
+    DoublesUnion union2 = DoublesUnion.heapify(qs2);
     union2.update(qs3);
     DoublesSketch result2 = union2.getResult();
 
@@ -406,7 +406,7 @@ public class HeapUpdateDoublesSketchTest {
     int n = 1000000;
     DoublesSketch qs1 = buildAndLoadQS(k,n,0);
     DoublesSketch qs2 = buildAndLoadQS(k,0,0); //empty
-    DoublesUnion union = DoublesUnionBuilder.heapify(qs2);
+    DoublesUnion union = DoublesUnion.heapify(qs2);
     union.update(qs1);
     DoublesSketch result = union.getResult();
     double med1 = qs1.getQuantile(0.5);
@@ -420,7 +420,7 @@ public class HeapUpdateDoublesSketchTest {
     int k = PreambleUtil.DEFAULT_K;
     DoublesSketch qs1 = buildAndLoadQS(k,  1000, 0);
     DoublesSketch qs2 = buildAndLoadQS(2*k,1000, 1000);
-    DoublesUnion union = DoublesUnionBuilder.heapify(qs2);
+    DoublesUnion union = DoublesUnion.heapify(qs2);
     union.update(qs1); //attempt merge into larger k
     DoublesSketch result = union.getResult();
     assertEquals(result.getK(), k);
@@ -431,7 +431,7 @@ public class HeapUpdateDoublesSketchTest {
     int k = PreambleUtil.DEFAULT_K;
     int n = 1000000;
     DoublesSketch qs = buildAndLoadQS(k,n,0);
-    double eps = qs.getNormalizedRankError();
+    double eps = qs.getNormalizedRankError(true);
     //println("EPS:"+eps);
     double[] spts = {100000, 500000, 900000};
     double[] fracArr = qs.getPMF(spts);
@@ -744,7 +744,7 @@ public class HeapUpdateDoublesSketchTest {
   }
 
   static String getRanksTable(DoublesSketch qs, double[] ranks) {
-    double rankError = qs.getNormalizedRankError();
+    double rankError = qs.getNormalizedRankError(false);
     double[] values = qs.getQuantiles(ranks);
     double maxV = qs.getMaxValue();
     double minV = qs.getMinValue();
@@ -788,7 +788,7 @@ public class HeapUpdateDoublesSketchTest {
   public void checkKisTwo() {
     int k = 2;
     UpdateDoublesSketch qs1 = DoublesSketch.builder().setK(k).build();
-    double err = qs1.getNormalizedRankError();
+    double err = qs1.getNormalizedRankError(false);
     assertTrue(err < 1.0);
     byte[] arr = qs1.toByteArray(true); //8
     assertEquals(arr.length, DoublesSketch.getCompactStorageBytes(k, 0));
@@ -801,7 +801,7 @@ public class HeapUpdateDoublesSketchTest {
   public void checkKisTwoDeprecated() {
     int k = 2;
     UpdateDoublesSketch qs1 = DoublesSketch.builder().setK(k).build();
-    double err = qs1.getNormalizedRankError();
+    double err = qs1.getNormalizedRankError(false);
     assertTrue(err < 1.0);
     byte[] arr = qs1.toByteArray(true); //8
     assertEquals(arr.length, DoublesSketch.getCompactStorageBytes(k, 0));
@@ -854,9 +854,9 @@ public class HeapUpdateDoublesSketchTest {
 
     int k = 1024;
     DoublesSketch qsk = new DoublesSketchBuilder().setK(k).build();
-    DoublesUnion u1 = DoublesUnionBuilder.heapify(qsk);
+    DoublesUnion u1 = DoublesUnion.heapify(qsk);
     u1.getResult().putMemory(mem);
-    DoublesUnion u2 = DoublesUnionBuilder.heapify(mem);
+    DoublesUnion u2 = DoublesUnion.heapify(mem);
     DoublesSketch qsk2 = u2.getResult();
     assertTrue(qsk2.isEmpty());
   }

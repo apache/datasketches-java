@@ -70,7 +70,9 @@ public class DoublesUnionBuilder {
    * Returns a Heap Union object that has been initialized with the data from the given sketch.
    * @param sketch A DoublesSketch to be used as a source of data only and will not be modified.
    * @return a DoublesUnion object
+   * @deprecated moved to DoublesUnion
    */
+  @Deprecated
   public static DoublesUnion heapify(final DoublesSketch sketch) {
     return DoublesUnionImpl.heapifyInstance(sketch);
   }
@@ -82,7 +84,9 @@ public class DoublesUnionBuilder {
    * @param srcMem A memory image of a DoublesSketch to be used as a source of data,
    * but will not be modified.
    * @return a Union object
+   * @deprecated moved to DoublesUnion
    */
+  @Deprecated
   public static DoublesUnion heapify(final Memory srcMem) {
     return DoublesUnionImpl.heapifyInstance(srcMem);
   }
@@ -94,7 +98,9 @@ public class DoublesUnionBuilder {
    * @param mem A memory region to be used as the data structure for the sketch
    * and will be modified.
    * @return a Union object
+   * @deprecated moved to DoublesUnion
    */
+  @Deprecated
   public static DoublesUnion wrap(final Memory mem) {
     return DoublesUnionImplR.wrapInstance(mem);
   }
@@ -106,7 +112,9 @@ public class DoublesUnionBuilder {
    * @param mem A memory region to be used as the data structure for the sketch
    * and will be modified.
    * @return a Union object
+   * @deprecated moved to DoublesUnion
    */
+  @Deprecated
   public static DoublesUnion wrap(final WritableMemory mem) {
     return DoublesUnionImpl.wrapInstance(mem);
   }

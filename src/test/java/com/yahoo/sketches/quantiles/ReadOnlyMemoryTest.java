@@ -180,7 +180,7 @@ public class ReadOnlyMemoryTest {
     s1.update(1);
     s1.update(2);
     Memory mem = Memory.wrap(s1.toByteArray(false));
-    DoublesUnion u = DoublesUnionBuilder.heapify(mem);
+    DoublesUnion u = DoublesUnion.heapify(mem);
     u.update(3);
     DoublesSketch s2 = u.getResult();
     Assert.assertEquals(s2.getMinValue(), 1.0);
@@ -193,7 +193,7 @@ public class ReadOnlyMemoryTest {
     s1.update(1);
     s1.update(2);
     Memory mem = Memory.wrap(s1.toByteArray(true));
-    DoublesUnion u = DoublesUnionBuilder.heapify(mem);
+    DoublesUnion u = DoublesUnion.heapify(mem);
     u.update(3);
     DoublesSketch s2 = u.getResult();
     Assert.assertEquals(s2.getMinValue(), 1.0);
@@ -206,7 +206,7 @@ public class ReadOnlyMemoryTest {
     s1.update(1);
     s1.update(2);
     Memory mem = Memory.wrap(s1.toByteArray(false));
-    DoublesUnion u = DoublesUnionBuilder.wrap(mem);
+    DoublesUnion u = DoublesUnion.wrap(mem);
     DoublesSketch s2 = u.getResult();
     Assert.assertEquals(s2.getMinValue(), 1.0);
     Assert.assertEquals(s2.getMaxValue(), 2.0);
@@ -254,7 +254,7 @@ public class ReadOnlyMemoryTest {
     s1.update(1);
     s1.update(2);
     Memory mem = Memory.wrap(s1.toByteArray(true));
-    DoublesUnionBuilder.wrap(mem);
+    DoublesUnion.wrap(mem);
     fail();
   }
 
