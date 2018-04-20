@@ -7,6 +7,8 @@ package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.HeapUpdateDoublesSketchTest.buildAndLoadQS;
 
+import java.util.Comparator;
+
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
@@ -21,6 +23,8 @@ public class DeprecatedAndMiscTest {
   @Test
   public void checkDeprecatedRankError() {
     DoublesSketch ds = buildAndLoadQS(64, 64);
+    double err = ds.getNormalizedRankError();
+    err = DoublesSketch.getNormalizedRankError(64);
     DoublesUnion du1 = DoublesUnionBuilder.heapify(ds);
 
     Memory mem = Memory.wrap(ds.toByteArray());
@@ -30,6 +34,10 @@ public class DeprecatedAndMiscTest {
 
     WritableMemory wmem = WritableMemory.wrap(ds.toByteArray());
     DoublesUnion du4 = DoublesUnionBuilder.wrap(wmem);
+
+    ItemsSketch<String> is = ItemsSketch.getInstance(64, Comparator.naturalOrder());
+    err = is.getNormalizedRankError();
+    err = ItemsSketch.getNormalizedRankError(64);
   }
 
 }
