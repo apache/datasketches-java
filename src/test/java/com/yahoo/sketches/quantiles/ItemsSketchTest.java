@@ -130,7 +130,7 @@ public class ItemsSketchTest {
     Assert.assertEquals(quantiles[1], Integer.valueOf(500), 17); // median
     Assert.assertEquals(quantiles[2], Integer.valueOf(1000)); // max value
 
-    double normErr = sketch.getNormalizedRankError();
+    double normErr = sketch.getNormalizedRankError(true);
     Assert.assertEquals(normErr, .0172, .001);
     println(""+normErr);
 

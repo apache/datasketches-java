@@ -57,11 +57,11 @@ public class DirectUpdateDoublesSketchTest {
     assertTrue(resultsA[0] == 1.0);
     assertTrue(resultsA[1] == 999.0);
 
-    DoublesUnion union1 = DoublesUnionBuilder.heapify(qs1);
+    DoublesUnion union1 = DoublesUnion.heapify(qs1);
     union1.update(qs2);
     DoublesSketch result1 = union1.getResult();
 
-    DoublesUnion union2 = DoublesUnionBuilder.heapify(qs2);
+    DoublesUnion union2 = DoublesUnion.heapify(qs2);
     union2.update(qs3);
     DoublesSketch result2 = union2.getResult();
 
@@ -106,11 +106,11 @@ public class DirectUpdateDoublesSketchTest {
     assert (resultsA[1] == 5.0);
     assert (resultsA[2] == 8.0);
 
-    DoublesUnion union1 = DoublesUnionBuilder.heapify(qs1);
+    DoublesUnion union1 = DoublesUnion.heapify(qs1);
     union1.update(qs2);
     DoublesSketch result1 = union1.getResult();
 
-    DoublesUnion union2 = DoublesUnionBuilder.heapify(qs2);
+    DoublesUnion union2 = DoublesUnion.heapify(qs2);
     union2.update(qs3);
     DoublesSketch result2 = union2.getResult();
 

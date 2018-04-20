@@ -14,6 +14,7 @@ import org.testng.annotations.Test;
  */
 public class DeprecatedAndMiscTest {
 
+  @SuppressWarnings("deprecation")
   @Test
   public void checkDeprecatedRankError() {
     KllFloatsSketch sketch = new KllFloatsSketch();

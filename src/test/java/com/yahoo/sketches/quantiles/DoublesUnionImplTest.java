@@ -483,7 +483,7 @@ public class DoublesUnionImplTest {
   @Test
   public void checkResultAndReset() {
     final DoublesSketch qs1 = buildAndLoadQS(256, 0);
-    final DoublesUnion union = DoublesUnionBuilder.heapify(qs1);
+    final DoublesUnion union = DoublesUnion.heapify(qs1);
     final DoublesSketch qs2 = union.getResultAndReset();
     assertEquals(qs2.getK(), 256);
   }
@@ -491,7 +491,7 @@ public class DoublesUnionImplTest {
   @Test
   public void checkResultAndResetDirect() {
     final DoublesSketch qs1 = buildAndLoadDQS(256, 0);
-    final DoublesUnion union = DoublesUnionBuilder.heapify(qs1);
+    final DoublesUnion union = DoublesUnion.heapify(qs1);
     final DoublesSketch qs2 = union.getResultAndReset();
     assertEquals(qs2.getK(), 256);
   }
@@ -665,7 +665,7 @@ public class DoublesUnionImplTest {
 
     final byte[] byteArr = sketch.toByteArray(false);
     final WritableMemory mem = WritableMemory.wrap(byteArr);
-    final DoublesUnion union = DoublesUnionBuilder.wrap(mem);
+    final DoublesUnion union = DoublesUnion.wrap(mem);
     Assert.assertFalse(union.isEmpty());
     assertTrue(union.isDirect());
     final DoublesSketch sketch2 = union.getResult();
@@ -699,7 +699,7 @@ public class DoublesUnionImplTest {
     DoublesUnion union = DoublesUnion.builder().build();
     byte[] byteArr = union.toByteArray();
     Memory mem = Memory.wrap(byteArr);
-    DoublesUnion union2 = DoublesUnionBuilder.heapify(mem);
+    DoublesUnion union2 = DoublesUnion.heapify(mem);
     Assert.assertEquals(mem.getCapacity(), 8L);
     Assert.assertTrue(union2.isEmpty());
   }
