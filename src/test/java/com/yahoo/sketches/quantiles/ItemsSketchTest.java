@@ -27,7 +27,7 @@ public class ItemsSketchTest {
 
   @BeforeMethod
   public void setUp() {
-    ItemsSketch.rand.setSeed(32749); // make sketches deterministic for testing
+    ItemsSketch.rand.get().setSeed(32749); // make sketches deterministic for testing
   }
 
   @Test
@@ -520,7 +520,7 @@ public class ItemsSketchTest {
     for (Comparator<String> c : Arrays.asList(natural, reverse, numeric)) {
       final ItemsSketch<String> sketch = ItemsSketch.getInstance(16, c);
       for (int i = 0; i < 10000; i++) {
-        sketch.update(String.valueOf(ItemsSketch.rand.nextInt(1000000)));
+        sketch.update(String.valueOf(ItemsSketch.rand.get().nextInt(1000000)));
       }
       final String[] quantiles = sketch.getQuantiles(100);
       final String[] sorted = Arrays.copyOf(quantiles, quantiles.length);

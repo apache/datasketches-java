@@ -84,7 +84,7 @@ final class ItemsUpdateImpl {
       final Object[] bufA, final int startA, // input
       final Object[] bufC, final int startC, // output
       final int k) {
-    final int randomOffset = ItemsSketch.rand.nextBoolean() ? 1 : 0;
+    final int randomOffset = ItemsSketch.rand.get().nextBoolean() ? 1 : 0;
     final int limC = startC + k;
     for (int a = startA + randomOffset, c = startC; c < limC; a += 2, c++) {
       bufC[c] = bufA[a];

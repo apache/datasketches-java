@@ -191,7 +191,7 @@ final class ItemsMergeImpl {
       final T[] bufC, final int startC, // output
       final int kC, // number of items that should be in the output
       final int stride) {
-    final int randomOffset = ItemsSketch.rand.nextInt(stride);
+    final int randomOffset = ItemsSketch.rand.get().nextInt(stride);
     final int limC = startC + kC;
     for (int a = startSrc + randomOffset, c = startC; c < limC; a += stride, c++ ) {
       bufC[c] = bufSrc[a];
