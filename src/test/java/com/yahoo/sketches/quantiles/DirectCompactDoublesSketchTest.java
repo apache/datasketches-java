@@ -13,6 +13,7 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -82,7 +83,7 @@ public class DirectCompactDoublesSketchTest {
   public void wrapEmptyCompactSketch() {
     final CompactDoublesSketch s1 = DoublesSketch.builder().build().compact();
     final Memory mem
-            = Memory.wrap(ByteBuffer.wrap(s1.toByteArray()));
+            = Memory.wrap(ByteBuffer.wrap(s1.toByteArray()).order(ByteOrder.nativeOrder()));
     final DoublesSketch s2 = DoublesSketch.wrap(mem);
     assertTrue(s2.isEmpty());
     assertEquals(s2.getN(), 0);

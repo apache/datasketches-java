@@ -16,6 +16,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import org.testng.annotations.Test;
 
@@ -213,15 +214,15 @@ public class SetOperationTest {
     //I use a heap backing array, because for this example it is easier to peak into it and
     // see what is going on.
     byte[] backingArr = new byte[heapLayout[5]];
-    ByteBuffer heapBuf = ByteBuffer.wrap(backingArr);
+    ByteBuffer heapBuf = ByteBuffer.wrap(backingArr).order(ByteOrder.nativeOrder());
 
-    // Attaches a NM object to the underlying memory of heapBuf.
+    // Attaches a WritableMemory object to the underlying memory of heapBuf.
     // heapMem will have a Read/Write view of the complete backing memory of heapBuf (direct or not).
     // Any R/W action from heapMem will be visible via heapBuf and visa versa.
     //
-    // However, if you had created this NM object directly in raw, off-heap "native" memory
-    // you would have the responsibility to clear it, and free it to the OS when you
-    // are done.  But, since it was allocated via BB, it does the clearing and freeing for you.
+    // However, if you had created this WM object directly in raw, off-heap "native" memory
+    // you would have the responsibility to close it when you are done.
+    // But, since it was allocated via BB, it closes it for you.
     WritableMemory heapMem = WritableMemory.wrap(heapBuf);
 
     double result = directUnionTrial1(heapMem, heapLayout, sketchNomEntries, unionNomEntries);

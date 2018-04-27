@@ -23,7 +23,8 @@ public class ReadOnlyMemoryTest {
     s1.update(2);
     final byte[] bytes = s1.toByteArray(false);
     Assert.assertEquals(bytes.length, 64); // 32 + MIN_K(=2) * 2 * 8 = 64
-    //final Memory mem = Memory.wrap(ByteBuffer.wrap(bytes).asReadOnlyBuffer());
+    //final Memory mem = Memory.wrap(ByteBuffer.wrap(bytes)
+    // .asReadOnlyBuffer().order(ByteOrder.nativeOrder()));
     final Memory mem = Memory.wrap(bytes);
     final UpdateDoublesSketch s2 = (UpdateDoublesSketch) DoublesSketch.wrap(mem);
     Assert.assertEquals(s2.getMinValue(), 1.0);
@@ -42,7 +43,8 @@ public class ReadOnlyMemoryTest {
     UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
-    //Memory mem = Memory.wrap(ByteBuffer.wrap(s1.compact().toByteArray()).asReadOnlyBuffer());
+    //Memory mem = Memory.wrap(ByteBuffer.wrap(s1.compact().toByteArray())
+    // .asReadOnlyBuffer().order(ByteOrder.nativeOrder())););
     final Memory mem = Memory.wrap(s1.compact().toByteArray());
     final DoublesSketch s2 = DoublesSketch.wrap(mem); // compact, so this is ok
     Assert.assertEquals(s2.getMinValue(), 1.0);

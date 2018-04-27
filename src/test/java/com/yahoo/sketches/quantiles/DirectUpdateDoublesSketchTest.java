@@ -13,6 +13,7 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -134,7 +135,7 @@ public class DirectUpdateDoublesSketchTest {
   public void wrapEmptyUpdateSketch() {
     final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     final WritableMemory mem
-            = WritableMemory.wrap(ByteBuffer.wrap(s1.toByteArray()));
+            = WritableMemory.wrap(ByteBuffer.wrap(s1.toByteArray()).order(ByteOrder.nativeOrder()));
     final UpdateDoublesSketch s2 = DirectUpdateDoublesSketch.wrapInstance(mem);
     assertTrue(s2.isEmpty());
 

@@ -19,6 +19,8 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.nio.ByteOrder;
+
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -849,7 +851,7 @@ public class HeapUpdateDoublesSketchTest {
   //Himanshu's case
   @Test
   public void testIt() {
-    java.nio.ByteBuffer bb = java.nio.ByteBuffer.allocate(1<<20);
+    java.nio.ByteBuffer bb = java.nio.ByteBuffer.allocate(1<<20).order(ByteOrder.nativeOrder());
     WritableMemory mem = WritableMemory.wrap(bb);
 
     int k = 1024;
