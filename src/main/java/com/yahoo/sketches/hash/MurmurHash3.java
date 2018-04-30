@@ -45,6 +45,8 @@ import java.io.Serializable;
 public final class MurmurHash3 implements Serializable {
   private static final long serialVersionUID = 0L;
 
+  private static final HashState hashState = new HashState();
+
   private MurmurHash3() {}
 
   //--Hash of long[]----------------------------------------------------
@@ -56,7 +58,7 @@ public final class MurmurHash3 implements Serializable {
    * @return the hash.
    */
   public static long[] hash(final long[] key, final long seed) {
-    final HashState hashState = new HashState(seed, seed);
+    hashState.setState(seed, seed);
     final int longs = key.length; //in longs
 
     // Number of full 128-bit blocks of 2 longs (the body).
@@ -89,7 +91,7 @@ public final class MurmurHash3 implements Serializable {
    * @return the hash.
    */
   public static long[] hash(final int[] key, final long seed) {
-    final HashState hashState = new HashState(seed, seed);
+    hashState.setState(seed, seed);
     final int ints = key.length; //in ints
 
     // Number of full 128-bit blocks of 4 ints.
@@ -131,7 +133,7 @@ public final class MurmurHash3 implements Serializable {
    * @return the hash.
    */
   public static long[] hash(final char[] key, final long seed) {
-    final HashState hashState = new HashState(seed, seed);
+    hashState.setState(seed, seed);
     final int chars = key.length; //in chars
 
     // Number of full 128-bit blocks of 8 chars.
@@ -173,7 +175,7 @@ public final class MurmurHash3 implements Serializable {
    * @return the hash.
    */
   public static long[] hash(final byte[] key, final long seed) {
-    final HashState hashState = new HashState(seed, seed);
+    hashState.setState(seed, seed);
     final int bytes = key.length; //in bytes
 
     // Number of full 128-bit blocks of 16 bytes.
@@ -213,10 +215,11 @@ public final class MurmurHash3 implements Serializable {
   private static final class HashState {
     private static final long C1 = 0x87c37b91114253d5L;
     private static final long C2 = 0x4cf5ad432745937fL;
+    private long state[] = new long[2];
     private long h1;
     private long h2;
 
-    HashState(final long h1, final long h2) {
+    private void setState(long h1, long h2) {
       this.h1 = h1;
       this.h2 = h2;
     }
@@ -250,7 +253,9 @@ public final class MurmurHash3 implements Serializable {
       h2 = finalMix64(h2);
       h1 += h2;
       h2 += h1;
-      return new long[] { h1, h2 };
+      state[0] = h1;
+      state[1] = h2;
+      return state;
     }
 
     /**
