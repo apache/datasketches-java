@@ -219,7 +219,7 @@ public final class MurmurHash3 implements Serializable {
     private long h1;
     private long h2;
 
-    private void setState(long h1, long h2) {
+    private void setState(final long h1, final long h2) {
       this.h1 = h1;
       this.h2 = h2;
     }
