@@ -693,7 +693,6 @@ public class DoublesUnionImplTest {
     Assert.assertFalse(union.isSameResource(mem2));
   }
 
-  @SuppressWarnings("unused")
   @Test
   public void emptyUnionSerDeIssue195() {
     DoublesUnion union = DoublesUnion.builder().build();
