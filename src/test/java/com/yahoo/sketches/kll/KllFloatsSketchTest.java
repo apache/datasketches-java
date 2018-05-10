@@ -67,7 +67,7 @@ public class KllFloatsSketchTest {
 
     // test getRank
     for (int i = 0; i < n; i++) {
-      final double trueRank = (double) i / (n - 1);
+      final double trueRank = (double) i / n;
       assertEquals(sketch.getRank(i), trueRank, PMF_EPS_FOR_K_256, "for value " + i);
     }
 
