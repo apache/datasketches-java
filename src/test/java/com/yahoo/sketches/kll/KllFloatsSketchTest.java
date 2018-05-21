@@ -147,8 +147,8 @@ public class KllFloatsSketchTest {
       sketch2.update((2 * n) - i - 1);
     }
 
-    assertEquals(sketch2.getMinValue(), (float) n);
-    assertEquals(sketch2.getMaxValue(), (float) ((2 * n) - 1));
+    assertEquals(sketch1.getMinValue(), 0.0f);
+    assertEquals(sketch1.getMaxValue(), (float) (n - 1));
 
     assertEquals(sketch2.getMinValue(), (float) n);
     assertEquals(sketch2.getMaxValue(), (float) ((2 * n) - 1));
@@ -172,8 +172,8 @@ public class KllFloatsSketchTest {
       sketch2.update((2 * n) - i - 1);
     }
 
-    assertEquals(sketch2.getMinValue(), (float) n);
-    assertEquals(sketch2.getMaxValue(), (float) ((2 * n) - 1));
+    assertEquals(sketch1.getMinValue(), 0.0f);
+    assertEquals(sketch1.getMaxValue(), (float) (n - 1));
 
     assertEquals(sketch2.getMinValue(), (float) n);
     assertEquals(sketch2.getMaxValue(), (float) ((2 * n) - 1));
