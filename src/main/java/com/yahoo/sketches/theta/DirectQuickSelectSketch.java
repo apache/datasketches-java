@@ -225,7 +225,7 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
   //restricted methods
 
   @Override
-  UpdateReturnState hashUpdate(final long hash) {
+  public UpdateReturnState hashUpdate(final long hash) {
     HashOperations.checkHashCorruption(hash);
 
     mem_.putByte(FLAGS_BYTE, (byte) (mem_.getByte(FLAGS_BYTE) & ~EMPTY_FLAG_MASK));

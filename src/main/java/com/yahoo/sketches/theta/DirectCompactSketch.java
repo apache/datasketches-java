@@ -79,7 +79,7 @@ abstract class DirectCompactSketch extends CompactSketch {
   //restricted methods
 
   @Override
-  long[] getCache() {
+  public long[] getCache() {
     final int curCount = getRetainedEntries(true);
     if (curCount > 0) {
       final long[] cache = new long[curCount];
@@ -91,7 +91,7 @@ abstract class DirectCompactSketch extends CompactSketch {
   }
 
   @Override
-  int getCurrentPreambleLongs(final boolean compact) { //already compact; ignore
+  public int getCurrentPreambleLongs(final boolean compact) { //already compact; ignore
     return extractPreLongs(memObj_, memAdd_);
   }
 
@@ -101,12 +101,12 @@ abstract class DirectCompactSketch extends CompactSketch {
   }
 
   @Override
-  short getSeedHash() {
+  public short getSeedHash() {
     return (short) extractSeedHash(memObj_, memAdd_);
   }
 
   @Override
-  long getThetaLong() {
+  public long getThetaLong() {
     final int preLongs = extractPreLongs(memObj_, memAdd_);
     return (preLongs > 2) ? extractThetaLong(memObj_, memAdd_) : Long.MAX_VALUE;
   }

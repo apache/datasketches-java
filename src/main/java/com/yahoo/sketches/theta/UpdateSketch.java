@@ -43,7 +43,7 @@ import com.yahoo.sketches.Util;
  */
 public abstract class UpdateSketch extends Sketch {
 
-  UpdateSketch() {}
+  public UpdateSketch() {}
 
   /**
   * Wrap takes the sketch image in Memory and refers to it directly. There is no data copying onto
@@ -327,13 +327,13 @@ public abstract class UpdateSketch extends Sketch {
    * A negative hash value will throw an exception.
    * @return <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
-  abstract UpdateReturnState hashUpdate(long hash);
+  public abstract UpdateReturnState hashUpdate(long hash);
 
   /**
    * Gets the Log base 2 of the current size of the internal cache
    * @return the Log base 2 of the current size of the internal cache
    */
-  abstract int getLgArrLongs();
+  public abstract int getLgArrLongs();
 
   /**
    * Gets the Log base 2 of the configured nominal entries
@@ -346,27 +346,27 @@ public abstract class UpdateSketch extends Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
    * @return the sampling probability, <i>p</i>
    */
-  abstract float getP();
+  public abstract float getP();
 
   /**
    * Gets the configured seed
    * @return the configured seed
    */
-  abstract long getSeed();
+  public abstract long getSeed();
 
   /**
    * Returns true if the internal cache contains "dirty" values that are greater than or equal
    * to thetaLong.
    * @return true if the internal cache is dirty.
    */
-  abstract boolean isDirty();
+  public abstract boolean isDirty();
 
   /**
    * Gets the <a href="{@docRoot}/resources/dictionary.html#mem">Memory</a>
    * if available, otherwise returns null.
    * @return the backing Memory or null.
    */
-  abstract WritableMemory getMemory();
+  public abstract WritableMemory getMemory();
 
   static void checkUnionQuickSelectFamily(final Object memObj, final long memAdd,
       final int preambleLongs, final int lgNomLongs) {
@@ -439,4 +439,7 @@ public abstract class UpdateSketch extends Sketch {
     }
   }
 
+  public abstract void setThetaLong(long theta);
+
+  public abstract boolean isOutOfSpace(int numEntries);
 }

@@ -183,13 +183,13 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   //restricted methods
 
   @Override
-  int getCurrentPreambleLongs(final boolean compact) {
+  public int getCurrentPreambleLongs(final boolean compact) {
     if (!compact) { return preambleLongs_; }
     return computeCompactPreLongs(getThetaLong(), isEmpty(), getRetainedEntries(true));
   }
 
   @Override
-  long[] getCache() {
+  public long[] getCache() {
     final long lgArrLongs = mem_.getByte(LG_ARR_LONGS_BYTE) & 0XFF;
     final long[] cacheArr = new long[1 << lgArrLongs];
     final WritableMemory mem = WritableMemory.wrap(cacheArr);
@@ -198,42 +198,42 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   }
 
   @Override
-  WritableMemory getMemory() {
+  public WritableMemory getMemory() {
     return mem_;
   }
 
   @Override
-  float getP() {
+  public float getP() {
     return mem_.getFloat(P_FLOAT);
   }
 
   @Override
-  long getSeed() {
+  public long getSeed() {
     return seed_;
   }
 
   @Override
-  short getSeedHash() {
+  public short getSeedHash() {
     return seedHash_;
   }
 
   @Override
-  long getThetaLong() {
+  public long getThetaLong() {
     return mem_.getLong(THETA_LONG);
   }
 
   @Override
-  boolean isDirty() {
+  public boolean isDirty() {
     return false; //Always false for QuickSelectSketch
   }
 
   @Override
-  int getLgArrLongs() {
+  public int getLgArrLongs() {
     return mem_.getByte(LG_ARR_LONGS_BYTE) & 0XFF;
   }
 
   @Override
-  UpdateReturnState hashUpdate(final long hash) {
+  public UpdateReturnState hashUpdate(final long hash) {
     throw new SketchesReadOnlyException();
   }
 
@@ -253,6 +253,16 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     // to tune these constants for different sketches.
     final double fraction = (lgArrLongs <= lgNomLongs) ? DQS_RESIZE_THRESHOLD : REBUILD_THRESHOLD;
     return (int) Math.floor(fraction * (1 << lgArrLongs));
+  }
+
+  @Override
+  public void setThetaLong(long thetaLong) {
+    mem_.putLong(THETA_LONG, thetaLong);
+  }
+
+  @Override
+  public boolean isOutOfSpace(int numEntries) {
+    return numEntries > hashTableThreshold_;
   }
 
 }

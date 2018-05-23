@@ -428,7 +428,7 @@ public abstract class Sketch {
    * Gets the internal cache array.
    * @return the internal cache array.
    */
-  abstract long[] getCache();
+  public abstract long[] getCache();
 
   int getCurrentDataLongs(final boolean compact) {
     return (isCompact() || compact)
@@ -442,7 +442,7 @@ public abstract class Sketch {
    * If this sketch is already in compact form this parameter is ignored.
    * @return preamble longs if stored.
    */
-  abstract int getCurrentPreambleLongs(boolean compact);
+  public abstract int getCurrentPreambleLongs(boolean compact);
 
   static final int computeCompactPreLongs(final long thetaLong, final boolean empty,
       final int curCount) {
@@ -453,13 +453,13 @@ public abstract class Sketch {
    * Gets the 16-bit seed hash
    * @return the seed hash
    */
-  abstract short getSeedHash();
+  public abstract short getSeedHash();
 
   /**
    * Gets the value of theta as a long
    * @return the value of theta as a long
    */
-  abstract long getThetaLong();
+  public abstract long getThetaLong();
 
   /**
    * Returns true if given Family id is one of the theta sketches

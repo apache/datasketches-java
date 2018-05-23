@@ -71,12 +71,12 @@ abstract class HeapCompactSketch extends CompactSketch {
   //restricted methods
 
   @Override
-  long[] getCache() {
+  public long[] getCache() {
     return cache_;
   }
 
   @Override
-  int getCurrentPreambleLongs(final boolean compact) { //already compact; ignored
+  public int getCurrentPreambleLongs(final boolean compact) { //already compact; ignored
     return preLongs_;
   }
 
@@ -86,12 +86,12 @@ abstract class HeapCompactSketch extends CompactSketch {
   }
 
   @Override
-  short getSeedHash() {
+  public short getSeedHash() {
     return seedHash_;
   }
 
   @Override
-  long getThetaLong() {
+  public long getThetaLong() {
     return thetaLong_;
   }
 

@@ -189,38 +189,48 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
   //restricted methods
 
   @Override
-  int getCurrentPreambleLongs(final boolean compact) {
+  public int getCurrentPreambleLongs(final boolean compact) {
     if (!compact) { return preambleLongs_; }
     return computeCompactPreLongs(thetaLong_, empty_, curCount_);
   }
 
   @Override
-  WritableMemory getMemory() {
+  public WritableMemory getMemory() {
     return null;
   }
 
   @Override
-  long[] getCache() {
+  public void setThetaLong(long theta) {
+    thetaLong_ = theta;
+  }
+
+  @Override
+  public boolean isOutOfSpace(int numEntries) {
+    return numEntries > hashTableThreshold_;
+  }
+
+  @Override
+  public long[] getCache() {
     return cache_;
   }
 
   @Override
-  long getThetaLong() {
+  public long getThetaLong() {
     return thetaLong_;
   }
 
   @Override
-  boolean isDirty() {
+  public boolean isDirty() {
     return false;
   }
 
   @Override
-  int getLgArrLongs() {
+  public int getLgArrLongs() {
     return lgArrLongs_;
   }
 
   @Override
-  UpdateReturnState hashUpdate(final long hash) {
+  public UpdateReturnState hashUpdate(final long hash) {
     HashOperations.checkHashCorruption(hash);
     empty_ = false;
 
@@ -236,7 +246,7 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
     //insertion occurred, must increment curCount
     curCount_++;
 
-    if (curCount_ > hashTableThreshold_) { //we need to do something, we are out of space
+    if (isOutOfSpace(curCount_)) { //we need to do something, we are out of space
       //must rebuild or resize
       if (lgArrLongs_ <= lgNomLongs_) { //resize
         resizeCache();

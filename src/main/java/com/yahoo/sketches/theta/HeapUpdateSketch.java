@@ -69,17 +69,17 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   //restricted methods
 
   @Override
-  float getP() {
+  public float getP() {
     return p_;
   }
 
   @Override
-  long getSeed() {
+  public long getSeed() {
     return seed_;
   }
 
   @Override
-  short getSeedHash() {
+  public short getSeedHash() {
     return Util.computeSeedHash(getSeed());
   }
 

@@ -249,38 +249,48 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   //restricted methods
 
   @Override
-  int getCurrentPreambleLongs(final boolean compact) {
+  public int getCurrentPreambleLongs(final boolean compact) {
     if (!compact) { return Family.ALPHA.getMinPreLongs(); }
     return computeCompactPreLongs(thetaLong_, empty_, curCount_);
   }
 
   @Override
-  WritableMemory getMemory() {
+  public WritableMemory getMemory() {
     return null;
   }
 
   @Override
-  long[] getCache() {
+  public void setThetaLong(long theta) {
+    thetaLong_ = theta;
+  }
+
+  @Override
+  public boolean isOutOfSpace(int numEntries) {
+    return numEntries > hashTableThreshold_;
+  }
+
+  @Override
+  public long[] getCache() {
     return cache_;
   }
 
   @Override
-  long getThetaLong() {
+  public long getThetaLong() {
     return thetaLong_;
   }
 
   @Override
-  boolean isDirty() {
+  public boolean isDirty() {
     return dirty_;
   }
 
   @Override
-  int getLgArrLongs() {
+  public int getLgArrLongs() {
     return lgArrLongs_;
   }
 
   @Override
-  UpdateReturnState hashUpdate(final long hash) {
+  public UpdateReturnState hashUpdate(final long hash) {
     HashOperations.checkHashCorruption(hash);
     empty_ = false;
 
@@ -313,7 +323,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
       else {
         //inserts (not entries!) <= k. It may not be at tgt size.
         //Check size, don't decrement theta. cnt already ++, empty_ already false;
-        if (curCount_ > hashTableThreshold_) {
+        if (isOutOfSpace(curCount_)) {
           resizeClean(); //not dirty, not at tgt size.
         }
       }
