@@ -202,7 +202,7 @@ public abstract class ArrayOfDoublesUnion {
         sketch = new DirectArrayOfDoublesQuickSelectSketchR(mem, seed);
         union = new DirectArrayOfDoublesUnionR(sketch, mem);
       }
-      return union; //TODO set union theta?
+      return union; //Do not need to set theta_
     }
     //versions > 0.9.1
 
@@ -226,7 +226,7 @@ public abstract class ArrayOfDoublesUnion {
     } else {
       final Memory sketchMem = mem.region(ArrayOfDoublesUnion.PREAMBLE_SIZE_BYTES,
           mem.getCapacity() - ArrayOfDoublesUnion.PREAMBLE_SIZE_BYTES);
-      sketch = new DirectArrayOfDoublesQuickSelectSketchR((WritableMemory)sketchMem, seed);
+      sketch = new DirectArrayOfDoublesQuickSelectSketchR(sketchMem, seed);
       union = new DirectArrayOfDoublesUnionR(sketch, mem);
     }
     union.theta_ = mem.getLong(ArrayOfDoublesUnion.THETA_LONG);
