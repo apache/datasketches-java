@@ -326,10 +326,8 @@ public class KllFloatsSketch {
       throw new SketchesArgumentException("incompatible M: " + m_ + " and " + other.m_);
     }
     final long finalN = n_ + other.n_;
-    if (other.numLevels_ >= 1) {
-      for (int i = other.levels_[0]; i < other.levels_[1]; i++) {
-        update(other.items_[i]);
-      }
+    for (int i = other.levels_[0]; i < other.levels_[1]; i++) {
+      update(other.items_[i]);
     }
     if (other.numLevels_ >= 2) {
       mergeHigherLevels(other, finalN);
