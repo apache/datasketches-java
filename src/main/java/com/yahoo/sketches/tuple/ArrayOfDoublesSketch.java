@@ -9,7 +9,6 @@ import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.Util.LS;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.BinomialBoundsN;
 
 /**
@@ -96,7 +95,7 @@ public abstract class ArrayOfDoublesSketch {
   public static ArrayOfDoublesSketch wrap(final Memory mem, final long seed) {
     final SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(mem);
     if (sketchType == SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch) {
-      return new DirectArrayOfDoublesQuickSelectSketchR((WritableMemory) mem, seed);
+      return new DirectArrayOfDoublesQuickSelectSketchR(mem, seed);
     }
     return new DirectArrayOfDoublesCompactSketch(mem, seed);
   }
