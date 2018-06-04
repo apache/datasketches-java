@@ -104,7 +104,7 @@ class ReversePurgeLongHashMap {
   /**
    * Gets the current value with the given key
    * @param key the given key
-   * @return the positive value the key corresponds to or zero if if the key is not found in the
+   * @return the positive value the key corresponds to or zero if the key is not found in the
    * hash map.
    */
   long get(final long key) {

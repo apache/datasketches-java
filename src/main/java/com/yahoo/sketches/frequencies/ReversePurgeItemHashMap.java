@@ -63,7 +63,7 @@ class ReversePurgeItemHashMap<T> {
   /**
    * Gets the current value with the given key
    * @param key the given key
-   * @return the positive value the key corresponds to or zero if if the key is not found in the
+   * @return the positive value the key corresponds to or zero if the key is not found in the
    * hash map.
    */
   long get(final T key) {
@@ -169,7 +169,7 @@ class ReversePurgeItemHashMap<T> {
   }
 
   /**
-   * @return an array containing the values corresponding. to the active keys in the hash
+   * @return an array containing the values corresponding to the active keys in the hash
    */
   long[] getActiveValues() {
     if (numActive == 0) { return null; }
