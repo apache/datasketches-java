@@ -190,16 +190,23 @@ public abstract class ArrayOfDoublesUnion {
   static ArrayOfDoublesUnion wrapUnionImpl(final WritableMemory mem, final long seed,
       final boolean isWritable) {
     final SerializerDeserializer.SketchType type = SerializerDeserializer.getSketchType(mem);
+    final ArrayOfDoublesQuickSelectSketch sketch;
+    final ArrayOfDoublesUnion union;
 
     // compatibility with version 0.9.1 and lower
     if (type == SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch) {
-      final ArrayOfDoublesQuickSelectSketch sketch = isWritable
-          ? new DirectArrayOfDoublesQuickSelectSketch(mem, seed)
-              : new DirectArrayOfDoublesQuickSelectSketchR(mem, seed);
-      return isWritable ? new DirectArrayOfDoublesUnion(sketch, mem)
-          : new DirectArrayOfDoublesUnionR(sketch, mem);
+      if (isWritable) {
+        sketch = new DirectArrayOfDoublesQuickSelectSketch(mem, seed);
+        union = new DirectArrayOfDoublesUnion(sketch, mem);
+      } else {
+        sketch = new DirectArrayOfDoublesQuickSelectSketchR(mem, seed);
+        union = new DirectArrayOfDoublesUnionR(sketch, mem);
+      }
+      return union; //Do not need to set theta_
     }
+    //versions > 0.9.1
 
+    //sanity checks
     final byte version = mem.getByte(ArrayOfDoublesUnion.SERIAL_VERSION_BYTE);
     if (version != ArrayOfDoublesUnion.serialVersionUID) {
       throw new SketchesArgumentException("Serial version mismatch. Expected: "
@@ -210,13 +217,18 @@ public abstract class ArrayOfDoublesUnion {
     SerializerDeserializer.validateType(mem.getByte(ArrayOfDoublesUnion.SKETCH_TYPE_BYTE),
         SerializerDeserializer.SketchType.ArrayOfDoublesUnion);
 
-    final WritableMemory sketchMem = mem.writableRegion(ArrayOfDoublesUnion.PREAMBLE_SIZE_BYTES,
-        mem.getCapacity() - ArrayOfDoublesUnion.PREAMBLE_SIZE_BYTES);
-    final ArrayOfDoublesQuickSelectSketch sketch = isWritable
-        ? new DirectArrayOfDoublesQuickSelectSketch(sketchMem, seed)
-            : new DirectArrayOfDoublesQuickSelectSketchR(sketchMem, seed);
-    final ArrayOfDoublesUnion union = isWritable
-        ? new DirectArrayOfDoublesUnion(sketch, mem) : new DirectArrayOfDoublesUnionR(sketch, mem);
+    if (isWritable) {
+      final WritableMemory sketchMem = mem.writableRegion(ArrayOfDoublesUnion.PREAMBLE_SIZE_BYTES,
+          mem.getCapacity() - ArrayOfDoublesUnion.PREAMBLE_SIZE_BYTES);
+      sketch = new DirectArrayOfDoublesQuickSelectSketch(sketchMem, seed);
+      union = new DirectArrayOfDoublesUnion(sketch, mem);
+
+    } else {
+      final Memory sketchMem = mem.region(ArrayOfDoublesUnion.PREAMBLE_SIZE_BYTES,
+          mem.getCapacity() - ArrayOfDoublesUnion.PREAMBLE_SIZE_BYTES);
+      sketch = new DirectArrayOfDoublesQuickSelectSketchR(sketchMem, seed);
+      union = new DirectArrayOfDoublesUnionR(sketch, mem);
+    }
     union.theta_ = mem.getLong(ArrayOfDoublesUnion.THETA_LONG);
     return union;
   }

@@ -1,5 +1,6 @@
 package com.yahoo.sketches.tuple;
 
+import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesReadOnlyException;
 
@@ -10,8 +11,8 @@ final class DirectArrayOfDoublesQuickSelectSketchR extends DirectArrayOfDoublesQ
     super(nomEntries, lgResizeFactor, samplingProbability, numValues, seed, dstMem);
   }
 
-  DirectArrayOfDoublesQuickSelectSketchR(final WritableMemory mem, final long seed) {
-    super(mem, seed);
+  DirectArrayOfDoublesQuickSelectSketchR(final Memory mem, final long seed) {
+    super((WritableMemory) mem, seed);
   }
 
   @Override
