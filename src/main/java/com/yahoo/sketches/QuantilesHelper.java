@@ -77,9 +77,9 @@ public class QuantilesHelper {
     }
     final int m = l + (r - l) / 2;
     if (arr[m] <= pos) {
-      return (searchForChunkContainingPos(arr, pos, m, r));
+      return searchForChunkContainingPos(arr, pos, m, r);
     }
-    return (searchForChunkContainingPos(arr, pos, l, m));
+    return searchForChunkContainingPos(arr, pos, l, m);
   }
 
 }

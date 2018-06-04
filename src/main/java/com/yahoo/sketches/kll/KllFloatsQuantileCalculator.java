@@ -53,7 +53,7 @@ final class KllFloatsQuantileCalculator {
     System.arraycopy(srcItems, offset, items_, 0, numItems);
     int srcLevel = 0;
     int dstLevel = 0;
-    int weight = 1;
+    long weight = 1;
     while (srcLevel < numLevels) {
       final int fromIndex = srcLevels[srcLevel] - offset;
       final int toIndex = srcLevels[srcLevel + 1] - offset; // exclusive

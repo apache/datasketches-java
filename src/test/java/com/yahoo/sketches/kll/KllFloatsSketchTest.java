@@ -67,7 +67,7 @@ public class KllFloatsSketchTest {
 
     // test getRank
     for (int i = 0; i < n; i++) {
-      final double trueRank = (double) i / (n - 1);
+      final double trueRank = (double) i / n;
       assertEquals(sketch.getRank(i), trueRank, PMF_EPS_FOR_K_256, "for value " + i);
     }
 
@@ -147,8 +147,8 @@ public class KllFloatsSketchTest {
       sketch2.update((2 * n) - i - 1);
     }
 
-    assertEquals(sketch2.getMinValue(), (float) n);
-    assertEquals(sketch2.getMaxValue(), (float) ((2 * n) - 1));
+    assertEquals(sketch1.getMinValue(), 0.0f);
+    assertEquals(sketch1.getMaxValue(), (float) (n - 1));
 
     assertEquals(sketch2.getMinValue(), (float) n);
     assertEquals(sketch2.getMaxValue(), (float) ((2 * n) - 1));
@@ -172,8 +172,8 @@ public class KllFloatsSketchTest {
       sketch2.update((2 * n) - i - 1);
     }
 
-    assertEquals(sketch2.getMinValue(), (float) n);
-    assertEquals(sketch2.getMaxValue(), (float) ((2 * n) - 1));
+    assertEquals(sketch1.getMinValue(), 0.0f);
+    assertEquals(sketch1.getMaxValue(), (float) (n - 1));
 
     assertEquals(sketch2.getMinValue(), (float) n);
     assertEquals(sketch2.getMaxValue(), (float) ((2 * n) - 1));
@@ -202,7 +202,7 @@ public class KllFloatsSketchTest {
       sketch1.update(i);
     }
 
-    // rank error should not be affected by a merge with an empty sketch
+    // rank error should not be affected by a merge with an empty sketch with lower K
     final double rankErrorBeforeMerge = sketch1.getNormalizedRankError(true);
     sketch1.merge(sketch2);
     assertEquals(sketch1.getNormalizedRankError(true), rankErrorBeforeMerge);
@@ -223,13 +223,25 @@ public class KllFloatsSketchTest {
   }
 
   @Test
-  public void checkMergeUseOtherMinValue() {
+  public void mergeMinMinValueFromOther() {
     final KllFloatsSketch sketch1 = new KllFloatsSketch();
     final KllFloatsSketch sketch2 = new KllFloatsSketch();
     sketch1.update(1);
     sketch2.update(2);
     sketch2.merge(sketch1);
     assertEquals(sketch2.getMinValue(), 1.0F);
+  }
+
+  @Test
+  public void mergeMinAndMaxFromOther() {
+    final KllFloatsSketch sketch1 = new KllFloatsSketch();
+    for (int i = 0; i < 1000000; i++) {
+      sketch1.update(i);
+    }
+    final KllFloatsSketch sketch2 = new KllFloatsSketch();
+    sketch2.merge(sketch1);
+    assertEquals(sketch2.getMinValue(), 0F);
+    assertEquals(sketch2.getMaxValue(), 999999F);
   }
 
   @SuppressWarnings("unused")
