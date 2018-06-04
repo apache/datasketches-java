@@ -43,10 +43,10 @@ class ReversePurgeLongHashMap {
    */
   ReversePurgeLongHashMap(final int mapSize) {
     lgLength = toLog2(mapSize, "mapSize");
-    this.loadThreshold = (int) (mapSize * LOAD_FACTOR);
-    this.keys = new long[mapSize];
-    this.values = new long[mapSize];
-    this.states = new short[mapSize];
+    loadThreshold = (int) (mapSize * LOAD_FACTOR);
+    keys = new long[mapSize];
+    values = new long[mapSize];
+    states = new short[mapSize];
   }
 
   /**
@@ -127,23 +127,22 @@ class ReversePurgeLongHashMap {
     final int arrayMask = keys.length - 1;
     int probe = (int) hash(key) & arrayMask;
     int drift = 1;
-    while (states[probe] != 0 && keys[probe] != key) {
+    while ((states[probe] != 0) && (keys[probe] != key)) {
       probe = (probe + 1) & arrayMask;
       drift++;
       //only used for theoretical analysis
       assert (drift < DRIFT_LIMIT) : "drift: " + drift + " >= DRIFT_LIMIT";
     }
-
-    if (states[probe] == 0) {
-      // adding the key to the table the value
+    //found either an empty slot or the key
+    if (states[probe] == 0) { //found empty slot
+      // adding the key and value to the table
       assert (numActive <= loadThreshold)
         : "numActive: " + numActive + " > loadThreshold : " + loadThreshold;
       keys[probe] = key;
       values[probe] = adjustAmount;
-      states[probe] = (short) drift;
+      states[probe] = (short) drift; //how far off we are
       numActive++;
-    } else {
-      // adjusting the value of an existing key
+    } else { //found the key, adjust the value
       assert (keys[probe] == key);
       values[probe] += adjustAmount;
     }
@@ -160,17 +159,17 @@ class ReversePurgeLongHashMap {
       firstProbe--;
     }
     // firstProbe keeps track of this point.
-    // When we find the next non-empty cell, we know we are at the high end of a cluster
+    // When we find the next non-empty cell, we know we are at the high end of a cluster.
     // Work towards the front; delete any non-positive entries.
     for (int probe = firstProbe; probe-- > 0;) {
-      if (states[probe] > 0 && values[probe] <= 0) {
+      if ((states[probe] > 0) && (values[probe] <= 0)) {
         hashDelete(probe); //does the work of deletion and moving higher items towards the front.
         numActive--;
       }
     }
     //now work on the first cluster that was skipped.
     for (int probe = keys.length; probe-- > firstProbe;) {
-      if (states[probe] > 0 && values[probe] <= 0) {
+      if ((states[probe] > 0) && (values[probe] <= 0)) {
         hashDelete(probe);
         numActive--;
       }
@@ -320,9 +319,8 @@ class ReversePurgeLongHashMap {
   }
 
   private void hashDelete(int deleteProbe) {
-    // Looks ahead in the table to search for another
-    // item to move to this location
-    // if none are found, the status is changed
+    // Looks ahead in the table to search for another item to move to this location.
+    // If none are found, the status is changed
     states[deleteProbe] = 0; //mark as empty
     int drift = 1;
     final int arrayMask = keys.length - 1;
@@ -334,7 +332,7 @@ class ReversePurgeLongHashMap {
         keys[deleteProbe] = keys[probe];
         values[deleteProbe] = values[probe];
         states[deleteProbe] = (short) (states[probe] - drift);
-        // marking this location as deleted
+        // marking the current probe location as deleted
         states[probe] = 0;
         drift = 0;
         deleteProbe = probe;
@@ -349,7 +347,7 @@ class ReversePurgeLongHashMap {
   private int hashProbe(final long key) {
     final int arrayMask = keys.length - 1;
     int probe = (int) hash(key) & arrayMask;
-    while (states[probe] > 0 && keys[probe] != key) {
+    while ((states[probe] > 0) && (keys[probe] != key)) {
       probe = (probe + 1) & arrayMask;
     }
     return probe;
@@ -361,7 +359,7 @@ class ReversePurgeLongHashMap {
 
   // This iterator uses strides based on golden ratio to avoid clustering during merge
   static class Iterator {
-    private static final double GOLDEN_RATIO_RECIPROCAL = (Math.sqrt(5) - 1) / 2;
+    private static final double GOLDEN_RATIO_RECIPROCAL = (Math.sqrt(5) - 1) / 2; //.618...
 
     private final long[] keys_;
     private final long[] values_;
