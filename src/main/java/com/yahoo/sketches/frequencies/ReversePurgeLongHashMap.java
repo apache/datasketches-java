@@ -152,16 +152,16 @@ class ReversePurgeLongHashMap {
    * Processes the map arrays and retains only keys with positive counts.
    */
   void keepOnlyPositiveCounts() {
-    // Starting from the back, find the first empty cell,
-    //  which establishes the high end of a cluster.
+    // Starting from the back, find the first empty cell, which marks a boundary between clusters.
     int firstProbe = keys.length - 1;
     while (states[firstProbe] > 0) {
       firstProbe--;
     }
-    // firstProbe keeps track of this point.
-    // When we find the next non-empty cell, we know we are at the high end of a cluster.
-    // Work towards the front; delete any non-positive entries.
-    for (int probe = firstProbe; probe-- > 0;) {
+
+    //Work towards the front; delete any non-positive entries.
+    for (int probe = firstProbe; probe-- > 0; ) {
+      // When we find the next non-empty cell, we know we are at the high end of a cluster,
+      //  which is tracked by firstProbe.
       if ((states[probe] > 0) && (values[probe] <= 0)) {
         hashDelete(probe); //does the work of deletion and moving higher items towards the front.
         numActive--;
