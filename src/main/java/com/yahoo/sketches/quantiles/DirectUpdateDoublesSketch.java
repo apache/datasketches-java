@@ -39,7 +39,7 @@ import com.yahoo.sketches.Family;
  *
  */
 final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
-  //**CONSTRUCTORS**********************************************************
+
   private DirectUpdateDoublesSketch(final int k) {
     super(k); //Checks k
   }
