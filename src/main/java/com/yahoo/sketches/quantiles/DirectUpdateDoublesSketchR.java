@@ -95,8 +95,8 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
   }
 
   @Override
-  public boolean isSameResource(final Memory mem) {
-    return mem_.isSameResource(mem);
+  public boolean isSameResource(final Memory that) {
+    return mem_.isSameResource(that);
   }
 
   @Override

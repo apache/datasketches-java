@@ -141,8 +141,8 @@ class DoublesUnionImplR extends DoublesUnion {
   }
 
   @Override
-  public boolean isSameResource(final Memory mem) {
-    return (gadget_ == null) ? false : gadget_.isSameResource(mem);
+  public boolean isSameResource(final Memory that) {
+    return (gadget_ == null) ? false : gadget_.isSameResource(that);
   }
 
 }

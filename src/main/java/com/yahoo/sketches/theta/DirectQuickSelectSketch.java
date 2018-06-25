@@ -58,6 +58,7 @@ import com.yahoo.sketches.Util;
  * @author Kevin Lang
  */
 final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
+  private MemoryRequestServer memReqSvr = null;
 
   private DirectQuickSelectSketch(final int lgNomLongs, final long seed, final int preambleLongs,
           final WritableMemory wmem) {
@@ -276,8 +277,9 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
           final int tgtArrBytes = 8 << tgtLgArrLongs;
           final int reqBytes = tgtArrBytes + preBytes;
 
-          final MemoryRequestServer memoryRequestServer = mem_.getMemoryRequestServer();
-          final WritableMemory newDstMem = memoryRequestServer.request(reqBytes);
+          memReqSvr = (memReqSvr == null) ? mem_.getMemoryRequestServer() : memReqSvr;
+
+          final WritableMemory newDstMem = memReqSvr.request(reqBytes);
 
           moveAndResize(mem_, preambleLongs_, lgArrLongs, newDstMem, tgtLgArrLongs, thetaLong);
 
