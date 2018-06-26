@@ -57,7 +57,7 @@ abstract class DirectCompactSketch extends CompactSketch {
 
   @Override
   public boolean isDirect() {
-    return true;
+    return mem_.isDirect();
   }
 
   @Override
@@ -66,8 +66,8 @@ abstract class DirectCompactSketch extends CompactSketch {
   }
 
   @Override
-  public boolean isSameResource(final Memory mem) {
-    return mem_.isSameResource(mem);
+  public boolean isSameResource(final Memory that) {
+    return mem_.isSameResource(that);
   }
 
   @Override

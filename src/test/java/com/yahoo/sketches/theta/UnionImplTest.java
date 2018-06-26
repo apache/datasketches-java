@@ -12,6 +12,7 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableDirectHandle;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
@@ -127,19 +128,22 @@ public class UnionImplTest {
     int k = 1 << 12;
     int u = 2 * k;
     int bytes = Sketches.getMaxUpdateSketchBytes(k);
-    WritableMemory wmem = WritableMemory.allocate(bytes/2);
-    UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
-    assertTrue(sketch.isSameResource(wmem));
+    try (WritableDirectHandle wdh = WritableMemory.allocateDirect(bytes/2);
+         WritableDirectHandle wdh2 = WritableMemory.allocateDirect(bytes/2) ) {
+      WritableMemory wmem = wdh.get();
+      UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
+      assertTrue(sketch.isSameResource(wmem));
 
-    WritableMemory wmem2 = WritableMemory.allocate(bytes/2);
-    Union union = SetOperation.builder().buildUnion(wmem2);
-    assertTrue(union.isSameResource(wmem2));
+      WritableMemory wmem2 = wdh2.get();
+      Union union = SetOperation.builder().buildUnion(wmem2);
+      assertTrue(union.isSameResource(wmem2));
 
-    for (int i = 0; i < u; i++) { union.update(i); }
-    assertFalse(union.isSameResource(wmem));
+      for (int i = 0; i < u; i++) { union.update(i); }
+      assertFalse(union.isSameResource(wmem));
 
-    Union union2 = SetOperation.builder().buildUnion(); //on-heap union
-    assertFalse(union2.isSameResource(wmem2));  //obviously not
+      Union union2 = SetOperation.builder().buildUnion(); //on-heap union
+      assertFalse(union2.isSameResource(wmem2));  //obviously not
+    }
   }
 
   @Test

@@ -39,7 +39,9 @@ import com.yahoo.sketches.Family;
  *
  */
 final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
-  //**CONSTRUCTORS**********************************************************
+  MemoryRequestServer memReqSvr = null;
+
+
   private DirectUpdateDoublesSketch(final int k) {
     super(k); //Checks k
   }
@@ -125,7 +127,7 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
     final int combBufItemCap = getCombinedBufferItemCapacity();
     if (newBBCount > combBufItemCap) {
       //only changes combinedBuffer when it is only a base buffer
-      mem_ = growCombinedMemBuffer(mem_, 2 * getK());
+      mem_ = growCombinedMemBuffer(2 * getK());
     }
 
     final long curN = getN();
@@ -150,7 +152,7 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
       //check mem has capacity to accommodate new level
       if (itemSpaceNeeded > curMemItemCap) {
         // copies base buffer plus old levels, adds space for new level
-        mem_ = growCombinedMemBuffer(mem_, itemSpaceNeeded);
+        mem_ = growCombinedMemBuffer(itemSpaceNeeded);
       }
 
       // sort base buffer via accessor which modifies the underlying base buffer,
@@ -222,7 +224,7 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
 
   @Override
   double[] growCombinedBuffer(final int curCombBufItemCap, final int itemSpaceNeeded) {
-    mem_ = growCombinedMemBuffer(mem_, itemSpaceNeeded);
+    mem_ = growCombinedMemBuffer(itemSpaceNeeded);
     // copy out any data that was there
     final double[] newCombBuf = new double[itemSpaceNeeded];
     mem_.getDoubleArray(COMBINED_BUFFER, newCombBuf, 0, curCombBufItemCap);
@@ -231,15 +233,15 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
 
   //Direct supporting methods
 
-  private static WritableMemory growCombinedMemBuffer(final WritableMemory mem, final int
-          itemSpaceNeeded) {
-    final long memBytes = mem.getCapacity();
+  private WritableMemory growCombinedMemBuffer(final int itemSpaceNeeded) {
+    final long memBytes = mem_.getCapacity();
     final int needBytes = (itemSpaceNeeded << 3) + COMBINED_BUFFER; //+ preamble + min & max
     assert needBytes > memBytes;
 
-    final MemoryRequestServer memoryRequestServer = mem.getMemoryRequestServer();
-    final WritableMemory newMem = memoryRequestServer.request(needBytes);
-    mem.copyTo(0, newMem, 0, memBytes);
+    memReqSvr = (memReqSvr == null) ? mem_.getMemoryRequestServer() : memReqSvr;
+
+    final WritableMemory newMem = memReqSvr.request(needBytes);
+    mem_.copyTo(0, newMem, 0, memBytes);
     return newMem;
   }
 }

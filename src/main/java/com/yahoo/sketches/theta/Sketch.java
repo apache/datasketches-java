@@ -295,14 +295,14 @@ public abstract class Sketch {
   public abstract boolean isOrdered();
 
   /**
-   * Returns true if the backing resource of this sketch is identical with the backing resource
-   * of mem. If the backing resource is a primitive array or ByteBuffer, the offset and
-   * capacity must also be identical.
-   * @param mem A given Memory object
-   * @return true if the backing resource of this sketch is identical with the backing resource
-   * of mem.
+   * Returns true if the backing resource of <i>this</i> is identical with the backing resource
+   * of <i>that</i>. The capacities must be the same.  If <i>this</i> is a region,
+   * the region offset must also be the same.
+   * @param that A different non-null object
+   * @return true if the backing resource of <i>this</i> is the same as the backing resource
+   * of <i>that</i>.
    */
-  public boolean isSameResource(final Memory mem) {
+  public boolean isSameResource(final Memory that) {
     return false;
   }
 

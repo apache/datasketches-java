@@ -10,6 +10,8 @@ import static com.yahoo.sketches.quantiles.PreambleUtil.COMBINED_BUFFER;
 import com.yahoo.sketches.Family;
 
 /**
+ * This allows access to package-private levels and data in whatever quantiles sketch you give
+ * it: on-heap, off-heap; compact and non-compact
  * @author Jon Malkin
  */
 abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
@@ -55,7 +57,7 @@ abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
       offset_ = (ds_.isDirect() ? COMBINED_BUFFER : 0);
     } else {
       assert lvl >= 0;
-      if ((ds_.getBitPattern() & (1L << lvl)) > 0 || forceSize_) {
+      if (((ds_.getBitPattern() & (1L << lvl)) > 0) || forceSize_) {
         numItems_ = ds_.getK();
       } else {
         numItems_ = 0;
@@ -117,7 +119,7 @@ abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
   private int countValidLevelsBelow(final int tgtLvl) {
     int count = 0;
     long bitPattern = ds_.getBitPattern();
-    for (int i = 0; i < tgtLvl && bitPattern > 0; ++i, bitPattern >>>= 1) {
+    for (int i = 0; (i < tgtLvl) && (bitPattern > 0); ++i, bitPattern >>>= 1) {
       if ((bitPattern & 1L) > 0L) {
         ++count;
       }

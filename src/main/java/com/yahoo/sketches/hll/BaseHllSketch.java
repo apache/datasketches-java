@@ -163,7 +163,10 @@ abstract class BaseHllSketch {
 
   /**
    * Returns true if the given Memory refers to the same underlying resource as this sketch.
-   * This is only relevant for HLL_4 sketches that have been configured for off-heap
+   * The capacities must be the same.  If <i>this</i> is a region,
+   * the region offset must also be the same.
+   *
+   * <p>This is only relevant for HLL_4 sketches that have been configured for off-heap
    * using WritableMemory or Memory.  For on-heap sketches or unions this will return false.
    *
    * <p>It is rare, but possible, the the off-heap memory that has been allocated to an HLL_4
@@ -171,6 +174,7 @@ abstract class BaseHllSketch {
    * memory from the owner of the resource and then moves itself to this new location. This all
    * happens transparently to the user. This method provides a means for the user to
    * inquire of the sketch if it has, in fact, moved itself.
+   *
    * @param mem the given Memory
    * @return true if the given Memory refers to the same underlying resource as this sketch or
    * union.

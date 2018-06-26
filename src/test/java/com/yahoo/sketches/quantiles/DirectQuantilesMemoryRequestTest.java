@@ -22,6 +22,7 @@ import com.yahoo.memory.WritableMemory;
  * allocating larger Memory when requested and the actual freeing of the old memory allocations.
  */
 public class DirectQuantilesMemoryRequestTest {
+
   @Test
   public void checkLimitedMemoryScenarios() { //Requesting application
     final int k = 128;
@@ -30,20 +31,20 @@ public class DirectQuantilesMemoryRequestTest {
 
     //########## Owning Implementation
     // This part would actually be part of the Memory owning implemention so it is faked here
-    try (WritableDirectHandle memHandler = WritableMemory.allocateDirect(initBytes)) {
-      final WritableMemory mem1 = memHandler.get();
-      println("Initial mem size: " + mem1.getCapacity());
+    try (WritableDirectHandle wdh = WritableMemory.allocateDirect(initBytes)) {
+      final WritableMemory wmem = wdh.get();
+      println("Initial mem size: " + wmem.getCapacity());
 
       //########## Receiving Application
-      // The receiving application has been given mem1 to use for a sketch,
+      // The receiving application has been given wmem to use for a sketch,
       // but alas, it is not ultimately large enough.
-      final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build(mem1);
+      final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build(wmem);
       assertTrue(usk1.isEmpty());
 
       //Load the sketch
       for (int i = 0; i < u; i++) {
-        // The sketch uses <></>he MemoryRequest, acquired from mem1, to acquire more memory as
-        // needed. and requests via the MemoryRequest to free the old allocations.
+        // The sketch uses The MemoryRequest, acquired from wmem, to acquire more memory as
+        // needed, and requests via the MemoryRequest to free the old allocations.
         usk1.update(i);
       }
       final double result = usk1.getQuantile(0.5);
@@ -51,8 +52,9 @@ public class DirectQuantilesMemoryRequestTest {
       assertEquals(result, u / 2.0, 0.05 * u); //Success
 
       //########## Owning Implementation
-      //The actual Memory has been re-allocated several times, so the above mem1 reference is invalid.
-      println("\nFinal mem size: " + mem1.getCapacity());
+      //The actual Memory has been re-allocated several times,
+      // so the above wmem reference is invalid.
+      println("\nFinal mem size: " + wmem.getCapacity());
     }
   }
 

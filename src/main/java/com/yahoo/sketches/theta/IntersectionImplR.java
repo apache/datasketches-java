@@ -181,8 +181,8 @@ class IntersectionImplR extends Intersection {
   }
 
   @Override
-  public boolean isSameResource(final Memory mem) {
-    return (mem_ != null) ? mem_.isSameResource(mem) : false;
+  public boolean isSameResource(final Memory that) {
+    return (mem_ != null) ? mem_.isSameResource(that) : false;
   }
 
   @Override

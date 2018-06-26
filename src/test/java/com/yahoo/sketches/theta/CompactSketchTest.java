@@ -13,6 +13,7 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableDirectHandle;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -93,75 +94,77 @@ public class CompactSketchTest {
     /****/
     //Prepare Memory for direct
     int bytes = usk.getCurrentBytes(compact);
-    byte[] memArr = new byte[bytes];
-    WritableMemory mem = WritableMemory.wrap(memArr);
-    Memory mem2;
+    //byte[] memArr = new byte[bytes];
+    try (WritableDirectHandle wdh = WritableMemory.allocateDirect(bytes)) {
+      WritableMemory mem = wdh.get();
+      Memory mem2;
 
-    /**Via CompactSketch.compact**/
-    csk = usk.compact(!ordered, mem); //NOT ORDERED, DIRECT
-    assertEquals(csk.getClass().getSimpleName(), "DirectCompactUnorderedSketch");
+      /**Via CompactSketch.compact**/
+      csk = usk.compact(!ordered, mem); //NOT ORDERED, DIRECT
+      assertEquals(csk.getClass().getSimpleName(), "DirectCompactUnorderedSketch");
 
-    csk2 = (CompactSketch)Sketch.wrap(mem);
-    assertEquals(csk2.getEstimate(), uskEst, 0.0);
+      csk2 = (CompactSketch)Sketch.wrap(mem);
+      assertEquals(csk2.getEstimate(), uskEst, 0.0);
 
-    assertEquals(csk2.getRetainedEntries(true), uskCount);
-    assertEquals(csk2.getSeedHash(), uskSeedHash);
-    assertEquals(csk2.getThetaLong(), uskThetaLong);
-    assertNotNull(csk2.getMemory());
-    assertFalse(csk2.isOrdered());
-    assertNotNull(csk2.getCache());
+      assertEquals(csk2.getRetainedEntries(true), uskCount);
+      assertEquals(csk2.getSeedHash(), uskSeedHash);
+      assertEquals(csk2.getThetaLong(), uskThetaLong);
+      assertNotNull(csk2.getMemory());
+      assertFalse(csk2.isOrdered());
+      assertNotNull(csk2.getCache());
 
-    /**Via byte[]**/
-    csk = usk.compact( !ordered, mem);
-    assertEquals(csk.getClass().getSimpleName(), "DirectCompactUnorderedSketch");
-    assertTrue(csk.isDirect());
-    assertTrue(csk.isCompact());
-    assertFalse(csk.isOrdered());
+      /**Via byte[]**/
+      csk = usk.compact( !ordered, mem);
+      assertEquals(csk.getClass().getSimpleName(), "DirectCompactUnorderedSketch");
+      assertTrue(csk.isDirect());
+      assertTrue(csk.isCompact());
+      assertFalse(csk.isOrdered());
 
-    byteArray = csk.toByteArray();
-    mem2 = Memory.wrap(byteArray);
-    csk2 = (CompactSketch)Sketch.wrap(mem2);
-    assertEquals(csk2.getEstimate(), uskEst, 0.0);
+      byteArray = csk.toByteArray();
+      mem2 = Memory.wrap(byteArray);
+      csk2 = (CompactSketch)Sketch.wrap(mem2);
+      assertEquals(csk2.getEstimate(), uskEst, 0.0);
 
-    assertEquals(csk2.getRetainedEntries(true), uskCount);
-    assertEquals(csk2.getSeedHash(), uskSeedHash);
-    assertEquals(csk2.getThetaLong(), uskThetaLong);
-    assertNotNull(csk2.getMemory());
-    assertFalse(csk2.isOrdered());
-    assertNotNull(csk2.getCache());
+      assertEquals(csk2.getRetainedEntries(true), uskCount);
+      assertEquals(csk2.getSeedHash(), uskSeedHash);
+      assertEquals(csk2.getThetaLong(), uskThetaLong);
+      assertNotNull(csk2.getMemory());
+      assertFalse(csk2.isOrdered());
+      assertNotNull(csk2.getCache());
 
-    /**Via CompactSketch.compact**/
-    csk = usk.compact(  ordered, mem);
-    assertEquals(csk.getClass().getSimpleName(), "DirectCompactOrderedSketch");
-    assertTrue(csk.isDirect());
-    assertTrue(csk.isCompact());
-    assertTrue(csk.isOrdered());
+      /**Via CompactSketch.compact**/
+      csk = usk.compact(  ordered, mem);
+      assertEquals(csk.getClass().getSimpleName(), "DirectCompactOrderedSketch");
+      assertTrue(csk.isDirect());
+      assertTrue(csk.isCompact());
+      assertTrue(csk.isOrdered());
 
-    csk2 = (CompactSketch)Sketch.wrap(mem);
-    assertEquals(csk2.getEstimate(), uskEst, 0.0);
+      csk2 = (CompactSketch)Sketch.wrap(mem);
+      assertEquals(csk2.getEstimate(), uskEst, 0.0);
 
-    assertEquals(csk2.getRetainedEntries(true), uskCount);
-    assertEquals(csk2.getSeedHash(), uskSeedHash);
-    assertEquals(csk2.getThetaLong(), uskThetaLong);
-    assertNotNull(csk2.getMemory());
-    assertTrue(csk2.isOrdered());
-    assertNotNull(csk2.getCache());
+      assertEquals(csk2.getRetainedEntries(true), uskCount);
+      assertEquals(csk2.getSeedHash(), uskSeedHash);
+      assertEquals(csk2.getThetaLong(), uskThetaLong);
+      assertNotNull(csk2.getMemory());
+      assertTrue(csk2.isOrdered());
+      assertNotNull(csk2.getCache());
 
-    /**Via byte[]**/
-    csk = usk.compact(  ordered, mem);
-    assertEquals(csk.getClass().getSimpleName(), "DirectCompactOrderedSketch");
+      /**Via byte[]**/
+      csk = usk.compact(  ordered, mem);
+      assertEquals(csk.getClass().getSimpleName(), "DirectCompactOrderedSketch");
 
-    byteArray = csk.toByteArray();
-    mem2 = Memory.wrap(byteArray);
-    csk2 = (CompactSketch)Sketch.wrap(mem2);
-    assertEquals(csk2.getEstimate(), uskEst, 0.0);
+      byteArray = csk.toByteArray();
+      mem2 = Memory.wrap(byteArray);
+      csk2 = (CompactSketch)Sketch.wrap(mem2);
+      assertEquals(csk2.getEstimate(), uskEst, 0.0);
 
-    assertEquals(csk2.getRetainedEntries(true), uskCount);
-    assertEquals(csk2.getSeedHash(), uskSeedHash);
-    assertEquals(csk2.getThetaLong(), uskThetaLong);
-    assertNotNull(csk2.getMemory());
-    assertTrue(csk2.isOrdered());
-    assertNotNull(csk2.getCache());
+      assertEquals(csk2.getRetainedEntries(true), uskCount);
+      assertEquals(csk2.getSeedHash(), uskSeedHash);
+      assertEquals(csk2.getThetaLong(), uskThetaLong);
+      assertNotNull(csk2.getMemory());
+      assertTrue(csk2.isOrdered());
+      assertNotNull(csk2.getCache());
+    }
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

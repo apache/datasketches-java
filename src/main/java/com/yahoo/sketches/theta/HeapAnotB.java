@@ -94,7 +94,7 @@ final class HeapAnotB extends AnotB {
   }
 
   @Override
-  public boolean isSameResource(final Memory mem) {
+  public boolean isSameResource(final Memory that) {
     return false;
   }
 
