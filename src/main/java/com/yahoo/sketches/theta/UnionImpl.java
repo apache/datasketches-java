@@ -215,7 +215,8 @@ final class UnionImpl extends Union {
 
   @Override
   public boolean isSameResource(final Memory that) {
-    return gadget_.isDirect() ? gadget_.getMemory().isSameResource(that) : false;
+    return (gadget_ instanceof DirectQuickSelectSketchR)
+        ? gadget_.getMemory().isSameResource(that) : false;
   }
 
   @Override
