@@ -268,8 +268,10 @@ public abstract class Sketch {
   public abstract boolean isCompact();
 
   /**
-   * Returns true if this sketch accesses its internal data using the Memory package
-   * @return true if this sketch accesses its internal data using the Memory package
+   * Returns true if the this sketch's internal data structure is backed by direct (off-heap)
+   * Memory.
+   * @return true if the this sketch's internal data structure is backed by direct (off-heap)
+   * Memory.
    */
   public abstract boolean isDirect();
 

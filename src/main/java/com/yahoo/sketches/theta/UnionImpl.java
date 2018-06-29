@@ -22,6 +22,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.UNION_THETA_LONG;
 import static java.lang.Math.min;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.MemoryRequestServer;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.HashOperations;
@@ -75,10 +76,15 @@ final class UnionImpl extends Union {
    * @param dstMem the given Memory object destination. It will be cleared prior to use.
    * @return this class
    */
-  static UnionImpl initNewDirectInstance(final int lgNomLongs, final long seed, final float p,
-          final ResizeFactor rf, final WritableMemory dstMem) {
+  static UnionImpl initNewDirectInstance(
+      final int lgNomLongs,
+      final long seed,
+      final float p,
+      final ResizeFactor rf,
+      final MemoryRequestServer memReqSvr,
+      final WritableMemory dstMem) {
     final UpdateSketch gadget = DirectQuickSelectSketch.initNewDirectInstance(
-        lgNomLongs, seed, p, rf, dstMem, true); //create with UNION family
+        lgNomLongs, seed, p, rf, memReqSvr, dstMem, true); //create with UNION family
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = gadget.getThetaLong();
     dstMem.putLong(UNION_THETA_LONG, gadget.getThetaLong());

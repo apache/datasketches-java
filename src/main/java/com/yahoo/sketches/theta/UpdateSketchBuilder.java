@@ -13,6 +13,8 @@ import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
 import static com.yahoo.sketches.Util.TAB;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
+import com.yahoo.memory.DefaultMemoryRequestServer;
+import com.yahoo.memory.MemoryRequestServer;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
@@ -29,6 +31,7 @@ public class UpdateSketchBuilder {
   private ResizeFactor bRF;
   private Family bFam;
   private float bP;
+  private MemoryRequestServer bMemReqSvr;
 
   /**
    * Constructor for building a new UpdateSketch. The default configuration is
@@ -51,6 +54,7 @@ public class UpdateSketchBuilder {
     bP = (float) 1.0;
     bRF = ResizeFactor.X8;
     bFam = Family.QUICKSELECT;
+    bMemReqSvr = new DefaultMemoryRequestServer();
   }
 
   /**
@@ -141,7 +145,7 @@ public class UpdateSketchBuilder {
    * @return this UpdateSketchBuilder
    */
   public UpdateSketchBuilder setFamily(final Family family) {
-    this.bFam = family;
+    bFam = family;
     return this;
   }
 
@@ -151,6 +155,24 @@ public class UpdateSketchBuilder {
    */
   public Family getFamily() {
     return bFam;
+  }
+
+  /**
+   * Set the MemoryRequestServer
+   * @param memReqSvr the given MemoryRequestServer
+   * @return this UpdateSketchBuilder
+   */
+  public UpdateSketchBuilder setMemoryRequestServer(final MemoryRequestServer memReqSvr) {
+    bMemReqSvr = memReqSvr;
+    return this;
+  }
+
+  /**
+   * Returns the MemoryRequestServer
+   * @return the MemoryRequestServer
+   */
+  public MemoryRequestServer getMemoryRequestServer() {
+    return bMemReqSvr;
   }
 
   /**
@@ -185,7 +207,8 @@ public class UpdateSketchBuilder {
           sketch = HeapQuickSelectSketch.initNewHeapInstance(bLgNomLongs, bSeed, bP, bRF, false);
         }
         else {
-          sketch = DirectQuickSelectSketch.initNewDirectInstance(bLgNomLongs, bSeed, bP, bRF, dstMem, false);
+          sketch = DirectQuickSelectSketch.initNewDirectInstance(
+              bLgNomLongs, bSeed, bP, bRF, bMemReqSvr, dstMem, false);
         }
         break;
       }
@@ -200,13 +223,15 @@ public class UpdateSketchBuilder {
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder();
-    sb.append("UpdateSketchBuilder configuration:").append(LS)
-      .append("LgK:").append(TAB).append(bLgNomLongs).append(LS)
-      .append("K:").append(TAB).append(1 << bLgNomLongs).append(LS)
-      .append("Seed:").append(TAB).append(bSeed).append(LS)
-      .append("p:").append(TAB).append(bP).append(LS)
-      .append("ResizeFactor:").append(TAB).append(bRF).append(LS)
-      .append("Family:").append(TAB).append(bFam).append(LS);
+    sb.append("UpdateSketchBuilder configuration:").append(LS);
+    sb.append("LgK:").append(TAB).append(bLgNomLongs).append(LS);
+    sb.append("K:").append(TAB).append(1 << bLgNomLongs).append(LS);
+    sb.append("Seed:").append(TAB).append(bSeed).append(LS);
+    sb.append("p:").append(TAB).append(bP).append(LS);
+    sb.append("ResizeFactor:").append(TAB).append(bRF).append(LS);
+    sb.append("Family:").append(TAB).append(bFam).append(LS);
+    final String mrsStr = bMemReqSvr.getClass().getSimpleName();
+    sb.append("MemoryRequestServer:").append(TAB).append(mrsStr).append(LS);
     return sb.toString();
   }
 

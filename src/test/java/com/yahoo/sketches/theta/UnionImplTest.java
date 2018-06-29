@@ -157,6 +157,24 @@ public class UnionImplTest {
   }
 
   @Test
+  public void checkUnionCompactOrderedSource() {
+    int k = 1 << 12;
+    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    for (int i = 0; i < (k); i++) { sk.update(i); }
+    double est1 = sk.getEstimate();
+
+    int bytes = Sketches.getMaxCompactSketchBytes(sk.getRetainedEntries());
+    try (WritableDirectHandle h = WritableMemory.allocateDirect(bytes)) {
+      WritableMemory wmem = h.get();
+      CompactSketch csk = sk.compact(true, wmem); //ordered, direct
+      Union union = Sketches.setOperationBuilder().buildUnion();
+      union.update(csk);
+      double est2 = union.getResult().getEstimate();
+      assertEquals(est2, est1);
+    }
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }

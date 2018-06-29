@@ -9,6 +9,8 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.memory.DefaultMemoryRequestServer;
+import com.yahoo.memory.MemoryRequestServer;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -87,24 +89,28 @@ public class UpdateSketchTest {
 
     long seed = 12345L;
     bldr.setSeed(seed);
-    assertEquals(seed, bldr.getSeed());
+    assertEquals(bldr.getSeed(), seed);
 
     float p = (float)0.5;
     bldr.setP(p);
-    assertEquals(p, bldr.getP());
+    assertEquals(bldr.getP(), p);
 
     ResizeFactor rf = ResizeFactor.X4;
     bldr.setResizeFactor(rf);
-    assertEquals(rf, bldr.getResizeFactor());
+    assertEquals(bldr.getResizeFactor(), rf);
 
     Family fam = Family.ALPHA;
     bldr.setFamily(fam);
-    assertEquals(fam, bldr.getFamily());
+    assertEquals(bldr.getFamily(), fam);
 
     int lgK = 10;
     int k = 1 << lgK;
     bldr.setNominalEntries(k);
-    assertEquals(lgK, bldr.getLgNominalEntries());
+    assertEquals(bldr.getLgNominalEntries(), lgK);
+
+    MemoryRequestServer mrs = new DefaultMemoryRequestServer();
+    bldr.setMemoryRequestServer(mrs);
+    assertEquals(bldr.getMemoryRequestServer(), mrs);
 
     println(bldr.toString());
   }

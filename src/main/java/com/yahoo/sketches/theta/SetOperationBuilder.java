@@ -13,6 +13,8 @@ import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
 import static com.yahoo.sketches.Util.TAB;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 
+import com.yahoo.memory.DefaultMemoryRequestServer;
+import com.yahoo.memory.MemoryRequestServer;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
@@ -28,6 +30,7 @@ public class SetOperationBuilder {
   private long bSeed;
   private ResizeFactor bRF;
   private float bP;
+  private MemoryRequestServer bMemReqSvr;
 
   /**
    * Constructor for building a new SetOperation.  The default configuration is
@@ -44,6 +47,7 @@ public class SetOperationBuilder {
     bSeed = DEFAULT_UPDATE_SEED;
     bP = (float) 1.0;
     bRF = ResizeFactor.X8;
+    bMemReqSvr = new DefaultMemoryRequestServer();
   }
 
   /**
@@ -133,6 +137,24 @@ public class SetOperationBuilder {
   }
 
   /**
+   * Set the MemoryRequestServer
+   * @param memReqSvr the given MemoryRequestServer
+   * @return this SetOperationBuilder
+   */
+  public SetOperationBuilder setMemoryRequestServer(final MemoryRequestServer memReqSvr) {
+    bMemReqSvr = memReqSvr;
+    return this;
+  }
+
+  /**
+   * Returns the MemoryRequestServer
+   * @return the MemoryRequestServer
+   */
+  public MemoryRequestServer getMemoryRequestServer() {
+    return bMemReqSvr;
+  }
+
+  /**
    * Returns a SetOperation with the current configuration of this Builder and the given Family.
    * @param family the chosen SetOperation family
    * @return a SetOperation
@@ -156,7 +178,7 @@ public class SetOperationBuilder {
           setOp = UnionImpl.initNewHeapInstance(bLgNomLongs, bSeed, bP, bRF);
         }
         else {
-          setOp = UnionImpl.initNewDirectInstance(bLgNomLongs, bSeed, bP, bRF, dstMem);
+          setOp = UnionImpl.initNewDirectInstance(bLgNomLongs, bSeed, bP, bRF, bMemReqSvr, dstMem);
         }
         break;
       }
@@ -239,12 +261,14 @@ public class SetOperationBuilder {
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder();
-    sb.append("SetOperationBuilder configuration:").append(LS)
-      .append("LgK:").append(TAB).append(bLgNomLongs).append(LS)
-      .append("K:").append(TAB).append(1 << bLgNomLongs).append(LS)
-      .append("Seed:").append(TAB).append(bSeed).append(LS)
-      .append("p:").append(TAB).append(bP).append(LS)
-      .append("ResizeFactor:").append(TAB).append(bRF).append(LS);
+    sb.append("SetOperationBuilder configuration:").append(LS);
+    sb.append("LgK:").append(TAB).append(bLgNomLongs).append(LS);
+    sb.append("K:").append(TAB).append(1 << bLgNomLongs).append(LS);
+    sb.append("Seed:").append(TAB).append(bSeed).append(LS);
+    sb.append("p:").append(TAB).append(bP).append(LS);
+    sb.append("ResizeFactor:").append(TAB).append(bRF).append(LS);
+    final String mrsStr = bMemReqSvr.getClass().getSimpleName();
+    sb.append("MemoryRequestServer:").append(TAB).append(mrsStr).append(LS);
     return sb.toString();
   }
 

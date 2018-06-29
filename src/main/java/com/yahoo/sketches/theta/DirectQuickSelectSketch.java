@@ -58,10 +58,13 @@ import com.yahoo.sketches.Util;
  * @author Kevin Lang
  */
 final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
-  private MemoryRequestServer memReqSvr = null;
+  MemoryRequestServer memReqSvr_ = null;
 
-  private DirectQuickSelectSketch(final int lgNomLongs, final long seed, final int preambleLongs,
-          final WritableMemory wmem) {
+  private DirectQuickSelectSketch(
+      final int lgNomLongs,
+      final long seed,
+      final int preambleLongs,
+      final WritableMemory wmem) {
     super(Math.max(lgNomLongs, MIN_LG_NOM_LONGS), seed, preambleLongs, wmem);
   }
 
@@ -82,8 +85,14 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
    * Otherwise, it is behaving as a normal QuickSelectSketch.
    * @return instance of this sketch
    */
-  static DirectQuickSelectSketch initNewDirectInstance(final int lgNomLongs, final long seed,
-      final float p, final ResizeFactor rf, final WritableMemory dstMem, final boolean unionGadget) {
+  static DirectQuickSelectSketch initNewDirectInstance(
+      final int lgNomLongs,
+      final long seed,
+      final float p,
+      final ResizeFactor rf,
+      final MemoryRequestServer memReqSvr,
+      final WritableMemory dstMem,
+      final boolean unionGadget) {
 
     //Choose family, preambleLongs
     final Family family;
@@ -136,6 +145,7 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
         new DirectQuickSelectSketch(lgNomLongs, seed, preambleLongs, dstMem);
 
     dqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
+    dqss.memReqSvr_ = memReqSvr;
     return dqss;
   }
 
@@ -277,9 +287,9 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
           final int tgtArrBytes = 8 << tgtLgArrLongs;
           final int reqBytes = tgtArrBytes + preBytes;
 
-          memReqSvr = (memReqSvr == null) ? mem_.getMemoryRequestServer() : memReqSvr;
+          memReqSvr_ = (memReqSvr_ == null) ? mem_.getMemoryRequestServer() : memReqSvr_;
 
-          final WritableMemory newDstMem = memReqSvr.request(reqBytes);
+          final WritableMemory newDstMem = memReqSvr_.request(reqBytes);
 
           moveAndResize(mem_, preambleLongs_, lgArrLongs, newDstMem, tgtLgArrLongs, thetaLong);
 
