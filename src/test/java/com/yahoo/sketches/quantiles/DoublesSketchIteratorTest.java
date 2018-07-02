@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
+
 package com.yahoo.sketches.quantiles;
 
 import org.testng.Assert;
@@ -32,10 +37,13 @@ public class DoublesSketchIteratorTest {
       }
       DoublesSketchIterator it = sketch.iterator();
       int count = 0;
+      int weight = 0;
       while (it.next()) {
         count++;
+        weight += it.getWeight();
       }
       Assert.assertEquals(count, sketch.getRetainedItems());
+      Assert.assertEquals(weight, n);
     }
   }
 
