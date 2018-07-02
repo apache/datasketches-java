@@ -293,8 +293,11 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
 
           moveAndResize(mem_, preambleLongs_, lgArrLongs, newDstMem, tgtLgArrLongs, thetaLong);
 
+          memReqSvr_.requestClose(mem_, newDstMem);
+
           mem_ = newDstMem;
           hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, tgtLgArrLongs);
+
         } //end of Request more memory to resize
       } //end of resize
     }
