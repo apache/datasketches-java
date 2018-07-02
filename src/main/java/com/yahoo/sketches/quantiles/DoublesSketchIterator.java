@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
+
 package com.yahoo.sketches.quantiles;
 
 /**
@@ -11,7 +16,7 @@ public class DoublesSketchIterator {
   private int level_;
   private long weight_;
   private int i_;
-  
+
   DoublesSketchIterator(final DoublesSketch sketch, final long bitPattern) {
     sketch_ = sketch;
     bits_ = bitPattern;
@@ -45,7 +50,7 @@ public class DoublesSketchIterator {
         return false; // run out of levels
       }
       weight_ *= 2;
-    } while((bits_ & 1L) == 0L);
+    } while ((bits_ & 1L) == 0L);
     i_ = 0;
     sketchAccessor_.setLevel(level_);
     return true;

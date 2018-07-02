@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
+
 package com.yahoo.sketches.quantiles;
 
 /**
@@ -50,7 +55,7 @@ public class ItemsSketchIterator<T> {
         return false; // run out of levels
       }
       weight_ *= 2;
-    } while((bits_ & 1L) == 0L);
+    } while ((bits_ & 1L) == 0L);
     i_ = 0;
     offset_ = (2 + level_) * sketch_.getK();
     num_ = sketch_.getK();
