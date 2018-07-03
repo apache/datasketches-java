@@ -288,9 +288,6 @@ public final class ReservoirItemsUnion<T> {
     final byte[] outArr = new byte[outBytes];
     final WritableMemory mem = WritableMemory.wrap(outArr);
 
-    final Object memObj = mem.getArray(); // may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
-
     // build preLong
     PreambleUtil.insertPreLongs(mem, preLongs);                       // Byte 0
     PreambleUtil.insertSerVer(mem, SER_VER);                          // Byte 1

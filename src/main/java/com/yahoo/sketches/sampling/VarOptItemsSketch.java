@@ -536,9 +536,6 @@ public final class VarOptItemsSketch<T> {
     final byte[] outArr = new byte[outBytes];
     final WritableMemory mem = WritableMemory.wrap(outArr);
 
-    final Object memObj = mem.getArray(); // may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
-
     // build first preLong
     PreambleUtil.insertPreLongs(mem, preLongs);               // Byte 0
     PreambleUtil.insertLgResizeFactor(mem, rf_.lg());
@@ -549,10 +546,10 @@ public final class VarOptItemsSketch<T> {
 
     if (!empty) {
       PreambleUtil.insertN(mem, n_);                                      // Bytes 8-15
-      PreambleUtil.insertHRegionItemCount(memObj, memAddr, h_);           // Bytes 16-19
-      PreambleUtil.insertRRegionItemCount(memObj, memAddr, r_);           // Bytes 20-23
+      PreambleUtil.insertHRegionItemCount(mem, h_);           // Bytes 16-19
+      PreambleUtil.insertRRegionItemCount(mem, r_);           // Bytes 20-23
       if (r_ > 0) {
-        PreambleUtil.insertTotalRWeight(memObj, memAddr, totalWtR_);      // Bytes 24-31
+        PreambleUtil.insertTotalRWeight(mem, totalWtR_);      // Bytes 24-31
       }
 
       // write the first h_ weights

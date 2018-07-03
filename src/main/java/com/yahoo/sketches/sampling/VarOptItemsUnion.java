@@ -316,9 +316,6 @@ public final class VarOptItemsUnion<T> {
     final byte[] outArr = new byte[outBytes];
     final WritableMemory mem = WritableMemory.wrap(outArr);
 
-    final Object memObj = mem.getArray(); // may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
-
     // build preLong
     PreambleUtil.insertPreLongs(mem, preLongs);                    // Byte 0
     PreambleUtil.insertSerVer(mem, SER_VER);                       // Byte 1
@@ -332,8 +329,8 @@ public final class VarOptItemsUnion<T> {
 
     if (!empty) {
       PreambleUtil.insertN(mem, n_);                               // Bytes 8-15
-      PreambleUtil.insertOuterTauNumerator(memObj, memAddr, outerTauNumer);    // Bytes 16-23
-      PreambleUtil.insertOuterTauDenominator(memObj, memAddr, outerTauDenom);  // Bytes 24-31
+      PreambleUtil.insertOuterTauNumerator(mem, outerTauNumer);    // Bytes 16-23
+      PreambleUtil.insertOuterTauDenominator(mem, outerTauDenom);  // Bytes 24-31
 
       final int preBytes = preLongs << 3;
       mem.putByteArray(preBytes, gadgetBytes, 0, gadgetBytes.length);

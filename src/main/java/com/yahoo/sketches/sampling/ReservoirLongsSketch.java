@@ -372,9 +372,6 @@ public final class ReservoirLongsSketch {
     final byte[] outArr = new byte[outBytes];
     final WritableMemory mem = WritableMemory.wrap(outArr);
 
-    final Object memObj = mem.getArray(); // may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
-
     // build first preLong
     PreambleUtil.insertPreLongs(mem, preLongs);                 // Byte 0
     PreambleUtil.insertLgResizeFactor(mem, rf_.lg());

@@ -444,9 +444,6 @@ public final class ReservoirItemsSketch<T> {
     final byte[] outArr = new byte[outBytes];
     final WritableMemory mem = WritableMemory.wrap(outArr);
 
-    final Object memObj = mem.getArray(); // may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
-
     // Common header elements
     PreambleUtil.insertPreLongs(mem, preLongs);                  // Byte 0
     PreambleUtil.insertLgResizeFactor(mem, rf_.lg());

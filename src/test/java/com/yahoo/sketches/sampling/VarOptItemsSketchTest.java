@@ -120,8 +120,6 @@ public class VarOptItemsSketchTest {
     // we'll use the same initial sketch a few times, so grab a copy of it
     final byte[] copyBytes = new byte[sketchBytes.length];
     final WritableMemory mem = WritableMemory.wrap(copyBytes);
-    final Object memObj = mem.getArray(); // may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
 
     // copy the bytes
     srcMem.copyTo(0, mem, 0, sketchBytes.length);
@@ -143,7 +141,7 @@ public class VarOptItemsSketchTest {
 
     // negative H region count
     try {
-      PreambleUtil.insertHRegionItemCount(memObj, memAddr, -1);
+      PreambleUtil.insertHRegionItemCount(mem, -1);
       VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
       fail();
     } catch (final SketchesArgumentException e) {
@@ -156,7 +154,7 @@ public class VarOptItemsSketchTest {
 
     // negative R region count
     try {
-      PreambleUtil.insertRRegionItemCount(memObj, memAddr, -128);
+      PreambleUtil.insertRRegionItemCount(mem, -128);
       VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
       fail();
     } catch (final SketchesArgumentException e) {
@@ -227,11 +225,9 @@ public class VarOptItemsSketchTest {
     mem.putByteArray(0, sketchBytes, 0, sketchBytes.length);
 
     // ensure non-empty but with H and R region sizes set to 0
-    final Object memObj = mem.getArray(); // may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
     PreambleUtil.insertFlags(mem, 0); // set not-empty
-    PreambleUtil.insertHRegionItemCount(memObj, memAddr, 0);
-    PreambleUtil.insertRRegionItemCount(memObj, memAddr, 0);
+    PreambleUtil.insertHRegionItemCount(mem, 0);
+    PreambleUtil.insertRRegionItemCount(mem, 0);
 
     final VarOptItemsSketch<String> rebuilt
             = VarOptItemsSketch.heapify(mem, new ArrayOfStringsSerDe());

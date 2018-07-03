@@ -5,7 +5,6 @@
 
 package com.yahoo.sketches.sampling;
 
-import static com.yahoo.memory.UnsafeUtil.unsafe;
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.zeroPad;
 
@@ -403,27 +402,24 @@ final class PreambleUtil {
     wmem.putLong(ITEMS_SEEN_LONG, totalSeen);
   }
 
-  static void insertHRegionItemCount(final Object memObj, final long memAddr, final int hCount) {
-    unsafe.putInt(memObj, memAddr + ITEM_COUNT_H_INT, hCount);
-    //wmem.putInt(ITEM_COUNT_H_INT, hCount);
+  static void insertHRegionItemCount(final WritableMemory wmem, final int hCount) {
+    wmem.putInt(ITEM_COUNT_H_INT, hCount);
   }
 
-  static void insertRRegionItemCount(final Object memObj, final long memAddr, final int rCount) {
-    unsafe.putInt(memObj, memAddr + ITEM_COUNT_R_INT, rCount);
-    //wmem.putInt(ITEM_COUNT_R_INT, rCount);
-
+  static void insertRRegionItemCount(final WritableMemory wmem, final int rCount) {
+    wmem.putInt(ITEM_COUNT_R_INT, rCount);
   }
 
-  static void insertTotalRWeight(final Object memObj, final long memAddr, final double weight) {
-    unsafe.putDouble(memObj, memAddr + TOTAL_WEIGHT_R_DOUBLE, weight);
+  static void insertTotalRWeight(final WritableMemory wmem, final double weight) {
+    wmem.putDouble(TOTAL_WEIGHT_R_DOUBLE, weight);
   }
 
-  static void insertOuterTauNumerator(final Object memObj, final long memAddr, final double numer) {
-    unsafe.putDouble(memObj, memAddr + OUTER_TAU_NUM_DOUBLE, numer);
+  static void insertOuterTauNumerator(final WritableMemory wmem, final double numer) {
+    wmem.putDouble(OUTER_TAU_NUM_DOUBLE, numer);
   }
 
-  static void insertOuterTauDenominator(final Object memObj, final long memAddr, final long denom) {
-    unsafe.putLong(memObj, memAddr + OUTER_TAU_DENOM_LONG, denom);
+  static void insertOuterTauDenominator(final WritableMemory wmem, final long denom) {
+    wmem.putLong(OUTER_TAU_DENOM_LONG, denom);
   }
 
   /**
