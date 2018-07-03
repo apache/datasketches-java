@@ -12,6 +12,7 @@ import static com.yahoo.sketches.Util.zeroPad;
 import java.nio.ByteOrder;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -241,7 +242,7 @@ final class PreambleUtil {
     if (!isEmpty) {
       sb.append("Bytes 8-15: Items Seen (n)    : ").append(n).append(LS);
     }
-    if (family == Family.VAROPT && !isEmpty) {
+    if ((family == Family.VAROPT) && !isEmpty) {
       final int hCount = extractHRegionItemCount(mem);
       final int rCount = extractRRegionItemCount(mem);
       final double totalRWeight = extractTotalRWeight(mem);
@@ -363,51 +364,54 @@ final class PreambleUtil {
 
   // Insertion methods
 
-  static void insertPreLongs(final Object memObj, final long memAddr, final int preLongs) {
-    final int curByte = unsafe.getByte(memObj, memAddr + PREAMBLE_LONGS_BYTE);
+  static void insertPreLongs(final WritableMemory wmem, final int preLongs) {
+    final int curByte = wmem.getByte(PREAMBLE_LONGS_BYTE);
     final int mask = 0x3F;
     final byte newByte = (byte) ((preLongs & mask) | (~mask & curByte));
-    unsafe.putByte(memObj, memAddr + PREAMBLE_LONGS_BYTE, newByte);
+    wmem.putByte(PREAMBLE_LONGS_BYTE, newByte);
   }
 
-  static void insertLgResizeFactor(final Object memObj, final long memAddr, final int rf) {
-    final int curByte = unsafe.getByte(memObj, memAddr + PREAMBLE_LONGS_BYTE);
+  static void insertLgResizeFactor(final WritableMemory wmem, final int rf) {
+    final int curByte = wmem.getByte(PREAMBLE_LONGS_BYTE);
     final int shift = LG_RESIZE_FACTOR_BIT; // shift in bits
     final int mask = 3;
     final byte newByte = (byte) (((rf & mask) << shift) | (~(mask << shift) & curByte));
-    unsafe.putByte(memObj, memAddr + PREAMBLE_LONGS_BYTE, newByte);
+    wmem.putByte(PREAMBLE_LONGS_BYTE, newByte);
   }
 
-  static void insertSerVer(final Object memObj, final long memAddr, final int serVer) {
-    unsafe.putByte(memObj, memAddr + SER_VER_BYTE, (byte) serVer);
+  static void insertSerVer(final WritableMemory wmem, final int serVer) {
+    wmem.putByte(SER_VER_BYTE, (byte) serVer);
   }
 
-  static void insertFamilyID(final Object memObj, final long memAddr, final int famId) {
-    unsafe.putByte(memObj, memAddr + FAMILY_BYTE, (byte) famId);
+  static void insertFamilyID(final WritableMemory wmem, final int famId) {
+    wmem.putByte(FAMILY_BYTE, (byte) famId);
   }
 
-  static void insertFlags(final Object memObj, final long memAddr, final int flags) {
-    unsafe.putByte(memObj, memAddr + FLAGS_BYTE, (byte) flags);
+  static void insertFlags(final WritableMemory wmem, final int flags) {
+    wmem.putByte(FLAGS_BYTE,  (byte) flags);
   }
 
-  static void insertK(final Object memObj, final long memAddr, final int k) {
-    unsafe.putInt(memObj, memAddr + RESERVOIR_SIZE_INT, k);
+  static void insertK(final WritableMemory wmem, final int k) {
+    wmem.putInt(RESERVOIR_SIZE_INT, k);
   }
 
-  static void insertMaxK(final Object memObj, final long memAddr, final int maxK) {
-    insertK(memObj, memAddr, maxK);
+  static void insertMaxK(final WritableMemory wmem, final int maxK) {
+    insertK(wmem, maxK);
   }
 
-  static void insertN(final Object memObj, final long memAddr, final long totalSeen) {
-    unsafe.putLong(memObj, memAddr + ITEMS_SEEN_LONG, totalSeen);
+  static void insertN(final WritableMemory wmem, final long totalSeen) {
+    wmem.putLong(ITEMS_SEEN_LONG, totalSeen);
   }
 
   static void insertHRegionItemCount(final Object memObj, final long memAddr, final int hCount) {
     unsafe.putInt(memObj, memAddr + ITEM_COUNT_H_INT, hCount);
+    //wmem.putInt(ITEM_COUNT_H_INT, hCount);
   }
 
   static void insertRRegionItemCount(final Object memObj, final long memAddr, final int rCount) {
     unsafe.putInt(memObj, memAddr + ITEM_COUNT_R_INT, rCount);
+    //wmem.putInt(ITEM_COUNT_R_INT, rCount);
+
   }
 
   static void insertTotalRWeight(final Object memObj, final long memAddr, final double weight) {

@@ -320,18 +320,18 @@ public final class VarOptItemsUnion<T> {
     final long memAddr = mem.getCumulativeOffset(0L);
 
     // build preLong
-    PreambleUtil.insertPreLongs(memObj, memAddr, preLongs);                    // Byte 0
-    PreambleUtil.insertSerVer(memObj, memAddr, SER_VER);                       // Byte 1
-    PreambleUtil.insertFamilyID(memObj, memAddr, Family.VAROPT_UNION.getID()); // Byte 2
+    PreambleUtil.insertPreLongs(mem, preLongs);                    // Byte 0
+    PreambleUtil.insertSerVer(mem, SER_VER);                       // Byte 1
+    PreambleUtil.insertFamilyID(mem, Family.VAROPT_UNION.getID()); // Byte 2
     if (empty) {
-      PreambleUtil.insertFlags(memObj, memAddr, EMPTY_FLAG_MASK);
+      PreambleUtil.insertFlags(mem, EMPTY_FLAG_MASK);
     } else {
-      PreambleUtil.insertFlags(memObj, memAddr, 0);                      // Byte 3
+      PreambleUtil.insertFlags(mem, 0);                            // Byte 3
     }
-    PreambleUtil.insertMaxK(memObj, memAddr, maxK_);                           // Bytes 4-7
+    PreambleUtil.insertMaxK(mem, maxK_);                           // Bytes 4-7
 
     if (!empty) {
-      PreambleUtil.insertN(memObj, memAddr, n_);                               // Bytes 8-15
+      PreambleUtil.insertN(mem, n_);                               // Bytes 8-15
       PreambleUtil.insertOuterTauNumerator(memObj, memAddr, outerTauNumer);    // Bytes 16-23
       PreambleUtil.insertOuterTauDenominator(memObj, memAddr, outerTauDenom);  // Bytes 24-31
 
@@ -427,7 +427,7 @@ public final class VarOptItemsUnion<T> {
 
       double cumWeight = 0.0;
       final ArrayList<T> samples = reservoir.getRawSamplesAsList();
-      for (int i = 0; i < reservoirK - 1; ++i) {
+      for (int i = 0; i < (reservoirK - 1); ++i) {
         gadget_.update(samples.get(i), reservoirTau, true);
         cumWeight += reservoirTau;
       }

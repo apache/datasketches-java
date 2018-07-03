@@ -31,7 +31,6 @@ import java.util.function.Predicate;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
-
 import com.yahoo.sketches.ArrayOfBooleansSerDe;
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.Family;
@@ -150,7 +149,7 @@ public final class VarOptItemsSketch<T> {
     assert n >= 0;
     assert hCount >= 0;
     assert rCount >= 0;
-    assert (rCount == 0 && dataList.size() == hCount) || (rCount > 0 && dataList.size() == k + 1);
+    assert ((rCount == 0) && (dataList.size() == hCount)) || ((rCount > 0) && (dataList.size() == (k + 1)));
 
     k_ = k;
     n_ = n;
@@ -258,9 +257,9 @@ public final class VarOptItemsSketch<T> {
     final boolean isGadget = (flags & GADGET_FLAG_MASK) != 0;
 
     // Check values
-    if (numPreLongs != Family.VAROPT.getMinPreLongs()
-            && numPreLongs != Family.VAROPT.getMaxPreLongs()
-            && numPreLongs != PreambleUtil.VO_WARMUP_PRELONGS) {
+    if ((numPreLongs != Family.VAROPT.getMinPreLongs())
+            && (numPreLongs != Family.VAROPT.getMaxPreLongs())
+            && (numPreLongs != PreambleUtil.VO_WARMUP_PRELONGS)) {
       throw new SketchesArgumentException(
               "Possible corruption: Must have " + Family.VAROPT.getMinPreLongs()
                       + ", " + PreambleUtil.VO_WARMUP_PRELONGS + ", or "
@@ -499,7 +498,7 @@ public final class VarOptItemsSketch<T> {
    * @return a byte array representation of this sketch
    */
   public byte[] toByteArray(final ArrayOfItemsSerDe<? super T> serDe) {
-    if (r_ == 0 && h_ == 0) {
+    if ((r_ == 0) && (h_ == 0)) {
       // null class is ok since empty -- no need to call serDe
       return toByteArray(serDe, null);
     } else {
@@ -520,7 +519,7 @@ public final class VarOptItemsSketch<T> {
   @SuppressWarnings("null") // bytes will be null only if empty == true
   public byte[] toByteArray(final ArrayOfItemsSerDe<? super T> serDe, final Class<?> clazz) {
     final int preLongs, numMarkBytes, outBytes;
-    final boolean empty = r_ == 0 && h_ == 0;
+    final boolean empty = (r_ == 0) && (h_ == 0);
     byte[] itemBytes = null; // for serialized items from serDe
     int flags = marks_ == null ? 0 : GADGET_FLAG_MASK;
 
@@ -541,13 +540,13 @@ public final class VarOptItemsSketch<T> {
     final long memAddr = mem.getCumulativeOffset(0L);
 
     // build first preLong
-    PreambleUtil.insertPreLongs(memObj, memAddr, preLongs);               // Byte 0
-    PreambleUtil.insertLgResizeFactor(memObj, memAddr, rf_.lg());
-    PreambleUtil.insertSerVer(memObj, memAddr, SER_VER);                  // Byte 1
-    PreambleUtil.insertFamilyID(memObj, memAddr, Family.VAROPT.getID());  // Byte 2
-    PreambleUtil.insertFlags(memObj, memAddr, flags);                     // Byte 3
-    PreambleUtil.insertK(memObj, memAddr, k_);                            // Bytes 4-7
-    PreambleUtil.insertN(memObj, memAddr, n_);                            // Bytes 8-15
+    PreambleUtil.insertPreLongs(mem, preLongs);               // Byte 0
+    PreambleUtil.insertLgResizeFactor(mem, rf_.lg());
+    PreambleUtil.insertSerVer(mem, SER_VER);                  // Byte 1
+    PreambleUtil.insertFamilyID(mem, Family.VAROPT.getID());  // Byte 2
+    PreambleUtil.insertFlags(mem, flags);                     // Byte 3
+    PreambleUtil.insertK(mem, k_);                            // Bytes 4-7
+    PreambleUtil.insertN(mem, n_);                            // Bytes 8-15
 
     if (!empty) {
       PreambleUtil.insertHRegionItemCount(memObj, memAddr, h_);           // Bytes 16-19
@@ -619,7 +618,7 @@ public final class VarOptItemsSketch<T> {
 
     int rTrueCount = 0;
     ++idx; // skip the gap
-    for (; idx < k_ + 1; ++idx) {
+    for (; idx < (k_ + 1); ++idx) {
       if (predicate.test(data_.get(idx))) {
         ++rTrueCount;
       }
@@ -629,9 +628,9 @@ public final class VarOptItemsSketch<T> {
     final double estimatedTrueFraction = (1.0 * rTrueCount) / r_;
     final double ubTrueFraction = pseudoHypergeometricUBonP(r_, rTrueCount, effectiveSamplingRate);
     return new SampleSubsetSummary(
-            hTrueWeight + totalWtR_ * lbTrueFraction,
-            hTrueWeight + totalWtR_ * estimatedTrueFraction,
-            hTrueWeight + totalWtR_ * ubTrueFraction,
+            hTrueWeight + (totalWtR_ * lbTrueFraction),
+            hTrueWeight + (totalWtR_ * estimatedTrueFraction),
+            hTrueWeight + (totalWtR_ * ubTrueFraction),
             totalWtH + totalWtR_);
   }
 
@@ -642,7 +641,7 @@ public final class VarOptItemsSketch<T> {
    * @return A Result object containing items and weights.
    */
   Result getSamplesAsArrays() {
-    if (r_ + h_ == 0) {
+    if ((r_ + h_) == 0) {
       return null;
     }
 
@@ -699,7 +698,7 @@ public final class VarOptItemsSketch<T> {
    */
   @SuppressWarnings("unchecked")
   Result getSamplesAsArrays(final Class<?> clazz) {
-    if (r_ + h_ == 0) {
+    if ((r_ + h_) == 0) {
       return null;
     }
 
@@ -790,14 +789,14 @@ public final class VarOptItemsSketch<T> {
       updateWarmupPhase(item, weight, mark);
     } else {
       // sketch is in estimation mode, so we can make the following check
-      assert h_ == 0 || peekMin() >= getTau();
+      assert (h_ == 0) || (peekMin() >= getTau());
 
       // what tau would be if deletion candidates turn out to be R plus the new item
       // note: (r_ + 1) - 1 is intentional
       final double hypotheticalTau = (weight + totalWtR_) / ((r_ + 1) - 1);
 
       // is new item's turn to be considered for reservoir?
-      final boolean condition1 = h_ == 0 || weight <= peekMin();
+      final boolean condition1 = (h_ == 0) || (weight <= peekMin());
 
       // is new item light enough for reservoir?
       final boolean condition2 = weight < hypotheticalTau;
@@ -823,16 +822,16 @@ public final class VarOptItemsSketch<T> {
       throw new SketchesStateException("Cannot decrease k below 1 in union");
     }
 
-    if (h_ == 0 && r_ == 0) {
+    if ((h_ == 0) && (r_ == 0)) {
       // exact mode, but no data yet; this reduction is somewhat gratuitous
       --k_;
-    } else if (h_ > 0 && r_ == 0) {
+    } else if ((h_ > 0) && (r_ == 0)) {
       // exact mode, but we have some data
       --k_;
       if (h_ > k_) {
         transitionFromWarmup();
       }
-    } else if (h_ > 0 && r_ > 0) {
+    } else if ((h_ > 0) && (r_ > 0)) {
       // reservoir mode, but we have some exact samples.
       // Our strategy will be to pull an item out of H (which we are allowed to do since it's
       // still just data), reduce k, and then re-insert the item
@@ -861,7 +860,7 @@ public final class VarOptItemsSketch<T> {
       --n_; // will be re-incremented with the update
 
       update(pulledItem, pulledWeight, pulledMark);
-    } else if (h_ == 0 && r_ > 0) {
+    } else if ((h_ == 0) && (r_ > 0)) {
       // pure reservoir mode, so can simply eject a randomly chosen sample from the reservoir
       assert r_ >= 2;
 
@@ -881,7 +880,7 @@ public final class VarOptItemsSketch<T> {
      round's downsampling */
   private void updateLight(final T item, final double weight, final boolean mark) {
     assert r_ >= 1;
-    assert r_ + h_ == k_;
+    assert (r_ + h_) == k_;
 
     final int mSlot = h_; // index of the gap, which becomes the M region
     data_.set(mSlot, item);
@@ -903,7 +902,7 @@ public final class VarOptItemsSketch<T> {
   private void updateHeavyGeneral(final T item, final double weight, final boolean mark) {
     assert m_ == 0;
     assert r_ >= 2;
-    assert r_ + h_ == k_;
+    assert (r_ + h_) == k_;
 
     // put into H, although may come back out momentarily
     push(item, weight, mark);
@@ -917,7 +916,7 @@ public final class VarOptItemsSketch<T> {
   private void updateHeavyREq1(final T item, final double weight, final boolean mark) {
     assert m_ == 0;
     assert r_ == 1;
-    assert r_ + h_ == k_;
+    assert (r_ + h_) == k_;
 
     push(item, weight, mark);  // new item into H
     popMinToMRegion();   // pop lightest back into M
@@ -959,7 +958,7 @@ public final class VarOptItemsSketch<T> {
     --m_;
     ++r_;
 
-    assert h_ == k_ - 1;
+    assert h_ == (k_ - 1);
     assert m_ == 1;
     assert r_ == 1;
 
@@ -1008,11 +1007,11 @@ public final class VarOptItemsSketch<T> {
     assert slotIn <= lastSlot;
 
     int slot = slotIn;
-    int child = 2 * slotIn + 1; // might be invalid, need to check
+    int child = (2 * slotIn) + 1; // might be invalid, need to check
 
     while (child <= lastSlot) {
       final int child2 = child + 1; // might also be invalid
-      if (child2 <= lastSlot && weights_.get(child2) < weights_.get(child)) {
+      if ((child2 <= lastSlot) && (weights_.get(child2) < weights_.get(child))) {
         // switch to other child if it's both valid and smaller
         child = child2;
       }
@@ -1026,14 +1025,14 @@ public final class VarOptItemsSketch<T> {
       swapValues(slot, child);
 
       slot = child;
-      child = 2 * slot + 1; // might be invalid, checked on next loop
+      child = (2 * slot) + 1; // might be invalid, checked on next loop
     }
   }
 
   private void restoreTowardsRoot(final int slotIn) {
     int slot = slotIn;
     int p = (((slot + 1) / 2) - 1); // valid if slot >= 1
-    while (slot > 0 && weights_.get(slot) < weights_.get(p)) {
+    while ((slot > 0) && (weights_.get(slot) < weights_.get(p))) {
       swapValues(slot, p);
       slot = p;
       p = (((slot + 1) / 2) - 1); // valid if slot >= 1
@@ -1059,7 +1058,7 @@ public final class VarOptItemsSketch<T> {
 
   private void popMinToMRegion() {
     assert h_ > 0;
-    assert h_ + m_ + r_ == k_ + 1;
+    assert (h_ + m_ + r_) == (k_ + 1);
 
     if (h_ == 1) {
       // just update bookkeeping
@@ -1089,10 +1088,10 @@ public final class VarOptItemsSketch<T> {
      by pulling sufficiently light items from h to m.
    */
   private void growCandidateSet(double wtCands, int numCands) {
-    assert h_ + m_ + r_ == k_ + 1;
+    assert (h_ + m_ + r_) == (k_ + 1);
     assert numCands >= 2;       // essential
-    assert numCands == m_ + r_; // essential
-    assert m_ == 0 || m_ == 1;
+    assert numCands == (m_ + r_); // essential
+    assert (m_ == 0) || (m_ == 1);
 
     while (h_ > 0) {
       final double nextWt = peekMin();
@@ -1101,7 +1100,7 @@ public final class VarOptItemsSketch<T> {
       // test for strict lightness of next prospect (denominator multiplied through)
       // ideally: (nextWt * (nextNumCands-1) < nextTotWt) but can just
       //          use numCands directly
-      if (nextWt * numCands < nextTotWt) {
+      if ((nextWt * numCands) < nextTotWt) {
         wtCands = nextTotWt;
         ++numCands;
         popMinToMRegion(); // adjusts h_ and m_
@@ -1133,7 +1132,7 @@ public final class VarOptItemsSketch<T> {
       // check if we keep the item in M or pick one from R
       // p(keep) = (numCand - 1) * wt_M / wt_cand
       final double wtMCand = weights_.get(h_); // slot of item in M is h_
-      if (wtCand * SamplingUtil.nextDoubleExcludeZero() < (numCand - 1) * wtMCand) {
+      if ((wtCand * SamplingUtil.nextDoubleExcludeZero()) < ((numCand - 1) * wtMCand)) {
         return pickRandomSlotInR(); // keep item in M
       } else {
         return h_; // index of item in M
@@ -1154,7 +1153,7 @@ public final class VarOptItemsSketch<T> {
     assert m_ >= 1;
 
     final int offset = h_;
-    final int finalM = offset + m_ - 1;
+    final int finalM = (offset + m_) - 1;
     final int numToKeep = numCand - 1;
 
     double leftSubtotal = 0.0;
@@ -1175,7 +1174,7 @@ public final class VarOptItemsSketch<T> {
 
   private void downsampleCandidateSet(final double wtCands, final int numCands) {
     assert numCands >= 2;
-    assert h_ + numCands == k_ + 1;
+    assert (h_ + numCands) == (k_ + 1);
 
     // need this before overwriting anything
     final int deleteSlot = chooseDeleteSlot(wtCands, numCands);
@@ -1232,7 +1231,7 @@ public final class VarOptItemsSketch<T> {
    */
   @SuppressWarnings("unchecked")
   private T[] getDataSamples(final Class<?> clazz) {
-    assert h_ + r_ > 0;
+    assert (h_ + r_) > 0;
 
     // are 2 Array.asList(data_.subList()) copies better?
     final T[] prunedList = (T[]) Array.newInstance(clazz, getNumSamples());

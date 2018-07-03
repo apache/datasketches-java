@@ -5,8 +5,6 @@
 
 package com.yahoo.sketches;
 
-import static com.yahoo.memory.UnsafeUtil.unsafe;
-
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 
@@ -251,8 +249,6 @@ public final class HashOperations {
    */
   public static int fastHashInsertOnly(final WritableMemory wmem, final int lgArrLongs,
       final long hash, final int memOffsetBytes) {
-    final Object memObj = wmem.getArray();
-    final long memAdd = wmem.getCumulativeOffset(0L);
     final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
     final int stride = getStride(hash, lgArrLongs);
     int curProbe = (int) (hash & arrayMask);
@@ -260,9 +256,9 @@ public final class HashOperations {
     final int loopIndex = curProbe;
     do {
       final int curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes;
-      final long curArrayHash = unsafe.getLong(memObj, memAdd + curProbeOffsetBytes);
+      final long curArrayHash = wmem.getLong(curProbeOffsetBytes);
       if (curArrayHash == EMPTY) {
-        unsafe.putLong(memObj, memAdd + curProbeOffsetBytes, hash);
+        wmem.putLong(curProbeOffsetBytes, hash);
         return curProbe;
       }
       curProbe = (curProbe + stride) & arrayMask;
@@ -288,8 +284,6 @@ public final class HashOperations {
    */
   public static int fastHashSearchOrInsert(final WritableMemory wmem, final int lgArrLongs,
       final long hash, final int memOffsetBytes) {
-    final Object memObj = wmem.getArray();
-    final long memAdd = wmem.getCumulativeOffset(0L);
     final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
     final int stride = getStride(hash, lgArrLongs);
     int curProbe = (int) (hash & arrayMask);
@@ -297,9 +291,9 @@ public final class HashOperations {
     final int loopIndex = curProbe;
     do {
       final int curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes;
-      final long curArrayHash = unsafe.getLong(memObj, memAdd + curProbeOffsetBytes);
+      final long curArrayHash = wmem.getLong(curProbeOffsetBytes);
       if (curArrayHash == EMPTY) {
-        unsafe.putLong(memObj, memAdd + curProbeOffsetBytes, hash);
+        wmem.putLong(curProbeOffsetBytes, hash);
         return ~curProbe;
       } else if (curArrayHash == hash) { return curProbe; } // curArrayHash is a duplicate
       // curArrayHash is not a duplicate and not zero, continue searching
