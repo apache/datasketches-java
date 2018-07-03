@@ -59,37 +59,34 @@
         
         <!-- Dependencies -->
         <memory.version>0.10.3</memory.version>
-        <testng.version>6.13.1</testng.version>
+        <testng.version>6.14.3</testng.version>
         
         <!-- Maven Plugins -->
         <maven-assembly-plugin.version>3.1.0</maven-assembly-plugin.version>
-        <maven-clean-plugin.version>3.0.0</maven-clean-plugin.version>
+        <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
-        <maven-dependency-plugin.version>3.0.2</maven-dependency-plugin.version>
+        <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
         <maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-        <maven-help-plugin.version>2.2</maven-help-plugin.version>
+        <maven-help-plugin.version>3.1.0</maven-help-plugin.version>
         <maven-install-plugin.version>2.5.2</maven-install-plugin.version>
-        <maven-javadoc-plugin.version>3.0.0</maven-javadoc-plugin.version>
+        <maven-javadoc-plugin.version>3.0.1</maven-javadoc-plugin.version>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
-        <maven-resources-plugin.version>3.0.2</maven-resources-plugin.version>
-        <maven-shade-plugin.version>3.1.0</maven-shade-plugin.version>
+        <maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
+        <maven-shade-plugin.version>3.1.1</maven-shade-plugin.version>
         <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
-        <maven-surefire-plugin.version>2.20.1</maven-surefire-plugin.version>
+        <maven-surefire-plugin.version>2.22.0</maven-surefire-plugin.version>
         
-        <!-- Codehaus.org Plugins -->
+        <!-- Codehaus.org Maven Plugins -->
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
-        <license-maven-plugin.version>1.14</license-maven-plugin.version>
-        <plexus-compiler-javac-errorprone.version>2.8.2</plexus-compiler-javac-errorprone.version>
+        <license-maven-plugin.version>1.16</license-maven-plugin.version>
+        <plexus-compiler-javac-errorprone.version>2.8.4</plexus-compiler-javac-errorprone.version>
         
-        <!-- Jacoco.org Plugins -->
-        <jacoco-maven-plugin.version>0.7.9</jacoco-maven-plugin.version>
+        <!-- Jacoco.org Maven Plugins -->
+        <jacoco-maven-plugin.version>0.8.1</jacoco-maven-plugin.version>
         
-        <!-- Sonatype.org Plugins -->
+        <!-- Sonatype.org Maven Plugins -->
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
-        
-        <!-- Versioneye.com Plugins -->
-        <versioneye-maven-plugin.version>3.11.4</versioneye-maven-plugin.version>
     </properties>
 
     <prerequisites>
@@ -367,12 +364,6 @@
                     <groupId>org.sonatype.plugins</groupId>
                     <artifactId>nexus-staging-maven-plugin</artifactId>
                     <version>${nexus-staging-maven-plugin.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>com.versioneye</groupId>
-                    <artifactId>versioneye-maven-plugin</artifactId>
-                    <version>${versioneye-maven-plugin.version}</version>
                 </plugin>
 
             </plugins>
