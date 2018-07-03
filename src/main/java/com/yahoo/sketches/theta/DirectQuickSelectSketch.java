@@ -120,22 +120,19 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
 
     //@formatter:off
     //Build preamble
-    final Object memObj = dstMem.getArray(); //may be null
-    final long memAdd = dstMem.getCumulativeOffset(0L);
-
-    insertPreLongs(memObj, memAdd, preambleLongs);                 //byte 0
-    insertLgResizeFactor(memObj, memAdd, lgRF);                    //byte 0
-    insertSerVer(memObj, memAdd, SER_VER);                         //byte 1
-    insertFamilyID(memObj, memAdd, family.getID());                //byte 2
-    insertLgNomLongs(memObj, memAdd, lgNomLongs);                  //byte 3
-    insertLgArrLongs(memObj, memAdd, lgArrLongs);                  //byte 4
+    insertPreLongs(dstMem, preambleLongs);                 //byte 0
+    insertLgResizeFactor(dstMem, lgRF);                    //byte 0
+    insertSerVer(dstMem, SER_VER);                         //byte 1
+    insertFamilyID(dstMem, family.getID());                //byte 2
+    insertLgNomLongs(dstMem, lgNomLongs);                  //byte 3
+    insertLgArrLongs(dstMem, lgArrLongs);                  //byte 4
     //flags: bigEndian = readOnly = compact = ordered = false; empty = true : 00100 = 4
-    insertFlags(memObj, memAdd, EMPTY_FLAG_MASK);                  //byte 5
-    insertSeedHash(memObj, memAdd, Util.computeSeedHash(seed));    //bytes 6,7
-    insertCurCount(memObj, memAdd, 0);                             //bytes 8-11
-    insertP(memObj, memAdd, p);                                    //bytes 12-15
+    insertFlags(dstMem, EMPTY_FLAG_MASK);                  //byte 5
+    insertSeedHash(dstMem, Util.computeSeedHash(seed));    //bytes 6,7
+    insertCurCount(dstMem, 0);                             //bytes 8-11
+    insertP(dstMem, p);                                    //bytes 12-15
     final long thetaLong = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
-    insertThetaLong(memObj, memAdd, thetaLong);                    //bytes 16-23
+    insertThetaLong(dstMem, thetaLong);                    //bytes 16-23
     //@formatter:on
 
     //clear hash table area
@@ -158,21 +155,18 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
    * @return instance of this sketch
    */
   static DirectQuickSelectSketch writableWrap(final WritableMemory srcMem, final long seed) {
-    final Object memObj = srcMem.getArray(); //may be null
-    final long memAdd = srcMem.getCumulativeOffset(0L);
+    final int preambleLongs = extractPreLongs(srcMem);                  //byte 0
+    final int lgNomLongs = extractLgNomLongs(srcMem);                   //byte 3
+    final int lgArrLongs = extractLgArrLongs(srcMem);                   //byte 4
 
-    final int preambleLongs = extractPreLongs(memObj, memAdd);                  //byte 0
-    final int lgNomLongs = extractLgNomLongs(memObj, memAdd);                   //byte 3
-    final int lgArrLongs = extractLgArrLongs(memObj, memAdd);                   //byte 4
+    UpdateSketch.checkUnionQuickSelectFamily(srcMem, preambleLongs, lgNomLongs);
+    checkMemIntegrity(srcMem, seed, preambleLongs, lgNomLongs, lgArrLongs);
 
-    UpdateSketch.checkUnionQuickSelectFamily(memObj, memAdd, preambleLongs, lgNomLongs);
-    checkMemIntegrity(srcMem, memObj, memAdd, seed, preambleLongs, lgNomLongs, lgArrLongs);
-
-    final int lgRF = extractLgResizeFactor(memObj, memAdd);               //byte 0
+    final int lgRF = extractLgResizeFactor(srcMem);               //byte 0
     final ResizeFactor myRF = ResizeFactor.getRF(lgRF);
     if ((myRF == ResizeFactor.X1)
             && (lgArrLongs != Util.startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS))) {
-      insertLgResizeFactor(memObj, memAdd, ResizeFactor.X2.lg());
+      insertLgResizeFactor(srcMem, ResizeFactor.X2.lg());
     }
 
     final DirectQuickSelectSketch dqss =
@@ -190,12 +184,9 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
    * @return instance of this sketch
    */
   static DirectQuickSelectSketch fastWritableWrap(final WritableMemory srcMem, final long seed) {
-    final Object memObj = srcMem.getArray();
-    final long memAdd = srcMem.getCumulativeOffset(0L);
-
-    final int preambleLongs = extractPreLongs(memObj, memAdd);                  //byte 0
-    final int lgNomLongs = extractLgNomLongs(memObj, memAdd);                   //byte 3
-    final int lgArrLongs = extractLgArrLongs(memObj, memAdd);                   //byte 4
+    final int preambleLongs = extractPreLongs(srcMem);                  //byte 0
+    final int lgNomLongs = extractLgNomLongs(srcMem);                   //byte 3
+    final int lgArrLongs = extractLgArrLongs(srcMem);                   //byte 4
 
     final DirectQuickSelectSketch dqss =
         new DirectQuickSelectSketch(lgNomLongs, seed, preambleLongs, srcMem);

@@ -71,15 +71,12 @@ class DirectQuickSelectSketchR extends UpdateSketch {
    * @return instance of this sketch
    */
   static DirectQuickSelectSketchR readOnlyWrap(final Memory srcMem, final long seed) {
-    final Object memObj = ((WritableMemory)srcMem).getArray(); //may be null
-    final long memAdd = srcMem.getCumulativeOffset(0L);
+    final int preambleLongs = extractPreLongs(srcMem);                  //byte 0
+    final int lgNomLongs = extractLgNomLongs(srcMem);                   //byte 3
+    final int lgArrLongs = extractLgArrLongs(srcMem);                   //byte 4
 
-    final int preambleLongs = extractPreLongs(memObj, memAdd);                  //byte 0
-    final int lgNomLongs = extractLgNomLongs(memObj, memAdd);                   //byte 3
-    final int lgArrLongs = extractLgArrLongs(memObj, memAdd);                   //byte 4
-
-    UpdateSketch.checkUnionQuickSelectFamily(memObj, memAdd, preambleLongs, lgNomLongs);
-    checkMemIntegrity(srcMem, memObj, memAdd, seed, preambleLongs, lgNomLongs, lgArrLongs);
+    UpdateSketch.checkUnionQuickSelectFamily(srcMem, preambleLongs, lgNomLongs);
+    checkMemIntegrity(srcMem, seed, preambleLongs, lgNomLongs, lgArrLongs);
 
     final DirectQuickSelectSketchR dqssr =
         new DirectQuickSelectSketchR(lgNomLongs, seed, preambleLongs, (WritableMemory) srcMem);

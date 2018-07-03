@@ -45,12 +45,10 @@ final class Rebuilder {
     // back to Memory. Even if we tried to do this directly into Memory it would require pre-clearing,
     // and the internal loops would be slower. The bulk copies are performed at a low level and
     // are quite fast. Measurements reveal that we are not paying much of a penalty.
-    final Object memObj = mem.getArray(); //may be null
-    final long memAdd = mem.getCumulativeOffset(0L);
 
     //Pull data into tmp arr for QS algo
-    final int lgArrLongs = extractLgArrLongs(memObj, memAdd);
-    final int curCount = extractCurCount(memObj, memAdd);
+    final int lgArrLongs = extractLgArrLongs(mem);
+    final int curCount = extractCurCount(mem);
     final int arrLongs = 1 << lgArrLongs;
     final long[] tmpArr = new long[arrLongs];
     final int preBytes = preambleLongs << 3;
@@ -59,13 +57,13 @@ final class Rebuilder {
     //Do the QuickSelect on a tmp arr to create new thetaLong
     final int pivot = (1 << lgNomLongs) + 1; // (K+1) pivot for QS
     final long newThetaLong = selectExcludingZeros(tmpArr, curCount, pivot);
-    insertThetaLong(memObj, memAdd, newThetaLong); //UPDATE thetalong
+    insertThetaLong(mem, newThetaLong); //UPDATE thetalong
 
     //Rebuild to clean up dirty data, update count
     final long[] tgtArr = new long[arrLongs];
     final int newCurCount =
         HashOperations.hashArrayInsert(tmpArr, tgtArr, lgArrLongs, newThetaLong);
-    insertCurCount(memObj, memAdd, newCurCount); //UPDATE curCount
+    insertCurCount(mem, newCurCount); //UPDATE curCount
 
     //put the rebuilt array back into memory
     mem.putLongArray(preBytes, tgtArr, 0, arrLongs);
@@ -130,8 +128,6 @@ final class Rebuilder {
     // back to Memory. Even if we tried to do this directly into Memory it would require pre-clearing,
     // and the internal loops would be slower. The bulk copies are performed at a low level and
     // are quite fast. Measurements reveal that we are not paying much of a penalty.
-    final Object memObj = mem.getArray(); //may be null
-    final long memAdd = mem.getCumulativeOffset(0L);
 
     //Preamble stays in place
     final int preBytes = preambleLongs << 3;
@@ -143,11 +139,11 @@ final class Rebuilder {
     final int dstHTLen = 1 << tgtLgArrLongs;
     final long[] dstHTArr = new long[dstHTLen]; //on-heap dst buffer
     //Rebuild hash table in destination buffer
-    final long thetaLong = extractThetaLong(memObj, memAdd);
+    final long thetaLong = extractThetaLong(mem);
     HashOperations.hashArrayInsert(srcHTArr, dstHTArr, tgtLgArrLongs, thetaLong);
     //Bulk copy to destination memory
     mem.putLongArray(preBytes, dstHTArr, 0, dstHTLen);  //put it back, no need to clear
-    insertLgArrLongs(memObj, memAdd, tgtLgArrLongs); //update in mem
+    insertLgArrLongs(mem, tgtLgArrLongs); //update in mem
   }
 
   /**

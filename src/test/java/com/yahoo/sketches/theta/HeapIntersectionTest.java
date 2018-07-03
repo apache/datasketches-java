@@ -402,7 +402,7 @@ public class HeapIntersectionTest {
 
     //Put the intersection into memory
     byte[] byteArray = inter.toByteArray();
-    Memory mem = Memory.wrap(byteArray);
+    WritableMemory mem = WritableMemory.wrap(byteArray);
     //Heapify
     Intersection inter2 = (Intersection) SetOperation.heapify(mem);
     CompactSketch heapifiedSk = inter2.getResult(false, null);

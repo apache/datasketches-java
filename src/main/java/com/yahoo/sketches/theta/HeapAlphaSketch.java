@@ -106,18 +106,15 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    * @return instance of this sketch
    */
   static HeapAlphaSketch heapifyInstance(final Memory srcMem, final long seed) {
-    final Object memObj = ((WritableMemory)srcMem).getArray(); //may be null
-    final long memAdd = srcMem.getCumulativeOffset(0L);
+    final int preambleLongs = extractPreLongs(srcMem);            //byte 0
+    final int lgNomLongs = extractLgNomLongs(srcMem);             //byte 3
+    final int lgArrLongs = extractLgArrLongs(srcMem);             //byte 4
 
-    final int preambleLongs = extractPreLongs(memObj, memAdd);            //byte 0
-    final int lgNomLongs = extractLgNomLongs(memObj, memAdd);             //byte 3
-    final int lgArrLongs = extractLgArrLongs(memObj, memAdd);             //byte 4
+    checkAlphaFamily(srcMem, preambleLongs, lgNomLongs);
+    checkMemIntegrity(srcMem, seed, preambleLongs, lgNomLongs, lgArrLongs);
 
-    checkAlphaFamily(memObj, memAdd, preambleLongs, lgNomLongs);
-    checkMemIntegrity(srcMem, memObj, memAdd, seed, preambleLongs, lgNomLongs, lgArrLongs);
-
-    final float p = extractP(memObj, memAdd);                             //bytes 12-15
-    final int lgRF = extractLgResizeFactor(memObj, memAdd);               //byte 0
+    final float p = extractP(srcMem);                             //bytes 12-15
+    final int lgRF = extractLgResizeFactor(srcMem);               //byte 0
     final ResizeFactor myRF = ResizeFactor.getRF(lgRF);
 
     final double nomLongs = (1L << lgNomLongs);
@@ -133,9 +130,9 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     final HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, seed, p, myRF, alpha, split1);
     has.lgArrLongs_ = lgArrLongs;
     has.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
-    has.curCount_ = extractCurCount(memObj, memAdd);
-    has.thetaLong_ = extractThetaLong(memObj, memAdd);
-    has.empty_ = PreambleUtil.isEmpty(memObj, memAdd);
+    has.curCount_ = extractCurCount(srcMem);
+    has.thetaLong_ = extractThetaLong(srcMem);
+    has.empty_ = PreambleUtil.isEmpty(srcMem);
     has.cache_ = new long[1 << lgArrLongs];
     srcMem.getLongArray(preambleLongs << 3, has.cache_, 0, 1 << lgArrLongs); //read in as hash table
     return has;
@@ -537,10 +534,9 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     return (int) Math.floor(fraction * (1 << lgArrLongs));
   }
 
-  static void checkAlphaFamily(final Object memObj, final long memAdd,
-      final int preambleLongs, final int lgNomLongs) {
+  static void checkAlphaFamily(final Memory mem, final int preambleLongs, final int lgNomLongs) {
     //Check Family
-    final int familyID = extractFamilyID(memObj, memAdd);                       //byte 2
+    final int familyID = extractFamilyID(mem);                       //byte 2
     final Family family = Family.idToFamily(familyID);
     if (family.equals(Family.ALPHA)) {
       if (preambleLongs != Family.ALPHA.getMinPreLongs()) {

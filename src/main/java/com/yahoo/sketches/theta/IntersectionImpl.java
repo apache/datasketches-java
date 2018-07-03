@@ -66,21 +66,19 @@ final class IntersectionImpl extends IntersectionImplR {
    */
   static IntersectionImpl initNewDirectInstance(final long seed, final WritableMemory dstMem) {
     final IntersectionImpl impl = new IntersectionImpl(dstMem, seed, true);
-    final Object memObj = dstMem.getArray();
-    final long memAdd = dstMem.getCumulativeOffset(0L);
 
     //Load Preamble
-    insertPreLongs(memObj, memAdd, CONST_PREAMBLE_LONGS); //RF not used = 0
-    insertSerVer(memObj, memAdd, SER_VER);
-    insertFamilyID(memObj, memAdd, Family.INTERSECTION.getID());
+    insertPreLongs(dstMem, CONST_PREAMBLE_LONGS); //RF not used = 0
+    insertSerVer(dstMem, SER_VER);
+    insertFamilyID(dstMem, Family.INTERSECTION.getID());
     //Note: Intersection does not use lgNomLongs or k, per se.
     //set lgArrLongs initially to minimum.  Don't clear cache in mem
-    insertLgArrLongs(memObj, memAdd, MIN_LG_ARR_LONGS);
-    insertFlags(memObj, memAdd, 0); //bigEndian = readOnly = compact = ordered = empty = false;
+    insertLgArrLongs(dstMem, MIN_LG_ARR_LONGS);
+    insertFlags(dstMem, 0); //bigEndian = readOnly = compact = ordered = empty = false;
     //seedHash loaded and checked in private constructor
-    insertCurCount(memObj, memAdd, -1);
-    insertP(memObj, memAdd, (float) 1.0);
-    insertThetaLong(memObj, memAdd, Long.MAX_VALUE);
+    insertCurCount(dstMem, -1);
+    insertP(dstMem, (float) 1.0);
+    insertThetaLong(dstMem, Long.MAX_VALUE);
 
     //Initialize
     impl.lgArrLongs_ = MIN_LG_ARR_LONGS;
@@ -163,9 +161,6 @@ final class IntersectionImpl extends IntersectionImplR {
   public void update(final Sketch sketchIn) {
     final boolean firstCall = curCount_ < 0;
 
-    final Object memObj = (mem_ != null) ? mem_.getArray() : null;
-    final long memAdd = mem_ != null ? mem_.getCumulativeOffset(0) : 0;
-
     //Corner cases
     if (sketchIn == null) { //null -> Th = 1.0, count = 0, empty = true
       //No seedHash to check
@@ -174,9 +169,9 @@ final class IntersectionImpl extends IntersectionImplR {
       thetaLong_ = firstCall ? Long.MAX_VALUE : thetaLong_; //if Nth call, stays the same
       curCount_ = 0;
       if (mem_ != null) {
-        PreambleUtil.setEmpty(memObj, memAdd);
-        insertThetaLong(memObj, memAdd, thetaLong_);
-        insertCurCount(memObj, memAdd, 0);
+        PreambleUtil.setEmpty(mem_);
+        insertThetaLong(mem_, thetaLong_);
+        insertCurCount(mem_, 0);
       }
       return;
     }
@@ -188,9 +183,9 @@ final class IntersectionImpl extends IntersectionImplR {
     empty_ = empty_ || sketchIn.isEmpty();  //Empty rule
 
     if (mem_ != null) {
-      insertThetaLong(memObj, memAdd, thetaLong_);
-      if (empty_) { PreambleUtil.setEmpty(memObj, memAdd); }
-      else { clearEmpty(memObj, memAdd); }
+      insertThetaLong(mem_, thetaLong_);
+      if (empty_) { PreambleUtil.setEmpty(mem_); }
+      else { clearEmpty(mem_); }
     }
 
     final int sketchInEntries = sketchIn.getRetainedEntries(true);
@@ -207,7 +202,7 @@ final class IntersectionImpl extends IntersectionImplR {
     if ((curCount_ == 0) || (sketchInEntries == 0)) { //Cases 1,2,3,5
       //All future intersections result in zero data, but theta can still be reduced.
       curCount_ = 0;
-      if (mem_ != null) { insertCurCount(memObj, memAdd, 0); }
+      if (mem_ != null) { insertCurCount(mem_, 0); }
       hashTable_ = null; //No need for a HT. Don't bother clearing mem if valid
     }
     else if (firstCall) { //Case 4: Clone the incoming sketch
@@ -217,8 +212,8 @@ final class IntersectionImpl extends IntersectionImplR {
       lgArrLongs_ = requiredLgArrLongs;
 
       if (mem_ != null) { //Off heap, check if current dstMem is large enough
-        insertCurCount(memObj, memAdd, curCount_);
-        insertLgArrLongs(memObj, memAdd, lgArrLongs_);
+        insertCurCount(mem_, curCount_);
+        insertLgArrLongs(mem_, lgArrLongs_);
         if (requiredLgArrLongs <= maxLgArrLongs_) { //OK
           mem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_); //clear only what required
         }
@@ -284,10 +279,8 @@ final class IntersectionImpl extends IntersectionImplR {
     curCount_ = matchSetCount;
     lgArrLongs_ = computeMinLgArrLongsFromCount(matchSetCount);
     if (mem_ != null) {
-      final Object memObj = mem_.getArray(); //may be null
-      final long memAdd = mem_.getCumulativeOffset(0);
-      insertCurCount(memObj, memAdd, matchSetCount);
-      insertLgArrLongs(memObj, memAdd, lgArrLongs_);
+      insertCurCount(mem_, matchSetCount);
+      insertLgArrLongs(mem_, lgArrLongs_);
       mem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_); //clear for rebuild
     } else {
       Arrays.fill(hashTable_, 0, 1 << lgArrLongs_, 0L); //clear for rebuild

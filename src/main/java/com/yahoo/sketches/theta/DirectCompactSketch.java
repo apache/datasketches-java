@@ -34,24 +34,24 @@ abstract class DirectCompactSketch extends CompactSketch {
   @Override
   public int getCurrentBytes(final boolean compact) { //compact is ignored here
     final int preLongs = getCurrentPreambleLongs(true);
-    final boolean empty = PreambleUtil.isEmpty(memObj_, memAdd_);
+    final boolean empty = PreambleUtil.isEmpty(mem_);
     if (preLongs == 1) {
       return (empty) ? 8 : 16; //empty or singleItem
     }
     //preLongs > 1
-    final int curCount = extractCurCount(memObj_, memAdd_);
+    final int curCount = extractCurCount(mem_);
     return (preLongs + curCount) << 3;
   }
 
   @Override
   public int getRetainedEntries(final boolean valid) { //compact is always valid
     final int preLongs = getCurrentPreambleLongs(true);
-    final boolean empty = PreambleUtil.isEmpty(memObj_, memAdd_);
+    final boolean empty = PreambleUtil.isEmpty(mem_);
     if (preLongs == 1) {
       return (empty) ? 0 : 1;
     }
     //preLongs > 1
-    final int curCount = extractCurCount(memObj_, memAdd_);
+    final int curCount = extractCurCount(mem_);
     return curCount;
   }
 
@@ -62,7 +62,7 @@ abstract class DirectCompactSketch extends CompactSketch {
 
   @Override
   public boolean isEmpty() {
-    return PreambleUtil.isEmpty(memObj_, memAdd_);
+    return PreambleUtil.isEmpty(mem_);
   }
 
   @Override
@@ -92,7 +92,7 @@ abstract class DirectCompactSketch extends CompactSketch {
 
   @Override
   int getCurrentPreambleLongs(final boolean compact) { //already compact; ignore
-    return extractPreLongs(memObj_, memAdd_);
+    return extractPreLongs(mem_);
   }
 
   @Override
@@ -102,13 +102,13 @@ abstract class DirectCompactSketch extends CompactSketch {
 
   @Override
   short getSeedHash() {
-    return (short) extractSeedHash(memObj_, memAdd_);
+    return (short) extractSeedHash(mem_);
   }
 
   @Override
   long getThetaLong() {
-    final int preLongs = extractPreLongs(memObj_, memAdd_);
-    return (preLongs > 2) ? extractThetaLong(memObj_, memAdd_) : Long.MAX_VALUE;
+    final int preLongs = extractPreLongs(mem_);
+    return (preLongs > 2) ? extractThetaLong(mem_) : Long.MAX_VALUE;
   }
 
   /**

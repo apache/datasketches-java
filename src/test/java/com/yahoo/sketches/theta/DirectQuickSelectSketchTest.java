@@ -764,7 +764,7 @@ public class DirectQuickSelectSketchTest {
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setResizeFactor(rf).build(mem);
     usk.update(0);
 
-    insertLgResizeFactor(mem.getArray(), mem.getCumulativeOffset(0L), 0); // corrupt RF: X1
+    insertLgResizeFactor(mem, 0); // corrupt RF: X1
     UpdateSketch dqss = DirectQuickSelectSketch.writableWrap(mem, DEFAULT_UPDATE_SEED);
     assertEquals(dqss.getResizeFactor(), ResizeFactor.X2); // force-promote to X2
   }
