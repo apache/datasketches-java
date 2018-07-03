@@ -548,7 +548,7 @@ public final class VarOptItemsSketch<T> {
     PreambleUtil.insertK(mem, k_);                            // Bytes 4-7
 
     if (!empty) {
-      PreambleUtil.insertN(mem, n_);                            // Bytes 8-15
+      PreambleUtil.insertN(mem, n_);                                      // Bytes 8-15
       PreambleUtil.insertHRegionItemCount(memObj, memAddr, h_);           // Bytes 16-19
       PreambleUtil.insertRRegionItemCount(memObj, memAddr, r_);           // Bytes 20-23
       if (r_ > 0) {
