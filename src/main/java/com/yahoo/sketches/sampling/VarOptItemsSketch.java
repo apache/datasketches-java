@@ -546,9 +546,9 @@ public final class VarOptItemsSketch<T> {
     PreambleUtil.insertFamilyID(mem, Family.VAROPT.getID());  // Byte 2
     PreambleUtil.insertFlags(mem, flags);                     // Byte 3
     PreambleUtil.insertK(mem, k_);                            // Bytes 4-7
-    PreambleUtil.insertN(mem, n_);                            // Bytes 8-15
 
     if (!empty) {
+      PreambleUtil.insertN(mem, n_);                            // Bytes 8-15
       PreambleUtil.insertHRegionItemCount(memObj, memAddr, h_);           // Bytes 16-19
       PreambleUtil.insertRRegionItemCount(memObj, memAddr, r_);           // Bytes 20-23
       if (r_ > 0) {
