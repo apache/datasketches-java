@@ -234,7 +234,6 @@ final class PreambleUtil {
   }
 
   static void insertPreInts(final WritableMemory wmem, final int preInts) {
-    //unsafe.putByte(memObj, memAdd + PREAMBLE_INTS_BYTE, (byte) (preInts & 0X3F));
     wmem.putByte(PREAMBLE_INTS_BYTE, (byte) (preInts & 0X3F));
   }
 
@@ -243,7 +242,6 @@ final class PreambleUtil {
   }
 
   static void insertSerVer(final WritableMemory wmem) {
-    //unsafe.putByte(memObj, memAdd + SER_VER_BYTE, (byte) SER_VER);
     wmem.putByte(SER_VER_BYTE, (byte) SER_VER);
   }
 
@@ -252,7 +250,6 @@ final class PreambleUtil {
   }
 
   static void insertFamilyId(final WritableMemory wmem) {
-    //unsafe.putByte(memObj, memAdd + FAMILY_BYTE, (byte) FAMILY_ID);
     wmem.putByte(FAMILY_BYTE, (byte) FAMILY_ID);
   }
 
@@ -261,7 +258,6 @@ final class PreambleUtil {
   }
 
   static void insertLgK(final WritableMemory wmem, final int lgK) {
-    //unsafe.putByte(memObj, memAdd + LG_K_BYTE, (byte) lgK);
     wmem.putByte(LG_K_BYTE, (byte) lgK);
   }
 
@@ -270,7 +266,6 @@ final class PreambleUtil {
   }
 
   static void insertLgArr(final WritableMemory wmem, final int lgArr) {
-    //unsafe.putByte(memObj, memAdd + LG_ARR_BYTE, (byte) lgArr);
     wmem.putByte(LG_ARR_BYTE, (byte) lgArr);
   }
 
@@ -279,7 +274,6 @@ final class PreambleUtil {
   }
 
   static void insertListCount(final WritableMemory wmem, final int listCnt) {
-    //unsafe.putByte(memObj, memAdd + LIST_COUNT_BYTE, (byte) listCnt);
     wmem.putByte(LIST_COUNT_BYTE, (byte) listCnt);
   }
 
@@ -288,7 +282,6 @@ final class PreambleUtil {
   }
 
   static void insertCurMin(final WritableMemory wmem, final int curMin) {
-    //unsafe.putByte(memObj, memAdd + HLL_CUR_MIN_BYTE, (byte) curMin);
     wmem.putByte(HLL_CUR_MIN_BYTE, (byte) curMin);
   }
 
@@ -297,7 +290,6 @@ final class PreambleUtil {
   }
 
   static void insertHipAccum(final WritableMemory wmem, final double hipAccum) {
-    //unsafe.putDouble(memObj, memAdd + HIP_ACCUM_DOUBLE, hipAccum);
     wmem.putDouble(HIP_ACCUM_DOUBLE, hipAccum);
   }
 
@@ -306,7 +298,6 @@ final class PreambleUtil {
   }
 
   static void insertKxQ0(final WritableMemory wmem, final double kxq0) {
-    //unsafe.putDouble(memObj, memAdd + KXQ0_DOUBLE, kxq0);
     wmem.putDouble(KXQ0_DOUBLE, kxq0);
   }
 
@@ -315,7 +306,6 @@ final class PreambleUtil {
   }
 
   static void insertKxQ1(final WritableMemory wmem, final double kxq1) {
-    //unsafe.putDouble(memObj, memAdd + KXQ1_DOUBLE, kxq1);
     wmem.putDouble(KXQ1_DOUBLE, kxq1);
   }
 
@@ -324,7 +314,6 @@ final class PreambleUtil {
   }
 
   static void insertHashSetCount(final WritableMemory wmem, final int hashSetCnt) {
-    //unsafe.putInt(memObj, memAdd + HASH_SET_COUNT_INT, hashSetCnt);
     wmem.putInt(HASH_SET_COUNT_INT, hashSetCnt);
   }
 
@@ -333,7 +322,6 @@ final class PreambleUtil {
   }
 
   static void insertNumAtCurMin(final WritableMemory wmem, final int numAtCurMin) {
-    //unsafe.putInt(memObj, memAdd + CUR_MIN_COUNT_INT, numAtCurMin);
     wmem.putInt(CUR_MIN_COUNT_INT, numAtCurMin);
   }
 
@@ -342,32 +330,26 @@ final class PreambleUtil {
   }
 
   static void insertAuxCount(final WritableMemory wmem, final int auxCount) {
-    //unsafe.putInt(memObj, memAdd + AUX_COUNT_INT, auxCount);
     wmem.putInt(AUX_COUNT_INT, auxCount);
   }
 
   //Mode bits
   static void insertCurMode(final WritableMemory wmem, final CurMode curMode) {
     final int curModeId = curMode.ordinal();
-    //int mode = unsafe.getByte(memObj, memAdd + MODE_BYTE) & ~CUR_MODE_MASK; //strip bits 0, 1
     int mode = wmem.getByte(MODE_BYTE)  & ~CUR_MODE_MASK; //strip bits 0, 1
     mode |= (curModeId & CUR_MODE_MASK);
-    //unsafe.putByte(memObj, memAdd + MODE_BYTE, (byte) mode);
     wmem.putByte(MODE_BYTE, (byte) mode);
   }
 
   static CurMode extractCurMode(final Memory mem) {
-    //final int curModeId = unsafe.getByte(memObj, memAdd + MODE_BYTE) & CUR_MODE_MASK;
     final int curModeId = mem.getByte(MODE_BYTE) & CUR_MODE_MASK;
     return CurMode.fromOrdinal(curModeId);
   }
 
   static void insertTgtHllType(final WritableMemory wmem, final TgtHllType tgtHllType) {
     final int typeId = tgtHllType.ordinal();
-    //int mode = unsafe.getByte(memObj, memAdd + MODE_BYTE) & ~TGT_HLL_TYPE_MASK; //strip bits 2, 3
     int mode = wmem.getByte(MODE_BYTE) & ~TGT_HLL_TYPE_MASK; //strip bits 2, 3
     mode |= (typeId << 2) & TGT_HLL_TYPE_MASK;
-    //unsafe.putByte(memObj, memAdd + MODE_BYTE, (byte) mode);
     wmem.putByte(MODE_BYTE, (byte) mode);
   }
 
@@ -381,7 +363,6 @@ final class PreambleUtil {
     final int curModeId = curMode.ordinal() & 3;
     final int typeId = (tgtHllType.ordinal() & 3) << 2;
     final int mode = typeId | curModeId;
-    //unsafe.putByte(memObj, memAdd + MODE_BYTE, (byte) mode);
     wmem.putByte(MODE_BYTE, (byte) mode);
   }
 
@@ -391,7 +372,6 @@ final class PreambleUtil {
     int flags = wmem.getByte(FLAGS_BYTE);
     if (empty) { flags |= EMPTY_FLAG_MASK; }
     else { flags &= ~EMPTY_FLAG_MASK; }
-    //unsafe.putByte(memObj, memAdd + FLAGS_BYTE, (byte) flags);
     wmem.putByte(FLAGS_BYTE, (byte) flags);
   }
 
@@ -401,11 +381,9 @@ final class PreambleUtil {
   }
 
   static void insertCompactFlag(final WritableMemory wmem, final boolean compact) {
-    //int flags = unsafe.getByte(memObj, memAdd + FLAGS_BYTE);
     int flags = wmem.getByte(FLAGS_BYTE);
     if (compact) { flags |= COMPACT_FLAG_MASK; }
     else { flags &= ~COMPACT_FLAG_MASK; }
-    //unsafe.putByte(memObj, memAdd + FLAGS_BYTE, (byte) flags);
     wmem.putByte(FLAGS_BYTE, (byte) flags);
   }
 
@@ -415,11 +393,9 @@ final class PreambleUtil {
   }
 
   static void insertOooFlag(final WritableMemory wmem, final boolean oooFlag) {
-    //int flags = unsafe.getByte(memObj, memAdd + FLAGS_BYTE);
     int flags = wmem.getByte(FLAGS_BYTE);
     if (oooFlag) { flags |= OUT_OF_ORDER_FLAG_MASK; }
     else { flags &= ~OUT_OF_ORDER_FLAG_MASK; }
-    //unsafe.putByte(memObj, memAdd + FLAGS_BYTE, (byte) flags);
     wmem.putByte(FLAGS_BYTE, (byte) flags);
   }
 
@@ -429,7 +405,6 @@ final class PreambleUtil {
   }
 
   static void insertFlags(final WritableMemory wmem, final int flags) {
-    //unsafe.putByte(memObj, memAdd + FLAGS_BYTE, (byte) flags);
     wmem.putByte(FLAGS_BYTE, (byte) flags);
   }
 
@@ -443,7 +418,6 @@ final class PreambleUtil {
   }
 
   static void insertInt(final WritableMemory wmem, final long byteOffset, final int value) {
-    //unsafe.putInt(memObj, memAdd + byteOffset, value);
     wmem.putInt(byteOffset, value);
   }
 
