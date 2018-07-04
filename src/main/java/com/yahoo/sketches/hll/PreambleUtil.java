@@ -368,7 +368,6 @@ final class PreambleUtil {
 
   //Flags
   static void insertEmptyFlag(final WritableMemory wmem, final boolean empty) {
-    //int flags = unsafe.getByte(memObj, memAdd + FLAGS_BYTE);
     int flags = wmem.getByte(FLAGS_BYTE);
     if (empty) { flags |= EMPTY_FLAG_MASK; }
     else { flags &= ~EMPTY_FLAG_MASK; }

@@ -103,7 +103,6 @@ class DirectAuxHashMap implements AuxHashMap {
   public int mustFindValueFor(final int slotNo) {
     final int index = find(host, slotNo);
     if (index >= 0) {
-      //final int pair = unsafe.getInt(host.memObj, host.memAdd + host.auxStart + (index << 2));
       final int pair = host.mem.getInt(host.auxStart + (index << 2));
       return HllUtil.getValue(pair);
     }
