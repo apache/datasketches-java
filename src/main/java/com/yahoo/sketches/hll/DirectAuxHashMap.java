@@ -32,7 +32,7 @@ class DirectAuxHashMap implements AuxHashMap {
       insertLgArr(host.memObj, host.memAdd, initLgArrInts);
       host.wmem.clear(host.auxStart, 4 << initLgArrInts);
     } else {
-      assert extractLgArr(host.memObj, host.memAdd) >= initLgArrInts;
+      assert extractLgArr(host.mem) >= initLgArrInts;
     }
   }
 
@@ -43,7 +43,7 @@ class DirectAuxHashMap implements AuxHashMap {
 
   @Override
   public int getAuxCount() {
-    return extractAuxCount(host.memObj, host.memAdd);
+    return extractAuxCount(host.mem);
   }
 
   @Override
@@ -64,7 +64,7 @@ class DirectAuxHashMap implements AuxHashMap {
 
   @Override
   public int getLgAuxArrInts() {
-    return extractLgArr(host.memObj, host.memAdd);
+    return extractLgArr(host.mem);
   }
 
   @Override
@@ -92,9 +92,9 @@ class DirectAuxHashMap implements AuxHashMap {
     }
     //Found empty entry
     unsafe.putInt(host.memObj, host.memAdd + host.auxStart + (~index << 2), pair);
-    int auxCount = extractAuxCount(host.memObj, host.memAdd);
+    int auxCount = extractAuxCount(host.mem);
     insertAuxCount(host.memObj, host.memAdd, ++auxCount);
-    final int lgAuxArrInts = extractLgArr(host.memObj, host.memAdd);
+    final int lgAuxArrInts = extractLgArr(host.mem);
     if ((RESIZE_DENOM * auxCount) > (RESIZE_NUMER * (1 << lgAuxArrInts))) {
       grow(host, lgAuxArrInts);
     }
@@ -128,7 +128,7 @@ class DirectAuxHashMap implements AuxHashMap {
   //Continues searching.
   //If the probe comes back to original index, throws an exception.
   private static final int find(final DirectHllArray host, final int slotNo) {
-    final int lgAuxArrInts = extractLgArr(host.memObj, host.memAdd);
+    final int lgAuxArrInts = extractLgArr(host.mem);
     assert lgAuxArrInts < host.lgConfigK : lgAuxArrInts;
     final int auxInts = 1 << lgAuxArrInts;
     final int auxArrMask = auxInts - 1;

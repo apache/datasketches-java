@@ -50,7 +50,7 @@ abstract class DirectHllArray extends AbstractHllArray {
     mem = wmem;
     memObj = wmem.getArray();
     memAdd = wmem.getCumulativeOffset(0L);
-    compact = extractCompactFlag(memObj, memAdd);
+    compact = extractCompactFlag(mem);
     assert !compact;
   }
 
@@ -61,7 +61,7 @@ abstract class DirectHllArray extends AbstractHllArray {
     this.mem = mem;
     memObj = ((WritableMemory) mem).getArray();
     memAdd = mem.getCumulativeOffset(0L);
-    compact = extractCompactFlag(memObj, memAdd);
+    compact = extractCompactFlag(mem);
   }
 
   //only called by DirectAuxHashMap
@@ -86,32 +86,32 @@ abstract class DirectHllArray extends AbstractHllArray {
 
   @Override
   int getCurMin() {
-    return extractCurMin(memObj, memAdd);
+    return extractCurMin(mem);
   }
 
   @Override
   CurMode getCurMode() {
-    return extractCurMode(memObj, memAdd);
+    return extractCurMode(mem);
   }
 
   @Override
   double getHipAccum() {
-    return extractHipAccum(memObj, memAdd);
+    return extractHipAccum(mem);
   }
 
   @Override
   double getKxQ0() {
-    return extractKxQ0(memObj, memAdd);
+    return extractKxQ0(mem);
   }
 
   @Override
   double getKxQ1() {
-    return extractKxQ1(memObj, memAdd);
+    return extractKxQ1(mem);
   }
 
   @Override
   int getLgConfigK() {
-    return extractLgK(memObj, memAdd);
+    return extractLgK(mem);
   }
 
   @Override
@@ -121,12 +121,12 @@ abstract class DirectHllArray extends AbstractHllArray {
 
   @Override
   int getNumAtCurMin() {
-    return extractNumAtCurMin(memObj, memAdd);
+    return extractNumAtCurMin(mem);
   }
 
   @Override
   TgtHllType getTgtHllType() {
-    return extractTgtHllType(memObj, memAdd);
+    return extractTgtHllType(mem);
   }
 
   @Override
@@ -141,7 +141,7 @@ abstract class DirectHllArray extends AbstractHllArray {
 
   @Override
   boolean isEmpty() {
-    return extractEmptyFlag(memObj, memAdd);
+    return extractEmptyFlag(mem);
   }
 
   @Override
@@ -156,7 +156,7 @@ abstract class DirectHllArray extends AbstractHllArray {
 
   @Override
   boolean isOutOfOrderFlag() {
-    return extractOooFlag(memObj, memAdd);
+    return extractOooFlag(mem);
   }
 
   @Override

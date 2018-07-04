@@ -59,7 +59,7 @@ class DirectCouponList extends AbstractCoupons {
     mem = wmem;
     memObj = wmem.getArray();
     memAdd = wmem.getCumulativeOffset(0L);
-    compact = extractCompactFlag(memObj, memAdd);
+    compact = extractCompactFlag(wmem);
     assert !compact;
   }
 
@@ -71,7 +71,7 @@ class DirectCouponList extends AbstractCoupons {
     this.mem = mem;
     memObj = ((WritableMemory) mem).getArray();
     memAdd = mem.getCumulativeOffset(0L);
-    compact = extractCompactFlag(memObj, memAdd);
+    compact = extractCompactFlag(mem);
   }
 
   /**
@@ -113,10 +113,10 @@ class DirectCouponList extends AbstractCoupons {
     if (wmem == null) { noWriteAccess(); }
     final int len = 1 << getLgCouponArrInts();
     for (int i = 0; i < len; i++) { //search for empty slot
-      final int couponAtIdx = extractInt(memObj, memAdd, LIST_INT_ARR_START + (i << 2));
+      final int couponAtIdx = extractInt(mem, LIST_INT_ARR_START + (i << 2));
       if (couponAtIdx == EMPTY) {
         insertInt(memObj, memAdd, LIST_INT_ARR_START + (i << 2), coupon);
-        int couponCount = extractListCount(memObj, memAdd);
+        int couponCount = extractListCount(mem);
         insertListCount(memObj, memAdd, ++couponCount);
         insertEmptyFlag(memObj, memAdd, false);
         if (couponCount >= len) { //array full
@@ -141,7 +141,7 @@ class DirectCouponList extends AbstractCoupons {
 
   @Override
   int getCouponCount() {
-    return extractListCount(memObj, memAdd);
+    return extractListCount(mem);
   }
 
   @Override
@@ -158,7 +158,7 @@ class DirectCouponList extends AbstractCoupons {
 
   @Override
   int getLgCouponArrInts() {
-    final int lgArr = extractLgArr(memObj, memAdd);
+    final int lgArr = extractLgArr(mem);
     return getLgCouponArrInts(this, lgArr);
   }
 
@@ -199,7 +199,7 @@ class DirectCouponList extends AbstractCoupons {
 
   @Override
   boolean isOutOfOrderFlag() {
-    return extractOooFlag(memObj, memAdd);
+    return extractOooFlag(mem);
   }
 
   @Override

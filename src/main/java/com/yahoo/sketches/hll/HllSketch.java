@@ -124,12 +124,10 @@ public class HllSketch extends BaseHllSketch {
    * @return an HllSketch on the java heap.
    */
   public static final HllSketch heapify(final Memory srcMem) {
-    final Object memObj = ((WritableMemory) srcMem).getArray();
-    final long memAdd = srcMem.getCumulativeOffset(0);
     final CurMode curMode = checkPreamble(srcMem);
     final HllSketch heapSketch;
     if (curMode == CurMode.HLL) {
-      final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
+      final TgtHllType tgtHllType = extractTgtHllType(srcMem);
       if (tgtHllType == TgtHllType.HLL_4) {
         heapSketch = new HllSketch(Hll4Array.heapify(srcMem));
       } else if (tgtHllType == TgtHllType.HLL_6) {
@@ -157,15 +155,13 @@ public class HllSketch extends BaseHllSketch {
    * @return an HllSketch where the sketch data is in the given dstMem.
    */
   public static final HllSketch writableWrap(final WritableMemory wmem) {
-    final Object memObj = wmem.getArray();
-    final long memAdd = wmem.getCumulativeOffset(0);
-    final boolean compact = extractCompactFlag(memObj, memAdd);
+    final boolean compact = extractCompactFlag(wmem);
     if (compact) {
       throw new SketchesArgumentException(
           "Cannot perform a writableWrap of a writable sketch image that is in compact form.");
     }
-    final int lgConfigK = extractLgK(memObj, memAdd);
-    final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
+    final int lgConfigK = extractLgK(wmem);
+    final TgtHllType tgtHllType = extractTgtHllType(wmem);
     final long minBytes = getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     final long capBytes = wmem.getCapacity();
     HllUtil.checkMemSize(minBytes, capBytes);
@@ -199,10 +195,8 @@ public class HllSketch extends BaseHllSketch {
    *
    */
   public static final HllSketch wrap(final Memory srcMem) {
-    final Object memObj = ((WritableMemory) srcMem).getArray();
-    final long memAdd = srcMem.getCumulativeOffset(0);
-    final int lgConfigK = extractLgK(memObj, memAdd);
-    final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
+    final int lgConfigK = extractLgK(srcMem);
+    final TgtHllType tgtHllType = extractTgtHllType(srcMem);
 
     final CurMode curMode = checkPreamble(srcMem);
     final HllSketch directSketch;

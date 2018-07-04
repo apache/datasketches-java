@@ -28,44 +28,52 @@ import com.yahoo.sketches.SketchesArgumentException;
 public class PreambleUtilTest {
 
   @Test
-  public void preambleToString() {
-    HllSketch sk = new HllSketch(8);
-    byte[] byteArr = sk.toCompactByteArray();
+  public void preambleToString() { //TODO Check Visually
+    int bytes = HllSketch.getMaxUpdatableSerializationBytes(8, TgtHllType.HLL_4);
+    byte[] byteArr1 = new byte[bytes];
+    WritableMemory wmem1 = WritableMemory.wrap(byteArr1);
+    HllSketch sk = new HllSketch(8, TgtHllType.HLL_4, wmem1);
+    byte[] byteArr2 = sk.toCompactByteArray();
+    WritableMemory wmem2 = WritableMemory.wrap(byteArr2);
+
     assertEquals(sk.getCurMode(), CurMode.LIST);
     assertTrue(sk.isEmpty());
-    String s = PreambleUtil.toString(byteArr); //empty
+    String s = PreambleUtil.toString(byteArr2); //empty sketch output
     println(s);
-    println("LgArr: " + PreambleUtil.extractLgArr(byteArr, 16));
-    println("Empty: " + PreambleUtil.extractEmptyFlag(byteArr, 16));
-    println("Serialization Bytes: " + byteArr.length);
+    println("LgArr: " + PreambleUtil.extractLgArr(wmem2));
+    println("Empty: " + PreambleUtil.extractEmptyFlag(wmem2));
+    println("Serialization Bytes: " + wmem2.getCapacity());
 
     for (int i = 0; i < 7; i++) { sk.update(i); }
-    byteArr = sk.toCompactByteArray();
+    byteArr2 = sk.toCompactByteArray();
+    wmem2 = WritableMemory.wrap(byteArr2);
     assertEquals(sk.getCurMode(), CurMode.LIST);
     assertFalse(sk.isEmpty());
-    s = PreambleUtil.toString(byteArr);
+    s = PreambleUtil.toString(byteArr2);
     println(s);
-    println("LgArr: " + PreambleUtil.extractLgArr(byteArr, 16));
-    println("Empty: " + PreambleUtil.extractEmptyFlag(byteArr, 16));
-    println("Serialization Bytes: " + byteArr.length);
+    println("LgArr: " + PreambleUtil.extractLgArr(wmem2));
+    println("Empty: " + PreambleUtil.extractEmptyFlag(wmem2));
+    println("Serialization Bytes: " + wmem2.getCapacity());
 
     for (int i = 7; i < 24; i++) { sk.update(i); }
-    byteArr = sk.toCompactByteArray();
+    byteArr2 = sk.toCompactByteArray();
+    wmem2 = WritableMemory.wrap(byteArr2);
     assertEquals(sk.getCurMode(), CurMode.SET);
-    s = PreambleUtil.toString(byteArr);
+    s = PreambleUtil.toString(byteArr2);
     println(s);
-    println("LgArr: " + PreambleUtil.extractLgArr(byteArr, 16));
-    println("Empty: " + PreambleUtil.extractEmptyFlag(byteArr, 16));
-    println("Serialization Bytes: " + byteArr.length);
+    println("LgArr: " + PreambleUtil.extractLgArr(wmem2));
+    println("Empty: " + PreambleUtil.extractEmptyFlag(wmem2));
+    println("Serialization Bytes: " + wmem2.getCapacity());
 
     sk.update(24);
-    byteArr = sk.toCompactByteArray();
+    byteArr2 = sk.toCompactByteArray();
+    wmem2 = WritableMemory.wrap(byteArr2);
     assertEquals(sk.getCurMode(), CurMode.HLL);
-    s = PreambleUtil.toString(byteArr);
+    s = PreambleUtil.toString(byteArr2);
     println(s);
-    println("LgArr: " + PreambleUtil.extractLgArr(byteArr, 16));
-    println("Empty: " + PreambleUtil.extractEmptyFlag(byteArr, 16));
-    println("Serialization Bytes: " + byteArr.length);
+    println("LgArr: " + PreambleUtil.extractLgArr(wmem2));
+    println("Empty: " + PreambleUtil.extractEmptyFlag(wmem2));
+    println("Serialization Bytes: " + wmem2.getCapacity());
   }
 
   @Test
@@ -74,11 +82,11 @@ public class PreambleUtilTest {
     byte[] memObj = sk.toCompactByteArray();
     WritableMemory wmem = WritableMemory.wrap(memObj);
     long memAdd = wmem.getCumulativeOffset(0);
-    boolean compact = PreambleUtil.extractCompactFlag(memObj, memAdd);
+    boolean compact = PreambleUtil.extractCompactFlag(wmem);
     assertTrue(compact);
 
     PreambleUtil.insertCompactFlag(memObj, memAdd, false);
-    compact = PreambleUtil.extractCompactFlag(memObj, memAdd);
+    compact = PreambleUtil.extractCompactFlag(wmem);
     assertFalse(compact);
   }
 
@@ -160,7 +168,7 @@ public class PreambleUtilTest {
     Object memObj = wmem.getArray();
     long memAdd = wmem.getCumulativeOffset(0L);
     HllSketch sk = new HllSketch(4, TgtHllType.HLL_4, wmem);
-    int flags = extractFlags(memObj, memAdd);
+    int flags = extractFlags(wmem);
     assertEquals(flags, EMPTY_FLAG_MASK);
   }
 

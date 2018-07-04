@@ -229,104 +229,104 @@ final class PreambleUtil {
   }
   //@formatter:on
 
-  static int extractPreInts(final Object memObj, final long memAdd) {
-    return unsafe.getByte(memObj, memAdd + PREAMBLE_INTS_BYTE) & 0X3F;
+  static int extractPreInts(final Memory mem) {
+    return mem.getByte(PREAMBLE_INTS_BYTE) & 0X3F;
   }
 
   static void insertPreInts(final Object memObj, final long memAdd, final int preInts) {
     unsafe.putByte(memObj, memAdd + PREAMBLE_INTS_BYTE, (byte) (preInts & 0X3F));
   }
 
-  static int extractSerVer(final Object memObj, final long memAdd) {
-    return unsafe.getByte(memObj, memAdd + SER_VER_BYTE) & 0XFF;
+  static int extractSerVer(final Memory mem) {
+    return mem.getByte(SER_VER_BYTE) & 0XFF;
   }
 
   static void insertSerVer(final Object memObj, final long memAdd) {
     unsafe.putByte(memObj, memAdd + SER_VER_BYTE, (byte) SER_VER);
   }
 
-  static int extractFamilyId(final Object memObj, final long memAdd) {
-    return unsafe.getByte(memObj, memAdd + FAMILY_BYTE) & 0XFF;
+  static int extractFamilyId(final Memory mem) {
+    return mem.getByte(FAMILY_BYTE) & 0XFF;
   }
 
   static void insertFamilyId(final Object memObj, final long memAdd) {
     unsafe.putByte(memObj, memAdd + FAMILY_BYTE, (byte) FAMILY_ID);
   }
 
-  static int extractLgK(final Object memObj, final long memAdd) {
-    return unsafe.getByte(memObj, memAdd + LG_K_BYTE) & 0XFF;
+  static int extractLgK(final Memory mem) {
+    return mem.getByte(LG_K_BYTE) & 0XFF;
   }
 
   static void insertLgK(final Object memObj, final long memAdd, final int lgK) {
     unsafe.putByte(memObj, memAdd + LG_K_BYTE, (byte) lgK);
   }
 
-  static int extractLgArr(final Object memObj, final long memAdd) {
-    return unsafe.getByte(memObj, memAdd + LG_ARR_BYTE) & 0XFF;
+  static int extractLgArr(final Memory mem) {
+    return mem.getByte(LG_ARR_BYTE) & 0XFF;
   }
 
   static void insertLgArr(final Object memObj, final long memAdd, final int lgArr) {
     unsafe.putByte(memObj, memAdd + LG_ARR_BYTE, (byte) lgArr);
   }
 
-  static int extractListCount(final Object memObj, final long memAdd) {
-    return unsafe.getByte(memObj, memAdd + LIST_COUNT_BYTE) & 0XFF;
+  static int extractListCount(final Memory mem) {
+    return mem.getByte(LIST_COUNT_BYTE) & 0XFF;
   }
 
   static void insertListCount(final Object memObj, final long memAdd, final int listCnt) {
     unsafe.putByte(memObj, memAdd + LIST_COUNT_BYTE, (byte) listCnt);
   }
 
-  static int extractCurMin(final Object memObj, final long memAdd) {
-    return unsafe.getByte(memObj, memAdd + HLL_CUR_MIN_BYTE) & 0XFF;
+  static int extractCurMin(final Memory mem) {
+    return mem.getByte(HLL_CUR_MIN_BYTE) & 0XFF;
   }
 
   static void insertCurMin(final Object memObj, final long memAdd, final int curMin) {
     unsafe.putByte(memObj, memAdd + HLL_CUR_MIN_BYTE, (byte) curMin);
   }
 
-  static double extractHipAccum(final Object memObj, final long memAdd) {
-    return unsafe.getDouble(memObj, memAdd + HIP_ACCUM_DOUBLE);
+  static double extractHipAccum(final Memory mem) {
+    return mem.getDouble(HIP_ACCUM_DOUBLE);
   }
 
   static void insertHipAccum(final Object memObj, final long memAdd, final double hipAccum) {
     unsafe.putDouble(memObj, memAdd + HIP_ACCUM_DOUBLE, hipAccum);
   }
 
-  static double extractKxQ0(final Object memObj, final long memAdd) {
-    return unsafe.getDouble(memObj, memAdd + KXQ0_DOUBLE);
+  static double extractKxQ0(final Memory mem) {
+    return mem.getDouble(KXQ0_DOUBLE);
   }
 
   static void insertKxQ0(final Object memObj, final long memAdd, final double kxq0) {
     unsafe.putDouble(memObj, memAdd + KXQ0_DOUBLE, kxq0);
   }
 
-  static double extractKxQ1(final Object memObj, final long memAdd) {
-    return unsafe.getDouble(memObj, memAdd + KXQ1_DOUBLE);
+  static double extractKxQ1(final Memory mem) {
+    return mem.getDouble(KXQ1_DOUBLE);
   }
 
   static void insertKxQ1(final Object memObj, final long memAdd, final double kxq1) {
     unsafe.putDouble(memObj, memAdd + KXQ1_DOUBLE, kxq1);
   }
 
-  static int extractHashSetCount(final Object memObj, final long memAdd) {
-    return unsafe.getInt(memObj, memAdd + HASH_SET_COUNT_INT);
+  static int extractHashSetCount(final Memory mem) {
+    return mem.getInt(HASH_SET_COUNT_INT);
   }
 
   static void insertHashSetCount(final Object memObj, final long memAdd, final int hashSetCnt) {
     unsafe.putInt(memObj, memAdd + HASH_SET_COUNT_INT, hashSetCnt);
   }
 
-  static int extractNumAtCurMin(final Object memObj, final long memAdd) {
-    return unsafe.getInt(memObj, memAdd + CUR_MIN_COUNT_INT);
+  static int extractNumAtCurMin(final Memory mem) {
+    return mem.getInt(CUR_MIN_COUNT_INT);
   }
 
   static void insertNumAtCurMin(final Object memObj, final long memAdd, final int numAtCurMin) {
     unsafe.putInt(memObj, memAdd + CUR_MIN_COUNT_INT, numAtCurMin);
   }
 
-  static int extractAuxCount(final Object memObj, final long memAdd) {
-    return unsafe.getInt(memObj, memAdd + AUX_COUNT_INT);
+  static int extractAuxCount(final Memory mem) {
+    return mem.getInt(AUX_COUNT_INT);
   }
 
   static void insertAuxCount(final Object memObj, final long memAdd, final int auxCount) {
@@ -341,8 +341,9 @@ final class PreambleUtil {
     unsafe.putByte(memObj, memAdd + MODE_BYTE, (byte) mode);
   }
 
-  static CurMode extractCurMode(final Object memObj, final long memAdd) {
-    final int curModeId = unsafe.getByte(memObj, memAdd + MODE_BYTE) & CUR_MODE_MASK;
+  static CurMode extractCurMode(final Memory mem) {
+    //final int curModeId = unsafe.getByte(memObj, memAdd + MODE_BYTE) & CUR_MODE_MASK;
+    final int curModeId = mem.getByte(MODE_BYTE) & CUR_MODE_MASK;
     return CurMode.fromOrdinal(curModeId);
   }
 
@@ -354,8 +355,9 @@ final class PreambleUtil {
     unsafe.putByte(memObj, memAdd + MODE_BYTE, (byte) mode);
   }
 
-  static TgtHllType extractTgtHllType(final Object memObj, final long memAdd) {
-    final int typeId = unsafe.getByte(memObj, memAdd + MODE_BYTE) & TGT_HLL_TYPE_MASK;
+  static TgtHllType extractTgtHllType(final Memory mem) {
+    //final int typeId = unsafe.getByte(memObj, memAdd + MODE_BYTE) & TGT_HLL_TYPE_MASK;
+    final int typeId = mem.getByte(MODE_BYTE) & TGT_HLL_TYPE_MASK;
     return TgtHllType.fromOrdinal(typeId >>> 2);
   }
 
@@ -375,8 +377,9 @@ final class PreambleUtil {
     unsafe.putByte(memObj, memAdd + FLAGS_BYTE, (byte) flags);
   }
 
-  static boolean extractEmptyFlag(final Object memObj, final long memAdd) {
-    final int flags = unsafe.getByte(memObj, memAdd + FLAGS_BYTE);
+  static boolean extractEmptyFlag(final Memory mem) {
+    //final int flags = unsafe.getByte(memObj, memAdd + FLAGS_BYTE);
+    final int flags = mem.getByte(FLAGS_BYTE);
     return (flags & EMPTY_FLAG_MASK) > 0;
   }
 
@@ -387,8 +390,9 @@ final class PreambleUtil {
     unsafe.putByte(memObj, memAdd + FLAGS_BYTE, (byte) flags);
   }
 
-  static boolean extractCompactFlag(final Object memObj, final long memAdd) {
-    final int flags = unsafe.getByte(memObj, memAdd + FLAGS_BYTE);
+  static boolean extractCompactFlag(final Memory mem) {
+    //final int flags = unsafe.getByte(memObj, memAdd + FLAGS_BYTE);
+    final int flags = mem.getByte(FLAGS_BYTE);
     return (flags & COMPACT_FLAG_MASK) > 0;
   }
 
@@ -399,8 +403,9 @@ final class PreambleUtil {
     unsafe.putByte(memObj, memAdd + FLAGS_BYTE, (byte) flags);
   }
 
-  static boolean extractOooFlag(final Object memObj, final long memAdd) {
-    final int flags = unsafe.getByte(memObj, memAdd + FLAGS_BYTE);
+  static boolean extractOooFlag(final Memory mem) {
+    //final int flags = unsafe.getByte(memObj, memAdd + FLAGS_BYTE);
+    final int flags = mem.getByte(FLAGS_BYTE);
     return (flags & OUT_OF_ORDER_FLAG_MASK) > 0;
   }
 
@@ -408,13 +413,15 @@ final class PreambleUtil {
     unsafe.putByte(memObj, memAdd + FLAGS_BYTE, (byte) flags);
   }
 
-  static int extractFlags(final Object memObj, final long memAdd) {
-    return unsafe.getByte(memObj, memAdd + FLAGS_BYTE);
+  static int extractFlags(final Memory mem) {
+    //return unsafe.getByte(memObj, memAdd + FLAGS_BYTE);
+    return mem.getByte(FLAGS_BYTE) & 0XFF;
   }
 
   //Other
-  static int extractInt(final Object memObj, final long memAdd, final long byteOffset) {
-    return unsafe.getInt(memObj, memAdd + byteOffset);
+  static int extractInt(final Memory mem, final long byteOffset) {
+    //return unsafe.getInt(memObj, memAdd + byteOffset);
+    return mem.getInt(byteOffset);
   }
 
   static void insertInt(final Object memObj, final long memAdd, final long byteOffset,

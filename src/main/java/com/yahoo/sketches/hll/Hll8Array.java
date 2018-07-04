@@ -9,7 +9,6 @@ import static com.yahoo.sketches.hll.HllUtil.VAL_MASK_6;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.WritableMemory;
 
 /**
  * Uses 8 bits per slot in a byte array.
@@ -35,11 +34,9 @@ class Hll8Array extends HllArray {
   }
 
   static final Hll8Array heapify(final Memory mem) {
-    final Object memArr = ((WritableMemory) mem).getArray();
-    final long memAdd = mem.getCumulativeOffset(0);
-    final int lgConfigK = extractLgK(memArr, memAdd);
+    final int lgConfigK = extractLgK(mem);
     final Hll8Array hll8Array = new Hll8Array(lgConfigK);
-    HllArray.extractCommonHll(mem, memArr, memAdd, hll8Array);
+    HllArray.extractCommonHll(mem, hll8Array);
     return hll8Array;
   }
 

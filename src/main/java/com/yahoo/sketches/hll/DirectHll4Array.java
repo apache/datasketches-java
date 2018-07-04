@@ -30,7 +30,7 @@ class DirectHll4Array extends DirectHllArray {
   //Called by HllSketch.writableWrap(), DirectCouponList.promoteListOrSetToHll
   DirectHll4Array(final int lgConfigK, final WritableMemory wmem) {
     super(lgConfigK, TgtHllType.HLL_4, wmem);
-    if (extractAuxCount(memObj, memAdd) > 0) {
+    if (extractAuxCount(mem) > 0) {
       putAuxHashMap(new DirectAuxHashMap(this, false), false);
     }
   }
@@ -38,9 +38,9 @@ class DirectHll4Array extends DirectHllArray {
   //Called by HllSketch.wrap(Memory)
   DirectHll4Array(final int lgConfigK, final Memory mem) {
     super(lgConfigK, TgtHllType.HLL_4, mem);
-    final int auxCount = extractAuxCount(memObj, memAdd);
+    final int auxCount = extractAuxCount(mem);
     if (auxCount > 0) {
-      final boolean compact = extractCompactFlag(memObj, memAdd);
+      final boolean compact = extractCompactFlag(mem);
       final AuxHashMap auxHashMap;
       if (compact) {
         auxHashMap = HeapAuxHashMap.heapify(mem, auxStart, lgConfigK, auxCount, compact);
@@ -114,7 +114,7 @@ class DirectHll4Array extends DirectHllArray {
 
   @Override
   byte[] toCompactByteArray() {
-    final boolean srcMemIsCompact = extractCompactFlag(memObj, memAdd);
+    final boolean srcMemIsCompact = extractCompactFlag(mem);
     final int totBytes = getCompactSerializationBytes();
     final byte[] byteArr = new byte[totBytes];
     final WritableMemory memOut = WritableMemory.wrap(byteArr);
@@ -143,7 +143,7 @@ class DirectHll4Array extends DirectHllArray {
 
   @Override
   byte[] toUpdatableByteArray() {
-    final boolean memIsCompact = extractCompactFlag(memObj, memAdd);
+    final boolean memIsCompact = extractCompactFlag(mem);
     final int totBytes = getUpdatableSerializationBytes();
     final byte[] byteArr = new byte[totBytes];
     final WritableMemory memOut = WritableMemory.wrap(byteArr);
