@@ -5,7 +5,6 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.memory.UnsafeUtil.unsafe;
 import static com.yahoo.sketches.hll.PreambleUtil.CUR_MIN_COUNT_INT;
 import static com.yahoo.sketches.hll.PreambleUtil.HIP_ACCUM_DOUBLE;
 import static com.yahoo.sketches.hll.PreambleUtil.extractCompactFlag;
@@ -74,14 +73,14 @@ abstract class DirectHllArray extends AbstractHllArray {
 
   @Override
   void addToHipAccum(final double delta) {
-    final double hipAccum = unsafe.getDouble(memObj, memAdd + HIP_ACCUM_DOUBLE);
-    unsafe.putDouble(memObj, memAdd + HIP_ACCUM_DOUBLE, hipAccum + delta);
+    final double hipAccum = mem.getDouble(HIP_ACCUM_DOUBLE);
+    wmem.putDouble(HIP_ACCUM_DOUBLE, hipAccum + delta);
   }
 
   @Override
   void decNumAtCurMin() {
-    int numAtCurMin = unsafe.getInt(memObj, memAdd + CUR_MIN_COUNT_INT);
-    unsafe.putInt(memObj, memAdd + CUR_MIN_COUNT_INT, --numAtCurMin);
+    int numAtCurMin = mem.getInt(CUR_MIN_COUNT_INT);
+    wmem.putInt(CUR_MIN_COUNT_INT, --numAtCurMin);
   }
 
   @Override
@@ -172,8 +171,8 @@ abstract class DirectHllArray extends AbstractHllArray {
       } else { //heap and not compact
         final int[] auxArr = auxHashMap.getAuxIntArr();
         wmem.putIntArray(auxStart, auxArr, 0, auxArr.length);
-        insertLgArr(memObj, memAdd, auxHashMap.getLgAuxArrInts());
-        insertAuxCount(memObj, memAdd, auxHashMap.getAuxCount());
+        insertLgArr(wmem, auxHashMap.getLgAuxArrInts());
+        insertAuxCount(wmem, auxHashMap.getAuxCount());
         this.auxHashMap = new DirectAuxHashMap(this, false);
       }
     } else { //DirectAuxHashMap
@@ -184,32 +183,32 @@ abstract class DirectHllArray extends AbstractHllArray {
 
   @Override
   void putCurMin(final int curMin) {
-    insertCurMin(memObj, memAdd, curMin);
+    insertCurMin(wmem, curMin);
   }
 
   @Override
   void putHipAccum(final double hipAccum) {
-    insertHipAccum(memObj, memAdd, hipAccum);
+    insertHipAccum(wmem, hipAccum);
   }
 
   @Override
   void putKxQ0(final double kxq0) {
-    insertKxQ0(memObj, memAdd, kxq0);
+    insertKxQ0(wmem, kxq0);
   }
 
   @Override //called very very very rarely
   void putKxQ1(final double kxq1) {
-    insertKxQ1(memObj, memAdd, kxq1);
+    insertKxQ1(wmem, kxq1);
   }
 
   @Override
   void putNumAtCurMin(final int numAtCurMin) {
-    insertNumAtCurMin(memObj, memAdd, numAtCurMin);
+    insertNumAtCurMin(wmem, numAtCurMin);
   }
 
   @Override //not used on the direct side
   void putOutOfOrderFlag(final boolean oooFlag) {
-    insertOooFlag(memObj, memAdd, oooFlag);
+    insertOooFlag(wmem, oooFlag);
   }
 
   @Override //used by HLL6 and HLL8, overridden by HLL4
@@ -222,10 +221,8 @@ abstract class DirectHllArray extends AbstractHllArray {
     final int totBytes = getCompactSerializationBytes();
     final byte[] byteArr = new byte[totBytes];
     final WritableMemory memOut = WritableMemory.wrap(byteArr);
-    final Object memOutObj = memOut.getArray();
-    final long memOutAdd = memOut.getCumulativeOffset(0L);
     mem.copyTo(0, memOut, 0, totBytes);
-    insertCompactFlag(memOutObj, memOutAdd, false);
+    insertCompactFlag(memOut, false);
     return byteArr;
   }
 

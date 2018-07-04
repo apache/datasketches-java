@@ -63,8 +63,8 @@ class DirectCouponHashSet extends DirectCouponList {
     if (index >= 0) {
       return this; //found duplicate, ignore
     }
-    insertInt(memObj, memAdd, HASH_SET_INT_ARR_START + (~index << 2), coupon);
-    insertHashSetCount(memObj, memAdd, getCouponCount() + 1);
+    insertInt(wmem, HASH_SET_INT_ARR_START + (~index << 2), coupon);
+    insertHashSetCount(wmem, getCouponCount() + 1);
     final boolean promote = checkGrowOrPromote();
     if (!promote) { return this; }
     return promoteListOrSetToHll(this);
@@ -92,7 +92,7 @@ class DirectCouponHashSet extends DirectCouponList {
         return true; // promote
       }
       //TODO if direct, ask for more memory
-      insertLgArr(memObj, memAdd, ++lgCouponArrInts);
+      insertLgArr(wmem, ++lgCouponArrInts);
       growHashSet(wmem, lgCouponArrInts);
     }
     return false;

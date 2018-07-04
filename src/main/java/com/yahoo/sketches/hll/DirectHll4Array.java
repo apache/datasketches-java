@@ -5,7 +5,6 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.memory.UnsafeUtil.unsafe;
 import static com.yahoo.sketches.hll.HllUtil.AUX_TOKEN;
 import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static com.yahoo.sketches.hll.HllUtil.hiNibbleMask;
@@ -81,8 +80,8 @@ class DirectHll4Array extends DirectHllArray {
 
   @Override
   final int getSlot(final int slotNo) {
-    final long unsafeOffset = memAdd + HLL_BYTE_ARR_START + (slotNo >>> 1);
-    int theByte = unsafe.getByte(memObj, unsafeOffset);
+    final long offset = HLL_BYTE_ARR_START + (slotNo >>> 1);
+    int theByte = mem.getByte(offset);
     if ((slotNo & 1) > 0) { //odd?
       theByte >>>= 4;
     }
@@ -103,12 +102,12 @@ class DirectHll4Array extends DirectHllArray {
 
   @Override
   final void putSlot(final int slotNo, final int newValue) {
-    final long unsafeOffset = memAdd + HLL_BYTE_ARR_START + (slotNo >>> 1);
-    final int oldValue = unsafe.getByte(memObj, unsafeOffset);
+    final long offset = HLL_BYTE_ARR_START + (slotNo >>> 1);
+    final int oldValue = mem.getByte(offset);
     final byte value = ((slotNo & 1) == 0) //even?
         ? (byte) ((oldValue & hiNibbleMask) | (newValue & loNibbleMask)) //set low nibble
         : (byte) ((oldValue & loNibbleMask) | ((newValue << 4) & hiNibbleMask)); //set high nibble
-    unsafe.putByte(memObj, unsafeOffset, value);
+    wmem.putByte(offset, value);
   }
 
 
@@ -118,8 +117,6 @@ class DirectHll4Array extends DirectHllArray {
     final int totBytes = getCompactSerializationBytes();
     final byte[] byteArr = new byte[totBytes];
     final WritableMemory memOut = WritableMemory.wrap(byteArr);
-    final Object memOutObj = memOut.getArray();
-    final long memOutAdd = memOut.getCumulativeOffset(0L);
     if (srcMemIsCompact) { //mem is already consistent with result
       mem.copyTo(0, memOut, 0, totBytes);
       return byteArr;
@@ -128,16 +125,16 @@ class DirectHll4Array extends DirectHllArray {
     mem.copyTo(0, memOut, 0, auxStart);
     if (auxHashMap != null) {
       final int auxCount = auxHashMap.getAuxCount();
-      insertAuxCount(memOutObj, memOutAdd, auxCount);
-      insertLgArr(memOutObj, memOutAdd, auxHashMap.getLgAuxArrInts()); //only used for direct HLL
+      insertAuxCount(memOut, auxCount);
+      insertLgArr(memOut, auxHashMap.getLgAuxArrInts()); //only used for direct HLL
       final PairIterator itr = auxHashMap.getIterator();
       int cnt = 0;
       while (itr.nextValid()) { //works whether src has compact memory or not
-        insertInt(memOutObj, memOutAdd, auxStart + (cnt++ << 2), itr.getPair());
+        insertInt(memOut, auxStart + (cnt++ << 2), itr.getPair());
       }
       assert cnt == auxCount;
     }
-    insertCompactFlag(memOutObj, memOutAdd, true);
+    insertCompactFlag(memOut, true);
     return byteArr;
   }
 

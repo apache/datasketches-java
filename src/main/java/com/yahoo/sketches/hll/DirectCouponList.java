@@ -83,17 +83,14 @@ class DirectCouponList extends AbstractCoupons {
    */
   static DirectCouponList newInstance(final int lgConfigK, final TgtHllType tgtHllType,
       final WritableMemory dstMem) {
-    final Object memObj = dstMem.getArray();
-    final long memAdd = dstMem.getCumulativeOffset(0L);
-
-    insertPreInts(memObj, memAdd, LIST_PREINTS);
-    insertSerVer(memObj, memAdd);
-    insertFamilyId(memObj, memAdd);
-    insertLgK(memObj, memAdd, lgConfigK);
-    insertLgArr(memObj, memAdd, LG_INIT_LIST_SIZE);
-    insertFlags(memObj, memAdd, EMPTY_FLAG_MASK); //empty and not compact
-    insertListCount(memObj, memAdd, 0);
-    insertModes(memObj, memAdd, tgtHllType, CurMode.LIST);
+    insertPreInts(dstMem, LIST_PREINTS);
+    insertSerVer(dstMem);
+    insertFamilyId(dstMem);
+    insertLgK(dstMem, lgConfigK);
+    insertLgArr(dstMem, LG_INIT_LIST_SIZE);
+    insertFlags(dstMem, EMPTY_FLAG_MASK); //empty and not compact
+    insertListCount(dstMem, 0);
+    insertModes(dstMem, tgtHllType, CurMode.LIST);
     return new DirectCouponList(lgConfigK, tgtHllType, CurMode.LIST, dstMem);
   }
 
@@ -115,10 +112,10 @@ class DirectCouponList extends AbstractCoupons {
     for (int i = 0; i < len; i++) { //search for empty slot
       final int couponAtIdx = extractInt(mem, LIST_INT_ARR_START + (i << 2));
       if (couponAtIdx == EMPTY) {
-        insertInt(memObj, memAdd, LIST_INT_ARR_START + (i << 2), coupon);
+        insertInt(wmem, LIST_INT_ARR_START + (i << 2), coupon);
         int couponCount = extractListCount(mem);
-        insertListCount(memObj, memAdd, ++couponCount);
-        insertEmptyFlag(memObj, memAdd, false);
+        insertListCount(wmem, ++couponCount);
+        insertEmptyFlag(wmem, false);
         if (couponCount >= len) { //array full
           if (lgConfigK < 8) {
             return promoteListOrSetToHll(this);//oooFlag = false
@@ -210,7 +207,7 @@ class DirectCouponList extends AbstractCoupons {
   @Override //not used on the direct side
   void putOutOfOrderFlag(final boolean oooFlag) {
     assert wmem != null;
-    insertOooFlag(memObj, memAdd, oooFlag);
+    insertOooFlag(wmem, oooFlag);
   }
 
   @Override
@@ -226,8 +223,6 @@ class DirectCouponList extends AbstractCoupons {
   //Called by DirectCouponList.couponUpdate()
   static final DirectCouponHashSet promoteListToSet(final DirectCouponList src) {
     final WritableMemory wmem = src.wmem;
-    final Object memObj = wmem.getArray();
-    final long memAdd = wmem.getCumulativeOffset(0L);
 
     //get the data from the current memory
     HllUtil.checkPreamble(wmem); //sanity check
@@ -239,12 +234,12 @@ class DirectCouponList extends AbstractCoupons {
     wmem.getIntArray(srcOffset, couponArr, 0, couponArrInts);
 
     //rewrite the memory image as a SET:
-    insertPreInts(memObj, memAdd, HASH_SET_PREINTS);
+    insertPreInts(wmem, HASH_SET_PREINTS);
     //SerVer, FamID, LgK  should be OK
-    insertLgArr(memObj, memAdd, LG_INIT_SET_SIZE);
-    insertFlags(memObj, memAdd, (byte) OUT_OF_ORDER_FLAG_MASK); //set oooFlag
-    insertCurMin(memObj, memAdd, 0); //was list count
-    insertCurMode(memObj,memAdd, CurMode.SET);
+    insertLgArr(wmem, LG_INIT_SET_SIZE);
+    insertFlags(wmem, (byte) OUT_OF_ORDER_FLAG_MASK); //set oooFlag
+    insertCurMin(wmem, 0); //was list count
+    insertCurMode(wmem, CurMode.SET);
     //tgtHllType should already be set
     final int maxBytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     wmem.clear(LIST_INT_ARR_START, maxBytes - LIST_INT_ARR_START); //clear all past first 8
@@ -265,8 +260,6 @@ class DirectCouponList extends AbstractCoupons {
 
   static final DirectHllArray promoteListOrSetToHll(final DirectCouponList src) {
     final WritableMemory wmem = src.wmem;
-    final Object memObj = wmem.getArray();
-    final long memAdd = wmem.getCumulativeOffset(0L);
 
     //get the data from the current list or set memory
     HllUtil.checkPreamble(wmem); //sanity check
@@ -279,19 +272,19 @@ class DirectCouponList extends AbstractCoupons {
     wmem.getIntArray(srcMemDataStart, couponArr, 0, couponArrInts);
 
     //rewrite the memory image as an HLL
-    insertPreInts(memObj, memAdd, HLL_PREINTS);
+    insertPreInts(wmem, HLL_PREINTS);
     //SerVer, FamID, LgK should be OK
-    insertLgArr(memObj, memAdd, 0); //no Aux possible yet
-    insertFlags(memObj, memAdd, 0); //clear all flags
-    insertCurMin(memObj, memAdd, 0);
-    insertCurMode(memObj,memAdd, CurMode.HLL);
+    insertLgArr(wmem, 0); //no Aux possible yet
+    insertFlags(wmem, 0); //clear all flags
+    insertCurMin(wmem, 0);
+    insertCurMode(wmem, CurMode.HLL);
     //tgtHllType should already be set
     //we update HipAccum at the end
     //clear KxQ0, KxQ1, NumAtCurMin, AuxCount, hllArray, auxArr
     final int maxBytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     wmem.clear(LIST_INT_ARR_START, maxBytes - LIST_INT_ARR_START); //clear all past first 8
-    insertNumAtCurMin(memObj, memAdd, 1 << lgConfigK); //set numAtCurMin
-    insertKxQ0(memObj, memAdd, 1 << lgConfigK);
+    insertNumAtCurMin(wmem, 1 << lgConfigK); //set numAtCurMin
+    insertKxQ0(wmem, 1 << lgConfigK);
 
     //choose the tgt
     final DirectHllArray dirHllArr;

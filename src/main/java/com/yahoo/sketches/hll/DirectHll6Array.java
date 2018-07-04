@@ -5,7 +5,6 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.memory.UnsafeUtil.unsafe;
 import static com.yahoo.sketches.hll.HllUtil.VAL_MASK_6;
 import static com.yahoo.sketches.hll.HllUtil.noWriteAccess;
 import static com.yahoo.sketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
@@ -86,7 +85,7 @@ class DirectHll6Array extends DirectHllArray {
     @Override
     int value() {
       bitOffset += 6;
-      final int tmp = unsafe.getShort(memObj, memAdd + HLL_BYTE_ARR_START + (bitOffset / 8));
+      final int tmp = mem.getShort(HLL_BYTE_ARR_START + (bitOffset / 8));
       final int shift = (bitOffset % 8) & 0X7;
       return (tmp >>> shift) & VAL_MASK_6;
     }

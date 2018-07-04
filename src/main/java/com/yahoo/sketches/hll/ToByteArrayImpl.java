@@ -72,38 +72,34 @@ class ToByteArrayImpl {
 
   private static final void insertCommonHll(final AbstractHllArray srcImpl,
       final WritableMemory tgtWmem, final boolean compact) {
-    final Object tgtMemObj = tgtWmem.getArray();
-    final long tgtMemAdd = tgtWmem.getCumulativeOffset(0L);
-    insertPreInts(tgtMemObj, tgtMemAdd, srcImpl.getPreInts());
-    insertSerVer(tgtMemObj, tgtMemAdd);
-    insertFamilyId(tgtMemObj, tgtMemAdd);
-    insertLgK(tgtMemObj, tgtMemAdd, srcImpl.getLgConfigK());
-    insertEmptyFlag(tgtMemObj, tgtMemAdd, srcImpl.isEmpty());
-    insertCompactFlag(tgtMemObj, tgtMemAdd, compact);
-    insertOooFlag(tgtMemObj, tgtMemAdd, srcImpl.isOutOfOrderFlag());
-    insertCurMin(tgtMemObj, tgtMemAdd, srcImpl.getCurMin());
-    insertCurMode(tgtMemObj, tgtMemAdd, srcImpl.getCurMode());
-    insertTgtHllType(tgtMemObj, tgtMemAdd, srcImpl.getTgtHllType());
-    insertHipAccum(tgtMemObj, tgtMemAdd, srcImpl.getHipAccum());
-    insertKxQ0(tgtMemObj, tgtMemAdd, srcImpl.getKxQ0());
-    insertKxQ1(tgtMemObj, tgtMemAdd, srcImpl.getKxQ1());
-    insertNumAtCurMin(tgtMemObj, tgtMemAdd, srcImpl.getNumAtCurMin());
+    insertPreInts(tgtWmem, srcImpl.getPreInts());
+    insertSerVer(tgtWmem);
+    insertFamilyId(tgtWmem);
+    insertLgK(tgtWmem, srcImpl.getLgConfigK());
+    insertEmptyFlag(tgtWmem, srcImpl.isEmpty());
+    insertCompactFlag(tgtWmem, compact);
+    insertOooFlag(tgtWmem, srcImpl.isOutOfOrderFlag());
+    insertCurMin(tgtWmem, srcImpl.getCurMin());
+    insertCurMode(tgtWmem, srcImpl.getCurMode());
+    insertTgtHllType(tgtWmem, srcImpl.getTgtHllType());
+    insertHipAccum(tgtWmem, srcImpl.getHipAccum());
+    insertKxQ0(tgtWmem, srcImpl.getKxQ0());
+    insertKxQ1(tgtWmem, srcImpl.getKxQ1());
+    insertNumAtCurMin(tgtWmem, srcImpl.getNumAtCurMin());
   }
 
   private static final void insertAux(final AbstractHllArray srcImpl, final WritableMemory tgtWmem,
       final boolean tgtCompact) {
-    final Object memObj = tgtWmem.getArray();
-    final long memAdd = tgtWmem.getCumulativeOffset(0L);
     final AuxHashMap auxHashMap = srcImpl.getAuxHashMap();
     final int auxCount = auxHashMap.getAuxCount();
-    insertAuxCount(memObj, memAdd, auxCount);
-    insertLgArr(memObj, memAdd, auxHashMap.getLgAuxArrInts()); //only used for direct HLL
+    insertAuxCount(tgtWmem, auxCount);
+    insertLgArr(tgtWmem, auxHashMap.getLgAuxArrInts()); //only used for direct HLL
     final long auxStart = srcImpl.auxStart;
     if (tgtCompact) {
       final PairIterator itr = auxHashMap.getIterator();
       int cnt = 0;
       while (itr.nextValid()) { //works whether src has compact memory or not
-        insertInt(memObj, memAdd, auxStart + (cnt++ << 2), itr.getPair());
+        insertInt(tgtWmem, auxStart + (cnt++ << 2), itr.getPair());
       }
       assert cnt == auxCount;
     } else { //updatable
@@ -135,10 +131,8 @@ class ToByteArrayImpl {
         final int bytesOut = dataStart + (srcCouponArrInts << 2);
         byteArrOut = new byte[bytesOut];
         final WritableMemory memOut = WritableMemory.wrap(byteArrOut);
-        final Object memObj = memOut.getArray();
-        final long memAdd = memOut.getCumulativeOffset(0L);
-        copyCommonListAndSet(impl, memObj, memAdd);
-        insertCompactFlag(memObj, memAdd, dstCompact);
+        copyCommonListAndSet(impl, memOut);
+        insertCompactFlag(memOut, dstCompact);
 
         final int[] tgtCouponIntArr = new int[srcCouponArrInts];
         final PairIterator itr = impl.getIterator();
@@ -154,9 +148,9 @@ class ToByteArrayImpl {
         memOut.putIntArray(dataStart, tgtCouponIntArr, 0, srcCouponArrInts);
 
         if (list) {
-          insertListCount(memObj, memAdd, srcCouponCount);
+          insertListCount(memOut, srcCouponCount);
         } else {
-          insertHashSetCount(memObj, memAdd, srcCouponCount);
+          insertHashSetCount(memOut, srcCouponCount);
         }
         break;
       }
@@ -165,20 +159,18 @@ class ToByteArrayImpl {
         final int bytesOut = dataStart + (srcCouponCount << 2);
         byteArrOut = new byte[bytesOut];
         final WritableMemory memOut = WritableMemory.wrap(byteArrOut);
-        final Object memObj = memOut.getArray();
-        final long memAdd = memOut.getCumulativeOffset(0L);
-        copyCommonListAndSet(impl, memObj, memAdd);
-        insertCompactFlag(memObj, memAdd, dstCompact);
+        copyCommonListAndSet(impl, memOut);
+        insertCompactFlag(memOut, dstCompact);
 
         final PairIterator itr = impl.getIterator();
         int cnt = 0;
         while (itr.nextValid()) {
-          insertInt(memObj, memAdd, dataStart + (cnt++ << 2), itr.getPair());
+          insertInt(memOut, dataStart + (cnt++ << 2), itr.getPair());
         }
         if (list) {
-          insertListCount(memObj, memAdd, srcCouponCount);
+          insertListCount(memOut, srcCouponCount);
         } else {
-          insertHashSetCount(memObj, memAdd, srcCouponCount);
+          insertHashSetCount(memOut, srcCouponCount);
         }
         break;
       }
@@ -194,20 +186,18 @@ class ToByteArrayImpl {
         final int bytesOut = dataStart + (srcCouponCount << 2);
         byteArrOut = new byte[bytesOut];
         final WritableMemory memOut = WritableMemory.wrap(byteArrOut);
-        final Object memObj = memOut.getArray();
-        final long memAdd = memOut.getCumulativeOffset(0L);
-        copyCommonListAndSet(impl, memObj, memAdd);
-        insertCompactFlag(memObj, memAdd, dstCompact);
+        copyCommonListAndSet(impl, memOut);
+        insertCompactFlag(memOut, dstCompact);
 
         final PairIterator itr = impl.getIterator();
         int cnt = 0;
         while (itr.nextValid()) {
-          insertInt(memObj, memAdd, dataStart + (cnt++ << 2), itr.getPair());
+          insertInt(memOut, dataStart + (cnt++ << 2), itr.getPair());
         }
         if (list) {
-          insertListCount(memObj, memAdd, srcCouponCount);
+          insertListCount(memOut, srcCouponCount);
         } else {
-          insertHashSetCount(memObj, memAdd, srcCouponCount);
+          insertHashSetCount(memOut, srcCouponCount);
         }
         break;
       }
@@ -216,15 +206,13 @@ class ToByteArrayImpl {
         final int bytesOut = dataStart + (srcCouponArrInts << 2);
         byteArrOut = new byte[bytesOut];
         final WritableMemory memOut = WritableMemory.wrap(byteArrOut);
-        final Object memObj = memOut.getArray();
-        final long memAdd = memOut.getCumulativeOffset(0L);
-        copyCommonListAndSet(impl, memObj, memAdd);
+        copyCommonListAndSet(impl, memOut);
 
         memOut.putIntArray(dataStart, impl.getCouponIntArr(), 0, srcCouponArrInts);
         if (list) {
-          insertListCount(memObj, memAdd, srcCouponCount);
+          insertListCount(memOut, srcCouponCount);
         } else {
-          insertHashSetCount(memObj, memAdd, srcCouponCount);
+          insertHashSetCount(memOut, srcCouponCount);
         }
         break;
       }
@@ -234,16 +222,16 @@ class ToByteArrayImpl {
   }
 
   private static final void copyCommonListAndSet(final AbstractCoupons impl,
-      final Object memObj, final long memAdd) {
-    insertPreInts(memObj, memAdd, impl.getPreInts());
-    insertSerVer(memObj, memAdd);
-    insertFamilyId(memObj, memAdd);
-    insertLgK(memObj, memAdd, impl.getLgConfigK());
-    insertLgArr(memObj, memAdd, impl.getLgCouponArrInts());
-    insertEmptyFlag(memObj, memAdd, impl.isEmpty());
-    insertOooFlag(memObj, memAdd, impl.isOutOfOrderFlag());
-    insertCurMode(memObj, memAdd, impl.getCurMode());
-    insertTgtHllType(memObj, memAdd, impl.getTgtHllType());
+      final WritableMemory wmem) {
+    insertPreInts(wmem, impl.getPreInts());
+    insertSerVer(wmem);
+    insertFamilyId(wmem);
+    insertLgK(wmem, impl.getLgConfigK());
+    insertLgArr(wmem, impl.getLgCouponArrInts());
+    insertEmptyFlag(wmem, impl.isEmpty());
+    insertOooFlag(wmem, impl.isOutOfOrderFlag());
+    insertCurMode(wmem, impl.getCurMode());
+    insertTgtHllType(wmem, impl.getTgtHllType());
   }
 
 }

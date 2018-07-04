@@ -81,11 +81,10 @@ public class PreambleUtilTest {
     HllSketch sk = new HllSketch(7);
     byte[] memObj = sk.toCompactByteArray();
     WritableMemory wmem = WritableMemory.wrap(memObj);
-    long memAdd = wmem.getCumulativeOffset(0);
     boolean compact = PreambleUtil.extractCompactFlag(wmem);
     assertTrue(compact);
 
-    PreambleUtil.insertCompactFlag(memObj, memAdd, false);
+    PreambleUtil.insertCompactFlag(wmem, false);
     compact = PreambleUtil.extractCompactFlag(wmem);
     assertFalse(compact);
   }
@@ -105,7 +104,7 @@ public class PreambleUtilTest {
       bad = HllSketch.heapify(wmem);
       fail();
     } catch (SketchesArgumentException e) { /* OK */ }
-    insertFamilyId(memObj, memAdd); //corrected
+    insertFamilyId(wmem); //corrected
 
     //check SerVer
     try {
@@ -113,23 +112,23 @@ public class PreambleUtilTest {
       bad = HllSketch.heapify(wmem);
       fail();
     } catch (SketchesArgumentException e) { /* OK */ }
-    insertSerVer(memObj, memAdd); //corrected
+    insertSerVer(wmem); //corrected
 
     //check bad PreInts
     try {
-      insertPreInts(memObj, memAdd, 0); //corrupt, should be 2
+      insertPreInts(wmem, 0); //corrupt, should be 2
       bad = HllSketch.heapify(wmem);
       fail();
     } catch (SketchesArgumentException e) { /* OK */ }
-    insertPreInts(memObj, memAdd, 2); //corrected
+    insertPreInts(wmem, 2); //corrected
 
     //check wrong PreInts and LIST
     try {
-      insertPreInts(memObj, memAdd, 3); //corrupt, should be 2
+      insertPreInts(wmem, 3); //corrupt, should be 2
       bad = HllSketch.heapify(wmem);
       fail();
     } catch (SketchesArgumentException e) { /* OK */ }
-    insertPreInts(memObj, memAdd, 2); //corrected
+    insertPreInts(wmem, 2); //corrected
 
     //move to Set mode
     for (int i = 1; i <= 15; i++) { sk.update(i); }
@@ -139,11 +138,11 @@ public class PreambleUtilTest {
 
     //check wrong PreInts and SET
     try {
-      insertPreInts(memObj, memAdd, 2); //corrupt, should be 3
+      insertPreInts(wmem, 2); //corrupt, should be 3
       bad = HllSketch.heapify(wmem);
       fail();
     } catch (SketchesArgumentException e) { /* OK */ }
-    insertPreInts(memObj, memAdd, 3); //corrected
+    insertPreInts(wmem, 3); //corrected
 
     //move to HLL mode
     for (int i = 15; i <= 1000; i++) { sk.update(i); }
@@ -153,11 +152,11 @@ public class PreambleUtilTest {
 
     //check wrong PreInts and HLL
     try {
-      insertPreInts(memObj, memAdd, 2); //corrupt, should be 10
+      insertPreInts(wmem, 2); //corrupt, should be 10
       bad = HllSketch.heapify(wmem);
       fail();
     } catch (SketchesArgumentException e) { /* OK */ }
-    insertPreInts(memObj, memAdd, 10); //corrected
+    insertPreInts(wmem, 10); //corrected
   }
 
   @SuppressWarnings("unused")
