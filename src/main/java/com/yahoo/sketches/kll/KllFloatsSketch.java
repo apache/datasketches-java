@@ -775,6 +775,10 @@ public class KllFloatsSketch {
     return new KllFloatsSketch(mem);
   }
 
+  public KllFloatsSketchIterator iterator() {
+    return new KllFloatsSketchIterator(items_, levels_, numLevels_);
+  }
+
   /**
    * Checks the validity of the given value k
    * @param k must be greater than 7 and less than 65536.

@@ -649,6 +649,10 @@ public final class ItemsSketch<T> {
     dstMem.putByteArray(0, byteArr, 0, byteArr.length);
   }
 
+  public ItemsSketchIterator<T> iterator() {
+    return new ItemsSketchIterator<T>(this, bitPattern_);
+  }
+
   // Restricted
 
   /**

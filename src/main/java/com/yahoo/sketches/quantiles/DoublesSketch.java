@@ -688,6 +688,10 @@ public abstract class DoublesSketch {
     }
   }
 
+  public DoublesSketchIterator iterator() {
+    return new DoublesSketchIterator(this, getBitPattern());
+  }
+
   //Restricted
 
   /*
