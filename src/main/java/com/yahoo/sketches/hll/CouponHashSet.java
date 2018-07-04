@@ -20,7 +20,6 @@ import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
 import static com.yahoo.sketches.hll.PreambleUtil.extractTgtHllType;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesStateException;
 
 /**
@@ -58,22 +57,19 @@ class CouponHashSet extends CouponList {
 
   //will also accept List, but results in a Set
   static final CouponHashSet heapifySet(final Memory mem) {
-    final Object memObj = ((WritableMemory) mem).getArray();
-    final long memAdd = mem.getCumulativeOffset(0);
-
-    final int lgConfigK = extractLgK(memObj, memAdd);
-    final TgtHllType tgtHllType = extractTgtHllType(memObj, memAdd);
-    final int lgCouponArrInts = extractLgArr(memObj, memAdd);
-    final CurMode curMode = extractCurMode(memObj, memAdd);
+    final int lgConfigK = extractLgK(mem);
+    final TgtHllType tgtHllType = extractTgtHllType(mem);
+    final int lgCouponArrInts = extractLgArr(mem);
+    final CurMode curMode = extractCurMode(mem);
     final int memArrStart = (curMode == CurMode.LIST) ? LIST_INT_ARR_START : HASH_SET_INT_ARR_START;
 
     final CouponHashSet set = new CouponHashSet(lgConfigK, tgtHllType);
     set.putOutOfOrderFlag(true);
-    final boolean memIsCompact = extractCompactFlag(memObj, memAdd);
-    final int couponCount = extractHashSetCount(memObj, memAdd);
+    final boolean memIsCompact = extractCompactFlag(mem);
+    final int couponCount = extractHashSetCount(mem);
     if (memIsCompact) {
       for (int i = 0; i < couponCount; i++) {
-        final int coupon = extractInt(memObj, memAdd, memArrStart + (i << 2));
+        final int coupon = extractInt(mem, memArrStart + (i << 2));
         if (coupon == EMPTY) { continue; }
         set.couponUpdate(coupon);
       }

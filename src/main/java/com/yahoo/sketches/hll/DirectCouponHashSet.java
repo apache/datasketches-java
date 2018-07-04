@@ -59,12 +59,12 @@ class DirectCouponHashSet extends DirectCouponList {
   HllSketchImpl couponUpdate(final int coupon) {
     if (wmem == null) { noWriteAccess(); }
     //avoid array copy
-    final int index = find(memObj, memAdd, getLgCouponArrInts(), coupon);
+    final int index = find(mem, getLgCouponArrInts(), coupon);
     if (index >= 0) {
       return this; //found duplicate, ignore
     }
-    insertInt(memObj, memAdd, HASH_SET_INT_ARR_START + (~index << 2), coupon);
-    insertHashSetCount(memObj, memAdd, getCouponCount() + 1);
+    insertInt(wmem, HASH_SET_INT_ARR_START + (~index << 2), coupon);
+    insertHashSetCount(wmem, getCouponCount() + 1);
     final boolean promote = checkGrowOrPromote();
     if (!promote) { return this; }
     return promoteListOrSetToHll(this);
@@ -72,7 +72,7 @@ class DirectCouponHashSet extends DirectCouponList {
 
   @Override
   int getCouponCount() {
-    return extractHashSetCount(memObj, memAdd);
+    return extractHashSetCount(mem);
   }
 
   @Override
@@ -92,19 +92,18 @@ class DirectCouponHashSet extends DirectCouponList {
         return true; // promote
       }
       //TODO if direct, ask for more memory
-      insertLgArr(memObj, memAdd, ++lgCouponArrInts);
-      growHashSet(wmem, memObj, memAdd, lgCouponArrInts);
+      insertLgArr(wmem, ++lgCouponArrInts);
+      growHashSet(wmem, lgCouponArrInts);
     }
     return false;
   }
 
-  private static final void growHashSet(final WritableMemory wmem, final Object memObj,
-      final long memAdd, final int tgtLgCouponArrSize) {
+  private static final void growHashSet(final WritableMemory wmem, final int tgtLgCouponArrSize) {
     final int tgtArrSize = 1 << tgtLgCouponArrSize;
     final int[] tgtCouponIntArr = new int[tgtArrSize];
-    final int oldLen = 1 << extractLgArr(memObj, memAdd);
+    final int oldLen = 1 << extractLgArr(wmem);
     for (int i = 0; i < oldLen; i++) {
-      final int fetched = extractInt(memObj, memAdd, HASH_SET_INT_ARR_START + (i << 2));
+      final int fetched = extractInt(wmem, HASH_SET_INT_ARR_START + (i << 2));
       if (fetched != EMPTY) {
         final int idx = find(tgtCouponIntArr, tgtLgCouponArrSize, fetched);
         if (idx < 0) { //found EMPTY
@@ -124,13 +123,13 @@ class DirectCouponHashSet extends DirectCouponList {
   //If entry equals given coupon, returns its index = found duplicate coupon
   //Continues searching
   //If the probe comes back to original index, throws an exception.
-  private static final int find(final Object memObj, final long memAdd, final int lgArr,
+  private static final int find(final Memory mem, final int lgArr,
       final int coupon) {
     final int arrMask = (1 << lgArr) - 1;
     int probe = coupon & arrMask;
     final int loopIndex = probe;
     do {
-      final int couponAtIndex = extractInt(memObj, memAdd, HASH_SET_INT_ARR_START + (probe << 2));
+      final int couponAtIndex = extractInt(mem, HASH_SET_INT_ARR_START + (probe << 2));
       if (couponAtIndex == EMPTY) { return ~probe; } //empty
       else if (coupon == couponAtIndex) { return probe; } //duplicate
       final int stride = ((coupon & KEY_MASK_26) >>> lgArr) | 1;

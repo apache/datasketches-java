@@ -19,7 +19,6 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 
 import com.yahoo.memory.WritableMemory;
-
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.Family;
 
@@ -44,10 +43,8 @@ final class ItemsByteArrayImpl {
     if (empty) {
       final byte[] outByteArr = new byte[Long.BYTES];
       final WritableMemory memOut = WritableMemory.wrap(outByteArr);
-      final Object memObj = memOut.getArray();
-      final long memAdd = memOut.getCumulativeOffset(0L);
       final int preLongs = 1;
-      insertPre0(memObj, memAdd, preLongs, flags, sketch.getK());
+      insertPre0(memOut, preLongs, flags, sketch.getK());
       return outByteArr;
     }
 
@@ -59,11 +56,10 @@ final class ItemsByteArrayImpl {
     final int numOutBytes = (preLongs << 3) + itemsByteArr.length;
     final byte[] outByteArr = new byte[numOutBytes];
     final WritableMemory memOut = WritableMemory.wrap(outByteArr);
-    final long cumOffset = memOut.getCumulativeOffset(0L);
 
     //insert preamble
-    insertPre0(outByteArr, cumOffset, preLongs, flags, sketch.getK());
-    insertN(outByteArr, cumOffset, sketch.getN());
+    insertPre0(memOut, preLongs, flags, sketch.getK());
+    insertN(memOut, sketch.getN());
 
     //insert data
     memOut.putByteArray(preLongs << 3, itemsByteArr, 0, itemsByteArr.length);
@@ -111,13 +107,13 @@ final class ItemsByteArrayImpl {
     return outArr;
   }
 
-  private static void insertPre0(final Object memObj, final long memAdd,
+  private static void insertPre0(final WritableMemory wmem,
       final int preLongs, final int flags, final int k) {
-    insertPreLongs(memObj, memAdd, preLongs);
-    insertSerVer(memObj, memAdd, ItemsUtil.ITEMS_SER_VER);
-    insertFamilyID(memObj, memAdd, Family.QUANTILES.getID());
-    insertFlags(memObj, memAdd, flags);
-    insertK(memObj, memAdd, k);
+    insertPreLongs(wmem, preLongs);
+    insertSerVer(wmem, ItemsUtil.ITEMS_SER_VER);
+    insertFamilyID(wmem, Family.QUANTILES.getID());
+    insertFlags(wmem, flags);
+    insertK(wmem, k);
   }
 
 }

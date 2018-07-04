@@ -120,8 +120,6 @@ public class VarOptItemsSketchTest {
     // we'll use the same initial sketch a few times, so grab a copy of it
     final byte[] copyBytes = new byte[sketchBytes.length];
     final WritableMemory mem = WritableMemory.wrap(copyBytes);
-    final Object memObj = mem.getArray(); // may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
 
     // copy the bytes
     srcMem.copyTo(0, mem, 0, sketchBytes.length);
@@ -129,7 +127,7 @@ public class VarOptItemsSketchTest {
 
     // no items in R but max preLongs
     try {
-      PreambleUtil.insertPreLongs(memObj, memAddr, Family.VAROPT.getMaxPreLongs());
+      PreambleUtil.insertPreLongs(mem, Family.VAROPT.getMaxPreLongs());
       VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
       fail();
     } catch (final SketchesArgumentException e) {
@@ -143,7 +141,7 @@ public class VarOptItemsSketchTest {
 
     // negative H region count
     try {
-      PreambleUtil.insertHRegionItemCount(memObj, memAddr, -1);
+      PreambleUtil.insertHRegionItemCount(mem, -1);
       VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
       fail();
     } catch (final SketchesArgumentException e) {
@@ -156,7 +154,7 @@ public class VarOptItemsSketchTest {
 
     // negative R region count
     try {
-      PreambleUtil.insertRRegionItemCount(memObj, memAddr, -128);
+      PreambleUtil.insertRRegionItemCount(mem, -128);
       VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
       fail();
     } catch (final SketchesArgumentException e) {
@@ -169,7 +167,7 @@ public class VarOptItemsSketchTest {
 
     // invalid k < 1
     try {
-      PreambleUtil.insertK(memObj, memAddr, 0);
+      PreambleUtil.insertK(mem, 0);
       VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
       fail();
     } catch (final SketchesArgumentException e) {
@@ -182,7 +180,7 @@ public class VarOptItemsSketchTest {
 
     // invalid n < 0
     try {
-      PreambleUtil.insertN(memObj, memAddr, -1024);
+      PreambleUtil.insertN(mem, -1024);
       VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
       fail();
     } catch (final SketchesArgumentException e) {
@@ -227,11 +225,9 @@ public class VarOptItemsSketchTest {
     mem.putByteArray(0, sketchBytes, 0, sketchBytes.length);
 
     // ensure non-empty but with H and R region sizes set to 0
-    final Object memObj = mem.getArray(); // may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
-    PreambleUtil.insertFlags(memObj, memAddr, 0); // set not-empty
-    PreambleUtil.insertHRegionItemCount(memObj, memAddr, 0);
-    PreambleUtil.insertRRegionItemCount(memObj, memAddr, 0);
+    PreambleUtil.insertFlags(mem, 0); // set not-empty
+    PreambleUtil.insertHRegionItemCount(mem, 0);
+    PreambleUtil.insertRRegionItemCount(mem, 0);
 
     final VarOptItemsSketch<String> rebuilt
             = VarOptItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
@@ -374,7 +370,7 @@ public class VarOptItemsSketchTest {
     // checking weights(0), assuming all k items are unweighted (and consequently in R)
     // Expected: (k + 2) / |R| = (k+2) / k
     final VarOptItemsSamples<Long> samples = sketch.getSketchSamples();
-    final double wtDiff = samples.weights(0) - 1.0 * (k + 2) / k;
+    final double wtDiff = samples.weights(0) - ((1.0 * (k + 2)) / k);
     assertTrue(Math.abs(wtDiff) < EPS);
   }
 
@@ -399,11 +395,11 @@ public class VarOptItemsSketchTest {
 
     // Don't know which R item is left, but should be only one at the end of the array
     // Expected: k+1 + (min "heavy" item) / |R| = ((k+1) + (k+wtScale)) / 1 = wtScale + 2k + 1
-    double wtDiff = weights[k - 1] - 1.0 * (wtScale + 2 * k + 1);
+    double wtDiff = weights[k - 1] - (1.0 * (wtScale + (2 * k) + 1));
     assertTrue(Math.abs(wtDiff) < EPS);
 
     // Expected: 2nd lightest "heavy" item: k + 2*wtScale
-    wtDiff = weights[0] - 1.0 * (k + 2 * wtScale);
+    wtDiff = weights[0] - (1.0 * (k + (2 * wtScale)));
     assertTrue(Math.abs(wtDiff) < EPS);
   }
 
@@ -505,7 +501,7 @@ public class VarOptItemsSketchTest {
 
     // strip marks and try again
     sketch.stripMarks();
-    for (int i = 0; i < 2 * k; ++i) {
+    for (int i = 0; i < (2 * k); ++i) {
       sketch.update("a", 100.0 + i);
     }
 
@@ -537,7 +533,7 @@ public class VarOptItemsSketchTest {
 
     // add items, keeping in exact mode
     double totalWeight = 0.0;
-    for (long i = 1; i <= k - 1; ++i) {
+    for (long i = 1; i <= (k - 1); ++i) {
       sketch.update(i, 1.0 * i);
       totalWeight += 1.0 * i;
     }
@@ -549,7 +545,7 @@ public class VarOptItemsSketchTest {
     assertEquals(ss.getTotalSketchWeight(), totalWeight);
 
     // add a few more items, pushing to sampling mode
-    for (long i = k; i <= k + 1; ++i) {
+    for (long i = k; i <= (k + 1); ++i) {
       sketch.update(i, 1.0 * i);
       totalWeight += 1.0 * i;
     }
@@ -570,7 +566,7 @@ public class VarOptItemsSketchTest {
 
     // finally, a non-degenerate predicate
     // insert negative items with identical weights, filter for negative weights only
-    for (long i = 1; i <= k + 1; ++i) {
+    for (long i = 1; i <= (k + 1); ++i) {
       sketch.update(-i, 1.0 * i);
       totalWeight += 1.0 * i;
     }
@@ -587,7 +583,7 @@ public class VarOptItemsSketchTest {
     // for good measure, test a different type
     final VarOptItemsSketch<Boolean> boolSketch = VarOptItemsSketch.newInstance(k);
     totalWeight = 0.0;
-    for (int i = 1; i <= k - 1; ++i) {
+    for (int i = 1; i <= (k - 1); ++i) {
       boolSketch.update((i % 2) == 0, 1.0 * i);
       totalWeight += i;
     }

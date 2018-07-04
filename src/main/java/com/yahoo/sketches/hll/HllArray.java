@@ -235,14 +235,13 @@ abstract class HllArray extends AbstractHllArray {
 
 
   //used by heapify by all Heap HLL
-  static final void extractCommonHll(final Memory srcMem, final Object memArr,
-      final long memAdd, final HllArray hllArray) {
-    hllArray.putOutOfOrderFlag(extractOooFlag(memArr, memAdd));
-    hllArray.putCurMin(extractCurMin(memArr, memAdd));
-    hllArray.putHipAccum(extractHipAccum(memArr, memAdd));
-    hllArray.putKxQ0(extractKxQ0(memArr, memAdd));
-    hllArray.putKxQ1(extractKxQ1(memArr, memAdd));
-    hllArray.putNumAtCurMin(extractNumAtCurMin(memArr, memAdd));
+  static final void extractCommonHll(final Memory srcMem, final HllArray hllArray) {
+    hllArray.putOutOfOrderFlag(extractOooFlag(srcMem));
+    hllArray.putCurMin(extractCurMin(srcMem));
+    hllArray.putHipAccum(extractHipAccum(srcMem));
+    hllArray.putKxQ0(extractKxQ0(srcMem));
+    hllArray.putKxQ1(extractKxQ1(srcMem));
+    hllArray.putNumAtCurMin(extractNumAtCurMin(srcMem));
 
     //load Hll array
     srcMem.getByteArray(HLL_BYTE_ARR_START, hllArray.hllByteArr, 0, hllArray.hllByteArr.length);

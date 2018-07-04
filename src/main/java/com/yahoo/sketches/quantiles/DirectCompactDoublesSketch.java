@@ -66,25 +66,22 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
     final long n = sketch.getN();
     checkDirectMemCapacity(k, n, memCap);
 
-    final Object memObj = dstMem.getArray();
-    final long memAdd = dstMem.getCumulativeOffset(0L);
-
     //initialize dstMem
     dstMem.putLong(0, 0L); //clear pre0
-    insertPreLongs(memObj, memAdd, 2);
-    insertSerVer(memObj, memAdd, DoublesSketch.DOUBLES_SER_VER);
-    insertFamilyID(memObj, memAdd, Family.QUANTILES.getID());
-    insertK(memObj, memAdd, k);
+    insertPreLongs(dstMem, 2);
+    insertSerVer(dstMem, DoublesSketch.DOUBLES_SER_VER);
+    insertFamilyID(dstMem, Family.QUANTILES.getID());
+    insertK(dstMem, k);
 
     final int flags = COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK; // true for all compact sketches
 
     if (sketch.isEmpty()) {
-      insertFlags(memObj, memAdd, flags | EMPTY_FLAG_MASK);
+      insertFlags(dstMem, flags | EMPTY_FLAG_MASK);
     } else {
-      insertFlags(memObj, memAdd, flags);
-      insertN(memObj, memAdd, n);
-      insertMinDouble(memObj, memAdd, sketch.getMinValue());
-      insertMaxDouble(memObj, memAdd, sketch.getMaxValue());
+      insertFlags(dstMem, flags);
+      insertN(dstMem, n);
+      insertMinDouble(dstMem, sketch.getMinValue());
+      insertMaxDouble(dstMem, sketch.getMaxValue());
 
       final int bbCount = computeBaseBufferItems(k, n);
 

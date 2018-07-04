@@ -192,12 +192,10 @@ class IntersectionImplR extends Intersection {
     empty_ = false;
     hashTable_ = null;
     if (mem_ != null) {
-      final Object memObj = mem_.getArray(); //may be null
-      final long memAdd = mem_.getCumulativeOffset(0);
-      insertLgArrLongs(memObj, memAdd, lgArrLongs_); //make sure
-      insertCurCount(memObj, memAdd, -1);
-      insertThetaLong(memObj, memAdd, Long.MAX_VALUE);
-      clearEmpty(memObj, memAdd);
+      insertLgArrLongs(mem_, lgArrLongs_); //make sure
+      insertCurCount(mem_, -1);
+      insertThetaLong(mem_, Long.MAX_VALUE);
+      clearEmpty(mem_);
     }
   }
 

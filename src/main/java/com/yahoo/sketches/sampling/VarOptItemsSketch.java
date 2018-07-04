@@ -536,24 +536,20 @@ public final class VarOptItemsSketch<T> {
     final byte[] outArr = new byte[outBytes];
     final WritableMemory mem = WritableMemory.wrap(outArr);
 
-    final Object memObj = mem.getArray(); // may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
-
     // build first preLong
-    PreambleUtil.insertPreLongs(memObj, memAddr, preLongs);               // Byte 0
-    PreambleUtil.insertLgResizeFactor(memObj, memAddr, rf_.lg());
-    PreambleUtil.insertSerVer(memObj, memAddr, SER_VER);                  // Byte 1
-    PreambleUtil.insertFamilyID(memObj, memAddr, Family.VAROPT.getID());  // Byte 2
-    PreambleUtil.insertFlags(memObj, memAddr, flags);                     // Byte 3
-    PreambleUtil.insertK(memObj, memAddr, k_);                            // Bytes 4-7
-
+    PreambleUtil.insertPreLongs(mem, preLongs);               // Byte 0
+    PreambleUtil.insertLgResizeFactor(mem, rf_.lg());
+    PreambleUtil.insertSerVer(mem, SER_VER);                  // Byte 1
+    PreambleUtil.insertFamilyID(mem, Family.VAROPT.getID());  // Byte 2
+    PreambleUtil.insertFlags(mem, flags);                     // Byte 3
+    PreambleUtil.insertK(mem, k_);                            // Bytes 4-7
 
     if (!empty) {
-      PreambleUtil.insertN(memObj, memAddr, n_);                          // Bytes 8-15
-      PreambleUtil.insertHRegionItemCount(memObj, memAddr, h_);           // Bytes 16-19
-      PreambleUtil.insertRRegionItemCount(memObj, memAddr, r_);           // Bytes 20-23
+      PreambleUtil.insertN(mem, n_);                                      // Bytes 8-15
+      PreambleUtil.insertHRegionItemCount(mem, h_);           // Bytes 16-19
+      PreambleUtil.insertRRegionItemCount(mem, r_);           // Bytes 20-23
       if (r_ > 0) {
-        PreambleUtil.insertTotalRWeight(memObj, memAddr, totalWtR_);      // Bytes 24-31
+        PreambleUtil.insertTotalRWeight(mem, totalWtR_);      // Bytes 24-31
       }
 
       // write the first h_ weights

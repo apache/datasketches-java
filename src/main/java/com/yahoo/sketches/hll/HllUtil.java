@@ -16,7 +16,6 @@ import static java.lang.Math.log;
 import static java.lang.Math.sqrt;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -80,12 +79,10 @@ final class HllUtil {
   }
 
   static CurMode checkPreamble(final Memory mem) {
-    final Object memObj = ((WritableMemory) mem).getArray();
-    final long memAdd = mem.getCumulativeOffset(0L);
-    final int preInts = extractPreInts(memObj, memAdd);
-    final int serVer = extractSerVer(memObj, memAdd);
-    final int famId = extractFamilyId(memObj, memAdd);
-    final CurMode curMode = extractCurMode(memObj, memAdd);
+    final int preInts = extractPreInts(mem);
+    final int serVer = extractSerVer(mem);
+    final int famId = extractFamilyId(mem);
+    final CurMode curMode = extractCurMode(mem);
     if (
       (famId != Family.HLL.getID())
       || (serVer != 1)

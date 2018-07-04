@@ -75,16 +75,14 @@ class CouponList extends AbstractCoupons {
   }
 
   static final CouponList heapifyList(final Memory mem) {
-    final Object memArr = ((WritableMemory) mem).getArray();
-    final long memAdd = mem.getCumulativeOffset(0);
-    final int lgConfigK = extractLgK(memArr, memAdd);
-    final TgtHllType tgtHllType = extractTgtHllType(memArr, memAdd);
+    final int lgConfigK = extractLgK(mem);
+    final TgtHllType tgtHllType = extractTgtHllType(mem);
 
     final CouponList list = new CouponList(lgConfigK, tgtHllType, CurMode.LIST);
-    final int couponCount = extractListCount(memArr, memAdd);
+    final int couponCount = extractListCount(mem);
     mem.getIntArray(LIST_INT_ARR_START, list.couponIntArr, 0, couponCount);
     list.couponCount = couponCount;
-    list.putOutOfOrderFlag(extractOooFlag(memArr, memAdd));
+    list.putOutOfOrderFlag(extractOooFlag(mem));
     return list;
   }
 

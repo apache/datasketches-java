@@ -544,10 +544,8 @@ public class HeapQuickSelectSketchTest {
     for (int i = 0; i < k; i++) { s1.update(i); }
     byte[] badArray = s1.toByteArray();
     WritableMemory mem = WritableMemory.wrap(badArray);
-    Object memObj = mem.getArray();
-    long memAdd = mem.getCumulativeOffset(0L);
-    PreambleUtil.insertLgArrLongs(memObj, memAdd, 4);
-    PreambleUtil.insertThetaLong(memObj, memAdd, Long.MAX_VALUE / 2);
+    PreambleUtil.insertLgArrLongs(mem, 4);
+    PreambleUtil.insertThetaLong(mem, Long.MAX_VALUE / 2);
     Sketch.heapify(mem);
   }
 
@@ -601,7 +599,7 @@ public class HeapQuickSelectSketchTest {
     }
 
     // force ResizeFactor.X1, but allocated capacity too small
-    insertLgResizeFactor(mem.getArray(), mem.getCumulativeOffset(0L), ResizeFactor.X1.lg());
+    insertLgResizeFactor(mem, ResizeFactor.X1.lg());
     UpdateSketch hqss = HeapQuickSelectSketch.heapifyInstance(mem, DEFAULT_UPDATE_SEED);
     assertEquals(hqss.getResizeFactor(), ResizeFactor.X2); // force-promote to X2
   }

@@ -38,8 +38,14 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
-    for (int i=0; i<u/2; i++) usk1.update(i); //256
-    for (int i=u/2; i<u; i++) usk2.update(i); //256 no overlap
+    for (int i=0; i<(u/2); i++)
+     {
+      usk1.update(i); //256
+    }
+    for (int i=u/2; i<u; i++)
+     {
+      usk2.update(i); //256 no overlap
+    }
 
     assertEquals(u, usk1.getEstimate() + usk2.getEstimate(), 0.0); //exact, no overlap
 
@@ -61,8 +67,14 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
-    for (int i=0; i<u/2; i++) usk1.update(i); //2*k
-    for (int i=u/2; i<u; i++) usk2.update(i); //2*k no overlap
+    for (int i=0; i<(u/2); i++)
+     {
+      usk1.update(i); //2*k
+    }
+    for (int i=u/2; i<u; i++)
+     {
+      usk2.update(i); //2*k no overlap
+    }
 
     WritableMemory uMem = WritableMemory.wrap(new byte[getMaxUnionBytes(k)]);
     Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uMem);
@@ -82,10 +94,16 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
-    for (int i=0; i<u/2; i++) usk1.update(i); //256
-    for (int i=0; i<u  ; i++) usk2.update(i); //512, 256 overlapped
+    for (int i=0; i<(u/2); i++)
+     {
+      usk1.update(i); //256
+    }
+    for (int i=0; i<u  ; i++)
+     {
+      usk2.update(i); //512, 256 overlapped
+    }
 
-    assertEquals(u, usk1.getEstimate() + usk2.getEstimate()/2, 0.0); //exact, overlapped
+    assertEquals(u, usk1.getEstimate() + (usk2.getEstimate()/2), 0.0); //exact, overlapped
 
     WritableMemory uMem = WritableMemory.wrap(new byte[getMaxUnionBytes(k)]);
     Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uMem);
@@ -105,8 +123,14 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
-    for (int i=0; i<u/2; i++) usk1.update(i); //256
-    for (int i=u/2; i<u; i++) usk2.update(i); //256 no overlap
+    for (int i=0; i<(u/2); i++)
+     {
+      usk1.update(i); //256
+    }
+    for (int i=u/2; i<u; i++)
+     {
+      usk2.update(i); //256 no overlap
+    }
 
     assertEquals(u, usk1.getEstimate() + usk2.getEstimate(), 0.0); //exact, no overlap
 
@@ -133,8 +157,14 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
-    for (int i=0; i<u/2; i++) usk1.update(i); //256
-    for (int i=u/2; i<u; i++) usk2.update(i); //256 no overlap
+    for (int i=0; i<(u/2); i++)
+     {
+      usk1.update(i); //256
+    }
+    for (int i=u/2; i<u; i++)
+     {
+      usk2.update(i); //256 no overlap
+    }
 
     assertEquals(u, usk1.getEstimate() + usk2.getEstimate(), 0.0); //exact, no overlap
 
@@ -160,8 +190,14 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();   //2k estimating
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(2 * k).build(); //2k exact
 
-    for (int i=0; i<u/2; i++) usk1.update(i); //2k
-    for (int i=u/2; i<u; i++) usk2.update(i); //2k no overlap, exact
+    for (int i=0; i<(u/2); i++)
+     {
+      usk1.update(i); //2k
+    }
+    for (int i=u/2; i<u; i++)
+     {
+      usk2.update(i); //2k no overlap, exact
+    }
 
     WritableMemory uMem = WritableMemory.wrap(new byte[getMaxUnionBytes(k)]);
     Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uMem);
@@ -185,8 +221,14 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();   //2k estimating
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(2 * k).build(); //2k exact for early stop test
 
-    for (int i=0; i<u/2; i++) usk1.update(i); //2k estimating
-    for (int i=u/2; i<u; i++) usk2.update(i); //2k no overlap, exact, will force early stop
+    for (int i=0; i<(u/2); i++)
+     {
+      usk1.update(i); //2k estimating
+    }
+    for (int i=u/2; i<u; i++)
+     {
+      usk2.update(i); //2k no overlap, exact, will force early stop
+    }
 
     CompactSketch cosk2 = usk2.compact(true, null);
 
@@ -220,8 +262,14 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build(); //2k estimating
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(2 * k).build(); //2k exact for early stop test
 
-    for (int i=0; i<u/2; i++) usk1.update(i); //2k estimating
-    for (int i=u/2; i<u; i++) usk2.update(i);  //2k no overlap, exact, will force early stop
+    for (int i=0; i<(u/2); i++)
+     {
+      usk1.update(i); //2k estimating
+    }
+    for (int i=u/2; i<u; i++)
+     {
+      usk2.update(i);  //2k no overlap, exact, will force early stop
+    }
 
     WritableMemory cskMem2 = WritableMemory.wrap(new byte[usk2.getCurrentBytes(true)]);
     CompactSketch cosk2 = usk2.compact(true, cskMem2); //ordered, loads the cskMem2 as ordered
@@ -256,8 +304,14 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();   //2k estimating
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(2 * k).build(); //2k exact for early stop test
 
-    for (int i=0; i<u/2; i++) usk1.update(i);  //2k estimating
-    for (int i=u/2; i<u; i++) usk2.update(i);  //2k no overlap, exact, will force early stop
+    for (int i=0; i<(u/2); i++)
+     {
+      usk1.update(i);  //2k estimating
+    }
+    for (int i=u/2; i<u; i++)
+     {
+      usk2.update(i);  //2k no overlap, exact, will force early stop
+    }
 
     WritableMemory cskMem2 = WritableMemory.wrap(new byte[usk2.getCurrentBytes(true)]);
     usk2.compact(true, cskMem2); //ordered, loads the cskMem2 as ordered
@@ -292,8 +346,14 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();   //2k estimating
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(2 * k).build(); //2k exact for early stop test
 
-    for (int i=0; i<u/2; i++) usk1.update(i);  //2k estimating
-    for (int i=u/2; i<u; i++) usk2.update(i);  //2k no overlap, exact, will force early stop
+    for (int i=0; i<(u/2); i++)
+     {
+      usk1.update(i);  //2k estimating
+    }
+    for (int i=u/2; i<u; i++)
+     {
+      usk2.update(i);  //2k no overlap, exact, will force early stop
+    }
 
     WritableMemory cskMem2 = WritableMemory.wrap(new byte[usk2.getCurrentBytes(true)]);
     usk2.compact(false, cskMem2); //unordered, loads the cskMem2 as unordered
@@ -331,14 +391,22 @@ public class DirectUnionTest {
 
     int v=0;
     int u = 1000000;
-    for (int i=0; i<u; i++) usk1.update(i+v);
+    for (int i=0; i<u; i++) {
+      usk1.update(i+v);
+    }
     v += u;
     u = 26797;
-    for (int i=0; i<u; i++) usk2.update(i+v);
+    for (int i=0; i<u; i++) {
+      usk2.update(i+v);
+    }
     v += u;
-    for (int i=0; i<u; i++) usk3.update(i+v);
+    for (int i=0; i<u; i++) {
+      usk3.update(i+v);
+    }
     v += u;
-    for (int i=0; i<u; i++) usk4.update(i+v);
+    for (int i=0; i<u; i++) {
+      usk4.update(i+v);
+    }
     v += u;
 
     WritableMemory uMem = WritableMemory.wrap(new byte[getMaxUnionBytes(k)]); //union memory
@@ -365,8 +433,14 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
-    for (int i=0; i<u1; i++) usk1.update(i); //2*k
-    for (int i=u1; i<totU; i++) usk2.update(i); //2*k + 1024 no overlap
+    for (int i=0; i<u1; i++)
+     {
+      usk1.update(i); //2*k
+    }
+    for (int i=u1; i<totU; i++)
+     {
+      usk2.update(i); //2*k + 1024 no overlap
+    }
 
     Memory skMem1 = Memory.wrap(usk1.compact(false, null).toByteArray());
     Memory skMem2 = Memory.wrap(usk2.compact(true, null).toByteArray());
@@ -395,8 +469,14 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
-    for (int i=0; i<u1; i++) usk1.update(i); //2*k
-    for (int i=u1; i<totU; i++) usk2.update(i); //2*k + 1024 no overlap
+    for (int i=0; i<u1; i++)
+     {
+      usk1.update(i); //2*k
+    }
+    for (int i=u1; i<totU; i++)
+     {
+      usk2.update(i); //2*k + 1024 no overlap
+    }
 
     WritableMemory skMem1 = WritableMemory.wrap(usk1.compact(true, null).toByteArray());
     WritableMemory skMem2 = WritableMemory.wrap(usk2.compact(true, null).toByteArray());
@@ -425,8 +505,14 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
-    for (int i=0; i<u1; i++) usk1.update(i); //2*k
-    for (int i=u1; i<totU; i++) usk2.update(i); //2*k + 1024 no overlap
+    for (int i=0; i<u1; i++)
+     {
+      usk1.update(i); //2*k
+    }
+    for (int i=u1; i<totU; i++)
+     {
+      usk2.update(i); //2*k + 1024 no overlap
+    }
 
     WritableMemory skMem1 = WritableMemory.wrap(usk1.compact(true, null).toByteArray());
     WritableMemory skMem2 = WritableMemory.wrap(usk2.compact(true, null).toByteArray());
@@ -490,7 +576,10 @@ public class DirectUnionTest {
     int u = 2*k;
 
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=0; i<u; i++) usk1.update(i); //force prelongs to 3
+    for (int i=0; i<u; i++)
+     {
+      usk1.update(i); //force prelongs to 3
+    }
     CompactSketch usk1c = usk1.compact(true, null);
     WritableMemory v3mem1 = WritableMemory.wrap(usk1c.toByteArray());
 
@@ -656,7 +745,7 @@ public class DirectUnionTest {
   @Test
   public void checkGetFamily() {
     int k = 16;
-    WritableMemory mem = WritableMemory.wrap(new byte[k*16 +32]);
+    WritableMemory mem = WritableMemory.wrap(new byte[(k*16) +32]);
     SetOperation setOp = new SetOperationBuilder().setNominalEntries(k).build(Family.UNION, mem);
     assertEquals(setOp.getFamily(), Family.UNION);
   }
@@ -664,24 +753,22 @@ public class DirectUnionTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkPreambleLongsCorruption() {
     int k = 16;
-    WritableMemory mem = WritableMemory.wrap(new byte[k*16 +32]);
-    Object memObj = mem.getArray(); //may be null
-    long memAdd = mem.getCumulativeOffset(0L);
+    WritableMemory mem = WritableMemory.wrap(new byte[(k*16) +32]);
 
     SetOperation setOp = new SetOperationBuilder().setNominalEntries(k).build(Family.UNION, mem);
     println(setOp.toString());
-    int familyID = PreambleUtil.extractFamilyID(memObj, memAdd);
-    int preLongs = PreambleUtil.extractPreLongs(memObj, memAdd);
+    int familyID = PreambleUtil.extractFamilyID(mem);
+    int preLongs = PreambleUtil.extractPreLongs(mem);
     assertEquals(familyID, Family.UNION.getID());
     assertEquals(preLongs, Family.UNION.getMaxPreLongs());
-    PreambleUtil.insertPreLongs(memObj, memAdd, 3); //Corrupt with 3; correct value is 4
+    PreambleUtil.insertPreLongs(mem, 3); //Corrupt with 3; correct value is 4
     DirectQuickSelectSketch.writableWrap(mem, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkSizeTooSmall() {
     int k = 16;
-    WritableMemory mem = WritableMemory.wrap(new byte[k*16 +32]); //initialized
+    WritableMemory mem = WritableMemory.wrap(new byte[(k*16) +32]); //initialized
     SetOperation setOp = new SetOperationBuilder().setNominalEntries(k).build(Family.UNION, mem);
     println(setOp.toString());
     WritableMemory mem2 = WritableMemory.wrap(new byte[32]); //for just preamble

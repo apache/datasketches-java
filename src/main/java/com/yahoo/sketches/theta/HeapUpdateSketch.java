@@ -89,26 +89,24 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     final int dataBytes = getCurrentDataLongs(false) << 3;
     final byte[] byteArrOut = new byte[preBytes + dataBytes];
     final WritableMemory memOut = WritableMemory.wrap(byteArrOut);
-    final Object memObj = memOut.getArray(); //may be null
-    final long memAdd = memOut.getCumulativeOffset(0L);
 
     //preamble first 8 bytes. Note: only compact can be reduced to 8 bytes.
     final int lgRf = getResizeFactor().lg() & 0x3;
-    insertPreLongs(memObj, memAdd, preLongs);
-    insertLgResizeFactor(memObj, memAdd, lgRf);
-    insertSerVer(memObj, memAdd, SER_VER);
-    insertFamilyID(memObj, memAdd, familyID);
-    insertLgNomLongs(memObj, memAdd, getLgNomLongs());
-    insertLgArrLongs(memObj, memAdd, getLgArrLongs());
-    insertSeedHash(memObj, memAdd, getSeedHash());
+    insertPreLongs(memOut, preLongs);
+    insertLgResizeFactor(memOut, lgRf);
+    insertSerVer(memOut, SER_VER);
+    insertFamilyID(memOut, familyID);
+    insertLgNomLongs(memOut, getLgNomLongs());
+    insertLgArrLongs(memOut, getLgArrLongs());
+    insertSeedHash(memOut, getSeedHash());
 
-    insertCurCount(memObj, memAdd, this.getRetainedEntries(true));
-    insertP(memObj, memAdd, getP());
-    insertThetaLong(memObj, memAdd, getThetaLong());
+    insertCurCount(memOut, this.getRetainedEntries(true));
+    insertP(memOut, getP());
+    insertThetaLong(memOut, getThetaLong());
 
     //Flags: BigEnd=0, ReadOnly=0, Empty=X, compact=0, ordered=0
     final byte flags = isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
-    insertFlags(memObj, memAdd, flags);
+    insertFlags(memOut, flags);
 
     //Data
     final int arrLongs = 1 << getLgArrLongs();

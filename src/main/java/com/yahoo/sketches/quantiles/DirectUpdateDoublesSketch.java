@@ -61,21 +61,18 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
     final long memCap = dstMem.getCapacity();
     checkDirectMemCapacity(k, 0, memCap);
 
-    final Object memObj = dstMem.getArray();
-    final long memAdd = dstMem.getCumulativeOffset(0L);
-
     //initialize dstMem
     dstMem.putLong(0, 0L); //clear pre0
-    insertPreLongs(memObj, memAdd, 2);
-    insertSerVer(memObj, memAdd, DoublesSketch.DOUBLES_SER_VER);
-    insertFamilyID(memObj, memAdd, Family.QUANTILES.getID());
-    insertFlags(memObj, memAdd, EMPTY_FLAG_MASK);
-    insertK(memObj, memAdd, k);
+    insertPreLongs(dstMem, 2);
+    insertSerVer(dstMem, DoublesSketch.DOUBLES_SER_VER);
+    insertFamilyID(dstMem, Family.QUANTILES.getID());
+    insertFlags(dstMem, EMPTY_FLAG_MASK);
+    insertK(dstMem, k);
 
     if (memCap >= COMBINED_BUFFER) {
-      insertN(memObj, memAdd, 0L);
-      insertMinDouble(memObj, memAdd, Double.NaN);
-      insertMaxDouble(memObj, memAdd, Double.NaN);
+      insertN(dstMem, 0L);
+      insertMinDouble(dstMem, Double.NaN);
+      insertMaxDouble(dstMem, Double.NaN);
     }
 
     final DirectUpdateDoublesSketch dds = new DirectUpdateDoublesSketch(k);

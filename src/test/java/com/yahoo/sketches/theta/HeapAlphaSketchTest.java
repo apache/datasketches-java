@@ -614,7 +614,7 @@ public class HeapAlphaSketchTest {
     }
 
     // force ResizeFactor.X1, but allocated capacity too small
-    insertLgResizeFactor(mem.getArray(), mem.getCumulativeOffset(0L), ResizeFactor.X1.lg());
+    insertLgResizeFactor(mem, ResizeFactor.X1.lg());
     try {
       HeapAlphaSketch.heapifyInstance(mem, DEFAULT_UPDATE_SEED);
       fail();

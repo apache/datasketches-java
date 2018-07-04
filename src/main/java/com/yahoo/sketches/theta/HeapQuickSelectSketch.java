@@ -102,20 +102,17 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
    * @return instance of this sketch
    */
   static HeapQuickSelectSketch heapifyInstance(final Memory srcMem, final long seed) {
-    final Object memObj = ((WritableMemory)srcMem).getArray(); //may be null
-    final long memAdd = srcMem.getCumulativeOffset(0L);
+    final int preambleLongs = extractPreLongs(srcMem);            //byte 0
+    final int lgNomLongs = extractLgNomLongs(srcMem);             //byte 3
+    final int lgArrLongs = extractLgArrLongs(srcMem);             //byte 4
 
-    final int preambleLongs = extractPreLongs(memObj, memAdd);            //byte 0
-    final int lgNomLongs = extractLgNomLongs(memObj, memAdd);             //byte 3
-    final int lgArrLongs = extractLgArrLongs(memObj, memAdd);             //byte 4
+    checkUnionQuickSelectFamily(srcMem, preambleLongs, lgNomLongs);
+    checkMemIntegrity(srcMem, seed, preambleLongs, lgNomLongs, lgArrLongs);
 
-    checkUnionQuickSelectFamily(memObj, memAdd, preambleLongs, lgNomLongs);
-    checkMemIntegrity(srcMem, memObj, memAdd, seed, preambleLongs, lgNomLongs, lgArrLongs);
-
-    final float p = extractP(memObj, memAdd);                             //bytes 12-15
-    final int lgRF = extractLgResizeFactor(memObj, memAdd);               //byte 0
+    final float p = extractP(srcMem);                             //bytes 12-15
+    final int lgRF = extractLgResizeFactor(srcMem);               //byte 0
     ResizeFactor myRF = ResizeFactor.getRF(lgRF);
-    final int familyID = extractFamilyID(memObj, memAdd);
+    final int familyID = extractFamilyID(srcMem);
     final Family family = Family.idToFamily(familyID);
 
     if ((myRF == ResizeFactor.X1)
@@ -127,9 +124,9 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
         preambleLongs, family);
     hqss.lgArrLongs_ = lgArrLongs;
     hqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
-    hqss.curCount_ = extractCurCount(memObj, memAdd);
-    hqss.thetaLong_ = extractThetaLong(memObj, memAdd);
-    hqss.empty_ = PreambleUtil.isEmpty(memObj, memAdd);
+    hqss.curCount_ = extractCurCount(srcMem);
+    hqss.thetaLong_ = extractThetaLong(srcMem);
+    hqss.empty_ = PreambleUtil.isEmpty(srcMem);
     hqss.cache_ = new long[1 << lgArrLongs];
     srcMem.getLongArray(preambleLongs << 3, hqss.cache_, 0, 1 << lgArrLongs); //read in as hash table
     return hqss;

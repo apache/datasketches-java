@@ -5,11 +5,9 @@
 
 package com.yahoo.sketches.hll;
 
-import static com.yahoo.memory.UnsafeUtil.unsafe;
 import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.WritableMemory;
 
 /**
  * Iterates within a given Memory extracting integer pairs.
@@ -17,8 +15,7 @@ import com.yahoo.memory.WritableMemory;
  * @author Lee Rhodes
  */
 class IntMemoryPairIterator implements PairIterator {
-  final Object memObj;
-  final long memAdd;
+  final Memory mem;
   final long offsetBytes;
   final int lengthPairs;
   final int slotMask;
@@ -27,8 +24,7 @@ class IntMemoryPairIterator implements PairIterator {
 
   IntMemoryPairIterator(final Memory mem, final long offsetBytes, final int lengthPairs,
       final int lgConfigK) {
-    memObj = ((WritableMemory) mem).getArray();
-    memAdd = mem.getCumulativeOffset(0L);
+    this.mem = mem;
     this.offsetBytes = offsetBytes;
     this.lengthPairs = lengthPairs;
     slotMask = (1 << lgConfigK) - 1;
@@ -87,7 +83,7 @@ class IntMemoryPairIterator implements PairIterator {
   }
 
   int pair() {
-    return unsafe.getInt(memObj, memAdd + offsetBytes + (index << 2));
+    return mem.getInt(offsetBytes + (index << 2));
   }
 
 }

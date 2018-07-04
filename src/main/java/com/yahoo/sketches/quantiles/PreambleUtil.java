@@ -5,7 +5,6 @@
 
 package com.yahoo.sketches.quantiles;
 
-import static com.yahoo.memory.UnsafeUtil.unsafe;
 import static com.yahoo.sketches.Family.idToFamily;
 import static com.yahoo.sketches.quantiles.Util.LS;
 import static com.yahoo.sketches.quantiles.Util.computeRetainedItems;
@@ -13,6 +12,7 @@ import static com.yahoo.sketches.quantiles.Util.computeRetainedItems;
 import java.nio.ByteOrder;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 
 //@formatter:off
 
@@ -204,35 +204,35 @@ final class PreambleUtil {
     return mem.getDouble(MAX_DOUBLE);
   }
 
-  static void insertPreLongs(final Object memObj, final long memAdd, final int value) {
-    unsafe.putByte(memObj, memAdd + PREAMBLE_LONGS_BYTE, (byte) value);
+  static void insertPreLongs(final WritableMemory wmem, final int value) {
+    wmem.putByte(PREAMBLE_LONGS_BYTE, (byte) value);
   }
 
-  static void insertSerVer(final Object memObj, final long memAdd, final int value) {
-    unsafe.putByte(memObj, memAdd + SER_VER_BYTE, (byte) value);
+  static void insertSerVer(final WritableMemory wmem, final int value) {
+    wmem.putByte(SER_VER_BYTE, (byte) value);
   }
 
-  static void insertFamilyID(final Object memObj, final long memAdd, final int value) {
-    unsafe.putByte(memObj, memAdd + FAMILY_BYTE, (byte) value);
+  static void insertFamilyID(final WritableMemory wmem, final int value) {
+    wmem.putByte(FAMILY_BYTE, (byte) value);
   }
 
-  static void insertFlags(final Object memObj, final long memAdd, final int value) {
-    unsafe.putByte(memObj, memAdd + FLAGS_BYTE, (byte) value);
+  static void insertFlags(final WritableMemory wmem, final int value) {
+    wmem.putByte(FLAGS_BYTE, (byte) value);
   }
 
-  static void insertK(final Object memObj, final long memAdd, final int value) {
-    unsafe.putShort(memObj, memAdd + K_SHORT, (short) value);
+  static void insertK(final WritableMemory wmem, final int value) {
+    wmem.putShort(K_SHORT, (short) value);
   }
 
-  static void insertN(final Object memObj, final long memAdd, final long value) {
-    unsafe.putLong(memObj, memAdd + N_LONG, value);
+  static void insertN(final WritableMemory wmem, final long value) {
+    wmem.putLong(N_LONG, value);
   }
 
-  static void insertMinDouble(final Object memObj, final long memAdd, final double value) {
-    unsafe.putDouble(memObj, memAdd + MIN_DOUBLE, value);
+  static void insertMinDouble(final WritableMemory wmem, final double value) {
+    wmem.putDouble(MIN_DOUBLE, value);
   }
 
-  static void insertMaxDouble(final Object memObj, final long memAdd, final double value) {
-    unsafe.putDouble(memObj, memAdd + MAX_DOUBLE, value);
+  static void insertMaxDouble(final WritableMemory wmem, final double value) {
+    wmem.putDouble(MAX_DOUBLE, value);
   }
 }

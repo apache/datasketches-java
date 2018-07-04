@@ -38,11 +38,9 @@ class Hll6Array extends HllArray {
   }
 
   static final Hll6Array heapify(final Memory mem) {
-    final Object memObj = ((WritableMemory) mem).getArray();
-    final long memAdd = mem.getCumulativeOffset(0);
-    final int lgConfigK = extractLgK(memObj, memAdd);
+    final int lgConfigK = extractLgK(mem);
     final Hll6Array hll6Array = new Hll6Array(lgConfigK);
-    HllArray.extractCommonHll(mem, memObj, memAdd, hll6Array);
+    HllArray.extractCommonHll(mem, hll6Array);
     return hll6Array;
   }
 

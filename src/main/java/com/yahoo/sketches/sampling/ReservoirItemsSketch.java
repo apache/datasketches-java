@@ -26,7 +26,6 @@ import java.util.function.Predicate;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
-
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
@@ -108,8 +107,8 @@ public final class ReservoirItemsSketch<T> {
       throw new SketchesArgumentException("Instantiating sketch with max size less than array length: "
               + k + " max size, array of length " + data.size());
     }
-    if ((itemsSeen >= k && data.size() < k)
-            || (itemsSeen < k && data.size() < itemsSeen)) {
+    if (((itemsSeen >= k) && (data.size() < k))
+            || ((itemsSeen < k) && (data.size() < itemsSeen))) {
       throw new SketchesArgumentException("Instantiating sketch with too few samples. Items seen: "
               + itemsSeen + ", max reservoir size: " + k
               + ", items array length: " + data.size());
@@ -310,7 +309,7 @@ public final class ReservoirItemsSketch<T> {
       ++itemsSeen_;
       // prob(keep_item) < k / n = reservoirSize_ / itemsSeen_
       // so multiply to get: keep if rand * itemsSeen_ < reservoirSize_
-      if (SamplingUtil.rand.nextDouble() * itemsSeen_ < reservoirSize_) {
+      if ((SamplingUtil.rand.nextDouble() * itemsSeen_) < reservoirSize_) {
         final int newSlot = SamplingUtil.rand.nextInt(reservoirSize_);
         data_.set(newSlot, item);
       }
@@ -445,24 +444,21 @@ public final class ReservoirItemsSketch<T> {
     final byte[] outArr = new byte[outBytes];
     final WritableMemory mem = WritableMemory.wrap(outArr);
 
-    final Object memObj = mem.getArray(); // may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
-
     // Common header elements
-    PreambleUtil.insertPreLongs(memObj, memAddr, preLongs);                  // Byte 0
-    PreambleUtil.insertLgResizeFactor(memObj, memAddr, rf_.lg());
-    PreambleUtil.insertSerVer(memObj, memAddr, SER_VER);                     // Byte 1
-    PreambleUtil.insertFamilyID(memObj, memAddr, Family.RESERVOIR.getID());  // Byte 2
+    PreambleUtil.insertPreLongs(mem, preLongs);                  // Byte 0
+    PreambleUtil.insertLgResizeFactor(mem, rf_.lg());
+    PreambleUtil.insertSerVer(mem, SER_VER);                     // Byte 1
+    PreambleUtil.insertFamilyID(mem, Family.RESERVOIR.getID());  // Byte 2
     if (empty) {
-      PreambleUtil.insertFlags(memObj, memAddr, EMPTY_FLAG_MASK);            // Byte 3
+      PreambleUtil.insertFlags(mem, EMPTY_FLAG_MASK);            // Byte 3
     } else {
-      PreambleUtil.insertFlags(memObj, memAddr,0);
+      PreambleUtil.insertFlags(mem, 0);
     }
-    PreambleUtil.insertK(memObj, memAddr, reservoirSize_);       // Bytes 4-7
+    PreambleUtil.insertK(mem, reservoirSize_);                   // Bytes 4-7
 
     // conditional elements
     if (!empty) {
-      PreambleUtil.insertN(memObj, memAddr, itemsSeen_);
+      PreambleUtil.insertN(mem, itemsSeen_);
 
       // insert the bytearray of serialized samples, offset by the preamble size
       final int preBytes = preLongs << 3;
@@ -519,7 +515,7 @@ public final class ReservoirItemsSketch<T> {
     if (itemsSeen_ < reservoirSize_) {
       return 1.0;
     } else {
-      return (1.0 * itemsSeen_ / reservoirSize_);
+      return ((1.0 * itemsSeen_) / reservoirSize_);
     }
   }
 
@@ -533,7 +529,7 @@ public final class ReservoirItemsSketch<T> {
   T getValueAtPosition(final int pos) {
     if (itemsSeen_ == 0) {
       throw new SketchesArgumentException("Requested element from empty reservoir.");
-    } else if (pos < 0 || pos >= getNumSamples()) {
+    } else if ((pos < 0) || (pos >= getNumSamples())) {
       throw new SketchesArgumentException("Requested position must be between 0 and "
               + getNumSamples() + ", " + "inclusive. Received: " + pos);
     }
@@ -549,7 +545,7 @@ public final class ReservoirItemsSketch<T> {
    * @param pos   The position at which to store the entry
    */
   void insertValueAtPosition(final T value, final int pos) {
-    if (pos < 0 || pos >= getNumSamples()) {
+    if ((pos < 0) || (pos >= getNumSamples())) {
       throw new SketchesArgumentException("Insert position must be between 0 and "
               + getNumSamples() + ", " + "inclusive. Received: " + pos);
     }

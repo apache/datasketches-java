@@ -241,19 +241,16 @@ public final class ReservoirLongsUnion {
     final byte[] outArr = new byte[outBytes];
     final WritableMemory mem = WritableMemory.wrap(outArr);
 
-    final Object memObj = mem.getArray(); // may be null
-    final long memAddr = mem.getCumulativeOffset(0L);
-
     // construct header
-    PreambleUtil.insertPreLongs(memObj, memAddr, preLongs);                       // Byte 0
-    PreambleUtil.insertSerVer(memObj, memAddr, SER_VER);                          // Byte 1
-    PreambleUtil.insertFamilyID(memObj, memAddr, Family.RESERVOIR_UNION.getID()); // Byte 2
+    PreambleUtil.insertPreLongs(mem, preLongs);                       // Byte 0
+    PreambleUtil.insertSerVer(mem, SER_VER);                          // Byte 1
+    PreambleUtil.insertFamilyID(mem, Family.RESERVOIR_UNION.getID()); // Byte 2
     if (empty) {
-      PreambleUtil.insertFlags(memObj, memAddr, EMPTY_FLAG_MASK);                 // Byte 3
+      PreambleUtil.insertFlags(mem, EMPTY_FLAG_MASK);                 // Byte 3
     } else {
-      PreambleUtil.insertFlags(memObj, memAddr, 0);
+      PreambleUtil.insertFlags(mem, 0);
     }
-    PreambleUtil.insertMaxK(memObj, memAddr, maxK_);                              // Bytes 4-7
+    PreambleUtil.insertMaxK(mem, maxK_);                              // Bytes 4-7
 
     if (!empty) {
       final int preBytes = preLongs << 3;
@@ -265,7 +262,7 @@ public final class ReservoirLongsUnion {
 
   private void createNewGadget(final ReservoirLongsSketch sketchIn,
                                final boolean isModifiable) {
-    if (sketchIn.getK() < maxK_ && sketchIn.getN() <= sketchIn.getK()) {
+    if ((sketchIn.getK() < maxK_) && (sketchIn.getN() <= sketchIn.getK())) {
       // incoming sketch is in exact mode with sketch's k < maxK,
       // so we can create a gadget at size maxK and keep everything
       // NOTE: assumes twoWayMergeInternal first checks if sketchIn is in exact mode
@@ -313,8 +310,8 @@ public final class ReservoirLongsUnion {
       final ReservoirLongsSketch tmpSketch = gadget_;
       gadget_ = (isModifiable ? sketchIn : sketchIn.copy());
       twoWayMergeInternalStandard(tmpSketch);
-    } else if (sketchIn.getImplicitSampleWeight() < gadget_.getN()
-        / ((double) (gadget_.getK() - 1))) {
+    } else if (sketchIn.getImplicitSampleWeight() < (gadget_.getN()
+        / ((double) (gadget_.getK() - 1)))) {
       // implicit weights in sketchIn are light enough to merge into gadget
       twoWayMergeInternalWeighted(sketchIn);
     } else {

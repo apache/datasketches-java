@@ -15,7 +15,6 @@ import static com.yahoo.sketches.hll.PreambleUtil.extractInt;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgArr;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
 
@@ -52,9 +51,6 @@ class HeapAuxHashMap implements AuxHashMap {
 
   static final HeapAuxHashMap heapify(final Memory mem, final long offset, final int lgConfigK,
       final int auxCount, final boolean srcCompact) {
-    final Object memObj = ((WritableMemory) mem).getArray();
-    final long memAdd = mem.getCumulativeOffset(0);
-
     final int lgAuxArrInts;
     final HeapAuxHashMap auxMap;
     if (srcCompact) { //prior versions did not use LgArr byte field
@@ -64,7 +60,7 @@ class HeapAuxHashMap implements AuxHashMap {
       }
       lgAuxArrInts = simpleIntLog2(Math.max(ceilInts, 1 << LG_AUX_ARR_INTS[lgConfigK]));
     } else { //updatable
-      lgAuxArrInts = extractLgArr(memObj, memAdd);
+      lgAuxArrInts = extractLgArr(mem);
     }
     auxMap = new HeapAuxHashMap(lgAuxArrInts, lgConfigK);
 
@@ -72,7 +68,7 @@ class HeapAuxHashMap implements AuxHashMap {
 
     if (srcCompact) {
       for (int i = 0; i < auxCount; i++) {
-        final int pair = extractInt(memObj, memAdd, offset + (i << 2));
+        final int pair = extractInt(mem, offset + (i << 2));
         final int slotNo = HllUtil.getLow26(pair) & configKmask;
         final int value = HllUtil.getValue(pair);
         auxMap.mustAdd(slotNo, value); //increments count
@@ -80,7 +76,7 @@ class HeapAuxHashMap implements AuxHashMap {
     } else { //updatable
       final int auxArrInts = 1 << lgAuxArrInts;
       for (int i = 0; i < auxArrInts; i++) {
-        final int pair = extractInt(memObj, memAdd, offset + (i << 2));
+        final int pair = extractInt(mem, offset + (i << 2));
         if (pair == EMPTY) { continue; }
         final int slotNo = HllUtil.getLow26(pair) & configKmask;
         final int value = HllUtil.getValue(pair);

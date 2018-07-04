@@ -15,7 +15,6 @@ import static com.yahoo.sketches.hll.PreambleUtil.extractCompactFlag;
 import static com.yahoo.sketches.hll.PreambleUtil.extractLgK;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.WritableMemory;
 
 /**
  * Uses 4 bits per slot in a packed byte array.
@@ -41,16 +40,14 @@ class Hll4Array extends HllArray {
   }
 
   static final Hll4Array heapify(final Memory mem) {
-    final Object memArr = ((WritableMemory) mem).getArray();
-    final long memAdd = mem.getCumulativeOffset(0);
-    final int lgConfigK = extractLgK(memArr, memAdd);
+    final int lgConfigK = extractLgK(mem);
     final Hll4Array hll4Array = new Hll4Array(lgConfigK);
-    HllArray.extractCommonHll(mem, memArr, memAdd, hll4Array);
+    HllArray.extractCommonHll(mem, hll4Array);
 
     //load AuxHashMap
     final int auxStart = hll4Array.auxStart;
-    final int auxCount = extractAuxCount(memArr, memAdd);
-    final boolean compact = extractCompactFlag(memArr, memAdd);
+    final int auxCount = extractAuxCount(mem);
+    final boolean compact = extractCompactFlag(mem);
     HeapAuxHashMap auxHashMap = null;
     if (auxCount > 0) {
       auxHashMap = HeapAuxHashMap.heapify(mem, auxStart, lgConfigK, auxCount, compact);

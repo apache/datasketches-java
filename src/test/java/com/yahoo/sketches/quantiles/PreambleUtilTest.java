@@ -36,10 +36,6 @@ public class PreambleUtilTest {
     try (WritableDirectHandle offHeapMemHandler = WritableMemory.allocateDirect(bytes)) {
       final WritableMemory offHeapMem = offHeapMemHandler.get();
       final WritableMemory onHeapMem = WritableMemory.wrap(new byte[bytes]);
-      final Object onHeapMemObj = onHeapMem.getArray();
-      final Object offHeapMemObj = offHeapMem.getArray();
-      final long onHeapCumOffset = onHeapMem.getCumulativeOffset(0L);
-      final long offHeapCumOffset = offHeapMem.getCumulativeOffset(0L);
 
       onHeapMem.clear();
       offHeapMem.clear();
@@ -49,44 +45,44 @@ public class PreambleUtilTest {
       int onH, offH;
 
       //PREAMBLE_LONGS_BYTE;
-      insertPreLongs(onHeapMemObj, onHeapCumOffset, v);
+      insertPreLongs(onHeapMem, v);
       onH = extractPreLongs(onHeapMem);
       assertEquals(onH, v);
 
-      insertPreLongs(offHeapMemObj, offHeapCumOffset, v);
+      insertPreLongs(offHeapMem, v);
       offH = extractPreLongs(offHeapMem);
       assertEquals(offH, v);
       onHeapMem.clear();
       offHeapMem.clear();
 
       //SER_VER_BYTE;
-      insertSerVer(onHeapMemObj, onHeapCumOffset, v);
+      insertSerVer(onHeapMem, v);
       onH = extractSerVer(onHeapMem);
       assertEquals(onH, v);
 
-      insertSerVer(offHeapMemObj, offHeapCumOffset, v);
+      insertSerVer(offHeapMem, v);
       offH = extractSerVer(offHeapMem);
       assertEquals(offH, v);
       onHeapMem.clear();
       offHeapMem.clear();
 
       //FAMILY_BYTE;
-      insertFamilyID(onHeapMemObj, onHeapCumOffset, v);
+      insertFamilyID(onHeapMem, v);
       onH = extractFamilyID(onHeapMem);
       assertEquals(onH, v);
 
-      insertFamilyID(offHeapMemObj, offHeapCumOffset, v);
+      insertFamilyID(offHeapMem, v);
       offH = extractFamilyID(offHeapMem);
       assertEquals(offH, v);
       onHeapMem.clear();
       offHeapMem.clear();
 
       //FLAGS_BYTE;
-      insertFlags(onHeapMemObj, onHeapCumOffset, v);
+      insertFlags(onHeapMem, v);
       onH = extractFlags(onHeapMem);
       assertEquals(onH, v);
 
-      insertFlags(offHeapMemObj, offHeapCumOffset, v);
+      insertFlags(offHeapMem, v);
       offH = extractFlags(offHeapMem);
       assertEquals(offH, v);
       onHeapMem.clear();
@@ -96,11 +92,11 @@ public class PreambleUtilTest {
       v = 0XFFFF;
 
       //K_SHORT;
-      insertK(onHeapMemObj, onHeapCumOffset, v);
+      insertK(onHeapMem, v);
       onH = extractK(onHeapMem);
       assertEquals(onH, v);
 
-      insertK(offHeapMemObj, offHeapCumOffset, v);
+      insertK(offHeapMem, v);
       offH = extractK(offHeapMem);
       assertEquals(offH, v);
       onHeapMem.clear();
@@ -110,11 +106,11 @@ public class PreambleUtilTest {
 
       //N_LONG;
       long onHL, offHL, vL = 1L << 30;
-      insertN(onHeapMemObj, onHeapCumOffset, vL);
+      insertN(onHeapMem, vL);
       onHL = extractN(onHeapMem);
       assertEquals(onHL, vL);
 
-      insertN(offHeapMemObj, offHeapCumOffset, vL);
+      insertN(offHeapMem, vL);
       offHL = extractN(offHeapMem);
       assertEquals(offHL, vL);
       onHeapMem.clear();
@@ -125,22 +121,22 @@ public class PreambleUtilTest {
       //MIN_DOUBLE;
       double onHD, offHD, vD = 1L << 40;
 
-      insertMinDouble(onHeapMemObj, onHeapCumOffset, vD);
+      insertMinDouble(onHeapMem, vD);
       onHD = extractMinDouble(onHeapMem);
       assertEquals(onHD, vD);
 
-      insertMinDouble(offHeapMemObj, offHeapCumOffset, vD);
+      insertMinDouble(offHeapMem, vD);
       offHD = extractMinDouble(offHeapMem);
       assertEquals(offHD, vD);
       onHeapMem.clear();
       offHeapMem.clear();
 
       //MAX_DOUBLE;
-      insertMaxDouble(onHeapMemObj, onHeapCumOffset, vD);
+      insertMaxDouble(onHeapMem, vD);
       onHD = extractMaxDouble(onHeapMem);
       assertEquals(onHD, vD);
 
-      insertMaxDouble(offHeapMemObj, offHeapCumOffset, vD);
+      insertMaxDouble(offHeapMem, vD);
       offHD = extractMaxDouble(offHeapMem);
       assertEquals(offHD, vD);
       onHeapMem.clear();

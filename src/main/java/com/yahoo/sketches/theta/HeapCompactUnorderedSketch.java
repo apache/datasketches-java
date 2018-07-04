@@ -13,7 +13,6 @@ import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
 import static com.yahoo.sketches.theta.PreambleUtil.extractThetaLong;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.WritableMemory;
 
 /**
  * An on-heap, compact, read-only sketch.
@@ -44,15 +43,12 @@ final class HeapCompactUnorderedSketch extends HeapCompactSketch {
    * @return a CompactSketch
    */
   static CompactSketch heapifyInstance(final Memory srcMem, final long seed) {
-    final Object memObj = ((WritableMemory)srcMem).getArray(); //may be null
-    final long memAdd = srcMem.getCumulativeOffset(0L);
-
-    final short memSeedHash = (short) extractSeedHash(memObj, memAdd);
+    final short memSeedHash = (short) extractSeedHash(srcMem);
     final short computedSeedHash = computeSeedHash(seed);
     checkSeedHashes(memSeedHash, computedSeedHash);
 
-    final int preLongs = extractPreLongs(memObj, memAdd);
-    final boolean empty = PreambleUtil.isEmpty(memObj, memAdd);
+    final int preLongs = extractPreLongs(srcMem);
+    final boolean empty = PreambleUtil.isEmpty(srcMem);
     int curCount = 0;
     long thetaLong = Long.MAX_VALUE;
     long[] cache = new long[0];
@@ -63,13 +59,13 @@ final class HeapCompactUnorderedSketch extends HeapCompactSketch {
       }
       //else empty
     } else { //preLongs > 1
-      curCount = extractCurCount(memObj, memAdd);
+      curCount = extractCurCount(srcMem);
       cache = new long[curCount];
       if (preLongs == 2) {
         srcMem.getLongArray(16, cache, 0, curCount);
       } else { //preLongs == 3
         srcMem.getLongArray(24, cache, 0, curCount);
-        thetaLong = extractThetaLong(memObj, memAdd);
+        thetaLong = extractThetaLong(srcMem);
       }
     }
     return new HeapCompactUnorderedSketch(cache, empty, memSeedHash, curCount, thetaLong);
