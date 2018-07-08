@@ -1,4 +1,4 @@
-package com.yahoo.sketches.concurrent.theta;
+package com.yahoo.sketches.theta;
 
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
@@ -41,19 +41,19 @@ public class UpdateSketchComposition extends UpdateSketch {
     return delegatee_.toByteArray();
   }
 
-  @Override public long[] getCache() {
+  @Override long[] getCache() {
     return delegatee_.getCache();
   }
 
-  @Override public int getCurrentPreambleLongs(boolean compact) {
+  @Override int getCurrentPreambleLongs(boolean compact) {
     return delegatee_.getCurrentPreambleLongs(compact);
   }
 
-  @Override public short getSeedHash() {
+  @Override short getSeedHash() {
     return delegatee_.getSeedHash();
   }
 
-  @Override public long getThetaLong() {
+  @Override long getThetaLong() {
     return delegatee_.getThetaLong();
   }
 
@@ -69,11 +69,11 @@ public class UpdateSketchComposition extends UpdateSketch {
     return delegatee_.getResizeFactor();
   }
 
-  @Override public UpdateReturnState hashUpdate(long hash) {
+  @Override UpdateReturnState hashUpdate(long hash) {
     return delegatee_.hashUpdate(hash);
   }
 
-  @Override public int getLgArrLongs() {
+  @Override int getLgArrLongs() {
     return delegatee_.getLgArrLongs();
   }
 
@@ -81,27 +81,27 @@ public class UpdateSketchComposition extends UpdateSketch {
     return delegatee_.getLgNomLongs();
   }
 
-  @Override public float getP() {
+  @Override float getP() {
     return delegatee_.getP();
   }
 
-  @Override public long getSeed() {
+  @Override long getSeed() {
     return delegatee_.getSeed();
   }
 
-  @Override public boolean isDirty() {
+  @Override boolean isDirty() {
     return delegatee_.isDirty();
   }
 
-  @Override public WritableMemory getMemory() {
+  @Override WritableMemory getMemory() {
     return delegatee_.getMemory();
   }
 
-  @Override public void setThetaLong(long theta) {
+  @Override void setThetaLong(long theta) {
     delegatee_.setThetaLong(theta);
   }
 
-  @Override public boolean isOutOfSpace(int numEntries) {
+  @Override boolean isOutOfSpace(int numEntries) {
     return delegatee_.isOutOfSpace(numEntries);
   }
 }

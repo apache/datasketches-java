@@ -1,7 +1,8 @@
-package com.yahoo.sketches.concurrent.theta;
+package com.yahoo.sketches.theta;
 
 import com.yahoo.sketches.theta.Sketch;
 import com.yahoo.sketches.theta.UpdateSketch;
+import com.yahoo.sketches.theta.UpdateSketchComposition;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

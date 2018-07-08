@@ -1,9 +1,11 @@
-package com.yahoo.sketches.concurrent.theta;
+package com.yahoo.sketches.theta;
 
 import com.yahoo.sketches.theta.CompactSketch;
+import com.yahoo.sketches.theta.ConcurrentUpdateSketch;
 import com.yahoo.sketches.theta.UpdateReturnState;
 import com.yahoo.sketches.theta.UpdateSketch;
 import com.yahoo.sketches.theta.UpdateSketchBuilder;
+import com.yahoo.sketches.theta.UpdateSketchComposition;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -35,7 +37,7 @@ public class ConcurrentThetaContext extends UpdateSketchComposition {
 
 
   @Override
-  public UpdateReturnState hashUpdate(final long hash) {
+  UpdateReturnState hashUpdate(final long hash) {
     UpdateReturnState ret = localSketch_.hashUpdate(hash);
     if (localSketch_.isOutOfSpace(localSketch_.getRetainedEntries(false)+1)
         && localSketch_.getLgArrLongs() > localSketch_.getLgNomLongs()) {

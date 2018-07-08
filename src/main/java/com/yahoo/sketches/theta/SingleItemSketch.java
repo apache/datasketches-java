@@ -340,12 +340,12 @@ public final class SingleItemSketch extends CompactSketch {
   //restricted methods
 
   @Override
-  public long[] getCache() {
+  long[] getCache() {
     return new long[] { arr[1] };
   }
 
   @Override
-  public int getCurrentPreambleLongs(final boolean compact) {
+  int getCurrentPreambleLongs(final boolean compact) {
     return 1;
   }
 
@@ -355,12 +355,12 @@ public final class SingleItemSketch extends CompactSketch {
   }
 
   @Override
-  public short getSeedHash() {
+  short getSeedHash() {
     return wmem.getShort(6);
   }
 
   @Override
-  public long getThetaLong() {
+  long getThetaLong() {
     return Long.MAX_VALUE;
   }
 

@@ -183,13 +183,13 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   //restricted methods
 
   @Override
-  public int getCurrentPreambleLongs(final boolean compact) {
+  int getCurrentPreambleLongs(final boolean compact) {
     if (!compact) { return preambleLongs_; }
     return computeCompactPreLongs(getThetaLong(), isEmpty(), getRetainedEntries(true));
   }
 
   @Override
-  public long[] getCache() {
+  long[] getCache() {
     final long lgArrLongs = mem_.getByte(LG_ARR_LONGS_BYTE) & 0XFF;
     final long[] cacheArr = new long[1 << lgArrLongs];
     final WritableMemory mem = WritableMemory.wrap(cacheArr);
@@ -198,42 +198,42 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   }
 
   @Override
-  public WritableMemory getMemory() {
+  WritableMemory getMemory() {
     return mem_;
   }
 
   @Override
-  public float getP() {
+  float getP() {
     return mem_.getFloat(P_FLOAT);
   }
 
   @Override
-  public long getSeed() {
+  long getSeed() {
     return seed_;
   }
 
   @Override
-  public short getSeedHash() {
+  short getSeedHash() {
     return seedHash_;
   }
 
   @Override
-  public long getThetaLong() {
+  long getThetaLong() {
     return mem_.getLong(THETA_LONG);
   }
 
   @Override
-  public boolean isDirty() {
+  boolean isDirty() {
     return false; //Always false for QuickSelectSketch
   }
 
   @Override
-  public int getLgArrLongs() {
+  int getLgArrLongs() {
     return mem_.getByte(LG_ARR_LONGS_BYTE) & 0XFF;
   }
 
   @Override
-  public UpdateReturnState hashUpdate(final long hash) {
+  UpdateReturnState hashUpdate(final long hash) {
     throw new SketchesReadOnlyException();
   }
 
@@ -256,12 +256,12 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   }
 
   @Override
-  public void setThetaLong(long thetaLong) {
+  void setThetaLong(long thetaLong) {
     mem_.putLong(THETA_LONG, thetaLong);
   }
 
   @Override
-  public boolean isOutOfSpace(int numEntries) {
+  boolean isOutOfSpace(int numEntries) {
     return numEntries > hashTableThreshold_;
   }
 

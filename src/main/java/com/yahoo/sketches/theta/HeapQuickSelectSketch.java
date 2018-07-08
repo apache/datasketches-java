@@ -189,48 +189,48 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
   //restricted methods
 
   @Override
-  public int getCurrentPreambleLongs(final boolean compact) {
+  int getCurrentPreambleLongs(final boolean compact) {
     if (!compact) { return preambleLongs_; }
     return computeCompactPreLongs(thetaLong_, empty_, curCount_);
   }
 
   @Override
-  public WritableMemory getMemory() {
+  WritableMemory getMemory() {
     return null;
   }
 
   @Override
-  public void setThetaLong(long theta) {
+  void setThetaLong(long theta) {
     thetaLong_ = theta;
   }
 
   @Override
-  public boolean isOutOfSpace(int numEntries) {
+  boolean isOutOfSpace(int numEntries) {
     return numEntries > hashTableThreshold_;
   }
 
   @Override
-  public long[] getCache() {
+  long[] getCache() {
     return cache_;
   }
 
   @Override
-  public long getThetaLong() {
+  long getThetaLong() {
     return thetaLong_;
   }
 
   @Override
-  public boolean isDirty() {
+  boolean isDirty() {
     return false;
   }
 
   @Override
-  public int getLgArrLongs() {
+  int getLgArrLongs() {
     return lgArrLongs_;
   }
 
   @Override
-  public UpdateReturnState hashUpdate(final long hash) {
+  UpdateReturnState hashUpdate(final long hash) {
     HashOperations.checkHashCorruption(hash);
     empty_ = false;
 

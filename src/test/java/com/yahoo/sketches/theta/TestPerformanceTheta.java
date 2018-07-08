@@ -1,4 +1,4 @@
-package com.yahoo.sketches.concurrent.theta;
+package com.yahoo.sketches.theta;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,10 +8,6 @@ import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.concurrent.ConcurrentTestContext;
 import com.yahoo.sketches.concurrent.ConcurrentTestThread;
-import com.yahoo.sketches.theta.Sketches;
-import com.yahoo.sketches.theta.UpdateReturnState;
-import com.yahoo.sketches.theta.UpdateSketch;
-import com.yahoo.sketches.theta.UpdateSketchBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -35,7 +31,7 @@ public class TestPerformanceTheta {
       test.LOG.info("Missing arguemnts: java com.yahoo.sketches.concurrent.theta"
           + ".TestPerformanceTheta <concurrencyType> <family> <#writers> <#readers> <seconds> "
           + "<print>\n e.g., java "
-          + "com.yahoo.sketches.concurrent.theta.TestPerformanceTheta CONCURRENT QUICKSELECT 4 4 "
+          + "com.yahoo.sketches.theta.TestPerformanceTheta CONCURRENT QUICKSELECT 4 4 "
           + "30 true");
       System.exit(0);
     }

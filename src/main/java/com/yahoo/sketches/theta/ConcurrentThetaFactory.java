@@ -1,8 +1,6 @@
-package com.yahoo.sketches.concurrent.theta;
+package com.yahoo.sketches.theta;
 
 import com.yahoo.sketches.Family;
-import com.yahoo.sketches.theta.UpdateSketch;
-import com.yahoo.sketches.theta.UpdateSketchBuilder;
 
 /**
  * @author eshcar
