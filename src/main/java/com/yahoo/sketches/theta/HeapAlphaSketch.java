@@ -257,6 +257,16 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   }
 
   @Override
+  void setThetaLong(long theta) {
+    thetaLong_ = theta;
+  }
+
+  @Override
+  boolean isOutOfSpace(int numEntries) {
+    return numEntries > hashTableThreshold_;
+  }
+
+  @Override
   long[] getCache() {
     return cache_;
   }
@@ -310,7 +320,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
       else {
         //inserts (not entries!) <= k. It may not be at tgt size.
         //Check size, don't decrement theta. cnt already ++, empty_ already false;
-        if (curCount_ > hashTableThreshold_) {
+        if (isOutOfSpace(curCount_)) {
           resizeClean(); //not dirty, not at tgt size.
         }
       }
