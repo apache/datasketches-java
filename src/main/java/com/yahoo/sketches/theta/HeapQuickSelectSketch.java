@@ -197,12 +197,12 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
   }
 
   @Override
-  void setThetaLong(long theta) {
+  void setThetaLong(final long theta) {
     thetaLong_ = theta;
   }
 
   @Override
-  boolean isOutOfSpace(int numEntries) {
+  boolean isOutOfSpace(final int numEntries) {
     return numEntries > hashTableThreshold_;
   }
 

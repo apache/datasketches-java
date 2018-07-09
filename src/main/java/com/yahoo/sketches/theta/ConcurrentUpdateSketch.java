@@ -1,9 +1,5 @@
 package com.yahoo.sketches.theta;
 
-import com.yahoo.sketches.theta.Sketch;
-import com.yahoo.sketches.theta.UpdateSketch;
-import com.yahoo.sketches.theta.UpdateSketchComposition;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -14,8 +10,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ConcurrentUpdateSketch extends UpdateSketchComposition {
 
   private static int PARALLELISM_LEVEL = 3;
-  protected static ExecutorService PROPAGATION_EXECUTOR_SERVICE = Executors.newWorkStealingPool
-      (PARALLELISM_LEVEL);
+  protected static ExecutorService PROPAGATION_EXECUTOR_SERVICE =
+      Executors.newWorkStealingPool(PARALLELISM_LEVEL);
 
   private volatile long theta_;
   private volatile double estimation_;
@@ -30,8 +26,8 @@ public class ConcurrentUpdateSketch extends UpdateSketchComposition {
     propagationInProgress_ = new AtomicBoolean(false);
   }
 
-  public void propagate(final Sketch sketchIn, AtomicBoolean propagationInProgress) {
-    BackgroundThetaPropagation job = new BackgroundThetaPropagation(sketchIn,
+  public void propagate(final Sketch sketchIn, final AtomicBoolean propagationInProgress) {
+    final BackgroundThetaPropagation job = new BackgroundThetaPropagation(sketchIn,
         propagationInProgress);
     PROPAGATION_EXECUTOR_SERVICE.execute(job);
   }
@@ -49,15 +45,16 @@ public class ConcurrentUpdateSketch extends UpdateSketchComposition {
     private Sketch sketch_;
     private AtomicBoolean localThreadPropagationFlag_;
 
-    public BackgroundThetaPropagation(Sketch sketch, AtomicBoolean localThreadPropagationFlag) {
-      this.sketch_ = sketch;
-      this.localThreadPropagationFlag_ = localThreadPropagationFlag;
+    public BackgroundThetaPropagation(final Sketch sketch,
+        final AtomicBoolean localThreadPropagationFlag) {
+      sketch_ = sketch;
+      localThreadPropagationFlag_ = localThreadPropagationFlag;
     }
 
     @Override public void run() {
       assert getVolatileTheta() <= sketch_.getThetaLong();
 
-      while(!propagationInProgress_.compareAndSet(false,true)) {
+      while (!propagationInProgress_.compareAndSet(false,true)) {
         //busy wait until can propagate
       }
       //At this point we are sure only a single thread is propagating data to the shared sketch

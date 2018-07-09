@@ -4,24 +4,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.concurrent.ConcurrentTestContext;
 import com.yahoo.sketches.concurrent.ConcurrentTestThread;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * @author eshcar
  */
 public class TestPerformanceTheta {
 
-  private enum CONCURRENCY_TYPE {CONCURRENT, BASELINE, LOCK_BASED};
+  private enum CONCURRENCY_TYPE {CONCURRENT, BASELINE, LOCK_BASED}
   private static final String OFF_HEAP = "OFF-HEAP";
   private static final int K = 512;
 
   private UpdateSketch gadget_;
-  public final Log LOG = LogFactory.getLog(TestPerformanceTheta.class);
+  public final Logger LOG = LoggerFactory.getLogger(TestPerformanceTheta.class);
 
   public static void main(String[] args) throws Exception {
 
@@ -103,7 +104,7 @@ public class TestPerformanceTheta {
 
     for (long i = 0; i < 10000000; i++) {
       sketchToInit.update(i);
-      if(i%100000==0){
+      if((i%100000)==0){
         System.out.print(".");
       }
     }
@@ -141,13 +142,13 @@ public class TestPerformanceTheta {
     for (WriterThread writer : writersList) {
     	totalWrites += writer.operationsNum_;
     }
-    LOG.info("writeTput = " + ((totalWrites / secondsToRun)) / 1000000 + " millions per second");
+    LOG.info("writeTput = " + (((totalWrites / secondsToRun)) / 1000000) + " millions per second");
 
     LOG.info("Read threads:");
     for (ReaderThread reader : readersList) {
     	totalReads += reader.readOperationsNum_;
     }
-    LOG.info("readTput = " + ((totalReads / secondsToRun)) / 1000000 + "millions per second");
+    LOG.info("readTput = " + (((totalReads / secondsToRun)) / 1000000) + "millions per second");
 
     LOG.info("Estimation = " + gadget_.getEstimate());
 

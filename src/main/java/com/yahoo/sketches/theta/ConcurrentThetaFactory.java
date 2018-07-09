@@ -7,23 +7,23 @@ import com.yahoo.sketches.Family;
  */
 public class ConcurrentThetaFactory {
 
-  static public ConcurrentUpdateSketch createConcurrentUpdateSketch(Family family) {
-    UpdateSketchBuilder usb = new UpdateSketchBuilder();
+  public static ConcurrentUpdateSketch createConcurrentUpdateSketch(final Family family) {
+    final UpdateSketchBuilder usb = new UpdateSketchBuilder();
     usb.setFamily(family);
-    UpdateSketch sketch = usb.build();
+    final UpdateSketch sketch = usb.build();
     return new ConcurrentUpdateSketch(sketch);
   }
 
-  static public ConcurrentThetaContext createConcurrentThetaContext(ConcurrentUpdateSketch shared) {
-    UpdateSketchBuilder usb = new UpdateSketchBuilder();
-    Family family = shared.getFamily();
+  public static ConcurrentThetaContext createConcurrentThetaContext(final ConcurrentUpdateSketch shared) {
+    final UpdateSketchBuilder usb = new UpdateSketchBuilder();
+    final Family family = shared.getFamily();
     usb.setFamily(family);
-    UpdateSketch local = usb.build();
-//    return new ConcurrentThetaContext(shared, usb);
+    final UpdateSketch local = usb.build();
+    //    return new ConcurrentThetaContext(shared, usb);
     return new ConcurrentThetaContext(shared, local);
   }
 
-  public static ConcurrentUpdateSketch createConcurrentUpdateSketch(UpdateSketch sketch) {
+  public static ConcurrentUpdateSketch createConcurrentUpdateSketch(final UpdateSketch sketch) {
     return new ConcurrentUpdateSketch(sketch);
   }
 

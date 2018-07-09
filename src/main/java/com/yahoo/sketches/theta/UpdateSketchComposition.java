@@ -3,8 +3,6 @@ package com.yahoo.sketches.theta;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
-import com.yahoo.sketches.theta.UpdateReturnState;
-import com.yahoo.sketches.theta.UpdateSketch;
 
 /**
  * @author eshcar
@@ -17,7 +15,7 @@ public class UpdateSketchComposition extends UpdateSketch {
     delegatee_ = delegattee;
   }
 
-  @Override public int getCurrentBytes(boolean compact) {
+  @Override public int getCurrentBytes(final boolean compact) {
     return delegatee_.getCurrentBytes(compact);
   }
 
@@ -25,7 +23,7 @@ public class UpdateSketchComposition extends UpdateSketch {
     return delegatee_.getFamily();
   }
 
-  @Override public int getRetainedEntries(boolean valid) {
+  @Override public int getRetainedEntries(final boolean valid) {
     return delegatee_.getRetainedEntries(valid);
   }
 
@@ -45,7 +43,7 @@ public class UpdateSketchComposition extends UpdateSketch {
     return delegatee_.getCache();
   }
 
-  @Override int getCurrentPreambleLongs(boolean compact) {
+  @Override int getCurrentPreambleLongs(final boolean compact) {
     return delegatee_.getCurrentPreambleLongs(compact);
   }
 
@@ -69,7 +67,7 @@ public class UpdateSketchComposition extends UpdateSketch {
     return delegatee_.getResizeFactor();
   }
 
-  @Override UpdateReturnState hashUpdate(long hash) {
+  @Override UpdateReturnState hashUpdate(final long hash) {
     return delegatee_.hashUpdate(hash);
   }
 
@@ -97,11 +95,11 @@ public class UpdateSketchComposition extends UpdateSketch {
     return delegatee_.getMemory();
   }
 
-  @Override void setThetaLong(long theta) {
+  @Override void setThetaLong(final long theta) {
     delegatee_.setThetaLong(theta);
   }
 
-  @Override boolean isOutOfSpace(int numEntries) {
+  @Override boolean isOutOfSpace(final int numEntries) {
     return delegatee_.isOutOfSpace(numEntries);
   }
 }

@@ -3,17 +3,17 @@ package com.yahoo.sketches.concurrent;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author eshcar
  */
 public class ConcurrentTestContext {
-  private static final Log LOG = LogFactory.getLog(ConcurrentTestContext.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ConcurrentTestContext.class);
 
   private Throwable err_ = null;
-  private Set<ConcurrentTestThread> testThreads_ = new HashSet<ConcurrentTestThread>();
+  private Set<ConcurrentTestThread> testThreads_ = new HashSet<>();
 
   public void addThread(ConcurrentTestThread t) {
    	testThreads_.add(t);
@@ -37,8 +37,9 @@ public class ConcurrentTestContext {
   }
 
   public synchronized void threadFailed(Throwable t) {
-    if (err_ == null)
-    	err_ = t;
+    if (err_ == null) {
+      err_ = t;
+    }
     LOG.error("Failed!", err_);
     notify();
   }
@@ -58,9 +59,9 @@ public class ConcurrentTestContext {
     long endTime = System.currentTimeMillis() + millis;
     while (true) {
       long left = endTime - System.currentTimeMillis();
-      if (left <= 0)
-
+      if (left <= 0) {
         break;
+      }
     }
   }
 }

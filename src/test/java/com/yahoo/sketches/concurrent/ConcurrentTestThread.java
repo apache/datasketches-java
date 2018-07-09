@@ -1,16 +1,16 @@
 package com.yahoo.sketches.concurrent;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author eshcar
  */
 public abstract class ConcurrentTestThread extends Thread{
 
-  private static final Log LOG = LogFactory.getLog(ConcurrentTestThread.class);
+  private static final  Logger LOG = LoggerFactory.getLogger(ConcurrentTestThread.class);
 
   enum ThreadType {
     MIXED, WRITER, READER
@@ -25,6 +25,7 @@ public abstract class ConcurrentTestThread extends Thread{
     type_ = ThreadType.valueOf(type);
   }
 
+  @Override
   public void run() {
     int num = 1;
 
