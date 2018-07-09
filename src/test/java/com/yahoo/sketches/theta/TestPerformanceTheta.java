@@ -6,6 +6,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testng.annotations.Test;
 
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
@@ -23,6 +24,11 @@ public class TestPerformanceTheta {
 
   private UpdateSketch gadget_;
   public final Logger LOG = LoggerFactory.getLogger(TestPerformanceTheta.class);
+
+  @Test //enable to allow running from TestNG manually
+  public static void startTest() throws Exception {
+    TestPerformanceTheta.main(new String[] {"CONCURRENT", "QUICKSELECT", "4", "4", "30", "true"});
+  }
 
   public static void main(String[] args) throws Exception {
 
@@ -104,16 +110,15 @@ public class TestPerformanceTheta {
 
     for (long i = 0; i < 10000000; i++) {
       sketchToInit.update(i);
-      if((i%100000)==0){
-        System.out.print(".");
-      }
+//      if((i % 100000) == 0){
+//        System.out.print(".");
+//      }
     }
     System.out.println();
   }
 
   private void runTest(CONCURRENCY_TYPE type, int writersNum, int readersNum, int secondsToRun)
-      throws
-      Exception {
+      throws Exception {
     LOG.info("start running");
     ConcurrentTestContext ctx = new ConcurrentTestContext();
 

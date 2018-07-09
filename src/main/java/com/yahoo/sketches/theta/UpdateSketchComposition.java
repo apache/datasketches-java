@@ -15,91 +15,113 @@ public class UpdateSketchComposition extends UpdateSketch {
     delegatee_ = delegattee;
   }
 
-  @Override public int getCurrentBytes(final boolean compact) {
+  @Override
+  public int getCurrentBytes(final boolean compact) {
     return delegatee_.getCurrentBytes(compact);
   }
 
-  @Override public Family getFamily() {
+  @Override
+  public Family getFamily() {
     return delegatee_.getFamily();
   }
 
-  @Override public int getRetainedEntries(final boolean valid) {
+  @Override
+  public int getRetainedEntries(final boolean valid) {
     return delegatee_.getRetainedEntries(valid);
   }
 
-  @Override public boolean isDirect() {
+  @Override
+  public boolean isDirect() {
     return delegatee_.isDirect();
   }
 
-  @Override public boolean isEmpty() {
+  @Override
+  public boolean isEmpty() {
     return delegatee_.isEmpty();
   }
 
-  @Override public byte[] toByteArray() {
+  @Override
+  public byte[] toByteArray() {
     return delegatee_.toByteArray();
   }
 
-  @Override long[] getCache() {
+  @Override
+  long[] getCache() {
     return delegatee_.getCache();
   }
 
-  @Override int getCurrentPreambleLongs(final boolean compact) {
+  @Override
+  int getCurrentPreambleLongs(final boolean compact) {
     return delegatee_.getCurrentPreambleLongs(compact);
   }
 
-  @Override short getSeedHash() {
+  @Override
+  short getSeedHash() {
     return delegatee_.getSeedHash();
   }
 
-  @Override long getThetaLong() {
+  @Override
+  long getThetaLong() {
     return delegatee_.getThetaLong();
   }
 
-  @Override public void reset() {
+  @Override
+  public void reset() {
     delegatee_.reset();
   }
 
-  @Override public UpdateSketch rebuild() {
+  @Override
+  public UpdateSketch rebuild() {
     return delegatee_.rebuild();
   }
 
-  @Override public ResizeFactor getResizeFactor() {
+  @Override
+  public ResizeFactor getResizeFactor() {
     return delegatee_.getResizeFactor();
   }
 
-  @Override UpdateReturnState hashUpdate(final long hash) {
+  @Override
+  UpdateReturnState hashUpdate(final long hash) {
     return delegatee_.hashUpdate(hash);
   }
 
-  @Override int getLgArrLongs() {
+  @Override
+  int getLgArrLongs() {
     return delegatee_.getLgArrLongs();
   }
 
-  @Override public int getLgNomLongs() {
+  @Override
+  public int getLgNomLongs() {
     return delegatee_.getLgNomLongs();
   }
 
-  @Override float getP() {
+  @Override
+  float getP() {
     return delegatee_.getP();
   }
 
-  @Override long getSeed() {
+  @Override
+  long getSeed() {
     return delegatee_.getSeed();
   }
 
-  @Override boolean isDirty() {
+  @Override
+  boolean isDirty() {
     return delegatee_.isDirty();
   }
 
-  @Override WritableMemory getMemory() {
+  @Override
+  WritableMemory getMemory() {
     return delegatee_.getMemory();
   }
 
-  @Override void setThetaLong(final long theta) {
+  @Override
+  void setThetaLong(final long theta) {
     delegatee_.setThetaLong(theta);
   }
 
-  @Override boolean isOutOfSpace(final int numEntries) {
+  @Override
+  boolean isOutOfSpace(final int numEntries) {
     return delegatee_.isOutOfSpace(numEntries);
   }
 }
