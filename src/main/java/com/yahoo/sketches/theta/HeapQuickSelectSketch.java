@@ -197,6 +197,16 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
   }
 
   @Override
+  void setThetaLong(long theta) {
+    thetaLong_ = theta;
+  }
+
+  @Override
+  boolean isOutOfSpace(int numEntries) {
+    return numEntries > hashTableThreshold_;
+  }
+
+  @Override
   long[] getCache() {
     return cache_;
   }
@@ -233,7 +243,7 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
     //insertion occurred, must increment curCount
     curCount_++;
 
-    if (curCount_ > hashTableThreshold_) { //we need to do something, we are out of space
+    if (isOutOfSpace(curCount_)) { //we need to do something, we are out of space
       //must rebuild or resize
       if (lgArrLongs_ <= lgNomLongs_) { //resize
         resizeCache();

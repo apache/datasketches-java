@@ -439,4 +439,7 @@ public abstract class UpdateSketch extends Sketch {
     }
   }
 
+  abstract void setThetaLong(long theta);
+
+  abstract boolean isOutOfSpace(int numEntries);
 }
