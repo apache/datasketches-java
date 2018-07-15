@@ -4,6 +4,8 @@
  */
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.testng.Assert.assertEquals;
 
@@ -11,11 +13,11 @@ import org.testng.annotations.Test;
 
 import com.yahoo.memory.DefaultMemoryRequestServer;
 import com.yahoo.memory.MemoryRequestServer;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
-
 /**
  * @author Lee Rhodes
  */
@@ -128,6 +130,16 @@ public class UpdateSketchTest {
     CompactSketch csk = sk.compact();
     assertEquals(csk.getCurrentBytes(true), 8);
   }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkCorruption() {
+    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    sk.update(1);
+    WritableMemory wmem = WritableMemory.wrap(sk.compact().toByteArray());
+    wmem.putByte(SER_VER_BYTE, (byte) 2);
+    UpdateSketch.wrap(wmem, DEFAULT_UPDATE_SEED);
+  }
+
 
   @Test
   public void printlnTest() {

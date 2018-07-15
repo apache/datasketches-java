@@ -114,6 +114,7 @@ public class SingleItemSketchTest {
     assertEquals(sis.getUpperBound(1), 1.0);
     assertFalse(sis.isDirect());
     assertFalse(sis.isEmpty());
+    assertFalse(sis.hasMemory());
     assertTrue(sis.isOrdered());
   }
 
@@ -273,10 +274,23 @@ public class SingleItemSketchTest {
     aNotB.update(sk1, sk2);
     csk = aNotB.getResult(true, null);
     assertTrue(csk instanceof SingleItemSketch);
-
     //not AnotB off-heap form
   }
 
+  @Test
+  public void checkHeapifyInstance() {
+    UpdateSketch sk1 = new UpdateSketchBuilder().build();
+    sk1.update(1);
+    UpdateSketch sk2 = new UpdateSketchBuilder().build();
+    sk2.update(1);
+    Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    inter.update(sk1);
+    inter.update(sk2);
+    WritableMemory wmem = WritableMemory.wrap(new byte[16]);
+    inter.getResult(false, wmem);
+    Sketch csk2 = Sketches.heapifySketch(wmem);
+    println(csk2.toString(true, true, 1, true));
+  }
 
   @Test
   public void printlnTest() {

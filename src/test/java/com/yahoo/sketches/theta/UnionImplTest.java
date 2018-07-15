@@ -23,13 +23,11 @@ public class UnionImplTest {
   public void checkUpdateWithSketch() {
     int k = 16;
     WritableMemory mem = WritableMemory.wrap(new byte[(k*8) + 24]);
+    WritableMemory mem2 = WritableMemory.wrap(new byte[(k*8) + 24]);
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
-    for (int i=0; i<k; i++)
-     {
-      sketch.update(i); //exact
-    }
+    for (int i=0; i<k; i++) { sketch.update(i); }
     CompactSketch sketchInDirectOrd = sketch.compact(true, mem);
-    CompactSketch sketchInDirectUnord = sketch.compact(false, mem);
+    CompactSketch sketchInDirectUnord = sketch.compact(false, mem2);
     CompactSketch sketchInHeap = sketch.compact(true, null);
 
     Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
@@ -37,6 +35,18 @@ public class UnionImplTest {
     union.update(sketchInHeap);
     union.update(sketchInDirectUnord);
     assertEquals(union.getResult().getEstimate(), k, 0.0);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkCorruptedCompactFlag() {
+    int k = 16;
+    WritableMemory mem = WritableMemory.wrap(new byte[(k*8) + 24]);
+    UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+    for (int i=0; i<k; i++) { sketch.update(i); }
+    CompactSketch sketchInDirectOrd = sketch.compact(true, mem);
+    sketch.compact(false, mem); //corrupt memory
+    Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
+    union.update(sketchInDirectOrd);
   }
 
   @Test
@@ -160,7 +170,7 @@ public class UnionImplTest {
   public void checkUnionCompactOrderedSource() {
     int k = 1 << 12;
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
-    for (int i = 0; i < (k); i++) { sk.update(i); }
+    for (int i = 0; i < k; i++) { sk.update(i); }
     double est1 = sk.getEstimate();
 
     int bytes = Sketches.getMaxCompactSketchBytes(sk.getRetainedEntries());
@@ -172,6 +182,21 @@ public class UnionImplTest {
       double est2 = union.getResult().getEstimate();
       assertEquals(est2, est1);
     }
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkCompactFlagCorruption() {
+    int k = 1 << 12;
+    int bytes = Sketch.getMaxUpdateSketchBytes(k);
+    WritableMemory wmem1 = WritableMemory.allocate(bytes);
+    UpdateSketch sk = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem1);
+    for (int i = 0; i < k; i++) { sk.update(i); }
+    sk.compact(true, wmem1); //corrupt the wmem1 to be a compact sketch
+
+    Union union = SetOperation.builder().buildUnion();
+    union.update(sk); //update the union with the UpdateSketch object
+    CompactSketch csk1 = union.getResult();
+    println(""+csk1.getEstimate());
   }
 
   @Test

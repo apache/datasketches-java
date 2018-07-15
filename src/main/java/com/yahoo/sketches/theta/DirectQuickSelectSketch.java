@@ -6,10 +6,10 @@
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.Util.MIN_LG_ARR_LONGS;
-import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
 import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
+import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.P_FLOAT;
 import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
@@ -58,14 +58,12 @@ import com.yahoo.sketches.Util;
  * @author Kevin Lang
  */
 final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
-  MemoryRequestServer memReqSvr_ = null;
+  MemoryRequestServer memReqSvr_ = null; //never serialized
 
   private DirectQuickSelectSketch(
-      final int lgNomLongs,
       final long seed,
-      final int preambleLongs,
       final WritableMemory wmem) {
-    super(Math.max(lgNomLongs, MIN_LG_NOM_LONGS), seed, preambleLongs, wmem);
+    super(seed, wmem);
   }
 
   /**
@@ -139,7 +137,7 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     dstMem.clear(preambleLongs << 3, 8 << lgArrLongs);
 
     final DirectQuickSelectSketch dqss =
-        new DirectQuickSelectSketch(lgNomLongs, seed, preambleLongs, dstMem);
+        new DirectQuickSelectSketch(seed, dstMem);
 
     dqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     dqss.memReqSvr_ = memReqSvr;
@@ -170,7 +168,7 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     }
 
     final DirectQuickSelectSketch dqss =
-        new DirectQuickSelectSketch(lgNomLongs, seed, preambleLongs, srcMem);
+        new DirectQuickSelectSketch(seed, srcMem);
     dqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     return dqss;
   }
@@ -184,12 +182,11 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
    * @return instance of this sketch
    */
   static DirectQuickSelectSketch fastWritableWrap(final WritableMemory srcMem, final long seed) {
-    final int preambleLongs = extractPreLongs(srcMem);                  //byte 0
     final int lgNomLongs = extractLgNomLongs(srcMem);                   //byte 3
     final int lgArrLongs = extractLgArrLongs(srcMem);                   //byte 4
 
     final DirectQuickSelectSketch dqss =
-        new DirectQuickSelectSketch(lgNomLongs, seed, preambleLongs, srcMem);
+        new DirectQuickSelectSketch(seed, srcMem);
     dqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     return dqss;
   }
@@ -201,8 +198,10 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
 
   @Override
   public UpdateSketch rebuild() {
-    if (getRetainedEntries(true) > (1 << getLgNomLongs())) {
-      quickSelectAndRebuild(mem_, preambleLongs_, lgNomLongs_);
+    final int lgNomLongs = getLgNomLongs();
+    final int preambleLongs = mem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+    if (getRetainedEntries(true) > (1 << lgNomLongs)) {
+      quickSelectAndRebuild(mem_, preambleLongs, lgNomLongs);
     }
     return this;
   }
@@ -214,7 +213,8 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     //lgArrLongs stays the same
     //thetaLongs resets to p
     final int arrLongs = 1 << getLgArrLongs();
-    final int preBytes = preambleLongs_ << 3;
+    final int preambleLongs = mem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+    final int preBytes = preambleLongs << 3;
     mem_.clear(preBytes, arrLongs * 8); //clear data array
     //flags: bigEndian = readOnly = compact = ordered = false; empty = true.
     mem_.putByte(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
@@ -232,17 +232,18 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
 
     mem_.putByte(FLAGS_BYTE, (byte) (mem_.getByte(FLAGS_BYTE) & ~EMPTY_FLAG_MASK));
     final long thetaLong = getThetaLong();
-
+    final int lgNomLongs = getLgNomLongs();
     //The over-theta test
     if (HashOperations.continueCondition(thetaLong, hash)) {
       return RejectedOverTheta; //signal that hash was rejected due to theta.
     }
 
     final int lgArrLongs = getLgArrLongs();
+    final int preambleLongs = mem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
 
     //The duplicate test
     final int index =
-        HashOperations.fastHashSearchOrInsert(mem_, lgArrLongs, hash, preambleLongs_ << 3);
+        HashOperations.fastHashSearchOrInsert(mem_, lgArrLongs, hash, preambleLongs << 3);
     if (index >= 0) {
       return RejectedDuplicate; //Duplicate, not inserted
     }
@@ -252,29 +253,29 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
 
     if (curCount > hashTableThreshold_) { //we need to do something, we are out of space
 
-      if (lgArrLongs > lgNomLongs_) { //at full size, rebuild
+      if (lgArrLongs > lgNomLongs) { //at full size, rebuild
         //Assumes no dirty values, changes thetaLong, curCount_
-        assert (lgArrLongs == (lgNomLongs_ + 1))
-            : "lgArr: " + lgArrLongs + ", lgNom: " + lgNomLongs_;
+        assert (lgArrLongs == (lgNomLongs + 1))
+            : "lgArr: " + lgArrLongs + ", lgNom: " + lgNomLongs;
         //rebuild, refresh curCount based on # values in the hashtable.
-        quickSelectAndRebuild(mem_, preambleLongs_, lgNomLongs_);
+        quickSelectAndRebuild(mem_, preambleLongs, lgNomLongs);
       } //end of rebuild, exit
 
       else { //Not at full size, resize. Should not get here if lgRF = 0 and memCap is too small.
         final int lgRF = getLgRF();
-        final int actLgRF = actLgResizeFactor(mem_.getCapacity(), lgArrLongs, preambleLongs_, lgRF);
-        int tgtLgArrLongs = Math.min(lgArrLongs + actLgRF, lgNomLongs_ + 1);
+        final int actLgRF = actLgResizeFactor(mem_.getCapacity(), lgArrLongs, preambleLongs, lgRF);
+        int tgtLgArrLongs = Math.min(lgArrLongs + actLgRF, lgNomLongs + 1);
 
         if (actLgRF > 0) { //Expand in current Memory
           //lgArrLongs will change; thetaLong, curCount will not
-          resize(mem_, preambleLongs_, lgArrLongs, tgtLgArrLongs);
-          hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, tgtLgArrLongs);
+          resize(mem_, preambleLongs, lgArrLongs, tgtLgArrLongs);
+          hashTableThreshold_ = setHashTableThreshold(lgNomLongs, tgtLgArrLongs);
         } //end of Expand in current memory, exit.
 
         else {
           //Request more memory, then resize. lgArrLongs will change; thetaLong, curCount will not
-          final int preBytes = preambleLongs_ << 3;
-          tgtLgArrLongs = Math.min(lgArrLongs + lgRF, lgNomLongs_ + 1);
+          final int preBytes = preambleLongs << 3;
+          tgtLgArrLongs = Math.min(lgArrLongs + lgRF, lgNomLongs + 1);
           final int tgtArrBytes = 8 << tgtLgArrLongs;
           final int reqBytes = tgtArrBytes + preBytes;
 
@@ -282,12 +283,12 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
 
           final WritableMemory newDstMem = memReqSvr_.request(reqBytes);
 
-          moveAndResize(mem_, preambleLongs_, lgArrLongs, newDstMem, tgtLgArrLongs, thetaLong);
+          moveAndResize(mem_, preambleLongs, lgArrLongs, newDstMem, tgtLgArrLongs, thetaLong);
 
           memReqSvr_.requestClose(mem_, newDstMem);
 
           mem_ = newDstMem;
-          hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, tgtLgArrLongs);
+          hashTableThreshold_ = setHashTableThreshold(lgNomLongs, tgtLgArrLongs);
 
         } //end of Request more memory to resize
       } //end of resize

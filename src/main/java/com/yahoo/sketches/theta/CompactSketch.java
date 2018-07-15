@@ -52,13 +52,6 @@ public abstract class CompactSketch extends Sketch {
   //restricted methods
 
   /**
-   * Gets the <a href="{@docRoot}/resources/dictionary.html#mem">Memory</a>
-   * if available, otherwise returns null.
-   * @return the backing Memory or null.
-   */
-  abstract Memory getMemory();
-
-  /**
    * Compact the given array. The source cache can be a hash table with interstitial zeros or
    * "dirty" values.
    * @param srcCache anything
