@@ -114,6 +114,7 @@ public class SingleItemSketchTest {
     assertEquals(sis.getUpperBound(1), 1.0);
     assertFalse(sis.isDirect());
     assertFalse(sis.isEmpty());
+    assertFalse(sis.hasMemory());
     assertTrue(sis.isOrdered());
   }
 

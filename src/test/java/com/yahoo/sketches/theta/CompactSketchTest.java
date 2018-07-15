@@ -234,6 +234,16 @@ public class CompactSketchTest {
   }
 
   @Test
+  public void checkDirectCompactSingleItemSketch() {
+    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    CompactSketch csk = sk.compact(true, WritableMemory.allocate(16));
+    assertEquals(csk.getCurrentBytes(true), 8);
+    sk.update(1);
+    csk = sk.compact(true, WritableMemory.allocate(16));
+    assertEquals(csk.getCurrentBytes(true), 16);
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
