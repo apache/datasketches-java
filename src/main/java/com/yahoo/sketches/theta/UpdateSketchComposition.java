@@ -1,6 +1,6 @@
 package com.yahoo.sketches.theta;
 
-import com.yahoo.memory.WritableMemory;
+import com.yahoo.memory.Memory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 
@@ -111,8 +111,13 @@ public class UpdateSketchComposition extends UpdateSketch {
   }
 
   @Override
-  WritableMemory getMemory() {
+  Memory getMemory() {
     return delegatee_.getMemory();
+  }
+
+  @Override
+  public boolean hasMemory() {
+    return delegatee_.hasMemory();
   }
 
   @Override
