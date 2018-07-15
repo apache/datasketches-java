@@ -286,7 +286,7 @@ public class SingleItemSketchTest {
     inter.update(sk1);
     inter.update(sk2);
     WritableMemory wmem = WritableMemory.wrap(new byte[16]);
-    CompactSketch csk = inter.getResult(false, wmem);
+    inter.getResult(false, wmem);
     Sketch csk2 = Sketches.heapifySketch(wmem);
     println(csk2.toString(true, true, 1, true));
   }
@@ -300,7 +300,7 @@ public class SingleItemSketchTest {
    * @param s value to print
    */
   static void println(String s) {
-    System.out.println(s); //disable here
+    //System.out.println(s); //disable here
   }
 
 }

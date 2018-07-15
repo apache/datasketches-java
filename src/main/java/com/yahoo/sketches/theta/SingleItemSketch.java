@@ -16,45 +16,39 @@ import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * @author Lee Rhodes
  */
 public final class SingleItemSketch extends CompactSketch {
-  private static final long defaultPreamble;
-  private final long[] arr = new long[] {defaultPreamble, 0L };
-  private final WritableMemory wmem = WritableMemory.wrap(arr);
+  private static final long FLAGS =
+      (READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK  | ORDERED_FLAG_MASK) & 0xFFL;
+  private static final long LO6BYTES = (FLAGS << 40) | (3L << 16) | (3L << 8) | 1L;
+  private static final long DEFAULT_SEED_HASH = computeSeedHash(DEFAULT_UPDATE_SEED) & 0xFFFFL;
+  private static final long DEFAULT_PRE0 =  (DEFAULT_SEED_HASH << 48) | LO6BYTES;
 
-  static {
-    final byte[] sArr = new byte[8];
-    final WritableMemory smem = WritableMemory.wrap(sArr);
-    smem.putByte(0, (byte) 1); //preLongs
-    smem.putByte(1, (byte) 3); //serVer
-    smem.putByte(2, (byte) 3); //FamilyID
-    final byte flags = (byte) (READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK  | ORDERED_FLAG_MASK);
-    smem.putByte(5, flags);
-    smem.putShort(6, computeSeedHash(DEFAULT_UPDATE_SEED));
-    defaultPreamble = smem.getLong(0);
-  }
+  private final long[] arr = new long[2];
 
   private SingleItemSketch(final long hash) {
+    arr[0] = DEFAULT_PRE0;
     arr[1] = hash;
   }
 
   private SingleItemSketch(final long hash, final long seed) {
+    final long seedHash = computeSeedHash(seed) & 0xFFFFL;
+    arr[0] = (seedHash << 48) | LO6BYTES;
     arr[1] = hash;
-    wmem.putShort(6, computeSeedHash(seed));
   }
 
   SingleItemSketch(final long hash, final short seedHash) {
+    final long seedH = seedHash & 0xFFFFL;
+    arr[0] = (seedH << 48) | LO6BYTES;
     arr[1] = hash;
-    wmem.putShort(6, seedHash);
   }
 
   /**
-   * Creates a SingleItemSketch on the heap given a Memory
+   * Creates a SingleItemSketch on the heap given a Memory and assumes the DEFAULT_UPDATE_SEED.
    * @param mem the Memory to be heapified.  It must be a least 16 bytes.
    * @return a SingleItemSketch
    */
@@ -338,7 +332,10 @@ public final class SingleItemSketch extends CompactSketch {
   @Override
   public byte[] toByteArray() {
     final byte[] out = new byte[16];
-    wmem.getByteArray(0, out, 0, 16);
+    for (int i = 0; i < 8; i++) {
+      out[i]     = (byte) (arr[0] >>> (i * 8));
+      out[i + 8] = (byte) (arr[1] >>> (i * 8));
+    }
     return out;
   }
 
@@ -361,7 +358,7 @@ public final class SingleItemSketch extends CompactSketch {
 
   @Override
   short getSeedHash() {
-    return wmem.getShort(6);
+    return (short) (arr[0] >>> 48);
   }
 
   @Override
@@ -370,7 +367,7 @@ public final class SingleItemSketch extends CompactSketch {
   }
 
   static void checkDefaultBytes0to7(final long memPre0) {
-    if (memPre0 != defaultPreamble) {
+    if (memPre0 != DEFAULT_PRE0) {
       throw new SketchesArgumentException(
         "Input Memory does not match defualt Preamble bytes 0 through 7.");
     }
@@ -378,7 +375,7 @@ public final class SingleItemSketch extends CompactSketch {
 
   static void checkDefaultBytes0to5(final long memPre0) {
     final long mask = (1L << 48) - 1L;
-    if ((memPre0 & mask) != (defaultPreamble & mask)) {
+    if ((memPre0 & mask) != LO6BYTES) {
       throw new SketchesArgumentException(
         "Input Memory does not match defualt Preamble bytes 0 through 5.");
     }
