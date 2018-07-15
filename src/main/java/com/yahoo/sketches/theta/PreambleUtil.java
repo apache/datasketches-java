@@ -76,9 +76,9 @@ final class PreambleUtil {
   static final int BIG_ENDIAN_FLAG_MASK = 1; //SerVer 1, 2, 3
   static final int READ_ONLY_FLAG_MASK  = 2; //Set but not read. Reserved. SerVer 1, 2, 3
   static final int EMPTY_FLAG_MASK      = 4; //SerVer 2, 3
-  static final int COMPACT_FLAG_MASK    = 8; //SerVer 2 was NO_REBUILD_FLAG_MASK
-  static final int ORDERED_FLAG_MASK    = 16;//SerVer 2 was UNORDERED_FLAG_MASK
-  static final int SINGLEITEM_FLAG_MASK  = 32;//SerVer 3. Reserved
+  static final int COMPACT_FLAG_MASK    = 8; //SerVer 2 was NO_REBUILD_FLAG_MASK, 3
+  static final int ORDERED_FLAG_MASK    = 16;//SerVer 2 was UNORDERED_FLAG_MASK, 3
+  static final int SINGLEITEM_FLAG_MASK = 32;//SerVer 3. Reserved, set but not read
 
   //Backward compatibility: SerVer1 preamble always 3 longs, SerVer2 preamble: 1, 2, 3 longs
   //               SKETCH_TYPE_BYTE             2  //SerVer1, SerVer2

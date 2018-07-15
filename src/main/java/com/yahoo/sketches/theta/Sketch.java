@@ -262,6 +262,12 @@ public abstract class Sketch {
   }
 
   /**
+   * Returns true if this sketch's data structure is backed by Memory or WritableMemory.
+   * @return true if this sketch's data structure is backed by Memory or WritableMemory.
+   */
+  public abstract boolean hasMemory();
+
+  /**
    * Returns true if this sketch is in compact form.
    * @return true if this sketch is in compact form.
    */
@@ -452,6 +458,12 @@ public abstract class Sketch {
   }
 
   /**
+   * Returns the Memory object if it exists, otherwise null.
+   * @return the Memory object if it exists, otherwise null.
+   */
+  abstract Memory getMemory();
+
+  /**
    * Gets the 16-bit seed hash
    * @return the seed hash
    */
@@ -468,10 +480,29 @@ public abstract class Sketch {
    * @param id the given Family id
    * @return true if given Family id is one of the theta sketches
    */
-  static boolean isValidSketchID(final int id) {
+  static final boolean isValidSketchID(final int id) {
     return (id == Family.ALPHA.getID())
         || (id == Family.QUICKSELECT.getID())
         || (id == Family.COMPACT.getID());
+  }
+
+  /**
+   * Checks Ordered and Compact flags for integrity between sketch and Memory
+   * @param sketch the given sketch
+   * @param mem the given Memory
+   */
+  static final void checkSketchAndMemoryFlags(final Sketch sketch) {
+    final Memory mem = sketch.getMemory();
+    if (mem == null) { return; }
+    final int flags = PreambleUtil.extractFlags(mem);
+    if (((flags & COMPACT_FLAG_MASK) > 0) ^ sketch.isCompact()) {
+      throw new SketchesArgumentException("Possible corruption: "
+          + "Memory Compact Flag inconsistent with Sketch");
+    }
+    if (((flags & ORDERED_FLAG_MASK) > 0) ^ sketch.isOrdered()) {
+      throw new SketchesArgumentException("Possible corruption: "
+          + "Memory Ordered Flag inconsistent with Sketch");
+    }
   }
 
   static final double estimate(final long thetaLong, final int curCount, final boolean empty) {

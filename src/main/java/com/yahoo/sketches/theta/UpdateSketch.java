@@ -361,13 +361,6 @@ public abstract class UpdateSketch extends Sketch {
    */
   abstract boolean isDirty();
 
-  /**
-   * Gets the <a href="{@docRoot}/resources/dictionary.html#mem">Memory</a>
-   * if available, otherwise returns null.
-   * @return the backing Memory or null.
-   */
-  abstract WritableMemory getMemory();
-
   static void checkUnionQuickSelectFamily(final Memory mem, final int preambleLongs,
       final int lgNomLongs) {
     //Check Family

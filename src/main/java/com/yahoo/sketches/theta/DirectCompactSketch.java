@@ -56,6 +56,11 @@ abstract class DirectCompactSketch extends CompactSketch {
   }
 
   @Override
+  public boolean hasMemory() {
+    return true;
+  }
+
+  @Override
   public boolean isDirect() {
     return mem_.isDirect();
   }

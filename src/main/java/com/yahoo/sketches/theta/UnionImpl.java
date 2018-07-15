@@ -234,14 +234,16 @@ final class UnionImpl extends Union {
       return;
     }
     Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
+    Sketch.checkSketchAndMemoryFlags(sketchIn);
+
 
     final long thetaLongIn = sketchIn.getThetaLong();
     unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule with incoming
     final int curCountIn = sketchIn.getRetainedEntries(true);
 
     if (sketchIn.isOrdered()) { //Only true if Compact. Use early stop
-
-      if (sketchIn.isDirect()) { //ordered, direct thus compact
+      //Ordered, thus compact
+      if (sketchIn.isDirect()) {
         final Memory skMem = ((CompactSketch) sketchIn).getMemory();
         final int preambleLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
         for (int i = 0; i < curCountIn; i++ ) {
@@ -251,7 +253,7 @@ final class UnionImpl extends Union {
           gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
         }
       }
-      else { //sketchIn is on the Java Heap, ordered, thus compact
+      else { //sketchIn is on the Java Heap or has array
         final long[] cacheIn = sketchIn.getCache(); //not a copy!
         for (int i = 0; i < curCountIn; i++ ) {
           final long hashIn = cacheIn[i];
@@ -272,7 +274,7 @@ final class UnionImpl extends Union {
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //Theta rule with gadget
     if (gadget_.isDirect()) {
-      gadget_.getMemory().putLong(UNION_THETA_LONG, unionThetaLong_);
+      ((WritableMemory)gadget_.getMemory()).putLong(UNION_THETA_LONG, unionThetaLong_);
     }
   }
 
@@ -389,7 +391,7 @@ final class UnionImpl extends Union {
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
     if (gadget_.isDirect()) {
-      gadget_.getMemory().putLong(UNION_THETA_LONG, unionThetaLong_);
+      ((WritableMemory)gadget_.getMemory()).putLong(UNION_THETA_LONG, unionThetaLong_);
     }
   }
 
@@ -418,7 +420,7 @@ final class UnionImpl extends Union {
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
     if (gadget_.isDirect()) {
-      gadget_.getMemory().putLong(UNION_THETA_LONG, unionThetaLong_);
+      ((WritableMemory)gadget_.getMemory()).putLong(UNION_THETA_LONG, unionThetaLong_);
     }
   }
 
@@ -470,7 +472,7 @@ final class UnionImpl extends Union {
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //sync thetaLongs
     if (gadget_.isDirect()) {
-      gadget_.getMemory().putLong(UNION_THETA_LONG, unionThetaLong_);
+      ((WritableMemory)gadget_.getMemory()).putLong(UNION_THETA_LONG, unionThetaLong_);
     }
   }
 
