@@ -262,11 +262,6 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   }
 
   @Override
-  boolean isOutOfSpace(final int numEntries) {
-    return numEntries > hashTableThreshold_;
-  }
-
-  @Override
   long[] getCache() {
     return cache_;
   }

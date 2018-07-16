@@ -260,9 +260,4 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     mem_.putLong(THETA_LONG, thetaLong);
   }
 
-  @Override
-  boolean isOutOfSpace(final int numEntries) {
-    return numEntries > hashTableThreshold_;
-  }
-
 }
