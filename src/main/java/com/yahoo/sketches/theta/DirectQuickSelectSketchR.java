@@ -175,12 +175,6 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   //restricted methods
 
   @Override
-  int getCurrentPreambleLongs(final boolean compact) {
-    if (!compact) { return PreambleUtil.extractPreLongs(mem_); }
-    return computeCompactPreLongs(getThetaLong(), isEmpty(), getRetainedEntries(true));
-  }
-
-  @Override
   long[] getCache() {
     final long lgArrLongs = mem_.getByte(LG_ARR_LONGS_BYTE) & 0XFF;
     final int preambleLongs = mem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
@@ -189,6 +183,14 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     mem_.copyTo(preambleLongs << 3, mem, 0, 8 << lgArrLongs);
     return cacheArr;
   }
+
+  @Override
+  int getCurrentPreambleLongs(final boolean compact) {
+    if (!compact) { return PreambleUtil.extractPreLongs(mem_); }
+    return computeCompactPreLongs(getThetaLong(), isEmpty(), getRetainedEntries(true));
+  }
+
+
 
   @Override
   WritableMemory getMemory() {
@@ -221,17 +223,22 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   }
 
   @Override
+  boolean isOutOfSpace(final int numEntries) {
+    return numEntries > hashTableThreshold_;
+  }
+
+  @Override
   int getLgArrLongs() {
     return mem_.getByte(LG_ARR_LONGS_BYTE) & 0XFF;
+  }
+
+  int getLgRF() {
+    return (mem_.getByte(PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT) & 0X3;
   }
 
   @Override
   UpdateReturnState hashUpdate(final long hash) {
     throw new SketchesReadOnlyException();
-  }
-
-  int getLgRF() {
-    return (mem_.getByte(PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT) & 0X3;
   }
 
   /**

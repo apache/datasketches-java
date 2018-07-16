@@ -272,6 +272,11 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   }
 
   @Override
+  boolean isOutOfSpace(final int numEntries) {
+    return numEntries > hashTableThreshold_;
+  }
+
+  @Override
   int getLgArrLongs() {
     return lgArrLongs_;
   }
@@ -310,7 +315,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
       else {
         //inserts (not entries!) <= k. It may not be at tgt size.
         //Check size, don't decrement theta. cnt already ++, empty_ already false;
-        if (curCount_ > hashTableThreshold_) {
+        if (isOutOfSpace(curCount_)) {
           resizeClean(); //not dirty, not at tgt size.
         }
       }
@@ -320,7 +325,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
       assert (lgArrLongs_ > lgNomLongs_) : "lgArr: " + lgArrLongs_ + ", lgNom: " + lgNomLongs_;
       thetaLong_ = (long) (thetaLong_ * alpha_); //decrement theta
       dirty_ = true; //now may have dirty values
-      if (curCount_ > hashTableThreshold_) {
+      if (isOutOfSpace(curCount_)) {
         rebuildDirty(); // at tgt size and maybe dirty
       }
     }

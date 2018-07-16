@@ -212,6 +212,11 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
   }
 
   @Override
+  boolean isOutOfSpace(final int numEntries) {
+    return numEntries > hashTableThreshold_;
+  }
+
+  @Override
   int getLgArrLongs() {
     return lgArrLongs_;
   }
@@ -233,7 +238,7 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
     //insertion occurred, must increment curCount
     curCount_++;
 
-    if (curCount_ > hashTableThreshold_) { //we need to do something, we are out of space
+    if (isOutOfSpace(curCount_)) { //we need to do something, we are out of space
       //must rebuild or resize
       if (lgArrLongs_ <= lgNomLongs_) { //resize
         resizeCache();
