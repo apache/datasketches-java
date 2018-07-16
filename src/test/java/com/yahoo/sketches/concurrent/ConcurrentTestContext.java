@@ -16,24 +16,23 @@ public class ConcurrentTestContext {
   private Set<ConcurrentTestThread> testThreads_ = new HashSet<>();
 
   public void addThread(ConcurrentTestThread t) {
-   	testThreads_.add(t);
+    testThreads_.add(t);
   }
 
   public void startThreads() {
     for (ConcurrentTestThread t : testThreads_) {
-    		t.start();
+      t.start();
     }
 
-
     for (ConcurrentTestThread t : testThreads_) {
-    	t.startThread();
+      t.startThread();
     }
   }
 
   private synchronized void checkException() throws Exception {
     if (err_ != null) {
-  	  throw new RuntimeException("Deferred", err_);
-  	}
+      throw new RuntimeException("Deferred", err_);
+    }
   }
 
   public synchronized void threadFailed(Throwable t) {

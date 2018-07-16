@@ -31,28 +31,28 @@ public abstract class ConcurrentTestThread extends Thread{
 
     switch (type_) {
     case WRITER:
-    	num = 10000000;
-    	break;
+      num = 10_000_000;
+      break;
     case READER:
-    	num = 10000;
-    	break;
+      num = 10_000;
+      break;
     case MIXED:
-    	num = 100000;
-    	break;
+      num = 100_000;
+      break;
     default:
-    	assert (false);
-    	break;
+      assert (false);
+      break;
     }
 
     while (!start_.get()) {}
 
     try {
-    	while (!stop_.get()) {  //TODO can impact performance!
+      while (!stop_.get()) {  //TODO can impact performance!
 
-    		for (int i = 0; i < num; i++) {
-    			doWork();
-    		}
-    	}
+        for (int i = 0; i < num; i++) {
+          doWork();
+        }
+      }
     } catch (Throwable t) {
       LOG.info("catched RuntimeException: " + t);
     }

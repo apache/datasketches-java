@@ -1,5 +1,7 @@
 package com.yahoo.sketches.theta;
 
+import static org.testng.Assert.assertEquals;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -26,11 +28,20 @@ public class TestPerformanceTheta {
 
   //@Test //enable to allow running from TestNG manually
   public static void startTest() throws Exception {
-    TestPerformanceTheta.main(new String[] {"CONCURRENT", "QUICKSELECT", "4", "4", "30", "true"});
+    TestPerformanceTheta.main(new String[] {"BASELINE", "QUICKSELECT", "4", "4", "30", "true"});
   }
 
-  public static void main(String[] args) throws Exception {
+  //@Test
+  public void simpleSketchTest() {
+    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    for (int i = 0; i < 512; i++) { sk.update(i); }
+    double est = sk.getEstimate();
+    assertEquals(est, 512.0);
+    System.out.println(sk.getEstimate());
+  }
 
+
+  public static void main(String[] args) throws Exception {
     TestPerformanceTheta test = new TestPerformanceTheta();
 
     if(args.length<6) {
@@ -63,7 +74,6 @@ public class TestPerformanceTheta {
   }
 
   public void setUp(String concurrencyType, String family) throws Exception {
-
     WritableMemory mem;
     UpdateSketch sketch;
     UpdateSketch sketchToInit=null;
@@ -102,17 +112,18 @@ public class TestPerformanceTheta {
       break;
     default:
       String msg = concurrencyType + "is not a valid concurrency type, please choose "
-          + "CONCURRENT/LOCK_BASED/BASELINE";
+          + "CONCURRENT / LOCK_BASED / BASELINE";
       LOG.info(msg);
       throw new RuntimeException(msg);
     }
 
-    for (long i = 0; i < 10000000; i++) {
+    for (long i = 0; i < 512; i++) {
       sketchToInit.update(i);
 //      if((i % 100000) == 0){
 //        System.out.print(".");
 //      }
     }
+    System.out.println("Estimate: " + sketchToInit.getEstimate());
     System.out.println();
   }
 
@@ -144,7 +155,7 @@ public class TestPerformanceTheta {
 
     LOG.info("Write threads:");
     for (WriterThread writer : writersList) {
-    	totalWrites += writer.operationsNum_;
+      totalWrites += writer.operationsNum_;
     }
     LOG.info("writeTput = " + (((totalWrites / secondsToRun)) / 1000000) + " millions per second");
 
@@ -169,9 +180,9 @@ public class TestPerformanceTheta {
     }
 
     public WriterThread(CONCURRENCY_TYPE type, int id, int jump) {
-    	super("WRITER");
-    	i_ = id;
-    	jump_ = jump;
+      super("WRITER");
+      i_ = id;
+      jump_ = jump;
       switch (type) {
       case CONCURRENT:
         context_ = ConcurrentThetaFactory.createConcurrentThetaContext(
@@ -185,9 +196,9 @@ public class TestPerformanceTheta {
     @Override
     public void doWork() throws Exception {
 
-    	context_.update(i_);
-    	operationsNum_++;
-    	i_ = i_ + jump_;
+      context_.update(i_);
+      operationsNum_++;
+      i_ = i_ + jump_;
     }
   }
 
@@ -212,8 +223,8 @@ public class TestPerformanceTheta {
     @Override
     public void doWork() throws Exception {
 
-    	context_.getEstimate();
-    	readOperationsNum_++;
+      context_.getEstimate();
+      readOperationsNum_++;
     }
   }
 
@@ -243,7 +254,7 @@ public class TestPerformanceTheta {
       } finally {
         lock_.readLock().unlock();
       }
-
     }
   }
+
 }
