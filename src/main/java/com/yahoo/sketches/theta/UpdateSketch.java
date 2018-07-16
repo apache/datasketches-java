@@ -361,6 +361,13 @@ public abstract class UpdateSketch extends Sketch {
    */
   abstract boolean isDirty();
 
+  /**
+   * Returns true if numEntries (curCount) is greater than the hashTableThreshold.
+   * @param numEntries the given number of entries (or current count).
+   * @return true if numEntries (curCount) is greater than the hashTableThreshold.
+   */
+  abstract boolean isOutOfSpace(int numEntries);
+
   static void checkUnionQuickSelectFamily(final Memory mem, final int preambleLongs,
       final int lgNomLongs) {
     //Check Family

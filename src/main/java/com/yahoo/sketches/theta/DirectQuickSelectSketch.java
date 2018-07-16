@@ -251,7 +251,7 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     final int curCount = getRetainedEntries() + 1;
     mem_.putInt(RETAINED_ENTRIES_INT, curCount); //update curCount
 
-    if (curCount > hashTableThreshold_) { //we need to do something, we are out of space
+    if (isOutOfSpace(curCount)) { //we need to do something, we are out of space
 
       if (lgArrLongs > lgNomLongs) { //at full size, rebuild
         //Assumes no dirty values, changes thetaLong, curCount_
