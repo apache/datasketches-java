@@ -222,6 +222,11 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
   }
 
   @Override
+  boolean isOutOfSpace(final int numEntries) {
+    return numEntries > hashTableThreshold_;
+  }
+
+  @Override
   int getLgArrLongs() {
     return lgArrLongs_;
   }
