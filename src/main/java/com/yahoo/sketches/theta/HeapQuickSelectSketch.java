@@ -202,11 +202,6 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
   }
 
   @Override
-  boolean isOutOfSpace(final int numEntries) {
-    return numEntries > hashTableThreshold_;
-  }
-
-  @Override
   long[] getCache() {
     return cache_;
   }
