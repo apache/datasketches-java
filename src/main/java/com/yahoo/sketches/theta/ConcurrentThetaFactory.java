@@ -7,6 +7,10 @@ import com.yahoo.sketches.Family;
  */
 public class ConcurrentThetaFactory {
 
+  /**
+   * Returns a new Concurrent, Heap-based, QuickSelect sketch
+   * @return a new Concurrent, Heap, QuickSelect sketch
+   */
   public static ConcurrentUpdateSketch createConcurrentUpdateSketch(final Family family) {
     final UpdateSketchBuilder usb = new UpdateSketchBuilder();
     usb.setFamily(family);
@@ -14,6 +18,13 @@ public class ConcurrentThetaFactory {
     return new ConcurrentUpdateSketch(sketch);
   }
 
+  /**
+   * Returns a new Concurrent, Heap, QuickSelect sketch for a local thread context given the
+   * target shared sketch.
+   * @param shared the target shared sketch
+   * @return a new Concurrent, Heap, QuickSelect sketch for a local thread context given the
+   * target shared sketch.
+   */
   public static ConcurrentThetaContext createConcurrentThetaContext(final ConcurrentUpdateSketch shared) {
     final UpdateSketchBuilder usb = new UpdateSketchBuilder();
     final Family family = shared.getFamily();

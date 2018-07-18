@@ -26,6 +26,11 @@ public class ConcurrentUpdateSketch extends UpdateSketchComposition {
     propagationInProgress_ = new AtomicBoolean(false);
   }
 
+  /**
+   * Propogate the sketchIn into this sketch
+   * @param sketchIn the given sketchIn
+   * @param propagationInProgress the state of the propogation flag
+   */
   public void propagate(final Sketch sketchIn, final AtomicBoolean propagationInProgress) {
     final BackgroundThetaPropagation job = new BackgroundThetaPropagation(sketchIn,
         propagationInProgress);
