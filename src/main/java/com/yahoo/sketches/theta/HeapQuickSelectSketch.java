@@ -36,7 +36,6 @@ import com.yahoo.sketches.Util;
  * @author Kevin Lang
  */
 final class HeapQuickSelectSketch extends HeapUpdateSketch {
-  //UpdateSketch implements UpdateInternal, SetArgument {
   private final Family MY_FAMILY;
 
   private final int preambleLongs_;

@@ -61,7 +61,7 @@ public class UpdateSketchBuilder {
    * Sets the Nominal Entries for this sketch. The minimum value is 16 and the maximum value is
    * 67,108,864, which is 2^26. Be aware that sketches as large as this maximum value have not
    * been thoroughly tested or characterized for performance.
-   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
+   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
    * This will become the ceiling power of 2 if it is not.
    * @return this UpdateSketchBuilder
    */
