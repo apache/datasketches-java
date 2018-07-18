@@ -87,9 +87,7 @@ final class ConcurrentHeapThetaBuffer extends HeapUpdateSketch {
 
   @Override
   public final void reset() {
-    empty_ = true;
-    curCount_ = 0;
-    thetaLong_ =  Long.MAX_VALUE;
+    //do nothing
   }
 
   //restricted methods
@@ -98,6 +96,11 @@ final class ConcurrentHeapThetaBuffer extends HeapUpdateSketch {
   int getCurrentPreambleLongs(final boolean compact) {
     if (!compact) { return preambleLongs_; }
     return computeCompactPreLongs(thetaLong_, empty_, curCount_);
+  }
+
+  @Override
+  int getLgArrLongs() {
+    return lgArrLongs_;
   }
 
   @Override
@@ -129,17 +132,19 @@ final class ConcurrentHeapThetaBuffer extends HeapUpdateSketch {
     return numEntries > cacheLimit_;
   }
 
-  @Override
-  int getLgArrLongs() {
-    return lgArrLongs_;
+  void reset(final long thetaLong) {
+    Arrays.fill(cache_, 0, 1 << lgArrLongs_, 0L);
+    empty_ = true;
+    curCount_ = 0;
+    thetaLong_ =  thetaLong;
   }
 
   @Override
   UpdateReturnState hashUpdate(final long hash) {
     final UpdateReturnState ret = hashUpdate(hash);
-    if ((curCount_ + 1) > cacheLimit_) {
+    if (isOutOfSpace(curCount_ + 1)) {
         propagateToSharedSketch();
-        Arrays.fill(cache_, 0, 1 << lgArrLongs_, 0L);
+
     }
     return ret;
   }

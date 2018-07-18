@@ -60,7 +60,7 @@ final class ConcurrentDirectThetaSketch extends UpdateSketch {
   WritableMemory mem_;
 
   private volatile long volatileThetaLong_;
-  private volatile double estimation_;
+  private volatile double volatileEstimate_;
   // A flag to coordinate between several propagation threads
   private AtomicBoolean propagationInProgress_;
 
@@ -76,7 +76,7 @@ final class ConcurrentDirectThetaSketch extends UpdateSketch {
     hashTableThreshold_ = hashTableThreshold;
     volatileThetaLong_ = Long.MAX_VALUE;
     mem_ = dstMem;
-    estimation_ = 0;
+    volatileEstimate_ = 0;
     propagationInProgress_ = new AtomicBoolean(false);
   }
 
@@ -372,7 +372,7 @@ final class ConcurrentDirectThetaSketch extends UpdateSketch {
   }
 
   public double getEstimationSnapshot() {
-    return estimation_;
+    return volatileEstimate_;
   }
 
   public long getVolatileTheta() {
@@ -427,10 +427,10 @@ final class ConcurrentDirectThetaSketch extends UpdateSketch {
       //update volatile theta, uniques estimate and propagation flag
       final long sharedThetaLong = shared.getThetaLong();
       shared.volatileThetaLong_ = sharedThetaLong;
-      shared.estimation_ = shared.getEstimate();
+      shared.volatileEstimate_ = shared.getEstimate();
       bufferIn.reset();
       bufferIn.setThetaLong(sharedThetaLong);
-      //propagation completed, not in-progress, reset shared flag
+      //propagation completed, not in-progress, reset propagation flags
       shared.propagationInProgress_.set(false);
     }
   }
