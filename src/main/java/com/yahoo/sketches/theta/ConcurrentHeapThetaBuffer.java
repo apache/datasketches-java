@@ -16,7 +16,7 @@ import com.yahoo.sketches.ResizeFactor;
  * @author eshcar
  * @author Lee Rhodes
  */
-final class ConcurrentHeapBuffer extends HeapUpdateSketch {
+final class ConcurrentHeapThetaBuffer extends HeapUpdateSketch {
   private final Family MY_FAMILY;
   private final int preambleLongs_;
   private int lgArrLongs_;
@@ -24,18 +24,19 @@ final class ConcurrentHeapBuffer extends HeapUpdateSketch {
   private int curCount_;
   private long thetaLong_;
   private boolean empty_;
-
   private long[] cache_;
 
-  private final ConcurrentDirectSketch shared;
+  private final ConcurrentDirectThetaSketch shared;
   private final AtomicBoolean propagationInProgress;
+  private final boolean propagateOrderedCompact;
 
   //used only by factory
-  ConcurrentHeapBuffer(
+  ConcurrentHeapThetaBuffer(
       final int lgNomLongs,
       final long seed,
       final int cacheLimit,
-      final ConcurrentDirectSketch shared) {
+      final ConcurrentDirectThetaSketch shared,
+      final boolean propagateOrderedCompact) {
     super(lgNomLongs,
         seed,
         1.0F, //p
@@ -51,6 +52,7 @@ final class ConcurrentHeapBuffer extends HeapUpdateSketch {
 
     this.shared = shared;
     propagationInProgress = shared.getPropogationInProgress();
+    this.propagateOrderedCompact = propagateOrderedCompact;
   }
 
   //Sketch
@@ -103,7 +105,6 @@ final class ConcurrentHeapBuffer extends HeapUpdateSketch {
     return null;
   }
 
-  @Override
   void setThetaLong(final long theta) {
     thetaLong_ = theta;
   }
@@ -145,12 +146,11 @@ final class ConcurrentHeapBuffer extends HeapUpdateSketch {
 
   private void propagateToSharedSketch() {
     while (propagationInProgress.get()) {} //busy wait
-
-    final CompactSketch compactSketch = compact(); //TODO make optional
+    final HeapCompactOrderedSketch compactOrderedSketch = propagateOrderedCompact
+        ? (HeapCompactOrderedSketch) compact()
+        : null;
     propagationInProgress.set(true);
-    shared.propagate(compactSketch);
-    reset();
-    thetaLong_ = shared.getVolatileTheta();
+    shared.propagate(this,  compactOrderedSketch);
   }
 
 }
