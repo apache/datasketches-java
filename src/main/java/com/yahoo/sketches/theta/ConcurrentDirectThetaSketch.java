@@ -196,7 +196,7 @@ final class ConcurrentDirectThetaSketch extends UpdateSketch {
   }
 
   @Override
-  public byte[] toByteArray() { //MY_FAMILY is stored in mem_
+  public byte[] toByteArray() { //MY_FAMILY is stored in mem_ TODO DO WE NEED THIS?
     final byte lgArrLongs = mem_.getByte(LG_ARR_LONGS_BYTE);
     final int preambleLongs = mem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
     final int lengthBytes = (preambleLongs + (1 << lgArrLongs)) << 3;
@@ -430,7 +430,7 @@ final class ConcurrentDirectThetaSketch extends UpdateSketch {
       shared.estimation_ = shared.getEstimate();
       bufferIn.reset();
       bufferIn.setThetaLong(sharedThetaLong);
-      //propagation completed, not in-progress, reset shared flags
+      //propagation completed, not in-progress, reset shared flag
       shared.propagationInProgress_.set(false);
     }
   }

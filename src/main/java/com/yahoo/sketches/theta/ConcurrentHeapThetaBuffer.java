@@ -42,7 +42,7 @@ final class ConcurrentHeapThetaBuffer extends HeapUpdateSketch {
         1.0F, //p
         ResizeFactor.X1); //rf
     MY_FAMILY = Family.QUICKSELECT;
-    preambleLongs_ = Family.QUICKSELECT.getMinPreLongs(); //Revise?
+    preambleLongs_ = Family.QUICKSELECT.getMinPreLongs();
     lgArrLongs_ = lgNomLongs;
     cacheLimit_ = cacheLimit;
     curCount_ = 0;
@@ -146,10 +146,10 @@ final class ConcurrentHeapThetaBuffer extends HeapUpdateSketch {
 
   private void propagateToSharedSketch() {
     while (propagationInProgress.get()) {} //busy wait
+    propagationInProgress.set(true);
     final HeapCompactOrderedSketch compactOrderedSketch = propagateOrderedCompact
         ? (HeapCompactOrderedSketch) compact()
         : null;
-    propagationInProgress.set(true);
     shared.propagate(this,  compactOrderedSketch);
   }
 
