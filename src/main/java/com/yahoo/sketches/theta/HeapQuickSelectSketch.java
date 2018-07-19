@@ -35,7 +35,7 @@ import com.yahoo.sketches.Util;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-final class HeapQuickSelectSketch extends HeapUpdateSketch {
+class HeapQuickSelectSketch extends HeapUpdateSketch {
   private final Family MY_FAMILY;
 
   private final int preambleLongs_;
@@ -55,7 +55,7 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
   }
 
   /**
-   * Get a new sketch instance on the java heap.
+   * Construct a new sketch instance on the java heap.
    *
    * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLogs">See lgNomLongs</a>.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
@@ -63,33 +63,27 @@ final class HeapQuickSelectSketch extends HeapUpdateSketch {
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @param unionGadget true if this sketch is implementing the Union gadget function.
    * Otherwise, it is behaving as a normal QuickSelectSketch.
-   * @return instance of this sketch
    */
-  static HeapQuickSelectSketch initNewHeapInstance(final int lgNomLongs, final long seed,
-      final float p, final ResizeFactor rf, final boolean unionGadget) {
+  HeapQuickSelectSketch(final int lgNomLongs, final long seed, final float p,
+      final ResizeFactor rf, final boolean unionGadget) {
+    super(lgNomLongs, seed, p, rf);
 
     //Choose family, preambleLongs
-    final Family family;
-    final int preambleLongs;
     if (unionGadget) {
-      preambleLongs = Family.UNION.getMinPreLongs();
-      family = Family.UNION;
+      preambleLongs_ = Family.UNION.getMinPreLongs();
+      MY_FAMILY = Family.UNION;
     }
     else {
-      preambleLongs = Family.QUICKSELECT.getMinPreLongs();
-      family = Family.QUICKSELECT;
+      preambleLongs_ = Family.QUICKSELECT.getMinPreLongs();
+      MY_FAMILY = Family.QUICKSELECT;
     }
 
-    final HeapQuickSelectSketch hqss = new HeapQuickSelectSketch(lgNomLongs, seed, p, rf,
-        preambleLongs, family);
-    final int lgArrLongs = Util.startingSubMultiple(lgNomLongs + 1, rf, MIN_LG_ARR_LONGS);
-    hqss.lgArrLongs_ = lgArrLongs;
-    hqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
-    hqss.curCount_ = 0;
-    hqss.thetaLong_ = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
-    hqss.empty_ = true; //other flags: bigEndian = readOnly = compact = ordered = false;
-    hqss.cache_ = new long[1 << lgArrLongs];
-    return hqss;
+    lgArrLongs_ = Util.startingSubMultiple(lgNomLongs + 1, rf, MIN_LG_ARR_LONGS);
+    hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs_);
+    curCount_ = 0;
+    thetaLong_ = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
+    empty_ = true; //other flags: bigEndian = readOnly = compact = ordered = false;
+    cache_ = new long[1 << lgArrLongs_];
   }
 
   /**

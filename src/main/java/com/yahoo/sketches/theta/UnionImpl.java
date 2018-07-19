@@ -58,7 +58,7 @@ final class UnionImpl extends Union {
    */
   static UnionImpl initNewHeapInstance(final int lgNomLongs, final long seed, final float p,
       final ResizeFactor rf) {
-    final UpdateSketch gadget = HeapQuickSelectSketch.initNewHeapInstance(
+    final UpdateSketch gadget = new HeapQuickSelectSketch(
         lgNomLongs, seed, p, rf, true); //create with UNION family
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = gadget.getThetaLong();
