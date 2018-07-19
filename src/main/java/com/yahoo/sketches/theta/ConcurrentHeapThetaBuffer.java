@@ -9,6 +9,9 @@ import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
 import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountIncremented;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedDuplicate;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedOverTheta;
+import static java.lang.Math.floor;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -24,12 +27,14 @@ import com.yahoo.sketches.ResizeFactor;
  */
 final class ConcurrentHeapThetaBuffer extends HeapUpdateSketch {
   private final Family MY_FAMILY;
+
   private final int preambleLongs_;
   private int lgArrLongs_;
-  private int cacheLimit_;  //never serialized
+  private int hashTableThreshold_;  //never serialized
   private int curCount_;
   private long thetaLong_;
   private boolean empty_;
+
   private long[] cache_;
 
   private final ConcurrentDirectThetaSketch shared;
@@ -50,8 +55,8 @@ final class ConcurrentHeapThetaBuffer extends HeapUpdateSketch {
     MY_FAMILY = Family.QUICKSELECT;
     preambleLongs_ = Family.QUICKSELECT.getMinPreLongs();
     lgArrLongs_ = lgNomLongs + 1;
-    final int hashTableThreshold = (int) Math.floor(REBUILD_THRESHOLD * (1 << lgArrLongs_));
-    cacheLimit_ = Math.min(cacheLimit, hashTableThreshold);
+    final int maxLimit = (int) floor(REBUILD_THRESHOLD * (1 << lgArrLongs_));
+    hashTableThreshold_ = max(min(cacheLimit, maxLimit), 0);
     curCount_ = 0;
     thetaLong_ = Long.MAX_VALUE;
     empty_ = true;
@@ -64,7 +69,7 @@ final class ConcurrentHeapThetaBuffer extends HeapUpdateSketch {
 
   //Sketch
 
-  @Override
+  @Override //specifically overridden
   public double getEstimate() {
     return shared.getEstimationSnapshot();
   }
@@ -80,7 +85,7 @@ final class ConcurrentHeapThetaBuffer extends HeapUpdateSketch {
   }
 
   @Override
-  public byte[] toByteArray() { //TODO NEED THIS?
+  public byte[] toByteArray() { //TODO Don't need this
     return toByteArray(preambleLongs_, (byte) MY_FAMILY.getID());
   }
 
@@ -92,20 +97,20 @@ final class ConcurrentHeapThetaBuffer extends HeapUpdateSketch {
   //UpdateSketch
 
   @Override
-  public UpdateSketch rebuild() {
+  public UpdateSketch rebuild() { //TODO Don't need this
     //this buffer never rebuilds
     return this;
   }
 
   @Override
-  public final void reset() {
+  public final void reset() { //TODO Don't need this
     //do nothing
   }
 
   //restricted methods
 
   @Override
-  int getCurrentPreambleLongs(final boolean compact) {
+  int getCurrentPreambleLongs(final boolean compact) { //TODO Don't need this
     if (!compact) { return preambleLongs_; }
     return computeCompactPreLongs(thetaLong_, empty_, curCount_);
   }
@@ -137,7 +142,7 @@ final class ConcurrentHeapThetaBuffer extends HeapUpdateSketch {
 
   @Override
   boolean isOutOfSpace(final int numEntries) {
-    return numEntries > cacheLimit_;
+    return numEntries > hashTableThreshold_;
   }
 
   void reset(final long thetaLong) {
@@ -148,7 +153,7 @@ final class ConcurrentHeapThetaBuffer extends HeapUpdateSketch {
   }
 
   @Override
-  UpdateReturnState hashUpdate(final long hash) {
+  UpdateReturnState hashUpdate(final long hash) { //Simplified
     HashOperations.checkHashCorruption(hash);
     empty_ = false;
 
@@ -170,7 +175,7 @@ final class ConcurrentHeapThetaBuffer extends HeapUpdateSketch {
     return InsertedCountIncremented;
   }
 
-  private void propagateToSharedSketch() {
+  private void propagateToSharedSketch() { //Added
     while (propagationInProgress.get()) {} //busy wait until free. TODO compareAndSet( ??
     propagationInProgress.set(true);
     final HeapCompactOrderedSketch compactOrderedSketch = propagateOrderedCompact
