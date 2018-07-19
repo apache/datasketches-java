@@ -25,7 +25,7 @@ import com.yahoo.sketches.ResizeFactor;
  * @author eshcar
  * @author Lee Rhodes
  */
-final class ConcurrentHeapThetaBuffer extends HeapUpdateSketch {
+final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
   private final Family MY_FAMILY;
 
   private final int preambleLongs_;
@@ -51,7 +51,9 @@ final class ConcurrentHeapThetaBuffer extends HeapUpdateSketch {
     super(lgNomLongs,
         seed,
         1.0F, //p
-        ResizeFactor.X1); //rf
+        ResizeFactor.X1, //rf
+        Family.QUICKSELECT.getMinPreLongs(),
+        Family.QUICKSELECT);
     MY_FAMILY = Family.QUICKSELECT;
     preambleLongs_ = Family.QUICKSELECT.getMinPreLongs();
     lgArrLongs_ = lgNomLongs + 1;
