@@ -51,7 +51,7 @@ import com.yahoo.sketches.Util;
  * @author eshcar
  * @author Lee Rhodes
  */
-class ConcurrentDirectThetaSketch extends UpdateSketch {
+public class ConcurrentDirectThetaSketch extends UpdateSketch {
   static final double DQS_RESIZE_THRESHOLD  = 15.0 / 16.0; //tuned for space
   static ExecutorService propagationExecutorService;
 
@@ -340,18 +340,6 @@ class ConcurrentDirectThetaSketch extends UpdateSketch {
 
   //Concurrent methods
 
-  /**
-   * Propogate the ConcurrentHeapThetaBuffer into this sketch
-   * @param bufferIn the given ConcurrentHeapThetaBuffer
-   * @param compactSketch an optional, ordered compact sketch with the data
-   */
-  public void propagate(final ConcurrentHeapThetaBuffer bufferIn,
-      final HeapCompactOrderedSketch compactSketch) {
-    final BackgroundThetaPropagation job =
-        new BackgroundThetaPropagation(bufferIn, compactSketch, this);
-    propagationExecutorService.execute(job);
-  }
-
   public double getEstimationSnapshot() {
     return volatileEstimate_;
   }
@@ -360,29 +348,46 @@ class ConcurrentDirectThetaSketch extends UpdateSketch {
     return volatileThetaLong_;
   }
 
-  AtomicBoolean getPropogationInProgress() {
+  AtomicBoolean getPropagationInProgress() {
     return propagationInProgress_;
   }
 
-  private static class BackgroundThetaPropagation implements Runnable {
+  /**
+   * Propogate the ConcurrentHeapThetaBuffer into this sketch
+   * @param bufferIn the given ConcurrentHeapThetaBuffer
+   * @param compactSketch an optional, ordered compact sketch with the data
+   * @param localPropagationInProgress the propagation flag from the calling thread
+   * @return the current volatile thetaLong
+   */
+  public long propagate(
+      final ConcurrentHeapThetaBuffer bufferIn,
+      final HeapCompactOrderedSketch compactSketch,
+      final AtomicBoolean localPropagationInProgress) {
+    final BackgroundThetaPropagation job =
+        new BackgroundThetaPropagation(bufferIn, compactSketch, localPropagationInProgress);
+    propagationExecutorService.execute(job);
+    return volatileThetaLong_;
+  }
+
+  private class BackgroundThetaPropagation implements Runnable {
     private ConcurrentHeapThetaBuffer bufferIn;
     private HeapCompactOrderedSketch compactSketch;
-    private ConcurrentDirectThetaSketch shared;
+    private AtomicBoolean localPropagationInProgress;
 
     public BackgroundThetaPropagation(
         final ConcurrentHeapThetaBuffer bufferIn,
         final HeapCompactOrderedSketch compactSketch,
-        final ConcurrentDirectThetaSketch shared) {
+        final AtomicBoolean localPropagationInProgress) {
       this.bufferIn = bufferIn;
       this.compactSketch = compactSketch;
-      this.shared = shared;
+      this.localPropagationInProgress = localPropagationInProgress;
     }
 
     @Override
     public void run() {
-      assert shared.getVolatileTheta() <= bufferIn.getThetaLong();
+      assert getVolatileTheta() <= bufferIn.getThetaLong();
 
-      while (!shared.propagationInProgress_.compareAndSet(false,true)) {} ///busy wait till free
+      while (!propagationInProgress_.compareAndSet(false,true)) {} ///busy wait till free
 
       //At this point we are sure only a single thread is propagating data to the shared sketch
 
@@ -391,26 +396,26 @@ class ConcurrentDirectThetaSketch extends UpdateSketch {
         final long[] cacheIn = compactSketch.getCache();
         for (int i = 0; i < cacheIn.length; i++) {
           final long hashIn = cacheIn[i];
-          if (hashIn >= shared.getVolatileTheta()) {
+          if (hashIn >= getVolatileTheta()) {
             break; //early stop
           }
-          shared.hashUpdate(hashIn); // backdoor update, hash function is bypassed
+          hashUpdate(hashIn); // backdoor update, hash function is bypassed
         }
       } else {
         final long[] cacheIn = bufferIn.getCache();
         for (int i = 0; i < cacheIn.length; i++) {
           final long hashIn = cacheIn[i];
-          shared.hashUpdate(hashIn); // backdoor update, hash function is bypassed
+          hashUpdate(hashIn); // backdoor update, hash function is bypassed
         }
       }
 
       //update volatile theta, uniques estimate and propagation flag
-      final long sharedThetaLong = shared.getThetaLong();
-      shared.volatileThetaLong_ = sharedThetaLong;
-      shared.volatileEstimate_ = shared.getEstimate();
-      bufferIn.reset(sharedThetaLong); //sets thetaLong
+      final long sharedThetaLong = getThetaLong();
+      volatileThetaLong_ = sharedThetaLong;
+      volatileEstimate_ = getEstimate();
       //propagation completed, not in-progress, reset propagation flags
-      shared.propagationInProgress_.set(false);
+      propagationInProgress_.set(false);
+      localPropagationInProgress.set(false);
     }
   }
 
