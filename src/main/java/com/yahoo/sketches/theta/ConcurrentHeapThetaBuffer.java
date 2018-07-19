@@ -5,11 +5,17 @@
 
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
+import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountIncremented;
+import static com.yahoo.sketches.theta.UpdateReturnState.RejectedDuplicate;
+import static com.yahoo.sketches.theta.UpdateReturnState.RejectedOverTheta;
+
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
 
 /**
@@ -43,8 +49,9 @@ final class ConcurrentHeapThetaBuffer extends HeapUpdateSketch {
         ResizeFactor.X1); //rf
     MY_FAMILY = Family.QUICKSELECT;
     preambleLongs_ = Family.QUICKSELECT.getMinPreLongs();
-    lgArrLongs_ = lgNomLongs;
-    cacheLimit_ = cacheLimit;
+    lgArrLongs_ = lgNomLongs + 1;
+    final int hashTableThreshold = (int) Math.floor(REBUILD_THRESHOLD * (1 << lgArrLongs_));
+    cacheLimit_ = Math.min(cacheLimit, hashTableThreshold);
     curCount_ = 0;
     thetaLong_ = Long.MAX_VALUE;
     empty_ = true;
@@ -56,6 +63,11 @@ final class ConcurrentHeapThetaBuffer extends HeapUpdateSketch {
   }
 
   //Sketch
+
+  @Override
+  public double getEstimate() {
+    return shared.getEstimationSnapshot();
+  }
 
   @Override
   public int getRetainedEntries(final boolean valid) {
@@ -108,10 +120,6 @@ final class ConcurrentHeapThetaBuffer extends HeapUpdateSketch {
     return null;
   }
 
-  void setThetaLong(final long theta) {
-    thetaLong_ = theta;
-  }
-
   @Override
   long[] getCache() {
     return cache_;
@@ -141,16 +149,29 @@ final class ConcurrentHeapThetaBuffer extends HeapUpdateSketch {
 
   @Override
   UpdateReturnState hashUpdate(final long hash) {
-    final UpdateReturnState ret = hashUpdate(hash);
+    HashOperations.checkHashCorruption(hash);
+    empty_ = false;
+
+    //The over-theta test
+    if (HashOperations.continueCondition(thetaLong_, hash)) {
+      return RejectedOverTheta; //signal that hash was rejected due to theta.
+    }
+
+    //The duplicate test
+    if (HashOperations.hashSearchOrInsert(cache_, lgArrLongs_, hash) >= 0) {
+      return RejectedDuplicate; //Duplicate, not inserted
+    }
+    //insertion occurred, must increment curCount
+    curCount_++;
+
     if (isOutOfSpace(curCount_ + 1)) {
         propagateToSharedSketch();
-
     }
-    return ret;
+    return InsertedCountIncremented;
   }
 
   private void propagateToSharedSketch() {
-    while (propagationInProgress.get()) {} //busy wait
+    while (propagationInProgress.get()) {} //busy wait until free. TODO compareAndSet( ??
     propagationInProgress.set(true);
     final HeapCompactOrderedSketch compactOrderedSketch = propagateOrderedCompact
         ? (HeapCompactOrderedSketch) compact()

@@ -51,7 +51,7 @@ import com.yahoo.sketches.Util;
  * @author eshcar
  * @author Lee Rhodes
  */
-final class ConcurrentDirectThetaSketch extends UpdateSketch {
+class ConcurrentDirectThetaSketch extends UpdateSketch {
   static final double DQS_RESIZE_THRESHOLD  = 15.0 / 16.0; //tuned for space
   static ExecutorService propagationExecutorService;
 
@@ -64,44 +64,28 @@ final class ConcurrentDirectThetaSketch extends UpdateSketch {
   // A flag to coordinate between several propagation threads
   private AtomicBoolean propagationInProgress_;
 
-  private ConcurrentDirectThetaSketch(
+  /**
+   * Get a new sketch instance and initialize the given Memory as its backing store.
+   *
+   * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLongs">See lgNomLongs</a>.
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * @param dstMem the given Memory object destination. It cannot be null.
+   * The hash table area will be cleared prior to use.
+   * @param poolThreads the number of ExecutorService, Executors.newWorkStealingPool poolThreads.
+   */
+  ConcurrentDirectThetaSketch(
+      final int lgNomLongs,
       final long seed,
-      final int hashTableThreshold,
       final WritableMemory dstMem,
       final int poolThreads) {
     if (propagationExecutorService == null) {
       propagationExecutorService = Executors.newWorkStealingPool(poolThreads);
     }
     seed_ = seed;
-    hashTableThreshold_ = hashTableThreshold;
-    volatileThetaLong_ = Long.MAX_VALUE;
     mem_ = dstMem;
+    volatileThetaLong_ = Long.MAX_VALUE;
     volatileEstimate_ = 0;
     propagationInProgress_ = new AtomicBoolean(false);
-  }
-
-  /**
-   * Get a new sketch instance and initialize the given Memory as its backing store.
-   *
-   * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLongs">See lgNomLongs</a>.
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * @param p
-   * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
-   * @param rf Currently internally fixed at 2. Unless dstMem is not configured with a valid
-   * MemoryRequest, in which case the rf is effectively 1, which is no resizing at all and the
-   * dstMem must be large enough for a full sketch.
-   * <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
-   * @param dstMem the given Memory object destination. It cannot be null.
-   * It will be cleared prior to use.
-   * @param unionGadget true if this sketch is implementing the Union gadget function.
-   * Otherwise, it is behaving as a normal QuickSelectSketch.
-   * @return instance of this sketch
-   */
-  static ConcurrentDirectThetaSketch initNewDirectInstance(
-      final int lgNomLongs,
-      final long seed,
-      final WritableMemory dstMem,
-      final int poolThreads) {
 
     final Family family = Family.QUICKSELECT;
     final int preambleLongs = Family.QUICKSELECT.getMinPreLongs();
@@ -110,6 +94,7 @@ final class ConcurrentDirectThetaSketch extends UpdateSketch {
     final int lgRF = 0;
     final int lgArrLongs = Math.max(lgNomLongs + 1, MIN_LG_ARR_LONGS);
     final int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
+    hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
 
     //Make sure Memory is large enough
     final long curMemCapBytes = dstMem.getCapacity();
@@ -137,10 +122,6 @@ final class ConcurrentDirectThetaSketch extends UpdateSketch {
 
     //clear hash table area
     dstMem.clear(preambleLongs << 3, 8 << lgArrLongs);
-    final int hashTableThreshold = setHashTableThreshold(lgNomLongs, lgArrLongs);
-    final ConcurrentDirectThetaSketch cds =
-        new ConcurrentDirectThetaSketch(seed, hashTableThreshold, dstMem, poolThreads);
-    return cds;
   }
 
   //Sketch
@@ -401,9 +382,8 @@ final class ConcurrentDirectThetaSketch extends UpdateSketch {
     public void run() {
       assert shared.getVolatileTheta() <= bufferIn.getThetaLong();
 
-      while (!shared.propagationInProgress_.compareAndSet(false,true)) {
-        //busy wait until we can propagate
-      }
+      while (!shared.propagationInProgress_.compareAndSet(false,true)) {} ///busy wait till free
+
       //At this point we are sure only a single thread is propagating data to the shared sketch
 
       // propagate values from input sketch one by one
@@ -428,8 +408,7 @@ final class ConcurrentDirectThetaSketch extends UpdateSketch {
       final long sharedThetaLong = shared.getThetaLong();
       shared.volatileThetaLong_ = sharedThetaLong;
       shared.volatileEstimate_ = shared.getEstimate();
-      bufferIn.reset();
-      bufferIn.setThetaLong(sharedThetaLong);
+      bufferIn.reset(sharedThetaLong); //sets thetaLong
       //propagation completed, not in-progress, reset propagation flags
       shared.propagationInProgress_.set(false);
     }

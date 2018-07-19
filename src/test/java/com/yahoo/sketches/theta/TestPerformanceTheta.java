@@ -1,5 +1,6 @@
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static org.testng.Assert.assertEquals;
 
 import java.util.ArrayList;
@@ -9,8 +10,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yahoo.memory.WritableDirectHandle;
 import com.yahoo.memory.WritableMemory;
-import com.yahoo.sketches.Family;
 import com.yahoo.sketches.concurrent.ConcurrentTestContext;
 import com.yahoo.sketches.concurrent.ConcurrentTestThread;
 
@@ -20,15 +21,25 @@ import com.yahoo.sketches.concurrent.ConcurrentTestThread;
 public class TestPerformanceTheta {
 
   private enum CONCURRENCY_TYPE {CONCURRENT, BASELINE, LOCK_BASED}
-  private static final String OFF_HEAP = "OFF-HEAP";
-  private static final int K = 512;
+  private final int lgK = 9;
+  private final int K = 1 << lgK;
+  private final long seed = DEFAULT_UPDATE_SEED;
+  private final int maxUpdateBytes = Sketch.getMaxUpdateSketchBytes(K);
+  private final int cacheLimit = 1;
+  private final int poolThreads = 3;
+  private final boolean propagateCompact = true;
+  private final boolean offHeap = false;
 
-  private UpdateSketch gadget_;
+  private WritableDirectHandle wdh = null;
+  private WritableMemory wmem = null;
+  private ConcurrentThetaBuilder builder;
+  private ConcurrentDirectThetaSketch sharedSketch;
+
   public final Logger LOG = LoggerFactory.getLogger(TestPerformanceTheta.class);
 
   //@Test //enable to allow running from TestNG manually
   public static void startTest() throws Exception {
-    TestPerformanceTheta.main(new String[] {"BASELINE", "QUICKSELECT", "4", "4", "30", "true"});
+    TestPerformanceTheta.main(new String[] {"BASELINE", "4", "4", "30", "true"});
   }
 
   //@Test
@@ -40,22 +51,32 @@ public class TestPerformanceTheta {
     System.out.println(sk.getEstimate());
   }
 
+  //configures builder for both local and shared
+  ConcurrentThetaBuilder configureBuilder() {
+    ConcurrentThetaBuilder bldr = new ConcurrentThetaBuilder();
+    bldr.setNominalEntries(K);
+    bldr.setSeed(seed);
+    bldr.setPoolThreads(poolThreads);
+    bldr.setCacheLimit(cacheLimit);
+    bldr.setPropagateOrderedCompact(propagateCompact);
+    return bldr;
+  }
+
 
   public static void main(String[] args) throws Exception {
     TestPerformanceTheta test = new TestPerformanceTheta();
 
     if(args.length<6) {
       test.LOG.info("Missing arguemnts: java com.yahoo.sketches.concurrent.theta"
-          + ".TestPerformanceTheta <concurrencyType> <family> <#writers> <#readers> <seconds> "
+          + ".TestPerformanceTheta <concurrencyType> <#writers> <#readers> <seconds> "
           + "<print>\n e.g., java "
-          + "com.yahoo.sketches.theta.TestPerformanceTheta CONCURRENT QUICKSELECT 4 4 "
-          + "30 true");
+          + "com.yahoo.sketches.theta.TestPerformanceTheta CONCURRENT 4 4 30 true");
       System.exit(0);
     }
+    test.builder = test.configureBuilder();
 
     int i=0;
     String concurrencyType = args[i++];
-    String family = args[i++];
     int writers = Integer.parseInt(args[i++]);
     int readers = Integer.parseInt(args[i++]);
     int time = Integer.parseInt(args[i++]);
@@ -65,7 +86,7 @@ public class TestPerformanceTheta {
       test.LOG.info("writers = " + writers);
     }
 
-    test.setUp(concurrencyType, family);
+    test.setUp(concurrencyType);
     test.runTest(CONCURRENCY_TYPE.valueOf(concurrencyType), writers, readers, time);
 
     test.LOG.info("Done!");
@@ -73,40 +94,33 @@ public class TestPerformanceTheta {
     System.exit(0);
   }
 
-  public void setUp(String concurrencyType, String family) throws Exception {
-    WritableMemory mem;
-    UpdateSketch sketch;
-    UpdateSketch sketchToInit=null;
-    UpdateSketchBuilder usb = Sketches.updateSketchBuilder().setNominalEntries(K);
-    if(family.equalsIgnoreCase(OFF_HEAP)){
-      mem = WritableMemory.wrap(new byte[(K * 16) + 24]);
-      sketch = usb.build(mem);
-    } else {
-      sketch = usb.setFamily(Family.valueOf(family)).build();
+  public void setUp(String concurrencyType) throws Exception {
+    ConcurrentHeapThetaBuffer localSketch=null;
+
+    if(offHeap){
+      WritableDirectHandle wdh = WritableMemory.allocateDirect(maxUpdateBytes);
+      wmem = wdh.get();
+    } else { //On-heap
+      wmem = WritableMemory.allocate(maxUpdateBytes);
     }
+    sharedSketch = builder.build(wmem);
+
 
     switch (CONCURRENCY_TYPE.valueOf(concurrencyType)) {
 
     case CONCURRENT:
-      if(family.equalsIgnoreCase(OFF_HEAP)){
-        gadget_ = ConcurrentThetaFactory.createConcurrentUpdateSketch(sketch);
-      } else {
-        gadget_ = ConcurrentThetaFactory.createConcurrentUpdateSketch(Family.valueOf(family));
-      }
-      sketchToInit = ConcurrentThetaFactory.createConcurrentThetaContext(
-          (ConcurrentUpdateSketch) gadget_);
+      localSketch = builder.build();
       LOG.info("=============================================CONCURRENT_THETA"
           + "===========================================");
       break;
     case LOCK_BASED:
-      gadget_ = new LockBasedUpdateSketch(sketch);
-      sketchToInit = gadget_;
+      sharedSketch = new LockBasedUpdateSketch(lgK, seed, wmem, poolThreads);
+      //localSketch = sharedSketch_;
       LOG.info("=============================================LOCK_BASED_THETA"
           + "===========================================");
       break;
     case BASELINE:
-      gadget_ = sketch;
-      sketchToInit = sketch;
+
       LOG.info("=============================================BASELINE_THETA"
           + "===========================================");
       break;
@@ -117,13 +131,13 @@ public class TestPerformanceTheta {
       throw new RuntimeException(msg);
     }
 
-    for (long i = 0; i < 512; i++) {
-      sketchToInit.update(i);
+    for (long i = 0; i < 512; i++) { //WHAT IS THIS FOR?
+      localSketch.update(i);
 //      if((i % 100000) == 0){
 //        System.out.print(".");
 //      }
     }
-    System.out.println("Estimate: " + sketchToInit.getEstimate());
+    System.out.println("Estimate: " + localSketch.getEstimate());
     System.out.println();
   }
 
@@ -165,13 +179,14 @@ public class TestPerformanceTheta {
     }
     LOG.info("readTput = " + (((totalReads / secondsToRun)) / 1000000) + "millions per second");
 
-    LOG.info("Estimation = " + gadget_.getEstimate());
+    LOG.info("Estimate = " + sharedSketch.getEstimate());
 
+    if (wdh != null) { wdh.close(); }
   }
 
   public class WriterThread extends ConcurrentTestThread {
     long operationsNum_ = 0;
-    private UpdateSketch context_;
+    private ConcurrentHeapThetaBuffer context_;
     int i_;
     int jump_;
 
@@ -185,17 +200,15 @@ public class TestPerformanceTheta {
       jump_ = jump;
       switch (type) {
       case CONCURRENT:
-        context_ = ConcurrentThetaFactory.createConcurrentThetaContext(
-            (ConcurrentUpdateSketch) gadget_);
+        context_ = builder.build();
         break;
       default:
-        context_ = gadget_;
+        context_ = builder.build();
       }
     }
 
     @Override
     public void doWork() throws Exception {
-
       context_.update(i_);
       operationsNum_++;
       i_ = i_ + jump_;
@@ -205,39 +218,39 @@ public class TestPerformanceTheta {
   public class ReaderThread extends ConcurrentTestThread {
 
     long readOperationsNum_ = 0;
-    private UpdateSketch context_;
+    private ConcurrentHeapThetaBuffer context_;
 
     public ReaderThread(CONCURRENCY_TYPE type) {
       super("READER");
       switch (type) {
       case CONCURRENT:
-        context_ = ConcurrentThetaFactory.createConcurrentThetaContext(
-            (ConcurrentUpdateSketch) gadget_);
+        context_ = builder.build();
         break;
       default:
-        context_ = gadget_;
+        context_ = builder.build();
       }
-
     }
 
     @Override
     public void doWork() throws Exception {
-
       context_.getEstimate();
       readOperationsNum_++;
     }
   }
 
-  private static class LockBasedUpdateSketch extends UpdateSketchComposition {
+  private static class LockBasedUpdateSketch extends ConcurrentDirectThetaSketch {
 
     private ReentrantReadWriteLock lock_;
 
-    protected LockBasedUpdateSketch(UpdateSketch delegatee) {
-      super(delegatee);
+    protected LockBasedUpdateSketch(final int lgK, final long seed, final WritableMemory wmem,
+        final int poolThreads) {
+      super(lgK, seed, wmem, poolThreads);
+
       lock_ = new ReentrantReadWriteLock();
     }
 
-    @Override public UpdateReturnState hashUpdate(long hash) {
+    @Override
+    public UpdateReturnState hashUpdate(long hash) {
       try {
         lock_.writeLock().lock();
         return super.hashUpdate(hash);
@@ -247,7 +260,8 @@ public class TestPerformanceTheta {
 
     }
 
-    @Override public double getEstimate() {
+    @Override
+    public double getEstimate() {
       try {
         lock_.readLock().lock();
         return super.getEstimate();

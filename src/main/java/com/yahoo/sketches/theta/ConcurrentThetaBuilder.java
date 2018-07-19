@@ -33,7 +33,6 @@ public class ConcurrentThetaBuilder {
   /**
    * Constructor for building concurrent buffers and the shared theta sketch.
    * The shared theta sketch must be built first.
-   *
    */
   public ConcurrentThetaBuilder() {
     bLgNomLongs = Integer.numberOfTrailingZeros(DEFAULT_NOMINAL_ENTRIES);
@@ -47,6 +46,12 @@ public class ConcurrentThetaBuilder {
   /**
    * Returns a ConcurrentHeapThetaBuffer with the current configuration of this Builder,
    * which must include a valid ConcurrentDirectThetaSketch.
+   * The relevant parameters are:
+   * <ul><li>Nominal Entries</li>
+   * <li>seed</li>
+   * <li>Cache Limit</li>
+   * <li>Propagate Compact</li>
+   * </ul>
    * @return an ConcurrentHeapThetaBuffer
    */
   public ConcurrentHeapThetaBuffer build() {
@@ -54,12 +59,18 @@ public class ConcurrentThetaBuilder {
       throw new SketchesStateException("The ConcurrentDirectThetaSketch must be build first.");
     }
     return new ConcurrentHeapThetaBuffer(
-        bLgNomLongs, bSeed, bCacheLimit, bShared, bPropagateOrderedCompact);
+        1 << bLgNomLongs, bSeed, bCacheLimit, bShared, bPropagateOrderedCompact);
   }
 
   /**
    * Returns a ConcurrentDirectThetaSketch with the current configuration of the Builder
    * and the given destination WritableMemory.
+   * The relevant parameters are:
+   * <ul><li>Nominal Entries</li>
+   * <li>seed</li>
+   * <li>Pool Threads</li>
+   * <li>Destination Writable Memory</li>
+   * </ul>
    * @param dstMem the given WritableMemory
    * @return a ConcurrentDirectThetaSketch with the current configuration of the Builder
    * and the given destination WritableMemory.
@@ -68,8 +79,7 @@ public class ConcurrentThetaBuilder {
     if (dstMem == null) {
       throw new SketchesArgumentException("Destination WritableMemory cannot be null.");
     }
-    bShared = ConcurrentDirectThetaSketch.initNewDirectInstance(
-        bLgNomLongs, bSeed, dstMem, bPoolThreads);
+    bShared = new ConcurrentDirectThetaSketch(1 << bLgNomLongs, bSeed, dstMem, bPoolThreads);
     return bShared;
   }
 
@@ -160,6 +170,24 @@ public class ConcurrentThetaBuilder {
     return bShared;
   }
 
+  /**
+   * Sets the Propagate Ordered Compact flag to the given value.
+   * @param prop the given value
+   * @return this ConcurrentThetaBuilder
+   */
+  public ConcurrentThetaBuilder setPropagateOrderedCompact(final boolean prop) {
+    bPropagateOrderedCompact = prop;
+    return this;
+  }
+
+  /**
+   * Gets the Propagate Ordered Compact flag
+   * @return the Propagate Ordered Compact flag
+   */
+  public boolean getPropagateOrderedCompact() {
+    return bPropagateOrderedCompact;
+  }
+
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder();
@@ -169,6 +197,7 @@ public class ConcurrentThetaBuilder {
     sb.append("Seed:").append(TAB).append(bSeed).append(LS);
     sb.append("Pool Threads:").append(TAB).append(bPoolThreads).append(LS);
     sb.append("Cache Limit:").append(TAB).append(bCacheLimit).append(LS);
+    sb.append("Propagate Ordered Compact").append(TAB).append(bPropagateOrderedCompact).append(LS);
     final String str = (bShared != null) ? bShared.getClass().getSimpleName() : "null";
     sb.append("Shared Sketch:").append(TAB).append(str).append(LS);
     return sb.toString();
