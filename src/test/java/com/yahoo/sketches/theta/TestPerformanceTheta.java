@@ -9,7 +9,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.annotations.Test;
 
 import com.yahoo.memory.WritableDirectHandle;
 import com.yahoo.memory.WritableMemory;
@@ -252,7 +251,7 @@ public class TestPerformanceTheta {
     }
   }
 
-  @Test //enable to allow running from TestNG manually
+  //@Test //enable to allow running from TestNG manually
   public static void startTest() throws Exception {
     TestPerformanceTheta.main(new String[] {"CONCURRENT", "4", "4", "3", "false"});
   }
