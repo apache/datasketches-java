@@ -5,60 +5,19 @@
 
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.Util.MIN_LG_ARR_LONGS;
-import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
-import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.LG_RESIZE_FACTOR_BIT;
-import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
-import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.P_FLOAT;
-import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
-import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
-import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
-import static com.yahoo.sketches.theta.PreambleUtil.getMemBytes;
-import static com.yahoo.sketches.theta.PreambleUtil.insertCurCount;
-import static com.yahoo.sketches.theta.PreambleUtil.insertFamilyID;
-import static com.yahoo.sketches.theta.PreambleUtil.insertFlags;
-import static com.yahoo.sketches.theta.PreambleUtil.insertLgArrLongs;
-import static com.yahoo.sketches.theta.PreambleUtil.insertLgNomLongs;
-import static com.yahoo.sketches.theta.PreambleUtil.insertLgResizeFactor;
-import static com.yahoo.sketches.theta.PreambleUtil.insertP;
-import static com.yahoo.sketches.theta.PreambleUtil.insertPreLongs;
-import static com.yahoo.sketches.theta.PreambleUtil.insertSeedHash;
-import static com.yahoo.sketches.theta.PreambleUtil.insertSerVer;
-import static com.yahoo.sketches.theta.PreambleUtil.insertThetaLong;
-import static com.yahoo.sketches.theta.Rebuilder.quickSelectAndRebuild;
-import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountIncremented;
-import static com.yahoo.sketches.theta.UpdateReturnState.RejectedDuplicate;
-import static com.yahoo.sketches.theta.UpdateReturnState.RejectedOverTheta;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
-import com.yahoo.sketches.Family;
-import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
-import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.Util;
 
 /**
  * @author eshcar
  * @author Lee Rhodes
  */
-public class ConcurrentDirectThetaSketch extends UpdateSketch {
-  static final double DQS_RESIZE_THRESHOLD  = 15.0 / 16.0; //tuned for space
+public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch {
   static ExecutorService propagationExecutorService;
-
-  final long seed_;        //provided, kept only on heap, never serialized.
-  int hashTableThreshold_; //computed, kept only on heap, never serialized.
-  WritableMemory mem_;
-
   private volatile long volatileThetaLong_;
   private volatile double volatileEstimate_;
   // A flag to coordinate between several propagation threads
@@ -78,265 +37,21 @@ public class ConcurrentDirectThetaSketch extends UpdateSketch {
       final long seed,
       final WritableMemory dstMem,
       final int poolThreads) {
+    super(lgNomLongs,
+        seed,
+        1.0F, //p
+        ResizeFactor.X1, //rf,
+        null,
+        dstMem,
+        false);
+
     if (propagationExecutorService == null) {
       propagationExecutorService = Executors.newWorkStealingPool(poolThreads);
     }
-    seed_ = seed;
-    mem_ = dstMem;
+
     volatileThetaLong_ = Long.MAX_VALUE;
     volatileEstimate_ = 0;
     propagationInProgress_ = new AtomicBoolean(false);
-
-    final Family family = Family.QUICKSELECT;
-    final int preambleLongs = Family.QUICKSELECT.getMinPreLongs();
-
-    //Choose RF, minReqBytes, lgArrLongs.
-    final int lgRF = 0;
-    final int lgArrLongs = Math.max(lgNomLongs + 1, MIN_LG_ARR_LONGS);
-    final int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
-    hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
-
-    //Make sure Memory is large enough
-    final long curMemCapBytes = dstMem.getCapacity();
-    if (curMemCapBytes < minReqBytes) {
-      throw new SketchesArgumentException(
-        "Memory capacity is too small: " + curMemCapBytes + " < " + minReqBytes);
-    }
-
-    //@formatter:off
-    //Build preamble
-    insertPreLongs(dstMem, preambleLongs);                 //byte 0
-    insertLgResizeFactor(dstMem, lgRF);                    //byte 0
-    insertSerVer(dstMem, SER_VER);                         //byte 1
-    insertFamilyID(dstMem, family.getID());                //byte 2
-    insertLgNomLongs(dstMem, lgNomLongs);                  //byte 3
-    insertLgArrLongs(dstMem, lgArrLongs);                  //byte 4
-    //flags: bigEndian = readOnly = compact = ordered = false; empty = true : 00100 = 4
-    insertFlags(dstMem, EMPTY_FLAG_MASK);                  //byte 5
-    insertSeedHash(dstMem, Util.computeSeedHash(seed));    //bytes 6,7
-    insertCurCount(dstMem, 0);                             //bytes 8-11
-    insertP(dstMem, 1.0F);                                 //bytes 12-15
-    final long thetaLong = Long.MAX_VALUE;
-    insertThetaLong(dstMem, thetaLong);                    //bytes 16-23
-    //@formatter:on
-
-    //clear hash table area
-    dstMem.clear(preambleLongs << 3, 8 << lgArrLongs);
-  }
-
-  //Sketch
-
-  @Override
-  public int getCurrentBytes(final boolean compact) {
-    if (!compact) {
-      final byte lgArrLongs = mem_.getByte(LG_ARR_LONGS_BYTE);
-      final int preambleLongs = mem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-      final int lengthBytes = (preambleLongs + (1 << lgArrLongs)) << 3;
-      return lengthBytes;
-    }
-    final int preLongs = getCurrentPreambleLongs(true);
-    final int curCount = getRetainedEntries(true);
-
-    return (preLongs + curCount) << 3;
-  }
-
-  @Override
-  public Family getFamily() {
-    final int familyID = mem_.getByte(FAMILY_BYTE) & 0XFF;
-    return Family.idToFamily(familyID);
-  }
-
-  @Override
-  public ResizeFactor getResizeFactor() {
-    return ResizeFactor.getRF(getLgRF());
-  }
-
-  @Override
-  public int getRetainedEntries(final boolean valid) { //always valid
-    return mem_.getInt(RETAINED_ENTRIES_INT);
-  }
-
-  @Override
-  public boolean hasMemory() {
-    return true;
-  }
-
-  @Override
-  public boolean isDirect() {
-    return mem_.isDirect();
-  }
-
-  @Override
-  public boolean isEmpty() {
-    return (mem_.getByte(FLAGS_BYTE) & EMPTY_FLAG_MASK) > 0;
-  }
-
-  @Override
-  public boolean isSameResource(final Memory that) {
-    return mem_.isSameResource(that);
-  }
-
-  @Override
-  public byte[] toByteArray() { //MY_FAMILY is stored in mem_ TODO DO WE NEED THIS?
-    final byte lgArrLongs = mem_.getByte(LG_ARR_LONGS_BYTE);
-    final int preambleLongs = mem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    final int lengthBytes = (preambleLongs + (1 << lgArrLongs)) << 3;
-    final byte[] byteArray = new byte[lengthBytes];
-    final WritableMemory mem = WritableMemory.wrap(byteArray);
-    mem_.copyTo(0, mem, 0, lengthBytes);
-    return byteArray;
-  }
-
-  //UpdateSketch
-
-  @Override
-  public UpdateSketch rebuild() {
-    final int lgNomLongs = getLgNomLongs();
-    final int preambleLongs = mem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    if (getRetainedEntries(true) > (1 << lgNomLongs)) {
-      quickSelectAndRebuild(mem_, preambleLongs, lgNomLongs);
-    }
-    return this;
-  }
-
-  @Override
-  public final void reset() {
-    //clear hash table
-    //hash table size and hashTableThreshold stays the same
-    //lgArrLongs stays the same
-    //thetaLongs resets to p
-    final int arrLongs = 1 << getLgArrLongs();
-    final int preambleLongs = mem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    final int preBytes = preambleLongs << 3;
-    mem_.clear(preBytes, arrLongs * 8); //clear data array
-    //flags: bigEndian = readOnly = compact = ordered = false; empty = true.
-    mem_.putByte(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
-    mem_.putInt(RETAINED_ENTRIES_INT, 0);
-    final float p = mem_.getFloat(P_FLOAT);
-    final long thetaLong = (long) (p * MAX_THETA_LONG_AS_DOUBLE);
-    mem_.putLong(THETA_LONG, thetaLong);
-  }
-
-  @Override
-  public int getLgNomLongs() {
-    return PreambleUtil.extractLgNomLongs(mem_);
-  }
-
-  //restricted methods
-
-  @Override
-  long[] getCache() {
-    final long lgArrLongs = mem_.getByte(LG_ARR_LONGS_BYTE) & 0XFF;
-    final int preambleLongs = mem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    final long[] cacheArr = new long[1 << lgArrLongs];
-    final WritableMemory mem = WritableMemory.wrap(cacheArr);
-    mem_.copyTo(preambleLongs << 3, mem, 0, 8 << lgArrLongs);
-    return cacheArr;
-  }
-
-  @Override
-  int getCurrentPreambleLongs(final boolean compact) {
-    if (!compact) { return PreambleUtil.extractPreLongs(mem_); }
-    return computeCompactPreLongs(getThetaLong(), isEmpty(), getRetainedEntries(true));
-  }
-
-  @Override
-  WritableMemory getMemory() {
-    return mem_;
-  }
-
-  @Override
-  float getP() {
-    return mem_.getFloat(P_FLOAT);
-  }
-
-  @Override
-  long getSeed() {
-    return seed_;
-  }
-
-  @Override
-  short getSeedHash() {
-    return (short) PreambleUtil.extractSeedHash(mem_);
-  }
-
-  @Override
-  long getThetaLong() {
-    return mem_.getLong(THETA_LONG);
-  }
-
-  @Override
-  boolean isDirty() {
-    return false; //Always false for QuickSelectSketch
-  }
-
-  @Override
-  boolean isOutOfSpace(final int numEntries) {
-    return numEntries > hashTableThreshold_;
-  }
-
-  @Override
-  int getLgArrLongs() {
-    return mem_.getByte(LG_ARR_LONGS_BYTE) & 0XFF;
-  }
-
-  int getLgRF() {
-    return (mem_.getByte(PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT) & 0X3;
-  }
-
-  @Override
-  UpdateReturnState hashUpdate(final long hash) {
-    HashOperations.checkHashCorruption(hash);
-
-    mem_.putByte(FLAGS_BYTE, (byte) (mem_.getByte(FLAGS_BYTE) & ~EMPTY_FLAG_MASK));
-    final long thetaLong = getThetaLong();
-    final int lgNomLongs = getLgNomLongs();
-    //The over-theta test
-    if (HashOperations.continueCondition(thetaLong, hash)) {
-      return RejectedOverTheta; //signal that hash was rejected due to theta.
-    }
-
-    final int lgArrLongs = getLgArrLongs();
-    final int preambleLongs = mem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-
-    //The duplicate test
-    final int index =
-        HashOperations.fastHashSearchOrInsert(mem_, lgArrLongs, hash, preambleLongs << 3);
-    if (index >= 0) {
-      return RejectedDuplicate; //Duplicate, not inserted
-    }
-    //insertion occurred, increment curCount
-    final int curCount = getRetainedEntries() + 1;
-    mem_.putInt(RETAINED_ENTRIES_INT, curCount); //update curCount
-
-    if (isOutOfSpace(curCount)) { //we need to do something, we are out of space
-      //Must be at full size, rebuild
-      //Assumes no dirty values, changes thetaLong, curCount_
-      assert (getThetaLong() > 0);
-      assert (lgArrLongs == (lgNomLongs + 1))
-            : "lgArr: " + lgArrLongs + ", lgNom: " + lgNomLongs;
-      //rebuild, refresh curCount based on # values in the hashtable.
-      quickSelectAndRebuild(mem_, preambleLongs, lgNomLongs);
-    }
-    return InsertedCountIncremented;
-  }
-
-  /**
-   * Returns the cardinality limit given the current size of the hash table array.
-   *
-   * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLongs">See lgNomLongs</a>.
-   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
-   * @return the hash table threshold
-   */
-  static final int setHashTableThreshold(final int lgNomLongs, final int lgArrLongs) {
-    //FindBugs may complain if DQS_RESIZE_THRESHOLD == REBUILD_THRESHOLD, but this allows us
-    // to tune these constants for different sketches.
-    final double fraction = (lgArrLongs <= lgNomLongs) ? DQS_RESIZE_THRESHOLD : REBUILD_THRESHOLD;
-    return (int) Math.floor(fraction * (1 << lgArrLongs));
-  }
-
-  void setThetaLong(final long thetaLong) {
-    mem_.putLong(THETA_LONG, thetaLong);
   }
 
   //Concurrent methods
