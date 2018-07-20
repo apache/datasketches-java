@@ -83,7 +83,7 @@ final class UnionImpl extends Union {
       final ResizeFactor rf,
       final MemoryRequestServer memReqSvr,
       final WritableMemory dstMem) {
-    final UpdateSketch gadget = DirectQuickSelectSketch.initNewDirectInstance(
+    final UpdateSketch gadget = new DirectQuickSelectSketch(
         lgNomLongs, seed, p, rf, memReqSvr, dstMem, true); //create with UNION family
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = gadget.getThetaLong();
