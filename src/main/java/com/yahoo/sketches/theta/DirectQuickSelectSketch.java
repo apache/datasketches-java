@@ -57,7 +57,7 @@ import com.yahoo.sketches.Util;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
+class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
   MemoryRequestServer memReqSvr_ = null; //never serialized
 
   private DirectQuickSelectSketch(
