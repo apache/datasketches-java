@@ -25,7 +25,6 @@ import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesReadOnlyException;
-import com.yahoo.sketches.Util;
 
 /**
  * The default Theta Sketch using the QuickSelect algorithm.
@@ -48,7 +47,6 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   DirectQuickSelectSketchR(final long seed, final WritableMemory wmem) {
     seed_ = seed;
     mem_ = wmem;
-    Util.checkSeedHashes(Util.computeSeedHash(seed_), (short) PreambleUtil.extractSeedHash(mem_));
   }
 
   /**

@@ -67,7 +67,7 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
   }
 
   /**
-   * Get a new sketch instance and initialize the given Memory as its backing store.
+   * Construct a new sketch instance and initialize the given Memory as its backing store.
    *
    * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLongs">See lgNomLongs</a>.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
@@ -81,9 +81,8 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
    * It will be cleared prior to use.
    * @param unionGadget true if this sketch is implementing the Union gadget function.
    * Otherwise, it is behaving as a normal QuickSelectSketch.
-   * @return instance of this sketch
    */
-  static DirectQuickSelectSketch initNewDirectInstance(
+  DirectQuickSelectSketch(
       final int lgNomLongs,
       final long seed,
       final float p,
@@ -91,6 +90,7 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
       final MemoryRequestServer memReqSvr,
       final WritableMemory dstMem,
       final boolean unionGadget) {
+    super(seed, dstMem);
 
     //Choose family, preambleLongs
     final Family family;
@@ -136,12 +136,8 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     //clear hash table area
     dstMem.clear(preambleLongs << 3, 8 << lgArrLongs);
 
-    final DirectQuickSelectSketch dqss =
-        new DirectQuickSelectSketch(seed, dstMem);
-
-    dqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
-    dqss.memReqSvr_ = memReqSvr;
-    return dqss;
+    hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
+    memReqSvr_ = memReqSvr;
   }
 
   /**
@@ -192,7 +188,6 @@ final class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
   }
 
   //Sketch
-
 
   //UpdateSketch
 
