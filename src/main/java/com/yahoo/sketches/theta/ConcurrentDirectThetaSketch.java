@@ -312,6 +312,7 @@ public class ConcurrentDirectThetaSketch extends UpdateSketch {
     if (isOutOfSpace(curCount)) { //we need to do something, we are out of space
       //Must be at full size, rebuild
       //Assumes no dirty values, changes thetaLong, curCount_
+      assert (getThetaLong() > 0);
       assert (lgArrLongs == (lgNomLongs + 1))
             : "lgArr: " + lgArrLongs + ", lgNom: " + lgNomLongs;
       //rebuild, refresh curCount based on # values in the hashtable.
@@ -361,7 +362,7 @@ public class ConcurrentDirectThetaSketch extends UpdateSketch {
    */
   public long propagate(
       final ConcurrentHeapThetaBuffer bufferIn,
-      final HeapCompactOrderedSketch compactSketch,
+      final CompactSketch compactSketch,
       final AtomicBoolean localPropagationInProgress) {
     final BackgroundThetaPropagation job =
         new BackgroundThetaPropagation(bufferIn, compactSketch, localPropagationInProgress);
@@ -371,12 +372,12 @@ public class ConcurrentDirectThetaSketch extends UpdateSketch {
 
   private class BackgroundThetaPropagation implements Runnable {
     private ConcurrentHeapThetaBuffer bufferIn;
-    private HeapCompactOrderedSketch compactSketch;
+    private CompactSketch compactSketch;
     private AtomicBoolean localPropagationInProgress;
 
     public BackgroundThetaPropagation(
         final ConcurrentHeapThetaBuffer bufferIn,
-        final HeapCompactOrderedSketch compactSketch,
+        final CompactSketch compactSketch,
         final AtomicBoolean localPropagationInProgress) {
       this.bufferIn = bufferIn;
       this.compactSketch = compactSketch;
@@ -392,7 +393,7 @@ public class ConcurrentDirectThetaSketch extends UpdateSketch {
       //At this point we are sure only a single thread is propagating data to the shared sketch
 
       // propagate values from input sketch one by one
-      if (compactSketch != null) { //Use early stop
+      if ((compactSketch != null) && (compactSketch.isOrdered())) { //Use early stop
         final long[] cacheIn = compactSketch.getCache();
         for (int i = 0; i < cacheIn.length; i++) {
           final long hashIn = cacheIn[i];

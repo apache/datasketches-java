@@ -91,8 +91,8 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
     while (propagationInProgress.get()) {}
     propagationInProgress.set(true);
 
-    final HeapCompactOrderedSketch compactOrderedSketch = propagateOrderedCompact
-        ? (HeapCompactOrderedSketch) compact()
+    final CompactSketch compactOrderedSketch = propagateOrderedCompact
+        ? compact()
         : null;
     propagationInProgress.set(true);
     final long curThetaLong = shared.propagate(this,  compactOrderedSketch, propagationInProgress);
@@ -102,7 +102,7 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
     } catch (final Exception e) {
       throw new RuntimeException("Could not set thetaLong. " + e);
     }
-    //TODO I would think that the lock should be released here
+    //TODO I would think that the lock should be released here if it is needed at all.
   }
 
 }

@@ -59,7 +59,7 @@ public class ConcurrentThetaBuilder {
       throw new SketchesStateException("The ConcurrentDirectThetaSketch must be build first.");
     }
     return new ConcurrentHeapThetaBuffer(
-        1 << bLgNomLongs, bSeed, bCacheLimit, bShared, bPropagateOrderedCompact);
+        bLgNomLongs, bSeed, bCacheLimit, bShared, bPropagateOrderedCompact);
   }
 
   /**
@@ -79,7 +79,7 @@ public class ConcurrentThetaBuilder {
     if (dstMem == null) {
       throw new SketchesArgumentException("Destination WritableMemory cannot be null.");
     }
-    bShared = new ConcurrentDirectThetaSketch(1 << bLgNomLongs, bSeed, dstMem, bPoolThreads);
+    bShared = new ConcurrentDirectThetaSketch(bLgNomLongs, bSeed, dstMem, bPoolThreads);
     return bShared;
   }
 
@@ -127,24 +127,6 @@ public class ConcurrentThetaBuilder {
   }
 
   /**
-   * Sets the number of ExecutorService, Executors.newWorkStealingPool poolThreads.
-   * @param poolThreads the given poolThreads
-   * @return this ConcurrentThetaBuilder
-   */
-  public ConcurrentThetaBuilder setPoolThreads(final int poolThreads) {
-    bPoolThreads = poolThreads;
-    return this;
-  }
-
-  /**
-   * Gets the number of ExecutorService, Executors.newWorkStealingPool poolThreads.
-   * @return the number of ExecutorService, Executors.newWorkStealingPool poolThreads.
-   */
-  public int getPoolThreads() {
-    return bPoolThreads;
-  }
-
-  /**
    * Sets the cache limit size for the ConcurrentHeapThetaBuffer.
    * @param cacheLimit the given cacheLimit
    * @return this ConcurrentThetaBuilder
@@ -163,14 +145,6 @@ public class ConcurrentThetaBuilder {
   }
 
   /**
-   * Gets the shared ConcurrentDirectThetaSketch or null if not set.
-   * @return the shared ConcurrentDirectThetaSketch or null if not set.
-   */
-  public ConcurrentDirectThetaSketch getSharedSketch() {
-    return bShared;
-  }
-
-  /**
    * Sets the Propagate Ordered Compact flag to the given value.
    * @param prop the given value
    * @return this ConcurrentThetaBuilder
@@ -186,6 +160,32 @@ public class ConcurrentThetaBuilder {
    */
   public boolean getPropagateOrderedCompact() {
     return bPropagateOrderedCompact;
+  }
+
+  /**
+   * Sets the number of ExecutorService, Executors.newWorkStealingPool poolThreads.
+   * @param poolThreads the given poolThreads
+   * @return this ConcurrentThetaBuilder
+   */
+  public ConcurrentThetaBuilder setPoolThreads(final int poolThreads) {
+    bPoolThreads = poolThreads;
+    return this;
+  }
+
+  /**
+   * Gets the number of ExecutorService, Executors.newWorkStealingPool poolThreads.
+   * @return the number of ExecutorService, Executors.newWorkStealingPool poolThreads.
+   */
+  public int getPoolThreads() {
+    return bPoolThreads;
+  }
+
+  /**
+   * Gets the shared ConcurrentDirectThetaSketch or null if not set.
+   * @return the shared ConcurrentDirectThetaSketch or null if not set.
+   */
+  public ConcurrentDirectThetaSketch getSharedSketch() {
+    return bShared;
   }
 
   @Override
