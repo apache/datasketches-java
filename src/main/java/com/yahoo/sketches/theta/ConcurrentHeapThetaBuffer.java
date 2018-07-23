@@ -27,6 +27,7 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
   private final ConcurrentDirectThetaSketch shared;
   private final AtomicBoolean localPropagationInProgress;
   private final boolean propagateOrderedCompact;
+  private long singleItem;
 
   {
     try {
@@ -55,6 +56,7 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
     this.shared = shared;
     localPropagationInProgress = new AtomicBoolean(false);
     this.propagateOrderedCompact = propagateOrderedCompact;
+    singleItem = -1L;
   }
 
   //Sketch
@@ -81,16 +83,26 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
     return InsertedCountIncremented;
   }
 
+  @Override
+  public void reset() {
+    if (cacheLimit == 0) {
+      singleItem = -1L;
+    } else {
 
+    }
+
+  }
 
   private void propagateToSharedSketch() {
 
     while (localPropagationInProgress.compareAndSet(false, true)) {}  //busy wait until free
+    if (cacheLimit == 0) {
 
-    final CompactSketch compactOrderedSketch = propagateOrderedCompact
-        ? compact()
-        : null;
-    localPropagationInProgress.set(true);
+    } else {
+
+    }
+    final CompactSketch compactOrderedSketch = propagateOrderedCompact ? compact() : null;
+
     shared.propagate(this,  compactOrderedSketch, localPropagationInProgress);
 
     reset();
