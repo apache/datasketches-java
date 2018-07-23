@@ -41,9 +41,9 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
   private final int preambleLongs_;
   private int lgArrLongs_;
   private int hashTableThreshold_;  //never serialized
-  private int curCount_;
-  private long thetaLong_;
-  private boolean empty_;
+  int curCount_;
+  long thetaLong_;
+  boolean empty_;
 
   private long[] cache_;
 
