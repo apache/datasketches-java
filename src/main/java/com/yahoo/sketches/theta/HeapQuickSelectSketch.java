@@ -158,7 +158,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
   }
 
   @Override
-  public final void reset() {
+  public void reset() {
     final ResizeFactor rf = getResizeFactor();
     final int lgArrLongsSM = Util.startingSubMultiple(lgNomLongs_ + 1, rf, MIN_LG_ARR_LONGS);
     if (lgArrLongsSM == lgArrLongs_) {
