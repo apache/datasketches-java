@@ -21,7 +21,7 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch {
   private volatile long volatileThetaLong_;
   private volatile double volatileEstimate_;
   // A flag to coordinate between several propagation threads
-  private AtomicBoolean propagationInProgress_;
+  private AtomicBoolean sharedPropagationInProgress_;
 
   /**
    * Get a new sketch instance and initialize the given Memory as its backing store.
@@ -51,7 +51,7 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch {
 
     volatileThetaLong_ = Long.MAX_VALUE;
     volatileEstimate_ = 0;
-    propagationInProgress_ = new AtomicBoolean(false);
+    sharedPropagationInProgress_ = new AtomicBoolean(false);
   }
 
   //Concurrent methods
@@ -65,7 +65,7 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch {
   }
 
   AtomicBoolean getPropagationInProgress() {
-    return propagationInProgress_;
+    return sharedPropagationInProgress_;
   }
 
   /**
@@ -73,16 +73,14 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch {
    * @param bufferIn the given ConcurrentHeapThetaBuffer
    * @param compactSketch an optional, ordered compact sketch with the data
    * @param localPropagationInProgress the propagation flag from the calling thread
-   * @return the current volatile thetaLong
    */
-  public long propagate(
+  public void propagate(
       final ConcurrentHeapThetaBuffer bufferIn,
       final CompactSketch compactSketch,
       final AtomicBoolean localPropagationInProgress) {
     final BackgroundThetaPropagation job =
         new BackgroundThetaPropagation(bufferIn, compactSketch, localPropagationInProgress);
     propagationExecutorService.execute(job);
-    return volatileThetaLong_;
   }
 
   private class BackgroundThetaPropagation implements Runnable {
@@ -103,7 +101,7 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch {
     public void run() {
       assert getVolatileTheta() <= bufferIn.getThetaLong();
 
-      while (!propagationInProgress_.compareAndSet(false,true)) {} ///busy wait till free
+      while (!sharedPropagationInProgress_.compareAndSet(false,true)) {} ///busy wait till free
 
       //At this point we are sure only a single thread is propagating data to the shared sketch
 
@@ -130,7 +128,7 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch {
       volatileThetaLong_ = sharedThetaLong;
       volatileEstimate_ = getEstimate();
       //propagation completed, not in-progress, reset propagation flags
-      propagationInProgress_.set(false);
+      sharedPropagationInProgress_.set(false);
       localPropagationInProgress.set(false);
     }
   }

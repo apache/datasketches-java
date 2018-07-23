@@ -23,7 +23,8 @@ import com.yahoo.sketches.SketchesStateException;
  * @author Lee Rhodes
  */
 public class ConcurrentThetaBuilder {
-  private int bLgNomLongs;
+  private int bSharedLgNomLongs;
+  private int bLocalLgNomLongs;
   private long bSeed;
   private int bCacheLimit;
   private boolean bPropagateOrderedCompact;
@@ -35,7 +36,8 @@ public class ConcurrentThetaBuilder {
    * The shared theta sketch must be built first.
    */
   public ConcurrentThetaBuilder() {
-    bLgNomLongs = Integer.numberOfTrailingZeros(DEFAULT_NOMINAL_ENTRIES);
+    bSharedLgNomLongs = Integer.numberOfTrailingZeros(DEFAULT_NOMINAL_ENTRIES);
+    bLocalLgNomLongs = 4; //default is smallest legal sketch
     bSeed = DEFAULT_UPDATE_SEED;
     bCacheLimit = 1;
     bPropagateOrderedCompact = true;
@@ -47,7 +49,7 @@ public class ConcurrentThetaBuilder {
    * Returns a ConcurrentHeapThetaBuffer with the current configuration of this Builder,
    * which must include a valid ConcurrentDirectThetaSketch.
    * The relevant parameters are:
-   * <ul><li>Nominal Entries</li>
+   * <ul><li>Local Nominal Entries</li>
    * <li>seed</li>
    * <li>Cache Limit</li>
    * <li>Propagate Compact</li>
@@ -59,14 +61,14 @@ public class ConcurrentThetaBuilder {
       throw new SketchesStateException("The ConcurrentDirectThetaSketch must be build first.");
     }
     return new ConcurrentHeapThetaBuffer(
-        bLgNomLongs, bSeed, bCacheLimit, bShared, bPropagateOrderedCompact);
+        bLocalLgNomLongs, bSeed, bCacheLimit, bShared, bPropagateOrderedCompact);
   }
 
   /**
    * Returns a ConcurrentDirectThetaSketch with the current configuration of the Builder
    * and the given destination WritableMemory.
    * The relevant parameters are:
-   * <ul><li>Nominal Entries</li>
+   * <ul><li>Shared Nominal Entries</li>
    * <li>seed</li>
    * <li>Pool Threads</li>
    * <li>Destination Writable Memory</li>
@@ -79,21 +81,21 @@ public class ConcurrentThetaBuilder {
     if (dstMem == null) {
       throw new SketchesArgumentException("Destination WritableMemory cannot be null.");
     }
-    bShared = new ConcurrentDirectThetaSketch(bLgNomLongs, bSeed, dstMem, bPoolThreads);
+    bShared = new ConcurrentDirectThetaSketch(bSharedLgNomLongs, bSeed, dstMem, bPoolThreads);
     return bShared;
   }
 
   /**
-   * Sets the Nominal Entries for this sketch. The minimum value is 16 and the maximum value is
-   * 67,108,864, which is 2^26. Be aware that sketches as large as this maximum value have not
-   * been thoroughly tested or characterized for performance.
+   * Sets the Nominal Entries for the concurrent shared sketch. The minimum value is 16 and the
+   * maximum value is 67,108,864, which is 2^26. Be aware that sketches as large as this maximum
+   * value have not been thoroughly tested or characterized for performance.
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
    * This will become the ceiling power of 2 if it is not.
    * @return this ConcurrentThetaBuilder
    */
-  public ConcurrentThetaBuilder setNominalEntries(final int nomEntries) {
-    bLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
-    if ((bLgNomLongs > MAX_LG_NOM_LONGS) || (bLgNomLongs < MIN_LG_NOM_LONGS)) {
+  public ConcurrentThetaBuilder setSharedNominalEntries(final int nomEntries) {
+    bSharedLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
+    if ((bSharedLgNomLongs > MAX_LG_NOM_LONGS) || (bSharedLgNomLongs < MIN_LG_NOM_LONGS)) {
       throw new SketchesArgumentException("Nominal Entries must be >= 16 and <= 67108864: "
         + nomEntries);
     }
@@ -101,12 +103,38 @@ public class ConcurrentThetaBuilder {
   }
 
   /**
-   * Returns Log-base 2 Nominal Entries
-   * @return Log-base 2 Nominal Entries
+   * Returns Log-base 2 Nominal Entries for the shared sketch
+   * @return Log-base 2 Nominal Entries for the shared sketch
    */
-  public int getLgNominalEntries() {
-    return bLgNomLongs;
+  public int getSharedLgNominalEntries() {
+    return bSharedLgNomLongs;
   }
+
+  /**
+   * Sets the Nominal Entries for the concurrent local sketch. The minimum value is 16 and the
+   * maximum value is 67,108,864, which is 2^26. Be aware that sketches as large as this maximum
+   * value have not been thoroughly tested or characterized for performance.
+   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
+   * This will become the ceiling power of 2 if it is not.
+   * @return this ConcurrentThetaBuilder
+   */
+  public ConcurrentThetaBuilder setLocalNominalEntries(final int nomEntries) {
+    bLocalLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
+    if ((bLocalLgNomLongs > MAX_LG_NOM_LONGS) || (bSharedLgNomLongs < MIN_LG_NOM_LONGS)) {
+      throw new SketchesArgumentException("Nominal Entries must be >= 16 and <= 67108864: "
+        + nomEntries);
+    }
+    return this;
+  }
+
+  /**
+   * Returns Log-base 2 Nominal Entries for the concurrent local sketch
+   * @return Log-base 2 Nominal Entries for the concurrent local sketch
+   */
+  public int getLocalLgNominalEntries() {
+    return bLocalLgNomLongs;
+  }
+
 
   /**
    * Sets the long seed value that is required by the hashing function.
@@ -192,8 +220,8 @@ public class ConcurrentThetaBuilder {
   public String toString() {
     final StringBuilder sb = new StringBuilder();
     sb.append("ConcurrentThetaBuilder configuration:").append(LS);
-    sb.append("LgK:").append(TAB).append(bLgNomLongs).append(LS);
-    sb.append("K:").append(TAB).append(1 << bLgNomLongs).append(LS);
+    sb.append("LgK:").append(TAB).append(bSharedLgNomLongs).append(LS);
+    sb.append("K:").append(TAB).append(1 << bSharedLgNomLongs).append(LS);
     sb.append("Seed:").append(TAB).append(bSeed).append(LS);
     sb.append("Pool Threads:").append(TAB).append(bPoolThreads).append(LS);
     sb.append("Cache Limit:").append(TAB).append(bCacheLimit).append(LS);

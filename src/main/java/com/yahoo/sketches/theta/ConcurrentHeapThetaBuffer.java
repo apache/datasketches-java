@@ -25,7 +25,7 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
   private final Field thetaLongField;
   private int cacheLimit;
   private final ConcurrentDirectThetaSketch shared;
-  private final AtomicBoolean propagationInProgress;
+  private final AtomicBoolean localPropagationInProgress;
   private final boolean propagateOrderedCompact;
 
   {
@@ -53,7 +53,7 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
     final int maxLimit = (int) floor(REBUILD_THRESHOLD * (1 << getLgArrLongs()));
     this.cacheLimit = max(min(cacheLimit, maxLimit), 0);
     this.shared = shared;
-    propagationInProgress = new AtomicBoolean(false);
+    localPropagationInProgress = new AtomicBoolean(false);
     this.propagateOrderedCompact = propagateOrderedCompact;
   }
 
@@ -81,21 +81,18 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
     return InsertedCountIncremented;
   }
 
+
+
   private void propagateToSharedSketch() {
 
-    //busy wait until free.
-
-    //TODO This class always operates in a single thread.
-    //Not sure why we need this lock.  Even if we do, shouldn't it be a compareAndSet?
-
-    while (propagationInProgress.get()) {}
-    propagationInProgress.set(true);
+    while (localPropagationInProgress.compareAndSet(false, true)) {}  //busy wait until free
 
     final CompactSketch compactOrderedSketch = propagateOrderedCompact
         ? compact()
         : null;
-    propagationInProgress.set(true);
-    final long curThetaLong = shared.propagate(this,  compactOrderedSketch, propagationInProgress);
+    localPropagationInProgress.set(true);
+    shared.propagate(this,  compactOrderedSketch, localPropagationInProgress);
+
     reset();
     try {
       thetaLongField.setLong(this, curThetaLong);
