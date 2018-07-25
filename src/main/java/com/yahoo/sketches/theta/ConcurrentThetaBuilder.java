@@ -37,9 +37,9 @@ public class ConcurrentThetaBuilder {
    */
   public ConcurrentThetaBuilder() {
     bSharedLgNomLongs = Integer.numberOfTrailingZeros(DEFAULT_NOMINAL_ENTRIES);
-    bLocalLgNomLongs = 4; //default is smallest legal sketch
+    bLocalLgNomLongs = 4; //default is smallest legal QS sketch
     bSeed = DEFAULT_UPDATE_SEED;
-    bCacheLimit = 1;
+    bCacheLimit = 0;
     bPropagateOrderedCompact = true;
     bPoolThreads = 3;
     bShared = null;
@@ -58,7 +58,7 @@ public class ConcurrentThetaBuilder {
    */
   public ConcurrentHeapThetaBuffer build() {
     if (bShared == null) {
-      throw new SketchesStateException("The ConcurrentDirectThetaSketch must be build first.");
+      throw new SketchesStateException("The ConcurrentDirectThetaSketch must be built first.");
     }
     return new ConcurrentHeapThetaBuffer(
         bLocalLgNomLongs, bSeed, bCacheLimit, bShared, bPropagateOrderedCompact);
@@ -103,6 +103,22 @@ public class ConcurrentThetaBuilder {
   }
 
   /**
+   * Sets the Log Nominal Entries for the concurrent shared sketch. The minimum value is 4 and the
+   * maximum value is 26. Be aware that sketches as large as this maximum
+   * value have not been thoroughly tested or characterized for performance.
+   * @param lgNomEntries the Log Nominal Entries for the concurrent shared sketch
+   * @return this ConcurrentThetaBuilder
+   */
+  public ConcurrentThetaBuilder setSharedLogNominalEntries(final int lgNomEntries) {
+    bSharedLgNomLongs = lgNomEntries;
+    if ((bSharedLgNomLongs > MAX_LG_NOM_LONGS) || (bSharedLgNomLongs < MIN_LG_NOM_LONGS)) {
+      throw new SketchesArgumentException("Log Nominal Entries must be >= 4 and <= 26: "
+        + lgNomEntries);
+    }
+    return this;
+  }
+
+  /**
    * Returns Log-base 2 Nominal Entries for the shared sketch
    * @return Log-base 2 Nominal Entries for the shared sketch
    */
@@ -123,6 +139,22 @@ public class ConcurrentThetaBuilder {
     if ((bLocalLgNomLongs > MAX_LG_NOM_LONGS) || (bSharedLgNomLongs < MIN_LG_NOM_LONGS)) {
       throw new SketchesArgumentException("Nominal Entries must be >= 16 and <= 67108864: "
         + nomEntries);
+    }
+    return this;
+  }
+
+  /**
+   * Sets the Log Nominal Entries for a concurrent local sketch. The minimum value is 4 and the
+   * maximum value is 26. Be aware that sketches as large as this maximum
+   * value have not been thoroughly tested or characterized for performance.
+   * @param lgNomEntries the Log Nominal Entries for a concurrent local sketch
+   * @return this ConcurrentThetaBuilder
+   */
+  public ConcurrentThetaBuilder setLocalLogNominalEntries(final int lgNomEntries) {
+    bLocalLgNomLongs = lgNomEntries;
+    if ((bLocalLgNomLongs > MAX_LG_NOM_LONGS) || (bLocalLgNomLongs < MIN_LG_NOM_LONGS)) {
+      throw new SketchesArgumentException("Log Nominal Entries must be >= 4 and <= 26: "
+        + lgNomEntries);
     }
     return this;
   }
@@ -156,7 +188,7 @@ public class ConcurrentThetaBuilder {
 
   /**
    * Sets the cache limit size for the ConcurrentHeapThetaBuffer.
-   * @param cacheLimit the given cacheLimit
+   * @param cacheLimit the given cacheLimit. The default is zero.
    * @return this ConcurrentThetaBuilder
    */
   public ConcurrentThetaBuilder setCacheLimit(final int cacheLimit) {

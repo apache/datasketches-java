@@ -19,42 +19,25 @@ public abstract class ConcurrentTestThread extends Thread{
   // protected final TestContext ctx_;
   private AtomicBoolean stop_ = new AtomicBoolean(false);
   private AtomicBoolean start_ = new AtomicBoolean(false);
-  ThreadType type_;
+  private int num;
 
-  public ConcurrentTestThread(String type) {
-    type_ = ThreadType.valueOf(type);
+  public ConcurrentTestThread(int num) {
+    this.num = num;
   }
 
   @Override
   public void run() {
-    int num = 1;
 
-    switch (type_) {
-    case WRITER:
-      num = 10_000_000;
-      break;
-    case READER:
-      num = 10_000;
-      break;
-    case MIXED:
-      num = 100_000;
-      break;
-    default:
-      assert (false);
-      break;
-    }
-
-    while (!start_.get()) {}
+    while (!start_.get()) {} //wait for start
 
     try {
       while (!stop_.get()) {  //TODO can impact performance!
-
         for (int i = 0; i < num; i++) {
           doWork();
         }
       }
     } catch (Throwable t) {
-      LOG.info("catched RuntimeException: " + t);
+      LOG.info("caught RuntimeException: " + t);
     }
   }
 
