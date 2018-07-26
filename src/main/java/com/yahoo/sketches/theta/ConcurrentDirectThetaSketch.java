@@ -104,62 +104,54 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch {
 
   /**
    * Propogate the ConcurrentHeapThetaBuffer into this sketch
-   * @param bufferIn the given ConcurrentHeapThetaBuffer
+   * @param localPropagationInProgress the given ConcurrentHeapThetaBuffer
    * @param compactSketch an optional, ordered compact sketch with the data
    * @param singleHash a single hash value
    */
   public void propagate(
-      final ConcurrentHeapThetaBuffer bufferIn,
-      final CompactSketch compactSketch,
+      final AtomicBoolean localPropagationInProgress,
+      final Sketch compactSketch,
       final long singleHash) {
     final BackgroundThetaPropagation job =
-        new BackgroundThetaPropagation(bufferIn, compactSketch, singleHash);
+        new BackgroundThetaPropagation(localPropagationInProgress, compactSketch, singleHash);
     propagationExecutorService.execute(job);
   }
 
   private class BackgroundThetaPropagation implements Runnable {
-    private ConcurrentHeapThetaBuffer bufferIn;
-    private CompactSketch compactSketch;
+    private AtomicBoolean localPropagationInProgress;
+    private Sketch compactSketch;
     private long singleHash;
 
-    public BackgroundThetaPropagation(
-        final ConcurrentHeapThetaBuffer bufferIn,
-        final CompactSketch compactSketch,
-        final long singleHash) {
-      this.bufferIn = bufferIn;
+    public BackgroundThetaPropagation(final AtomicBoolean localPropagationInProgress,
+        final Sketch compactSketch, final long singleHash) {
+      this.localPropagationInProgress = localPropagationInProgress;
       this.compactSketch = compactSketch;
       this.singleHash = singleHash;
     }
 
-    @Override
-    public void run() {
-      while (!sharedPropagationInProgress_.compareAndSet(false,true)) {} ///busy wait till free
+    @Override public void run() {
+      while (!sharedPropagationInProgress_.compareAndSet(false, true)) {
+      } ///busy wait till free
 
       //At this point we are sure only a single thread is propagating data to the shared sketch
 
-      final long vT = getVolatileTheta();
-      final long bT = bufferIn.getThetaLong();
-      assert vT <= bT : "VT = " + vT + ", bT = " + bT;
+      if (compactSketch != null) {
+        final long vT = getVolatileTheta();
+        final long bT = compactSketch.getThetaLong();
+        assert vT <= bT : "VT = " + vT + ", bT = " + bT;
+      }
 
       if (singleHash > 0) {
         hashUpdate(singleHash); // backdoor update, hash function is bypassed
       } else {
         // propagate values from input sketch one by one
-        if ((compactSketch != null) && (compactSketch.isOrdered())) { //Use early stop
-          final long[] cacheIn = compactSketch.getCache();
-          for (int i = 0; i < cacheIn.length; i++) {
-            final long hashIn = cacheIn[i];
-            if (hashIn >= getVolatileTheta()) {
-              break; //early stop
-            }
-            hashUpdate(hashIn); // backdoor update, hash function is bypassed
+        final long[] cacheIn = compactSketch.getCache();
+        for (int i = 0; i < cacheIn.length; i++) {
+          final long hashIn = cacheIn[i];
+          if (hashIn >= getVolatileTheta()) {
+            break; //early stop
           }
-        } else {
-          final long[] cacheIn = bufferIn.getCache();
-          for (int i = 0; i < cacheIn.length; i++) {
-            final long hashIn = cacheIn[i];
-            hashUpdate(hashIn); // backdoor update, hash function is bypassed
-          }
+          hashUpdate(hashIn); // backdoor update, hash function is bypassed
         }
       }
 
@@ -168,8 +160,8 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch {
       volatileThetaLong_ = sharedThetaLong;
       volatileEstimate_ = getEstimate();
       //propagation completed
-      bufferIn.reset(); //reset & clear local propagation flag
       sharedPropagationInProgress_.set(false);
+      localPropagationInProgress.set(false); //clear local propagation flag
     }
 
   }

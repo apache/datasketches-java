@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import com.yahoo.sketches.ResizeFactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +50,7 @@ public class ConcurrentThetaTest {
   private int numReaderThreads = 4;
   private int readerQueries = 10_000;
   private int writerUpdates = 10_000_000;
-  private long baselineUpdates = 6_000_000_000L;
+  private long baselineUpdates = 4_000_000_000L;
   //private int mixedNum = 100_000;
   private int timeToRun_S = 30;
   private long runTime_mS = 0;
@@ -88,7 +89,7 @@ public class ConcurrentThetaTest {
     if(args.length < 4) {
       throw new IllegalArgumentException("Missing arguemnts: "
           + "java com.yahoo.sketches.concurrent.theta"
-          + ".TestPerformanceTheta <concurrencyType> <#writers> <#readers> <seconds> "
+          + ".ConcurrentThetaTest <concurrencyType> <#writers> <#readers> <seconds> "
           + "\n e.g., java "
           + "com.yahoo.sketches.theta.TestPerformanceTheta CONCURRENT 4 4 30");
     }
@@ -128,7 +129,7 @@ public class ConcurrentThetaTest {
       LOG.info("Reader Threads = " + numReaderThreads);
       break;
     case LOCK_BASED:
-      sharedSketch = new LockBasedUpdateSketch(shared_lgK, seed, wmem, poolThreads);
+      sharedSketch = new LockBasedUpdateSketch(shared_lgK,seed,wmem);
       //sketchToInit /localSketch already exists, cannot set from sharedSketch
       System.out.println("");
       LOG.info("=============================================LOCK_BASED_THETA"
@@ -167,7 +168,7 @@ public class ConcurrentThetaTest {
     if (type == CONCURRENCY_TYPE.BASELINE) {
       long num = baselineUpdates; //numWriterThreads * writerUpdates;
       UpdateSketch sketch = Sketches.updateSketchBuilder()
-          .setNominalEntries(1 << shared_lgK).build();
+          .setNominalEntries(1 << shared_lgK).build(wmem);
       long start_mS = System.currentTimeMillis();
       for (long i = 0; i < num; i++) {
         sketch.update(i);
@@ -181,6 +182,8 @@ public class ConcurrentThetaTest {
       LOG.info("Estimate       = " + estimate);
       double re = (estimate / num) - 1.0;
       LOG.info("Relative Error = " + (re * 100.0) + "%");
+      LOG.info("Theta = "+ sketch.getTheta());
+      LOG.info("Count = "+ sketch.getRetainedEntries());
       return;
     }
 
@@ -204,6 +207,10 @@ public class ConcurrentThetaTest {
     ctx.waitFor(timeToRun_S * 1000);
     ctx.stop();
 
+    if (type== CONCURRENCY_TYPE.CONCURRENT) {
+      while(((ConcurrentDirectThetaSketch)sharedSketch).getPropagationInProgress().get()) {}
+    }
+
     for (WriterThread writer : writersList) {
       totalWrites += writer.operationsNum_;
     }
@@ -219,9 +226,14 @@ public class ConcurrentThetaTest {
         + " millions per second");
 
     double estimate = sharedSketch.getEstimate();
+    if (type== CONCURRENCY_TYPE.CONCURRENT) {
+      estimate = ((ConcurrentDirectThetaSketch)sharedSketch).getEstimationSnapshot();
+    }
     LOG.info("Estimate       = " + estimate);
     double re = (estimate / totalWrites) - 1.0;
     LOG.info("Relative Error = " + (re * 100.0) + "%");
+    LOG.info("Theta = "+ sharedSketch.getTheta());
+    LOG.info("Count = "+ sharedSketch.getRetainedEntries());
 
     //    ConcurrentDirectThetaSketch cdts = (ConcurrentDirectThetaSketch) sharedSketch;
     //    int[] arr = cdts.getCounts();
@@ -237,7 +249,7 @@ public class ConcurrentThetaTest {
   public class WriterThread extends ConcurrentTestThread {
     long operationsNum_ = 0;
     private UpdateSketch context_;
-    int i_;
+    long i_;
     int jump_;
 
     public WriterThread(CONCURRENCY_TYPE type, int id) {
@@ -281,13 +293,21 @@ public class ConcurrentThetaTest {
     }
   }
 
-  private static class LockBasedUpdateSketch extends ConcurrentDirectThetaSketch {
+  private static class LockBasedUpdateSketch extends DirectQuickSelectSketch {
 
     private ReentrantReadWriteLock lock_;
 
-    protected LockBasedUpdateSketch(final int lgK, final long seed, final WritableMemory wmem,
-        final int poolThreads) {
-      super(lgK, seed, wmem, poolThreads);
+    protected LockBasedUpdateSketch(
+        final int lgNomLongs,
+        final long seed,
+        final WritableMemory dstMem) {
+      super(lgNomLongs,
+          seed,
+          1.0F, //p
+          ResizeFactor.X1, //rf,
+          null,
+          dstMem,
+          false);
 
       lock_ = new ReentrantReadWriteLock();
     }

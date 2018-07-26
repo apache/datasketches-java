@@ -73,7 +73,7 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
       }
     }
     final UpdateReturnState state = super.hashUpdate(hash);
-    if (isOutOfSpace(getRetainedEntries())) {
+    if (isOutOfSpace(getRetainedEntries()+1)) {
       propagateToSharedSketch();
     }
     return state;
@@ -87,7 +87,6 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
     empty_ = true;
     curCount_ = 0;
     thetaLong_ = shared.getVolatileTheta();
-    localPropagationInProgress.set(false);
   }
 
   AtomicBoolean getPropagationInProgress() {
@@ -95,14 +94,19 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
   }
 
   private void propagateToSharedSketch(final long hash) {
-    while (localPropagationInProgress.compareAndSet(false, true)) {}  //busy wait until free
-    shared.propagate(this,  null, hash);
+    while (localPropagationInProgress.get()) {} //busy wait until previous propagation completed
+
+    localPropagationInProgress.set(true);
+    shared.propagate(localPropagationInProgress,  null, hash);
+    reset();
   }
 
   private void propagateToSharedSketch() {
-    while (localPropagationInProgress.compareAndSet(false, true)) {}  //busy wait until free
-    final CompactSketch compactOrderedSketch = propagateOrderedCompact ? compact() : null;
-    shared.propagate(this,  compactOrderedSketch, -1L);
-  }
+    while (localPropagationInProgress.get()) {} //busy wait until previous propagation completed
 
+    final Sketch compactSketch = compact();
+    localPropagationInProgress.set(true);
+    shared.propagate(localPropagationInProgress, compactSketch, -1L);
+    reset();
+  }
 }
