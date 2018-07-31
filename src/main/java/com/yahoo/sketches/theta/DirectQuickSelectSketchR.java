@@ -253,4 +253,9 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     return (int) Math.floor(fraction * (1 << lgArrLongs));
   }
 
+  @Override
+  void setThetaLong(final long thetaLong) {
+    mem_.putLong(THETA_LONG, thetaLong);
+  }
+
 }

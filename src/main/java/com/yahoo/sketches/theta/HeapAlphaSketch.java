@@ -257,6 +257,11 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   }
 
   @Override
+  void setThetaLong(final long theta) {
+    thetaLong_ = theta;
+  }
+
+  @Override
   long[] getCache() {
     return cache_;
   }
