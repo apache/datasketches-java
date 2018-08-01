@@ -296,7 +296,7 @@ public class Union extends BaseHllSketch {
     final int lo2bits = incomingImpl.getCurMode().ordinal();
 
     final int sw = (hi2bits << 2) | lo2bits;
-    //System.out.println("SW: " + sw);
+
     switch (sw) {
       case 0: { //src: LIST, gadget: LIST
         final PairIterator srcItr = srcImpl.getIterator(); //LIST

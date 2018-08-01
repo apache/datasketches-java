@@ -180,5 +180,4 @@ class DirectAuxHashMap implements AuxHashMap {
     }
   }
 
-  //static void println(final String s) { System.out.println(s); }
 }
