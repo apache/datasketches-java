@@ -252,4 +252,5 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     final double fraction = (lgArrLongs <= lgNomLongs) ? DQS_RESIZE_THRESHOLD : REBUILD_THRESHOLD;
     return (int) Math.floor(fraction * (1 << lgArrLongs));
   }
+
 }
