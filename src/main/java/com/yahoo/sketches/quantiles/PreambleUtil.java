@@ -99,7 +99,7 @@ final class PreambleUtil {
    *
    * @param byteArr the given byte array.
    * @param isDoublesSketch flag to indicate that the byte array represents DoublesSketch
-   * to print min and max value in the summary
+   * to output min and max value in the summary
    * @return the summary string.
    */
   static String toString(final byte[] byteArr, final boolean isDoublesSketch) {
@@ -114,7 +114,7 @@ final class PreambleUtil {
    *
    * @param mem the given Memory
    * @param isDoublesSketch flag to indicate that the byte array represents DoublesSketch
-   * to print min and max value in the summary
+   * to output min and max value in the summary
    * @return the summary string.
    */
   static String toString(final Memory mem, final boolean isDoublesSketch) {
