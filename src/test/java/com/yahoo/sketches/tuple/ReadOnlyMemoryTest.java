@@ -12,12 +12,18 @@ public class ReadOnlyMemoryTest {
   public void wrapAndTryUpdatingSketch() {
     ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch1.update(1, new double[] {1});
-    ArrayOfDoublesUpdatableSketch sketch2 = (ArrayOfDoublesUpdatableSketch) ArrayOfDoublesSketches.wrapSketch(Memory.wrap(sketch1.toByteArray()));
+    ArrayOfDoublesUpdatableSketch sketch2 = (ArrayOfDoublesUpdatableSketch)
+        ArrayOfDoublesSketches.wrapSketch(Memory.wrap(sketch1.toByteArray()));
     Assert.assertEquals(sketch2.getEstimate(), 1.0);
     sketch2.toByteArray();
     boolean thrown = false;
     try {
       sketch2.update(2, new double[] {1});
+    } catch (SketchesReadOnlyException e) {
+      thrown = true;
+    }
+    try {
+      sketch2.trim();
     } catch (SketchesReadOnlyException e) {
       thrown = true;
     }
