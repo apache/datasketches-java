@@ -5,11 +5,6 @@ import com.yahoo.sketches.SketchesReadOnlyException;
 
 final class DirectArrayOfDoublesUnionR extends DirectArrayOfDoublesUnion {
 
-  DirectArrayOfDoublesUnionR(final int nomEntries, final int numValues, final long seed,
-      final WritableMemory dstMem) {
-    super(nomEntries, numValues, seed, dstMem);
-  }
-
   /**
    * Wraps the given Memory.
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>

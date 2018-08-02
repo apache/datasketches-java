@@ -8,6 +8,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
 public class HeapArrayOfDoublesCompactSketchTest {
@@ -51,7 +52,9 @@ public class HeapArrayOfDoublesCompactSketchTest {
     Assert.assertEquals(sketch.getTheta(), 1.0);
     double[][] values = sketch.getValues();
     Assert.assertEquals(values.length, 3);
-    for (double[] array: values) Assert.assertEquals(array[0], 2.0);
+    for (double[] array: values) {
+      Assert.assertEquals(array[0], 2.0);
+    }
   }
 
   @Test
@@ -61,7 +64,7 @@ public class HeapArrayOfDoublesCompactSketchTest {
     us.update("b", new double[] {1.0});
     us.update("c", new double[] {1.0});
     ArrayOfDoublesCompactSketch sketch1 = us.compact();
-    ArrayOfDoublesSketch sketch2 = 
+    ArrayOfDoublesSketch sketch2 =
         ArrayOfDoublesSketches.heapifySketch(Memory.wrap(sketch1.toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertFalse(sketch2.isEstimationMode());
@@ -73,15 +76,32 @@ public class HeapArrayOfDoublesCompactSketchTest {
     Assert.assertEquals(sketch2.getTheta(), 1.0);
     double[][] values = sketch2.getValues();
     Assert.assertEquals(values.length, 3);
-    for (double[] array: values) Assert.assertEquals(array[0], 1.0);
+    for (double[] array: values) {
+      Assert.assertEquals(array[0], 1.0);
+    }
   }
 
   @Test
   public void serializeDeserializeEstimation() {
     ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().build();
-    for (int i = 0; i < 8192; i++) us.update(i, new double[] {1.0});
+    for (int i = 0; i < 8192; i++) {
+      us.update(i, new double[] {1.0});
+    }
+    WritableMemory wmem = WritableMemory.wrap(us.toByteArray());
+    ArrayOfDoublesUpdatableSketch wrappedUS = ArrayOfDoublesSketches.wrapUpdatableSketch(wmem);
+    Assert.assertFalse(wrappedUS.isEmpty());
+    Assert.assertTrue(wrappedUS.isEstimationMode());
+    Assert.assertEquals(wrappedUS.getEstimate(), us.getEstimate());
+    Assert.assertEquals(wrappedUS.getThetaLong(), us.getThetaLong());
+
+    ArrayOfDoublesUpdatableSketch heapUS = ArrayOfDoublesSketches.heapifyUpdatableSketch(wmem);
+    Assert.assertFalse(heapUS.isEmpty());
+    Assert.assertTrue(heapUS.isEstimationMode());
+    Assert.assertEquals(heapUS.getEstimate(), us.getEstimate());
+    Assert.assertEquals(heapUS.getThetaLong(), us.getThetaLong());
+
     ArrayOfDoublesCompactSketch sketch1 = us.compact();
-    ArrayOfDoublesSketch sketch2 = 
+    ArrayOfDoublesSketch sketch2 =
         ArrayOfDoublesSketches.heapifySketch(Memory.wrap(sketch1.toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertTrue(sketch2.isEstimationMode());
@@ -92,7 +112,9 @@ public class HeapArrayOfDoublesCompactSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void deserializeWithWrongSeed() {
     ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().build();
-    for (int i = 0; i < 8192; i++) us.update(i, new double[] {1.0});
+    for (int i = 0; i < 8192; i++) {
+      us.update(i, new double[] {1.0});
+    }
     ArrayOfDoublesCompactSketch sketch1 = us.compact();
     ArrayOfDoublesSketches.heapifySketch(Memory.wrap(sketch1.toByteArray()), 123);
   }
