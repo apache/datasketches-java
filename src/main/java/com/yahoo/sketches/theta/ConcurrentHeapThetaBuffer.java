@@ -14,6 +14,7 @@ import static java.lang.Math.min;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
 
 /**
@@ -64,16 +65,16 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
   @Override
   UpdateReturnState hashUpdate(final long hash) { //Simplified
     if (cacheLimit == 0) {
-      final long thLong = getThetaLong();
-      if (hash < thLong) {
-        propagateToSharedSketch(hash);
-        return InsertedCountIncremented;
-      } else {
-        return RejectedOverTheta;
+      final long thetaLong = getThetaLong();
+      //The over-theta and zero test
+      if (HashOperations.continueCondition(thetaLong, hash)) {
+        return RejectedOverTheta; //signal that hash was rejected due to theta or zero.
       }
+      propagateToSharedSketch(hash);
+      return InsertedCountIncremented; //not totally correct
     }
     final UpdateReturnState state = super.hashUpdate(hash);
-    if (isOutOfSpace(getRetainedEntries()+1)) {
+    if (isOutOfSpace(getRetainedEntries() + 1)) {
       propagateToSharedSketch();
     }
     return state;
@@ -95,16 +96,16 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
 
   private void propagateToSharedSketch(final long hash) {
     while (localPropagationInProgress.get()) {} //busy wait until previous propagation completed
-
     localPropagationInProgress.set(true);
     shared.propagate(localPropagationInProgress,  null, hash);
-    reset();
+    //in this case the parent empty_ and curCount_ were not touched
+    thetaLong_ = shared.getVolatileTheta();
   }
 
   private void propagateToSharedSketch() {
     while (localPropagationInProgress.get()) {} //busy wait until previous propagation completed
 
-    final Sketch compactSketch = compact();
+    final CompactSketch compactSketch = compact(propagateOrderedCompact, null);
     localPropagationInProgress.set(true);
     shared.propagate(localPropagationInProgress, compactSketch, -1L);
     reset();

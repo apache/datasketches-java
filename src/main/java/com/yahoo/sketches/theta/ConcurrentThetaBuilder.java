@@ -81,7 +81,8 @@ public class ConcurrentThetaBuilder {
     if (dstMem == null) {
       throw new SketchesArgumentException("Destination WritableMemory cannot be null.");
     }
-    bShared = new ConcurrentDirectThetaSketch(bSharedLgNomLongs, bSeed, dstMem, bPoolThreads);
+    bShared = new ConcurrentDirectThetaSketch(
+        bSharedLgNomLongs, bSeed, dstMem, bPoolThreads);
     return bShared;
   }
 

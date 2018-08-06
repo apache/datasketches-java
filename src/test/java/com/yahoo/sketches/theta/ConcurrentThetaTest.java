@@ -6,12 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.yahoo.sketches.ResizeFactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.memory.WritableDirectHandle;
 import com.yahoo.memory.WritableMemory;
+import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.concurrent.ConcurrentTestContext;
 import com.yahoo.sketches.concurrent.ConcurrentTestThread;
 
@@ -55,9 +55,8 @@ public class ConcurrentThetaTest {
   private int timeToRun_S = 30;
   private long runTime_mS = 0;
 
-
-  public ConcurrentThetaTest() { //used with testNG
-    //this(CONCURRENCY_TYPE.CONCURRENT, 4, 4, 3);
+  public ConcurrentThetaTest() throws Exception { //used with testNG
+    this(CONCURRENCY_TYPE.CONCURRENT, 4, 4, 3);
   }
 
   public ConcurrentThetaTest(
@@ -109,7 +108,7 @@ public class ConcurrentThetaTest {
     final int maxSharedUpdateBytes = Sketch.getMaxUpdateSketchBytes(1 << shared_lgK);
 
     if(offHeap){
-      WritableDirectHandle wdh = WritableMemory.allocateDirect(maxSharedUpdateBytes);
+      wdh = WritableMemory.allocateDirect(maxSharedUpdateBytes);
       wmem = wdh.get();
     } else { //On-heap
       wmem = WritableMemory.allocate(maxSharedUpdateBytes);
@@ -234,14 +233,6 @@ public class ConcurrentThetaTest {
     LOG.info("Relative Error = " + (re * 100.0) + "%");
     LOG.info("Theta = "+ sharedSketch.getTheta());
     LOG.info("Count = "+ sharedSketch.getRetainedEntries());
-
-    //    ConcurrentDirectThetaSketch cdts = (ConcurrentDirectThetaSketch) sharedSketch;
-    //    int[] arr = cdts.getCounts();
-    //    LOG.info("InsertedCountIncremented = " + arr[0]);
-    //    LOG.info("RejectedDuplicate        = " + arr[1]);
-    //    LOG.info("RejectedOverTheta        = " + arr[2]);
-    //    LOG.info("Other                    = " + arr[3]);
-    //    LOG.info("Total                    = " + (arr[0] + arr[1] + arr[2] + arr[3]));
 
     if (wdh != null) { wdh.close(); }
   }

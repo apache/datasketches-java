@@ -23,10 +23,7 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch {
   // A flag to coordinate between several propagation threads
   private AtomicBoolean sharedPropagationInProgress_;
   private int poolThreads;
-  private int insertedIncremented = 0;
-  private int rejectedDuplicate = 0;
-  private int rejectedOverTheta = 0;
-  private int other = 0;
+
 
 
   /**
@@ -60,26 +57,6 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch {
     sharedPropagationInProgress_ = new AtomicBoolean(false);
   }
 
-  //@Override
-  //UpdateReturnState hashUpdate(final long hash) {
-  //  final UpdateReturnState state = super.hashUpdate(hash);
-  //  switch (state) {
-  //    case InsertedCountIncremented :
-  //      insertedIncremented++;
-  //      break;
-  //    case RejectedDuplicate :
-  //      rejectedDuplicate++;
-  //      break;
-  //    case RejectedOverTheta :
-  //      rejectedOverTheta++;
-  //      break;
-  //    default:
-  //      other++;
-  //      break;
-  //  }
-  //  return state;
-  //}
-
   //Concurrent methods
 
   public double getEstimationSnapshot() {
@@ -98,60 +75,66 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch {
     return poolThreads;
   }
 
-  int[] getCounts() {
-    return new int[] {insertedIncremented, rejectedDuplicate, rejectedOverTheta, other};
-  }
-
   /**
    * Propogate the ConcurrentHeapThetaBuffer into this sketch
    * @param localPropagationInProgress the given ConcurrentHeapThetaBuffer
-   * @param compactSketch an optional, ordered compact sketch with the data
+   * @param sketchIn any Theta sketch with the data
    * @param singleHash a single hash value
    */
   public void propagate(
       final AtomicBoolean localPropagationInProgress,
-      final Sketch compactSketch,
+      final Sketch sketchIn,
       final long singleHash) {
     final BackgroundThetaPropagation job =
-        new BackgroundThetaPropagation(localPropagationInProgress, compactSketch, singleHash);
+        new BackgroundThetaPropagation(localPropagationInProgress, sketchIn, singleHash);
     propagationExecutorService.execute(job);
   }
 
   private class BackgroundThetaPropagation implements Runnable {
     private AtomicBoolean localPropagationInProgress;
-    private Sketch compactSketch;
+    private Sketch sketchIn;
     private long singleHash;
 
     public BackgroundThetaPropagation(final AtomicBoolean localPropagationInProgress,
-        final Sketch compactSketch, final long singleHash) {
+        final Sketch sketchIn, final long singleHash) {
       this.localPropagationInProgress = localPropagationInProgress;
-      this.compactSketch = compactSketch;
+      this.sketchIn = sketchIn;
       this.singleHash = singleHash;
     }
 
     @Override public void run() {
-      while (!sharedPropagationInProgress_.compareAndSet(false, true)) {
-      } ///busy wait till free
+      while (!sharedPropagationInProgress_.compareAndSet(false, true)) {} //busy wait till free
 
       //At this point we are sure only a single thread is propagating data to the shared sketch
 
-      if (compactSketch != null) {
-        final long vT = getVolatileTheta();
-        final long bT = compactSketch.getThetaLong();
-        assert vT <= bT : "VT = " + vT + ", bT = " + bT;
-      }
-
       if (singleHash > 0) {
         hashUpdate(singleHash); // backdoor update, hash function is bypassed
-      } else {
+      }
+
+      else if (sketchIn != null) {
+        final long volTheta = getVolatileTheta();
+        assert volTheta <= sketchIn.getThetaLong()
+            : "volTheta = " + volTheta + ", bufTheta = " + sketchIn.getThetaLong();
+
         // propagate values from input sketch one by one
-        final long[] cacheIn = compactSketch.getCache();
-        for (int i = 0; i < cacheIn.length; i++) {
-          final long hashIn = cacheIn[i];
-          if (hashIn >= getVolatileTheta()) {
-            break; //early stop
+        final long[] cacheIn = sketchIn.getCache();
+        final int len = cacheIn.length;
+
+        if (sketchIn.isOrdered()) { //Ordered compact, Use early stop
+          for (int i = 0; i < len; i++) {
+            final long hashIn = cacheIn[i];
+            if (hashIn >= volTheta) {
+              break; //early stop
+            }
+            hashUpdate(hashIn); // backdoor update, hash function is bypassed
           }
-          hashUpdate(hashIn); // backdoor update, hash function is bypassed
+        } else { //not ordered, also may have zeros (gaps) in the array.
+          for (int i = 0; i < len; i++) {
+            final long hashIn = cacheIn[i];
+            if (hashIn > 0) {
+              hashUpdate(hashIn); // backdoor update, hash function is bypassed
+            }
+          }
         }
       }
 
