@@ -1,7 +1,6 @@
 package com.yahoo.sketches.kll;
 
 import org.testng.Assert;
-import org.testng.annotations.Test;
 
 /* A test record contains:
    0. testIndex
@@ -13,8 +12,9 @@ import org.testng.annotations.Test;
    6. hash of the retained samples
 */
 
-/* These results are for the version that delays the rollup until the next value comes in. */
-
+// These results are for the version that delays the rollup until the next value comes in.
+// The @Test annotations have to be enabled to use this class and a section in KllHelper also
+// needs to be enabled.
 public class KllValidationTest {
 
   private static final long[] correctResultsWithReset = {
@@ -151,7 +151,7 @@ public class KllValidationTest {
     final long multiplier = 738219921; // an arbitrary odd 30-bit number
     final long mask60 = (1L << 60) - 1;
     long accum = 0;
-    for (int i = start; i < start + subLength; i++) {
+    for (int i = start; i < (start + subLength); i++) {
       accum += (long) arr[i];
       accum *= multiplier;
       accum &= mask60;
@@ -160,13 +160,13 @@ public class KllValidationTest {
     return accum;
   }
 
-  @Test
+  //@Test //need to enable
   public void testHash() {
     float[] array = { 907500, 944104, 807020, 219921, 678370, 955217, 426885 };
     Assert.assertEquals(simpleHashOfSubArray(array, 1, 5), 1141543353991880193L);
   }
 
-  @Test
+  //@Test //need to enable
   public void testMakeInputArray() {
     final int[] array = { 3654721, 7309442, 2575555, 6230276, 1496389, 5151110 };
     Assert.assertEquals(makeInputArray(6, 3654721), array);
@@ -181,11 +181,11 @@ public class KllValidationTest {
   public void checkTestResults() {
     int numTests = correctResultsWithReset.length / 7;
     for (int testI = 0; testI < numTests; testI++) {
-      KllHelper.nextOffset = 0;
+      //KllHelper.nextOffset = 0; //need to enable
       assert (int) correctResultsWithReset[7 * testI] == testI;
-      int k = (int) correctResultsWithReset[7 * testI + 1];
-      int n = (int) correctResultsWithReset[7 * testI + 2];
-      int stride = (int) correctResultsWithReset[7 * testI + 3];
+      int k = (int) correctResultsWithReset[(7 * testI) + 1];
+      int n = (int) correctResultsWithReset[(7 * testI) + 2];
+      int stride = (int) correctResultsWithReset[(7 * testI) + 3];
       int[] inputArray = makeInputArray(n, stride);
       KllFloatsSketch sketch = new KllFloatsSketch(k);
       for (int i = 0; i < n; i++) {
@@ -196,13 +196,13 @@ public class KllValidationTest {
       int[] levels = sketch.getLevels();
       long hashedSamples = simpleHashOfSubArray(sketch.getItems(), levels[0], numSamples);
       System.out.print(testI);
-      assert correctResultsWithReset[7 * testI + 4] == numLevels;
-      assert correctResultsWithReset[7 * testI + 5] == numSamples;
+      assert correctResultsWithReset[(7 * testI) + 4] == numLevels;
+      assert correctResultsWithReset[(7 * testI) + 5] == numSamples;
       //assert correctResults[7 * testI + 6] == hashedSamples;
-      if (correctResultsWithReset[7 * testI + 6] == hashedSamples) {
+      if (correctResultsWithReset[(7 * testI) + 6] == hashedSamples) {
         System.out.println(" pass");
       } else {
-        System.out.print(" " + correctResultsWithReset[7 * testI + 6] + " != " + hashedSamples);
+        System.out.print(" " + correctResultsWithReset[(7 * testI) + 6] + " != " + hashedSamples);
         System.out.println(" fail");
         System.out.println(sketch.toString(true, true));
         break;
