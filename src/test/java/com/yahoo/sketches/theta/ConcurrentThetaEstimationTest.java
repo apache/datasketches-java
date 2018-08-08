@@ -10,7 +10,9 @@ import com.yahoo.memory.WritableMemory;
 
 /**
  * @author eshcar
+ * @deprecated  This approach is not correct.  Please refer to the characterization repository.
  */
+@Deprecated
 public class ConcurrentThetaEstimationTest {
   public  final Logger LOG = LoggerFactory.getLogger(ConcurrentThetaEstimationTest.class);
   public static final String LS = System.getProperty("line.separator");
