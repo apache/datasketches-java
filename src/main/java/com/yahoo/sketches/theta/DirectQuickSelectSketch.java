@@ -202,7 +202,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
   }
 
   @Override
-  public final void reset() {
+  public void reset() {
     //clear hash table
     //hash table size and hashTableThreshold stays the same
     //lgArrLongs stays the same
