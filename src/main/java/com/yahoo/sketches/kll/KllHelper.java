@@ -280,9 +280,9 @@ class KllHelper {
     }
   }
 
-  // for validation in KllValidationTest
+  // Enable the following to use KllValidationTest
 
-  static int nextOffset = 0;
+  //  static int nextOffset = 0;
 
   //  private static int deterministicOffset() {
   //    final int result = nextOffset;
