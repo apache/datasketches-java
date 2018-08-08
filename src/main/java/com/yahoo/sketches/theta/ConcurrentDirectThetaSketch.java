@@ -91,7 +91,7 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch {
   }
 
   @Override public void reset() {
-    while(sharedPropagationInProgress_.get()) {}  // wait until no background processing
+    while (sharedPropagationInProgress_.get()) {}  // wait until no background processing
     super.reset();
     volatileThetaLong_ = Long.MAX_VALUE;
     volatileEstimate_ = 0;
