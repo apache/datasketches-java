@@ -76,7 +76,7 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch {
   }
 
   /**
-   * Propogate the ConcurrentHeapThetaBuffer into this sketch
+   * Propagate the ConcurrentHeapThetaBuffer into this sketch
    * @param localPropagationInProgress the given ConcurrentHeapThetaBuffer
    * @param sketchIn any Theta sketch with the data
    * @param singleHash a single hash value
@@ -88,6 +88,13 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch {
     final BackgroundThetaPropagation job =
         new BackgroundThetaPropagation(localPropagationInProgress, sketchIn, singleHash);
     propagationExecutorService.execute(job);
+  }
+
+  @Override public void reset() {
+    while(sharedPropagationInProgress_.get()) {}  // wait until no background processing
+    super.reset();
+    volatileThetaLong_ = Long.MAX_VALUE;
+    volatileEstimate_ = 0;
   }
 
   private class BackgroundThetaPropagation implements Runnable {
