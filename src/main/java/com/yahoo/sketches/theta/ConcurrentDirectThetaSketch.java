@@ -57,8 +57,27 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch {
     sharedPropagationInProgress_ = new AtomicBoolean(false);
   }
 
-  //Concurrent methods
+  //DirectQuickSelectSketch methods
+  //  @Override
+  //  public UpdateSketch rebuild() {
+  //    UpdateSketch sketch;
+  //    while (!sharedPropagationInProgress_.compareAndSet(false, true)) {} //busy wait till free
+  //
+  //    return this;
+  //  }
 
+  @Override
+  public void reset() {
+    while (sharedPropagationInProgress_.get()) {}  // wait until no background processing
+    super.reset();
+    volatileThetaLong_ = Long.MAX_VALUE;
+    volatileEstimate_ = 0;
+  }
+
+  //Concurrent methods
+  /**
+   * @return estimation snapshot
+   */
   public double getEstimationSnapshot() {
     return volatileEstimate_;
   }
@@ -88,13 +107,6 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch {
     final BackgroundThetaPropagation job =
         new BackgroundThetaPropagation(localPropagationInProgress, sketchIn, singleHash);
     propagationExecutorService.execute(job);
-  }
-
-  @Override public void reset() {
-    while (sharedPropagationInProgress_.get()) {}  // wait until no background processing
-    super.reset();
-    volatileThetaLong_ = Long.MAX_VALUE;
-    volatileEstimate_ = 0;
   }
 
   private class BackgroundThetaPropagation implements Runnable {
