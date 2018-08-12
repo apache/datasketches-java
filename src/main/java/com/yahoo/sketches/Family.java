@@ -116,10 +116,15 @@ public enum Family {
   /**
    * KLL quanliles sketch
    */
-  KLL(15, "KLL", 1, 2);
+  KLL(15, "KLL", 1, 2),
 
-  private static final Map<Integer, Family> lookupID = new HashMap<Integer, Family>();
-  private static final Map<String, Family> lookupFamName = new HashMap<String, Family>();
+  /**
+   * Compressed Probabilistic Counting (CPC) Sketch
+   */
+  CPC(16, "CPC", 1, 5);
+
+  private static final Map<Integer, Family> lookupID = new HashMap<>();
+  private static final Map<String, Family> lookupFamName = new HashMap<>();
   private int id_;
   private String famName_;
   private int minPreLongs_;
@@ -154,7 +159,7 @@ public enum Family {
   public void checkFamilyID(final int id) {
     if (id != id_) {
       throw new SketchesArgumentException(
-          "Possible Corruption: This Family " + this.toString()
+          "Possible Corruption: This Family " + toString()
             + " does not match the ID of the given Family: " + idToFamily(id).toString());
     }
   }
