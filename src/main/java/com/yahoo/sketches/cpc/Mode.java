@@ -11,14 +11,14 @@ import java.util.Map;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
- * Defines the 9 modes of CPC, which includes the 5 Major Modes plus 4 due to MERGE or HIP.
+ * Defines the 9 modes of CPC, which includes the 5 Major Modes plus 4 due to MERGED or HIP.
  *
  * @see PreambleUtil
  * @author Lee Rhodes
  * @author Kevin Lang
  */
 enum Mode {
-  EMPTY(0, "EMPTY"),                 //0000
+  EMPTY((byte) 0, "EMPTY"),                 //0000
 
   /**
    * Consists of a Hash Set of collected coupons as pairs packed into integers as
@@ -26,7 +26,7 @@ enum Mode {
    * It is serialized by compressing the Hash Set into a bit-stream.
    * The Preamble includes the HIP registers, KxP and HIP Accum.
    */
-  SPARSE_HIP(2, "SPARSE_HIP"),       //0010
+  SPARSE_HIP((byte) 2, "SPARSE_HIP"),       //0010
 
   /**
    * Consists of a Hash Set of collected coupons as pairs packed into integers as
@@ -34,7 +34,7 @@ enum Mode {
    * It is serialized by compressing the Hash Set into a bit-stream.
    * The Preamble does not include the HIP registers.
    */
-  SPARSE_MERGE(3, "SPARSE_MERGE"),   //0011
+  SPARSE_MERGED((byte) 3, "SPARSE_MERGED"),   //0011
 
   /**
    * When live in memory this consists of (1) a <i>k</i> unsigned byte array of length <i>k</i>
@@ -42,33 +42,15 @@ enum Mode {
    * row (26 bits), column (6 bits).
    * It is serialized by first converting these structures into the SPARSE_HIP Mode.
    */
-  HYBRID_HIP(4, "HYBRID_HIP"),       //0100
+  HYBRID_HIP((byte) 4, "HYBRID_HIP"),       //0100
 
   /**
    * When live in memory this consists of (1) a <i>k</i> unsigned byte array of length <i>k</i>
    * (2) plus a Hash Set of collected surprising coupons as pairs packed into integers as
    * row (26 bits), column (6 bits).
-   * It is serialized by first converting these structures into the SPARSE_MERGE Mode.
+   * It is serialized by first converting these structures into the SPARSE_MERGED Mode.
    */
-  HYBRID_MERGE(5, "HYBRID_MERGE"),   //0101
-
-  /**
-   * When live in memory this consists of (1) a <i>k</i> unsigned byte array of length <i>k</i>
-   * (2) plus a Hash Set of collected surprising coupons as pairs packed into integers as
-   * row (26 bits), column (6 bits).
-   * It is serialized by compressing both of the above structues into bit-streams.
-   * The Preamble includes the HIP registers, KxP and HIP Accum.
-   */
-  PINNED_HIP(6, "PINNED_HIP"),       //0110
-
-  /**
-   * When live in memory this consists of (1) a <i>k</i> unsigned byte array of length <i>k</i>
-   * (2) plus a Hash Set of collected surprising coupons as pairs packed into integers as
-   * row (26 bits), column (6 bits).
-   * It is serialized by compressing both of the above structues into bit-streams.
-   * The Preamble does not include the HIP registers.
-   */
-  PINNED_MERGE(7, "PINNED_MERGE"),   //0111
+  HYBRID_MERGED((byte) 5, "HYBRID_MERGED"),   //0101
 
   /**
    * When live in memory this consists of (1) a <i>k</i> unsigned byte array of length <i>k</i>
@@ -77,7 +59,7 @@ enum Mode {
    * It is serialized by compressing both of the above structues into bit-streams.
    * The Preamble includes the HIP registers, KxP and HIP Accum.
    */
-  SLIDING_HIP(8, "SLIDING_HIP"),     //1000
+  PINNED_HIP((byte) 6, "PINNED_HIP"),       //0110
 
   /**
    * When live in memory this consists of (1) a <i>k</i> unsigned byte array of length <i>k</i>
@@ -86,11 +68,29 @@ enum Mode {
    * It is serialized by compressing both of the above structues into bit-streams.
    * The Preamble does not include the HIP registers.
    */
-  SLIDING_MERGE(9, "SLIDING_MERGE"); //1001
+  PINNED_MERGED((byte) 7, "PINNED_MERGED"),   //0111
 
-  private static final Map<Integer, Mode> lookupID = new HashMap<>();
+  /**
+   * When live in memory this consists of (1) a <i>k</i> unsigned byte array of length <i>k</i>
+   * (2) plus a Hash Set of collected surprising coupons as pairs packed into integers as
+   * row (26 bits), column (6 bits).
+   * It is serialized by compressing both of the above structues into bit-streams.
+   * The Preamble includes the HIP registers, KxP and HIP Accum.
+   */
+  SLIDING_HIP((byte) 8, "SLIDING_HIP"),     //1000
+
+  /**
+   * When live in memory this consists of (1) a <i>k</i> unsigned byte array of length <i>k</i>
+   * (2) plus a Hash Set of collected surprising coupons as pairs packed into integers as
+   * row (26 bits), column (6 bits).
+   * It is serialized by compressing both of the above structues into bit-streams.
+   * The Preamble does not include the HIP registers.
+   */
+  SLIDING_MERGED((byte) 9, "SLIDING_MERGED"); //1001
+
+  private static final Map<Byte, Mode> lookupID = new HashMap<>();
   private static final Map<String, Mode> lookupModeName = new HashMap<>();
-  private int id_;
+  private byte id_;
   private String modeName_;
 
   static {
@@ -100,7 +100,7 @@ enum Mode {
     }
   }
 
-  private Mode(final int id, final String modeName) {
+  private Mode(final byte id, final String modeName) {
     id_ = id;
     modeName_ = modeName.toUpperCase();
   }
@@ -109,7 +109,7 @@ enum Mode {
    * Returns the byte ID for this Mode
    * @return the byte ID for this Mode
    */
-  public int getID() {
+  public byte getID() {
     return id_;
   }
 
@@ -117,7 +117,7 @@ enum Mode {
   *
   * @param id the given id, a value &lt; 128.
   */
-  public void checkModeID(final int id) {
+  public void checkModeID(final byte id) {
     if (id != id_) {
       throw new SketchesArgumentException(
           "Possible Corruption: This Mode " + toString()
@@ -143,7 +143,7 @@ enum Mode {
    * @param id the given ID
    * @return the Mode given the ID
    */
-  public static Mode idToMode(final int id) {
+  public static Mode idToMode(final byte id) {
     final Mode m = lookupID.get(id);
     if (m == null) {
       throw new SketchesArgumentException("Possible Corruption: Illegal Mode ID: " + id);
@@ -162,21 +162,6 @@ enum Mode {
       throw new SketchesArgumentException("Possible Corruption: Illegal Mode Name: " + modeName);
     }
     return m;
-  }
-
-  /**
-   * Returns the Mode given one of the recognized class objects on one of the Modes
-   * @param obj a recognized Mode class object
-   * @return the Mode given one of the recognized class objects on one of the Modes
-   */
-  public static Mode objectToMode(final Object obj) {
-    final String sname = obj.getClass().getSimpleName().toUpperCase();
-    for (Mode m : values()) {
-      if (sname.contains(m.toString())) {
-        return m;
-      }
-    }
-    throw new SketchesArgumentException("Possible Corruption: Unknown object");
   }
 
 }
