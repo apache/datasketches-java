@@ -31,7 +31,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  *      0   ||--Mode--|        |-Flags--|        |---lgK--|-FamID--|-SerVer-|--PI=4--|
  *
  *          ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |    8   |
- *      1   ||-------------csvLength-------------|------------numCoupons-------------|
+ *      1   ||-------------csvLength-------------|--------numCoupons = numSV---------|
  *
  *          ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |   16   |
  *      2   ||                                   |<---------Start of csv bit stream--|
@@ -45,7 +45,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  *      0   ||--Mode--|        |-Flags--|        |---lgK--|-FamID--|-SerVer-|--PI=8--|
  *
  *          ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |    8   |
- *      1   ||-------------csvLength-------------|------------numCoupons-------------|
+ *      1   ||-------------csvLength-------------|--------numCoupons = numSV---------|
  *
  *          ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |   16   |
  *      2   ||----------------------------------KxP----------------------------------|
