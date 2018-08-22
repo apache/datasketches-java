@@ -5,40 +5,38 @@
 
 package com.yahoo.sketches.cpc;
 
-import static com.yahoo.sketches.cpc.PreambleUtil.EMPTY_FLAG_MASK;
-import static com.yahoo.sketches.cpc.PreambleUtil.EMPTY_PREINTS;
-import static com.yahoo.sketches.cpc.PreambleUtil.MERGED_FLAG_MASK;
-import static com.yahoo.sketches.cpc.PreambleUtil.PINNED_SLIDING_HIP_PREINTS;
-import static com.yahoo.sketches.cpc.PreambleUtil.PINNED_SLIDING_MERGED_PREINTS;
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+import static com.yahoo.sketches.Util.computeSeedHash;
 import static com.yahoo.sketches.cpc.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.cpc.PreambleUtil.SER_VER;
-import static com.yahoo.sketches.cpc.PreambleUtil.SPARSE_HYBRID_HIP_PREINTS;
-import static com.yahoo.sketches.cpc.PreambleUtil.SPARSE_HYBRID_MERGED_PREINTS;
 import static com.yahoo.sketches.cpc.PreambleUtil.getCsvLength;
+import static com.yahoo.sketches.cpc.PreambleUtil.getCsvStreamOffset;
+import static com.yahoo.sketches.cpc.PreambleUtil.getCwLength;
+import static com.yahoo.sketches.cpc.PreambleUtil.getCwStreamOffset;
+import static com.yahoo.sketches.cpc.PreambleUtil.getDefinedPreInts;
 import static com.yahoo.sketches.cpc.PreambleUtil.getFamily;
 import static com.yahoo.sketches.cpc.PreambleUtil.getFiCol;
 import static com.yahoo.sketches.cpc.PreambleUtil.getFlags;
+import static com.yahoo.sketches.cpc.PreambleUtil.getFormat;
 import static com.yahoo.sketches.cpc.PreambleUtil.getHipAccum;
 import static com.yahoo.sketches.cpc.PreambleUtil.getKxP;
 import static com.yahoo.sketches.cpc.PreambleUtil.getLgK;
-import static com.yahoo.sketches.cpc.PreambleUtil.getMode;
 import static com.yahoo.sketches.cpc.PreambleUtil.getNumCoupons;
+import static com.yahoo.sketches.cpc.PreambleUtil.getNumSV;
 import static com.yahoo.sketches.cpc.PreambleUtil.getPreInts;
+import static com.yahoo.sketches.cpc.PreambleUtil.getSeedHash;
 import static com.yahoo.sketches.cpc.PreambleUtil.getSerVer;
-import static com.yahoo.sketches.cpc.PreambleUtil.getWinOffset;
-import static com.yahoo.sketches.cpc.PreambleUtil.initEmpty;
-import static com.yahoo.sketches.cpc.PreambleUtil.initPinnedSlidingHip;
-import static com.yahoo.sketches.cpc.PreambleUtil.initPinnedSlidingMerged;
-import static com.yahoo.sketches.cpc.PreambleUtil.initSparseHybridHip;
-import static com.yahoo.sketches.cpc.PreambleUtil.initSparseHybridMerged;
-import static com.yahoo.sketches.cpc.PreambleUtil.putCsvLength;
-import static com.yahoo.sketches.cpc.PreambleUtil.putCwLength;
-import static com.yahoo.sketches.cpc.PreambleUtil.putFiCol;
-import static com.yahoo.sketches.cpc.PreambleUtil.putHipAccum;
-import static com.yahoo.sketches.cpc.PreambleUtil.putKxP;
-import static com.yahoo.sketches.cpc.PreambleUtil.putNumCoupons;
-import static com.yahoo.sketches.cpc.PreambleUtil.putWinOffset;
+import static com.yahoo.sketches.cpc.PreambleUtil.hasHip;
+import static com.yahoo.sketches.cpc.PreambleUtil.putEmpty;
+import static com.yahoo.sketches.cpc.PreambleUtil.putPinnedSlidingHip;
+import static com.yahoo.sketches.cpc.PreambleUtil.putPinnedSlidingHipNoSv;
+import static com.yahoo.sketches.cpc.PreambleUtil.putPinnedSlidingMerged;
+import static com.yahoo.sketches.cpc.PreambleUtil.putPinnedSlidingMergedNoSv;
+import static com.yahoo.sketches.cpc.PreambleUtil.putSparseHybridHip;
+import static com.yahoo.sketches.cpc.PreambleUtil.putSparseHybridMerged;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
@@ -46,174 +44,157 @@ import org.testng.annotations.Test;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.SketchesStateException;
+import com.yahoo.sketches.cpc.PreambleUtil.Format;
+import com.yahoo.sketches.cpc.PreambleUtil.HiField;
 
 /**
  * @author Lee Rhodes
  */
 public class PreambleUtilTest {
+  static final short defaultSeedHash = computeSeedHash(DEFAULT_UPDATE_SEED) ;
 
-  @Test
-  public void checkInits() {
-    int maxPreInts = 9;
-    WritableMemory wmem = WritableMemory.allocate(4 * maxPreInts);
-    byte lgK = 12;
-
-    initEmpty(wmem, lgK);
-    assertEquals(getPreInts(wmem), EMPTY_PREINTS);
+  private static void checkFirst8(WritableMemory wmem, Format format, byte lgK, byte fiCol) {
+    assertEquals(getFormat(wmem), format);
+    assertEquals(getPreInts(wmem), getDefinedPreInts(format));
     assertEquals(getSerVer(wmem), SER_VER);
     assertEquals(getFamily(wmem), Family.CPC);
     assertEquals(getLgK(wmem), lgK);
-    assertEquals(getFlags(wmem), EMPTY_FLAG_MASK | READ_ONLY_FLAG_MASK);
-    assertEquals(getMode(wmem), Mode.EMPTY);
-    println(PreambleUtil.toString(wmem));
+    assertEquals(getFiCol(wmem), fiCol);
+    assertEquals(getFlags(wmem), (format.ordinal() << 2) | READ_ONLY_FLAG_MASK);
+    assertEquals(getSeedHash(wmem), defaultSeedHash);
 
-    initSparseHybridMerged(wmem, lgK, true); //hybrid
-    assertEquals(getPreInts(wmem), SPARSE_HYBRID_MERGED_PREINTS);
-    assertEquals(getSerVer(wmem), SER_VER);
-    assertEquals(getFamily(wmem), Family.CPC);
-    assertEquals(getLgK(wmem), lgK);
-    assertEquals(getFlags(wmem), MERGED_FLAG_MASK | READ_ONLY_FLAG_MASK);
-    assertEquals(getMode(wmem), Mode.HYBRID_MERGED);
-    assertEquals(getNumCoupons(wmem), 0);
-    assertEquals(getCsvLength(wmem), 0);
-    println(PreambleUtil.toString(wmem));
-
-    initSparseHybridMerged(wmem, lgK, false); //Sparse
-    assertEquals(getPreInts(wmem), SPARSE_HYBRID_MERGED_PREINTS);
-    assertEquals(getSerVer(wmem), SER_VER);
-    assertEquals(getFamily(wmem), Family.CPC);
-    assertEquals(getLgK(wmem), lgK);
-    assertEquals(getFlags(wmem), MERGED_FLAG_MASK | READ_ONLY_FLAG_MASK);
-    assertEquals(getMode(wmem), Mode.SPARSE_MERGED);
-    assertEquals(getNumCoupons(wmem), 0);
-    assertEquals(getCsvLength(wmem), 0);
-    println(PreambleUtil.toString(wmem));
-
-    initSparseHybridHip(wmem, lgK, true); //hybrid
-    assertEquals(getPreInts(wmem), SPARSE_HYBRID_HIP_PREINTS);
-    assertEquals(getSerVer(wmem), SER_VER);
-    assertEquals(getFamily(wmem), Family.CPC);
-    assertEquals(getLgK(wmem), lgK);
-    assertEquals(getFlags(wmem), READ_ONLY_FLAG_MASK);
-    assertEquals(getMode(wmem), Mode.HYBRID_HIP);
-    assertEquals(getNumCoupons(wmem), 0);
-    assertEquals(getCsvLength(wmem), 0);
-    assertEquals(getKxP(wmem), (double) (1 << lgK));
-    assertEquals(getHipAccum(wmem), 0.0);
-    println(PreambleUtil.toString(wmem));
-
-    initSparseHybridHip(wmem, lgK, false); //Sparse
-    assertEquals(getPreInts(wmem), SPARSE_HYBRID_HIP_PREINTS);
-    assertEquals(getSerVer(wmem), SER_VER);
-    assertEquals(getFamily(wmem), Family.CPC);
-    assertEquals(getLgK(wmem), lgK);
-    assertEquals(getFlags(wmem), READ_ONLY_FLAG_MASK);
-    assertEquals(getMode(wmem), Mode.SPARSE_HIP);
-    assertEquals(getNumCoupons(wmem), 0);
-    assertEquals(getCsvLength(wmem), 0);
-    assertEquals(getKxP(wmem), (double) (1 << lgK));
-    assertEquals(getHipAccum(wmem), 0.0);
-    println(PreambleUtil.toString(wmem));
-
-
-    initPinnedSlidingMerged(wmem, lgK, true); //sliding
-    //check the normal puts
-    putFiCol(wmem, (byte) 0);
-    putWinOffset(wmem, (byte) 0);
-    putNumCoupons(wmem, 0);
-    putCsvLength(wmem, 0);
-    putCwLength(wmem, 0);
-
-
-    assertEquals(getPreInts(wmem), PINNED_SLIDING_MERGED_PREINTS);
-    assertEquals(getSerVer(wmem), SER_VER);
-    assertEquals(getFamily(wmem), Family.CPC);
-    assertEquals(getLgK(wmem), lgK);
-    assertEquals(getFiCol(wmem), 0);
-    assertEquals(getFlags(wmem), MERGED_FLAG_MASK | READ_ONLY_FLAG_MASK);
-    assertEquals(getWinOffset(wmem), 0);
-    assertEquals(getMode(wmem), Mode.SLIDING_MERGED);
-    assertEquals(getNumCoupons(wmem), 0);
-    assertEquals(getCsvLength(wmem), 0);
-    println(PreambleUtil.toString(wmem));
-
-    initPinnedSlidingMerged(wmem, lgK, false); //pinned
-    assertEquals(getPreInts(wmem), PINNED_SLIDING_MERGED_PREINTS);
-    assertEquals(getSerVer(wmem), SER_VER);
-    assertEquals(getFamily(wmem), Family.CPC);
-    assertEquals(getLgK(wmem), lgK);
-    assertEquals(getFiCol(wmem), 0);
-    assertEquals(getFlags(wmem), MERGED_FLAG_MASK | READ_ONLY_FLAG_MASK);
-    assertEquals(getWinOffset(wmem), 0);
-    assertEquals(getMode(wmem), Mode.PINNED_MERGED);
-    assertEquals(getNumCoupons(wmem), 0);
-    assertEquals(getCsvLength(wmem), 0);
-    println(PreambleUtil.toString(wmem));
-
-    initPinnedSlidingHip(wmem, lgK, true); //sliding
-    //check normal puts
-    putKxP(wmem, 1 << lgK);
-    putHipAccum(wmem, 0.0);
-    putCwLength(wmem, 0);
-
-    assertEquals(getPreInts(wmem), PINNED_SLIDING_HIP_PREINTS);
-    assertEquals(getSerVer(wmem), SER_VER);
-    assertEquals(getFamily(wmem), Family.CPC);
-    assertEquals(getLgK(wmem), lgK);
-    assertEquals(getFiCol(wmem), 0);
-    assertEquals(getFlags(wmem), READ_ONLY_FLAG_MASK);
-    assertEquals(getWinOffset(wmem), 0);
-    assertEquals(getMode(wmem), Mode.SLIDING_HIP);
-    assertEquals(getNumCoupons(wmem), 0);
-    assertEquals(getCsvLength(wmem), 0);
-    assertEquals(getKxP(wmem), (double) (1 << lgK));
-    assertEquals(getHipAccum(wmem), 0.0);
-    println(PreambleUtil.toString(wmem));
-
-    initPinnedSlidingHip(wmem, lgK, false); //pinned
-    assertEquals(getPreInts(wmem), PINNED_SLIDING_HIP_PREINTS);
-    assertEquals(getSerVer(wmem), SER_VER);
-    assertEquals(getFamily(wmem), Family.CPC);
-    assertEquals(getLgK(wmem), lgK);
-    assertEquals(getFiCol(wmem), 0);
-    assertEquals(getFlags(wmem), READ_ONLY_FLAG_MASK);
-    assertEquals(getWinOffset(wmem), 0);
-    assertEquals(getMode(wmem), Mode.PINNED_HIP);
-    assertEquals(getNumCoupons(wmem), 0);
-    assertEquals(getCsvLength(wmem), 0);
-    assertEquals(getKxP(wmem), (double) (1 << lgK));
-    assertEquals(getHipAccum(wmem), 0.0);
-    println(PreambleUtil.toString(wmem));
-
-    byte[] byteArr = (byte[]) wmem.getArray();
-    println("Duplicate");
-    println(PreambleUtil.toString(byteArr));
   }
 
   @Test
-  public void checkErrorModes() {
-    int maxPreInts = 9;
-    WritableMemory wmem = WritableMemory.allocate(4 * maxPreInts);
+  public void checkNormalPutMemory() {
     byte lgK = 12;
-    initEmpty(wmem, lgK);
-    try { putNumCoupons(wmem, 1); fail(); } catch (SketchesArgumentException e) { }
-    try { putCsvLength(wmem, 1); fail(); } catch (SketchesArgumentException e) { }
-    try { putCwLength(wmem, 1); fail(); } catch (SketchesArgumentException e) { }
-    try { putKxP(wmem, 1.0); fail(); } catch (SketchesArgumentException e) { }
-    try { putHipAccum(wmem, 1.0); fail(); } catch (SketchesArgumentException e) { }
+    double kxp = lgK;
+    double hipAccum = 1005;
+    byte fiCol = 1;
+    int[] csvStream = new int[] {1, 2, 3};
+    long numCoupons = csvStream.length;
+    long csvLength = csvStream.length;
+    short seedHash = defaultSeedHash;
+    int[] cwStream = new int[] {4, 5, 6};
+    long cwLength = cwStream.length;
+    long numSv = cwStream.length;
+    int maxInts = 10 + (int) csvLength + (int) cwLength;
+    WritableMemory wmem = WritableMemory.allocate(4 * maxInts);
 
-    initSparseHybridMerged(wmem, lgK, true); //hybrid
-    try { putCwLength(wmem, 1); fail(); } catch (SketchesArgumentException e) { }
-    try { putKxP(wmem, 1.0); fail(); } catch (SketchesArgumentException e) { }
-    try { putHipAccum(wmem, 1.0); fail(); } catch (SketchesArgumentException e) { }
+    Format format;
 
-    initSparseHybridHip(wmem, lgK, true); //hybrid
-    try { putCwLength(wmem, 1); fail(); } catch (SketchesArgumentException e) { }
+    format = Format.EMPTY;
+    putEmpty(wmem, lgK, seedHash);
+    println(PreambleUtil.toString((byte[])wmem.getArray(), true));
+    checkFirst8(wmem, format, lgK, (byte) 0);
+    assertFalse(hasHip(wmem));
 
-    initPinnedSlidingMerged(wmem, lgK, true); //sliding
-    try { putKxP(wmem, 1.0); fail(); } catch (SketchesArgumentException e) { }
-    try { putHipAccum(wmem, 1.0); fail(); } catch (SketchesArgumentException e) { }
+    format = Format.SPARSE_HYBRID_MERGED;
+    putSparseHybridMerged(wmem, lgK, numCoupons, csvLength, seedHash, csvStream);
+    println(PreambleUtil.toString(wmem, true));
+    PreambleUtil.toString(wmem, false);
+    checkFirst8(wmem, format, lgK, (byte) 0);
+    assertEquals(getNumCoupons(wmem), numCoupons);
+    assertEquals(getCsvLength(wmem), csvLength);
+
+    format = Format.SPARSE_HYBRID_HIP;
+    putSparseHybridHip(wmem, lgK, numCoupons, csvLength, kxp, hipAccum, seedHash, csvStream);
+    println(PreambleUtil.toString(wmem, true));
+    PreambleUtil.toString(wmem, false);
+    checkFirst8(wmem, format, lgK, (byte) 0);
+    assertEquals(getNumCoupons(wmem), numCoupons);
+    assertEquals(getCsvLength(wmem), csvLength);
+    assertEquals(getKxP(wmem), kxp);
+    assertEquals(getHipAccum(wmem), hipAccum);
+    assertTrue(hasHip(wmem));
+
+    format = Format.PINNED_SLIDING_MERGED_NOSV;
+    putPinnedSlidingMergedNoSv(wmem, lgK, fiCol, numCoupons, cwLength, seedHash, cwStream);
+    println(PreambleUtil.toString(wmem, true));
+    PreambleUtil.toString(wmem, false);
+    checkFirst8(wmem, format, lgK, fiCol);
+    assertEquals(getNumCoupons(wmem), numCoupons);
+    assertEquals(getCwLength(wmem), cwLength);
+
+    format = Format.PINNED_SLIDING_HIP_NOSV;
+    putPinnedSlidingHipNoSv(wmem, lgK, fiCol, numCoupons, cwLength, kxp, hipAccum, seedHash,
+        cwStream);
+    println(PreambleUtil.toString(wmem, true));
+    PreambleUtil.toString(wmem, false);
+    checkFirst8(wmem, format, lgK, fiCol);
+    assertEquals(getNumCoupons(wmem), numCoupons);
+    assertEquals(getCwLength(wmem), cwLength);
+    assertEquals(getKxP(wmem), kxp);
+    assertEquals(getHipAccum(wmem), hipAccum);
+
+    format = Format.PINNED_SLIDING_MERGED;
+    putPinnedSlidingMerged(wmem, lgK, fiCol, numCoupons, numSv, csvLength, cwLength, seedHash,
+        csvStream, cwStream);
+    println(PreambleUtil.toString(wmem, true));
+    PreambleUtil.toString(wmem, false);
+    checkFirst8(wmem, format, lgK, fiCol);
+    assertEquals(getNumCoupons(wmem), numCoupons);
+    assertEquals(getNumSV(wmem), numSv);
+    assertEquals(getCsvLength(wmem), csvLength);
+    assertEquals(getCwLength(wmem), cwLength);
+
+    format = Format.PINNED_SLIDING_HIP;
+    putPinnedSlidingHip(wmem, lgK, fiCol, numCoupons, numSv, kxp, hipAccum, csvLength, cwLength,
+        seedHash, csvStream, cwStream);
+    println(PreambleUtil.toString(wmem, true));
+    PreambleUtil.toString(wmem, false);
+    checkFirst8(wmem, format, lgK, fiCol);
+    assertEquals(getNumCoupons(wmem), numCoupons);
+    assertEquals(getNumSV(wmem), numSv);
+    assertEquals(getCsvLength(wmem), csvLength);
+    assertEquals(getCwLength(wmem), cwLength);
+    assertEquals(getKxP(wmem), kxp);
+    assertEquals(getHipAccum(wmem), hipAccum);
   }
+
+  @Test
+  public void checkStreamErrors() {
+    WritableMemory wmem = WritableMemory.allocate(4 * 10);
+    putEmpty(wmem, (byte) 12, defaultSeedHash);
+    try { getCsvStreamOffset(wmem); fail(); } catch (SketchesArgumentException e) { }
+    wmem.putByte(5, (byte) (7 << 2));
+    try { getCsvStreamOffset(wmem); fail(); } catch (SketchesStateException e) { }
+    wmem.putByte(5, (byte) 0);
+    try { getCwStreamOffset(wmem); fail(); } catch (SketchesArgumentException e) { }
+    wmem.putByte(5, (byte) (7 << 2));
+    try { getCwStreamOffset(wmem); fail(); } catch (SketchesStateException e) { }
+  }
+
+  @Test
+  public void checkEmptyMemory() {
+    WritableMemory wmem = WritableMemory.allocate(4 * 10);
+    wmem.putByte(2, (byte) 16); //legal Family
+    wmem.putByte(5, (byte) (1 << 2)); //select NONE
+    println(PreambleUtil.toString(wmem, false));
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkFieldError() {
+    PreambleUtil.fieldError(Format.EMPTY, HiField.NUM_COUPONS);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkCapacity() {
+    PreambleUtil.checkCapacity(100, 101);
+  }
+
+  @Test(expectedExceptions = SketchesStateException.class)
+  public void checkHiFieldError() {
+    PreambleUtil.getHiFieldOffset(Format.EMPTY, HiField.NUM_COUPONS);
+  }
+
+  @Test
+  public void checkWindowOffset() {
+    long offset = PreambleUtil.determineCorrectOffset(4, 54);
+    assertEquals(offset, 1L);
+  }
+
 
   @Test
   public void printlnTest() {
@@ -224,7 +205,7 @@ public class PreambleUtilTest {
    * @param s value to print
    */
   static void println(String s) {
-    //System.out.println(s); //disable here
+    System.out.println(s); //disable here
   }
 
 }
