@@ -6,6 +6,7 @@
 package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.Util.zeroPad;
+import static com.yahoo.sketches.cpc.Fm85.determineCorrectOffset;
 
 import java.nio.ByteOrder;
 import java.util.HashMap;
@@ -214,7 +215,7 @@ final class PreambleUtil {
    * Do not change the order.
    */
   enum Format { EMPTY, NONE, SPARSE_HYBRID_MERGED, SPARSE_HYBRID_HIP, PINNED_SLIDING_MERGED_NOSV,
-    PINNED_SLIDING_HIP_NOSV, PINNED_SLIDING_MERGED, PINNED_SLIDING_HIP ;
+    PINNED_SLIDING_HIP_NOSV, PINNED_SLIDING_MERGED, PINNED_SLIDING_HIP;
 
     private static final Map<Integer, Format> lookupID = new HashMap<>();
 
@@ -230,8 +231,7 @@ final class PreambleUtil {
      * @return the Format given its enum ordinal
      */
     static Format ordinalToFormat(final int ordinal) {
-      final Format f = lookupID.get(ordinal);
-      return f;
+      return lookupID.get(ordinal);
     }
   } //end enum Format
 
@@ -729,13 +729,7 @@ final class PreambleUtil {
     }
   }
 
-  //TODO move to a common util class
-  static long determineCorrectOffset(final long lgK, final long c) {
-    final long k = (1L << lgK);
-    final long tmp = (c << 3) - (19 * k);        // 8C - 19K
-    if (tmp < 0) { return 0; }
-    return tmp >> (lgK + 3L); // tmp / 8K
-  }
+
 
 }
 //@formatter:on

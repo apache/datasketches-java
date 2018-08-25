@@ -191,7 +191,7 @@ public class PreambleUtilTest {
 
   @Test
   public void checkWindowOffset() {
-    long offset = PreambleUtil.determineCorrectOffset(4, 54);
+    long offset = Fm85.determineCorrectOffset(4, 54);
     assertEquals(offset, 1L);
   }
 
