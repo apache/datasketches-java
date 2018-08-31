@@ -471,6 +471,22 @@ public final class Util {
   }
 
   /**
+   * blah
+   * @param ppo blah
+   * @param curPoint blah
+   * @return blah
+   */
+  public static final double pwr2LawNext(final int ppo, final double curPoint) {
+    final double cur = (curPoint < 1.0) ? 1.0 : curPoint;
+    double gi = round(log2(cur) * ppo); //current generating index
+    double next;
+    do {
+      next = (pow(2.0, ++gi / ppo));
+    } while (next <= curPoint);
+    return next;
+  }
+
+  /**
    * Computes the previous, smaller integer point in the power series
    * <i>point = 2<sup>( i / ppo )</sup></i> given the current point in the series.
    * For illustration, this can be used in a loop as follows:
