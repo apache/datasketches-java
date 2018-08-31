@@ -5,11 +5,10 @@
 
 package com.yahoo.sketches.cpc;
 
-import static com.yahoo.sketches.Util.pwr2LawNext;
+import static com.yahoo.sketches.Util.pwr2LawNextDouble;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
-
 /**
  * @author Lee Rhodes
  */
@@ -80,10 +79,10 @@ public class TestAllTest {
 
   @Test
   public void testPwrLaw() {
-    int numItems = 1 << 20;
+    long numItems = 1L << 20;
     while (numItems < (1 << 22)) {
       println(""+ numItems);
-      numItems = pwr2LawNext(16, numItems);
+      numItems = Math.round(pwr2LawNextDouble(16, numItems));
     }
   }
 
