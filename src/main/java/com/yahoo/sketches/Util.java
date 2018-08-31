@@ -471,12 +471,27 @@ public final class Util {
   }
 
   /**
-   * blah
-   * @param ppo blah
-   * @param curPoint blah
-   * @return blah
+   * Computes the next larger double in the power series
+   * <i>point = 2<sup>( i / ppo )</sup></i> given the current point in the series.
+   * For illustration, this can be used in a loop as follows:
+   *
+   * <pre>{@code
+   *     double maxP = 1024.0;
+   *     double minP = 1.0;
+   *     int ppo = 2;
+   *
+   *     for (double p = minP; p <= maxP; p = pwr2LawNextDouble(ppo, p)) {
+   *       System.out.print(Math.round(p) + " ");
+   *     }
+   *     //generates the following series:
+   *     //1 2 3 4 6 8 11 16 23 32 45 64 91 128 181 256 362 512 724 1024
+   * }</pre>
+   *
+   * @param ppo Points-Per-Octave, or the number of points per integer powers of 2 in the series.
+   * @param curPoint the current point of the series. Must be &ge; 1.0.
+   * @return the next point in the power series.
    */
-  public static final double pwr2LawNext(final int ppo, final double curPoint) {
+  public static final double pwr2LawNextDouble(final int ppo, final double curPoint) {
     final double cur = (curPoint < 1.0) ? 1.0 : curPoint;
     double gi = round(log2(cur) * ppo); //current generating index
     double next;
