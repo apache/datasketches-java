@@ -13,6 +13,8 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Kevin Lang
  */
 final class Fm85Util {
+  static final int minLgK = 4;
+  static final int maxLgK = 25;
   static final long ALL64BITS = -1L;
   static final long ALL32BITS = (1L << 32) - 1L;
 
@@ -85,11 +87,11 @@ final class Fm85Util {
     }
   }
 
-  static long golombChooseNumberOfBaseBits(final long k, final long count) {
+  static int golombChooseNumberOfBaseBits(final int k, final long count) {
     assert k >= 1L;
     assert count >= 1L;
     final long quotient = (k - count) / count; // integer division
-    return (quotient == 0) ? 0 : longFloorLog2OfLong(quotient);
+    return (quotient == 0) ? 0 : (int) longFloorLog2OfLong(quotient);
   }
 
   static long countBitsSetInMatrix(final long[] array) {
@@ -100,7 +102,7 @@ final class Fm85Util {
   }
 
   static void checkLgK(final int lgK) {
-    if ((lgK < 4) || (lgK > 26)) {
+    if ((lgK < minLgK) || (lgK > maxLgK)) {
       throw new SketchesArgumentException("LgK must be >= 4 and <= 26: " + lgK);
     }
   }

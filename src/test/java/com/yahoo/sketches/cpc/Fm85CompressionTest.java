@@ -41,6 +41,7 @@ public class Fm85CompressionTest {
     int bufBits = 0;       //could be byte
 
     for (int i = 0; i < 100; i++) {
+
       //TODO Inline WriteUnary
       ptrArr[NEXT_WORD_IDX] = nextWordIndex;
       ptrArr[BIT_BUF] = bitBuf;
@@ -52,6 +53,7 @@ public class Fm85CompressionTest {
       bufBits = (int) ptrArr[BUF_BITS];
       assert nextWordIndex == ptrArr[NEXT_WORD_IDX]; //catch truncation error
       //END Inline WriteUnary
+
     }
 
     // Pad the bitstream so that the decompressor's 12-bit peek can't overrun its input.
@@ -69,19 +71,20 @@ public class Fm85CompressionTest {
       compressedWords[nextWordIndex++] = (int) bitBuf;
     }
     int numWordsUsed = nextWordIndex;
-    System.out.println("Words used: " + numWordsUsed);
+    println("Words used: " + numWordsUsed);
     nextWordIndex = 0; //must be int
     bitBuf = 0;       //must be long
     bufBits = 0;       //could be byte
 
     for (int i = 0; i < 100; i++) {
+
       //TODO Inline ReadUnary
       ptrArr[NEXT_WORD_IDX] = nextWordIndex;
       ptrArr[BIT_BUF] = bitBuf;
       ptrArr[BUF_BITS] = bufBits;
       assert nextWordIndex == ptrArr[NEXT_WORD_IDX];
       final long result = readUnary(compressedWords, ptrArr);
-      //System.out.println("Result: " + result + ", expected: " + i);
+      println("Result: " + result + ", expected: " + i);
 
       assertEquals(result, i);
       nextWordIndex = (int) ptrArr[NEXT_WORD_IDX];
@@ -89,10 +92,9 @@ public class Fm85CompressionTest {
       bufBits = (int) ptrArr[BUF_BITS];
       assert nextWordIndex == ptrArr[NEXT_WORD_IDX];
       //END Inline ReadUnary
+
     }
-
     assertTrue(nextWordIndex <= numWordsUsed);
-
   }
 
   @Test
@@ -109,7 +111,7 @@ public class Fm85CompressionTest {
       lowLevelUncompressBytes(byteArray2, 256, decodingTablesForHighEntropyByte[j],
           compressedWords, numWordsWritten);
 
-      //System.out.println("Words used: " + numWordsWritten);
+      println("Words used: " + numWordsWritten);
       assertEquals(byteArray2, byteArray);
     }
   }
@@ -122,14 +124,13 @@ public class Fm85CompressionTest {
     byte[] byteArray2 = new byte[size]; //output
     for (int i = 0; i < size; i++) { byteArray[i] = (byte) i; }
 
-
     long numWordsWritten = lowLevelCompressBytes(
         byteArray, size, lengthLimitedUnaryEncodingTable65, compressedWords);
 
     lowLevelUncompressBytes(byteArray2, size, lengthLimitedUnaryDecodingTable65,
         compressedWords, numWordsWritten);
 
-    //System.out.println("Words used: " + numWordsWritten);
+    println("Words used: " + numWordsWritten);
     assertEquals(byteArray2, byteArray);
   }
 
@@ -146,17 +147,17 @@ public class Fm85CompressionTest {
       int rand = rgen.nextInt(1 << (lgK + 6));
       pairArray[i] = rand;
     }
-    Arrays.sort(pairArray); //want unsigned sort!
+    Arrays.sort(pairArray);   //want unsigned sort!
     int prev = -1;
     int nxt = 0;
-    for (i = 0; i < N; i++) {     // uniquify
+    for (i = 0; i < N; i++) { // uniquify
       if (pairArray[i] != prev) {
         prev = pairArray[i];
         pairArray[nxt++] = pairArray[i];
       }
     }
     int numPairs = nxt;
-    //System.out.printf ("numPairs = %d\n", numPairs);
+    println("numPairs = " + numPairs);
 
     int[] compressedWords = new int[4000];
     int bb; // numBaseBits
@@ -164,7 +165,7 @@ public class Fm85CompressionTest {
     for (bb = 0; bb <= 11; bb++) {
       Long numWordsWritten =
         lowLevelCompressPairs(pairArray, numPairs, bb, compressedWords);
-      //System.out.printf("numWordsWritten = %d (bb = %d)\n", numWordsWritten, bb);
+        println("numWordsWritten = " + numWordsWritten + ", bb = " + bb);
 
       lowLevelUncompressPairs (pairArray2, numPairs, bb, compressedWords, numWordsWritten);
 
@@ -177,6 +178,18 @@ public class Fm85CompressionTest {
         assert (pairArray[i] == pairArray2[i]);
       }
     }
+  }
+
+  @Test
+  public void printlnTest() {
+    println("PRINTING: " + this.getClass().getName());
+  }
+
+  /**
+   * @param s value to print
+   */
+  static void println(String s) {
+    //System.out.println(s); //disable here
   }
 
 }
