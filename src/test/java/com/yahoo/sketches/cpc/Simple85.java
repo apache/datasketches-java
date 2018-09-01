@@ -7,6 +7,8 @@ package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.cpc.Fm85.rowColFromTwoHashes;
 
+import java.util.Arrays;
+
 /**
  * @author Lee Rhodes
  */
@@ -21,8 +23,13 @@ public class Simple85 {
     numCoupons = 0;
   }
 
+  void reset() {
+    Arrays.fill(bitMatrix, 0);
+    numCoupons = 0;
+  }
+
   static void rowColUpdate(Simple85 sketch, int rowCol) {
-    int col = rowCol * 63;
+    int col = rowCol & 63;
     int row = rowCol >>> 6;
     long oldPattern = sketch.bitMatrix[row];
     long newPattern = oldPattern | (1 << col);

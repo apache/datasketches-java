@@ -496,7 +496,7 @@ public final class Util {
     double gi = round(log2(cur) * ppo); //current generating index
     double next;
     do {
-      next = (pow(2.0, ++gi / ppo));
+      next = round(pow(2.0, ++gi / ppo));
     } while (next <= curPoint);
     return next;
   }

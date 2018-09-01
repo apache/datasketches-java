@@ -5,21 +5,12 @@
 
 package com.yahoo.sketches.cpc;
 
-import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
-import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 /**
  * @author Lee Rhodes
  */
 public class Fm85Testing {
-  static final long golden64 = 0x9e3779b97f4a7c13L;  // the golden ratio
-  long counter0 = 35538947;  // some arbitrary random number
-
-  void getTwoRandomHashes(long[] twoHashes) {
-    twoHashes[0] = counter0 += golden64;
-    twoHashes = hash(twoHashes, DEFAULT_UPDATE_SEED);
-  }
 
   //This is used for testing, especially of the merging code.
 
