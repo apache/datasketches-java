@@ -14,6 +14,7 @@ import static com.yahoo.sketches.cpc.CompressionData.lengthLimitedUnaryEncodingT
 import static com.yahoo.sketches.cpc.Fm85Util.byteTrailingZerosTable;
 import static com.yahoo.sketches.cpc.Fm85Util.divideLongsRoundingUp;
 import static com.yahoo.sketches.cpc.Fm85Util.golombChooseNumberOfBaseBits;
+//import static com.yahoo.sketches.cpc.Fm85Util.printPairs;
 import static com.yahoo.sketches.cpc.PairTable.introspectiveInsertionSort;
 
 import com.yahoo.sketches.SketchesStateException;
@@ -276,8 +277,6 @@ final class Fm85Compression {
       final long golombLo = yDelta & golombLoMask; //long for bitBuf
       final long golombHi = yDelta >>> numBaseBits; //cannot exceed 2^26
 
-      //println("i: " + pairIndex + ", X: " + xDelta + ", gHi: " + golombHi + ", gLo: " + golombLo);
-
       //TODO Inline WriteUnary
       ptrArr[NEXT_WORD_IDX] = nextWordIndex;
       ptrArr[BIT_BUF] = bitBuf;
@@ -353,14 +352,13 @@ final class Fm85Compression {
         bitBuf |= ((compressedWords[nextWordIndex++] & 0XFFFF_FFFFL) << bufBits);
         bufBits += 32;
       }
+
       final int peek12 = (int) (bitBuf & 0XFFFL);
       final int lookup = lengthLimitedUnaryDecodingTable65[peek12] & 0XFFFF;
       final int codeWordLength = lookup >>> 8;
       final int xDelta = lookup & 0XFF;
       bitBuf >>>= codeWordLength;
       bufBits -= codeWordLength;
-
-      //Long golombHi = readUnary (compressedWords, &wordIndex, &bitbuf, &bufbits);
 
       //TODO Inline ReadUnary
       ptrArr[NEXT_WORD_IDX] = nextWordIndex;
@@ -377,14 +375,12 @@ final class Fm85Compression {
       //END Inline ReadUnary
 
       //MAYBE_FILL_BITBUF(compressedWords,wordIndex,numBaseBits); // ensure numBaseBits in bit buffer
-      if (bufBits < 12) { // Prepare for a 12-bit peek into the bitstream.
+      if (bufBits < numBaseBits) { // Prepare for a numBaseBits peek into the bitstream.
         bitBuf |= ((compressedWords[nextWordIndex++] & 0XFFFF_FFFFL) << bufBits);
         bufBits += 32;
       }
 
       final long golombLo = bitBuf & golombLoMask;
-      //println("i: " + pairIndex + ", X: " + xDelta + ", gHi: " + golombHi + ", gLo: " + golombLo);
-
       bitBuf >>>= numBaseBits;
       bufBits -= numBaseBits;
       final long yDelta = (golombHi << numBaseBits) | golombLo;
@@ -398,22 +394,22 @@ final class Fm85Compression {
       predictedRowIndex = rowIndex;
       predictedColIndex = colIndex + 1;
     }
-    assert (nextWordIndex <= numCompressedWords); // check for buffer over-run
+    // check for buffer over-run //final fail path 5
+    assert (nextWordIndex <= numCompressedWords)
+      : "nextWdIdx: " + nextWordIndex + ", #CompWds: " + numCompressedWords;
   }
 
   static int safeLengthForCompressedPairBuf(
       final long k, final long numPairs, final long numBaseBits) {
     assert (numPairs > 0);
-    // Long ybits = k + numPairs; // simpler and safer UB
+    // long ybits = k + numPairs; // simpler and safer UB
     // The following tighter UB on ybits is based on page 198
     // of the textbook "Managing Gigabytes" by Witten, Moffat, and Bell.
     // Notice that if numBaseBits == 0 it coincides with (k + numPairs).
     final long ybits = (numPairs * (1L + numBaseBits)) + (k >>> numBaseBits);
     final long xbits = 12 * numPairs;
     long padding = 10L - numBaseBits;
-    if (padding < 0) {
-      padding = 0;
-    }
+    if (padding < 0) { padding = 0; }
     final long bits = xbits + ybits + padding;
     return (int) (divideLongsRoundingUp(bits, 32));
   }
@@ -436,29 +432,21 @@ final class Fm85Compression {
     // This midrange logic produces pseudo-phases. They are used to select encoding tables.
     // The thresholds were chosen by hand after looking at plots of measured compression.
     if ((1000 * c) < (2375 * k)) {
-      if      (   (4 * c) <    (3 * k)) {
-        return ( 16 + 0 );  // midrange table
-      } else if (  (10 * c) <   (11 * k)) {
-        return ( 16 + 1 );  // midrange table
-      } else if ( (100 * c) <  (132 * k)) {
-        return ( 16 + 2 );  // midrange table
-      } else if (   (3 * c) <    (5 * k)) {
-        return ( 16 + 3 );  // midrange table
-      } else if ((1000 * c) < (1965 * k)) {
-        return ( 16 + 4 );  // midrange table
-      } else if ((1000 * c) < (2275 * k)) {
-        return ( 16 + 5 );  // midrange table
-      }
-      else {
-        return ( 6 );  // steady-state table employed before its actual phase
-      }
+      if      (   (4 * c) <    (3 * k)) { return ( 16 + 0 ); } // midrange table
+      else if (  (10 * c) <   (11 * k)) { return ( 16 + 1 ); } // midrange table
+      else if ( (100 * c) <  (132 * k)) { return ( 16 + 2 ); } // midrange table
+      else if (   (3 * c) <    (5 * k)) { return ( 16 + 3 ); } // midrange table
+      else if ((1000 * c) < (1965 * k)) { return ( 16 + 4 ); } // midrange table
+      else if ((1000 * c) < (2275 * k)) { return ( 16 + 5 ); } // midrange table
+      else { return 6; } // steady-state table employed before its actual phase
     }
-    else { // This steady-state logic produces true phases. They are used to select
+    else {
+      // This steady-state logic produces true phases. They are used to select
       // encoding tables, and also column permutations for the "Sliding" flavor.
-      assert (lgK >= 4);
+      assert lgK >= 4;
       final long tmp = c >>> (lgK - 4);
       final int phase = (int) (tmp & 15L);
-      assert ((phase >= 0) && (phase < 16));
+      assert (phase >= 0) && (phase < 16);
       return phase;
     }
   }
@@ -506,7 +494,6 @@ final class Fm85Compression {
     final int numBaseBits = golombChooseNumberOfBaseBits(k + numPairs, numPairs);
     final int pairBufLen = safeLengthForCompressedPairBuf(k, numPairs, numBaseBits);
     final int[] pairBuf = new int[pairBufLen];
-    assert (pairBuf != null);
 
     target.csvLength = (int) lowLevelCompressPairs(pairs, numPairs, numBaseBits, pairBuf);
 
@@ -555,8 +542,11 @@ final class Fm85Compression {
     assert (source.slidingWindow == null); //there is no window to compress
     final PairTable pairTable = source.surprisingValueTable;
     final int numPairs = pairTable.numItems;
+    //printf("Compress   NumPairs: %d\n", numPairs);
     final int[] pairs = PairTable.unwrappingGetItems(pairTable, numPairs);
+    //printPairs(pairs);
     introspectiveInsertionSort(pairs, 0, numPairs - 1);
+    //printPairs(pairs);
     compressTheSurprisingValues(target, source, pairs, numPairs);
     return;
   }
@@ -569,6 +559,7 @@ final class Fm85Compression {
     assert (source.compressedSurprisingValues != null);
     final int[] pairs = uncompressTheSurprisingValues(source);
     final int numPairs = source.numCompressedSurprisingValues;
+    //printf("Decompress NumPairs: %d\n", numPairs);
     final PairTable table = PairTable.newInstanceFromPairsArray(pairs, numPairs, source.lgK);
     target.surprisingValueTable = table;
     return;
@@ -582,7 +573,6 @@ final class Fm85Compression {
       final int emptySpace) {
     final int outputLength = emptySpace + numPairsToGet;
     final int[] pairs = new int[outputLength];
-    assert pairs != null;
     int rowIndex = 0;
     int pairIndex = emptySpace;
     for (rowIndex = 0; rowIndex < k; rowIndex++) {
@@ -627,7 +617,6 @@ final class Fm85Compression {
           assert (allPairs[i] < allPairs[i + 1]); }
 
     compressTheSurprisingValues(target, source, allPairs, (int) source.numCoupons);
-    return;
   }
 
   /***************************************************************/
@@ -636,7 +625,7 @@ final class Fm85Compression {
   static void uncompressHybridFlavor(final Fm85 target, final Fm85 source) {
     assert (source.compressedWindow == null);
     assert (source.compressedSurprisingValues != null);
-    final int[] pairs = uncompressTheSurprisingValues(source);
+    final int[] pairs = uncompressTheSurprisingValues(source); //fail path 3
     final int numPairs = source.numCompressedSurprisingValues;
     // In the hybrid flavor, some of these pairs actually
     // belong in the window, so we will separate them out,
@@ -668,7 +657,6 @@ final class Fm85Compression {
     final PairTable table = PairTable.newInstanceFromPairsArray(pairs, nextTruePair, source.lgK);
     target.surprisingValueTable = table;
     target.slidingWindow = window;
-    return;
   }
 
   /***************************************************************/
@@ -678,7 +666,7 @@ final class Fm85Compression {
     compressTheWindow(target, source);
     final PairTable pairTable = source.surprisingValueTable;
     final int numPairs = pairTable.numItems;
-    assert numPairs > 0;
+
     if (numPairs > 0) {
       final int[] pairs = PairTable.unwrappingGetItems(pairTable, numPairs);
 
@@ -695,7 +683,6 @@ final class Fm85Compression {
       introspectiveInsertionSort(pairs, 0, numPairs - 1);
       compressTheSurprisingValues(target, source, pairs, numPairs);
     }
-    return;
   }
 
   /***************************************************************/
@@ -709,18 +696,17 @@ final class Fm85Compression {
       target.surprisingValueTable = new PairTable(2, 6 + source.lgK);
     }
     else {
-      assert (numPairs > 0);
-      assert (source.compressedSurprisingValues != null);
+      assert numPairs > 0;
+      assert source.compressedSurprisingValues != null;
       final int[] pairs = uncompressTheSurprisingValues(source);
       // undo the compressor's 8-column shift
       for (int i = 0; i < numPairs; i++) {
-        assert ((pairs[i] & 63) < 56);
+        assert (pairs[i] & 63) < 56;
         pairs[i] += 8;
       }
       final PairTable table = PairTable.newInstanceFromPairsArray(pairs, numPairs, source.lgK);
       target.surprisingValueTable = table;
     }
-    return;
   }
 
   /***************************************************************/
@@ -730,9 +716,10 @@ final class Fm85Compression {
   static void compressSlidingFlavor(final Fm85 target, final Fm85 source) {
 
     compressTheWindow(target, source);
+
     final PairTable pairTable = source.surprisingValueTable;
     final int numPairs = pairTable.numItems;
-    assert numPairs > 0;
+
 
     if (numPairs > 0) {
       final int[] pairs = PairTable.unwrappingGetItems(source.surprisingValueTable, numPairs);
@@ -786,7 +773,7 @@ final class Fm85Compression {
       final byte[] permutation = columnPermutationsForDecoding[pseudoPhase];
 
       final int offset = source.windowOffset;
-      assert ((offset > 0) && (offset <= 56));
+      assert (offset > 0) && (offset <= 56);
 
       for (int i = 0; i < numPairs; i++) {
         final int rowCol = pairs[i];
@@ -813,7 +800,6 @@ final class Fm85Compression {
     assert (source.isCompressed == false);
 
     final Fm85 target = new Fm85(source.lgK);
-    assert (target != null);
 
     target.numCoupons = source.numCoupons;
     target.windowOffset = source.windowOffset;
@@ -837,6 +823,7 @@ final class Fm85Compression {
     target.surprisingValueTable = null;
 
     final Flavor flavor = Fm85.determineSketchFlavor(source);
+    //printf("Compress:   %s, C=%d\n", flavor.toString(), target.numCoupons);
     switch (flavor) {
       case EMPTY: compressEmptyFlavor(target, source); break;
       case SPARSE:
@@ -898,6 +885,7 @@ final class Fm85Compression {
     target.cwLength = 0;
 
     final Flavor flavor = Fm85.determineSketchFlavor(source);
+    //printf("Decompress: %s, C=%d\n", flavor.toString(), target.numCoupons);
     switch (flavor) {
       case EMPTY: uncompressEmptyFlavor(target, source); break;
       case SPARSE:
@@ -905,7 +893,7 @@ final class Fm85Compression {
         uncompressSparseFlavor(target, source);
         break;
       case HYBRID:
-        uncompressHybridFlavor(target, source);
+        uncompressHybridFlavor(target, source); //TODO fail path 2
         break;
       case PINNED:
         assert (source.compressedWindow != null);

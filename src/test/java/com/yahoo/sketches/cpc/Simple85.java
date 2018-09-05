@@ -29,10 +29,11 @@ public class Simple85 {
   }
 
   static void rowColUpdate(Simple85 sketch, int rowCol) {
+    //println("SimpleRowCol=" + rowCol + ", Row=" + (rowCol >>> 6) + ", Col=" + (rowCol & 63));
     int col = rowCol & 63;
     int row = rowCol >>> 6;
     long oldPattern = sketch.bitMatrix[row];
-    long newPattern = oldPattern | (1 << col);
+    long newPattern = oldPattern | (1L << col);
     if (newPattern != oldPattern) { sketch.numCoupons++; }
     sketch.bitMatrix[row] = newPattern;
   }
@@ -42,4 +43,10 @@ public class Simple85 {
     rowColUpdate(sketch, rowCol);
   }
 
+  /**
+   * @param s value to print
+   */
+  static void println(String s) {
+    //System.out.println(s); //disable here
+  }
 }

@@ -28,7 +28,7 @@ final class Fm85Util {
     return newObject;
   }
 
-  //Place holder, to be eliminated, use Java builtin
+  //Place holder
   static int countLeadingZerosInUnsignedLong(final long theInput) {
     return Long.numberOfLeadingZeros(theInput);
   }
@@ -42,7 +42,7 @@ final class Fm85Util {
     }
   }
 
-  //Place holder, to be eliminated, use Java builtin
+  //Place holder
   static int countTrailingZerosInUnsignedLong(final long theInput) {
     return Long.numberOfTrailingZeros(theInput);
   }
@@ -111,4 +111,32 @@ final class Fm85Util {
     fillKxpByteLookup();
     fillByteTrailingZerosTable();
   }
+
+  static void printPairs(final int[] arr) {
+    final int len = arr.length;
+    println("Row\tCol");
+    for (int i = 0; i < len; i++) {
+      final int item = arr[i];
+      println((item >>> 6) + "\t" + (item & 63));
+    }
+  }
+
+  static void printf(final String format, final Object ... args) {
+    System.out.printf(format, args);
+  }
+
+  /**
+   * @param s value to print
+   */
+  static void println(final String s) {
+    print(s + "\n");
+  }
+
+  /**
+   * @param s value to print
+   */
+  static void print(final String s) {
+    System.out.print(s); //disable here
+  }
+
 }

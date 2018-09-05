@@ -63,12 +63,12 @@ final class PairTable {
     assert newSize > numItems;
     final int[] oldSlots = slots;
     final int[] newSlots = new int[newSize];
-    for (int i = 0; i < newSize; i++) { newSlots[i] = -1; }
+    Arrays.fill(newSlots, -1);
     slots = newSlots;
     lgSize = newLgSize;
     for (int i = 0; i < oldSize; i++) {
       final int item = oldSlots[i];
-      if (item == -1) { mustInsert(this, item); }
+      if (item != -1) { mustInsert(this, item); }
     }
     return this;
   }
@@ -236,7 +236,7 @@ final class PairTable {
     final long costLimit = 8 * length;
     for (int i = l + 1; i <= r; i++) {
       int j = i;
-      final long v = a[i] & 0XFFFF_FFFFL;
+      final long v = a[i] & 0XFFFF_FFFFL; //v must be long
       while ((j >= (l + 1)) && (v < ((a[j - 1]) & 0XFFFF_FFFFL))) {
         a[j] = a[j - 1];
         j -= 1;

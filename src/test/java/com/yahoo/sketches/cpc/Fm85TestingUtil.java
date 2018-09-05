@@ -10,7 +10,7 @@ import static org.testng.Assert.assertTrue;
 /**
  * @author Lee Rhodes
  */
-public class Fm85Testing {
+public class Fm85TestingUtil {
 
   //This is used for testing, especially of the merging code.
 

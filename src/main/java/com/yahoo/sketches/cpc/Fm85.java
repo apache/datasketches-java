@@ -12,6 +12,8 @@ import static com.yahoo.sketches.cpc.Fm85Util.kxpByteLookup;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import java.util.Arrays;
+
 import com.yahoo.sketches.SketchesStateException;
 
 /**
@@ -257,7 +259,7 @@ public final class Fm85 {
     //Fill the matrix with default rows in which the "early zone" is filled with ones.
     //This is essential for the routine's O(k) time cost (as opposed to O(C)).
     final long defaultRow = (1L << offset) - 1L;
-    for (int i = 0; i < k; i++) { matrix[i] = defaultRow; }
+    Arrays.fill(matrix, defaultRow);
 
     if (sketch.numCoupons == 0) {
 
@@ -267,7 +269,7 @@ public final class Fm85 {
     final byte[] window = sketch.slidingWindow;
     if (window != null) { // In other words, we are in window mode, not sparse mode.
       for (int i = 0; i < k; i++) { // set the window bits, trusting the sketch's current offset.
-        matrix[i] |= (window[i] << offset);
+        matrix[i] |= ((window[i] & 0XFFL) << offset);
       }
     }
     final PairTable table = sketch.surprisingValueTable;
@@ -412,6 +414,7 @@ public final class Fm85 {
       pattern ^= maskForFlippingEarlyZone;
       allSurprisesORed |= pattern; // a cheap way to recalculate firstInterestingColumn
       while (pattern != 0) {
+        //TODO use probabilistic version: countTrailingZerosInUnsignedLong(allSurprisesORed)
         final int col = Long.numberOfTrailingZeros(pattern);
         pattern = pattern ^ (1L << col); // erase the 1.
         final int rowCol = (i << 6) | col;
@@ -420,7 +423,7 @@ public final class Fm85 {
       }
     }
     sketch.windowOffset = newOffset;
-
+    //TODO use probabilistic version : countTrailingZerosInUnsignedLong(allSurprisesORed)
     sketch.firstInterestingColumn = (byte) Long.numberOfTrailingZeros(allSurprisesORed);
     if (sketch.firstInterestingColumn > newOffset) {
       sketch.firstInterestingColumn = (byte) newOffset; // corner case
@@ -532,7 +535,15 @@ public final class Fm85 {
 
   static void hashUpdate(final Fm85 sketch, final long hash0, final long hash1) {
     final int rowCol = rowColFromTwoHashes(hash0, hash1, sketch.lgK);
+    //println("Fm85  RowCol=" + rowCol + ", Row=" + (rowCol >>> 6) + ", Col=" + (rowCol & 63));
     rowColUpdate(sketch, rowCol);
+  }
+
+  /**
+   * @param s value to print
+   */
+  static void println(final String s) {
+    //System.out.println(s); //disable here
   }
 
 }
