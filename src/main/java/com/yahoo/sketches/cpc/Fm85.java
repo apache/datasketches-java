@@ -551,9 +551,9 @@ public final class Fm85 {
 
   static int rowColFromTwoHashes(final long hash0, final long hash1, final int lgK) {
     final int k = 1 << lgK;
-    int col = Long.numberOfLeadingZeros(hash0); // 0 <= col <= 64
+    int col = Long.numberOfLeadingZeros(hash1); // 0 <= col <= 64 //TODO revert LZ
     if (col > 63) { col = 63; }                 // clip so that 0 <= col <= 63
-    final int row = (int) (hash1 & (k - 1));
+    final int row = (int) (hash0 & (k - 1));
     int rowCol = (row << 6) | col;
     // To avoid the hash table's "empty" value which is (2^26 -1, 63) (all ones) by changing it
     // to the pair (2^26 - 2, 63), which effectively merges the two cells.

@@ -120,13 +120,13 @@ public class Fm85Merging {
     final int[] slots = table.slots;
     final int numSlots = (1 << table.lgSize);
     assert dest.lgK <= 26;
-    final int destMask = (((1 << dest.lgK) - 1) << 6) | 63;  // downsamples when destlgK < srcLgK
+    final int destMask = (((1 << dest.lgK) - 1) << 6) | 63; //downsamples when destlgK < srcLgK
 
-    // Using a golden ratio stride fixes the slowplow effect.
+    // Using a golden ratio stride fixes the snowplow effect.
     final double golden = 0.6180339887498949025;
     int stride =  (int) (golden * numSlots);
     assert stride >= 2;
-    if (stride == ((stride >>> 1) << 1)) { stride += 1; } // force the stride to be odd
+    if (stride == ((stride >>> 1) << 1)) { stride += 1; } //force the stride to be odd
     assert (stride >= 3) && (stride < numSlots);
 
     for (int i = 0, j = 0; i < numSlots; i++, j += stride) {
@@ -312,15 +312,14 @@ public class Fm85Merging {
     result.windowOffset = offset;
 
     final byte[] window = new byte[k];
-
     assert (result.slidingWindow == null);
     result.slidingWindow = window;
 
-    int newTableSize = lgK - 4; //   K/16; in some cases this will end up being oversized
-    if (newTableSize < 4) { newTableSize = 4; }
+    // dynamically growing caused snowplow effect
+    int newTableSize = lgK - 4; // K/16; in some cases this will end up being oversized
+    if (newTableSize < 2) { newTableSize = 2; }
 
     final PairTable table = new PairTable(newTableSize, 6 + lgK);
-
     assert (result.surprisingValueTable == null);
     result.surprisingValueTable = table;
 
@@ -347,7 +346,7 @@ public class Fm85Merging {
     }
 
     // At this point we could shrink an oversize hash table, but the relative waste isn't very big.
-
+    //TODO revert?
     result.firstInterestingColumn = (byte) Fm85Util.countTrailingZerosInUnsignedLong(allSurprisesORed);
     if (result.firstInterestingColumn > offset) {
       result.firstInterestingColumn = (byte) offset;

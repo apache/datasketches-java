@@ -91,13 +91,13 @@ public class QuickTestMerge {
       //    500.0 * ((double) (t1 - t0)) / ((double) nA), // 500 is 1000 / 2
       //    500.0 * ((double) (t2 - t1)) / ((double) nB),
       fA, fB,
-      (t1 - t0) / 2000.0,  //update A,D to cA
-      (t2 - t1) / 2000.0,  //update B,D to cB
+      (t1 - t0) / 2E6,  //update A,D to cA
+      (t2 - t1) / 2E6,  //update B,D to cB
 
-      (t3 - t2) / 1000.0,  //merge A
-      (t4 - t3) / 1000.0,  //merge B
+      (t3 - t2) / 1E6,  //merge A
+      (t4 - t3) / 1E6,  //merge B
 
-      (t5 - t4) / 1000.0); //get Result
+      (t5 - t4) / 1E6); //get Result
   }
 
   /***************************************************************/
@@ -125,7 +125,7 @@ public class QuickTestMerge {
   /***************************************************************/
   @Test
   void quickTestMain() {
-    for (int lgK = 20; lgK < 21; lgK++) {
+    for (int lgK = 24; lgK < 25; lgK++) {
       println("\nLgK = " + lgK);
       multiQuickTest(lgK);
     }

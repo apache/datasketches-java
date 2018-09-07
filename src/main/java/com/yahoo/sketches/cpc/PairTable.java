@@ -51,7 +51,9 @@ final class PairTable {
     }
     final PairTable table = new PairTable(lgNumSlots, 6 + lgK);
     // Note: there is a possible "snowplow effect" here because the caller is passing in a sorted
-    // pairs array.
+    // pairs array. However, we are starting out with the correct final table size, so the
+    // problem might not occur.
+
     for (int i = 0; i < numPairs; i++) {
       mustInsert(table, pairs[i]);
     }

@@ -140,6 +140,7 @@ public class Fm85CompressionTest {
     Random rgen = new Random(1);
     int lgK = 14;
     int N = 3000;
+    final int MAX_WORDS = 4000;
     int[] pairArray  = new int[N];
     int[] pairArray2 = new int[N];
     int i;
@@ -147,7 +148,7 @@ public class Fm85CompressionTest {
       int rand = rgen.nextInt(1 << (lgK + 6));
       pairArray[i] = rand;
     }
-    Arrays.sort(pairArray);   //want unsigned sort!
+    Arrays.sort(pairArray);   //must be unsigned sort! So keep lgK < 26
     int prev = -1;
     int nxt = 0;
     for (i = 0; i < N; i++) { // uniquify
@@ -159,7 +160,7 @@ public class Fm85CompressionTest {
     int numPairs = nxt;
     println("numPairs = " + numPairs);
 
-    int[] compressedWords = new int[4000];
+    int[] compressedWords = new int[MAX_WORDS];
     int bb; // numBaseBits
 
     for (bb = 0; bb <= 11; bb++) {
@@ -167,13 +168,8 @@ public class Fm85CompressionTest {
         lowLevelCompressPairs(pairArray, numPairs, bb, compressedWords);
         println("numWordsWritten = " + numWordsWritten + ", bb = " + bb);
 
-      lowLevelUncompressPairs (pairArray2, numPairs, bb, compressedWords, numWordsWritten);
+      lowLevelUncompressPairs(pairArray2, numPairs, bb, compressedWords, numWordsWritten);
 
-//      for (i = 0; i < numPairs; i++) {
-//        System.out.printf ("%d: (%d %d) (%d %d)\n", i,
-//          pairArray[i] >> 6, pairArray[i] & 63,
-//          pairArray2[i] >> 6, pairArray2[i] & 63);
-//      }
       for (i = 0; i < numPairs; i++) {
         assert (pairArray[i] == pairArray2[i]);
       }
