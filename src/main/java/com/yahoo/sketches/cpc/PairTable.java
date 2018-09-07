@@ -36,6 +36,13 @@ final class PairTable {
     for (int i = 0; i < numSlots; i++) { slots[i] = -1; }
   }
 
+  PairTable copy() {
+    final PairTable copy = new PairTable(lgSize, validBits);
+    copy.numItems = numItems;
+    copy.slots = (slots == null) ? null : slots.clone();
+    return copy;
+  }
+
   //Factory
   static PairTable newInstanceFromPairsArray(final int[] pairs, final int numPairs, final int lgK) {
     int lgNumSlots = 2;
@@ -245,23 +252,31 @@ final class PairTable {
       cost += (i - j); // distance moved is a measure of work
 
       if (cost > costLimit) {
-        //println("Cost: " + cost + ", costlimit: " + costLimit);
-        //println("Switching to the Java sorting algorithm\n");
+        println("Cost: " + cost + ", costlimit: " + costLimit);
+        println("Switching to the Java sorting algorithm\n");
         final long[] b = new long[a.length];
         for (int m = 0; m < a.length; m++) { b[m] = a[m] & 0XFFFF_FFFFL; }
         Arrays.sort(b, l, r + 1);
         for (int m = 0; m < a.length; m++) { a[m] = (int) b[m]; }
         // The following sanity check can be used during development
-        //        int bad = 0;
-        //        for (int m = l; m < (r - 1); m++) {
-        //          final long b1 = a[m] & 0XFFFF_FFFFL;
-        //          final long b2 = a[m + 1] & 0XFFFF_FFFFL;
-        //          if (b1 > b2) { bad++; }
-        //        }
-        //        assert (bad == 0);
+        int bad = 0;
+        for (int m = l; m < (r - 1); m++) {
+          final long b1 = a[m] & 0XFFFF_FFFFL;
+          final long b2 = a[m + 1] & 0XFFFF_FFFFL;
+          if (b1 > b2) { bad++; }
+        }
+        assert (bad == 0);
         return;
       }
     }
+    // The following sanity check can be used during development
+    int bad = 0;
+    for (int m = l; m < (r - 1); m++) {
+      final long b1 = a[m] & 0XFFFF_FFFFL;
+      final long b2 = a[m + 1] & 0XFFFF_FFFFL;
+      if (b1 > b2) { bad++; }
+    }
+    assert (bad == 0);
   }
 
   static void merge(
@@ -328,6 +343,6 @@ final class PairTable {
 
   @SuppressWarnings("unused")
   static void println(final String s) {
-    //System.out.println(s);
+    System.out.println(s);
   }
 }

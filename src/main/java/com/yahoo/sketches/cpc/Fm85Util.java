@@ -14,7 +14,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  */
 final class Fm85Util {
   static final int minLgK = 4;
-  static final int maxLgK = 25;
+  static final int maxLgK = 26;
   static final long ALL64BITS = -1L;
   static final long ALL32BITS = (1L << 32) - 1L;
 

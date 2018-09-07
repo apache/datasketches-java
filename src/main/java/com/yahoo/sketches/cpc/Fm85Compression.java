@@ -599,12 +599,14 @@ final class Fm85Compression {
     final int numPairsFromTable = source.surprisingValueTable.numItems;
     final int[] pairsFromTable = PairTable.unwrappingGetItems(source.surprisingValueTable, numPairsFromTable);
     introspectiveInsertionSort(pairsFromTable, 0, numPairsFromTable - 1);
+
     assert (source.slidingWindow != null);
     assert (source.windowOffset == 0);
     final long numPairs = source.numCoupons - numPairsFromTable; // because the window offset is zero
     assert numPairs < Integer.MAX_VALUE; //TODO need if maxLgK = 25?
     final int numPairsFromArray = (int) numPairs;
 
+    assert (numPairsFromArray + numPairsFromTable) == source.numCoupons; //for test
     final int[] allPairs
       = trickyGetPairsFromWindow(source.slidingWindow, k, numPairsFromArray, numPairsFromTable);
 
@@ -612,9 +614,9 @@ final class Fm85Compression {
         allPairs, numPairsFromTable, numPairsFromArray,
         allPairs, 0);  // note the overlapping subarray trick
 
-        //TODO INTERIM FOR TESTING
-        for (int i = 0; i < (source.numCoupons - 1); i++) {
-          assert (allPairs[i] < allPairs[i + 1]); }
+    //TODO INTERIM FOR TESTING
+    //        for (int i = 0; i < (source.numCoupons - 1); i++) {
+    //          assert (Integer.compareUnsigned(allPairs[i], allPairs[i + 1]) < 0); }
 
     compressTheSurprisingValues(target, source, allPairs, (int) source.numCoupons);
   }

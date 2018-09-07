@@ -68,6 +68,31 @@ public final class Fm85 {
     reset();
   }
 
+  /**
+   * Returns a copy of this sketch
+   * @return a copy of this sketcch
+   */
+  public Fm85 copy() {
+    final Fm85 copy = new Fm85(lgK, seed);
+    copy.isCompressed = isCompressed;
+    copy.mergeFlag = mergeFlag;
+    copy.numCoupons = numCoupons;
+    copy.slidingWindow = (slidingWindow == null) ? null : slidingWindow.clone();
+    copy.windowOffset = windowOffset;
+    copy.surprisingValueTable = surprisingValueTable.copy();
+    copy.compressedWindow = (compressedWindow == null) ? null : compressedWindow.clone();
+    copy.cwLength = cwLength;
+    copy.numCompressedSurprisingValues = numCompressedSurprisingValues;
+    copy.compressedSurprisingValues = (compressedSurprisingValues == null) ? null
+        : compressedSurprisingValues.clone();
+    copy.csvLength = csvLength;
+    copy.firstInterestingColumn = firstInterestingColumn;
+    copy.kxp = kxp;
+    copy.hipEstAccum = hipEstAccum;
+    copy.hipErrAccum = hipErrAccum;
+    return copy;
+  }
+
   public static Flavor determineSketchFlavor(final Fm85 sketch) {
     return determineFlavor(sketch.lgK, sketch.numCoupons);
   }
@@ -82,6 +107,10 @@ public final class Fm85 {
       throw new SketchesStateException("Failed to get HIP estimate of merged sketch");
     }
     return (sketch.hipEstAccum);
+  }
+
+  public static double getIconEstimate(final Fm85 sketch) {
+    return IconEstimator.getIconEstimate(sketch.lgK, sketch.numCoupons);
   }
 
   /**
@@ -204,7 +233,7 @@ public final class Fm85 {
     hipErrAccum = 0;
   }
 
-  private static Flavor determineFlavor(final int lgK, final long numCoupons) {
+  static Flavor determineFlavor(final int lgK, final long numCoupons) {
     final long c = numCoupons;
     final long k = 1L << lgK;
     final long c2 = c << 1;
@@ -506,7 +535,8 @@ public final class Fm85 {
     }
   }
 
-  private static void rowColUpdate(final Fm85 sketch, final int rowCol) {
+  //used for testing
+  static void rowColUpdate(final Fm85 sketch, final int rowCol) {
     final int col = rowCol & 63;
     if (col < sketch.firstInterestingColumn) { return; } // important speed optimization
     if (sketch.isCompressed) {
