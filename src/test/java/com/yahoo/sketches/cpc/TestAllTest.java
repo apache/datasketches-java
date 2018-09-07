@@ -26,12 +26,13 @@ import org.testng.annotations.Test;
  * @author Lee Rhodes
  */
 public class TestAllTest {
-  static final long golden64 = 0x9e3779b97f4a7c13L;  // the golden ratio as a long
-  long counter0 = 35538947;  // some arbitrary random number
   String streamFmt1 = "%3d\t%d";
   String streamFmt2 = "\t%3d\t%9s\t%6d\t%12.3f\t%12.3f\t%12.3f";
   String compressFmt1 = "%d\t%d\t%d\t%.9f\t%.3f\t%s";
   long[] twoHashes = new long[2];
+
+  static final long golden64 = 0x9e3779b97f4a7c13L;  // the golden ratio as a long
+  long counter0 = 35538947;  // some arbitrary random number
 
   long[] getTwoRandomHashes() {
     long[] in = new long[] { counter0 += golden64 };
@@ -177,7 +178,6 @@ public class TestAllTest {
 
   void testMerging(final int lgKm, final int lgKa, final int lgKb, final long nA, final long nB) {
     Fm85Merging ugM = new Fm85Merging(lgKm);
-
 
 //    int lgKd = ((nA != 0) && (lgKa < lgKm)) ? lgKa : lgKm;
 //    lgKd =     ((nB != 0) && (lgKb < lgKd)) ? lgKb : lgKd;
