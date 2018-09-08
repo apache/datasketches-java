@@ -8,6 +8,8 @@ package com.yahoo.sketches.cpc;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.Util.invPow2;
 import static com.yahoo.sketches.cpc.Fm85Util.checkLgK;
+import static com.yahoo.sketches.cpc.Fm85Util.countLeadingZeros;
+import static com.yahoo.sketches.cpc.Fm85Util.countTrailingZeros;
 import static com.yahoo.sketches.cpc.Fm85Util.kxpByteLookup;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -444,7 +446,7 @@ public final class Fm85 {
       allSurprisesORed |= pattern; // a cheap way to recalculate firstInterestingColumn
       while (pattern != 0) {
         //TODO use probabilistic version: countTrailingZerosInUnsignedLong(allSurprisesORed)
-        final int col = Long.numberOfTrailingZeros(pattern);
+        final int col = countTrailingZeros(pattern);
         pattern = pattern ^ (1L << col); // erase the 1.
         final int rowCol = (i << 6) | col;
         final boolean isNovel = PairTable.maybeInsert(table, rowCol);
@@ -453,7 +455,7 @@ public final class Fm85 {
     }
     sketch.windowOffset = newOffset;
     //TODO use probabilistic version : countTrailingZerosInUnsignedLong(allSurprisesORed)
-    sketch.firstInterestingColumn = (byte) Long.numberOfTrailingZeros(allSurprisesORed);
+    sketch.firstInterestingColumn = (byte) countTrailingZeros(allSurprisesORed);
     if (sketch.firstInterestingColumn > newOffset) {
       sketch.firstInterestingColumn = (byte) newOffset; // corner case
     }
@@ -551,8 +553,8 @@ public final class Fm85 {
 
   static int rowColFromTwoHashes(final long hash0, final long hash1, final int lgK) {
     final int k = 1 << lgK;
-    int col = Long.numberOfLeadingZeros(hash1); // 0 <= col <= 64 //TODO revert LZ
-    if (col > 63) { col = 63; }                 // clip so that 0 <= col <= 63
+    int col = countLeadingZeros(hash1);
+    if (col > 63) { col = 63; } // clip so that 0 <= col <= 63
     final int row = (int) (hash0 & (k - 1));
     int rowCol = (row << 6) | col;
     // To avoid the hash table's "empty" value which is (2^26 -1, 63) (all ones) by changing it

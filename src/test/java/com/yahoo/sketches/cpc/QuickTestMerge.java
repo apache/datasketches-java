@@ -10,11 +10,7 @@ import static com.yahoo.sketches.cpc.Fm85Merging.getResult;
 import static com.yahoo.sketches.cpc.Fm85Merging.mergeInto;
 import static com.yahoo.sketches.cpc.Fm85TestingUtil.assertSketchesEqual;
 import static com.yahoo.sketches.cpc.Fm85TestingUtil.dualUpdate;
-import static com.yahoo.sketches.cpc.Fm85Util.printf;
-import static com.yahoo.sketches.cpc.Fm85Util.println;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
-
-import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -54,27 +50,22 @@ public class QuickTestMerge {
       twoHashes = getTwoRandomHashes();
       dualUpdate(skA, skD, twoHashes[0], twoHashes[1]);
     }
-    //printf(" A");
     t1 = System.nanoTime();
     while (skB.numCoupons < cB) {
       nB++;
       twoHashes = getTwoRandomHashes();
       dualUpdate(skB, skD, twoHashes[0], twoHashes[1]);
     }
-    //printf("B");
     t2 = System.nanoTime();
 
     Fm85Merging ugM = new Fm85Merging(lgK);
     mergeInto(ugM, skA);
-    //printf(" A");
     t3 = System.nanoTime();
 
     mergeInto(ugM, skB);
-    //printf("B");
     t4 = System.nanoTime();
 
     Fm85 skR = getResult(ugM);
-    //printf(" R ");
     t5 = System.nanoTime();
 
     //  printf ("(lgK %d)\t", (int) lgK);
@@ -87,7 +78,7 @@ public class QuickTestMerge {
     Flavor fA = Fm85.determineSketchFlavor(skA);
     Flavor fB = Fm85.determineSketchFlavor(skB);
 
-    printf (" (fA,fB) (updAD,BD) (mrgA,B) R (%7s %7s) (%.1f %.1f) (%.1f %.1f) %.1f\n",
+    printf(" (fA,fB) (updAD,BD) (mrgA,B) R (%7s %7s) (%.1f %.1f) (%.1f %.1f) %.1f\n",
       //    500.0 * ((double) (t1 - t0)) / ((double) nA), // 500 is 1000 / 2
       //    500.0 * ((double) (t2 - t1)) / ((double) nB),
       fA, fB,
@@ -123,12 +114,39 @@ public class QuickTestMerge {
   }
 
   /***************************************************************/
-  @Test
+  //@Test //Move to characterization
   void quickTestMain() {
-    for (int lgK = 24; lgK < 25; lgK++) {
+    for (int lgK = 10; lgK < 11; lgK++) {
       println("\nLgK = " + lgK);
       multiQuickTest(lgK);
     }
   }
 
+  //@Test
+  public void printlnTest() {
+    println("PRINTING: " + this.getClass().getName());
+  }
+
+  /**
+   * Print with format
+   * @param format the given format
+   * @param args the args
+   */
+  static void printf(String format, Object ... args) {
+    //System.out.printf(format, args); //disable here
+  }
+
+  /**
+   * @param s value to print
+   */
+  static void println(String s) {
+    print(s + "\n");
+  }
+
+  /**
+   * @param s value to print
+   */
+  static void print(String s) {
+    //System.out.print(s); //disable here
+  }
 }

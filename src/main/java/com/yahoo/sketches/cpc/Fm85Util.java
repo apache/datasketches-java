@@ -5,7 +5,8 @@
 
 package com.yahoo.sketches.cpc;
 
-import com.yahoo.memory.WritableMemory;
+import static com.yahoo.sketches.Util.invPow2;
+
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -15,44 +16,32 @@ import com.yahoo.sketches.SketchesArgumentException;
 final class Fm85Util {
   static final int minLgK = 4;
   static final int maxLgK = 26;
-  static final long ALL64BITS = -1L;
-  static final long ALL32BITS = (1L << 32) - 1L;
 
-  //Place holder, to be eliminated
-  static WritableMemory shallowCopy(final WritableMemory oldObject, final int numBytes) {
-    if ((oldObject == null) || (numBytes == 0)) {
-      throw new SketchesArgumentException("shallowCopyObject: bad arguments");
-    }
-    final WritableMemory newObject = WritableMemory.allocate(numBytes);
-    oldObject.copyTo(0, newObject, 0, numBytes);
-    return newObject;
-  }
-
-  //Place holder
-  static int countLeadingZerosInUnsignedLong(final long theInput) {
-    return Long.numberOfLeadingZeros(theInput);
-  }
+  static final long LZ_MASK_56 = (1L << 56) - 1L;
+  static final long LZ_MASK_48 = (1L << 48) - 1L;
+  static final long LZ_MASK_40 = (1L << 40) - 1L;
+  static final long LZ_MASK_32 = (1L << 32) - 1L;
+  static final long LZ_MASK_24 = (1L << 24) - 1L;
+  static final long LZ_MASK_16 = (1L << 16) - 1L;
+  static final long LZ_MASK_08 = (1L <<  8) - 1L;
 
   static final byte[] byteTrailingZerosTable = new byte[256];
+  static final byte[] byteLeadingZerosTable = new byte[256];
+  static final double[] kxpByteLookup = new double[256];
 
   private static void fillByteTrailingZerosTable() {
     byteTrailingZerosTable[0] = 8;
     for (int i = 1; i < 256; i++) {
-      byteTrailingZerosTable[i] = (byte) Long.numberOfTrailingZeros(i);
+      byteTrailingZerosTable[i] = (byte) Integer.numberOfTrailingZeros(i);
     }
   }
 
-  //Place holder
-  static int countTrailingZerosInUnsignedLong(final long theInput) {
-    return Long.numberOfTrailingZeros(theInput);
+  private static void fillByteLeadingZerosTable() {
+    byteLeadingZerosTable[0] = 8;
+    for (int i = 1; i < 256; i++) {
+      byteLeadingZerosTable[i] = (byte) Integer.numberOfLeadingZeros(i << 24);
+    }
   }
-
-  //Place holder, to be eliminated, use sketches.Util
-  static double invPow2(final int e) {
-    return com.yahoo.sketches.Util.invPow2(e);
-  }
-
-  static final double[] kxpByteLookup = new double[256];
 
   private static void fillKxpByteLookup() { //called from static initializer
     for (int b = 0; b < 256; b++) {
@@ -67,13 +56,58 @@ final class Fm85Util {
     }
   }
 
+  static int countLeadingZeros(final long theInput) {
+    return Long.numberOfLeadingZeros(theInput);
+  }
+
+  //Evaluate
+  static int countLeadingZerosByByte(final long theInput) {
+    if (theInput > LZ_MASK_56) { return 0 + byteLeadingZerosTable[(int) ((theInput >>> 56) & 0XFFL)]; }
+    if (theInput > LZ_MASK_48) { return 8 + byteLeadingZerosTable[(int) ((theInput >>> 48) & 0XFFL)]; }
+    if (theInput > LZ_MASK_40) { return 16 + byteLeadingZerosTable[(int) ((theInput >>> 40) & 0XFFL)]; }
+    if (theInput > LZ_MASK_32) { return 24 + byteLeadingZerosTable[(int) ((theInput >>> 32) & 0XFFL)]; }
+    if (theInput > LZ_MASK_24) { return 32 + byteLeadingZerosTable[(int) ((theInput >>> 24) & 0XFFL)]; }
+    if (theInput > LZ_MASK_16) { return 40 + byteLeadingZerosTable[(int) ((theInput >>> 16) & 0XFFL)]; }
+    if (theInput > LZ_MASK_08) { return 48 + byteLeadingZerosTable[(int) ((theInput >>>  8) & 0XFFL)]; }
+    return 56 + byteLeadingZerosTable[(int) (theInput & 0XFFL)];
+  }
+
+  static int countTrailingZeros(final long theInput) {
+    return Long.numberOfTrailingZeros(theInput);
+  }
+
+  static int countTrailingZerosByByte(final long theInput) {
+    long tmp = theInput;
+    for (int j = 0; j < 8; j++) {
+      final int aByte = (int) (tmp & 0XFFL);
+      if (aByte != 0) { return (j << 3) + byteTrailingZerosTable[aByte]; }
+      tmp >>>= 8;
+    }
+    return 64;
+  }
+
+  //Place holder, to be eliminated
+  //  static WritableMemory shallowCopy(final WritableMemory oldObject, final int numBytes) {
+  //    if ((oldObject == null) || (numBytes == 0)) {
+  //      throw new SketchesArgumentException("shallowCopyObject: bad arguments");
+  //    }
+  //    final WritableMemory newObject = WritableMemory.allocate(numBytes);
+  //    oldObject.copyTo(0, newObject, 0, numBytes);
+  //    return newObject;
+  //  }
+
   static long divideLongsRoundingUp(final long x, final long y) {
     assert (x >= 0) && (y > 0);
     final long quotient = x / y;
     return ((quotient * y) == x) ?  quotient : quotient + 1;
   }
 
-  static long longFloorLog2OfLong(final long x) {
+  /**
+   * Returns the floor of Log2(x)
+   * @param x the given x
+   * @return  the floor of Log2(x)
+   */
+  static long floorLog2ofX(final long x) {
     if (x < 1L) {
       throw new SketchesArgumentException("x must be > 0: " + x);
     }
@@ -87,11 +121,12 @@ final class Fm85Util {
     }
   }
 
+
   static int golombChooseNumberOfBaseBits(final int k, final long count) {
     assert k >= 1L;
     assert count >= 1L;
     final long quotient = (k - count) / count; // integer division
-    return (quotient == 0) ? 0 : (int) longFloorLog2OfLong(quotient);
+    return (quotient == 0) ? 0 : (int) floorLog2ofX(quotient);
   }
 
   static long countBitsSetInMatrix(final long[] array) {
@@ -110,33 +145,7 @@ final class Fm85Util {
   static {
     fillKxpByteLookup();
     fillByteTrailingZerosTable();
-  }
-
-  static void printPairs(final int[] arr) {
-    final int len = arr.length;
-    println("Row\tCol");
-    for (int i = 0; i < len; i++) {
-      final int item = arr[i];
-      println((item >>> 6) + "\t" + (item & 63));
-    }
-  }
-
-  static void printf(final String format, final Object ... args) {
-    System.out.printf(format, args);
-  }
-
-  /**
-   * @param s value to print
-   */
-  static void println(final String s) {
-    print(s + "\n");
-  }
-
-  /**
-   * @param s value to print
-   */
-  static void print(final String s) {
-    System.out.print(s); //disable here
+    fillByteLeadingZerosTable();
   }
 
 }

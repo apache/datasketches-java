@@ -254,8 +254,8 @@ final class PairTable {
       cost += (i - j); // distance moved is a measure of work
 
       if (cost > costLimit) {
-        println("Cost: " + cost + ", costlimit: " + costLimit);
-        println("Switching to the Java sorting algorithm\n");
+        //println("Cost: " + cost + ", costlimit: " + costLimit);
+        //println("Switching to the Java sorting algorithm\n");
         final long[] b = new long[a.length];
         for (int m = 0; m < a.length; m++) { b[m] = a[m] & 0XFFFF_FFFFL; }
         Arrays.sort(b, l, r + 1);

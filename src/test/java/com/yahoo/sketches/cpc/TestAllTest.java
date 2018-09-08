@@ -20,8 +20,6 @@ import static com.yahoo.sketches.cpc.IconEstimator.getIconEstimate;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static org.testng.Assert.assertEquals;
 
-import org.testng.annotations.Test;
-
 /**
  * @author Lee Rhodes
  */
@@ -82,14 +80,14 @@ public class TestAllTest {
     println(out);
   }
 
-  @Test
+  //@Test  //move to characterization
   void streamingMain() {
     println("\nStreaming Test");
     println("LgK\tn\tFinC\tFinFlavor\tFinOff\tAvgC\tAvgICON\tAvgHIP");
     long n = 1; //start
     int trials = 1;
 
-    for (int lgK = 26; lgK < 27; lgK++) {
+    for (int lgK = 10; lgK < 11; lgK++) {
       int k = 1 << lgK;
 
       while (n < (64L * k)) { //1200
@@ -158,11 +156,11 @@ public class TestAllTest {
     println(out);
   }
 
-  @Test
+  //@Test //move to characterization
   void compressionMain() {
     println("\nCompression Test");
     println("K\tN\tminKN\tavgCoK\tavgBytes\tFinal Flavor");
-    for (int lgK = 26; lgK < 27; lgK++) {
+    for (int lgK = 10; lgK < 11; lgK++) {
       int k = 1 << lgK;
       long n = k; //start
       int numSketches = 1;
@@ -253,14 +251,14 @@ public class TestAllTest {
     }
   }
 
-  @Test
+  //@Test //move to characterization
   void mergingMain() {
     println("\nMerging Test");
 
 //    int lgK = 12;
 //    multiTestMerging(lgK, lgK, lgK);
 
-    for (int lgK = 5; lgK < 12; lgK++) {  //lgKm, lgKa, lgKb
+    for (int lgK = 10; lgK < 11; lgK++) {  //lgKm, lgKa, lgKb
       multiTestMerging(lgK, lgK - 1, lgK - 1);
       multiTestMerging(lgK, lgK - 1, lgK + 0);
       multiTestMerging(lgK, lgK - 1, lgK + 1);
@@ -275,7 +273,7 @@ public class TestAllTest {
     }
   }
 
-  @Test
+  //@Test
   public void printlnTest() {
     println("PRINTING: " + this.getClass().getName());
   }

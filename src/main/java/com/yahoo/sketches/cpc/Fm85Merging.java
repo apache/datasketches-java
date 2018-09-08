@@ -337,7 +337,7 @@ public class Fm85Merging {
       pattern ^= maskForFlippingEarlyZone; // This flipping converts surprising 0's to 1's.
       allSurprisesORed |= pattern;
       while (pattern != 0) {
-        final int col = Fm85Util.countTrailingZerosInUnsignedLong(pattern);
+        final int col = Fm85Util.countTrailingZeros(pattern);
         pattern = pattern ^ (1L << col); // erase the 1.
         final int rowCol = (i << 6) | col;
         final boolean isNovel = PairTable.maybeInsert(table, rowCol);
@@ -346,8 +346,7 @@ public class Fm85Merging {
     }
 
     // At this point we could shrink an oversize hash table, but the relative waste isn't very big.
-    //TODO revert?
-    result.firstInterestingColumn = (byte) Fm85Util.countTrailingZerosInUnsignedLong(allSurprisesORed);
+    result.firstInterestingColumn = (byte) Fm85Util.countTrailingZeros(allSurprisesORed);
     if (result.firstInterestingColumn > offset) {
       result.firstInterestingColumn = (byte) offset;
     } // corner case
@@ -388,15 +387,5 @@ public class Fm85Merging {
       }
     }
   }
-
-
-  //  static void mergeInto(final Fm85Merging unioner, final Fm85 sketch) {
-  //
-  //  }
-  //
-  //  static Fm85 getResult(final Fm85Merging unioner) {
-  //
-  //    return null;
-  //  }
 
 }

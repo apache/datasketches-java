@@ -76,7 +76,6 @@ final class Fm85Compression {
     assert nextWordIndex == ptrArr[NEXT_WORD_IDX]; //catch sign extension error
     ptrArr[BIT_BUF] = bitBuf;
     ptrArr[BUF_BITS] = bufBits;
-
   }
 
   static long readUnary(
@@ -216,7 +215,6 @@ final class Fm85Compression {
     // Buffer over-run should be impossible unless there is a bug.
     // However, we might as well check here.
     assert (nextWordIndex <= numCompressedWords);
-    return;
   }
 
   /**
@@ -467,7 +465,6 @@ final class Fm85Compression {
     //final int[] shorterBuf = Arrays.copyOf(windowBuf, target.cwLength);
     //target.compressedWindow = shorterBuf;
     target.compressedWindow = windowBuf; //avoid extra copy
-    return;
   }
 
   static void uncompressTheWindow(final Fm85 target, final Fm85 source) {
@@ -483,7 +480,6 @@ final class Fm85Compression {
            decodingTablesForHighEntropyByte[pseudoPhase],
            source.compressedWindow,
            source.cwLength);
-    return;
   }
 
   static void compressTheSurprisingValues(final Fm85 target, final Fm85 source, final int[] pairs,
@@ -504,9 +500,6 @@ final class Fm85Compression {
     target.compressedSurprisingValues = pairBuf; //avoid extra copy
   }
 
-  /***************************************************************/
-  /***************************************************************/
-
   //allocates and returns an array of uncompressed pairs.
   //the length of this array is known to the source sketch.
   static int[] uncompressTheSurprisingValues(final Fm85 source) {
@@ -521,22 +514,15 @@ final class Fm85Compression {
     return pairs;
   }
 
-  /***************************************************************/
-  /***************************************************************/
   @SuppressWarnings("unused")
   static void compressEmptyFlavor(final Fm85 target, final Fm85 source) {
     return; // nothing to do, so just return
   }
 
-  /***************************************************************/
-  /***************************************************************/
   @SuppressWarnings("unused")
   static void uncompressEmptyFlavor(final Fm85 target, final Fm85 source) {
     return; // nothing to do, so just return
   }
-
-  /***************************************************************/
-  /***************************************************************/
 
   static void compressSparseFlavor(final Fm85 target, final Fm85 source) {
     assert (source.slidingWindow == null); //there is no window to compress
@@ -548,11 +534,7 @@ final class Fm85Compression {
     introspectiveInsertionSort(pairs, 0, numPairs - 1);
     //printPairs(pairs);
     compressTheSurprisingValues(target, source, pairs, numPairs);
-    return;
   }
-
-  /***************************************************************/
-  /***************************************************************/
 
   static void uncompressSparseFlavor(final Fm85 target, final Fm85 source) {
     assert (source.compressedWindow == null);
@@ -562,11 +544,8 @@ final class Fm85Compression {
     //printf("Decompress NumPairs: %d\n", numPairs);
     final PairTable table = PairTable.newInstanceFromPairsArray(pairs, numPairs, source.lgK);
     target.surprisingValueTable = table;
-    return;
   }
 
-  /***************************************************************/
-  /***************************************************************/
   //The empty space that this leaves at the beginning of the output array
   //will be filled in later by the caller.
   static int[] trickyGetPairsFromWindow(final byte[] window, final int k, final int numPairsToGet,
@@ -588,10 +567,6 @@ final class Fm85Compression {
     return (pairs);
   }
 
-
-  /***************************************************************/
-  /***************************************************************/
-
   //This is complicated because it effectively builds a Sparse version
   //of a Pinned sketch before compressing it. Hence the name Hybrid.
   static void compressHybridFlavor(final Fm85 target, final Fm85 source) {
@@ -603,7 +578,7 @@ final class Fm85Compression {
     assert (source.slidingWindow != null);
     assert (source.windowOffset == 0);
     final long numPairs = source.numCoupons - numPairsFromTable; // because the window offset is zero
-    assert numPairs < Integer.MAX_VALUE; //TODO need if maxLgK = 25?
+    assert numPairs < Integer.MAX_VALUE;
     final int numPairsFromArray = (int) numPairs;
 
     assert (numPairsFromArray + numPairsFromTable) == source.numCoupons; //for test
@@ -620,9 +595,6 @@ final class Fm85Compression {
 
     compressTheSurprisingValues(target, source, allPairs, (int) source.numCoupons);
   }
-
-  /***************************************************************/
-  /***************************************************************/
 
   static void uncompressHybridFlavor(final Fm85 target, final Fm85 source) {
     assert (source.compressedWindow == null);
@@ -661,9 +633,6 @@ final class Fm85Compression {
     target.slidingWindow = window;
   }
 
-  /***************************************************************/
-  /***************************************************************/
-
   static void compressPinnedFlavor(final Fm85 target, final Fm85 source) {
     compressTheWindow(target, source);
     final PairTable pairTable = source.surprisingValueTable;
@@ -687,9 +656,6 @@ final class Fm85Compression {
     }
   }
 
-  /***************************************************************/
-  /***************************************************************/
-
   static void uncompressPinnedFlavor(final Fm85 target, final Fm85 source) {
     assert (source.compressedWindow != null);
     uncompressTheWindow(target, source);
@@ -711,10 +677,7 @@ final class Fm85Compression {
     }
   }
 
-  /***************************************************************/
-  /***************************************************************/
   //Complicated by the existence of both a left fringe and a right fringe.
-
   static void compressSlidingFlavor(final Fm85 target, final Fm85 source) {
 
     compressTheWindow(target, source);
@@ -753,9 +716,6 @@ final class Fm85Compression {
     }
   }
 
-  /***************************************************************/
-  /***************************************************************/
-
   static void uncompressSlidingFlavor(final Fm85 target, final Fm85 source) {
     assert (source.compressedWindow != null);
     uncompressTheWindow(target, source);
@@ -792,9 +752,6 @@ final class Fm85Compression {
       target.surprisingValueTable = table;
     }
   }
-
-  /***************************************************************/
-  /***************************************************************/
 
   //Note: in the final system, compressed and uncompressed sketches will have different types
 
@@ -854,9 +811,6 @@ final class Fm85Compression {
     return target;
    }
 
-  /***************************************************************/
-  /***************************************************************/
-
   //Note: in the final system, compressed and uncompressed sketches will have different types
 
   static Fm85 fm85Uncompress(final Fm85 source) {
@@ -895,7 +849,7 @@ final class Fm85Compression {
         uncompressSparseFlavor(target, source);
         break;
       case HYBRID:
-        uncompressHybridFlavor(target, source); //TODO fail path 2
+        uncompressHybridFlavor(target, source);
         break;
       case PINNED:
         assert (source.compressedWindow != null);

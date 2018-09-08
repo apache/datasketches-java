@@ -78,6 +78,15 @@ public class PairTableTest {
     for (int i : arrC) { println("" + (i & 0XFFFF_FFFFL)); }
   }
 
+  static void printPairs(final int[] arr) {
+    final int len = arr.length;
+    println("Row\tCol");
+    for (int i = 0; i < len; i++) {
+      final int item = arr[i];
+      println((item >>> 6) + "\t" + (item & 63));
+    }
+  }
+
   @Test
   public void printlnTest() {
     println("PRINTING: " + this.getClass().getName());

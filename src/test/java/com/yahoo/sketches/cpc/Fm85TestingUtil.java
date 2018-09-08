@@ -7,6 +7,8 @@ package com.yahoo.sketches.cpc;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+
+import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
@@ -91,11 +93,32 @@ public class Fm85TestingUtil {
     }
   }
 
+  @Test
+  public void printlnTest() {
+    println("PRINTING: " + this.getClass().getName());
+  }
+
+  /**
+   * Print with format
+   * @param format the given format
+   * @param args the args
+   */
+  static void printf(String format, Object ... args) {
+    //System.out.printf(format, args); //disable here
+  }
+
   /**
    * @param s value to print
    */
   static void println(String s) {
-    System.out.println(s); //disable here
+    print(s + "\n");
+  }
+
+  /**
+   * @param s value to print
+   */
+  static void print(String s) {
+    //System.out.print(s); //disable here
   }
 
 }
