@@ -28,8 +28,8 @@ public class ConcurrentThetaBuilder {
   private long bSeed;
   private int bCacheLimit;
   private boolean bPropagateOrderedCompact;
-  private int bPoolThreads;
-  private ConcurrentDirectThetaSketch bShared;
+  private SharedThetaSketch bShared;
+  private boolean bSharedIsDirect;
 
   /**
    * Constructor for building concurrent buffers and the shared theta sketch.
@@ -41,8 +41,8 @@ public class ConcurrentThetaBuilder {
     bSeed = DEFAULT_UPDATE_SEED;
     bCacheLimit = 0;
     bPropagateOrderedCompact = true;
-    bPoolThreads = 3;
     bShared = null;
+    bSharedIsDirect = false;
   }
 
   /**
@@ -77,12 +77,15 @@ public class ConcurrentThetaBuilder {
    * @return a ConcurrentDirectThetaSketch with the current configuration of the Builder
    * and the given destination WritableMemory.
    */
-  public ConcurrentDirectThetaSketch build(final WritableMemory dstMem) {
-    if (dstMem == null) {
-      throw new SketchesArgumentException("Destination WritableMemory cannot be null.");
+  public SharedThetaSketch build(final WritableMemory dstMem) {
+    if (bSharedIsDirect) {
+      if (dstMem == null) {
+        throw new SketchesArgumentException("Destination WritableMemory cannot be null.");
+      }
+      bShared = new ConcurrentDirectThetaSketch(bSharedLgNomLongs, bSeed, dstMem);
+    } else {
+      bShared = new ConcurrentHeapQuickSelectSketch(bSharedLgNomLongs, bSeed);
     }
-    bShared = new ConcurrentDirectThetaSketch(
-        bSharedLgNomLongs, bSeed, dstMem, bPoolThreads);
     return bShared;
   }
 
@@ -224,29 +227,16 @@ public class ConcurrentThetaBuilder {
   }
 
   /**
-   * Sets the number of ExecutorService, Executors.newWorkStealingPool poolThreads.
-   * @param poolThreads the given poolThreads
-   * @return this ConcurrentThetaBuilder
-   */
-  public ConcurrentThetaBuilder setPoolThreads(final int poolThreads) {
-    bPoolThreads = poolThreads;
-    return this;
-  }
-
-  /**
-   * Gets the number of ExecutorService, Executors.newWorkStealingPool poolThreads.
-   * @return the number of ExecutorService, Executors.newWorkStealingPool poolThreads.
-   */
-  public int getPoolThreads() {
-    return bPoolThreads;
-  }
-
-  /**
    * Gets the shared ConcurrentDirectThetaSketch or null if not set.
    * @return the shared ConcurrentDirectThetaSketch or null if not set.
    */
-  public ConcurrentDirectThetaSketch getSharedSketch() {
+  public SharedThetaSketch getSharedSketch() {
     return bShared;
+  }
+
+  public ConcurrentThetaBuilder setSharedIsDirect(final boolean isDirect) {
+    bSharedIsDirect = isDirect;
+    return this;
   }
 
   @Override
@@ -256,11 +246,11 @@ public class ConcurrentThetaBuilder {
     sb.append("LgK:").append(TAB).append(bSharedLgNomLongs).append(LS);
     sb.append("K:").append(TAB).append(1 << bSharedLgNomLongs).append(LS);
     sb.append("Seed:").append(TAB).append(bSeed).append(LS);
-    sb.append("Pool Threads:").append(TAB).append(bPoolThreads).append(LS);
     sb.append("Cache Limit:").append(TAB).append(bCacheLimit).append(LS);
     sb.append("Propagate Ordered Compact").append(TAB).append(bPropagateOrderedCompact).append(LS);
     final String str = (bShared != null) ? bShared.getClass().getSimpleName() : "null";
     sb.append("Shared Sketch:").append(TAB).append(str).append(LS);
+    sb.append("Shared is direct:").append(TAB).append(bSharedIsDirect).append(LS);
     return sb.toString();
   }
 

@@ -36,7 +36,7 @@ public class ConcurrentThetaEstimationTest {
   private final double rse = 1.0 / Math.sqrt(sharedK - 1);
   private final int poolThreads = 3; //default
   private WritableMemory wmem = null;
-  private ConcurrentDirectThetaSketch sharedSketch;
+  private SharedThetaSketch sharedSketch;
 
   private ConcurrentHeapThetaBuffer localSketch;
   private UpdateSketch seqSketch;
@@ -82,21 +82,21 @@ public class ConcurrentThetaEstimationTest {
     }
   }
 
-  void output(long i, ConcurrentDirectThetaSketch shared, Sketch seq) {
+  void output(long i, SharedThetaSketch shared, Sketch seq) {
     double sharedEstimate = shared.getEstimationSnapshot();
     double seqEstimate = seq.getEstimate();
     double shError = (sharedEstimate / i) - 1.0;
     double seqError = (seqEstimate / i) - 1.0;
-    int shEnt = shared.getRetainedEntries(true);
+//    int shEnt = shared.getRetainedEntries(true);
     int seqEnt = seq.getRetainedEntries(true);
-    double shTheta = shared.getTheta();
+//    double shTheta = shared.getTheta();
     double seqTheta = seq.getTheta();
 
     String s = "i=" + i + ", shared/seq: "
         + "est=" + sharedEstimate  + "/" + seqEstimate
-        + ", error=" + shError + "/" + seqError
-        + ", entries=" + shEnt + "/" + seqEnt
-        + ", theta="+shTheta + "/" + seqTheta;
+        + ", error=" + shError + "/" + seqError;
+//        + ", entries=" + shEnt + "/" + seqEnt
+//        + ", theta="+shTheta + "/" + seqTheta;
 //        + ", shared RSE=" + rse;
       System.err.println(s);
   }
@@ -109,7 +109,6 @@ public class ConcurrentThetaEstimationTest {
     bldr.setSeed(seed);
     bldr.setCacheLimit(cacheLimit);
     bldr.setPropagateOrderedCompact(propagateCompact);
-    bldr.setPoolThreads(poolThreads);
     return bldr;
   }
 
