@@ -13,7 +13,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-final class Fm85Util {
+final class CpcUtil {
   static final int minLgK = 4;
   static final int maxLgK = 26;
 

@@ -68,7 +68,7 @@ import com.yahoo.sketches.SketchesStateException;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-public class Fm85Merging {
+public class CpcMerging {
   int lgK;
   long seed;
   // Note: at most one of bitMatrix and accumulator will be non-null at any given moment.
@@ -77,14 +77,14 @@ public class Fm85Merging {
   // but doesn't maintain any of the "extra" fields of our sketch objects, so some additional work
   // is required when getResult is called at the end.
   long[] bitMatrix;
-  Fm85 accumulator; //can only be empty or sparse Flavor
+  CpcSketch accumulator; //can only be empty or sparse Flavor
 
 
   /**
    * Construct this unioning object with LgK and the default update seed.
    * @param lgK The given log2 of K.
    */
-  public Fm85Merging(final int lgK) {
+  public CpcMerging(final int lgK) {
     this(lgK, DEFAULT_UPDATE_SEED);
   }
 
@@ -93,11 +93,11 @@ public class Fm85Merging {
    * @param lgK The given log2 of K.
    * @param seed The given seed.
    */
-  public Fm85Merging(final int lgK, final long seed) {
+  public CpcMerging(final int lgK, final long seed) {
     this.lgK = lgK;
     this.seed = seed; //computeSeedHash(seed);
     bitMatrix = null;
-    accumulator = new Fm85(lgK);
+    accumulator = new CpcSketch(lgK);
   }
 
   /**
@@ -109,14 +109,14 @@ public class Fm85Merging {
   }
 
   //used for testing only
-  static long[] getBitMatrix(final Fm85Merging unioner) {
+  static long[] getBitMatrix(final CpcMerging unioner) {
     checkUnionState(unioner);
     return (unioner.bitMatrix != null)
         ? unioner.bitMatrix
-        : Fm85.bitMatrixOfSketch(unioner.accumulator);
+        : CpcSketch.bitMatrixOfSketch(unioner.accumulator);
   }
 
-  private static void walkTableUpdatingSketch(final Fm85 dest, final PairTable table) {
+  private static void walkTableUpdatingSketch(final CpcSketch dest, final PairTable table) {
     final int[] slots = table.slots;
     final int numSlots = (1 << table.lgSize);
     assert dest.lgK <= 26;
@@ -172,7 +172,7 @@ public class Fm85Merging {
     }
   }
 
-  static void reduceUnionerK(final Fm85Merging unioner, final int newLgK) {
+  static void reduceUnionerK(final CpcMerging unioner, final int newLgK) {
     assert (newLgK < unioner.lgK);
     checkUnionState(unioner);
 
@@ -186,18 +186,18 @@ public class Fm85Merging {
     }
 
     else { // downsample the unioner's accumulator
-      final Fm85 oldSketch = unioner.accumulator;
+      final CpcSketch oldSketch = unioner.accumulator;
 
       if (oldSketch.numCoupons == 0) {
-        unioner.accumulator = new Fm85(newLgK, oldSketch.seed);
+        unioner.accumulator = new CpcSketch(newLgK, oldSketch.seed);
         unioner.lgK = newLgK;
         return;
       }
 
-      final Fm85 newSketch = new Fm85(newLgK, oldSketch.seed);
+      final CpcSketch newSketch = new CpcSketch(newLgK, oldSketch.seed);
       walkTableUpdatingSketch(newSketch, oldSketch.surprisingValueTable);
 
-      final Flavor finalNewFlavor = Fm85.determineSketchFlavor(newSketch);
+      final Flavor finalNewFlavor = CpcSketch.determineSketchFlavor(newSketch);
       assert (finalNewFlavor != EMPTY); //SV table had to have something in it
 
       if (finalNewFlavor == SPARSE) {
@@ -208,16 +208,16 @@ public class Fm85Merging {
 
       // the new sketch has graduated beyond sparse, so convert to bitMatrix
       unioner.accumulator = null;
-      unioner.bitMatrix = Fm85.bitMatrixOfSketch(newSketch);
+      unioner.bitMatrix = CpcSketch.bitMatrixOfSketch(newSketch);
       unioner.lgK = newLgK;
     }
   }
 
-  static void mergeInto(final Fm85Merging unioner, final Fm85 source) {
+  static void mergeInto(final CpcMerging unioner, final CpcSketch source) {
     if (source == null) { return; }
     checkSeeds(unioner.seed, source.seed);
 
-    final Flavor sourceFlavor = Fm85.determineSketchFlavor(source);
+    final Flavor sourceFlavor = CpcSketch.determineSketchFlavor(source);
     if (sourceFlavor == EMPTY) { return; }
 
     if (source.lgK < unioner.lgK) {
@@ -229,7 +229,7 @@ public class Fm85Merging {
 
     //CASE A
     if ((SPARSE == sourceFlavor) && (unioner.accumulator != null)) {
-      final Flavor initialDestFlavor = Fm85.determineSketchFlavor(unioner.accumulator);
+      final Flavor initialDestFlavor = CpcSketch.determineSketchFlavor(unioner.accumulator);
       assert ((EMPTY == initialDestFlavor) || (SPARSE == initialDestFlavor));
 
       if ((EMPTY == initialDestFlavor) && (unioner.lgK == source.lgK)) {
@@ -237,10 +237,10 @@ public class Fm85Merging {
       }
 
       walkTableUpdatingSketch(unioner.accumulator, source.surprisingValueTable);
-      final Flavor finalDestFlavor = Fm85.determineSketchFlavor(unioner.accumulator);
+      final Flavor finalDestFlavor = CpcSketch.determineSketchFlavor(unioner.accumulator);
       // if the accumulator has graduated beyond sparse, switch to a bitMatrix representation
       if ((finalDestFlavor != EMPTY) && (finalDestFlavor != SPARSE)) {
-        unioner.bitMatrix = Fm85.bitMatrixOfSketch(unioner.accumulator);
+        unioner.bitMatrix = CpcSketch.bitMatrixOfSketch(unioner.accumulator);
         unioner.accumulator = null;
       }
       return;
@@ -258,9 +258,9 @@ public class Fm85Merging {
     // source is past SPARSE mode, so make sure that dest is a bitMatrix.
     if (unioner.accumulator != null) {
       assert (unioner.bitMatrix == null);
-      final Flavor destFlavor = Fm85.determineSketchFlavor(unioner.accumulator);
+      final Flavor destFlavor = CpcSketch.determineSketchFlavor(unioner.accumulator);
       assert ((EMPTY == destFlavor) || (SPARSE == destFlavor));
-      unioner.bitMatrix = Fm85.bitMatrixOfSketch(unioner.accumulator);
+      unioner.bitMatrix = CpcSketch.bitMatrixOfSketch(unioner.accumulator);
       unioner.accumulator = null;
     }
     assert (unioner.bitMatrix != null);
@@ -277,21 +277,21 @@ public class Fm85Merging {
     // SLIDING mode involves inverted logic, so we can't just walk the source sketch.
     // Instead, we convert it to a bitMatrix that can be OR'ed into the destination.
     assert (SLIDING == sourceFlavor); // Case D
-    final long[] sourceMatrix = Fm85.bitMatrixOfSketch(source);
+    final long[] sourceMatrix = CpcSketch.bitMatrixOfSketch(source);
     orMatrixIntoMatrix(unioner.bitMatrix, unioner.lgK, sourceMatrix, source.lgK);
   }
 
-  static Fm85 getResult(final Fm85Merging unioner) {
+  static CpcSketch getResult(final CpcMerging unioner) {
     checkUnionState(unioner);
 
     if (unioner.accumulator != null) { // start of case where unioner contains a sketch
       if (unioner.accumulator.numCoupons == 0) {
-        final Fm85 result = new Fm85(unioner.lgK, unioner.accumulator.seed);
+        final CpcSketch result = new CpcSketch(unioner.lgK, unioner.accumulator.seed);
         result.mergeFlag = true;
         return (result);
       }
-      assert (SPARSE == Fm85.determineSketchFlavor(unioner.accumulator));
-      final Fm85 result = unioner.accumulator.copy();
+      assert (SPARSE == CpcSketch.determineSketchFlavor(unioner.accumulator));
+      final CpcSketch result = unioner.accumulator.copy();
       result.mergeFlag = true;
       return (result);
     } // end of case where unioner contains a sketch
@@ -299,16 +299,16 @@ public class Fm85Merging {
     // start of case where unioner contains a bitMatrix
     final long[] matrix = unioner.bitMatrix;
     final int lgK = unioner.lgK;
-    final Fm85 result = new Fm85(unioner.lgK, unioner.seed);
+    final CpcSketch result = new CpcSketch(unioner.lgK, unioner.seed);
 
     final int k = 1 << lgK;
-    final long numCoupons = Fm85Util.countBitsSetInMatrix(matrix);
+    final long numCoupons = CpcUtil.countBitsSetInMatrix(matrix);
     result.numCoupons = numCoupons;
 
-    final Flavor flavor = Fm85.determineFlavor(lgK, numCoupons);
+    final Flavor flavor = CpcSketch.determineFlavor(lgK, numCoupons);
     assert ((flavor == HYBRID) || (flavor == PINNED) || (flavor == SLIDING));
 
-    final int offset = Fm85.determineCorrectOffset(lgK, numCoupons);
+    final int offset = CpcSketch.determineCorrectOffset(lgK, numCoupons);
     result.windowOffset = offset;
 
     final byte[] window = new byte[k];
@@ -364,7 +364,7 @@ public class Fm85Merging {
     }
   }
 
-  private static void checkUnionState(final Fm85Merging unioner) {
+  private static void checkUnionState(final CpcMerging unioner) {
     if (unioner == null) {
       throw new SketchesStateException("Unioner cannot be null");
     }
@@ -375,7 +375,7 @@ public class Fm85Merging {
           "accumulator and bitMatrix cannot be both valid or both null.");
     }
     if (accumValid) {
-      final Fm85 sketch = unioner.accumulator;
+      final CpcSketch sketch = unioner.accumulator;
       if (sketch.numCoupons > 0) {
         if (   (sketch.slidingWindow != null)
             || (sketch.surprisingValueTable == null)) {

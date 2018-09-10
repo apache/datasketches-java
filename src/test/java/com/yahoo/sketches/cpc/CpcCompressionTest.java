@@ -9,15 +9,15 @@ import static com.yahoo.sketches.cpc.CompressionData.decodingTablesForHighEntrop
 import static com.yahoo.sketches.cpc.CompressionData.encodingTablesForHighEntropyByte;
 import static com.yahoo.sketches.cpc.CompressionData.lengthLimitedUnaryDecodingTable65;
 import static com.yahoo.sketches.cpc.CompressionData.lengthLimitedUnaryEncodingTable65;
-import static com.yahoo.sketches.cpc.Fm85Compression.BIT_BUF;
-import static com.yahoo.sketches.cpc.Fm85Compression.BUF_BITS;
-import static com.yahoo.sketches.cpc.Fm85Compression.NEXT_WORD_IDX;
-import static com.yahoo.sketches.cpc.Fm85Compression.lowLevelCompressBytes;
-import static com.yahoo.sketches.cpc.Fm85Compression.lowLevelCompressPairs;
-import static com.yahoo.sketches.cpc.Fm85Compression.lowLevelUncompressBytes;
-import static com.yahoo.sketches.cpc.Fm85Compression.lowLevelUncompressPairs;
-import static com.yahoo.sketches.cpc.Fm85Compression.readUnary;
-import static com.yahoo.sketches.cpc.Fm85Compression.writeUnary;
+import static com.yahoo.sketches.cpc.CpcCompression.BIT_BUF;
+import static com.yahoo.sketches.cpc.CpcCompression.BUF_BITS;
+import static com.yahoo.sketches.cpc.CpcCompression.NEXT_WORD_IDX;
+import static com.yahoo.sketches.cpc.CpcCompression.lowLevelCompressBytes;
+import static com.yahoo.sketches.cpc.CpcCompression.lowLevelCompressPairs;
+import static com.yahoo.sketches.cpc.CpcCompression.lowLevelUncompressBytes;
+import static com.yahoo.sketches.cpc.CpcCompression.lowLevelUncompressPairs;
+import static com.yahoo.sketches.cpc.CpcCompression.readUnary;
+import static com.yahoo.sketches.cpc.CpcCompression.writeUnary;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -29,7 +29,7 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-public class Fm85CompressionTest {
+public class CpcCompressionTest {
 
   @Test
   public void checkWriteReadUnary() {

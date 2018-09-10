@@ -5,8 +5,8 @@
 
 package com.yahoo.sketches.cpc;
 
-import static com.yahoo.sketches.cpc.Fm85Util.maxLgK;
-import static com.yahoo.sketches.cpc.Fm85Util.minLgK;
+import static com.yahoo.sketches.cpc.CpcUtil.maxLgK;
+import static com.yahoo.sketches.cpc.CpcUtil.minLgK;
 
 /**
  * @author Lee Rhodes

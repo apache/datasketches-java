@@ -6,7 +6,7 @@
 package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.Util.zeroPad;
-import static com.yahoo.sketches.cpc.Fm85.determineCorrectOffset;
+import static com.yahoo.sketches.cpc.CpcSketch.determineCorrectOffset;
 
 import java.nio.ByteOrder;
 import java.util.HashMap;

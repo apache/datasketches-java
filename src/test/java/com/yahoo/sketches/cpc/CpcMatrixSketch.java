@@ -14,17 +14,17 @@ import java.util.Arrays;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-public class Simple85 {
+public class CpcMatrixSketch {
   long[] bitMatrix;
   long numCoupons;
   final int lgK;
   final long seed;
 
-  public Simple85(int lgK) {
+  public CpcMatrixSketch(int lgK) {
     this(lgK, DEFAULT_UPDATE_SEED);
   }
 
-  public Simple85(int lgK, long seed) {
+  public CpcMatrixSketch(int lgK, long seed) {
     this.lgK = lgK;
     this.seed = seed;
     bitMatrix = new long[1 << lgK];
@@ -44,9 +44,9 @@ public class Simple85 {
     return IconEstimator.getIconEstimate(lgK, numCoupons);
   }
 
-  public boolean equals(Fm85 sketch) {
+  public boolean equals(CpcSketch sketch) {
     if (lgK != sketch.lgK) { return false; }
-    final long[] skMatrix = Fm85.bitMatrixOfSketch(sketch);
+    final long[] skMatrix = CpcSketch.bitMatrixOfSketch(sketch);
     return Arrays.equals(skMatrix, bitMatrix);
   }
 

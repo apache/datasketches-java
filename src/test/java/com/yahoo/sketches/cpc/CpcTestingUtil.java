@@ -12,10 +12,10 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-public class Fm85TestingUtil {
+public class CpcTestingUtil {
 
   @SuppressWarnings("null")
-  static void assertSketchesEqual (Fm85 sk1, Fm85 sk2, boolean sk2WasMerged) {
+  static void assertSketchesEqual (CpcSketch sk1, CpcSketch sk2, boolean sk2WasMerged) {
     //  if (sk1.lgK != sk2.lgK) { printf ("%d vs %d\n", (int) sk1.lgK, (int) sk2.lgK); fflush (stdout); }
     assertEquals(sk1.lgK, sk2.lgK);
     //int k = 1 << sk1.lgK;

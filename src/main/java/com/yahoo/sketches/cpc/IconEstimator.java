@@ -5,13 +5,13 @@
 
 package com.yahoo.sketches.cpc;
 
-import static com.yahoo.sketches.cpc.Fm85Util.maxLgK;
-import static com.yahoo.sketches.cpc.Fm85Util.minLgK;
+import static com.yahoo.sketches.cpc.CpcUtil.maxLgK;
+import static com.yahoo.sketches.cpc.CpcUtil.minLgK;
 import static com.yahoo.sketches.cpc.IconPolynomialCoefficients.iconPolynomialCoefficents;
 import static com.yahoo.sketches.cpc.IconPolynomialCoefficients.iconPolynomialNumCoefficients;
 
 /**
- * The ICON estimator for FM85 sketches is defined by the arXiv paper.
+ * The ICON estimator for CPC sketches is defined by the arXiv paper.
  *
  * <p>The current file provides exact and approximate implementations of this estimator.
  *
@@ -26,7 +26,7 @@ import static com.yahoo.sketches.cpc.IconPolynomialCoefficients.iconPolynomialNu
  * a pre-conditioned version of the true ICON mapping from C to N_hat.
  *
  * <p>This file also provides a validation procedure that compares its approximate
- * and exact implementations of the FM85 ICON estimator.
+ * and exact implementations of the CPC ICON estimator.
  *
  * @author Lee Rhodes
  * @author Kevin Lang

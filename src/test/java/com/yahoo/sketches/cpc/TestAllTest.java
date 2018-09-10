@@ -7,13 +7,13 @@ package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.Util.milliSecToString;
 import static com.yahoo.sketches.Util.pwr2LawNextDouble;
-import static com.yahoo.sketches.cpc.Fm85.bitMatrixOfSketch;
-import static com.yahoo.sketches.cpc.Fm85.determineSketchFlavor;
-import static com.yahoo.sketches.cpc.Fm85Compression.fm85Compress;
-import static com.yahoo.sketches.cpc.Fm85Compression.fm85Uncompress;
-import static com.yahoo.sketches.cpc.Fm85Merging.mergeInto;
-import static com.yahoo.sketches.cpc.Fm85TestingUtil.assertSketchesEqual;
-import static com.yahoo.sketches.cpc.Fm85Util.countBitsSetInMatrix;
+import static com.yahoo.sketches.cpc.CpcCompression.cpcCompress;
+import static com.yahoo.sketches.cpc.CpcCompression.cpcUncompress;
+import static com.yahoo.sketches.cpc.CpcMerging.mergeInto;
+import static com.yahoo.sketches.cpc.CpcSketch.bitMatrixOfSketch;
+import static com.yahoo.sketches.cpc.CpcSketch.determineSketchFlavor;
+import static com.yahoo.sketches.cpc.CpcTestingUtil.assertSketchesEqual;
+import static com.yahoo.sketches.cpc.CpcUtil.countBitsSetInMatrix;
 import static com.yahoo.sketches.cpc.IconEstimator.getIconEstimate;
 import static org.testng.Assert.assertEquals;
 
@@ -40,8 +40,8 @@ public class TestAllTest {
     double avgHIPEst = 0.0;
 
 
-    Fm85 sketch = new Fm85(lgK);
-    Simple85 simple = new Simple85(lgK);
+    CpcSketch sketch = new CpcSketch(lgK);
+    CpcMatrixSketch simple = new CpcMatrixSketch(lgK);
 
     for (trialNo = 0; trialNo < streamingNumTrials; trialNo++) {
       sketch.reset();
@@ -57,11 +57,11 @@ public class TestAllTest {
       avgHIPEst  += sketch.hipEstAccum;
 
       assertEquals(sketch.numCoupons, simple.numCoupons);
-      long[] matrix = Fm85.bitMatrixOfSketch (sketch);
+      long[] matrix = CpcSketch.bitMatrixOfSketch (sketch);
       assertEquals(matrix, simple.bitMatrix);
     }
     long c = sketch.numCoupons;
-    Flavor flavor = Fm85.determineSketchFlavor(sketch);
+    Flavor flavor = CpcSketch.determineSketchFlavor(sketch);
     int offset = sketch.windowOffset;
     String out = String.format(streamFmt2,
       c, flavor, offset, // these are from the final trial
@@ -97,15 +97,15 @@ public class TestAllTest {
 
     numSketches = Math.max(1, numSketches);
 
-    Fm85[] streamSketches = new Fm85[numSketches];
-    Fm85[] compressedSketches = new Fm85[numSketches];
-    Fm85[] unCompressedSketches = new Fm85[numSketches];
+    CpcSketch[] streamSketches = new CpcSketch[numSketches];
+    CpcSketch[] compressedSketches = new CpcSketch[numSketches];
+    CpcSketch[] unCompressedSketches = new CpcSketch[numSketches];
     long start, time, avgTime;
 
     //update: fill stream sketches array
     start = System.currentTimeMillis();
     for (int sketchIndex = 0; sketchIndex < numSketches; sketchIndex++) {
-      Fm85 sketch = new Fm85(lgK);
+      CpcSketch sketch = new CpcSketch(lgK);
       streamSketches[sketchIndex] = sketch;
       for (long i = 0; i < n; i++) {
         final long in = (counter0 += golden64);
@@ -119,7 +119,7 @@ public class TestAllTest {
     //compress
     start = System.currentTimeMillis();
     for (int sketchIndex = 0; sketchIndex < numSketches; sketchIndex++) {
-      compressedSketches[sketchIndex] = fm85Compress (streamSketches[sketchIndex]);
+      compressedSketches[sketchIndex] = cpcCompress (streamSketches[sketchIndex]);
     }
     time = System.currentTimeMillis() - start;
     avgTime = Math.round((double) time / numSketches);
@@ -128,7 +128,7 @@ public class TestAllTest {
     //uncompress
     start = System.currentTimeMillis();
     for (int sketchIndex = 0; sketchIndex < numSketches; sketchIndex++) {
-      unCompressedSketches[sketchIndex] = fm85Uncompress (compressedSketches[sketchIndex]);
+      unCompressedSketches[sketchIndex] = cpcUncompress (compressedSketches[sketchIndex]);
     }
     time = System.currentTimeMillis() - start;
     avgTime = Math.round((double) time / numSketches);
@@ -143,7 +143,7 @@ public class TestAllTest {
 
     double avgC     = totalC / numSketches;
     double avgBytes = (4.0 * totalW) / numSketches;
-    Flavor flavor = Fm85.determineSketchFlavor(unCompressedSketches[numSketches - 1]);
+    Flavor flavor = CpcSketch.determineSketchFlavor(unCompressedSketches[numSketches - 1]);
     String out = String.format(compressFmt1, k, n, minKN, avgC / k, avgBytes, flavor);
     println(out);
   }
@@ -152,7 +152,7 @@ public class TestAllTest {
   void compressionMain() {
     println("\nCompression Test");
     println("K\tN\tminKN\tavgCoK\tavgBytes\tFinal Flavor");
-    for (int lgK = 26; lgK < 27; lgK++) {
+    for (int lgK = 12; lgK < 13; lgK++) {
       int k = 1 << lgK;
       long n = k; //start
       int numSketches = 1;
@@ -167,7 +167,7 @@ public class TestAllTest {
   //MERGING
 
   void testMerging(final int lgKm, final int lgKa, final int lgKb, final long nA, final long nB) {
-    Fm85Merging ugM = new Fm85Merging(lgKm);
+    CpcMerging ugM = new CpcMerging(lgKm);
 
 //    int lgKd = ((nA != 0) && (lgKa < lgKm)) ? lgKa : lgKm;
 //    lgKd =     ((nB != 0) && (lgKb < lgKd)) ? lgKb : lgKd;
@@ -175,10 +175,10 @@ public class TestAllTest {
     if ((lgKa < lgKd) && (nA != 0)) { lgKd = lgKa; } //d = min(a,m) : m
     if ((lgKb < lgKd) && (nB != 0)) { lgKd = lgKb; } //d = min(b,d) : d
 
-    Fm85 skD = new Fm85(lgKd); // direct sketch, updated with both streams
+    CpcSketch skD = new CpcSketch(lgKd); // direct sketch, updated with both streams
 
-    Fm85 skA = new Fm85(lgKa);
-    Fm85 skB = new Fm85(lgKb);
+    CpcSketch skA = new CpcSketch(lgKa);
+    CpcSketch skB = new CpcSketch(lgKb);
 
     for (long i = 0; i < nA; i++) {
       final long in = (counter0 += golden64);
@@ -195,7 +195,7 @@ public class TestAllTest {
     mergeInto(ugM, skB);
 
     final int finalLgKm = ugM.lgK;
-    final long[] matrixM = Fm85Merging.getBitMatrix(ugM);
+    final long[] matrixM = CpcMerging.getBitMatrix(ugM);
 
     final long cM = countBitsSetInMatrix(matrixM);
     final long cD = skD.numCoupons;
@@ -212,7 +212,7 @@ public class TestAllTest {
     final long[] matrixD = bitMatrixOfSketch(skD);
     assertEquals(matrixM, matrixD);
 
-    Fm85 skR = Fm85Merging.getResult(ugM);
+    CpcSketch skR = CpcMerging.getResult(ugM);
     double iconEstR = getIconEstimate(skR.lgK, skR.numCoupons);
     assertSketchesEqual(skD, skR, true); //was merged
     printf("(lgK(MFD)AB (%d %d %d) %d %d)", lgKm, ugM.lgK, lgKd, lgKa, lgKb);

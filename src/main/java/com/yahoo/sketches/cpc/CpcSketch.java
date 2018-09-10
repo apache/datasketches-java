@@ -7,8 +7,8 @@ package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.Util.invPow2;
-import static com.yahoo.sketches.cpc.Fm85Util.checkLgK;
-import static com.yahoo.sketches.cpc.Fm85Util.kxpByteLookup;
+import static com.yahoo.sketches.cpc.CpcUtil.checkLgK;
+import static com.yahoo.sketches.cpc.CpcUtil.kxpByteLookup;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -20,7 +20,7 @@ import com.yahoo.sketches.SketchesStateException;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-public final class Fm85 {
+public final class CpcSketch {
   final int lgK;
   final long seed;
   boolean isCompressed;
@@ -51,7 +51,7 @@ public final class Fm85 {
    * Constructor with log_base2 of k.
    * @param lgK the given log_base2 of k
    */
-  public Fm85(final int lgK) {
+  public CpcSketch(final int lgK) {
     this(lgK, DEFAULT_UPDATE_SEED);
   }
 
@@ -60,7 +60,7 @@ public final class Fm85 {
    * @param lgK the given log_base2 of k
    * @param seed the given seed
    */
-  public Fm85(final int lgK, final long seed) {
+  public CpcSketch(final int lgK, final long seed) {
     checkLgK(lgK);
     this.lgK = (byte) lgK;
     this.seed = (seed != 0) ? seed : DEFAULT_UPDATE_SEED ;
@@ -72,8 +72,8 @@ public final class Fm85 {
    * Returns a copy of this sketch
    * @return a copy of this sketcch
    */
-  public Fm85 copy() {
-    final Fm85 copy = new Fm85(lgK, seed);
+  public CpcSketch copy() {
+    final CpcSketch copy = new CpcSketch(lgK, seed);
     copy.isCompressed = isCompressed;
     copy.mergeFlag = mergeFlag;
     copy.numCoupons = numCoupons;
@@ -93,7 +93,7 @@ public final class Fm85 {
     return copy;
   }
 
-  public static Flavor determineSketchFlavor(final Fm85 sketch) {
+  public static Flavor determineSketchFlavor(final CpcSketch sketch) {
     return determineFlavor(sketch.lgK, sketch.numCoupons);
   }
 
@@ -102,14 +102,14 @@ public final class Fm85 {
    * @param sketch the given sketch
    * @return the HIP estimate
    */
-  public static double getHIPEstimate(final Fm85 sketch) {
+  public static double getHIPEstimate(final CpcSketch sketch) {
     if (sketch.mergeFlag != false) {
       throw new SketchesStateException("Failed to get HIP estimate of merged sketch");
     }
     return (sketch.hipEstAccum);
   }
 
-  public static double getIconEstimate(final Fm85 sketch) {
+  public static double getIconEstimate(final CpcSketch sketch) {
     return IconEstimator.getIconEstimate(sketch.lgK, sketch.numCoupons);
   }
 
@@ -293,7 +293,7 @@ public final class Fm85 {
    * @param sketch the given sketch
    * @return the bit matrix as an array of longs.
    */
-  static long[] bitMatrixOfSketch(final Fm85 sketch) {
+  static long[] bitMatrixOfSketch(final CpcSketch sketch) {
     assert (sketch.isCompressed == false);
     final int k = (1 << sketch.lgK);
     final int offset = sketch.windowOffset;
@@ -335,14 +335,14 @@ public final class Fm85 {
     return matrix;
   }
 
-  private static void promoteEmptyToSparse(final Fm85 sketch) {
+  private static void promoteEmptyToSparse(final CpcSketch sketch) {
     assert sketch.numCoupons == 0;
     assert sketch.surprisingValueTable == null;
     sketch.surprisingValueTable = new PairTable(2, 6 + sketch.lgK);
   }
 
   //In terms of flavor, this promotes SPARSE to HYBRID.
-  private static void promoteSparseToWindowed(final Fm85 sketch) {
+  private static void promoteSparseToWindowed(final CpcSketch sketch) {
     final int lgK = sketch.lgK;
     final int k = (1 << lgK);
     final long c32 = sketch.numCoupons << 5;
@@ -388,7 +388,7 @@ public final class Fm85 {
    * @param bitMatrix the given bit Matrix
    */
 
-  static void refreshKXP(final Fm85 sketch, final long[] bitMatrix) {
+  static void refreshKXP(final CpcSketch sketch, final long[] bitMatrix) {
     final int k = (1 << sketch.lgK);
 
     // for improved numerical accuracy, we separately sum the bytes of the U64's
@@ -425,7 +425,7 @@ public final class Fm85 {
    * @param sketch the given sketch
    * @param newOffset the new offset, which must be oldOffset + 1
    */
-  private static void modifyOffset(final Fm85 sketch, final int newOffset) {
+  private static void modifyOffset(final CpcSketch sketch, final int newOffset) {
     assert ((newOffset >= 0) && (newOffset <= 56));
     assert (newOffset == (sketch.windowOffset + 1));
     assert (newOffset == determineCorrectOffset(sketch.lgK, sketch.numCoupons));
@@ -478,7 +478,7 @@ public final class Fm85 {
    * @param sketch the given sketch
    * @param rowCol the given row / column
    */
-  private static void updateHIP(final Fm85 sketch, final int rowCol) {
+  private static void updateHIP(final CpcSketch sketch, final int rowCol) {
     final int k = 1 << sketch.lgK;
     final int col = rowCol & 63;
     final double oneOverP = k / sketch.kxp;
@@ -487,7 +487,7 @@ public final class Fm85 {
     sketch.kxp -= invPow2(col + 1); // notice the "+1"
   }
 
-  private static void updateSparse(final Fm85 sketch, final int rowCol) {
+  private static void updateSparse(final CpcSketch sketch, final int rowCol) {
     final int k = 1 << sketch.lgK;
     final long c32pre = sketch.numCoupons << 5;
     assert (c32pre < (3L * k)); // C < 3K/32, in other words, flavor == SPARSE
@@ -506,7 +506,7 @@ public final class Fm85 {
    * @param sketch the given sketch
    * @param rowCol the given rowCol
    */
-  private static void updateWindowed(final Fm85 sketch, final int rowCol) {
+  private static void updateWindowed(final CpcSketch sketch, final int rowCol) {
     assert ((sketch.windowOffset >= 0) && (sketch.windowOffset <= 56));
     final int k = 1 << sketch.lgK;
     final long c32pre = sketch.numCoupons << 5;

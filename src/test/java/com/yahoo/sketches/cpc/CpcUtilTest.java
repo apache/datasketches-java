@@ -5,7 +5,7 @@
 
 package com.yahoo.sketches.cpc;
 
-import static com.yahoo.sketches.cpc.Fm85Util.floorLog2ofX;
+import static com.yahoo.sketches.cpc.CpcUtil.floorLog2ofX;
 import static org.testng.Assert.assertEquals;
 
 import java.util.Random;
@@ -13,7 +13,7 @@ import java.util.Random;
 /**
  * @author Lee Rhodes
  */
-public class Fm85UtilTest {
+public class CpcUtilTest {
   static final byte[] byteTrailingZerosTable = new byte[256];
   static final byte[] byteLeadingZerosTable = new byte[256];
 

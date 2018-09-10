@@ -11,9 +11,9 @@ import static com.yahoo.sketches.cpc.CompressionData.decodingTablesForHighEntrop
 import static com.yahoo.sketches.cpc.CompressionData.encodingTablesForHighEntropyByte;
 import static com.yahoo.sketches.cpc.CompressionData.lengthLimitedUnaryDecodingTable65;
 import static com.yahoo.sketches.cpc.CompressionData.lengthLimitedUnaryEncodingTable65;
-import static com.yahoo.sketches.cpc.Fm85Util.divideLongsRoundingUp;
-import static com.yahoo.sketches.cpc.Fm85Util.golombChooseNumberOfBaseBits;
-//import static com.yahoo.sketches.cpc.Fm85Util.printPairs;
+import static com.yahoo.sketches.cpc.CpcUtil.divideLongsRoundingUp;
+import static com.yahoo.sketches.cpc.CpcUtil.golombChooseNumberOfBaseBits;
+//import static com.yahoo.sketches.cpc.CpcUtil.printPairs;
 import static com.yahoo.sketches.cpc.PairTable.introspectiveInsertionSort;
 
 import com.yahoo.sketches.SketchesStateException;
@@ -23,7 +23,7 @@ import com.yahoo.sketches.SketchesStateException;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-final class Fm85Compression {
+final class CpcCompression {
 
   static final int NEXT_WORD_IDX = 0; //ptrArr[NEXT_WORD_IDX]
   static final int BIT_BUF = 1;       //ptrArr[BIT_BUF]
@@ -448,7 +448,7 @@ final class Fm85Compression {
     }
   }
 
-  static void compressTheWindow(final Fm85 target, final Fm85 source) {
+  static void compressTheWindow(final CpcSketch target, final CpcSketch source) {
     final int k = 1 << source.lgK;
     final int windowBufLen = safeLengthForCompressedWindowBuf(k);
     final int[] windowBuf = new int[windowBufLen];
@@ -466,7 +466,7 @@ final class Fm85Compression {
     target.compressedWindow = windowBuf; //avoid extra copy
   }
 
-  static void uncompressTheWindow(final Fm85 target, final Fm85 source) {
+  static void uncompressTheWindow(final CpcSketch target, final CpcSketch source) {
     final int k = 1 << source.lgK;
     final byte[] window = new byte[k];
     assert (window != null);
@@ -481,7 +481,7 @@ final class Fm85Compression {
            source.cwLength);
   }
 
-  static void compressTheSurprisingValues(final Fm85 target, final Fm85 source, final int[] pairs,
+  static void compressTheSurprisingValues(final CpcSketch target, final CpcSketch source, final int[] pairs,
       final int numPairs) {
     assert (numPairs > 0);
     target.numCompressedSurprisingValues = numPairs;
@@ -501,7 +501,7 @@ final class Fm85Compression {
 
   //allocates and returns an array of uncompressed pairs.
   //the length of this array is known to the source sketch.
-  static int[] uncompressTheSurprisingValues(final Fm85 source) {
+  static int[] uncompressTheSurprisingValues(final CpcSketch source) {
     assert source.isCompressed;
     final int k = 1 << source.lgK;
     final int numPairs = source.numCompressedSurprisingValues;
@@ -514,16 +514,16 @@ final class Fm85Compression {
   }
 
   @SuppressWarnings("unused")
-  static void compressEmptyFlavor(final Fm85 target, final Fm85 source) {
+  static void compressEmptyFlavor(final CpcSketch target, final CpcSketch source) {
     return; // nothing to do, so just return
   }
 
   @SuppressWarnings("unused")
-  static void uncompressEmptyFlavor(final Fm85 target, final Fm85 source) {
+  static void uncompressEmptyFlavor(final CpcSketch target, final CpcSketch source) {
     return; // nothing to do, so just return
   }
 
-  static void compressSparseFlavor(final Fm85 target, final Fm85 source) {
+  static void compressSparseFlavor(final CpcSketch target, final CpcSketch source) {
     assert (source.slidingWindow == null); //there is no window to compress
     final PairTable pairTable = source.surprisingValueTable;
     final int numPairs = pairTable.numItems;
@@ -535,7 +535,7 @@ final class Fm85Compression {
     compressTheSurprisingValues(target, source, pairs, numPairs);
   }
 
-  static void uncompressSparseFlavor(final Fm85 target, final Fm85 source) {
+  static void uncompressSparseFlavor(final CpcSketch target, final CpcSketch source) {
     assert (source.compressedWindow == null);
     assert (source.compressedSurprisingValues != null);
     final int[] pairs = uncompressTheSurprisingValues(source);
@@ -568,7 +568,7 @@ final class Fm85Compression {
 
   //This is complicated because it effectively builds a Sparse version
   //of a Pinned sketch before compressing it. Hence the name Hybrid.
-  static void compressHybridFlavor(final Fm85 target, final Fm85 source) {
+  static void compressHybridFlavor(final CpcSketch target, final CpcSketch source) {
     final int k = 1 << source.lgK;
     final int numPairsFromTable = source.surprisingValueTable.numItems;
     final int[] pairsFromTable = PairTable.unwrappingGetItems(source.surprisingValueTable, numPairsFromTable);
@@ -595,7 +595,7 @@ final class Fm85Compression {
     compressTheSurprisingValues(target, source, allPairs, (int) source.numCoupons);
   }
 
-  static void uncompressHybridFlavor(final Fm85 target, final Fm85 source) {
+  static void uncompressHybridFlavor(final CpcSketch target, final CpcSketch source) {
     assert (source.compressedWindow == null);
     assert (source.compressedSurprisingValues != null);
     final int[] pairs = uncompressTheSurprisingValues(source); //fail path 3
@@ -632,7 +632,7 @@ final class Fm85Compression {
     target.slidingWindow = window;
   }
 
-  static void compressPinnedFlavor(final Fm85 target, final Fm85 source) {
+  static void compressPinnedFlavor(final CpcSketch target, final CpcSketch source) {
     compressTheWindow(target, source);
     final PairTable pairTable = source.surprisingValueTable;
     final int numPairs = pairTable.numItems;
@@ -655,7 +655,7 @@ final class Fm85Compression {
     }
   }
 
-  static void uncompressPinnedFlavor(final Fm85 target, final Fm85 source) {
+  static void uncompressPinnedFlavor(final CpcSketch target, final CpcSketch source) {
     assert (source.compressedWindow != null);
     uncompressTheWindow(target, source);
     final int numPairs = source.numCompressedSurprisingValues;
@@ -677,7 +677,7 @@ final class Fm85Compression {
   }
 
   //Complicated by the existence of both a left fringe and a right fringe.
-  static void compressSlidingFlavor(final Fm85 target, final Fm85 source) {
+  static void compressSlidingFlavor(final CpcSketch target, final CpcSketch source) {
 
     compressTheWindow(target, source);
 
@@ -715,7 +715,7 @@ final class Fm85Compression {
     }
   }
 
-  static void uncompressSlidingFlavor(final Fm85 target, final Fm85 source) {
+  static void uncompressSlidingFlavor(final CpcSketch target, final CpcSketch source) {
     assert (source.compressedWindow != null);
     uncompressTheWindow(target, source);
 
@@ -754,10 +754,10 @@ final class Fm85Compression {
 
   //Note: in the final system, compressed and uncompressed sketches will have different types
 
-  static Fm85 fm85Compress(final Fm85 source) {
+  static CpcSketch cpcCompress(final CpcSketch source) {
     assert (source.isCompressed == false);
 
-    final Fm85 target = new Fm85(source.lgK);
+    final CpcSketch target = new CpcSketch(source.lgK);
 
     target.numCoupons = source.numCoupons;
     target.windowOffset = source.windowOffset;
@@ -780,7 +780,7 @@ final class Fm85Compression {
     target.slidingWindow = null;
     target.surprisingValueTable = null;
 
-    final Flavor flavor = Fm85.determineSketchFlavor(source);
+    final Flavor flavor = CpcSketch.determineSketchFlavor(source);
     //printf("Compress:   %s, C=%d\n", flavor.toString(), target.numCoupons);
     switch (flavor) {
       case EMPTY: compressEmptyFlavor(target, source); break;
@@ -812,10 +812,10 @@ final class Fm85Compression {
 
   //Note: in the final system, compressed and uncompressed sketches will have different types
 
-  static Fm85 fm85Uncompress(final Fm85 source) {
+  static CpcSketch cpcUncompress(final CpcSketch source) {
     assert (source.isCompressed == true);
 
-    final Fm85 target = new Fm85(source.lgK);
+    final CpcSketch target = new CpcSketch(source.lgK);
     assert (target != null);
 
     target.numCoupons = source.numCoupons;
@@ -839,7 +839,7 @@ final class Fm85Compression {
     target.compressedWindow = null;
     target.cwLength = 0;
 
-    final Flavor flavor = Fm85.determineSketchFlavor(source);
+    final Flavor flavor = CpcSketch.determineSketchFlavor(source);
     //printf("Decompress: %s, C=%d\n", flavor.toString(), target.numCoupons);
     switch (flavor) {
       case EMPTY: uncompressEmptyFlavor(target, source); break;

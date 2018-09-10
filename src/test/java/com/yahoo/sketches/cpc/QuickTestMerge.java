@@ -5,9 +5,9 @@
 
 package com.yahoo.sketches.cpc;
 
-import static com.yahoo.sketches.cpc.Fm85Merging.getResult;
-import static com.yahoo.sketches.cpc.Fm85Merging.mergeInto;
-import static com.yahoo.sketches.cpc.Fm85TestingUtil.assertSketchesEqual;
+import static com.yahoo.sketches.cpc.CpcMerging.getResult;
+import static com.yahoo.sketches.cpc.CpcMerging.mergeInto;
+import static com.yahoo.sketches.cpc.CpcTestingUtil.assertSketchesEqual;
 
 import org.testng.annotations.Test;
 
@@ -28,9 +28,9 @@ public class QuickTestMerge {
 
   @SuppressWarnings("unused")
   void quickTest(final int lgK, final long cA, final long cB) {
-    Fm85 skA = new Fm85(lgK);
-    Fm85 skB = new Fm85(lgK);
-    Fm85 skD = new Fm85(lgK); // direct sketch
+    CpcSketch skA = new CpcSketch(lgK);
+    CpcSketch skB = new CpcSketch(lgK);
+    CpcSketch skD = new CpcSketch(lgK); // direct sketch
     long nA = 0;
     long nB = 0;
 
@@ -52,14 +52,14 @@ public class QuickTestMerge {
     }
     t2 = System.nanoTime();
 
-    Fm85Merging ugM = new Fm85Merging(lgK);
+    CpcMerging ugM = new CpcMerging(lgK);
     mergeInto(ugM, skA);
     t3 = System.nanoTime();
 
     mergeInto(ugM, skB);
     t4 = System.nanoTime();
 
-    Fm85 skR = getResult(ugM);
+    CpcSketch skR = getResult(ugM);
     t5 = System.nanoTime();
 
     //  printf ("(lgK %d)\t", (int) lgK);
@@ -69,8 +69,8 @@ public class QuickTestMerge {
 
     assert skR.numCoupons == skD.numCoupons;
     assertSketchesEqual(skD, skR, true);
-    Flavor fA = Fm85.determineSketchFlavor(skA);
-    Flavor fB = Fm85.determineSketchFlavor(skB);
+    Flavor fA = CpcSketch.determineSketchFlavor(skA);
+    Flavor fB = CpcSketch.determineSketchFlavor(skB);
 
     printf(" (fA,fB) (updAD,BD) (mrgA,B) R (%7s %7s) (%.1f %.1f) (%.1f %.1f) %.1f\n",
       //    500.0 * ((double) (t1 - t0)) / ((double) nA), // 500 is 1000 / 2
@@ -107,7 +107,7 @@ public class QuickTestMerge {
 
   @Test //Move to characterization
   void quickTestMain() {
-    for (int lgK = 24; lgK < 25; lgK++) {
+    for (int lgK = 12; lgK < 13; lgK++) {
       println("\nLgK = " + lgK);
       multiQuickTest(lgK);
     }
