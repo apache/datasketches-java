@@ -5,7 +5,6 @@
 
 package com.yahoo.sketches.cpc;
 
-import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.Util.milliSecToString;
 import static com.yahoo.sketches.Util.pwr2LawNextDouble;
 import static com.yahoo.sketches.cpc.Fm85.bitMatrixOfSketch;
@@ -14,30 +13,22 @@ import static com.yahoo.sketches.cpc.Fm85Compression.fm85Compress;
 import static com.yahoo.sketches.cpc.Fm85Compression.fm85Uncompress;
 import static com.yahoo.sketches.cpc.Fm85Merging.mergeInto;
 import static com.yahoo.sketches.cpc.Fm85TestingUtil.assertSketchesEqual;
-import static com.yahoo.sketches.cpc.Fm85TestingUtil.dualUpdate;
 import static com.yahoo.sketches.cpc.Fm85Util.countBitsSetInMatrix;
 import static com.yahoo.sketches.cpc.IconEstimator.getIconEstimate;
-import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static org.testng.Assert.assertEquals;
+
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
  */
 public class TestAllTest {
-  String streamFmt1 = "%3d\t%d";
-  String streamFmt2 = "\t%3d\t%9s\t%6d\t%12.3f\t%12.3f\t%12.3f";
-  String compressFmt1 = "%d\t%d\t%d\t%.9f\t%.3f\t%s";
-  long[] twoHashes = new long[2];
-
   static final long golden64 = 0x9e3779b97f4a7c13L;  // the golden ratio as a long
   long counter0 = 35538947;  // some arbitrary random number
 
-  long[] getTwoRandomHashes() {
-    long[] in = new long[] { counter0 += golden64 };
-    return hash(in, DEFAULT_UPDATE_SEED);
-  }
-
   //STREAMING
+  String streamFmt1 = "%3d\t%d";
+  String streamFmt2 = "\t%3d\t%9s\t%6d\t%12.3f\t%12.3f\t%12.3f";
 
   public void streamingDoAStreamLength(int lgK, long n, int streamingNumTrials) {
     int trialNo = 0;
@@ -56,9 +47,9 @@ public class TestAllTest {
       sketch.reset();
       simple.reset();
       for (long i = 0; i < n; i++) {
-        twoHashes = getTwoRandomHashes();
-        Fm85.hashUpdate(sketch, twoHashes[0], twoHashes[1]);
-        Simple85.hashUpdate(simple, twoHashes[0], twoHashes[1]);
+        final long in = (counter0 += golden64);
+        sketch.update(in);
+        simple.update(in);
       }
 
       avgC   += sketch.numCoupons;
@@ -80,7 +71,7 @@ public class TestAllTest {
     println(out);
   }
 
-  //@Test  //move to characterization
+  @Test  //move to characterization
   void streamingMain() {
     println("\nStreaming Test");
     println("LgK\tn\tFinC\tFinFlavor\tFinOff\tAvgC\tAvgICON\tAvgHIP");
@@ -98,6 +89,7 @@ public class TestAllTest {
   }
 
   //COMPRESSION
+  String compressFmt1 = "%d\t%d\t%d\t%.9f\t%.3f\t%s";
 
   void compressionDoAStreamLength(int lgK, long n, int numSketches) {
     int k = 1 << lgK;
@@ -116,8 +108,8 @@ public class TestAllTest {
       Fm85 sketch = new Fm85(lgK);
       streamSketches[sketchIndex] = sketch;
       for (long i = 0; i < n; i++) {
-        twoHashes = getTwoRandomHashes();
-        Fm85.hashUpdate(sketch, twoHashes[0], twoHashes[1]);
+        final long in = (counter0 += golden64);
+        sketch.update(in);
       }
     }
     time = System.currentTimeMillis() - start;
@@ -156,11 +148,11 @@ public class TestAllTest {
     println(out);
   }
 
-  //@Test //move to characterization
+  @Test //move to characterization
   void compressionMain() {
     println("\nCompression Test");
     println("K\tN\tminKN\tavgCoK\tavgBytes\tFinal Flavor");
-    for (int lgK = 10; lgK < 11; lgK++) {
+    for (int lgK = 26; lgK < 27; lgK++) {
       int k = 1 << lgK;
       long n = k; //start
       int numSketches = 1;
@@ -189,12 +181,14 @@ public class TestAllTest {
     Fm85 skB = new Fm85(lgKb);
 
     for (long i = 0; i < nA; i++) {
-      twoHashes = getTwoRandomHashes();
-      dualUpdate(skA, skD, twoHashes[0], twoHashes[1]);
+      final long in = (counter0 += golden64);
+      skA.update(in);
+      skD.update(in);
     }
     for (long i = 0; i < nB; i++) {
-      twoHashes = getTwoRandomHashes();
-      dualUpdate(skB, skD, twoHashes[0], twoHashes[1]);
+      final long in = (counter0 += golden64);
+      skB.update(in);
+      skD.update(in);
     }
 
     mergeInto(ugM, skA);
@@ -251,7 +245,7 @@ public class TestAllTest {
     }
   }
 
-  //@Test //move to characterization
+  @Test //move to characterization
   void mergingMain() {
     println("\nMerging Test");
 
@@ -279,7 +273,8 @@ public class TestAllTest {
   }
 
   static void printf(String format, Object ... args) {
-    System.out.printf(format, args);
+    String out = String.format(format, args);
+    print(out);
   }
 
   /**

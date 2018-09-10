@@ -8,8 +8,6 @@ package com.yahoo.sketches.cpc;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.Util.invPow2;
 import static com.yahoo.sketches.cpc.Fm85Util.checkLgK;
-import static com.yahoo.sketches.cpc.Fm85Util.countLeadingZeros;
-import static com.yahoo.sketches.cpc.Fm85Util.countTrailingZeros;
 import static com.yahoo.sketches.cpc.Fm85Util.kxpByteLookup;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -43,7 +41,7 @@ public final class Fm85 {
 
   // Note that (as an optimization) the two bitstreams could be concatenated.
 
-  byte firstInterestingColumn; // fiCol. This is part of a speed optimization.
+  int firstInterestingColumn; // fiCol. This is part of a speed optimization.
 
   double kxp;                  //used with HIP
   double hipEstAccum;          //used with HIP
@@ -123,7 +121,7 @@ public final class Fm85 {
   public void update(final long datum) {
     final long[] data = { datum };
     final long[] arr = hash(data, seed);
-    hashUpdate(this, arr[0], arr[1]);
+    hashUpdate(arr[0], arr[1]);
   }
 
   /**
@@ -139,7 +137,7 @@ public final class Fm85 {
     final double d = (datum == 0.0) ? 0.0 : datum; // canonicalize -0.0, 0.0
     final long[] data = { Double.doubleToLongBits(d) };// canonicalize all NaN forms
     final long[] arr = hash(data, seed);
-    hashUpdate(this, arr[0], arr[1]);
+    hashUpdate(arr[0], arr[1]);
   }
 
   /**
@@ -160,7 +158,7 @@ public final class Fm85 {
     if ((datum == null) || datum.isEmpty()) { return; }
     final byte[] data = datum.getBytes(UTF_8);
     final long[] arr = hash(data, seed);
-    hashUpdate(this, arr[0], arr[1]);
+    hashUpdate(arr[0], arr[1]);
   }
 
   /**
@@ -172,7 +170,7 @@ public final class Fm85 {
   public void update(final byte[] data) {
     if ((data == null) || (data.length == 0)) { return; }
     final long[] arr = hash(data, seed);
-    hashUpdate(this, arr[0], arr[1]);
+    hashUpdate(arr[0], arr[1]);
   }
 
   /**
@@ -187,7 +185,7 @@ public final class Fm85 {
   public void update(final char[] data) {
     if ((data == null) || (data.length == 0)) { return; }
     final long[] arr = hash(data, seed);
-    hashUpdate(this, arr[0], arr[1]);
+    hashUpdate(arr[0], arr[1]);
   }
 
   /**
@@ -199,7 +197,7 @@ public final class Fm85 {
   public void update(final int[] data) {
     if ((data == null) || (data.length == 0)) { return; }
     final long[] arr = hash(data, seed);
-    hashUpdate(this, arr[0], arr[1]);
+    hashUpdate(arr[0], arr[1]);
   }
 
   /**
@@ -211,7 +209,7 @@ public final class Fm85 {
   public void update(final long[] data) {
     if ((data == null) || (data.length == 0)) { return; }
     final long[] arr = hash(data, seed);
-    hashUpdate(this, arr[0], arr[1]);
+    hashUpdate(arr[0], arr[1]);
   }
 
   /**
@@ -229,10 +227,26 @@ public final class Fm85 {
     numCompressedSurprisingValues = 0;
     compressedSurprisingValues = null;
     csvLength = 0;
-    firstInterestingColumn = (byte) 0;
+    firstInterestingColumn = 0;
     kxp = 1 << lgK;
     hipEstAccum = 0;
     hipErrAccum = 0;
+  }
+
+  public long getNumCoupons() {
+    return numCoupons;
+  }
+
+  public int getWindowOffset() {
+    return windowOffset;
+  }
+
+  public double getIconEstimate() {
+    return IconEstimator.getIconEstimate(lgK, numCoupons);
+  }
+
+  public double getHipEstimate() {
+    return hipEstAccum;
   }
 
   static Flavor determineFlavor(final int lgK, final long numCoupons) {
@@ -287,15 +301,14 @@ public final class Fm85 {
 
     final long[] matrix = new long[k];
 
+    if (sketch.numCoupons == 0) {
+      return matrix; // Returning a matrix of zeros rather than NULL.
+    }
+
     //Fill the matrix with default rows in which the "early zone" is filled with ones.
     //This is essential for the routine's O(k) time cost (as opposed to O(C)).
     final long defaultRow = (1L << offset) - 1L;
     Arrays.fill(matrix, defaultRow);
-
-    if (sketch.numCoupons == 0) {
-
-      return (matrix); // Returning a matrix of zeros rather than NULL.
-    }
 
     final byte[] window = sketch.slidingWindow;
     if (window != null) { // In other words, we are in window mode, not sparse mode.
@@ -446,7 +459,7 @@ public final class Fm85 {
       allSurprisesORed |= pattern; // a cheap way to recalculate firstInterestingColumn
       while (pattern != 0) {
         //TODO use probabilistic version: countTrailingZerosInUnsignedLong(allSurprisesORed)
-        final int col = countTrailingZeros(pattern);
+        final int col = Long.numberOfTrailingZeros(pattern);
         pattern = pattern ^ (1L << col); // erase the 1.
         final int rowCol = (i << 6) | col;
         final boolean isNovel = PairTable.maybeInsert(table, rowCol);
@@ -454,10 +467,9 @@ public final class Fm85 {
       }
     }
     sketch.windowOffset = newOffset;
-    //TODO use probabilistic version : countTrailingZerosInUnsignedLong(allSurprisesORed)
-    sketch.firstInterestingColumn = (byte) countTrailingZeros(allSurprisesORed);
+    sketch.firstInterestingColumn = Long.numberOfTrailingZeros(allSurprisesORed);
     if (sketch.firstInterestingColumn > newOffset) {
-      sketch.firstInterestingColumn = (byte) newOffset; // corner case
+      sketch.firstInterestingColumn = newOffset; // corner case
     }
   }
 
@@ -537,38 +549,33 @@ public final class Fm85 {
     }
   }
 
-  //used for testing
-  static void rowColUpdate(final Fm85 sketch, final int rowCol) {
-    final int col = rowCol & 63;
-    if (col < sketch.firstInterestingColumn) { return; } // important speed optimization
-    if (sketch.isCompressed) {
-      throw new SketchesStateException("Cannot update a compressed sketch.");
-    }
-    final long c = sketch.numCoupons;
-    if (c == 0) { promoteEmptyToSparse(sketch); }
-    final int k = 1 << sketch.lgK;
-    if ((c << 5) < (3L * k)) { updateSparse(sketch, rowCol); }
-    else { updateWindowed(sketch, rowCol); }
-  }
-
-  static int rowColFromTwoHashes(final long hash0, final long hash1, final int lgK) {
-    final int k = 1 << lgK;
-    int col = countLeadingZeros(hash1);
+  //also used for testing
+  void hashUpdate(final long hash0, final long hash1) {
+    final int kMask = (1 << lgK) - 1;
+    int col = Long.numberOfLeadingZeros(hash1);
     if (col > 63) { col = 63; } // clip so that 0 <= col <= 63
-    final int row = (int) (hash0 & (k - 1));
+    final int row = (int) (hash0 & kMask);
     int rowCol = (row << 6) | col;
-    // To avoid the hash table's "empty" value which is (2^26 -1, 63) (all ones) by changing it
+    // Avoid the hash table's "empty" value which is (2^26 -1, 63) (all ones) by changing it
     // to the pair (2^26 - 2, 63), which effectively merges the two cells.
     // This case is *extremely* unlikely, but we might as well handle it.
     // It can't happen at all if lgK (or maxLgK) < 26.
-    if (rowCol == -1) { rowCol ^= (1 << 6); }
-    return rowCol;
+    if (rowCol == -1) { rowCol ^= (1 << 6); } //set the LSB of row to 0
+    rowColUpdate(rowCol);
   }
 
-  static void hashUpdate(final Fm85 sketch, final long hash0, final long hash1) {
-    final int rowCol = rowColFromTwoHashes(hash0, hash1, sketch.lgK);
-    //println("Fm85  RowCol=" + rowCol + ", Row=" + (rowCol >>> 6) + ", Col=" + (rowCol & 63));
-    rowColUpdate(sketch, rowCol);
+  //also used for testing
+  void rowColUpdate(final int rowCol) {
+    final int col = rowCol & 63;
+    if (col < firstInterestingColumn) { return; } // important speed optimization
+    if (isCompressed) {
+      throw new SketchesStateException("Cannot update a compressed sketch.");
+    }
+    final long c = numCoupons;
+    if (c == 0) { promoteEmptyToSparse(this); }
+    final int k = 1 << lgK;
+    if ((c << 5) < (3L * k)) { updateSparse(this, rowCol); }
+    else { updateWindowed(this, rowCol); }
   }
 
   /**

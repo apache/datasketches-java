@@ -11,7 +11,6 @@ import static com.yahoo.sketches.cpc.CompressionData.decodingTablesForHighEntrop
 import static com.yahoo.sketches.cpc.CompressionData.encodingTablesForHighEntropyByte;
 import static com.yahoo.sketches.cpc.CompressionData.lengthLimitedUnaryDecodingTable65;
 import static com.yahoo.sketches.cpc.CompressionData.lengthLimitedUnaryEncodingTable65;
-import static com.yahoo.sketches.cpc.Fm85Util.byteTrailingZerosTable;
 import static com.yahoo.sketches.cpc.Fm85Util.divideLongsRoundingUp;
 import static com.yahoo.sketches.cpc.Fm85Util.golombChooseNumberOfBaseBits;
 //import static com.yahoo.sketches.cpc.Fm85Util.printPairs;
@@ -105,9 +104,9 @@ final class Fm85Compression {
 
       // These 8 bits include either all or part of the Unary codeword.
       final int peek8 = (int) (bitBuf & 0XFFL);
-      trailingZeros = byteTrailingZerosTable[peek8] & 0XFF;
+      trailingZeros = Math.min(8, Integer.numberOfTrailingZeros(peek8));
 
-      assert ((trailingZeros >= 0) && (trailingZeros <= 8));
+      assert ((trailingZeros >= 0) && (trailingZeros <= 8)) : "TZ+ " + trailingZeros;
 
       if (trailingZeros == 8) { // The codeword was partial, so read some more.
         subTotal += 8;
@@ -557,7 +556,7 @@ final class Fm85Compression {
     for (rowIndex = 0; rowIndex < k; rowIndex++) {
       int wByte = window[rowIndex] & 0XFF;
       while (wByte != 0) {
-        final int colIndex = byteTrailingZerosTable[wByte];
+        final int colIndex = Integer.numberOfTrailingZeros(wByte);
         //      assert (colIndex < 8);
         wByte ^= (1 << colIndex); // erase the 1
         pairs[pairIndex++] = (rowIndex << 6) | colIndex;

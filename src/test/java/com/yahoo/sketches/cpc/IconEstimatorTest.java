@@ -17,7 +17,7 @@ import com.yahoo.sketches.SketchesStateException;
  */
 public class IconEstimatorTest {
 
-  //SLOW EXACT VERSION
+  //SLOW EXACT VERSION, Eventually move to characterization
 
   /**
    * Important note: do not change anything in the following function.
@@ -102,25 +102,16 @@ public class IconEstimatorTest {
     return exactIconEstimatorBinarySearch(kf, targetC, nLo, nHi);
   }
 
-  /*
-    while  (exactCofN(kf, nHi) <= targetC) {nHi *= 2.0;} // bracket
-  */
-
   @Test
   public static void testDriver() {
-
-    //    if (argv.length != 1) {
-    //      throw new SketchesArgumentException("Usage: testDriver(lg_k)");
-    //    }
-    final int lgK = 12; //Integer.parseInt(argv[0]);
+    final int lgK = 12;
     final long k = (1L << lgK);
     long c = 1;
     while (c < (k * 64)) { // was k * 15
       final double exact  = exactIconEstimator(lgK, c);
       final double approx = getIconEstimate(lgK, c);
       final double relDiff = (approx - exact) / exact;
-      final String out = String.format("%d\t%.19g\t%.19g\t%.19g", c, relDiff, exact, approx);
-      println(out);
+      printf("%d\t%.19g\t%.19g\t%.19g\n", c, relDiff, exact, approx);
       final long a = c + 1;
       final long b = (1001 * c) / 1000;
       c = ((a > b) ? a : b);
@@ -134,11 +125,26 @@ public class IconEstimatorTest {
   }
 
   /**
+   * Print with format
+   * @param format the given format
+   * @param args the args
+   */
+  static void printf(String format, Object ... args) {
+    String out = String.format(format, args);
+    print(out);
+  }
+
+  /**
    * @param s value to print
    */
   static void println(String s) {
-    //System.out.println(s); //Disable here
+    print(s + "\n");
   }
 
-
+  /**
+   * @param s value to print
+   */
+  static void print(String s) {
+    //System.out.print(s); //disable here
+  }
 }

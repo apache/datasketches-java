@@ -5,34 +5,142 @@
 
 package com.yahoo.sketches.cpc;
 
-import static com.yahoo.sketches.cpc.Fm85Util.countTrailingZerosByByte;
 import static com.yahoo.sketches.cpc.Fm85Util.floorLog2ofX;
 import static org.testng.Assert.assertEquals;
 
-import org.testng.annotations.Test;
+import java.util.Random;
 
 /**
  * @author Lee Rhodes
  */
 public class Fm85UtilTest {
+  static final byte[] byteTrailingZerosTable = new byte[256];
+  static final byte[] byteLeadingZerosTable = new byte[256];
 
-  @Test
-  public void checkTrailingZeros() {
-    for (int i = 0; i < 64; i++) {
-      long in = 1L << i;
-      assertEquals(countTrailingZerosByByte(in), Long.numberOfTrailingZeros(in));
+  private static void fillByteTrailingZerosTable() {
+    byteTrailingZerosTable[0] = 8;
+    for (int i = 1; i < 256; i++) {
+      byteTrailingZerosTable[i] = (byte) Integer.numberOfTrailingZeros(i);
     }
   }
 
+  private static void fillByteLeadingZerosTable() {
+    byteLeadingZerosTable[0] = 8;
+    for (int i = 1; i < 256; i++) {
+      byteLeadingZerosTable[i] = (byte) Integer.numberOfLeadingZeros(i << 24);
+    }
+  }
 
+  static int countLeadingZerosByByte(final long theInput) {
+    long tmp;
+    if ((tmp = theInput >>> 56) > 0) { return 0 + byteLeadingZerosTable[(int)tmp]; }
+    if ((tmp = theInput >>> 48) > 0) { return 8 + byteLeadingZerosTable[(int)tmp]; }
+    if ((tmp = theInput >>> 40) > 0) { return 16 + byteLeadingZerosTable[(int)tmp]; }
+    if ((tmp = theInput >>> 32) > 0) { return 24 + byteLeadingZerosTable[(int)tmp]; }
+    if ((tmp = theInput >>> 24) > 0) { return 32 + byteLeadingZerosTable[(int)tmp]; }
+    if ((tmp = theInput >>> 16) > 0) { return 40 + byteLeadingZerosTable[(int)tmp]; }
+    if ((tmp = theInput >>>  8) > 0) { return 48 + byteLeadingZerosTable[(int)tmp]; }
+    return 56 + byteLeadingZerosTable[(int) (theInput & 0XFFL)];
+  }
 
-  @Test
+  static int countTrailingZerosByByte(final long theInput) {
+    long tmp = theInput;
+    for (int j = 0; j < 8; j++) {
+      final int aByte = (int) (tmp & 0XFFL);
+      if (aByte != 0) { return (j << 3) + byteTrailingZerosTable[aByte]; }
+      tmp >>>= 8;
+    }
+    return 64;
+  }
+
+  //@Test
+  public void checkLeadingTrailingZerosByByte() {
+    for (int i = 0; i < 64; i++) {
+      long in = 1L << i;
+      assertEquals(countTrailingZerosByByte(in), Long.numberOfTrailingZeros(in));
+      assertEquals(countLeadingZerosByByte(in), Long.numberOfLeadingZeros(in));
+    }
+  }
+
+  //@Test
+  public void checkLeadingZerosByByteRandom() {
+    Random rand = new Random();
+    int n = 1 << 10;
+    long signBit = 1L << 63;
+    for (int i = 0; i < 64; i++) {
+      for (int j = 0; j < n; j++) {
+        long in = (rand.nextLong() | signBit) >>> i;
+        assertEquals(countLeadingZerosByByte(in), Long.numberOfLeadingZeros(in));
+      }
+    }
+  }
+
+  static final long golden64 = 0x9e3779b97f4a7c13L;
+
+  //@Test
+  public void checkLeadingZerosSpeed() {
+    long signBit = 1L << 63;
+    int n = 1 << 28;
+    for (int shift = 0; shift < 64; shift++) {
+      long sum1 = 0;
+      long tmp = 0;
+      long t0 = System.nanoTime();
+      for (int i = 0; i < n; i++) {
+        long in =((tmp += golden64) | signBit) >>> shift;
+        sum1 += countLeadingZerosByByte(in);
+      }
+      long t1 = System.nanoTime();
+      double byteTime = (double)(t1 - t0) / n;
+
+      long sum2 = 0;
+      tmp = 0;
+      long t2 = System.nanoTime();
+      for (int i = 0; i < n; i++) {
+        long in =((tmp += golden64) | signBit) >>> shift;
+        sum2 += Long.numberOfLeadingZeros(in);
+      }
+      long t3 = System.nanoTime();
+      double longTime = (double)(t3 - t2) / n;
+      assert sum1 == sum2;
+      println("shift: " + shift + ", byte: " + byteTime + ", long: " + longTime);
+    }
+  }
+
+  //@Test
+  public void checkTrailingZerosSpeed() {
+    long oneBit = 1L;
+    int n = 1 << 28;
+    for (int shift = 0; shift < 64; shift++) {
+      long sum1 = 0;
+      long tmp = 0;
+      long t0 = System.nanoTime();
+      for (int i = 0; i < n; i++) {
+        long in =((tmp += golden64) | oneBit) << shift;
+        sum1 += countTrailingZerosByByte(in);
+      }
+      long t1 = System.nanoTime();
+      double byteTime = (double)(t1 - t0) / n;
+
+      long sum2 = 0;
+      tmp = 0;
+      long t2 = System.nanoTime();
+      for (int i = 0; i < n; i++) {
+        long in =((tmp += golden64) | oneBit) << shift;
+        sum2 += Long.numberOfTrailingZeros(in);
+      }
+      long t3 = System.nanoTime();
+      double longTime = (double)(t3 - t2) / n;
+      assert sum1 == sum2;
+      println("shift: " + shift + ", byte: " + byteTime + ", long: " + longTime);
+    }
+  }
+
+  //@Test
   public void checkFloorLg2OfLong() {
     assertEquals(floorLog2ofX((1L << 10) + 1), 10);
   }
 
-
-  @Test
+  //@Test
   public void printlnTest() {
     println("PRINTING: " + this.getClass().getName());
   }
@@ -41,8 +149,12 @@ public class Fm85UtilTest {
    * @param s value to print
    */
   static void println(String s) {
-    //System.out.println(s); //disable here
+    System.out.println(s); //disable here
   }
 
+  static {
+    fillByteTrailingZerosTable();
+    fillByteLeadingZerosTable();
+  }
 
 }

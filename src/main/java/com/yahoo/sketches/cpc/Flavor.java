@@ -14,7 +14,7 @@ import java.util.Map;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-enum Flavor {
+public enum Flavor {
   EMPTY,   //    0  == C <    1
   SPARSE,  //    1  <= C <   3K/32
   HYBRID,  //  3K/32 <= C <   K/2

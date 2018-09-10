@@ -133,7 +133,7 @@ public class Fm85Merging {
       j &= (numSlots - 1);
       final int rowCol = slots[j];
       if (rowCol != -1) {
-        Fm85.rowColUpdate(dest, rowCol & destMask);
+        dest.rowColUpdate(rowCol & destMask);
       }
     }
   }
@@ -337,7 +337,7 @@ public class Fm85Merging {
       pattern ^= maskForFlippingEarlyZone; // This flipping converts surprising 0's to 1's.
       allSurprisesORed |= pattern;
       while (pattern != 0) {
-        final int col = Fm85Util.countTrailingZeros(pattern);
+        final int col = Long.numberOfTrailingZeros(pattern);
         pattern = pattern ^ (1L << col); // erase the 1.
         final int rowCol = (i << 6) | col;
         final boolean isNovel = PairTable.maybeInsert(table, rowCol);
@@ -346,9 +346,9 @@ public class Fm85Merging {
     }
 
     // At this point we could shrink an oversize hash table, but the relative waste isn't very big.
-    result.firstInterestingColumn = (byte) Fm85Util.countTrailingZeros(allSurprisesORed);
+    result.firstInterestingColumn = Long.numberOfTrailingZeros(allSurprisesORed);
     if (result.firstInterestingColumn > offset) {
-      result.firstInterestingColumn = (byte) offset;
+      result.firstInterestingColumn = offset;
     } // corner case
 
     // NB: the HIP-related fields will contain bogus values, but that is okay.

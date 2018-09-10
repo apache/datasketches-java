@@ -5,37 +5,29 @@
 
 package com.yahoo.sketches.cpc;
 
-import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.cpc.Fm85Merging.getResult;
 import static com.yahoo.sketches.cpc.Fm85Merging.mergeInto;
 import static com.yahoo.sketches.cpc.Fm85TestingUtil.assertSketchesEqual;
-import static com.yahoo.sketches.cpc.Fm85TestingUtil.dualUpdate;
-import static com.yahoo.sketches.hash.MurmurHash3.hash;
+
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
+ * @author Kevin Lang
  */
 public class QuickTestMerge {
   static final long golden64 = 0x9e3779b97f4a7c13L;  // the golden ratio as a long
   long counter0 = 35538947;  // some arbitrary random number
 
-  long[] getTwoRandomHashes() {
-    long[] in = new long[] { counter0 += golden64 };
-    return hash(in, DEFAULT_UPDATE_SEED);
-  }
   /*
   This test of merging is less exhaustive than testAll.c,
   but is more practical for large values of K.
-
-  gcc -O3 -Wall -pedantic -o quickTestMerge u32Table.c fm85Util.c fm85.c iconEstimator.c fm85Compression.c fm85Merging.c fm85Testing.c quickTestMerge.c
-
-*/
+  */
 
   // Quick Test of Merging (equal K case)
 
   @SuppressWarnings("unused")
   void quickTest(final int lgK, final long cA, final long cB) {
-    long[] twoHashes = new long[2];
     Fm85 skA = new Fm85(lgK);
     Fm85 skB = new Fm85(lgK);
     Fm85 skD = new Fm85(lgK); // direct sketch
@@ -47,14 +39,16 @@ public class QuickTestMerge {
     t0 = System.nanoTime();
     while (skA.numCoupons < cA) {
       nA++;
-      twoHashes = getTwoRandomHashes();
-      dualUpdate(skA, skD, twoHashes[0], twoHashes[1]);
+      final long in = counter0 += golden64;
+      skA.update(in);
+      skD.update(in);
     }
     t1 = System.nanoTime();
     while (skB.numCoupons < cB) {
       nB++;
-      twoHashes = getTwoRandomHashes();
-      dualUpdate(skB, skD, twoHashes[0], twoHashes[1]);
+      final long in = counter0 += golden64;
+      skB.update(in);
+      skD.update(in);
     }
     t2 = System.nanoTime();
 
@@ -91,12 +85,10 @@ public class QuickTestMerge {
       (t5 - t4) / 1E6); //get Result
   }
 
-  /***************************************************************/
   /*
     Note: In terms of normalized nanoseconds, the two stream processing
     costs are fairly reasonable, although 50 nsec seems slightly high.
    */
-  /***************************************************************/
 
   void multiQuickTest(int lgK) {
     int k = 1 << lgK;
@@ -113,10 +105,9 @@ public class QuickTestMerge {
     }
   }
 
-  /***************************************************************/
-  //@Test //Move to characterization
+  @Test //Move to characterization
   void quickTestMain() {
-    for (int lgK = 10; lgK < 11; lgK++) {
+    for (int lgK = 24; lgK < 25; lgK++) {
       println("\nLgK = " + lgK);
       multiQuickTest(lgK);
     }
@@ -133,7 +124,8 @@ public class QuickTestMerge {
    * @param args the args
    */
   static void printf(String format, Object ... args) {
-    //System.out.printf(format, args); //disable here
+    String out = String.format(format, args);
+    print(out);
   }
 
   /**
@@ -147,6 +139,6 @@ public class QuickTestMerge {
    * @param s value to print
    */
   static void print(String s) {
-    //System.out.print(s); //disable here
+    System.out.print(s); //disable here
   }
 }

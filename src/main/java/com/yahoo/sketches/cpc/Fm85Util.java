@@ -17,31 +17,7 @@ final class Fm85Util {
   static final int minLgK = 4;
   static final int maxLgK = 26;
 
-  static final long LZ_MASK_56 = (1L << 56) - 1L;
-  static final long LZ_MASK_48 = (1L << 48) - 1L;
-  static final long LZ_MASK_40 = (1L << 40) - 1L;
-  static final long LZ_MASK_32 = (1L << 32) - 1L;
-  static final long LZ_MASK_24 = (1L << 24) - 1L;
-  static final long LZ_MASK_16 = (1L << 16) - 1L;
-  static final long LZ_MASK_08 = (1L <<  8) - 1L;
-
-  static final byte[] byteTrailingZerosTable = new byte[256];
-  static final byte[] byteLeadingZerosTable = new byte[256];
   static final double[] kxpByteLookup = new double[256];
-
-  private static void fillByteTrailingZerosTable() {
-    byteTrailingZerosTable[0] = 8;
-    for (int i = 1; i < 256; i++) {
-      byteTrailingZerosTable[i] = (byte) Integer.numberOfTrailingZeros(i);
-    }
-  }
-
-  private static void fillByteLeadingZerosTable() {
-    byteLeadingZerosTable[0] = 8;
-    for (int i = 1; i < 256; i++) {
-      byteLeadingZerosTable[i] = (byte) Integer.numberOfLeadingZeros(i << 24);
-    }
-  }
 
   private static void fillKxpByteLookup() { //called from static initializer
     for (int b = 0; b < 256; b++) {
@@ -56,45 +32,6 @@ final class Fm85Util {
     }
   }
 
-  static int countLeadingZeros(final long theInput) {
-    return Long.numberOfLeadingZeros(theInput);
-  }
-
-  //Evaluate
-  static int countLeadingZerosByByte(final long theInput) {
-    if (theInput > LZ_MASK_56) { return 0 + byteLeadingZerosTable[(int) ((theInput >>> 56) & 0XFFL)]; }
-    if (theInput > LZ_MASK_48) { return 8 + byteLeadingZerosTable[(int) ((theInput >>> 48) & 0XFFL)]; }
-    if (theInput > LZ_MASK_40) { return 16 + byteLeadingZerosTable[(int) ((theInput >>> 40) & 0XFFL)]; }
-    if (theInput > LZ_MASK_32) { return 24 + byteLeadingZerosTable[(int) ((theInput >>> 32) & 0XFFL)]; }
-    if (theInput > LZ_MASK_24) { return 32 + byteLeadingZerosTable[(int) ((theInput >>> 24) & 0XFFL)]; }
-    if (theInput > LZ_MASK_16) { return 40 + byteLeadingZerosTable[(int) ((theInput >>> 16) & 0XFFL)]; }
-    if (theInput > LZ_MASK_08) { return 48 + byteLeadingZerosTable[(int) ((theInput >>>  8) & 0XFFL)]; }
-    return 56 + byteLeadingZerosTable[(int) (theInput & 0XFFL)];
-  }
-
-  static int countTrailingZeros(final long theInput) {
-    return Long.numberOfTrailingZeros(theInput);
-  }
-
-  static int countTrailingZerosByByte(final long theInput) {
-    long tmp = theInput;
-    for (int j = 0; j < 8; j++) {
-      final int aByte = (int) (tmp & 0XFFL);
-      if (aByte != 0) { return (j << 3) + byteTrailingZerosTable[aByte]; }
-      tmp >>>= 8;
-    }
-    return 64;
-  }
-
-  //Place holder, to be eliminated
-  //  static WritableMemory shallowCopy(final WritableMemory oldObject, final int numBytes) {
-  //    if ((oldObject == null) || (numBytes == 0)) {
-  //      throw new SketchesArgumentException("shallowCopyObject: bad arguments");
-  //    }
-  //    final WritableMemory newObject = WritableMemory.allocate(numBytes);
-  //    oldObject.copyTo(0, newObject, 0, numBytes);
-  //    return newObject;
-  //  }
 
   static long divideLongsRoundingUp(final long x, final long y) {
     assert (x >= 0) && (y > 0);
@@ -121,7 +58,6 @@ final class Fm85Util {
     }
   }
 
-
   static int golombChooseNumberOfBaseBits(final int k, final long count) {
     assert k >= 1L;
     assert count >= 1L;
@@ -136,6 +72,20 @@ final class Fm85Util {
     return count;
   }
 
+  static int rowColFromTwoHashes(final long hash0, final long hash1, final int lgK) {
+    final int kMask = (1 << lgK) - 1;
+    int col = Long.numberOfLeadingZeros(hash1);
+    if (col > 63) { col = 63; } // clip so that 0 <= col <= 63
+    final int row = (int) (hash0 & kMask);
+    int rowCol = (row << 6) | col;
+    // Avoid the hash table's "empty" value which is (2^26 -1, 63) (all ones) by changing it
+    // to the pair (2^26 - 2, 63), which effectively merges the two cells.
+    // This case is *extremely* unlikely, but we might as well handle it.
+    // It can't happen at all if lgK (or maxLgK) < 26.
+    if (rowCol == -1) { rowCol ^= (1 << 6); }
+    return rowCol;
+  }
+
   static void checkLgK(final int lgK) {
     if ((lgK < minLgK) || (lgK > maxLgK)) {
       throw new SketchesArgumentException("LgK must be >= 4 and <= 26: " + lgK);
@@ -144,8 +94,6 @@ final class Fm85Util {
 
   static {
     fillKxpByteLookup();
-    fillByteTrailingZerosTable();
-    fillByteLeadingZerosTable();
   }
 
 }

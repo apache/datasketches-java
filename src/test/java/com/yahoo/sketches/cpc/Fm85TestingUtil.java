@@ -14,16 +14,6 @@ import org.testng.annotations.Test;
  */
 public class Fm85TestingUtil {
 
-  //This is used for testing, especially of the merging code.
-
-  static void dualUpdate(final Fm85 sk1, final Fm85 sk2, final long hash0, final long hash1) {
-    final int rowCol = Fm85.rowColFromTwoHashes(hash0, hash1, 26); //initially LgK = 26
-    final int mask1 = (((1 << sk1.lgK) - 1) << 6) | 63;
-    final int mask2 = (((1 << sk2.lgK) - 1) << 6) | 63;
-    Fm85.rowColUpdate(sk1, rowCol & mask1);
-    Fm85.rowColUpdate(sk2, rowCol & mask2);
-  }
-
   @SuppressWarnings("null")
   static void assertSketchesEqual (Fm85 sk1, Fm85 sk2, boolean sk2WasMerged) {
     //  if (sk1.lgK != sk2.lgK) { printf ("%d vs %d\n", (int) sk1.lgK, (int) sk2.lgK); fflush (stdout); }
