@@ -5,10 +5,6 @@
 
 package com.yahoo.sketches.cpc;
 
-import static com.yahoo.sketches.Util.milliSecToString;
-import static com.yahoo.sketches.Util.pwr2LawNextDouble;
-import static com.yahoo.sketches.cpc.CpcCompression.cpcCompress;
-import static com.yahoo.sketches.cpc.CpcCompression.cpcUncompress;
 import static com.yahoo.sketches.cpc.CpcMerging.mergeInto;
 import static com.yahoo.sketches.cpc.CpcSketch.bitMatrixOfSketch;
 import static com.yahoo.sketches.cpc.CpcSketch.determineSketchFlavor;
@@ -27,141 +23,33 @@ public class TestAllTest {
   long counter0 = 35538947;  // some arbitrary random number
 
   //STREAMING
-  String streamFmt1 = "%3d\t%d";
-  String streamFmt2 = "\t%3d\t%9s\t%6d\t%12.3f\t%12.3f\t%12.3f";
 
-  public void streamingDoAStreamLength(int lgK, long n, int streamingNumTrials) {
-    int trialNo = 0;
-    String lineStart = String.format(streamFmt1, lgK, n);
-    print(lineStart);
+  @Test
+  public void streamingValidation() {
+    int lgMinK = 10;
+    int lgMaxK = 10;
+    int trials = 10;
+    int ppoN = 1;
 
-    double avgC = 0.0;
-    double avgIconEst = 0.0;
-    double avgHIPEst = 0.0;
-
-
-    CpcSketch sketch = new CpcSketch(lgK);
-    CpcMatrixSketch simple = new CpcMatrixSketch(lgK);
-
-    for (trialNo = 0; trialNo < streamingNumTrials; trialNo++) {
-      sketch.reset();
-      simple.reset();
-      for (long i = 0; i < n; i++) {
-        final long in = (counter0 += golden64);
-        sketch.update(in);
-        simple.update(in);
-      }
-
-      avgC   += sketch.numCoupons;
-      avgIconEst += IconEstimator.getIconEstimate(lgK, sketch.numCoupons);
-      avgHIPEst  += sketch.hipEstAccum;
-
-      assertEquals(sketch.numCoupons, simple.numCoupons);
-      long[] matrix = CpcSketch.bitMatrixOfSketch (sketch);
-      assertEquals(matrix, simple.bitMatrix);
-    }
-    long c = sketch.numCoupons;
-    Flavor flavor = CpcSketch.determineSketchFlavor(sketch);
-    int offset = sketch.windowOffset;
-    String out = String.format(streamFmt2,
-      c, flavor, offset, // these are from the final trial
-      avgC / (streamingNumTrials),
-      avgIconEst / (streamingNumTrials),
-      avgHIPEst / (streamingNumTrials) );
-    println(out);
-  }
-
-  @Test  //move to characterization
-  void streamingMain() {
-    println("\nStreaming Test");
-    println("LgK\tn\tFinC\tFinFlavor\tFinOff\tAvgC\tAvgICON\tAvgHIP");
-    long n = 1; //start
-    int trials = 1;
-
-    for (int lgK = 10; lgK < 11; lgK++) {
-      int k = 1 << lgK;
-
-      while (n < (64L * k)) { //1200
-        streamingDoAStreamLength(lgK, n, trials);
-        n = Math.round(pwr2LawNextDouble(1, n));
-      }
-    }
+    StreamingValidation sVal = new StreamingValidation(
+        lgMinK, lgMaxK, trials, ppoN, System.out, null);
+    sVal.start();
   }
 
   //COMPRESSION
-  String compressFmt1 = "%d\t%d\t%d\t%.9f\t%.3f\t%s";
 
-  void compressionDoAStreamLength(int lgK, long n, int numSketches) {
-    int k = 1 << lgK;
-    int minKN = (int) ((k < n) ? k : n);
+  @Test
+  void compressionCharacterization() {
+    int lgMinK = 10;
+    int lgMaxK = 10;
+    int maxTrials = 1 << 20;
+    int ppoN = 16;
+    int incLgK = 4;
+    boolean timing = true;
 
-    numSketches = Math.max(1, numSketches);
-
-    CpcSketch[] streamSketches = new CpcSketch[numSketches];
-    CpcSketch[] compressedSketches = new CpcSketch[numSketches];
-    CpcSketch[] unCompressedSketches = new CpcSketch[numSketches];
-    long start, time, avgTime;
-
-    //update: fill stream sketches array
-    start = System.currentTimeMillis();
-    for (int sketchIndex = 0; sketchIndex < numSketches; sketchIndex++) {
-      CpcSketch sketch = new CpcSketch(lgK);
-      streamSketches[sketchIndex] = sketch;
-      for (long i = 0; i < n; i++) {
-        final long in = (counter0 += golden64);
-        sketch.update(in);
-      }
-    }
-    time = System.currentTimeMillis() - start;
-    avgTime = Math.round((double) time / numSketches);
-    println("  Update     " + numSketches + ", " + n + ", Avg: " + milliSecToString(avgTime));
-
-    //compress
-    start = System.currentTimeMillis();
-    for (int sketchIndex = 0; sketchIndex < numSketches; sketchIndex++) {
-      compressedSketches[sketchIndex] = cpcCompress (streamSketches[sketchIndex]);
-    }
-    time = System.currentTimeMillis() - start;
-    avgTime = Math.round((double) time / numSketches);
-    println("  Compress   " + numSketches + ", " + n + ", Avg: " + milliSecToString(avgTime));
-
-    //uncompress
-    start = System.currentTimeMillis();
-    for (int sketchIndex = 0; sketchIndex < numSketches; sketchIndex++) {
-      unCompressedSketches[sketchIndex] = cpcUncompress (compressedSketches[sketchIndex]);
-    }
-    time = System.currentTimeMillis() - start;
-    avgTime = Math.round((double) time / numSketches);
-    println("  Uncompress " + numSketches + ", " + n + ", Avg: " + milliSecToString(avgTime));
-
-    double totalC = 0.0;
-    double totalW = 0.0;
-    for (int sketchIndex = 0; sketchIndex < numSketches; sketchIndex++) {
-      totalC += streamSketches[sketchIndex].numCoupons;
-      totalW += compressedSketches[sketchIndex].cwLength + compressedSketches[sketchIndex].csvLength;
-    }
-
-    double avgC     = totalC / numSketches;
-    double avgBytes = (4.0 * totalW) / numSketches;
-    Flavor flavor = CpcSketch.determineSketchFlavor(unCompressedSketches[numSketches - 1]);
-    String out = String.format(compressFmt1, k, n, minKN, avgC / k, avgBytes, flavor);
-    println(out);
-  }
-
-  @Test //move to characterization
-  void compressionMain() {
-    println("\nCompression Test");
-    println("K\tN\tminKN\tavgCoK\tavgBytes\tFinal Flavor");
-    for (int lgK = 12; lgK < 13; lgK++) {
-      int k = 1 << lgK;
-      long n = k; //start
-      int numSketches = 1;
-      while (n < ( 64L * k)) { // 120 * k
-
-        compressionDoAStreamLength(lgK, n, numSketches);
-        n = Math.round(pwr2LawNextDouble(1, n));
-      }
-    }
+    CompressionCharacterization cc = new CompressionCharacterization(
+        lgMinK, lgMaxK, maxTrials, ppoN, incLgK, timing, System.out, null);
+    cc.start();
   }
 
   //MERGING

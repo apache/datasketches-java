@@ -6,6 +6,8 @@
 package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.Util.invPow2;
+import static java.lang.Math.pow;
+import static java.lang.Math.round;
 
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -31,7 +33,6 @@ final class CpcUtil {
       kxpByteLookup[b] = sum;
     }
   }
-
 
   static long divideLongsRoundingUp(final long x, final long y) {
     assert (x >= 0) && (y > 0);
@@ -91,6 +92,17 @@ final class CpcUtil {
       throw new SketchesArgumentException("LgK must be >= 4 and <= 26: " + lgK);
     }
   }
+
+  static final double pwrLaw10NextDouble(final int ppb, final double curPoint) {
+    final double cur = (curPoint < 1.0) ? 1.0 : curPoint;
+    double gi = round(Math.log10(cur) * ppb); //current generating index
+    double next;
+    do {
+      next = round(pow(10.0, ++gi / ppb));
+    } while (next <= curPoint);
+    return next;
+  }
+
 
   static {
     fillKxpByteLookup();
