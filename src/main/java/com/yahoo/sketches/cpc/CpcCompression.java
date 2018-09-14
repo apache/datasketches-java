@@ -526,7 +526,7 @@ final class CpcCompression {
   static void compressSparseFlavor(final CpcSketch target, final CpcSketch source) {
     assert (source.slidingWindow == null); //there is no window to compress
     final PairTable pairTable = source.surprisingValueTable;
-    final int numPairs = pairTable.numItems;
+    final int numPairs = pairTable.numPairs;
     //printf("Compress   NumPairs: %d\n", numPairs);
     final int[] pairs = PairTable.unwrappingGetItems(pairTable, numPairs);
     //printPairs(pairs);
@@ -570,7 +570,7 @@ final class CpcCompression {
   //of a Pinned sketch before compressing it. Hence the name Hybrid.
   static void compressHybridFlavor(final CpcSketch target, final CpcSketch source) {
     final int k = 1 << source.lgK;
-    final int numPairsFromTable = source.surprisingValueTable.numItems;
+    final int numPairsFromTable = source.surprisingValueTable.numPairs;
     final int[] pairsFromTable = PairTable.unwrappingGetItems(source.surprisingValueTable, numPairsFromTable);
     introspectiveInsertionSort(pairsFromTable, 0, numPairsFromTable - 1);
 
@@ -635,7 +635,7 @@ final class CpcCompression {
   static void compressPinnedFlavor(final CpcSketch target, final CpcSketch source) {
     compressTheWindow(target, source);
     final PairTable pairTable = source.surprisingValueTable;
-    final int numPairs = pairTable.numItems;
+    final int numPairs = pairTable.numPairs;
 
     if (numPairs > 0) {
       final int[] pairs = PairTable.unwrappingGetItems(pairTable, numPairs);
@@ -682,7 +682,7 @@ final class CpcCompression {
     compressTheWindow(target, source);
 
     final PairTable pairTable = source.surprisingValueTable;
-    final int numPairs = pairTable.numItems;
+    final int numPairs = pairTable.numPairs;
 
 
     if (numPairs > 0) {

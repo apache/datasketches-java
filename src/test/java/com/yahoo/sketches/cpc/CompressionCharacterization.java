@@ -44,8 +44,8 @@ public class CompressionCharacterization {
     this.lgMinK = lgMinK;
     this.lgMaxK = lgMaxK;
     this.maxTrials = Math.max(1, maxTrials);
-    this.ppoN = ppoN;
-    this.incLgK = incLgK;
+    this.ppoN = Math.max(ppoN, 1);
+    this.incLgK = Math.max(incLgK, 1);
     this.timing = timing;
     printStream = pS;
     printWriter = pW;
@@ -54,7 +54,6 @@ public class CompressionCharacterization {
 
   public void start() {
     printf(hfmt, (Object[]) hStrArr); //print header
-
     doRangeOfLgK();
   }
 
@@ -123,6 +122,7 @@ public class CompressionCharacterization {
     for (int sketchIndex = 0; sketchIndex < trials; sketchIndex++) {
       totalC += streamSketches[sketchIndex].numCoupons;
       totalW += compressedSketches[sketchIndex].cwLength + compressedSketches[sketchIndex].csvLength;
+
     }
 
     double avgC = totalC / trials;
@@ -145,16 +145,16 @@ public class CompressionCharacterization {
         {"Trials",     "%7s",  "%7d"},
         {"n",          "%12s", "%12d"},
         {"MinKN",      "%9s",  "%9d"},
-        {"AvgC/K",     "%8s",  "%8.3f"},
+        {"AvgC/K",     "%9s",  "%9.4g"},
         {"FinFlavor",  "%9s",  "%9s"},
-        {"N/K",        "%8s",  "%8.3f"},
+        {"N/K",        "%9s",  "%9.4g"},
         {"AvgBytes",   "%9s",  "%9.0f"},
-        {"AvgUpd_nS",  "%14s", "%,14.0f"},
-        {"AvgCom_nS",  "%14s", "%,14.0f"},
-        {"AvgUnc_nS",  "%14s", "%,14.0f"},
-        {"AvgUpd_nSperN",      "%14s", "%,14.0f"},
-        {"AvgCom_nSperMinNK",  "%18s", "%,18.0f"},
-        {"AvgUnc_nSperMinNK",  "%18s", "%,18.0f"}
+        {"AvgUpd_nS",  "%12s", "%,12.1f"},
+        {"AvgCom_nS",  "%12s", "%,12.1f"},
+        {"AvgUnc_nS",  "%12s", "%,12.1f"},
+        {"AvgUpd_nSperN",      "%14s", "%,14.1f"},
+        {"AvgCom_nSperMinNK",  "%18s", "%,18.1f"},
+        {"AvgUnc_nSperMinNK",  "%18s", "%,18.1f"}
     };
     int cols = assy.length;
     hStrArr = new String[cols];

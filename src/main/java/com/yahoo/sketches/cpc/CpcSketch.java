@@ -9,6 +9,8 @@ import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.Util.invPow2;
 import static com.yahoo.sketches.cpc.CpcUtil.checkLgK;
 import static com.yahoo.sketches.cpc.CpcUtil.kxpByteLookup;
+import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertEquals;
+import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertTrue;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -576,6 +578,37 @@ public final class CpcSketch {
     final int k = 1 << lgK;
     if ((c << 5) < (3L * k)) { updateSparse(this, rowCol); }
     else { updateWindowed(this, rowCol); }
+  }
+
+  static boolean equals(final CpcSketch skA, final CpcSketch skB, final boolean skBwasMerged) {
+    rtAssertEquals(skA.lgK, skB.lgK);
+    rtAssertEquals(skA.isCompressed, skB.isCompressed);
+    rtAssertEquals(skA.numCoupons, skB.numCoupons);
+    rtAssertEquals(skA.windowOffset, skB.windowOffset);
+    rtAssertEquals(skA.cwLength, skB.cwLength);
+    rtAssertEquals(skA.csvLength, skB.csvLength);
+    rtAssertEquals(skA.numCompressedSurprisingValues, skB.numCompressedSurprisingValues);
+    PairTable.equals(skA.surprisingValueTable, skB.surprisingValueTable);
+    rtAssertEquals(skA.slidingWindow, skB.slidingWindow);
+    rtAssertEquals(skA.compressedWindow, skB.compressedWindow);
+    rtAssertEquals(skA.compressedSurprisingValues, skB.compressedSurprisingValues);
+    final int ficolA = skA.firstInterestingColumn;
+    final int ficolB = skB.firstInterestingColumn;
+
+    if (skBwasMerged) {
+      rtAssertTrue(!skA.mergeFlag && skB.mergeFlag);
+      // firstInterestingColumn is only updated occasionally while stream processing.
+      // NB: While not very likely, it is possible for the difference to exceed 2.
+      rtAssertTrue(((ficolA + 0) == ficolB)
+          || ((ficolA + 1) == ficolB)
+          || ((ficolA + 2) == ficolB));
+    } else {
+      rtAssertEquals(skA.mergeFlag, skB.mergeFlag);
+      rtAssertEquals(ficolA, ficolB);
+      rtAssertEquals(skA.kxp, skB.kxp, .01 * skA.kxp); //1% tollerence
+      rtAssertEquals(skA.hipEstAccum, skB.hipEstAccum, 01 * skA.hipEstAccum); //1% tollerence
+    }
+    return true;
   }
 
   /**

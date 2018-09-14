@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.cpc;
 
+import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertEquals;
+
 import java.util.Arrays;
 
 import com.yahoo.sketches.SketchesArgumentException;
@@ -23,7 +25,7 @@ final class PairTable {
 
   int lgSize;
   int validBits;
-  int numItems;
+  int numPairs;
   int[] slots;
 
   PairTable(final int lgSize, final int numValidBits) {
@@ -31,14 +33,14 @@ final class PairTable {
     this.lgSize = lgSize;
     final int numSlots = 1 << lgSize;
     validBits = numValidBits;
-    numItems = 0;
+    numPairs = 0;
     slots = new int[numSlots];
     for (int i = 0; i < numSlots; i++) { slots[i] = -1; }
   }
 
   PairTable copy() {
     final PairTable copy = new PairTable(lgSize, validBits);
-    copy.numItems = numItems;
+    copy.numPairs = numPairs;
     copy.slots = (slots == null) ? null : slots.clone();
     return copy;
   }
@@ -57,7 +59,7 @@ final class PairTable {
     for (int i = 0; i < numPairs; i++) {
       mustInsert(table, pairs[i]);
     }
-    table.numItems = numPairs;
+    table.numPairs = numPairs;
     return table;
   }
 
@@ -69,7 +71,7 @@ final class PairTable {
     checkLgSize(newLgSize);
     final int newSize = 1 << newLgSize;
     final int oldSize = 1 << lgSize;
-    assert newSize > numItems;
+    assert newSize > numPairs;
     final int[] oldSlots = slots;
     final int[] newSlots = new int[newSize];
     Arrays.fill(newSlots, -1);
@@ -84,7 +86,7 @@ final class PairTable {
 
   PairTable clear() {
     Arrays.fill(slots, -1);
-    numItems = 0;
+    numPairs = 0;
     return this;
   }
 
@@ -146,8 +148,8 @@ final class PairTable {
     else {
       assert (fetched == -1);
       arr[probe] = item;
-      table.numItems += 1;
-      while ((upsizeDenom * table.numItems) > (upsizeNumer * (1 << table.lgSize))) {
+      table.numPairs += 1;
+      while ((upsizeDenom * table.numPairs) > (upsizeNumer * (1 << table.lgSize))) {
         table.rebuild(table.lgSize + 1);
       }
       return true;
@@ -174,7 +176,7 @@ final class PairTable {
       assert (fetched == item);
       // delete the item
       arr[probe] = -1;
-      table.numItems -= 1; assert (table.numItems >= 0);
+      table.numPairs -= 1; assert (table.numPairs >= 0);
 
       // re-insert all items between the freed slot and the next empty slot
       probe = (probe + 1) & mask; fetched = arr[probe];
@@ -185,7 +187,7 @@ final class PairTable {
       }
 
       // shrink if necessary
-      while (((downsizeDenom * table.numItems)
+      while (((downsizeDenom * table.numPairs)
               < (downsizeNumer * (1 << table.lgSize))) && (table.lgSize > 2)) {
         table.rebuild(table.lgSize - 1);
       }
@@ -200,16 +202,17 @@ final class PairTable {
    * the load factor would have to be over 90 percent before this would fail frequently,
    * and even then the subsequent sort would fix things up.
    * @param table the given table to unwrap
+   * @param numPairs the number of valid pairs to in the table
    * @return the unwrapped table
    */
-  static int[] unwrappingGetItems(final PairTable table, final int numItems) {
-    if (numItems < 1) { return null; }
+  static int[] unwrappingGetItems(final PairTable table, final int numPairs) {
+    if (numPairs < 1) { return null; }
     final int[] slots = table.slots;
     final int tableSize = 1 << table.lgSize;
-    final int[] result = new int[numItems];
+    final int[] result = new int[numPairs];
     int i = 0;
     int l = 0;
-    int r = numItems - 1;
+    int r = numPairs - 1;
 
     // Special rules for the region before the first empty slot.
     final int hiBit = 1 << (table.validBits - 1);
@@ -307,6 +310,24 @@ final class PairTable {
     assert (b == limB);
   }
 
+  public static boolean equals(final PairTable a, final PairTable b) {
+    if ((a == null) && (b == null)) { return true; }
+    if ((a == null) || (b == null)) {
+      throw new SketchesArgumentException("PairTable " + ((a == null) ? "a" : "b") + " is null");
+    }
+    //Note: lgSize array sizes may not be equal, but contents still can be equal
+    rtAssertEquals(a.validBits, b.validBits);
+    final int numPairsA = a.numPairs;
+    final int numPairsB = b.numPairs;
+    rtAssertEquals(numPairsA, numPairsB);
+    final int[] pairsA = PairTable.unwrappingGetItems(a, numPairsA);
+    final int[] pairsB = PairTable.unwrappingGetItems(b, numPairsB);
+    PairTable.introspectiveInsertionSort(pairsA, 0, numPairsA - 1);
+    PairTable.introspectiveInsertionSort(pairsB, 0, numPairsB - 1);
+    rtAssertEquals(pairsA, pairsB);
+    return true;
+  }
+
   @Override
   public String toString() {
     return PairTable.toString(this, false);
@@ -319,7 +340,7 @@ final class PairTable {
     sb.append("  LgSize        : ").append(table.lgSize).append(LS);
     sb.append("  Size          : ").append(tableSize).append(LS);
     sb.append("  Valid Bits    : ").append(table.validBits).append(LS);
-    sb.append("  Num Items     : ").append(table.numItems).append(LS);
+    sb.append("  Num Items     : ").append(table.numPairs).append(LS);
     if (detail) {
       sb.append("  DATA          : ").append(LS);
       final int[] slots = table.slots;
@@ -343,7 +364,9 @@ final class PairTable {
     }
   }
 
-  @SuppressWarnings("unused")
+  /**
+   * @param s value to print
+   */
   static void println(final String s) {
     System.out.println(s);
   }

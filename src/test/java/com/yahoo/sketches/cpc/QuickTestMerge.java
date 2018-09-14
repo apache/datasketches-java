@@ -7,7 +7,6 @@ package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.cpc.CpcMerging.getResult;
 import static com.yahoo.sketches.cpc.CpcMerging.mergeInto;
-import static com.yahoo.sketches.cpc.CpcTestingUtil.assertSketchesEqual;
 
 import org.testng.annotations.Test;
 
@@ -67,8 +66,9 @@ public class QuickTestMerge {
     //  printf ("(C %lld vs %lld (%lld %lld))\t", skR.numCoupons, skD.numCoupons, skA.numCoupons, skB.numCoupons);
     //  printf ("(flavorDAB %d %d %d)\n", (int) determineSketchFlavor (skD), (int) determineSketchFlavor (skA), (int) determineSketchFlavor (skB));
 
-    assert skR.numCoupons == skD.numCoupons;
-    assertSketchesEqual(skD, skR, true);
+    //assert skR.numCoupons == skD.numCoupons;
+    //assertSketchesEqual(skD, skR, true);
+    CpcSketch.equals(skD, skR, true);
     Flavor fA = CpcSketch.determineSketchFlavor(skA);
     Flavor fB = CpcSketch.determineSketchFlavor(skB);
 
