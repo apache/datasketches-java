@@ -31,11 +31,11 @@ public class CompressionCharacterization {
   //inputs
   private int lgMinK;
   private int lgMaxK; //inclusive
-  private int lgMinT;
-  private int lgMaxT; //lg max trials
-  private int lgMulK;
+  private int lgMinT; //Trials at end
+  private int lgMaxT; //Trials at start
+  private int lgMulK; //multiplier of K to produce maxU
   private int uPPO;
-  private int incLgK;
+  private int incLgK; //increment of lgK
   private PrintStream printStream;
   private PrintWriter printWriter;
 

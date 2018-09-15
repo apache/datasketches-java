@@ -41,12 +41,11 @@ public class TestAllTest {
   public void compressionCharacterizationCheck() {
     int lgMinK = 16;
     int lgMaxK = 16;
-    int lgMinT = 4; //Trials at end
     int lgMaxT = 20;//Trials at start
+    int lgMinT = 4; //Trials at end
     int lgMulK = 7;
     int uPPO = 16;
     int incLgK = 1;
-
 
     CompressionCharacterization cc = new CompressionCharacterization(
         lgMinK, lgMaxK, lgMinT, lgMaxT, lgMulK, uPPO, incLgK, System.out, null);
