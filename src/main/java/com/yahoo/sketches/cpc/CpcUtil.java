@@ -34,6 +34,11 @@ final class CpcUtil {
     }
   }
 
+  static long divideBy32RoundingUp(final long x) {
+    final long tmp = x >>> 5;
+    return ((tmp << 5) == x) ? tmp : tmp + 1;
+  }
+
   static long divideLongsRoundingUp(final long x, final long y) {
     assert (x >= 0) && (y > 0);
     final long quotient = x / y;

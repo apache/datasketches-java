@@ -38,16 +38,18 @@ public class TestAllTest {
   //COMPRESSION
 
   @Test
-  public void compressionCheck() {
-    int lgMinK = 10;
-    int lgMaxK = 10;
-    int maxTrials = 1 << 20;
-    int ppoN = 1;
+  public void compressionCharacterizationCheck() {
+    int lgMinK = 16;
+    int lgMaxK = 16;
+    int lgMinT = 4; //Trials at end
+    int lgMaxT = 20;//Trials at start
+    int lgMulK = 7;
+    int uPPO = 16;
     int incLgK = 1;
-    boolean timing = false;
+
 
     CompressionCharacterization cc = new CompressionCharacterization(
-        lgMinK, lgMaxK, maxTrials, ppoN, incLgK, timing, System.out, null);
+        lgMinK, lgMaxK, lgMinT, lgMaxT, lgMulK, uPPO, incLgK, System.out, null);
     cc.start();
   }
 

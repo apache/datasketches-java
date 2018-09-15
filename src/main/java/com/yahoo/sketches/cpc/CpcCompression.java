@@ -11,7 +11,7 @@ import static com.yahoo.sketches.cpc.CompressionData.decodingTablesForHighEntrop
 import static com.yahoo.sketches.cpc.CompressionData.encodingTablesForHighEntropyByte;
 import static com.yahoo.sketches.cpc.CompressionData.lengthLimitedUnaryDecodingTable65;
 import static com.yahoo.sketches.cpc.CompressionData.lengthLimitedUnaryEncodingTable65;
-import static com.yahoo.sketches.cpc.CpcUtil.divideLongsRoundingUp;
+import static com.yahoo.sketches.cpc.CpcUtil.divideBy32RoundingUp;
 import static com.yahoo.sketches.cpc.CpcUtil.golombChooseNumberOfBaseBits;
 //import static com.yahoo.sketches.cpc.CpcUtil.printPairs;
 import static com.yahoo.sketches.cpc.PairTable.introspectiveInsertionSort;
@@ -408,7 +408,10 @@ final class CpcCompression {
     long padding = 10L - numBaseBits;
     if (padding < 0) { padding = 0; }
     final long bits = xbits + ybits + padding;
-    return (int) (divideLongsRoundingUp(bits, 32));
+    //final long words = divideLongsRoundingUp(bits, 32);
+    final long words = divideBy32RoundingUp(bits);
+    assert words < (1L << 31);
+    return (int) words;
   }
 
   // Explanation of padding: we write
@@ -420,7 +423,9 @@ final class CpcCompression {
   static int safeLengthForCompressedWindowBuf(final long k) { // measured in 32-bit words
     // 11 bits of padding, due to 12-bit lookahead, with 1 bit certainly present.
     final long bits = (12 * k) + 11;
-    return (int) (divideLongsRoundingUp(bits, 32));
+    //cannot exceed Integer.MAX_VALUE
+    //return (int) (divideLongsRoundingUp(bits, 32));
+    return (int) divideBy32RoundingUp(bits);
   }
 
   static int determinePseudoPhase(final int lgK, final long numCoupons) {
