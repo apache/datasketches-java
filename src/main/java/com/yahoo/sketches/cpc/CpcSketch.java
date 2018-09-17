@@ -95,6 +95,10 @@ public final class CpcSketch {
     return copy;
   }
 
+  public Flavor getFlavor() {
+    return determineFlavor(lgK, numCoupons);
+  }
+
   public static Flavor determineSketchFlavor(final CpcSketch sketch) {
     return determineFlavor(sketch.lgK, sketch.numCoupons);
   }

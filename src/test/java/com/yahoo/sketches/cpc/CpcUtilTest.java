@@ -11,6 +11,10 @@ import static org.testng.Assert.assertEquals;
 import java.util.Random;
 
 /**
+ * Experimentally verifies that the Java leading and trailing zeros must use
+ * intrinsic CPU instructions instead of the documented code. These are much faster
+ * than even choosing most probable bytes algorithms that were derived from C.
+ *
  * @author Lee Rhodes
  */
 public class CpcUtilTest {

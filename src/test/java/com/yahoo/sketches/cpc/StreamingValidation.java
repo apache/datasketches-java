@@ -7,7 +7,7 @@ package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.Util.iGoldenU64;
 import static com.yahoo.sketches.Util.pwr2LawNextDouble;
-import static org.testng.Assert.assertEquals;
+import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertEquals;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -87,9 +87,9 @@ public class StreamingValidation {
       sumC   += sketch.numCoupons;
       sumIconEst += IconEstimator.getIconEstimate(lgK, sketch.numCoupons);
       sumHipEst  += sketch.hipEstAccum;
-      assertEquals(sketch.numCoupons, matrixSk.numCoupons);
+      rtAssertEquals(sketch.numCoupons, matrixSk.numCoupons);
       long[] bitMatrix = CpcSketch.bitMatrixOfSketch (sketch);
-      assertEquals(bitMatrix, matrixSk.bitMatrix);
+      rtAssertEquals(bitMatrix, matrixSk.bitMatrix);
     }
     long finC = sketch.numCoupons;
     Flavor finFlavor = CpcSketch.determineSketchFlavor(sketch);

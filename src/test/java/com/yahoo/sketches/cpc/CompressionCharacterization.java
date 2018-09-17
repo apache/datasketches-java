@@ -11,12 +11,10 @@ import static com.yahoo.sketches.Util.log2;
 import static com.yahoo.sketches.Util.pwr2LawNextDouble;
 import static com.yahoo.sketches.cpc.CpcCompression.cpcCompress;
 import static com.yahoo.sketches.cpc.CpcCompression.cpcUncompress;
-//import static com.yahoo.sketches.cpc.CpcUtil.*;
+import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertTrue;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
-
-import com.yahoo.sketches.SketchesStateException;
 
 /**
  * @author Lee Rhodes
@@ -149,9 +147,7 @@ public class CompressionCharacterization {
 
       //optional
       for (int trial = 0; trial < trialsPerWave; trial++) {
-        if (!CpcSketch.equals(streamSketches[trial], unCompressedSketches[trial], false)) {
-          throw new SketchesStateException("Sketches are not equal.");
-        }
+        rtAssertTrue(CpcSketch.equals(streamSketches[trial], unCompressedSketches[trial], false));
       }
     } // end wave loop
     double total_S = (System.currentTimeMillis() - start) / 1E3;
