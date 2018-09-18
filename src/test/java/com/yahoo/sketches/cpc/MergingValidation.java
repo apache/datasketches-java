@@ -9,8 +9,6 @@ import static com.yahoo.sketches.Util.iGoldenU64;
 import static com.yahoo.sketches.Util.pwr2LawNextDouble;
 import static com.yahoo.sketches.cpc.CpcMerging.mergeInto;
 import static com.yahoo.sketches.cpc.CpcSketch.bitMatrixOfSketch;
-import static com.yahoo.sketches.cpc.CpcSketch.determineSketchFlavor;
-import static com.yahoo.sketches.cpc.CpcUtil.countBitsSetInMatrix;
 import static com.yahoo.sketches.cpc.IconEstimator.getIconEstimate;
 import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertEquals;
 import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertTrue;
@@ -116,11 +114,11 @@ public class MergingValidation {
     final int finalLgKm = ugM.lgK;
     final long[] matrixM = CpcMerging.getBitMatrix(ugM);
 
-    final long cM = countBitsSetInMatrix(matrixM);
+    final long cM = CpcMerging.countBitsSetInMatrix(matrixM);
     final long cD = skD.numCoupons;
-    Flavor flavorD = determineSketchFlavor(skD);
-    Flavor flavorA = determineSketchFlavor(skA);
-    Flavor flavorB = determineSketchFlavor(skB);
+    Flavor flavorD = skD.getFlavor();
+    Flavor flavorA = skA.getFlavor();
+    Flavor flavorB = skB.getFlavor();
     String dOff = Integer.toString(skD.windowOffset);
     String aOff = Integer.toString(skA.windowOffset);
     String bOff = Integer.toString(skB.windowOffset);

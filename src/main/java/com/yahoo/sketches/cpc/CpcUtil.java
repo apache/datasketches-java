@@ -71,13 +71,6 @@ final class CpcUtil {
     return (quotient == 0) ? 0 : (int) floorLog2ofX(quotient);
   }
 
-  static long countBitsSetInMatrix(final long[] array) {
-    long count = 0;
-    final int len = array.length;
-    for (int i = 0; i < len; i++) { count += Long.bitCount(array[i]); }
-    return count;
-  }
-
   static int rowColFromTwoHashes(final long hash0, final long hash1, final int lgK) {
     final int kMask = (1 << lgK) - 1;
     int col = Long.numberOfLeadingZeros(hash1);
@@ -108,6 +101,28 @@ final class CpcUtil {
     return next;
   }
 
+  static Flavor determineFlavor(final int lgK, final long numCoupons) {
+    final long c = numCoupons;
+    final long k = 1L << lgK;
+    final long c2 = c << 1;
+    final long c8 = c << 3;
+    final long c32 = c << 5;
+    if (c == 0) {
+      return Flavor.EMPTY;    //    0  == C <    1
+    }
+    if (c32 < (3 * k)) {
+      return Flavor.SPARSE;   //    1  <= C <   3K/32
+    }
+    if (c2 < k) {
+      return Flavor.HYBRID;   // 3K/32 <= C <   K/2
+    }
+    if (c8 < (27 * k)) {
+      return Flavor.PINNED;   //   K/2 <= C < 27K/8
+    }
+    else {
+      return Flavor.SLIDING;  // 27K/8 <= C
+    }
+  }
 
   static {
     fillKxpByteLookup();

@@ -59,7 +59,7 @@ import com.yahoo.sketches.SketchesStateException;
  *
  * <p>How does getResult work?
  *
- * <p>If the unioner is using its accumator field, make a copy of that sketch.
+ * <p>If the unioner is using its accumulator field, make a copy of that sketch.
  *
  * <p>If the unioner is using its bitMatrix field, then we have to convert the
  * bitMatrix back into a sketch, which requires doing some extra work to
@@ -106,6 +106,13 @@ public class CpcMerging {
   public void reset() {
     accumulator = null;
     bitMatrix = null;
+  }
+
+  static long countBitsSetInMatrix(final long[] matrix) {
+    long count = 0;
+    final int len = matrix.length;
+    for (int i = 0; i < len; i++) { count += Long.bitCount(matrix[i]); }
+    return count;
   }
 
   //used for testing only
@@ -197,7 +204,7 @@ public class CpcMerging {
       final CpcSketch newSketch = new CpcSketch(newLgK, oldSketch.seed);
       walkTableUpdatingSketch(newSketch, oldSketch.surprisingValueTable);
 
-      final Flavor finalNewFlavor = CpcSketch.determineSketchFlavor(newSketch);
+      final Flavor finalNewFlavor = newSketch.getFlavor();
       assert (finalNewFlavor != EMPTY); //SV table had to have something in it
 
       if (finalNewFlavor == SPARSE) {
@@ -217,7 +224,7 @@ public class CpcMerging {
     if (source == null) { return; }
     checkSeeds(unioner.seed, source.seed);
 
-    final Flavor sourceFlavor = CpcSketch.determineSketchFlavor(source);
+    final Flavor sourceFlavor = source.getFlavor();
     if (sourceFlavor == EMPTY) { return; }
 
     if (source.lgK < unioner.lgK) {
@@ -229,7 +236,7 @@ public class CpcMerging {
 
     //CASE A
     if ((SPARSE == sourceFlavor) && (unioner.accumulator != null)) {
-      final Flavor initialDestFlavor = CpcSketch.determineSketchFlavor(unioner.accumulator);
+      final Flavor initialDestFlavor = unioner.accumulator.getFlavor();
       assert ((EMPTY == initialDestFlavor) || (SPARSE == initialDestFlavor));
 
       if ((EMPTY == initialDestFlavor) && (unioner.lgK == source.lgK)) {
@@ -237,7 +244,7 @@ public class CpcMerging {
       }
 
       walkTableUpdatingSketch(unioner.accumulator, source.surprisingValueTable);
-      final Flavor finalDestFlavor = CpcSketch.determineSketchFlavor(unioner.accumulator);
+      final Flavor finalDestFlavor = unioner.accumulator.getFlavor();
       // if the accumulator has graduated beyond sparse, switch to a bitMatrix representation
       if ((finalDestFlavor != EMPTY) && (finalDestFlavor != SPARSE)) {
         unioner.bitMatrix = CpcSketch.bitMatrixOfSketch(unioner.accumulator);
@@ -258,7 +265,7 @@ public class CpcMerging {
     // source is past SPARSE mode, so make sure that dest is a bitMatrix.
     if (unioner.accumulator != null) {
       assert (unioner.bitMatrix == null);
-      final Flavor destFlavor = CpcSketch.determineSketchFlavor(unioner.accumulator);
+      final Flavor destFlavor = unioner.accumulator.getFlavor();
       assert ((EMPTY == destFlavor) || (SPARSE == destFlavor));
       unioner.bitMatrix = CpcSketch.bitMatrixOfSketch(unioner.accumulator);
       unioner.accumulator = null;
@@ -290,7 +297,7 @@ public class CpcMerging {
         result.mergeFlag = true;
         return (result);
       }
-      assert (SPARSE == CpcSketch.determineSketchFlavor(unioner.accumulator));
+      assert (SPARSE == unioner.accumulator.getFlavor());
       final CpcSketch result = unioner.accumulator.copy();
       result.mergeFlag = true;
       return (result);
@@ -302,10 +309,10 @@ public class CpcMerging {
     final CpcSketch result = new CpcSketch(unioner.lgK, unioner.seed);
 
     final int k = 1 << lgK;
-    final long numCoupons = CpcUtil.countBitsSetInMatrix(matrix);
+    final long numCoupons = countBitsSetInMatrix(matrix);
     result.numCoupons = numCoupons;
 
-    final Flavor flavor = CpcSketch.determineFlavor(lgK, numCoupons);
+    final Flavor flavor = CpcUtil.determineFlavor(lgK, numCoupons);
     assert ((flavor == HYBRID) || (flavor == PINNED) || (flavor == SLIDING));
 
     final int offset = CpcSketch.determineCorrectOffset(lgK, numCoupons);

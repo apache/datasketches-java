@@ -770,7 +770,7 @@ final class CpcCompression {
     target.mergeFlag = source.mergeFlag;
     target.kxp = source.kxp;
     target.hipEstAccum = source.hipEstAccum;
-    target.hipErrAccum = source.hipErrAccum;
+    target.hipErrAccum = source.hipErrAccum; //TODO Keep or not?
 
     target.isCompressed = true;
 
@@ -785,7 +785,7 @@ final class CpcCompression {
     target.slidingWindow = null;
     target.surprisingValueTable = null;
 
-    final Flavor flavor = CpcSketch.determineSketchFlavor(source);
+    final Flavor flavor = source.getFlavor();
     //printf("Compress:   %s, C=%d\n", flavor.toString(), target.numCoupons);
     switch (flavor) {
       case EMPTY: compressEmptyFlavor(target, source); break;
@@ -829,7 +829,7 @@ final class CpcCompression {
     target.mergeFlag = source.mergeFlag;
     target.kxp = source.kxp;
     target.hipEstAccum = source.hipEstAccum;
-    target.hipErrAccum = source.hipErrAccum;
+    target.hipErrAccum = source.hipErrAccum; //TODO keep or not?
 
     target.isCompressed = false;
 
@@ -844,7 +844,7 @@ final class CpcCompression {
     target.compressedWindow = null;
     target.cwLength = 0;
 
-    final Flavor flavor = CpcSketch.determineSketchFlavor(source);
+    final Flavor flavor = source.getFlavor();
     //printf("Decompress: %s, C=%d\n", flavor.toString(), target.numCoupons);
     switch (flavor) {
       case EMPTY: uncompressEmptyFlavor(target, source); break;

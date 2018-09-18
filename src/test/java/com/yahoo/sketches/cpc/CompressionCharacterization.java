@@ -163,7 +163,7 @@ public class CompressionCharacterization {
     double avgCoK = avgC / k;
     double avgBytes = (4.0 * totalW) / totalTrials;
     int len = unCompressedSketches.length;
-    Flavor finFlavor = CpcSketch.determineSketchFlavor(unCompressedSketches[len - 1]);
+    Flavor finFlavor = unCompressedSketches[len - 1].getFlavor();
     String offStr = Integer.toString(unCompressedSketches[len - 1].windowOffset);
     String flavorOff = finFlavor.toString() + String.format("%2s", offStr);
     printf(dfmt, lgK, totalTrials, n, minNK, avgCoK, flavorOff, nOverK, avgBytes,
@@ -193,7 +193,7 @@ public class CompressionCharacterization {
         {"AvgUpd_nSperN",      "%14s", "%,14.1f"},
         {"AvgCom_nSperMinNK",  "%18s", "%,18.1f"},
         {"AvgUnc_nSperMinNK",  "%18s", "%,18.1f"},
-        {"Total_S",            "%8s", "%,8.3f"}
+        {"Total_S",            "%8s",  "%,8.3f"}
     };
     int cols = assy.length;
     hStrArr = new String[cols];

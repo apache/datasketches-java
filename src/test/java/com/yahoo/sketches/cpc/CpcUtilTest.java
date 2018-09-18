@@ -15,6 +15,8 @@ import java.util.Random;
  * intrinsic CPU instructions instead of the documented code. These are much faster
  * than even choosing most probable bytes algorithms that were derived from C.
  *
+ * <p>These tests are for experimental testing only and are not enabled for normal unit testing.
+ *
  * @author Lee Rhodes
  */
 public class CpcUtilTest {

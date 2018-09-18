@@ -10,7 +10,7 @@ import com.yahoo.sketches.SketchesArgumentException;
 /**
  * @author Lee Rhodes
  */
-public final class RuntimeAsserts {
+final class RuntimeAsserts {
 
   static void rtAssertTrue(final boolean b) {
     if (!b) {

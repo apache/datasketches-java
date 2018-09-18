@@ -33,7 +33,7 @@ public class StreamingValidation {
 
   //sketches
   private CpcSketch sketch = null;
-  private CpcMatrixSketch matrixSk = null;
+  private BitMatrix matrix = null;
 
   public StreamingValidation(int lgMinK, int lgMaxK, int trials, int ppoN, PrintStream pS,
       PrintWriter pW) {
@@ -74,25 +74,25 @@ public class StreamingValidation {
     double sumIconEst = 0.0;
     double sumHipEst = 0.0;
     sketch = new CpcSketch(lgK);
-    matrixSk = new CpcMatrixSketch(lgK);
+    matrix = new BitMatrix(lgK);
 
     for (int t = 0; t < trials; t++) {
       sketch.reset();
-      matrixSk.reset();
+      matrix.reset();
       for (long i = 0; i < n; i++) {
         final long in = (vIn += iGoldenU64);
         sketch.update(in);
-        matrixSk.update(in);
+        matrix.update(in);
       }
       sumC   += sketch.numCoupons;
       sumIconEst += IconEstimator.getIconEstimate(lgK, sketch.numCoupons);
       sumHipEst  += sketch.hipEstAccum;
-      rtAssertEquals(sketch.numCoupons, matrixSk.numCoupons);
+      rtAssertEquals(sketch.numCoupons, matrix.getNumCoupons());
       long[] bitMatrix = CpcSketch.bitMatrixOfSketch (sketch);
-      rtAssertEquals(bitMatrix, matrixSk.bitMatrix);
+      rtAssertEquals(bitMatrix, matrix.getMatrix());
     }
     long finC = sketch.numCoupons;
-    Flavor finFlavor = CpcSketch.determineSketchFlavor(sketch);
+    Flavor finFlavor = sketch.getFlavor();
     int finOff = sketch.windowOffset;
     double avgC = sumC / trials;
     double avgIconEst = sumIconEst / trials;

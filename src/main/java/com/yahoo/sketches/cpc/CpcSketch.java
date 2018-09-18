@@ -25,29 +25,28 @@ import com.yahoo.sketches.SketchesStateException;
 public final class CpcSketch {
   final int lgK;
   final long seed;
-  boolean isCompressed;
-  boolean mergeFlag;    // Is the sketch the result of merging?
   long numCoupons;      // The number of coupons collected so far.
+  boolean isCompressed; //true if compressed data structures
+  boolean mergeFlag;    // Is the sketch the result of merging?
 
   //The following variables occur in the updateable semi-compressed type.
-  byte[] slidingWindow;
   int windowOffset;
-  PairTable surprisingValueTable;
+  byte[] slidingWindow; //either null or size K bytes
+  PairTable surprisingValueTable; //either null or variable size
 
   // The following variables occur in the non-updateable fully-compressed type.
-  int[] compressedWindow;            //cwStream
   int cwLength; // The number of 32-bit words in this bitstream.
-  int numCompressedSurprisingValues; //numSV
-  int[] compressedSurprisingValues;  // csvStream
-  int csvLength; // The number of 32-bit words in this bitstream.
+  int[] compressedWindow;            //cwStream
 
-  // Note that (as an optimization) the two bitstreams could be concatenated.
+  int csvLength; // The number of 32-bit words in this bitstream.
+  int numCompressedSurprisingValues; //numCSV
+  int[] compressedSurprisingValues;  // csvStream
 
   int firstInterestingColumn; // fiCol. This is part of a speed optimization.
 
   double kxp;                  //used with HIP
   double hipEstAccum;          //used with HIP
-  double hipErrAccum;          //not currently used
+  double hipErrAccum;          //TODO not currently used, keep or not
 
   /**
    * Constructor with log_base2 of k.
@@ -91,32 +90,43 @@ public final class CpcSketch {
     copy.firstInterestingColumn = firstInterestingColumn;
     copy.kxp = kxp;
     copy.hipEstAccum = hipEstAccum;
-    copy.hipErrAccum = hipErrAccum;
+    copy.hipErrAccum = hipErrAccum;//TODO keep or not?
     return copy;
   }
 
-  public Flavor getFlavor() {
-    return determineFlavor(lgK, numCoupons);
-  }
-
-  public static Flavor determineSketchFlavor(final CpcSketch sketch) {
-    return determineFlavor(sketch.lgK, sketch.numCoupons);
+  /**
+   * Returns the best estimate of the cardinality of the sketch.
+   * @return the best estimate of the cardinality of the sketch.
+   */
+  public double getEstimate() {
+    if (mergeFlag) { return IconEstimator.getIconEstimate(lgK, numCoupons); }
+    return hipEstAccum;
   }
 
   /**
-   * Returns the HIP estimate
-   * @param sketch the given sketch
-   * @return the HIP estimate
+   * Returns the best estimate of the upper bound of the confidence interval given <i>kappa</i>,
+   * the number of standard deviations from the mean.
+   * @param kappa the given number of standard deviations from the mean: 1, 2 or 3.
+   * @return the best estimate of the upper bound of the confidence interval given <i>kappa</i>.
    */
-  public static double getHIPEstimate(final CpcSketch sketch) {
-    if (sketch.mergeFlag != false) {
-      throw new SketchesStateException("Failed to get HIP estimate of merged sketch");
+  public double getUpperBound(final int kappa) {
+    if (mergeFlag) {
+      return CpcConfidence.getIconConfidenceUB(lgK, numCoupons, kappa);
     }
-    return (sketch.hipEstAccum);
+    return CpcConfidence.getHipConfidenceUB(lgK, numCoupons, hipEstAccum, kappa);
   }
 
-  public static double getIconEstimate(final CpcSketch sketch) {
-    return IconEstimator.getIconEstimate(sketch.lgK, sketch.numCoupons);
+  /**
+   * Returns the best estimate of the lower bound of the confidence interval given <i>kappa</i>,
+   * the number of standard deviations from the mean.
+   * @param kappa the given number of standard deviations from the mean: 1, 2 or 3.
+   * @return the best estimate of the lower bound of the confidence interval given <i>kappa</i>.
+   */
+  public double getLowerBound(final int kappa) {
+    if (mergeFlag) {
+      return CpcConfidence.getIconConfidenceLB(lgK, numCoupons, kappa);
+    }
+    return CpcConfidence.getHipConfidenceLB(lgK, numCoupons, hipEstAccum, kappa);
   }
 
   /**
@@ -236,46 +246,19 @@ public final class CpcSketch {
     firstInterestingColumn = 0;
     kxp = 1 << lgK;
     hipEstAccum = 0;
-    hipErrAccum = 0;
+    hipErrAccum = 0; //TODO keep or not?
   }
 
-  public long getNumCoupons() {
+  Flavor getFlavor() {
+    return CpcUtil.determineFlavor(lgK, numCoupons);
+  }
+
+  long getNumCoupons() {
     return numCoupons;
   }
 
-  public int getWindowOffset() {
+  int getWindowOffset() {
     return windowOffset;
-  }
-
-  public double getIconEstimate() {
-    return IconEstimator.getIconEstimate(lgK, numCoupons);
-  }
-
-  public double getHipEstimate() {
-    return hipEstAccum;
-  }
-
-  static Flavor determineFlavor(final int lgK, final long numCoupons) {
-    final long c = numCoupons;
-    final long k = 1L << lgK;
-    final long c2 = c << 1;
-    final long c8 = c << 3;
-    final long c32 = c << 5;
-    if (c == 0) {
-      return Flavor.EMPTY;    //    0  == C <    1
-    }
-    if (c32 < (3 * k)) {
-      return Flavor.SPARSE;   //    1  <= C <   3K/32
-    }
-    if (c2 < k) {
-      return Flavor.HYBRID;   // 3K/32 <= C <   K/2
-    }
-    if (c8 < (27 * k)) {
-      return Flavor.PINNED;   //   K/2 <= C < 27K/8
-    }
-    else {
-      return Flavor.SLIDING;  // 27K/8 <= C
-    }
   }
 
   static int determineCorrectOffset(final int lgK, final long numCoupons) {
@@ -464,7 +447,6 @@ public final class CpcSketch {
       pattern ^= maskForFlippingEarlyZone;
       allSurprisesORed |= pattern; // a cheap way to recalculate firstInterestingColumn
       while (pattern != 0) {
-        //TODO use probabilistic version: countTrailingZerosInUnsignedLong(allSurprisesORed)
         final int col = Long.numberOfTrailingZeros(pattern);
         pattern = pattern ^ (1L << col); // erase the 1.
         final int rowCol = (i << 6) | col;
@@ -489,7 +471,7 @@ public final class CpcSketch {
     final int col = rowCol & 63;
     final double oneOverP = k / sketch.kxp;
     sketch.hipEstAccum += oneOverP;
-    sketch.hipErrAccum += ((oneOverP * oneOverP) - oneOverP);
+    sketch.hipErrAccum += ((oneOverP * oneOverP) - oneOverP); //TODO keep or not?
     sketch.kxp -= invPow2(col + 1); // notice the "+1"
   }
 
