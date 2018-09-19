@@ -243,48 +243,8 @@ public final class CpcSketch {
     hipEstAccum = 0;
   }
 
-  int getLgK() {
-    return lgK;
-  }
-
-  long getSeed() {
-    return seed;
-  }
-
   Flavor getFlavor() {
     return CpcUtil.determineFlavor(lgK, numCoupons);
-  }
-
-  long getNumCoupons() {
-    return numCoupons;
-  }
-
-  int getWindowOffset() {
-    return windowOffset;
-  }
-
-  boolean isMerged() {
-    return mergeFlag;
-  }
-
-  byte[] getSlidingWindow() {
-    return slidingWindow;
-  }
-
-  PairTable getSurprisingValueTable() {
-    return surprisingValueTable;
-  }
-
-  int getFirstInterestingColumn() {
-    return firstInterestingColumn;
-  }
-
-  double getKxp() {
-    return kxp;
-  }
-
-  double getHipAccum() {
-    return hipEstAccum;
   }
 
   static int determineCorrectOffset(final int lgK, final long numCoupons) {

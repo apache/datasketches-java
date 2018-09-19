@@ -459,14 +459,14 @@ final class CpcCompression {
   }
 
   private static void compressTheWindow(final CompressedState target, final CpcSketch source) {
-    final int srcLgK = source.getLgK();
+    final int srcLgK = source.lgK;
     final int srcK = 1 << srcLgK;
     final int windowBufLen = safeLengthForCompressedWindowBuf(srcK);
     final int[] windowBuf = new int[windowBufLen];
     assert (windowBuf != null);
-    final int pseudoPhase = determinePseudoPhase(srcLgK, source.getNumCoupons());
+    final int pseudoPhase = determinePseudoPhase(srcLgK, source.numCoupons);
     target.cwLength = lowLevelCompressBytes(
-        source.getSlidingWindow(),
+        source.slidingWindow,
         srcK,
         encodingTablesForHighEntropyByte[pseudoPhase],
         windowBuf);
@@ -497,7 +497,7 @@ final class CpcCompression {
       final int[] pairs, final int numPairs) {
     assert (numPairs > 0);
     target.numCompressedSurprisingValues = numPairs;
-    final int srcK = 1 << source.getLgK();
+    final int srcK = 1 << source.lgK;
     final int numBaseBits = golombChooseNumberOfBaseBits(srcK + numPairs, numPairs);
     final int pairBufLen = safeLengthForCompressedPairBuf(srcK, numPairs, numBaseBits);
     final int[] pairBuf = new int[pairBufLen];
@@ -525,8 +525,8 @@ final class CpcCompression {
   }
 
   private static void compressSparseFlavor(final CompressedState target, final CpcSketch source) {
-    assert (source.getSlidingWindow() == null); //there is no window to compress
-    final PairTable srcPairTable = source.getSurprisingValueTable();
+    assert (source.slidingWindow == null); //there is no window to compress
+    final PairTable srcPairTable = source.surprisingValueTable;
     final int numPairs = srcPairTable.numPairs;
     final int[] pairs = PairTable.unwrappingGetItems(srcPairTable, numPairs);
     introspectiveInsertionSort(pairs, 0, numPairs - 1);
@@ -566,14 +566,14 @@ final class CpcCompression {
   //This is complicated because it effectively builds a Sparse version
   //of a Pinned sketch before compressing it. Hence the name Hybrid.
   private static void compressHybridFlavor(final CompressedState target, final CpcSketch source) {
-    final int srcK = 1 << source.getLgK();
-    final PairTable srcPairTable = source.getSurprisingValueTable();
+    final int srcK = 1 << source.lgK;
+    final PairTable srcPairTable = source.surprisingValueTable;
     final int srcNumPairsFromTable = srcPairTable.numPairs;
     final int[] pairsFromTable = PairTable.unwrappingGetItems(srcPairTable, srcNumPairsFromTable);
     introspectiveInsertionSort(pairsFromTable, 0, srcNumPairsFromTable - 1);
-    final byte[] srcSlidingWindow = source.getSlidingWindow();
-    final int srcWindowOffset = source.getWindowOffset();
-    final long srcNumCoupons = source.getNumCoupons();
+    final byte[] srcSlidingWindow = source.slidingWindow;
+    final int srcWindowOffset = source.windowOffset;
+    final long srcNumCoupons = source.numCoupons;
     assert (srcSlidingWindow != null);
     assert (srcWindowOffset == 0);
     final long numPairs = srcNumCoupons - srcNumPairsFromTable; // because the window offset is zero
@@ -681,7 +681,7 @@ final class CpcCompression {
   private static void compressSlidingFlavor(final CompressedState target, final CpcSketch source) {
 
     compressTheWindow(target, source);
-    final PairTable srcPairTable = source.getSurprisingValueTable();
+    final PairTable srcPairTable = source.surprisingValueTable;
 
     final int numPairs = srcPairTable.numPairs;
 
@@ -692,11 +692,11 @@ final class CpcCompression {
       // Here we apply a complicated transformation to the column indices, which
       // changes the implied ordering of the pairs, so we must do it before sorting.
 
-      final int pseudoPhase = determinePseudoPhase(source.getLgK(), source.getNumCoupons()); // NB
+      final int pseudoPhase = determinePseudoPhase(source.lgK, source.numCoupons); // NB
       assert (pseudoPhase < 16);
       final byte[] permutation = columnPermutationsForEncoding[pseudoPhase];
 
-      final int offset = source.getWindowOffset();
+      final int offset = source.windowOffset;
       assert ((offset > 0) && (offset <= 56));
 
       for (int i = 0; i < numPairs; i++) {

@@ -36,18 +36,17 @@ final class CompressedState {
   }
 
   static CompressedState compress(final CpcSketch source) {
-    final short seedHash = computeSeedHash(source.getSeed());
+    final short seedHash = computeSeedHash(source.seed);
     final CompressedState target = new CompressedState(source.lgK, seedHash);
-    target.firstInterestingColumn = source.getFirstInterestingColumn();
-    target.mergeFlag = source.isMerged();
-    target.numCoupons = source.getNumCoupons();
+    target.firstInterestingColumn = source.firstInterestingColumn;
+    target.mergeFlag = source.mergeFlag;
+    target.numCoupons = source.numCoupons;
     target.kxp = source.kxp;
     target.hipEstAccum = source.hipEstAccum;
 
-    target.svIsValid = source.getSurprisingValueTable() != null;
-    target.windowIsValid = (source.getSlidingWindow() != null);
+    target.svIsValid = source.surprisingValueTable != null;
+    target.windowIsValid = (source.slidingWindow != null);
 
-    //To be filled in
     target.numCompressedSurprisingValues = 0;
     target.compressedSurprisingValues = null;
     target.csvLength = 0;
