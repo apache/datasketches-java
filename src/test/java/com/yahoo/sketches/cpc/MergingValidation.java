@@ -10,8 +10,8 @@ import static com.yahoo.sketches.Util.pwr2LawNextDouble;
 import static com.yahoo.sketches.cpc.CpcMerging.mergeInto;
 import static com.yahoo.sketches.cpc.CpcSketch.bitMatrixOfSketch;
 import static com.yahoo.sketches.cpc.IconEstimator.getIconEstimate;
+import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssert;
 import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertEquals;
-import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertTrue;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -127,8 +127,8 @@ public class MergingValidation {
     String flavorBoff = flavorB + String.format("%2s",bOff);
     double iconEstD = getIconEstimate(lgKd, cD);
 
-    rtAssertTrue(finalLgKm <= lgKm);
-    rtAssertTrue(cM <= (skA.numCoupons + skB.numCoupons));
+    rtAssert(finalLgKm <= lgKm);
+    rtAssert(cM <= (skA.numCoupons + skB.numCoupons));
     rtAssertEquals(cM, cD);
 
     rtAssertEquals(finalLgKm, lgKd);
@@ -138,7 +138,7 @@ public class MergingValidation {
     CpcSketch skR = CpcMerging.getResult(ugM);
     double iconEstR = getIconEstimate(skR.lgK, skR.numCoupons);
     rtAssertEquals(iconEstD, iconEstR, 0.0);
-    rtAssertTrue(CpcSketch.equals(skD, skR, true));
+    rtAssert(CpcSketch.equals(skD, skR, false, true));
 
     printf(dfmt, lgKm, lgKa, lgKb, lgKd, nA, nB, (nA + nB),
         flavorAoff, flavorBoff, flavorDoff,

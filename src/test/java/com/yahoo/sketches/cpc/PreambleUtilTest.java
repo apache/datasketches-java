@@ -195,7 +195,6 @@ public class PreambleUtilTest {
     assertEquals(offset, 1L);
   }
 
-
   @Test
   public void printlnTest() {
     println("PRINTING: " + this.getClass().getName());

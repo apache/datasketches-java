@@ -83,10 +83,15 @@ public final class Util {
   public static final double LOG2 = log(2.0);
 
   /**
-   * the golden ratio inverse as an unsigned long
+   * The inverse golden ratio as an unsigned long.
    */
   public static final long iGoldenU64 = 0x9e3779b97f4a7c13L;
-  public static final double iGolden = 0.6180339887498949025; // the golden ratio inverse
+
+  /**
+   * The inverse golden ratio as a fraction.
+   * This has more precision than using the formula: (Math.sqrt(5.0) - 1.0) / 2.0.
+   */
+  public static final double iGolden = 0.6180339887498949025; // the inverse golden ratio
 
   private Util() {}
 

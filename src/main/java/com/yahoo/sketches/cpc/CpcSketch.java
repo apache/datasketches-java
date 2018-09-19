@@ -9,44 +9,42 @@ import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.Util.invPow2;
 import static com.yahoo.sketches.cpc.CpcUtil.checkLgK;
 import static com.yahoo.sketches.cpc.CpcUtil.kxpByteLookup;
+import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssert;
 import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertEquals;
-import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertTrue;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.util.Arrays;
-
-import com.yahoo.sketches.SketchesStateException;
 
 /**
  * @author Lee Rhodes
  * @author Kevin Lang
  */
 public final class CpcSketch {
-  final int lgK;
   final long seed;
+  //The following variables occur in all forms
+  final int lgK;
   long numCoupons;      // The number of coupons collected so far.
-  boolean isCompressed; //true if compressed data structures
   boolean mergeFlag;    // Is the sketch the result of merging?
+  int firstInterestingColumn; // fiCol. This is part of a speed optimization.
 
-  //The following variables occur in the updateable semi-compressed type.
+  //The following variables are only valid in HIP varients
+  double kxp;                  //used with HIP
+  double hipEstAccum;          //used with HIP
+  //double hipErrAccum;          //not currently used
+
+  //The following variables occur in the updateable sketch.
   int windowOffset;
   byte[] slidingWindow; //either null or size K bytes
   PairTable surprisingValueTable; //either null or variable size
 
-  // The following variables occur in the non-updateable fully-compressed type.
-  int cwLength; // The number of 32-bit words in this bitstream.
-  int[] compressedWindow;            //cwStream
-
-  int csvLength; // The number of 32-bit words in this bitstream.
-  int numCompressedSurprisingValues; //numCSV
-  int[] compressedSurprisingValues;  // csvStream
-
-  int firstInterestingColumn; // fiCol. This is part of a speed optimization.
-
-  double kxp;                  //used with HIP
-  double hipEstAccum;          //used with HIP
-  double hipErrAccum;          //TODO not currently used, keep or not
+  //boolean isCompressed;
+  //The following variables occur in the non-updateable fully-compressed type.
+  //int cwLength; // The number of 32-bit words in this bitstream.
+  //int[] compressedWindow;            //cwStream
+  //int csvLength; // The number of 32-bit words in this bitstream.
+  //int numCompressedSurprisingValues; //numCSV
+  //int[] compressedSurprisingValues;  // csvStream
 
   /**
    * Constructor with log_base2 of k.
@@ -75,22 +73,34 @@ public final class CpcSketch {
    */
   public CpcSketch copy() {
     final CpcSketch copy = new CpcSketch(lgK, seed);
-    copy.isCompressed = isCompressed;
-    copy.mergeFlag = mergeFlag;
     copy.numCoupons = numCoupons;
-    copy.slidingWindow = (slidingWindow == null) ? null : slidingWindow.clone();
-    copy.windowOffset = windowOffset;
-    copy.surprisingValueTable = surprisingValueTable.copy();
-    copy.compressedWindow = (compressedWindow == null) ? null : compressedWindow.clone();
-    copy.cwLength = cwLength;
-    copy.numCompressedSurprisingValues = numCompressedSurprisingValues;
-    copy.compressedSurprisingValues = (compressedSurprisingValues == null) ? null
-        : compressedSurprisingValues.clone();
-    copy.csvLength = csvLength;
+    copy.mergeFlag = mergeFlag;
     copy.firstInterestingColumn = firstInterestingColumn;
+
     copy.kxp = kxp;
     copy.hipEstAccum = hipEstAccum;
-    copy.hipErrAccum = hipErrAccum;//TODO keep or not?
+    //copy.hipErrAccum = hipErrAccum;
+
+    copy.windowOffset = windowOffset;
+    copy.slidingWindow = (slidingWindow == null) ? null : slidingWindow.clone();
+    copy.surprisingValueTable = (surprisingValueTable == null) ? null : surprisingValueTable.copy();
+
+
+    //copy.isCompressed = isCompressed;
+    //copy.cwLength = cwLength;
+    //copy.compressedWindow = (compressedWindow == null) ? null : compressedWindow.clone();
+    //copy.csvLength = csvLength;
+    //copy.numCompressedSurprisingValues = numCompressedSurprisingValues;
+    //copy.compressedSurprisingValues = (compressedSurprisingValues == null) ? null
+    //    : compressedSurprisingValues.clone();
+
+
+
+
+
+
+
+
     return copy;
   }
 
@@ -232,21 +242,34 @@ public final class CpcSketch {
    * Resets this sketch to empty but retains the original LgK and Seed.
    */
   public final void reset() {
-    isCompressed = false;
-    mergeFlag = false;
+
+
     numCoupons = 0;
-    slidingWindow = null;
-    windowOffset = 0;
-    surprisingValueTable = null;
-    compressedWindow = null;
-    cwLength = 0;
-    numCompressedSurprisingValues = 0;
-    compressedSurprisingValues = null;
-    csvLength = 0;
+    mergeFlag = false;
     firstInterestingColumn = 0;
+
     kxp = 1 << lgK;
     hipEstAccum = 0;
-    hipErrAccum = 0; //TODO keep or not?
+    //hipErrAccum = 0;
+
+    windowOffset = 0;
+    slidingWindow = null;
+    surprisingValueTable = null;
+
+    //isCompressed = false; //remove
+    //cwLength = 0;
+    //compressedWindow = null;
+    //csvLength = 0;
+    //numCompressedSurprisingValues = 0;
+    //compressedSurprisingValues = null;
+  }
+
+  int getLgK() {
+    return lgK;
+  }
+
+  long getSeed() {
+    return seed;
   }
 
   Flavor getFlavor() {
@@ -259,6 +282,30 @@ public final class CpcSketch {
 
   int getWindowOffset() {
     return windowOffset;
+  }
+
+  boolean isMerged() {
+    return mergeFlag;
+  }
+
+  byte[] getSlidingWindow() {
+    return slidingWindow;
+  }
+
+  PairTable getSurprisingValueTable() {
+    return surprisingValueTable;
+  }
+
+  int getFirstInterestingColumn() {
+    return firstInterestingColumn;
+  }
+
+  double getKxp() {
+    return kxp;
+  }
+
+  double getHipAccum() {
+    return hipEstAccum;
   }
 
   static int determineCorrectOffset(final int lgK, final long numCoupons) {
@@ -283,7 +330,7 @@ public final class CpcSketch {
    * @return the bit matrix as an array of longs.
    */
   static long[] bitMatrixOfSketch(final CpcSketch sketch) {
-    assert (sketch.isCompressed == false);
+    //assert (sketch.isCompressed == false);
     final int k = (1 << sketch.lgK);
     final int offset = sketch.windowOffset;
     assert (offset >= 0) && (offset <= 56);
@@ -425,7 +472,6 @@ public final class CpcSketch {
 
     // Construct the full-sized bit matrix that corresponds to the sketch
     final long[] bitMatrix = bitMatrixOfSketch(sketch);
-    assert bitMatrix != null;
 
     // refresh the KXP register on every 8th window shift.
     if ((newOffset & 0x7) == 0) { refreshKXP(sketch, bitMatrix); }
@@ -471,7 +517,7 @@ public final class CpcSketch {
     final int col = rowCol & 63;
     final double oneOverP = k / sketch.kxp;
     sketch.hipEstAccum += oneOverP;
-    sketch.hipErrAccum += ((oneOverP * oneOverP) - oneOverP); //TODO keep or not?
+    //sketch.hipErrAccum += ((oneOverP * oneOverP) - oneOverP);
     sketch.kxp -= invPow2(col + 1); // notice the "+1"
   }
 
@@ -556,9 +602,9 @@ public final class CpcSketch {
   void rowColUpdate(final int rowCol) {
     final int col = rowCol & 63;
     if (col < firstInterestingColumn) { return; } // important speed optimization
-    if (isCompressed) {
-      throw new SketchesStateException("Cannot update a compressed sketch.");
-    }
+    //if (isCompressed) {
+    //  throw new SketchesStateException("Cannot update a compressed sketch.");
+    //}
     final long c = numCoupons;
     if (c == 0) { promoteEmptyToSparse(this); }
     final int k = 1 << lgK;
@@ -566,33 +612,42 @@ public final class CpcSketch {
     else { updateWindowed(this, rowCol); }
   }
 
-  static boolean equals(final CpcSketch skA, final CpcSketch skB, final boolean skBwasMerged) {
+  static boolean equals(final CpcSketch skA, final CpcSketch skB,
+      final boolean skAwasMerged, final boolean skBwasMerged) {
+    rtAssertEquals(skA.seed, skB.seed);
     rtAssertEquals(skA.lgK, skB.lgK);
-    rtAssertEquals(skA.isCompressed, skB.isCompressed);
     rtAssertEquals(skA.numCoupons, skB.numCoupons);
+
     rtAssertEquals(skA.windowOffset, skB.windowOffset);
-    rtAssertEquals(skA.cwLength, skB.cwLength);
-    rtAssertEquals(skA.csvLength, skB.csvLength);
-    rtAssertEquals(skA.numCompressedSurprisingValues, skB.numCompressedSurprisingValues);
-    PairTable.equals(skA.surprisingValueTable, skB.surprisingValueTable);
     rtAssertEquals(skA.slidingWindow, skB.slidingWindow);
-    rtAssertEquals(skA.compressedWindow, skB.compressedWindow);
-    rtAssertEquals(skA.compressedSurprisingValues, skB.compressedSurprisingValues);
+    PairTable.equals(skA.surprisingValueTable, skB.surprisingValueTable);
+
+    //rtAssertEquals(skA.isCompressed, skB.isCompressed);
+    //rtAssertEquals(skA.cwLength, skB.cwLength);
+    //rtAssertEquals(skA.compressedWindow, skB.compressedWindow);
+    //rtAssertEquals(skA.csvLength, skB.csvLength);
+    //rtAssertEquals(skA.numCompressedSurprisingValues, skB.numCompressedSurprisingValues);
+    //rtAssertEquals(skA.compressedSurprisingValues, skB.compressedSurprisingValues);
+
+    // firstInterestingColumn is only updated occasionally while stream processing,
+    // therefore, the stream sketch could be behind the merged sketch.
+    // NB: While not very likely, it is possible for the difference to exceed 2.
     final int ficolA = skA.firstInterestingColumn;
     final int ficolB = skB.firstInterestingColumn;
 
-    if (skBwasMerged) {
-      rtAssertTrue(!skA.mergeFlag && skB.mergeFlag);
-      // firstInterestingColumn is only updated occasionally while stream processing.
-      // NB: While not very likely, it is possible for the difference to exceed 2.
-      rtAssertTrue(((ficolA + 0) == ficolB)
-          || ((ficolA + 1) == ficolB)
-          || ((ficolA + 2) == ficolB));
+    if (!skAwasMerged && skBwasMerged) {
+      rtAssert(!skA.mergeFlag && skB.mergeFlag);
+      final int diff = ficolB - ficolA;
+      rtAssert((diff <= 2) && (diff >= 0));
+    } else if (skAwasMerged && !skBwasMerged) {
+      rtAssert(skA.mergeFlag && !skB.mergeFlag);
+      final int diff = ficolA - ficolB;
+      rtAssert((diff <= 2) && (diff >= 0));
     } else {
       rtAssertEquals(skA.mergeFlag, skB.mergeFlag);
       rtAssertEquals(ficolA, ficolB);
-      rtAssertEquals(skA.kxp, skB.kxp, .01 * skA.kxp); //1% tollerence
-      rtAssertEquals(skA.hipEstAccum, skB.hipEstAccum, 01 * skA.hipEstAccum); //1% tollerence
+      rtAssertEquals(skA.kxp, skB.kxp, .01 * skA.kxp); //1% tolerance
+      rtAssertEquals(skA.hipEstAccum, skB.hipEstAccum, 01 * skA.hipEstAccum); //1% tolerance
     }
     return true;
   }

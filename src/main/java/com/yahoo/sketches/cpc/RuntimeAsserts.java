@@ -12,7 +12,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  */
 final class RuntimeAsserts {
 
-  static void rtAssertTrue(final boolean b) {
+  static void rtAssert(final boolean b) {
     if (!b) {
       throw new SketchesArgumentException("False, expected True.");
     }

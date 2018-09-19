@@ -7,6 +7,8 @@ package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.Util.zeroPad;
 import static com.yahoo.sketches.cpc.CpcSketch.determineCorrectOffset;
+import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssert;
+import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertEquals;
 
 import java.nio.ByteOrder;
 import java.util.HashMap;
@@ -729,7 +731,19 @@ final class PreambleUtil {
     }
   }
 
-
+  //basic checks of SerVer, Format, preInts, Family, fiCol, lgK.
+  static void checkLoPreamble(final Memory mem) {
+    rtAssertEquals(getSerVer(mem), SER_VER & 0XFF);
+    final Format fmt = getFormat(mem);
+    final int preIntsDef = getDefinedPreInts(fmt) & 0XFF;
+    rtAssertEquals(getPreInts(mem), preIntsDef);
+    final Family fam = getFamily(mem);
+    rtAssert(fam == Family.CPC);
+    final int lgK = getLgK(mem);
+    rtAssert((lgK >= 4) && (lgK <= 26));
+    final int fiCol = getFiCol(mem);
+    rtAssert((fiCol <= 63) && (fiCol >= 0));
+  }
 
 }
 //@formatter:on

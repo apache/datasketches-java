@@ -13,8 +13,8 @@ import static com.yahoo.sketches.cpc.CompressionData.lengthLimitedUnaryDecodingT
 import static com.yahoo.sketches.cpc.CompressionData.lengthLimitedUnaryEncodingTable65;
 import static com.yahoo.sketches.cpc.CpcUtil.divideBy32RoundingUp;
 import static com.yahoo.sketches.cpc.CpcUtil.golombChooseNumberOfBaseBits;
-//import static com.yahoo.sketches.cpc.CpcUtil.printPairs;
 import static com.yahoo.sketches.cpc.PairTable.introspectiveInsertionSort;
+//import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertEquals;
 
 import com.yahoo.sketches.SketchesStateException;
 
@@ -35,14 +35,14 @@ final class CpcCompression {
       final int theValue) {
 
     int nextWordIndex = (int) ptrArr[NEXT_WORD_IDX]; //must be int
-    assert nextWordIndex == ptrArr[NEXT_WORD_IDX];   //catch truncation error
+    assert (nextWordIndex == ptrArr[NEXT_WORD_IDX]); //catch truncation error
     long bitBuf = ptrArr[BIT_BUF];                   //must be long
     int bufBits = (int) ptrArr[BUF_BITS];            //could be byte
 
-    assert compressedWords != null;
-    assert nextWordIndex >= 0;
-    assert bitBuf >= 0;
-    assert (bufBits >= 0) && (bufBits <= 31);
+    assert (compressedWords != null);
+    assert (nextWordIndex >= 0);
+    assert (bitBuf >= 0);
+    assert ((bufBits >= 0) && (bufBits <= 31));
 
     int remaining = theValue;
 
@@ -453,15 +453,16 @@ final class CpcCompression {
     }
   }
 
-  static void compressTheWindow(final CpcSketch target, final CpcSketch source) {
-    final int k = 1 << source.lgK;
-    final int windowBufLen = safeLengthForCompressedWindowBuf(k);
+  static void compressTheWindow(final CompressedState target, final CpcSketch source) {
+    final int srcLgK = source.getLgK();
+    final int srcK = 1 << srcLgK;
+    final int windowBufLen = safeLengthForCompressedWindowBuf(srcK);
     final int[] windowBuf = new int[windowBufLen];
     assert (windowBuf != null);
-    final int pseudoPhase = determinePseudoPhase(source.lgK, source.numCoupons);
+    final int pseudoPhase = determinePseudoPhase(srcLgK, source.getNumCoupons());
     target.cwLength = lowLevelCompressBytes(
-        source.slidingWindow,
-        k,
+        source.getSlidingWindow(),
+        srcK,
         encodingTablesForHighEntropyByte[pseudoPhase],
         windowBuf);
 
@@ -471,28 +472,29 @@ final class CpcCompression {
     target.compressedWindow = windowBuf; //avoid extra copy
   }
 
-  static void uncompressTheWindow(final CpcSketch target, final CpcSketch source) {
-    final int k = 1 << source.lgK;
-    final byte[] window = new byte[k];
+  static void uncompressTheWindow(final CpcSketch target, final CompressedState source) {
+    final int srcLgK = source.lgK;
+    final int srcK = 1 << srcLgK;
+    final byte[] window = new byte[srcK];
     assert (window != null);
     // bzero ((void *) window, (size_t) k); // zeroing not needed here (unlike the Hybrid Flavor)
     assert (target.slidingWindow == null);
     target.slidingWindow = window;
-    final int pseudoPhase = determinePseudoPhase(source.lgK, source.numCoupons);
+    final int pseudoPhase = determinePseudoPhase(srcLgK, source.numCoupons);
     assert (source.compressedWindow != null);
-    lowLevelUncompressBytes(target.slidingWindow, k,
+    lowLevelUncompressBytes(target.slidingWindow, srcK,
            decodingTablesForHighEntropyByte[pseudoPhase],
            source.compressedWindow,
            source.cwLength);
   }
 
-  static void compressTheSurprisingValues(final CpcSketch target, final CpcSketch source, final int[] pairs,
-      final int numPairs) {
+  static void compressTheSurprisingValues(final CompressedState target, final CpcSketch source,
+      final int[] pairs, final int numPairs) {
     assert (numPairs > 0);
     target.numCompressedSurprisingValues = numPairs;
-    final int k = 1 << source.lgK;
-    final int numBaseBits = golombChooseNumberOfBaseBits(k + numPairs, numPairs);
-    final int pairBufLen = safeLengthForCompressedPairBuf(k, numPairs, numBaseBits);
+    final int srcK = 1 << source.getLgK();
+    final int numBaseBits = golombChooseNumberOfBaseBits(srcK + numPairs, numPairs);
+    final int pairBufLen = safeLengthForCompressedPairBuf(srcK, numPairs, numBaseBits);
     final int[] pairBuf = new int[pairBufLen];
 
     target.csvLength = (int) lowLevelCompressPairs(pairs, numPairs, numBaseBits, pairBuf);
@@ -506,47 +508,47 @@ final class CpcCompression {
 
   //allocates and returns an array of uncompressed pairs.
   //the length of this array is known to the source sketch.
-  static int[] uncompressTheSurprisingValues(final CpcSketch source) {
-    assert source.isCompressed;
-    final int k = 1 << source.lgK;
+  static int[] uncompressTheSurprisingValues(final CompressedState source) {
+    //assert source.isCompressed;
+    final int srcK = 1 << source.lgK;
     final int numPairs = source.numCompressedSurprisingValues;
     assert numPairs > 0;
     final int[] pairs = new int[numPairs];
-    final int numBaseBits = golombChooseNumberOfBaseBits(k + numPairs, numPairs);
+    final int numBaseBits = golombChooseNumberOfBaseBits(srcK + numPairs, numPairs);
     lowLevelUncompressPairs(pairs, numPairs, numBaseBits,
         source.compressedSurprisingValues, source.csvLength);
     return pairs;
   }
 
   @SuppressWarnings("unused")
-  static void compressEmptyFlavor(final CpcSketch target, final CpcSketch source) {
+  static void compressEmptyFlavor(final CompressedState target, final CpcSketch source) {
     return; // nothing to do, so just return
   }
 
   @SuppressWarnings("unused")
-  static void uncompressEmptyFlavor(final CpcSketch target, final CpcSketch source) {
+  static void uncompressEmptyFlavor(final CpcSketch target, final CompressedState source) {
     return; // nothing to do, so just return
   }
 
-  static void compressSparseFlavor(final CpcSketch target, final CpcSketch source) {
-    assert (source.slidingWindow == null); //there is no window to compress
-    final PairTable pairTable = source.surprisingValueTable;
-    final int numPairs = pairTable.numPairs;
+  static void compressSparseFlavor(final CompressedState target, final CpcSketch source) {
+    assert (source.getSlidingWindow() == null); //there is no window to compress
+    final PairTable srcPairTable = source.getSurprisingValueTable();
+    final int numPairs = srcPairTable.numPairs;
     //printf("Compress   NumPairs: %d\n", numPairs);
-    final int[] pairs = PairTable.unwrappingGetItems(pairTable, numPairs);
+    final int[] pairs = PairTable.unwrappingGetItems(srcPairTable, numPairs);
     //printPairs(pairs);
     introspectiveInsertionSort(pairs, 0, numPairs - 1);
     //printPairs(pairs);
     compressTheSurprisingValues(target, source, pairs, numPairs);
   }
 
-  static void uncompressSparseFlavor(final CpcSketch target, final CpcSketch source) {
+  static void uncompressSparseFlavor(final CpcSketch target, final CompressedState source) {
     assert (source.compressedWindow == null);
     assert (source.compressedSurprisingValues != null);
-    final int[] pairs = uncompressTheSurprisingValues(source);
+    final int[] srcPairArr = uncompressTheSurprisingValues(source);
     final int numPairs = source.numCompressedSurprisingValues;
     //printf("Decompress NumPairs: %d\n", numPairs);
-    final PairTable table = PairTable.newInstanceFromPairsArray(pairs, numPairs, source.lgK);
+    final PairTable table = PairTable.newInstanceFromPairsArray(srcPairArr, numPairs, source.lgK);
     target.surprisingValueTable = table;
   }
 
@@ -573,34 +575,37 @@ final class CpcCompression {
 
   //This is complicated because it effectively builds a Sparse version
   //of a Pinned sketch before compressing it. Hence the name Hybrid.
-  static void compressHybridFlavor(final CpcSketch target, final CpcSketch source) {
-    final int k = 1 << source.lgK;
-    final int numPairsFromTable = source.surprisingValueTable.numPairs;
-    final int[] pairsFromTable = PairTable.unwrappingGetItems(source.surprisingValueTable, numPairsFromTable);
-    introspectiveInsertionSort(pairsFromTable, 0, numPairsFromTable - 1);
-
-    assert (source.slidingWindow != null);
-    assert (source.windowOffset == 0);
-    final long numPairs = source.numCoupons - numPairsFromTable; // because the window offset is zero
+  static void compressHybridFlavor(final CompressedState target, final CpcSketch source) {
+    final int srcK = 1 << source.getLgK();
+    final PairTable srcPairTable = source.getSurprisingValueTable();
+    final int srcNumPairsFromTable = srcPairTable.numPairs;
+    final int[] pairsFromTable = PairTable.unwrappingGetItems(srcPairTable, srcNumPairsFromTable);
+    introspectiveInsertionSort(pairsFromTable, 0, srcNumPairsFromTable - 1);
+    final byte[] srcSlidingWindow = source.getSlidingWindow();
+    final int srcWindowOffset = source.getWindowOffset();
+    final long srcNumCoupons = source.getNumCoupons();
+    assert (srcSlidingWindow != null);
+    assert (srcWindowOffset == 0);
+    final long numPairs = srcNumCoupons - srcNumPairsFromTable; // because the window offset is zero
     assert numPairs < Integer.MAX_VALUE;
     final int numPairsFromArray = (int) numPairs;
 
-    assert (numPairsFromArray + numPairsFromTable) == source.numCoupons; //for test
+    assert (numPairsFromArray + srcNumPairsFromTable) == srcNumCoupons; //for test
     final int[] allPairs
-      = trickyGetPairsFromWindow(source.slidingWindow, k, numPairsFromArray, numPairsFromTable);
+      = trickyGetPairsFromWindow(srcSlidingWindow, srcK, numPairsFromArray, srcNumPairsFromTable);
 
-    PairTable.merge(pairsFromTable, 0, numPairsFromTable,
-        allPairs, numPairsFromTable, numPairsFromArray,
+    PairTable.merge(pairsFromTable, 0, srcNumPairsFromTable,
+        allPairs, srcNumPairsFromTable, numPairsFromArray,
         allPairs, 0);  // note the overlapping subarray trick
 
     //TODO INTERIM FOR TESTING
     //        for (int i = 0; i < (source.numCoupons - 1); i++) {
     //          assert (Integer.compareUnsigned(allPairs[i], allPairs[i + 1]) < 0); }
 
-    compressTheSurprisingValues(target, source, allPairs, (int) source.numCoupons);
+    compressTheSurprisingValues(target, source, allPairs, (int) srcNumCoupons);
   }
 
-  static void uncompressHybridFlavor(final CpcSketch target, final CpcSketch source) {
+  static void uncompressHybridFlavor(final CpcSketch target, final CompressedState source) {
     assert (source.compressedWindow == null);
     assert (source.compressedSurprisingValues != null);
     final int[] pairs = uncompressTheSurprisingValues(source); //fail path 3
@@ -608,8 +613,8 @@ final class CpcCompression {
     // In the hybrid flavor, some of these pairs actually
     // belong in the window, so we will separate them out,
     // moving the "true" pairs to the bottom of the array.
-
-    final int k = 1 << source.lgK;
+    final int srcLgK = source.lgK;
+    final int k = 1 << srcLgK;
 
     final byte[] window = new byte[k];
     assert (window != null);
@@ -629,21 +634,21 @@ final class CpcCompression {
       }
     }
 
-    assert (source.windowOffset == 0);
+    assert (source.getWindowOffset() == 0);
     target.windowOffset = 0;
 
-    final PairTable table = PairTable.newInstanceFromPairsArray(pairs, nextTruePair, source.lgK);
+    final PairTable table = PairTable.newInstanceFromPairsArray(pairs, nextTruePair, srcLgK);
     target.surprisingValueTable = table;
     target.slidingWindow = window;
   }
 
-  static void compressPinnedFlavor(final CpcSketch target, final CpcSketch source) {
+  static void compressPinnedFlavor(final CompressedState target, final CpcSketch source) {
     compressTheWindow(target, source);
-    final PairTable pairTable = source.surprisingValueTable;
-    final int numPairs = pairTable.numPairs;
+    final PairTable srcPairTable = source.surprisingValueTable;
+    final int numPairs = srcPairTable.numPairs;
 
     if (numPairs > 0) {
-      final int[] pairs = PairTable.unwrappingGetItems(pairTable, numPairs);
+      final int[] pairs = PairTable.unwrappingGetItems(srcPairTable, numPairs);
 
       // Here we subtract 8 from the column indices.  Because they are stored in the low 6 bits
       // of each rowCol pair, and because no column index is less than 8 for a "Pinned" sketch,
@@ -660,12 +665,13 @@ final class CpcCompression {
     }
   }
 
-  static void uncompressPinnedFlavor(final CpcSketch target, final CpcSketch source) {
+  static void uncompressPinnedFlavor(final CpcSketch target, final CompressedState source) {
     assert (source.compressedWindow != null);
     uncompressTheWindow(target, source);
+    final int srcLgK = source.lgK;
     final int numPairs = source.numCompressedSurprisingValues;
     if (numPairs == 0) {
-      target.surprisingValueTable = new PairTable(2, 6 + source.lgK);
+      target.surprisingValueTable = new PairTable(2, 6 + srcLgK);
     }
     else {
       assert numPairs > 0;
@@ -676,31 +682,31 @@ final class CpcCompression {
         assert (pairs[i] & 63) < 56;
         pairs[i] += 8;
       }
-      final PairTable table = PairTable.newInstanceFromPairsArray(pairs, numPairs, source.lgK);
+      final PairTable table = PairTable.newInstanceFromPairsArray(pairs, numPairs, srcLgK);
       target.surprisingValueTable = table;
     }
   }
 
   //Complicated by the existence of both a left fringe and a right fringe.
-  static void compressSlidingFlavor(final CpcSketch target, final CpcSketch source) {
+  static void compressSlidingFlavor(final CompressedState target, final CpcSketch source) {
 
     compressTheWindow(target, source);
+    final PairTable srcPairTable = source.getSurprisingValueTable();
 
-    final PairTable pairTable = source.surprisingValueTable;
-    final int numPairs = pairTable.numPairs;
+    final int numPairs = srcPairTable.numPairs;
 
 
     if (numPairs > 0) {
-      final int[] pairs = PairTable.unwrappingGetItems(source.surprisingValueTable, numPairs);
+      final int[] pairs = PairTable.unwrappingGetItems(srcPairTable, numPairs);
 
       // Here we apply a complicated transformation to the column indices, which
       // changes the implied ordering of the pairs, so we must do it before sorting.
 
-      final int pseudoPhase = determinePseudoPhase(source.lgK, source.numCoupons); // NB
+      final int pseudoPhase = determinePseudoPhase(source.getLgK(), source.getNumCoupons()); // NB
       assert (pseudoPhase < 16);
       final byte[] permutation = columnPermutationsForEncoding[pseudoPhase];
 
-      final int offset = source.windowOffset;
+      final int offset = source.getWindowOffset();
       assert ((offset > 0) && (offset <= 56));
 
       for (int i = 0; i < numPairs; i++) {
@@ -720,25 +726,24 @@ final class CpcCompression {
     }
   }
 
-  static void uncompressSlidingFlavor(final CpcSketch target, final CpcSketch source) {
+  static void uncompressSlidingFlavor(final CpcSketch target, final CompressedState source) {
     assert (source.compressedWindow != null);
     uncompressTheWindow(target, source);
-
+    final int srcLgK = source.lgK;
     final int numPairs = source.numCompressedSurprisingValues;
     if (numPairs == 0) {
-      target.surprisingValueTable = new PairTable(2, 6 + source.lgK);
+      target.surprisingValueTable = new PairTable(2, 6 + srcLgK);
 
     }
     else {
       assert (numPairs > 0);
       assert (source.compressedSurprisingValues != null);
       final int[] pairs = uncompressTheSurprisingValues(source);
-
-      final int pseudoPhase = determinePseudoPhase(source.lgK, source.numCoupons); // NB
+      final int pseudoPhase = determinePseudoPhase(srcLgK, source.numCoupons); // NB
       assert (pseudoPhase < 16);
       final byte[] permutation = columnPermutationsForDecoding[pseudoPhase];
 
-      final int offset = source.windowOffset;
+      final int offset = source.getWindowOffset();
       assert (offset > 0) && (offset <= 56);
 
       for (int i = 0; i < numPairs; i++) {
@@ -752,42 +757,42 @@ final class CpcCompression {
         pairs[i] = (row << 6) | col;
       }
 
-      final PairTable table = PairTable.newInstanceFromPairsArray(pairs, numPairs, source.lgK);
+      final PairTable table = PairTable.newInstanceFromPairsArray(pairs, numPairs, srcLgK);
       target.surprisingValueTable = table;
     }
   }
 
   //Note: in the final system, compressed and uncompressed sketches will have different types
 
-  static CpcSketch cpcCompress(final CpcSketch source) {
-    assert (source.isCompressed == false);
+  static CompressedState cpcCompress(final CpcSketch source) {
+    //assert (source.isCompressed == false);
 
-    final CpcSketch target = new CpcSketch(source.lgK);
+    final CompressedState target = new CompressedState(source);
 
-    target.numCoupons = source.numCoupons;
-    target.windowOffset = source.windowOffset;
-    target.firstInterestingColumn = source.firstInterestingColumn;
-    target.mergeFlag = source.mergeFlag;
-    target.kxp = source.kxp;
-    target.hipEstAccum = source.hipEstAccum;
-    target.hipErrAccum = source.hipErrAccum; //TODO Keep or not?
+    //target.numCoupons = source.getNumCoupons();
+    //target.windowOffset = source.getWindowOffset();
+    //target.firstInterestingColumn = source.getFirstInterestingColumn();
+    //target.mergeFlag = source.isMerged();
+    //target.kxp = source.kxp;
+    //target.hipEstAccum = source.hipEstAccum;
+    //target.hipErrAccum = source.hipErrAccum;
 
-    target.isCompressed = true;
+    //target.isCompressed = true;
 
     // initialize the variables that belong in a compressed sketch
-    target.numCompressedSurprisingValues = 0;
-    target.compressedSurprisingValues = null;
-    target.csvLength = 0;
-    target.compressedWindow = null;
-    target.cwLength = 0;
+    //target.numCompressedSurprisingValues = 0;
+    //target.compressedSurprisingValues = null;
+    //target.csvLength = 0;
+    //target.compressedWindow = null;
+    //target.cwLength = 0;
 
     // clear the variables that don't belong in a compressed sketch
-    target.slidingWindow = null;
-    target.surprisingValueTable = null;
+    //target.slidingWindow = null;
+    //target.surprisingValueTable = null;
 
-    final Flavor flavor = source.getFlavor();
+    final Flavor srcFlavor = source.getFlavor();
     //printf("Compress:   %s, C=%d\n", flavor.toString(), target.numCoupons);
-    switch (flavor) {
+    switch (srcFlavor) {
       case EMPTY: compressEmptyFlavor(target, source); break;
       case SPARSE:
         compressSparseFlavor(target, source);
@@ -817,36 +822,36 @@ final class CpcCompression {
 
   //Note: in the final system, compressed and uncompressed sketches will have different types
 
-  static CpcSketch cpcUncompress(final CpcSketch source) {
-    assert (source.isCompressed == true);
+  static CpcSketch cpcUncompress(final CompressedState source) {
+    //assert (source.isCompressed == true);
 
     final CpcSketch target = new CpcSketch(source.lgK);
     assert (target != null);
 
     target.numCoupons = source.numCoupons;
-    target.windowOffset = source.windowOffset;
+    target.windowOffset = source.getWindowOffset();
     target.firstInterestingColumn = source.firstInterestingColumn;
     target.mergeFlag = source.mergeFlag;
     target.kxp = source.kxp;
     target.hipEstAccum = source.hipEstAccum;
-    target.hipErrAccum = source.hipErrAccum; //TODO keep or not?
+    //target.hipErrAccum = source.hipErrAccum;
 
-    target.isCompressed = false;
+    //target.isCompressed = false;
 
     // initialize the variables that belong in an updateable sketch
     target.slidingWindow = null;
     target.surprisingValueTable = null;
 
     // clear the variables that don't belong in an updateable sketch
-    target.numCompressedSurprisingValues = 0;
-    target.compressedSurprisingValues = null;
-    target.csvLength = 0;
-    target.compressedWindow = null;
-    target.cwLength = 0;
+    //target.numCompressedSurprisingValues = 0;
+    //target.compressedSurprisingValues = null;
+    //target.csvLength = 0;
+    //target.compressedWindow = null;
+    //target.cwLength = 0;
 
-    final Flavor flavor = source.getFlavor();
+    final Flavor srcFlavor = source.getFlavor();
     //printf("Decompress: %s, C=%d\n", flavor.toString(), target.numCoupons);
-    switch (flavor) {
+    switch (srcFlavor) {
       case EMPTY: uncompressEmptyFlavor(target, source); break;
       case SPARSE:
         assert (source.compressedWindow == null);

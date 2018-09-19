@@ -6,6 +6,7 @@
 package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+import static com.yahoo.sketches.Util.iGolden;
 import static com.yahoo.sketches.cpc.Flavor.EMPTY;
 import static com.yahoo.sketches.cpc.Flavor.HYBRID;
 import static com.yahoo.sketches.cpc.Flavor.PINNED;
@@ -129,9 +130,8 @@ public class CpcMerging {
     assert dest.lgK <= 26;
     final int destMask = (((1 << dest.lgK) - 1) << 6) | 63; //downsamples when destlgK < srcLgK
 
-    // Using a golden ratio stride fixes the snowplow effect.
-    final double golden = 0.6180339887498949025;
-    int stride =  (int) (golden * numSlots);
+    // Using the inverse golden ratio stride fixes the snowplow effect.
+    int stride =  (int) (iGolden * numSlots);
     assert stride >= 2;
     if (stride == ((stride >>> 1) << 1)) { stride += 1; } //force the stride to be odd
     assert (stride >= 3) && (stride < numSlots);

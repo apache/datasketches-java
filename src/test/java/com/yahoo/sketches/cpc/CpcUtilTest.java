@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.cpc;
 
+import static com.yahoo.sketches.Util.iGoldenU64;
 import static com.yahoo.sketches.cpc.CpcUtil.floorLog2ofX;
 import static org.testng.Assert.assertEquals;
 
@@ -81,8 +82,6 @@ public class CpcUtilTest {
     }
   }
 
-  static final long golden64 = 0x9e3779b97f4a7c13L;
-
   //@Test
   public void checkLeadingZerosSpeed() {
     long signBit = 1L << 63;
@@ -92,7 +91,7 @@ public class CpcUtilTest {
       long tmp = 0;
       long t0 = System.nanoTime();
       for (int i = 0; i < n; i++) {
-        long in =((tmp += golden64) | signBit) >>> shift;
+        long in =((tmp += iGoldenU64) | signBit) >>> shift;
         sum1 += countLeadingZerosByByte(in);
       }
       long t1 = System.nanoTime();
@@ -102,7 +101,7 @@ public class CpcUtilTest {
       tmp = 0;
       long t2 = System.nanoTime();
       for (int i = 0; i < n; i++) {
-        long in =((tmp += golden64) | signBit) >>> shift;
+        long in =((tmp += iGoldenU64) | signBit) >>> shift;
         sum2 += Long.numberOfLeadingZeros(in);
       }
       long t3 = System.nanoTime();
@@ -121,7 +120,7 @@ public class CpcUtilTest {
       long tmp = 0;
       long t0 = System.nanoTime();
       for (int i = 0; i < n; i++) {
-        long in =((tmp += golden64) | oneBit) << shift;
+        long in =((tmp += iGoldenU64) | oneBit) << shift;
         sum1 += countTrailingZerosByByte(in);
       }
       long t1 = System.nanoTime();
@@ -131,7 +130,7 @@ public class CpcUtilTest {
       tmp = 0;
       long t2 = System.nanoTime();
       for (int i = 0; i < n; i++) {
-        long in =((tmp += golden64) | oneBit) << shift;
+        long in =((tmp += iGoldenU64) | oneBit) << shift;
         sum2 += Long.numberOfTrailingZeros(in);
       }
       long t3 = System.nanoTime();

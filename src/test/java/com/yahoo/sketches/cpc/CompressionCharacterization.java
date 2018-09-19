@@ -11,7 +11,7 @@ import static com.yahoo.sketches.Util.log2;
 import static com.yahoo.sketches.Util.pwr2LawNextDouble;
 import static com.yahoo.sketches.cpc.CpcCompression.cpcCompress;
 import static com.yahoo.sketches.cpc.CpcCompression.cpcUncompress;
-import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertTrue;
+import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssert;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -39,7 +39,7 @@ public class CompressionCharacterization {
 
   //intermediates
   private CpcSketch[] streamSketches;
-  private CpcSketch[] compressedSketches;
+  private CompressedState[] compressedSketches;
   private CpcSketch[] unCompressedSketches;
 
   public CompressionCharacterization(int lgMinK, int lgMaxK, int lgMinT, int lgMaxT, int lgMulK,
@@ -90,7 +90,7 @@ public class CompressionCharacterization {
     int trialsPerWave = 1 << (lgTotTrials - lgWaves);
 
     streamSketches = new CpcSketch[trialsPerWave];
-    compressedSketches = new CpcSketch[trialsPerWave];
+    compressedSketches = new CompressedState[trialsPerWave];
     unCompressedSketches = new CpcSketch[trialsPerWave];
 
     //update: fill, compress, uncompress sketches arrays in waves
@@ -128,7 +128,7 @@ public class CompressionCharacterization {
       //Compress loop
       for (int trial = 0; trial < trialsPerWave; trial++) {
         CpcSketch sketch = streamSketches[trial];
-        CpcSketch comSk = cpcCompress(sketch);
+        CompressedState comSk = cpcCompress(sketch);
         compressedSketches[trial] = comSk;
         totalC += sketch.numCoupons;
         totalW += comSk.csvLength + comSk.cwLength;
@@ -138,7 +138,7 @@ public class CompressionCharacterization {
 
       //Uncompress loop
       for (int trial = 0; trial < trialsPerWave; trial++) {
-        CpcSketch sketch = compressedSketches[trial];
+        CompressedState sketch = compressedSketches[trial];
         CpcSketch uncSk = cpcUncompress(sketch);
         unCompressedSketches[trial] = uncSk;
       }
@@ -147,7 +147,7 @@ public class CompressionCharacterization {
 
       //optional
       for (int trial = 0; trial < trialsPerWave; trial++) {
-        rtAssertTrue(CpcSketch.equals(streamSketches[trial], unCompressedSketches[trial], false));
+        rtAssert(CpcSketch.equals(streamSketches[trial], unCompressedSketches[trial], false, false));
       }
     } // end wave loop
     double total_S = (System.currentTimeMillis() - start) / 1E3;
