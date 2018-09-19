@@ -5,12 +5,11 @@
 
 package com.yahoo.sketches.cpc;
 
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.Util.iGoldenU64;
 import static com.yahoo.sketches.Util.log2;
 import static com.yahoo.sketches.Util.pwr2LawNextDouble;
-import static com.yahoo.sketches.cpc.CpcCompression.cpcCompress;
-import static com.yahoo.sketches.cpc.CpcCompression.cpcUncompress;
 import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssert;
 
 import java.io.PrintStream;
@@ -128,18 +127,18 @@ public class CompressionCharacterization {
       //Compress loop
       for (int trial = 0; trial < trialsPerWave; trial++) {
         CpcSketch sketch = streamSketches[trial];
-        CompressedState comSk = cpcCompress(sketch);
-        compressedSketches[trial] = comSk;
+        CompressedState state = CompressedState.compress(sketch);
+        compressedSketches[trial] = state;
         totalC += sketch.numCoupons;
-        totalW += comSk.csvLength + comSk.cwLength;
+        totalW += state.csvLength + state.cwLength;
       }
       t4 = System.nanoTime();
       sumCom_nS += t4 - t3;
 
       //Uncompress loop
       for (int trial = 0; trial < trialsPerWave; trial++) {
-        CompressedState sketch = compressedSketches[trial];
-        CpcSketch uncSk = cpcUncompress(sketch);
+        CompressedState state = compressedSketches[trial];
+        CpcSketch uncSk = CpcSketch.uncompress(state, DEFAULT_UPDATE_SEED);
         unCompressedSketches[trial] = uncSk;
       }
       t5 = System.nanoTime();

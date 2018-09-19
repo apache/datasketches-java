@@ -12,8 +12,8 @@ import static com.yahoo.sketches.Util.computeSeedHash;
  * @author Kevin Lang
  */
 final class CompressedState {
-  short seedHash;
-  int lgK;
+  final int lgK;
+  final short seedHash;
   int firstInterestingColumn;
   boolean mergeFlag; //compliment of HIP Flag
   boolean svIsValid;
@@ -30,29 +30,31 @@ final class CompressedState {
   int[] compressedWindow; //may be longer than required
   int cwLength;
 
-  CompressedState(final CpcSketch source) {
-    seedHash = computeSeedHash(source.getSeed());
-    lgK = source.getLgK();
-    firstInterestingColumn = source.getFirstInterestingColumn();
-    mergeFlag = source.isMerged();
-    numCoupons = source.getNumCoupons();
+  CompressedState(final int lgK, final short seedHash) {
+    this.lgK = lgK;
+    this.seedHash = seedHash;
+  }
 
-    if (mergeFlag) { //compliment of HIP Flag
-      kxp = 0.0;
-      hipEstAccum = 0.0;
-    } else {
-      kxp = source.getKxp();
-      hipEstAccum = source.getHipAccum();
-    }
-    svIsValid = source.getSurprisingValueTable() != null;
-    windowIsValid = (source.getSlidingWindow() != null);
+  static CompressedState compress(final CpcSketch source) {
+    final short seedHash = computeSeedHash(source.getSeed());
+    final CompressedState target = new CompressedState(source.lgK, seedHash);
+    target.firstInterestingColumn = source.getFirstInterestingColumn();
+    target.mergeFlag = source.isMerged();
+    target.numCoupons = source.getNumCoupons();
+    target.kxp = source.kxp;
+    target.hipEstAccum = source.hipEstAccum;
+
+    target.svIsValid = source.getSurprisingValueTable() != null;
+    target.windowIsValid = (source.getSlidingWindow() != null);
 
     //To be filled in
-    numCompressedSurprisingValues = 0;
-    compressedSurprisingValues = null;
-    csvLength = 0;
-    compressedWindow = null;
-    cwLength = 0;
+    target.numCompressedSurprisingValues = 0;
+    target.compressedSurprisingValues = null;
+    target.csvLength = 0;
+    target.compressedWindow = null;
+    target.cwLength = 0;
+    CpcCompression.compress(source, target);
+    return target;
   }
 
   Flavor getFlavor() {

@@ -6,6 +6,8 @@
 package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+import static com.yahoo.sketches.Util.checkSeedHashes;
+import static com.yahoo.sketches.Util.computeSeedHash;
 import static com.yahoo.sketches.Util.invPow2;
 import static com.yahoo.sketches.cpc.CpcUtil.checkLgK;
 import static com.yahoo.sketches.cpc.CpcUtil.kxpByteLookup;
@@ -22,29 +24,19 @@ import java.util.Arrays;
  */
 public final class CpcSketch {
   final long seed;
-  //The following variables occur in all forms
+  //common variables
   final int lgK;
   long numCoupons;      // The number of coupons collected so far.
   boolean mergeFlag;    // Is the sketch the result of merging?
   int firstInterestingColumn; // fiCol. This is part of a speed optimization.
 
-  //The following variables are only valid in HIP varients
-  double kxp;                  //used with HIP
-  double hipEstAccum;          //used with HIP
-  //double hipErrAccum;          //not currently used
-
-  //The following variables occur in the updateable sketch.
   int windowOffset;
   byte[] slidingWindow; //either null or size K bytes
   PairTable surprisingValueTable; //either null or variable size
 
-  //boolean isCompressed;
-  //The following variables occur in the non-updateable fully-compressed type.
-  //int cwLength; // The number of 32-bit words in this bitstream.
-  //int[] compressedWindow;            //cwStream
-  //int csvLength; // The number of 32-bit words in this bitstream.
-  //int numCompressedSurprisingValues; //numCSV
-  //int[] compressedSurprisingValues;  // csvStream
+  //The following variables are only valid in HIP varients
+  double kxp;                  //used with HIP
+  double hipEstAccum;          //used with HIP
 
   /**
    * Constructor with log_base2 of k.
@@ -67,6 +59,21 @@ public final class CpcSketch {
     reset();
   }
 
+  static CpcSketch uncompress(final CompressedState source, final long seed) {
+    checkSeedHashes(computeSeedHash(seed), source.seedHash);
+    final CpcSketch sketch = new CpcSketch(source.lgK, seed);
+    sketch.numCoupons = source.numCoupons;
+    sketch.windowOffset = source.getWindowOffset();
+    sketch.firstInterestingColumn = source.firstInterestingColumn;
+    sketch.mergeFlag = source.mergeFlag;
+    sketch.kxp = source.kxp;
+    sketch.hipEstAccum = source.hipEstAccum;
+    sketch.slidingWindow = null;
+    sketch.surprisingValueTable = null;
+    CpcCompression.uncompress(source, sketch);
+    return sketch;
+  }
+
   /**
    * Returns a copy of this sketch
    * @return a copy of this sketcch
@@ -77,30 +84,12 @@ public final class CpcSketch {
     copy.mergeFlag = mergeFlag;
     copy.firstInterestingColumn = firstInterestingColumn;
 
-    copy.kxp = kxp;
-    copy.hipEstAccum = hipEstAccum;
-    //copy.hipErrAccum = hipErrAccum;
-
     copy.windowOffset = windowOffset;
     copy.slidingWindow = (slidingWindow == null) ? null : slidingWindow.clone();
     copy.surprisingValueTable = (surprisingValueTable == null) ? null : surprisingValueTable.copy();
 
-
-    //copy.isCompressed = isCompressed;
-    //copy.cwLength = cwLength;
-    //copy.compressedWindow = (compressedWindow == null) ? null : compressedWindow.clone();
-    //copy.csvLength = csvLength;
-    //copy.numCompressedSurprisingValues = numCompressedSurprisingValues;
-    //copy.compressedSurprisingValues = (compressedSurprisingValues == null) ? null
-    //    : compressedSurprisingValues.clone();
-
-
-
-
-
-
-
-
+    copy.kxp = kxp;
+    copy.hipEstAccum = hipEstAccum;
     return copy;
   }
 
@@ -242,26 +231,16 @@ public final class CpcSketch {
    * Resets this sketch to empty but retains the original LgK and Seed.
    */
   public final void reset() {
-
-
     numCoupons = 0;
     mergeFlag = false;
     firstInterestingColumn = 0;
-
-    kxp = 1 << lgK;
-    hipEstAccum = 0;
-    //hipErrAccum = 0;
 
     windowOffset = 0;
     slidingWindow = null;
     surprisingValueTable = null;
 
-    //isCompressed = false; //remove
-    //cwLength = 0;
-    //compressedWindow = null;
-    //csvLength = 0;
-    //numCompressedSurprisingValues = 0;
-    //compressedSurprisingValues = null;
+    kxp = 1 << lgK;
+    hipEstAccum = 0;
   }
 
   int getLgK() {
@@ -447,12 +426,6 @@ public final class CpcSketch {
       final double factor = invPow2(8 * j); // pow(256, -j) == pow(2, -8 * j);
       total += factor * byteSums[j];
     }
-
-    //  fprintf (stderr, "%.3f\n", ((double) sketch.numCoupons) / k);
-    //  fprintf (stderr, "%.19g\told value of KXP\n", sketch.kxp);
-    //  fprintf (stderr, "%.19g\tnew value of KXP\n", total);
-    //  fflush (stderr);
-
     sketch.kxp = total;
   }
 
@@ -517,7 +490,6 @@ public final class CpcSketch {
     final int col = rowCol & 63;
     final double oneOverP = k / sketch.kxp;
     sketch.hipEstAccum += oneOverP;
-    //sketch.hipErrAccum += ((oneOverP * oneOverP) - oneOverP);
     sketch.kxp -= invPow2(col + 1); // notice the "+1"
   }
 
@@ -602,9 +574,6 @@ public final class CpcSketch {
   void rowColUpdate(final int rowCol) {
     final int col = rowCol & 63;
     if (col < firstInterestingColumn) { return; } // important speed optimization
-    //if (isCompressed) {
-    //  throw new SketchesStateException("Cannot update a compressed sketch.");
-    //}
     final long c = numCoupons;
     if (c == 0) { promoteEmptyToSparse(this); }
     final int k = 1 << lgK;
@@ -621,13 +590,6 @@ public final class CpcSketch {
     rtAssertEquals(skA.windowOffset, skB.windowOffset);
     rtAssertEquals(skA.slidingWindow, skB.slidingWindow);
     PairTable.equals(skA.surprisingValueTable, skB.surprisingValueTable);
-
-    //rtAssertEquals(skA.isCompressed, skB.isCompressed);
-    //rtAssertEquals(skA.cwLength, skB.cwLength);
-    //rtAssertEquals(skA.compressedWindow, skB.compressedWindow);
-    //rtAssertEquals(skA.csvLength, skB.csvLength);
-    //rtAssertEquals(skA.numCompressedSurprisingValues, skB.numCompressedSurprisingValues);
-    //rtAssertEquals(skA.compressedSurprisingValues, skB.compressedSurprisingValues);
 
     // firstInterestingColumn is only updated occasionally while stream processing,
     // therefore, the stream sketch could be behind the merged sketch.
@@ -650,13 +612,6 @@ public final class CpcSketch {
       rtAssertEquals(skA.hipEstAccum, skB.hipEstAccum, 01 * skA.hipEstAccum); //1% tolerance
     }
     return true;
-  }
-
-  /**
-   * @param s value to print
-   */
-  static void println(final String s) {
-    //System.out.println(s); //disable here
   }
 
 }
