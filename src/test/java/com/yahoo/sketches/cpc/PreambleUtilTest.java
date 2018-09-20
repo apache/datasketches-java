@@ -45,7 +45,6 @@ import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
-import com.yahoo.sketches.cpc.PreambleUtil.Format;
 import com.yahoo.sketches.cpc.PreambleUtil.HiField;
 
 /**
@@ -54,7 +53,7 @@ import com.yahoo.sketches.cpc.PreambleUtil.HiField;
 public class PreambleUtilTest {
   static final short defaultSeedHash = computeSeedHash(DEFAULT_UPDATE_SEED) ;
 
-  private static void checkFirst8(WritableMemory wmem, Format format, byte lgK, byte fiCol) {
+  private static void checkFirst8(WritableMemory wmem, Format format, int lgK, int fiCol) {
     assertEquals(getFormat(wmem), format);
     assertEquals(getPreInts(wmem), getDefinedPreInts(format));
     assertEquals(getSerVer(wmem), SER_VER);
@@ -68,18 +67,18 @@ public class PreambleUtilTest {
 
   @Test
   public void checkNormalPutMemory() {
-    byte lgK = 12;
+    int lgK = 12;
     double kxp = lgK;
     double hipAccum = 1005;
-    byte fiCol = 1;
+    int fiCol = 1;
     int[] csvStream = new int[] {1, 2, 3};
-    long numCoupons = csvStream.length;
-    long csvLength = csvStream.length;
+    int numCoupons = csvStream.length;
+    int csvLength = csvStream.length;
     short seedHash = defaultSeedHash;
     int[] cwStream = new int[] {4, 5, 6};
-    long cwLength = cwStream.length;
-    long numSv = cwStream.length;
-    int maxInts = 10 + (int) csvLength + (int) cwLength;
+    int cwLength = cwStream.length;
+    int numSv = cwStream.length;
+    int maxInts = 10 + csvLength + cwLength;
     WritableMemory wmem = WritableMemory.allocate(4 * maxInts);
 
     Format format;

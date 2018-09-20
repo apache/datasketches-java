@@ -64,7 +64,7 @@ import com.yahoo.sketches.SketchesStateException;
  *
  * <p>If the unioner is using its bitMatrix field, then we have to convert the
  * bitMatrix back into a sketch, which requires doing some extra work to
- * figure out the values of numCoupons, offset, firstInterestingColumn, and KxQ.
+ * figure out the values of numCoupons, offset, fiCol, and KxQ.
  *
  * @author Lee Rhodes
  * @author Kevin Lang
@@ -202,7 +202,7 @@ public class CpcMerging {
       }
 
       final CpcSketch newSketch = new CpcSketch(newLgK, oldSketch.seed);
-      walkTableUpdatingSketch(newSketch, oldSketch.surprisingValueTable);
+      walkTableUpdatingSketch(newSketch, oldSketch.pairTable);
 
       final Flavor finalNewFlavor = newSketch.getFlavor();
       assert (finalNewFlavor != EMPTY); //SV table had to have something in it
@@ -243,7 +243,7 @@ public class CpcMerging {
         unioner.accumulator = source.copy();
       }
 
-      walkTableUpdatingSketch(unioner.accumulator, source.surprisingValueTable);
+      walkTableUpdatingSketch(unioner.accumulator, source.pairTable);
       final Flavor finalDestFlavor = unioner.accumulator.getFlavor();
       // if the accumulator has graduated beyond sparse, switch to a bitMatrix representation
       if ((finalDestFlavor != EMPTY) && (finalDestFlavor != SPARSE)) {
@@ -256,7 +256,7 @@ public class CpcMerging {
     //CASE B
     if ((SPARSE == sourceFlavor) && (unioner.bitMatrix != null))  {
       assert (unioner.accumulator == null);
-      orTableIntoMatrix(unioner.bitMatrix, unioner.lgK, source.surprisingValueTable);
+      orTableIntoMatrix(unioner.bitMatrix, unioner.lgK, source.pairTable);
       return;
     }
 
@@ -276,7 +276,7 @@ public class CpcMerging {
     if ((HYBRID == sourceFlavor) || (PINNED == sourceFlavor)) {
       orWindowIntoMatrix(unioner.bitMatrix, unioner.lgK, source.slidingWindow,
           source.windowOffset, source.lgK);
-      orTableIntoMatrix(unioner.bitMatrix, unioner.lgK, source.surprisingValueTable);
+      orTableIntoMatrix(unioner.bitMatrix, unioner.lgK, source.pairTable);
       return;
     }
 
@@ -327,8 +327,8 @@ public class CpcMerging {
     if (newTableSize < 2) { newTableSize = 2; }
 
     final PairTable table = new PairTable(newTableSize, 6 + lgK);
-    assert (result.surprisingValueTable == null);
-    result.surprisingValueTable = table;
+    assert (result.pairTable == null);
+    result.pairTable = table;
 
     // I believe that the following works even when the offset is zero.
     final long maskForClearingWindow = (0XFFL << offset) ^ -1L;
@@ -353,9 +353,9 @@ public class CpcMerging {
     }
 
     // At this point we could shrink an oversize hash table, but the relative waste isn't very big.
-    result.firstInterestingColumn = Long.numberOfTrailingZeros(allSurprisesORed);
-    if (result.firstInterestingColumn > offset) {
-      result.firstInterestingColumn = offset;
+    result.fiCol = Long.numberOfTrailingZeros(allSurprisesORed);
+    if (result.fiCol > offset) {
+      result.fiCol = offset;
     } // corner case
 
     // NB: the HIP-related fields will contain bogus values, but that is okay.
@@ -385,7 +385,7 @@ public class CpcMerging {
       final CpcSketch sketch = unioner.accumulator;
       if (sketch.numCoupons > 0) {
         if (   (sketch.slidingWindow != null)
-            || (sketch.surprisingValueTable == null)) {
+            || (sketch.pairTable == null)) {
           throw new SketchesStateException("Accumulator must be Sparse Flavor");
         }
       }

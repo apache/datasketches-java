@@ -28,11 +28,11 @@ public final class CpcSketch {
   final int lgK;
   long numCoupons;      // The number of coupons collected so far.
   boolean mergeFlag;    // Is the sketch the result of merging?
-  int firstInterestingColumn; // fiCol. This is part of a speed optimization.
+  int fiCol; // First Interesting Column. This is part of a speed optimization.
 
   int windowOffset;
   byte[] slidingWindow; //either null or size K bytes
-  PairTable surprisingValueTable; //either null or variable size
+  PairTable pairTable; //for sparse and surprising values, either null or variable size
 
   //The following variables are only valid in HIP varients
   double kxp;                  //used with HIP
@@ -64,12 +64,12 @@ public final class CpcSketch {
     final CpcSketch sketch = new CpcSketch(source.lgK, seed);
     sketch.numCoupons = source.numCoupons;
     sketch.windowOffset = source.getWindowOffset();
-    sketch.firstInterestingColumn = source.firstInterestingColumn;
+    sketch.fiCol = source.fiCol;
     sketch.mergeFlag = source.mergeFlag;
     sketch.kxp = source.kxp;
     sketch.hipEstAccum = source.hipEstAccum;
     sketch.slidingWindow = null;
-    sketch.surprisingValueTable = null;
+    sketch.pairTable = null;
     CpcCompression.uncompress(source, sketch);
     return sketch;
   }
@@ -82,11 +82,11 @@ public final class CpcSketch {
     final CpcSketch copy = new CpcSketch(lgK, seed);
     copy.numCoupons = numCoupons;
     copy.mergeFlag = mergeFlag;
-    copy.firstInterestingColumn = firstInterestingColumn;
+    copy.fiCol = fiCol;
 
     copy.windowOffset = windowOffset;
     copy.slidingWindow = (slidingWindow == null) ? null : slidingWindow.clone();
-    copy.surprisingValueTable = (surprisingValueTable == null) ? null : surprisingValueTable.copy();
+    copy.pairTable = (pairTable == null) ? null : pairTable.copy();
 
     copy.kxp = kxp;
     copy.hipEstAccum = hipEstAccum;
@@ -233,11 +233,11 @@ public final class CpcSketch {
   public final void reset() {
     numCoupons = 0;
     mergeFlag = false;
-    firstInterestingColumn = 0;
+    fiCol = 0;
 
     windowOffset = 0;
     slidingWindow = null;
-    surprisingValueTable = null;
+    pairTable = null;
 
     kxp = 1 << lgK;
     hipEstAccum = 0;
@@ -250,9 +250,9 @@ public final class CpcSketch {
   static int determineCorrectOffset(final int lgK, final long numCoupons) {
     final long c = numCoupons;
     final long k = (1L << lgK);
-    final long tmp = (c << 3) - (19L * k);        // 8C - 19K
+    final long tmp = (c << 3) - (19L * k); // 8C - 19K
     if (tmp < 0) { return 0; }
-    return (int) (tmp >>> (lgK + 3)); // tmp / 8K
+    return (int) (tmp >>> (lgK + 3));      // tmp / 8K
   }
 
   /**
@@ -291,7 +291,7 @@ public final class CpcSketch {
         matrix[i] |= ((window[i] & 0XFFL) << offset);
       }
     }
-    final PairTable table = sketch.surprisingValueTable;
+    final PairTable table = sketch.pairTable;
     assert (table != null);
     final int[] slots = table.slots;
     final int numSlots = 1 << table.lgSize;
@@ -312,8 +312,8 @@ public final class CpcSketch {
 
   private static void promoteEmptyToSparse(final CpcSketch sketch) {
     assert sketch.numCoupons == 0;
-    assert sketch.surprisingValueTable == null;
-    sketch.surprisingValueTable = new PairTable(2, 6 + sketch.lgK);
+    assert sketch.pairTable == null;
+    sketch.pairTable = new PairTable(2, 6 + sketch.lgK);
   }
 
   //In terms of flavor, this promotes SPARSE to HYBRID.
@@ -326,7 +326,7 @@ public final class CpcSketch {
     final byte[] window = new byte[k];
 
     final PairTable newTable = new PairTable(2, 6 + lgK);
-    final PairTable oldTable = sketch.surprisingValueTable;
+    final PairTable oldTable = sketch.pairTable;
 
     final int[] oldSlots = oldTable.slots;
     final int oldNumSlots = (1 << oldTable.lgSize);
@@ -351,7 +351,7 @@ public final class CpcSketch {
 
     assert (sketch.slidingWindow == null);
     sketch.slidingWindow = window;
-    sketch.surprisingValueTable = newTable;
+    sketch.pairTable = newTable;
   }
 
   /**
@@ -363,7 +363,7 @@ public final class CpcSketch {
    * @param bitMatrix the given bit Matrix
    */
 
-  static void refreshKXP(final CpcSketch sketch, final long[] bitMatrix) {
+  private static void refreshKXP(final CpcSketch sketch, final long[] bitMatrix) {
     final int k = (1 << sketch.lgK);
 
     // for improved numerical accuracy, we separately sum the bytes of the U64's
@@ -400,7 +400,7 @@ public final class CpcSketch {
     assert (newOffset == determineCorrectOffset(sketch.lgK, sketch.numCoupons));
 
     assert (sketch.slidingWindow != null);
-    assert (sketch.surprisingValueTable != null);
+    assert (sketch.pairTable != null);
     final int k = 1 << sketch.lgK;
 
     // Construct the full-sized bit matrix that corresponds to the sketch
@@ -409,9 +409,9 @@ public final class CpcSketch {
     // refresh the KXP register on every 8th window shift.
     if ((newOffset & 0x7) == 0) { refreshKXP(sketch, bitMatrix); }
 
-    sketch.surprisingValueTable.clear();
+    sketch.pairTable.clear();
 
-    final PairTable table = sketch.surprisingValueTable;
+    final PairTable table = sketch.pairTable;
     final byte[] window = sketch.slidingWindow;
     final long maskForClearingWindow = (0XFFL << newOffset) ^ -1L;
     final long maskForFlippingEarlyZone = (1L << newOffset) - 1L;
@@ -424,7 +424,7 @@ public final class CpcSketch {
       // The following line converts surprising 0's to 1's in the "early zone",
       // (and vice versa, which is essential for this procedure's O(k) time cost).
       pattern ^= maskForFlippingEarlyZone;
-      allSurprisesORed |= pattern; // a cheap way to recalculate firstInterestingColumn
+      allSurprisesORed |= pattern; // a cheap way to recalculate fiCol
       while (pattern != 0) {
         final int col = Long.numberOfTrailingZeros(pattern);
         pattern = pattern ^ (1L << col); // erase the 1.
@@ -434,9 +434,9 @@ public final class CpcSketch {
       }
     }
     sketch.windowOffset = newOffset;
-    sketch.firstInterestingColumn = Long.numberOfTrailingZeros(allSurprisesORed);
-    if (sketch.firstInterestingColumn > newOffset) {
-      sketch.firstInterestingColumn = newOffset; // corner case
+    sketch.fiCol = Long.numberOfTrailingZeros(allSurprisesORed);
+    if (sketch.fiCol > newOffset) {
+      sketch.fiCol = newOffset; // corner case
     }
   }
 
@@ -457,8 +457,8 @@ public final class CpcSketch {
     final int k = 1 << sketch.lgK;
     final long c32pre = sketch.numCoupons << 5;
     assert (c32pre < (3L * k)); // C < 3K/32, in other words, flavor == SPARSE
-    assert (sketch.surprisingValueTable != null);
-    final boolean isNovel = PairTable.maybeInsert(sketch.surprisingValueTable, rowCol);
+    assert (sketch.pairTable != null);
+    final boolean isNovel = PairTable.maybeInsert(sketch.pairTable, rowCol);
     if (isNovel) {
       sketch.numCoupons += 1;
       updateHIP(sketch, rowCol);
@@ -481,11 +481,11 @@ public final class CpcSketch {
     final int w8pre = sketch.windowOffset << 3;
     assert c8pre < ((27L + w8pre) * k); // C < (K * 27/8) + (K * windowOffset)
 
-    boolean isNovel = false;
+    boolean isNovel = false; //novel if new coupon
     final int col = rowCol & 63;
 
     if (col < sketch.windowOffset) { // track the surprising 0's "before" the window
-      isNovel = PairTable.maybeDelete(sketch.surprisingValueTable, rowCol); // inverted logic
+      isNovel = PairTable.maybeDelete(sketch.pairTable, rowCol); // inverted logic
     }
     else if (col < (sketch.windowOffset + 8)) { // track the 8 bits inside the window
       assert (col >= sketch.windowOffset);
@@ -499,7 +499,7 @@ public final class CpcSketch {
     }
     else { // track the surprising 1's "after" the window
       assert col >= (sketch.windowOffset + 8);
-      isNovel = PairTable.maybeInsert(sketch.surprisingValueTable, rowCol); // normal logic
+      isNovel = PairTable.maybeInsert(sketch.pairTable, rowCol); // normal logic
     }
 
     if (isNovel) {
@@ -533,7 +533,7 @@ public final class CpcSketch {
   //also used for testing
   void rowColUpdate(final int rowCol) {
     final int col = rowCol & 63;
-    if (col < firstInterestingColumn) { return; } // important speed optimization
+    if (col < fiCol) { return; } // important speed optimization
     final long c = numCoupons;
     if (c == 0) { promoteEmptyToSparse(this); }
     final int k = 1 << lgK;
@@ -541,6 +541,7 @@ public final class CpcSketch {
     else { updateWindowed(this, rowCol); }
   }
 
+  //used for testing only
   static boolean equals(final CpcSketch skA, final CpcSketch skB,
       final boolean skAwasMerged, final boolean skBwasMerged) {
     rtAssertEquals(skA.seed, skB.seed);
@@ -549,13 +550,14 @@ public final class CpcSketch {
 
     rtAssertEquals(skA.windowOffset, skB.windowOffset);
     rtAssertEquals(skA.slidingWindow, skB.slidingWindow);
-    PairTable.equals(skA.surprisingValueTable, skB.surprisingValueTable);
+    PairTable.equals(skA.pairTable, skB.pairTable);
 
-    // firstInterestingColumn is only updated occasionally while stream processing,
+    // fiCol is only updated occasionally while stream processing,
     // therefore, the stream sketch could be behind the merged sketch.
     // NB: While not very likely, it is possible for the difference to exceed 2.
-    final int ficolA = skA.firstInterestingColumn;
-    final int ficolB = skB.firstInterestingColumn;
+    //TODO Reconsider
+    final int ficolA = skA.fiCol;
+    final int ficolB = skB.fiCol;
 
     if (!skAwasMerged && skBwasMerged) {
       rtAssert(!skA.mergeFlag && skB.mergeFlag);

@@ -11,8 +11,6 @@ import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssert;
 import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertEquals;
 
 import java.nio.ByteOrder;
-import java.util.HashMap;
-import java.util.Map;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
@@ -209,36 +207,6 @@ final class PreambleUtil {
     return mem.getShort(getLoFieldOffset(LoField.SEED_HASH));
   }
 
-  //PREAMBLE FORMAT DEFINITIONS
-
-  /**
-   * There are seven different preamble formats, which determine the layout of the <i>HiField</i>
-   * variables after the first 8 bytes of the preamble.
-   * Do not change the order.
-   */
-  enum Format { EMPTY, NONE, SPARSE_HYBRID_MERGED, SPARSE_HYBRID_HIP, PINNED_SLIDING_MERGED_NOSV,
-    PINNED_SLIDING_HIP_NOSV, PINNED_SLIDING_MERGED, PINNED_SLIDING_HIP;
-
-    private static final Map<Integer, Format> lookupID = new HashMap<>();
-
-    static {
-      for (Format f : values()) {
-        lookupID.put(f.ordinal(), f);
-      }
-    }
-
-    /**
-     * Returns the Format given its enum ordinal
-     * @param ordinal the given enum ordinal
-     * @return the Format given its enum ordinal
-     */
-    static Format ordinalToFormat(final int ordinal) {
-      return lookupID.get(ordinal);
-    }
-  } //end enum Format
-
-  //COMMON FORMAT GETS
-
   static int getFormatOrdinal(final Memory mem) {
     final int flags = getFlags(mem);
     return (flags >>> 2) & 0x7;
@@ -266,6 +234,10 @@ final class PreambleUtil {
   /**
    * This defines the eight additional preamble fields located after the <i>LoField</i>.
    * Do not change the order.
+   *
+   * <p>Note: NUM_SV has dual meanings: In sparse and hybrid flavors it is equivalent to
+   * numCoupons so it isn't stored separately. In pinned and sliding flavors is is the
+   * numPairs of the PairTable, which stores only surprising values.</p>
    */
   enum HiField { NUM_COUPONS, NUM_SV, KXP, HIP_ACCUM, CSV_LENGTH, CW_LENGTH, CSV_STREAM,
     CW_STREAM }
@@ -379,20 +351,20 @@ final class PreambleUtil {
   // PUT INTO MEMORY
 
   static void putEmpty(final WritableMemory wmem,
-      final byte lgK,
+      final int lgK,
       final short seedHash) {
     final Format format = Format.EMPTY;
     final byte preInts = getDefinedPreInts(format);
     final byte fiCol = (byte) 0;
     final byte flags = (byte) ((format.ordinal() << 2) | READ_ONLY_FLAG_MASK);
     checkCapacity(wmem.getCapacity(), 8);
-    putFirst8(wmem, preInts, lgK, fiCol, flags, seedHash);
+    putFirst8(wmem, preInts, (byte) lgK, fiCol, flags, seedHash);
   }
 
   static void putSparseHybridMerged(final WritableMemory wmem,
-      final byte lgK,
-      final long numCoupons,
-      final long csvLength,
+      final int lgK,
+      final int numCoupons, //unsigned
+      final int csvLength,
       final short seedHash,
       final int[] csvStream) {
     final Format format = Format.SPARSE_HYBRID_MERGED;
@@ -400,17 +372,17 @@ final class PreambleUtil {
     final byte fiCol = (byte) 0;
     final byte flags = (byte) ((format.ordinal() << 2) | READ_ONLY_FLAG_MASK);
     checkCapacity(wmem.getCapacity(), 4L * (preInts + csvLength));
-    putFirst8(wmem, preInts, lgK, fiCol, flags, seedHash);
+    putFirst8(wmem, preInts, (byte) lgK, fiCol, flags, seedHash);
 
-    wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), (int) numCoupons);
-    wmem.putInt(getHiFieldOffset(format, HiField.CSV_LENGTH), (int) csvLength);
-    wmem.putIntArray(getCsvStreamOffset(wmem), csvStream, 0, (int) csvLength);
+    wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
+    wmem.putInt(getHiFieldOffset(format, HiField.CSV_LENGTH), csvLength);
+    wmem.putIntArray(getCsvStreamOffset(wmem), csvStream, 0, csvLength);
   }
 
   static void putSparseHybridHip(final WritableMemory wmem,
-      final byte lgK,
-      final long numCoupons,
-      final long csvLength,
+      final int lgK,
+      final int numCoupons, //unsigned
+      final int csvLength,
       final double kxp,
       final double hipAccum,
       final short seedHash,
@@ -420,38 +392,38 @@ final class PreambleUtil {
     final byte fiCol = (byte) 0;
     final byte flags = (byte) ((format.ordinal() << 2) | READ_ONLY_FLAG_MASK);
     checkCapacity(wmem.getCapacity(), 4L * (preInts + csvLength));
-    putFirst8(wmem, preInts, lgK, fiCol, flags, seedHash);
+    putFirst8(wmem, preInts, (byte) lgK, fiCol, flags, seedHash);
 
-    wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), (int) numCoupons);
-    wmem.putInt(getHiFieldOffset(format, HiField.CSV_LENGTH), (int) csvLength);
+    wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
+    wmem.putInt(getHiFieldOffset(format, HiField.CSV_LENGTH), csvLength);
     wmem.putDouble(getHiFieldOffset(format, HiField.KXP), kxp);
     wmem.putDouble(getHiFieldOffset(format, HiField.HIP_ACCUM), hipAccum);
-    wmem.putIntArray(getCsvStreamOffset(wmem), csvStream, 0, (int) csvLength);
+    wmem.putIntArray(getCsvStreamOffset(wmem), csvStream, 0, csvLength);
   }
 
   static void putPinnedSlidingMergedNoSv(final WritableMemory wmem,
-      final byte lgK,
-      final byte fiCol,
-      final long numCoupons,
-      final long cwLength,
+      final int lgK,
+      final int fiCol,
+      final int numCoupons, //unsigned
+      final int cwLength,
       final short seedHash,
       final int[] cwStream) {
     final Format format = Format.PINNED_SLIDING_MERGED_NOSV;
     final byte preInts = getDefinedPreInts(format);
     final byte flags = (byte) ((format.ordinal() << 2) | READ_ONLY_FLAG_MASK);
     checkCapacity(wmem.getCapacity(), 4L * (preInts + cwLength));
-    putFirst8(wmem, preInts, lgK, fiCol, flags, seedHash);
+    putFirst8(wmem, preInts, (byte) lgK, (byte) fiCol, flags, seedHash);
 
-    wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), (int) numCoupons);
-    wmem.putInt(getHiFieldOffset(format, HiField.CW_LENGTH), (int) cwLength);
-    wmem.putIntArray(getCwStreamOffset(wmem), cwStream, 0, (int) cwLength);
+    wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
+    wmem.putInt(getHiFieldOffset(format, HiField.CW_LENGTH), cwLength);
+    wmem.putIntArray(getCwStreamOffset(wmem), cwStream, 0, cwLength);
   }
 
   static void putPinnedSlidingHipNoSv(final WritableMemory wmem,
-      final byte lgK,
-      final byte fiCol,
-      final long numCoupons,
-      final long cwLength,
+      final int lgK,
+      final int fiCol,
+      final int numCoupons, //unsigned
+      final int cwLength,
       final double kxp,
       final double hipAccum,
       final short seedHash,
@@ -460,22 +432,22 @@ final class PreambleUtil {
     final byte preInts = getDefinedPreInts(format);
     final byte flags = (byte) ((format.ordinal() << 2) | READ_ONLY_FLAG_MASK);
     checkCapacity(wmem.getCapacity(), 4L * (preInts + cwLength));
-    putFirst8(wmem, preInts, lgK, fiCol, flags, seedHash);
+    putFirst8(wmem, preInts, (byte) lgK, (byte) fiCol, flags, seedHash);
 
-    wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), (int) numCoupons);
-    wmem.putInt(getHiFieldOffset(format, HiField.CW_LENGTH), (int) cwLength);
+    wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
+    wmem.putInt(getHiFieldOffset(format, HiField.CW_LENGTH), cwLength);
     wmem.putDouble(getHiFieldOffset(format, HiField.KXP), kxp);
     wmem.putDouble(getHiFieldOffset(format, HiField.HIP_ACCUM), hipAccum);
-    wmem.putIntArray(getCwStreamOffset(wmem), cwStream, 0, (int) cwLength);
+    wmem.putIntArray(getCwStreamOffset(wmem), cwStream, 0, cwLength);
   }
 
   static void putPinnedSlidingMerged(final WritableMemory wmem,
-      final byte lgK,
-      final byte fiCol,
-      final long numCoupons,
-      final long numSV,
-      final long csvLength,
-      final long cwLength,
+      final int lgK,
+      final int fiCol,
+      final int numCoupons, //unsigned
+      final int numSV,
+      final int csvLength,
+      final int cwLength,
       final short seedHash,
       final int[] csvStream,
       final int[] cwStream) {
@@ -483,25 +455,25 @@ final class PreambleUtil {
     final byte preInts = getDefinedPreInts(format);
     final byte flags = (byte) ((format.ordinal() << 2) | READ_ONLY_FLAG_MASK);
     checkCapacity(wmem.getCapacity(), 4L * (preInts + csvLength + cwLength));
-    putFirst8(wmem, preInts, lgK, fiCol, flags, seedHash);
+    putFirst8(wmem, preInts, (byte) lgK, (byte) fiCol, flags, seedHash);
 
-    wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), (int) numCoupons);
-    wmem.putInt(getHiFieldOffset(format, HiField.NUM_SV), (int) numSV);
-    wmem.putInt(getHiFieldOffset(format, HiField.CSV_LENGTH), (int) csvLength);
-    wmem.putInt(getHiFieldOffset(format, HiField.CW_LENGTH), (int) cwLength);
-    wmem.putIntArray(getCsvStreamOffset(wmem), csvStream, 0, (int) csvLength);
-    wmem.putIntArray(getCwStreamOffset(wmem), cwStream, 0, (int) cwLength);
+    wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
+    wmem.putInt(getHiFieldOffset(format, HiField.NUM_SV), numSV);
+    wmem.putInt(getHiFieldOffset(format, HiField.CSV_LENGTH), csvLength);
+    wmem.putInt(getHiFieldOffset(format, HiField.CW_LENGTH), cwLength);
+    wmem.putIntArray(getCsvStreamOffset(wmem), csvStream, 0, csvLength);
+    wmem.putIntArray(getCwStreamOffset(wmem), cwStream, 0, cwLength);
   }
 
   static void putPinnedSlidingHip(final WritableMemory wmem,
-      final byte lgK,
-      final byte fiCol,
-      final long numCoupons,
-      final long numSV,
+      final int lgK,
+      final int fiCol,
+      final int numCoupons, //unsigned
+      final int numSV,
       final double kxp,
       final double hipAccum,
-      final long csvLength,
-      final long cwLength,
+      final int csvLength,
+      final int cwLength,
       final short seedHash,
       final int[] csvStream,
       final int[] cwStream) {
@@ -509,16 +481,16 @@ final class PreambleUtil {
     final byte preInts = getDefinedPreInts(format);
     final byte flags = (byte) ((format.ordinal() << 2) | READ_ONLY_FLAG_MASK);
     checkCapacity(wmem.getCapacity(), 4L * (preInts + csvLength + cwLength));
-    putFirst8(wmem, preInts, lgK, fiCol, flags, seedHash);
+    putFirst8(wmem, preInts, (byte) lgK, (byte) fiCol, flags, seedHash);
 
-    wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), (int) numCoupons);
-    wmem.putInt(getHiFieldOffset(format, HiField.NUM_SV), (int) numSV);
+    wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
+    wmem.putInt(getHiFieldOffset(format, HiField.NUM_SV), numSV);
     wmem.putDouble(getHiFieldOffset(format, HiField.KXP), kxp);
     wmem.putDouble(getHiFieldOffset(format, HiField.HIP_ACCUM), hipAccum);
-    wmem.putInt(getHiFieldOffset(format, HiField.CSV_LENGTH), (int) csvLength);
-    wmem.putInt(getHiFieldOffset(format, HiField.CW_LENGTH), (int) cwLength);
-    wmem.putIntArray(getCsvStreamOffset(wmem), csvStream, 0, (int) csvLength);
-    wmem.putIntArray(getCwStreamOffset(wmem), cwStream, 0, (int) cwLength);
+    wmem.putInt(getHiFieldOffset(format, HiField.CSV_LENGTH), csvLength);
+    wmem.putInt(getHiFieldOffset(format, HiField.CW_LENGTH), cwLength);
+    wmem.putIntArray(getCsvStreamOffset(wmem), csvStream, 0, csvLength);
+    wmem.putIntArray(getCwStreamOffset(wmem), cwStream, 0, cwLength);
   }
 
   private static void putFirst8(final WritableMemory wmem, final byte preInts, final byte lgK,
