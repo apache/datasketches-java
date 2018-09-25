@@ -93,7 +93,7 @@ public final class CpcSketch {
    * Returns a copy of this sketch
    * @return a copy of this sketcch
    */
-  public CpcSketch copy() {
+  CpcSketch copy() {
     final CpcSketch copy = new CpcSketch(lgK, seed);
     copy.numCoupons = numCoupons;
     copy.mergeFlag = mergeFlag;

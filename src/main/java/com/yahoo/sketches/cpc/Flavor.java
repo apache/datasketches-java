@@ -11,7 +11,7 @@ package com.yahoo.sketches.cpc;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-public enum Flavor {
+enum Flavor {
   EMPTY,   //    0  == C <    1
   SPARSE,  //    1  <= C <   3K/32
   HYBRID,  // 3K/32 <= C <   K/2

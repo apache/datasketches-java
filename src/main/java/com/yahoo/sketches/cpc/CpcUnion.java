@@ -21,7 +21,7 @@ import com.yahoo.sketches.SketchesStateException;
  *
  * <p>First, we compare the K values of the unioner and the source sketch.
  *
- * <p>If (source.K < unioner.K), we reduce the unioner's K to match, which
+ * <p>If (source.K &lt; unioner.K), we reduce the unioner's K to match, which
  * requires downsampling the unioner's internal sketch.
  *
  * <p>Here is how to perform the downsampling.
@@ -35,10 +35,10 @@ import com.yahoo.sketches.SketchesStateException;
  * densifies the set of collected coupons). If it is NOT in sparse mode,
  * immediately convert it to a bitmatrix.
  *
- * <p>At this point, we have source.K >= unioner.K.
+ * <p>At this point, we have source.K &ge; unioner.K.
  * [We won't keep mentioning this, but in all of the following the
  * source's row indices are used mod unioner.K while updating the unioner's sketch.
- * That takes care of the situation where source.K > unioner.K.]
+ * That takes care of the situation where source.K &lt; unioner.K.]
  *
  * <p>Case A: unioner is Sparse and source is Sparse. We walk the source sketch
  * updating the unioner's sketch. At the end, if the unioner's sketch
@@ -47,7 +47,7 @@ import com.yahoo.sketches.SketchesStateException;
  * <p>Case B: unioner is bitmatrix and source is Sparse. We walk the source sketch,
  * setting bits in the bitmatrix.
  *
- * <p>In the remaining cases, we have flavor(source) > Sparse, so we immediately convert the
+ * <p>In the remaining cases, we have flavor(source) &gt; Sparse, so we immediately convert the
  * unioner's sketch to a bitmatrix (even if the unioner contains very few coupons). Then:
  *
  * <p>Case C: unioner is bitmatrix and source is Hybrid or Pinned. Then we OR the source's
