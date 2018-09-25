@@ -352,8 +352,8 @@ public class KllFloatsSketch {
     if (other.numLevels_ >= 2) {
       mergeHigherLevels(other, finalN);
     }
-    if (Float.isNaN(minValue_) || other.minValue_ < minValue_) { minValue_ = other.minValue_; }
-    if (Float.isNaN(maxValue_) || other.maxValue_ > maxValue_) { maxValue_ = other.maxValue_; }
+    if (Float.isNaN(minValue_) || (other.minValue_ < minValue_)) { minValue_ = other.minValue_; }
+    if (Float.isNaN(maxValue_) || (other.maxValue_ > maxValue_)) { maxValue_ = other.maxValue_; }
     n_ = finalN;
     assertCorrectTotalWeight();
     if (other.isEstimationMode()) {
@@ -791,10 +791,10 @@ public class KllFloatsSketch {
             + PREAMBLE_INTS_FULL + " for a sketch with more than one item: " + preambleInts);
       }
     }
-    if (serialVersion != serialVersionUID1 && serialVersion != serialVersionUID2) {
+    if ((serialVersion != serialVersionUID1) && (serialVersion != serialVersionUID2)) {
       throw new SketchesArgumentException(
-          "Possible corruption: serial version mismatch: expected " + serialVersionUID1 + " or " + serialVersionUID2
-          + ", got " + serialVersion);
+          "Possible corruption: serial version mismatch: expected " + serialVersionUID1 + " or "
+              + serialVersionUID2 + ", got " + serialVersion);
     }
     if (family != Family.KLL.getID()) {
       throw new SketchesArgumentException(
@@ -1074,7 +1074,7 @@ public class KllFloatsSketch {
   }
 
   private static int getSerializedSizeBytes(final int numLevels, final int numRetained) {
-    if (numLevels == 1 && numRetained == 1) {
+    if ((numLevels == 1) && (numRetained == 1)) {
       return DATA_START_SINGLE_ITEM + Float.BYTES;
     }
     // the last integer in levels_ is not serialized because it can be derived
