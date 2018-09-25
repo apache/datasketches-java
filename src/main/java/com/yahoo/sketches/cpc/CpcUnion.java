@@ -69,23 +69,23 @@ import com.yahoo.sketches.SketchesStateException;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-public class CpcMerging {
-  int lgK;
-  long seed;
+public class CpcUnion {
+  private final long seed;
+  private int lgK;
+
   // Note: at most one of bitMatrix and accumulator will be non-null at any given moment.
   // accumulator is a sketch object that is employed until it graduates out of Sparse mode.
   // At that point, it is converted into a full-sized bitMatrix, which is mathematically a sketch,
   // but doesn't maintain any of the "extra" fields of our sketch objects, so some additional work
   // is required when getResult is called at the end.
-  long[] bitMatrix;
-  CpcSketch accumulator; //can only be empty or sparse Flavor
-
+  private long[] bitMatrix;
+  private CpcSketch accumulator; //can only be empty or sparse Flavor
 
   /**
    * Construct this unioning object with LgK and the default update seed.
    * @param lgK The given log2 of K.
    */
-  public CpcMerging(final int lgK) {
+  public CpcUnion(final int lgK) {
     this(lgK, DEFAULT_UPDATE_SEED);
   }
 
@@ -94,22 +94,42 @@ public class CpcMerging {
    * @param lgK The given log2 of K.
    * @param seed The given seed.
    */
-  public CpcMerging(final int lgK, final long seed) {
+  public CpcUnion(final int lgK, final long seed) {
+    this.seed = seed;
     this.lgK = lgK;
-    this.seed = seed; //computeSeedHash(seed);
     bitMatrix = null;
+    // We begin with the accumulator holding an EMPTY_MERGED sketch object.
+    // As an optimization the accumulator could start as NULL, but that would require changes elsewhere.
     accumulator = new CpcSketch(lgK);
   }
 
   /**
-   * Resets this merging operation. The original values of LgK and Seed are retained.
+   * Update this unioner with a CpcSketch.
+   * @param sketch the given CpcSketch.
    */
-  public void reset() {
-    accumulator = null;
-    bitMatrix = null;
+  public void update(final CpcSketch sketch) {
+    mergeInto(this, sketch);
   }
 
-  static long countBitsSetInMatrix(final long[] matrix) {
+  public CpcSketch getResult() {
+    return getResult(this);
+  }
+
+  public int getLgK() {
+    return lgK;
+  }
+
+  long getNumCoupons() {
+    if (bitMatrix != null) {
+      return countBitsSetInMatrix(bitMatrix);
+    } else if (accumulator != null) {
+      return accumulator.numCoupons;
+    } else {
+      return 0;
+    }
+  }
+
+  private static long countBitsSetInMatrix(final long[] matrix) {
     long count = 0;
     final int len = matrix.length;
     for (int i = 0; i < len; i++) { count += Long.bitCount(matrix[i]); }
@@ -117,11 +137,11 @@ public class CpcMerging {
   }
 
   //used for testing only
-  static long[] getBitMatrix(final CpcMerging unioner) {
+  static long[] getBitMatrix(final CpcUnion unioner) {
     checkUnionState(unioner);
     return (unioner.bitMatrix != null)
         ? unioner.bitMatrix
-        : CpcSketch.bitMatrixOfSketch(unioner.accumulator);
+        : CpcUtil.bitMatrixOfSketch(unioner.accumulator);
   }
 
   private static void walkTableUpdatingSketch(final CpcSketch dest, final PairTable table) {
@@ -179,7 +199,7 @@ public class CpcMerging {
     }
   }
 
-  static void reduceUnionerK(final CpcMerging unioner, final int newLgK) {
+  private static void reduceUnionerK(final CpcUnion unioner, final int newLgK) {
     assert (newLgK < unioner.lgK);
     checkUnionState(unioner);
 
@@ -215,12 +235,12 @@ public class CpcMerging {
 
       // the new sketch has graduated beyond sparse, so convert to bitMatrix
       unioner.accumulator = null;
-      unioner.bitMatrix = CpcSketch.bitMatrixOfSketch(newSketch);
+      unioner.bitMatrix = CpcUtil.bitMatrixOfSketch(newSketch);
       unioner.lgK = newLgK;
     }
   }
 
-  static void mergeInto(final CpcMerging unioner, final CpcSketch source) {
+  static void mergeInto(final CpcUnion unioner, final CpcSketch source) {
     if (source == null) { return; }
     checkSeeds(unioner.seed, source.seed);
 
@@ -247,7 +267,7 @@ public class CpcMerging {
       final Flavor finalDestFlavor = unioner.accumulator.getFlavor();
       // if the accumulator has graduated beyond sparse, switch to a bitMatrix representation
       if ((finalDestFlavor != EMPTY) && (finalDestFlavor != SPARSE)) {
-        unioner.bitMatrix = CpcSketch.bitMatrixOfSketch(unioner.accumulator);
+        unioner.bitMatrix = CpcUtil.bitMatrixOfSketch(unioner.accumulator);
         unioner.accumulator = null;
       }
       return;
@@ -267,7 +287,7 @@ public class CpcMerging {
       assert (unioner.bitMatrix == null);
       final Flavor destFlavor = unioner.accumulator.getFlavor();
       assert ((EMPTY == destFlavor) || (SPARSE == destFlavor));
-      unioner.bitMatrix = CpcSketch.bitMatrixOfSketch(unioner.accumulator);
+      unioner.bitMatrix = CpcUtil.bitMatrixOfSketch(unioner.accumulator);
       unioner.accumulator = null;
     }
     assert (unioner.bitMatrix != null);
@@ -284,17 +304,17 @@ public class CpcMerging {
     // SLIDING mode involves inverted logic, so we can't just walk the source sketch.
     // Instead, we convert it to a bitMatrix that can be OR'ed into the destination.
     assert (SLIDING == sourceFlavor); // Case D
-    final long[] sourceMatrix = CpcSketch.bitMatrixOfSketch(source);
+    final long[] sourceMatrix = CpcUtil.bitMatrixOfSketch(source);
     orMatrixIntoMatrix(unioner.bitMatrix, unioner.lgK, sourceMatrix, source.lgK);
   }
 
-  static CpcSketch getResult(final CpcMerging unioner) {
+  static CpcSketch getResult(final CpcUnion unioner) {
     checkUnionState(unioner);
 
     if (unioner.accumulator != null) { // start of case where unioner contains a sketch
       if (unioner.accumulator.numCoupons == 0) {
         final CpcSketch result = new CpcSketch(unioner.lgK, unioner.accumulator.seed);
-        result.mergeFlag = true;
+        result.mergeFlag = true; //TODO why?
         return (result);
       }
       assert (SPARSE == unioner.accumulator.getFlavor());
@@ -308,35 +328,32 @@ public class CpcMerging {
     final int lgK = unioner.lgK;
     final CpcSketch result = new CpcSketch(unioner.lgK, unioner.seed);
 
-    final int k = 1 << lgK;
     final long numCoupons = countBitsSetInMatrix(matrix);
     result.numCoupons = numCoupons;
 
     final Flavor flavor = CpcUtil.determineFlavor(lgK, numCoupons);
-    assert ((flavor == HYBRID) || (flavor == PINNED) || (flavor == SLIDING));
+    assert ((flavor.ordinal() > SPARSE.ordinal()) );
 
-    final int offset = CpcSketch.determineCorrectOffset(lgK, numCoupons);
+    final int offset = CpcUtil.determineCorrectOffset(lgK, numCoupons);
     result.windowOffset = offset;
 
+    //Build the window and pair table
+
+    final int k = 1 << lgK;
     final byte[] window = new byte[k];
-    assert (result.slidingWindow == null);
     result.slidingWindow = window;
 
-    // dynamically growing caused snowplow effect
-    int newTableSize = lgK - 4; // K/16; in some cases this will end up being oversized
-    if (newTableSize < 2) { newTableSize = 2; }
-
-    final PairTable table = new PairTable(newTableSize, 6 + lgK);
-    assert (result.pairTable == null);
+    // LgSize = K/16; in some cases this will end up being oversized
+    final int newTableLgSize = Math.max(lgK - 4, 2);
+    final PairTable table = new PairTable(newTableLgSize, 6 + lgK);
     result.pairTable = table;
 
-    // I believe that the following works even when the offset is zero.
+    // The following works even when the offset is zero.
     final long maskForClearingWindow = (0XFFL << offset) ^ -1L;
     final long maskForFlippingEarlyZone = (1L << offset) - 1L;
     long allSurprisesORed = 0;
 
-    // The snowplow effect was caused by processing the rows in order,
-    // but we have fixed it by using a sufficiently large hash table.
+    // using a sufficiently large hash table avoids the snowplow effect
     for (int i = 0; i < k; i++) {
       long pattern = matrix[i];
       window[i] = (byte) ((pattern >>> offset) & 0XFFL);
@@ -371,7 +388,7 @@ public class CpcMerging {
     }
   }
 
-  private static void checkUnionState(final CpcMerging unioner) {
+  private static void checkUnionState(final CpcUnion unioner) {
     if (unioner == null) {
       throw new SketchesStateException("Unioner cannot be null");
     }

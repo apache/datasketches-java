@@ -11,8 +11,6 @@ import static com.yahoo.sketches.cpc.CompressionData.decodingTablesForHighEntrop
 import static com.yahoo.sketches.cpc.CompressionData.encodingTablesForHighEntropyByte;
 import static com.yahoo.sketches.cpc.CompressionData.lengthLimitedUnaryDecodingTable65;
 import static com.yahoo.sketches.cpc.CompressionData.lengthLimitedUnaryEncodingTable65;
-import static com.yahoo.sketches.cpc.CpcUtil.divideBy32RoundingUp;
-import static com.yahoo.sketches.cpc.CpcUtil.golombChooseNumberOfBaseBits;
 import static com.yahoo.sketches.cpc.PairTable.introspectiveInsertionSort;
 //import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertEquals;
 
@@ -396,7 +394,7 @@ final class CpcCompression {
       predictedRowIndex = rowIndex;
       predictedColIndex = colIndex + 1;
     }
-    // check for buffer over-run //final fail path 5
+    // check for buffer over-run
     assert (nextWordIndex <= numCompressedWords)
       : "nextWdIdx: " + nextWordIndex + ", #CompWds: " + numCompressedWords;
   }
@@ -414,7 +412,7 @@ final class CpcCompression {
     if (padding < 0) { padding = 0; }
     final long bits = xbits + ybits + padding;
     //final long words = divideLongsRoundingUp(bits, 32);
-    final long words = divideBy32RoundingUp(bits);
+    final long words = CpcCompression.divideBy32RoundingUp(bits);
     assert words < (1L << 31);
     return (int) words;
   }
@@ -430,7 +428,7 @@ final class CpcCompression {
     final long bits = (12 * k) + 11;
     //cannot exceed Integer.MAX_VALUE
     //return (int) (divideLongsRoundingUp(bits, 32));
-    return (int) divideBy32RoundingUp(bits);
+    return (int) CpcCompression.divideBy32RoundingUp(bits);
   }
 
   private static int determinePseudoPhase(final int lgK, final long numCoupons) {
@@ -496,9 +494,9 @@ final class CpcCompression {
   private static void compressTheSurprisingValues(final CompressedState target, final CpcSketch source,
       final int[] pairs, final int numPairs) {
     assert (numPairs > 0);
-    target.numPairs = numPairs;
+    target.numCsv = numPairs;
     final int srcK = 1 << source.lgK;
-    final int numBaseBits = golombChooseNumberOfBaseBits(srcK + numPairs, numPairs);
+    final int numBaseBits = CpcCompression.golombChooseNumberOfBaseBits(srcK + numPairs, numPairs);
     final int pairBufLen = safeLengthForCompressedPairBuf(srcK, numPairs, numBaseBits);
     final int[] pairBuf = new int[pairBufLen];
 
@@ -515,12 +513,12 @@ final class CpcCompression {
   //the length of this array is known to the source sketch.
   private static int[] uncompressTheSurprisingValues(final CompressedState source) {
     final int srcK = 1 << source.lgK;
-    final int numPairs = source.numPairs;
+    final int numPairs = source.numCsv;
     assert numPairs > 0;
     final int[] pairs = new int[numPairs];
-    final int numBaseBits = golombChooseNumberOfBaseBits(srcK + numPairs, numPairs);
+    final int numBaseBits = CpcCompression.golombChooseNumberOfBaseBits(srcK + numPairs, numPairs);
     lowLevelUncompressPairs(pairs, numPairs, numBaseBits,
-        source.csvStream, source.numPairs);
+        source.csvStream, source.csvLength);
     return pairs;
   }
 
@@ -537,7 +535,7 @@ final class CpcCompression {
     assert (source.cwStream == null);
     assert (source.csvStream != null);
     final int[] srcPairArr = uncompressTheSurprisingValues(source);
-    final int numPairs = source.numPairs;
+    final int numPairs = source.numCsv;
     final PairTable table = PairTable.newInstanceFromPairsArray(srcPairArr, numPairs, source.lgK);
     target.pairTable = table;
   }
@@ -599,7 +597,7 @@ final class CpcCompression {
     assert (source.cwStream == null);
     assert (source.csvStream != null);
     final int[] pairs = uncompressTheSurprisingValues(source); //fail path 3
-    final int numPairs = source.numPairs;
+    final int numPairs = source.numCsv;
     // In the hybrid flavor, some of these pairs actually
     // belong in the window, so we will separate them out,
     // moving the "true" pairs to the bottom of the array.
@@ -659,7 +657,7 @@ final class CpcCompression {
     assert (source.cwStream != null);
     uncompressTheWindow(target, source);
     final int srcLgK = source.lgK;
-    final int numPairs = source.numPairs;
+    final int numPairs = source.numCsv;
     if (numPairs == 0) {
       target.pairTable = new PairTable(2, 6 + srcLgK);
     }
@@ -721,7 +719,7 @@ final class CpcCompression {
     assert (source.cwStream != null);
     uncompressTheWindow(target, source);
     final int srcLgK = source.lgK;
-    final int numPairs = source.numPairs;
+    final int numPairs = source.numCsv;
     if (numPairs == 0) {
       target.pairTable = new PairTable(2, 6 + srcLgK);
 
@@ -801,10 +799,24 @@ final class CpcCompression {
         assert (source.cwStream != null);
         uncompressPinnedFlavor(target, source);
         break;
-      case SLIDING: uncompressSlidingFlavor(target, source); break;
+      case SLIDING:
+        uncompressSlidingFlavor(target, source);
+        break;
       default: throw new SketchesStateException("Unknown sketch flavor");
     }
     return target;
+  }
+
+  private static int golombChooseNumberOfBaseBits(final int k, final long count) {
+    assert k >= 1L;
+    assert count >= 1L;
+    final long quotient = (k - count) / count; // integer division
+    return (quotient == 0) ? 0 : Long.numberOfTrailingZeros(quotient); //floor(log2(x))
+  }
+
+  private static long divideBy32RoundingUp(final long x) {
+    final long tmp = x >>> 5;
+    return ((tmp << 5) == x) ? tmp : tmp + 1;
   }
 
 }

@@ -6,10 +6,13 @@
 package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.cpc.PairTable.introspectiveInsertionSort;
+import static org.testng.Assert.fail;
 
 import java.util.Random;
 
 import org.testng.annotations.Test;
+
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * @author Lee Rhodes
@@ -78,14 +81,28 @@ public class PairTableTest {
     for (int i : arrC) { println("" + (i & 0XFFFF_FFFFL)); }
   }
 
-  static void printPairs(final int[] arr) {
-    final int len = arr.length;
-    println("Row\tCol");
-    for (int i = 0; i < len; i++) {
-      final int item = arr[i];
-      println((item >>> 6) + "\t" + (item & 63));
-    }
+  @SuppressWarnings("unused")
+  @Test
+  public void checkException() {
+    int lgK = 10;
+    PairTable a = new PairTable(2, lgK + 6);
+    println(a.toString());
+    PairTable b = null;
+    try {
+      PairTable.equals(a, b);
+      fail();
+    } catch (SketchesArgumentException e) { }
+    try {
+      PairTable.equals(b, a);
+      fail();
+    } catch (SketchesArgumentException e) { }
+    try {
+      PairTable c = new PairTable(1, 16);
+      fail();
+    } catch (SketchesArgumentException e) { }
   }
+
+
 
   @Test
   public void printlnTest() {

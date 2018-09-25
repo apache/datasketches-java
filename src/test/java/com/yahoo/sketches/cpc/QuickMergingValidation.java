@@ -6,8 +6,8 @@
 package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.Util.iGoldenU64;
-import static com.yahoo.sketches.cpc.CpcMerging.getResult;
-import static com.yahoo.sketches.cpc.CpcMerging.mergeInto;
+import static com.yahoo.sketches.cpc.CpcUnion.getResult;
+import static com.yahoo.sketches.cpc.CpcUnion.mergeInto;
 import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssert;
 
 import java.io.PrintStream;
@@ -86,7 +86,7 @@ public class QuickMergingValidation {
     }
     t2 = System.nanoTime();
 
-    CpcMerging ugM = new CpcMerging(lgK);
+    CpcUnion ugM = new CpcUnion(lgK);
     mergeInto(ugM, skA);
     t3 = System.nanoTime();
 
@@ -96,7 +96,7 @@ public class QuickMergingValidation {
     CpcSketch skR = getResult(ugM);
     t5 = System.nanoTime();
 
-    rtAssert(CpcSketch.equals(skD, skR, false, true));
+    rtAssert(TestUtil.specialEquals(skD, skR, false, true));
     Flavor fA = skA.getFlavor();
     Flavor fB = skB.getFlavor();
     Flavor fR = skR.getFlavor();

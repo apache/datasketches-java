@@ -5,9 +5,6 @@
 
 package com.yahoo.sketches.cpc;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Note: except for brief transitional moments, these sketches always obey the following strict
  * mapping between the flavor of a sketch and the number of coupons that it has collected.
@@ -17,17 +14,11 @@ import java.util.Map;
 public enum Flavor {
   EMPTY,   //    0  == C <    1
   SPARSE,  //    1  <= C <   3K/32
-  HYBRID,  //  3K/32 <= C <   K/2
+  HYBRID,  // 3K/32 <= C <   K/2
   PINNED,  //   K/2 <= C < 27K/8  [NB: 27/8 = 3 + 3/8]
-  SLIDING;  // 27K/8 <= C
+  SLIDING; // 27K/8 <= C
 
-  private static final Map<Integer, Flavor> lookupID = new HashMap<>();
-
-  static {
-    for (Flavor f : values()) {
-      lookupID.put(f.ordinal(), f);
-    }
-  }
+  private static Flavor[] fmtArr = Flavor.class.getEnumConstants();
 
   /**
    * Returns the Flavor given its enum ordinal
@@ -35,7 +26,7 @@ public enum Flavor {
    * @return the Flavor given its enum ordinal
    */
   static Flavor ordinalToFlavor(final int ordinal) {
-    return lookupID.get(ordinal);
+    return fmtArr[ordinal];
   }
 
 }

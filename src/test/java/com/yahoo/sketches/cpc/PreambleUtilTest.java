@@ -22,12 +22,12 @@ import static com.yahoo.sketches.cpc.PreambleUtil.getHipAccum;
 import static com.yahoo.sketches.cpc.PreambleUtil.getKxP;
 import static com.yahoo.sketches.cpc.PreambleUtil.getLgK;
 import static com.yahoo.sketches.cpc.PreambleUtil.getNumCoupons;
-import static com.yahoo.sketches.cpc.PreambleUtil.getNumSV;
+import static com.yahoo.sketches.cpc.PreambleUtil.getNumCsv;
 import static com.yahoo.sketches.cpc.PreambleUtil.getPreInts;
 import static com.yahoo.sketches.cpc.PreambleUtil.getSeedHash;
 import static com.yahoo.sketches.cpc.PreambleUtil.getSerVer;
 import static com.yahoo.sketches.cpc.PreambleUtil.hasHip;
-import static com.yahoo.sketches.cpc.PreambleUtil.putEmpty;
+import static com.yahoo.sketches.cpc.PreambleUtil.putEmptyMerged;
 import static com.yahoo.sketches.cpc.PreambleUtil.putPinnedSlidingHip;
 import static com.yahoo.sketches.cpc.PreambleUtil.putPinnedSlidingHipNoSv;
 import static com.yahoo.sketches.cpc.PreambleUtil.putPinnedSlidingMerged;
@@ -62,7 +62,6 @@ public class PreambleUtilTest {
     assertEquals(getFiCol(wmem), fiCol);
     assertEquals(getFlags(wmem), (format.ordinal() << 2) | READ_ONLY_FLAG_MASK);
     assertEquals(getSeedHash(wmem), defaultSeedHash);
-
   }
 
   @Test
@@ -83,8 +82,8 @@ public class PreambleUtilTest {
 
     Format format;
 
-    format = Format.EMPTY;
-    putEmpty(wmem, lgK, seedHash);
+    format = Format.EMPTY_MERGED;
+    putEmptyMerged(wmem, lgK, seedHash);
     println(PreambleUtil.toString((byte[])wmem.getArray(), true));
     checkFirst8(wmem, format, lgK, (byte) 0);
     assertFalse(hasHip(wmem));
@@ -108,7 +107,7 @@ public class PreambleUtilTest {
     assertEquals(getHipAccum(wmem), hipAccum);
     assertTrue(hasHip(wmem));
 
-    format = Format.PINNED_SLIDING_MERGED_NOSV;
+    format = Format.PINNED_SLIDING_MERGED_NOCSV;
     putPinnedSlidingMergedNoSv(wmem, lgK, fiCol, numCoupons, cwLength, seedHash, cwStream);
     println(PreambleUtil.toString(wmem, true));
     PreambleUtil.toString(wmem, false);
@@ -116,7 +115,7 @@ public class PreambleUtilTest {
     assertEquals(getNumCoupons(wmem), numCoupons);
     assertEquals(getCwLength(wmem), cwLength);
 
-    format = Format.PINNED_SLIDING_HIP_NOSV;
+    format = Format.PINNED_SLIDING_HIP_NOCSV;
     putPinnedSlidingHipNoSv(wmem, lgK, fiCol, numCoupons, cwLength, kxp, hipAccum, seedHash,
         cwStream);
     println(PreambleUtil.toString(wmem, true));
@@ -134,7 +133,7 @@ public class PreambleUtilTest {
     PreambleUtil.toString(wmem, false);
     checkFirst8(wmem, format, lgK, fiCol);
     assertEquals(getNumCoupons(wmem), numCoupons);
-    assertEquals(getNumSV(wmem), numSv);
+    assertEquals(getNumCsv(wmem), numSv);
     assertEquals(getCsvLength(wmem), csvLength);
     assertEquals(getCwLength(wmem), cwLength);
 
@@ -145,7 +144,7 @@ public class PreambleUtilTest {
     PreambleUtil.toString(wmem, false);
     checkFirst8(wmem, format, lgK, fiCol);
     assertEquals(getNumCoupons(wmem), numCoupons);
-    assertEquals(getNumSV(wmem), numSv);
+    assertEquals(getNumCsv(wmem), numSv);
     assertEquals(getCsvLength(wmem), csvLength);
     assertEquals(getCwLength(wmem), cwLength);
     assertEquals(getKxP(wmem), kxp);
@@ -155,7 +154,7 @@ public class PreambleUtilTest {
   @Test
   public void checkStreamErrors() {
     WritableMemory wmem = WritableMemory.allocate(4 * 10);
-    putEmpty(wmem, (byte) 12, defaultSeedHash);
+    putEmptyMerged(wmem, (byte) 12, defaultSeedHash);
     try { getCsvStreamOffset(wmem); fail(); } catch (SketchesArgumentException e) { }
     wmem.putByte(5, (byte) (7 << 2));
     try { getCsvStreamOffset(wmem); fail(); } catch (SketchesStateException e) { }
@@ -175,7 +174,7 @@ public class PreambleUtilTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkFieldError() {
-    PreambleUtil.fieldError(Format.EMPTY, HiField.NUM_COUPONS);
+    PreambleUtil.fieldError(Format.EMPTY_MERGED, HiField.NUM_COUPONS);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -185,13 +184,34 @@ public class PreambleUtilTest {
 
   @Test(expectedExceptions = SketchesStateException.class)
   public void checkHiFieldError() {
-    PreambleUtil.getHiFieldOffset(Format.EMPTY, HiField.NUM_COUPONS);
+    PreambleUtil.getHiFieldOffset(Format.EMPTY_MERGED, HiField.NUM_COUPONS);
   }
 
   @Test
   public void checkWindowOffset() {
-    long offset = CpcSketch.determineCorrectOffset(4, 54);
+    long offset = CpcUtil.determineCorrectOffset(4, 54);
     assertEquals(offset, 1L);
+  }
+
+  @Test
+  public void checkFormatEnum() {
+    assertEquals(Format.EMPTY_MERGED, Format.ordinalToFormat(0));
+    assertEquals(Format.EMPTY_HIP, Format.ordinalToFormat(1));
+    assertEquals(Format.SPARSE_HYBRID_MERGED, Format.ordinalToFormat(2));
+    assertEquals(Format.SPARSE_HYBRID_HIP, Format.ordinalToFormat(3));
+    assertEquals(Format.PINNED_SLIDING_MERGED_NOCSV, Format.ordinalToFormat(4));
+    assertEquals(Format.PINNED_SLIDING_HIP_NOCSV, Format.ordinalToFormat(5));
+    assertEquals(Format.PINNED_SLIDING_MERGED, Format.ordinalToFormat(6));
+    assertEquals(Format.PINNED_SLIDING_HIP, Format.ordinalToFormat(7));
+  }
+
+  @Test
+  public void checkFlavorEnum() {
+    assertEquals(Flavor.EMPTY, Flavor.ordinalToFlavor(0));
+    assertEquals(Flavor.SPARSE, Flavor.ordinalToFlavor(1));
+    assertEquals(Flavor.HYBRID, Flavor.ordinalToFlavor(2));
+    assertEquals(Flavor.PINNED, Flavor.ordinalToFlavor(3));
+    assertEquals(Flavor.SLIDING, Flavor.ordinalToFlavor(4));
   }
 
   @Test

@@ -219,18 +219,4 @@ public enum Family {
     return f;
   }
 
-  /**
-   * Returns the Family given one of the recognized class objects on one of the Families
-   * @param obj a recognized Family class object
-   * @return the Family given one of the recognized class objects on one of the Families
-   */
-  public static Family objectToFamily(final Object obj) {
-    final String sname = obj.getClass().getSimpleName().toUpperCase();
-    for (Family f : values()) {
-      if (sname.contains(f.toString())) {
-        return f;
-      }
-    }
-    throw new SketchesArgumentException("Possible Corruption: Unknown object");
-  }
 }

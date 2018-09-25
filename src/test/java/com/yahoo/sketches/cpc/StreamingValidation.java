@@ -88,7 +88,7 @@ public class StreamingValidation {
       sumIconEst += IconEstimator.getIconEstimate(lgK, sketch.numCoupons);
       sumHipEst  += sketch.hipEstAccum;
       rtAssertEquals(sketch.numCoupons, matrix.getNumCoupons());
-      long[] bitMatrix = CpcSketch.bitMatrixOfSketch (sketch);
+      long[] bitMatrix = CpcUtil.bitMatrixOfSketch (sketch);
       rtAssertEquals(bitMatrix, matrix.getMatrix());
     }
     long finC = sketch.numCoupons;

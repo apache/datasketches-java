@@ -5,9 +5,7 @@
 
 package com.yahoo.sketches.cpc;
 
-import static com.yahoo.sketches.Util.invPow2;
-import static java.lang.Math.pow;
-import static java.lang.Math.round;
+import java.util.Arrays;
 
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -19,86 +17,11 @@ final class CpcUtil {
   static final int minLgK = 4;
   static final int maxLgK = 26;
 
-  static final double[] kxpByteLookup = new double[256];
-
-  private static void fillKxpByteLookup() { //called from static initializer
-    for (int b = 0; b < 256; b++) {
-      double sum = 0;
-      for (int col = 0; col < 8; col++) {
-        final int bit = (b >>> col) & 1;
-        if (bit == 0) { // note the inverted logic
-          sum += invPow2(col + 1); //note the "+1"
-        }
-      }
-      kxpByteLookup[b] = sum;
-    }
-  }
-
-  static long divideBy32RoundingUp(final long x) {
-    final long tmp = x >>> 5;
-    return ((tmp << 5) == x) ? tmp : tmp + 1;
-  }
-
-  static long divideLongsRoundingUp(final long x, final long y) {
-    assert (x >= 0) && (y > 0);
-    final long quotient = x / y;
-    return ((quotient * y) == x) ?  quotient : quotient + 1;
-  }
-
-  /**
-   * Returns the floor of Log2(x)
-   * @param x the given x
-   * @return  the floor of Log2(x)
-   */
-  static long floorLog2ofX(final long x) {
-    if (x < 1L) {
-      throw new SketchesArgumentException("x must be > 0: " + x);
-    }
-    long p = 0;
-    long y = 1;
-    while (true) {
-      if (y == x) { return (p); }
-      if (y  > x) { return (p - 1); }
-      p  += 1;
-      y <<= 1;
-    }
-  }
-
-  static int golombChooseNumberOfBaseBits(final int k, final long count) {
-    assert k >= 1L;
-    assert count >= 1L;
-    final long quotient = (k - count) / count; // integer division
-    return (quotient == 0) ? 0 : (int) floorLog2ofX(quotient);
-  }
-
-  static int rowColFromTwoHashes(final long hash0, final long hash1, final int lgK) {
-    final int kMask = (1 << lgK) - 1;
-    int col = Long.numberOfLeadingZeros(hash1);
-    if (col > 63) { col = 63; } // clip so that 0 <= col <= 63
-    final int row = (int) (hash0 & kMask);
-    int rowCol = (row << 6) | col;
-    // Avoid the hash table's "empty" value which is (2^26 -1, 63) (all ones) by changing it
-    // to the pair (2^26 - 2, 63), which effectively merges the two cells.
-    // This case is *extremely* unlikely, but we might as well handle it.
-    // It can't happen at all if lgK (or maxLgK) < 26.
-    if (rowCol == -1) { rowCol ^= (1 << 6); }
-    return rowCol;
-  }
 
   static void checkLgK(final int lgK) {
     if ((lgK < minLgK) || (lgK > maxLgK)) {
       throw new SketchesArgumentException("LgK must be >= 4 and <= 26: " + lgK);
     }
-  }
-
-  static final double pwrLaw10NextDouble(final int ppb, final double curPoint) {
-    final double cur = (curPoint < 1.0) ? 1.0 : curPoint;
-    double gi = round(Math.log10(cur) * ppb); //current generating index
-    double next;
-    do {
-      next = round(pow(10.0, ++gi / ppb));
-    } while (next <= curPoint);
-    return next;
   }
 
   static Flavor determineFlavor(final int lgK, final long numCoupons) {
@@ -124,8 +47,66 @@ final class CpcUtil {
     }
   }
 
-  static {
-    fillKxpByteLookup();
+  /**
+   * Warning: this is called in several places, including during the
+   * transitional moments during which sketch invariants involving
+   * flavor and offset are out of whack and in fact we are re-imposing
+   * them. Therefore it cannot rely on determineFlavor() or
+   * determineCorrectOffset(). Instead it interprets the low level data
+   * structures "as is".
+   *
+   * <p>This produces a full-size k-by-64 bit matrix from any Live sketch.
+   *
+   * @param sketch the given sketch
+   * @return the bit matrix as an array of longs.
+   */
+  static long[] bitMatrixOfSketch(final CpcSketch sketch) {
+    final int k = (1 << sketch.lgK);
+    final int offset = sketch.windowOffset;
+    assert (offset >= 0) && (offset <= 56);
+
+    final long[] matrix = new long[k];
+
+    if (sketch.numCoupons == 0) {
+      return matrix; // Returning a matrix of zeros rather than NULL.
+    }
+
+    //Fill the matrix with default rows in which the "early zone" is filled with ones.
+    //This is essential for the routine's O(k) time cost (as opposed to O(C)).
+    final long defaultRow = (1L << offset) - 1L;
+    Arrays.fill(matrix, defaultRow);
+
+    final byte[] window = sketch.slidingWindow;
+    if (window != null) { // In other words, we are in window mode, not sparse mode.
+      for (int i = 0; i < k; i++) { // set the window bits, trusting the sketch's current offset.
+        matrix[i] |= ((window[i] & 0XFFL) << offset);
+      }
+    }
+    final PairTable table = sketch.pairTable;
+    assert (table != null);
+    final int[] slots = table.slots;
+    final int numSlots = 1 << table.lgSize;
+
+    for (int i = 0; i < numSlots; i++) {
+      final int rowCol = slots[i];
+      if (rowCol != -1) {
+        final int col = rowCol & 63;
+        final int row = rowCol >>> 6;
+        // Flip the specified matrix bit from its default value.
+        // In the "early" zone the bit changes from 1 to 0.
+        // In the "late" zone the bit changes from 0 to 1.
+        matrix[row] ^= (1L << col);
+      }
+    }
+    return matrix;
+  }
+
+  static int determineCorrectOffset(final int lgK, final long numCoupons) {
+    final long c = numCoupons;
+    final long k = (1L << lgK);
+    final long tmp = (c << 3) - (19L * k); // 8C - 19K
+    if (tmp < 0) { return 0; }
+    return (int) (tmp >>> (lgK + 3));      // tmp / 8K
   }
 
 }

@@ -90,22 +90,6 @@ final class PairTable {
     return this;
   }
 
-  //  //TODO TO BE REMOVED
-  //  static void lookupSharedCode(final PairTable table, final int item) {
-  //    final int lgSize = table.lgSize;
-  //    final int tableSize = 1 << lgSize;
-  //    final int mask = tableSize - 1;
-  //    final int shift = table.validBits - lgSize;
-  //    int probe = item >>> shift;
-  //    assert (probe >= 0) && (probe <= mask);
-  //    final int[] arr = table.slots;
-  //    int fetched = arr[probe];
-  //    while ((fetched != item) && (fetched != -1)) {
-  //      probe = (probe + 1) & mask;
-  //      fetched = arr[probe];
-  //    }
-  //  }
-
   static void mustInsert(final PairTable table, final int item) {
     //SHARED CODE
     final int lgSize = table.lgSize;
@@ -202,7 +186,7 @@ final class PairTable {
    * the load factor would have to be over 90 percent before this would fail frequently,
    * and even then the subsequent sort would fix things up.
    * @param table the given table to unwrap
-   * @param numPairs the number of valid pairs to in the table
+   * @param numCsv the number of valid pairs to in the table
    * @return the unwrapped table
    */
   static int[] unwrappingGetItems(final PairTable table, final int numPairs) {
@@ -333,7 +317,7 @@ final class PairTable {
     return PairTable.toString(this, false);
   }
 
-  static String toString(final PairTable table, final boolean detail) {
+  public static String toString(final PairTable table, final boolean detail) {
     final StringBuilder sb = new StringBuilder();
     final int tableSize = 1 << table.lgSize;
     sb.append("PairTable").append(LS);
@@ -342,16 +326,23 @@ final class PairTable {
     sb.append("  Valid Bits    : ").append(table.validBits).append(LS);
     sb.append("  Num Items     : ").append(table.numPairs).append(LS);
     if (detail) {
-      sb.append("  DATA          : ").append(LS);
+      sb.append("  DATA (hex) : ").append(LS);
+      final String hdr = String.format("%8s %9s %9s %4s", "Index","Word","Row","Col");
+      sb.append(hdr).append(LS);
       final int[] slots = table.slots;
       for (int i = 0; i < tableSize; i++) {
         final int word = slots[i];
-        if (word == -1) {
-          sb.append("    ").append(i).append("\t").append("--");
-        } else {
-          final int add = word >>> 6;
-          final int val = word & 0X3F;
-          sb.append("    ").append(i).append("\t").append(add).append("\t").append(val).append(LS);
+        if (word == -1) { //empty
+          final String h = String.format("%8d %9s", i, "--");
+          sb.append(h).append(LS);
+        } else { //data
+          final int row = word >>> 6;
+          final int col = word & 0X3F;
+          final String rowStr = Integer.toHexString(row);
+          final String colStr = Integer.toHexString(col);
+          final String wordStr = Long.toHexString(word & 0XFFFF_FFFFL);
+          final String data = String.format("%8d %9s %9s %4s", i, wordStr, rowStr, colStr);
+          sb.append(data).append(LS);
         }
       }
     }
@@ -364,10 +355,4 @@ final class PairTable {
     }
   }
 
-  /**
-   * @param s value to print
-   */
-  static void println(final String s) {
-    System.out.println(s);
-  }
 }

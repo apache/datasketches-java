@@ -158,7 +158,7 @@ public class CpcCompressionTest {
       }
     }
     int numPairs = nxt;
-    println("numPairs = " + numPairs);
+    println("numCsv = " + numPairs);
 
     int[] compressedWords = new int[MAX_WORDS];
     int bb; // numBaseBits

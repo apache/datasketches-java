@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.cpc;
 
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
@@ -37,17 +39,32 @@ public class TestAllTest {
   public void compressionCharacterizationCheck() {
     int lgMinK = 10;
     int lgMaxK = 10;
-    int lgMaxT = 12;//Trials at start
-    int lgMinT = 4; //Trials at end
+    int lgMaxT = 5; //Trials at start
+    int lgMinT = 2; //Trials at end
     int lgMulK = 7;
     int uPPO = 1;
     int incLgK = 1;
-    PrintStream ps = null;//System.out;
+    PrintStream ps = null; //System.out;
     PrintWriter pw = null;
 
     CompressionCharacterization cc = new CompressionCharacterization(
         lgMinK, lgMaxK, lgMinT, lgMaxT, lgMulK, uPPO, incLgK, ps, pw);
     cc.start();
+  }
+
+  //@Test //used for troubleshooting
+  public void singleRowColCheck() {
+    PrintStream ps = System.out;
+    int lgK = 20;
+    CpcSketch srcSketch = new CpcSketch(lgK);
+    int rowCol = 54746379;
+    srcSketch.rowColUpdate(rowCol);
+    ps.println(CpcSketch.toString(srcSketch, true));
+
+    CompressedState state = CompressedState.compress(srcSketch);
+    ps.println(CompressedState.toString(state, true));
+    CpcSketch uncSketch = CpcSketch.uncompress(state, DEFAULT_UPDATE_SEED);
+    ps.println(CpcSketch.toString(uncSketch, true));
   }
 
   //MERGING

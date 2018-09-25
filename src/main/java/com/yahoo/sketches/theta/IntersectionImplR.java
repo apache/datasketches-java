@@ -5,7 +5,6 @@
 
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.Family.objectToFamily;
 import static com.yahoo.sketches.Util.MIN_LG_ARR_LONGS;
 import static com.yahoo.sketches.Util.floorPowerOf2;
 import static com.yahoo.sketches.theta.CompactSketch.compactCachePart;
@@ -213,7 +212,7 @@ class IntersectionImplR extends Intersection {
       //preamble
       memOut.putByte(PREAMBLE_LONGS_BYTE, (byte) CONST_PREAMBLE_LONGS); //RF not used = 0
       memOut.putByte(SER_VER_BYTE, (byte) SER_VER);
-      memOut.putByte(FAMILY_BYTE, (byte) objectToFamily(this).getID());
+      memOut.putByte(FAMILY_BYTE, (byte) Family.INTERSECTION.getID());
       memOut.putByte(LG_NOM_LONGS_BYTE, (byte) 0); //not used
       memOut.putByte(LG_ARR_LONGS_BYTE, (byte) lgArrLongs_);
       if (empty_) {

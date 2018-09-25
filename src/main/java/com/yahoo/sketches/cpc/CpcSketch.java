@@ -10,19 +10,18 @@ import static com.yahoo.sketches.Util.checkSeedHashes;
 import static com.yahoo.sketches.Util.computeSeedHash;
 import static com.yahoo.sketches.Util.invPow2;
 import static com.yahoo.sketches.cpc.CpcUtil.checkLgK;
-import static com.yahoo.sketches.cpc.CpcUtil.kxpByteLookup;
-import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssert;
-import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertEquals;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import java.util.Arrays;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * @author Lee Rhodes
  * @author Kevin Lang
  */
 public final class CpcSketch {
+  private static final String LS = System.getProperty("line.separator");
+  private static final double[] kxpByteLookup = new double[256];
   final long seed;
   //common variables
   final int lgK;
@@ -57,6 +56,22 @@ public final class CpcSketch {
     this.seed = (seed != 0) ? seed : DEFAULT_UPDATE_SEED ;
     kxp = 1 << lgK;
     reset();
+  }
+
+  /**
+   * Resets this sketch to empty but retains the original LgK and Seed.
+   */
+  public final void reset() {
+    numCoupons = 0;
+    mergeFlag = false;
+    fiCol = 0;
+
+    windowOffset = 0;
+    slidingWindow = null;
+    pairTable = null;
+
+    kxp = 1 << lgK;
+    hipEstAccum = 0;
   }
 
   static CpcSketch uncompress(final CompressedState source, final long seed) {
@@ -126,6 +141,18 @@ public final class CpcSketch {
       return CpcConfidence.getIconConfidenceLB(lgK, numCoupons, kappa);
     }
     return CpcConfidence.getHipConfidenceLB(lgK, numCoupons, hipEstAccum, kappa);
+  }
+
+  /**
+   * Return this sketch as a compressed byte array.
+   * @return this sketch as a compressed byte array.
+   */
+  public byte[] toByteArray() {
+    final CompressedState state = CompressedState.compress(this);
+    final long cap = state.getMemoryCapacity();
+    final WritableMemory wmem = WritableMemory.allocate((int) cap);
+    state.exportToMemory(wmem);
+    return (byte[]) wmem.getArray();
   }
 
   /**
@@ -227,87 +254,21 @@ public final class CpcSketch {
     hashUpdate(arr[0], arr[1]);
   }
 
-  /**
-   * Resets this sketch to empty but retains the original LgK and Seed.
-   */
-  public final void reset() {
-    numCoupons = 0;
-    mergeFlag = false;
-    fiCol = 0;
-
-    windowOffset = 0;
-    slidingWindow = null;
-    pairTable = null;
-
-    kxp = 1 << lgK;
-    hipEstAccum = 0;
-  }
-
   Flavor getFlavor() {
     return CpcUtil.determineFlavor(lgK, numCoupons);
   }
 
-  static int determineCorrectOffset(final int lgK, final long numCoupons) {
-    final long c = numCoupons;
-    final long k = (1L << lgK);
-    final long tmp = (c << 3) - (19L * k); // 8C - 19K
-    if (tmp < 0) { return 0; }
-    return (int) (tmp >>> (lgK + 3));      // tmp / 8K
-  }
-
-  /**
-   * Warning: this is called in several places, including during the
-   * transitional moments during which sketch invariants involving
-   * flavor and offset are out of whack and in fact we are re-imposing
-   * them. Therefore it cannot rely on determineFlavor() or
-   * determineCorrectOffset(). Instead it interprets the low level data
-   * structures "as is".
-   *
-   * <p>This produces a full-size k-by-64 bit matrix from any Live sketch.
-   *
-   * @param sketch the given sketch
-   * @return the bit matrix as an array of longs.
-   */
-  static long[] bitMatrixOfSketch(final CpcSketch sketch) {
-    //assert (sketch.isCompressed == false);
-    final int k = (1 << sketch.lgK);
-    final int offset = sketch.windowOffset;
-    assert (offset >= 0) && (offset <= 56);
-
-    final long[] matrix = new long[k];
-
-    if (sketch.numCoupons == 0) {
-      return matrix; // Returning a matrix of zeros rather than NULL.
+  Format getFormat() {
+    final int ordinal;
+    final Flavor f = getFlavor();
+    if ((f == Flavor.HYBRID) || (f == Flavor.SPARSE)) {
+      ordinal = 2 | ( mergeFlag ? 0 : 1 ); //Hybrid is serialized as SPARSE
+    } else {
+      ordinal = ((slidingWindow != null) ? 4 : 0)
+               | (((pairTable != null) && (pairTable.numPairs > 0)) ? 2 : 0)
+               | ( mergeFlag ? 0 : 1 );
     }
-
-    //Fill the matrix with default rows in which the "early zone" is filled with ones.
-    //This is essential for the routine's O(k) time cost (as opposed to O(C)).
-    final long defaultRow = (1L << offset) - 1L;
-    Arrays.fill(matrix, defaultRow);
-
-    final byte[] window = sketch.slidingWindow;
-    if (window != null) { // In other words, we are in window mode, not sparse mode.
-      for (int i = 0; i < k; i++) { // set the window bits, trusting the sketch's current offset.
-        matrix[i] |= ((window[i] & 0XFFL) << offset);
-      }
-    }
-    final PairTable table = sketch.pairTable;
-    assert (table != null);
-    final int[] slots = table.slots;
-    final int numSlots = 1 << table.lgSize;
-
-    for (int i = 0; i < numSlots; i++) {
-      final int rowCol = slots[i];
-      if (rowCol != -1) {
-        final int col = rowCol & 63;
-        final int row = rowCol >>> 6;
-        // Flip the specified matrix bit from its default value.
-        // In the "early" zone the bit changes from 1 to 0.
-        // In the "late" zone the bit changes from 0 to 1.
-        matrix[row] ^= (1L << col);
-      }
-    }
-    return matrix;
+    return Format.ordinalToFormat(ordinal);
   }
 
   private static void promoteEmptyToSparse(final CpcSketch sketch) {
@@ -362,8 +323,8 @@ public final class CpcSketch {
    * @param sketch the given sketch
    * @param bitMatrix the given bit Matrix
    */
-
-  private static void refreshKXP(final CpcSketch sketch, final long[] bitMatrix) {
+  //Used here and by test
+  static void refreshKXP(final CpcSketch sketch, final long[] bitMatrix) {
     final int k = (1 << sketch.lgK);
 
     // for improved numerical accuracy, we separately sum the bytes of the U64's
@@ -397,14 +358,14 @@ public final class CpcSketch {
   private static void modifyOffset(final CpcSketch sketch, final int newOffset) {
     assert ((newOffset >= 0) && (newOffset <= 56));
     assert (newOffset == (sketch.windowOffset + 1));
-    assert (newOffset == determineCorrectOffset(sketch.lgK, sketch.numCoupons));
+    assert (newOffset == CpcUtil.determineCorrectOffset(sketch.lgK, sketch.numCoupons));
 
     assert (sketch.slidingWindow != null);
     assert (sketch.pairTable != null);
     final int k = 1 << sketch.lgK;
 
     // Construct the full-sized bit matrix that corresponds to the sketch
-    final long[] bitMatrix = bitMatrixOfSketch(sketch);
+    final long[] bitMatrix = CpcUtil.bitMatrixOfSketch(sketch);
 
     // refresh the KXP register on every 8th window shift.
     if ((newOffset & 0x7) == 0) { refreshKXP(sketch, bitMatrix); }
@@ -515,65 +476,89 @@ public final class CpcSketch {
     }
   }
 
-  //also used for testing
+  //Used here and for testing
   void hashUpdate(final long hash0, final long hash1) {
-    final int kMask = (1 << lgK) - 1;
     int col = Long.numberOfLeadingZeros(hash1);
+    if (col < fiCol) { return; } // important speed optimization
     if (col > 63) { col = 63; } // clip so that 0 <= col <= 63
-    final int row = (int) (hash0 & kMask);
+    final long c = numCoupons;
+    if (c == 0) { promoteEmptyToSparse(this); }
+    final long k = 1L << lgK;
+    final int row = (int) (hash0 & (k - 1L));
     int rowCol = (row << 6) | col;
+
     // Avoid the hash table's "empty" value which is (2^26 -1, 63) (all ones) by changing it
     // to the pair (2^26 - 2, 63), which effectively merges the two cells.
     // This case is *extremely* unlikely, but we might as well handle it.
     // It can't happen at all if lgK (or maxLgK) < 26.
     if (rowCol == -1) { rowCol ^= (1 << 6); } //set the LSB of row to 0
-    rowColUpdate(rowCol);
+
+    if ((c << 5) < (3L * k)) { updateSparse(this, rowCol); }
+    else { updateWindowed(this, rowCol); }
   }
 
-  //also used for testing
+  //Used by unioner and in testing
   void rowColUpdate(final int rowCol) {
     final int col = rowCol & 63;
     if (col < fiCol) { return; } // important speed optimization
     final long c = numCoupons;
     if (c == 0) { promoteEmptyToSparse(this); }
-    final int k = 1 << lgK;
+    final long k = 1L << lgK;
     if ((c << 5) < (3L * k)) { updateSparse(this, rowCol); }
     else { updateWindowed(this, rowCol); }
   }
 
-  //used for testing only
-  static boolean equals(final CpcSketch skA, final CpcSketch skB,
-      final boolean skAwasMerged, final boolean skBwasMerged) {
-    rtAssertEquals(skA.seed, skB.seed);
-    rtAssertEquals(skA.lgK, skB.lgK);
-    rtAssertEquals(skA.numCoupons, skB.numCoupons);
+  @Override
+  public String toString() {
+    return toString(this, false);
+  }
 
-    rtAssertEquals(skA.windowOffset, skB.windowOffset);
-    rtAssertEquals(skA.slidingWindow, skB.slidingWindow);
-    PairTable.equals(skA.pairTable, skB.pairTable);
-
-    // fiCol is only updated occasionally while stream processing,
-    // therefore, the stream sketch could be behind the merged sketch.
-    // NB: While not very likely, it is possible for the difference to exceed 2.
-    //TODO Reconsider
-    final int ficolA = skA.fiCol;
-    final int ficolB = skB.fiCol;
-
-    if (!skAwasMerged && skBwasMerged) {
-      rtAssert(!skA.mergeFlag && skB.mergeFlag);
-      final int diff = ficolB - ficolA;
-      rtAssert((diff <= 2) && (diff >= 0));
-    } else if (skAwasMerged && !skBwasMerged) {
-      rtAssert(skA.mergeFlag && !skB.mergeFlag);
-      final int diff = ficolA - ficolB;
-      rtAssert((diff <= 2) && (diff >= 0));
-    } else {
-      rtAssertEquals(skA.mergeFlag, skB.mergeFlag);
-      rtAssertEquals(ficolA, ficolB);
-      rtAssertEquals(skA.kxp, skB.kxp, .01 * skA.kxp); //1% tolerance
-      rtAssertEquals(skA.hipEstAccum, skB.hipEstAccum, 01 * skA.hipEstAccum); //1% tolerance
+  /**
+   * Return a human-readable string summary of this sketch
+   * @param sk the given sketch
+   * @param detail include data detail
+   * @return a human-readable string summary of this sketch
+   */
+  public static String toString(final CpcSketch sk, final boolean detail) {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("CpcSketch").append(LS);
+    sb.append("  lgK        : ").append(sk.lgK).append(LS);
+    sb.append("  seed       : ").append(sk.seed).append(LS);
+    sb.append("  numCoupons : ").append(sk.numCoupons).append(LS);
+    sb.append("  mergeFlag  : ").append(sk.mergeFlag).append(LS);
+    sb.append("  fiCol      : ").append(sk.fiCol).append(LS);
+    sb.append("  winOffset  : ").append(sk.windowOffset).append(LS);
+    sb.append("  kxp        : ").append(sk.kxp).append(LS);
+    sb.append("  hipAccum   : ").append(sk.hipEstAccum).append(LS);
+    if (detail) {
+      if (sk.pairTable != null) {
+        sb.append(PairTable.toString(sk.pairTable, true));
+      }
+      if (sk.slidingWindow != null) {
+        sb.append("  SlidingWindow  : ").append(LS);
+        for (int i = 0; i < sk.slidingWindow.length; i++) {
+          sb.append(String.format("%8d %6d\n", i, sk.slidingWindow[i]));
+        }
+      }
     }
-    return true;
+    return sb.toString();
+  }
+
+  private static void fillKxpByteLookup() { //called from static initializer
+    for (int b = 0; b < 256; b++) {
+      double sum = 0;
+      for (int col = 0; col < 8; col++) {
+        final int bit = (b >>> col) & 1;
+        if (bit == 0) { // note the inverted logic
+          sum += invPow2(col + 1); //note the "+1"
+        }
+      }
+      kxpByteLookup[b] = sum;
+    }
+  }
+
+  static {
+    fillKxpByteLookup();
   }
 
 }

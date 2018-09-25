@@ -6,21 +6,20 @@
 package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.Util.iGoldenU64;
-import static com.yahoo.sketches.cpc.CpcUtil.floorLog2ofX;
 import static org.testng.Assert.assertEquals;
 
 import java.util.Random;
 
 /**
- * Experimentally verifies that the Java leading and trailing zeros must use
- * intrinsic CPU instructions instead of the documented code. These are much faster
- * than even choosing most probable bytes algorithms that were derived from C.
+ * Experimentally verifies that the Java leading and trailing zeros uses
+ * intrinsic CPU instructions instead of the documented code. The java built=in functions are much
+ * faster than even choosing most probable bytes algorithms that were derived from C.
  *
  * <p>These tests are for experimental testing only and are not enabled for normal unit testing.
  *
  * @author Lee Rhodes
  */
-public class CpcUtilTest {
+public class LzTzSpeedTesting {
   static final byte[] byteTrailingZerosTable = new byte[256];
   static final byte[] byteLeadingZerosTable = new byte[256];
 
@@ -138,11 +137,6 @@ public class CpcUtilTest {
       assert sum1 == sum2;
       println("shift: " + shift + ", byte: " + byteTime + ", long: " + longTime);
     }
-  }
-
-  //@Test
-  public void checkFloorLg2OfLong() {
-    assertEquals(floorLog2ofX((1L << 10) + 1), 10);
   }
 
   //@Test

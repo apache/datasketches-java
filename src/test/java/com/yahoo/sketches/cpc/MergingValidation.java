@@ -7,8 +7,7 @@ package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.Util.iGoldenU64;
 import static com.yahoo.sketches.Util.pwr2LawNextDouble;
-import static com.yahoo.sketches.cpc.CpcMerging.mergeInto;
-import static com.yahoo.sketches.cpc.CpcSketch.bitMatrixOfSketch;
+import static com.yahoo.sketches.cpc.CpcUnion.mergeInto;
 import static com.yahoo.sketches.cpc.IconEstimator.getIconEstimate;
 import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssert;
 import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertEquals;
@@ -84,7 +83,7 @@ public class MergingValidation {
 
   private void testMerging(final int lgKm, final int lgKa, final int lgKb, final long nA,
       final long nB) {
-    CpcMerging ugM = new CpcMerging(lgKm);
+    CpcUnion ugM = new CpcUnion(lgKm);
 
 //    int lgKd = ((nA != 0) && (lgKa < lgKm)) ? lgKa : lgKm;
 //    lgKd =     ((nB != 0) && (lgKb < lgKd)) ? lgKb : lgKd;
@@ -111,10 +110,10 @@ public class MergingValidation {
     mergeInto(ugM, skA);
     mergeInto(ugM, skB);
 
-    final int finalLgKm = ugM.lgK;
-    final long[] matrixM = CpcMerging.getBitMatrix(ugM);
+    final int finalLgKm = ugM.getLgK();
+    final long[] matrixM = CpcUnion.getBitMatrix(ugM);
 
-    final long cM = CpcMerging.countBitsSetInMatrix(matrixM);
+    final long cM = ugM.getNumCoupons();//countBitsSetInMatrix(matrixM);
     final long cD = skD.numCoupons;
     Flavor flavorD = skD.getFlavor();
     Flavor flavorA = skA.getFlavor();
@@ -132,13 +131,13 @@ public class MergingValidation {
     rtAssertEquals(cM, cD);
 
     rtAssertEquals(finalLgKm, lgKd);
-    final long[] matrixD = bitMatrixOfSketch(skD);
+    final long[] matrixD = CpcUtil.bitMatrixOfSketch(skD);
     rtAssertEquals(matrixM, matrixD);
 
-    CpcSketch skR = CpcMerging.getResult(ugM);
+    CpcSketch skR = CpcUnion.getResult(ugM);
     double iconEstR = getIconEstimate(skR.lgK, skR.numCoupons);
     rtAssertEquals(iconEstD, iconEstR, 0.0);
-    rtAssert(CpcSketch.equals(skD, skR, false, true));
+    rtAssert(TestUtil.specialEquals(skD, skR, false, true));
 
     printf(dfmt, lgKm, lgKa, lgKb, lgKd, nA, nB, (nA + nB),
         flavorAoff, flavorBoff, flavorDoff,
