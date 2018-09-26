@@ -21,13 +21,16 @@ import com.yahoo.memory.WritableMemory;
  * his paper
  * <a href="https://arxiv.org/abs/1708.06839">Back to the Future: an Even More Nearly
  * Optimal Cardinality Estimation Algorithm</a>.
- * This sketch is extremely space-efficient when serialized. In an apples-to-apples empirical
+ *
+ * <p>This sketch is extremely space-efficient when serialized. In an apples-to-apples empirical
  * comparison against compressed HyperLogLog sketches, this new algorithm simultaneously wins on
  * all three dimensions of the time/space/accuracy tradeoff and produces sketches that are
  * smaller than the entropy of HLL, so no possible implementation of compressed HLL can match its
  * space efficiency for a given accuracy. As described in the paper this sketch implements a newly
- * developed ICON estimator algorithm that survives unioning operations, which the other
- * well-known estimator, the Historical Inverse Probability (HIP) estimator does not.
+ * developed ICON estimator algorithm that survives unioning operations, another
+ * well-known estimator, the
+ * <a href="https://arxiv.org/abs/1306.3284">Historical Inverse Probability (HIP)</a> estimator
+ * does not.
  * The update speed performance of this sketch is quite fast and is comperable to the speed of HLL.
  * The unioning (merging) capability of this sketch also allows for merging of sketches with
  * different configurations of K.
@@ -530,34 +533,33 @@ public final class CpcSketch {
 
   @Override
   public String toString() {
-    return toString(this, false);
+    return toString(false);
   }
 
   /**
    * Return a human-readable string summary of this sketch
-   * @param sk the given sketch
    * @param detail include data detail
    * @return a human-readable string summary of this sketch
    */
-  public static String toString(final CpcSketch sk, final boolean detail) {
+  public String toString(final boolean detail) {
     final StringBuilder sb = new StringBuilder();
     sb.append("CpcSketch").append(LS);
-    sb.append("  lgK        : ").append(sk.lgK).append(LS);
-    sb.append("  seed       : ").append(sk.seed).append(LS);
-    sb.append("  numCoupons : ").append(sk.numCoupons).append(LS);
-    sb.append("  mergeFlag  : ").append(sk.mergeFlag).append(LS);
-    sb.append("  fiCol      : ").append(sk.fiCol).append(LS);
-    sb.append("  winOffset  : ").append(sk.windowOffset).append(LS);
-    sb.append("  kxp        : ").append(sk.kxp).append(LS);
-    sb.append("  hipAccum   : ").append(sk.hipEstAccum).append(LS);
+    sb.append("  lgK        : ").append(lgK).append(LS);
+    sb.append("  seed       : ").append(seed).append(LS);
+    sb.append("  numCoupons : ").append(numCoupons).append(LS);
+    sb.append("  mergeFlag  : ").append(mergeFlag).append(LS);
+    sb.append("  fiCol      : ").append(fiCol).append(LS);
+    sb.append("  winOffset  : ").append(windowOffset).append(LS);
+    sb.append("  kxp        : ").append(kxp).append(LS);
+    sb.append("  hipAccum   : ").append(hipEstAccum).append(LS);
     if (detail) {
-      if (sk.pairTable != null) {
-        sb.append(PairTable.toString(sk.pairTable, true));
+      if (pairTable != null) {
+        sb.append(PairTable.toString(pairTable, true));
       }
-      if (sk.slidingWindow != null) {
+      if (slidingWindow != null) {
         sb.append("  SlidingWindow  : ").append(LS);
-        for (int i = 0; i < sk.slidingWindow.length; i++) {
-          sb.append(String.format("%8d %6d\n", i, sk.slidingWindow[i]));
+        for (int i = 0; i < slidingWindow.length; i++) {
+          sb.append(String.format("%8d %6d\n", i, slidingWindow[i]));
         }
       }
     }

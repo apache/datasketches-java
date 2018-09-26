@@ -59,12 +59,12 @@ public class TestAllTest {
     CpcSketch srcSketch = new CpcSketch(lgK);
     int rowCol = 54746379;
     srcSketch.rowColUpdate(rowCol);
-    ps.println(CpcSketch.toString(srcSketch, true));
+    ps.println(srcSketch.toString(true));
 
     CompressedState state = CompressedState.compress(srcSketch);
     ps.println(CompressedState.toString(state, true));
     CpcSketch uncSketch = CpcSketch.uncompress(state, DEFAULT_UPDATE_SEED);
-    ps.println(CpcSketch.toString(uncSketch, true));
+    ps.println(uncSketch.toString(true));
   }
 
   //MERGING

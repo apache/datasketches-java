@@ -21,7 +21,7 @@ public class CpcSketchTest {
   @Test
   public void checkUpdatesEstimate() {
     CpcSketch sk = new CpcSketch(10, 0);
-    println(CpcSketch.toString(sk, true));
+    println(sk.toString(true));
     assertEquals(sk.getFormat(), Format.EMPTY_HIP);
     sk.update(1L);
     sk.update(2.0);
@@ -39,7 +39,7 @@ public class CpcSketchTest {
     assertEquals(sk.getFlavor(), Flavor.SPARSE);
     assertEquals(sk.getFormat(), Format.SPARSE_HYBRID_HIP);
     println(sk.toString());
-    println(CpcSketch.toString(sk, true));
+    println(sk.toString(true));
   }
 
   @Test
@@ -62,7 +62,7 @@ public class CpcSketchTest {
     assertTrue(lb >= 0);
     assertTrue(lb <= est);
     assertTrue(est <= ub);
-    println(CpcSketch.toString(result, true));
+    println(result.toString(true));
   }
 
   @Test
