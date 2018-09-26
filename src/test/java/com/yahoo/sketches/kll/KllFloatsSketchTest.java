@@ -10,6 +10,7 @@ import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.tuple.TestUtil;
 
 public class KllFloatsSketchTest {
 
@@ -223,6 +224,22 @@ public class KllFloatsSketchTest {
   }
 
   @Test
+  public void mergeExactModeLowerK() {
+    final KllFloatsSketch sketch1 = new KllFloatsSketch(256);
+    final KllFloatsSketch sketch2 = new KllFloatsSketch(128);
+    final int n = 10000;
+    for (int i = 0; i < n; i++) {
+      sketch1.update(i);
+    }
+    sketch2.update(1);
+
+    // rank error should not be affected by a merge with a sketch in exact mode with lower K
+    final double rankErrorBeforeMerge = sketch1.getNormalizedRankError(true);
+    sketch1.merge(sketch2);
+    assertEquals(sketch1.getNormalizedRankError(true), rankErrorBeforeMerge);
+  }
+
+  @Test
   public void mergeMinMinValueFromOther() {
     final KllFloatsSketch sketch1 = new KllFloatsSketch();
     final KllFloatsSketch sketch2 = new KllFloatsSketch();
@@ -287,6 +304,32 @@ public class KllFloatsSketchTest {
     assertTrue(Float.isNaN(sketch2.getMinValue()));
     assertTrue(Float.isNaN(sketch2.getMaxValue()));
     assertEquals(sketch2.getSerializedSizeBytes(), sketch1.getSerializedSizeBytes());
+  }
+
+  @Test
+  public void serializeDeserializeOneItem() {
+    final KllFloatsSketch sketch1 = new KllFloatsSketch();
+    sketch1.update(1);
+    final byte[] bytes = sketch1.toByteArray();
+    KllFloatsSketch sketch2 = KllFloatsSketch.heapify(Memory.wrap(bytes));
+    assertEquals(bytes.length, sketch1.getSerializedSizeBytes());
+    assertFalse(sketch2.isEmpty());
+    assertEquals(sketch2.getNumRetained(), 1);
+    assertEquals(sketch2.getN(), 1);
+    assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
+    assertFalse(Float.isNaN(sketch2.getMinValue()));
+    assertFalse(Float.isNaN(sketch2.getMaxValue()));
+    assertEquals(sketch2.getSerializedSizeBytes(), 12);
+  }
+
+  @Test
+  public void deserializeOneItemV1() throws Exception {
+    byte[] bytes = TestUtil.readBytesFromFile(getClass().getClassLoader().getResource("kll_sketch_float_one_item_v1.bin").getFile());
+    KllFloatsSketch sketch = KllFloatsSketch.heapify(Memory.wrap(bytes));
+    assertFalse(sketch.isEmpty());
+    assertFalse(sketch.isEstimationMode());
+    assertEquals(sketch.getN(), 1);
+    assertEquals(sketch.getNumRetained(), 1);
   }
 
   @Test
