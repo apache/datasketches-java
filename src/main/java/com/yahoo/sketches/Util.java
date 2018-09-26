@@ -497,7 +497,7 @@ public final class Util {
     double next;
     do {
       next = round(pow(2.0, ++gi / ppo));
-    } while (next <= curPoint);
+    } while (next <= cur);
     return next;
   }
 
