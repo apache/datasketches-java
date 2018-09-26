@@ -12,7 +12,6 @@ import static com.yahoo.sketches.cpc.CpcConfidence.getIconConfidenceUB;
 import static com.yahoo.sketches.cpc.IconEstimator.getIconEstimate;
 import static com.yahoo.sketches.cpc.PreambleUtil.checkLoPreamble;
 import static com.yahoo.sketches.cpc.PreambleUtil.getHipAccum;
-import static com.yahoo.sketches.cpc.PreambleUtil.getLgK;
 import static com.yahoo.sketches.cpc.PreambleUtil.getNumCoupons;
 import static com.yahoo.sketches.cpc.PreambleUtil.hasHip;
 
@@ -24,14 +23,14 @@ import com.yahoo.memory.Memory;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-public final class CompactSketch {
+public final class CpcWrapper {
   Memory mem;
 
   /**
    * Configure a read-only view of the given memory.
    * @param mem the given memory
    */
-  public CompactSketch(final Memory mem) {
+  public CpcWrapper(final Memory mem) {
     this.mem = mem;
     checkLoPreamble(mem);
   }
@@ -40,7 +39,7 @@ public final class CompactSketch {
    * Configure a read-only view of the given byte array.
    * @param byteArray the given byte array
    */
-  public CompactSketch(final byte[] byteArray) {
+  public CpcWrapper(final byte[] byteArray) {
     this(Memory.wrap(byteArray));
   }
 
@@ -50,22 +49,17 @@ public final class CompactSketch {
    */
   public double getEstimate() {
     if (!hasHip(mem)) {
-      return getIconEstimate(getLgK(mem), getNumCoupons(mem));
+      return getIconEstimate(PreambleUtil.getLgK(mem), getNumCoupons(mem));
     }
     return getHipAccum(mem);
   }
 
   /**
-   * Returns the best estimate of the upper bound of the confidence interval given <i>kappa</i>,
-   * the number of standard deviations from the mean.
-   * @param kappa the given number of standard deviations from the mean: 1, 2 or 3.
-   * @return the best estimate of the upper bound of the confidence interval given <i>kappa</i>.
+   * Returns the configured Log_base2 of K of this sketch.
+   * @return the configured Log_base2 of K of this sketch.
    */
-  public double getUpperBound(final int kappa) {
-    if (!hasHip(mem)) {
-      return getIconConfidenceUB(getLgK(mem), getNumCoupons(mem), kappa);
-    }
-    return getHipConfidenceUB(getLgK(mem), getNumCoupons(mem), getHipAccum(mem), kappa);
+  public int getLgK() {
+    return PreambleUtil.getLgK(mem);
   }
 
   /**
@@ -76,9 +70,22 @@ public final class CompactSketch {
    */
   public double getLowerBound(final int kappa) {
     if (!hasHip(mem)) {
-      return getIconConfidenceLB(getLgK(mem), getNumCoupons(mem), kappa);
+      return getIconConfidenceLB(PreambleUtil.getLgK(mem), getNumCoupons(mem), kappa);
     }
-    return getHipConfidenceLB(getLgK(mem), getNumCoupons(mem), getHipAccum(mem), kappa);
+    return getHipConfidenceLB(PreambleUtil.getLgK(mem), getNumCoupons(mem), getHipAccum(mem), kappa);
+  }
+
+  /**
+   * Returns the best estimate of the upper bound of the confidence interval given <i>kappa</i>,
+   * the number of standard deviations from the mean.
+   * @param kappa the given number of standard deviations from the mean: 1, 2 or 3.
+   * @return the best estimate of the upper bound of the confidence interval given <i>kappa</i>.
+   */
+  public double getUpperBound(final int kappa) {
+    if (!hasHip(mem)) {
+      return getIconConfidenceUB(PreambleUtil.getLgK(mem), getNumCoupons(mem), kappa);
+    }
+    return getHipConfidenceUB(PreambleUtil.getLgK(mem), getNumCoupons(mem), getHipAccum(mem), kappa);
   }
 
 }

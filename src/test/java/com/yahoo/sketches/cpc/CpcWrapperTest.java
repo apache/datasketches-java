@@ -14,7 +14,7 @@ import com.yahoo.memory.Memory;
 /**
  * @author Lee Rhodes
  */
-public class CompactSketchTest {
+public class CpcWrapperTest {
   static PrintStream ps = System.out;
 
   @SuppressWarnings("unused")
@@ -48,7 +48,7 @@ public class CompactSketchTest {
     byte[] mergedArr = merged.toByteArray();
 
     Memory concatMem = Memory.wrap(concatArr);
-    CompactSketch concatSk = new CompactSketch(concatMem);
+    CpcWrapper concatSk = new CpcWrapper(concatMem);
 
     printf("              %12s %12s %12s\n", "Lb", "Est", "Ub");
     double ccEst = concatSk.getEstimate();
@@ -57,7 +57,7 @@ public class CompactSketchTest {
     printf("Concatenated: %12.0f %12.0f %12.0f\n", ccLb, ccEst, ccUb);
 
     //Memory mergedMem = Memory.wrap(mergedArr);
-    CompactSketch mergedSk = new CompactSketch(mergedArr);
+    CpcWrapper mergedSk = new CpcWrapper(mergedArr);
     double mEst = mergedSk.getEstimate();
     double mLb = mergedSk.getLowerBound(2);
     double mUb = mergedSk.getUpperBound(2);

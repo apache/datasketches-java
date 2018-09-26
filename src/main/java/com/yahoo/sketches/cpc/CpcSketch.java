@@ -16,13 +16,21 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.yahoo.memory.WritableMemory;
 
 /**
- * This is a unique-counting sketch that implements the algorithms developed by Kevin Lang.
- * This sketch achieves superior accuracy for a given amount of memory, when serialized, than any
- * other known algorithm, including the well-known HyperLogLog sketch by Flajolet, et al.
- * The newly developed ICON estimator algorithm also survives unioning operations, which the other
+ * This is a unique-counting sketch that implements the
+ * <i>Compressed Probalistic Counting (CPC, a.k.a FM85)</i> algorithms developed by Kevin Lang in
+ * his paper
+ * <a href="https://arxiv.org/abs/1708.06839">Back to the Future: an Even More Nearly
+ * Optimal Cardinality Estimation Algorithm</a>.
+ * This sketch is extremely space-efficient when serialized. In an apples-to-apples empirical
+ * comparison against compressed HyperLogLog sketches, this new algorithm simultaneously wins on
+ * all three dimensions of the time/space/accuracy tradeoff and produces sketches that are
+ * smaller than the entropy of HLL, so no possible implementation of compressed HLL can match its
+ * space efficiency for a given accuracy. As described in the paper this sketch implements a newly
+ * developed ICON estimator algorithm that survives unioning operations, which the other
  * well-known estimator, the Historical Inverse Probability (HIP) estimator does not.
- * It is also quite fast and is comperable to the speed of HLL. The unioning (merging) capability of
- * this sketch also allows for merging of sketches with different configurations of K.
+ * The update speed performance of this sketch is quite fast and is comperable to the speed of HLL.
+ * The unioning (merging) capability of this sketch also allows for merging of sketches with
+ * different configurations of K.
  *
  * <p>For additional security this sketch can be configured with a user-specified hash seed.
  *
