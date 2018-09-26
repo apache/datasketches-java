@@ -7,7 +7,6 @@ package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.Util.iGoldenU64;
 import static com.yahoo.sketches.Util.pwr2LawNextDouble;
-import static com.yahoo.sketches.cpc.CpcUnion.mergeInto;
 import static com.yahoo.sketches.cpc.IconEstimator.getIconEstimate;
 import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssert;
 import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertEquals;
@@ -107,11 +106,11 @@ public class MergingValidation {
       skD.update(in);
     }
 
-    mergeInto(ugM, skA);
-    mergeInto(ugM, skB);
+    ugM.update(skA);
+    ugM.update(skB);
 
     final int finalLgKm = ugM.getLgK();
-    final long[] matrixM = CpcUnion.getBitMatrix(ugM);
+    final long[] matrixM = ugM.getBitMatrix();
 
     final long cM = ugM.getNumCoupons();//countBitsSetInMatrix(matrixM);
     final long cD = skD.numCoupons;
@@ -134,7 +133,7 @@ public class MergingValidation {
     final long[] matrixD = CpcUtil.bitMatrixOfSketch(skD);
     rtAssertEquals(matrixM, matrixD);
 
-    CpcSketch skR = CpcUnion.getResult(ugM);
+    CpcSketch skR = ugM.getResult();
     double iconEstR = getIconEstimate(skR.lgK, skR.numCoupons);
     rtAssertEquals(iconEstD, iconEstR, 0.0);
     rtAssert(TestUtil.specialEquals(skD, skR, false, true));

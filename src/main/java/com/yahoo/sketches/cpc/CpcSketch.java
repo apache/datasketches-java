@@ -16,8 +16,19 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.yahoo.memory.WritableMemory;
 
 /**
+ * This is a unique-counting sketch that implements the algorithms developed by Kevin Lang.
+ * This sketch achieves superior accuracy for a given amount of memory, when serialized, than any
+ * other known algorithm, including the well-known HyperLogLog sketch by Flajolet, et al.
+ * The newly developed ICON estimator algorithm also survives unioning operations, which the other
+ * well-known estimator, the Historical Inverse Probability (HIP) estimator does not.
+ * It is also quite fast and is comperable to the speed of HLL. The unioning (merging) capability of
+ * this sketch also allows for merging of sketches with different configurations of K.
+ *
+ * <p>For additional security this sketch can be configured with a user-specified hash seed.
+ *
  * @author Lee Rhodes
  * @author Kevin Lang
+ * @see <a href="https://arxiv.org/abs/1708.06839">href="https://arxiv.org/abs/1708.06839</a>
  */
 public final class CpcSketch {
   private static final String LS = System.getProperty("line.separator");
@@ -74,6 +85,7 @@ public final class CpcSketch {
     hipEstAccum = 0;
   }
 
+  //also used in test
   static CpcSketch uncompress(final CompressedState source, final long seed) {
     checkSeedHashes(computeSeedHash(seed), source.seedHash);
     final CpcSketch sketch = new CpcSketch(source.lgK, seed);
@@ -323,7 +335,7 @@ public final class CpcSketch {
    * @param sketch the given sketch
    * @param bitMatrix the given bit Matrix
    */
-  //Used here and by test
+  //Also used in test
   static void refreshKXP(final CpcSketch sketch, final long[] bitMatrix) {
     final int k = (1 << sketch.lgK);
 

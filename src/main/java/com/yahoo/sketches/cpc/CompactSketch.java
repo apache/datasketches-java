@@ -19,17 +19,27 @@ import static com.yahoo.sketches.cpc.PreambleUtil.hasHip;
 import com.yahoo.memory.Memory;
 
 /**
+ * This provides a read-only view of a serialized image of a CpcSketch, which can be on-heap or
+ * off-heap.
  * @author Lee Rhodes
  * @author Kevin Lang
  */
 public final class CompactSketch {
   Memory mem;
 
+  /**
+   * Configure a read-only view of the given memory.
+   * @param mem the given memory
+   */
   public CompactSketch(final Memory mem) {
     this.mem = mem;
     checkLoPreamble(mem);
   }
 
+  /**
+   * Configure a read-only view of the given byte array.
+   * @param byteArray the given byte array
+   */
   public CompactSketch(final byte[] byteArray) {
     this(Memory.wrap(byteArray));
   }

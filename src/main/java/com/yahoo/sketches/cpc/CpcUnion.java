@@ -16,7 +16,7 @@ import static com.yahoo.sketches.cpc.Flavor.SPARSE;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
 
-/**
+/*
  * The merging logic is somewhat involved, so it will be summarized here.
  *
  * <p>First, we compare the K values of the unioner and the source sketch.
@@ -66,6 +66,10 @@ import com.yahoo.sketches.SketchesStateException;
  * bitMatrix back into a sketch, which requires doing some extra work to
  * figure out the values of numCoupons, offset, fiCol, and KxQ.
  *
+ */
+/**
+ * The union (merge) operation for the CPC sketches.
+ *
  * @author Lee Rhodes
  * @author Kevin Lang
  */
@@ -111,14 +115,26 @@ public class CpcUnion {
     mergeInto(this, sketch);
   }
 
+  /**
+   * Returns the result of union operations as a CPC sketch.
+   * @return the result of union operations as a CPC sketch.
+   */
   public CpcSketch getResult() {
     return getResult(this);
   }
 
+  /**
+   * Returns the current value of Log_base2 of K.  Note that due to merging with source sketches that
+   * may have a lower value of LgK, this value can be less than what the union object was configured
+   * with.
+   *
+   * @return the current value of Log_base2 of K.
+   */
   public int getLgK() {
     return lgK;
   }
 
+  //used for testing only
   long getNumCoupons() {
     if (bitMatrix != null) {
       return countBitsSetInMatrix(bitMatrix);
@@ -129,19 +145,19 @@ public class CpcUnion {
     }
   }
 
+  //used for testing only
+  long[] getBitMatrix() {
+    checkUnionState(this);
+    return (bitMatrix != null)
+        ? bitMatrix
+        : CpcUtil.bitMatrixOfSketch(accumulator);
+  }
+
   private static long countBitsSetInMatrix(final long[] matrix) {
     long count = 0;
     final int len = matrix.length;
     for (int i = 0; i < len; i++) { count += Long.bitCount(matrix[i]); }
     return count;
-  }
-
-  //used for testing only
-  static long[] getBitMatrix(final CpcUnion unioner) {
-    checkUnionState(unioner);
-    return (unioner.bitMatrix != null)
-        ? unioner.bitMatrix
-        : CpcUtil.bitMatrixOfSketch(unioner.accumulator);
   }
 
   private static void walkTableUpdatingSketch(final CpcSketch dest, final PairTable table) {
@@ -240,7 +256,7 @@ public class CpcUnion {
     }
   }
 
-  static void mergeInto(final CpcUnion unioner, final CpcSketch source) {
+  private static void mergeInto(final CpcUnion unioner, final CpcSketch source) {
     if (source == null) { return; }
     checkSeeds(unioner.seed, source.seed);
 
@@ -308,13 +324,13 @@ public class CpcUnion {
     orMatrixIntoMatrix(unioner.bitMatrix, unioner.lgK, sourceMatrix, source.lgK);
   }
 
-  static CpcSketch getResult(final CpcUnion unioner) {
+  private static CpcSketch getResult(final CpcUnion unioner) {
     checkUnionState(unioner);
 
     if (unioner.accumulator != null) { // start of case where unioner contains a sketch
       if (unioner.accumulator.numCoupons == 0) {
         final CpcSketch result = new CpcSketch(unioner.lgK, unioner.accumulator.seed);
-        result.mergeFlag = true; //TODO why?
+        result.mergeFlag = true;
         return (result);
       }
       assert (SPARSE == unioner.accumulator.getFlavor());
