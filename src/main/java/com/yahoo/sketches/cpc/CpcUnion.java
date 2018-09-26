@@ -146,11 +146,11 @@ public class CpcUnion {
   }
 
   //used for testing only
-  long[] getBitMatrix() {
-    checkUnionState(this);
-    return (bitMatrix != null)
-        ? bitMatrix
-        : CpcUtil.bitMatrixOfSketch(accumulator);
+  static long[] getBitMatrix(final CpcUnion unioner) {
+    checkUnionState(unioner);
+    return (unioner.bitMatrix != null)
+        ? unioner.bitMatrix
+        : CpcUtil.bitMatrixOfSketch(unioner.accumulator);
   }
 
   private static long countBitsSetInMatrix(final long[] matrix) {

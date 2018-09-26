@@ -110,7 +110,7 @@ public class MergingValidation {
     ugM.update(skB);
 
     final int finalLgKm = ugM.getLgK();
-    final long[] matrixM = ugM.getBitMatrix();
+    final long[] matrixM = CpcUnion.getBitMatrix(ugM);
 
     final long cM = ugM.getNumCoupons();//countBitsSetInMatrix(matrixM);
     final long cD = skD.numCoupons;
