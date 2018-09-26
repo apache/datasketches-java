@@ -6,6 +6,7 @@
 package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.cpc.IconEstimator.getIconEstimate;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
@@ -102,12 +103,12 @@ public class IconEstimatorTest {
     return exactIconEstimatorBinarySearch(kf, targetC, nLo, nHi);
   }
 
-  @Test
+  //@Test //used for characterization
   public static void testIconEstimator() {
     final int lgK = 12;
     final int k = 1 << lgK;
     long c = 1;
-    while (c < (k << 2)) { // was 64k.  4K will reach sliding flavor
+    while (c < (k << 6)) { // 4 * K will reach sliding flavor
       final double exact  = exactIconEstimator(lgK, c);
       final double approx = getIconEstimate(lgK, c);
       final double relDiff = (approx - exact) / exact;
@@ -116,6 +117,23 @@ public class IconEstimatorTest {
       final long b = (1001 * c) / 1000;
       c = ((a > b) ? a : b);
       assertTrue(relDiff < 1E-5);
+    }
+  }
+
+  @Test //used for unit test
+  public static void quickIconEstimatorTest() {
+    for (int lgK = 4; lgK <= 25; lgK++) {
+      final int k = 1 << lgK;
+      long[] cArr = {2, 5 * k, 6 * k, 60 * k};
+      assertEquals(getIconEstimate(lgK, 0L), 0.0);
+      assertEquals(getIconEstimate(lgK, 1L), 1.0);
+      for (long c : cArr) {
+        final double exact  = exactIconEstimator(lgK, c);
+        final double approx = getIconEstimate(lgK, c);
+        final double relDiff = Math.abs((approx - exact) / exact);
+        printf("%d\t %d\t %.19g\t %.19g\t %.19g\n", lgK, c, relDiff, exact, approx);
+        assertTrue(relDiff < Math.max(2E-6, 1.0/(80 * k)));
+      }
     }
   }
 
