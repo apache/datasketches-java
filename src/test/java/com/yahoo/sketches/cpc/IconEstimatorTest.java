@@ -103,11 +103,11 @@ public class IconEstimatorTest {
   }
 
   @Test
-  public static void testDriver() {
+  public static void testIconEstimator() {
     final int lgK = 12;
-    final long k = (1L << lgK);
+    final int k = 1 << lgK;
     long c = 1;
-    while (c < (k * 64)) { // was k * 15
+    while (c < (k << 2)) { // was 64k.  4K will reach sliding flavor
       final double exact  = exactIconEstimator(lgK, c);
       final double approx = getIconEstimate(lgK, c);
       final double relDiff = (approx - exact) / exact;

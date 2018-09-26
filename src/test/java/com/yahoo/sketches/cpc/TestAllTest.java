@@ -69,12 +69,12 @@ public class TestAllTest {
 
   //MERGING
 
-  @Test
+  //@Test //long test. use for characterization
   public void mergingValidationCheck() {
     int lgMinK = 10;
     int lgMaxK = 10; //inclusive
     int lgMulK = 5;  //5
-    int uPPO = 1;
+    int uPPO = 1; //16
     int incLgK = 1;
     PrintStream ps = null;//System.out;
     PrintWriter pw = null;
