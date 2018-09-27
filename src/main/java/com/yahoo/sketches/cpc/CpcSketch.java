@@ -17,7 +17,7 @@ import com.yahoo.memory.WritableMemory;
 
 /**
  * This is a unique-counting sketch that implements the
- * <i>Compressed Probalistic Counting (CPC, a.k.a FM85)</i> algorithms developed by Kevin Lang in
+ * <i>Compressed Probabilistic Counting (CPC, a.k.a FM85)</i> algorithms developed by Kevin Lang in
  * his paper
  * <a href="https://arxiv.org/abs/1708.06839">Back to the Future: an Even More Nearly
  * Optimal Cardinality Estimation Algorithm</a>.
@@ -39,7 +39,6 @@ import com.yahoo.memory.WritableMemory;
  *
  * @author Lee Rhodes
  * @author Kevin Lang
- * @see <a href="https://arxiv.org/abs/1708.06839">href="https://arxiv.org/abs/1708.06839</a>
  */
 public final class CpcSketch {
   private static final String LS = System.getProperty("line.separator");

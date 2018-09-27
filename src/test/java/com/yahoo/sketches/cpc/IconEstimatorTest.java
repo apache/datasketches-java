@@ -41,8 +41,8 @@ public class IconEstimatorTest {
 
   static final double iconInversionTolerance = 1.0e-15;
 
-  static double exactIconEstimatorBinarySearch(final double kf, final double targetC, final double nLoIn,
-      final double nHiIn) {
+  static double exactIconEstimatorBinarySearch(final double kf, final double targetC,
+      final double nLoIn, final double nHiIn) {
     int depth = 0;
     double nLo = nLoIn;
     double nHi = nHiIn;
@@ -59,7 +59,7 @@ public class IconEstimatorTest {
       }
       final double midC = exactCofN(kf, nMid);
       if (midC == targetC) {
-        return (nMid);
+        return nMid;
       }
       if (midC < targetC) {
         nLo = nMid;
@@ -96,7 +96,7 @@ public class IconEstimatorTest {
     if ((c == 0L) || (c == 1L)) {
       return targetC;
     }
-    final double kf = 1L << lgK;
+    final double kf = (1L << lgK);
     final double nLo = targetC;
     assert exactCofN(kf, nLo) < targetC; // bracket lo
     final double nHi = exactIconEstimatorBracketHi(kf, targetC, nLo); // bracket hi
@@ -108,7 +108,7 @@ public class IconEstimatorTest {
     final int lgK = 12;
     final int k = 1 << lgK;
     long c = 1;
-    while (c < (k << 6)) { // 4 * K will reach sliding flavor
+    while (c < (k * 64)) { // was K * 15
       final double exact  = exactIconEstimator(lgK, c);
       final double approx = getIconEstimate(lgK, c);
       final double relDiff = (approx - exact) / exact;
@@ -116,17 +116,16 @@ public class IconEstimatorTest {
       final long a = c + 1;
       final long b = (1001 * c) / 1000;
       c = ((a > b) ? a : b);
-      assertTrue(relDiff < 1E-5);
     }
   }
 
   @Test //used for unit test
   public static void quickIconEstimatorTest() {
-    for (int lgK = 4; lgK <= 25; lgK++) {
-      final int k = 1 << lgK;
-      long[] cArr = {2, 5 * k, 6 * k, 60 * k};
-      assertEquals(getIconEstimate(lgK, 0L), 0.0);
-      assertEquals(getIconEstimate(lgK, 1L), 1.0);
+    for (int lgK = 4; lgK <= 26; lgK++) {
+      final long k = 1L << lgK;
+      long[] cArr = {2, 5 * k, 6 * k, 60L * k};
+      assertEquals(getIconEstimate(lgK, 0L), 0.0, 0.0);
+      assertEquals(getIconEstimate(lgK, 1L), 1.0, 0.0);
       for (long c : cArr) {
         final double exact  = exactIconEstimator(lgK, c);
         final double approx = getIconEstimate(lgK, c);
@@ -163,6 +162,6 @@ public class IconEstimatorTest {
    * @param s value to print
    */
   static void print(String s) {
-    //System.out.print(s); //disable here
+    System.out.print(s); //disable here
   }
 }
