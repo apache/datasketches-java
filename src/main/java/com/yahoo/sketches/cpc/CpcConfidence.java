@@ -13,7 +13,7 @@ import static java.lang.Math.sqrt;
 /**
  * Tables and methods for estimating upper and lower bounds.
  *
- * <p>Tables were generated from empirical measurements at N = 1000 * K.
+ * <p>Tables were generated from empirical measurements at N = 1000 * K using millions of trials.
  *
  * @author Lee Rhodes
  */
@@ -109,7 +109,7 @@ final class CpcConfidence {
     final double eps = kappa * rel;
     final double est = getIconEstimate(lgK, numCoupons);
     final double result = est / (1.0 - eps);
-    return ceil(result);  // widening for coverage
+    return ceil(result);  // slight widening of interval to be conservative
   }
 
   //mergeFlag must already be checked as false

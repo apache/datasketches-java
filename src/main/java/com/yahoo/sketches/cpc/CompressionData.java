@@ -102,8 +102,6 @@ final class CompressionData {
     for (int i = 0; i < 16; i++) {
       columnPermutationsForDecoding[i] = makeInversePermutation(columnPermutationsForEncoding[i]);
     }
-
-    //  fprintf (stderr, "tables okay\n"); fflush (stderr);
   }
 
   /**

@@ -13,6 +13,8 @@ import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
 
 /**
+ * Note: Definition of
+ * <a href="{@docRoot}/resources/dictionary.html#SnowPlow">Snow Plow Effect</a>.
  * @author Lee Rhodes
  * @author Kevin Lang
  */
@@ -46,15 +48,19 @@ final class PairTable {
   }
 
   //Factory
+
   static PairTable newInstanceFromPairsArray(final int[] pairs, final int numPairs, final int lgK) {
     int lgNumSlots = 2;
     while ((upsizeDenom * numPairs) > (upsizeNumer * (1 << lgNumSlots))) {
       lgNumSlots++;
     }
     final PairTable table = new PairTable(lgNumSlots, 6 + lgK);
-    // Note: there is a possible "snowplow effect" here because the caller is passing in a sorted
-    // pairs array. However, we are starting out with the correct final table size, so the
-    // problem might not occur.
+
+    /* Note: there is a possible
+     * <a href="{@docRoot}/resources/dictionary.html#SnowPlow">Snow Plow Effect</a> here because
+     * the caller is passing in a sorted pairs array. However, we are starting out with the correct
+     * final table size, so the problem is not likely to occur.
+    */
 
     for (int i = 0; i < numPairs; i++) {
       mustInsert(table, pairs[i]);
@@ -91,7 +97,7 @@ final class PairTable {
   }
 
   static void mustInsert(final PairTable table, final int item) {
-    //SHARED CODE
+    //SHARED CODE (implemented as a macro in C and expanded here)
     final int lgSize = table.lgSize;
     final int tableSize = 1 << lgSize;
     final int mask = tableSize - 1;
@@ -114,7 +120,7 @@ final class PairTable {
   }
 
   static boolean maybeInsert(final PairTable table, final int item) {
-    //SHARED CODE
+    //SHARED CODE (implemented as a macro in C and expanded here)
     final int lgSize = table.lgSize;
     final int tableSize = 1 << lgSize;
     final int mask = tableSize - 1;
@@ -141,7 +147,7 @@ final class PairTable {
   }
 
   static boolean maybeDelete(final PairTable table, final int item) {
-    //SHARED CODE
+    //SHARED CODE (implemented as a macro in C and expanded here)
     final int lgSize = table.lgSize;
     final int tableSize = 1 << lgSize;
     final int mask = tableSize - 1;

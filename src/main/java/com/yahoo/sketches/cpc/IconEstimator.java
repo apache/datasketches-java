@@ -63,10 +63,14 @@ final class IconEstimator {
     final double factor = evaluatePolynomial(iconPolynomialCoefficents,
         iconPolynomialNumCoefficients * (lgK - minLgK),
         iconPolynomialNumCoefficients,
-        // The somewhat arbitrary constant 2.0 is baked into the table iconPolynomialCoefficents[].
+        // The constant 2.0 is baked into the table iconPolynomialCoefficents[].
+        // This factor, although somewhat arbitrary, is based on extensive characterization studies
+        // and is considered a safe conservative factor.
         doubleC / (2.0 * doubleK));
     final double ratio = doubleC / doubleK;
-    // The somewhat arbitrary constant 66.774757 is baked into the table iconPolynomialCoefficents[].
+    // The constant 66.774757 is baked into the table iconPolynomialCoefficents[].
+    // This factor, although somewhat arbitrary, is based on extensive characterization studies
+    // and is considered a safe conservative factor.
     final double term = 1.0 + ((ratio * ratio * ratio) / 66.774757);
     final double result = doubleC * factor * term;
     return (result >= doubleC) ? result : doubleC;

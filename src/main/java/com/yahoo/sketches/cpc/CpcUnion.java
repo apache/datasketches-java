@@ -166,7 +166,9 @@ public class CpcUnion {
     assert dest.lgK <= 26;
     final int destMask = (((1 << dest.lgK) - 1) << 6) | 63; //downsamples when destlgK < srcLgK
 
-    // Using the inverse golden ratio stride fixes the snowplow effect.
+    /* Using the inverse golden ratio stride fixes the
+     * <a href="{@docRoot}/resources/dictionary.html#SnowPlow">Snow Plow Effect</a>.
+     */
     int stride =  (int) (iGolden * numSlots);
     assert stride >= 2;
     if (stride == ((stride >>> 1) << 1)) { stride += 1; } //force the stride to be odd
@@ -369,7 +371,9 @@ public class CpcUnion {
     final long maskForFlippingEarlyZone = (1L << offset) - 1L;
     long allSurprisesORed = 0;
 
-    // using a sufficiently large hash table avoids the snowplow effect
+    /* using a sufficiently large hash table avoids the
+     * <a href="{@docRoot}/resources/dictionary.html#SnowPlow">Snow Plow Effect</a>
+     */
     for (int i = 0; i < k; i++) {
       long pattern = matrix[i];
       window[i] = (byte) ((pattern >>> offset) & 0XFFL);
