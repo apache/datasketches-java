@@ -82,6 +82,17 @@ public final class Util {
    */
   public static final double LOG2 = log(2.0);
 
+  /**
+   * The inverse golden ratio as an unsigned long.
+   */
+  public static final long iGoldenU64 = 0x9e3779b97f4a7c13L;
+
+  /**
+   * The inverse golden ratio as a fraction.
+   * This has more precision than using the formula: (Math.sqrt(5.0) - 1.0) / 2.0.
+   */
+  public static final double iGolden = 0.6180339887498949025; // the inverse golden ratio
+
   private Util() {}
 
   //Byte Conversions
@@ -197,7 +208,7 @@ public final class Util {
     final String nSstr = zeroPad(Long.toString(rem_nS), 3);
     final String uSstr = zeroPad(Long.toString(rem_uS), 3);
     final String mSstr = zeroPad(Long.toString(rem_mS), 3);
-    return String.format("%d.%3s %3s %3s", sec, mSstr, uSstr, nSstr);
+    return String.format("%d.%3s_%3s_%3s", sec, mSstr, uSstr, nSstr);
   }
 
   /**

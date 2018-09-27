@@ -52,7 +52,8 @@ final class Util {
 
   /**
    * Computes the raw delta area between two quantile sketches for the
-   * {@link #komologorovSmirnovTest(DoubleSketch, DoubleSketch, double) komologorovSmirnovTest}
+   * {@link #kolmogorovSmirnovTest(DoubleSketch, DoubleSketch, double)
+   * Kolmogorov-Smirnov Test}
    * method.
    * @param sketch1 Input DoubleSketch 1
    * @param sketch2 Input DoubleSketch 2
@@ -108,10 +109,10 @@ final class Util {
 
   /**
    * Computes the adjusted delta area threshold for the
-   * {@link #komologorovSmirnovTest(DoubleSketch, DoubleSketch, double) komologorovSmirnovTest}
+   * {@link #kolmogorovSmirnovTest(DoubleSketch, DoubleSketch, double) Kolmogorov-Smirnov Test}
    * method.
    * This adjusts the computed threshold by the error epsilons of the two given sketches.
-   * See <a href="https://en.wikipedia.org/wiki/Kolmogorov–Smirnov_test">Kolmogorov–Smirnov Test</a>
+   * See <a href="https://en.wikipedia.org/wiki/Kolmogorov-Smirnov_test">Kolmogorov–Smirnov Test</a>
    * @param sketch1 Input DoubleSketch 1
    * @param sketch2 Input DoubleSketch 2
    * @param tgtPvalue Target p-value. Typically .001 to .1, e.g., .05.
@@ -142,7 +143,7 @@ final class Util {
    * @return Boolean indicating whether we can reject the null hypothesis (that the sketches
    * reflect the same underlying distribution) using the provided tgtPValue.
    */
-  public static boolean komologorovSmirnovTest(final DoublesSketch sketch1,
+  public static boolean kolmogorovSmirnovTest(final DoublesSketch sketch1,
       final DoublesSketch sketch2, final double tgtPvalue) {
     final double delta = computeKSDelta(sketch1, sketch2);
     final double thresh = computeKSThreshold(sketch1, sketch2, tgtPvalue);

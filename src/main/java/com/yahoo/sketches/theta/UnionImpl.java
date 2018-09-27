@@ -73,6 +73,7 @@ final class UnionImpl extends Union {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
+   * @param memReqSvr a given instance of a MemoryRequestServer
    * @param dstMem the given Memory object destination. It will be cleared prior to use.
    * @return this class
    */

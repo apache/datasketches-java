@@ -214,7 +214,7 @@ public class UtilTest {
   public void checkNsecToString() {
     long nS = 1000000000L + 1000000L + 1000L + 1L;
     String result = nanoSecToString(nS);
-    String expected = "1.001 001 001";
+    String expected = "1.001_001_001";
     Assert.assertEquals(result, expected);
   }
 

@@ -28,7 +28,7 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
    * The effective <i>k</i> can be smaller due to unions with smaller <i>k</i> sketches.
    * It is recommended that <i>maxK</i> be a power of 2 to enable unioning of sketches with
    * different values of <i>k</i>.
-
+   * @return a new DoublesUnionImpl on the Java heap
    */
   static DoublesUnionImpl heapInstance(final int maxK) {
     return new DoublesUnionImpl(maxK);

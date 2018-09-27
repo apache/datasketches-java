@@ -205,6 +205,7 @@ public final class ItemsSketch<T> {
 
   /**
    * Returns a copy of the given sketch
+   * @param <T> the data type
    * @param sketch the given sketch
    * @return a copy of the given sketch
    */
@@ -650,7 +651,7 @@ public final class ItemsSketch<T> {
   }
 
   public ItemsSketchIterator<T> iterator() {
-    return new ItemsSketchIterator<T>(this, bitPattern_);
+    return new ItemsSketchIterator<>(this, bitPattern_);
   }
 
   // Restricted

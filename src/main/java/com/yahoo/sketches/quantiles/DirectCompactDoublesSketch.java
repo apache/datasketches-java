@@ -58,6 +58,8 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
    * Converts the given UpdateDoublesSketch to this compact form.
    *
    * @param sketch the sketch to convert
+   * @param dstMem the WritableMemory to use for the destination
+   * @return a DirectCompactDoublesSketch created from an UpdateDoublesSketch
    */
   static DirectCompactDoublesSketch createFromUpdateSketch(final UpdateDoublesSketch sketch,
                                                            final WritableMemory dstMem) {
@@ -226,6 +228,7 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
    * Checks a sketch's serial version and flags to see if the sketch can be wrapped as a
    * DirectCompactDoubleSketch. Throws an exception if the sketch is neither empty nor compact
    * and ordered, unles the sketch uses serialization version 2.
+   * @param serVer the serialization version
    * @param flags Flags from the sketch to evaluate
    */
   static void checkCompact(final int serVer, final int flags) {

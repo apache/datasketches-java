@@ -30,6 +30,7 @@ class ItemsPmfCdfImpl {
   /**
    * Shared algorithm for both PMF and CDF functions. The splitPoints must be unique, monotonically
    * increasing values.
+   * @param <T> the data type
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing values
    * that divide the ordered domain into <i>m+1</i> consecutive disjoint intervals.
    * @param sketch the given quantiles sketch
@@ -60,7 +61,7 @@ class ItemsPmfCdfImpl {
 
     long myBitPattern = sketch.getBitPattern();
     final int k = sketch.getK();
-    assert myBitPattern == sketch.getN() / (2L * k); // internal consistency check
+    assert myBitPattern == (sketch.getN() / (2L * k)); // internal consistency check
     for (int lvl = 0; myBitPattern != 0L; lvl++, myBitPattern >>>= 1) {
       weight <<= 1; // double the weight
       if ((myBitPattern & 1L) > 0L) { //valid level exists
@@ -75,17 +76,19 @@ class ItemsPmfCdfImpl {
   /**
    * Because of the nested loop, cost is O(numSamples * numSplitPoints), which is bilinear.
    * This method does NOT require the samples to be sorted.
+   * @param <T> the data type
    * @param samples array of samples
    * @param offset into samples array
    * @param numSamples number of samples in samples array
    * @param weight of the samples
    * @param splitPoints must be unique and sorted. Number of splitPoints + 1 == counters.length.
    * @param counters array of counters
+   * @param comparator the comparator for data type T
    */
   private static <T> void bilinearTimeIncrementHistogramCounters(final T[] samples, final int offset,
       final int numSamples, final long weight, final T[] splitPoints, final double[] counters,
       final Comparator<? super T> comparator) {
-    assert (splitPoints.length + 1 == counters.length);
+    assert ((splitPoints.length + 1) == counters.length);
     for (int i = 0; i < numSamples; i++) {
       final T sample = samples[i + offset];
       int j = 0;
@@ -108,19 +111,21 @@ class ItemsPmfCdfImpl {
    * <li>splitPoints must be unique and sorted</li>
    * <li>number of SplitPoints + 1 == counters.length</li>
    * </ol>
+   * @param <T> the data type
    * @param samples sorted array of samples
    * @param offset into samples array
    * @param numSamples number of samples in samples array
    * @param weight of the samples
    * @param splitPoints must be unique and sorted. Number of splitPoints + 1 = counters.length.
    * @param counters array of counters
+   * @param comparator the comparator for data type T
    */
   private static <T> void linearTimeIncrementHistogramCounters(final T[] samples, final int offset,
       final int numSamples, final long weight, final T[] splitPoints, final double[] counters,
       final Comparator<? super T> comparator) {
     int i = 0;
     int j = 0;
-    while (i < numSamples && j < splitPoints.length) {
+    while ((i < numSamples) && (j < splitPoints.length)) {
       if (comparator.compare(samples[i + offset], splitPoints[j]) < 0) {
         counters[j] += weight; // this sample goes into this bucket
         i++; // move on to next sample and see whether it also goes into this bucket

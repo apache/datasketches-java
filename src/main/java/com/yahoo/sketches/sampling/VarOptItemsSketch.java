@@ -215,10 +215,16 @@ public final class VarOptItemsSketch<T> {
    *
    * <p>Assumes dataList.size() is the correct allocated size but does not check.</p>
    *
+   * @param <T> The type of object held in the sketch.
+   * @param dataList an ArrayList of data
+   * @param weightList an ArrayList of weights
    * @param k   Maximum size of sampling. Allocated size may be smaller until sketch fills.
    *            Unlike many sketches in this package, this value does <em>not</em> need to be a
    *            power of 2.
-   * @param <T> The type of object held in the sketch.
+   * @param n The current count of items seen by the sketch
+   * @param hCount the count of heavy items
+   * @param rCount the reservoir count of (non-heavy) items
+   * @param totalWtR the sum of the reservoir weights.
    * @return A VarOptItemsSketch initialized with maximum size k and a valid array of marks.
    */
   static <T> VarOptItemsSketch<T> newInstanceFromUnionResult(final ArrayList<T> dataList,

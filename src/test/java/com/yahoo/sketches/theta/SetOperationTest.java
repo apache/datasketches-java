@@ -325,6 +325,8 @@ public class SetOperationTest {
 
   /**
    * Compute offsets for MyHeap for Union, sketch1, sketch2, sketch3, resultSketch, total layout.
+   * @param sketchNomEntries the configured nominal entries of the sketch
+   * @param unionNomEntries configured nominal entries of the union
    * @return array of offsets for Union, sketch1, sketch2, sketch3, resultSketch, total layout
    */
   private static int[] getHeapLayout(int sketchNomEntries, int unionNomEntries) {

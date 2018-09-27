@@ -84,6 +84,7 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
    * Converts the given UpdateDoublesSketch to this compact form.
    *
    * @param sketch the sketch to convert
+   * @return a HeapCompactDoublesSketch created from an UpdateDoublesSketch
    */
   static HeapCompactDoublesSketch createFromUpdateSketch(final UpdateDoublesSketch sketch) {
     final int k = sketch.getK();

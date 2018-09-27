@@ -38,7 +38,9 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
 
   /**
    * This is to create an instance of a CompactSketch given a serialized form
+   *
    * @param mem Memory object with serialized CompactSketch
+   * @param deserializer the SummaryDeserializer
    */
   @SuppressWarnings({"unchecked"})
   CompactSketch(final Memory mem, final SummaryDeserializer<S> deserializer) {

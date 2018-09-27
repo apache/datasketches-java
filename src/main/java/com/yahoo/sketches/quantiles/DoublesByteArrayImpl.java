@@ -56,6 +56,7 @@ final class DoublesByteArrayImpl {
   /**
    * Returns a byte array, including preamble, min, max and data extracted from the sketch.
    * @param sketch the given DoublesSketch
+   * @param flags the Flags field
    * @param ordered true if the desired form of the resulting array has the base buffer sorted.
    * @param compact true if the desired form of the resulting array is in compact form.
    * @return a byte array, including preamble, min, max and data extracted from the Combined Buffer.

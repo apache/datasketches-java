@@ -356,7 +356,7 @@ public class UtilTest {
 
    double D = Util.computeKSDelta(s1, s2);
    double thresh = Util.computeKSThreshold(s1, s2, tgtPvalue);
-   final boolean reject = Util.komologorovSmirnovTest(s1, s2, tgtPvalue);
+   final boolean reject = Util.kolmogorovSmirnovTest(s1, s2, tgtPvalue);
    println("pVal = " + tgtPvalue + "\nK = " + k + "\nD = " + D + "\nTh = " + thresh
        + "\nNull Hypoth Rejected = " + reject);
    assertFalse(reject);
@@ -380,7 +380,7 @@ public class UtilTest {
 
    double D = Util.computeKSDelta(s1, s2);
    double thresh = Util.computeKSThreshold(s1, s2, tgtPvalue);
-   final boolean reject = Util.komologorovSmirnovTest(s1, s2, tgtPvalue);
+   final boolean reject = Util.kolmogorovSmirnovTest(s1, s2, tgtPvalue);
    println("pVal = " + tgtPvalue + "\nK = " + k + "\nD = " + D + "\nTh = " + thresh
        + "\nNull Hypoth Rejected = " + reject);
    assertTrue(reject);

@@ -68,6 +68,7 @@ final class DoublesUtil {
   /**
    * Check the validity of the given serialization version
    * @param serVer the given serialization version
+   * @param minSupportedSerVer the oldest serialization version supported
    */
   static void checkDoublesSerVer(final int serVer, final int minSupportedSerVer) {
     final int max = DoublesSketch.DOUBLES_SER_VER;
