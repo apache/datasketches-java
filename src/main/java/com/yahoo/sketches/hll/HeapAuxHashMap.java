@@ -30,6 +30,7 @@ class HeapAuxHashMap implements AuxHashMap {
 
   /**
    * Standard constructor
+   * @param lgAuxArrInts the log size of the aux integer array
    * @param lgConfigK must be 7 to 21
    */
   HeapAuxHashMap(final int lgAuxArrInts, final int lgConfigK) {

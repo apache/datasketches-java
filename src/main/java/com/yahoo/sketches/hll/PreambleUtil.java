@@ -23,7 +23,7 @@ import com.yahoo.sketches.Family;
  *  0   ||  Mode  | ListCnt| Flags  |  LgArr |   lgK  | FamID  | SerVer |  PI=2  |
  *
  *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |    8   |
- *  1   ||                                   <------Coupon Int List Start--------|
+ *  1   ||                                   |------Coupon Int List Start--------|
  * </pre>
  *
  *  <pre>
@@ -34,7 +34,7 @@ import com.yahoo.sketches.Family;
  *  0   ||  Mode  |        | Flags  |  LgArr |   lgK  | FamID  | SerVer |  PI=3  |
  *
  *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |    8   |
- *  1   ||<----Coupon Int Hash Set Start-----|---------Hash Set Count------------|
+ *  1   ||-----Coupon Int Hash Set Start-----|---------Hash Set Count------------|
  * </pre>
  *
  * <pre>
@@ -57,10 +57,10 @@ import com.yahoo.sketches.Family;
  *  4   ||-------------Aux Count-------------|----------Num At Cur Min-----------|
  *
  *      ||   47   |   46   |   45   |   44   |   43   |   42   |   41   |   40   |
- *  5   ||.....................................<----Start of HLL_X Byte Array----|
+ *  5   ||...................................|------Start of HLL_X Byte Array----|
  *
- *  N   ||----End of Byte Array for HLL_4-->.....................................|
- *  N+1 ||.....................................<---Start of Aux Array for HLL_4--|
+ *  N   ||----End of Byte Array for HLL_4----|...................................|
+ *  N+1 ||...................................|-----Start of Aux Array for HLL_4--|
  * </pre>
  * If in compact form exceptions array will be compacted.
  *

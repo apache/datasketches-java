@@ -80,6 +80,7 @@ class DirectCouponList extends AbstractCoupons {
    * @param lgConfigK the configured Lg K
    * @param tgtHllType the configured HLL target
    * @param dstMem the destination memory for the sketch.
+   * @return a new DirectCouponList
    */
   static DirectCouponList newInstance(final int lgConfigK, final TgtHllType tgtHllType,
       final WritableMemory dstMem) {

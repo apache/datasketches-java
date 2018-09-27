@@ -42,7 +42,9 @@ final class ItemsUtil {
   /**
    * Checks the sequential validity of the given array of values.
    * They must be unique, monotonically increasing and not null.
+   * @param <T> the data type
    * @param values given array of values
+   * @param comparator the comparator for data type T
    */
   static final <T> void validateValues(final T[] values, final Comparator<? super T> comparator) {
     final int lenM1 = values.length - 1;
@@ -58,6 +60,7 @@ final class ItemsUtil {
 
   /**
    * Called when the base buffer has just acquired 2*k elements.
+   * @param <T> the data type
    * @param sketch the given quantiles sketch
    */
   @SuppressWarnings("unchecked")

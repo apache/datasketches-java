@@ -37,7 +37,7 @@ import com.yahoo.sketches.SketchesStateException;
  *      1   ||-------------csvLength-------------|--------numCoupons = numCsv--------|
  *
  *          ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |   16   |
- *      2   ||                                   |<---------Start of csv bit stream--|
+ *      2   ||                                   |----------Start of csv bit stream--|
  *
  *
  * Format = SPARSE_HYBRID_HIP: {NoWindow, Csv, HIP} = 3 = 011
@@ -53,7 +53,7 @@ import com.yahoo.sketches.SketchesStateException;
  *      3   ||-------------------------------HIP Accum-------------------------------|
  *
  *          ||   39   |   38   |   37   |   36   |   35   |   34   |   33   |   32   |
- *      4   ||                                   |<---------Start of csv bit stream--|
+ *      4   ||                                   |----------Start of csv bit stream--|
  *
  *
  * Format = PINNED_SLIDING_MERGED_NOCSV: {Window, NoCsv, NoHIP} = 4 = 100
@@ -63,7 +63,7 @@ import com.yahoo.sketches.SketchesStateException;
  *      1   ||-------------cwLength--------------|------------numCoupons-------------|
  *
  *          ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |   16   |
- *      2   ||                                   |<-------Start of cw bit stream-----|
+ *      2   ||                                   |--------Start of cw bit stream-----|
  *
  *
  * Format = PINNED_SLIDING_HIP_NOCSV: {Window, NoCsv, HIP} = 5 = 101
@@ -79,7 +79,7 @@ import com.yahoo.sketches.SketchesStateException;
  *      3   ||-------------------------------HIP Accum-------------------------------|
  *
  *          ||   39   |   38   |   37   |   36   |   35   |   34   |   33   |   32   |
- *      4   ||                                   |<-------Start of cw bit stream-----|
+ *      4   ||                                   |--------Start of cw bit stream-----|
  *
  *
  * Format = PINNED_SLIDING_MERGED: {Window, Csv, NoHIP} = 6 = 110
@@ -92,7 +92,7 @@ import com.yahoo.sketches.SketchesStateException;
  *      2   ||-------------cwLength--------------|-------------csvLength-------------|
  *
  *          ||   XX   |   XX   |   XX   |   XX   |   27   |   26   |   25   |   24   |
- *      3   ||<-------Start of cw bit stream-----|<-------Start of csv bit stream----|
+ *      3   ||--------Start of cw bit stream-----|--------Start of csv bit stream----|
  *
  *
  * Format = PINNED_SLIDING_HIP: {Window, Csv, HIP} = 7 = 111
@@ -111,7 +111,7 @@ import com.yahoo.sketches.SketchesStateException;
  *      4   ||-------------cwLength--------------|-------------csvLength-------------|
  *
  *          ||   XX   |   XX   |   XX   |   XX   |   43   |   42   |   41   |   40   |
- *      5   ||<-------Start of cw bit stream-----|<-------Start of csv bit stream----|
+ *      5   ||--------Start of cw bit stream-----|--------Start of csv bit stream----|
  * </pre>
  *
  * @author Lee Rhodes

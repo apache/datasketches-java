@@ -77,6 +77,7 @@ class IntersectionImplR extends Intersection {
    * @param srcMem The source Memory image.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @return an IntersectionImplR that wraps a read-only Intersection image referenced by srcMem
    */
   static IntersectionImplR wrapInstance(final Memory srcMem, final long seed) {
     final IntersectionImplR impl = new IntersectionImplR((WritableMemory) srcMem, seed, false);

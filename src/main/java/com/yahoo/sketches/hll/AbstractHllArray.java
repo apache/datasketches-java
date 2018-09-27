@@ -152,6 +152,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   /**
    * Common HIP and KxQ incremental update for all heap and direct Hll.
+   * @param host the origin implementation
    * @param oldValue old value
    * @param newValue new value
    */

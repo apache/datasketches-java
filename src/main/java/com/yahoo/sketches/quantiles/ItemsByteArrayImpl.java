@@ -69,6 +69,8 @@ final class ItemsByteArrayImpl {
   /**
    * Returns an array of items in compact form, including min and max extracted from the
    * Combined Buffer.
+   * @param <T> the data type
+   * @param sketch a type of ItemsSketch
    * @param ordered true if the desired form of the resulting array has the base buffer sorted.
    * @return an array of items, including min and max extracted from the Combined Buffer.
    */

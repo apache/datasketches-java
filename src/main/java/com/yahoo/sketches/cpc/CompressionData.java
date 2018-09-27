@@ -11,7 +11,7 @@ package com.yahoo.sketches.cpc;
  *
  * <p>~/ocaml-4.03.0/bin/ocamlopt -o generateHuffmanCodes columnProbabilities.ml generateHuffmanCodes.ml
  *
- * <p>./generateHuffmanCodes > raw-encoding-tables.c
+ * <p>./generateHuffmanCodes &gt; raw-encoding-tables.c
  *
  * <p>Some manual cutting and pasting was then done to transfer the contents
  * of that file into this one.
@@ -5929,7 +5929,7 @@ final class CompressionData {
 
   /**
    * Notice that there are only 65 symbols here, which is different from our
-   * usual 8->12 coding scheme which handles 256 symbols.
+   * usual 8 to 12 coding scheme which handles 256 symbols.
    */
   static short[] lengthLimitedUnaryDecodingTable65 = null;
 
@@ -6009,7 +6009,8 @@ final class CompressionData {
   };
 
   /**
-   * Note: these column permutations are part of the encoding scheme for sketches where C >= 3.375 * K.
+   * Note: these column permutations are part of the encoding scheme for sketches where
+   * C &ge; 3.375 * K.
    * In each row, we identify the (0-based) column indices of all surprising bits
    * outside of the high-entropy byte.
    *

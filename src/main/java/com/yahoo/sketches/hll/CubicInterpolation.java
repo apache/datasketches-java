@@ -52,7 +52,6 @@ final class CubicInterpolation {
    *
    * @param xArr The x array
    * @param yStride The y stride
-   * @param xArrLen the length of xArr
    * @param x The value x
    * @return cubic interpolation
    */

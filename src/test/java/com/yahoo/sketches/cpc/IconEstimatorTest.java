@@ -24,6 +24,10 @@ public class IconEstimatorTest {
    * Important note: do not change anything in the following function.
    * It has been carefully designed and tested for numerical accuracy.
    * In particular, the use of log1p and expm1 is critically important.
+   * @param kf the value of k as a double
+   * @param nf the value of n as a double
+   * @param col the given column
+   * @return the quantity qnj
    */
   static double qnj(final double kf, final double nf, final int col) {
     final double tmp1 = -1.0 / (kf * (Math.pow(2.0, col)));

@@ -21,7 +21,7 @@ import static com.yahoo.sketches.cpc.IconPolynomialCoefficients.iconPolynomialNu
  * ranging from 2^4 to 2^32.
  *
  * <p>At a high-level, this approximation can be described as using an
- * exponential approximation when C > K * (5.6 or 5.7), while smaller
+ * exponential approximation when C &gt; K * (5.6 or 5.7), while smaller
  * values of C are handled by a degree-19 polynomial approximation of
  * a pre-conditioned version of the true ICON mapping from C to N_hat.
  *

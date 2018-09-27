@@ -45,6 +45,7 @@ final class IntersectionImpl extends IntersectionImplR {
    * Construct a new Intersection target on the java heap.
    *
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Seed</a>
+   * @return a new IntersectionImpl on the Java heap
    */
   static IntersectionImpl initNewHeapInstance(final long seed) {
     final IntersectionImpl impl = new IntersectionImpl(null, seed, false);
@@ -63,6 +64,7 @@ final class IntersectionImpl extends IntersectionImplR {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Seed</a>
    * @param dstMem destination Memory.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @return a new IntersectionImpl that may be off-heap
    */
   static IntersectionImpl initNewDirectInstance(final long seed, final WritableMemory dstMem) {
     final IntersectionImpl impl = new IntersectionImpl(dstMem, seed, true);
@@ -95,6 +97,7 @@ final class IntersectionImpl extends IntersectionImplR {
    * @param srcMem The source Memory object.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @return a IntersectionImplR instance on the Java heap
    */
   static IntersectionImplR heapifyInstance(final Memory srcMem, final long seed) {
     final IntersectionImpl impl = new IntersectionImpl(null, seed, false);
@@ -151,6 +154,7 @@ final class IntersectionImpl extends IntersectionImplR {
    * @param srcMem The source Memory image.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @return a IntersectionImpl that wraps a source Memory that contains an Intersection image
    */
   static IntersectionImpl wrapInstance(final WritableMemory srcMem, final long seed) {
     final IntersectionImpl impl = new IntersectionImpl(srcMem, seed, false);

@@ -77,6 +77,7 @@ final class DoublesUpdateImpl {
    * @param size2KBuf size 2k scratch buffer
    * @param doUpdateVersion true if update version
    * @param k the target value of k
+   * @param tgtSketchBuf the given DoublesSketchAccessor
    * @param bitPattern the current bitPattern, prior to this call
    * @return The updated bit pattern.  The updated combined buffer is output as a side effect.
    */

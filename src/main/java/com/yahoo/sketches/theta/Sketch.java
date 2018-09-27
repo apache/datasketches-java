@@ -489,7 +489,6 @@ public abstract class Sketch {
   /**
    * Checks Ordered and Compact flags for integrity between sketch and Memory
    * @param sketch the given sketch
-   * @param mem the given Memory
    */
   static final void checkSketchAndMemoryFlags(final Sketch sketch) {
     final Memory mem = sketch.getMemory();

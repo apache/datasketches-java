@@ -49,6 +49,7 @@ final class DirectCompactUnorderedSketch extends DirectCompactSketch {
    * Constructs given an UpdateSketch.
    * @param sketch the given UpdateSketch
    * @param dstMem the given destination Memory. This clears it before use.
+   * @return a DirectCompactUnorderedSketch
    */
   static DirectCompactUnorderedSketch compact(final UpdateSketch sketch,
       final WritableMemory dstMem) {
@@ -76,6 +77,7 @@ final class DirectCompactUnorderedSketch extends DirectCompactSketch {
    * @param thetaLong The correct
    * <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
    * @param dstMem the given destination Memory. This clears it before use.
+   * @return a DirectCompactUnorderedSketch
    */
   static DirectCompactUnorderedSketch compact(final long[] cache, final boolean empty,
       final short seedHash, final int curCount, final long thetaLong, final WritableMemory dstMem) {

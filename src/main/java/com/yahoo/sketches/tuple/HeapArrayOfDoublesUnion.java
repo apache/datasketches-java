@@ -16,7 +16,7 @@ final class HeapArrayOfDoublesUnion extends ArrayOfDoublesUnion {
 
   /**
    * Creates an instance of HeapArrayOfDoublesUnion with a custom seed
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than 
+   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than
    * given value.
    * @param numValues Number of double values to keep for each key.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
@@ -33,6 +33,7 @@ final class HeapArrayOfDoublesUnion extends ArrayOfDoublesUnion {
    * This is to create an instance given a serialized form and a custom seed
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @return a ArrayOfDoublesUnion on the Java heap
    */
   static ArrayOfDoublesUnion heapifyUnion(final Memory mem, final long seed) {
     final SerializerDeserializer.SketchType type = SerializerDeserializer.getSketchType(mem);

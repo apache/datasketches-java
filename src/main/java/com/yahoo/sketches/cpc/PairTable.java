@@ -72,6 +72,7 @@ final class PairTable {
   /**
    * Rebuilds to a larger size. NumItems and validBits remain unchanged.
    * @param newLgSize the new size
+   * @return a larger PairTable
    */
   PairTable rebuild(final int newLgSize) {
     checkLgSize(newLgSize);
@@ -192,7 +193,7 @@ final class PairTable {
    * the load factor would have to be over 90 percent before this would fail frequently,
    * and even then the subsequent sort would fix things up.
    * @param table the given table to unwrap
-   * @param numCsv the number of valid pairs to in the table
+   * @param numPairs the number of valid pairs in the table
    * @return the unwrapped table
    */
   static int[] unwrappingGetItems(final PairTable table, final int numPairs) {

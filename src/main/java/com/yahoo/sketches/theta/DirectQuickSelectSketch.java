@@ -77,6 +77,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
    * MemoryRequest, in which case the rf is effectively 1, which is no resizing at all and the
    * dstMem must be large enough for a full sketch.
    * <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
+   * @param memReqSvr the given MemoryRequestServer
    * @param dstMem the given Memory object destination. It cannot be null.
    * It will be cleared prior to use.
    * @param unionGadget true if this sketch is implementing the Union gadget function.

@@ -68,6 +68,8 @@ public class StreamingValidation {
 
   /**
    * Performs the given number of trials at a lgK and at an N.
+   * @param lgK the configured lgK
+   * @param n the current value of n
    */
   private void doTrialsAtLgKAtN(int lgK, long n) {
     double sumC = 0.0;
