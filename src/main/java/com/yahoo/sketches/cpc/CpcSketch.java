@@ -558,7 +558,7 @@ public final class CpcSketch {
       if (slidingWindow != null) {
         sb.append("  SlidingWindow  : ").append(LS);
         for (int i = 0; i < slidingWindow.length; i++) {
-          sb.append(String.format("%8d %6d\n", i, slidingWindow[i]));
+          sb.append(String.format("%8d %6d" + LS, i, slidingWindow[i]));
         }
       }
     }

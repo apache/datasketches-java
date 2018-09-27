@@ -65,7 +65,7 @@ public class CompressedStateTest {
 
     //HYBRID
 
-    while ((sk.numCoupons << 5) < (3 * k)) { sk.update(++vIn); }
+    while ((sk.numCoupons << 5) < (3L * k)) { sk.update(++vIn); }
     updateStateUnion(sk);
 
     //PINNED
@@ -73,7 +73,7 @@ public class CompressedStateTest {
     updateStateUnion(sk); //here
 
     //SLIDING
-    while ((sk.numCoupons << 3) < (27 * k)) { sk.update(++vIn); }
+    while ((sk.numCoupons << 3) < (27L * k)) { sk.update(++vIn); }
     updateStateUnion(sk);
   }
 

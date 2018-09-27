@@ -202,7 +202,7 @@ public class CompressionCharacterization {
     } // end wave loop
 
     double total_S = (System.currentTimeMillis() - start) / 1E3;
-    double avgC = totalC / totalTrials;
+    double avgC = (1.0 * totalC) / totalTrials;
     double avgCoK = avgC / k;
     double avgWords = (1.0 * totalW) / totalTrials;
     double avgBytes = (4.0 * totalW) / totalTrials;

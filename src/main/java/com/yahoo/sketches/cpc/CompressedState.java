@@ -317,13 +317,13 @@ final class CompressedState {
       if (state.csvStream != null) {
         sb.append("  CsvStream  : ").append(LS);
         for (int i = 0; i < state.csvLength; i++) {
-          sb.append(String.format("%8d %12d\n", i, state.csvStream[i]));
+          sb.append(String.format("%8d %12d" + LS, i, state.csvStream[i]));
         }
       }
       if (state.cwStream != null) {
         sb.append("  CwStream  : ").append(LS);
         for (int i = 0; i < state.cwLength; i++) {
-          sb.append(String.format("%8d %12d\n", i, state.cwStream[i]));
+          sb.append(String.format("%8d %12d" + LS, i, state.cwStream[i]));
         }
       }
     }

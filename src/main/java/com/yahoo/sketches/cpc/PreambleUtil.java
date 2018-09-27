@@ -522,7 +522,7 @@ final class PreambleUtil {
 
   private static void putFirst8(final WritableMemory wmem, final byte preInts, final byte lgK,
       final byte fiCol, final byte flags, final short seedHash) {
-    wmem.clear(0, 4 * preInts);
+    wmem.clear(0L, 4L * preInts);
     wmem.putByte(getLoFieldOffset(LoField.PRE_INTS), preInts);
     wmem.putByte(getLoFieldOffset(LoField.SER_VERSION), SER_VER);
     wmem.putByte(getLoFieldOffset(LoField.FAMILY), (byte) Family.CPC.getID());
