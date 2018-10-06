@@ -5,12 +5,16 @@
 
 package com.yahoo.sketches.cpc;
 
+import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+import static com.yahoo.sketches.cpc.TestUtil.specialEquals;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import java.io.PrintStream;
 
 import org.testng.annotations.Test;
+
+import com.yahoo.sketches.Family;
 
 /**
  * @author Lee Rhodes
@@ -137,6 +141,34 @@ public class CpcSketchTest {
     CpcSketch.refreshKXP(sk, bitMatrix);
   }
 
+  @Test
+  public void checkFamily() {
+    assertEquals(CpcSketch.getFamily(), Family.CPC);
+  }
+
+  @Test
+  public void checkLgK() {
+    CpcSketch sk = new CpcSketch(10);
+    assertEquals(sk.getLgK(), 10);
+  }
+
+  @Test
+  public void checkHeapify() {
+    int lgK = 10;
+    CpcSketch sk = new CpcSketch(lgK, DEFAULT_UPDATE_SEED);
+    assertTrue(sk.isEmpty());
+    byte[] byteArray = sk.toByteArray();
+    CpcSketch sk2 = CpcSketch.heapify(byteArray, DEFAULT_UPDATE_SEED);
+    assertTrue(specialEquals(sk2, sk, false, false));
+  }
+
+  @Test
+  public void checkRowColUpdate() {
+    int lgK = 10;
+    CpcSketch sk = new CpcSketch(lgK, DEFAULT_UPDATE_SEED);
+    sk.rowColUpdate(0);
+    assertEquals(sk.getFlavor(), Flavor.SPARSE);
+  }
 
   /**
    * @param s the string to print

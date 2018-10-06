@@ -13,7 +13,9 @@ import static com.yahoo.sketches.cpc.CpcUtil.checkLgK;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
+import com.yahoo.sketches.Family;
 
 /**
  * This is a unique-counting sketch that implements the
@@ -80,38 +82,6 @@ public final class CpcSketch {
   }
 
   /**
-   * Resets this sketch to empty but retains the original LgK and Seed.
-   */
-  public final void reset() {
-    numCoupons = 0;
-    mergeFlag = false;
-    fiCol = 0;
-
-    windowOffset = 0;
-    slidingWindow = null;
-    pairTable = null;
-
-    kxp = 1 << lgK;
-    hipEstAccum = 0;
-  }
-
-  //also used in test
-  static CpcSketch uncompress(final CompressedState source, final long seed) {
-    checkSeedHashes(computeSeedHash(seed), source.seedHash);
-    final CpcSketch sketch = new CpcSketch(source.lgK, seed);
-    sketch.numCoupons = source.numCoupons;
-    sketch.windowOffset = source.getWindowOffset();
-    sketch.fiCol = source.fiCol;
-    sketch.mergeFlag = source.mergeFlag;
-    sketch.kxp = source.kxp;
-    sketch.hipEstAccum = source.hipEstAccum;
-    sketch.slidingWindow = null;
-    sketch.pairTable = null;
-    CpcCompression.uncompress(source, sketch);
-    return sketch;
-  }
-
-  /**
    * Returns a copy of this sketch
    * @return a copy of this sketcch
    */
@@ -139,6 +109,31 @@ public final class CpcSketch {
     return hipEstAccum;
   }
 
+  public static Family getFamily() {
+    return Family.CPC;
+  }
+
+  /**
+   * Return the parameter LgK.
+   * @return the parameter LgK.
+   */
+  public int getLgK() {
+    return lgK;
+  }
+
+  /**
+   * Returns the best estimate of the lower bound of the confidence interval given <i>kappa</i>,
+   * the number of standard deviations from the mean.
+   * @param kappa the given number of standard deviations from the mean: 1, 2 or 3.
+   * @return the best estimate of the lower bound of the confidence interval given <i>kappa</i>.
+   */
+  public double getLowerBound(final int kappa) {
+    if (mergeFlag) {
+      return CpcConfidence.getIconConfidenceLB(lgK, numCoupons, kappa);
+    }
+    return CpcConfidence.getHipConfidenceLB(lgK, numCoupons, hipEstAccum, kappa);
+  }
+
   /**
    * Returns the best estimate of the upper bound of the confidence interval given <i>kappa</i>,
    * the number of standard deviations from the mean.
@@ -153,16 +148,49 @@ public final class CpcSketch {
   }
 
   /**
-   * Returns the best estimate of the lower bound of the confidence interval given <i>kappa</i>,
-   * the number of standard deviations from the mean.
-   * @param kappa the given number of standard deviations from the mean: 1, 2 or 3.
-   * @return the best estimate of the lower bound of the confidence interval given <i>kappa</i>.
+   * Return the given Memory as a CpcSketch on the Java heap.
+   * @param mem the given Memory
+   * @param seed the seed used to create the original sketch from which the Memory was derived.
+   * @return the given Memory as a CpcSketch on the Java heap.
    */
-  public double getLowerBound(final int kappa) {
-    if (mergeFlag) {
-      return CpcConfidence.getIconConfidenceLB(lgK, numCoupons, kappa);
-    }
-    return CpcConfidence.getHipConfidenceLB(lgK, numCoupons, hipEstAccum, kappa);
+  public static CpcSketch heapify(final Memory mem, final long seed) {
+    final CompressedState state = CompressedState.importFromMemory(mem);
+    return uncompress(state, seed);
+  }
+
+  /**
+   * Return the given byte array as a CpcSketch on the Java heap.
+   * @param byteArray the given byte array
+   * @param seed the seed used to create the original sketch from which the byte array was derived.
+   * @return the given byte array as a CpcSketch on the Java heap.
+   */
+  public static CpcSketch heapify(final byte[] byteArray, final long seed) {
+    final Memory mem = Memory.wrap(byteArray);
+    return heapify(mem, seed);
+  }
+
+  /**
+   * Return true if this sketch is empty
+   * @return true if this sketch is empty
+   */
+  public boolean isEmpty() {
+    return numCoupons == 0;
+  }
+
+  /**
+   * Resets this sketch to empty but retains the original LgK and Seed.
+   */
+  public final void reset() {
+    numCoupons = 0;
+    mergeFlag = false;
+    fiCol = 0;
+
+    windowOffset = 0;
+    slidingWindow = null;
+    pairTable = null;
+
+    kxp = 1 << lgK;
+    hipEstAccum = 0;
   }
 
   /**
@@ -276,10 +304,18 @@ public final class CpcSketch {
     hashUpdate(arr[0], arr[1]);
   }
 
+  /**
+   * Returns the current Flavor of this sketch.
+   * @return the current Flavor of this sketch.
+   */
   Flavor getFlavor() {
     return CpcUtil.determineFlavor(lgK, numCoupons);
   }
 
+  /**
+   * Returns the Format of the serialized form of this sketch.
+   * @return the Format of the serialized form of this sketch.
+   */
   Format getFormat() {
     final int ordinal;
     final Flavor f = getFlavor();
@@ -496,6 +532,23 @@ public final class CpcSketch {
         assert c8post < ((27L + w8post) * k); // C < (K * 27/8) + (K * windowOffset)
       }
     }
+  }
+
+
+  //also used in test
+  static CpcSketch uncompress(final CompressedState source, final long seed) {
+    checkSeedHashes(computeSeedHash(seed), source.seedHash);
+    final CpcSketch sketch = new CpcSketch(source.lgK, seed);
+    sketch.numCoupons = source.numCoupons;
+    sketch.windowOffset = source.getWindowOffset();
+    sketch.fiCol = source.fiCol;
+    sketch.mergeFlag = source.mergeFlag;
+    sketch.kxp = source.kxp;
+    sketch.hipEstAccum = source.hipEstAccum;
+    sketch.slidingWindow = null;
+    sketch.pairTable = null;
+    CpcCompression.uncompress(source, sketch);
+    return sketch;
   }
 
   //Used here and for testing
