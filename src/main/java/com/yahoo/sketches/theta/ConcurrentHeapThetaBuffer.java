@@ -24,7 +24,7 @@ import com.yahoo.sketches.ResizeFactor;
  */
 public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
   private int cacheLimit;
-  private final ConcurrentDirectThetaSketch shared;
+  private final SharedThetaSketch shared;
   private final AtomicBoolean localPropagationInProgress;
   private final boolean propagateOrderedCompact;
 
@@ -33,7 +33,7 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
       final int lgNomLongs,
       final long seed,
       final int cacheLimit,
-      final ConcurrentDirectThetaSketch shared,
+      final SharedThetaSketch shared,
       final boolean propagateOrderedCompact) {
     super(lgNomLongs,
         seed,

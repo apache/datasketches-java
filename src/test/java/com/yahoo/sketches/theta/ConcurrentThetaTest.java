@@ -43,7 +43,8 @@ public class ConcurrentThetaTest {
   private final int poolThreads = 3; //default
   private WritableDirectHandle wdh = null;
   private WritableMemory wmem = null;
-  private UpdateSketch sharedSketch;
+  private SharedThetaSketch sharedSketch;
+  private UpdateSketch updateSketch;
 
   private CONCURRENCY_TYPE type = CONCURRENCY_TYPE.CONCURRENT;
   private int numWriterThreads = 4;
@@ -128,7 +129,7 @@ public class ConcurrentThetaTest {
       LOG.info("Reader Threads = " + numReaderThreads);
       break;
     case LOCK_BASED:
-      sharedSketch = new LockBasedUpdateSketch(shared_lgK,seed,wmem);
+      updateSketch = new LockBasedUpdateSketch(shared_lgK,seed,wmem);
       //sketchToInit /localSketch already exists, cannot set from sharedSketch
       System.out.println("");
       LOG.info("=============================================LOCK_BASED_THETA"
@@ -139,6 +140,8 @@ public class ConcurrentThetaTest {
     case BASELINE:
       //sketch / gadget / sharedSketch already exists
       //sketchToinit /localSketch already exits, cannot set from sharedSketch
+      UpdateSketch updateSketch = Sketches.updateSketchBuilder()
+          .setNominalEntries(1 << shared_lgK).build(wmem);
       System.out.println("");
       LOG.info("=============================================BASELINE_THETA"
           + "===========================================");
@@ -166,23 +169,21 @@ public class ConcurrentThetaTest {
 
     if (type == CONCURRENCY_TYPE.BASELINE) {
       long num = baselineUpdates; //numWriterThreads * writerUpdates;
-      UpdateSketch sketch = Sketches.updateSketchBuilder()
-          .setNominalEntries(1 << shared_lgK).build(wmem);
       long start_mS = System.currentTimeMillis();
       for (long i = 0; i < num; i++) {
-        sketch.update(i);
+        updateSketch.update(i);
       }
       runTime_mS = System.currentTimeMillis() - start_mS;
       double time_S = runTime_mS / 1000.0;
       LOG.info("Runtime Sec    + " + time_S);
       LOG.info("Total Writes   = " + num);
-      LOG.info("WriteTput      = " + (long)(((num / time_S)) / 1000000) + " millions per second");
-      double estimate = sketch.getEstimate();
+      LOG.info("WriteTput      = " + (long) (((num / time_S)) / 1000000) + " millions per second");
+      double estimate = updateSketch.getEstimate();
       LOG.info("Estimate       = " + estimate);
       double re = (estimate / num) - 1.0;
       LOG.info("Relative Error = " + (re * 100.0) + "%");
-      LOG.info("Theta = "+ sketch.getTheta());
-      LOG.info("Count = "+ sketch.getRetainedEntries());
+      LOG.info("Theta = "+ updateSketch.getTheta());
+      LOG.info("Count = "+ updateSketch.getRetainedEntries());
       return;
     }
 
@@ -207,7 +208,7 @@ public class ConcurrentThetaTest {
     ctx.stop();
 
     if (type== CONCURRENCY_TYPE.CONCURRENT) {
-      while(((ConcurrentDirectThetaSketch)sharedSketch).getPropagationInProgress().get()) {}
+      while(sharedSketch.isPropagationInProgress()) {}
     }
 
     for (WriterThread writer : writersList) {
@@ -224,15 +225,15 @@ public class ConcurrentThetaTest {
     LOG.info("ReadTput       = " + (((totalReads / timeToRun_S)) / 1000000)
         + " millions per second");
 
-    double estimate = sharedSketch.getEstimate();
+    double estimate = -1;
     if (type== CONCURRENCY_TYPE.CONCURRENT) {
-      estimate = ((ConcurrentDirectThetaSketch)sharedSketch).getEstimationSnapshot();
+      estimate = sharedSketch.getEstimationSnapshot();
+    } else {
+      estimate = updateSketch.getEstimate();
     }
     LOG.info("Estimate       = " + estimate);
     double re = (estimate / totalWrites) - 1.0;
     LOG.info("Relative Error = " + (re * 100.0) + "%");
-    LOG.info("Theta = "+ sharedSketch.getTheta());
-    LOG.info("Count = "+ sharedSketch.getRetainedEntries());
 
     if (wdh != null) { wdh.close(); }
   }
@@ -253,7 +254,7 @@ public class ConcurrentThetaTest {
       jump_ = jump;
       context_ = (type == CONCURRENCY_TYPE.CONCURRENT)
           ? builder.build()
-          : sharedSketch; //IS THIS RIGHT?
+          : updateSketch; //IS THIS RIGHT?
     }
 
     @Override
@@ -274,7 +275,7 @@ public class ConcurrentThetaTest {
 
       context_ = (type == CONCURRENCY_TYPE.CONCURRENT)
           ? builder.build() //local sketch
-          : sharedSketch; // IS THIS RIGHT?
+          : updateSketch; // IS THIS RIGHT?
     }
 
     @Override
@@ -332,7 +333,6 @@ public class ConcurrentThetaTest {
     bldr.setSeed(seed);
     bldr.setCacheLimit(cacheLimit);
     bldr.setPropagateOrderedCompact(propagateCompact);
-    bldr.setPoolThreads(poolThreads);
     return bldr;
   }
 
