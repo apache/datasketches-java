@@ -98,7 +98,7 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch
     sharedPropagationInProgress_.set(false);
   }
 
-  @Override public void updateSingle(long hash) {
+  @Override public void updateSingle(final long hash) {
     hashUpdate(hash);
   }
 
