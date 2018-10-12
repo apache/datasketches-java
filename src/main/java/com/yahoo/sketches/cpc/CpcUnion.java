@@ -138,11 +138,8 @@ public class CpcUnion {
   long getNumCoupons() {
     if (bitMatrix != null) {
       return countBitsSetInMatrix(bitMatrix);
-    } else if (accumulator != null) {
-      return accumulator.numCoupons;
-    } else {
-      return 0;
     }
+    return accumulator.numCoupons;
   }
 
   //used for testing only

@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.cpc;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
@@ -33,6 +35,19 @@ public class CpcUnionTest {
       fail();
     } catch (SketchesStateException e) {}
     union = new CpcUnion(10);
+  }
+
+  @Test
+  public void checkGetters() {
+    int lgK = 10;
+    CpcUnion union = new CpcUnion(lgK);
+    assertEquals(union.getLgK(), lgK);
+    assertEquals(union.getNumCoupons(), 0L);
+    CpcSketch sk = new CpcSketch(lgK);
+    for (int i = 0; i <= (4 << lgK); i++) { sk.update(i); }
+    union.update(sk);
+    assertTrue(union.getNumCoupons() > 0);
+    assertTrue(CpcUnion.getBitMatrix(union) != null);
 
   }
 
