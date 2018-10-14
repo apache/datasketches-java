@@ -51,4 +51,24 @@ public class CpcUnionTest {
 
   }
 
+  @Test
+  public void checkReduceK() {
+    CpcUnion union = new CpcUnion(12);
+    CpcSketch sk = new CpcSketch(11);
+    int u = 1;
+    sk.update(u);
+    union.update(sk);
+    CpcUnion.getBitMatrix(union);
+    CpcSketch sk2 = new CpcSketch(10);
+    int shTrans = ((3 * 512) / 32); //sparse-hybrid transition for lgK=9
+    while (sk2.numCoupons < shTrans) { sk2.update(++u); }
+    union.update(sk2);
+    CpcSketch sk3 = new CpcSketch(9);
+    sk3.update(++u);
+    union.update(sk3);
+    CpcSketch sk4 = new CpcSketch(8);
+    sk4.update(++u);
+    union.update(sk4);
+  }
+
 }
