@@ -172,6 +172,7 @@ public final class ReservoirItemsSketch<T> {
   /**
    * Thin wrapper around private constructor
    *
+   * @param <T> data type
    * @param data      Reservoir items as ArrayList&lt;T&gt;
    * @param itemsSeen Number of items presented to the sketch so far
    * @param rf        <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
@@ -571,7 +572,7 @@ public final class ReservoirItemsSketch<T> {
 
   /**
    * Used during union operations to ensure we do not overwrite an existing reservoir. Creates a
-   * <en>shallow</en> copy of the reservoir.
+   * shallow copy of the reservoir.
    *
    * @return A copy of the current sketch
    */

@@ -7,7 +7,7 @@
 <h2>Sketch Library Dictionary</h2>
 
 <h3><a name="accuracy">Sketch Accuracy</a></h3>
-About sketch accuracy...
+Refers to sketch accuracy...
 
 <h3><a name="alphaTCF">Alpha TCF</a></h3>
 The Alpha Theta Choosing Function (TCF) and the theory behind it is fully described in the 
@@ -132,17 +132,7 @@ getUpperBound(3) and getLowerBound(3) represent the 99.7% confidence bounds.
 <p>For some sketches where the error distribution is not Gaussian, special mathematical approximation methods are used. 
 See <a href="#accuracy">Sketch Accuracy</a>.</p>
 
-<h3><a name="p">Sampling Probability <i>p</i></a></h3>
-For Theta Sketches, the uniform random pre-sketching sampling probability.
-Depending on the specific sketch, the constructor data type is <i>float</i> or <i>String</i>.
-Incoming hashed data values are sampled by this probability factor before being submitted to 
-the sketching algorithm.  For example, if <i>p</i> were set to 0.25, then on average, only one 
-forth of the incoming values, selected uniformly and at random, would be evaluated by the 
-sketching algorithm to be retained by the sketch.
-Its default value is 1.0 (no sampling).  
-Its value must be in the range: 0 &lt; p &le; 1.0.
-<p>This mode is particularly useful when merging large numbers of 
-<a href="#degenerateSketch">degenerate sketches</a>.
+
 
 <h3><a name="quickSelectTCF">Quick Select TCF</a></h3>
 The fundamental Theta Sketch QuickSelect algorithm is described in classic algorithm texts by Sedgewick and
@@ -183,6 +173,18 @@ the current sketch cache array size. <br>
 "X2" means the internal cache will start very small and double in size until the target size is reached.<br>
 Similarly, "X4" is a factor of 4 and "X8 is a factor of 8.
 
+<h3><a name="p">Sampling Probability <i>p</i></a></h3>
+For Theta Sketches, the uniform random pre-sketching sampling probability.
+Depending on the specific sketch, the constructor data type is <i>float</i> or <i>String</i>.
+Incoming hashed data values are sampled by this probability factor before being submitted to 
+the sketching algorithm.  For example, if <i>p</i> were set to 0.25, then on average, only one 
+forth of the incoming values, selected uniformly and at random, would be evaluated by the 
+sketching algorithm to be retained by the sketch.
+Its default value is 1.0 (no sampling).  
+Its value must be in the range: 0 &lt; p &le; 1.0.
+<p>This mode is particularly useful when merging large numbers of 
+<a href="#degenerateSketch">degenerate sketches</a>.
+
 <h3><a name="seed">Seed</a></h3>
 For Theta Sketches, the long (64-bit) seed is required by the Update Hash Function. 
 This seed value is intentionally not serialized along with this sketch in order to provide 
@@ -203,6 +205,13 @@ See also <a href="#defaultUpdateSeed">Default Update Seed</a>.
 For Theta Sketches, a 16-bit hash of the <a href="#seed">Update Hash Seed</a> used internally to validate 
 (1) that two sketches undergoing set operations were, in fact, created using matching <a href="#seed">Update Hash Seeds</a>; 
 or (2) that when deserializing or wrapping a sketch image that the caller has the correct seed.
+
+<h3><a name="SnowPlow">Snow Plow Effect</a></h3>
+When coordinated hash tables are merged and if the merging process does not update the target sketch with sufficient randomness, clustering 
+in the target hash table can be greatly exaggerated causing poor speed performance for both updates and searches.  This is called the
+"snowplow" effect because of the analogy of visualizing the clusters in a hash table as piles of snow that grow larger and larger. Since the
+size of the clusters are only represented by their width (not height like piles of snow), the clusters push themselves out horizontally and
+merge together as if they were pushed together with a snowplow.
 
 <h3><a name="tcf">Theta Choosing Function (TCF)</a></h3>
 For Theta Sketches, the Theta Choosing Function (TCF) and the theory behind it is fully described in the

@@ -82,6 +82,17 @@ public final class Util {
    */
   public static final double LOG2 = log(2.0);
 
+  /**
+   * The inverse golden ratio as an unsigned long.
+   */
+  public static final long iGoldenU64 = 0x9e3779b97f4a7c13L;
+
+  /**
+   * The inverse golden ratio as a fraction.
+   * This has more precision than using the formula: (Math.sqrt(5.0) - 1.0) / 2.0.
+   */
+  public static final double iGolden = 0.6180339887498949025; // the inverse golden ratio
+
   private Util() {}
 
   //Byte Conversions
@@ -197,7 +208,7 @@ public final class Util {
     final String nSstr = zeroPad(Long.toString(rem_nS), 3);
     final String uSstr = zeroPad(Long.toString(rem_uS), 3);
     final String mSstr = zeroPad(Long.toString(rem_mS), 3);
-    return String.format("%d.%3s %3s %3s", sec, mSstr, uSstr, nSstr);
+    return String.format("%d.%3s_%3s_%3s", sec, mSstr, uSstr, nSstr);
   }
 
   /**
@@ -467,6 +478,37 @@ public final class Util {
     do {
       next = (int)round(pow(2.0, (double) ++gi / ppo));
     } while ( next <= curPoint);
+    return next;
+  }
+
+  /**
+   * Computes the next larger double in the power series
+   * <i>point = 2<sup>( i / ppo )</sup></i> given the current point in the series.
+   * For illustration, this can be used in a loop as follows:
+   *
+   * <pre>{@code
+   *     double maxP = 1024.0;
+   *     double minP = 1.0;
+   *     int ppo = 2;
+   *
+   *     for (double p = minP; p <= maxP; p = pwr2LawNextDouble(ppo, p)) {
+   *       System.out.print(Math.round(p) + " ");
+   *     }
+   *     //generates the following series:
+   *     //1 2 3 4 6 8 11 16 23 32 45 64 91 128 181 256 362 512 724 1024
+   * }</pre>
+   *
+   * @param ppo Points-Per-Octave, or the number of points per integer powers of 2 in the series.
+   * @param curPoint the current point of the series. Must be &ge; 1.0.
+   * @return the next point in the power series.
+   */
+  public static final double pwr2LawNextDouble(final int ppo, final double curPoint) {
+    final double cur = (curPoint < 1.0) ? 1.0 : curPoint;
+    double gi = round(log2(cur) * ppo); //current generating index
+    double next;
+    do {
+      next = round(pow(2.0, ++gi / ppo));
+    } while (next <= cur);
     return next;
   }
 

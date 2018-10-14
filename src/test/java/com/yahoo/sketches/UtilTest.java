@@ -21,6 +21,7 @@ import static com.yahoo.sketches.Util.isPowerOf2;
 import static com.yahoo.sketches.Util.milliSecToString;
 import static com.yahoo.sketches.Util.nanoSecToString;
 import static com.yahoo.sketches.Util.pwr2LawNext;
+import static com.yahoo.sketches.Util.pwr2LawNextDouble;
 import static com.yahoo.sketches.Util.pwr2LawPrev;
 import static com.yahoo.sketches.Util.zeroPad;
 
@@ -213,7 +214,7 @@ public class UtilTest {
   public void checkNsecToString() {
     long nS = 1000000000L + 1000000L + 1000L + 1L;
     String result = nanoSecToString(nS);
-    String expected = "1.001 001 001";
+    String expected = "1.001_001_001";
     Assert.assertEquals(result, expected);
   }
 
@@ -229,6 +230,14 @@ public class UtilTest {
   public void checkPwr2LawNext() {
     int next = pwr2LawNext(2, 1);
     Assert.assertEquals(next, 2);
+  }
+
+  @Test
+  public void checkPwr2LawNextDouble() {
+    double next = pwr2LawNextDouble(2, 1.0);
+    Assert.assertEquals(next, 2.0, 0.0);
+    next = pwr2LawNextDouble(2, 0.5);
+    Assert.assertEquals(next, 2.0, 0.0);
   }
 
   @Test

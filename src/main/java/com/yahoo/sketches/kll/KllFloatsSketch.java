@@ -161,12 +161,15 @@ public class KllFloatsSketch {
   private static final int NUM_LEVELS_BYTE    = 18;
   private static final int DATA_START         = 20;
 
-  private static final byte serialVersionUID = 1;
+  private static final int DATA_START_SINGLE_ITEM = 8;
 
-  private enum Flags { IS_EMPTY, IS_LEVEL_ZERO_SORTED }
+  private static final byte serialVersionUID1 = 1;
+  private static final byte serialVersionUID2 = 2;
 
-  private static final int PREAMBLE_INTS_EMPTY = 2;
-  private static final int PREAMBLE_INTS_NONEMPTY = 5;
+  private enum Flags { IS_EMPTY, IS_LEVEL_ZERO_SORTED, IS_SINGLE_ITEM }
+
+  private static final int PREAMBLE_INTS_SHORT = 2; // for empty and single item
+  private static final int PREAMBLE_INTS_FULL = 5;
 
   /*
    * Data is stored in items_.
@@ -200,6 +203,7 @@ public class KllFloatsSketch {
     k_ = mem.getShort(K_SHORT) & 0xffff;
     final int flags = mem.getByte(FLAGS_BYTE) & 0xff;
     final boolean isEmpty = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
+    final boolean isSingleItem = (flags & (1 << Flags.IS_SINGLE_ITEM.ordinal())) > 0;
     if (isEmpty) {
       numLevels_ = 1;
       levels_ = new int[] {k_, k_};
@@ -209,22 +213,38 @@ public class KllFloatsSketch {
       isLevelZeroSorted_ = false;
       minK_ = k_;
     } else {
-      n_ = mem.getLong(N_LONG);
-      minK_ = mem.getShort(MIN_K_SHORT) & 0xffff;
-      numLevels_ = mem.getByte(NUM_LEVELS_BYTE) & 0xff;
+      if (isSingleItem) {
+        n_ = 1;
+        minK_ = k_;
+        numLevels_ = 1;
+      } else {
+        n_ = mem.getLong(N_LONG);
+        minK_ = mem.getShort(MIN_K_SHORT) & 0xffff;
+        numLevels_ = mem.getByte(NUM_LEVELS_BYTE) & 0xff;
+      }
       levels_ = new int[numLevels_ + 1];
-      int offset = DATA_START;
-      // the last integer in levels_ is not serialized because it can be derived
-      mem.getIntArray(offset, levels_, 0, numLevels_);
-      offset += numLevels_ * Integer.BYTES;
+      int offset = isSingleItem ? DATA_START_SINGLE_ITEM : DATA_START;
       final int capacity = KllHelper.computeTotalCapacity(k_, m_, numLevels_);
+      if (isSingleItem) {
+        levels_[0] = capacity - 1;
+      } else {
+        // the last integer in levels_ is not serialized because it can be derived
+        mem.getIntArray(offset, levels_, 0, numLevels_);
+        offset += numLevels_ * Integer.BYTES;
+      }
       levels_[numLevels_] = capacity;
-      minValue_ = mem.getFloat(offset);
-      offset += Float.BYTES;
-      maxValue_ = mem.getFloat(offset);
-      offset += Float.BYTES;
+      if (!isSingleItem) {
+        minValue_ = mem.getFloat(offset);
+        offset += Float.BYTES;
+        maxValue_ = mem.getFloat(offset);
+        offset += Float.BYTES;
+      }
       items_ = new float[capacity];
       mem.getFloatArray(offset, items_, levels_[0], getNumRetained());
+      if (isSingleItem) {
+        minValue_ = items_[levels_[0]];
+        maxValue_ = items_[levels_[0]];
+      }
       isLevelZeroSorted_ = (flags & (1 << Flags.IS_LEVEL_ZERO_SORTED.ordinal())) > 0;
     }
   }
@@ -332,11 +352,13 @@ public class KllFloatsSketch {
     if (other.numLevels_ >= 2) {
       mergeHigherLevels(other, finalN);
     }
-    if (Float.isNaN(minValue_) || other.minValue_ < minValue_) { minValue_ = other.minValue_; }
-    if (Float.isNaN(maxValue_) || other.maxValue_ > maxValue_) { maxValue_ = other.maxValue_; }
+    if (Float.isNaN(minValue_) || (other.minValue_ < minValue_)) { minValue_ = other.minValue_; }
+    if (Float.isNaN(maxValue_) || (other.maxValue_ > maxValue_)) { maxValue_ = other.maxValue_; }
     n_ = finalN;
     assertCorrectTotalWeight();
-    minK_ = min(minK_, other.minK_);
+    if (other.isEstimationMode()) {
+      minK_ = min(minK_, other.minK_);
+    }
   }
 
   /**
@@ -703,29 +725,34 @@ public class KllFloatsSketch {
    */
   public byte[] toByteArray() {
     final byte[] bytes = new byte[getSerializedSizeBytes()];
-    bytes[PREAMBLE_INTS_BYTE] = (byte) (isEmpty() ? PREAMBLE_INTS_EMPTY : PREAMBLE_INTS_NONEMPTY);
-    bytes[SER_VER_BYTE] = serialVersionUID;
+    final boolean isSingleItem = n_ == 1;
+    bytes[PREAMBLE_INTS_BYTE] = (byte) (isEmpty() || isSingleItem ? PREAMBLE_INTS_SHORT : PREAMBLE_INTS_FULL);
+    bytes[SER_VER_BYTE] = isSingleItem ? serialVersionUID2 : serialVersionUID1;
     bytes[FAMILY_BYTE] = (byte) Family.KLL.getID();
     bytes[FLAGS_BYTE] = (byte) (
         (isEmpty() ? 1 << Flags.IS_EMPTY.ordinal() : 0)
       | (isLevelZeroSorted_ ? 1 << Flags.IS_LEVEL_ZERO_SORTED.ordinal() : 0)
+      | (isSingleItem ? 1 << Flags.IS_SINGLE_ITEM.ordinal() : 0)
     );
     ByteArrayUtil.putShort(bytes, K_SHORT, (short) k_);
     bytes[M_BYTE] = (byte) m_;
     if (isEmpty()) { return bytes; }
-    ByteArrayUtil.putLong(bytes, N_LONG, n_);
-    ByteArrayUtil.putShort(bytes, MIN_K_SHORT, (short) minK_);
-    bytes[NUM_LEVELS_BYTE] = (byte) numLevels_;
-    int offset = DATA_START;
-    // the last integer in levels_ is not serialized because it can be derived
-    for (int i = 0; i < numLevels_; i++) {
-      ByteArrayUtil.putInt(bytes, offset, levels_[i]);
-      offset += Integer.BYTES;
+    int offset = DATA_START_SINGLE_ITEM;
+    if (!isSingleItem) {
+      ByteArrayUtil.putLong(bytes, N_LONG, n_);
+      ByteArrayUtil.putShort(bytes, MIN_K_SHORT, (short) minK_);
+      bytes[NUM_LEVELS_BYTE] = (byte) numLevels_;
+      offset = DATA_START;
+      // the last integer in levels_ is not serialized because it can be derived
+      for (int i = 0; i < numLevels_; i++) {
+        ByteArrayUtil.putInt(bytes, offset, levels_[i]);
+        offset += Integer.BYTES;
+      }
+      ByteArrayUtil.putFloat(bytes, offset, minValue_);
+      offset += Float.BYTES;
+      ByteArrayUtil.putFloat(bytes, offset, maxValue_);
+      offset += Float.BYTES;
     }
-    ByteArrayUtil.putFloat(bytes, offset, minValue_);
-    offset += Float.BYTES;
-    ByteArrayUtil.putFloat(bytes, offset, maxValue_);
-    offset += Float.BYTES;
     final int numItems = getNumRetained();
     for (int i = 0; i < numItems; i++) {
       ByteArrayUtil.putFloat(bytes, offset, items_[levels_[0] + i]);
@@ -752,21 +779,22 @@ public class KllFloatsSketch {
           "Possible corruption: M must be " + DEFAULT_M + ": " + m);
     }
     final boolean isEmpty = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
-    if (isEmpty) {
-      if (preambleInts != PREAMBLE_INTS_EMPTY) {
+    final boolean isSingleItem = (flags & (1 << Flags.IS_SINGLE_ITEM.ordinal())) > 0;
+    if (isEmpty || isSingleItem) {
+      if (preambleInts != PREAMBLE_INTS_SHORT) {
         throw new SketchesArgumentException("Possible corruption: preambleInts must be "
-            + PREAMBLE_INTS_EMPTY + " for an empty sketch: " + preambleInts);
+            + PREAMBLE_INTS_SHORT + " for an empty or single item sketch: " + preambleInts);
       }
     } else {
-      if (preambleInts != PREAMBLE_INTS_NONEMPTY) {
+      if (preambleInts != PREAMBLE_INTS_FULL) {
         throw new SketchesArgumentException("Possible corruption: preambleInts must be "
-            + PREAMBLE_INTS_NONEMPTY + " for a non-empty sketch: " + preambleInts);
+            + PREAMBLE_INTS_FULL + " for a sketch with more than one item: " + preambleInts);
       }
     }
-    if (serialVersion != serialVersionUID) {
+    if ((serialVersion != serialVersionUID1) && (serialVersion != serialVersionUID2)) {
       throw new SketchesArgumentException(
-          "Possible corruption: serial version mismatch: expected " + serialVersionUID
-          + ", got " + serialVersion);
+          "Possible corruption: serial version mismatch: expected " + serialVersionUID1 + " or "
+              + serialVersionUID2 + ", got " + serialVersion);
     }
     if (family != Family.KLL.getID()) {
       throw new SketchesArgumentException(
@@ -1045,8 +1073,11 @@ public class KllFloatsSketch {
     assert total == n_;
   }
 
-  // the last integer in levels_ is not serialized because it can be derived
   private static int getSerializedSizeBytes(final int numLevels, final int numRetained) {
+    if ((numLevels == 1) && (numRetained == 1)) {
+      return DATA_START_SINGLE_ITEM + Float.BYTES;
+    }
+    // the last integer in levels_ is not serialized because it can be derived
     // + 2 for min and max
     return DATA_START + (numLevels * Integer.BYTES) + ((numRetained + 2) * Float.BYTES);
   }

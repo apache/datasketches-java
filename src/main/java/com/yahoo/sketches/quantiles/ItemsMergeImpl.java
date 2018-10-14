@@ -44,6 +44,7 @@ final class ItemsMergeImpl {
      * by making a deep copy of the larger sketch and then merging the smaller one into it.
      * However, it was decided not to do this.
      *
+     * @param <T> the data type
      * @param src The source sketch
      * @param tgt The target sketch
      */
@@ -87,7 +88,7 @@ final class ItemsMergeImpl {
     }
     tgt.n_ = nFinal;
 
-    assert tgt.getN() / (2 * tgtK) == tgt.getBitPattern(); // internal consistency check
+    assert (tgt.getN() / (2 * tgtK)) == tgt.getBitPattern(); // internal consistency check
 
     final T srcMax = src.getMaxValue();
     final T srcMin = src.getMinValue();
@@ -114,7 +115,7 @@ final class ItemsMergeImpl {
    * However, it is required that the ratio of the two K values be a power of 2.
    * I.e., source.getK() = target.getK() * 2^(nonnegative integer).
    * The source is not modified.
-   *
+   * @param <T> the data type
    * @param src The source sketch
    * @param tgt The target sketch
    */
@@ -164,7 +165,7 @@ final class ItemsMergeImpl {
     }
     tgt.n_ = nFinal;
 
-    assert tgt.getN() / (2 * targetK) == tgt.getBitPattern(); // internal consistency check
+    assert (tgt.getN() / (2 * targetK)) == tgt.getBitPattern(); // internal consistency check
 
     final T srcMax = src.getMaxValue();
     final T srcMin = src.getMinValue();
@@ -204,10 +205,12 @@ final class ItemsMergeImpl {
    * that have already been sorted, so that only the top part of the
    * merge tree remains to be executed. Also, two arrays are sorted in tandem,
    * as discussed above.
+   * @param <T> the data type
    * @param keyArr array of keys
    * @param valArr array of values
    * @param arrLen length of keyArr and valArr
    * @param blkSize size of internal sorted blocks
+   * @param comparator the comparator for data type T
    */
   //also used by ItemsAuxiliary
   static <T> void blockyTandemMergeSort(final T[] keyArr, final long[] valArr, final int arrLen,
@@ -215,8 +218,8 @@ final class ItemsMergeImpl {
     assert blkSize >= 1;
     if (arrLen <= blkSize) { return; }
     int numblks = arrLen / blkSize;
-    if (numblks * blkSize < arrLen) { numblks += 1; }
-    assert (numblks * blkSize >= arrLen);
+    if ((numblks * blkSize) < arrLen) { numblks += 1; }
+    assert ((numblks * blkSize) >= arrLen);
 
     // duplicate the input is preparation for the "ping-pong" copy reduction strategy.
     final T[] keyTmp = Arrays.copyOf(keyArr, arrLen);
@@ -234,6 +237,7 @@ final class ItemsMergeImpl {
    *  it manages the buffer swapping that eliminates most copying.
    *  It also maps the input's pre-sorted blocks into the subarrays
    *  that are processed by tandemMerge().
+   * @param <T> the data type
    * @param keySrc key source
    * @param valSrc value source
    * @param keyDst key destination
@@ -277,7 +281,7 @@ final class ItemsMergeImpl {
     int arrLen2   = grpLen2   * blkSize;
 
     // special case for the final block which might be shorter than blkSize.
-    if (arrStart2 + arrLen2 > arrLim) {
+    if ((arrStart2 + arrLen2) > arrLim) {
       arrLen2 = arrLim - arrStart2;
     }
 
@@ -292,6 +296,7 @@ final class ItemsMergeImpl {
   /**
    *  Performs two merges in tandem. One of them provides the sort keys
    *  while the other one passively undergoes the same data motion.
+   * @param <T> the data type
    * @param keySrc key source
    * @param valSrc value source
    * @param arrStart1 Array 1 start offset
@@ -314,7 +319,7 @@ final class ItemsMergeImpl {
     int i1 = arrStart1;
     int i2 = arrStart2;
     int i3 = arrStart3;
-    while (i1 < arrStop1 && i2 < arrStop2) {
+    while ((i1 < arrStop1) && (i2 < arrStop2)) {
       if (comparator.compare(keySrc[i2], keySrc[i1]) < 0) {
         keyDst[i3] = keySrc[i2];
         valDst[i3] = valSrc[i2];

@@ -110,6 +110,8 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   /**
    * This is to create an instance of a QuickSelectSketch given a serialized form
    * @param mem Memory object with serialized QukckSelectSketch
+   * @param deserializer the SummaryDeserializer
+   * @param summaryFactory the SummaryFactory
    */
   QuickSelectSketch(final Memory mem, final SummaryDeserializer<S> deserializer,
       final SummaryFactory<S> summaryFactory) {

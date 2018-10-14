@@ -7,7 +7,6 @@ package com.yahoo.sketches.theta;
 import static com.yahoo.sketches.Family.ALPHA;
 import static com.yahoo.sketches.Family.COMPACT;
 import static com.yahoo.sketches.Family.QUICKSELECT;
-import static com.yahoo.sketches.Family.objectToFamily;
 import static com.yahoo.sketches.ResizeFactor.X1;
 import static com.yahoo.sketches.ResizeFactor.X2;
 import static com.yahoo.sketches.ResizeFactor.X4;
@@ -274,12 +273,6 @@ public class SketchTest {
     assertTrue(Sketch.isValidSketchID(ALPHA.getID()));
     assertTrue(Sketch.isValidSketchID(QUICKSELECT.getID()));
     assertTrue(Sketch.isValidSketchID(COMPACT.getID()));
-  }
-
-  @Test
-  public void checkObjectToFamily() {
-    Sketch sk1 = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(512).build();
-    println(objectToFamily(sk1).toString());
   }
 
   @Test
