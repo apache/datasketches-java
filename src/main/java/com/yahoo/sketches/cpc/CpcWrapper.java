@@ -19,7 +19,7 @@ import com.yahoo.memory.Memory;
 
 /**
  * This provides a read-only view of a serialized image of a CpcSketch, which can be on-heap or
- * off-heap.
+ * off-heap represented as a Memory object, or on-heap represented as a byte array.
  * @author Lee Rhodes
  * @author Kevin Lang
  */
@@ -27,8 +27,8 @@ public final class CpcWrapper {
   Memory mem;
 
   /**
-   * Configure a read-only view of the given memory.
-   * @param mem the given memory
+   * Construct a read-only view of the given Memory that contains a CpcSketch
+   * @param mem the given Memory
    */
   public CpcWrapper(final Memory mem) {
     this.mem = mem;
@@ -36,7 +36,7 @@ public final class CpcWrapper {
   }
 
   /**
-   * Configure a read-only view of the given byte array.
+   * Construct a read-only view of the given byte array that contains a CpcSketch.
    * @param byteArray the given byte array
    */
   public CpcWrapper(final byte[] byteArray) {

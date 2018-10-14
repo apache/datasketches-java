@@ -26,7 +26,7 @@ import com.yahoo.sketches.Family;
  *
  * <p>This sketch is extremely space-efficient when serialized. In an apples-to-apples empirical
  * comparison against compressed HyperLogLog sketches, this new algorithm simultaneously wins on
- * all three dimensions of the time/space/accuracy tradeoff and produces sketches that are
+ * the two dimensions of the space/accuracy tradeoff and produces sketches that are
  * smaller than the entropy of HLL, so no possible implementation of compressed HLL can match its
  * space efficiency for a given accuracy. As described in the paper this sketch implements a newly
  * developed ICON estimator algorithm that survives unioning operations, another
@@ -109,6 +109,10 @@ public final class CpcSketch {
     return hipEstAccum;
   }
 
+  /**
+   * Return the DataSketches identifier for this CPC family of sketches.
+   * @return the DataSketches identifier for this CPC family of sketches.
+   */
   public static Family getFamily() {
     return Family.CPC;
   }
