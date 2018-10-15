@@ -152,6 +152,24 @@ public final class CpcSketch {
   }
 
   /**
+   * Return the given Memory as a CpcSketch on the Java heap using the DEFAULT_UPDATE_SEED.
+   * @param mem the given Memory
+   * @return the given Memory as a CpcSketch on the Java heap.
+   */
+  public static CpcSketch heapify(final Memory mem) {
+    return heapify(mem, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Return the given byte array as a CpcSketch on the Java heap using the DEFAULT_UPDATE_SEED.
+   * @param byteArray the given byte array
+   * @return the given byte array as a CpcSketch on the Java heap.
+   */
+  public static CpcSketch heapify(final byte[] byteArray) {
+    return heapify(byteArray, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
    * Return the given Memory as a CpcSketch on the Java heap.
    * @param mem the given Memory
    * @param seed the seed used to create the original sketch from which the Memory was derived.

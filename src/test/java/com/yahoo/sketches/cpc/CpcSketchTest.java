@@ -163,6 +163,16 @@ public class CpcSketchTest {
   }
 
   @Test
+  public void checkHeapify2() {
+    int lgK = 10;
+    CpcSketch sk = new CpcSketch(lgK);
+    assertTrue(sk.isEmpty());
+    byte[] byteArray = sk.toByteArray();
+    CpcSketch sk2 = CpcSketch.heapify(byteArray);
+    assertTrue(specialEquals(sk2, sk, false, false));
+  }
+
+  @Test
   public void checkRowColUpdate() {
     int lgK = 10;
     CpcSketch sk = new CpcSketch(lgK, DEFAULT_UPDATE_SEED);
