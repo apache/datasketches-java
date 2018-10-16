@@ -5,11 +5,14 @@
 
 package com.yahoo.sketches.cpc;
 
+import static org.testng.Assert.assertEquals;
+
 import java.io.PrintStream;
 
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.sketches.Family;
 
 /**
  * @author Lee Rhodes
@@ -62,6 +65,7 @@ public class CpcWrapperTest {
     double mLb = mergedSk.getLowerBound(2);
     double mUb = mergedSk.getUpperBound(2);
     printf("Merged:       %12.0f %12.0f %12.0f\n", mLb, mEst, mUb);
+    assertEquals(Family.CPC, CpcWrapper.getFamily());
 
   }
 

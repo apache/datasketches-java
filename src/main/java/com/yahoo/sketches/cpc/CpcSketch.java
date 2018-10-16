@@ -345,7 +345,7 @@ public final class CpcSketch {
       ordinal = 2 | ( mergeFlag ? 0 : 1 ); //Hybrid is serialized as SPARSE
     } else {
       ordinal = ((slidingWindow != null) ? 4 : 0)
-               | (((pairTable != null) && (pairTable.numPairs > 0)) ? 2 : 0)
+               | (((pairTable != null) && (pairTable.getNumPairs() > 0)) ? 2 : 0)
                | ( mergeFlag ? 0 : 1 );
     }
     return Format.ordinalToFormat(ordinal);
@@ -369,8 +369,8 @@ public final class CpcSketch {
     final PairTable newTable = new PairTable(2, 6 + lgK);
     final PairTable oldTable = sketch.pairTable;
 
-    final int[] oldSlots = oldTable.slots;
-    final int oldNumSlots = (1 << oldTable.lgSize);
+    final int[] oldSlots = oldTable.getSlots();
+    final int oldNumSlots = (1 << oldTable.getLgSize());
 
     assert (sketch.windowOffset == 0);
 

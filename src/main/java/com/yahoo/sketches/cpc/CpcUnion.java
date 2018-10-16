@@ -13,6 +13,7 @@ import static com.yahoo.sketches.cpc.Flavor.PINNED;
 import static com.yahoo.sketches.cpc.Flavor.SLIDING;
 import static com.yahoo.sketches.cpc.Flavor.SPARSE;
 
+import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
 
@@ -134,6 +135,14 @@ public class CpcUnion {
     return lgK;
   }
 
+  /**
+   * Return the DataSketches identifier for this CPC family of sketches.
+   * @return the DataSketches identifier for this CPC family of sketches.
+   */
+  public static Family getFamily() {
+    return Family.CPC;
+  }
+
   //used for testing only
   long getNumCoupons() {
     if (bitMatrix != null) {
@@ -158,8 +167,8 @@ public class CpcUnion {
   }
 
   private static void walkTableUpdatingSketch(final CpcSketch dest, final PairTable table) {
-    final int[] slots = table.slots;
-    final int numSlots = (1 << table.lgSize);
+    final int[] slots = table.getSlots();
+    final int numSlots = (1 << table.getLgSize());
     assert dest.lgK <= 26;
     final int destMask = (((1 << dest.lgK) - 1) << 6) | 63; //downsamples when destlgK < srcLgK
 
@@ -181,8 +190,8 @@ public class CpcUnion {
   }
 
   private static void orTableIntoMatrix(final long[] bitMatrix, final int destLgK, final PairTable table) {
-    final int[] slots = table.slots;
-    final int numSlots = 1 << table.lgSize;
+    final int[] slots = table.getSlots();
+    final int numSlots = 1 << table.getLgSize();
     final int destMask = (1 << destLgK) - 1;  // downsamples when destlgK < srcLgK
     for (int i = 0; i < numSlots; i++) {
       final int rowCol = slots[i];

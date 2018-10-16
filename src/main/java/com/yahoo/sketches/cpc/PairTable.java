@@ -25,10 +25,10 @@ final class PairTable {
   private static final int downsizeNumer = 1;
   private static final int downsizeDenom = 4;
 
-  int lgSize;
-  int validBits;
-  int numPairs;
-  int[] slots;
+  private int lgSize;
+  private int validBits;
+  private int numPairs;
+  private int[] slots;
 
   PairTable(final int lgSize, final int numValidBits) {
     checkLgSize(lgSize);
@@ -40,15 +40,7 @@ final class PairTable {
     for (int i = 0; i < numSlots; i++) { slots[i] = -1; }
   }
 
-  PairTable copy() {
-    final PairTable copy = new PairTable(lgSize, validBits);
-    copy.numPairs = numPairs;
-    copy.slots = (slots == null) ? null : slots.clone();
-    return copy;
-  }
-
   //Factory
-
   static PairTable newInstanceFromPairsArray(final int[] pairs, final int numPairs, final int lgK) {
     int lgNumSlots = 2;
     while ((upsizeDenom * numPairs) > (upsizeNumer * (1 << lgNumSlots))) {
@@ -69,6 +61,35 @@ final class PairTable {
     return table;
   }
 
+  PairTable clear() {
+    Arrays.fill(slots, -1);
+    numPairs = 0;
+    return this;
+  }
+
+  PairTable copy() {
+    final PairTable copy = new PairTable(lgSize, validBits);
+    copy.numPairs = numPairs;
+    copy.slots = slots.clone(); //slots can never be null
+    return copy;
+  }
+
+  int getLgSize() {
+    return lgSize;
+  }
+
+  int getNumPairs() {
+    return numPairs;
+  }
+
+  int[] getSlots() {
+    return slots;
+  }
+
+  int getValidBits() {
+    return validBits;
+  }
+
   /**
    * Rebuilds to a larger size. NumItems and validBits remain unchanged.
    * @param newLgSize the new size
@@ -80,9 +101,8 @@ final class PairTable {
     final int oldSize = 1 << lgSize;
     assert newSize > numPairs;
     final int[] oldSlots = slots;
-    final int[] newSlots = new int[newSize];
-    Arrays.fill(newSlots, -1);
-    slots = newSlots;
+    slots = new int[newSize];
+    Arrays.fill(slots, -1);
     lgSize = newLgSize;
     for (int i = 0; i < oldSize; i++) {
       final int item = oldSlots[i];
@@ -91,13 +111,12 @@ final class PairTable {
     return this;
   }
 
-  PairTable clear() {
-    Arrays.fill(slots, -1);
-    numPairs = 0;
-    return this;
+  @Override
+  public String toString() {
+    return PairTable.toString(this, false);
   }
 
-  static void mustInsert(final PairTable table, final int item) {
+  private static void mustInsert(final PairTable table, final int item) {
     //SHARED CODE (implemented as a macro in C and expanded here)
     final int lgSize = table.lgSize;
     final int tableSize = 1 << lgSize;
@@ -248,29 +267,30 @@ final class PairTable {
       cost += (i - j); // distance moved is a measure of work
 
       if (cost > costLimit) {
+        //we need an unsigned sort, but it is linear time and very rarely occurs
         final long[] b = new long[a.length];
         for (int m = 0; m < a.length; m++) { b[m] = a[m] & 0XFFFF_FFFFL; }
         Arrays.sort(b, l, r + 1);
         for (int m = 0; m < a.length; m++) { a[m] = (int) b[m]; }
         // The following sanity check can be used during development
-        int bad = 0;
-        for (int m = l; m < (r - 1); m++) {
-          final long b1 = a[m] & 0XFFFF_FFFFL;
-          final long b2 = a[m + 1] & 0XFFFF_FFFFL;
-          if (b1 > b2) { bad++; }
-        }
-        assert (bad == 0);
+        //int bad = 0;
+        //for (int m = l; m < (r - 1); m++) {
+        //  final long b1 = a[m] & 0XFFFF_FFFFL;
+        //  final long b2 = a[m + 1] & 0XFFFF_FFFFL;
+        //  if (b1 > b2) { bad++; }
+        //}
+        //assert (bad == 0);
         return;
       }
     }
     // The following sanity check can be used during development
-    int bad = 0;
-    for (int m = l; m < (r - 1); m++) {
-      final long b1 = a[m] & 0XFFFF_FFFFL;
-      final long b2 = a[m + 1] & 0XFFFF_FFFFL;
-      if (b1 > b2) { bad++; }
-    }
-    assert (bad == 0);
+    //    int bad = 0;
+    //    for (int m = l; m < (r - 1); m++) {
+    //      final long b1 = a[m] & 0XFFFF_FFFFL;
+    //      final long b2 = a[m + 1] & 0XFFFF_FFFFL;
+    //      if (b1 > b2) { bad++; }
+    //    }
+    //    assert (bad == 0);
   }
 
   static void merge(
@@ -299,7 +319,7 @@ final class PairTable {
     assert (b == limB);
   }
 
-  public static boolean equals(final PairTable a, final PairTable b) {
+  static boolean equals(final PairTable a, final PairTable b) {
     if ((a == null) && (b == null)) { return true; }
     if ((a == null) || (b == null)) {
       throw new SketchesArgumentException("PairTable " + ((a == null) ? "a" : "b") + " is null");
@@ -317,12 +337,7 @@ final class PairTable {
     return true;
   }
 
-  @Override
-  public String toString() {
-    return PairTable.toString(this, false);
-  }
-
-  public static String toString(final PairTable table, final boolean detail) {
+  static String toString(final PairTable table, final boolean detail) {
     final StringBuilder sb = new StringBuilder();
     final int tableSize = 1 << table.lgSize;
     sb.append("PairTable").append(LS);
@@ -354,7 +369,7 @@ final class PairTable {
     return sb.toString();
   }
 
-  static void checkLgSize(final int lgSize) {
+  private static void checkLgSize(final int lgSize) {
     if ((lgSize < 2) || (lgSize > 26)) {
       throw new SketchesArgumentException("Illegal LgSize: " + lgSize);
     }

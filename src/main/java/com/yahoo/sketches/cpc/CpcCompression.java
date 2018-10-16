@@ -14,8 +14,6 @@ import static com.yahoo.sketches.cpc.CompressionData.lengthLimitedUnaryEncodingT
 import static com.yahoo.sketches.cpc.PairTable.introspectiveInsertionSort;
 //import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertEquals;
 
-import com.yahoo.sketches.SketchesStateException;
-
 /**
  * @author Lee Rhodes
  * @author Kevin Lang
@@ -525,7 +523,7 @@ final class CpcCompression {
   private static void compressSparseFlavor(final CompressedState target, final CpcSketch source) {
     assert (source.slidingWindow == null); //there is no window to compress
     final PairTable srcPairTable = source.pairTable;
-    final int numPairs = srcPairTable.numPairs;
+    final int numPairs = srcPairTable.getNumPairs();
     final int[] pairs = PairTable.unwrappingGetItems(srcPairTable, numPairs);
     introspectiveInsertionSort(pairs, 0, numPairs - 1);
     compressTheSurprisingValues(target, source, pairs, numPairs);
@@ -566,7 +564,7 @@ final class CpcCompression {
   private static void compressHybridFlavor(final CompressedState target, final CpcSketch source) {
     final int srcK = 1 << source.lgK;
     final PairTable srcPairTable = source.pairTable;
-    final int srcNumPairsFromTable = srcPairTable.numPairs;
+    final int srcNumPairsFromTable = srcPairTable.getNumPairs();
     final int[] pairsFromTable = PairTable.unwrappingGetItems(srcPairTable, srcNumPairsFromTable);
     introspectiveInsertionSort(pairsFromTable, 0, srcNumPairsFromTable - 1);
     final byte[] srcSlidingWindow = source.slidingWindow;
@@ -633,7 +631,7 @@ final class CpcCompression {
   private static void compressPinnedFlavor(final CompressedState target, final CpcSketch source) {
     compressTheWindow(target, source);
     final PairTable srcPairTable = source.pairTable;
-    final int numPairs = srcPairTable.numPairs;
+    final int numPairs = srcPairTable.getNumPairs();
 
     if (numPairs > 0) {
       final int[] pairs = PairTable.unwrappingGetItems(srcPairTable, numPairs);
@@ -681,8 +679,7 @@ final class CpcCompression {
     compressTheWindow(target, source);
     final PairTable srcPairTable = source.pairTable;
 
-    final int numPairs = srcPairTable.numPairs;
-
+    final int numPairs = srcPairTable.getNumPairs();
 
     if (numPairs > 0) {
       final int[] pairs = PairTable.unwrappingGetItems(srcPairTable, numPairs);
@@ -722,7 +719,6 @@ final class CpcCompression {
     final int numPairs = source.numCsv;
     if (numPairs == 0) {
       target.pairTable = new PairTable(2, 6 + srcLgK);
-
     }
     else {
       assert (numPairs > 0);
@@ -776,7 +772,7 @@ final class CpcCompression {
         compressSlidingFlavor(target, source);
         assert (target.cwStream != null);
         break;
-      default: throw new SketchesStateException("Unknown sketch flavor");
+        //default: not possible
     }
 
     return target;
@@ -802,7 +798,7 @@ final class CpcCompression {
       case SLIDING:
         uncompressSlidingFlavor(target, source);
         break;
-      default: throw new SketchesStateException("Unknown sketch flavor");
+        //default: not possible
     }
     return target;
   }

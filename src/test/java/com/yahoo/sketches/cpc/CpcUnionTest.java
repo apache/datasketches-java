@@ -11,6 +11,7 @@ import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
 
@@ -48,6 +49,7 @@ public class CpcUnionTest {
     union.update(sk);
     assertTrue(union.getNumCoupons() > 0);
     assertTrue(CpcUnion.getBitMatrix(union) != null);
+    assertEquals(Family.CPC, CpcUnion.getFamily());
 
   }
 

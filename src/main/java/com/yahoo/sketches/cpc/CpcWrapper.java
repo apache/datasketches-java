@@ -16,6 +16,7 @@ import static com.yahoo.sketches.cpc.PreambleUtil.getNumCoupons;
 import static com.yahoo.sketches.cpc.PreambleUtil.hasHip;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.sketches.Family;
 
 /**
  * This provides a read-only view of a serialized image of a CpcSketch, which can be on-heap or
@@ -52,6 +53,14 @@ public final class CpcWrapper {
       return getIconEstimate(PreambleUtil.getLgK(mem), getNumCoupons(mem));
     }
     return getHipAccum(mem);
+  }
+
+  /**
+   * Return the DataSketches identifier for this CPC family of sketches.
+   * @return the DataSketches identifier for this CPC family of sketches.
+   */
+  public static Family getFamily() {
+    return Family.CPC;
   }
 
   /**
