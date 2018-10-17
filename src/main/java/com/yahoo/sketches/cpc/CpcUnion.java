@@ -402,21 +402,21 @@ public class CpcUnion {
     if (union == null) {
       throw new SketchesStateException("union cannot be null");
     }
-    final boolean accumValid = union.accumulator != null;
-    final boolean matrixValid = union.bitMatrix != null;
-    if ( !(accumValid ^ matrixValid) ) {
+    final CpcSketch accumulator = union.accumulator;
+    if ( !((accumulator != null) ^ (union.bitMatrix != null)) ) {
       throw new SketchesStateException(
-          "accumulator and bitMatrix cannot be both valid or both null.");
+        "accumulator and bitMatrix cannot be both valid or both null: "
+        + "accumValid = " + (accumulator != null)
+        + ", bitMatrixValid = " + (union.bitMatrix != null));
     }
-    if (accumValid) {
-      final CpcSketch sketch = union.accumulator;
-      if (sketch.numCoupons > 0) {
-        if (   (sketch.slidingWindow != null)
-            || (sketch.pairTable == null)) {
-          throw new SketchesStateException("Accumulator must be Sparse Flavor");
+    if (accumulator != null) { //must be SPARSE or EMPTY
+      if (accumulator.numCoupons > 0) { //SPARSE
+        if ( !((accumulator.slidingWindow == null) && (accumulator.pairTable != null)) ) {
+          throw new SketchesStateException(
+              "Non-empty union accumulator must be SPARSE: " + accumulator.getFlavor());
         }
       } //else EMPTY
-      if (union.lgK != sketch.lgK) {
+      if (union.lgK != accumulator.lgK) {
         throw new SketchesStateException("union LgK must equal accumulator LgK");
       }
     }
