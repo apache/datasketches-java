@@ -8,9 +8,6 @@ package com.yahoo.sketches.cpc;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.Util.iGolden;
 import static com.yahoo.sketches.cpc.Flavor.EMPTY;
-import static com.yahoo.sketches.cpc.Flavor.HYBRID;
-import static com.yahoo.sketches.cpc.Flavor.PINNED;
-import static com.yahoo.sketches.cpc.Flavor.SLIDING;
 import static com.yahoo.sketches.cpc.Flavor.SPARSE;
 
 import com.yahoo.sketches.Family;
@@ -20,50 +17,50 @@ import com.yahoo.sketches.SketchesStateException;
 /*
  * The merging logic is somewhat involved, so it will be summarized here.
  *
- * <p>First, we compare the K values of the unioner and the source sketch.
+ * <p>First, we compare the K values of the union and the source sketch.
  *
- * <p>If (source.K &lt; unioner.K), we reduce the unioner's K to match, which
- * requires downsampling the unioner's internal sketch.
+ * <p>If (source.K &lt; union.K), we reduce the union's K to match, which
+ * requires downsampling the union's internal sketch.
  *
  * <p>Here is how to perform the downsampling.
  *
- * <p>If the unioner contains a bitMatrix, downsample it by row-wise OR'ing.
+ * <p>If the union contains a bitMatrix, downsample it by row-wise OR'ing.
  *
- * <p>If the unioner contains a sparse sketch, then create a new empty
+ * <p>If the union contains a sparse sketch, then create a new empty
  * sketch, and walk the old target sketch updating the new one (with modulo).
  * At the end, check whether the new target
  * sketch is still in sparse mode (it might not be, because downsampling
  * densifies the set of collected coupons). If it is NOT in sparse mode,
  * immediately convert it to a bitmatrix.
  *
- * <p>At this point, we have source.K &ge; unioner.K.
+ * <p>At this point, we have source.K &ge; union.K.
  * [We won't keep mentioning this, but in all of the following the
- * source's row indices are used mod unioner.K while updating the unioner's sketch.
- * That takes care of the situation where source.K &lt; unioner.K.]
+ * source's row indices are used mod union.K while updating the union's sketch.
+ * That takes care of the situation where source.K &lt; union.K.]
  *
- * <p>Case A: unioner is Sparse and source is Sparse. We walk the source sketch
- * updating the unioner's sketch. At the end, if the unioner's sketch
+ * <p>Case A: union is Sparse and source is Sparse. We walk the source sketch
+ * updating the union's sketch. At the end, if the union's sketch
  * is no longer in sparse mode, we convert it to a bitmatrix.
  *
- * <p>Case B: unioner is bitmatrix and source is Sparse. We walk the source sketch,
+ * <p>Case B: union is bitmatrix and source is Sparse. We walk the source sketch,
  * setting bits in the bitmatrix.
  *
  * <p>In the remaining cases, we have flavor(source) &gt; Sparse, so we immediately convert the
- * unioner's sketch to a bitmatrix (even if the unioner contains very few coupons). Then:
+ * union's sketch to a bitmatrix (even if the union contains very few coupons). Then:
  *
- * <p>Case C: unioner is bitmatrix and source is Hybrid or Pinned. Then we OR the source's
+ * <p>Case C: union is bitmatrix and source is Hybrid or Pinned. Then we OR the source's
  * sliding window into the bitmatrix, and walk the source's table, setting bits in the bitmatrix.
  *
- * <p>Case D: unioner is bitmatrix, and source is Sliding. Then we convert the source into
- * a bitmatrix, and OR it into the unioner's bitmatrix. [Important note; merely walking the source
+ * <p>Case D: union is bitmatrix, and source is Sliding. Then we convert the source into
+ * a bitmatrix, and OR it into the union's bitmatrix. [Important note; merely walking the source
  * wouldn't work because of the partially inverted Logic in the Sliding flavor, where the presence of
  * coupons is sometimes indicated by the ABSENCE of rowCol pairs in the surprises table.]
  *
  * <p>How does getResult work?
  *
- * <p>If the unioner is using its accumulator field, make a copy of that sketch.
+ * <p>If the union is using its accumulator field, make a copy of that sketch.
  *
- * <p>If the unioner is using its bitMatrix field, then we have to convert the
+ * <p>If the union is using its bitMatrix field, then we have to convert the
  * bitMatrix back into a sketch, which requires doing some extra work to
  * figure out the values of numCoupons, offset, fiCol, and KxQ.
  *
@@ -109,7 +106,7 @@ public class CpcUnion {
   }
 
   /**
-   * Update this unioner with a CpcSketch.
+   * Update this union with a CpcSketch.
    * @param sketch the given CpcSketch.
    */
   public void update(final CpcSketch sketch) {
@@ -152,11 +149,11 @@ public class CpcUnion {
   }
 
   //used for testing only
-  static long[] getBitMatrix(final CpcUnion unioner) {
-    checkUnionState(unioner);
-    return (unioner.bitMatrix != null)
-        ? unioner.bitMatrix
-        : CpcUtil.bitMatrixOfSketch(unioner.accumulator);
+  static long[] getBitMatrix(final CpcUnion union) {
+    checkUnionState(union);
+    return (union.bitMatrix != null)
+        ? union.bitMatrix
+        : CpcUtil.bitMatrixOfSketch(union.accumulator);
   }
 
   private static long countBitsSetInMatrix(final long[] matrix) {
@@ -203,8 +200,8 @@ public class CpcUnion {
     }
   }
 
-  private static void orWindowIntoMatrix(final long[] destMatrix, final int destLgK, final byte[] srcWindow,
-      final int srcOffset, final int srcLgK) {
+  private static void orWindowIntoMatrix(final long[] destMatrix, final int destLgK,
+      final byte[] srcWindow, final int srcOffset, final int srcLgK) {
     assert (destLgK <= srcLgK);
     final int destMask = (1 << destLgK) - 1;  // downsamples when destlgK < srcLgK
     final int srcK = 1 << srcLgK;
@@ -213,8 +210,8 @@ public class CpcUnion {
     }
   }
 
-  private static void orMatrixIntoMatrix(final long[] destMatrix, final int destLgK, final long[] srcMatrix,
-      final int srcLgK) {
+  private static void orMatrixIntoMatrix(final long[] destMatrix, final int destLgK,
+      final long[] srcMatrix, final int srcLgK) {
     assert (destLgK <= srcLgK);
     final int destMask = (1 << destLgK) - 1; // downsamples when destlgK < srcLgK
     final int srcK = 1 << srcLgK;
@@ -223,25 +220,24 @@ public class CpcUnion {
     }
   }
 
-  private static void reduceUnionerK(final CpcUnion unioner, final int newLgK) {
-    assert (newLgK < unioner.lgK);
-    checkUnionState(unioner);
+  private static void reduceUnionK(final CpcUnion union, final int newLgK) {
+    assert (newLgK < union.lgK);
 
-    if (unioner.bitMatrix != null) { // downsample the unioner's bit matrix
+    if (union.bitMatrix != null) { // downsample the union's bit matrix
       final int newK = 1 << newLgK;
       final long[] newMatrix = new long[newK];
 
-      orMatrixIntoMatrix(newMatrix, newLgK, unioner.bitMatrix, unioner.lgK);
-      unioner.bitMatrix = newMatrix;
-      unioner.lgK = newLgK;
+      orMatrixIntoMatrix(newMatrix, newLgK, union.bitMatrix, union.lgK);
+      union.bitMatrix = newMatrix;
+      union.lgK = newLgK;
     }
 
-    else { // downsample the unioner's accumulator
-      final CpcSketch oldSketch = unioner.accumulator;
+    else { // downsample the union's accumulator
+      final CpcSketch oldSketch = union.accumulator;
 
       if (oldSketch.numCoupons == 0) {
-        unioner.accumulator = new CpcSketch(newLgK, oldSketch.seed);
-        unioner.lgK = newLgK;
+        union.accumulator = new CpcSketch(newLgK, oldSketch.seed);
+        union.lgK = newLgK;
         return;
       }
 
@@ -252,105 +248,93 @@ public class CpcUnion {
       assert (finalNewFlavor != EMPTY); //SV table had to have something in it
 
       if (finalNewFlavor == SPARSE) {
-        unioner.accumulator = newSketch;
-        unioner.lgK = newLgK;
+        union.accumulator = newSketch;
+        union.lgK = newLgK;
         return;
       }
 
       // the new sketch has graduated beyond sparse, so convert to bitMatrix
-      unioner.accumulator = null;
-      unioner.bitMatrix = CpcUtil.bitMatrixOfSketch(newSketch);
-      unioner.lgK = newLgK;
+      union.accumulator = null;
+      union.bitMatrix = CpcUtil.bitMatrixOfSketch(newSketch);
+      union.lgK = newLgK;
     }
   }
 
-  private static void mergeInto(final CpcUnion unioner, final CpcSketch source) {
+  private static void mergeInto(final CpcUnion union, final CpcSketch source) {
     if (source == null) { return; }
-    checkSeeds(unioner.seed, source.seed);
+    checkSeeds(union.seed, source.seed);
 
-    final Flavor sourceFlavor = source.getFlavor();
-    if (sourceFlavor == EMPTY) { return; }
+    final int sourceFlavorOrd = source.getFlavor().ordinal();
+    if (sourceFlavorOrd == 0) { return; } //EMPTY
 
-    if (source.lgK < unioner.lgK) {
-      reduceUnionerK(unioner, source.lgK);
+    //Accumulator and bitMatrix must be mutually exclusive,
+    //so bitMatrix != null => accumulator == null and visa versa
+    //if (Accumulator != null) union must be EMPTY or SPARSE,
+    checkUnionState(union);
+
+    if (source.lgK < union.lgK) { reduceUnionK(union, source.lgK); }
+
+    // if source is past SPARSE mode, make sure that union is a bitMatrix.
+    if ((sourceFlavorOrd > 1) && (union.accumulator != null)) {
+      union.bitMatrix = CpcUtil.bitMatrixOfSketch(union.accumulator);
+      union.accumulator = null;
     }
 
-    assert (source.lgK >= unioner.lgK)
-      : "source.lgK=" + source.lgK + ", unioner.lgK=" + unioner.lgK;
-
-    //CASE A
-    if ((SPARSE == sourceFlavor) && (unioner.accumulator != null)) {
-      final Flavor initialDestFlavor = unioner.accumulator.getFlavor();
-      assert ((EMPTY == initialDestFlavor) || (SPARSE == initialDestFlavor));
-
-      if ((EMPTY == initialDestFlavor) && (unioner.lgK == source.lgK)) {
-        unioner.accumulator = source.copy();
+    final int state = ((sourceFlavorOrd - 1) << 1) | ((union.bitMatrix != null) ? 1 : 0);
+    switch (state) {
+      case 0 : { //A: Sparse, bitMatrix == null, accumulator valid
+        if ((union.accumulator.getFlavor() == EMPTY) && (union.lgK == source.lgK)) {
+          union.accumulator = source.copy();
+        }
+        walkTableUpdatingSketch(union.accumulator, source.pairTable);
+        // if the accumulator has graduated beyond sparse, switch union to a bitMatrix
+        if (union.accumulator.getFlavor().ordinal() > 1) {
+          union.bitMatrix = CpcUtil.bitMatrixOfSketch(union.accumulator);
+          union.accumulator = null;
+        }
+        break;
       }
-
-      walkTableUpdatingSketch(unioner.accumulator, source.pairTable);
-      final Flavor finalDestFlavor = unioner.accumulator.getFlavor();
-      // if the accumulator has graduated beyond sparse, switch to a bitMatrix representation
-      if ((finalDestFlavor != EMPTY) && (finalDestFlavor != SPARSE)) {
-        unioner.bitMatrix = CpcUtil.bitMatrixOfSketch(unioner.accumulator);
-        unioner.accumulator = null;
+      case 1 : { //B: Sparse, bitMatrix valid, accumulator == null
+        orTableIntoMatrix(union.bitMatrix, union.lgK, source.pairTable);
+        break;
       }
-      return;
+      case 3 :   //C: Hybrid, bitMatrix valid, accumulator == null
+      case 5 : { //C: Pinned, bitMatrix valid, accumulator == null
+        orWindowIntoMatrix(union.bitMatrix, union.lgK, source.slidingWindow,
+            source.windowOffset, source.lgK);
+        orTableIntoMatrix(union.bitMatrix, union.lgK, source.pairTable);
+        break;
+      }
+      case 7 : { //D: Sliding, bitMatrix valid, accumulator == null
+        // SLIDING mode involves inverted logic, so we can't just walk the source sketch.
+        // Instead, we convert it to a bitMatrix that can be OR'ed into the destination.
+        final long[] sourceMatrix = CpcUtil.bitMatrixOfSketch(source);
+        orMatrixIntoMatrix(union.bitMatrix, union.lgK, sourceMatrix, source.lgK);
+        break;
+      }
+      default: throw new SketchesStateException("Illegal Union state: " + state);
     }
-
-    //CASE B
-    if ((SPARSE == sourceFlavor) && (unioner.bitMatrix != null))  {
-      assert (unioner.accumulator == null);
-      orTableIntoMatrix(unioner.bitMatrix, unioner.lgK, source.pairTable);
-      return;
-    }
-
-    assert ((HYBRID == sourceFlavor) || (PINNED == sourceFlavor) || (SLIDING == sourceFlavor));
-
-    // source is past SPARSE mode, so make sure that dest is a bitMatrix.
-    if (unioner.accumulator != null) {
-      assert (unioner.bitMatrix == null);
-      final Flavor destFlavor = unioner.accumulator.getFlavor();
-      assert ((EMPTY == destFlavor) || (SPARSE == destFlavor));
-      unioner.bitMatrix = CpcUtil.bitMatrixOfSketch(unioner.accumulator);
-      unioner.accumulator = null;
-    }
-    assert (unioner.bitMatrix != null);
-
-    //CASE C
-    if ((HYBRID == sourceFlavor) || (PINNED == sourceFlavor)) {
-      orWindowIntoMatrix(unioner.bitMatrix, unioner.lgK, source.slidingWindow,
-          source.windowOffset, source.lgK);
-      orTableIntoMatrix(unioner.bitMatrix, unioner.lgK, source.pairTable);
-      return;
-    }
-
-    //CASE D
-    // SLIDING mode involves inverted logic, so we can't just walk the source sketch.
-    // Instead, we convert it to a bitMatrix that can be OR'ed into the destination.
-    assert (SLIDING == sourceFlavor); // Case D
-    final long[] sourceMatrix = CpcUtil.bitMatrixOfSketch(source);
-    orMatrixIntoMatrix(unioner.bitMatrix, unioner.lgK, sourceMatrix, source.lgK);
   }
 
-  private static CpcSketch getResult(final CpcUnion unioner) {
-    checkUnionState(unioner);
+  private static CpcSketch getResult(final CpcUnion union) {
+    checkUnionState(union);
 
-    if (unioner.accumulator != null) { // start of case where unioner contains a sketch
-      if (unioner.accumulator.numCoupons == 0) {
-        final CpcSketch result = new CpcSketch(unioner.lgK, unioner.accumulator.seed);
+    if (union.accumulator != null) { // start of case where union contains a sketch
+      if (union.accumulator.numCoupons == 0) {
+        final CpcSketch result = new CpcSketch(union.lgK, union.accumulator.seed);
         result.mergeFlag = true;
         return (result);
       }
-      assert (SPARSE == unioner.accumulator.getFlavor());
-      final CpcSketch result = unioner.accumulator.copy();
+      assert (SPARSE == union.accumulator.getFlavor());
+      final CpcSketch result = union.accumulator.copy();
       result.mergeFlag = true;
       return (result);
-    } // end of case where unioner contains a sketch
+    } // end of case where union contains a sketch
 
-    // start of case where unioner contains a bitMatrix
-    final long[] matrix = unioner.bitMatrix;
-    final int lgK = unioner.lgK;
-    final CpcSketch result = new CpcSketch(unioner.lgK, unioner.seed);
+    // start of case where union contains a bitMatrix
+    final long[] matrix = union.bitMatrix;
+    final int lgK = union.lgK;
+    final CpcSketch result = new CpcSketch(union.lgK, union.seed);
 
     final long numCoupons = countBitsSetInMatrix(matrix);
     result.numCoupons = numCoupons;
@@ -405,7 +389,7 @@ public class CpcUnion {
 
     result.mergeFlag = true;
     return result;
-    // end of case where unioner contains a bitMatrix
+    // end of case where union contains a bitMatrix
   }
 
   private static void checkSeeds(final long seedA, final long seedB) {
@@ -414,26 +398,26 @@ public class CpcUnion {
     }
   }
 
-  private static void checkUnionState(final CpcUnion unioner) {
-    if (unioner == null) {
-      throw new SketchesStateException("Unioner cannot be null");
+  private static void checkUnionState(final CpcUnion union) {
+    if (union == null) {
+      throw new SketchesStateException("union cannot be null");
     }
-    final boolean accumValid = unioner.accumulator != null;
-    final boolean matrixValid = unioner.bitMatrix != null;
-    if ( !(accumValid ^ matrixValid) ) {
+    final CpcSketch accumulator = union.accumulator;
+    if ( !((accumulator != null) ^ (union.bitMatrix != null)) ) {
       throw new SketchesStateException(
-          "accumulator and bitMatrix cannot be both valid or both null.");
+        "accumulator and bitMatrix cannot be both valid or both null: "
+        + "accumValid = " + (accumulator != null)
+        + ", bitMatrixValid = " + (union.bitMatrix != null));
     }
-    if (accumValid) {
-      final CpcSketch sketch = unioner.accumulator;
-      if (sketch.numCoupons > 0) {
-        if (   (sketch.slidingWindow != null)
-            || (sketch.pairTable == null)) {
-          throw new SketchesStateException("Accumulator must be Sparse Flavor");
+    if (accumulator != null) { //must be SPARSE or EMPTY
+      if (accumulator.numCoupons > 0) { //SPARSE
+        if ( !((accumulator.slidingWindow == null) && (accumulator.pairTable != null)) ) {
+          throw new SketchesStateException(
+              "Non-empty union accumulator must be SPARSE: " + accumulator.getFlavor());
         }
-      }
-      if (unioner.lgK != sketch.lgK) {
-        throw new SketchesStateException("Unioner LgK must equal accumulator LgK");
+      } //else EMPTY
+      if (union.lgK != accumulator.lgK) {
+        throw new SketchesStateException("union LgK must equal accumulator LgK");
       }
     }
   }
