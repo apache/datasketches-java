@@ -279,11 +279,11 @@ public class CpcUnion {
       : "source.lgK=" + source.lgK + ", unioner.lgK=" + unioner.lgK;
 
     //CASE A
-    if ((SPARSE == sourceFlavor) && (unioner.accumulator != null)) {
+    if ((sourceFlavor == SPARSE) && (unioner.accumulator != null)) {
       final Flavor initialDestFlavor = unioner.accumulator.getFlavor();
-      assert ((EMPTY == initialDestFlavor) || (SPARSE == initialDestFlavor));
+      assert ((initialDestFlavor == EMPTY) || (initialDestFlavor == SPARSE));
 
-      if ((EMPTY == initialDestFlavor) && (unioner.lgK == source.lgK)) {
+      if ((initialDestFlavor == EMPTY) && (unioner.lgK == source.lgK)) {
         unioner.accumulator = source.copy();
       }
 
@@ -298,26 +298,27 @@ public class CpcUnion {
     }
 
     //CASE B
-    if ((SPARSE == sourceFlavor) && (unioner.bitMatrix != null))  {
+    if ((sourceFlavor == SPARSE) && (unioner.bitMatrix != null))  {
       assert (unioner.accumulator == null);
       orTableIntoMatrix(unioner.bitMatrix, unioner.lgK, source.pairTable);
       return;
     }
 
-    assert ((HYBRID == sourceFlavor) || (PINNED == sourceFlavor) || (SLIDING == sourceFlavor));
+    //CASES C and D
+    assert ((sourceFlavor == HYBRID) || (sourceFlavor == PINNED) || (sourceFlavor == SLIDING));
 
     // source is past SPARSE mode, so make sure that dest is a bitMatrix.
     if (unioner.accumulator != null) {
       assert (unioner.bitMatrix == null);
       final Flavor destFlavor = unioner.accumulator.getFlavor();
-      assert ((EMPTY == destFlavor) || (SPARSE == destFlavor));
+      assert ((destFlavor == EMPTY) || (destFlavor == SPARSE));
       unioner.bitMatrix = CpcUtil.bitMatrixOfSketch(unioner.accumulator);
       unioner.accumulator = null;
     }
     assert (unioner.bitMatrix != null);
 
     //CASE C
-    if ((HYBRID == sourceFlavor) || (PINNED == sourceFlavor)) {
+    if ((sourceFlavor == HYBRID) || (sourceFlavor == PINNED)) {
       orWindowIntoMatrix(unioner.bitMatrix, unioner.lgK, source.slidingWindow,
           source.windowOffset, source.lgK);
       orTableIntoMatrix(unioner.bitMatrix, unioner.lgK, source.pairTable);
@@ -327,7 +328,7 @@ public class CpcUnion {
     //CASE D
     // SLIDING mode involves inverted logic, so we can't just walk the source sketch.
     // Instead, we convert it to a bitMatrix that can be OR'ed into the destination.
-    assert (SLIDING == sourceFlavor); // Case D
+    assert (sourceFlavor == SLIDING); // Case D
     final long[] sourceMatrix = CpcUtil.bitMatrixOfSketch(source);
     orMatrixIntoMatrix(unioner.bitMatrix, unioner.lgK, sourceMatrix, source.lgK);
   }
