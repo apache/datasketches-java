@@ -200,8 +200,8 @@ public class CpcUnion {
     }
   }
 
-  private static void orWindowIntoMatrix(final long[] destMatrix, final int destLgK, final byte[] srcWindow,
-      final int srcOffset, final int srcLgK) {
+  private static void orWindowIntoMatrix(final long[] destMatrix, final int destLgK,
+      final byte[] srcWindow, final int srcOffset, final int srcLgK) {
     assert (destLgK <= srcLgK);
     final int destMask = (1 << destLgK) - 1;  // downsamples when destlgK < srcLgK
     final int srcK = 1 << srcLgK;
@@ -210,8 +210,8 @@ public class CpcUnion {
     }
   }
 
-  private static void orMatrixIntoMatrix(final long[] destMatrix, final int destLgK, final long[] srcMatrix,
-      final int srcLgK) {
+  private static void orMatrixIntoMatrix(final long[] destMatrix, final int destLgK,
+      final long[] srcMatrix, final int srcLgK) {
     assert (destLgK <= srcLgK);
     final int destMask = (1 << destLgK) - 1; // downsamples when destlgK < srcLgK
     final int srcK = 1 << srcLgK;
@@ -287,7 +287,7 @@ public class CpcUnion {
           union.accumulator = source.copy();
         }
         walkTableUpdatingSketch(union.accumulator, source.pairTable);
-        // if the accumulator has graduated beyond sparse, switch to a bitMatrix representation
+        // if the accumulator has graduated beyond sparse, switch union to a bitMatrix
         if (union.accumulator.getFlavor().ordinal() > 1) {
           union.bitMatrix = CpcUtil.bitMatrixOfSketch(union.accumulator);
           union.accumulator = null;
