@@ -186,6 +186,11 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   }
 
   @Override
+  public long getThetaLong() {
+    return thetaLong_;
+  }
+
+  @Override
   public double getUpperBound(final int numStdDev) {
     if ((numStdDev < 1) || (numStdDev > 3)) {
       throw new SketchesArgumentException("numStdDev can only be the values 1, 2 or 3.");
@@ -259,11 +264,6 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   @Override
   long[] getCache() {
     return cache_;
-  }
-
-  @Override
-  long getThetaLong() {
-    return thetaLong_;
   }
 
   @Override

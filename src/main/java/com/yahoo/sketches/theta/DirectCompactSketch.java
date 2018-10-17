@@ -11,7 +11,6 @@ import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
 import static com.yahoo.sketches.theta.PreambleUtil.extractThetaLong;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.memory.WritableMemory;
 
 /**
  * Parent class of the Direct Compact Sketches.
@@ -20,13 +19,9 @@ import com.yahoo.memory.WritableMemory;
  */
 abstract class DirectCompactSketch extends CompactSketch {
   final Memory mem_;
-  final Object memObj_;
-  final long memAdd_;
 
   DirectCompactSketch(final Memory mem) {
     mem_ = mem;
-    memObj_ = ((WritableMemory)mem).getArray();
-    memAdd_ = mem.getCumulativeOffset(0L);
   }
 
   //Sketch
@@ -44,6 +39,11 @@ abstract class DirectCompactSketch extends CompactSketch {
   }
 
   @Override
+  public HashIterator getIterator() {
+    return null; //TODO
+  }
+
+  @Override
   public int getRetainedEntries(final boolean valid) { //compact is always valid
     final int preLongs = getCurrentPreambleLongs(true);
     final boolean empty = PreambleUtil.isEmpty(mem_);
@@ -53,6 +53,12 @@ abstract class DirectCompactSketch extends CompactSketch {
     //preLongs > 1
     final int curCount = extractCurCount(mem_);
     return curCount;
+  }
+
+  @Override
+  public long getThetaLong() {
+    final int preLongs = extractPreLongs(mem_);
+    return (preLongs > 2) ? extractThetaLong(mem_) : Long.MAX_VALUE;
   }
 
   @Override
@@ -110,12 +116,6 @@ abstract class DirectCompactSketch extends CompactSketch {
     return (short) extractSeedHash(mem_);
   }
 
-  @Override
-  long getThetaLong() {
-    final int preLongs = extractPreLongs(mem_);
-    return (preLongs > 2) ? extractThetaLong(mem_) : Long.MAX_VALUE;
-  }
-
   /**
    * Serializes a Memory based compact sketch to a byte array
    * @param srcMem the source Memory
@@ -129,6 +129,11 @@ abstract class DirectCompactSketch extends CompactSketch {
     final byte[] byteArrOut = new byte[outBytes];
     srcMem.getByteArray(0, byteArrOut, 0, outBytes); //copies the whole thing
     return byteArrOut;
+  }
+
+  class DirectCompactHashIterator implements HashIterator {
+
+
   }
 
 }

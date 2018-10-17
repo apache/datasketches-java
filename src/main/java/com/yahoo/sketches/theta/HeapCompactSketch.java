@@ -59,6 +59,11 @@ abstract class HeapCompactSketch extends CompactSketch {
   }
 
   @Override
+  public long getThetaLong() {
+    return thetaLong_;
+  }
+
+  @Override
   public boolean hasMemory() {
     return false;
   }
@@ -93,11 +98,6 @@ abstract class HeapCompactSketch extends CompactSketch {
   @Override
   short getSeedHash() {
     return seedHash_;
-  }
-
-  @Override
-  long getThetaLong() {
-    return thetaLong_;
   }
 
   byte[] toByteArray(final boolean ordered) {

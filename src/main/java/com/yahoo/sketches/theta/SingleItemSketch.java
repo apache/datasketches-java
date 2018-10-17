@@ -305,6 +305,11 @@ public final class SingleItemSketch extends CompactSketch {
   }
 
   @Override
+  public long getThetaLong() {
+    return Long.MAX_VALUE;
+  }
+
+  @Override
   public double getUpperBound(final int numStdDev) {
     return 1.0;
   }
@@ -359,11 +364,6 @@ public final class SingleItemSketch extends CompactSketch {
   @Override
   short getSeedHash() {
     return (short) (arr[0] >>> 48);
-  }
-
-  @Override
-  long getThetaLong() {
-    return Long.MAX_VALUE;
   }
 
   static void checkDefaultBytes0to7(final long memPre0) {

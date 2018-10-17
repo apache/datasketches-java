@@ -133,6 +133,11 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
   }
 
   @Override
+  public long getThetaLong() {
+    return thetaLong_;
+  }
+
+  @Override
   public boolean isEmpty() {
     return empty_;
   }
@@ -192,11 +197,6 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
   @Override
   long[] getCache() {
     return cache_;
-  }
-
-  @Override
-  long getThetaLong() {
-    return thetaLong_;
   }
 
   @Override

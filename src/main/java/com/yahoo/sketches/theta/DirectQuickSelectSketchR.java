@@ -123,6 +123,11 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   }
 
   @Override
+  public long getThetaLong() {
+    return mem_.getLong(THETA_LONG);
+  }
+
+  @Override
   public boolean hasMemory() {
     return true;
   }
@@ -188,8 +193,6 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     return computeCompactPreLongs(getThetaLong(), isEmpty(), getRetainedEntries(true));
   }
 
-
-
   @Override
   WritableMemory getMemory() {
     return mem_;
@@ -208,11 +211,6 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   @Override
   short getSeedHash() {
     return (short) PreambleUtil.extractSeedHash(mem_);
-  }
-
-  @Override
-  long getThetaLong() {
-    return mem_.getLong(THETA_LONG);
   }
 
   @Override

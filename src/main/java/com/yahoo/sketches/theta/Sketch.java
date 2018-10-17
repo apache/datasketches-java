@@ -175,6 +175,14 @@ public abstract class Sketch {
   public abstract Family getFamily();
 
   /**
+   * Gets a HashIterator that can be used to iterate over the retained hash values of the
+   * Theta sketch.
+   * @return a HashIterator that can be used to iterate over the retained hash values of the
+   * Theta sketch.
+   */
+  public abstract HashIterator getIterator();
+
+  /**
    * Gets the approximate lower error bound given the specified number of Standard Deviations.
    * This will return getEstimate() if isEmpty() is true.
    *
@@ -246,6 +254,12 @@ public abstract class Sketch {
   public double getTheta() {
     return getThetaLong() / MAX_THETA_LONG_AS_DOUBLE;
   }
+
+  /**
+   * Gets the value of theta as a long
+   * @return the value of theta as a long
+   */
+  public abstract long getThetaLong();
 
   /**
    * Gets the approximate upper error bound given the specified number of Standard Deviations.
@@ -468,12 +482,6 @@ public abstract class Sketch {
    * @return the seed hash
    */
   abstract short getSeedHash();
-
-  /**
-   * Gets the value of theta as a long
-   * @return the value of theta as a long
-   */
-  abstract long getThetaLong();
 
   /**
    * Returns true if given Family id is one of the theta sketches
