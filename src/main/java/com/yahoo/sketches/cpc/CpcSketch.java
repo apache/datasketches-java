@@ -76,7 +76,7 @@ public final class CpcSketch {
   public CpcSketch(final int lgK, final long seed) {
     checkLgK(lgK);
     this.lgK = (byte) lgK;
-    this.seed = (seed != 0) ? seed : DEFAULT_UPDATE_SEED ;
+    this.seed = seed;
     kxp = 1 << lgK;
     reset();
   }
