@@ -295,6 +295,11 @@ public final class SingleItemSketch extends CompactSketch {
   }
 
   @Override
+  public HashIterator getIterator() {
+    return new HeapHashIterator(new long[] { arr[1] }, 1, Long.MAX_VALUE);
+  }
+
+  @Override
   public double getLowerBound(final int numStdDev) {
     return 1.0;
   }

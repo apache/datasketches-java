@@ -141,6 +141,16 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   //Sketch
 
   @Override
+  public Family getFamily() {
+    return Family.ALPHA;
+  }
+
+  @Override
+  public HashIterator getIterator() {
+    return new HeapHashIterator(cache_, 1 << lgArrLongs_, thetaLong_);
+  }
+
+  @Override
   public double getEstimate() {
     if (isEstimationMode()) {
       final int curCount = getRetainedEntries(true);
@@ -211,11 +221,6 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   @Override
   public byte[] toByteArray() {
     return toByteArray(Family.ALPHA.getMinPreLongs(), (byte) Family.ALPHA.getID());
-  }
-
-  @Override
-  public Family getFamily() {
-    return Family.ALPHA;
   }
 
   //UpdateSketch

@@ -40,7 +40,7 @@ abstract class DirectCompactSketch extends CompactSketch {
 
   @Override
   public HashIterator getIterator() {
-    return null; //TODO
+    return new MemoryHashIterator(mem_, getRetainedEntries(), getThetaLong());
   }
 
   @Override
@@ -129,11 +129,6 @@ abstract class DirectCompactSketch extends CompactSketch {
     final byte[] byteArrOut = new byte[outBytes];
     srcMem.getByteArray(0, byteArrOut, 0, outBytes); //copies the whole thing
     return byteArrOut;
-  }
-
-  class DirectCompactHashIterator implements HashIterator {
-
-
   }
 
 }

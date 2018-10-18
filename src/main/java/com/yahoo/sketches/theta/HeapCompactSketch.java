@@ -54,6 +54,11 @@ abstract class HeapCompactSketch extends CompactSketch {
   }
 
   @Override
+  public HashIterator getIterator() {
+    return new HeapHashIterator(cache_, cache_.length, thetaLong_);
+  }
+
+  @Override
   public int getRetainedEntries(final boolean valid) {
     return curCount_;
   }
