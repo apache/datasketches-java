@@ -39,7 +39,7 @@ abstract class DirectCompactSketch extends CompactSketch {
   }
 
   @Override
-  public HashIterator getIterator() {
+  public HashIterator iterator() {
     return new MemoryHashIterator(mem_, getRetainedEntries(), getThetaLong());
   }
 

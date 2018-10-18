@@ -113,7 +113,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   }
 
   @Override
-  public HashIterator getIterator() {
+  public HashIterator iterator() {
     return new MemoryHashIterator(mem_, 1 << getLgArrLongs(), getThetaLong());
   }
 

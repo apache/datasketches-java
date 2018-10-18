@@ -25,7 +25,7 @@ public class IteratorTest {
     UpdateSketch sk1 = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
     println(sk1.getClass().getSimpleName());
     for (int i = 0; i < (k/2); i++) { sk1.update(i); }
-    HashIterator itr1 = sk1.getIterator();
+    HashIterator itr1 = sk1.iterator();
     int count = 0;
     while (itr1.next()) {
       println(++count + "\t" + Long.toHexString(itr1.get()));
@@ -35,7 +35,7 @@ public class IteratorTest {
     println("");
     Sketch sk2 = sk1.compact();
     println(sk2.getClass().getSimpleName());
-    HashIterator itr2 = sk2.getIterator();
+    HashIterator itr2 = sk2.iterator();
     count = 0;
     while (itr2.next()) {
       println(++count + "\t" + Long.toHexString(itr2.get()));
@@ -45,7 +45,7 @@ public class IteratorTest {
     println("");
     Sketch sk3 = sk1.compact(false, WritableMemory.allocate(maxBytes));
     println(sk3.getClass().getSimpleName());
-    HashIterator itr3 = sk3.getIterator();
+    HashIterator itr3 = sk3.iterator();
     count = 0;
     while (itr3.next()) {
       println(++count + "\t" + Long.toHexString(itr3.get()));
@@ -61,7 +61,7 @@ public class IteratorTest {
         .build();
     println(sk1.getClass().getSimpleName());
     for (int i = 0; i < u; i++) { sk1.update(i); }
-    HashIterator itr1 = sk1.getIterator();
+    HashIterator itr1 = sk1.iterator();
     int count = 0;
     while (itr1.next()) {
       println(++count + "\t" + Long.toHexString(itr1.get()));
@@ -77,7 +77,7 @@ public class IteratorTest {
         .build();
     println(sk1.getClass().getSimpleName());
     for (int i = 0; i < u; i++) { sk1.update(i); }
-    HashIterator itr1 = sk1.getIterator();
+    HashIterator itr1 = sk1.iterator();
     int count = 0;
     while (itr1.next()) {
       println(++count + "\t" + Long.toHexString(itr1.get()));
@@ -95,7 +95,7 @@ public class IteratorTest {
     for (int i = 0; i < u; i++) { sk1.update(i); }
     CompactSketch csk = sk1.compact();
     println(csk.getClass().getSimpleName());
-    HashIterator itr1 = csk.getIterator();
+    HashIterator itr1 = csk.iterator();
     int count = 0;
     while (itr1.next()) {
       println(++count + "\t" + Long.toHexString(itr1.get()));

@@ -295,7 +295,7 @@ public final class SingleItemSketch extends CompactSketch {
   }
 
   @Override
-  public HashIterator getIterator() {
+  public HashIterator iterator() {
     return new HeapHashIterator(new long[] { arr[1] }, 1, Long.MAX_VALUE);
   }
 

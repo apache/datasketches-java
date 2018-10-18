@@ -175,12 +175,12 @@ public abstract class Sketch {
   public abstract Family getFamily();
 
   /**
-   * Gets a HashIterator that can be used to iterate over the retained hash values of the
+   * Returns a HashIterator that can be used to iterate over the retained hash values of the
    * Theta sketch.
    * @return a HashIterator that can be used to iterate over the retained hash values of the
    * Theta sketch.
    */
-  public abstract HashIterator getIterator();
+  public abstract HashIterator iterator();
 
   /**
    * Gets the approximate lower error bound given the specified number of Standard Deviations.

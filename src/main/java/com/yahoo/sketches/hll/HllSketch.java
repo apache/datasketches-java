@@ -415,7 +415,7 @@ public class HllSketch extends BaseHllSketch {
   //restricted methods
 
   /**
-   * Gets a PairIterator over the key, value pairs of the HLL array.
+   * Returns a PairIterator over the key, value pairs of the HLL array.
    * @return a PairIterator over the key, value pairs of the HLL array.
    */
   PairIterator iterator() {
