@@ -295,6 +295,11 @@ public final class SingleItemSketch extends CompactSketch {
   }
 
   @Override
+  public HashIterator getIterator() {
+    return new HeapHashIterator(new long[] { arr[1] }, 1, Long.MAX_VALUE);
+  }
+
+  @Override
   public double getLowerBound(final int numStdDev) {
     return 1.0;
   }
@@ -302,6 +307,11 @@ public final class SingleItemSketch extends CompactSketch {
   @Override
   public int getRetainedEntries(final boolean valid) {
     return 1;
+  }
+
+  @Override
+  public long getThetaLong() {
+    return Long.MAX_VALUE;
   }
 
   @Override
@@ -359,11 +369,6 @@ public final class SingleItemSketch extends CompactSketch {
   @Override
   short getSeedHash() {
     return (short) (arr[0] >>> 48);
-  }
-
-  @Override
-  long getThetaLong() {
-    return Long.MAX_VALUE;
   }
 
   static void checkDefaultBytes0to7(final long memPre0) {

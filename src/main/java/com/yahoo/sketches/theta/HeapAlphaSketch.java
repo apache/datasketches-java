@@ -141,6 +141,16 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   //Sketch
 
   @Override
+  public Family getFamily() {
+    return Family.ALPHA;
+  }
+
+  @Override
+  public HashIterator getIterator() {
+    return new HeapHashIterator(cache_, 1 << lgArrLongs_, thetaLong_);
+  }
+
+  @Override
   public double getEstimate() {
     if (isEstimationMode()) {
       final int curCount = getRetainedEntries(true);
@@ -186,6 +196,11 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   }
 
   @Override
+  public long getThetaLong() {
+    return thetaLong_;
+  }
+
+  @Override
   public double getUpperBound(final int numStdDev) {
     if ((numStdDev < 1) || (numStdDev > 3)) {
       throw new SketchesArgumentException("numStdDev can only be the values 1, 2 or 3.");
@@ -206,11 +221,6 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   @Override
   public byte[] toByteArray() {
     return toByteArray(Family.ALPHA.getMinPreLongs(), (byte) Family.ALPHA.getID());
-  }
-
-  @Override
-  public Family getFamily() {
-    return Family.ALPHA;
   }
 
   //UpdateSketch
@@ -259,11 +269,6 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   @Override
   long[] getCache() {
     return cache_;
-  }
-
-  @Override
-  long getThetaLong() {
-    return thetaLong_;
   }
 
   @Override

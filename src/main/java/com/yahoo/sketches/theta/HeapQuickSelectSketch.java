@@ -128,8 +128,23 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
   //Sketch
 
   @Override
+  public Family getFamily() {
+    return MY_FAMILY;
+  }
+
+  @Override
+  public HashIterator getIterator() {
+    return new HeapHashIterator(cache_, 1 << lgArrLongs_, thetaLong_);
+  }
+
+  @Override
   public int getRetainedEntries(final boolean valid) {
     return curCount_;
+  }
+
+  @Override
+  public long getThetaLong() {
+    return thetaLong_;
   }
 
   @Override
@@ -140,11 +155,6 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
   @Override
   public byte[] toByteArray() {
     return toByteArray(preambleLongs_, (byte) MY_FAMILY.getID());
-  }
-
-  @Override
-  public Family getFamily() {
-    return MY_FAMILY;
   }
 
   //UpdateSketch
@@ -192,11 +202,6 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
   @Override
   long[] getCache() {
     return cache_;
-  }
-
-  @Override
-  long getThetaLong() {
-    return thetaLong_;
   }
 
   @Override

@@ -31,9 +31,20 @@ import com.yahoo.sketches.SketchesArgumentException;
  * multi-byte integers (<i>int</i> and <i>long</i>) are stored in native byte order. The
  * <i>byte</i> values are treated as unsigned.</p>
  *
- * <p>An empty CompactSketch only requires 8 bytes. An exact (non-estimating) compact
- * sketch requires 16 bytes of preamble. UpdateSketches require 24 bytes of preamble. Union objects
- * require 32 bytes of preamble.</p>
+ * <p>An empty CompactSketch only requires 8 bytes.</p>
+ *
+ * <p>A SingleItemSketch requires an 8 byte preamble plus a single hash item of 8 bytes.</p>
+ *
+ * <p>An exact (non-estimating) CompactSketch requires 16 bytes of preamble plus a compact array of
+ * longs.</p>
+ *
+ * <p>An estimating CompactSketch requires 24 bytes of preamble plus a compact array of longs.</p>
+ *
+ * <p>An UpdateSketch requires 24 bytes of preamble plus a non-compact array of longs representing a
+ * hash table.</p>
+ *
+ * <p> Union objects require 32 bytes of preamble plus a non-compact array of longs representing a
+ * hash table.</p>
  *
  * <pre>
  * Long || Start Byte Adr:

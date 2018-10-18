@@ -54,8 +54,18 @@ abstract class HeapCompactSketch extends CompactSketch {
   }
 
   @Override
+  public HashIterator getIterator() {
+    return new HeapHashIterator(cache_, cache_.length, thetaLong_);
+  }
+
+  @Override
   public int getRetainedEntries(final boolean valid) {
     return curCount_;
+  }
+
+  @Override
+  public long getThetaLong() {
+    return thetaLong_;
   }
 
   @Override
@@ -93,11 +103,6 @@ abstract class HeapCompactSketch extends CompactSketch {
   @Override
   short getSeedHash() {
     return seedHash_;
-  }
-
-  @Override
-  long getThetaLong() {
-    return thetaLong_;
   }
 
   byte[] toByteArray(final boolean ordered) {

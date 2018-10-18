@@ -33,7 +33,7 @@ import com.yahoo.sketches.Family;
  * well-known estimator, the
  * <a href="https://arxiv.org/abs/1306.3284">Historical Inverse Probability (HIP)</a> estimator
  * does not.
- * The update speed performance of this sketch is quite fast and is comperable to the speed of HLL.
+ * The update speed performance of this sketch is quite fast and is comparable to the speed of HLL.
  * The unioning (merging) capability of this sketch also allows for merging of sketches with
  * different configurations of K.
  *

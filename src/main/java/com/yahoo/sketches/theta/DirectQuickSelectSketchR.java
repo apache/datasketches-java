@@ -113,6 +113,11 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   }
 
   @Override
+  public HashIterator getIterator() {
+    return new MemoryHashIterator(mem_, 1 << getLgArrLongs(), getThetaLong());
+  }
+
+  @Override
   public ResizeFactor getResizeFactor() {
     return ResizeFactor.getRF(getLgRF());
   }
@@ -120,6 +125,11 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   @Override
   public int getRetainedEntries(final boolean valid) { //always valid
     return mem_.getInt(RETAINED_ENTRIES_INT);
+  }
+
+  @Override
+  public long getThetaLong() {
+    return mem_.getLong(THETA_LONG);
   }
 
   @Override
@@ -188,8 +198,6 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     return computeCompactPreLongs(getThetaLong(), isEmpty(), getRetainedEntries(true));
   }
 
-
-
   @Override
   WritableMemory getMemory() {
     return mem_;
@@ -208,11 +216,6 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   @Override
   short getSeedHash() {
     return (short) PreambleUtil.extractSeedHash(mem_);
-  }
-
-  @Override
-  long getThetaLong() {
-    return mem_.getLong(THETA_LONG);
   }
 
   @Override
