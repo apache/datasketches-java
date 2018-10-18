@@ -47,7 +47,7 @@ public final class VarOptItemsUnion<T> {
   private long outerTauDenom;
 
   /*
-   IMPORTANT NOTE: the "gadget" in the unioner object appears to be a varopt sketch,
+   IMPORTANT NOTE: the "gadget" in the union object appears to be a varopt sketch,
    but in fact is NOT because it doesn't satisfy the mathematical definition
    of a varopt sketch of the concatenated input streams. Therefore it could be different
    from a true varopt sketch with that value of K, in which case it could easily provide
@@ -63,12 +63,12 @@ public final class VarOptItemsUnion<T> {
    then constructs a varopt sketch of that size and returns it.
 
    However, the gadget itself is not touched during the resolution process,
-   and additional sketches could subsequently be merged into the unioner,
+   and additional sketches could subsequently be merged into the union,
    at which point a varopt result could again be requested.
    */
 
   /*
-   Explanation of "marked items" in the unioner's gadget:
+   Explanation of "marked items" in the union's gadget:
 
    The boolean value "true" in an pair indicates that the item
    came from an input sketch's R zone, so it is already the result of sampling.
@@ -83,7 +83,7 @@ public final class VarOptItemsUnion<T> {
    */
 
   /*
-   Note: if the computer could perform exact real-valued arithmetic, the unioner could finalize
+   Note: if the computer could perform exact real-valued arithmetic, the union could finalize
    its result by reducing k until inner_tau > outer_tau. [Due to the vagaries of floating point
    arithmetic, we won't attempt to detect and specially handle the inner_tau = outer_tau special
    case.]

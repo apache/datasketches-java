@@ -594,7 +594,7 @@ public final class CpcSketch {
     else { updateWindowed(this, rowCol); }
   }
 
-  //Used by unioner and in testing
+  //Used by union and in testing
   void rowColUpdate(final int rowCol) {
     final int col = rowCol & 63;
     if (col < fiCol) { return; } // important speed optimization
