@@ -50,7 +50,7 @@ class Hll6Array extends HllArray {
   }
 
   @Override
-  PairIterator getIterator() {
+  PairIterator iterator() {
     return new HeapHll6Iterator(1 << lgConfigK);
   }
 

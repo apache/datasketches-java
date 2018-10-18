@@ -26,7 +26,7 @@ class Conversions {
     final int numAtCurMin = HllUtil.getLow26(pair);
 
     //2nd pass: Must know curMin. Populate KxQ registers, build AuxHashMap if needed
-    final PairIterator itr = srcHllArr.getIterator();
+    final PairIterator itr = srcHllArr.iterator();
     AuxHashMap auxHashMap = hll4Array.getAuxHashMap(); //may be null
     while (itr.nextValid()) {
       final int slotNo = itr.getIndex();
@@ -53,7 +53,7 @@ class Conversions {
   static final int curMinAndNum(final AbstractHllArray hllArr) {
     int curMin = 64;
     int numAtCurMin = 0;
-    final PairIterator itr = hllArr.getIterator();
+    final PairIterator itr = hllArr.iterator();
     while (itr.nextAll()) {
       final int v = itr.getValue();
       if (v < curMin) {
@@ -71,7 +71,7 @@ class Conversions {
     final Hll6Array hll6Array = new Hll6Array(lgConfigK);
     hll6Array.putOutOfOrderFlag(srcHllArr.isOutOfOrderFlag());
     int numZeros = 1 << lgConfigK;
-    final PairIterator itr = srcHllArr.getIterator();
+    final PairIterator itr = srcHllArr.iterator();
     while (itr.nextAll()) {
       if (itr.getValue() != EMPTY) {
         numZeros--;
@@ -88,7 +88,7 @@ class Conversions {
     final Hll8Array hll8Array = new Hll8Array(lgConfigK);
     hll8Array.putOutOfOrderFlag(srcHllArr.isOutOfOrderFlag());
     int numZeros = 1 << lgConfigK;
-    final PairIterator itr = srcHllArr.getIterator();
+    final PairIterator itr = srcHllArr.iterator();
     while (itr.nextAll()) {
       if (itr.getValue() != EMPTY) {
         numZeros--;

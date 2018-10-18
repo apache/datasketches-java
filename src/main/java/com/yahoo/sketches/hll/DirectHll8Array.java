@@ -60,7 +60,7 @@ class DirectHll8Array extends DirectHllArray {
   }
 
   @Override
-  PairIterator getIterator() {
+  PairIterator iterator() {
     return new DirectHll8Iterator(1 << lgConfigK);
   }
 

@@ -74,7 +74,7 @@ class Hll4Array extends HllArray {
   }
 
   @Override
-  PairIterator getIterator() {
+  PairIterator iterator() {
     return new HeapHll4Iterator(1 << lgConfigK);
   }
 

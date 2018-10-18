@@ -46,7 +46,7 @@ class Hll8Array extends HllArray {
   }
 
   @Override
-  PairIterator getIterator() {
+  PairIterator iterator() {
     return new HeapHll8Iterator(1 << lgConfigK);
   }
 

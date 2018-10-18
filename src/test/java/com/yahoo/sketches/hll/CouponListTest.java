@@ -32,7 +32,7 @@ public class CouponListTest {
     WritableMemory wmem = WritableMemory.allocate(bytes);
     HllSketch sk = (direct) ? new HllSketch(lgConfigK, tgtHllType, wmem) : new HllSketch(8);
     for (int i = 0; i < 7; i++) { sk.update(i); }
-    PairIterator itr = sk.getIterator();
+    PairIterator itr = sk.iterator();
     println(itr.getHeader());
     while (itr.nextAll()) {
       int key = itr.getKey();

@@ -137,7 +137,7 @@ class CouponList extends AbstractCoupons {
   }
 
   @Override
-  PairIterator getIterator() {
+  PairIterator iterator() {
     return new IntArrayPairIterator(couponIntArr, lgConfigK);
   }
 
@@ -217,7 +217,7 @@ class CouponList extends AbstractCoupons {
   //called by CouponList.couponUpdate()
   static final HllSketchImpl promoteHeapListOrSetToHll(final CouponList src) {
     final HllArray tgtHllArr = HllArray.newHeapHll(src.lgConfigK, src.tgtHllType);
-    final PairIterator srcItr = src.getIterator();
+    final PairIterator srcItr = src.iterator();
     tgtHllArr.putKxQ0(1 << src.lgConfigK);
     while (srcItr.nextValid()) {
       tgtHllArr.couponUpdate(srcItr.getPair());

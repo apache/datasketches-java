@@ -135,7 +135,7 @@ class ToByteArrayImpl {
         insertCompactFlag(memOut, dstCompact);
 
         final int[] tgtCouponIntArr = new int[srcCouponArrInts];
-        final PairIterator itr = impl.getIterator();
+        final PairIterator itr = impl.iterator();
         while (itr.nextValid()) {
           final int pair = itr.getPair();
           final int idx = find(tgtCouponIntArr, srcLgCouponArrInts, pair);
@@ -162,7 +162,7 @@ class ToByteArrayImpl {
         copyCommonListAndSet(impl, memOut);
         insertCompactFlag(memOut, dstCompact);
 
-        final PairIterator itr = impl.getIterator();
+        final PairIterator itr = impl.iterator();
         int cnt = 0;
         while (itr.nextValid()) {
           insertInt(memOut, dataStart + (cnt++ << 2), itr.getPair());
@@ -189,7 +189,7 @@ class ToByteArrayImpl {
         copyCommonListAndSet(impl, memOut);
         insertCompactFlag(memOut, dstCompact);
 
-        final PairIterator itr = impl.getIterator();
+        final PairIterator itr = impl.iterator();
         int cnt = 0;
         while (itr.nextValid()) {
           insertInt(memOut, dataStart + (cnt++ << 2), itr.getPair());

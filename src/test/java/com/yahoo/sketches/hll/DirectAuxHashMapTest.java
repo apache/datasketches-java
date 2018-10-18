@@ -122,7 +122,7 @@ public class DirectAuxHashMapTest {
     }
 
     PairIterator hllItr;
-    hllItr = heapSk.getIterator();
+    hllItr = heapSk.iterator();
     println("Heap HLL arr");
     println(hllItr.getHeader());
     while (hllItr.nextValid()) {
@@ -130,7 +130,7 @@ public class DirectAuxHashMapTest {
         println(hllItr.getString() + ", " + hllItr.getPair());
       }
     }
-    hllItr = dirSk.getIterator();
+    hllItr = dirSk.iterator();
     println("Direct HLL arr");
     println(hllItr.getHeader());
     while (hllItr.nextValid()) {
@@ -240,7 +240,7 @@ public class DirectAuxHashMapTest {
     AbstractHllArray absHllArr = (AbstractHllArray) sk.hllSketchImpl;
     int curMin = absHllArr.getCurMin();
     //println("CurMin: " + curMin);
-    PairIterator hllArrItr = sk.getIterator();
+    PairIterator hllArrItr = sk.iterator();
     println(hllArrItr.getHeader());
     while (hllArrItr.nextValid()) {
       final int hllArrVal = hllArrItr.getValue();

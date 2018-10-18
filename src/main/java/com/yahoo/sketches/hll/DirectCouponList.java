@@ -148,7 +148,7 @@ class DirectCouponList extends AbstractCoupons {
   }
 
   @Override
-  PairIterator getIterator() {
+  PairIterator iterator() {
     final long dataStart = getMemDataStart();
     final int lenInts = (compact) ? getCouponCount() : 1 << getLgCouponArrInts();
     return new IntMemoryPairIterator(mem, dataStart, lenInts, lgConfigK);

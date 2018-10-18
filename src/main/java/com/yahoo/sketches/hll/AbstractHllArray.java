@@ -82,7 +82,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
   abstract int getHllByteArrBytes();
 
   @Override
-  abstract PairIterator getIterator();
+  abstract PairIterator iterator();
 
   abstract double getKxQ0();
 

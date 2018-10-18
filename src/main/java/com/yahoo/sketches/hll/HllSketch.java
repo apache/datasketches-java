@@ -378,7 +378,7 @@ public class HllSketch extends BaseHllSketch {
     }
     if (detail) {
       sb.append("### HLL SKETCH DATA DETAIL: ").append(LS);
-      final PairIterator pitr = getIterator();
+      final PairIterator pitr = iterator();
       sb.append(pitr.getHeader()).append(LS);
       if (all) {
         while (pitr.nextAll()) {
@@ -418,8 +418,8 @@ public class HllSketch extends BaseHllSketch {
    * Gets a PairIterator over the key, value pairs of the HLL array.
    * @return a PairIterator over the key, value pairs of the HLL array.
    */
-  PairIterator getIterator() {
-    return hllSketchImpl.getIterator();
+  PairIterator iterator() {
+    return hllSketchImpl.iterator();
   }
 
   CurMode getCurrentMode() {

@@ -40,7 +40,7 @@ abstract class HllSketchImpl {
 
   abstract double getEstimate();
 
-  abstract PairIterator getIterator();
+  abstract PairIterator iterator();
 
   int getLgConfigK() {
     return lgConfigK;

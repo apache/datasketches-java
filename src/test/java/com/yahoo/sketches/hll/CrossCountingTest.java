@@ -91,7 +91,7 @@ public class CrossCountingTest {
   }
 
   private static int computeChecksum(HllSketch sketch) {
-    PairIterator itr = sketch.getIterator();
+    PairIterator itr = sketch.iterator();
     int checksum = 0;
     int key  = 0;
     while (itr.nextAll()) {
