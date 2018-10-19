@@ -55,12 +55,169 @@ public class CpcCBinariesTest {
       assertEquals(sk.getFlavor(), Flavor.SPARSE);
       double est = sk.getEstimate();
       assertEquals(est, 100, 100 * .02);
+      for (int i = 0; i < 100; i++) { sk.update(i); }
+      est = sk.getEstimate();
+      assertEquals(est, 100, 100 * .02);
     } catch (IOException e) {
       e.printStackTrace();
     }
   }
 
   @Test
+  public void checkHybridBin() {
+    String fileName = "cpc-hybrid.bin";
+    File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+    try (MapHandle mh = Memory.map(file)) {
+      Memory wmem = mh.get();
+      CpcSketch sk = CpcSketch.heapify(wmem);
+      assertEquals(sk.getFlavor(), Flavor.HYBRID);
+      assertEquals(sk.getEstimate(), 200, 200 * .02);
+      for (long i = 0; i < 200; i++) { sk.update(i); }
+      assertEquals(sk.getEstimate(), 200, 200 * .02);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  @Test
+  public void checkPinnedBin() {
+    String fileName = "cpc-pinned.bin";
+    File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+    try (MapHandle mh = Memory.map(file)) {
+      Memory wmem = mh.get();
+      CpcSketch sk = CpcSketch.heapify(wmem);
+      assertEquals(sk.getFlavor(), Flavor.PINNED);
+      assertEquals(sk.getEstimate(), 2000, 2000 * .02);
+      for (long i = 0; i < 2000; i++) { sk.update(i); }
+      assertEquals(sk.getEstimate(), 2000, 2000 * .02);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  @Test
+  public void checkSlidingBin() {
+    String fileName = "cpc-sliding.bin";
+    File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+    try (MapHandle mh = Memory.map(file)) {
+      Memory wmem = mh.get();
+      CpcSketch sk = CpcSketch.heapify(wmem);
+      assertEquals(sk.getFlavor(), Flavor.SLIDING);
+      assertEquals(sk.getEstimate(), 20000, 20000 * .02);
+      for (long i = 0; i < 20000; i++) { sk.update(i); }
+      assertEquals(sk.getEstimate(), 20000, 20000 * .02);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  //Image checks
+
+  @Test
+  public void checkEmptyImages() {
+    String fileName = "cpc-empty.bin";
+    File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+    try (MapHandle mh = Memory.map(file)) {
+      Memory mem = mh.get();
+      int cap = (int) mem.getCapacity();
+      byte[] memByteArr = new byte[cap];
+      mem.getByteArray(0, memByteArr, 0, cap);
+
+      CpcSketch sk = new CpcSketch(11);
+      byte[] mem2ByteArr = sk.toByteArray();
+      Memory mem2 = Memory.wrap(mem2ByteArr);
+      assertEquals(mem.getCapacity(), mem2.getCapacity());
+      assertEquals(memByteArr, mem2ByteArr);
+    }catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  @Test
+  public void checkSparseImages() {
+    String fileName = "cpc-sparse.bin";
+    File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+    try (MapHandle mh = Memory.map(file)) {
+      Memory mem = mh.get();
+      int cap = (int) mem.getCapacity();
+      byte[] memByteArr = new byte[cap];
+      mem.getByteArray(0, memByteArr, 0, cap);
+
+      CpcSketch sk = new CpcSketch(11);
+      for (int i = 0; i < 100; i++) { sk.update(i); }
+      byte[] mem2ByteArr = sk.toByteArray();
+      Memory mem2 = Memory.wrap(mem2ByteArr);
+      assertEquals(mem.getCapacity(), mem2.getCapacity());
+      assertEquals(memByteArr, mem2ByteArr);
+    }catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  @Test
+  public void checkHybridImages() {
+    String fileName = "cpc-hybrid.bin";
+    File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+    try (MapHandle mh = Memory.map(file)) {
+      Memory mem = mh.get();
+      int cap = (int) mem.getCapacity();
+      byte[] memByteArr = new byte[cap];
+      mem.getByteArray(0, memByteArr, 0, cap);
+
+      CpcSketch sk = new CpcSketch(11);
+      for (int i = 0; i < 200; i++) { sk.update(i); }
+      byte[] mem2ByteArr = sk.toByteArray();
+      Memory mem2 = Memory.wrap(mem2ByteArr);
+      assertEquals(mem.getCapacity(), mem2.getCapacity());
+      assertEquals(memByteArr, mem2ByteArr);
+    }catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  @Test
+  public void checkPinnedImages() {
+    String fileName = "cpc-pinned.bin";
+    File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+    try (MapHandle mh = Memory.map(file)) {
+      Memory mem = mh.get();
+      int cap = (int) mem.getCapacity();
+      byte[] memByteArr = new byte[cap];
+      mem.getByteArray(0, memByteArr, 0, cap);
+
+      CpcSketch sk = new CpcSketch(11);
+      for (int i = 0; i < 2000; i++) { sk.update(i); }
+      byte[] mem2ByteArr = sk.toByteArray();
+      Memory mem2 = Memory.wrap(mem2ByteArr);
+      assertEquals(mem.getCapacity(), mem2.getCapacity());
+      assertEquals(memByteArr, mem2ByteArr);
+    }catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  @Test
+  public void checkSlidingImages() {
+    String fileName = "cpc-sliding.bin";
+    File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+    try (MapHandle mh = Memory.map(file)) {
+      Memory mem = mh.get();
+      int cap = (int) mem.getCapacity();
+      byte[] memByteArr = new byte[cap];
+      mem.getByteArray(0, memByteArr, 0, cap);
+
+      CpcSketch sk = new CpcSketch(11);
+      for (int i = 0; i < 20000; i++) { sk.update(i); }
+      byte[] mem2ByteArr = sk.toByteArray();
+      Memory mem2 = Memory.wrap(mem2ByteArr);
+      assertEquals(mem.getCapacity(), mem2.getCapacity());
+      assertEquals(memByteArr, mem2ByteArr);
+    }catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  //@Test Internal consistency check
   public void genSparseSketch() {
     CpcSketch sk = new CpcSketch(11);
     for (int i = 0; i < 100; i++) { sk.update(i); }
@@ -79,22 +236,6 @@ public class CpcCBinariesTest {
     println("sk2.toString(true);" + LS);
     CpcSketch sk2 = CpcSketch.heapify(byteArray);
     println(sk2.toString(true));
-  }
-
-  //@Test
-  public void checkHybridBin() {
-    String fileName = "cpc-hybrid.bin";
-    File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
-    try (MapHandle mh = Memory.map(file)) {
-      Memory wmem = mh.get();
-      CpcSketch sk = CpcSketch.heapify(wmem);
-      assertEquals(sk.getFlavor(), Flavor.HYBRID);
-      assertEquals(sk.getEstimate(), 200, 200 * .02);
-      for (long i = 0; i < 200; i++) { sk.update(i); }
-      assertEquals(sk.getEstimate(), 200, 200 * .02);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
   }
 
   @Test

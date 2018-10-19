@@ -807,8 +807,22 @@ final class CpcCompression {
     assert k >= 1L;
     assert count >= 1L;
     final long quotient = (k - count) / count; // integer division
-    return (quotient == 0) ? 0 : Long.numberOfTrailingZeros(quotient); //floor(log2(x))
+    if (quotient == 0) { return 0; }
+    return (int) floorLog2ofLong(quotient);
   }
+
+  private static long floorLog2ofLong(final long x) { //not a good name
+    assert (x >= 1L);
+    long p = 0;
+    long y = 1;
+    while (true) {
+      if (y == x) { return p; }
+      if (y  > x) { return p - 1; }
+      p  += 1;
+      y <<= 1;
+    }
+  }
+
 
   private static long divideBy32RoundingUp(final long x) {
     final long tmp = x >>> 5;
