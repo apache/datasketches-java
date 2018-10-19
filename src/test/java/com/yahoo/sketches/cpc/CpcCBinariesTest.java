@@ -81,7 +81,7 @@ public class CpcCBinariesTest {
     println(sk2.toString(true));
   }
 
-  @Test
+  //@Test
   public void checkHybridBin() {
     String fileName = "cpc-hybrid.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
@@ -107,14 +107,14 @@ public class CpcCBinariesTest {
    * @param args the arguments
    */
   static void printf(String format, Object... args) {
-    ps.printf(format, args);
+    //ps.printf(format, args);
   }
 
   /**
    * @param s value to print
    */
   static void println(String s) {
-    System.out.println(s); //disable here
+    //System.out.println(s); //disable here
   }
 
 
