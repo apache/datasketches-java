@@ -124,7 +124,7 @@ public class CpcSketchTest {
     long hash0 = -1L;
     sk.hashUpdate(hash0, hash1);
     PairTable table = sk.pairTable;
-    println(PairTable.toString(table, true));
+    println(table.toString(true));
   }
 
   @SuppressWarnings("unused")

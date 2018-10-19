@@ -113,7 +113,7 @@ final class PairTable {
 
   @Override
   public String toString() {
-    return PairTable.toString(this, false);
+    return toString(false);
   }
 
   private static void mustInsert(final PairTable table, final int item) {
@@ -337,31 +337,30 @@ final class PairTable {
     return true;
   }
 
-  static String toString(final PairTable table, final boolean detail) {
+  String toString(final boolean detail) {
     final StringBuilder sb = new StringBuilder();
-    final int tableSize = 1 << table.lgSize;
+    final int tableSize = 1 << lgSize;
     sb.append("PairTable").append(LS);
-    sb.append("  LgSize        : ").append(table.lgSize).append(LS);
+    sb.append("  LgSize        : ").append(lgSize).append(LS);
     sb.append("  Size          : ").append(tableSize).append(LS);
-    sb.append("  Valid Bits    : ").append(table.validBits).append(LS);
-    sb.append("  Num Items     : ").append(table.numPairs).append(LS);
+    sb.append("  Valid Bits    : ").append(validBits).append(LS);
+    sb.append("  Num Items     : ").append(numPairs).append(LS);
     if (detail) {
       sb.append("  DATA (hex) : ").append(LS);
-      final String hdr = String.format("%8s %9s %9s %4s", "Index","Word","Row","Col");
+      final String hdr = String.format("%9s %9s %9s %4s", "Index","Word","Row","Col");
       sb.append(hdr).append(LS);
-      final int[] slots = table.slots;
       for (int i = 0; i < tableSize; i++) {
         final int word = slots[i];
         if (word == -1) { //empty
-          final String h = String.format("%8d %9s", i, "--");
+          final String h = String.format("%9d %9s", i, "--");
           sb.append(h).append(LS);
         } else { //data
           final int row = word >>> 6;
           final int col = word & 0X3F;
-          final String rowStr = Integer.toHexString(row);
-          final String colStr = Integer.toHexString(col);
           final String wordStr = Long.toHexString(word & 0XFFFF_FFFFL);
-          final String data = String.format("%8d %9s %9s %4s", i, wordStr, rowStr, colStr);
+          //final String rowStr = Integer.toHexString(row);
+          //final String colStr = Integer.toHexString(col);
+          final String data = String.format("%9d %9s %9d %4d", i, wordStr, row, col);
           sb.append(data).append(LS);
         }
       }
