@@ -25,19 +25,19 @@ final class PairTable {
   private static final int downsizeNumer = 1;
   private static final int downsizeDenom = 4;
 
-  private int lgSize;
+  private int lgSizeInts;
   private int validBits;
   private int numPairs;
-  private int[] slots;
+  private int[] slotsArr;
 
-  PairTable(final int lgSize, final int numValidBits) {
-    checkLgSize(lgSize);
-    this.lgSize = lgSize;
-    final int numSlots = 1 << lgSize;
+  PairTable(final int lgSizeInts, final int numValidBits) {
+    checkLgSizeInts(lgSizeInts);
+    this.lgSizeInts = lgSizeInts;
+    final int numSlots = 1 << lgSizeInts;
     validBits = numValidBits;
     numPairs = 0;
-    slots = new int[numSlots];
-    for (int i = 0; i < numSlots; i++) { slots[i] = -1; }
+    slotsArr = new int[numSlots];
+    for (int i = 0; i < numSlots; i++) { slotsArr[i] = -1; }
   }
 
   //Factory
@@ -62,28 +62,28 @@ final class PairTable {
   }
 
   PairTable clear() {
-    Arrays.fill(slots, -1);
+    Arrays.fill(slotsArr, -1);
     numPairs = 0;
     return this;
   }
 
   PairTable copy() {
-    final PairTable copy = new PairTable(lgSize, validBits);
+    final PairTable copy = new PairTable(lgSizeInts, validBits);
     copy.numPairs = numPairs;
-    copy.slots = slots.clone(); //slots can never be null
+    copy.slotsArr = slotsArr.clone(); //slotsArr can never be null
     return copy;
   }
 
-  int getLgSize() {
-    return lgSize;
+  int getLgSizeInts() {
+    return lgSizeInts;
   }
 
   int getNumPairs() {
     return numPairs;
   }
 
-  int[] getSlots() {
-    return slots;
+  int[] getSlotsArr() {
+    return slotsArr;
   }
 
   int getValidBits() {
@@ -92,20 +92,20 @@ final class PairTable {
 
   /**
    * Rebuilds to a larger size. NumItems and validBits remain unchanged.
-   * @param newLgSize the new size
+   * @param newLgSizeInts the new size
    * @return a larger PairTable
    */
-  PairTable rebuild(final int newLgSize) {
-    checkLgSize(newLgSize);
-    final int newSize = 1 << newLgSize;
-    final int oldSize = 1 << lgSize;
+  PairTable rebuild(final int newLgSizeInts) {
+    checkLgSizeInts(newLgSizeInts);
+    final int newSize = 1 << newLgSizeInts;
+    final int oldSize = 1 << lgSizeInts;
     assert newSize > numPairs;
-    final int[] oldSlots = slots;
-    slots = new int[newSize];
-    Arrays.fill(slots, -1);
-    lgSize = newLgSize;
+    final int[] oldSlotsArr = slotsArr;
+    slotsArr = new int[newSize];
+    Arrays.fill(slotsArr, -1);
+    lgSizeInts = newLgSizeInts;
     for (int i = 0; i < oldSize; i++) {
-      final int item = oldSlots[i];
+      final int item = oldSlotsArr[i];
       if (item != -1) { mustInsert(this, item); }
     }
     return this;
@@ -118,13 +118,13 @@ final class PairTable {
 
   private static void mustInsert(final PairTable table, final int item) {
     //SHARED CODE (implemented as a macro in C and expanded here)
-    final int lgSize = table.lgSize;
-    final int tableSize = 1 << lgSize;
-    final int mask = tableSize - 1;
-    final int shift = table.validBits - lgSize;
+    final int lgSizeInts = table.lgSizeInts;
+    final int sizeInts = 1 << lgSizeInts;
+    final int mask = sizeInts - 1;
+    final int shift = table.validBits - lgSizeInts;
     int probe = item >>> shift; //extract high tablesize bits
     assert (probe >= 0) && (probe <= mask);
-    final int[] arr = table.slots;
+    final int[] arr = table.slotsArr;
     int fetched = arr[probe];
     while ((fetched != item) && (fetched != -1)) {
       probe = (probe + 1) & mask;
@@ -141,13 +141,13 @@ final class PairTable {
 
   static boolean maybeInsert(final PairTable table, final int item) {
     //SHARED CODE (implemented as a macro in C and expanded here)
-    final int lgSize = table.lgSize;
-    final int tableSize = 1 << lgSize;
-    final int mask = tableSize - 1;
-    final int shift = table.validBits - lgSize;
+    final int lgSizeInts = table.lgSizeInts;
+    final int sizeInts = 1 << lgSizeInts;
+    final int mask = sizeInts - 1;
+    final int shift = table.validBits - lgSizeInts;
     int probe = item >>> shift;
     assert (probe >= 0) && (probe <= mask);
-    final int[] arr = table.slots;
+    final int[] arr = table.slotsArr;
     int fetched = arr[probe];
     while ((fetched != item) && (fetched != -1)) {
       probe = (probe + 1) & mask;
@@ -159,8 +159,8 @@ final class PairTable {
       assert (fetched == -1);
       arr[probe] = item;
       table.numPairs += 1;
-      while ((upsizeDenom * table.numPairs) > (upsizeNumer * (1 << table.lgSize))) {
-        table.rebuild(table.lgSize + 1);
+      while ((upsizeDenom * table.numPairs) > (upsizeNumer * (1 << table.lgSizeInts))) {
+        table.rebuild(table.lgSizeInts + 1);
       }
       return true;
     }
@@ -168,13 +168,13 @@ final class PairTable {
 
   static boolean maybeDelete(final PairTable table, final int item) {
     //SHARED CODE (implemented as a macro in C and expanded here)
-    final int lgSize = table.lgSize;
-    final int tableSize = 1 << lgSize;
-    final int mask = tableSize - 1;
-    final int shift = table.validBits - lgSize;
+    final int lgSizeInts = table.lgSizeInts;
+    final int sizeInts = 1 << lgSizeInts;
+    final int mask = sizeInts - 1;
+    final int shift = table.validBits - lgSizeInts;
     int probe = item >>> shift;
     assert (probe >= 0) && (probe <= mask);
-    final int[] arr = table.slots;
+    final int[] arr = table.slotsArr;
     int fetched = arr[probe];
     while ((fetched != item) && (fetched != -1)) {
       probe = (probe + 1) & mask;
@@ -198,8 +198,8 @@ final class PairTable {
 
       // shrink if necessary
       while (((downsizeDenom * table.numPairs)
-              < (downsizeNumer * (1 << table.lgSize))) && (table.lgSize > 2)) {
-        table.rebuild(table.lgSize - 1);
+              < (downsizeNumer * (1 << table.lgSizeInts))) && (table.lgSizeInts > 2)) {
+        table.rebuild(table.lgSizeInts - 1);
       }
       return true;
     }
@@ -217,8 +217,8 @@ final class PairTable {
    */
   static int[] unwrappingGetItems(final PairTable table, final int numPairs) {
     if (numPairs < 1) { return null; }
-    final int[] slots = table.slots;
-    final int tableSize = 1 << table.lgSize;
+    final int[] slotsArr = table.slotsArr;
+    final int tableSize = 1 << table.lgSizeInts;
     final int[] result = new int[numPairs];
     int i = 0;
     int l = 0;
@@ -226,15 +226,15 @@ final class PairTable {
 
     // Special rules for the region before the first empty slot.
     final int hiBit = 1 << (table.validBits - 1);
-    while ((i < tableSize) && (slots[i] != -1)) {
-      final int item = slots[i++];
+    while ((i < tableSize) && (slotsArr[i] != -1)) {
+      final int item = slotsArr[i++];
       if ((item & hiBit) != 0) { result[r--] = item; } // This item was probably wrapped, so move to end.
       else                     { result[l++] = item; }
     }
 
     // The rest of the table is processed normally.
     while (i < tableSize) {
-      final int look = slots[i++];
+      final int look = slotsArr[i++];
       if (look != -1) { result[l++] = look; }
     }
     assert l == (r + 1);
@@ -339,18 +339,18 @@ final class PairTable {
 
   String toString(final boolean detail) {
     final StringBuilder sb = new StringBuilder();
-    final int tableSize = 1 << lgSize;
+    final int sizeInts = 1 << lgSizeInts;
     sb.append("PairTable").append(LS);
-    sb.append("  LgSize        : ").append(lgSize).append(LS);
-    sb.append("  Size          : ").append(tableSize).append(LS);
+    sb.append("  Lg Size Ints  : ").append(lgSizeInts).append(LS);
+    sb.append("  Size Ints     : ").append(sizeInts).append(LS);
     sb.append("  Valid Bits    : ").append(validBits).append(LS);
-    sb.append("  Num Items     : ").append(numPairs).append(LS);
+    sb.append("  Num Pairs     : ").append(numPairs).append(LS);
     if (detail) {
       sb.append("  DATA (hex) : ").append(LS);
       final String hdr = String.format("%9s %9s %9s %4s", "Index","Word","Row","Col");
       sb.append(hdr).append(LS);
-      for (int i = 0; i < tableSize; i++) {
-        final int word = slots[i];
+      for (int i = 0; i < sizeInts; i++) {
+        final int word = slotsArr[i];
         if (word == -1) { //empty
           final String h = String.format("%9d %9s", i, "--");
           sb.append(h).append(LS);
@@ -358,8 +358,6 @@ final class PairTable {
           final int row = word >>> 6;
           final int col = word & 0X3F;
           final String wordStr = Long.toHexString(word & 0XFFFF_FFFFL);
-          //final String rowStr = Integer.toHexString(row);
-          //final String colStr = Integer.toHexString(col);
           final String data = String.format("%9d %9s %9d %4d", i, wordStr, row, col);
           sb.append(data).append(LS);
         }
@@ -368,9 +366,9 @@ final class PairTable {
     return sb.toString();
   }
 
-  private static void checkLgSize(final int lgSize) {
-    if ((lgSize < 2) || (lgSize > 26)) {
-      throw new SketchesArgumentException("Illegal LgSize: " + lgSize);
+  private static void checkLgSizeInts(final int lgSizeInts) {
+    if ((lgSizeInts < 2) || (lgSizeInts > 26)) {
+      throw new SketchesArgumentException("Illegal LgSizeInts: " + lgSizeInts);
     }
   }
 

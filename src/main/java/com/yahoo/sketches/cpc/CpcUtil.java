@@ -84,8 +84,8 @@ final class CpcUtil {
     }
     final PairTable table = sketch.pairTable;
     assert (table != null);
-    final int[] slots = table.getSlots();
-    final int numSlots = 1 << table.getLgSize();
+    final int[] slots = table.getSlotsArr();
+    final int numSlots = 1 << table.getLgSizeInts();
 
     for (int i = 0; i < numSlots; i++) {
       final int rowCol = slots[i];

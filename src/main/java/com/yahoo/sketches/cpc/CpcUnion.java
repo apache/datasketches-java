@@ -164,8 +164,8 @@ public class CpcUnion {
   }
 
   private static void walkTableUpdatingSketch(final CpcSketch dest, final PairTable table) {
-    final int[] slots = table.getSlots();
-    final int numSlots = (1 << table.getLgSize());
+    final int[] slots = table.getSlotsArr();
+    final int numSlots = (1 << table.getLgSizeInts());
     assert dest.lgK <= 26;
     final int destMask = (((1 << dest.lgK) - 1) << 6) | 63; //downsamples when destlgK < srcLgK
 
@@ -187,8 +187,8 @@ public class CpcUnion {
   }
 
   private static void orTableIntoMatrix(final long[] bitMatrix, final int destLgK, final PairTable table) {
-    final int[] slots = table.getSlots();
-    final int numSlots = 1 << table.getLgSize();
+    final int[] slots = table.getSlotsArr();
+    final int numSlots = 1 << table.getLgSizeInts();
     final int destMask = (1 << destLgK) - 1;  // downsamples when destlgK < srcLgK
     for (int i = 0; i < numSlots; i++) {
       final int rowCol = slots[i];

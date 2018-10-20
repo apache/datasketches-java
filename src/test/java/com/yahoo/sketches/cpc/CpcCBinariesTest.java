@@ -217,7 +217,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  //@Test Internal consistency check
+  //@Test //Internal consistency check
   public void genSparseSketch() {
     CpcSketch sk = new CpcSketch(11);
     for (int i = 0; i < 100; i++) { sk.update(i); }

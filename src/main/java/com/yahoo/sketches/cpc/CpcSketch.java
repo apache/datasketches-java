@@ -369,8 +369,8 @@ public final class CpcSketch {
     final PairTable newTable = new PairTable(2, 6 + lgK);
     final PairTable oldTable = sketch.pairTable;
 
-    final int[] oldSlots = oldTable.getSlots();
-    final int oldNumSlots = (1 << oldTable.getLgSize());
+    final int[] oldSlots = oldTable.getSlotsArr();
+    final int oldNumSlots = (1 << oldTable.getLgSizeInts());
 
     assert (sketch.windowOffset == 0);
 
@@ -616,17 +616,20 @@ public final class CpcSketch {
    * @return a human-readable string summary of this sketch
    */
   public String toString(final boolean detail) {
+    final int numPairs = (pairTable == null) ? 0 : pairTable.getNumPairs();
     final StringBuilder sb = new StringBuilder();
     sb.append("CpcSketch").append(LS);
-    sb.append("  Flavor     : ").append(getFlavor()).append(LS);
-    sb.append("  lgK        : ").append(lgK).append(LS);
-    sb.append("  seed       : ").append(seed).append(LS);
-    sb.append("  numCoupons : ").append(numCoupons).append(LS);
-    sb.append("  mergeFlag  : ").append(mergeFlag).append(LS);
-    sb.append("  fiCol      : ").append(fiCol).append(LS);
-    sb.append("  winOffset  : ").append(windowOffset).append(LS);
-    sb.append("  kxp        : ").append(kxp).append(LS);
-    sb.append("  hipAccum   : ").append(hipEstAccum).append(LS);
+    sb.append("  Flavor       : ").append(getFlavor()).append(LS);
+    sb.append("  lgK          : ").append(lgK).append(LS);
+    sb.append("  seed         : ").append(seed).append(LS);
+    sb.append("  numCoupons   : ").append(numCoupons).append(LS);
+    sb.append("  numPairs (SV): ").append(numPairs).append(LS);
+    sb.append("  mergeFlag    : ").append(mergeFlag).append(LS);
+    sb.append("  fiCol        : ").append(fiCol).append(LS);
+    sb.append("  Window?      : ").append(slidingWindow != null).append(LS);
+    sb.append("  winOffset    : ").append(windowOffset).append(LS);
+    sb.append("  kxp          : ").append(kxp).append(LS);
+    sb.append("  hipAccum     : ").append(hipEstAccum).append(LS);
     if (detail) {
       if (pairTable != null) {
         sb.append(pairTable.toString(true));

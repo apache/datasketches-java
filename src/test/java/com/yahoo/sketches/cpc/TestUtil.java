@@ -65,8 +65,8 @@ public class TestUtil {
     }
     PairTable table = sketch.pairTable;
     assert (table != null);
-    int[] slots = table.getSlots();
-    int numSlots = 1 << table.getLgSize();
+    int[] slots = table.getSlotsArr();
+    int numSlots = 1 << table.getLgSizeInts();
     int i;
     int result = offset;
     for (i = 0; i < numSlots; i++) {
