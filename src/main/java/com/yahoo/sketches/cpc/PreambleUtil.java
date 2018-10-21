@@ -137,7 +137,7 @@ final class PreambleUtil {
 
   //Flag bit masks, Byte 5
   static final int BIG_ENDIAN_FLAG_MASK     = 1; //Reserved.
-  static final int READ_ONLY_FLAG_MASK      = 2; //Reserved.
+  static final int COMPRESSED_FLAG_MASK     = 2;
   static final int HIP_FLAG_MASK            = 4;
   static final int SUP_VAL_FLAG_MASK        = 8;
   static final int WINDOW_FLAG_MASK         = 16;
@@ -227,6 +227,10 @@ final class PreambleUtil {
 
   static final boolean hasWindow(final Memory mem) {
     return (getFlags(mem) & WINDOW_FLAG_MASK) > 0;
+  }
+
+  static final boolean isCompressed(final Memory mem) {
+    return (getFlags(mem) & COMPRESSED_FLAG_MASK) > 0;
   }
 
   //PREAMBLE HI_FIELD DEFINITIONS
@@ -372,7 +376,7 @@ final class PreambleUtil {
     final Format format = Format.EMPTY_MERGED;
     final byte preInts = getDefinedPreInts(format);
     final byte fiCol = (byte) 0;
-    final byte flags = (byte) ((format.ordinal() << 2) | READ_ONLY_FLAG_MASK);
+    final byte flags = (byte) ((format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
     checkCapacity(wmem.getCapacity(), 8);
     putFirst8(wmem, preInts, (byte) lgK, fiCol, flags, seedHash);
   }
@@ -383,7 +387,7 @@ final class PreambleUtil {
     final Format format = Format.EMPTY_HIP;
     final byte preInts = getDefinedPreInts(format);
     final byte fiCol = (byte) 0;
-    final byte flags = (byte) ((format.ordinal() << 2) | READ_ONLY_FLAG_MASK);
+    final byte flags = (byte) ((format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
     checkCapacity(wmem.getCapacity(), 8);
     putFirst8(wmem, preInts, (byte) lgK, fiCol, flags, seedHash);
   }
@@ -397,7 +401,7 @@ final class PreambleUtil {
     final Format format = Format.SPARSE_HYBRID_MERGED;
     final byte preInts = getDefinedPreInts(format);
     final byte fiCol = (byte) 0;
-    final byte flags = (byte) ((format.ordinal() << 2) | READ_ONLY_FLAG_MASK);
+    final byte flags = (byte) ((format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
     checkCapacity(wmem.getCapacity(), 4L * (preInts + csvLength));
     putFirst8(wmem, preInts, (byte) lgK, fiCol, flags, seedHash);
 
@@ -417,7 +421,7 @@ final class PreambleUtil {
     final Format format = Format.SPARSE_HYBRID_HIP;
     final byte preInts = getDefinedPreInts(format);
     final byte fiCol = (byte) 0;
-    final byte flags = (byte) ((format.ordinal() << 2) | READ_ONLY_FLAG_MASK);
+    final byte flags = (byte) ((format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
     checkCapacity(wmem.getCapacity(), 4L * (preInts + csvLength));
     putFirst8(wmem, preInts, (byte) lgK, fiCol, flags, seedHash);
 
@@ -437,7 +441,7 @@ final class PreambleUtil {
       final int[] cwStream) {
     final Format format = Format.PINNED_SLIDING_MERGED_NOCSV;
     final byte preInts = getDefinedPreInts(format);
-    final byte flags = (byte) ((format.ordinal() << 2) | READ_ONLY_FLAG_MASK);
+    final byte flags = (byte) ((format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
     checkCapacity(wmem.getCapacity(), 4L * (preInts + cwLength));
     putFirst8(wmem, preInts, (byte) lgK, (byte) fiCol, flags, seedHash);
 
@@ -457,7 +461,7 @@ final class PreambleUtil {
       final int[] cwStream) {
     final Format format = Format.PINNED_SLIDING_HIP_NOCSV;
     final byte preInts = getDefinedPreInts(format);
-    final byte flags = (byte) ((format.ordinal() << 2) | READ_ONLY_FLAG_MASK);
+    final byte flags = (byte) ((format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
     checkCapacity(wmem.getCapacity(), 4L * (preInts + cwLength));
     putFirst8(wmem, preInts, (byte) lgK, (byte) fiCol, flags, seedHash);
 
@@ -480,7 +484,7 @@ final class PreambleUtil {
       final int[] cwStream) {
     final Format format = Format.PINNED_SLIDING_MERGED;
     final byte preInts = getDefinedPreInts(format);
-    final byte flags = (byte) ((format.ordinal() << 2) | READ_ONLY_FLAG_MASK);
+    final byte flags = (byte) ((format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
     checkCapacity(wmem.getCapacity(), 4L * (preInts + csvLength + cwLength));
     putFirst8(wmem, preInts, (byte) lgK, (byte) fiCol, flags, seedHash);
 
@@ -506,7 +510,7 @@ final class PreambleUtil {
       final int[] cwStream) {
     final Format format = Format.PINNED_SLIDING_HIP;
     final byte preInts = getDefinedPreInts(format);
-    final byte flags = (byte) ((format.ordinal() << 2) | READ_ONLY_FLAG_MASK);
+    final byte flags = (byte) ((format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
     checkCapacity(wmem.getCapacity(), 4L * (preInts + csvLength + cwLength));
     putFirst8(wmem, preInts, (byte) lgK, (byte) fiCol, flags, seedHash);
 
@@ -553,7 +557,7 @@ final class PreambleUtil {
     //Flags of the Flags byte
     final String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
     final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
-    final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
+    final boolean compressed = (flags & COMPRESSED_FLAG_MASK) > 0;
     final boolean hasHip = (flags & HIP_FLAG_MASK) > 0;
     final boolean hasSV = (flags & SUP_VAL_FLAG_MASK) > 0;
     final boolean hasWindow = (flags & WINDOW_FLAG_MASK) > 0;
@@ -585,7 +589,7 @@ final class PreambleUtil {
     sb.append("Byte 5: Flags                   : ").append(flagsStr).append(LS);
     sb.append("  BIG_ENDIAN_STORAGE            : ").append(bigEndian).append(LS);
     sb.append("  (Native Byte Order)           : ").append(nativeOrderStr).append(LS);
-    sb.append("  READ_ONLY                     : ").append(readOnly).append(LS);
+    sb.append("  Compressed                    : ").append(compressed).append(LS);
     sb.append("  Has HIP                       : ").append(hasHip).append(LS);
     sb.append("  Has Surprising Values         : ").append(hasSV).append(LS);
     sb.append("  Has Window                    : ").append(hasWindow).append(LS);

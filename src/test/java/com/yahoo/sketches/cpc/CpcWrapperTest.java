@@ -51,7 +51,7 @@ public class CpcWrapperTest {
     byte[] mergedArr = merged.toByteArray();
 
     Memory concatMem = Memory.wrap(concatArr);
-    CpcWrapper concatSk = new CpcWrapper(concatMem);
+    CompressedCpcWrapper concatSk = new CompressedCpcWrapper(concatMem);
 
     printf("              %12s %12s %12s\n", "Lb", "Est", "Ub");
     double ccEst = concatSk.getEstimate();
@@ -60,12 +60,12 @@ public class CpcWrapperTest {
     printf("Concatenated: %12.0f %12.0f %12.0f\n", ccLb, ccEst, ccUb);
 
     //Memory mergedMem = Memory.wrap(mergedArr);
-    CpcWrapper mergedSk = new CpcWrapper(mergedArr);
+    CompressedCpcWrapper mergedSk = new CompressedCpcWrapper(mergedArr);
     double mEst = mergedSk.getEstimate();
     double mLb = mergedSk.getLowerBound(2);
     double mUb = mergedSk.getUpperBound(2);
     printf("Merged:       %12.0f %12.0f %12.0f\n", mLb, mEst, mUb);
-    assertEquals(Family.CPC, CpcWrapper.getFamily());
+    assertEquals(Family.CPC, CompressedCpcWrapper.getFamily());
 
   }
 

@@ -515,8 +515,7 @@ final class CpcCompression {
     assert numPairs > 0;
     final int[] pairs = new int[numPairs];
     final int numBaseBits = CpcCompression.golombChooseNumberOfBaseBits(srcK + numPairs, numPairs);
-    lowLevelUncompressPairs(pairs, numPairs, numBaseBits,
-        source.csvStream, source.csvLength);
+    lowLevelUncompressPairs(pairs, numPairs, numBaseBits, source.csvStream, source.csvLength);
     return pairs;
   }
 

@@ -17,6 +17,7 @@ import com.yahoo.memory.MapHandle;
 import com.yahoo.memory.Memory;
 
 /**
+ * Checks sketch images obtained from C++.
  * @author Lee Rhodes
  */
 public class CpcCBinariesTest {
@@ -53,11 +54,11 @@ public class CpcCBinariesTest {
       CpcSketch sk = CpcSketch.heapify(mem);
       println(sk.toString(true));
       assertEquals(sk.getFlavor(), Flavor.SPARSE);
-      double est = sk.getEstimate();
-      assertEquals(est, 100, 100 * .02);
+      double est1 = sk.getEstimate();
+      assertEquals(est1, 100, 100 * .02);
       for (int i = 0; i < 100; i++) { sk.update(i); }
-      est = sk.getEstimate();
-      assertEquals(est, 100, 100 * .02);
+      double est2 = sk.getEstimate();
+      assertEquals(est2, est1, 0); //assert no change
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -68,12 +69,22 @@ public class CpcCBinariesTest {
     String fileName = "cpc-hybrid.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
     try (MapHandle mh = Memory.map(file)) {
-      Memory wmem = mh.get();
-      CpcSketch sk = CpcSketch.heapify(wmem);
+      Memory mem = mh.get();
+      println("CPP GENERATED SKETCH FROM BINARY FILE LgK=11, U0 to U199");
+      println("PreambleUtil.toString(mem, true)" + LS);
+      println(PreambleUtil.toString(mem, true));
+
+      println(LS + LS + "################");
+      println("CpcSketch sk = CpcSketch.heapify(mem);");
+      println("sk.toString(true)" + LS);
+      CpcSketch sk = CpcSketch.heapify(mem);
+      println(sk.toString(true));
       assertEquals(sk.getFlavor(), Flavor.HYBRID);
-      assertEquals(sk.getEstimate(), 200, 200 * .02);
+      double est1 = sk.getEstimate();
+      assertEquals(est1, 200, 200 * .02);
       for (long i = 0; i < 200; i++) { sk.update(i); }
-      assertEquals(sk.getEstimate(), 200, 200 * .02);
+      double est2 = sk.getEstimate();
+      assertEquals(est2, est1, 0); //assert no change
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -84,12 +95,22 @@ public class CpcCBinariesTest {
     String fileName = "cpc-pinned.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
     try (MapHandle mh = Memory.map(file)) {
-      Memory wmem = mh.get();
-      CpcSketch sk = CpcSketch.heapify(wmem);
+      Memory mem = mh.get();
+      println("CPP GENERATED SKETCH FROM BINARY FILE LgK=11, U0 to U1999");
+      println("PreambleUtil.toString(mem, true)" + LS);
+      println(PreambleUtil.toString(mem, true));
+
+      println(LS + LS + "################");
+      println("CpcSketch sk = CpcSketch.heapify(mem);");
+      println("sk.toString(true)" + LS);
+      CpcSketch sk = CpcSketch.heapify(mem);
+      println(sk.toString(true));
       assertEquals(sk.getFlavor(), Flavor.PINNED);
-      assertEquals(sk.getEstimate(), 2000, 2000 * .02);
+      double est1 = sk.getEstimate();
+      assertEquals(est1, 2000, 2000 * .02);
       for (long i = 0; i < 2000; i++) { sk.update(i); }
-      assertEquals(sk.getEstimate(), 2000, 2000 * .02);
+      double est2 = sk.getEstimate();
+      assertEquals(est2, est1, 0); //assert no change
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -100,12 +121,22 @@ public class CpcCBinariesTest {
     String fileName = "cpc-sliding.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
     try (MapHandle mh = Memory.map(file)) {
-      Memory wmem = mh.get();
-      CpcSketch sk = CpcSketch.heapify(wmem);
+      Memory mem = mh.get();
+      println("CPP GENERATED SKETCH FROM BINARY FILE LgK=11, U0 to U19999");
+      println("PreambleUtil.toString(mem, true)" + LS);
+      println(PreambleUtil.toString(mem, true));
+
+      println(LS + LS + "################");
+      println("CpcSketch sk = CpcSketch.heapify(mem);");
+      println("sk.toString(true)" + LS);
+      CpcSketch sk = CpcSketch.heapify(mem);
+      println(sk.toString(true));
       assertEquals(sk.getFlavor(), Flavor.SLIDING);
-      assertEquals(sk.getEstimate(), 20000, 20000 * .02);
+      double est1 = sk.getEstimate();
+      assertEquals(est1, 20000, 20000 * .02);
       for (long i = 0; i < 20000; i++) { sk.update(i); }
-      assertEquals(sk.getEstimate(), 20000, 20000 * .02);
+      double est2 = sk.getEstimate();
+      assertEquals(est2, est1, 0);
     } catch (IOException e) {
       e.printStackTrace();
     }

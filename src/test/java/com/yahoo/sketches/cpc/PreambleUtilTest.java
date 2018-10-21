@@ -7,7 +7,7 @@ package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.Util.computeSeedHash;
-import static com.yahoo.sketches.cpc.PreambleUtil.READ_ONLY_FLAG_MASK;
+import static com.yahoo.sketches.cpc.PreambleUtil.COMPRESSED_FLAG_MASK;
 import static com.yahoo.sketches.cpc.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.cpc.PreambleUtil.getCsvLength;
 import static com.yahoo.sketches.cpc.PreambleUtil.getCsvStreamOffset;
@@ -60,7 +60,7 @@ public class PreambleUtilTest {
     assertEquals(getFamily(wmem), Family.CPC);
     assertEquals(getLgK(wmem), lgK);
     assertEquals(getFiCol(wmem), fiCol);
-    assertEquals(getFlags(wmem), (format.ordinal() << 2) | READ_ONLY_FLAG_MASK);
+    assertEquals(getFlags(wmem), (format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
     assertEquals(getSeedHash(wmem), defaultSeedHash);
   }
 
