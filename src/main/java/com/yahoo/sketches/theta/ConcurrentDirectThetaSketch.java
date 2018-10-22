@@ -24,8 +24,10 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch
   private volatile long volatileThetaLong_;
   private volatile double volatileEstimate_;
   // A flag to coordinate between several propagation threads
-  private AtomicBoolean sharedPropagationInProgress_;
-
+  private final AtomicBoolean sharedPropagationInProgress_;
+  // An epoch defines an interval between two resets. A propagation invoked at epoch i cannot
+  // affect the sketch at epoch j>i.
+  private volatile long epoch_;
 
 
   /**
@@ -51,6 +53,7 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch
     volatileThetaLong_ = Long.MAX_VALUE;
     volatileEstimate_ = 0;
     sharedPropagationInProgress_ = new AtomicBoolean(false);
+    epoch_ = 0;
   }
 
   //Concurrent methods
@@ -85,8 +88,24 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch
       final AtomicBoolean localPropagationInProgress,
       final Sketch sketchIn,
       final long singleHash) {
+    final long epoch = epoch_;
+    final long k = 1 << getLgNomLongs();
+    if (singleHash != NOT_SINGLE_HASH           // namely, is a single hash
+        && getRetainedEntries(false) < (2 * k)  // and a small sketch
+    ) {                                         // then propagate myself (blocking)
+      startPropagation();
+      if (!validateEpoch(epoch)) {
+        endPropagation(null); // do not change local flag
+        return;
+      }
+      updateSingle(singleHash);
+      endPropagation(localPropagationInProgress);
+      return;
+    }
+    // otherwise, be nonblocking, let background thread do the work
     final BackgroundThetaPropagation job =
-        new BackgroundThetaPropagation(this, localPropagationInProgress, sketchIn, singleHash);
+        new BackgroundThetaPropagation(
+            this, localPropagationInProgress, sketchIn, singleHash, epoch);
     BackgroundThetaPropagation.propagationExecutorService.execute(job);
   }
 
@@ -94,8 +113,14 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch
     while (!sharedPropagationInProgress_.compareAndSet(false, true)) {} //busy wait till free
   }
 
-  @Override public void endPropagation() {
+  @Override public void endPropagation(final AtomicBoolean localPropagationInProgress) {
+    //update volatile theta, uniques estimate and propagation flag
+    updateVolatileTheta();
+    updateEstimationSnapshot();
     sharedPropagationInProgress_.set(false);
+    if (localPropagationInProgress != null) {
+      localPropagationInProgress.set(false); //clear local propagation flag
+    }
   }
 
   @Override public void updateSingle(final long hash) {
@@ -115,10 +140,26 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch
   }
 
   @Override public void reset() {
-    while (sharedPropagationInProgress_.get()) {}  // wait until no background processing
+    advanceEpoch();
     super.reset();
     volatileThetaLong_ = Long.MAX_VALUE;
     volatileEstimate_ = 0;
+  }
+
+  @Override public boolean validateEpoch(final long epoch) {
+    return epoch_ == epoch;
+  }
+
+  // Advances the epoch while there is no background propagation
+  // This ensures a propagation invoked before the reset cannot affect the sketch after the reset
+  // is completed.
+  private void advanceEpoch() {
+    startPropagation();
+    //noinspection NonAtomicOperationOnVolatileField
+    // this increment of a volatile field is done within the scope of the propagation
+    // synchronization and hence is done by a single thread
+    epoch_++;
+    endPropagation(null);
   }
 
 }

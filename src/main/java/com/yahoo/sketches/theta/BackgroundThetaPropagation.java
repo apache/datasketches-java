@@ -11,29 +11,37 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author eshcar
  */
 class BackgroundThetaPropagation implements Runnable {
-  static int NUM_POOL_THREADS = 3;
-  static ExecutorService propagationExecutorService =
+  static private final int NUM_POOL_THREADS = 3;
+  static final ExecutorService propagationExecutorService =
       Executors.newWorkStealingPool(NUM_POOL_THREADS);
 
-  private SharedThetaSketch sharedThetaSketch;
-  private AtomicBoolean localPropagationInProgress;
-  private Sketch sketchIn;
-  private long singleHash;
+  private final SharedThetaSketch sharedThetaSketch;
+  private final AtomicBoolean localPropagationInProgress;
+  private final Sketch sketchIn;
+  private final long singleHash;
+  private final long epoch;
 
-  public BackgroundThetaPropagation(SharedThetaSketch sharedThetaSketch,
+  public BackgroundThetaPropagation(final SharedThetaSketch sharedThetaSketch,
       final AtomicBoolean localPropagationInProgress, final Sketch sketchIn,
-      final long singleHash) {
+      final long singleHash, final long epoch) {
     this.sharedThetaSketch = sharedThetaSketch;
     this.localPropagationInProgress = localPropagationInProgress;
     this.sketchIn = sketchIn;
     this.singleHash = singleHash;
+    this.epoch = epoch;
   }
 
   @Override public void run() {
     sharedThetaSketch.startPropagation();
     //At this point we are sure only a single thread is propagating data to the shared sketch
 
-    if (singleHash > 0) {
+    if (!sharedThetaSketch.validateEpoch(epoch)) {
+      // invalid epoch - should not propagate
+      sharedThetaSketch.endPropagation(null);
+      return;
+    }
+
+    if (singleHash != SharedThetaSketch.NOT_SINGLE_HASH) {
       sharedThetaSketch.updateSingle(singleHash); // backdoor update, hash function is bypassed
     } else if (sketchIn != null) {
       final long volTheta = sharedThetaSketch.getVolatileTheta();
@@ -45,8 +53,7 @@ class BackgroundThetaPropagation implements Runnable {
       final int len = cacheIn.length;
 
       if (sketchIn.isOrdered()) { //Ordered compact, Use early stop
-        for (int i = 0; i < len; i++) {
-          final long hashIn = cacheIn[i];
+        for (final long hashIn : cacheIn) {
           if (hashIn >= volTheta) {
             break; //early stop
           }
@@ -62,12 +69,8 @@ class BackgroundThetaPropagation implements Runnable {
       }
     }
 
-    //update volatile theta, uniques estimate and propagation flag
-    sharedThetaSketch.updateVolatileTheta();
-    sharedThetaSketch.updateEstimationSnapshot();
-    //propagation completed
-    sharedThetaSketch.endPropagation();
-    localPropagationInProgress.set(false); //clear local propagation flag
+    //complete propagation
+    sharedThetaSketch.endPropagation(localPropagationInProgress);
   }
 
 }

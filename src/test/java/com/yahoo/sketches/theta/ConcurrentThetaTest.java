@@ -140,7 +140,7 @@ public class ConcurrentThetaTest {
     case BASELINE:
       //sketch / gadget / sharedSketch already exists
       //sketchToinit /localSketch already exits, cannot set from sharedSketch
-      UpdateSketch updateSketch = Sketches.updateSketchBuilder()
+      updateSketch = Sketches.updateSketchBuilder()
           .setNominalEntries(1 << shared_lgK).build(wmem);
       System.out.println("");
       LOG.info("=============================================BASELINE_THETA"

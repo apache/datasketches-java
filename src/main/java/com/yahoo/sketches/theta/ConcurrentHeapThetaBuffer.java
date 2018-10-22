@@ -23,7 +23,7 @@ import com.yahoo.sketches.ResizeFactor;
  * @author Lee Rhodes
  */
 public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
-  private int cacheLimit;
+  private final int cacheLimit;
   private final SharedThetaSketch shared;
   private final AtomicBoolean localPropagationInProgress;
   private final boolean propagateOrderedCompact;
@@ -107,7 +107,7 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
 
     final CompactSketch compactSketch = compact(propagateOrderedCompact, null);
     localPropagationInProgress.set(true);
-    shared.propagate(localPropagationInProgress, compactSketch, -1L);
+    shared.propagate(localPropagationInProgress, compactSketch, SharedThetaSketch.NOT_SINGLE_HASH);
     reset();
   }
 }

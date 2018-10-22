@@ -7,11 +7,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author eshcar
  */
 public interface SharedThetaSketch {
+  long NOT_SINGLE_HASH = -1L;
+
   double getEstimationSnapshot();
+
   void updateEstimationSnapshot();
+
   long getVolatileTheta();
+
   void updateVolatileTheta();
+
   boolean isPropagationInProgress();
+
   /**
    * Propagates the given sketch or hash value into this sketch
    * @param localPropagationInProgress the flag to be updated when done
@@ -23,12 +30,18 @@ public interface SharedThetaSketch {
       final long singleHash);
 
   void startPropagation();
-  void endPropagation();
+
+  void endPropagation(AtomicBoolean localPropagationInProgress);
+
+  boolean validateEpoch(long epoch);
+
   void updateSingle(long hash);
 
   // For characterization tests
   void resetShared();
+
   void rebuildShared();
+
   CompactSketch compactShared();
 
 }
